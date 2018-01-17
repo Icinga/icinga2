@@ -51,16 +51,16 @@ Dictionary::Ptr UserDbObject::GetConfigFields() const
 		{ "host_notifications_enabled", user->GetEnableNotifications() },
 		{ "service_notifications_enabled", user->GetEnableNotifications() },
 		{ "can_submit_commands", 1 },
-		{ "notify_service_recovery", (typeFilter & NotificationRecovery) != 0 },
-		{ "notify_service_warning", (stateFilter & StateFilterWarning) != 0 },
-		{ "notify_service_unknown", (stateFilter & StateFilterUnknown) != 0 },
-		{ "notify_service_critical", (stateFilter & StateFilterCritical) != 0 },
-		{ "notify_service_flapping", (typeFilter & (NotificationFlappingStart | NotificationFlappingEnd)) != 0 },
-		{ "notify_service_downtime", (typeFilter & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved)) != 0 },
-		{ "notify_host_recovery", (typeFilter & NotificationRecovery) != 0 },
-		{ "notify_host_down", (stateFilter & StateFilterDown) != 0 },
-		{ "notify_host_flapping", (typeFilter & (NotificationFlappingStart | NotificationFlappingEnd)) != 0 },
-		{ "notify_host_downtime", (typeFilter & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved)) != 0 }
+		{ "notify_service_recovery", (typeFilter & NotificationRecovery) ? 1 : 0 },
+		{ "notify_service_warning", (stateFilter & StateFilterWarning) ? 1 : 0 },
+		{ "notify_service_unknown", (stateFilter & StateFilterUnknown) ? 1 : 0 },
+		{ "notify_service_critical", (stateFilter & StateFilterCritical) ? 1 : 0 },
+		{ "notify_service_flapping", (typeFilter & (NotificationFlappingStart | NotificationFlappingEnd)) ? 1 : 0 },
+		{ "notify_service_downtime", (typeFilter & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved)) ? 1 : 0 },
+		{ "notify_host_recovery", (typeFilter & NotificationRecovery) ? 1 : 0 },
+		{ "notify_host_down", (stateFilter & StateFilterDown) ? 1 : 0 },
+		{ "notify_host_flapping", (typeFilter & (NotificationFlappingStart | NotificationFlappingEnd)) ? 1 : 0 },
+		{ "notify_host_downtime", (typeFilter & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved)) ? 1 : 0 }
 	});
 }
 

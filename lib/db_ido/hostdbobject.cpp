@@ -81,11 +81,11 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 		{ "icon_image", host->GetIconImage() },
 		{ "icon_image_alt", host->GetIconImageAlt() },
 		{ "notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(host) },
-		{ "notify_on_down", (notificationStateFilter & ServiceWarning) || (notificationStateFilter && ServiceCritical) },
+		{ "notify_on_down", (notificationStateFilter & (ServiceWarning | ServiceCritical)) ? 1 : 0 },
 		{ "notify_on_unreachable", 1 }, /* We don't have this filter and state, and as such we don't filter such notifications. */
-		{ "notify_on_recovery", notificationTypeFilter & NotificationRecovery },
-		{ "notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) || (notificationTypeFilter & NotificationFlappingEnd) },
-		{ "notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) || (notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved) }
+		{ "notify_on_recovery", (notificationTypeFilter & NotificationRecovery) ? 1 : 0 },
+		{ "notify_on_flapping", (notificationTypeFilter & (NotificationFlappingStart | NotificationFlappingEnd)) ? 1 : 0 },
+		{ "notify_on_downtime", (notificationTypeFilter & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved)) ? 1 : 0 }
 	});
 }
 
@@ -275,8 +275,8 @@ void HostDbObject::OnConfigUpdateHeavy()
 			{ "dependent_host_object_id", host },
 			{ "inherits_parent", 1 },
 			{ "timeperiod_object_id", dep->GetPeriod() },
-			{ "fail_on_up", stateFilter & StateFilterUp },
-			{ "fail_on_down", stateFilter & StateFilterDown },
+			{ "fail_on_up", (stateFilter & StateFilterUp) ? 1 : 0 },
+			{ "fail_on_down", (stateFilter & StateFilterDown) ? 1 : 0 },
 			{ "instance_id", 0 } /* DbConnection class fills in real ID */
 		});
 		queries.emplace_back(std::move(query2));
