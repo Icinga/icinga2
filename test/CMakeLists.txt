@@ -44,7 +44,7 @@ set(base_test_SOURCES
   icinga-notification.cpp
   icinga-perfdata.cpp
   remote-url.cpp
-  $<TARGET_OBJECTS:base>
+  ${base_OBJS}
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>
   $<TARGET_OBJECTS:icinga>
@@ -146,7 +146,7 @@ if(ICINGA2_WITH_LIVESTATUS)
   set(livestatus_test_SOURCES
     livestatus-fixture.cpp
     livestatus.cpp
-    $<TARGET_OBJECTS:base>
+    ${base_OBJS}
     $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:remote>
     $<TARGET_OBJECTS:icinga>
@@ -168,7 +168,7 @@ endif()
 set(icinga_checkable_test_SOURCES
   icinga-checkable-fixture.cpp
   icinga-checkable-flapping.cpp
-  $<TARGET_OBJECTS:base>
+  ${base_OBJS}
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>
   $<TARGET_OBJECTS:icinga>

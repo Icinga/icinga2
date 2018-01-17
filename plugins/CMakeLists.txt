@@ -17,7 +17,7 @@
 
 add_executable(check_nscp_api
   check_nscp_api.cpp
-  $<TARGET_OBJECTS:base>
+  ${base_OBJS}
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>
 )

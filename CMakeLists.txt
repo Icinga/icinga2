@@ -123,12 +123,17 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
+set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
+set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:base>)
+
 find_package(YAJL)
 
 if(NOT YAJL_FOUND)
   include_directories(${icinga2_BINARY_DIR}/third-party/yajl/include)
   link_directories(${icinga2_BINARY_DIR}/third-party/yajl)
-  set(YAJL_LIBRARIES "yajl")
+  list(APPEND base_SOURCES $<TARGET_OBJECTS:yajl>)
+else()
+  list(APPEND base_DEPS ${YAJL_LIBRARIES})
 endif()
 
 find_package(Editline)
@@ -142,14 +147,12 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
 )
 
-set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${YAJL_LIBRARIES} mmatch socketpair)
-
 if(HAVE_LIBEXECINFO)
   list(APPEND base_DEPS execinfo)
 endif()
 
 if(UNIX OR CYGWIN)
-  list(APPEND base_DEPS execvpe)
+  list(APPEND base_OBJS $<TARGET_OBJECTS:execvpe>)
 endif()
 
 if(EDITLINE_FOUND)

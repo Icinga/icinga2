@@ -30,7 +30,7 @@ ADD_DEFINITIONS(-DYAJL_BUILD)
 # set up some paths
 SET (incDir ${CMAKE_CURRENT_BINARY_DIR}/../include/yajl)
 
-ADD_LIBRARY(yajl STATIC ${SRCS} ${HDRS} ${PUB_HDRS})
+ADD_LIBRARY(yajl OBJECT ${SRCS} ${HDRS} ${PUB_HDRS})
 
 #### setup shared library version number
 SET_TARGET_PROPERTIES(yajl
