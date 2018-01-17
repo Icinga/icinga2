@@ -31,16 +31,14 @@ if [ ! -e $ICINGA2_CONFIG_FILE ]; then
 	exit 6
 fi
 
-ICINGA2_USER=`$DAEMON variable get --current RunAsUser`
-if [ $? != 0 ]; then
-        echo "Could not fetch RunAsUser variable. Error '$ICINGA2_USER'. Exiting."
-        exit 6
+if [ ! $ICINGA2_USER ]; then
+	echo "Could not fetch \$ICINGA2_USER. Exiting."
+	exit 6
 fi
 
-ICINGA2_GROUP=`$DAEMON variable get --current RunAsGroup`
-if [ $? != 0 ]; then
-        echo "Could not fetch RunAsGroup variable. Error '$ICINGA2_GROUP'. Exiting."
-        exit 6
+if [ ! $ICINGA2_GROUP ]; then
+	echo "Could not fetch \$ICINGA2_GROUP. Exiting."
+	exit 6
 fi
 
 getent passwd $ICINGA2_USER >/dev/null 2>&1 || (echo "Icinga user '$ICINGA2_USER' does not exist. Exiting." && exit 6)
