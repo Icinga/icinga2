@@ -208,6 +208,11 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 				lengthIndicator = Convert::ToLong(contentLengthHeader);
 			}
 
+			if (!hasLengthIndicator && ProtocolVersion != HttpVersion10 && !Headers->Contains("transfer-encoding")) {
+				Complete = true;
+				return true;
+			}
+
 			if (hasLengthIndicator && src.Eof)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Unexpected EOF in HTTP body"));
 
