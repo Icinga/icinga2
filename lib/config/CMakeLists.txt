@@ -52,9 +52,9 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(config config config_SOURCES)
 endif()
 
-add_library(config STATIC ${config_SOURCES})
+add_library(config OBJECT ${config_SOURCES})
 
-target_link_libraries(config ${Boost_LIBRARIES} base)
+add_dependencies(config base)
 
 set_target_properties (
   config PROPERTIES

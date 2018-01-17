@@ -35,9 +35,9 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(perfdata perfdata perfdata_SOURCES)
 endif()
 
-add_library(perfdata STATIC ${perfdata_SOURCES})
+add_library(perfdata OBJECT ${perfdata_SOURCES})
 
-target_link_libraries(perfdata ${Boost_LIBRARIES} base config icinga)
+add_dependencies(perfdata base config icinga)
 
 set_target_properties (
   perfdata PROPERTIES

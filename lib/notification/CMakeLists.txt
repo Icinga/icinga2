@@ -25,9 +25,9 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(notification notification notification_SOURCES)
 endif()
 
-add_library(notification STATIC ${notification_SOURCES})
+add_library(notification OBJECT ${notification_SOURCES})
 
-target_link_libraries(notification ${Boost_LIBRARIES} base config icinga)
+add_dependencies(notification base config icinga)
 
 set_target_properties (
   notification PROPERTIES

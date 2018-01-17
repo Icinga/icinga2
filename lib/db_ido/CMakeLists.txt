@@ -45,10 +45,9 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(db_ido db_ido db_ido_SOURCES)
 endif()
 
-add_library(db_ido STATIC ${db_ido_SOURCES})
+add_library(db_ido OBJECT ${db_ido_SOURCES})
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(db_ido ${Boost_LIBRARIES} base config icinga remote)
+add_dependencies(db_ido base config icinga remote)
 
 set_target_properties (
   db_ido PROPERTIES

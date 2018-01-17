@@ -80,9 +80,9 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(icinga icinga icinga_SOURCES)
 endif()
 
-add_library(icinga STATIC ${icinga_SOURCES})
+add_library(icinga OBJECT ${icinga_SOURCES})
 
-target_link_libraries(icinga ${Boost_LIBRARIES} base config remote)
+add_dependencies(icinga base config remote)
 
 set_target_properties (
   icinga PROPERTIES

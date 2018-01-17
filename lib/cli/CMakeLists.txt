@@ -51,19 +51,9 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(cli cli cli_SOURCES)
 endif()
 
-add_library(cli STATIC ${cli_SOURCES})
+add_library(cli OBJECT ${cli_SOURCES})
 
-target_link_libraries(cli ${Boost_LIBRARIES} base config remote)
-
-if(EDITLINE_FOUND)
-  target_link_libraries(cli ${EDITLINE_LIBRARIES})
-  include_directories(${EDITLINE_INCLUDE_DIR})
-endif()
-
-if(TERMCAP_FOUND)
-  target_link_libraries(cli ${TERMCAP_LIBRARIES})
-  include_directories(${TERMCAP_INCLUDE_DIR})
-endif()
+add_dependencies(cli base config remote)
 
 set_target_properties (
   cli PROPERTIES

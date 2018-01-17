@@ -67,10 +67,9 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(remote remote remote_SOURCES)
 endif()
 
-add_library(remote STATIC ${remote_SOURCES})
+add_library(remote OBJECT ${remote_SOURCES})
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(remote ${Boost_LIBRARIES} base config)
+add_dependencies(remote base config)
 
 set_target_properties (
   remote PROPERTIES
