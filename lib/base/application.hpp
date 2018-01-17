@@ -205,6 +205,7 @@ private:
 
 	static void SigAbrtHandler(int signum);
 	static void SigUsr1Handler(int signum);
+	static void SigUsr2Handler(int signum);
 	static void ExceptionHandler();
 
 	static String GetCrashReportFilename();

@@ -34,9 +34,6 @@ if(NOT WIN32)
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   )
 
-  option (USE_SYSTEMD
-    "Configure icinga as native systemd service instead of a SysV initscript" OFF)
-
   # required for packaging on Gentoo, see Bug #6498
   option (INSTALL_SYSTEMD_SERVICE_AND_INITSCRIPT
     "Force install both the systemd service definition file and the SysV initscript in parallel, regardless of how USE_SYSTEMD is set. Only use this for special packaging purposes and if you know what you are doing" OFF)

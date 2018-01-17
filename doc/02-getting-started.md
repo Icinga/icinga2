@@ -360,6 +360,14 @@ content:
     StartLimitInterval=10
     StartLimitBurst=3
 
+Using the watchdog can also help with monitoring Icinga 2, to activate and use it add the following to the override:
+
+    WatchdogSec=30s
+
+This way Systemd will kill Icinga 2 if does not notify for over 30 seconds, a timout of less than 10 seconds is not
+recommended. When the watchdog is activated, `Restart=` can be set to `watchdog` to restart Icinga 2 in the case of a
+watchdog timeout.
+
 Run `systemctl daemon-reload && systemctl restart icinga2` to apply the changes.
 Now Systemd will always try to restart Icinga 2 (except if you run
 `systemctl stop icinga2`). After three failures in ten seconds it will stop
