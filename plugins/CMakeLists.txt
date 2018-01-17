@@ -15,11 +15,13 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_executable ( check_nscp_api check_nscp_api.cpp  )
-target_link_libraries ( check_nscp_api ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY})
-add_whole_static_library(check_nscp_api base)
-add_whole_static_library(check_nscp_api config)
-add_whole_static_library(check_nscp_api remote)
+add_executable(check_nscp_api
+  check_nscp_api.cpp
+  $<TARGET_OBJECTS:base>
+  $<TARGET_OBJECTS:config>
+  $<TARGET_OBJECTS:remote>
+)
+target_link_libraries(check_nscp_api ${base_DEPS})
 set_target_properties (
   check_nscp_api PROPERTIES
   INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2

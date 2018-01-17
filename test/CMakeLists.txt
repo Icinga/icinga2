@@ -44,6 +44,10 @@ set(base_test_SOURCES
   icinga-notification.cpp
   icinga-perfdata.cpp
   remote-url.cpp
+  $<TARGET_OBJECTS:base>
+  $<TARGET_OBJECTS:config>
+  $<TARGET_OBJECTS:remote>
+  $<TARGET_OBJECTS:icinga>
 )
 
 if(ICINGA2_UNITY_BUILD)
@@ -52,6 +56,7 @@ endif()
 
 add_boost_test(base
   SOURCES test-runner.cpp ${base_test_SOURCES}
+  LIBRARIES ${base_DEPS}
   TESTS base_array/construct
         base_array/getset
         base_array/resize
@@ -137,14 +142,16 @@ add_boost_test(base
         remote_url/illegal_legal_strings
 )
 
-add_whole_static_library(${base_TARGET_NAME} base)
-add_whole_static_library(${base_TARGET_NAME} config)
-add_whole_static_library(${base_TARGET_NAME} icinga)
-
 if(ICINGA2_WITH_LIVESTATUS)
   set(livestatus_test_SOURCES
     livestatus-fixture.cpp
     livestatus.cpp
+    $<TARGET_OBJECTS:base>
+    $<TARGET_OBJECTS:config>
+    $<TARGET_OBJECTS:remote>
+    $<TARGET_OBJECTS:icinga>
+    $<TARGET_OBJECTS:livestatus>
+    $<TARGET_OBJECTS:methods>
   )
 
   if(ICINGA2_UNITY_BUILD)
@@ -153,19 +160,19 @@ if(ICINGA2_WITH_LIVESTATUS)
 
   add_boost_test(livestatus
     SOURCES test-runner.cpp ${livestatus_test_SOURCES}
+    LIBRARIES ${base_DEPS}
     TESTS livestatus/hosts livestatus/services
   )
-
-  add_whole_static_library(${livestatus_TARGET_NAME} base)
-  add_whole_static_library(${livestatus_TARGET_NAME} config)
-  add_whole_static_library(${livestatus_TARGET_NAME} icinga)
-  add_whole_static_library(${livestatus_TARGET_NAME} livestatus)
-  add_whole_static_library(${livestatus_TARGET_NAME} methods)
 endif()
 
 set(icinga_checkable_test_SOURCES
   icinga-checkable-fixture.cpp
   icinga-checkable-flapping.cpp
+  $<TARGET_OBJECTS:base>
+  $<TARGET_OBJECTS:config>
+  $<TARGET_OBJECTS:remote>
+  $<TARGET_OBJECTS:icinga>
+  $<TARGET_OBJECTS:cli>
 )
 
 if(ICINGA2_UNITY_BUILD)
@@ -174,13 +181,9 @@ endif()
 
 add_boost_test(icinga_checkable
   SOURCES test-runner.cpp ${icinga_checkable_test_SOURCES}
+  LIBRARIES ${base_DEPS}
   TESTS icinga_checkable_flapping/host_not_flapping
         icinga_checkable_flapping/host_flapping
         icinga_checkable_flapping/host_flapping_recover
         icinga_checkable_flapping/host_flapping_docs_example
 )
-
-add_whole_static_library(${icinga_checkable_TARGET_NAME} base)
-add_whole_static_library(${icinga_checkable_TARGET_NAME} config)
-add_whole_static_library(${icinga_checkable_TARGET_NAME} icinga)
-add_whole_static_library(${icinga_checkable_TARGET_NAME} cli)

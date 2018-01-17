@@ -44,9 +44,9 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(methods methods methods_SOURCES)
 endif()
 
-add_library(methods STATIC ${methods_SOURCES})
+add_library(methods OBJECT ${methods_SOURCES})
 
-target_link_libraries(methods ${Boost_LIBRARIES} base config icinga)
+add_dependencies(methods base config icinga)
 
 set_target_properties (
   methods PROPERTIES

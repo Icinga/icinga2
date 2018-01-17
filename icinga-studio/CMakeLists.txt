@@ -32,14 +32,14 @@ set(icinga_studio_SOURCES
   connectform.cpp connectform.hpp
   mainform.cpp mainform.hpp
   icinga.icns ${WindowsSources}
+  $<TARGET_OBJECTS:base>
+  $<TARGET_OBJECTS:config>
+  $<TARGET_OBJECTS:remote>
 )
 
 add_executable(icinga-studio MACOSX_BUNDLE WIN32 ${icinga_studio_SOURCES})
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(icinga-studio ${Boost_LIBRARIES} ${wxWidgets_LIBRARIES})
-add_whole_static_library(icinga-studio base)
-add_whole_static_library(icinga-studio remote)
+target_link_libraries(icinga-studio ${base_DEPS} ${wxWidgets_LIBRARIES})
 
 if(APPLE)
   set_source_files_properties(icinga.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)

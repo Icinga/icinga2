@@ -25,11 +25,11 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(db_ido_pgsql db_ido_pgsql db_ido_pgsql_SOURCES)
 endif()
 
-add_library(db_ido_pgsql STATIC ${db_ido_pgsql_SOURCES})
+add_library(db_ido_pgsql OBJECT ${db_ido_pgsql_SOURCES})
 
 include_directories(${PostgreSQL_INCLUDE_DIRS})
 
-target_link_libraries(db_ido_pgsql ${Boost_LIBRARIES} base config icinga db_ido)
+add_dependencies(db_ido_pgsql base config icinga db_ido)
 
 set_target_properties (
   db_ido_pgsql PROPERTIES

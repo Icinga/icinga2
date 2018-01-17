@@ -61,9 +61,9 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(livestatus livestatus livestatus_SOURCES)
 endif()
 
-add_library(livestatus STATIC ${livestatus_SOURCES})
+add_library(livestatus OBJECT ${livestatus_SOURCES})
 
-target_link_libraries(livestatus ${Boost_LIBRARIES} base config icinga remote)
+add_dependencies(livestatus base config icinga remote)
 
 set_target_properties (
   livestatus PROPERTIES

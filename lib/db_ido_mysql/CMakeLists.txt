@@ -25,11 +25,11 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(db_ido_mysql db_ido_mysql db_ido_mysql_SOURCES)
 endif()
 
-add_library(db_ido_mysql STATIC ${db_ido_mysql_SOURCES})
+add_library(db_ido_mysql OBJECT ${db_ido_mysql_SOURCES})
 
 include_directories(${MYSQL_INCLUDE_DIR})
 
-target_link_libraries(db_ido_mysql ${Boost_LIBRARIES} base config icinga db_ido)
+add_dependencies(db_ido_mysql base config icinga db_ido)
 
 set_target_properties (
   db_ido_mysql PROPERTIES

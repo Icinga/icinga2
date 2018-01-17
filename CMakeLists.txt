@@ -142,6 +142,30 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
 )
 
+set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${YAJL_LIBRARIES} mmatch socketpair)
+
+if(HAVE_LIBEXECINFO)
+  list(APPEND base_DEPS execinfo)
+endif()
+
+if(UNIX OR CYGWIN)
+  list(APPEND base_DEPS execvpe)
+endif()
+
+if(EDITLINE_FOUND)
+  list(APPEND base_DEPS ${EDITLINE_LIBRARIES})
+  include_directories(${EDITLINE_INCLUDE_DIR})
+endif()
+
+if(TERMCAP_FOUND)
+  list(APPEND base_DEPS ${TERMCAP_LIBRARIES})
+  include_directories(${TERMCAP_INCLUDE_DIR})
+endif()
+
+if(WIN32)
+  list(APPEND base_DEPS ws2_32 dbghelp shlwapi msi)
+endif()
+
 set(CMAKE_MACOSX_RPATH 1)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -175,21 +199,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
   endif()
-endif()
-
-if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  function(add_whole_static_library target library)
-    target_link_libraries(${target} -force_load ${library})
-  endfunction()
-elseif(MSVC)
-  function(add_whole_static_library target library)
-    target_link_libraries(${target} ${library})
-    set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS "/wholearchive:${library} ")
-  endfunction()
-else()
-  function(add_whole_static_library target library)
-    target_link_libraries(${target} -Wl,--whole-archive ${library} -Wl,--no-whole-archive)
-  endfunction()
 endif()
 
 include(CheckCXXCompilerFlag)

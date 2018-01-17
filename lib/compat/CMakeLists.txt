@@ -31,9 +31,9 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(compat compat compat_SOURCES)
 endif()
 
-add_library(compat STATIC ${compat_SOURCES})
+add_library(compat OBJECT ${compat_SOURCES})
 
-target_link_libraries(compat ${Boost_LIBRARIES} base config icinga)
+add_dependencies(compat base config icinga)
 
 set_target_properties (
   compat PROPERTIES

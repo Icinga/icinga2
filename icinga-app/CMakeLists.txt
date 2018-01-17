@@ -31,48 +31,50 @@ add_dependencies(icingaloader base config cli)
 
 include_directories(${Boost_INCLUDE_DIRS})
 
-add_executable(icinga-app $<TARGET_OBJECTS:icingaloader>)
-
-add_whole_static_library(icinga-app base)
-add_whole_static_library(icinga-app config)
-add_whole_static_library(icinga-app remote)
-add_whole_static_library(icinga-app cli)
-
 if(ICINGA2_WITH_CHECKER)
-  add_whole_static_library(icinga-app checker)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:checker>)
 endif()
 
 if(ICINGA2_WITH_COMPAT)
-  add_whole_static_library(icinga-app compat)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:compat>)
 endif()
 
 if(ICINGA2_WITH_MYSQL OR ICINGA2_WITH_PGSQL)
-  add_whole_static_library(icinga-app db_ido)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:db_ido>)
 endif()
 
 if(ICINGA2_WITH_MYSQL)
-  add_whole_static_library(icinga-app db_ido_mysql)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:db_ido_mysql>)
 endif()
 
 if(ICINGA2_WITH_PGSQL)
-  add_whole_static_library(icinga-app db_ido_pgsql)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:db_ido_pgsql>)
 endif()
-
-add_whole_static_library(icinga-app icinga)
 
 if(ICINGA2_WITH_LIVESTATUS)
-  add_whole_static_library(icinga-app livestatus)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:livestatus>)
 endif()
 
-add_whole_static_library(icinga-app methods)
-
 if(ICINGA2_WITH_NOTIFICATION)
-  add_whole_static_library(icinga-app notification)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:notification>)
 endif()
 
 if(ICINGA2_WITH_PERFDATA)
-  add_whole_static_library(icinga-app perfdata)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:perfdata>)
 endif()
+
+add_executable(icinga-app
+  $<TARGET_OBJECTS:icingaloader>
+  $<TARGET_OBJECTS:base>
+  $<TARGET_OBJECTS:config>
+  $<TARGET_OBJECTS:remote>
+  $<TARGET_OBJECTS:cli>
+  $<TARGET_OBJECTS:icinga>
+  $<TARGET_OBJECTS:methods>
+  ${icinga_app_SOURCES}
+)
+
+target_link_libraries(icinga-app ${base_DEPS})
 
 set_target_properties (
   icinga-app PROPERTIES
