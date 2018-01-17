@@ -179,7 +179,7 @@ inline void intrusive_ptr_release(Object *object)
 {
 	uintptr_t refs = object->m_References.fetch_sub(1, std::memory_order_release);
 
-	if (unlikely(refs == 1)) {
+	if (refs == 1) {
 		std::atomic_thread_fence(std::memory_order_acquire);
 
 #ifdef I2_LEAK_DEBUG

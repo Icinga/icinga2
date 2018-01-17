@@ -64,7 +64,7 @@ public:
 		uintptr_t tmp = I2MUTEX_UNLOCKED;
 
 		while (!object->m_Mutex.compare_exchange_weak(tmp, I2MUTEX_LOCKED)) {
-			if (likely(tmp > I2MUTEX_LOCKED)) {
+			if (tmp > I2MUTEX_LOCKED) {
 				boost::recursive_mutex *mtx = reinterpret_cast<boost::recursive_mutex *>(tmp);
 				mtx->lock();
 
