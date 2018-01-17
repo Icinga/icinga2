@@ -323,6 +323,9 @@ String InfluxdbWriter::EscapeValue(const Value& value)
 	if (value.IsBoolean())
 		return value ? "true" : "false";
 
+	if (value.IsString())
+		return "\"" + EscapeKeyOrTagValue(value) + "\"";
+
 	return value;
 }
 
