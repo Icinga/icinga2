@@ -68,7 +68,7 @@ class InfluxdbWriter : ConfigObject
 			return new Dictionary({
 				{ "measurement", "$service.check_command$" },
 				{ "tags", new Dictionary({
-					{ "hostname", "$host.name" },
+					{ "hostname", "$host.name$" },
 					{ "service", "$service.name$" }
 				}) }
 			});
