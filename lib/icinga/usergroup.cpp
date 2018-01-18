@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/usergroup.hpp"
-#include "icinga/usergroup.tcpp"
+#include "icinga/usergroup-ti.cpp"
 #include "config/objectrule.hpp"
 #include "config/configitem.hpp"
 #include "base/configtype.hpp"

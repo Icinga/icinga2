@@ -21,7 +21,7 @@
 #define FILELOGGER_H
 
 #include "base/i2-base.hpp"
-#include "base/filelogger.thpp"
+#include "base/filelogger-ti.hpp"
 
 namespace icinga
 {

@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/filelogger.hpp"
-#include "base/filelogger.tcpp"
+#include "base/filelogger-ti.cpp"
 #include "base/configtype.hpp"
 #include "base/statsfunction.hpp"
 #include "base/application.hpp"

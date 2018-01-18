@@ -21,7 +21,7 @@
 #define DBCONNECTION_H
 
 #include "db_ido/i2-db_ido.hpp"
-#include "db_ido/dbconnection.thpp"
+#include "db_ido/dbconnection-ti.hpp"
 #include "db_ido/dbobject.hpp"
 #include "db_ido/dbquery.hpp"
 #include "base/timer.hpp"

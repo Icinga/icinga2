@@ -21,7 +21,7 @@
 #define HOSTGROUP_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/hostgroup.thpp"
+#include "icinga/hostgroup-ti.hpp"
 #include "icinga/host.hpp"
 
 namespace icinga

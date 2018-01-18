@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/perfdatavalue.hpp"
-#include "base/perfdatavalue.tcpp"
+#include "base/perfdatavalue-ti.cpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"

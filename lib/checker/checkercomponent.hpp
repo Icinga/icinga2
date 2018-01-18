@@ -20,7 +20,7 @@
 #ifndef CHECKERCOMPONENT_H
 #define CHECKERCOMPONENT_H
 
-#include "checker/checkercomponent.thpp"
+#include "checker/checkercomponent-ti.hpp"
 #include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/timer.hpp"

@@ -15,10 +15,10 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(notificationcomponent.ti notificationcomponent.tcpp notificationcomponent.thpp)
+mkclass_target(notificationcomponent.ti notificationcomponent-ti.cpp notificationcomponent-ti.hpp)
 
 set(notification_SOURCES
-  notificationcomponent.cpp notificationcomponent.hpp notificationcomponent.thpp
+  notificationcomponent.cpp notificationcomponent.hpp notificationcomponent-ti.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

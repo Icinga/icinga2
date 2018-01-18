@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "remote/zone.hpp"
-#include "remote/zone.tcpp"
+#include "remote/zone-ti.cpp"
 #include "remote/jsonrpcconnection.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"

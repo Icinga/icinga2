@@ -22,7 +22,7 @@
 
 #ifndef _WIN32
 #include "base/i2-base.hpp"
-#include "base/sysloglogger.thpp"
+#include "base/sysloglogger-ti.hpp"
 
 namespace icinga
 {

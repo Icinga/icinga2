@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "perfdata/elasticsearchwriter.hpp"
-#include "perfdata/elasticsearchwriter.tcpp"
+#include "perfdata/elasticsearchwriter-ti.cpp"
 #include "remote/url.hpp"
 #include "remote/httprequest.hpp"
 #include "remote/httpresponse.hpp"

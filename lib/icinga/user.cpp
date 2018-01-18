@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/user.hpp"
-#include "icinga/user.tcpp"
+#include "icinga/user-ti.cpp"
 #include "icinga/usergroup.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/usergroup.hpp"

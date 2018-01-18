@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "db_ido_pgsql/idopgsqlconnection.hpp"
-#include "db_ido_pgsql/idopgsqlconnection.tcpp"
+#include "db_ido_pgsql/idopgsqlconnection-ti.cpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
 #include "base/logger.hpp"

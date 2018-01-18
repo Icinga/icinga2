@@ -21,7 +21,7 @@
 #define HOST_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/host.thpp"
+#include "icinga/host-ti.hpp"
 #include "icinga/macroresolver.hpp"
 #include "icinga/checkresult.hpp"
 

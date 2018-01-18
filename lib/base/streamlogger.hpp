@@ -21,7 +21,7 @@
 #define STREAMLOGGER_H
 
 #include "base/i2-base.hpp"
-#include "base/streamlogger.thpp"
+#include "base/streamlogger-ti.hpp"
 #include "base/timer.hpp"
 #include <ostream>
 

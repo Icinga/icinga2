@@ -19,7 +19,7 @@
 
 #include "icinga/compatutility.hpp"
 #include "compat/checkresultreader.hpp"
-#include "compat/checkresultreader.tcpp"
+#include "compat/checkresultreader-ti.cpp"
 #include "icinga/service.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/icingaapplication.hpp"

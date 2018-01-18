@@ -21,8 +21,8 @@
 #define NOTIFICATION_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/notification.thpp"
-#include "icinga/checkable.thpp"
+#include "icinga/notification-ti.hpp"
+#include "icinga/checkable-ti.hpp"
 #include "icinga/user.hpp"
 #include "icinga/usergroup.hpp"
 #include "icinga/timeperiod.hpp"

@@ -21,7 +21,7 @@
 #define CHECKRESULT_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/checkresult.thpp"
+#include "icinga/checkresult-ti.hpp"
 
 namespace icinga
 {

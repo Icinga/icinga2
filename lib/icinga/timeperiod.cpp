@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/timeperiod.hpp"
-#include "icinga/timeperiod.tcpp"
+#include "icinga/timeperiod-ti.cpp"
 #include "icinga/legacytimeperiod.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"

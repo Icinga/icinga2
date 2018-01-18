@@ -21,7 +21,7 @@
 #define LIVESTATUSLISTENER_H
 
 #include "livestatus/i2-livestatus.hpp"
-#include "livestatus/livestatuslistener.thpp"
+#include "livestatus/livestatuslistener-ti.hpp"
 #include "livestatus/livestatusquery.hpp"
 #include "base/socket.hpp"
 #include <thread>

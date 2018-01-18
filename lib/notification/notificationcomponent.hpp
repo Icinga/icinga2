@@ -20,7 +20,7 @@
 #ifndef NOTIFICATIONCOMPONENT_H
 #define NOTIFICATIONCOMPONENT_H
 
-#include "notification/notificationcomponent.thpp"
+#include "notification/notificationcomponent-ti.hpp"
 #include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/timer.hpp"

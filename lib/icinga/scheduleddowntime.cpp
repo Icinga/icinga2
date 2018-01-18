@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/scheduleddowntime.hpp"
-#include "icinga/scheduleddowntime.tcpp"
+#include "icinga/scheduleddowntime-ti.cpp"
 #include "icinga/legacytimeperiod.hpp"
 #include "icinga/downtime.hpp"
 #include "icinga/service.hpp"

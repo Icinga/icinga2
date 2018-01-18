@@ -21,7 +21,7 @@
 #define SCHEDULEDDOWNTIME_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/scheduleddowntime.thpp"
+#include "icinga/scheduleddowntime-ti.hpp"
 #include "icinga/checkable.hpp"
 
 namespace icinga

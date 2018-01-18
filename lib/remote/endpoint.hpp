@@ -21,7 +21,7 @@
 #define ENDPOINT_H
 
 #include "remote/i2-remote.hpp"
-#include "remote/endpoint.thpp"
+#include "remote/endpoint-ti.hpp"
 #include "base/ringbuffer.hpp"
 #include <set>
 

@@ -20,7 +20,7 @@
 #ifndef INFLUXDBWRITER_H
 #define INFLUXDBWRITER_H
 
-#include "perfdata/influxdbwriter.thpp"
+#include "perfdata/influxdbwriter-ti.hpp"
 #include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"

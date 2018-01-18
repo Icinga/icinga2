@@ -20,7 +20,7 @@
 #ifndef IDOMYSQLCONNECTION_H
 #define IDOMYSQLCONNECTION_H
 
-#include "db_ido_mysql/idomysqlconnection.thpp"
+#include "db_ido_mysql/idomysqlconnection-ti.hpp"
 #include "mysql_shim/mysqlinterface.hpp"
 #include "base/array.hpp"
 #include "base/timer.hpp"

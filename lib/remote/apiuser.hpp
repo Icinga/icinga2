@@ -21,7 +21,7 @@
 #define APIUSER_H
 
 #include "remote/i2-remote.hpp"
-#include "remote/apiuser.thpp"
+#include "remote/apiuser-ti.hpp"
 
 namespace icinga
 {

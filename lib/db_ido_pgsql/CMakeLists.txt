@@ -15,10 +15,10 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(idopgsqlconnection.ti idopgsqlconnection.tcpp idopgsqlconnection.thpp)
+mkclass_target(idopgsqlconnection.ti idopgsqlconnection-ti.cpp idopgsqlconnection-ti.hpp)
 
 set(db_ido_pgsql_SOURCES
-  idopgsqlconnection.cpp idopgsqlconnection.hpp idopgsqlconnection.thpp
+  idopgsqlconnection.cpp idopgsqlconnection.hpp idopgsqlconnection-ti.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

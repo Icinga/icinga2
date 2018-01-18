@@ -19,9 +19,9 @@
 
 #ifndef _WIN32
 #include "base/sysloglogger.hpp"
+#include "base/sysloglogger-ti.cpp"
 #include "base/configtype.hpp"
 #include "base/statsfunction.hpp"
-#include "base/sysloglogger.tcpp"
 
 using namespace icinga;
 

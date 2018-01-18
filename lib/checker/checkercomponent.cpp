@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "checker/checkercomponent.hpp"
-#include "checker/checkercomponent.tcpp"
+#include "checker/checkercomponent-ti.cpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/cib.hpp"
 #include "remote/apilistener.hpp"

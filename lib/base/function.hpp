@@ -21,7 +21,7 @@
 #define SCRIPTFUNCTION_H
 
 #include "base/i2-base.hpp"
-#include "base/function.thpp"
+#include "base/function-ti.hpp"
 #include "base/value.hpp"
 #include "base/functionwrapper.hpp"
 #include "base/scriptglobal.hpp"

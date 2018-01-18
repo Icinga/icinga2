@@ -21,7 +21,7 @@
 #define USER_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/user.thpp"
+#include "icinga/user-ti.hpp"
 #include "icinga/timeperiod.hpp"
 #include "remote/messageorigin.hpp"
 

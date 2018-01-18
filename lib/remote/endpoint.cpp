@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "remote/endpoint.hpp"
-#include "remote/endpoint.tcpp"
+#include "remote/endpoint-ti.cpp"
 #include "remote/apilistener.hpp"
 #include "remote/jsonrpcconnection.hpp"
 #include "remote/zone.hpp"

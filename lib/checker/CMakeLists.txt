@@ -15,10 +15,10 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(checkercomponent.ti checkercomponent.tcpp checkercomponent.thpp)
+mkclass_target(checkercomponent.ti checkercomponent-ti.cpp checkercomponent-ti.hpp)
 
 set(checker_SOURCES
-  checkercomponent.cpp checkercomponent.hpp checkercomponent.thpp
+  checkercomponent.cpp checkercomponent.hpp checkercomponent-ti.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

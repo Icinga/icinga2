@@ -20,7 +20,7 @@
 #ifndef COMPATLOGGER_H
 #define COMPATLOGGER_H
 
-#include "compat/compatlogger.thpp"
+#include "compat/compatlogger-ti.hpp"
 #include "icinga/service.hpp"
 #include "base/timer.hpp"
 #include <fstream>

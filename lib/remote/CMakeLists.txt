@@ -15,10 +15,10 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(apilistener.ti apilistener.tcpp apilistener.thpp)
-mkclass_target(apiuser.ti apiuser.tcpp apiuser.thpp)
-mkclass_target(endpoint.ti endpoint.tcpp endpoint.thpp)
-mkclass_target(zone.ti zone.tcpp zone.thpp)
+mkclass_target(apilistener.ti apilistener-ti.cpp apilistener-ti.hpp)
+mkclass_target(apiuser.ti apiuser-ti.cpp apiuser-ti.hpp)
+mkclass_target(endpoint.ti endpoint-ti.cpp endpoint-ti.hpp)
+mkclass_target(zone.ti zone-ti.cpp zone-ti.hpp)
 
 set(remote_SOURCES
   i2-remote.hpp
@@ -26,8 +26,8 @@ set(remote_SOURCES
   apiaction.cpp apiaction.hpp
   apiclient.cpp apiclient.hpp
   apifunction.cpp apifunction.hpp
-  apilistener.cpp apilistener.hpp apilistener.thpp apilistener-configsync.cpp apilistener-filesync.cpp
-  apiuser.cpp apiuser.hpp apiuser.thpp
+  apilistener.cpp apilistener.hpp apilistener-ti.hpp apilistener-configsync.cpp apilistener-filesync.cpp
+  apiuser.cpp apiuser.hpp apiuser-ti.hpp
   authority.cpp
   configfileshandler.cpp configfileshandler.hpp
   configobjectutility.cpp configobjectutility.hpp
@@ -37,7 +37,7 @@ set(remote_SOURCES
   consolehandler.cpp consolehandler.hpp
   createobjecthandler.cpp createobjecthandler.hpp
   deleteobjecthandler.cpp deleteobjecthandler.hpp
-  endpoint.cpp endpoint.hpp endpoint.thpp
+  endpoint.cpp endpoint.hpp endpoint-ti.hpp
   eventqueue.cpp eventqueue.hpp
   eventshandler.cpp eventshandler.hpp
   filterutility.cpp filterutility.hpp
@@ -60,7 +60,7 @@ set(remote_SOURCES
   typequeryhandler.cpp typequeryhandler.hpp
   url.cpp url.hpp url-characters.hpp
   variablequeryhandler.cpp variablequeryhandler.hpp
-  zone.cpp zone.hpp zone.thpp
+  zone.cpp zone.hpp zone-ti.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

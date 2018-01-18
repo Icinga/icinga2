@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/livestatuslistener.hpp"
-#include "livestatus/livestatuslistener.tcpp"
+#include "livestatus/livestatuslistener-ti.cpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/objectlock.hpp"

@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/service.hpp"
-#include "icinga/service.tcpp"
+#include "icinga/service-ti.cpp"
 #include "icinga/servicegroup.hpp"
 #include "icinga/scheduleddowntime.hpp"
 #include "icinga/pluginutility.hpp"

@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/checkable.hpp"
-#include "icinga/checkable.tcpp"
+#include "icinga/checkable-ti.cpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
 #include "base/objectlock.hpp"

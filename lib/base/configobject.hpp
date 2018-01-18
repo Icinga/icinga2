@@ -21,7 +21,7 @@
 #define CONFIGOBJECT_H
 
 #include "base/i2-base.hpp"
-#include "base/configobject.thpp"
+#include "base/configobject-ti.hpp"
 #include "base/object.hpp"
 #include "base/type.hpp"
 #include "base/dictionary.hpp"
