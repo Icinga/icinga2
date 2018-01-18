@@ -21,7 +21,7 @@
 #define CHECKABLE_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/checkable.thpp"
+#include "icinga/checkable-ti.hpp"
 #include "icinga/timeperiod.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/comment.hpp"

@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "remote/apiuser.hpp"
-#include "remote/apiuser.tcpp"
+#include "remote/apiuser-ti.cpp"
 #include "base/configtype.hpp"
 
 using namespace icinga;

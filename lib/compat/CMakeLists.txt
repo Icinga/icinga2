@@ -15,16 +15,16 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(checkresultreader.ti checkresultreader.tcpp checkresultreader.thpp)
-mkclass_target(compatlogger.ti compatlogger.tcpp compatlogger.thpp)
-mkclass_target(externalcommandlistener.ti externalcommandlistener.tcpp externalcommandlistener.thpp)
-mkclass_target(statusdatawriter.ti statusdatawriter.tcpp statusdatawriter.thpp)
+mkclass_target(checkresultreader.ti checkresultreader-ti.cpp checkresultreader-ti.hpp)
+mkclass_target(compatlogger.ti compatlogger-ti.cpp compatlogger-ti.hpp)
+mkclass_target(externalcommandlistener.ti externalcommandlistener-ti.cpp externalcommandlistener-ti.hpp)
+mkclass_target(statusdatawriter.ti statusdatawriter-ti.cpp statusdatawriter-ti.hpp)
 
 set(compat_SOURCES
-  checkresultreader.cpp checkresultreader.hpp checkresultreader.thpp
-  compatlogger.cpp compatlogger.hpp compatlogger.thpp
-  externalcommandlistener.cpp externalcommandlistener.hpp externalcommandlistener.thpp
-  statusdatawriter.cpp statusdatawriter.hpp statusdatawriter.thpp
+  checkresultreader.cpp checkresultreader.hpp checkresultreader-ti.hpp
+  compatlogger.cpp compatlogger.hpp compatlogger-ti.hpp
+  externalcommandlistener.cpp externalcommandlistener.hpp externalcommandlistener-ti.hpp
+  statusdatawriter.cpp statusdatawriter.hpp statusdatawriter-ti.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

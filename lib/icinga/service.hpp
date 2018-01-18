@@ -21,7 +21,7 @@
 #define SERVICE_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/service.thpp"
+#include "icinga/service-ti.hpp"
 #include "icinga/macroresolver.hpp"
 #include "icinga/host.hpp"
 #include <tuple>

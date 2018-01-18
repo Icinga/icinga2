@@ -20,7 +20,7 @@
 #ifndef ELASTICSEARCHWRITER_H
 #define ELASTICSEARCHWRITER_H
 
-#include "perfdata/elasticsearchwriter.thpp"
+#include "perfdata/elasticsearchwriter-ti.hpp"
 #include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"

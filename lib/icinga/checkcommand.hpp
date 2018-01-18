@@ -20,7 +20,7 @@
 #ifndef CHECKCOMMAND_H
 #define CHECKCOMMAND_H
 
-#include "icinga/checkcommand.thpp"
+#include "icinga/checkcommand-ti.hpp"
 #include "icinga/checkable.hpp"
 
 namespace icinga

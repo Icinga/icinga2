@@ -21,8 +21,8 @@
 #define DOWNTIME_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/downtime.thpp"
-#include "icinga/checkable.thpp"
+#include "icinga/downtime-ti.hpp"
+#include "icinga/checkable-ti.hpp"
 #include "remote/messageorigin.hpp"
 
 namespace icinga

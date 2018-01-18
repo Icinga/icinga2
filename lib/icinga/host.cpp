@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/host.hpp"
-#include "icinga/host.tcpp"
+#include "icinga/host-ti.cpp"
 #include "icinga/service.hpp"
 #include "icinga/hostgroup.hpp"
 #include "icinga/pluginutility.hpp"

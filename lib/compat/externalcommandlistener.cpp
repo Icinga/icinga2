@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "compat/externalcommandlistener.hpp"
-#include "compat/externalcommandlistener.tcpp"
+#include "compat/externalcommandlistener-ti.cpp"
 #include "icinga/externalcommandprocessor.hpp"
 #include "base/configtype.hpp"
 #include "base/logger.hpp"

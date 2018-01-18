@@ -21,8 +21,8 @@
 #define COMMENT_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/comment.thpp"
-#include "icinga/checkable.thpp"
+#include "icinga/comment-ti.hpp"
+#include "icinga/checkable-ti.hpp"
 #include "remote/messageorigin.hpp"
 
 namespace icinga

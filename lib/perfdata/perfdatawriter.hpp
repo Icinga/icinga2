@@ -20,7 +20,7 @@
 #ifndef PERFDATAWRITER_H
 #define PERFDATAWRITER_H
 
-#include "perfdata/perfdatawriter.thpp"
+#include "perfdata/perfdatawriter-ti.hpp"
 #include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/timer.hpp"

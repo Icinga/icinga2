@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "db_ido_mysql/idomysqlconnection.hpp"
-#include "db_ido_mysql/idomysqlconnection.tcpp"
+#include "db_ido_mysql/idomysqlconnection-ti.cpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
 #include "base/logger.hpp"

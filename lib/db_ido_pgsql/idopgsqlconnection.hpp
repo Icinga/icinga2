@@ -20,7 +20,7 @@
 #ifndef IDOPGSQLCONNECTION_H
 #define IDOPGSQLCONNECTION_H
 
-#include "db_ido_pgsql/idopgsqlconnection.thpp"
+#include "db_ido_pgsql/idopgsqlconnection-ti.hpp"
 #include "pgsql_shim/pgsqlinterface.hpp"
 #include "base/array.hpp"
 #include "base/timer.hpp"

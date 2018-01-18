@@ -21,7 +21,7 @@
 #define ICINGAAPPLICATION_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/icingaapplication.thpp"
+#include "icinga/icingaapplication-ti.hpp"
 #include "icinga/macroresolver.hpp"
 
 namespace icinga

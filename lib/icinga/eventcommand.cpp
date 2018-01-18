@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/eventcommand.hpp"
-#include "icinga/eventcommand.tcpp"
+#include "icinga/eventcommand-ti.cpp"
 
 using namespace icinga;
 

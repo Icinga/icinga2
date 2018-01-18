@@ -15,14 +15,14 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(dbconnection.ti dbconnection.tcpp dbconnection.thpp)
+mkclass_target(dbconnection.ti dbconnection-ti.cpp dbconnection-ti.hpp)
 
 mkembedconfig_target(db_ido-itl.conf db_ido-itl.cpp)
 
 set(db_ido_SOURCES
   i2-db_ido.hpp db_ido-itl.cpp
   commanddbobject.cpp commanddbobject.hpp
-  dbconnection.cpp dbconnection.hpp dbconnection.thpp
+  dbconnection.cpp dbconnection.hpp dbconnection-ti.hpp
   dbevents.cpp dbevents.hpp
   dbobject.cpp dbobject.hpp
   dbquery.cpp dbquery.hpp

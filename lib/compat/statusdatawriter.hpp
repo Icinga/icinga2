@@ -20,7 +20,7 @@
 #ifndef STATUSDATAWRITER_H
 #define STATUSDATAWRITER_H
 
-#include "compat/statusdatawriter.thpp"
+#include "compat/statusdatawriter-ti.hpp"
 #include "icinga/customvarobject.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"

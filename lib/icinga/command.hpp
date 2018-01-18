@@ -21,7 +21,7 @@
 #define COMMAND_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/command.thpp"
+#include "icinga/command-ti.hpp"
 #include "remote/messageorigin.hpp"
 
 namespace icinga

@@ -21,7 +21,7 @@
 #define TIMEPERIOD_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/timeperiod.thpp"
+#include "icinga/timeperiod-ti.hpp"
 
 namespace icinga
 {

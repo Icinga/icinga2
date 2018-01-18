@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/function.hpp"
-#include "base/function.tcpp"
+#include "base/function-ti.cpp"
 #include "base/array.hpp"
 #include "base/scriptframe.hpp"
 

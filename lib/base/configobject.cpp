@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/configobject.hpp"
-#include "base/configobject.tcpp"
+#include "base/configobject-ti.cpp"
 #include "base/configtype.hpp"
 #include "base/serializer.hpp"
 #include "base/netstring.hpp"

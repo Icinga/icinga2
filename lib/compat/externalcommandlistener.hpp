@@ -20,7 +20,7 @@
 #ifndef EXTERNALCOMMANDLISTENER_H
 #define EXTERNALCOMMANDLISTENER_H
 
-#include "compat/externalcommandlistener.thpp"
+#include "compat/externalcommandlistener-ti.hpp"
 #include "base/objectlock.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"

@@ -20,7 +20,7 @@
 #ifndef CHECKRESULTREADER_H
 #define CHECKRESULTREADER_H
 
-#include "compat/checkresultreader.thpp"
+#include "compat/checkresultreader-ti.hpp"
 #include "base/timer.hpp"
 #include <fstream>
 

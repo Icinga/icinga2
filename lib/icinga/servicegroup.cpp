@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/servicegroup.hpp"
-#include "icinga/servicegroup.tcpp"
+#include "icinga/servicegroup-ti.cpp"
 #include "config/objectrule.hpp"
 #include "config/configitem.hpp"
 #include "base/configtype.hpp"

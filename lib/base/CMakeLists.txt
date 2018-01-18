@@ -15,42 +15,42 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(application.ti application.tcpp application.thpp)
-mkclass_target(configobject.ti configobject.tcpp configobject.thpp)
-mkclass_target(datetime.ti datetime.tcpp datetime.thpp)
-mkclass_target(filelogger.ti filelogger.tcpp filelogger.thpp)
-mkclass_target(function.ti function.tcpp function.thpp)
-mkclass_target(logger.ti logger.tcpp logger.thpp)
-mkclass_target(perfdatavalue.ti perfdatavalue.tcpp perfdatavalue.thpp)
-mkclass_target(streamlogger.ti streamlogger.tcpp streamlogger.thpp)
-mkclass_target(sysloglogger.ti sysloglogger.tcpp sysloglogger.thpp)
+mkclass_target(application.ti application-ti.cpp application-ti.hpp)
+mkclass_target(configobject.ti configobject-ti.cpp configobject-ti.hpp)
+mkclass_target(datetime.ti datetime-ti.cpp datetime-ti.hpp)
+mkclass_target(filelogger.ti filelogger-ti.cpp filelogger-ti.hpp)
+mkclass_target(function.ti function-ti.cpp function-ti.hpp)
+mkclass_target(logger.ti logger-ti.cpp logger-ti.hpp)
+mkclass_target(perfdatavalue.ti perfdatavalue-ti.cpp perfdatavalue-ti.hpp)
+mkclass_target(streamlogger.ti streamlogger-ti.cpp streamlogger-ti.hpp)
+mkclass_target(sysloglogger.ti sysloglogger-ti.cpp sysloglogger-ti.hpp)
 
 set(base_SOURCES
   i2-base.hpp
-  application.cpp application.hpp application.thpp application-version.cpp
+  application.cpp application.hpp application-ti.hpp application-version.cpp
   array.cpp array.hpp array-script.cpp
   base64.cpp base64.hpp
   boolean.cpp boolean.hpp boolean-script.cpp
-  configobject.cpp configobject.hpp configobject.thpp configobject-script.cpp
+  configobject.cpp configobject.hpp configobject-ti.hpp configobject-script.cpp
   configtype.cpp configtype.hpp
   configwriter.cpp configwriter.hpp
   console.cpp console.hpp
   context.cpp context.hpp
   convert.cpp convert.hpp
-  datetime.cpp datetime.hpp datetime.thpp datetime-script.cpp
+  datetime.cpp datetime.hpp datetime-ti.hpp datetime-script.cpp
   debug.hpp
   debuginfo.cpp debuginfo.hpp
   dependencygraph.cpp dependencygraph.hpp
   dictionary.cpp dictionary.hpp dictionary-script.cpp
   exception.cpp exception.hpp
   fifo.cpp fifo.hpp
-  filelogger.cpp filelogger.hpp filelogger.thpp
-  function.cpp function.hpp function.thpp function-script.cpp functionwrapper.hpp
+  filelogger.cpp filelogger.hpp filelogger-ti.hpp
+  function.cpp function.hpp function-ti.hpp function-script.cpp functionwrapper.hpp
   initialize.cpp initialize.hpp
   json.cpp json.hpp json-script.cpp
   library.cpp library.hpp
   loader.cpp loader.hpp
-  logger.cpp logger.hpp logger.thpp
+  logger.cpp logger.hpp logger-ti.hpp
   math-script.cpp
   netstring.cpp netstring.hpp
   networkstream.cpp networkstream.hpp
@@ -58,7 +58,7 @@ set(base_SOURCES
   object.cpp object.hpp object-script.cpp
   objectlock.cpp objectlock.hpp
   objecttype.cpp objecttype.hpp
-  perfdatavalue.cpp perfdatavalue.hpp perfdatavalue.thpp
+  perfdatavalue.cpp perfdatavalue.hpp perfdatavalue-ti.hpp
   primitivetype.cpp primitivetype.hpp
   process.cpp process.hpp
   registry.hpp
@@ -74,9 +74,9 @@ set(base_SOURCES
   statsfunction.hpp
   stdiostream.cpp stdiostream.hpp
   stream.cpp stream.hpp
-  streamlogger.cpp streamlogger.hpp streamlogger.thpp
+  streamlogger.cpp streamlogger.hpp streamlogger-ti.hpp
   string.cpp string.hpp string-script.cpp
-  sysloglogger.cpp sysloglogger.hpp sysloglogger.thpp
+  sysloglogger.cpp sysloglogger.hpp sysloglogger-ti.hpp
   tcpsocket.cpp tcpsocket.hpp
   threadpool.cpp threadpool.hpp
   timer.cpp timer.hpp

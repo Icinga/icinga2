@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/notification.hpp"
-#include "icinga/notification.tcpp"
+#include "icinga/notification-ti.cpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/service.hpp"
 #include "remote/apilistener.hpp"

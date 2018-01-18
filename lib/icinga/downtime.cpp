@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/downtime.hpp"
-#include "icinga/downtime.tcpp"
+#include "icinga/downtime-ti.cpp"
 #include "icinga/host.hpp"
 #include "icinga/scheduleddowntime.hpp"
 #include "remote/configobjectutility.hpp"

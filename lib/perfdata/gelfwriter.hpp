@@ -20,7 +20,7 @@
 #ifndef GELFWRITER_H
 #define GELFWRITER_H
 
-#include "perfdata/gelfwriter.thpp"
+#include "perfdata/gelfwriter-ti.hpp"
 #include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"

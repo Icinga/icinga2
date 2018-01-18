@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/hostgroup.hpp"
-#include "icinga/hostgroup.tcpp"
+#include "icinga/hostgroup-ti.cpp"
 #include "config/objectrule.hpp"
 #include "config/configitem.hpp"
 #include "base/configtype.hpp"

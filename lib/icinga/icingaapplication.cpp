@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/icingaapplication.hpp"
-#include "icinga/icingaapplication.tcpp"
+#include "icinga/icingaapplication-ti.cpp"
 #include "icinga/cib.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "config/configcompiler.hpp"

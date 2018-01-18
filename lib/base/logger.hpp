@@ -21,7 +21,7 @@
 #define LOGGER_H
 
 #include "base/i2-base.hpp"
-#include "base/logger.thpp"
+#include "base/logger-ti.hpp"
 #include <set>
 #include <sstream>
 

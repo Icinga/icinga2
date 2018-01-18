@@ -21,7 +21,7 @@
 #define DEPENDENCY_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/dependency.thpp"
+#include "icinga/dependency-ti.hpp"
 
 namespace icinga
 {

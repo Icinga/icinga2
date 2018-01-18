@@ -21,7 +21,7 @@
 #define PERFDATAVALUE_H
 
 #include "base/i2-base.hpp"
-#include "base/perfdatavalue.thpp"
+#include "base/perfdatavalue-ti.hpp"
 
 namespace icinga
 {

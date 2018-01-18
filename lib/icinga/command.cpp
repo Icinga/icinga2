@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/command.hpp"
-#include "icinga/command.tcpp"
+#include "icinga/command-ti.cpp"
 #include "icinga/macroprocessor.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"

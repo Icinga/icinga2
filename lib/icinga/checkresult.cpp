@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/checkresult.hpp"
-#include "icinga/checkresult.tcpp"
+#include "icinga/checkresult-ti.cpp"
 #include "base/scriptglobal.hpp"
 
 using namespace icinga;

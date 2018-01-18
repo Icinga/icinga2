@@ -21,7 +21,7 @@
 #define CUSTOMVAROBJECT_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/customvarobject.thpp"
+#include "icinga/customvarobject-ti.hpp"
 #include "base/configobject.hpp"
 #include "remote/messageorigin.hpp"
 

@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "perfdata/influxdbwriter.hpp"
-#include "perfdata/influxdbwriter.tcpp"
+#include "perfdata/influxdbwriter-ti.cpp"
 #include "remote/url.hpp"
 #include "remote/httprequest.hpp"
 #include "remote/httpresponse.hpp"

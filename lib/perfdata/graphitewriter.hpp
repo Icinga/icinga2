@@ -20,7 +20,7 @@
 #ifndef GRAPHITEWRITER_H
 #define GRAPHITEWRITER_H
 
-#include "perfdata/graphitewriter.thpp"
+#include "perfdata/graphitewriter-ti.hpp"
 #include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"

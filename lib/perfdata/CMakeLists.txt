@@ -15,20 +15,20 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(gelfwriter.ti gelfwriter.tcpp gelfwriter.thpp)
-mkclass_target(graphitewriter.ti graphitewriter.tcpp graphitewriter.thpp)
-mkclass_target(influxdbwriter.ti influxdbwriter.tcpp influxdbwriter.thpp)
-mkclass_target(elasticsearchwriter.ti elasticsearchwriter.tcpp elasticsearchwriter.thpp)
-mkclass_target(opentsdbwriter.ti opentsdbwriter.tcpp opentsdbwriter.thpp)
-mkclass_target(perfdatawriter.ti perfdatawriter.tcpp perfdatawriter.thpp)
+mkclass_target(gelfwriter.ti gelfwriter-ti.cpp gelfwriter-ti.hpp)
+mkclass_target(graphitewriter.ti graphitewriter-ti.cpp graphitewriter-ti.hpp)
+mkclass_target(influxdbwriter.ti influxdbwriter-ti.cpp influxdbwriter-ti.hpp)
+mkclass_target(elasticsearchwriter.ti elasticsearchwriter-ti.cpp elasticsearchwriter-ti.hpp)
+mkclass_target(opentsdbwriter.ti opentsdbwriter-ti.cpp opentsdbwriter-ti.hpp)
+mkclass_target(perfdatawriter.ti perfdatawriter-ti.cpp perfdatawriter-ti.hpp)
 
 set(perfdata_SOURCES
-  elasticsearchwriter.cpp elasticsearchwriter.hpp elasticsearchwriter.thpp
-  gelfwriter.cpp gelfwriter.hpp gelfwriter.thpp
-  graphitewriter.cpp graphitewriter.hpp graphitewriter.thpp
-  influxdbwriter.cpp influxdbwriter.hpp influxdbwriter.thpp
-  opentsdbwriter.cpp opentsdbwriter.hpp opentsdbwriter.thpp
-  perfdatawriter.cpp perfdatawriter.hpp perfdatawriter.thpp
+  elasticsearchwriter.cpp elasticsearchwriter.hpp elasticsearchwriter-ti.hpp
+  gelfwriter.cpp gelfwriter.hpp gelfwriter-ti.hpp
+  graphitewriter.cpp graphitewriter.hpp graphitewriter-ti.hpp
+  influxdbwriter.cpp influxdbwriter.hpp influxdbwriter-ti.hpp
+  opentsdbwriter.cpp opentsdbwriter.hpp opentsdbwriter-ti.hpp
+  perfdatawriter.cpp perfdatawriter.hpp perfdatawriter-ti.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

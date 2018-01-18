@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "notification/notificationcomponent.hpp"
-#include "notification/notificationcomponent.tcpp"
+#include "notification/notificationcomponent-ti.cpp"
 #include "icinga/service.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "base/configtype.hpp"

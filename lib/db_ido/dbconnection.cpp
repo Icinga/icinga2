@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "db_ido/dbconnection.hpp"
-#include "db_ido/dbconnection.tcpp"
+#include "db_ido/dbconnection-ti.cpp"
 #include "db_ido/dbvalue.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/host.hpp"

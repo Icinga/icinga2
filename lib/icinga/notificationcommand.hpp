@@ -20,7 +20,7 @@
 #ifndef NOTIFICATIONCOMMAND_H
 #define NOTIFICATIONCOMMAND_H
 
-#include "icinga/notificationcommand.thpp"
+#include "icinga/notificationcommand-ti.hpp"
 #include "icinga/notification.hpp"
 
 namespace icinga

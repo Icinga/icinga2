@@ -21,7 +21,7 @@
 #define ZONE_H
 
 #include "remote/i2-remote.hpp"
-#include "remote/zone.thpp"
+#include "remote/zone-ti.hpp"
 #include "remote/endpoint.hpp"
 
 namespace icinga

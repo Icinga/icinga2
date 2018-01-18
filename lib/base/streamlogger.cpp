@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/streamlogger.hpp"
-#include "base/streamlogger.tcpp"
+#include "base/streamlogger-ti.cpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include "base/console.hpp"

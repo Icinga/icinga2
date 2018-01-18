@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/comment.hpp"
-#include "icinga/comment.tcpp"
+#include "icinga/comment-ti.cpp"
 #include "icinga/host.hpp"
 #include "remote/configobjectutility.hpp"
 #include "base/utility.hpp"
