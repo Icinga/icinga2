@@ -129,10 +129,10 @@ struct Lazy
 	operator Lazy<U>() const
 	{
 		if (m_Cached)
-			return Lazy<U>(m_Value);
+			return Lazy<U>(static_cast<U>(m_Value));
 		else {
 			Accessor accessor = m_Accessor;
-			return Lazy<U>([accessor]() { return static_cast<U>(accessor()); });
+			return Lazy<U>(static_cast<typename Lazy<U>::Accessor>([accessor]() { return static_cast<U>(accessor()); }));
 		}
 	}
 

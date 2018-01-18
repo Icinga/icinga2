@@ -32,13 +32,13 @@ REGISTER_PRIMITIVE_TYPE(Dictionary, Object, Dictionary::GetPrototype());
 Dictionary::Dictionary(const DictionaryData& other)
 {
 	for (const auto& kv : other)
-		m_Data.emplace(kv);
+		m_Data.insert(kv);
 }
 
 Dictionary::Dictionary(DictionaryData&& other)
 {
 	for (auto& kv : other)
-		m_Data.emplace(std::move(kv));
+		m_Data.insert(std::move(kv));
 }
 
 Dictionary::Dictionary(std::initializer_list<Dictionary::Pair> init)
