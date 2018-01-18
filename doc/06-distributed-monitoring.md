@@ -2158,7 +2158,7 @@ Add the following `include` statement on all your nodes (master, satellite, clie
 
     vim /etc/icinga2/icinga2.conf
 
-    include <nscp-local>
+    include <nscp>
 
 The CheckCommand definitions will automatically determine the installed path
 to the `nscp.exe` binary.
