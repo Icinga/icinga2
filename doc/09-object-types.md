@@ -256,7 +256,7 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  concurrent\_checks        | Number                | **Optional and Deprecated.** The maximum number of concurrent checks. Was replaced by global constant `MaxConcurrentChecks` which will be set if you still use `concurrent_checks`.
+  concurrent\_checks        | Number                | **Optional and deprecated.** The maximum number of concurrent checks. Was replaced by global constant `MaxConcurrentChecks` which will be set if you still use `concurrent_checks`.
 
 ## CheckResultReader <a id="objecttype-checkresultreader"></a>
 
