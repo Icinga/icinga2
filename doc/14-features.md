@@ -27,9 +27,9 @@ platforms. This configuration ensures that the `icinga2.log`, `error.log` and
 
 ## DB IDO <a id="db-ido"></a>
 
-The IDO (Icinga Data Output) modules for Icinga 2 take care of exporting all
+The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
 configuration and status information into a database. The IDO database is used
-by Icinga Web 2.
+by Icinga Web 2 as data backend.
 
 Details on the installation can be found in the [Configuring DB IDO](02-getting-started.md#configuring-db-ido-mysql)
 chapter. Details on the configuration can be found in the
@@ -39,9 +39,14 @@ object configuration documentation.
 The DB IDO feature supports [High Availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido) in
 the Icinga 2 cluster.
 
-The following example query checks the health of the current Icinga 2 instance
-writing its current status to the DB IDO backend table `icinga_programstatus`
-every 10 seconds. By default it checks 60 seconds into the past which is a reasonable
+### DB IDO Health <a id="db-ido-health"></a>
+
+If the monitoring health indicator is critical in Icinga Web 2,
+you can use the following queries to manually check whether Icinga 2
+is actually updating the IDO database.
+
+Icinga 2 writes its current status to the `icinga_programstatus` table
+every 10 seconds. The query below checks 60 seconds into the past which is a reasonable
 amount of time -- adjust it for your requirements. If the condition is not met,
 the query returns an empty result.
 
@@ -53,32 +58,80 @@ Replace the `default` string with your instance name if different.
 
 Example for MySQL:
 
-    # mysql -u root -p icinga -e "SELECT status_update_time FROM icinga_programstatus ps
-      JOIN icinga_instances i ON ps.instance_id=i.instance_id
-      WHERE (UNIX_TIMESTAMP(ps.status_update_time) > UNIX_TIMESTAMP(NOW())-60)
-      AND i.instance_name='default';"
+```
+# mysql -u root -p icinga -e "SELECT status_update_time FROM icinga_programstatus ps
+  JOIN icinga_instances i ON ps.instance_id=i.instance_id
+  WHERE (UNIX_TIMESTAMP(ps.status_update_time) > UNIX_TIMESTAMP(NOW())-60)
+  AND i.instance_name='default';"
 
-    +---------------------+
-    | status_update_time  |
-    +---------------------+
-    | 2014-05-29 14:29:56 |
-    +---------------------+
-
++---------------------+
+| status_update_time  |
++---------------------+
+| 2014-05-29 14:29:56 |
++---------------------+
+```
 
 Example for PostgreSQL:
 
-    # export PGPASSWORD=icinga; psql -U icinga -d icinga -c "SELECT ps.status_update_time FROM icinga_programstatus AS ps
-      JOIN icinga_instances AS i ON ps.instance_id=i.instance_id
-      WHERE ((SELECT extract(epoch from status_update_time) FROM icinga_programstatus) > (SELECT extract(epoch from now())-60))
-      AND i.instance_name='default'";
+```
+# export PGPASSWORD=icinga; psql -U icinga -d icinga -c "SELECT ps.status_update_time FROM icinga_programstatus AS ps
+  JOIN icinga_instances AS i ON ps.instance_id=i.instance_id
+  WHERE ((SELECT extract(epoch from status_update_time) FROM icinga_programstatus) > (SELECT extract(epoch from now())-60))
+  AND i.instance_name='default'";
 
-    status_update_time
-    ------------------------
-     2014-05-29 15:11:38+02
-    (1 Zeile)
-
+status_update_time
+------------------------
+ 2014-05-29 15:11:38+02
+(1 Zeile)
+```
 
 A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](24-appendix.md#schema-db-ido).
+
+
+### DB IDO Tuning <a id="db-ido-tuning"></a>
+
+As with any application database, there are ways to optimize and tune the database performance.
+
+General tips for performance tuning:
+
+* [MariaDB KB](https://mariadb.com/kb/en/library/optimization-and-tuning/)
+* [PostgreSQL Wiki](https://wiki.postgresql.org/wiki/Performance_Optimization)
+
+Re-creation of indexes, changed column values, etc. will increase the database size. Ensure to
+add health checks for this, and monitor the trend in your Grafana dashboards.
+
+In order to optimize the tables, there are different approaches. Always keep in mind to have a
+current backup and schedule maintenance downtime for these kind of tasks!
+
+MySQL:
+
+```
+mariadb> OPTIMIZE TABLE icinga_statehistory;
+```
+
+> **Important**
+>
+> Tables might not support optimization at runtime. This can take a **long** time.
+>
+> `Table does not support optimize, doing recreate + analyze instead`.
+
+If you want to optimize all tables in a specified database, there is a script called `mysqlcheck`.
+This also allows to repair broken tables in the case of emergency.
+
+```
+mysqlcheck --optimize icinga
+```
+
+PostgreSQL:
+
+```
+icinga=# vacuum;
+VACUUM
+```
+
+> **Note**
+>
+> Don't use `VACUUM FULL` as this has a severe impact on performance.
 
 
 ## External Commands <a id="external-commands"></a>
