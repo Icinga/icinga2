@@ -54,7 +54,7 @@ if(ICINGA2_UNITY_BUILD)
             COMMAND ${CMAKE_COMMAND}
             ARGS -E copy ${UnityOutput}.tmp ${UnityOutput}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            DEPENDS mkunity ${UnityInput}
+            DEPENDS mkunity ${UnitySources}
         )
         list(APPEND RealSources ${UnityOutput})
         set(${UnityInputRef} ${RealSources} PARENT_SCOPE)
