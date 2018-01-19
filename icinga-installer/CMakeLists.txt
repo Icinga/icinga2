@@ -16,11 +16,11 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 foreach(flag_var
-        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-   if(${flag_var} MATCHES "/MD")
-      string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-   endif(${flag_var} MATCHES "/MD")
+  CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+  CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+  if(${flag_var} MATCHES "/MD")
+    string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+  endif(${flag_var} MATCHES "/MD")
 endforeach(flag_var)
 
 set(icinga_installer_SOURCES
@@ -40,13 +40,13 @@ target_link_libraries(icinga-installer shlwapi)
 
 install(CODE "
   execute_process(COMMAND \${CMAKE_COMMAND} -E copy \"${CMAKE_CURRENT_BINARY_DIR}/icinga2.wixpatch.\${BUILD_TYPE}\"
-                  \"${CMAKE_CURRENT_BINARY_DIR}/icinga2.wixpatch\"
-                  RESULT_VARIABLE copy_result
-                  ERROR_VARIABLE error_output)
+    \"${CMAKE_CURRENT_BINARY_DIR}/icinga2.wixpatch\"
+    RESULT_VARIABLE copy_result
+    ERROR_VARIABLE error_output)
   if(copy_result)
     message(FATAL_ERROR \${error_output})
-  endif()
-")
+  endif()"
+)
 
 file(
   GENERATE

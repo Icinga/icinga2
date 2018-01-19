@@ -28,7 +28,7 @@ set(compat_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(compat compat compat_SOURCES)
+  mkunity_target(compat compat compat_SOURCES)
 endif()
 
 add_library(compat OBJECT ${compat_SOURCES})
