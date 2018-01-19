@@ -41,7 +41,7 @@ set(methods_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(methods methods methods_SOURCES)
+  mkunity_target(methods methods methods_SOURCES)
 endif()
 
 add_library(methods OBJECT ${methods_SOURCES})

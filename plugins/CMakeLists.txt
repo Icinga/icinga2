@@ -31,31 +31,31 @@ set_target_properties (
 # Prefer the PluginDir constant which is set to /sbin on Windows
 
 if(WIN32)
-    install(TARGETS check_nscp_api RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR})
+  install(TARGETS check_nscp_api RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR})
 else()
-    install(TARGETS check_nscp_api RUNTIME DESTINATION ${ICINGA2_PLUGINDIR})
+  install(TARGETS check_nscp_api RUNTIME DESTINATION ${ICINGA2_PLUGINDIR})
 endif()
 
 if (WIN32)
-    add_definitions(-DUNICODE -D_UNICODE)
+  add_definitions(-DUNICODE -D_UNICODE)
 
-    set(thresholds_SOURCES
-      thresholds.cpp thresholds.h
-    )
+  set(thresholds_SOURCES
+    thresholds.cpp thresholds.h
+  )
 
-    add_library(thresholds ${thresholds_SOURCES})
+  add_library(thresholds ${thresholds_SOURCES})
 
-    set_target_properties(
-      thresholds PROPERTIES
-      INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-      FOLDER Plugins
-    )
+  set_target_properties(
+    thresholds PROPERTIES
+    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+    FOLDER Plugins
+  )
 
-    set(check_SOURCES
-      check_disk.cpp check_load.cpp check_memory.cpp check_network.cpp check_perfmon.cpp
-      check_ping.cpp check_procs.cpp check_service.cpp check_swap.cpp check_update.cpp check_uptime.cpp
-      check_users.cpp
-    )
+  set(check_SOURCES
+    check_disk.cpp check_load.cpp check_memory.cpp check_network.cpp check_perfmon.cpp
+    check_ping.cpp check_procs.cpp check_service.cpp check_swap.cpp check_update.cpp check_uptime.cpp
+    check_users.cpp
+  )
 
   foreach(source ${check_SOURCES})
     string(REGEX REPLACE ".cpp\$" "" check_OUT "${source}")

@@ -32,7 +32,7 @@ set(perfdata_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(perfdata perfdata perfdata_SOURCES)
+  mkunity_target(perfdata perfdata perfdata_SOURCES)
 endif()
 
 add_library(perfdata OBJECT ${perfdata_SOURCES})

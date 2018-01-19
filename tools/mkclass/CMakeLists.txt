@@ -48,11 +48,11 @@ set_target_properties (
 )
 
 macro(MKCLASS_TARGET ClassInput ClassImplOutput ClassHeaderOutput)
-    add_custom_command(
-        OUTPUT ${ClassImplOutput} ${ClassHeaderOutput}
-        COMMAND mkclass
-        ARGS ${ClassInput} ${CMAKE_CURRENT_BINARY_DIR}/${ClassImplOutput} ${CMAKE_CURRENT_BINARY_DIR}/${ClassHeaderOutput}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        DEPENDS mkclass ${ClassInput}
-    )
+  add_custom_command(
+    OUTPUT ${ClassImplOutput} ${ClassHeaderOutput}
+    COMMAND mkclass
+    ARGS ${ClassInput} ${CMAKE_CURRENT_BINARY_DIR}/${ClassImplOutput} ${CMAKE_CURRENT_BINARY_DIR}/${ClassHeaderOutput}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS mkclass ${ClassInput}
+  )
 endmacro()

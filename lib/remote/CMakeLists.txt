@@ -64,7 +64,7 @@ set(remote_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(remote remote remote_SOURCES)
+  mkunity_target(remote remote remote_SOURCES)
 endif()
 
 add_library(remote OBJECT ${remote_SOURCES})
