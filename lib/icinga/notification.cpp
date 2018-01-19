@@ -323,8 +323,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			return;
 		}
 
-		/* ensure that recovery notifications are always sent, no state filter checks necessary */
-		if (type != NotificationRecovery) {
+		/* Check state filters for problem notifications. Recovery notifications will be filtered away later. */
+		if (type == NotificationProblem) {
 			Host::Ptr host;
 			Service::Ptr service;
 			tie(host, service) = GetHostService(checkable);
