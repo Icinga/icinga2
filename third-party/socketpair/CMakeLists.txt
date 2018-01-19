@@ -25,7 +25,3 @@ set_target_properties (
   socketpair PROPERTIES
   FOLDER Lib
 )
-
-if(WIN32)
-  target_link_libraries(socketpair ws2_32)
-endif()
