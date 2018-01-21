@@ -44,10 +44,12 @@
 #ifdef __linux__
 #include <sys/prctl.h>
 #endif /* __linux__ */
-
 #ifdef _WIN32
 #include <windows.h>
-#endif /* _win32 */
+#endif /* _WIN32 */
+#ifdef HAVE_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif /* HAVE_SYSTEMD */
 
 using namespace icinga;
 
@@ -315,6 +317,11 @@ void Application::SetArgV(char **argv)
  */
 void Application::RunEventLoop()
 {
+
+#ifdef HAVE_SYSTEMD
+	sd_notify(0, "READY=1");
+#endif /* HAVE_SYSTEMD */
+
 	double lastLoop = Utility::GetTime();
 
 mainloop:
@@ -330,6 +337,10 @@ mainloop:
 
 		double now = Utility::GetTime();
 		double timeDiff = lastLoop - now;
+
+#ifdef HAVE_SYSTEMD
+		sd_notify(0, "WATCHDOG=1");
+#endif /* HAVE_SYSTEMD */
 
 		if (std::fabs(timeDiff) > 15) {
 			/* We made a significant jump in time. */
@@ -347,6 +358,10 @@ mainloop:
 	if (m_RequestRestart) {
 		m_RequestRestart = false;         // we are now handling the request, once is enough
 
+#ifdef HAVE_SYSTEMD
+		sd_notify(0, "RELOADING=1");
+#endif /* HAVE_SYSTEMD */
+
 		// are we already restarting? ignore request if we already are
 		if (l_Restarting)
 			goto mainloop;
@@ -356,6 +371,10 @@ mainloop:
 
 		goto mainloop;
 	}
+
+#ifdef HAVE_SYSTEMD
+	sd_notify(0, "STOPPING=1");
+#endif /* HAVE_SYSTEMD */
 
 	Log(LogInformation, "Application", "Shutting down...");
 
@@ -713,6 +732,21 @@ void Application::SigUsr1Handler(int)
 }
 
 /**
+ * Signal handler for SIGUSR2. Hands over PID to child and commits suicide
+ *
+ * @param - The signal number.
+ */
+void Application::SigUsr2Handler(int)
+{
+	Log(LogInformation, "Application", "Reload requested, letting new process take over.");
+#ifdef HAVE_SYSTEMD
+	sd_notifyf(0, "MAINPID=%lu", (unsigned long) m_ReloadProcess);
+#endif /* HAVE_SYSTEMD */
+
+	Exit(0);
+}
+
+/**
  * Signal handler for SIGABRT. Helps with debugging ASSERT()s.
  *
  * @param - The signal number.
@@ -964,6 +998,9 @@ int Application::Run()
 
 	sa.sa_handler = &Application::SigUsr1Handler;
 	sigaction(SIGUSR1, &sa, nullptr);
+
+	sa.sa_handler = &Application::SigUsr2Handler;
+	sigaction(SIGUSR2, &sa, nullptr);
 #else /* _WIN32 */
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */

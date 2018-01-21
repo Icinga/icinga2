@@ -136,39 +136,6 @@ static bool SetDaemonIO(const String& stderrFile)
 	return true;
 }
 
-/**
- * Terminate another process and wait till it has ended
- *
- * @params target PID of the process to end
- */
-static void TerminateAndWaitForEnd(pid_t target)
-{
-#ifndef _WIN32
-	// allow 30 seconds timeout
-	double timeout = Utility::GetTime() + 30;
-
-	int ret = kill(target, SIGTERM);
-
-	while (Utility::GetTime() < timeout && (ret == 0 || errno != ESRCH)) {
-		Utility::Sleep(0.1);
-		ret = kill(target, 0);
-	}
-
-	// timeout and the process still seems to live: update pid and kill it
-	if (ret == 0 || errno != ESRCH) {
-		String pidFile = Application::GetPidPath();
-		std::ofstream fp(pidFile.CStr());
-		fp << Utility::GetPid();
-		fp.close();
-
-		kill(target, SIGKILL);
-	}
-
-#else
-	// TODO: implement this for Win32
-#endif /* _WIN32 */
-}
-
 String DaemonCommand::GetDescription() const
 {
 	return "Starts Icinga 2.";
@@ -251,11 +218,14 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	}
 
 	if (vm.count("reload-internal")) {
-		int parentpid = vm["reload-internal"].as<int>();
-		Log(LogInformation, "cli")
-			<< "Terminating previous instance of Icinga (PID " << parentpid << ")";
-		TerminateAndWaitForEnd(parentpid);
-		Log(LogInformation, "cli", "Previous instance has ended, taking over now.");
+		/* We went through validation and now ask the old process kindly to die */
+		Log(LogInformation, "cli", "Requesting to take over.");
+		int rc = kill(vm["reload-internal"].as<int>(), SIGUSR2);
+		if (rc) {
+			Log(LogCritical, "Application")
+				<< "Failed to send signal to \"" << vm["reload-internal"].as<int>() <<  "\" with " << strerror(errno);
+			return EXIT_FAILURE;
+		}
 	}
 
 	if (vm.count("daemonize")) {

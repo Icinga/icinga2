@@ -9,6 +9,7 @@
 #cmakedefine HAVE_CXXABI_H
 #cmakedefine HAVE_NICE
 #cmakedefine HAVE_EDITLINE
+#cmakedefine HAVE_SYSTEMD
 
 #cmakedefine ICINGA2_UNITY_BUILD
 

@@ -38,6 +38,11 @@ option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
 option(ICINGA2_WITH_STUDIO "Build the Icinga Studio application" OFF)
 option(ICINGA2_WITH_TESTS "Run unit tests" ON)
 
+option (USE_SYSTEMD
+ "Configure icinga as native systemd service instead of a SysV initscript" OFF)
+
+set(HAVE_SYSTEMD ${USE_SYSTEMD})
+
 file(STRINGS icinga2.spec VERSION_LINE REGEX "^Version: ")
 string(REPLACE "Version: " "" ICINGA2_VERSION ${VERSION_LINE})
 
@@ -154,6 +159,11 @@ endif()
 if(UNIX OR CYGWIN)
   list(APPEND base_OBJS $<TARGET_OBJECTS:execvpe>)
 endif()
+
+if(HAVE_SYSTEMD)
+  list(APPEND base_DEPS systemd)
+endif()
+
 
 if(EDITLINE_FOUND)
   list(APPEND base_DEPS ${EDITLINE_LIBRARIES})
