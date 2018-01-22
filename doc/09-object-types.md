@@ -247,8 +247,6 @@ This configuration object is available as [checker feature](11-cli-commands.md#c
 Example:
 
 ```
-library "checker"
-
 object CheckerComponent "checker" {
   concurrent_checks = 512
 }
@@ -268,8 +266,6 @@ to help existing Icinga 1.x users and might be useful for migration scenarios.
 Example:
 
 ```
-library "compat"
-
 object CheckResultReader "reader" {
   spool_dir = "/data/check-results"
 }
@@ -318,8 +314,6 @@ This configuration object is available as [compatlog feature](14-features.md#com
 Example:
 
 ```
-library "compat"
-
 object CompatLogger "compatlog" {
   log_dir = "/var/log/icinga2/compat"
   rotation_method = "DAILY"
@@ -486,8 +480,6 @@ This configuration object is available as [elasticsearch feature](14-features.md
 Example:
 
 ```
-library "perfdata"
-
 object ElasticsearchWriter "elasticsearch" {
   host = "127.0.0.1"
   port = 9200
@@ -603,8 +595,6 @@ This configuration object is available as [command feature](14-features.md#exter
 Example:
 
 ```
-library "compat"
-
 object ExternalCommandListener "command" {
     command_path = "/var/run/icinga2/cmd/icinga2.cmd"
 }
@@ -648,8 +638,6 @@ This configuration object is available as [gelf feature](14-features.md#gelfwrit
 Example:
 
 ```
-library "perfdata"
-
 object GelfWriter "gelf" {
   host = "127.0.0.1"
   port = 12201
@@ -675,8 +663,6 @@ This configuration object is available as [graphite feature](14-features.md#grap
 Example:
 
 ```
-library "perfdata"
-
 object GraphiteWriter "graphite" {
   host = "127.0.0.1"
   port = 2003
@@ -845,8 +831,6 @@ This configuration object is available as [ido-mysql feature](14-features.md#db-
 Example:
 
 ```
-library "db_ido_mysql"
-
 object IdoMysqlConnection "mysql-ido" {
   host = "127.0.0.1"
   port = 3306
@@ -938,8 +922,6 @@ This configuration object is available as [ido-pgsql feature](14-features.md#db-
 Example:
 
 ```
-library "db_ido_pgsql"
-
 object IdoPgsqlConnection "pgsql-ido" {
   host = "127.0.0.1"
   port = 5432
@@ -1024,8 +1006,6 @@ This configuration object is available as [influxdb feature](14-features.md#infl
 Example:
 
 ```
-library "perfdata"
-
 object InfluxdbWriter "influxdb" {
   host = "127.0.0.1"
   port = 8086
@@ -1086,8 +1066,6 @@ This configuration object is available as [livestatus feature](14-features.md#se
 Examples:
 
 ```
-library "livestatus"
-
 object LivestatusListener "livestatus-tcp" {
   socket_type = "tcp"
   bind_host = "127.0.0.1"
@@ -1300,8 +1278,6 @@ This configuration object is available as [notification feature](11-cli-commands
 Example:
 
 ```
-library "notification"
-
 object NotificationComponent "notification" { }
 ```
 
@@ -1319,8 +1295,6 @@ This configuration object is available as [opentsdb feature](14-features.md#open
 Example:
 
 ```
-library "perfdata"
-
 object OpenTsdbWriter "opentsdb" {
   host = "127.0.0.1"
   port = 4242
@@ -1344,8 +1318,6 @@ This configuration object is available as [perfdata feature](14-features.md#writ
 Example:
 
 ```
-library "perfdata"
-
 object PerfdataWriter "perfdata" {
   host_perfdata_path = "/var/spool/icinga2/perfdata/host-perfdata"
 
@@ -1556,8 +1528,6 @@ This configuration object is available as [statusdata feature](14-features.md#st
 Example:
 
 ```
-library "compat"
-
 object StatusDataWriter "status" {
     status_path = "/var/cache/icinga2/status.dat"
     objects_path = "/var/cache/icinga2/objects.cache"

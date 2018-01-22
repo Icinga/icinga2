@@ -610,13 +610,9 @@ When no pattern is specified the default pattern "*.conf" is used.
 
 ## Library directive <a id="library"></a>
 
-The `library` directive can be used to manually load additional
-libraries. Libraries can be used to provide additional object types and
-functions.
-
-Example:
-
-    library "snmphelper"
+The `library` directive was used to manually load additional
+libraries. Starting with version 2.9 it is no longer necessary to explicitly load
+libraries and this directive has no effect.
 
 ## Functions <a id="functions"></a>
 
