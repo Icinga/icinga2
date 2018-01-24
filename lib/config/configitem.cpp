@@ -21,6 +21,7 @@
 #include "config/configcompilercontext.hpp"
 #include "config/applyrule.hpp"
 #include "config/objectrule.hpp"
+#include "config/mutatorrule.hpp"
 #include "config/configcompiler.hpp"
 #include "base/application.hpp"
 #include "base/configtype.hpp"
@@ -201,6 +202,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		m_Scope->CopyTo(frame.Locals);
 	try {
 		m_Expression->Evaluate(frame, &debugHints);
+		MutatorRule::EvaluateRules(frame, dobj, &debugHints);
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")

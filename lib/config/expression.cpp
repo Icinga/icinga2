@@ -610,6 +610,57 @@ ExpressionResult WhileExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	return Empty;
 }
 
+ExpressionResult RequireExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	ExpressionResult operand = m_Operand->Evaluate(frame);
+	CHECK_RESULT(operand);
+
+	if (!operand.GetValue().ToBool())
+		BOOST_THROW_EXCEPTION(ValidationError(frame.Self, {}, "User-defined validator failed."));
+
+	return Empty;
+}
+
+ExpressionResult MutatorExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	ExpressionResult name = m_Name->Evaluate(frame);
+	CHECK_RESULT(name);
+
+	std::set<Type::Ptr> targetTypes;
+
+	ExpressionResult targets = m_Targets->Evaluate(frame);
+	CHECK_RESULT(targets);
+
+	Object::Ptr otargets = targets.GetValue();
+
+	if (otargets) {
+		Array::Ptr arrTargets = dynamic_pointer_cast<Array>(otargets);
+
+		if (arrTargets) {
+			ObjectLock olock(arrTargets);
+
+			for (const Type::Ptr& target : arrTargets) {
+				if (!dynamic_cast<ConfigType *>(target.get()))
+					BOOST_THROW_EXCEPTION(ScriptError("The type '" + target->GetName() + "' is not valid for validator expressions.", m_DebugInfo));
+
+				targetTypes.insert(target);
+			}
+		} else {
+			Type::Ptr target = dynamic_pointer_cast<Type>(otargets);
+
+			if (!target)
+				BOOST_THROW_EXCEPTION(ScriptError("Invalid type specified.", m_DebugInfo));
+
+			if (!dynamic_cast<ConfigType *>(target.get()))
+				BOOST_THROW_EXCEPTION(ScriptError("The type '" + target->GetName() + "' is not valid for validator expressions.", m_DebugInfo));
+
+			targetTypes.insert(target);
+		}
+	}
+
+	return VMOps::NewMutator(frame, name.GetValue(), targetTypes, m_Expression, m_ClosedVars, m_DebugInfo);
+}
+
 ExpressionResult ReturnExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	ExpressionResult operand = m_Operand->Evaluate(frame);

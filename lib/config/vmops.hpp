@@ -25,6 +25,7 @@
 #include "config/configitembuilder.hpp"
 #include "config/applyrule.hpp"
 #include "config/objectrule.hpp"
+#include "config/mutatorrule.hpp"
 #include "base/debuginfo.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
@@ -131,6 +132,14 @@ public:
 		};
 
 		return new Function(name, wrapper, argNames);
+	}
+
+	static inline Value NewMutator(ScriptFrame& frame, const String& name, const std::set<Type::Ptr>& targetTypes, const std::shared_ptr<Expression>& expression,
+		const std::map<String, std::unique_ptr<Expression> >& closedVars, const DebugInfo& debugInfo = DebugInfo())
+	{
+		MutatorRule::AddRule(name, targetTypes, expression, debugInfo, EvaluateClosedVars(frame, closedVars));
+
+		return Empty;
 	}
 
 	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const std::shared_ptr<Expression>& filter,

@@ -99,6 +99,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 	std::pair<String, std::unique_ptr<Expression> > *cvitem;
 	std::map<String, std::unique_ptr<Expression> > *cvlist;
 	icinga::ScopeSpecifier scope;
+	std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression> > *mtarget;
 }
 
 %token T_NEWLINE "new-line"
@@ -153,6 +154,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_USING "__using (T_USING)"
 %token T_OBJECT "object (T_OBJECT)"
 %token T_TEMPLATE "template (T_TEMPLATE)"
+%token T_RULE "rule (T_RULE)"
+%token T_REQUIRE "require (T_REQUIRE)"
 %token T_INCLUDE "include (T_INCLUDE)"
 %token T_INCLUDE_RECURSIVE "include_recursive (T_INCLUDE_RECURSIVE)"
 %token T_INCLUDE_ZONES "include_zones (T_INCLUDE_ZONES)"
@@ -200,6 +203,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <expr> lterm
 %type <expr> object
 %type <expr> apply
+%type <expr> mutator
+%type <mtarget> mutator_target
 %type <expr> optional_rterm
 %type <text> target_type_specifier
 %type <boolean> default_specifier
@@ -210,7 +215,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <num> object_declaration
 
 %right T_FOLLOWS
-%right T_INCLUDE T_INCLUDE_RECURSIVE T_INCLUDE_ZONES T_OBJECT T_TEMPLATE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
+%right T_INCLUDE T_INCLUDE_RECURSIVE T_INCLUDE_ZONES T_OBJECT T_TEMPLATE T_RULE T_REQUIRE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
 %right T_FUNCTION T_FOR
 %left T_SET T_SET_ADD T_SET_SUBTRACT T_SET_MULTIPLY T_SET_DIVIDE T_SET_MODULO T_SET_XOR T_SET_BINARY_AND T_SET_BINARY_OR
 %left T_LOGICAL_OR
@@ -583,6 +588,10 @@ lterm: T_LIBRARY rterm
 		UseFlowControl(context, FlowControlReturn, @$);
 		$$ = new ReturnExpression(std::unique_ptr<Expression>($2), @$);
 	}
+	| T_REQUIRE rterm
+	{
+		$$ = new RequireExpression(std::unique_ptr<Expression>($2), @$);
+	}
 	| T_BREAK
 	{
 		UseFlowControl(context, FlowControlBreak, @$);
@@ -601,6 +610,7 @@ lterm: T_LIBRARY rterm
 	{
 		$$ = new UsingExpression(std::unique_ptr<Expression>($2), @$);
 	}
+	| mutator
 	| apply
 	| object
 	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')'
@@ -1129,6 +1139,23 @@ optional_rterm: /* empty */
 		$$ = MakeLiteralRaw();
 	}
 	| rterm
+	;
+
+mutator_target: /* empty */
+	{
+		$$ = new std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression>>(MakeLiteral(), MakeLiteral());
+	}
+	| rterm optional_rterm
+	{
+		$$ = new std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression>>(std::unique_ptr<Expression>($1), std::unique_ptr<Expression>($2));
+	}
+	;
+
+mutator: T_RULE mutator_target use_specifier rterm_scope_require_side_effect
+	{
+		$$ = new MutatorExpression(std::move($2->second), std::move($2->first), std::unique_ptr<Expression>($4), std::move(*$3), @$);
+		delete $2;
+	}
 	;
 
 apply:
