@@ -81,7 +81,7 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 		ObjectLock olock(results);
 		for (const Dictionary::Ptr typeInfo : results)
 		{
-			ApiType::Ptr type = new ApiType();;
+			ApiType::Ptr type = new ApiType();
 			type->Abstract = typeInfo->Get("abstract");
 			type->BaseName = typeInfo->Get("base");
 			type->Name = typeInfo->Get("name");

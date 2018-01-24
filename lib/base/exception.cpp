@@ -303,7 +303,7 @@ DebugInfo ScriptError::GetDebugInfo() const
 
 bool ScriptError::IsIncompleteExpression() const
 {
-	return m_IncompleteExpr;;
+	return m_IncompleteExpr;
 }
 
 bool ScriptError::IsHandledByDebugger() const

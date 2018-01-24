@@ -48,7 +48,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 		result = InternalResolveMacros(str, resolvers, cr, missingMacro, escapeFn,
 			resolvedMacros, useResolvedMacros, recursionLevel + 1);
 	} else if (str.IsObjectType<Array>()) {
-		ArrayData resultArr;;
+		ArrayData resultArr;
 		Array::Ptr arr = str;
 
 		ObjectLock olock(arr);

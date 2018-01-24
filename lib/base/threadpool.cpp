@@ -122,7 +122,7 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 			UpdateUtilization(ThreadBusy);
 		}
 
-		double st = Utility::GetTime();;
+		double st = Utility::GetTime();
 
 #ifdef I2_DEBUG
 #	ifdef RUSAGE_THREAD
