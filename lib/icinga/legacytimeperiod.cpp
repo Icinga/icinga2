@@ -25,8 +25,6 @@
 #include "base/logger.hpp"
 #include "base/debug.hpp"
 #include "base/utility.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -171,8 +169,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 		return;
 	}
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, timespec, boost::is_any_of(" "));
+	std::vector<String> tokens = timespec.Split(" ");
 
 	int mon = -1;
 
@@ -335,20 +332,17 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
 
 void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *reference, tm *begin, tm *end)
 {
-	std::vector<String> times;
-
-	boost::algorithm::split(times, timerange, boost::is_any_of("-"));
+	std::vector<String> times = timerange.Split("-");
 
 	if (times.size() != 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid timerange: " + timerange));
 
-	std::vector<String> hd1, hd2;
-	boost::algorithm::split(hd1, times[0], boost::is_any_of(":"));
+	std::vector<String> hd1 = times[0].Split(":");
 
 	if (hd1.size() != 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + times[0]));
 
-	boost::algorithm::split(hd2, times[1], boost::is_any_of(":"));
+	std::vector<String> hd2 = times[1].Split(":");
 
 	if (hd2.size() != 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + times[1]));
@@ -382,9 +376,7 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *
 
 void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference, const Array::Ptr& result)
 {
-	std::vector<String> ranges;
-
-	boost::algorithm::split(ranges, timeranges, boost::is_any_of(","));
+	std::vector<String> ranges = timeranges.Split(",");
 
 	for (const String& range : ranges) {
 		Dictionary::Ptr segment = ProcessTimeRange(range, reference);

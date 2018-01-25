@@ -284,3 +284,9 @@ void icinga::intrusive_ptr_release(Object *object)
 		delete object;
 	}
 }
+
+void icinga::DefaultObjectFactoryCheckArgs(const std::vector<Value>& args)
+{
+	if (!args.empty())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Constructor does not take any arguments."));
+}

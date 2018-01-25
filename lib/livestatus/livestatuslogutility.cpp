@@ -29,8 +29,6 @@
 #include "base/logger.hpp"
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <fstream>
@@ -142,8 +140,7 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 	bag->Set("type", type);
 	bag->Set("options", options);
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, options, boost::is_any_of(";"));
+	std::vector<String> tokens = options.Split(";");
 
 	/* set default values */
 	bag->Set("class", LogEntryClassInfo);

@@ -24,7 +24,7 @@
 #include "base/configtype.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/logger.hpp"
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <set>
 
 using namespace icinga;

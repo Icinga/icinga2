@@ -28,7 +28,6 @@
 #include "base/serializer.hpp"
 #include "base/timer.hpp"
 #include "base/initialize.hpp"
-#include <boost/algorithm/string.hpp>
 #include <boost/thread/once.hpp>
 #include <set>
 

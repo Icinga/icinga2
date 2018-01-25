@@ -19,6 +19,7 @@
 
 #include "base/context.hpp"
 #include <boost/thread/tss.hpp>
+#include <iostream>
 
 using namespace icinga;
 
@@ -51,11 +52,11 @@ void ContextTrace::Print(std::ostream& fp) const
 	if (m_Frames.empty())
 		return;
 
-	fp << std::endl;
+	fp << "\n";
 
 	int i = 0;
 	for (const String& frame : m_Frames) {
-		fp << "\t(" << i << ") " << frame << std::endl;
+		fp << "\t(" << i << ") " << frame << "\n";
 		i++;
 	}
 }

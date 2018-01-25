@@ -34,6 +34,7 @@
 #include "base/initialize.hpp"
 #include "base/statsfunction.hpp"
 #include "base/loader.hpp"
+#include <fstream>
 
 using namespace icinga;
 

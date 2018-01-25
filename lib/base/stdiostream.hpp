@@ -22,7 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/stream.hpp"
-#include <iostream>
+#include <iosfwd>
 
 namespace icinga {
 

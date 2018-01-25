@@ -22,7 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
-#include <sstream>
+#include <iosfwd>
 #include <deque>
 #include <vector>
 

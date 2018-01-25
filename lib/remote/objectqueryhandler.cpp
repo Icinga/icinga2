@@ -23,7 +23,7 @@
 #include "base/serializer.hpp"
 #include "base/dependencygraph.hpp"
 #include "base/configtype.hpp"
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <set>
 
 using namespace icinga;

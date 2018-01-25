@@ -24,11 +24,9 @@
 #include "config/configitem.hpp"
 #include "base/configwriter.hpp"
 #include "base/exception.hpp"
-#include "base/serializer.hpp"
 #include "base/dependencygraph.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <fstream>
 
 using namespace icinga;
 

@@ -23,7 +23,7 @@
 #include "base/i2-base.hpp"
 #include "base/logger-ti.hpp"
 #include <set>
-#include <sstream>
+#include <iosfwd>
 
 namespace icinga
 {

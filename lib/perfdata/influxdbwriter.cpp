@@ -40,8 +40,6 @@
 #include "base/statsfunction.hpp"
 #include "base/tlsutility.hpp"
 #include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex.hpp>

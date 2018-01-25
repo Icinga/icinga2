@@ -28,7 +28,6 @@
 #include "base/debuginfo.hpp"
 #include "base/dictionary.hpp"
 #include "base/configobject.hpp"
-#include <sstream>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>

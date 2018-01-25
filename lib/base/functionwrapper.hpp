@@ -22,12 +22,11 @@
 
 #include "base/i2-base.hpp"
 #include "base/value.hpp"
-#include <vector>
 #include <boost/function_types/function_type.hpp>
 #include <boost/function_types/parameter_types.hpp>
 #include <boost/function_types/result_type.hpp>
 #include <boost/function_types/function_arity.hpp>
-#include <type_traits>
+#include <vector>
 
 using namespace std::placeholders;
 

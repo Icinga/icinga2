@@ -21,8 +21,6 @@
 #include "base/exception.hpp"
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <set>
 #include <iterator>
 
@@ -95,8 +93,7 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 			EmitIndent(fp, indentLevel);
 
 			if (splitDot) {
-				std::vector<String> tokens;
-				boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
+				std::vector<String> tokens = kv.first.Split(".");
 
 				EmitIdentifier(fp, tokens[0], true);
 

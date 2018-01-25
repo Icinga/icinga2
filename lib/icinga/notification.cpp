@@ -29,8 +29,6 @@
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
 #include "base/scriptglobal.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -61,8 +59,7 @@ String NotificationNameComposer::MakeName(const String& shortName, const Object:
 
 Dictionary::Ptr NotificationNameComposer::ParseName(const String& name) const
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, name, boost::is_any_of("!"));
+	std::vector<String> tokens = name.Split("!");
 
 	if (tokens.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid Notification name."));

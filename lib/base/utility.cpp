@@ -29,8 +29,6 @@
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/tss.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -509,8 +507,7 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 	std::vector<String> files, dirs;
 
 #ifdef _WIN32
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, pathSpec, boost::is_any_of("\\/"));
+	std::vector<String> tokens = pathSpec.Split("\\/");
 
 	String part1;
 
@@ -1249,9 +1246,8 @@ unsigned long Utility::SDBM(const String& str, size_t len)
 
 int Utility::CompareVersion(const String& v1, const String& v2)
 {
-	std::vector<String> tokensv1, tokensv2;
-	boost::algorithm::split(tokensv1, v1, boost::is_any_of("."));
-	boost::algorithm::split(tokensv2, v2, boost::is_any_of("."));
+	std::vector<String> tokensv1 = v1.Split(".");
+	std::vector<String> tokensv2 = v2.Split(".");
 
 	for (std::vector<String>::size_type i = 0; i < tokensv2.size() - tokensv1.size(); i++)
 		tokensv1.emplace_back("0");

@@ -21,9 +21,6 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -52,8 +49,7 @@ bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
 			if (line == "")
 				return true;
 
-			std::vector<String> tokens;
-			boost::algorithm::split(tokens, line, boost::is_any_of(" "));
+			std::vector<String> tokens = line.Split(" ");
 			Log(LogDebug, "HttpRequest")
 				<< "line: " << line << ", tokens: " << tokens.size();
 			if (tokens.size() != 3)

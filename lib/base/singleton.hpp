@@ -37,20 +37,9 @@ class Singleton
 public:
 	static T *GetInstance()
 	{
-		/* FIXME: This relies on static initializers being atomic. */
-		static boost::mutex mutex;
-		boost::mutex::scoped_lock lock(mutex);
-
-		static T *instance;
-
-		if (!instance)
-			instance = new T();
-
-		return instance;
+		static T instance;
+		return &instance;
 	}
-
-private:
-	static T *m_Instance;
 };
 
 }

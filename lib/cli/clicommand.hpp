@@ -26,8 +26,6 @@
 #include "base/type.hpp"
 #include <vector>
 #include <boost/program_options.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 namespace icinga
 {
@@ -89,8 +87,7 @@ private:
 
 #define REGISTER_CLICOMMAND(name, klass) \
 	INITIALIZE_ONCE([]() { \
-		std::vector<String> vname; \
-		boost::algorithm::split(vname, name, boost::is_any_of("/")); \
+		std::vector<String> vname = String(name).Split("/"); \
 		CLICommand::Register(vname, new klass()); \
 	})
 

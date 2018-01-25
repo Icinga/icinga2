@@ -21,7 +21,7 @@
 #define STACKTRACE_H
 
 #include "base/i2-base.hpp"
-#include <ostream>
+#include <iosfwd>
 
 namespace icinga
 {

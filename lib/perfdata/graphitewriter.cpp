@@ -35,8 +35,6 @@
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <utility>
 

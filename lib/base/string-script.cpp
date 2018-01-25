@@ -75,8 +75,7 @@ static Array::Ptr StringSplit(const String& delims)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, self, boost::is_any_of(delims));
+	std::vector<String> tokens = self.Split(delims.CStr());
 
 	return Array::FromVector(tokens);
 }
