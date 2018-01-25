@@ -208,21 +208,22 @@ commands on a remote host.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name            | Description
-----------------|--------------
-by_ssh_address  | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-by_ssh_port     | **Optional.** The SSH port. Defaults to 22.
-by_ssh_command  | **Required.** The command that should be executed. Can be an array if multiple arguments should be passed to `check_by_ssh`.
-by_ssh_arguments| **Optional.** A dictionary with arguments for the command. This works exactly like the 'arguments' dictionary for ordinary CheckCommands.
-by_ssh_logname  | **Optional.** The SSH username.
-by_ssh_identity | **Optional.** The SSH identity.
-by_ssh_quiet    | **Optional.** Whether to suppress SSH warnings. Defaults to false.
-by_ssh_warn     | **Optional.** The warning threshold.
-by_ssh_crit     | **Optional.** The critical threshold.
-by_ssh_timeout  | **Optional.** The timeout in seconds.
-by_ssh_options  | **Optional.** Call ssh with '-o OPTION' (multiple options may be specified as an array).
-by_ssh_ipv4     | **Optional.** Use IPv4 connection. Defaults to false.
-by_ssh_ipv6     | **Optional.** Use IPv6 connection. Defaults to false.
+Name               | Description
+----------------   | --------------
+by_ssh_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+by_ssh_port        | **Optional.** The SSH port. Defaults to 22.
+by_ssh_command     | **Required.** The command that should be executed. Can be an array if multiple arguments should be passed to `check_by_ssh`.
+by_ssh_arguments   | **Optional.** A dictionary with arguments for the command. This works exactly like the 'arguments' dictionary for ordinary CheckCommands.
+by_ssh_logname     | **Optional.** The SSH username.
+by_ssh_identity    | **Optional.** The SSH identity.
+by_ssh_quiet       | **Optional.** Whether to suppress SSH warnings. Defaults to false.
+by_ssh_warn        | **Optional.** The warning threshold.
+by_ssh_crit        | **Optional.** The critical threshold.
+by_ssh_timeout     | **Optional.** The timeout in seconds.
+by_ssh_options     | **Optional.** Call ssh with '-o OPTION' (multiple options may be specified as an array).
+by_ssh_ipv4        | **Optional.** Use IPv4 connection. Defaults to false.
+by_ssh_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
+by_ssh_skip_stderr | **Optional.** Ignore all or (if specified) first n lines on STDERR.
 
 
 ### clamd <a id="plugin-check-command-clamd"></a>
