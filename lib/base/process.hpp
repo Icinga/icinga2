@@ -25,6 +25,7 @@
 #include <iosfwd>
 #include <deque>
 #include <vector>
+#include <sstream>
 
 namespace icinga
 {
