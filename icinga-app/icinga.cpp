@@ -142,6 +142,7 @@ int Main(void)
 
 #endif /* _WIN32 */
 		Application::DeclarePrefixDir(ICINGA_PREFIX);
+		Application::DeclareSysconfigFile(ICINGA_SYSCONFIGFILE);
 		Application::DeclareSysconfDir(ICINGA_SYSCONFDIR);
 		Application::DeclareRunDir(ICINGA_RUNDIR);
 		Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
@@ -152,8 +153,17 @@ int Main(void)
 #endif /* _WIN32 */
 
 	Application::DeclareZonesDir(Application::GetSysconfDir() + "/icinga2/zones.d");
-	Application::DeclareRunAsUser(ICINGA_USER);
-	Application::DeclareRunAsGroup(ICINGA_GROUP);
+
+	String icinga_user = Utility::GetFromSysconfig("ICINGA2_USER");
+	if (icinga_user.IsEmpty())
+		icinga_user = ICINGA_USER;
+
+	String icinga_group = Utility::GetFromSysconfig("ICINGA2_GROUP");
+	if (icinga_group.IsEmpty())
+		icinga_group = ICINGA_GROUP;
+
+	Application::DeclareRunAsUser(icinga_user);
+	Application::DeclareRunAsGroup(icinga_group);
 #ifdef __linux__
 	Application::DeclareRLimitFiles(Application::GetDefaultRLimitFiles());
 	Application::DeclareRLimitProcesses(Application::GetDefaultRLimitProcesses());

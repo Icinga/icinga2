@@ -148,6 +148,8 @@ public:
 	static String GetIcingaDataPath(void);
 #endif /* _WIN32 */
 
+	static String GetFromSysconfig(const String& env);
+
 #ifdef I2_DEBUG
 	static void SetTime(double);
 	static void IncrementTime(double);
