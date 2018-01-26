@@ -1327,6 +1327,27 @@ void Application::DeclareStatePath(const String& path)
 }
 
 /**
+ * Retrives the path of the sysconfig file.
+ *
+ * @returns The path.
+ */
+String Application::GetSysconfigFile(void)
+{
+	return ScriptGlobal::Get("SysconfigFile");
+}
+
+/**
+ * Sets the path of the sysconfig file.
+ *
+ * @param path The new path.
+ */
+void Application::DeclareSysconfigFile(const String& path)
+{
+	if (!ScriptGlobal::Exists("SysconfigFile"))
+		ScriptGlobal::Set("SysconfigFile", path);
+}
+
+/**
  * Retrieves the path for the modified attributes file.
  *
  * @returns The path.
