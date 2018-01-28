@@ -34,6 +34,7 @@
 #include "base/process.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <thread>
 
 #ifndef _WIN32
