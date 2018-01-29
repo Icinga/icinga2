@@ -247,8 +247,6 @@ This configuration object is available as [checker feature](11-cli-commands.md#c
 Example:
 
 ```
-library "checker"
-
 object CheckerComponent "checker" { }
 ```
 
