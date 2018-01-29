@@ -388,7 +388,7 @@ object:
 		bool defaultTmpl = $6;
 
 		if (!abstract && defaultTmpl)
-			BOOST_THROW_EXCEPTION(ScriptError("'default' keyword is invalid for object definitions", DebugInfoRange(@2, @4)));
+			BOOST_THROW_EXCEPTION(ScriptError("'default' keyword is invalid for object definitions", @6));
 
 		bool seen_assign = context->m_SeenAssign.top();
 		context->m_SeenAssign.pop();
@@ -1158,7 +1158,7 @@ apply:
 		delete $6;
 
 		if (!ApplyRule::IsValidSourceType(type))
-			BOOST_THROW_EXCEPTION(ScriptError("'apply' cannot be used with type '" + type + "'", DebugInfoRange(@2, @3)));
+			BOOST_THROW_EXCEPTION(ScriptError("'apply' cannot be used with type '" + type + "'", @3));
 
 		if (!ApplyRule::IsValidTargetType(type, target)) {
 			if (target == "") {
@@ -1178,7 +1178,7 @@ apply:
 
 				BOOST_THROW_EXCEPTION(ScriptError("'apply' target type is ambiguous (can be one of " + typeNames + "): use 'to' to specify a type", DebugInfoRange(@2, @3)));
 			} else
-				BOOST_THROW_EXCEPTION(ScriptError("'apply' target type '" + target + "' is invalid", DebugInfoRange(@2, @5)));
+				BOOST_THROW_EXCEPTION(ScriptError("'apply' target type '" + target + "' is invalid", @6));
 		}
 
 		bool seen_assign = context->m_SeenAssign.top();
