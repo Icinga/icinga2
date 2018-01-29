@@ -15,8 +15,6 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-configure_file(icinga2/init.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2/init.conf @ONLY)
-
 if(NOT WIN32)
   configure_file(icinga2/constants.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2/constants.conf @ONLY)
 endif()
@@ -24,8 +22,6 @@ endif()
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   configure_file(logrotate.d/icinga2.cmake ${CMAKE_CURRENT_BINARY_DIR}/logrotate.d/icinga2 @ONLY)
 endif()
-
-install_if_not_exists(${CMAKE_CURRENT_BINARY_DIR}/icinga2/init.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
 
 if(NOT WIN32)
   install_if_not_exists(${CMAKE_CURRENT_BINARY_DIR}/icinga2/constants.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
