@@ -389,8 +389,8 @@ ObjectsPath         |**Read-write.** Contains the path of the Icinga 2 objects f
 PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to RunDir + "/icinga2/icinga2.pid".
 Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
-RunAsUser           |**Read-write.** Defines the user the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
-RunAsGroup          |**Read-write.** Defines the group the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
+RunAsUser           |**Read-write.** Defines the user the Icinga 2 daemon is running as. Set in the Icinga 2 sysconfig.
+RunAsGroup          |**Read-write.** Defines the group the Icinga 2 daemon is running as. Set in the Icinga 2 sysconfig.
 PlatformName        |**Read-only.** The name of the operating system, e.g. "Ubuntu".
 PlatformVersion     |**Read-only.** The version of the operating system, e.g. "14.04.3 LTS".
 PlatformKernel      |**Read-only.** The name of the operating system kernel, e.g. "Linux".
