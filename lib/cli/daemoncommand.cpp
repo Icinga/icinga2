@@ -217,6 +217,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		return EXIT_SUCCESS;
 	}
 
+#ifndef _WIN32
 	if (vm.count("reload-internal")) {
 		/* We went through validation and now ask the old process kindly to die */
 		Log(LogInformation, "cli", "Requesting to take over.");
@@ -227,6 +228,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 			return EXIT_FAILURE;
 		}
 	}
+#endif /* _WIN32 */
 
 	if (vm.count("daemonize")) {
 		if (!vm.count("reload-internal")) {
