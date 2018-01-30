@@ -36,6 +36,8 @@ addons:
 
 before_script:
   - if [ "$COVERITY_SCAN_BRANCH" != 1 ]; then
+      set -e;
+      git clone https://github.com/Icinga/icinga-template-library.git icinga-template-library/;
       mkdir build;
       cd build;
       cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/tmp/icinga2 -DICINGA2_PLUGINDIR=/tmp/icinga2/sbin;
@@ -43,9 +45,10 @@ before_script:
 
 script:
   - if [ "$COVERITY_SCAN_BRANCH" != 1 ]; then
+      set -e;
       make;
       make test;
       make install;
       /tmp/icinga2/sbin/icinga2 --version;
-      /tmp/icinga2/sbin/icinga2 daemon -C -DRunAsUser=$(id -u -n) -DRunAsGroup=$(id -g -n);
+      /tmp/icinga2/sbin/icinga2 daemon -C -DRunAsUser=$(id -u -n) -DRunAsGroup=$(id -g -n) -DIncludeConfDir=$(dirname `pwd`)/icinga-template-library/itl;
     fi
