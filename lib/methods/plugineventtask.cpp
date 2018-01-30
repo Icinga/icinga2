@@ -36,6 +36,8 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, PluginEvent, &PluginEventTask::ScriptFunc, 
 void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	RequireNotNull(checkable);
+
 	EventCommand::Ptr commandObj = checkable->GetEventCommand();
 
 	Host::Ptr host;

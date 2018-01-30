@@ -29,6 +29,7 @@ static double DictionaryLen(void)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
+	RequireNotNull(self);
 	return self->GetLength();
 }
 
@@ -36,6 +37,7 @@ static void DictionarySet(const String& key, const Value& value)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
+	RequireNotNull(self);
 	self->Set(key, value);
 }
 
@@ -43,6 +45,7 @@ static Value DictionaryGet(const String& key)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
+	RequireNotNull(self);
 	return self->Get(key);
 }
 
@@ -50,6 +53,7 @@ static void DictionaryRemove(const String& key)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
+	RequireNotNull(self);
 	self->Remove(key);
 }
 
@@ -57,6 +61,7 @@ static bool DictionaryContains(const String& key)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
+	RequireNotNull(self);
 	return self->Contains(key);
 }
 
@@ -64,6 +69,7 @@ static Dictionary::Ptr DictionaryShallowClone(void)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
+	RequireNotNull(self);
 	return self->ShallowClone();
 }
 
@@ -72,6 +78,8 @@ static Array::Ptr DictionaryKeys(void)
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
 	Array::Ptr keys = new Array();
+	RequireNotNull(self);
+
 	ObjectLock olock(self);
 	for (const Dictionary::Pair& kv : self) {
 		keys->Add(kv.first);
@@ -84,6 +92,8 @@ static Array::Ptr DictionaryValues(void)
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
 	Array::Ptr keys = new Array();
+	RequireNotNull(self);
+
 	ObjectLock olock(self);
 	for (const Dictionary::Pair& kv : self) {
 		keys->Add(kv.second);

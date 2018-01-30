@@ -29,6 +29,7 @@ static String DateTimeFormat(const String& format)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	DateTime::Ptr self = static_cast<DateTime::Ptr>(vframe->Self);
+	RequireNotNull(self);
 
 	return self->Format(format);
 }

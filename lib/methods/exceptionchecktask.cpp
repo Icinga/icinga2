@@ -34,6 +34,9 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, ExceptionCheck, &ExceptionCheckTask::Script
 void ExceptionCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	RequireNotNull(service);
+	RequireNotNull(cr);
+
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 

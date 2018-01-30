@@ -38,6 +38,9 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, ClusterCheck, &ClusterCheckTask::ScriptFunc
 void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	RequireNotNull(checkable);
+	RequireNotNull(cr);
+
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 

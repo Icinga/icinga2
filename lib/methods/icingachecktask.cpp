@@ -35,6 +35,9 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc, 
 void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	RequireNotNull(service);
+	RequireNotNull(cr);
+
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 

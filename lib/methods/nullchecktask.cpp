@@ -32,9 +32,12 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION_NS(Internal, NullCheck, &NullCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
-void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+void NullCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	RequireNotNull(checkable);
+	RequireNotNull(cr);
+
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
@@ -48,5 +51,5 @@ void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult:
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(ServiceOK);
 
-	service->ProcessCheckResult(cr);
+	checkable->ProcessCheckResult(cr);
 }
