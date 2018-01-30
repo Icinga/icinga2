@@ -165,9 +165,12 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 
 	String requestUrl = request.RequestUrl->Format();
 
+	Socket::Ptr socket = m_Stream->GetSocket();
+
 	Log(LogInformation, "HttpServerConnection")
 		<< "Request: " << request.RequestMethod << " " << requestUrl
-		<< " (from " << m_Stream->GetSocket()->GetPeerAddress() << ", user: " << (user ? user->GetName() : "<unauthenticated>") << ")";
+		<< " (from " << (socket ? socket->GetPeerAddress() : "<unkown>")
+		<< ", user: " << (user ? user->GetName() : "<unauthenticated>") << ")";
 
 	HttpResponse response(m_Stream, request);
 
