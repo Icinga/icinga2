@@ -83,6 +83,8 @@ public:
 
 	String ToString() const override;
 
+	void Freeze();
+
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
 	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
 	bool HasOwnField(const String& field) const override;
@@ -90,6 +92,7 @@ public:
 
 private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */
+	bool m_Frozen{false};
 };
 
 Dictionary::Iterator begin(const Dictionary::Ptr& x);

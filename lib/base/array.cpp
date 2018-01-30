@@ -67,6 +67,9 @@ void Array::Set(SizeType index, const Value& value)
 {
 	ObjectLock olock(this);
 
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
+
 	m_Data.at(index) = value;
 }
 
@@ -80,6 +83,9 @@ void Array::Set(SizeType index, Value&& value)
 {
 	ObjectLock olock(this);
 
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
+
 	m_Data.at(index).Swap(value);
 }
 
@@ -91,6 +97,9 @@ void Array::Set(SizeType index, Value&& value)
 void Array::Add(Value value)
 {
 	ObjectLock olock(this);
+
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	m_Data.push_back(std::move(value));
 }
@@ -160,6 +169,9 @@ void Array::Insert(SizeType index, Value value)
 
 	ASSERT(index <= m_Data.size());
 
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
+
 	m_Data.insert(m_Data.begin() + index, std::move(value));
 }
 
@@ -171,6 +183,9 @@ void Array::Insert(SizeType index, Value value)
 void Array::Remove(SizeType index)
 {
 	ObjectLock olock(this);
+
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	m_Data.erase(m_Data.begin() + index);
 }
@@ -184,12 +199,18 @@ void Array::Remove(Array::Iterator it)
 {
 	ASSERT(OwnsLock());
 
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
+
 	m_Data.erase(it);
 }
 
 void Array::Resize(SizeType newSize)
 {
 	ObjectLock olock(this);
+
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	m_Data.resize(newSize);
 }
@@ -198,12 +219,18 @@ void Array::Clear()
 {
 	ObjectLock olock(this);
 
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
+
 	m_Data.clear();
 }
 
 void Array::Reserve(SizeType newSize)
 {
 	ObjectLock olock(this);
+
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	m_Data.reserve(newSize);
 }
@@ -212,6 +239,9 @@ void Array::CopyTo(const Array::Ptr& dest) const
 {
 	ObjectLock olock(this);
 	ObjectLock xlock(dest);
+
+	if (dest->m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	std::copy(m_Data.begin(), m_Data.end(), std::back_inserter(dest->m_Data));
 }
@@ -261,6 +291,10 @@ Array::Ptr Array::Reverse() const
 void Array::Sort()
 {
 	ObjectLock olock(this);
+
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
+
 	std::sort(m_Data.begin(), m_Data.end());
 }
 
@@ -269,6 +303,12 @@ String Array::ToString() const
 	std::ostringstream msgbuf;
 	ConfigWriter::EmitArray(msgbuf, 1, const_cast<Array *>(this));
 	return msgbuf.str();
+}
+
+void Array::Freeze()
+{
+	ObjectLock olock(this);
+	m_Frozen = true;
 }
 
 Value Array::GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const
