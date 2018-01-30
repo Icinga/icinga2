@@ -31,9 +31,12 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION_NS(Internal, RandomCheck, &RandomCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
-void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+void RandomCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	RequireNotNull(checkable);
+	RequireNotNull(cr);
+
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
@@ -58,5 +61,5 @@ void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 
 	cr->SetState(static_cast<ServiceState>(Utility::Random() % 4));
 
-	service->ProcessCheckResult(cr);
+	checkable->ProcessCheckResult(cr);
 }

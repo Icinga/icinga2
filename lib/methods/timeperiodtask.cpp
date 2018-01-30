@@ -25,14 +25,18 @@ using namespace icinga;
 REGISTER_SCRIPTFUNCTION_NS(Internal, EmptyTimePeriod, &TimePeriodTask::EmptyTimePeriodUpdate, "tp:begin:end");
 REGISTER_SCRIPTFUNCTION_NS(Internal, EvenMinutesTimePeriod, &TimePeriodTask::EvenMinutesTimePeriodUpdate, "tp:begin:end");
 
-Array::Ptr TimePeriodTask::EmptyTimePeriodUpdate(const TimePeriod::Ptr&, double, double)
+Array::Ptr TimePeriodTask::EmptyTimePeriodUpdate(const TimePeriod::Ptr& tp, double, double)
 {
+	RequireNotNull(tp);
+
 	Array::Ptr segments = new Array();
 	return segments;
 }
 
-Array::Ptr TimePeriodTask::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr&, double begin, double end)
+Array::Ptr TimePeriodTask::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end)
 {
+	RequireNotNull(tp);
+
 	ArrayData segments;
 
 	for (long t = begin / 60 - 1; t * 60 < end; t++) {

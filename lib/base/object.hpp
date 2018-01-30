@@ -57,6 +57,10 @@ extern Value Empty;
 	DECLARE_PTR_TYPEDEFS(klass); \
 	IMPL_TYPE_LOOKUP();
 
+#define RequireNotNull(ptr) RequireNotNullInternal(ptr, #ptr)
+
+void RequireNotNullInternal(const intrusive_ptr<Object>& object, const char *description);
+
 void DefaultObjectFactoryCheckArgs(const std::vector<Value>& args);
 
 template<typename T>

@@ -39,6 +39,9 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	const String& author, const String& comment, const Dictionary::Ptr& resolvedMacros,
 	bool useResolvedMacros)
 {
+	RequireNotNull(notification);
+	RequireNotNull(user);
+
 	NotificationCommand::Ptr commandObj = notification->GetCommand();
 
 	auto type = static_cast<NotificationType>(itype);

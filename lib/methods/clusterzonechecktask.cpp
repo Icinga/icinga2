@@ -34,6 +34,9 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, ClusterZoneCheck, &ClusterZoneCheckTask::Sc
 void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	RequireNotNull(checkable);
+	RequireNotNull(cr);
+
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
 	if (!listener) {
