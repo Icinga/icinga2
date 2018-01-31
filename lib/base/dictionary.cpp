@@ -94,6 +94,9 @@ void Dictionary::Set(const String& key, Value value)
 {
 	ObjectLock olock(this);
 
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
+
 	m_Data[key] = std::move(value);
 }
 
@@ -159,6 +162,9 @@ void Dictionary::Remove(Dictionary::Iterator it)
 {
 	ASSERT(OwnsLock());
 
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
+
 	m_Data.erase(it);
 }
 
@@ -170,6 +176,9 @@ void Dictionary::Remove(Dictionary::Iterator it)
 void Dictionary::Remove(const String& key)
 {
 	ObjectLock olock(this);
+
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
 	Dictionary::Iterator it;
 	it = m_Data.find(key);
@@ -186,6 +195,9 @@ void Dictionary::Remove(const String& key)
 void Dictionary::Clear()
 {
 	ObjectLock olock(this);
+
+	if (m_Frozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
 	m_Data.clear();
 }
@@ -258,6 +270,12 @@ String Dictionary::ToString() const
 	std::ostringstream msgbuf;
 	ConfigWriter::EmitScope(msgbuf, 1, const_cast<Dictionary *>(this));
 	return msgbuf.str();
+}
+
+void Dictionary::Freeze()
+{
+	ObjectLock olock(this);
+	m_Frozen = true;
 }
 
 Value Dictionary::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const

@@ -91,6 +91,13 @@ static Array::Ptr DictionaryValues()
 	return new Array(std::move(values));
 }
 
+static void DictionaryFreeze()
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
+	self->Freeze();
+}
+
 Object::Ptr Dictionary::GetPrototype()
 {
 	static Dictionary::Ptr prototype = new Dictionary({
@@ -101,7 +108,8 @@ Object::Ptr Dictionary::GetPrototype()
 		{ "contains", new Function("Dictionary#contains", DictionaryContains, { "key" }, true) },
 		{ "shallow_clone", new Function("Dictionary#shallow_clone", DictionaryShallowClone, {}, true) },
 		{ "keys", new Function("Dictionary#keys", DictionaryKeys, {}, true) },
-		{ "values", new Function("Dictionary#values", DictionaryValues, {}, true) }
+		{ "values", new Function("Dictionary#values", DictionaryValues, {}, true) },
+		{ "freeze", new Function("Dictionary#freeze", DictionaryFreeze, {}) }
 	});
 
 	return prototype;

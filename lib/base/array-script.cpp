@@ -245,6 +245,13 @@ static Array::Ptr ArrayUnique()
 	return Array::FromSet(result);
 }
 
+static void ArrayFreeze()
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	self->Freeze();
+}
+
 Object::Ptr Array::GetPrototype()
 {
 	static Dictionary::Ptr prototype = new Dictionary({
@@ -264,7 +271,8 @@ Object::Ptr Array::GetPrototype()
 		{ "filter", new Function("Array#filter", ArrayFilter, { "func" }, true) },
 		{ "any", new Function("Array#any", ArrayAny, { "func" }, true) },
 		{ "all", new Function("Array#all", ArrayAll, { "func" }, true) },
-		{ "unique", new Function("Array#unique", ArrayUnique, {}, true) }
+		{ "unique", new Function("Array#unique", ArrayUnique, {}, true) },
+		{ "freeze", new Function("Array#freeze", ArrayFreeze, {}) }
 	});
 
 	return prototype;

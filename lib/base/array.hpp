@@ -112,11 +112,14 @@ public:
 
 	String ToString() const override;
 
+	void Freeze();
+
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
 	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
 
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */
+	bool m_Frozen{false};
 };
 
 Array::Iterator begin(const Array::Ptr& x);

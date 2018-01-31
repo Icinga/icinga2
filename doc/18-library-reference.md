@@ -1260,6 +1260,14 @@ Signature:
 
 Returns true if the array contains the specified value, false otherwise.
 
+### Array#freeze <a id="array-freeze"></a>
+
+Signature:
+
+    function freeze()
+
+Disallows further modifications to this array. Trying to modify the array will result in an exception.
+
 ### Array#len <a id="array-len"></a>
 
 Signature:
@@ -1394,6 +1402,14 @@ Signature:
     function contains(key);
 
 Returns true if a dictionary item with the specified `key` exists, false otherwise.
+
+### Dictionary#freeze <a id="dictionary-freeze"></a>
+
+Signature:
+
+    function freeze()
+
+Disallows further modifications to this dictionary. Trying to modify the dictionary will result in an exception.
 
 ### Dictionary#len <a id="dictionary-len"></a>
 
