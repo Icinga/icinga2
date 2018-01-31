@@ -212,7 +212,11 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 			Log(LogNotice, "JsonRpcConnection")
 			    << "Call to non-existent function '" << method << "' from endpoint '" << m_Identity << "'.";
 		} else {
-			resultMessage->Set("result", afunc->Invoke(origin, message->Get("params")));
+			Dictionary::Ptr params = message->Get("params");
+			if (params)
+				resultMessage->Set("result", afunc->Invoke(origin, params));
+			else
+				resultMessage->Set("result", Empty);
 		}
 	} catch (const std::exception& ex) {
 		/* TODO: Add a user readable error message for the remote caller */
@@ -274,9 +278,6 @@ void JsonRpcConnection::DataAvailableHandler(void)
 
 Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	if (!params)
-		return Empty;
-
 	double log_position = params->Get("log_position");
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
