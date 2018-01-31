@@ -40,9 +40,6 @@ REGISTER_APIFUNCTION(UpdateCertificate, pki, &UpdateCertificateHandler);
 
 Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	if (!params)
-		return Empty;
-
 	String certText = params->Get("cert_request");
 
 	std::shared_ptr<X509> cert;

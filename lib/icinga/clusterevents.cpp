@@ -114,9 +114,6 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 		return Empty;
 	}
 
-	if (!params)
-		return Empty;
-
 	CheckResult::Ptr cr;
 	Array::Ptr vperf;
 
@@ -220,9 +217,6 @@ Value ClusterEvents::NextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin
 		return Empty;
 	}
 
-	if (!params)
-		return Empty;
-
 	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
@@ -284,9 +278,6 @@ Value ClusterEvents::NextNotificationChangedAPIHandler(const MessageOrigin::Ptr&
 		return Empty;
 	}
 
-	if (!params)
-		return Empty;
-
 	Notification::Ptr notification = Notification::GetByName(params->Get("notification"));
 
 	if (!notification)
@@ -343,9 +334,6 @@ Value ClusterEvents::ForceNextCheckChangedAPIHandler(const MessageOrigin::Ptr& o
 			<< "Discarding 'force next check changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
-
-	if (!params)
-		return Empty;
 
 	Host::Ptr host = Host::GetByName(params->Get("host"));
 
@@ -408,9 +396,6 @@ Value ClusterEvents::ForceNextNotificationChangedAPIHandler(const MessageOrigin:
 			<< "Discarding 'force next notification changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
-
-	if (!params)
-		return Empty;
 
 	Host::Ptr host = Host::GetByName(params->Get("host"));
 
@@ -480,9 +465,6 @@ Value ClusterEvents::AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& orig
 		return Empty;
 	}
 
-	if (!params)
-		return Empty;
-
 	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
@@ -546,9 +528,6 @@ Value ClusterEvents::AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& 
 		return Empty;
 	}
 
-	if (!params)
-		return Empty;
-
 	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
@@ -611,9 +590,6 @@ Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origi
 			<< "Discarding 'send notification' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
-
-	if (!params)
-		return Empty;
 
 	Host::Ptr host = Host::GetByName(params->Get("host"));
 
@@ -705,9 +681,6 @@ Value ClusterEvents::NotificationSentUserAPIHandler(const MessageOrigin::Ptr& or
 			<< "Discarding 'sent notification to user' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
-
-	if (!params)
-		return Empty;
 
 	Host::Ptr host = Host::GetByName(params->Get("host"));
 
@@ -821,9 +794,6 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 			<< "Discarding 'sent notification to all users' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
-
-	if (!params)
-		return Empty;
 
 	Host::Ptr host = Host::GetByName(params->Get("host"));
 
