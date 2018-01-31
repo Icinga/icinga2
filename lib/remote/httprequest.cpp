@@ -126,7 +126,12 @@ bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
 				src.MustRead = false;
 			}
 
-			size_t length_indicator = Convert::ToLong(Headers->Get("content-length"));
+			long length_indicator_signed = Convert::ToLong(Headers->Get("content-length"));
+
+			if (length_indicator_signed < 0)
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Content-Length must not be negative."));
+
+			size_t length_indicator = length_indicator_signed;
 
 			if (src.Size < length_indicator) {
 				src.MustRead = true;
