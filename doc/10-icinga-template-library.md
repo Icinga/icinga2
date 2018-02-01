@@ -132,6 +132,17 @@ Name            | Description
 dummy\_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 0.
 dummy\_text      | **Optional.** Plugin output. Defaults to "Check was successful.".
 
+### passive <a id="itl-check-command-passive"></a>
+
+Specialised check command object for passive checks which uses the functionality of the "dummy" check command with appropriate default values.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name            | Description
+----------------|--------------
+dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
+dummy_text      | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
+
 ### random <a id="itl-random"></a>
 
 Check command for the built-in `random` check. This check returns random states
@@ -922,17 +933,6 @@ ntp_timeout     | **Optional.** Seconds before connection times out (default: 10
 ntp_ipv4        | **Optional.** Use IPv4 connection. Defaults to false.
 ntp_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
 
-
-### passive <a id="plugin-check-command-passive"></a>
-
-Specialised check command object for passive checks executing the `check_dummy` plugin with appropriate default values.
-
-Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
-
-Name            | Description
-----------------|--------------
-dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
-dummy_text      | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
 
 ### pgsql <a id="plugin-check-command-pgsql"></a>
 
