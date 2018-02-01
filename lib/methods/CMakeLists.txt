@@ -17,12 +17,6 @@
 
 mkembedconfig_target(methods-itl.conf methods-itl.cpp)
 
-if(MSVC)
-  set(WindowsSources clrchecktask.cpp clrchecktask.hpp)
-else()
-  set(WindowsSources "")
-endif()
-
 set(methods_SOURCES
   i2-methods.hpp methods-itl.cpp
   clusterchecktask.cpp clusterchecktask.hpp
@@ -37,7 +31,6 @@ set(methods_SOURCES
   pluginnotificationtask.cpp pluginnotificationtask.hpp
   randomchecktask.cpp randomchecktask.hpp
   timeperiodtask.cpp timeperiodtask.hpp
-  ${WindowsSources}
 )
 
 if(ICINGA2_UNITY_BUILD)
