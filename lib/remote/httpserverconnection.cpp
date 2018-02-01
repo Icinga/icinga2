@@ -92,7 +92,7 @@ bool HttpServerConnection::ProcessMessage()
 	bool res;
 
 	try {
-		res = m_CurrentRequest.Parse(m_Context, false);
+		res = m_CurrentRequest.ParseHeader(m_Context, false);
 	} catch (const std::invalid_argument& ex) {
 		HttpResponse response(m_Stream, m_CurrentRequest);
 		response.SetStatus(400, "Bad request");
@@ -113,7 +113,7 @@ bool HttpServerConnection::ProcessMessage()
 		return false;
 	}
 
-	if (m_CurrentRequest.Complete) {
+	if (m_CurrentRequest.CompleteHeaders) {
 		m_RequestQueue.Enqueue(std::bind(&HttpServerConnection::ProcessMessageAsync,
 			HttpServerConnection::Ptr(this), m_CurrentRequest));
 
@@ -241,25 +241,37 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 			response.WriteBody(msg.CStr(), msg.GetLength());
 		}
 	} else {
-		try {
-			HttpHandler::ProcessRequest(user, request, response);
-		} catch (const std::exception& ex) {
-			Log(LogCritical, "HttpServerConnection")
-				<< "Unhandled exception while processing Http request: " << DiagnosticInformation(ex);
-			response.SetStatus(503, "Unhandled exception");
+		bool res = true;
+		while (!request.CompleteBody)
+			res = request.ParseBody(m_Context, false);
+		if (!res) {
+			Log(LogCritical, "HttpServerConnection", "Failed to read body");
+			Dictionary::Ptr result = new Dictionary({
+				{ "error", 400 },
+				{ "status", "Bad Request: Malformed body." }
+			});
+			HttpUtility::SendJsonBody(response, nullptr, result);
+		} else {
+			try {
+				HttpHandler::ProcessRequest(user, request, response);
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "HttpServerConnection")
+					<< "Unhandled exception while processing Http request: " << DiagnosticInformation(ex);
+				response.SetStatus(503, "Unhandled exception");
 
-			String errorInfo = DiagnosticInformation(ex);
+				String errorInfo = DiagnosticInformation(ex);
 
-			if (request.Headers->Get("accept") == "application/json") {
-				Dictionary::Ptr result = new Dictionary({
-					{ "error", 503 },
-					{ "status", errorInfo }
-				});
+				if (request.Headers->Get("accept") == "application/json") {
+					Dictionary::Ptr result = new Dictionary({
+						{ "error", 503 },
+						{ "status", errorInfo }
+					});
 
-				HttpUtility::SendJsonBody(response, nullptr, result);
-			} else {
-				response.AddHeader("Content-Type", "text/plain");
-				response.WriteBody(errorInfo.CStr(), errorInfo.GetLength());
+					HttpUtility::SendJsonBody(response, nullptr, result);
+				} else {
+					response.AddHeader("Content-Type", "text/plain");
+					response.WriteBody(errorInfo.CStr(), errorInfo.GetLength());
+				}
 			}
 		}
 	}
