@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "thresholds.h"
+#include "plugins/thresholds.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
@@ -28,7 +28,7 @@ threshold::threshold()
 	: set(false)
 {}
 
-threshold::threshold(CONST std::wstring& stri)
+threshold::threshold(const std::wstring& stri)
 {
 	if (stri.empty())
 		throw std::invalid_argument("Threshold must not be empty");
@@ -64,7 +64,7 @@ threshold::threshold(CONST std::wstring& stri)
 			boost::algorithm::trim(str2);
 			upper = boost::lexical_cast<DOUBLE>(str2);
 			legal = !low; perc = pc; set = true;
-		} catch (CONST boost::bad_lexical_cast&) {
+		} catch (const boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
 		}
 	} else { //not range
@@ -76,17 +76,17 @@ threshold::threshold(CONST std::wstring& stri)
 			boost::algorithm::trim(str);
 			lower = upper = boost::lexical_cast<DOUBLE>(str);
 			legal = !low; perc = pc; set = true;
-		} catch (CONST boost::bad_lexical_cast&) {
+		} catch (const boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
 		}
 	}
 }
 
 //return TRUE if the threshold is broken
-BOOL threshold::rend(CONST DOUBLE val, CONST DOUBLE max)
+bool threshold::rend(const double val, const double max)
 {
-	DOUBLE upperAbs = upper;
-	DOUBLE lowerAbs = lower;
+	double upperAbs = upper;
+	double lowerAbs = lower;
 
 	if (perc) {
 		upperAbs = upper / 100.0 * max;
@@ -102,13 +102,13 @@ BOOL threshold::rend(CONST DOUBLE val, CONST DOUBLE max)
 }
 
 //returns a printable string of the threshold
-std::wstring threshold::pString(CONST DOUBLE max)
+std::wstring threshold::pString(const double max)
 {
 	if (!set)
 		return L"";
 	//transform percentages to abolute values
-	DOUBLE lowerAbs = lower;
-	DOUBLE upperAbs = upper;
+	double lowerAbs = lower;
+	double upperAbs = upper;
 	if (perc) {
 		lowerAbs = lower / 100.0 * max;
 		upperAbs = upper / 100.0 * max;
@@ -126,7 +126,7 @@ std::wstring threshold::pString(CONST DOUBLE max)
 	return s;
 }
 
-std::wstring removeZero(DOUBLE val)
+std::wstring removeZero(double val)
 {
 	std::wstring ret = boost::lexical_cast<std::wstring>(val);
 	std::wstring::size_type pos = ret.length();
@@ -144,14 +144,14 @@ std::wstring removeZero(DOUBLE val)
 	return L"0";
 }
 
-std::vector<std::wstring> splitMultiOptions(std::wstring str)
+std::vector<std::wstring> splitMultiOptions(const std::wstring& str)
 {
 	std::vector<std::wstring> sVec;
 	boost::split(sVec, str, boost::is_any_of(L","));
 	return sVec;
 }
 
-Bunit parseBUnit(CONST std::wstring& str)
+Bunit parseBUnit(const std::wstring& str)
 {
 	std::wstring wstr = to_upper_copy(str);
 
@@ -169,7 +169,7 @@ Bunit parseBUnit(CONST std::wstring& str)
 	throw std::invalid_argument("Unknown unit type");
 }
 
-std::wstring BunitStr(CONST Bunit& unit)
+std::wstring BunitStr(const Bunit& unit)
 {
 	switch (unit) {
 	case BunitB:
@@ -186,7 +186,7 @@ std::wstring BunitStr(CONST Bunit& unit)
 	return NULL;
 }
 
-Tunit parseTUnit(CONST std::wstring& str) {
+Tunit parseTUnit(const std::wstring& str) {
 	std::wstring wstr = to_lower_copy(str);
 
 	if (wstr == L"ms")
@@ -201,7 +201,7 @@ Tunit parseTUnit(CONST std::wstring& str) {
 	throw std::invalid_argument("Unknown unit type");
 }
 
-std::wstring TunitStr(CONST Tunit& unit)
+std::wstring TunitStr(const Tunit& unit)
 {
 	switch (unit) {
 	case TunitMS:
@@ -216,7 +216,7 @@ std::wstring TunitStr(CONST Tunit& unit)
 	return NULL;
 }
 
-VOID die(DWORD err)
+void printErrorInfo(unsigned long err)
 {
 	if (!err)
 		err = GetLastError();

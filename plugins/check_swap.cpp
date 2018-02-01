@@ -16,35 +16,30 @@
  * along with this program; if not, write to the Free Software Foundation     *
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
-#include <Shlwapi.h>
-#include <iostream>
-#include <WinBase.h>
 
-#include "check_swap.h"
+#include "plugins/thresholds.hpp"
+#include <boost/program_options.hpp>
+#include <iostream>
+#include <shlwapi.h>
+#include <winbase.h>
 
 #define VERSION 1.0
 
 namespace po = boost::program_options;
 
-static BOOL debug = FALSE;
-
-INT wmain(INT argc, WCHAR **argv)
+struct printInfoStruct
 {
-	printInfoStruct printInfo = { };
-	po::variables_map vm;
+	threshold warn;
+	threshold crit;
+	double tSwap;
+	double aSwap;
+	double percentFree;
+	Bunit unit = BunitMB;
+};
 
-	INT ret = parseArguments(argc, argv, vm, printInfo);
-	if (ret != -1)
-		return ret;
+static bool l_Debug;
 
-	ret = check_swap(printInfo);
-	if (ret != -1)
-		return ret;
-
-	return printOutput(printInfo);
-}
-
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
+static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
 	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -61,19 +56,19 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		("unit,u", po::wvalue<std::wstring>(), "The unit to use for display (default MB)")
 		;
 
-	po::basic_command_line_parser<WCHAR> parser(ac, av);
+	po::wcommand_line_parser parser(ac, av);
 
 	try {
 		po::store(
 			parser
 			.options(desc)
 			.style(
-			po::command_line_style::unix_style |
-			po::command_line_style::allow_long_disguise)
+				po::command_line_style::unix_style |
+				po::command_line_style::allow_long_disguise)
 			.run(),
 			vm);
 		vm.notify();
-	} catch (std::exception& e) {
+	} catch (const std::exception& e) {
 		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
@@ -125,7 +120,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	if (vm.count("warning")) {
 		try {
 			printInfo.warn = threshold(vm["warning"].as<std::wstring>());
-		} catch (std::invalid_argument& e) {
+		} catch (const std::invalid_argument& e) {
 			std::cout << e.what() << '\n';
 			return 3;
 		}
@@ -135,20 +130,19 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	if (vm.count("critical")) {
 		try {
 			printInfo.crit = threshold(vm["critical"].as<std::wstring>());
-		} catch (std::invalid_argument& e) {
+		} catch (const std::invalid_argument& e) {
 			std::cout << e.what() << '\n';
 			return 3;
 		}
 		printInfo.crit.legal = !printInfo.crit.legal;
 	}
 
-	if (vm.count("debug"))
-		debug = TRUE;
+	l_Debug = vm.count("debug") > 0;
 
 	if (vm.count("unit")) {
 		try {
 			printInfo.unit = parseBUnit(vm["unit"].as<std::wstring>());
-		} catch (std::invalid_argument& e) {
+		} catch (const std::invalid_argument& e) {
 			std::cout << e.what() << '\n';
 			return 3;
 		}
@@ -157,9 +151,9 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	return -1;
 }
 
-INT printOutput(printInfoStruct& printInfo)
+static int printOutput(printInfoStruct& printInfo)
 {
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Constructing output string" << '\n';
 
 	state state = OK;
@@ -191,13 +185,13 @@ INT printOutput(printInfoStruct& printInfo)
 	return state;
 }
 
-INT check_swap(printInfoStruct& printInfo)
+static int check_swap(printInfoStruct& printInfo)
 {
 	MEMORYSTATUSEX MemBuf;
 	MemBuf.dwLength = sizeof(MemBuf);
 
 	if (!GlobalMemoryStatusEx(&MemBuf)) {
-		die();
+		printErrorInfo();
 		return 3;
 	}
 
@@ -206,4 +200,20 @@ INT check_swap(printInfoStruct& printInfo)
 	printInfo.percentFree = 100.0 * MemBuf.ullAvailPageFile / MemBuf.ullTotalPageFile;
 
 	return -1;
+}
+
+int wmain(int argc, WCHAR **argv)
+{
+	printInfoStruct printInfo = { };
+	po::variables_map vm;
+
+	int ret = parseArguments(argc, argv, vm, printInfo);
+	if (ret != -1)
+		return ret;
+
+	ret = check_swap(printInfo);
+	if (ret != -1)
+		return ret;
+
+	return printOutput(printInfo);
 }

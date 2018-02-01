@@ -16,32 +16,62 @@
  * along with this program; if not, write to the Free Software Foundation     *
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
- 
-#ifndef CHECK_NETWORK_H
-#define CHECK_NETWORK_H
+
+#ifndef THRESHOLDS_H
+#define THRESHOLDS_H
+
+#include <string>
 #include <vector>
+#include <windows.h>
 
-#include "thresholds.h"
-#include "boost/program_options.hpp"
-
-struct nInterface
+enum Bunit
 {
-	std::wstring name;
-	LONG BytesInSec, BytesOutSec;
-	nInterface(std::wstring p)
-		: name(p)
-	{
-	}
+	BunitB = 0, BunitkB = 1, BunitMB = 2, BunitGB = 3, BunitTB = 4
 };
 
-struct printInfoStruct
+enum Tunit
 {
-	threshold warn, crit;
+	TunitMS, TunitS, TunitM, TunitH
 };
 
-INT parseArguments(INT, WCHAR **, boost::program_options::variables_map&, printInfoStruct&);
-INT printOutput(printInfoStruct&, CONST std::vector<nInterface>&, CONST std::map<std::wstring, std::wstring>&);
-INT check_network(std::vector<nInterface>&);
-BOOL mapSystemNamesToFamiliarNames(std::map<std::wstring, std::wstring>&);
+enum state
+{
+	OK = 0, WARNING = 1, CRITICAL = 2
+};
 
-#endif // !CHECK_NETWORK_H
+class threshold
+{
+public:
+	// doubles are always enough for ANY 64 bit value
+	double lower;
+	double upper;
+	// true means everything BELOW upper/outside [lower-upper] is fine
+	bool legal;
+	bool perc;
+	bool set;
+
+	threshold();
+
+	threshold(const double v, const double c, bool l = true, bool p = false);
+
+	threshold(const std::wstring&);
+
+	// returns true if the threshold is broken
+	bool rend(const double val, const double max = 100.0);
+
+	// returns a printable string of the threshold
+	std::wstring pString(const double max = 100.0);
+
+};
+
+std::wstring removeZero(double);
+std::vector<std::wstring> splitMultiOptions(const std::wstring&);
+
+Bunit parseBUnit(const std::wstring&);
+std::wstring BunitStr(const Bunit&);
+Tunit parseTUnit(const std::wstring&);
+std::wstring TunitStr(const Tunit&);
+
+void printErrorInfo(unsigned long err = 0);
+
+#endif /* THRESHOLDS_H */

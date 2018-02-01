@@ -16,13 +16,14 @@
  * along with this program; if not, write to the Free Software Foundation     *
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
-#include <windows.h>
-#include <Shlwapi.h>
+
+#include "plugins/thresholds.hpp"
+#include <boost/program_options.hpp>
 #include <iostream>
+#include <windows.h>
+#include <shlwapi.h>
 #include <wuapi.h>
 #include <wuerror.h>
-
-#include "check_update.h"
 
 #define VERSION 1.0
 
@@ -30,25 +31,19 @@
 
 namespace po = boost::program_options;
 
-static BOOL debug = FALSE;
-
-INT wmain(INT argc, WCHAR **argv)
+struct printInfoStruct
 {
-	printInfoStruct printInfo = { FALSE, FALSE, 0, FALSE, FALSE, FALSE };
-	po::variables_map vm;
+	bool warn{false};
+	bool crit{false};
+	LONG numUpdates{0};
+	bool important{false};
+	bool reboot{false};
+	bool careForCanRequest{false};
+};
 
-	INT ret = parseArguments(argc, argv, vm, printInfo);
-	if (ret != -1)
-		return ret;
+static bool l_Debug;
 
-	ret = check_update(printInfo);
-	if (ret != -1)
-		return ret;
-
-	return printOutput(printInfo);
-}
-
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
+static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
 	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -65,19 +60,19 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		("possible-reboot", "Treat \"update may need reboot\" as \"update needs reboot\"")
 		;
 
-	po::basic_command_line_parser<WCHAR> parser(ac, av);
+	po::wcommand_line_parser parser(ac, av);
 
 	try {
 		po::store(
 			parser
 			.options(desc)
 			.style(
-			po::command_line_style::unix_style |
-			po::command_line_style::allow_long_disguise)
+				po::command_line_style::unix_style |
+				po::command_line_style::allow_long_disguise)
 			.run(),
 			vm);
 		vm.notify();
-	} catch (std::exception& e) {
+	} catch (const std::exception& e) {
 		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
@@ -119,24 +114,18 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		return 0;
 	}
 
-	if (vm.count("warning"))
-		printInfo.warn = TRUE;
+	printInfo.warn = vm.count("warning") > 0;
+	printInfo.crit = vm.count("critical") > 0;
+	printInfo.careForCanRequest = vm.count("possible-reboot") > 0;
 
-	if (vm.count("critical"))
-		printInfo.crit = TRUE;
-
-	if (vm.count("possible-reboot"))
-		printInfo.careForCanRequest = TRUE;
-
-	if (vm.count("debug"))
-		debug = TRUE;
+	l_Debug = vm.count("debug") > 0;
 
 	return -1;
 }
 
-INT printOutput(const printInfoStruct& printInfo)
+static int printOutput(const printInfoStruct& printInfo)
 {
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Constructing output string" << '\n';
 
 	state state = OK;
@@ -166,9 +155,9 @@ INT printOutput(const printInfoStruct& printInfo)
 	return state;
 }
 
-INT check_update(printInfoStruct& printInfo)
+static int check_update(printInfoStruct& printInfo)
 {
-	if (debug)
+	if (l_Debug)
 		std::wcout << "Initializing COM library" << '\n';
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 	ISearchResult *pResult;
@@ -177,24 +166,24 @@ INT check_update(printInfoStruct& printInfo)
 	BSTR criteria = NULL;
 
 	HRESULT err;
-	if (debug)
+	if (l_Debug)
 		std::wcout << "Creating UpdateSession and UpdateSearcher" << '\n';
-	CoCreateInstance(CLSID_UpdateSession, NULL, CLSCTX_INPROC_SERVER, IID_IUpdateSession, (LPVOID*)&pSession);
+	CoCreateInstance(CLSID_UpdateSession, NULL, CLSCTX_INPROC_SERVER, IID_IUpdateSession, (void **)&pSession);
 	pSession->CreateUpdateSearcher(&pSearcher);
 
 	/*
-	 * IsInstalled = 0: All updates, including languagepacks and features
-	 * BrowseOnly = 0: No features or languagepacks, security and unnamed
-	 * BrowseOnly = 1: Nothing, broken
-	 * RebootRequired = 1: Reboot required
-	 */
+	* IsInstalled = 0: All updates, including languagepacks and features
+	* BrowseOnly = 0: No features or languagepacks, security and unnamed
+	* BrowseOnly = 1: Nothing, broken
+	* RebootRequired = 1: Reboot required
+	*/
 
 	criteria = SysAllocString(CRITERIA);
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/aa386526%28v=vs.85%29.aspx
 	// https://msdn.microsoft.com/en-us/library/ff357803%28v=vs.85%29.aspx
 
-	if (debug)
-		std::wcout << L"Querrying updates from server" << '\n';
+	if (l_Debug)
+		std::wcout << L"Querying updates from server" << '\n';
 
 	err = pSearcher->Search(criteria, &pResult);
 	if (!SUCCEEDED(err))
@@ -212,31 +201,31 @@ INT check_update(printInfoStruct& printInfo)
 		return -1;
 
 	printInfo.numUpdates = updateSize;
-//	printInfo.important = printInfo.warn;
+	//	printInfo.important = printInfo.warn;
 
 	IInstallationBehavior *pIbehav;
 	InstallationRebootBehavior updateReboot;
 
 	for (LONG i = 0; i < updateSize; i++) {
 		pCollection->get_Item(i, &pUpdate);
-		if (debug) {
+		if (l_Debug) {
 			std::wcout << L"Checking reboot behaviour of update number " << i << '\n';
 		}
 		pUpdate->get_InstallationBehavior(&pIbehav);
 		pIbehav->get_RebootBehavior(&updateReboot);
 		if (updateReboot == irbAlwaysRequiresReboot) {
-			printInfo.reboot = TRUE;
-			if (debug)
+			printInfo.reboot = true;
+			if (l_Debug)
 				std::wcout << L"It requires reboot" << '\n';
 			continue;
 		}
 		if (printInfo.careForCanRequest && updateReboot == irbCanRequestReboot)
-			if (debug)
+			if (l_Debug)
 				std::wcout << L"It requires reboot" << '\n';
-			printInfo.reboot = TRUE;
+		printInfo.reboot = true;
 	}
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Cleaning up and returning" << '\n';
 
 	SysFreeString(criteria);
@@ -244,9 +233,25 @@ INT check_update(printInfoStruct& printInfo)
 	return -1;
 
 die:
-	die(err);
+	printErrorInfo(err);
 	CoUninitialize();
 	if (criteria)
 		SysFreeString(criteria);
 	return 3;
+}
+
+int wmain(int argc, WCHAR **argv)
+{
+	printInfoStruct printInfo;
+	po::variables_map vm;
+
+	int ret = parseArguments(argc, argv, vm, printInfo);
+	if (ret != -1)
+		return ret;
+
+	ret = check_update(printInfo);
+	if (ret != -1)
+		return ret;
+
+	return printOutput(printInfo);
 }

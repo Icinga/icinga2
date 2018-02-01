@@ -1,21 +1,21 @@
 /******************************************************************************
-* Icinga 2                                                                   *
-* Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
-*                                                                            *
-* This program is free software; you can redistribute it and/or              *
-* modify it under the terms of the GNU General Public License                *
-* as published by the Free Software Foundation; either version 2             *
-* of the License, or (at your option) any later version.                     *
-*                                                                            *
-* This program is distributed in the hope that it will be useful,            *
-* but WITHOUT ANY WARRANTY; without even the implied warranty of             *
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
-* GNU General Public License for more details.                               *
-*                                                                            *
-* You should have received a copy of the GNU General Public License          *
-* along with this program; if not, write to the Free Software Foundation     *
-* Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
-******************************************************************************/
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
 
 #define VERSION "1.0.0"
 
@@ -33,7 +33,7 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-bool l_Debug = false;
+static bool l_Debug;
 
 /*
  * This function is called by an 'HttpRequest' once the server answers. After doing a short check on the 'response' it
@@ -245,7 +245,7 @@ int main(int argc, char **argv)
 		("query,q", po::value<std::string>()->required(), "REQUIRED: NSCP API Query endpoint")
 		("arguments,a", po::value<std::vector<std::string>>()->multitoken(), "NSCP API Query arguments for the endpoint");
 
-	po::basic_command_line_parser<char> parser(argc, argv);
+	po::command_line_parser parser(argc, argv);
 
 	try {
 		po::store(
@@ -271,14 +271,12 @@ int main(int argc, char **argv)
 		}
 
 		vm.notify();
-	} catch (std::exception& e) {
+	} catch (const std::exception& e) {
 		std::cout << e.what() << '\n' << desc << '\n';
 		Application::Exit(3);
 	}
 
-	if (vm.count("debug")) {
-		l_Debug = true;
-	}
+	l_Debug = vm.count("debug") > 0;
 
 	// Create the URL string and escape certain characters since Url() follows RFC 3986
 	String endpoint = "/query/" + vm["query"].as<std::string>();

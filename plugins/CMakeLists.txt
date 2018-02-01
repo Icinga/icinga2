@@ -40,7 +40,7 @@ if (WIN32)
   add_definitions(-DUNICODE -D_UNICODE)
 
   set(thresholds_SOURCES
-    thresholds.cpp thresholds.h
+    thresholds.cpp thresholds.hpp
   )
 
   add_library(thresholds ${thresholds_SOURCES})
@@ -59,10 +59,9 @@ if (WIN32)
 
   foreach(source ${check_SOURCES})
     string(REGEX REPLACE ".cpp\$" "" check_OUT "${source}")
-    string(REGEX REPLACE ".cpp\$" ".h" check_HEADER "${source}")
 
-    add_executable(${check_OUT} ${source} ${check_HEADER})
-    target_link_libraries(${check_OUT} thresholds Shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
+    add_executable(${check_OUT} ${source})
+    target_link_libraries(${check_OUT} thresholds shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
     set_target_properties(
       ${check_OUT} PROPERTIES
@@ -72,11 +71,11 @@ if (WIN32)
     )
   endforeach()
 
-  target_link_libraries(check_load Pdh.lib)
-  target_link_libraries(check_network Pdh.lib Iphlpapi.lib)
-  target_link_libraries(check_perfmon Pdh.lib)
-  target_link_libraries(check_ping Ntdll.lib iphlpapi.lib Ws2_32.lib)
-  target_link_libraries(check_procs Pdh.lib)
+  target_link_libraries(check_load pdh.lib)
+  target_link_libraries(check_network pdh.lib iphlpapi.lib)
+  target_link_libraries(check_perfmon pdh.lib)
+  target_link_libraries(check_ping ntdll.lib iphlpapi.lib ws2_32.lib)
+  target_link_libraries(check_procs pdh.lib)
   target_link_libraries(check_uptime ${Boost_SYSTEM_LIBRARY})
   target_link_libraries(check_users wtsapi32.lib)
 
