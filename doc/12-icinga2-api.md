@@ -1846,7 +1846,6 @@ There are a couple of existing clients which can be used with the Icinga 2 API:
 
 * [curl](https://curl.haxx.se/) or any other HTTP client really
 * [Icinga 2 console (CLI command)](12-icinga2-api.md#icinga2-api-clients-cli-console)
-* [Icinga Studio](12-icinga2-api.md#icinga2-api-clients-icinga-studio)
 * [Icinga Web 2 Director](https://www.icinga.com/products/icinga-web-2-modules/)
 
 Demo cases:
@@ -1856,23 +1855,6 @@ Demo cases:
 
 Additional [programmatic examples](12-icinga2-api.md#icinga2-api-clients-programmatic-examples)
 will help you getting started using the Icinga 2 API in your environment.
-
-### Icinga Studio <a id="icinga2-api-clients-icinga-studio"></a>
-
-Icinga Studio is a graphical application to query configuration objects provided by the API.
-
-![Icinga Studio Connection](images/icinga2-api/icinga2_api_icinga_studio_connect.png)
-
-![Icinga Studio Overview](images/icinga2-api/icinga2_api_icinga_studio_overview.png)
-
-Please check the package repository of your distribution for available
-packages.
-
-> **Note**
-> Icinga Studio does not currently support SSL certificate verification.
-
-The Windows installer already includes Icinga Studio. On Debian and Ubuntu the package
-`icinga2-studio` can be used to install Icinga Studio.
 
 ### Icinga 2 Console <a id="icinga2-api-clients-cli-console"></a>
 

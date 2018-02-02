@@ -35,7 +35,6 @@ option(ICINGA2_WITH_COMPAT "Build the compat module" ON)
 option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ON)
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
-option(ICINGA2_WITH_STUDIO "Build the Icinga Studio application" OFF)
 option(ICINGA2_WITH_TESTS "Run unit tests" ON)
 
 option (USE_SYSTEMD
@@ -364,10 +363,6 @@ if(MSVC)
   add_subdirectory(icinga-installer)
 endif()
 
-if(ICINGA2_WITH_STUDIO)
-  add_subdirectory(icinga-studio)
-endif()
-
 if(ICINGA2_WITH_TESTS)
   add_subdirectory(test)
 endif()
@@ -379,7 +374,7 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY "ICINGA2")
 set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
 
-set(CPACK_PACKAGE_EXECUTABLES "Icinga2SetupAgent;Icinga 2 Agent Wizard;icinga-studio;Icinga Studio")
+set(CPACK_PACKAGE_EXECUTABLES "Icinga2SetupAgent;Icinga 2 Agent Wizard")
 set(CPACK_WIX_PRODUCT_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
 set(CPACK_WIX_UPGRADE_GUID "52F2BEAA-4DF0-4C3E-ABDC-C0F61DE4DF8A")
 set(CPACK_WIX_EXTENSIONS "WixUtilExtension")
