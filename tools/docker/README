@@ -1,4 +1,0 @@
-Icinga 2 Development Environment
-================================
-
-The `build' script in this directory builds Icinga 2 in a Docker VM.
