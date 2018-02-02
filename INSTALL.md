@@ -66,9 +66,6 @@ application using a dist tarball (including notes for distributions):
 * Termcap (only required if libedit doesn't already link against termcap/ncurses)
   - RHEL/Fedora: libtermcap-devel
   - Debian/Ubuntu: (not necessary)
-* wxWidgets (only required when building the Icinga 2 Studio)
-  - Fedora: wxGTK-devel and wxBase
-  - Debian/Ubuntu: libwxgtk2.8-dev
 
 ## Special requirements
 
@@ -160,7 +157,6 @@ In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-spec
 - `ICINGA2_WITH_LIVESTATUS`: Determines whether the Livestatus module is built; defaults to `ON`
 - `ICINGA2_WITH_NOTIFICATION`: Determines whether the notification module is built; defaults to `ON`
 - `ICINGA2_WITH_PERFDATA`: Determines whether the perfdata module is built; defaults to `ON`
-- `ICINGA2_WITH_STUDIO`: Determines whether the Icinga Studio application is built; defaults to `OFF`
 - `ICINGA2_WITH_TESTS`: Determines whether the unit tests are built; defaults to `ON`
 
 **MySQL or MariaDB:**
