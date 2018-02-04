@@ -33,6 +33,8 @@ See our [openssl-windows GitHub project](https://github.com/Icinga/openssl-windo
 
 You will need to install a binary dist version to 'C:\\Program Files\\OpenSSL'.
 
+There is a Powershell script to help you downloading: `.\tools\win32\download-openssl.ps1`
+
 **Chocolatey**
 
 A simple package manager for Windows, please see [install instructions](https://chocolatey.org/install).
@@ -84,18 +86,18 @@ Run the installer exe.
 
 ## Build Icinga 2
 
-Run VC Native x64 Command Prompt:
+Run with VC Native x64 Command Prompt:
 
 ```
-cd \local
-git clone https://github.com/Icinga/icinga2.git
-
-cd icinga2
-
-md build
-cd build
-
-"/Program Files/CMake/bin/cmake.exe" .. -G "Visual Studio 15 2017 Win64" -DCPACK_GENERATOR=WIX -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DBOOST_ROOT=c:/local/boost_1_65_1 -DBOOST_LIBRARYDIR=c:/local/boost_1_65_1/lib64-msvc-14.1 -DFLEX_EXECUTABLE=C:/ProgramData/chocolatey/bin/win_flex.exe -DBISON_EXECUTABLE=C:/ProgramData/chocolatey/bin/win_bison.exe
-
-"/Program Files/CMake/bin/cmake.exe" --build . --target PACKAGE --config RelWithDebInfo
+powershell .\tools\win32\configure.ps1
+powershell .\tools\win32\build.ps1
+powershell .\tools\win32\test.ps1
 ```
+
+See these scripts for details.
+
+## AppVeyor
+
+We are building [Icinga 2 with AppVeyor](https://ci.appveyor.com/project/icinga/icinga2) for testing and CI integration.
+
+Please check `appveyor.yml` for our instructions.
