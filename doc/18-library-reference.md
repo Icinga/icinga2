@@ -518,6 +518,52 @@ and `GlobDirectory` constants. The default value is `GlobFile | GlobDirectory`.
     <3> => glob_recursive(path, pattern)
     [ "/etc/icinga2/zones.d/global-templates/templates.conf", "/etc/icinga2/zones.d/master/hosts.conf", ... ]
 
+### compare\_version <a id="global-functions-compare-version"></a>
+
+Signature:
+
+    function compare_version(version1, version2)
+
+Compares two version strings in the format `X.Y.Z`. Removes any trailing characters
+by implicitly calling `parse_version`.
+
+Returns
+
+* 0 if version1 is equal to version2
+* 1 if version1 is less than version2
+* -1 if version1 is greater than version2
+
+Example:
+
+```
+$ icinga2 console
+Icinga 2 (version: v2.7.0)
+<1> => compare_version("v2.9.0", "v2.9.0")
+0.000000
+<2> => compare_version("v2.8.0", "v2.9.0")
+1.000000
+<3> => compare_version("v2.9.0", "v2.8.0")
+-1.000000
+```
+
+### parse\_version <a id="global-functions-parse-version"></a>
+
+Signature:
+
+    function parse_version(version)
+
+Parses a given version string into the format `X.Y.Z`. This helper function
+removes the `v` or `r` prefix, and any revision suffix.
+
+Example:
+
+```
+$ icinga2 console
+Icinga 2 (version: v2.7.0)
+<1> => parse_version("v2.8.1-402-ge1e06ce76")
+"2.8.1"
+```
+
 ### escape_shell_arg <a id="global-functions-escape_shell_arg"></a>
 
 Signature:

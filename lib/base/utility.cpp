@@ -31,6 +31,7 @@
 #include <boost/thread/tss.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/regex.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <ios>
@@ -1263,6 +1264,24 @@ int Utility::CompareVersion(const String& v1, const String& v2)
 	}
 
 	return 0;
+}
+
+String Utility::ParseVersion(const String& version)
+{
+	bool ret;
+	boost::smatch match;
+
+	try {
+		boost::regex expr("[rv]?(\\d+[.\\d+]*).*");
+		ret = boost::regex_search(version.GetData(), match, expr);
+	} catch (boost::exception&) {
+		ret = false;
+	}
+
+	if (ret)
+		return String(match[1].first, match[1].second);
+
+	return version;
 }
 
 String Utility::GetHostName()
