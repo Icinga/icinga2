@@ -20,6 +20,7 @@
 #include "icinga/cib.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
+#include "icinga/clusterevents.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
@@ -304,6 +305,8 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("passive_service_checks_5min", GetPassiveServiceChecksStatistics(60 * 5));
 	status->Set("active_service_checks_15min", GetActiveServiceChecksStatistics(60 * 15));
 	status->Set("passive_service_checks_15min", GetPassiveServiceChecksStatistics(60 * 15));
+
+	status->Set("remote_check_queue", ClusterEvents::GetCheckRequestQueueSize());
 
 	CheckableCheckStatistics scs = CalculateServiceCheckStats();
 

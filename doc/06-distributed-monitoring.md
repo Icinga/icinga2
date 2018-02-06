@@ -818,6 +818,10 @@ This mode will force the Icinga 2 node to execute commands remotely on a specifi
 The host/service object configuration is located on the master/satellite and the client only
 needs the CheckCommand object definitions being used there.
 
+Every endpoint has its own remote check queue. The amount of checks executed simultaneously
+can be limited on the endpoint with the `MaxConcurrentChecks` constant defined in [constants.conf](04-configuring-icinga-2.md#constants-conf). Icinga 2 may discard check requests,
+if the remote check queue is full.
+
 ![Icinga 2 Distributed Top Down Command Endpoint](images/distributed-monitoring/icinga2_distributed_top_down_command_endpoint.png)
 
 Advantages:

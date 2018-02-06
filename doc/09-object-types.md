@@ -247,16 +247,14 @@ This configuration object is available as [checker feature](11-cli-commands.md#c
 Example:
 
 ```
-object CheckerComponent "checker" {
-  concurrent_checks = 512
-}
+object CheckerComponent "checker" { }
 ```
 
 Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  concurrent\_checks        | Number                | **Optional.** The maximum number of concurrent checks. Defaults to 512.
+  concurrent\_checks        | Number                | **Optional and deprecated.** The maximum number of concurrent checks. Was replaced by global constant `MaxConcurrentChecks` which will be set if you still use `concurrent_checks`.
 
 ## CheckResultReader <a id="objecttype-checkresultreader"></a>
 

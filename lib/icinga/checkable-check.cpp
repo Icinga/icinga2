@@ -42,6 +42,7 @@ boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnNextCheckUpda
 
 boost::mutex Checkable::m_StatsMutex;
 int Checkable::m_PendingChecks = 0;
+boost::condition_variable Checkable::m_PendingChecksCV;
 
 CheckCommand::Ptr Checkable::GetCheckCommand() const
 {
@@ -544,10 +545,20 @@ void Checkable::DecreasePendingChecks()
 {
 	boost::mutex::scoped_lock lock(m_StatsMutex);
 	m_PendingChecks--;
+	m_PendingChecksCV.notify_one();
 }
 
 int Checkable::GetPendingChecks()
 {
 	boost::mutex::scoped_lock lock(m_StatsMutex);
 	return m_PendingChecks;
+}
+
+void Checkable::AquirePendingCheckSlot(int maxPendingChecks)
+{
+	boost::mutex::scoped_lock lock(m_StatsMutex);
+	while (m_PendingChecks >= maxPendingChecks)
+		m_PendingChecksCV.wait(lock);
+
+	m_PendingChecks++;
 }

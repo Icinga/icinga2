@@ -398,6 +398,7 @@ PlatformKernelVersion|**Read-only.** The version of the operating system kernel,
 BuildCompilerName   |**Read-only.** The name of the compiler Icinga was built with, e.g. "Clang".
 BuildCompilerVersion|**Read-only.** The version of the compiler Icinga was built with, e.g. "7.3.0.7030031".
 BuildHostName       |**Read-only.** The name of the host Icinga was built on, e.g. "acheron".
+MaxConcurrentChecks |**Read-write**. The number of max checks run simultaneously. Defaults to 512.
 
 
 Advanced runtime constants. Please only use them if advised by support or developers.
