@@ -650,6 +650,204 @@ inside the `icinga2.log` file depending in your log severity
 * Use the `icinga2 console` to test basic functionality (e.g. iterating over a dictionary)
 * Build them step-by-step. You can always refactor your code later on.
 
+#### Register and Use Global Functions <a id="use-functions-global-register"></a>
+
+[Functions](17-language-reference.md#functions) can be registered into the global scope. This allows custom functions being available
+in objects and other functions. Keep in mind that these functions are not marked
+as side-effect-free and as such are not available via the REST API.
+
+Add a new configuration file `functions.conf` and include it into the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf)
+configuration file in the very beginning, e.g. after `constants.conf`. You can also manage global
+functions inside `constants.conf` if you prefer.
+
+The following function converts a given state parameter into a returned string value. The important
+bits for registering it into the global scope are:
+
+* `globals.<unique_function_name>` adds a new globals entry.
+* `function()` specifies that a call to `state_to_string()` executes a function.
+* Function parameters are defined inside the `function()` definition.
+
+```
+globals.state_to_string = function(state) {
+  if (state == 2) {
+    return "Critical"
+  } else if (state == 1) {
+    return "Warning"
+  } else if (state == 0) {
+    return "OK"
+  } else if (state == 3) {
+    return "Unknown"
+  } else {
+    log(LogWarning, "state_to_string", "Unknown state " + state + " provided.")
+  }
+}
+```
+
+The else-condition allows for better error handling. This warning will be shown in the Icinga 2
+log file once the function is called.
+
+> **Note**
+>
+> If these functions are used in a distributed environment, you must ensure to deploy them
+> everywhere needed.
+
+In order to test-drive the newly created function, restart Icinga 2 and use the [debug console](11-cli-commands.md#cli-command-console)
+to connect to the REST API.
+
+```
+$ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
+Icinga 2 (version: v2.8.1-373-g4bea6d25c)
+<1> => globals.state_to_string(1)
+"Warning"
+<2> => state_to_string(2)
+"Critical"
+```
+
+You can see that this function is now registered into the [global scope](17-language-reference.md#variable-scopes). The function call
+`state_to_string()` can be used in any object at static config compile time or inside runtime
+lambda functions.
+
+The following service object example uses the service state and converts it to string output.
+The function definition is not optimized and is enrolled for better readability including a log message.
+
+```
+object Service "state-test" {
+  check_command = "dummy"
+  host_name = NodeName
+
+  vars.dummy_state = 2
+
+  vars.dummy_text = {{
+    var h = macro("$host.name$")
+    var s = macro("$service.name$")
+
+    var state = get_service(h, s).state
+
+    log(LogInformation, "dummy_state", "Host: " + h + " Service: " + s + " State: " + state)
+
+    return state_to_string(state)
+  }}
+}
+```
+
+
+#### Use Custom Functions as Attribute <a id="custom-functions-as-attribute"></a>
+
+To use custom functions as attributes, the function must be defined in a
+slightly unexpected way. The following example shows how to assign values
+depending on group membership. All hosts in the `slow-lan` host group use 300
+as value for `ping_wrta`, all other hosts use 100.
+
+    globals.group_specific_value = function(group, group_value, non_group_value) {
+        return function() use (group, group_value, non_group_value) {
+            if (group in host.groups) {
+                return group_value
+            } else {
+                return non_group_value
+            }
+        }
+    }
+
+    apply Service "ping4" {
+        import "generic-service"
+        check_command = "ping4"
+
+        vars.ping_wrta = group_specific_value("slow-lan", 300, 100)
+        vars.ping_crta = group_specific_value("slow-lan", 500, 200)
+
+        assign where true
+    }
+
+#### Use Functions in Assign Where Expressions <a id="use-functions-assign-where"></a>
+
+If a simple expression for matching a name or checking if an item
+exists in an array or dictionary does not fit, you should consider
+writing your own global [functions](17-language-reference.md#functions).
+You can call them inside `assign where` and `ignore where` expressions
+for [apply rules](03-monitoring-basics.md#using-apply-expressions) or
+[group assignments](03-monitoring-basics.md#group-assign-intro) just like
+any other global functions for example [match](18-library-reference.md#global-functions-match).
+
+The following example requires the host `myprinter` being added
+to the host group `printers-lexmark` but only if the host uses
+a template matching the name `lexmark*`.
+
+    template Host "lexmark-printer-host" {
+      vars.printer_type = "Lexmark"
+    }
+
+    object Host "myprinter" {
+      import "generic-host"
+      import "lexmark-printer-host"
+
+      address = "192.168.1.1"
+    }
+
+    /* register a global function for the assign where call */
+    globals.check_host_templates = function(host, search) {
+      /* iterate over all host templates and check if the search matches */
+      for (tmpl in host.templates) {
+        if (match(search, tmpl)) {
+          return true
+        }
+      }
+
+      /* nothing matched */
+      return false
+    }
+
+    object HostGroup "printers-lexmark" {
+      display_name = "Lexmark Printers"
+      /* call the global function and pass the arguments */
+      assign where check_host_templates(host, "lexmark*")
+    }
+
+
+Take a different more complex example: All hosts with the
+custom attribute `vars_app` as nested dictionary should be
+added to the host group `ABAP-app-server`. But only if the
+`app_type` for all entries is set to `ABAP`.
+
+It could read as wildcard match for nested dictionaries:
+
+    where host.vars.vars_app["*"].app_type == "ABAP"
+
+The solution for this problem is to register a global
+function which checks the `app_type` for all hosts
+with the `vars_app` dictionary.
+
+    object Host "appserver01" {
+      check_command = "dummy"
+      vars.vars_app["ABC"] = { app_type = "ABAP" }
+    }
+    object Host "appserver02" {
+      check_command = "dummy"
+      vars.vars_app["DEF"] = { app_type = "ABAP" }
+    }
+
+    globals.check_app_type = function(host, type) {
+      /* ensure that other hosts without the custom attribute do not match */
+      if (typeof(host.vars.vars_app) != Dictionary) {
+        return false
+      }
+
+      /* iterate over the vars_app dictionary */
+      for (key => val in host.vars.vars_app) {
+        /* if the value is a dictionary and if contains the app_type being the requested type */
+        if (typeof(val) == Dictionary && val.app_type == type) {
+          return true
+        }
+      }
+
+      /* nothing matched */
+      return false
+    }
+
+    object HostGroup "ABAP-app-server" {
+      assign where check_app_type(host, "ABAP")
+    }
+
+
 #### Use Functions in Command Arguments set_if <a id="use-functions-command-arguments-setif"></a>
 
 The `set_if` attribute inside the command arguments definition in the
@@ -783,121 +981,6 @@ You can omit the `log()` calls, they only help debugging.
       }
     }
 
-#### Use Custom Functions as Attribute <a id="custom-functions-as-attribute"></a>
-
-To use custom functions as attributes, the function must be defined in a
-slightly unexpected way. The following example shows how to assign values
-depending on group membership. All hosts in the `slow-lan` host group use 300
-as value for `ping_wrta`, all other hosts use 100.
-
-    globals.group_specific_value = function(group, group_value, non_group_value) {
-        return function() use (group, group_value, non_group_value) {
-            if (group in host.groups) {
-                return group_value
-            } else {
-                return non_group_value
-            }
-        }
-    }
-
-    apply Service "ping4" {
-        import "generic-service"
-        check_command = "ping4"
-
-        vars.ping_wrta = group_specific_value("slow-lan", 300, 100)
-        vars.ping_crta = group_specific_value("slow-lan", 500, 200)
-
-        assign where true
-    }
-
-#### Use Functions in Assign Where Expressions <a id="use-functions-assign-where"></a>
-
-If a simple expression for matching a name or checking if an item
-exists in an array or dictionary does not fit, you should consider
-writing your own global [functions](17-language-reference.md#functions).
-You can call them inside `assign where` and `ignore where` expressions
-for [apply rules](03-monitoring-basics.md#using-apply-expressions) or
-[group assignments](03-monitoring-basics.md#group-assign-intro) just like
-any other global functions for example [match](18-library-reference.md#global-functions-match).
-
-The following example requires the host `myprinter` being added
-to the host group `printers-lexmark` but only if the host uses
-a template matching the name `lexmark*`.
-
-    template Host "lexmark-printer-host" {
-      vars.printer_type = "Lexmark"
-    }
-
-    object Host "myprinter" {
-      import "generic-host"
-      import "lexmark-printer-host"
-
-      address = "192.168.1.1"
-    }
-
-    /* register a global function for the assign where call */
-    globals.check_host_templates = function(host, search) {
-      /* iterate over all host templates and check if the search matches */
-      for (tmpl in host.templates) {
-        if (match(search, tmpl)) {
-          return true
-        }
-      }
-
-      /* nothing matched */
-      return false
-    }
-
-    object HostGroup "printers-lexmark" {
-      display_name = "Lexmark Printers"
-      /* call the global function and pass the arguments */
-      assign where check_host_templates(host, "lexmark*")
-    }
-
-
-Take a different more complex example: All hosts with the
-custom attribute `vars_app` as nested dictionary should be
-added to the host group `ABAP-app-server`. But only if the
-`app_type` for all entries is set to `ABAP`.
-
-It could read as wildcard match for nested dictionaries:
-
-    where host.vars.vars_app["*"].app_type == "ABAP"
-
-The solution for this problem is to register a global
-function which checks the `app_type` for all hosts
-with the `vars_app` dictionary.
-
-    object Host "appserver01" {
-      check_command = "dummy"
-      vars.vars_app["ABC"] = { app_type = "ABAP" }
-    }
-    object Host "appserver02" {
-      check_command = "dummy"
-      vars.vars_app["DEF"] = { app_type = "ABAP" }
-    }
-
-    globals.check_app_type = function(host, type) {
-      /* ensure that other hosts without the custom attribute do not match */
-      if (typeof(host.vars.vars_app) != Dictionary) {
-        return false
-      }
-
-      /* iterate over the vars_app dictionary */
-      for (key => val in host.vars.vars_app) {
-        /* if the value is a dictionary and if contains the app_type being the requested type */
-        if (typeof(val) == Dictionary && val.app_type == type) {
-          return true
-        }
-      }
-
-      /* nothing matched */
-      return false
-    }
-
-    object HostGroup "ABAP-app-server" {
-      assign where check_app_type(host, "ABAP")
-    }
 
 ### Access Object Attributes at Runtime <a id="access-object-attributes-at-runtime"></a>
 
