@@ -589,10 +589,11 @@ method:
 New objects must be created by sending a PUT request. The following
 parameters need to be passed inside the JSON body:
 
-  Parameters | Type         | Description
-  -----------|--------------|--------------------------
-  templates  | Array        | **Optional.** Import existing configuration templates for this object type. Note: These templates must either be statically configured or provided in [config packages](12-icinga2-api.md#icinga2-api-config-management)-
-  attrs      | Dictionary   | **Required.** Set specific object attributes for this [object type](09-object-types.md#object-types).
+  Parameters        | Type         | Description
+  ------------------|--------------|--------------------------
+  templates         | Array        | **Optional.** Import existing configuration templates for this object type. Note: These templates must either be statically configured or provided in [config packages](12-icinga2-api.md#icinga2-api-config-management)-
+  attrs             | Dictionary   | **Required.** Set specific object attributes for this [object type](09-object-types.md#object-types).
+  ignore\_on\_error | Boolean      | **Optional.** Ignore object creation errors and return an HTTP 200 status instead.
 
 The object name must be specified as part of the URL path. For objects with composite names (e.g. services)
 the full name (e.g. `example.localdomain!http`) must be specified.
