@@ -112,7 +112,15 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 		cr->SetExecutionEnd(HttpUtility::GetLastParameter(params, "execution_end"));
 
 	cr->SetCheckSource(HttpUtility::GetLastParameter(params, "check_source"));
-	cr->SetPerformanceData(params->Get("performance_data"));
+
+	Value perfData = params->Get("performance_data");
+
+	/* Allow to pass a performance data string from Icinga Web 2 next to the new Array notation. */
+	if (perfData.IsString())
+		cr->SetPerformanceData(PluginUtility::SplitPerfdata(perfData));
+	else
+		cr->SetPerformanceData(perfData);
+
 	cr->SetCommand(params->Get("check_command"));
 
 	/* Mark this check result as passive. */
