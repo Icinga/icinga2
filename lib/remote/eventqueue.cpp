@@ -41,7 +41,7 @@ void EventQueue::ProcessEvent(const Dictionary::Ptr& event)
 	frame.Sandboxed = true;
 
 	try {
-		if (!FilterUtility::EvaluateFilter(frame, &*m_Filter, event, "event"))
+		if (!FilterUtility::EvaluateFilter(frame, m_Filter.get(), event, "event"))
 			return;
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "EventQueue")
