@@ -53,6 +53,7 @@ struct I2_REMOTE_API HttpRequest
 {
 public:
 	bool CompleteHeaders;
+	bool CompleteHeaderCheck;
 	bool CompleteBody;
 
 	String RequestMethod;

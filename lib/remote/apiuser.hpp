@@ -36,6 +36,7 @@ public:
 	DECLARE_OBJECTNAME(ApiUser);
 
 	static ApiUser::Ptr GetByClientCN(const String& cn);
+	static ApiUser::Ptr GetByAuthHeader(const String& auth_header);
 };
 
 }

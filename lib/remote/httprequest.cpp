@@ -30,6 +30,7 @@ using namespace icinga;
 
 HttpRequest::HttpRequest(const Stream::Ptr& stream)
 	: CompleteHeaders(false),
+	CompleteHeaderCheck(false),
 	CompleteBody(false),
 	ProtocolVersion(HttpVersion11),
 	Headers(new Dictionary()),
@@ -43,7 +44,7 @@ bool HttpRequest::ParseHeader(StreamReadContext& src, bool may_wait)
 		return false;
 
 	if (m_State != HttpRequestStart && m_State != HttpRequestHeaders)
-		return false;
+		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid HTTP state"));
 
 	String line;
 	StreamReadStatus srs = m_Stream->ReadLine(&line, src, may_wait);
@@ -109,18 +110,18 @@ bool HttpRequest::ParseHeader(StreamReadContext& src, bool may_wait)
 
 bool HttpRequest::ParseBody(StreamReadContext& src, bool may_wait)
 {
-	if (!m_Stream || m_State != HttpRequestBody)
+	if (!m_Stream)
 		return false;
+
+	if (m_State != HttpRequestBody)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid HTTP state"));
 
 	/* we're done if the request doesn't contain a message body */
 	if (!Headers->Contains("content-length") && !Headers->Contains("transfer-encoding")) {
 		CompleteBody = true;
-		return true;
+		return false;
 	} else if (!m_Body)
 		m_Body = new FIFO();
-
-	if (CompleteBody)
-		return true;
 
 	if (Headers->Get("transfer-encoding") == "chunked") {
 		if (!m_ChunkContext)
@@ -139,39 +140,38 @@ bool HttpRequest::ParseBody(StreamReadContext& src, bool may_wait)
 
 		if (size == 0) {
 			CompleteBody = true;
-			return true;
-		}
-	} else {
-		if (src.Eof)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Unexpected EOF in HTTP body"));
-
-		if (src.MustRead) {
-			if (!src.FillFromStream(m_Stream, false)) {
-				src.Eof = true;
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Unexpected EOF in HTTP body"));
-			}
-
-			src.MustRead = false;
-		}
-
-		long length_indicator_signed = Convert::ToLong(Headers->Get("content-length"));
-
-		if (length_indicator_signed < 0)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Content-Length must not be negative."));
-
-		size_t length_indicator = length_indicator_signed;
-
-		if (src.Size < length_indicator) {
-			src.MustRead = true;
 			return false;
-		}
-
-		m_Body->Write(src.Buffer, length_indicator);
-		src.DropData(length_indicator);
-		CompleteBody = true;
-		return true;
+		} else
+			return true;
 	}
 
+	if (src.Eof)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Unexpected EOF in HTTP body"));
+
+	if (src.MustRead) {
+		if (!src.FillFromStream(m_Stream, false)) {
+			src.Eof = true;
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Unexpected EOF in HTTP body"));
+		}
+
+		src.MustRead = false;
+	}
+
+	long length_indicator_signed = Convert::ToLong(Headers->Get("content-length"));
+
+	if (length_indicator_signed < 0)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Content-Length must not be negative."));
+
+	size_t length_indicator = length_indicator_signed;
+
+	if (src.Size < length_indicator) {
+		src.MustRead = true;
+		return false;
+	}
+
+	m_Body->Write(src.Buffer, length_indicator);
+	src.DropData(length_indicator);
+	CompleteBody = true;
 	return true;
 }
 
