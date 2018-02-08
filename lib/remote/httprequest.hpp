@@ -53,6 +53,7 @@ struct HttpRequest
 {
 public:
 	bool CompleteHeaders;
+	bool CompleteHeaderCheck;
 	bool CompleteBody;
 
 	String RequestMethod;

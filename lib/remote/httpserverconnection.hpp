@@ -21,6 +21,7 @@
 #define HTTPSERVERCONNECTION_H
 
 #include "remote/httprequest.hpp"
+#include "remote/httpresponse.hpp"
 #include "remote/apiuser.hpp"
 #include "base/tlsstream.hpp"
 #include "base/timer.hpp"
@@ -51,6 +52,7 @@ public:
 
 private:
 	ApiUser::Ptr m_ApiUser;
+	ApiUser::Ptr m_AuthenticatedUser;
 	TlsStream::Ptr m_Stream;
 	double m_Seen;
 	HttpRequest m_CurrentRequest;
@@ -67,7 +69,9 @@ private:
 	static void TimeoutTimerHandler();
 	void CheckLiveness();
 
-	void ProcessMessageAsync(HttpRequest& request);
+	bool ManageHeaders(HttpResponse& response);
+
+	void ProcessMessageAsync(HttpRequest& request, HttpResponse& response, const ApiUser::Ptr&);
 };
 
 }
