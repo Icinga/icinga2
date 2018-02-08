@@ -357,7 +357,9 @@ void ElasticsearchWriter::Enqueue(const String& type, const Dictionary::Ptr& fie
 	 * We do it this way to avoid problems with a near full queue.
 	 */
 
-	String indexBody = R"({ "index" : { "_type" : ")" + eventType + "\" } }\n";
+	/* ES 6 removes multiple _type mappings: https://www.elastic.co/guide/en/elasticsearch/reference/6.x/removal-of-types.html
+	 * We still need to send an index header. Best practice is to statically define 'doc'. */
+	String indexBody = "{ \"index\" : { \"_type\": \"doc\" } }\n";
 	String fieldsBody = JsonEncode(fields);
 
 	Log(LogDebug, "ElasticsearchWriter")
