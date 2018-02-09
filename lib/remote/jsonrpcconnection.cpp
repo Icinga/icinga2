@@ -114,10 +114,15 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 {
 	try {
 		ObjectLock olock(m_Stream);
+
 		if (m_Stream->IsEof())
 			return;
+
 		size_t bytesSent = JsonRpc::SendMessage(m_Stream, message);
-		m_Endpoint->AddMessageSent(bytesSent);
+
+		if (m_Endpoint)
+			m_Endpoint->AddMessageSent(bytesSent);
+
 	} catch (const std::exception& ex) {
 		std::ostringstream info;
 		info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
