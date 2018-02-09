@@ -174,15 +174,16 @@ public:
  */
 ConfigObject::Ptr ConfigItem::Commit(bool discard)
 {
+	Type::Ptr type = GetType();
+
 #ifdef I2_DEBUG
 	Log(LogDebug, "ConfigItem")
-		<< "Commit called for ConfigItem Type=" << GetType() << ", Name=" << GetName();
+		<< "Commit called for ConfigItem Type=" << type->GetName() << ", Name=" << GetName();
 #endif /* I2_DEBUG */
 
 	/* Make sure the type is valid. */
-	Type::Ptr type = GetType();
 	if (!type || !ConfigObject::TypeInstance->IsAssignableFrom(type))
-		BOOST_THROW_EXCEPTION(ScriptError("Type '" + GetType() + "' does not exist.", m_DebugInfo));
+		BOOST_THROW_EXCEPTION(ScriptError("Type '" + type->GetName() + "' does not exist.", m_DebugInfo));
 
 	if (IsAbstract())
 		return nullptr;
@@ -204,7 +205,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
-				<< "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
+				<< "Ignoring config object '" << m_Name << "' of type '" << type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
@@ -256,7 +257,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	} catch (ValidationError& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
-				<< "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
+				<< "Ignoring config object '" << m_Name << "' of type '" << type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
@@ -289,7 +290,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	}
 
 	Dictionary::Ptr persistentItem = new Dictionary({
-		{ "type", GetType()->GetName() },
+		{ "type", type->GetName() },
 		{ "name", GetName() },
 		{ "properties", Serialize(dobj, FAConfig) },
 		{ "debug_hints", dhint },
