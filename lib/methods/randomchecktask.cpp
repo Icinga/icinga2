@@ -24,7 +24,6 @@
 #include "icinga/icingaapplication.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
-#include "base/convert.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
 
@@ -38,13 +37,25 @@ void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
-	String output = "Hello from ";
-	output += IcingaApplication::GetInstance()->GetNodeName();
+	double now = Utility::GetTime();
+	double uptime = now - Application::GetStartTime();
+
+	String output = "Hello from " + IcingaApplication::GetInstance()->GetNodeName()
+		+ ". Icinga 2 has been running for " + Utility::FormatDuration(uptime)
+		+ ". Version: " + Application::GetAppVersion();
 
 	cr->SetOutput(output);
+
+	double random = Utility::Random() % 1000;
+
 	cr->SetPerformanceData(new Array({
-		new PerfdataValue("time", Convert::ToDouble(Utility::GetTime()))
+		new PerfdataValue("time", now),
+		new PerfdataValue("value", random),
+		new PerfdataValue("value_1m", random * 0.9),
+		new PerfdataValue("value_5m", random * 0.8),
+		new PerfdataValue("uptime", uptime),
 	}));
+
 	cr->SetState(static_cast<ServiceState>(Utility::Random() % 4));
 
 	service->ProcessCheckResult(cr);
