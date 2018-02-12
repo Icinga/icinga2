@@ -49,21 +49,10 @@ class ApiListener : ConfigObject
 
 	[config] String ticket_salt;
 
-	[config] Array::Ptr access_control_allow_origin {
-		default {{{ return new Array(); }}}
-	};
-	[config] bool access_control_allow_credentials
-	{
-		default {{{ return true; }}}
-	};
-	[config] String access_control_allow_headers
-	{
-		default {{{ return "Authorization"; }}}
-	};
-	[config] String access_control_allow_methods
-	{
-		default {{{ return "GET, POST, PUT, DELETE"; }}}
-	};
+	[config] Array::Ptr access_control_allow_origin;
+	[config, deprecated] bool access_control_allow_credentials;
+	[config, deprecated] String access_control_allow_headers;
+	[config, deprecated] String access_control_allow_methods;
 
 
 	[state, no_user_modify] Timestamp log_message_timestamp;

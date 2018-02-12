@@ -227,16 +227,15 @@ bool HttpServerConnection::ManageHeaders(HttpResponse& response)
 			}
 		}
 
-		if (listener->GetAccessControlAllowCredentials())
-			response.AddHeader("Access-Control-Allow-Credentials", "true");
+		response.AddHeader("Access-Control-Allow-Credentials", "true");
 
 		String accessControlRequestMethodHeader = m_CurrentRequest.Headers->Get("access-control-request-method");
 
 		if (m_CurrentRequest.RequestMethod == "OPTIONS" && !accessControlRequestMethodHeader.IsEmpty()) {
 			response.SetStatus(200, "OK");
 
-			response.AddHeader("Access-Control-Allow-Methods", listener->GetAccessControlAllowMethods());
-			response.AddHeader("Access-Control-Allow-Headers", listener->GetAccessControlAllowHeaders());
+			response.AddHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+			response.AddHeader("Access-Control-Allow-Headers", "Authorization, X-HTTP-Method-Override");
 
 			String msg = "Preflight OK";
 			response.WriteBody(msg.CStr(), msg.GetLength());
