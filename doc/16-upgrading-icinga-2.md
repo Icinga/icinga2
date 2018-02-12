@@ -81,8 +81,11 @@ In order to support a smooth migration between versions older than 2.8 and futur
 the built-in certificate migration path is planned to exist as long as the deprecated
 `ApiListener` object attributes exist.
 
-You are safe to use the existing configuration paths inside the `api` feature. If you plan your migration,
-look at the following example taken from the Director Linux deployment script for clients.
+You are safe to use the existing configuration paths inside the `api` feature.
+
+**Example**
+
+Look at the following example taken from the Director Linux deployment script for clients.
 
 * Ensure that the default certificate path is changed from `/etc/icinga2/pki` to `/var/lib/icinga2/certs`.
 
