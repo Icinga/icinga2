@@ -52,7 +52,7 @@ void HttpServerConnection::StaticInitialize()
 {
 	l_HttpServerConnectionTimeoutTimer = new Timer();
 	l_HttpServerConnectionTimeoutTimer->OnTimerExpired.connect(std::bind(&HttpServerConnection::TimeoutTimerHandler));
-	l_HttpServerConnectionTimeoutTimer->SetInterval(15);
+	l_HttpServerConnectionTimeoutTimer->SetInterval(5);
 	l_HttpServerConnectionTimeoutTimer->Start();
 }
 
@@ -76,6 +76,12 @@ TlsStream::Ptr HttpServerConnection::GetStream() const
 
 void HttpServerConnection::Disconnect()
 {
+	boost::mutex::scoped_try_lock lock(m_DataHandlerMutex);
+	if (!lock.owns_lock()) {
+		Log(LogInformation, "HttpServerConnection", "Unable to disconnect Http client, I/O thread busy");
+		return;
+	}
+
 	Log(LogDebug, "HttpServerConnection", "Http client disconnected");
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();

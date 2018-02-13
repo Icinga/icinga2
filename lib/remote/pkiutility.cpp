@@ -121,8 +121,10 @@ std::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& po
 
 	try {
 		stream->Handshake();
-	} catch (...) {
-
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "pki")
+			<< "Client TLS handshake failed. (" << ex.what() << ")";
+		return std::shared_ptr<X509>();
 	}
 
 	return stream->GetPeerCertificate();
