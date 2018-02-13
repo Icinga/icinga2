@@ -511,11 +511,17 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		JsonRpc::SendMessage(tlsStream, message);
 		ctype = ClientJsonRpc;
 	} else {
-		tlsStream->WaitForData(5);
+		tlsStream->WaitForData(10);
 
 		if (!tlsStream->IsDataAvailable()) {
-			Log(LogWarning, "ApiListener")
-			    << "No data received on new API connection for identity '" << identity << "'. Ensure that the remote endpoints are properly configured in a cluster setup.";
+			if (identity.IsEmpty())
+				Log(LogInformation, "ApiListener")
+					<< "No data received on new API connection. "
+					<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+			else
+				Log(LogWarning, "ApiListener")
+					<< "No data received on new API connection for identity '" << identity << "'. "
+					<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
 			return;
 		}
 
