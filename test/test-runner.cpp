@@ -17,29 +17,30 @@
 * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
 ******************************************************************************/
 
+#define BOOST_TEST_MAIN
+
 #include "icinga/icingaapplication.hpp"
 #include "base/application.hpp"
 #include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 
-static bool init_unit_test()
+struct TestIcingaApplication
 {
-	return true;
-}
+	TestIcingaApplication()
+	{
+		Application::InitializeBase();
 
-int main(int argc, char *argv[])
-{
-	Application::InitializeBase();
+		IcingaApplication::Ptr appInst;
 
-	IcingaApplication::Ptr appInst;
+		appInst = new IcingaApplication();
+		static_pointer_cast<ConfigObject>(appInst)->OnConfigLoaded();
+	}
 
-	appInst = new IcingaApplication();
-	static_pointer_cast<ConfigObject>(appInst)->OnConfigLoaded();
+	~TestIcingaApplication()
+	{
+		IcingaApplication::GetInstance().reset();
+	}
+};
 
-	int rc = boost::unit_test::unit_test_main(&init_unit_test, argc, argv);
-
-	appInst.reset();
-
-	Application::Exit(rc);
-}
+BOOST_GLOBAL_FIXTURE(TestIcingaApplication);

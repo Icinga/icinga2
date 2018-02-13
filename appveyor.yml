@@ -1,0 +1,55 @@
+---
+version: 2.9.0.dev.{build}
+
+os: Visual Studio 2017
+
+environment:
+  CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
+  BOOST_ROOT: 'C:\Libraries\boost_1_65_1'
+  BOOST_LIBRARYDIR: 'C:\Libraries\boost_1_65_1\lib64-msvc-14.1'
+  BISON_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe'
+  FLEX_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe'
+
+branches:
+  only:
+    - master
+
+cache:
+- build
+- vendor -> tools\win32\download-openssl.ps1
+- C:\ProgramData\chocolatey\lib\winflexbison3
+
+install:
+- ps: |
+    if (-not (Test-Path "vendor\OpenSSL")) {
+      .\tools\win32\download-openssl.ps1
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+    }
+- ps: |
+    if (-not (Test-Path "C:\ProgramData\chocolatey\lib\winflexbison3")) {
+      choco install winflexbison3
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+    }
+
+before_build:
+- ps: |
+    .\tools\win32\configure.ps1
+    if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+    del build\Icinga*.msi
+
+build_script:
+- ps: |
+    .\tools\win32\build.ps1
+    if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+
+test_script:
+- ps: |
+    .\tools\win32\test.ps1
+    if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+
+artifacts:
+- path: build/Icinga*.msi
+- path: build/choco/*.nupkg
+- path: build/Test.xml
+
+deploy: off
