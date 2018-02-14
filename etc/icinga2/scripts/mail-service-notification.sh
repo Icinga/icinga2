@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)
+# Except of function urlencode which is Copyright (C) by Brian White (brian@aljex.com) used under MIT license
 
 PROG="`basename $0`"
 ICINGA2HOST="`hostname`"
@@ -49,6 +50,16 @@ Error() {
   fi
   Usage;
   exit 1;
+}
+
+urlencode() {
+  local LANG=C i c e=''
+  for ((i=0;i<${#1};i++)); do
+    c=${1:$i:1}
+    [[ "$c" =~ [a-zA-Z0-9\.\~\_\-] ]] || printf -v c '%%%02X' "'$c"
+    e+="$c"
+  done
+  echo "$e"
 }
 
 ## Main
@@ -134,7 +145,7 @@ fi
 if [ -n "$ICINGAWEB2URL" ] ; then
   NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
 
-$ICINGAWEB2URL/monitoring/service/show?host=$HOSTNAME&service=$SERVICENAME"
+$ICINGAWEB2URL/monitoring/service/show?host=$(urlencode "$HOSTNAME")&service=$(urlencode "$SERVICENAME")"
 fi
 
 ## Check whether verbose mode was enabled and log to syslog.
