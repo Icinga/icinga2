@@ -1675,7 +1675,7 @@ apply Notification "mail-host-notification" to Service {
 
   if (service.vars.notification.mail.groups) {
     user_groups = service.vars.notification.mail.groups
-  } else {host.vars.notification.mail.groups) {
+  } else (host.vars.notification.mail.groups) {
     user_groups = host.vars.notification.mail.groups
   }
 
