@@ -20,6 +20,7 @@
 #include "cli/apiusercommand.hpp"
 #include "base/logger.hpp"
 #include "base/tlsutility.hpp"
+#include "base/configwriter.hpp"
 #include "remote/apiuser.hpp"
 #include <iostream>
 
@@ -81,9 +82,16 @@ int ApiUserCommand::Run(const boost::program_options::variables_map& vm, const s
 	if (vm.count("oneline"))
 		std::cout << '"' << hashedPassword << "\"\n";
 	else {
-		std::cout
-			<< "object ApiUser \"" << user << "\" {\n"
-			<< "  password_hash =\"" << hashedPassword << "\"\n"
+		std::cout << "object ApiUser ";
+
+		ConfigWriter::EmitString(std::cout, user);
+
+		std::cout << "{\n"
+			<< "  password_hash = ";
+
+		ConfigWriter::EmitString(std::cout, hashedPassword);
+
+		std::cout << "\n"
 			<< "  // client_cn = \"\"\n"
 			<< "\n"
 			<< "  permissions = [ \"*\" ]\n"
