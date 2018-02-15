@@ -71,7 +71,6 @@ int ApiUserCommand::Run(const boost::program_options::variables_map& vm, const s
 	passwd = vm["passwd"].as<std::string>();
 	salt = vm.count("salt") ? String(vm["salt"].as<std::string>()) : RandomString(8);
 
-	std::cout << salt << '\n';
 	if (salt.FindFirstOf('$') != String::NPos) {
 		Log(LogCritical, "cli", "Salt (--salt) may not contain '$'");
 		return 1;
