@@ -31,8 +31,12 @@ void ApiUser::OnConfigLoaded(void)
 {
 	ObjectImpl<ApiUser>::OnConfigLoaded();
 
-	if (this->GetPasswordHash().IsEmpty())
-		SetPasswordHash(HashPassword(GetPassword(), RandomString(8), true));
+	if (GetPasswordHash().IsEmpty()) {
+		String hashedPassword =	CreateHashedPasswordString(GetPassword(), RandomString(8), 5);
+		VERIFY(hashedPassword != String());
+		SetPasswordHash(hashedPassword);
+		SetPassword("********");
+	}
 }
 
 ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)

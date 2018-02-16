@@ -44,7 +44,7 @@ void ApiUserCommand::InitParameters(boost::program_options::options_description&
 {
 	visibleDesc.add_options()
 		("user", po::value<std::string>(), "API username")
-		("passwd", po::value<std::string>(), "Password in clear text")
+		("password", po::value<std::string>(), "Password in clear text")
 		("salt", po::value<std::string>(), "Optional salt (default: 8 random chars)")
 		("oneline", "Print only the password hash");
 }
@@ -63,8 +63,8 @@ int ApiUserCommand::Run(const boost::program_options::variables_map& vm, const s
 	} else
 		user = vm["user"].as<std::string>();
 
-	if (!vm.count("passwd")) {
-		Log(LogCritical, "cli", "Password (--passwd) must be specified.");
+	if (!vm.count("password")) {
+		Log(LogCritical, "cli", "Password (--password) must be specified.");
 		return 1;
 	}
 
@@ -76,7 +76,11 @@ int ApiUserCommand::Run(const boost::program_options::variables_map& vm, const s
 		return 1;
 	}
 
-	String hashedPassword = HashPassword(passwd, salt, true);
+	String hashedPassword = CreateHashedPasswordString(passwd, salt, 5);
+	if (hashedPassword == String()) {
+		Log(LogCritical, "cli") << "Failed to hash password \"" << passwd << "\" with salt \"" << salt << "\"";
+		return 1;
+	}
 
 	if (vm.count("oneline"))
 		std::cout << '"' << hashedPassword << "\"\n";
