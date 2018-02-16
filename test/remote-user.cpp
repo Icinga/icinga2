@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(password)
 	String passwd = RandomString(16);
 	String salt = RandomString(8);
 	user->SetPassword("ThisShouldBeIgnored");
-	user->SetPasswordHash(HashPassword(passwd, salt, true));
+	user->SetPasswordHash(CreateHashedPasswordString(passwd, salt, true));
 
 	BOOST_CHECK(user->GetPasswordHash() != passwd);
 
