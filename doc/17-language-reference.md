@@ -156,7 +156,7 @@ strings and numbers.
 
 ### Operators <a id="expression-operators"></a>
 
-The following operators are supported in expressions. The operators are by descending precedence.
+The following operators are supported in expressions. The operators are sorted by descending precedence.
 
 Operator | Precedence | Examples (Result)                             | Description
 ---------|------------|-----------------------------------------------|--------------------------------
