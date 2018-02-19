@@ -50,7 +50,7 @@ ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
 
 Dictionary::Ptr ApiUser::GetPasswordDict(void) const
 {
-	String password = this->GetPasswordHash();
+	String password = GetPasswordHash();
 	if (password.IsEmpty() || password[0] != '$')
 		return nullptr;
 
