@@ -208,23 +208,27 @@ The [regex function](18-library-reference.md#global-functions-regex) is availabl
 
 More information about filters can be found in the [filters](12-icinga2-api.md#icinga2-api-filters) chapter.
 
+Note that the permissions a API user has also specify the max body size of their requests.
+A API user with `*` permissions is allowed to send 512 MB.
+
+
 Available permissions for specific URL endpoints:
 
-  Permissions                   | URL Endpoint  | Supports Filters
-  ------------------------------|---------------|-----------------
-  actions/&lt;action&gt;        | /v1/actions   | Yes
-  config/query                  | /v1/config    | No
-  config/modify                 | /v1/config    | No
-  console                       | /v1/console   | No
-  events/&lt;type&gt;           | /v1/events    | No
-  objects/query/&lt;type&gt;    | /v1/objects   | Yes
-  objects/create/&lt;type&gt;   | /v1/objects   | No
-  objects/modify/&lt;type&gt;   | /v1/objects   | Yes
-  objects/delete/&lt;type&gt;   | /v1/objects   | Yes
-  status/query                  | /v1/status    | Yes
-  templates/&lt;type&gt;        | /v1/templates | Yes
-  types                         | /v1/types     | Yes
-  variables                     | /v1/variables | Yes
+  Permissions                   | URL Endpoint  | Supports Filters  | Max Body Size in MB
+  ------------------------------|---------------|-------------------|---------------------
+  actions/&lt;action&gt;        | /v1/actions   | Yes               | 1
+  config/query                  | /v1/config    | No                | 1
+  config/modify                 | /v1/config    | No                | 512
+  console                       | /v1/console   | No                | 512
+  events/&lt;type&gt;           | /v1/events    | No                | 1
+  objects/query/&lt;type&gt;    | /v1/objects   | Yes               | 1
+  objects/create/&lt;type&gt;   | /v1/objects   | No                | 512
+  objects/modify/&lt;type&gt;   | /v1/objects   | Yes               | 512
+  objects/delete/&lt;type&gt;   | /v1/objects   | Yes               | 512
+  status/query                  | /v1/status    | Yes               | 1
+  templates/&lt;type&gt;        | /v1/templates | Yes               | 1
+  types                         | /v1/types     | Yes               | 1
+  variables                     | /v1/variables | Yes               | 1
 
 The required actions or types can be replaced by using a wildcard match ("\*").
 

@@ -36,7 +36,8 @@ ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
 	return nullptr;
 }
 
-ApiUser::Ptr ApiUser::GetByAuthHeader(const String& auth_header) {
+ApiUser::Ptr ApiUser::GetByAuthHeader(const String& auth_header)
+{
 	String::SizeType pos = auth_header.FindFirstOf(" ");
 	String username, password;
 
