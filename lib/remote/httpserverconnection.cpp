@@ -107,7 +107,11 @@ bool HttpServerConnection::ProcessMessage()
 			response.WriteBody(msg.CStr(), msg.GetLength());
 			response.Finish();
 
+			m_CurrentRequest.~HttpRequest();
+			new (&m_CurrentRequest) HttpRequest(m_Stream);
+
 			m_Stream->Shutdown();
+
 			return false;
 		} catch (const std::exception& ex) {
 			response.SetStatus(500, "Internal Server Error");
@@ -115,7 +119,11 @@ bool HttpServerConnection::ProcessMessage()
 			response.WriteBody(msg.CStr(), msg.GetLength());
 			response.Finish();
 
+			m_CurrentRequest.~HttpRequest();
+			new (&m_CurrentRequest) HttpRequest(m_Stream);
+
 			m_Stream->Shutdown();
+
 			return false;
 		}
 		return res;
@@ -124,7 +132,11 @@ bool HttpServerConnection::ProcessMessage()
 	if (!m_CurrentRequest.CompleteHeaderCheck) {
 		m_CurrentRequest.CompleteHeaderCheck = true;
 		if (!ManageHeaders(response)) {
+			m_CurrentRequest.~HttpRequest();
+			new (&m_CurrentRequest) HttpRequest(m_Stream);
+
 			m_Stream->Shutdown();
+
 			return false;
 		}
 	}
@@ -138,7 +150,11 @@ bool HttpServerConnection::ProcessMessage()
 			response.WriteBody(msg.CStr(), msg.GetLength());
 			response.Finish();
 
+			m_CurrentRequest.~HttpRequest();
+			new (&m_CurrentRequest) HttpRequest(m_Stream);
+
 			m_Stream->Shutdown();
+
 			return false;
 		} catch (const std::exception& ex) {
 			response.SetStatus(500, "Internal Server Error");
@@ -146,7 +162,11 @@ bool HttpServerConnection::ProcessMessage()
 			response.WriteBody(msg.CStr(), msg.GetLength());
 			response.Finish();
 
+			m_CurrentRequest.~HttpRequest();
+			new (&m_CurrentRequest) HttpRequest(m_Stream);
+
 			m_Stream->Shutdown();
+
 			return false;
 		}
 		return res;
