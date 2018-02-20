@@ -1082,7 +1082,7 @@ object Host "cisco-catalyst-6509-34" {
      iftraffic_units = "g"
      //iftraffic_community = IftrafficSnmpCommunity
      iftraffic_bandwidth = 1
-     vlan = "renote"
+     vlan = "remote"
      qos = "enabled"
   }
   vars.interfaces["MgmtInterface1"] = {
@@ -1245,7 +1245,7 @@ Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/4' of type 'Service':
     * iftraffic_units = "g"
       % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 52:3-52:57
     * qos = "enabled"
-    * vlan = "renote"
+    * vlan = "remote"
 
 Object 'cisco-catalyst-6509-34!if-MgmtInterface1' of type 'Service':
 ...
