@@ -56,19 +56,18 @@ void ApiUserCommand::InitParameters(boost::program_options::options_description&
  */
 int ApiUserCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String user, passwd, salt;
+	String passwd, salt;
 	if (!vm.count("user") && !vm.count("oneline")) {
 		Log(LogCritical, "cli", "Username (--user) must be specified.");
 		return 1;
-	} else
-		user = vm["user"].as<std::string>();
+	}
 
 	if (!vm.count("password")) {
 		Log(LogCritical, "cli", "Password (--password) must be specified.");
 		return 1;
 	}
 
-	passwd = vm["passwd"].as<std::string>();
+	passwd = vm["password"].as<std::string>();
 	salt = vm.count("salt") ? String(vm["salt"].as<std::string>()) : RandomString(8);
 
 	if (salt.FindFirstOf('$') != String::NPos) {
@@ -83,11 +82,11 @@ int ApiUserCommand::Run(const boost::program_options::variables_map& vm, const s
 	}
 
 	if (vm.count("oneline"))
-		std::cout << '"' << hashedPassword << "\"\n";
+		std::cout << hashedPassword << std::endl;
 	else {
 		std::cout << "object ApiUser ";
 
-		ConfigWriter::EmitString(std::cout, user);
+		ConfigWriter::EmitString(std::cout, vm["user"].as<std::string>());
 
 		std::cout << "{\n"
 			<< "  password_hash = ";
