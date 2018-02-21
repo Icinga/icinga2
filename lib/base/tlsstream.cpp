@@ -29,7 +29,6 @@
 #endif /* _WIN32 */
 
 #define TLS_TIMEOUT_SECONDS 10
-#define TLS_TIMEOUT_STEP_SECONDS 1
 
 using namespace icinga;
 

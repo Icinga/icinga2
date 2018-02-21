@@ -24,12 +24,13 @@
 #include "remote/apifunction.hpp"
 #include "remote/jsonrpc.hpp"
 #include "base/base64.hpp"
-#include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/utility.hpp"
-#include "base/logger.hpp"
-#include "base/exception.hpp"
 #include "base/convert.hpp"
+#include "base/configtype.hpp"
+#include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/timer.hpp"
+#include "base/utility.hpp"
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -101,7 +102,7 @@ bool HttpServerConnection::ProcessMessage(void)
 
 	if (!m_CurrentRequest.CompleteHeaders) {
 		try {
-			res = m_CurrentRequest.ParseHeader(m_Context, false);
+			res = m_CurrentRequest.ParseHeaders(m_Context, false);
 		} catch (const std::invalid_argument& ex) {
 			response.SetStatus(400, "Bad Request");
 			String msg = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";

@@ -201,13 +201,12 @@ The [regex function](18-library-reference.md#global-functions-regex) is availabl
 
 More information about filters can be found in the [filters](12-icinga2-api.md#icinga2-api-filters) chapter.
 
-Note that the permissions a API user has also specify the max body size of their requests.
-A API user with `*` permissions is allowed to send 512 MB.
-
+Permissions are tied to a maximum HTTP request size to prevent abuse, responses sent by Icinga are not limited.
+An API user with all permissions ("\*") may send up to 512 MB regardless of the endpoint.
 
 Available permissions for specific URL endpoints:
 
-  Permissions                   | URL Endpoint  | Supports Filters  | Max Body Size in MB
+  Permissions                   | URL Endpoint  | Supports filters  | Max body size in MB
   ------------------------------|---------------|-------------------|---------------------
   actions/&lt;action&gt;        | /v1/actions   | Yes               | 1
   config/query                  | /v1/config    | No                | 1
@@ -227,8 +226,7 @@ The required actions or types can be replaced by using a wildcard match ("\*").
 
 ### Parameters <a id="icinga2-api-parameters"></a>
 
-Depending on the request method there are two ways of
-passing parameters to the request:
+Depending on the request method there are two ways of passing parameters to the request:
 
 * JSON object as request body (all request methods other than `GET`)
 * Query string as URL parameter (all request methods)
