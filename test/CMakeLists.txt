@@ -42,6 +42,7 @@ set(base_test_SOURCES
   icinga-notification.cpp
   icinga-perfdata.cpp
   remote-url.cpp
+  remote-user.cpp
   ${base_OBJS}
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>
@@ -139,6 +140,7 @@ add_boost_test(base
     remote_url/get_and_set
     remote_url/format
     remote_url/illegal_legal_strings
+    api_user/password
 )
 
 if(ICINGA2_WITH_LIVESTATUS)

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,32 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef APIUSER_H
-#define APIUSER_H
+#ifndef APIUSERCOMMAND_H
+#define APIUSERCOMMAND_H
 
-#include "remote/i2-remote.hpp"
-#include "remote/apiuser-ti.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {
 
 /**
- * @ingroup remote
+ * The "api user" command.
+ *
+ * @ingroup cli
  */
-class ApiUser final : public ObjectImpl<ApiUser>
+class ApiUserCommand : public CLICommand
 {
 public:
-	DECLARE_OBJECT(ApiUser);
-	DECLARE_OBJECTNAME(ApiUser);
+	DECLARE_PTR_TYPEDEFS(ApiUserCommand);
 
-	virtual void OnConfigLoaded(void) override;
-
-	static ApiUser::Ptr GetByClientCN(const String& cn);
-	static ApiUser::Ptr GetByAuthHeader(const String& auth_header);
-
-	Dictionary::Ptr GetPasswordDict(void) const;
+	virtual String GetDescription(void) const override;
+	virtual String GetShortDescription(void) const override;
+	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
+		boost::program_options::options_description& hiddenDesc) const override;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 };
 
 }
 
-#endif /* APIUSER_H */
+#endif /* APIUSERCOMMAND_H */

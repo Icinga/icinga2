@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,32 +17,36 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef APIUSER_H
-#define APIUSER_H
+#include "remote/apiuser.hpp"
+#include "base/tlsutility.hpp"
+#include <BoostTestTargetConfig.h>
 
-#include "remote/i2-remote.hpp"
-#include "remote/apiuser-ti.hpp"
+#include <iostream>
 
-namespace icinga
+using namespace icinga;
+
+BOOST_AUTO_TEST_SUITE(api_user)
+
+BOOST_AUTO_TEST_CASE(password)
 {
+#ifndef I2_DEBUG
+	std::cout << "Only enabled in Debug builds..." << std::endl;
+#else
+	ApiUser::Ptr user = new ApiUser();
+	String passwd = RandomString(16);
+	String salt = RandomString(8);
+	user->SetPassword("ThisShouldBeIgnored");
+	user->SetPasswordHash(CreateHashedPasswordString(passwd, salt, true));
 
-/**
- * @ingroup remote
- */
-class ApiUser final : public ObjectImpl<ApiUser>
-{
-public:
-	DECLARE_OBJECT(ApiUser);
-	DECLARE_OBJECTNAME(ApiUser);
+	BOOST_CHECK(user->GetPasswordHash() != passwd);
 
-	virtual void OnConfigLoaded(void) override;
+	Dictionary::Ptr passwdd = user->GetPasswordDict();
 
-	static ApiUser::Ptr GetByClientCN(const String& cn);
-	static ApiUser::Ptr GetByAuthHeader(const String& auth_header);
-
-	Dictionary::Ptr GetPasswordDict(void) const;
-};
-
+	BOOST_CHECK(passwdd);
+	BOOST_CHECK(passwdd->Get("salt") == salt);
+	BOOST_CHECK(ComparePassword(passwdd->Get("password"), passwd, salt));
+	BOOST_CHECK(!ComparePassword(passwdd->Get("password"), "wrong password uwu!", salt));
+#endif
 }
 
-#endif /* APIUSER_H */
+BOOST_AUTO_TEST_SUITE_END()
