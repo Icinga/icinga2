@@ -21,7 +21,7 @@ If you prefer to set up the API manually, you will have to perform the following
 
 The next chapter provides a quick overview of how you can use the API.
 
-### Creating ApiUsers
+### Creating ApiUsers <a id="icinga2-api-creating-users"></a>
 
 The CLI command `icinga2 api user` allows you to create an ApiUser object with a hashed password string, ready to be
 added to your configuration. Example:
