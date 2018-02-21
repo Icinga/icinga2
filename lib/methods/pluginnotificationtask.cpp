@@ -39,8 +39,8 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
     const String& author, const String& comment, const Dictionary::Ptr& resolvedMacros,
     bool useResolvedMacros)
 {
-	RequireNotNull(notification);
-	RequireNotNull(user);
+	REQUIRE_NOT_NULL(notification);
+	REQUIRE_NOT_NULL(user);
 
 	NotificationCommand::Ptr commandObj = notification->GetCommand();
 

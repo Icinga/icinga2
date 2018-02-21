@@ -32,11 +32,11 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION_NS(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
-void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
-	RequireNotNull(service);
-	RequireNotNull(cr);
+	REQUIRE_NOT_NULL(checkable);
+	REQUIRE_NOT_NULL(cr);
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;
@@ -115,5 +115,5 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	} else
 		cr->SetState(ServiceOK);
 
-	service->ProcessCheckResult(cr);
+	checkable->ProcessCheckResult(cr);
 }

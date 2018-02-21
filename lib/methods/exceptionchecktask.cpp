@@ -31,11 +31,11 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION_NS(Internal, ExceptionCheck, &ExceptionCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
-void ExceptionCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+void ExceptionCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
-	RequireNotNull(service);
-	RequireNotNull(cr);
+	REQUIRE_NOT_NULL(checkable);
+	REQUIRE_NOT_NULL(cr);
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;

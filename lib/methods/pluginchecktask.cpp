@@ -38,8 +38,8 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, PluginCheck,  &PluginCheckTask::ScriptFunc,
 void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
-	RequireNotNull(checkable);
-	RequireNotNull(cr);
+	REQUIRE_NOT_NULL(checkable);
+	REQUIRE_NOT_NULL(cr);
 
 	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
 

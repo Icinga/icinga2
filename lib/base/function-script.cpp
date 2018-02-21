@@ -32,7 +32,7 @@ static Value FunctionCall(const std::vector<Value>& args)
 
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Function::Ptr self = static_cast<Function::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	std::vector<Value> uargs(args.begin() + 1, args.end());
 	return self->Invoke(args[0], uargs);
@@ -42,7 +42,7 @@ static Value FunctionCallV(const Value& thisArg, const Array::Ptr& args)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Function::Ptr self = static_cast<Function::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	std::vector<Value> uargs;
 

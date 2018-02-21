@@ -62,7 +62,7 @@ extern I2_BASE_API Value Empty;
 	DECLARE_PTR_TYPEDEFS(klass); \
 	IMPL_TYPE_LOOKUP();
 
-#define RequireNotNull(ptr) RequireNotNullInternal(ptr, #ptr)
+#define REQUIRE_NOT_NULL(ptr) RequireNotNullInternal(ptr, #ptr)
 
 I2_BASE_API void RequireNotNullInternal(const intrusive_ptr<Object>& object, const char *description);
 
