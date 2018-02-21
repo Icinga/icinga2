@@ -64,7 +64,7 @@ public:
 
 	HttpRequest(Stream::Ptr stream);
 
-	bool ParseHeader(StreamReadContext& src, bool may_wait);
+	bool ParseHeaders(StreamReadContext& src, bool may_wait);
 	bool ParseBody(StreamReadContext& src, bool may_wait);
 	size_t ReadBody(char *data, size_t count);
 

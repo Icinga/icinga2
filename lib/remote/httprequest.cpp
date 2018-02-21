@@ -34,7 +34,7 @@ HttpRequest::HttpRequest(Stream::Ptr stream)
 	m_State(HttpRequestStart)
 { }
 
-bool HttpRequest::ParseHeader(StreamReadContext& src, bool may_wait)
+bool HttpRequest::ParseHeaders(StreamReadContext& src, bool may_wait)
 {
 	if (!m_Stream)
 		return false;

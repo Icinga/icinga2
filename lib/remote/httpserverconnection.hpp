@@ -24,7 +24,6 @@
 #include "remote/httpresponse.hpp"
 #include "remote/apiuser.hpp"
 #include "base/tlsstream.hpp"
-#include "base/timer.hpp"
 #include "base/workqueue.hpp"
 
 namespace icinga
