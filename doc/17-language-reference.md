@@ -389,8 +389,8 @@ ObjectsPath         |**Read-write.** Contains the path of the Icinga 2 objects f
 PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to RunDir + "/icinga2/icinga2.pid".
 Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
-RunAsUser           |**Read-write.** Defines the user the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
-RunAsGroup          |**Read-write.** Defines the group the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
+RunAsUser           |**Read-write.** Defines the user the Icinga 2 daemon is running as. Set in the Icinga 2 sysconfig.
+RunAsGroup          |**Read-write.** Defines the group the Icinga 2 daemon is running as. Set in the Icinga 2 sysconfig.
 PlatformName        |**Read-only.** The name of the operating system, e.g. "Ubuntu".
 PlatformVersion     |**Read-only.** The version of the operating system, e.g. "14.04.3 LTS".
 PlatformKernel      |**Read-only.** The name of the operating system kernel, e.g. "Linux".
@@ -407,9 +407,9 @@ Variable            |Description
 --------------------|-------------------
 EventEngine         |**Read-write.** The name of the socket event engine, can be `poll` or `epoll`. The epoll interface is only supported on Linux.
 AttachDebugger      |**Read-write.** Whether to attach a debugger when Icinga 2 crashes. Defaults to `false`.
-RLimitFiles         |**Read-write.** Defines the resource limit for RLIMIT_NOFILE that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Used in the `init.conf` configuration file.
-RLimitProcesses     |**Read-write.** Defines the resource limit for RLIMIT_NPROC that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Used in the `init.conf` configuration file.
-RLimitStack         |**Read-write.** Defines the resource limit for RLIMIT_STACK that should be set at start-up. Value cannot be set lower than the default `256 * 1024`. 0 disables the setting. Used in the `init.conf` configuration file.
+RLimitFiles         |**Read-write.** Defines the resource limit for RLIMIT_NOFILE that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
+RLimitProcesses     |**Read-write.** Defines the resource limit for RLIMIT_NPROC that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
+RLimitStack         |**Read-write.** Defines the resource limit for RLIMIT_STACK that should be set at start-up. Value cannot be set lower than the default `256 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
 
 ## Apply <a id="apply"></a>
 
