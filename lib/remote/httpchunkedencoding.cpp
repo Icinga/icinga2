@@ -37,6 +37,8 @@ StreamReadStatus HttpChunkedEncoding::ReadChunkFromStream(const Stream::Ptr& str
 		msgbuf << std::hex << line;
 		msgbuf >> context.LengthIndicator;
 
+		if (context.LengthIndicator < 0)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("HTTP chunk length must not be negative."));
 	}
 
 	StreamReadContext& scontext = context.StreamContext;

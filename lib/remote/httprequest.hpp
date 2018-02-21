@@ -52,7 +52,9 @@ enum HttpRequestState
 struct HttpRequest
 {
 public:
-	bool Complete;
+	bool CompleteHeaders;
+	bool CompleteHeaderCheck;
+	bool CompleteBody;
 
 	String RequestMethod;
 	Url::Ptr RequestUrl;
@@ -62,7 +64,8 @@ public:
 
 	HttpRequest(Stream::Ptr stream);
 
-	bool Parse(StreamReadContext& src, bool may_wait);
+	bool ParseHeaders(StreamReadContext& src, bool may_wait);
+	bool ParseBody(StreamReadContext& src, bool may_wait);
 	size_t ReadBody(char *data, size_t count);
 
 	void AddHeader(const String& key, const String& value);

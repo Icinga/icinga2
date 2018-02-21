@@ -122,8 +122,10 @@ public:
 
 	/**
 	 * Waits until data can be read from the stream.
+	 * Optionally with a timeout.
 	 */
-	bool WaitForData(int timeout = -1);
+	bool WaitForData();
+	bool WaitForData(int timeout);
 
 	virtual bool SupportsWaiting() const;
 
