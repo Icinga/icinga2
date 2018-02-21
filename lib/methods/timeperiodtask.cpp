@@ -27,7 +27,7 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, EvenMinutesTimePeriod, &TimePeriodTask::Eve
 
 Array::Ptr TimePeriodTask::EmptyTimePeriodUpdate(const TimePeriod::Ptr& tp, double, double)
 {
-	RequireNotNull(tp);
+	REQUIRE_NOT_NULL(tp);
 
 	Array::Ptr segments = new Array();
 	return segments;
@@ -35,7 +35,7 @@ Array::Ptr TimePeriodTask::EmptyTimePeriodUpdate(const TimePeriod::Ptr& tp, doub
 
 Array::Ptr TimePeriodTask::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end)
 {
-	RequireNotNull(tp);
+	REQUIRE_NOT_NULL(tp);
 
 	ArrayData segments;
 

@@ -30,7 +30,7 @@ static double ArrayLen()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	return self->GetLength();
 }
 
@@ -38,7 +38,7 @@ static void ArraySet(int index, const Value& value)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	self->Set(index, value);
 }
 
@@ -46,7 +46,7 @@ static Value ArrayGet(int index)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	return self->Get(index);
 }
 
@@ -54,7 +54,7 @@ static void ArrayAdd(const Value& value)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	self->Add(value);
 }
 
@@ -62,7 +62,7 @@ static void ArrayRemove(int index)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	self->Remove(index);
 }
 
@@ -70,7 +70,7 @@ static bool ArrayContains(const Value& value)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	return self->Contains(value);
 }
 
@@ -78,7 +78,7 @@ static void ArrayClear()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	self->Clear();
 }
 
@@ -91,7 +91,7 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	Array::Ptr arr = self->ShallowClone();
 
@@ -115,7 +115,7 @@ static Array::Ptr ArrayShallowClone()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	return self->ShallowClone();
 }
 
@@ -123,7 +123,7 @@ static Value ArrayJoin(const Value& separator)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	Value result;
 	bool first = true;
@@ -146,7 +146,7 @@ static Array::Ptr ArrayReverse()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	return self->Reverse();
 }
 
@@ -154,7 +154,7 @@ static Array::Ptr ArrayMap(const Function::Ptr& function)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Map function must be side-effect free."));
@@ -173,7 +173,7 @@ static Value ArrayReduce(const Function::Ptr& function)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Reduce function must be side-effect free."));
@@ -195,7 +195,7 @@ static Array::Ptr ArrayFilter(const Function::Ptr& function)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
@@ -215,7 +215,7 @@ static bool ArrayAny(const Function::Ptr& function)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
@@ -233,7 +233,7 @@ static bool ArrayAll(const Function::Ptr& function)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
@@ -250,7 +250,7 @@ static Array::Ptr ArrayUnique()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	std::set<Value> result;
 

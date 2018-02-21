@@ -29,7 +29,7 @@ static double DictionaryLen()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	return self->GetLength();
 }
 
@@ -37,7 +37,7 @@ static void DictionarySet(const String& key, const Value& value)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	self->Set(key, value);
 }
 
@@ -45,7 +45,7 @@ static Value DictionaryGet(const String& key)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	return self->Get(key);
 }
 
@@ -53,7 +53,7 @@ static void DictionaryRemove(const String& key)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	self->Remove(key);
 }
 
@@ -61,7 +61,7 @@ static bool DictionaryContains(const String& key)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	return self->Contains(key);
 }
 
@@ -69,7 +69,7 @@ static Dictionary::Ptr DictionaryShallowClone()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 	return self->ShallowClone();
 }
 
@@ -77,7 +77,7 @@ static Array::Ptr DictionaryKeys()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	ArrayData keys;
 	ObjectLock olock(self);
@@ -91,7 +91,7 @@ static Array::Ptr DictionaryValues()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
-	RequireNotNull(self);
+	REQUIRE_NOT_NULL(self);
 
 	ArrayData values;
 	ObjectLock olock(self);

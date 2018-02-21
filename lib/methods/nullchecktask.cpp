@@ -35,8 +35,8 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, NullCheck, &NullCheckTask::ScriptFunc, "che
 void NullCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
-	RequireNotNull(checkable);
-	RequireNotNull(cr);
+	REQUIRE_NOT_NULL(checkable);
+	REQUIRE_NOT_NULL(cr);
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;

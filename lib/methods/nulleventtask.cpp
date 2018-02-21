@@ -27,5 +27,5 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, NullEvent, &NullEventTask::ScriptFunc, "che
 
 void NullEventTask::ScriptFunc(const Checkable::Ptr& checkable, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
-	RequireNotNull(checkable);
+	REQUIRE_NOT_NULL(checkable);
 }

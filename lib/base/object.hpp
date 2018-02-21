@@ -57,7 +57,7 @@ extern Value Empty;
 	DECLARE_PTR_TYPEDEFS(klass); \
 	IMPL_TYPE_LOOKUP();
 
-#define RequireNotNull(ptr) RequireNotNullInternal(ptr, #ptr)
+#define REQUIRE_NOT_NULL(ptr) RequireNotNullInternal(ptr, #ptr)
 
 void RequireNotNullInternal(const intrusive_ptr<Object>& object, const char *description);
 

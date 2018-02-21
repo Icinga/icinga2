@@ -38,7 +38,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 	bool useResolvedMacros, int recursionLevel)
 {
 	if (useResolvedMacros)
-		RequireNotNull(resolvedMacros);
+		REQUIRE_NOT_NULL(resolvedMacros);
 
 	Value result;
 
@@ -440,7 +440,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel)
 {
 	if (useResolvedMacros)
-		RequireNotNull(resolvedMacros);
+		REQUIRE_NOT_NULL(resolvedMacros);
 
 	Value resolvedCommand;
 	if (!arguments || command.IsObjectType<Array>() || command.IsObjectType<Function>())
