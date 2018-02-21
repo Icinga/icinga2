@@ -29,6 +29,7 @@ struct printInfoStruct
 	DOUBLE tRam, aRam;
 	DOUBLE percentFree;
 	Bunit unit = BunitMB;
+	BOOL showUsed;
 };
 
 INT parseArguments(INT, WCHAR **, boost::program_options::variables_map&, printInfoStruct&);

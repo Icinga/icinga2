@@ -59,6 +59,7 @@ INT parseArguments(INT ac, WCHAR ** av, po::variables_map& vm, printInfoStruct& 
 		("warning,w", po::wvalue<std::wstring>(), "Warning threshold")
 		("critical,c", po::wvalue<std::wstring>(), "Critical threshold")
 		("unit,u", po::wvalue<std::wstring>(), "The unit to use for display (default MB)")
+		("show-used,U", "Show used memory instead of the free memory")
 		;
 
 	po::basic_command_line_parser<WCHAR> parser(ac, av);
@@ -154,6 +155,8 @@ INT parseArguments(INT ac, WCHAR ** av, po::variables_map& vm, printInfoStruct& 
 		}
 	}
 
+	printInfo.showUsed = vm.count("show-used") > 0;
+
 	return -1;
 }
 
@@ -162,31 +165,40 @@ INT printOutput(printInfoStruct& printInfo)
 	if (debug)
 		std::wcout << L"Constructing output string" << '\n';
 
-	state state = OK;
+	state state;
+	std::wstringstream output;
 
-	if (printInfo.warn.rend(printInfo.aRam, printInfo.tRam))
-		state = WARNING;
-
-	if (printInfo.crit.rend(printInfo.aRam, printInfo.tRam))
-		state = CRITICAL;
-
-	switch (state) {
-	case OK:
-		std::wcout << L"MEMORY OK - " << printInfo.percentFree << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
+	if (!printInfo.showUsed) {
+		if (printInfo.warn.rend(printInfo.aRam, printInfo.tRam)) {
+			state = WARNING;
+			output << L"MEMORY WARNING - ";
+		} else if (printInfo.crit.rend(printInfo.aRam, printInfo.tRam)) {
+			state = CRITICAL;
+			output << L"MEMORY CRITICAL - ";
+		} else {
+			state = OK;
+			output << L"MEMORY OK - ";
+		}
+		output << printInfo.percentFree << L"% free | memory = " << printInfo.aRam << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
-			<< L";0;" << printInfo.tRam << '\n';
-		break;
-	case WARNING:
-		std::wcout << L"MEMORY WARNING - " << printInfo.percentFree << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
+			<< L";0;" << printInfo.tRam;
+	} else {
+		if (printInfo.warn.rend(printInfo.tRam - printInfo.aRam, printInfo.tRam)) {
+			state = WARNING;
+			output << L"MEMORY WARNING - ";
+		} else if (printInfo.crit.rend(printInfo.tRam - printInfo.aRam, printInfo.tRam)) {
+			state = CRITICAL;
+			output << L"MEMORY CRITICAL - ";
+		} else {
+			state = OK;
+			output << L"MEMORY OK - ";
+		}
+		output << 100 - printInfo.percentFree << L"% used | memory = " << printInfo.tRam - printInfo.aRam << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
-			<< L";0;" << printInfo.tRam << '\n';
-		break;
-	case CRITICAL:
-		std::wcout << L"MEMORY CRITICAL - " << printInfo.percentFree << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
-			<< L";0;" << printInfo.tRam << '\n';
-		break;
+			<< L";0;" << printInfo.tRam;
 	}
+
+	std::wcout << output.str() << std::endl;
 
 	return state;
 }
