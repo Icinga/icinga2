@@ -182,17 +182,14 @@ INT printOutput(printInfoStruct& printInfo)
 		output << printInfo.percentFree << L"% free | memory = " << printInfo.aRam << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
 			<< L";0;" << printInfo.tRam;
-	}
-	else {
+	} else {
 		if (printInfo.warn.rend(printInfo.tRam - printInfo.aRam, printInfo.tRam)) {
 			state = WARNING;
 			output << L"MEMORY WARNING - ";
-		}
-		else if (printInfo.crit.rend(printInfo.tRam - printInfo.aRam, printInfo.tRam)) {
+		} else if (printInfo.crit.rend(printInfo.tRam - printInfo.aRam, printInfo.tRam)) {
 			state = CRITICAL;
 			output << L"MEMORY CRITICAL - ";
-		}
-		else {
+		} else {
 			state = OK;
 			output << L"MEMORY OK - ";
 		}
