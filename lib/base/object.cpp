@@ -290,3 +290,9 @@ void icinga::DefaultObjectFactoryCheckArgs(const std::vector<Value>& args)
 	if (!args.empty())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Constructor does not take any arguments."));
 }
+
+void icinga::RequireNotNullInternal(const intrusive_ptr<Object>& object, const char *description)
+{
+	if (!object)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Pointer must not be null: " + String(description)));
+}

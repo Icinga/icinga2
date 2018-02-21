@@ -30,6 +30,7 @@ static void CheckableProcessCheckResult(const CheckResult::Ptr& cr)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Checkable::Ptr self = vframe->Self;
+	REQUIRE_NOT_NULL(self);
 	self->ProcessCheckResult(cr);
 }
 

@@ -29,6 +29,7 @@ static String ObjectToString()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Object::Ptr self = static_cast<Object::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	return self->ToString();
 }
 
@@ -36,6 +37,7 @@ static void ObjectNotifyAttribute(const String& attribute)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Object::Ptr self = static_cast<Object::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	self->NotifyField(self->GetReflectionType()->GetFieldId(attribute));
 }
 
@@ -43,6 +45,7 @@ static Object::Ptr ObjectClone()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Object::Ptr self = static_cast<Object::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	return self->Clone();
 }
 

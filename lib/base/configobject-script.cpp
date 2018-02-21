@@ -29,6 +29,7 @@ static void ConfigObjectModifyAttribute(const String& attr, const Value& value)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	ConfigObject::Ptr self = vframe->Self;
+	REQUIRE_NOT_NULL(self);
 	return self->ModifyAttribute(attr, value);
 }
 
@@ -36,6 +37,7 @@ static void ConfigObjectRestoreAttribute(const String& attr)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	ConfigObject::Ptr self = vframe->Self;
+	REQUIRE_NOT_NULL(self);
 	return self->RestoreAttribute(attr);
 }
 

@@ -25,5 +25,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION_NS(Internal, NullEvent, &NullEventTask::ScriptFunc, "checkable:resolvedMacros:useResolvedMacros");
 
-void NullEventTask::ScriptFunc(const Checkable::Ptr&, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
-{ }
+void NullEventTask::ScriptFunc(const Checkable::Ptr& checkable, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+{
+	REQUIRE_NOT_NULL(checkable);
+}
