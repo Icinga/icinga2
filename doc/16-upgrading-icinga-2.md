@@ -10,9 +10,9 @@ follow the instructions for v2.7 too.
 ## Upgrading to v2.8.2 <a id="upgrading-to-2-8-2"></a>
 
 With version 2.8.2 the location of settings formerly found in `/etc/icinga2/init.conf` has changed. They are now
-located in the sysconfig (`/etc/sysconfig/icinga2` on most systems). The `init.conf` has been removed and its settings
-will be ignored. These changes are only relevant if you edited the `init.conf`. Below is a table displaying the new
-names for the affected settings.
+located in the sysconfig, `/etc/sysconfig/icinga2` (RPM) or `/etc/default/icinga2` (DPKG) on most systems. The
+`init.conf` file has been removed and its settings will be ignored. These changes are only relevant if you edited the
+`init.conf`. Below is a table displaying the new names for the affected settings.
 
  Old `init.conf` | New `sysconfig/icinga2`
  ----------------|------------------------
