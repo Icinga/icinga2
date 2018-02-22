@@ -7,6 +7,22 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.8.2 <a id="upgrading-to-2-8-2"></a>
+
+With version 2.8.2 the location of settings formerly found in `/etc/icinga2/init.conf` has changed. They are now
+located in the sysconfig (`/etc/sysconfig/icinga2` on most systems). The `init.conf` has been removed and its settings
+will be ignored. These changes are only relevant if you edited the `init.conf`. Below is a table displaying the new
+names for the affected settings.
+
+ Old `init.conf` | New `sysconfig/icinga2`
+ ----------------|------------------------
+ RunAsUser       | ICINGA2\_USER
+ RunAsGroup      | ICINGA2\_GROUP
+ RLimitFiles     | ICINGA2\_RLIMIT\_FILES
+ RLimitProcesses | ICINGA2\_RLIMIT\_PROCESSES
+ RLimitStack     | ICINGA2\_RLIMIT\_STACK
+
+
 ## Upgrading to v2.8 <a id="upgrading-to-2-8"></a>
 
 ### DB IDO Schema Update to 2.8.0 <a id="upgrading-to-2-8-db-ido"></a>
