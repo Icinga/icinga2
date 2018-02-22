@@ -403,13 +403,13 @@ MaxConcurrentChecks |**Read-write**. The number of max checks run simultaneously
 
 Advanced runtime constants. Please only use them if advised by support or developers.
 
-Variable            |Description
---------------------|-------------------
-EventEngine         |**Read-write.** The name of the socket event engine, can be `poll` or `epoll`. The epoll interface is only supported on Linux.
-AttachDebugger      |**Read-write.** Whether to attach a debugger when Icinga 2 crashes. Defaults to `false`.
-RLimitFiles         |**Read-write.** Defines the resource limit for RLIMIT_NOFILE that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
-RLimitProcesses     |**Read-write.** Defines the resource limit for RLIMIT_NPROC that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
-RLimitStack         |**Read-write.** Defines the resource limit for RLIMIT_STACK that should be set at start-up. Value cannot be set lower than the default `256 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
+Variable                   | Description
+---------------------------|-------------------
+EventEngine                |**Read-write.** The name of the socket event engine, can be `poll` or `epoll`. The epoll interface is only supported on Linux.
+AttachDebugger             |**Read-write.** Whether to attach a debugger when Icinga 2 crashes. Defaults to `false`.
+ICINGA2\_RLIMIT\_FILES     |**Read-write.** Defines the resource limit for RLIMIT_NOFILE that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
+ICINGA2\_RLIMIT\_PROCESSES |**Read-write.** Defines the resource limit for RLIMIT_NPROC that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
+ICINGA2\_RLIMIT\_STACK     |**Read-write.** Defines the resource limit for RLIMIT_STACK that should be set at start-up. Value cannot be set lower than the default `256 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
 
 ## Apply <a id="apply"></a>
 
