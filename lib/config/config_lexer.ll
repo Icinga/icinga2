@@ -54,6 +54,8 @@ do {							\
 %x C_COMMENT
 %x STRING
 %x HEREDOC
+%x TEMPLATESTRING
+%x TEMPLATESTRINGARG
 
 %%
 \"				{
@@ -80,7 +82,9 @@ do {							\
 	BOOST_THROW_EXCEPTION(ScriptError("Unterminated string literal", DebugInfoRange(yyextra->m_LocationBegin, *yylloc)));
 				}
 
-<STRING>\\[0-7]{1,3}		{
+<TEMPLATESTRING>\\`		{ yyextra->m_LexBuffer << yytext[1]; }
+
+<STRING,TEMPLATESTRING>\\[0-7]{1,3}		{
 	/* octal escape sequence */
 	int result;
 
@@ -94,21 +98,21 @@ do {							\
 	yyextra->m_LexBuffer << static_cast<char>(result);
 				}
 
-<STRING>\\[0-9]+		{
+<STRING,TEMPLATESTRING>\\[0-9]+		{
 	/* generate error - bad escape sequence; something
 	 * like '\48' or '\0777777'
 	 */
 	BOOST_THROW_EXCEPTION(ScriptError("Bad escape sequence found: " + String(yytext), *yylloc));
 				}
-<STRING>\\n			{ yyextra->m_LexBuffer << "\n"; }
-<STRING>\\\\			{ yyextra->m_LexBuffer << "\\"; }
-<STRING>\\\"			{ yyextra->m_LexBuffer << "\""; }
-<STRING>\\t			{ yyextra->m_LexBuffer << "\t"; }
-<STRING>\\r			{ yyextra->m_LexBuffer << "\r"; }
-<STRING>\\b			{ yyextra->m_LexBuffer << "\b"; }
-<STRING>\\f			{ yyextra->m_LexBuffer << "\f"; }
-<STRING>\\\n			{ yyextra->m_LexBuffer << yytext[1]; }
-<STRING>\\.			{
+<STRING,TEMPLATESTRING>\\n	{ yyextra->m_LexBuffer << "\n"; }
+<STRING,TEMPLATESTRING>\\\\	{ yyextra->m_LexBuffer << "\\"; }
+<STRING,TEMPLATESTRING>\\\"	{ yyextra->m_LexBuffer << "\""; }
+<STRING,TEMPLATESTRING>\\t	{ yyextra->m_LexBuffer << "\t"; }
+<STRING,TEMPLATESTRING>\\r	{ yyextra->m_LexBuffer << "\r"; }
+<STRING,TEMPLATESTRING>\\b	{ yyextra->m_LexBuffer << "\b"; }
+<STRING,TEMPLATESTRING>\\f	{ yyextra->m_LexBuffer << "\f"; }
+<STRING,TEMPLATESTRING>\\\n	{ yyextra->m_LexBuffer << yytext[1]; }
+<STRING,TEMPLATESTRING>\\.	{
 	BOOST_THROW_EXCEPTION(ScriptError("Bad escape sequence found: " + String(yytext), *yylloc));
 				}
 
@@ -119,7 +123,7 @@ do {							\
 		yyextra->m_LexBuffer << *yptr++;
 				}
 
-<STRING><<EOF>>			{
+<STRING,TEMPLATESTRING><<EOF>>	{
 	BOOST_THROW_EXCEPTION(ScriptError("End-of-file while in string literal", DebugInfoRange(yyextra->m_LocationBegin, *yylloc)));
 				}
 
@@ -144,6 +148,42 @@ do {							\
 				}
 
 <HEREDOC>(.|\n)			{ yyextra->m_LexBuffer << yytext[0]; }
+
+<INITIAL>`			{
+	yyextra->m_LexBuffer.str("");
+	yyextra->m_LexBuffer.clear();
+
+	yyextra->m_LocationBegin = *yylloc;
+
+	BEGIN(TEMPLATESTRING);
+				}
+
+<TEMPLATESTRING>$\{		{
+	yyextra->m_LexBuffer << "${";
+
+	BEGIN(TEMPLATESTRINGARG);
+}
+
+<TEMPLATESTRINGARG>\}		{
+	yyextra->m_LexBuffer << "}";
+
+	BEGIN(TEMPLATESTRING);
+}
+
+<TEMPLATESTRINGARG>.		{ yyextra->m_LexBuffer << yytext[0]; }
+
+<TEMPLATESTRING>`		{
+	BEGIN(INITIAL);
+
+	yylloc->FirstLine = yyextra->m_LocationBegin.FirstLine;
+	yylloc->FirstColumn = yyextra->m_LocationBegin.FirstColumn;
+
+	yylval->text = new String(yyextra->m_LexBuffer.str());
+
+	return T_TEMPLATESTRING;
+				}
+
+<TEMPLATESTRING>(.|\n)		{ yyextra->m_LexBuffer << yytext[0]; }
 
 <INITIAL>{
 "/*"				BEGIN(C_COMMENT);

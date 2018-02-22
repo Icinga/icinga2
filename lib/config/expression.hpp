@@ -938,6 +938,21 @@ private:
 	std::unique_ptr<Expression> m_ExceptBody;
 };
 
+class TemplateStringExpression final : public DebuggableExpression
+{
+public:
+	TemplateStringExpression(std::unique_ptr<Expression> tagFunc, std::vector<String> strings, std::vector<std::unique_ptr<Expression>> exprs, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_TagFunc(std::move(tagFunc)), m_Strings(std::move(strings)), m_Expressions(std::move(exprs))
+	{ }
+
+protected:
+	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+
+private:
+	std::unique_ptr<Expression> m_TagFunc;
+	std::vector<String> m_Strings;
+	std::vector<std::unique_ptr<Expression>> m_Expressions;
+};
 }
 
 #endif /* EXPRESSION_H */

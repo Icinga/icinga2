@@ -49,7 +49,7 @@ struct CompilerDebugInfo
 	operator DebugInfo() const
 	{
 		DebugInfo di;
-		di.Path = Path;
+		di.Path = Path ? Path : "";
 		di.FirstLine = FirstLine;
 		di.FirstColumn = FirstColumn;
 		di.LastLine = LastLine;

@@ -72,6 +72,7 @@ REGISTER_SCRIPTFUNCTION_NS(System, sleep, &Utility::Sleep, "interval");
 REGISTER_SCRIPTFUNCTION_NS(System, path_exists, &Utility::PathExists, "path");
 REGISTER_SCRIPTFUNCTION_NS(System, glob, &ScriptUtils::Glob, "pathspec:callback:type");
 REGISTER_SCRIPTFUNCTION_NS(System, glob_recursive, &ScriptUtils::GlobRecursive, "pathspec:callback:type");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, default_tag_func, &ScriptUtils::DefaultTagFunc, "strings:args");
 
 INITIALIZE_ONCE(&ScriptUtils::StaticInitialize);
 
@@ -502,4 +503,21 @@ Value ScriptUtils::GlobRecursive(const std::vector<Value>& args)
 	Utility::GlobRecursive(path, pattern, std::bind(&GlobCallbackHelper, std::ref(paths), _1), type);
 
 	return Array::FromVector(paths);
+}
+
+Value ScriptUtils::DefaultTagFunc(const Array::Ptr& strings, const Array::Ptr& args)
+{
+	if (!strings || strings->GetLength() == 0)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("'strings' must not be empty."));
+
+	if (!args || strings->GetLength() != args->GetLength() + 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid length for 'args'."));
+
+	String result = strings->Get(0);
+
+	for (size_t i = 1; i < strings->GetLength(); i++) {
+		result += Convert::ToString(args->Get(i - 1)) + strings->Get(i);
+	}
+
+	return result;
 }

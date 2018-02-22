@@ -58,6 +58,7 @@ public:
 	static double Ptr(const Object::Ptr& object);
 	static Value Glob(const std::vector<Value>& args);
 	static Value GlobRecursive(const std::vector<Value>& args);
+	static Value DefaultTagFunc(const Array::Ptr& strings, const Array::Ptr& args);
 
 private:
 	ScriptUtils();

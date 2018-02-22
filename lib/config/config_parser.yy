@@ -104,6 +104,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_NEWLINE "new-line"
 %token <text> T_STRING
 %token <text> T_STRING_ANGLE
+%token <text> T_TEMPLATESTRING
 %token <num> T_NUMBER
 %token <boolean> T_BOOLEAN
 %token T_NULL
@@ -811,6 +812,46 @@ rterm_side_effect: rterm '(' rterm_items ')'
 	{
 		$$ = new FunctionCallExpression(std::unique_ptr<Expression>($1), std::move(*$3), @$);
 		delete $3;
+	}
+	| optional_rterm T_TEMPLATESTRING
+	{
+		size_t offset, pos_first, pos_second;
+		offset = 0;
+
+		std::unique_ptr<Expression> tagFunc{$1};
+
+		String str = *$2;
+		delete $2;
+
+		std::vector<String> strings;
+		std::vector<std::unique_ptr<Expression>> exprs;
+
+		while ((pos_first = str.Find("${", offset)) != String::NPos) {
+			pos_first++; /* skip past the $ */
+
+			pos_second = str.Find("}", pos_first + 1);
+
+			if (pos_second == String::NPos)
+				BOOST_THROW_EXCEPTION(ScriptError("Closing } not found in template string."));
+
+			String exprStr = str.SubStr(pos_first + 1, pos_second - pos_first - 1);
+
+			std::unique_ptr<Expression> expr = ConfigCompiler::CompileText("<template string>", exprStr);
+
+			if (dynamic_cast<ThrowExpression *>(expr.get())) {
+				ScriptFrame frame(true);
+				expr->Evaluate(frame);
+			}
+
+			strings.push_back(str.SubStr(offset, pos_first - offset - 1));
+			exprs.push_back(std::move(expr));
+
+			offset = pos_second + 1;
+		}
+
+		strings.push_back(str.SubStr(offset));
+
+		$$ = new TemplateStringExpression(std::move(tagFunc), std::move(strings), std::move(exprs), @2);
 	}
 	| T_IF '(' rterm ')' rterm_scope else_if_branches
 	{

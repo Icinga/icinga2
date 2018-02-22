@@ -952,3 +952,31 @@ ExpressionResult TryExceptExpression::DoEvaluate(ScriptFrame& frame, DebugHint *
 	return Empty;
 }
 
+ExpressionResult TemplateStringExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	ExpressionResult funcres = m_TagFunc->Evaluate(frame);
+	CHECK_RESULT(funcres);
+
+	Function::Ptr tagFunc = funcres.GetValue();
+
+	if (!tagFunc) {
+		tagFunc = VariableExpression("default_tag_func", m_DebugInfo).Evaluate(frame).GetValue();
+
+		if (!tagFunc)
+			BOOST_THROW_EXCEPTION(ScriptError("default_tag_func is not available."));
+	}
+
+	Array::Ptr strings = Array::FromVector(m_Strings);
+	ArrayData argsData;
+
+	for (const auto& expr : m_Expressions) {
+		ExpressionResult part = expr->Evaluate(frame, dhint);
+		CHECK_RESULT(part);
+
+		argsData.push_back(part);
+	}
+
+	Array::Ptr args = new Array(std::move(argsData));
+
+	return tagFunc->Invoke({ strings, args });
+}
