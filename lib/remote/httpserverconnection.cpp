@@ -189,14 +189,14 @@ bool HttpServerConnection::ProcessMessage(void)
 
 bool HttpServerConnection::ManageHeaders(HttpResponse& response)
 {
-	static const size_t defaultContentLengthLimit = 1 * 1028 * 1028;
+	static const size_t defaultContentLengthLimit = 1 * 1024 * 1024;
 	static const Dictionary::Ptr specialContentLengthLimits = new Dictionary;
-    specialContentLengthLimits->Set("*", 512 * 1028 * 1028);
-	specialContentLengthLimits->Set("config/modify", 512 * 1028 * 1028);
-	specialContentLengthLimits->Set("console", 512 * 1028 * 1028);
-	specialContentLengthLimits->Set("objects/create", 512 * 1028 * 1028);
-	specialContentLengthLimits->Set("objects/modify", 512 * 1028 * 1028);
-	specialContentLengthLimits->Set("objects/delete", 512 * 1028 * 1028);
+    specialContentLengthLimits->Set("*", 512 * 1024 * 1024);
+	specialContentLengthLimits->Set("config/modify", 512 * 1024 * 1024);
+	specialContentLengthLimits->Set("console", 512 * 1024 * 1024);
+	specialContentLengthLimits->Set("objects/create", 512 * 1024 * 1024);
+	specialContentLengthLimits->Set("objects/modify", 512 * 1024 * 1024);
+	specialContentLengthLimits->Set("objects/delete", 512 * 1024 * 1024);
 
 	if (m_CurrentRequest.Headers->Get("expect") == "100-continue") {
 		String continueResponse = "HTTP/1.1 100 Continue\r\n\r\n";
