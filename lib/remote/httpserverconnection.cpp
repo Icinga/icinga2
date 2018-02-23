@@ -188,14 +188,14 @@ bool HttpServerConnection::ProcessMessage()
 
 bool HttpServerConnection::ManageHeaders(HttpResponse& response)
 {
-	static const size_t defaultContentLengthLimit = 1 * 1028 * 1028;
+	static const size_t defaultContentLengthLimit = 1 * 1024 * 1024;
 	static const Dictionary::Ptr specialContentLengthLimits = new Dictionary({
-		  {"*", 512 * 1028 * 1028},
-		  {"config/modify", 512 * 1028 * 1028},
-		  {"console", 512 * 1028 * 1028},
-		  {"objects/create", 512 * 1028 * 1028},
-		  {"objects/modify", 512 * 1028 * 1028},
-		  {"objects/delete", 512 * 1028 * 1028}
+		  {"*", 512 * 1024 * 1024},
+		  {"config/modify", 512 * 1024 * 1024},
+		  {"console", 512 * 1024 * 1024},
+		  {"objects/create", 512 * 1024 * 1024},
+		  {"objects/modify", 512 * 1024 * 1024},
+		  {"objects/delete", 512 * 1024 * 1024}
 	});
 
 	if (m_CurrentRequest.Headers->Get("expect") == "100-continue") {
