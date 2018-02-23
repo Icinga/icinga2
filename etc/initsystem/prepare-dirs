@@ -37,7 +37,7 @@ fi
 
 # Could be undefined in installations where sysconf is not overridden on upgrade
 if [ -z "$ICINGA2_LOG_DIR" ]; then
-	$ICINGA2_LOG_DIR=$(dirname -- "$ICINGA2_LOG")
+	ICINGA2_LOG_DIR=$(dirname -- "$ICINGA2_LOG")
 fi
 
 test -e "$ICINGA2_LOG_DIR" || install -m 750 -o $ICINGA2_USER -g $ICINGA2_COMMAND_GROUP -d "$ICINGA2_LOG_DIR"
