@@ -26,7 +26,6 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/split.hpp>
 #include <fstream>
 
 using namespace icinga;
