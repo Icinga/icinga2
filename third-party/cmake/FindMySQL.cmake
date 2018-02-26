@@ -66,6 +66,7 @@ IF (WIN32)
 
   FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient
     PATHS
+    $ENV{MYSQL_DIR}
     $ENV{MYSQL_DIR}/lib/${libsuffixDist}
     $ENV{MYSQL_DIR}/libmysql
     $ENV{MYSQL_DIR}/libmysql/${libsuffixBuild}
@@ -82,6 +83,7 @@ ELSE (WIN32)
 
   FIND_LIBRARY(MYSQL_LIB NAMES ${MYSQL_CLIENT_LIBS}
     PATHS
+    $ENV{MYSQL_DIR}
     $ENV{MYSQL_DIR}/libmysql_r/.libs
     $ENV{MYSQL_DIR}/lib
     $ENV{MYSQL_DIR}/lib/mysql
