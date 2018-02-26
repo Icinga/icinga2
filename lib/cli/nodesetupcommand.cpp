@@ -65,7 +65,7 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 		("accept-config", "Accept config from master")
 		("accept-commands", "Accept commands from master")
 		("master", "Use setup for a master instance")
-		("global_zones", po::value<std::vector<String> >(), "The names of the additional global zones.");
+		("global_zones", po::value<std::vector<std::string> >(), "The names of the additional global zones.");
 
 	hiddenDesc.add_options()
 		("master_zone", po::value<std::string>(), "The name of the master zone");
@@ -159,10 +159,10 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
 	std::vector<String> globalZones;
-	std::vector<String> setupGlobalZones;
+	std::vector<std::string> setupGlobalZones;
 
 	if (vm.count("global_zones"))
-		setupGlobalZones = vm["global_zones"].as<std::vector<String> >();
+		setupGlobalZones = vm["global_zones"].as<std::vector<std::string> >();
 
 	globalZones.push_back("global-templates");
 	globalZones.push_back("director-global");
@@ -430,10 +430,10 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
 	std::vector<String> globalZones;
-	std::vector<String> setupGlobalZones;
+	std::vector<std::string> setupGlobalZones;
 
 	if (vm.count("global_zones"))
-		setupGlobalZones = vm["global_zones"].as<std::vector<String> >();
+		setupGlobalZones = vm["global_zones"].as<std::vector<std::string> >();
 
 	globalZones.push_back("global-templates");
 	globalZones.push_back("director-global");
