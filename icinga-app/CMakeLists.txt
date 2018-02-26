@@ -29,6 +29,11 @@ set(icingaloader_SOURCES
 add_library(icingaloader OBJECT ${icingaloader_SOURCES})
 add_dependencies(icingaloader base config cli)
 
+set_target_properties (
+  icingaloader PROPERTIES
+  FOLDER Lib
+)
+
 include_directories(${Boost_INCLUDE_DIRS})
 
 if(ICINGA2_WITH_CHECKER)
