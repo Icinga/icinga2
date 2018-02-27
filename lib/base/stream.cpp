@@ -60,7 +60,7 @@ void Stream::SignalDataAvailable(void)
 	}
 }
 
-bool Stream::WaitForData()
+bool Stream::WaitForData(void)
 {
 	if (!SupportsWaiting())
 		BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support waiting."));
@@ -93,6 +93,16 @@ bool Stream::WaitForData(int timeout)
 
 static void StreamDummyCallback(void)
 { }
+
+void Stream::SetCorked(bool corked)
+{
+	m_Corked = corked;
+}
+
+bool Stream::IsCorked(void) const
+{
+	return m_Corked;
+}
 
 void Stream::Close(void)
 {

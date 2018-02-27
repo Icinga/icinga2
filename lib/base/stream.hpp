@@ -131,6 +131,9 @@ public:
 
 	virtual bool SupportsWaiting(void) const;
 
+	virtual void SetCorked(bool corked);
+	bool IsCorked(void) const;
+
 	virtual bool IsDataAvailable(void) const;
 
 	void RegisterDataHandler(const boost::function<void(const Stream::Ptr&)>& handler);
@@ -145,6 +148,8 @@ private:
 
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;
+
+	bool m_Corked{false};
 };
 
 }
