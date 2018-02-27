@@ -201,6 +201,7 @@ ensure to collect the required information:
   Parameter           | Description
   --------------------|--------------------
   Common name (CN)    | **Required.** By convention this should be the host's FQDN. Defaults to the FQDN.
+  Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`. Defaults to `n`.
   API bind host       | **Optional.** Allows to specify the address the ApiListener is bound to. For advanced usage only.
   API bind port       | **Optional.** Allows to specify the port the ApiListener is bound to. For advanced usage only (requires changing the default port 5665 everywhere).
 
@@ -227,9 +228,12 @@ Starting the Master setup routine...
 
 Please specify the common name (CN) [icinga2-master1.localdomain]: icinga2-master1.localdomain
 Reconfiguring Icinga...
-Checking for existing certificates for common name 'master1'...
+Checking for existing certificates for common name 'icinga2-master1.localdomain'...
+Certificates not yet generated. Running 'api setup' now.
 Generating master configuration for Icinga 2.
+Enabling feature api. Make sure to restart Icinga 2 for these changes to take effect.
 
+Do you want to specify additional global zones? [y/N]: N
 Please specify the API bind host/port (optional):
 Bind Host []:
 Bind Port []:
@@ -518,11 +522,17 @@ Accept config from parent node? [y/N]: y
 Accept commands from parent node? [y/N]: y
 ```
 
-The wizard proceeds and you are good to go.
+You can add more global zones in addition to `global-templates` and `director-global` if necessary. Press `Enter` or choose `n`, if you don't want to add any additional.
 
 ```
 Reconfiguring Icinga...
 
+Do you want to specify additional global zones? [y/N]: N
+```
+
+The wizard proceeds and you are good to go.
+
+```
 Done.
 
 Now restart your Icinga 2 daemon to finish the installation!
@@ -558,6 +568,7 @@ Here is an overview of all parameters in detail:
   API bind port       | **Optional.** Allows to specify the port the ApiListener is bound to. For advanced usage only (requires changing the default port 5665 everywhere).
   Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this defaults to `n`.
   Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this defaults to `n`.
+  Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`. Defaults to `n`.
 
 The setup wizard will ensure that the following steps are taken:
 
@@ -2586,6 +2597,7 @@ Pass the following details to the `node setup` CLI command:
   Master host         | **Required.** FQDN or IP address of the master host.
   Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)).
   Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
+  Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`. 
 
 Example for Icinga 2 v2.8:
 
@@ -2601,6 +2613,11 @@ In case the client should connect to the master node, you'll
 need to modify the `--endpoint` parameter using the format `cn,host,port`:
 
     --endpoint icinga2-master1.localdomain,192.168.56.101,5665
+
+In case the client should know the additional global zone `linux-templates`, you'll
+need to set the `--global-zones` parameter.
+
+	--global_zones linux-templates
 
 Restart Icinga 2 afterwards:
 
