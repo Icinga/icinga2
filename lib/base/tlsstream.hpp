@@ -70,6 +70,8 @@ public:
 	bool SupportsWaiting() const override;
 	bool IsDataAvailable() const override;
 
+	void SetCorked(bool corked) override;
+
 	bool IsVerifyOK() const;
 	String GetVerifyError() const;
 
