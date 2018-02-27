@@ -97,7 +97,6 @@ void HttpServerConnection::Disconnect(void)
 
 bool HttpServerConnection::ProcessMessage(void)
 {
-
 	bool res;
 	HttpResponse response(m_Stream, m_CurrentRequest);
 
@@ -174,6 +173,8 @@ bool HttpServerConnection::ProcessMessage(void)
 		}
 		return res;
 	}
+
+	m_Stream->SetCorked(true);
 
 	m_RequestQueue.Enqueue(std::bind(&HttpServerConnection::ProcessMessageAsync,
 		HttpServerConnection::Ptr(this), m_CurrentRequest, response, m_AuthenticatedUser));
@@ -328,6 +329,7 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request, HttpRespons
 
 	response.Finish();
 	m_PendingRequests--;
+	m_Stream->SetCorked(false);
 }
 
 void HttpServerConnection::DataAvailableHandler(void)

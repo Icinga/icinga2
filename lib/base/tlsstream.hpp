@@ -73,6 +73,8 @@ public:
 	bool IsVerifyOK(void) const;
 	String GetVerifyError(void) const;
 
+	virtual void SetCorked(bool corked) override;
+
 private:
 	boost::shared_ptr<SSL> m_SSL;
 	bool m_Eof;
