@@ -316,6 +316,8 @@ bool HttpServerConnection::ManageHeaders(HttpResponse& response)
 
 void HttpServerConnection::ProcessMessageAsync(HttpRequest& request, HttpResponse& response, const ApiUser::Ptr& user)
 {
+	response.RebindRequest(request);
+
 	try {
 		HttpHandler::ProcessRequest(user, request, response);
 	} catch (const std::exception& ex) {
