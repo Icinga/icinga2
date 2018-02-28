@@ -230,12 +230,12 @@ Available permissions for specific URL endpoints:
   actions/&lt;action&gt;        | /v1/actions   | Yes               | 1
   config/query                  | /v1/config    | No                | 1
   config/modify                 | /v1/config    | No                | 512
-  console                       | /v1/console   | No                | 512
+  console                       | /v1/console   | No                | 1
   events/&lt;type&gt;           | /v1/events    | No                | 1
   objects/query/&lt;type&gt;    | /v1/objects   | Yes               | 1
-  objects/create/&lt;type&gt;   | /v1/objects   | No                | 512
-  objects/modify/&lt;type&gt;   | /v1/objects   | Yes               | 512
-  objects/delete/&lt;type&gt;   | /v1/objects   | Yes               | 512
+  objects/create/&lt;type&gt;   | /v1/objects   | No                | 1
+  objects/modify/&lt;type&gt;   | /v1/objects   | Yes               | 1
+  objects/delete/&lt;type&gt;   | /v1/objects   | Yes               | 1
   status/query                  | /v1/status    | Yes               | 1
   templates/&lt;type&gt;        | /v1/templates | Yes               | 1
   types                         | /v1/types     | Yes               | 1
