@@ -29,7 +29,7 @@
 using namespace icinga;
 
 HttpResponse::HttpResponse(const Stream::Ptr& stream, const HttpRequest& request)
-    : Complete(false), m_State(HttpResponseStart), m_Request(request), m_Stream(stream)
+    : Complete(false), m_State(HttpResponseStart), m_Request(&request), m_Stream(stream)
 { }
 
 void HttpResponse::SetStatus(int code, const String& message)
@@ -44,7 +44,7 @@ void HttpResponse::SetStatus(int code, const String& message)
 
 	String status = "HTTP/";
 
-	if (m_Request.ProtocolVersion == HttpVersion10)
+	if (m_Request->ProtocolVersion == HttpVersion10)
 		status += "1.0";
 	else
 		status += "1.1";
@@ -64,7 +64,7 @@ void HttpResponse::AddHeader(const String& key, const String& value)
 void HttpResponse::FinishHeaders(void)
 {
 	if (m_State == HttpResponseHeaders) {
-		if (m_Request.ProtocolVersion == HttpVersion11)
+		if (m_Request->ProtocolVersion == HttpVersion11)
 			AddHeader("Transfer-Encoding", "chunked");
 
 		AddHeader("Server", "Icinga/" + Application::GetAppVersion());
@@ -81,7 +81,7 @@ void HttpResponse::WriteBody(const char *data, size_t count)
 {
 	ASSERT(m_State == HttpResponseHeaders || m_State == HttpResponseBody);
 
-	if (m_Request.ProtocolVersion == HttpVersion10) {
+	if (m_Request->ProtocolVersion == HttpVersion10) {
 		if (!m_Body)
 			m_Body = new FIFO();
 
@@ -97,7 +97,7 @@ void HttpResponse::Finish(void)
 {
 	ASSERT(m_State != HttpResponseEnd);
 
-	if (m_Request.ProtocolVersion == HttpVersion10) {
+	if (m_Request->ProtocolVersion == HttpVersion10) {
 		if (m_Body)
 			AddHeader("Content-Length", Convert::ToString(m_Body->GetAvailableBytes()));
 
@@ -115,7 +115,7 @@ void HttpResponse::Finish(void)
 
 	m_State = HttpResponseEnd;
 
-	if (m_Request.ProtocolVersion == HttpVersion10 || m_Request.Headers->Get("connection") == "close")
+	if (m_Request->ProtocolVersion == HttpVersion10 || m_Request->Headers->Get("connection") == "close")
 		m_Stream->Shutdown();
 }
 
@@ -266,4 +266,9 @@ size_t HttpResponse::GetBodySize(void) const
 bool HttpResponse::IsPeerConnected(void) const
 {
 	return !m_Stream->IsEof();
+}
+
+void HttpResponse::RebindRequest(const HttpRequest& request)
+{
+	m_Request = &request;
 }
