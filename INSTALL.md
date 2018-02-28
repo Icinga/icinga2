@@ -44,6 +44,10 @@ application using a dist tarball (including notes for distributions):
   - Alpine: boost-dev
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
+* Systemd headers
+  - Only required when using Systemd
+  - Debian/Ubuntu: libsystemd-dev
+  - RHEL/Fedora: systemd-devel
 
 ## Optional features
 

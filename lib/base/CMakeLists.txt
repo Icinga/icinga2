@@ -97,6 +97,13 @@ if(ICINGA2_UNITY_BUILD)
   mkunity_target(base base base_SOURCES)
 endif()
 
+if(HAVE_SYSTEMD)
+  find_path(SYSTEMD_INCLUDE_DIR
+    NAMES systemd/sd-daemon.h
+    HINTS ${SYSTEMD_ROOT_DIR})
+  include_directories(${SYSTEMD_INCLUDE_DIR})
+endif()
+
 add_library(base OBJECT ${base_SOURCES})
 
 include_directories(${icinga2_SOURCE_DIR}/third-party/execvpe)
