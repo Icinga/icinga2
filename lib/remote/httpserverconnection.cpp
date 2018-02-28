@@ -189,16 +189,6 @@ bool HttpServerConnection::ProcessMessage()
 
 bool HttpServerConnection::ManageHeaders(HttpResponse& response)
 {
-	static const size_t defaultContentLengthLimit = 1 * 1024 * 1024;
-	static const Dictionary::Ptr specialContentLengthLimits = new Dictionary({
-		  {"*", 512 * 1024 * 1024},
-		  {"config/modify", 512 * 1024 * 1024},
-		  {"console", 512 * 1024 * 1024},
-		  {"objects/create", 512 * 1024 * 1024},
-		  {"objects/modify", 512 * 1024 * 1024},
-		  {"objects/delete", 512 * 1024 * 1024}
-	});
-
 	if (m_CurrentRequest.Headers->Get("expect") == "100-continue") {
 		String continueResponse = "HTTP/1.1 100 Continue\r\n\r\n";
 		m_Stream->Write(continueResponse.CStr(), continueResponse.GetLength());
@@ -289,16 +279,34 @@ bool HttpServerConnection::ManageHeaders(HttpResponse& response)
 		return false;
 	}
 
+	static const size_t defaultContentLengthLimit = 1 * 1024 * 1024;
 	size_t maxSize = defaultContentLengthLimit;
 
 	Array::Ptr permissions = m_AuthenticatedUser->GetPermissions();
-	ObjectLock olock(permissions);
 
-	for (const Value& permission : permissions) {
-		std::vector<String> permissionParts = String(permission).Split("/");
-		String permissionPath = permissionParts[0] + (permissionParts.size() > 1 ? "/" + permissionParts[1] : "");
-		int size = specialContentLengthLimits->Get(permissionPath);
-		maxSize = size > maxSize ? size : maxSize;
+	if (permissions) {
+		ObjectLock olock(permissions);
+
+		for (const Value& permissionInfo : permissions) {
+			String permission;
+
+			if (permissionInfo.IsObjectType<Dictionary>())
+				permission = static_cast<Dictionary::Ptr>(permissionInfo)->Get("permission");
+			else
+				permission = permissionInfo;
+
+			static std::vector<std::pair<String, size_t>> specialContentLengthLimits {
+				  { "config/modify", 512 * 1024 * 1024 }
+			};
+
+			for (const auto& limitInfo : specialContentLengthLimits) {
+				if (limitInfo.second <= maxSize)
+					continue;
+
+				if (Utility::Match(permission, limitInfo.first))
+					maxSize = limitInfo.second;
+			}
+		}
 	}
 
 	size_t contentLength = m_CurrentRequest.Headers->Get("content-length");
