@@ -115,7 +115,7 @@ bool HttpRequest::ParseBody(StreamReadContext& src, bool may_wait)
 	/* we're done if the request doesn't contain a message body */
 	if (!Headers->Contains("content-length") && !Headers->Contains("transfer-encoding")) {
 		CompleteBody = true;
-		return false;
+		return true;
 	} else if (!m_Body)
 		m_Body = new FIFO();
 

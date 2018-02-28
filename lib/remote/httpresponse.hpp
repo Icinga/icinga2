@@ -65,10 +65,12 @@ public:
 
 	bool IsPeerConnected() const;
 
+	void RebindRequest(const HttpRequest& request);
+
 private:
 	HttpResponseState m_State;
 	std::shared_ptr<ChunkReadContext> m_ChunkContext;
-	const HttpRequest& m_Request;
+	const HttpRequest *m_Request;
 	Stream::Ptr m_Stream;
 	FIFO::Ptr m_Body;
 	std::vector<String> m_Headers;
