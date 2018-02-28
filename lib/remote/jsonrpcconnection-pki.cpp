@@ -162,7 +162,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 		if (ticket != realTicket) {
 			Log(LogWarning, "JsonRpcConnection")
-				<< "Ticket for CN '" << cn << "' is invalid.";
+				<< "Ticket '" << ticket << "' for CN '" << cn << "' is invalid.";
 
 			result->Set("status_code", 1);
 			result->Set("error", "Invalid ticket for CN '" + cn + "'.");
