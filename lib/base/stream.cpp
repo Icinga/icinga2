@@ -91,6 +91,16 @@ bool Stream::WaitForData(int timeout)
 	return IsDataAvailable() || IsEof();
 }
 
+void Stream::SetCorked(bool corked)
+{
+	m_Corked = corked;
+}
+
+bool Stream::IsCorked() const
+{
+	return m_Corked;
+}
+
 static void StreamDummyCallback()
 { }
 
