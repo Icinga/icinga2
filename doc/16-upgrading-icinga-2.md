@@ -7,6 +7,11 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.9 <a id="upgrading-to-2-9"></a>
+
+The CORS attributes `access_control_allow_credentials`, `access_control_allow_headers` and
+`access_control_allow_methods` are now controlled by Icinga 2 and are not changeable by config any more.
+
 ## Upgrading to v2.8.2 <a id="upgrading-to-2-8-2"></a>
 
 With version 2.8.2 the location of settings formerly found in `/etc/icinga2/init.conf` has changed. They are now
@@ -21,7 +26,6 @@ located in the sysconfig, `/etc/sysconfig/icinga2` (RPM) or `/etc/default/icinga
  RLimitFiles     | ICINGA2\_RLIMIT\_FILES
  RLimitProcesses | ICINGA2\_RLIMIT\_PROCESSES
  RLimitStack     | ICINGA2\_RLIMIT\_STACK
-
 
 ## Upgrading to v2.8 <a id="upgrading-to-2-8"></a>
 
