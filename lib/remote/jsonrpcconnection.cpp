@@ -237,9 +237,14 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 
 bool JsonRpcConnection::ProcessMessage(void)
 {
+	ssize_t maxMessageLength = 64 * 1024;
+
+	if (m_Endpoint)
+		maxMessageLength = -1; /* no limit */
+
 	String message;
 
-	StreamReadStatus srs = JsonRpc::ReadMessage(m_Stream, &message, m_Context, false);
+	StreamReadStatus srs = JsonRpc::ReadMessage(m_Stream, &message, m_Context, false, maxMessageLength);
 
 	if (srs != StatusNewItem)
 		return false;

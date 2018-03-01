@@ -32,7 +32,8 @@ using namespace icinga;
  * @exception invalid_argument The input stream is invalid.
  * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
  */
-StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str, StreamReadContext& context, bool may_wait)
+StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str, StreamReadContext& context,
+	bool may_wait, ssize_t maxMessageLength)
 {
 	if (context.Eof)
 		return StatusEof;
@@ -83,6 +84,13 @@ StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, Stri
 
 	/* read the whole message */
 	size_t data_length = len + 1;
+
+	if (maxMessageLength >= 0 && data_length > maxMessageLength) {
+		std::stringstream errorMessage;
+		errorMessage << "Max data length exceeded: " << (maxMessageLength / 1024 / 1024) << " MB";
+
+		BOOST_THROW_EXCEPTION(std::invalid_argument(errorMessage.str()));
+	}
 
 	char *data = context.Buffer + header_length + 1;
 

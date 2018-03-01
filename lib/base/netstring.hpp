@@ -38,8 +38,9 @@ class String;
 class I2_BASE_API NetString
 {
 public:
-	static StreamReadStatus ReadStringFromStream(const Stream::Ptr& stream, String *message, StreamReadContext& context, bool may_wait = false);
-	static void WriteStringToStream(const Stream::Ptr& stream, const String& message);
+	static StreamReadStatus ReadStringFromStream(const Stream::Ptr& stream, String *message, StreamReadContext& context,
+		bool may_wait = false, ssize_t maxMessageLength = -1);
+	static size_t WriteStringToStream(const Stream::Ptr& stream, const String& message);
 	static void WriteStringToStream(std::ostream& stream, const String& message);
 
 private:
