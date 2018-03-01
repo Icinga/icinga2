@@ -24,6 +24,7 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/clusterevents.hpp"
+#include "icinga/checkable.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -88,6 +89,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("active_service_checks_15min", CIB::GetActiveServiceChecksStatistics(60 * 15)));
 	perfdata->Add(new PerfdataValue("passive_service_checks_15min", CIB::GetPassiveServiceChecksStatistics(60 * 15)));
 
+	perfdata->Add(new PerfdataValue("current_concurrent_checks", Checkable::GetPendingChecks()));
 	perfdata->Add(new PerfdataValue("remote_check_queue", ClusterEvents::GetCheckRequestQueueSize()));
 
 	CheckableCheckStatistics scs = CIB::CalculateServiceCheckStats();
