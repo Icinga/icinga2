@@ -343,7 +343,7 @@ disk\_ignore\_eregi\_path | **Optional.** Regular expression to ignore selected 
 disk\_ignore\_ereg\_path  | **Optional.** Regular expression to ignore selected path or partition. Multiple regular expression strings must be defined as array.
 disk\_timeout             | **Optional.** Seconds before connection times out (default: 10).
 disk\_units               | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
-disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "configfs", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fdescfs".
+disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "configfs", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fdescfs", "overlay", "nsfs".
 
 ### disk_smb <a id="plugin-check-command-disk-smb"></a>
 
@@ -2486,7 +2486,7 @@ It uses the Dell OpenManage Server Administrator (OMSA) software, which must be 
 the monitored system. check_openmanage can be used remotely with SNMP or locally with icinga2 agent,
 check_by_ssh or similar, whichever suits your needs and particular taste.
 
-The plugin checks the health of the storage subsystem, power supplies, memory modules, 
+The plugin checks the health of the storage subsystem, power supplies, memory modules,
 temperature probes etc., and gives an alert if any of the components are faulty or operate outside normal parameters.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
