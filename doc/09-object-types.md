@@ -745,8 +745,13 @@ to evenly distribute all checks over a certain period of time, i.e. to avoid loa
 > **Info**
 >
 > The macros $host.name$, $service.description$, $host.address$ or $address$ are available for forming the notes url and action url
+
+> **Info**
+>
 > Multiple notes url or action url can be added as follows
+
 > notes_url|action_url = "'firstURL' 'secondURL' 'thirdURL'"
+
 > notes_url|action_url = "onlyoneURL"
 
 
