@@ -79,7 +79,7 @@ public:
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> GetStatus(void);
 
-	void AddAnonymousClient(const JsonRpcConnection::Ptr& aclient);
+	bool AddAnonymousClient(const JsonRpcConnection::Ptr& aclient);
 	void RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient);
 	std::set<JsonRpcConnection::Ptr> GetAnonymousClients(void) const;
 
