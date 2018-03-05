@@ -87,7 +87,7 @@ StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, Stri
 
 	if (maxMessageLength >= 0 && data_length > maxMessageLength) {
 		std::stringstream errorMessage;
-		errorMessage << "Max data length exceeded: " << (maxMessageLength / 1024 / 1024) << " MB";
+		errorMessage << "Max data length exceeded: " << (maxMessageLength / 1024) << " KB";
 
 		BOOST_THROW_EXCEPTION(std::invalid_argument(errorMessage.str()));
 	}
