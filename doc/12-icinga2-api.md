@@ -873,16 +873,16 @@ Send a `POST` request to the URL endpoint `/v1/actions/reschedule-check`.
   Parameter    | Type      | Description
   -------------|-----------|--------------
   next\_check  | Timestamp | **Optional.** The next check will be run at this time. If omitted, the current time is used.
-  force\_check | Boolean   | **Optional.** Defaults to `false`. If enabled, the checks are executed regardless of time period restrictions and checks being disabled per object or on a global basis.
+  force        | Boolean   | **Optional.** Defaults to `false`. If enabled, the checks are executed regardless of time period restrictions and checks being disabled per object or on a global basis.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
 The example reschedules all services with the name "ping6" to immediately perform a check
 (`next_check` default), ignoring any time periods or whether active checks are
-allowed for the service (`force_check=true`).
+allowed for the service (`force=true`).
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/reschedule-check' \
-    -d '{ "type": "Service", "filter": "service.name==\"ping6\"", "force_check": true, "pretty": true }'
+    -d '{ "type": "Service", "filter": "service.name==\"ping6\"", "force": true, "pretty": true }'
 
     {
         "results": [
