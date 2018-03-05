@@ -547,8 +547,12 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 			endpoint->AddClient(aclient);
 
 			m_SyncQueue.Enqueue(std::bind(&ApiListener::SyncClient, this, aclient, endpoint, needSync));
-		} else
-			AddAnonymousClient(aclient);
+		} else {
+			if (!AddAnonymousClient(aclient)) {
+				Log(LogNotice, "ApiListener", "Ignoring anonymous JSON-RPC connection. Max connections exceeded.");
+				aclient->Disconnect();
+			}
+		}
 	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
 
@@ -1360,10 +1364,14 @@ double ApiListener::CalculateZoneLag(const Endpoint::Ptr& endpoint)
 	return 0;
 }
 
-void ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)
+bool ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
 	boost::mutex::scoped_lock lock(m_AnonymousClientsLock);
+	if (m_AnonymousClients.size() > 25)
+		return false;
+
 	m_AnonymousClients.insert(aclient);
+	return true;
 }
 
 void ApiListener::RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient)

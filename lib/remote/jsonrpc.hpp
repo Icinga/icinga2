@@ -36,7 +36,7 @@ class JsonRpc
 {
 public:
 	static size_t SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
-	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait = false);
+	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait = false, size_t maxMessageLength = -1);
 	static Dictionary::Ptr DecodeMessage(const String& message);
 
 private:
