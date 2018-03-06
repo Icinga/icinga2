@@ -174,9 +174,7 @@ bool HttpServerConnection::ProcessMessage(void)
 		return res;
 	}
 
-	m_Stream->SetCorked(true);
-
-	m_RequestQueue.Enqueue(std::bind(&HttpServerConnection::ProcessMessageAsync,
+	m_RequestQueue.Enqueue(boost::bind(&HttpServerConnection::ProcessMessageAsync,
 		HttpServerConnection::Ptr(this), m_CurrentRequest, response, m_AuthenticatedUser));
 
 	m_Seen = Utility::GetTime();
@@ -348,6 +346,8 @@ void HttpServerConnection::DataAvailableHandler(void)
 	if (!m_Stream->IsEof()) {
 		boost::mutex::scoped_lock lock(m_DataHandlerMutex);
 
+		m_Stream->SetCorked(true);
+
 		try {
 			while (ProcessMessage())
 				; /* empty loop body */
@@ -357,6 +357,8 @@ void HttpServerConnection::DataAvailableHandler(void)
 
 			close = true;
 		}
+
+		m_RequestQueue.Enqueue(boost::bind(&Stream::SetCorked, m_Stream, false));
 	} else
 		close = true;
 

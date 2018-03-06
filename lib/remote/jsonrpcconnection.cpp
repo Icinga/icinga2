@@ -144,8 +144,6 @@ void JsonRpcConnection::MessageHandlerWrapper(const String& jsonString)
 
 	try {
 		MessageHandler(jsonString);
-
-		m_Stream->SetCorked(false);
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "JsonRpcConnection")
 		    << "Error while reading JSON-RPC message for identity '" << m_Identity
@@ -249,8 +247,6 @@ bool JsonRpcConnection::ProcessMessage(void)
 	if (srs != StatusNewItem)
 		return false;
 
-	m_Stream->SetCorked(true);
-
 	l_JsonRpcConnectionWorkQueues[m_ID % l_JsonRpcConnectionWorkQueueCount].Enqueue(boost::bind(&JsonRpcConnection::MessageHandlerWrapper, JsonRpcConnection::Ptr(this), message));
 
 	return true;
@@ -266,6 +262,8 @@ void JsonRpcConnection::DataAvailableHandler(void)
 	if (!m_Stream->IsEof()) {
 		boost::mutex::scoped_lock lock(m_DataHandlerMutex);
 
+		m_Stream->SetCorked(true);
+
 		try {
 			while (ProcessMessage())
 				; /* empty loop body */
@@ -278,6 +276,8 @@ void JsonRpcConnection::DataAvailableHandler(void)
 
 			return;
 		}
+
+		l_JsonRpcConnectionWorkQueues[m_ID % l_JsonRpcConnectionWorkQueueCount].Enqueue(boost::bind(&Stream::SetCorked, m_Stream, false));
 	} else
 		close = true;
 
