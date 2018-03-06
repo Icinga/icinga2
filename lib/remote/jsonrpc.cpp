@@ -72,7 +72,7 @@ size_t JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& me
 	return NetString::WriteStringToStream(stream, json);
 }
 
-StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait, size_t maxMessageLength)
+StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait, ssize_t maxMessageLength)
 {
 	String jsonString;
 	StreamReadStatus srs = NetString::ReadStringFromStream(stream, &jsonString, src, may_wait, maxMessageLength);
