@@ -29,14 +29,13 @@ BOOST_AUTO_TEST_SUITE(api_user)
 
 BOOST_AUTO_TEST_CASE(password)
 {
-#ifndef I2_DEBUG
-	std::cout << "Only enabled in Debug builds..." << std::endl;
-#else
 	ApiUser::Ptr user = new ApiUser();
 	String passwd = RandomString(16);
 	String salt = RandomString(8);
-	user->SetPassword("ThisShouldBeIgnored");
-	user->SetPasswordHash(HashPassword(passwd, salt, true));
+	user->SetPasswordHash(CreateHashedPasswordString(passwd, salt));
+	user->OnConfigLoaded();
+	user->OnAllConfigLoaded();
+	user->Start();
 
 	BOOST_CHECK(user->GetPasswordHash() != passwd);
 
@@ -46,7 +45,6 @@ BOOST_AUTO_TEST_CASE(password)
 	BOOST_CHECK(passwdd->Get("salt") == salt);
 	BOOST_CHECK(ComparePassword(passwdd->Get("password"), passwd, salt));
 	BOOST_CHECK(!ComparePassword(passwdd->Get("password"), "wrong password uwu!", salt));
-#endif
 }
 
 BOOST_AUTO_TEST_SUITE_END()
