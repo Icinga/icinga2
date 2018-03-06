@@ -173,6 +173,8 @@ void TlsStream::OnEvent(int revents)
 	 */
 	ERR_clear_error();
 
+	size_t readTotal = 0;
+
 	switch (m_CurrentAction) {
 		case TlsActionRead:
 			do {
@@ -181,8 +183,10 @@ void TlsStream::OnEvent(int revents)
 				if (rc > 0) {
 					m_RecvQ->Write(buffer, rc);
 					success = true;
+
+					readTotal += rc;
 				}
-			} while (rc > 0);
+			} while (rc > 0 && readTotal < 64 * 1024);
 
 			if (success)
 				m_CV.notify_all();
@@ -264,7 +268,7 @@ void TlsStream::OnEvent(int revents)
 
 		lock.unlock();
 
-		while (m_RecvQ->IsDataAvailable() && IsHandlingEvents())
+		while (!IsCorked() && m_RecvQ->IsDataAvailable() && IsHandlingEvents())
 			SignalDataAvailable();
 	}
 
