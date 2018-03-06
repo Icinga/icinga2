@@ -40,6 +40,7 @@
 #endif /* __MINGW32__ */
 
 typedef int socklen_t;
+typedef SSIZE_T ssize_t;
 
 #define MAXPATHLEN MAX_PATH
 
