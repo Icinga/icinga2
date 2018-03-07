@@ -58,9 +58,17 @@ void ConfigPackageUtility::DeletePackage(const String& name)
 
 std::vector<String> ConfigPackageUtility::GetPackages(void)
 {
+	String packageDir = GetPackageDir();
+
 	std::vector<String> packages;
-	Utility::Glob(GetPackageDir() + "/*", boost::bind(&ConfigPackageUtility::CollectDirNames,
-	    _1, boost::ref(packages)), GlobDirectory);
+
+	/* Package directory does not exist, no packages have been created thus far. */
+	if (!Utility::PathExists(packageDir))
+		return packages;
+
+	Utility::Glob(packageDir + "/*", boost::bind(&ConfigPackageUtility::CollectDirNames,
+		_1, std::ref(packages)), GlobDirectory);
+
 	return packages;
 }
 

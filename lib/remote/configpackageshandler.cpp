@@ -49,7 +49,14 @@ void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& req
 {
 	FilterUtility::CheckPermission(user, "config/query");
 
-	std::vector<String> packages = ConfigPackageUtility::GetPackages();
+	std::vector<String> packages;
+
+	try {
+		packages = ConfigPackageUtility::GetPackages();
+	} catch (const std::exception& ex) {
+		HttpUtility::SendJsonError(response, 500, "Could not retrieve packages.");
+		return;
+	}
 
 	Array::Ptr results = new Array();
 
@@ -91,8 +98,7 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
 		ConfigPackageUtility::CreatePackage(packageName);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, 500, "Could not create package.",
-			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+		HttpUtility::SendJsonError(response, 500, "Could not create package.", "");
 	}
 
 	result1->Set("code", 200);
