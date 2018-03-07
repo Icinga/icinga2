@@ -57,8 +57,8 @@ String I2_BASE_API SHA1(const String& s, bool binary = false);
 String I2_BASE_API SHA256(const String& s);
 String I2_BASE_API RandomString(int length);
 bool I2_BASE_API VerifyCertificate(const boost::shared_ptr<X509>& caCertificate, const boost::shared_ptr<X509>& certificate);
-bool ComparePassword(const String& hash, const String& password, const String& Salt);
-String CreateHashedPasswordString(const String& password, const String& salt, int algorithm = 5);
+bool I2_BASE_API ComparePassword(const String& hash, const String& password, const String& Salt);
+String I2_BASE_API CreateHashedPasswordString(const String& password, const String& salt, int algorithm = 5);
 
 class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
 

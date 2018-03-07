@@ -35,7 +35,7 @@ namespace icinga
 class I2_REMOTE_API JsonRpc
 {
 public:
-	static size_t SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
+	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
 	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait = false, ssize_t maxMessageLength = -1);
 	static Dictionary::Ptr DecodeMessage(const String& message);
 
