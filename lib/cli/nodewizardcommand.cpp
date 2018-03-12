@@ -499,10 +499,7 @@ wizard_ticket:
 	/* apilistener config */
 	Log(LogInformation, "cli", "Generating local zones.conf.");
 
-	std::vector<String> globalZones;
-
-	globalZones.push_back("global-templates");
-	globalZones.push_back("director-global");
+	std::vector<String> globalZones { "global-templates", "director-global" };
 
 	std::cout << "\nDo you want to specify additional global zones? [y/N]: ";
 
@@ -633,10 +630,7 @@ int NodeWizardCommand::MasterSetup() const
 	else
 		std::cout << "'api' feature already enabled.\n";
 
-	std::vector<String> globalZones;
-
-	globalZones.push_back("global-templates");
-	globalZones.push_back("director-global");
+	std::vector<String> globalZones { "global-templates", "director-global" };
 
 	std::cout << "\nDo you want to specify additional global zones? [y/N]: ";
 
