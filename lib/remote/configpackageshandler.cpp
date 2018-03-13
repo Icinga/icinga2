@@ -48,7 +48,15 @@ void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& req
 {
 	FilterUtility::CheckPermission(user, "config/query");
 
-	std::vector<String> packages = ConfigPackageUtility::GetPackages();
+	std::vector<String> packages;
+
+	try {
+		packages = ConfigPackageUtility::GetPackages();
+	} catch (const std::exception& ex) {
+		HttpUtility::SendJsonError(response, params, 500, "Could not retrieve packages.",
+			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+		return;
+	}
 
 	ArrayData results;
 
