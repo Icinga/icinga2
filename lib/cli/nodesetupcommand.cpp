@@ -158,14 +158,11 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	/* write zones.conf and update with zone + endpoint information */
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	std::vector<String> globalZones;
+	std::vector<String> globalZones { "global-templates", "director-global" };
 	std::vector<std::string> setupGlobalZones;
 
 	if (vm.count("global_zones"))
 		setupGlobalZones = vm["global_zones"].as<std::vector<std::string> >();
-
-	globalZones.push_back("global-templates");
-	globalZones.push_back("director-global");
 
 	for (int i = 0; i < setupGlobalZones.size(); i++) {
 		if (std::find(globalZones.begin(), globalZones.end(), setupGlobalZones[i]) != globalZones.end()) {
@@ -429,14 +426,11 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	std::vector<String> globalZones;
+	std::vector<String> globalZones { "global-templates", "director-global" };
 	std::vector<std::string> setupGlobalZones;
 
 	if (vm.count("global_zones"))
 		setupGlobalZones = vm["global_zones"].as<std::vector<std::string> >();
-
-	globalZones.push_back("global-templates");
-	globalZones.push_back("director-global");
 
 	for (int i = 0; i < setupGlobalZones.size(); i++) {
 		if (std::find(globalZones.begin(), globalZones.end(), setupGlobalZones[i]) != globalZones.end()) {
