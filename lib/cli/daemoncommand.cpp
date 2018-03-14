@@ -262,10 +262,17 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		Log(LogInformation, "cli", "Requesting to take over.");
 		int rc = kill(vm["reload-internal"].as<int>(), SIGUSR2);
 		if (rc) {
-			Log(LogCritical, "Application")
+			Log(LogCritical, "cli")
 				<< "Failed to send signal to \"" << vm["reload-internal"].as<int>() <<  "\" with " << strerror(errno);
 			return EXIT_FAILURE;
 		}
+
+		double start = Utility::GetTime();
+		while (kill(vm["reload-internal"].as<int>(), SIGCHLD) == 0)
+			Utility::Sleep(0.2);
+
+		Log(LogNotice, "cli")
+			<< "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
 	}
 #endif /* _WIN32 */
 

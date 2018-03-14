@@ -90,25 +90,7 @@ void Application::Stop(bool runtimeRemoved)
 	WSACleanup();
 #endif /* _WIN32 */
 
-	// Getting a shutdown-signal when a restart is in progress usually
-	// means that the restart succeeded and the new process wants to take
-	// over. Write the PID of the new process to the pidfile before this
-	// process exits to keep systemd happy.
-	if (l_Restarting) {
-		try {
-			UpdatePidFile(GetPidPath(), m_ReloadProcess);
-		} catch (const std::exception&) {
-			/* abort restart */
-			Log(LogCritical, "Application", "Cannot update PID file. Aborting restart operation.");
-			return;
-		}
-
-		Log(LogDebug, "Application")
-			<< "Keeping pid  '" << m_ReloadProcess << "' open.";
-
-		ClosePidFile(false);
-	} else
-		ClosePidFile(true);
+	ClosePidFile(true);
 
 	ObjectImpl<Application>::Stop(runtimeRemoved);
 }
@@ -740,6 +722,20 @@ void Application::SigUsr2Handler(int)
 #ifdef HAVE_SYSTEMD
 	sd_notifyf(0, "MAINPID=%lu", (unsigned long) m_ReloadProcess);
 #endif /* HAVE_SYSTEMD */
+
+	/* Write the PID of the new process to the pidfile before this
+	 * process exits to keep systemd happy.
+	 */
+	Application::Ptr instance = GetInstance();
+	try {
+		instance->UpdatePidFile(GetPidPath(), m_ReloadProcess);
+	} catch (const std::exception&) {
+		/* abort restart */
+		Log(LogCritical, "Application", "Cannot update PID file. Aborting restart operation.");
+		return;
+	}
+
+	instance->ClosePidFile(false);
 
 	Exit(0);
 }
