@@ -25,7 +25,7 @@ Icinga 2 as monitoring core works best with [Icinga Web 2](https://www.icinga.co
 as web interface.
 
 More information can be found at [www.icinga.com](https://www.icinga.com/products/icinga-2/)
-and inside the [documentation](doc/1-about.md).
+and inside the [documentation](https://www.icinga.com/docs/icinga2/latest/).
 
 ## License
 
