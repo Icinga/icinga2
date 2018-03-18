@@ -117,6 +117,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GlobalZonesInputBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GlobalZonesInputBox.Designer.cs">
+      <DependentUpon>GlobalZonesInputBox.cs</DependentUpon>
+    </Compile>
     <Compile Include="ServiceStatus.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -137,6 +143,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="GlobalZonesInputBox.resx">
+      <DependentUpon>GlobalZonesInputBox.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ServiceStatus.resx">
       <DependentUpon>ServiceStatus.cs</DependentUpon>
     </EmbeddedResource>
