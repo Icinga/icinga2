@@ -214,7 +214,7 @@ bool HttpServerConnection::ManageHeaders(HttpResponse& response)
 
 	Array::Ptr headerAllowOrigin = listener->GetAccessControlAllowOrigin();
 
-	if (headerAllowOrigin->GetLength() != 0) {
+	if (headerAllowOrigin && headerAllowOrigin->GetLength() != 0) {
 		String origin = m_CurrentRequest.Headers->Get("origin");
 		{
 			ObjectLock olock(headerAllowOrigin);
