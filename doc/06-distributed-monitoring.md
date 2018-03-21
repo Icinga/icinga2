@@ -1991,9 +1991,13 @@ you'll also need to ensure that port `5665` is enabled.
 #### NSClient++ API <a id="distributed-monitoring-windows-firewall-nsclient-api"></a>
 
 If the [check_nscp_api](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api)
-plugin is used to query NSClient++ remotely, you need to ensure that its port is enabled.
+plugin is used to query NSClient++, you need to ensure that its port is enabled.
 
     C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 8443 (NSClient++ API)" dir=in action=allow protocol=TCP localport=8443
+
+For security reasons, it is advised to enable the NSClient++ HTTP API for local
+connection from the Icinga 2 client only. Remote connections to the HTTP API
+are not recommended with using the legacy HTTP API.
 
 ### Windows Client and Plugins <a id="distributed-monitoring-windows-plugins"></a>
 
@@ -2053,7 +2057,7 @@ for the requirements.
 
 There are two methods available for querying NSClient++:
 
-* Query the [HTTP API](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api) locally or remotely (requires a running NSClient++ service)
+* Query the [HTTP API](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api) locally from an Icinga 2 client (requires a running NSClient++ service)
 * Run a [local CLI check](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-local) (does not require NSClient++ as a service)
 
 Both methods have their advantages and disadvantages. One thing to
