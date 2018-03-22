@@ -112,7 +112,7 @@ Configuration Attributes:
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
   password                  | String                | **Optional.** Password string. Note: This attribute is hidden in API responses.
-  hashed\_password          | String                | **Optional.** A hashed password string in the form of /etc/shadow. Note: This attribute is hidden in API responses.
+  password\_hash            | String                | **Optional.** A hashed password string in the form of /etc/shadow. Note: This attribute is hidden in API responses.
   client\_cn                | String                | **Optional.** Client Common Name (CN).
   permissions               | Array                 | **Required.** Array of permissions. Either as string or dictionary with the keys `permission` and `filter`. The latter must be specified as function.
 
