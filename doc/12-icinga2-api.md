@@ -27,7 +27,7 @@ The CLI command `icinga2 api user` allows you to create an ApiUser object with a
 added to your configuration. Example:
 
 ```
-$ icinga2 api user --user icingaweb2 --passwd icinga
+$ icinga2 api user --user icingaweb2 --password icinga
 object ApiUser "icingaweb2" {
   password_hash ="$5$d5f1a17ea308acb6$9e9fd5d24a9373a16e8811765cc5a5939687faf9ef8ed496db6e7f1d0ae9b2a9"
   // client_cn = ""
