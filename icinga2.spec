@@ -20,4 +20,4 @@
 # The spec file was moved to https://github.com/Icinga/icinga-packaging
 
 %define revision 1
-Version: 2.8.1
+Version: 2.8.2
