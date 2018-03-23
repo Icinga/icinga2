@@ -2558,7 +2558,7 @@ Pass the following details to the `pki new-cert` CLI command:
 
   Parameter           | Description
   --------------------|--------------------
-  Common name (CN)    | **Required.** By convention this should be the host's FQDN. Defaults to the FQDN.
+  Common name (CN)    | **Required.** By convention this should be the host's FQDN.
   Client certificate files   | **Required.** These generated files will be put into the specified location (--key and --file). By convention this should be using `/var/lib/icinga2/certs` as directory.
 
 Example:
