@@ -21,6 +21,7 @@
 #include "config/configitem.hpp"
 #include "base/application.hpp"
 #include "base/loader.hpp"
+#include "icingaapplication-fixture.hpp"
 #include <BoostTestTargetConfig.h>
 
 using namespace icinga;
@@ -29,6 +30,9 @@ struct LivestatusFixture
 {
 	LivestatusFixture()
 	{
+		// ensure IcingaApplication is initialized before we try to add config
+		IcingaApplicationFixture icinga;
+
 		BOOST_TEST_MESSAGE("Preparing config objects...");
 
 		ConfigItem::RunWithActivationContext(new Function("CreateTestObjects", CreateTestObjects));
