@@ -17,6 +17,22 @@
 * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
 ******************************************************************************/
 
-#define BOOST_TEST_MAIN
+#ifndef ICINGAAPPLICATION_FIXTURE_H
+#define ICINGAAPPLICATION_FIXTURE_H
 
+#include "icinga/icingaapplication.hpp"
+#include "base/application.hpp"
 #include <BoostTestTargetConfig.h>
+
+using namespace icinga;
+
+struct IcingaApplicationFixture
+{
+	IcingaApplicationFixture();
+
+	void InitIcingaApplication();
+
+	~IcingaApplicationFixture();
+};
+
+#endif // ICINGAAPPLICATION_FIXTURE_H

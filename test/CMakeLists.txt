@@ -18,6 +18,7 @@
 include(BoostTestTargets)
 
 set(base_test_SOURCES
+  icingaapplication-fixture.cpp
   base-array.cpp
   base-base64.cpp
   base-convert.cpp
@@ -56,7 +57,7 @@ endif()
 add_boost_test(base
   SOURCES test-runner.cpp ${base_test_SOURCES}
   LIBRARIES ${base_DEPS}
-  TESTS 
+  TESTS
     base_array/construct
     base_array/getset
     base_array/resize
@@ -145,6 +146,7 @@ add_boost_test(base
 
 if(ICINGA2_WITH_LIVESTATUS)
   set(livestatus_test_SOURCES
+    icingaapplication-fixture.cpp
     livestatus-fixture.cpp
     livestatus.cpp
     ${base_OBJS}
@@ -167,6 +169,7 @@ if(ICINGA2_WITH_LIVESTATUS)
 endif()
 
 set(icinga_checkable_test_SOURCES
+  icingaapplication-fixture.cpp
   icinga-checkable-fixture.cpp
   icinga-checkable-flapping.cpp
   ${base_OBJS}
