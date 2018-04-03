@@ -167,6 +167,9 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 				fields->Set(perfdataPrefix + ".warn", pdv->GetWarn());
 			if (pdv->GetCrit())
 				fields->Set(perfdataPrefix + ".crit", pdv->GetCrit());
+
+			if (!pdv->GetUnit().IsEmpty())
+				fields->Set(perfdataPrefix + ".unit", pdv->GetUnit());
 		}
 	}
 }
