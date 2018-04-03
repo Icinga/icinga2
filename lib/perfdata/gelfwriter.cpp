@@ -269,6 +269,9 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 					fields->Set("_" + escaped_key + "_warn", pdv->GetWarn());
 				if (pdv->GetCrit())
 					fields->Set("_" + escaped_key + "_crit", pdv->GetCrit());
+
+				if (!pdv->GetUnit().IsEmpty())
+					fields->Set("_" + escaped_key + "_unit", pdv->GetUnit());
 			}
 		}
 	}
