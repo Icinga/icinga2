@@ -663,6 +663,10 @@ Add the following details:
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_02.png)
 
+When needed you can add an additional global zone (the zones `global-templates` and `director-global` are added by default):
+
+![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_02_global_zone.png)
+
 Optionally enable the following settings:
 
   Parameter                         | Description

@@ -222,6 +222,10 @@ namespace Icinga
 			args += " --cn \"" + txtInstanceName.Text.Trim() + "\"";
 			args += " --zone \"" + txtInstanceName.Text.Trim() + "\"";
 
+			foreach (ListViewItem lvi in lvwGlobalZones.Items) {
+				args += " --global_zones " + lvi.SubItems[0].Text.Trim();
+			}
+
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"node setup" + args,
 				out output)) {
@@ -515,6 +519,51 @@ namespace Icinga
 			}
 
 			lvwEndpoints.Items.Add(lvi2);
+		}
+
+		private void btnAddGlobalZone_Click(object sender, EventArgs e)
+		{
+			GlobalZonesInputBox gzib = new GlobalZonesInputBox(lvwGlobalZones.Items);
+
+			if (gzib.ShowDialog(this) == DialogResult.Cancel)
+				return;
+
+			ListViewItem lvi = new ListViewItem();
+			lvi.Text = gzib.txtGlobalZoneName.Text;
+
+			lvwGlobalZones.Items.Add(lvi);
+		}
+
+		private void btnRemoveGlobalZone_Click(object sender, EventArgs e)
+		{
+			while (lvwGlobalZones.SelectedItems.Count > 0) {
+				lvwGlobalZones.Items.Remove(lvwGlobalZones.SelectedItems[0]);
+			}
+		}
+
+		private void lvwGlobalZones_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			btnEditGlobalZone.Enabled = lvwGlobalZones.SelectedItems.Count > 0;
+			btnRemoveGlobalZone.Enabled = lvwGlobalZones.SelectedItems.Count > 0;
+		}
+
+		private void btnEditGlobalZone_Click(object sender, EventArgs e)
+		{
+			ListViewItem lvi = lvwGlobalZones.SelectedItems[0];
+			GlobalZonesInputBox gzib = new GlobalZonesInputBox(lvwGlobalZones.Items);
+
+			gzib.Text = "Edit Global Zone";
+			gzib.txtGlobalZoneName.Text = lvi.SubItems[0].Text;
+			
+			if (gzib.ShowDialog(this) == DialogResult.Cancel)
+				return;
+
+			lvwGlobalZones.Items.Remove(lvi);
+
+			ListViewItem lvi2 = new ListViewItem();
+			lvi2.Text = gzib.txtGlobalZoneName.Text;
+			
+			lvwGlobalZones.Items.Add(lvi2);
 		}
 	}
 }
