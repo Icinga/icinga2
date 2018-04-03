@@ -746,6 +746,19 @@ to evenly distribute all checks over a certain period of time, i.e. to avoid loa
 > The `address` and `address6` attributes are required for running commands using
 > the `$address$` and `$address6$` runtime macros.
 
+> **Info**
+>
+> The macros $host.name$, $service.description$, $host.address$ or $address$ are available for forming the notes url and action url
+
+> **Info**
+>
+> Multiple notes url or action url can be added as follows
+
+> notes_url|action_url = "'firstURL' 'secondURL' 'thirdURL'"
+
+> notes_url|action_url = "onlyoneURL"
+
+
 Runtime Attributes:
 
   Name                      | Type                  | Description
