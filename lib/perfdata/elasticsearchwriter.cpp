@@ -145,6 +145,7 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 					Log(LogWarning, "ElasticsearchWriter")
 						<< "Ignoring invalid perfdata value: '" << val << "' for object '"
 						<< checkable->GetName() << "'.";
+					continue;
 				}
 			}
 
