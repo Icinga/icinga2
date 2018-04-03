@@ -250,6 +250,7 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 						Log(LogWarning, "GelfWriter")
 							<< "Ignoring invalid perfdata value: '" << val << "' for object '"
 							<< checkable->GetName() << "'.";
+						continue;
 					}
 				}
 
