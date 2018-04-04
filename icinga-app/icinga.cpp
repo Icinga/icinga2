@@ -222,25 +222,6 @@ int Main(void)
 	ScriptGlobal::Set("BuildCompilerName", ICINGA_BUILD_COMPILER_NAME);
 	ScriptGlobal::Set("BuildCompilerVersion", ICINGA_BUILD_COMPILER_VERSION);
 
-	String initconfig = Application::GetSysconfDir() + "/icinga2/init.conf";
-
-	if (Utility::PathExists(initconfig)) {
-		Expression *expression;
-		try {
-			expression = ConfigCompiler::CompileFile(initconfig);
-
-			ScriptFrame frame;
-			expression->Evaluate(frame);
-		} catch (const std::exception& ex) {
-			delete expression;
-
-			Log(LogCritical, "config", DiagnosticInformation(ex));
-			return EXIT_FAILURE;
-		}
-
-		delete expression;
-	}
-
 	if (!autocomplete)
 		Application::SetResourceLimits();
 
