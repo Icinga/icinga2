@@ -38,6 +38,8 @@
 #include "cli/editline.hpp"
 #endif /* HAVE_EDITLINE */
 
+#define CONSOLE_TIMEOUT_SECONDS 15
+
 using namespace icinga;
 namespace po = boost::program_options;
 
@@ -439,6 +441,8 @@ incomplete:
 				bool ready = false;
 				boost::exception_ptr eptr;
 
+				boost::system_time const timeout = boost::get_system_time()
+					+ boost::posix_time::seconds(CONSOLE_TIMEOUT_SECONDS);
 				l_ApiClient->ExecuteScript(l_Session, command, scriptFrame.Sandboxed,
 					std::bind(&ConsoleCommand::ExecuteScriptCompletionHandler,
 					std::ref(mutex), std::ref(cv), std::ref(ready),
@@ -447,12 +451,18 @@ incomplete:
 
 				{
 					boost::mutex::scoped_lock lock(mutex);
-					while (!ready)
-						cv.wait(lock);
+					while (!ready && timeout > boost::get_system_time())
+						cv.timed_wait(lock, timeout);
 				}
 
 				if (eptr)
 					boost::rethrow_exception(eptr);
+
+				if (timeout < boost::get_system_time()) {
+					std::cout << ConsoleColorTag(Console_ForegroundRed) << "ERROR: " << ConsoleColorTag(Console_Normal)
+						<< "Remote console timeout (" << CONSOLE_TIMEOUT_SECONDS << " seconds)\n";
+					break;
+				}
 			}
 
 			if (commandOnce.IsEmpty()) {
