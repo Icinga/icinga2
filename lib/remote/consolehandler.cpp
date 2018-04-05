@@ -71,7 +71,7 @@ static void EnsureFrameCleanupTimer()
 
 bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
-	if (request.RequestUrl->GetPath().size() > 3)
+	if (request.RequestUrl->GetPath().size() != 3)
 		return false;
 
 	if (request.RequestMethod != "POST")
