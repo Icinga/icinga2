@@ -737,6 +737,9 @@ A detailed list on the available table attributes can be found in the [Livestatu
 
 ## Status Data Files <a id="status-data"></a>
 
+> **Note**
+> This feature is deprecated and will be removed with Icinga 2.10.0
+
 Icinga 1.x writes object configuration data and status data in a cyclic
 interval to its `objects.cache` and `status.dat` files. Icinga 2 provides
 the `StatusDataWriter` object which dumps all configuration objects and
@@ -746,7 +749,6 @@ status updates in a regular interval.
 
 If you are not using any web interface or addon which uses these files,
 you can safely disable this feature.
-
 
 ## Compat Log Files <a id="compat-logging"></a>
 
