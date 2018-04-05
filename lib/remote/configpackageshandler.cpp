@@ -54,7 +54,7 @@ void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& req
 		packages = ConfigPackageUtility::GetPackages();
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 500, "Could not retrieve packages.",
-			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			DiagnosticInformation(ex, false));
 		return;
 	}
 
@@ -89,7 +89,7 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidateName(packageName)) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
+		HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
 		return;
 	}
 
@@ -97,8 +97,8 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
 		ConfigPackageUtility::CreatePackage(packageName);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Could not create package.",
-			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+		HttpUtility::SendJsonError(response, params, 500, "Could not create package '" + packageName + "'.",
+			DiagnosticInformation(ex, false));
 		return;
 	}
 
@@ -125,7 +125,7 @@ void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidateName(packageName)) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
+		HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
 		return;
 	}
 
