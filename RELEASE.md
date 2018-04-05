@@ -29,7 +29,7 @@ git log --use-mailmap | grep '^Author:' | cut -f2- -d' ' | sort | uniq > AUTHORS
 Update the version in the spec file:
 
 ```
-gsed -i "s/Version: .*/Version: $VERSION/g" icinga2.spec
+gsed -i "s/Version: .*/Version: $VERSION/g" VERSION
 ```
 
 ## Changelog
