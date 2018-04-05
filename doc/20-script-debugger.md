@@ -107,3 +107,56 @@ Icinga 2 will spawn a debugger console every time the function is executed:
     <2> => $continue
 
 
+## Debugging API Filters <a id="script-debugger-api-filters"></a>
+
+Queries against the [Icinga 2 REST API](12-icinga2-api.md#icinga2-api) can use
+filters, just like available in `assign where` expressions. If these filters cause
+an internal error, they return an empty result to the caller.
+
+In order to analyse these server-side errors, you can use the script debugger.
+
+The following example tries filter for all host objects where the custom attribute
+`os` is set. There are various possibilities to check that, one of them would be
+`host.vars.os != ""`. Another idea is to use the [contains](18-library-reference.md#dictionary-contains) method on the custom
+attribute dictionary like this: `host.vars.contains("os")`.
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' \
+ -X POST 'https://localhost:5665/v1/objects/services' \
+ -d '{ "filter": "host.vars.contains(\"os\")", "attrs": [ "__name" ], "joins": [ "host.name", "host.vars" ], "pretty": true }'
+```
+
+This will fail on all hosts which don't have any custom attribute specified.
+
+```
+# icinga2 daemon -X
+
+Breakpoint encountered.
+Exception: Error: Argument is not a callable object.
+Location: in <API query>: 1:0-1:23
+You can inspect expressions (such as variables) by entering them at the prompt.
+To leave the debugger and continue the program use "$continue".
+
+<1> => this.host
+
+...
+
+    	vars = null
+
+<2> => $continue
+```
+
+By definition, a type method can only be invoked on an actual object.
+
+In order to stay safe, add more checks to the API filter:
+
+- `host.vars && host.vars.contains("os")` or
+- `host.vars && typeof(host.vars) == Dictionary && host.vars.contains("os")`
+
+Example:
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' \
+ -X POST 'https://localhost:5665/v1/objects/services' \
+ -d '{ "filter": "host.vars && typeof(host.vars) == Dictionary && host.vars.contains(\"os\")", "attrs": [ "__name" ], "joins": [ "host.name", "host.vars" ], "pretty": true }'
+```
