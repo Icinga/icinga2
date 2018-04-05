@@ -91,7 +91,7 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 404,
 			"No objects found.",
-			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			DiagnosticInformation(ex));
 		return true;
 	}
 
