@@ -91,11 +91,19 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		}
 	}
 
+	response.SetStatus(500, "No action executed successfully");
+
+	for (const Dictionary::Ptr& res : results) {
+		if (res->Contains("result") && res->Get("result") == 200) {
+			response.SetStatus(200, "OK");
+			break;
+		}
+	}
+
 	Dictionary::Ptr result = new Dictionary({
 		{ "results", new Array(std::move(results)) }
 	});
 
-	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
