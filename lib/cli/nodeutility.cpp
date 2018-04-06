@@ -124,20 +124,21 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 	return 0;
 }
 
-int NodeUtility::GenerateNodeMasterIcingaConfig(const std::vector<String>& globalZones)
+int NodeUtility::GenerateNodeMasterIcingaConfig(const String& endpointName, const String& zoneName,
+	const std::vector<String>& globalZones)
 {
 	Array::Ptr my_config = new Array();
 
 	/* store the local generated node master configuration */
 	my_config->Add(new Dictionary({
-		{ "__name", new ConfigIdentifier("NodeName") },
+		{ "__name", endpointName },
 		{ "__type", "Endpoint" }
 	}));
 
 	my_config->Add(new Dictionary({
-		{ "__name", new ConfigIdentifier("ZoneName") },
+		{ "__name", zoneName },
 		{ "__type", "Zone" },
-		{ "endpoints", new Array({ new ConfigIdentifier("NodeName") }) }
+		{ "endpoints", new Array({ endpointName }) }
 	}));
 
 	for (const String& globalzone : globalZones) {

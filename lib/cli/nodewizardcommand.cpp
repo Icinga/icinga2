@@ -623,6 +623,7 @@ int NodeWizardCommand::MasterSetup() const
 	std::cout << ConsoleColorTag(Console_Bold)
 		<< "Generating master configuration for Icinga 2.\n"
 		<< ConsoleColorTag(Console_Normal);
+
 	ApiSetupUtility::SetupMasterApiUser();
 
 	if (!FeatureUtility::CheckFeatureEnabled("api"))
@@ -630,6 +631,20 @@ int NodeWizardCommand::MasterSetup() const
 	else
 		std::cout << "'api' feature already enabled.\n";
 
+	/* Setup command hardcodes this as FQDN */
+	String endpointName = cn;
+
+	/* Different zone name. */
+	std::cout << "\nMaster zone name [master]: ";
+	std::getline(std::cin, answer);
+
+	if (answer.empty())
+		answer = "master";
+
+	String zoneName = answer;
+	zoneName = zoneName.Trim();
+
+	/* Global zones. */
 	std::vector<String> globalZones { "global-templates", "director-global" };
 
 	std::cout << "\nDo you want to specify additional global zones? [y/N]: ";
@@ -671,7 +686,8 @@ wizard_global_zone_loop_start:
 	} else
 		Log(LogInformation, "cli", "No additional global Zones have been specified");
 
-	NodeUtility::GenerateNodeMasterIcingaConfig(globalZones);
+	/* Generate master configuration. */
+	NodeUtility::GenerateNodeMasterIcingaConfig(endpointName, zoneName, globalZones);
 
 	/* apilistener config */
 	std::cout << ConsoleColorTag(Console_Bold)

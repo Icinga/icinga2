@@ -129,6 +129,15 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	if (vm.count("cn"))
 		cn = vm["cn"].as<std::string>();
 
+	/* Setup command hardcodes this as FQDN */
+	String endpointName = cn;
+
+	/* Allow to specify zone name. */
+	String zoneName = "master";
+
+	if (vm.count("zone"))
+		zoneName = vm["zone"].as<std::string>();
+
 	/* check whether the user wants to generate a new certificate or not */
 	String existingPath = ApiListener::GetCertsDir() + "/" + cn + ".crt";
 
@@ -174,9 +183,10 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 
 	globalZones.insert(globalZones.end(), setupGlobalZones.begin(), setupGlobalZones.end());
 
-	NodeUtility::GenerateNodeMasterIcingaConfig(globalZones);
+	/* Generate master configuration. */
+	NodeUtility::GenerateNodeMasterIcingaConfig(endpointName, zoneName, globalZones);
 
-	/* update the ApiListener config - SetupMaster() will always enable it */
+	/* Update the ApiListener config. */
 	Log(LogInformation, "cli", "Updating the APIListener feature.");
 
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";

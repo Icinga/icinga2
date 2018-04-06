@@ -47,7 +47,8 @@ public:
 
 	/* node setup helpers */
 	static int GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const std::vector<String>& globalZones);
-	static int GenerateNodeMasterIcingaConfig(const std::vector<String>& globalZones);
+	static int GenerateNodeMasterIcingaConfig(const String& endpointName, const String& zoneName,
+		const std::vector<String>& globalZones);
 
 private:
 	NodeUtility();
