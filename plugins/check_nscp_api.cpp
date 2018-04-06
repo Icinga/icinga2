@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#define VERSION "1.0.0"
+#define VERSION "1.0.1"
 
 #include "remote/httpclientconnection.hpp"
 #include "remote/httprequest.hpp"
@@ -88,9 +88,13 @@ static Dictionary::Ptr QueryEndpoint(const String& host, const String& port, con
 
 		// Url() will call Utillity::UnescapeString() which will thrown an exception if it finds a lonely %
 		req->RequestUrl = new Url(endpoint);
+
+		// NSClient++ uses `time=1m&time=5m` instead of `time[]=1m&time[]=5m`
+		req->RequestUrl->SetArrayFormatUseBrackets(false);
+
 		req->AddHeader("password", password);
 		if (l_Debug)
-			std::cout << "Sending request to 'https://" << host << ":" << port << req->RequestUrl->Format() << "'\n";
+			std::cout << "Sending request to 'https://" << host << ":" << port << req->RequestUrl->Format(false, false) << "'\n";
 
 		// Submits the request. The 'ResultHttpCompletionCallback' is called once the HttpRequest receives an answer,
 		// which then sets 'ready' to true
