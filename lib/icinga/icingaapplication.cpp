@@ -60,6 +60,8 @@ void IcingaApplication::StaticInitialize()
 	ScriptGlobal::Set("NodeName", node_name);
 
 	ScriptGlobal::Set("ApplicationType", "IcingaApplication");
+
+	ScriptGlobal::Set("ApplicationVersion", Application::GetAppVersion());
 }
 
 REGISTER_STATSFUNCTION(IcingaApplication, &IcingaApplication::StatsFunc);
