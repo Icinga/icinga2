@@ -56,8 +56,9 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 {
 	visibleDesc.add_options()
 		("zone", po::value<std::string>(), "The name of the local zone")
-		("master_host", po::value<std::string>(), "The name of the master host for auto-signing the csr; syntax: host[,port]")
 		("endpoint", po::value<std::vector<std::string> >(), "Connect to remote endpoint; syntax: cn[,host,port]")
+		("parent_host", po::value<std::string>(), "The name of the parent host for auto-signing the csr; syntax: host[,port]")
+		("parent_zone", po::value<std::string>(), "The name of the parent zone")
 		("listen", po::value<std::string>(), "Listen on host,port")
 		("ticket", po::value<std::string>(), "Generated ticket number for this request (optional)")
 		("trustedcert", po::value<std::string>(), "Trusted master certificate file")
@@ -68,7 +69,8 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 		("global_zones", po::value<std::vector<std::string> >(), "The names of the additional global zones.");
 
 	hiddenDesc.add_options()
-		("master_zone", po::value<std::string>(), "The name of the master zone");
+		("master_zone", po::value<std::string>(), "DEPRECATED: The name of the master zone")
+		("master_host", po::value<std::string>(), "DEPRECATED: The name of the master host for auto-signing the csr; syntax: host[,port]");
 }
 
 std::vector<String> NodeSetupCommand::GetArgumentSuggestions(const String& argument, const String& word) const
@@ -262,6 +264,12 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		return 1;
 	}
 
+	/* Deprecation warnings. TODO: Remove in 2.10.0. */
+	if (vm.count("master_zone"))
+		Log(LogWarning, "cli", "The 'master_zone' parameter has been deprecated. Use 'parent_zone' instead.");
+	if (vm.count("master_host"))
+		Log(LogWarning, "cli", "The 'master_host' parameter has been deprecated. Use 'parent_host' instead.");
+
 	String ticket;
 
 	if (vm.count("ticket"))
@@ -277,31 +285,38 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	/* require master host information for auto-signing requests */
 
-	if (!vm.count("master_host")) {
-		Log(LogCritical, "cli", "Please pass the master host connection information for auto-signing using '--master_host <host>'. This can also be a direct parent satellite since 2.8.");
-
+	/* TODO: master_host is deprecated, remove it in 2.10.0. */
+	if (!vm.count("master_host") && !vm.count("parent_host") ) {
+		Log(LogCritical, "cli", "Please pass the parent host connection information for auto-signing using '--parent_host <host>'.");
 		return 1;
 	}
 
-	std::vector<String> tokens = String(vm["master_host"].as<std::string>()).Split(",");
-	String master_host;
-	String master_port = "5665";
+	String parentHostInfo;
+
+	if (vm.count("parent_host"))
+		parentHostInfo = vm["parent_host"].as<std::string>();
+	else if (vm.count("master_host")) /* TODO: Remove in 2.10.0. */
+		parentHostInfo = vm["master_host"].as<std::string>();
+
+	std::vector<String> tokens = parentHostInfo.Split(",");
+	String parentHost;
+	String parentPort = "5665";
 
 	if (tokens.size() == 1 || tokens.size() == 2)
-		master_host = tokens[0];
+		parentHost = tokens[0];
 
 	if (tokens.size() == 2)
-		master_port = tokens[1];
+		parentPort = tokens[1];
 
 	Log(LogInformation, "cli")
-		<< "Verifying parent host connection information: host '" << master_host << "', port '" << master_port << "'.";
+		<< "Verifying parent host connection information: host '" << parentHost << "', port '" << parentPort << "'.";
 
 	/* trusted cert must be passed (retrieved by the user with 'pki save-cert' before) */
 
 	if (!vm.count("trustedcert")) {
 		Log(LogCritical, "cli")
 			<< "Please pass the trusted cert retrieved from the parent node (master or satellite)\n"
-			<< "(Hint: 'icinga2 pki save-cert --host <masterhost> --port <5665> --key local.key --cert local.crt --trustedcert master.crt').";
+			<< "(Hint: 'icinga2 pki save-cert --host <parenthost> --port <5665> --key local.key --cert local.crt --trustedcert parent.crt').";
 		return 1;
 	}
 
@@ -320,21 +335,20 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		<< "Using the following CN (defaults to FQDN): '" << cn << "'.";
 
 	/* pki request a signed certificate from the master */
-
-	String pki_path = ApiListener::GetCertsDir();
-	Utility::MkDirP(pki_path, 0700);
+	String certsDir = ApiListener::GetCertsDir();
+	Utility::MkDirP(certsDir, 0700);
 
 	String user = ScriptGlobal::Get("RunAsUser");
 	String group = ScriptGlobal::Get("RunAsGroup");
 
-	if (!Utility::SetFileOwnership(pki_path, user, group)) {
+	if (!Utility::SetFileOwnership(certsDir, user, group)) {
 		Log(LogWarning, "cli")
-			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
+			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << certsDir << "'. Verify it yourself!";
 	}
 
-	String key = pki_path + "/" + cn + ".key";
-	String cert = pki_path + "/" + cn + ".crt";
-	String ca = pki_path + "/ca.crt";
+	String key = certsDir + "/" + cn + ".key";
+	String cert = certsDir + "/" + cn + ".crt";
+	String ca = certsDir + "/ca.crt";
 
 	if (Utility::PathExists(key))
 		NodeUtility::CreateBackupFile(key, true);
@@ -354,11 +368,11 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	Log(LogInformation, "cli", "Requesting a signed certificate from the parent Icinga node.");
 
-	if (PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket) > 0) {
+	if (PkiUtility::RequestCertificate(parentHost, parentPort, key, cert, ca, trustedcert, ticket) > 0) {
 		Log(LogCritical, "cli")
 			<< "Failed to fetch signed certificate from parent Icinga node '"
-			<< master_host << ", "
-			<< master_port << "'. Please try again.";
+			<< parentHost << ", "
+			<< parentPort << "'. Please try again.";
 		return 1;
 	}
 
@@ -432,9 +446,21 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 			<< boost::errinfo_file_name(tempApiPath));
 	}
 
-	/* generate local zones.conf with zone+endpoint */
 
+	/* Generate zones configuration. */
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
+
+	/* Setup command hardcodes this as FQDN */
+	String endpointName = cn;
+
+	/* Allow to specify zone name. */
+	String zoneName = vm["zone"].as<std::string>();
+
+	/* Allow to specify the parent zone name. */
+	String parentZoneName = "master";
+
+	if (vm.count("parent_zone"))
+		parentZoneName = vm["parent_zone"].as<std::string>();
 
 	std::vector<String> globalZones { "global-templates", "director-global" };
 	std::vector<std::string> setupGlobalZones;
@@ -452,7 +478,8 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	globalZones.insert(globalZones.end(), setupGlobalZones.begin(), setupGlobalZones.end());
 
-	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), globalZones);
+	/* Generate node configuration. */
+	NodeUtility::GenerateNodeIcingaConfig(endpointName, zoneName, parentZoneName, vm["endpoint"].as<std::vector<std::string> >(), globalZones);
 
 	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {

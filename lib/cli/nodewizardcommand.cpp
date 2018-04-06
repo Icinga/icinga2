@@ -254,6 +254,7 @@ wizard_endpoint_loop_start:
 	if (choice.Contains("y"))
 		goto wizard_endpoint_loop_start;
 
+	/* Extract parent node information. */
 	String parentHost, parentPort;
 
 	for (const String& endpoint : endpoints) {
@@ -496,9 +497,33 @@ wizard_ticket:
 			<< boost::errinfo_file_name(tempApiConfPath));
 	}
 
-	/* apilistener config */
+	/* Zones configuration. */
 	Log(LogInformation, "cli", "Generating local zones.conf.");
 
+	/* Setup command hardcodes this as FQDN */
+	String endpointName = cn;
+
+	/* Different local zone name. */
+	std::cout << "\nLocal zone name [" + endpointName + "]: ";
+	std::getline(std::cin, answer);
+
+	if (answer.empty())
+		answer = endpointName;
+
+	String zoneName = answer;
+	zoneName = zoneName.Trim();
+
+	/* Different parent zone name. */
+	std::cout << "Parent zone name [master]: ";
+	std::getline(std::cin, answer);
+
+	if (answer.empty())
+		answer = "master";
+
+	String parentZoneName = answer;
+	parentZoneName = parentZoneName.Trim();
+
+	/* Global zones. */
 	std::vector<String> globalZones { "global-templates", "director-global" };
 
 	std::cout << "\nDo you want to specify additional global zones? [y/N]: ";
@@ -540,7 +565,8 @@ wizard_global_zone_loop_start:
 	} else
 		Log(LogInformation, "cli", "No additional global Zones have been specified");
 
-	NodeUtility::GenerateNodeIcingaConfig(endpoints, globalZones);
+	/* Generate node configuration. */
+	NodeUtility::GenerateNodeIcingaConfig(endpointName, zoneName, parentZoneName, endpoints, globalZones);
 
 	if (cn != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")

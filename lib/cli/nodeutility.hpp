@@ -38,15 +38,18 @@ class NodeUtility
 {
 public:
 	static String GetConstantsConfPath();
+	static String GetZonesConfPath();
 
-	static bool CreateBackupFile(const String& target, bool is_private = false);
+	static bool CreateBackupFile(const String& target, bool isPrivate = false);
 
 	static bool WriteNodeConfigObjects(const String& filename, const Array::Ptr& objects);
 
 	static void UpdateConstant(const String& name, const String& value);
 
 	/* node setup helpers */
-	static int GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const std::vector<String>& globalZones);
+	static int GenerateNodeIcingaConfig(const String& endpointName, const String& zoneName,
+		const String& parentZoneName, const std::vector<std::string>& endpoints,
+		const std::vector<String>& globalZones);
 	static int GenerateNodeMasterIcingaConfig(const String& endpointName, const String& zoneName,
 		const std::vector<String>& globalZones);
 
