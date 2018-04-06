@@ -91,7 +91,7 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		}
 	}
 
-	String statusCode = 500;
+	int statusCode = 500;
 	String statusMessage = "No action executed successfully";
 
 	for (const Dictionary::Ptr& res : results) {
