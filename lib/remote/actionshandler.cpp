@@ -91,14 +91,18 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		}
 	}
 
-	response.SetStatus(500, "No action executed successfully");
+	String statusCode = 500;
+	String statusMessage = "No action executed successfully";
 
 	for (const Dictionary::Ptr& res : results) {
-		if (res->Contains("result") && res->Get("result") == 200) {
-			response.SetStatus(200, "OK");
+		if (res->Contains("code") && res->Get("code") == 200) {
+			statusCode = 200;
+			statusMessage = "OK";
 			break;
 		}
 	}
+
+	response.SetStatus(statusCode, statusMessage);
 
 	Dictionary::Ptr result = new Dictionary({
 		{ "results", new Array(std::move(results)) }
