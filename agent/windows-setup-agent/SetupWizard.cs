@@ -176,9 +176,12 @@ namespace Icinga
 			}
 
 			SetRetrievalStatus(100);
-
-			X509Certificate2 cert = new X509Certificate2(_TrustedFile);
-			Invoke((MethodInvoker)delegate { ShowCertificatePrompt(cert); });
+			try {
+				X509Certificate2 cert = new X509Certificate2(_TrustedFile);
+				Invoke((MethodInvoker)delegate { ShowCertificatePrompt(cert); });
+			} catch (Exception e) {
+				ShowErrorText("Failed to receive certificate: " + e.Message);
+			}
 		}
 
 		private void ConfigureService()
