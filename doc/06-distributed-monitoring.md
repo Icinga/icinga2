@@ -201,6 +201,7 @@ ensure to collect the required information:
   Parameter           | Description
   --------------------|--------------------
   Common name (CN)    | **Required.** By convention this should be the host's FQDN. Defaults to the FQDN.
+  Master zone name    | **Optional.** Allows to specify the master zone name. Defaults to `master`.
   Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`. Defaults to `n`.
   API bind host       | **Optional.** Allows to specify the address the ApiListener is bound to. For advanced usage only.
   API bind port       | **Optional.** Allows to specify the port the ApiListener is bound to. For advanced usage only (requires changing the default port 5665 everywhere).
@@ -232,6 +233,8 @@ Checking for existing certificates for common name 'icinga2-master1.localdomain'
 Certificates not yet generated. Running 'api setup' now.
 Generating master configuration for Icinga 2.
 Enabling feature api. Make sure to restart Icinga 2 for these changes to take effect.
+
+Master zone name [master]:
 
 Do you want to specify additional global zones? [y/N]: N
 Please specify the API bind host/port (optional):
@@ -336,10 +339,12 @@ Retrieve the ticket on the master node `icinga2-master1.localdomain` with `curl`
 
 Store that ticket number for the satellite/client setup below.
 
-**Note**: Never expose the ticket salt and/or ApiUser credentials to your client nodes.
-Example: Retrieve the ticket on the Puppet master node and send the compiled catalog
-to the authorized Puppet agent node which will invoke the
-[automated setup steps](06-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup).
+> **Note**
+>
+> Never expose the ticket salt and/or ApiUser credentials to your client nodes.
+> Example: Retrieve the ticket on the Puppet master node and send the compiled catalog
+> to the authorized Puppet agent node which will invoke the
+> [automated setup steps](06-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup).
 
 ### On-Demand CSR Signing <a id="distributed-monitoring-setup-on-demand-csr-signing"></a>
 
@@ -522,7 +527,23 @@ Accept config from parent node? [y/N]: y
 Accept commands from parent node? [y/N]: y
 ```
 
-You can add more global zones in addition to `global-templates` and `director-global` if necessary. Press `Enter` or choose `n`, if you don't want to add any additional.
+Next you can optionally specify the local and parent zone names. This will be reflected
+in the generated zone configuration file.
+
+Set the local zone name to something else, if you are installing a satellite or secondary master instance.
+
+```
+Local zone name [icinga2-client1.localdomain]:
+```
+
+Set the parent zone name to something else than `master` if this client connects to a satellite instance instead of the master.
+
+```
+Parent zone name [master]:
+```
+
+You can add more global zones in addition to `global-templates` and `director-global` if necessary.
+Press `Enter` or choose `n`, if you don't want to add any additional.
 
 ```
 Reconfiguring Icinga...
@@ -568,6 +589,8 @@ Here is an overview of all parameters in detail:
   API bind port       | **Optional.** Allows to specify the port the ApiListener is bound to. For advanced usage only (requires changing the default port 5665 everywhere).
   Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this defaults to `n`.
   Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this defaults to `n`.
+  Local zone name     | **Optional.** Allows to specify the name for the local zone. This comes in handy when this instance is a satellite, not a client. Defaults to the FQDN.
+  Parent zone name    | **Optional.** Allows to specify the name for the parent zone. This is important if the client has a satellite instance as parent, not the master. Defaults to `master`.
   Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`. Defaults to `n`.
 
 The setup wizard will ensure that the following steps are taken:
@@ -2532,6 +2555,7 @@ be passed (defaults to the FQDN).
   Parameter           | Description
   --------------------|--------------------
   Common name (CN)    | **Optional.** Specified with the `--cn` parameter. By convention this should be the host's FQDN. Defaults to the FQDN.
+  Zone name           | **Optional.** Specified with the `--zone` parameter. Defaults to `master`.
   Listen on           | **Optional.** Specified with the `--listen` parameter. Syntax is `host,port`.
 
 Example:
@@ -2579,14 +2603,14 @@ Pass the following details to the `pki save-cert` CLI command:
   Parameter           | Description
   --------------------|--------------------
   Client certificate files | **Required.** Pass the previously generated files using the `--key` and `--cert` parameters.
-  Trusted master certificate | **Required.** Store the master's certificate file. Manually verify that you're trusting it.
-  Master host         | **Required.** FQDN or IP address of the master host.
+  Trusted parent certificate | **Required.** Store the parent's certificate file. Manually verify that you're trusting it.
+  Parent host         | **Required.** FQDN or IP address of the parent host.
 
 Example:
 
     [root@icinga2-client1.localdomain /]# icinga2 pki save-cert --key /var/lib/icinga2/certs/icinga2-client1.localdomain.key \
     --cert /var/lib/icinga2/certs/icinga2-client1.localdomain.crt \
-    --trustedcert /var/lib/icinga2/certs/trusted-master.crt \
+    --trustedcert /var/lib/icinga2/certs/trusted-parent.crt \
     --host icinga2-master1.localdomain
 
 Continue with the additional node setup step. Specify a local endpoint and zone name (`icinga2-client1.localdomain`)
@@ -2600,21 +2624,27 @@ Pass the following details to the `node setup` CLI command:
   Common name (CN)    | **Optional.** Specified with the `--cn` parameter. By convention this should be the host's FQDN.
   Request ticket      | **Required.** Add the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
   Trusted master certificate | **Required.** Add the previously fetched trusted master certificate (this step means that you've verified its origin).
-  Master endpoint     | **Required.** Specify the master's endpoint name.
+  Parent host         | **Optional.** FQDN or IP address of the parent host. This is where the command connects for CSR signing. If not specified, you need to manually copy the parent's public CA certificate file into `/var/lib/icinga2/certs/ca.crt` in order to start Icinga 2.
+  Parent endpoint     | **Required.** Specify the parent's endpoint name.
   Client zone name    | **Required.** Specify the client's zone name.
-  Master host         | **Required.** FQDN or IP address of the master host.
+  Parent zone name    | **Optional.** Specify the parent's zone name.
   Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)).
   Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
-  Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`. 
+  Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`.
 
-Example for Icinga 2 v2.8:
+> **Note**
+>
+> The `master_host` parameter is deprecated and will be removed in 2.10.0. Please use `--parent_host` instead.
+
+Example for Icinga 2 v2.9:
 
     [root@icinga2-client1.localdomain /]# icinga2 node setup --ticket ead2d570e18c78abf285d6b85524970a0f69c22d \
     --cn icinga2-client1.localdomain \
     --endpoint icinga2-master1.localdomain \
     --zone icinga2-client1.localdomain \
-    --master_host icinga2-master1.localdomain \
-    --trustedcert /var/lib/icinga2/certs/trusted-master.crt \
+    --parent_zone master \
+    --parent_host icinga2-master1.localdomain \
+    --trustedcert /var/lib/icinga2/certs/trusted-parent.crt \
     --accept-commands --accept-config
 
 In case the client should connect to the master node, you'll
@@ -2622,14 +2652,25 @@ need to modify the `--endpoint` parameter using the format `cn,host,port`:
 
     --endpoint icinga2-master1.localdomain,192.168.56.101,5665
 
+Specify the parent zone using the `--parent_zone` parameter. This is useful
+if the client connects to a satellite, not the master instance.
+
+    --parent_zone satellite
+
 In case the client should know the additional global zone `linux-templates`, you'll
 need to set the `--global-zones` parameter.
 
-	--global_zones linux-templates
+    --global_zones linux-templates
 
-Restart Icinga 2 afterwards:
+The `--parent-host` parameter is optional since v2.9 and allows you to perform a connection-less setup.
+You cannot restart Icinga 2 yet, the CLI command asked to to manually copy the parent's public CA
+certificate file in `/var/lib/icinga2/certs/ca.crt`. Once Icinga 2 is started, it sends
+a ticket signing request to the parent node. If you have provided a ticket, the master node
+signs the request and sends it back to the client which performs a certificate update in-memory.
 
-    # service icinga2 restart
+In case you did not provide a ticket, you need to manually sign the CSR on the master node
+which holds the CA's key pair.
+
 
 **You can find additional best practices below.**
 
