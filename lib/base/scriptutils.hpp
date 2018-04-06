@@ -58,6 +58,7 @@ public:
 	static double Ptr(const Object::Ptr& object);
 	static Value Glob(const std::vector<Value>& args);
 	static Value GlobRecursive(const std::vector<Value>& args);
+	static int CompareVersion(const String& v1, const String& v2);
 
 private:
 	ScriptUtils();

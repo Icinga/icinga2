@@ -116,6 +116,7 @@ public:
 	static unsigned long SDBM(const String& str, size_t len = String::NPos);
 
 	static int CompareVersion(const String& v1, const String& v2);
+	static String ParseVersion(const String& version);
 
 	static int Random();
 

@@ -72,6 +72,8 @@ REGISTER_SCRIPTFUNCTION_NS(System, sleep, &Utility::Sleep, "interval");
 REGISTER_SCRIPTFUNCTION_NS(System, path_exists, &Utility::PathExists, "path");
 REGISTER_SCRIPTFUNCTION_NS(System, glob, &ScriptUtils::Glob, "pathspec:callback:type");
 REGISTER_SCRIPTFUNCTION_NS(System, glob_recursive, &ScriptUtils::GlobRecursive, "pathspec:callback:type");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, compare_version, &ScriptUtils::CompareVersion, "version1:version2");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, parse_version, &Utility::ParseVersion, "version");
 
 INITIALIZE_ONCE(&ScriptUtils::StaticInitialize);
 
@@ -88,6 +90,8 @@ void ScriptUtils::StaticInitialize()
 
 	ScriptGlobal::Set("GlobFile", GlobFile);
 	ScriptGlobal::Set("GlobDirectory", GlobDirectory);
+
+	ScriptGlobal::Set("AppVersion", Application::GetAppVersion());
 }
 
 String ScriptUtils::CastString(const Value& value)
@@ -502,4 +506,12 @@ Value ScriptUtils::GlobRecursive(const std::vector<Value>& args)
 	Utility::GlobRecursive(path, pattern, std::bind(&GlobCallbackHelper, std::ref(paths), _1), type);
 
 	return Array::FromVector(paths);
+}
+
+int ScriptUtils::CompareVersion(const String& v1, const String& v2)
+{
+	String parsedVersion1 = Utility::ParseVersion(v1);
+	String parsedVersion2 = Utility::ParseVersion(v2);
+
+	return Utility::CompareVersion(parsedVersion1, parsedVersion2);
 }
