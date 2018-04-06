@@ -605,6 +605,16 @@ wizard_global_zone_loop_start:
 		}
 	}
 
+	/* If no parent connection was made, the user must supply the ca.crt before restarting Icinga 2.*/
+	if (!connectToParent) {
+		Log(LogWarning, "cli")
+			<< "No connection to the parent node was specified.\n\n"
+			<< "Please copy the public CA certificate from your master/satellite\n"
+			<< "into '" << nodeCA << "' before starting Icinga 2.\n";
+	} else {
+		Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
+	}
+
 	return 0;
 }
 
