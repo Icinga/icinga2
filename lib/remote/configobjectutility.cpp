@@ -110,6 +110,13 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		}
 	}
 
+	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, fullName);
+
+	if (item) {
+		errors->Add("Object '" + fullName + "' already exists.");
+		return false;
+	}
+
 	String path = GetObjectConfigPath(type, fullName);
 	Utility::MkDirP(Utility::DirName(path), 0700);
 
