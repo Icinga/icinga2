@@ -65,6 +65,7 @@ public:
 	void SetPort(const String& port);
 	void SetPath(const std::vector<String>& path);
 	void SetQuery(const std::map<String, std::vector<String> >& query);
+	void SetArrayFormatUseBrackets(bool useBrackets = true);
 
 	void AddQueryElement(const String& name, const String& query);
 	void SetQueryElements(const String& name, const std::vector<String>& query);
@@ -78,6 +79,7 @@ private:
 	String m_Port;
 	std::vector<String> m_Path;
 	std::map<String, std::vector<String> > m_Query;
+	bool m_ArrayFormatUseBrackets;
 	String m_Fragment;
 
 	bool ParseScheme(const String& scheme);
