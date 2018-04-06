@@ -188,7 +188,7 @@ See [FindMySQL.cmake](third-party/cmake/FindPostgreSQL.cmake) for the implementa
 
 CMake determines the Icinga 2 version number using `git describe` if the
 source directory is contained in a Git repository. Otherwise the version number
-is extracted from the [icinga2.spec](icinga2.spec) file. This behavior can be
+is extracted from the [VERSION](VERSION) file. This behavior can be
 overridden by creating a file called `icinga-version.h.force` in the source
 directory. Alternatively the `-DICINGA2_GIT_VERSION_INFO=OFF` option for CMake
 can be used to disable the usage of `git describe`.
@@ -232,7 +232,7 @@ rpmdev-setuptree
 
 Copy the icinga2.spec file to `rpmbuild/SPEC` or fetch the latest version:
 ```
-curl https://raw.githubusercontent.com/Icinga/icinga2/master/icinga2.spec -o $HOME/rpmbuild/SPECS/icinga2.spec
+curl https://raw.githubusercontent.com/Icinga/rpm-icinga2/master/icinga2.spec -o $HOME/rpmbuild/SPECS/icinga2.spec
 ```
 
 Copy the tarball to `rpmbuild/SOURCES` e.g. by using the `spectool` binary
