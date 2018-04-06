@@ -77,6 +77,11 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	Dictionary::Ptr attrs = attrsVal;
 
+	bool verbose = false;
+
+	if (params)
+		verbose = HttpUtility::GetLastParameter(params, "verbose");
+
 	ArrayData results;
 
 	for (const ConfigObject::Ptr& obj : objs) {
@@ -100,7 +105,10 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 			result1->Set("status", "Attributes updated.");
 		} catch (const std::exception& ex) {
 			result1->Set("code", 500);
-			result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex));
+			result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex, false));
+
+			if (verbose)
+				result1->Set("diagnostic_information", DiagnosticInformation(ex));
 		}
 
 		results.push_back(std::move(result1));

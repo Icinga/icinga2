@@ -116,15 +116,14 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 		/* object does not exist, create it through the API */
 		Array::Ptr errors = new Array();
 
-		if (!ConfigObjectUtility::CreateObject(ptype,
-			objName, config, errors)) {
+		if (!ConfigObjectUtility::CreateObject(ptype, objName, config, errors, nullptr)) {
 			Log(LogCritical, "ApiListener")
 				<< "Could not create object '" << objName << "':";
 
-				ObjectLock olock(errors);
+			ObjectLock olock(errors);
 			for (const String& error : errors) {
-					Log(LogCritical, "ApiListener", error);
-				}
+				Log(LogCritical, "ApiListener", error);
+			}
 
 			return Empty;
 		}
@@ -256,7 +255,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	Array::Ptr errors = new Array();
 
-	if (!ConfigObjectUtility::DeleteObject(object, true, errors)) {
+	if (!ConfigObjectUtility::DeleteObject(object, true, errors, nullptr)) {
 		Log(LogCritical, "ApiListener", "Could not delete object:");
 
 		ObjectLock olock(errors);

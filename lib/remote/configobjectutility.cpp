@@ -98,7 +98,7 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 }
 
 bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& fullName,
-	const String& config, const Array::Ptr& errors)
+	const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation)
 {
 	{
 		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
@@ -114,7 +114,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	Utility::MkDirP(Utility::DirName(path), 0700);
 
 	if (Utility::PathExists(path)) {
-		errors->Add("Configuration file '" + path + "' already exists.");
+		errors->Add("Cannot create object '" + fullName + "'. Configuration file '" + path + "' already exists.");
 		return false;
 	}
 
@@ -144,7 +144,10 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 				}
 
 				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
-					errors->Add(DiagnosticInformation(ex));
+					errors->Add(DiagnosticInformation(ex, false));
+
+					if (diagnosticInformation)
+						diagnosticInformation->Add(DiagnosticInformation(ex));
 				}
 			}
 
@@ -161,7 +164,10 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		}
 
 		if (errors)
-			errors->Add(DiagnosticInformation(ex));
+			errors->Add(DiagnosticInformation(ex, false));
+
+		if (diagnosticInformation)
+			diagnosticInformation->Add(DiagnosticInformation(ex));
 
 		return false;
 	}
@@ -169,17 +175,21 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	return true;
 }
 
-bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors)
+bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bool cascade,
+	const Array::Ptr& errors, const Array::Ptr& diagnosticInformation)
 {
 	std::vector<Object::Ptr> parents = DependencyGraph::GetParents(object);
 
 	Type::Ptr type = object->GetReflectionType();
 
+	String name = object->GetName();
+
 	if (!parents.empty() && !cascade) {
-		if (errors)
-			errors->Add("Object '" + object->GetName() + "' of type '" + type->GetName() +
+		if (errors) {
+			errors->Add("Object '" + name + "' of type '" + type->GetName() +
 				"' cannot be deleted because other objects depend on it. "
 				"Use cascading delete to delete it anyway.");
+		}
 
 		return false;
 	}
@@ -190,10 +200,10 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		if (!parentObj)
 			continue;
 
-		DeleteObjectHelper(parentObj, cascade, errors);
+		DeleteObjectHelper(parentObj, cascade, errors, diagnosticInformation);
 	}
 
-	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, object->GetName());
+	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, name);
 
 	try {
 		/* mark this object for cluster delete event */
@@ -208,12 +218,15 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 
 	} catch (const std::exception& ex) {
 		if (errors)
-			errors->Add(DiagnosticInformation(ex));
+			errors->Add(DiagnosticInformation(ex, false));
+
+		if (diagnosticInformation)
+			diagnosticInformation->Add(DiagnosticInformation(ex));
 
 		return false;
 	}
 
-	String path = GetObjectConfigPath(object->GetReflectionType(), object->GetName());
+	String path = GetObjectConfigPath(object->GetReflectionType(), name);
 
 	if (Utility::PathExists(path)) {
 		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
@@ -227,7 +240,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 	return true;
 }
 
-bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors)
+bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation)
 {
 	if (object->GetPackage() != "_api") {
 		if (errors)
@@ -236,5 +249,5 @@ bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cas
 		return false;
 	}
 
-	return DeleteObjectHelper(object, cascade, errors);
+	return DeleteObjectHelper(object, cascade, errors, diagnosticInformation);
 }
