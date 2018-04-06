@@ -124,7 +124,8 @@ The API will return standard [HTTP statuses](https://www.ietf.org/rfc/rfc2616.tx
 including error codes.
 
 When an error occurs, the response body will contain additional information
-about the problem and its source.
+about the problem and its source. Set `verbose` to true to retrieve more
+insights into what may be causing the error.
 
 A status code between 200 and 299 generally means that the request was
 successful.
