@@ -205,6 +205,11 @@ void Url::SetQuery(const std::map<String, std::vector<String> >& query)
 	m_Query = query;
 }
 
+void Url::SetArrayFormatUseBrackets(bool useBrackets)
+{
+	m_ArrayFormatUseBrackets = useBrackets;
+}
+
 void Url::AddQueryElement(const String& name, const String& value)
 {
 	auto it = m_Query.find(name);
@@ -272,8 +277,11 @@ String Url::Format(bool onlyPathAndQuery, bool printCredentials) const
 					temp += "&";
 
 				temp += key;
-				if (kv.second.size() > 1)
-					temp += "[]";
+
+				if (m_ArrayFormatUseBrackets) {
+					if (kv.second.size() > 1)
+						temp += "[]";
+				}
 
 				if (!s.IsEmpty())
 					temp += "=" + Utility::EscapeString(s, ACQUERY_ENCODE, false);
