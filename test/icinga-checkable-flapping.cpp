@@ -56,7 +56,7 @@ static void LogFlapping(const Checkable::Ptr& obj)
 static void LogHostStatus(const Host::Ptr &host)
 {
 	std::cout << "Current status: state: " << host->GetState() << " state_type: " << host->GetStateType()
-		<< " check attempt: " << host->GetCheckAttempt() << "/" << host->GetMaxCheckAttempts() << std::endl;
+		<< " check attempt: " << host->GetCheckAttempt() << "/" << host->GetMaxCheckAttempts() << " Active: " << host->IsActive() << std::endl;
 }
 #endif /* I2_DEBUG */
 
@@ -73,6 +73,7 @@ BOOST_AUTO_TEST_CASE(host_not_flapping)
 	host->SetName("test");
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
+	host->SetActive(true);
 
 	// Host otherwise is soft down
 	host->SetState(HostUp);
@@ -116,6 +117,7 @@ BOOST_AUTO_TEST_CASE(host_flapping)
 	host->SetName("test");
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
+	host->SetActive(true);
 
 	Utility::SetTime(0);
 
@@ -150,6 +152,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_recover)
 	host->SetName("test");
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
+	host->SetActive(true);
 
 	// Host otherwise is soft down
 	host->SetState(HostUp);
@@ -209,6 +212,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_docs_example)
 	host->SetName("test");
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
+	host->SetActive(true);
 
 	// Host otherwise is soft down
 	host->SetState(HostUp);
