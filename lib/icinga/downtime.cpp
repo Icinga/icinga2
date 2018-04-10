@@ -158,16 +158,15 @@ bool Downtime::IsInEffect() const
 {
 	double now = Utility::GetTime();
 
-	if (now < GetStartTime() ||
-		now > GetEndTime())
-		return false;
-
-	if (GetFixed())
-		return true;
+	if (GetFixed()) {
+		/* fixed downtimes are in effect during the entire [start..end) interval */
+		return (now >= GetStartTime() && now < GetEndTime());
+	}
 
 	double triggerTime = GetTriggerTime();
 
 	if (triggerTime == 0)
+		/* flexible downtime has not been triggered yet */
 		return false;
 
 	return (now < triggerTime + GetDuration());
