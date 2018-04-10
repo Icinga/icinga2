@@ -73,8 +73,11 @@ void Checkable::Start(bool runtimeCreated)
 {
 	double now = Utility::GetTime();
 
-	if (GetNextCheck() < now + 300)
-		UpdateNextCheck();
+	if (GetNextCheck() < now + 60) {
+		double delta = std::min(GetCheckInterval(), 60.0);
+		delta *= (double)std::rand() / RAND_MAX;
+		SetNextCheck(now + delta);
+	}
 
 	ObjectImpl<Checkable>::Start(runtimeCreated);
 }
