@@ -9,8 +9,14 @@ follow the instructions for v2.7 too.
 
 ## Upgrading to v2.9 <a id="upgrading-to-2-9"></a>
 
+### Configuration Changes <a id="upgrading-to-2-9-config-changes"></a>
+
 The CORS attributes `access_control_allow_credentials`, `access_control_allow_headers` and
-`access_control_allow_methods` are now controlled by Icinga 2 and are not changeable by config any more.
+`access_control_allow_methods` are now controlled by Icinga 2 and cannot be changed anymore.
+
+### CLI Command Changes <a id="upgrading-to-2-9-cli-changes"></a>
+
+The `node setup` parameter `--master_host` was deprecated and replaced with `--parent_host`. This parameter is now optional to allow connection-less client setups similar to the `node wizard` CLI command. The `parent_zone` parameter has been added to modify the parent zone name e.g. for client-to-satellite setups.
 
 ## Upgrading to v2.8.2 <a id="upgrading-to-2-8-2"></a>
 
