@@ -729,8 +729,8 @@ Configuration Attributes:
   event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the host's state changes or the host is in a `SOFT` state.
   flapping\_threshold\_high | Number                | **Optional.** Flapping upper bound in percent for a host to be considered flapping. Default `30.0`
   flapping\_threshold\_low  | Number                | **Optional.** Flapping lower bound in percent for a host to be considered  not flapping. Default `25.0`
-  volatile                  | Boolean               | **Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur. Defaults to false.
-  zone		            | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
+  volatile                  | Boolean               | **Optional.** Treat all state changes as HARD changes. See [here](08-advanced-topics.md#volatile-services-hosts) for details. Defaults to `false`.
+  zone                      | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
   command\_endpoint         | Object name           | **Optional.** The endpoint where commands are executed on.
   notes                     | String                | **Optional.** Notes for the host.
   notes\_url                | String                | **Optional.** URL for notes for the host (for example, in notification commands).
@@ -1454,8 +1454,8 @@ Configuration Attributes:
   flapping\_threshold\_low  | Number                | **Optional.** Flapping lower bound in percent for a service to be considered  not flapping. `25.0`
   enable\_perfdata          | Boolean               | **Optional.** Whether performance data processing is enabled. Defaults to `true`.
   event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the service's state changes or the service is in a `SOFT` state.
-  volatile                  | Boolean               | **Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur. Defaults to `false`.
-  zone		            | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
+  volatile                  | Boolean               | **Optional.** Treat all state changes as HARD changes. See [here](08-advanced-topics.md#volatile-services-hosts) for details. Defaults to `false`.
+  zone                      | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
   name                      | String                | **Required.** The service name. Must be unique on a per-host basis. For advanced usage in [apply rules](03-monitoring-basics.md#using-apply) only.
   command\_endpoint         | Object name           | **Optional.** The endpoint where commands are executed on.
   notes                     | String                | **Optional.** Notes for the service.
