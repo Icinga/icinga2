@@ -396,7 +396,7 @@ Report bugs at <https://github.com/Icinga/icinga2>
 Icinga home page: <https://www.icinga.com/>
 ```
 
-### Config Files
+### Config Files <a id="cli-command-daemon-config-files"></a>
 
 You can specify one or more configuration files with the `--config` option.
 Configuration files are processed in the order they're specified on the command-line.
@@ -405,7 +405,7 @@ When no configuration file is specified and the `--no-config` is not used
 Icinga 2 automatically falls back to using the configuration file
 `SysconfDir + "/icinga2/icinga2.conf"` (where SysconfDir is usually `/etc`).
 
-### Config Validation
+### Validation <a id="cli-command-daemon-validation"></a>
 
 The `--validate` option can be used to check if configuration files
 contain errors. If any errors are found, the exit status is 1, otherwise 0
