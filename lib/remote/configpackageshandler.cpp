@@ -135,12 +135,13 @@ void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& 
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 500, "Failed to delete package '" + packageName + "'.",
 			DiagnosticInformation(ex));
+		return;
 	}
 
 	Dictionary::Ptr result1 = new Dictionary({
 		{ "code", 200 },
 		{ "package", packageName },
-		{ "status", "Created package." }
+		{ "status", "Deleted package." }
 	});
 
 	Dictionary::Ptr result = new Dictionary({
