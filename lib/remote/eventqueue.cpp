@@ -108,7 +108,7 @@ Dictionary::Ptr EventQueue::WaitForEvent(void *client, double timeout)
 			return result;
 		}
 
-		if (!m_CV.timed_wait(lock, boost::posix_time::milliseconds(timeout * 1000)))
+		if (!m_CV.timed_wait(lock, boost::posix_time::milliseconds(long(timeout * 1000))))
 			return nullptr;
 	}
 }

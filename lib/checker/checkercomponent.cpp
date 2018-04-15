@@ -125,7 +125,7 @@ void CheckerComponent::CheckThreadProc()
 
 		if (wait > 0) {
 			/* Wait for the next check. */
-			m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
+			m_CV.timed_wait(lock, boost::posix_time::milliseconds(long(wait * 1000)));
 
 			continue;
 		}
