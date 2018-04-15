@@ -266,7 +266,7 @@ void Timer::TimerThreadProc(void)
 
 		if (wait > 0.01) {
 			/* Wait for the next timer. */
-			l_TimerCV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
+			l_TimerCV.timed_wait(lock, boost::posix_time::milliseconds(long(wait * 1000)));
 
 			continue;
 		}
