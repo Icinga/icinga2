@@ -197,7 +197,8 @@ void Application::SetResourceLimits(void)
 		rl.rlim_max = rl.rlim_cur;
 
 		if (setrlimit(RLIMIT_NOFILE, &rl) < 0)
-			Log(LogNotice, "Application", "Could not adjust resource limit for open file handles (RLIMIT_NOFILE)");
+			Log(LogWarning, "Application")
+			    << "Failed adjust resource limit for open file handles (RLIMIT_NOFILE) with error \"" << strerror(errno) << "\"";
 #	else /* RLIMIT_NOFILE */
 		Log(LogNotice, "Application", "System does not support adjusting the resource limit for open file handles (RLIMIT_NOFILE)");
 #	endif /* RLIMIT_NOFILE */
@@ -217,7 +218,8 @@ void Application::SetResourceLimits(void)
 		rl.rlim_max = rl.rlim_cur;
 
 		if (setrlimit(RLIMIT_NPROC, &rl) < 0)
-			Log(LogNotice, "Application", "Could not adjust resource limit for number of processes (RLIMIT_NPROC)");
+			Log(LogWarning, "Application")
+			    << "Failed adjust resource limit for number of processes (RLIMIT_NPROC) with error \"" << strerror(errno) << "\"";
 #	else /* RLIMIT_NPROC */
 		Log(LogNotice, "Application", "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
 #	endif /* RLIMIT_NPROC */
@@ -257,7 +259,8 @@ void Application::SetResourceLimits(void)
 			rl.rlim_cur = rl.rlim_max;
 
 		if (setrlimit(RLIMIT_STACK, &rl) < 0) {
-			Log(LogNotice, "Application", "Could not adjust resource limit for stack size (RLIMIT_STACK)");
+			Log(LogWarning, "Application")
+			    << "Failed adjust resource limit for stack size (RLIMIT_STACK) with error \"" << strerror(errno) << "\"";
 			if (set_stack_rlimit) {
 				char **new_argv = static_cast<char **>(malloc(sizeof(char *) * (argc + 2)));
 
