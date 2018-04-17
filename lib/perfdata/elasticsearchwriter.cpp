@@ -353,11 +353,10 @@ void ElasticsearchWriter::Enqueue(const String& type, const Dictionary::Ptr& fie
 	String eventType = m_EventPrefix + type;
 	fields->Set("type", eventType);
 
-	/* Every payload needs a line describing the index above.
+	/* Every payload needs a line describing the index.
 	 * We do it this way to avoid problems with a near full queue.
 	 */
-
-	String indexBody = R"({ "index" : { "_type" : ")" + eventType + "\" } }\n";
+	String indexBody = "{\"index\": {} }\n";
 	String fieldsBody = JsonEncode(fields);
 
 	Log(LogDebug, "ElasticsearchWriter")
@@ -418,6 +417,11 @@ void ElasticsearchWriter::SendRequest(const String& body)
 	 * Example: http://localhost:9200/icinga2-2017.09.11?pretty=1
 	 */
 	path.emplace_back(GetIndex() + "-" + Utility::FormatDateTime("%Y.%m.%d", Utility::GetTime()));
+
+	/* ES 6 removes multiple _type mappings: https://www.elastic.co/guide/en/elasticsearch/reference/6.x/removal-of-types.html
+	 * Best practice is to statically define 'doc', as ES 5.X does not allow types starting with '_'.
+	 */
+	path.emplace_back("doc");
 
 	/* Use the bulk message format. */
 	path.emplace_back("_bulk");

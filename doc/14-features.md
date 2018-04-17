@@ -403,7 +403,7 @@ The check results include parsed performance data metrics if enabled.
 
 > **Note**
 >
-> Elasticsearch 5.x is required. This feature has been successfully tested with Elasticsearch 5.6.4.
+> Elasticsearch 5.x or 6.x are required. This feature has been successfully tested with Elasticsearch 5.6.7 and 6.2.3.
 
 Enable the feature and restart Icinga 2.
 
@@ -433,12 +433,12 @@ Metric values are stored like this:
 
 The following characters are escaped in perfdata labels:
 
-  Character	| Escaped character
-  --------------|--------------------------
-  whitespace	| _
-  \		| _
-  /		| _
-  ::		| .
+  Character   | Escaped character
+  ------------|--------------------------
+  whitespace  | _
+  \           | _
+  /           | _
+  ::          | .
 
 Note that perfdata labels may contain dots (`.`) allowing to
 add more subsequent levels inside the tree.
