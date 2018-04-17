@@ -63,6 +63,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Host::Ptr host = new Host();
+	host->SetActive(true);
 	host->SetMaxCheckAttempts(1);
 	host->Activate();
 	host->SetAuthority(true);
@@ -111,6 +112,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Host::Ptr host = new Host();
+	host->SetActive(true);
 	host->SetMaxCheckAttempts(2);
 	host->Activate();
 	host->SetAuthority(true);
@@ -166,6 +168,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Host::Ptr host = new Host();
+	host->SetActive(true);
 	host->SetMaxCheckAttempts(3);
 	host->Activate();
 	host->SetAuthority(true);
@@ -228,6 +231,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Service::Ptr service = new Service();
+	service->SetActive(true);
 	service->SetMaxCheckAttempts(1);
 	service->Activate();
 	service->SetAuthority(true);
@@ -276,6 +280,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Service::Ptr service = new Service();
+	service->SetActive(true);
 	service->SetMaxCheckAttempts(2);
 	service->Activate();
 	service->SetAuthority(true);
@@ -331,6 +336,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Service::Ptr service = new Service();
+	service->SetActive(true);
 	service->SetMaxCheckAttempts(3);
 	service->Activate();
 	service->SetAuthority(true);
@@ -398,6 +404,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_notification)
 	int timeStepInterval = 60;
 
 	Host::Ptr host = new Host();
+	host->SetActive(true);
 	host->Activate();
 	host->SetAuthority(true);
 	host->SetStateRaw(ServiceOK);
@@ -451,6 +458,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 	int timeStepInterval = 60;
 
 	Service::Ptr service = new Service();
+	service->SetActive(true);
 	service->Activate();
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);

@@ -107,7 +107,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		m_CheckRunning = false;
 	}
 
-	if (!cr)
+	if (!cr || !IsActive())
 		return;
 
 	double now = Utility::GetTime();
@@ -427,8 +427,6 @@ void Checkable::ExecuteCheck()
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
-
-	UpdateNextCheck();
 
 	bool reachable = IsReachable();
 
