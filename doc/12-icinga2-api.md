@@ -103,7 +103,7 @@ The output will be sent back as a JSON object:
 
 > **Tip**
 >
-> You can use the `pretty` parameter to beautify the JSON response with Icinga v2.9+.
+> You can use the [pretty](12-icinga2-api.md#icinga2-api-parameters-global) parameter to beautify the JSON response with Icinga v2.9+.
 
 You can also use [jq](https://stedolan.github.io/jq/) or `python -m json.tool`
 in combination with curl on the CLI.
@@ -124,7 +124,8 @@ The API will return standard [HTTP statuses](https://www.ietf.org/rfc/rfc2616.tx
 including error codes.
 
 When an error occurs, the response body will contain additional information
-about the problem and its source.
+about the problem and its source. Set `verbose` to true to retrieve more
+insights into what may be causing the error.
 
 A status code between 200 and 299 generally means that the request was
 successful.
@@ -270,6 +271,27 @@ Here are the exact same query parameters as a JSON object:
 
 The [match function](18-library-reference.md#global-functions-match) is available as global function
 in Icinga 2.
+
+### Global Parameters <a id="icinga2-api-parameters-global"></a>
+
+Name            | Description
+----------------|--------------------
+pretty          | Pretty-print the JSON response.
+verbose         | Add verbose debug information inside the `diagnostic_information` key into the response if available. This helps with troubleshooting failing requests.
+
+Example as URL parameter:
+
+```
+/v1/objects/hosts?pretty=1
+```
+
+Example as JSON object:
+
+```
+{ "pretty": true }
+```
+
+Both parameters have been added in Icinga 2 v2.9.
 
 ### Request Method Override <a id="icinga2-api-requests-method-override"></a>
 

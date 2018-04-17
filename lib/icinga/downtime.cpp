@@ -255,7 +255,7 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 
 	Array::Ptr errors = new Array();
 
-	if (!ConfigObjectUtility::CreateObject(Downtime::TypeInstance, fullName, config, errors)) {
+	if (!ConfigObjectUtility::CreateObject(Downtime::TypeInstance, fullName, config, errors, nullptr)) {
 		ObjectLock olock(errors);
 		for (const String& error : errors) {
 			Log(LogCritical, "Downtime", error);
@@ -308,7 +308,7 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 
 	Array::Ptr errors = new Array();
 
-	if (!ConfigObjectUtility::DeleteObject(downtime, false, errors)) {
+	if (!ConfigObjectUtility::DeleteObject(downtime, false, errors, nullptr)) {
 		ObjectLock olock(errors);
 		for (const String& error : errors) {
 			Log(LogCritical, "Downtime", error);

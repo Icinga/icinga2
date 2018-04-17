@@ -74,6 +74,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	Dictionary::Ptr result1 = new Dictionary();
 	String status;
 	Array::Ptr errors = new Array();
+	Array::Ptr diagnosticInformation = new Array();
 
 	bool ignoreOnError = false;
 
@@ -86,10 +87,22 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	String config;
 
+	bool verbose = false;
+
+	if (params)
+		verbose = HttpUtility::GetLastParameter(params, "verbose");
+
+	/* Object creation can cause multiple errors and optionally diagnostic information.
+	 * We can't use SendJsonError() here.
+	 */
 	try {
 		config = ConfigObjectUtility::CreateObjectConfig(type, name, ignoreOnError, templates, attrs);
 	} catch (const std::exception& ex) {
-		errors->Add(DiagnosticInformation(ex));
+		errors->Add(DiagnosticInformation(ex, false));
+		diagnosticInformation->Add(DiagnosticInformation(ex));
+
+		if (verbose)
+			result1->Set("diagnostic_information", diagnosticInformation);
 
 		result1->Set("errors", errors);
 		result1->Set("code", 500);
@@ -101,10 +114,13 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		return true;
 	}
 
-	if (!ConfigObjectUtility::CreateObject(type, name, config, errors)) {
+	if (!ConfigObjectUtility::CreateObject(type, name, config, errors, diagnosticInformation)) {
 		result1->Set("errors", errors);
 		result1->Set("code", 500);
 		result1->Set("status", "Object could not be created.");
+
+		if (verbose)
+			result1->Set("diagnostic_information", diagnosticInformation);
 
 		response.SetStatus(500, "Object could not be created");
 		HttpUtility::SendJsonBody(response, params, result);

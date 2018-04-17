@@ -129,7 +129,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		uattrs = params->Get("attrs");
 	} catch (const std::exception&) {
 		HttpUtility::SendJsonError(response, params, 400,
-			"Invalid type for 'attrs' attribute specified. Array type is required.", Empty);
+			"Invalid type for 'attrs' attribute specified. Array type is required.");
 		return true;
 	}
 
@@ -137,7 +137,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		ujoins = params->Get("joins");
 	} catch (const std::exception&) {
 		HttpUtility::SendJsonError(response, params, 400,
-			"Invalid type for 'joins' attribute specified. Array type is required.", Empty);
+			"Invalid type for 'joins' attribute specified. Array type is required.");
 		return true;
 	}
 
@@ -145,7 +145,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		umetas = params->Get("meta");
 	} catch (const std::exception&) {
 		HttpUtility::SendJsonError(response, params, 400,
-			"Invalid type for 'meta' attribute specified. Array type is required.", Empty);
+			"Invalid type for 'meta' attribute specified. Array type is required.");
 		return true;
 	}
 
@@ -166,7 +166,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 404,
 			"No objects found.",
-			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			DiagnosticInformation(ex));
 		return true;
 	}
 

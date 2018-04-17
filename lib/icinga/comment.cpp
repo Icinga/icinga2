@@ -182,7 +182,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 
 	Array::Ptr errors = new Array();
 
-	if (!ConfigObjectUtility::CreateObject(Comment::TypeInstance, fullName, config, errors)) {
+	if (!ConfigObjectUtility::CreateObject(Comment::TypeInstance, fullName, config, errors, nullptr)) {
 		ObjectLock olock(errors);
 		for (const String& error : errors) {
 			Log(LogCritical, "Comment", error);
@@ -214,7 +214,7 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 
 	Array::Ptr errors = new Array();
 
-	if (!ConfigObjectUtility::DeleteObject(comment, false, errors)) {
+	if (!ConfigObjectUtility::DeleteObject(comment, false, errors, nullptr)) {
 		ObjectLock olock(errors);
 		for (const String& error : errors) {
 			Log(LogCritical, "Comment", error);

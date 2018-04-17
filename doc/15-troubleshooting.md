@@ -702,6 +702,33 @@ Look into the log and check whether the feature logs anything specific for this 
 grep GraphiteWriter /var/log/icinga2/icinga2.log
 ```
 
+## REST API Troubleshooting <a id="troubleshooting-api"></a>
+
+In order to analyse errors on API requests, you can explicitly enable the [verbose parameter](12-icinga2-api.md#icinga2-api-parameters-global).
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE 'https://localhost:5665/v1/objects/hosts/example-cmdb?pretty=1&verbose=1'
+{
+    "diagnostic_information": "Error: Object does not exist.\n\n ....",
+    "error": 404.0,
+    "status": "No objects found."
+}
+```
+
+## REST API Troubleshooting: No Objects Found <a id="troubleshooting-api-no-objects-found"></a>
+
+Please note that the `404` status with no objects being found can also originate
+from missing or too strict object permissions for the authenticated user.
+
+This is a security feature to disable object name guessing. If this would not be the
+case, restricted users would be able to get a list of names of your objects just by
+trying every character combination.
+
+In order to analyse and fix the problem, please check the following:
+
+- use an administrative account with full permissions to check whether the objects are actually there.
+- verify the permissions on the affected ApiUser object and fix them.
+
 
 ## Certificate Troubleshooting <a id="troubleshooting-certificate"></a>
 

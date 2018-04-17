@@ -89,11 +89,18 @@ void HttpUtility::SendJsonError(HttpResponse& response, const Dictionary::Ptr& p
 	response.SetStatus(code, HttpUtility::GetErrorNameByCode(code));
 	result->Set("error", code);
 
+	bool verbose = false;
+
+	if (params)
+		verbose = HttpUtility::GetLastParameter(params, "verbose");
+
 	if (!info.IsEmpty())
 		result->Set("status", info);
 
-	if (!diagnosticInformation.IsEmpty())
-		result->Set("diagnostic information", diagnosticInformation);
+	if (verbose) {
+		if (!diagnosticInformation.IsEmpty())
+			result->Set("diagnostic_information", diagnosticInformation);
+	}
 
 	HttpUtility::SendJsonBody(response, params, result);
 }

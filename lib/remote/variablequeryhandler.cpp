@@ -97,7 +97,7 @@ bool VariableQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 404,
 			"No variables found.",
-			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			DiagnosticInformation(ex));
 		return true;
 	}
 

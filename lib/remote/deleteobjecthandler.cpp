@@ -65,11 +65,12 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 404,
 			"No objects found.",
-			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			DiagnosticInformation(ex));
 		return true;
 	}
 
 	bool cascade = HttpUtility::GetLastParameter(params, "cascade");
+	bool verbose = HttpUtility::GetLastParameter(params, "verbose");
 
 	ArrayData results;
 
@@ -79,8 +80,9 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		int code;
 		String status;
 		Array::Ptr errors = new Array();
+		Array::Ptr diagnosticInformation = new Array();
 
-		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors)) {
+		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors, diagnosticInformation)) {
 			code = 500;
 			status = "Object could not be deleted.";
 			success = false;
@@ -89,13 +91,18 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 			status = "Object was deleted.";
 		}
 
-		results.push_back(new Dictionary({
+		Dictionary::Ptr result = new Dictionary({
 			{ "type", type->GetName() },
 			{ "name", obj->GetName() },
 			{ "code", code },
 			{ "status", status },
 			{ "errors", errors }
-		}));
+		});
+
+		if (verbose)
+			result->Set("diagnostic_information", diagnosticInformation);
+
+		results.push_back(result);
 	}
 
 	Dictionary::Ptr result = new Dictionary({

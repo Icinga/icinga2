@@ -59,10 +59,10 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigPackageUtility::ValidateName(packageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
+		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
 
 	if (!ConfigPackageUtility::ValidateName(stageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name.");
+		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name '" + stageName + "'.");
 
 	ArrayData results;
 
@@ -95,9 +95,10 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidateName(packageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
+		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
 
 	bool reload = true;
+
 	if (params->Contains("reload"))
 		reload = HttpUtility::GetLastParameter(params, "reload");
 
@@ -116,13 +117,17 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, reload);
 	} catch (const std::exception& ex) {
 		return HttpUtility::SendJsonError(response, params, 500,
-				"Stage creation failed.",
-				HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			"Stage creation failed.",
+			DiagnosticInformation(ex));
 	}
 
 
 	String responseStatus = "Created stage. ";
-	responseStatus += (reload ? " Icinga2 will reload." : " Icinga2 reload skipped.");
+
+	if (reload)
+		responseStatus += "Reload triggered.";
+	else
+		responseStatus += "Reload skipped.";
 
 	Dictionary::Ptr result1 = new Dictionary({
 		{ "package", packageName },
@@ -153,21 +158,23 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigPackageUtility::ValidateName(packageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
+		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
 
 	if (!ConfigPackageUtility::ValidateName(stageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name.");
+		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name '" + stageName + "'.");
 
 	try {
 		ConfigPackageUtility::DeleteStage(packageName, stageName);
 	} catch (const std::exception& ex) {
 		return HttpUtility::SendJsonError(response, params, 500,
-			"Failed to delete stage.",
-			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			"Failed to delete stage '" + stageName + "' in package '" + packageName + "'.",
+			DiagnosticInformation(ex));
 	}
 
 	Dictionary::Ptr result1 = new Dictionary({
 		{ "code", 200 },
+		{ "package", packageName },
+		{ "stage", stageName },
 		{ "status", "Stage deleted." }
 	});
 
