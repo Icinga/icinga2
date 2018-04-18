@@ -208,22 +208,41 @@ void IdoPgsqlConnection::Reconnect()
 
 	ClearIDCache();
 
-	String ihost, iport, iuser, ipasswd, idb;
-	const char *host, *port, *user , *passwd, *db;
+	String host = GetHost();
+	String port = GetPort();
+	String user = GetUser();
+	String password = GetPassword();
+	String database = GetDatabase();
 
-	ihost = GetHost();
-	iport = GetPort();
-	iuser = GetUser();
-	ipasswd = GetPassword();
-	idb = GetDatabase();
+	String sslMode = GetSslMode();
+	String sslKey = GetSslKey();
+	String sslCert = GetSslCert();
+	String sslCa = GetSslCa();
 
-	host = (!ihost.IsEmpty()) ? ihost.CStr() : nullptr;
-	port = (!iport.IsEmpty()) ? iport.CStr() : nullptr;
-	user = (!iuser.IsEmpty()) ? iuser.CStr() : nullptr;
-	passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : nullptr;
-	db = (!idb.IsEmpty()) ? idb.CStr() : nullptr;
+	String conninfo;
 
-	m_Connection = m_Pgsql->setdbLogin(host, port, nullptr, nullptr, db, user, passwd);
+	if (!host.IsEmpty())
+		conninfo += " host=" + host;
+	if (!port.IsEmpty())
+		conninfo += " port=" + port;
+	if (!user.IsEmpty())
+		conninfo += " user=" + user;
+	if (!password.IsEmpty())
+		conninfo += " password=" + password;
+	if (!database.IsEmpty())
+		conninfo += " dbname=" + database;
+
+	if (!sslMode.IsEmpty())
+		conninfo += " sslmode=" + sslMode;
+	if (!sslKey.IsEmpty())
+		conninfo += " sslkey=" + sslKey;
+	if (!sslCert.IsEmpty())
+		conninfo += " sslcert=" + sslCert;
+	if (!sslCa.IsEmpty())
+		conninfo += " sslrootcert=" + sslCa;
+
+	/* connection */
+	m_Connection = m_Pgsql->connectdb(conninfo.CStr());
 
 	if (!m_Connection)
 		return;
@@ -234,7 +253,7 @@ void IdoPgsqlConnection::Reconnect()
 		SetConnected(false);
 
 		Log(LogCritical, "IdoPgsqlConnection")
-			<< "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
+			<< "Connection to database '" << database << "' with user '" << user << "' on '" << host << ":" << port
 			<< "' failed: \"" << message << "\"";
 
 		BOOST_THROW_EXCEPTION(std::runtime_error(message));
@@ -346,7 +365,8 @@ void IdoPgsqlConnection::Reconnect()
 	}
 
 	Log(LogInformation, "IdoPgsqlConnection")
-		<< "pgSQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
+		<< "PGSQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')"
+		<< (!sslMode.IsEmpty() ? ", sslmode='" + sslMode + "'" : "");
 
 	Query("BEGIN");
 

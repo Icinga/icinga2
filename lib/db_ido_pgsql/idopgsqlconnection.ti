@@ -45,6 +45,10 @@ class IdoPgsqlConnection : DbConnection
 		default {{{ return "default"; }}}
 	};
 	[config] String instance_description;
+	[config] String ssl_mode;
+	[config] String ssl_key;
+	[config] String ssl_cert;
+	[config] String ssl_ca;
 };
 
 }

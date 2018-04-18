@@ -50,6 +50,7 @@ struct PgsqlInterface
 	virtual ExecStatusType resultStatus(const PGresult *res) const = 0;
 	virtual int serverVersion(const PGconn *conn) const = 0;
 	virtual PGconn *setdbLogin(const char *pghost, const char *pgport, const char *pgoptions, const char *pgtty, const char *dbName, const char *login, const char *pwd) const = 0;
+	virtual PGconn *connectdb(const char *conninfo) const = 0;
 	virtual ConnStatusType status(const PGconn *conn) const = 0;
 
 protected:
