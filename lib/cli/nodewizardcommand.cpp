@@ -104,7 +104,8 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	 * 9. enable ApiListener feature
 	 * 10. generate zones.conf with endpoints and zone objects
 	 * 11. set NodeName = cn in constants.conf
-	 * 12. reload icinga2, or tell the user to
+	 * 12. disable conf.d directory?
+	 * 13. reload icinga2, or tell the user to
 	 */
 
 	std::string answer;
@@ -615,6 +616,24 @@ wizard_global_zone_loop_start:
 		Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 	}
 
+	/* Disable conf.d inclusion */
+	std::cout << "\nDo you want to disable the inclusion of the conf.d directory [Y/n]: ";
+
+	std::getline(std::cin, answer);
+	boost::algorithm::to_lower(answer);
+	choice = answer;
+
+	if (choice.Contains("n"))
+		Log(LogInformation, "cli")
+			<< "The deactivation of the conf.d directory was skipped.";
+	else {
+		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
+			<< "Disable the inclusion of the conf.d directory...\n"
+			<< ConsoleColorTag(Console_Normal);
+
+		NodeUtility::UpdateConfiguration("\"conf.d\"", false, true);
+	}
+
 	return 0;
 }
 
@@ -788,12 +807,52 @@ wizard_global_zone_loop_start:
 			<< Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
 	}
 
+	Log(LogInformation, "cli", "Updating constants.conf.");
+	
+	String constants_file = Application::GetSysconfDir() + "/icinga2/constants.conf";
+
+	NodeUtility::CreateBackupFile(constants_file);
+
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", cn);
 
 	String salt = RandomString(16);
 
 	NodeUtility::UpdateConstant("TicketSalt", salt);
+
+	/* Disable conf.d inclusion */
+	std::cout << "\nDo you want to disable the inclusion of the conf.d directory [Y/n]: ";
+
+	std::getline(std::cin, answer);
+	boost::algorithm::to_lower(answer);
+	choice = answer;
+
+	if (choice.Contains("n"))
+		Log(LogInformation, "cli")
+			<< "The deactivation of the conf.d directory was skipped.";
+	else {
+		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
+			<< "Disable the inclusion of the conf.d directory...\n"
+			<< ConsoleColorTag(Console_Normal);
+
+		NodeUtility::UpdateConfiguration("\"conf.d\"", false, true);
+
+		/* Include api-users.conf */
+		String apiUsersFilePath = Application::GetSysconfDir() + "/icinga2/conf.d/api-users.conf";
+		std::ifstream apiUsersFile(apiUsersFilePath);
+
+		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
+			<< "Checking if api-users.conf exist...\n"
+			<< ConsoleColorTag(Console_Normal);
+
+				if(apiUsersFile)
+					NodeUtility::UpdateConfiguration("\"conf.d/api-users.conf\"", true, false);
+				else
+					Log(LogWarning, "cli")
+						<< "Included file dosen't exist " << apiUsersFilePath;
+	}
+
+	std::cout << "Done.\n\n";
 
 	return 0;
 }
