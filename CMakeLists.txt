@@ -55,6 +55,11 @@ set(ICINGA2_GIT_VERSION_INFO ON CACHE BOOL "Whether to use git describe")
 set(ICINGA2_UNITY_BUILD ON CACHE BOOL "Whether to perform a unity build")
 set(ICINGA2_LTO_BUILD OFF CACHE BOOL "Whether to use LTO")
 
+if(NOT WIN32)
+  set(ICINGA2_SYSCONFIGFILE "${CMAKE_INSTALL_FULL_SYSCONFDIR}/sysconfig/icinga2" CACHE PATH "where to store configuation for the init system, defaults to /etc/sysconfig/icinga2")
+
+endif()
+
 site_name(ICINGA2_BUILD_HOST_NAME)
 set(ICINGA2_BUILD_COMPILER_NAME "${CMAKE_CXX_COMPILER_ID}")
 
