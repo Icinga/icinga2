@@ -718,7 +718,7 @@ Set up a PostgreSQL database for Icinga 2:
 
 > **Note**
 >
-> When using PostgreSQL 9.x you can omit the `createlang` command.
+> When using PostgreSQL 9.x or higher, the `createlang` command can be omitted.
 > Also it is assumed here that your locale is set to utf-8, you may run into
 > problems otherwise.
 
