@@ -16,8 +16,6 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 if(NOT WIN32)
-  set(ICINGA2_SYSCONFIGFILE "${CMAKE_INSTALL_FULL_SYSCONFDIR}/sysconfig/icinga2" CACHE PATH "where to store configuation for the init system, defaults to /etc/sysconfig/icinga2")
-
   configure_file(icinga2.sysconfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2.sysconfig @ONLY)
   get_filename_component(ICINGA2_SYSCONFIGFILE_NAME ${ICINGA2_SYSCONFIGFILE} NAME)
   get_filename_component(ICINGA2_SYSCONFIGFILE_DIR ${ICINGA2_SYSCONFIGFILE} PATH)
