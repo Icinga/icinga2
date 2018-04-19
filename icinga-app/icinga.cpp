@@ -155,6 +155,13 @@ static int Main()
 
 	Application::DeclareZonesDir(Application::GetSysconfDir() + "/icinga2/zones.d");
 
+#ifndef _WIN32
+	if (!Utility::PathExists(Application::GetSysconfigFile())) {
+		Log(LogWarning, "icinga-app")
+			<< "Sysconfig file '" << Application::GetSysconfigFile() << "' cannot be read. Using default values.";
+	}
+#endif /* _WIN32 */
+
 	String icingaUser = Utility::GetFromSysconfig("ICINGA2_USER");
 	if (icingaUser.IsEmpty())
 		icingaUser = ICINGA_USER;
@@ -456,6 +463,7 @@ static int Main()
 
 			std::cout << visibleDesc << std::endl
 				<< "Report bugs at <https://github.com/Icinga/icinga2>" << std::endl
+				<< "Get support: <https://www.icinga.com/support/>" << std::endl
 				<< "Icinga home page: <https://www.icinga.com/>" << std::endl;
 			return EXIT_SUCCESS;
 		}

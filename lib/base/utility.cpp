@@ -1943,6 +1943,9 @@ String Utility::GetFromSysconfig(const String& env)
 	if (sysconf.IsEmpty())
 		return "";
 
+	if (!Utility::PathExists(sysconf))
+		return "";
+
 	String cmdInner = ". " + EscapeShellArg(sysconf) + " 2>&1 >/dev/null;echo \"$" + env + "\"";
 	String cmd = "sh -c " + EscapeShellArg(cmdInner);
 
