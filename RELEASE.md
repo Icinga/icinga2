@@ -87,6 +87,12 @@ NH:
 git tag -u 630F89D9 -m "Version $VERSION" v$VERSION
 ```
 
+JF:
+
+```
+git tag -u 9E0B003C -m "Version $VERSION" v$VERSION
+```
+
 Push the tag:
 
 ```
