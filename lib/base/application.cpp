@@ -198,7 +198,7 @@ void Application::SetResourceLimits(void)
 
 		if (setrlimit(RLIMIT_NOFILE, &rl) < 0)
 			Log(LogWarning, "Application")
-			    << "Failed adjust resource limit for open file handles (RLIMIT_NOFILE) with error \"" << strerror(errno) << "\"";
+			    << "Failed to adjust resource limit for open file handles (RLIMIT_NOFILE) with error \"" << strerror(errno) << "\"";
 #	else /* RLIMIT_NOFILE */
 		Log(LogNotice, "Application", "System does not support adjusting the resource limit for open file handles (RLIMIT_NOFILE)");
 #	endif /* RLIMIT_NOFILE */
