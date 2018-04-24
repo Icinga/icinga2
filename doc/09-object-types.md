@@ -948,6 +948,10 @@ Configuration Attributes:
   user                      | String                | **Optional.** PostgreSQL database user with read/write permission to the icinga database. Defaults to `icinga`.
   password                  | String                | **Optional.** PostgreSQL database user's password. Defaults to `icinga`.
   database                  | String                | **Optional.** PostgreSQL database name. Defaults to `icinga`.
+  ssl\_mode                 | String                | **Optional.** Enable SSL connection mode. Value must be set according to the [sslmode setting](https://www.postgresql.org/docs/9.3/static/libpq-connect.html#LIBPQ-CONNSTRING): `prefer`, `require`, `verify-ca`, `verify-full`, `allow`, `disable`.
+  ssl\_key                  | String                | **Optional.** PostgreSQL SSL client key file path.
+  ssl\_cert                 | String                | **Optional.** PostgreSQL SSL certificate file path.
+  ssl\_ca                   | String                | **Optional.** PostgreSQL SSL certificate authority certificate file path.
   table\_prefix             | String                | **Optional.** PostgreSQL database table prefix. Defaults to `icinga_`.
   instance\_name            | String                | **Optional.** Unique identifier for the local Icinga 2 instance. Defaults to `default`.
   instance\_description     | String                | **Optional.** Description for the Icinga 2 instance.

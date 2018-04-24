@@ -108,6 +108,11 @@ struct PgsqlInterfaceImpl final : public PgsqlInterface
 		return PQsetdbLogin(pghost, pgport, pgoptions, pgtty, dbName, login, pwd);
 	}
 
+	PGconn *connectdb(const char *conninfo) const override
+	{
+		return PQconnectdb(conninfo);
+	}
+
 	ConnStatusType status(const PGconn *conn) const override
 	{
 		return PQstatus(conn);
