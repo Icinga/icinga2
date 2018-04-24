@@ -174,9 +174,11 @@ file:
 The plugin check commands assume that there's a global constant named `PluginDir`
 which contains the path of the plugins from the Monitoring Plugins project.
 
-**Note**: If there are command parameters missing for the provided CheckCommand
-definitions please kindly send a patch upstream. This should include an update
-for the ITL CheckCommand itself and this documentation section.
+> **Note**:
+>
+> Please be aware that the CheckCommand definitions are based on the [Monitoring Plugins](https://www.monitoring-plugins.org), other Plugin collections might not support
+> all parameters. If there are command parameters missing for the provided CheckCommand definitions please kindly send a patch upstream.
+> This should include an update for the ITL CheckCommand itself and this documentation section.
 
 ### apt <a id="plugin-check-command-apt"></a>
 
