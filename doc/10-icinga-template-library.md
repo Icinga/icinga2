@@ -176,7 +176,7 @@ which contains the path of the plugins from the Monitoring Plugins project.
 
 > **Note**:
 >
-> Please be aware, that the CheckCommand definitions are based on the [Monitoring Plugins](https://www.monitoring-plugins.org), other Plugin collections might not support
+> Please be aware that the CheckCommand definitions are based on the [Monitoring Plugins](https://www.monitoring-plugins.org), other Plugin collections might not support
 > all parameters. If there are command parameters missing for the provided CheckCommand definitions please kindly send a patch upstream.
 > This should include an update for the ITL CheckCommand itself and this documentation section.
 
