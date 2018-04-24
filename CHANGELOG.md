@@ -1,5 +1,56 @@
 # Icinga 2.x CHANGELOG
 
+## 2.8.3 (2018-04-24)
+
+### Notes
+
+- Fix InfluxDB backslash escaping
+- Fix Elasticsearch crash on invalid performance data
+- Sysconfig file settings are taken into account
+- Support multiple parameters for check_nscp_api
+- Documentation enhancements and fixes
+
+### Bug
+
+* [#6207](https://github.com/icinga/icinga2/issues/6207) (Plugins, Windows, PR): Fix multiple parameter problems for check\_nscp\_api
+* [#6196](https://github.com/icinga/icinga2/issues/6196) (InfluxDB, Metrics, PR): Fix InfluxDB backslash escaping
+* [#6192](https://github.com/icinga/icinga2/issues/6192) (Crash, Elasticsearch, PR): Elasticsearch: Fix crash with invalid performance data metrics
+* [#6191](https://github.com/icinga/icinga2/issues/6191) (Crash, Elasticsearch): Invalid Perfdata causing Segmentation fault with ElasticsearchWriter
+* [#6182](https://github.com/icinga/icinga2/issues/6182) (InfluxDB): Windows Disk performance data broken in InfluxDB
+* [#6179](https://github.com/icinga/icinga2/issues/6179) (CLI, Crash, PR): Fix crash in api user command
+* [#6178](https://github.com/icinga/icinga2/issues/6178) (API, Crash): Error: boost::bad\_any\_cast: failed conversion using boost::any\_cast
+* [#6140](https://github.com/icinga/icinga2/issues/6140): Force check has no effect
+* [#6119](https://github.com/icinga/icinga2/issues/6119) (PR): fixup set rlimit stack failed condition
+* [#5925](https://github.com/icinga/icinga2/issues/5925) (Crash, PR): Fix missing variable name in ApiListener::Start
+* [#5924](https://github.com/icinga/icinga2/issues/5924) (Crash): The lock variable in ApiListener::Start is missing its name
+* [#5881](https://github.com/icinga/icinga2/issues/5881) (API, PR): Fix package error message
+* [#5706](https://github.com/icinga/icinga2/issues/5706) (Plugins, Windows): nscp\_api - cannot use check\_cpu with "time" argument used multiple times
+
+### Documentation
+
+* [#6227](https://github.com/icinga/icinga2/issues/6227) (Documentation, PR): Fix missing anchors in CLI commands chapter
+* [#6203](https://github.com/icinga/icinga2/issues/6203) (Documentation, PR): Add docs for script debugger and API filters
+* [#6177](https://github.com/icinga/icinga2/issues/6177) (Documentation, PR): Doc: Fix typo in API user creation example
+* [#6176](https://github.com/icinga/icinga2/issues/6176) (Documentation, PR): hashed\_password -\> password\_hash. Fixes \#6175
+* [#6175](https://github.com/icinga/icinga2/issues/6175) (Documentation): ApiUser does not know hashed\_password Attribute
+* [#6166](https://github.com/icinga/icinga2/issues/6166) (Documentation, PR): Fix broken link in README
+* [#6145](https://github.com/icinga/icinga2/issues/6145) (Documentation, PR): Fix incorrect parameter name in the API documentation
+* [#6102](https://github.com/icinga/icinga2/issues/6102) (Documentation, PR): Fix typo in Apply for Rules documentation
+* [#6080](https://github.com/icinga/icinga2/issues/6080) (Documentation, PR): Document the 'ignore\_on\_error' attribute for object creation
+* [#6068](https://github.com/icinga/icinga2/issues/6068) (Documentation, PR): Fix the explanation of `types` and `states` for user objects
+* [#5913](https://github.com/icinga/icinga2/issues/5913) (Documentation, ITL, PR): Enhance http\_certificate parameter documentation
+* [#5838](https://github.com/icinga/icinga2/issues/5838) (Documentation, PR): services.conf has also be moved to zones.d/global-templates/
+* [#5797](https://github.com/icinga/icinga2/issues/5797) (Documentation): Document the ignore\_on\_error parameter for CreateObjectHandler::HandleRequest
+* [#5610](https://github.com/icinga/icinga2/issues/5610) (Documentation, ITL): http check doesn't map the critical ssl certificate age option
+
+### Support
+
+* [#6250](https://github.com/icinga/icinga2/issues/6250) (PR): Fix typo
+* [#6241](https://github.com/icinga/icinga2/issues/6241) (Packages, PR): Fix Sysconfig file detection for Icinga 2 settings
+* [#6230](https://github.com/icinga/icinga2/issues/6230) (PR): Unbreak build against Boost 1.67
+* [#6215](https://github.com/icinga/icinga2/issues/6215) (Configuration, Packages): Sysconfig limits and settings are not respected
+* [#6202](https://github.com/icinga/icinga2/issues/6202) (Packages, code-quality, PR): Use VERSION instead of icinga2.spec
+
 ## 2.8.2 (2018-03-22)
 
 ### Notes
