@@ -1,5 +1,15 @@
 # Icinga 2.x CHANGELOG
 
+## 2.8.4 (2018-04-25)
+
+### Bug
+
+* [#6257](https://github.com/icinga/icinga2/issues/6257) (Check Execution): Plugins crash when run from icinga2-2.8.3 
+
+### Support
+
+* [#6260](https://github.com/icinga/icinga2/issues/6260) (Check Execution, PR): Revert "fixup set rlimit stack failed condition"
+
 ## 2.8.3 (2018-04-24)
 
 ### Notes
