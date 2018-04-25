@@ -239,34 +239,33 @@ void Application::SetResourceLimits()
 		else
 			rl.rlim_cur = rl.rlim_max;
 
-		if (setrlimit(RLIMIT_STACK, &rl) < 0) {
+		if (setrlimit(RLIMIT_STACK, &rl) < 0)
 			Log(LogWarning, "Application")
 			    << "Failed adjust resource limit for stack size (RLIMIT_STACK) with error \"" << strerror(errno) << "\"";
-			if (set_stack_rlimit) {
-				char **new_argv = static_cast<char **>(malloc(sizeof(char *) * (argc + 2)));
+		else if (set_stack_rlimit) {
+			char **new_argv = static_cast<char **>(malloc(sizeof(char *) * (argc + 2)));
 
-				if (!new_argv) {
-					perror("malloc");
-					Exit(EXIT_FAILURE);
-				}
-
-				new_argv[0] = argv[0];
-				new_argv[1] = strdup("--no-stack-rlimit");
-
-				if (!new_argv[1]) {
-					perror("strdup");
-					exit(1);
-				}
-
-				for (int i = 1; i < argc; i++)
-					new_argv[i + 1] = argv[i];
-
-				new_argv[argc + 1] = nullptr;
-
-				(void) execvp(new_argv[0], new_argv);
-				perror("execvp");
-				_exit(EXIT_FAILURE);
+			if (!new_argv) {
+				perror("malloc");
+				Exit(EXIT_FAILURE);
 			}
+
+			new_argv[0] = argv[0];
+			new_argv[1] = strdup("--no-stack-rlimit");
+
+			if (!new_argv[1]) {
+				perror("strdup");
+				exit(1);
+			}
+
+			for (int i = 1; i < argc; i++)
+				new_argv[i + 1] = argv[i];
+
+			new_argv[argc + 1] = nullptr;
+
+			(void) execvp(new_argv[0], new_argv);
+			perror("execvp");
+			_exit(EXIT_FAILURE);
 		}
 #	else /* RLIMIT_STACK */
 		Log(LogNotice, "Application", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
