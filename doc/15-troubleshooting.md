@@ -538,6 +538,34 @@ External Resources:
 * [Icinga 2 upstream issue](https://github.com/Icinga/icinga2/issues/5611)
 * [Systemd upstream discussion](https://github.com/systemd/systemd/issues/3211)
 
+### Systemd Watchdog <a id="check-systemd-watchdog"></a>
+
+Usually Icinga 2 is a mission critical part of infrastructure and should be
+online at all times. In case of a recoverable crash (e.g. OOM) you may want to
+restart Icinga 2 automatically. With Systemd it is as easy as overriding some
+settings of the Icinga 2 Systemd service by creating
+`/etc/systemd/system/icinga2.service.d/override.conf` with the following
+content:
+
+    [Service]
+    Restart=always
+    RestartSec=1
+    StartLimitInterval=10
+    StartLimitBurst=3
+
+Using the watchdog can also help with monitoring Icinga 2, to activate and use it add the following to the override:
+
+    WatchdogSec=30s
+
+This way Systemd will kill Icinga 2 if does not notify for over 30 seconds, a timout of less than 10 seconds is not
+recommended. When the watchdog is activated, `Restart=` can be set to `watchdog` to restart Icinga 2 in the case of a
+watchdog timeout.
+
+Run `systemctl daemon-reload && systemctl restart icinga2` to apply the changes.
+Now Systemd will always try to restart Icinga 2 (except if you run
+`systemctl stop icinga2`). After three failures in ten seconds it will stop
+trying because you probably have a problem that requires manual intervention.
+
 ### Late Check Results <a id="late-check-results"></a>
 
 [Icinga Web 2](https://www.icinga.com/products/icinga-web-2/) provides
