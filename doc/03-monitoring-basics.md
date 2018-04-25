@@ -2161,17 +2161,14 @@ References: [abbreviated lambda syntax](17-language-reference.md#nullary-lambdas
 #### Environment Variables <a id="command-environment-variables"></a>
 
 The `env` command object attribute specifies a list of environment variables with values calculated
-from either runtime macros or custom attributes which should be exported as environment variables
-prior to executing the command.
+from custom attributes which should be exported as environment variables prior to executing the command.
 
 This is useful for example for hiding sensitive information on the command line output
 when passing credentials to database checks:
 
 ```
-object CheckCommand "mysql-health" {
-  command = [
-    PluginDir + "/check_mysql"
-  ]
+object CheckCommand "mysql" {
+  command = [ PluginDir + "/check_mysql" ]
 
   arguments = {
     "-H" = "$mysql_address$"
@@ -2188,6 +2185,47 @@ object CheckCommand "mysql-health" {
 }
 ```
 
+The executed command line visible with `ps` or `top` looks like this and hides
+the database credentials in the user's environment.
+
+```
+/usr/lib/nagios/plugins/check_mysql -H 192.168.56.101 -d icinga
+```
+
+> **Note**
+>
+> If the CheckCommand also supports setting the parameter in the command line,
+> ensure to use a different name for the custom attribute. Otherwise Icinga 2
+> adds the command line parameter.
+
+If a specific CheckCommand object provided with the [Icinga Template Library](10-icinga-template-library.md#icinga-template-library)
+needs additional environment variables, you can import it into a new custom
+CheckCommand object and add additional `env` keys. Example for the [mysql_health](10-icinga-template-library.md#plugin-contrib-command-mysql_health)
+CheckCommand:
+
+```
+object CheckCommand "mysql_health_env" {
+  import "mysql_health"
+
+  // https://labs.consol.de/nagios/check_mysql_health/
+  env.NAGIOS__SERVICEMYSQL_USER = "$mysql_health_env_username$"
+  env.NAGIOS__SERVICEMYSQL_PASS = "$mysql_health_env_password$"
+}
+```
+
+Specify the custom attributes `mysql_health_env_username` and `mysql_health_env_password`
+in the service object then.
+
+> **Note**
+>
+> Keep in mind that the values are still visible with the [debug console](11-cli-commands.md#cli-command-console)
+> and the inspect mode in the [Icinga Director](https://www.icinga.com/docs/director/latest/).
+
+You can also set global environment variables in the application's
+sysconfig configuration file, e.g. `HOME` or specific library paths
+for Oracle. Beware that these environment variables can be used
+by any CheckCommand object and executed plugin and can leak sensitive
+information.
 
 ### Notification Commands <a id="notification-commands"></a>
 
