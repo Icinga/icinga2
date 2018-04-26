@@ -27,6 +27,8 @@ namespace icinga
 
 class CompatLogger : ConfigObject
 {
+	activation_priority 100;
+
 	[config] String log_dir {
 		default {{{ return Application::GetLocalStateDir() + "/log/icinga2/compat"; }}}
 	};

@@ -27,6 +27,8 @@ namespace icinga
 
 class ExternalCommandListener : ConfigObject
 {
+	activation_priority 100;
+
 	[config] String command_path {
 		default {{{ return Application::GetRunDir() + "/icinga2/cmd/icinga2.cmd"; }}}
 	};

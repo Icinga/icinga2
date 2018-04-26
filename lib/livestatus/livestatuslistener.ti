@@ -26,6 +26,8 @@ namespace icinga
 {
 
 class LivestatusListener : ConfigObject {
+	activation_priority 100;
+
 	[config] String socket_type {
 		default {{{ return "unix"; }}}
 	};

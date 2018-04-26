@@ -27,6 +27,8 @@ namespace icinga
 
 class PerfdataWriter : ConfigObject
 {
+	activation_priority 100;
+
 	[config] String host_perfdata_path {
 		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/perfdata/host-perfdata"; }}}
 	};

@@ -103,6 +103,7 @@ public:
 	Value GetField(int id) const override;
 
 	virtual std::vector<String> GetLoadDependencies() const;
+	virtual int GetActivationPriority() const;
 
 	typedef std::function<void (const Object::Ptr&, const Value&)> AttributeHandler;
 	virtual void RegisterAttributeHandler(int fieldId, const AttributeHandler& callback);

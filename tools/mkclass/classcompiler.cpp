@@ -408,6 +408,14 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	m_Impl << "\t" << "return deps;" << std::endl
 		<< "}" << std::endl << std::endl;
 
+	/* GetActivationPriority */
+	m_Header << "\t" << "int GetActivationPriority() const override;" << std::endl;
+
+	m_Impl << "int TypeImpl<" << klass.Name << ">::GetActivationPriority() const" << std::endl
+		<< "{" << std::endl
+		<< "\t" << "return " << klass.ActivationPriority << ";" << std::endl
+		<< "}" << std::endl << std::endl;
+
 	/* RegisterAttributeHandler */
 	m_Header << "public:" << std::endl
 			<< "\t" << "void RegisterAttributeHandler(int fieldId, const Type::AttributeHandler& callback) override;" << std::endl;

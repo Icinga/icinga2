@@ -26,6 +26,8 @@ namespace icinga
 
 class IdoMysqlConnection : DbConnection
 {
+	activation_priority 100;
+
 	[config] String host {
 		default {{{ return "localhost"; }}}
 	};
