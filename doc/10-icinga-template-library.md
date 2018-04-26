@@ -1508,8 +1508,8 @@ Custom attributes:
 
 Name                  | Description
 :---------------------|:------------
-disk\_win\_warn       | **Optional**. The warning threshold.
-disk\_win\_crit       | **Optional**. The critical threshold.
+disk\_win\_warn       | **Optional**. The warning threshold. Defaults to "20%".
+disk\_win\_crit       | **Optional**. The critical threshold. Defaults to "10%".
 disk\_win\_path       | **Optional**. Check only these paths, default checks all.
 disk\_win\_unit       | **Optional**. Use this unit to display disk space, thresholds are interpreted in this unit. Defaults to "mb", possible values are: b, kb, mb, gb and tb.
 disk\_win\_exclude    | **Optional**. Exclude these drives from check.
@@ -1543,8 +1543,8 @@ Custom attributes:
 
 Name              | Description
 :-----------------|:------------
-memory\_win\_warn | **Optional**. The warning threshold.
-memory\_win\_crit | **Optional**. The critical threshold.
+memory\_win\_warn | **Optional**. The warning threshold. Defaults to "10%".
+memory\_win\_crit | **Optional**. The critical threshold. Defaults to "5%".
 memory\_win\_unit | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabyte), possible values are: b, kb, mb, gb and tb.
 
 
@@ -1634,8 +1634,8 @@ Custom attributes:
 
 Name            | Description
 :---------------|:------------
-swap\_win\_warn | **Optional**. The warning threshold.
-swap\_win\_crit | **Optional**. The critical threshold.
+swap\_win\_warn | **Optional**. The warning threshold. Defaults to "10%".
+swap\_win\_crit | **Optional**. The critical threshold. Defaults to "5%".
 swap\_win\_unit | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabyte).
 
 
