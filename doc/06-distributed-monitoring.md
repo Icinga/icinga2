@@ -1844,7 +1844,7 @@ to all nodes depending on them. Common examples are:
 
 * Templates which are imported into zone specific objects.
 * Command objects referenced by Host, Service, Notification objects.
-* Apply rules for services, notifications, dependencies and scheduled downtimes.
+* Apply rules for services, notifications and dependencies.
 * User objects referenced in notifications.
 * Group objects.
 * TimePeriod objects.
@@ -1892,7 +1892,7 @@ into your global zone.
 Example:
 
     [root@icinga2-master1.localdomain /]# cd /etc/icinga2/conf.d
-    [root@icinga2-master1.localdomain /etc/icinga2/conf.d]# cp {commands,downtimes,groups,notifications,services,templates,timeperiods,users}.conf /etc/icinga2/zones.d/global-templates
+    [root@icinga2-master1.localdomain /etc/icinga2/conf.d]# cp {commands,groups,notifications,services,templates,timeperiods,users}.conf /etc/icinga2/zones.d/global-templates
 
 ### Health Checks <a id="distributed-monitoring-health-checks"></a>
 
