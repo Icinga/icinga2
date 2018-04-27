@@ -1122,9 +1122,10 @@ object Notification "localhost-ping-notification" {
 
   command = "mail-notification"
 
-  users = [ "user1", "user2" ]
+  users = [ "user1", "user2" ] // reference to User objects
 
   types = [ Problem, Recovery ]
+  states = [ Critical, Warning, OK ]
 }
 ```
 
@@ -1135,8 +1136,8 @@ Configuration Attributes:
   host\_name                | Object name           | **Required.** The name of the host this notification belongs to.
   service\_name             | Object name           | **Optional.** The short name of the service this notification belongs to. If omitted, this notification object is treated as host notification.
   vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this notification object.
-  users                     | Array of object names | **Optional.** A list of user names who should be notified.
-  user\_groups              | Array of object names | **Optional.** A list of user group names who should be notified.
+  users                     | Array of object names | **Required.** A list of user names who should be notified. **Optional.** if the `user_groups` attribute is set.
+  user\_groups              | Array of object names | **Required.** A list of user group names who should be notified. **Optional.** if the `users` attribute is set.
   times                     | Dictionary            | **Optional.** A dictionary containing `begin` and `end` attributes for the notification.
   command                   | Object name           | **Required.** The name of the notification command which should be executed when the notification is triggered.
   interval                  | Duration              | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes. If set to 0, [re-notifications](03-monitoring-basics.md#disable-renotification) are disabled.
