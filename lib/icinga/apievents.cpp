@@ -46,6 +46,8 @@ void ApiEvents::StaticInitialize()
 	Downtime::OnDowntimeRemoved.connect(&ApiEvents::DowntimeRemovedHandler);
 	Downtime::OnDowntimeStarted.connect(&ApiEvents::DowntimeStartedHandler);
 	Downtime::OnDowntimeTriggered.connect(&ApiEvents::DowntimeTriggeredHandler);
+
+	Notification::OnNotificationTriggerTimeUpdate.connect(&ApiEvents::NotificationTriggerTimeUpdateHandler);
 }
 
 void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin)
@@ -367,3 +369,24 @@ void ApiEvents::DowntimeTriggeredHandler(const Downtime::Ptr& downtime)
 		queue->ProcessEvent(result);
 	}
 }
+
+void ApiEvents::NotificationTriggerTimeUpdateHandler(const Notification::Ptr& notification, const MessageOrigin::Ptr& origin)
+{
+       std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("NotificationTriggerTimeUpdate");
+
+       if (queues.empty())
+               return;
+
+       Log(LogDebug, "ApiEvents", "Processing event type 'NotificationTriggerTimeUpdate'.");
+
+       Dictionary::Ptr result = new Dictionary();
+       result->Set("type", "NotificationTriggerTimeUpdate");
+       result->Set("timestamp", Utility::GetTime());
+
+       result->Set("notification", Serialize(notification, FAConfig | FAState));
+
+       for (const EventQueue::Ptr& queue : queues) {
+               queue->ProcessEvent(result);
+       }
+}
+

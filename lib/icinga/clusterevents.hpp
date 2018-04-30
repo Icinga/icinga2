@@ -78,6 +78,9 @@ public:
 	static int GetCheckRequestQueueSize();
 	static void LogRemoteCheckQueueInformation();
 
+	static void NotificationTriggerTimeUpdateHandler(const Notification::Ptr& notification, const MessageOrigin::Ptr& origin);
+	static Value NotificationTriggerTimeUpdateAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+
 private:
 	static boost::mutex m_Mutex;
 	static std::deque<std::function<void ()>> m_CheckRequestQueue;

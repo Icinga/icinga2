@@ -50,6 +50,7 @@ REGISTER_APIFUNCTION(ExecuteCommand, event, &ClusterEvents::ExecuteCommandAPIHan
 REGISTER_APIFUNCTION(SendNotifications, event, &ClusterEvents::SendNotificationsAPIHandler);
 REGISTER_APIFUNCTION(NotificationSentUser, event, &ClusterEvents::NotificationSentUserAPIHandler);
 REGISTER_APIFUNCTION(NotificationSentToAllUsers, event, &ClusterEvents::NotificationSentToAllUsersAPIHandler);
+REGISTER_APIFUNCTION(NotificationTriggerTimeUpdate, event, &ClusterEvents::NotificationTriggerTimeUpdateAPIHandler);
 
 void ClusterEvents::StaticInitialize()
 {
@@ -64,6 +65,8 @@ void ClusterEvents::StaticInitialize()
 
 	Checkable::OnAcknowledgementSet.connect(&ClusterEvents::AcknowledgementSetHandler);
 	Checkable::OnAcknowledgementCleared.connect(&ClusterEvents::AcknowledgementClearedHandler);
+
+	Notification::OnNotificationTriggerTimeUpdate.connect(&ClusterEvents::NotificationTriggerTimeUpdateHandler);
 }
 
 Dictionary::Ptr ClusterEvents::MakeCheckResultMessage(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -879,3 +882,55 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 
 	return Empty;
 }
+
+void ClusterEvents::NotificationTriggerTimeUpdateHandler(const Notification::Ptr& notification, const MessageOrigin::Ptr& origin)
+{
+       ApiListener::Ptr listener = ApiListener::GetInstance();
+
+       if (!listener)
+               return;
+
+       Dictionary::Ptr params = new Dictionary();
+       params->Set("notification", notification->GetName());
+       params->Set("trigger_time", notification->GetTriggerTime());
+       params->Set("next_notification", notification->GetNextNotification());
+
+       Dictionary::Ptr message = new Dictionary();
+       message->Set("jsonrpc", "2.0");
+       message->Set("method", "event::NotificationTriggerTimeUpdate");
+       message->Set("params", params);
+
+       listener->RelayMessage(origin, notification, message, true);
+}
+
+Value ClusterEvents::NotificationTriggerTimeUpdateAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+       Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+       if (!endpoint) {
+               Log(LogNotice, "ClusterEvents")
+                   << "Discarding 'notification trigger time update' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+               return Empty;
+       }
+
+       if (!params)
+               return Empty;
+
+       Notification::Ptr notification = Notification::GetByName(params->Get("notification"));
+
+       if (!notification)
+               return Empty;
+
+       if (origin->FromZone && !origin->FromZone->CanAccessObject(notification)) {
+               Log(LogNotice, "ClusterEvents")
+                   << "Discarding 'notification trigger time update' message for notification '" << notification->GetName()
+                   << "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+               return Empty;
+       }
+
+       notification->SetTriggerTime(params->Get("trigger_time"), false, origin);
+       notification->SetNextNotification(params->Get("next_notification"), false, origin);
+
+       return Empty;
+}
+

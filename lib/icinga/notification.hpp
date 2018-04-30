@@ -115,6 +115,10 @@ public:
 	static const std::map<String, int>& GetStateFilterMap();
 	static const std::map<String, int>& GetTypeFilterMap();
 
+	void ResetTriggerTime(void);
+	void TriggerNotification(double triggerTime);
+	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnNotificationTriggerTimeUpdate;
+
 protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;

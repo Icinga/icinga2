@@ -39,6 +39,7 @@ std::map<String, int> Notification::m_StateFilterMap;
 std::map<String, int> Notification::m_TypeFilterMap;
 
 boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNextNotificationChanged;
+boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNotificationTriggerTimeUpdate;
 
 String NotificationNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -265,6 +266,11 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 	Checkable::Ptr checkable = GetCheckable();
 
+	/* always reset trigger time if recovery detected, regardless of filters */
+	if (type == NotificationRecovery) {
+		ResetTriggerTime();
+	}
+
 	if (!force) {
 		TimePeriod::Ptr tp = GetPeriod();
 
@@ -277,33 +283,6 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		double now = Utility::GetTime();
 		Dictionary::Ptr times = GetTimes();
-
-		if (times && type == NotificationProblem) {
-			Value timesBegin = times->Get("begin");
-			Value timesEnd = times->Get("end");
-
-			if (timesBegin != Empty && timesBegin >= 0 && now < checkable->GetLastHardStateChange() + timesBegin) {
-				Log(LogNotice, "Notification")
-					<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName()
-					<< "': before specified begin time (" << Utility::FormatDuration(timesBegin) << ")";
-
-				/* we need to adjust the next notification time
-				 * to now + begin delaying the first notification
-				 */
-				double nextProposedNotification = now + timesBegin + 1.0;
-				if (GetNextNotification() > nextProposedNotification)
-					SetNextNotification(nextProposedNotification);
-
-				return;
-			}
-
-			if (timesEnd != Empty && timesEnd >= 0 && now > checkable->GetLastHardStateChange() + timesEnd) {
-				Log(LogNotice, "Notification")
-					<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName()
-					<< "': after specified end time (" << Utility::FormatDuration(timesEnd) << ")";
-				return;
-			}
-		}
 
 		unsigned long ftype = type;
 
@@ -342,12 +321,44 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 				<< " (FState=" << fstate << ", StateFilter=" << GetStateFilter() << ")";
 
 			if (!(fstate & GetStateFilter())) {
+				/* Reset Trigger Time if not in applicable problem state */
+				ResetTriggerTime();
 				Log(LogNotice, "Notification")
 					<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName() << "': state '" << stateStr
 					<< "' does not match state filter: " << NotificationFilterToString(GetStateFilter(), GetStateFilterMap()) << ".";
 				return;
 			}
 		}
+
+		/* Set Trigger Time if notification has entered an applicable problem state */
+		if ( (type == NotificationProblem ))
+			TriggerNotification(now);
+
+		if (times && type == NotificationProblem) {
+			Value timesBegin = times->Get("begin");
+			Value timesEnd = times->Get("end");
+
+			if (timesBegin != Empty && timesBegin >= 0 && now < GetTriggerTime() + timesBegin) {
+				Log(LogNotice, "Notification")
+				    << "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName()
+				    << "': before specified begin time (" << Utility::FormatDuration(timesBegin) << ")";
+
+				/* we need to adjust the next notification time
+				 * to tigger time + begin, delaying the first notification
+				 */
+				SetNextNotification(GetTriggerTime()+timesBegin + 1.0);
+
+				return;
+			}
+
+			if (timesEnd != Empty && timesEnd >= 0 && now > GetTriggerTime() + timesEnd) {
+				Log(LogNotice, "Notification")
+				    << "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName()
+				    << "': after specified end time (" << Utility::FormatDuration(timesEnd) << ")";
+				return;
+			}
+		}
+
 	} else {
 		Log(LogNotice, "Notification")
 			<< "Not checking " << (reminder ? "reminder " : " ") << "notification filters for notification object '" << GetName() << "': Notification was forced.";
@@ -678,3 +689,18 @@ const std::map<String, int>& Notification::GetTypeFilterMap()
 {
 	return m_TypeFilterMap;
 }
+
+void Notification::ResetTriggerTime(void)
+{
+       SetTriggerTime(0);
+       OnNotificationTriggerTimeUpdate(this, MessageOrigin::Ptr());
+}
+
+void Notification::TriggerNotification(double triggerTime)
+{
+       if (GetTriggerTime() < 1) {
+               SetTriggerTime(triggerTime);
+               OnNotificationTriggerTimeUpdate(this, MessageOrigin::Ptr());
+       }
+}
+

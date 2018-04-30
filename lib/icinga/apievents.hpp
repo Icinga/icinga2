@@ -56,6 +56,8 @@ public:
 	static void DowntimeRemovedHandler(const Downtime::Ptr& downtime);
 	static void DowntimeStartedHandler(const Downtime::Ptr& downtime);
 	static void DowntimeTriggeredHandler(const Downtime::Ptr& downtime);
+
+	static void NotificationTriggerTimeUpdateHandler(const Notification::Ptr& notification, const MessageOrigin::Ptr& origin);
 };
 
 }

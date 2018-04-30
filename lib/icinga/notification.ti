@@ -96,6 +96,7 @@ class Notification : CustomVarObject < NotificationNameComposer
 
 	[state] Timestamp last_notification;
 	[state] Timestamp next_notification;
+	[state] Timestamp trigger_time;
 	[state] int notification_number;
 	[state] Timestamp last_problem_notification;
 
