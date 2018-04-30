@@ -94,7 +94,7 @@ static std::vector<String> GlobalArgumentCompletion(const String& argument, cons
 		return std::vector<String>();
 }
 
-int SetEnvironment() {
+static bool SetEnvironment() {
 	Application::DeclareZonesDir(Application::GetSysconfDir() + "/icinga2/zones.d");
 
 #ifndef _WIN32
@@ -125,7 +125,7 @@ int SetEnvironment() {
 		} catch (const std::invalid_argument& ex) {
 			std::cout
 				<< "Error while parsing \"ICINGA2_RLIMIT_FILES\" from sysconfig: " << ex.what() << '\n';
-			return EXIT_FAILURE;
+			return false;
 		}
 	}
 #endif /* RLIMIT_NOFILE */
@@ -140,7 +140,7 @@ int SetEnvironment() {
 		} catch (const std::invalid_argument& ex) {
 			std::cout
 				<< "Error while parsing \"ICINGA2_RLIMIT_PROCESSES\" from sysconfig: " << ex.what() << '\n';
-			return EXIT_FAILURE;
+			return false;
 		}
 	}
 #endif /* RLIMIT_NPROC */
@@ -155,7 +155,7 @@ int SetEnvironment() {
 		} catch (const std::invalid_argument& ex) {
 			std::cout
 				<< "Error while parsing \"ICINGA2_RLIMIT_STACK\" from sysconfig: " << ex.what() << '\n';
-			return EXIT_FAILURE;
+			return false;
 		}
 	}
 #endif /* RLIMIT_STACK */
@@ -175,7 +175,7 @@ int SetEnvironment() {
 	ScriptGlobal::Set("BuildCompilerName", ICINGA_BUILD_COMPILER_NAME);
 	ScriptGlobal::Set("BuildCompilerVersion", ICINGA_BUILD_COMPILER_VERSION);
 
-	return 0;
+	return true;
 }
 
 static int Main()
@@ -236,9 +236,9 @@ static int Main()
 
 
 	/* Only read and set ressource limits hwen we are not called for autocompletetion.
-	 * SetEnvironment only returns 0 on success or EXIT_FAILURE on failure */
+	 * SetEnvironment only returns true on success or false on failure */
 	if (!autocomplete) {
-		if (SetEnvironment())
+		if (!SetEnvironment())
 			return EXIT_FAILURE;
 		Application::SetResourceLimits();
 	}
