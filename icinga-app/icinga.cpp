@@ -94,65 +94,7 @@ static std::vector<String> GlobalArgumentCompletion(const String& argument, cons
 		return std::vector<String>();
 }
 
-static int Main()
-{
-	int argc = Application::GetArgC();
-	char **argv = Application::GetArgV();
-
-	bool autocomplete = false;
-	int autoindex = 0;
-
-	if (argc >= 4 && strcmp(argv[1], "--autocomplete") == 0) {
-		autocomplete = true;
-
-		try {
-			autoindex = Convert::ToLong(argv[2]);
-		} catch (const std::invalid_argument&) {
-			Log(LogCritical, "icinga-app")
-				<< "Invalid index for --autocomplete: " << argv[2];
-			return EXIT_FAILURE;
-		}
-
-		argc -= 3;
-		argv += 3;
-	}
-
-	Application::SetStartTime(Utility::GetTime());
-
-	/* Set thread title. */
-	Utility::SetThreadName("Main Thread", false);
-
-	/* Install exception handlers to make debugging easier. */
-	Application::InstallExceptionHandlers();
-
-#ifdef _WIN32
-	bool builtinPaths = true;
-
-	String binaryPrefix = Utility::GetIcingaInstallPath();
-	String dataPrefix = Utility::GetIcingaDataPath();
-
-	if (!binaryPrefix.IsEmpty() && !dataPrefix.IsEmpty()) {
-		Application::DeclarePrefixDir(binaryPrefix);
-		Application::DeclareSysconfDir(dataPrefix + "\\etc");
-		Application::DeclareRunDir(dataPrefix + "\\var\\run");
-		Application::DeclareLocalStateDir(dataPrefix + "\\var");
-		Application::DeclarePkgDataDir(binaryPrefix + "\\share\\icinga2");
-		Application::DeclareIncludeConfDir(binaryPrefix + "\\share\\icinga2\\include");
-	} else {
-		Log(LogWarning, "icinga-app", "Registry key could not be read. Falling back to built-in paths.");
-
-#endif /* _WIN32 */
-		Application::DeclarePrefixDir(ICINGA_PREFIX);
-		Application::DeclareSysconfigFile(ICINGA_SYSCONFIGFILE);
-		Application::DeclareSysconfDir(ICINGA_SYSCONFDIR);
-		Application::DeclareRunDir(ICINGA_RUNDIR);
-		Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
-		Application::DeclarePkgDataDir(ICINGA_PKGDATADIR);
-		Application::DeclareIncludeConfDir(ICINGA_INCLUDECONFDIR);
-#ifdef _WIN32
-	}
-#endif /* _WIN32 */
-
+int SetEnvironment() {
 	Application::DeclareZonesDir(Application::GetSysconfDir() + "/icinga2/zones.d");
 
 #ifndef _WIN32
@@ -233,8 +175,73 @@ static int Main()
 	ScriptGlobal::Set("BuildCompilerName", ICINGA_BUILD_COMPILER_NAME);
 	ScriptGlobal::Set("BuildCompilerVersion", ICINGA_BUILD_COMPILER_VERSION);
 
-	if (!autocomplete)
+	return 0;
+}
+
+static int Main()
+{
+	int argc = Application::GetArgC();
+	char **argv = Application::GetArgV();
+
+	bool autocomplete = false;
+	int autoindex = 0;
+
+	if (argc >= 4 && strcmp(argv[1], "--autocomplete") == 0) {
+		autocomplete = true;
+
+		try {
+			autoindex = Convert::ToLong(argv[2]);
+		} catch (const std::invalid_argument&) {
+			Log(LogCritical, "icinga-app")
+				<< "Invalid index for --autocomplete: " << argv[2];
+			return EXIT_FAILURE;
+		}
+
+		argc -= 3;
+		argv += 3;
+	}
+
+	Application::SetStartTime(Utility::GetTime());
+
+	/* Set thread title. */
+	Utility::SetThreadName("Main Thread", false);
+
+	/* Install exception handlers to make debugging easier. */
+	Application::InstallExceptionHandlers();
+#ifdef _WIN32
+	String binaryPrefix = Utility::GetIcingaInstallPath();
+	String dataPrefix = Utility::GetIcingaDataPath();
+
+	if (!binaryPrefix.IsEmpty() && !dataPrefix.IsEmpty()) {
+		Application::DeclarePrefixDir(binaryPrefix);
+		Application::DeclareSysconfDir(dataPrefix + "\\etc");
+		Application::DeclareRunDir(dataPrefix + "\\var\\run");
+		Application::DeclareLocalStateDir(dataPrefix + "\\var");
+		Application::DeclarePkgDataDir(binaryPrefix + "\\share\\icinga2");
+		Application::DeclareIncludeConfDir(binaryPrefix + "\\share\\icinga2\\include");
+	} else {
+		Log(LogWarning, "icinga-app", "Registry key could not be read. Falling back to built-in paths.");
+
+#endif /* _WIN32 */
+		Application::DeclarePrefixDir(ICINGA_PREFIX);
+		Application::DeclareSysconfigFile(ICINGA_SYSCONFIGFILE);
+		Application::DeclareSysconfDir(ICINGA_SYSCONFDIR);
+		Application::DeclareRunDir(ICINGA_RUNDIR);
+		Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
+		Application::DeclarePkgDataDir(ICINGA_PKGDATADIR);
+		Application::DeclareIncludeConfDir(ICINGA_INCLUDECONFDIR);
+#ifdef _WIN32
+	}
+#endif /* _WIN32 */
+
+
+	/* Only read and set ressource limits hwen we are not called for autocompletetion.
+	 * SetEnvironment only returns 0 on success or EXIT_FAILURE on failure */
+	if (!autocomplete) {
+		if (SetEnvironment())
+			return EXIT_FAILURE;
 		Application::SetResourceLimits();
+	}
 
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
