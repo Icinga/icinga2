@@ -631,7 +631,12 @@ wizard_global_zone_loop_start:
 			<< "Disable the inclusion of the conf.d directory...\n"
 			<< ConsoleColorTag(Console_Normal);
 
-		NodeUtility::UpdateConfiguration("\"conf.d\"", false, true);
+		if(!NodeUtility::UpdateConfiguration("\"conf.d\"", false, true)) {
+			std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundRed)
+				<< "Failed to disable conf.d inclusion, it may already be disabled."
+				<< ConsoleColorTag(Console_Normal);
+		}
+
 	}
 
 	return 0;

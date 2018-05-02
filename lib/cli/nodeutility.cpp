@@ -270,8 +270,9 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
  * include = true, will add an include statement or uncomment a statement if one is existing
  * resursive = false, will search for a non-resursive include statement
  * recursive = true, will search for a resursive include statement
+ * Returns true on success, false if option was not found
  */
-void NodeUtility::UpdateConfiguration(const String& value, const bool& include, const bool& recursive)
+bool NodeUtility::UpdateConfiguration(const String& value, const bool& include, const bool& recursive)
 {
 	String configurationFile = Application::GetSysconfDir() + "/icinga2/icinga2.conf";
 
@@ -331,6 +332,8 @@ void NodeUtility::UpdateConfiguration(const String& value, const bool& include, 
 			<< boost::errinfo_errno(errno)
 			<< boost::errinfo_file_name(configurationFile));
 	}
+
+	return (found || include);
 }
 
 void NodeUtility::UpdateConstant(const String& name, const String& value)
