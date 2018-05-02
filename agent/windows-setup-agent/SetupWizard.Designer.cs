@@ -87,6 +87,7 @@
 			this.txtError = new System.Windows.Forms.TextBox();
 			this.lblError = new System.Windows.Forms.Label();
 			this.picBanner = new System.Windows.Forms.PictureBox();
+			this.chkDisableConf = new System.Windows.Forms.CheckBox();
 			this.tabFinish.SuspendLayout();
 			this.tabConfigure.SuspendLayout();
 			this.tabParameters.SuspendLayout();
@@ -105,7 +106,7 @@
 			// btnBack
 			// 
 			this.btnBack.Enabled = false;
-			this.btnBack.Location = new System.Drawing.Point(376, 556);
+			this.btnBack.Location = new System.Drawing.Point(376, 587);
 			this.btnBack.Name = "btnBack";
 			this.btnBack.Size = new System.Drawing.Size(75, 23);
 			this.btnBack.TabIndex = 1;
@@ -115,7 +116,7 @@
 			// 
 			// btnNext
 			// 
-			this.btnNext.Location = new System.Drawing.Point(457, 556);
+			this.btnNext.Location = new System.Drawing.Point(457, 587);
 			this.btnNext.Name = "btnNext";
 			this.btnNext.Size = new System.Drawing.Size(75, 23);
 			this.btnNext.TabIndex = 2;
@@ -126,7 +127,7 @@
 			// btnCancel
 			// 
 			this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.btnCancel.Location = new System.Drawing.Point(538, 556);
+			this.btnCancel.Location = new System.Drawing.Point(538, 587);
 			this.btnCancel.Name = "btnCancel";
 			this.btnCancel.Size = new System.Drawing.Size(75, 23);
 			this.btnCancel.TabIndex = 3;
@@ -196,7 +197,7 @@
 			this.tabParameters.Location = new System.Drawing.Point(4, 5);
 			this.tabParameters.Name = "tabParameters";
 			this.tabParameters.Padding = new System.Windows.Forms.Padding(3);
-			this.tabParameters.Size = new System.Drawing.Size(617, 471);
+			this.tabParameters.Size = new System.Drawing.Size(617, 495);
 			this.tabParameters.TabIndex = 3;
 			this.tabParameters.Text = "Agent Parameters";
 			this.tabParameters.UseVisualStyleBackColor = true;
@@ -275,6 +276,7 @@
 			// 
 			// groupBox3
 			// 
+			this.groupBox3.Controls.Add(this.chkDisableConf);
 			this.groupBox3.Controls.Add(this.txtUser);
 			this.groupBox3.Controls.Add(this.chkRunServiceAsThisUser);
 			this.groupBox3.Controls.Add(this.chkInstallNSCP);
@@ -282,7 +284,7 @@
 			this.groupBox3.Controls.Add(this.chkAcceptCommands);
 			this.groupBox3.Location = new System.Drawing.Point(308, 326);
 			this.groupBox3.Name = "groupBox3";
-			this.groupBox3.Size = new System.Drawing.Size(301, 139);
+			this.groupBox3.Size = new System.Drawing.Size(301, 163);
 			this.groupBox3.TabIndex = 5;
 			this.groupBox3.TabStop = false;
 			this.groupBox3.Text = "Advanced Options";
@@ -377,7 +379,7 @@
 			this.groupBox2.Controls.Add(this.rdoListener);
 			this.groupBox2.Location = new System.Drawing.Point(8, 326);
 			this.groupBox2.Name = "groupBox2";
-			this.groupBox2.Size = new System.Drawing.Size(298, 139);
+			this.groupBox2.Size = new System.Drawing.Size(298, 163);
 			this.groupBox2.TabIndex = 2;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "TCP Listener";
@@ -513,7 +515,7 @@
 			this.tbcPages.Margin = new System.Windows.Forms.Padding(0);
 			this.tbcPages.Name = "tbcPages";
 			this.tbcPages.SelectedIndex = 0;
-			this.tbcPages.Size = new System.Drawing.Size(625, 480);
+			this.tbcPages.Size = new System.Drawing.Size(625, 504);
 			this.tbcPages.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
 			this.tbcPages.TabIndex = 0;
 			this.tbcPages.SelectedIndexChanged += new System.EventHandler(this.tbcPages_SelectedIndexChanged);
@@ -691,13 +693,26 @@
 			this.picBanner.TabIndex = 1;
 			this.picBanner.TabStop = false;
 			// 
+			// chkDisableConf
+			// 
+			this.chkDisableConf.AutoSize = true;
+			this.chkDisableConf.Checked = true;
+			this.chkDisableConf.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.chkDisableConf.Location = new System.Drawing.Point(9, 137);
+			this.chkDisableConf.Name = "chkDisableConf";
+			this.chkDisableConf.Size = new System.Drawing.Size(138, 17);
+			this.chkDisableConf.TabIndex = 9;
+			this.chkDisableConf.Text = "Disable conf.d inclusion";
+			this.chkDisableConf.UseVisualStyleBackColor = true;
+			this.chkDisableConf.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+			// 
 			// SetupWizard
 			// 
 			this.AcceptButton = this.btnNext;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.btnCancel;
-			this.ClientSize = new System.Drawing.Size(625, 587);
+			this.ClientSize = new System.Drawing.Size(625, 622);
 			this.Controls.Add(this.btnCancel);
 			this.Controls.Add(this.btnNext);
 			this.Controls.Add(this.btnBack);
@@ -794,6 +809,7 @@
 		private System.Windows.Forms.Button btnAddGlobalZone;
 		private System.Windows.Forms.ListView lvwGlobalZones;
 		private System.Windows.Forms.ColumnHeader colGlobalZoneName;
+		private System.Windows.Forms.CheckBox chkDisableConf;
 	}
 }
 
