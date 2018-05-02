@@ -67,7 +67,7 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 		("accept-commands", "Accept commands from master")
 		("master", "Use setup for a master instance")
 		("global_zones", po::value<std::vector<std::string> >(), "The names of the additional global zones.")
-		("dont-disable-confd", "Disables the conf.d directory during the setup");
+		("disable-confd", "Disables the conf.d directory during the setup");
 
 	hiddenDesc.add_options()
 		("master_zone", po::value<std::string>(), "DEPRECATED: The name of the master zone")
@@ -245,7 +245,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	Log(LogInformation, "cli")
 		<< "Edit the api feature config file '" << apipath << "' and set a secure 'ticket_salt' attribute.";
 
-	if (!vm.count("dont-disable-confd")) {
+	if (vm.count("disable-confd")) {
 		/* Disable conf.d inclusion */
 		NodeUtility::UpdateConfiguration("\"conf.d\"", false, true);
 
@@ -570,7 +570,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 	}
 
-	if (!vm.count("dont-disable-confd")) {
+	if (vm.count("disable-confd")) {
 
 		/* Disable conf.d inclusion */
 		NodeUtility::UpdateConfiguration("\"conf.d\"", false, true);
