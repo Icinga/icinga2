@@ -183,8 +183,7 @@ std::vector<String> DaemonCommand::GetArgumentSuggestions(const String& argument
  */
 int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (!vm.count("validate"))
-		Logger::DisableTimestamp(false);
+	Logger::EnableTimestamp();
 
 	Log(LogInformation, "cli")
 		<< "Icinga application loader (version: " << Application::GetAppVersion()

@@ -173,9 +173,14 @@ LogSeverity Logger::GetConsoleLogSeverity()
 	return m_ConsoleLogSeverity;
 }
 
-void Logger::DisableTimestamp(bool disable)
+void Logger::DisableTimestamp()
 {
-	m_TimestampEnabled = !disable;
+	m_TimestampEnabled = false;
+}
+
+void Logger::EnableTimestamp()
+{
+	m_TimestampEnabled = true;
 }
 
 bool Logger::IsTimestampEnabled()
