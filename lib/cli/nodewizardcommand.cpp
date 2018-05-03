@@ -633,7 +633,7 @@ wizard_global_zone_loop_start:
 
 		if(!NodeUtility::UpdateConfiguration("\"conf.d\"", false, true)) {
 			std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundRed)
-				<< "Failed to disable conf.d inclusion, it may already be disabled."
+				<< "Failed to disable conf.d inclusion, it may already be disabled.\n"
 				<< ConsoleColorTag(Console_Normal);
 		}
 
@@ -840,7 +840,11 @@ wizard_global_zone_loop_start:
 			<< "Disable the inclusion of the conf.d directory...\n"
 			<< ConsoleColorTag(Console_Normal);
 
-		NodeUtility::UpdateConfiguration("\"conf.d\"", false, true);
+		if (!NodeUtility::UpdateConfiguration("\"conf.d\"", false, true)) {
+			std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundRed)
+				<< "Failed to disable conf.d inclusion, it may already be disabled.\n"
+				<< ConsoleColorTag(Console_Normal);
+		}
 
 		/* Include api-users.conf */
 		String apiUsersFilePath = Application::GetSysconfDir() + "/icinga2/conf.d/api-users.conf";
