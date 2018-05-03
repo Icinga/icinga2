@@ -94,15 +94,14 @@ done
 
 shift $((OPTIND - 1))
 
-## Check required parameters (TODO: better error message)
 ## Keep formatting in sync with mail-host-notification.sh
-if [ ! "$LONGDATETIME" ] \
-|| [ ! "$HOSTNAME" ] || [ ! "$HOSTDISPLAYNAME" ] \
-|| [ ! "$SERVICENAME" ] || [ ! "$SERVICEDISPLAYNAME" ] \
-|| [ ! "$SERVICEOUTPUT" ] || [ ! "$SERVICESTATE" ] \
-|| [ ! "$USEREMAIL" ] || [ ! "$NOTIFICATIONTYPE" ]; then
-  Error "Requirement parameters are missing."
-fi
+for P in LONGDATETIME HOSTNAME HOSTDISPLAYNAME SERVICENAME SERVICEDISPLAYNAME SERVICEOUTPUT SERVICESTATE USEREMAIL NOTIFICATIONTYPE ; do
+        eval "PAR=\$${P}"
+
+        if [ ! "$PAR" ] ; then
+                Error "Required parameter '$P' is missing."
+        fi
+done
 
 ## Build the message's subject
 SUBJECT="[$NOTIFICATIONTYPE] $SERVICEDISPLAYNAME on $HOSTDISPLAYNAME is $SERVICESTATE!"
