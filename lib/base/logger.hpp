@@ -84,7 +84,8 @@ public:
 	static void DisableConsoleLog();
 	static void EnableConsoleLog();
 	static bool IsConsoleLogEnabled();
-	static void DisableTimestamp(bool);
+	static void DisableTimestamp();
+	static void EnableTimestamp();
 	static bool IsTimestampEnabled();
 
 	static void SetConsoleLogSeverity(LogSeverity logSeverity);
