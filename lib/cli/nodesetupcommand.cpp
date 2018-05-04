@@ -247,7 +247,12 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 
 	if (vm.count("disable-confd")) {
 		/* Disable conf.d inclusion */
-		NodeUtility::UpdateConfiguration("\"conf.d\"", false, true);
+		if (NodeUtility::UpdateConfiguration("\"conf.d\"", false, true))
+			Log(LogInformation, "cli")
+				<< "Disabled conf.d inclusion";
+		else
+			Log(LogWarning, "cli")
+				<< "Tried to disable conf.d inclusion but failed, possibly it's already disabled.";
 
 		String apiUsersFilePath = Application::GetSysconfDir() + "/icinga2/conf.d/api-users.conf";
 		std::ifstream apiUsersFile(apiUsersFilePath);

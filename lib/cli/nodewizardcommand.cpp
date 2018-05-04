@@ -628,7 +628,7 @@ wizard_global_zone_loop_start:
 			<< "The deactivation of the conf.d directory was skipped.";
 	else {
 		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
-			<< "Disable the inclusion of the conf.d directory...\n"
+			<< "Disabling the inclusion of the conf.d directory...\n"
 			<< ConsoleColorTag(Console_Normal);
 
 		if(!NodeUtility::UpdateConfiguration("\"conf.d\"", false, true)) {
@@ -814,9 +814,7 @@ wizard_global_zone_loop_start:
 
 	Log(LogInformation, "cli", "Updating constants.conf.");
 	
-	String constants_file = Application::GetSysconfDir() + "/icinga2/constants.conf";
-
-	NodeUtility::CreateBackupFile(constants_file);
+	NodeUtility::CreateBackupFile(NodeUtility::GetConstantsConfPath());
 
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", cn);
