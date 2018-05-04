@@ -26,6 +26,8 @@ namespace icinga
 
 class SyslogLogger : Logger
 {
+	activation_priority -100;
+
 	[config] String facility {
 		default {{{ return "LOG_USER"; }}}
 	};

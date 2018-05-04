@@ -26,6 +26,8 @@ namespace icinga
 
 class InfluxdbWriter : ConfigObject
 {
+	activation_priority 100;
+
 	[config, required] String host {
 		default {{{ return "127.0.0.1"; }}}
 	};

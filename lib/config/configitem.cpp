@@ -602,18 +602,35 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 	if (!silent)
 		Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
 
-	for (const ConfigItem::Ptr& item : newItems) {
-		if (!item->m_Object)
-			continue;
+	/* Activate objects in priority order. */
+	std::vector<Type::Ptr> types = Type::GetAllTypes();
 
-		ConfigObject::Ptr object = item->m_Object;
+	std::sort(types.begin(), types.end(), [](const Type::Ptr& a, const Type::Ptr& b) {
+		if (a->GetActivationPriority() < b->GetActivationPriority())
+			return true;
+		return false;
+	});
+
+	for (const Type::Ptr& type : types) {
+		for (const ConfigItem::Ptr& item : newItems) {
+			if (!item->m_Object)
+				continue;
+
+			ConfigObject::Ptr object = item->m_Object;
+			Type::Ptr objectType = object->GetReflectionType();
+
+			if (objectType != type)
+				continue;
 
 #ifdef I2_DEBUG
-		Log(LogDebug, "ConfigItem")
-			<< "Activating object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
+			Log(LogDebug, "ConfigItem")
+				<< "Activating object '" << object->GetName() << "' of type '"
+				<< objectType->GetName() << "' with priority '"
+				<< objectType->GetActivationPriority();
 #endif /* I2_DEBUG */
 
-		object->Activate(runtimeCreated);
+			object->Activate(runtimeCreated);
+		}
 	}
 
 	upq.Join();

@@ -27,6 +27,8 @@ namespace icinga
 
 class CheckResultReader : ConfigObject
 {
+	activation_priority 100;
+
 	[config] String spool_dir {
 		default {{{ return Application::GetLocalStateDir() + "/lib/icinga2/spool/checkresults/"; }}}
 	};

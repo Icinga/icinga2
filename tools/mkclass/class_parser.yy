@@ -61,6 +61,7 @@ using namespace icinga;
 %token T_CLASS "class (T_CLASS)"
 %token T_CODE "code (T_CODE)"
 %token T_LOAD_AFTER "load_after (T_LOAD_AFTER)"
+%token T_ACTIVATION_PRIORITY "activation_priority (T_ACTIVATION_PRIORITY)"
 %token T_LIBRARY "library (T_LIBRARY)"
 %token T_NAMESPACE "namespace (T_NAMESPACE)"
 %token T_VALIDATOR "validator (T_VALIDATOR)"
@@ -77,6 +78,7 @@ using namespace icinga;
 %token T_SET "set (T_SET)"
 %token T_DEFAULT "default (T_DEFAULT)"
 %token T_FIELD_ACCESSOR_TYPE "field_accessor_type (T_FIELD_ACCESSOR_TYPE)"
+%token T_NUMBER "number (T_NUMBER)"
 %type <text> T_IDENTIFIER
 %type <text> T_STRING
 %type <text> T_ANGLE_STRING
@@ -106,6 +108,7 @@ using namespace icinga;
 %type <rule> validator_rule
 %type <rules> validator_rules
 %type <validator> validator
+%type <num> T_NUMBER
 
 %{
 
@@ -250,6 +253,8 @@ class: class_attribute_list T_CLASS T_IDENTIFIER inherits_specifier type_base_sp
 		for (const Field& field : *$7) {
 			if (field.Attributes & FALoadDependency) {
 				$$->LoadDependencies.push_back(field.Name);
+			} else if (field.Attributes & FAActivationPriority) {
+				$$->ActivationPriority = field.Priority;
 			} else
 				$$->Fields.push_back(field);
 		}
@@ -378,6 +383,13 @@ class_field: field_attribute_list field_type identifier alternative_name_specifi
 		field->Attributes = FALoadDependency;
 		field->Name = $2;
 		std::free($2);
+		$$ = field;
+	}
+	| T_ACTIVATION_PRIORITY T_NUMBER ';'
+	{
+		auto *field = new Field();
+		field->Attributes = FAActivationPriority;
+		field->Priority = $2;
 		$$ = field;
 	}
 	;
