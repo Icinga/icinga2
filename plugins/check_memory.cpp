@@ -203,8 +203,8 @@ static int check_memory(printInfoStruct& printInfo)
 	memBuf.dwLength = sizeof(memBuf);
 	GlobalMemoryStatusEx(&memBuf);
 
-	printInfo.tRam = round(memBuf.ullTotalPhys / pow(1024.0, printInfo.unit));
-	printInfo.aRam = round(memBuf.ullAvailPhys / pow(1024.0, printInfo.unit));
+	printInfo.tRam = round((memBuf.ullTotalPhys / pow(1024.0, printInfo.unit) * pow(10.0, printInfo.unit))) / pow(10.0, printInfo.unit);
+	printInfo.aRam = round((memBuf.ullAvailPhys / pow(1024.0, printInfo.unit) * pow(10.0, printInfo.unit))) / pow(10.0, printInfo.unit);
 	printInfo.percentFree = 100.0 * memBuf.ullAvailPhys / memBuf.ullTotalPhys;
 
 	if (l_Debug)
