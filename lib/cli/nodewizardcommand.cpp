@@ -104,7 +104,8 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	 * 9. enable ApiListener feature
 	 * 10. generate zones.conf with endpoints and zone objects
 	 * 11. set NodeName = cn in constants.conf
-	 * 12. reload icinga2, or tell the user to
+	 * 12. disable conf.d directory?
+	 * 13. reload icinga2, or tell the user to
 	 */
 
 	std::string answer;
@@ -526,6 +527,7 @@ wizard_ticket:
 	/* Global zones. */
 	std::vector<String> globalZones { "global-templates", "director-global" };
 
+	std::cout << "\nDefault global zones: " << boost::algorithm::join(globalZones, " ");
 	std::cout << "\nDo you want to specify additional global zones? [y/N]: ";
 
 	std::getline(std::cin, answer);
@@ -615,6 +617,32 @@ wizard_global_zone_loop_start:
 		Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 	}
 
+	/* Disable conf.d inclusion */
+	std::cout << "\nDo you want to disable the inclusion of the conf.d directory [Y/n]: ";
+
+	std::getline(std::cin, answer);
+	boost::algorithm::to_lower(answer);
+	choice = answer;
+
+	if (choice.Contains("n"))
+		Log(LogInformation, "cli")
+			<< "conf.d directory has not been disabled.";
+	else {
+		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
+			<< "Disabling the inclusion of the conf.d directory...\n"
+			<< ConsoleColorTag(Console_Normal);
+
+		if (!NodeUtility::UpdateConfiguration("\"conf.d\"", false, true)) {
+			std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundRed)
+				<< "Failed to disable the conf.d inclusion, it may already have been disabled.\n"
+				<< ConsoleColorTag(Console_Normal);
+		}
+
+		/* Satellite/Clients should not include the api-users.conf file.
+		 * The configuration should instead be managed via config sync or automation tools.
+		 */
+	}
+
 	return 0;
 }
 
@@ -683,6 +711,7 @@ int NodeWizardCommand::MasterSetup() const
 	/* Global zones. */
 	std::vector<String> globalZones { "global-templates", "director-global" };
 
+	std::cout << "\nDefault global zones: " << boost::algorithm::join(globalZones, " ");
 	std::cout << "\nDo you want to specify additional global zones? [y/N]: ";
 
 	std::getline(std::cin, answer);
@@ -788,12 +817,52 @@ wizard_global_zone_loop_start:
 			<< Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
 	}
 
+	Log(LogInformation, "cli", "Updating constants.conf.");
+
+	NodeUtility::CreateBackupFile(NodeUtility::GetConstantsConfPath());
+
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", cn);
 
 	String salt = RandomString(16);
 
 	NodeUtility::UpdateConstant("TicketSalt", salt);
+
+	/* Disable conf.d inclusion */
+	std::cout << "\nDo you want to disable the inclusion of the conf.d directory [Y/n]: ";
+
+	std::getline(std::cin, answer);
+	boost::algorithm::to_lower(answer);
+	choice = answer;
+
+	if (choice.Contains("n"))
+		Log(LogInformation, "cli")
+			<< "conf.d directory has not been disabled.";
+	else {
+		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
+			<< "Disabling the inclusion of the conf.d directory...\n"
+			<< ConsoleColorTag(Console_Normal);
+
+		if (!NodeUtility::UpdateConfiguration("\"conf.d\"", false, true)) {
+			std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundRed)
+				<< "Failed to disable the conf.d inclusion, it may already have been disabled.\n"
+				<< ConsoleColorTag(Console_Normal);
+		}
+
+		/* Include api-users.conf */
+		String apiUsersFilePath = Application::GetSysconfDir() + "/icinga2/conf.d/api-users.conf";
+
+		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
+			<< "Checking if the api-users.conf file exists...\n"
+			<< ConsoleColorTag(Console_Normal);
+
+		if (Utility::PathExists(apiUsersFilePath)) {
+			NodeUtility::UpdateConfiguration("\"conf.d/api-users.conf\"", true, false);
+		} else {
+			Log(LogWarning, "cli")
+				<< "Included file '" << apiUsersFilePath << "' does not exist.";
+		}
+	}
 
 	return 0;
 }

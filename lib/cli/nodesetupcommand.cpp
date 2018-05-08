@@ -66,7 +66,8 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 		("accept-config", "Accept config from master")
 		("accept-commands", "Accept commands from master")
 		("master", "Use setup for a master instance")
-		("global_zones", po::value<std::vector<std::string> >(), "The names of the additional global zones.");
+		("global_zones", po::value<std::vector<std::string> >(), "The names of the additional global zones to 'global-templates' and 'director-global'.")
+		("disable-confd", "Disables the conf.d directory during the setup");
 
 	hiddenDesc.add_options()
 		("master_zone", po::value<std::string>(), "DEPRECATED: The name of the master zone")
@@ -244,8 +245,28 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	Log(LogInformation, "cli")
 		<< "Edit the api feature config file '" << apipath << "' and set a secure 'ticket_salt' attribute.";
 
-	/* tell the user to reload icinga2 */
+	if (vm.count("disable-confd")) {
+		/* Disable conf.d inclusion */
+		if (NodeUtility::UpdateConfiguration("\"conf.d\"", false, true)) {
+			Log(LogInformation, "cli")
+				<< "Disabled conf.d inclusion";
+		} else {
+			Log(LogWarning, "cli")
+				<< "Tried to disable conf.d inclusion but failed, possibly it's already disabled.";
+		}
 
+		/* Include api-users.conf */
+		String apiUsersFilePath = ApiSetupUtility::GetApiUsersConfPath();
+
+		if (Utility::PathExists(apiUsersFilePath)) {
+			NodeUtility::UpdateConfiguration("\"conf.d/api-users.conf\"", true, false);
+		} else {
+			Log(LogWarning, "cli")
+				<< "Included file dosen't exist " << apiUsersFilePath;
+		}
+	}
+
+	/* tell the user to reload icinga2 */
 	Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 
 	return 0;
@@ -554,6 +575,14 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	} else {
 		Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 	}
+
+	if (vm.count("disable-confd")) {
+		/* Disable conf.d inclusion */
+		NodeUtility::UpdateConfiguration("\"conf.d\"", false, true);
+	}
+
+	/* tell the user to reload icinga2 */
+	Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 
 	return 0;
 }

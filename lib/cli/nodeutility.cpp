@@ -265,6 +265,89 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
 	fp << "}\n\n";
 }
 
+/*
+ * include = false, will comment out the include statement
+ * include = true, will add an include statement or uncomment a statement if one is existing
+ * resursive = false, will search for a non-resursive include statement
+ * recursive = true, will search for a resursive include statement
+ * Returns true on success, false if option was not found
+ */
+bool NodeUtility::UpdateConfiguration(const String& value, bool include, bool recursive)
+{
+	String configurationFile = Application::GetSysconfDir() + "/icinga2/icinga2.conf";
+
+	Log(LogInformation, "cli")
+		<< "Updating ' " << value << "' include in '" << configurationFile << "'.";
+
+	NodeUtility::CreateBackupFile(configurationFile);
+
+	std::ifstream ifp(configurationFile.CStr());
+	std::fstream ofp;
+	String tempFile = Utility::CreateTempFile(configurationFile + ".XXXXXX", 0644, ofp);
+
+	String affectedInclude = value;
+
+	if (recursive)
+		affectedInclude = "include_recursive " + affectedInclude;
+	else
+		affectedInclude = "include " + affectedInclude;
+
+	bool found = false;
+
+	std::string line;
+
+	while (std::getline(ifp, line)) {
+		if (include) {
+			if (line.find("//" + affectedInclude) != std::string::npos || line.find("// " + affectedInclude) != std::string::npos) {
+				found = true;
+				ofp << "// Added by the node setup CLI command on "
+					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime())
+					<< "\n" + affectedInclude + "\n";
+			} else if (line.find(affectedInclude) != std::string::npos) {
+				found = true;
+
+				Log(LogInformation, "cli")
+					<< "Include statement '" + affectedInclude + "' already set.";
+
+				ofp << line << "\n";
+			} else {
+				ofp << line << "\n";
+			}
+		} else {
+			if (line.find(affectedInclude) != std::string::npos) {
+				found = true;
+				ofp << "// Disabled by the node setup CLI command on "
+					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime())
+					<< "\n// " + affectedInclude + "\n";
+			} else {
+				ofp << line << "\n";
+			}
+		}
+	}
+
+	if (include && !found) {
+		ofp << "// Added by the node setup CLI command on "
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime())
+			<< "\n" + affectedInclude + "\n";
+	}
+
+	ifp.close();
+	ofp.close();
+
+#ifdef _WIN32
+	_unlink(configurationFile.CStr());
+#endif /* _WIN32 */
+
+	if (rename(tempFile.CStr(), configurationFile.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(configurationFile));
+	}
+
+	return (found || include);
+}
+
 void NodeUtility::UpdateConstant(const String& name, const String& value)
 {
 	String constantsConfPath = NodeUtility::GetConstantsConfPath();

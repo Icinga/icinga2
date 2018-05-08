@@ -229,6 +229,9 @@ namespace Icinga
 				args += " --global_zones " + lvi.SubItems[0].Text.Trim();
 			}
 
+			if (chkDisableConf.Checked)
+				args += " --disable-confd";
+
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"node setup" + args,
 				out output)) {
@@ -567,6 +570,11 @@ namespace Icinga
 			lvi2.Text = gzib.txtGlobalZoneName.Text;
 			
 			lvwGlobalZones.Items.Add(lvi2);
+		}
+
+		private void checkBox1_CheckedChanged(object sender, EventArgs e)
+		{
+
 		}
 	}
 }

@@ -45,6 +45,7 @@ public:
 	static bool SetupMasterUpdateConstants(const String& cn);
 
 	static String GetConfdPath();
+	static String GetApiUsersConfPath();
 
 private:
 	ApiSetupUtility();

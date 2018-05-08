@@ -205,6 +205,7 @@ ensure to collect the required information:
   Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`. Defaults to `n`.
   API bind host       | **Optional.** Allows to specify the address the ApiListener is bound to. For advanced usage only.
   API bind port       | **Optional.** Allows to specify the port the ApiListener is bound to. For advanced usage only (requires changing the default port 5665 everywhere).
+  Disable conf.d      | **Optional.** Allows to disable the `include_recursive "conf.d"` directive except for the `api-users.conf` file in the `icinga2.conf` file. Defaults to `y`. Configuration on the master is discussed below.
 
 The setup wizard will ensure that the following steps are taken:
 
@@ -213,6 +214,7 @@ The setup wizard will ensure that the following steps are taken:
 * Create a certificate for this node signed by the CA key.
 * Update the [zones.conf](04-configuring-icinga-2.md#zones-conf) file with the new zone hierarchy.
 * Update the [ApiListener](06-distributed-monitoring.md#distributed-monitoring-apilistener) and [constants](04-configuring-icinga-2.md#constants-conf) configuration.
+* Update the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) to disable the `conf.d` inclusion, and add the `api-users.conf` file inclusion.
 
 Here is an example of a master setup for the `icinga2-master1.localdomain` node on CentOS 7:
 
@@ -236,10 +238,16 @@ Enabling feature api. Make sure to restart Icinga 2 for these changes to take ef
 
 Master zone name [master]:
 
+Default global zones: global-templates director-global
 Do you want to specify additional global zones? [y/N]: N
+
 Please specify the API bind host/port (optional):
 Bind Host []:
 Bind Port []:
+
+Do you want to disable the inclusion of the conf.d directory [Y/n]:
+Disabling the inclusion of the conf.d directory...
+Checking if the api-users.conf file exists...
 
 Done.
 
@@ -335,7 +343,7 @@ object with at least the `actions/generate-ticket` permission.
 Retrieve the ticket on the master node `icinga2-master1.localdomain` with `curl`, for example:
 
      [root@icinga2-master1.localdomain /]# curl -k -s -u client-pki-ticket:bea11beb7b810ea9ce6ea -H 'Accept: application/json' \
-     -X POST 'https://icinga2-master1.localdomain:5665/v1/actions/generate-ticket' -d '{ "cn": "icinga2-client1.localdomain" }'
+     -X POST 'https://localhost:5665/v1/actions/generate-ticket' -d '{ "cn": "icinga2-client1.localdomain" }'
 
 Store that ticket number for the satellite/client setup below.
 
@@ -548,8 +556,19 @@ Press `Enter` or choose `n`, if you don't want to add any additional.
 ```
 Reconfiguring Icinga...
 
+Default global zones: global-templates director-global
 Do you want to specify additional global zones? [y/N]: N
 ```
+
+Last but not least the wizard asks you whether you want to disable the inclusion of the local configuration
+directory in `conf.d`, or not. Defaults to disabled, as clients either are checked via command endpoint, or
+they receive configuration synced from the parent zone.
+
+```
+Do you want to disable the inclusion of the conf.d directory [Y/n]: Y
+Disabling the inclusion of the conf.d directory...
+```
+
 
 The wizard proceeds and you are good to go.
 
@@ -592,6 +611,7 @@ Here is an overview of all parameters in detail:
   Local zone name     | **Optional.** Allows to specify the name for the local zone. This comes in handy when this instance is a satellite, not a client. Defaults to the FQDN.
   Parent zone name    | **Optional.** Allows to specify the name for the parent zone. This is important if the client has a satellite instance as parent, not the master. Defaults to `master`.
   Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`. Defaults to `n`.
+  Disable conf.d      | **Optional.** Allows to disable the inclusion of the `conf.d` directory which holds local example configuration. Clients should retrieve their configuration from the parent node, or act as command endpoint execution bridge. Defaults to `y`.
 
 The setup wizard will ensure that the following steps are taken:
 
@@ -602,7 +622,7 @@ The setup wizard will ensure that the following steps are taken:
 * Store the signed client certificate and ca.crt in `/var/lib/icinga2/certs`.
 * Update the `zones.conf` file with the new zone hierarchy.
 * Update `/etc/icinga2/features-enabled/api.conf` (`accept_config`, `accept_commands`) and `constants.conf`.
-
+* Update `/etc/icinga2/icinga2.conf` and comment out `include_recursive "conf.d"`.
 
 You can verify that the certificate files are stored in the `/var/lib/icinga2/certs` directory.
 
@@ -779,11 +799,15 @@ Add a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-z
 for syncing check commands later. Navigate to `C:\ProgramData\icinga2\etc\icinga2` and open
 the `zones.conf` file in your preferred editor. Add the following lines if not existing already:
 
-    object Zone "global-templates" {
-      global = true
-    }
+```
+object Zone "global-templates" {
+  global = true
+}
+```
 
-Note: Packages >= 2.8 provide this configuration by default.
+> **Note:**
+>
+> Packages >= 2.8 provide this configuration by default.
 
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
@@ -793,14 +817,23 @@ Navigate to `C:\ProgramData\icinga2\etc\icinga2` and open
 the `icinga2.conf` file in your preferred editor. Remove or comment (`//`)
 the following line:
 
-    // Commented out, not required on a client with top down mode
-    //include_recursive "conf.d"
+```
+// Commented out, not required on a client with top down mode
+//include_recursive "conf.d"
+```
+
+> **Note**
+>
+> Packages >= 2.9 provide an option in the setup wizard to disable this.
+> Defaults to disabled.
 
 Validate the configuration on Windows open an administrator terminal
 and run the following command:
 
-    C:\WINDOWS\system32>cd "C:\Program Files\ICINGA2\sbin"
-    C:\Program Files\ICINGA2\sbin>icinga2.exe daemon -C
+```
+C:\WINDOWS\system32>cd "C:\Program Files\ICINGA2\sbin"
+C:\Program Files\ICINGA2\sbin>icinga2.exe daemon -C
+```
 
 **Note**: You have to run this command in a shell with `administrator` privileges.
 
@@ -918,23 +951,34 @@ The `master` zone is a parent of the `icinga2-client1.localdomain` zone:
 In addition, add a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
 for syncing check commands later:
 
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Zone "global-templates" {
-      global = true
-    }
+object Zone "global-templates" {
+  global = true
+}
+```
 
-Note: Packages >= 2.8 provide this configuration by default.
+> **Note:**
+>
+> Packages >= 2.8 provide this configuration by default.
 
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
 above. Therefore disable the inclusion of the `conf.d` directory
 in `/etc/icinga2/icinga2.conf`.
 
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/icinga2.conf
+```
+[root@icinga2-client1.localdomain /]# vim /etc/icinga2/icinga2.conf
 
-    // Commented out, not required on a client as command endpoint
-    //include_recursive "conf.d"
+// Commented out, not required on a client as command endpoint
+//include_recursive "conf.d"
+```
+
+> **Note**
+>
+> Packages >= 2.9 provide an option in the setup wizard to disable this.
+> Defaults to disabled.
 
 Edit the `api` feature on the client `icinga2-client1.localdomain` in
 the `/etc/icinga2/features-enabled/api.conf` file and make sure to set
@@ -2557,15 +2601,24 @@ be passed (defaults to the FQDN).
   Common name (CN)    | **Optional.** Specified with the `--cn` parameter. By convention this should be the host's FQDN. Defaults to the FQDN.
   Zone name           | **Optional.** Specified with the `--zone` parameter. Defaults to `master`.
   Listen on           | **Optional.** Specified with the `--listen` parameter. Syntax is `host,port`.
+  Disable conf.d      | **Optional.** Specified with the `disable-confd` parameter. If provided, this disables the `include_recursive "conf.d"` directive and adds the `api-users.conf` file inclusion to `icinga2.conf`. Available since v2.9+. Not set by default for compatibility reasons with Puppet, Ansible, Chef, etc.
 
 Example:
 
-    [root@icinga2-master1.localdomain /]# icinga2 node setup --master
+```
+[root@icinga2-master1.localdomain /]# icinga2 node setup --master
+```
 
 In case you want to bind the `ApiListener` object to a specific
 host/port you can specify it like this:
 
     --listen 192.68.56.101,5665
+
+In case you don't need anything in `conf.d`, use the following command line:
+
+```
+[root@icinga2-master1.localdomain /]# icinga2 node setup --master --disable-confd
+```
 
 
 #### Node Setup with Satellites/Clients <a id="distributed-monitoring-automation-cli-node-setup-satellite-client"></a>
@@ -2631,6 +2684,7 @@ Pass the following details to the `node setup` CLI command:
   Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)).
   Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
   Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`.
+  Disable conf.d      | **Optional.** Specified with the `disable-confd` parameter. If provided, this disables the `include_recursive "conf.d"` directive in `icinga2.conf`. Available since v2.9+. Not set by default for compatibility reasons with Puppet, Ansible, Chef, etc.
 
 > **Note**
 >
@@ -2638,14 +2692,17 @@ Pass the following details to the `node setup` CLI command:
 
 Example for Icinga 2 v2.9:
 
-    [root@icinga2-client1.localdomain /]# icinga2 node setup --ticket ead2d570e18c78abf285d6b85524970a0f69c22d \
-    --cn icinga2-client1.localdomain \
-    --endpoint icinga2-master1.localdomain \
-    --zone icinga2-client1.localdomain \
-    --parent_zone master \
-    --parent_host icinga2-master1.localdomain \
-    --trustedcert /var/lib/icinga2/certs/trusted-parent.crt \
-    --accept-commands --accept-config
+```
+[root@icinga2-client1.localdomain /]# icinga2 node setup --ticket ead2d570e18c78abf285d6b85524970a0f69c22d \
+--cn icinga2-client1.localdomain \
+--endpoint icinga2-master1.localdomain \
+--zone icinga2-client1.localdomain \
+--parent_zone master \
+--parent_host icinga2-master1.localdomain \
+--trustedcert /var/lib/icinga2/certs/trusted-parent.crt \
+--accept-commands --accept-config \
+--disable-confd
+```
 
 In case the client should connect to the master node, you'll
 need to modify the `--endpoint` parameter using the format `cn,host,port`:
