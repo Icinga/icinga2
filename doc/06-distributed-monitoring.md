@@ -236,7 +236,9 @@ Enabling feature api. Make sure to restart Icinga 2 for these changes to take ef
 
 Master zone name [master]:
 
+Default global zones: global-templates director-global
 Do you want to specify additional global zones? [y/N]: N
+
 Please specify the API bind host/port (optional):
 Bind Host []:
 Bind Port []:
@@ -548,6 +550,7 @@ Press `Enter` or choose `n`, if you don't want to add any additional.
 ```
 Reconfiguring Icinga...
 
+Default global zones: global-templates director-global
 Do you want to specify additional global zones? [y/N]: N
 ```
 

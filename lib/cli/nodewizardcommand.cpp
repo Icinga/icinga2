@@ -527,6 +527,7 @@ wizard_ticket:
 	/* Global zones. */
 	std::vector<String> globalZones { "global-templates", "director-global" };
 
+	std::cout << "\nDefault global zones: " << boost::algorithm::join(globalZones, " ");
 	std::cout << "\nDo you want to specify additional global zones? [y/N]: ";
 
 	std::getline(std::cin, answer);
@@ -625,18 +626,21 @@ wizard_global_zone_loop_start:
 
 	if (choice.Contains("n"))
 		Log(LogInformation, "cli")
-			<< "The deactivation of the conf.d directory was skipped.";
+			<< "conf.d directory has not been disabled.";
 	else {
 		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
 			<< "Disabling the inclusion of the conf.d directory...\n"
 			<< ConsoleColorTag(Console_Normal);
 
-		if(!NodeUtility::UpdateConfiguration("\"conf.d\"", false, true)) {
+		if (!NodeUtility::UpdateConfiguration("\"conf.d\"", false, true)) {
 			std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundRed)
-				<< "Failed to disable conf.d inclusion, it may already be disabled.\n"
+				<< "Failed to disable the conf.d inclusion, it may already have been disabled.\n"
 				<< ConsoleColorTag(Console_Normal);
 		}
 
+		/* Satellite/Clients should not include the api-users.conf file.
+		 * The configuration should instead be managed via config sync or automation tools.
+		 */
 	}
 
 	return 0;
@@ -707,6 +711,7 @@ int NodeWizardCommand::MasterSetup() const
 	/* Global zones. */
 	std::vector<String> globalZones { "global-templates", "director-global" };
 
+	std::cout << "\nDefault global zones: " << boost::algorithm::join(globalZones, " ");
 	std::cout << "\nDo you want to specify additional global zones? [y/N]: ";
 
 	std::getline(std::cin, answer);
@@ -813,7 +818,7 @@ wizard_global_zone_loop_start:
 	}
 
 	Log(LogInformation, "cli", "Updating constants.conf.");
-	
+
 	NodeUtility::CreateBackupFile(NodeUtility::GetConstantsConfPath());
 
 	NodeUtility::UpdateConstant("NodeName", cn);
@@ -832,34 +837,32 @@ wizard_global_zone_loop_start:
 
 	if (choice.Contains("n"))
 		Log(LogInformation, "cli")
-			<< "The deactivation of the conf.d directory was skipped.";
+			<< "conf.d directory has not been disabled.";
 	else {
 		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
-			<< "Disable the inclusion of the conf.d directory...\n"
+			<< "Disabling the inclusion of the conf.d directory...\n"
 			<< ConsoleColorTag(Console_Normal);
 
 		if (!NodeUtility::UpdateConfiguration("\"conf.d\"", false, true)) {
 			std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundRed)
-				<< "Failed to disable conf.d inclusion, it may already be disabled.\n"
+				<< "Failed to disable the conf.d inclusion, it may already have been disabled.\n"
 				<< ConsoleColorTag(Console_Normal);
 		}
 
 		/* Include api-users.conf */
 		String apiUsersFilePath = Application::GetSysconfDir() + "/icinga2/conf.d/api-users.conf";
-		std::ifstream apiUsersFile(apiUsersFilePath);
 
 		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
-			<< "Checking if api-users.conf exist...\n"
+			<< "Checking if the api-users.conf file exists...\n"
 			<< ConsoleColorTag(Console_Normal);
 
-				if(apiUsersFile)
-					NodeUtility::UpdateConfiguration("\"conf.d/api-users.conf\"", true, false);
-				else
-					Log(LogWarning, "cli")
-						<< "Included file dosen't exist " << apiUsersFilePath;
+		if (Utility::PathExists(apiUsersFilePath)) {
+			NodeUtility::UpdateConfiguration("\"conf.d/api-users.conf\"", true, false);
+		} else {
+			Log(LogWarning, "cli")
+				<< "Included file '" << apiUsersFilePath << "' does not exist.";
+		}
 	}
-
-	std::cout << "Done.\n\n";
 
 	return 0;
 }

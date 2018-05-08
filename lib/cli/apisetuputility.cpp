@@ -40,7 +40,12 @@ using namespace icinga;
 
 String ApiSetupUtility::GetConfdPath()
 {
-		return Application::GetSysconfDir() + "/icinga2/conf.d";
+	return Application::GetSysconfDir() + "/icinga2/conf.d";
+}
+
+String ApiSetupUtility::GetApiUsersConfPath()
+{
+	return ApiSetupUtility::GetConfdPath() + "/api-users.conf";
 }
 
 bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart)

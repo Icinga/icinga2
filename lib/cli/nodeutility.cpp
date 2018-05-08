@@ -272,12 +272,12 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
  * recursive = true, will search for a resursive include statement
  * Returns true on success, false if option was not found
  */
-bool NodeUtility::UpdateConfiguration(const String& value, const bool& include, const bool& recursive)
+bool NodeUtility::UpdateConfiguration(const String& value, bool include, bool recursive)
 {
 	String configurationFile = Application::GetSysconfDir() + "/icinga2/icinga2.conf";
 
 	Log(LogInformation, "cli")
-		<< "Updating' " << value << "' include in '" << configurationFile << "'.";
+		<< "Updating ' " << value << "' include in '" << configurationFile << "'.";
 
 	NodeUtility::CreateBackupFile(configurationFile);
 
@@ -287,37 +287,49 @@ bool NodeUtility::UpdateConfiguration(const String& value, const bool& include, 
 
 	String affectedInclude = value;
 
-	recursive ? affectedInclude = "include_recursive " + affectedInclude : affectedInclude = "include " + affectedInclude;
+	if (recursive)
+		affectedInclude = "include_recursive " + affectedInclude;
+	else
+		affectedInclude = "include " + affectedInclude;
 
 	bool found = false;
 
 	std::string line;
 
 	while (std::getline(ifp, line)) {
-		if(include) {
+		if (include) {
 			if (line.find("//" + affectedInclude) != std::string::npos || line.find("// " + affectedInclude) != std::string::npos) {
 				found = true;
-				ofp << affectedInclude + "\n";
+				ofp << "// Added by the node setup CLI command on "
+					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime())
+					<< "\n" + affectedInclude + "\n";
 			} else if (line.find(affectedInclude) != std::string::npos) {
 				found = true;
-				
+
 				Log(LogInformation, "cli")
 					<< "Include statement '" + affectedInclude + "' already set.";
-					
+
 				ofp << line << "\n";
-			} else
+			} else {
 				ofp << line << "\n";
+			}
 		} else {
 			if (line.find(affectedInclude) != std::string::npos) {
 				found = true;
-				ofp << "// " + affectedInclude + "\n";
-			} else
+				ofp << "// Disabled by the node setup CLI command on "
+					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime())
+					<< "\n// " + affectedInclude + "\n";
+			} else {
 				ofp << line << "\n";
+			}
 		}
 	}
 
-	if (include && !found)
-		ofp << affectedInclude + "\n";
+	if (include && !found) {
+		ofp << "// Added by the node setup CLI command on "
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime())
+			<< "\n" + affectedInclude + "\n";
+	}
 
 	ifp.close();
 	ofp.close();
