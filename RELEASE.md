@@ -29,6 +29,17 @@ Specify the release version.
 VERSION=2.8.3
 ```
 
+Add your signing key to your Git configuration file, if not already there.
+
+```
+vim $HOME/.gitconfig
+
+[user]
+        email = michael.friedrich@icinga.com
+        name = Michael Friedrich
+        signingkey = D14A1F16
+```
+
 ### Issues <a id="issues"></a>
 
 Check issues at https://github.com/Icinga/icinga2
@@ -87,12 +98,9 @@ git commit -v -a -m "Release version $VERSION"
 Create a signed tag (tags/v<VERSION>) on the `master` branch (for major
 releases) or the `support` branch (for minor releases).
 
-Developer        | Tag command
------------------|-----------------------
-@gunnarbeutner   | `git tag -u EE8E0720 -m "Version $VERSION" v$VERSION`
-@dnsmichi        | `git tag -u D14A1F16 -m "Version $VERSION" v$VERSION`
-@Crunsher        | `git tag -u 9E0B003C -m "Version $VERSION" v$VERSION`
-@N-o-X           | `git tag -u 630F89D9 -m "Version $VERSION" v$VERSION`
+```
+git tag -s -m "Version $VERSION" v$VERSION
+```
 
 Push the tag:
 
