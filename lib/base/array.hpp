@@ -112,6 +112,7 @@ public:
 
 	String ToString() const override;
 
+	Array::Ptr Unique() const;
 	void Freeze();
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;

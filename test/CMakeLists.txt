@@ -63,6 +63,7 @@ add_boost_test(base
     base_array/resize
     base_array/insert
     base_array/remove
+    base_array/unique
     base_array/foreach
     base_array/clone
     base_array/json

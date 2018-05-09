@@ -251,15 +251,7 @@ static Array::Ptr ArrayUnique()
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
-
-	std::set<Value> result;
-
-	ObjectLock olock(self);
-	for (const Value& item : self) {
-		result.insert(item);
-	}
-
-	return Array::FromSet(result);
+	return self->Unique();
 }
 
 static void ArrayFreeze()
