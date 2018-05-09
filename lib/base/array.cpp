@@ -305,6 +305,19 @@ String Array::ToString() const
 	return msgbuf.str();
 }
 
+Array::Ptr Array::Unique() const
+{
+	std::set<Value> result;
+
+	ObjectLock olock(this);
+
+	for (const Value& item : m_Data) {
+		result.insert(item);
+	}
+
+	return Array::FromSet(result);
+}
+
 void Array::Freeze()
 {
 	ObjectLock olock(this);

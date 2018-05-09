@@ -71,6 +71,14 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		}
 	}
 
+	/* Sanity checks for unique groups array. */
+	if (attrs->Contains("groups")) {
+		Array::Ptr groups = attrs->Get("groups");
+
+		if (groups)
+			attrs->Set("groups", groups->Unique());
+	}
+
 	Dictionary::Ptr result1 = new Dictionary();
 	String status;
 	Array::Ptr errors = new Array();
