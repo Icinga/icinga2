@@ -37,9 +37,9 @@ INITIALIZE_ONCE([]() {
 
 bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigItem::Ptr& group)
 {
-	String group_name = group->GetName();
+	String groupName = group->GetName();
 
-	CONTEXT("Evaluating rule for group '" + group_name + "'");
+	CONTEXT("Evaluating rule for group '" + groupName + "'");
 
 	Host::Ptr host = service->GetHost();
 
@@ -53,10 +53,12 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigI
 		return false;
 
 	Log(LogDebug, "ServiceGroup")
-		<< "Assigning membership for group '" << group_name << "' to service '" << service->GetName() << "'";
+		<< "Assigning membership for group '" << groupName << "' to service '" << service->GetName() << "'";
 
 	Array::Ptr groups = service->GetGroups();
-	groups->Add(group_name);
+
+	if (groups && !groups->Contains(groupName))
+		groups->Add(groupName);
 
 	return true;
 }

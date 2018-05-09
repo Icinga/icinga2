@@ -37,9 +37,9 @@ INITIALIZE_ONCE([]() {
 
 bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr& group)
 {
-	String group_name = group->GetName();
+	String groupName = group->GetName();
 
-	CONTEXT("Evaluating rule for group '" + group_name + "'");
+	CONTEXT("Evaluating rule for group '" + groupName + "'");
 
 	ScriptFrame frame(true);
 	if (group->GetScope())
@@ -50,10 +50,12 @@ bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr&
 		return false;
 
 	Log(LogDebug, "UserGroup")
-		<< "Assigning membership for group '" << group_name << "' to user '" << user->GetName() << "'";
+		<< "Assigning membership for group '" << groupName << "' to user '" << user->GetName() << "'";
 
 	Array::Ptr groups = user->GetGroups();
-	groups->Add(group_name);
+
+	if (groups && !groups->Contains(groupName))
+		groups->Add(groupName);
 
 	return true;
 }
