@@ -78,7 +78,7 @@ void StatusDataWriter::Start(bool runtimeCreated)
 		<< "'" << GetName() << "' started.";
 
 	Log(LogWarning, "StatusDataWriter")
-		<< "The StatusDataWriter feature is deprecated and will be removed with Icinga 2.10.0";
+		<< "The StatusDataWriter feature is DEPRECATED and will be removed in Icinga v2.10.";
 
 	m_ObjectsCacheOutdated = true;
 

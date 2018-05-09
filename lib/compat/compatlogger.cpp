@@ -63,6 +63,9 @@ void CompatLogger::Start(bool runtimeCreated)
 	Log(LogInformation, "CompatLogger")
 		<< "'" << GetName() << "' started.";
 
+	Log(LogWarning, "CompatLogger")
+		<< "The CompatLogger feature is DEPRECATED and will be removed in Icinga v2.10.";
+
 	Checkable::OnNewCheckResult.connect(std::bind(&CompatLogger::CheckResultHandler, this, _1, _2));
 	Checkable::OnNotificationSentToUser.connect(std::bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
 	Downtime::OnDowntimeTriggered.connect(std::bind(&CompatLogger::TriggerDowntimeHandler, this, _1));
