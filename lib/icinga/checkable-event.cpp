@@ -41,13 +41,20 @@ void Checkable::ExecuteEventHandler(const Dictionary::Ptr& resolvedMacros, bool 
 	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers() || !GetEnableEventHandler())
 		return;
 
+	/* HA enabled zones. */
+	if (IsActive() && IsPaused()) {
+		Log(LogNotice, "Checkable")
+			<< "Skipping event handler for HA-paused checkable '" << GetName() << "'";
+		return;
+	}
+
 	EventCommand::Ptr ec = GetEventCommand();
 
 	if (!ec)
 		return;
 
 	Log(LogNotice, "Checkable")
-		<< "Executing event handler '" << ec->GetName() << "' for service '" << GetName() << "'";
+		<< "Executing event handler '" << ec->GetName() << "' for checkable '" << GetName() << "'";
 
 	Dictionary::Ptr macros;
 	Endpoint::Ptr endpoint = GetCommandEndpoint();
