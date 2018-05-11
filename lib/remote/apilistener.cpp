@@ -506,7 +506,10 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		Dictionary::Ptr message = new Dictionary({
 			{ "jsonrpc", "2.0" },
 			{ "method", "icinga::Hello" },
-			{ "params", new Dictionary() }
+			{ "params", new Dictionary({
+					{ "ts", Utility::GetTime() }
+				})
+			}
 		});
 
 		JsonRpc::SendMessage(tlsStream, message);
@@ -1406,6 +1409,15 @@ std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients() const
 
 Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+	if (endpoint && params->Contains("ts")) {
+		Log(LogInformation, "ApiListener")
+			<< "Remote time of connecting endpoint '" << endpoint->GetName() << "' is: "
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", params->Get("ts"))
+			<< " (Local time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << ").";
+	}
+
 	return Empty;
 }
 
