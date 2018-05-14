@@ -739,7 +739,7 @@ A detailed list on the available table attributes can be found in the [Livestatu
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in Icinga 2 v2.10.
+> This feature is DEPRECATED and will be removed in Icinga 2 v2.11.
 
 Icinga 1.x writes object configuration data and status data in a cyclic
 interval to its `objects.cache` and `status.dat` files. Icinga 2 provides
@@ -755,7 +755,7 @@ you can safely disable this feature.
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in Icinga 2 v2.10.
+> This feature is DEPRECATED and will be removed in Icinga 2 v2.11.
 
 The Icinga 1.x log format is considered being the `Compat Log`
 in Icinga 2 provided with the `CompatLogger` object.
