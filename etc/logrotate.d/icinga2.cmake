@@ -14,11 +14,10 @@
 @CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/error.log {
 	daily
 	rotate 90@LOGROTATE_USE_SU@
+	copytruncate
 	compress
 	delaycompress
 	missingok
 	notifempty
-	create 644 @ICINGA2_USER@ @ICINGA2_GROUP@
-	# TODO: figure out how to get Icinga to re-open this log file
 }
 
