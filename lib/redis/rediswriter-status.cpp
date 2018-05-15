@@ -46,14 +46,14 @@ value: JsonEncode(Serialize(object, FAState))
 
 INITIALIZE_ONCE(&RedisWriter::ConfigStaticInitialize);
 
-void RedisWriter::ConfigStaticInitialize(void)
+void RedisWriter::ConfigStaticInitialize()
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
-	ConfigObject::OnStateChanged.connect(boost::bind(&RedisWriter::StateChangedHandler, _1));
+	ConfigObject::OnStateChanged.connect(std::bind(&RedisWriter::StateChangedHandler, _1));
 
 	/* triggered on create, update and delete objects */
-	ConfigObject::OnActiveChanged.connect(boost::bind(&RedisWriter::VersionChangedHandler, _1));
-	ConfigObject::OnVersionChanged.connect(boost::bind(&RedisWriter::VersionChangedHandler, _1));
+	ConfigObject::OnActiveChanged.connect(std::bind(&RedisWriter::VersionChangedHandler, _1));
+	ConfigObject::OnVersionChanged.connect(std::bind(&RedisWriter::VersionChangedHandler, _1));
 }
 
 void RedisWriter::UpdateAllConfigObjects(void)
@@ -68,7 +68,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 	const String keyPrefix = "icinga:config:";
 
 	do {
-		boost::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", keyPrefix + "*", "COUNT", "1000" });
+		std::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", keyPrefix + "*", "COUNT", "1000" });
 
 		VERIFY(reply->type == REDIS_REPLY_ARRAY);
 		VERIFY(reply->elements % 2 == 0);
@@ -116,6 +116,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
+
 		if (!ctype)
 			continue;
 
@@ -135,7 +136,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 	}
 
 	Log(LogInformation, "RedisWriter")
-	    << "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
+		<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
 
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTransaction, bool runtimeUpdate)
@@ -324,7 +325,7 @@ void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
 	Type::Ptr type = object->GetReflectionType();
 
 	for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-		rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendStatusUpdate, rw, object, true));
+		rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendStatusUpdate, rw, object, true));
 	}
 }
 
@@ -335,12 +336,12 @@ void RedisWriter::VersionChangedHandler(const ConfigObject::Ptr& object)
 	if (object->IsActive()) {
 		/* Create or update the object config */
 		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-			rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendConfigUpdate, rw.get(), object, true, true));
+			rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigUpdate, rw.get(), object, true, true));
 		}
 	} else if (!object->IsActive() && object->GetExtension("ConfigObjectDeleted")) { /* same as in apilistener-configsync.cpp */
 		/* Delete object config */
 		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-			rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendConfigDelete, rw.get(), object));
+			rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigDelete, rw.get(), object));
 		}
 	}
 }

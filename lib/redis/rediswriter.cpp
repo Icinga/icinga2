@@ -31,8 +31,8 @@ using namespace icinga;
 
 REGISTER_TYPE(RedisWriter);
 
-RedisWriter::RedisWriter(void)
-    : m_Context(NULL)
+RedisWriter::RedisWriter()
+	: m_Context(NULL)
 {
 	m_WorkQueue.SetName("RedisWriter");
 }
@@ -45,31 +45,31 @@ void RedisWriter::Start(bool runtimeCreated)
 	ObjectImpl<RedisWriter>::Start(runtimeCreated);
 
 	Log(LogInformation, "RedisWriter")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 	m_ConfigDumpInProgress = false;
 
-	m_WorkQueue.SetExceptionCallback(boost::bind(&RedisWriter::ExceptionHandler, this, _1));
+	m_WorkQueue.SetExceptionCallback(std::bind(&RedisWriter::ExceptionHandler, this, _1));
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(15);
-	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::ReconnectTimerHandler, this));
+	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&RedisWriter::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
 	m_SubscriptionTimer = new Timer();
 	m_SubscriptionTimer->SetInterval(15);
-	m_SubscriptionTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::UpdateSubscriptionsTimerHandler, this));
+	m_SubscriptionTimer->OnTimerExpired.connect(std::bind(&RedisWriter::UpdateSubscriptionsTimerHandler, this));
 	m_SubscriptionTimer->Start();
 
 	m_StatsTimer = new Timer();
 	m_StatsTimer->SetInterval(10);
-	m_StatsTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::PublishStatsTimerHandler, this));
+	m_StatsTimer->OnTimerExpired.connect(std::bind(&RedisWriter::PublishStatsTimerHandler, this));
 	m_StatsTimer->Start();
 
 	m_WorkQueue.SetName("RedisWriter");
 
-	boost::thread thread(boost::bind(&RedisWriter::HandleEvents, this));
+	boost::thread thread(std::bind(&RedisWriter::HandleEvents, this));
 	thread.detach();
 }
 
@@ -78,7 +78,7 @@ void RedisWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "RedisWriter", "Exception during redis query. Verify that Redis is operational.");
 
 	Log(LogDebug, "RedisWriter")
-	    << "Exception during redis operation: " << DiagnosticInformation(exp);
+		<< "Exception during redis operation: " << DiagnosticInformation(exp);
 
 	if (m_Context) {
 		redisFree(m_Context);
@@ -86,12 +86,12 @@ void RedisWriter::ExceptionHandler(boost::exception_ptr exp)
 	}
 }
 
-void RedisWriter::ReconnectTimerHandler(void)
+void RedisWriter::ReconnectTimerHandler()
 {
-	m_WorkQueue.Enqueue(boost::bind(&RedisWriter::TryToReconnect, this));
+	m_WorkQueue.Enqueue(std::bind(&RedisWriter::TryToReconnect, this));
 }
 
-void RedisWriter::TryToReconnect(void)
+void RedisWriter::TryToReconnect()
 {
 	AssertOnWorkQueue();
 
@@ -113,7 +113,7 @@ void RedisWriter::TryToReconnect(void)
 			Log(LogWarning, "RedisWriter", "Cannot allocate redis context.");
 		} else {
 			Log(LogWarning, "RedisWriter", "Connection error: ")
-			    << m_Context->errstr;
+				<< m_Context->errstr;
 		}
 
 		if (m_Context) {
@@ -148,12 +148,12 @@ void RedisWriter::TryToReconnect(void)
 }
 
 /*
-void RedisWriter::UpdateSubscriptionsTimerHandler(void)
+void RedisWriter::UpdateSubscriptionsTimerHandler()
 {
-	m_WorkQueue.Enqueue(boost::bind(&RedisWriter::UpdateSubscriptions, this));
+	m_WorkQueue.Enqueue(std::bind(&RedisWriter::UpdateSubscriptions, this));
 }
 
-void RedisWriter::UpdateSubscriptions(void)
+void RedisWriter::UpdateSubscriptions()
 {
 	AssertOnWorkQueue();
 
@@ -169,7 +169,7 @@ void RedisWriter::UpdateSubscriptions(void)
 	String keyPrefix = "icinga:subscription:";
 
 	do {
-		boost::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", keyPrefix + "*", "COUNT", "1000" });
+		std::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", keyPrefix + "*", "COUNT", "1000" });
 
 		VERIFY(reply->type == REDIS_REPLY_ARRAY);
 		VERIFY(reply->elements % 2 == 0);
@@ -190,21 +190,20 @@ void RedisWriter::UpdateSubscriptions(void)
 
 			if (!RedisWriter::GetSubscriptionTypes(key, rsi))
 				Log(LogInformation, "RedisWriter")
-				    << "Subscription \"" << key<< "\" has no types listed.";
+					<< "Subscription \"" << key<< "\" has no types listed.";
 			else
 				m_Subscriptions[key.SubStr(keyPrefix.GetLength())] = rsi;
-				
 		}
 	} while (cursor != 0);
 
 	Log(LogInformation, "RedisWriter")
-	    << "Current Redis event subscriptions: " << m_Subscriptions.size();
+		<< "Current Redis event subscriptions: " << m_Subscriptions.size();
 }
 
 int RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 {
 	try {
-		boost::shared_ptr<redisReply> redisReply = ExecuteQuery({ "SMEMBERS", key });
+		std::shared_ptr<redisReply> redisReply = ExecuteQuery({ "SMEMBERS", key });
 		VERIFY(redisReply->type == REDIS_REPLY_ARRAY);
 
 		for (size_t j = 0; j < redisReply->elements; j++) {
@@ -223,10 +222,10 @@ int RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 
 void RedisWriter::PublishStatsTimerHandler(void)
 {
-	m_WorkQueue.Enqueue(boost::bind(&RedisWriter::PublishStats, this));
+	m_WorkQueue.Enqueue(std::bind(&RedisWriter::PublishStats, this));
 }
 
-void RedisWriter::PublishStats(void)
+void RedisWriter::PublishStats()
 {
 	AssertOnWorkQueue();
 
@@ -243,7 +242,7 @@ void RedisWriter::PublishStats(void)
 	ExecuteQuery({ "PUBLISH", "icinga:stats", jsonStats });
 }
 
-void RedisWriter::HandleEvents(void)
+void RedisWriter::HandleEvents()
 {
 	String queueName = Utility::NewUniqueID();
 	EventQueue::Ptr queue = new EventQueue(queueName);
@@ -272,7 +271,7 @@ void RedisWriter::HandleEvents(void)
 		if (!event)
 			continue;
 
-		m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendEvent, this, event));
+		m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendEvent, this, event));
 	}
 
 	queue->RemoveClient(this);
@@ -296,13 +295,15 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 
 		String body = JsonEncode(event);
 
-		boost::shared_ptr<redisReply> maxExists = ExecuteQuery({ "EXISTS", "icinga:subscription:" + name + ":limit" });
+		std::shared_ptr<redisReply> maxExists = ExecuteQuery({ "EXISTS", "icinga:subscription:" + name + ":limit" });
 		long maxEvents = MAX_EVENTS_DEFAULT;
 		if (maxExists->integer) {
-			boost::shared_ptr<redisReply> redisReply = ExecuteQuery({ "GET", "icinga:subscription:" + name + ":limit"});
+			std::shared_ptr<redisReply> redisReply = ExecuteQuery({ "GET", "icinga:subscription:" + name + ":limit"});
 			VERIFY(redisReply->type == REDIS_REPLY_STRING);
+
 			Log(LogInformation, "RedisWriter")
 				<< "Got limit " << redisReply->str << " for " << name;
+
 			maxEvents = Convert::ToLong(redisReply->str);
 		}
 
@@ -324,7 +325,8 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 	String body = JsonEncode(event);
 
 	Log(LogInformation, "RedisWriter")
-	    << "Sending event \"" << body << "\"";
+		<< "Sending event \"" << body << "\"";
+
 	ExecuteQuery({ "PUBLISH", "icinga:event:all", body });
 	ExecuteQuery({ "PUBLISH", "icinga:event:" + event->Get("type"), body });
 }
@@ -332,17 +334,17 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 void RedisWriter::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "RedisWriter")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<RedisWriter>::Stop(runtimeRemoved);
 }
 
-void RedisWriter::AssertOnWorkQueue(void)
+void RedisWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
 
-boost::shared_ptr<redisReply> RedisWriter::ExecuteQuery(const std::vector<String>& query)
+std::shared_ptr<redisReply> RedisWriter::ExecuteQuery(const std::vector<String>& query)
 {
 	const char **argv;
 	size_t *argvlen;
@@ -362,23 +364,23 @@ boost::shared_ptr<redisReply> RedisWriter::ExecuteQuery(const std::vector<String
 
 	if (reply->type == REDIS_REPLY_ERROR) {
 		Log(LogCritical, "RedisWriter")
-		    << "Redis query failed: " << reply->str;
+			<< "Redis query failed: " << reply->str;
 
 		String msg = reply->str;
 
 		freeReplyObject(reply);
 
 		BOOST_THROW_EXCEPTION(
-		    redis_error()
-			<< errinfo_message(msg)
-			<< errinfo_redis_query(Utility::Join(Array::FromVector(query), ' ', false))
+			redis_error()
+				<< errinfo_message(msg)
+				<< errinfo_redis_query(Utility::Join(Array::FromVector(query), ' ', false))
 		);
 	}
 
-	return boost::shared_ptr<redisReply>(reply, freeReplyObject);
+	return std::shared_ptr<redisReply>(reply, freeReplyObject);
 }
 
-std::vector<boost::shared_ptr<redisReply> > RedisWriter::ExecuteQueries(const std::vector<std::vector<String> >& queries)
+std::vector<std::shared_ptr<redisReply> > RedisWriter::ExecuteQueries(const std::vector<std::vector<String> >& queries)
 {
 	const char **argv;
 	size_t *argvlen;
@@ -398,7 +400,7 @@ std::vector<boost::shared_ptr<redisReply> > RedisWriter::ExecuteQueries(const st
 		delete [] argvlen;
 	}
 
-	std::vector<boost::shared_ptr<redisReply> > replies;
+	std::vector<std::shared_ptr<redisReply> > replies;
 
 	for (size_t i = 0; i < queries.size(); i++) {
 		redisReply *rawReply;
@@ -420,14 +422,14 @@ std::vector<boost::shared_ptr<redisReply> > RedisWriter::ExecuteQueries(const st
 
 		if (reply->type == REDIS_REPLY_ERROR) {
 			Log(LogCritical, "RedisWriter")
-			    << "Redis query failed: " << reply->str;
+				<< "Redis query failed: " << reply->str;
 
 			String msg = reply->str;
 
 			BOOST_THROW_EXCEPTION(
-			    redis_error()
-				<< errinfo_message(msg)
-				<< errinfo_redis_query(Utility::Join(Array::FromVector(query), ' ', false))
+				redis_error()
+					<< errinfo_message(msg)
+					<< errinfo_redis_query(Utility::Join(Array::FromVector(query), ' ', false))
 			);
 		}
 	}
