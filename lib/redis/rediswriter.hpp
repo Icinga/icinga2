@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -20,7 +20,7 @@
 #ifndef REDISWRITER_H
 #define REDISWRITER_H
 
-#include "redis/rediswriter.thpp"
+#include "redis/rediswriter-ti.hpp"
 #include "icinga/customvarobject.hpp"
 #include "remote/messageorigin.hpp"
 #include "base/timer.hpp"
@@ -88,7 +88,7 @@ private:
 
 	void ExceptionHandler(boost::exception_ptr exp);
 
-	boost::shared_ptr<redisReply> ExecuteQuery(const std::vector<String>& query);
+	std::shared_ptr<redisReply> ExecuteQuery(const std::vector<String>& query);
 	std::vector<std::shared_ptr<redisReply> > ExecuteQueries(const std::vector<std::vector<String> >& queries);
 
 	Timer::Ptr m_StatsTimer;
