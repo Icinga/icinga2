@@ -168,6 +168,9 @@ if(HAVE_SYSTEMD)
   list(APPEND base_DEPS systemd)
 endif()
 
+if(ICINGA2_WITH_REDIS)
+  list(APPEND base_OBJS $<TARGET_OBJECTS:hiredis>)
+endif()
 
 if(EDITLINE_FOUND)
   list(APPEND base_DEPS ${EDITLINE_LIBRARIES})
