@@ -44,28 +44,28 @@ public:
 	DECLARE_OBJECT(RedisWriter);
 	DECLARE_OBJECTNAME(RedisWriter);
 
-	RedisWriter(void);
+	RedisWriter();
 
-	static void ConfigStaticInitialize(void);
+	static void ConfigStaticInitialize();
 
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
 private:
-	void ReconnectTimerHandler(void);
-	void TryToReconnect(void);
-	void HandleEvents(void);
+	void ReconnectTimerHandler();
+	void TryToReconnect();
+	void HandleEvents();
 	void HandleEvent(const Dictionary::Ptr& event);
 	void SendEvent(const Dictionary::Ptr& event);
 
-	void UpdateSubscriptionsTimerHandler(void);
-	void UpdateSubscriptions(void);
+	void UpdateSubscriptionsTimerHandler();
+	void UpdateSubscriptions();
 	int  GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi);
-	void PublishStatsTimerHandler(void);
-	void PublishStats(void);
+	void PublishStatsTimerHandler();
+	void PublishStats();
 
 	/* config & status dump */
-	void UpdateAllConfigObjects(void);
+	void UpdateAllConfigObjects();
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool useTransaction, bool runtimeUpdate = false);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStatusUpdate(const ConfigObject::Ptr& object, bool useTransaction);
@@ -84,12 +84,12 @@ private:
 	static void StateChangedHandler(const ConfigObject::Ptr& object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 
-	void AssertOnWorkQueue(void);
+	void AssertOnWorkQueue();
 
 	void ExceptionHandler(boost::exception_ptr exp);
 
 	boost::shared_ptr<redisReply> ExecuteQuery(const std::vector<String>& query);
-	std::vector<boost::shared_ptr<redisReply> > ExecuteQueries(const std::vector<std::vector<String> >& queries);
+	std::vector<std::shared_ptr<redisReply> > ExecuteQueries(const std::vector<std::vector<String> >& queries);
 
 	Timer::Ptr m_StatsTimer;
 	Timer::Ptr m_ReconnectTimer;
