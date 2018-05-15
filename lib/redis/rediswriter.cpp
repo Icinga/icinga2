@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "redis/rediswriter.hpp"
-#include "redis/rediswriter.tcpp"
+#include "redis/rediswriter-ti.cpp"
 #include "remote/eventqueue.hpp"
 #include "base/json.hpp"
 #include "base/statsfunction.hpp"
@@ -147,7 +147,6 @@ void RedisWriter::TryToReconnect()
 	m_ConfigDumpInProgress = false;
 }
 
-/*
 void RedisWriter::UpdateSubscriptionsTimerHandler()
 {
 	m_WorkQueue.Enqueue(std::bind(&RedisWriter::UpdateSubscriptions, this));
@@ -218,7 +217,6 @@ int RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 			<< "Invalid Redis subscriber info for subscriber '" << key << "': " << DiagnosticInformation(ex);
 	}
 }
-*/
 
 void RedisWriter::PublishStatsTimerHandler(void)
 {
@@ -233,10 +231,18 @@ void RedisWriter::PublishStats()
 		return;
 
 	//TODO: Figure out if more stats can be useful here.
-	StatsFunction::Ptr func = StatsFunctionRegistry::GetInstance()->GetItem("CIB");
+	Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
+
+	if (!statsFunctions)
+		return;
+
+	Function::Ptr func = statsFunctions->Get("CIB");
+
 	Dictionary::Ptr status = new Dictionary();
 	Array::Ptr perfdata = new Array();
-	func->Invoke(status, perfdata);
+
+	func->Invoke({ status, perfdata });
+
 	String jsonStats = JsonEncode(status);
 
 	ExecuteQuery({ "PUBLISH", "icinga:stats", jsonStats });
@@ -278,7 +284,6 @@ void RedisWriter::HandleEvents()
 	EventQueue::UnregisterIfUnused(queueName, queue);
 }
 
-/*
 void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 {
 	AssertOnWorkQueue();
@@ -313,9 +318,8 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 		ExecuteQuery({ "EXEC" });
 	}
 }
-*/
 
-void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
+void RedisWriter::SendEvent(const Dictionary::Ptr& event)
 {
 	AssertOnWorkQueue();
 
@@ -412,7 +416,7 @@ std::vector<std::shared_ptr<redisReply> > RedisWriter::ExecuteQueries(const std:
 			);
 		}
 
-		boost::shared_ptr<redisReply> reply(rawReply, freeReplyObject);
+		std::shared_ptr<redisReply> reply(rawReply, freeReplyObject);
 		replies.push_back(reply);
 	}
 

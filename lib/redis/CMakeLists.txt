@@ -1,5 +1,5 @@
 # Icinga 2
-# Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)
+# Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -15,29 +15,27 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(rediswriter.ti rediswriter.tcpp rediswriter.thpp)
+mkclass_target(rediswriter.ti rediswriter-ti.cpp rediswriter-ti.hpp)
 
 set(redis_SOURCES
-  rediswriter.cpp rediswriter-status.cpp rediswriter-utility.cpp rediswriter.thpp
+  rediswriter.cpp rediswriter-status.cpp rediswriter-utility.cpp rediswriter-ti.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)
     mkunity_target(redis redis redis_SOURCES)
 endif()
 
-add_library(redis SHARED ${redis_SOURCES})
-
-target_link_libraries(redis ${Boost_LIBRARIES} base config icinga remote hiredis)
+add_library(redis OBJECT ${redis_SOURCES})
 
 include_directories(${icinga2_SOURCE_DIR}/third-party)
+
+add_dependencies(redis base config icinga remote)
+
 link_directories(${icinga2_BINARY_DIR}/third-party/hiredis)
 
 set_target_properties (
   redis PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_REDIS_BUILD
   FOLDER Components
-  VERSION ${SPEC_VERSION}
 )
 
 install_if_not_exists(
@@ -45,9 +43,4 @@ install_if_not_exists(
   ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available
 )
 
-install(
-  TARGETS redis
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
-)
-
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}" PARENT_SCOPE)
