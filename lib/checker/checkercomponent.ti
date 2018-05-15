@@ -28,7 +28,7 @@ class CheckerComponent : ConfigObject
 {
 	activation_priority 100;
 
-	[config] int concurrent_checks {
+	[config, no_storage] int concurrent_checks {
 		get {{{
 			return Application::GetMaxConcurrentChecks();
 		}}}
