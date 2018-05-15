@@ -21,7 +21,8 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <shlwapi.h>
-#include <winbase.h>
+#include <Psapi.h>
+#include <vector>
 
 #define VERSION 1.0
 
@@ -37,7 +38,25 @@ struct printInfoStruct
 	Bunit unit = BunitMB;
 };
 
+struct pageFileInfo
+{
+	SIZE_T totalSwap;
+	SIZE_T availableSpwap;
+};
+
 static bool l_Debug;
+
+BOOL EnumPageFilesProc(LPVOID pContext, PENUM_PAGE_FILE_INFORMATION pPageFileInfo, LPCTSTR lpFilename) {
+	std::vector<pageFileInfo>* pageFile = static_cast<std::vector<pageFileInfo>*>(pContext);
+	SYSTEM_INFO systemInfo;
+
+	GetSystemInfo(&systemInfo);
+
+	// pPageFileInfo output is in pages, we need to multiply it by the page size
+	pageFile->push_back({ pPageFileInfo->TotalSize * systemInfo.dwPageSize, (pPageFileInfo->TotalSize - pPageFileInfo->TotalInUse) * systemInfo.dwPageSize });
+
+	return TRUE;
+}
 
 static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
@@ -187,17 +206,20 @@ static int printOutput(printInfoStruct& printInfo)
 
 static int check_swap(printInfoStruct& printInfo)
 {
-	MEMORYSTATUSEX MemBuf;
-	MemBuf.dwLength = sizeof(MemBuf);
+	PENUM_PAGE_FILE_CALLBACK pageFileCallback = &EnumPageFilesProc;
+	std::vector<pageFileInfo> pageFiles;
 
-	if (!GlobalMemoryStatusEx(&MemBuf)) {
+	if(!EnumPageFiles(pageFileCallback, &pageFiles)) {
 		printErrorInfo();
 		return 3;
 	}
 
-	printInfo.tSwap = round(MemBuf.ullTotalPageFile / pow(1024.0, printInfo.unit));
-	printInfo.aSwap = round(MemBuf.ullAvailPageFile / pow(1024.0, printInfo.unit));
-	printInfo.percentFree = 100.0 * MemBuf.ullAvailPageFile / MemBuf.ullTotalPageFile;
+	for (int i = 0; i < pageFiles.size(); i++) {
+		printInfo.tSwap += round(pageFiles.at(i).totalSwap / pow(1024.0, printInfo.unit));
+		printInfo.aSwap += round(pageFiles.at(i).availableSpwap / pow(1024.0, printInfo.unit));
+	}
+
+	printInfo.percentFree = 100.0 * printInfo.aSwap / printInfo.tSwap;
 
 	return -1;
 }
