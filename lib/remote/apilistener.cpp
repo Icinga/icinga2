@@ -382,10 +382,16 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 	TcpSocket::Ptr client = new TcpSocket();
 
+	String serverName = endpoint->GetName();
+
+	String env = ScriptGlobal::Get("Environment", &Empty);
+	if (env != "" && env != "production")
+		serverName += ":" + env;
+
 	try {
 		endpoint->SetConnecting(true);
 		client->Connect(host, port);
-		NewClientHandler(client, endpoint->GetName(), RoleClient);
+		NewClientHandler(client, serverName, RoleClient);
 		endpoint->SetConnecting(false);
 	} catch (const std::exception& ex) {
 		endpoint->SetConnecting(false);
