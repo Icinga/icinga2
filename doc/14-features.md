@@ -777,7 +777,8 @@ in `/var/log/icinga2/compat`. Rotated log files are moved into
 ## Check Result Files <a id="check-result-files"></a>
 
 > **Note**
-> This feature is deprecated and will be removed with Icinga 2.10.0
+>
+> This feature is DEPRECATED and will be removed in Icinga 2 v2.11.
 
 Icinga 1.x writes its check result files to a temporary spool directory
 where they are processed in a regular interval.
