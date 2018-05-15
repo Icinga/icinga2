@@ -400,6 +400,7 @@ BuildCompilerVersion|**Read-only.** The version of the compiler Icinga was built
 BuildHostName       |**Read-only.** The name of the host Icinga was built on, e.g. "acheron".
 ApplicationVersion  |**Read-only.** The application version, e.g. "2.9.0".
 MaxConcurrentChecks |**Read-write**. The number of max checks run simultaneously. Defaults to 512.
+Environment         |**Read-write**. The name of the Icinga environment. Included in the SNI host name when making outbound connections. Defaults to "production".
 
 
 Advanced runtime constants. Please only use them if advised by support or developers.
