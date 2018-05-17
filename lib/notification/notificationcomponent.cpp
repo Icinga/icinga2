@@ -119,13 +119,14 @@ void NotificationComponent::NotificationTimerHandler()
 			if ((service && service->GetState() == ServiceOK) || (!service && host->GetState() == HostUp))
 				continue;
 
-			if (!reachable || checkable->IsInDowntime() || checkable->IsAcknowledged())
+			if (!reachable || checkable->IsInDowntime() || checkable->IsAcknowledged() || checkable->IsFlapping())
 				continue;
 		}
 
 		try {
 			Log(LogNotice, "NotificationComponent")
 				<< "Attempting to send reminder notification '" << notification->GetName() << "'";
+
 			notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false, true);
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "NotificationComponent")
