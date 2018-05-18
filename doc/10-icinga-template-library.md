@@ -1786,6 +1786,12 @@ nscp_query      | **Required.** The NSClient++ query. Try `nscp client -q x` for
 nscp_arguments  | **Optional.** An array of query arguments.
 nscp_showall	| **Optional.** Shows more details in plugin output, default to false.
 
+> **Tip**
+>
+> In order to measure CPU load, you'll need a running NSClient++ service.
+> Therefore it is advised to use a local [nscp-api](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api)
+> check against its REST API.
+
 ### nscp-local-cpu <a id="nscp-check-local-cpu"></a>
 
 Check command object for the `check_cpu` NSClient++ plugin.
