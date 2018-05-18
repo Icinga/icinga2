@@ -2296,6 +2296,12 @@ Open Icinga Web 2 and check your newly added Windows NSClient++ check :)
 
 ![Icinga 2 Distributed Monitoring Windows Client with NSClient++ nscp-local](images/distributed-monitoring/icinga2_distributed_windows_nscp_counter_icingaweb2.png)
 
+> **Tip**
+>
+> In order to measure CPU load, you'll need a running NSClient++ service.
+> Therefore it is advised to use a local [nscp-api](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api)
+> check against its REST API.
+
 ## Advanced Hints <a id="distributed-monitoring-advanced-hints"></a>
 
 You can find additional hints in this section if you prefer to go your own route
