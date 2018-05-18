@@ -55,8 +55,10 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	resolvers.emplace_back("command", commandObj);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
+	String missingIcingaMinVersion;
+
 	String icingaMinVersion = MacroProcessor::ResolveMacros("$icinga_min_version$", resolvers, checkable->GetLastCheckResult(),
-		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+		&missingIcingaMinVersion, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;
@@ -175,7 +177,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	/* Return an error if the version is less than specified (optional). */
 	String parsedAppVersion = appVersion.SubStr(1,5);
 
-	if (!icingaMinVersion.IsEmpty() && Utility::CompareVersion(icingaMinVersion, parsedAppVersion) < 0) {
+	if (missingIcingaMinVersion.IsEmpty() && !icingaMinVersion.IsEmpty() && Utility::CompareVersion(icingaMinVersion, parsedAppVersion) < 0) {
 		output += "; Minimum version " + icingaMinVersion + " is not installed.";
 		cr->SetState(ServiceCritical);
 	}
