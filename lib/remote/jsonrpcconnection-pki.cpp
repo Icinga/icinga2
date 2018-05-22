@@ -76,9 +76,9 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		if (X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1) {
 
 			Log(LogInformation, "JsonRpcConnection")
-				<< "The certificate for CN '" << cn << "' cannot be renewed yet.";
+				<< "The certificate for CN '" << cn << "' is valid and uptodate. Skipping automated renewal.";
 			result->Set("status_code", 1);
-			result->Set("error", "The certificate for CN '" + cn + "' cannot be renewed yet.");
+			result->Set("error", "The certificate for CN '" + cn + "' is valid and uptodate. Skipping automated renewal.");
 			return result;
 		}
 	}
