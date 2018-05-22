@@ -718,15 +718,15 @@ String RandomString(int length)
 {
 	auto *bytes = new unsigned char[length];
 
-	if (!RAND_bytes(bytes, length)) {
+	if (!RAND_pseudo_bytes(bytes, length)) {
 		delete [] bytes;
 
 		char errbuf[120];
 
 		Log(LogCritical, "SSL")
-			<< "Error for RAND_bytes: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			<< "Error for RAND_pseudo_bytes: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		BOOST_THROW_EXCEPTION(openssl_error()
-			<< boost::errinfo_api_function("RAND_bytes")
+			<< boost::errinfo_api_function("RAND_pseudo_bytes")
 			<< errinfo_openssl_error(ERR_peek_error()));
 	}
 
