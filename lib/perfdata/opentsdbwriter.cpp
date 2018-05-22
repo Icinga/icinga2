@@ -254,6 +254,7 @@ String OpenTsdbWriter::EscapeMetric(const String& str)
 	boost::replace_all(result, " ", "_");
 	boost::replace_all(result, ".", "_");
 	boost::replace_all(result, "\\", "_");
+	boost::replace_all(result, ":", "_");
 
 	return result;
 }
