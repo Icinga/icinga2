@@ -1936,37 +1936,16 @@ String Utility::GetIcingaDataPath()
 
 #endif /* _WIN32 */
 
-String Utility::GetFromSysconfig(const String& env)
+String Utility::GetFromEnvironment(const String& env)
 {
 #ifndef _WIN32
-	String sysconf = Application::GetSysconfigFile();
-	if (sysconf.IsEmpty())
-		return "";
-
-	if (!Utility::PathExists(sysconf))
-		return "";
-
-	String cmdInner = ". " + EscapeShellArg(sysconf) + " 2>&1 >/dev/null;echo \"$" + env + "\"";
-	String cmd = "sh -c " + EscapeShellArg(cmdInner);
-
-	FILE *fp = popen(cmd.CStr(), "r");
-
-	if (!fp)
-		return "";
-
-	char line[1024];
-	String out;
-
-	if (fgets(line, sizeof(line), fp))
-		out = line;
+	const char *envValue = getenv(env.CStr());
+	if (envValue == NULL)
+		return String();
 	else
-		return "";
-
-	pclose(fp);
-
-	return out.Trim();
-#else
-	//TODO: Figure out how to do this on windows
-	return "";
+		return String(envValue);
+#else /* _WIN32 */
+	// While getenv exists on Windows, we don't set them. Therefore there is no reason to read them.
+	return String();
 #endif /* _WIN32 */
 }

@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
+
 if(NOT WIN32)
   configure_file(icinga2.sysconfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2.sysconfig @ONLY)
   get_filename_component(ICINGA2_SYSCONFIGFILE_NAME ${ICINGA2_SYSCONFIGFILE} NAME)
@@ -26,8 +27,10 @@ if(NOT WIN32)
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   )
 
+  configure_file(prepare-dirs.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/prepare-dirs @ONLY)
+  configure_file(safe-reload.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/safe-reload @ONLY)
   install(
-    FILES prepare-dirs safe-reload
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/initsystem/prepare-dirs ${CMAKE_CURRENT_BINARY_DIR}/initsystem/safe-reload
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/icinga2
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   )
@@ -37,7 +40,7 @@ if(NOT WIN32)
     "Force install both the systemd service definition file and the SysV initscript in parallel, regardless of how USE_SYSTEMD is set. Only use this for special packaging purposes and if you know what you are doing" OFF)
 
   if (NOT USE_SYSTEMD OR INSTALL_SYSTEMD_SERVICE_AND_INITSCRIPT)
-    configure_file(icinga2.init.d.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2)
+	  configure_file(icinga2.init.d.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2 @ONLY)
     install(
       FILES ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2
       DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/init.d

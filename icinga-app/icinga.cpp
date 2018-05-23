@@ -162,11 +162,11 @@ static int Main()
 	}
 #endif /* _WIN32 */
 
-	String icingaUser = Utility::GetFromSysconfig("ICINGA2_USER");
+	String icingaUser = Utility::GetFromEnvironment("ICINGA2_USER");
 	if (icingaUser.IsEmpty())
 		icingaUser = ICINGA_USER;
 
-	String icingaGroup = Utility::GetFromSysconfig("ICINGA2_GROUP");
+	String icingaGroup = Utility::GetFromEnvironment("ICINGA2_GROUP");
 	if (icingaGroup.IsEmpty())
 		icingaGroup = ICINGA_GROUP;
 
@@ -174,7 +174,7 @@ static int Main()
 	Application::DeclareRunAsGroup(icingaGroup);
 
 #ifdef RLIMIT_NOFILE
-	String rLimitFiles = Utility::GetFromSysconfig("ICINGA2_RLIMIT_FILES");
+	String rLimitFiles = Utility::GetFromEnvironment("ICINGA2_RLIMIT_FILES");
 	if (rLimitFiles.IsEmpty())
 		Application::DeclareRLimitFiles(Application::GetDefaultRLimitFiles());
 	else {
@@ -182,14 +182,14 @@ static int Main()
 			Application::DeclareRLimitFiles(Convert::ToLong(rLimitFiles));
 		} catch (const std::invalid_argument& ex) {
 			std::cout
-				<< "Error while parsing \"ICINGA2_RLIMIT_FILES\" from sysconfig: " << ex.what() << '\n';
+				<< "Error setting \"ICINGA2_RLIMIT_FILES\": " << ex.what() << '\n';
 			return EXIT_FAILURE;
 		}
 	}
 #endif /* RLIMIT_NOFILE */
 
 #ifdef RLIMIT_NPROC
-	String rLimitProcesses = Utility::GetFromSysconfig("ICINGA2_RLIMIT_PROCESSES");
+	String rLimitProcesses = Utility::GetFromEnvironment("ICINGA2_RLIMIT_PROCESSES");
 	if (rLimitProcesses.IsEmpty())
 		Application::DeclareRLimitProcesses(Application::GetDefaultRLimitProcesses());
 	else {
@@ -197,14 +197,14 @@ static int Main()
 			Application::DeclareRLimitProcesses(Convert::ToLong(rLimitProcesses));
 		} catch (const std::invalid_argument& ex) {
 			std::cout
-				<< "Error while parsing \"ICINGA2_RLIMIT_PROCESSES\" from sysconfig: " << ex.what() << '\n';
+				<< "Error setting \"ICINGA2_RLIMIT_PROCESSES\": " << ex.what() << '\n';
 			return EXIT_FAILURE;
 		}
 	}
 #endif /* RLIMIT_NPROC */
 
 #ifdef RLIMIT_STACK
-	String rLimitStack = Utility::GetFromSysconfig("ICINGA2_RLIMIT_STACK");
+	String rLimitStack = Utility::GetFromEnvironment("ICINGA2_RLIMIT_STACK");
 	if (rLimitStack.IsEmpty())
 		Application::DeclareRLimitStack(Application::GetDefaultRLimitStack());
 	else {
@@ -212,7 +212,7 @@ static int Main()
 			Application::DeclareRLimitStack(Convert::ToLong(rLimitStack));
 		} catch (const std::invalid_argument& ex) {
 			std::cout
-				<< "Error while parsing \"ICINGA2_RLIMIT_STACK\" from sysconfig: " << ex.what() << '\n';
+				<< "Error setting \"ICINGA2_RLIMIT_STACK\": " << ex.what() << '\n';
 			return EXIT_FAILURE;
 		}
 	}
