@@ -31,6 +31,7 @@ namespace icinga
 
 static bool l_SSLInitialized = false;
 static boost::mutex *l_Mutexes;
+static boost::mutex l_RandomMutex;
 
 #ifdef CRYPTO_LOCK
 static void OpenSSLLockingCallback(int mode, int type, const char *, int)
@@ -718,6 +719,11 @@ String RandomString(int length)
 {
 	auto *bytes = new unsigned char[length];
 
+	/* Ensure that password generation is atomic. RAND_bytes is not thread-safe
+	 * in OpenSSL < 1.1.0.
+	 */
+	boost::mutex::scoped_lock lock(l_RandomMutex);
+
 	if (!RAND_bytes(bytes, length)) {
 		delete [] bytes;
 
@@ -729,6 +735,8 @@ String RandomString(int length)
 			<< boost::errinfo_api_function("RAND_bytes")
 			<< errinfo_openssl_error(ERR_peek_error()));
 	}
+
+	lock.unlock();
 
 	auto *output = new char[length * 2 + 1];
 	for (int i = 0; i < length; i++)
