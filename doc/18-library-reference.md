@@ -588,7 +588,7 @@ for [custom attributes](03-monitoring-basics.md#custom-attributes-functions) whi
 use the [abbreviated lambda syntax](17-language-reference.md#nullary-lambdas).
 
 This example sets the `snmp_address` custom attribute
-based on `$address$` and `$address6`.
+based on `$address$` and `$address6$`.
 
 ```
   vars.snmp_address = {{
