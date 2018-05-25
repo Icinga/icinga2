@@ -277,7 +277,7 @@ bool NodeUtility::UpdateConfiguration(const String& value, bool include, bool re
 	String configurationFile = Application::GetSysconfDir() + "/icinga2/icinga2.conf";
 
 	Log(LogInformation, "cli")
-		<< "Updating ' " << value << "' include in '" << configurationFile << "'.";
+		<< "Updating '" << value << "' include in '" << configurationFile << "'.";
 
 	NodeUtility::CreateBackupFile(configurationFile);
 
