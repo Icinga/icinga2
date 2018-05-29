@@ -320,6 +320,46 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, bool useTran
 //	}
 }
 
+void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType)
+{
+	Type::Ptr type = object->GetReflectionType();
+
+	String typeName = type->GetName().ToLower();
+	String objectName = object->GetName();
+
+	std::vector<std::vector<String> > queries;
+
+	queries.push_back({ "DEL", keyPrefix + object->GetName() });
+
+	std::vector<String> hmsetCommand({ "HMSET", keyPrefix + typeName + ":" + object->GetName() });
+
+	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
+		Field field = type->GetFieldInfo(fid);
+
+		if ((field.Attributes & fieldType) == 0)
+			continue;
+
+		Value val = object->GetField(fid);
+
+		/* hide attributes which shouldn't be user-visible */
+		if (field.Attributes & FANoUserView)
+			continue;
+
+		/* hide internal navigation fields */
+		if (field.Attributes & FANavigation && !(field.Attributes & (FAConfig | FAState)))
+			continue;
+
+		hmsetCommand.push_back(field.Name);
+
+		Value sval = Serialize(val);
+		hmsetCommand.push_back(JsonEncode(sval));
+	}
+
+	queries.push_back(hmsetCommand);
+
+	ExecuteQueries(queries);
+}
+
 void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
 {
 	Type::Ptr type = object->GetReflectionType();
