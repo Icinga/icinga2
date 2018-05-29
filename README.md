@@ -59,7 +59,7 @@ is also available on https://docs.icinga.com
 ## Support
 
 Check the project website at https://www.icinga.com for status updates. Join the
-[community channels](https://www.icinga.com/community/get-involved/) for questions
+[community channels](https://www.icinga.com/community) for questions
 or ask an Icinga partner for [professional support](https://www.icinga.com/services/support/).
 
 ## Contributing
