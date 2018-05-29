@@ -120,7 +120,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		if (!ctype)
 			continue;
 
-		String typeName = type->GetName();
+		String typeName = type->GetName().ToLower();
 
 		/* replace into aka delete insert is faster than a full diff */
 		ExecuteQuery({ "DEL", "icinga:config:" + typeName, "icinga:config:" + typeName + ":checksum", "icinga:status:" + typeName });
@@ -156,6 +156,10 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		ExecuteQuery({ "MULTI" });
 
 	UpdateObjectAttrs("icinga:config:", object, FAConfig);
+
+	Type::Ptr type = object->GetReflectionType();
+
+	String typeName = type->GetName().ToLower();
 
 //	/* Serialize config object attributes */
 //	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAConfig);
@@ -199,7 +203,6 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 //	ExecuteQuery({ "HSET", "icinga:config:" + typeName + ":checksum", objectName, checkSumBody });
 
 	if (runtimeUpdate) {
-		Type::Ptr type = object->GetReflectionType();
 		ExecuteQuery({ "PUBLISH", "icinga:config:update", type->GetName() + ":" + object->GetName() });
 	}
 
@@ -215,7 +218,7 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 	if (!m_Context)
 		return;
 
-	String typeName = object->GetReflectionType()->GetName();
+	String typeName = object->GetReflectionType()->GetName().ToLower();
 	String objectName = object->GetName();
 
 	ExecuteQueries({
