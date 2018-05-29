@@ -388,8 +388,10 @@ Command options:
   -z [ --no-config ]        start without a configuration file
   -C [ --validate ]         exit after validating the configuration
   -e [ --errorlog ] arg     log fatal errors to the specified log file (only
-                            works in combination with --daemonize)
+                            works in combination with --daemonize or
+                            --close-stdio)
   -d [ --daemonize ]        detach from the controlling terminal
+  --close-stdio             do not log to stdout (or stderr) after startup
 
 Report bugs at <https://github.com/Icinga/icinga2>
 Icinga home page: <https://www.icinga.com/>

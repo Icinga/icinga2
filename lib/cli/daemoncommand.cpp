@@ -105,6 +105,14 @@ static void Daemonize() noexcept
 	Log(LogDebug, "Daemonize()")
 		<< "Child process with PID " << Utility::GetPid() << " continues; re-initializing base.";
 
+	// Detach from controlling terminal
+	pid_t sid = setsid();
+	if (sid == -1) {
+		Log(LogCritical, "cli")
+			<< "setsid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		exit(EXIT_FAILURE);
+	}
+
 	try {
 		Application::InitializeBase();
 	} catch (const std::exception& ex) {
@@ -115,7 +123,7 @@ static void Daemonize() noexcept
 #endif /* _WIN32 */
 }
 
-static bool SetDaemonIO(const String& stderrFile)
+static void CloseStdIO(const String& stderrFile)
 {
 #ifndef _WIN32
 	int fdnull = open("/dev/null", O_RDWR);
@@ -147,14 +155,7 @@ static bool SetDaemonIO(const String& stderrFile)
 		if (fderr > 2)
 			close(fderr);
 	}
-
-	pid_t sid = setsid();
-	if (sid == -1) {
-		return false;
-	}
 #endif
-
-	return true;
 }
 
 String DaemonCommand::GetDescription() const
@@ -174,9 +175,10 @@ void DaemonCommand::InitParameters(boost::program_options::options_description& 
 		("config,c", po::value<std::vector<std::string> >(), "parse a configuration file")
 		("no-config,z", "start without a configuration file")
 		("validate,C", "exit after validating the configuration")
-		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
+		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize or --close-stdio)")
 #ifndef _WIN32
 		("daemonize,d", "detach from the controlling terminal")
+		("close-stdio", "do not log to stdout (or stderr) after startup")
 #endif /* _WIN32 */
 	;
 
@@ -290,12 +292,16 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		}
 	}
 
-	if (vm.count("daemonize")) {
+	if (vm.count("daemonize") || vm.count("close-stdio")) {
+		// After disabling the console log, any further errors will go to the configured log only.
+		// Let's try to make this clear and say good bye.
+		Log(LogInformation, "cli", "Closing console log.");
+
 		String errorLog;
 		if (vm.count("errorlog"))
 			errorLog = vm["errorlog"].as<std::string>();
 
-		SetDaemonIO(errorLog);
+		CloseStdIO(errorLog);
 		Logger::DisableConsoleLog();
 	}
 
