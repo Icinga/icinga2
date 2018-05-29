@@ -45,10 +45,15 @@ String RedisWriter::CalculateCheckSumGroups(const Array::Ptr& groups)
 {
 	String output;
 
-	{
-		ObjectLock olock(groups);
+	/* Ensure that checksums happen in a defined order. */
+	Array::Ptr tmpGroups = groups->ShallowClone();
 
-		for (const String& group : groups) {
+	tmpGroups->Sort();
+
+	{
+		ObjectLock olock(tmpGroups);
+
+		for (const String& group : tmpGroups) {
 			output += SHA1(group);
 		}
 	}
