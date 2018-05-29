@@ -107,7 +107,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		m_CheckRunning = false;
 	}
 
-	if (!cr || !IsActive())
+	if (!cr)
 		return;
 
 	double now = Utility::GetTime();
@@ -146,6 +146,9 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		return;
 
 	}
+
+	if (!IsActive())
+		return;
 
 	bool reachable = IsReachable();
 	bool notification_reachable = IsReachable(DependencyNotification);
