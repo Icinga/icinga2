@@ -155,55 +155,52 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	if (useTransaction)
 		ExecuteQuery({ "MULTI" });
 
+	/* Send all object attributes to redis, no extra checksums involved here. */
 	UpdateObjectAttrs("icinga:config:", object, FAConfig);
 
+	/* Calculate object specific checksums and store them in a different namespace. */
 	Type::Ptr type = object->GetReflectionType();
 
 	String typeName = type->GetName().ToLower();
+	String objectKey = CalculateCheckSumString(object->GetName());
 
-//	/* Serialize config object attributes */
-//	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAConfig);
-//
-//	String jsonBody = JsonEncode(objectAttrs);
-//
-//	String objectName = object->GetName();
-//
-//	ExecuteQuery({ "HSET", "icinga:config:" + typeName, objectName, jsonBody });
-//
-//	/* check sums */
-//	/* hset icinga:config:Host:checksums localhost { "name_checksum": "...", "properties_checksum": "...", "groups_checksum": "...", "vars_checksum": null } */
-//	Dictionary::Ptr checkSum = new Dictionary();
-//
-//	checkSum->Set("name_checksum", CalculateCheckSumString(object->GetName()));
-//
-//	// TODO: move this elsewhere
-//	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
-//
-//	if (checkable) {
-//		Host::Ptr host;
-//		Service::Ptr service;
-//
-//		tie(host, service) = GetHostService(checkable);
-//
-//		if (service)
-//			checkSum->Set("groups_checksum", CalculateCheckSumGroups(service->GetGroups()));
-//		else
-//			checkSum->Set("groups_checksum", CalculateCheckSumGroups(host->GetGroups()));
-//	}
-//
-//	checkSum->Set("properties_checksum", CalculateCheckSumProperties(object));
-//
-//	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
-//
-//	if (customVarObject)
-//		checkSum->Set("vars_checksum", CalculateCheckSumVars(customVarObject));
-//
-//	String checkSumBody = JsonEncode(checkSum);
-//
-//	ExecuteQuery({ "HSET", "icinga:config:" + typeName + ":checksum", objectName, checkSumBody });
+	Dictionary::Ptr checkSums = new Dictionary();
+	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetName()));
 
+	// TODO: move this elsewhere
+	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
+
+	if (checkable) {
+		Host::Ptr host;
+		Service::Ptr service;
+
+		tie(host, service) = GetHostService(checkable);
+
+		if (service)
+			checkSums->Set("groups_checksum", CalculateCheckSumGroups(service->GetGroups()));
+		else
+			checkSums->Set("groups_checksum", CalculateCheckSumGroups(host->GetGroups()));
+	}
+
+	checkSums->Set("properties_checksum", CalculateCheckSumProperties(object));
+
+	//TODO: Move this somewhere else.
+	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
+
+	if (customVarObject)
+		checkSums->Set("vars_checksum", CalculateCheckSumVars(customVarObject));
+
+	String checkSumsBody = JsonEncode(checkSums);
+
+	Log(LogDebug, "RedisWriter")
+		<< "HSET icinga:config:" << typeName << ":checksum " << objectKey << " " << checkSumsBody;
+
+	ExecuteQuery({ "HSET", "icinga:config:" + typeName + ":checksum", objectKey, checkSumsBody });
+
+
+	/* Send an update event to subscribers. */
 	if (runtimeUpdate) {
-		ExecuteQuery({ "PUBLISH", "icinga:config:update", type->GetName() + ":" + object->GetName() });
+		ExecuteQuery({ "PUBLISH", "icinga:config:update", typeName + ":" + objectKey });
 	}
 
 	if (useTransaction)
@@ -219,12 +216,12 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 		return;
 
 	String typeName = object->GetReflectionType()->GetName().ToLower();
-	String objectName = object->GetName();
+	String objectKey = CalculateCheckSumString(object->GetName());
 
 	ExecuteQueries({
-	    { "DEL", "icinga:config:" + typeName, objectName },
-	    { "DEL", "icinga:status:" + typeName, objectName },
-	    { "PUBLISH", "icinga:config:delete", typeName + ":" + objectName }
+	    { "DEL", "icinga:config:" + typeName, objectKey },
+	    { "DEL", "icinga:status:" + typeName, objectKey },
+	    { "PUBLISH", "icinga:config:delete", typeName + ":" + objectKey }
 	});
 
 }
@@ -330,11 +327,14 @@ void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject:
 	String typeName = type->GetName().ToLower();
 	String objectName = object->GetName();
 
+	/* Use the name checksum as unique key. */
+	String objectKey = CalculateCheckSumString(object->GetName());
+
 	std::vector<std::vector<String> > queries;
 
-	queries.push_back({ "DEL", keyPrefix + object->GetName() });
+	queries.push_back({ "DEL", keyPrefix + objectKey });
 
-	std::vector<String> hmsetCommand({ "HMSET", keyPrefix + typeName + ":" + object->GetName() });
+	std::vector<String> hmsetCommand({ "HMSET", keyPrefix + typeName + ":" + objectKey });
 
 	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
 		Field field = type->GetFieldInfo(fid);
