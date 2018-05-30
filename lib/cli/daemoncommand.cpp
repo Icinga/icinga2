@@ -52,14 +52,28 @@ static void SigHupHandler(int)
 }
 #endif /* _WIN32 */
 
-static bool Daemonize()
+/*
+ * Daemonize().  On error, this function logs by itself and exits (i.e. does not return).
+ *
+ * Implementation note: We're only supposed to call exit() in one of the forked processes.
+ * The other process calls _exit().  This prevents issues with exit handlers like atexit().
+ */
+static void Daemonize() noexcept
 {
 #ifndef _WIN32
-	Application::UninitializeBase();
+	try {
+		Application::UninitializeBase();
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+			<< "Failed to stop thread pool before daemonizing, unexpected error: " << DiagnosticInformation(ex);
+		exit(EXIT_FAILURE);
+	}
 
 	pid_t pid = fork();
 	if (pid == -1) {
-		return false;
+		Log(LogCritical, "cli")
+			<< "fork() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		exit(EXIT_FAILURE);
 	}
 
 	if (pid) {
@@ -91,10 +105,14 @@ static bool Daemonize()
 	Log(LogDebug, "Daemonize()")
 		<< "Child process with PID " << Utility::GetPid() << " continues; re-initializing base.";
 
-	Application::InitializeBase();
+	try {
+		Application::InitializeBase();
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+			<< "Failed to re-initialize thread pool after daemonizing: " << DiagnosticInformation(ex);
+		exit(EXIT_FAILURE);
+	}
 #endif /* _WIN32 */
-
-	return true;
 }
 
 static bool SetDaemonIO(const String& stderrFile)
@@ -245,12 +263,10 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	if (vm.count("daemonize")) {
 		if (!vm.count("reload-internal")) {
 			// no additional fork neccessary on reload
-			try {
-				Daemonize();
-			} catch (std::exception&) {
-				Log(LogCritical, "cli", "Daemonize failed. Exiting.");
-				return EXIT_FAILURE;
-			}
+
+			// this subroutine either succeeds, or logs an error
+			// and terminates the process (does not return).
+			Daemonize();
 		}
 	}
 
