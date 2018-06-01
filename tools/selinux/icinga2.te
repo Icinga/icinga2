@@ -1,4 +1,4 @@
-policy_module(icinga2, 0.1.5)
+policy_module(icinga2, 0.1.6)
 
 ########################################
 #
@@ -146,12 +146,19 @@ files_tmp_file(nagios_notification_plugin_tmp_t)
 manage_files_pattern(nagios_notification_plugin_t, nagios_notification_plugin_tmp_t, nagios_notification_plugin_tmp_t)
 manage_dirs_pattern(nagios_notification_plugin_t, nagios_notification_plugin_tmp_t, nagios_notification_plugin_tmp_t)
 files_tmp_filetrans(nagios_notification_plugin_t, nagios_notification_plugin_tmp_t, { dir file })
-auth_dontaudit_read_passwd(nagios_notification_plugin_t)
 fs_dontaudit_getattr_xattr_fs(nagios_notification_plugin_t)
 optional_policy(`
         mta_send_mail(nagios_notification_plugin_t)
 ')
 icinga2_dontaudit_leaks_fifo(system_mail_t)
+# hipsaint notification
+auth_read_passwd(nagios_notification_plugin_t)
+sysnet_read_config(nagios_notification_plugin_t)
+allow nagios_notification_plugin_t self:udp_socket create_stream_socket_perms;
+allow nagios_notification_plugin_t self:tcp_socket create_stream_socket_perms;
+allow nagios_notification_plugin_t self:netlink_route_socket create_netlink_socket_perms;
+corenet_tcp_connect_http_port(nagios_notification_plugin_t)
+miscfiles_read_generic_certs(nagios_notification_plugin_t)
 
 allow icinga2_t icinga2_port_t:tcp_socket name_bind;
 allow icinga2_t self:tcp_socket create_stream_socket_perms;
