@@ -148,8 +148,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	Type::Ptr type = object->GetReflectionType();
 
 	String typeName = type->GetName().ToLower();
-//	String objectKey = CalculateCheckSumString(object->GetName());
-	String objectKey = object->GetName();
+	String objectKey = CalculateCheckSumString(object->GetName());
+	//String objectKey = object->GetName();
 
 	Dictionary::Ptr checkSums = new Dictionary();
 	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetName()));
@@ -180,9 +180,9 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	String checkSumsBody = JsonEncode(checkSums);
 
 	Log(LogDebug, "RedisWriter")
-		<< "HSET icinga:config:" << typeName << ":checksum " << objectKey << " " << checkSumsBody;
+		<< "HSET icinga:config:checksum:" << typeName << " " << objectKey << " " << checkSumsBody;
 
-	ExecuteQuery({ "HSET", "icinga:config:" + typeName + ":checksum", objectKey, checkSumsBody });
+	ExecuteQuery({ "HSET", "icinga:config:checksum:" + typeName, objectKey, checkSumsBody });
 
 
 	/* Send an update event to subscribers. */
@@ -203,8 +203,8 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 		return;
 
 	String typeName = object->GetReflectionType()->GetName().ToLower();
-	//String objectKey = CalculateCheckSumString(object->GetName());
-	String objectKey = object->GetName();
+	String objectKey = CalculateCheckSumString(object->GetName());
+	//String objectKey = object->GetName();
 
 	ExecuteQueries({
 	    { "DEL", "icinga:config:" + typeName + ":" + objectKey },
@@ -316,8 +316,8 @@ void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject:
 	String objectName = object->GetName();
 
 	/* Use the name checksum as unique key. */
-	//String objectKey = CalculateCheckSumString(object->GetName());
-	String objectKey = object->GetName();
+	String objectKey = CalculateCheckSumString(object->GetName());
+	//String objectKey = object->GetName();
 
 	std::vector<std::vector<String> > queries;
 
