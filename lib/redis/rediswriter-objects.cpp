@@ -30,20 +30,6 @@
 
 using namespace icinga;
 
-/*
-- icinga:config:<type> as hash
-key: sha1 checksum(name)
-value: JsonEncode(Serialize(object, FAConfig)) + config_checksum
-
-Diff between calculated config_checksum and Redis json config_checksum
-Alternative: Replace into.
-
-
-- icinga:status:<type> as hash
-key: sha1 checksum(name)
-value: JsonEncode(Serialize(object, FAState))
-*/
-
 INITIALIZE_ONCE(&RedisWriter::ConfigStaticInitialize);
 
 void RedisWriter::ConfigStaticInitialize()
@@ -162,7 +148,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	Type::Ptr type = object->GetReflectionType();
 
 	String typeName = type->GetName().ToLower();
-	String objectKey = CalculateCheckSumString(object->GetName());
+//	String objectKey = CalculateCheckSumString(object->GetName());
+	String objectKey = object->GetName();
 
 	Dictionary::Ptr checkSums = new Dictionary();
 	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetName()));
@@ -216,11 +203,12 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 		return;
 
 	String typeName = object->GetReflectionType()->GetName().ToLower();
-	String objectKey = CalculateCheckSumString(object->GetName());
+	//String objectKey = CalculateCheckSumString(object->GetName());
+	String objectKey = object->GetName();
 
 	ExecuteQueries({
-	    { "DEL", "icinga:config:" + typeName, objectKey },
-	    { "DEL", "icinga:status:" + typeName, objectKey },
+	    { "DEL", "icinga:config:" + typeName + ":" + objectKey },
+	    { "DEL", "icinga:status:" + typeName + ":" + objectKey },
 	    { "PUBLISH", "icinga:config:delete", typeName + ":" + objectKey }
 	});
 
@@ -328,11 +316,12 @@ void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject:
 	String objectName = object->GetName();
 
 	/* Use the name checksum as unique key. */
-	String objectKey = CalculateCheckSumString(object->GetName());
+	//String objectKey = CalculateCheckSumString(object->GetName());
+	String objectKey = object->GetName();
 
 	std::vector<std::vector<String> > queries;
 
-	queries.push_back({ "DEL", keyPrefix + objectKey });
+	queries.push_back({ "DEL", keyPrefix + typeName + ":" + objectKey });
 
 	std::vector<String> hmsetCommand({ "HMSET", keyPrefix + typeName + ":" + objectKey });
 
