@@ -328,8 +328,8 @@ void RedisWriter::SendEvent(const Dictionary::Ptr& event)
 
 	String body = JsonEncode(event);
 
-	Log(LogInformation, "RedisWriter")
-		<< "Sending event \"" << body << "\"";
+//	Log(LogInformation, "RedisWriter")
+//		<< "Sending event \"" << body << "\"";
 
 	ExecuteQuery({ "PUBLISH", "icinga:event:all", body });
 	ExecuteQuery({ "PUBLISH", "icinga:event:" + event->Get("type"), body });
