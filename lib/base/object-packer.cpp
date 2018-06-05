@@ -1,0 +1,241 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
+
+#include "base/object-packer.hpp"
+#include "base/debug.hpp"
+#include "base/dictionary.hpp"
+#include "base/array.hpp"
+#include "base/objectlock.hpp"
+#include <algorithm>
+#include <climits>
+#include <cstdint>
+#include <utility>
+#include <vector>
+
+using namespace icinga;
+
+// Just for the sake of code readability
+typedef std::vector<char> StringBuilder;
+
+static const union {
+	int i;
+	char buf[sizeof(int)];
+} endianness = {
+	.i = 1
+};
+
+// Assumption: The compiler will optimize (away) if/else statements using this.
+#define MACHINE_LITTLE_ENDIAN (endianness.buf[0])
+
+static void PackAny(const Value& value, StringBuilder& builder);
+
+/**
+ * std::swap() seems not to work
+ */
+static inline void SwapBytes(char& a, char& b)
+{
+	char c = a;
+	a = b;
+	b = c;
+}
+
+/**
+ * Avoid implementation-defined overflows during unsigned to signed casts
+ */
+static inline char UIntToByte(unsigned i)
+{
+#if CHAR_MIN == 0
+	return i;
+#else
+	union {
+		unsigned char u;
+		signed char s;
+	} converter = {
+			.s = 0
+	};
+
+	converter.u = i;
+	return converter.s;
+#endif
+}
+
+/**
+ * Append the given int as big-endian 64-bit unsigned int
+ */
+static inline void PackUInt64BE(uint_least64_t i, StringBuilder& builder)
+{
+	char buf[8] = {
+		UIntToByte(i >> 56u),
+		UIntToByte((i >> 48u) & 255u),
+		UIntToByte((i >> 40u) & 255u),
+		UIntToByte((i >> 32u) & 255u),
+		UIntToByte((i >> 24u) & 255u),
+		UIntToByte((i >> 16u) & 255u),
+		UIntToByte((i >> 8u) & 255u),
+		UIntToByte(i & 255u)
+	};
+
+	builder.insert(builder.end(), (char*)buf, (char*)buf + 8);
+}
+
+/**
+ * Append the given double as big-endian IEEE 754 binary64
+ */
+static inline void PackFloat64BE(double f, StringBuilder& builder)
+{
+	union {
+		double f;
+		char buf[8];
+	} converter = {
+			.buf = {0, 0, 0, 0, 0, 0, 0, 0}
+	};
+
+	converter.f = f;
+
+	if (MACHINE_LITTLE_ENDIAN) {
+		SwapBytes(converter.buf[0], converter.buf[7]);
+		SwapBytes(converter.buf[1], converter.buf[6]);
+		SwapBytes(converter.buf[2], converter.buf[5]);
+		SwapBytes(converter.buf[3], converter.buf[4]);
+	}
+
+	builder.insert(builder.end(), (char*)converter.buf, (char*)converter.buf + 8);
+}
+
+/**
+ * Append the given string's length (BE uint64) and the string itself
+ */
+static inline void PackString(const String& string, StringBuilder& builder)
+{
+	PackUInt64BE(string.GetLength(), builder);
+	builder.insert(builder.end(), string.Begin(), string.End());
+}
+
+/**
+ * Append the given array
+ */
+static inline void PackArray(const Array::Ptr& arr, StringBuilder& builder)
+{
+	ObjectLock olock(arr);
+
+	builder.emplace_back(5);
+	PackUInt64BE(arr->GetLength(), builder);
+
+	for (const Value& value : arr) {
+		PackAny(value, builder);
+	}
+}
+
+/**
+ * Append the given dictionary
+ */
+static inline void PackDictionary(const Dictionary::Ptr& dict, StringBuilder& builder)
+{
+	ObjectLock olock(dict);
+
+	builder.emplace_back(6);
+	PackUInt64BE(dict->GetLength(), builder);
+
+	for (const Dictionary::Pair& kv : dict) {
+		PackString(kv.first, builder);
+		PackAny(kv.second, builder);
+	}
+}
+
+/**
+ * Append any JSON-encodable value
+ */
+static void PackAny(const Value& value, StringBuilder& builder)
+{
+	switch (value.GetType()) {
+		case ValueString:
+			builder.emplace_back(4);
+			PackString(value.Get<String>(), builder);
+			break;
+
+		case ValueNumber:
+			builder.emplace_back(3);
+			PackFloat64BE(value.Get<double>(), builder);
+			break;
+
+		case ValueBoolean:
+			builder.emplace_back(value.ToBool() ? 2 : 1);
+			break;
+
+		case ValueEmpty:
+			builder.emplace_back(0);
+			break;
+
+		case ValueObject:
+			{
+				const Object::Ptr& obj = value.Get<Object::Ptr>();
+
+				Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
+				if (dict) {
+					PackDictionary(dict, builder);
+					break;
+				}
+
+				Array::Ptr arr = dynamic_pointer_cast<Array>(obj);
+				if (arr) {
+					PackArray(arr, builder);
+					break;
+				}
+			}
+
+			builder.emplace_back(0);
+			break;
+
+		default:
+			VERIFY(!"Invalid variant type.");
+	}
+}
+
+/**
+ * Pack any JSON-encodable value to a BSON-similar structure suitable for consistent hashing
+ *
+ * Spec:
+ *   null: 0x00
+ *   false: 0x01
+ *   true: 0x02
+ *   number: 0x03 (ieee754_binary64_bigendian)payload
+ *   string: 0x04 (uint64_bigendian)payload.length (char[])payload
+ *   array: 0x05 (uint64_bigendian)payload.length (any[])payload
+ *   object: 0x06 (uint64_bigendian)payload.length (keyvalue[])payload.sort()
+ *
+ *   any: null|false|true|number|string|array|object
+ *   keyvalue: (uint64_bigendian)key.length (char[])key (any)value
+ *
+ * Assumptions:
+ *   - double is IEEE 754 binary64
+ *   - all int types (signed and unsigned) and all float types share the same endianness
+ *   - char is exactly 8 bits wide and one char is exactly one byte affected by the machine endianness
+ *   - all input strings, arrays and dictionaries are at most 2^64-1 long
+ *
+ * If not, this function will silently produce invalid results.
+ */
+String icinga::PackObject(const Value& value)
+{
+	StringBuilder builder;
+	PackAny(value, builder);
+
+	String result;
+	result.insert(result.End(), builder.begin(), builder.end());
+	return std::move(result);
+}

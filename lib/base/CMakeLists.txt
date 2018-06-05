@@ -57,6 +57,7 @@ set(base_SOURCES
   number.cpp number.hpp number-script.cpp
   object.cpp object.hpp object-script.cpp
   objectlock.cpp objectlock.hpp
+  object-packer.cpp object-packer.hpp
   objecttype.cpp objecttype.hpp
   perfdatavalue.cpp perfdatavalue.hpp perfdatavalue-ti.hpp
   primitivetype.cpp primitivetype.hpp
