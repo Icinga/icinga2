@@ -43,22 +43,12 @@ String RedisWriter::CalculateCheckSumString(const String& str)
 
 String RedisWriter::CalculateCheckSumGroups(const Array::Ptr& groups)
 {
-	String output;
-
 	/* Ensure that checksums happen in a defined order. */
 	Array::Ptr tmpGroups = groups->ShallowClone();
 
 	tmpGroups->Sort();
 
-	{
-		ObjectLock olock(tmpGroups);
-
-		for (const String& group : tmpGroups) {
-			output += SHA1(group);
-		}
-	}
-
-	return SHA1(output);
+	return SHA1(PackObject(tmpGroups));
 }
 
 String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object)
