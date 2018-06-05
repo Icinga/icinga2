@@ -224,11 +224,23 @@ void ApiListener::Start(bool runtimeCreated)
 		OpenLogFile();
 	}
 
-	/* create the primary JSON-RPC listener */
-	if (!AddListener(GetBindHost(), GetBindPort())) {
-		Log(LogCritical, "ApiListener")
-			<< "Cannot add listener on host '" << GetBindHost() << "' for port '" << GetBindPort() << "'.";
-		Application::Exit(EXIT_FAILURE);
+	Dictionary::Ptr envData = ScriptGlobal::Get("EnvironmentInfo", &Empty);
+	if (envData) {
+		ScriptGlobal::Set("EnvironmentInfo", Empty);
+		TcpSocket::Ptr listener = envData->Get("listener");
+		if (!AddListener(listener)) {
+			Log(LogCritical, "ApiListener")
+			    << "Failed to set up pre-configured agent listener.";
+			Application::Exit(EXIT_FAILURE);
+		}
+		Utility::SaveJsonFile(envData->Get("meta_path"), 0600, envData->Get("config"));
+	} else {
+		/* create the primary JSON-RPC listener */
+		if (!AddListener(GetBindHost(), GetBindPort())) {
+			Log(LogCritical, "ApiListener")
+				<< "Cannot add listener on host '" << GetBindHost() << "' for port '" << GetBindPort() << "'.";
+			Application::Exit(EXIT_FAILURE);
+		}
 	}
 
 	m_Timer = new Timer();
@@ -299,6 +311,33 @@ bool ApiListener::IsMaster() const
 		return false;
 
 	return master == GetLocalEndpoint();
+}
+
+/**
+ * Creates a new JSON-RPC listener using the specified TCP socket object.
+ *
+ * @param listener The TCP socket to use.
+ */
+bool ApiListener::AddListener(const TcpSocket::Ptr& listener)
+{
+	ObjectLock olock(this);
+
+	std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+
+	if (!sslContext) {
+		Log(LogCritical, "ApiListener", "SSL context is required for AddListener()");
+		return false;
+	}
+
+	Log(LogInformation, "ApiListener")
+		<< "Adding pre-configured listener on address " << listener->GetClientAddress();
+
+	std::thread thread(std::bind(&ApiListener::ListenerThreadProc, this, listener));
+	thread.detach();
+
+	m_Servers.insert(listener);
+
+	return true;
 }
 
 /**

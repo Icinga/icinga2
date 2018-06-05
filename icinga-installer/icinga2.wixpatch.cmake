@@ -10,9 +10,9 @@
     <Binary Id="icinga2_installer" SourceFile="$<TARGET_FILE:icinga-installer>" />
     
     <InstallExecuteSequence>
-      <Custom Action="XtraUpgradeNSIS" After="InstallInitialize">$CM_CP_sbin.icinga2_installer.exe&gt;2</Custom>
-      <Custom Action="XtraInstall" Before="InstallFinalize">$CM_CP_sbin.icinga2_installer.exe&gt;2</Custom>
-      <Custom Action="XtraUninstall" Before="RemoveExistingProducts">$CM_CP_sbin.icinga2_installer.exe=2</Custom>
+      <Custom Action="XtraUpgradeNSIS" After="InstallInitialize">$CM_CP_sbin.icinga2_installer.exe&gt;2 AND NOT SUPPRESS_XTRA</Custom>
+      <Custom Action="XtraInstall" Before="InstallFinalize">$CM_CP_sbin.icinga2_installer.exe&gt;2 AND NOT SUPPRESS_XTRA</Custom>
+      <Custom Action="XtraUninstall" Before="RemoveExistingProducts">$CM_CP_sbin.icinga2_installer.exe=2 AND NOT SUPPRESS_XTRA</Custom>
     </InstallExecuteSequence>
 
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Run Icinga 2 setup wizard" />

@@ -37,11 +37,11 @@ namespace icinga
 class ApiSetupUtility
 {
 public:
-	static bool SetupMaster(const String& cn, bool prompt_restart = false);
+	static bool SetupMaster(const String& cn, bool prompt_restart = false, bool quiet = false);
 
 	static bool SetupMasterCertificates(const String& cn);
 	static bool SetupMasterApiUser();
-	static bool SetupMasterEnableApi();
+	static bool SetupMasterEnableApi(bool quiet = false);
 	static bool SetupMasterUpdateConstants(const String& cn);
 
 	static String GetConfdPath();
