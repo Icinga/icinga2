@@ -27,6 +27,7 @@
 #include "base/tlsutility.hpp"
 #include "base/initialize.hpp"
 #include "base/convert.hpp"
+#include <set>
 
 using namespace icinga;
 
@@ -151,6 +152,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	String objectKey = CalculateCheckSumString(object->GetName());
 	//String objectKey = object->GetName();
 
+	std::set<String> propertiesBlacklist ({"name"});
+
 	Dictionary::Ptr checkSums = new Dictionary();
 	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetName()));
 
@@ -158,6 +161,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
 	if (checkable) {
+		propertiesBlacklist.emplace("groups");
+
 		Host::Ptr host;
 		Service::Ptr service;
 
@@ -169,13 +174,16 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			checkSums->Set("groups_checksum", CalculateCheckSumGroups(host->GetGroups()));
 	}
 
-	checkSums->Set("properties_checksum", CalculateCheckSumProperties(object));
-
 	//TODO: Move this somewhere else.
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
 
-	if (customVarObject)
+	if (customVarObject) {
+		propertiesBlacklist.emplace("vars");
+
 		checkSums->Set("vars_checksum", CalculateCheckSumVars(customVarObject));
+	}
+
+	checkSums->Set("properties_checksum", CalculateCheckSumProperties(object, propertiesBlacklist));
 
 	String checkSumsBody = JsonEncode(checkSums);
 
