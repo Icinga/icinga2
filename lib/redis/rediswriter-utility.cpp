@@ -19,7 +19,7 @@
 
 #include "redis/rediswriter.hpp"
 #include "icinga/customvarobject.hpp"
-#include "base/json.hpp"
+#include "base/object-packer.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
 #include "base/tlsutility.hpp"
@@ -88,6 +88,6 @@ String RedisWriter::HashValue(const Value& value)
 	else
 		temp = value;
 
-	return SHA1(JsonEncode(temp));
+	return SHA1(PackObject(temp));
 }
 
