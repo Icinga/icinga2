@@ -196,13 +196,15 @@ actions on the URL endpoints.
 
 Permissions for API users must be specified in the `permissions` attribute
 as array. The array items can be a list of permission strings with wildcard
-matches.
+matches. Please notice, that the permission system that is used by the API differs from the permission system used by the Icinga Web 2 frontend or other parts of Icinga 2.
+
+The permission system mainly relies on the url scheme of the API endpoints (See listing below).
 
 Example for an API user with all permissions:
 
     permissions = [ "*" ]
 
-Note that you can use wildcards. Here's another example that only allows the user
+Note that you can use wildcards to include all possible hierarchically lower items. Here's another example that only allows the user
 to perform read-only object queries for hosts and services:
 
     permissions = [ "objects/query/Host", "objects/query/Service" ]
