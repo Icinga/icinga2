@@ -24,6 +24,7 @@
 #include "base/serializer.hpp"
 #include "base/tlsutility.hpp"
 #include "base/initialize.hpp"
+#include "base/objectlock.hpp"
 
 using namespace icinga;
 
@@ -51,10 +52,10 @@ String RedisWriter::CalculateCheckSumGroups(const Array::Ptr& groups)
 	return SHA1(PackObject(tmpGroups));
 }
 
-String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object)
+String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object, const std::set<String>& propertiesBlacklist)
 {
 	//TODO: consider precision of 6 for double values; use specific config fields for hashing?
-	return HashValue(object);
+	return HashValue(object, propertiesBlacklist);
 }
 
 String RedisWriter::CalculateCheckSumVars(const CustomVarObject::Ptr& object)
@@ -67,16 +68,43 @@ String RedisWriter::CalculateCheckSumVars(const CustomVarObject::Ptr& object)
 	return HashValue(vars);
 }
 
+static const std::set<String> propertiesBlacklistEmpty;
+
 String RedisWriter::HashValue(const Value& value)
 {
+	return HashValue(value, propertiesBlacklistEmpty);
+}
+
+String RedisWriter::HashValue(const Value& value, const std::set<String>& propertiesBlacklist)
+{
 	Value temp;
+	bool mutabl;
 
 	Type::Ptr type = value.GetReflectionType();
 
-	if (ConfigObject::TypeInstance->IsAssignableFrom(type))
+	if (ConfigObject::TypeInstance->IsAssignableFrom(type)) {
 		temp = Serialize(value, FAConfig);
-	else
+		mutabl = true;
+	} else {
 		temp = value;
+		mutabl = false;
+	}
+
+	if (propertiesBlacklist.size() && temp.IsObject()) {
+		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>((Object::Ptr)temp);
+
+		if (dict) {
+			if (!mutabl)
+				dict = dict->ShallowClone();
+
+			ObjectLock olock(dict);
+			for (auto& property : propertiesBlacklist)
+				dict->Remove(property);
+
+			if (!mutabl)
+				temp = dict;
+		}
+	}
 
 	return SHA1(PackObject(temp));
 }

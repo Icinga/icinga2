@@ -76,10 +76,11 @@ private:
 
 	static String CalculateCheckSumString(const String& str);
 	static String CalculateCheckSumGroups(const Array::Ptr& groups);
-	static String CalculateCheckSumProperties(const ConfigObject::Ptr& object);
+	static String CalculateCheckSumProperties(const ConfigObject::Ptr& object, const std::set<String>& propertiesBlacklist);
 	static String CalculateCheckSumVars(const CustomVarObject::Ptr& object);
 
 	static String HashValue(const Value& value);
+	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist);
 
 	static void StateChangedHandler(const ConfigObject::Ptr& object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
