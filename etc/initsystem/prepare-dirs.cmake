@@ -3,25 +3,15 @@
 # This script prepares directories and files needed for running Icinga2
 #
 
-# load system specific defines
-SYSCONFIGFILE=$1
-if [ -f "$SYSCONFIGFILE" ]; then
-	. $SYSCONFIGFILE
-else
-	echo "Error: You need to supply the path to the Icinga2 sysconfig file as parameter."
-	exit 1
-fi
+# Set defaults, to overwrite see "@ICINGA2_SYSCONFIGFILE@"
 
-
-if [ ! $ICINGA2_USER ]; then
-	echo "Could not fetch \$ICINGA2_USER. Exiting."
-	exit 6
-fi
-
-if [ ! $ICINGA2_GROUP ]; then
-	echo "Could not fetch \$ICINGA2_GROUP. Exiting."
-	exit 6
-fi
+: ${ICINGA2_USER:="@ICINGA2_USER@"}
+: ${ICINGA2_GROUP:="@ICINGA2_GROUP@"}
+: ${ICINGA2_COMMAND_GROUP:="@ICINGA2_COMMAND_GROUP@"}
+: ${ICINGA2_RUN_DIR:="@ICINGA2_RUNDIR@"}
+: ${ICINGA2_LOG_DIR:="@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2"}
+: ${ICINGA2_STATE_DIR:="@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/cache/icinga2"}
+: ${ICINGA2_CACHE_DIR:="@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/cache/icinga2"}
 
 getent passwd $ICINGA2_USER >/dev/null 2>&1 || (echo "Icinga user '$ICINGA2_USER' does not exist. Exiting." && exit 6)
 getent group $ICINGA2_GROUP >/dev/null 2>&1 || (echo "Icinga group '$ICINGA2_GROUP' does not exist. Exiting." && exit 6)
@@ -35,20 +25,10 @@ if [ ! -e "$ICINGA2_RUN_DIR"/icinga2 ]; then
 	chown -R $ICINGA2_USER:$ICINGA2_COMMAND_GROUP "$ICINGA2_RUN_DIR"/icinga2
 fi
 
-# Could be undefined in installations where sysconf is not overridden on upgrade
-if [ -z "$ICINGA2_LOG_DIR" ]; then
-	ICINGA2_LOG_DIR=$(dirname -- "$ICINGA2_LOG")
-fi
-
 test -e "$ICINGA2_LOG_DIR" || install -m 750 -o $ICINGA2_USER -g $ICINGA2_COMMAND_GROUP -d "$ICINGA2_LOG_DIR"
 
 if type restorecon >/dev/null 2>&1; then
 	restorecon -R "$ICINGA2_RUN_DIR"/icinga2/
-fi
-
-# Add a fallback if the user did not specify this directory in the sysconfig file
-if [ -z "$ICINGA2_CACHE_DIR" ]; then
-	ICINGA2_CACHE_DIR="$ICINGA2_STATE_DIR"/cache/icinga2
 fi
 
 test -e "$ICINGA2_CACHE_DIR" || install -m 750 -o $ICINGA2_USER -g $ICINGA2_COMMAND_GROUP -d "$ICINGA2_CACHE_DIR"

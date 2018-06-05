@@ -20,24 +20,29 @@ SYSCONFIGFILE=@ICINGA2_SYSCONFIGFILE@
 if [ -f $SYSCONFIGFILE ]; then
 	. $SYSCONFIGFILE
 else
-	echo "Can't load system specific defines from $SYSCONFIGFILE."
-	exit 6
+	echo "Couldn't load system specific defines from $SYSCONFIGFILE. Using defaults."
+fi
+
+# Set defaults, to overwrite see "@ICINGA2_SYSCONFIGFILE@"
+
+: ${ICINGA2_USER:="@ICINGA2_USER@"}
+: ${ICINGA2_GROUP:="@ICINGA2_GROUP@"}
+: ${ICINGA2_COMMAND_GROUP:="@ICINGA2_COMMAND_GROUP@"}
+: ${DAEMON:="@CMAKE_INSTALL_FULL_SBINDIR@/icinga2"}
+: ${ICINGA2_CONFIG_FILE:="@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/icinga2.conf"}
+: ${ICINGA2_ERROR_LOG:=@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/error.log}
+: ${ICINGA2_STARTUP_LOG:=@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/startup.log}
+: ${ICINGA2_PID_FILE:="@ICINGA2_RUNDIR@/icinga2/icinga2.pid"}
+
+# Load extra environment variables
+if [ -f /etc/default/icinga2 ]; then
+	. /etc/default/icinga2
 fi
 
 test -x $DAEMON || exit 5
 
 if [ ! -e $ICINGA2_CONFIG_FILE ]; then
 	echo "Config file '$ICINGA2_CONFIG_FILE' does not exist."
-	exit 6
-fi
-
-if [ ! $ICINGA2_USER ]; then
-	echo "Could not fetch \$ICINGA2_USER. Exiting."
-	exit 6
-fi
-
-if [ ! $ICINGA2_GROUP ]; then
-	echo "Could not fetch \$ICINGA2_GROUP. Exiting."
 	exit 6
 fi
 
@@ -52,15 +57,10 @@ elif [ -f /etc/init.d/functions ]; then
 	. /etc/init.d/functions
 fi
 
-# Load extra environment variables
-if [ -f /etc/default/icinga2 ]; then
-	. /etc/default/icinga2
-fi
-
 # Start Icinga 2
 start() {
 	printf "Starting Icinga 2: "
-	@CMAKE_INSTALL_PREFIX@/lib/icinga2/prepare-dirs $SYSCONFIGFILE
+	@CMAKE_INSTALL_PREFIX@/lib/icinga2/prepare-dirs
 
 	if ! $DAEMON daemon -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG > $ICINGA2_STARTUP_LOG 2>&1; then
 		echo "Error starting Icinga. Check '$ICINGA2_STARTUP_LOG' for details."

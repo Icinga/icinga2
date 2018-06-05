@@ -1,12 +1,7 @@
 #!/bin/sh
-# load system specific defines
-SYSCONFIGFILE=$1
-if [ ! -f "$SYSCONFIGFILE" ]; then
-	echo "Error: You need to supply the path to the Icinga2 sysconfig file as a parameter."
-	exit 1
-fi
 
-. $SYSCONFIGFILE
+: ${ICINGA2_PID_FILE:="@ICINGA2_RUNDIR@/icinga2/icinga2.pid"}
+: ${DAEMON:="@CMAKE_INSTALL_FULL_SBINDIR@/icinga2"}
 
 printf "Validating config files: "
 

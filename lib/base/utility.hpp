@@ -147,7 +147,7 @@ public:
 	static String GetIcingaDataPath();
 #endif /* _WIN32 */
 
-	static String GetFromSysconfig(const String& env);
+	static String GetFromEnvironment(const String& env);
 
 #ifdef I2_DEBUG
 	static void SetTime(double);

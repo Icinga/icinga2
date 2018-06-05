@@ -156,67 +156,69 @@ static int Main()
 	Application::DeclareZonesDir(Application::GetSysconfDir() + "/icinga2/zones.d");
 
 #ifndef _WIN32
-	if (!Utility::PathExists(Application::GetSysconfigFile())) {
+	if (!autocomplete && !Utility::PathExists(Application::GetSysconfigFile())) {
 		Log(LogWarning, "icinga-app")
 			<< "Sysconfig file '" << Application::GetSysconfigFile() << "' cannot be read. Using default values.";
 	}
 #endif /* _WIN32 */
 
-	String icingaUser = Utility::GetFromSysconfig("ICINGA2_USER");
+	String icingaUser = Utility::GetFromEnvironment("ICINGA2_USER");
 	if (icingaUser.IsEmpty())
 		icingaUser = ICINGA_USER;
 
-	String icingaGroup = Utility::GetFromSysconfig("ICINGA2_GROUP");
+	String icingaGroup = Utility::GetFromEnvironment("ICINGA2_GROUP");
 	if (icingaGroup.IsEmpty())
 		icingaGroup = ICINGA_GROUP;
 
 	Application::DeclareRunAsUser(icingaUser);
 	Application::DeclareRunAsGroup(icingaGroup);
 
+	if (!autocomplete) {
 #ifdef RLIMIT_NOFILE
-	String rLimitFiles = Utility::GetFromSysconfig("ICINGA2_RLIMIT_FILES");
-	if (rLimitFiles.IsEmpty())
-		Application::DeclareRLimitFiles(Application::GetDefaultRLimitFiles());
-	else {
-		try {
-			Application::DeclareRLimitFiles(Convert::ToLong(rLimitFiles));
-		} catch (const std::invalid_argument& ex) {
-			std::cout
-				<< "Error while parsing \"ICINGA2_RLIMIT_FILES\" from sysconfig: " << ex.what() << '\n';
-			return EXIT_FAILURE;
+		String rLimitFiles = Utility::GetFromEnvironment("ICINGA2_RLIMIT_FILES");
+		if (rLimitFiles.IsEmpty())
+			Application::DeclareRLimitFiles(Application::GetDefaultRLimitFiles());
+		else {
+			try {
+				Application::DeclareRLimitFiles(Convert::ToLong(rLimitFiles));
+			} catch (const std::invalid_argument& ex) {
+				std::cout
+					<< "Error setting \"ICINGA2_RLIMIT_FILES\": " << ex.what() << '\n';
+				return EXIT_FAILURE;
+			}
 		}
-	}
 #endif /* RLIMIT_NOFILE */
 
 #ifdef RLIMIT_NPROC
-	String rLimitProcesses = Utility::GetFromSysconfig("ICINGA2_RLIMIT_PROCESSES");
-	if (rLimitProcesses.IsEmpty())
-		Application::DeclareRLimitProcesses(Application::GetDefaultRLimitProcesses());
-	else {
-		try {
-			Application::DeclareRLimitProcesses(Convert::ToLong(rLimitProcesses));
-		} catch (const std::invalid_argument& ex) {
-			std::cout
-				<< "Error while parsing \"ICINGA2_RLIMIT_PROCESSES\" from sysconfig: " << ex.what() << '\n';
-			return EXIT_FAILURE;
+		String rLimitProcesses = Utility::GetFromEnvironment("ICINGA2_RLIMIT_PROCESSES");
+		if (rLimitProcesses.IsEmpty())
+			Application::DeclareRLimitProcesses(Application::GetDefaultRLimitProcesses());
+		else {
+			try {
+				Application::DeclareRLimitProcesses(Convert::ToLong(rLimitProcesses));
+			} catch (const std::invalid_argument& ex) {
+				std::cout
+					<< "Error setting \"ICINGA2_RLIMIT_PROCESSES\": " << ex.what() << '\n';
+				return EXIT_FAILURE;
+			}
 		}
-	}
 #endif /* RLIMIT_NPROC */
 
 #ifdef RLIMIT_STACK
-	String rLimitStack = Utility::GetFromSysconfig("ICINGA2_RLIMIT_STACK");
-	if (rLimitStack.IsEmpty())
-		Application::DeclareRLimitStack(Application::GetDefaultRLimitStack());
-	else {
-		try {
-			Application::DeclareRLimitStack(Convert::ToLong(rLimitStack));
-		} catch (const std::invalid_argument& ex) {
-			std::cout
-				<< "Error while parsing \"ICINGA2_RLIMIT_STACK\" from sysconfig: " << ex.what() << '\n';
-			return EXIT_FAILURE;
+		String rLimitStack = Utility::GetFromEnvironment("ICINGA2_RLIMIT_STACK");
+		if (rLimitStack.IsEmpty())
+			Application::DeclareRLimitStack(Application::GetDefaultRLimitStack());
+		else {
+			try {
+				Application::DeclareRLimitStack(Convert::ToLong(rLimitStack));
+			} catch (const std::invalid_argument& ex) {
+				std::cout
+					<< "Error setting \"ICINGA2_RLIMIT_STACK\": " << ex.what() << '\n';
+				return EXIT_FAILURE;
+			}
 		}
-	}
 #endif /* RLIMIT_STACK */
+	}
 
 	Application::DeclareConcurrency(std::thread::hardware_concurrency());
 	Application::DeclareMaxConcurrentChecks(Application::GetDefaultMaxConcurrentChecks());
