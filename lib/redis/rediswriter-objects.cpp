@@ -172,6 +172,23 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			checkSums->Set("groups_checksum", CalculateCheckSumGroups(service->GetGroups()));
 		else
 			checkSums->Set("groups_checksum", CalculateCheckSumGroups(host->GetGroups()));
+	} else {
+		Zone::Ptr zone = dynamic_pointer_cast<Zone>(object);
+
+		if (zone) {
+			propertiesBlacklist.emplace("endpoints");
+
+			auto endpointObjects = zone->GetEndpoints();
+			Array::Ptr endpoints = new Array();
+			endpoints->Resize(endpointObjects.size());
+
+			Array::SizeType i = 0;
+			for (auto& endpointObject : endpointObjects) {
+				endpoints->Set(i++, endpointObject->GetName());
+			}
+
+			checkSums->Set("endpoints_checksum", CalculateCheckSumGroups(endpoints));
+		}
 	}
 
 	//TODO: Move this somewhere else.
