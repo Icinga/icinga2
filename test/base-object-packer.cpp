@@ -135,7 +135,7 @@ static inline bool AssertPackObjectResult(Value in, std::initializer_list<int> o
 	return equal;
 }
 
-BOOST_AUTO_TEST_SUITE(object_packer)
+BOOST_AUTO_TEST_SUITE(base_object_packer)
 
 BOOST_AUTO_TEST_CASE(pack_null)
 {
