@@ -83,6 +83,8 @@ All requests apart from `GET` require that the following `Accept` header is set:
 
 Each URL is prefixed with the API version (currently "/v1").
 
+HTTP header size is limited to 8KB.
+
 ### Responses <a id="icinga2-api-responses"></a>
 
 Successful requests will send back a response body containing a `results`
