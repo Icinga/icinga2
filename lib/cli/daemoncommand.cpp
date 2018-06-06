@@ -216,7 +216,9 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 #ifdef _WIN32
 	if (vm.count("restart-service")) {
-		SC_HANDLE handleManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+		return EXIT_SUCCESS;
+		/*
+		SC_HANDLE handleManager = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
 		if (!handleManager) {
 			Log(LogCritical, "cli") << "Failed to open service manager. Error code: " << GetLastError();
 			return EXIT_FAILURE;
@@ -247,6 +249,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		}
 
 		return EXIT_SUCCESS;
+		*/
 	}
 #endif /* _WIN32 */
 
