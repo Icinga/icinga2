@@ -28,6 +28,7 @@ set(base_test_SOURCES
   base-match.cpp
   base-netstring.cpp
   base-object.cpp
+  base-object-packer.cpp
   base-serialize.cpp
   base-shellescape.cpp
   base-stacktrace.cpp
@@ -82,6 +83,13 @@ add_boost_test(base
     base_fifo/construct
     base_fifo/io
     base_json/invalid1
+    base_object_packer/pack_null
+    base_object_packer/pack_false
+    base_object_packer/pack_true
+    base_object_packer/pack_number
+    base_object_packer/pack_string
+    base_object_packer/pack_array
+    base_object_packer/pack_object
     base_match/tolong
     base_netstring/netstring
     base_object/construct
