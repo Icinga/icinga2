@@ -20,10 +20,11 @@ getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || (echo "Icinga command gro
 if [ ! -e "$ICINGA2_RUN_DIR"/icinga2 ]; then
 	mkdir "$ICINGA2_RUN_DIR"/icinga2
 	mkdir "$ICINGA2_RUN_DIR"/icinga2/cmd
-	chmod 755 "$ICINGA2_RUN_DIR"/icinga2
-	chmod 2750 "$ICINGA2_RUN_DIR"/icinga2/cmd
-	chown -R $ICINGA2_USER:$ICINGA2_COMMAND_GROUP "$ICINGA2_RUN_DIR"/icinga2
 fi
+
+chmod 755 "$ICINGA2_RUN_DIR"/icinga2
+chmod 2750 "$ICINGA2_RUN_DIR"/icinga2/cmd
+chown -R $ICINGA2_USER:$ICINGA2_COMMAND_GROUP "$ICINGA2_RUN_DIR"/icinga2
 
 test -e "$ICINGA2_LOG_DIR" || install -m 750 -o $ICINGA2_USER -g $ICINGA2_COMMAND_GROUP -d "$ICINGA2_LOG_DIR"
 
