@@ -152,7 +152,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	String objectKey = CalculateCheckSumString(object->GetName());
 	//String objectKey = object->GetName();
 
-	std::set<String> propertiesBlacklist ({"name"});
+	std::set<String> propertiesBlacklist ({"name", "__name", "package", "source_location", "templates"});
 
 	Dictionary::Ptr checkSums = new Dictionary();
 	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetName()));
@@ -200,6 +200,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		checkSums->Set("vars_checksum", CalculateCheckSumVars(customVarObject));
 	}
 
+	checkSums->Set("metadata_checksum", CalculateCheckSumMetadata(object));
 	checkSums->Set("properties_checksum", CalculateCheckSumProperties(object, propertiesBlacklist));
 
 	String checkSumsBody = JsonEncode(checkSums);
