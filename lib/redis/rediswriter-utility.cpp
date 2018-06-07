@@ -58,6 +58,13 @@ String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object,
 	return HashValue(object, propertiesBlacklist);
 }
 
+static const std::set<String> metadataWhitelist ({"package", "source_location", "templates"});
+
+String RedisWriter::CalculateCheckSumMetadata(const ConfigObject::Ptr& object)
+{
+	return HashValue(object, metadataWhitelist, true);
+}
+
 String RedisWriter::CalculateCheckSumVars(const CustomVarObject::Ptr& object)
 {
 	Dictionary::Ptr vars = object->GetVars();
@@ -75,7 +82,7 @@ String RedisWriter::HashValue(const Value& value)
 	return HashValue(value, propertiesBlacklistEmpty);
 }
 
-String RedisWriter::HashValue(const Value& value, const std::set<String>& propertiesBlacklist)
+String RedisWriter::HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist)
 {
 	Value temp;
 	bool mutabl;
@@ -98,8 +105,22 @@ String RedisWriter::HashValue(const Value& value, const std::set<String>& proper
 				dict = dict->ShallowClone();
 
 			ObjectLock olock(dict);
-			for (auto& property : propertiesBlacklist)
-				dict->Remove(property);
+
+			if (propertiesWhitelist) {
+				auto current = dict->Begin();
+				auto propertiesBlacklistEnd = propertiesBlacklist.end();
+
+				while (current != dict->End()) {
+					if (propertiesBlacklist.find(current->first) == propertiesBlacklistEnd) {
+						dict->Remove(current++);
+					} else {
+						++current;
+					}
+				}
+			} else {
+				for (auto& property : propertiesBlacklist)
+					dict->Remove(property);
+			}
 
 			if (!mutabl)
 				temp = dict;
