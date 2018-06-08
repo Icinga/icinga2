@@ -21,7 +21,6 @@
 #include "redis/rediswriter-ti.cpp"
 #include "remote/eventqueue.hpp"
 #include "base/json.hpp"
-#include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
 
 using namespace icinga;
@@ -230,19 +229,7 @@ void RedisWriter::PublishStats()
 	if (!m_Context)
 		return;
 
-	//TODO: Figure out if more stats can be useful here.
-	Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
-
-	if (!statsFunctions)
-		return;
-
-	Function::Ptr func = statsFunctions->Get("CIB");
-
-	Dictionary::Ptr status = new Dictionary();
-	Array::Ptr perfdata = new Array();
-
-	func->Invoke({ status, perfdata });
-
+	Dictionary::Ptr status = GetStats();
 	String jsonStats = JsonEncode(status);
 
 	ExecuteQuery({ "PUBLISH", "icinga:stats", jsonStats });

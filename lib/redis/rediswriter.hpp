@@ -71,6 +71,9 @@ private:
 	void SendStatusUpdate(const ConfigObject::Ptr& object, bool useTransaction);
 	void UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType);
 
+	/* Stats */
+	Dictionary::Ptr GetStats();
+
 	/* utilities */
 	static String FormatCheckSumBinary(const String& str);
 
