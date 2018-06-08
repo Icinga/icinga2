@@ -176,6 +176,9 @@ void ScheduledDowntime::CreateNextDowntime()
 		return;
 	}
 
+	Log(LogDebug, "ScheduledDowntime")
+		<< "Creating new Downtime for ScheduledDowntime \"" << GetName() << "\"";
+
 	std::pair<double, double> segment = FindNextSegment();
 
 	if (segment.first == 0 && segment.second == 0) {
