@@ -43,6 +43,11 @@ void RedisWriter::ConfigStaticInitialize()
 	ConfigObject::OnVersionChanged.connect(std::bind(&RedisWriter::VersionChangedHandler, _1));
 }
 
+static inline String GetIdentifier(const ConfigObject::Ptr& object)
+{
+	return object->GetName();
+}
+
 void RedisWriter::UpdateAllConfigObjects(void)
 {
 	AssertOnWorkQueue();
@@ -149,8 +154,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	Type::Ptr type = object->GetReflectionType();
 
 	String typeName = type->GetName().ToLower();
-	//String objectKey = CalculateCheckSumString(object->GetName());
-	String objectKey = object->GetName();
+	String objectKey = GetIdentifier(object);
 
 	std::set<String> propertiesBlacklist ({"name", "__name", "package", "source_location", "templates"});
 
@@ -229,8 +233,7 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 		return;
 
 	String typeName = object->GetReflectionType()->GetName().ToLower();
-	//String objectKey = CalculateCheckSumString(object->GetName());
-	String objectKey = object->GetName();
+	String objectKey = GetIdentifier(object);
 
 	ExecuteQueries({
 	    { "DEL", "icinga:config:" + typeName + ":" + objectKey },
@@ -339,11 +342,9 @@ void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject:
 	Type::Ptr type = object->GetReflectionType();
 
 	String typeName = type->GetName().ToLower();
-	String objectName = object->GetName();
 
 	/* Use the name checksum as unique key. */
-	//String objectKey = CalculateCheckSumString(object->GetName());
-	String objectKey = object->GetName();
+	String objectKey = GetIdentifier(object);
 
 	std::vector<std::vector<String> > queries;
 
