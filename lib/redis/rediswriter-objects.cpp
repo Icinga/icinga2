@@ -159,7 +159,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	std::set<String> propertiesBlacklist ({"name", "__name", "package", "source_location", "templates"});
 
 	Dictionary::Ptr checkSums = new Dictionary();
-	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetName()));
+	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetShortName()));
 
 	// TODO: move this elsewhere
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
