@@ -28,21 +28,33 @@ using namespace icinga;
 
 Dictionary::Ptr RedisWriter::GetStats()
 {
+	Dictionary::Ptr stats = new Dictionary();
+
 	//TODO: Figure out if more stats can be useful here.
 	Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
 
 	if (!statsFunctions)
 		Dictionary::Ptr();
 
-	Function::Ptr func = statsFunctions->Get("CIB");
+	ObjectLock olock(statsFunctions);
 
-	Dictionary::Ptr status = new Dictionary();
-	Array::Ptr perfdata = new Array();
+	for (const Dictionary::Pair& kv : statsFunctions)
+	{
+		Function::Ptr func = kv.second;
 
-	func->Invoke({ status, perfdata });
+		if (!func)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status function name."));
 
-//	String jsonStats = JsonEncode(status);
+		Dictionary::Ptr status = new Dictionary();
+		Array::Ptr perfdata = new Array();
+		func->Invoke({ status, perfdata });
 
-	return status;
+		stats->Set(kv.first, new Dictionary({
+			{ "status", status },
+			{ "perfdata", Serialize(perfdata, FAState) }
+		}));
+	}
+
+	return stats;
 }
 
