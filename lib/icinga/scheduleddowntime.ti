@@ -36,6 +36,10 @@ public:
 
 class ScheduledDowntime : CustomVarObject < ScheduledDowntimeNameComposer
 {
+	// Scheduled Downtimes have a dependency on Downtimes. This is to make sure ScheduledDowntimes are activated after
+	// the Downtimes (and other checkables)
+	activation_priority 20;
+
 	load_after Host;
 	load_after Service;
 
