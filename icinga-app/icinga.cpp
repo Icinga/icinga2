@@ -46,6 +46,9 @@
 #	include <Lmcons.h>
 #	include <Shellapi.h>
 #	include <tchar.h>
+#	include <AccCtrl.h>
+#	include <Aclapi.h>
+#	include <Sddl.h>
 #endif /* _WIN32 */
 
 using namespace icinga;
@@ -641,7 +644,8 @@ static int SetupService(bool install, int argc, char **argv)
 				return 1;
 			}
 		}
-	} else if (install) {
+	}
+	else if (install) {
 		schService = CreateService(
 			schSCManager,
 			"icinga2",
@@ -678,6 +682,101 @@ static int SetupService(bool install, int argc, char **argv)
 
 		printf("Service uninstalled successfully\n");
 	} else {
+		/* Update Service to be owned by the Icinga user and set recovery options */
+		DWORD cbSid = 0;
+		DWORD dwSidBufferSize = 32;
+		DWORD cchDomainName = 0;
+		DWORD dwDomainBufferSize = 32;
+		TCHAR *tszDomainName = NULL;
+		SID_NAME_USE eSidType;
+		PSID ppSid;
+		TCHAR *tszsid = new TCHAR[128];
+
+		LookupAccountName(NULL, scmUser.c_str(), NULL, &cbSid, tszDomainName, &cchDomainName, &eSidType);
+		DWORD dwErrorCode = GetLastError();
+
+		if (dwErrorCode == ERROR_INSUFFICIENT_BUFFER) {
+			ppSid = (PSID) new BYTE[cbSid];
+			memset(ppSid, 0, cbSid);
+			tszDomainName = new TCHAR[cchDomainName];
+			memset(tszDomainName, 0, cchDomainName * sizeof(TCHAR));
+		}
+		else {
+			printf("LookupAccountName failed \"%d\"", dwErrorCode);
+			return 1;
+		}
+
+		if (!LookupAccountName(
+			NULL,
+			scmUser.c_str(),
+			&ppSid,
+			&cbSid,
+			tszDomainName,
+			&cchDomainName,
+			&eSidType)) {
+			dwErrorCode = GetLastError();
+			printf("LookupAccountName failed (%d)", dwErrorCode);
+			return 1;
+		}
+
+		if (!IsValidSid(&ppSid)) {
+			printf("User \"%s\" has no valid SID", scmUser.c_str());
+			return 0;
+		}
+
+		if (!ConvertSidToStringSid(&ppSid, &tszsid)) {
+			printf("Error converting sid (%d)", GetLastError());
+			return 0;
+		}
+
+		/*
+		D:(A;;GA;;;SY)             // SDDL_LOCAL_SYSTEM -> SDDL_GENERIC_ALL
+		(A;;GA;;;BA)               // SDDL_BUILTIN_ADMINISTRATORS -> SDDL_GENERIC_ALL
+		(A;;GR;;;WD)               // SDDL_EVERYONE -> SDDL_GENERIC_READ
+		(A;;GRGX;;;sid:IcingaUser) // Icinga user -> SDDL_GENERIC_READ|SDDL_GENERIC_EXECUTE
+		*/
+
+		size_t blen;
+		blen = snprintf(NULL, 0, "D:(A;;GA;;;SY)(A;;GA;;;BA)(A;;GR;;;WD)(A;;GRGX;;;%s)", tszsid);
+		TCHAR *szSD = new TCHAR[blen];
+		snprintf(szSD, blen + 1, "D:(A;;GA;;;SY)(A;;GA;;;BA)(A;;GR;;;WD)(A;;GRGX;;;%s)", tszsid);
+
+		PSECURITY_DESCRIPTOR SecurityDescriptor;
+
+		if (ConvertStringSecurityDescriptorToSecurityDescriptor(szSD, SDDL_REVISION_1, &SecurityDescriptor, 0)) {
+			if (!SetServiceObjectSecurity(schService, DACL_SECURITY_INFORMATION, SecurityDescriptor)) {
+				printf("Failed to set ACLS with error %d", GetLastError());
+			}
+			LocalFree(SecurityDescriptor);
+		}
+		else {
+			printf("Failed to convert security descriptor (%d)", GetLastError());
+			return 0;
+		}
+
+		/* Set recovery options */
+		SC_ACTION arrsca[3];
+		arrsca[0].Type = SC_ACTION_RESTART;
+		arrsca[0].Delay = 1000 * 5; //Five seconds
+		arrsca[1].Type = SC_ACTION_RESTART;
+		arrsca[0].Delay = 1000 * 5;
+		arrsca[2].Type = SC_ACTION_RESTART;
+		arrsca[0].Delay = 1000 * 5;
+
+		SERVICE_FAILURE_ACTIONS fa;
+		fa.dwResetPeriod = 30;
+		fa.lpCommand = NULL;
+		fa.lpRebootMsg = NULL;
+		fa.cActions = sizeof(arrsca) / sizeof(arrsca[0]);
+		fa.lpsaActions = arrsca;
+
+		if (!ChangeServiceConfig2(schService, SERVICE_CONFIG_FAILURE_ACTIONS, &fa)) {
+			printf("Updating service recovery options failed (%d)", GetLastError());
+			CloseServiceHandle(schService);
+			CloseServiceHandle(schSCManager);
+			return 0;
+		}
+
 		if (!ChangeServiceConfig(schService, SERVICE_NO_CHANGE, SERVICE_AUTO_START,
 			SERVICE_ERROR_NORMAL, szArgs.CStr(), nullptr, nullptr, nullptr, scmUser.c_str(), nullptr, nullptr)) {
 			printf("ChangeServiceConfig failed (%d)\n", GetLastError());

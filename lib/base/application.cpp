@@ -383,10 +383,6 @@ static void ReloadProcessCallbackInternal(const ProcessResult& pr)
 		Application::SetLastReloadFailed(Utility::GetTime());
 		Log(LogCritical, "Application", "Found error in config: reloading aborted");
 	}
-#ifdef _WIN32
-	else
-		Application::Exit(7); /* keep this exit code in sync with icinga-app */
-#endif /* _WIN32 */
 }
 
 static void ReloadProcessCallback(const ProcessResult& pr)
