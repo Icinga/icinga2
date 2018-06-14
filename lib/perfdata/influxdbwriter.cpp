@@ -290,6 +290,10 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 
 			Dictionary::Ptr fields = new Dictionary();
 			fields->Set("value", pdv->GetValue());
+			fields->Set("unit", pdv->GetUnit());
+			fields->Set("counter", pdv->GetCounter());
+
+			fields->Set("check_source", cr->GetCheckSource());
 
 			if (GetEnableSendThresholds()) {
 				if (pdv->GetCrit())
@@ -316,10 +320,15 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 
 		Dictionary::Ptr fields = new Dictionary();
 
-		if (service)
+		if (service) {
 			fields->Set("state", new InfluxdbInteger(service->GetState()));
-		else
+			fields->Set("last_state", new InfluxdbInteger(service->GetLastState()));
+			fields->Set("last_hard_state", new InfluxdbInteger(service->GetLastHardState()));
+		} else {
 			fields->Set("state", new InfluxdbInteger(host->GetState()));
+			fields->Set("last_state", new InfluxdbInteger(host->GetLastState()));
+			fields->Set("last_hard_state", new InfluxdbInteger(host->GetLastHardState()));
+		}
 
 		fields->Set("current_attempt", new InfluxdbInteger(checkable->GetCheckAttempt()));
 		fields->Set("max_check_attempts", new InfluxdbInteger(checkable->GetMaxCheckAttempts()));
@@ -329,6 +338,9 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 		fields->Set("acknowledgement", new InfluxdbInteger(checkable->GetAcknowledgement()));
 		fields->Set("latency", cr->CalculateLatency());
 		fields->Set("execution_time", cr->CalculateExecutionTime());
+		fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
+		fields->Set("full_message", cr->GetOutput());
+		fields->Set("check_source", cr->GetCheckSource());
 
 		SendMetric(checkable, tmpl, Empty, fields, ts);
 	}
@@ -410,7 +422,7 @@ void InfluxdbWriter::SendMetric(const Checkable::Ptr& checkable, const Dictionar
 		}
 	}
 
-	msgbuf << " " <<  static_cast<unsigned long>(ts);
+	msgbuf << " " <<  std::fixed << std::setprecision(0) << ts * 1000000000;
 
 	Log(LogDebug, "InfluxdbWriter")
 		<< "Checkable '" << checkable->GetName() << "' adds to metric list:'" << msgbuf.str() << "'.";
@@ -487,7 +499,7 @@ void InfluxdbWriter::Flush()
 	url->SetPath(path);
 
 	url->AddQueryElement("db", GetDatabase());
-	url->AddQueryElement("precision", "s");
+	url->AddQueryElement("precision", "ns");
 	if (!GetUsername().IsEmpty())
 		url->AddQueryElement("u", GetUsername());
 	if (!GetPassword().IsEmpty())
