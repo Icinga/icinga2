@@ -162,9 +162,6 @@ void DaemonCommand::InitParameters(boost::program_options::options_description& 
 #ifndef _WIN32
 	hiddenDesc.add_options()
 		("reload-internal", po::value<int>(), "used internally to implement config reload: do not call manually, send SIGHUP instead");
-#else
-	hiddenDesc.add_options()
-		("restart-service", po::value<std::string>(), "tries to restart the Icinga 2 service");
 #endif /* _WIN32 */
 }
 
@@ -213,42 +210,6 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 	if (!DaemonUtility::LoadConfigFiles(configs, newItems, Application::GetObjectsPath(), Application::GetVarsPath()))
 		return EXIT_FAILURE;
-
-#ifdef _WIN32
-	if (vm.count("restart-service")) {
-		SC_HANDLE handleManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
-		if (!handleManager) {
-			Log(LogCritical, "cli") << "Failed to open service manager. Error code: " << GetLastError();
-			return EXIT_FAILURE;
-		}
-
-		std::string service = vm["restart-service"].as<std::string>();
-
-		SC_HANDLE handleService = OpenService(handleManager, service.c_str(), SERVICE_START | SERVICE_STOP);
-		if (!handleService) {
-			Log(LogCritical, "cli") << "Failed to open service handle of '" << service << "'. Error code: " << GetLastError();
-			return EXIT_FAILURE;
-		}
-
-		SERVICE_STATUS serviceStatus;
-		if (!ControlService(handleService, SERVICE_CONTROL_STOP, &serviceStatus)) {
-			DWORD error = GetLastError();
-			if (error = ERROR_SERVICE_NOT_ACTIVE)
-				Log(LogInformation, "cli") << "Service '" << service << "' is not running.";
-			else {
-				Log(LogCritical, "cli") << "Failed to stop service. Error code: " << GetLastError();
-				return EXIT_FAILURE;
-			}
-		}
-
-		if (!StartService(handleService, 0, NULL)) {
-			Log(LogCritical, "cli") << "Failed to start up service '" << service << "'. Error code: " << GetLastError();
-			return EXIT_FAILURE;
-		}
-
-		return EXIT_SUCCESS;
-	}
-#endif /* _WIN32 */
 
 	if (vm.count("validate")) {
 		Log(LogInformation, "cli", "Finished validating the configuration file(s).");

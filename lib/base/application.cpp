@@ -416,8 +416,7 @@ pid_t Application::StartReloadProcess()
 	args.push_back("--reload-internal");
 	args.push_back(Convert::ToString(Utility::GetPid()));
 #else /* _WIN32 */
-	args.push_back("--restart-service");
-	args.push_back("icinga2");
+	args.push_back("--validate");
 #endif /* _WIN32 */
 
 	Process::Ptr process = new Process(Process::PrepareCommand(new Array(std::move(args))));
