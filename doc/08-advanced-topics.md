@@ -206,14 +206,6 @@ the `check_period` attribute. Or a notification should be sent to
 users or not, filtered by the `period` and `notification_period`
 configuration attributes for `Notification` and `User` objects.
 
-> **Note**
->
-> If you are familiar with Icinga 1.x, these time period definitions
-> are called `legacy timeperiods` in Icinga 2.
->
-> An Icinga 2 legacy timeperiod requires the `ITL` provided template
->`legacy-timeperiod`.
-
 The `TimePeriod` attribute `ranges` may contain multiple directives,
 including weekdays, days of the month, and calendar dates.
 These types may overlap/override other types in your ranges dictionary.
@@ -231,78 +223,80 @@ If you don't set any `check_period` or `notification_period` attribute
 on your configuration objects, Icinga 2 assumes `24x7` as time period
 as shown below.
 
-    object TimePeriod "24x7" {
-      import "legacy-timeperiod"
-
-      display_name = "Icinga 2 24x7 TimePeriod"
-      ranges = {
-        "monday"    = "00:00-24:00"
-        "tuesday"   = "00:00-24:00"
-        "wednesday" = "00:00-24:00"
-        "thursday"  = "00:00-24:00"
-        "friday"    = "00:00-24:00"
-        "saturday"  = "00:00-24:00"
-        "sunday"    = "00:00-24:00"
-      }
-    }
+```
+object TimePeriod "24x7" {
+  display_name = "Icinga 2 24x7 TimePeriod"
+  ranges = {
+    "monday"    = "00:00-24:00"
+    "tuesday"   = "00:00-24:00"
+    "wednesday" = "00:00-24:00"
+    "thursday"  = "00:00-24:00"
+    "friday"    = "00:00-24:00"
+    "saturday"  = "00:00-24:00"
+    "sunday"    = "00:00-24:00"
+  }
+}
+```
 
 If your operation staff should only be notified during workhours,
 create a new timeperiod named `workhours` defining a work day from
 09:00 to 17:00.
 
-    object TimePeriod "workhours" {
-      import "legacy-timeperiod"
+```
+object TimePeriod "workhours" {
+  display_name = "Icinga 2 8x5 TimePeriod"
+  ranges = {
+    "monday"    = "09:00-17:00"
+    "tuesday"   = "09:00-17:00"
+    "wednesday" = "09:00-17:00"
+    "thursday"  = "09:00-17:00"
+    "friday"    = "09:00-17:00"
+  }
+}
+```
 
-      display_name = "Icinga 2 8x5 TimePeriod"
-      ranges = {
-        "monday"    = "09:00-17:00"
-        "tuesday"   = "09:00-17:00"
-        "wednesday" = "09:00-17:00"
-        "thursday"  = "09:00-17:00"
-        "friday"    = "09:00-17:00"
-      }
-    }
-
-Furthermore if you wish to specify a notification period across midnight,
+If you want to specify a notification period across midnight,
 you can define it the following way:
 
-    object Timeperiod "across-midnight" {
-      import "legacy-timeperiod"
-
-      display_name = "Nightly Notification"
-      ranges = {
-        "saturday" = "22:00-24:00"
-        "sunday" = "00:00-03:00"
-      }
-    }
+```
+object Timeperiod "across-midnight" {
+  display_name = "Nightly Notification"
+  ranges = {
+    "saturday" = "22:00-24:00"
+    "sunday" = "00:00-03:00"
+  }
+}
+```
 
 Below you can see another example for configuring timeperiods across several
 days, weeks or months. This can be useful when taking components offline
 for a distinct period of time.
 
-    object Timeperiod "standby" {
-      import "legacy-timeperiod"
-
-      display_name = "Standby"
-      ranges = {
-        "2016-09-30 - 2016-10-30" = "00:00-24:00"
-      }
-    }
+```
+object Timeperiod "standby" {
+  display_name = "Standby"
+  ranges = {
+    "2016-09-30 - 2016-10-30" = "00:00-24:00"
+  }
+}
+```
 
 Please note that the spaces before and after the dash are mandatory.
 
 Once your time period is configured you can Use the `period` attribute
 to assign time periods to `Notification` and `Dependency` objects:
 
-    object Notification "mail" {
-      import "generic-notification"
+```
+apply Notification "mail-icingaadmin" to Service {
+  import "mail-service-notification"
+  user_groups = host.vars.notification.mail.groups
+  users = host.vars.notification.mail.users
 
-      host_name = "localhost"
+  period = "workhours"
 
-      command = "mail-notification"
-      users = [ "icingaadmin" ]
-      period = "workhours"
-    }
+  assign where host.vars.notification.mail
+}
+```
 
 ### Time Periods Inclusion and Exclusion <a id="timeperiods-includes-excludes"></a>
 
@@ -319,51 +313,51 @@ preferred.
 The following example defines a time period called `holidays` where
 notifications should be suppressed:
 
-    object TimePeriod "holidays" {
-      import "legacy-timeperiod"
-
-      ranges = {
-        "january 1" = "00:00-24:00"                 //new year's day
-        "july 4" = "00:00-24:00"                    //independence day
-        "december 25" = "00:00-24:00"               //christmas
-        "december 31" = "18:00-24:00"               //new year's eve (6pm+)
-        "2017-04-16" = "00:00-24:00"                //easter 2017
-        "monday -1 may" = "00:00-24:00"             //memorial day (last monday in may)
-        "monday 1 september" = "00:00-24:00"        //labor day (1st monday in september)
-        "thursday 4 november" = "00:00-24:00"       //thanksgiving (4th thursday in november)
-      }
-    }
+```
+object TimePeriod "holidays" {
+  ranges = {
+    "january 1" = "00:00-24:00"                 //new year's day
+    "july 4" = "00:00-24:00"                    //independence day
+    "december 25" = "00:00-24:00"               //christmas
+    "december 31" = "18:00-24:00"               //new year's eve (6pm+)
+    "2017-04-16" = "00:00-24:00"                //easter 2017
+    "monday -1 may" = "00:00-24:00"             //memorial day (last monday in may)
+    "monday 1 september" = "00:00-24:00"        //labor day (1st monday in september)
+    "thursday 4 november" = "00:00-24:00"       //thanksgiving (4th thursday in november)
+  }
+}
+```
 
 In addition to that the time period `weekends` defines an additional
 time window which should be excluded from notifications:
 
-    object TimePeriod "weekends-excluded" {
-      import "legacy-timeperiod"
-
-      ranges = {
-        "saturday"  = "00:00-09:00,18:00-24:00"
-        "sunday"    = "00:00-09:00,18:00-24:00"
-      }
-    }
+```
+object TimePeriod "weekends-excluded" {
+  ranges = {
+    "saturday"  = "00:00-09:00,18:00-24:00"
+    "sunday"    = "00:00-09:00,18:00-24:00"
+  }
+}
+```
 
 The time period `prod-notification` defines the default time ranges
 and adds the excluded time period names as an array.
 
-    object TimePeriod "prod-notification" {
-      import "legacy-timeperiod"
+```
+object TimePeriod "prod-notification" {
+  excludes = [ "holidays", "weekends-excluded" ]
 
-      excludes = [ "holidays", "weekends-excluded" ]
-
-      ranges = {
-        "monday"    = "00:00-24:00"
-        "tuesday"   = "00:00-24:00"
-        "wednesday" = "00:00-24:00"
-        "thursday"  = "00:00-24:00"
-        "friday"    = "00:00-24:00"
-        "saturday"  = "00:00-24:00"
-        "sunday"    = "00:00-24:00"
-      }
-    }
+  ranges = {
+    "monday"    = "00:00-24:00"
+    "tuesday"   = "00:00-24:00"
+    "wednesday" = "00:00-24:00"
+    "thursday"  = "00:00-24:00"
+    "friday"    = "00:00-24:00"
+    "saturday"  = "00:00-24:00"
+    "sunday"    = "00:00-24:00"
+  }
+}
+```
 
 ## External Check Results <a id="external-check-results"></a>
 
@@ -1077,8 +1071,6 @@ time of the day compared to the defined time period.
 
 ```
 object TimePeriod "backup" {
-  import "legacy-timeperiod"
-
   ranges = {
     monday = "02:00-03:00"
     tuesday = "02:00-03:00"
