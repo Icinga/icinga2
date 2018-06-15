@@ -139,6 +139,8 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		expr.reset();
 
 		WorkQueue upq;
+		upq.SetName("ConfigObjectUtility::CreateObject");
+
 		std::vector<ConfigItem::Ptr> newItems;
 
 		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems) || !ConfigItem::ActivateItems(upq, newItems, true)) {
