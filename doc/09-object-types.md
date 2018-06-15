@@ -124,10 +124,6 @@ chapter.
 A check command definition. Additional default command custom attributes can be
 defined here.
 
-> **Note**
->
-> Icinga 2 versions < 2.6.0 require the import of the [plugin-check-command](10-icinga-template-library.md#itl-plugin-check-command) template.
-
 Example:
 
 ```
@@ -562,10 +558,6 @@ Endpoint objects cannot currently be created with the API.
 ## EventCommand <a id="objecttype-eventcommand"></a>
 
 An event command definition.
-
-> **Note**
->
-> Icinga 2 versions < 2.6.0 require the import of the [plugin-event-command](10-icinga-template-library.md#itl-plugin-event-command) template.
 
 Example:
 
@@ -1183,10 +1175,6 @@ Runtime Attributes:
 ## NotificationCommand <a id="objecttype-notificationcommand"></a>
 
 A notification command definition.
-
-> **Note**
->
-> Icinga 2 versions < 2.6.0 require the import of the [plugin-notification-command](10-icinga-template-library.md#itl-plugin-notification-command) template.
 
 Example:
 
