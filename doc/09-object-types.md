@@ -1602,10 +1602,6 @@ Facility Constants:
 Time periods can be used to specify when hosts/services should be checked or to limit
 when notifications should be sent out.
 
-> **Note**
->
-> Icinga 2 versions < 2.6.0 require the import of the [legacy-timeperiod](10-icinga-template-library.md#itl-legacy-timeperiod) template.
-
 Examples:
 
 ```
