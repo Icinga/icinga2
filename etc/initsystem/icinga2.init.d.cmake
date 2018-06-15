@@ -60,7 +60,7 @@ fi
 # Start Icinga 2
 start() {
 	printf "Starting Icinga 2: "
-	@CMAKE_INSTALL_PREFIX@/lib/icinga2/prepare-dirs
+	@CMAKE_INSTALL_PREFIX@/lib/icinga2/prepare-dirs "$SYSCONFIGFILE"
 
 	if ! $DAEMON daemon -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG > $ICINGA2_STARTUP_LOG 2>&1; then
 		echo "Error starting Icinga. Check '$ICINGA2_STARTUP_LOG' for details."
@@ -105,7 +105,7 @@ stop() {
 
 # Reload Icinga 2
 reload() {
-	exec @CMAKE_INSTALL_PREFIX@/lib/icinga2/safe-reload $SYSCONFIGFILE
+	exec @CMAKE_INSTALL_PREFIX@/lib/icinga2/safe-reload "$SYSCONFIGFILE"
 }
 
 # Check the Icinga 2 configuration

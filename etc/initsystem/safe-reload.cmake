@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# With sysvinit we need to pass the environment this way. Or do we?
+if [ "$1" != "" ]; then
+	source "$1"
+fi
+
+# Set defaults, to overwrite see "@ICINGA2_SYSCONFIGFILE@"
+
 : ${ICINGA2_PID_FILE:="@ICINGA2_RUNDIR@/icinga2/icinga2.pid"}
 : ${DAEMON:="@CMAKE_INSTALL_FULL_SBINDIR@/icinga2"}
 

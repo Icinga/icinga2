@@ -3,6 +3,11 @@
 # This script prepares directories and files needed for running Icinga2
 #
 
+# With sysvinit we need to pass the environment this way. Or do we?
+if [ "$1" != "" ]; then
+	source "$1"
+fi
+
 # Set defaults, to overwrite see "@ICINGA2_SYSCONFIGFILE@"
 
 : ${ICINGA2_USER:="@ICINGA2_USER@"}
