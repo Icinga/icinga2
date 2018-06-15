@@ -457,6 +457,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener")
 			<< "Client TLS handshake failed (" << conninfo << ")";
+		tlsStream->Close();
 		return;
 	}
 
@@ -471,6 +472,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener")
 				<< "Cannot get certificate common name from cert path: '" << GetDefaultCertPath() << "'.";
+			tlsStream->Close();
 			return;
 		}
 
@@ -480,6 +482,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 				Log(LogWarning, "ApiListener")
 					<< "Unexpected certificate common name while connecting to endpoint '"
 					<< hostname << "': got '" << identity << "'";
+				tlsStream->Close();
 				return;
 			} else if (!verify_ok) {
 				Log(LogWarning, "ApiListener")
@@ -529,6 +532,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 				Log(LogWarning, "ApiListener")
 					<< "No data received on new API connection for identity '" << identity << "'. "
 					<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+			tlsStream->Close();
 			return;
 		}
 
