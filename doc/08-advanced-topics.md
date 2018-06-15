@@ -438,8 +438,7 @@ Icinga 2 supports optional detection of hosts and services that are "flapping".
 Flapping occurs when a service or host changes state too frequently, which would result in a storm of problem and
 recovery notifications. With flapping detection enabled a flapping notification will be sent while other notifications are
 suppresed until it calms down after receiving the same status from checks a few times. Flapping detection can help detect
-
-configuration problems (wrong thresholds), troublesome services, or network problems.
+configuration problems (wrong thresholds), troublesome services or network problems.
 
 Flapping detection can be enabled or disabled using the `enable_flapping` attribute.
 The `flapping_threshold_high` and `flapping_threshold_low` attributes allows to specify the thresholds that control
@@ -460,7 +459,7 @@ Icinga 2 saves the last 20 state changes for every host and service. See the gra
 
 ![Icinga 2 Flapping State Timeline](images/advanced-topics/flapping-state-graph.png)
 
-All the states ware weighted, with the most recent one being worth the most (1.15) and the 20th the least (0.8). The
+All the states are weighted, with the most recent one being worth the most (1.15) and the 20th the least (0.8). The
 states in between are fairly distributed. The final flapping value are the weighted state changes divided by the total
 count of 20.
 
