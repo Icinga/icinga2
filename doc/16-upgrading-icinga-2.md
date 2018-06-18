@@ -18,6 +18,11 @@ The CORS attributes `access_control_allow_credentials`, `access_control_allow_he
 
 The `node setup` parameter `--master_host` was deprecated and replaced with `--parent_host`. This parameter is now optional to allow connection-less client setups similar to the `node wizard` CLI command. The `parent_zone` parameter has been added to modify the parent zone name e.g. for client-to-satellite setups.
 
+The `api user` command which was released in v2.8.2 turned out to cause huge problems with
+configuration validation, windows restarts and OpenSSL versions. It is therefore removed in 2.9,
+the `password_hash` attribute for the ApiUser object stays intact but has no effect. This is to ensure
+that clients don't break on upgrade. We will revise this feature in future development iterations.
+
 ## Upgrading to v2.8.2 <a id="upgrading-to-2-8-2"></a>
 
 With version 2.8.2 the location of settings formerly found in `/etc/icinga2/init.conf` has changed. They are now

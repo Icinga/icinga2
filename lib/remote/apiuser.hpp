@@ -35,12 +35,8 @@ public:
 	DECLARE_OBJECT(ApiUser);
 	DECLARE_OBJECTNAME(ApiUser);
 
-	virtual void OnConfigLoaded(void) override;
-
 	static ApiUser::Ptr GetByClientCN(const String& cn);
 	static ApiUser::Ptr GetByAuthHeader(const String& auth_header);
-
-	Dictionary::Ptr GetPasswordDict(void) const;
 };
 
 }

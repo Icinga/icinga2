@@ -784,34 +784,4 @@ std::string to_string(const errinfo_openssl_error& e)
 	return "[errinfo_openssl_error]" + tmp.str() + "\n";
 }
 
-bool ComparePassword(const String& hash, const String& password, const String& salt)
-{
-	String otherHash = PBKDF2_SHA256(password, salt, 1000);
-	VERIFY(otherHash.GetLength() == 64 && hash.GetLength() == 64);
-
-	const char *p1 = otherHash.CStr();
-	const char *p2 = hash.CStr();
-
-	/* By Novelocrat, https://stackoverflow.com/a/25374036 */
-	volatile char c = 0;
-
-	for (size_t i = 0; i < 64; ++i)
-		c |= p1[i] ^ p2[i];
-
-	return (c == 0);
-}
-
-/* Returns a String in the format $algorithm$salt$hash or returns an empty string in case of an error */
-String CreateHashedPasswordString(const String& password, const String& salt, int algorithm)
-{
-	// We currently only support SHA256
-	if (algorithm != 5)
-		return String();
-
-	if (salt.FindFirstOf('$') != String::NPos)
-		return String();
-
-	return String("$5$" + salt + "$" + PBKDF2_SHA256(password, salt, 1000));
-}
-
 }
