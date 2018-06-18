@@ -1,8 +1,12 @@
 #!/bin/sh
 
-# With sysvinit we need to pass the environment this way. Or do we?
+# Load sysconf on systems where the initsystem does not pass the environment
 if [ "$1" != "" ]; then
-	source "$1"
+	if [ -r "$1" ]; then
+		source "$1"
+	else
+		echo "Unable to read sysconf from '$1'. Exiting." && exit 6
+	fi
 fi
 
 # Set defaults, to overwrite see "@ICINGA2_SYSCONFIGFILE@"
