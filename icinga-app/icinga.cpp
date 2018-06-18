@@ -143,7 +143,6 @@ static int Main()
 
 #endif /* _WIN32 */
 		Application::DeclarePrefixDir(ICINGA_PREFIX);
-		Application::DeclareSysconfigFile(ICINGA_SYSCONFIGFILE);
 		Application::DeclareSysconfDir(ICINGA_SYSCONFDIR);
 		Application::DeclareRunDir(ICINGA_RUNDIR);
 		Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
@@ -154,13 +153,6 @@ static int Main()
 #endif /* _WIN32 */
 
 	Application::DeclareZonesDir(Application::GetSysconfDir() + "/icinga2/zones.d");
-
-#ifndef _WIN32
-	if (!autocomplete && !Utility::PathExists(Application::GetSysconfigFile())) {
-		Log(LogWarning, "icinga-app")
-			<< "Sysconfig file '" << Application::GetSysconfigFile() << "' cannot be read. Using default values.";
-	}
-#endif /* _WIN32 */
 
 	String icingaUser = Utility::GetFromEnvironment("ICINGA2_USER");
 	if (icingaUser.IsEmpty())

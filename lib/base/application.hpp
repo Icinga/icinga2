@@ -106,9 +106,6 @@ public:
 	static String GetIncludeConfDir();
 	static void DeclareIncludeConfDir(const String& path);
 
-	static String GetSysconfigFile(void);
-	static void DeclareSysconfigFile(const String& path);
-
 	static String GetStatePath(void);
 	static void DeclareStatePath(const String& path);
 
