@@ -142,9 +142,9 @@ bool HttpRequest::ParseBody(StreamReadContext& src, bool may_wait)
 
 		if (size == 0) {
 			CompleteBody = true;
-			return false;
-		} else
-			return true;
+		}
+
+		return true;
 	}
 
 	if (src.Eof)
