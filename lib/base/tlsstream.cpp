@@ -187,10 +187,10 @@ void TlsStream::OnEvent(int revents)
 					readTotal += rc;
 				}
 
-#ifdef I2_DEBUG /* I2_DEBUG */
-				Log(LogDebug, "TlsStream")
-					<< "Read bytes: " << rc << " Total read bytes: " << readTotal;
-#endif /* I2_DEBUG */
+//#ifdef I2_DEBUG /* I2_DEBUG */
+//				Log(LogDebug, "TlsStream")
+//					<< "Read bytes: " << rc << " Total read bytes: " << readTotal;
+//#endif /* I2_DEBUG */
 				/* Limit read size. We cannot do this check inside the while loop
 				 * since below should solely check whether OpenSSL has more data
 				 * or not. */
