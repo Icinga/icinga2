@@ -56,8 +56,6 @@ String SHA1(const String& s, bool binary = false);
 String SHA256(const String& s);
 String RandomString(int length);
 bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate);
-bool ComparePassword(const String& hash, const String& password, const String& Salt);
-String CreateHashedPasswordString(const String& password, const String& salt, int algorithm = 5);
 
 class openssl_error : virtual public std::exception, virtual public boost::exception { };
 

@@ -18,7 +18,6 @@
 set(cli_SOURCES
   i2-cli.hpp
   apisetupcommand.cpp apisetupcommand.hpp
-  apiusercommand.cpp apiusercommand.hpp
   apisetuputility.cpp apisetuputility.hpp
   calistcommand.cpp calistcommand.hpp
   casigncommand.cpp casigncommand.hpp

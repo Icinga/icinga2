@@ -20,7 +20,6 @@ Usage:
 
 Supported commands:
   * api setup (setup for API)
-  * api user (API user creation helper)
   * ca list (lists all certificate signing requests)
   * ca sign (signs an outstanding certificate request)
   * console (Icinga console)

@@ -27,18 +27,6 @@ using namespace icinga;
 
 REGISTER_TYPE(ApiUser);
 
-void ApiUser::OnConfigLoaded(void)
-{
-	ObjectImpl<ApiUser>::OnConfigLoaded();
-
-	if (GetPasswordHash().IsEmpty()) {
-		String hashedPassword =	CreateHashedPasswordString(GetPassword(), RandomString(8), 5);
-		VERIFY(hashedPassword != String());
-		SetPasswordHash(hashedPassword);
-		SetPassword("********");
-	}
-}
-
 ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
 {
 	for (const ApiUser::Ptr& user : ConfigType::GetObjectsByType<ApiUser>()) {
@@ -75,31 +63,9 @@ ApiUser::Ptr ApiUser::GetByAuthHeader(const String& auth_header)
 	 */
 	if (!user || password.IsEmpty())
 		return nullptr;
-	else if (user && user->GetPassword() != password) {
-		Dictionary::Ptr passwordDict = user->GetPasswordDict();
-		if (!passwordDict || !ComparePassword(passwordDict->Get("password"), password, passwordDict->Get("salt")))
-			return nullptr;
-	}
+	else if (user && user->GetPassword() != password)
+		return nullptr;
 
 	return user;
 }
 
-Dictionary::Ptr ApiUser::GetPasswordDict(void) const
-{
-	String password = GetPasswordHash();
-	if (password.IsEmpty() || password[0] != '$')
-		return nullptr;
-
-	String::SizeType saltBegin = password.FindFirstOf('$', 1);
-	String::SizeType passwordBegin = password.FindFirstOf('$', saltBegin+1);
-
-	if (saltBegin == String::NPos || saltBegin == 1 || passwordBegin == String::NPos)
-		return nullptr;
-
-	Dictionary::Ptr passwordDict = new Dictionary();
-	passwordDict->Set("algorithm", password.SubStr(1, saltBegin - 1));
-	passwordDict->Set("salt", password.SubStr(saltBegin + 1, passwordBegin - saltBegin - 1));
-	passwordDict->Set("password", password.SubStr(passwordBegin + 1));
-
-	return passwordDict;
-}
