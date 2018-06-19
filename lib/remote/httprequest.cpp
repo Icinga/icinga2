@@ -215,7 +215,8 @@ void HttpRequest::FinishHeaders()
 			m_Stream->Write(header.CStr(), header.GetLength());
 		}
 
-		m_Stream->Write("\n", 1);
+		/* Ensure that we use two new lines here, https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html */
+		m_Stream->Write("\r\n\r\n", 1);
 
 		m_State = HttpRequestBody;
 	}
