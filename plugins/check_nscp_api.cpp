@@ -93,8 +93,10 @@ static Dictionary::Ptr QueryEndpoint(const String& host, const String& port, con
 		req->RequestUrl->SetArrayFormatUseBrackets(false);
 
 		req->AddHeader("password", password);
-		if (l_Debug)
-			std::cout << "Sending request to 'https://" << host << ":" << port << req->RequestUrl->Format(false, false) << "'\n";
+		if (l_Debug) {
+			std::cout << "Sending request to 'https://" << host << ":" << port << req->RequestUrl->Format(false, false) << "'\n"
+				<< "Headers: " << JsonEncode(req->Headers) << "\n";
+		}
 
 		// Submits the request. The 'ResultHttpCompletionCallback' is called once the HttpRequest receives an answer,
 		// which then sets 'ready' to true
@@ -223,7 +225,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
 		state == "UNKNOWN" ? 3 : 4;
 
 	if (creturn == 4) {
-		std::cout << "check_nscp UNKNOWN Answer format error: 'result' was not a known state.\n";
+		std::cout << "check_nscp_api UNKNOWN Answer format error: 'result' was not a known state.\n";
 		return 3;
 	}
 
