@@ -235,7 +235,9 @@ void TimePeriod::Merge(const TimePeriod::Ptr& timeperiod, bool include)
 
 void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 {
-	if (!clearExisting) {
+	if (clearExisting) {
+		SetSegments(new Array());
+	} else {
 		if (begin < GetValidEnd())
 			begin = GetValidEnd();
 
