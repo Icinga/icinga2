@@ -20,52 +20,64 @@
 #define VERSION "1.0.1"
 
 #include "remote/httpclientconnection.hpp"
+#include "remote/url.hpp"
 #include "remote/httprequest.hpp"
 #include "remote/url-characters.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/tlsstream.hpp"
 #include "base/application.hpp"
 #include "base/json.hpp"
 #include "base/string.hpp"
+#include "base/logger.hpp"
 #include "base/exception.hpp"
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <iostream>
+#include <boost/algorithm/string.hpp>
+#include <boost/scoped_array.hpp>
+#include <utility>
 
 using namespace icinga;
 namespace po = boost::program_options;
 
 static bool l_Debug;
 
-/*
- * This function is called by an 'HttpRequest' once the server answers. After doing a short check on the 'response' it
- * decodes it to a Dictionary and then tells 'QueryEndpoint()' that it's done
- */
-static void ResultHttpCompletionCallback(const HttpRequest& request, HttpResponse& response, bool& ready,
-	boost::condition_variable& cv, boost::mutex& mtx, Dictionary::Ptr& result)
+Stream::Ptr Connect(const String& host, const String& port)
 {
-	String body;
-	char buffer[1024];
-	size_t count;
+	TcpSocket::Ptr socket = new TcpSocket();
 
-	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
-		body += String(buffer, buffer + count);
+	Log(LogNotice, "check_nscp_api")
+		<< "Connecting to check_nscp_api on host '" << host << "' port '" << port << "'.";
 
-	if (l_Debug) {
-		std::cout << "Received answer\n"
-			<< "\tHTTP code: " << response.StatusCode << "\n"
-			<< "\tHTTP message: '" << response.StatusMessage << "'\n"
-			<< "\tHTTP body: '" << body << "'.\n";
+	try {
+		socket->Connect(host, port);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "check_nscp_api")
+			<< "Can't connect to check_nscp_api on host '" << host << "' port '" << port << "'.";
+		throw ex;
 	}
 
-	// Only try to decode the body if the 'HttpRequest' was successful
-	if (response.StatusCode != 200)
-		result = Dictionary::Ptr();
-	else
-		result = JsonDecode(body);
+	std::shared_ptr<SSL_CTX> sslContext;
 
-	// Unlock our mutex, set ready and notify 'QueryEndpoint()'
-	boost::mutex::scoped_lock lock(mtx);
-	ready = true;
-	cv.notify_all();
+	try {
+		sslContext = MakeSSLContext(Empty, Empty, Empty);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "check_nscp_api")
+			<< "Unable to create SSL context.";
+		throw ex;
+	}
+
+	TlsStream::Ptr tlsStream = new TlsStream(socket, host, RoleClient, sslContext);
+
+	try {
+		tlsStream->Handshake();
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "check_nscp_api")
+			<< "TLS handshake with host '" << host << "' on port " << port << " failed.";
+		throw ex;
+	}
+
+	return tlsStream;
 }
 
 /*
@@ -76,45 +88,102 @@ static void ResultHttpCompletionCallback(const HttpRequest& request, HttpRespons
 static Dictionary::Ptr QueryEndpoint(const String& host, const String& port, const String& password,
 	const String& endpoint)
 {
-	HttpClientConnection::Ptr m_Connection = new HttpClientConnection(host, port, true);
+	Url::Ptr url = new Url(endpoint);
+
+	url->SetScheme("https");
+	url->SetHost(host);
+	url->SetPort(port);
+
+	// NSClient++ uses `time=1m&time=5m` instead of `time[]=1m&time[]=5m`
+	url->SetArrayFormatUseBrackets(false);
+
+	Stream::Ptr stream = Connect(host, port);
+	HttpRequest req(stream);
+
+	req.AddHeader("Accept", "application/json");
+	req.AddHeader("password", password);
+
+	req.RequestMethod = "GET";
+	req.RequestUrl = url;
+
+	String body = ""; //we don't have one for now
+	try {
+		req.WriteBody(body.CStr(), body.GetLength());
+		req.Finish();
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "check_nscp_api")
+			<< "Cannot write to HTTP API on host '" << host << "' port '" << port << "'.";
+		throw ex;
+	}
+
+	HttpResponse resp(stream, req);
+	StreamReadContext context;
 
 	try {
-		bool ready = false;
-		boost::condition_variable cv;
-		boost::mutex mtx;
-		Dictionary::Ptr result;
-		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
-		req->RequestMethod = "GET";
-
-		// Url() will call Utillity::UnescapeString() which will thrown an exception if it finds a lonely %
-		req->RequestUrl = new Url(endpoint);
-
-		// NSClient++ uses `time=1m&time=5m` instead of `time[]=1m&time[]=5m`
-		req->RequestUrl->SetArrayFormatUseBrackets(false);
-
-		req->AddHeader("password", password);
-		if (l_Debug)
-			std::cout << "Sending request to 'https://" << host << ":" << port << req->RequestUrl->Format(false, false) << "'\n";
-
-		// Submits the request. The 'ResultHttpCompletionCallback' is called once the HttpRequest receives an answer,
-		// which then sets 'ready' to true
-		m_Connection->SubmitRequest(req, std::bind(ResultHttpCompletionCallback, _1, _2,
-			boost::ref(ready), boost::ref(cv), boost::ref(mtx), boost::ref(result)));
-
-		// We need to spinlock here because our 'HttpRequest' works asynchronous
-		boost::mutex::scoped_lock lock(mtx);
-		while (!ready) {
-			cv.wait(lock);
-		}
-
-		return result;
+		resp.Parse(context, true);
+		while (resp.Parse(context, true) && !resp.Complete)
+			; /* Do nothing */
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "check_nscp_api")
+			<< "Failed to parse HTTP response from host '" << host << "' port '" << port << "': " << DiagnosticInformation(ex, false);
+		throw ex;
 	}
-	catch (const std::exception& ex) {
-		// Exceptions should only happen in extreme edge cases we can't recover from
-		std::cout << "Caught exception: " << DiagnosticInformation(ex, false) << '\n';
+
+	size_t responseSize = resp.GetBodySize();
+	boost::scoped_array<char> buffer(new char[responseSize + 1]);
+	resp.ReadBody(buffer.get(), responseSize);
+	buffer.get()[responseSize] = '\0';
+
+	Log(LogDebug, "check_nscp_api")
+		<< "Response: " << buffer.get();
+
+	if (!resp.Complete) {
+		Log(LogWarning, "check_nscp_api")
+			<< "Failed to read a complete HTTP response from the check_nscp_api server.";
 		return Dictionary::Ptr();
 	}
+
+	if (resp.StatusCode > 299) {
+		Log(LogWarning, "check_nscp_api")
+			<< "Unexpected response code " << resp.StatusCode;
+
+		String contentType = resp.Headers->Get("content-type");
+
+		if (contentType != "application/json") {
+			Log(LogWarning, "check_nscp_api")
+				<< "Unexpected Content-Type: " << contentType;
+			return Dictionary::Ptr();
+		}
+	}
+
+	Dictionary::Ptr jsonResponse;
+	try {
+		jsonResponse = JsonDecode(buffer.get());
+	} catch (...) {
+		Log(LogWarning, "check_nscp_api")
+			<< "Unable to parse JSON response:\n" << buffer.get();
+		return Dictionary::Ptr();
+	}
+
+	if (jsonResponse->Contains("error")) {
+		String error = jsonResponse->Get("error");
+
+		Log(LogCritical, "check_nscp_api")
+			<< "check_nscp_api error message:\n" << error;
+
+		return Dictionary::Ptr();
+	}
+
+	if (l_Debug) {
+		std::cout << "Received answer\n"
+			<< "\tHTTP code: " << resp.StatusCode << "\n"
+			<< "\tHTTP message: '" << resp.StatusMessage << "'\n"
+			<< "\tHTTP body: '" << buffer.get() << "'.\n";
+	}
+
+	return jsonResponse;
 }
+
 
 /*
  * Takes a Dictionary 'result' and constructs an icinga compliant output string.
@@ -223,7 +292,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
 		state == "UNKNOWN" ? 3 : 4;
 
 	if (creturn == 4) {
-		std::cout << "check_nscp UNKNOWN Answer format error: 'result' was not a known state.\n";
+		std::cout << "check_nscp_api UNKNOWN Answer format error: 'result' was not a known state.\n";
 		return 3;
 	}
 
@@ -281,6 +350,12 @@ int main(int argc, char **argv)
 	}
 
 	l_Debug = vm.count("debug") > 0;
+
+	// Initialize logger
+	if (l_Debug)
+		Logger::SetConsoleLogSeverity(LogDebug);
+	else
+		Logger::SetConsoleLogSeverity(LogWarning);
 
 	// Create the URL string and escape certain characters since Url() follows RFC 3986
 	String endpoint = "/query/" + vm["query"].as<std::string>();

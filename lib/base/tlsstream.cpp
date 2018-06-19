@@ -186,7 +186,27 @@ void TlsStream::OnEvent(int revents)
 
 					readTotal += rc;
 				}
-			} while (rc > 0 && readTotal < 64 * 1024);
+
+//#ifdef I2_DEBUG /* I2_DEBUG */
+//				Log(LogDebug, "TlsStream")
+//					<< "Read bytes: " << rc << " Total read bytes: " << readTotal;
+//#endif /* I2_DEBUG */
+				/* Limit read size. We cannot do this check inside the while loop
+				 * since below should solely check whether OpenSSL has more data
+				 * or not. */
+				if (readTotal >= 64 * 1024) {
+#ifdef I2_DEBUG /* I2_DEBUG */
+					Log(LogWarning, "TlsStream")
+						<< "Maximum read bytes exceeded: " << readTotal;
+#endif /* I2_DEBUG */
+					break;
+				}
+
+			/* Use OpenSSL's state machine here to determine whether we need
+			 * to read more data. Checking the return code of SSL_Read() is not
+			 * a reliable source unfortunately.
+			 */
+			} while (SSL_pending(m_SSL.get()));
 
 			if (success)
 				m_CV.notify_all();
