@@ -25,6 +25,7 @@
 #include "base/application.hpp"
 #include "base/json.hpp"
 #include "base/string.hpp"
+#include "base/logger.hpp"
 #include "base/exception.hpp"
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -283,6 +284,12 @@ int main(int argc, char **argv)
 	}
 
 	l_Debug = vm.count("debug") > 0;
+
+	// Initialize logger
+	if (l_Debug)
+		Logger::SetConsoleLogSeverity(LogDebug);
+	else
+		Logger::SetConsoleLogSeverity(LogWarning);
 
 	// Create the URL string and escape certain characters since Url() follows RFC 3986
 	String endpoint = "/query/" + vm["query"].as<std::string>();
