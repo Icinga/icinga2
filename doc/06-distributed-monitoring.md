@@ -718,6 +718,7 @@ Optionally enable the following settings:
   Accept commands                   | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
   Run Icinga 2 service as this user | **Optional.** Specify a different Windows user. This defaults to `NT AUTHORITY\Network Service` and is required for more privileged service checks.
   Install NSClient++                | **Optional.** The Windows installer bundles the NSClient++ installer for additional [plugin checks](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
+  Disable conf.d                    | **Optional.** Allows to disable the `include_recursive "conf.d"` directive except for the `api-users.conf` file in the `icinga2.conf` file. Defaults to `true`.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_03.png)
 
