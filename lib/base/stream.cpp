@@ -143,7 +143,16 @@ StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context, bool
 		}
 	}
 
-	context.MustRead = (count <= 1);
+	switch (count) {
+		case 0:
+			context.MustRead = true;
+			break;
+		case 1:
+			context.MustRead = first_newline == (context.Size - 1u);
+			break;
+		default:
+			context.MustRead = false;
+	}
 
 	if (count > 0) {
 		*line = String(context.Buffer, &(context.Buffer[first_newline]));
