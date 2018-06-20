@@ -129,40 +129,19 @@ StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context, bool
 		}
 	}
 
-	int count = 0;
-	size_t first_newline;
-
 	for (size_t i = 0; i < context.Size; i++) {
 		if (context.Buffer[i] == '\n') {
-			count++;
+			*line = String(context.Buffer, context.Buffer + i);
+			boost::algorithm::trim_right(*line);
 
-			if (count == 1)
-				first_newline = i;
-			else if (count > 1)
-				break;
+			context.DropData(i + 1u);
+
+			context.MustRead = !context.Size;
+			return StatusNewItem;
 		}
 	}
 
-	switch (count) {
-		case 0:
-			context.MustRead = true;
-			break;
-		case 1:
-			context.MustRead = first_newline == (context.Size - 1u);
-			break;
-		default:
-			context.MustRead = false;
-	}
-
-	if (count > 0) {
-		*line = String(context.Buffer, &(context.Buffer[first_newline]));
-		boost::algorithm::trim_right(*line);
-
-		context.DropData(first_newline + 1);
-
-		return StatusNewItem;
-	}
-
+	context.MustRead = true;
 	return StatusNeedData;
 }
 
