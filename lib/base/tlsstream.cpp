@@ -393,7 +393,7 @@ void TlsStream::CloseInternal(bool inDestructor)
 
 bool TlsStream::IsEof() const
 {
-	return m_Eof;
+	return m_Eof && m_RecvQ->GetAvailableBytes() < 1u;
 }
 
 bool TlsStream::SupportsWaiting() const
