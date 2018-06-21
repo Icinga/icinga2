@@ -428,7 +428,19 @@ void ElasticsearchWriter::SendRequest(const String& body)
 
 	url->SetPath(path);
 
-	Stream::Ptr stream = Connect();
+	Stream::Ptr stream;
+
+	try {
+		stream = Connect();
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "ElasticsearchWriter")
+			<< "Flush failed, cannot connect to Elasticsearch.";
+		return;
+	}
+
+	if (!stream)
+		return;
+
 	HttpRequest req(stream);
 
 	/* Specify required headers by Elasticsearch. */
