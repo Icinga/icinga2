@@ -419,7 +419,15 @@ void InfluxdbWriter::Flush()
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
 
-	Stream::Ptr stream = Connect();
+	Stream::Ptr stream;
+
+	try {
+		stream = Connect();
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "InfluxDbWriter")
+			<< "Flush failed, cannot connect to InfluxDB.";
+		return;
+	}
 
 	if (!stream)
 		return;
