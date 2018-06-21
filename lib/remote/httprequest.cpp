@@ -194,7 +194,7 @@ void HttpRequest::AddHeader(const String& key, const String& value)
 void HttpRequest::FinishHeaders()
 {
 	if (m_State == HttpRequestStart) {
-		String rqline = RequestMethod + " " + RequestUrl->Format(true) + " HTTP/1." + (ProtocolVersion == HttpVersion10 ? "0" : "1") + "\n";
+		String rqline = RequestMethod + " " + RequestUrl->Format(true) + " HTTP/1." + (ProtocolVersion == HttpVersion10 ? "0" : "1") + "\r\n";
 		m_Stream->Write(rqline.CStr(), rqline.GetLength());
 		m_State = HttpRequestHeaders;
 	}
@@ -211,11 +211,11 @@ void HttpRequest::FinishHeaders()
 		ObjectLock olock(Headers);
 		for (const Dictionary::Pair& kv : Headers)
 		{
-			String header = kv.first + ": " + kv.second + "\n";
+			String header = kv.first + ": " + kv.second + "\r\n";
 			m_Stream->Write(header.CStr(), header.GetLength());
 		}
 
-		m_Stream->Write("\n", 1);
+		m_Stream->Write("\r\n", 2);
 
 		m_State = HttpRequestBody;
 	}
