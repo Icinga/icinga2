@@ -25,6 +25,7 @@
 #include "base/application.hpp"
 #include "base/json.hpp"
 #include "base/string.hpp"
+#include "base/logger.hpp"
 #include "base/exception.hpp"
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -93,8 +94,10 @@ static Dictionary::Ptr QueryEndpoint(const String& host, const String& port, con
 		req->RequestUrl->SetArrayFormatUseBrackets(false);
 
 		req->AddHeader("password", password);
-		if (l_Debug)
-			std::cout << "Sending request to 'https://" << host << ":" << port << req->RequestUrl->Format(false, false) << "'\n";
+		if (l_Debug) {
+			std::cout << "Sending request to 'https://" << host << ":" << port << req->RequestUrl->Format(false, false) << "'\n"
+				<< "Headers: " << JsonEncode(req->Headers) << "\n";
+		}
 
 		// Submits the request. The 'ResultHttpCompletionCallback' is called once the HttpRequest receives an answer,
 		// which then sets 'ready' to true
@@ -223,7 +226,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
 		state == "UNKNOWN" ? 3 : 4;
 
 	if (creturn == 4) {
-		std::cout << "check_nscp UNKNOWN Answer format error: 'result' was not a known state.\n";
+		std::cout << "check_nscp_api UNKNOWN Answer format error: 'result' was not a known state.\n";
 		return 3;
 	}
 
@@ -281,6 +284,12 @@ int main(int argc, char **argv)
 	}
 
 	l_Debug = vm.count("debug") > 0;
+
+	// Initialize logger
+	if (l_Debug)
+		Logger::SetConsoleLogSeverity(LogDebug);
+	else
+		Logger::SetConsoleLogSeverity(LogWarning);
 
 	// Create the URL string and escape certain characters since Url() follows RFC 3986
 	String endpoint = "/query/" + vm["query"].as<std::string>();
