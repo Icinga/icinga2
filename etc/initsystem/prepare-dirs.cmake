@@ -3,6 +3,15 @@
 # This script prepares directories and files needed for running Icinga2
 #
 
+# Load sysconf on systems where the initsystem does not pass the environment
+if [ "$1" != "" ]; then
+	if [ -r "$1" ]; then
+		source "$1"
+	else
+		echo "Unable to read sysconf from '$1'. Exiting." && exit 6
+	fi
+fi
+
 # Set defaults, to overwrite see "@ICINGA2_SYSCONFIGFILE@"
 
 : ${ICINGA2_USER:="@ICINGA2_USER@"}
