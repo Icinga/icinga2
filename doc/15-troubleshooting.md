@@ -661,15 +661,15 @@ but you can adjust this by omitting the `len()` call inside the for loop.
 
 ### Host or Service
 
-Icinga 2 follows a different concept with creating real notification objects instead of just binding contacts to both hosts and services. Notifications for a Host are not inherited by an underlying Service.
+Icinga 2 follows a different concept when creating real notification objects instead of just binding contacts to **both** hosts and services. Notifications for a `Host` are **not** inherited by an underlying `Service`.
 
-* A notification object needs to be linked to a Host.
-* A notification object needs to be linked to a Service.
+* A notification object needs to be linked to a `Host`.
+* A notification object needs to be linked to a `Service`.
 
 Verify the following configuration:
 
-* Check the object type for the triggered notification.
-* Is the notification applied to that host/service object type?
+* Check the `object` type for the triggered notification.
+* Is the notification applied to that host/service `object` type?
 
 
 ### Notifications are not sent <a id="notifications-not-sent"></a>
