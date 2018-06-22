@@ -28,6 +28,13 @@ threshold::threshold()
 	: set(false)
 {}
 
+threshold::threshold(const double v, const double c, bool l , bool p ) {
+	lower = v;
+	upper = c;
+	legal = l;
+	perc = p;
+}
+
 threshold::threshold(const std::wstring& stri)
 {
 	if (stri.empty())
@@ -124,6 +131,35 @@ std::wstring threshold::pString(const double max)
 		s.append(lowerStr);
 
 	return s;
+}
+
+threshold threshold::toSeconds(const Tunit& fromUnit) {
+	if (!set)
+		return *this;
+
+	double lowerAbs = lower;
+	double upperAbs = upper;
+
+	switch (fromUnit) {
+	case TunitMS:
+		lowerAbs = lowerAbs / 1000;
+		upperAbs = upperAbs / 1000;
+		break;
+	case TunitS:
+		lowerAbs = lowerAbs ;
+		upperAbs = upperAbs ;
+		break;
+	case TunitM:
+		lowerAbs = lowerAbs * 60;
+		upperAbs = upperAbs * 60;
+		break;
+	case TunitH:
+		lowerAbs = lowerAbs * 60 * 60;
+		upperAbs = upperAbs * 60 * 60;
+		break;
+	}
+
+	return threshold(lowerAbs, upperAbs, legal, perc);
 }
 
 std::wstring removeZero(double val)

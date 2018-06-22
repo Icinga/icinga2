@@ -62,6 +62,7 @@ public:
 	// returns a printable string of the threshold
 	std::wstring pString(const double max = 100.0);
 
+	threshold toSeconds(const Tunit& fromUnit);
 };
 
 std::wstring removeZero(double);
