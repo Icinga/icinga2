@@ -58,6 +58,11 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 	const String keyPrefix = "icinga:config:";
 
+	std::map<String, String> lcTypes;
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
+		lcTypes.emplace(type->GetName().ToLower(), type->GetName());
+	}
+
 	do {
 		std::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", keyPrefix + "*", "COUNT", "1000" });
 
@@ -84,16 +89,12 @@ void RedisWriter::UpdateAllConfigObjects(void)
 			String type = namePair.SubStr(0, pos);
 			String name = namePair.SubStr(pos + 1);
 
-			Type::Ptr ptype = Type::GetByName(type);
+			auto actualTypeName = lcTypes.find(type);
 
-			if (!ptype)
+			if (actualTypeName == lcTypes.end())
 				continue;
 
-			ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
-
-			if (!ctype)
-				continue;
-
+			Type::Ptr ptype = Type::GetByName(actualTypeName->second);
 			auto& deleteQuery = deleteQueries[ptype.get()];
 
 			if (deleteQuery.empty())
