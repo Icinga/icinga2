@@ -93,13 +93,12 @@ void RedisWriter::UpdateAllConfigObjects(void)
 			if (!ctype)
 				continue;
 
-			if (ctype->GetObject(name))
-				continue;
-
 			deleteQuery.push_back("icinga:config:" + type + ":" + name);
 			deleteQuery.push_back("icinga:status:" + type + ":" + name);
 		}
 	} while (cursor != 0);
+
+	ExecuteQuery({ "MULTI" });
 
 	if (deleteQuery.size() > 1)
 		ExecuteQuery(deleteQuery);
@@ -124,6 +123,8 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		/* publish config type dump finished */
 		ExecuteQuery({ "PUBLISH", "icinga:config:dump", typeName });
 	}
+
+	ExecuteQuery({ "EXEC" });
 
 	Log(LogInformation, "RedisWriter")
 		<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
