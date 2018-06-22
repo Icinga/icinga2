@@ -41,9 +41,14 @@ String RedisWriter::FormatCheckSumBinary(const String& str)
 
 static Value l_DefaultEnv = "production";
 
+String RedisWriter::GetEnvironment()
+{
+	return ScriptGlobal::Get("Environment", &l_DefaultEnv);
+}
+
 String RedisWriter::GetIdentifier(const ConfigObject::Ptr& object)
 {
-	return HashValue((Array::Ptr)new Array({ScriptGlobal::Get("Environment", &l_DefaultEnv), object->GetName()}));
+	return HashValue((Array::Ptr)new Array({GetEnvironment(), object->GetName()}));
 }
 
 String RedisWriter::CalculateCheckSumString(const String& str)
