@@ -25,6 +25,8 @@
 #include "base/tlsutility.hpp"
 #include "base/initialize.hpp"
 #include "base/objectlock.hpp"
+#include "base/array.hpp"
+#include "base/scriptglobal.hpp"
 
 using namespace icinga;
 
@@ -35,6 +37,13 @@ String RedisWriter::FormatCheckSumBinary(const String& str)
 		sprintf(output + 2 * i, "%02x", str[i]);
 
 	return output;
+}
+
+static Value l_DefaultEnv = "production";
+
+String RedisWriter::GetIdentifier(const ConfigObject::Ptr& object)
+{
+	return HashValue((Array::Ptr)new Array({ScriptGlobal::Get("Environment", &l_DefaultEnv), object->GetName()}));
 }
 
 String RedisWriter::CalculateCheckSumString(const String& str)

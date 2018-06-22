@@ -43,11 +43,6 @@ void RedisWriter::ConfigStaticInitialize()
 	ConfigObject::OnVersionChanged.connect(std::bind(&RedisWriter::VersionChangedHandler, _1));
 }
 
-static inline String GetIdentifier(const ConfigObject::Ptr& object)
-{
-	return object->GetName();
-}
-
 void RedisWriter::UpdateAllConfigObjects(void)
 {
 	AssertOnWorkQueue();
