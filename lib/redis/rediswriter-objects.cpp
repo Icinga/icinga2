@@ -155,6 +155,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 	Dictionary::Ptr checkSums = new Dictionary();
 	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetShortName()));
+	checkSums->Set("environment_checksum", CalculateCheckSumString(GetEnvironment()));
 
 	// TODO: move this elsewhere
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
