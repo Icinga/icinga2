@@ -77,6 +77,7 @@ private:
 	/* utilities */
 	static String FormatCheckSumBinary(const String& str);
 
+	static String GetIdentifier(const ConfigObject::Ptr& object);
 	static String CalculateCheckSumString(const String& str);
 	static String CalculateCheckSumGroups(const Array::Ptr& groups);
 	static String CalculateCheckSumProperties(const ConfigObject::Ptr& object, const std::set<String>& propertiesBlacklist);
