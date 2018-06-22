@@ -166,17 +166,17 @@ static int printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		std::wcout << L"SWAP OK - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"SWAP OK - " << printInfo.percentFree << L"% free | 'swap'=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
 			<< L";0;" << printInfo.tSwap << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"SWAP WARNING - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"SWAP WARNING - " << printInfo.percentFree << L"% free | 'swap'=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
 			<< L";0;" << printInfo.tSwap << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"SWAP CRITICAL - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"SWAP CRITICAL - " << printInfo.percentFree << L"% free | 'swap'=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
 			<< L";0;" << printInfo.tSwap << '\n';
 		break;

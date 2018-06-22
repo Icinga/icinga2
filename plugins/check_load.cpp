@@ -171,7 +171,7 @@ static int printOutput(printInfoStruct& printInfo)
 		break;
 	}
 
-	std::wcout << " " << printInfo.load << L"% | load=" << printInfo.load << L"%;"
+	std::wcout << " " << printInfo.load << L"% | 'load'=" << printInfo.load << L"%;"
 		<< printInfo.warn.pString() << L";"
 		<< printInfo.crit.pString() << L";0;100" << '\n';
 

@@ -190,7 +190,7 @@ static int printOutput(printInfoStruct& printInfo, const std::vector<nInterface>
 			continue;
 		} else {
 			boost::algorithm::replace_all(wsFriendlyName, "'", "''");
-			tss << L"\'" << wsFriendlyName << L"_in\'=" << it->BytesInSec << L"B \'" << wsFriendlyName << L"_out\'=" << it->BytesOutSec << L"B ";
+			tss << L"'" << wsFriendlyName << L"_in'=" << it->BytesInSec << L"B '" << wsFriendlyName << L"_out'=" << it->BytesOutSec << L"B ";
 		}
 	}
 
@@ -214,7 +214,7 @@ static int printOutput(printInfoStruct& printInfo, const std::vector<nInterface>
 	}
 
 	std::wcout << " " << tIn + tOut << L"B/s | "
-		<< L"network=" << tIn + tOut << L"B;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; "
+		<< L"'network'=" << tIn + tOut << L"B;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; "
 		<< tss.str() << '\n';
 
 	return state;

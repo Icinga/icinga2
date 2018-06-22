@@ -382,7 +382,7 @@ static int printOutput(printInfoStruct& printInfo, std::vector<drive>& vDrives)
 			wsDrives.push_back(it->name + L" " + removeZero(it->free) + L" " + unit + L" (" +
 				removeZero(std::round(it->free / it->cap * 100.0)) + L"%); ");
 
-			wsPerf.push_back(L" " + it->name + L"=" + removeZero(it->free) + unit + L";" +
+			wsPerf.push_back(L" '" + it->name + L"'=" + removeZero(it->free) + unit + L";" +
 				printInfo.warn.pString(it->cap) + L";" + printInfo.crit.pString(it->cap) + L";0;"
 				+ removeZero(it->cap));
 

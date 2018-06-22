@@ -187,7 +187,7 @@ static int printOutput(printInfoStruct& printInfo)
 	else
 		std::wcout << " - " << 100 - printInfo.percentFree << L"% used";
 
-	std::wcout << "| memory=" << currentValue << BunitStr(printInfo.unit) << L";"
+	std::wcout << "| 'memory'=" << currentValue << BunitStr(printInfo.unit) << L";"
 		<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
 		<< L";0;" << printInfo.tRam;
 

@@ -151,15 +151,15 @@ static int printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		std::wcout << L"USERS OK " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
+		std::wcout << L"USERS OK " << printInfo.users << L" User(s) logged in | 'users'=" << printInfo.users << L";"
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"USERS WARNING " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
+		std::wcout << L"USERS WARNING " << printInfo.users << L" User(s) logged in | 'users'=" << printInfo.users << L";"
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"USERS CRITICAL " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
+		std::wcout << L"USERS CRITICAL " << printInfo.users << L" User(s) logged in | 'users'=" << printInfo.users << L";"
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << '\n';
 		break;
 	}
