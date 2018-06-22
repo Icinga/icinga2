@@ -30,6 +30,7 @@
 #include "base/initialize.hpp"
 #include "base/convert.hpp"
 #include "base/array.hpp"
+#include <map>
 #include <set>
 
 using namespace icinga;
@@ -52,7 +53,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 	double startTime = Utility::GetTime();
 
-	std::vector<String> deleteQuery({ "DEL" });
+	std::map<Type*, std::vector<String>> deleteQueries;
 	long long cursor = 0;
 
 	const String keyPrefix = "icinga:config:";
@@ -93,21 +94,28 @@ void RedisWriter::UpdateAllConfigObjects(void)
 			if (!ctype)
 				continue;
 
+			auto& deleteQuery = deleteQueries[ptype.get()];
+
+			if (deleteQuery.empty())
+				deleteQuery.emplace_back("DEL");
+
 			deleteQuery.push_back("icinga:config:" + type + ":" + name);
 			deleteQuery.push_back("icinga:status:" + type + ":" + name);
 		}
 	} while (cursor != 0);
-
-	ExecuteQuery({ "MULTI" });
-
-	if (deleteQuery.size() > 1)
-		ExecuteQuery(deleteQuery);
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!ctype)
 			continue;
+
+		ExecuteQuery({ "MULTI" });
+
+		auto& deleteQuery = deleteQueries[type.get()];
+
+		if (deleteQuery.size() > 1)
+			ExecuteQuery(deleteQuery);
 
 		String typeName = type->GetName().ToLower();
 
@@ -122,9 +130,9 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 		/* publish config type dump finished */
 		ExecuteQuery({ "PUBLISH", "icinga:config:dump", typeName });
-	}
 
-	ExecuteQuery({ "EXEC" });
+		ExecuteQuery({ "EXEC" });
+	}
 
 	Log(LogInformation, "RedisWriter")
 		<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
