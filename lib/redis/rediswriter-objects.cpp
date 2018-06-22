@@ -21,12 +21,15 @@
 #include "icinga/customvarobject.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
+#include "icinga/hostgroup.hpp"
+#include "icinga/servicegroup.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
 #include "base/tlsutility.hpp"
 #include "base/initialize.hpp"
 #include "base/convert.hpp"
+#include "base/array.hpp"
 #include <set>
 
 using namespace icinga;
@@ -126,6 +129,16 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
 
+static ConfigObject::Ptr GetHostGroup(const String& name)
+{
+	return ConfigObject::GetObject<HostGroup>(name);
+}
+
+static ConfigObject::Ptr GetServiceGroup(const String& name)
+{
+	return ConfigObject::GetObject<ServiceGroup>(name);
+}
+
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTransaction, bool runtimeUpdate)
 {
 	AssertOnWorkQueue();
@@ -168,10 +181,29 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 		tie(host, service) = GetHostService(checkable);
 
-		if (service)
-			checkSums->Set("groups_checksum", CalculateCheckSumGroups(service->GetGroups()));
-		else
-			checkSums->Set("groups_checksum", CalculateCheckSumGroups(host->GetGroups()));
+		Array::Ptr groups;
+		ConfigObject::Ptr (*getGroup)(const String& name);
+
+		if (service) {
+			groups = service->GetGroups();
+			getGroup = &::GetServiceGroup;
+		} else {
+			groups = host->GetGroups();
+			getGroup = &::GetHostGroup;
+		}
+
+		checkSums->Set("groups_checksum", CalculateCheckSumGroups(groups));
+
+		Array::Ptr groupChecksums = new Array();
+
+		ObjectLock groupsLock (groups);
+		ObjectLock groupChecksumsLock (groupChecksums);
+
+		for (auto group : groups) {
+			groupChecksums->Add(GetIdentifier((*getGroup)(group.Get<String>())));
+		}
+
+		checkSums->Set("group_checksums", groupChecksums);
 	} else {
 		Zone::Ptr zone = dynamic_pointer_cast<Zone>(object);
 
