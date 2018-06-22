@@ -90,11 +90,13 @@ void ObjectLock::Lock()
 	m_Locked = true;
 
 #ifdef I2_DEBUG
+	if (++m_Object->m_LockCount == 1u) {
 #	ifdef _WIN32
-	InterlockedExchange(&m_Object->m_LockOwner, GetCurrentThreadId());
+		InterlockedExchange(&m_Object->m_LockOwner, GetCurrentThreadId());
 #	else /* _WIN32 */
-	__sync_lock_test_and_set(&m_Object->m_LockOwner, pthread_self());
+		__sync_lock_test_and_set(&m_Object->m_LockOwner, pthread_self());
 #	endif /* _WIN32 */
+	}
 #endif /* I2_DEBUG */
 }
 
@@ -120,7 +122,7 @@ void ObjectLock::Spin(unsigned int it)
 void ObjectLock::Unlock()
 {
 #ifdef I2_DEBUG
-	if (m_Locked) {
+	if (m_Locked && !--m_Object->m_LockCount) {
 #	ifdef _WIN32
 		InterlockedExchange(&m_Object->m_LockOwner, 0);
 #	else /* _WIN32 */
