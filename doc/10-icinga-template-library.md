@@ -1893,6 +1893,25 @@ nscp_counter_arguments | **Optional.** Additional arguments.
 nscp_counter_showall   | **Optional.** Shows more details in plugin output, default to false.
 nscp_counter_perfsyntax | **Optional.** Apply performance data label, e.g. `Total Processor Time` to avoid special character problems. Defaults to `nscp_counter_name`.
 
+### nscp-local-tasksched <a id="nscp-check-local-tasksched"></a>
+
+Check Command object for the `check_tasksched` NSClient++ plugin.
+You can check for a single task or for a complete folder (and sub folders) of tasks.
+
+Name                   | Description
+-----------------------|------------------
+nscp_tasksched_name         | **Optional.** Name of the task to check.
+nscp_tasksched_folder       | **Optional.** The folder in which the tasks to check reside.
+nscp_tasksched_recursive    | **Optional.** Recurse sub folder, defaults to true.
+nscp_tasksched_hidden       | **Optional.** Look for hidden tasks, defaults to false.
+nscp_tasksched_warning      | **Optional.** Filter which marks items which generates a warning state, defaults to `exit_code != 0`.
+nscp_tasksched_critical     | **Optional.** Filter which marks items which generates a critical state, defaults to `exit_code < 0`.
+nscp_tasksched_emptystate   | **Optional.** An array of NSClient++ modules to load. Defaults to `[ "CheckDisk" ]`.
+nscp_tasksched_perfsyntax   | **Optional.** Performance alias syntax., defaults to `%(title)`
+nscp_tasksched_detailsyntax | **Optional.** Detail level syntax, defaults to `%(folder)/%(title): %(exit_code) != 0`
+nscp_tasksched_arguments    | **Optional.** Additional arguments.
+nscp_tasksched_showall      | **Optional.** Shows more details in plugin output, default to false.
+nscp_modules                | **Optional.** An array of NSClient++ modules to load. Defaults to `[ "CheckTaskSched" ]`.
 
 
 ## Plugin Check Commands for Manubulon SNMP <a id="snmp-manubulon-plugin-check-commands"></a>
