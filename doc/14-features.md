@@ -641,7 +641,7 @@ A list of available external commands and their parameters can be found [here](2
 and, or, negate
 
   Operator  | Negate   | Description
-  ----------|------------------------
+  ----------|----------|-------------
    =        | !=       | Equality
    ~        | !~       | Regex match
    =~       | !=~      | Equality ignoring case
