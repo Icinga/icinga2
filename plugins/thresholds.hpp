@@ -73,5 +73,6 @@ Tunit parseTUnit(const std::wstring&);
 std::wstring TunitStr(const Tunit&);
 
 void printErrorInfo(unsigned long err = 0);
+std::wstring formatErrorInfo(unsigned long err);
 
 #endif /* THRESHOLDS_H */

@@ -189,7 +189,7 @@ static int printOutput(printInfoStruct& printInfo)
 
 	std::wcout << "| memory=" << currentValue << BunitStr(printInfo.unit) << L";"
 		<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
-		<< L";0;" << printInfo.tRam;
+		<< L";0;" << printInfo.tRam << '\n';
 
 	return state;
 }
