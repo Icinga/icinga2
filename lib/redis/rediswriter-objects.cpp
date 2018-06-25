@@ -232,6 +232,13 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			}
 
 			checkSums->Set("endpoints_checksum", CalculateCheckSumGroups(endpoints));
+		} else {
+			Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
+
+			if (endpoint) {
+				ConfigObject::Ptr zone = endpoint->GetZone();
+				checkSums->Set("zone_checksum", GetIdentifier(zone));
+			}
 		}
 	}
 
