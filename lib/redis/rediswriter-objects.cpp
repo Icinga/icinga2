@@ -97,8 +97,10 @@ void RedisWriter::UpdateAllConfigObjects(void)
 			Type::Ptr ptype = Type::GetByName(actualTypeName->second);
 			auto& deleteQuery = deleteQueries[ptype.get()];
 
-			if (deleteQuery.empty())
+			if (deleteQuery.empty()) {
 				deleteQuery.emplace_back("DEL");
+				deleteQuery.emplace_back("icinga:config:checksum:" + type);
+			}
 
 			deleteQuery.push_back("icinga:config:" + type + ":" + name);
 			deleteQuery.push_back("icinga:status:" + type + ":" + name);
