@@ -149,7 +149,7 @@ static int printOutput(const printInfoStruct& printInfo)
 		break;
 	}
 
-	std::wcout << output << printInfo.numUpdates << L" | update=" << printInfo.numUpdates << L";"
+	std::wcout << output << printInfo.numUpdates << L" | 'update'=" << printInfo.numUpdates << L";"
 		<< printInfo.warn << L";" << printInfo.crit << L";0;" << '\n';
 
 	return state;

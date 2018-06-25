@@ -124,7 +124,7 @@ static int printOutput(const printInfoStruct& printInfo)
 	state state = OK;
 
 	if (!printInfo.ServiceState) {
-		std::wcout << L"SERVICE CRITICAL NOTFOUND | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE CRITICAL NOT FOUND | 'service'=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		return 3;
 	}
 
@@ -133,13 +133,13 @@ static int printOutput(const printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\" OK RUNNING | service=4;;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" OK RUNNING | 'service'=4;;;1;7" << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\" WARNING NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" WARNING NOT RUNNING | 'service'=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\" CRITICAL NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" CRITICAL NOT RUNNING | 'service'=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		break;
 	}
 

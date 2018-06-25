@@ -166,17 +166,17 @@ static int printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		std::wcout << L"UPTIME OK " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
+		std::wcout << L"UPTIME OK " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.time
 			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
 			<< printInfo.crit.pString() << L";0;" << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"UPTIME WARNING " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
+		std::wcout << L"UPTIME WARNING " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.time
 			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
 			<< printInfo.crit.pString() << L";0;" << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"UPTIME CRITICAL " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
+		std::wcout << L"UPTIME CRITICAL " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.time
 			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
 			<< printInfo.crit.pString() << L";0;" << '\n';
 		break;
