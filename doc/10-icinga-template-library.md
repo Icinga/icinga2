@@ -1906,7 +1906,7 @@ nscp_tasksched_recursive    | **Optional.** Recurse sub folder, defaults to true
 nscp_tasksched_hidden       | **Optional.** Look for hidden tasks, defaults to false.
 nscp_tasksched_warning      | **Optional.** Filter which marks items which generates a warning state, defaults to `exit_code != 0`.
 nscp_tasksched_critical     | **Optional.** Filter which marks items which generates a critical state, defaults to `exit_code < 0`.
-nscp_tasksched_emptystate   | **Optional.** An array of NSClient++ modules to load. Defaults to `[ "CheckDisk" ]`.
+nscp_tasksched_emptystate   | **Optional.** Return status to use when nothing matched filter, defaults to warning.
 nscp_tasksched_perfsyntax   | **Optional.** Performance alias syntax., defaults to `%(title)`
 nscp_tasksched_detailsyntax | **Optional.** Detail level syntax, defaults to `%(folder)/%(title): %(exit_code) != 0`
 nscp_tasksched_arguments    | **Optional.** Additional arguments.
