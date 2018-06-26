@@ -223,7 +223,26 @@ void printErrorInfo(unsigned long err)
 	LPWSTR mBuf = NULL;
 	if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL))
-			std::wcout << "Failed to format error message, last error was: " << err << '\n';
-	else
+		std::wcout << "Failed to format error message, last error was: " << err << '\n';
+	else {
+		boost::trim_right(std::wstring(mBuf));
 		std::wcout << mBuf << std::endl;
+	}
+}
+
+std::wstring formatErrorInfo(unsigned long err) {
+	std::wostringstream out;
+	if (!err)
+		err = GetLastError();
+	LPWSTR mBuf = NULL;
+	if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL))
+		out << "Failed to format error message, last error was: " << err;
+	else {
+		std::wstring tempOut = std::wstring(mBuf);
+		boost::trim_right(tempOut);
+		out << tempOut;
+	}
+
+	return out.str();
 }

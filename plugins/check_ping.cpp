@@ -264,7 +264,7 @@ static bool resolveHostname(const std::wstring& hostname, bool ipv6, std::wstrin
 	DWORD ret = GetAddrInfoW(hostname.c_str(), NULL, &hints, &result);
 
 	if (ret) {
-		std::cout << "Failed to resolve hostname. Winsock Error Code: " << ret << '\n';
+		std::wcout << L"Failed to resolve hostname. Error " << ret << L": " << formatErrorInfo(ret) << L"\n";
 		return false;
 	}
 
