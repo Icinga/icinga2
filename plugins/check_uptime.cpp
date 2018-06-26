@@ -33,6 +33,7 @@ struct printInfoStruct
 	threshold warn;
 	threshold crit;
 	long long time;
+	long long timeInSeconds;
 	Tunit unit;
 };
 
@@ -166,19 +167,19 @@ static int printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		std::wcout << L"UPTIME OK " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.time
-			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
-			<< printInfo.crit.pString() << L";0;" << '\n';
+		std::wcout << L"UPTIME OK " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.timeInSeconds
+			<< "s" << L";" << printInfo.warn.toSeconds(printInfo.unit).pString() << L";"
+			<< printInfo.crit.toSeconds(printInfo.unit).pString() << L";0;" << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"UPTIME WARNING " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.time
-			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
-			<< printInfo.crit.pString() << L";0;" << '\n';
+		std::wcout << L"UPTIME WARNING " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.timeInSeconds
+			<< "s" << L";" << printInfo.warn.toSeconds(printInfo.unit).pString() << L";"
+			<< printInfo.crit.toSeconds(printInfo.unit).pString() << L";0;" << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"UPTIME CRITICAL " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.time
-			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
-			<< printInfo.crit.pString() << L";0;" << '\n';
+		std::wcout << L"UPTIME CRITICAL " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.timeInSeconds
+			<< "s" << L";" << printInfo.warn.toSeconds(printInfo.unit).pString() << L";"
+			<< printInfo.crit.toSeconds(printInfo.unit).pString() << L";0;" << '\n';
 		break;
 	}
 
@@ -209,6 +210,9 @@ static void getUptime(printInfoStruct& printInfo)
 		printInfo.time = uptime.count();
 		break;
 	}
+
+	// For the Performance Data we need the time in seconds
+	printInfo.timeInSeconds = boost::chrono::duration_cast<boost::chrono::seconds>(uptime).count();
 }
 
 int wmain(int argc, WCHAR **argv)
