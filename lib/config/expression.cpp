@@ -355,14 +355,21 @@ ExpressionResult InExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) 
 
 	if (operand2.GetValue().IsEmpty())
 		return false;
-	else if (!operand2.GetValue().IsObjectType<Array>())
+	else if (!operand2.GetValue().IsObjectType<Array>() && !operand2.GetValue().IsString())
 		BOOST_THROW_EXCEPTION(ScriptError("Invalid right side argument for 'in' operator: " + JsonEncode(operand2.GetValue()), m_DebugInfo));
 
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1)
 
-	Array::Ptr arr = operand2.GetValue();
-	return arr->Contains(operand1.GetValue());
+	Value rhs = operand2.GetValue();
+
+	if (rhs.IsObjectType<Array>()) {
+		Array::Ptr arr = rhs;
+		return arr->Contains(operand1.GetValue());
+	} else {
+		String str = rhs;
+		return str.Find(operand1.GetValue()) != String::NPos;
+	}
 }
 
 ExpressionResult NotInExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -372,14 +379,21 @@ ExpressionResult NotInExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 
 	if (operand2.GetValue().IsEmpty())
 		return true;
-	else if (!operand2.GetValue().IsObjectType<Array>())
+	else if (!operand2.GetValue().IsObjectType<Array>() && !operand2.GetValue().IsString())
 		BOOST_THROW_EXCEPTION(ScriptError("Invalid right side argument for 'in' operator: " + JsonEncode(operand2.GetValue()), m_DebugInfo));
 
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
 
-	Array::Ptr arr = operand2.GetValue();
-	return !arr->Contains(operand1.GetValue());
+	Value rhs = operand2.GetValue();
+
+	if (rhs.IsObjectType<Array>()) {
+		Array::Ptr arr = rhs;
+		return !arr->Contains(operand1.GetValue());
+	} else {
+		String str = rhs;
+		return str.Find(operand1.GetValue()) == String::NPos;
+	}
 }
 
 ExpressionResult LogicalAndExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

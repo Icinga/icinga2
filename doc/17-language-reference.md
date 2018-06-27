@@ -179,8 +179,8 @@ Operator | Precedence | Examples (Result)                             | Descript
 >        | 6         | 3 > 5 (false)                                 | Greater than
 <=       | 6         | 3 <= 3 (true)                                 | Less than or equal
 >=       | 6         | 3 >= 3 (true)                                 | Greater than or equal
-in       | 7          | "foo" in [ "foo", "bar" ] (true)              | Element contained in array
-!in      | 7          | "foo" !in [ "bar", "baz" ] (true)             | Element not contained in array
+in       | 7          | "foo" in [ "foo", "bar" ] (true)              | Element contained in array or string
+!in      | 7          | "foo" !in [ "bar", "baz" ] (true)             | Element not contained in array or string
 ==       | 8         | "hello" == "hello" (true), 3 == 5 (false)     | Equal to
 !=       | 8         | "hello" != "world" (true), 3 != 3 (false)     | Not equal to
 &        | 9          | 7 & 3 (3)                                     | Binary AND

@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK(!expr->Evaluate(frame).GetValue());
 
 	expr = ConfigCompiler::CompileText("<test>", R"("foo" in "bar")");
-	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
+	BOOST_CHECK(!expr->Evaluate(frame).GetValue());
 
 	expr = ConfigCompiler::CompileText("<test>", R"("foo" !in [ "bar", "baz" ])");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
 	expr = ConfigCompiler::CompileText("<test>", R"("foo" !in "bar")");
-	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
+	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
 	expr = ConfigCompiler::CompileText("<test>", "{ a += 3 }");
 	dict = expr->Evaluate(frame).GetValue();
