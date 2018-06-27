@@ -2552,8 +2552,29 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                            | Description
 --------------------------------|-----------------------------------------------------------------------
-lsi_controller_number           | **Required.** Controller number to monitor.
-storcli_path                    | **Required.** Path to the `storcli` binary, e.g. "/usr/sbin/storcli".
+lsi_controller_number           | **Optional.** Controller number to monitor.
+storcli_path                    | **Optional.** Path to the `storcli` binary, e.g. "/usr/sbin/storcli". 
+lsi_enclosure_id                | **Optional.** Enclosure numbers to be checked, comma-separated.
+lsi_ld_id                       | **Optional.** Logical devices to be checked, comma-separated.
+lsi_pd_id                       | **Optional.** Physical devices to be checked, comma-separated.
+lsi_temp_warning                | **Optional.** RAID controller warning temperature.
+lsi_temp_critical               | **Optional.** RAID controller critical temperature.
+lsi_pd_temp_warning             | **Optional.** Disk warning temperature.
+lsi_pd_temp_critical            | **Optional.** Disk critical temperature.
+lsi_bbu_temp_warning            | **Optional.** Battery warning temperature.
+lsi_bbu_temp_critical           | **Optional.** Battery critical temperature.
+lsi_cv_temp_warning             | **Optional.** CacheVault warning temperature.
+lsi_cv_temp_critical            | **Optional.** CacheVault critical temperature.
+lsi_ignored_media_errors        | **Optional.** Warning threshold for media errors.
+lsi_ignored_other_errors        | **Optional.** Warning threshold for other errors.
+lsi_ignored_predictive_fails    | **Optional.** Warning threshold for predictive failures.
+lsi_ignored_shield_counters     | **Optional.** Warning threshold for shield counter.
+lsi_ignored_bbm_counters        | **Optional.** Warning threshold for BBM counter.
+lsi_bbu                         | **Optional.** Define if BBU is present and it's state should be checked.
+lsi_noenclosures                | **Optional.** If set to true, does not check enclosures.
+lsi_nosudo                      | **Optional.** If set to true, does not use sudo when running storcli.
+lsi_nocleanlogs                 | **Optional.** If set to true, does not clean up the log files after executing storcli checks.
+
 
 #### smart-attributes <a id="plugin-contrib-command-smart-attributes"></a>
 
