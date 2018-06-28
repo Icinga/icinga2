@@ -186,11 +186,12 @@ void RedisWriter::UpdateSubscriptions()
 			RedisSubscriptionInfo rsi;
 			String key = keysReply->element[i]->str;
 
-			if (!RedisWriter::GetSubscriptionTypes(key, rsi))
+			if (!RedisWriter::GetSubscriptionTypes(key, rsi)) {
 				Log(LogInformation, "RedisWriter")
-					<< "Subscription \"" << key<< "\" has no types listed.";
-			else
+					<< "Subscription \"" << key << "\" has no types listed.";
+			} else {
 				m_Subscriptions[key.SubStr(keyPrefix.GetLength())] = rsi;
+			}
 		}
 	} while (cursor != 0);
 
@@ -198,11 +199,14 @@ void RedisWriter::UpdateSubscriptions()
 		<< "Current Redis event subscriptions: " << m_Subscriptions.size();
 }
 
-int RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
+bool RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 {
 	try {
 		std::shared_ptr<redisReply> redisReply = ExecuteQuery({ "SMEMBERS", key });
 		VERIFY(redisReply->type == REDIS_REPLY_ARRAY);
+
+		if (redisReply->elements == 0)
+			return false;
 
 		for (size_t j = 0; j < redisReply->elements; j++) {
 			rsi.EventTypes.insert(redisReply->element[j]->str);
@@ -214,7 +218,11 @@ int RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "RedisWriter")
 			<< "Invalid Redis subscriber info for subscriber '" << key << "': " << DiagnosticInformation(ex);
+
+		return false;
 	}
+
+	return true;
 }
 
 void RedisWriter::PublishStatsTimerHandler(void)

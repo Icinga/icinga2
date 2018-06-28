@@ -60,7 +60,7 @@ private:
 
 	void UpdateSubscriptionsTimerHandler();
 	void UpdateSubscriptions();
-	int  GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi);
+	bool GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi);
 	void PublishStatsTimerHandler();
 	void PublishStats();
 
