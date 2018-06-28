@@ -2181,7 +2181,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                             | Description
 ---------------------------------|------------------------------------------------------------------------------------------------------------------------------
-db2_health_database           | **Required.** The name of the database. (If it was catalogued locally, this parameter and `db2_health_not_cataloged = false` are the only you need. Otherwise you must specify database, hostname and port)
+db2_health_database           | **Required.** The name of the database. (If it was catalogued locally, this parameter and `db2_health_not_catalogued = false` are the only you need. Otherwise you must specify database, hostname and port)
 db2_health_username           | **Optional.** The username for the database connection.
 db2_health_password           | **Optional.** The password for the database connection.
 db2_health_port               | **Optional.** The port where DB2 is listening.
@@ -2197,7 +2197,7 @@ db2_health_maxinactivity      | **Optional.** Used for the maximum amount of tim
 db2_health_mitigation         | **Optional.** Classifies the severity of an offline tablespace.
 db2_health_lookback           | **Optional.** How many days in the past db2_health check should look back to calculate exitcode.
 db2_health_report             | **Optional.** Report can be used to output only the bad news. Possible values are "short", "long", "html". Defaults to `short`.
-db2_health_not_cataloged      | **Optional.** Set this variable to false if you want to use a catalogued locally database. Defaults to `true`.
+db2_health_not_catalogued     | **Optional.** Set this variable to false if you want to use a catalogued locally database. Defaults to `true`.
 db2_health_env_db2_home       | **Required.** Specifies the location of the db2 client libraries as environment variable `DB2_HOME`. Defaults to "/opt/ibm/db2/V10.5".
 db2_health_env_db2_version    | **Optional.** Specifies the DB2 version as environment variable `DB2_VERSION`.
 
