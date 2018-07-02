@@ -216,6 +216,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		}
 
 		checkSums->Set("group_checksums", groupChecksums);
+
+		checkSums->Set("zone_checksum", GetIdentifier(checkable->GetZone()));
 	} else {
 		Zone::Ptr zone = dynamic_pointer_cast<Zone>(object);
 
