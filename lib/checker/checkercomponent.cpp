@@ -174,6 +174,9 @@ void CheckerComponent::CheckThreadProc()
 			m_IdleCheckables.insert(GetCheckableScheduleInfo(checkable));
 			lock.unlock();
 
+			Log(LogDebug, "CheckerComponent")
+				<< "Checks for checkable '" << checkable->GetName() << "' are disabled. Rescheduling check.";
+
 			checkable->UpdateNextCheck();
 
 			lock.lock();
@@ -181,7 +184,16 @@ void CheckerComponent::CheckThreadProc()
 			continue;
 		}
 
-		m_PendingCheckables.insert(GetCheckableScheduleInfo(checkable));
+
+		csi = GetCheckableScheduleInfo(checkable);
+
+		Log(LogDebug, "CheckerComponent")
+			<< "Scheduling info for checkable '" << checkable->GetName() << "' ("
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", checkable->GetNextCheck()) << "): Object '"
+			<< csi.Object->GetName() << "', Next Check: "
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", csi.NextCheck) << "(" << csi.NextCheck << ").";
+
+		m_PendingCheckables.insert(csi);
 
 		lock.unlock();
 
