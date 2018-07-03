@@ -179,10 +179,17 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	std::set<String> propertiesBlacklist ({"name", "__name", "package", "source_location", "templates"});
 
 	Dictionary::Ptr checkSums = new Dictionary();
+
 	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetShortName()));
 	checkSums->Set("environment_checksum", CalculateCheckSumString(GetEnvironment()));
 
-	// TODO: move this elsewhere
+	/* 'zone' is available for all config objects, therefore calculate the checksum. */
+	Zone::Ptr zone = static_pointer_cast<Zone>(object->GetZone());
+
+	if (zone)
+		checkSums->Set("zone_checksum", GetIdentifier(zone));
+
+	/* Calculate checkable checksums. */
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
 	if (checkable) {
@@ -216,9 +223,6 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		}
 
 		checkSums->Set("group_checksums", groupChecksums);
-
-		if (checkable->GetZone())
-			checkSums->Set("zone_checksum", GetIdentifier(checkable->GetZone()));
 	} else {
 		Zone::Ptr zone = dynamic_pointer_cast<Zone>(object);
 
@@ -235,17 +239,11 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			}
 
 			checkSums->Set("endpoints_checksum", CalculateCheckSumGroups(endpoints));
-		} else {
-			Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
-
-			if (endpoint) {
-				ConfigObject::Ptr zone = endpoint->GetZone();
-				checkSums->Set("zone_checksum", GetIdentifier(zone));
-			}
 		}
+		/* zone_checksum for endpoints already is calculated above. */
 	}
 
-	//TODO: Move this somewhere else.
+	/* Custom var checksums. */
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
 
 	if (customVarObject) {
