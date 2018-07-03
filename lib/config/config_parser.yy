@@ -469,6 +469,10 @@ combined_set_op: T_SET
 	| T_SET_BINARY_OR
 	;
 
+optional_var: /* empty */
+	| T_VAR
+	;
+
 lterm: T_LIBRARY rterm
 	{
 		$$ = new LibraryExpression(std::unique_ptr<Expression>($2), @$);
@@ -603,7 +607,7 @@ lterm: T_LIBRARY rterm
 	}
 	| apply
 	| object
-	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')'
+	| T_FOR '(' optional_var identifier T_FOLLOWS optional_var identifier T_IN rterm ')'
 	{
 		BeginFlowControlBlock(context, FlowControlContinue | FlowControlBreak, true);
 	}
@@ -611,11 +615,11 @@ lterm: T_LIBRARY rterm
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new ForExpression(*$3, *$5, std::unique_ptr<Expression>($7), std::unique_ptr<Expression>($10), @$);
-		delete $3;
-		delete $5;
+		$$ = new ForExpression(*$4, *$7, std::unique_ptr<Expression>($9), std::unique_ptr<Expression>($12), @$);
+		delete $4;
+		delete $7;
 	}
-	| T_FOR '(' identifier T_IN rterm ')'
+	| T_FOR '(' optional_var identifier T_IN rterm ')'
 	{
 		BeginFlowControlBlock(context, FlowControlContinue | FlowControlBreak, true);
 	}
@@ -623,8 +627,8 @@ lterm: T_LIBRARY rterm
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new ForExpression(*$3, "", std::unique_ptr<Expression>($5), std::unique_ptr<Expression>($8), @$);
-		delete $3;
+		$$ = new ForExpression(*$4, "", std::unique_ptr<Expression>($6), std::unique_ptr<Expression>($9), @$);
+		delete $4;
 	}
 	| T_FUNCTION identifier '(' identifier_items ')' use_specifier
 	{
@@ -1103,24 +1107,24 @@ use_specifier_item: identifier
 	;
 
 apply_for_specifier: /* empty */
-	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')'
+	| T_FOR '(' optional_var identifier T_FOLLOWS optional_var identifier T_IN rterm ')'
 	{
-		context->m_FKVar.top() = *$3;
-		delete $3;
+		context->m_FKVar.top() = *$4;
+		delete $4;
 
-		context->m_FVVar.top() = *$5;
-		delete $5;
+		context->m_FVVar.top() = *$7;
+		delete $7;
 
-		context->m_FTerm.top() = $7;
+		context->m_FTerm.top() = $9;
 	}
-	| T_FOR '(' identifier T_IN rterm ')'
+	| T_FOR '(' optional_var identifier T_IN rterm ')'
 	{
-		context->m_FKVar.top() = *$3;
-		delete $3;
+		context->m_FKVar.top() = *$4;
+		delete $4;
 
 		context->m_FVVar.top() = "";
 
-		context->m_FTerm.top() = $5;
+		context->m_FTerm.top() = $6;
 	}
 	;
 
