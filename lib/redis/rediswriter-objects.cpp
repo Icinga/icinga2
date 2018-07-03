@@ -250,6 +250,16 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		propertiesBlacklist.emplace("vars");
 
 		checkSums->Set("vars_checksum", CalculateCheckSumVars(customVarObject));
+
+		auto vars (SerializeVars(customVarObject));
+		if (vars) {
+			auto varsJson (JsonEncode(vars));
+
+			Log(LogDebug, "RedisWriter")
+				<< "HSET icinga:config:customvars:" << typeName << " " << objectKey << " " << varsJson;
+
+			ExecuteQuery({ "HSET", "icinga:config:customvars:" + typeName, objectKey, varsJson });
+		}
 	}
 
 	checkSums->Set("metadata_checksum", CalculateCheckSumMetadata(object));
