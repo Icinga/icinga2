@@ -9,19 +9,75 @@ follow the instructions for v2.7 too.
 
 ## Upgrading to v2.9 <a id="upgrading-to-2-9"></a>
 
-### Configuration Changes <a id="upgrading-to-2-9-config-changes"></a>
+### Deprecation and Removal Notes <a id="upgrading-to-2-9-deprecation-removal-notes"></a>
 
-The CORS attributes `access_control_allow_credentials`, `access_control_allow_headers` and
-`access_control_allow_methods` are now controlled by Icinga 2 and cannot be changed anymore.
+- Deprecation of 1.x compatibility features: `StatusDataWriter`, `CompatLogger`, `CheckResultReader`. Their removal is scheduled for 2.11.
+Icinga 1.x is EOL and will be out of support by the end of 2018.
+- Removal of Icinga Studio. It always has been experimental and did not satisfy our high quality standards. We've therefore removed it.
+
+### Sysconfig Changes <a id="upgrading-to-2-9-sysconfig-changes"></a>
+
+The security fixes in v2.8.2 required moving specific runtime settings
+into the Sysconfig file and environment. This included that Icinga 2
+would itself parse this file and read the required variables. This has generated
+numerous false-positive log messages and led to many support questions. v2.9.0
+changes this in the standard way to read these variables from the environment, and use
+sane compile-time defaults.
+
+If you want to adjust the number of open files for the Icinga application
+for example, you would just add this setting like this on RHEL 7:
+
+```
+vim /etc/sysconfig/icinga2
+
+ICINGA2_RLIMIT_FILES=50000
+```
+
+Restart Icinga 2 afterwards, the Systemd service file automatically puts the
+value into the application's environment where this is read on startup.
+
+### Setup Wizard Changes <a id="upgrading-to-2-9-setup-wizard-changes"></a>
+
+Client and satellite setups previously had the example configuration in `conf.d` included
+by default. This caused trouble on config sync, or with locally executed checks generating
+wrong check results for command endpoint clients.
+
+In v2.9.0 `node wizard`, `node setup` and the graphical Windows wizard will disable
+the inclusion by default. You can opt-out and explicitly enable it again if needed.
+
+In addition to the default global zones `global-templates` and `director-global`,
+the setup wizards also offer to specify your own custom global zones and generate
+the required configuration automatically.
+
+The setup wizards also use full qualified names for Zone and Endpoint object generation,
+either the default values (FQDN for clients) or the user supplied input. This removes
+the dependency on the `NodeName` and `ZoneName` constant and helps to immediately see
+the parent-child relationship. Those doing support will also see the benefit in production.
 
 ### CLI Command Changes <a id="upgrading-to-2-9-cli-changes"></a>
 
-The `node setup` parameter `--master_host` was deprecated and replaced with `--parent_host`. This parameter is now optional to allow connection-less client setups similar to the `node wizard` CLI command. The `parent_zone` parameter has been added to modify the parent zone name e.g. for client-to-satellite setups.
+The [node setup](06-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup)
+parameter `--master_host` was deprecated and replaced with `--parent_host`.
+This parameter is now optional to allow connection-less client setups similar to the `node wizard`
+CLI command. The `parent_zone` parameter has been added to modify the parent zone name e.g.
+for client-to-satellite setups.
 
 The `api user` command which was released in v2.8.2 turned out to cause huge problems with
 configuration validation, windows restarts and OpenSSL versions. It is therefore removed in 2.9,
 the `password_hash` attribute for the ApiUser object stays intact but has no effect. This is to ensure
 that clients don't break on upgrade. We will revise this feature in future development iterations.
+
+### Configuration Changes <a id="upgrading-to-2-9-config-changes"></a>
+
+The CORS attributes `access_control_allow_credentials`, `access_control_allow_headers` and
+`access_control_allow_methods` are now controlled by Icinga 2 and cannot be changed anymore.
+
+### Unique Generated Names <a id="upgrading-to-2-9-unique-name-changes"></a>
+
+With the removal of RHEL 5 as supported platform, we can finally use real unique IDs.
+This is reflected in generating names for e.g. API stage names. Previously it was a handcrafted
+mix of local FQDN, timestamps and random numbers.
+
 
 ## Upgrading to v2.8.2 <a id="upgrading-to-2-8-2"></a>
 
