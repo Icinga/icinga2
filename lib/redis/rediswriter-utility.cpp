@@ -127,18 +127,26 @@ static void CollectScalarVars(Value haystack, std::vector<Value>& path, std::map
 			const Object::Ptr& obj = haystack.Get<Object::Ptr>();
 
 			Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
+
 			if (dict) {
+				ObjectLock olock(dict);
+
 				for (auto& kv : dict) {
 					path.emplace_back(kv.first);
 					CollectScalarVars(kv.second, path, needles);
 					path.pop_back();
 				}
+
 				break;
 			}
 
 			Array::Ptr arr = dynamic_pointer_cast<Array>(obj);
+
 			if (arr) {
 				double index = 0.0;
+
+				ObjectLock xlock(arr);
+
 				for (auto& v : arr) {
 					path.emplace_back(index);
 					CollectScalarVars(v, path, needles);
@@ -146,6 +154,7 @@ static void CollectScalarVars(Value haystack, std::vector<Value>& path, std::map
 
 					index += 1.0;
 				}
+
 				break;
 			}
 		}
@@ -226,6 +235,8 @@ Dictionary::Ptr RedisWriter::SerializeVars(const CustomVarObject::Ptr& object)
 	Dictionary::Ptr res = new Dictionary();
 	auto env (GetEnvironment());
 	auto envChecksum (SHA1(env));
+
+	ObjectLock olock(vars);
 
 	for (auto& kv : vars) {
 		Dictionary::Ptr flatVars = new Dictionary();
