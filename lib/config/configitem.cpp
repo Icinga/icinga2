@@ -36,6 +36,7 @@
 #include "base/json.hpp"
 #include "base/exception.hpp"
 #include "base/function.hpp"
+#include <boost/algorithm/string/join.hpp>
 #include <sstream>
 #include <fstream>
 
@@ -287,6 +288,14 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		}
 
 		throw;
+	}
+
+	Value serializedObject;
+
+	try {
+		serializedObject = Serialize(dobj, FAConfig);
+	} catch (const CircularReferenceError& ex) {
+		BOOST_THROW_EXCEPTION(ValidationError(dobj, ex.GetPath(), "Circular references are not allowed"));
 	}
 
 	Dictionary::Ptr persistentItem = new Dictionary({
