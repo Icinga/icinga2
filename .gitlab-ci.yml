@@ -1,0 +1,79 @@
+stages:
+  - build-icinga2
+  - build-image
+  - deploy-image
+
+build-icinga2:
+  stage: build-icinga2
+  image: $CI_REGISTRY/icingadb/icinga2-docker/master-build:latest
+  before_script:
+    - mkdir -p build
+    - mkdir destdir
+  cache:
+    paths:
+      - build/
+  script: >
+    cd build
+    && cmake -DCMAKE_INSTALL_PREFIX=/opt/icinga2 -DICINGA2_PLUGINDIR=/usr/lib64/nagios/plugins
+    -DICINGA2_USER=nagios -DICINGA2_GROUP=nagios -DICINGA2_COMMAND_GROUP=nagios
+    -DBOOST_INCLUDEDIR=/usr/include/boost148 -DBOOST_LIBRARYDIR=/usr/lib64/boost148 ..
+    && make
+    && make test
+    && ln -s $(pwd)/../destdir /opt/icinga2
+    && make install
+    && rm -rf /opt/icinga2/var/{cache,log,run}/icinga2
+    && cat ../gitlab-ci/icinga2/redis.conf >/opt/icinga2/etc/icinga2/features-available/redis.conf
+    && cd ..
+  artifacts:
+    paths:
+      - destdir/
+
+build-image:
+  variables:
+    CONTAINER: $CI_REGISTRY/$CI_PROJECT_PATH/$CI_COMMIT_REF_SLUG
+  stage: build-image
+  dependencies:
+    - build-icinga2
+  tags:
+    - docker-build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - docker pull $CONTAINER || true
+    - docker build -f gitlab-ci/Dockerfile --pull --cache-from $CONTAINER -t $CONTAINER .
+    - docker push $CONTAINER
+
+deploy-image-1: &deploy-image-base
+  variables:
+    SSH_ADDR: 194.0.135.12
+    ICINGA2_HOSTS: 1000
+  stage: deploy-image
+  dependencies:
+    - build-image
+  only:
+    - feature/redis
+  image: $CI_REGISTRY/icingadb/icinga2-docker/master-deploy:latest
+  script:
+    - cat <<<"$SSH_PRIVKEY" >./deploy.sshkey
+    - chmod 0600 ./deploy.sshkey
+    - >
+      ssh -i ./deploy.sshkey -o StrictHostKeyChecking=no $SSH_ADDR
+      "docker login -u $GITLABCI_USER -p $GITLABCI_TOKEN $CI_REGISTRY
+      && cd /root/icingadb
+      && echo ICINGA2_HOSTS=$ICINGA2_HOSTS >/root/icingadb/.env
+      && docker-compose pull icinga2
+      && base64 -d <<<'$(base64 <gitlab-ci/docker-compose-up.py)'
+      | CI_COMMIT_SHA=$CI_COMMIT_SHA
+      CI_COMMIT_AUTHOR='$(git log -1 --format=%an $CI_COMMIT_SHA)'
+      CI_COMMIT_TITLE=\"\$(base64 -d <<<'$(base64 <<<"$CI_COMMIT_TITLE")')\"
+      python >>messages"
+    - rm ./deploy.sshkey
+
+deploy-image-2:
+  <<: *deploy-image-base
+  variables:
+    SSH_ADDR: 194.0.135.40
+    ICINGA2_HOSTS: 100000
