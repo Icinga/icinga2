@@ -25,6 +25,7 @@
 #include "remote/apiuser.hpp"
 #include "base/tlsstream.hpp"
 #include "base/workqueue.hpp"
+#include <boost/thread/recursive_mutex.hpp>
 
 namespace icinga
 {
@@ -55,7 +56,7 @@ private:
 	TlsStream::Ptr m_Stream;
 	double m_Seen;
 	HttpRequest m_CurrentRequest;
-	boost::mutex m_DataHandlerMutex;
+	boost::recursive_mutex m_DataHandlerMutex;
 	WorkQueue m_RequestQueue;
 	int m_PendingRequests;
 

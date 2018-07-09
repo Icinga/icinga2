@@ -77,7 +77,7 @@ TlsStream::Ptr HttpServerConnection::GetStream() const
 
 void HttpServerConnection::Disconnect()
 {
-	boost::mutex::scoped_try_lock lock(m_DataHandlerMutex);
+	boost::recursive_mutex::scoped_try_lock lock(m_DataHandlerMutex);
 	if (!lock.owns_lock()) {
 		Log(LogInformation, "HttpServerConnection", "Unable to disconnect Http client, I/O thread busy");
 		return;
@@ -342,7 +342,7 @@ void HttpServerConnection::DataAvailableHandler()
 	bool close = false;
 
 	if (!m_Stream->IsEof()) {
-		boost::mutex::scoped_lock lock(m_DataHandlerMutex);
+		boost::recursive_mutex::scoped_lock lock(m_DataHandlerMutex);
 
 		m_Stream->SetCorked(true);
 
