@@ -269,6 +269,11 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			}
 
 			checkSums->Set("endpoints_checksum", CalculateCheckSumGroups(endpoints));
+
+			Zone::Ptr parentZone = zone->GetParent();
+
+			if (parentZone)
+				checkSums->Set("parent_checksum", GetIdentifier(parentZone));
 		}
 		/* zone_checksum for endpoints already is calculated above. */
 	}
