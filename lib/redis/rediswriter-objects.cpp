@@ -23,6 +23,10 @@
 #include "icinga/service.hpp"
 #include "icinga/hostgroup.hpp"
 #include "icinga/servicegroup.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/eventcommand.hpp"
+#include "icinga/notificationcommand.hpp"
+#include "remote/zone.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
@@ -223,6 +227,32 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		}
 
 		checkSums->Set("group_checksums", groupChecksums);
+
+		/* command_endpoint_checksum / node_checksum */
+		Endpoint::Ptr commandEndpoint = checkable->GetCommandEndpoint();
+
+		if (commandEndpoint)
+			checkSums->Set("command_endpoint_checksum", GetIdentifier(commandEndpoint));
+
+		/* *_command_checksum */
+		checkSums->Set("check_command_checksum", GetIdentifier(checkable->GetCheckCommand()));
+
+		EventCommand::Ptr eventCommand = checkable->GetEventCommand();
+
+		if (eventCommand)
+			checkSums->Set("event_command_checksum", GetIdentifier(eventCommand));
+
+		/* *_url_checksum, icon_image_checksum */
+		String actionUrl = checkable->GetActionUrl();
+		String notesUrl = checkable->GetNotesUrl();
+		String iconImage = checkable->GetIconImage();
+
+		if (!actionUrl.IsEmpty())
+			checkSums->Set("action_url_checksum", CalculateCheckSumString(actionUrl));
+		if (!notesUrl.IsEmpty())
+			checkSums->Set("notes_url_checksum", CalculateCheckSumString(notesUrl));
+		if (!iconImage.IsEmpty())
+			checkSums->Set("icon_image_checksum", CalculateCheckSumString(iconImage));
 	} else {
 		Zone::Ptr zone = dynamic_pointer_cast<Zone>(object);
 
