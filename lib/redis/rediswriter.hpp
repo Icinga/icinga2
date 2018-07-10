@@ -105,6 +105,12 @@ private:
 	WorkQueue m_WorkQueue;
 	redisContext *m_Context;
 	std::map<String, RedisSubscriptionInfo> m_Subscriptions;
+
+	String m_PrefixConfigObject;
+	String m_PrefixConfigCheckSum;
+	String m_PrefixConfigCustomVar;
+	String m_PrefixStatusObject;
+
 	bool m_ConfigDumpInProgress;
 };
 
