@@ -240,7 +240,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			getGroup = &::GetServiceGroup;
 
 			/* Calculate the host_checksum */
-			checkSums->Set("host_checksum", GetIdentifier(service->GetHost()));
+			checkSums->Set("host_checksum", GetIdentifier(host));
 		} else {
 			groups = host->GetGroups();
 			getGroup = &::GetHostGroup;
