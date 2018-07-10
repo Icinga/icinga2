@@ -56,15 +56,13 @@ void RedisWriter::UpdateAllConfigObjects(void)
 	std::map<Type*, std::vector<String>> deleteQueries;
 	long long cursor = 0;
 
-	const String keyPrefix = "icinga:config:";
-
 	std::map<String, String> lcTypes;
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		lcTypes.emplace(type->GetName().ToLower(), type->GetName());
 	}
 
 	do {
-		std::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", keyPrefix + "*", "COUNT", "1000" });
+		std::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", m_PrefixConfigObject + "*", "COUNT", "1000" });
 
 		VERIFY(reply->type == REDIS_REPLY_ARRAY);
 		VERIFY(reply->elements % 2 == 0);
@@ -79,7 +77,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 			VERIFY(keyReply->type == REDIS_REPLY_STRING);
 
 			String key = keyReply->str;
-			String namePair = key.SubStr(keyPrefix.GetLength());
+			String namePair = key.SubStr(m_PrefixConfigObject.GetLength());
 
 			String::SizeType pos = namePair.FindFirstOf(":");
 
@@ -99,11 +97,11 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 			if (deleteQuery.empty()) {
 				deleteQuery.emplace_back("DEL");
-				deleteQuery.emplace_back("icinga:config:checksum:" + type);
+				deleteQuery.emplace_back(m_PrefixConfigCheckSum + type);
 			}
 
-			deleteQuery.push_back("icinga:config:" + type + ":" + name);
-			deleteQuery.push_back("icinga:status:" + type + ":" + name);
+			deleteQuery.push_back(m_PrefixConfigObject + type + ":" + name);
+			deleteQuery.push_back(m_PrefixStatusObject + type + ":" + name);
 		}
 	} while (cursor != 0);
 
@@ -123,7 +121,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		String typeName = type->GetName().ToLower();
 
 		/* replace into aka delete insert is faster than a full diff */
-		ExecuteQuery({ "DEL", "icinga:config:" + typeName, "icinga:config:" + typeName + ":checksum", "icinga:status:" + typeName });
+		ExecuteQuery({ "DEL", m_PrefixConfigObject + typeName, m_PrefixConfigCheckSum + typeName, m_PrefixStatusObject + typeName });
 
 		/* fetch all objects and dump them */
 		for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
@@ -167,8 +165,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	if (useTransaction)
 		ExecuteQuery({ "MULTI" });
 
-	/* Send all object attributes to redis, no extra checksums involved here. */
-	UpdateObjectAttrs("icinga:config:", object, FAConfig);
+	/* Send all object attributes to Redis, no extra checksums involved here. */
+	UpdateObjectAttrs(m_PrefixConfigObject, object, FAConfig);
 
 	/* Calculate object specific checksums and store them in a different namespace. */
 	Type::Ptr type = object->GetReflectionType();
@@ -252,13 +250,14 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		checkSums->Set("vars_checksum", CalculateCheckSumVars(customVarObject));
 
 		auto vars (SerializeVars(customVarObject));
+
 		if (vars) {
 			auto varsJson (JsonEncode(vars));
 
 			Log(LogDebug, "RedisWriter")
-				<< "HSET icinga:config:customvars:" << typeName << " " << objectKey << " " << varsJson;
+				<< "HSET " << m_PrefixConfigCustomVar + typeName << " " << objectKey << " " << varsJson;
 
-			ExecuteQuery({ "HSET", "icinga:config:customvars:" + typeName, objectKey, varsJson });
+			ExecuteQuery({ "HSET", m_PrefixConfigCustomVar + typeName, objectKey, varsJson });
 		}
 	}
 
@@ -268,9 +267,9 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	String checkSumsBody = JsonEncode(checkSums);
 
 	Log(LogDebug, "RedisWriter")
-		<< "HSET icinga:config:checksum:" << typeName << " " << objectKey << " " << checkSumsBody;
+		<< "HSET " << m_PrefixConfigCheckSum + typeName << " " << objectKey << " " << checkSumsBody;
 
-	ExecuteQuery({ "HSET", "icinga:config:checksum:" + typeName, objectKey, checkSumsBody });
+	ExecuteQuery({ "HSET", m_PrefixConfigCheckSum + typeName, objectKey, checkSumsBody });
 
 
 	/* Send an update event to subscribers. */
@@ -294,8 +293,8 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 	String objectKey = GetIdentifier(object);
 
 	ExecuteQueries({
-	    { "DEL", "icinga:config:" + typeName + ":" + objectKey },
-	    { "DEL", "icinga:status:" + typeName + ":" + objectKey },
+	    { "DEL", m_PrefixConfigObject + typeName + ":" + objectKey },
+	    { "DEL", m_PrefixStatusObject + typeName + ":" + objectKey },
 	    { "PUBLISH", "icinga:config:delete", typeName + ":" + objectKey }
 	});
 
@@ -312,7 +311,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, bool useTran
 	if (useTransaction)
 		ExecuteQuery({ "MULTI" });
 
-	UpdateObjectAttrs("icinga:status:", object, FAState);
+	UpdateObjectAttrs(m_PrefixStatusObject, object, FAState);
 
 	if (useTransaction)
 		ExecuteQuery({ "EXEC" });
