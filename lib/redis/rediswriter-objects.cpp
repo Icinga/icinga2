@@ -113,15 +113,13 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 		ExecuteQuery({ "MULTI" });
 
+		/* Delete obsolete object keys first. */
 		auto& deleteQuery = deleteQueries[type.get()];
 
 		if (deleteQuery.size() > 1)
 			ExecuteQuery(deleteQuery);
 
 		String typeName = type->GetName().ToLower();
-
-		/* replace into aka delete insert is faster than a full diff */
-		ExecuteQuery({ "DEL", m_PrefixConfigObject + typeName, m_PrefixConfigCheckSum + typeName, m_PrefixStatusObject + typeName });
 
 		/* fetch all objects and dump them */
 		for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
