@@ -189,6 +189,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
 	if (checkable) {
+		/* groups_checksum, group_checksums */
 		propertiesBlacklist.emplace("groups");
 
 		Host::Ptr host;
@@ -202,6 +203,9 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		if (service) {
 			groups = service->GetGroups();
 			getGroup = &::GetServiceGroup;
+
+			/* Calculate the host_checksum */
+			checkSums->Set("host_checksum", GetIdentifier(service->GetHost()));
 		} else {
 			groups = host->GetGroups();
 			getGroup = &::GetHostGroup;
