@@ -5,7 +5,7 @@ stages:
 
 build-icinga2:
   stage: build-icinga2
-  image: $CI_REGISTRY/icingadb/icinga2-docker/master-build:latest
+  image: $CI_REGISTRY/icingadb/docker/master-build-icinga2:latest
   before_script:
     - mkdir -p build
     - mkdir destdir
@@ -55,7 +55,7 @@ deploy-image-1: &deploy-image-base
     - build-image
   only:
     - feature/redis
-  image: $CI_REGISTRY/icingadb/icinga2-docker/master-deploy:latest
+  image: $CI_REGISTRY/icingadb/docker/master-deploy:latest
   script:
     - cat <<<"$SSH_PRIVKEY" >./deploy.sshkey
     - chmod 0600 ./deploy.sshkey
