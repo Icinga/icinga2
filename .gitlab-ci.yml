@@ -65,11 +65,11 @@ deploy-image-1: &deploy-image-base
       && cd /root/icingadb
       && echo ICINGA2_HOSTS=$ICINGA2_HOSTS >/root/icingadb/.env
       && docker-compose pull icinga2
-      && base64 -d <<<'$(base64 <gitlab-ci/docker-compose-up.py)'
-      | CI_COMMIT_SHA=$CI_COMMIT_SHA
+      && DOCKER_SERVICE=icinga2
+      CI_COMMIT_SHA=$CI_COMMIT_SHA
       CI_COMMIT_AUTHOR='$(git log -1 --format=%an $CI_COMMIT_SHA)'
       CI_COMMIT_TITLE=\"\$(base64 -d <<<'$(base64 <<<"$CI_COMMIT_TITLE")')\"
-      python >>messages"
+      /root/icingadb/docker-compose-up.py >>messages"
     - rm ./deploy.sshkey
 
 deploy-image-2:
