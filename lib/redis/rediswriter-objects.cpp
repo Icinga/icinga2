@@ -23,6 +23,7 @@
 #include "icinga/service.hpp"
 #include "icinga/hostgroup.hpp"
 #include "icinga/servicegroup.hpp"
+#include "icinga/usergroup.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
@@ -151,6 +152,11 @@ static ConfigObject::Ptr GetServiceGroup(const String& name)
 	return ConfigObject::GetObject<ServiceGroup>(name);
 }
 
+static ConfigObject::Ptr GetUserGroup(const String& name)
+{
+	return ConfigObject::GetObject<UserGroup>(name);
+}
+
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTransaction, bool runtimeUpdate)
 {
 	AssertOnWorkQueue();
@@ -188,6 +194,31 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 	if (zone)
 		checkSums->Set("zone_checksum", GetIdentifier(zone));
+
+	User::Ptr user = dynamic_pointer_cast<User>(object);
+
+	if (user) {
+		propertiesBlacklist.emplace("groups");
+
+		Array::Ptr groups;
+		ConfigObject::Ptr (*getGroup)(const String& name);
+
+		groups = user->GetGroups();
+		getGroup = &::GetUserGroup;
+
+		checkSums->Set("groups_checksum", CalculateCheckSumGroups(groups));
+
+		Array::Ptr groupChecksums = new Array();
+
+		ObjectLock groupsLock (groups);
+		ObjectLock groupChecksumsLock (groupChecksums);
+
+		for (auto group : groups) {
+			groupChecksums->Add(GetIdentifier((*getGroup)(group.Get<String>())));
+		}
+
+		checkSums->Set("group_checksums", groupChecksums);
+	}
 
 	/* Calculate checkable checksums. */
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
