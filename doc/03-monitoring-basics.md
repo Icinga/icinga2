@@ -939,7 +939,7 @@ In the example above the notification template `mail-host-notification`
 contains all relevant notification settings.
 The apply rule is applied on all host objects where the `host.address` is defined.
 
-If the host object as a specific custom attributed set, its value is inherited
+If the host object has a specific custom attribute set, its value is inherited
 into the local notification object scope, e.g. `host.vars.notification_interval`,
 `host.vars.notification_period` and `host.vars.notification_type`.
 This overwrites attributes already specified in the imported `mail-host-notification`
