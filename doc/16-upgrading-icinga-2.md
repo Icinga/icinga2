@@ -24,6 +24,25 @@ numerous false-positive log messages and led to many support questions. v2.9.0
 changes this in the standard way to read these variables from the environment, and use
 sane compile-time defaults.
 
+> **Note**
+>
+> In order to upgrade, remove everything in the sysconfig file and re-apply
+> your changes.
+
+There is a bug with existing sysconfig files where path variables are not expanded
+because Systemd [does not support](https://github.com/systemd/systemd/issues/2123)
+shell variable expansion. This worked with SysVInit though.
+
+Edit the sysconfig file and either remove everything, or edit this line
+on RHEL 7. Modify the path for other distributions.
+
+```
+vim /etc/sysconfig/icinga2
+
+-ICINGA2_PID_FILE=$ICINGA2_RUN_DIR/icinga2/icinga2.pid
++ICINGA2_PID_FILE=/run/icinga2/icinga2.pid
+```
+
 If you want to adjust the number of open files for the Icinga application
 for example, you would just add this setting like this on RHEL 7:
 
