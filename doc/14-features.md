@@ -403,7 +403,10 @@ The check results include parsed performance data metrics if enabled.
 
 > **Note**
 >
-> Elasticsearch 5.x or 6.x are required. This feature has been successfully tested with Elasticsearch 5.6.7 and 6.2.3.
+> Elasticsearch 5.x or 6.x are required. This feature has been successfully tested with
+> Elasticsearch 5.6.7 and 6.3.1.
+
+
 
 Enable the feature and restart Icinga 2.
 
