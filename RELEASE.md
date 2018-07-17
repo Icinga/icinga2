@@ -26,7 +26,7 @@
 Specify the release version.
 
 ```
-VERSION=2.8.3
+VERSION=2.9.0
 ```
 
 Add your signing key to your Git configuration file, if not already there.
@@ -159,12 +159,12 @@ sed -i "s/Version: .*/Version: $VERSION/g" icinga2.spec
 vim icinga2.spec
 
 %changelog
-* Tue Apr 24 2018 Jean Flach <jean.flach@icinga.com> 2.8.3-1
-- Update to 2.8.3
+* Tue Jul 17 2018 Michael Friedrich <michael.friedrich@icinga.com> 2.9.0-1
+- Update to 2.9.0
 ```
 
 ```
-git commit -av -m "Release 2.8.3-1"
+git commit -av -m "Release 2.9.0-1"
 git push
 ```
 
@@ -200,16 +200,16 @@ git checkout release && git pull
 Set the `Version`, `Revision` and `changelog` inside the spec file.
 
 ```
-./dch 2.8.3-1 "Update to 2.8.3"
+./dch 2.9.0-1 "Update to 2.9.0"
 ```
 
 ```
-git commit -av -m "Release 2.8.3-1"
+git commit -av -m "Release 2.9.0-1"
 git push
 ```
 
 ```
-git commit -av -m "Release 2.8.3-1"
+git commit -av -m "Release 2.9.0-1"
 ```
 
 **Note for major releases**: Update release branch to latest.
@@ -225,13 +225,13 @@ git commit -av -m "Release 2.8.3-1"
 docker run -v `pwd`:/mnt/packaging -ti ubuntu:xenial bash
 
 apt-get update
-apt-get install git dev-tools vim
+apt-get install git ubuntu-dev-tools vim
 cd /mnt/packaging
 
 git config --global user.name "Michael Friedrich"
 git config --global user.email "michael.friedrich@icinga.com"
 
-./dch 2.8.3-1 "Update to 2.8.3"
+./dch 2.9.0-1 "Update to 2.9.0"
 ```
 
 
@@ -277,7 +277,7 @@ cpack
 Install the created icinga2 package locally:
 
 ```
-choco install icinga2 -version 2.8.3 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+choco install icinga2 -version 2.9.0 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
 ```
 
 Upload the package to [chocolatey](https://chocolatey.org/packages/upload).

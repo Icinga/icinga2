@@ -8,6 +8,7 @@
 *.patch
 *.playground
 .vagrant
+tickets.pickle
 
 ## Build artifacts
 build/
