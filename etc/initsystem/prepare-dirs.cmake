@@ -6,7 +6,7 @@
 # Load sysconf on systems where the initsystem does not pass the environment
 if [ "$1" != "" ]; then
 	if [ -r "$1" ]; then
-		source "$1"
+		. "$1"
 	else
 		echo "Unable to read sysconf from '$1'. Exiting." && exit 6
 	fi
