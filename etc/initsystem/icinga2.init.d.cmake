@@ -15,6 +15,13 @@
 # Description:       Icinga 2 is a monitoring and management system for hosts, services and networks.
 ### END INIT INFO
 
+# Get function from functions library
+if [ -f /etc/rc.d/init.d/functions ]; then
+	. /etc/rc.d/init.d/functions
+elif [ -f /etc/init.d/functions ]; then
+	. /etc/init.d/functions
+fi
+
 # load system specific defines
 SYSCONFIGFILE=@ICINGA2_SYSCONFIGFILE@
 if [ -f $SYSCONFIGFILE ]; then
@@ -49,13 +56,6 @@ fi
 getent passwd $ICINGA2_USER >/dev/null 2>&1 || (echo "Icinga user '$ICINGA2_USER' does not exist. Exiting." && exit 6)
 getent group $ICINGA2_GROUP >/dev/null 2>&1 || (echo "Icinga group '$ICINGA2_GROUP' does not exist. Exiting." && exit 6)
 getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || (echo "Icinga command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting." && exit 6)
-
-# Get function from functions library
-if [ -f /etc/rc.d/init.d/functions ]; then
-	. /etc/rc.d/init.d/functions
-elif [ -f /etc/init.d/functions ]; then
-	. /etc/init.d/functions
-fi
 
 # Start Icinga 2
 start() {
