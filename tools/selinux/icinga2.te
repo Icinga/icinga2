@@ -1,4 +1,4 @@
-policy_module(icinga2, 0.1.6)
+policy_module(icinga2, 0.1.7)
 
 ########################################
 #
@@ -122,6 +122,7 @@ corecmd_exec_bin(icinga2_t)
 
 kernel_read_system_state(icinga2_t)
 kernel_read_network_state(icinga2_t)
+kernel_dgram_send(icinga2_t)
 
 # should be moved to nagios_plugin_template in nagios.if
 icinga2_execstrans(nagios_admin_plugin_exec_t, nagios_admin_plugin_t)
