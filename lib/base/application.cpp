@@ -138,9 +138,10 @@ void Application::InitializeBase()
 
 	Loader::ExecuteDeferredInitializers();
 
-	/* make sure the thread pool gets initialized */
+	/* Make sure the thread pool gets initialized. */
 	GetTP().Start();
 
+	/* Make sure the timer thread gets initialized. */
 	Timer::Initialize();
 }
 
@@ -302,7 +303,6 @@ void Application::SetArgV(char **argv)
  */
 void Application::RunEventLoop()
 {
-
 #ifdef HAVE_SYSTEMD
 	sd_notify(0, "READY=1");
 #endif /* HAVE_SYSTEMD */

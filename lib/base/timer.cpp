@@ -19,6 +19,7 @@
 
 #include "base/timer.hpp"
 #include "base/debug.hpp"
+#include "base/logger.hpp"
 #include "base/utility.hpp"
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -259,6 +260,8 @@ void Timer::AdjustTimers(double adjustment)
  */
 void Timer::TimerThreadProc()
 {
+	Log(LogDebug, "Timer", "TimerThreadProc started.");
+
 	Utility::SetThreadName("Timer Thread");
 
 	for (;;) {
