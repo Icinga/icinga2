@@ -625,7 +625,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 #ifdef I2_DEBUG
 			Log(LogDebug, "ConfigItem")
 				<< "Activating object '" << object->GetName() << "' of type '"
-				<< objectType->GetName() << "' with priority '"
+				<< objectType->GetName() << "' with priority "
 				<< objectType->GetActivationPriority();
 #endif /* I2_DEBUG */
 
