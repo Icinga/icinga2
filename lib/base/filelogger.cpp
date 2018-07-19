@@ -51,6 +51,9 @@ void FileLogger::Start(bool runtimeCreated)
 	Application::OnReopenLogs.connect(std::bind(&FileLogger::ReopenLogFile, this));
 
 	ObjectImpl<FileLogger>::Start(runtimeCreated);
+
+	Log(LogInformation, "FileLogger")
+		<< "'" << GetName() << "' started.";
 }
 
 void FileLogger::ReopenLogFile()
