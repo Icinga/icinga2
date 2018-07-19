@@ -140,6 +140,8 @@ void Application::InitializeBase()
 
 	/* make sure the thread pool gets initialized */
 	GetTP().Start();
+
+	Timer::Initialize();
 }
 
 void Application::UninitializeBase()
