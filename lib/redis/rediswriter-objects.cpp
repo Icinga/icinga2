@@ -189,11 +189,21 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetShortName()));
 	checkSums->Set("environment_checksum", CalculateCheckSumString(GetEnvironment()));
 
-	/* 'zone' is available for all config objects, therefore calculate the checksum. */
-	Zone::Ptr zone = static_pointer_cast<Zone>(object->GetZone());
+	auto endpoint (dynamic_pointer_cast<Endpoint>(object));
 
-	if (zone)
-		checkSums->Set("zone_checksum", GetIdentifier(zone));
+	if (endpoint) {
+		auto endpointZone (endpoint->GetZone());
+
+		if (endpointZone) {
+			checkSums->Set("zone_checksum", GetIdentifier(endpointZone));
+		}
+	} else {
+		/* 'zone' is available for all config objects, therefore calculate the checksum. */
+		auto zone (dynamic_pointer_cast<Zone>(object->GetZone()));
+
+		if (zone)
+			checkSums->Set("zone_checksum", GetIdentifier(zone));
+	}
 
 	User::Ptr user = dynamic_pointer_cast<User>(object);
 
