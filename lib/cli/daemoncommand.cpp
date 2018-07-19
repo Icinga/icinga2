@@ -37,6 +37,7 @@
 #include <boost/tuple/tuple.hpp>
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -88,7 +89,25 @@ static bool Daemonize()
 		_exit(EXIT_SUCCESS);
 	}
 
-	Application::InitializeBase();
+	auto argc (Application::GetArgC());
+	auto argv (Application::GetArgV());
+
+	std::vector<char*> args;
+	args.reserve(argc + 1);
+
+	for (int i = 0; i < argc; ++i) {
+		if (!strcmp(argv[i], "-d")) {
+			continue;
+		}
+
+		args.emplace_back(argv[i]);
+	}
+	args.emplace_back(nullptr);
+
+	execvp(argv[0], &args[0]);
+
+	// The return value of execvp() (if any) is always -1
+	return false;
 #endif /* _WIN32 */
 
 	return true;
