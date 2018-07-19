@@ -40,6 +40,7 @@ public:
 
 	~Timer() override;
 
+	static void Initialize();
 	static void Uninitialize();
 
 	void SetInterval(double interval);

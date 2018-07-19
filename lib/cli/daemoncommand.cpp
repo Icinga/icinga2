@@ -88,6 +88,9 @@ static bool Daemonize()
 		_exit(EXIT_SUCCESS);
 	}
 
+	Log(LogDebug, "Daemonize()")
+		<< "Child process with PID " << Utility::GetPid() << " continues; re-initializing base.";
+
 	Application::InitializeBase();
 #endif /* _WIN32 */
 
