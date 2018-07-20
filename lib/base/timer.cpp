@@ -72,6 +72,7 @@ static boost::condition_variable l_TimerCV;
 static std::thread l_TimerThread;
 static bool l_StopTimerThread;
 static TimerSet l_Timers;
+static int l_AliveTimers = 0;
 
 /**
  * Destructor for the Timer class.
@@ -84,20 +85,40 @@ Timer::~Timer()
 void Timer::Initialize()
 {
 	boost::mutex::scoped_lock lock(l_TimerMutex);
-	l_StopTimerThread = false;
-	l_TimerThread = std::thread(&Timer::TimerThreadProc);
+
+	if (l_AliveTimers > 0) {
+		InitializeThread();
+	}
 }
 
 void Timer::Uninitialize()
 {
+	boost::mutex::scoped_lock lock(l_TimerMutex);
+
+	if (l_AliveTimers > 0) {
+		UninitializeThread();
+	}
+}
+
+void Timer::InitializeThread()
+{
+	l_StopTimerThread = false;
+	l_TimerThread = std::thread(&Timer::TimerThreadProc);
+}
+
+void Timer::UninitializeThread()
+{
 	{
-		boost::mutex::scoped_lock lock(l_TimerMutex);
 		l_StopTimerThread = true;
 		l_TimerCV.notify_all();
 	}
 
+	l_TimerMutex.unlock();
+
 	if (l_TimerThread.joinable())
 		l_TimerThread.join();
+
+	l_TimerMutex.lock();
 }
 
 /**
@@ -146,6 +167,10 @@ void Timer::Start()
 	{
 		boost::mutex::scoped_lock lock(l_TimerMutex);
 		m_Started = true;
+
+		if (++l_AliveTimers == 1) {
+			InitializeThread();
+		}
 	}
 
 	InternalReschedule(false);
@@ -160,6 +185,10 @@ void Timer::Stop(bool wait)
 		return;
 
 	boost::mutex::scoped_lock lock(l_TimerMutex);
+
+	if (m_Started && --l_AliveTimers == 0) {
+		UninitializeThread();
+	}
 
 	m_Started = false;
 	l_Timers.erase(this);

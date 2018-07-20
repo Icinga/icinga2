@@ -42,6 +42,8 @@ public:
 
 	static void Initialize();
 	static void Uninitialize();
+	static void InitializeThread();
+	static void UninitializeThread();
 
 	void SetInterval(double interval);
 	double GetInterval() const;
