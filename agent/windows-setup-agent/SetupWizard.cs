@@ -576,6 +576,12 @@ namespace Icinga
 		{
 
 		}
+
+		private void SetupWizard_Load(object sender, EventArgs e)
+		{
+			this.MinimumSize = this.Size;
+			this.MaximumSize = this.Size;
+		}
 	}
 }
 
