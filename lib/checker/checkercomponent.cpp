@@ -221,7 +221,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		CheckResult::Ptr cr = new CheckResult();
 		cr->SetState(ServiceUnknown);
 
-		String output = "Exception occured while checking '" + checkable->GetName() + "': " + DiagnosticInformation(ex);
+		String output = "Exception occurred while checking '" + checkable->GetName() + "': " + DiagnosticInformation(ex);
 		cr->SetOutput(output);
 
 		double now = Utility::GetTime();

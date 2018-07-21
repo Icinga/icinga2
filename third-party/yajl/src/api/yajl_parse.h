@@ -35,7 +35,7 @@ extern "C" {
         yajl_status_ok,
         /** a client callback returned zero, stopping the parse */
         yajl_status_client_canceled,
-        /** An error occured during the parse.  Call yajl_get_error for
+        /** An error occurred during the parse.  Call yajl_get_error for
          *  more information about the encountered error */
         yajl_status_error
     } yajl_status;
@@ -192,7 +192,7 @@ extern "C" {
      *  parse.
      *
      *  If verbose is non-zero, the message will include the JSON
-     *  text where the error occured, along with an arrow pointing to
+     *  text where the error occurred, along with an arrow pointing to
      *  the specific char.
      *
      *  \returns A dynamically allocated string will be returned which should
@@ -211,7 +211,7 @@ extern "C" {
      *
      * In the event an error is encountered during parsing, this function
      * affords the client a way to get the offset into the most recent
-     * chunk where the error occured.  0 will be returned if no error
+     * chunk where the error occurred.  0 will be returned if no error
      * was encountered.
      */
     YAJL_API size_t yajl_get_bytes_consumed(yajl_handle hand);

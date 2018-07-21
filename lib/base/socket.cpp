@@ -94,7 +94,7 @@ void Socket::Close()
 }
 
 /**
- * Retrieves the last error that occured for the socket.
+ * Retrieves the last error that occurred for the socket.
  *
  * @returns An error code.
  */

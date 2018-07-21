@@ -76,7 +76,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 				notification->BeginExecuteNotification(type, cr, force, false, author, text);
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "Checkable")
-				<< "Exception occured during notification for service '"
+				<< "Exception occurred during notification for service '"
 				<< GetName() << "': " << DiagnosticInformation(ex);
 		}
 	}
