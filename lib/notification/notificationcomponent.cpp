@@ -130,7 +130,7 @@ void NotificationComponent::NotificationTimerHandler()
 			notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false, true);
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "NotificationComponent")
-				<< "Exception occured during notification for object '"
+				<< "Exception occurred during notification for object '"
 				<< GetName() << "': " << DiagnosticInformation(ex);
 		}
 	}

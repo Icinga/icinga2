@@ -262,7 +262,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 			NodeUtility::UpdateConfiguration("\"conf.d/api-users.conf\"", true, false);
 		} else {
 			Log(LogWarning, "cli")
-				<< "Included file dosen't exist " << apiUsersFilePath;
+				<< "Included file doesn't exist " << apiUsersFilePath;
 		}
 	}
 

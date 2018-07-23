@@ -293,7 +293,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	bool send_notification = false;
 
 	if (notification_reachable && !in_downtime && !IsAcknowledged()) {
-		/* Send notifications whether when a hard state change occured. */
+		/* Send notifications whether when a hard state change occurred. */
 		if (hardChange && !(old_stateType == StateTypeSoft && IsStateOK(new_state)))
 			send_notification = true;
 		/* Or if the checkable is volatile and in a HARD state. */

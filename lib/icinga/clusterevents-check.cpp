@@ -179,7 +179,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			CheckResult::Ptr cr = new CheckResult();
 			cr->SetState(ServiceUnknown);
 
-			String output = "Exception occured while checking '" + host->GetName() + "': " + DiagnosticInformation(ex);
+			String output = "Exception occurred while checking '" + host->GetName() + "': " + DiagnosticInformation(ex);
 			cr->SetOutput(output);
 
 			double now = Utility::GetTime();

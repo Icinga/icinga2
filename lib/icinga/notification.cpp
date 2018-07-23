@@ -524,7 +524,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 			<< "' and user '" << user->GetName() << "'.";
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "Notification")
-			<< "Exception occured during notification for checkable '"
+			<< "Exception occurred during notification for checkable '"
 			<< GetCheckable()->GetName() << "': " << DiagnosticInformation(ex);
 	}
 }
