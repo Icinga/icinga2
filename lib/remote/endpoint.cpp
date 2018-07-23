@@ -38,9 +38,47 @@ void Endpoint::OnAllConfigLoaded()
 {
 	ObjectImpl<Endpoint>::OnAllConfigLoaded();
 
+	String zoneName = GetZoneName();
+	if (zoneName != "") {
+		Zone::Ptr zone = Zone::GetByName(zoneName);
+		if (!zone) {
+			BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() +
+				"' cannot belong to zone '" + zoneName +
+				"', zone does not exist.", GetDebugInfo()));
+		}
+
+		zone->AddEndpoint(this);
+
+		// Adjust runtime zone attr value so that object is treated appropriately.
+		Zone::Ptr parent = zone->GetParent();
+		if (parent) {
+			Log(LogDebug, "Endpoint")
+				<< "Update endpoint '" << GetName() << "' zone attribute to '" << parent->GetName() <<
+				"' (retain endpoint object sync).";
+			SetZoneName(parent->GetName());
+		}
+
+		// XXX: If/When AddConnection() becomes public
+		// Attempt to connect to endpoint.
+		//Zone::Ptr local = Zone::GetLocalZone();
+		//if (parent == local) {
+		//	ApiListener::Ptr listener = ApiListener::GetInstance();
+		//	if (listener)
+		//		listener->AddConnection(this);
+		//}
+	}
+
 	if (!m_Zone)
 		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() +
 			"' does not belong to a zone.", GetDebugInfo()));
+}
+
+void Endpoint::Stop(bool runtimeRemoved)
+{
+	ObjectImpl<Endpoint>::Stop(runtimeRemoved);
+
+	if (m_Zone)
+		m_Zone->RemoveEndpoint(this);
 }
 
 void Endpoint::SetCachedZone(const Zone::Ptr& zone)

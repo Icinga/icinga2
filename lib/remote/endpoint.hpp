@@ -67,6 +67,7 @@ public:
 	double GetBytesReceivedPerSecond() const override;
 
 protected:
+	void Stop(bool runtimeRemoved) override;
 	void OnAllConfigLoaded() override;
 
 private:
