@@ -199,7 +199,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		}
 	} else {
 		/* 'zone' is available for all config objects, therefore calculate the checksum. */
-		auto zone (dynamic_pointer_cast<Zone>(object->GetZone()));
+		auto zone (static_pointer_cast<Zone>(object->GetZone()));
 
 		if (zone)
 			checkSums->Set("zone_checksum", GetIdentifier(zone));
