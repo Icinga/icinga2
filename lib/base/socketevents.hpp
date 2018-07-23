@@ -80,7 +80,7 @@ struct SocketEventDescriptor
 {
 	int Events{POLLIN};
 	SocketEvents *EventInterface{nullptr};
-	Object *LifesupportObject{nullptr};
+	Object::Ptr LifesupportObject;
 };
 
 struct EventDescription
