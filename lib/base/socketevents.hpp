@@ -22,6 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/socket.hpp"
+#include "base/stream.hpp"
 #include <boost/thread/condition_variable.hpp>
 #include <thread>
 
@@ -37,9 +38,11 @@ namespace icinga
  *
  * @ingroup base
  */
-class SocketEvents
+class SocketEvents : public Stream
 {
 public:
+	DECLARE_PTR_TYPEDEFS(SocketEvents);
+
 	~SocketEvents();
 
 	virtual void OnEvent(int revents);
