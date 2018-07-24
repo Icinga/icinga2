@@ -113,8 +113,6 @@ void SocketEventEngineEpoll::ThreadProc(int tid)
 				EventDescription event;
 				event.REvents = SocketEventEngineEpoll::EpollToPoll(pevents[i].events);
 				event.Descriptor = m_Sockets[tid][pevents[i].data.fd];
-				event.LifesupportReference = event.Descriptor.LifesupportObject;
-				VERIFY(event.LifesupportReference);
 
 				events.emplace_back(std::move(event));
 			}
@@ -134,7 +132,7 @@ void SocketEventEngineEpoll::ThreadProc(int tid)
 	}
 }
 
-void SocketEventEngineEpoll::Register(SocketEvents *se, Object *lifesupportObject)
+void SocketEventEngineEpoll::Register(SocketEvents *se)
 {
 	int tid = se->m_ID % SOCKET_IOTHREADS;
 
@@ -145,7 +143,6 @@ void SocketEventEngineEpoll::Register(SocketEvents *se, Object *lifesupportObjec
 
 		SocketEventDescriptor desc;
 		desc.EventInterface = se;
-		desc.LifesupportObject = lifesupportObject;
 
 		VERIFY(m_Sockets[tid].find(se->m_FD) == m_Sockets[tid].end());
 
