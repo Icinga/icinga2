@@ -111,12 +111,12 @@ void SocketEvents::InitializeEngine()
 /**
  * Constructor for the SocketEvents class.
  */
-SocketEvents::SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject)
+SocketEvents::SocketEvents(const Socket::Ptr& socket)
 	: m_ID(m_NextID++), m_FD(socket->GetFD()), m_EnginePrivate(nullptr)
 {
 	boost::call_once(l_SocketIOOnceFlag, &SocketEvents::InitializeEngine);
 
-	Register(lifesupportObject);
+	Register();
 }
 
 SocketEvents::~SocketEvents()
@@ -124,9 +124,9 @@ SocketEvents::~SocketEvents()
 	VERIFY(m_FD == INVALID_SOCKET);
 }
 
-void SocketEvents::Register(Object *lifesupportObject)
+void SocketEvents::Register()
 {
-	l_SocketIOEngine->Register(this, lifesupportObject);
+	l_SocketIOEngine->Register(this);
 }
 
 void SocketEvents::Unregister()
