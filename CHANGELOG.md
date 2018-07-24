@@ -1,5 +1,23 @@
 # Icinga 2.x CHANGELOG
 
+## 2.9.1 (2018-07-24)
+
+### Bug
+
+* [#6457](https://github.com/icinga/icinga2/issues/6457) (PR): Ensure that timer thread is initialized after Daemonize\(\)
+* [#6449](https://github.com/icinga/icinga2/issues/6449): icinga r2.9.0-1 init.d script overrides PATH variable
+* [#6445](https://github.com/icinga/icinga2/issues/6445): Problem with daemonize \(init scripts, -d\) on Debian 8 / CentOS 6 / Ubuntu 14 / SLES 11 in 2.9
+* [#6444](https://github.com/icinga/icinga2/issues/6444) (PR): SELinux: allow systemd notify
+* [#6443](https://github.com/icinga/icinga2/issues/6443): selinux and 2.9
+
+### Support
+
+* [#6470](https://github.com/icinga/icinga2/issues/6470) (code-quality, PR): Fix spelling errors.
+* [#6467](https://github.com/icinga/icinga2/issues/6467) (Tests, PR): Start and stop the timer thread lazily
+* [#6461](https://github.com/icinga/icinga2/issues/6461) (Tests): Broken tests with fix from \#6457
+* [#6451](https://github.com/icinga/icinga2/issues/6451) (Packages, PR): Fix initscripts
+* [#6450](https://github.com/icinga/icinga2/issues/6450) (Packages): init script helpers - source: not found
+
 ## 2.9.0 (2018-07-17)
 
 ### Notes
