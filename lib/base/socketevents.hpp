@@ -82,7 +82,7 @@ private:
 struct SocketEventDescriptor
 {
 	int Events{POLLIN};
-	SocketEvents *EventInterface{nullptr};
+	SocketEvents::Ptr EventInterface;
 	Object *LifesupportObject{nullptr};
 };
 
