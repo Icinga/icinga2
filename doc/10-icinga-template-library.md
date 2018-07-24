@@ -1653,14 +1653,14 @@ Custom attributes:
 
 Name                | Description
 :-------------------|:------------
-update\_win\_warn   | **Optional**. If set, returns warning when important updates are available.
-update\_win\_crit   | **Optional**. If set, return critical when important updates that require a reboot are available.
+update\_win\_warn   | **Optional**. The warning threshold.
+update\_win\_crit   | **Optional**. The critical threshold.
 update\_win\_reboot | **Optional**. Set to treat 'may need update' as 'definitely needs update'. Please Note that this is true for almost every update and is therefore not recommended.
+ignore\_reboot      | **Optional**. Set to disable behavior of returning critical if any updates require a reboot.
 
 
-In contrast to most other plugins, the values of check_update's custom attributes do not set thresholds, but just enable/disable the behavior described in the table above.  
-It can be enabled/disabled for example by setting them to "true" or "false", "1" or "0" would also work.  
-Thresholds will always be "1".
+If a warning threshold is set but not a critical threshold, the critical threshold will be set to one greater than the set warning threshold.
+Unless the `ignore_reboot` flag is set, if any updates require a reboot the plugin will return critical.
 
 > **Note**
 >
