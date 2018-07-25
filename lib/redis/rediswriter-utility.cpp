@@ -51,7 +51,7 @@ String RedisWriter::GetEnvironment()
 
 String RedisWriter::GetIdentifier(const ConfigObject::Ptr& object)
 {
-	return HashValue((Array::Ptr)new Array({GetEnvironment(), object->GetName()}));
+	return HashValue((Array::Ptr)new Array({GetEnvironment(), object->GetReflectionType()->GetName(), object->GetName()}));
 }
 
 String RedisWriter::CalculateCheckSumString(const String& str)
