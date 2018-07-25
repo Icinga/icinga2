@@ -10,6 +10,7 @@
 #include "icinga/usergroup.hpp"
 #include "icinga/timeperiod.hpp"
 #include "icinga/checkresult.hpp"
+#include "icinga/notificationresult.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include "base/array.hpp"
@@ -82,10 +83,13 @@ public:
 
 	Endpoint::Ptr GetCommandEndpoint() const;
 
+	void ProcessNotificationResult(const NotificationResult::Ptr& nr, const MessageOrigin::Ptr& origin);
+
 	static String NotificationTypeToString(NotificationType type);
 	static String NotificationFilterToString(int filter, const std::map<String, int>& filterMap);
 
 	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnNextNotificationChanged;
+	static boost::signals2::signal<void (const Notification::Ptr&, const NotificationResult::Ptr&, const MessageOrigin::Ptr&)> OnNewNotificationResult;
 
 	void Validate(int types, const ValidationUtils& utils) override;
 
