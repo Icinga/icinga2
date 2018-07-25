@@ -83,7 +83,7 @@ public:
 
 	Endpoint::Ptr GetCommandEndpoint() const;
 
-	void ProcessNotificationResult(const NotificationResult::Ptr& nr, const MessageOrigin::Ptr& origin);
+	void ProcessNotificationResult(const NotificationResult::Ptr& nr, const MessageOrigin::Ptr& origin = nullptr);
 
 	static String NotificationTypeToString(NotificationType type);
 	static String NotificationFilterToString(int filter, const std::map<String, int>& filterMap);
