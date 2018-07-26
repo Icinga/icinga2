@@ -830,7 +830,7 @@ Example:
 
     var list = [ "a", "b", "c" ]
 
-    for (item in list) {
+    for (var item in list) {
       log("Item: " + item)
     }
 
@@ -841,13 +841,16 @@ Iterating over dictionaries can be accomplished in a similar manner:
 
     var dict = { a = 3, b = 7 }
 
-    for (key => value in dict) {
+    for (var key => var value in dict) {
       log("Key: " + key + ", Value: " + value)
     }
 
 The `continue` and `break` keywords can be used to control how the loop is executed: The `continue` keyword
 skips over the remaining expressions for the loop body and begins the next loop evaluation. The `break` keyword
 breaks out of the loop.
+
+The `var` keyword is optional when declaring variables in the loop's header. Variables declared without the `var`
+keyword are nonetheless local to the function.
 
 ## Constructors <a id="constructor"></a>
 
