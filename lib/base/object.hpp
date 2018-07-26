@@ -23,6 +23,7 @@
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
+#include <cstddef>
 #include <vector>
 
 using boost::intrusive_ptr;
@@ -212,6 +213,7 @@ private:
 #	else /* _WIN32 */
 	mutable DWORD m_LockOwner;
 #	endif /* _WIN32 */
+	mutable size_t m_LockCount = 0;
 #endif /* I2_DEBUG */
 
 	friend struct ObjectLock;
