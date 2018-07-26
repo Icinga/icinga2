@@ -238,6 +238,11 @@ Log::~Log()
 
 		if (entry.Severity >= logger->GetMinSeverity())
 			logger->ProcessLogEntry(entry);
+
+#ifdef I2_DEBUG /* I2_DEBUG */
+		/* Always flush, don't depend on the timer. Enable this for development sprints. */
+		//logger->Flush();
+#endif /* I2_DEBUG */
 	}
 
 	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity())
