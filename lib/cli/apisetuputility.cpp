@@ -171,7 +171,7 @@ bool ApiSetupUtility::SetupMasterApiUser()
 	String tempFilename = Utility::CreateTempFile(apiUsersPath + ".XXXXXX", 0644, fp);
 
 	fp << "/**\n"
-		<< " * The APIUser objects are used for authentication against the API.\n"
+		<< " * The ApiUser objects are used for authentication against the API.\n"
 		<< " */\n"
 		<< "object ApiUser \"" << api_username << "\" {\n"
 		<< "  password = \"" << api_password << "\"\n"
