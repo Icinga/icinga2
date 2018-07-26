@@ -28,6 +28,7 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
+#include "icinga/timeperiod.hpp"
 #include "remote/zone.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
@@ -158,6 +159,11 @@ static ConfigObject::Ptr GetUserGroup(const String& name)
 	return ConfigObject::GetObject<UserGroup>(name);
 }
 
+static ConfigObject::Ptr GetClude(const String& name)
+{
+	return ConfigObject::GetObject<TimePeriod>(name);
+}
+
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTransaction, bool runtimeUpdate)
 {
 	AssertOnWorkQueue();
@@ -217,7 +223,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		groups = user->GetGroups();
 		getGroup = &::GetUserGroup;
 
-		checkSums->Set("groups_checksum", CalculateCheckSumGroups(groups));
+		checkSums->Set("groups_checksum", CalculateCheckSumArray(groups));
 
 		Array::Ptr groupChecksums = new Array();
 
@@ -257,7 +263,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			getGroup = &::GetHostGroup;
 		}
 
-		checkSums->Set("groups_checksum", CalculateCheckSumGroups(groups));
+		checkSums->Set("groups_checksum", CalculateCheckSumArray(groups));
 
 		Array::Ptr groupChecksums = new Array();
 
@@ -310,7 +316,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 				endpoints->Set(i++, endpointObject->GetName());
 			}
 
-			checkSums->Set("endpoints_checksum", CalculateCheckSumGroups(endpoints));
+			checkSums->Set("endpoints_checksum", CalculateCheckSumArray(endpoints));
 
 			Zone::Ptr parentZone = zone->GetParent();
 
@@ -351,6 +357,55 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 				checkSums->Set("envvars_checksum", HashValue(envvars));
 				checkSums->Set("envvar_checksums", envvarChecksums);
 				propertiesBlacklist.emplace("env");
+			} else {
+				auto timeperiod (dynamic_pointer_cast<TimePeriod>(object));
+
+				if (timeperiod) {
+					Dictionary::Ptr ranges = timeperiod->GetRanges();
+
+					checkSums->Set("ranges_checksum", HashValue(ranges));
+					propertiesBlacklist.emplace("ranges");
+
+					// Compute checksums for Includes (like groups)
+					Array::Ptr includes;
+					ConfigObject::Ptr (*getInclude)(const String& name);
+
+					includes = timeperiod->GetIncludes();
+					getInclude = &::GetClude;
+
+					checkSums->Set("includes_checksum", CalculateCheckSumArray(includes));
+
+					Array::Ptr includeChecksums = new Array();
+
+					ObjectLock includesLock (includes);
+					ObjectLock includeChecksumsLock (includeChecksums);
+
+					for (auto include : includes) {
+						includeChecksums->Add(GetIdentifier((*getInclude)(include.Get<String>())));
+					}
+
+					checkSums->Set("include_checksums", includeChecksums);
+
+					// Compute checksums for Excludes (like groups)
+					Array::Ptr excludes;
+					ConfigObject::Ptr (*getExclude)(const String& name);
+
+					excludes = timeperiod->GetExcludes();
+					getExclude = &::GetClude;
+
+					checkSums->Set("excludes_checksum", CalculateCheckSumArray(excludes));
+
+					Array::Ptr excludeChecksums = new Array();
+
+					ObjectLock excludesLock (excludes);
+					ObjectLock excludeChecksumsLock (excludeChecksums);
+
+					for (auto exclude : excludes) {
+						excludeChecksums->Add(GetIdentifier((*getExclude)(exclude.Get<String>())));
+					}
+
+					checkSums->Set("exclude_checksums", excludeChecksums);
+				}
 			}
 		}
 	}
