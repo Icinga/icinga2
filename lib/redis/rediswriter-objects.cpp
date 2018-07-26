@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "redis/rediswriter.hpp"
+#include "icinga/command.hpp"
 #include "icinga/customvarobject.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
@@ -315,8 +316,43 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 			if (parentZone)
 				checkSums->Set("parent_checksum", GetIdentifier(parentZone));
+		} else {
+			/* zone_checksum for endpoints already is calculated above. */
+
+			auto command (dynamic_pointer_cast<Command>(object));
+
+			if (command) {
+				Dictionary::Ptr arguments = command->GetArguments();
+				Dictionary::Ptr argumentChecksums = new Dictionary;
+
+				if (arguments) {
+					ObjectLock argumentsLock (arguments);
+
+					for (auto& kv : arguments) {
+						argumentChecksums->Set(kv.first, HashValue(kv.second));
+					}
+				}
+
+				checkSums->Set("arguments_checksum", HashValue(arguments));
+				checkSums->Set("argument_checksums", argumentChecksums);
+				propertiesBlacklist.emplace("arguments");
+
+				Dictionary::Ptr envvars = command->GetEnv();
+				Dictionary::Ptr envvarChecksums = new Dictionary;
+
+				if (envvars) {
+					ObjectLock argumentsLock (envvars);
+
+					for (auto& kv : envvars) {
+						envvarChecksums->Set(kv.first, HashValue(kv.second));
+					}
+				}
+
+				checkSums->Set("envvars_checksum", HashValue(envvars));
+				checkSums->Set("envvar_checksums", envvarChecksums);
+				propertiesBlacklist.emplace("env");
+			}
 		}
-		/* zone_checksum for endpoints already is calculated above. */
 	}
 
 	/* Custom var checksums. */
