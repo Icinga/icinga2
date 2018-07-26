@@ -138,7 +138,6 @@ private:
 	void CleanupCertificateRequestsTimerHandler();
 
 	bool AddListener(const String& node, const String& service);
-	bool AddListener(const TcpSocket::Ptr& listener);
 	void AddConnection(const Endpoint::Ptr& endpoint);
 
 	void NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role);

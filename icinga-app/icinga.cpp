@@ -32,8 +32,6 @@
 #include "base/context.hpp"
 #include "base/console.hpp"
 #include "base/process.hpp"
-#include "base/json.hpp"
-#include "base/tcpsocket.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -48,9 +46,6 @@
 #	include <Lmcons.h>
 #	include <Shellapi.h>
 #	include <tchar.h>
-
-#	define popen _popen
-#	define pclose _pclose
 #endif /* _WIN32 */
 
 using namespace icinga;
@@ -220,6 +215,8 @@ static int Main()
 	Application::DeclareConcurrency(std::thread::hardware_concurrency());
 	Application::DeclareMaxConcurrentChecks(Application::GetDefaultMaxConcurrentChecks());
 
+	ScriptGlobal::Set("Environment", "production");
+
 	ScriptGlobal::Set("AttachDebugger", false);
 
 	ScriptGlobal::Set("PlatformKernel", Utility::GetPlatformKernel());
@@ -250,8 +247,7 @@ static int Main()
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
 		("log-level,x", po::value<std::string>(), "specify the log level for the console log.\n"
 			"The valid value is either debug, notice, information (default), warning, or critical")
-		("script-debugger,X", "whether to enable the script debugger")
-		("env", po::value<std::string>(), "the name of the environment, e.g. \"production\"");
+		("script-debugger,X", "whether to enable the script debugger");
 
 	po::options_description hiddenDesc("Hidden options");
 
@@ -272,99 +268,6 @@ static int Main()
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "icinga-app")
 			<< "Error while parsing command-line options: " << ex.what();
-		return EXIT_FAILURE;
-	}
-
-	if (vm.count("env") && vm["env"].as<std::string>() != "") {
-		String env = vm["env"].as<std::string>();
-		ScriptGlobal::Set("Environment", env);
-	} else {
-#ifndef _WIN32
-		String cmd = "icinga-envs";
-#else /* _WIN32 */
-		String cmd = "\"" + Utility::DirName(Application::GetExePath(argv[0])) + "\\icinga-envs.exe" + "\"";
-#endif /* _WIN32 */
-		cmd += " get-default";
-#ifndef _WIN32
-		cmd += " 2>/dev/null";
-#else /* _WIN32 */
-		cmd += " 2>NUL";
-		cmd = "\"" + cmd + "\"";
-#endif /* _WIN32 */
-
-		FILE *fp = popen(cmd.CStr(), "r");
-		std::stringstream msgbuf;
-		while (!ferror(fp) && !feof(fp)) {
-			char buf[512];
-			size_t num = fread(buf, 1, sizeof(buf), fp);
-			msgbuf << std::string(buf, buf + num);
-		}
-		pclose(fp);
-
-		String env = msgbuf.str();
-		ScriptGlobal::Set("Environment", env.Trim());
-	}
-
-	String env = ScriptGlobal::Get("Environment", NULL);
-#ifndef _WIN32
-	String cmd = "icinga-envs";
-#else /* _WIN32 */
-	String cmd = "\"" + Utility::DirName(Application::GetExePath(argv[0])) + "\\icinga-envs.exe" + "\"";
-#endif /* _WIN32 */
-	cmd += " info --json " + Utility::EscapeShellArg(env);
-#ifndef _WIN32
-	cmd += " 2>/dev/null";
-#else /* _WIN32 */
-	cmd += " 2>NUL";
-	cmd = "\"" + cmd + "\"";
-#endif /* _WIN32 */
-
-	FILE *fp = popen(cmd.CStr(), "r");
-	std::stringstream msgbuf;
-	while (!ferror(fp) && !feof(fp)) {
-		char buf[512];
-		size_t num = fread(buf, 1, sizeof(buf), fp);
-		msgbuf << std::string(buf, buf + num);
-	}
-	pclose(fp);
-
-	Dictionary::Ptr envInfo;
-	try {
-		envInfo = JsonDecode(msgbuf.str());
-	} catch (const std::exception&) {}
-
-	if (envInfo) {
-		Dictionary::Ptr config = envInfo->Get("config");
-
-		if (!config) {
-			Log(LogCritical, "app")
-			    << "Invalid JSON returned by icinga-envs: " << msgbuf.str();
-			return EXIT_FAILURE;
-		}
-
-		String configPath = config->Get("config_path");
-		String dataPath = config->Get("data_path");
-
-		ScriptGlobal::Set("SysconfDir", configPath);
-		ScriptGlobal::Set("RunDir", dataPath + "/run");
-		ScriptGlobal::Set("LocalStateDir", dataPath);
-
-		TcpSocket::Ptr agentListener = new TcpSocket();
-		agentListener->Bind("127.0.0.1", "0", AF_INET);
-		auto pieces = agentListener->GetClientAddress().Split(":");
-		config->Set("port", Convert::ToLong(pieces[pieces.size() - 1]));
-
-		Dictionary::Ptr envData = new Dictionary({
-			{ "listener", agentListener },
-			{ "config", config },
-			{ "meta_path", envInfo->Get("env_path") + "/config.json" }
-		});
-
-		// Make the agent listener available to the ApiListener later on
-		ScriptGlobal::Set("EnvironmentInfo", envData);
-	} else if (env != "") {
-		Log(LogCritical, "app")
-		    << "No such environment exists: " << env;
 		return EXIT_FAILURE;
 	}
 
