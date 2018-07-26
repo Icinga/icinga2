@@ -24,6 +24,7 @@
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include <boost/thread/tss.hpp>
+#include <math.h>
 
 using namespace icinga;
 
@@ -221,7 +222,7 @@ void WorkQueue::StatusTimerHandler()
 
 	if (pending > GetTaskCount(5)) {
 		timeInfo = " empty in ";
-		if (timeToZero < 0)
+		if (timeToZero < 0 || std::isinf(timeToZero))
 			timeInfo += "infinite time, your task handler isn't able to keep up";
 		else
 			timeInfo += Utility::FormatDuration(timeToZero);
