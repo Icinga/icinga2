@@ -33,6 +33,9 @@ void Zone::OnAllConfigLoaded()
 
 	m_Parent = Zone::GetByName(GetParentRaw());
 
+	if (m_Parent && m_Parent->IsGlobal())
+		BOOST_THROW_EXCEPTION(ScriptError("Zone '" + GetName() + "' can not have a global zone as parent.", GetDebugInfo()));
+
 	Zone::Ptr zone = m_Parent;
 	int levels = 0;
 
