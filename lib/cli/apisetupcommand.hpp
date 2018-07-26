@@ -38,6 +38,8 @@ public:
 	String GetDescription() const override;
 	String GetShortDescription() const override;
 	int GetMaxArguments() const override;
+	void InitParameters(boost::program_options::options_description& visibleDesc,
+		boost::program_options::options_description& hiddenDesc) const override;
 	int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 	ImpersonationLevel GetImpersonationLevel() const override;
 };

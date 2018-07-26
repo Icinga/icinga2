@@ -49,6 +49,14 @@ int ApiSetupCommand::GetMaxArguments() const
 	return -1;
 }
 
+void ApiSetupCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+	boost::program_options::options_description& hiddenDesc) const
+{
+	visibleDesc.add_options()
+		("quiet,q", "be less verbose")
+	;
+}
+
 /**
  * The entry point for the "api setup" CLI command.
  *
@@ -56,12 +64,15 @@ int ApiSetupCommand::GetMaxArguments() const
  */
 int ApiSetupCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
+	if (vm.count("quiet"))
+		Logger::SetConsoleLogSeverity(LogWarning);
+
 	String cn = VariableUtility::GetVariable("NodeName");
 
 	if (cn.IsEmpty())
 		cn = Utility::GetFQDN();
 
-	if (!ApiSetupUtility::SetupMaster(cn, true))
+	if (!ApiSetupUtility::SetupMaster(cn, true, vm.count("quiet")))
 		return 1;
 
 	return 0;

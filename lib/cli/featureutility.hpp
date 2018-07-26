@@ -40,8 +40,8 @@ public:
 
 	static std::vector<String> GetFieldCompletionSuggestions(const String& word, bool enable);
 
-	static int EnableFeatures(const std::vector<std::string>& features);
-	static int DisableFeatures(const std::vector<std::string>& features);
+	static int EnableFeatures(const std::vector<std::string>& features, bool quiet = false);
+	static int DisableFeatures(const std::vector<std::string>& features, bool quiet = false);
 	static int ListFeatures(std::ostream& os = std::cout);
 
 	static bool GetFeatures(std::vector<String>& features, bool enable);

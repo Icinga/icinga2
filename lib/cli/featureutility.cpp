@@ -56,7 +56,7 @@ std::vector<String> FeatureUtility::GetFieldCompletionSuggestions(const String& 
 	return suggestions;
 }
 
-int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
+int FeatureUtility::EnableFeatures(const std::vector<std::string>& features, bool quiet)
 {
 	String features_available_dir = GetFeaturesAvailablePath();
 	String features_enabled_dir = GetFeaturesEnabledPath();
@@ -93,8 +93,9 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 			continue;
 		}
 
-		std::cout << "Enabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
-			<< ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
+		if (!quiet)
+			std::cout << "Enabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
+				<< ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
 
 #ifndef _WIN32
 		String relativeSource = "../features-available/" + feature + ".conf";
@@ -131,7 +132,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 	return 0;
 }
 
-int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
+int FeatureUtility::DisableFeatures(const std::vector<std::string>& features, bool quiet)
 {
 	String features_enabled_dir = GetFeaturesEnabledPath();
 
@@ -160,8 +161,9 @@ int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
 			continue;
 		}
 
-		std::cout << "Disabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
-			<< ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
+		if (!quiet)
+			std::cout << "Disabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
+				<< ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
 	}
 
 	if (!errors.empty()) {

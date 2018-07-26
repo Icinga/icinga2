@@ -48,7 +48,7 @@ String ApiSetupUtility::GetApiUsersConfPath()
 	return ApiSetupUtility::GetConfdPath() + "/api-users.conf";
 }
 
-bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart)
+bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart, bool quiet)
 {
 	if (!SetupMasterCertificates(cn))
 		return false;
@@ -56,13 +56,13 @@ bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart)
 	if (!SetupMasterApiUser())
 		return false;
 
-	if (!SetupMasterEnableApi())
+	if (!SetupMasterEnableApi(quiet))
 		return false;
 
 	if (!SetupMasterUpdateConstants(cn))
 		return false;
 
-	if (prompt_restart) {
+	if (prompt_restart && !quiet) {
 		std::cout << "Done.\n\n";
 		std::cout << "Now restart your Icinga 2 daemon to finish the installation!\n\n";
 	}
@@ -196,11 +196,11 @@ bool ApiSetupUtility::SetupMasterApiUser()
 	return true;
 }
 
-bool ApiSetupUtility::SetupMasterEnableApi()
+bool ApiSetupUtility::SetupMasterEnableApi(bool quiet)
 {
 	Log(LogInformation, "cli", "Enabling the 'api' feature.");
 
-	FeatureUtility::EnableFeatures({ "api" });
+	FeatureUtility::EnableFeatures({ "api" }, quiet);
 
 	return true;
 }
