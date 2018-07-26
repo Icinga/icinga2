@@ -2793,35 +2793,3 @@ Add the global zone `global-templates` in case it did not exist.
       global = true
     }
     EOF
-
-## Using Multiple Environments <a id="distributed-monitoring-environments"></a>
-
-In some cases it might be useful to run multiple Icinga instance on the same host. Two potential scenarios include:
-
-* running different versions of the same monitoring configuration (e.g. production and testing)
-* running disparate sets of checks for entirely unrelated monitoring environments (e.g. infrastructure and applications)
-
-Icinga supports these scenarios by providing a global variable called `Environment`. It can be set like any other
-global variable, e.g. in the `constants.conf` file or in a file in a global template zone.
-
-The `Environment` variable can also be set using the `--env` command-line option. Setting the variable this way
-has the added effect that Icinga tries to determine if the `Icinga Environments` add-on is available and
-if so uses its CLI commands to determine the configuration and data paths. This command-line option also has the
-effect of changing the listener port for cluster feature to a random port which is made available to the
-`Icinga Environments` add-on through its `config.json` file.
-
-When Icinga establishes a TLS connection to another cluster instance it automatically uses the SNI extension
-to signal which endpoint it is attempting to connect to. On its own this can already be used to position multiple
-Icinga instances behind a load balancer.
-
-SNI example: `icinga2-client1.localdomain`
-
-However, if the `Environment` variable is non-empty Icinga will append the environment name to the SNI hostname
-like this:
-
-SNI example with environment: `icinga2-client1.localdomain:production`
-
-The Icinga Environments add-on provides a reverse proxy which does SNI-based port multiplexing. I.e., it uses a
-single externally-visible TCP port (usually 5665) and forwards connections to one or more Icinga instances
-which are bound to a local TCP port. It does so by inspecting the environment name that is sent as part of the
-SNI extension.
