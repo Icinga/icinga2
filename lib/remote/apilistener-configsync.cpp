@@ -223,7 +223,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	/* discard messages if the sender is in a child zone */
 	if (!Zone::GetLocalZone()->IsChildOf(endpoint->GetZone())) {
-		Log(LogWarning, "ApiListener")
+		Log(LogNotice, "ApiListener")
 			<< "Discarding 'config update object' message from '"
 			<< origin->FromClient->GetIdentity() << "'.";
 		return Empty;
