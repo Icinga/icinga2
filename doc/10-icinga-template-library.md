@@ -5111,7 +5111,7 @@ apache_status_warning	| **Optional.** Warning threshold (number of open slots, b
 apache_status_critical	| **Optional.** Critical threshold (number of open slots, busy workers and idle workers that will cause a CRITICAL) like ':10,25,:20'.
 
 
-### ssl_cert <a id="plugin-check-command-ssl_cert"></a>
+#### ssl_cert <a id="plugin-check-command-ssl_cert"></a>
 
 The [check_ssl_cert](https://github.com/matteocorti/check_ssl_cert) plugin
 uses the openssl binary (and optional curl) to check a X.509 certificate.
