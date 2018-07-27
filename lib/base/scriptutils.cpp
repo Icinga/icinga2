@@ -147,7 +147,8 @@ bool ScriptUtils::Regex(const std::vector<Value>& args)
 				return false;
 		}
 
-		return true;
+		/* MatchAny: Nothing matched. MatchAll: Everything matched. */
+		return mode == MatchAll;
 	} else {
 		String text = argTexts;
 		boost::smatch what;
@@ -189,7 +190,8 @@ bool ScriptUtils::Match(const std::vector<Value>& args)
 				return false;
 		}
 
-		return true;
+		/* MatchAny: Nothing matched. MatchAll: Everything matched. */
+		return mode == MatchAll;
 	} else {
 		String text = argTexts;
 		return Utility::Match(pattern, argTexts);
@@ -230,7 +232,8 @@ bool ScriptUtils::CidrMatch(const std::vector<Value>& args)
 				return false;
 		}
 
-		return true;
+		/* MatchAny: Nothing matched. MatchAll: Everything matched. */
+		return mode == MatchAll;
 	} else {
 		String ip = argIps;
 		return Utility::CidrMatch(pattern, ip);
