@@ -4,12 +4,18 @@
 #include "remote/zone-ti.cpp"
 #include "remote/jsonrpcconnection.hpp"
 #include "base/array.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
+#include "base/statsfunction.hpp"
+#include <algorithm>
+#include <limits>
 
 using namespace icinga;
 
 REGISTER_TYPE(Zone);
+
+REGISTER_STATSFUNCTION(Zone, &Zone::StatsFunc);
 
 void Zone::OnAllConfigLoaded()
 {
@@ -138,6 +144,163 @@ Zone::Ptr Zone::GetLocalZone()
 		return nullptr;
 
 	return local->GetZone();
+}
+
+static std::set<String> l_StatsFuncAggregateSum ({
+	"messages_sent_per_second", "messages_received_per_second", "bytes_sent_per_second", "bytes_received_per_second"
+});
+
+static std::set<String> l_StatsFuncAggregateCount ({
+	"connecting", "syncing", "connected"
+});
+
+static std::set<String> l_StatsFuncAggregateMin ({
+	"last_message_sent", "last_message_received"
+});
+
+void Zone::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
+{
+	auto localZone (Zone::GetLocalZone());
+	auto parentZone (localZone->GetParent());
+	auto unorderedZones (ConfigType::GetObjectsByType<Zone>());
+	std::set<Zone::Ptr> zones (unorderedZones.begin(), unorderedZones.end());
+	Dictionary::Ptr ourStatus = new Dictionary;
+	auto localEndpoint (Endpoint::GetLocalEndpoint());
+
+	unorderedZones.clear();
+
+	for (auto zone (zones.begin()); zone != zones.end();) {
+		if ((*zone)->GetParent() == localZone) {
+			++zone;
+		} else {
+			zones.erase(zone++);
+		}
+	}
+
+	zones.emplace(localZone);
+
+	if (parentZone)
+		zones.emplace(parentZone);
+
+	for (auto& zone : zones) {
+		Dictionary::Ptr endpointStats = new Dictionary({
+			{"local_log_position", new Array},
+			{"remote_log_position", new Array},
+			{"connecting", new Array},
+			{"syncing", new Array},
+			{"connected", new Array},
+			{"last_message_sent", new Array},
+			{"last_message_received", new Array},
+			{"messages_sent_per_second", new Array},
+			{"messages_received_per_second", new Array},
+			{"bytes_sent_per_second", new Array},
+			{"bytes_received_per_second", new Array}
+		});
+
+		auto endpoints (zone->GetEndpoints());
+
+		std::remove(endpoints.begin(), endpoints.end(), localEndpoint);
+
+		if (endpoints.empty())
+			continue;
+
+		for (auto& endpoint : endpoints) {
+			((Array::Ptr)endpointStats->Get("local_log_position"))->Add(endpoint->GetLocalLogPosition());
+			((Array::Ptr)endpointStats->Get("remote_log_position"))->Add(endpoint->GetRemoteLogPosition());
+			((Array::Ptr)endpointStats->Get("connecting"))->Add(endpoint->GetConnecting());
+			((Array::Ptr)endpointStats->Get("syncing"))->Add(endpoint->GetSyncing());
+			((Array::Ptr)endpointStats->Get("connected"))->Add(endpoint->GetConnected());
+			((Array::Ptr)endpointStats->Get("last_message_sent"))->Add(endpoint->GetLastMessageSent());
+			((Array::Ptr)endpointStats->Get("last_message_received"))->Add(endpoint->GetLastMessageReceived());
+			((Array::Ptr)endpointStats->Get("messages_sent_per_second"))->Add(endpoint->GetMessagesSentPerSecond());
+			((Array::Ptr)endpointStats->Get("messages_received_per_second"))->Add(endpoint->GetMessagesReceivedPerSecond());
+			((Array::Ptr)endpointStats->Get("bytes_sent_per_second"))->Add(endpoint->GetBytesSentPerSecond());
+			((Array::Ptr)endpointStats->Get("bytes_received_per_second"))->Add(endpoint->GetBytesReceivedPerSecond());
+		}
+
+		for (auto& label : l_StatsFuncAggregateSum) {
+			auto sum (0.0);
+			Array::Ptr values = endpointStats->Get(label);
+			ObjectLock valuesLock (values);
+
+			for (auto& value : values) {
+				sum += value.Get<double>();
+			}
+
+			endpointStats->Set(label, sum);
+		}
+
+		for (auto& label : l_StatsFuncAggregateCount) {
+			uintmax_t count = 0;
+			Array::Ptr values = endpointStats->Get(label);
+			ObjectLock valuesLock (values);
+
+			for (auto& value : values) {
+				if (value.Get<bool>()) {
+					++count;
+				}
+			}
+
+			endpointStats->Set(label, count);
+		}
+
+		for (auto& label : l_StatsFuncAggregateMin) {
+			auto min (std::numeric_limits<double>::infinity());
+			Array::Ptr values = endpointStats->Get(label);
+			ObjectLock valuesLock (values);
+
+			for (auto& value : values) {
+				auto number (value.Get<double>());
+
+				if (number < min) {
+					min = number;
+				}
+			}
+
+			endpointStats->Set(label, min);
+		}
+
+		{
+			auto maxDiff (-std::numeric_limits<double>::infinity());
+			Array::Ptr remoteLogPositions = endpointStats->Get("remote_log_position");
+			ObjectLock remoteLogPositionLock (remoteLogPositions);
+			auto remoteLogPosition (begin(remoteLogPositions));
+			Array::Ptr localLogPositions = endpointStats->Get("local_log_position");
+			ObjectLock localLogPositionLock (localLogPositions);
+
+			for (auto& localLogPosition : localLogPositions) {
+				auto diff (localLogPosition - *remoteLogPosition);
+
+				if (diff > maxDiff) {
+					maxDiff = diff;
+				}
+
+				++remoteLogPosition;
+			}
+
+			endpointStats->Set("client_log_lag", maxDiff);
+			endpointStats->Remove("local_log_position");
+			endpointStats->Remove("remote_log_position");
+		}
+
+		ourStatus->Set(zone->GetName(), endpointStats);
+	}
+
+	{
+		ObjectLock ourStatusLock (ourStatus);
+
+		for (auto& nameZoneStatus : ourStatus) {
+			Dictionary::Ptr zoneStatus = nameZoneStatus.second;
+			ObjectLock zoneStatusLock (zoneStatus);
+			auto labelPrefix ("zone_" + nameZoneStatus.first + "_");
+
+			for (auto& labelValue : zoneStatus) {
+				perfdata->Add(new PerfdataValue(labelPrefix + labelValue.first, labelValue.second));
+			}
+		}
+	}
+
+	status->Set("zone", ourStatus);
 }
 
 void Zone::ValidateEndpointsRaw(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
