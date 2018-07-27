@@ -108,10 +108,14 @@ bool ScriptUtils::CastBool(const Value& value)
 bool ScriptUtils::Regex(const std::vector<Value>& args)
 {
 	if (args.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Regular expression and text must be specified."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Regular expression and text must be specified for regex()."));
 
 	String pattern = args[0];
 	const Value& argTexts = args[1];
+
+	if (argTexts.IsObjectType<Dictionary>())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionaries are not supported by regex()."));
+
 	MatchType mode;
 
 	if (args.size() > 2)
@@ -159,10 +163,14 @@ bool ScriptUtils::Regex(const std::vector<Value>& args)
 bool ScriptUtils::Match(const std::vector<Value>& args)
 {
 	if (args.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Pattern and text must be specified."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Pattern and text must be specified for match()."));
 
 	String pattern = args[0];
 	const Value& argTexts = args[1];
+
+	if (argTexts.IsObjectType<Dictionary>())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionaries are not supported by match()."));
+
 	MatchType mode;
 
 	if (args.size() > 2)
@@ -201,10 +209,14 @@ bool ScriptUtils::Match(const std::vector<Value>& args)
 bool ScriptUtils::CidrMatch(const std::vector<Value>& args)
 {
 	if (args.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("CIDR and IP address must be specified."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("CIDR and IP address must be specified for cidr_match()."));
 
 	String pattern = args[0];
 	const Value& argIps = args[1];
+
+	if (argIps.IsObjectType<Dictionary>())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionaries are not supported by cidr_match()."));
+
 	MatchType mode;
 
 	if (args.size() > 2)
