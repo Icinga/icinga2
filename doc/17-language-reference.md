@@ -9,7 +9,7 @@ objects using the `object` keyword:
       display_name = "host1"
 
       address = "192.168.0.1"
-      address6 = "::1"
+      address6 = "2001:db8:1234::42"
     }
 
 In general you need to write each statement on a new line. Expressions started
@@ -22,7 +22,7 @@ them with a semicolon:
     object Host "host1.example.org" {
       display_name = "host1"
 
-      address = "192.168.0.1"; address6 = "::1"
+      address = "192.168.0.1"; address6 = "2001:db8:1234::42"
     }
 
 Each object is uniquely identified by its type (`Host`) and name
