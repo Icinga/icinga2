@@ -984,7 +984,7 @@ types. This could look like the following example:
 ```
 object Host "router-v6" {
   check_command = "hostalive"
-  address6 = "::1"
+  address6 = "2001:db8:1234::42"
 
   vars.oids["if01"] = "1.1.1.1.1"
   vars.oids["temp"] = "1.1.1.1.2"
