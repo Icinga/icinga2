@@ -70,13 +70,13 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 		for (const Dictionary::Pair& kv : env) {
 			String name = kv.second;
 
-            String missingMacro;
+			String missingMacro;
 			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, cr,
 				&missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
 				useResolvedMacros);
 
 #ifdef I2_DEBUG
-            if (!missingMacro.IsEmpty())
+			if (!missingMacro.IsEmpty())
 				Log(LogDebug, "PluginUtility")
 					<< "Macro '" << name << "' is not defined.";
 #endif /* I2_DEBUG */
