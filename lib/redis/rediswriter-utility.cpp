@@ -59,14 +59,14 @@ String RedisWriter::CalculateCheckSumString(const String& str)
 	return SHA1(str);
 }
 
-String RedisWriter::CalculateCheckSumGroups(const Array::Ptr& groups)
+String RedisWriter::CalculateCheckSumArray(const Array::Ptr& arr)
 {
 	/* Ensure that checksums happen in a defined order. */
-	Array::Ptr tmpGroups = groups->ShallowClone();
+	Array::Ptr tmpArr = arr->ShallowClone();
 
-	tmpGroups->Sort();
+	tmpArr->Sort();
 
-	return SHA1(PackObject(tmpGroups));
+	return SHA1(PackObject(tmpArr));
 }
 
 String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object, const std::set<String>& propertiesBlacklist)
