@@ -122,12 +122,12 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 		bytesReceivedPerSecond += endpoint->GetBytesReceivedPerSecond();
 	}
 
-	if (!connected) {
-		cr->SetState(ServiceCritical);
-		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(zoneLag));
-	} else {
+	if (connected) {
 		cr->SetState(ServiceOK);
 		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag));
+	} else {
+		cr->SetState(ServiceCritical);
+		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(zoneLag));
 	}
 
 	/* Check whether the thresholds have been resolved and compare them */
