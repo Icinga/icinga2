@@ -76,12 +76,12 @@ The ApiListener type expects its certificate files to be in the following locati
 
   Type                 | Location
   ---------------------|-------------------------------------
-  Private key          | `LocalStateDir + "/lib/icinga2/certs/" + NodeName + ".key"`
-  Certificate file     | `LocalStateDir + "/lib/icinga2/certs/" + NodeName + ".crt"`
-  CA certificate file  | `LocalStateDir + "/lib/icinga2/certs/ca.crt"`
+  Private key          | `DataDir + "/certs/" + NodeName + ".key"`
+  Certificate file     | `DataDir + "/certs/" + NodeName + ".crt"`
+  CA certificate file  | `DataDir + "/certs/ca.crt"`
 
 If the deprecated attributes `cert_path`, `key_path` and/or `ca_path` are specified Icinga 2
-copies those files to the new location in `LocalStateDir + "/lib/icinga2/certs"` unless the
+copies those files to the new location in `DataDir + "/certs"` unless the
 file(s) there are newer.
 
 Please check the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths) for more details.
@@ -273,7 +273,7 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  spool\_dir                | String                | **Optional.** The directory which contains the check result files. Defaults to LocalStateDir + "/lib/icinga2/spool/checkresults/".
+  spool\_dir                | String                | **Optional.** The directory which contains the check result files. Defaults to DataDir + "/spool/checkresults/".
 
 ## Comment <a id="objecttype-comment"></a>
 
@@ -322,7 +322,7 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  log\_dir                  | String                | **Optional.** Path to the compat log directory. Defaults to LocalStateDir + "/log/icinga2/compat".
+  log\_dir                  | String                | **Optional.** Path to the compat log directory. Defaults to LogDir + "/compat".
   rotation\_method          | String                | **Optional.** Specifies when to rotate log files. Can be one of "HOURLY", "DAILY", "WEEKLY" or "MONTHLY". Defaults to "HOURLY".
 
 
@@ -1084,7 +1084,7 @@ Configuration Attributes:
   bind\_host                | String                | **Optional.** Only valid when `socket_type` is set to `tcp`. Host address to listen on for connections. Defaults to `127.0.0.1`.
   bind\_port                | Number                | **Optional.** Only valid when `socket_type` is set to `tcp`. Port to listen on for connections. Defaults to `6558`.
   socket\_path              | String                | **Optional.** Only valid when `socket_type` is set to `unix`. Specifies the path to the UNIX socket file. Defaults to RunDir + "/icinga2/cmd/livestatus".
-  compat\_log\_path         | String                | **Optional.** Path to Icinga 1.x log files. Required for historical table queries. Requires `CompatLogger` feature enabled. Defaults to LocalStateDir + "/log/icinga2/compat"
+  compat\_log\_path         | String                | **Optional.** Path to Icinga 1.x log files. Required for historical table queries. Requires `CompatLogger` feature enabled. Defaults to LogDir + "/compat"
 
 > **Note**
 >
@@ -1179,7 +1179,7 @@ Example:
 
 ```
 object NotificationCommand "mail-service-notification" {
-  command = [ SysconfDir + "/icinga2/scripts/mail-service-notification.sh" ]
+  command = [ ConfigDir + "/scripts/mail-service-notification.sh" ]
 
   arguments += {
     "-4" = {
@@ -1329,10 +1329,10 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  host\_perfdata\_path      | String                | **Optional.** Path to the host performance data file. Defaults to LocalStateDir + "/spool/icinga2/perfdata/host-perfdata".
-  service\_perfdata\_path   | String                | **Optional.** Path to the service performance data file. Defaults to LocalStateDir + "/spool/icinga2/perfdata/service-perfdata".
-  host\_temp\_path          | String                | **Optional.** Path to the temporary host file. Defaults to LocalStateDir + "/spool/icinga2/tmp/host-perfdata".
-  service\_temp\_path       | String                | **Optional.** Path to the temporary service file. Defaults to LocalStateDir + "/spool/icinga2/tmp/service-perfdata".
+  host\_perfdata\_path      | String                | **Optional.** Path to the host performance data file. Defaults to SpoolDir + "/perfdata/host-perfdata".
+  service\_perfdata\_path   | String                | **Optional.** Path to the service performance data file. Defaults to SpoolDir + "/perfdata/service-perfdata".
+  host\_temp\_path          | String                | **Optional.** Path to the temporary host file. Defaults to SpoolDir + "/tmp/host-perfdata".
+  service\_temp\_path       | String                | **Optional.** Path to the temporary service file. Defaults to SpoolDir + "/tmp/service-perfdata".
   host\_format\_template    | String                | **Optional.** Host Format template for the performance data file. Defaults to a template that's suitable for use with PNP4Nagios.
   service\_format\_template | String                | **Optional.** Service Format template for the performance data file. Defaults to a template that's suitable for use with PNP4Nagios.
   rotation\_interval        | Duration              | **Optional.** Rotation interval for the files specified in `{host,service}_perfdata_path`. Defaults to `30s`.
@@ -1534,8 +1534,8 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  status\_path              | String                | **Optional.** Path to the `status.dat` file. Defaults to LocalStateDir + "/cache/icinga2/status.dat".
-  objects\_path             | String                | **Optional.** Path to the `objects.cache` file. Defaults to LocalStateDir + "/cache/icinga2/objects.cache".
+  status\_path              | String                | **Optional.** Path to the `status.dat` file. Defaults to CacheDir + "/status.dat".
+  objects\_path             | String                | **Optional.** Path to the `objects.cache` file. Defaults to CacheDir + "/objects.cache".
   update\_interval          | Duration              | **Optional.** The interval in which the status files are updated. Defaults to `15s`.
 
 

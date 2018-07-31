@@ -69,9 +69,9 @@ Config files are processed in the order they are specified on the command-line.
 When no configuration file is specified and the
 .B --no-config
 is not used, Icinga 2 automatically falls back to using the configuration file
-.B SysconfDir + "/icinga2/icinga2.conf"
-(where SysconfDir is usually
-.BI "/etc" ")."
+.B ConfigDir + "/icinga2.conf"
+(where ConfigDir is usually
+.BI "/etc/icinga2" ")."
 
 .TP
 .B "-z, --noconfig"

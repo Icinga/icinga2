@@ -17,28 +17,27 @@ fi
 : ${ICINGA2_USER:="@ICINGA2_USER@"}
 : ${ICINGA2_GROUP:="@ICINGA2_GROUP@"}
 : ${ICINGA2_COMMAND_GROUP:="@ICINGA2_COMMAND_GROUP@"}
-: ${ICINGA2_RUN_DIR:="@ICINGA2_RUNDIR@"}
-: ${ICINGA2_LOG_DIR:="@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2"}
-: ${ICINGA2_STATE_DIR:="@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/cache/icinga2"}
-: ${ICINGA2_CACHE_DIR:="@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/cache/icinga2"}
+: ${ICINGA2_INIT_RUN_DIR:="@ICINGA2_INITRUNDIR@"}
+: ${ICINGA2_LOG_DIR:="@ICINGA2_LOGDIR@"}
+: ${ICINGA2_CACHE_DIR:="@ICINGA2_CACHEDIR@"}
 
 getent passwd $ICINGA2_USER >/dev/null 2>&1 || (echo "Icinga user '$ICINGA2_USER' does not exist. Exiting." && exit 6)
 getent group $ICINGA2_GROUP >/dev/null 2>&1 || (echo "Icinga group '$ICINGA2_GROUP' does not exist. Exiting." && exit 6)
 getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || (echo "Icinga command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting." && exit 6)
 
-if [ ! -e "$ICINGA2_RUN_DIR"/icinga2 ]; then
-	mkdir "$ICINGA2_RUN_DIR"/icinga2
-	mkdir "$ICINGA2_RUN_DIR"/icinga2/cmd
+if [ ! -e "$ICINGA2_INIT_RUN_DIR" ]; then
+	mkdir "$ICINGA2_INIT_RUN_DIR"
+	mkdir "$ICINGA2_INIT_RUN_DIR"/cmd
 fi
 
-chmod 755 "$ICINGA2_RUN_DIR"/icinga2
-chmod 2750 "$ICINGA2_RUN_DIR"/icinga2/cmd
-chown -R $ICINGA2_USER:$ICINGA2_COMMAND_GROUP "$ICINGA2_RUN_DIR"/icinga2
+chmod 755 "$ICINGA2_INIT_RUN_DIR"
+chmod 2750 "$ICINGA2_INIT_RUN_DIR"/cmd
+chown -R $ICINGA2_USER:$ICINGA2_COMMAND_GROUP "$ICINGA2_INIT_RUN_DIR"
 
 test -e "$ICINGA2_LOG_DIR" || install -m 750 -o $ICINGA2_USER -g $ICINGA2_COMMAND_GROUP -d "$ICINGA2_LOG_DIR"
 
 if type restorecon >/dev/null 2>&1; then
-	restorecon -R "$ICINGA2_RUN_DIR"/icinga2/
+	restorecon -R "$ICINGA2_INIT_RUN_DIR"/
 fi
 
 test -e "$ICINGA2_CACHE_DIR" || install -m 750 -o $ICINGA2_USER -g $ICINGA2_COMMAND_GROUP -d "$ICINGA2_CACHE_DIR"

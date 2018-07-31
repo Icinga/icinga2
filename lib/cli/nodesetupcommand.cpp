@@ -410,7 +410,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	} else {
 		/* We cannot retrieve the parent certificate.
 		 * Tell the user to manually copy the ca.crt file
-		 * into LocalStateDir + "/lib/icinga2/certs"
+		 * into DataDir + "/certs"
 		 */
 		Log(LogWarning, "cli")
 			<< "\nNo connection to the parent node was specified.\n\n"

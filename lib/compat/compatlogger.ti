@@ -30,7 +30,7 @@ class CompatLogger : ConfigObject
 	activation_priority 100;
 
 	[config] String log_dir {
-		default {{{ return Application::GetLocalStateDir() + "/log/icinga2/compat"; }}}
+		default {{{ return Application::GetConst("LogDir") + "/compat"; }}}
 	};
 	[config] String rotation_method {
 		default {{{ return "HOURLY"; }}}

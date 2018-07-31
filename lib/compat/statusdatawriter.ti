@@ -30,10 +30,10 @@ class StatusDataWriter : ConfigObject
 	activation_priority 100;
 
 	[config] String status_path {
-		default {{{ return Application::GetLocalStateDir() + "/cache/icinga2/status.dat"; }}}
+		default {{{ return Application::GetConst("CacheDir") + "/status.dat"; }}}
 	};
 	[config] String objects_path {
-		default {{{ return Application::GetLocalStateDir() + "/cache/icinga2/objects.cache"; }}}
+		default {{{ return Application::GetConst("CacheDir") + "/objects.cache"; }}}
 	};
 	[config] double update_interval {
 		default {{{ return 15; }}}

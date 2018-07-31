@@ -85,70 +85,21 @@ public:
 
 	static String GetExePath(const String& argv0);
 
-	static String GetPrefixDir();
-	static void DeclarePrefixDir(const String& path);
-
-	static String GetSysconfDir();
-	static void DeclareSysconfDir(const String& path);
-
-	static String GetZonesDir();
-	static void DeclareZonesDir(const String& path);
-
-	static String GetRunDir();
-	static void DeclareRunDir(const String& path);
-
-	static String GetLocalStateDir();
-	static void DeclareLocalStateDir(const String& path);
-
-	static String GetPkgDataDir();
-	static void DeclarePkgDataDir(const String& path);
-
-	static String GetIncludeConfDir();
-	static void DeclareIncludeConfDir(const String& path);
-
-	static String GetStatePath(void);
-	static void DeclareStatePath(const String& path);
-
-	static String GetModAttrPath();
-	static void DeclareModAttrPath(const String& path);
-
-	static String GetObjectsPath();
-	static void DeclareObjectsPath(const String& path);
-
-	static String GetVarsPath();
-	static void DeclareVarsPath(const String& path);
-
-	static String GetPidPath();
-	static void DeclarePidPath(const String& path);
-
-	static String GetRunAsUser();
-	static void DeclareRunAsUser(const String& user);
-
-	static String GetRunAsGroup();
-	static void DeclareRunAsGroup(const String& group);
+	static void DeclareConst(const String& name, const Value& value);
+	static Value GetConst(const String& name);
+	static Value GetConst(const String& name, Value defaultValue);
 
 #ifdef _WIN32
 	static bool IsProcessElevated();
 #endif /* _WIN32 */
 
-	static int GetRLimitFiles();
 	static int GetDefaultRLimitFiles();
-	static void DeclareRLimitFiles(int limit);
-
-	static int GetRLimitProcesses();
 	static int GetDefaultRLimitProcesses();
-	static void DeclareRLimitProcesses(int limit);
-
-	static int GetRLimitStack();
 	static int GetDefaultRLimitStack();
-	static void DeclareRLimitStack(int limit);
 
 	static int GetConcurrency();
-	static void DeclareConcurrency(int ncpus);
-
 	static int GetMaxConcurrentChecks();
 	static int GetDefaultMaxConcurrentChecks();
-	static void DeclareMaxConcurrentChecks(int maxChecks);
 	static void SetMaxConcurrentChecks(int maxChecks);
 
 	static ThreadPool& GetTP();

@@ -990,7 +990,7 @@ You can omit the `log()` calls, they only help debugging.
         log("Running command")
         log(mailscript)
 
-        var cmd = [ SysconfDir + "/icinga2/scripts/" + mailscript ]
+        var cmd = [ ConfigDir + "/scripts/" + mailscript ]
         log(LogCritical, "me", cmd)
         return cmd
       }}

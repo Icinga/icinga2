@@ -388,31 +388,51 @@ once they are set.
 
 Icinga 2 provides a number of special global constants. Some of them can be overridden using the `--define` command line parameter:
 
+Defaults for paths in `/etc` and `/var` are based on `SysconfDir` and `LocalStateDir` respectively.
+
 Variable            |Description
 --------------------|-------------------
-PrefixDir           |**Read-only.** Contains the installation prefix that was specified with cmake -DCMAKE_INSTALL_PREFIX. Defaults to "/usr/local".
-SysconfDir          |**Read-only.** Contains the path of the sysconf directory. Defaults to PrefixDir + "/etc".
-ZonesDir            |**Read-only.** Contains the path of the zones.d directory. Defaults to SysconfDir + "/zones.d".
-LocalStateDir       |**Read-only.** Contains the path of the local state directory. Defaults to PrefixDir + "/var".
-RunDir              |**Read-only.** Contains the path of the run directory. Defaults to LocalStateDir + "/run".
-PkgDataDir          |**Read-only.** Contains the path of the package data directory. Defaults to PrefixDir + "/share/icinga2".
-StatePath           |**Read-write.** Contains the path of the Icinga 2 state file. Defaults to LocalStateDir + "/lib/icinga2/icinga2.state".
-ObjectsPath         |**Read-write.** Contains the path of the Icinga 2 objects file. Defaults to LocalStateDir + "/cache/icinga2/icinga2.debug".
-PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to RunDir + "/icinga2/icinga2.pid".
+ConfigDir           |**Read-only.** Main configuration directory. Usually set to `/etc/icinga2`.
+DataDir             |**Read-only.** Runtime data for the Icinga daemon. Usually set to `/var/lib/icinga2`.
+LogDir              |**Read-only.** Logfiles from the daemon. Usually set to `/var/log/icinga2`.
+CacheDir            |**Read-only.** Cached status information of the daemon. Usually set to `/var/cache/icinga2`.
+SpoolDir            |**Read-only.** Spool directory for certain data outputs. Usually set to `/var/spool/icinga2`.
+InitRunDir          |**Read-only.** Directory for PID files and sockets in daemon mode. Usually set to `/run/icinga2`.
+ZonesDir            |**Read-only.** Contains the path of the zones.d directory. Defaults to `ConfigDir + "/zones.d"`.
 Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
 RunAsUser           |**Read-write.** Defines the user the Icinga 2 daemon is running as. Set in the Icinga 2 sysconfig.
 RunAsGroup          |**Read-write.** Defines the group the Icinga 2 daemon is running as. Set in the Icinga 2 sysconfig.
-PlatformName        |**Read-only.** The name of the operating system, e.g. "Ubuntu".
-PlatformVersion     |**Read-only.** The version of the operating system, e.g. "14.04.3 LTS".
-PlatformKernel      |**Read-only.** The name of the operating system kernel, e.g. "Linux".
-PlatformKernelVersion|**Read-only.** The version of the operating system kernel, e.g. "3.13.0-63-generic".
-BuildCompilerName   |**Read-only.** The name of the compiler Icinga was built with, e.g. "Clang".
-BuildCompilerVersion|**Read-only.** The version of the compiler Icinga was built with, e.g. "7.3.0.7030031".
-BuildHostName       |**Read-only.** The name of the host Icinga was built on, e.g. "acheron".
-ApplicationVersion  |**Read-only.** The application version, e.g. "2.9.0".
-MaxConcurrentChecks |**Read-write**. The number of max checks run simultaneously. Defaults to 512.
-Environment         |**Read-write**. The name of the Icinga environment. Included in the SNI host name when making outbound connections. Defaults to "production".
+PlatformName        |**Read-only.** The name of the operating system, e.g. `Ubuntu`.
+PlatformVersion     |**Read-only.** The version of the operating system, e.g. `14.04.3 LTS`.
+PlatformKernel      |**Read-only.** The name of the operating system kernel, e.g. `Linux`.
+PlatformKernelVersion|**Read-only.** The version of the operating system kernel, e.g. `3.13.0-63-generic`.
+BuildCompilerName   |**Read-only.** The name of the compiler Icinga was built with, e.g. `Clang`.
+BuildCompilerVersion|**Read-only.** The version of the compiler Icinga was built with, e.g. `7.3.0.7030031`.
+BuildHostName       |**Read-only.** The name of the host Icinga was built on, e.g. `acheron`.
+ApplicationVersion  |**Read-only.** The application version, e.g. `2.9.0`.
+MaxConcurrentChecks |**Read-write**. The number of max checks run simultaneously. Defaults to `512`.
+Environment         |**Read-write**. The name of the Icinga environment. Included in the SNI host name when making outbound connections. Defaults to `production`.
+
+Certain variables are used to define file paths, you should never need to change them, as they are built based on
+constants above.
+
+Variable            |Description
+--------------------|-------------------
+StatePath           |**Read-write.** Contains the path of the Icinga 2 state file. Defaults to `DataDir + "/icinga2.state"`.
+ObjectsPath         |**Read-write.** Contains the path of the Icinga 2 objects file. Defaults to `CacheDir + "/icinga2.debug"`.
+PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to `InitRunDir + "/icinga2.pid"`.
+PkgDataDir          |**Read-only.** Contains the path of the package data directory. Defaults to `PrefixDir + "/share/icinga2"`.
+
+Some constants have been used in the past, but are deprecated now. They are stil involved in building Icinga,
+see `INSTALL.md`, but please avoid using them for runtime config!
+
+Variable            |Description
+--------------------|-------------------
+PrefixDir           |**Read-only.** Contains the installation prefix that was specified with cmake -DCMAKE_INSTALL_PREFIX. `Defaults to "/usr/local"`.
+SysconfDir          |**Read-only.** Contains the path of the sysconf directory. Defaults to `PrefixDir + "/etc"`.
+LocalStateDir       |**Read-only.** Contains the path of the local state directory. Defaults to `PrefixDir + "/var"`.
+RunDir              |**Read-only.** Contains the path of the run directory. Defaults to `LocalStateDir + "/run"`.
 
 
 Advanced runtime constants. Please only use them if advised by support or developers.
@@ -733,12 +753,12 @@ You can explicitly access the `this` scope using the `this` keyword:
 
     object Host "localhost" {
       var check_interval = 5m
-  
+
       /* This explicitly specifies that the attribute should be set
        * for the host, if we had omitted `this.` the (poorly named)
        * local variable `check_interval` would have been modified instead.
        */
-      this.check_interval = 1m 
+      this.check_interval = 1m
   }
 
 Similarly the keywords `locals` and `globals` are available to access the local and global scope.
@@ -748,7 +768,7 @@ a function is set to whichever object was used to invoke the function. Here's an
 
      hm = {
        h_word = null
- 
+
        function init(word) {
          h_word = word
        }
@@ -1024,4 +1044,3 @@ You can escape the `include` keyword by prefixing it with an additional `@` char
 
       vars.@include = "some cmdb export field"
     }
-

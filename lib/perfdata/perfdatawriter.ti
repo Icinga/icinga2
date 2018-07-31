@@ -30,16 +30,16 @@ class PerfdataWriter : ConfigObject
 	activation_priority 100;
 
 	[config] String host_perfdata_path {
-		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/perfdata/host-perfdata"; }}}
+		default {{{ return Application::GetConst("SpoolDir") + "/perfdata/host-perfdata"; }}}
 	};
 	[config] String service_perfdata_path {
-		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/perfdata/service-perfdata"; }}}
+		default {{{ return Application::GetConst("SpoolDir") + "/perfdata/service-perfdata"; }}}
 	};
 	[config] String host_temp_path {
-		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/tmp/host-perfdata"; }}}
+		default {{{ return Application::GetConst("SpoolDir") + "/tmp/host-perfdata"; }}}
 	};
 	[config] String service_temp_path {
-		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/tmp/service-perfdata"; }}}
+		default {{{ return Application::GetConst("SpoolDir") + "/tmp/service-perfdata"; }}}
 	};
 	[config] String host_format_template {
 		default {{{

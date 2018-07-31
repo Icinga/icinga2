@@ -31,7 +31,7 @@ using namespace icinga;
 
 Value VariableUtility::GetVariable(const String& name)
 {
-	String varsfile = Application::GetVarsPath();
+	String varsfile = Application::GetConst("VarsPath");
 
 	std::fstream fp;
 	fp.open(varsfile.CStr(), std::ios_base::in);
@@ -61,7 +61,7 @@ Value VariableUtility::GetVariable(const String& name)
 
 void VariableUtility::PrintVariables(std::ostream& outfp)
 {
-	String varsfile = Application::GetVarsPath();
+	String varsfile = Application::GetConst("VarsPath");
 
 	std::fstream fp;
 	fp.open(varsfile.CStr(), std::ios_base::in);

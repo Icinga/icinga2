@@ -392,7 +392,7 @@ wizard_ticket:
 	} else {
 		/* We cannot retrieve the parent certificate.
 		 * Tell the user to manually copy the ca.crt file
-		 * into LocalStateDir + "/lib/icinga2/certs"
+		 * into DataDir + "/certs"
 		 */
 
 		std::cout <<  ConsoleColorTag(Console_Bold)
@@ -850,7 +850,7 @@ wizard_global_zone_loop_start:
 		}
 
 		/* Include api-users.conf */
-		String apiUsersFilePath = Application::GetSysconfDir() + "/icinga2/conf.d/api-users.conf";
+		String apiUsersFilePath = Application::GetConst("ConfigDir") + "/conf.d/api-users.conf";
 
 		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
 			<< "Checking if the api-users.conf file exists...\n"

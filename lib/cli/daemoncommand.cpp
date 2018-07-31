@@ -72,7 +72,7 @@ static bool Daemonize()
 		do {
 			Utility::Sleep(0.1);
 
-			readpid = Application::ReadPidFile(Application::GetPidPath());
+			readpid = Application::ReadPidFile(Application::GetConst("PidPath"));
 			ret = waitpid(pid, &status, WNOHANG);
 		} while (readpid != pid && ret == 0);
 
@@ -193,7 +193,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		<< ")";
 
 	if (!vm.count("validate") && !vm.count("reload-internal")) {
-		pid_t runningpid = Application::ReadPidFile(Application::GetPidPath());
+		pid_t runningpid = Application::ReadPidFile(Application::GetConst("PidPath"));
 		if (runningpid > 0) {
 			Log(LogCritical, "cli")
 				<< "Another instance of Icinga already running with PID " << runningpid;
@@ -204,14 +204,16 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	std::vector<std::string> configs;
 	if (vm.count("config") > 0)
 		configs = vm["config"].as<std::vector<std::string> >();
-	else if (!vm.count("no-config"))
-		configs.push_back(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
+	else if (!vm.count("no-config")) {
+		String configDir = Application::GetConst("ConfigDir");
+		configs.push_back(configDir + "/icinga2.conf");
+	}
 
 	Log(LogInformation, "cli", "Loading configuration file(s).");
 
 	std::vector<ConfigItem::Ptr> newItems;
 
-	if (!DaemonUtility::LoadConfigFiles(configs, newItems, Application::GetObjectsPath(), Application::GetVarsPath()))
+	if (!DaemonUtility::LoadConfigFiles(configs, newItems, Application::GetConst("ObjectsPath"), Application::GetConst("VarsPath")))
 		return EXIT_FAILURE;
 
 	if (vm.count("validate")) {
@@ -253,7 +255,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 	/* restore the previous program state */
 	try {
-		ConfigObject::RestoreObjects(Application::GetStatePath());
+		ConfigObject::RestoreObjects(Application::GetConst("StatePath"));
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli")
 			<< "Failed to restore state file: " << DiagnosticInformation(ex);

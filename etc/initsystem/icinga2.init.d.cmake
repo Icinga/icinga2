@@ -36,10 +36,10 @@ fi
 : ${ICINGA2_GROUP:="@ICINGA2_GROUP@"}
 : ${ICINGA2_COMMAND_GROUP:="@ICINGA2_COMMAND_GROUP@"}
 : ${DAEMON:="@CMAKE_INSTALL_FULL_SBINDIR@/icinga2"}
-: ${ICINGA2_CONFIG_FILE:="@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/icinga2.conf"}
-: ${ICINGA2_ERROR_LOG:=@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/error.log}
-: ${ICINGA2_STARTUP_LOG:=@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/startup.log}
-: ${ICINGA2_PID_FILE:="@ICINGA2_RUNDIR@/icinga2/icinga2.pid"}
+: ${ICINGA2_CONFIG_FILE:="@ICINGA2_CONFIGDIR@/icinga2.conf"}
+: ${ICINGA2_ERROR_LOG:=@ICINGA2_LOGDIR@/error.log}
+: ${ICINGA2_STARTUP_LOG:=@ICINGA2_LOGDIR@/startup.log}
+: ${ICINGA2_PID_FILE:="@ICINGA2_INITRUNDIR@/icinga2.pid"}
 
 # Load extra environment variables
 if [ -f /etc/default/icinga2 ]; then
@@ -90,7 +90,7 @@ stop() {
 		if ! icinga2 internal signal -s SIGCHLD -p $pid >/dev/null 2>&1; then
 				break
 			fi
-		
+
 			printf '.'
 			sleep 3
 		done

@@ -211,7 +211,7 @@ match your Icinga convention.
 Add an `EventCommand` configuration object for the passive service auto reset event.
 
     object EventCommand "coldstart-reset-event" {
-      command = [ SysconfDir + "/icinga2/conf.d/custom/scripts/coldstart_reset_event.sh" ]
+      command = [ ConfigDir + "/conf.d/custom/scripts/coldstart_reset_event.sh" ]
 
       arguments = {
         "-i" = "$service.state_id$"
@@ -356,4 +356,3 @@ passive update with the state and text from the second and third varbind:
       vars.dummy_state      = 2
       vars.dummy_text       = "No passive check result received."
     }
-

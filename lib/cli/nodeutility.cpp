@@ -43,12 +43,12 @@ using namespace icinga;
 
 String NodeUtility::GetConstantsConfPath()
 {
-	return Application::GetSysconfDir() + "/icinga2/constants.conf";
+	return Application::GetConst("ConfigDir") + "/constants.conf";
 }
 
 String NodeUtility::GetZonesConfPath()
 {
-	return Application::GetSysconfDir() + "/icinga2/zones.conf";
+	return Application::GetConst("ConfigDir") + "/zones.conf";
 }
 
 /*
@@ -274,7 +274,7 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
  */
 bool NodeUtility::UpdateConfiguration(const String& value, bool include, bool recursive)
 {
-	String configurationFile = Application::GetSysconfDir() + "/icinga2/icinga2.conf";
+	String configurationFile = Application::GetConst("ConfigDir") + "/icinga2.conf";
 
 	Log(LogInformation, "cli")
 		<< "Updating '" << value << "' include in '" << configurationFile << "'.";
