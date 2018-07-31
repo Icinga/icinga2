@@ -125,20 +125,20 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	if (connected) {
 		cr->SetState(ServiceOK);
 		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag));
+
+		/* Check whether the thresholds have been resolved and compare them */
+		if (missingLagCritical.IsEmpty() && zoneLag > lagCritical) {
+			cr->SetState(ServiceCritical);
+			cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
+				+ " greater than critical threshold: " + Utility::FormatDuration(lagCritical));
+		} else if (missingLagWarning.IsEmpty() && zoneLag > lagWarning) {
+			cr->SetState(ServiceWarning);
+			cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
+				+ " greater than warning threshold: " + Utility::FormatDuration(lagWarning));
+		}
 	} else {
 		cr->SetState(ServiceCritical);
 		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(zoneLag));
-	}
-
-	/* Check whether the thresholds have been resolved and compare them */
-	if (missingLagCritical.IsEmpty() && zoneLag > lagCritical) {
-		cr->SetState(ServiceCritical);
-		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
-			+ " greater than critical threshold: " + Utility::FormatDuration(lagCritical));
-	} else if (missingLagWarning.IsEmpty() && zoneLag > lagWarning) {
-		cr->SetState(ServiceWarning);
-		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
-			+ " greater than warning threshold: " + Utility::FormatDuration(lagWarning));
 	}
 
 	cr->SetPerformanceData(new Array({
