@@ -36,16 +36,16 @@ addons:
 
 before_script:
   - if [ "$COVERITY_SCAN_BRANCH" != 1 ]; then
-      mkdir build;
-      cd build;
+      mkdir build &&
+      cd build &&
       cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/tmp/icinga2 -DICINGA2_PLUGINDIR=/tmp/icinga2/sbin;
     fi
 
 script:
   - if [ "$COVERITY_SCAN_BRANCH" != 1 ]; then
-      make;
-      make test;
-      make install;
-      /tmp/icinga2/sbin/icinga2 --version;
+      make &&
+      make test &&
+      make install &&
+      /tmp/icinga2/sbin/icinga2 --version &&
       /tmp/icinga2/sbin/icinga2 daemon -C -DRunAsUser=$(id -u -n) -DRunAsGroup=$(id -g -n);
     fi
