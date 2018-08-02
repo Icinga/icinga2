@@ -24,6 +24,7 @@
 #include "base/function.hpp"
 #include "base/objectlock.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/statsfunction.hpp"
 #include "base/utility.hpp"
 #include "base/value.hpp"
 #include "remote/apifunction.hpp"
@@ -37,6 +38,8 @@
 using namespace icinga;
 
 REGISTER_APIFUNCTION(ClusterStats, event, &StatsReporter::ClusterStatsAPIHandler);
+
+REGISTER_STATSFUNCTION(ClusterStats, &StatsReporter::StatsFunc);
 
 StatsReporter StatsReporter::m_Instance;
 
@@ -184,4 +187,9 @@ void StatsReporter::ClusterStatsHandler(const String& endpoint, const Dictionary
 {
 	boost::mutex::scoped_lock lock (m_Mutex);
 	m_SecondaryStats[endpoint] = stats;
+}
+
+void StatsReporter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
+{
+	status->Set("cluster", m_Instance.GenerateStats());
 }
