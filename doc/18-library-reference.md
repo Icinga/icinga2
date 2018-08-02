@@ -1428,6 +1428,14 @@ Signature:
 Removes the item with the specified `key`. Trying to remove an item which does not exist
 is a no-op.
 
+### Dictionary#clear <a id="dictionary-clear"></a>
+
+Signature:
+
+    function clear();
+
+Removes all items from the dictionary.
+
 ### Dictionary#set <a id="dictionary-set"></a>
 
 Signature:

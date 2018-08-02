@@ -57,6 +57,14 @@ static void DictionaryRemove(const String& key)
 	self->Remove(key);
 }
 
+static void DictionaryClear()
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
+	self->Clear();
+}
+
 static bool DictionaryContains(const String& key)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
@@ -115,6 +123,7 @@ Object::Ptr Dictionary::GetPrototype()
 		{ "set", new Function("Dictionary#set", DictionarySet, { "key", "value" }) },
 		{ "get", new Function("Dictionary#get", DictionaryGet, { "key" }) },
 		{ "remove", new Function("Dictionary#remove", DictionaryRemove, { "key" }) },
+		{ "clear", new Function("Dictionary#clear", DictionaryClear, {}) },
 		{ "contains", new Function("Dictionary#contains", DictionaryContains, { "key" }, true) },
 		{ "shallow_clone", new Function("Dictionary#shallow_clone", DictionaryShallowClone, {}, true) },
 		{ "keys", new Function("Dictionary#keys", DictionaryKeys, {}, true) },
