@@ -81,8 +81,7 @@ void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 			{ "enable_perfdata", icingaapplication->GetEnablePerfdata() },
 			{ "pid", Utility::GetPid() },
 			{ "program_start", Application::GetStartTime() },
-			{ "version", Application::GetAppVersion() },
-			{ "environment", ScriptGlobal::Get("Environment", &Empty) }
+			{ "version", Application::GetAppVersion() }
 		}));
 	}
 

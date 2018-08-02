@@ -388,16 +388,10 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 	TcpSocket::Ptr client = new TcpSocket();
 
-	String serverName = endpoint->GetName();
-
-	String env = ScriptGlobal::Get("Environment", &Empty);
-	if (env != "" && env != "production")
-		serverName += ":" + env;
-
 	try {
 		endpoint->SetConnecting(true);
 		client->Connect(host, port);
-		NewClientHandler(client, serverName, RoleClient);
+		NewClientHandler(client, endpoint->GetName(), RoleClient);
 		endpoint->SetConnecting(false);
 	} catch (const std::exception& ex) {
 		endpoint->SetConnecting(false);
@@ -447,10 +441,16 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 
 	TlsStream::Ptr tlsStream;
 
+	String environmentName = GetEnvironment();
+	String serverName = hostname;
+
+	if (!environmentName.IsEmpty() && environmentName != "")
+		serverName += ":" + environmentName;
+
 	{
 		ObjectLock olock(this);
 		try {
-			tlsStream = new TlsStream(client, hostname, role, m_SSLContext);
+			tlsStream = new TlsStream(client, serverName, role, m_SSLContext);
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener")
 				<< "Cannot create TLS stream from client connection (" << conninfo << ")";

@@ -48,6 +48,10 @@ class ApiListener : ConfigObject
 		default {{{ return Application::GetConst("ApiBindPort", "5665"); }}}
 	};
 
+	[config] String environment {
+		default {{{ return Application::GetConst("ApiEnvironment"); }}}
+	};
+
 	[config] bool accept_config;
 	[config] bool accept_commands;
 
