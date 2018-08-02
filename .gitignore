@@ -11,11 +11,7 @@
 tickets.pickle
 
 ## Build artifacts
-build/
-build-debug/
-build-release/
-build32/
-build64/
+build*/
 debug/
 release/
 cmake-build-debug

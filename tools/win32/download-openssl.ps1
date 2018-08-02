@@ -1,7 +1,19 @@
-[string]$pwd = Get-Location
+$ErrorActionPreference = "Stop"
+
 $OpenSSL_version = '1.1.0g-1'
-$OpenSSL_arch = 'x64'
-$OpenSSL_vcbuild = 'vc150'
+
+if (Test-Path env:VSCMD_ARG_TGT_ARCH) {
+  $OpenSSL_arch = $env:VSCMD_ARG_TGT_ARCH
+} else {
+  throw "Missing env variable VSCMD_ARG_TGT_ARCH"
+}
+if (Test-Path env:VSCMD_VER) {
+  $VSmajor = $env:VSCMD_VER -replace "\..*$", ""
+  $OpenSSL_vcbuild = "vc${VSmajor}0"
+} else {
+  throw "Missing env variable VSCMD_VER"
+}
+
 $OpenSSL_fileversion = $OpenSSL_version.Replace('.', '_').Split('-')[0]
 $OpenSSL_file = [string]::Format(
   'openssl-{0}-binary-icinga-{1}-{2}.zip',
@@ -15,12 +27,23 @@ $OpenSSL_url = [string]::Format(
   $OpenSSL_file
 )
 
-$OpenSSL_zip_location = $pwd + '\vendor\' + $OpenSSL_file
-$vendor_path = $pwd + '\vendor'
-$OpenSSL_vendor_path = $vendor_path + '\OpenSSL'
+if (-not (Test-Path env:ICINGA2_BUILDPATH)) {
+  $env:ICINGA2_BUILDPATH = '.\build'
+}
 
+$vendor_path = $env:ICINGA2_BUILDPATH + '\vendor'
+$OpenSSL_zip_location = $env:ICINGA2_BUILDPATH + '\vendor\' + $OpenSSL_file
+$OpenSSL_vendor_path = "$vendor_path\OpenSSL-$OpenSSL_arch-$OpenSSL_vcbuild"
+
+# Tune Powershell TLS protocols
+$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols
+
+if (-not (Test-Path $env:ICINGA2_BUILDPATH)) {
+  mkdir $env:ICINGA2_BUILDPATH | out-null
+}
 if (-not (Test-Path $vendor_path)) {
-  mkdir $vendor_path
+  mkdir $vendor_path | out-null
 }
 
 if (Test-Path $OpenSSL_zip_location) {
@@ -30,21 +53,24 @@ if (Test-Path $OpenSSL_zip_location) {
 
   $progressPreference = 'silentlyContinue'
   Invoke-WebRequest -Uri $OpenSSL_url -OutFile $OpenSSL_zip_location
-  if ($lastexitcode -ne 0){ exit $lastexitcode }
   $progressPreference = 'Continue'
-  
+
   if (Test-Path $OpenSSL_vendor_path) {
     Remove-Item -Recurse $OpenSSL_vendor_path
   }
 }
 
 if (-not (Test-Path $OpenSSL_vendor_path)) {
-  mkdir $OpenSSL_vendor_path
+  mkdir $OpenSSL_vendor_path | out-null
 
   Write-Output "Extracting ZIP to $OpenSSL_vendor_path"
   Add-Type -AssemblyName System.IO.Compression.FileSystem
-  [System.IO.Compression.ZipFile]::ExtractToDirectory($OpenSSL_zip_location, $OpenSSL_vendor_path)
-  if ($lastexitcode -ne 0){ exit $lastexitcode }  
+  $pwd = Get-Location
+  [System.IO.Compression.ZipFile]::ExtractToDirectory(
+    (Join-Path -path $pwd -childpath $OpenSSL_zip_location),
+    (Join-Path -path $pwd -childpath $OpenSSL_vendor_path)
+  )
+  if ($lastexitcode -ne 0){ exit $lastexitcode }
 } else {
   Write-Output "OpenSSL is already available at $OpenSSL_vendor_path"
 }

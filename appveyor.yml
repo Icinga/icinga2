@@ -2,9 +2,11 @@
 version: 2.9.0.dev.{build}
 
 os: Visual Studio 2017
+platform: x64
 
 environment:
   CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
+  VSCMD_VER: 15.0
   BOOST_ROOT: 'C:\Libraries\boost_1_65_1'
   BOOST_LIBRARYDIR: 'C:\Libraries\boost_1_65_1\lib64-msvc-14.1'
   BISON_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe'
@@ -16,36 +18,46 @@ branches:
 
 cache:
 - build -> appveyor.yml
-- vendor -> tools\win32\download-openssl.ps1
 - C:\ProgramData\chocolatey\lib\winflexbison3
 
 install:
 - ps: |
-    if (-not (Test-Path "vendor\OpenSSL")) {
-      .\tools\win32\download-openssl.ps1
-      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
-    }
-- ps: |
     if (-not (Test-Path "C:\ProgramData\chocolatey\lib\winflexbison3")) {
-      choco install winflexbison3
-      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+      & choco install winflexbison3
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
     }
 
+# why that env handling, see
+# https://help.appveyor.com/discussions/questions/18777-how-to-use-vcvars64bat-from-powershell#comment_44999171
 before_build:
 - ps: |
-    .\tools\win32\configure.ps1
-    if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+    $bits = $env:PLATFORM -replace "^x", ""
+    cmd.exe /c "call `"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars${bits}.bat`" && set > `"${env:TEMP}\vcvars.txt`""
+    Get-Content "$env:TEMP\vcvars.txt" | Foreach-Object {
+      if ($_ -match "^(VSCMD.*?)=(.*)$") {
+        Set-Content ("env:" + $matches[1]) $matches[2]
+      }
+    }
+
+    if (-not (Test-Path ".\build\vendor\OpenSSL")) {
+      & .\tools\win32\download-openssl.ps1
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+    }
+
+    & .\tools\win32\configure.ps1
+    if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+
     del build\Icinga*.msi
 
 build_script:
 - ps: |
-    .\tools\win32\build.ps1
-    if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+    & .\tools\win32\build.ps1
+    if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
 
 test_script:
 - ps: |
-    .\tools\win32\test.ps1
-    if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+    & .\tools\win32\test.ps1
+    if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
 
 # Disable until we really need them
 # https://github.com/Icinga/icinga2/issues/6106
