@@ -41,9 +41,11 @@ class ApiListener : ConfigObject
 		default {{{ return "TLSv1"; }}}
 	};
 
-	[config] String bind_host;
+	[config] String bind_host {
+		default {{{ return Application::GetConst("ApiBindHost"); }}}
+	};
 	[config] String bind_port {
-		default {{{ return "5665"; }}}
+		default {{{ return Application::GetConst("ApiBindPort", "5665"); }}}
 	};
 
 	[config] bool accept_config;

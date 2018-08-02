@@ -114,9 +114,21 @@ int Socket::GetError() const
 /**
  * Formats a sockaddr in a human-readable way.
  *
- * @returns A String describing the sockaddr.
+ * @returns A pair of host and service.
  */
-String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
+String Socket::GetHumanReadableAddress(const std::pair<String, String>& socketDetails)
+{
+	std::ostringstream s;
+	s << "[" << socketDetails.first << "]:" << socketDetails.second;
+	return s.str();
+}
+
+/**
+ * Returns host and service as pair.
+ *
+ * @returns A pair with host and service.
+ */
+std::pair<String, String> Socket::GetDetailsFromSockaddr(sockaddr *address, socklen_t len)
 {
 	char host[NI_MAXHOST];
 	char service[NI_MAXSERV];
@@ -140,17 +152,15 @@ String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
 #endif /* _WIN32 */
 	}
 
-	std::ostringstream s;
-	s << "[" << host << "]:" << service;
-	return s.str();
+	return std::make_pair(host, service);
 }
 
 /**
- * Returns a String describing the local address of the socket.
+ * Returns a pair describing the local host and service of the socket.
  *
- * @returns A String describing the local address.
+ * @returns A pair describing the local host and service.
  */
-String Socket::GetClientAddress()
+std::pair<String, String> Socket::GetClientAddressDetails()
 {
 	boost::mutex::scoped_lock lock(m_SocketMutex);
 
@@ -175,22 +185,32 @@ String Socket::GetClientAddress()
 #endif /* _WIN32 */
 	}
 
-	String address;
+	std::pair<String, String> details;
 	try {
-		address = GetAddressFromSockaddr((sockaddr *)&sin, len);
+		details = GetDetailsFromSockaddr((sockaddr *)&sin, len);
 	} catch (const std::exception&) {
 		/* already logged */
 	}
 
-	return address;
+	return details;
 }
 
 /**
- * Returns a String describing the peer address of the socket.
+ * Returns a String describing the local address of the socket.
  *
- * @returns A String describing the peer address.
+ * @returns A String describing the local address.
  */
-String Socket::GetPeerAddress()
+String Socket::GetClientAddress()
+{
+	return GetHumanReadableAddress(GetClientAddressDetails());
+}
+
+/**
+ * Returns a pair describing the peer host and service of the socket.
+ *
+ * @returns A pair describing the peer host and service.
+ */
+std::pair<String, String> Socket::GetPeerAddressDetails()
 {
 	boost::mutex::scoped_lock lock(m_SocketMutex);
 
@@ -215,14 +235,24 @@ String Socket::GetPeerAddress()
 #endif /* _WIN32 */
 	}
 
-	String address;
+	std::pair<String, String> details;
 	try {
-		address = GetAddressFromSockaddr((sockaddr *)&sin, len);
+		details = GetDetailsFromSockaddr((sockaddr *)&sin, len);
 	} catch (const std::exception&) {
 		/* already logged */
 	}
 
-	return address;
+	return details;
+}
+
+/**
+ * Returns a String describing the peer address of the socket.
+ *
+ * @returns A String describing the peer address.
+ */
+String Socket::GetPeerAddress()
+{
+	return GetHumanReadableAddress(GetPeerAddressDetails());
 }
 
 /**
@@ -415,4 +445,3 @@ void Socket::SocketPair(SOCKET s[2])
 			<< boost::errinfo_api_function("socketpair")
 			<< boost::errinfo_errno(errno));
 }
-

@@ -114,6 +114,8 @@ protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeDeleted) override;
 
+	void UpdateStatusFile(TcpSocket::Ptr socket);
+
 	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 private:
