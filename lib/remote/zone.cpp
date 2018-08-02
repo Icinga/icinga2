@@ -89,6 +89,62 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints() const
 	return result;
 }
 
+void Zone::AddEndpoint(const Endpoint::Ptr& endpoint)
+{
+	if (IsGlobal()) {
+		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '"
+			+ endpoint->GetName() + "' cannot be added to global zone '"
+			+ GetName() + "'.", GetDebugInfo()));
+	}
+
+	Array::Ptr endpoints = GetEndpointsRaw();
+
+	if (!endpoints) {
+		endpoints = new Array();
+		SetEndpointsRaw(endpoints);
+	}
+
+	{
+		ObjectLock olock(endpoints);
+
+		for (const String& name : endpoints) {
+			if (name == endpoint->GetName()) {
+				BOOST_THROW_EXCEPTION(ScriptError("Endpoint '"
+					+ endpoint->GetName() + "' already belongs to zone '"
+					+ GetName() + "'.", GetDebugInfo()));
+			}
+		}
+
+		endpoints->Add(endpoint->GetName());
+		endpoint->SetCachedZone(this);
+	}
+}
+
+void Zone::RemoveEndpoint(const Endpoint::Ptr& endpoint)
+{
+	Array::Ptr endpoints = GetEndpointsRaw();
+
+	if (!endpoints) {
+		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + endpoint->GetName()
+			+ "' cannot be removed from because zone '" + GetName()
+			+ "' has no endpoints.", GetDebugInfo()));
+	}
+
+	{
+
+		ObjectLock olock(endpoints);
+
+		auto it = endpoints->Begin();
+		for (const String& name : endpoints) {
+			if (endpoint->GetName() == name) {
+				endpoints->Remove(it);
+				return;
+			}
+			it++;
+		}
+	}
+}
+
 std::vector<Zone::Ptr> Zone::GetAllParents() const
 {
 	return m_AllParents;

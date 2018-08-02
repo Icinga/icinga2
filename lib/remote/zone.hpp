@@ -42,6 +42,9 @@ public:
 	std::set<Endpoint::Ptr> GetEndpoints() const;
 	std::vector<Zone::Ptr> GetAllParents() const;
 
+	void AddEndpoint(const Endpoint::Ptr& endpoint);
+	void RemoveEndpoint(const Endpoint::Ptr& endpoint);
+
 	bool CanAccessObject(const ConfigObject::Ptr& object);
 	bool IsChildOf(const Zone::Ptr& zone);
 	bool IsGlobal() const;
