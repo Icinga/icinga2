@@ -227,6 +227,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %left T_PLUS T_MINUS
 %left T_MULTIPLY T_DIVIDE_OP T_MODULO
 %left UNARY_MINUS UNARY_PLUS
+%right REF_OP DEREF_OP
 %right '!' '~'
 %left '.' '(' '['
 %left T_VAR T_THIS T_GLOBALS T_LOCALS
@@ -880,6 +881,14 @@ rterm_no_side_effect_no_dict: T_STRING
 	{
 		$$ = new VariableExpression(*$1, @1);
 		delete $1;
+	}
+	| T_MULTIPLY rterm %prec DEREF_OP
+	{
+		$$ = new DerefExpression(std::unique_ptr<Expression>($2), @$);
+	}
+	| T_BINARY_AND rterm %prec REF_OP
+	{
+		$$ = new RefExpression(std::unique_ptr<Expression>($2), @$);
 	}
 	| '!' rterm
 	{

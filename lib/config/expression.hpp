@@ -324,6 +324,29 @@ private:
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
 
+class DerefExpression final : public UnaryExpression
+{
+public:
+	DerefExpression(std::unique_ptr<Expression> operand, const DebugInfo& debugInfo = DebugInfo())
+		: UnaryExpression(std::move(operand), debugInfo)
+	{ }
+
+protected:
+	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+	bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const override;
+};
+
+class RefExpression final : public UnaryExpression
+{
+public:
+	RefExpression(std::unique_ptr<Expression> operand, const DebugInfo& debugInfo = DebugInfo())
+		: UnaryExpression(std::move(operand), debugInfo)
+	{ }
+
+protected:
+	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+};
+
 class NegateExpression final : public UnaryExpression
 {
 public:

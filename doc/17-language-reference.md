@@ -168,6 +168,8 @@ Operator | Precedence | Examples (Result)                             | Descript
 ~        | 2          | ~true (false)                                 | Bitwise negation of the operand
 +        | 2          | +3                                            | Unary plus
 -        | 2          | -3                                            | Unary minus
+&        | 2          | &var (reference to 'var')                     | Reference operator
+*        | 2          | *var                                          | Indirection operator
 *        | 3          | 5m * 10 (3000)                                | Multiplies two numbers
 /        | 3          | 5m / 5 (60)                                   | Divides two numbers
 %        | 3          | 17 % 12 (5)                                   | Remainder after division
@@ -190,6 +192,16 @@ in       | 7          | "foo" in [ "foo", "bar" ] (true)              | Element 
 &#124;&#124; | 14     | true &#124;&#124; false (true), 0 &#124;&#124; 7 (7)| Logical OR
 =        | 12         | a = 3                                         | Assignment
 =>       | 15         | x => x * x (function with arg x)              | Lambda, for loop
+
+### References <a id="references"></a>
+
+A reference to a value can be obtained using the `&` operator. The `*` operator can be used
+to dereference a reference:
+
+    var value = "Hello!"
+    var p = &value /* p refers to value */
+    *p = "Hi!"
+    log(value) // Prints "Hi!" because the variable was changed
 
 ### Function Calls <a id="function-calls"></a>
 

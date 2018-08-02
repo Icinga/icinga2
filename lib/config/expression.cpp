@@ -28,6 +28,7 @@
 #include "base/exception.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/loader.hpp"
+#include "base/reference.hpp"
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
 
@@ -153,6 +154,47 @@ bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value 
 	} else
 		*parent = frame.Self;
 
+	return true;
+}
+
+ExpressionResult RefExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	Value parent;
+	String index;
+
+	if (!m_Operand->GetReference(frame, false, &parent, &index, &dhint))
+		BOOST_THROW_EXCEPTION(ScriptError("Cannot obtain reference for expression.", m_DebugInfo));
+
+	if (!parent.IsObject())
+		BOOST_THROW_EXCEPTION(ScriptError("Cannot obtain reference for expression because parent is not an object.", m_DebugInfo));
+
+	return new Reference(parent, index);
+}
+
+ExpressionResult DerefExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	ExpressionResult operand = m_Operand->Evaluate(frame);
+	CHECK_RESULT(operand);
+
+	Object::Ptr obj = operand.GetValue();
+	Reference::Ptr ref = dynamic_pointer_cast<Reference>(obj);
+
+	if (!ref)
+		BOOST_THROW_EXCEPTION(ScriptError("Invalid reference specified.", GetDebugInfo()));
+
+	return ref->Get();
+}
+
+bool DerefExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
+{
+	ExpressionResult operand = m_Operand->Evaluate(frame);
+	if (operand.GetCode() != ResultOK)
+		return false;
+
+	Reference::Ptr ref = operand.GetValue();
+
+	*parent = ref->GetParent();
+	*index = ref->GetIndex();
 	return true;
 }
 
