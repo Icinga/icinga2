@@ -21,10 +21,68 @@
 #include "base/type.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
+#include "base/convert.hpp"
+#include "base/exception.hpp"
+#include <boost/algorithm/string/join.hpp>
+#include <deque>
 
 using namespace icinga;
 
-static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes)
+struct SerializeStackEntry
+{
+	String Name;
+	Value Val;
+};
+
+CircularReferenceError::CircularReferenceError(String message, std::vector<String> path)
+	: m_Message(message), m_Path(path)
+{ }
+
+const char *CircularReferenceError::what(void) const throw()
+{
+	return m_Message.CStr();
+}
+
+std::vector<String> CircularReferenceError::GetPath() const
+{
+	return m_Path;
+}
+
+struct SerializeStack
+{
+	std::deque<SerializeStackEntry> Entries;
+
+	inline void Push(const String& name, const Value& val)
+	{
+		Object::Ptr obj;
+
+		if (val.IsObject())
+			obj = val;
+
+		if (obj) {
+			for (const auto& entry : Entries) {
+				if (entry.Val == obj) {
+					std::vector<String> path;
+					for (const auto& entry : Entries)
+						path.push_back(entry.Name);
+					path.push_back(name);
+					BOOST_THROW_EXCEPTION(CircularReferenceError("Cannot serialize object which recursively refers to itself. Attribute path which leads to the cycle: " + boost::algorithm::join(path, " -> "), path));
+				}
+			}
+		}
+
+		Entries.push_back({ name, obj });
+	}
+
+	inline void Pop()
+	{
+		Entries.pop_back();
+	}
+};
+
+static Value SerializeInternal(const Value& value, int attributeTypes, SerializeStack& stack);
+
+static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes, SerializeStack& stack)
 {
 	ArrayData result;
 
@@ -32,14 +90,19 @@ static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes)
 
 	ObjectLock olock(input);
 
+	int index = 0;
+
 	for (const Value& value : input) {
-		result.emplace_back(Serialize(value, attributeTypes));
+		stack.Push(Convert::ToString(index), value);
+		result.emplace_back(SerializeInternal(value, attributeTypes, stack));
+		stack.Pop();
+		index++;
 	}
 
 	return new Array(std::move(result));
 }
 
-static Dictionary::Ptr SerializeDictionary(const Dictionary::Ptr& input, int attributeTypes)
+static Dictionary::Ptr SerializeDictionary(const Dictionary::Ptr& input, int attributeTypes, SerializeStack& stack)
 {
 	DictionaryData result;
 
@@ -48,13 +111,15 @@ static Dictionary::Ptr SerializeDictionary(const Dictionary::Ptr& input, int att
 	ObjectLock olock(input);
 
 	for (const Dictionary::Pair& kv : input) {
-		result.emplace_back(kv.first, Serialize(kv.second, attributeTypes));
+		stack.Push(kv.first, kv.second);
+		result.emplace_back(kv.first, SerializeInternal(kv.second, attributeTypes, stack));
+		stack.Pop();
 	}
 
 	return new Dictionary(std::move(result));
 }
 
-static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes)
+static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes, SerializeStack& stack)
 {
 	Type::Ptr type = input->GetReflectionType();
 
@@ -73,7 +138,10 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes)
 		if (strcmp(field.Name, "type") == 0)
 			continue;
 
-		fields.emplace_back(field.Name, Serialize(input->GetField(i), attributeTypes));
+		Value value = input->GetField(i);
+		stack.Push(field.Name, value);
+		fields.emplace_back(field.Name, SerializeInternal(input->GetField(i), attributeTypes, stack));
+		stack.Pop();
 	}
 
 	fields.emplace_back("type", type->GetName());
@@ -158,7 +226,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 	return instance;
 }
 
-Value icinga::Serialize(const Value& value, int attributeTypes)
+static Value SerializeInternal(const Value& value, int attributeTypes, SerializeStack& stack)
 {
 	if (!value.IsObject())
 		return value;
@@ -168,14 +236,20 @@ Value icinga::Serialize(const Value& value, int attributeTypes)
 	Array::Ptr array = dynamic_pointer_cast<Array>(input);
 
 	if (array)
-		return SerializeArray(array, attributeTypes);
+		return SerializeArray(array, attributeTypes, stack);
 
 	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(input);
 
 	if (dict)
-		return SerializeDictionary(dict, attributeTypes);
+		return SerializeDictionary(dict, attributeTypes, stack);
 
-	return SerializeObject(input, attributeTypes);
+	return SerializeObject(input, attributeTypes, stack);
+}
+
+Value icinga::Serialize(const Value& value, int attributeTypes)
+{
+	SerializeStack stack;
+	return SerializeInternal(value, attributeTypes, stack);
 }
 
 Value icinga::Deserialize(const Value& value, bool safe_mode, int attributeTypes)
