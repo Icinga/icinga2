@@ -52,10 +52,11 @@ void Zone::OnAllConfigLoaded()
 	}
 
 	while (zone) {
-		m_AllParents.push_back(zone);
+		/* Store the parent zone and its current level. */
+		levels++;
+		m_AllParents.insert(std::make_pair(zone, levels));
 
 		zone = Zone::GetByName(zone->GetParentRaw());
-		levels++;
 
 		if (levels > 32)
 			BOOST_THROW_EXCEPTION(ScriptError("Infinite recursion detected while resolving zone graph. Check your zone hierarchy.", GetDebugInfo()));
@@ -89,9 +90,26 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints() const
 	return result;
 }
 
-std::vector<Zone::Ptr> Zone::GetAllParents() const
+std::map<Zone::Ptr, int> Zone::GetAllParentsRaw() const
 {
 	return m_AllParents;
+}
+
+Array::Ptr Zone::GetAllParents() const
+{
+	Array::Ptr allParents = new Array();
+
+	for (auto parent : m_AllParents) {
+		Dictionary::Ptr entry = new Dictionary();
+		Zone::Ptr zone = parent.first;
+
+		entry->Set("parent", zone->GetName());
+		entry->Set("level", parent.second);
+
+		allParents->Add(entry);
+	}
+
+	return allParents;
 }
 
 bool Zone::CanAccessObject(const ConfigObject::Ptr& object)

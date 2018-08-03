@@ -997,7 +997,8 @@ void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
 
 	bool need_log = !RelayMessageOne(target_zone, origin, message, master);
 
-	for (const Zone::Ptr& zone : target_zone->GetAllParents()) {
+	for (auto parent : target_zone->GetAllParentsRaw()) {
+		Zone::Ptr zone = parent.first;
 		if (!RelayMessageOne(zone, origin, message, master))
 			need_log = true;
 	}
