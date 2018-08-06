@@ -19,6 +19,9 @@
 
 #include "redis/rediswriter.hpp"
 #include "icinga/customvarobject.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/notificationcommand.hpp"
+#include "icinga/eventcommand.hpp"
 #include "base/object-packer.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
@@ -49,9 +52,14 @@ String RedisWriter::GetEnvironment()
 	return ScriptGlobal::Get("Environment", &l_DefaultEnv);
 }
 
-String RedisWriter::GetIdentifier(const ConfigObject::Ptr& object)
+String RedisWriter::GetObjectIdentifier(const ConfigObject::Ptr& object)
 {
-	return HashValue((Array::Ptr)new Array({GetEnvironment(), object->GetReflectionType()->GetName(), object->GetName()}));
+	Type::Ptr type = object->GetReflectionType();
+
+	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance)
+		return HashValue((Array::Ptr)new Array({GetEnvironment(), type->GetName(), object->GetName()}));
+	else
+		return HashValue((Array::Ptr)new Array({GetEnvironment(), object->GetName()}));
 }
 
 String RedisWriter::CalculateCheckSumString(const String& str)
