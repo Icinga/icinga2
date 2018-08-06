@@ -77,7 +77,7 @@ private:
 	/* utilities */
 	static String FormatCheckSumBinary(const String& str);
 
-	static String GetIdentifier(const ConfigObject::Ptr& object);
+	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
 	static String GetEnvironment();
 	static String CalculateCheckSumString(const String& str);
 	static String CalculateCheckSumArray(const Array::Ptr& arr);
