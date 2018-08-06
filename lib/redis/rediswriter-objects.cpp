@@ -187,7 +187,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	Type::Ptr type = object->GetReflectionType();
 
 	String typeName = type->GetName().ToLower();
-	String objectKey = GetIdentifier(object);
+	String objectKey = GetObjectIdentifier(object);
 
 	std::set<String> propertiesBlacklist ({"name", "__name", "package", "source_location", "templates"});
 
@@ -202,14 +202,14 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		auto endpointZone (endpoint->GetZone());
 
 		if (endpointZone) {
-			checkSums->Set("zone_checksum", GetIdentifier(endpointZone));
+			checkSums->Set("zone_checksum", GetObjectIdentifier(endpointZone));
 		}
 	} else {
 		/* 'zone' is available for all config objects, therefore calculate the checksum. */
 		auto zone (static_pointer_cast<Zone>(object->GetZone()));
 
 		if (zone)
-			checkSums->Set("zone_checksum", GetIdentifier(zone));
+			checkSums->Set("zone_checksum", GetObjectIdentifier(zone));
 	}
 
 	User::Ptr user = dynamic_pointer_cast<User>(object);
@@ -231,7 +231,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		ObjectLock groupChecksumsLock (groupChecksums);
 
 		for (auto group : groups) {
-			groupChecksums->Add(GetIdentifier((*getGroup)(group.Get<String>())));
+			groupChecksums->Add(GetObjectIdentifier((*getGroup)(group.Get<String>())));
 		}
 
 		checkSums->Set("group_checksums", groupChecksums);
@@ -257,7 +257,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			getGroup = &::GetServiceGroup;
 
 			/* Calculate the host_checksum */
-			checkSums->Set("host_checksum", GetIdentifier(host));
+			checkSums->Set("host_checksum", GetObjectIdentifier(host));
 		} else {
 			groups = host->GetGroups();
 			getGroup = &::GetHostGroup;
@@ -271,7 +271,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		ObjectLock groupChecksumsLock (groupChecksums);
 
 		for (auto group : groups) {
-			groupChecksums->Add(GetIdentifier((*getGroup)(group.Get<String>())));
+			groupChecksums->Add(GetObjectIdentifier((*getGroup)(group.Get<String>())));
 		}
 
 		checkSums->Set("group_checksums", groupChecksums);
@@ -280,15 +280,15 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		Endpoint::Ptr commandEndpoint = checkable->GetCommandEndpoint();
 
 		if (commandEndpoint)
-			checkSums->Set("command_endpoint_checksum", GetIdentifier(commandEndpoint));
+			checkSums->Set("command_endpoint_checksum", GetObjectIdentifier(commandEndpoint));
 
 		/* *_command_checksum */
-		checkSums->Set("check_command_checksum", GetIdentifier(checkable->GetCheckCommand()));
+		checkSums->Set("check_command_checksum", GetObjectIdentifier(checkable->GetCheckCommand()));
 
 		EventCommand::Ptr eventCommand = checkable->GetEventCommand();
 
 		if (eventCommand)
-			checkSums->Set("event_command_checksum", GetIdentifier(eventCommand));
+			checkSums->Set("event_command_checksum", GetObjectIdentifier(eventCommand));
 
 		/* *_url_checksum, icon_image_checksum */
 		String actionUrl = checkable->GetActionUrl();
@@ -321,7 +321,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			Zone::Ptr parentZone = zone->GetParent();
 
 			if (parentZone)
-				checkSums->Set("parent_checksum", GetIdentifier(parentZone));
+				checkSums->Set("parent_checksum", GetObjectIdentifier(parentZone));
 		} else {
 			/* zone_checksum for endpoints already is calculated above. */
 
@@ -381,7 +381,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 					ObjectLock includeChecksumsLock (includeChecksums);
 
 					for (auto include : includes) {
-						includeChecksums->Add(GetIdentifier((*getInclude)(include.Get<String>())));
+						includeChecksums->Add(GetObjectIdentifier((*getInclude)(include.Get<String>())));
 					}
 
 					checkSums->Set("include_checksums", includeChecksums);
@@ -401,7 +401,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 					ObjectLock excludeChecksumsLock (excludeChecksums);
 
 					for (auto exclude : excludes) {
-						excludeChecksums->Add(GetIdentifier((*getExclude)(exclude.Get<String>())));
+						excludeChecksums->Add(GetObjectIdentifier((*getExclude)(exclude.Get<String>())));
 					}
 
 					checkSums->Set("exclude_checksums", excludeChecksums);
@@ -459,7 +459,7 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 		return;
 
 	String typeName = object->GetReflectionType()->GetName().ToLower();
-	String objectKey = GetIdentifier(object);
+	String objectKey = GetObjectIdentifier(object);
 
 	ExecuteQueries({
 	    { "DEL", m_PrefixConfigObject + typeName + ":" + objectKey },
@@ -570,7 +570,7 @@ void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject:
 	String typeName = type->GetName().ToLower();
 
 	/* Use the name checksum as unique key. */
-	String objectKey = GetIdentifier(object);
+	String objectKey = GetObjectIdentifier(object);
 
 	std::vector<std::vector<String> > queries;
 
