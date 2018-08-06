@@ -22,6 +22,8 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint-ti.hpp"
+#include "base/array.hpp"
+#include "base/dictionary.hpp"
 #include "base/ringbuffer.hpp"
 #include <set>
 
@@ -54,6 +56,7 @@ public:
 	bool GetConnected() const override;
 
 	static Endpoint::Ptr GetLocalEndpoint();
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	void SetCachedZone(const intrusive_ptr<Zone>& zone);
 

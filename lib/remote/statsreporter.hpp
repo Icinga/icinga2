@@ -17,49 +17,49 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef ZONE_H
-#define ZONE_H
+#ifndef STATSREPORTER_H
+#define STATSREPORTER_H
 
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
-#include "remote/i2-remote.hpp"
-#include "remote/zone-ti.hpp"
+#include "base/string.hpp"
+#include "base/timer.hpp"
+#include "base/value.hpp"
 #include "remote/endpoint.hpp"
+#include "remote/messageorigin.hpp"
+#include <atomic>
+#include <boost/thread/mutex.hpp>
+#include <map>
 
 namespace icinga
 {
 
 /**
- * @ingroup remote
- */
-class Zone final : public ObjectImpl<Zone>
+* @ingroup remote
+*/
+class StatsReporter
 {
 public:
-	DECLARE_OBJECT(Zone);
-	DECLARE_OBJECTNAME(Zone);
-
-	void OnAllConfigLoaded() override;
-
-	Zone::Ptr GetParent() const;
-	std::set<Endpoint::Ptr> GetEndpoints() const;
-	std::vector<Zone::Ptr> GetAllParents() const;
-
-	bool CanAccessObject(const ConfigObject::Ptr& object);
-	bool IsChildOf(const Zone::Ptr& zone);
-	bool IsGlobal() const;
-	bool IsSingleInstance() const;
-
-	static Zone::Ptr GetLocalZone();
+	static Value ClusterStatsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-protected:
-	void ValidateEndpointsRaw(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
-
 private:
-	Zone::Ptr m_Parent;
-	std::vector<Zone::Ptr> m_AllParents;
+	StatsReporter();
+
+	void OnConnected(const Endpoint::Ptr& endpoint);
+	void ReportStats();
+	Dictionary::Ptr GenerateStats();
+	void ClusterStatsHandler(const String& endpoint, const Dictionary::Ptr& stats);
+
+	static StatsReporter m_Instance;
+
+	std::atomic_flag m_HasBeenInitialized = ATOMIC_FLAG_INIT;
+	Timer::Ptr timer;
+
+	boost::mutex m_Mutex;
+	std::map<String, Dictionary::Ptr> m_SecondaryStats;
 };
 
 }
 
-#endif /* ZONE_H */
+#endif /* STATSREPORTER_H */
