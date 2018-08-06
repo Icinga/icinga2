@@ -386,11 +386,12 @@ once they are set.
 
 ### Icinga 2 Specific Constants <a id="icinga-constants"></a>
 
-Icinga 2 provides a number of special global constants. Some of them can be overridden using the `--define` command line parameter:
+Icinga 2 provides a number of special global constants. These include directory paths, global configuration
+and runtime parameters for the application version and (build) platform.
 
-Defaults for paths in `/etc` and `/var` are based on `SysconfDir` and `LocalStateDir` respectively.
+Directory paths:
 
-Variable            |Description
+Constant            | Description
 --------------------|-------------------
 ConfigDir           |**Read-only.** Main configuration directory. Usually set to `/etc/icinga2`.
 DataDir             |**Read-only.** Runtime data for the Icinga daemon. Usually set to `/var/lib/icinga2`.
@@ -399,10 +400,22 @@ CacheDir            |**Read-only.** Cached status information of the daemon. Usu
 SpoolDir            |**Read-only.** Spool directory for certain data outputs. Usually set to `/var/spool/icinga2`.
 InitRunDir          |**Read-only.** Directory for PID files and sockets in daemon mode. Usually set to `/run/icinga2`.
 ZonesDir            |**Read-only.** Contains the path of the zones.d directory. Defaults to `ConfigDir + "/zones.d"`.
+
+Global configuration:
+
+Constant            | Description
+--------------------|-------------------
 Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
 RunAsUser           |**Read-write.** Defines the user the Icinga 2 daemon is running as. Set in the Icinga 2 sysconfig.
 RunAsGroup          |**Read-write.** Defines the group the Icinga 2 daemon is running as. Set in the Icinga 2 sysconfig.
+MaxConcurrentChecks |**Read-write**. The number of max checks run simultaneously. Defaults to `512`.
+Environment         |**Read-write**. The name of the Icinga environment. Included in the SNI host name when making outbound connections. Defaults to `production`.
+
+Application runtime details:
+
+Constant            | Description
+--------------------|-------------------
 PlatformName        |**Read-only.** The name of the operating system, e.g. `Ubuntu`.
 PlatformVersion     |**Read-only.** The version of the operating system, e.g. `14.04.3 LTS`.
 PlatformKernel      |**Read-only.** The name of the operating system kernel, e.g. `Linux`.
@@ -411,11 +424,16 @@ BuildCompilerName   |**Read-only.** The name of the compiler Icinga was built wi
 BuildCompilerVersion|**Read-only.** The version of the compiler Icinga was built with, e.g. `7.3.0.7030031`.
 BuildHostName       |**Read-only.** The name of the host Icinga was built on, e.g. `acheron`.
 ApplicationVersion  |**Read-only.** The application version, e.g. `2.9.0`.
-MaxConcurrentChecks |**Read-write**. The number of max checks run simultaneously. Defaults to `512`.
-Environment         |**Read-write**. The name of the Icinga environment. Included in the SNI host name when making outbound connections. Defaults to `production`.
 
-Certain variables are used to define file paths, you should never need to change them, as they are built based on
-constants above.
+Writable constants can be specified on the CLI using the `--define/-D` parameter.
+
+> **Note for v2.10+**
+>
+> Default paths which include `/etc` and `/var` as base directory continue to work
+> based on the `SysconfDir` and `LocalStateDir` constants respectively.
+
+In addition to that, the constants below are used to define specific file paths. You should never need
+to change them, as they are pre-compiled based on the constants above.
 
 Variable            |Description
 --------------------|-------------------
@@ -424,12 +442,12 @@ ObjectsPath         |**Read-write.** Contains the path of the Icinga 2 objects f
 PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to `InitRunDir + "/icinga2.pid"`.
 PkgDataDir          |**Read-only.** Contains the path of the package data directory. Defaults to `PrefixDir + "/share/icinga2"`.
 
-Some constants have been used in the past, but are deprecated now. They are stil involved in building Icinga,
-see `INSTALL.md`, but please avoid using them for runtime config!
+The constants below have been used until Icinga v2.10, and are still intact. You don't need them
+for future builds and configuration based on the newly available constants above.
 
 Variable            |Description
 --------------------|-------------------
-PrefixDir           |**Read-only.** Contains the installation prefix that was specified with cmake -DCMAKE_INSTALL_PREFIX. `Defaults to "/usr/local"`.
+PrefixDir           |**Read-only.** Contains the installation prefix that was specified with `cmake -DCMAKE_INSTALL_PREFIX`. `Defaults to "/usr/local"`.
 SysconfDir          |**Read-only.** Contains the path of the sysconf directory. Defaults to `PrefixDir + "/etc"`.
 LocalStateDir       |**Read-only.** Contains the path of the local state directory. Defaults to `PrefixDir + "/var"`.
 RunDir              |**Read-only.** Contains the path of the run directory. Defaults to `LocalStateDir + "/run"`.
