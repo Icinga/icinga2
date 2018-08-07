@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SCRIPTFUNCTION_H
-#define SCRIPTFUNCTION_H
+#ifndef FUNCTION_H
+#define FUNCTION_H
 
 #include "base/i2-base.hpp"
 #include "base/function-ti.hpp"
@@ -72,50 +72,18 @@ private:
 		bool side_effect_free, bool deprecated);
 };
 
-#define REGISTER_SCRIPTFUNCTION_NS(ns, name, callback, args) \
+#define REGISTER_FUNCTION(ns, name, callback, args) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), false); \
 		ScriptGlobal::Set(#ns "." #name, sf); \
 	}, 10)
 
-#define REGISTER_SCRIPTFUNCTION_NS_PREFIX(ns, name, callback, args) \
-	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
-		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), false); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
-		Function::Ptr dsf = new icinga::Function("Deprecated#__" #name " (deprecated)", WrapFunction(callback), String(args).Split(":"), false, true); \
-		ScriptGlobal::Set("Deprecated.__" #name, dsf); \
-	}, 10)
-
-#define REGISTER_SCRIPTFUNCTION_NS_DEPRECATED(ns, name, callback, args) \
-	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
-		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), false); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
-		Function::Ptr dsf = new icinga::Function("Deprecated#" #name " (deprecated)", WrapFunction(callback), String(args).Split(":"), false, true); \
-		ScriptGlobal::Set("Deprecated." #name, dsf); \
-	}, 10)
-
-#define REGISTER_SAFE_SCRIPTFUNCTION_NS(ns, name, callback, args) \
+#define REGISTER_SAFE_FUNCTION(ns, name, callback, args) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), true); \
 		ScriptGlobal::Set(#ns "." #name, sf); \
-	}, 10)
-
-#define REGISTER_SAFE_SCRIPTFUNCTION_NS_PREFIX(ns, name, callback, args) \
-	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
-		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), true); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
-		Function::Ptr dsf = new icinga::Function("Deprecated#__" #name " (deprecated)", WrapFunction(callback), String(args).Split(":"), true, true); \
-		ScriptGlobal::Set("Deprecated.__" #name, dsf); \
-	}, 10)
-
-#define REGISTER_SAFE_SCRIPTFUNCTION_NS_DEPRECATED(ns, name, callback, args) \
-	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
-		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), true); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
-		Function::Ptr dsf = new icinga::Function("Deprecated#" #name " (deprecated)", WrapFunction(callback), String(args).Split(":"), true, true); \
-		ScriptGlobal::Set("Deprecated." #name, dsf); \
 	}, 10)
 
 }
 
-#endif /* SCRIPTFUNCTION_H */
+#endif /* FUNCTION_H */

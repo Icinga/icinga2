@@ -31,7 +31,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, DummyCheck, &DummyCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION(Internal, DummyCheck, &DummyCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void DummyCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)

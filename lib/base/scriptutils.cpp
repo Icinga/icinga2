@@ -39,39 +39,39 @@
 
 using namespace icinga;
 
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, regex, &ScriptUtils::Regex, "pattern:text:mode");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, match, &ScriptUtils::Match, "pattern:text:mode");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, cidr_match, &ScriptUtils::CidrMatch, "pattern:ip:mode");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, len, &ScriptUtils::Len, "value");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, union, &ScriptUtils::Union, "");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, intersection, &ScriptUtils::Intersection, "");
-REGISTER_SCRIPTFUNCTION_NS(System, log, &ScriptUtils::Log, "severity:facility:value");
-REGISTER_SCRIPTFUNCTION_NS(System, range, &ScriptUtils::Range, "start:end:increment");
-REGISTER_SCRIPTFUNCTION_NS(System, exit, &Application::Exit, "status");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, typeof, &ScriptUtils::TypeOf, "value");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, keys, &ScriptUtils::Keys, "value");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, random, &Utility::Random, "");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_object, &ScriptUtils::GetObject, "type:name");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_objects, &ScriptUtils::GetObjects, "type");
-REGISTER_SCRIPTFUNCTION_NS(System, assert, &ScriptUtils::Assert, "value");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, string, &ScriptUtils::CastString, "value");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, number, &ScriptUtils::CastNumber, "value");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, bool, &ScriptUtils::CastBool, "value");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_time, &Utility::GetTime, "");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, basename, &Utility::BaseName, "path");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, dirname, &Utility::DirName, "path");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim, "component");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, track_parents, &ScriptUtils::TrackParents, "child");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_shell_cmd, &Utility::EscapeShellCmd, "cmd");
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_shell_arg, &Utility::EscapeShellArg, "arg");
+REGISTER_SAFE_FUNCTION(System, regex, &ScriptUtils::Regex, "pattern:text:mode");
+REGISTER_SAFE_FUNCTION(System, match, &ScriptUtils::Match, "pattern:text:mode");
+REGISTER_SAFE_FUNCTION(System, cidr_match, &ScriptUtils::CidrMatch, "pattern:ip:mode");
+REGISTER_SAFE_FUNCTION(System, len, &ScriptUtils::Len, "value");
+REGISTER_SAFE_FUNCTION(System, union, &ScriptUtils::Union, "");
+REGISTER_SAFE_FUNCTION(System, intersection, &ScriptUtils::Intersection, "");
+REGISTER_FUNCTION(System, log, &ScriptUtils::Log, "severity:facility:value");
+REGISTER_FUNCTION(System, range, &ScriptUtils::Range, "start:end:increment");
+REGISTER_FUNCTION(System, exit, &Application::Exit, "status");
+REGISTER_SAFE_FUNCTION(System, typeof, &ScriptUtils::TypeOf, "value");
+REGISTER_SAFE_FUNCTION(System, keys, &ScriptUtils::Keys, "value");
+REGISTER_SAFE_FUNCTION(System, random, &Utility::Random, "");
+REGISTER_SAFE_FUNCTION(System, get_object, &ScriptUtils::GetObject, "type:name");
+REGISTER_SAFE_FUNCTION(System, get_objects, &ScriptUtils::GetObjects, "type");
+REGISTER_FUNCTION(System, assert, &ScriptUtils::Assert, "value");
+REGISTER_SAFE_FUNCTION(System, string, &ScriptUtils::CastString, "value");
+REGISTER_SAFE_FUNCTION(System, number, &ScriptUtils::CastNumber, "value");
+REGISTER_SAFE_FUNCTION(System, bool, &ScriptUtils::CastBool, "value");
+REGISTER_SAFE_FUNCTION(System, get_time, &Utility::GetTime, "");
+REGISTER_SAFE_FUNCTION(System, basename, &Utility::BaseName, "path");
+REGISTER_SAFE_FUNCTION(System, dirname, &Utility::DirName, "path");
+REGISTER_SAFE_FUNCTION(System, msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim, "component");
+REGISTER_SAFE_FUNCTION(System, track_parents, &ScriptUtils::TrackParents, "child");
+REGISTER_SAFE_FUNCTION(System, escape_shell_cmd, &Utility::EscapeShellCmd, "cmd");
+REGISTER_SAFE_FUNCTION(System, escape_shell_arg, &Utility::EscapeShellArg, "arg");
 #ifdef _WIN32
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_create_process_arg, &Utility::EscapeCreateProcessArg, "arg");
+REGISTER_SAFE_FUNCTION(System, escape_create_process_arg, &Utility::EscapeCreateProcessArg, "arg");
 #endif /* _WIN32 */
-REGISTER_SCRIPTFUNCTION_NS(System, ptr, &ScriptUtils::Ptr, "object");
-REGISTER_SCRIPTFUNCTION_NS(System, sleep, &Utility::Sleep, "interval");
-REGISTER_SCRIPTFUNCTION_NS(System, path_exists, &Utility::PathExists, "path");
-REGISTER_SCRIPTFUNCTION_NS(System, glob, &ScriptUtils::Glob, "pathspec:callback:type");
-REGISTER_SCRIPTFUNCTION_NS(System, glob_recursive, &ScriptUtils::GlobRecursive, "pathspec:callback:type");
+REGISTER_FUNCTION(System, ptr, &ScriptUtils::Ptr, "object");
+REGISTER_FUNCTION(System, sleep, &Utility::Sleep, "interval");
+REGISTER_FUNCTION(System, path_exists, &Utility::PathExists, "path");
+REGISTER_FUNCTION(System, glob, &ScriptUtils::Glob, "pathspec:callback:type");
+REGISTER_FUNCTION(System, glob_recursive, &ScriptUtils::GlobRecursive, "pathspec:callback:type");
 
 INITIALIZE_ONCE(&ScriptUtils::StaticInitialize);
 
@@ -397,7 +397,7 @@ Type::Ptr ScriptUtils::TypeOf(const Value& value)
 	return value.GetReflectionType();
 }
 
-Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& dict)
+Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& obj)
 {
 	ArrayData result;
 

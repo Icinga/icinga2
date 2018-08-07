@@ -28,7 +28,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, LegacyTimePeriod, &LegacyTimePeriod::ScriptFunc, "tp:begin:end");
+REGISTER_FUNCTION(Internal, LegacyTimePeriod, &LegacyTimePeriod::ScriptFunc, "tp:begin:end");
 
 bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *reference)
 {
