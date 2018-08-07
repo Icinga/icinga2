@@ -359,7 +359,10 @@ static int Main()
 	GetUserName(username, &usernameLen);
 
 	std::ifstream userFile;
-	userFile.open(Application::GetConst("ConfigDir") + "/user");
+
+	/* The implicit string assignment is needed for Windows builds. */
+	String configDir = Application::GetConst("ConfigDir");
+	userFile.open(configDir + "/user");
 
 	if (userFile && command && !Application::IsProcessElevated()) {
 		std::string userLine;

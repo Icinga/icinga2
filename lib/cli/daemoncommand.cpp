@@ -205,6 +205,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	if (vm.count("config") > 0)
 		configs = vm["config"].as<std::vector<std::string> >();
 	else if (!vm.count("no-config")) {
+		/* The implicit string assignment is needed for Windows builds. */
 		String configDir = Application::GetConst("ConfigDir");
 		configs.push_back(configDir + "/icinga2.conf");
 	}
