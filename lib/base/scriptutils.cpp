@@ -30,6 +30,7 @@
 #include "base/application.hpp"
 #include "base/dependencygraph.hpp"
 #include "base/initialize.hpp"
+#include "base/namespace.hpp"
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <set>
@@ -83,11 +84,11 @@ enum MatchType
 
 void ScriptUtils::StaticInitialize()
 {
-	ScriptGlobal::Set("MatchAll", MatchAll, true);
-	ScriptGlobal::Set("MatchAny", MatchAny, true);
+	ScriptGlobal::Set("System.MatchAll", MatchAll, true);
+	ScriptGlobal::Set("System.MatchAny", MatchAny, true);
 
-	ScriptGlobal::Set("GlobFile", GlobFile, true);
-	ScriptGlobal::Set("GlobDirectory", GlobDirectory, true);
+	ScriptGlobal::Set("System.GlobFile", GlobFile, true);
+	ScriptGlobal::Set("System.GlobDirectory", GlobDirectory, true);
 }
 
 String ScriptUtils::CastString(const Value& value)
@@ -397,13 +398,24 @@ Type::Ptr ScriptUtils::TypeOf(const Value& value)
 	return value.GetReflectionType();
 }
 
-Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& obj)
+Array::Ptr ScriptUtils::Keys(const Object::Ptr& obj)
 {
 	ArrayData result;
+
+	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
 
 	if (dict) {
 		ObjectLock olock(dict);
 		for (const Dictionary::Pair& kv : dict) {
+			result.push_back(kv.first);
+		}
+	}
+
+	Namespace::Ptr ns = dynamic_pointer_cast<Namespace>(obj);
+
+	if (ns) {
+		ObjectLock olock(ns);
+		for (const Namespace::Pair& kv : ns) {
 			result.push_back(kv.first);
 		}
 	}
