@@ -290,13 +290,9 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 		}
 	}
 
-	{
-		Array::Ptr imports = ScriptFrame::GetImports();
-		ObjectLock olock(imports);
-		for (const Value& import : imports) {
-			AddSuggestions(matches, word, "", false, import);
-		}
-	}
+	AddSuggestions(matches, word, "", false, ScriptGlobal::Get("System"));
+	AddSuggestions(matches, word, "", false, ScriptGlobal::Get("Types"));
+	AddSuggestions(matches, word, "", false, ScriptGlobal::Get("Icinga"));
 
 	String::SizeType cperiod = word.RFind(".");
 

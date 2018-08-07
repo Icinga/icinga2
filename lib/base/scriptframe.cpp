@@ -19,26 +19,40 @@
 
 #include "base/scriptframe.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/namespace.hpp"
 #include "base/exception.hpp"
 
 using namespace icinga;
 
 boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
-Array::Ptr ScriptFrame::m_Imports;
+
+static auto l_InternalNSBehavior = new ConstNamespaceBehavior();
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
-	Dictionary::Ptr systemNS = new Dictionary();
-	ScriptGlobal::Set("System", systemNS);
-	ScriptFrame::AddImport(systemNS);
+	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 
-	Dictionary::Ptr typesNS = new Dictionary();
-	ScriptGlobal::Set("Types", typesNS);
-	ScriptFrame::AddImport(typesNS);
+	auto systemNSBehavior = new ConstNamespaceBehavior();
+	systemNSBehavior->Freeze();
+	Namespace::Ptr systemNS = new Namespace(systemNSBehavior);
+	globalNS->SetAttribute("System", std::make_shared<ConstEmbeddedNamespaceValue>(systemNS));
 
-	Dictionary::Ptr deprecatedNS = new Dictionary();
-	ScriptGlobal::Set("Deprecated", deprecatedNS);
-	ScriptFrame::AddImport(deprecatedNS);
+	auto typesNSBehavior = new ConstNamespaceBehavior();
+	typesNSBehavior->Freeze();
+	Namespace::Ptr typesNS = new Namespace(typesNSBehavior);
+	globalNS->SetAttribute("Types", std::make_shared<ConstEmbeddedNamespaceValue>(typesNS));
+
+	auto statsNSBehavior = new ConstNamespaceBehavior();
+	statsNSBehavior->Freeze();
+	Namespace::Ptr statsNS = new Namespace(statsNSBehavior);
+	globalNS->SetAttribute("StatsFunctions", std::make_shared<ConstEmbeddedNamespaceValue>(statsNS));
+
+	Namespace::Ptr internalNS = new Namespace(l_InternalNSBehavior);
+	globalNS->SetAttribute("Internal", std::make_shared<ConstEmbeddedNamespaceValue>(internalNS));
 }, 50);
+
+INITIALIZE_ONCE_WITH_PRIORITY([]() {
+	l_InternalNSBehavior->Freeze();
+}, 0);
 
 ScriptFrame::ScriptFrame(bool allocLocals)
 	: Locals(allocLocals ? new Dictionary() : nullptr), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)
@@ -120,23 +134,3 @@ void ScriptFrame::PushFrame(ScriptFrame *frame)
 
 	frames->push(frame);
 }
-
-Array::Ptr ScriptFrame::GetImports()
-{
-	return m_Imports;
-}
-
-void ScriptFrame::AddImport(const Object::Ptr& import)
-{
-	Array::Ptr imports;
-
-	if (!m_Imports)
-		imports = new Array();
-	else
-		imports = m_Imports->ShallowClone();
-
-	imports->Add(import);
-
-	m_Imports = imports;
-}
-

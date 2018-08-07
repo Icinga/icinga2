@@ -149,8 +149,9 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_CURRENT_FILENAME "current_filename (T_CURRENT_FILENAME)"
 %token T_CURRENT_LINE "current_line (T_CURRENT_LINE)"
 %token T_DEBUGGER "debugger (T_DEBUGGER)"
+%token T_NAMESPACE "namespace (T_NAMESPACE)"
 %token T_USE "use (T_USE)"
-%token T_USING "__using (T_USING)"
+%token T_USING "using (T_USING)"
 %token T_OBJECT "object (T_OBJECT)"
 %token T_TEMPLATE "template (T_TEMPLATE)"
 %token T_INCLUDE "include (T_INCLUDE)"
@@ -602,9 +603,23 @@ lterm: T_LIBRARY rterm
 	{
 		$$ = new BreakpointExpression(@$);
 	}
+	| T_NAMESPACE rterm
+	{
+		BeginFlowControlBlock(context, FlowControlReturn, false);
+	}
+	rterm_scope_require_side_effect
+	{
+		EndFlowControlBlock(context);
+
+		std::unique_ptr<Expression> expr{$2};
+		BindToScope(expr, ScopeGlobal);
+		$$ = new SetExpression(std::move(expr), OpSetLiteral, std::unique_ptr<Expression>(new NamespaceExpression(std::unique_ptr<Expression>($4), @$)), @$);
+	}
 	| T_USING rterm
 	{
-		$$ = new UsingExpression(std::unique_ptr<Expression>($2), @$);
+		std::shared_ptr<Expression> expr{$2};
+		context->AddImport(expr);
+		$$ = MakeLiteralRaw();
 	}
 	| apply
 	| object
@@ -879,7 +894,7 @@ rterm_no_side_effect_no_dict: T_STRING
 	}
 	| T_IDENTIFIER
 	{
-		$$ = new VariableExpression(*$1, @1);
+		$$ = new VariableExpression(*$1, context->GetImports(), @1);
 		delete $1;
 	}
 	| T_MULTIPLY rterm %prec DEREF_OP
@@ -1105,7 +1120,7 @@ use_specifier_items: use_specifier_item
 
 use_specifier_item: identifier
 	{
-		$$ = new std::pair<String, std::unique_ptr<Expression> >(*$1, std::unique_ptr<Expression>(new VariableExpression(*$1, @1)));
+		$$ = new std::pair<String, std::unique_ptr<Expression> >(*$1, std::unique_ptr<Expression>(new VariableExpression(*$1, context->GetImports(), @1)));
 		delete $1;
 	}
 	| identifier T_SET rterm

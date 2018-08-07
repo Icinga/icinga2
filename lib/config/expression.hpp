@@ -305,9 +305,7 @@ protected:
 class VariableExpression final : public DebuggableExpression
 {
 public:
-	VariableExpression(String variable, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Variable(std::move(variable))
-	{ }
+	VariableExpression(String variable, std::vector<std::shared_ptr<Expression> > imports, const DebugInfo& debugInfo = DebugInfo());
 
 	String GetVariable() const
 	{
@@ -320,6 +318,7 @@ protected:
 
 private:
 	String m_Variable;
+	std::vector<std::shared_ptr<Expression> > m_Imports;
 
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
@@ -856,6 +855,20 @@ private:
 	std::shared_ptr<Expression> m_Expression;
 };
 
+class NamespaceExpression final : public DebuggableExpression
+{
+public:
+	NamespaceExpression(std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Expression(std::move(expression))
+	{ }
+
+protected:
+	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+
+private:
+	std::shared_ptr<Expression> m_Expression;
+};
+
 class ObjectExpression final : public DebuggableExpression
 {
 public:
@@ -950,20 +963,6 @@ public:
 
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
-};
-
-class UsingExpression final : public DebuggableExpression
-{
-public:
-	UsingExpression(std::unique_ptr<Expression> name, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Name(std::move(name))
-	{ }
-
-protected:
-	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
-
-private:
-	std::unique_ptr<Expression> m_Name;
 };
 
 class TryExceptExpression final : public DebuggableExpression

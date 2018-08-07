@@ -109,6 +109,9 @@ public:
 	void SetPackage(const String& package);
 	String GetPackage() const;
 
+	void AddImport(const std::shared_ptr<Expression>& import);
+	std::vector<std::shared_ptr<Expression> > GetImports() const;
+
 	static void CollectIncludes(std::vector<std::unique_ptr<Expression> >& expressions,
 		const String& file, const String& zone, const String& package);
 
@@ -134,6 +137,7 @@ private:
 	std::istream *m_Input;
 	String m_Zone;
 	String m_Package;
+	std::vector<std::shared_ptr<Expression> > m_Imports;
 
 	void *m_Scanner;
 

@@ -43,15 +43,13 @@ namespace icinga
 class VMOps
 {
 public:
-	static inline bool FindVarImportRef(ScriptFrame& frame, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
+	static inline bool FindVarImportRef(ScriptFrame& frame, const std::vector<std::shared_ptr<Expression> >& imports, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
 	{
-		Array::Ptr imports = ScriptFrame::GetImports();
-
-		ObjectLock olock(imports);
-		for (const Value& import : imports) {
-			Object::Ptr obj = import;
+		for (const auto& import : imports) {
+			ExpressionResult res = import->Evaluate(frame);
+			Object::Ptr obj = res.GetValue();
 			if (obj->HasOwnField(name)) {
-				*result = import;
+				*result = obj;
 				return true;
 			}
 		}
@@ -59,11 +57,11 @@ public:
 		return false;
 	}
 
-	static inline bool FindVarImport(ScriptFrame& frame, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
+	static inline bool FindVarImport(ScriptFrame& frame, const std::vector<std::shared_ptr<Expression> >& imports, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
 	{
 		Value parent;
 
-		if (FindVarImportRef(frame, name, &parent, debugInfo)) {
+		if (FindVarImportRef(frame, imports, name, &parent, debugInfo)) {
 			*result = GetField(parent, name, frame.Sandboxed, debugInfo);
 			return true;
 		}
