@@ -235,6 +235,11 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		}
 
 		checkSums->Set("group_checksums", groupChecksums);
+
+		auto period (user->GetPeriod());
+
+		if (period)
+			checkSums->Set("period_checksum", GetObjectIdentifier(period));
 	}
 
 	/* Calculate checkable checksums. */
