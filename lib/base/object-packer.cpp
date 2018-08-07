@@ -262,7 +262,5 @@ String icinga::PackObject(const Value& value)
 	StringBuilder builder;
 	PackAny(value, builder);
 
-	String result;
-	result.insert(result.End(), builder.begin(), builder.end());
-	return std::move(result);
+	return String(builder.begin(), builder.end());
 }
