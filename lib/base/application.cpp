@@ -538,27 +538,35 @@ String Application::GetExePath(const String& argv0)
  */
 void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 {
-	os << "Application information:" << "\n";
-
+	/* icinga-app prints its own version information, stack traces need it here. */
 	if (!skipVersion)
-		os << "  Application version: " << GetAppVersion() << "\n";
+		os << "  Application version: " << GetAppVersion() << "\n\n";
 
-	os
-		<< "\n"
+	os << "System information:\n"
+		<< "  Platform: " << Utility::GetPlatformName() << "\n"
+		<< "  Platform version: " << Utility::GetPlatformVersion() << "\n"
+		<< "  Kernel: " << Utility::GetPlatformKernel() << "\n"
+		<< "  Kernel version: " << Utility::GetPlatformKernelVersion() << "\n"
+		<< "  Architecture: " << Utility::GetPlatformArchitecture() << "\n";
+
+	os << "\nBuild information:\n"
+		<< "  Compiler: " << ScriptGlobal::Get("BuildCompilerName") << " " << ScriptGlobal::Get("BuildCompilerVersion") << "\n"
+		<< "  Build host: " << ScriptGlobal::Get("BuildHostName") << "\n";
+
+	os << "\nApplication information:\n"
+		<< "\nGeneral paths:\n"
 		<< "  Config directory: " << GetConst("ConfigDir") << "\n"
 		<< "  Data directory: " << GetConst("DataDir") << "\n"
 		<< "  Log directory: " << GetConst("LogDir") << "\n"
 		<< "  Cache directory: " << GetConst("CacheDir") << "\n"
 		<< "  Spool directory: " << GetConst("SpoolDir") << "\n"
 		<< "  Run directory: " << GetConst("InitRunDir") << "\n"
-		<< "\n"
-		<< "Older paths (deprecated):" << "\n"
+		<< "\nOld paths (deprecated):\n"
 		<< "  Installation root: " << GetConst("PrefixDir") << "\n"
 		<< "  Sysconf directory: " << GetConst("SysconfDir") << "\n"
 		<< "  Run directory (base): " << GetConst("RunDir") << "\n"
 		<< "  Local state directory: " << GetConst("LocalStateDir") << "\n"
-		<< "\n"
-		<< "Internally used paths:" << "\n"
+		<< "\nInternal paths:\n"
 		<< "  Package data directory: " << GetConst("PkgDataDir") << "\n"
 		<< "  State path: " << GetConst("StatePath") << "\n"
 		<< "  Modified attributes path: " << GetConst("ModAttrPath") << "\n"
@@ -566,18 +574,6 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 		<< "  Vars path: " << GetConst("VarsPath") << "\n"
 		<< "  PID path: " << GetConst("PidPath") << "\n";
 
-	os << "\n"
-		<< "System information:" << "\n"
-		<< "  Platform: " << Utility::GetPlatformName() << "\n"
-		<< "  Platform version: " << Utility::GetPlatformVersion() << "\n"
-		<< "  Kernel: " << Utility::GetPlatformKernel() << "\n"
-		<< "  Kernel version: " << Utility::GetPlatformKernelVersion() << "\n"
-		<< "  Architecture: " << Utility::GetPlatformArchitecture() << "\n";
-
-	os << "\n"
-		<< "Build information:" << "\n"
-		<< "  Compiler: " << ScriptGlobal::Get("BuildCompilerName") << " " << ScriptGlobal::Get("BuildCompilerVersion") << "\n"
-		<< "  Build host: " << ScriptGlobal::Get("BuildHostName") << "\n";
 }
 
 /**

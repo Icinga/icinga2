@@ -155,13 +155,13 @@ bool TroubleshootCommand::GeneralInfo(InfoLog& log, const boost::program_options
 		<< "\tCache directory: " << Application::GetConst("CacheDir") << "\n"
 		<< "\tRun directory: " << Application::GetConst("InitRunDir") << "\n"
 		<< "\t\n"
-		<< "Older paths (deprecated):" << "\n"
+		<< "Old paths (deprecated):\n"
 		<< "\tInstallation root: " << Application::GetConst("PrefixDir") << '\n'
 		<< "\tSysconf directory: " << Application::GetConst("SysconfDir") << '\n'
 		<< "\tRun directory: " << Application::GetConst("RunDir") << '\n'
 		<< "\tLocal state directory: " << Application::GetConst("LocalStateDir") << '\n'
 		<< "\t\n"
-		<< "Internally used paths:" << "\n"
+		<< "Internal paths:\n"
 		<< "\tPackage data directory: " << Application::GetConst("PkgDataDir") << '\n'
 		<< "\tState path: " << Application::GetConst("StatePath") << '\n'
 		<< "\tObjects path: " << Application::GetConst("ObjectsPath") << '\n'
