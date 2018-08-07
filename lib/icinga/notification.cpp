@@ -79,22 +79,22 @@ Dictionary::Ptr NotificationNameComposer::ParseName(const String& name) const
 
 void Notification::StaticInitialize()
 {
-	ScriptGlobal::Set("OK", "OK");
-	ScriptGlobal::Set("Warning", "Warning");
-	ScriptGlobal::Set("Critical", "Critical");
-	ScriptGlobal::Set("Unknown", "Unknown");
-	ScriptGlobal::Set("Up", "Up");
-	ScriptGlobal::Set("Down", "Down");
+	ScriptGlobal::Set("Icinga.OK", "OK", true);
+	ScriptGlobal::Set("Icinga.Warning", "Warning", true);
+	ScriptGlobal::Set("Icinga.Critical", "Critical", true);
+	ScriptGlobal::Set("Icinga.Unknown", "Unknown", true);
+	ScriptGlobal::Set("Icinga.Up", "Up", true);
+	ScriptGlobal::Set("Icinga.Down", "Down", true);
 
-	ScriptGlobal::Set("DowntimeStart", "DowntimeStart");
-	ScriptGlobal::Set("DowntimeEnd", "DowntimeEnd");
-	ScriptGlobal::Set("DowntimeRemoved", "DowntimeRemoved");
-	ScriptGlobal::Set("Custom", "Custom");
-	ScriptGlobal::Set("Acknowledgement", "Acknowledgement");
-	ScriptGlobal::Set("Problem", "Problem");
-	ScriptGlobal::Set("Recovery", "Recovery");
-	ScriptGlobal::Set("FlappingStart", "FlappingStart");
-	ScriptGlobal::Set("FlappingEnd", "FlappingEnd");
+	ScriptGlobal::Set("Icinga.DowntimeStart", "DowntimeStart", true);
+	ScriptGlobal::Set("Icinga.DowntimeEnd", "DowntimeEnd", true);
+	ScriptGlobal::Set("Icinga.DowntimeRemoved", "DowntimeRemoved", true);
+	ScriptGlobal::Set("Icinga.Custom", "Custom", true);
+	ScriptGlobal::Set("Icinga.Acknowledgement", "Acknowledgement", true);
+	ScriptGlobal::Set("Icinga.Problem", "Problem", true);
+	ScriptGlobal::Set("Icinga.Recovery", "Recovery", true);
+	ScriptGlobal::Set("Icinga.FlappingStart", "FlappingStart", true);
+	ScriptGlobal::Set("Icinga.FlappingEnd", "FlappingEnd", true);
 
 	m_StateFilterMap["OK"] = StateFilterOK;
 	m_StateFilterMap["Warning"] = StateFilterWarning;

@@ -300,15 +300,15 @@ static int Main()
 
 	ScriptGlobal::Set("AttachDebugger", false);
 
-	ScriptGlobal::Set("PlatformKernel", Utility::GetPlatformKernel());
-	ScriptGlobal::Set("PlatformKernelVersion", Utility::GetPlatformKernelVersion());
-	ScriptGlobal::Set("PlatformName", Utility::GetPlatformName());
-	ScriptGlobal::Set("PlatformVersion", Utility::GetPlatformVersion());
-	ScriptGlobal::Set("PlatformArchitecture", Utility::GetPlatformArchitecture());
+	ScriptGlobal::Set("System.PlatformKernel", Utility::GetPlatformKernel(), true);
+	ScriptGlobal::Set("System.PlatformKernelVersion", Utility::GetPlatformKernelVersion(), true);
+	ScriptGlobal::Set("System.PlatformName", Utility::GetPlatformName(), true);
+	ScriptGlobal::Set("System.PlatformVersion", Utility::GetPlatformVersion(), true);
+	ScriptGlobal::Set("System.PlatformArchitecture", Utility::GetPlatformArchitecture(), true);
 
-	ScriptGlobal::Set("BuildHostName", ICINGA_BUILD_HOST_NAME);
-	ScriptGlobal::Set("BuildCompilerName", ICINGA_BUILD_COMPILER_NAME);
-	ScriptGlobal::Set("BuildCompilerVersion", ICINGA_BUILD_COMPILER_VERSION);
+	ScriptGlobal::Set("System.BuildHostName", ICINGA_BUILD_HOST_NAME, true);
+	ScriptGlobal::Set("System.BuildCompilerName", ICINGA_BUILD_COMPILER_NAME, true);
+	ScriptGlobal::Set("System.BuildCompilerVersion", ICINGA_BUILD_COMPILER_VERSION, true);
 
 	if (!autocomplete)
 		Application::SetResourceLimits();

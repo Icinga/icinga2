@@ -41,7 +41,7 @@ using namespace icinga;
 static Timer::Ptr l_RetentionTimer;
 
 REGISTER_TYPE(IcingaApplication);
-INITIALIZE_ONCE(&IcingaApplication::StaticInitialize);
+INITIALIZE_ONCE_WITH_PRIORITY(&IcingaApplication::StaticInitialize, 50);
 
 void IcingaApplication::StaticInitialize()
 {
@@ -59,9 +59,16 @@ void IcingaApplication::StaticInitialize()
 
 	ScriptGlobal::Set("NodeName", node_name);
 
-	ScriptGlobal::Set("ApplicationType", "IcingaApplication");
+	ScriptGlobal::Set("System.ApplicationType", "IcingaApplication", true);
 
-	ScriptGlobal::Set("ApplicationVersion", Application::GetAppVersion());
+	ScriptGlobal::Set("System.ApplicationVersion", Application::GetAppVersion(), true);
+
+	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
+
+	auto icingaNSBehavior = new ConstNamespaceBehavior();
+	icingaNSBehavior->Freeze();
+	Namespace::Ptr icingaNS = new Namespace(icingaNSBehavior);
+	globalNS->SetAttribute("Icinga", std::make_shared<ConstEmbeddedNamespaceValue>(icingaNS));
 }
 
 REGISTER_STATSFUNCTION(IcingaApplication, &IcingaApplication::StatsFunc);

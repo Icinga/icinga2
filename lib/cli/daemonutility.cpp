@@ -145,7 +145,11 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (!success)
 		return false;
 
-	Type::Ptr appType = Type::GetByName(ScriptGlobal::Get("ApplicationType", &Empty));
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+	Value vAppType;
+	VERIFY(systemNS->Get("ApplicationType", &vAppType));
+
+	Type::Ptr appType = Type::GetByName(vAppType);
 
 	if (ConfigItem::GetItems(appType).empty()) {
 		ConfigItemBuilder builder;
