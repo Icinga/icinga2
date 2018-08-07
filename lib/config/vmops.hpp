@@ -244,12 +244,12 @@ public:
 		return object->GetFieldByName(field, sandboxed, debugInfo);
 	}
 
-	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value, const DebugInfo& debugInfo = DebugInfo())
+	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo = DebugInfo())
 	{
 		if (!context)
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set field '" + field + "' on a value that is not an object.", debugInfo));
 
-		return context->SetFieldByName(field, value, debugInfo);
+		return context->SetFieldByName(field, value, overrideFrozen, debugInfo);
 	}
 
 private:

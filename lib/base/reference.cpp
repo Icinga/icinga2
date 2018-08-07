@@ -41,7 +41,7 @@ Value Reference::Get() const
 
 void Reference::Set(const Value& value)
 {
-	m_Parent->SetFieldByName(m_Index, value, DebugInfo());
+	m_Parent->SetFieldByName(m_Index, value, false, DebugInfo());
 }
 
 Object::Ptr Reference::GetParent() const

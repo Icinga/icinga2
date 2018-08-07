@@ -608,7 +608,7 @@ ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 		}
 	}
 
-	VMOps::SetField(parent, index, operand2.GetValue(), m_DebugInfo);
+	VMOps::SetField(parent, index, operand2.GetValue(), m_OverrideFrozen, m_DebugInfo);
 
 	if (psdhint) {
 		psdhint->AddMessage("=", m_DebugInfo);
@@ -618,6 +618,11 @@ ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 	}
 
 	return Empty;
+}
+
+void SetExpression::SetOverrideFrozen()
+{
+	m_OverrideFrozen = true;
 }
 
 ExpressionResult ConditionalExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -699,7 +704,7 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 			Value old_value =  VMOps::GetField(vparent, vindex, frame.Sandboxed, m_Operand1->GetDebugInfo());
 
 			if (old_value.IsEmpty() && !old_value.IsString())
-				VMOps::SetField(vparent, vindex, new Dictionary(), m_Operand1->GetDebugInfo());
+				VMOps::SetField(vparent, vindex, new Dictionary(), m_OverrideFrozen, m_Operand1->GetDebugInfo());
 		}
 
 		*parent = VMOps::GetField(vparent, vindex, frame.Sandboxed, m_DebugInfo);
@@ -723,6 +728,11 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 		delete psdhint;
 
 	return true;
+}
+
+void IndexerExpression::SetOverrideFrozen()
+{
+	m_OverrideFrozen = true;
 }
 
 void icinga::BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec)
