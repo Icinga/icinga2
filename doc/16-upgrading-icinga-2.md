@@ -7,6 +7,36 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.10 <a id="upgrading-to-2-10"></a>
+
+### Path Constant Changes <a id="upgrading-to-2-10-path-constant-changes"></a>
+
+During package upgrades you may see a notice that the configuration
+content of features has changed. This is due to a more general approach
+with path constants in v2.10.
+
+The known constants `SysconfDir` and `LocalStateDir` stay intact and won't
+break on upgrade.
+If you are using these constants in your own custom command definitions
+or other objects, you are advised to revise them and update them according
+to the [documentation](17-language-reference.md#icinga-constants).
+
+Example diff:
+
+```
+object NotificationCommand "mail-service-notification" {
+-  command = [ SysconfDir + "/icinga2/scripts/mail-service-notification.sh" ]
++  command = [ ConfigDir + "/scripts/mail-service-notification.sh" ]
+```
+
+If you have the `ICINGA2_RUN_DIR` environment variable configured in the
+sysconfig file, you need to rename it to `ICINGA2_INIT_RUN_DIR`. `ICINGA2_STATE_DIR`
+has been removed and this setting has no effect.
+
+> **Note**
+>
+> This is important if you rely on the sysconfig configuration in your own scripts.
+
 ## Upgrading to v2.9 <a id="upgrading-to-2-9"></a>
 
 ### Deprecation and Removal Notes <a id="upgrading-to-2-9-deprecation-removal-notes"></a>
