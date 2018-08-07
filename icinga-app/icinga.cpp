@@ -101,10 +101,12 @@ static void HandleLegacyDefines()
 #endif /* _WIN32 */
 
 	Value localStateDir = Application::GetConst("LocalStateDir");
+
 	if (!localStateDir.IsEmpty()) {
 		Log(LogWarning, "icinga-app")
-			<< "Please do not set LocalStateDir anymore, set DataDir, LogDir, CacheDir and SpoolDir!"
-			<< " Resetting those vars based on LocalStateDir!";
+			<< "Please do not set the deprecated 'LocalStateDir' constant,"
+			<< " use the 'DataDir', 'LogDir', 'CacheDir' and 'SpoolDir' constants instead!"
+			<< " For compatibility reasons, these are now set based on the 'LocalStateDir' constant.";
 
 #ifdef _WIN32
 		ScriptGlobal::Set("DataDir", localStateDir + "\\lib\\icinga2");
@@ -126,7 +128,7 @@ static void HandleLegacyDefines()
 	Value sysconfDir = Application::GetConst("SysconfDir");
 	if (!sysconfDir.IsEmpty()) {
 		Log(LogWarning, "icinga-app")
-			<< "Please do not set Sysconfdir anymore, set ConfigDir! Resetting the var based on SysconfDir!";
+			<< "Please do not set the deprecated 'Sysconfdir' constant, use the 'ConfigDir' constant instead! For compatibility reasons, their value is set based on the 'SysconfDir' constant.";
 
 #ifdef _WIN32
 		ScriptGlobal::Set("ConfigDir", sysconfDir + "\\icinga2");
@@ -142,7 +144,7 @@ static void HandleLegacyDefines()
 	Value runDir = Application::GetConst("RunDir");
 	if (!runDir.IsEmpty()) {
 		Log(LogWarning, "icinga-app")
-			<< "Please do not set RunDir anymore, set InitRunDir! Resetting the var based on RunDir!";
+			<< "Please do not set the deprecated 'RunDir' constant, use the 'InitRunDir' constant instead! For compatiblity reasons, their value is set based on the 'RunDir' constant.";
 
 #ifdef _WIN32
 		ScriptGlobal::Set("InitRunDir", runDir + "\\icinga2");
@@ -190,9 +192,9 @@ static int Main()
 #ifdef _WIN32
 	bool builtinPaths = true;
 
-	// Programm install location, C:/Program Files/Icinga2
+	/* Programm install location, C:/Program Files/Icinga2 */
 	String binaryPrefix = Utility::GetIcingaInstallPath();
-	// Returns the datapath for daemons, %PROGRAMDATA%/icinga2
+	/* Returns the datapath for daemons, %PROGRAMDATA%/icinga2 */
 	String dataPrefix = Utility::GetIcingaDataPath();
 
 	if (!binaryPrefix.IsEmpty() && !dataPrefix.IsEmpty()) {
@@ -206,9 +208,7 @@ static int Main()
 		Application::DeclareConst("CacheDir", dataPrefix + "\\var\\cache\\icinga2");
 		Application::DeclareConst("SpoolDir", dataPrefix + "\\var\\spool\\icinga2");
 
-		// also see call to HandleLegacyDefines() later
-
-		// internal constants
+		/* Internal constants. */
 		Application::DeclareConst("PkgDataDir", binaryPrefix + "\\share\\icinga2");
 		Application::DeclareConst("IncludeConfDir", binaryPrefix + "\\share\\icinga2\\include");
 	} else {
@@ -224,9 +224,7 @@ static int Main()
 
 		Application::DeclareConst("PrefixDir", ICINGA_PREFIX);
 
-		// also see call to HandleLegacyDefines() later
-
-		// internal constants
+		/* Internal constants. */
 		Application::DeclareConst("PkgDataDir", ICINGA_PKGDATADIR);
 		Application::DeclareConst("IncludeConfDir", ICINGA_INCLUDECONFDIR);
 
@@ -361,8 +359,7 @@ static int Main()
 	GetUserName(username, &usernameLen);
 
 	std::ifstream userFile;
-	String configDir = Application::GetConst("ConfigDir");
-	userFile.open(configDir + "/user");
+	userFile.open(Application::GetConst("ConfigDir") + "/user");
 
 	if (userFile && command && !Application::IsProcessElevated()) {
 		std::string userLine;
@@ -446,6 +443,7 @@ static int Main()
 		}
 	}
 
+	/* Ensure that all defined constants work in the way we expect them. */
 	HandleLegacyDefines();
 
 	if (vm.count("script-debugger"))
