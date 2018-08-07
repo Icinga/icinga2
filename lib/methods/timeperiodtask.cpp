@@ -22,8 +22,8 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION(Internal, EmptyTimePeriod, &TimePeriodTask::EmptyTimePeriodUpdate, "tp:begin:end");
-REGISTER_FUNCTION(Internal, EvenMinutesTimePeriod, &TimePeriodTask::EvenMinutesTimePeriodUpdate, "tp:begin:end");
+REGISTER_FUNCTION_NONCONST(Internal, EmptyTimePeriod, &TimePeriodTask::EmptyTimePeriodUpdate, "tp:begin:end");
+REGISTER_FUNCTION_NONCONST(Internal, EvenMinutesTimePeriod, &TimePeriodTask::EvenMinutesTimePeriodUpdate, "tp:begin:end");
 
 Array::Ptr TimePeriodTask::EmptyTimePeriodUpdate(const TimePeriod::Ptr& tp, double, double)
 {

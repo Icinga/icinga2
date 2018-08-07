@@ -21,6 +21,7 @@
 #include "config/configcompilercontext.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configitembuilder.hpp"
+#include "config/expression.hpp"
 #include "base/application.hpp"
 #include "base/logger.hpp"
 #include "base/timer.hpp"
@@ -440,7 +441,24 @@ static int Main()
 				key = define;
 				value = "1";
 			}
-			ScriptGlobal::Set(key, value);
+
+			std::vector<String> keyTokens = key.Split(".");
+
+			std::unique_ptr<Expression> expr;
+			std::unique_ptr<VariableExpression> varExpr{new VariableExpression(keyTokens[0], {}, DebugInfo())};
+			expr = std::move(varExpr);
+
+			for (size_t i = 1; i < keyTokens.size(); i++) {
+				std::unique_ptr<IndexerExpression> indexerExpr{new IndexerExpression(std::move(expr), MakeLiteral(keyTokens[i]))};
+				indexerExpr->SetOverrideFrozen();
+				expr = std::move(indexerExpr);
+			}
+
+			std::unique_ptr<SetExpression> setExpr{new SetExpression(std::move(expr), OpSetLiteral, MakeLiteral(value))};
+			setExpr->SetOverrideFrozen();
+
+			ScriptFrame frame(true);
+			setExpr->Evaluate(frame);
 		}
 	}
 

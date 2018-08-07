@@ -24,6 +24,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
+#include "base/namespace.hpp"
 #include <set>
 
 using namespace icinga;
@@ -48,10 +49,10 @@ public:
 		const std::function<void (const Value&)>& addTarget) const override
 	{
 		{
-			Dictionary::Ptr globals = ScriptGlobal::GetGlobals();
+			Namespace::Ptr globals = ScriptGlobal::GetGlobals();
 			ObjectLock olock(globals);
-			for (const Dictionary::Pair& kv : globals) {
-				addTarget(GetTargetForVar(kv.first, kv.second));
+			for (const Namespace::Pair& kv : globals) {
+				addTarget(GetTargetForVar(kv.first, kv.second->Get()));
 			}
 		}
 	}

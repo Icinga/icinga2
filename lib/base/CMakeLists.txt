@@ -54,6 +54,7 @@ set(base_SOURCES
   math-script.cpp
   netstring.cpp netstring.hpp
   networkstream.cpp networkstream.hpp
+  namespace.cpp namespace.hpp namespace-script.cpp
   number.cpp number.hpp number-script.cpp
   object.cpp object.hpp object-script.cpp
   objectlock.cpp objectlock.hpp

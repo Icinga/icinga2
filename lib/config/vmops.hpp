@@ -28,6 +28,7 @@
 #include "base/debuginfo.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
+#include "base/namespace.hpp"
 #include "base/function.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/exception.hpp"
@@ -222,6 +223,26 @@ public:
 			for (const String& key : keys) {
 				frame.Locals->Set(fkvar, key);
 				frame.Locals->Set(fvvar, dict->Get(key));
+				ExpressionResult res = expression->Evaluate(frame);
+				CHECK_RESULT_LOOP(res);
+			}
+		} else if (value.IsObjectType<Namespace>()) {
+			if (fvvar.IsEmpty())
+				BOOST_THROW_EXCEPTION(ScriptError("Cannot use array iterator for namespace.", debugInfo));
+
+			Namespace::Ptr ns = value;
+			std::vector<String> keys;
+
+			{
+				ObjectLock olock(ns);
+				for (const Namespace::Pair& kv : ns) {
+					keys.push_back(kv.first);
+				}
+			}
+
+			for (const String& key : keys) {
+				frame.Locals->Set(fkvar, key);
+				frame.Locals->Set(fvvar, ns->Get(key));
 				ExpressionResult res = expression->Evaluate(frame);
 				CHECK_RESULT_LOOP(res);
 			}

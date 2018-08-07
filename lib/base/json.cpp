@@ -19,6 +19,7 @@
 
 #include "base/json.hpp"
 #include "base/debug.hpp"
+#include "base/namespace.hpp"
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
@@ -38,6 +39,19 @@ typedef unsigned int yajl_size;
 #else /* YAJL_MAJOR */
 typedef size_t yajl_size;
 #endif /* YAJL_MAJOR */
+
+static void EncodeNamespace(yajl_gen handle, const Namespace::Ptr& ns)
+{
+	yajl_gen_map_open(handle);
+
+	ObjectLock olock(ns);
+	for (const Namespace::Pair& kv : ns) {
+		yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(kv.first.CStr()), kv.first.GetLength());
+		Encode(handle, kv.second->Get());
+	}
+
+	yajl_gen_map_close(handle);
+}
 
 static void EncodeDictionary(yajl_gen handle, const Dictionary::Ptr& dict)
 {
@@ -83,6 +97,13 @@ static void Encode(yajl_gen handle, const Value& value)
 		case ValueObject:
 			{
 				const Object::Ptr& obj = value.Get<Object::Ptr>();
+				Namespace::Ptr ns = dynamic_pointer_cast<Namespace>(obj);
+
+				if (ns) {
+					EncodeNamespace(handle, ns);
+					break;
+				}
+
 				Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
 
 				if (dict) {

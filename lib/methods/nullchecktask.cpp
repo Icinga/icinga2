@@ -30,7 +30,7 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION(Internal, NullCheck, &NullCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, NullCheck, &NullCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void NullCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)

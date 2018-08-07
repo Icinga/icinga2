@@ -83,11 +83,11 @@ enum MatchType
 
 void ScriptUtils::StaticInitialize()
 {
-	ScriptGlobal::Set("MatchAll", MatchAll);
-	ScriptGlobal::Set("MatchAny", MatchAny);
+	ScriptGlobal::Set("MatchAll", MatchAll, true);
+	ScriptGlobal::Set("MatchAny", MatchAny, true);
 
-	ScriptGlobal::Set("GlobFile", GlobFile);
-	ScriptGlobal::Set("GlobDirectory", GlobDirectory);
+	ScriptGlobal::Set("GlobFile", GlobFile, true);
+	ScriptGlobal::Set("GlobDirectory", GlobDirectory, true);
 }
 
 String ScriptUtils::CastString(const Value& value)

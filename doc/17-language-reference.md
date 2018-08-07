@@ -203,6 +203,38 @@ to dereference a reference:
     *p = "Hi!"
     log(value) // Prints "Hi!" because the variable was changed
 
+### Namespaces <a id="namespaces"></a>
+
+Namespaces can be used to organize variables and functions. They are used to avoid name conflicts. The `namespace`
+keyword is used to create a new namespace:
+
+    namespace Utils {
+        function calculate() {
+            return 2 + 2
+        }
+    }
+
+The namespace is made available as a global variable which has the namespace's name (e.g. `Utils`):
+
+    Utils.calculate()
+
+The `using` keyword can be used to make all attributes in a namespace available to a script without having to
+explicitly specify the namespace's name for each access:
+
+    using Utils
+    calculate()
+
+The `using` keyword only has an effect for the current file and only for code that follows the keyword:
+
+    calculate() // This will not work.
+    using Utils
+
+The following namespaces are automatically imported as if by using the `using` keyword:
+
+* System
+* Types
+* Icinga
+
 ### Function Calls <a id="function-calls"></a>
 
 Functions can be called using the `()` operator:

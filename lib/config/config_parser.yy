@@ -648,7 +648,7 @@ lterm: T_LIBRARY rterm
 	}
 	| T_CONST T_IDENTIFIER T_SET rterm
 	{
-		$$ = new SetExpression(MakeIndexer(ScopeGlobal, *$2), OpSetLiteral, std::unique_ptr<Expression>($4));
+		$$ = new SetConstExpression(*$2, std::unique_ptr<Expression>($4), @$);
 		delete $2;
 	}
 	| T_VAR rterm

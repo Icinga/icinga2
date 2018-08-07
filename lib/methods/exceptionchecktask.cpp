@@ -29,7 +29,7 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION(Internal, ExceptionCheck, &ExceptionCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, ExceptionCheck, &ExceptionCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void ExceptionCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)

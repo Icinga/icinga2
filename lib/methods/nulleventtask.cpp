@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION(Internal, NullEvent, &NullEventTask::ScriptFunc, "checkable:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, NullEvent, &NullEventTask::ScriptFunc, "checkable:resolvedMacros:useResolvedMacros");
 
 void NullEventTask::ScriptFunc(const Checkable::Ptr& checkable, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {

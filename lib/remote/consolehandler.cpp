@@ -27,6 +27,7 @@
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
 #include "base/timer.hpp"
+#include "base/namespace.hpp"
 #include "base/initialize.hpp"
 #include <boost/thread/once.hpp>
 #include <set>
@@ -233,6 +234,15 @@ static void AddSuggestions(std::vector<String>& matches, const String& word, con
 		}
 	}
 
+	if (value.IsObjectType<Namespace>()) {
+		Namespace::Ptr ns = value;
+
+		ObjectLock olock(ns);
+		for (const Namespace::Pair& kv : ns) {
+			AddSuggestion(matches, word, prefix + kv.first);
+		}
+	}
+
 	if (withFields) {
 		Type::Ptr type = value.GetReflectionType();
 
@@ -275,7 +285,7 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 
 	{
 		ObjectLock olock(ScriptGlobal::GetGlobals());
-		for (const Dictionary::Pair& kv : ScriptGlobal::GetGlobals()) {
+		for (const Namespace::Pair& kv : ScriptGlobal::GetGlobals()) {
 			AddSuggestion(matches, word, kv.first);
 		}
 	}

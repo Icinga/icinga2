@@ -637,6 +637,19 @@ private:
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
 
+class SetConstExpression final : public UnaryExpression
+{
+public:
+	SetConstExpression(const String& name, std::unique_ptr<Expression> operand, const DebugInfo& debugInfo = DebugInfo())
+		: UnaryExpression(std::move(operand), debugInfo), m_Name(name)
+	{ }
+
+protected:
+	String m_Name;
+
+	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+};
+
 class SetExpression final : public BinaryExpression
 {
 public:

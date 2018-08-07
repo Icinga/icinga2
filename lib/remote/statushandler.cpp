@@ -22,6 +22,7 @@
 #include "remote/filterutility.hpp"
 #include "base/serializer.hpp"
 #include "base/statsfunction.hpp"
+#include "base/namespace.hpp"
 
 using namespace icinga;
 
@@ -35,24 +36,29 @@ public:
 	void FindTargets(const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
-		Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
+		Namespace::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
 
 		if (statsFunctions) {
 			ObjectLock olock(statsFunctions);
 
-			for (const Dictionary::Pair& kv : statsFunctions)
+			for (const Namespace::Pair& kv : statsFunctions)
 				addTarget(GetTargetByName("Status", kv.first));
 		}
 	}
 
 	Value GetTargetByName(const String& type, const String& name) const override
 	{
-		Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
+		Namespace::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
 
 		if (!statsFunctions)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("No status functions are available."));
 
-		Function::Ptr func = statsFunctions->Get(name);
+		Value vfunc;
+
+		if (!statsFunctions->Get(name, &vfunc))
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status function name."));
+
+		Function::Ptr func = vfunc;
 
 		if (!func)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status function name."));

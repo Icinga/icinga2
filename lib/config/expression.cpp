@@ -29,6 +29,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/loader.hpp"
 #include "base/reference.hpp"
+#include "base/namespace.hpp"
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
 
@@ -625,6 +626,28 @@ void SetExpression::SetOverrideFrozen()
 	m_OverrideFrozen = true;
 }
 
+ExpressionResult SetConstExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	auto globals = ScriptGlobal::GetGlobals();
+
+	auto attr = globals->GetAttribute(m_Name);
+
+	if (dynamic_pointer_cast<ConstEmbeddedNamespaceValue>(attr)) {
+		std::ostringstream msgbuf;
+		msgbuf << "Value for constant '" << m_Name << "' was modified. This behaviour is deprecated.\n";
+		ShowCodeLocation(msgbuf, GetDebugInfo(), false);
+		Log(LogWarning, msgbuf.str());
+	}
+
+	ExpressionResult operandres = m_Operand->Evaluate(frame);
+	CHECK_RESULT(operandres);
+	Value operand = operandres.GetValue();
+
+	globals->SetAttribute(m_Name, std::make_shared<ConstEmbeddedNamespaceValue>(operand));
+
+	return Empty;
+}
+
 ExpressionResult ConditionalExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	ExpressionResult condition = m_Condition->Evaluate(frame, dhint);
@@ -701,7 +724,16 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 
 	if (m_Operand1->GetReference(frame, init_dict, &vparent, &vindex, &psdhint)) {
 		if (init_dict) {
-			Value old_value =  VMOps::GetField(vparent, vindex, frame.Sandboxed, m_Operand1->GetDebugInfo());
+			Value old_value;
+			bool has_field = true;
+
+			if (vparent.IsObject()) {
+				Object::Ptr oparent = vparent;
+				has_field = oparent->HasOwnField(vindex);
+			}
+
+			if (has_field)
+				old_value = VMOps::GetField(vparent, vindex, frame.Sandboxed, m_Operand1->GetDebugInfo());
 
 			if (old_value.IsEmpty() && !old_value.IsString())
 				VMOps::SetField(vparent, vindex, new Dictionary(), m_OverrideFrozen, m_Operand1->GetDebugInfo());

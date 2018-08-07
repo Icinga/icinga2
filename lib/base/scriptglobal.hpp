@@ -21,7 +21,7 @@
 #define SCRIPTGLOBAL_H
 
 #include "base/i2-base.hpp"
-#include "base/dictionary.hpp"
+#include "base/namespace.hpp"
 
 namespace icinga
 {
@@ -35,15 +35,16 @@ class ScriptGlobal
 {
 public:
 	static Value Get(const String& name, const Value *defaultValue = nullptr);
-	static void Set(const String& name, const Value& value);
+	static void Set(const String& name, const Value& value, bool overrideFrozen = false);
+	static void SetConst(const String& name, const Value& value);
 	static bool Exists(const String& name);
 
 	static void WriteToFile(const String& filename);
 
-	static Dictionary::Ptr GetGlobals();
+	static Namespace::Ptr GetGlobals();
 
 private:
-	static Dictionary::Ptr m_Globals;
+	static Namespace::Ptr m_Globals;
 };
 
 }

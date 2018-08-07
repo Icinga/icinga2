@@ -75,13 +75,29 @@ private:
 #define REGISTER_FUNCTION(ns, name, callback, args) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), false); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
+		Namespace::Ptr nsp = ScriptGlobal::Get(#ns); \
+		nsp->SetAttribute(#name, std::make_shared<ConstEmbeddedNamespaceValue>(sf)); \
 	}, 10)
 
 #define REGISTER_SAFE_FUNCTION(ns, name, callback, args) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), true); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
+		Namespace::Ptr nsp = ScriptGlobal::Get(#ns); \
+		nsp->SetAttribute(#name, std::make_shared<ConstEmbeddedNamespaceValue>(sf)); \
+	}, 10)
+
+#define REGISTER_FUNCTION_NONCONST(ns, name, callback, args) \
+	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
+		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), false); \
+		Namespace::Ptr nsp = ScriptGlobal::Get(#ns); \
+		nsp->SetAttribute(#name, std::make_shared<EmbeddedNamespaceValue>(sf)); \
+	}, 10)
+
+#define REGISTER_SAFE_FUNCTION_NONCONST(ns, name, callback, args) \
+	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
+		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), true); \
+		Namespace::Ptr nsp = ScriptGlobal::Get(#ns); \
+		nsp->SetAttribute(#name, std::make_shared<EmbeddedNamespaceValue>(sf)); \
 	}, 10)
 
 }
