@@ -1697,7 +1697,7 @@ Configuration Attributes:
   pager                     | String                | **Optional.** A pager string for this user. Useful for notification commands.
   vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this user.
   groups                    | Array of object names | **Optional.** An array of group names.
-  enable\_notifications     | Boolean               | **Optional.** Whether notifications are enabled for this user.
+  enable\_notifications     | Boolean               | **Optional.** Whether notifications are enabled for this user. Defaults to true.
   period                    | Object name           | **Optional.** The name of a time period which determines when a notification for this user should be triggered. Not set by default.
   types                     | Array                 | **Optional.** A set of type filters when a notification for this user should be triggered. By default everything is matched.
   states                    | Array                 | **Optional.** A set of state filters when a notification for this should be triggered. By default everything is matched.
