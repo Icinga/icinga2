@@ -89,7 +89,7 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints() const
 	return result;
 }
 
-std::vector<Zone::Ptr> Zone::GetAllParents() const
+std::vector<Zone::Ptr> Zone::GetAllParentsRaw() const
 {
 	return m_AllParents;
 }
