@@ -20,6 +20,7 @@
 #include "remote/zone.hpp"
 #include "remote/zone-ti.cpp"
 #include "remote/jsonrpcconnection.hpp"
+#include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 
@@ -92,6 +93,16 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints() const
 std::vector<Zone::Ptr> Zone::GetAllParentsRaw() const
 {
 	return m_AllParents;
+}
+
+Array::Ptr Zone::GetAllParents() const
+{
+	auto result (new Array);
+
+	for (auto& parent : m_AllParents)
+		result->Add(parent->GetName());
+
+	return result;
 }
 
 bool Zone::CanAccessObject(const ConfigObject::Ptr& object)
