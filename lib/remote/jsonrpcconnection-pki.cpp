@@ -129,6 +129,12 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 			return result;
 		}
+	} else if (Utility::PathExists(requestDir + "/" + certFingerprint + ".removed")) {
+		Log(LogInformation, "JsonRpcConnection")
+			<< "Certificate for CN " << cn << " has been removed. Ignoring signing request.";
+		result->Set("status_code", 1);
+		result->Set("error", "Ticket for CN " + cn + " declined by administrator.");
+		return result;
 	}
 
 	std::shared_ptr<X509> newcert;

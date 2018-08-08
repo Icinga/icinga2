@@ -61,7 +61,7 @@ int CARemoveCommand::Run(const boost::program_options::variables_map& vm, const 
 			<< "No request exists for fingerprint '" << ap[0] << "'.";
 		return 1;
 	}
-
+	Utility::SaveJsonFile(ApiListener::GetCertificateRequestsDir() + "/" + ap[0] + ".removed", 700, Utility::LoadJsonFile(requestFile));
 	if(remove(requestFile.CStr()) != 0)
 		return 1;
 
