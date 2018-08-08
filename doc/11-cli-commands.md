@@ -21,6 +21,7 @@ Usage:
 Supported commands:
   * api setup (setup for API)
   * ca list (lists all certificate signing requests)
+  * ca restore (restores a removed certificate request)
   * ca remove (removes an outstanding certificate request)  
   * ca sign (signs an outstanding certificate request)
   * console (Icinga debug console)
@@ -186,6 +187,8 @@ Usage:
 Supported commands:
   * ca list (lists all certificate signing requests)
   * ca sign (signs an outstanding certificate request)
+  * ca restore (restores a removed certificate request)
+  * ca remove (removes an outstanding certificate request)
 
 Global options:
   -h [ --help ]             show this help message

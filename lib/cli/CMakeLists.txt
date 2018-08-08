@@ -5,6 +5,7 @@ set(cli_SOURCES
   apisetupcommand.cpp apisetupcommand.hpp
   apisetuputility.cpp apisetuputility.hpp
   calistcommand.cpp calistcommand.hpp
+  carestorecommand.cpp carestorecommand.hpp
   caremovecommand.cpp caremovecommand.hpp
   casigncommand.cpp casigncommand.hpp
   clicommand.cpp clicommand.hpp

@@ -458,6 +458,8 @@ syntax as the `ca sign` command.
 [root@pym ~]# icinga2 ca remove 5c31ca0e2269c10363a97e40e3f2b2cd56493f9194d5b1852541b835970da46e
 information/cli: Certificate 5c31ca0e2269c10363a97e40e3f2b2cd56493f9194d5b1852541b835970da46e removed.
 ```
+If you want to restore a certificate you have removed, you can use `ca restore`.
+
 
 ## Client/Satellite Setup <a id="distributed-monitoring-setup-satellite-client"></a>
 
