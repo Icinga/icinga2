@@ -47,19 +47,43 @@ string(REPLACE "Version: " "" ICINGA2_VERSION ${VERSION_LINE})
 
 include(GNUInstallDirs)
 include(InstallConfig)
+include(SetFullDir)
 
 set(ICINGA2_USER "icinga" CACHE STRING "Icinga 2 user")
 set(ICINGA2_GROUP "icinga" CACHE STRING "Icinga 2 group")
 set(ICINGA2_COMMAND_GROUP "icingacmd" CACHE STRING "Icinga 2 command group")
-set(ICINGA2_RUNDIR "${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/run" CACHE STRING "/run directory")
 set(ICINGA2_PLUGINDIR "/usr/lib/nagios/plugins" CACHE STRING "Path for the check plugins")
 set(ICINGA2_GIT_VERSION_INFO ON CACHE BOOL "Whether to use git describe")
 set(ICINGA2_UNITY_BUILD ON CACHE BOOL "Whether to perform a unity build")
 set(ICINGA2_LTO_BUILD OFF CACHE BOOL "Whether to use LTO")
 
-if(NOT WIN32)
-  set(ICINGA2_SYSCONFIGFILE "${CMAKE_INSTALL_FULL_SYSCONFDIR}/sysconfig/icinga2" CACHE PATH "where to store configuation for the init system, defaults to /etc/sysconfig/icinga2")
+set(ICINGA2_CONFIGDIR "${CMAKE_INSTALL_SYSCONFDIR}/icinga2" CACHE FILEPATH "Main config directory, e.g. /etc/icinga2")
+set(ICINGA2_CACHEDIR "${CMAKE_INSTALL_LOCALSTATEDIR}/cache/icinga2" CACHE FILEPATH "Directory for cache files, e.g. /var/cache/icinga2")
+set(ICINGA2_DATADIR "${CMAKE_INSTALL_LOCALSTATEDIR}/lib/icinga2" CACHE FILEPATH "Data directory for the daemon, e.g. /var/lib/icinga2")
+set(ICINGA2_LOGDIR "${CMAKE_INSTALL_LOCALSTATEDIR}/log/icinga2" CACHE FILEPATH "Logging directory, e.g. /var/log/icinga2")
+set(ICINGA2_SPOOLDIR "${CMAKE_INSTALL_LOCALSTATEDIR}/spool/icinga2" CACHE FILEPATH "Spooling directory, e.g. /var/spool/icinga2")
+set(ICINGA2_RUNDIR "${CMAKE_INSTALL_LOCALSTATEDIR}/run" CACHE STRING "/run directory (deprecated, please use ICINGA2_INITRUNDIR)")
+set(ICINGA2_INITRUNDIR "${ICINGA2_RUNDIR}/icinga2" CACHE FILEPATH "Runtime data for the init system, e.g. /run/icinga2")
 
+set(ICINGA2_PKGDATADIR "${CMAKE_INSTALL_DATADIR}/icinga2" CACHE FILEPATH "Installed data, e.g. /usr/share/icinga2")
+set(ICINGA2_INCLUDEDIR "${ICINGA2_PKGDATADIR}/include" CACHE FILEPATH "Include directory for the ITL, e.g. /usr/share/icinga2/include")
+
+# ensure absolute paths
+set_full_dir(ICINGA2_FULL_CONFIGDIR "${ICINGA2_CONFIGDIR}")
+set_full_dir(ICINGA2_FULL_CACHEDIR "${ICINGA2_CACHEDIR}")
+set_full_dir(ICINGA2_FULL_DATADIR "${ICINGA2_DATADIR}")
+set_full_dir(ICINGA2_FULL_LOGDIR "${ICINGA2_LOGDIR}")
+set_full_dir(ICINGA2_FULL_SPOOLDIR "${ICINGA2_SPOOLDIR}")
+set_full_dir(ICINGA2_FULL_RUNDIR "${ICINGA2_RUNDIR}")
+set_full_dir(ICINGA2_FULL_INITRUNDIR "${ICINGA2_INITRUNDIR}")
+set_full_dir(ICINGA2_FULL_PKGDATADIR "${ICINGA2_PKGDATADIR}")
+set_full_dir(ICINGA2_FULL_INCLUDEDIR "${ICINGA2_INCLUDEDIR}")
+
+set(LOGROTATE_DIR "${CMAKE_INSTALL_SYSCONFDIR}/logrotate.d" CACHE STRING "Location of logrotate configs, e.g. /etc/logrotate.d")
+set(BASHCOMPLETION_DIR "${CMAKE_INSTALL_SYSCONFDIR}/bash_completion.d" CACHE STRING "Location of bash_completion files, e.g. /etc/bash_completion.d")
+
+if(NOT WIN32)
+  set(ICINGA2_SYSCONFIGFILE "${CMAKE_INSTALL_SYSCONFDIR}/sysconfig/icinga2" CACHE PATH "where to store configuation for the init system, defaults to /etc/sysconfig/icinga2")
 endif()
 
 site_name(ICINGA2_BUILD_HOST_NAME)

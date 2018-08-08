@@ -559,7 +559,7 @@ void StatusDataWriter::UpdateObjectsCache()
 {
 	CONTEXT("Writing objects.cache file");
 
-	String objectsPath = GetObjectsPath();
+	String objectsPath = Application::GetConst("ObjectsPath");
 
 	std::fstream objectfp;
 	String tempObjectsPath = Utility::CreateTempFile(objectsPath + ".XXXXXX", 0644, objectfp);

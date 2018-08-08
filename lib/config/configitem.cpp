@@ -577,8 +577,8 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 
 	if (withModAttrs) {
 		/* restore modified attributes */
-		if (Utility::PathExists(Application::GetModAttrPath())) {
-			std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(Application::GetModAttrPath());
+		if (Utility::PathExists(Application::GetConst("ModAttrPath"))) {
+			std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(Application::GetConst("ModAttrPath"));
 
 			if (expression) {
 				try {

@@ -46,8 +46,6 @@ public:
 
 	static IcingaApplication::Ptr GetInstance();
 
-	String GetPidPath() const;
-
 	bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
 	String GetNodeName() const;

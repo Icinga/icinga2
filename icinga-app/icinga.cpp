@@ -94,6 +94,70 @@ static std::vector<String> GlobalArgumentCompletion(const String& argument, cons
 		return std::vector<String>();
 }
 
+static void HandleLegacyDefines()
+{
+#ifdef _WIN32
+	String dataPrefix = Utility::GetIcingaDataPath();
+#endif /* _WIN32 */
+
+	Value localStateDir = Application::GetConst("LocalStateDir");
+
+	if (!localStateDir.IsEmpty()) {
+		Log(LogWarning, "icinga-app")
+			<< "Please do not set the deprecated 'LocalStateDir' constant,"
+			<< " use the 'DataDir', 'LogDir', 'CacheDir' and 'SpoolDir' constants instead!"
+			<< " For compatibility reasons, these are now set based on the 'LocalStateDir' constant.";
+
+#ifdef _WIN32
+		ScriptGlobal::Set("DataDir", localStateDir + "\\lib\\icinga2");
+		ScriptGlobal::Set("LogDir", localStateDir + "\\log\\icinga2");
+		ScriptGlobal::Set("CacheDir", localStateDir + "\\cache\\icinga2");
+		ScriptGlobal::Set("SpoolDir", localStateDir + "\\spool\\icinga2");
+	} else {
+		ScriptGlobal::Set("LocalStateDir", dataPrefix + "\\var");
+#else /* _WIN32 */
+		ScriptGlobal::Set("DataDir", localStateDir + "/lib/icinga2");
+		ScriptGlobal::Set("LogDir", localStateDir + "/log/icinga2");
+		ScriptGlobal::Set("CacheDir", localStateDir + "/cache/icinga2");
+		ScriptGlobal::Set("SpoolDir", localStateDir + "/spool/icinga2");
+	} else {
+		ScriptGlobal::Set("LocalStateDir", ICINGA_LOCALSTATEDIR);
+#endif /* _WIN32 */
+	}
+
+	Value sysconfDir = Application::GetConst("SysconfDir");
+	if (!sysconfDir.IsEmpty()) {
+		Log(LogWarning, "icinga-app")
+			<< "Please do not set the deprecated 'Sysconfdir' constant, use the 'ConfigDir' constant instead! For compatibility reasons, their value is set based on the 'SysconfDir' constant.";
+
+#ifdef _WIN32
+		ScriptGlobal::Set("ConfigDir", sysconfDir + "\\icinga2");
+	} else {
+		ScriptGlobal::Set("SysconfDir", dataPrefix + "\\etc");
+#else /* _WIN32 */
+		ScriptGlobal::Set("ConfigDir", sysconfDir + "/icinga2");
+	} else {
+		ScriptGlobal::Set("SysconfDir", ICINGA_SYSCONFDIR);
+#endif /* _WIN32 */
+	}
+
+	Value runDir = Application::GetConst("RunDir");
+	if (!runDir.IsEmpty()) {
+		Log(LogWarning, "icinga-app")
+			<< "Please do not set the deprecated 'RunDir' constant, use the 'InitRunDir' constant instead! For compatiblity reasons, their value is set based on the 'RunDir' constant.";
+
+#ifdef _WIN32
+		ScriptGlobal::Set("InitRunDir", runDir + "\\icinga2");
+	} else {
+		ScriptGlobal::Set("RunDir", dataPrefix + "\\var\\run");
+#else /* _WIN32 */
+		ScriptGlobal::Set("InitRunDir", runDir + "/icinga2");
+	} else {
+		ScriptGlobal::Set("RunDir", ICINGA_RUNDIR);
+#endif /* _WIN32 */
+	}
+}
+
 static int Main()
 {
 	int argc = Application::GetArgC();
@@ -128,31 +192,49 @@ static int Main()
 #ifdef _WIN32
 	bool builtinPaths = true;
 
+	/* Programm install location, C:/Program Files/Icinga2 */
 	String binaryPrefix = Utility::GetIcingaInstallPath();
+	/* Returns the datapath for daemons, %PROGRAMDATA%/icinga2 */
 	String dataPrefix = Utility::GetIcingaDataPath();
 
 	if (!binaryPrefix.IsEmpty() && !dataPrefix.IsEmpty()) {
-		Application::DeclarePrefixDir(binaryPrefix);
-		Application::DeclareSysconfDir(dataPrefix + "\\etc");
-		Application::DeclareRunDir(dataPrefix + "\\var\\run");
-		Application::DeclareLocalStateDir(dataPrefix + "\\var");
-		Application::DeclarePkgDataDir(binaryPrefix + "\\share\\icinga2");
-		Application::DeclareIncludeConfDir(binaryPrefix + "\\share\\icinga2\\include");
+		Application::DeclareConst("PrefixDir", binaryPrefix);
+		Application::DeclareConst("ProgramData", dataPrefix);
+
+		Application::DeclareConst("ConfigDir", dataPrefix + "\\etc\\icinga2");
+
+		Application::DeclareConst("DataDir", dataPrefix + "\\var\\lib\\icinga2");
+		Application::DeclareConst("LogDir", dataPrefix + "\\var\\log\\icinga2");
+		Application::DeclareConst("CacheDir", dataPrefix + "\\var\\cache\\icinga2");
+		Application::DeclareConst("SpoolDir", dataPrefix + "\\var\\spool\\icinga2");
+
+		/* Internal constants. */
+		Application::DeclareConst("PkgDataDir", binaryPrefix + "\\share\\icinga2");
+		Application::DeclareConst("IncludeConfDir", binaryPrefix + "\\share\\icinga2\\include");
 	} else {
 		Log(LogWarning, "icinga-app", "Registry key could not be read. Falling back to built-in paths.");
 
 #endif /* _WIN32 */
-		Application::DeclarePrefixDir(ICINGA_PREFIX);
-		Application::DeclareSysconfDir(ICINGA_SYSCONFDIR);
-		Application::DeclareRunDir(ICINGA_RUNDIR);
-		Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
-		Application::DeclarePkgDataDir(ICINGA_PKGDATADIR);
-		Application::DeclareIncludeConfDir(ICINGA_INCLUDECONFDIR);
+		Application::DeclareConst("ConfigDir", ICINGA_CONFIGDIR);
+
+		Application::DeclareConst("DataDir", ICINGA_DATADIR);
+		Application::DeclareConst("LogDir", ICINGA_LOGDIR);
+		Application::DeclareConst("CacheDir", ICINGA_CACHEDIR);
+		Application::DeclareConst("SpoolDir", ICINGA_SPOOLDIR);
+
+		Application::DeclareConst("PrefixDir", ICINGA_PREFIX);
+
+		/* Internal constants. */
+		Application::DeclareConst("PkgDataDir", ICINGA_PKGDATADIR);
+		Application::DeclareConst("IncludeConfDir", ICINGA_INCLUDECONFDIR);
+
+		Application::DeclareConst("InitRunDir", ICINGA_INITRUNDIR);
+
 #ifdef _WIN32
 	}
 #endif /* _WIN32 */
 
-	Application::DeclareZonesDir(Application::GetSysconfDir() + "/icinga2/zones.d");
+	Application::DeclareConst("ZonesDir", Application::GetConst("ConfigDir") + "/zones.d");
 
 	String icingaUser = Utility::GetFromEnvironment("ICINGA2_USER");
 	if (icingaUser.IsEmpty())
@@ -162,17 +244,17 @@ static int Main()
 	if (icingaGroup.IsEmpty())
 		icingaGroup = ICINGA_GROUP;
 
-	Application::DeclareRunAsUser(icingaUser);
-	Application::DeclareRunAsGroup(icingaGroup);
+	Application::DeclareConst("RunAsUser", icingaUser);
+	Application::DeclareConst("RunAsGroup", icingaGroup);
 
 	if (!autocomplete) {
 #ifdef RLIMIT_NOFILE
 		String rLimitFiles = Utility::GetFromEnvironment("ICINGA2_RLIMIT_FILES");
 		if (rLimitFiles.IsEmpty())
-			Application::DeclareRLimitFiles(Application::GetDefaultRLimitFiles());
+			Application::DeclareConst("RLimitFiles", Application::GetDefaultRLimitFiles());
 		else {
 			try {
-				Application::DeclareRLimitFiles(Convert::ToLong(rLimitFiles));
+				Application::DeclareConst("RLimitFiles", Convert::ToLong(rLimitFiles));
 			} catch (const std::invalid_argument& ex) {
 				std::cout
 					<< "Error setting \"ICINGA2_RLIMIT_FILES\": " << ex.what() << '\n';
@@ -184,10 +266,10 @@ static int Main()
 #ifdef RLIMIT_NPROC
 		String rLimitProcesses = Utility::GetFromEnvironment("ICINGA2_RLIMIT_PROCESSES");
 		if (rLimitProcesses.IsEmpty())
-			Application::DeclareRLimitProcesses(Application::GetDefaultRLimitProcesses());
+			Application::DeclareConst("RLimitProcesses", Application::GetDefaultRLimitProcesses());
 		else {
 			try {
-				Application::DeclareRLimitProcesses(Convert::ToLong(rLimitProcesses));
+				Application::DeclareConst("RLimitProcesses", Convert::ToLong(rLimitProcesses));
 			} catch (const std::invalid_argument& ex) {
 				std::cout
 					<< "Error setting \"ICINGA2_RLIMIT_PROCESSES\": " << ex.what() << '\n';
@@ -199,10 +281,10 @@ static int Main()
 #ifdef RLIMIT_STACK
 		String rLimitStack = Utility::GetFromEnvironment("ICINGA2_RLIMIT_STACK");
 		if (rLimitStack.IsEmpty())
-			Application::DeclareRLimitStack(Application::GetDefaultRLimitStack());
+			Application::DeclareConst("RLimitStack", Application::GetDefaultRLimitStack());
 		else {
 			try {
-				Application::DeclareRLimitStack(Convert::ToLong(rLimitStack));
+				Application::DeclareConst("RLimitStack", Convert::ToLong(rLimitStack));
 			} catch (const std::invalid_argument& ex) {
 				std::cout
 					<< "Error setting \"ICINGA2_RLIMIT_STACK\": " << ex.what() << '\n';
@@ -212,8 +294,8 @@ static int Main()
 #endif /* RLIMIT_STACK */
 	}
 
-	Application::DeclareConcurrency(std::thread::hardware_concurrency());
-	Application::DeclareMaxConcurrentChecks(Application::GetDefaultMaxConcurrentChecks());
+	Application::DeclareConst("Concurrency", std::thread::hardware_concurrency());
+	Application::DeclareConst("MaxConcurrentChecks", Application::GetDefaultMaxConcurrentChecks());
 
 	ScriptGlobal::Set("Environment", "production");
 
@@ -277,7 +359,10 @@ static int Main()
 	GetUserName(username, &usernameLen);
 
 	std::ifstream userFile;
-	userFile.open(Application::GetSysconfDir() + "/icinga2/user");
+
+	/* The implicit string assignment is needed for Windows builds. */
+	String configDir = Application::GetConst("ConfigDir");
+	userFile.open(configDir + "/user");
 
 	if (userFile && command && !Application::IsProcessElevated()) {
 		std::string userLine;
@@ -361,16 +446,19 @@ static int Main()
 		}
 	}
 
+	/* Ensure that all defined constants work in the way we expect them. */
+	HandleLegacyDefines();
+
 	if (vm.count("script-debugger"))
 		Application::SetScriptDebuggerEnabled(true);
 
-	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
-	Application::DeclareModAttrPath(Application::GetLocalStateDir() + "/lib/icinga2/modified-attributes.conf");
-	Application::DeclareObjectsPath(Application::GetLocalStateDir() + "/cache/icinga2/icinga2.debug");
-	Application::DeclareVarsPath(Application::GetLocalStateDir() + "/cache/icinga2/icinga2.vars");
-	Application::DeclarePidPath(Application::GetRunDir() + "/icinga2/icinga2.pid");
+	Application::DeclareConst("StatePath", Application::GetConst("DataDir") + "/icinga2.state");
+	Application::DeclareConst("ModAttrPath", Application::GetConst("DataDir") + "/modified-attributes.conf");
+	Application::DeclareConst("ObjectsPath", Application::GetConst("CacheDir") + "/icinga2.debug");
+	Application::DeclareConst("VarsPath", Application::GetConst("CacheDir") + "/icinga2.vars");
+	Application::DeclareConst("PidPath", Application::GetConst("InitRunDir") + "/icinga2.pid");
 
-	ConfigCompiler::AddIncludeSearchDir(Application::GetIncludeConfDir());
+	ConfigCompiler::AddIncludeSearchDir(Application::GetConst("IncludeConfDir"));
 
 	if (!autocomplete && vm.count("include")) {
 		for (const String& includePath : vm["include"].as<std::vector<std::string> >()) {
@@ -480,8 +568,8 @@ static int Main()
 				return 0;
 			}
 		} else if (command && command->GetImpersonationLevel() == ImpersonateIcinga) {
-			String group = Application::GetRunAsGroup();
-			String user = Application::GetRunAsUser();
+			String group = Application::GetConst("RunAsGroup");
+			String user = Application::GetConst("RunAsUser");
 
 			errno = 0;
 			struct group *gr = getgrnam(group.CStr());

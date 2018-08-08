@@ -40,7 +40,7 @@ using namespace icinga;
 
 String ApiSetupUtility::GetConfdPath()
 {
-	return Application::GetSysconfDir() + "/icinga2/conf.d";
+	return Application::GetConst("ConfigDir") + "/conf.d";
 }
 
 String ApiSetupUtility::GetApiUsersConfPath()

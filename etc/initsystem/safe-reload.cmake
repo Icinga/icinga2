@@ -11,7 +11,7 @@ fi
 
 # Set defaults, to overwrite see "@ICINGA2_SYSCONFIGFILE@"
 
-: ${ICINGA2_PID_FILE:="@ICINGA2_RUNDIR@/icinga2/icinga2.pid"}
+: ${ICINGA2_PID_FILE:="@ICINGA2_INITRUNDIR@/icinga2.pid"}
 : ${DAEMON:="@CMAKE_INSTALL_FULL_SBINDIR@/icinga2"}
 
 printf "Validating config files: "

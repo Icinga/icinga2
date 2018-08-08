@@ -402,7 +402,7 @@ Configuration files are processed in the order they're specified on the command-
 
 When no configuration file is specified and the `--no-config` is not used
 Icinga 2 automatically falls back to using the configuration file
-`SysconfDir + "/icinga2/icinga2.conf"` (where SysconfDir is usually `/etc`).
+`ConfigDir + "/icinga2.conf"` (where ConfigDir is usually `/etc/icinga2`).
 
 ### Validation <a id="cli-command-daemon-validation"></a>
 
@@ -730,4 +730,3 @@ safely reload the Icinga 2 daemon.
 The `reload` action will send the `SIGHUP` signal to the Icinga 2 daemon
 which will validate the configuration in a separate process and not stop
 the other events like check execution, notifications, etc.
-

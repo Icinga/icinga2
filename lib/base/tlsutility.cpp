@@ -535,7 +535,7 @@ std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME
 
 String GetIcingaCADir()
 {
-	return Application::GetLocalStateDir() + "/lib/icinga2/ca";
+	return Application::GetConst("DataDir") + "/ca";
 }
 
 std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)

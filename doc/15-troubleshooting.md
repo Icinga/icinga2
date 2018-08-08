@@ -237,9 +237,9 @@ include <itl>
 include <plugins>
 ```
 
-in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered configuration files and will be overridden
-on upgrade, so please send modifications as proposed patches upstream. The default include path is set to
-`LocalStateDir + "/share/icinga2/includes"`.
+in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered
+configuration files and will be overridden on upgrade, so please send modifications as proposed patches upstream.
+The default include path is set to `/usr/share/icinga2/includes` with the constant `IncludeConfDir`.
 
 You should add your own command definitions to a new file in `conf.d/` called `commands.conf`
 or similar.

@@ -56,22 +56,22 @@ ApiListener::ApiListener()
 
 String ApiListener::GetApiDir()
 {
-	return Application::GetLocalStateDir() + "/lib/icinga2/api/";
+	return Application::GetConst("DataDir") + "/api/";
 }
 
 String ApiListener::GetCertsDir()
 {
-	return Application::GetLocalStateDir() + "/lib/icinga2/certs/";
+	return Application::GetConst("DataDir") + "/certs/";
 }
 
 String ApiListener::GetCaDir()
 {
-	return Application::GetLocalStateDir() + "/lib/icinga2/ca/";
+	return Application::GetConst("DataDir") + "/ca/";
 }
 
 String ApiListener::GetCertificateRequestsDir()
 {
-	return Application::GetLocalStateDir() + "/lib/icinga2/certificate-requests/";
+	return Application::GetConst("DataDir") + "/certificate-requests/";
 }
 
 String ApiListener::GetDefaultCertPath()

@@ -75,7 +75,7 @@ int VariableGetCommand::Run(const boost::program_options::variables_map& vm, con
 		return 0;
 	}
 
-	String varsfile = Application::GetVarsPath();
+	String varsfile = Application::GetConst("VarsPath");
 
 	if (!Utility::PathExists(varsfile)) {
 		Log(LogCritical, "cli")

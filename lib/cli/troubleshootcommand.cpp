@@ -147,16 +147,26 @@ bool TroubleshootCommand::GeneralInfo(InfoLog& log, const boost::program_options
 
 	//Application::DisplayInfoMessage() but formatted
 	InfoLogLine(log)
-		<< "\tApplication version: " << Application::GetAppVersion() << '\n'
-		<< "\tInstallation root: " << Application::GetPrefixDir() << '\n'
-		<< "\tSysconf directory: " << Application::GetSysconfDir() << '\n'
-		<< "\tRun directory: " << Application::GetRunDir() << '\n'
-		<< "\tLocal state directory: " << Application::GetLocalStateDir() << '\n'
-		<< "\tPackage data directory: " << Application::GetPkgDataDir() << '\n'
-		<< "\tState path: " << Application::GetStatePath() << '\n'
-		<< "\tObjects path: " << Application::GetObjectsPath() << '\n'
-		<< "\tVars path: " << Application::GetVarsPath() << '\n'
-		<< "\tPID path: " << Application::GetPidPath() << '\n';
+		<< "\tApplication version: " << Application::GetConst("AppVersion") << '\n'
+		<< "\t\n"
+		<< "\tConfig directory: " << Application::GetConst("ConfigDir") << "\n"
+		<< "\tData directory: " << Application::GetConst("DataDir") << "\n"
+		<< "\tLog directory: " << Application::GetConst("LogDir") << "\n"
+		<< "\tCache directory: " << Application::GetConst("CacheDir") << "\n"
+		<< "\tRun directory: " << Application::GetConst("InitRunDir") << "\n"
+		<< "\t\n"
+		<< "Old paths (deprecated):\n"
+		<< "\tInstallation root: " << Application::GetConst("PrefixDir") << '\n'
+		<< "\tSysconf directory: " << Application::GetConst("SysconfDir") << '\n'
+		<< "\tRun directory: " << Application::GetConst("RunDir") << '\n'
+		<< "\tLocal state directory: " << Application::GetConst("LocalStateDir") << '\n'
+		<< "\t\n"
+		<< "Internal paths:\n"
+		<< "\tPackage data directory: " << Application::GetConst("PkgDataDir") << '\n'
+		<< "\tState path: " << Application::GetConst("StatePath") << '\n'
+		<< "\tObjects path: " << Application::GetConst("ObjectsPath") << '\n'
+		<< "\tVars path: " << Application::GetConst("VarsPath") << '\n'
+		<< "\tPID path: " << Application::GetConst("PidPath") << '\n';
 
 	InfoLogLine(log)
 		<< '\n';
@@ -176,7 +186,7 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 	InfoLogLine(log, Console_ForegroundBlue)
 		<< std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << "\n\n";
 
-	String objectfile = Application::GetObjectsPath();
+	String objectfile = Application::GetConst("ObjectsPath");
 	std::set<String> configs;
 
 	if (!Utility::PathExists(objectfile)) {
@@ -252,14 +262,14 @@ bool TroubleshootCommand::ConfigInfo(InfoLog& log, const boost::program_options:
 	InfoLogLine(log)
 		<< "A collection of important configuration files follows, please make sure to remove any sensitive data such as credentials, internal company names, etc\n";
 
-	if (!PrintFile(log, Application::GetSysconfDir() + "/icinga2/icinga2.conf")) {
+	if (!PrintFile(log, Application::GetConst("ConfigDir") + "/icinga2.conf")) {
 		InfoLogLine(log, 0, LogWarning)
 			<< "icinga2.conf not found, therefore skipping validation.\n"
 			<< "If you are using an icinga2.conf somewhere but the default path please validate it via 'icinga2 daemon -C -c \"path\to/icinga2.conf\"'\n"
 			<< "and provide it with your support request.\n";
 	}
 
-	if (!PrintFile(log, Application::GetSysconfDir() + "/icinga2/zones.conf")) {
+	if (!PrintFile(log, Application::GetConst("ConfigDir") + "/zones.conf")) {
 		InfoLogLine(log, 0, LogWarning)
 			<< "zones.conf not found.\n"
 			<< "If you are using a zones.conf somewhere but the default path please provide it with your support request\n";
@@ -370,7 +380,7 @@ void TroubleshootCommand::GetLatestReport(const String& filename, time_t& bestTi
 
 bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 {
-	String spath = Application::GetLocalStateDir() + "/log/icinga2/crash/report.*";
+	String spath = Application::GetConst("LogDir") + "/crash/report.*";
 	time_t bestTimestamp = 0;
 	String bestFilename;
 
@@ -383,7 +393,7 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 		if (int const * err = boost::get_error_info<errinfo_win32_error>(ex)) {
 			if (*err != 3) {//Error code for path does not exist
 				InfoLogLine(log, 0, LogWarning)
-					<< Application::GetLocalStateDir() << "/log/icinga2/crash/ does not exist\n";
+					<< Application::GetConst("LogDir") + "/crash/ does not exist\n";
 
 				return false;
 			}
@@ -396,7 +406,7 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 #else
 	catch (...) {
 		InfoLogLine(log, 0, LogWarning) << "Error printing crash reports.\n"
-			<< "Does " << Application::GetLocalStateDir() << "/log/icinga2/crash/ exist?\n";
+			<< "Does " << Application::GetConst("LogDir") + "/crash/ exist?\n";
 
 		return false;
 	}
@@ -404,7 +414,7 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 
 	if (!bestTimestamp)
 		InfoLogLine(log, Console_ForegroundYellow)
-			<< "No crash logs found in " << Application::GetLocalStateDir().CStr() << "/log/icinga2/crash/\n\n";
+			<< "No crash logs found in " << Application::GetConst("LogDir") << "/crash/\n\n";
 	else {
 		InfoLogLine(log)
 			<< "Latest crash report is from " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime()) << '\n'
@@ -444,7 +454,9 @@ bool TroubleshootCommand::PrintFile(InfoLog& log, const String& path)
 
 bool TroubleshootCommand::CheckConfig()
 {
-	return DaemonUtility::ValidateConfigFiles({ Application::GetSysconfDir() + "/icinga2/icinga2.conf" }, Application::GetObjectsPath());
+	String configDir = Application::GetConst("ConfigDir");
+	String objectsPath = Application::GetConst("ObjectsPath");
+	return DaemonUtility::ValidateConfigFiles({ configDir + "/icinga2.conf" }, objectsPath);
 }
 
 //print is supposed allow the user to print the object file
@@ -610,10 +622,10 @@ void TroubleshootCommand::InitParameters(boost::program_options::options_descrip
 int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 #ifdef _WIN32 //Dislikes ':' in filenames
-	String path = Application::GetLocalStateDir() + "/log/icinga2/troubleshooting-"
+	String path = Application::GetConst("LogDir") + "/troubleshooting-"
 		+ Utility::FormatDateTime("%Y-%m-%d_%H-%M-%S", Utility::GetTime()) + ".log";
 #else
-	String path = Application::GetLocalStateDir() + "/log/icinga2/troubleshooting-"
+	String path = Application::GetConst("LogDir") + "/troubleshooting-"
 		+ Utility::FormatDateTime("%Y-%m-%d_%H:%M:%S", Utility::GetTime()) + ".log";
 #endif /*_WIN32*/
 

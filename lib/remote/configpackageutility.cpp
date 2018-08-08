@@ -30,7 +30,7 @@ using namespace icinga;
 
 String ConfigPackageUtility::GetPackageDir()
 {
-	return Application::GetLocalStateDir() + "/lib/icinga2/api/packages";
+	return Application::GetConst("DataDir") + "/api/packages";
 }
 
 void ConfigPackageUtility::CreatePackage(const String& name)
