@@ -519,11 +519,12 @@ void IdoMysqlConnection::FinishAsyncQueries()
 
 			size_t size_query = aq.Query.GetLength() + 1;
 
-			if (num_bytes + size_query > m_MaxPacketSize - 512)
-				break;
+			if (count > 0) {
+				if (num_bytes + size_query > m_MaxPacketSize - 512)
+					break;
 
-			if (count > 0)
 				querybuf << ";";
+			}
 
 			IncreaseQueryCount();
 			count++;
