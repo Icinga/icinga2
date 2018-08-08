@@ -50,6 +50,7 @@ endif()
 
 if(ICINGA2_WITH_MYSQL)
   list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:db_ido_mysql>)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:db_query>)
 endif()
 
 if(ICINGA2_WITH_PGSQL)
