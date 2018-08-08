@@ -61,12 +61,21 @@ int CARestoreCommand::Run(const boost::program_options::variables_map& vm, const
 			<< "No removed request exists for fingerprint '" << ap[0] << "'.";
 		return 1;
 	}
-	Utility::SaveJsonFile(ApiListener::GetCertificateRequestsDir() + "/" + ap[0] + ".json", 700, Utility::LoadJsonFile(requestFile));
+
+	Dictionary::Ptr request = Utility::LoadJsonFile(requestFile);
+	std::shared_ptr<X509> certRequest = StringToCertificate(request->Get("cert_request"));
+
+	if (!certRequest) {
+		Log(LogCritical, "cli", "Certificate request is invalid. Could not parse X.509 certificate for the 'cert_request' attribute.");
+		return 1;
+	}
+
+	Utility::SaveJsonFile(ApiListener::GetCertificateRequestsDir() + "/" + ap[0] + ".json", 0600, request);
 	if(remove(requestFile.CStr()) != 0)
 		return 1;
 
 	Log(LogInformation, "cli")
-		<< "Certificate " << ap[0] << " restored, you can now sign it using:\n"
+		<< "Certificate " << GetCertificateCN(certRequest) << " restored, you can now sign it using:\n"
 	       	<< "\"icinga2 ca sign " << ap[0] << "\"";
 
 	return 0;
