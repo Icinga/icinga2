@@ -191,9 +191,35 @@ void ScheduledDowntime::CreateNextDowntime()
 		return;
 	}
 
-	Downtime::AddDowntime(GetCheckable(), GetAuthor(), GetComment(),
+	String downtimeName = Downtime::AddDowntime(GetCheckable(), GetAuthor(), GetComment(),
 		segment.first, segment.second,
 		GetFixed(), String(), GetDuration(), GetName(), GetName());
+
+	Downtime::Ptr downtime = Downtime::GetByName(downtimeName);
+
+	int childOptions = Downtime::ChildOptionsFromValue(GetChildOptions());
+	if (childOptions > 0) {
+		/* 'DowntimeTriggeredChildren' schedules child downtimes triggered by the parent downtime.
+		 * 'DowntimeNonTriggeredChildren' schedules non-triggered downtimes for all children.
+		 */
+		String triggerName;
+		if (childOptions == 1)
+			triggerName = downtimeName;
+
+		Log(LogNotice, "ScheduledDowntime")
+				<< "Processing child options " << childOptions << " for downtime " << downtimeName;
+
+		for (const Checkable::Ptr& child : GetCheckable()->GetAllChildren()) {
+			Log(LogNotice, "ScheduledDowntime")
+				<< "Scheduling downtime for child object " << child->GetName();
+
+			String childDowntimeName = Downtime::AddDowntime(child, GetAuthor(), GetComment(),
+				segment.first, segment.second, GetFixed(), triggerName, GetDuration(), GetName(), GetName());
+
+			Log(LogNotice, "ScheduledDowntime")
+				<< "Add child downtime '" << childDowntimeName << "'.";
+		}
+	}
 }
 
 void ScheduledDowntime::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
@@ -226,3 +252,13 @@ void ScheduledDowntime::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, cons
 	}
 }
 
+void ScheduledDowntime::ValidateChildOptions(const Lazy<Value>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ScheduledDowntime>::ValidateChildOptions(lvalue, utils);
+
+	try {
+		Downtime::ChildOptionsFromValue(lvalue());
+	} catch (const std::exception&) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "child_options" }, "Invalid child_options specified"));
+	}
+}

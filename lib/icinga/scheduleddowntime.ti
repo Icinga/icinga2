@@ -77,6 +77,10 @@ class ScheduledDowntime : CustomVarObject < ScheduledDowntimeNameComposer
 		default {{{ return true; }}}
 	};
 
+	[config] Value child_options {
+	    default {{{ return "DowntimeNoChildren"; }}}
+	};
+
 	[config, required] Dictionary::Ptr ranges;
 };
 

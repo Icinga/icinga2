@@ -366,30 +366,30 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	});
 
 	/* Schedule downtime for all child objects. */
-	int childOptions = 0;
+	DowntimeChildOptions childOptions = DowntimeNoChildren;
 	if (params->Contains("child_options"))
-		childOptions = HttpUtility::GetLastParameter(params, "child_options");
+		childOptions = Downtime::ChildOptionsFromValue(HttpUtility::GetLastParameter(params, "child_options"));
 
-	if (childOptions > 0) {
-		/* '1' schedules child downtimes triggered by the parent downtime.
-		 * '2' schedules non-triggered downtimes for all children.
+	if (childOptions != DowntimeNoChildren) {
+		/* 'DowntimeTriggeredChildren' schedules child downtimes triggered by the parent downtime.
+		 * 'DowntimeNonTriggeredChildren' schedules non-triggered downtimes for all children.
 		 */
-		if (childOptions == 1)
+		if (childOptions == DowntimeTriggeredChildren)
 			triggerName = downtimeName;
 
-		Log(LogCritical, "ApiActions")
+		Log(LogNotice, "ApiActions")
 			<< "Processing child options " << childOptions << " for downtime " << downtimeName;
 
 		ArrayData childDowntimes;
 
 		for (const Checkable::Ptr& child : checkable->GetAllChildren()) {
-			Log(LogCritical, "ApiActions")
+			Log(LogNotice, "ApiActions")
 				<< "Scheduling downtime for child object " << child->GetName();
 
 			String childDowntimeName = Downtime::AddDowntime(child, author, comment, startTime, endTime,
 				fixed, triggerName, duration);
 
-			Log(LogCritical, "ApiActions")
+			Log(LogNotice, "ApiActions")
 				<< "Add child downtime '" << childDowntimeName << "'.";
 
 			Downtime::Ptr childDowntime = Downtime::GetByName(childDowntimeName);

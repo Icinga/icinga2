@@ -1385,6 +1385,7 @@ Configuration Attributes:
   fixed                     | Boolean               | **Optional.** Whether this is a fixed downtime. Defaults to `true`.
   duration                  | Duration              | **Optional.** How long the downtime lasts. Only has an effect for flexible (non-fixed) downtimes.
   ranges                    | Dictionary            | **Required.** A dictionary containing information which days and durations apply to this timeperiod.
+  child\_options            | String                | **Optional.** Schedule child downtimes. `DowntimeNoChildren` does not do anything, `DowntimeTriggeredChildren` schedules child downtimes triggered by this downtime, `DowntimeTriggeredChildren` schedules non-triggered downtimes. Defaults to `DowntimeNoChildren`.
 
 ScheduledDowntime objects have composite names, i.e. their names are based
 on the `host_name` and `service_name` attributes and the

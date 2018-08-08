@@ -1117,7 +1117,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
   fixed         | Boolean   | **Optional.** Defaults to `true`. If true, the downtime is `fixed` otherwise `flexible`. See [downtimes](08-advanced-topics.md#downtimes) for more information.
   duration      | Number    | **Required for flexible downtimes.** Duration of the downtime in seconds if `fixed` is set to false.
   trigger\_name | String    | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](08-advanced-topics.md#downtimes) for more information on triggered downtimes.
-  child\_options | Number   | **Optional.** Schedule child downtimes. `0` does not do anything, `1` schedules child downtimes triggered by this downtime, `2` schedules non-triggered downtimes. Defaults to `0`.
+  child\_options| String    | **Optional.** Schedule child downtimes. `DowntimeNoChildren` does not do anything, `DowntimeTriggeredChildren` schedules child downtimes triggered by this downtime, `DowntimeTriggeredChildren` schedules non-triggered downtimes. Defaults to `DowntimeNoChildren`.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 

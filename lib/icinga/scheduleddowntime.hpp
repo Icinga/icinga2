@@ -49,6 +49,7 @@ public:
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
 	void ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
+	void ValidateChildOptions(const Lazy<Value>& lvalue, const ValidationUtils& utils) override;
 
 protected:
 	void OnAllConfigLoaded() override;
