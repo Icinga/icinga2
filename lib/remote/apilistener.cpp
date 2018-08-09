@@ -393,6 +393,8 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		client->Connect(host, port);
 		NewClientHandler(client, serverName, RoleClient);
 		endpoint->SetConnecting(false);
+		Log(LogInformation, "ApiListener")
+				<< "Finished reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 	} catch (const std::exception& ex) {
 		endpoint->SetConnecting(false);
 		client->Close();
@@ -403,9 +405,6 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		Log(LogDebug, "ApiListener")
 			<< info.str() << "\n" << DiagnosticInformation(ex);
 	}
-
-	Log(LogInformation, "ApiListener")
-		<< "Finished reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 }
 
 void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role)
