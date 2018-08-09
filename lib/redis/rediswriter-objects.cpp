@@ -242,6 +242,49 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			checkSums->Set("period_checksum", GetObjectIdentifier(period));
 	}
 
+	Notification::Ptr notification = dynamic_pointer_cast<Notification>(object);
+
+	if (notification) {
+		Host::Ptr host;
+		Service::Ptr service;
+		auto users (notification->GetUsers());
+		Array::Ptr userChecksums = new Array();
+		Array::Ptr userNames = new Array();
+		auto usergroups (notification->GetUserGroups());
+		Array::Ptr usergroupChecksums = new Array();
+		Array::Ptr usergroupNames = new Array();
+
+		tie(host, service) = GetHostService(notification->GetCheckable());
+
+		checkSums->Set("host_checksum", GetObjectIdentifier(host));
+		checkSums->Set("command_checksum", GetObjectIdentifier(notification->GetCommand()));
+
+		if (service)
+			checkSums->Set("service_checksum", GetObjectIdentifier(service));
+
+		userChecksums->Reserve(users.size());
+		userNames->Reserve(users.size());
+
+		for (auto& user : users) {
+			userChecksums->Add(GetObjectIdentifier(user));
+			userNames->Add(user->GetName());
+		}
+
+		checkSums->Set("user_checksums", userChecksums);
+		checkSums->Set("users_checksum", CalculateCheckSumArray(userNames));
+
+		usergroupChecksums->Reserve(usergroups.size());
+		usergroupNames->Reserve(usergroups.size());
+
+		for (auto& usergroup : usergroups) {
+			usergroupChecksums->Add(GetObjectIdentifier(usergroup));
+			usergroupNames->Add(usergroup->GetName());
+		}
+
+		checkSums->Set("usergroup_checksums", usergroupChecksums);
+		checkSums->Set("usergroups_checksum", CalculateCheckSumArray(usergroupNames));
+	}
+
 	/* Calculate checkable checksums. */
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
