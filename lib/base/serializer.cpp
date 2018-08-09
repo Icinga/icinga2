@@ -61,7 +61,7 @@ struct SerializeStack
 
 		if (obj) {
 			for (const auto& entry : Entries) {
-				if (entry.Val == obj) {
+				if (entry.Val == (Value)obj) {
 					std::vector<String> path;
 					for (const auto& entry : Entries)
 						path.push_back(entry.Name);
