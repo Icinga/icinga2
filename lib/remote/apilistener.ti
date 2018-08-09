@@ -49,7 +49,7 @@ class ApiListener : ConfigObject
 	};
 
 	[config] String environment {
-		default {{{ return Application::GetConst("ApiEnvironment"); }}}
+		default {{{ return Application::GetConst("Environment"); }}}
 	};
 
 	[config] bool accept_config;
