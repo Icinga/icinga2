@@ -24,6 +24,7 @@
 #include "base/dictionary.hpp"
 #include "base/string.hpp"
 #include <openssl/x509v3.h>
+#include <memory>
 
 namespace icinga
 {
