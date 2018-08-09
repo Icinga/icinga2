@@ -114,8 +114,6 @@ protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeDeleted) override;
 
-	void UpdateStatusFile(TcpSocket::Ptr socket);
-
 	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 private:
@@ -164,6 +162,9 @@ private:
 	void ReplayLog(const JsonRpcConnection::Ptr& client);
 
 	static void CopyCertificateFile(const String& oldCertPath, const String& newCertPath);
+
+	void UpdateStatusFile(TcpSocket::Ptr socket);
+	void RemoveStatusFile();
 
 	/* filesync */
 	static ConfigDirInformation LoadConfigDir(const String& dir);
