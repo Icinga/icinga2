@@ -353,8 +353,8 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	String certsDir = ApiListener::GetCertsDir();
 	Utility::MkDirP(certsDir, 0700);
 
-	String user = ScriptGlobal::Get("RunAsUser");
-	String group = ScriptGlobal::Get("RunAsGroup");
+	String user = Configuration::RunAsUser;
+	String group = Configuration::RunAsGroup;
 
 	if (!Utility::SetFileOwnership(certsDir, user, group)) {
 		Log(LogWarning, "cli")

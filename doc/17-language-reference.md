@@ -232,6 +232,7 @@ The `using` keyword only has an effect for the current file and only for code th
 The following namespaces are automatically imported as if by using the `using` keyword:
 
 * System
+* System.Configuration
 * Types
 * Icinga
 

@@ -121,6 +121,7 @@ VariableExpression::VariableExpression(String variable, std::vector<std::shared_
 	: DebuggableExpression(debugInfo), m_Variable(std::move(variable)), m_Imports(std::move(imports))
 {
 	m_Imports.push_back(MakeIndexer(ScopeGlobal, "System"));
+	m_Imports.push_back(std::unique_ptr<Expression>(new IndexerExpression(MakeIndexer(ScopeGlobal, "System"), MakeLiteral("Configuration"))));
 	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Types"));
 	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Icinga"));
 }

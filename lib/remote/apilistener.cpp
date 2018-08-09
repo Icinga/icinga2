@@ -56,22 +56,22 @@ ApiListener::ApiListener()
 
 String ApiListener::GetApiDir()
 {
-	return Application::GetConst("DataDir") + "/api/";
+	return Configuration::DataDir + "/api/";
 }
 
 String ApiListener::GetCertsDir()
 {
-	return Application::GetConst("DataDir") + "/certs/";
+	return Configuration::DataDir + "/certs/";
 }
 
 String ApiListener::GetCaDir()
 {
-	return Application::GetConst("DataDir") + "/ca/";
+	return Configuration::DataDir + "/ca/";
 }
 
 String ApiListener::GetCertificateRequestsDir()
 {
-	return Application::GetConst("DataDir") + "/certificate-requests/";
+	return Configuration::DataDir + "/certificate-requests/";
 }
 
 String ApiListener::GetDefaultCertPath()
@@ -1479,7 +1479,7 @@ String ApiListener::GetFromZoneName(const Zone::Ptr& fromZone)
 
 void ApiListener::UpdateStatusFile(TcpSocket::Ptr socket)
 {
-	String path = Application::GetConst("CacheDir") + "/api-state.json";
+	String path = Configuration::CacheDir + "/api-state.json";
 	std::pair<String, String> details = socket->GetClientAddressDetails();
 
 	Utility::SaveJsonFile(path, 0644, new Dictionary({
@@ -1490,7 +1490,7 @@ void ApiListener::UpdateStatusFile(TcpSocket::Ptr socket)
 
 void ApiListener::RemoveStatusFile()
 {
-	String path = Application::GetConst("CacheDir") + "/api-state.json";
+	String path = Configuration::CacheDir + "/api-state.json";
 
 	if (Utility::PathExists(path)) {
 		if (unlink(path.CStr()) < 0 && errno != ENOENT) {

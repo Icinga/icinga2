@@ -163,13 +163,13 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 
 void IcingaApplication::DumpProgramState()
 {
-	ConfigObject::DumpObjects(GetConst("StatePath"));
+	ConfigObject::DumpObjects(Configuration::StatePath);
 	DumpModifiedAttributes();
 }
 
 void IcingaApplication::DumpModifiedAttributes()
 {
-	String path = GetConst("ModAttrPath");
+	String path = Configuration::ModAttrPath;
 
 	std::fstream fp;
 	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", 0644, fp);

@@ -72,7 +72,7 @@ static bool Daemonize()
 		do {
 			Utility::Sleep(0.1);
 
-			readpid = Application::ReadPidFile(Application::GetConst("PidPath"));
+			readpid = Application::ReadPidFile(Configuration::PidPath);
 			ret = waitpid(pid, &status, WNOHANG);
 		} while (readpid != pid && ret == 0);
 
@@ -193,7 +193,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		<< ")";
 
 	if (!vm.count("validate") && !vm.count("reload-internal")) {
-		pid_t runningpid = Application::ReadPidFile(Application::GetConst("PidPath"));
+		pid_t runningpid = Application::ReadPidFile(Configuration::PidPath);
 		if (runningpid > 0) {
 			Log(LogCritical, "cli")
 				<< "Another instance of Icinga already running with PID " << runningpid;
@@ -206,7 +206,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		configs = vm["config"].as<std::vector<std::string> >();
 	else if (!vm.count("no-config")) {
 		/* The implicit string assignment is needed for Windows builds. */
-		String configDir = Application::GetConst("ConfigDir");
+		String configDir = Configuration::ConfigDir;
 		configs.push_back(configDir + "/icinga2.conf");
 	}
 
@@ -214,7 +214,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 	std::vector<ConfigItem::Ptr> newItems;
 
-	if (!DaemonUtility::LoadConfigFiles(configs, newItems, Application::GetConst("ObjectsPath"), Application::GetConst("VarsPath")))
+	if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath))
 		return EXIT_FAILURE;
 
 	if (vm.count("validate")) {
@@ -256,7 +256,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 	/* restore the previous program state */
 	try {
-		ConfigObject::RestoreObjects(Application::GetConst("StatePath"));
+		ConfigObject::RestoreObjects(Configuration::StatePath);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli")
 			<< "Failed to restore state file: " << DiagnosticInformation(ex);
@@ -264,7 +264,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	}
 
 	{
-		WorkQueue upq(25000, Application::GetConcurrency());
+		WorkQueue upq(25000, Configuration::Concurrency);
 		upq.SetName("DaemonCommand::Run");
 
 		// activate config only after daemonization: it starts threads and that is not compatible with fork()

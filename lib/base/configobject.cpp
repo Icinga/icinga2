@@ -571,7 +571,7 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	unsigned long restored = 0;
 
-	WorkQueue upq(25000, Application::GetConcurrency());
+	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("ConfigObject::RestoreObjects");
 
 	String message;

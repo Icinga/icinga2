@@ -1,0 +1,176 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
+
+#include "base/configobject.hpp"
+
+library base;
+
+namespace icinga
+{
+
+abstract class Configuration
+{
+	[config, no_storage, virtual] String ApiBindHost {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ApiBindPort {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] bool AttachDebugger {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String CacheDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] int Concurrency {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ConfigDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String DataDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String EventEngine {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String IncludeConfDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String InitRunDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String LogDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ModAttrPath {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ObjectsPath {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String PidPath {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String PkgDataDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String PrefixDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ProgramData {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] int RLimitFiles {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] int RLimitProcesses {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] int RLimitStack {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String RunAsGroup {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String RunAsUser {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String SpoolDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String StatePath {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String VarsPath {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ZonesDir {
+		get;
+		set;
+	};
+
+	/* deprecated */
+	[config, no_storage, virtual] String LocalStateDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String RunDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String SysconfDir {
+		get;
+		set;
+	};
+};
+
+}

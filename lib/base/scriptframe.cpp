@@ -21,6 +21,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/namespace.hpp"
 #include "base/exception.hpp"
+#include "base/configuration.hpp"
 
 using namespace icinga;
 
@@ -35,6 +36,8 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	systemNSBehavior->Freeze();
 	Namespace::Ptr systemNS = new Namespace(systemNSBehavior);
 	globalNS->SetAttribute("System", std::make_shared<ConstEmbeddedNamespaceValue>(systemNS));
+
+	systemNS->SetAttribute("Configuration", std::make_shared<EmbeddedNamespaceValue>(new Configuration()));
 
 	auto typesNSBehavior = new ConstNamespaceBehavior();
 	typesNSBehavior->Freeze();

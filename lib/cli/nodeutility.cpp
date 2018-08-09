@@ -43,12 +43,12 @@ using namespace icinga;
 
 String NodeUtility::GetConstantsConfPath()
 {
-	return Application::GetConst("ConfigDir") + "/constants.conf";
+	return Configuration::ConfigDir + "/constants.conf";
 }
 
 String NodeUtility::GetZonesConfPath()
 {
-	return Application::GetConst("ConfigDir") + "/zones.conf";
+	return Configuration::ConfigDir + "/zones.conf";
 }
 
 /*
@@ -170,8 +170,8 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 
 	Utility::MkDirP(path, 0755);
 
-	String user = ScriptGlobal::Get("RunAsUser");
-	String group = ScriptGlobal::Get("RunAsGroup");
+	String user = Configuration::RunAsUser;
+	String group = Configuration::RunAsGroup;
 
 	if (!Utility::SetFileOwnership(path, user, group)) {
 		Log(LogWarning, "cli")
@@ -274,7 +274,7 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
  */
 bool NodeUtility::UpdateConfiguration(const String& value, bool include, bool recursive)
 {
-	String configurationFile = Application::GetConst("ConfigDir") + "/icinga2.conf";
+	String configurationFile = Configuration::ConfigDir + "/icinga2.conf";
 
 	Log(LogInformation, "cli")
 		<< "Updating '" << value << "' include in '" << configurationFile << "'.";

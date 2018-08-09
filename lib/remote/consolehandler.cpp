@@ -290,7 +290,10 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 		}
 	}
 
-	AddSuggestions(matches, word, "", false, ScriptGlobal::Get("System"));
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+
+	AddSuggestions(matches, word, "", false, systemNS);
+	AddSuggestions(matches, word, "", true, systemNS->Get("Configuration"));
 	AddSuggestions(matches, word, "", false, ScriptGlobal::Get("Types"));
 	AddSuggestions(matches, word, "", false, ScriptGlobal::Get("Icinga"));
 

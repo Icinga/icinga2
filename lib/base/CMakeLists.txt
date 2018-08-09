@@ -17,6 +17,7 @@
 
 mkclass_target(application.ti application-ti.cpp application-ti.hpp)
 mkclass_target(configobject.ti configobject-ti.cpp configobject-ti.hpp)
+mkclass_target(configuration.ti configuration-ti.cpp configuration-ti.hpp)
 mkclass_target(datetime.ti datetime-ti.cpp datetime-ti.hpp)
 mkclass_target(filelogger.ti filelogger-ti.cpp filelogger-ti.hpp)
 mkclass_target(function.ti function-ti.cpp function-ti.hpp)
@@ -33,6 +34,7 @@ set(base_SOURCES
   boolean.cpp boolean.hpp boolean-script.cpp
   configobject.cpp configobject.hpp configobject-ti.hpp configobject-script.cpp
   configtype.cpp configtype.hpp
+  configuration.cpp configuration.hpp configuration-ti.hpp
   configwriter.cpp configwriter.hpp
   console.cpp console.hpp
   context.cpp context.hpp

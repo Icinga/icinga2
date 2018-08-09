@@ -40,7 +40,7 @@ using namespace icinga;
 
 String ApiSetupUtility::GetConfdPath()
 {
-	return Application::GetConst("ConfigDir") + "/conf.d";
+	return Configuration::ConfigDir + "/conf.d";
 }
 
 String ApiSetupUtility::GetApiUsersConfPath()
@@ -80,8 +80,8 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String pki_path = ApiListener::GetCertsDir();
 	Utility::MkDirP(pki_path, 0700);
 
-	String user = ScriptGlobal::Get("RunAsUser");
-	String group = ScriptGlobal::Get("RunAsGroup");
+	String user = Configuration::RunAsUser;
+	String group = Configuration::RunAsGroup;
 
 	if (!Utility::SetFileOwnership(pki_path, user, group)) {
 		Log(LogWarning, "cli")

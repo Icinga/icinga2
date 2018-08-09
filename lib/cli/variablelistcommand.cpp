@@ -53,7 +53,7 @@ String VariableListCommand::GetShortDescription() const
  */
 int VariableListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String varsfile = Application::GetConst("VarsPath");
+	String varsfile = Configuration::VarsPath;
 
 	if (!Utility::PathExists(varsfile)) {
 		Log(LogCritical, "cli")
