@@ -40,7 +40,8 @@ public:
 
 	Zone::Ptr GetParent() const;
 	std::set<Endpoint::Ptr> GetEndpoints() const;
-	std::vector<Zone::Ptr> GetAllParents() const;
+	std::vector<Zone::Ptr> GetAllParentsRaw() const;
+	Array::Ptr GetAllParents() const override;
 
 	bool CanAccessObject(const ConfigObject::Ptr& object);
 	bool IsChildOf(const Zone::Ptr& zone);
