@@ -434,26 +434,21 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	// noticably in environments with lots of objects and available threads.
 	std::shuffle(std::begin(items), std::end(items), std::default_random_engine {});
 
+#ifdef I2_DEBUG
+	Log(LogDebug, "configitem")
+		<< "Committing " << items.size() << " new items.";
+#endif /* I2_DEBUG */
+
 	for (const auto& ip : items)
 		newItems.push_back(ip.first);
 
-	upq.ParallelFor(items, [](const ItemPair& ip) {
-		ip.first->Commit(ip.second);
-	});
-
-	upq.Join();
-
-	if (upq.HasExceptions())
-		return false;
-
 	std::set<Type::Ptr> types;
+	std::set<Type::Ptr> completed_types;
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		if (ConfigObject::TypeInstance->IsAssignableFrom(type))
 			types.insert(type);
 	}
-
-	std::set<Type::Ptr> completed_types;
 
 	while (types.size() != completed_types.size()) {
 		for (const Type::Ptr& type : types) {
@@ -474,7 +469,60 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (unresolved_dep)
 				continue;
 
-			upq.ParallelFor(items, [&type](const ItemPair& ip) {
+			int commited_items = 0;
+			upq.ParallelFor(items, [&type, &commited_items](const ItemPair& ip) {
+				const ConfigItem::Ptr& item = ip.first;
+
+				if (item->m_Type != type)
+					return;
+
+				ip.first->Commit(ip.second);
+				commited_items++;
+			});
+
+			upq.Join();
+
+			completed_types.insert(type);
+
+#ifdef I2_DEBUG
+			if (commited_items > 0)
+				Log(LogDebug, "configitem")
+					<< "Committed " << commited_items << " items of type '" << type->GetName() << "'.";
+#endif /* I2_DEBUG */
+
+			if (upq.HasExceptions())
+				return false;
+		}
+	}
+
+#ifdef I2_DEBUG
+	Log(LogDebug, "configitem")
+		<< "Committed " << items.size() << " items.";
+#endif /* I2_DEBUG */
+
+	completed_types.clear();
+
+	while (types.size() != completed_types.size()) {
+		for (const Type::Ptr& type : types) {
+			if (completed_types.find(type) != completed_types.end())
+				continue;
+
+			bool unresolved_dep = false;
+
+			/* skip this type (for now) if there are unresolved load dependencies */
+			for (const String& loadDep : type->GetLoadDependencies()) {
+				Type::Ptr pLoadDep = Type::GetByName(loadDep);
+				if (types.find(pLoadDep) != types.end() && completed_types.find(pLoadDep) == completed_types.end()) {
+					unresolved_dep = true;
+					break;
+				}
+			}
+
+			if (unresolved_dep)
+				continue;
+
+			int notified_items = 0;
+			upq.ParallelFor(items, [&type, &notified_items](const ItemPair& ip) {
 				const ConfigItem::Ptr& item = ip.first;
 
 				if (!item->m_Object || item->m_Type != type)
@@ -482,6 +530,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 				try {
 					item->m_Object->OnAllConfigLoaded();
+					notified_items++;
 				} catch (const std::exception& ex) {
 					if (!item->m_IgnoreOnError)
 						throw;
@@ -502,11 +551,18 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 			upq.Join();
 
+#ifdef I2_DEBUG
+			if (notified_items > 0)
+				Log(LogDebug, "configitem")
+					<< "Sent OnAllConfigLoaded to " << notified_items << " items of type '" << type->GetName() << "'.";
+#endif /* I2_DEBUG */
+
 			if (upq.HasExceptions())
 				return false;
 
+			notified_items = 0;
 			for (const String& loadDep : type->GetLoadDependencies()) {
-				upq.ParallelFor(items, [loadDep, &type](const ItemPair& ip) {
+				upq.ParallelFor(items, [loadDep, &type, &notified_items](const ItemPair& ip) {
 					const ConfigItem::Ptr& item = ip.first;
 
 					if (!item->m_Object || item->m_Type->GetName() != loadDep)
@@ -514,14 +570,22 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 					ActivationScope ascope(item->m_ActivationContext);
 					item->m_Object->CreateChildObjects(type);
+					notified_items++;
 				});
 			}
 
 			upq.Join();
 
+#ifdef I2_DEBUG
+			if (notified_items > 0)
+				Log(LogDebug, "configitem")
+					<< "Sent CreateChildObjects to " << notified_items << " items of type '" << type->GetName() << "'.";
+#endif /* I2_DEBUG */
+
 			if (upq.HasExceptions())
 				return false;
 
+			// Make sure to activate any additionally generated items
 			if (!CommitNewItems(context, upq, newItems))
 				return false;
 		}
