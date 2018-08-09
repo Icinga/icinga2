@@ -264,8 +264,12 @@ void ApiListener::Stop(bool runtimeDeleted)
 	Log(LogInformation, "ApiListener")
 		<< "'" << GetName() << "' stopped.";
 
-	boost::mutex::scoped_lock lock(m_LogLock);
-	CloseLogFile();
+	{
+		boost::mutex::scoped_lock lock(m_LogLock);
+		CloseLogFile();
+	}
+
+	RemoveStatusFile();
 }
 
 ApiListener::Ptr ApiListener::GetInstance()
@@ -318,9 +322,6 @@ bool ApiListener::AddListener(const String& node, const String& service)
 		return false;
 	}
 
-	Log(LogInformation, "ApiListener")
-		<< "Adding new listener on port '" << service << "'";
-
 	TcpSocket::Ptr server = new TcpSocket();
 
 	try {
@@ -331,10 +332,15 @@ bool ApiListener::AddListener(const String& node, const String& service)
 		return false;
 	}
 
+	Log(LogInformation, "ApiListener")
+		<< "Started new listener on '" << server->GetClientAddress() << "'";
+
 	std::thread thread(std::bind(&ApiListener::ListenerThreadProc, this, server));
 	thread.detach();
 
 	m_Servers.insert(server);
+
+	UpdateStatusFile(server);
 
 	return true;
 }
@@ -1468,4 +1474,29 @@ String ApiListener::GetFromZoneName(const Zone::Ptr& fromZone)
 	}
 
 	return fromZoneName;
+}
+
+void ApiListener::UpdateStatusFile(TcpSocket::Ptr socket)
+{
+	String path = Application::GetConst("CacheDir") + "/api-state.json";
+	std::pair<String, String> details = socket->GetClientAddressDetails();
+
+	Utility::SaveJsonFile(path, 0644, new Dictionary({
+		{"host", details.first},
+		{"port", details.second}
+	}));
+}
+
+void ApiListener::RemoveStatusFile()
+{
+	String path = Application::GetConst("CacheDir") + "/api-state.json";
+
+	if (Utility::PathExists(path)) {
+		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("unlink")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(path));
+		}
+	}
 }

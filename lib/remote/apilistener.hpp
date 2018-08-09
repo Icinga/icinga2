@@ -163,6 +163,9 @@ private:
 
 	static void CopyCertificateFile(const String& oldCertPath, const String& newCertPath);
 
+	void UpdateStatusFile(TcpSocket::Ptr socket);
+	void RemoveStatusFile();
+
 	/* filesync */
 	static ConfigDirInformation LoadConfigDir(const String& dir);
 	static Dictionary::Ptr MergeConfigUpdate(const ConfigDirInformation& config);
