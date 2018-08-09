@@ -335,12 +335,12 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			checkSums->Set("command_endpoint_checksum", GetObjectIdentifier(commandEndpoint));
 
 		/* *_command_checksum */
-		checkSums->Set("check_command_checksum", GetObjectIdentifier(checkable->GetCheckCommand()));
+		checkSums->Set("checkcommand_checksum", GetObjectIdentifier(checkable->GetCheckCommand()));
 
 		EventCommand::Ptr eventCommand = checkable->GetEventCommand();
 
 		if (eventCommand)
-			checkSums->Set("event_command_checksum", GetObjectIdentifier(eventCommand));
+			checkSums->Set("eventcommand_checksum", GetObjectIdentifier(eventCommand));
 
 		/* *_url_checksum, icon_image_checksum */
 		String actionUrl = checkable->GetActionUrl();
