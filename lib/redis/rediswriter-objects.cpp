@@ -370,11 +370,6 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 			checkSums->Set("endpoints_checksum", CalculateCheckSumArray(endpoints));
 
-			Zone::Ptr parentZone = zone->GetParent();
-
-			if (parentZone)
-				checkSums->Set("parent_checksum", GetObjectIdentifier(parentZone));
-
 			Array::Ptr parents (new Array);
 
 			for (auto& parent : zone->GetAllParentsRaw()) {
