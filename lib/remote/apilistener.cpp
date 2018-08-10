@@ -441,10 +441,11 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 
 	TlsStream::Ptr tlsStream;
 
-	String environmentName = GetEnvironment();
+	String environmentName = Application::GetAppEnvironment();
+
 	String serverName = hostname;
 
-	if (!environmentName.IsEmpty() && environmentName != "")
+	if (!environmentName.IsEmpty())
 		serverName += ":" + environmentName;
 
 	{

@@ -293,6 +293,16 @@ String IcingaApplication::GetNodeName() const
 	return ScriptGlobal::Get("NodeName");
 }
 
+String IcingaApplication::GetEnvironment() const
+{
+	return Application::GetAppEnvironment();
+}
+
+void IcingaApplication::SetEnvironment(const String& value, bool suppress_events, const Value& cookie)
+{
+	Application::SetAppEnvironment(value);
+}
+
 void IcingaApplication::ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
 	MacroProcessor::ValidateCustomVars(this, lvalue());

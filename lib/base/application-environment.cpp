@@ -17,51 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/i2-remote.hpp"
-#include "base/configobject.hpp"
 #include "base/application.hpp"
+#include "base/scriptglobal.hpp"
 
-library remote;
+using namespace icinga;
 
-namespace icinga
+String Application::GetAppEnvironment()
 {
+	Value defaultValue = Empty;
+	return ScriptGlobal::Get("Environment", &defaultValue);
+}
 
-class ApiListener : ConfigObject
+void Application::SetAppEnvironment(const String& name)
 {
-	activation_priority 50;
-
-	[config, deprecated] String cert_path;
-	[config, deprecated] String key_path;
-	[config, deprecated] String ca_path;
-	[config] String crl_path;
-	[config] String cipher_list {
-		default {{{ return "ALL:!LOW:!WEAK:!MEDIUM:!EXP:!NULL"; }}}
-	};
-	[config] String tls_protocolmin {
-		default {{{ return "TLSv1"; }}}
-	};
-
-	[config] String bind_host {
-		default {{{ return Application::GetConst("ApiBindHost"); }}}
-	};
-	[config] String bind_port {
-		default {{{ return Application::GetConst("ApiBindPort", "5665"); }}}
-	};
-
-	[config] bool accept_config;
-	[config] bool accept_commands;
-
-	[config] String ticket_salt;
-
-	[config] Array::Ptr access_control_allow_origin;
-	[config, deprecated] bool access_control_allow_credentials;
-	[config, deprecated] String access_control_allow_headers;
-	[config, deprecated] String access_control_allow_methods;
-
-
-	[state, no_user_modify] Timestamp log_message_timestamp;
-
-	[no_user_modify] String identity;
-};
-
+	ScriptGlobal::Set("Environment", name);
 }

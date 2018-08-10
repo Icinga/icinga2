@@ -26,6 +26,12 @@ namespace icinga
 
 class IcingaApplication : Application
 {
+	[config, no_storage, virtual] String environment {
+		get;
+		set;
+		default {{{ return Application::GetAppEnvironment(); }}}
+	};
+
 	[config] bool enable_notifications {
 		default {{{ return true; }}}
 	};
