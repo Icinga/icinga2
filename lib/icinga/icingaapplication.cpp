@@ -79,6 +79,7 @@ void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 			{ "enable_host_checks", icingaapplication->GetEnableHostChecks() },
 			{ "enable_service_checks", icingaapplication->GetEnableServiceChecks() },
 			{ "enable_perfdata", icingaapplication->GetEnablePerfdata() },
+			{ "environment", icingaapplication->GetEnvironment() },
 			{ "pid", Utility::GetPid() },
 			{ "program_start", Application::GetStartTime() },
 			{ "version", Application::GetAppVersion() }
