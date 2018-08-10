@@ -262,6 +262,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		if (service)
 			checkSums->Set("service_checksum", GetObjectIdentifier(service));
 
+		propertiesBlacklist.emplace("users");
+
 		userChecksums->Reserve(users.size());
 		userNames->Reserve(users.size());
 
@@ -272,6 +274,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 		checkSums->Set("user_checksums", userChecksums);
 		checkSums->Set("users_checksum", CalculateCheckSumArray(userNames));
+
+		propertiesBlacklist.emplace("user_groups");
 
 		usergroupChecksums->Reserve(usergroups.size());
 		usergroupNames->Reserve(usergroups.size());
