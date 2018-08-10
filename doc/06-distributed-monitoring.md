@@ -2802,17 +2802,15 @@ Two potential scenarios include:
 * Different versions of the same monitoring configuration (e.g. production and testing)
 * Disparate sets of checks for entirely unrelated monitoring environments (e.g. infrastructure and applications)
 
-The configuration is done with global constants and attributes of the
+The configuration is done with the global constants `ApiBindHost` and `ApiBindPort`
+or the `bind_host` and `bind_port` attributes of the
 [ApiListener](09-object-types.md#objecttype-apilistener) object.
 
-Constant       | Attribute
----------------|----------
-ApiEnvironment | environment
-ApiBindHost    | bind_host
-ApiBindPort    | bind_port
+The environment must be set with the global constant `Environment` or as object attribute
+of the [IcingaApplication](#objecttype-icingaapplication) object.
 
-In any case the constant is default value for the attribute and the direct configuration in the ApiListener object
-has more precedence. The constants have been added to allow the values being set from the CLI on startup.
+In any case the constant is default value for the attribute and the direct configuration in the objects
+have more precedence. The constants have been added to allow the values being set from the CLI on startup.
 
 When Icinga establishes a TLS connection to another cluster instance it automatically uses the [SNI extension](https://en.wikipedia.org/wiki/Server_Name_Indication)
 to signal which endpoint it is attempting to connect to. On its own this can already be used to position multiple
@@ -2820,7 +2818,7 @@ Icinga instances behind a load balancer.
 
 SNI example: `icinga2-client1.localdomain`
 
-However, if the environment is configured, Icinga will append the environment name to the SNI hostname like this:
+However, if the environment is configured to `production`, Icinga appends the environment name to the SNI hostname like this:
 
 SNI example with environment: `icinga2-client1.localdomain:production`
 

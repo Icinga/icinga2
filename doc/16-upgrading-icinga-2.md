@@ -41,6 +41,7 @@ has been removed and this setting has no effect.
 
 New [Icinga constants](17-language-reference.md#icinga-constants) have been added in this release.
 
+* `Environment` for specifying the Icinga environment. Defaults to not set.
 * `ApiBindHost` and `ApiBindPort` to allow overriding the default ApiListener values. This will be used for an Icinga addon only.
 
 ## Upgrading to v2.9 <a id="upgrading-to-2-9"></a>

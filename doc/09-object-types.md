@@ -817,6 +817,7 @@ Configuration Attributes:
   enable\_service\_checks   | Boolean               | **Optional.** Whether active service checks are globally enabled. Defaults to true.
   enable\_perfdata          | Boolean               | **Optional.** Whether performance data processing is globally enabled. Defaults to true.
   vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are available globally.
+  environment               | String                | **Optional.** Specify the Icinga environment. This overrides the `Environment` constant specified in the configuration or on the CLI with `--define`. Defaults to empty.
 
 ## IdoMySqlConnection <a id="objecttype-idomysqlconnection"></a>
 

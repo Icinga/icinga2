@@ -407,7 +407,7 @@ Constant            | Description
 --------------------|-------------------
 Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
-Environment         |**Read-write**. The name of the Icinga environment. Included in the SNI host name when making outbound connections. Defaults to `production`.
+Environment         |**Read-write.** The name of the Icinga environment. Included in the SNI host name for outbound connections. Not set by default.
 RunAsUser           |**Read-write.** Defines the user the Icinga 2 daemon is running as. Set in the Icinga 2 sysconfig.
 RunAsGroup          |**Read-write.** Defines the group the Icinga 2 daemon is running as. Set in the Icinga 2 sysconfig.
 MaxConcurrentChecks |**Read-write.** The number of max checks run simultaneously. Defaults to `512`.
