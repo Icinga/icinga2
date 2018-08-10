@@ -50,6 +50,9 @@ public:
 
 	String GetNodeName() const;
 
+	String GetEnvironment() const override;
+	void SetEnvironment(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
+
 	void ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 private:

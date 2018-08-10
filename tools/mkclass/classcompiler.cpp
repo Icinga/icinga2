@@ -568,7 +568,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "{" << std::endl;
 
 	for (const Field& field : klass.Fields) {
-		m_Impl << "\t" << "Set" << field.GetFriendlyName() << "(" << "GetDefault" << field.GetFriendlyName() << "(), true);" << std::endl;
+		if (!field.PureSetAccessor)
+			m_Impl << "\t" << "Set" << field.GetFriendlyName() << "(" << "GetDefault" << field.GetFriendlyName() << "(), true);" << std::endl;
 	}
 
 	m_Impl << "}" << std::endl << std::endl;

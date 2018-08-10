@@ -67,6 +67,7 @@ Configuration Attributes:
   access\_control\_allow\_credentials   | Boolean               | **Deprecated.** Indicates whether or not the actual request can be made using credentials. Defaults to `true`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Credentials)
   access\_control\_allow\_headers       | String                | **Deprecated.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
   access\_control\_allow\_methods       | String                | **Deprecated.** Used in response to a preflight request to indicate which HTTP methods can be used when making the actual request. Defaults to `GET, POST, PUT, DELETE`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods)
+  environment                           | String                | **Optional.** Used as suffix in TLS SNI extension name; default from constant `ApiEnvironment`, which is empty.
 
 The attributes `access_control_allow_credentials`, `access_control_allow_headers` and `access_control_allow_methods`
 are controlled by Icinga 2 and are not changeable by config any more.
@@ -816,6 +817,7 @@ Configuration Attributes:
   enable\_service\_checks   | Boolean               | **Optional.** Whether active service checks are globally enabled. Defaults to true.
   enable\_perfdata          | Boolean               | **Optional.** Whether performance data processing is globally enabled. Defaults to true.
   vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are available globally.
+  environment               | String                | **Optional.** Specify the Icinga environment. This overrides the `Environment` constant specified in the configuration or on the CLI with `--define`. Defaults to empty.
 
 ## IdoMySqlConnection <a id="objecttype-idomysqlconnection"></a>
 

@@ -18,39 +18,17 @@
  ******************************************************************************/
 
 #include "base/application.hpp"
+#include "base/scriptglobal.hpp"
 
-library icinga;
+using namespace icinga;
 
-namespace icinga
+String Application::GetAppEnvironment()
 {
+	Value defaultValue = Empty;
+	return ScriptGlobal::Get("Environment", &defaultValue);
+}
 
-class IcingaApplication : Application
+void Application::SetAppEnvironment(const String& name)
 {
-	[config, no_storage, virtual] String environment {
-		get;
-		set;
-		default {{{ return Application::GetAppEnvironment(); }}}
-	};
-
-	[config] bool enable_notifications {
-		default {{{ return true; }}}
-	};
-	[config] bool enable_event_handlers {
-		default {{{ return true; }}}
-	};
-	[config] bool enable_flapping {
-		default {{{ return true; }}}
-	};
-	[config] bool enable_host_checks {
-		default {{{ return true; }}}
-	};
-	[config] bool enable_service_checks {
-		default {{{ return true; }}}
-	};
-	[config] bool enable_perfdata {
-		default {{{ return true; }}}
-	};
-	[config] Dictionary::Ptr vars;
-};
-
+	ScriptGlobal::Set("Environment", name);
 }

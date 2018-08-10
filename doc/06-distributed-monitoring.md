@@ -116,8 +116,8 @@ you still need a [Host](09-object-types.md#objecttype-host) object.
 
 In case you are using the CLI commands later, you don't have to write
 this configuration from scratch in a text editor.
-The [ApiListener](09-object-types.md#objecttype-apilistener)
-object is used to load the SSL certificates and specify restrictions, e.g.
+The [ApiListener](09-object-types.md#objecttype-apilistener) object is
+used to load the TLS certificates and specify restrictions, e.g.
 for accepting configuration commands.
 
 It is also used for the [Icinga 2 REST API](12-icinga2-api.md#icinga2-api) which shares
@@ -2793,3 +2793,36 @@ Add the global zone `global-templates` in case it did not exist.
       global = true
     }
     EOF
+
+## Using Multiple Environments <a id="distributed-monitoring-environments"></a>
+
+In some cases it can be desired to run multiple Icinga instances on the same host.
+Two potential scenarios include:
+
+* Different versions of the same monitoring configuration (e.g. production and testing)
+* Disparate sets of checks for entirely unrelated monitoring environments (e.g. infrastructure and applications)
+
+The configuration is done with the global constants `ApiBindHost` and `ApiBindPort`
+or the `bind_host` and `bind_port` attributes of the
+[ApiListener](09-object-types.md#objecttype-apilistener) object.
+
+The environment must be set with the global constant `Environment` or as object attribute
+of the [IcingaApplication](#objecttype-icingaapplication) object.
+
+In any case the constant is default value for the attribute and the direct configuration in the objects
+have more precedence. The constants have been added to allow the values being set from the CLI on startup.
+
+When Icinga establishes a TLS connection to another cluster instance it automatically uses the [SNI extension](https://en.wikipedia.org/wiki/Server_Name_Indication)
+to signal which endpoint it is attempting to connect to. On its own this can already be used to position multiple
+Icinga instances behind a load balancer.
+
+SNI example: `icinga2-client1.localdomain`
+
+However, if the environment is configured to `production`, Icinga appends the environment name to the SNI hostname like this:
+
+SNI example with environment: `icinga2-client1.localdomain:production`
+
+Middleware like loadbalancers or TLS proxies can read the SNI header and route the connection to the appropriate target.
+I.e., it uses a single externally-visible TCP port (usually 5665) and forwards connections to one or more Icinga
+instances which are bound to a local TCP port. It does so by inspecting the environment name that is sent as part of the
+SNI extension.

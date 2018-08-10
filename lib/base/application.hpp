@@ -107,6 +107,9 @@ public:
 	static String GetAppVersion();
 	static String GetAppSpecVersion();
 
+	static String GetAppEnvironment();
+	static void SetAppEnvironment(const String& name);
+
 	static double GetStartTime();
 	static void SetStartTime(double ts);
 

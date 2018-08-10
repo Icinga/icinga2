@@ -79,10 +79,10 @@ void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 			{ "enable_host_checks", icingaapplication->GetEnableHostChecks() },
 			{ "enable_service_checks", icingaapplication->GetEnableServiceChecks() },
 			{ "enable_perfdata", icingaapplication->GetEnablePerfdata() },
+			{ "environment", icingaapplication->GetEnvironment() },
 			{ "pid", Utility::GetPid() },
 			{ "program_start", Application::GetStartTime() },
-			{ "version", Application::GetAppVersion() },
-			{ "environment", ScriptGlobal::Get("Environment", &Empty) }
+			{ "version", Application::GetAppVersion() }
 		}));
 	}
 
@@ -292,6 +292,16 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 String IcingaApplication::GetNodeName() const
 {
 	return ScriptGlobal::Get("NodeName");
+}
+
+String IcingaApplication::GetEnvironment() const
+{
+	return Application::GetAppEnvironment();
+}
+
+void IcingaApplication::SetEnvironment(const String& value, bool suppress_events, const Value& cookie)
+{
+	Application::SetAppEnvironment(value);
 }
 
 void IcingaApplication::ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
