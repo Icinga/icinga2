@@ -1067,6 +1067,8 @@ These keywords are reserved and must not be used as constants or custom attribut
     try
     except
     in
+    using
+    namespace
 
 You can escape reserved keywords using the `@` character. The following example
 tries to set `vars.include` which references a reserved keyword and generates
