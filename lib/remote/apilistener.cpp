@@ -1480,7 +1480,7 @@ String ApiListener::GetFromZoneName(const Zone::Ptr& fromZone)
 void ApiListener::UpdateStatusFile(TcpSocket::Ptr socket)
 {
 	String path = Application::GetConst("CacheDir") + "/api-state.json";
-	std::pair<String, String> details = socket->GetClientAddressDetails();
+	std::pair<String, int> details = socket->GetClientAddressDetails();
 
 	Utility::SaveJsonFile(path, 0644, new Dictionary({
 		{"host", details.first},

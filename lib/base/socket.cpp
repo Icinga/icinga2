@@ -116,7 +116,7 @@ int Socket::GetError() const
  *
  * @returns A pair of host and service.
  */
-String Socket::GetHumanReadableAddress(const std::pair<String, String>& socketDetails)
+String Socket::GetHumanReadableAddress(const std::pair<String, int>& socketDetails)
 {
 	std::ostringstream s;
 	s << "[" << socketDetails.first << "]:" << socketDetails.second;
@@ -128,7 +128,7 @@ String Socket::GetHumanReadableAddress(const std::pair<String, String>& socketDe
  *
  * @returns A pair with host and service.
  */
-std::pair<String, String> Socket::GetDetailsFromSockaddr(sockaddr *address, socklen_t len)
+std::pair<String, int> Socket::GetDetailsFromSockaddr(sockaddr *address, socklen_t len)
 {
 	char host[NI_MAXHOST];
 	char service[NI_MAXSERV];
@@ -152,7 +152,7 @@ std::pair<String, String> Socket::GetDetailsFromSockaddr(sockaddr *address, sock
 #endif /* _WIN32 */
 	}
 
-	return std::make_pair(host, service);
+	return std::make_pair(host, atoi(service));
 }
 
 /**
@@ -160,7 +160,7 @@ std::pair<String, String> Socket::GetDetailsFromSockaddr(sockaddr *address, sock
  *
  * @returns A pair describing the local host and service.
  */
-std::pair<String, String> Socket::GetClientAddressDetails()
+std::pair<String, int> Socket::GetClientAddressDetails()
 {
 	boost::mutex::scoped_lock lock(m_SocketMutex);
 
@@ -185,7 +185,7 @@ std::pair<String, String> Socket::GetClientAddressDetails()
 #endif /* _WIN32 */
 	}
 
-	std::pair<String, String> details;
+	std::pair<String, int> details;
 	try {
 		details = GetDetailsFromSockaddr((sockaddr *)&sin, len);
 	} catch (const std::exception&) {
@@ -210,7 +210,7 @@ String Socket::GetClientAddress()
  *
  * @returns A pair describing the peer host and service.
  */
-std::pair<String, String> Socket::GetPeerAddressDetails()
+std::pair<String, int> Socket::GetPeerAddressDetails()
 {
 	boost::mutex::scoped_lock lock(m_SocketMutex);
 
@@ -235,7 +235,7 @@ std::pair<String, String> Socket::GetPeerAddressDetails()
 #endif /* _WIN32 */
 	}
 
-	std::pair<String, String> details;
+	std::pair<String, int> details;
 	try {
 		details = GetDetailsFromSockaddr((sockaddr *)&sin, len);
 	} catch (const std::exception&) {

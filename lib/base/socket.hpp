@@ -45,9 +45,9 @@ public:
 
 	void Close();
 
-	std::pair<String, String> GetClientAddressDetails();
+	std::pair<String, int> GetClientAddressDetails();
 	String GetClientAddress();
-	std::pair<String, String> GetPeerAddressDetails();
+	std::pair<String, int> GetPeerAddressDetails();
 	String GetPeerAddress();
 
 	size_t Read(void *buffer, size_t size);
@@ -72,8 +72,8 @@ protected:
 private:
 	SOCKET m_FD{INVALID_SOCKET}; /**< The socket descriptor. */
 
-	static std::pair<String, String> GetDetailsFromSockaddr(sockaddr *address, socklen_t len);
-	static String GetHumanReadableAddress(const std::pair<String, String>& socketDetails);
+	static std::pair<String, int> GetDetailsFromSockaddr(sockaddr *address, socklen_t len);
+	static String GetHumanReadableAddress(const std::pair<String, int>& socketDetails);
 };
 
 class socket_error : virtual public std::exception, virtual public boost::exception { };
