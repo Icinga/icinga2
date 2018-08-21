@@ -3062,6 +3062,24 @@ glusterfs_disk_critical    | **Optional.** Return a critical error if disk usage
 glusterfs_inode_warning    | **Optional.** Warn if inode usage is above *DISKWARN*. Defaults to 90 (percent).
 glusterfs_inode_critical   | **Optional.** Return a critical error if inode usage is above *DISKCRIT*. Defaults to 95 (percent).
 
+#### ceph <a id="plugins-contrib-command-ceph"></a>
+
+The [ceph plugin](https://github.com/ceph/ceph-nagios-plugins)
+is used to check the Ceph storage health on the server.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                       | Description
+---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ceph_exec_dir    | **Optional.** Ceph executable. Default /usr/bin/ceph.
+ceph_conf_file   | **Optional.** Alternative ceph conf file.
+ceph_mon_address | **Optional.** Ceph monitor address[:port].
+ceph_client_id   | **Optional.** Ceph client id.
+ceph_client_name | **Optional.** Ceph client name.
+ceph_client_key  | **Optional.** Ceph client keyring file.
+ceph_whitelist   | **Optional.** Whitelist regexp for ceph health warnings.
+ceph_details     | **Optional.** Run 'ceph health detail'.
+
 
 ### Virtualization <a id="plugin-contrib-virtualization"></a>
 
