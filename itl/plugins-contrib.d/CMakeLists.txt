@@ -16,6 +16,6 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 install(
-  FILES databases.conf hardware.conf icingacli.conf ipmi.conf logmanagement.conf metrics.conf network-components.conf network-services.conf operating-system.conf raid-controller.conf smart-attributes.conf storage.conf virtualization.conf vmware.conf web.conf
+  FILES big-data.conf databases.conf hardware.conf icingacli.conf ipmi.conf logmanagement.conf metrics.conf network-components.conf network-services.conf operating-system.conf raid-controller.conf smart-attributes.conf storage.conf virtualization.conf vmware.conf web.conf
   DESTINATION ${ICINGA2_INCLUDEDIR}/plugins-contrib.d
 )
