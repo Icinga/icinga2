@@ -3069,8 +3069,8 @@ is used to check the Ceph storage health on the server.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                       | Description
----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Name             | Description
+-----------------|---------------------------------------------------------
 ceph_exec_dir    | **Optional.** Ceph executable. Default /usr/bin/ceph.
 ceph_conf_file   | **Optional.** Alternative ceph conf file.
 ceph_mon_address | **Optional.** Ceph monitor address[:port].
