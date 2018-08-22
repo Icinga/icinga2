@@ -217,11 +217,16 @@ void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, cons
 	// prepare arguments
 	Array::Ptr args = new Array({
 		Application::GetExePath(Application::GetArgV()[0]),
-		"daemon",
-		"--validate",
-		"--define",
-		"ActiveStageOverride=" + packageName + ":" + stageName
 	});
+
+	// copy all arguments of parent process
+	for (int i=1; i < Application::GetArgC(); i++) {
+		args->Add(Application::GetArgV()[i]);
+	}
+	// add arguments for validation
+	args->Add("--validate");
+	args->Add("--define");
+	args->Add("ActiveStageOverride=" + packageName + ":" + stageName);
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(300);
