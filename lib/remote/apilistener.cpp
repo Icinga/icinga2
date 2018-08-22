@@ -1484,7 +1484,7 @@ void ApiListener::UpdateStatusFile(TcpSocket::Ptr socket)
 
 	Utility::SaveJsonFile(path, 0644, new Dictionary({
 		{"host", details.first},
-		{"port", details.second}
+		{"port", Convert::ToLong(details.second)}
 	}));
 }
 
