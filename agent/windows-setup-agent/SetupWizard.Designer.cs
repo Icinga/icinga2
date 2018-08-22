@@ -746,7 +746,7 @@
 			this.tabError.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picBanner)).EndInit();
 			this.ResumeLayout(false);
-
+			this.Load += new System.EventHandler(this.SetupWizard_Load);
 		}
 
 		#endregion
