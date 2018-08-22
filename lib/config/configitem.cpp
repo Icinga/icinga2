@@ -478,15 +478,15 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (unresolved_dep)
 				continue;
 
-			int commited_items = 0;
-			upq.ParallelFor(items, [&type, &commited_items](const ItemPair& ip) {
+			int committed_items = 0;
+			upq.ParallelFor(items, [&type, &committed_items](const ItemPair& ip) {
 				const ConfigItem::Ptr& item = ip.first;
 
 				if (item->m_Type != type)
 					return;
 
 				ip.first->Commit(ip.second);
-				commited_items++;
+				committed_items++;
 			});
 
 			upq.Join();
@@ -494,9 +494,9 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			completed_types.insert(type);
 
 #ifdef I2_DEBUG
-			if (commited_items > 0)
+			if (committed_items > 0)
 				Log(LogDebug, "configitem")
-					<< "Committed " << commited_items << " items of type '" << type->GetName() << "'.";
+					<< "Committed " << committed_items << " items of type '" << type->GetName() << "'.";
 #endif /* I2_DEBUG */
 
 			if (upq.HasExceptions())
