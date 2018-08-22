@@ -2184,6 +2184,28 @@ include <plugin-contrib>
 
 This is enabled by default since Icinga 2 2.5.0.
 
+### Big Data <a id="plugin-contrib-big-data"></a>
+
+This category contains plugins for various Big Data systems.
+
+#### cloudera_service_status <a id="plugin-contrib-command-cloudera_service_status"></a>
+
+The [cloudera_service_status](https://github.com/miso231/icinga2-cloudera-plugin) plugin
+uses Cloudera Manager API to monitor cluster services
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                  | Description
+----------------------|-----------------------------------------------------------------
+cloudera_host         | **Required.** Hostname of cloudera server.
+cloudera_port         | **Optional.** Port where cloudera is listening. Defaults to 443.
+cloudera_user         | **Required.** The username for the API connection.
+cloudera_pass         | **Required.** The password for the API connection.
+cloudera_api_version  | **Required.** API version of cloudera.
+cloudera_cluster      | **Required.** The cluster name in cloudera manager.
+cloudera_service      | **Required.** Name of cluster service to be checked.
+cloudera_verify_ssl   | **Optional.** Verify SSL. Defaults to true.
+
 ### Databases <a id="plugin-contrib-databases"></a>
 
 This category contains plugins for various database servers.
