@@ -26,7 +26,7 @@
 #include <climits>
 #include <initializer_list>
 #include <iomanip>
-#include <strstream>
+#include <sstream>
 
 using namespace icinga;
 
