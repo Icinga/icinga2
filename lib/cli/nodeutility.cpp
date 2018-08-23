@@ -266,6 +266,49 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
 }
 
 /*
+* Returns true if the include is found, otherwise false
+*/
+bool NodeUtility::GetConfigurationIncludeState(const String& value, bool recursive) {
+	String configurationFile = Application::GetConst("ConfigDir") + "/icinga2.conf";
+
+	Log(LogInformation, "cli")
+		<< "Reading '" << configurationFile << "'.";
+
+	std::ifstream ifp(configurationFile.CStr());
+
+	String affectedInclude = value;
+
+	if (recursive)
+		affectedInclude = "include_recursive " + affectedInclude;
+	else
+		affectedInclude = "include " + affectedInclude;
+
+	bool isIncluded = false;
+
+	std::string line;
+
+	while(std::getline(ifp, line)) {
+		/*
+		* Trying to find if the inclusion is enabled.
+		* First hit breaks out of the loop.
+		*/
+
+		if (!line.compare(affectedInclude)) {
+			isIncluded = true;
+
+			/*
+			* We can safely break out here, since an enabled include always win.
+			*/
+			break;
+		}
+	}
+
+	ifp.close();
+
+	return isIncluded;
+}
+
+/*
  * include = false, will comment out the include statement
  * include = true, will add an include statement or uncomment a statement if one is existing
  * resursive = false, will search for a non-resursive include statement

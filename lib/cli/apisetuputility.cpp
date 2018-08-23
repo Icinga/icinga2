@@ -198,6 +198,15 @@ bool ApiSetupUtility::SetupMasterApiUser()
 
 bool ApiSetupUtility::SetupMasterEnableApi()
 {
+	/*
+	* Ensure the api-users.conf file is included, when conf.d inclusion is disabled.
+	*/
+	if (!NodeUtility::GetConfigurationIncludeState("\"conf.d\"", true))
+		NodeUtility::UpdateConfiguration("\"conf.d/api-users.conf\"", true, false);
+
+	/*
+	* Enable the API feature
+	*/
 	Log(LogInformation, "cli", "Enabling the 'api' feature.");
 
 	FeatureUtility::EnableFeatures({ "api" });
