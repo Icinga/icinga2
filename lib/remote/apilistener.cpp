@@ -1384,7 +1384,7 @@ double ApiListener::CalculateZoneLag(const Endpoint::Ptr& endpoint)
 bool ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
 	boost::mutex::scoped_lock lock(m_AnonymousClientsLock);
-	if (m_AnonymousClients.size() > 25)
+	if (m_AnonymousClients.size() > 100)
 		return false;
 
 	m_AnonymousClients.insert(aclient);
