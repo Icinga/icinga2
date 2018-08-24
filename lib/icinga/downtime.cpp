@@ -42,6 +42,15 @@ boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeTrigger
 
 REGISTER_TYPE(Downtime);
 
+INITIALIZE_ONCE(&Downtime::StaticInitialize);
+
+void Downtime::StaticInitialize()
+{
+	ScriptGlobal::Set("DowntimeNoChildren", "DowntimeNoChildren");
+	ScriptGlobal::Set("DowntimeTriggeredChildren", "DowntimeTriggeredChildren");
+	ScriptGlobal::Set("DowntimeNonTriggeredChildren", "DowntimeNonTriggeredChildren");
+}
+
 String DowntimeNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
 	Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(context);
@@ -419,4 +428,21 @@ void Downtime::ValidateEndTime(const Lazy<Timestamp>& lvalue, const ValidationUt
 
 	if (lvalue() <= 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "end_time" }, "End time must be greater than 0."));
+}
+
+DowntimeChildOptions Downtime::ChildOptionsFromValue(const Value& options)
+{
+	if (options == "DowntimeNoChildren")
+		return DowntimeNoChildren;
+	else if (options == "DowntimeTriggeredChildren")
+		return DowntimeTriggeredChildren;
+	else if (options == "DowntimeNonTriggeredChildren")
+		return DowntimeNonTriggeredChildren;
+	else if (options.IsNumber()) {
+		int number = options;
+		if (number >= 0 && number <= 2)
+			return static_cast<DowntimeChildOptions>(number);
+	}
+
+	BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid child option specified"));
 }

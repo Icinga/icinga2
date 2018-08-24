@@ -28,6 +28,13 @@
 namespace icinga
 {
 
+enum DowntimeChildOptions
+{
+	DowntimeNoChildren,
+	DowntimeTriggeredChildren,
+	DowntimeNonTriggeredChildren
+};
+
 /**
  * A downtime.
  *
@@ -51,6 +58,8 @@ public:
 	bool IsExpired() const;
 	bool HasValidConfigOwner() const;
 
+	static void StaticInitialize();
+
 	static int GetNextDowntimeID();
 
 	static String AddDowntime(const intrusive_ptr<Checkable>& checkable, const String& author,
@@ -64,6 +73,8 @@ public:
 	void TriggerDowntime();
 
 	static String GetDowntimeIDFromLegacyID(int id);
+
+	static DowntimeChildOptions ChildOptionsFromValue(const Value& options);
 
 protected:
 	void OnAllConfigLoaded() override;
