@@ -1,7 +1,9 @@
-[string]$pwd = Get-Location
+if (-not (Test-Path env:ICINGA2_BUILDPATH)) {
+  $env:ICINGA2_BUILDPATH = '.\build'
+}
 
-if (-not (Test-Path build)) {
-  Write-Host "Path '$pwd\build' does not exist!"
+if (-not (Test-Path $env:ICINGA2_BUILDPATH)) {
+  Write-Host "Path '$env:ICINGA2_BUILDPATH' does not exist!"
   exit 1
 }
 
@@ -12,5 +14,5 @@ if (-not ($env:PATH -contains $env:CMAKE_PATH)) {
   $env:PATH = $env:CMAKE_PATH + ';' + $env:PATH
 }
 
-cmake.exe --build build --target PACKAGE --config RelWithDebInfo
+cmake.exe --build "$env:ICINGA2_BUILDPATH" --target PACKAGE --config RelWithDebInfo
 if ($lastexitcode -ne 0) { exit $lastexitcode }
