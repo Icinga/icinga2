@@ -97,6 +97,22 @@ With the removal of RHEL 5 as supported platform, we can finally use real unique
 This is reflected in generating names for e.g. API stage names. Previously it was a handcrafted
 mix of local FQDN, timestamps and random numbers.
 
+### Custom Vars not updating <a id="upgrading-to-2-9-custom-vars-not-updating"></a>
+
+A rare issue preventing the custom vars of objects created prior to 2.9.0 being updated when changed may occur. To
+remedy this the config checksums of the affected type need to be reset to trigger a full update. The following is an
+example of how to do this for Hosts in mysql:
+
+```
+$ mysql -uroot -picinga icinga
+MariaDB [icinga]> UPDATE icinga_hosts SET config_hash = NULL;
+MariaDB [icinga]> exit
+Bye
+$ sudo systemctl restart icinga2
+```
+
+Custom vars should now be up to date.
+
 
 ## Upgrading to v2.8.2 <a id="upgrading-to-2-8-2"></a>
 
