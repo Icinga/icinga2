@@ -49,6 +49,11 @@ New [Icinga constants](17-language-reference.md#icinga-constants) have been adde
 The keywords `namespace` and `using` are now [reserved](17-language-reference.md#reserved-keywords) for the namespace functionality provided
 with v2.10. Read more about how it works [here](17-language-reference.md#namespaces).
 
+### API: schedule-downtime Action <a id="upgrading-to-2-10-api-schedule-downtime-action"></a>
+
+The attribute `child_options` was previously accepting 0,1,2 for specific child downtime settings.
+This behaviour stays intact, but the new proposed way are specific constants as values (`DowntimeNoChildren`, `DowntimeTriggeredChildren`, `DowntimeNonTriggeredChildren`).
+
 ## Upgrading to v2.9 <a id="upgrading-to-2-9"></a>
 
 ### Deprecation and Removal Notes <a id="upgrading-to-2-9-deprecation-removal-notes"></a>
