@@ -42,10 +42,10 @@ class ApiListener : ConfigObject
 	};
 
 	[config] String bind_host {
-		default {{{ return Application::GetConst("ApiBindHost"); }}}
+		default {{{ return Configuration::ApiBindHost; }}}
 	};
 	[config] String bind_port {
-		default {{{ return Application::GetConst("ApiBindPort", "5665"); }}}
+		default {{{ return Configuration::ApiBindPort; }}}
 	};
 
 	[config] bool accept_config;

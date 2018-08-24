@@ -32,7 +32,7 @@ class LivestatusListener : ConfigObject {
 		default {{{ return "unix"; }}}
 	};
 	[config] String socket_path {
-		default {{{ return Application::GetConst("InitRunDir") + "/cmd/livestatus"; }}}
+		default {{{ return Configuration::InitRunDir + "/cmd/livestatus"; }}}
 	};
 	[config] String bind_host {
 		default {{{ return "127.0.0.1"; }}}
@@ -41,7 +41,7 @@ class LivestatusListener : ConfigObject {
 		default {{{ return "6558"; }}}
 	};
 	[config] String compat_log_path {
-		default {{{ return Application::GetConst("LogDir") + "/compat"; }}}
+		default {{{ return Configuration::LogDir + "/compat"; }}}
 	};
 };
 

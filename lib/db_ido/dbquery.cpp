@@ -29,22 +29,22 @@ std::map<String, int> DbQuery::m_CategoryFilterMap;
 
 void DbQuery::StaticInitialize()
 {
-	ScriptGlobal::Set("DbCatConfig", DbCatConfig);
-	ScriptGlobal::Set("DbCatState", DbCatState);
-	ScriptGlobal::Set("DbCatAcknowledgement", DbCatAcknowledgement);
-	ScriptGlobal::Set("DbCatComment", DbCatComment);
-	ScriptGlobal::Set("DbCatDowntime", DbCatDowntime);
-	ScriptGlobal::Set("DbCatEventHandler", DbCatEventHandler);
-	ScriptGlobal::Set("DbCatExternalCommand", DbCatExternalCommand);
-	ScriptGlobal::Set("DbCatFlapping", DbCatFlapping);
-	ScriptGlobal::Set("DbCatCheck", DbCatCheck);
-	ScriptGlobal::Set("DbCatLog", DbCatLog);
-	ScriptGlobal::Set("DbCatNotification", DbCatNotification);
-	ScriptGlobal::Set("DbCatProgramStatus", DbCatProgramStatus);
-	ScriptGlobal::Set("DbCatRetention", DbCatRetention);
-	ScriptGlobal::Set("DbCatStateHistory", DbCatStateHistory);
+	ScriptGlobal::Set("Icinga.DbCatConfig", DbCatConfig, true);
+	ScriptGlobal::Set("Icinga.DbCatState", DbCatState, true);
+	ScriptGlobal::Set("Icinga.DbCatAcknowledgement", DbCatAcknowledgement, true);
+	ScriptGlobal::Set("Icinga.DbCatComment", DbCatComment, true);
+	ScriptGlobal::Set("Icinga.DbCatDowntime", DbCatDowntime, true);
+	ScriptGlobal::Set("Icinga.DbCatEventHandler", DbCatEventHandler, true);
+	ScriptGlobal::Set("Icinga.DbCatExternalCommand", DbCatExternalCommand, true);
+	ScriptGlobal::Set("Icinga.DbCatFlapping", DbCatFlapping, true);
+	ScriptGlobal::Set("Icinga.DbCatCheck", DbCatCheck, true);
+	ScriptGlobal::Set("Icinga.DbCatLog", DbCatLog, true);
+	ScriptGlobal::Set("Icinga.DbCatNotification", DbCatNotification, true);
+	ScriptGlobal::Set("Icinga.DbCatProgramStatus", DbCatProgramStatus, true);
+	ScriptGlobal::Set("Icinga.DbCatRetention", DbCatRetention, true);
+	ScriptGlobal::Set("Icinga.DbCatStateHistory", DbCatStateHistory, true);
 
-	ScriptGlobal::Set("DbCatEverything", DbCatEverything);
+	ScriptGlobal::Set("Icinga.DbCatEverything", DbCatEverything, true);
 
 	m_CategoryFilterMap["DbCatConfig"] = DbCatConfig;
 	m_CategoryFilterMap["DbCatState"] = DbCatState;

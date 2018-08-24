@@ -202,7 +202,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	if (sumUpdates == 0)
 		return;
 
-	String oldDir = Application::GetConst("DataDir") + "/api/zones/" + zone->GetName();
+	String oldDir = Configuration::DataDir + "/api/zones/" + zone->GetName();
 
 	Log(LogInformation, "ApiListener")
 		<< "Copying " << sumUpdates << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
@@ -240,7 +240,7 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	Dictionary::Ptr configUpdateV1 = new Dictionary();
 	Dictionary::Ptr configUpdateV2 = new Dictionary();
 
-	String zonesDir = Application::GetConst("DataDir") + "/api/zones";
+	String zonesDir = Configuration::DataDir + "/api/zones";
 
 	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
 		String zoneDir = zonesDir + "/" + zone->GetName();
@@ -315,7 +315,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 			continue;
 		}
 
-		String oldDir = Application::GetConst("DataDir") + "/api/zones/" + zone->GetName();
+		String oldDir = Configuration::DataDir + "/api/zones/" + zone->GetName();
 
 		Utility::MkDirP(oldDir, 0700);
 

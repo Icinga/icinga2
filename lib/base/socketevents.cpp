@@ -79,7 +79,7 @@ void SocketEventEngine::WakeUpThread(int sid, bool wait)
 
 void SocketEvents::InitializeEngine()
 {
-	String eventEngine = ScriptGlobal::Get("EventEngine", &Empty);
+	String eventEngine = Configuration::EventEngine;
 
 	if (eventEngine.IsEmpty())
 #ifdef __linux__
@@ -105,7 +105,7 @@ void SocketEvents::InitializeEngine()
 
 	l_SocketIOEngine->Start();
 
-	ScriptGlobal::Set("EventEngine", eventEngine);
+	Configuration::EventEngine = eventEngine;
 }
 
 /**

@@ -45,12 +45,8 @@ struct ScriptFrame
 
 	static ScriptFrame *GetCurrentFrame();
 
-	static Array::Ptr GetImports();
-	static void AddImport(const Object::Ptr& import);
-
 private:
 	static boost::thread_specific_ptr<std::stack<ScriptFrame *> > m_ScriptFrames;
-	static Array::Ptr m_Imports;
 
 	static void PushFrame(ScriptFrame *frame);
 	static ScriptFrame *PopFrame();

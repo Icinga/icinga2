@@ -37,7 +37,7 @@ static bool GetDebugJsonRpcCached()
 
 	debugJsonRpc = false;
 
-	Dictionary::Ptr internal = ScriptGlobal::Get("Internal", &Empty);
+	Namespace::Ptr internal = ScriptGlobal::Get("Internal", &Empty);
 
 	if (!internal)
 		return false;

@@ -168,7 +168,7 @@ void Application::SetResourceLimits()
 	rlimit rl;
 
 #	ifdef RLIMIT_NOFILE
-	rlim_t fileLimit = GetConst("RLimitFiles");
+	rlim_t fileLimit = Configuration::RLimitFiles;
 
 	if (fileLimit != 0) {
 		if (fileLimit < GetDefaultRLimitFiles()) {
@@ -189,7 +189,7 @@ void Application::SetResourceLimits()
 	}
 
 #	ifdef RLIMIT_NPROC
-	rlim_t processLimit = GetConst("RLimitProcesses");
+	rlim_t processLimit = Configuration::RLimitProcesses;
 
 	if (processLimit != 0) {
 		if (processLimit < GetDefaultRLimitProcesses()) {
@@ -228,7 +228,7 @@ void Application::SetResourceLimits()
 
 	rlim_t stackLimit;
 
-	stackLimit = GetConst("RLimitStack");
+	stackLimit = Configuration::RLimitStack;
 
 	if (stackLimit != 0) {
 		if (stackLimit < GetDefaultRLimitStack()) {
@@ -549,30 +549,32 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 		<< "  Kernel version: " << Utility::GetPlatformKernelVersion() << "\n"
 		<< "  Architecture: " << Utility::GetPlatformArchitecture() << "\n";
 
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+
 	os << "\nBuild information:\n"
-		<< "  Compiler: " << ScriptGlobal::Get("BuildCompilerName") << " " << ScriptGlobal::Get("BuildCompilerVersion") << "\n"
-		<< "  Build host: " << ScriptGlobal::Get("BuildHostName") << "\n";
+		<< "  Compiler: " << systemNS->Get("BuildCompilerName") << " " << systemNS->Get("BuildCompilerVersion") << "\n"
+		<< "  Build host: " << systemNS->Get("BuildHostName") << "\n";
 
 	os << "\nApplication information:\n"
 		<< "\nGeneral paths:\n"
-		<< "  Config directory: " << GetConst("ConfigDir") << "\n"
-		<< "  Data directory: " << GetConst("DataDir") << "\n"
-		<< "  Log directory: " << GetConst("LogDir") << "\n"
-		<< "  Cache directory: " << GetConst("CacheDir") << "\n"
-		<< "  Spool directory: " << GetConst("SpoolDir") << "\n"
-		<< "  Run directory: " << GetConst("InitRunDir") << "\n"
+		<< "  Config directory: " << Configuration::ConfigDir << "\n"
+		<< "  Data directory: " << Configuration::DataDir << "\n"
+		<< "  Log directory: " << Configuration::LogDir << "\n"
+		<< "  Cache directory: " << Configuration::CacheDir << "\n"
+		<< "  Spool directory: " << Configuration::SpoolDir << "\n"
+		<< "  Run directory: " << Configuration::InitRunDir << "\n"
 		<< "\nOld paths (deprecated):\n"
-		<< "  Installation root: " << GetConst("PrefixDir") << "\n"
-		<< "  Sysconf directory: " << GetConst("SysconfDir") << "\n"
-		<< "  Run directory (base): " << GetConst("RunDir") << "\n"
-		<< "  Local state directory: " << GetConst("LocalStateDir") << "\n"
+		<< "  Installation root: " << Configuration::PrefixDir << "\n"
+		<< "  Sysconf directory: " << Configuration::SysconfDir << "\n"
+		<< "  Run directory (base): " << Configuration::RunDir << "\n"
+		<< "  Local state directory: " << Configuration::LocalStateDir << "\n"
 		<< "\nInternal paths:\n"
-		<< "  Package data directory: " << GetConst("PkgDataDir") << "\n"
-		<< "  State path: " << GetConst("StatePath") << "\n"
-		<< "  Modified attributes path: " << GetConst("ModAttrPath") << "\n"
-		<< "  Objects path: " << GetConst("ObjectsPath") << "\n"
-		<< "  Vars path: " << GetConst("VarsPath") << "\n"
-		<< "  PID path: " << GetConst("PidPath") << "\n";
+		<< "  Package data directory: " << Configuration::PkgDataDir << "\n"
+		<< "  State path: " << Configuration::StatePath << "\n"
+		<< "  Modified attributes path: " << Configuration::ModAttrPath << "\n"
+		<< "  Objects path: " << Configuration::ObjectsPath << "\n"
+		<< "  Vars path: " << Configuration::VarsPath << "\n"
+		<< "  PID path: " << Configuration::PidPath << "\n";
 
 }
 
@@ -590,7 +592,7 @@ void Application::DisplayBugMessage(std::ostream& os)
 
 String Application::GetCrashReportFilename()
 {
-	return GetConst("LogDir") + "/crash/report." + Convert::ToString(Utility::GetTime());
+	return Configuration::LogDir + "/crash/report." + Convert::ToString(Utility::GetTime());
 }
 
 
@@ -740,7 +742,7 @@ void Application::SigUsr2Handler(int)
 	 */
 	Application::Ptr instance = GetInstance();
 	try {
-		instance->UpdatePidFile(GetConst("PidPath"), m_ReloadProcess);
+		instance->UpdatePidFile(Configuration::PidPath, m_ReloadProcess);
 	} catch (const std::exception&) {
 		/* abort restart */
 		Log(LogCritical, "Application", "Cannot update PID file. Aborting restart operation.");
@@ -783,7 +785,7 @@ void Application::SigAbrtHandler(int)
 		}
 	}
 
-	bool interactive_debugger = Convert::ToBool(ScriptGlobal::Get("AttachDebugger"));
+	bool interactive_debugger = Configuration::AttachDebugger;
 
 	if (!interactive_debugger) {
 		std::ofstream ofs;
@@ -893,7 +895,7 @@ void Application::ExceptionHandler()
 		}
 	}
 
-	bool interactive_debugger = Convert::ToBool(ScriptGlobal::Get("AttachDebugger"));
+	bool interactive_debugger = Configuration::AttachDebugger;
 
 	if (!interactive_debugger) {
 		std::ofstream ofs;
@@ -1012,10 +1014,10 @@ int Application::Run()
 #endif /* _WIN32 */
 
 	try {
-		UpdatePidFile(GetConst("PidPath"));
+		UpdatePidFile(Configuration::PidPath);
 	} catch (const std::exception&) {
 		Log(LogCritical, "Application")
-			<< "Cannot update PID file '" << GetConst("PidPath") << "'. Aborting.";
+			<< "Cannot update PID file '" << Configuration::PidPath << "'. Aborting.";
 		return EXIT_FAILURE;
 	}
 
@@ -1097,7 +1099,7 @@ void Application::ClosePidFile(bool unlink)
 
 	if (m_PidFile) {
 		if (unlink) {
-			String pidpath = GetConst("PidPath");
+			String pidpath = Configuration::PidPath;
 			::unlink(pidpath.CStr());
 		}
 
@@ -1165,39 +1167,6 @@ pid_t Application::ReadPidFile(const String& filename)
 	return runningpid;
 }
 
-/**
- * Declares a const with ScriptGlobal
- *
- * @param name The const name.
- * @param value The new value.
- */
-void Application::DeclareConst(const String& name, const Value& value)
-{
-	if (!ScriptGlobal::Exists(name))
-		ScriptGlobal::Set(name, value);
-}
-
-/**
- * Returns the value of a const from ScriptGlobal
- *
- * @param name The const name.
- */
-Value Application::GetConst(const String& name)
-{
-	return GetConst(name, Empty);
-}
-
-/**
- * Returns the value of a const from ScriptGlobal with default value
- *
- * @param name The const name.
- * @param def  The default value.
- */
-Value Application::GetConst(const String& name, Value defaultValue)
-{
-	return ScriptGlobal::Get(name, &defaultValue);
-}
-
 int Application::GetDefaultRLimitFiles()
 {
 	return 16 * 1024;
@@ -1211,17 +1180,6 @@ int Application::GetDefaultRLimitProcesses()
 int Application::GetDefaultRLimitStack()
 {
 	return 256 * 1024;
-}
-
-/**
- * Retrieves the concurrency level.
- *
- * @returns The concurrency level.
- */
-int Application::GetConcurrency()
-{
-	Value defaultConcurrency = std::thread::hardware_concurrency();
-	return ScriptGlobal::Get("Concurrency", &defaultConcurrency);
 }
 
 /**

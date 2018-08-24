@@ -28,6 +28,7 @@
 #include "base/debuginfo.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
+#include "base/namespace.hpp"
 #include "base/function.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/exception.hpp"
@@ -42,15 +43,13 @@ namespace icinga
 class VMOps
 {
 public:
-	static inline bool FindVarImportRef(ScriptFrame& frame, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
+	static inline bool FindVarImportRef(ScriptFrame& frame, const std::vector<std::shared_ptr<Expression> >& imports, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
 	{
-		Array::Ptr imports = ScriptFrame::GetImports();
-
-		ObjectLock olock(imports);
-		for (const Value& import : imports) {
-			Object::Ptr obj = import;
+		for (const auto& import : imports) {
+			ExpressionResult res = import->Evaluate(frame);
+			Object::Ptr obj = res.GetValue();
 			if (obj->HasOwnField(name)) {
-				*result = import;
+				*result = obj;
 				return true;
 			}
 		}
@@ -58,11 +57,11 @@ public:
 		return false;
 	}
 
-	static inline bool FindVarImport(ScriptFrame& frame, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
+	static inline bool FindVarImport(ScriptFrame& frame, const std::vector<std::shared_ptr<Expression> >& imports, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
 	{
 		Value parent;
 
-		if (FindVarImportRef(frame, name, &parent, debugInfo)) {
+		if (FindVarImportRef(frame, imports, name, &parent, debugInfo)) {
 			*result = GetField(parent, name, frame.Sandboxed, debugInfo);
 			return true;
 		}
@@ -225,6 +224,26 @@ public:
 				ExpressionResult res = expression->Evaluate(frame);
 				CHECK_RESULT_LOOP(res);
 			}
+		} else if (value.IsObjectType<Namespace>()) {
+			if (fvvar.IsEmpty())
+				BOOST_THROW_EXCEPTION(ScriptError("Cannot use array iterator for namespace.", debugInfo));
+
+			Namespace::Ptr ns = value;
+			std::vector<String> keys;
+
+			{
+				ObjectLock olock(ns);
+				for (const Namespace::Pair& kv : ns) {
+					keys.push_back(kv.first);
+				}
+			}
+
+			for (const String& key : keys) {
+				frame.Locals->Set(fkvar, key);
+				frame.Locals->Set(fvvar, ns->Get(key));
+				ExpressionResult res = expression->Evaluate(frame);
+				CHECK_RESULT_LOOP(res);
+			}
 		} else
 			BOOST_THROW_EXCEPTION(ScriptError("Invalid type in for expression: " + value.GetTypeName(), debugInfo));
 
@@ -244,12 +263,12 @@ public:
 		return object->GetFieldByName(field, sandboxed, debugInfo);
 	}
 
-	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value, const DebugInfo& debugInfo = DebugInfo())
+	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo = DebugInfo())
 	{
 		if (!context)
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set field '" + field + "' on a value that is not an object.", debugInfo));
 
-		return context->SetFieldByName(field, value, debugInfo);
+		return context->SetFieldByName(field, value, overrideFrozen, debugInfo);
 	}
 
 private:

@@ -239,7 +239,8 @@ const std::vector<String>& ConfigWriter::GetKeywords()
 		keywords.emplace_back("globals");
 		keywords.emplace_back("locals");
 		keywords.emplace_back("use");
-		keywords.emplace_back("__using");
+		keywords.emplace_back("using");
+		keywords.emplace_back("namespace");
 		keywords.emplace_back("default");
 		keywords.emplace_back("ignore_on_error");
 		keywords.emplace_back("current_filename");

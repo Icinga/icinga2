@@ -89,13 +89,14 @@ bool Dictionary::Get(const String& key, Value *result) const
  *
  * @param key The key.
  * @param value The value.
+ * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Set(const String& key, Value value)
+void Dictionary::Set(const String& key, Value value, bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
+	if (m_Frozen && !overrideFrozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Value in dictionary must not be modified."));
 
 	m_Data[key] = std::move(value);
 }
@@ -157,12 +158,13 @@ Dictionary::Iterator Dictionary::End()
  * Removes the item specified by the iterator from the dictionary.
  *
  * @param it The iterator.
+ * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Remove(Dictionary::Iterator it)
+void Dictionary::Remove(Dictionary::Iterator it, bool overrideFrozen)
 {
 	ASSERT(OwnsLock());
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
 	m_Data.erase(it);
@@ -172,12 +174,13 @@ void Dictionary::Remove(Dictionary::Iterator it)
  * Removes the specified key from the dictionary.
  *
  * @param key The key.
+ * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Remove(const String& key)
+void Dictionary::Remove(const String& key, bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
 	Dictionary::Iterator it;
@@ -191,12 +194,14 @@ void Dictionary::Remove(const String& key)
 
 /**
  * Removes all dictionary items.
+ *
+ * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Clear()
+void Dictionary::Clear(bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
 	m_Data.clear();
@@ -288,9 +293,9 @@ Value Dictionary::GetFieldByName(const String& field, bool, const DebugInfo& deb
 		return GetPrototypeField(const_cast<Dictionary *>(this), field, false, debugInfo);
 }
 
-void Dictionary::SetFieldByName(const String& field, const Value& value, const DebugInfo&)
+void Dictionary::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo&)
 {
-	Set(field, value);
+	Set(field, value, overrideFrozen);
 }
 
 bool Dictionary::HasOwnField(const String& field) const

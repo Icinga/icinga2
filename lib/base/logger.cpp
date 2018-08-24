@@ -49,11 +49,11 @@ bool Logger::m_TimestampEnabled = true;
 LogSeverity Logger::m_ConsoleLogSeverity = LogInformation;
 
 INITIALIZE_ONCE([]() {
-	ScriptGlobal::Set("LogDebug", LogDebug);
-	ScriptGlobal::Set("LogNotice", LogNotice);
-	ScriptGlobal::Set("LogInformation", LogInformation);
-	ScriptGlobal::Set("LogWarning", LogWarning);
-	ScriptGlobal::Set("LogCritical", LogCritical);
+	ScriptGlobal::Set("System.LogDebug", LogDebug, true);
+	ScriptGlobal::Set("System.LogNotice", LogNotice, true);
+	ScriptGlobal::Set("System.LogInformation", LogInformation, true);
+	ScriptGlobal::Set("System.LogWarning", LogWarning, true);
+	ScriptGlobal::Set("System.LogCritical", LogCritical, true);
 });
 
 /**

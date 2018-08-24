@@ -23,6 +23,7 @@
 #include "base/i2-base.hpp"
 #include "base/application-ti.hpp"
 #include "base/logger.hpp"
+#include "base/configuration.hpp"
 #include <iosfwd>
 
 namespace icinga
@@ -85,10 +86,6 @@ public:
 
 	static String GetExePath(const String& argv0);
 
-	static void DeclareConst(const String& name, const Value& value);
-	static Value GetConst(const String& name);
-	static Value GetConst(const String& name, Value defaultValue);
-
 #ifdef _WIN32
 	static bool IsProcessElevated();
 #endif /* _WIN32 */
@@ -97,7 +94,6 @@ public:
 	static int GetDefaultRLimitProcesses();
 	static int GetDefaultRLimitStack();
 
-	static int GetConcurrency();
 	static int GetMaxConcurrentChecks();
 	static int GetDefaultMaxConcurrentChecks();
 	static void SetMaxConcurrentChecks(int maxChecks);

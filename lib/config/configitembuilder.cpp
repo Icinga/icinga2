@@ -31,6 +31,7 @@ ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
 
 void ConfigItemBuilder::SetType(const Type::Ptr& type)
 {
+	ASSERT(type);
 	m_Type = type;
 }
 

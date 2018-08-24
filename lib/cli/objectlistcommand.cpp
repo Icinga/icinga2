@@ -67,11 +67,11 @@ void ObjectListCommand::InitParameters(boost::program_options::options_descripti
  */
 int ObjectListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String objectfile = Application::GetConst("ObjectsPath");
+	String objectfile = Configuration::ObjectsPath;
 
 	if (!Utility::PathExists(objectfile)) {
 		Log(LogCritical, "cli")
-			<< "Cannot open objects file '" << Application::GetConst("ObjectsPath") << "'.";
+			<< "Cannot open objects file '" << Configuration::ObjectsPath << "'.";
 		Log(LogCritical, "cli", "Run 'icinga2 daemon -C' to validate config and generate the cache file.");
 		return 1;
 	}

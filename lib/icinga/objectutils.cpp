@@ -29,17 +29,17 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(System, get_host, &Host::GetByName, "name");
-REGISTER_SCRIPTFUNCTION_NS(System, get_service, &ObjectUtils::GetService, "host:name");
-REGISTER_SCRIPTFUNCTION_NS(System, get_services, &ObjectUtils::GetServices, "host");
-REGISTER_SCRIPTFUNCTION_NS(System, get_user, &User::GetByName, "name");
-REGISTER_SCRIPTFUNCTION_NS(System, get_check_command, &CheckCommand::GetByName, "name");
-REGISTER_SCRIPTFUNCTION_NS(System, get_event_command, &EventCommand::GetByName, "name");
-REGISTER_SCRIPTFUNCTION_NS(System, get_notification_command, &NotificationCommand::GetByName, "name");
-REGISTER_SCRIPTFUNCTION_NS(System, get_host_group, &HostGroup::GetByName, "name");
-REGISTER_SCRIPTFUNCTION_NS(System, get_service_group, &ServiceGroup::GetByName, "name");
-REGISTER_SCRIPTFUNCTION_NS(System, get_user_group, &UserGroup::GetByName, "name");
-REGISTER_SCRIPTFUNCTION_NS(System, get_time_period, &TimePeriod::GetByName, "name");
+REGISTER_FUNCTION(Icinga, get_host, &Host::GetByName, "name");
+REGISTER_FUNCTION(Icinga, get_service, &ObjectUtils::GetService, "host:name");
+REGISTER_FUNCTION(Icinga, get_services, &ObjectUtils::GetServices, "host");
+REGISTER_FUNCTION(Icinga, get_user, &User::GetByName, "name");
+REGISTER_FUNCTION(Icinga, get_check_command, &CheckCommand::GetByName, "name");
+REGISTER_FUNCTION(Icinga, get_event_command, &EventCommand::GetByName, "name");
+REGISTER_FUNCTION(Icinga, get_notification_command, &NotificationCommand::GetByName, "name");
+REGISTER_FUNCTION(Icinga, get_host_group, &HostGroup::GetByName, "name");
+REGISTER_FUNCTION(Icinga, get_service_group, &ServiceGroup::GetByName, "name");
+REGISTER_FUNCTION(Icinga, get_user_group, &UserGroup::GetByName, "name");
+REGISTER_FUNCTION(Icinga, get_time_period, &TimePeriod::GetByName, "name");
 
 Service::Ptr ObjectUtils::GetService(const Value& host, const String& name)
 {

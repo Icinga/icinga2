@@ -59,7 +59,7 @@ void JsonRpcConnection::StaticInitialize()
 	l_JsonRpcConnectionTimeoutTimer->SetInterval(15);
 	l_JsonRpcConnectionTimeoutTimer->Start();
 
-	l_JsonRpcConnectionWorkQueueCount = Application::GetConcurrency();
+	l_JsonRpcConnectionWorkQueueCount = Configuration::Concurrency;
 	l_JsonRpcConnectionWorkQueues = new WorkQueue[l_JsonRpcConnectionWorkQueueCount];
 
 	for (size_t i = 0; i < l_JsonRpcConnectionWorkQueueCount; i++) {

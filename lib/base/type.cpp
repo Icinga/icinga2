@@ -19,6 +19,7 @@
 
 #include "base/type.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/namespace.hpp"
 #include "base/objectlock.hpp"
 
 using namespace icinga;
@@ -39,19 +40,19 @@ String Type::ToString() const
 
 void Type::Register(const Type::Ptr& type)
 {
-	VERIFY(!GetByName(type->GetName()));
-
-	ScriptGlobal::Set("Types." + type->GetName(), type);
+	ScriptGlobal::Set("Types." + type->GetName(), type, true);
 }
 
 Type::Ptr Type::GetByName(const String& name)
 {
-	Dictionary::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
+	Namespace::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
 
 	if (!typesNS)
 		return nullptr;
 
-	Value ptype = typesNS->Get(name);
+	Value ptype;
+	if (!typesNS->Get(name, &ptype))
+		return nullptr;
 
 	if (!ptype.IsObjectType<Type>())
 		return nullptr;
@@ -63,14 +64,16 @@ std::vector<Type::Ptr> Type::GetAllTypes()
 {
 	std::vector<Type::Ptr> types;
 
-	Dictionary::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
+	Namespace::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
 
 	if (typesNS) {
 		ObjectLock olock(typesNS);
 
-		for (const Dictionary::Pair& kv : typesNS) {
-			if (kv.second.IsObjectType<Type>())
-				types.push_back(kv.second);
+		for (const Namespace::Pair& kv : typesNS) {
+			Value value = kv.second->Get();
+
+			if (value.IsObjectType<Type>())
+				types.push_back(value);
 		}
 	}
 

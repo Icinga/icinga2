@@ -48,7 +48,7 @@ ConfigItem::TypeMap ConfigItem::m_DefaultTemplates;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 ConfigItem::IgnoredItemList ConfigItem::m_IgnoredItems;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::RunWithActivationContext, "func");
+REGISTER_FUNCTION(Internal, run_with_activation_context, &ConfigItem::RunWithActivationContext, "func");
 
 /**
  * Constructor for the ConfigItem class.
@@ -577,8 +577,8 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 
 	if (withModAttrs) {
 		/* restore modified attributes */
-		if (Utility::PathExists(Application::GetConst("ModAttrPath"))) {
-			std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(Application::GetConst("ModAttrPath"));
+		if (Utility::PathExists(Configuration::ModAttrPath)) {
+			std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(Configuration::ModAttrPath);
 
 			if (expression) {
 				try {
@@ -675,7 +675,7 @@ bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 
 	function->Invoke();
 
-	WorkQueue upq(25000, Application::GetConcurrency());
+	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("ConfigItem::RunWithActivationContext");
 
 	std::vector<ConfigItem::Ptr> newItems;

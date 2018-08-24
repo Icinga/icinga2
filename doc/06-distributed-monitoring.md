@@ -2807,7 +2807,7 @@ or the `bind_host` and `bind_port` attributes of the
 [ApiListener](09-object-types.md#objecttype-apilistener) object.
 
 The environment must be set with the global constant `Environment` or as object attribute
-of the [IcingaApplication](#objecttype-icingaapplication) object.
+of the [IcingaApplication](09-object-types.md#objecttype-icingaapplication) object.
 
 In any case the constant is default value for the attribute and the direct configuration in the objects
 have more precedence. The constants have been added to allow the values being set from the CLI on startup.

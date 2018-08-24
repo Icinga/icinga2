@@ -272,8 +272,8 @@ wizard_endpoint_loop_start:
 	String certsDir = ApiListener::GetCertsDir();
 	Utility::MkDirP(certsDir, 0700);
 
-	String user = ScriptGlobal::Get("RunAsUser");
-	String group = ScriptGlobal::Get("RunAsGroup");
+	String user = Configuration::RunAsUser;
+	String group = Configuration::RunAsGroup;
 
 	if (!Utility::SetFileOwnership(certsDir, user, group)) {
 		Log(LogWarning, "cli")
@@ -850,7 +850,7 @@ wizard_global_zone_loop_start:
 		}
 
 		/* Include api-users.conf */
-		String apiUsersFilePath = Application::GetConst("ConfigDir") + "/conf.d/api-users.conf";
+		String apiUsersFilePath = Configuration::ConfigDir + "/conf.d/api-users.conf";
 
 		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
 			<< "Checking if the api-users.conf file exists...\n"

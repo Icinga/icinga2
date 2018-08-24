@@ -31,7 +31,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, PluginCheck,  &PluginCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, PluginCheck,  &PluginCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)

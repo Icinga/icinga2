@@ -44,6 +44,11 @@ New [Icinga constants](17-language-reference.md#icinga-constants) have been adde
 * `Environment` for specifying the Icinga environment. Defaults to not set.
 * `ApiBindHost` and `ApiBindPort` to allow overriding the default ApiListener values. This will be used for an Icinga addon only.
 
+### Configuration: Namespaces <a id="upgrading-to-2-10-configuration-namespaces"></a>
+
+The keywords `namespace` and `using` are now [reserved](17-language-reference.md#reserved-keywords) for the namespace functionality provided
+with v2.10. Read more about how it works [here](17-language-reference.md#namespaces).
+
 ## Upgrading to v2.9 <a id="upgrading-to-2-9"></a>
 
 ### Deprecation and Removal Notes <a id="upgrading-to-2-9-deprecation-removal-notes"></a>

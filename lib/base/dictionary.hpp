@@ -58,7 +58,7 @@ public:
 
 	Value Get(const String& key) const;
 	bool Get(const String& key, Value *result) const;
-	void Set(const String& key, Value value);
+	void Set(const String& key, Value value, bool overrideFrozen = false);
 	bool Contains(const String& key) const;
 
 	Iterator Begin();
@@ -66,11 +66,11 @@ public:
 
 	size_t GetLength() const;
 
-	void Remove(const String& key);
+	void Remove(const String& key, bool overrideFrozen = false);
 
-	void Remove(Iterator it);
+	void Remove(Iterator it, bool overrideFrozen = false);
 
-	void Clear();
+	void Clear(bool overrideFrozen = false);
 
 	void CopyTo(const Dictionary::Ptr& dest) const;
 	Dictionary::Ptr ShallowClone() const;
@@ -86,7 +86,7 @@ public:
 	void Freeze();
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
-	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
+	void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
 	bool HasOwnField(const String& field) const override;
 	bool GetOwnField(const String& field, Value *result) const override;
 

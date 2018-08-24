@@ -31,12 +31,12 @@ using namespace icinga;
 
 String FeatureUtility::GetFeaturesAvailablePath()
 {
-	return Application::GetConst("ConfigDir") + "/features-available";
+	return Configuration::ConfigDir + "/features-available";
 }
 
 String FeatureUtility::GetFeaturesEnabledPath()
 {
-	return Application::GetConst("ConfigDir") + "/features-enabled";
+	return Configuration::ConfigDir + "/features-enabled";
 }
 
 std::vector<String> FeatureUtility::GetFieldCompletionSuggestions(const String& word, bool enable)

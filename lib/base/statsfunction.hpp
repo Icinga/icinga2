@@ -27,7 +27,7 @@ namespace icinga
 {
 
 #define REGISTER_STATSFUNCTION(name, callback) \
-	REGISTER_SCRIPTFUNCTION_NS(StatsFunctions, name, callback, "status:perfdata")
+	REGISTER_FUNCTION(StatsFunctions, name, callback, "status:perfdata")
 
 }
 

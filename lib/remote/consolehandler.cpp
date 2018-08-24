@@ -27,6 +27,7 @@
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
 #include "base/timer.hpp"
+#include "base/namespace.hpp"
 #include "base/initialize.hpp"
 #include <boost/thread/once.hpp>
 #include <set>
@@ -233,6 +234,15 @@ static void AddSuggestions(std::vector<String>& matches, const String& word, con
 		}
 	}
 
+	if (value.IsObjectType<Namespace>()) {
+		Namespace::Ptr ns = value;
+
+		ObjectLock olock(ns);
+		for (const Namespace::Pair& kv : ns) {
+			AddSuggestion(matches, word, prefix + kv.first);
+		}
+	}
+
 	if (withFields) {
 		Type::Ptr type = value.GetReflectionType();
 
@@ -275,18 +285,17 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 
 	{
 		ObjectLock olock(ScriptGlobal::GetGlobals());
-		for (const Dictionary::Pair& kv : ScriptGlobal::GetGlobals()) {
+		for (const Namespace::Pair& kv : ScriptGlobal::GetGlobals()) {
 			AddSuggestion(matches, word, kv.first);
 		}
 	}
 
-	{
-		Array::Ptr imports = ScriptFrame::GetImports();
-		ObjectLock olock(imports);
-		for (const Value& import : imports) {
-			AddSuggestions(matches, word, "", false, import);
-		}
-	}
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+
+	AddSuggestions(matches, word, "", false, systemNS);
+	AddSuggestions(matches, word, "", true, systemNS->Get("Configuration"));
+	AddSuggestions(matches, word, "", false, ScriptGlobal::Get("Types"));
+	AddSuggestions(matches, word, "", false, ScriptGlobal::Get("Icinga"));
 
 	String::SizeType cperiod = word.RFind(".");
 

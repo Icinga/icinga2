@@ -23,6 +23,7 @@
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/namespace.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <deque>
 
@@ -113,6 +114,22 @@ static Dictionary::Ptr SerializeDictionary(const Dictionary::Ptr& input, int att
 	for (const Dictionary::Pair& kv : input) {
 		stack.Push(kv.first, kv.second);
 		result.emplace_back(kv.first, SerializeInternal(kv.second, attributeTypes, stack));
+		stack.Pop();
+	}
+
+	return new Dictionary(std::move(result));
+}
+
+static Dictionary::Ptr SerializeNamespace(const Namespace::Ptr& input, int attributeTypes, SerializeStack& stack)
+{
+	DictionaryData result;
+
+	ObjectLock olock(input);
+
+	for (const Namespace::Pair& kv : input) {
+		Value val = kv.second->Get();
+		stack.Push(kv.first, val);
+		result.emplace_back(kv.first, Serialize(val, attributeTypes));
 		stack.Pop();
 	}
 
@@ -242,6 +259,11 @@ static Value SerializeInternal(const Value& value, int attributeTypes, Serialize
 
 	if (dict)
 		return SerializeDictionary(dict, attributeTypes, stack);
+
+	Namespace::Ptr ns = dynamic_pointer_cast<Namespace>(input);
+
+	if (ns)
+		return SerializeNamespace(ns, attributeTypes, stack);
 
 	return SerializeObject(input, attributeTypes, stack);
 }

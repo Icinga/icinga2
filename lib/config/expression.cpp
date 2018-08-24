@@ -29,6 +29,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/loader.hpp"
 #include "base/reference.hpp"
+#include "base/namespace.hpp"
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
 
@@ -116,6 +117,15 @@ const DebugInfo& DebuggableExpression::GetDebugInfo() const
 	return m_DebugInfo;
 }
 
+VariableExpression::VariableExpression(String variable, std::vector<std::shared_ptr<Expression> > imports, const DebugInfo& debugInfo)
+	: DebuggableExpression(debugInfo), m_Variable(std::move(variable)), m_Imports(std::move(imports))
+{
+	m_Imports.push_back(MakeIndexer(ScopeGlobal, "System"));
+	m_Imports.push_back(std::unique_ptr<Expression>(new IndexerExpression(MakeIndexer(ScopeGlobal, "System"), MakeLiteral("Configuration"))));
+	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Types"));
+	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Icinga"));
+}
+
 ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	Value value;
@@ -124,7 +134,7 @@ ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 		return value;
 	else if (frame.Self.IsObject() && frame.Locals != frame.Self.Get<Object::Ptr>() && frame.Self.Get<Object::Ptr>()->GetOwnField(m_Variable, &value))
 		return value;
-	else if (VMOps::FindVarImport(frame, m_Variable, &value, m_DebugInfo))
+	else if (VMOps::FindVarImport(frame, m_Imports, m_Variable, &value, m_DebugInfo))
 		return value;
 	else
 		return ScriptGlobal::Get(m_Variable);
@@ -144,7 +154,7 @@ bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value 
 
 		if (dhint && *dhint)
 			*dhint = new DebugHint((*dhint)->GetChild(m_Variable));
-	} else if (VMOps::FindVarImportRef(frame, m_Variable, parent, m_DebugInfo)) {
+	} else if (VMOps::FindVarImportRef(frame, m_Imports, m_Variable, parent, m_DebugInfo)) {
 		return true;
 	} else if (ScriptGlobal::Exists(m_Variable)) {
 		*parent = ScriptGlobal::GetGlobals();
@@ -608,7 +618,7 @@ ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 		}
 	}
 
-	VMOps::SetField(parent, index, operand2.GetValue(), m_DebugInfo);
+	VMOps::SetField(parent, index, operand2.GetValue(), m_OverrideFrozen, m_DebugInfo);
 
 	if (psdhint) {
 		psdhint->AddMessage("=", m_DebugInfo);
@@ -616,6 +626,33 @@ ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 		if (psdhint != dhint)
 			delete psdhint;
 	}
+
+	return Empty;
+}
+
+void SetExpression::SetOverrideFrozen()
+{
+	m_OverrideFrozen = true;
+}
+
+ExpressionResult SetConstExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	auto globals = ScriptGlobal::GetGlobals();
+
+	auto attr = globals->GetAttribute(m_Name);
+
+	if (dynamic_pointer_cast<ConstEmbeddedNamespaceValue>(attr)) {
+		std::ostringstream msgbuf;
+		msgbuf << "Value for constant '" << m_Name << "' was modified. This behaviour is deprecated.\n";
+		ShowCodeLocation(msgbuf, GetDebugInfo(), false);
+		Log(LogWarning, msgbuf.str());
+	}
+
+	ExpressionResult operandres = m_Operand->Evaluate(frame);
+	CHECK_RESULT(operandres);
+	Value operand = operandres.GetValue();
+
+	globals->SetAttribute(m_Name, std::make_shared<ConstEmbeddedNamespaceValue>(operand));
 
 	return Empty;
 }
@@ -696,10 +733,19 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 
 	if (m_Operand1->GetReference(frame, init_dict, &vparent, &vindex, &psdhint)) {
 		if (init_dict) {
-			Value old_value =  VMOps::GetField(vparent, vindex, frame.Sandboxed, m_Operand1->GetDebugInfo());
+			Value old_value;
+			bool has_field = true;
+
+			if (vparent.IsObject()) {
+				Object::Ptr oparent = vparent;
+				has_field = oparent->HasOwnField(vindex);
+			}
+
+			if (has_field)
+				old_value = VMOps::GetField(vparent, vindex, frame.Sandboxed, m_Operand1->GetDebugInfo());
 
 			if (old_value.IsEmpty() && !old_value.IsString())
-				VMOps::SetField(vparent, vindex, new Dictionary(), m_Operand1->GetDebugInfo());
+				VMOps::SetField(vparent, vindex, new Dictionary(), m_OverrideFrozen, m_Operand1->GetDebugInfo());
 		}
 
 		*parent = VMOps::GetField(vparent, vindex, frame.Sandboxed, m_DebugInfo);
@@ -723,6 +769,11 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 		delete psdhint;
 
 	return true;
+}
+
+void IndexerExpression::SetOverrideFrozen()
+{
+	m_OverrideFrozen = true;
 }
 
 void icinga::BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec)
@@ -839,6 +890,17 @@ ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 
 	return VMOps::NewApply(frame, m_Type, m_Target, nameres.GetValue(), m_Filter,
 		m_Package, m_FKVar, m_FVVar, m_FTerm, m_ClosedVars, m_IgnoreOnError, m_Expression, m_DebugInfo);
+}
+
+ExpressionResult NamespaceExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	Namespace::Ptr ns = new Namespace(new ConstNamespaceBehavior());
+
+	ScriptFrame innerFrame(true, ns);
+	ExpressionResult result = m_Expression->Evaluate(innerFrame);
+	CHECK_RESULT(result);
+
+	return ns;
 }
 
 ExpressionResult ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -960,23 +1022,6 @@ ExpressionResult IncludeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 ExpressionResult BreakpointExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	ScriptBreakpoint(frame, nullptr, GetDebugInfo());
-
-	return Empty;
-}
-
-ExpressionResult UsingExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
-{
-	if (frame.Sandboxed)
-		BOOST_THROW_EXCEPTION(ScriptError("Using directives are not allowed in sandbox mode.", m_DebugInfo));
-
-	ExpressionResult importres = m_Name->Evaluate(frame);
-	CHECK_RESULT(importres);
-	Value import = importres.GetValue();
-
-	if (!import.IsObjectType<Dictionary>())
-		BOOST_THROW_EXCEPTION(ScriptError("The parameter must resolve to an object of type 'Dictionary'", m_DebugInfo));
-
-	ScriptFrame::AddImport(import);
 
 	return Empty;
 }

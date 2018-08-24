@@ -30,10 +30,10 @@ class StatusDataWriter : ConfigObject
 	activation_priority 100;
 
 	[config] String status_path {
-		default {{{ return Application::GetConst("CacheDir") + "/status.dat"; }}}
+		default {{{ return Configuration::CacheDir + "/status.dat"; }}}
 	};
 	[config] String objects_path {
-		default {{{ return Application::GetConst("CacheDir") + "/objects.cache"; }}}
+		default {{{ return Configuration::CacheDir + "/objects.cache"; }}}
 	};
 	[config] double update_interval {
 		default {{{ return 15; }}}
