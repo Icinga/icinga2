@@ -58,7 +58,8 @@ protected:
 private:
 	static void TimerProc();
 
-	std::pair<double, double> FindNextSegment();
+	std::pair<double, double> FindRunningSegment(double minEnd = 0);
+	std::pair<double, double> FindNextSegment(double minBegin = 0);
 	void CreateNextDowntime();
 
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
