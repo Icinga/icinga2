@@ -32,7 +32,9 @@ enum DowntimeChildOptions
 {
 	DowntimeNoChildren,
 	DowntimeTriggeredChildren,
-	DowntimeNonTriggeredChildren
+	DowntimeNonTriggeredChildren,
+	DowntimeTriggeredChildrenAndServices,
+	DowntimeNonTriggeredChildrenAndServices
 };
 
 /**

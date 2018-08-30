@@ -201,13 +201,33 @@ void ScheduledDowntime::CreateNextDowntime()
 	if (childOptions > 0) {
 		/* 'DowntimeTriggeredChildren' schedules child downtimes triggered by the parent downtime.
 		 * 'DowntimeNonTriggeredChildren' schedules non-triggered downtimes for all children.
+		 * 'DowntimeTriggeredChildrenAndServices' schedules child downtimes triggered by the parent downtime and include services on child hosts.
+		 * 'DowntimeNonTriggeredChildrenAndServices' schedules non-triggered downtimes for all children and include services on child hosts. 
 		 */
 		String triggerName;
-		if (childOptions == 1)
+		if (childOptions == 1 || childOptions == 3)
 			triggerName = downtimeName;
 
 		Log(LogNotice, "ScheduledDowntime")
 				<< "Processing child options " << childOptions << " for downtime " << downtimeName;
+
+		/* Schedule Downtime for Parent Host's services */
+		if ( childOptions == 3 || childOptions == 4 ) {
+			Host::Ptr host;
+                        Service::Ptr service;
+                        tie(host, service) = GetHostService(GetCheckable());
+
+			for (const Checkable::Ptr& service : host->GetServices()) {
+				Log(LogNotice, "ScheduledDowntime")
+					<< "Scheduling downtime for service object " << service->GetName();
+
+				String serviceDowntimeName = Downtime::AddDowntime(service, GetAuthor(), GetComment(), 
+					segment.first, segment.second, GetFixed(), triggerName, GetDuration(), GetName(), GetName());
+
+				Log(LogNotice, "ScheduledDowntime")
+					<< "Add service downtime '" << serviceDowntimeName << "'.";
+			}
+		}
 
 		for (const Checkable::Ptr& child : GetCheckable()->GetAllChildren()) {
 			Log(LogNotice, "ScheduledDowntime")
@@ -218,6 +238,24 @@ void ScheduledDowntime::CreateNextDowntime()
 
 			Log(LogNotice, "ScheduledDowntime")
 				<< "Add child downtime '" << childDowntimeName << "'.";
+
+			/* Schedule Downtime for Child host's services */
+			if (childOptions == 3 || childOptions == 4) {
+				Host::Ptr host;
+                                Service::Ptr service;
+                                tie(host, service) = GetHostService(child);
+
+				for (const Checkable::Ptr& service : host->GetServices()) {
+					Log(LogNotice, "ScheduledDowntime")
+						<< "Scheduling downtime for service object " << service->GetName();
+
+					String serviceDowntimeName = Downtime::AddDowntime(service, GetAuthor(), GetComment(), 
+						segment.first, segment.second, GetFixed(), triggerName, GetDuration(), GetName(), GetName());
+
+					Log(LogNotice, "ScheduledDowntime")
+						<< "Add service downtime '" << serviceDowntimeName << "'.";
+				}
+			}
 		}
 	}
 }

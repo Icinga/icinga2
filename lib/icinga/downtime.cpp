@@ -49,6 +49,8 @@ void Downtime::StaticInitialize()
 	ScriptGlobal::Set("DowntimeNoChildren", "DowntimeNoChildren");
 	ScriptGlobal::Set("DowntimeTriggeredChildren", "DowntimeTriggeredChildren");
 	ScriptGlobal::Set("DowntimeNonTriggeredChildren", "DowntimeNonTriggeredChildren");
+	ScriptGlobal::Set("DowntimeTriggeredChildrenAndServices", "DowntimeTriggeredChildrenAndServices");
+	ScriptGlobal::Set("DowntimeNonTriggeredChildrenAndServices", "DowntimeNonTriggeredChildrenAndServices");
 }
 
 String DowntimeNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
@@ -438,9 +440,13 @@ DowntimeChildOptions Downtime::ChildOptionsFromValue(const Value& options)
 		return DowntimeTriggeredChildren;
 	else if (options == "DowntimeNonTriggeredChildren")
 		return DowntimeNonTriggeredChildren;
+	else if (options == "DowntimeTriggeredChildrenAndServices")
+		return DowntimeTriggeredChildrenAndServices;
+	else if (options == "DowntimeNonTriggeredChildrenAndServices")
+		return DowntimeNonTriggeredChildrenAndServices;
 	else if (options.IsNumber()) {
 		int number = options;
-		if (number >= 0 && number <= 2)
+		if (number >= 0 && number <= 4)
 			return static_cast<DowntimeChildOptions>(number);
 	}
 
