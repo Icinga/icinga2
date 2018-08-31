@@ -39,6 +39,8 @@
 #include <boost/algorithm/string/join.hpp>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
+#include <random>
 
 using namespace icinga;
 
@@ -436,6 +438,10 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 	if (items.empty())
 		return true;
+
+	// Shuffle all items to evenly distribute them over the threads of the workqueue. This increases perfomance
+	// noticably in environments with lots of objects and available threads.
+	std::shuffle(std::begin(items), std::end(items), std::default_random_engine {});
 
 	for (const auto& ip : items)
 		newItems.push_back(ip.first);
