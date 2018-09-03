@@ -26,6 +26,7 @@
 #include "base/debuginfo.hpp"
 #include <map>
 #include <vector>
+#include <memory>
 
 namespace icinga
 {
