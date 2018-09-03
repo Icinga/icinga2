@@ -193,7 +193,7 @@ The following settings can be tuned for the PostgreSQL IDO feature.
 
 - `ICINGA2_WITH_PGSQL`: Determines whether the PostgreSQL IDO module is built; defaults to `ON`
 - `PostgreSQL_INCLUDE_DIR`: Top-level directory containing the PostgreSQL include directories
-- `PostgreSQL_LIBRARY_DIR`: Top-level directory containing the PostgreSQL libraries
+- `PostgreSQL_LIBRARY`: File path to PostgreSQL library : libpq.so (or libpq.so.[ver] file)
 
 See [FindMySQL.cmake](third-party/cmake/FindPostgreSQL.cmake) for the implementation.
 
