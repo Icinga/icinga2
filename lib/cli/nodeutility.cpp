@@ -269,7 +269,7 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
 * Returns true if the include is found, otherwise false
 */
 bool NodeUtility::GetConfigurationIncludeState(const String& value, bool recursive) {
-	String configurationFile = Application::GetConst("ConfigDir") + "/icinga2.conf";
+	String configurationFile = Configuration::ConfigDir + "/icinga2.conf";
 
 	Log(LogInformation, "cli")
 		<< "Reading '" << configurationFile << "'.";
