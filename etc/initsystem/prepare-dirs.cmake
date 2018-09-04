@@ -17,9 +17,9 @@ fi
 : ${ICINGA2_USER:="@ICINGA2_USER@"}
 : ${ICINGA2_GROUP:="@ICINGA2_GROUP@"}
 : ${ICINGA2_COMMAND_GROUP:="@ICINGA2_COMMAND_GROUP@"}
-: ${ICINGA2_INIT_RUN_DIR:="@ICINGA2_INITRUNDIR@"}
-: ${ICINGA2_LOG_DIR:="@ICINGA2_LOGDIR@"}
-: ${ICINGA2_CACHE_DIR:="@ICINGA2_CACHEDIR@"}
+: ${ICINGA2_INIT_RUN_DIR:="@ICINGA2_FULL_INITRUNDIR@"}
+: ${ICINGA2_LOG_DIR:="@ICINGA2_FULL_LOGDIR@"}
+: ${ICINGA2_CACHE_DIR:="@ICINGA2_FULL_CACHEDIR@"}
 
 getent passwd $ICINGA2_USER >/dev/null 2>&1 || (echo "Icinga user '$ICINGA2_USER' does not exist. Exiting." && exit 6)
 getent group $ICINGA2_GROUP >/dev/null 2>&1 || (echo "Icinga group '$ICINGA2_GROUP' does not exist. Exiting." && exit 6)
