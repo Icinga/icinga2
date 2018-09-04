@@ -100,18 +100,20 @@ mix of local FQDN, timestamps and random numbers.
 ### Custom Vars not updating <a id="upgrading-to-2-9-custom-vars-not-updating"></a>
 
 A rare issue preventing the custom vars of objects created prior to 2.9.0 being updated when changed may occur. To
-remedy this the config checksums of the affected type need to be reset to trigger a full update. The following is an
-example of how to do this for Hosts in mysql:
+remedy this, truncate the customvar tables and restart Icinga 2. The following is an example of how to do this with mysql:
 
 ```
 $ mysql -uroot -picinga icinga
-MariaDB [icinga]> UPDATE icinga_hosts SET config_hash = NULL;
+MariaDB [icinga]> truncate icinga_customvariables;
+Query OK, 0 rows affected (0.05 sec)
+MariaDB [icinga]> truncate icinga_customvariablestatus;
+Query OK, 0 rows affected (0.03 sec)
 MariaDB [icinga]> exit
 Bye
 $ sudo systemctl restart icinga2
 ```
 
-Custom vars should now be up to date.
+Custom vars should now stay up to date.
 
 
 ## Upgrading to v2.8.2 <a id="upgrading-to-2-8-2"></a>
