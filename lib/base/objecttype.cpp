@@ -23,6 +23,7 @@
 
 using namespace icinga;
 
+/* Ensure that the priority is lower than the basic namespace initialization in scriptframe.cpp. */
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Type::Ptr type = new ObjectType();
 	type->SetPrototype(Object::GetPrototype());

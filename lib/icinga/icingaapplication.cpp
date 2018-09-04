@@ -41,6 +41,7 @@ using namespace icinga;
 static Timer::Ptr l_RetentionTimer;
 
 REGISTER_TYPE(IcingaApplication);
+/* Ensure that the priority is lower than the basic System namespace initialization in scriptframe.cpp. */
 INITIALIZE_ONCE_WITH_PRIORITY(&IcingaApplication::StaticInitialize, 50);
 
 void IcingaApplication::StaticInitialize()
@@ -59,11 +60,15 @@ void IcingaApplication::StaticInitialize()
 
 	ScriptGlobal::Set("NodeName", node_name);
 
-	ScriptGlobal::Set("System.ApplicationType", "IcingaApplication", true);
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+	/* Ensure that the System namespace is already initialized. Otherwise this is a programming error. */
+	VERIFY(systemNS);
 
-	ScriptGlobal::Set("System.ApplicationVersion", Application::GetAppVersion(), true);
+	systemNS->Set("ApplicationType", "IcingaApplication", true);
+	systemNS->Set("ApplicationVersion", Application::GetAppVersion(), true);
 
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
+	VERIFY(globalNS);
 
 	auto icingaNSBehavior = new ConstNamespaceBehavior();
 	icingaNSBehavior->Freeze();

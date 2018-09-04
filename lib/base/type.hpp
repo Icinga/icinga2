@@ -138,6 +138,7 @@ class TypeImpl
 {
 };
 
+/* Ensure that the priority is lower than the basic namespace initialization in scriptframe.cpp. */
 #define REGISTER_TYPE(type) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		icinga::Type::Ptr t = new TypeImpl<type>(); \

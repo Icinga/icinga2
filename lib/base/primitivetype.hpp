@@ -48,6 +48,7 @@ private:
 	ObjectFactory m_Factory;
 };
 
+/* Ensure that the priority is lower than the basic namespace initialization in scriptframe.cpp. */
 #define REGISTER_BUILTIN_TYPE(type, prototype)					\
 	INITIALIZE_ONCE_WITH_PRIORITY([]() {					\
 		icinga::Type::Ptr t = new PrimitiveType(#type, "None"); 	\
