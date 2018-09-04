@@ -245,8 +245,13 @@ Log::~Log()
 #endif /* I2_DEBUG */
 	}
 
-	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity())
+	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity()) {
 		StreamLogger::ProcessLogEntry(std::cout, entry);
+
+		/* "Console" might be a pipe/socket (systemd, daemontools, docker, ...),
+		 * then cout will not flush lines automatically. */
+		std::cout << std::flush;
+	}
 }
 
 Log& Log::operator<<(const char *val)
