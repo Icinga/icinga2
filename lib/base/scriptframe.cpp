@@ -29,6 +29,10 @@ boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFram
 
 static auto l_InternalNSBehavior = new ConstNamespaceBehavior();
 
+/* Ensure that this gets called with highest priority
+ * and wins against other static initializers in lib/icinga, etc.
+ * LTO-enabled builds will cause trouble otherwise, see GH #6575.
+ */
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 
@@ -51,7 +55,7 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 
 	Namespace::Ptr internalNS = new Namespace(l_InternalNSBehavior);
 	globalNS->SetAttribute("Internal", std::make_shared<ConstEmbeddedNamespaceValue>(internalNS));
-}, 50);
+}, 1000);
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	l_InternalNSBehavior->Freeze();

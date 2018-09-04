@@ -72,6 +72,7 @@ private:
 		bool side_effect_free, bool deprecated);
 };
 
+/* Ensure that the priority is lower than the basic namespace initialization in scriptframe.cpp. */
 #define REGISTER_FUNCTION(ns, name, callback, args) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), false); \

@@ -21,10 +21,10 @@
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
+#include "base/scriptglobal.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
-
 
 using namespace icinga;
 
@@ -146,6 +146,9 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 		return false;
 
 	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+	VERIFY(systemNS);
+
+	/* This is initialized inside the IcingaApplication class. */
 	Value vAppType;
 	VERIFY(systemNS->Get("ApplicationType", &vAppType));
 

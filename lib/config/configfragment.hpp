@@ -26,6 +26,7 @@
 #include "base/exception.hpp"
 #include "base/application.hpp"
 
+/* Ensure that the priority is lower than the basic namespace initialization in scriptframe.cpp. */
 #define REGISTER_CONFIG_FRAGMENT(name, fragment) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		std::unique_ptr<icinga::Expression> expression = icinga::ConfigCompiler::CompileText(name, fragment); \
