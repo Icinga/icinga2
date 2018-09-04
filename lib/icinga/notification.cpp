@@ -402,7 +402,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		/* on recovery, check if user was notified before */
 		if (type == NotificationRecovery) {
-			if (!notifiedProblemUsers->Contains(userName)) {
+			if (!notifiedProblemUsers->Contains(userName) && CheckNotificationUserFilters(NotificationProblem, user, false, false)) {
 				Log(LogNotice, "Notification")
 					<< "We did not notify user '" << userName << "' for a problem before. Not sending recovery notification.";
 				continue;
@@ -411,7 +411,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		/* on acknowledgement, check if user was notified before */
 		if (type == NotificationAcknowledgement) {
-			if (!notifiedProblemUsers->Contains(userName)) {
+			if (!notifiedProblemUsers->Contains(userName) && CheckNotificationUserFilters(NotificationProblem, user, false, false)) {
 				Log(LogNotice, "Notification")
 						<< "We did not notify user '" << userName << "' for a problem before. Not sending acknowledgement notification.";
 				continue;
