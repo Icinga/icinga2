@@ -566,7 +566,9 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 			m_SyncQueue.Enqueue(std::bind(&ApiListener::SyncClient, this, aclient, endpoint, needSync));
 		} else {
 			if (!AddAnonymousClient(aclient)) {
-				Log(LogNotice, "ApiListener", "Ignoring anonymous JSON-RPC connection. Max connections exceeded.");
+				Log(LogNotice, "ApiListener")
+					<< "Ignoring anonymous JSON-RPC connection " << conninfo
+					<< ". Max connections (" << GetMaxAnonymousClients() << ") exceeded.";
 				aclient->Disconnect();
 			}
 		}
@@ -1315,7 +1317,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	}
 
 	/* connection stats */
-	size_t jsonRpcClients = GetAnonymousClients().size();
+	size_t jsonRpcAnonymousClients = GetAnonymousClients().size();
 	size_t httpClients = GetHttpClients().size();
 	size_t workQueueItems = JsonRpcConnection::GetWorkQueueLength();
 	size_t workQueueCount = JsonRpcConnection::GetWorkQueueCount();
@@ -1336,7 +1338,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 		{ "zones", connectedZones },
 
 		{ "json_rpc", new Dictionary({
-			{ "clients", jsonRpcClients },
+			{ "anonymous_clients", jsonRpcAnonymousClients },
 			{ "work_queue_items", workQueueItems },
 			{ "work_queue_count", workQueueCount },
 			{ "sync_queue_items", syncQueueItems },
@@ -1356,7 +1358,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	perfdata->Set("num_conn_endpoints", Convert::ToDouble(allConnectedEndpoints->GetLength()));
 	perfdata->Set("num_not_conn_endpoints", Convert::ToDouble(allNotConnectedEndpoints->GetLength()));
 
-	perfdata->Set("num_json_rpc_clients", jsonRpcClients);
+	perfdata->Set("num_json_rpc_anonymous_clients", jsonRpcAnonymousClients);
 	perfdata->Set("num_http_clients", httpClients);
 	perfdata->Set("num_json_rpc_work_queue_items", workQueueItems);
 	perfdata->Set("num_json_rpc_work_queue_count", workQueueCount);
@@ -1384,7 +1386,8 @@ double ApiListener::CalculateZoneLag(const Endpoint::Ptr& endpoint)
 bool ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
 	boost::mutex::scoped_lock lock(m_AnonymousClientsLock);
-	if (m_AnonymousClients.size() > 100)
+
+	if (GetMaxAnonymousClients() >= 0 && m_AnonymousClients.size() + 1 > GetMaxAnonymousClients())
 		return false;
 
 	m_AnonymousClients.insert(aclient);
