@@ -23,9 +23,6 @@ class ScheduledDowntime : CustomVarObject < ScheduledDowntimeNameComposer
 	// the Downtimes (and other checkables)
 	activation_priority 20;
 
-	load_after Host;
-	load_after Service;
-
 	[config, protected, required, navigation(host)] name(Host) host_name {
 		navigate {{{
 			return Host::GetByName(GetHostName());

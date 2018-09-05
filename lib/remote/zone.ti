@@ -9,6 +9,8 @@ namespace icinga
 
 class Zone : ConfigObject
 {
+	// Load before Endpoint, ApiListerner, Host, Service, Others
+	load_priority 200;
 	[config, navigation] name(Zone) parent (ParentRaw) {
 		navigate {{{
 			return Zone::GetByName(GetParentRaw());

@@ -20,9 +20,6 @@ public:
 
 class Dependency : CustomVarObject < DependencyNameComposer
 {
-	load_after Host;
-	load_after Service;
-
 	[config, required, navigation(child_host)] name(Host) child_host_name {
 		navigate {{{
 			return Host::GetByName(GetChildHostName());

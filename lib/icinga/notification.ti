@@ -23,9 +23,6 @@ public:
 
 class Notification : CustomVarObject < NotificationNameComposer
 {
-	load_after Host;
-	load_after Service;
-
 	[config, protected, required, navigation] name(NotificationCommand) command (CommandRaw) {
 		navigate {{{
 			return NotificationCommand::GetByName(GetCommandRaw());
