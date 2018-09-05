@@ -248,7 +248,8 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 
 bool JsonRpcConnection::ProcessMessage()
 {
-	ssize_t maxMessageLength = 64 * 1024;
+	/* Limit for anonymous clients (signing requests and not configured endpoints. */
+	ssize_t maxMessageLength = 1024 * 1024;
 
 	if (m_Endpoint)
 		maxMessageLength = -1; /* no limit */
