@@ -44,6 +44,7 @@ using namespace icinga;
 %token T_CLASS "class (T_CLASS)"
 %token T_CODE "code (T_CODE)"
 %token T_LOAD_AFTER "load_after (T_LOAD_AFTER)"
+%token T_LOAD_PRIORITY "load_priority (T_LOAD_PRIORITY)"
 %token T_ACTIVATION_PRIORITY "activation_priority (T_ACTIVATION_PRIORITY)"
 %token T_LIBRARY "library (T_LIBRARY)"
 %token T_NAMESPACE "namespace (T_NAMESPACE)"
@@ -238,6 +239,8 @@ class: class_attribute_list T_CLASS T_IDENTIFIER inherits_specifier type_base_sp
 				$$->LoadDependencies.push_back(field.Name);
 			} else if (field.Attributes & FAActivationPriority) {
 				$$->ActivationPriority = field.Priority;
+			} else if (field.Attributes & FALoadPriority) {
+				$$->LoadPriority = field.LPriority;
 			} else
 				$$->Fields.push_back(field);
 		}
@@ -366,6 +369,13 @@ class_field: field_attribute_list field_type identifier alternative_name_specifi
 		field->Attributes = FALoadDependency;
 		field->Name = $2;
 		std::free($2);
+		$$ = field;
+	}
+	| T_LOAD_PRIORITY T_NUMBER ';'
+	{
+		auto *field = new Field();
+		field->Attributes = FALoadPriority;
+		field->LPriority = $2;
 		$$ = field;
 	}
 	| T_ACTIVATION_PRIORITY T_NUMBER ';'

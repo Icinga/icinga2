@@ -378,6 +378,14 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "\t" << "return TypeHelper<" << klass.Name << ", " << ((klass.Attributes & TAVarArgConstructor) ? "true" : "false") << ">::GetFactory();" << std::endl
 		<< "}" << std::endl << std::endl;
 
+	/* GetLoadPriority */
+	m_Header << "\t" << "int GetLoadPriority() const override;" << std::endl;
+
+	m_Impl << "int TypeImpl<" << klass.Name << ">::GetLoadPriority() const" << std::endl
+		<< "{" << std::endl
+		<< "\t" << "return " << klass.LoadPriority << ";" << std::endl
+		<< "}" << std::endl << std::endl;
+
 	/* GetLoadDependencies */
 	m_Header << "\t" << "std::vector<String> GetLoadDependencies() const override;" << std::endl;
 

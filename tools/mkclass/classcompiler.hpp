@@ -60,7 +60,8 @@ enum FieldAttribute
 	FADeprecated = 4096,
 	FAGetVirtual = 8192,
 	FASetVirtual = 16384,
-	FAActivationPriority = 32768
+	FAActivationPriority = 32768,
+	FALoadPriority = 65536
 };
 
 struct FieldType
@@ -107,6 +108,7 @@ struct Field
 	std::string NavigateAccessor;
 	bool PureNavigateAccessor{false};
 	int Priority{0};
+	int LPriority{0};
 
 	inline std::string GetFriendlyName() const
 	{
@@ -153,6 +155,7 @@ struct Klass
 	std::vector<Field> Fields;
 	std::vector<std::string> LoadDependencies;
 	int ActivationPriority{0};
+	int LoadPriority{0};
 };
 
 enum RuleAttribute
