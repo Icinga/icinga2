@@ -127,7 +127,7 @@ static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissi
 	ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const String& variableName, const Object::Ptr& target)
 {
 	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName) && FilterUtility::EvaluateFilter(frame, ufilter, target, variableName))
-		result.emplace_back(target);
+		result.emplace_back(std::move(target));
 }
 
 void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter)
@@ -206,7 +206,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		if (attr == "type")
 			attr = "name";
 
-		if (query->Contains(attr)) {
+		if (query && query->Contains(attr)) {
 			String name = HttpUtility::GetLastParameter(query, attr);
 			Object::Ptr target = provider->GetTargetByName(type, name);
 
@@ -219,7 +219,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		attr = provider->GetPluralName(type);
 		boost::algorithm::to_lower(attr);
 
-		if (query->Contains(attr)) {
+		if (query && query->Contains(attr)) {
 			Array::Ptr names = query->Get(attr);
 			if (names) {
 				ObjectLock olock(names);
@@ -235,7 +235,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		}
 	}
 
-	if (query->Contains("filter") || result.empty()) {
+	if ((query && query->Contains("filter")) || result.empty()) {
 		if (!query->Contains("type"))
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Type must be specified when using a filter."));
 
@@ -251,26 +251,31 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		frame.Sandboxed = true;
 		Dictionary::Ptr uvars = new Dictionary();
 
-		std::unique_ptr<Expression> ufilter;
-
 		if (query->Contains("filter")) {
 			String filter = HttpUtility::GetLastParameter(query, "filter");
-			ufilter = ConfigCompiler::CompileText("<API query>", filter);
-		}
+			std::unique_ptr<Expression> ufilter = ConfigCompiler::CompileText("<API query>", filter);
 
-		Dictionary::Ptr filter_vars = query->Get("filter_vars");
-		if (filter_vars) {
-			ObjectLock olock(filter_vars);
-			for (const Dictionary::Pair& kv : filter_vars) {
-				uvars->Set(kv.first, kv.second);
+			Dictionary::Ptr filter_vars = query->Get("filter_vars");
+			if (filter_vars) {
+				ObjectLock olock(filter_vars);
+				for (const Dictionary::Pair& kv : filter_vars) {
+					uvars->Set(kv.first, kv.second);
+				}
 			}
+
+			frame.Self = uvars;
+
+			provider->FindTargets(type, std::bind(&FilteredAddTarget,
+				std::ref(permissionFrame), permissionFilter,
+				std::ref(frame), &*ufilter, std::ref(result), variableName, _1));
+		} else {
+			/* Ensure to pass a nullptr as filter expression.
+			 * GCC 8.1.1 on F28 causes problems, see GH #6533.
+			 */
+			provider->FindTargets(type, std::bind(&FilteredAddTarget,
+				std::ref(permissionFrame), permissionFilter,
+				std::ref(frame), nullptr, std::ref(result), variableName, _1));
 		}
-
-		frame.Self = uvars;
-
-		provider->FindTargets(type, std::bind(&FilteredAddTarget,
-			std::ref(permissionFrame), permissionFilter,
-			std::ref(frame), &*ufilter, std::ref(result), variableName, _1));
 	}
 
 	return result;
