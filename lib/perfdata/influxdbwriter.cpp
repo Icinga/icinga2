@@ -425,7 +425,7 @@ void InfluxdbWriter::Flush()
 		stream = Connect();
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "InfluxDbWriter")
-			<< "Flush failed, cannot connect to InfluxDB.";
+			<< "Flush failed, cannot connect to InfluxDB: " << DiagnosticInformation(ex, false);
 		return;
 	}
 

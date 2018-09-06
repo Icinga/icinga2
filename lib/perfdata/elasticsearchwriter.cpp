@@ -434,7 +434,7 @@ void ElasticsearchWriter::SendRequest(const String& body)
 		stream = Connect();
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "ElasticsearchWriter")
-			<< "Flush failed, cannot connect to Elasticsearch.";
+			<< "Flush failed, cannot connect to Elasticsearch: " << DiagnosticInformation(ex, false);
 		return;
 	}
 
