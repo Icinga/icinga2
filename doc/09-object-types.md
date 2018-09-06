@@ -61,6 +61,7 @@ Configuration Attributes:
   bind\_port                            | Number                | **Optional.** The port the api listener should be bound to. Defaults to `5665`.
   accept\_config                        | Boolean               | **Optional.** Accept zone configuration. Defaults to `false`.
   accept\_commands                      | Boolean               | **Optional.** Accept remote commands. Defaults to `false`.
+  max\_anonymous\_clients               | Number                | **Optional.** Limit the number of anonymous client connections (not configured endpoints and signing requests).
   cipher\_list                          | String                | **Optional.** Cipher list that is allowed. For a list of available ciphers run `openssl ciphers`. Defaults to `ALL:!LOW:!WEAK:!MEDIUM:!EXP:!NULL`.
   tls\_protocolmin                      | String                | **Optional.** Minimum TLS protocol version. Must be one of `TLSv1`, `TLSv1.1` or `TLSv1.2`. Defaults to `TLSv1`.
   access\_control\_allow\_origin        | Array                 | **Optional.** Specifies an array of origin URLs that may access the API. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Origin)

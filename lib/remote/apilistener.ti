@@ -50,6 +50,9 @@ class ApiListener : ConfigObject
 
 	[config] bool accept_config;
 	[config] bool accept_commands;
+	[config] int max_anonymous_clients {
+		default {{{ return -1; }}}
+	};
 
 	[config] String ticket_salt;
 

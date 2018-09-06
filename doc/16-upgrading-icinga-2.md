@@ -49,6 +49,14 @@ New [Icinga constants](17-language-reference.md#icinga-constants) have been adde
 The keywords `namespace` and `using` are now [reserved](17-language-reference.md#reserved-keywords) for the namespace functionality provided
 with v2.10. Read more about how it works [here](17-language-reference.md#namespaces).
 
+### Configuration: ApiListener <a id="upgrading-to-2-10-configuration-apilistener"></a>
+
+Anonymous JSON-RPC connections in the cluster can now be configured with `max_anonymous_clients`
+attribute.
+The corresponding REST API results from `/v1/status/ApiListener` in `json_rpc` have been renamed
+from `clients` to `anonymous_clients` to better reflect their purpose. Authenticated clients
+are counted as connected endpoints. A similar change is there for the performance data metrics.
+
 ### API: schedule-downtime Action <a id="upgrading-to-2-10-api-schedule-downtime-action"></a>
 
 The attribute `child_options` was previously accepting 0,1,2 for specific child downtime settings.
