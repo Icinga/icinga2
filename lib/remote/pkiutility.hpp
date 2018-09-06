@@ -21,6 +21,7 @@
 #define PKIUTILITY_H
 
 #include "remote/i2-remote.hpp"
+#include "base/exception.hpp"
 #include "base/dictionary.hpp"
 #include "base/string.hpp"
 #include <openssl/x509v3.h>

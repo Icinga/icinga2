@@ -187,8 +187,9 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 
 	try {
 		stream->Handshake();
-	} catch (const std::exception&) {
-		Log(LogCritical, "cli", "Client TLS handshake failed.");
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+			<< "Client TLS handshake failed: " << DiagnosticInformation(ex, false);
 		return 1;
 	}
 
