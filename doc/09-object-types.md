@@ -1137,7 +1137,7 @@ Configuration Attributes:
   period                    | Object name           | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default.
   zone		            | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
   types                     | Array                 | **Optional.** A list of type filters when this notification should be triggered. By default everything is matched.
-  states                    | Array                 | **Optional.** A list of state filters when this notification should be triggered. By default everything is matched.
+  states                    | Array                 | **Optional.** A list of state filters when this notification should be triggered. By default everything is matched. Note that the states filter is ignored for notifications of type Acknowledgement!
 
 Available notification state filters for Service:
 
