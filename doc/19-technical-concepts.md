@@ -9,11 +9,24 @@ and design.
 
 ### Libraries <a id="technical-concepts-application-libraries"></a>
 
+-->
 
 ## Configuration <a id="technical-concepts-configuration"></a>
 
 ### Compiler <a id="technical-concepts-configuration-compiler"></a>
--->
+
+When Icinga 2 is run, the following steps are taken to transform the
+Configuration into runtime objects. First the icinga2.conf is read and from it
+through includes the Config directories. The Config Compiler works in three
+stages.
+The first is the Parser, whose source can be found in
+`/tools/mkclass` and is build with the help of flex and bison. The object
+types and their attributes are described in the .ti files.
+Once all objects have been parsed and been transformed into C++ objects, the
+ConfigCompiler evaluates all script expressions (e.g. Apply rules, functions,
+etc.) in a predefined type based order.
+The last step is the activation, like evaluation it follows a specific order
+to avoid dependency conflicts.
 
 ## Features <a id="technical-concepts-features"></a>
 
