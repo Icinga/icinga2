@@ -23,6 +23,10 @@ RHEL/CentOS:
 
     # yum install icinga2-debuginfo
 
+Fedora:
+
+    # dnf install icinga2-debuginfo icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo
+
 SLES/openSUSE:
 
     # zypper install icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo
