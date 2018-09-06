@@ -52,7 +52,7 @@ enum FieldAttribute
 	FAGetProtected = 16,
 	FASetProtected = 32,
 	FANoStorage = 64,
-	FALoadDependency = 128,
+	FALoadPriority = 128,
 	FARequired = 256,
 	FANavigation = 512,
 	FANoUserModify = 1024,
@@ -60,8 +60,7 @@ enum FieldAttribute
 	FADeprecated = 4096,
 	FAGetVirtual = 8192,
 	FASetVirtual = 16384,
-	FAActivationPriority = 32768,
-	FALoadPriority = 65536
+	FAActivationPriority = 32768
 };
 
 struct FieldType
@@ -107,8 +106,8 @@ struct Field
 	std::string NavigationName;
 	std::string NavigateAccessor;
 	bool PureNavigateAccessor{false};
-	int Priority{0};
-	int LPriority{0};
+	int ActivationPriority{0};
+	int LoadPriority{0};
 
 	inline std::string GetFriendlyName() const
 	{
@@ -153,7 +152,6 @@ struct Klass
 	std::string TypeBase;
 	int Attributes;
 	std::vector<Field> Fields;
-	std::vector<std::string> LoadDependencies;
 	int ActivationPriority{0};
 	int LoadPriority{0};
 };

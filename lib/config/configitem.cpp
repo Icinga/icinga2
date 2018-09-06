@@ -448,12 +448,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 		return false;
 	});
 
-	for(const Type::Ptr& type : types) {  
-		Log(LogCritical, "DEBUG") << type->GetName() << " LP: " << type->GetLoadPriority() << " AP: "<< type->GetActivationPriority();
-	}
-
 	for (const Type::Ptr& type : types) {
-		Log(LogCritical, "DEBUG") << type->GetName();
 		int committed_items = 0;
 		upq.ParallelFor(items, [&type, &committed_items](const ItemPair& ip) {
 			const ConfigItem::Ptr& item = ip.first;
@@ -521,18 +516,16 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			return false;
 
 		notified_items = 0;
-		for (const String& loadDep : type->GetLoadDependencies()) {
-			upq.ParallelFor(items, [loadDep, &type, &notified_items](const ItemPair& ip) {
-				const ConfigItem::Ptr& item = ip.first;
+		upq.ParallelFor(items, [&type, &notified_items](const ItemPair& ip) {
+			const ConfigItem::Ptr& item = ip.first;
 
-				if (!item->m_Object || item->m_Type->GetName() != loadDep)
-					return;
+			if (!item->m_Object || item->m_Type != type)
+				return;
 
-				ActivationScope ascope(item->m_ActivationContext);
-				item->m_Object->CreateChildObjects(type);
-				notified_items++;
-			});
-		}
+			ActivationScope ascope(item->m_ActivationContext);
+			item->m_Object->CreateAllChildObjects();
+			notified_items++;
+		});
 
 		upq.Join();
 

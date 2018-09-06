@@ -117,7 +117,6 @@ static char *lb_steal(lex_buf *lb)
 class				{ return T_CLASS; }
 namespace			{ return T_NAMESPACE; }
 code				{ return T_CODE; }
-load_after			{ return T_LOAD_AFTER; }
 load_priority		{ return T_LOAD_PRIORITY; }
 activation_priority	{ return T_ACTIVATION_PRIORITY; }
 library				{ return T_LIBRARY; }

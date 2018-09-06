@@ -54,7 +54,7 @@ protected:
 	void Stop(bool runtimeRemoved) override;
 
 	void OnAllConfigLoaded() override;
-	void CreateChildObjects(const Type::Ptr& childType) override;
+	void CreateAllChildObjects() override;
 
 private:
 	mutable boost::mutex m_ServicesMutex;

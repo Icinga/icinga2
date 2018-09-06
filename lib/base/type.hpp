@@ -85,7 +85,6 @@ public:
 	void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
 	Value GetField(int id) const override;
 
-	virtual std::vector<String> GetLoadDependencies() const;
 	virtual int GetActivationPriority() const;
 	virtual int GetLoadPriority() const;
 

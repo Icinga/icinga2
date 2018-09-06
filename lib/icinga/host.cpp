@@ -47,19 +47,15 @@ void Host::OnAllConfigLoaded()
 	}
 }
 
-void Host::CreateChildObjects(const Type::Ptr& childType)
+void Host::CreateAllChildObjects()
 {
-	if (childType == ScheduledDowntime::TypeInstance)
-		ScheduledDowntime::EvaluateApplyRules(this);
+	ScheduledDowntime::EvaluateApplyRules(this);
 
-	if (childType == Notification::TypeInstance)
-		Notification::EvaluateApplyRules(this);
+	Notification::EvaluateApplyRules(this);
 
-	if (childType == Dependency::TypeInstance)
-		Dependency::EvaluateApplyRules(this);
+	Dependency::EvaluateApplyRules(this);
 
-	if (childType == Service::TypeInstance)
-		Service::EvaluateApplyRules(this);
+	Service::EvaluateApplyRules(this);
 }
 
 void Host::Stop(bool runtimeRemoved)
