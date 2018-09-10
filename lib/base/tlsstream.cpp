@@ -398,7 +398,20 @@ void TlsStream::CloseInternal(bool inDestructor)
 	if (!m_SSL)
 		return;
 
-	(void)SSL_shutdown(m_SSL.get());
+	/* https://www.openssl.org/docs/manmaster/man3/SSL_shutdown.html
+	 *
+	 * It is recommended to do a bidirectional shutdown by checking
+	 * the return value of SSL_shutdown() and call it again until
+	 * it returns 1 or a fatal error. A maximum of 2x pending + 2x data
+	 * is recommended.
+         */
+	int rc = 0;
+
+	for (int i = 0; i < 4; i++) {
+		if ((rc = SSL_shutdown(m_SSL.get())))
+			break;
+	}
+
 	m_SSL.reset();
 
 	m_Socket->Close();
