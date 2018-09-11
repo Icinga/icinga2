@@ -160,38 +160,38 @@ The following operators are supported in expressions. The operators are sorted b
 
 Operator | Precedence | Examples (Result)                             | Description
 ---------|------------|-----------------------------------------------|--------------------------------
-()       | 1          | (3 + 3) * 5                                   | Groups sub-expressions
-()       | 1          | Math.random()                                 | Calls a function
-[]       | 1          | a[3]                                          | Array subscript
-.        | 1          | a.b                                           | Element access
-!        | 2          | !"Hello" (false), !false (true)               | Logical negation of the operand
-~        | 2          | ~true (false)                                 | Bitwise negation of the operand
-+        | 2          | +3                                            | Unary plus
--        | 2          | -3                                            | Unary minus
-&        | 2          | &var (reference to 'var')                     | Reference operator
-*        | 2          | *var                                          | Indirection operator
-*        | 3          | 5m * 10 (3000)                                | Multiplies two numbers
-/        | 3          | 5m / 5 (60)                                   | Divides two numbers
-%        | 3          | 17 % 12 (5)                                   | Remainder after division
-+        | 4          | 1 + 3 (4), "hello " + "world" ("hello world") | Adds two numbers; concatenates strings
--        | 4          | 3 - 1 (2)                                     | Subtracts two numbers
-<<       | 5          | 4 << 8 (1024)                                 | Left shift
->>       | 5          | 1024 >> 4 (64)                                | Right shift
-<        | 6         | 3 < 5 (true)                                  | Less than
->        | 6         | 3 > 5 (false)                                 | Greater than
-<=       | 6         | 3 <= 3 (true)                                 | Less than or equal
->=       | 6         | 3 >= 3 (true)                                 | Greater than or equal
-in       | 7          | "foo" in [ "foo", "bar" ] (true)              | Element contained in array
-!in      | 7          | "foo" !in [ "bar", "baz" ] (true)             | Element not contained in array
-==       | 8         | "hello" == "hello" (true), 3 == 5 (false)     | Equal to
-!=       | 8         | "hello" != "world" (true), 3 != 3 (false)     | Not equal to
-&        | 9          | 7 & 3 (3)                                     | Binary AND
-^        | 10          | 17 ^ 12 (29)                                  | Bitwise XOR
-&#124;   | 11          | 2 &#124; 3 (3)                                | Binary OR
-&&       | 13         | true && false (false), 3 && 7 (7), 0 && 7 (0) | Logical AND
-&#124;&#124; | 14     | true &#124;&#124; false (true), 0 &#124;&#124; 7 (7)| Logical OR
-=        | 12         | a = 3                                         | Assignment
-=>       | 15         | x => x * x (function with arg x)              | Lambda, for loop
+`()`       | 1          | (3 + 3) * 5                                   | Groups sub-expressions
+`()`       | 1          | Math.random()                                 | Calls a function
+`[]`       | 1          | a[3]                                          | Array subscript
+`.`       | 1          | a.b                                           | Element access
+`!`        | 2          | !"Hello" (false), !false (true)               | Logical negation of the operand
+`~`        | 2          | ~true (false)                                 | Bitwise negation of the operand
+`+`        | 2          | +3                                            | Unary plus
+`-`        | 2          | -3                                            | Unary minus
+`&`        | 2          | &var (reference to 'var')                     | Reference operator
+`*`        | 2          | *var                                          | Indirection operator
+`*`        | 3          | 5m * 10 (3000)                                | Multiplies two numbers
+`/`        | 3          | 5m / 5 (60)                                   | Divides two numbers
+`%`        | 3          | 17 % 12 (5)                                   | Remainder after division
+`+`        | 4          | 1 + 3 (4), "hello " + "world" ("hello world") | Adds two numbers; concatenates strings
+`-`        | 4          | 3 - 1 (2)                                     | Subtracts two numbers
+`<<`       | 5          | 4 << 8 (1024)                                 | Left shift
+`>>`       | 5          | 1024 >> 4 (64)                                | Right shift
+`<`        | 6         | 3 < 5 (true)                                  | Less than
+`>`        | 6         | 3 > 5 (false)                                 | Greater than
+`<=`       | 6         | 3 <= 3 (true)                                 | Less than or equal
+`>=`       | 6         | 3 >= 3 (true)                                 | Greater than or equal
+`in`       | 7          | "foo" in [ "foo", "bar" ] (true)              | Element contained in array
+`!in`      | 7          | "foo" !in [ "bar", "baz" ] (true)             | Element not contained in array
+`==`       | 8         | "hello" == "hello" (true), 3 == 5 (false)     | Equal to
+`!=`       | 8         | "hello" != "world" (true), 3 != 3 (false)     | Not equal to
+`&`        | 9          | 7 & 3 (3)                                     | Binary AND
+`^`        | 10          | 17 ^ 12 (29)                                  | Bitwise XOR
+<code>&#124;</code>    | 11          | 2 &#124; 3 (3)                                | Binary OR
+<code>&#124;&#124;</code>  | 12     | true &#124;&#124; false (true), 0 &#124;&#124; 7 (7)| Logical OR
+`&&`       | 13         | true && false (false), 3 && 7 (7), 0 && 7 (0) | Logical AND
+`=`        | 14         | a = 3                                         | Assignment
+`=>`       | 15         | x => x * x (function with arg x)              | Lambda, for loop
 
 ### References <a id="references"></a>
 
