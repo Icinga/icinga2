@@ -23,6 +23,9 @@ bug reports and features requests or writing code to add enhancements or fix bug
 Please consider our [roadmap](https://github.com/Icinga/icinga2/milestones) and
 [open issues](https://github.com/icinga/icinga2/issues) when you start contributing
 to the project.
+Issues labeled with [help wanted](https://github.com/Icinga/icinga2/labels/help%20wanted) or
+[good first issue](https://github.com/Icinga/icinga2/labels/good%20first%20issue) will
+help you get started more easily.
 
 Before starting your work on Icinga 2, you should [fork the project](https://help.github.com/articles/fork-a-repo/)
 to your GitHub account. This allows you to freely experiment with your changes.
