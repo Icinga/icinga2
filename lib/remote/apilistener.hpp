@@ -133,6 +133,8 @@ private:
 
 	static ApiListener::Ptr m_Instance;
 
+	static void StaticInitialize();
+
 	void ApiTimerHandler();
 	void ApiReconnectTimerHandler();
 	void CleanupCertificateRequestsTimerHandler();

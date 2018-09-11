@@ -35,6 +35,7 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include "base/exception.hpp"
+#include <boost/thread/once.hpp>
 #include <fstream>
 
 using namespace icinga;
@@ -43,6 +44,9 @@ REGISTER_TYPE(ApiListener);
 
 boost::signals2::signal<void(bool)> ApiListener::OnMasterChanged;
 ApiListener::Ptr ApiListener::m_Instance;
+static boost::once_flag l_ApiListenerOnceFlag = BOOST_ONCE_INIT;
+static WorkQueue *l_ApiListenerReconnectWorkQueue;
+static WorkQueue *l_ApiListenerIncomingConnectWorkQueue;
 
 REGISTER_STATSFUNCTION(ApiListener, &ApiListener::StatsFunc);
 
@@ -50,8 +54,27 @@ REGISTER_APIFUNCTION(Hello, icinga, &ApiListener::HelloAPIHandler);
 
 ApiListener::ApiListener()
 {
+	boost::call_once(l_ApiListenerOnceFlag, &ApiListener::StaticInitialize);
+
 	m_RelayQueue.SetName("ApiListener, RelayQueue");
 	m_SyncQueue.SetName("ApiListener, SyncQueue");
+}
+
+void ApiListener::StaticInitialize()
+{
+	int workerThreadCount = Application::GetConcurrency();
+
+	if (workerThreadCount < 4)
+		workerThreadCount = 4;
+
+	Log(LogCritical, "ApiListener")
+		<< "Concurrency for connection queues: " << workerThreadCount;
+
+	l_ApiListenerReconnectWorkQueue = new WorkQueue(0, workerThreadCount);
+	l_ApiListenerReconnectWorkQueue->SetName("ApiListener, ReconnectQueue");
+
+	l_ApiListenerIncomingConnectWorkQueue = new WorkQueue(0, workerThreadCount);
+	l_ApiListenerIncomingConnectWorkQueue->SetName("ApiListener, IncomingConnectQueue");
 }
 
 String ApiListener::GetApiDir()
@@ -239,7 +262,7 @@ void ApiListener::Start(bool runtimeCreated)
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&ApiListener::ApiReconnectTimerHandler, this));
-	m_ReconnectTimer->SetInterval(60);
+	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
@@ -348,8 +371,9 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 	for (;;) {
 		try {
 			Socket::Ptr client = server->Accept();
-			std::thread thread(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer));
-			thread.detach();
+
+			/* Use a queue with limited resources. */
+			l_ApiListenerIncomingConnectWorkQueue->Enqueue(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer));
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
 		}
@@ -389,7 +413,6 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		serverName += ":" + env;
 
 	try {
-		endpoint->SetConnecting(true);
 		client->Connect(host, port);
 		NewClientHandler(client, serverName, RoleClient);
 		endpoint->SetConnecting(false);
@@ -468,7 +491,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 
 	if (cert) {
 		try {
-			identity = GetCertificateCN(cert);
+			identity = hostname;
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener")
 				<< "Cannot get certificate common name from cert path: '" << GetDefaultCertPath() << "'.";
@@ -765,8 +788,11 @@ void ApiListener::ApiReconnectTimerHandler()
 				continue;
 			}
 
-			std::thread thread(std::bind(&ApiListener::AddConnection, this, endpoint));
-			thread.detach();
+			/* Set connecting state to prevent duplicated queue inserts later. */
+			endpoint->SetConnecting(true);
+
+			/* Use a queue with limited resources. */
+			l_ApiListenerReconnectWorkQueue->Enqueue(std::bind(&ApiListener::AddConnection, this, endpoint));
 		}
 	}
 
