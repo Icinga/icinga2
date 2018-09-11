@@ -23,6 +23,9 @@ bug reports and features requests or writing code to add enhancements or fix bug
 Please consider our [roadmap](https://github.com/Icinga/icinga2/milestones) and
 [open issues](https://github.com/icinga/icinga2/issues) when you start contributing
 to the project.
+Issues labeled with [help wanted](https://github.com/Icinga/icinga2/labels/help%20wanted) or
+[good first issue](https://github.com/Icinga/icinga2/labels/good%20first%20issue) will
+help you get started more easily.
 
 Before starting your work on Icinga 2, you should [fork the project](https://help.github.com/articles/fork-a-repo/)
 to your GitHub account. This allows you to freely experiment with your changes.
@@ -64,12 +67,12 @@ Please continue to learn about [branches](CONTRIBUTING.md#contributing-branches)
 
 Choosing a proper name for a branch helps us identify its purpose and possibly
 find an associated bug or feature.
-Generally a branch name should include a topic such as `fix` or `feature` followed
+Generally a branch name should include a topic such as `bugfix` or `feature` followed
 by a description and an issue number if applicable. Branches should have only changes
 relevant to a specific issue.
 
 ```
-git checkout -b fix/service-template-typo-1234
+git checkout -b bugfix/service-template-typo-1234
 git checkout -b feature/config-handling-1235
 ```
 
@@ -111,13 +114,13 @@ Don't worry, you can squash those changes into a single commit later on.
 ## <a id="contributing-pull-requests"></a> Pull Requests
 
 Once you've commited your changes, please update your local master
-branch and rebase your fix/feature branch against it before submitting a PR.
+branch and rebase your bugfix/feature branch against it before submitting a PR.
 
 ```
 git checkout master
 git pull upstream HEAD
 
-git checkout fix/notifications
+git checkout bugfix/notifications
 git rebase master
 ```
 
@@ -126,12 +129,12 @@ It might be necessary to force push after rebasing - use with care!
 
 New branch:
 ```
-git push --set-upstream origin fix/notifications
+git push --set-upstream origin bugfix/notifications
 ```
 
 Existing branch:
 ```
-git push -f origin fix/notifications
+git push -f origin bugfix/notifications
 ```
 
 You can now either use the [hub](https://hub.github.com) CLI tool to create a PR, or nagivate
@@ -168,7 +171,7 @@ git pull upstream HEAD
 Then change to your working branch and start rebasing it against master:
 
 ```
-git checkout fix/notifications
+git checkout bugfix/notifications
 git rebase master
 ```
 
@@ -192,22 +195,22 @@ git rebase --continue
 Once succeeded ensure to push your changed history remotely.
 
 ```
-git push -f origin fix/notifications
+git push -f origin bugfix/notifications
 ```
 
 
 If you fear to break things, do the rebase in a backup branch first and later replace your current branch.
 
 ```
-git checkout fix/notifications
-git checkout -b fix/notifications-rebase
+git checkout bugfix/notifications
+git checkout -b bugfix/notifications-rebase
 
 git rebase master
 
-git branch -D fix/notifications
-git checkout -b fix/notifications
+git branch -D bugfix/notifications
+git checkout -b bugfix/notifications
 
-git push -f origin fix/notifications
+git push -f origin bugfix/notifications
 ```
 
 ### <a id="contributing-squash"></a> Squash Commits
@@ -237,7 +240,7 @@ squash b37fd5377 Doc updates
 Save and let rebase to its job. Then force push the changes to the remote origin.
 
 ```
-git push -f origin fix/notifications
+git push -f origin bugfix/notifications
 ```
 
 
@@ -246,7 +249,7 @@ git push -f origin fix/notifications
 Basic unit test coverage is provided by running `make test` during package builds.
 Read the [INSTALL.md](INSTALL.md) file for more information about development builds.
 
-Snapshot packages from the laster development branch are available inside the
+Snapshot packages from the latest development branch are available inside the
 [package repository](https://packages.icinga.com).
 
 You can help test-drive the latest Icinga 2 snapshot packages inside the
@@ -466,7 +469,7 @@ By default, pull requests allow to push into the repository of the PR creator.
 
 Example for [#4956](https://github.com/Icinga/icinga2/pull/4956):
 
-At the bottom it says "Add more commits by pushing to the fix/persistent-comments-are-not-persistent branch on TheFlyingCorpse/icinga2."
+At the bottom it says "Add more commits by pushing to the bugfix/persistent-comments-are-not-persistent branch on TheFlyingCorpse/icinga2."
 
 First off, add the remote repository as additional origin and fetch its content:
 
@@ -478,20 +481,20 @@ git fetch --all
 Checkout the mentioned remote branch into a local branch (Note: `theflyingcorpse` is the name of the remote):
 
 ```
-git checkout theflyingcorpse/fix/persistent-comments-are-not-persistent -b fix/persistent-comments-are-not-persistent
+git checkout theflyingcorpse/bugfix/persistent-comments-are-not-persistent -b bugfix/persistent-comments-are-not-persistent
 ```
 
 Rebase, amend, squash or add your own commits on top.
 
-Once you are satisfied, push the changes to the remote `theflyingcorpse` and its branch `fix/persistent-comments-are-not-persistent`.
+Once you are satisfied, push the changes to the remote `theflyingcorpse` and its branch `bugfix/persistent-comments-are-not-persistent`.
 The syntax here is `git push <remote> <localbranch>:<remotebranch>`.
 
 ```
-git push theflyingcorpse fix/persistent-comments-are-not-persistent:fix/persistent-comments-are-not-persistent
+git push theflyingcorpse bugfix/persistent-comments-are-not-persistent:bugfix/persistent-comments-are-not-persistent
 ```
 
 In case you've changed the commit history (rebase, amend, squash), you'll need to force push. Be careful, this can't be reverted!
 
 ```
-git push -f theflyingcorpse fix/persistent-comments-are-not-persistent:fix/persistent-comments-are-not-persistent
+git push -f theflyingcorpse bugfix/persistent-comments-are-not-persistent:bugfix/persistent-comments-are-not-persistent
 ```
