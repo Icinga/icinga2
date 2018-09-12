@@ -19,6 +19,8 @@
 
 #include "redis/rediswriter.hpp"
 #include "icinga/command.hpp"
+#include "base/configtype.hpp"
+#include "base/configobject.hpp"
 #include "icinga/customvarobject.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
@@ -60,73 +62,18 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 	double startTime = Utility::GetTime();
 
-	std::map<Type*, std::vector<String>> deleteQueries;
-	long long cursor = 0;
-
-	std::map<String, String> lcTypes;
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		lcTypes.emplace(type->GetName().ToLower(), type->GetName());
-	}
-
-	do {
-		std::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", m_PrefixConfigObject + "*", "COUNT", "1000" });
-
-		VERIFY(reply->type == REDIS_REPLY_ARRAY);
-		VERIFY(reply->elements % 2 == 0);
-
-		redisReply *cursorReply = reply->element[0];
-		cursor = Convert::ToLong(cursorReply->str);
-
-		redisReply *keysReply = reply->element[1];
-
-		for (size_t i = 0; i < keysReply->elements; i++) {
-			redisReply *keyReply = keysReply->element[i];
-			VERIFY(keyReply->type == REDIS_REPLY_STRING);
-
-			String key = keyReply->str;
-			String namePair = key.SubStr(m_PrefixConfigObject.GetLength());
-
-			String::SizeType pos = namePair.FindFirstOf(":");
-
-			if (pos == String::NPos)
-				continue;
-
-			String type = namePair.SubStr(0, pos);
-			String name = namePair.SubStr(pos + 1);
-
-			auto actualTypeName = lcTypes.find(type);
-
-			if (actualTypeName == lcTypes.end())
-				continue;
-
-			Type::Ptr ptype = Type::GetByName(actualTypeName->second);
-			auto& deleteQuery = deleteQueries[ptype.get()];
-
-			if (deleteQuery.empty()) {
-				deleteQuery.emplace_back("DEL");
-				deleteQuery.emplace_back(m_PrefixConfigCheckSum + type);
-			}
-
-			deleteQuery.push_back(m_PrefixConfigObject + type + ":" + name);
-			deleteQuery.push_back(m_PrefixStatusObject + type + ":" + name);
-		}
-	} while (cursor != 0);
-
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!ctype)
 			continue;
 
+		auto lcType (type->GetName().ToLower());
+
 		ExecuteQuery({ "MULTI" });
 
 		/* Delete obsolete object keys first. */
-		auto& deleteQuery = deleteQueries[type.get()];
-
-		if (deleteQuery.size() > 1)
-			ExecuteQuery(deleteQuery);
-
-		String typeName = type->GetName().ToLower();
+		ExecuteQuery({"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStatusObject + lcType});
 
 		/* fetch all objects and dump them */
 		for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
@@ -135,7 +82,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		}
 
 		/* publish config type dump finished */
-		ExecuteQuery({ "PUBLISH", "icinga:config:dump", typeName });
+		ExecuteQuery({ "PUBLISH", "icinga:config:dump", lcType });
 
 		ExecuteQuery({ "EXEC" });
 	}
@@ -518,7 +465,7 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 	String objectKey = GetObjectIdentifier(object);
 
 	ExecuteQueries({
-	    { "DEL", m_PrefixConfigObject + typeName + ":" + objectKey },
+	    { "HDEL", m_PrefixConfigObject + typeName, objectKey },
 	    { "DEL", m_PrefixStatusObject + typeName + ":" + objectKey },
 	    { "PUBLISH", "icinga:config:delete", typeName + ":" + objectKey }
 	});
@@ -622,17 +569,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, bool useTran
 void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType)
 {
 	Type::Ptr type = object->GetReflectionType();
-
-	String typeName = type->GetName().ToLower();
-
-	/* Use the name checksum as unique key. */
-	String objectKey = GetObjectIdentifier(object);
-
-	std::vector<std::vector<String> > queries;
-
-	queries.push_back({ "DEL", keyPrefix + typeName + ":" + objectKey });
-
-	std::vector<String> hmsetCommand({ "HMSET", keyPrefix + typeName + ":" + objectKey });
+	Dictionary::Ptr attrs (new Dictionary);
 
 	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
 		Field field = type->GetFieldInfo(fid);
@@ -650,15 +587,11 @@ void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject:
 		if (field.Attributes & FANavigation && !(field.Attributes & (FAConfig | FAState)))
 			continue;
 
-		hmsetCommand.push_back(field.Name);
-
-		Value sval = Serialize(val);
-		hmsetCommand.push_back(JsonEncode(sval));
+		attrs->Set(field.Name, Serialize(val));
 	}
 
-	queries.push_back(hmsetCommand);
-
-	ExecuteQueries(queries);
+	/* Use the name checksum as unique key. */
+	ExecuteQuery({"HSET", keyPrefix + type->GetName().ToLower(), GetObjectIdentifier(object), JsonEncode(attrs)});
 }
 
 void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
