@@ -62,6 +62,31 @@ are counted as connected endpoints. A similar change is there for the performanc
 The attribute `child_options` was previously accepting 0,1,2 for specific child downtime settings.
 This behaviour stays intact, but the new proposed way are specific constants as values (`DowntimeNoChildren`, `DowntimeTriggeredChildren`, `DowntimeNonTriggeredChildren`).
 
+### Notifications: Recovery and Acknowledgement <a id="upgrading-to-2-10-notifications"></a>
+
+When a user should be notified on `Problem` and `Acknowledgement`, v2.10 now checks during
+the `Acknowledgement` notification event whether this user has been notified about a problem before.
+
+```
+  types = [ Problem, Acknowledgement, Recovery ]
+```
+
+If **no** `Problem` notification was sent, and the types filter includes problems for this user,
+the `Acknowledgement` notification is **not** sent.
+
+In contrast to that, the following configuration always sends `Acknowledgement` notifications.
+
+```
+  types = [ Acknowledgement, Recovery ]
+```
+
+This change also restores the old behaviour for `Recovery` notifications. The above configuration
+leaving out the `Problem` type can be used to only receive recovery notifications. If `Problem`
+is added to the types again, Icinga 2 checks whether it has notified a user of a problem when
+sending the recovery notification.
+
+More details can be found in [this PR](https://github.com/Icinga/icinga2/pull/6527).
+
 ## Upgrading to v2.9 <a id="upgrading-to-2-9"></a>
 
 ### Deprecation and Removal Notes <a id="upgrading-to-2-9-deprecation-removal-notes"></a>
