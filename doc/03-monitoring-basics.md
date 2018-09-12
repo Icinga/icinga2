@@ -1553,6 +1553,14 @@ send notifications to all group members.
 > Only users who have been notified of a problem before  (`Warning`, `Critical`, `Unknown`
 states for services, `Down` for hosts) will receive `Recovery` notifications.
 
+Icinga 2 v2.10 allows you to configure `Acknowledgement` and/or `Recovery`
+without a `Problem` notification. These notifications will be sent without
+any problem notifications beforehand, and can be used for e.g. ticket systems.
+
+```
+  types = [ Acknowledgement, Recovery ]
+```
+
 ### Notifications: Users from Host/Service <a id="alert-notifications-users-host-service"></a>
 
 A common pattern is to store the users and user groups
