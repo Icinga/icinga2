@@ -183,6 +183,32 @@ While it may sound complicated for client setups, it removes the problem with di
 and configurations for a master and a client. Both of them work the same way, are configured
 in the same way (Zone, Endpoint, ApiListener), and you can troubleshoot and debug them in just one go.
 
+## Versions and Upgrade <a id="distributed-monitoring-versions-upgrade"></a>
+
+It generally is advised to use the newest releases with the same version on all instances.
+Prior to upgrading, make sure to plan a maintenance window.
+
+The Icinga project aims to allow the following compatibility:
+
+```
+master (2.9) >= satellite (2.8) >= clients (2.7)
+```
+
+Older client versions may work, but there's no guarantee. Always keep in mind that
+older versions are out of support and can contain bugs.
+
+In terms of an upgrade, ensure that the master is upgraded first, then
+involved satellites, and last the Icinga 2 clients. If you are on v2.8
+currently, first upgrade the master instance(s) to 2.9, and then proceed
+with the satellites. Things are getting easier with any sort of automation
+tool (Puppet, Ansible, etc.).
+
+Releases and new features may require you to upgrade master/satellite instances at once,
+this is highlighted in the [upgrading docs](16-upgrading-icinga-2.md#upgrading-icinga-2) if needed.
+One example is the CA Proxy and on-demand signing feature
+available since v2.8 where all involved instances need this version
+to function properly.
+
 ## Master Setup <a id="distributed-monitoring-setup-master"></a>
 
 This section explains how to install a central single master node using
@@ -295,7 +321,8 @@ and sign the request.
 > **Note**
 >
 > Icinga 2 v2.8 adds the possibility to forward signing requests on a satellite
-> to the master node. This helps with the setup of [three level clusters](#06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-client)
+> to the master node. This is called `CA Proxy` in blog posts and design drafts.
+> This functionality helps with the setup of [three level clusters](#06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-client)
 > and more.
 
 Advantages:
@@ -356,10 +383,10 @@ Store that ticket number for the satellite/client setup below.
 
 ### On-Demand CSR Signing <a id="distributed-monitoring-setup-on-demand-csr-signing"></a>
 
-Icinga 2 v2.8 adds the possibility to sign certificates from clients without
-requiring a client ticket for auto-signing.
+The client sends a certificate signing request to specified parent node without any
+ticket. The admin on the master is responsible for reviewing and signing the requests
+with the private CA key.
 
-Instead, the client sends a certificate signing request to specified parent node.
 This could either be directly the master, or a satellite which forwards the request
 to the signing master.
 
@@ -628,11 +655,6 @@ You can verify that the certificate files are stored in the `/var/lib/icinga2/ce
 
 > **Note**
 >
-> The certificate location changed in v2.8 to `/var/lib/icinga2/certs`. Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
-> for more details.
-
-> **Note**
->
 > If the client is not directly connected to the certificate signing master,
 > signing requests and responses might need some minutes to fully update the client certificates.
 >
@@ -775,11 +797,6 @@ If you did not provide a setup ticket, you need to sign the certificate request 
 The setup wizards tells you to do so. The Icinga 2 service is running at this point already
 and will automatically receive and update a signed client certificate.
 
-> **Note**
->
-> Ticket-less setups require at least Icinga 2 v2.8+ on all involved instances.
-
-
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_06_finish_no_ticket.png)
 
 Icinga 2 is automatically started as a Windows service.
@@ -795,20 +812,6 @@ The configuration files can be modified with your favorite editor e.g. Notepad.
 
 In order to use the [top down](06-distributed-monitoring.md#distributed-monitoring-top-down) client
 configuration prepare the following steps.
-
-Add a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
-for syncing check commands later. Navigate to `C:\ProgramData\icinga2\etc\icinga2` and open
-the `zones.conf` file in your preferred editor. Add the following lines if not existing already:
-
-```
-object Zone "global-templates" {
-  global = true
-}
-```
-
-> **Note:**
->
-> Packages >= 2.8 provide this configuration by default.
 
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
@@ -845,12 +848,6 @@ and restart the `icinga2` service. Alternatively, you can use the `net {start,st
 
 Now that you've successfully installed a Windows client, please proceed to
 the [detailed configuration modes](06-distributed-monitoring.md#distributed-monitoring-configuration-modes).
-
-> **Note**
->
-> The certificate location changed in v2.8 to `%ProgramData%\var\lib\icinga2\certs`.
-> Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
-> for more details.
 
 ## Configuration Modes <a id="distributed-monitoring-configuration-modes"></a>
 
@@ -949,21 +946,6 @@ The `master` zone is a parent of the `icinga2-client1.localdomain` zone:
       parent = "master" //establish zone hierarchy
     }
 
-In addition, add a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
-for syncing check commands later:
-
-```
-[root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
-
-object Zone "global-templates" {
-  global = true
-}
-```
-
-> **Note:**
->
-> Packages >= 2.8 provide this configuration by default.
-
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
 above. Therefore disable the inclusion of the `conf.d` directory
@@ -980,18 +962,6 @@ in `/etc/icinga2/icinga2.conf`.
 >
 > Packages >= 2.9 provide an option in the setup wizard to disable this.
 > Defaults to disabled.
-
-Edit the `api` feature on the client `icinga2-client1.localdomain` in
-the `/etc/icinga2/features-enabled/api.conf` file and make sure to set
-`accept_commands` and `accept_config` to `true`:
-
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/features-enabled/api.conf
-
-    object ApiListener "api" {
-       //...
-       accept_commands = true
-       accept_config = true
-    }
 
 Now it is time to validate the configuration and to restart the Icinga 2 daemon
 on both nodes.
@@ -1233,7 +1203,7 @@ section where you can find detailed information on extending the setup.
 
 
 If you are eager to start fresh instead you might take a look into the
-[Icinga Director](https://github.com/icinga/icingaweb2-module-director).
+[Icinga Director](https://www.icinga.com/docs/director/latest/).
 
 ## Scenarios <a id="distributed-monitoring-scenarios"></a>
 
@@ -1614,14 +1584,16 @@ This scenario combines everything you've learned so far: High-availability maste
 satellites receiving their configuration from the master zone, and clients checked via command
 endpoint from the satellite zones.
 
-**Tip**: It can get complicated, so grab a pen and paper and bring your thoughts to life.
-Play around with a test setup before using it in a production environment!
+> **Tip**:
+>
+> It can get complicated, so grab a pen and paper and bring your thoughts to life.
+> Play around with a test setup before using it in a production environment!
 
 Overview:
 
 * `icinga2-master1.localdomain` is the configuration master master node.
 * `icinga2-master2.localdomain` is the secondary master master node without configuration in `zones.d`.
-* `icinga2-satellite1.localdomain` and `icinga2-satellite2.localdomain` are satellite nodes in a `master` child zone.
+* `icinga2-satellite1.localdomain` and `icinga2-satellite2.localdomain` are satellite nodes in a `master` child zone. They forward CSR signing requests to the master zone.
 * `icinga2-client1.localdomain` and `icinga2-client2.localdomain` are two child nodes as clients.
 
 Setup requirements:
@@ -1630,85 +1602,206 @@ Setup requirements:
 * Set up `icinga2-master2.localdomain`, `icinga2-satellite1.localdomain` and `icinga2-satellite2.localdomain` as [clients](06-distributed-monitoring.md#distributed-monitoring-setup-satellite-client) (we will modify the generated configuration).
 * Set up `icinga2-client1.localdomain` and `icinga2-client2.localdomain` as [clients](06-distributed-monitoring.md#distributed-monitoring-setup-satellite-client).
 
-When being asked for the master endpoint providing CSR auto-signing capabilities,
-please add the master node which holds the CA and has the `ApiListener` feature configured and enabled.
-The parent endpoint must still remain the satellite endpoint name.
+When being asked for the parent endpoint providing CSR auto-signing capabilities,
+please add one of the satellite nodes. **Note**: This requires Icinga 2 v2.8+
+and the `CA Proxy` on all master, satellite and client nodes.
 
 Example for `icinga2-client1.localdomain`:
 
-    Please specify the master endpoint(s) this node should connect to:
+```
+Please specify the parent endpoint(s) (master or satellite) where this node should connect to:
+```
 
-Master is the first satellite `icinga2-satellite1.localdomain`:
+Parent endpoint is the first satellite `icinga2-satellite1.localdomain`:
 
-    Master Common Name (CN from your master setup): icinga2-satellite1.localdomain
-    Do you want to establish a connection to the master from this node? [Y/n]: y
-    Please fill out the master connection information:
-    Master endpoint host (Your master's IP address or FQDN): 192.168.56.105
-    Master endpoint port [5665]:
+```
+Master/Satellite Common Name (CN from your master/satellite node): icinga2-satellite1.localdomain
+Do you want to establish a connection to the parent node from this node? [Y/n]: y
 
-Add the second satellite `icinga2-satellite2.localdomain` as master:
+Please specify the master/satellite connection information:
+Master/Satellite endpoint host (IP address or FQDN): 192.168.56.105
+Master/Satellite endpoint port [5665]: 5665
+```
 
-    Add more master endpoints? [y/N]: y
-    Master Common Name (CN from your master setup): icinga2-satellite2.localdomain
-    Do you want to establish a connection to the master from this node? [Y/n]: y
-    Please fill out the master connection information:
-    Master endpoint host (Your master's IP address or FQDN): 192.168.56.106
-    Master endpoint port [5665]:
-    Add more master endpoints? [y/N]: n
+Add the second satellite `icinga2-satellite2.localdomain` as parent:
 
-Specify the master node `icinga2-master2.localdomain` with the CA private key and ticket salt:
+```
+Add more master/satellite endpoints? [y/N]: y
 
-    Please specify the master connection for CSR auto-signing (defaults to master endpoint host):
-    Host [192.168.56.106]: icinga2-master1.localdomain
-    Port [5665]:
+Master/Satellite Common Name (CN from your master/satellite node): icinga2-satellite2.localdomain
+Do you want to establish a connection to the parent node from this node? [Y/n]: y
 
-In case you cannot connect to the master node from your clients, you'll manually need
-to [generate the SSL certificates](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-certificates-manual)
-and modify the configuration accordingly.
+Please specify the master/satellite connection information:
+Master/Satellite endpoint host (IP address or FQDN): 192.168.56.106
+Master/Satellite endpoint port [5665]: 5665
 
-We'll discuss the details of the required configuration below.
+Add more master/satellite endpoints? [y/N]: n
+```
+
+The specified parent nodes will forward the CSR signing request to the master instances.
+
+Proceed with adding the optional client ticket for [CSR auto-signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing):
+
+```
+Please specify the request ticket generated on your Icinga 2 master (optional).
+ (Hint: # icinga2 pki ticket --cn 'icinga2-client1.localdomain'):
+4f75d2ecd253575fe9180938ebff7cbca262f96e
+```
+
+In case you've chosen to use [On-Demand CSR Signing](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing)
+you can leave the ticket question blank.
+
+Instead, Icinga 2 tells you to approve the request later on the master node.
+
+```
+No ticket was specified. Please approve the certificate signing request manually
+on the master (see 'icinga2 ca list' and 'icinga2 ca sign --help' for details).
+```
+
+You can optionally specify a different bind host and/or port.
+
+```
+Please specify the API bind host/port (optional):
+Bind Host []:
+Bind Port []:
+```
+
+The next step asks you to accept configuration (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync))
+and commands (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
+
+```
+Accept config from parent node? [y/N]: y
+Accept commands from parent node? [y/N]: y
+```
+
+Next you can optionally specify the local and parent zone names. This will be reflected
+in the generated zone configuration file.
+
+```
+Local zone name [icinga2-client1.localdomain]: icinga2-client1.localdomain
+```
+
+Set the parent zone name to `satellite` for this client.
+
+```
+Parent zone name [master]: satellite
+```
+
+You can add more global zones in addition to `global-templates` and `director-global` if necessary.
+Press `Enter` or choose `n`, if you don't want to add any additional.
+
+```
+Reconfiguring Icinga...
+
+Default global zones: global-templates director-global
+Do you want to specify additional global zones? [y/N]: N
+```
+
+Last but not least the wizard asks you whether you want to disable the inclusion of the local configuration
+directory in `conf.d`, or not. Defaults to disabled, as clients either are checked via command endpoint, or
+they receive configuration synced from the parent zone.
+
+```
+Do you want to disable the inclusion of the conf.d directory [Y/n]: Y
+Disabling the inclusion of the conf.d directory...
+```
+
+
+**We'll discuss the details of the required configuration below. Most of this
+configuration can be rendered by the setup wizards.**
 
 The zone hierarchy can look like this. We'll define only the directly connected zones here.
 
-You can safely deploy this configuration onto all master and satellite zone
-members. You should keep in mind to control the endpoint [connection direction](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction)
-using the `host` attribute.
+The master instances should actively connect to the satellite instances, therefore
+the configuration on `icinga2-master1.localdomain` and `icinga2-master2.localdomain`
+must include the `host` attribute for the satellite endpoints:
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Endpoint "icinga2-master1.localdomain" {
-      host = "192.168.56.101"
-    }
+object Endpoint "icinga2-master1.localdomain" {
+  //that's us
+}
 
-    object Endpoint "icinga2-master2.localdomain" {
-      host = "192.168.56.102"
-    }
+object Endpoint "icinga2-master2.localdomain" {
+  host = "192.168.56.102"
+}
 
-    object Endpoint "icinga2-satellite1.localdomain" {
-      host = "192.168.56.105"
-    }
+object Endpoint "icinga2-satellite1.localdomain" {
+  host = "192.168.56.105"
+}
 
-    object Endpoint "icinga2-satellite2.localdomain" {
-      host = "192.168.56.106"
-    }
+object Endpoint "icinga2-satellite2.localdomain" {
+  host = "192.168.56.106"
+}
 
-    object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
-    }
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
+}
 
-    object Zone "satellite" {
-      endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite2.localdomain" ]
+object Zone "satellite" {
+  endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite2.localdomain" ]
 
-      parent = "master"
-    }
+  parent = "master"
+}
 
-    /* sync global commands */
-    object Zone "global-templates" {
-      global = true
-    }
+/* sync global commands */
+object Zone "global-templates" {
+  global = true
+}
 
-Repeat the configuration step for `icinga2-master2.localdomain`, `icinga2-satellite1.localdomain`
-and `icinga2-satellite2.localdomain`.
+object Zone "director-global" {
+  global = true
+}
+
+```
+
+In contrast to that, the satellite instances `icinga2-satellite1.localdomain`
+and `icinga2-satellite2.localdomain` should not actively connect to the master
+instances.
+
+```
+[root@icinga2-satellite1.localdomain /]# vim /etc/icinga2/zones.conf
+
+object Endpoint "icinga2-master1.localdomain" {
+  //this endpoint will connect to us
+}
+
+object Endpoint "icinga2-master2.localdomain" {
+  //this endpoint will connect to us
+}
+
+object Endpoint "icinga2-satellite1.localdomain" {
+  //that's us
+}
+
+object Endpoint "icinga2-satellite2.localdomain" {
+  host = "192.168.56.106"
+}
+
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
+}
+
+object Zone "satellite" {
+  endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite2.localdomain" ]
+
+  parent = "master"
+}
+
+/* sync global commands */
+object Zone "global-templates" {
+  global = true
+}
+
+object Zone "director-global" {
+  global = true
+}
+```
+Keep in mind to control the endpoint [connection direction](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction)
+using the `host` attribute, also for other endpoints in the same zone.
+
+Adopt the configuration for `icinga2-master2.localdomain` and `icinga2-satellite2.localdomain`.
 
 Since we want to use [top down command endpoint](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint) checks,
 we must configure the client endpoint and zone objects.
@@ -1781,6 +1874,10 @@ Example for `icinga2-client1.localdomain`:
       global = true
     }
 
+    object Zone "director-global" {
+      global = true
+    }
+
 Example for `icinga2-client2.localdomain`:
 
     [root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
@@ -1809,6 +1906,10 @@ Example for `icinga2-client2.localdomain`:
 
     /* sync global commands */
     object Zone "global-templates" {
+      global = true
+    }
+
+    object Zone "director-global" {
       global = true
     }
 
@@ -1874,7 +1975,9 @@ Validate the configuration and restart Icinga 2 on the master node `icinga2-mast
 Open Icinga Web 2 and check the two newly created client hosts with two new services
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
 
-**Tip**: It's a good idea to add [health checks](06-distributed-monitoring.md#distributed-monitoring-health-checks)
+> **Tip**:
+>
+> It's a good idea to add [health checks](06-distributed-monitoring.md#distributed-monitoring-health-checks)
 to make sure that your cluster notifies you in case of failure.
 
 ## Best Practice <a id="distributed-monitoring-best-practice"></a>
@@ -1907,22 +2010,22 @@ the global configuration files:
 
     [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Zone "global-templates" {
+    object Zone "global-commands" {
       global = true
     }
 
-Note: Packages >= 2.8 provide this configuration by default.
+The default global zones generated by the setup wizards are called `global-templates` and `director-global`.
 
 Similar to the zone configuration sync you'll need to create a new directory in
 `/etc/icinga2/zones.d`:
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/global-templates
+    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/global-commands
 
 Next, add a new check command, for example:
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/commands.conf
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-commands/web.conf
 
-    object CheckCommand "my-cmd" {
+    object CheckCommand "webinject" {
       //...
     }
 
@@ -1932,7 +2035,7 @@ before restarting the parent master/satellite nodes.
 Then validate the configuration on the master node and restart Icinga 2.
 
 **Tip**: You can copy the example configuration files located in `/etc/icinga2/conf.d`
-into your global zone.
+into the default global zone `global-templates`.
 
 Example:
 
@@ -2313,7 +2416,8 @@ with automating setups (setup, certificates, configuration).
 Icinga 2 v2.8+ adds the possibility that nodes request certificate updates
 on their own. If their expiration date is soon enough, they automatically
 renew their already signed certificate by sending a signing request to the
-parent node.
+parent node. You'll also see a message in the logs if certificate renewal
+isn't necessary.
 
 ### High-Availability for Icinga 2 Features <a id="distributed-monitoring-high-availability-features"></a>
 
@@ -2473,22 +2577,6 @@ Configuration on the client `icinga2-client1.localdomain`:
       log_duration = 0
     }
 
-### CSR auto-signing with HA and multiple Level Cluster <a id="distributed-monitoring-advanced-hints-csr-autosigning-ha-satellites"></a>
-
-If you are using two masters in a High-Availability setup it can be necessary
-to allow both to sign requested certificates. Ensure to safely sync the following
-details in private:
-
-* `TicketSalt` constant in `constants.conf`.
-* `var/lib/icinga2/ca` directory.
-
-This also helps if you are using a [three level cluster](06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-client)
-and your client nodes are not able to reach the CSR auto-signing master node(s).
-Make sure that the directory permissions for `/var/lib/icinga2/ca` are secure
-(not world readable).
-
-**Do not expose these private keys to anywhere else. This is a matter of security.**
-
 ### Manual Certificate Creation <a id="distributed-monitoring-advanced-hints-certificates-manual"></a>
 
 #### Create CA on the Master <a id="distributed-monitoring-advanced-hints-certificates-manual-ca"></a>
@@ -2517,11 +2605,6 @@ Sign the CSR with the previously created CA:
 ```
 
 Repeat the steps for all instances in your setup.
-
-> **Note**
->
-> The certificate location changed in v2.8 to `/var/lib/icinga2/certs`. Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
-> for more details.
 
 #### Copy Certificates <a id="distributed-monitoring-advanced-hints-certificates-manual-copy"></a>
 
@@ -2630,11 +2713,6 @@ In case you don't need anything in `conf.d`, use the following command line:
 
 #### Node Setup with Satellites/Clients <a id="distributed-monitoring-automation-cli-node-setup-satellite-client"></a>
 
-> **Note**
->
-> The certificate location changed in v2.8 to `/var/lib/icinga2/certs`. Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
-> for more details.
-
 Make sure that the `/var/lib/icinga2/certs` directory exists and is owned by the `icinga`
 user (or the user Icinga 2 is running as).
 
@@ -2738,16 +2816,6 @@ which holds the CA's key pair.
 
 **You can find additional best practices below.**
 
-Add an additional global zone. Please note the `>>` append mode.
-
-    [root@icinga2-client1.localdomain /]# cat <<EOF >>/etc/icinga2/zones.conf
-    object Zone "global-templates" {
-      global = true
-    }
-    EOF
-
-Note: Packages >= 2.8 provide this configuration by default.
-
 If this client node is configured as [remote command endpoint execution](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 you can safely disable the `checker` feature. The `node setup` CLI command already disabled the `notification` feature.
 
@@ -2757,6 +2825,8 @@ Disable "conf.d" inclusion if this is a [top down](06-distributed-monitoring.md#
 configured client.
 
     [root@icinga2-client1.localdomain /]# sed -i 's/include_recursive "conf.d"/\/\/include_recursive "conf.d"/g' /etc/icinga2/icinga2.conf
+
+**Note**: This is the default since v2.9.
 
 **Optional**: Add an ApiUser object configuration for remote troubleshooting.
 
@@ -2777,7 +2847,6 @@ Finally restart Icinga 2.
     [root@icinga2-client1.localdomain /]# systemctl restart icinga2
 
 Your automation tool must then configure master node in the meantime.
-Add the global zone `global-templates` in case it did not exist.
 
     # cat <<EOF >>/etc/icinga2/zones.conf
     object Endpoint "icinga2-client1.localdomain" {
@@ -2789,9 +2858,6 @@ Add the global zone `global-templates` in case it did not exist.
       parent = "master"
     }
 
-    object Zone "global-templates" {
-      global = true
-    }
     EOF
 
 ## Using Multiple Environments <a id="distributed-monitoring-environments"></a>
