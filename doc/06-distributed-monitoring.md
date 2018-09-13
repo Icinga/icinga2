@@ -383,10 +383,10 @@ Store that ticket number for the satellite/client setup below.
 
 ### On-Demand CSR Signing <a id="distributed-monitoring-setup-on-demand-csr-signing"></a>
 
-Icinga 2 v2.8 adds the possibility to sign certificates from clients without
-requiring a client ticket for auto-signing.
+The client sends a certificate signing request to specified parent node without any
+ticket. The admin on the master is responsible for reviewing and signing the requests
+with the private CA key.
 
-Instead, the client sends a certificate signing request to specified parent node.
 This could either be directly the master, or a satellite which forwards the request
 to the signing master.
 
@@ -655,11 +655,6 @@ You can verify that the certificate files are stored in the `/var/lib/icinga2/ce
 
 > **Note**
 >
-> The certificate location changed in v2.8 to `/var/lib/icinga2/certs`. Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
-> for more details.
-
-> **Note**
->
 > If the client is not directly connected to the certificate signing master,
 > signing requests and responses might need some minutes to fully update the client certificates.
 >
@@ -802,11 +797,6 @@ If you did not provide a setup ticket, you need to sign the certificate request 
 The setup wizards tells you to do so. The Icinga 2 service is running at this point already
 and will automatically receive and update a signed client certificate.
 
-> **Note**
->
-> Ticket-less setups require at least Icinga 2 v2.8+ on all involved instances.
-
-
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_06_finish_no_ticket.png)
 
 Icinga 2 is automatically started as a Windows service.
@@ -822,20 +812,6 @@ The configuration files can be modified with your favorite editor e.g. Notepad.
 
 In order to use the [top down](06-distributed-monitoring.md#distributed-monitoring-top-down) client
 configuration prepare the following steps.
-
-Add a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
-for syncing check commands later. Navigate to `C:\ProgramData\icinga2\etc\icinga2` and open
-the `zones.conf` file in your preferred editor. Add the following lines if not existing already:
-
-```
-object Zone "global-templates" {
-  global = true
-}
-```
-
-> **Note:**
->
-> Packages >= 2.8 provide this configuration by default.
 
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
@@ -872,12 +848,6 @@ and restart the `icinga2` service. Alternatively, you can use the `net {start,st
 
 Now that you've successfully installed a Windows client, please proceed to
 the [detailed configuration modes](06-distributed-monitoring.md#distributed-monitoring-configuration-modes).
-
-> **Note**
->
-> The certificate location changed in v2.8 to `%ProgramData%\var\lib\icinga2\certs`.
-> Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
-> for more details.
 
 ## Configuration Modes <a id="distributed-monitoring-configuration-modes"></a>
 
@@ -976,21 +946,6 @@ The `master` zone is a parent of the `icinga2-client1.localdomain` zone:
       parent = "master" //establish zone hierarchy
     }
 
-In addition, add a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
-for syncing check commands later:
-
-```
-[root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
-
-object Zone "global-templates" {
-  global = true
-}
-```
-
-> **Note:**
->
-> Packages >= 2.8 provide this configuration by default.
-
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
 above. Therefore disable the inclusion of the `conf.d` directory
@@ -1007,18 +962,6 @@ in `/etc/icinga2/icinga2.conf`.
 >
 > Packages >= 2.9 provide an option in the setup wizard to disable this.
 > Defaults to disabled.
-
-Edit the `api` feature on the client `icinga2-client1.localdomain` in
-the `/etc/icinga2/features-enabled/api.conf` file and make sure to set
-`accept_commands` and `accept_config` to `true`:
-
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/features-enabled/api.conf
-
-    object ApiListener "api" {
-       //...
-       accept_commands = true
-       accept_config = true
-    }
 
 Now it is time to validate the configuration and to restart the Icinga 2 daemon
 on both nodes.
@@ -1260,7 +1203,7 @@ section where you can find detailed information on extending the setup.
 
 
 If you are eager to start fresh instead you might take a look into the
-[Icinga Director](https://github.com/icinga/icingaweb2-module-director).
+[Icinga Director](https://www.icinga.com/docs/director/latest/).
 
 ## Scenarios <a id="distributed-monitoring-scenarios"></a>
 
@@ -2067,22 +2010,22 @@ the global configuration files:
 
     [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Zone "global-templates" {
+    object Zone "global-commands" {
       global = true
     }
 
-Note: Packages >= 2.8 provide this configuration by default.
+The default global zones generated by the setup wizards are called `global-templates` and `director-global`.
 
 Similar to the zone configuration sync you'll need to create a new directory in
 `/etc/icinga2/zones.d`:
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/global-templates
+    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/global-commands
 
 Next, add a new check command, for example:
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/commands.conf
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-commands/web.conf
 
-    object CheckCommand "my-cmd" {
+    object CheckCommand "webinject" {
       //...
     }
 
@@ -2092,7 +2035,7 @@ before restarting the parent master/satellite nodes.
 Then validate the configuration on the master node and restart Icinga 2.
 
 **Tip**: You can copy the example configuration files located in `/etc/icinga2/conf.d`
-into your global zone.
+into the default global zone `global-templates`.
 
 Example:
 
@@ -2473,7 +2416,8 @@ with automating setups (setup, certificates, configuration).
 Icinga 2 v2.8+ adds the possibility that nodes request certificate updates
 on their own. If their expiration date is soon enough, they automatically
 renew their already signed certificate by sending a signing request to the
-parent node.
+parent node. You'll also see a message in the logs if certificate renewal
+isn't necessary.
 
 ### High-Availability for Icinga 2 Features <a id="distributed-monitoring-high-availability-features"></a>
 
@@ -2633,22 +2577,6 @@ Configuration on the client `icinga2-client1.localdomain`:
       log_duration = 0
     }
 
-### CSR auto-signing with HA and multiple Level Cluster <a id="distributed-monitoring-advanced-hints-csr-autosigning-ha-satellites"></a>
-
-If you are using two masters in a High-Availability setup it can be necessary
-to allow both to sign requested certificates. Ensure to safely sync the following
-details in private:
-
-* `TicketSalt` constant in `constants.conf`.
-* `var/lib/icinga2/ca` directory.
-
-This also helps if you are using a [three level cluster](06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-client)
-and your client nodes are not able to reach the CSR auto-signing master node(s).
-Make sure that the directory permissions for `/var/lib/icinga2/ca` are secure
-(not world readable).
-
-**Do not expose these private keys to anywhere else. This is a matter of security.**
-
 ### Manual Certificate Creation <a id="distributed-monitoring-advanced-hints-certificates-manual"></a>
 
 #### Create CA on the Master <a id="distributed-monitoring-advanced-hints-certificates-manual-ca"></a>
@@ -2677,11 +2605,6 @@ Sign the CSR with the previously created CA:
 ```
 
 Repeat the steps for all instances in your setup.
-
-> **Note**
->
-> The certificate location changed in v2.8 to `/var/lib/icinga2/certs`. Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
-> for more details.
 
 #### Copy Certificates <a id="distributed-monitoring-advanced-hints-certificates-manual-copy"></a>
 
@@ -2790,11 +2713,6 @@ In case you don't need anything in `conf.d`, use the following command line:
 
 #### Node Setup with Satellites/Clients <a id="distributed-monitoring-automation-cli-node-setup-satellite-client"></a>
 
-> **Note**
->
-> The certificate location changed in v2.8 to `/var/lib/icinga2/certs`. Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
-> for more details.
-
 Make sure that the `/var/lib/icinga2/certs` directory exists and is owned by the `icinga`
 user (or the user Icinga 2 is running as).
 
@@ -2898,16 +2816,6 @@ which holds the CA's key pair.
 
 **You can find additional best practices below.**
 
-Add an additional global zone. Please note the `>>` append mode.
-
-    [root@icinga2-client1.localdomain /]# cat <<EOF >>/etc/icinga2/zones.conf
-    object Zone "global-templates" {
-      global = true
-    }
-    EOF
-
-Note: Packages >= 2.8 provide this configuration by default.
-
 If this client node is configured as [remote command endpoint execution](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 you can safely disable the `checker` feature. The `node setup` CLI command already disabled the `notification` feature.
 
@@ -2917,6 +2825,8 @@ Disable "conf.d" inclusion if this is a [top down](06-distributed-monitoring.md#
 configured client.
 
     [root@icinga2-client1.localdomain /]# sed -i 's/include_recursive "conf.d"/\/\/include_recursive "conf.d"/g' /etc/icinga2/icinga2.conf
+
+**Note**: This is the default since v2.9.
 
 **Optional**: Add an ApiUser object configuration for remote troubleshooting.
 
@@ -2937,7 +2847,6 @@ Finally restart Icinga 2.
     [root@icinga2-client1.localdomain /]# systemctl restart icinga2
 
 Your automation tool must then configure master node in the meantime.
-Add the global zone `global-templates` in case it did not exist.
 
     # cat <<EOF >>/etc/icinga2/zones.conf
     object Endpoint "icinga2-client1.localdomain" {
@@ -2949,9 +2858,6 @@ Add the global zone `global-templates` in case it did not exist.
       parent = "master"
     }
 
-    object Zone "global-templates" {
-      global = true
-    }
     EOF
 
 ## Using Multiple Environments <a id="distributed-monitoring-environments"></a>
