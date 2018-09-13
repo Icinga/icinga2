@@ -30,6 +30,7 @@
 #include "base/objectlock.hpp"
 #include "base/array.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/convert.hpp"
 #include <map>
 #include <utility>
 #include <vector>
@@ -253,9 +254,13 @@ Dictionary::Ptr RedisWriter::SerializeVars(const CustomVarObject::Ptr& object)
 			auto it (scalarVars.find(kv.first));
 			if (it != scalarVars.end()) {
 				for (auto& scalarVar : it->second) {
+					String strVal = Convert::ToString(scalarVar.second);
+					if (scalarVar.second.GetType() == ValueEmpty)
+						strVal = "NULL";
+
 					flatVars->Set(SHA1(PackObject(scalarVar.first)), (Dictionary::Ptr)new Dictionary({
 						{"name", scalarVar.first},
-						{"value", scalarVar.second}
+						{"value", strVal}
 					}));
 				}
 			}
