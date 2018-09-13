@@ -183,6 +183,32 @@ While it may sound complicated for client setups, it removes the problem with di
 and configurations for a master and a client. Both of them work the same way, are configured
 in the same way (Zone, Endpoint, ApiListener), and you can troubleshoot and debug them in just one go.
 
+## Versions and Upgrade <a id="distributed-monitoring-versions-upgrade"></a>
+
+It generally is advised to use the newest releases with the same version on all instances.
+Prior to upgrading, make sure to plan a maintenance window.
+
+The Icinga project aims to allow the following compatibility:
+
+```
+master (2.9) >= satellite (2.8) >= clients (2.7)
+```
+
+Older client versions may work, but there's no guarantee. Always keep in mind that
+older versions are out of support and can contain bugs.
+
+In terms of an upgrade, ensure that the master is upgraded first, then
+involved satellites, and last the Icinga 2 clients. If you are on v2.8
+currently, first upgrade the master instance(s) to 2.9, and then proceed
+with the satellites. Things are getting easier with any sort of automation
+tool (Puppet, Ansible, etc.).
+
+Releases and new features may require you to upgrade master/satellite instances at once,
+this is highlighted in the [upgrading docs](16-upgrading-icinga-2.md#upgrading-icinga-2) if needed.
+One example is the CA proxy and on-demand signing feature
+available since v2.8 where all involved instances need this version
+to function properly.
+
 ## Master Setup <a id="distributed-monitoring-setup-master"></a>
 
 This section explains how to install a central single master node using
