@@ -24,6 +24,7 @@ extern "C" {
 
 char *readline(const char *prompt);
 int add_history(const char *line);
+void rl_deprep_terminal();
 
 typedef char *ELFunction(const char *, int);
 

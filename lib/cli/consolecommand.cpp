@@ -532,6 +532,12 @@ void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ConsoleCommand")
 				<< "HTTP query failed: " << ex.what();
+
+#ifdef HAVE_EDITLINE
+			/* Ensures that the terminal state is resetted */
+			rl_deprep_terminal();
+#endif /* HAVE_EDITLINE */
+
 			Application::Exit(EXIT_FAILURE);
 		}
 	}
@@ -554,6 +560,12 @@ void ConsoleCommand::AutocompleteScriptCompletionHandler(boost::mutex& mutex, bo
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ConsoleCommand")
 				<< "HTTP query failed: " << ex.what();
+
+#ifdef HAVE_EDITLINE
+			/* Ensures that the terminal state is resetted */
+			rl_deprep_terminal();
+#endif /* HAVE_EDITLINE */
+
 			Application::Exit(EXIT_FAILURE);
 		}
 	}
