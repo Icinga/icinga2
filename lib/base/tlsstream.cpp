@@ -21,6 +21,8 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
+#include "base/configuration.hpp"
+#include "base/convert.hpp"
 #include <iostream>
 
 #ifndef _WIN32
@@ -315,14 +317,13 @@ void TlsStream::Handshake()
 	m_CurrentAction = TlsActionHandshake;
 	ChangeEvents(POLLOUT);
 
-	boost::system_time const timeout = boost::get_system_time() + boost::posix_time::seconds(TLS_TIMEOUT_SECONDS);
+	boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(long(Configuration::TlsHandshakeTimeout * 1000));
 
 	while (!m_HandshakeOK && !m_ErrorOccurred && !m_Eof && timeout > boost::get_system_time())
 		m_CV.timed_wait(lock, timeout);
 
-	// We should _NOT_ (underline, bold, itallic and wordart) throw an exception for a timeout.
 	if (timeout < boost::get_system_time())
-		BOOST_THROW_EXCEPTION(std::runtime_error("Timeout during handshake."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Timeout was reached (" + Convert::ToString(Configuration::TlsHandshakeTimeout) + ") during TLS handshake."));
 
 	if (m_Eof)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Socket was closed during TLS handshake."));

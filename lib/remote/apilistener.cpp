@@ -89,6 +89,16 @@ String ApiListener::GetDefaultCaPath()
 	return GetCertsDir() + "/ca.crt";
 }
 
+double ApiListener::GetTlsHandshakeTimeout() const
+{
+	return Configuration::TlsHandshakeTimeout;
+}
+
+void ApiListener::SetTlsHandshakeTimeout(double value, bool suppress_events, const Value& cookie)
+{
+	Configuration::TlsHandshakeTimeout = value;
+}
+
 void ApiListener::CopyCertificateFile(const String& oldCertPath, const String& newCertPath)
 {
 	struct stat st1, st2;
@@ -1451,6 +1461,14 @@ void ApiListener::ValidateTlsProtocolmin(const Lazy<String>& lvalue, const Valid
 
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_protocolmin" }, message));
 	}
+}
+
+void ApiListener::ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ApiListener>::ValidateTlsHandshakeTimeout(lvalue, utils);
+
+	if (lvalue() <= 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_handshake_timeout" }, "Value must be greater than 0."));
 }
 
 bool ApiListener::IsHACluster()
