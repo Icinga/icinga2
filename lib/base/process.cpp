@@ -165,7 +165,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 
 #ifdef HAVE_NICE
 		if (adjustPriority)
-			nice(5);
+			(void)nice(5);
 #endif /* HAVE_NICE */
 
 		sigset_t mask;
