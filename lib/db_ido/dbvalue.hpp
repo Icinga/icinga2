@@ -30,7 +30,6 @@ namespace icinga
 enum DbValueType
 {
 	DbValueTimestamp,
-	DbValueTimestampNow,
 	DbValueObjectInsertID
 };
 
@@ -47,12 +46,10 @@ public:
 	DbValue(DbValueType type, Value value);
 
 	static Value FromTimestamp(const Value& ts);
-	static Value FromTimestampNow();
 	static Value FromValue(const Value& value);
 	static Value FromObjectInsertID(const Value& value);
 
 	static bool IsTimestamp(const Value& value);
-	static bool IsTimestampNow(const Value& value);
 	static bool IsObjectInsertID(const Value& value);
 
 	static Value ExtractValue(const Value& value);
