@@ -947,7 +947,7 @@ void IdoPgsqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
 		Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
-		" < TO_TIMESTAMP(" + Convert::ToString(static_cast<long>(max_age)) + ")");
+		" < TO_TIMESTAMP(" + Convert::ToString(static_cast<long>(max_age)) + ") AT TIME ZONE 'UTC'");
 }
 
 void IdoPgsqlConnection::FillIDCache(const DbType::Ptr& type)
