@@ -57,6 +57,10 @@ The corresponding REST API results from `/v1/status/ApiListener` in `json_rpc` h
 from `clients` to `anonymous_clients` to better reflect their purpose. Authenticated clients
 are counted as connected endpoints. A similar change is there for the performance data metrics.
 
+The TLS handshake timeout defaults to 10 seconds since v2.8.2. This can now be configured
+with the configuration attribute `tls_handshake_timeout`. Beware of performance issues
+with setting a too high value.
+
 ### API: schedule-downtime Action <a id="upgrading-to-2-10-api-schedule-downtime-action"></a>
 
 The attribute `child_options` was previously accepting 0,1,2 for specific child downtime settings.
