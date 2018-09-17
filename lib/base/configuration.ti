@@ -146,6 +146,11 @@ abstract class Configuration
 		set;
 	};
 
+	[config, no_storage, virtual] double TlsHandshakeTimeout {
+		get;
+		set;
+	};
+
 	[config, no_storage, virtual] String VarsPath {
 		get;
 		set;

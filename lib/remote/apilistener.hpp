@@ -108,6 +108,9 @@ public:
 	static String GetDefaultKeyPath();
 	static String GetDefaultCaPath();
 
+	double GetTlsHandshakeTimeout() const override;
+	void SetTlsHandshakeTimeout(double value, bool suppress_events, const Value& cookie) override;
+
 protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
@@ -115,6 +118,7 @@ protected:
 	void Stop(bool runtimeDeleted) override;
 
 	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
+	void ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	std::shared_ptr<SSL_CTX> m_SSLContext;

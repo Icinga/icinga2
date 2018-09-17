@@ -49,6 +49,7 @@ String Configuration::RunAsGroup;
 String Configuration::RunAsUser;
 String Configuration::SpoolDir;
 String Configuration::StatePath;
+double Configuration::TlsHandshakeTimeout{10};
 String Configuration::VarsPath;
 String Configuration::ZonesDir;
 
@@ -307,6 +308,16 @@ String Configuration::GetStatePath() const
 void Configuration::SetStatePath(const String& val, bool suppress_events, const Value& cookie)
 {
 	HandleUserWrite("StatePath", &Configuration::StatePath, val, m_ReadOnly);
+}
+
+double Configuration::GetTlsHandshakeTimeout() const
+{
+	return Configuration::TlsHandshakeTimeout;
+}
+
+void Configuration::SetTlsHandshakeTimeout(double val, bool suppress_events, const Value& cookie)
+{
+	HandleUserWrite("TlsHandshakeTimeout", &Configuration::TlsHandshakeTimeout, val, m_ReadOnly);
 }
 
 String Configuration::GetVarsPath() const

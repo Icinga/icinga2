@@ -108,6 +108,9 @@ public:
 	String GetStatePath() const override;
 	void SetStatePath(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
 
+	double GetTlsHandshakeTimeout() const override;
+	void SetTlsHandshakeTimeout(double value, bool suppress_events = false, const Value& cookie = Empty) override;
+
 	String GetVarsPath() const override;
 	void SetVarsPath(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
 
@@ -151,6 +154,7 @@ public:
 	static String RunAsUser;
 	static String SpoolDir;
 	static String StatePath;
+	static double TlsHandshakeTimeout;
 	static String VarsPath;
 	static String ZonesDir;
 
