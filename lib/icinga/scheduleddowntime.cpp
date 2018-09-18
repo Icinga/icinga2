@@ -138,7 +138,7 @@ std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 
 	ObjectLock olock(ranges);
 
-	/* Find the longest lasting (at least until minEnd, if given) segment that's already running */  
+	/* Find the longest lasting (and longer than minEnd, if given) segment that's already running */  
 	for (const Dictionary::Pair& kv : ranges) {
 		Log(LogDebug, "ScheduledDowntime")
 		    << "Evaluating (running?) segment: " << kv.first << ": " << kv.second;
@@ -158,7 +158,7 @@ std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 			Log(LogDebug, "ScheduledDowntime") << "not running.";
 			continue;
 		}
-		if (minEnd && end < minEnd) {
+		if (minEnd && end <= minEnd) {
 			Log(LogDebug, "ScheduledDowntime") << "ending too early.";
 			continue;
 		}
