@@ -31,16 +31,16 @@ Dictionary::Ptr RedisWriter::GetStats()
 	Dictionary::Ptr stats = new Dictionary();
 
 	//TODO: Figure out if more stats can be useful here.
-	Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
+	Namespace::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
 
 	if (!statsFunctions)
 		Dictionary::Ptr();
 
 	ObjectLock olock(statsFunctions);
 
-	for (const Dictionary::Pair& kv : statsFunctions)
+	for (auto& kv : statsFunctions)
 	{
-		Function::Ptr func = kv.second;
+		Function::Ptr func = kv.second->Get();
 
 		if (!func)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status function name."));
