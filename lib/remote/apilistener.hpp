@@ -30,6 +30,7 @@
 #include "base/workqueue.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
+#include "base/threadpool.hpp"
 #include <set>
 
 namespace icinga
@@ -147,6 +148,9 @@ private:
 	void NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
 	void NewClientHandlerInternal(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
 	void ListenerThreadProc(const Socket::Ptr& server);
+
+	static ThreadPool& GetTP();
+	static void EnqueueAsyncCallback(const std::function<void ()>& callback, SchedulerPolicy policy = DefaultScheduler);
 
 	WorkQueue m_RelayQueue;
 	WorkQueue m_SyncQueue{0, 4};
