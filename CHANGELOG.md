@@ -1,5 +1,34 @@
 # Icinga 2.x CHANGELOG
 
+## 2.9.2 (2018-09-26)
+
+### Enhancement
+
+* [#6602](https://github.com/icinga/icinga2/issues/6602) (API, Cluster, PR): Improve TLS handshake exception logging
+* [#6568](https://github.com/icinga/icinga2/issues/6568) (Configuration, PR): Ensure that config object types are committed in dependent load order
+* [#6497](https://github.com/icinga/icinga2/issues/6497) (Configuration, PR): Improve error logging for match/regex/cidr\_match functions and unsupported dictionary usage
+
+### Bug
+
+* [#6596](https://github.com/icinga/icinga2/issues/6596) (Crash, PR): Fix crash on API queries with Fedora 28 hardening and GCC 8
+* [#6581](https://github.com/icinga/icinga2/issues/6581) (Configuration, PR): Shuffle items before config validation
+* [#6569](https://github.com/icinga/icinga2/issues/6569) (DB IDO): Custom Vars not updated after upgrade
+* [#6533](https://github.com/icinga/icinga2/issues/6533) (Crash): Icinga2 crashes after using some api-commands on Fedora 28
+* [#6505](https://github.com/icinga/icinga2/issues/6505) (Cluster, PR): Fix clusterzonecheck if not connected
+* [#6498](https://github.com/icinga/icinga2/issues/6498) (Configuration, PR): Fix regression with MatchAny false conditions on match/regex/cidr\_match
+* [#6496](https://github.com/icinga/icinga2/issues/6496) (Configuration): error with match and type matchany
+
+### Documentation
+
+* [#6590](https://github.com/icinga/icinga2/issues/6590) (DB IDO, Documentation, PR): Update workaround for custom vars
+* [#6572](https://github.com/icinga/icinga2/issues/6572) (Documentation, PR): Add note about workaround for broken custom vars
+
+### Support
+
+* [#6540](https://github.com/icinga/icinga2/issues/6540) (Configuration): Evaluate a fixed config compiler commit order
+* [#6486](https://github.com/icinga/icinga2/issues/6486) (Configuration): Configuration validation w/ ScheduledDowntimes performance decreased in 2.9
+* [#6442](https://github.com/icinga/icinga2/issues/6442) (Configuration): Error while evaluating "assign where match" expression: std::bad\_cast
+
 ## 2.9.1 (2018-07-24)
 
 ### Bug
