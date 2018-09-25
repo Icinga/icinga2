@@ -265,7 +265,7 @@ void ApiListener::Start(bool runtimeCreated)
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&ApiListener::ApiReconnectTimerHandler, this));
-	m_ReconnectTimer->SetInterval(60);
+	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
