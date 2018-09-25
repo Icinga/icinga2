@@ -32,9 +32,11 @@
 #include "base/stdiostream.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/application.hpp"
+#include "base/configuration.hpp"
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include "base/exception.hpp"
+#include <boost/thread/once.hpp>
 #include <fstream>
 
 using namespace icinga;
@@ -43,6 +45,13 @@ REGISTER_TYPE(ApiListener);
 
 boost::signals2::signal<void(bool)> ApiListener::OnMasterChanged;
 ApiListener::Ptr ApiListener::m_Instance;
+static boost::once_flag l_ApiListenerOnceFlag = BOOST_ONCE_INIT;
+static std::vector<WorkQueue *> l_ApiListenerReconnectWorkQueues;
+static size_t l_ApiListenerReconnectWorkQueueCount;
+static size_t l_ApiListenerReconnectCurrentWorkQueue;
+static std::vector<WorkQueue *> l_ApiListenerIncomingConnectWorkQueues;
+static size_t l_ApiListenerIncomingConnectWorkQueueCount;
+static size_t l_ApiListenerIncomingConnectCurrentWorkQueue;
 
 REGISTER_STATSFUNCTION(ApiListener, &ApiListener::StatsFunc);
 
@@ -50,8 +59,33 @@ REGISTER_APIFUNCTION(Hello, icinga, &ApiListener::HelloAPIHandler);
 
 ApiListener::ApiListener()
 {
+	boost::call_once(l_ApiListenerOnceFlag, &ApiListener::StaticInitialize);
+
 	m_RelayQueue.SetName("ApiListener, RelayQueue");
 	m_SyncQueue.SetName("ApiListener, SyncQueue");
+}
+
+void ApiListener::StaticInitialize()
+{
+	int workerThreadCount = Configuration::Concurrency;
+
+	l_ApiListenerReconnectWorkQueueCount = workerThreadCount;
+
+	for (size_t i = 0; i < l_ApiListenerReconnectWorkQueueCount; i++) {
+		l_ApiListenerReconnectWorkQueues.push_back(new WorkQueue(0, 4));
+		l_ApiListenerReconnectWorkQueues[i]->SetName("ApiListener, ReconnectQueue #" + Convert::ToString(i));
+	}
+
+	l_ApiListenerReconnectCurrentWorkQueue = 0;
+
+	l_ApiListenerIncomingConnectWorkQueueCount = workerThreadCount;
+
+	for (size_t i = 0; i < l_ApiListenerIncomingConnectWorkQueueCount; i++) {
+		l_ApiListenerIncomingConnectWorkQueues.push_back(new WorkQueue(0, 4));
+		l_ApiListenerIncomingConnectWorkQueues[i]->SetName("ApiListener, IncomingConnectQueue #" + Convert::ToString(i));
+	}
+
+	l_ApiListenerIncomingConnectCurrentWorkQueue = 0;
 }
 
 String ApiListener::GetApiDir()
@@ -249,7 +283,7 @@ void ApiListener::Start(bool runtimeCreated)
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&ApiListener::ApiReconnectTimerHandler, this));
-	m_ReconnectTimer->SetInterval(60);
+	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
@@ -364,8 +398,16 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 	for (;;) {
 		try {
 			Socket::Ptr client = server->Accept();
-			std::thread thread(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer));
-			thread.detach();
+
+			/* Use a queue with limited resources. */
+			l_ApiListenerIncomingConnectWorkQueues[l_ApiListenerIncomingConnectCurrentWorkQueue]->Enqueue(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer));
+
+			/* Move to next workqueue */
+			if (l_ApiListenerIncomingConnectCurrentWorkQueue < l_ApiListenerIncomingConnectWorkQueueCount - 1) {
+				l_ApiListenerIncomingConnectCurrentWorkQueue++;
+			} else {
+				l_ApiListenerIncomingConnectCurrentWorkQueue = 0;
+			}
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
 		}
@@ -399,7 +441,6 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	TcpSocket::Ptr client = new TcpSocket();
 
 	try {
-		endpoint->SetConnecting(true);
 		client->Connect(host, port);
 		NewClientHandler(client, endpoint->GetName(), RoleClient);
 		endpoint->SetConnecting(false);
@@ -784,8 +825,18 @@ void ApiListener::ApiReconnectTimerHandler()
 				continue;
 			}
 
-			std::thread thread(std::bind(&ApiListener::AddConnection, this, endpoint));
-			thread.detach();
+			/* Set connecting state to prevent duplicated queue inserts later. */
+			endpoint->SetConnecting(true);
+
+			/* Use a queue with limited resources. */
+			l_ApiListenerReconnectWorkQueues[l_ApiListenerReconnectCurrentWorkQueue]->Enqueue(std::bind(&ApiListener::AddConnection, this, endpoint));
+
+			/* Move to next workqueue */
+			if (l_ApiListenerReconnectCurrentWorkQueue < l_ApiListenerReconnectWorkQueueCount - 1) {
+				l_ApiListenerReconnectCurrentWorkQueue++;
+			} else {
+				l_ApiListenerReconnectCurrentWorkQueue = 0;
+			}
 		}
 	}
 
