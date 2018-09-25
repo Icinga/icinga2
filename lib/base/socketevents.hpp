@@ -53,6 +53,8 @@ public:
 	void *GetEnginePrivate() const;
 	void SetEnginePrivate(void *priv);
 
+	static void InitializeEngine();
+
 protected:
 	SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject);
 
@@ -63,8 +65,6 @@ private:
 	void *m_EnginePrivate;
 
 	static int m_NextID;
-
-	static void InitializeEngine();
 
 	void WakeUpThread(bool wait = false);
 
