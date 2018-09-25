@@ -26,7 +26,7 @@
 Specify the release version.
 
 ```
-VERSION=2.9.0
+VERSION=2.9.2
 ```
 
 Add your signing key to your Git configuration file, if not already there.
@@ -60,10 +60,11 @@ git log --use-mailmap | grep '^Author:' | cut -f2- -d' ' | sort | uniq > AUTHORS
 
 ## Version <a id="version"></a>
 
-Update the version in the version file:
+Update the version:
 
 ```
 sed -i "s/Version: .*/Version: $VERSION/g" VERSION
+sed -i "s/VERSION=.*/VERSION=$VERSION/g" RELEASE.md
 ```
 
 ## Changelog <a id="changelog"></a>
