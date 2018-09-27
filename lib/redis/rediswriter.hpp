@@ -69,7 +69,7 @@ private:
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool useTransaction, bool runtimeUpdate = false);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStatusUpdate(const ConfigObject::Ptr& object, bool useTransaction);
-	void UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType);
+	void UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
 
 	/* Stats */
 	Dictionary::Ptr GetStats();

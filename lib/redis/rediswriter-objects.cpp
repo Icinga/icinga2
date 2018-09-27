@@ -127,9 +127,6 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	if (useTransaction)
 		ExecuteQuery({ "MULTI" });
 
-	/* Send all object attributes to Redis, no extra checksums involved here. */
-	UpdateObjectAttrs(m_PrefixConfigObject, object, FAConfig);
-
 	/* Calculate object specific checksums and store them in a different namespace. */
 	Type::Ptr type = object->GetReflectionType();
 
@@ -408,10 +405,31 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 					}
 
 					checkSums->Set("exclude_checksums", excludeChecksums);
+				} else {
+				    icinga::Comment::Ptr comment = dynamic_pointer_cast<Comment>(object);
+				    if (comment) {
+                        propertiesBlacklist.emplace("name");
+                        propertiesBlacklist.emplace("host_name");
+
+						Host::Ptr host;
+                        Service::Ptr service;
+                        tie(host, service) = GetHostService(comment->GetCheckable());
+                        if (service) {
+							propertiesBlacklist.emplace("service_name");
+							checkSums->Set("service_checksum", GetObjectIdentifier(service));
+                            typeName = "servicecomment";
+                        } else {
+                            checkSums->Set("host_checksum", GetObjectIdentifier(host));
+                            typeName = "hostcomment";
+                        }
+				    }
 				}
 			}
 		}
 	}
+
+	/* Send all object attributes to Redis, no extra checksums involved here. */
+	UpdateObjectAttrs(m_PrefixConfigObject, object, FAConfig, typeName);
 
 	/* Custom var checksums. */
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
@@ -483,7 +501,8 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, bool useTran
 	if (useTransaction)
 		ExecuteQuery({ "MULTI" });
 
-	UpdateObjectAttrs(m_PrefixStatusObject, object, FAState);
+	//TODO: Manage type names
+	UpdateObjectAttrs(m_PrefixStatusObject, object, FAState, "");
 
 	if (useTransaction)
 		ExecuteQuery({ "EXEC" });
@@ -566,7 +585,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, bool useTran
 //	}
 }
 
-void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType)
+void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride)
 {
 	Type::Ptr type = object->GetReflectionType();
 	Dictionary::Ptr attrs (new Dictionary);
@@ -591,7 +610,11 @@ void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject:
 	}
 
 	/* Use the name checksum as unique key. */
-	ExecuteQuery({"HSET", keyPrefix + type->GetName().ToLower(), GetObjectIdentifier(object), JsonEncode(attrs)});
+	String typeName = type->GetName().ToLower();
+	if (!typeNameOverride.IsEmpty())
+		typeName = typeNameOverride.ToLower();
+
+	ExecuteQuery({"HSET", keyPrefix + typeName, GetObjectIdentifier(object), JsonEncode(attrs)});
 }
 
 void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
