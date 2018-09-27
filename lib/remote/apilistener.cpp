@@ -1086,6 +1086,13 @@ void ApiListener::RotateLogFile()
 
 	String oldpath = GetApiDir() + "log/current";
 	String newpath = GetApiDir() + "log/" + Convert::ToString(static_cast<int>(ts)+1);
+
+
+#ifdef _WIN32
+	_unlink(newpath.CStr());
+#endif /* _WIN32 */
+
+
 	(void) rename(oldpath.CStr(), newpath.CStr());
 }
 
