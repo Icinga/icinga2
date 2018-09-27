@@ -364,6 +364,9 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 
 	/* validation went fine, copy stage and reload */
 	if (pr.ExitStatus == 0) {
+		Log(LogInformation, "ApiListener")
+			<< "Config validation for stage '" << GetApiZonesStageDir() << "' was OK, triggering reload.";
+
 		for (const String& path : relativePaths) {
 			/* TODO: Better error handling with existing files. */
 			Log(LogCritical, "ApiListener")
@@ -381,7 +384,8 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 			Application::RequestRestart();
 	} else {
 		Log(LogCritical, "ApiListener")
-			<< "Config validation failed for staged cluster config sync. Stage not put in production, aborting.";
+			<< "Config validation failed for staged cluster config sync. Aborting. Logs: '"
+			<< GetApiZonesStageDir() + "/startup.log'";
 	}
 }
 

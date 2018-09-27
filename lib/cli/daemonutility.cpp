@@ -126,12 +126,15 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	 * unfortunately moving it there is somewhat non-trivial. */
 	success = true;
 
-	String zonesEtcDir = Configuration::ZonesDir;
-	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
-		Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", std::ref(success)), GlobDirectory);
+	/* Only load zone directory if we're not in staging validation. */
+	if (!systemNS->Contains("ZonesStageVarDir")) {
+		String zonesEtcDir = Configuration::ZonesDir;
+		if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
+			Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", std::ref(success)), GlobDirectory);
 
-	if (!success)
-		return false;
+		if (!success)
+			return false;
+	}
 
 	/* Load package config files - they may contain additional zones which
 	 * are authoritative on this node and are checked in HasZoneConfigAuthority(). */
@@ -148,6 +151,9 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	/* Cluster config sync stage validation needs this. */
 	if (systemNS->Contains("ZonesStageVarDir")) {
 		zonesVarDir = systemNS->Get("ZonesStageVarDir");
+
+		Log(LogDebug, "DaemonUtility")
+			<< "Overriding zones var directory with '" << zonesVarDir << "' for cluster config sync staging.";
 	}
 
 	if (Utility::PathExists(zonesVarDir))
