@@ -100,6 +100,10 @@ static void IncludePackage(const String& packagePath, bool& success)
 bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs, const String& objectsFile)
 {
 	bool success;
+
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+	VERIFY(systemNS);
+
 	if (!objectsFile.IsEmpty())
 		ConfigCompilerContext::GetInstance()->OpenObjectsFile(objectsFile);
 
@@ -138,16 +142,19 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (!success)
 		return false;
 
-	/* Load cluster synchronized configuration files */
+	/* Load cluster synchronized configuration files. This can be disabled for staged sync validations. */
+	bool ignoreZonesVarDir = false;
+	if (systemNS->Contains("IgnoreZonesVarDir")) {
+		ignoreZonesVarDir = Convert::ToBool(systemNS->Get("IgnoreZonesVarDir"));
+	}
+
 	String zonesVarDir = Configuration::DataDir + "/api/zones";
-	if (Utility::PathExists(zonesVarDir))
+
+	if (!ignoreZonesVarDir && Utility::PathExists(zonesVarDir))
 		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", std::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
-
-	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
-	VERIFY(systemNS);
 
 	/* This is initialized inside the IcingaApplication class. */
 	Value vAppType;
