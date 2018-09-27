@@ -301,8 +301,8 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	for (const Dictionary::Pair& kv : updateV1) {
 
 		/* Check for the configured zones. */
-		Zone::Ptr zone = Zone::GetByName(kv.first);
-		String zoneName = zone->GetName();
+		String zoneName = kv.first;
+		Zone::Ptr zone = Zone::GetByName(zoneName);
 
 		if (!zone) {
 			Log(LogWarning, "ApiListener")
@@ -311,7 +311,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		}
 
 		/* Whether we already have configuration in zones.d. */
-		if (ConfigCompiler::HasZoneConfigAuthority(kv.first)) {
+		if (ConfigCompiler::HasZoneConfigAuthority(zoneName)) {
 			Log(LogWarning, "ApiListener")
 				<< "Ignoring config update for zone '" << zoneName << "' because we have an authoritative version of the zone's config.";
 			continue;
