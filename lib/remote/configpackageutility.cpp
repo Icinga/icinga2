@@ -220,9 +220,15 @@ void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, cons
 	});
 
 	// copy all arguments of parent process
-	for (int i=1; i < Application::GetArgC(); i++) {
-		args->Add(Application::GetArgV()[i]);
+	for (int i = 1; i < Application::GetArgC(); i++) {
+		String argV = Application::GetArgV()[i];
+
+		if (argV == "-d" || argV == "--daemonize")
+			continue;
+
+		args->Add(argV);
 	}
+
 	// add arguments for validation
 	args->Add("--validate");
 	args->Add("--define");
