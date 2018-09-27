@@ -1022,6 +1022,10 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	if (write(l_EventFDs[tid][1], "T", 1) < 0 && errno != EINTR && errno != EAGAIN)
 		Log(LogCritical, "base", "Write to event FD failed.");
 #endif /* _WIN32 */
+
+#ifndef _WIN32
+	(void)close(outfds[0]);
+#endif /* _WIN32 */
 }
 
 bool Process::DoEvents()
