@@ -59,6 +59,16 @@ String ApiListener::GetApiDir()
 	return Configuration::DataDir + "/api/";
 }
 
+String ApiListener::GetApiZonesDir()
+{
+	return GetApiDir() + "zones/";
+}
+
+String ApiListener::GetApiZonesStageDir()
+{
+	return GetApiDir() + "zones-stage/";
+}
+
 String ApiListener::GetCertsDir()
 {
 	return Configuration::DataDir + "/certs/";

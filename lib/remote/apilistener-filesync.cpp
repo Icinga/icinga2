@@ -62,7 +62,8 @@ ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
 	return config;
 }
 
-bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, const ConfigDirInformation& newConfigInfo, const String& configDir, bool authoritative)
+bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, const ConfigDirInformation& newConfigInfo,
+	const String& configDir, const String& zoneName, std::vector<String>& relativePaths, bool authoritative)
 {
 	bool configChange = false;
 
@@ -105,6 +106,9 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 				if (!Utility::Match("*/.timestamp", kv.first))
 					configChange = true;
 
+				/* Store the relative config file path for later. */
+				relativePaths.push_back(zoneName + "/" + kv.first);
+
 				String path = configDir + "/" + kv.first;
 				Log(LogInformation, "ApiListener")
 					<< "Updating configuration file: " << path;
@@ -123,6 +127,7 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 		}
 	}
 
+	/* Update with staging information TODO - use `authoritative` as flag. */
 	Log(LogInformation, "ApiListener")
 		<< "Applying configuration file update for path '" << configDir << "' (" << numBytes << " Bytes). Received timestamp '"
 		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
@@ -197,7 +202,8 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 
 	ConfigDirInformation oldConfigInfo = LoadConfigDir(oldDir);
 
-	UpdateConfigDir(oldConfigInfo, newConfigInfo, oldDir, true);
+	std::vector<String> relativePaths;
+	UpdateConfigDir(oldConfigInfo, newConfigInfo, oldDir, zone->GetName(), relativePaths, true);
 }
 
 void ApiListener::SyncZoneDirs() const
@@ -289,26 +295,34 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	Dictionary::Ptr updateV2 = params->Get("update_v2");
 
 	bool configChange = false;
+	std::vector<String> relativePaths;
 
 	ObjectLock olock(updateV1);
 	for (const Dictionary::Pair& kv : updateV1) {
+
+		/* Check for the configured zones. */
 		Zone::Ptr zone = Zone::GetByName(kv.first);
+		String zoneName = zone->GetName();
 
 		if (!zone) {
 			Log(LogWarning, "ApiListener")
-				<< "Ignoring config update for unknown zone '" << kv.first << "'.";
+				<< "Ignoring config update for unknown zone '" << zoneName << "'.";
 			continue;
 		}
 
+		/* Whether we already have configuration in zones.d. */
 		if (ConfigCompiler::HasZoneConfigAuthority(kv.first)) {
 			Log(LogWarning, "ApiListener")
-				<< "Ignoring config update for zone '" << kv.first << "' because we have an authoritative version of the zone's config.";
+				<< "Ignoring config update for zone '" << zoneName << "' because we have an authoritative version of the zone's config.";
 			continue;
 		}
 
-		String oldDir = Configuration::DataDir + "/api/zones/" + zone->GetName();
+		/* Put the received configuration into our stage directory. */
+		String currentConfigDir = GetApiZonesDir() + zoneName;
+		String stageConfigDir = GetApiZonesStageDir() + zoneName;
 
-		Utility::MkDirP(oldDir, 0700);
+		Utility::MkDirP(currentConfigDir, 0700);
+		Utility::MkDirP(stageConfigDir, 0700);
 
 		ConfigDirInformation newConfigInfo;
 		newConfigInfo.UpdateV1 = kv.second;
@@ -317,16 +331,70 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 			newConfigInfo.UpdateV2 = updateV2->Get(kv.first);
 
 		Dictionary::Ptr newConfig = kv.second;
-		ConfigDirInformation oldConfigInfo = LoadConfigDir(oldDir);
+		ConfigDirInformation currentConfigInfo = LoadConfigDir(currentConfigDir);
 
-		if (UpdateConfigDir(oldConfigInfo, newConfigInfo, oldDir, false))
+		/* Move the received configuration into our stage directory first. */
+		if (UpdateConfigDir(currentConfigInfo, newConfigInfo, stageConfigDir, zoneName, relativePaths, false))
 			configChange = true;
 	}
 
 	if (configChange) {
-		Log(LogInformation, "ApiListener", "Restarting after configuration change.");
-		Application::RequestRestart();
+		/* Spawn a validation process. On success, move the staged configuration
+		 * into production and restart.
+		 */
+		AsyncTryActivateZonesStage(GetApiZonesStageDir(), GetApiZonesDir(), relativePaths, true);
 	}
 
 	return Empty;
+}
+
+void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
+	const String& stageConfigDir, const String& currentConfigDir,
+	const std::vector<String>& relativePaths, bool reload)
+{
+	String logFile = GetApiZonesStageDir() + "/startup.log";
+	std::ofstream fpLog(logFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
+	fpLog << pr.Output;
+	fpLog.close();
+
+	String statusFile = GetApiZonesStageDir() + "/status";
+	std::ofstream fpStatus(statusFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
+	fpStatus << pr.ExitStatus;
+	fpStatus.close();
+
+	/* validation went fine, copy stage and reload */
+	if (pr.ExitStatus == 0) {
+		for (const String& path : relativePaths) {
+			/* TODO: Better error handling with existing files. */
+			Log(LogCritical, "ApiListener")
+				<< "Copying file '" << path << "' from config sync staging to production directory.";
+
+			Utility::CopyFile(GetApiZonesStageDir() + path, GetApiZonesDir() + path);
+		}
+
+		if (reload)
+			Application::RequestRestart();
+	} else {
+		Log(LogCritical, "ApiListener")
+			<< "Config validation failed for staged cluster config sync. Stage not put in production, aborting.";
+	}
+}
+
+void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const String& currentConfigDir,
+	const std::vector<String>& relativePaths, bool reload)
+{
+	VERIFY(Application::GetArgC() >= 1);
+
+	// prepare arguments
+	Array::Ptr args = new Array({
+		Application::GetExePath(Application::GetArgV()[0]),
+		"daemon",
+		"--validate",
+		"--define",
+		"ZonesDir=" + GetApiZonesStageDir()
+	});
+
+	Process::Ptr process = new Process(Process::PrepareCommand(args));
+	process->SetTimeout(300);
+	process->Run(std::bind(&TryActivateZonesStageCallback, _1, stageConfigDir, currentConfigDir, relativePaths, reload));
 }
