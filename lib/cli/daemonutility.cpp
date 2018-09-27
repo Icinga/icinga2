@@ -152,9 +152,10 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (systemNS->Contains("ZonesStageVarDir")) {
 		zonesVarDir = systemNS->Get("ZonesStageVarDir");
 
-		Log(LogDebug, "DaemonUtility")
+		Log(LogInformation, "DaemonUtility")
 			<< "Overriding zones var directory with '" << zonesVarDir << "' for cluster config sync staging.";
 	}
+
 
 	if (Utility::PathExists(zonesVarDir))
 		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", std::ref(success)), GlobDirectory);

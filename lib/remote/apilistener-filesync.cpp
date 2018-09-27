@@ -410,7 +410,7 @@ void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const
 
 	args->Add("--validate");
 	args->Add("--define");
-	args->Add("System.ZonesStageVarDir='" + GetApiZonesStageDir() + "'");
+	args->Add("System.ZonesStageVarDir=" + GetApiZonesStageDir());
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(300);
