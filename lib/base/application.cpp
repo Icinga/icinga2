@@ -1189,7 +1189,7 @@ int Application::GetDefaultRLimitStack()
  */
 void Application::SetMaxConcurrentChecks(int maxChecks)
 {
-	ScriptGlobal::Set("MaxConcurrentChecks", maxChecks);
+	ScriptGlobal::Set("MaxConcurrentChecks", maxChecks, true);
 }
 
 /**
