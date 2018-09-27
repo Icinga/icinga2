@@ -394,14 +394,23 @@ void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const
 {
 	VERIFY(Application::GetArgC() >= 1);
 
-	// prepare arguments
+	/* Inherit parent process args. */
 	Array::Ptr args = new Array({
 		Application::GetExePath(Application::GetArgV()[0]),
-		"daemon",
-		"--validate",
-		"--define",
-		"System.ZonesStageVarDir='" + GetApiZonesStageDir() + "'" //Path is written onto the shell
 	});
+
+	for (int i = 1; i < Application::GetArgC(); i++) {
+		String argV = Application::GetArgV()[i];
+
+		if (argV == "-d" || argV == "--daemonize")
+			continue;
+
+		args->Add(argV);
+	}
+
+	args->Add("--validate");
+	args->Add("--define");
+	args->Add("System.ZonesStageVarDir='" + GetApiZonesStageDir() + "'");
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(300);
