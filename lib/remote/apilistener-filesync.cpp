@@ -369,7 +369,12 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 			Log(LogCritical, "ApiListener")
 				<< "Copying file '" << path << "' from config sync staging to production directory.";
 
-			Utility::CopyFile(GetApiZonesStageDir() + path, GetApiZonesDir() + path);
+			String stagePath = GetApiZonesStageDir() + path;
+			String currentPath = GetApiZonesDir() + path;
+
+			Utility::MkDirP(Utility::DirName(currentPath), 0755);
+
+			Utility::CopyFile(stagePath, currentPath);
 		}
 
 		if (reload)
