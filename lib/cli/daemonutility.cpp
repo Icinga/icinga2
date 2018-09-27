@@ -143,14 +143,14 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 		return false;
 
 	/* Load cluster synchronized configuration files. This can be disabled for staged sync validations. */
-	bool ignoreZonesVarDir = false;
-	if (systemNS->Contains("IgnoreZonesVarDir")) {
-		ignoreZonesVarDir = Convert::ToBool(systemNS->Get("IgnoreZonesVarDir"));
-	}
-
 	String zonesVarDir = Configuration::DataDir + "/api/zones";
 
-	if (!ignoreZonesVarDir && Utility::PathExists(zonesVarDir))
+	/* Cluster config sync stage validation needs this. */
+	if (systemNS->Contains("ZonesStageVarDir")) {
+		zonesVarDir = systemNS->Get("ZonesStageVarDir");
+	}
+
+	if (Utility::PathExists(zonesVarDir))
 		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", std::ref(success)), GlobDirectory);
 
 	if (!success)
