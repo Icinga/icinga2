@@ -183,9 +183,9 @@ private:
 
 	static void TryActivateZonesStageCallback(const ProcessResult& pr,
 		const String& stageConfigDir, const String& currentConfigDir,
-		const std::vector<String>& relativePaths, bool reload);
+		const std::vector<String>& relativePaths);
 	static void AsyncTryActivateZonesStage(const String& stageConfigDir, const String& currentConfigDir,
-		const std::vector<String>& relativePaths, bool reload);
+		const std::vector<String>& relativePaths);
 
 	void UpdateLastFailedZonesStageValidation(const String& log);
 

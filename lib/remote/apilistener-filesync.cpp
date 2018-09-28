@@ -342,7 +342,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		/* Spawn a validation process. On success, move the staged configuration
 		 * into production and restart.
 		 */
-		AsyncTryActivateZonesStage(GetApiZonesStageDir(), GetApiZonesDir(), relativePaths, true);
+		AsyncTryActivateZonesStage(GetApiZonesStageDir(), GetApiZonesDir(), relativePaths);
 	}
 
 	return Empty;
@@ -350,7 +350,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 	const String& stageConfigDir, const String& currentConfigDir,
-	const std::vector<String>& relativePaths, bool reload)
+	const std::vector<String>& relativePaths)
 {
 	String logFile = GetApiZonesStageDir() + "/startup.log";
 	std::ofstream fpLog(logFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
@@ -365,12 +365,11 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 	/* validation went fine, copy stage and reload */
 	if (pr.ExitStatus == 0) {
 		Log(LogInformation, "ApiListener")
-			<< "Config validation for stage '" << GetApiZonesStageDir() << "' was OK, triggering reload.";
+			<< "Config validation for stage '" << GetApiZonesStageDir() << "' was OK, copying into '" << GetApiZonesDir() << "' and triggering reload.";
 
 		for (const String& path : relativePaths) {
-			/* TODO: Better error handling with existing files. */
-			Log(LogCritical, "ApiListener")
-				<< "Copying file '" << path << "' from config sync staging to production directory.";
+			Log(LogNotice, "ApiListener")
+				<< "Copying file '" << path << "' from config sync staging to production zones directory.";
 
 			String stagePath = GetApiZonesStageDir() + path;
 			String currentPath = GetApiZonesDir() + path;
@@ -380,12 +379,11 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 			Utility::CopyFile(stagePath, currentPath);
 		}
 
-		if (reload)
-			Application::RequestRestart();
+		Application::RequestRestart();
 	} else {
 		Log(LogCritical, "ApiListener")
-			<< "Config validation failed for staged cluster config sync. Aborting. Logs: '"
-			<< logFile << "'";
+			<< "Config validation failed for staged cluster config sync in '" << GetApiZonesStageDir()
+			<< "'. Aborting. Logs: '" << logFile << "'";
 
 		ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -395,7 +393,7 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 }
 
 void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const String& currentConfigDir,
-	const std::vector<String>& relativePaths, bool reload)
+	const std::vector<String>& relativePaths)
 {
 	VERIFY(Application::GetArgC() >= 1);
 
@@ -419,7 +417,7 @@ void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(300);
-	process->Run(std::bind(&TryActivateZonesStageCallback, _1, stageConfigDir, currentConfigDir, relativePaths, reload));
+	process->Run(std::bind(&TryActivateZonesStageCallback, _1, stageConfigDir, currentConfigDir, relativePaths));
 }
 
 void ApiListener::UpdateLastFailedZonesStageValidation(const String& log)

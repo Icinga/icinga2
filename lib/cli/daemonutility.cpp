@@ -145,14 +145,14 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (!success)
 		return false;
 
-	/* Load cluster synchronized configuration files. This can be disabled for staged sync validations. */
+	/* Load cluster synchronized configuration files. This can be overridden for staged sync validations. */
 	String zonesVarDir = Configuration::DataDir + "/api/zones";
 
 	/* Cluster config sync stage validation needs this. */
 	if (systemNS->Contains("ZonesStageVarDir")) {
 		zonesVarDir = systemNS->Get("ZonesStageVarDir");
 
-		Log(LogInformation, "DaemonUtility")
+		Log(LogNotice, "DaemonUtility")
 			<< "Overriding zones var directory with '" << zonesVarDir << "' for cluster config sync staging.";
 	}
 
