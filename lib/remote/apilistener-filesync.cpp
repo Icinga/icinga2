@@ -167,11 +167,16 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 
 void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 {
+	if (!zone)
+		return;
+
 	ConfigDirInformation newConfigInfo;
 	newConfigInfo.UpdateV1 = new Dictionary();
 	newConfigInfo.UpdateV2 = new Dictionary();
 
-	for (const ZoneFragment& zf : ConfigCompiler::GetZoneDirs(zone->GetName())) {
+	String zoneName = zone->GetName();
+
+	for (const ZoneFragment& zf : ConfigCompiler::GetZoneDirs(zoneName)) {
 		ConfigDirInformation newConfigPart = LoadConfigDir(zf.Path);
 
 		{
@@ -194,17 +199,19 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	if (sumUpdates == 0)
 		return;
 
-	String oldDir = Configuration::DataDir + "/api/zones/" + zone->GetName();
+	String currentDir = Configuration::DataDir + "/api/zones/" + zoneName;
 
 	Log(LogInformation, "ApiListener")
-		<< "Copying " << sumUpdates << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
+		<< "Copying " << sumUpdates << " zone configuration files for zone '" << zoneName << "' to '" << currentDir << "'.";
 
-	Utility::MkDirP(oldDir, 0700);
+	ConfigDirInformation oldConfigInfo = LoadConfigDir(currentDir);
 
-	ConfigDirInformation oldConfigInfo = LoadConfigDir(oldDir);
+	/* Purge files to allow deletion via zones.d. */
+	Utility::RemoveDirRecursive(currentDir);
+	Utility::MkDirP(currentDir, 0700);
 
 	std::vector<String> relativePaths;
-	UpdateConfigDir(oldConfigInfo, newConfigInfo, oldDir, zone->GetName(), relativePaths, true);
+	UpdateConfigDir(oldConfigInfo, newConfigInfo, currentDir, zoneName, relativePaths, true);
 }
 
 void ApiListener::SyncZoneDirs() const
