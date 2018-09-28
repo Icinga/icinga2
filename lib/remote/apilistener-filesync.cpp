@@ -310,7 +310,10 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	 * runtime production config and newly received configuration.
 	 */
 	String apiZonesStageDir = GetApiZonesStageDir();
-	Utility::RemoveDirRecursive(apiZonesStageDir);
+
+	if (Utility::PathExists(apiZonesStageDir))
+		Utility::RemoveDirRecursive(apiZonesStageDir);
+
 	Utility::MkDirP(apiZonesStageDir, 0700);
 
 	ObjectLock olock(updateV1);
@@ -388,7 +391,9 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 		String apiZonesDir = GetApiZonesDir();
 
 		/* Purge production before copying stage. */
-		Utility::RemoveDirRecursive(apiZonesDir);
+		if (Utility::PathExists(apiZonesDir))
+			Utility::RemoveDirRecursive(apiZonesDir);
+
 		Utility::MkDirP(apiZonesDir, 0700);
 
 		/* Copy all synced configuration files from stage to production. */
