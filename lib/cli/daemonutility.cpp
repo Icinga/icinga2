@@ -31,6 +31,15 @@ static void IncludeZoneDirRecursive(const String& path, const String& package, b
 {
 	String zoneName = Utility::BaseName(path);
 
+	/* We don't have an activated zone object yet. We may forcefully guess from configitems
+	 * to not include this specific synced zones directory.
+	 */
+	if(!ConfigItem::GetByTypeAndName(Type::GetByName("Zone"), zoneName)) {
+		Log(LogWarning, "config")
+			<< "Ignoring directory '" << path << "' for unknown zone '" << zoneName << "'.";
+		return;
+	}
+
 	/* register this zone path for cluster config sync */
 	ConfigCompiler::RegisterZoneDir("_etc", path, zoneName);
 
@@ -47,6 +56,15 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 	 * We do not need to copy it for cluster config sync. */
 
 	String zoneName = Utility::BaseName(zonePath);
+
+	/* We don't have an activated zone object yet. We may forcefully guess from configitems
+	 * to not include this specific synced zones directory.
+	 */
+	if(!ConfigItem::GetByTypeAndName(Type::GetByName("Zone"), zoneName)) {
+		Log(LogWarning, "config")
+			<< "Ignoring directory '" << zonePath << "' for unknown zone '" << zoneName << "'.";
+		return;
+	}
 
 	/* Check whether this node already has an authoritative config version
 	 * from zones.d in etc or api package directory, or a local marker file)
