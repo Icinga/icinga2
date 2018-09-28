@@ -41,7 +41,7 @@ class PluginUtility
 public:
 	static void ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
 		const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
-		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
+		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int timeout,
 		const std::function<void(const Value& commandLine, const ProcessResult&)>& callback = std::function<void(const Value& commandLine, const ProcessResult&)>());
 
 	static ServiceState ExitStatusToState(int exitStatus);

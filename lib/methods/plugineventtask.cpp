@@ -51,8 +51,10 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
 	resolvers.emplace_back("command", commandObj);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
+	int timeout = commandObj->GetTimeout();
+
 	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
-		resolvers, resolvedMacros, useResolvedMacros,
+		resolvers, resolvedMacros, useResolvedMacros, timeout,
 		std::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2));
 }
 

@@ -32,7 +32,7 @@ using namespace icinga;
 
 void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
 	const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int timeout,
 	const std::function<void(const Value& commandLine, const ProcessResult&)>& callback)
 {
 	Value raw_command = commandObj->GetCommandLine();
@@ -86,11 +86,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 	Process::Ptr process = new Process(Process::PrepareCommand(command), envMacros);
 
-	if (checkable->GetCheckTimeout().IsEmpty())
-		process->SetTimeout(commandObj->GetTimeout());
-	else
-		process->SetTimeout(checkable->GetCheckTimeout());
-
+	process->SetTimeout(timeout);
 	process->SetAdjustPriority(true);
 
 	process->Run(std::bind(callback, command, _1));

@@ -68,8 +68,10 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	resolvers.emplace_back("command", commandObj);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
+	int timeout = commandObj->GetTimeout();
+
 	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
-		resolvedMacros, useResolvedMacros,
+		resolvedMacros, useResolvedMacros, timeout,
 		std::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2));
 }
 
