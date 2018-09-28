@@ -187,6 +187,8 @@ private:
 	static void AsyncTryActivateZonesStage(const String& stageConfigDir, const String& currentConfigDir,
 		const std::vector<String>& relativePaths, bool reload);
 
+	void UpdateLastFailedZonesStageValidation(const String& log);
+
 	/* configsync */
 	void UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 		const JsonRpcConnection::Ptr& client = nullptr);

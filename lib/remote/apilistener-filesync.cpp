@@ -385,7 +385,12 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 	} else {
 		Log(LogCritical, "ApiListener")
 			<< "Config validation failed for staged cluster config sync. Aborting. Logs: '"
-			<< GetApiZonesStageDir() + "/startup.log'";
+			<< logFile << "'";
+
+		ApiListener::Ptr listener = ApiListener::GetInstance();
+
+		if (listener)
+			listener->UpdateLastFailedZonesStageValidation(pr.Output);
 	}
 }
 
@@ -415,4 +420,14 @@ void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(300);
 	process->Run(std::bind(&TryActivateZonesStageCallback, _1, stageConfigDir, currentConfigDir, relativePaths, reload));
+}
+
+void ApiListener::UpdateLastFailedZonesStageValidation(const String& log)
+{
+	Dictionary::Ptr lastFailedZonesStageValidation = new Dictionary({
+		{ "log", log },
+		{ "ts", Utility::GetTime() }
+	});
+
+	SetLastFailedZonesStageValidation(lastFailedZonesStageValidation);
 }
