@@ -68,12 +68,13 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		if (!ctype)
 			continue;
 
-		auto lcType (type->GetName().ToLower());
+		auto lcType(type->GetName().ToLower());
 
-		ExecuteQuery({ "MULTI" });
+		ExecuteQuery({"MULTI"});
 
 		/* Delete obsolete object keys first. */
-		ExecuteQuery({"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStatusObject + lcType});
+		ExecuteQuery(
+				{"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStatusObject + lcType});
 
 		/* fetch all objects and dump them */
 		for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
@@ -82,13 +83,13 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		}
 
 		/* publish config type dump finished */
-		ExecuteQuery({ "PUBLISH", "icinga:config:dump", lcType });
+		ExecuteQuery({"PUBLISH", "icinga:config:dump", lcType});
 
-		ExecuteQuery({ "EXEC" });
+		ExecuteQuery({"EXEC"});
 	}
 
 	Log(LogInformation, "RedisWriter")
-		<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
+			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
 
 static ConfigObject::Ptr GetHostGroup(const String& name)
@@ -125,7 +126,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	*/
 
 	if (useTransaction)
-		ExecuteQuery({ "MULTI" });
+		ExecuteQuery({"MULTI"});
 
 	/* Calculate object specific checksums and store them in a different namespace. */
 	Type::Ptr type = object->GetReflectionType();
@@ -133,24 +134,24 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	String typeName = type->GetName().ToLower();
 	String objectKey = GetObjectIdentifier(object);
 
-	std::set<String> propertiesBlacklist ({"name", "__name", "package", "source_location", "templates"});
+	std::set<String> propertiesBlacklist({"name", "__name", "package", "source_location", "templates"});
 
 	Dictionary::Ptr checkSums = new Dictionary();
 
 	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetShortName()));
 	checkSums->Set("environment_checksum", CalculateCheckSumString(GetEnvironment()));
 
-	auto endpoint (dynamic_pointer_cast<Endpoint>(object));
+	auto endpoint(dynamic_pointer_cast<Endpoint>(object));
 
 	if (endpoint) {
-		auto endpointZone (endpoint->GetZone());
+		auto endpointZone(endpoint->GetZone());
 
 		if (endpointZone) {
 			checkSums->Set("zone_checksum", GetObjectIdentifier(endpointZone));
 		}
 	} else {
 		/* 'zone' is available for all config objects, therefore calculate the checksum. */
-		auto zone (static_pointer_cast<Zone>(object->GetZone()));
+		auto zone(static_pointer_cast<Zone>(object->GetZone()));
 
 		if (zone)
 			checkSums->Set("zone_checksum", GetObjectIdentifier(zone));
@@ -171,8 +172,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 		Array::Ptr groupChecksums = new Array();
 
-		ObjectLock groupsLock (groups);
-		ObjectLock groupChecksumsLock (groupChecksums);
+		ObjectLock groupsLock(groups);
+		ObjectLock groupChecksumsLock(groupChecksums);
 
 		for (auto group : groups) {
 			groupChecksums->Add(GetObjectIdentifier((*getGroup)(group.Get<String>())));
@@ -180,7 +181,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 		checkSums->Set("group_checksums", groupChecksums);
 
-		auto period (user->GetPeriod());
+		auto period(user->GetPeriod());
 
 		if (period)
 			checkSums->Set("period_checksum", GetObjectIdentifier(period));
@@ -191,10 +192,10 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	if (notification) {
 		Host::Ptr host;
 		Service::Ptr service;
-		auto users (notification->GetUsers());
+		auto users(notification->GetUsers());
 		Array::Ptr userChecksums = new Array();
 		Array::Ptr userNames = new Array();
-		auto usergroups (notification->GetUserGroups());
+		auto usergroups(notification->GetUserGroups());
 		Array::Ptr usergroupChecksums = new Array();
 		Array::Ptr usergroupNames = new Array();
 
@@ -263,8 +264,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 		Array::Ptr groupChecksums = new Array();
 
-		ObjectLock groupsLock (groups);
-		ObjectLock groupChecksumsLock (groupChecksums);
+		ObjectLock groupsLock(groups);
+		ObjectLock groupChecksumsLock(groupChecksums);
 
 		for (auto group : groups) {
 			groupChecksums->Add(GetObjectIdentifier((*getGroup)(group.Get<String>())));
@@ -314,7 +315,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 			checkSums->Set("endpoints_checksum", CalculateCheckSumArray(endpoints));
 
-			Array::Ptr parents (new Array);
+			Array::Ptr parents(new Array);
 
 			for (auto& parent : zone->GetAllParentsRaw()) {
 				parents->Add(GetObjectIdentifier(parent));
@@ -325,14 +326,14 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		} else {
 			/* zone_checksum for endpoints already is calculated above. */
 
-			auto command (dynamic_pointer_cast<Command>(object));
+			auto command(dynamic_pointer_cast<Command>(object));
 
 			if (command) {
 				Dictionary::Ptr arguments = command->GetArguments();
 				Dictionary::Ptr argumentChecksums = new Dictionary;
 
 				if (arguments) {
-					ObjectLock argumentsLock (arguments);
+					ObjectLock argumentsLock(arguments);
 
 					for (auto& kv : arguments) {
 						argumentChecksums->Set(kv.first, HashValue(kv.second));
@@ -347,7 +348,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 				Dictionary::Ptr envvarChecksums = new Dictionary;
 
 				if (envvars) {
-					ObjectLock argumentsLock (envvars);
+					ObjectLock argumentsLock(envvars);
 
 					for (auto& kv : envvars) {
 						envvarChecksums->Set(kv.first, HashValue(kv.second));
@@ -358,7 +359,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 				checkSums->Set("envvar_checksums", envvarChecksums);
 				propertiesBlacklist.emplace("env");
 			} else {
-				auto timeperiod (dynamic_pointer_cast<TimePeriod>(object));
+				auto timeperiod(dynamic_pointer_cast<TimePeriod>(object));
 
 				if (timeperiod) {
 					Dictionary::Ptr ranges = timeperiod->GetRanges();
@@ -377,8 +378,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 					Array::Ptr includeChecksums = new Array();
 
-					ObjectLock includesLock (includes);
-					ObjectLock includeChecksumsLock (includeChecksums);
+					ObjectLock includesLock(includes);
+					ObjectLock includeChecksumsLock(includeChecksums);
 
 					for (auto include : includes) {
 						includeChecksums->Add(GetObjectIdentifier((*getInclude)(include.Get<String>())));
@@ -397,8 +398,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 					Array::Ptr excludeChecksums = new Array();
 
-					ObjectLock excludesLock (excludes);
-					ObjectLock excludeChecksumsLock (excludeChecksums);
+					ObjectLock excludesLock(excludes);
+					ObjectLock excludeChecksumsLock(excludeChecksums);
 
 					for (auto exclude : excludes) {
 						excludeChecksums->Add(GetObjectIdentifier((*getExclude)(exclude.Get<String>())));
@@ -406,23 +407,23 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 					checkSums->Set("exclude_checksums", excludeChecksums);
 				} else {
-				    icinga::Comment::Ptr comment = dynamic_pointer_cast<Comment>(object);
-				    if (comment) {
-                        propertiesBlacklist.emplace("name");
-                        propertiesBlacklist.emplace("host_name");
+					icinga::Comment::Ptr comment = dynamic_pointer_cast<Comment>(object);
+					if (comment) {
+						propertiesBlacklist.emplace("name");
+						propertiesBlacklist.emplace("host_name");
 
 						Host::Ptr host;
-                        Service::Ptr service;
-                        tie(host, service) = GetHostService(comment->GetCheckable());
-                        if (service) {
+						Service::Ptr service;
+						tie(host, service) = GetHostService(comment->GetCheckable());
+						if (service) {
 							propertiesBlacklist.emplace("service_name");
 							checkSums->Set("service_checksum", GetObjectIdentifier(service));
-                            typeName = "servicecomment";
-                        } else {
-                            checkSums->Set("host_checksum", GetObjectIdentifier(host));
-                            typeName = "hostcomment";
-                        }
-				    }
+							typeName = "servicecomment";
+						} else {
+							checkSums->Set("host_checksum", GetObjectIdentifier(host));
+							typeName = "hostcomment";
+						}
+					}
 				}
 			}
 		}
@@ -439,15 +440,15 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 		checkSums->Set("vars_checksum", CalculateCheckSumVars(customVarObject));
 
-		auto vars (SerializeVars(customVarObject));
+		auto vars(SerializeVars(customVarObject));
 
 		if (vars) {
-			auto varsJson (JsonEncode(vars));
+			auto varsJson(JsonEncode(vars));
 
 			Log(LogDebug, "RedisWriter")
-				<< "HSET " << m_PrefixConfigCustomVar + typeName << " " << objectKey << " " << varsJson;
+					<< "HSET " << m_PrefixConfigCustomVar + typeName << " " << objectKey << " " << varsJson;
 
-			ExecuteQuery({ "HSET", m_PrefixConfigCustomVar + typeName, objectKey, varsJson });
+			ExecuteQuery({"HSET", m_PrefixConfigCustomVar + typeName, objectKey, varsJson});
 		}
 	}
 
@@ -457,18 +458,18 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	String checkSumsBody = JsonEncode(checkSums);
 
 	Log(LogDebug, "RedisWriter")
-		<< "HSET " << m_PrefixConfigCheckSum + typeName << " " << objectKey << " " << checkSumsBody;
+			<< "HSET " << m_PrefixConfigCheckSum + typeName << " " << objectKey << " " << checkSumsBody;
 
-	ExecuteQuery({ "HSET", m_PrefixConfigCheckSum + typeName, objectKey, checkSumsBody });
+	ExecuteQuery({"HSET", m_PrefixConfigCheckSum + typeName, objectKey, checkSumsBody});
 
 
 	/* Send an update event to subscribers. */
 	if (runtimeUpdate) {
-		ExecuteQuery({ "PUBLISH", "icinga:config:update", typeName + ":" + objectKey });
+		ExecuteQuery({"PUBLISH", "icinga:config:update", typeName + ":" + objectKey});
 	}
 
 	if (useTransaction)
-		ExecuteQuery({ "EXEC" });
+		ExecuteQuery({"EXEC"});
 }
 
 void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
@@ -483,10 +484,10 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 	String objectKey = GetObjectIdentifier(object);
 
 	ExecuteQueries({
-	    { "HDEL", m_PrefixConfigObject + typeName, objectKey },
-	    { "DEL", m_PrefixStatusObject + typeName + ":" + objectKey },
-	    { "PUBLISH", "icinga:config:delete", typeName + ":" + objectKey }
-	});
+						   {"HDEL",    m_PrefixConfigObject + typeName, objectKey},
+						   {"DEL",     m_PrefixStatusObject + typeName + ":" + objectKey},
+						   {"PUBLISH", "icinga:config:delete",          typeName + ":" + objectKey}
+				   });
 
 }
 
@@ -499,13 +500,13 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, bool useTran
 		return;
 
 	if (useTransaction)
-		ExecuteQuery({ "MULTI" });
+		ExecuteQuery({"MULTI"});
 
 	//TODO: Manage type names
 	UpdateObjectAttrs(m_PrefixStatusObject, object, FAState, "");
 
 	if (useTransaction)
-		ExecuteQuery({ "EXEC" });
+		ExecuteQuery({"EXEC"});
 
 //	/* Serialize config object attributes */
 //	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAState);
@@ -585,10 +586,11 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, bool useTran
 //	}
 }
 
-void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride)
+void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType,
+									const String& typeNameOverride)
 {
 	Type::Ptr type = object->GetReflectionType();
-	Dictionary::Ptr attrs (new Dictionary);
+	Dictionary::Ptr attrs(new Dictionary);
 
 	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
 		Field field = type->GetFieldInfo(fid);
@@ -635,7 +637,8 @@ void RedisWriter::VersionChangedHandler(const ConfigObject::Ptr& object)
 		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
 			rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigUpdate, rw.get(), object, true, true));
 		}
-	} else if (!object->IsActive() && object->GetExtension("ConfigObjectDeleted")) { /* same as in apilistener-configsync.cpp */
+	} else if (!object->IsActive() &&
+			   object->GetExtension("ConfigObjectDeleted")) { /* same as in apilistener-configsync.cpp */
 		/* Delete object config */
 		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
 			rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigDelete, rw.get(), object));
