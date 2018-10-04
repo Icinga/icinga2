@@ -150,7 +150,11 @@ static int parseArguments(int ac, WCHAR ** av, po::variables_map& vm, printInfoS
 		}
 	}
 
-	printInfo.showUsed = vm.count("show-used") > 0;
+	if (vm.count("show-used")) {
+		printInfo.showUsed = true;
+		printInfo.warn.legal = true;
+		printInfo.crit.legal = true;
+	}
 
 	return -1;
 }
