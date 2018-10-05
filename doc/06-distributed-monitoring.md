@@ -311,6 +311,34 @@ Both methods are described in detail below.
 >
 > [On-Demand CSR Signing](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing) is available in Icinga 2 v2.8+.
 
+### Signing Request Location <a id="distributed-monitoring-setup-csr-request-location"></a>
+
+All CSR requests either through manual signing or auto signing are stored in /var/lib/icinga2/certificate-requests as json files with the fingerprint as its filename.
+
+The content of the json file is the following simplified:
+
+Initial CSR request:
+
+```
+{
+  "cert_request": "-----BEGIN CERTIFICATE-----\sample content here==\n-----END CERTIFICATE-----\n",
+  "ticket": ""
+}
+```
+
+After successful signing:
+
+```
+{
+  "cert_request": "-----BEGIN CERTIFICATE-----\sample content here==\n-----END CERTIFICATE-----\n",
+  "cert_response": "-----BEGIN CERTIFICATE-----\sample content here\n",
+  "ticket": ""
+}
+```
+
+The API will remove the json file after it is successful signed and the response is delivered to the satellite.
+
+
 ### CSR Auto-Signing <a id="distributed-monitoring-setup-csr-auto-signing"></a>
 
 A client which sends a certificate signing request (CSR) must authenticate itself
