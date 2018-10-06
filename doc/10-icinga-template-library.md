@@ -1632,12 +1632,12 @@ The data collection is instant.
 
 Custom attributes:
 
-Name            | Description
-:---------------|:------------
-swap\_win\_warn | **Optional**. The warning threshold. Defaults to "10%".
-swap\_win\_crit | **Optional**. The critical threshold. Defaults to "5%".
-swap\_win\_unit | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabyte).
-
+Name             | Description
+:--------------- | :------------
+swap\_win\_warn  | **Optional**. The warning threshold. Defaults to "10%".
+swap\_win\_crit  | **Optional**. The critical threshold. Defaults to "5%".
+swap\_win\_unit  | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabyte).
+swap\_win\_show\_used | **Optional**. Show used swap instead of the free swap.
 
 ### update-windows <a id="windows-plugins-update-windows"></a>
 
