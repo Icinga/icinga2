@@ -1546,6 +1546,7 @@ Name              | Description
 memory\_win\_warn | **Optional**. The warning threshold. Defaults to "10%".
 memory\_win\_crit | **Optional**. The critical threshold. Defaults to "5%".
 memory\_win\_unit | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabyte), possible values are: b, kb, mb, gb and tb.
+memory\_win\_show\_used | **Optional**. Show used memory instead of the free memory.
 
 
 ### network-windows <a id="windows-plugins-network-windows"></a>
