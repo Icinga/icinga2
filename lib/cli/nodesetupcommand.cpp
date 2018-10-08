@@ -121,12 +121,6 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	if (vm.count("trustedcert"))
 		Log(LogWarning, "cli", "Master for Node setup: Ignoring --trustedcert");
 
-	if (vm.count("accept-config"))
-		Log(LogWarning, "cli", "Master for Node setup: Ignoring --accept-config");
-
-	if (vm.count("accept-commands"))
-		Log(LogWarning, "cli", "Master for Node setup: Ignoring --accept-commands");
-
 	String cn = Utility::GetFQDN();
 
 	if (vm.count("cn"))
@@ -211,6 +205,18 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 		if (tokens.size() > 1)
 			fp << "  bind_port = " << tokens[1] << "\n";
 	}
+
+	fp << "\n";
+
+	if (vm.count("accept-config"))
+		fp << "  accept_config = true\n";
+	else
+		fp << "  accept_config = false\n";
+
+	if (vm.count("accept-commands"))
+		fp << "  accept_commands = true\n";
+	else
+		fp << "  accept_commands = false\n";
 
 	fp << "\n"
 		<< "  ticket_salt = TicketSalt\n"
