@@ -89,6 +89,8 @@ This value also is available in the [ido](10-icinga-template-library.md#itl-icin
 
 ### CLI Commands <a id="upgrading-to-2-11-cli-commands"></a>
 
+#### Permissions <a id="upgrading-to-2-11-cli-commands-permissions"></a>
+
 CLI commands such as `api setup`, `node wizard/setup`, `feature enable/disable/list`
 required root permissions previously. Since the file permissions allow
 the Icinga user to change things already, and users kept asking to
@@ -102,6 +104,13 @@ user has the capabilities to change to a different user.
 
 If you still encounter problems, run the aforementioned CLI commands as root,
 or with sudo.
+
+#### CA List Behaviour Change <a id="upgrading-to-2-11-cli-commands-ca-list"></a>
+
+`ca list` only shows the pending certificate signing requests by default.
+
+You can use the new `--all` parameter to show all signing requests.
+Note that Icinga automatically purges signed requests older than 1 week.
 
 ### Configuration <a id="upgrading-to-2-11-configuration"></a>
 
