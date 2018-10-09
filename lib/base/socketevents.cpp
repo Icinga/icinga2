@@ -35,8 +35,6 @@ static SocketEventEngine *l_SocketIOEngine;
 
 int SocketEvents::m_NextID = 0;
 
-INITIALIZE_ONCE(&SocketEvents::InitializeEngine);
-
 void SocketEventEngine::Start()
 {
 	for (int tid = 0; tid < SOCKET_IOTHREADS; tid++) {
@@ -116,6 +114,8 @@ void SocketEvents::InitializeEngine()
 SocketEvents::SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject)
 	: m_ID(m_NextID++), m_FD(socket->GetFD()), m_EnginePrivate(nullptr)
 {
+	boost::call_once(l_SocketIOOnceFlag, &SocketEvents::InitializeEngine);
+
 	Register(lifesupportObject);
 }
 
