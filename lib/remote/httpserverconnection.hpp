@@ -59,6 +59,7 @@ private:
 	boost::recursive_mutex m_DataHandlerMutex;
 	WorkQueue m_RequestQueue;
 	int m_PendingRequests;
+	String m_PeerAddress;
 
 	StreamReadContext m_Context;
 
