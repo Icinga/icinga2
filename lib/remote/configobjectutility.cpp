@@ -143,7 +143,8 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 
 		std::vector<ConfigItem::Ptr> newItems;
 
-		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems) || !ConfigItem::ActivateItems(upq, newItems, true)) {
+		/* Disable logging for object creation, but do so ourselves later on. */
+		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems, true) || !ConfigItem::ActivateItems(upq, newItems, true, true)) {
 			if (errors) {
 				if (unlink(path.CStr()) < 0 && errno != ENOENT) {
 					BOOST_THROW_EXCEPTION(posix_error()
@@ -164,6 +165,10 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		}
 
 		ApiListener::UpdateObjectAuthority();
+
+		Log(LogInformation, "ConfigObjectUtility")
+			<< "Created and activated object '" << fullName << "' of type '" << type->GetName() << "'.";
+
 	} catch (const std::exception& ex) {
 		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
 			BOOST_THROW_EXCEPTION(posix_error()

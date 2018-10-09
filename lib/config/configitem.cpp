@@ -618,7 +618,7 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 		return false;
 	}
 
-	ApplyRule::CheckMatches();
+	ApplyRule::CheckMatches(silent);
 
 	if (!silent) {
 		/* log stats for external parsers */
