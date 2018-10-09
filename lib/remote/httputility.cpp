@@ -35,10 +35,9 @@ Dictionary::Ptr HttpUtility::FetchRequestParameters(HttpRequest& request)
 		body += String(buffer, buffer + count);
 
 	if (!body.IsEmpty()) {
-#ifdef I2_DEBUG
 		Log(LogDebug, "HttpUtility")
 			<< "Request body: '" << body << "'";
-#endif /* I2_DEBUG */
+
 		result = JsonDecode(body);
 	}
 
