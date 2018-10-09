@@ -83,7 +83,8 @@ void HttpServerConnection::Disconnect()
 		return;
 	}
 
-	Log(LogDebug, "HttpServerConnection", "Http client disconnected");
+	Log(LogInformation, "HttpServerConnection")
+		<< "HTTP client disconnected (from " << m_Stream->GetSocket()->GetPeerAddress() << ")";
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	listener->RemoveHttpClient(this);
