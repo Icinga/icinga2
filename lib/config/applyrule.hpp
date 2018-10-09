@@ -62,7 +62,7 @@ public:
 	static bool IsValidTargetType(const String& sourceType, const String& targetType);
 	static std::vector<String> GetTargetTypes(const String& sourceType);
 
-	static void CheckMatches();
+	static void CheckMatches(bool silent);
 
 private:
 	String m_TargetType;
