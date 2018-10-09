@@ -383,7 +383,7 @@ void HttpServerConnection::DataAvailableHandler()
 
 void HttpServerConnection::CheckLiveness()
 {
-	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0) {
+	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0 && m_Stream->IsEof()) {
 		Log(LogInformation, "HttpServerConnection")
 			<<  "No messages for Http connection have been received in the last 10 seconds.";
 		Disconnect();
