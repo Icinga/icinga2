@@ -47,6 +47,17 @@ HttpServerConnection::HttpServerConnection(const String& identity, bool authenti
 
 	if (authenticated)
 		m_ApiUser = ApiUser::GetByClientCN(identity);
+
+	/* Cache the peer address. */
+	m_PeerAddress = "<unknown>";
+
+	if (stream) {
+		Socket::Ptr socket = m_Stream->GetSocket();
+
+		if (socket) {
+			m_PeerAddress = socket->GetPeerAddress();
+		}
+	}
 }
 
 void HttpServerConnection::StaticInitialize()
@@ -84,7 +95,7 @@ void HttpServerConnection::Disconnect()
 	}
 
 	Log(LogInformation, "HttpServerConnection")
-		<< "HTTP client disconnected (from " << m_Stream->GetSocket()->GetPeerAddress() << ")";
+		<< "HTTP client disconnected (from " << m_PeerAddress << ")";
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	listener->RemoveHttpClient(this);
@@ -201,11 +212,9 @@ bool HttpServerConnection::ManageHeaders(HttpResponse& response)
 
 	String requestUrl = m_CurrentRequest.RequestUrl->Format();
 
-	Socket::Ptr socket = m_Stream->GetSocket();
-
 	Log(LogInformation, "HttpServerConnection")
 		<< "Request: " << m_CurrentRequest.RequestMethod << " " << requestUrl
-		<< " (from " << (socket ? socket->GetPeerAddress() : "<unkown>")
+		<< " (from " << m_PeerAddress << ")"
 		<< ", user: " << (m_AuthenticatedUser ? m_AuthenticatedUser->GetName() : "<unauthenticated>") << ")";
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
