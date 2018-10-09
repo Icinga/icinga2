@@ -600,6 +600,8 @@ tests the HTTP service on the specified host. It can test normal (http) and secu
 (https) servers, follow redirects, search for strings and regular expressions,
 check connection times, and report on certificate expiration times.
 
+The plugin can either test the HTTP response of a server, or if `http_certificate` is set to a non-empty value, the TLS certificate age for a HTTPS host.
+
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
 Name                             | Description
@@ -2596,7 +2598,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 Name                            | Description
 --------------------------------|-----------------------------------------------------------------------
 lsi_controller_number           | **Optional.** Controller number to monitor.
-storcli_path                    | **Optional.** Path to the `storcli` binary, e.g. "/usr/sbin/storcli". 
+storcli_path                    | **Optional.** Path to the `storcli` binary, e.g. "/usr/sbin/storcli".
 lsi_enclosure_id                | **Optional.** Enclosure numbers to be checked, comma-separated.
 lsi_ld_id                       | **Optional.** Logical devices to be checked, comma-separated.
 lsi_pd_id                       | **Optional.** Physical devices to be checked, comma-separated.
