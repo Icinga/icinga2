@@ -36,6 +36,7 @@ struct printInfoStruct
 	double aSwap;
 	double percentFree;
 	Bunit unit = BunitMB;
+	bool showUsed;
 };
 
 struct pageFileInfo
@@ -73,6 +74,7 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 		("warning,w", po::wvalue<std::wstring>(), "Warning threshold")
 		("critical,c", po::wvalue<std::wstring>(), "Critical threshold")
 		("unit,u", po::wvalue<std::wstring>(), "The unit to use for display (default MB)")
+		("show-used,U", "Show used swap instead of the free swap")
 		;
 
 	po::wcommand_line_parser parser(ac, av);
@@ -167,6 +169,12 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 		}
 	}
 
+	if (vm.count("show-used")) {
+		printInfo.showUsed = true;
+		printInfo.warn.legal = true;
+		printInfo.crit.legal = true;
+	}
+
 	return -1;
 }
 
@@ -177,29 +185,34 @@ static int printOutput(printInfoStruct& printInfo)
 
 	state state = OK;
 
-	if (printInfo.warn.rend(printInfo.aSwap, printInfo.tSwap))
+	std::wcout << L"SWAP ";
+
+	double currentValue;
+
+	if (!printInfo.showUsed)
+		currentValue = printInfo.aSwap;
+	else
+		currentValue = printInfo.tSwap - printInfo.aSwap;
+
+	if (printInfo.warn.rend(currentValue, printInfo.tSwap)) {
 		state = WARNING;
-
-	if (printInfo.crit.rend(printInfo.aSwap, printInfo.tSwap))
+		std::wcout << L"WARNING - ";
+	} else if (printInfo.crit.rend(currentValue, printInfo.tSwap)) {
 		state = CRITICAL;
-
-	switch (state) {
-	case OK:
-		std::wcout << L"SWAP OK - " << printInfo.percentFree << L"% free | 'swap'=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
-			<< L";0;" << printInfo.tSwap << '\n';
-		break;
-	case WARNING:
-		std::wcout << L"SWAP WARNING - " << printInfo.percentFree << L"% free | 'swap'=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
-			<< L";0;" << printInfo.tSwap << '\n';
-		break;
-	case CRITICAL:
-		std::wcout << L"SWAP CRITICAL - " << printInfo.percentFree << L"% free | 'swap'=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
-			<< L";0;" << printInfo.tSwap << '\n';
-		break;
+		std::wcout << L"CRITICAL - ";
+	} else {
+		state = OK;
+		std::wcout << L"OK - ";
 	}
+
+	if (!printInfo.showUsed)
+		std::wcout << printInfo.percentFree << L"% free ";
+	else
+		std::wcout << 100 - printInfo.percentFree << L"% used ";
+
+	std::wcout << "| 'swap'=" << currentValue << BunitStr(printInfo.unit) << L";"
+		<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
+		<< L";0;" << printInfo.tSwap << '\n';
 
 	return state;
 }
