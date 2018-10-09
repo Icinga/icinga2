@@ -111,9 +111,6 @@ void HttpResponse::Finish()
 	}
 
 	m_State = HttpResponseEnd;
-
-	if (m_Request->ProtocolVersion == HttpVersion10 || m_Request->Headers->Get("connection") == "close")
-		m_Stream->Shutdown();
 }
 
 bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)

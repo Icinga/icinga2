@@ -358,6 +358,13 @@ void HttpServerConnection::DataAvailableHandler()
 		}
 
 		m_RequestQueue.Enqueue(std::bind(&Stream::SetCorked, m_Stream, false));
+
+		/* Request finished, decide whether to explicitly close the connection. */
+		if (m_CurrentRequest.ProtocolVersion == HttpVersion10 ||
+			m_CurrentRequest.Headers->Get("connection") == "close") {
+			m_Stream->Shutdown();
+			close = true;
+		}
 	} else
 		close = true;
 
