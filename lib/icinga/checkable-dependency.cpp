@@ -61,9 +61,12 @@ std::vector<Dependency::Ptr> Checkable::GetReverseDependencies() const
 
 bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency, int rstack) const
 {
-	if (rstack > 20) {
+	/* Anything greater than 256 causes recursion bus errors. */
+	int limit = 256;
+
+	if (rstack > limit) {
 		Log(LogWarning, "Checkable")
-			<< "Too many nested dependencies for service '" << GetName() << "': Dependency failed.";
+			<< "Too many nested dependencies (>" << limit << ") for checkable '" << GetName() << "': Dependency failed.";
 
 		return false;
 	}
