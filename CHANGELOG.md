@@ -1,5 +1,139 @@
 # Icinga 2.x CHANGELOG
 
+## 2.10.0 (2018-10-11)
+
+### Notes
+
+* Support for namespaces, details in [this blogpost](https://icinga.com/2018/09/17/icinga-2-dsl-feature-namespaces-coming-in-v2-10/)
+* Only send acknowledgement notification to users notified about a problem before, thanks for sponsoring to the [Max-Planck-Institut for Marine Mikrobiologie](https://www.mpi-bremen.de)
+* More child options for scheduled downtimes
+* Performance improvements and fixes for the TLS connections inside cluster/REST API
+* Better logging for HTTP requests and less verbose object creation (e.g. downtimes via Icinga Web 2 & REST API)
+* New configuration path constants, e.g. ConfigDir
+* Fixed problem with dependencies rescheduling parent checks too fast
+* Fixed problem with logging in systemd and syslog
+* Improved vim syntax highlighting
+* [Technical concepts docs](https://icinga.com/docs/icinga2/latest/doc/19-technical-concepts/) update with config compiler and TLS network IO
+
+### Enhancement
+
+* [#6663](https://github.com/icinga/icinga2/issues/6663) (API, Log, PR): Silence config compiler logging for runtime created objects
+* [#6657](https://github.com/icinga/icinga2/issues/6657) (API, Log, PR): Enable the HTTP request body debug log entry for release builds
+* [#6655](https://github.com/icinga/icinga2/issues/6655) (API, Log, PR): Improve logging for disconnected HTTP clients
+* [#6651](https://github.com/icinga/icinga2/issues/6651) (Plugins, PR): Add 'used' feature to check\_swap
+* [#6633](https://github.com/icinga/icinga2/issues/6633) (API, Cluster, PR): Use a dynamic thread pool for API connections
+* [#6632](https://github.com/icinga/icinga2/issues/6632) (Cluster, PR): Increase the cluster reconnect frequency to 10s
+* [#6616](https://github.com/icinga/icinga2/issues/6616) (API, Cluster, PR): Add ApiListener\#tls\_handshake\_timeout option
+* [#6611](https://github.com/icinga/icinga2/issues/6611) (Notifications): Allow types = \[ Recovery \] to always send recovery notifications 
+* [#6595](https://github.com/icinga/icinga2/issues/6595) (API, Cluster, PR): Allow to configure anonymous clients limit inside the ApiListener object
+* [#6532](https://github.com/icinga/icinga2/issues/6532) (Configuration, PR): Add child\_options to ScheduledDowntime
+* [#6531](https://github.com/icinga/icinga2/issues/6531) (API, PR): Expose Zone\#all\_parents via API
+* [#6527](https://github.com/icinga/icinga2/issues/6527) (Notifications, PR): Acknowledgment notifications should only be send if problem notification has been send
+* [#6521](https://github.com/icinga/icinga2/issues/6521) (Configuration, PR): Implement references
+* [#6512](https://github.com/icinga/icinga2/issues/6512) (Cluster, PR): Refactor environment for API connections
+* [#6511](https://github.com/icinga/icinga2/issues/6511) (Cluster, PR): ApiListener: Add support for dynamic port handling
+* [#6509](https://github.com/icinga/icinga2/issues/6509) (Configuration, PR): Implement support for namespaces
+* [#6508](https://github.com/icinga/icinga2/issues/6508) (Configuration, PR): Implement the Dictionary\#clear script function
+* [#6506](https://github.com/icinga/icinga2/issues/6506) (PR): Improve path handling in cmake and daemon
+* [#6460](https://github.com/icinga/icinga2/issues/6460) (Log, help wanted): Feature suggestion: Do not log warnings when env elements are undefined in CheckCommand objects
+* [#6455](https://github.com/icinga/icinga2/issues/6455) (Log, PR): Log something when the Filelogger has been started
+* [#6379](https://github.com/icinga/icinga2/issues/6379) (Configuration, PR): Throw config error when using global zones as parent
+* [#6356](https://github.com/icinga/icinga2/issues/6356) (Log, PR): Fix logging under systemd
+* [#6339](https://github.com/icinga/icinga2/issues/6339) (Log, help wanted): On systemd, icinga2 floods the system log, and this cannot simply be opted out of
+* [#6110](https://github.com/icinga/icinga2/issues/6110) (Configuration, PR): Implement support for optionally specifying the 'var' keyword in 'for' loops
+* [#6047](https://github.com/icinga/icinga2/issues/6047) (Notifications): Acknowledgment notifications should only be sent if the user already received a problem notification
+* [#4282](https://github.com/icinga/icinga2/issues/4282) (API, Log): Icinga should log HTTP bodies for API requests
+
+### Bug
+
+* [#6658](https://github.com/icinga/icinga2/issues/6658) (API, PR): Ensure that HTTP/1.0 or 'Connection: close' headers are properly disconnecting the client
+* [#6652](https://github.com/icinga/icinga2/issues/6652) (Plugins, PR): Fix check\_memory thresholds in 'used' mode
+* [#6647](https://github.com/icinga/icinga2/issues/6647) (CLI, PR): node setup: always respect --accept-config and --accept-commands
+* [#6643](https://github.com/icinga/icinga2/issues/6643) (Check Execution, Notifications, PR): Fix that check\_timeout was used for Event/Notification commands too
+* [#6639](https://github.com/icinga/icinga2/issues/6639) (Windows, PR): Ensure to \_unlink before renaming replay log on Windows
+* [#6622](https://github.com/icinga/icinga2/issues/6622) (DB IDO, PR): Ensure to use UTC timestamps for IDO PgSQL cleanup queries
+* [#6603](https://github.com/icinga/icinga2/issues/6603) (Check Execution, Cluster): CheckCommand 'icinga' seems to ignore retry interval via command\_endpoint
+* [#6575](https://github.com/icinga/icinga2/issues/6575): LTO builds fail on Linux
+* [#6566](https://github.com/icinga/icinga2/issues/6566) (Cluster): Master disconnects during signing process
+* [#6546](https://github.com/icinga/icinga2/issues/6546) (API, CLI, PR): Overridden path constants not passed to config validation in /v1/config/stages API call
+* [#6530](https://github.com/icinga/icinga2/issues/6530) (DB IDO, PR): IDO/MySQL: avoid empty queries
+* [#6519](https://github.com/icinga/icinga2/issues/6519) (CLI, PR): Reset terminal on erroneous console exit
+* [#6517](https://github.com/icinga/icinga2/issues/6517) (Cluster): Not all Endpoints can't reconnect due to "Client TLS handshake failed" error after "reload or restart"
+* [#6514](https://github.com/icinga/icinga2/issues/6514) (API): API using "Connection: close" header results in infinite threads
+* [#6507](https://github.com/icinga/icinga2/issues/6507) (Cluster): Variable name conflict in constants.conf / Problem with TLS verification, CN and Environment variable
+* [#6503](https://github.com/icinga/icinga2/issues/6503) (Log, PR): Reduce the log level for missing env macros to debug
+* [#6485](https://github.com/icinga/icinga2/issues/6485) (Log): Icinga logs discarding messages still as warning and not as notice
+* [#6475](https://github.com/icinga/icinga2/issues/6475) (Compat, PR): lib-\>compat-\>statusdatawriter: fix notifications\_enabled
+* [#6430](https://github.com/icinga/icinga2/issues/6430) (Log, PR): Fix negative 'empty in' value in WorkQueue log message
+* [#6427](https://github.com/icinga/icinga2/issues/6427) (Configuration, Crash, PR): Improve error message for serializing objects with recursive references
+* [#6409](https://github.com/icinga/icinga2/issues/6409) (Configuration, Crash): Assigning vars.x = vars causes Icinga 2 segfaults
+* [#6408](https://github.com/icinga/icinga2/issues/6408) (PR): ObjectLock\#Unlock\(\): don't reset m\_Object-\>m\_LockOwner too early
+* [#6386](https://github.com/icinga/icinga2/issues/6386) (Configuration, PR): Fix that TimePeriod segments are not cleared on restart
+* [#6382](https://github.com/icinga/icinga2/issues/6382) (CLI, help wanted): icinga2 console breaks the terminal on errors
+* [#6313](https://github.com/icinga/icinga2/issues/6313) (Plugins, Windows, PR): Fix wrong calculation of check\_swap windows plugin
+* [#6304](https://github.com/icinga/icinga2/issues/6304) (Configuration, Notifications): Timeout defined in NotificationCommand is ignored and uses check\_timeout
+* [#5815](https://github.com/icinga/icinga2/issues/5815) (Plugins, Windows): swap-windows check delivers wrong result
+* [#5375](https://github.com/icinga/icinga2/issues/5375) (Check Execution, PR): Parents who are non-active should not be rescheduled
+* [#5052](https://github.com/icinga/icinga2/issues/5052) (Cluster, Windows): Replay log not working with Windows client
+* [#5022](https://github.com/icinga/icinga2/issues/5022) (Check Execution): Dependencies may reschedule passive checks, triggering freshness checks
+
+### ITL
+
+* [#6646](https://github.com/icinga/icinga2/issues/6646) (ITL, PR): Update ITL and Docs for memory-windows - show used
+* [#6640](https://github.com/icinga/icinga2/issues/6640) (ITL): Update ITL and Docs for memory-windows - show used
+* [#6563](https://github.com/icinga/icinga2/issues/6563) (ITL, PR): \[Feature\] Cloudera service health CheckCommand
+* [#6561](https://github.com/icinga/icinga2/issues/6561) (ITL, PR): \[Feature\] Ceph health CheckCommand
+* [#6504](https://github.com/icinga/icinga2/issues/6504) (ITL, PR): squashfs ignored
+* [#6491](https://github.com/icinga/icinga2/issues/6491) (ITL, PR): Feature/itl vmware health
+* [#6481](https://github.com/icinga/icinga2/issues/6481) (ITL): command-plugins.conf check\_disk exclude squashfs
+
+### Documentation
+
+* [#6670](https://github.com/icinga/icinga2/issues/6670) (Documentation, PR): Add technical concepts for the config compiler and daemon CLI command
+* [#6665](https://github.com/icinga/icinga2/issues/6665) (Documentation, PR): Make the two modes of check\_http more obvious.
+* [#6615](https://github.com/icinga/icinga2/issues/6615) (Documentation, PR): Update distributed monitoring docs for 2.10
+* [#6610](https://github.com/icinga/icinga2/issues/6610) (Documentation, PR): Add "TLS Network IO" into technical concepts docs
+* [#6607](https://github.com/icinga/icinga2/issues/6607) (Documentation, PR): Enhance development docs with GDB backtrace and thread list
+* [#6606](https://github.com/icinga/icinga2/issues/6606) (Documentation, PR): Enhance contributing docs
+* [#6598](https://github.com/icinga/icinga2/issues/6598) (Documentation, PR): doc/09-object-types: states filter ignored for Acknowledgements
+* [#6597](https://github.com/icinga/icinga2/issues/6597) (Documentation, PR): Add Fedora to development docs for debuginfo packages
+* [#6593](https://github.com/icinga/icinga2/issues/6593) (Documentation, help wanted): Include CA Proxy in 3rd scenario in Distributed Monitoring docs
+* [#6573](https://github.com/icinga/icinga2/issues/6573) (Documentation, PR): Fix operator precedence table
+* [#6528](https://github.com/icinga/icinga2/issues/6528) (Documentation, PR): Document default of User\#enable\_notifications
+* [#6502](https://github.com/icinga/icinga2/issues/6502) (Documentation, PR): Update 17-language-reference.md
+* [#6501](https://github.com/icinga/icinga2/issues/6501) (Documentation, PR): Update 03-monitoring-basics.md
+* [#6488](https://github.com/icinga/icinga2/issues/6488) (Documentation, ITL, PR): Fix typo with the CheckCommand cert
+
+### Support
+
+* [#6669](https://github.com/icinga/icinga2/issues/6669) (PR): Don't throw an error when namespace indexers don't find a valid key
+* [#6668](https://github.com/icinga/icinga2/issues/6668) (Installation, PR): Enhance vim syntax highlighting for 2.10
+* [#6661](https://github.com/icinga/icinga2/issues/6661) (API, Log, code-quality, PR): Cache the peer address in the HTTP server
+* [#6642](https://github.com/icinga/icinga2/issues/6642) (PR): Allow to override MaxConcurrentChecks constant
+* [#6621](https://github.com/icinga/icinga2/issues/6621) (code-quality, PR): Remove unused timestamp function in DB IDO
+* [#6618](https://github.com/icinga/icinga2/issues/6618) (PR): Silence compiler warning for nice\(\)
+* [#6591](https://github.com/icinga/icinga2/issues/6591) (PR): Fix static initializer priority for namespaces in LTO builds
+* [#6588](https://github.com/icinga/icinga2/issues/6588) (PR): Fix using full path in prepare-dirs/safe-reload scripts
+* [#6586](https://github.com/icinga/icinga2/issues/6586) (PR): Fix non-unity builds on CentOS 7 with std::shared\_ptr
+* [#6583](https://github.com/icinga/icinga2/issues/6583) (Documentation, Installation, PR): Update PostgreSQL library path variable in INSTALL.md
+* [#6574](https://github.com/icinga/icinga2/issues/6574) (PR): Move new downtime constants into the Icinga namespace
+* [#6570](https://github.com/icinga/icinga2/issues/6570) (Cluster, PR): Increase limit for simultaneously connected anonymous TLS clients
+* [#6567](https://github.com/icinga/icinga2/issues/6567) (PR): ApiListener: Dump the state file port detail as number
+* [#6556](https://github.com/icinga/icinga2/issues/6556) (Installation, Windows, PR): windows: Allow suppression of extra actions in the MSI package
+* [#6544](https://github.com/icinga/icinga2/issues/6544) (code-quality, PR): Remove \#include for deprecated header file
+* [#6539](https://github.com/icinga/icinga2/issues/6539) (PR): Build fix for CentOS 7 and non-unity builds
+* [#6526](https://github.com/icinga/icinga2/issues/6526) (code-quality, PR): icinga::PackObject\(\): shorten conversion to string
+* [#6510](https://github.com/icinga/icinga2/issues/6510) (Tests, Windows, PR): Update windows build scripts
+* [#6494](https://github.com/icinga/icinga2/issues/6494) (Tests, PR): Test PackObject
+* [#6489](https://github.com/icinga/icinga2/issues/6489) (code-quality, PR): Implement object packer for consistent hashing
+* [#6484](https://github.com/icinga/icinga2/issues/6484) (Packages): Packages from https://packages.icinga.com are not Systemd Type=notify enabled?
+* [#6469](https://github.com/icinga/icinga2/issues/6469) (Installation, Windows, PR): Fix Windows Agent resize behavior
+* [#6458](https://github.com/icinga/icinga2/issues/6458) (code-quality, PR): Fix debug build log entry for ConfigItem activation priority
+* [#6456](https://github.com/icinga/icinga2/issues/6456) (code-quality, PR): Keep notes for immediately log flushing
+* [#6440](https://github.com/icinga/icinga2/issues/6440) (code-quality, PR): Fix typo
+* [#6410](https://github.com/icinga/icinga2/issues/6410) (code-quality, PR): Remove unused code
+* [#4959](https://github.com/icinga/icinga2/issues/4959) (Installation, Windows): Windows Agent Wizard Window resizes with screen, hiding buttons
+
 ## 2.9.2 (2018-09-26)
 
 ### Enhancement

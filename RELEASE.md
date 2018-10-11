@@ -26,7 +26,7 @@
 Specify the release version.
 
 ```
-VERSION=2.9.2
+VERSION=2.10.0
 ```
 
 Add your signing key to your Git configuration file, if not already there.
@@ -64,7 +64,6 @@ Update the version:
 
 ```
 sed -i "s/Version: .*/Version: $VERSION/g" VERSION
-sed -i "s/VERSION=.*/VERSION=$VERSION/g" RELEASE.md
 ```
 
 ## Changelog <a id="changelog"></a>
