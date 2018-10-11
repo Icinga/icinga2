@@ -108,7 +108,7 @@ Value Namespace::GetFieldByName(const String& field, bool, const DebugInfo& debu
 	if (nsVal)
 		return nsVal->Get(debugInfo);
 	else
-		return GetPrototypeField(const_cast<Namespace *>(this), field, true, debugInfo);
+		return GetPrototypeField(const_cast<Namespace *>(this), field, false, debugInfo); /* Ignore indexer not found errors similar to the Dictionary class. */
 }
 
 void Namespace::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
