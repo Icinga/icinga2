@@ -1760,7 +1760,7 @@ Configuration Attributes:
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
   endpoints                 | Array of object names | **Optional.** Array of endpoint names located in this zone.
-  parent                    | Object name           | **Optional.** The name of the parent zone.
+  parent                    | Object name           | **Optional.** The name of the parent zone. (Do not specify a global zone)
   global                    | Boolean               | **Optional.** Whether configuration files for this zone should be [synced](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync) to all endpoints. Defaults to `false`.
 
 Zone objects cannot currently be created with the API.
