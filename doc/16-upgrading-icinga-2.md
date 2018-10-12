@@ -91,6 +91,21 @@ sending the recovery notification.
 
 More details can be found in [this PR](https://github.com/Icinga/icinga2/pull/6527).
 
+### Stricter configuration validation
+
+Some config errors are now fatal. While it never worked before, icinga2 refuses to start now!
+
+For example the following started to give a fatal error in 2.10:
+
+```
+  object Zone "XXX" {
+    endpoints = [ "master-server" ]
+    parent = "global-templates"
+  }
+```
+
+```critical/config: Error: Zone 'XXX' can not have a global zone as parent.```
+
 ## Upgrading to v2.9 <a id="upgrading-to-2-9"></a>
 
 ### Deprecation and Removal Notes <a id="upgrading-to-2-9-deprecation-removal-notes"></a>
