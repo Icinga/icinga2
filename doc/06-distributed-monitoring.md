@@ -109,6 +109,12 @@ information, e.g. if the master should actively try to connect to a client.
 The zone membership is defined inside the `Zone` object definition using
 the `endpoints` attribute with an array of `Endpoint` names.
 
+> **Note**
+>
+> There is a known [problem](https://github.com/Icinga/icinga2/issues/3533)
+> with >2 endpoints in a zone and a message routing loop.
+> The config validation will log a warning to let you know about this too.
+
 If you want to check the availability (e.g. ping checks) of the node
 you still need a [Host](09-object-types.md#objecttype-host) object.
 
