@@ -200,7 +200,6 @@ static int Main()
 	String dataPrefix = Utility::GetIcingaDataPath();
 
 	if (!binaryPrefix.IsEmpty() && !dataPrefix.IsEmpty()) {
-		Configuration::PrefixDir = binaryPrefix;
 		Configuration::ProgramData = dataPrefix;
 
 		Configuration::ConfigDir = dataPrefix + "\\etc\\icinga2";
@@ -210,9 +209,13 @@ static int Main()
 		Configuration::CacheDir = dataPrefix + "\\var\\cache\\icinga2";
 		Configuration::SpoolDir = dataPrefix + "\\var\\spool\\icinga2";
 
+		Configuration::PrefixDir = binaryPrefix;
+
 		/* Internal constants. */
 		Configuration::PkgDataDir = binaryPrefix + "\\share\\icinga2";
 		Configuration::IncludeConfDir = binaryPrefix + "\\share\\icinga2\\include";
+
+		Configuration::InitRunDir = dataPrefix + "\\var\\run\\icinga2";
 	} else {
 		Log(LogWarning, "icinga-app", "Registry key could not be read. Falling back to built-in paths.");
 
