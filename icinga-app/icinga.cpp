@@ -146,7 +146,7 @@ static void HandleLegacyDefines()
 	Value runDir = Configuration::RunDir;
 	if (!runDir.IsEmpty()) {
 		Log(LogWarning, "icinga-app")
-			<< "Please do not set the deprecated 'RunDir' constant, use the 'InitRunDir' constant instead! For compatiblity reasons, their value is set based on the 'RunDir' constant.";
+			<< "Please do not set the deprecated 'RunDir' constant, use the 'InitRunDir' constant instead! For compatibility reasons, their value is set based on the 'RunDir' constant.";
 
 #ifdef _WIN32
 		Configuration::InitRunDir = runDir + "\\icinga2";
