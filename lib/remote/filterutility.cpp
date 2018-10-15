@@ -21,6 +21,7 @@
 #include "remote/httputility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
+#include "base/namespace.hpp"
 #include "base/json.hpp"
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
@@ -95,16 +96,20 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 	else
 		varName = variableName;
 
-	Dictionary::Ptr vars;
+	Namespace::Ptr frameNS;
 
 	if (frame.Self.IsEmpty()) {
-		vars = new Dictionary();
-		frame.Self = vars;
-	} else
-		vars = frame.Self;
+		frameNS = new Namespace();
+		frame.Self = frameNS;
+	} else {
+		/* Enforce a namespace object for 'frame.self'. */
+		ASSERT(frame.Self.IsObjectType<Namespace>());
 
-	vars->Set("obj", target);
-	vars->Set(varName, target);
+		frameNS = frame.Self;
+	}
+
+	frameNS->Set("obj", target);
+	frameNS->Set(varName, target);
 
 	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
 		Field field = type->GetFieldInfo(fid);
@@ -115,9 +120,9 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 		Object::Ptr joinedObj = target->NavigateField(fid);
 
 		if (field.NavigationName)
-			vars->Set(field.NavigationName, joinedObj);
+			frameNS->Set(field.NavigationName, joinedObj);
 		else
-			vars->Set(field.Name, joinedObj);
+			frameNS->Set(field.Name, joinedObj);
 	}
 
 	return Convert::ToBool(filter->Evaluate(frame));
@@ -126,8 +131,11 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissionFilter,
 	ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const String& variableName, const Object::Ptr& target)
 {
-	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName) && FilterUtility::EvaluateFilter(frame, ufilter, target, variableName))
-		result.emplace_back(std::move(target));
+	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName)) {
+		if (FilterUtility::EvaluateFilter(frame, ufilter, target, variableName)) {
+			result.emplace_back(std::move(target));
+		}
+	}
 }
 
 void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter)
@@ -249,7 +257,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 
 		ScriptFrame frame(true);
 		frame.Sandboxed = true;
-		Dictionary::Ptr uvars = new Dictionary();
+		Namespace::Ptr frameNS = new Namespace();
 
 		if (query->Contains("filter")) {
 			String filter = HttpUtility::GetLastParameter(query, "filter");
@@ -259,11 +267,11 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			if (filter_vars) {
 				ObjectLock olock(filter_vars);
 				for (const Dictionary::Pair& kv : filter_vars) {
-					uvars->Set(kv.first, kv.second);
+					frameNS->Set(kv.first, kv.second);
 				}
 			}
 
-			frame.Self = uvars;
+			frame.Self = frameNS;
 
 			provider->FindTargets(type, std::bind(&FilteredAddTarget,
 				std::ref(permissionFrame), permissionFilter,
