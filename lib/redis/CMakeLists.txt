@@ -18,7 +18,7 @@
 mkclass_target(rediswriter.ti rediswriter-ti.cpp rediswriter-ti.hpp)
 
 set(redis_SOURCES
-  rediswriter.cpp rediswriter-objects.cpp rediswriter-stats.cpp rediswriter-utility.cpp rediswriter-ti.hpp
+  rediswriter.cpp rediswriter-objects.cpp rediswriter-stats.cpp rediswriter-utility.cpp redisconnection.cpp rediswriter-ti.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)
