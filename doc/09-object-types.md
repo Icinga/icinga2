@@ -230,6 +230,12 @@ Argument order:
 ..., -3, -2, -1, <un-ordered keys>, 1, 2, 3, ...
 ```
 
+Define argument array:
+
+```
+value = "[ 'one', 'two', 'three' ]"
+```
+
 Argument array with `repeat_key = true`:
 
 ```
