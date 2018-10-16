@@ -305,19 +305,21 @@ Create a new release for the newly created Git tag: https://github.com/Icinga/ic
 Navigate to the git repository on your Windows box which
 already has chocolatey installed. Pull/checkout the release.
 
-Create the nupkg package:
+Create the nupkg package (or use the one generated on https://packages.icinga.com/windows):
 
 ```
 cpack
 ```
 
-Install the created icinga2 package locally:
+Fetch the API key from https://chocolatey.org/account and use the `choco push`
+command line.
 
 ```
-choco install icinga2 -version 2.9.0 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+choco apikey --key xxx --source https://push.chocolatey.org/
+
+choco push Icinga2-v2.10.0.nupkg --source https://push.chocolatey.org/
 ```
 
-Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 
 ## Post Release  <a id="post-release"></a>
 
