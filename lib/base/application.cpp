@@ -751,6 +751,13 @@ void Application::SigUsr2Handler(int)
 
 	instance->ClosePidFile(false);
 
+	/* Ensure to dump the program state on reload. */
+	ConfigObject::StopObjects();
+	instance->OnShutdown();
+
+	Log(LogInformation, "Application")
+		<< "Reload done, parent process shutting down. Child process with PID '" << m_ReloadProcess << "' is taking over.";
+
 	Exit(0);
 }
 
