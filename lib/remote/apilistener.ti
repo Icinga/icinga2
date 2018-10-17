@@ -60,7 +60,7 @@ class ApiListener : ConfigObject
 		default {{{ return Configuration::TlsHandshakeTimeout; }}}
 	};
 
-	[config] String ticket_salt;
+	[no_user_view, no_user_modify] String ticket_salt;
 
 	[config] Array::Ptr access_control_allow_origin;
 	[config, deprecated] bool access_control_allow_credentials;
