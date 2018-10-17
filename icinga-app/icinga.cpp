@@ -301,8 +301,6 @@ static int Main()
 
 	ScriptGlobal::Set("MaxConcurrentChecks", Application::GetDefaultMaxConcurrentChecks());
 
-	ScriptGlobal::Set("Environment", "production");
-
 	ScriptGlobal::Set("System.PlatformKernel", Utility::GetPlatformKernel(), true);
 	ScriptGlobal::Set("System.PlatformKernelVersion", Utility::GetPlatformKernelVersion(), true);
 	ScriptGlobal::Set("System.PlatformName", Utility::GetPlatformName(), true);
