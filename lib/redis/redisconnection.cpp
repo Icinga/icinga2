@@ -23,6 +23,7 @@
 #include <hiredis/hiredis.h>
 #include <base/logger.hpp>
 #include "base/utility.hpp"
+#include "redis/rediswriter.hpp"
 
 using namespace icinga;
 /*
@@ -80,9 +81,14 @@ void RedisConnection::Connect() {
 	//TODO: Authentication, DB selection, error handling
 }
 
+void RedisConnection::Disconnect()
+{
+	redisAsyncDisconnect(m_Context);
+}
+
 void RedisConnection::DisconnectCallback(const redisAsyncContext *c, int status) {
 	if (status == REDIS_OK)
-		Log(LogCritical, "RedisWriter") << "Redis disconnected by user";
+		Log(LogInformation, "RedisWriter") << "Redis disconnected by us";
 	else
 		Log(LogCritical, "Rediswriter") << "Redis disconnected for reasons";
 

@@ -40,9 +40,10 @@ public:
 	void Start();
 
 	void Connect();
+	void Disconnect();
 
-	void ExecuteQuery(const std::vector<String>& query, redisCallbackFn *fn = nullptr, void *privdata = nullptr);
-	void ExecuteQueries(const std::vector<std::vector<String> >& queries, redisCallbackFn *fn = nullptr, void *privdata = nullptr);
+	void ExecuteQuery(const std::vector<String>& query, redisCallbackFn *fn = NULL, void *privdata = NULL);
+	void ExecuteQueries(const std::vector<std::vector<String> >& queries, redisCallbackFn *fn = NULL, void *privdata = NULL);
 
 
 private:
