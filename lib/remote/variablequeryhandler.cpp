@@ -105,6 +105,9 @@ bool VariableQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 	ArrayData results;
 
 	for (const Dictionary::Ptr& var : objs) {
+		if (var->Get("name") == "TicketSalt")
+			continue;
+
 		results.emplace_back(new Dictionary({
 			{ "name", var->Get("name") },
 			{ "type", var->Get("type") },
