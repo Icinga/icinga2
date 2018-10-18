@@ -138,7 +138,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment()
 	ObjectLock olock(ranges);
 	for (const Dictionary::Pair& kv : ranges) {
 		Log(LogDebug, "ScheduledDowntime")
-			<< "Evaluating segment: " << kv.first << ": " << kv.second << " at ";
+			<< "Evaluating segment: " << kv.first << ": " << kv.second;
 
 		Dictionary::Ptr segment = LegacyTimePeriod::FindNextSegment(kv.first, kv.second, &reference);
 
