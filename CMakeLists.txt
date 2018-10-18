@@ -153,6 +153,10 @@ else()
   list(APPEND base_DEPS ${YAJL_LIBRARIES})
 endif()
 
+# JSON
+find_package(JSON)
+include_directories(${JSON_INCLUDE})
+
 find_package(Editline)
 set(HAVE_EDITLINE "${EDITLINE_FOUND}")
 
