@@ -257,7 +257,9 @@ void ScheduledDowntime::CreateNextDowntime()
 			Log(LogDebug, "ScheduledDowntime") << "By us, ends soon (" << Utility::FormatDateTime("%c", current_end) << ")";
 			std::pair<double, double> segment = FindNextSegment(current_end);
 			/* Merge an immediately following segment */
-			if (segment.first == current_end) {
+			if (segment.first == 0) {
+				Log(LogDebug, "ScheduledDowntime") << "No next Segment";
+			} else if (segment.first == current_end) {
 				Log(LogDebug, "ScheduledDowntime") << "Next Segment fits, extending end time " << Utility::FormatDateTime("%c", current_end) << " to " << Utility::FormatDateTime("%c", segment.second);
 				downtime->SetEndTime(segment.second, false);
 				return;
