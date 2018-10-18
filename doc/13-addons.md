@@ -71,7 +71,7 @@ A popular frontend for InfluxDB is for example [Grafana](https://grafana.org).
 ### Icinga Reporting <a id="addons-visualization-reporting"></a>
 
 By enabling the [DB IDO](14-features.md#db-ido) feature you can use the
-[Icinga Reporting package](https://docs.icinga.com/latest/en/reporting.html).
+[Icinga Reporting package](https://icinga.com/docs/icinga1/latest/en/reporting.html).
 
 ### NagVis <a id="addons-visualization-nagvis"></a>
 
@@ -118,9 +118,9 @@ There's a variety of resources available, for example different notification scr
 
 Additionally external services can be [integrated with Icinga 2](https://icinga.com/products/integrations/):
 
-* [Pagerduty](https://icinga.com/partners/pagerduty/)
-* [VictorOps](https://icinga.com/partners/victorops/)
-* [StackStorm](https://icinga.com/partners/stackstorm/)
+* [Pagerduty](https://icinga.com/products/integrations/pagerduty/)
+* [VictorOps](https://icinga.com/products/integrations/victorops/)
+* [StackStorm](https://icinga.com/products/integrations/stackstorm/)
 
 More information can be found on the [Icinga Website](https://icinga.com/).
 

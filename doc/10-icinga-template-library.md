@@ -849,7 +849,7 @@ negate_arguments      | **Optional.** Arguments for the negated command.
 
 ### nrpe <a id="plugin-check-command-nrpe"></a>
 
-The `check_nrpe` plugin can be used to query an [NRPE](https://docs.icinga.com/latest/en/nrpe.html)
+The `check_nrpe` plugin can be used to query an [NRPE](https://icinga.com/docs/icinga1/latest/en/nrpe.html)
 server or [NSClient++](https://www.nsclient.org). **Note**: This plugin
 is considered insecure/deprecated.
 

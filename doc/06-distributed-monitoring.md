@@ -1216,7 +1216,7 @@ If you are eager to start fresh instead you might take a look into the
 The following examples should give you an idea on how to build your own
 distributed monitoring environment. We've seen them all in production
 environments and received feedback from our [community](https://icinga.com/community/)
-and [partner support](https://icinga.com/services/support/) channels:
+and [partner support](https://icinga.com/support/) channels:
 
 * Single master with clients.
 * HA master with clients as command endpoint.
