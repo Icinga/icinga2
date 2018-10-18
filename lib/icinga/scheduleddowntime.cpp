@@ -181,15 +181,8 @@ void ScheduledDowntime::CreateNextDowntime()
 
 	std::pair<double, double> segment = FindNextSegment();
 
-	if (segment.first == 0 && segment.second == 0) {
-		tm reference = Utility::LocalTime(Utility::GetTime());
-		reference.tm_mday++;
-		reference.tm_hour = 0;
-		reference.tm_min = 0;
-		reference.tm_sec = 0;
-
+	if (segment.first == 0 && segment.second == 0)
 		return;
-	}
 
 	String downtimeName = Downtime::AddDowntime(GetCheckable(), GetAuthor(), GetComment(),
 		segment.first, segment.second,
