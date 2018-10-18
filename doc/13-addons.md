@@ -2,6 +2,49 @@
 
 ## Graphing <a id="addons-graphing"></a>
 
+### Graphite <a id="addons-graphing-graphite"></a>
+
+[Graphite](https://graphite.readthedocs.org/en/latest/) is a time-series database
+storing collected metrics and making them available through restful apis
+and web interfaces.
+
+Graphite consists of 3 software components:
+
+* carbon -- a Twisted daemon that listens for time-series data
+* whisper -- a simple database library for storing time-series data (similar in design to RRD)
+* graphite webapp -- a Django webapp that renders graphs on-demand using Cairo
+
+You need to install Graphite first, then proceed with configuring it in Icinga 2.
+
+Use the [GraphiteWriter](14-features.md#graphite-carbon-cache-writer) feature
+for sending real-time metrics from Icinga 2 to Graphite.
+
+    # icinga2 feature enable graphite
+
+A popular alternative frontend for Graphite is for example [Grafana](https://grafana.org).
+
+Integration in Icinga Web 2 is possible by installing the official [graphite module](https://icinga.com/docs/graphite/latest/).
+
+![Icinga Web 2 Detail View with Graphite](images/addons/icingaweb2_graphite.png)
+
+
+### InfluxDB <a id="addons-graphing-influxdb"></a>
+
+[InfluxDB](https://influxdb.com) is a time series, metrics, and analytics database.
+It’s written in Go and has no external dependencies.
+
+Use the [InfluxdbWriter](14-features.md#influxdb-writer) feature
+for sending real-time metrics from Icinga 2 to InfluxDB.
+
+    # icinga2 feature enable influxdb
+
+A popular frontend for InfluxDB is for example [Grafana](https://grafana.org).
+
+Integration in Icinga Web 2 is possible by installing the community [Grafana module](https://github.com/Mikesch-mp/icingaweb2-module-grafana).
+
+![Icinga Web 2 Detail View with Grafana](images/addons/icingaweb2_grafana.png)
+
+
 ### PNP <a id="addons-graphing-pnp"></a>
 
 [PNP](https://www.pnp4nagios.org) is a graphing addon.
@@ -33,50 +76,46 @@ More information on [action_url as attribute](13-addons.md#addons-graphing-pnp-a
 and [graph template names](13-addons.md#addons-graphing-pnp-custom-templates).
 
 
-### Graphite <a id="addons-graphing-graphite"></a>
-
-[Graphite](https://graphite.readthedocs.org/en/latest/) is a time-series database
-storing collected metrics and making them available through restful apis
-and web interfaces.
-
-Graphite consists of 3 software components:
-
-* carbon -- a Twisted daemon that listens for time-series data
-* whisper -- a simple database library for storing time-series data (similar in design to RRD)
-* graphite webapp -- a Django webapp that renders graphs on-demand using Cairo
-
-Use the [GraphiteWriter](14-features.md#graphite-carbon-cache-writer) feature
-for sending real-time metrics from Icinga 2 to Graphite.
-
-    # icinga2 feature enable graphite
-
-There are Graphite addons available for collecting the performance data files too (e.g. `Graphios`).
-
-A popular alternative frontend for Graphite is for example [Grafana](https://grafana.org).
-
-### InfluxDB <a id="addons-graphing-influxdb"></a>
-
-[InfluxDB](https://influxdb.com) is a time series, metrics, and analytics database.
-It’s written in Go and has no external dependencies.
-
-Use the [InfluxdbWriter](14-features.md#influxdb-writer) feature
-for sending real-time metrics from Icinga 2 to InfluxDB.
-
-    # icinga2 feature enable influxdb
-
-A popular frontend for InfluxDB is for example [Grafana](https://grafana.org).
-
 ## Visualization <a id="addons-visualization"></a>
 
-### Icinga Reporting <a id="addons-visualization-reporting"></a>
+### Maps <a id="addons-visualization-maps"></a>
 
-By enabling the [DB IDO](14-features.md#db-ido) feature you can use the
-[Icinga Reporting package](https://icinga.com/docs/icinga1/latest/en/reporting.html).
+This community module displays host objects as markers on openstreetmap in Icinga Web 2.
+It uses the data provided by the monitoring module and as such the [DB IDO](14-features.md#db-ido)
+from Icinga 2.
+
+If you configure multiple hosts with the same coordinates, i.e. servers in a datacenter, a clustered view is rendered.
+
+Check the  [Map module docs](https://github.com/nbuchwitz/icingaweb2-module-map) for more details on
+installation, configuration and integration.
+
+![Icinga Web 2 Maps](images/addons/icingaweb2_maps.png)
+
+### Dashing Dashboard <a id="addons-visualization-dashing-dashboard"></a>
+
+The [Icinga 2 dashboard](https://github.com/dnsmichi/dashing-icinga2) is built
+on top of Dashing and uses the [REST API](#icinga2-api) to visualize what's going
+on with your monitoring. It combines several popular widgets and provides development
+instructions for your own implementation.
+
+The dashboard also allows to embed the [Icinga Web 2](https://icinga.com/products/icinga-web-2/)
+host and service problem lists as Iframe.
+
+![Dashing dashboard](images/addons/dashing_icinga2.png)
+
+### Business Process <a id="addons-business-process"></a>
+
+Create top-level views of your applications in a graphical editor.
+Rules express dependencies between existing hosts and services and
+let you alert on application level. Business processes are displayed
+in a tree or list overview and can be added to any dashboard.
+
+![Icinga Web 2 Business Process](images/addons/icingaweb2_businessprocess.png)
 
 ### NagVis <a id="addons-visualization-nagvis"></a>
 
-By using either [Livestatus](14-features.md#setting-up-livestatus) or
-[DB IDO](14-features.md#db-ido) as a backend you can create your own network maps
+By using the [DB IDO](14-features.md#db-ido) feature
+you can create your own network maps
 based on your monitoring configuration and status data using [NagVis](https://www.nagvis.org).
 
 The configuration in nagvis.ini.php should look like this for Livestatus for example:
@@ -86,6 +125,11 @@ The configuration in nagvis.ini.php should look like this for Livestatus for exa
     socket="unix:/var/run/icinga2/cmd/livestatus"
 
 If you are planning an integration into Icinga Web 2, look at [this module](https://github.com/Icinga/icingaweb2-module-nagvis).
+
+### Icinga Reporting <a id="addons-visualization-reporting"></a>
+
+By enabling the [DB IDO](14-features.md#db-ido) feature you can use the
+[Icinga Reporting package](https://icinga.com/docs/icinga1/latest/en/reporting.html).
 
 ### Thruk <a id="addons-visualization-thruk"></a>
 
