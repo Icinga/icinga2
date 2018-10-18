@@ -93,7 +93,7 @@ For further information on your monitoring configuration read the
 [Monitoring Basics](03-monitoring-basics.md#monitoring-basics) chapter.
 
 If you have created your own `CheckCommand` definition, please kindly
-[send it upstream](https://www.icinga.com/community/get-involved/).
+[send it upstream](https://icinga.com/community/).
 
 ### Plugin API <a id="service-monitoring-plugin-api"></a>
 

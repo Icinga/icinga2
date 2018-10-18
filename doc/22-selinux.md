@@ -231,7 +231,7 @@ If you experience any problems while running in enforcing mode try to reproduce 
 
 After some feedback Icinga 2 is now running in a enforced domain, but still adds also some rules for other necessary services so no problems should occure at all. But you can help to enhance the policy by testing Icinga 2 running confined by SELinux.
 
-Please add the following information to [bug reports](https://www.icinga.com/community/get-involved/):
+Please add the following information to [bug reports](https://icinga.com/community/):
 
 * Versions, configuration snippets, etc.
 * Output of `semodule -l | grep -e icinga2 -e nagios -e apache`

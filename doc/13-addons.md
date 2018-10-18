@@ -131,7 +131,7 @@ touch with their developers. The Icinga project does not provide a configuration
 yet. Follow the [Icinga Blog](https://www.icinga.com/blog/) for updates on this topic.
 
 If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc. -- we're happy
-to integrate them upstream, so please get in touch with the [Icinga team](https://www.icinga.com/community/get-involved/).
+to integrate them upstream, so please get in touch with the [Icinga team](https://icinga.com/community/).
 
 These tools are currently in development and require feedback and tests:
 

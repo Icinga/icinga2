@@ -18,7 +18,7 @@ LICENSE file included in the source package.
 ## Support  <a id="support"></a>
 
 Check the project website at [icinga.com](https://www.icinga.com) for status updates. Join the
-[community channels](https://www.icinga.com/community/get-involved/) for questions
+[community channels](https://icinga.com/community/) for questions
 or ask an Icinga partner for [professional support](https://www.icinga.com/services/support/).
 
 ## Contribute  <a id="contribute"></a>
