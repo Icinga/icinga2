@@ -24,43 +24,62 @@
 #include "base/object.hpp"
 #include "base/workqueue.hpp"
 
-namespace icinga {
+namespace icinga
+{
 /**
  * An Async Redis connection.
  *
  * @ingroup redis
  */
-class RedisConnection final : public Object
-{
-public:
-	DECLARE_PTR_TYPEDEFS(RedisConnection);
+	class RedisConnection final : public Object
+	{
+	public:
+		DECLARE_PTR_TYPEDEFS(RedisConnection);
 
-	RedisConnection(const String host, const int port, const String path);
+		RedisConnection(const String host, const int port, const String path, const String password = "", const int db = 0);
 
-	void Start();
+		void Start();
 
-	void Connect();
-	void Disconnect();
+		void Connect();
 
-	void ExecuteQuery(const std::vector<String>& query, redisCallbackFn *fn = NULL, void *privdata = NULL);
-	void ExecuteQueries(const std::vector<std::vector<String> >& queries, redisCallbackFn *fn = NULL, void *privdata = NULL);
+		void Disconnect();
 
+		bool IsConnected();
 
-private:
-	static void StaticInitialize();
-	void SendMessageInternal(const std::vector<String>& query, redisCallbackFn *fn, void *privdata);
-	void AssertOnWorkQueue();
-	static void DisconnectCallback(const redisAsyncContext *c, int status);
+		void ExecuteQuery(const std::vector<String>& query, redisCallbackFn *fn = NULL, void *privdata = NULL);
 
-	WorkQueue m_RedisConnectionWorkQueue{100000};
+		void ExecuteQueries(const std::vector<std::vector<String> >& queries, redisCallbackFn *fn = NULL,
+							void *privdata = NULL);
 
-	redisAsyncContext *m_Context;
+	private:
+		static void StaticInitialize();
 
-	String m_Path;
-	String m_Host;
-	int m_Port;
-};
+		void SendMessageInternal(const std::vector<String>& query, redisCallbackFn *fn, void *privdata);
 
+		void AssertOnWorkQueue();
+
+		void HandleRW();
+
+		static void DisconnectCallback(const redisAsyncContext *c, int status);
+
+		WorkQueue m_RedisConnectionWorkQueue{100000};
+		Timer::Ptr m_EventLoop;
+
+		redisAsyncContext *m_Context;
+
+		String m_Path;
+		String m_Host;
+		int m_Port;
+		String m_Password;
+		int m_DbIndex;
+
+		boost::mutex m_CMutex;
+	};
+
+	struct redis_error : virtual std::exception, virtual boost::exception { };
+
+	struct errinfo_redis_query_;
+	typedef boost::error_info<struct errinfo_redis_query_, std::string> errinfo_redis_query;
 }
 
 #endif //REDISCONNECTION_H

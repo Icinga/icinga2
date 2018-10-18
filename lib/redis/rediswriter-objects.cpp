@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "redis/rediswriter.hpp"
+#include "redis/redisconnection.hpp"
 #include "icinga/command.hpp"
 #include "base/configtype.hpp"
 #include "base/configobject.hpp"
@@ -39,6 +40,7 @@
 #include "base/initialize.hpp"
 #include "base/convert.hpp"
 #include "base/array.hpp"
+#include "base/exception.hpp"
 #include <map>
 #include <set>
 
@@ -56,77 +58,126 @@ void RedisWriter::ConfigStaticInitialize()
 	ConfigObject::OnVersionChanged.connect(std::bind(&RedisWriter::VersionChangedHandler, _1));
 }
 
-void RedisWriter::UpdateAllConfigObjects(void)
+void RedisWriter::UpdateAllConfigObjects()
 {
-	AssertOnWorkQueue();
-
 	double startTime = Utility::GetTime();
 
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
+	m_Rcon->ExecuteQuery({"flushall"});
 
+	// Use a Workqueue to pack objects in parallel
+	WorkQueue upq(25000, Configuration::Concurrency);
+	upq.SetName("RedisWriter:ConfigDump");
+
+	typedef std::pair<ConfigType*, String> TypePair;
+	std::vector<TypePair> types;
+
+	for (const Type::Ptr&  type : Type::GetAllTypes()) {
+		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
 		if (!ctype)
 			continue;
 
-		auto lcType(type->GetName().ToLower());
+		String lcType (type->GetName().ToLower());
+		types.emplace_back(ctype, lcType);
+		m_Rcon->ExecuteQuery({"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStatusObject + lcType});
+	}
 
-		ExecuteQuery({"MULTI"});
+	upq.ParallelFor(types, [this](const TypePair& type) {
+		size_t bulkCounter = 0;
+		auto attributes = new std::vector<String>();
+		attributes->emplace_back("HMSET");
+		attributes->emplace_back(m_PrefixConfigObject + type.second);
+		auto customVars = new std::vector<String>();
+		customVars->emplace_back("HMSET");
+		customVars->emplace_back(m_PrefixConfigCustomVar + type.second);
+		auto checksums = new std::vector<String>();
+		checksums->emplace_back("HMSET");
+		checksums->emplace_back(m_PrefixConfigCheckSum + type.second);
 
-		/* Delete obsolete object keys first. */
-		ExecuteQuery(
-				{"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStatusObject + lcType});
 
-		/* fetch all objects and dump them */
-		for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
-			SendConfigUpdate(object, false);
-			SendStatusUpdate(object, false);
+		for (const ConfigObject::Ptr& object : type.first->GetObjects()) {
+			CreateConfigUpdate(object, *attributes, *customVars, *checksums, false);
+			SendStatusUpdate(object);
+			bulkCounter ++;
+			if (!bulkCounter % 100) {
+				if (attributes->size() > 2) {
+					m_Rcon->ExecuteQuery(*attributes);
+					attributes->erase(attributes->begin() + 2, attributes->end());
+				}
+				if (customVars->size() > 2) {
+					m_Rcon->ExecuteQuery(*customVars);
+					customVars->erase(customVars->begin() + 2, customVars->end());
+				}
+				if (checksums->size() > 2) {
+					m_Rcon->ExecuteQuery(*checksums);
+					checksums->erase(checksums->begin() + 2, checksums->end());
+				}
+			}
 		}
+		if (attributes->size() > 2)
+			m_Rcon->ExecuteQuery(*attributes);
+		if (customVars->size() > 2)
+			m_Rcon->ExecuteQuery(*customVars);
+		if (checksums->size() > 2)
+			m_Rcon->ExecuteQuery(*checksums);
 
-		/* publish config type dump finished */
-		ExecuteQuery({"PUBLISH", "icinga:config:dump", lcType});
+		Log(LogNotice, "RedisWriter")
+			<< "Dumped " << bulkCounter << " objects of type " << type.second;
+	});
 
-		ExecuteQuery({"EXEC"});
+	upq.Join();
+
+	if (upq.HasExceptions()) {
+		for (auto exc : upq.GetExceptions()) {
+			Log(LogCritical, "RedisWriter")
+					<< "Exception during ConfigDump: " << exc;
+		}
 	}
 
 	Log(LogInformation, "RedisWriter")
 			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
 
-static ConfigObject::Ptr GetHostGroup(const String& name)
+template <typename ConfigType>
+static ConfigObject::Ptr GetObjectByName(const String& name)
 {
-	return ConfigObject::GetObject<HostGroup>(name);
+	return ConfigObject::GetObject<ConfigType>(name);
 }
 
-static ConfigObject::Ptr GetServiceGroup(const String& name)
+// Used to update a single object, used for runtime updates
+void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate)
 {
-	return ConfigObject::GetObject<ServiceGroup>(name);
+	String typeName = object->GetReflectionType()->GetName().ToLower();
+	auto attributes = new std::vector<String>();
+	attributes->emplace_back("HSET");
+	attributes->emplace_back(m_PrefixConfigObject +typeName);
+	auto customVars = new std::vector<String>();
+	customVars->emplace_back("HSET");
+	customVars->emplace_back(m_PrefixConfigCustomVar + typeName);
+	auto checksums = new std::vector<String>();
+	checksums->emplace_back("HSET");
+	checksums->emplace_back(m_PrefixConfigCheckSum +typeName);
+
+	CreateConfigUpdate(object, *attributes, *customVars, *checksums, runtimeUpdate);
+
+	m_Rcon->ExecuteQuery(*attributes);
+	m_Rcon->ExecuteQuery(*customVars);
+	m_Rcon->ExecuteQuery(*checksums);
 }
 
-static ConfigObject::Ptr GetUserGroup(const String& name)
+/* Creates a config update with computed checksums etc.
+ * Writes attributes, customVars and checksums into the respective supplied vectors. Adds two values to each vector
+ * (if applicable), first the key then the value. To use in a Redis command the command (e.g. HSET) and the key (e.g.
+ * icinga:config:object:downtime) need to be prepended. There is nothing to indicate success or failure.
+ */
+void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vector<String>& attributes, std::vector<String>& customVars, std::vector<String>& checksums, bool runtimeUpdate)
 {
-	return ConfigObject::GetObject<UserGroup>(name);
-}
-
-static ConfigObject::Ptr GetClude(const String& name)
-{
-	return ConfigObject::GetObject<TimePeriod>(name);
-}
-
-void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTransaction, bool runtimeUpdate)
-{
-	AssertOnWorkQueue();
-
-	/* during startup we might send duplicated object config, ignore them without any connection */
-	if (!m_Context)
-		return;
-
 	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
 	if (!runtimeUpdate && m_ConfigDumpInProgress)
 		return;
 	*/
 
-	if (useTransaction)
-		ExecuteQuery({"MULTI"});
+	if (m_Rcon == nullptr)
+		return;
 
 	/* Calculate object specific checksums and store them in a different namespace. */
 	Type::Ptr type = object->GetReflectionType();
@@ -158,7 +209,6 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	}
 
 	User::Ptr user = dynamic_pointer_cast<User>(object);
-
 	if (user) {
 		propertiesBlacklist.emplace("groups");
 
@@ -166,7 +216,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		ConfigObject::Ptr (*getGroup)(const String& name);
 
 		groups = user->GetGroups();
-		getGroup = &::GetUserGroup;
+		getGroup = &::GetObjectByName<UserGroup>;
 
 		checkSums->Set("groups_checksum", CalculateCheckSumArray(groups));
 
@@ -188,7 +238,6 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 	}
 
 	Notification::Ptr notification = dynamic_pointer_cast<Notification>(object);
-
 	if (notification) {
 		Host::Ptr host;
 		Service::Ptr service;
@@ -236,7 +285,6 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 	/* Calculate checkable checksums. */
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
-
 	if (checkable) {
 		/* groups_checksum, group_checksums */
 		propertiesBlacklist.emplace("groups");
@@ -251,13 +299,13 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 		if (service) {
 			groups = service->GetGroups();
-			getGroup = &::GetServiceGroup;
+			getGroup = &::GetObjectByName<ServiceGroup>;
 
 			/* Calculate the host_checksum */
 			checkSums->Set("host_checksum", GetObjectIdentifier(host));
 		} else {
 			groups = host->GetGroups();
-			getGroup = &::GetHostGroup;
+			getGroup = &::GetObjectByName<HostGroup>;
 		}
 
 		checkSums->Set("groups_checksum", CalculateCheckSumArray(groups));
@@ -298,139 +346,137 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 			checkSums->Set("notes_url_checksum", CalculateCheckSumString(notesUrl));
 		if (!iconImage.IsEmpty())
 			checkSums->Set("icon_image_checksum", CalculateCheckSumString(iconImage));
-	} else {
-		Zone::Ptr zone = dynamic_pointer_cast<Zone>(object);
+	}
 
-		if (zone) {
-			propertiesBlacklist.emplace("endpoints");
+	Zone::Ptr zone = dynamic_pointer_cast<Zone>(object);
+	if (zone) {
+		propertiesBlacklist.emplace("endpoints");
 
-			auto endpointObjects = zone->GetEndpoints();
-			Array::Ptr endpoints = new Array();
-			endpoints->Resize(endpointObjects.size());
+		auto endpointObjects = zone->GetEndpoints();
+		Array::Ptr endpoints = new Array();
+		endpoints->Resize(endpointObjects.size());
 
-			Array::SizeType i = 0;
-			for (auto& endpointObject : endpointObjects) {
-				endpoints->Set(i++, endpointObject->GetName());
+		Array::SizeType i = 0;
+		for (auto& endpointObject : endpointObjects) {
+			endpoints->Set(i++, endpointObject->GetName());
+		}
+
+		checkSums->Set("endpoints_checksum", CalculateCheckSumArray(endpoints));
+
+		Array::Ptr parents(new Array);
+
+		for (auto& parent : zone->GetAllParentsRaw()) {
+			parents->Add(GetObjectIdentifier(parent));
+		}
+
+		checkSums->Set("all_parents_checksums", parents);
+		checkSums->Set("all_parents_checksum", HashValue(zone->GetAllParents()));
+	}
+
+	/* zone_checksum for endpoints already is calculated above. */
+
+	auto command(dynamic_pointer_cast<Command>(object));
+	if (command) {
+		Dictionary::Ptr arguments = command->GetArguments();
+		Dictionary::Ptr argumentChecksums = new Dictionary;
+
+		if (arguments) {
+			ObjectLock argumentsLock(arguments);
+
+			for (auto& kv : arguments) {
+				argumentChecksums->Set(kv.first, HashValue(kv.second));
 			}
+		}
 
-			checkSums->Set("endpoints_checksum", CalculateCheckSumArray(endpoints));
+		checkSums->Set("arguments_checksum", HashValue(arguments));
+		checkSums->Set("argument_checksums", argumentChecksums);
+		propertiesBlacklist.emplace("arguments");
 
-			Array::Ptr parents(new Array);
+		Dictionary::Ptr envvars = command->GetEnv();
+		Dictionary::Ptr envvarChecksums = new Dictionary;
 
-			for (auto& parent : zone->GetAllParentsRaw()) {
-				parents->Add(GetObjectIdentifier(parent));
+		if (envvars) {
+			ObjectLock argumentsLock(envvars);
+
+			for (auto& kv : envvars) {
+				envvarChecksums->Set(kv.first, HashValue(kv.second));
 			}
+		}
 
-			checkSums->Set("all_parents_checksums", parents);
-			checkSums->Set("all_parents_checksum", HashValue(zone->GetAllParents()));
+		checkSums->Set("envvars_checksum", HashValue(envvars));
+		checkSums->Set("envvar_checksums", envvarChecksums);
+		propertiesBlacklist.emplace("env");
+	}
+
+	auto timeperiod(dynamic_pointer_cast<TimePeriod>(object));
+	if (timeperiod) {
+		Dictionary::Ptr ranges = timeperiod->GetRanges();
+
+		checkSums->Set("ranges_checksum", HashValue(ranges));
+		propertiesBlacklist.emplace("ranges");
+
+		// Compute checksums for Includes (like groups)
+		Array::Ptr includes;
+		ConfigObject::Ptr (*getInclude)(const String& name);
+
+		includes = timeperiod->GetIncludes();
+		getInclude = &::GetObjectByName<TimePeriod>;
+
+		checkSums->Set("includes_checksum", CalculateCheckSumArray(includes));
+
+		Array::Ptr includeChecksums = new Array();
+
+		ObjectLock includesLock(includes);
+		ObjectLock includeChecksumsLock(includeChecksums);
+
+		for (auto include : includes) {
+			includeChecksums->Add(GetObjectIdentifier((*getInclude)(include.Get<String>())));
+		}
+
+		checkSums->Set("include_checksums", includeChecksums);
+
+		// Compute checksums for Excludes (like groups)
+		Array::Ptr excludes;
+		ConfigObject::Ptr (*getExclude)(const String& name);
+
+		excludes = timeperiod->GetExcludes();
+		getExclude = &::GetObjectByName<TimePeriod>;
+
+		checkSums->Set("excludes_checksum", CalculateCheckSumArray(excludes));
+
+		Array::Ptr excludeChecksums = new Array();
+
+		ObjectLock excludesLock(excludes);
+		ObjectLock excludeChecksumsLock(excludeChecksums);
+
+		for (auto exclude : excludes) {
+			excludeChecksums->Add(GetObjectIdentifier((*getExclude)(exclude.Get<String>())));
+		}
+
+		checkSums->Set("exclude_checksums", excludeChecksums);
+	}
+
+	icinga::Comment::Ptr comment = dynamic_pointer_cast<Comment>(object);
+	if (comment) {
+		propertiesBlacklist.emplace("name");
+		propertiesBlacklist.emplace("host_name");
+
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(comment->GetCheckable());
+		if (service) {
+			propertiesBlacklist.emplace("service_name");
+			checkSums->Set("service_checksum", GetObjectIdentifier(service));
+			typeName = "servicecomment";
 		} else {
-			/* zone_checksum for endpoints already is calculated above. */
-
-			auto command(dynamic_pointer_cast<Command>(object));
-
-			if (command) {
-				Dictionary::Ptr arguments = command->GetArguments();
-				Dictionary::Ptr argumentChecksums = new Dictionary;
-
-				if (arguments) {
-					ObjectLock argumentsLock(arguments);
-
-					for (auto& kv : arguments) {
-						argumentChecksums->Set(kv.first, HashValue(kv.second));
-					}
-				}
-
-				checkSums->Set("arguments_checksum", HashValue(arguments));
-				checkSums->Set("argument_checksums", argumentChecksums);
-				propertiesBlacklist.emplace("arguments");
-
-				Dictionary::Ptr envvars = command->GetEnv();
-				Dictionary::Ptr envvarChecksums = new Dictionary;
-
-				if (envvars) {
-					ObjectLock argumentsLock(envvars);
-
-					for (auto& kv : envvars) {
-						envvarChecksums->Set(kv.first, HashValue(kv.second));
-					}
-				}
-
-				checkSums->Set("envvars_checksum", HashValue(envvars));
-				checkSums->Set("envvar_checksums", envvarChecksums);
-				propertiesBlacklist.emplace("env");
-			} else {
-				auto timeperiod(dynamic_pointer_cast<TimePeriod>(object));
-
-				if (timeperiod) {
-					Dictionary::Ptr ranges = timeperiod->GetRanges();
-
-					checkSums->Set("ranges_checksum", HashValue(ranges));
-					propertiesBlacklist.emplace("ranges");
-
-					// Compute checksums for Includes (like groups)
-					Array::Ptr includes;
-					ConfigObject::Ptr (*getInclude)(const String& name);
-
-					includes = timeperiod->GetIncludes();
-					getInclude = &::GetClude;
-
-					checkSums->Set("includes_checksum", CalculateCheckSumArray(includes));
-
-					Array::Ptr includeChecksums = new Array();
-
-					ObjectLock includesLock(includes);
-					ObjectLock includeChecksumsLock(includeChecksums);
-
-					for (auto include : includes) {
-						includeChecksums->Add(GetObjectIdentifier((*getInclude)(include.Get<String>())));
-					}
-
-					checkSums->Set("include_checksums", includeChecksums);
-
-					// Compute checksums for Excludes (like groups)
-					Array::Ptr excludes;
-					ConfigObject::Ptr (*getExclude)(const String& name);
-
-					excludes = timeperiod->GetExcludes();
-					getExclude = &::GetClude;
-
-					checkSums->Set("excludes_checksum", CalculateCheckSumArray(excludes));
-
-					Array::Ptr excludeChecksums = new Array();
-
-					ObjectLock excludesLock(excludes);
-					ObjectLock excludeChecksumsLock(excludeChecksums);
-
-					for (auto exclude : excludes) {
-						excludeChecksums->Add(GetObjectIdentifier((*getExclude)(exclude.Get<String>())));
-					}
-
-					checkSums->Set("exclude_checksums", excludeChecksums);
-				} else {
-					icinga::Comment::Ptr comment = dynamic_pointer_cast<Comment>(object);
-					if (comment) {
-						propertiesBlacklist.emplace("name");
-						propertiesBlacklist.emplace("host_name");
-
-						Host::Ptr host;
-						Service::Ptr service;
-						tie(host, service) = GetHostService(comment->GetCheckable());
-						if (service) {
-							propertiesBlacklist.emplace("service_name");
-							checkSums->Set("service_checksum", GetObjectIdentifier(service));
-							typeName = "servicecomment";
-						} else {
-							checkSums->Set("host_checksum", GetObjectIdentifier(host));
-							typeName = "hostcomment";
-						}
-					}
-				}
-			}
+			checkSums->Set("host_checksum", GetObjectIdentifier(host));
+			typeName = "hostcomment";
 		}
 	}
 
 	/* Send all object attributes to Redis, no extra checksums involved here. */
-	UpdateObjectAttrs(m_PrefixConfigObject, object, FAConfig, typeName);
+	auto tempAttrs = (UpdateObjectAttrs(m_PrefixConfigObject, object, FAConfig, typeName));
+	attributes.insert(attributes.end(), std::begin(tempAttrs), std::end(tempAttrs));
 
 	/* Custom var checksums. */
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
@@ -445,10 +491,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 		if (vars) {
 			auto varsJson(JsonEncode(vars));
 
-			Log(LogDebug, "RedisWriter")
-					<< "HSET " << m_PrefixConfigCustomVar + typeName << " " << objectKey << " " << varsJson;
-
-			ExecuteQuery({"HSET", m_PrefixConfigCustomVar + typeName, objectKey, varsJson});
+			customVars.emplace_back(objectKey);
+			customVars.emplace_back(varsJson);
 		}
 	}
 
@@ -457,56 +501,34 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTran
 
 	String checkSumsBody = JsonEncode(checkSums);
 
-	Log(LogDebug, "RedisWriter")
-			<< "HSET " << m_PrefixConfigCheckSum + typeName << " " << objectKey << " " << checkSumsBody;
-
-	ExecuteQuery({"HSET", m_PrefixConfigCheckSum + typeName, objectKey, checkSumsBody});
+	checksums.emplace_back(objectKey);
+	checksums.emplace_back(checkSumsBody);
 
 
 	/* Send an update event to subscribers. */
 	if (runtimeUpdate) {
-		ExecuteQuery({"PUBLISH", "icinga:config:update", typeName + ":" + objectKey});
+		m_Rcon->ExecuteQuery({"PUBLISH", "icinga:config:update", typeName + ":" + objectKey});
 	}
-
-	if (useTransaction)
-		ExecuteQuery({"EXEC"});
 }
 
 void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 {
-	AssertOnWorkQueue();
-
-	/* during startup we might send duplicated object config, ignore them without any connection */
-	if (!m_Context)
-		return;
-
 	String typeName = object->GetReflectionType()->GetName().ToLower();
 	String objectKey = GetObjectIdentifier(object);
 
-	ExecuteQueries({
+	m_Rcon->ExecuteQueries({
 						   {"HDEL",    m_PrefixConfigObject + typeName, objectKey},
 						   {"DEL",     m_PrefixStatusObject + typeName + ":" + objectKey},
-						   {"PUBLISH", "icinga:config:delete",          typeName + ":" + objectKey}
+						   {"PUBLISH", "icinga:config:delete", typeName + ":" + objectKey}
 				   });
-
 }
 
-void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, bool useTransaction)
+void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 {
-	AssertOnWorkQueue();
-
-	/* during startup we might receive check results, ignore them without any connection */
-	if (!m_Context)
-		return;
-
-	if (useTransaction)
-		ExecuteQuery({"MULTI"});
-
 	//TODO: Manage type names
-	UpdateObjectAttrs(m_PrefixStatusObject, object, FAState, "");
+	//TODO: Figure out what we need when we implement the history and state sync
+//	UpdateObjectAttrs(m_PrefixStatusObject, object, FAState, "");
 
-	if (useTransaction)
-		ExecuteQuery({"EXEC"});
 
 //	/* Serialize config object attributes */
 //	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAState);
@@ -586,7 +608,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, bool useTran
 //	}
 }
 
-void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType,
+std::vector<String> RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType,
 									const String& typeNameOverride)
 {
 	Type::Ptr type = object->GetReflectionType();
@@ -616,7 +638,8 @@ void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject:
 	if (!typeNameOverride.IsEmpty())
 		typeName = typeNameOverride.ToLower();
 
-	ExecuteQuery({"HSET", keyPrefix + typeName, GetObjectIdentifier(object), JsonEncode(attrs)});
+	return {GetObjectIdentifier(object), JsonEncode(attrs)};
+	//m_Rcon->ExecuteQuery({"HSET", keyPrefix + typeName, GetObjectIdentifier(object), JsonEncode(attrs)});
 }
 
 void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
@@ -624,7 +647,7 @@ void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
 	Type::Ptr type = object->GetReflectionType();
 
 	for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-		rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendStatusUpdate, rw, object, true));
+		rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendStatusUpdate, rw, object));
 	}
 }
 
@@ -633,15 +656,15 @@ void RedisWriter::VersionChangedHandler(const ConfigObject::Ptr& object)
 	Type::Ptr type = object->GetReflectionType();
 
 	if (object->IsActive()) {
-		/* Create or update the object config */
+		// Create or update the object config
 		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-			rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigUpdate, rw.get(), object, true, true));
+//			rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigUpdate, rw, object, true));
 		}
 	} else if (!object->IsActive() &&
-			   object->GetExtension("ConfigObjectDeleted")) { /* same as in apilistener-configsync.cpp */
-		/* Delete object config */
+			   object->GetExtension("ConfigObjectDeleted")) { // same as in apilistener-configsync.cpp
+		// Delete object config
 		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-			rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigDelete, rw.get(), object));
+			rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigDelete, rw, object));
 		}
 	}
 }

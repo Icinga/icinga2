@@ -20,30 +20,31 @@
 #include "base/object.hpp"
 #include "redis/redisconnection.hpp"
 #include "base/workqueue.hpp"
-#include <hiredis/hiredis.h>
-#include <base/logger.hpp>
+#include "base/logger.hpp"
+#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "redis/rediswriter.hpp"
+#include "hiredis/hiredis.h"
+
 
 using namespace icinga;
-/*
-struct redis_error : virtual std::exception, virtual boost::exception { };
-struct errinfo_redis_query_;
-typedef boost::error_info<struct errinfo_redis_query_, std::string> errinfo_redis_query;
-*/
-RedisConnection::RedisConnection(const String host, const int port, const String path) :
-m_Host(host), m_Port(port), m_Path(path) {
+
+RedisConnection::RedisConnection(const String host, const int port, const String path, const String password, const int db) :
+		m_Host(host), m_Port(port), m_Path(path), m_Password(password), m_DbIndex(db), m_Context(NULL)
+{
 	m_RedisConnectionWorkQueue.SetName("RedisConnection");
 }
 
 void RedisConnection::StaticInitialize()
 {
-
 }
 
 void RedisConnection::Start()
 {
 	RedisConnection::Connect();
+
+	std::thread thread(std::bind(&RedisConnection::HandleRW, this));
+	thread.detach();
 }
 
 void RedisConnection::AssertOnWorkQueue()
@@ -51,11 +52,31 @@ void RedisConnection::AssertOnWorkQueue()
 	ASSERT(m_RedisConnectionWorkQueue.IsWorkerThread());
 }
 
-void RedisConnection::Connect() {
+void RedisConnection::HandleRW()
+{
+	Utility::SetThreadName("RedisConnection Handler");
+
+	for (;;) {
+		try {
+			{
+				boost::mutex::scoped_lock lock(m_CMutex);
+				redisAsyncHandleWrite(m_Context);
+				redisAsyncHandleRead(m_Context);
+			}
+			Utility::Sleep(0.1);
+		} catch (const std::exception&) {
+			Log(LogCritical, "RedisWriter", "Internal Redis Error");
+		}
+	}
+}
+
+void RedisConnection::Connect()
+{
 	if (m_Context)
 		return;
 
 	Log(LogInformation, "RedisWriter", "Trying to connect to redis server Async");
+	boost::mutex::scoped_lock lock(m_CMutex);
 
 	if (m_Path.IsEmpty())
 		m_Context = redisAsyncConnect(m_Host.CStr(), m_Port);
@@ -78,7 +99,16 @@ void RedisConnection::Connect() {
 
 	redisAsyncSetDisconnectCallback(m_Context, &DisconnectCallback);
 
-	//TODO: Authentication, DB selection, error handling
+	/* TODO: This currently does not work properly:
+	 * In case of error the connection is broken, yet the Context is not set to faulty. May be a bug with hiredis.
+     * Error case: Password does not match, or even: "Client sent AUTH, but no password is set" which also results in an error.
+     */
+	if (!m_Password.IsEmpty()) {
+		ExecuteQuery({"AUTH", m_Password});
+	}
+
+	if (m_DbIndex != 0)
+		ExecuteQuery({"SELECT", Convert::ToString(m_DbIndex)});
 }
 
 void RedisConnection::Disconnect()
@@ -86,19 +116,31 @@ void RedisConnection::Disconnect()
 	redisAsyncDisconnect(m_Context);
 }
 
-void RedisConnection::DisconnectCallback(const redisAsyncContext *c, int status) {
+void RedisConnection::DisconnectCallback(const redisAsyncContext *c, int status)
+{
 	if (status == REDIS_OK)
 		Log(LogInformation, "RedisWriter") << "Redis disconnected by us";
-	else
-		Log(LogCritical, "Rediswriter") << "Redis disconnected for reasons";
+	else {
+		if (c->err != 0)
+			Log(LogCritical, "RedisWriter") << "Redis disconnected by server. Reason: " << c->errstr;
+		else
+			Log(LogCritical, "RedisWriter") << "Redis disconnected by server";
+	}
 
 }
+
+bool RedisConnection::IsConnected()
+{
+	return (REDIS_CONNECTED & m_Context->c.flags) == REDIS_CONNECTED;
+}
+
 void RedisConnection::ExecuteQuery(const std::vector<String>& query, redisCallbackFn *fn, void *privdata)
 {
 	m_RedisConnectionWorkQueue.Enqueue(std::bind(&RedisConnection::SendMessageInternal, this, query, fn, privdata));
 }
 
-void RedisConnection::ExecuteQueries(const std::vector<std::vector<String> >& queries, redisCallbackFn *fn, void *privdata)
+void
+RedisConnection::ExecuteQueries(const std::vector<std::vector<String> >& queries, redisCallbackFn *fn, void *privdata)
 {
 	for (const auto& query : queries) {
 		m_RedisConnectionWorkQueue.Enqueue(std::bind(&RedisConnection::SendMessageInternal, this, query, fn, privdata));
@@ -108,6 +150,8 @@ void RedisConnection::ExecuteQueries(const std::vector<std::vector<String> >& qu
 void RedisConnection::SendMessageInternal(const std::vector<String>& query, redisCallbackFn *fn, void *privdata)
 {
 	AssertOnWorkQueue();
+
+	boost::mutex::scoped_lock lock(m_CMutex);
 
 	if (!m_Context) {
 		Log(LogCritical, "RedisWriter")
@@ -120,16 +164,21 @@ void RedisConnection::SendMessageInternal(const std::vector<String>& query, redi
 
 	argv = new const char *[query.size()];
 	argvlen = new size_t[query.size()];
+	String debugstr;
 
 	for (std::vector<String>::size_type i = 0; i < query.size(); i++) {
 		argv[i] = query[i].CStr();
 		argvlen[i] = query[i].GetLength();
+		debugstr += argv[i];
+		debugstr += " ";
 	}
 
+	Log(LogDebug, "RedisWriter, Connection")
+		<< "Sending Command: " << debugstr;
 	int r = redisAsyncCommandArgv(m_Context, fn, privdata, query.size(), argv, argvlen);
 
-	delete [] argv;
-	delete [] argvlen;
+	delete[] argv;
+	delete[] argvlen;
 
 	if (r == REDIS_REPLY_ERROR) {
 		Log(LogCritical, "RedisWriter")
@@ -137,7 +186,6 @@ void RedisConnection::SendMessageInternal(const std::vector<String>& query, redi
 
 		BOOST_THROW_EXCEPTION(
 				redis_error()
-						<< errinfo_redis_query("FUCK")
 						<< errinfo_redis_query(Utility::Join(Array::FromVector(query), ' ', false))
 		);
 	}

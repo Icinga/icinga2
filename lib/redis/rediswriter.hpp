@@ -25,6 +25,7 @@
 #include "remote/messageorigin.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
+#include "redis/redisconnection.hpp"
 #include <hiredis/hiredis.h>
 
 namespace icinga
@@ -66,10 +67,11 @@ private:
 
 	/* config & status dump */
 	void UpdateAllConfigObjects();
-	void SendConfigUpdate(const ConfigObject::Ptr& object, bool useTransaction, bool runtimeUpdate = false);
+	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
+	void CreateConfigUpdate(const ConfigObject::Ptr& object, std::vector<String>& attributes, std::vector<String>& customVars, std::vector<String>& checksums, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
-	void SendStatusUpdate(const ConfigObject::Ptr& object, bool useTransaction);
-	void UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
+	void SendStatusUpdate(const ConfigObject::Ptr& object);
+	std::vector<String> UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
 
 	/* Stats */
 	Dictionary::Ptr GetStats();
@@ -96,14 +98,16 @@ private:
 
 	void ExceptionHandler(boost::exception_ptr exp);
 
-	std::shared_ptr<redisReply> ExecuteQuery(const std::vector<String>& query);
-	std::vector<std::shared_ptr<redisReply> > ExecuteQueries(const std::vector<std::vector<String> >& queries);
+	//Used to get a reply from the asyncronous connection
+	redisReply* RedisGet(const std::vector<String>& query);
+	static void RedisQueryCallback(redisAsyncContext *c, void *r, void *p);
+	static redisReply* dupReplyObject(redisReply* reply);
+
 
 	Timer::Ptr m_StatsTimer;
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_SubscriptionTimer;
 	WorkQueue m_WorkQueue;
-	redisContext *m_Context;
 	std::map<String, RedisSubscriptionInfo> m_Subscriptions;
 
 	String m_PrefixConfigObject;
@@ -112,13 +116,10 @@ private:
 	String m_PrefixStatusObject;
 
 	bool m_ConfigDumpInProgress;
+	bool m_ConfigDumpDone;
+
+	RedisConnection::Ptr m_Rcon;
 };
-
-struct redis_error : virtual std::exception, virtual boost::exception { };
-
-struct errinfo_redis_query_;
-typedef boost::error_info<struct errinfo_redis_query_, std::string> errinfo_redis_query;
-
 }
 
 #endif /* REDISWRITER_H */
