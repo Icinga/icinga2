@@ -58,6 +58,7 @@ protected:
 private:
 	static void TimerProc();
 
+	std::pair<double, double> FindRunningSegment(double minEnd = 0);
 	std::pair<double, double> FindNextSegment();
 	void CreateNextDowntime();
 

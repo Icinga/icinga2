@@ -388,6 +388,56 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference
 	}
 }
 
+Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const String& timeranges, tm *reference)
+{
+	tm begin, end, iter;
+	time_t tsend, tsiter, tsref;
+	int stride;
+
+	tsref = mktime(reference);
+
+	ParseTimeRange(daydef, &begin, &end, &stride, reference);
+
+	iter = begin;
+
+	tsend = mktime(&end);
+
+	do {
+		if (IsInTimeRange(&begin, &end, stride, &iter)) {
+			Array::Ptr segments = new Array();
+			ProcessTimeRanges(timeranges, &iter, segments);
+
+			Dictionary::Ptr bestSegment;
+			double bestEnd;
+
+			ObjectLock olock(segments);
+			for (const Dictionary::Ptr& segment : segments) {
+				double begin = segment->Get("begin");
+				double end = segment->Get("end");
+
+				if (begin >= tsref || end < tsref)
+					continue;
+
+				if (!bestSegment || end > bestEnd) {
+					bestSegment = segment;
+					bestEnd = end;
+				}
+			}
+
+			if (bestSegment)
+				return bestSegment;
+		}
+
+		iter.tm_mday++;
+		iter.tm_hour = 0;
+		iter.tm_min = 0;
+		iter.tm_sec = 0;
+		tsiter = mktime(&iter);
+	} while (tsiter < tsend);
+
+	return nullptr;
+}
+
 Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const String& timeranges, tm *reference)
 {
 	tm begin, end, iter, ref;
