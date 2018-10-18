@@ -28,6 +28,7 @@
 #include <yajl/yajl_version.h>
 #include <yajl/yajl_gen.h>
 #include <yajl/yajl_parse.h>
+#include <json.hpp>
 #include <stack>
 
 using namespace icinga;
