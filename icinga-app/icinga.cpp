@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2018 Icinga Development Team (https://icinga.com/)      *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -543,7 +543,7 @@ static int Main()
 			}
 
 			if (vm.count("version")) {
-				std::cout << "Copyright (c) 2012-2018 Icinga Development Team (https://www.icinga.com/)" << std::endl
+				std::cout << "Copyright (c) 2012-2018 Icinga Development Team (https://icinga.com/)" << std::endl
 					<< "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>" << std::endl
 					<< "This is free software: you are free to change and redistribute it." << std::endl
 					<< "There is NO WARRANTY, to the extent permitted by law.";
@@ -566,8 +566,9 @@ static int Main()
 
 			std::cout << visibleDesc << std::endl
 				<< "Report bugs at <https://github.com/Icinga/icinga2>" << std::endl
-				<< "Get support: <https://www.icinga.com/support/>" << std::endl
-				<< "Icinga home page: <https://www.icinga.com/>" << std::endl;
+				<< "Get support: <https://icinga.com/support/>" << std::endl
+				<< "Documentation: <https://icinga.com/docs/>" << std::endl
+				<< "Icinga home page: <https://icinga.com/>" << std::endl;
 			return EXIT_SUCCESS;
 		}
 	}

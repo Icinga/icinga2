@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2018 Icinga Development Team (https://icinga.com/)      *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -149,7 +149,7 @@ void ApiListener::OnConfigLoaded()
 	CopyCertificateFile(oldCaPath, defaultCaPath);
 
 	if (!oldCertPath.IsEmpty() && !oldKeyPath.IsEmpty() && !oldCaPath.IsEmpty()) {
-		Log(LogWarning, "ApiListener", "Please read the upgrading documentation for v2.8: https://www.icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/");
+		Log(LogWarning, "ApiListener", "Please read the upgrading documentation for v2.8: https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/");
 	}
 
 	/* set up SSL context */

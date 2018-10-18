@@ -2,7 +2,7 @@
 -- upgrade path for Icinga 2.2.0
 --
 -- -----------------------------------------
--- Copyright (c) 2014 Icinga Development Team (https://www.icinga.com)
+-- Copyright (c) 2014 Icinga Development Team (https://icinga.com/)
 --
 -- Please check https://docs.icinga.com for upgrading information!
 -- -----------------------------------------

@@ -66,7 +66,7 @@ There is a detailed chapter on [distributed monitoring scenarios](06-distributed
 Please ensure to have read the [introduction](06-distributed-monitoring.md#distributed-monitoring) at first glance.
 
 If you happen to have further questions, do not hesitate to join the
-[community support channels](https://www.icinga.com/community/get-involved/)
+[community support channels](https://icinga.com/community/)
 and ask community members for their experience and best practices.
 
 ## Your Configuration <a id="your-configuration"></a>

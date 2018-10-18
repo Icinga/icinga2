@@ -71,7 +71,7 @@ A popular frontend for InfluxDB is for example [Grafana](https://grafana.org).
 ### Icinga Reporting <a id="addons-visualization-reporting"></a>
 
 By enabling the [DB IDO](14-features.md#db-ido) feature you can use the
-[Icinga Reporting package](https://docs.icinga.com/latest/en/reporting.html).
+[Icinga Reporting package](https://icinga.com/docs/icinga1/latest/en/reporting.html).
 
 ### NagVis <a id="addons-visualization-nagvis"></a>
 
@@ -102,7 +102,7 @@ is even simpler these days.
 * Configure the logstash `nagios` output to send passive traps to Icinga 2 using the external command pipe.
 * Execute a plugin to check Graylog alert streams.
 
-More details can be found in [this blog post](https://www.icinga.com/2014/12/02/team-icinga-at-osmc-2014/).
+More details can be found in [this blog post](https://icinga.com/2014/12/02/team-icinga-at-osmc-2014/).
 
 ## Notification Scripts and Interfaces <a id="notification-scripts-interfaces"></a>
 
@@ -116,22 +116,22 @@ There's a variety of resources available, for example different notification scr
 * Ticket systems
 * etc.
 
-Additionally external services can be [integrated with Icinga 2](https://www.icinga.com/products/integrations/):
+Additionally external services can be [integrated with Icinga 2](https://icinga.com/products/integrations/):
 
-* [Pagerduty](https://www.icinga.com/partners/pagerduty/)
-* [VictorOps](https://www.icinga.com/partners/victorops/)
-* [StackStorm](https://www.icinga.com/partners/stackstorm/)
+* [Pagerduty](https://icinga.com/products/integrations/pagerduty/)
+* [VictorOps](https://icinga.com/products/integrations/victorops/)
+* [StackStorm](https://icinga.com/products/integrations/stackstorm/)
 
-More information can be found on the [Icinga Website](https://www.icinga.com/).
+More information can be found on the [Icinga Website](https://icinga.com/).
 
 ## Configuration Management Tools <a id="configuration-tools"></a>
 
 If you require your favourite configuration tool to export the Icinga 2 configuration, please get in
 touch with their developers. The Icinga project does not provide a configuration web interface
-yet. Follow the [Icinga Blog](https://www.icinga.com/blog/) for updates on this topic.
+yet. Follow the [Icinga Blog](https://icinga.com/blog/) for updates on this topic.
 
 If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc. -- we're happy
-to integrate them upstream, so please get in touch with the [Icinga team](https://www.icinga.com/community/get-involved/).
+to integrate them upstream, so please get in touch with the [Icinga team](https://icinga.com/community/).
 
 These tools are currently in development and require feedback and tests:
 

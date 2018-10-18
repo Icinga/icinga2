@@ -2,7 +2,7 @@
 
 # Icinga 2
 
-![Icinga Logo](https://www.icinga.com/wp-content/uploads/2014/06/icinga_logo.png)
+![Icinga Logo](https://icinga.com/wp-content/uploads/2014/06/icinga_logo.png)
 
 #### Table of Contents
 
@@ -21,11 +21,11 @@ network resources, notifies users of outages, and generates performance data for
 Scalable and extensible, Icinga 2 can monitor large, complex environments across
 multiple locations.
 
-Icinga 2 as monitoring core works best with [Icinga Web 2](https://www.icinga.com/products/icinga-web-2/)
+Icinga 2 as monitoring core works best with [Icinga Web 2](https://icinga.com/products/icinga-web-2/)
 as web interface.
 
-More information can be found at [www.icinga.com](https://www.icinga.com/products/icinga-2/)
-and inside the [documentation](https://www.icinga.com/docs/icinga2/latest/).
+More information can be found at [icinga.com](https://icinga.com/products/icinga-2/)
+and inside the [documentation](https://icinga.com/docs/icinga2/latest/).
 
 ## Licensing
 
@@ -58,9 +58,9 @@ is also available on https://docs.icinga.com
 
 ## Support
 
-Check the project website at https://www.icinga.com for status updates. Join the
-[community channels](https://www.icinga.com/community) for questions
-or ask an Icinga partner for [professional support](https://www.icinga.com/services/support/).
+Check the project website at https://icinga.com for status updates. Join the
+[community channels](https://icinga.com/community) for questions
+or ask an Icinga partner for [professional support](https://icinga.com/services/support/).
 
 ## Contributing
 

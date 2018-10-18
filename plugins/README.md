@@ -34,7 +34,7 @@ A critical state always overwrites a warning state, meaning the check would be c
 ### License
 
 Icinga 2  
-Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)
+Copyright (C) 2012-2018 Icinga Development Team (https://icinga.com/)
 
 This program is free software; you can redistribute it and/or  
 modify it under the tems of the GNU General Public License  

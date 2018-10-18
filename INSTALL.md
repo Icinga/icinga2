@@ -7,7 +7,7 @@ of operating systems.
 Please check the documentation in the [doc/](doc/) directory for a current list
 of available packages and detailed installation instructions.
 
-The online documentation is available on [icinga.com/docs](https://www.icinga.com/docs/)
+The online documentation is available on [icinga.com/docs](https://icinga.com/docs/)
 and will guide you step by step.
 
 There are a number of known caveats when installing from source such as

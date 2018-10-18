@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2018 Icinga Development Team (https://icinga.com/)      *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -49,6 +49,15 @@ void ElasticsearchWriter::OnConfigLoaded()
 	ObjectImpl<ElasticsearchWriter>::OnConfigLoaded();
 
 	m_WorkQueue.SetName("ElasticsearchWriter, " + GetName());
+
+	if (!GetEnableHa()) {
+		Log(LogDebug, "ElasticsearchWriter")
+			<< "HA functionality disabled. Won't pause connection: " << GetName();
+
+		SetHAMode(HARunEverywhere);
+	} else {
+		SetHAMode(HARunOnce);
+	}
 }
 
 void ElasticsearchWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)

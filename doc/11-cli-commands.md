@@ -55,7 +55,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 
@@ -165,7 +165,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## CLI command: Ca <a id="cli-command-ca"></a>
@@ -200,7 +200,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## CLI command: Console <a id="cli-command-console"></a>
@@ -254,7 +254,7 @@ Command options:
   --sandbox                 enable sandbox mode
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 
@@ -394,7 +394,7 @@ Command options:
   --close-stdio             do not log to stdout (or stderr) after startup
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ### Config Files <a id="cli-command-daemon-config-files"></a>
@@ -467,7 +467,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## CLI command: Object <a id="cli-command-object"></a>
@@ -509,7 +509,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## CLI command: Pki <a id="cli-command-pki"></a>
@@ -556,7 +556,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## CLI command: Troubleshoot <a id="cli-command-troubleshoot"></a>
@@ -600,7 +600,7 @@ Command options:
   --include-vars            Print all Variables (like `variable list`)
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## CLI command: Variable <a id="cli-command-variable"></a>
@@ -633,7 +633,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## Enabling/Disabling Features <a id="enable-features"></a>

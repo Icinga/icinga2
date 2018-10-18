@@ -167,7 +167,7 @@ running Icinga 2.
     (gdb) handle SIGPIPE nostop noprint pass
     (gdb) r
 
-If you create a [bug report](https://www.icinga.com/community/get-involved/),
+If you create a [new issue](https://github.com/Icinga/icinga2/issues),
 make sure to attach as much detail as possible.
 
 ### GDB Backtrace from Running Process <a id="development-debug-gdb-backtrace-running"></a>
