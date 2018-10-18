@@ -11,16 +11,16 @@
     <owners>Icinga Development Team</owners>
     <summary>icinga2 - Monitoring Agent for Windows</summary>
     <description>Icinga 2 is an open source monitoring platform which notifies users about host and service outages.</description>
-    <projectUrl>https://www.icinga.com/</projectUrl>
+    <projectUrl>https://icinga.com/</projectUrl>
     <tags>icinga2 agent monitoring admin</tags>
-    <licenseUrl>https://www.icinga.com/resources/faq/</licenseUrl>
+    <licenseUrl>https://icinga.com/resources/faq/</licenseUrl>
     <releaseNotes>https://github.com/Icinga/icinga2/blob/master/ChangeLog</releaseNotes>
     <docsUrl>https://docs.icinga.com/icinga2/</docsUrl>
     <bugTrackerUrl>https://github.com/Icinga/icinga2/issues</bugTrackerUrl>
     <packageSourceUrl>https://github.com/Icinga/icinga2</packageSourceUrl>
     <projectSourceUrl>https://github.com/Icinga/icinga2</projectSourceUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <iconUrl>https://www.icinga.com/wp-content/uploads/2015/05/icinga_icon_128x128.png</iconUrl>
+    <iconUrl>https://icinga.com/wp-content/uploads/2015/05/icinga_icon_128x128.png</iconUrl>
   </metadata>
   <files>
     <file src="${CMAKE_CURRENT_BINARY_DIR}/chocolateyInstall.ps1" target="tools" />

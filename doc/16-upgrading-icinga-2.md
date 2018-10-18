@@ -402,10 +402,10 @@ attributes. More details can be found [here](08-advanced-topics.md#check-flappin
 ## Upgrading to v2.7 <a id="upgrading-to-2-7"></a>
 
 v2.7.0 provided new notification scripts and commands. Please ensure to
-update your configuration accordingly. An advisory has been published [here](https://www.icinga.com/2017/08/23/advisory-for-icinga-2-v2-7-update-and-mail-notification-scripts/).
+update your configuration accordingly. An advisory has been published [here](https://icinga.com/2017/08/23/advisory-for-icinga-2-v2-7-update-and-mail-notification-scripts/).
 
 In case are having troubles with OpenSSL 1.1.0 and the
-public CA certificates, please read [this advisory](https://www.icinga.com/2017/08/30/advisory-for-ssl-problems-with-leading-zeros-on-openssl-1-1-0/)
+public CA certificates, please read [this advisory](https://icinga.com/2017/08/30/advisory-for-ssl-problems-with-leading-zeros-on-openssl-1-1-0/)
 and check the [troubleshooting chapter](15-troubleshooting.md#troubleshooting).
 
 If Icinga 2 fails to start with an empty reference to `$ICINGA2_CACHE_DIR`

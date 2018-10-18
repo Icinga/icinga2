@@ -2227,7 +2227,7 @@ in the service object then.
 > **Note**
 >
 > Keep in mind that the values are still visible with the [debug console](11-cli-commands.md#cli-command-console)
-> and the inspect mode in the [Icinga Director](https://www.icinga.com/docs/director/latest/).
+> and the inspect mode in the [Icinga Director](https://icinga.com/docs/director/latest/).
 
 You can also set global environment variables in the application's
 sysconfig configuration file, e.g. `HOME` or specific library paths

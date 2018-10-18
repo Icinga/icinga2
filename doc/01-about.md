@@ -17,9 +17,9 @@ LICENSE file included in the source package.
 
 ## Support  <a id="support"></a>
 
-Check the project website at [icinga.com](https://www.icinga.com) for status updates. Join the
+Check the project website at [icinga.com](https://icinga.com) for status updates. Join the
 [community channels](https://icinga.com/community/) for questions
-or ask an Icinga partner for [professional support](https://www.icinga.com/services/support/).
+or ask an Icinga partner for [professional support](https://icinga.com/services/support/).
 
 ## Contribute  <a id="contribute"></a>
 
@@ -40,4 +40,4 @@ file.
 ## What's New <a id="whats-new"></a>
 
 The Icinga 2 Changelog is located [here](https://github.com/Icinga/icinga2/blob/master/CHANGELOG.md).
-Please follow our release announcements on [icinga.com](https://www.icinga.com/blog/) too.
+Please follow our release announcements on [icinga.com](https://icinga.com/blog/) too.

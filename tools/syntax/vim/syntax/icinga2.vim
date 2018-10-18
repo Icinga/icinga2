@@ -96,7 +96,7 @@ syn keyword		icinga2ObjAttr		contained	timeout times tls_handshake_timeout tls_p
 syn keyword		icinga2ObjAttr		contained	types update_interval user user_groups username users volatile zone
 syn match		icinga2ObjAttr		contained	"\(vars.\w\+\)"
 
-" keywords: https://www.icinga.com/docs/icinga2/latest/doc/17-language-reference/#reserved-keywords
+" keywords: https://icinga.com/docs/icinga2/latest/doc/17-language-reference/#reserved-keywords
 syn keyword		icinga2Keyword		object template include include_recursive include_zones library
 syn keyword		icinga2Keyword		const var this globals locals use default ignore_on_error
 syn keyword		icinga2Keyword		current_filename current_line apply to where import assign
@@ -107,7 +107,7 @@ syn keyword		icinga2Keyword		ignore function return in
 syn match		icinga2AssignCond	contained	"\(assign[ \t]\+\where\|ignore[ \t]\+\where\)"
 
 
-" Documentation reference: https://www.icinga.com/docs/icinga2/latest/doc/18-library-reference/
+" Documentation reference: https://icinga.com/docs/icinga2/latest/doc/18-library-reference/
 
 " Global functions
 syn keyword	icinga2GFunction	contained	regex match cidr_match range len union intersection keys string
@@ -257,7 +257,7 @@ syn  match         icinga2Operators "[ \t]\+\(/=\)\+"
 " ### Global settings
 
 " Global constants
-" https://www.icinga.com/docs/icinga2/snapshot/doc/17-language-reference/#icinga-2-specific-constants
+" https://icinga.com/docs/icinga2/snapshot/doc/17-language-reference/#icinga-2-specific-constants
 
 " Path specific constants
 syn keyword 	icinga2PathConstant	CacheDir ConfigDir DataDir IncludeConfDir InitRunDir LocalStateDir LogDir ModAttrPath
