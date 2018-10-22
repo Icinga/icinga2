@@ -106,6 +106,22 @@ For example the following started to give a fatal error in 2.10:
 
 ```critical/config: Error: Zone 'XXX' can not have a global zone as parent.```
 
+### Package Changes <a id="upgrading-to-2-10-package-changes"></a>
+
+Debian/Ubuntu drops the `libicinga2` package. `apt-get upgrade icinga2`
+won't remove such packages leaving the upgrade in an unsatisfied state.
+
+Please use `apt-get full-upgrade` or `apt-get dist-upgrade` instead, as explained [here](https://github.com/Icinga/icinga2/issues/6695#issuecomment-430585915).
+
+On RHEL/CentOS/Fedora, `icinga2-libs` has been obsoleted. Unfortunately yum's dependency
+resolver doesn't allow to install older versions than 2.10 then. Please
+read [here](https://github.com/Icinga/icinga-packaging/issues/114#issuecomment-429264827)
+for details.
+
+RPM packages dropped the [Classic UI](16-upgrading-icinga-2.md#upgrading-to-2-8-removed-classicui-config-package)
+package in v2.8, Debian/Ubuntu packages were forgotten. This is now the case with this
+release. Icinga 1.x is EOL by the end of 2018, plan your migration to [Icinga Web 2](https://icinga.com/docs/icingaweb2/latest/).
+
 ## Upgrading to v2.9 <a id="upgrading-to-2-9"></a>
 
 ### Deprecation and Removal Notes <a id="upgrading-to-2-9-deprecation-removal-notes"></a>
