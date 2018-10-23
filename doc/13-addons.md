@@ -94,7 +94,7 @@ installation, configuration and integration.
 ### Dashing Dashboard <a id="addons-visualization-dashing-dashboard"></a>
 
 The [Icinga 2 dashboard](https://github.com/dnsmichi/dashing-icinga2) is built
-on top of Dashing and uses the [REST API](#icinga2-api) to visualize what's going
+on top of Dashing and uses the [REST API](12-icinga2-api.md#icinga2-api) to visualize what's going
 on with your monitoring. It combines several popular widgets and provides development
 instructions for your own implementation.
 
