@@ -83,42 +83,35 @@ void RedisWriter::UpdateAllConfigObjects()
 
 	upq.ParallelFor(types, [this](const TypePair& type) {
 		size_t bulkCounter = 0;
-		auto attributes = new std::vector<String>();
-		attributes->emplace_back("HMSET");
-		attributes->emplace_back(m_PrefixConfigObject + type.second);
-		auto customVars = new std::vector<String>();
-		customVars->emplace_back("HMSET");
-		customVars->emplace_back(m_PrefixConfigCustomVar + type.second);
-		auto checksums = new std::vector<String>();
-		checksums->emplace_back("HMSET");
-		checksums->emplace_back(m_PrefixConfigCheckSum + type.second);
-
+		std::vector<String> attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + type.second});
+		std::vector<String> customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + type.second});
+		std::vector<String> checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + type.second});
 
 		for (const ConfigObject::Ptr& object : type.first->GetObjects()) {
-			CreateConfigUpdate(object, *attributes, *customVars, *checksums, false);
+			CreateConfigUpdate(object, attributes, customVars, checksums, false);
 			SendStatusUpdate(object);
 			bulkCounter ++;
 			if (!bulkCounter % 100) {
-				if (attributes->size() > 2) {
-					m_Rcon->ExecuteQuery(*attributes);
-					attributes->erase(attributes->begin() + 2, attributes->end());
+				if (attributes.size() > 2) {
+					m_Rcon->ExecuteQuery(attributes);
+					attributes.erase(attributes.begin() + 2, attributes.end());
 				}
-				if (customVars->size() > 2) {
-					m_Rcon->ExecuteQuery(*customVars);
-					customVars->erase(customVars->begin() + 2, customVars->end());
+				if (customVars.size() > 2) {
+					m_Rcon->ExecuteQuery(customVars);
+					customVars.erase(customVars.begin() + 2, customVars.end());
 				}
-				if (checksums->size() > 2) {
-					m_Rcon->ExecuteQuery(*checksums);
-					checksums->erase(checksums->begin() + 2, checksums->end());
+				if (checksums.size() > 2) {
+					m_Rcon->ExecuteQuery(checksums);
+					checksums.erase(checksums.begin() + 2, checksums.end());
 				}
 			}
 		}
-		if (attributes->size() > 2)
-			m_Rcon->ExecuteQuery(*attributes);
-		if (customVars->size() > 2)
-			m_Rcon->ExecuteQuery(*customVars);
-		if (checksums->size() > 2)
-			m_Rcon->ExecuteQuery(*checksums);
+		if (attributes.size() > 2)
+			m_Rcon->ExecuteQuery(attributes);
+		if (customVars.size() > 2)
+			m_Rcon->ExecuteQuery(customVars);
+		if (checksums.size() > 2)
+			m_Rcon->ExecuteQuery(checksums);
 
 		Log(LogNotice, "RedisWriter")
 			<< "Dumped " << bulkCounter << " objects of type " << type.second;
@@ -147,21 +140,15 @@ static ConfigObject::Ptr GetObjectByName(const String& name)
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate)
 {
 	String typeName = object->GetReflectionType()->GetName().ToLower();
-	auto attributes = new std::vector<String>();
-	attributes->emplace_back("HSET");
-	attributes->emplace_back(m_PrefixConfigObject +typeName);
-	auto customVars = new std::vector<String>();
-	customVars->emplace_back("HSET");
-	customVars->emplace_back(m_PrefixConfigCustomVar + typeName);
-	auto checksums = new std::vector<String>();
-	checksums->emplace_back("HSET");
-	checksums->emplace_back(m_PrefixConfigCheckSum +typeName);
+	std::vector<String> attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + typeName});
+	std::vector<String> customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + typeName});
+	std::vector<String> checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + typeName});
 
-	CreateConfigUpdate(object, *attributes, *customVars, *checksums, runtimeUpdate);
+	CreateConfigUpdate(object, attributes, customVars, checksums, runtimeUpdate);
 
-	m_Rcon->ExecuteQuery(*attributes);
-	m_Rcon->ExecuteQuery(*customVars);
-	m_Rcon->ExecuteQuery(*checksums);
+	m_Rcon->ExecuteQuery(attributes);
+	m_Rcon->ExecuteQuery(customVars);
+	m_Rcon->ExecuteQuery(checksums);
 }
 
 /* Creates a config update with computed checksums etc.
@@ -503,7 +490,6 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 
 	checksums.emplace_back(objectKey);
 	checksums.emplace_back(checkSumsBody);
-
 
 	/* Send an update event to subscribers. */
 	if (runtimeUpdate) {
