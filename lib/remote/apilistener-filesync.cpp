@@ -17,6 +17,14 @@ REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
 boost::mutex ApiListener::m_ConfigSyncStageLock;
 
+/**
+ * Read the given file and store it in the config information structure.
+ * Callback function for Glob().
+ *
+ * @param config Reference to the config information object.
+ * @param path File path.
+ * @param file Full file name.
+ */
 void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file)
 {
 	CONTEXT("Creating config update for file '" + file + "'");
@@ -45,6 +53,12 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 	update->Set(file.SubStr(path.GetLength()), content);
 }
 
+/**
+ * Compatibility helper for merging config update v1 and v2 into a global result.
+ *
+ * @param config Config information structure.
+ * @returns Dictionary which holds the merged information.
+ */
 Dictionary::Ptr ApiListener::MergeConfigUpdate(const ConfigDirInformation& config)
 {
 	Dictionary::Ptr result = new Dictionary();
@@ -58,6 +72,12 @@ Dictionary::Ptr ApiListener::MergeConfigUpdate(const ConfigDirInformation& confi
 	return result;
 }
 
+/**
+ * Load the given config dir and read their file content into the config structure.
+ *
+ * @param dir Path to the config directory.
+ * @returns ConfigInformation structure.
+ */
 ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
 {
 	ConfigDirInformation config;
@@ -67,6 +87,23 @@ ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
 	return config;
 }
 
+/**
+ * Diffs the old current configuration with the new configuration
+ * and copies the collected content. Detects whether a change
+ * happened, this is used for later restarts.
+ *
+ * This generic function is called in two situations:
+ * - Local zones.d to var/lib/api/zones copy on the master (authoritative: true)
+ * - Received config update on a cluster node (authoritative: false)
+ *
+ * @param oldConfigInfo Config information struct for the current old deployed config.
+ * @param newConfigInfo Config information struct for the received synced config.
+ * @param configDir Destination for copying new files (production, or stage dir).
+ * @param zoneName Currently processed zone, for storing the relative paths for later.
+ * @param relativePaths Reference which stores all updated config path destinations.
+ * @param Whether we're authoritative for this config.
+ * @returns Whether a config change happened.
+ */
 bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, const ConfigDirInformation& newConfigInfo,
 	const String& configDir, const String& zoneName, std::vector<String>& relativePaths, bool authoritative)
 {
@@ -171,6 +208,17 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 	return configChange;
 }
 
+/**
+ * Sync a zone directory where we have an authoritative copy (zones.d, etc.)
+ *
+ * This function collects the registered zone config dirs from
+ * the config compiler and reads the file content into the config
+ * information structure.
+ *
+ * Returns early when there are no updates.
+ *
+ * @param zone Pointer to the zone object being synced.
+ */
 void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 {
 	if (!zone)
@@ -220,6 +268,10 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	UpdateConfigDir(oldConfigInfo, newConfigInfo, currentDir, zoneName, relativePaths, true);
 }
 
+/**
+ * Entrypoint for updating all authoritative configs into var/lib/icinga2/api/zones
+ *
+ */
 void ApiListener::SyncZoneDirs() const
 {
 	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
@@ -231,6 +283,14 @@ void ApiListener::SyncZoneDirs() const
 	}
 }
 
+/**
+ * Entrypoint for sending a file based config update to a cluster client.
+ * This includes security checks for zone relations.
+ * Loads the zone config files where this client belongs to
+ * and sends the 'config::Update' JSON-RPC message.
+ *
+ * @param aclient Connected JSON-RPC client.
+ */
 void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 {
 	Endpoint::Ptr endpoint = aclient->GetEndpoint();
@@ -278,8 +338,21 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	aclient->SendMessage(message);
 }
 
+/**
+ * Registered handler when a new config::Update message is received.
+ *
+ * Checks destination and permissions first, then analyses the update.
+ * The newly received configuration is not copied to production immediately,
+ * but into the staging directory first.
+ * Last, the async validation and restart is triggered.
+ *
+ * @param origin Where this message came from.
+ * @param params Message parameters including the config updates.
+ * @returns Empty, required by the interface.
+ */
 Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
+	/* Verify permissions and trust relationship. */
 	if (!origin->FromClient->GetEndpoint() || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone)))
 		return Empty;
 
@@ -322,6 +395,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 	Utility::MkDirP(apiZonesStageDir, 0700);
 
+	/* Analyse and process the update. */
 	ObjectLock olock(updateV1);
 	for (const Dictionary::Pair& kv : updateV1) {
 
@@ -349,13 +423,14 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		Utility::MkDirP(currentConfigDir, 0700);
 		Utility::MkDirP(stageConfigDir, 0700);
 
+		/* Merge the config information. */
 		ConfigDirInformation newConfigInfo;
 		newConfigInfo.UpdateV1 = kv.second;
 
 		if (updateV2)
 			newConfigInfo.UpdateV2 = updateV2->Get(kv.first);
 
-		Dictionary::Ptr newConfig = kv.second;
+		/* Load the current production config details. */
 		ConfigDirInformation currentConfigInfo = LoadConfigDir(currentConfigDir);
 
 		/* Diff the current production configuration with the received configuration.
@@ -375,6 +450,17 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	return Empty;
 }
 
+/**
+ * Callback for stage config validation.
+ * When validation was successful, the configuration is copied from
+ * stage to production and a restart is triggered.
+ * On failure, there's no restart and this is logged.
+ *
+ * @param pr Result of the validation process.
+ * @param stageConfigDir TODO
+ * @param currentConfigDir TODO
+ * @param relativePaths Collected paths which are copied from stage to current.
+ */
 void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 	const String& stageConfigDir, const String& currentConfigDir,
 	const std::vector<String>& relativePaths)
@@ -436,6 +522,14 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 		listener->UpdateLastFailedZonesStageValidation(pr.Output);
 }
 
+/**
+ * Spawns a new validation process and waits for its output.
+ * Sets 'System.ZonesStageVarDir' to override the config validation zone dirs with our current stage.
+ *
+ * @param stageConfigDir TODO
+ * @param currentConfigDir TODO
+ * @param relativePaths Required for later file operations in the callback.
+ */
 void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const String& currentConfigDir,
 	const std::vector<String>& relativePaths)
 {
@@ -456,6 +550,8 @@ void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const
 	}
 
 	args->Add("--validate");
+
+	/* Set the ZonesStageDir. This creates our own local chroot without any additional automated zone includes. */
 	args->Add("--define");
 	args->Add("System.ZonesStageVarDir=" + GetApiZonesStageDir());
 
@@ -464,6 +560,12 @@ void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const
 	process->Run(std::bind(&TryActivateZonesStageCallback, _1, stageConfigDir, currentConfigDir, relativePaths));
 }
 
+/**
+ * Update the structure from the last failed validation output.
+ * Uses the current timestamp.
+ *
+ * @param log The process output from the config validation.
+ */
 void ApiListener::UpdateLastFailedZonesStageValidation(const String& log)
 {
 	Dictionary::Ptr lastFailedZonesStageValidation = new Dictionary({
@@ -474,6 +576,10 @@ void ApiListener::UpdateLastFailedZonesStageValidation(const String& log)
 	SetLastFailedZonesStageValidation(lastFailedZonesStageValidation);
 }
 
+/**
+ * Clear the structure for the last failed reload.
+ *
+ */
 void ApiListener::ClearLastFailedZonesStageValidation()
 {
 	SetLastFailedZonesStageValidation(Dictionary::Ptr());
