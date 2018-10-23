@@ -258,7 +258,7 @@ Dictionary::Ptr ApiActions::RemoveAcknowledgement(const ConfigObject::Ptr& objec
 
 	if (!checkable)
 		return ApiActions::CreateResult(404,
-			"Cannot remove acknowlegement for non-existent checkable object "
+			"Cannot remove acknowledgement for non-existent checkable object "
 			+ object->GetName() + ".");
 
 	checkable->ClearAcknowledgement();
