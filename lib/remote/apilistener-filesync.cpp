@@ -414,17 +414,25 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 			Utility::CopyFile(stagePath, currentPath);
 		}
 
-		Application::RequestRestart();
-	} else {
-		Log(LogCritical, "ApiListener")
-			<< "Config validation failed for staged cluster config sync in '" << GetApiZonesStageDir()
-			<< "'. Aborting. Logs: '" << logFile << "'";
-
 		ApiListener::Ptr listener = ApiListener::GetInstance();
 
 		if (listener)
-			listener->UpdateLastFailedZonesStageValidation(pr.Output);
+			listener->ClearLastFailedZonesStageValidation();
+
+		Application::RequestRestart();
+
+		return;
 	}
+
+	/* Error case. */
+	Log(LogCritical, "ApiListener")
+		<< "Config validation failed for staged cluster config sync in '" << GetApiZonesStageDir()
+		<< "'. Aborting. Logs: '" << logFile << "'";
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (listener)
+		listener->UpdateLastFailedZonesStageValidation(pr.Output);
 }
 
 void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const String& currentConfigDir,
@@ -463,4 +471,9 @@ void ApiListener::UpdateLastFailedZonesStageValidation(const String& log)
 	});
 
 	SetLastFailedZonesStageValidation(lastFailedZonesStageValidation);
+}
+
+void ApiListener::ClearLastFailedZonesStageValidation()
+{
+	SetLastFailedZonesStageValidation(Dictionary::Ptr());
 }
