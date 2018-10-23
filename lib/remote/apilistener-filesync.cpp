@@ -32,6 +32,11 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 
 	Dictionary::Ptr update;
 
+	/*
+	 * 'update' messages contain conf files. 'update_v2' syncs everything else (.timestamp).
+	 *
+	 * **Keep this intact to stay compatible with older clients.**
+	 */
 	if (Utility::Match("*.conf", file))
 		update = config.UpdateV1;
 	else
