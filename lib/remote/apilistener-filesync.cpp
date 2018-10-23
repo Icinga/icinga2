@@ -132,23 +132,24 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 		}
 	}
 
-	/* Update with staging information TODO - use `authoritative` as flag. */
+	/* Log something whether we're authoritative or receing a staged config. */
 	Log(LogInformation, "ApiListener")
-		<< "Applying configuration file update for path '" << configDir << "' (" << numBytes << " Bytes). Received timestamp '"
+		<< "Applying configuration file update for " << (authoritative ? "" : "stage ")
+		<< "path '" << configDir << "' (" << numBytes << " Bytes). Received timestamp '"
 		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
 		<< std::fixed << std::setprecision(6) << newTimestamp
 		<< "), Current timestamp '"
 		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
 		<< oldTimestamp << ").";
 
-	/* TODO: Deal with recursive directories. */
+	/* If the update removes a path, delete it on disk. */
 	ObjectLock xlock(oldConfig);
 	for (const Dictionary::Pair& kv : oldConfig) {
 		if (!newConfig->Contains(kv.first)) {
 			configChange = true;
 
 			String path = configDir + "/" + kv.first;
-			(void) unlink(path.CStr());
+			Utility::RemoveDirRecursive(path);
 		}
 	}
 
