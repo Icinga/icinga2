@@ -70,6 +70,9 @@ class PerfdataWriter : ConfigObject
 	[config] double rotation_interval {
 		default {{{ return 30; }}}
 	};
+	[config] bool enable_ha {
+		default {{{ return true; }}}
+	};
 };
 
 }

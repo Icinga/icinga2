@@ -7,6 +7,26 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.11 <a id="upgrading-to-2-11"></a>
+
+### HA-aware Features <a id="upgrading-to-2-11-ha-aware-features"></a>
+
+v2.11 introduces additional HA functionality similar to the DB IDO feature.
+This enables the feature being active only on one endpoint while the other
+endpoint is paused. When one endpoint is shut down, automatic failover happens.
+
+This feature is turned on by default. If you need one of the features twice,
+please use `enable_ha = false` to restore the old behaviour.
+
+This affects the following features:
+
+* [Elasticsearch](09-object-types.md#objecttype-elasticsearchwriter)
+* [Gelf](09-object-types.md#objecttype-gelfwriter)
+* [Graphite](09-object-types.md#objecttype-graphitewriter)
+* [InfluxDB](09-object-types.md#objecttype-influxdbwriter)
+* [OpenTsdb](09-object-types.md#objecttype-opentsdbwriter)
+* [Perfdata](09-object-types.md#objecttype-perfdatawriter) (for PNP)
+
 ## Upgrading to v2.10 <a id="upgrading-to-2-10"></a>
 
 ### Path Constant Changes <a id="upgrading-to-2-10-path-constant-changes"></a>

@@ -49,6 +49,15 @@ void GraphiteWriter::OnConfigLoaded()
 	ObjectImpl<GraphiteWriter>::OnConfigLoaded();
 
 	m_WorkQueue.SetName("GraphiteWriter, " + GetName());
+
+	if (!GetEnableHa()) {
+		Log(LogDebug, "GraphiteWriter")
+			<< "HA functionality disabled. Won't pause connection: " << GetName();
+
+		SetHAMode(HARunEverywhere);
+	} else {
+		SetHAMode(HARunOnce);
+	}
 }
 
 void GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
@@ -72,12 +81,12 @@ void GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& 
 	status->Set("graphitewriter", new Dictionary(std::move(nodes)));
 }
 
-void GraphiteWriter::Start(bool runtimeCreated)
+void GraphiteWriter::Resume()
 {
-	ObjectImpl<GraphiteWriter>::Start(runtimeCreated);
+	ObjectImpl<GraphiteWriter>::Resume();
 
 	Log(LogInformation, "GraphiteWriter")
-		<< "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
 	m_WorkQueue.SetExceptionCallback(std::bind(&GraphiteWriter::ExceptionHandler, this, _1));
@@ -93,14 +102,14 @@ void GraphiteWriter::Start(bool runtimeCreated)
 	Checkable::OnNewCheckResult.connect(std::bind(&GraphiteWriter::CheckResultHandler, this, _1, _2));
 }
 
-void GraphiteWriter::Stop(bool runtimeRemoved)
+void GraphiteWriter::Pause()
 {
 	Log(LogInformation, "GraphiteWriter")
-		<< "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' paused.";
 
 	m_WorkQueue.Join();
 
-	ObjectImpl<GraphiteWriter>::Stop(runtimeRemoved);
+	ObjectImpl<GraphiteWriter>::Pause();
 }
 
 void GraphiteWriter::AssertOnWorkQueue()
@@ -125,6 +134,11 @@ void GraphiteWriter::ExceptionHandler(boost::exception_ptr exp)
 void GraphiteWriter::Reconnect()
 {
 	AssertOnWorkQueue();
+
+	if (IsPaused()) {
+		SetConnected(false);
+		return;
+	}
 
 	double startTime = Utility::GetTime();
 
@@ -175,6 +189,9 @@ void GraphiteWriter::Disconnect()
 
 void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&GraphiteWriter::CheckResultHandlerInternal, this, checkable, cr));
 }
 

@@ -51,6 +51,15 @@ void GelfWriter::OnConfigLoaded()
 	ObjectImpl<GelfWriter>::OnConfigLoaded();
 
 	m_WorkQueue.SetName("GelfWriter, " + GetName());
+
+	if (!GetEnableHa()) {
+		Log(LogDebug, "GelfWriter")
+			<< "HA functionality disabled. Won't pause connection: " << GetName();
+
+		SetHAMode(HARunEverywhere);
+	} else {
+		SetHAMode(HARunOnce);
+	}
 }
 
 void GelfWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
@@ -75,12 +84,12 @@ void GelfWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perf
 	status->Set("gelfwriter", new Dictionary(std::move(nodes)));
 }
 
-void GelfWriter::Start(bool runtimeCreated)
+void GelfWriter::Resume()
 {
-	ObjectImpl<GelfWriter>::Start(runtimeCreated);
+	ObjectImpl<GelfWriter>::Resume();
 
 	Log(LogInformation, "GelfWriter")
-		<< "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
 	m_WorkQueue.SetExceptionCallback(std::bind(&GelfWriter::ExceptionHandler, this, _1));
@@ -98,14 +107,14 @@ void GelfWriter::Start(bool runtimeCreated)
 	Checkable::OnStateChange.connect(std::bind(&GelfWriter::StateChangeHandler, this, _1, _2, _3));
 }
 
-void GelfWriter::Stop(bool runtimeRemoved)
+void GelfWriter::Pause()
 {
 	Log(LogInformation, "GelfWriter")
-		<< "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' paused.";
 
 	m_WorkQueue.Join();
 
-	ObjectImpl<GelfWriter>::Stop(runtimeRemoved);
+	ObjectImpl<GelfWriter>::Pause();
 }
 
 void GelfWriter::AssertOnWorkQueue()
@@ -130,6 +139,11 @@ void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
 void GelfWriter::Reconnect()
 {
 	AssertOnWorkQueue();
+
+	if (IsPaused()) {
+		SetConnected(false);
+		return;
+	}
 
 	double startTime = Utility::GetTime();
 
@@ -180,6 +194,9 @@ void GelfWriter::Disconnect()
 
 void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::CheckResultHandlerInternal, this, checkable, cr));
 }
 
@@ -284,6 +301,9 @@ void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification
 	const User::Ptr& user, NotificationType notificationType, CheckResult::Ptr const& cr,
 	const String& author, const String& commentText, const String& commandName)
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::NotificationToUserHandlerInternal, this,
 		notification, checkable, user, notificationType, cr, author, commentText, commandName));
 }
@@ -348,6 +368,9 @@ void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& noti
 
 void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::StateChangeHandlerInternal, this, checkable, cr, type));
 }
 

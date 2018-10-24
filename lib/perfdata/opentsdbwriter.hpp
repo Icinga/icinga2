@@ -44,8 +44,9 @@ public:
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
-	void Start(bool runtimeCreated) override;
-	void Stop(bool runtimeRemoved) override;
+	void OnConfigLoaded() override;
+	void Resume() override;
+	void Pause() override;
 
 private:
 	Stream::Ptr m_Stream;

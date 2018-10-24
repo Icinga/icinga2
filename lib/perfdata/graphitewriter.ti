@@ -47,6 +47,9 @@ class GraphiteWriter : ConfigObject
 	[no_user_modify] bool should_connect {
 		default {{{ return true; }}}
 	};
+	[config] bool enable_ha {
+		default {{{ return true; }}}
+	};
 };
 
 }

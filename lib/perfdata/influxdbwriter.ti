@@ -88,6 +88,9 @@ class InfluxdbWriter : ConfigObject
 	[config] int flush_threshold {
 		default {{{ return 1024; }}}
 	};
+	[config] bool enable_ha {
+		default {{{ return true; }}}
+	};
 };
 
 validator InfluxdbWriter {
