@@ -197,13 +197,7 @@ void DbEvents::ReachabilityChangedHandler(const Checkable::Ptr& checkable, const
 	if (cr->GetState() == ServiceOK)
 		is_reachable = 1;
 
-	Log(LogDebug, "DbEvents")
-		<< "Updating reachability for checkable '" << checkable->GetName() << "': " << (is_reachable ? "" : "not" ) << " reachable for " << children.size() << " children.";
-
 	for (const Checkable::Ptr& child : children) {
-		Log(LogDebug, "DbEvents")
-			<< "Updating reachability for checkable '" << child->GetName() << "': " << (is_reachable ? "" : "not" ) << " reachable.";
-
 		Host::Ptr host;
 		Service::Ptr service;
 		tie(host, service) = GetHostService(child);
@@ -339,7 +333,6 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 	else if (checkable->GetReflectionType() == Service::TypeInstance)
 		commentType = 1;
 	else {
-		Log(LogDebug, "DbEvents", "unknown object type for adding comment.");
 		return;
 	}
 
@@ -475,7 +468,6 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 	else if (checkable->GetReflectionType() == Service::TypeInstance)
 		downtimeType = 1;
 	else {
-		Log(LogDebug, "DbEvents", "unknown object type for adding downtime.");
 		return;
 	}
 
@@ -731,9 +723,6 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const String& author, const String& comment,
 	AcknowledgementType type, bool notify, double expiry)
 {
-	Log(LogDebug, "DbEvents")
-		<< "add acknowledgement history for '" << checkable->GetName() << "'";
-
 	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
@@ -775,17 +764,11 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 
 void DbEvents::AddAcknowledgement(const Checkable::Ptr& checkable, AcknowledgementType type)
 {
-	Log(LogDebug, "DbEvents")
-		<< "add acknowledgement for '" << checkable->GetName() << "'";
-
 	AddAcknowledgementInternal(checkable, type, true);
 }
 
 void DbEvents::RemoveAcknowledgement(const Checkable::Ptr& checkable)
 {
-	Log(LogDebug, "DbEvents")
-		<< "remove acknowledgement for '" << checkable->GetName() << "'";
-
 	AddAcknowledgementInternal(checkable, AcknowledgementNone, false);
 }
 
@@ -825,9 +808,6 @@ void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, Ackno
 void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
 	const CheckResult::Ptr& cr, const String& author, const String& text)
 {
-	Log(LogDebug, "DbEvents")
-		<< "add notification history for '" << checkable->GetName() << "'";
-
 	/* start and end happen at the same time */
 	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
@@ -875,9 +855,6 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 	std::vector<DbQuery> queries;
 
 	for (const User::Ptr& user : users) {
-		Log(LogDebug, "DbEvents")
-			<< "add contact notification history for service '" << checkable->GetName() << "' and user '" << user->GetName() << "'.";
-
 		DbQuery query2;
 		query2.Table = "contactnotifications";
 		query2.Type = DbQueryInsert;
@@ -902,9 +879,6 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 /* statehistory */
 void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
 {
-	Log(LogDebug, "DbEvents")
-		<< "add state change history for '" << checkable->GetName() << "'";
-
 	double ts = cr->GetExecutionEnd();
 	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(ts);
 
@@ -1227,9 +1201,6 @@ void DbEvents::AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkabl
 
 void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, const String& buffer, LogEntryType type)
 {
-	Log(LogDebug, "DbEvents")
-		<< "add log entry history for '" << checkable->GetName() << "'";
-
 	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
@@ -1260,9 +1231,6 @@ void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, const String& buff
 /* flappinghistory */
 void DbEvents::AddFlappingChangedHistory(const Checkable::Ptr& checkable)
 {
-	Log(LogDebug, "DbEvents")
-		<< "add flapping history for '" << checkable->GetName() << "'";
-
 	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
@@ -1308,9 +1276,6 @@ void DbEvents::AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable)
 	if (!checkable->GetEnableFlapping())
 		return;
 
-	Log(LogDebug, "DbEvents")
-		<< "add flapping history for '" << checkable->GetName() << "'";
-
 	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
@@ -1351,9 +1316,6 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 {
 	if (!cr)
 		return;
-
-	Log(LogDebug, "DbEvents")
-		<< "add checkable check history for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -1412,9 +1374,6 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 /* eventhandlers */
 void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 {
-	Log(LogDebug, "DbEvents")
-		<< "add eventhandler history for '" << checkable->GetName() << "'";
-
 	DbQuery query1;
 	query1.Table = "eventhandlers";
 	query1.Type = DbQueryInsert;
@@ -1458,8 +1417,6 @@ void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 /* externalcommands */
 void DbEvents::AddExternalCommandHistory(double time, const String& command, const std::vector<String>& arguments)
 {
-	Log(LogDebug, "DbEvents", "add external command history");
-
 	DbQuery query1;
 	query1.Table = "externalcommands";
 	query1.Type = DbQueryInsert;
