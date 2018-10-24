@@ -517,6 +517,7 @@ Configuration Attributes:
   ca\_path                  | String                | **Optional.** Path to CA certificate to validate the remote host. Requires `enable_tls` set to `true`.
   cert\_path                | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification. Requires `enable_tls` set to `true`.
   key\_path                 | String                | **Optional.** Path to host key to accompany the cert\_path. Requires `enable_tls` set to `true`.
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `true`.
 
 Note: If `flush_threshold` is set too low, this will force the feature to flush all data to Elasticsearch too often.
 Experiment with the setting, if you are processing more than 1024 metrics per second or similar.
@@ -655,6 +656,7 @@ Configuration Attributes:
   port                      | Number                | **Optional.** GELF receiver port. Defaults to `12201`.
   source                    | String                | **Optional.** Source name for this instance. Defaults to `icinga2`.
   enable\_send\_perfdata    | Boolean               | **Optional.** Enable performance data for 'CHECK RESULT' events.
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `true`.
 
 
 ## GraphiteWriter <a id="objecttype-graphitewriter"></a>
@@ -682,6 +684,7 @@ Configuration Attributes:
   service\_name\_template   | String                | **Optional.** Metric prefix for service name. Defaults to `icinga2.$host.name$.services.$service.name$.$service.check_command$`.
   enable\_send\_thresholds  | Boolean               | **Optional.** Send additional threshold metrics. Defaults to `false`.
   enable\_send\_metadata    | Boolean               | **Optional.** Send additional metadata metrics. Defaults to `false`.
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `true`.
 
 Additional usage examples can be found [here](14-features.md#graphite-carbon-cache-writer).
 
@@ -868,7 +871,7 @@ Configuration Attributes:
   table\_prefix             | String                | **Optional.** MySQL database table prefix. Defaults to `icinga_`.
   instance\_name            | String                | **Optional.** Unique identifier for the local Icinga 2 instance. Defaults to `default`.
   instance\_description     | String                | **Optional.** Description for the Icinga 2 instance.
-  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to "true".
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to `true`.
   failover\_timeout         | Duration              | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to `60s`.
   cleanup                   | Dictionary            | **Optional.** Dictionary with items for historical table cleanup.
   categories                | Array                 | **Optional.** Array of information types that should be written to the database.
@@ -1057,6 +1060,7 @@ Configuration Attributes:
   enable\_send\_metadata    | Boolean               | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
   flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to InfluxDB. Defaults to `10s`.
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `true`.
 
 Note: If `flush_threshold` is set too low, this will always force the feature to flush all data
 to InfluxDB. Experiment with the setting, if you are processing more than 1024 metrics per second
@@ -1303,7 +1307,7 @@ Example:
 object OpenTsdbWriter "opentsdb" {
   host = "127.0.0.1"
   port = 4242
-
+}
 ```
 
 Configuration Attributes:
@@ -1312,6 +1316,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host            	    | String                | **Optional.** OpenTSDB host address. Defaults to `127.0.0.1`.
   port            	    | Number                | **Optional.** OpenTSDB port. Defaults to `4242`.
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `true`.
 
 
 ## PerfdataWriter <a id="objecttype-perfdatawriter"></a>
@@ -1346,6 +1351,7 @@ Configuration Attributes:
   host\_format\_template    | String                | **Optional.** Host Format template for the performance data file. Defaults to a template that's suitable for use with PNP4Nagios.
   service\_format\_template | String                | **Optional.** Service Format template for the performance data file. Defaults to a template that's suitable for use with PNP4Nagios.
   rotation\_interval        | Duration              | **Optional.** Rotation interval for the files specified in `{host,service}_perfdata_path`. Defaults to `30s`.
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `true`.
 
 When rotating the performance data file the current UNIX timestamp is appended to the path specified
 in `host_perfdata_path` and `service_perfdata_path` to generate a unique filename.

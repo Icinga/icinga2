@@ -2434,6 +2434,12 @@ By default, the following features provide advanced HA functionality:
 * [Checks](06-distributed-monitoring.md#distributed-monitoring-high-availability-checks) (load balanced, automated failover).
 * [Notifications](06-distributed-monitoring.md#distributed-monitoring-high-availability-notifications) (load balanced, automated failover).
 * [DB IDO](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido) (Run-Once, automated failover).
+* [Elasticsearch](09-object-types.md#objecttype-elasticsearchwriter)
+* [Gelf](09-object-types.md#objecttype-gelfwriter)
+* [Graphite](09-object-types.md#objecttype-graphitewriter)
+* [InfluxDB](09-object-types.md#objecttype-influxdbwriter)
+* [OpenTsdb](09-object-types.md#objecttype-opentsdbwriter)
+* [Perfdata](09-object-types.md#objecttype-perfdatawriter) (for PNP)
 
 #### High-Availability with Checks <a id="distributed-monitoring-high-availability-checks"></a>
 
