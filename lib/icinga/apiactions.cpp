@@ -355,6 +355,15 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	double startTime = HttpUtility::GetLastParameter(params, "start_time");
 	double endTime = HttpUtility::GetLastParameter(params, "end_time");
 
+	DowntimeChildOptions childOptions = DowntimeNoChildren;
+	if (params->Contains("child_options")) {
+		try {
+			childOptions = Downtime::ChildOptionsFromValue(HttpUtility::GetLastParameter(params, "child_options"));
+		} catch (const std::exception&) {
+			return ApiActions::CreateResult(400, "Option 'child_options' provided an invalid value.");
+		}
+	}
+
 	String downtimeName = Downtime::AddDowntime(checkable, author, comment, startTime, endTime,
 		fixed, triggerName, duration);
 
@@ -366,10 +375,6 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	});
 
 	/* Schedule downtime for all child objects. */
-	DowntimeChildOptions childOptions = DowntimeNoChildren;
-	if (params->Contains("child_options"))
-		childOptions = Downtime::ChildOptionsFromValue(HttpUtility::GetLastParameter(params, "child_options"));
-
 	if (childOptions != DowntimeNoChildren) {
 		/* 'DowntimeTriggeredChildren' schedules child downtimes triggered by the parent downtime.
 		 * 'DowntimeNonTriggeredChildren' schedules non-triggered downtimes for all children.
