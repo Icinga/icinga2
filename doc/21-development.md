@@ -268,15 +268,18 @@ This requires setting the core dump file size to `unlimited`.
 
 Example for Systemd:
 
-    vim /usr/lib/systemd/system/icinga2.service
+    systemctl edit icinga2.service
 
     [Service]
-    ...
     LimitCORE=infinity
 
     systemctl daemon-reload
 
     systemctl restart icinga2
+
+This creates the file `/etc/systemd/system/icinga2.service.d/override.conf`.
+If you want to use configuration management tools you can change the file
+directly, too.
 
 Example for init script:
 
@@ -288,8 +291,8 @@ Example for init script:
 
 Verify that the Icinga 2 process core file size limit is set to `unlimited`.
 
-    cat /proc/`pidof icinga2`/limits
-    ...
+    cat "/proc/$(pidof icinga2 | cut -d" " -f1)/limits" | grep core
+
     Max core file size        unlimited            unlimited            bytes
 
 
@@ -303,6 +306,18 @@ to explicitly enable core dumps for SUID on Linux.
 Adjust the coredump kernel format and file location on Linux:
 
     sysctl -w kernel.core_pattern=/var/lib/cores/core.%e.%p
+
+Alternatively, to make the changes persistent across reboots, add them
+to `/etc/sysctl.conf`. You can use the `sysctl` command to apply the changes
+without reboot. You have to create the directory where the core dumps will
+be written to yourself.
+
+    vim /etc/sysctl.conf
+
+    fs.suid_dumpable = 1
+    kernel.core_pattern=/var/lib/cores/core.%e.%p
+
+    sysctl --system
 
     install -m 1777 -d /var/lib/cores
 
