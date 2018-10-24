@@ -37,10 +37,6 @@ class ElasticsearchWriter : ConfigObject
 	[config] int flush_threshold {
 		default {{{ return 1024; }}}
 	};
-
-	[config] bool enable_ha {
-		default {{{ return true; }}}
-	};
 };
 
 }
