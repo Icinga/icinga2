@@ -200,10 +200,12 @@ The GraphiteWriter feature calls the registered function and processes
 the received data. Features which connect Icinga 2 to external interfaces
 normally parse and reformat the received data into an applicable format.
 
+Since this check result signal is blocking, many of the features include a work queue
+with asynchronous task handling.
+
 The GraphiteWriter uses a TCP socket to communicate with the carbon cache
 daemon of Graphite. The InfluxDBWriter is instead writing bulk metric messages
-to InfluxDB's HTTP API.
-
+to InfluxDB's HTTP API, similar to Elasticsearch.
 
 
 ## Check Scheduler <a id="technical-concepts-check-scheduler"></a>
@@ -521,10 +523,10 @@ The update procedure works the same way as above.
 
 ### High Availability <a id="technical-concepts-cluster-ha"></a>
 
-High availability is automatically enabled between two nodes in the same
+General high availability is automatically enabled between two endpoints in the same
 cluster zone.
 
-This requires the same configuration and enabled features on both nodes.
+**This requires the same configuration and enabled features on both nodes.**
 
 HA zone members trust each other and share event updates as cluster messages.
 This includes for example check results, next check timestamp updates, acknowledgements
@@ -533,18 +535,52 @@ or notifications.
 This ensures that both nodes are synchronized. If one node goes away, the
 remaining node takes over and continues as normal.
 
+#### High Availability: Object Authority <a id="technical-concepts-cluster-ha-object-authority"></a>
 
 Cluster nodes automatically determine the authority for configuration
-objects. This results in activated but paused objects. You can verify
+objects. By default, all config objects are set to `HARunEverywhere` and
+as such the object authority is true for any config object on any instance.
+
+Specific objects can override and influence this setting, e.g. with `HARunOnce`
+instead prior to config object activation.
+
+This is done when the daemon starts and in a regular interval inside
+the ApiListener class, specifically calling `ApiListener::UpdateObjectAuthority()`.
+
+The algorithm works like this:
+
+* Determine whether this instance is assigned to a local zone and endpoint.
+* Collects all endpoints in this zone if they are connected.
+* If there's two endpoints, but only us seeing ourselves and the application start is less than 60 seconds in the past, do nothing (wait for cluster reconnect to take place, grace period).
+* Sort the collected endpoints by name.
+* Iterate over all config types and their respective objects
+ * Ignore !active objects
+ * Ignore objects which are !HARunOnce. This means, they can run multiple times in a zone and don't need an authority update.
+ * If this instance doesn't have a local zone, set authority to true. This is for non-clustered standalone environments where everything belongs to this instance.
+ * Calculate the object authority based on the connected endpoint names.
+ * Set the authority (true or false)
+
+The object authority calculation works "offline" without any message exchange.
+Each instance alculates the SDBM hash of the config object name, puts that in contrast
+modulo the connected endpoints size.
+This index is used to lookup the corresponding endpoint in the connected endpoints array,
+including the local endpoint. Whether the local endpoint is equal to the selected endpoint,
+or not, this sets the authority to `true` or `false`.
+
+```
+authority = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()] == my_endpoint;
+```
+
+`ConfigObject::SetAuthority(bool authority)` triggers the following events:
+
+* Authority is true and object now paused: Resume the object and set `paused` to `false`.
+* Authority is false, object not paused: Pause the object and set `paused` to true.
+
+**This results in activated but paused objects on one endpoint.** You can verify
 that by querying the `paused` attribute for all objects via REST API
-or debug console.
+or debug console on both endpoints.
 
-Nodes inside a HA zone calculate the object authority independent from each other.
-
-The number of endpoints in a zone is defined through the configuration. This number
-is used inside a local modulo calculation to determine whether the node feels
-responsible for this object or not.
-
+Endpoints inside a HA zone calculate the object authority independent from each other.
 This object authority is important for selected features explained below.
 
 Since features are configuration objects too, you must ensure that all nodes
@@ -552,6 +588,36 @@ inside the HA zone share the same enabled features. If configured otherwise,
 one might have a checker feature on the left node, nothing on the right node.
 This leads to late check results because one half is not executed by the right
 node which holds half of the object authorities.
+
+By default, features are enabled to "Run-Everywhere". Specific features which
+support HA awareness, provide the `enable_ha` configuration attribute. When `enable_ha`
+is set to `true` (usually the default), "Run-Once" is set and the feature pauses on one side.
+
+```
+vim /etc/icinga2/features-enabled/graphite.conf
+
+object GraphiteWriter "graphite" {
+  ...
+  enable_ha = true
+}
+```
+
+Once such a feature is paused, there won't be any more event handling, e.g. the Elasticsearch
+feature won't process any checkresults nor write to the Elasticsearch REST API.
+
+When the cluster connection drops, the feature configuration object is updated with
+the new object authority by the ApiListener timer and resumes its operation. You can see
+that by grepping the log file for `resumed` and `paused`.
+
+```
+[2018-10-24 13:28:28 +0200] information/GraphiteWriter: 'g-ha' paused.
+```
+
+```
+[2018-10-24 13:28:28 +0200] information/GraphiteWriter: 'g-ha' resumed.
+```
+
+Specific features with HA capabilities are explained below.
 
 ### High Availability: Checker <a id="technical-concepts-cluster-ha-checker"></a>
 
