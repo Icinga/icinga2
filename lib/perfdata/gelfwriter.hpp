@@ -46,8 +46,8 @@ public:
 
 protected:
 	void OnConfigLoaded() override;
-	void Start(bool runtimeCreated) override;
-	void Stop(bool runtimeRemoved) override;
+	void Resume() override;
+	void Pause() override;
 
 private:
 	Stream::Ptr m_Stream;
