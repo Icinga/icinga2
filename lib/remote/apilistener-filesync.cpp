@@ -186,9 +186,11 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 			configChange = true;
 
 			String path = configDir + "/" + kv.first;
-			Utility::RemoveDirRecursive(path);
+			(void) unlink(path.CStr());
 		}
 	}
+
+	/* Consider that one of the paths leaves an empty directory here. Such is not copied from stage to prod and purged then automtically. */
 
 	String tsPath = configDir + "/.timestamp";
 	if (!Utility::PathExists(tsPath)) {
