@@ -49,15 +49,6 @@ void ElasticsearchWriter::OnConfigLoaded()
 	ObjectImpl<ElasticsearchWriter>::OnConfigLoaded();
 
 	m_WorkQueue.SetName("ElasticsearchWriter, " + GetName());
-
-	if (!GetEnableHa()) {
-		Log(LogDebug, "ElasticsearchWriter")
-			<< "HA functionality disabled. Won't pause connection: " << GetName();
-
-		SetHAMode(HARunEverywhere);
-	} else {
-		SetHAMode(HARunOnce);
-	}
 }
 
 void ElasticsearchWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
