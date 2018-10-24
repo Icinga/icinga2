@@ -182,10 +182,8 @@ private:
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
 
 	static void TryActivateZonesStageCallback(const ProcessResult& pr,
-		const String& stageConfigDir, const String& currentConfigDir,
 		const std::vector<String>& relativePaths);
-	static void AsyncTryActivateZonesStage(const String& stageConfigDir, const String& currentConfigDir,
-		const std::vector<String>& relativePaths);
+	static void AsyncTryActivateZonesStage(const std::vector<String>& relativePaths);
 
 	void UpdateLastFailedZonesStageValidation(const String& log);
 	void ClearLastFailedZonesStageValidation();

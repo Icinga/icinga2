@@ -446,7 +446,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		/* Spawn a validation process. On success, move the staged configuration
 		 * into production and restart.
 		 */
-		AsyncTryActivateZonesStage(GetApiZonesStageDir(), GetApiZonesDir(), relativePaths);
+		AsyncTryActivateZonesStage(relativePaths);
 	}
 
 	return Empty;
@@ -459,20 +459,20 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
  * On failure, there's no restart and this is logged.
  *
  * @param pr Result of the validation process.
- * @param stageConfigDir TODO
- * @param currentConfigDir TODO
- * @param relativePaths Collected paths which are copied from stage to current.
+ * @param relativePaths Collected paths including the zone name, which are copied from stage to current directories.
  */
 void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
-	const String& stageConfigDir, const String& currentConfigDir,
 	const std::vector<String>& relativePaths)
 {
-	String logFile = GetApiZonesStageDir() + "/startup.log";
+	String apiZonesDir = GetApiZonesDir();
+	String apiZonesStageDir = GetApiZonesStageDir();
+
+	String logFile = apiZonesStageDir + "/startup.log";
 	std::ofstream fpLog(logFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fpLog << pr.Output;
 	fpLog.close();
 
-	String statusFile = GetApiZonesStageDir() + "/status";
+	String statusFile = apiZonesStageDir + "/status";
 	std::ofstream fpStatus(statusFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fpStatus << pr.ExitStatus;
 	fpStatus.close();
@@ -480,9 +480,7 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 	/* validation went fine, copy stage and reload */
 	if (pr.ExitStatus == 0) {
 		Log(LogInformation, "ApiListener")
-			<< "Config validation for stage '" << GetApiZonesStageDir() << "' was OK, replacing into '" << GetApiZonesDir() << "' and triggering reload.";
-
-		String apiZonesDir = GetApiZonesDir();
+			<< "Config validation for stage '" << apiZonesStageDir << "' was OK, replacing into '" << apiZonesDir << "' and triggering reload.";
 
 		/* Purge production before copying stage. */
 		if (Utility::PathExists(apiZonesDir))
@@ -495,8 +493,8 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 			Log(LogNotice, "ApiListener")
 				<< "Copying file '" << path << "' from config sync staging to production zones directory.";
 
-			String stagePath = GetApiZonesStageDir() + path;
-			String currentPath = GetApiZonesDir() + path;
+			String stagePath = apiZonesStageDir + path;
+			String currentPath = apiZonesDir + path;
 
 			Utility::MkDirP(Utility::DirName(currentPath), 0700);
 
@@ -515,7 +513,7 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 
 	/* Error case. */
 	Log(LogCritical, "ApiListener")
-		<< "Config validation failed for staged cluster config sync in '" << GetApiZonesStageDir()
+		<< "Config validation failed for staged cluster config sync in '" << apiZonesStageDir
 		<< "'. Aborting. Logs: '" << logFile << "'";
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -528,12 +526,9 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
  * Spawns a new validation process and waits for its output.
  * Sets 'System.ZonesStageVarDir' to override the config validation zone dirs with our current stage.
  *
- * @param stageConfigDir TODO
- * @param currentConfigDir TODO
- * @param relativePaths Required for later file operations in the callback.
+ * @param relativePaths Required for later file operations in the callback. Provides the zone name plus path in a list.
  */
-void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const String& currentConfigDir,
-	const std::vector<String>& relativePaths)
+void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relativePaths)
 {
 	VERIFY(Application::GetArgC() >= 1);
 
@@ -559,7 +554,7 @@ void ApiListener::AsyncTryActivateZonesStage(const String& stageConfigDir, const
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(300);
-	process->Run(std::bind(&TryActivateZonesStageCallback, _1, stageConfigDir, currentConfigDir, relativePaths));
+	process->Run(std::bind(&TryActivateZonesStageCallback, _1, relativePaths));
 }
 
 /**
