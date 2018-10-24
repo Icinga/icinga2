@@ -46,8 +46,9 @@ public:
 	void ValidateServiceFormatTemplate(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 protected:
-	void Start(bool runtimeCreated) override;
-	void Stop(bool runtimeRemoved) override;
+	void OnConfigLoaded() override;
+	void Resume() override;
+	void Pause() override;
 
 private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
