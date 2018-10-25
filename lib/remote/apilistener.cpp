@@ -242,7 +242,7 @@ void ApiListener::Start(bool runtimeCreated)
 	Log(LogInformation, "ApiListener")
 		<< "'" << GetName() << "' started.";
 
-	SyncZoneDirs();
+	SyncLocalZoneDirs();
 
 	ObjectImpl<ApiListener>::Start(runtimeCreated);
 
