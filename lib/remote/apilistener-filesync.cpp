@@ -164,11 +164,11 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	Endpoint::Ptr endpoint = aclient->GetEndpoint();
 	ASSERT(endpoint);
 
-	Zone::Ptr azone = endpoint->GetZone();
-	Zone::Ptr lzone = Zone::GetLocalZone();
+	Zone::Ptr clientZone = endpoint->GetZone();
+	Zone::Ptr localZone = Zone::GetLocalZone();
 
 	/* don't try to send config updates to our master */
-	if (!azone->IsChildOf(lzone))
+	if (!clientZone->IsChildOf(localZone))
 		return;
 
 	Dictionary::Ptr configUpdateV1 = new Dictionary();
@@ -181,9 +181,11 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 		String zoneName = zone->GetName();
 		String zoneDir = zonesDir + zoneName;
 
-		if (!zone->IsChildOf(azone) && !zone->IsGlobal())
+		/* Only sync child and global zones. */
+		if (!zone->IsChildOf(clientZone) && !zone->IsGlobal())
 			continue;
 
+		/* Zone was configured, but there's no configuration directory. */
 		if (!Utility::PathExists(zoneDir))
 			continue;
 
