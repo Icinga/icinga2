@@ -104,11 +104,13 @@ void RedisWriter::TryToReconnect()
 {
 	AssertOnWorkQueue();
 
-	if (m_ConfigDumpDone && m_Rcon->IsConnected())
+	if (m_ConfigDumpDone)
 		return;
-	else if (!m_Rcon->IsConnected())
+	else
 		m_Rcon->Start();
 
+	if (!m_Rcon->IsConnected())
+		return;
 	UpdateSubscriptions();
 
 	if (m_ConfigDumpInProgress || m_ConfigDumpDone)
@@ -135,8 +137,11 @@ void RedisWriter::UpdateSubscriptions()
 
 	Log(LogInformation, "RedisWriter", "Updating Redis subscriptions");
 
-	m_Subscriptions.clear();
-
+	if (!m_Rcon->IsConnected()) {
+		Log(LogCritical, "DEBUG, Redis")
+				<< "NO CONNECT CHIEF";
+		return;
+	}
 	long long cursor = 0;
 
 	String keyPrefix = "icinga:subscription:";
@@ -349,7 +354,7 @@ redisReply* RedisWriter::RedisGet(const std::vector<String>& query) {
 
 	boost::mutex::scoped_lock lock(wait->mtx);
 	while (!wait->ready) {
-		wait->cv.timed_wait(lock, boost::posix_time::milliseconds(long(15 * 1000)));
+		wait->cv.wait(lock);
 		if (!wait->ready)
 			wait->ready = true;
 	}

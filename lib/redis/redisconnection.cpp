@@ -30,7 +30,7 @@
 using namespace icinga;
 
 RedisConnection::RedisConnection(const String host, const int port, const String path, const String password, const int db) :
-		m_Host(host), m_Port(port), m_Path(path), m_Password(password), m_DbIndex(db), m_Context(NULL)
+		m_Host(host), m_Port(port), m_Path(path), m_Password(password), m_DbIndex(db), m_Context(NULL), m_Connected(false)
 {
 	m_RedisConnectionWorkQueue.SetName("RedisConnection");
 }
@@ -70,45 +70,84 @@ void RedisConnection::HandleRW()
 	}
 }
 
+
+void RedisConnection::RedisInitialCallback(redisAsyncContext *c, void *r, void *p)
+{
+	auto *state = (ConnectionState *) p;
+	if (r != nullptr) {
+		redisReply *rep = (redisReply *) r;
+		if (rep->type == REDIS_REPLY_ERROR) {
+			Log(LogCritical, "RedisConnection")
+				<< "Failed to connect to Redis: " << rep->str;
+			state->conn->m_Connected = false;
+			return;
+		}
+	}
+
+	if (state->state != Starting && (!r || c->err)) {
+		Log(LogCritical, "RedisConnection") << c->errstr;
+		state->conn->m_Connected = false;
+		return;
+	}
+
+	if (state->state == Starting) {
+		state->state = Auth;
+		if (!state->conn->m_Password.IsEmpty()) {
+			boost::mutex::scoped_lock lock(state->conn->m_CMutex);
+			redisAsyncCommand(c, &RedisInitialCallback, p, "AUTH %s", state->conn->m_Password.CStr());
+			return;
+		}
+	}
+	if (state->state == Auth)
+	{
+		state->state = DBSelect;
+		if (state->conn->m_DbIndex != 0) {
+			boost::mutex::scoped_lock lock(state->conn->m_CMutex);
+			redisAsyncCommand(c, &RedisInitialCallback, p, "SELECT %d", state->conn->m_DbIndex);
+			return;
+		}
+	}
+	if (state->state == DBSelect)
+		state->conn->m_Connected = true;
+}
+bool RedisConnection::IsConnected() {
+	return m_Connected;
+}
+
+
 void RedisConnection::Connect()
 {
 	if (m_Context)
 		return;
 
 	Log(LogInformation, "RedisWriter", "Trying to connect to redis server Async");
-	boost::mutex::scoped_lock lock(m_CMutex);
+	{
+		boost::mutex::scoped_lock lock(m_CMutex);
 
-	if (m_Path.IsEmpty())
-		m_Context = redisAsyncConnect(m_Host.CStr(), m_Port);
-	else
-		m_Context = redisAsyncConnectUnix(m_Path.CStr());
+		if (m_Path.IsEmpty())
+			m_Context = redisAsyncConnect(m_Host.CStr(), m_Port);
+		else
+			m_Context = redisAsyncConnectUnix(m_Path.CStr());
 
-	if (!m_Context || m_Context->err) {
-		if (!m_Context) {
-			Log(LogWarning, "RedisWriter", "Cannot allocate redis context.");
-		} else {
-			Log(LogWarning, "RedisWriter", "Connection error: ")
-					<< m_Context->errstr;
+		if (!m_Context || m_Context->err) {
+			if (!m_Context) {
+				Log(LogWarning, "RedisWriter", "Cannot allocate redis context.");
+			} else {
+				Log(LogWarning, "RedisWriter", "Connection error: ")
+						<< m_Context->errstr;
+			}
+
+			if (m_Context) {
+				redisAsyncFree(m_Context);
+				m_Context = NULL;
+			}
 		}
 
-		if (m_Context) {
-			redisAsyncFree(m_Context);
-			m_Context = NULL;
-		}
+		redisAsyncSetDisconnectCallback(m_Context, &DisconnectCallback);
 	}
 
-	redisAsyncSetDisconnectCallback(m_Context, &DisconnectCallback);
-
-	/* TODO: This currently does not work properly:
-	 * In case of error the connection is broken, yet the Context is not set to faulty. May be a bug with hiredis.
-     * Error case: Password does not match, or even: "Client sent AUTH, but no password is set" which also results in an error.
-     */
-	if (!m_Password.IsEmpty()) {
-		ExecuteQuery({"AUTH", m_Password});
-	}
-
-	if (m_DbIndex != 0)
-		ExecuteQuery({"SELECT", Convert::ToString(m_DbIndex)});
+	m_State = ConnectionState{Starting, this};
+	RedisInitialCallback(m_Context, nullptr, (void*)&m_State);
 }
 
 void RedisConnection::Disconnect()
@@ -127,11 +166,6 @@ void RedisConnection::DisconnectCallback(const redisAsyncContext *c, int status)
 			Log(LogCritical, "RedisWriter") << "Redis disconnected by server";
 	}
 
-}
-
-bool RedisConnection::IsConnected()
-{
-	return (REDIS_CONNECTED & m_Context->c.flags) == REDIS_CONNECTED;
 }
 
 void RedisConnection::ExecuteQuery(const std::vector<String>& query, redisCallbackFn *fn, void *privdata)

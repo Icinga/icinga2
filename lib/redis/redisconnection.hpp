@@ -31,6 +31,20 @@ namespace icinga
  *
  * @ingroup redis
  */
+
+	enum conn_state{
+		Starting,
+		Auth,
+		DBSelect,
+		Done,
+	};
+
+	class RedisConnection;
+	struct ConnectionState {
+		conn_state state;
+		RedisConnection *conn;
+	};
+
 	class RedisConnection final : public Object
 	{
 	public:
@@ -62,6 +76,9 @@ namespace icinga
 
 		static void DisconnectCallback(const redisAsyncContext *c, int status);
 
+		static void RedisInitialCallback(redisAsyncContext *c, void *r, void *p);
+
+
 		WorkQueue m_RedisConnectionWorkQueue{100000};
 		Timer::Ptr m_EventLoop;
 
@@ -72,14 +89,18 @@ namespace icinga
 		int m_Port;
 		String m_Password;
 		int m_DbIndex;
+		bool m_Connected;
 
 		boost::mutex m_CMutex;
+		ConnectionState m_State;
+
 	};
 
 	struct redis_error : virtual std::exception, virtual boost::exception { };
 
 	struct errinfo_redis_query_;
 	typedef boost::error_info<struct errinfo_redis_query_, std::string> errinfo_redis_query;
+
 }
 
 #endif //REDISCONNECTION_H
