@@ -249,6 +249,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	 */
 	boost::mutex::scoped_lock lock(m_ConfigSyncStageLock);
 
+	String apiZonesStageDir = GetApiZonesStageDir();
 	String fromEndpointName = origin->FromClient->GetEndpoint()->GetName();
 	String fromZoneName = GetFromZoneName(origin->FromZone);
 
@@ -259,6 +260,12 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	Dictionary::Ptr updateV1 = params->Get("update");
 	Dictionary::Ptr updateV2 = params->Get("update_v2");
 
+	/* New since 2.11.0. */
+	Dictionary::Ptr checksums;
+
+	if (params->Contains("checksums"))
+		checksums = params->Get("checksums");
+
 	bool configChange = false;
 	std::vector<String> relativePaths;
 
@@ -266,8 +273,6 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	 * We can and must safely purge the staging directory, as the difference is taken between
 	 * runtime production config and newly received configuration.
 	 */
-	String apiZonesStageDir = GetApiZonesStageDir();
-
 	if (Utility::PathExists(apiZonesStageDir))
 		Utility::RemoveDirRecursive(apiZonesStageDir);
 
@@ -297,106 +302,112 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		}
 
 		/* Put the received configuration into our stage directory. */
-		String currentConfigDir = GetApiZonesDir() + zoneName;
-		String stageConfigDir = GetApiZonesStageDir() + zoneName;
+		String productionConfigZoneDir = GetApiZonesDir() + zoneName;
+		String stageConfigZoneDir = GetApiZonesStageDir() + zoneName;
 
-		Utility::MkDirP(currentConfigDir, 0700);
-		Utility::MkDirP(stageConfigDir, 0700);
+		Utility::MkDirP(productionConfigZoneDir, 0700);
+		Utility::MkDirP(stageConfigZoneDir, 0700);
 
 		/* Merge the config information. */
 		ConfigDirInformation newConfigInfo;
 		newConfigInfo.UpdateV1 = kv.second;
 
+		/* Load metadata. */
 		if (updateV2)
 			newConfigInfo.UpdateV2 = updateV2->Get(kv.first);
 
+		/* Load checksums. */
+		if (checksums)
+			newConfigInfo.Checksums = checksums->Get(kv.first);
+
 		/* Load the current production config details. */
-		ConfigDirInformation currentConfigInfo = LoadConfigDir(currentConfigDir);
+		ConfigDirInformation productionConfigInfo = LoadConfigDir(productionConfigZoneDir);
 
-		/* Diff the current production configuration with the received configuration.
-		 * If there was a change, collect a signal for later stage validation.
+		Dictionary::Ptr productionConfig = MergeConfigUpdate(productionConfigInfo);
+		Dictionary::Ptr newConfig = MergeConfigUpdate(newConfigInfo);
+
+		/* If we have received 'checksums' via cluster message, go for it.
+		 * Otherwise do the old timestamp dance.
 		 */
-		if (UpdateConfigDir(currentConfigInfo, newConfigInfo, stageConfigDir, zoneName, relativePaths, false))
-			configChange = true;
-	}
+		if (checksums) {
+			/* Calculate and compare the checksums. */
+			String productionConfigChecksum = GetGlobalChecksum(productionConfigInfo);
+			String newConfigChecksum = GetGlobalChecksum(newConfigInfo);
 
-	if (configChange) {
-		/* Spawn a validation process. On success, move the staged configuration
-		 * into production and restart.
-		 */
-		AsyncTryActivateZonesStage(relativePaths);
-	}
+			Log(LogWarning, "ApiListener")
+				<< "Received configuration for zone '" << zoneName << "' from endpoint '"
+				<< fromEndpointName << "' with checksum '" << newConfigChecksum << "'."
+				<< "Our production configuration has checksum '" << productionConfigChecksum << "'.";
 
-	return Empty;
-}
+			/* TODO: Do this earlier in hello-handshakes. */
+			if (newConfigChecksum != productionConfigChecksum)
+				configChange = true;
+		} else {
+			/* TODO: Figure out whether we always need to rely on the timestamp flags. */
+			double productionTimestamp;
 
-/**
- * Diffs the old current configuration with the new configuration
- * and copies the collected content. Detects whether a change
- * happened, this is used for later restarts.
- *
- * This generic function is called in two situations:
- * - Local zones.d to var/lib/api/zones copy on the master (authoritative: true)
- * - Received config update on a cluster node (authoritative: false)
- *
- * @param oldConfigInfo Config information struct for the current old deployed config.
- * @param newConfigInfo Config information struct for the received synced config.
- * @param configDir Destination for copying new files (production, or stage dir).
- * @param zoneName Currently processed zone, for storing the relative paths for later.
- * @param relativePaths Reference which stores all updated config path destinations.
- * @param Whether we're authoritative for this config.
- * @returns Whether a config change happened.
- */
-bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, const ConfigDirInformation& newConfigInfo,
-	const String& configDir, const String& zoneName, std::vector<String>& relativePaths, bool authoritative)
-{
-	bool configChange = false;
+			if (!productionConfig->Contains("/.timestamp"))
+				productionTimestamp = 0;
+			else
+				productionTimestamp = productionConfig->Get("/.timestamp");
 
-	Dictionary::Ptr oldConfig = MergeConfigUpdate(oldConfigInfo);
-	Dictionary::Ptr newConfig = MergeConfigUpdate(newConfigInfo);
+			double newTimestamp;
 
-	double oldTimestamp;
+			if (!newConfig->Contains("/.timestamp"))
+				newTimestamp = Utility::GetTime();
+			else
+				newTimestamp = newConfig->Get("/.timestamp");
 
-	if (!oldConfig->Contains("/.timestamp"))
-		oldTimestamp = 0;
-	else
-		oldTimestamp = oldConfig->Get("/.timestamp");
+			/* skip update if our configuration files are more recent */
+			if (productionTimestamp >= newTimestamp) {
+				Log(LogInformation, "ApiListener")
+					<< "Our configuration is more recent than the received configuration update."
+					<< " Ignoring configuration file update for path '" << stageConfigZoneDir << "'. Current timestamp '"
+					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", productionTimestamp) << "' ("
+					<< std::fixed << std::setprecision(6) << productionTimestamp
+					<< ") >= received timestamp '"
+					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
+					<< newTimestamp << ").";
+			} else {
+				configChange = true;
+			}
 
-	double newTimestamp;
+			/* Keep another hack when there's a timestamp file missing. */
+			ObjectLock olock(newConfig);
+			for (const Dictionary::Pair& kv : newConfig) {
+				/* This is super expensive with a string content comparison. */
+				if (productionConfig->Get(kv.first) != kv.second) {
+					if (!Utility::Match("*/.timestamp", kv.first))
+						configChange = true;
+				}
+			}
 
-	if (!newConfig->Contains("/.timestamp"))
-		newTimestamp = Utility::GetTime();
-	else
-		newTimestamp = newConfig->Get("/.timestamp");
+			/* Update the .timestamp file. */
+			String tsPath = stageConfigZoneDir + "/.timestamp";
+			if (!Utility::PathExists(tsPath)) {
+				std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
+				fp << std::fixed << newTimestamp;
+				fp.close();
+			}
+		}
 
-	/* skip update if our configuration files are more recent */
-	if (oldTimestamp >= newTimestamp) {
-		Log(LogNotice, "ApiListener")
-			<< "Our configuration is more recent than the received configuration update."
-			<< " Ignoring configuration file update for path '" << configDir << "'. Current timestamp '"
-			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
-			<< std::fixed << std::setprecision(6) << oldTimestamp
-			<< ") >= received timestamp '"
-			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
-			<< newTimestamp << ").";
-		return false;
-	}
+		/* Dump the received configuration for this zone into the stage directory. */
+		size_t numBytes = 0;
 
-	size_t numBytes = 0;
+		{
+			ObjectLock olock(newConfig);
+			for (const Dictionary::Pair& kv : newConfig) {
+				/* Ignore same config content. This is an expensive comparison. */
+				if (productionConfig->Get(kv.first) == kv.second)
+					continue;
 
-	{
-		ObjectLock olock(newConfig);
-		for (const Dictionary::Pair& kv : newConfig) {
-			if (oldConfig->Get(kv.first) != kv.second) {
-				if (!Utility::Match("*/.timestamp", kv.first))
-					configChange = true;
-
-				/* Store the relative config file path for later. */
+				/* Store the relative config file path for later validation and activation. */
 				relativePaths.push_back(zoneName + "/" + kv.first);
 
-				String path = configDir + "/" + kv.first;
+				String path = stageConfigZoneDir + "/" + kv.first;
+
 				Log(LogInformation, "ApiListener")
-					<< "Updating configuration file: " << path;
+					<< "Stage: Updating received configuration file '" << path << "' for zone '" << zoneName << "'.";
 
 				/* Sync string content only. */
 				String content = kv.second;
@@ -410,47 +421,33 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 				numBytes += content.GetLength();
 			}
 		}
-	}
 
-	/* Log something whether we're authoritative or receing a staged config. */
-	Log(LogInformation, "ApiListener")
-		<< "Applying configuration file update for " << (authoritative ? "" : "stage ")
-		<< "path '" << configDir << "' (" << numBytes << " Bytes). Received timestamp '"
-		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
-		<< std::fixed << std::setprecision(6) << newTimestamp
-		<< "), Current timestamp '"
-		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
-		<< oldTimestamp << ").";
+		Log(LogInformation, "ApiListener")
+			<< "Applying configuration file update for path '" << stageConfigZoneDir << "' ("
+			<< numBytes << " Bytes).";
 
-	/* If the update removes a path, delete it on disk. */
-	ObjectLock xlock(oldConfig);
-	for (const Dictionary::Pair& kv : oldConfig) {
-		if (!newConfig->Contains(kv.first)) {
-			configChange = true;
+		/* If the update removes a path, delete it on disk and signal a config change. */
+		{
+			ObjectLock xlock(productionConfig);
+			for (const Dictionary::Pair& kv : productionConfig) {
+				if (!newConfig->Contains(kv.first)) {
+					configChange = true;
 
-			String path = configDir + "/" + kv.first;
-			(void) unlink(path.CStr());
+					String path = stageConfigZoneDir + "/" + kv.first;
+					(void) unlink(path.CStr());
+				}
+			}
 		}
 	}
 
-	/* Consider that one of the paths leaves an empty directory here. Such is not copied from stage to prod and purged then automtically. */
-
-	String tsPath = configDir + "/.timestamp";
-	if (!Utility::PathExists(tsPath)) {
-		std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
-		fp << std::fixed << newTimestamp;
-		fp.close();
+	if (configChange) {
+		/* Spawn a validation process. On success, move the staged configuration
+		 * into production and restart.
+		 */
+		AsyncTryActivateZonesStage(relativePaths);
 	}
 
-	if (authoritative) {
-		String authPath = configDir + "/.authoritative";
-		if (!Utility::PathExists(authPath)) {
-			std::ofstream fp(authPath.CStr(), std::ofstream::out | std::ostream::trunc);
-			fp.close();
-		}
-	}
-
-	return configChange;
+	return Empty;
 }
 
 /**
@@ -594,11 +591,25 @@ String ApiListener::GetChecksum(const String& content)
 	return SHA256(content);
 }
 
+String ApiListener::GetGlobalChecksum(const ConfigDirInformation& config)
+{
+	Dictionary::Ptr checksums = config.Checksums;
+
+	String result;
+
+	ObjectLock olock(checksums);
+	for (const Dictionary::Pair& kv : checksums) {
+		result += GetChecksum(kv.second);
+	}
+
+	return GetChecksum(result);
+}
+
 /**
  * Load the given config dir and read their file content into the config structure.
  *
  * @param dir Path to the config directory.
- * @returns ConfigInformation structure.
+ * @returns ConfigDirInformation structure.
  */
 ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
 {
