@@ -584,7 +584,8 @@ void ApiListener::ClearLastFailedZonesStageValidation()
 /**
  * Generate a config checksum.
  *
- * @param
+ * @param content String content used for generating the checksum.
+ * @returns The checksum as string.
  */
 String ApiListener::GetChecksum(const String& content)
 {
