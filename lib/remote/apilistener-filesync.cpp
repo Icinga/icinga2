@@ -376,9 +376,12 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	 */
 	boost::mutex::scoped_lock lock(m_ConfigSyncStageLock);
 
+	String fromEndpointName = origin->FromClient->GetEndpoint()->GetName();
+	String fromZoneName = GetFromZoneName(origin->FromZone);
+
 	Log(LogInformation, "ApiListener")
-		<< "Applying config update from endpoint '" << origin->FromClient->GetEndpoint()->GetName()
-		<< "' of zone '" << GetFromZoneName(origin->FromZone) << "'.";
+		<< "Applying config update from endpoint '" << fromEndpointName
+		<< "' of zone '" << fromZoneName << "'.";
 
 	Dictionary::Ptr updateV1 = params->Get("update");
 	Dictionary::Ptr updateV2 = params->Get("update_v2");
@@ -407,14 +410,16 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 		if (!zone) {
 			Log(LogWarning, "ApiListener")
-				<< "Ignoring config update for unknown zone '" << zoneName << "'.";
+				<< "Ignoring config update from endpoint '" << fromEndpointName
+				<< "' for unknown zone '" << zoneName << "'.";
 			continue;
 		}
 
 		/* Whether we already have configuration in zones.d. */
 		if (ConfigCompiler::HasZoneConfigAuthority(zoneName)) {
-			Log(LogWarning, "ApiListener")
-				<< "Ignoring config update for zone '" << zoneName << "' because we have an authoritative version of the zone's config.";
+			Log(LogInformation, "ApiListener")
+				<< "Ignoring config update from endpoint '" << fromEndpointName
+				<< "' for zone '" << zoneName << "' because we have an authoritative version of the zone's config.";
 			continue;
 		}
 
