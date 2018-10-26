@@ -463,6 +463,24 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 		}
 	}
 
+	icinga::Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(object);
+	if (downtime) {
+		propertiesBlacklist.emplace("name");
+		propertiesBlacklist.emplace("host_name");
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(downtime->GetCheckable());
+
+		if (service) {
+			propertiesBlacklist.emplace("service_name");
+			checkSums->Set("service_checksum", GetObjectIdentifier(service));
+			typeName = "servicedowntime";
+		} else {
+			checkSums->Set("host_checksum", GetObjectIdentifier(host));
+			typeName = "hostdowntime";
+		}
+
+	}
 	/* Send all object attributes to Redis, no extra checksums involved here. */
 	auto tempAttrs = (UpdateObjectAttrs(m_PrefixConfigObject, object, FAConfig, typeName));
 	attributes.insert(attributes.end(), std::begin(tempAttrs), std::end(tempAttrs));
@@ -486,6 +504,8 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 	}
 
 	checkSums->Set("metadata_checksum", CalculateCheckSumMetadata(object));
+
+	/* TODO: Problem: This does not account for `is_in_effect`, `trigger_time` of downtimes. */
 	checkSums->Set("properties_checksum", CalculateCheckSumProperties(object, propertiesBlacklist));
 
 	String checkSumsBody = JsonEncode(checkSums);
@@ -621,6 +641,14 @@ RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr&
 
 		attrs->Set(field.Name, Serialize(val));
 	}
+
+       /* Downtimes require in_effect, which is not an attribute */
+       Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(object);
+       if (downtime) {
+               attrs->Set("in_effect", Serialize(downtime->IsInEffect()));
+               attrs->Set("trigger_time", Serialize(downtime->GetTriggerTime()));
+       }
+
 
 	/* Use the name checksum as unique key. */
 	String typeName = type->GetName().ToLower();
