@@ -34,7 +34,7 @@ String PrimitiveType::GetName(void) const
 Type::Ptr PrimitiveType::GetBaseType(void) const
 {
 	if (m_Base == "None")
-		return Type::Ptr();
+		return nullptr;
 	else
 		return Type::GetByName(m_Base);
 }

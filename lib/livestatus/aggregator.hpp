@@ -49,9 +49,9 @@ public:
 
 protected:
 	Aggregator(void);
-	
+
 	Filter::Ptr GetFilter(void) const;
-	
+
 private:
 	Filter::Ptr m_Filter;
 };

@@ -71,8 +71,8 @@ public:
 	static void HeartbeatTimerHandler(void);
 	static Value HeartbeatAPIHandler(const intrusive_ptr<MessageOrigin>& origin, const Dictionary::Ptr& params);
 
-	static int GetWorkQueueCount(void);
-	static int GetWorkQueueLength(void);
+	static size_t GetWorkQueueCount(void);
+	static size_t GetWorkQueueLength(void);
 	static double GetWorkQueueRate(void);
 
 	static void SendCertificateRequest(const JsonRpcConnection::Ptr& aclient, const intrusive_ptr<MessageOrigin>& origin, const String& path);

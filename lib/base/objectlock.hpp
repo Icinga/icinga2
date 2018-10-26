@@ -35,7 +35,7 @@ struct I2_BASE_API ObjectLock
 {
 public:
 	inline ObjectLock(void)
-		: m_Object(NULL), m_Locked(false)
+		: m_Object(nullptr), m_Locked(false)
 	{ }
 
 	inline ~ObjectLock(void)
@@ -96,7 +96,7 @@ public:
 
 	inline void Lock(void)
 	{
-		ASSERT(!m_Locked && m_Object != NULL);
+		ASSERT(!m_Locked && m_Object);
 
 		LockMutex(m_Object);
 

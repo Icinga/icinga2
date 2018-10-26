@@ -39,20 +39,16 @@ void ApiClient::GetTypes(const TypesCompletionCallback& callback) const
 	url->SetScheme("https");
 	url->SetHost(m_Connection->GetHost());
 	url->SetPort(m_Connection->GetPort());
-
-	std::vector<String> path;
-	path.push_back("v1");
-	path.push_back("types");
-	url->SetPath(path);
+	url->SetPath({ "v1", "types" });
 
 	try {
-		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
 		req->RequestMethod = "GET";
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, std::bind(TypesHttpCompletionCallback, _1, _2, callback));
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		callback(boost::current_exception(), std::vector<ApiType::Ptr>());
 	}
 }
@@ -91,7 +87,7 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 			type->Name = typeInfo->Get("name");
 			type->PluralName = typeInfo->Get("plural_name");
 			// TODO: attributes
-			types.push_back(type);
+			types.emplace_back(std::move(type));
 		}
 
 		callback(boost::exception_ptr(), types);
@@ -110,12 +106,7 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 	url->SetScheme("https");
 	url->SetHost(m_Connection->GetHost());
 	url->SetPort(m_Connection->GetPort());
-
-	std::vector<String> path;
-	path.push_back("v1");
-	path.push_back("objects");
-	path.push_back(pluralType);
-	url->SetPath(path);
+	url->SetPath({ "v1", "objects", pluralType });
 
 	std::map<String, std::vector<String> > params;
 
@@ -136,13 +127,13 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 	url->SetQuery(params);
 
 	try {
-		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
 		req->RequestMethod = "GET";
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, std::bind(ObjectsHttpCompletionCallback, _1, _2, callback));
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		callback(boost::current_exception(), std::vector<ApiObject::Ptr>());
 	}
 }
@@ -213,7 +204,7 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 						ApiObjectReference ref;
 						ref.Name = refInfo->Get("name");
 						ref.Type = refInfo->Get("type");
-						object->UsedBy.push_back(ref);
+						object->UsedBy.emplace_back(std::move(ref));
 					}
 				}
 
@@ -236,12 +227,7 @@ void ApiClient::ExecuteScript(const String& session, const String& command, bool
 	url->SetScheme("https");
 	url->SetHost(m_Connection->GetHost());
 	url->SetPort(m_Connection->GetPort());
-
-	std::vector<String> path;
-	path.push_back("v1");
-	path.push_back("console");
-	path.push_back("execute-script");
-	url->SetPath(path);
+	url->SetPath({ "v1", "console", "execute-script" });
 
 	std::map<String, std::vector<String> > params;
 	params["session"].push_back(session);
@@ -250,13 +236,13 @@ void ApiClient::ExecuteScript(const String& session, const String& command, bool
 	url->SetQuery(params);
 
 	try {
-		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
 		req->RequestMethod = "POST";
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, std::bind(ExecuteScriptHttpCompletionCallback, _1, _2, callback));
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		callback(boost::current_exception(), Empty);
 	}
 }
@@ -308,7 +294,7 @@ void ApiClient::ExecuteScriptHttpCompletionCallback(HttpRequest& request,
 		}
 
 		callback(boost::exception_ptr(), result);
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		callback(boost::current_exception(), Empty);
 	}
 }
@@ -320,12 +306,7 @@ void ApiClient::AutocompleteScript(const String& session, const String& command,
 	url->SetScheme("https");
 	url->SetHost(m_Connection->GetHost());
 	url->SetPort(m_Connection->GetPort());
-
-	std::vector<String> path;
-	path.push_back("v1");
-	path.push_back("console");
-	path.push_back("auto-complete-script");
-	url->SetPath(path);
+	url->SetPath({ "v1", "console", "auto-complete-script" });
 
 	std::map<String, std::vector<String> > params;
 	params["session"].push_back(session);
@@ -334,14 +315,14 @@ void ApiClient::AutocompleteScript(const String& session, const String& command,
 	url->SetQuery(params);
 
 	try {
-		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
 		req->RequestMethod = "POST";
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, std::bind(AutocompleteScriptHttpCompletionCallback, _1, _2, callback));
-	} catch (const std::exception& ex) {
-		callback(boost::current_exception(), Array::Ptr());
+	} catch (const std::exception&) {
+		callback(boost::current_exception(), nullptr);
 	}
 }
 
@@ -381,7 +362,7 @@ void ApiClient::AutocompleteScriptHttpCompletionCallback(HttpRequest& request,
 		}
 
 		callback(boost::exception_ptr(), suggestions);
-	} catch (const std::exception& ex) {
-		callback(boost::current_exception(), Array::Ptr());
+	} catch (const std::exception&) {
+		callback(boost::current_exception(), nullptr);
 	}
 }

@@ -347,6 +347,24 @@ Examples:
 If you're stuck with configuration errors, you can manually invoke the
 [configuration validation](11-cli-commands.md#config-validation).
 
+Usually Icinga 2 is a mission critical part of infrastructure and should be
+online at all times. In case of a recoverable crash (e.g. OOM) you may want to
+restart Icinga 2 automatically. With Systemd it is as easy as overriding some
+settings of the Icinga 2 Systemd service by creating
+`/etc/systemd/system/icinga2.service.d/override.conf` with the following
+content:
+
+    [Service]
+    Restart=always
+    RestartSec=1
+    StartLimitInterval=10
+    StartLimitBurst=3
+
+Run `systemctl daemon-reload && systemctl restart icinga2` to apply the changes.
+Now Systemd will always try to restart Icinga 2 (except if you run
+`systemctl stop icinga2`). After three failures in ten seconds it will stop
+trying because you probably have a problem that requires manual intervention.
+
 > **Tip**
 >
 > If you are running into fork errors with Systemd enabled distributions,
@@ -591,15 +609,11 @@ You can enable the `ido-mysql` feature configuration file using
 
 After enabling the ido-mysql feature you have to restart Icinga 2:
 
-RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
+RHEL/CentOS 7/Fedora, SLES 12/openSUSE > 12.2, Debian Jessie/Stretch, Ubuntu Xenial:
 
     # systemctl restart icinga2
 
-Debian/Ubuntu, RHEL/CentOS 6 and SUSE 11:
-
-    # service icinga2 restart
-
-FreeBSD:
+Debian/Ubuntu, RHEL/CentOS 6, SLES 11/openSUSE < 12.3 and FreeBSD:
 
     # service icinga2 restart
 
@@ -621,6 +635,7 @@ RHEL/CentOS 6:
 
     # yum install postgresql-server postgresql
     # chkconfig postgresql on
+    # service postgresql initdb
     # service postgresql start
 
 RHEL/CentOS 7:
@@ -634,20 +649,22 @@ SUSE:
 
     # zypper install postgresql postgresql-server
     # chkconfig postgresql on
+    # service postgresql initdb
     # service postgresql start
 
 FreeBSD:
 
     # pkg install postgresql93-server
     # sysrc postgresql_enable=yes
+    # service postgresql initdb
     # service postgresql start
 
 Alpine Linux:
 
-   # apk add postgresql
-   # rc-update add postgresql default
-   # rc-service postgresql setup
-   # rc-service postgresql start
+    # apk add postgresql
+    # rc-update add postgresql default
+    # rc-service postgresql setup
+    # rc-service postgresql start
 
 #### Installing the IDO modules for PostgreSQL <a id="installing-database-postgresql-modules"></a>
 
@@ -744,15 +761,11 @@ You can enable the `ido-pgsql` feature configuration file using
 
 After enabling the ido-pgsql feature you have to restart Icinga 2:
 
-RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
+RHEL/CentOS 7/Fedora, SLES 12/openSUSE > 12.2, Debian Jessie/Stretch, Ubuntu Xenial:
 
     # systemctl restart icinga2
 
-Debian/Ubuntu, RHEL/CentOS 6, SUSE and FreeBSD:
-
-    # service icinga2 restart
-
-FreeBSD:
+Debian/Ubuntu, RHEL/CentOS 6, SLES 11/openSUSE < 12.3 and FreeBSD:
 
     # service icinga2 restart
 
@@ -845,15 +858,11 @@ attribute with minimal permissions required by Icinga Web 2.
 
 Make sure to restart Icinga 2 to activate the configuration.
 
-RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
+RHEL/CentOS 7/Fedora, SLES 12/openSUSE > 12.2, Debian Jessie/Stretch, Ubuntu Xenial:
 
     # systemctl restart icinga2
 
-Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
-
-    # service icinga2 restart
-
-FreeBSD:
+Debian/Ubuntu, RHEL/CentOS 6, SLES 11/openSUSE < 12.3 and FreeBSD:
 
     # service icinga2 restart
 

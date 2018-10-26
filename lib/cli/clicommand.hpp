@@ -78,9 +78,9 @@ public:
 	   CLICommand::Ptr& command, bool autocomplete);
 
 	static void ShowCommands(int argc, char **argv,
-	    boost::program_options::options_description *visibleDesc = NULL,
-	    boost::program_options::options_description *hiddenDesc = NULL,
-	    ArgumentCompletionCallback globalArgCompletionCallback = NULL,
+	    boost::program_options::options_description *visibleDesc = nullptr,
+	    boost::program_options::options_description *hiddenDesc = nullptr,
+	    ArgumentCompletionCallback globalArgCompletionCallback = nullptr,
 	    bool autocomplete = false, int autoindex = -1);
 
 private:

@@ -83,7 +83,7 @@ static Dictionary::Ptr QueryEndpoint(const String& host, const String& port, con
 		boost::condition_variable cv;
 		boost::mutex mtx;
 		Dictionary::Ptr result;
-		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
 		req->RequestMethod = "GET";
 
 		// Url() will call Utillity::UnescapeString() which will thrown an exception if it finds a lonely %
@@ -146,7 +146,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
 	Dictionary::Ptr payload;
 	try {
 		payload = payloads->Get(0);
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		std::cout << "UNKNOWN: Answer format error: 'payload' was not a Dictionary.\n";
 		return 3;
 	}
@@ -171,7 +171,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
 		Dictionary::Ptr line;
 		try {
 			line = vline;
-		} catch (const std::exception& ex) {
+		} catch (const std::exception&) {
 			std::cout << "UNKNOWN: Answer format error: 'lines' entry was not a Dictionary.\n";
 			return 3;
 		}

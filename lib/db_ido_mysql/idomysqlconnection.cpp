@@ -235,18 +235,18 @@ void IdoMysqlConnection::Reconnect(void)
 	isslCaPath = GetSslCapath();
 	isslCipher = GetSslCipher();
 
-	host = (!ihost.IsEmpty()) ? ihost.CStr() : NULL;
+	host = (!ihost.IsEmpty()) ? ihost.CStr() : nullptr;
 	port = GetPort();
-	socket_path = (!isocket_path.IsEmpty()) ? isocket_path.CStr() : NULL;
-	user = (!iuser.IsEmpty()) ? iuser.CStr() : NULL;
-	passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : NULL;
-	db = (!idb.IsEmpty()) ? idb.CStr() : NULL;
+	socket_path = (!isocket_path.IsEmpty()) ? isocket_path.CStr() : nullptr;
+	user = (!iuser.IsEmpty()) ? iuser.CStr() : nullptr;
+	passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : nullptr;
+	db = (!idb.IsEmpty()) ? idb.CStr() : nullptr;
 
-	sslKey = (!isslKey.IsEmpty()) ? isslKey.CStr() : NULL;
-	sslCert = (!isslCert.IsEmpty()) ? isslCert.CStr() : NULL;
-	sslCa = (!isslCa.IsEmpty()) ? isslCa.CStr() : NULL;
-	sslCaPath = (!isslCaPath.IsEmpty()) ? isslCaPath.CStr() : NULL;
-	sslCipher = (!isslCipher.IsEmpty()) ? isslCipher.CStr() : NULL;
+	sslKey = (!isslKey.IsEmpty()) ? isslKey.CStr() : nullptr;
+	sslCert = (!isslCert.IsEmpty()) ? isslCert.CStr() : nullptr;
+	sslCa = (!isslCa.IsEmpty()) ? isslCa.CStr() : nullptr;
+	sslCaPath = (!isslCaPath.IsEmpty()) ? isslCaPath.CStr() : nullptr;
+	sslCipher = (!isslCipher.IsEmpty()) ? isslCipher.CStr() : nullptr;
 
 	/* connection */
 	if (!mysql_init(&m_Connection)) {
@@ -420,7 +420,7 @@ void IdoMysqlConnection::Reconnect(void)
 		SetObjectActive(dbobj, active);
 
 		if (active)
-			activeDbObjs.push_back(dbobj);
+			activeDbObjs.emplace_back(std::move(dbobj));
 	}
 
 	SetIDCacheValid(true);
@@ -489,7 +489,7 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<voi
 	 * See https://github.com/Icinga/icinga2/issues/4603 for details.
 	 */
 	aq.Callback = callback;
-	m_AsyncQueries.push_back(aq);
+	m_AsyncQueries.emplace_back(std::move(aq));
 
 	if (m_AsyncQueries.size() > 25000) {
 		FinishAsyncQueries();
@@ -684,12 +684,12 @@ Dictionary::Ptr IdoMysqlConnection::FetchRow(const IdoMysqlResult& result)
 	row = mysql_fetch_row(result.get());
 
 	if (!row)
-		return Dictionary::Ptr();
+		return nullptr;
 
 	lengths = mysql_fetch_lengths(result.get());
 
 	if (!lengths)
-		return Dictionary::Ptr();
+		return nullptr;
 
 	Dictionary::Ptr dict = new Dictionary();
 

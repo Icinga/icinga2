@@ -26,6 +26,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <deque>
+#include <thread>
 
 namespace icinga
 {
@@ -82,7 +83,7 @@ private:
 		boost::thread *Thread;
 
 		WorkerThread(ThreadState state = ThreadDead)
-			: State(state), Zombie(false), Utilization(0), LastUpdate(0), Thread(NULL)
+			: State(state), Zombie(false), Utilization(0), LastUpdate(0), Thread(nullptr)
 		{ }
 
 		void UpdateUtilization(ThreadState state = ThreadUnspecified);
@@ -121,7 +122,7 @@ private:
 
 	boost::thread_group m_ThreadGroup;
 
-	boost::thread m_MgmtThread;
+	std::thread m_MgmtThread;
 	boost::mutex m_MgmtMutex;
 	boost::condition_variable m_MgmtCV;
 	bool m_Stopped;

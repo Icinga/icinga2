@@ -55,6 +55,9 @@ public:
 	inline Value(void)
 	{ }
 
+	inline Value(std::nullptr_t)
+	{ }
+
 	inline Value(int value)
 		: m_Value(double(value))
 	{ }
@@ -256,7 +259,7 @@ public:
 		if (!IsObject())
 			return false;
 
-		return (dynamic_cast<T *>(boost::get<Object::Ptr>(m_Value).get()) != NULL);
+		return dynamic_cast<T *>(boost::get<Object::Ptr>(m_Value).get());
 	}
 
 	/**
@@ -277,7 +280,7 @@ public:
 	String GetTypeName(void) const;
 
 	Type::Ptr GetReflectionType(void) const;
-	
+
 	Value Clone(void) const;
 
 	template<typename T>

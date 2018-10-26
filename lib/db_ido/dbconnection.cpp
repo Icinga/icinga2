@@ -181,13 +181,12 @@ void DbConnection::UpdateProgramStatus(void)
 	query1.Fields->Set("process_performance_data", (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0));
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
-
 	query1.Priority = PriorityHigh;
-	queries.push_back(query1);
+	queries.emplace_back(std::move(query1));
 
 	DbQuery query2;
 	query2.Type = DbQueryNewTransaction;
-	queries.push_back(query2);
+	queries.emplace_back(std::move(query2));
 
 	DbObject::OnMultipleQueries(queries);
 
@@ -450,7 +449,7 @@ void DbConnection::ValidateFailoverTimeout(double value, const ValidationUtils& 
 	ObjectImpl<DbConnection>::ValidateFailoverTimeout(value, utils);
 
 	if (value < 60)
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("failover_timeout"), "Failover timeout minimum is 60s."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "failover_timeout" }, "Failover timeout minimum is 60s."));
 }
 
 void DbConnection::ValidateCategories(const Array::Ptr& value, const ValidationUtils& utils)
@@ -463,7 +462,7 @@ void DbConnection::ValidateCategories(const Array::Ptr& value, const ValidationU
 	    DbCatAcknowledgement | DbCatComment | DbCatDowntime | DbCatEventHandler | DbCatExternalCommand |
 	    DbCatFlapping | DbCatLog | DbCatNotification | DbCatProgramStatus | DbCatRetention |
 	    DbCatStateHistory)) != 0)
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("categories"), "categories filter is invalid."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "categories" }, "categories filter is invalid."));
 }
 
 void DbConnection::IncreaseQueryCount(void)
@@ -474,10 +473,10 @@ void DbConnection::IncreaseQueryCount(void)
 	m_QueryStats.InsertValue(now, 1);
 }
 
-int DbConnection::GetQueryCount(RingBuffer::SizeType span) const
+int DbConnection::GetQueryCount(RingBuffer::SizeType span)
 {
 	boost::mutex::scoped_lock lock(m_StatsMutex);
-	return m_QueryStats.GetValues(span);
+	return m_QueryStats.UpdateAndGetValues(Utility::GetTime(), span);
 }
 
 bool DbConnection::IsIDCacheValid(void) const

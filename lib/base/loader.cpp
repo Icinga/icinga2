@@ -46,7 +46,7 @@ void Loader::LoadExtensionLibrary(const String& library)
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.CStr());
 
-	if (hModule == NULL) {
+	if (!hModule) {
 		BOOST_THROW_EXCEPTION(win32_error()
 		    << boost::errinfo_api_function("LoadLibrary")
 		    << errinfo_win32_error(GetLastError())
@@ -55,7 +55,7 @@ void Loader::LoadExtensionLibrary(const String& library)
 #else /* _WIN32 */
 	void *hModule = dlopen(path.CStr(), RTLD_NOW | RTLD_GLOBAL);
 
-	if (hModule == NULL) {
+	if (!hModule) {
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not load library '" + path + "': " + dlerror()));
 	}
 #endif /* _WIN32 */

@@ -190,7 +190,7 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 
 	Host::Ptr host;
 	Service::Ptr service;
-	boost::tie(host, service) = GetHostService(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr fields = new Dictionary();
 
@@ -363,7 +363,7 @@ void ElasticsearchWriter::Enqueue(String type, const Dictionary::Ptr& fields, do
 	Log(LogDebug, "ElasticsearchWriter")
 	    << "Add to fields to message list: '" << fieldsBody << "'.";
 
-	m_DataBuffer.push_back(indexBody + fieldsBody);
+	m_DataBuffer.emplace_back(indexBody + fieldsBody);
 
 	/* Flush if we've buffered too much to prevent excessive memory use. */
 	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
@@ -396,6 +396,11 @@ void ElasticsearchWriter::Flush(void)
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
 
+	/* Elasticsearch 6.x requires a new line. This is compatible to 5.x.
+	 * Tested with 6.0.0 and 5.6.4.
+	 */
+	body += "\n";
+
 	SendRequest(body);
 }
 
@@ -412,10 +417,10 @@ void ElasticsearchWriter::SendRequest(const String& body)
 	/* Specify the index path. Best practice is a daily rotation.
 	 * Example: http://localhost:9200/icinga2-2017.09.11?pretty=1
 	 */
-	path.push_back(GetIndex() + "-" + Utility::FormatDateTime("%Y.%m.%d", Utility::GetTime()));
+	path.emplace_back(GetIndex() + "-" + Utility::FormatDateTime("%Y.%m.%d", Utility::GetTime()));
 
 	/* Use the bulk message format. */
-	path.push_back("_bulk");
+	path.emplace_back("_bulk");
 
 	url->SetPath(path);
 
@@ -455,10 +460,18 @@ void ElasticsearchWriter::SendRequest(const String& body)
 
 	try {
 		resp.Parse(context, true);
+		while (resp.Parse(context, true) && !resp.Complete)
+			; /* Do nothing */
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "ElasticsearchWriter")
-			<< "Cannot read from HTTP API on host '" << GetHost() << "' port '" << GetPort() << "'.";
+		    << "Failed to parse HTTP response from host '" << GetHost() << "' port '" << GetPort() << "': " << DiagnosticInformation(ex, false);
 		throw ex;
+	}
+
+	if (!resp.Complete) {
+		Log(LogWarning, "ElasticsearchWriter")
+		    << "Failed to read a complete HTTP response from the Elasticsearch server.";
+		return;
 	}
 
 	if (resp.StatusCode > 299) {
@@ -478,10 +491,6 @@ void ElasticsearchWriter::SendRequest(const String& body)
 
 		Log(LogWarning, "ElasticsearchWriter")
 		    << "Unexpected response code " << resp.StatusCode;
-
-		/* Finish parsing the headers and body. */
-		while (!resp.Complete)
-			resp.Parse(context, true);
 
 		String contentType = resp.Headers->Get("content-type");
 
@@ -509,6 +518,8 @@ void ElasticsearchWriter::SendRequest(const String& body)
 
 		Log(LogCritical, "ElasticsearchWriter")
 		    << "Elasticsearch error message:\n" << error;
+
+		return;
 	}
 }
 
@@ -528,7 +539,7 @@ Stream::Ptr ElasticsearchWriter::Connect(void)
 	}
 
 	if (GetEnableTls()) {
-		boost::shared_ptr<SSL_CTX> sslContext;
+		std::shared_ptr<SSL_CTX> sslContext;
 
 		try {
 			sslContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());

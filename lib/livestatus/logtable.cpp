@@ -117,7 +117,7 @@ Object::Ptr LogTable::HostAccessor(const Value& row, const Column::ObjectAccesso
 	String host_name = static_cast<Dictionary::Ptr>(row)->Get("host_name");
 
 	if (host_name.IsEmpty())
-		return Object::Ptr();
+		return nullptr;
 
 	return Host::GetByName(host_name);
 }
@@ -128,7 +128,7 @@ Object::Ptr LogTable::ServiceAccessor(const Value& row, const Column::ObjectAcce
 	String service_description = static_cast<Dictionary::Ptr>(row)->Get("service_description");
 
 	if (service_description.IsEmpty() || host_name.IsEmpty())
-		return Object::Ptr();
+		return nullptr;
 
 	return Service::GetByNamePair(host_name, service_description);
 }
@@ -138,7 +138,7 @@ Object::Ptr LogTable::ContactAccessor(const Value& row, const Column::ObjectAcce
 	String contact_name = static_cast<Dictionary::Ptr>(row)->Get("contact_name");
 
 	if (contact_name.IsEmpty())
-		return Object::Ptr();
+		return nullptr;
 
 	return User::GetByName(contact_name);
 }
@@ -148,7 +148,7 @@ Object::Ptr LogTable::CommandAccessor(const Value& row, const Column::ObjectAcce
 	String command_name = static_cast<Dictionary::Ptr>(row)->Get("command_name");
 
 	if (command_name.IsEmpty())
-		return Object::Ptr();
+		return nullptr;
 
 	CheckCommand::Ptr check_command = CheckCommand::GetByName(command_name);
 	if (!check_command) {
@@ -156,7 +156,7 @@ Object::Ptr LogTable::CommandAccessor(const Value& row, const Column::ObjectAcce
 		if (!event_command) {
 			NotificationCommand::Ptr notification_command = NotificationCommand::GetByName(command_name);
 			if (!notification_command)
-				return Object::Ptr();
+				return nullptr;
 			else
 				return notification_command;
 		} else

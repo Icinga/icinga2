@@ -139,7 +139,7 @@ Zone::Ptr Zone::GetLocalZone(void)
 	Endpoint::Ptr local = Endpoint::GetLocalEndpoint();
 
 	if (!local)
-		return Zone::Ptr();
+		return nullptr;
 
 	return local->GetZone();
 }

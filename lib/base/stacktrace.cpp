@@ -37,7 +37,7 @@ StackTrace::StackTrace(void)
 	m_Count = backtrace(m_Frames, sizeof(m_Frames) / sizeof(m_Frames[0]));
 #else /* HAVE_BACKTRACE_SYMBOLS */
 #	ifdef _WIN32
-	m_Count = CaptureStackBackTrace(0, sizeof(m_Frames) / sizeof(m_Frames), m_Frames, NULL);
+	m_Count = CaptureStackBackTrace(0, sizeof(m_Frames) / sizeof(m_Frames), m_Frames, nullptr);
 #	else /* _WIN32 */
 	m_Count = 0;
 #	endif /* _WIN32 */
@@ -75,8 +75,8 @@ StackTrace::StackTrace(PEXCEPTION_POINTERS exi)
 	m_Count = 0;
 
 	while (StackWalk64(architecture, GetCurrentProcess(), GetCurrentThread(),
-	    &frame, exi->ContextRecord, NULL, &SymFunctionTableAccess64,
-	    &SymGetModuleBase64, NULL) && m_Count < sizeof(m_Frames) / sizeof(m_Frames[0])) {
+	    &frame, exi->ContextRecord, nullptr, &SymFunctionTableAccess64,
+	    &SymGetModuleBase64, nullptr) && m_Count < sizeof(m_Frames) / sizeof(m_Frames[0])) {
 		m_Frames[m_Count] = reinterpret_cast<void *>(frame.AddrPC.Offset);
 		m_Count++;
 	}
@@ -86,7 +86,7 @@ StackTrace::StackTrace(PEXCEPTION_POINTERS exi)
 #ifdef _WIN32
 INITIALIZE_ONCE([]() {
 	(void) SymSetOptions(SYMOPT_UNDNAME | SYMOPT_LOAD_LINES);
-	(void) SymInitialize(GetCurrentProcess(), NULL, TRUE);
+	(void) SymInitialize(GetCurrentProcess(), nullptr, TRUE);
 });
 #endif /* _WIN32 */
 
@@ -106,7 +106,7 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 #	ifdef HAVE_BACKTRACE_SYMBOLS
 	char **messages = backtrace_symbols(m_Frames, m_Count);
 
-	for (int i = ignoreFrames + 1; i < m_Count && messages != NULL; ++i) {
+	for (int i = ignoreFrames + 1; i < m_Count && messages; ++i) {
 		String message = messages[i];
 
 		char *sym_begin = strchr(messages[i], '(');
@@ -114,7 +114,7 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 		if (sym_begin) {
 			char *sym_end = strchr(sym_begin, '+');
 
-			if (sym_end != NULL) {
+			if (sym_end) {
 				String sym = String(sym_begin + 1, sym_end);
 				String sym_demangled = Utility::DemangleSymbolName(sym);
 

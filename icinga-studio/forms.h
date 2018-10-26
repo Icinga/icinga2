@@ -42,27 +42,27 @@
 class MainFormBase : public wxFrame 
 {
 	private:
-	
+
 	protected:
 		wxMenuBar* m_MenuBar;
 		wxTreeCtrl* m_TypesTree;
 		wxListCtrl* m_ObjectsList;
 		wxPropertyGrid* m_PropertyGrid;
 		wxStatusBar* m_StatusBar;
-		
+
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnQuitClicked( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnAboutClicked( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnTypeSelected( wxTreeEvent& event ) { event.Skip(); }
 		virtual void OnObjectSelected( wxListEvent& event ) { event.Skip(); }
-		
-	
+
+
 	public:
-		
+
 		MainFormBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Icinga Studio"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,569 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
-		
+
 		~MainFormBase();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ class MainFormBase : public wxFrame
 class ConnectFormBase : public wxDialog 
 {
 	private:
-	
+
 	protected:
 		wxTextCtrl* m_HostText;
 		wxTextCtrl* m_PortText;
@@ -80,12 +80,12 @@ class ConnectFormBase : public wxDialog
 		wxStdDialogButtonSizer* m_Buttons;
 		wxButton* m_ButtonsOK;
 		wxButton* m_ButtonsCancel;
-	
+
 	public:
-		
+
 		ConnectFormBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Icinga Studio - Connect"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE ); 
 		~ConnectFormBase();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -94,15 +94,15 @@ class ConnectFormBase : public wxDialog
 class AboutFormBase : public wxDialog 
 {
 	private:
-	
+
 	protected:
 		wxStaticText* m_VersionLabel;
-	
+
 	public:
-		
+
 		AboutFormBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("About Icinga Studio"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE ); 
 		~AboutFormBase();
-	
+
 };
 
 #endif //__FORMS_H__

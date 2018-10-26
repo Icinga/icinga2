@@ -38,7 +38,7 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param role The role of the client.
  * @param sslContext The SSL context for the client.
  */
-TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const boost::shared_ptr<SSL_CTX>& sslContext)
+TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const std::shared_ptr<SSL_CTX>& sslContext)
 	: SocketEvents(socket, this), m_Eof(false), m_HandshakeOK(false), m_VerifyOK(true), m_ErrorCode(0),
 	  m_ErrorOccurred(false),  m_Socket(socket), m_Role(role), m_SendQ(new FIFO()), m_RecvQ(new FIFO()),
 	  m_CurrentAction(TlsActionNone), m_Retry(false), m_Shutdown(false)
@@ -46,7 +46,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, Connecti
 	std::ostringstream msgbuf;
 	char errbuf[120];
 
-	m_SSL = boost::shared_ptr<SSL>(SSL_new(sslContext.get()), SSL_free);
+	m_SSL = std::shared_ptr<SSL>(SSL_new(sslContext.get()), SSL_free);
 
 	if (!m_SSL) {
 		msgbuf << "SSL_new() failed with code " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
@@ -58,7 +58,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, Connecti
 	}
 
 	if (!m_SSLIndexInitialized) {
-		m_SSLIndex = SSL_get_ex_new_index(0, const_cast<char *>("TlsStream"), NULL, NULL, NULL);
+		m_SSLIndex = SSL_get_ex_new_index(0, const_cast<char *>("TlsStream"), nullptr, nullptr, nullptr);
 		m_SSLIndexInitialized = true;
 	}
 
@@ -119,10 +119,10 @@ String TlsStream::GetVerifyError(void) const
  *
  * @returns The X509 certificate.
  */
-boost::shared_ptr<X509> TlsStream::GetClientCertificate(void) const
+std::shared_ptr<X509> TlsStream::GetClientCertificate(void) const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	return boost::shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &Utility::NullDeleter);
+	return std::shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &Utility::NullDeleter);
 }
 
 /**
@@ -130,10 +130,10 @@ boost::shared_ptr<X509> TlsStream::GetClientCertificate(void) const
  *
  * @returns The X509 certificate.
  */
-boost::shared_ptr<X509> TlsStream::GetPeerCertificate(void) const
+std::shared_ptr<X509> TlsStream::GetPeerCertificate(void) const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	return boost::shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
+	return std::shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
 
 void TlsStream::OnEvent(int revents)
@@ -187,7 +187,7 @@ void TlsStream::OnEvent(int revents)
 			rc = SSL_write(m_SSL.get(), buffer, count);
 
 			if (rc > 0) {
-				m_SendQ->Read(NULL, rc, true);
+				m_SendQ->Read(nullptr, rc, true);
 				success = true;
 			}
 
@@ -232,7 +232,7 @@ void TlsStream::OnEvent(int revents)
 
 				if (m_ErrorCode != 0) {
 					Log(LogWarning, "TlsStream")
-						<< "OpenSSL error: " << ERR_error_string(m_ErrorCode, NULL);
+						<< "OpenSSL error: " << ERR_error_string(m_ErrorCode, nullptr);
 				} else {
 					Log(LogWarning, "TlsStream", "TLS stream was disconnected.");
 				}

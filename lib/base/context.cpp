@@ -36,7 +36,7 @@ ContextFrame::~ContextFrame(void)
 
 std::list<String>& ContextFrame::GetFrames(void)
 {
-	if (l_Frames.get() == NULL)
+	if (!l_Frames.get())
 		l_Frames.reset(new std::list<String>());
 
 	return *l_Frames;

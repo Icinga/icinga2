@@ -425,7 +425,7 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 				continue;
 
 			/* send the config object to the connected client */
-			UpdateConfigObject(object, MessageOrigin::Ptr(), aclient);
+			UpdateConfigObject(object, nullptr, aclient);
 		}
 	}
 

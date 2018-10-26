@@ -24,7 +24,7 @@
 #include "livestatus/livestatuslistener.thpp"
 #include "livestatus/livestatusquery.hpp"
 #include "base/socket.hpp"
-#include <boost/thread/thread.hpp>
+#include <thread>
 
 using namespace icinga;
 
@@ -56,7 +56,7 @@ private:
 	void ClientHandler(const Socket::Ptr& client);
 
 	Socket::Ptr m_Listener;
-	boost::thread m_Thread;
+	std::thread m_Thread;
 };
 
 }

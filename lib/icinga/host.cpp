@@ -144,7 +144,7 @@ Service::Ptr Host::GetServiceByShortName(const Value& name)
 				return it->second;
 		}
 
-		return Service::Ptr();
+		return nullptr;
 	} else if (name.IsObjectType<Dictionary>()) {
 		Dictionary::Ptr dict = name;
 		String short_name;

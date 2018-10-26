@@ -44,8 +44,6 @@ public:
 	DECLARE_OBJECT(ScheduledDowntime);
 	DECLARE_OBJECTNAME(ScheduledDowntime);
 
-	static void StaticInitialize(void);
-
 	Checkable::Ptr GetCheckable(void) const;
 
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);

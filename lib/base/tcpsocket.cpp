@@ -58,7 +58,7 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 
-	int rc = getaddrinfo(node.IsEmpty() ? NULL : node.CStr(),
+	int rc = getaddrinfo(node.IsEmpty() ? nullptr : node.CStr(),
 	    service.CStr(), &hints, &result);
 
 	if (rc != 0) {
@@ -72,7 +72,7 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 
 	int fd = INVALID_SOCKET;
 
-	for (addrinfo *info = result; info != NULL; info = info->ai_next) {
+	for (addrinfo *info = result; info != nullptr; info = info->ai_next) {
 		fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
 
 		if (fd == INVALID_SOCKET) {
@@ -161,9 +161,9 @@ void TcpSocket::Connect(const String& node, const String& service)
 		    << errinfo_getaddrinfo_error(rc));
 	}
 
-	int fd = INVALID_SOCKET;
+	SOCKET fd = INVALID_SOCKET;
 
-	for (addrinfo *info = result; info != NULL; info = info->ai_next) {
+	for (addrinfo *info = result; info != nullptr; info = info->ai_next) {
 		fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
 
 		if (fd == INVALID_SOCKET) {

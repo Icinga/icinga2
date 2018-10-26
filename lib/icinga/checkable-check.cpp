@@ -67,7 +67,7 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 {
 	double interval;
 
-	if (GetStateType() == StateTypeSoft && GetLastCheckResult() != NULL)
+	if (GetStateType() == StateTypeSoft && GetLastCheckResult() != nullptr)
 		interval = GetRetryInterval();
 	else
 		interval = GetCheckInterval();
@@ -85,7 +85,7 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 
 bool Checkable::HasBeenChecked(void) const
 {
-	return GetLastCheckResult() != NULL;
+	return GetLastCheckResult() != nullptr;
 }
 
 double Checkable::GetLastCheck(void) const
@@ -371,7 +371,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (!in_downtime && !was_flapping && is_flapping) {
 		/* FlappingStart notifications happen on state changes, not in downtimes */
 		if (!IsPaused())
-			OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", MessageOrigin::Ptr());
+			OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", nullptr);
 
 		Log(LogNotice, "Checkable")
 		    << "Flapping Start: Checkable '" << GetName() << "' started flapping (Current flapping value "
@@ -381,7 +381,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	} else if (!in_downtime && was_flapping && !is_flapping) {
 		/* FlappingEnd notifications are independent from state changes, must not happen in downtine */
 		if (!IsPaused())
-			OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", MessageOrigin::Ptr());
+			OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", nullptr);
 
 		Log(LogNotice, "Checkable")
 		    << "Flapping Stop: Checkable '" << GetName() << "' stopped flapping (Current flapping value "
@@ -392,7 +392,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	if (send_notification && !is_flapping) {
 		if (!IsPaused())
-			OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", MessageOrigin::Ptr());
+			OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", nullptr);
 	}
 }
 
@@ -445,7 +445,7 @@ void Checkable::ExecuteCheck(void)
 	bool local = !endpoint || endpoint == Endpoint::GetLocalEndpoint();
 
 	if (local) {
-		GetCheckCommand()->Execute(this, cr, NULL, false);
+		GetCheckCommand()->Execute(this, cr, nullptr, false);
 	} else {
 		Dictionary::Ptr macros = new Dictionary();
 		GetCheckCommand()->Execute(this, cr, macros, false);

@@ -5,6 +5,15 @@ language: cpp
 
 cache: ccache
 
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "eOnFdiRhB7VUZY7Of4Ff0px93HRWGcD4fXCPiy8V2OC2ER98CYCVw7PKt2Is6i/yTveFTps1kObOo0T03aUT8y/xeBy/wMuJYk1d6mVgmSXOjxcxjQVTUh4J+xB+k/R6FoP2dirNDbvSayCj9Fi9toN9hQHMM8oAZOZfiKmYTJc="
+
+before_install:
+      - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
 addons:
   apt_packages:
     - libboost-all-dev
@@ -17,15 +26,26 @@ addons:
     - libyajl-dev
     - libwxbase3.0-dev
     - libwxgtk3.0-dev
+  coverity_scan:
+    project:
+      name: "Icinga/icinga2"
+    notification_email: icinga2@icinga.com
+    build_command_prepend: "cmake . -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/tmp/icinga2 -DICINGA2_PLUGINDIR=/tmp/icinga2/sbin -DICINGA2_UNITY_BUILD=ON"
+    build_command: "make -j 2"
+    branch_pattern: coverity_scan
 
 before_script:
-  - mkdir build
-  - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/tmp/icinga2 -DICINGA2_PLUGINDIR=/tmp/icinga2/sbin
+  - if [ "$COVERITY_SCAN_BRANCH" != 1 ]; then
+      mkdir build;
+      cd build;
+      cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/tmp/icinga2 -DICINGA2_PLUGINDIR=/tmp/icinga2/sbin;
+    fi
 
 script:
-  - make
-  - make test
-  - make install
-  - /tmp/icinga2/sbin/icinga2 --version
-  - /tmp/icinga2/sbin/icinga2 daemon -C -DRunAsUser=$(id -u -n) -DRunAsGroup=$(id -g -n)
+  - if [ "$COVERITY_SCAN_BRANCH" != 1 ]; then
+      make;
+      make test;
+      make install;
+      /tmp/icinga2/sbin/icinga2 --version;
+      /tmp/icinga2/sbin/icinga2 daemon -C -DRunAsUser=$(id -u -n) -DRunAsGroup=$(id -g -n);
+    fi

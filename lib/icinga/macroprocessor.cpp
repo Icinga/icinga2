@@ -28,7 +28,6 @@
 #include "base/scriptframe.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
-#include <boost/assign.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -216,14 +215,13 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 	}
 
 	resolvers_this->Set("macro", new Function("macro (temporary)", std::bind(&MacroProcessor::InternalResolveMacrosShim,
-	    _1, boost::cref(resolvers), cr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros,
+	    _1, std::cref(resolvers), cr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros,
 	    recursionLevel + 1), { "str" }));
 	resolvers_this->Set("resolve_arguments", new Function("resolve_arguments (temporary)", std::bind(&MacroProcessor::InternalResolveArgumentsShim,
-	    _1, boost::cref(resolvers), cr, resolvedMacros, useResolvedMacros,
+	    _1, std::cref(resolvers), cr, resolvedMacros, useResolvedMacros,
 	    recursionLevel + 1)));
 
-	std::vector<Value> args;
-	return func->Invoke(resolvers_this, args);
+	return func->InvokeThis(resolvers_this);
 }
 
 Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverList& resolvers,
@@ -292,7 +290,7 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 				for (const Value& value : arr) {
 					if (value.IsScalar()) {
 						resolved_arr->Add(InternalResolveMacros(value,
-							resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
+							resolvers, cr, missingMacro, EscapeCallback(), nullptr,
 							false, recursionLevel + 1));
 					} else
 						resolved_arr->Add(value);
@@ -301,7 +299,7 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 				resolved_macro = resolved_arr;
 			} else if (resolved_macro.IsString()) {
 				resolved_macro = InternalResolveMacros(resolved_macro,
-					resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
+					resolvers, cr, missingMacro, EscapeCallback(), nullptr,
 					false, recursionLevel + 1);
 			}
 		}
@@ -376,7 +374,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 					continue;
 
 				if (!ValidateMacroString(kv_var.second))
-					BOOST_THROW_EXCEPTION(ValidationError(object.get(), boost::assign::list_of<String>("vars")(kv.first)(kv_var.first), "Closing $ not found in macro format string '" + kv_var.second + "'."));
+					BOOST_THROW_EXCEPTION(ValidationError(object.get(), { "vars", kv.first, kv_var.first }, "Closing $ not found in macro format string '" + kv_var.second + "'."));
 			}
 		} else if (varval.IsObjectType<Array>()) {
 			/* check all array entries */
@@ -388,7 +386,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 					continue;
 
 				if (!ValidateMacroString(arrval)) {
-					BOOST_THROW_EXCEPTION(ValidationError(object.get(), boost::assign::list_of<String>("vars")(kv.first), "Closing $ not found in macro format string '" + arrval + "'."));
+					BOOST_THROW_EXCEPTION(ValidationError(object.get(), { "vars", kv.first }, "Closing $ not found in macro format string '" + arrval + "'."));
 				}
 			}
 		} else {
@@ -396,7 +394,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 				continue;
 
 			if (!ValidateMacroString(varval))
-				BOOST_THROW_EXCEPTION(ValidationError(object.get(), boost::assign::list_of<String>("vars")(kv.first), "Closing $ not found in macro format string '" + varval + "'."));
+				BOOST_THROW_EXCEPTION(ValidationError(object.get(), { "vars", kv.first }, "Closing $ not found in macro format string '" + varval + "'."));
 		}
 	}
 }
@@ -456,7 +454,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 {
 	Value resolvedCommand;
 	if (!arguments || command.IsObjectType<Array>() || command.IsObjectType<Function>())
-		resolvedCommand = MacroProcessor::ResolveMacros(command, resolvers, cr, NULL,
+		resolvedCommand = MacroProcessor::ResolveMacros(command, resolvers, cr, nullptr,
 		    EscapeMacroShellArg, resolvedMacros, useResolvedMacros, recursionLevel + 1);
 	else {
 		Array::Ptr arr = new Array();
@@ -542,7 +540,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 				continue;
 			}
 
-			args.push_back(arg);
+			args.emplace_back(std::move(arg));
 		}
 
 		std::sort(args.begin(), args.end());

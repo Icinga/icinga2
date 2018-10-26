@@ -383,8 +383,7 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 	}
 	query1.Category = DbCatComment;
 	query1.Fields = fields1;
-
-	queries.push_back(query1);
+	queries.emplace_back(std::move(query1));
 }
 
 void DbEvents::RemoveComment(const Comment::Ptr& comment)
@@ -409,7 +408,7 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 	query1.WhereCriteria->Set("object_id", checkable);
 	query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(entry_time));
 	query1.WhereCriteria->Set("name", comment->GetName());
-	queries.push_back(query1);
+	queries.emplace_back(std::move(query1));
 
 	/* History - update deletion time for service/host */
 	double now = Utility::GetTime();
@@ -429,7 +428,7 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 	query2.WhereCriteria->Set("object_id", checkable);
 	query2.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(entry_time));
 	query2.WhereCriteria->Set("name", comment->GetName());
-	queries.push_back(query2);
+	queries.emplace_back(std::move(query2));
 }
 
 /* downtimes */
@@ -526,8 +525,7 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 
 	query1.Category = DbCatDowntime;
 	query1.Fields = fields1;
-
-	queries.push_back(query1);
+	queries.emplace_back(std::move(query1));
 
 	/* host/service status */
 	if (!historical) {
@@ -558,8 +556,7 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 			query2.WhereCriteria->Set("host_object_id", host);
 
 		query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-		queries.push_back(query2);
+		queries.emplace_back(std::move(query2));
 	}
 }
 
@@ -587,7 +584,7 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	query1.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
 	query1.WhereCriteria->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()));
 	query1.WhereCriteria->Set("name", downtime->GetName());
-	queries.push_back(query1);
+	queries.emplace_back(std::move(query1));
 
 	/* History - update actual_end_time, was_cancelled for service (and host in case) */
 	double now = Utility::GetTime();
@@ -616,8 +613,7 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	query3.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
 	query3.WhereCriteria->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()));
 	query3.WhereCriteria->Set("name", downtime->GetName());
-
-	queries.push_back(query3);
+	queries.emplace_back(std::move(query3));
 
 	/* host/service status */
 	Host::Ptr host;
@@ -647,8 +643,7 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 		query4.WhereCriteria->Set("host_object_id", host);
 
 	query4.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-	queries.push_back(query4);
+	queries.emplace_back(std::move(query4));
 }
 
 void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
@@ -908,7 +903,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		query2.Fields = fields2;
-		queries.push_back(query2);
+		queries.emplace_back(std::move(query2));
 	}
 
 	DbObject::OnMultipleQueries(queries);
@@ -1187,7 +1182,7 @@ void DbEvents::AddFlappingChangedLogHistory(const Checkable::Ptr& checkable)
 {
 	String flapping_state_str;
 	String flapping_output;
-	
+
 	if (checkable->IsFlapping()) {
 		flapping_output = "Service appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThresholdHigh()) + "% threshold)";
 		flapping_state_str = "STARTED";
@@ -1224,7 +1219,7 @@ void DbEvents::AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkabl
 {
 	if (!checkable->GetEnableFlapping())
 		return;
-		
+
 	String flapping_output = "Flap detection has been disabled";
 	String flapping_state_str = "DISABLED";
 
@@ -1353,7 +1348,7 @@ void DbEvents::AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable)
 
 	if (!checkable->GetEnableFlapping())
 		return;
-		
+
 	fields1->Set("event_type", 1001);
 	fields1->Set("reason_type", 2);
 

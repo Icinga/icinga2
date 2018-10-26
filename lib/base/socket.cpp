@@ -330,29 +330,30 @@ size_t Socket::Read(void *buffer, size_t count)
  */
 Socket::Ptr Socket::Accept(void)
 {
-	int fd;
 	sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
 
-	fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
+	SOCKET fd = accept(GetFD(), (sockaddr *)&addr, &addrlen);
 
-	if (fd < 0) {
 #ifndef _WIN32
+	if (fd < 0) {
 		Log(LogCritical, "Socket")
-		    << "accept() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "accept() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("accept")
-		    << boost::errinfo_errno(errno));
-#else /* _WIN32 */
-		Log(LogCritical, "Socket")
-		    << "accept() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
-
-		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("accept")
-		    << errinfo_win32_error(WSAGetLastError()));
-#endif /* _WIN32 */
+			<< boost::errinfo_api_function("accept")
+			<< boost::errinfo_errno(errno));
 	}
+#else /* _WIN32 */
+	if (fd == INVALID_SOCKET) {
+		Log(LogCritical, "Socket")
+			<< "accept() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
+
+		BOOST_THROW_EXCEPTION(socket_error()
+			<< boost::errinfo_api_function("accept")
+			<< errinfo_win32_error(WSAGetLastError()));
+	}
+#endif /* _WIN32 */
 
 	return new Socket(fd);
 }

@@ -40,6 +40,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <thread>
 #ifdef __linux__
 #include <sys/prctl.h>
 #endif /* __linux__ */
@@ -53,7 +54,7 @@ using namespace icinga;
 REGISTER_TYPE(Application);
 
 boost::signals2::signal<void (void)> Application::OnReopenLogs;
-Application::Ptr Application::m_Instance = NULL;
+Application::Ptr Application::m_Instance = nullptr;
 bool Application::m_ShuttingDown = false;
 bool Application::m_RequestRestart = false;
 bool Application::m_RequestReopenLogs = false;
@@ -72,9 +73,9 @@ double Application::m_LastReloadFailed;
  */
 void Application::OnConfigLoaded(void)
 {
-	m_PidFile = NULL;
+	m_PidFile = nullptr;
 
-	ASSERT(m_Instance == NULL);
+	ASSERT(m_Instance == nullptr);
 	m_Instance = this;
 }
 
@@ -114,7 +115,7 @@ void Application::Stop(bool runtimeRemoved)
 
 Application::~Application(void)
 {
-	m_Instance = NULL;
+	m_Instance = nullptr;
 }
 
 void Application::Exit(int rc)
@@ -150,15 +151,13 @@ void Application::InitializeBase(void)
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_IGN;
-	sigaction(SIGPIPE, &sa, NULL);
+	sigaction(SIGPIPE, &sa, nullptr);
 #endif /* _WIN32 */
 
 	Loader::ExecuteDeferredInitializers();
 
 	/* make sure the thread pool gets initialized */
 	GetTP().Start();
-
-	Timer::Initialize();
 }
 
 void Application::UninitializeBase(void)
@@ -277,7 +276,7 @@ void Application::SetResourceLimits(void)
 			for (int i = 1; i < argc; i++)
 				new_argv[i + 1] = argv[i];
 
-			new_argv[argc + 1] = NULL;
+			new_argv[argc + 1] = nullptr;
 
 			(void) execvp(new_argv[0], new_argv);
 			perror("execvp");
@@ -316,8 +315,6 @@ void Application::SetArgV(char **argv)
  */
 void Application::RunEventLoop(void)
 {
-	Timer::Initialize();
-
 	double lastLoop = Utility::GetTime();
 
 mainloop:
@@ -394,7 +391,7 @@ static void ReloadProcessCallback(const ProcessResult& pr)
 {
 	l_Restarting = false;
 
-	boost::thread t(std::bind(&ReloadProcessCallbackInternal, pr));
+	std::thread t(std::bind(&ReloadProcessCallbackInternal, pr));
 	t.detach();
 }
 
@@ -468,7 +465,7 @@ String Application::GetExePath(const String& argv0)
 
 #ifndef _WIN32
 	char buffer[MAXPATHLEN];
-	if (getcwd(buffer, sizeof(buffer)) == NULL) {
+	if (!getcwd(buffer, sizeof(buffer))) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("getcwd")
 		    << boost::errinfo_errno(errno));
@@ -491,7 +488,7 @@ String Application::GetExePath(const String& argv0)
 
 	if (!foundSlash) {
 		const char *pathEnv = getenv("PATH");
-		if (pathEnv != NULL) {
+		if (pathEnv) {
 			std::vector<String> paths;
 			boost::algorithm::split(paths, pathEnv, boost::is_any_of(":"));
 
@@ -513,7 +510,7 @@ String Application::GetExePath(const String& argv0)
 		}
 	}
 
-	if (realpath(executablePath.CStr(), buffer) == NULL) {
+	if (!realpath(executablePath.CStr(), buffer)) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("realpath")
 		    << boost::errinfo_errno(errno)
@@ -524,7 +521,7 @@ String Application::GetExePath(const String& argv0)
 #else /* _WIN32 */
 	char FullExePath[MAXPATHLEN];
 
-	if (!GetModuleFileName(NULL, FullExePath, sizeof(FullExePath)))
+	if (!GetModuleFileName(nullptr, FullExePath, sizeof(FullExePath)))
 		BOOST_THROW_EXCEPTION(win32_error()
 		    << boost::errinfo_api_function("GetModuleFileName")
 		    << errinfo_win32_error(GetLastError()));
@@ -635,9 +632,12 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 				"gdb",
 				"-p",
 				my_pid_str,
-				NULL
+				nullptr
 			};
+
 			argv = const_cast<char **>(uargv);
+
+			(void) execvp(argv[0], argv);
 		} else {
 			const char *uargv[] = {
 				"gdb",
@@ -650,12 +650,14 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 				"detach",
 				"-ex",
 				"quit",
-				NULL
+				nullptr
 			};
+
 			argv = const_cast<char **>(uargv);
+
+			(void) execvp(argv[0], argv);
 		}
 
-		(void)execvp(argv[0], argv);
 		perror("Failed to launch GDB");
 		free(my_pid_str);
 		_exit(0);
@@ -688,7 +690,7 @@ void Application::SigIntTermHandler(int signum)
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
-	sigaction(signum, &sa, NULL);
+	sigaction(signum, &sa, nullptr);
 
 	Application::Ptr instance = Application::GetInstance();
 
@@ -721,7 +723,7 @@ void Application::SigAbrtHandler(int)
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
-	sigaction(SIGABRT, &sa, NULL);
+	sigaction(SIGABRT, &sa, nullptr);
 #endif /* _WIN32 */
 
 	std::cerr << "Caught SIGABRT." << std::endl
@@ -781,14 +783,14 @@ BOOL WINAPI Application::CtrlHandler(DWORD type)
 
 	instance->RequestShutdown();
 
-	SetConsoleCtrlHandler(NULL, FALSE);
+	SetConsoleCtrlHandler(nullptr, FALSE);
 	return TRUE;
 }
 
 bool Application::IsProcessElevated(void) {
 	BOOL fIsElevated = FALSE;
 	DWORD dwError = ERROR_SUCCESS;
-	HANDLE hToken = NULL;
+	HANDLE hToken = nullptr;
 
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
 		dwError = GetLastError();
@@ -804,13 +806,13 @@ bool Application::IsProcessElevated(void) {
 
 	if (hToken) {
 		CloseHandle(hToken);
-		hToken = NULL;
+		hToken = nullptr;
 	}
 
 	if (ERROR_SUCCESS != dwError) {
-		LPSTR mBuf = NULL;
+		LPSTR mBuf = nullptr;
 		if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, dwError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), mBuf, 0, NULL))
+			nullptr, dwError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), mBuf, 0, nullptr))
 			BOOST_THROW_EXCEPTION(std::runtime_error("Failed to format error message, last error was: " + dwError));
 		else
 			BOOST_THROW_EXCEPTION(std::runtime_error(mBuf));
@@ -835,7 +837,7 @@ void Application::ExceptionHandler(void)
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
-	sigaction(SIGABRT, &sa, NULL);
+	sigaction(SIGABRT, &sa, nullptr);
 #endif /* _WIN32 */
 
 	String fname = GetCrashReportFilename();
@@ -940,7 +942,7 @@ void Application::InstallExceptionHandlers(void)
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = &Application::SigAbrtHandler;
-	sigaction(SIGABRT, &sa, NULL);
+	sigaction(SIGABRT, &sa, nullptr);
 #else /* _WIN32 */
 	SetUnhandledExceptionFilter(&Application::SEHUnhandledExceptionFilter);
 #endif /* _WIN32 */
@@ -957,11 +959,11 @@ int Application::Run(void)
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = &Application::SigIntTermHandler;
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGINT, &sa, nullptr);
+	sigaction(SIGTERM, &sa, nullptr);
 
 	sa.sa_handler = &Application::SigUsr1Handler;
-	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR1, &sa, nullptr);
 #else /* _WIN32 */
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */
@@ -990,17 +992,17 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 {
 	ObjectLock olock(this);
 
-	if (m_PidFile != NULL)
+	if (m_PidFile)
 		fclose(m_PidFile);
 
 	/* There's just no sane way of getting a file descriptor for a
 	 * C++ ofstream which is why we're using FILEs here. */
 	m_PidFile = fopen(filename.CStr(), "r+");
 
-	if (m_PidFile == NULL)
+	if (!m_PidFile)
 		m_PidFile = fopen(filename.CStr(), "w");
 
-	if (m_PidFile == NULL) {
+	if (!m_PidFile) {
 		Log(LogCritical, "Application")
 		    << "Could not open PID file '" << filename << "'.";
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open PID file '" + filename + "'"));
@@ -1045,8 +1047,7 @@ void Application::ClosePidFile(bool unlink)
 {
 	ObjectLock olock(this);
 
-	if (m_PidFile != NULL)
-	{
+	if (m_PidFile) {
 		if (unlink) {
 			String pidpath = GetPidPath();
 			::unlink(pidpath.CStr());
@@ -1055,7 +1056,7 @@ void Application::ClosePidFile(bool unlink)
 		fclose(m_PidFile);
 	}
 
-	m_PidFile = NULL;
+	m_PidFile = nullptr;
 }
 
 /**
@@ -1068,7 +1069,7 @@ pid_t Application::ReadPidFile(const String& filename)
 {
 	FILE *pidfile = fopen(filename.CStr(), "r");
 
-	if (pidfile == NULL)
+	if (!pidfile)
 		return 0;
 
 #ifndef _WIN32
@@ -1508,7 +1509,7 @@ void Application::DeclareConcurrency(int ncpus)
  */
 int Application::GetConcurrency(void)
 {
-	Value defaultConcurrency = boost::thread::hardware_concurrency();
+	Value defaultConcurrency = std::thread::hardware_concurrency();
 	return ScriptGlobal::Get("Concurrency", &defaultConcurrency);
 }
 
@@ -1568,5 +1569,5 @@ void Application::ValidateName(const String& value, const ValidationUtils& utils
 	ObjectImpl<Application>::ValidateName(value, utils);
 
 	if (value != "app")
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("name"), "Application object must be named 'app'."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "name" }, "Application object must be named 'app'."));
 }

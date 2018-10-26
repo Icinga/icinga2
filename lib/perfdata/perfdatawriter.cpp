@@ -100,12 +100,12 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 	MacroProcessor::ResolverList resolvers;
 	if (service)
-		resolvers.push_back(std::make_pair("service", service));
-	resolvers.push_back(std::make_pair("host", host));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+		resolvers.emplace_back("service", service);
+	resolvers.emplace_back("host", host);
+	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	if (service) {
-		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr, NULL, &PerfdataWriter::EscapeMacroMetric);
+		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
 
 		{
 			ObjectLock olock(this);
@@ -115,7 +115,7 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			m_ServiceOutputFile << line << "\n";
 		}
 	} else {
-		String line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr, NULL, &PerfdataWriter::EscapeMacroMetric);
+		String line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
 
 		{
 			ObjectLock olock(this);
@@ -163,7 +163,7 @@ void PerfdataWriter::ValidateHostFormatTemplate(const String& value, const Valid
 	ObjectImpl<PerfdataWriter>::ValidateHostFormatTemplate(value, utils);
 
 	if (!MacroProcessor::ValidateMacroString(value))
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("host_format_template"), "Closing $ not found in macro format string '" + value + "'."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "host_format_template" }, "Closing $ not found in macro format string '" + value + "'."));
 }
 
 void PerfdataWriter::ValidateServiceFormatTemplate(const String& value, const ValidationUtils& utils)
@@ -171,5 +171,5 @@ void PerfdataWriter::ValidateServiceFormatTemplate(const String& value, const Va
 	ObjectImpl<PerfdataWriter>::ValidateServiceFormatTemplate(value, utils);
 
 	if (!MacroProcessor::ValidateMacroString(value))
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("service_format_template"), "Closing $ not found in macro format string '" + value + "'."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "service_format_template" }, "Closing $ not found in macro format string '" + value + "'."));
 }

@@ -68,7 +68,7 @@ DbType::Ptr DbType::GetByName(const String& name)
 	auto it = GetTypes().find(typeName);
 
 	if (it == GetTypes().end())
-		return DbType::Ptr();
+		return nullptr;
 
 	return it->second;
 }
@@ -82,7 +82,7 @@ DbType::Ptr DbType::GetByID(long tid)
 			return kv.second;
 	}
 
-	return DbType::Ptr();
+	return nullptr;
 }
 
 DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String& name2)

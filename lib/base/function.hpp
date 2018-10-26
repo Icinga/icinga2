@@ -49,7 +49,7 @@ public:
 	{ }
 
 	Value Invoke(const std::vector<Value>& arguments = std::vector<Value>());
-	Value Invoke(const Value& otherThis, const std::vector<Value>& arguments = std::vector<Value>());
+	Value InvokeThis(const Value& otherThis, const std::vector<Value>& arguments = std::vector<Value>());
 
 	inline bool IsSideEffectFree(void) const
 	{

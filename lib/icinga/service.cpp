@@ -111,7 +111,7 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
 		Host::Ptr host = Host::GetByName(hostName);
 
 		if (!host)
-			return Service::Ptr();
+			return nullptr;
 
 		return host->GetServiceByShortName(serviceName);
 	} else {
@@ -267,13 +267,13 @@ bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Valu
 	return false;
 }
 
-boost::tuple<Host::Ptr, Service::Ptr> icinga::GetHostService(const Checkable::Ptr& checkable)
+std::pair<Host::Ptr, Service::Ptr> icinga::GetHostService(const Checkable::Ptr& checkable)
 {
 	Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
 
 	if (service)
-		return boost::make_tuple(service->GetHost(), service);
+		return std::make_pair(service->GetHost(), service);
 	else
-		return boost::make_tuple(static_pointer_cast<Host>(checkable), Service::Ptr());
+		return std::make_pair(static_pointer_cast<Host>(checkable), nullptr);
 }
 

@@ -58,7 +58,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 		ObjectLock olock(attrs);
 		for (const String& attr : attrs) {
 			String userAttr;
-			
+
 			if (isJoin) {
 				String::SizeType dpos = attr.FindFirstOf(".");
 				if (dpos == String::NPos)

@@ -58,7 +58,7 @@ apply Service "livestatus" {
 }
 )CONFIG";
 
-		Expression *expr = ConfigCompiler::CompileText("<livestatus>", config);
+		std::unique_ptr<Expression> expr = ConfigCompiler::CompileText("<livestatus>", config);
 		expr->Evaluate(*ScriptFrame::GetCurrentFrame());
 	}
 };

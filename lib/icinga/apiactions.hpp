@@ -48,7 +48,7 @@ public:
 	static Dictionary::Ptr GenerateTicket(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 
 private:
-	static Dictionary::Ptr CreateResult(int code, const String& status, const Dictionary::Ptr& additional = Dictionary::Ptr());
+	static Dictionary::Ptr CreateResult(int code, const String& status, const Dictionary::Ptr& additional = nullptr);
 };
 
 }

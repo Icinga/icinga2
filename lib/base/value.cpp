@@ -100,7 +100,7 @@ Type::Ptr Value::GetReflectionType(void) const
 		case ValueObject:
 			return boost::get<Object::Ptr>(m_Value)->GetReflectionType();
 		default:
-			return Type::Ptr();
+			return nullptr;
 	}
 }
 

@@ -28,7 +28,7 @@
 
 #define REGISTER_CONFIG_FRAGMENT(name, fragment) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
-		icinga::Expression *expression = icinga::ConfigCompiler::CompileText(name, fragment); \
+		std::unique_ptr<icinga::Expression> expression = icinga::ConfigCompiler::CompileText(name, fragment); \
 		VERIFY(expression); \
 		try { \
 			icinga::ScriptFrame frame; \
@@ -37,7 +37,6 @@
 			std::cerr << icinga::DiagnosticInformation(ex) << std::endl; \
 			icinga::Application::Exit(1); \
 		} \
-		delete expression; \
 	}, 5)
 
 #endif /* CONFIGFRAGMENT_H */

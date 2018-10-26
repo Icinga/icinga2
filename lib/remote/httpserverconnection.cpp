@@ -82,7 +82,7 @@ void HttpServerConnection::Disconnect(void)
 	listener->RemoveHttpClient(this);
 
 	m_CurrentRequest.~HttpRequest();
-	new (&m_CurrentRequest) HttpRequest(Stream::Ptr());
+	new (&m_CurrentRequest) HttpRequest(nullptr);
 
 	m_Stream->Close();
 }

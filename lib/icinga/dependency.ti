@@ -60,7 +60,7 @@ class Dependency : CustomVarObject < DependencyNameComposer
 		}}}
 		navigate {{{
 			if (GetChildServiceName().IsEmpty())
-				return Service::Ptr();
+				return nullptr;
 
 			Host::Ptr host = Host::GetByName(GetChildHostName());
 			return host->GetServiceByShortName(GetChildServiceName());
@@ -87,7 +87,7 @@ class Dependency : CustomVarObject < DependencyNameComposer
 		}}}
 		navigate {{{
 			if (GetParentServiceName().IsEmpty())
-				return Service::Ptr();
+				return nullptr;
 
 			Host::Ptr host = Host::GetByName(GetParentHostName());
 			return host->GetServiceByShortName(GetParentServiceName());

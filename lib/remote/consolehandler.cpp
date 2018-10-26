@@ -29,6 +29,7 @@
 #include "base/timer.hpp"
 #include "base/initialize.hpp"
 #include <boost/algorithm/string.hpp>
+#include <boost/thread/once.hpp>
 #include <set>
 
 using namespace icinga;
@@ -57,12 +58,17 @@ static void ScriptFrameCleanupHandler(void)
 		l_ApiScriptFrames.erase(key);
 }
 
-INITIALIZE_ONCE([]() {
-	l_FrameCleanupTimer = new Timer();
-	l_FrameCleanupTimer->OnTimerExpired.connect(std::bind(ScriptFrameCleanupHandler));
-	l_FrameCleanupTimer->SetInterval(30);
-	l_FrameCleanupTimer->Start();
-});
+static void EnsureFrameCleanupTimer(void)
+{
+	static boost::once_flag once = BOOST_ONCE_INIT;
+
+	boost::call_once(once, []() {
+		l_FrameCleanupTimer = new Timer();
+		l_FrameCleanupTimer->OnTimerExpired.connect(std::bind(ScriptFrameCleanupHandler));
+		l_FrameCleanupTimer->SetInterval(30);
+		l_FrameCleanupTimer->Start();
+	});
+}
 
 bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
@@ -102,6 +108,8 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 	Log(LogNotice, "Console")
 	    << "Executing expression: " << command;
 
+	EnsureFrameCleanupTimer();
+
 	ApiScriptFrame& lsf = l_ApiScriptFrames[session];
 	lsf.Seen = Utility::GetTime();
 
@@ -115,7 +123,7 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 
 	Array::Ptr results = new Array();
 	Dictionary::Ptr resultInfo = new Dictionary();
-	Expression *expr = NULL;
+	std::unique_ptr<Expression> expr;
 	Value exprResult;
 
 	try {
@@ -152,11 +160,7 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 		debugInfo->Set("last_line", di.LastLine);
 		debugInfo->Set("last_column", di.LastColumn);
 		resultInfo->Set("debug_info", debugInfo);
-	} catch (...) {
-		delete expr;
-		throw;
 	}
-	delete expr;
 
 	results->Add(resultInfo);
 
@@ -174,6 +178,8 @@ bool ConsoleHandler::AutocompleteScriptHelper(HttpRequest& request, HttpResponse
 {
 	Log(LogInformation, "Console")
 	    << "Auto-completing expression: " << command;
+
+	EnsureFrameCleanupTimer();
 
 	ApiScriptFrame& lsf = l_ApiScriptFrames[session];
 	lsf.Seen = Utility::GetTime();
@@ -254,7 +260,7 @@ static void AddSuggestions(std::vector<String>& matches, const String& word, con
 }
 
 std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& word, ScriptFrame& frame)
-{	
+{
 	std::vector<String> matches;
 
 	for (const String& keyword : ConfigWriter::GetKeywords()) {
@@ -291,13 +297,12 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 		Value value;
 
 		try {
-			Expression *expr = ConfigCompiler::CompileText("temp", pword);
+			std::unique_ptr<Expression> expr = ConfigCompiler::CompileText("temp", pword);
 
 			if (expr)
 				value = expr->Evaluate(frame);
 
 			AddSuggestions(matches, word, pword, true, value);
-
 		} catch (...) { /* Ignore the exception */ }
 	}
 

@@ -93,6 +93,7 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, 500, "Could not create package.",
 			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+		return;
 	}
 
 	result1->Set("code", 200);

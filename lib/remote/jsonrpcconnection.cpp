@@ -39,6 +39,7 @@ static Timer::Ptr l_JsonRpcConnectionTimeoutTimer;
 static WorkQueue *l_JsonRpcConnectionWorkQueues;
 static size_t l_JsonRpcConnectionWorkQueueCount;
 static int l_JsonRpcConnectionNextID;
+static Timer::Ptr l_HeartbeatTimer;
 
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
     const TlsStream::Ptr& stream, ConnectionRole role)
@@ -65,6 +66,11 @@ void JsonRpcConnection::StaticInitialize(void)
 	for (size_t i = 0; i < l_JsonRpcConnectionWorkQueueCount; i++) {
 		l_JsonRpcConnectionWorkQueues[i].SetName("JsonRpcConnection, #" + Convert::ToString(i));
 	}
+
+	l_HeartbeatTimer = new Timer();
+	l_HeartbeatTimer->OnTimerExpired.connect(std::bind(&JsonRpcConnection::HeartbeatTimerHandler));
+	l_HeartbeatTimer->SetInterval(10);
+	l_HeartbeatTimer->Start();
 }
 
 void JsonRpcConnection::Start(void)
@@ -111,7 +117,8 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 		ObjectLock olock(m_Stream);
 		if (m_Stream->IsEof())
 			return;
-		JsonRpc::SendMessage(m_Stream, message);
+		size_t bytesSent = JsonRpc::SendMessage(m_Stream, message);
+		m_Endpoint->AddMessageSent(bytesSent);
 	} catch (const std::exception& ex) {
 		std::ostringstream info;
 		info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
@@ -182,6 +189,8 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 			origin->FromZone = m_Endpoint->GetZone();
 		else
 			origin->FromZone = Zone::GetByName(message->Get("originZone"));
+
+		m_Endpoint->AddMessageReceived(jsonString.GetLength());
 	}
 
 	Value vmethod;
@@ -313,18 +322,17 @@ void JsonRpcConnection::TimeoutTimerHandler(void)
 	}
 }
 
-int JsonRpcConnection::GetWorkQueueCount(void)
+size_t JsonRpcConnection::GetWorkQueueCount(void)
 {
 	return l_JsonRpcConnectionWorkQueueCount;
 }
 
-int JsonRpcConnection::GetWorkQueueLength(void)
+size_t JsonRpcConnection::GetWorkQueueLength(void)
 {
-	int itemCount = 0;
+	size_t itemCount = 0;
 
-	for (int i = 0; i < GetWorkQueueCount(); i++) {
+	for (size_t i = 0; i < GetWorkQueueCount(); i++)
 		itemCount += l_JsonRpcConnectionWorkQueues[i].GetLength();
-	}
 
 	return itemCount;
 }
@@ -332,15 +340,14 @@ int JsonRpcConnection::GetWorkQueueLength(void)
 double JsonRpcConnection::GetWorkQueueRate(void)
 {
 	double rate = 0.0;
-	int count = GetWorkQueueCount();
+	size_t count = GetWorkQueueCount();
 
 	/* If this is a standalone environment, we don't have any queues. */
 	if (count == 0)
 		return 0.0;
 
-	for (int i = 0; i < count; i++) {
+	for (size_t i = 0; i < count; i++)
 		rate += l_JsonRpcConnectionWorkQueues[i].GetTaskCount(60) / 60.0;
-	}
 
 	return rate / count;
 }

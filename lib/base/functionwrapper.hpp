@@ -23,6 +23,7 @@
 #include "base/i2-base.hpp"
 #include "base/value.hpp"
 #include <vector>
+#include <boost/function_types/function_arity.hpp>
 #include <type_traits>
 
 using namespace std::placeholders;
@@ -80,9 +81,9 @@ private:
 public:
 	template <typename FuncType>
 	auto operator () (FuncType f, const std::vector<Value>& args)
-	    -> decltype(call(f, args, BuildIndices<boost::function_traits<typename boost::remove_pointer<FuncType>::type>::arity>{}))
+	    -> decltype(call(f, args, BuildIndices<boost::function_types::function_arity<typename boost::remove_pointer<FuncType>::type>::value>{}))
 	{
-		return call(f, args, BuildIndices<boost::function_traits<typename boost::remove_pointer<FuncType>::type>::arity>{});
+		return call(f, args, BuildIndices<boost::function_types::function_arity<typename boost::remove_pointer<FuncType>::type>::value>{});
 	}
 };
 
@@ -96,7 +97,7 @@ std::function<Value (const std::vector<Value>&)> WrapFunction(FuncType function,
     EnableIf<std::is_same<decltype(unpack_caller()(FuncType(), std::vector<Value>())), void>::value>* = 0)
 {
 	return [function](const std::vector<Value>& arguments) {
-		constexpr int arity = boost::function_traits<typename boost::remove_pointer<FuncType>::type>::arity;
+		constexpr int arity = boost::function_types::function_arity<typename boost::remove_pointer<FuncType>::type>::value;
 
 		if (arguments.size() < arity)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -113,7 +114,7 @@ std::function<Value (const std::vector<Value>&)> WrapFunction(FuncType function,
 		EnableIf<!std::is_same<decltype(unpack_caller()(FuncType(), std::vector<Value>())), void>::value>* = 0)
 {
 	return [function](const std::vector<Value>& arguments) {
-		constexpr int arity = boost::function_traits<typename boost::remove_pointer<FuncType>::type>::arity;
+		constexpr int arity = boost::function_types::function_arity<typename boost::remove_pointer<FuncType>::type>::value;
 
 		if (arity > 0) {
 			if (arguments.size() < arity)

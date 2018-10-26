@@ -79,7 +79,7 @@ void CheckerComponent::Start(bool runtimeCreated)
 	    << "'" << GetName() << "' started.";
 
 
-	m_Thread = boost::thread(std::bind(&CheckerComponent::CheckThreadProc, this));
+	m_Thread = std::thread(std::bind(&CheckerComponent::CheckThreadProc, this));
 
 	m_ResultTimer = new Timer();
 	m_ResultTimer->SetInterval(5);

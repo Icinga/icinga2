@@ -212,8 +212,7 @@ void Url::AddQueryElement(const String& name, const String& value)
 {
 	auto it = m_Query.find(name);
 	if (it == m_Query.end()) {
-		m_Query[name] = std::vector<String>();
-		m_Query[name].push_back(value);
+		m_Query[name] = std::vector<String> { value };
 	} else
 		m_Query[name].push_back(value);
 }
@@ -363,9 +362,7 @@ bool Url::ParsePath(const String& path)
 		if (!ValidateToken(token, ACPATHSEGMENT))
 			return false;
 
-		String decodedToken = Utility::UnescapeString(token);
-
-		m_Path.push_back(decodedToken);
+		m_Path.emplace_back(Utility::UnescapeString(token));
 	}
 
 	return true;
@@ -411,11 +408,9 @@ bool Url::ParseQuery(const String& query)
 		auto it = m_Query.find(key);
 
 		if (it == m_Query.end()) {
-			m_Query[key] = std::vector<String>();
-			m_Query[key].push_back(value);
+			m_Query[key] = std::vector<String> { std::move(value) };
 		} else
-			m_Query[key].push_back(value);
-
+			m_Query[key].emplace_back(std::move(value));
 	}
 
 	return true;

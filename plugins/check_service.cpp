@@ -126,13 +126,11 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 
 	printInfo.service = vm["service"].as<std::wstring>();
 
-	if (vm.count("warn")) {
-		printInfo.warn = true;
-	}
+	printInfo.warn = vm.count("warn");
 
 	if (vm.count("D"))
 		debug = TRUE;
-	
+
 	return -1;
 }
 
@@ -157,10 +155,10 @@ INT printOutput(CONST printInfoStruct& printInfo)
 		std::wcout << L"SERVICE \"" << printInfo.service << "\" OK RUNNING | service=4;;;1;7" << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\"WARNING NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" WARNING NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\"CRITICAL NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" CRITICAL NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		break;
 	}
 
@@ -255,7 +253,7 @@ DWORD ServiceStatus(CONST printInfoStruct& printInfo)
 {
 	SC_HANDLE hSCM;
 	SC_HANDLE hService;
-	DWORD cbBufSize, lpServicesReturned, pcbBytesNeeded;
+	DWORD cbBufSize;
 	DWORD lpResumeHandle = 0;
 	LPBYTE lpBuf = NULL;
 
@@ -269,7 +267,7 @@ DWORD ServiceStatus(CONST printInfoStruct& printInfo)
 	hService = OpenService(hSCM, printInfo.service.c_str(), SERVICE_QUERY_STATUS);
 	if (hService == NULL)
 		goto die;
-	
+
 	QueryServiceStatusEx(hService, SC_STATUS_PROCESS_INFO, NULL, 0, &cbBufSize);
 	if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 		goto die;

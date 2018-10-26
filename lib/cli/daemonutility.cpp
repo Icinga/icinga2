@@ -51,9 +51,9 @@ static void IncludeZoneDirRecursive(const String& path, const String& package, b
 	/* register this zone path for cluster config sync */
 	ConfigCompiler::RegisterZoneDir("_etc", path, zoneName);
 
-	std::vector<Expression *> expressions;
-	Utility::GlobRecursive(path, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, package), GlobFile);
-	DictExpression expr(expressions);
+	std::vector<std::unique_ptr<Expression> > expressions;
+	Utility::GlobRecursive(path, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
+	DictExpression expr(std::move(expressions));
 	if (!ExecuteExpression(&expr))
 		success = false;
 }
@@ -74,9 +74,9 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 		return;
 	}
 
-	std::vector<Expression *> expressions;
-	Utility::GlobRecursive(zonePath, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, package), GlobFile);
-	DictExpression expr(expressions);
+	std::vector<std::unique_ptr<Expression> > expressions;
+	Utility::GlobRecursive(zonePath, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
+	DictExpression expr(std::move(expressions));
 	if (!ExecuteExpression(&expr))
 		success = false;
 }
@@ -88,13 +88,11 @@ static void IncludePackage(const String& packagePath, bool& success)
 	String packageName = Utility::BaseName(packagePath);
 
 	if (Utility::PathExists(packagePath + "/include.conf")) {
-		Expression *expr = ConfigCompiler::CompileFile(packagePath + "/include.conf",
+		std::unique_ptr<Expression> expr = ConfigCompiler::CompileFile(packagePath + "/include.conf",
 		    String(), packageName);
 
-		if (!ExecuteExpression(expr))
+		if (!ExecuteExpression(&*expr))
 			success = false;
-
-		delete expr;
 	}
 }
 
@@ -107,9 +105,8 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (!configs.empty()) {
 		for (const String& configPath : configs) {
 			try {
-				Expression *expression = ConfigCompiler::CompileFile(configPath, String(), "_etc");
-				success = ExecuteExpression(expression);
-				delete expression;
+				std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(configPath, String(), "_etc");
+				success = ExecuteExpression(&*expression);
 				if (!success)
 					return false;
 			} catch (const std::exception& ex) {
@@ -126,7 +123,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 
 	String zonesEtcDir = Application::GetZonesDir();
 	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
-		Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", boost::ref(success)), GlobDirectory);
+		Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", std::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
@@ -135,7 +132,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	 * are authoritative on this node and are checked in HasZoneConfigAuthority(). */
 	String packagesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/packages";
 	if (Utility::PathExists(packagesVarDir))
-		Utility::Glob(packagesVarDir + "/*", std::bind(&IncludePackage, _1, boost::ref(success)), GlobDirectory);
+		Utility::Glob(packagesVarDir + "/*", std::bind(&IncludePackage, _1, std::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
@@ -143,7 +140,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	/* Load cluster synchronized configuration files */
 	String zonesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
 	if (Utility::PathExists(zonesVarDir))
-		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", boost::ref(success)), GlobDirectory);
+		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", std::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;

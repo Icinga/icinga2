@@ -28,16 +28,14 @@ using namespace icinga;
 static void InvokeAttributeHandlerHelper(const Function::Ptr& callback,
     const Object::Ptr& object, const Value& cookie)
 {
-	std::vector<Value> arguments;
-	arguments.push_back(object);
-	callback->Invoke(arguments);
+	callback->Invoke({ object });
 }
 
 static void TypeRegisterAttributeHandler(const String& fieldName, const Function::Ptr& callback)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Type::Ptr self = static_cast<Type::Ptr>(vframe->Self);
-	
+
 	int fid = self->GetFieldId(fieldName);
 	self->RegisterAttributeHandler(fid, std::bind(&InvokeAttributeHandlerHelper, callback, _1, _2));
 }

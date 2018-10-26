@@ -45,7 +45,7 @@ MainForm::MainForm(wxWindow *parent, const Url::Ptr& url)
 	SetTitle(title);
 
 	m_ObjectsList->InsertColumn(0, "Name", 0, 300);
-	
+
 	m_PropertyGrid->SetColumnCount(3);
 }
 
@@ -205,7 +205,7 @@ wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)
 		return prop;
 	} else if (value.IsObjectType<Dictionary>()) {
 		wxStringProperty *prop = new wxStringProperty(name.GetData(), wxPG_LABEL);
-		
+
 		Dictionary::Ptr dict = value;
 
 		{

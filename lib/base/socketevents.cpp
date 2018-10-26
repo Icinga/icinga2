@@ -50,7 +50,7 @@ void SocketEventEngine::Start(void)
 
 		InitializeThread(tid);
 
-		m_Threads[tid] = boost::thread(std::bind(&SocketEventEngine::ThreadProc, this, tid));
+		m_Threads[tid] = std::thread(std::bind(&SocketEventEngine::ThreadProc, this, tid));
 	}
 }
 
@@ -58,7 +58,7 @@ void SocketEventEngine::WakeUpThread(int sid, bool wait)
 {
 	int tid = sid % SOCKET_IOTHREADS;
 
-	if (boost::this_thread::get_id() == m_Threads[tid].get_id())
+	if (std::this_thread::get_id() == m_Threads[tid].get_id())
 		return;
 
 	if (wait) {
@@ -112,7 +112,7 @@ void SocketEvents::InitializeEngine(void)
  * Constructor for the SocketEvents class.
  */
 SocketEvents::SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject)
-	: m_ID(m_NextID++), m_FD(socket->GetFD()), m_EnginePrivate(NULL)
+	: m_ID(m_NextID++), m_FD(socket->GetFD()), m_EnginePrivate(nullptr)
 {
 	boost::call_once(l_SocketIOOnceFlag, &SocketEvents::InitializeEngine);
 

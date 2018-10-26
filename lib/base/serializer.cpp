@@ -55,7 +55,7 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes)
 	Type::Ptr type = input->GetReflectionType();
 
 	if (!type)
-		return Object::Ptr();
+		return nullptr;
 
 	Dictionary::Ptr fields = new Dictionary();
 
@@ -115,7 +115,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 		return object;
 
 	Object::Ptr instance;
-	
+
 	if (object)
 		instance = object;
 	else
@@ -127,7 +127,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 			continue;
 
 		int fid = type->GetFieldId(kv.first);
-	
+
 		if (fid < 0)
 			continue;
 
@@ -155,12 +155,12 @@ Value icinga::Serialize(const Value& value, int attributeTypes)
 
 	Array::Ptr array = dynamic_pointer_cast<Array>(input);
 
-	if (array != NULL)
+	if (array)
 		return SerializeArray(array, attributeTypes);
 
 	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(input);
 
-	if (dict != NULL)
+	if (dict)
 		return SerializeDictionary(dict, attributeTypes);
 
 	return SerializeObject(input, attributeTypes);
@@ -168,7 +168,7 @@ Value icinga::Serialize(const Value& value, int attributeTypes)
 
 Value icinga::Deserialize(const Value& value, bool safe_mode, int attributeTypes)
 {
-	return Deserialize(Object::Ptr(), value, safe_mode, attributeTypes);
+	return Deserialize(nullptr, value, safe_mode, attributeTypes);
 }
 
 Value icinga::Deserialize(const Object::Ptr& object, const Value& value, bool safe_mode, int attributeTypes)
@@ -180,12 +180,12 @@ Value icinga::Deserialize(const Object::Ptr& object, const Value& value, bool sa
 
 	Array::Ptr array = dynamic_pointer_cast<Array>(input);
 
-	if (array != NULL)
+	if (array)
 		return DeserializeArray(array, safe_mode, attributeTypes);
 
 	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(input);
 
-	ASSERT(dict != NULL);
+	ASSERT(dict);
 
 	if ((safe_mode && !object) || !dict->Contains("type"))
 		return DeserializeDictionary(dict, safe_mode, attributeTypes);

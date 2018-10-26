@@ -195,20 +195,20 @@ void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable,
 
 	Host::Ptr host;
 	Service::Ptr service;
-	boost::tie(host, service) = GetHostService(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
 	if (service)
-		resolvers.push_back(std::make_pair("service", service));
-	resolvers.push_back(std::make_pair("host", host));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+		resolvers.emplace_back("service", service);
+	resolvers.emplace_back("host", host);
+	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String prefix;
 
 	if (service) {
-		prefix = MacroProcessor::ResolveMacros(GetServiceNameTemplate(), resolvers, cr, NULL, std::bind(&GraphiteWriter::EscapeMacroMetric, _1));
+		prefix = MacroProcessor::ResolveMacros(GetServiceNameTemplate(), resolvers, cr, nullptr, std::bind(&GraphiteWriter::EscapeMacroMetric, _1));
 	} else {
-		prefix = MacroProcessor::ResolveMacros(GetHostNameTemplate(), resolvers, cr, NULL, std::bind(&GraphiteWriter::EscapeMacroMetric, _1));
+		prefix = MacroProcessor::ResolveMacros(GetHostNameTemplate(), resolvers, cr, nullptr, std::bind(&GraphiteWriter::EscapeMacroMetric, _1));
 	}
 
 	String prefixPerfdata = prefix + ".perfdata";
@@ -350,7 +350,7 @@ void GraphiteWriter::ValidateHostNameTemplate(const String& value, const Validat
 	ObjectImpl<GraphiteWriter>::ValidateHostNameTemplate(value, utils);
 
 	if (!MacroProcessor::ValidateMacroString(value))
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("host_name_template"), "Closing $ not found in macro format string '" + value + "'."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "host_name_template" }, "Closing $ not found in macro format string '" + value + "'."));
 }
 
 void GraphiteWriter::ValidateServiceNameTemplate(const String& value, const ValidationUtils& utils)
@@ -358,5 +358,5 @@ void GraphiteWriter::ValidateServiceNameTemplate(const String& value, const Vali
 	ObjectImpl<GraphiteWriter>::ValidateServiceNameTemplate(value, utils);
 
 	if (!MacroProcessor::ValidateMacroString(value))
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("service_name_template"), "Closing $ not found in macro format string '" + value + "'."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "service_name_template" }, "Closing $ not found in macro format string '" + value + "'."));
 }

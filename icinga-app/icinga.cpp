@@ -34,7 +34,7 @@
 #include "base/process.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <thread>
 
 #ifndef _WIN32
 #	include <sys/types.h>
@@ -59,7 +59,7 @@ static HANDLE l_Job;
 static std::vector<String> GetLogLevelCompletionSuggestions(const String& arg)
 {
 	std::vector<String> result;
-	
+
 	String debugLevel = "debug";
 	if (debugLevel.Find(arg) == 0)
 		result.push_back(debugLevel);
@@ -93,7 +93,7 @@ static std::vector<String> GlobalArgumentCompletion(const String& argument, cons
 		return std::vector<String>();
 }
 
-int Main(void)
+static int Main(void)
 {
 	int argc = Application::GetArgC();
 	char **argv = Application::GetArgV();
@@ -106,7 +106,7 @@ int Main(void)
 
 		try {
 			autoindex = Convert::ToLong(argv[2]);
-		} catch (const std::invalid_argument& ex) {
+		} catch (const std::invalid_argument&) {
 			Log(LogCritical, "icinga-app")
 			    << "Invalid index for --autocomplete: " << argv[2];
 			return EXIT_FAILURE;
@@ -159,7 +159,7 @@ int Main(void)
 	Application::DeclareRLimitProcesses(Application::GetDefaultRLimitProcesses());
 	Application::DeclareRLimitStack(Application::GetDefaultRLimitStack());
 #endif /* __linux__ */
-	Application::DeclareConcurrency(boost::thread::hardware_concurrency());
+	Application::DeclareConcurrency(std::thread::hardware_concurrency());
 
 	ScriptGlobal::Set("AttachDebugger", false);
 
@@ -176,20 +176,16 @@ int Main(void)
 	String initconfig = Application::GetSysconfDir() + "/icinga2/init.conf";
 
 	if (Utility::PathExists(initconfig)) {
-		Expression *expression;
+		std::unique_ptr<Expression> expression;
 		try {
 			expression = ConfigCompiler::CompileFile(initconfig);
 
 			ScriptFrame frame;
 			expression->Evaluate(frame);
 		} catch (const std::exception& ex) {
-			delete expression;
-
 			Log(LogCritical, "config", DiagnosticInformation(ex));
 			return EXIT_FAILURE;
 		}
-
-		delete expression;
 	}
 
 	if (!autocomplete)
@@ -258,7 +254,7 @@ int Main(void)
 				|| command->GetImpersonationLevel() == ImpersonationLevel::ImpersonateRoot) {
 				TCHAR szPath[MAX_PATH];
 
-				if (GetModuleFileName(NULL, szPath, ARRAYSIZE(szPath))) { 
+				if (GetModuleFileName(nullptr, szPath, ARRAYSIZE(szPath))) {
 					SHELLEXECUTEINFO sei = { sizeof(sei) };
 					sei.lpVerb = _T("runas");
 					sei.lpFile = "cmd.exe";
@@ -434,7 +430,7 @@ int Main(void)
 
 		if (!command || vm.count("help")) {
 			if (!command)
-				CLICommand::ShowCommands(argc, argv, NULL);
+				CLICommand::ShowCommands(argc, argv, nullptr);
 
 			std::cout << visibleDesc << std::endl
 				<< "Report bugs at <https://github.com/Icinga/icinga2>" << std::endl
@@ -460,10 +456,10 @@ int Main(void)
 		} else if (command && command->GetImpersonationLevel() == ImpersonateIcinga) {
 			String group = Application::GetRunAsGroup();
 			String user = Application::GetRunAsUser();
-	
+
 			errno = 0;
 			struct group *gr = getgrnam(group.CStr());
-	
+
 			if (!gr) {
 				if (errno == 0) {
 					Log(LogCritical, "cli")
@@ -475,26 +471,26 @@ int Main(void)
 					return EXIT_FAILURE;
 				}
 			}
-	
+
 			if (getgid() != gr->gr_gid) {
-				if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
+				if (!vm.count("reload-internal") && setgroups(0, nullptr) < 0) {
 					Log(LogCritical, "cli")
 					    << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					Log(LogCritical, "cli")
 					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
-	
+
 				if (setgid(gr->gr_gid) < 0) {
 					Log(LogCritical, "cli")
 					    << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					return EXIT_FAILURE;
 				}
 			}
-	
+
 			errno = 0;
 			struct passwd *pw = getpwnam(user.CStr());
-	
+
 			if (!pw) {
 				if (errno == 0) {
 					Log(LogCritical, "cli")
@@ -506,7 +502,7 @@ int Main(void)
 					return EXIT_FAILURE;
 				}
 			}
-	
+
 			// also activate the additional groups the configured user is member of
 			if (getuid() != pw->pw_uid) {
 				if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
@@ -516,7 +512,7 @@ int Main(void)
 					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
-	
+
 				if (setuid(pw->pw_uid) < 0) {
 					Log(LogCritical, "cli")
 					    << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
@@ -567,19 +563,16 @@ int Main(void)
 #ifdef _WIN32
 static int SetupService(bool install, int argc, char **argv)
 {
-	SC_HANDLE schSCManager = OpenSCManager(
-		NULL,
-		NULL,
-		SC_MANAGER_ALL_ACCESS);
+	SC_HANDLE schSCManager = OpenSCManager(nullptr, nullptr, SC_MANAGER_ALL_ACCESS);
 
-	if (NULL == schSCManager) {
+	if (!schSCManager) {
 		printf("OpenSCManager failed (%d)\n", GetLastError());
 		return 1;
 	}
 
 	TCHAR szPath[MAX_PATH];
 
-	if (!GetModuleFileName(NULL, szPath, MAX_PATH)) {
+	if (!GetModuleFileName(nullptr, szPath, MAX_PATH)) {
 		printf("Cannot install service (%d)\n", GetLastError());
 		return 1;
 	}
@@ -604,7 +597,7 @@ static int SetupService(bool install, int argc, char **argv)
 
 	SC_HANDLE schService = OpenService(schSCManager, "icinga2", SERVICE_ALL_ACCESS);
 
-	if (schService != NULL) {
+	if (schService) {
 		SERVICE_STATUS status;
 		ControlService(schService, SERVICE_CONTROL_STOP, &status);
 
@@ -634,13 +627,13 @@ static int SetupService(bool install, int argc, char **argv)
 			SERVICE_DEMAND_START,
 			SERVICE_ERROR_NORMAL,
 			szArgs.CStr(),
-			NULL,
-			NULL,
-			NULL,
+			nullptr,
+			nullptr,
+			nullptr,
 			scmUser.c_str(),
-			NULL);
+			nullptr);
 
-		if (schService == NULL) {
+		if (!schService) {
 			printf("CreateService failed (%d)\n", GetLastError());
 			CloseServiceHandle(schSCManager);
 			return 1;
@@ -662,7 +655,7 @@ static int SetupService(bool install, int argc, char **argv)
 		printf("Service uninstalled successfully\n");
 	} else {
 		if (!ChangeServiceConfig(schService, SERVICE_NO_CHANGE, SERVICE_AUTO_START,
-			SERVICE_ERROR_NORMAL, szArgs.CStr(), NULL, NULL, NULL, scmUser.c_str(), NULL, NULL)) {
+			SERVICE_ERROR_NORMAL, szArgs.CStr(), nullptr, nullptr, nullptr, scmUser.c_str(), nullptr, nullptr)) {
 			printf("ChangeServiceConfig failed (%d)\n", GetLastError());
 			CloseServiceHandle(schService);
 			CloseServiceHandle(schSCManager);
@@ -677,21 +670,22 @@ static int SetupService(bool install, int argc, char **argv)
 			return 1;
 		}
 
-		if (!StartService(schService, 0, NULL)) {
+		if (!StartService(schService, 0, nullptr)) {
 			printf("StartService failed (%d)\n", GetLastError());
 			CloseServiceHandle(schService);
 			CloseServiceHandle(schSCManager);
 			return 1;
 		}
 
-		printf("Service successfully installed for user '%s'\n", scmUser);
+		std::cout << "Service successfully installed for user '" << scmUser << "'\n";
 
-		std::ofstream fuser(Utility::GetIcingaDataPath() + "\\etc\\icinga2\\user", std::ios::out | std::ios::trunc);
+		String userFilePath = Utility::GetIcingaDataPath() + "\\etc\\icinga2\\user";
+
+		std::ofstream fuser(userFilePath.CStr(), std::ios::out | std::ios::trunc);
 		if (fuser)
 			fuser << scmUser;
 		else
-			printf("Could not write user to %s\\etc\\icinga2\\user", Utility::GetIcingaDataPath());
-		fuser.close();
+			std::cout << "Could not write user to " << userFilePath << "\n";
 	}
 
 	CloseServiceHandle(schService);
@@ -700,7 +694,7 @@ static int SetupService(bool install, int argc, char **argv)
 	return 0;
 }
 
-VOID ReportSvcStatus(DWORD dwCurrentState,
+static VOID ReportSvcStatus(DWORD dwCurrentState,
 	DWORD dwWin32ExitCode,
 	DWORD dwWaitHint)
 {
@@ -724,7 +718,7 @@ VOID ReportSvcStatus(DWORD dwCurrentState,
 	SetServiceStatus(l_SvcStatusHandle, &l_SvcStatus);
 }
 
-VOID WINAPI ServiceControlHandler(DWORD dwCtrl)
+static VOID WINAPI ServiceControlHandler(DWORD dwCtrl)
 {
 	if (dwCtrl == SERVICE_CONTROL_STOP) {
 		ReportSvcStatus(SERVICE_STOP_PENDING, NO_ERROR, 0);
@@ -732,7 +726,7 @@ VOID WINAPI ServiceControlHandler(DWORD dwCtrl)
 	}
 }
 
-VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
+static VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 {
 	l_SvcStatusHandle = RegisterServiceCtrlHandler(
 		"icinga2",
@@ -742,7 +736,7 @@ VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 	l_SvcStatus.dwServiceSpecificExitCode = 0;
 
 	ReportSvcStatus(SERVICE_RUNNING, NO_ERROR, 0);
-	l_Job = CreateJobObject(NULL, NULL);
+	l_Job = CreateJobObject(nullptr, nullptr);
 
 	for (;;) {
 		LPSTR arg = argv[0];
@@ -764,7 +758,7 @@ VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 
 		char *uargs = strdup(args.CStr());
 
-		BOOL res = CreateProcess(NULL, uargs, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+		BOOL res = CreateProcess(nullptr, uargs, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi);
 
 		free(uargs);
 
@@ -779,7 +773,7 @@ VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 			break;
 
 		DWORD exitStatus;
-		
+
 		if (!GetExitCodeProcess(pi.hProcess, &exitStatus))
 			break;
 
@@ -846,7 +840,7 @@ int main(int argc, char **argv)
 	if (argc > 1 && strcmp(argv[1], "--scm") == 0) {
 		SERVICE_TABLE_ENTRY dispatchTable[] = {
 			{ "icinga2", ServiceMain },
-			{ NULL, NULL }
+			{ nullptr, nullptr }
 		};
 
 		StartServiceCtrlDispatcher(dispatchTable);

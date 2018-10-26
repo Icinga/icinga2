@@ -292,7 +292,7 @@ INT countProcs(CONST std::wstring user)
 		DomainName = NULL;
 		dwAcctName = 1;
 		dwDomainName = 1;
-		
+
 		if (debug)
 			std::wcout << L"Looking up SID" << '\n';
 
@@ -301,7 +301,7 @@ INT countProcs(CONST std::wstring user)
 			(LPDWORD)&dwAcctName, DomainName, (LPDWORD)&dwDomainName, &sidNameUse)
 			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 			continue;
-		
+
 		AcctName = reinterpret_cast<LPWSTR>(new WCHAR[dwAcctName]);
 		DomainName = reinterpret_cast<LPWSTR>(new WCHAR[dwDomainName]);
 
@@ -316,7 +316,7 @@ INT countProcs(CONST std::wstring user)
 			if (debug)
 				std::wcout << L"Is process of " << wuser << L" (" << numProcs << L")" << '\n';
 		}
-		
+
 		delete[] reinterpret_cast<LPWSTR>(AcctName);
 		delete[] reinterpret_cast<LPWSTR>(DomainName);
 

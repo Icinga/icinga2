@@ -159,12 +159,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	/* write zones.conf and update with zone + endpoint information */
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	std::vector<String> globalZones;
-
-	globalZones.push_back("global-templates");
-	globalZones.push_back("director-global");
-
-	NodeUtility::GenerateNodeMasterIcingaConfig(globalZones);
+	NodeUtility::GenerateNodeMasterIcingaConfig({ "global-templates", "director-global" });
 
 	/* update the ApiListener config - SetupMaster() will always enable it */
 	Log(LogInformation, "cli", "Updating the APIListener feature.");
@@ -212,10 +207,6 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 		Log(LogWarning, "cli")
 			<< "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 	}
-
-	Log(LogInformation, "cli", "Updating constants.conf.");
-
-	NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
 
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", cn);
@@ -291,7 +282,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		return 1;
 	}
 
-	boost::shared_ptr<X509> trustedcert = GetX509Certificate(vm["trustedcert"].as<std::string>());
+	std::shared_ptr<X509> trustedcert = GetX509Certificate(vm["trustedcert"].as<std::string>());
 
 	Log(LogInformation, "cli")
 	    << "Verifying trusted certificate file '" << vm["trustedcert"].as<std::string>() << "'.";
@@ -362,17 +353,13 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	/* disable the notifications feature */
 	Log(LogInformation, "cli", "Disabling the Notification feature.");
 
-	std::vector<std::string> disable;
-	disable.push_back("notification");
-	FeatureUtility::DisableFeatures(disable);
+	FeatureUtility::DisableFeatures({ "notification" });
 
 	/* enable the ApiListener config */
 
 	Log(LogInformation, "cli", "Updating the ApiListener feature.");
 
-	std::vector<std::string> enable;
-	enable.push_back("api");
-	FeatureUtility::EnableFeatures(enable);
+	FeatureUtility::EnableFeatures({ "api" });
 
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apipath);
@@ -427,22 +414,13 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	std::vector<String> globalZones;
-
-	globalZones.push_back("global-templates");
-	globalZones.push_back("director-global");
-
-	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), globalZones);
+	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), { "global-templates", "director-global" });
 
 	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
 		    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
 	}
-
-	Log(LogInformation, "cli", "Updating constants.conf.");
-
-	NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
 
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", vm["zone"].as<std::string>());

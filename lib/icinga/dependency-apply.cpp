@@ -31,10 +31,7 @@
 using namespace icinga;
 
 INITIALIZE_ONCE([]() {
-	std::vector<String> targets;
-	targets.push_back("Host");
-	targets.push_back("Service");
-	ApplyRule::RegisterType("Dependency", targets);
+	ApplyRule::RegisterType("Dependency", { "Host", "Service" });
 });
 
 bool Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule)
@@ -139,7 +136,7 @@ bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 	} else if (vinstances.IsObjectType<Dictionary>()) {
 		if (rule.GetFVVar().IsEmpty())
 			BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
-	
+
 		Dictionary::Ptr dict = vinstances;
 
 		for (const String& key : dict->GetKeys()) {

@@ -704,7 +704,7 @@ void ClusterEvents::SendNotificationsHandler(const Checkable::Ptr& checkable, No
 	params->Set("author", author);
 	params->Set("text", text);
 
-	listener->RelayMessage(origin, ConfigObject::Ptr(), message, true);
+	listener->RelayMessage(origin, nullptr, message, true);
 }
 
 Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
@@ -798,7 +798,7 @@ void ClusterEvents::NotificationSentUserHandler(const Notification::Ptr& notific
 	message->Set("method", "event::NotificationSentUser");
 	message->Set("params", params);
 
-	listener->RelayMessage(origin, ConfigObject::Ptr(), message, true);
+	listener->RelayMessage(origin, nullptr, message, true);
 }
 
 Value ClusterEvents::NotificationSentUserAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
@@ -914,7 +914,7 @@ void ClusterEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& n
 	message->Set("method", "event::NotificationSentToAllUsers");
 	message->Set("params", params);
 
-	listener->RelayMessage(origin, ConfigObject::Ptr(), message, true);
+	listener->RelayMessage(origin, nullptr, message, true);
 }
 
 Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)

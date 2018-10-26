@@ -54,6 +54,9 @@ bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart)
 	if (!SetupMasterEnableApi())
 		return false;
 
+	if (!SetupMasterUpdateConstants(cn))
+		return false;
+
 	if (prompt_restart) {
 		std::cout << "Done.\n\n";
 		std::cout << "Now restart your Icinga 2 daemon to finish the installation!\n\n";
@@ -132,16 +135,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	Utility::CopyFile(ca, target_ca);
 
 	/* fix permissions: root -> icinga daemon user */
-	std::vector<String> files;
-	files.push_back(ca_path);
-	files.push_back(ca);
-	files.push_back(ca_key);
-	files.push_back(target_ca);
-	files.push_back(key);
-	files.push_back(csr);
-	files.push_back(cert);
-
-	for (const String& file : files) {
+	for (const String& file : { ca_path, ca, ca_key, target_ca, key, csr, cert }) {
 		if (!Utility::SetFileOwnership(file, user, group)) {
 			Log(LogWarning, "cli")
 			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'.";
@@ -201,9 +195,15 @@ bool ApiSetupUtility::SetupMasterEnableApi(void)
 {
 	Log(LogInformation, "cli", "Enabling the 'api' feature.");
 
-	std::vector<std::string> features;
-	features.push_back("api");
-	FeatureUtility::EnableFeatures(features);
+	FeatureUtility::EnableFeatures({ "api" });
+
+	return true;
+}
+
+bool ApiSetupUtility::SetupMasterUpdateConstants(const String& cn)
+{
+	NodeUtility::UpdateConstant("NodeName", cn);
+	NodeUtility::UpdateConstant("ZoneName", cn);
 
 	return true;
 }

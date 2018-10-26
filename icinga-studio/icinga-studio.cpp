@@ -44,7 +44,7 @@ public:
 
 			std::string url = wUrl.ToStdString();
 
-			ConnectForm f(NULL, new Url(url));
+			ConnectForm f(nullptr, new Url(url));
 			if (f.ShowModal() != wxID_OK)
 				return false;
 
@@ -56,7 +56,7 @@ public:
 			pUrl = new Url(argv[1].ToStdString());
 		}
 
-		MainForm *m = new MainForm(NULL, pUrl);
+		MainForm *m = new MainForm(nullptr, pUrl);
 		m->Show();
 
 		return true;

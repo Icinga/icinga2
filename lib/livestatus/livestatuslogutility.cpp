@@ -39,8 +39,8 @@ using namespace icinga;
 
 void LivestatusLogUtility::CreateLogIndex(const String& path, std::map<time_t, String>& index)
 {
-	Utility::Glob(path + "/icinga.log", std::bind(&LivestatusLogUtility::CreateLogIndexFileHandler, _1, boost::ref(index)), GlobFile);
-	Utility::Glob(path + "/archives/*.log", std::bind(&LivestatusLogUtility::CreateLogIndexFileHandler, _1, boost::ref(index)), GlobFile);
+	Utility::Glob(path + "/icinga.log", std::bind(&LivestatusLogUtility::CreateLogIndexFileHandler, _1, std::ref(index)), GlobFile);
+	Utility::Glob(path + "/archives/*.log", std::bind(&LivestatusLogUtility::CreateLogIndexFileHandler, _1, std::ref(index)), GlobFile);
 }
 
 void LivestatusLogUtility::CreateLogIndexFileHandler(const String& path, std::map<time_t, String>& index)

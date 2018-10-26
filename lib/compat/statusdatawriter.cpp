@@ -385,7 +385,7 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 	      "\t" "max_attempts=" << checkable->GetMaxCheckAttempts() << "\n"
 	      "\t" "last_state_change=" << static_cast<long>(checkable->GetLastStateChange()) << "\n"
 	      "\t" "last_hard_state_change=" << static_cast<long>(checkable->GetLastHardStateChange()) << "\n"
-	      "\t" "last_update=" << static_cast<long>(time(NULL)) << "\n"
+	      "\t" "last_update=" << static_cast<long>(time(nullptr)) << "\n"
 	      "\t" "notifications_enabled=" << CompatUtility::GetCheckableNotificationsEnabled(checkable) << "\n"
 	      "\t" "active_checks_enabled=" << CompatUtility::GetCheckableActiveChecksEnabled(checkable) << "\n"
 	      "\t" "passive_checks_enabled=" << CompatUtility::GetCheckablePassiveChecksEnabled(checkable) << "\n"
@@ -634,8 +634,8 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		for (const Service::Ptr& service : sg->GetMembers()) {
 			Host::Ptr host = service->GetHost();
 
-			sglist.push_back(host->GetName());
-			sglist.push_back(service->GetShortName());
+			sglist.emplace_back(host->GetName());
+			sglist.emplace_back(service->GetShortName());
 		}
 
 		DumpStringList(tempobjectfp, sglist);
@@ -734,15 +734,15 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		int state_filter = dep->GetStateFilter();
 		std::vector<String> failure_criteria;
 		if (state_filter & StateFilterOK || state_filter & StateFilterUp)
-			failure_criteria.push_back("o");
+			failure_criteria.emplace_back("o");
 		if (state_filter & StateFilterWarning)
-			failure_criteria.push_back("w");
+			failure_criteria.emplace_back("w");
 		if (state_filter & StateFilterCritical)
-			failure_criteria.push_back("c");
+			failure_criteria.emplace_back("c");
 		if (state_filter & StateFilterUnknown)
-			failure_criteria.push_back("u");
+			failure_criteria.emplace_back("u");
 		if (state_filter & StateFilterDown)
-			failure_criteria.push_back("d");
+			failure_criteria.emplace_back("d");
 
 		String criteria = boost::algorithm::join(failure_criteria, ",");
 

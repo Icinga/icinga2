@@ -33,7 +33,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 	String uname = pluralName;
 	boost::algorithm::to_lower(uname);
 
-	for (const Type::Ptr&type : Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		String pname = type->GetPluralName();
 		boost::algorithm::to_lower(pname);
 
@@ -41,7 +41,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 			return type;
 	}
 
-	return Type::Ptr();
+	return nullptr;
 }
 
 void ConfigObjectTargetProvider::FindTargets(const String& type, const std::function<void (const Value&)>& addTarget) const
@@ -133,7 +133,7 @@ static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissi
 void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter)
 {
 	if (permissionFilter)
-		*permissionFilter = NULL;
+		*permissionFilter = nullptr;
 
 	if (permission.IsEmpty())
 		return;
@@ -162,14 +162,15 @@ void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& perm
 			foundPermission = true;
 
 			if (filter && permissionFilter) {
-				std::vector<Expression *> args;
-				args.push_back(new GetScopeExpression(ScopeLocal));
-				FunctionCallExpression *fexpr = new FunctionCallExpression(new IndexerExpression(MakeLiteral(filter), MakeLiteral("call")), args);
+				std::vector<std::unique_ptr<Expression> > args;
+				args.emplace_back(new GetScopeExpression(ScopeLocal));
+				std::unique_ptr<Expression> indexer{new IndexerExpression(std::unique_ptr<Expression>(MakeLiteral(filter)), std::unique_ptr<Expression>(MakeLiteral("call")))};
+				FunctionCallExpression *fexpr = new FunctionCallExpression(std::move(indexer), std::move(args));
 
 				if (!*permissionFilter)
 					*permissionFilter = fexpr;
 				else
-					*permissionFilter = new LogicalOrExpression(*permissionFilter, fexpr);
+					*permissionFilter = new LogicalOrExpression(std::unique_ptr<Expression>(*permissionFilter), std::unique_ptr<Expression>(fexpr));
 			}
 		}
 	}
@@ -212,7 +213,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName))
 				BOOST_THROW_EXCEPTION(ScriptError("Access denied to object '" + name + "' of type '" + type + "'"));
 
-			result.push_back(target);
+			result.emplace_back(std::move(target));
 		}
 
 		attr = provider->GetPluralName(type);
@@ -228,7 +229,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 					if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName))
 						BOOST_THROW_EXCEPTION(ScriptError("Access denied to object '" + name + "' of type '" + type + "'"));
 
-					result.push_back(target);
+					result.emplace_back(std::move(target));
 				}
 			}
 		}
@@ -250,7 +251,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		frame.Sandboxed = true;
 		Dictionary::Ptr uvars = new Dictionary();
 
-		Expression *ufilter = NULL;
+		std::unique_ptr<Expression> ufilter;
 
 		if (query->Contains("filter")) {
 			String filter = HttpUtility::GetLastParameter(query, "filter");
@@ -267,16 +268,9 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 
 		frame.Self = uvars;
 
-		try {
-			provider->FindTargets(type, std::bind(&FilteredAddTarget,
-			    boost::ref(permissionFrame), permissionFilter,
-			    boost::ref(frame), ufilter, boost::ref(result), variableName, _1));
-		} catch (const std::exception& ex) {
-			delete ufilter;
-			throw;
-		}
-
-		delete ufilter;
+		provider->FindTargets(type, std::bind(&FilteredAddTarget,
+		    std::ref(permissionFrame), permissionFilter,
+		    std::ref(frame), &*ufilter, std::ref(result), variableName, _1));
 	}
 
 	return result;

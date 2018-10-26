@@ -24,7 +24,7 @@
 #include "base/objectlock.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
-#include <boost/thread/thread.hpp>
+#include <thread>
 #include <iostream>
 
 namespace icinga
@@ -47,7 +47,7 @@ protected:
 
 private:
 #ifndef _WIN32
-	boost::thread m_CommandThread;
+	std::thread m_CommandThread;
 
 	void CommandPipeThread(const String& commandPath);
 #endif /* _WIN32 */

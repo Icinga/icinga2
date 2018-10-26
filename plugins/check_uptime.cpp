@@ -35,7 +35,7 @@ INT wmain(INT argc, WCHAR **argv)
 	po::variables_map vm;
 	printInfoStruct printInfo = { };
 	INT ret = parseArguments(argc, argv, vm, printInfo);
-	
+
 	if (ret != -1)
 		return ret;
 
@@ -51,7 +51,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	WCHAR *progName = PathFindFileName(namePath);
 
 	po::options_description desc;
-	
+
 	desc.add_options()
 		("help,h", "Print help message and exit")
 		("version,V", "Print version and exit")
@@ -198,7 +198,7 @@ VOID getUptime(printInfoStruct& printInfo)
 		std::wcout << L"Getting uptime in milliseconds" << '\n';
 
 	boost::chrono::milliseconds uptime = boost::chrono::milliseconds(GetTickCount64());
-	
+
 	if (debug)
 		std::wcout << L"Converting requested unit (default: seconds)" << '\n';
 

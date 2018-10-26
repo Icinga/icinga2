@@ -54,11 +54,13 @@ static bool GetDebugJsonRpcCached(void)
 #endif /* I2_DEBUG */
 
 /**
- * Sends a message to the connected peer.
+ * Sends a message to the connected peer and returns the bytes sent.
  *
  * @param message The message.
+ *
+ * @return The amount of bytes sent.
  */
-void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
+size_t JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
 {
 	String json = JsonEncode(message);
 
@@ -67,7 +69,7 @@ void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& mess
 		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << ">> " << json << ConsoleColorTag(Console_Normal) << "\n";
 #endif /* I2_DEBUG */
 
-	NetString::WriteStringToStream(stream, json);
+	return NetString::WriteStringToStream(stream, json);
 }
 
 StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait)

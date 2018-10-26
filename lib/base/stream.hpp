@@ -39,7 +39,7 @@ enum ConnectionRole
 struct I2_BASE_API StreamReadContext
 {
 	StreamReadContext(void)
-		: Buffer(NULL), Size(0), MustRead(true), Eof(false)
+		: Buffer(nullptr), Size(0), MustRead(true), Eof(false)
 	{ }
 
 	~StreamReadContext(void)
@@ -76,7 +76,7 @@ public:
 	/**
 	 * Reads data from the stream without removing it from the stream buffer.
 	 *
-	 * @param buffer The buffer where data should be stored. May be NULL if you're
+	 * @param buffer The buffer where data should be stored. May be nullptr if you're
 	 *		 not actually interested in the data.
 	 * @param count The number of bytes to read from the queue.
 	 * @param allow_partial Whether to allow partial reads.
@@ -87,7 +87,7 @@ public:
 	/**
 	 * Reads data from the stream.
 	 *
-	 * @param buffer The buffer where data should be stored. May be NULL if you're
+	 * @param buffer The buffer where data should be stored. May be nullptr if you're
 	 *		 not actually interested in the data.
 	 * @param count The number of bytes to read from the queue.
 	 * @param allow_partial Whether to allow partial reads.

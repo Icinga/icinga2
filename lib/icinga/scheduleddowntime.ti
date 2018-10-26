@@ -58,7 +58,7 @@ class ScheduledDowntime : CustomVarObject < ScheduledDowntimeNameComposer
 		}}}
 		navigate {{{
 			if (GetServiceName().IsEmpty())
-				return Service::Ptr();
+				return nullptr;
 
 			Host::Ptr host = Host::GetByName(GetHostName());
 			return host->GetServiceByShortName(GetServiceName());

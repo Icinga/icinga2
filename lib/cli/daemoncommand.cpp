@@ -234,7 +234,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 	std::vector<std::string> configs;
 	if (vm.count("config") > 0)
-		configs = vm["config"].as < std::vector<std::string> >() ;
+		configs = vm["config"].as<std::vector<std::string> >();
 	else if (!vm.count("no-config"))
 		configs.push_back(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
 
@@ -306,7 +306,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = &SigHupHandler;
-	sigaction(SIGHUP, &sa, NULL);
+	sigaction(SIGHUP, &sa, nullptr);
 #endif /* _WIN32 */
 
 	ApiListener::UpdateObjectAuthority();

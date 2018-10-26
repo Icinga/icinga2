@@ -84,7 +84,7 @@ Table::Ptr Table::GetByName(const String& name, const String& compat_log_path, c
 	else if (name == "zones")
 		return new ZonesTable();
 
-	return Table::Ptr();
+	return nullptr;
 }
 
 void Table::AddColumn(const String& name, const Column& column)
@@ -128,7 +128,7 @@ std::vector<LivestatusRowValue> Table::FilterRows(const Filter::Ptr& filter, int
 {
 	std::vector<LivestatusRowValue> rs;
 
-	FetchRows(std::bind(&Table::FilteredAddRow, this, boost::ref(rs), filter, limit, _1, _2, _3));
+	FetchRows(std::bind(&Table::FilteredAddRow, this, std::ref(rs), filter, limit, _1, _2, _3));
 
 	return rs;
 }
@@ -144,8 +144,7 @@ bool Table::FilteredAddRow(std::vector<LivestatusRowValue>& rs, const Filter::Pt
 		rval.GroupByType = groupByType;
 		rval.GroupByObject = groupByObject;
 
-		rs.push_back(rval);
-
+		rs.emplace_back(std::move(rval));
 	}
 
 	return true;

@@ -29,15 +29,6 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(Heartbeat, event, &JsonRpcConnection::HeartbeatAPIHandler);
 
-static Timer::Ptr l_HeartbeatTimer;
-
-INITIALIZE_ONCE([]() {
-	l_HeartbeatTimer = new Timer();
-	l_HeartbeatTimer->OnTimerExpired.connect(std::bind(&JsonRpcConnection::HeartbeatTimerHandler));
-	l_HeartbeatTimer->SetInterval(10);
-	l_HeartbeatTimer->Start();
-});
-
 void JsonRpcConnection::HeartbeatTimerHandler(void)
 {
 	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {

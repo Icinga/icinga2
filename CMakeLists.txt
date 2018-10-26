@@ -96,7 +96,8 @@ endif()
 if(WIN32)
   set(Boost_USE_STATIC_LIBS ON)
   add_definitions(-DBOOST_ALL_NO_LIB)
-  add_definitions(/bigobj)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 endif()
 
 if(NOT DEFINED LOGROTATE_HAS_SU)
@@ -318,7 +319,8 @@ set(CPACK_WIX_UI_DIALOG "${CMAKE_CURRENT_SOURCE_DIR}/icinga-installer/dlgbmp.bmp
 set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/icinga-installer/icinga2.wixpatch.Debug")
 set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/icinga-installer/icinga2.wixpatch")
 
-set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION "sbin")
+set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
 include(InstallRequiredSystemLibraries)
 
 if(WIN32)
@@ -352,8 +354,7 @@ if(WIN32)
   endif()
 
   install(
-    PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-      ${ICINGA2_OPENSSL_DLLS}
+    PROGRAMS ${ICINGA2_OPENSSL_DLLS}
     DESTINATION ${CMAKE_INSTALL_SBINDIR}
   )
 endif()

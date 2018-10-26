@@ -57,7 +57,7 @@ INT wmain(INT argc, WCHAR **argv)
 	ret = check_network(vInterfaces);
 	if (ret != -1)
 		return ret;
-		
+
 	return printOutput(printInfo, vInterfaces, mapNames);
 }
 
@@ -157,7 +157,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 			return 3;
 		}
 	}
-	
+
 	if (vm.count("debug"))
 		debug = TRUE;
 
@@ -249,11 +249,11 @@ INT check_network(std::vector <nInterface>& vInterfaces)
 	err = PdhAddEnglishCounter(phQuery, perfIn, NULL, &phCounterIn);
 	if (!SUCCEEDED(err)) 
 		goto die;
-	
+
 	err = PdhAddEnglishCounter(phQuery, perfOut, NULL, &phCounterOut);
 	if (!SUCCEEDED(err)) 
 		goto die;
-	
+
 	if (debug)
 		std::wcout << L"Collecting first batch of query data" << '\n';
 
@@ -275,13 +275,13 @@ INT check_network(std::vector <nInterface>& vInterfaces)
 
 	if (debug)
 		std::wcout << L"Creating formatted counter arrays" << '\n';
-	
+
 	err = PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn);
 	if (err == PDH_MORE_DATA || SUCCEEDED(err))
 		pDisplayValuesIn = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(new BYTE[dwItemCount*dwBufferSizeIn]);
 	else
 		goto die;
-	
+
 	err = PdhGetFormattedCounterArray(phCounterOut, PDH_FMT_LONG, &dwBufferSizeOut, &dwItemCount, pDisplayValuesOut);
 	if (err == PDH_MORE_DATA || SUCCEEDED(err))
 		pDisplayValuesOut = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(new BYTE[dwItemCount*dwBufferSizeIn]);

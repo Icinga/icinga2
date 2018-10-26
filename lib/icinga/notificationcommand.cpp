@@ -29,14 +29,14 @@ Dictionary::Ptr NotificationCommand::Execute(const Notification::Ptr& notificati
     const String& author, const String& comment, const Dictionary::Ptr& resolvedMacros,
     bool useResolvedMacros)
 {
-	std::vector<Value> arguments;
-	arguments.push_back(notification);
-	arguments.push_back(user);
-	arguments.push_back(cr);
-	arguments.push_back(type);
-	arguments.push_back(author);
-	arguments.push_back(comment);
-	arguments.push_back(resolvedMacros);
-	arguments.push_back(useResolvedMacros);
-	return GetExecute()->Invoke(arguments);
+	return GetExecute()->Invoke({
+	    notification,
+	    user,
+	    cr,
+	    type,
+	    author,
+	    comment,
+	    resolvedMacros,
+	    useResolvedMacros,
+	});
 }

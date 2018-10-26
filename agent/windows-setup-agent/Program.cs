@@ -7,14 +7,17 @@ using System.Text;
 
 namespace Icinga
 {
-	static class Program
+    internal static class NativeMethods
+    {
+        [DllImport("msi.dll", CharSet = CharSet.Unicode)]
+        internal static extern int MsiEnumProducts(int iProductIndex, StringBuilder lpProductBuf);
+
+        [DllImport("msi.dll", CharSet = CharSet.Unicode)]
+        internal static extern Int32 MsiGetProductInfo(string product, string property, [Out] StringBuilder valueBuf, ref Int32 len);
+    }
+
+    static class Program
 	{
-		[DllImport("msi.dll", SetLastError = true)]
-		static extern int MsiEnumProducts(int iProductIndex, StringBuilder lpProductBuf);
-
-		[DllImport("msi.dll", CharSet = CharSet.Unicode)]
-		static extern Int32 MsiGetProductInfo(string product, string property, [Out] StringBuilder valueBuf, ref Int32 len);
-
 		public static string Icinga2InstallDir
 		{
 			get
@@ -23,13 +26,13 @@ namespace Icinga
 
 				for (int index = 0; ; index++) {
 					szProduct = new StringBuilder(39);
-					if (MsiEnumProducts(index, szProduct) != 0)
+					if (NativeMethods.MsiEnumProducts(index, szProduct) != 0)
 						break;
 
 					int cbName = 128;
 					StringBuilder szName = new StringBuilder(cbName);
 
-					if (MsiGetProductInfo(szProduct.ToString(), "ProductName", szName, ref cbName) != 0)
+					if (NativeMethods.MsiGetProductInfo(szProduct.ToString(), "ProductName", szName, ref cbName) != 0)
 						continue;
 
 					if (szName.ToString() != "Icinga 2")
@@ -37,7 +40,7 @@ namespace Icinga
 
 					int cbLocation = 1024;
 					StringBuilder szLocation = new StringBuilder(cbLocation);
-					if (MsiGetProductInfo(szProduct.ToString(), "InstallLocation", szLocation, ref cbLocation) == 0)
+					if (NativeMethods.MsiGetProductInfo(szProduct.ToString(), "InstallLocation", szLocation, ref cbLocation) == 0)
 						return szLocation.ToString();
 				}
 

@@ -40,14 +40,14 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	ScriptFrame::AddImport(deprecatedNS);
 }, 50);
 
-ScriptFrame::ScriptFrame(void)
-	: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)
+ScriptFrame::ScriptFrame(bool allocLocals)
+	: Locals(allocLocals ? new Dictionary() : nullptr), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)
 {
 	InitializeFrame();
 }
 
-ScriptFrame::ScriptFrame(const Value& self)
-	: Locals(new Dictionary()), Self(self), Sandboxed(false), Depth(0)
+ScriptFrame::ScriptFrame(const Value& self, bool allocLocals)
+	: Locals(allocLocals ? new Dictionary() : nullptr), Self(self), Sandboxed(false), Depth(0)
 {
 	InitializeFrame();
 }

@@ -165,7 +165,7 @@ Dictionary::Ptr ApiActions::SendCustomNotification(const ConfigObject::Ptr& obje
 		checkable->SetForceNextNotification(true);
 
 	Checkable::OnNotificationsRequested(checkable, NotificationCustom, checkable->GetLastCheckResult(),
-	    HttpUtility::GetLastParameter(params, "author"), HttpUtility::GetLastParameter(params, "comment"), MessageOrigin::Ptr());
+	    HttpUtility::GetLastParameter(params, "author"), HttpUtility::GetLastParameter(params, "comment"), nullptr);
 
 	return ApiActions::CreateResult(200, "Successfully sent custom notification for object '" + checkable->GetName() + "'.");
 }

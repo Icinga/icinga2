@@ -37,8 +37,6 @@ public:
 	DECLARE_OBJECT(TimePeriod);
 	DECLARE_OBJECTNAME(TimePeriod);
 
-	static void StaticInitialize(void);
-
 	virtual void Start(bool runtimeCreated) override;
 
 	void UpdateRegion(double begin, double end, bool clearExisting);

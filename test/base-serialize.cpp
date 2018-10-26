@@ -24,7 +24,6 @@
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include <BoostTestTargetConfig.h>
-#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 

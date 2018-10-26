@@ -94,8 +94,7 @@ void UserDbObject::OnConfigUpdateHeavy(void)
 	query1.Category = DbCatConfig;
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("contact_object_id", user);
-
-	queries.push_back(query1);
+	queries.emplace_back(std::move(query1));
 
 	if (groups) {
 		ObjectLock olock(groups);
@@ -114,8 +113,7 @@ void UserDbObject::OnConfigUpdateHeavy(void)
 			query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 			query2.WhereCriteria->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
 			query2.WhereCriteria->Set("contact_object_id", user);
-
-			queries.push_back(query2);
+			queries.emplace_back(std::move(query2));
 		}
 	}
 
@@ -129,8 +127,7 @@ void UserDbObject::OnConfigUpdateHeavy(void)
 	query2.Category = DbCatConfig;
 	query2.WhereCriteria = new Dictionary();
 	query2.WhereCriteria->Set("contact_id", DbValue::FromObjectInsertID(user));
-
-	queries.push_back(query2);
+	queries.emplace_back(std::move(query2));
 
 	Dictionary::Ptr vars = user->GetVars();
 
@@ -155,8 +152,7 @@ void UserDbObject::OnConfigUpdateHeavy(void)
 			query.Table = "contact_addresses";
 			query.Category = DbCatConfig;
 			query.Fields = fields;
-
-			queries.push_back(query);
+			queries.emplace_back(std::move(query));
 		}
 	}
 

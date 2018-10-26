@@ -24,6 +24,10 @@
 #include "icinga/service.thpp"
 #include "icinga/macroresolver.hpp"
 #include "icinga/host.hpp"
+#include <utility>
+#include <tuple>
+
+using std::tie;
 
 namespace icinga
 {
@@ -68,7 +72,7 @@ private:
 	static bool EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule);
 };
 
-I2_ICINGA_API boost::tuple<Host::Ptr, Service::Ptr> GetHostService(const Checkable::Ptr& checkable);
+I2_ICINGA_API std::pair<Host::Ptr, Service::Ptr> GetHostService(const Checkable::Ptr& checkable);
 
 }
 

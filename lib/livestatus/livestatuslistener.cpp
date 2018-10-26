@@ -82,7 +82,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 
 		m_Listener = socket;
 
-		m_Thread = boost::thread(std::bind(&LivestatusListener::ServerThreadProc, this));
+		m_Thread = std::thread(std::bind(&LivestatusListener::ServerThreadProc, this));
 
 		Log(LogInformation, "LivestatusListener")
 		    << "Created TCP socket listening on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
@@ -110,7 +110,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 
 		m_Listener = socket;
 
-		m_Thread = boost::thread(std::bind(&LivestatusListener::ServerThreadProc, this));
+		m_Thread = std::thread(std::bind(&LivestatusListener::ServerThreadProc, this));
 
 		Log(LogInformation, "LivestatusListener")
 		    << "Created UNIX socket in '" << GetSocketPath() << "'.";
@@ -225,5 +225,5 @@ void LivestatusListener::ValidateSocketType(const String& value, const Validatio
 	ObjectImpl<LivestatusListener>::ValidateSocketType(value, utils);
 
 	if (value != "unix" && value != "tcp")
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("socket_type"), "Socket type '" + value + "' is invalid."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "socket_type" }, "Socket type '" + value + "' is invalid."));
 }

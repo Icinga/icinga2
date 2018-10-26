@@ -31,10 +31,7 @@
 using namespace icinga;
 
 INITIALIZE_ONCE([]() {
-	std::vector<String> targets;
-	targets.push_back("Host");
-	targets.push_back("Service");
-	ApplyRule::RegisterType("Notification", targets);
+	ApplyRule::RegisterType("Notification", { "Host", "Service" });
 });
 
 bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule)
@@ -138,7 +135,7 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 	} else if (vinstances.IsObjectType<Dictionary>()) {
 		if (rule.GetFVVar().IsEmpty())
 			BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
-	
+
 		Dictionary::Ptr dict = vinstances;
 
 		for (const String& key : dict->GetKeys()) {

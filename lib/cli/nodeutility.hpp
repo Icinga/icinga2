@@ -37,6 +37,8 @@ namespace icinga
 class I2_CLI_API NodeUtility
 {
 public:
+	static String GetConstantsConfPath(void);
+
 	static bool CreateBackupFile(const String& target, bool is_private = false);
 
 	static bool WriteNodeConfigObjects(const String& filename, const Array::Ptr& objects);

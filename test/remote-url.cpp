@@ -20,7 +20,6 @@
 #include "base/array.hpp"
 #include "remote/url.hpp"
 #include <BoostTestTargetConfig.h>
-#include <boost/assign/list_of.hpp>
 
 using namespace icinga;
 
@@ -50,17 +49,16 @@ BOOST_AUTO_TEST_CASE(get_and_set)
 	url->SetPassword("Seehofer");
 	url->SetHost("koenigreich.bayern");
 	url->SetPort("1918");
-	std::vector<String> p = boost::assign::list_of("path")("to")("münchen");
-	url->SetPath(p);
+	url->SetPath({ "path", "to", "münchen" });
 
 	BOOST_CHECK(url->Format(false, true) == "ftp://Horst:Seehofer@koenigreich.bayern:1918/path/to/m%C3%BCnchen");
 
 	std::map<String, std::vector<String> > m;
-	std::vector<String> v1 = boost::assign::list_of("hip")("hip")("hurra");
-	std::vector<String> v2 = boost::assign::list_of("äü^ä+#ül-");
-	std::vector<String> v3 = boost::assign::list_of("1")("2");
-	m.insert(std::pair<String, std::vector<String> >("shout", v1));
-	m.insert(std::pair<String, std::vector<String> >("sonderzeichen", v2));
+	std::vector<String> v1 { "hip", "hip", "hurra" };
+	std::vector<String> v2 { "äü^ä+#ül-" };
+	std::vector<String> v3 { "1", "2" };
+	m.emplace("shout", v1);
+	m.emplace("sonderzeichen", v2);
 	url->SetQuery(m);
 	url->SetQueryElements("count", v3);
 	url->AddQueryElement("count", "3");
@@ -85,13 +83,14 @@ BOOST_AUTO_TEST_CASE(parameters)
 BOOST_AUTO_TEST_CASE(format)
 {
 	Url::Ptr url = new Url("http://foo.bar/baz/?hop=top&flop=sop#iLIKEtrains");
-	BOOST_CHECK(new Url(url->Format(false, false)));
+	Url::Ptr url2;
+	BOOST_CHECK(url2 = new Url(url->Format(false, false)));
 
 	url = new Url("//main.args/////////?k[]=one&k[]=two#three");
-	BOOST_CHECK(new Url(url->Format(false, false)));
+	BOOST_CHECK(url2 = new Url(url->Format(false, false)));
 
 	url = new Url("/foo/bar/index.php?blaka");
-	BOOST_CHECK(new Url(url->Format(false, false)));
+	BOOST_CHECK(url2 = new Url(url->Format(false, false)));
 	BOOST_CHECK(url->Format(false, false) == "/foo/bar/index.php?blaka");
 
 	url = new Url("/");
@@ -100,19 +99,20 @@ BOOST_AUTO_TEST_CASE(format)
 
 BOOST_AUTO_TEST_CASE(illegal_legal_strings)
 {
-	BOOST_CHECK(new Url("/?foo=barr&foo[]=bazz"));
-	BOOST_CHECK_THROW(new Url("/?]=gar"), std::invalid_argument);
-	BOOST_CHECK_THROW(new Url("/#?[]"), std::invalid_argument);
-	BOOST_CHECK(new Url("/?foo=bar&foo=ba"));
-	BOOST_CHECK_THROW(new Url("/?foo=bar&[]=d"), std::invalid_argument);
-	BOOST_CHECK(new Url("/?fo=&bar=garOA"));
-	BOOST_CHECK(new Url("https://127.0.0.1:5665/demo?type=Service&filter=service.state%3E0"));
-	BOOST_CHECK(new Url("/?foo=baz??&\?\?=/?"));
-	BOOST_CHECK(new Url("/"));
-	BOOST_CHECK(new Url("///////"));
-	BOOST_CHECK(new Url("/??[]=?#?=?"));
-	BOOST_CHECK(new Url("http://foo/#bar"));
-	BOOST_CHECK(new Url("//foo/"));
+	Url::Ptr url;
+	BOOST_CHECK(url = new Url("/?foo=barr&foo[]=bazz"));
+	BOOST_CHECK_THROW(url = new Url("/?]=gar"), std::invalid_argument);
+	BOOST_CHECK_THROW(url = new Url("/#?[]"), std::invalid_argument);
+	BOOST_CHECK(url = new Url("/?foo=bar&foo=ba"));
+	BOOST_CHECK_THROW(url = new Url("/?foo=bar&[]=d"), std::invalid_argument);
+	BOOST_CHECK(url = new Url("/?fo=&bar=garOA"));
+	BOOST_CHECK(url = new Url("https://127.0.0.1:5665/demo?type=Service&filter=service.state%3E0"));
+	BOOST_CHECK(url = new Url("/?foo=baz??&\?\?=/?"));
+	BOOST_CHECK(url = new Url("/"));
+	BOOST_CHECK(url = new Url("///////"));
+	BOOST_CHECK(url = new Url("/??[]=?#?=?"));
+	BOOST_CHECK(url = new Url("http://foo/#bar"));
+	BOOST_CHECK(url = new Url("//foo/"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

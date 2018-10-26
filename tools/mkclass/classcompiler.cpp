@@ -226,7 +226,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			 << "{" << std::endl
 			 << "\t" << "static ObjectFactory GetFactory(void)" << std::endl
 			 << "\t" << "{" << std::endl
-			 << "\t\t" << "return NULL;" << std::endl
+			 << "\t\t" << "return nullptr;" << std::endl
 			 << "\t" << "}" << std::endl
 			 << "};" << std::endl << std::endl;
 	}
@@ -355,7 +355,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << "\t" << "int real_id = id - " << klass.Parent << "::TypeInstance->GetFieldCount();" << std::endl
 		       << "\t" << "if (real_id < 0) { return " << klass.Parent << "::TypeInstance->GetFieldInfo(id); }" << std::endl;
 
-	if (klass.Fields.size() > 0) {
+	if (!klass.Fields.empty()) {
 		m_Impl << "\t" << "switch (";
 
 		if (!klass.Parent.empty())
@@ -374,7 +374,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			if (field.Type.IsName)
 				nameref = "\"" + field.Type.TypeName + "\"";
 			else
-				nameref = "NULL";
+				nameref = "nullptr";
 
 			m_Impl << "\t\t" << "case " << num << ":" << std::endl
 				 << "\t\t\t" << "return Field(" << num << ", \"" << ftype << "\", \"" << field.Name << "\", \"" << (field.NavigationName.empty() ? field.Name : field.NavigationName) << "\", "  << nameref << ", " << field.Attributes << ", " << field.Type.ArrayRank << ");" << std::endl;
@@ -387,7 +387,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	m_Impl << "\t" << "throw std::runtime_error(\"Invalid field ID.\");" << std::endl;
 
-	if (klass.Fields.size() > 0)
+	if (!klass.Fields.empty())
 		m_Impl << "\t" << "}" << std::endl;
 
 	m_Impl << "}" << std::endl << std::endl;
@@ -437,29 +437,34 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << "\t" << "int real_id = fieldId - " << klass.Parent << "::TypeInstance->GetFieldCount(); " << std::endl
 		       << "\t" << "if (real_id < 0) { " << klass.Parent << "::TypeInstance->RegisterAttributeHandler(fieldId, callback); return; }" << std::endl;
 
-	m_Impl << "\t" << "switch (";
+	if (!klass.Fields.empty()) {
+		m_Impl << "\t" << "switch (";
 
-	if (!klass.Parent.empty())
-		m_Impl << "real_id";
-	else
-		m_Impl << "fieldId";
+		if (!klass.Parent.empty())
+			m_Impl << "real_id";
+		else
+			m_Impl << "fieldId";
 
-	m_Impl << ") {" << std::endl;
+		m_Impl << ") {" << std::endl;
 
-	int num = 0;
-	for (const Field& field : klass.Fields) {
-		m_Impl << "\t\t" << "case " << num << ":" << std::endl
-		       << "\t\t\t" << "ObjectImpl<" << klass.Name << ">::On" << field.GetFriendlyName() << "Changed.connect(callback);" << std::endl
-		       << "\t\t\t" << "break;" << std::endl;
-		num++;
+		int num = 0;
+		for (const Field& field : klass.Fields) {
+			m_Impl << "\t\t" << "case " << num << ":" << std::endl
+			       << "\t\t\t" << "ObjectImpl<" << klass.Name << ">::On" << field.GetFriendlyName() << "Changed.connect(callback);" << std::endl
+			       << "\t\t\t" << "break;" << std::endl;
+			num++;
+		}
+
+		m_Impl << "\t\t" << "default:" << std::endl
+		       << "\t\t";
 	}
+	m_Impl << "\t" << "throw std::runtime_error(\"Invalid field ID.\");" << std::endl;
 
-	m_Impl << "\t\t" << "default:" << std::endl
-	       << "\t\t\t" << "throw std::runtime_error(\"Invalid field ID.\");" << std::endl
-	       << "\t" << "}" << std::endl;
+	if (!klass.Fields.empty())
+		m_Impl << "\t" << "}" << std::endl;
 
 	m_Impl << "}" << std::endl << std::endl;
-		
+
 	m_Header << "};" << std::endl << std::endl;
 
 	m_Header << std::endl;
@@ -749,28 +754,43 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			m_Impl << "\t" << "int real_id = id - " << klass.Parent << "::TypeInstance->GetFieldCount(); " << std::endl
 			       << "\t" << "if (real_id < 0) { return " << klass.Parent << "::NavigateField(id); }" << std::endl;
 
-		m_Impl << "\t" << "switch (";
+		bool haveNavigationFields = false;
 
-		if (!klass.Parent.empty())
-			m_Impl << "real_id";
-		else
-			m_Impl << "id";
-
-		m_Impl << ") {" << std::endl;
-
-		num = 0;
 		for (const Field& field : klass.Fields) {
 			if (field.Attributes & FANavigation) {
-				m_Impl << "\t\t" << "case " << num << ":" << std::endl
-				       << "\t\t\t" << "return Navigate" << field.GetFriendlyName() << "();" << std::endl;
+				haveNavigationFields = true;
+				break;
 			}
-
-			num++;
 		}
 
-		m_Impl << "\t\t" << "default:" << std::endl
-		       << "\t\t\t" << "throw std::runtime_error(\"Invalid field ID.\");" << std::endl
-		       << "\t" << "}" << std::endl;
+		if (haveNavigationFields) {
+			m_Impl << "\t" << "switch (";
+
+			if (!klass.Parent.empty())
+				m_Impl << "real_id";
+			else
+				m_Impl << "id";
+
+			m_Impl << ") {" << std::endl;
+
+			num = 0;
+			for (const Field& field : klass.Fields) {
+				if (field.Attributes & FANavigation) {
+					m_Impl << "\t\t" << "case " << num << ":" << std::endl
+					       << "\t\t\t" << "return Navigate" << field.GetFriendlyName() << "();" << std::endl;
+				}
+
+				num++;
+			}
+
+			m_Impl << "\t\t" << "default:" << std::endl
+			       << "\t\t";
+		}
+
+		m_Impl << "\t" << "throw std::runtime_error(\"Invalid field ID.\");" << std::endl;
+
+		if (haveNavigationFields)
+			m_Impl << "\t" << "}" << std::endl;
 
 		m_Impl << "}" << std::endl << std::endl;
 
@@ -1391,7 +1411,7 @@ std::string ClassCompiler::BaseName(const std::string& path)
 	char *dir = strdup(path.c_str());
 	std::string result;
 
-	if (dir == NULL)
+	if (!dir)
 		throw std::bad_alloc();
 
 #ifndef _WIN32

@@ -31,9 +31,6 @@ using boost::intrusive_ptr;
 using boost::dynamic_pointer_cast;
 using boost::static_pointer_cast;
 
-#include <boost/tuple/tuple.hpp>
-using boost::tie;
-
 namespace icinga
 {
 
@@ -137,7 +134,7 @@ public:
 #endif /* I2_DEBUG */
 
 	static Object::Ptr GetPrototype(void);
-	
+
 	virtual Object::Ptr Clone(void) const;
 
 	static intrusive_ptr<Type> TypeInstance;

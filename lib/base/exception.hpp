@@ -120,7 +120,7 @@ inline std::string to_string(const ContextTraceErrorInfo& e)
 	return msgbuf.str();
 }
 
-I2_BASE_API String DiagnosticInformation(const std::exception& ex, bool verbose = true, StackTrace *stack = NULL, ContextTrace *context = NULL);
+I2_BASE_API String DiagnosticInformation(const std::exception& ex, bool verbose = true, StackTrace *stack = nullptr, ContextTrace *context = nullptr);
 I2_BASE_API String DiagnosticInformation(boost::exception_ptr eptr, bool verbose = true);
 
 class I2_BASE_API posix_error : virtual public std::exception, virtual public boost::exception {

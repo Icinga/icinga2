@@ -220,6 +220,6 @@ void Logger::ValidateSeverity(const String& value, const ValidationUtils& utils)
 	try {
 		StringToSeverity(value);
 	} catch (...) {
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("severity"), "Invalid severity specified: " + value));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "severity" }, "Invalid severity specified: " + value));
 	}
 }

@@ -24,7 +24,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include "base/application.hpp"
 #include "base/convert.hpp"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -58,7 +57,7 @@ void HttpResponse::SetStatus(int code, const String& message)
 
 void HttpResponse::AddHeader(const String& key, const String& value)
 {
-	m_Headers.push_back(key + ": " + value + "\r\n");
+	m_Headers.emplace_back(key + ": " + value + "\r\n");
 }
 
 void HttpResponse::FinishHeaders(void)
@@ -109,7 +108,7 @@ void HttpResponse::Finish(void)
 			m_Stream->Write(buffer, rc);
 		}
 	} else {
-		WriteBody(NULL, 0);
+		WriteBody(nullptr, 0);
 		m_Stream->Write("\r\n", 2);
 	}
 
@@ -159,12 +158,7 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 
 			if (line == "") {
 				m_State = HttpResponseBody;
-
-				/* we're done if the request doesn't contain a message body */
-				if (!Headers->Contains("content-length") && !Headers->Contains("transfer-encoding"))
-					Complete = true;
-				else
-					m_Body = new FIFO();
+				m_Body = new FIFO();
 
 				return true;
 
@@ -183,7 +177,7 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 	} else if (m_State == HttpResponseBody) {
 		if (Headers->Get("transfer-encoding") == "chunked") {
 			if (!m_ChunkContext)
-				m_ChunkContext = boost::make_shared<ChunkReadContext>(boost::ref(src));
+				m_ChunkContext = std::make_shared<ChunkReadContext>(std::ref(src));
 
 			char *data;
 			size_t size;
@@ -204,27 +198,41 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 				return true;
 			}
 		} else {
-			if (src.Eof)
+			bool hasLengthIndicator = false;
+			size_t lengthIndicator = 0;
+			Value contentLengthHeader;
+
+			if (Headers->Get("content-length", &contentLengthHeader)) {
+				hasLengthIndicator = true;
+				lengthIndicator = Convert::ToLong(contentLengthHeader);
+			}
+
+			if (hasLengthIndicator && src.Eof)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Unexpected EOF in HTTP body"));
 
 			if (src.MustRead) {
-				if (!src.FillFromStream(m_Stream, false)) {
+				if (!src.FillFromStream(m_Stream, may_wait))
 					src.Eof = true;
-					BOOST_THROW_EXCEPTION(std::invalid_argument("Unexpected EOF in HTTP body"));
-				}
 
 				src.MustRead = false;
 			}
 
-			size_t length_indicator = Convert::ToLong(Headers->Get("content-length"));
+			if (!hasLengthIndicator)
+				lengthIndicator = src.Size;
 
-			if (src.Size < length_indicator) {
+			if (src.Size < lengthIndicator) {
 				src.MustRead = true;
-				return false;
+				return may_wait;
 			}
 
-			m_Body->Write(src.Buffer, length_indicator);
-			src.DropData(length_indicator);
+			m_Body->Write(src.Buffer, lengthIndicator);
+			src.DropData(lengthIndicator);
+
+			if (!hasLengthIndicator && !src.Eof) {
+				src.MustRead = true;
+				return may_wait;
+			}
+
 			Complete = true;
 			return true;
 		}

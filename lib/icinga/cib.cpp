@@ -45,12 +45,12 @@ void CIB::UpdateActiveServiceChecksStatistics(long tv, int num)
 
 int CIB::GetActiveHostChecksStatistics(long timespan)
 {
-	return m_ActiveHostChecksStatistics.GetValues(timespan);
+	return m_ActiveHostChecksStatistics.UpdateAndGetValues(Utility::GetTime(), timespan);
 }
 
 int CIB::GetActiveServiceChecksStatistics(long timespan)
 {
-	return m_ActiveServiceChecksStatistics.GetValues(timespan);
+	return m_ActiveServiceChecksStatistics.UpdateAndGetValues(Utility::GetTime(), timespan);
 }
 
 void CIB::UpdatePassiveHostChecksStatistics(long tv, int num)
@@ -65,12 +65,12 @@ void CIB::UpdatePassiveServiceChecksStatistics(long tv, int num)
 
 int CIB::GetPassiveHostChecksStatistics(long timespan)
 {
-	return m_PassiveHostChecksStatistics.GetValues(timespan);
+	return m_PassiveHostChecksStatistics.UpdateAndGetValues(Utility::GetTime(), timespan);
 }
 
 int CIB::GetPassiveServiceChecksStatistics(long timespan)
 {
-	return m_PassiveServiceChecksStatistics.GetValues(timespan);
+	return m_PassiveServiceChecksStatistics.UpdateAndGetValues(Utility::GetTime(), timespan);
 }
 
 CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
@@ -267,9 +267,13 @@ std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats(void)
 	Dictionary::Ptr status = new Dictionary();
 	Array::Ptr perfdata = new Array();
 
-	String name;
-	for (const auto& kv : StatsFunctionRegistry::GetInstance()->GetItems()) {
-		kv.second->Invoke(status, perfdata);
+	Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
+
+	if (statsFunctions) {
+		ObjectLock olock(statsFunctions);
+
+		for (const Dictionary::Pair& kv : statsFunctions)
+			static_cast<Function::Ptr>(kv.second)->Invoke({ status, perfdata });
 	}
 
 	return std::make_pair(status, perfdata);

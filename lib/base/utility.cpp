@@ -28,11 +28,13 @@
 #include "base/objectlock.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/thread/tss.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <ios>
 #include <fstream>
 #include <iostream>
@@ -84,7 +86,7 @@ String Utility::DemangleSymbolName(const String& sym)
 	int status;
 	char *realname = abi::__cxa_demangle(sym.CStr(), 0, 0, &status);
 
-	if (realname != NULL) {
+	if (realname) {
 		result = String(realname);
 		free(realname);
 	}
@@ -276,7 +278,7 @@ String Utility::DirName(const String& path)
 	dir = strdup(path.CStr());
 #endif /* _WIN32 */
 
-	if (dir == NULL)
+	if (!dir)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 	String result;
@@ -314,7 +316,7 @@ String Utility::BaseName(const String& path)
 	char *dir = strdup(path.CStr());
 	String result;
 
-	if (dir == NULL)
+	if (!dir)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 #ifndef _WIN32
@@ -394,7 +396,7 @@ double Utility::GetTime(void)
 #else /* _WIN32 */
 	struct timeval tv;
 
-	int rc = gettimeofday(&tv, NULL);
+	int rc = gettimeofday(&tv, nullptr);
 	VERIFY(rc >= 0);
 
 	return tv.tv_sec + tv.tv_usec / 1000000.0;
@@ -440,8 +442,7 @@ void Utility::Sleep(double timeout)
  */
 String Utility::NewUniqueID(void)
 {
-	boost::uuids::uuid u;
-	return boost::lexical_cast<std::string>(u);
+	return boost::lexical_cast<std::string>(boost::uuids::random_generator()());
 }
 
 #ifdef _WIN32
@@ -552,7 +553,7 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 
 	int rc = glob(pathSpec.CStr(), GLOB_NOSORT, GlobErrorHandler, &gr);
 
-	if (rc < 0) {
+	if (rc) {
 		if (rc == GLOB_NOMATCH)
 			return false;
 
@@ -663,7 +664,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 
 	dirp = opendir(path.CStr());
 
-	if (dirp == NULL)
+	if (!dirp)
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("opendir")
 		    << boost::errinfo_errno(errno)
@@ -769,7 +770,7 @@ void Utility::MkDirP(const String& path, int mode)
 void Utility::RemoveDirRecursive(const String& path)
 {
 	std::vector<String> paths;
-	Utility::GlobRecursive(path, "*", std::bind(&Utility::CollectPaths, _1, boost::ref(paths)), GlobFile | GlobDirectory);
+	Utility::GlobRecursive(path, "*", std::bind(&Utility::CollectPaths, _1, std::ref(paths)), GlobFile | GlobDirectory);
 
 	/* This relies on the fact that GlobRecursive lists the parent directory
 	   first before recursing into subdirectories. */
@@ -975,31 +976,31 @@ String Utility::FormatDuration(double duration)
 
 	if (duration >= 86400) {
 		int days = duration / 86400;
-		tokens.push_back(Convert::ToString(days) + (days != 1 ? " days" : " day"));
+		tokens.emplace_back(Convert::ToString(days) + (days != 1 ? " days" : " day"));
 		duration = static_cast<int>(duration) % 86400;
 	}
 
 	if (duration >= 3600) {
 		int hours = duration / 3600;
-		tokens.push_back(Convert::ToString(hours) + (hours != 1 ? " hours" : " hour"));
+		tokens.emplace_back(Convert::ToString(hours) + (hours != 1 ? " hours" : " hour"));
 		duration = static_cast<int>(duration) % 3600;
 	}
 
 	if (duration >= 60) {
 		int minutes = duration / 60;
-		tokens.push_back(Convert::ToString(minutes) + (minutes != 1 ? " minutes" : " minute"));
+		tokens.emplace_back(Convert::ToString(minutes) + (minutes != 1 ? " minutes" : " minute"));
 		duration = static_cast<int>(duration) % 60;
 	}
 
 	if (duration >= 1) {
 		int seconds = duration;
-		tokens.push_back(Convert::ToString(seconds) + (seconds != 1 ? " seconds" : " second"));
+		tokens.emplace_back(Convert::ToString(seconds) + (seconds != 1 ? " seconds" : " second"));
 	}
 
 	if (tokens.size() == 0) {
 		int milliseconds = std::floor(duration * 1000);
 		if (milliseconds >= 1)
-			tokens.push_back(Convert::ToString(milliseconds) + (milliseconds != 1 ? " milliseconds" : " millisecond"));
+			tokens.emplace_back(Convert::ToString(milliseconds) + (milliseconds != 1 ? " milliseconds" : " millisecond"));
 		else
 			tokens.push_back("less than 1 millisecond");
 	}
@@ -1016,7 +1017,7 @@ String Utility::FormatDateTime(const char *format, double ts)
 #ifdef _MSC_VER
 	tm *temp = localtime(&tempts);
 
-	if (temp == NULL) {
+	if (!temp) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("localtime")
 		    << boost::errinfo_errno(errno));
@@ -1024,7 +1025,7 @@ String Utility::FormatDateTime(const char *format, double ts)
 
 	tmthen = *temp;
 #else /* _MSC_VER */
-	if (localtime_r(&tempts, &tmthen) == NULL) {
+	if (!localtime_r(&tempts, &tmthen)) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("localtime_r")
 		    << boost::errinfo_errno(errno));
@@ -1044,8 +1045,8 @@ String Utility::FormatErrorNumber(int code) {
 	String result = "Unknown error.";
 
 	DWORD rc = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, code, 0, (char *)&message,
-		0, NULL);
+		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, code, 0, (char *)&message,
+		0, nullptr);
 
 	if (rc != 0) {
 		result = String(message);
@@ -1221,7 +1222,7 @@ String Utility::GetThreadName(void)
 
 	if (!name) {
 		std::ostringstream idbuf;
-		idbuf << boost::this_thread::get_id();
+		idbuf << std::this_thread::get_id();
 		return idbuf.str();
 	}
 
@@ -1294,10 +1295,10 @@ String Utility::GetFQDN(void)
 	hints.ai_flags = AI_CANONNAME;
 
 	addrinfo *result;
-	int rc = getaddrinfo(hostname.CStr(), NULL, &hints, &result);
+	int rc = getaddrinfo(hostname.CStr(), nullptr, &hints, &result);
 
 	if (rc != 0)
-		result = NULL;
+		result = nullptr;
 
 	if (result) {
 		if (strcmp(result->ai_canonname, "localhost") != 0)
@@ -1330,7 +1331,7 @@ tm Utility::LocalTime(time_t ts)
 #ifdef _MSC_VER
 	tm *result = localtime(&ts);
 
-	if (result == NULL) {
+	if (!result) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("localtime")
 		    << boost::errinfo_errno(errno));
@@ -1340,7 +1341,7 @@ tm Utility::LocalTime(time_t ts)
 #else /* _MSC_VER */
 	tm result;
 
-	if (localtime_r(&ts, &result) == NULL) {
+	if (!localtime_r(&ts, &result)) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("localtime_r")
 		    << boost::errinfo_errno(errno));
@@ -1478,7 +1479,7 @@ static String UnameHelper(char type)
 	char line[1024];
 	std::ostringstream msgbuf;
 
-	while (fgets(line, sizeof(line), fp) != NULL)
+	while (fgets(line, sizeof(line), fp))
 		msgbuf << line;
 
 	pclose(fp);
@@ -1556,10 +1557,10 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 	/* You are using a distribution which supports LSB. */
 	FILE *fp = popen("type lsb_release >/dev/null 2>&1 && lsb_release -s -i 2>&1", "r");
 
-	if (fp != NULL) {
+	if (fp) {
 		std::ostringstream msgbuf;
 		char line[1024];
-		while (fgets(line, sizeof(line), fp) != NULL)
+		while (fgets(line, sizeof(line), fp))
 			msgbuf << line;
 		int status = pclose(fp);
 		if (WEXITSTATUS(status) == 0) {
@@ -1570,10 +1571,10 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 
 	fp = popen("type lsb_release >/dev/null 2>&1 && lsb_release -s -r 2>&1", "r");
 
-	if (fp != NULL) {
+	if (fp) {
 		std::ostringstream msgbuf;
 		char line[1024];
-		while (fgets(line, sizeof(line), fp) != NULL)
+		while (fgets(line, sizeof(line), fp))
 			msgbuf << line;
 		int status = pclose(fp);
 		if (WEXITSTATUS(status) == 0) {
@@ -1585,10 +1586,10 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 	/* OS X */
 	fp = popen("type sw_vers >/dev/null 2>&1 && sw_vers -productName 2>&1", "r");
 
-	if (fp != NULL) {
+	if (fp) {
 		std::ostringstream msgbuf;
 		char line[1024];
-		while (fgets(line, sizeof(line), fp) != NULL)
+		while (fgets(line, sizeof(line), fp))
 			msgbuf << line;
 		int status = pclose(fp);
 		if (WEXITSTATUS(status) == 0) {
@@ -1602,10 +1603,10 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 
 	fp = popen("type sw_vers >/dev/null 2>&1 && sw_vers -productVersion 2>&1", "r");
 
-	if (fp != NULL) {
+	if (fp) {
 		std::ostringstream msgbuf;
 		char line[1024];
-		while (fgets(line, sizeof(line), fp) != NULL)
+		while (fgets(line, sizeof(line), fp))
 			msgbuf << line;
 		int status = pclose(fp);
 		if (WEXITSTATUS(status) == 0) {
@@ -1689,7 +1690,7 @@ String Utility::GetPlatformKernelVersion(void)
 String Utility::GetPlatformName(void)
 {
 	String platformName;
-	if (!ReleaseHelper(&platformName, NULL))
+	if (!ReleaseHelper(&platformName, nullptr))
 		return "Unknown";
 	return platformName;
 }
@@ -1697,7 +1698,7 @@ String Utility::GetPlatformName(void)
 String Utility::GetPlatformVersion(void)
 {
 	String platformVersion;
-	if (!ReleaseHelper(NULL, &platformVersion))
+	if (!ReleaseHelper(nullptr, &platformVersion))
 		return "Unknown";
 	return platformVersion;
 }
@@ -1779,7 +1780,7 @@ String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
 
 	try {
 		fp.open(&targetPath[0], std::ios_base::trunc | std::ios_base::out);
-	} catch (const std::fstream::failure& e) {
+	} catch (const std::fstream::failure&) {
 		close(fd);
 		throw;
 	}
@@ -1927,7 +1928,7 @@ String Utility::GetIcingaInstallPath(void)
 String Utility::GetIcingaDataPath(void)
 {
 	char path[MAX_PATH];
-	if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
+	if (!SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_COMMON_APPDATA, nullptr, 0, path)))
 		return "";
 	return String(path) + "\\icinga2";
 }

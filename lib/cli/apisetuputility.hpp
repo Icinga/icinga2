@@ -42,6 +42,7 @@ public:
 	static bool SetupMasterCertificates(const String& cn);
 	static bool SetupMasterApiUser(void);
 	static bool SetupMasterEnableApi(void);
+	static bool SetupMasterUpdateConstants(const String& cn);
 
 	static String GetConfdPath(void);
 

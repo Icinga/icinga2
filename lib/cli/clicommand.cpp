@@ -47,7 +47,8 @@ std::vector<String> icinga::GetBashCompletionSuggestions(const String& type, con
 		boost::algorithm::trim_right_if(wline, boost::is_any_of("\r\n"));
 		result.push_back(wline);
 	}
-	fclose(fp);
+
+	pclose(fp);
 
 	/* Append a slash if there's only one suggestion and it's a directory */
 	if ((type == "file" || type == "directory") && result.size() == 1) {
@@ -130,7 +131,7 @@ CLICommand::Ptr CLICommand::GetByName(const std::vector<String>& name)
 	auto it = GetRegistry().find(name);
 
 	if (it == GetRegistry().end())
-		return CLICommand::Ptr();
+		return nullptr;
 
 	return it->second;
 }

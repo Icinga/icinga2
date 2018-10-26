@@ -706,7 +706,7 @@ ConfigObject::Ptr ConfigObject::GetObject(const String& type, const String& name
 	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
 	if (!ctype)
-		return ConfigObject::Ptr();
+		return nullptr;
 
 	return ctype->GetObject(name);
 }

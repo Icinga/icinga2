@@ -62,7 +62,7 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 			if (hasFilter)
 				name += " (filtered)";
 
-			permInfo.push_back(name);
+			permInfo.emplace_back(std::move(name));
 		}
 	}
 

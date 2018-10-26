@@ -73,7 +73,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 			String name = kv.second;
 
 			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, cr,
-			    NULL, MacroProcessor::EscapeCallback(), resolvedMacros,
+			    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
 			    useResolvedMacros);
 
 			if (value.IsObjectType<Array>())

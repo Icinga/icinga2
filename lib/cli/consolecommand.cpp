@@ -68,7 +68,7 @@ extern "C" void dbg_inspect_object(Object *obj)
 
 extern "C" void dbg_eval(const char *text)
 {
-	Expression *expr = NULL;
+	std::unique_ptr<Expression> expr;
 
 	try {
 		ScriptFrame frame;
@@ -78,13 +78,11 @@ extern "C" void dbg_eval(const char *text)
 	} catch (const std::exception& ex) {
 		std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
 	}
-
-	delete expr;
 }
 
 extern "C" void dbg_eval_with_value(const Value& value, const char *text)
 {
-	Expression *expr = NULL;
+	std::unique_ptr<Expression> expr;
 
 	try {
 		ScriptFrame frame;
@@ -96,13 +94,11 @@ extern "C" void dbg_eval_with_value(const Value& value, const char *text)
 	} catch (const std::exception& ex) {
 		std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
 	}
-
-	delete expr;
 }
 
 extern "C" void dbg_eval_with_object(Object *object, const char *text)
 {
-	Expression *expr = NULL;
+	std::unique_ptr<Expression> expr;
 
 	try {
 		ScriptFrame frame;
@@ -114,8 +110,6 @@ extern "C" void dbg_eval_with_object(Object *object, const char *text)
 	} catch (const std::exception& ex) {
 		std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
 	}
-
-	delete expr;
 }
 
 void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)
@@ -196,9 +190,9 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 
 			l_ApiClient->AutocompleteScript(l_Session, word, l_ScriptFrame->Sandboxed,
 			    std::bind(&ConsoleCommand::AutocompleteScriptCompletionHandler,
-			    boost::ref(mutex), boost::ref(cv), boost::ref(ready),
+			    std::ref(mutex), std::ref(cv), std::ref(ready),
 			    _1, _2,
-			    boost::ref(suggestions)));
+			    std::ref(suggestions)));
 
 			{
 				boost::mutex::scoped_lock lock(mutex);
@@ -214,7 +208,7 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 	}
 
 	if (state >= static_cast<int>(matches.size()))
-		return NULL;
+		return nullptr;
 
 	return strdup(matches[state].CStr());
 }
@@ -400,7 +394,7 @@ incomplete:
 
 		command += line;
 
-		Expression *expr = NULL;
+		std::unique_ptr<Expression> expr;
 
 		try {
 			lines[fileName] = command;
@@ -412,7 +406,7 @@ incomplete:
 
 				/* This relies on the fact that - for syntax errors - CompileText()
 				 * returns an AST where the top-level expression is a 'throw'. */
-				if (!syntaxOnly || dynamic_cast<ThrowExpression *>(expr)) {
+				if (!syntaxOnly || dynamic_cast<ThrowExpression *>(expr.get())) {
 					if (syntaxOnly)
 						std::cerr << "    => " << command << std::endl;
 					result = Serialize(expr->Evaluate(scriptFrame), 0);
@@ -426,9 +420,9 @@ incomplete:
 
 				l_ApiClient->ExecuteScript(l_Session, command, scriptFrame.Sandboxed,
 				    std::bind(&ConsoleCommand::ExecuteScriptCompletionHandler,
-				    boost::ref(mutex), boost::ref(cv), boost::ref(ready),
+				    std::ref(mutex), std::ref(cv), std::ref(ready),
 				    _1, _2,
-				    boost::ref(result), boost::ref(eptr)));
+				    std::ref(result), std::ref(eptr)));
 
 				{
 					boost::mutex::scoped_lock lock(mutex);
@@ -502,8 +496,6 @@ incomplete:
 			if (!commandOnce.IsEmpty())
 				return EXIT_FAILURE;
 		}
-
-		delete expr;
 	}
 
 	return EXIT_SUCCESS;
@@ -515,7 +507,7 @@ void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::
 	if (eptr) {
 		try {
 			boost::rethrow_exception(eptr);
-		} catch (const ScriptError& ex) {
+		} catch (const ScriptError&) {
 			eptrOut = boost::current_exception();
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ConsoleCommand")

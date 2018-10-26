@@ -23,7 +23,6 @@
 #include "remote/httphandler.hpp"
 #include "base/object.hpp"
 #include "config/expression.hpp"
-#include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <set>
@@ -39,7 +38,6 @@ public:
 	DECLARE_PTR_TYPEDEFS(EventQueue);
 
 	EventQueue(const String& name);
-	~EventQueue(void);
 
 	bool CanProcessEvent(const String& type) const;
 	void ProcessEvent(const Dictionary::Ptr& event);
@@ -47,7 +45,7 @@ public:
 	void RemoveClient(void *client);
 
 	void SetTypes(const std::set<String>& types);
-	void SetFilter(Expression *filter);
+	void SetFilter(std::unique_ptr<Expression> filter);
 
 	Dictionary::Ptr WaitForEvent(void *client, double timeout = 5);
 
@@ -65,7 +63,7 @@ private:
 	boost::condition_variable m_CV;
 
 	std::set<String> m_Types;
-	Expression *m_Filter;
+	std::unique_ptr<Expression> m_Filter;
 
 	std::map<void *, std::deque<Dictionary::Ptr> > m_Events;
 };

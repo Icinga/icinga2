@@ -57,9 +57,9 @@ public:
 	inline ~Array(void)
 	{ }
 
-	Value Get(unsigned int index) const;
-	void Set(unsigned int index, const Value& value);
-	void Set(unsigned int index, Value&& value);
+	Value Get(SizeType index) const;
+	void Set(SizeType index, const Value& value);
+	void Set(SizeType index, Value&& value);
 	void Add(const Value& value);
 	void Add(Value&& value);
 
@@ -94,14 +94,14 @@ public:
 	size_t GetLength(void) const;
 	bool Contains(const Value& value) const;
 
-	void Insert(unsigned int index, const Value& value);
-	void Remove(unsigned int index);
+	void Insert(SizeType index, const Value& value);
+	void Remove(SizeType index);
 	void Remove(Iterator it);
 
-	void Resize(size_t new_size);
+	void Resize(SizeType newSize);
 	void Clear(void);
 
-	void Reserve(size_t new_size);
+	void Reserve(SizeType newSize);
 
 	void CopyTo(const Array::Ptr& dest) const;
 	Array::Ptr ShallowClone(void) const;
