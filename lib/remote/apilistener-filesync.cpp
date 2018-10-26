@@ -599,7 +599,22 @@ String ApiListener::GetGlobalChecksum(const ConfigDirInformation& config)
 
 	ObjectLock olock(checksums);
 	for (const Dictionary::Pair& kv : checksums) {
-		result += GetChecksum(kv.second);
+		String path = kv.first;
+		String checksum = kv.second;
+
+		/* Only use configuration files for checksum calculation. */
+		//if (!Utility::Match("*.conf", path))
+		//	continue;
+
+		/* Ignore internal files, especially .timestamp and .checksums.
+		 * If we don't, this results in "always change" restart loops.
+		 */
+		if (Utility::Match("/.*", path))
+			continue;
+
+		Log(LogCritical, "ApiListener")
+			<< "Adding checksum for " << kv.first << ": " << kv.second;
+		result += kv.second;
 	}
 
 	return GetChecksum(result);
