@@ -75,6 +75,7 @@ namespace icinga
 		void HandleRW();
 
 		static void DisconnectCallback(const redisAsyncContext *c, int status);
+		static void ConnectCallback(const redisAsyncContext *c, int status);
 
 		static void RedisInitialCallback(redisAsyncContext *c, void *r, void *p);
 

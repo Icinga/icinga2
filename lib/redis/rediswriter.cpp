@@ -111,6 +111,7 @@ void RedisWriter::TryToReconnect()
 
 	if (!m_Rcon->IsConnected())
 		return;
+
 	UpdateSubscriptions();
 
 	if (m_ConfigDumpInProgress || m_ConfigDumpDone)
@@ -214,6 +215,9 @@ void RedisWriter::PublishStats()
 {
 	AssertOnWorkQueue();
 
+	if (!m_Rcon->IsConnected())
+		return;
+
 	Dictionary::Ptr status = GetStats();
 	String jsonStats = JsonEncode(status);
 
@@ -293,6 +297,9 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 void RedisWriter::SendEvent(const Dictionary::Ptr& event)
 {
 	AssertOnWorkQueue();
+
+	if (!m_Rcon->IsConnected())
+		return;
 
 	String body = JsonEncode(event);
 

@@ -62,8 +62,6 @@ void RedisWriter::UpdateAllConfigObjects()
 {
 	double startTime = Utility::GetTime();
 
-	m_Rcon->ExecuteQuery({"flushall"});
-
 	// Use a Workqueue to pack objects in parallel
 	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("RedisWriter:ConfigDump");
