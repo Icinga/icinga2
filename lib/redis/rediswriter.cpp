@@ -138,11 +138,14 @@ void RedisWriter::UpdateSubscriptions()
 
 	Log(LogInformation, "RedisWriter", "Updating Redis subscriptions");
 
-	if (!m_Rcon->IsConnected()) {
-		Log(LogCritical, "DEBUG, Redis")
-				<< "NO CONNECT CHIEF";
+	/* TODO:
+	 * Silently return in this case. Usually the RedisConnection checks for connectivity and logs in failure case.
+	 * But since we expect and answer here and break Icinga in case of receiving no answer/an unexpected one we opt for
+	 * better safe than sorry here. Future implementation needs to include an improved error handling and answer verification.
+	 */
+	if (!m_Rcon->IsConnected())
 		return;
-	}
+
 	long long cursor = 0;
 
 	String keyPrefix = "icinga:subscription:";

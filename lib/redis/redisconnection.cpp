@@ -75,7 +75,7 @@ void RedisConnection::HandleRW()
 
 void RedisConnection::RedisInitialCallback(redisAsyncContext *c, void *r, void *p)
 {
-	auto *state = (ConnectionState *) p;
+	auto state = (ConnectionState *) p;
 	if (state->state != Starting && !r) {
 		Log(LogCritical, "RedisConnection")
 			<< "No answer from Redis during initial connection, is the Redis server running?";

@@ -81,9 +81,9 @@ void RedisWriter::UpdateAllConfigObjects()
 
 	upq.ParallelFor(types, [this](const TypePair& type) {
 		size_t bulkCounter = 0;
-		std::vector<String> attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + type.second});
-		std::vector<String> customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + type.second});
-		std::vector<String> checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + type.second});
+		auto attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + type.second});
+		auto customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + type.second});
+		auto checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + type.second});
 
 		for (const ConfigObject::Ptr& object : type.first->GetObjects()) {
 			CreateConfigUpdate(object, attributes, customVars, checksums, false);
@@ -138,9 +138,9 @@ static ConfigObject::Ptr GetObjectByName(const String& name)
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate)
 {
 	String typeName = object->GetReflectionType()->GetName().ToLower();
-	std::vector<String> attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + typeName});
-	std::vector<String> customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + typeName});
-	std::vector<String> checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + typeName});
+	auto attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + typeName});
+	auto customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + typeName});
+	auto checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + typeName});
 
 	CreateConfigUpdate(object, attributes, customVars, checksums, runtimeUpdate);
 
