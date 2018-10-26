@@ -336,17 +336,12 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		 * Otherwise do the old timestamp dance for versions < 2.11.
 		 */
 		if (checksums) {
-			/* Calculate and compare the checksums. */
-			String productionConfigChecksum = GetGlobalChecksum(productionConfigInfo);
-			String newConfigChecksum = GetGlobalChecksum(newConfigInfo);
-
 			Log(LogInformation, "ApiListener")
 				<< "Received configuration for zone '" << zoneName << "' from endpoint '"
-				<< fromEndpointName << "' with checksum '" << newConfigChecksum << "'."
-				<< " Our production configuration has checksum '" << productionConfigChecksum << "'.";
+				<< fromEndpointName << "'. Comparing the checksums.";
 
 			/* TODO: Do this earlier in hello-handshakes. */
-			if (newConfigChecksum != productionConfigChecksum)
+			if (CheckConfigChange(productionConfigInfo, newConfigInfo))
 				configChange = true;
 		} else {
 			/* TODO: Figure out whether we always need to rely on the timestamp flags when there are checksums involved. */
@@ -608,17 +603,23 @@ String ApiListener::GetChecksum(const String& content)
 	return SHA256(content);
 }
 
-String ApiListener::GetGlobalChecksum(const ConfigDirInformation& config)
+bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig)
 {
-	Dictionary::Ptr checksums = config.Checksums;
+	Dictionary::Ptr oldChecksums = oldConfig.Checksums;
+	Dictionary::Ptr newChecksums = newConfig.Checksums;
 
-	String result;
+	Log(LogCritical, "Comparing old: '")
+		<< JsonEncode(oldChecksums)
+		<< "' to new '" << JsonEncode(newChecksums) << "'.";
 
-	ObjectLock olock(checksums);
-	for (const Dictionary::Pair& kv : checksums) {
+	/* Different length means that either one or the other side added or removed something. */
+	if (oldChecksums->GetLength() != newChecksums->GetLength())
+		return true;
+
+	/* Both dictionaries have an equal size. */
+	ObjectLock olock(oldChecksums);
+	for (const Dictionary::Pair& kv : oldChecksums) {
 		String path = kv.first;
-		String checksum = kv.second;
-
 		/* Only use configuration files for checksum calculation. */
 		//if (!Utility::Match("*.conf", path))
 		//	continue;
@@ -630,11 +631,14 @@ String ApiListener::GetGlobalChecksum(const ConfigDirInformation& config)
 			continue;
 
 		Log(LogCritical, "ApiListener")
-			<< "Adding checksum for " << kv.first << ": " << kv.second;
-		result += kv.second;
+			<< "Checking " << path << " for checksum: " << kv.second;
+
+		/* Check whether our key exists in the new checksums, and they have an equal value. */
+		if (newChecksums->Get(path) != kv.second)
+			return true;
 	}
 
-	return GetChecksum(result);
+	return false;
 }
 
 /**

@@ -186,7 +186,7 @@ private:
 	static void AsyncTryActivateZonesStage(const std::vector<String>& relativePaths);
 
 	static String GetChecksum(const String& content);
-	static String GetGlobalChecksum(const ConfigDirInformation& config);
+	static bool CheckConfigChange(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig);
 
 	void UpdateLastFailedZonesStageValidation(const String& log);
 	void ClearLastFailedZonesStageValidation();
