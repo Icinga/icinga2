@@ -66,20 +66,22 @@ void RedisWriter::UpdateAllConfigObjects()
 	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("RedisWriter:ConfigDump");
 
-	typedef std::pair<ConfigType*, String> TypePair;
+	typedef std::pair<ConfigType *, String> TypePair;
 	std::vector<TypePair> types;
 
-	for (const Type::Ptr&  type : Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
 		if (!ctype)
 			continue;
 
-		String lcType (type->GetName().ToLower());
+		String lcType(type->GetName().ToLower());
 		types.emplace_back(ctype, lcType);
-		m_Rcon->ExecuteQuery({"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStatusObject + lcType});
+		m_Rcon->ExecuteQuery(
+				{"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStatusObject + lcType});
 	}
 
-	upq.ParallelFor(types, [this](const TypePair& type) {
+	upq.ParallelFor(types, [this](const TypePair& type)
+	{
 		size_t bulkCounter = 0;
 		auto attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + type.second});
 		auto customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + type.second});
@@ -88,7 +90,7 @@ void RedisWriter::UpdateAllConfigObjects()
 		for (const ConfigObject::Ptr& object : type.first->GetObjects()) {
 			CreateConfigUpdate(object, attributes, customVars, checksums, false);
 			SendStatusUpdate(object);
-			bulkCounter ++;
+			bulkCounter++;
 			if (!bulkCounter % 100) {
 				if (attributes.size() > 2) {
 					m_Rcon->ExecuteQuery(attributes);
@@ -112,7 +114,7 @@ void RedisWriter::UpdateAllConfigObjects()
 			m_Rcon->ExecuteQuery(checksums);
 
 		Log(LogNotice, "RedisWriter")
-			<< "Dumped " << bulkCounter << " objects of type " << type.second;
+				<< "Dumped " << bulkCounter << " objects of type " << type.second;
 	});
 
 	upq.Join();
@@ -128,7 +130,7 @@ void RedisWriter::UpdateAllConfigObjects()
 			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
 
-template <typename ConfigType>
+template<typename ConfigType>
 static ConfigObject::Ptr GetObjectByName(const String& name)
 {
 	return ConfigObject::GetObject<ConfigType>(name);
@@ -154,7 +156,9 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
  * (if applicable), first the key then the value. To use in a Redis command the command (e.g. HSET) and the key (e.g.
  * icinga:config:object:downtime) need to be prepended. There is nothing to indicate success or failure.
  */
-void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vector<String>& attributes, std::vector<String>& customVars, std::vector<String>& checksums, bool runtimeUpdate)
+void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vector<String>& attributes,
+									 std::vector<String>& customVars, std::vector<String>& checksums,
+									 bool runtimeUpdate)
 {
 	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
 	if (!runtimeUpdate && m_ConfigDumpInProgress)
@@ -501,10 +505,10 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 	String objectKey = GetObjectIdentifier(object);
 
 	m_Rcon->ExecuteQueries({
-						   {"HDEL",    m_PrefixConfigObject + typeName, objectKey},
-						   {"DEL",     m_PrefixStatusObject + typeName + ":" + objectKey},
-						   {"PUBLISH", "icinga:config:delete", typeName + ":" + objectKey}
-				   });
+								   {"HDEL",    m_PrefixConfigObject + typeName, objectKey},
+								   {"DEL",     m_PrefixStatusObject + typeName + ":" + objectKey},
+								   {"PUBLISH", "icinga:config:delete",          typeName + ":" + objectKey}
+						   });
 }
 
 void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
@@ -592,8 +596,9 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 //	}
 }
 
-std::vector<String> RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType,
-									const String& typeNameOverride)
+std::vector<String>
+RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType,
+							   const String& typeNameOverride)
 {
 	Type::Ptr type = object->GetReflectionType();
 	Dictionary::Ptr attrs(new Dictionary);
