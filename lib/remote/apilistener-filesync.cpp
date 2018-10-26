@@ -398,12 +398,13 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		{
 			ObjectLock olock(newConfig);
 			for (const Dictionary::Pair& kv : newConfig) {
+				/* Store the relative config file path for later validation and activation.
+				 * IMPORTANT: Store this prior to any filters. */
+				relativePaths.push_back(zoneName + "/" + kv.first);
+
 				/* Ignore same config content. This is an expensive comparison. */
 				if (productionConfig->Get(kv.first) == kv.second)
 					continue;
-
-				/* Store the relative config file path for later validation and activation. */
-				relativePaths.push_back(zoneName + "/" + kv.first);
 
 				String path = stageConfigZoneDir + "/" + kv.first;
 
@@ -608,9 +609,11 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 	Dictionary::Ptr oldChecksums = oldConfig.Checksums;
 	Dictionary::Ptr newChecksums = newConfig.Checksums;
 
-	Log(LogCritical, "Comparing old: '")
+	Log(LogCritical, "ApiListener")
+		<< "Comparing old (" << oldChecksums->GetLength() << "): '"
 		<< JsonEncode(oldChecksums)
-		<< "' to new '" << JsonEncode(newChecksums) << "'.";
+		<< "' to new (" << newChecksums->GetLength() << "): '"
+		<< JsonEncode(newChecksums) << "'.";
 
 	/* Different length means that either one or the other side added or removed something. */
 	if (oldChecksums->GetLength() != newChecksums->GetLength())
@@ -620,6 +623,7 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 	ObjectLock olock(oldChecksums);
 	for (const Dictionary::Pair& kv : oldChecksums) {
 		String path = kv.first;
+		String oldChecksum = kv.second;
 		/* Only use configuration files for checksum calculation. */
 		//if (!Utility::Match("*.conf", path))
 		//	continue;
@@ -631,11 +635,17 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 			continue;
 
 		Log(LogCritical, "ApiListener")
-			<< "Checking " << path << " for checksum: " << kv.second;
+			<< "Checking " << path << " for checksum: " << oldChecksum;
 
 		/* Check whether our key exists in the new checksums, and they have an equal value. */
-		if (newChecksums->Get(path) != kv.second)
+		String newChecksum = newChecksums->Get(path);
+
+		if (newChecksums->Get(path) != kv.second) {
+			Log(LogCritical, "ApiListener")
+				<< "Path '" << path << "' doesn't match old checksum '"
+				<< newChecksum << "' with new checksum '" << oldChecksum << "'.";
 			return true;
+		}
 	}
 
 	return false;
