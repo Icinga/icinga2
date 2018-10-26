@@ -501,7 +501,7 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 
 		/* Copy all synced configuration files from stage to production. */
 		for (const String& path : relativePaths) {
-			Log(LogNotice, "ApiListener")
+			Log(LogInformation, "ApiListener")
 				<< "Copying file '" << path << "' from config sync staging to production zones directory.";
 
 			String stagePath = apiZonesStageDir + path;
