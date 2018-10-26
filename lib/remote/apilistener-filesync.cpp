@@ -257,7 +257,9 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		<< "Applying config update from endpoint '" << fromEndpointName
 		<< "' of zone '" << fromZoneName << "'.";
 
+	/* Config files. */
 	Dictionary::Ptr updateV1 = params->Get("update");
+	/* Meta data files: .timestamp, etc. */
 	Dictionary::Ptr updateV2 = params->Get("update_v2");
 
 	/* New since 2.11.0. */
@@ -267,11 +269,15 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		checksums = params->Get("checksums");
 
 	bool configChange = false;
+
+	/* Keep track of the relative config paths for later validation and copying. */
 	std::vector<String> relativePaths;
 
 	/*
 	 * We can and must safely purge the staging directory, as the difference is taken between
 	 * runtime production config and newly received configuration.
+	 * This is needed to not mix deleted/changed content between received and stage
+	 * config.
 	 */
 	if (Utility::PathExists(apiZonesStageDir))
 		Utility::RemoveDirRecursive(apiZonesStageDir);
@@ -316,7 +322,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		if (updateV2)
 			newConfigInfo.UpdateV2 = updateV2->Get(kv.first);
 
-		/* Load checksums. */
+		/* Load checksums. New since 2.11. */
 		if (checksums)
 			newConfigInfo.Checksums = checksums->Get(kv.first);
 
@@ -327,23 +333,23 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		Dictionary::Ptr newConfig = MergeConfigUpdate(newConfigInfo);
 
 		/* If we have received 'checksums' via cluster message, go for it.
-		 * Otherwise do the old timestamp dance.
+		 * Otherwise do the old timestamp dance for versions < 2.11.
 		 */
 		if (checksums) {
 			/* Calculate and compare the checksums. */
 			String productionConfigChecksum = GetGlobalChecksum(productionConfigInfo);
 			String newConfigChecksum = GetGlobalChecksum(newConfigInfo);
 
-			Log(LogWarning, "ApiListener")
+			Log(LogInformation, "ApiListener")
 				<< "Received configuration for zone '" << zoneName << "' from endpoint '"
 				<< fromEndpointName << "' with checksum '" << newConfigChecksum << "'."
-				<< "Our production configuration has checksum '" << productionConfigChecksum << "'.";
+				<< " Our production configuration has checksum '" << productionConfigChecksum << "'.";
 
 			/* TODO: Do this earlier in hello-handshakes. */
 			if (newConfigChecksum != productionConfigChecksum)
 				configChange = true;
 		} else {
-			/* TODO: Figure out whether we always need to rely on the timestamp flags. */
+			/* TODO: Figure out whether we always need to rely on the timestamp flags when there are checksums involved. */
 			double productionTimestamp;
 
 			if (!productionConfig->Contains("/.timestamp"))
@@ -440,11 +446,22 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		}
 	}
 
+	/*
+	 * We have processed all configuration files and stored them in the staging directory.
+	 * We need to store them locally for later analysis. A config change means
+	 * that we will validate the configuration in a separate process sandbox,
+	 * and only copy the configuration to production when everything is ok.
+	 * A successful validation also triggers the final restart.
+	 */
 	if (configChange) {
-		/* Spawn a validation process. On success, move the staged configuration
-		 * into production and restart.
-		 */
+		Log(LogInformation, "ApiListener")
+			<< "Received configuration from endpoint '" << fromEndpointName
+			<< "' is different to production, triggering validation and reload.";
 		AsyncTryActivateZonesStage(relativePaths);
+	} else {
+		Log(LogInformation, "ApiListener")
+			<< "Received configuration from endpoint '" << fromEndpointName
+			<< "' is equal to production, not triggering reload.";
 	}
 
 	return Empty;
