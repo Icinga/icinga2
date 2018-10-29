@@ -98,6 +98,8 @@ void RedisWriter::UpdateAllConfigObjects()
 		auto checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + lcType});
 
 		for (const ConfigObject::Ptr& object : type.first->GetObjects()) {
+			if (lcType != GetLowerCaseTypeNameDB(object))
+				continue;
 			CreateConfigUpdate(object, lcType, attributes, customVars, checksums, false);
 			SendStatusUpdate(object);
 			bulkCounter++;
@@ -165,7 +167,6 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 void RedisWriter::MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<String>& propertiesBlacklist, Dictionary::Ptr& checkSums)
 {
 	Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
-
 	if (endpoint) {
 		auto endpointZone(endpoint->GetZone());
 
