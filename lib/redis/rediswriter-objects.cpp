@@ -125,6 +125,8 @@ void RedisWriter::UpdateAllConfigObjects()
 		if (checksums.size() > 2)
 			m_Rcon->ExecuteQuery(checksums);
 
+		m_Rcon->ExecuteQuery({"PUBLISH", "icinga:config:dump", lcType});
+
 		Log(LogNotice, "RedisWriter")
 				<< "Dumped " << bulkCounter << " objects of type " << type.second;
 	});
