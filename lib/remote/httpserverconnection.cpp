@@ -344,7 +344,6 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request, HttpRespons
 
 	response.Finish();
 	m_PendingRequests--;
-	m_Stream->SetCorked(false);
 }
 
 void HttpServerConnection::DataAvailableHandler()
@@ -353,8 +352,6 @@ void HttpServerConnection::DataAvailableHandler()
 
 	if (!m_Stream->IsEof()) {
 		boost::recursive_mutex::scoped_lock lock(m_DataHandlerMutex);
-
-		m_Stream->SetCorked(true);
 
 		try {
 			while (ProcessMessage())
@@ -365,8 +362,6 @@ void HttpServerConnection::DataAvailableHandler()
 
 			close = true;
 		}
-
-		m_RequestQueue.Enqueue(std::bind(&Stream::SetCorked, m_Stream, false));
 
 		/* Request finished, decide whether to explicitly close the connection. */
 		if (m_CurrentRequest.ProtocolVersion == HttpVersion10 ||
