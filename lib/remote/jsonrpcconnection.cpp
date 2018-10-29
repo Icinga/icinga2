@@ -276,8 +276,6 @@ void JsonRpcConnection::DataAvailableHandler()
 	if (!m_Stream->IsEof()) {
 		boost::mutex::scoped_lock lock(m_DataHandlerMutex);
 
-		m_Stream->SetCorked(true);
-
 		try {
 			while (ProcessMessage())
 				; /* empty loop body */
@@ -290,8 +288,6 @@ void JsonRpcConnection::DataAvailableHandler()
 
 			return;
 		}
-
-		l_JsonRpcConnectionWorkQueues[m_ID % l_JsonRpcConnectionWorkQueueCount].Enqueue(std::bind(&Stream::SetCorked, m_Stream, false));
 	} else
 		close = true;
 

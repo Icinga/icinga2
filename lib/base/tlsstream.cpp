@@ -153,16 +153,12 @@ void TlsStream::OnEvent(int revents)
 	char buffer[64 * 1024];
 
 	if (m_CurrentAction == TlsActionNone) {
-		bool corked = IsCorked();
-		if (!corked && (revents & (POLLIN | POLLERR | POLLHUP)))
+		if (revents & (POLLIN | POLLERR | POLLHUP))
 			m_CurrentAction = TlsActionRead;
 		else if (m_SendQ->GetAvailableBytes() > 0 && (revents & POLLOUT))
 			m_CurrentAction = TlsActionWrite;
 		else {
-			if (corked)
-				ChangeEvents(0);
-			else
-				ChangeEvents(POLLIN);
+			ChangeEvents(POLLIN);
 
 			return;
 		}
@@ -289,7 +285,7 @@ void TlsStream::OnEvent(int revents)
 
 		lock.unlock();
 
-		while (!IsCorked() && m_RecvQ->IsDataAvailable() && IsHandlingEvents())
+		while (m_RecvQ->IsDataAvailable() && IsHandlingEvents())
 			SignalDataAvailable();
 	}
 
@@ -439,18 +435,6 @@ bool TlsStream::IsDataAvailable() const
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	return m_RecvQ->GetAvailableBytes() > 0;
-}
-
-void TlsStream::SetCorked(bool corked)
-{
-	Stream::SetCorked(corked);
-
-	boost::mutex::scoped_lock lock(m_Mutex);
-
-	if (corked)
-		m_CurrentAction = TlsActionNone;
-	else
-		ChangeEvents(POLLIN | POLLOUT);
 }
 
 Socket::Ptr TlsStream::GetSocket() const
