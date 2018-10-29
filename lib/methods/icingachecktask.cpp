@@ -175,9 +175,10 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	}
 
 	/* Extract the version number of the running Icinga2 instance.
-	 * We assume that appVersion will allways be something like 'v2.10.1-8-gaebe6da' and we want to extract '2.10.1'. */
+	 * We assume that appVersion will allways be something like 'v2.10.1-8-gaebe6da' and we want to extract '2.10.1'.
+	 */
 	int endOfVersionNumber = appVersion.FindFirstOf("-") - 1;
-	String parsedAppVersion = appVersion.SubStr(1,endOfVersionNumber);
+	String parsedAppVersion = appVersion.SubStr(1, endOfVersionNumber);
 
 	/* Return an error if the version is less than specified (optional). */
 	if (missingIcingaMinVersion.IsEmpty() && !icingaMinVersion.IsEmpty() && Utility::CompareVersion(icingaMinVersion, parsedAppVersion) < 0) {
