@@ -75,20 +75,30 @@ void RedisWriter::UpdateAllConfigObjects()
 			continue;
 
 		String lcType(type->GetName().ToLower());
-		types.emplace_back(ctype, lcType);
-		m_Rcon->ExecuteQuery(
-				{"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStatusObject + lcType});
+
+		if (lcType == "downtime") {
+			types.emplace_back(ctype, "hostdowntime");
+			types.emplace_back(ctype, "servicedowntime");
+		} else if (lcType == "comment") {
+			types.emplace_back(ctype, "hostcomment");
+			types.emplace_back(ctype, "servicecomment");
+		} else {
+			types.emplace_back(ctype, lcType);
+		}
 	}
 
 	upq.ParallelFor(types, [this](const TypePair& type)
 	{
+		String lcType = type.second;
+		m_Rcon->ExecuteQuery(
+				{"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStatusObject + lcType});
 		size_t bulkCounter = 0;
-		auto attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + type.second});
-		auto customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + type.second});
-		auto checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + type.second});
+		auto attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + lcType});
+		auto customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + lcType});
+		auto checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + lcType});
 
 		for (const ConfigObject::Ptr& object : type.first->GetObjects()) {
-			CreateConfigUpdate(object, attributes, customVars, checksums, false);
+			CreateConfigUpdate(object, lcType, attributes, customVars, checksums, false);
 			SendStatusUpdate(object);
 			bulkCounter++;
 			if (!bulkCounter % 100) {
@@ -139,49 +149,22 @@ static ConfigObject::Ptr GetObjectByName(const String& name)
 // Used to update a single object, used for runtime updates
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate)
 {
-	String typeName = object->GetReflectionType()->GetName().ToLower();
+	String typeName = GetLowerCaseTypeNameDB(object);
+
 	auto attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + typeName});
 	auto customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + typeName});
 	auto checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + typeName});
 
-	CreateConfigUpdate(object, attributes, customVars, checksums, runtimeUpdate);
+	CreateConfigUpdate(object, typeName, attributes, customVars, checksums, runtimeUpdate);
 
 	m_Rcon->ExecuteQuery(attributes);
 	m_Rcon->ExecuteQuery(customVars);
 	m_Rcon->ExecuteQuery(checksums);
 }
 
-/* Creates a config update with computed checksums etc.
- * Writes attributes, customVars and checksums into the respective supplied vectors. Adds two values to each vector
- * (if applicable), first the key then the value. To use in a Redis command the command (e.g. HSET) and the key (e.g.
- * icinga:config:object:downtime) need to be prepended. There is nothing to indicate success or failure.
- */
-void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vector<String>& attributes,
-									 std::vector<String>& customVars, std::vector<String>& checksums,
-									 bool runtimeUpdate)
+void RedisWriter::MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<String>& propertiesBlacklist, Dictionary::Ptr& checkSums)
 {
-	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
-	if (!runtimeUpdate && m_ConfigDumpInProgress)
-		return;
-	*/
-
-	if (m_Rcon == nullptr)
-		return;
-
-	/* Calculate object specific checksums and store them in a different namespace. */
-	Type::Ptr type = object->GetReflectionType();
-
-	String typeName = type->GetName().ToLower();
-	String objectKey = GetObjectIdentifier(object);
-
-	std::set<String> propertiesBlacklist({"name", "__name", "package", "source_location", "templates"});
-
-	Dictionary::Ptr checkSums = new Dictionary();
-
-	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetShortName()));
-	checkSums->Set("environment_checksum", CalculateCheckSumString(GetEnvironment()));
-
-	auto endpoint(dynamic_pointer_cast<Endpoint>(object));
+	Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 
 	if (endpoint) {
 		auto endpointZone(endpoint->GetZone());
@@ -189,6 +172,8 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 		if (endpointZone) {
 			checkSums->Set("zone_checksum", GetObjectIdentifier(endpointZone));
 		}
+
+		return;
 	} else {
 		/* 'zone' is available for all config objects, therefore calculate the checksum. */
 		auto zone(static_pointer_cast<Zone>(object->GetZone()));
@@ -224,6 +209,8 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 
 		if (period)
 			checkSums->Set("period_checksum", GetObjectIdentifier(period));
+
+		return;
 	}
 
 	Notification::Ptr notification = dynamic_pointer_cast<Notification>(object);
@@ -270,6 +257,7 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 
 		checkSums->Set("usergroup_checksums", usergroupChecksums);
 		checkSums->Set("usergroups_checksum", CalculateCheckSumArray(usergroupNames));
+		return;
 	}
 
 	/* Calculate checkable checksums. */
@@ -335,6 +323,8 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 			checkSums->Set("notes_url_checksum", CalculateCheckSumString(notesUrl));
 		if (!iconImage.IsEmpty())
 			checkSums->Set("icon_image_checksum", CalculateCheckSumString(iconImage));
+
+		return;
 	}
 
 	Zone::Ptr zone = dynamic_pointer_cast<Zone>(object);
@@ -360,11 +350,12 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 
 		checkSums->Set("all_parents_checksums", parents);
 		checkSums->Set("all_parents_checksum", HashValue(zone->GetAllParents()));
+		return;
 	}
 
 	/* zone_checksum for endpoints already is calculated above. */
 
-	auto command(dynamic_pointer_cast<Command>(object));
+	Command::Ptr command = dynamic_pointer_cast<Command>(object);
 	if (command) {
 		Dictionary::Ptr arguments = command->GetArguments();
 		Dictionary::Ptr argumentChecksums = new Dictionary;
@@ -395,9 +386,11 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 		checkSums->Set("envvars_checksum", HashValue(envvars));
 		checkSums->Set("envvar_checksums", envvarChecksums);
 		propertiesBlacklist.emplace("env");
+
+		return;
 	}
 
-	auto timeperiod(dynamic_pointer_cast<TimePeriod>(object));
+	TimePeriod::Ptr timeperiod = dynamic_pointer_cast<TimePeriod>(object);
 	if (timeperiod) {
 		Dictionary::Ptr ranges = timeperiod->GetRanges();
 
@@ -443,9 +436,11 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 		}
 
 		checkSums->Set("exclude_checksums", excludeChecksums);
+
+		return;
 	}
 
-	icinga::Comment::Ptr comment = dynamic_pointer_cast<Comment>(object);
+	Comment::Ptr comment = dynamic_pointer_cast<Comment>(object);
 	if (comment) {
 		propertiesBlacklist.emplace("name");
 		propertiesBlacklist.emplace("host_name");
@@ -456,14 +451,13 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 		if (service) {
 			propertiesBlacklist.emplace("service_name");
 			checkSums->Set("service_checksum", GetObjectIdentifier(service));
-			typeName = "servicecomment";
-		} else {
+		} else
 			checkSums->Set("host_checksum", GetObjectIdentifier(host));
-			typeName = "hostcomment";
-		}
+
+		return;
 	}
 
-	icinga::Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(object);
+	Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(object);
 	if (downtime) {
 		propertiesBlacklist.emplace("name");
 		propertiesBlacklist.emplace("host_name");
@@ -474,13 +468,41 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, std::vecto
 		if (service) {
 			propertiesBlacklist.emplace("service_name");
 			checkSums->Set("service_checksum", GetObjectIdentifier(service));
-			typeName = "servicedowntime";
-		} else {
+		} else
 			checkSums->Set("host_checksum", GetObjectIdentifier(host));
-			typeName = "hostdowntime";
-		}
 
+		return;
 	}
+}
+
+/* Creates a config update with computed checksums etc.
+ * Writes attributes, customVars and checksums into the respective supplied vectors. Adds two values to each vector
+ * (if applicable), first the key then the value. To use in a Redis command the command (e.g. HSET) and the key (e.g.
+ * icinga:config:object:downtime) need to be prepended. There is nothing to indicate success or failure.
+ */
+void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName, std::vector<String>& attributes,
+									 std::vector<String>& customVars, std::vector<String>& checksums,
+									 bool runtimeUpdate)
+{
+	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
+	if (!runtimeUpdate && m_ConfigDumpInProgress)
+		return;
+	*/
+
+	if (m_Rcon == nullptr)
+		return;
+
+	String objectKey = GetObjectIdentifier(object);
+
+	std::set<String> propertiesBlacklist({"name", "__name", "package", "source_location", "templates"});
+
+	Dictionary::Ptr checkSums = new Dictionary();
+
+	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetShortName()));
+	checkSums->Set("environment_checksum", CalculateCheckSumString(GetEnvironment()));
+
+	MakeTypeChecksums(object, propertiesBlacklist, checkSums);
+
 	/* Send all object attributes to Redis, no extra checksums involved here. */
 	auto tempAttrs = (UpdateObjectAttrs(m_PrefixConfigObject, object, FAConfig, typeName));
 	attributes.insert(attributes.end(), std::begin(tempAttrs), std::end(tempAttrs));

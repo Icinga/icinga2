@@ -68,10 +68,12 @@ private:
 	/* config & status dump */
 	void UpdateAllConfigObjects();
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
-	void CreateConfigUpdate(const ConfigObject::Ptr& object, std::vector<String>& attributes, std::vector<String>& customVars, std::vector<String>& checksums, bool runtimeUpdate);
+	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::vector<String>& attributes,
+			std::vector<String>& customVars, std::vector<String>& checksums, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStatusUpdate(const ConfigObject::Ptr& object);
-	std::vector<String> UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
+	std::vector<String> UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType,
+			const String& typeNameOverride);
 
 	/* Stats */
 	Dictionary::Ptr GetStats();
@@ -90,6 +92,10 @@ private:
 
 	static String HashValue(const Value& value);
 	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
+
+	static String GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj);
+	static void MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<String>& propertiesBlacklist, Dictionary::Ptr& checkSums);
+
 
 	static void StateChangedHandler(const ConfigObject::Ptr& object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);

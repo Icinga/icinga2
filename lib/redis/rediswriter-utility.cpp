@@ -22,6 +22,7 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/eventcommand.hpp"
+#include "base/configtype.hpp"
 #include "base/object-packer.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
@@ -334,6 +335,32 @@ String RedisWriter::HashValue(const Value& value, const std::set<String>& proper
 	}
 
 	return SHA1(PackObject(temp));
+}
+
+String RedisWriter::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
+{
+	String typeName = obj->GetReflectionType()->GetName().ToLower();
+	if (typeName == "downtime") {
+		Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(obj);
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(downtime->GetCheckable());
+		if (service)
+			typeName = "servicedowntime";
+		else
+			typeName = "hostdowntime";
+	} else if (typeName == "comment") {
+		Comment::Ptr comment = dynamic_pointer_cast<Comment>(obj);
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(comment->GetCheckable());
+		if (service)
+			typeName = "servicecomment";
+		else
+			typeName = "hostcomment";
+	}
+
+	return typeName;
 }
 
 //Used to duplicate a redisReply, needed as redisReplies are freed when the async callback finishes
