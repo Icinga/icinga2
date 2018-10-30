@@ -297,6 +297,7 @@ object Comment "localhost!my-comment" {
   host_name = "localhost"
   author = "icingaadmin"
   text = "This is a comment."
+  entry_time = 1234567890
 }
 ```
 
@@ -308,7 +309,7 @@ Configuration Attributes:
   service\_name             | Object name           | **Optional.** The short name of the service this comment belongs to. If omitted, this comment object is treated as host comment.
   author                    | String                | **Required.** The author's name.
   text                      | String                | **Required.** The comment text.
-  entry\_time               | Timestamp             | **Optional.** The UNIX timestamp when this comment was added.
+  entry\_time               | Timestamp             | **Optional.** The UNIX timestamp when this comment was added. If omitted, the entry time is volatile!
   entry\_type               | Number                | **Optional.** The comment type (`User` = 1, `Downtime` = 2, `Flapping` = 3, `Acknowledgement` = 4).
   expire\_time              | Timestamp             | **Optional.** The comment's expire time as UNIX timestamp.
   persistent                | Boolean               | **Optional.** Only evaluated for `entry_type` Acknowledgement. `true` does not remove the comment when the acknowledgement is removed.
