@@ -22,9 +22,11 @@
 #include "redis/redisconnection.hpp"
 #include "remote/eventqueue.hpp"
 #include "base/json.hpp"
-#include "rediswriter.hpp"
+#include "icinga/checkable.hpp"
+#include "icinga/host.hpp"
 
 #include <boost/algorithm/string.hpp>
+
 
 using namespace icinga;
 
@@ -280,7 +282,7 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 
 		long maxEvents = MAX_EVENTS_DEFAULT;
 		if (maxExists->integer) {
-			redisReply *redisReply =RedisGet({ "GET", "icinga:subscription:" + name + ":limit"});
+			redisReply *redisReply = RedisGet({ "GET", "icinga:subscription:" + name + ":limit"});
 			VERIFY(redisReply->type == REDIS_REPLY_STRING);
 
 			Log(LogInformation, "RedisWriter")
@@ -303,6 +305,33 @@ void RedisWriter::SendEvent(const Dictionary::Ptr& event)
 
 	if (!m_Rcon->IsConnected())
 		return;
+
+	String type = event->Get("type");
+	if (type.Contains("Acknowledgement")) {
+		Checkable::Ptr checkable;
+
+		if (event->Contains("service")) {
+			checkable = Service::GetByNamePair(event->Get("host"), event->Get("service"));
+			event->Set("service_id", GetObjectIdentifier(checkable));
+		} else {
+			checkable = Host::GetByName(event->Get("host"));
+			event->Set("host_id", GetObjectIdentifier(checkable));
+		}
+
+		if (type == "AcknowledgementSet") {
+			Timestamp entry = 0;
+			Comment::Ptr AckComment;
+			for (const Comment::Ptr& c : checkable->GetComments()) {
+				if (c->GetEntryType() == CommentAcknowledgement) {
+					if (c->GetEntryTime() > entry) {
+						entry = c->GetEntryTime();
+						AckComment = c;
+					}
+				}
+			}
+			event->Set("comment_id", GetObjectIdentifier(AckComment));
+		}
+	}
 
 	String body = JsonEncode(event);
 
