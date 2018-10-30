@@ -162,6 +162,9 @@ void IdoMysqlConnection::TxTimerHandler()
 
 void IdoMysqlConnection::NewTransaction()
 {
+	if (IsPaused())
+		return;
+
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
 		<< "Scheduling new transaction and finishing async queries.";
@@ -715,6 +718,9 @@ void IdoMysqlConnection::DiscardRows(const IdoMysqlResult& result)
 
 void IdoMysqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 {
+	if (IsPaused())
+		return;
+
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
 		<< "Scheduling object activation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
@@ -726,6 +732,9 @@ void IdoMysqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 {
 	AssertOnWorkQueue();
+
+	if (IsPaused())
+		return;
 
 	if (!GetConnected())
 		return;
@@ -754,6 +763,9 @@ void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 
 void IdoMysqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 {
+	if (IsPaused())
+		return;
+
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
 		<< "Scheduling object deactivation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
@@ -765,6 +777,9 @@ void IdoMysqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 void IdoMysqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)
 {
 	AssertOnWorkQueue();
+
+	if (IsPaused())
+		return;
 
 	if (!GetConnected())
 		return;
@@ -855,6 +870,9 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
+	if (IsPaused())
+		return;
+
 	ASSERT(query.Category != DbCatInvalid);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
@@ -867,6 +885,9 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 
 void IdoMysqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& queries)
 {
+	if (IsPaused())
+		return;
+
 	if (queries.empty())
 		return;
 
@@ -914,6 +935,9 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 {
 	AssertOnWorkQueue();
 
+	if (IsPaused())
+		return;
+
 	if (!GetConnected())
 		return;
 
@@ -941,6 +965,9 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOverride)
 {
 	AssertOnWorkQueue();
+
+	if (IsPaused())
+		return;
 
 	if (!GetConnected())
 		return;
@@ -1129,6 +1156,9 @@ void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool
 
 void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
 {
+	if (IsPaused())
+		return;
+
 #ifdef I2_DEBUG /* I2_DEBUG */
 		Log(LogDebug, "IdoMysqlConnection")
 			<< "Rescheduling cleanup query for table '" << table << "' and column '"
@@ -1141,6 +1171,9 @@ void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& 
 void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
 {
 	AssertOnWorkQueue();
+
+	if (IsPaused())
+		return;
 
 	if (!GetConnected())
 		return;
