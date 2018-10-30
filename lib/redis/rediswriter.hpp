@@ -29,6 +29,7 @@
 #include "icinga/checkable.hpp"
 #include "icinga/service.hpp"
 #include "icinga/downtime.hpp"
+#include <memory>
 #include <hiredis/hiredis.h>
 
 namespace icinga
@@ -114,7 +115,7 @@ private:
 	void ExceptionHandler(boost::exception_ptr exp);
 
 	//Used to get a reply from the asyncronous connection
-	redisReply* RedisGet(const std::vector<String>& query);
+	std::shared_ptr<redisReply> RedisGet(const std::vector<String>& query);
 	static void RedisQueryCallback(redisAsyncContext *c, void *r, void *p);
 	static redisReply* dupReplyObject(redisReply* reply);
 

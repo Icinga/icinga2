@@ -25,6 +25,7 @@
 #include "icinga/checkable.hpp"
 #include "icinga/host.hpp"
 
+#include <memory>
 #include <boost/algorithm/string.hpp>
 #include <utility>
 
@@ -189,7 +190,7 @@ void RedisWriter::UpdateSubscriptions()
 bool RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 {
 	try {
-		redisReply *redisReply = RedisGet({ "SMEMBERS", key });
+		auto redisReply = RedisGet({ "SMEMBERS", key });
 		VERIFY(redisReply->type == REDIS_REPLY_ARRAY);
 
 		if (redisReply->elements == 0)
@@ -280,11 +281,11 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 
 		String body = JsonEncode(event);
 
-		redisReply *maxExists = RedisGet({ "EXISTS", "icinga:subscription:" + name + ":limit" });
+		auto maxExists = RedisGet({ "EXISTS", "icinga:subscription:" + name + ":limit" });
 
 		long maxEvents = MAX_EVENTS_DEFAULT;
 		if (maxExists->integer) {
-			redisReply *redisReply = RedisGet({ "GET", "icinga:subscription:" + name + ":limit"});
+			auto redisReply = RedisGet({ "GET", "icinga:subscription:" + name + ":limit"});
 			VERIFY(redisReply->type == REDIS_REPLY_STRING);
 
 			Log(LogInformation, "RedisWriter")
@@ -399,8 +400,15 @@ void RedisWriter::RedisQueryCallback(redisAsyncContext *c, void *r, void *p) {
 	wait->cv.notify_all();
 }
 
+struct RedisReplyDeleter
+{
+	inline void operator() (redisReply *reply)
+	{
+		freeReplyObject(reply);
+	}
+};
 
-redisReply* RedisWriter::RedisGet(const std::vector<String>& query) {
+std::shared_ptr<redisReply> RedisWriter::RedisGet(const std::vector<String>& query) {
 	auto *wait = new synchronousWait;
 	wait->ready = false;
 
@@ -413,5 +421,5 @@ redisReply* RedisWriter::RedisGet(const std::vector<String>& query) {
 			wait->ready = true;
 	}
 
-	return wait->reply;
+	return std::shared_ptr<redisReply>(wait->reply, RedisReplyDeleter());
 }
