@@ -293,7 +293,7 @@ with the [add-comment](12-icinga2-api.md#icinga2-api-actions-add-comment) API ac
 Example:
 
 ```
-object Comment "localhost!my-comment" {
+object Comment "my-comment" {
   host_name = "localhost"
   author = "icingaadmin"
   text = "This is a comment."
