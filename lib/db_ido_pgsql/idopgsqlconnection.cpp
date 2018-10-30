@@ -163,6 +163,9 @@ void IdoPgsqlConnection::TxTimerHandler()
 
 void IdoPgsqlConnection::NewTransaction()
 {
+	if (IsPaused())
+		return;
+
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalNewTransaction, this), PriorityHigh, true);
 }
 
@@ -569,6 +572,9 @@ Dictionary::Ptr IdoPgsqlConnection::FetchRow(const IdoPgsqlResult& result, int r
 
 void IdoPgsqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 {
+	if (IsPaused())
+		return;
+
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalActivateObject, this, dbobj), PriorityLow);
 }
 
@@ -603,6 +609,9 @@ void IdoPgsqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 
 void IdoPgsqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 {
+	if (IsPaused())
+		return;
+
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalDeactivateObject, this, dbobj), PriorityLow);
 }
 
@@ -701,6 +710,9 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 {
+	if (IsPaused())
+		return;
+
 	ASSERT(query.Category != DbCatInvalid);
 
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, -1), query.Priority, true);
@@ -708,6 +720,9 @@ void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 
 void IdoPgsqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& queries)
 {
+	if (IsPaused())
+		return;
+
 	if (queries.empty())
 		return;
 
@@ -750,6 +765,9 @@ void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 {
 	AssertOnWorkQueue();
 
+	if (IsPaused())
+		return;
+
 	if (!GetConnected())
 		return;
 
@@ -770,6 +788,9 @@ void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOverride)
 {
 	AssertOnWorkQueue();
+
+	if (IsPaused())
+		return;
 
 	if (!GetConnected())
 		return;
@@ -935,6 +956,9 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 void IdoPgsqlConnection::CleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
 {
+	if (IsPaused())
+		return;
+
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), PriorityLow, true);
 }
 
