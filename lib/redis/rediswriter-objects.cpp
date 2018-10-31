@@ -108,6 +108,7 @@ void RedisWriter::UpdateAllConfigObjects()
 		std::vector<String> customVars = {"HMSET", m_PrefixConfigCustomVar + lcType};
 		std::vector<String> checksums =  {"HMSET", m_PrefixConfigCheckSum + lcType};
 		std::vector<String> states =     {"HMSET", m_PrefixStateObject + lcType };
+		std::vector<std::vector<String> > transaction = {{"MULTI"}};
 		bool dumpState = (lcType == "host" || lcType == "service");
 
 		for (const ConfigObject::Ptr& object : type.first->GetObjects()) {
@@ -124,31 +125,43 @@ void RedisWriter::UpdateAllConfigObjects()
 			bulkCounter++;
 			if (!bulkCounter % 100) {
 				if (attributes.size() > 2) {
-					m_Rcon->ExecuteQuery(attributes);
+					transaction.push_back(attributes);
 					attributes.erase(attributes.begin() + 2, attributes.end());
 				}
 				if (customVars.size() > 2) {
-					m_Rcon->ExecuteQuery(customVars);
+					transaction.push_back(customVars);
 					customVars.erase(customVars.begin() + 2, customVars.end());
 				}
 				if (checksums.size() > 2) {
-					m_Rcon->ExecuteQuery(checksums);
+					transaction.push_back(checksums);
 					checksums.erase(checksums.begin() + 2, checksums.end());
 				}
 				if (states.size() > 2) {
-					m_Rcon->ExecuteQuery(states);
+					transaction.push_back(states);
 					states.erase(states.begin() + 2, states.end());
+				}
+
+				if (transaction.size() > 1) {
+					transaction.push_back({"EXEC"});
+					m_Rcon->ExecuteQueries(transaction);
+					transaction.erase(transaction.begin() + 1, transaction.end());
 				}
 			}
 		}
+
 		if (attributes.size() > 2)
-			m_Rcon->ExecuteQuery(attributes);
+			transaction.push_back(attributes);
 		if (customVars.size() > 2)
-			m_Rcon->ExecuteQuery(customVars);
+			transaction.push_back(customVars);
 		if (checksums.size() > 2)
-			m_Rcon->ExecuteQuery(checksums);
+			transaction.push_back(checksums);
 		if (states.size() > 2)
-			m_Rcon->ExecuteQuery(states);
+			transaction.push_back(states);
+
+		if (transaction.size() > 1) {
+			transaction.push_back({"EXEC"});
+			m_Rcon->ExecuteQueries(transaction);
+		}
 
 		m_Rcon->ExecuteQuery({"PUBLISH", "icinga:config:dump", lcType});
 
