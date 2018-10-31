@@ -16,7 +16,7 @@ and create a new global constant, e.g. `CustomPluginDir` in your [constants.conf
 configuration file:
 
     # cp check_snmp_int.pl /opt/monitoring/plugins
-    # chmod +x /opt/plugins/check_snmp_int.pl
+    # chmod +x /opt/monitoring/plugins/check_snmp_int.pl
 
     # cat /etc/icinga2/constants.conf
     /**
