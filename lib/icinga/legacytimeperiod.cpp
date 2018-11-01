@@ -42,7 +42,7 @@ bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *referen
 
 	int daynumber = (tsref - tsbegin) / (24 * 60 * 60);
 
-	if (stride > 1 && daynumber % stride == 0)
+	if (stride > 1 && daynumber % stride > 0)
 		return false;
 
 	return true;
