@@ -182,7 +182,7 @@ which contains the path of the plugins from the Monitoring Plugins project.
 
 ### apt <a id="plugin-check-command-apt"></a>
 
-The plugin [apt](https://www.monitoring-plugins.org/doc/index.html) checks for software updates on systems that use
+The plugin [apt](https://www.monitoring-plugins.org/doc/man/check_apt.html) checks for software updates on systems that use
 package management systems based on the apt-get(8) command found in Debian based systems.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
