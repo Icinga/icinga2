@@ -317,6 +317,16 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 				<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName() << "': type '"
 				<< NotificationTypeToStringInternal(type) << "' does not match type filter: "
 				<< NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap()) << ".";
+
+			/* Ensure to reset no_more_notifications on Recovery notifications,
+			 * even if the admin did not configure them in the filter.
+			 */
+			{
+				ObjectLock olock(this);
+				if (type == NotificationRecovery && GetInterval() <= 0)
+					SetNoMoreNotifications(false);
+			}
+
 			return;
 		}
 
