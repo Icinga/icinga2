@@ -73,6 +73,8 @@ add_boost_test(base
     base_convert/tostring
     base_convert/tobool
     base_dictionary/construct
+    base_dictionary/initializer1
+    base_dictionary/initializer2
     base_dictionary/get1
     base_dictionary/get2
     base_dictionary/foreach
