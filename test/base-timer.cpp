@@ -39,16 +39,17 @@ BOOST_AUTO_TEST_CASE(interval)
 	BOOST_CHECK(timer->GetInterval() == 1.5);
 }
 
-static void Callback(int *counter)
+int counter = 0;
+
+static void Callback(const Timer::Ptr&)
 {
-	(*counter)++;
+	counter++;
 }
 
 BOOST_AUTO_TEST_CASE(invoke)
 {
-	int counter;
 	Timer::Ptr timer = new Timer();
-	timer->OnTimerExpired.connect(std::bind(&Callback, &counter));
+	timer->OnTimerExpired.connect(&Callback);
 	timer->SetInterval(1);
 
 	counter = 0;
@@ -61,9 +62,8 @@ BOOST_AUTO_TEST_CASE(invoke)
 
 BOOST_AUTO_TEST_CASE(scope)
 {
-	int counter;
 	Timer::Ptr timer = new Timer();
-	timer->OnTimerExpired.connect(std::bind(&Callback, &counter));
+	timer->OnTimerExpired.connect(&Callback);
 	timer->SetInterval(1);
 
 	counter = 0;
