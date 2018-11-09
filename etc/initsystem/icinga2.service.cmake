@@ -1,5 +1,6 @@
 [Unit]
 Description=Icinga host/service/network monitoring system
+Requires=network-online.target
 After=syslog.target network-online.target postgresql.service mariadb.service carbon-cache.service carbon-relay.service
 
 [Service]
