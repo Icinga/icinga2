@@ -22,6 +22,7 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/eventcommand.hpp"
+#include "icinga/host.hpp"
 #include "base/configtype.hpp"
 #include "base/object-packer.hpp"
 #include "base/logger.hpp"
