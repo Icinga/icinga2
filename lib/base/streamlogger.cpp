@@ -47,7 +47,7 @@ StreamLogger::~StreamLogger()
 	if (m_FlushLogTimer)
 		m_FlushLogTimer->Stop();
 
-	if (m_OwnsStream)
+	if (m_Stream && m_OwnsStream)
 		delete m_Stream;
 }
 
@@ -66,7 +66,7 @@ void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)
 {
 	ObjectLock olock(this);
 
-	if (m_OwnsStream)
+	if (m_Stream && m_OwnsStream)
 		delete m_Stream;
 
 	m_Stream = stream;
