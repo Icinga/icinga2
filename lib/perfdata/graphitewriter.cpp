@@ -282,7 +282,7 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 	msgbuf << "\n";
 	String metric = msgbuf.str();
 
-	ObjectLock olock(this);
+	boost::mutex::scoped_lock lock(m_StreamMutex);
 
 	if (!GetConnected())
 		return;
