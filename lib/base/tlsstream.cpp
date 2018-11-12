@@ -43,7 +43,7 @@ bool TlsStream::m_SSLIndexInitialized = false;
  * @param sslContext The SSL context for the client.
  */
 TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const std::shared_ptr<SSL_CTX>& sslContext)
-	: SocketEvents(socket, this), m_Eof(false), m_HandshakeOK(false), m_VerifyOK(true), m_ErrorCode(0),
+	: SocketEvents(socket), m_Eof(false), m_HandshakeOK(false), m_VerifyOK(true), m_ErrorCode(0),
 	m_ErrorOccurred(false),  m_Socket(socket), m_Role(role), m_SendQ(new FIFO()), m_RecvQ(new FIFO()),
 	m_CurrentAction(TlsActionNone), m_Retry(false), m_Shutdown(false)
 {
