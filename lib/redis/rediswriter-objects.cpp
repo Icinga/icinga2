@@ -510,7 +510,7 @@ void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const Stri
 	MakeTypeChecksums(object, propertiesBlacklist, checkSums);
 
 	/* Send all object attributes to Redis, no extra checksums involved here. */
-	auto tempAttrs = (UpdateObjectAttrs(m_PrefixConfigObject, object, FAConfig, typeName));
+	auto tempAttrs = (UpdateObjectAttrs(object, FAConfig, typeName));
 	attributes.insert(attributes.end(), std::begin(tempAttrs), std::end(tempAttrs));
 
 	/* Custom var checksums. */
@@ -645,7 +645,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 }
 
 std::vector<String>
-RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType,
+RedisWriter::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
 							   const String& typeNameOverride)
 {
 	Type::Ptr type = object->GetReflectionType();
