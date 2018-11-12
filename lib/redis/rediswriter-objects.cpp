@@ -561,18 +561,25 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 
 void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 {
-	//TODO: Manage type names
-	//TODO: Figure out what we need when we implement the history and state sync
-//	UpdateObjectAttrs(m_PrefixStatusObject, object, FAState, "");
+	//TODO: This is probably uncesessary?
+	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
+	if (!checkable)
+		return;
 
+	String streamname = "hoststatus";
+	Host::Ptr host = dynamic_pointer_cast<Host>(object);
+	if (!host)
+		streamname = "servicestatus";
 
-//	/* Serialize config object attributes */
-//	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAState);
-//
-//	String jsonBody = JsonEncode(objectAttrs);
-//
-//	String objectName = object->GetName();
-//
+	/* Serialize config object attributes
+	 * TODO: Flatten last check result
+	 */
+	auto objectAttrs = SerializeState(object);
+
+	std::vector<String> streamadd({"XADD", streamname, "*", "id", GetObjectIdentifier(object)});
+	streamadd.insert(streamadd.end(), std::begin(objectAttrs), std::end(objectAttrs));
+
+	m_Rcon->ExecuteQuery(streamadd);
 //	ExecuteQuery({ "HSET", "icinga:status:" + typeName, objectName, jsonBody });
 //
 //	/* Icinga DB part for Icinga Web 2 */
@@ -643,6 +650,37 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 //		ExecuteQuery({ "EXPIRE", key, String(expireTime) });
 //	}
 }
+
+std::vector<String> RedisWriter::SerializeState(const Object::Ptr& object)
+{
+	Type::Ptr type = object->GetReflectionType();
+
+	std::vector<String> resultAttrs = std::vector<String>();
+
+	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
+		Field field = type->GetFieldInfo(fid);
+
+		if ((field.Attributes & FAState) == 0)
+			continue;
+
+		Value val = object->GetField(fid);
+
+		/* hide attributes which shouldn't be user-visible */
+		if (field.Attributes & FANoUserView)
+			continue;
+
+		/* hide internal navigation fields */
+		if (field.Attributes & FANavigation && !(field.Attributes & (FAConfig | FAState)))
+			continue;
+
+		Value sval = Serialize(val);
+		resultAttrs.emplace_back(field.Name);
+		resultAttrs.emplace_back(sval);
+	}
+
+	return resultAttrs;
+}
+
 
 std::vector<String>
 RedisWriter::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
