@@ -4,6 +4,7 @@ After=syslog.target network-online.target postgresql.service mariadb.service car
 
 [Service]
 Type=notify
+Environment="ICINGA2_ERROR_LOG=@ICINGA2_LOGDIR@/error.log"
 EnvironmentFile=@ICINGA2_SYSCONFIGFILE@
 ExecStartPre=@CMAKE_INSTALL_PREFIX@/lib/icinga2/prepare-dirs @ICINGA2_SYSCONFIGFILE@
 ExecStart=@CMAKE_INSTALL_FULL_SBINDIR@/icinga2 daemon --close-stdio -e ${ICINGA2_ERROR_LOG}
