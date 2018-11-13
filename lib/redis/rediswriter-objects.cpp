@@ -563,23 +563,122 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 {
 	//TODO: This is probably uncesessary?
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
-	if (!checkable)
+	if (!checkable) {
+		Log(LogCritical, "DEBUG") << "THIS IS NOT A CHECKABLE, IT'S A " << object->GetReflectionType()->GetName();
 		return;
+	}
 
-	String streamname = "hoststatus";
-	Host::Ptr host = dynamic_pointer_cast<Host>(object);
-	if (!host)
-		streamname = "servicestatus";
+	bool isHost;
+	String streamname;
+	streamname = "servicestatus";
+
+	Host::Ptr host;
+	Service::Ptr service;
+
+	tie(host, service) = GetHostService(checkable);
+
+	if (service) {
+		streamname = "servicestate";
+		isHost = false;
+	} else {
+		streamname = "hoststate";
+		isHost = true;
+	}
+
 
 	/* Serialize config object attributes
 	 * TODO: Flatten last check result
 	 */
 	auto objectAttrs = SerializeState(object);
 
-	std::vector<String> streamadd({"XADD", streamname, "*", "id", GetObjectIdentifier(object)});
-	streamadd.insert(streamadd.end(), std::begin(objectAttrs), std::end(objectAttrs));
+	std::vector<String> streamadd({"XADD", streamname, "*"});
+
+	streamadd.emplace_back("id");
+	streamadd.emplace_back(GetObjectIdentifier(object));
+	streamadd.emplace_back("env_id");
+	streamadd.emplace_back(CalculateCheckSumString(GetEnvironment()));
+	streamadd.emplace_back("state_type");
+	streamadd.emplace_back(checkable->GetStateType());
+
+	streamadd.emplace_back("state");
+	if (isHost) {
+		streamadd.emplace_back(host->GetState());
+	} else {
+		streamadd.emplace_back(service->GetState());
+	}
+
+	streamadd.emplace_back("last_hard_state");
+	if (isHost) {
+		streamadd.emplace_back(host->GetLastHardState());
+	} else {
+		streamadd.emplace_back(service->GetLastHardState());
+	}
+
+	streamadd.emplace_back("check_attempt");
+	streamadd.emplace_back(checkable->GetCheckAttempt());
+
+	//streamadd.emplace_back("severity")
+	//streamadd.emplace_back(checkable->GetSeverity());
+
+	streamadd.emplace_back("is_active");
+	streamadd.emplace_back(checkable->IsActive());
+
+	// TODO: Is it possible there is no last checkresult?
+	CheckResult::Ptr cr = checkable->GetLastCheckResult();
+
+	streamadd.emplace_back("output");
+	streamadd.emplace_back(JsonEncode(cr->GetOutput()));
+	//streamadd.emplace_back("long_output", )
+	streamadd.emplace_back("performance_data");
+	streamadd.emplace_back(JsonEncode(cr->GetPerformanceData()));
+	streamadd.emplace_back("command");
+	streamadd.emplace_back(JsonEncode(cr->GetCommand()));
+	//streamadd.emplace_back("is_problem", !checkable->IsReachable() && !checkable->IsAcknowledged());
+	streamadd.emplace_back("is_handled");
+	streamadd.emplace_back(!checkable->IsAcknowledged());
+	streamadd.emplace_back("is_flapping");
+	streamadd.emplace_back(checkable->IsFlapping());
+
+	streamadd.emplace_back("is_acknowledged");
+	streamadd.emplace_back(checkable->IsAcknowledged());
+	if (checkable->IsAcknowledged()) {
+		Timestamp entry = 0;
+		Comment::Ptr AckComment;
+		for (const Comment::Ptr& c : checkable->GetComments()) {
+			if (c->GetEntryType() == CommentAcknowledgement) {
+				if (c->GetEntryTime() > entry) {
+					entry = c->GetEntryTime();
+					AckComment = c;
+				}
+			}
+		}
+		streamadd.emplace_back("acknowledgement_comment_id");
+		streamadd.emplace_back(GetObjectIdentifier(AckComment));
+	}
+
+	streamadd.emplace_back("in_downtime");
+	streamadd.emplace_back(checkable->IsInDowntime());
+	/*
+	if (checkable->IsInDowntime())
+		streamadd.emplace_back("downtime_id", checkable->GetDowntimes());
+	*/
+
+	streamadd.emplace_back("execution_time");
+	streamadd.emplace_back(cr->CalculateExecutionTime());
+	//streamadd.emplace_back("latency", TODO: What);
+	streamadd.emplace_back("check_timeout");
+	streamadd.emplace_back(checkable->GetCheckTimeout());
+
+	//streamadd.emplace_back("last_update", TODO: What?);
+	streamadd.emplace_back("last_state_change");
+	streamadd.emplace_back(checkable->GetLastStateChange());
+	//streamadd.emplace_back("last_soft_state", TODO: We want "previous");
+	//streamadd.emplace_back("last_hard_state", TODO: We want "previous");
+	streamadd.emplace_back("next_check");
+	streamadd.emplace_back(checkable->GetNextCheck());
 
 	m_Rcon->ExecuteQuery(streamadd);
+
 //	ExecuteQuery({ "HSET", "icinga:status:" + typeName, objectName, jsonBody });
 //
 //	/* Icinga DB part for Icinga Web 2 */
