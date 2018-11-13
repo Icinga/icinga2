@@ -32,6 +32,28 @@ BOOST_AUTO_TEST_CASE(construct)
 	BOOST_CHECK(dictionary);
 }
 
+BOOST_AUTO_TEST_CASE(initializer1)
+{
+	DictionaryData dict;
+
+	dict.emplace_back("test1", "Gin-o-clock");
+
+	Dictionary::Ptr dictionary = new Dictionary(std::move(dict));
+
+	Value test1;
+	test1 = dictionary->Get("test1");
+	BOOST_CHECK(test1 == "Gin-o-clock");
+}
+
+BOOST_AUTO_TEST_CASE(initializer2)
+{
+	Dictionary::Ptr dictionary = new Dictionary({ {"test1", "Gin-for-the-win"} });
+
+	Value test1;
+	test1 = dictionary->Get("test1");
+	BOOST_CHECK(test1 == "Gin-for-the-win");
+}
+
 BOOST_AUTO_TEST_CASE(get1)
 {
 	Dictionary::Ptr dictionary = new Dictionary();
