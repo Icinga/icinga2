@@ -1,5 +1,37 @@
 # Icinga 2.x CHANGELOG
 
+## 2.10.2 (2018-11-14)
+
+### Bug
+
+* [#6770](https://github.com/icinga/icinga2/issues/6770) (PR): Fix deadlock in GraphiteWriter
+* [#6769](https://github.com/icinga/icinga2/issues/6769) (Cluster): Hanging TLS connections
+* [#6759](https://github.com/icinga/icinga2/issues/6759) (Log, PR): Fix possible double free in StreamLogger::BindStream\(\)
+* [#6753](https://github.com/icinga/icinga2/issues/6753): Icinga2.service state is reloading in systemd after safe-reload until systemd time-out
+* [#6740](https://github.com/icinga/icinga2/issues/6740) (DB IDO, PR): DB IDO: Don't enqueue queries when the feature is paused \(HA\)
+* [#6738](https://github.com/icinga/icinga2/issues/6738) (API, Cluster, PR): Ensure that API/JSON-RPC messages in the same session are processed and not stalled
+* [#6736](https://github.com/icinga/icinga2/issues/6736) (Crash): Stability issues with Icinga 2.10.x
+* [#6717](https://github.com/icinga/icinga2/issues/6717) (API, PR): Improve error handling for invalid child\_options for API downtime actions
+* [#6712](https://github.com/icinga/icinga2/issues/6712) (API): Downtime name not returned when error occurs
+* [#6711](https://github.com/icinga/icinga2/issues/6711) (API, Cluster): Slow API \(TLS-Handshake\)
+* [#6709](https://github.com/icinga/icinga2/issues/6709) (PR):  Fix the Icinga2 version check for versions with more than 5 characters
+* [#6707](https://github.com/icinga/icinga2/issues/6707) (Compat, PR): Fix regression for wrong objects.cache path overwriting icinga2.debug file
+* [#6705](https://github.com/icinga/icinga2/issues/6705) (CLI, Compat, Configuration): Crash "icinga2 object list" command with 2.10.1-1 on CentOS 7
+* [#6703](https://github.com/icinga/icinga2/issues/6703): Check command 'icinga' breaks when vars.icinga\_min\_version is defined \(2.10.x\)
+* [#6635](https://github.com/icinga/icinga2/issues/6635) (API): API TLS session connection closed after 2 requests
+* [#5876](https://github.com/icinga/icinga2/issues/5876) (DB IDO): IDO Work queue on the inactive node growing when switching connection between redundant master servers
+
+### Documentation
+
+* [#6714](https://github.com/icinga/icinga2/issues/6714) (Documentation, PR): Docs: Add package related changes to the upgrading docs
+
+### Support
+
+* [#6773](https://github.com/icinga/icinga2/issues/6773) (Installation, Packages, PR): Initialize ICINGA2\_ERROR\_LOG inside the systemd environment
+* [#6771](https://github.com/icinga/icinga2/issues/6771) (Tests, PR): Implement unit tests for Dictionary initializers
+* [#6760](https://github.com/icinga/icinga2/issues/6760) (Packages, Tests, PR): armhf: Apply workaround for timer tests with std::bind callbacks
+* [#6710](https://github.com/icinga/icinga2/issues/6710) (Packages): Crash when upgrading from 2.10.0 to 2.10.1 \(SELinux related\)
+
 ## 2.10.1 (2018-10-18)
 
 ### Bug

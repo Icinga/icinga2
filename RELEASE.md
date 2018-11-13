@@ -26,7 +26,7 @@
 Specify the release version.
 
 ```
-VERSION=2.10.1
+VERSION=2.10.2
 ```
 
 Add your signing key to your Git configuration file, if not already there.
