@@ -561,12 +561,9 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 
 void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 {
-	//TODO: This is probably uncesessary?
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
-	if (!checkable) {
-		Log(LogCritical, "DEBUG") << "THIS IS NOT A CHECKABLE, IT'S A " << object->GetReflectionType()->GetName();
+	if (!checkable)
 		return;
-	}
 
 	bool isHost;
 	String streamname;
