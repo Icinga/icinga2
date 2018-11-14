@@ -578,9 +578,9 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 
 	String streamname;
 	if (service)
-		streamname = "servicestate";
+		streamname = "icinga:state:stream:service";
 	else
-		streamname = "hoststate";
+		streamname = "icinga:state:stream:service";
 
 	Dictionary::Ptr objectAttrs = SerializeState(object);
 
