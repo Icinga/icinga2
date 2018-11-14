@@ -121,7 +121,8 @@ void RedisWriter::UpdateAllConfigObjects()
 			if (lcType == "host" || lcType == "service") {
 				Dictionary::Ptr objectAttrs = SerializeState(object);
 
-				m_Rcon->ExecuteQuery({"HSET", "icinga:status:object:" + lcType, GetObjectIdentifier(object), JsonEncode(objectAttrs)});
+				m_Rcon->ExecuteQuery({"HSET", "icinga:status:object:" + lcType, GetObjectIdentifier(object),
+									  JsonEncode(objectAttrs)});
 			}
 		}
 		if (attributes.size() > 2)
@@ -175,7 +176,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 	m_Rcon->ExecuteQuery(checksums);
 }
 
-void RedisWriter::MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<String>& propertiesBlacklist, Dictionary::Ptr& checkSums)
+void RedisWriter::MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<String>& propertiesBlacklist,
+									Dictionary::Ptr& checkSums)
 {
 	Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 	if (endpoint) {
@@ -492,9 +494,10 @@ void RedisWriter::MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<St
  * (if applicable), first the key then the value. To use in a Redis command the command (e.g. HSET) and the key (e.g.
  * icinga:config:object:downtime) need to be prepended. There is nothing to indicate success or failure.
  */
-void RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName, std::vector<String>& attributes,
-									 std::vector<String>& customVars, std::vector<String>& checksums,
-									 bool runtimeUpdate)
+void
+RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName, std::vector<String>& attributes,
+								std::vector<String>& customVars, std::vector<String>& checksums,
+								bool runtimeUpdate)
 {
 	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
 	if (!runtimeUpdate && m_ConfigDumpInProgress)
@@ -589,82 +592,12 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 		streamadd.emplace_back(kv.first);
 		streamadd.emplace_back(kv.second);
 	}
-	m_Rcon->ExecuteQuery(streamadd);
 
-//	ExecuteQuery({ "HSET", "icinga:status:" + typeName, objectName, jsonBody });
-//
-//	/* Icinga DB part for Icinga Web 2 */
-//	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
-//
-//	if (checkable) {
-//		Dictionary::Ptr attrs = new Dictionary();
-//		String tableName;
-//		String objectCheckSum = CalculateCheckSumString(objectName);
-//
-//		Host::Ptr host;
-//		Service::Ptr service;
-//
-//		tie(host, service) = GetHostService(checkable);
-//
-//		if (service) {
-//			tableName = "servicestate";
-//			attrs->Set("service_checksum", objectCheckSum);
-//			attrs->Set("host_checksum", CalculateCheckSumString(host->GetName()));
-//		} else {
-//			tableName = "hoststate";
-//			attrs->Set("host_checksum", objectCheckSum);
-//		}
-//
-//		attrs->Set("last_check", checkable->GetLastCheck());
-//		attrs->Set("next_check", checkable->GetNextCheck());
-//
-//		attrs->Set("severity", checkable->GetSeverity());
-//
-///*
-//        'host_checksum'    => null,
-//        'command'          => null, // JSON, array
-//        'execution_start'  => null,
-//        'execution_end'    => null,
-//        'schedule_start'   => null,
-//        'schedule_end'     => null,
-//        'exit_status'      => null,
-//        'output'           => null,
-//        'performance_data' => null, // JSON, array
-//
-//
-//10.0.3.12:6379> keys icinga:hoststate.*
-//1) "icinga:hoststate.~\xf5a\x91+\x03\x97\x99\xb5(\x16 CYm\xb1\xdf\x85\xa2\xcb"
-//10.0.3.12:6379> get "icinga:hoststate.~\xf5a\x91+\x03\x97\x99\xb5(\x16 CYm\xb1\xdf\x85\xa2\xcb"
-//"{\"command\":[\"\\/usr\\/lib\\/nagios\\/plugins\\/check_ping\",\"-H\",\"127.0.0.1\",\"-c\",\"5000,100%\",\"-w\",\"3000,80%\"],\"execution_start\":1492007581.7624,\"execution_end\":1492007585.7654,\"schedule_start\":1492007581.7609,\"schedule_end\":1492007585.7655,\"exit_status\":0,\"output\":\"PING OK - Packet loss = 0%, RTA = 0.08 ms\",\"performance_data\":[\"rta=0.076000ms;3000.000000;5000.000000;0.000000\",\"pl=0%;80;100;0\"]}"
-//
-//*/
-//
-//		CheckResult::Ptr cr = checkable->GetLastCheckResult();
-//
-//		if (cr) {
-//			attrs->Set("command", JsonEncode(cr->GetCommand()));
-//			attrs->Set("execution_start", cr->GetExecutionStart());
-//			attrs->Set("execution_end", cr->GetExecutionEnd());
-//			attrs->Set("schedule_start", cr->GetScheduleStart());
-//			attrs->Set("schedule_end", cr->GetScheduleStart());
-//			attrs->Set("exit_status", cr->GetExitStatus());
-//			attrs->Set("output", cr->GetOutput());
-//			attrs->Set("performance_data", JsonEncode(cr->GetPerformanceData()));
-//		}
-//
-//		String jsonAttrs = JsonEncode(attrs);
-//		String key = "icinga:" + tableName + "." + objectCheckSum;
-//		ExecuteQuery({ "SET", key, jsonAttrs });
-//
-//		/* expire in check_interval * attempts + timeout + some more seconds */
-//		double expireTime = checkable->GetCheckInterval() * checkable->GetMaxCheckAttempts() + 60;
-//		ExecuteQuery({ "EXPIRE", key, String(expireTime) });
-//	}
+	m_Rcon->ExecuteQuery(streamadd);
 }
 
 Dictionary::Ptr RedisWriter::SerializeState(const Object::Ptr& object)
 {
-	std::vector<String> state = std::vector<String>();
 	Dictionary::Ptr attrs = new Dictionary();
 
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
@@ -678,74 +611,44 @@ Dictionary::Ptr RedisWriter::SerializeState(const Object::Ptr& object)
 
 	tie(host, service) = GetHostService(checkable);
 
-	if (service) {
+	if (service)
 		isHost = false;
-	} else {
+	else
 		isHost = true;
-	}
 
-	attrs->Set("id", GetObjectIdentifier(checkable));
-	state.emplace_back("id");
-	state.emplace_back(GetObjectIdentifier(checkable));
+	attrs->Set("id", GetObjectIdentifier(checkable));;
 	attrs->Set("env_id", CalculateCheckSumString(GetEnvironment()));
-	state.emplace_back("env_id");
-	state.emplace_back(CalculateCheckSumString(GetEnvironment()));
 	attrs->Set("state_type", checkable->GetStateType());
-	state.emplace_back("state_type");
-	state.emplace_back(checkable->GetStateType());
 
-	state.emplace_back("state");
-	if (isHost) {
-		state.emplace_back(host->GetState());
+	if (isHost)
 		attrs->Set("state", host->GetState());
-	} else {
-		state.emplace_back(service->GetState());
+	else
 		attrs->Set("state", service->GetState());
-	}
 
-	state.emplace_back("last_hard_state");
-	if (isHost) {
-		state.emplace_back(host->GetLastHardState());
+	if (isHost)
 		attrs->Set("last_hard_state", host->GetLastHardState());
-	} else {
-		state.emplace_back(service->GetLastHardState());
+	else
 		attrs->Set("last_hard_state", service->GetLastHardState());
 
-	}
-
 	attrs->Set("check_attempt", checkable->GetCheckAttempt());
-	state.emplace_back("check_attempt");
-	state.emplace_back(checkable->GetCheckAttempt());
 
-	//streamadd.emplace_back("severity")
-	//streamadd.emplace_back(checkable->GetSeverity());
+	//attrs->Set("severity")
+	//attrs->Set(checkable->GetSeverity());
 
 	attrs->Set("is_active", checkable->IsActive());
-	state.emplace_back("is_active");
-	state.emplace_back(checkable->IsActive());
 
 	// TODO: Is it possible there is no last checkresult?
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
 	attrs->Set("output", JsonEncode(cr->GetOutput()));
-	state.emplace_back("output");
-	state.emplace_back(JsonEncode(cr->GetOutput()));
-	//streamadd.emplace_back("long_output", )
+	//attrs->Set("long_output", ) TODO
 	attrs->Set("performance_data", JsonEncode(cr->GetOutput()));
-	state.emplace_back("performance_data");
-	state.emplace_back(JsonEncode(cr->GetPerformanceData()));
 	attrs->Set("command", JsonEncode(cr->GetCommand()));
-	state.emplace_back("command");
-	state.emplace_back(JsonEncode(cr->GetCommand()));
-	//streamadd.emplace_back("is_problem", !checkable->IsReachable() && !checkable->IsAcknowledged());
-	//streamadd.emplace_back("is_handled");
+	//attrs->Set("is_problem", !checkable->IsReachable() && !checkable->IsAcknowledged()); TODO
+	//attrs->Set("is_handled"); TODO
 	attrs->Set("is_flapping", checkable->IsFlapping());
-	state.emplace_back("is_flapping");
-	state.emplace_back(checkable->IsFlapping());
 
 	attrs->Set("is_acknowledged", checkable->IsAcknowledged());
-	state.emplace_back("is_acknowledged");
-	state.emplace_back(checkable->IsAcknowledged());
 	if (checkable->IsAcknowledged()) {
 		Timestamp entry = 0;
 		Comment::Ptr AckComment;
@@ -758,35 +661,23 @@ Dictionary::Ptr RedisWriter::SerializeState(const Object::Ptr& object)
 			}
 		}
 		attrs->Set("acknowledgement_comment_id", GetObjectIdentifier(AckComment));
-		state.emplace_back("acknowledgement_comment_id");
-		state.emplace_back(GetObjectIdentifier(AckComment));
 	}
 
 	attrs->Set("in_downtime", checkable->IsInDowntime());
-	state.emplace_back("in_downtime");
-	state.emplace_back(checkable->IsInDowntime());
 	/*
 	if (checkable->IsInDowntime())
-		streamadd.emplace_back("downtime_id", checkable->GetDowntimes());
+		attrs->Set("downtime_id", checkable->GetDowntimes()); TODO
 	*/
 
 	attrs->Set("execution_time", cr->CalculateExecutionTime());
-	state.emplace_back("execution_time");
-	state.emplace_back(cr->CalculateExecutionTime());
-	//streamadd.emplace_back("latency", TODO: What);
+	//attrs->Set("latency", TODO: What);
 	attrs->Set("check_timeout", checkable->GetCheckTimeout());
-	state.emplace_back("check_timeout");
-	state.emplace_back(checkable->GetCheckTimeout());
 
-	//streamadd.emplace_back("last_update", TODO: What?);
+	//sattrs->Set("last_update", TODO: What?);
 	attrs->Set("last_state_change", checkable->GetLastStateChange());
-	state.emplace_back("last_state_change");
-	state.emplace_back(checkable->GetLastStateChange());
-	//streamadd.emplace_back("last_soft_state", TODO: We want "previous");
-	//streamadd.emplace_back("last_hard_state", TODO: We want "previous");
+	//attrs->Set("last_soft_state", TODO: We want "previous");
+	//attrs->Set("last_hard_state", TODO: We want "previous");
 	attrs->Set("next_check", checkable->GetNextCheck());
-	state.emplace_back("next_check");
-	state.emplace_back(checkable->GetNextCheck());
 
 	return attrs;
 }
@@ -818,12 +709,12 @@ RedisWriter::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
 		attrs->Set(field.Name, Serialize(val));
 	}
 
-       /* Downtimes require in_effect, which is not an attribute */
-       Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(object);
-       if (downtime) {
-               attrs->Set("in_effect", Serialize(downtime->IsInEffect()));
-               attrs->Set("trigger_time", Serialize(downtime->GetTriggerTime()));
-       }
+	/* Downtimes require in_effect, which is not an attribute */
+	Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(object);
+	if (downtime) {
+		attrs->Set("in_effect", Serialize(downtime->IsInEffect()));
+		attrs->Set("trigger_time", Serialize(downtime->GetTriggerTime()));
+	}
 
 
 	/* Use the name checksum as unique key. */
