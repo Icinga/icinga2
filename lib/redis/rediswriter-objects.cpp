@@ -583,7 +583,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 	if (service)
 		streamname = "icinga:state:stream:service";
 	else
-		streamname = "icinga:state:stream:service";
+		streamname = "icinga:state:stream:host";
 
 	Dictionary::Ptr objectAttrs = SerializeState(object);
 
@@ -671,7 +671,9 @@ Dictionary::Ptr RedisWriter::SerializeState(const Object::Ptr& object)
 
 	attrs->Set("execution_time", cr->CalculateExecutionTime());
 	//attrs->Set("latency", TODO: What);
-	attrs->Set("check_timeout", checkable->GetCheckTimeout());
+
+	if (checkable->GetCheckTimeout())
+		attrs->Set("check_timeout", checkable->GetCheckTimeout());
 
 	//sattrs->Set("last_update", TODO: What?);
 	attrs->Set("last_state_change", checkable->GetLastStateChange());
