@@ -73,7 +73,7 @@ private:
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStatusUpdate(const ConfigObject::Ptr& object);
 	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
-	std::vector<String> SerializeState(const Object::Ptr& object);
+	Dictionary::Ptr SerializeState(const Object::Ptr& object);
 
 	/* Stats */
 	Dictionary::Ptr GetStats();
