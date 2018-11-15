@@ -20,6 +20,7 @@
 #include "redis/rediswriter.hpp"
 #include "redis/redisconnection.hpp"
 #include "icinga/command.hpp"
+#include "icinga/compatutility.hpp"
 #include "base/configtype.hpp"
 #include "base/configobject.hpp"
 #include "icinga/customvarobject.hpp"
@@ -638,18 +639,27 @@ Dictionary::Ptr RedisWriter::SerializeState(const Object::Ptr& object)
 
 	attrs->Set("is_active", checkable->IsActive());
 
-	// TODO: Is it possible there is no last checkresult?
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
 	if (cr) {
-		attrs->Set("output", JsonEncode(cr->GetOutput()));
-		//attrs->Set("long_output", ) TODO
-		attrs->Set("performance_data", JsonEncode(cr->GetOutput()));
+		// TODO: Long Output did not work in my test cases. Need to investigate
+		attrs->Set("output", JsonEncode(CompatUtility::GetCheckResultOutput(cr)));
+		attrs->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
+		attrs->Set("performance_data", JsonEncode(cr->GetPerformanceData()));
 		attrs->Set("command", JsonEncode(cr->GetCommand()));
 		attrs->Set("execution_time", cr->CalculateExecutionTime());
+		attrs->Set("latency", cr->CalculateLatency());
 	}
-	//attrs->Set("is_problem", !checkable->IsReachable() && !checkable->IsAcknowledged()); TODO
-	//attrs->Set("is_handled"); TODO
+
+	bool isProblem = !checkable->IsStateOK(checkable->GetStateRaw());
+	attrs->Set("is_problem", isProblem);
+
+	bool isHandledNoDependency = isProblem && checkable->IsInDowntime() && checkable->IsAcknowledged();
+	if (isHost)
+		attrs->Set("is_handled", isHandledNoDependency);
+	else
+		attrs->Set("is_handled", isHandledNoDependency && !checkable->IsStateOK(service->GetHost()->GetStateRaw()));
+
 	attrs->Set("is_flapping", checkable->IsFlapping());
 
 	attrs->Set("is_acknowledged", checkable->IsAcknowledged());
@@ -668,17 +678,11 @@ Dictionary::Ptr RedisWriter::SerializeState(const Object::Ptr& object)
 	}
 
 	attrs->Set("in_downtime", checkable->IsInDowntime());
-	/*
-	if (checkable->IsInDowntime())
-		attrs->Set("downtime_id", checkable->GetDowntimes()); TODO
-	*/
-
-	//attrs->Set("latency", TODO: What);
 
 	if (checkable->GetCheckTimeout())
 		attrs->Set("check_timeout", checkable->GetCheckTimeout());
 
-	//sattrs->Set("last_update", TODO: What?);
+	attrs->Set("last_update", Utility::GetTime());
 	attrs->Set("last_state_change", checkable->GetLastStateChange());
 	//attrs->Set("last_soft_state", TODO: We want "previous");
 	//attrs->Set("last_hard_state", TODO: We want "previous");

@@ -249,7 +249,7 @@ std::set<UserGroup::Ptr> CompatUtility::GetCheckableNotificationUserGroups(const
 	return usergroups;
 }
 
-/* Used in DB IDO, StatusDataWriter, Livestatus, CompatLogger, GelfWriter. */
+/* Used in DB IDO, StatusDataWriter, Livestatus, CompatLogger, GelfWriter, RedisWriter. */
 String CompatUtility::GetCheckResultOutput(const CheckResult::Ptr& cr)
 {
 	if (!cr)
@@ -264,7 +264,7 @@ String CompatUtility::GetCheckResultOutput(const CheckResult::Ptr& cr)
 	return raw_output.SubStr(0, line_end);
 }
 
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
+/* Used in DB IDO, StatusDataWriter and Livestatus, RedisWriter. */
 String CompatUtility::GetCheckResultLongOutput(const CheckResult::Ptr& cr)
 {
 	if (!cr)
