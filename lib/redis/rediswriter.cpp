@@ -45,7 +45,7 @@ RedisWriter::RedisWriter()
 	m_PrefixConfigObject = "icinga:config:object:";
 	m_PrefixConfigCheckSum = "icinga:config:checksum:";
 	m_PrefixConfigCustomVar = "icinga:config:customvar:";
-	m_PrefixStatusObject = "icinga:status:object:";
+	m_PrefixStateObject = "icinga:state:object:";
 }
 
 /**
@@ -307,6 +307,18 @@ void RedisWriter::SendEvent(const Dictionary::Ptr& event)
 		return;
 
 	String type = event->Get("type");
+
+	if (type == "CheckResult") {
+		Checkable::Ptr checkable;
+		if (event->Contains("service")) {
+			checkable = Service::GetByNamePair(event->Get("host"), event->Get("service"));
+		} else {
+			checkable = Host::GetByName(event->Get("host"));
+		}
+		// Update State for icingaweb
+		m_WorkQueue.Enqueue(std::bind(&RedisWriter::UpdateState, this, checkable));
+	}
+
 	if (type.Contains("Acknowledgement")) {
 		Checkable::Ptr checkable;
 

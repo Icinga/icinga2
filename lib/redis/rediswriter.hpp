@@ -26,6 +26,7 @@
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "redis/redisconnection.hpp"
+#include "icinga/checkable.hpp"
 #include <hiredis/hiredis.h>
 
 namespace icinga
@@ -67,13 +68,14 @@ private:
 
 	/* config & status dump */
 	void UpdateAllConfigObjects();
+	void UpdateState(const Checkable::Ptr& checkable);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::vector<String>& attributes,
 			std::vector<String>& customVars, std::vector<String>& checksums, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStatusUpdate(const ConfigObject::Ptr& object);
 	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
-	Dictionary::Ptr SerializeState(const Object::Ptr& object);
+	Dictionary::Ptr SerializeState(const Checkable::Ptr& checkable);
 
 	/* Stats */
 	Dictionary::Ptr GetStats();
@@ -119,7 +121,7 @@ private:
 	String m_PrefixConfigObject;
 	String m_PrefixConfigCheckSum;
 	String m_PrefixConfigCustomVar;
-	String m_PrefixStatusObject;
+	String m_PrefixStateObject;
 
 	bool m_ConfigDumpInProgress;
 	bool m_ConfigDumpDone;

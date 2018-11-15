@@ -92,17 +92,25 @@ void RedisWriter::UpdateAllConfigObjects()
 	{
 		String lcType = type.second;
 		m_Rcon->ExecuteQuery(
-				{"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStatusObject + lcType});
+				{"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStateObject + lcType});
 		size_t bulkCounter = 0;
-		auto attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + lcType});
-		auto customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + lcType});
-		auto checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + lcType});
+		std::vector<String> attributes = {"HMSET", m_PrefixConfigObject + lcType};
+		std::vector<String> customVars = {"HMSET", m_PrefixConfigCustomVar + lcType};
+		std::vector<String> checksums =  {"HMSET", m_PrefixConfigCheckSum + lcType};
+		std::vector<String> states =     {"HMSET", m_PrefixStateObject + lcType };
+		bool dumpState = (lcType == "host" || lcType == "service");
 
 		for (const ConfigObject::Ptr& object : type.first->GetObjects()) {
 			if (lcType != GetLowerCaseTypeNameDB(object))
 				continue;
 			CreateConfigUpdate(object, lcType, attributes, customVars, checksums, false);
-			SendStatusUpdate(object);
+
+			// Write out inital state for checkables
+			if (dumpState) {
+				states.emplace_back(GetObjectIdentifier(object));
+				states.emplace_back(JsonEncode(SerializeState(dynamic_pointer_cast<Checkable>(object))));
+			}
+
 			bulkCounter++;
 			if (!bulkCounter % 100) {
 				if (attributes.size() > 2) {
@@ -117,13 +125,10 @@ void RedisWriter::UpdateAllConfigObjects()
 					m_Rcon->ExecuteQuery(checksums);
 					checksums.erase(checksums.begin() + 2, checksums.end());
 				}
-			}
-
-			if (lcType == "host" || lcType == "service") {
-				Dictionary::Ptr objectAttrs = SerializeState(object);
-
-				m_Rcon->ExecuteQuery({"HSET", "icinga:status:object:" + lcType, GetObjectIdentifier(object),
-									  JsonEncode(objectAttrs)});
+				if (states.size() > 2) {
+					m_Rcon->ExecuteQuery(states);
+					states.erase(states.begin() + 2, states.end());
+				}
 			}
 		}
 		if (attributes.size() > 2)
@@ -132,6 +137,8 @@ void RedisWriter::UpdateAllConfigObjects()
 			m_Rcon->ExecuteQuery(customVars);
 		if (checksums.size() > 2)
 			m_Rcon->ExecuteQuery(checksums);
+		if (states.size() > 2)
+			m_Rcon->ExecuteQuery(states);
 
 		m_Rcon->ExecuteQuery({"PUBLISH", "icinga:config:dump", lcType});
 
@@ -152,6 +159,12 @@ void RedisWriter::UpdateAllConfigObjects()
 			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
 
+void RedisWriter::UpdateState(const Checkable::Ptr& checkable) {
+	Dictionary::Ptr stateAttrs = SerializeState(checkable);
+
+	m_Rcon->ExecuteQuery({"HSET", m_PrefixStateObject + GetLowerCaseTypeNameDB(checkable), GetObjectIdentifier(checkable), JsonEncode(stateAttrs)});
+}
+
 template<typename ConfigType>
 static ConfigObject::Ptr GetObjectByName(const String& name)
 {
@@ -166,15 +179,23 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 
 	String typeName = GetLowerCaseTypeNameDB(object);
 
-	auto attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + typeName});
-	auto customVars = std::vector<String>({"HMSET", m_PrefixConfigCustomVar + typeName});
-	auto checksums = std::vector<String>({"HMSET", m_PrefixConfigCheckSum + typeName});
+	std::vector<String> attribute = {"HSET", m_PrefixConfigObject + typeName};
+	std::vector<String> customVar = {"HSET", m_PrefixConfigCustomVar + typeName};
+	std::vector<String> checksum =  {"HSET", m_PrefixConfigCheckSum + typeName};
+	std::vector<String> state =     {"HSET", m_PrefixStateObject + typeName};
 
-	CreateConfigUpdate(object, typeName, attributes, customVars, checksums, runtimeUpdate);
 
-	m_Rcon->ExecuteQuery(attributes);
-	m_Rcon->ExecuteQuery(customVars);
-	m_Rcon->ExecuteQuery(checksums);
+	CreateConfigUpdate(object, typeName, attribute, customVar, checksum, runtimeUpdate);
+	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
+	if (checkable) {
+		m_Rcon->ExecuteQuery({"HSET", m_PrefixStateObject + typeName,
+							  GetObjectIdentifier(checkable), JsonEncode(SerializeState(checkable))});
+	}
+
+	m_Rcon->ExecuteQuery(attribute);
+	m_Rcon->ExecuteQuery(checksum);
+	if (customVar.size() > 2)
+		m_Rcon->ExecuteQuery(customVar);
 }
 
 void RedisWriter::MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<String>& propertiesBlacklist,
@@ -564,8 +585,8 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 
 	m_Rcon->ExecuteQueries({
 								   {"HDEL",    m_PrefixConfigObject + typeName, objectKey},
-								   {"DEL",     m_PrefixStatusObject + typeName + ":" + objectKey},
-								   {"PUBLISH", "icinga:config:delete",          typeName + ":" + objectKey}
+								   {"DEL",     m_PrefixStateObject + typeName + ":" + objectKey},
+								   {"PUBLISH", "icinga:config:delete", typeName + ":" + objectKey}
 						   });
 }
 
@@ -586,7 +607,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 	else
 		streamname = "icinga:state:stream:host";
 
-	Dictionary::Ptr objectAttrs = SerializeState(object);
+	Dictionary::Ptr objectAttrs = SerializeState(checkable);
 
 	std::vector<String> streamadd({"XADD", streamname, "*"});
 	ObjectLock olock(objectAttrs);
@@ -598,39 +619,28 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 	m_Rcon->ExecuteQuery(streamadd);
 }
 
-Dictionary::Ptr RedisWriter::SerializeState(const Object::Ptr& object)
+Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 {
 	Dictionary::Ptr attrs = new Dictionary();
-
-	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
-	if (!checkable)
-		return nullptr;
-
-	bool isHost;
 
 	Host::Ptr host;
 	Service::Ptr service;
 
 	tie(host, service) = GetHostService(checkable);
 
-	if (service)
-		isHost = false;
-	else
-		isHost = true;
-
 	attrs->Set("id", GetObjectIdentifier(checkable));;
 	attrs->Set("env_id", CalculateCheckSumString(GetEnvironment()));
 	attrs->Set("state_type", checkable->GetStateType());
 
-	if (isHost)
-		attrs->Set("state", host->GetState());
-	else
+	if (service)
 		attrs->Set("state", service->GetState());
-
-	if (isHost)
-		attrs->Set("last_hard_state", host->GetLastHardState());
 	else
+		attrs->Set("state", host->GetState());
+
+	if (service)
 		attrs->Set("last_hard_state", service->GetLastHardState());
+	else
+		attrs->Set("last_hard_state", host->GetLastHardState());
 
 	attrs->Set("check_attempt", checkable->GetCheckAttempt());
 
@@ -655,11 +665,12 @@ Dictionary::Ptr RedisWriter::SerializeState(const Object::Ptr& object)
 	attrs->Set("is_problem", isProblem);
 
 	bool isHandledNoDependency = isProblem && checkable->IsInDowntime() && checkable->IsAcknowledged();
-	if (isHost)
-		attrs->Set("is_handled", isHandledNoDependency);
-	else
+	if (service)
 		attrs->Set("is_handled", isHandledNoDependency && !checkable->IsStateOK(service->GetHost()->GetStateRaw()));
+	else
+		attrs->Set("is_handled", isHandledNoDependency);
 
+	attrs->Set("is_reachable", checkable->IsReachable());
 	attrs->Set("is_flapping", checkable->IsFlapping());
 
 	attrs->Set("is_acknowledged", checkable->IsAcknowledged());
