@@ -52,7 +52,7 @@ INITIALIZE_ONCE(&RedisWriter::ConfigStaticInitialize);
 void RedisWriter::ConfigStaticInitialize()
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
-	ConfigObject::OnStateChanged.connect(std::bind(&RedisWriter::StateChangedHandler, _1));
+	Checkable::OnStateChange.connect(std::bind(&RedisWriter::StateChangeHandler, _1));
 
 	/* triggered on create, update and delete objects */
 	ConfigObject::OnActiveChanged.connect(std::bind(&RedisWriter::VersionChangedHandler, _1));
@@ -735,7 +735,7 @@ RedisWriter::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
 	//m_Rcon->ExecuteQuery({"HSET", keyPrefix + typeName, GetObjectIdentifier(object), JsonEncode(attrs)});
 }
 
-void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
+void RedisWriter::StateChangeHandler(const ConfigObject::Ptr &object)
 {
 	Type::Ptr type = object->GetReflectionType();
 

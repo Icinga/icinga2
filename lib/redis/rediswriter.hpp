@@ -97,7 +97,7 @@ private:
 	static void MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<String>& propertiesBlacklist, Dictionary::Ptr& checkSums);
 
 
-	static void StateChangedHandler(const ConfigObject::Ptr& object);
+	static void StateChangeHandler(const ConfigObject::Ptr &object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 
 	void AssertOnWorkQueue();
