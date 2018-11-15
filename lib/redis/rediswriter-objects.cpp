@@ -700,7 +700,7 @@ void RedisWriter::VersionChangedHandler(const ConfigObject::Ptr& object)
 	if (object->IsActive()) {
 		// Create or update the object config
 		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-//			rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigUpdate, rw, object, true));
+			rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigUpdate, rw, object, true));
 		}
 	} else if (!object->IsActive() &&
 			   object->GetExtension("ConfigObjectDeleted")) { // same as in apilistener-configsync.cpp
