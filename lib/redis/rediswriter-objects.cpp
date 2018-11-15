@@ -588,6 +588,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 	Dictionary::Ptr objectAttrs = SerializeState(object);
 
 	std::vector<String> streamadd({"XADD", streamname, "*"});
+	ObjectLock olock(objectAttrs);
 	for (const Dictionary::Pair& kv : objectAttrs) {
 		streamadd.emplace_back(kv.first);
 		streamadd.emplace_back(kv.second);
@@ -640,10 +641,12 @@ Dictionary::Ptr RedisWriter::SerializeState(const Object::Ptr& object)
 	// TODO: Is it possible there is no last checkresult?
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
-	attrs->Set("output", JsonEncode(cr->GetOutput()));
-	//attrs->Set("long_output", ) TODO
-	attrs->Set("performance_data", JsonEncode(cr->GetOutput()));
-	attrs->Set("command", JsonEncode(cr->GetCommand()));
+	if (cr) {
+		attrs->Set("output", JsonEncode(cr->GetOutput()));
+		//attrs->Set("long_output", ) TODO
+		attrs->Set("performance_data", JsonEncode(cr->GetOutput()));
+		attrs->Set("command", JsonEncode(cr->GetCommand()));
+	}
 	//attrs->Set("is_problem", !checkable->IsReachable() && !checkable->IsAcknowledged()); TODO
 	//attrs->Set("is_handled"); TODO
 	attrs->Set("is_flapping", checkable->IsFlapping());
