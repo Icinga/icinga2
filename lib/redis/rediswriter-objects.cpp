@@ -646,6 +646,7 @@ Dictionary::Ptr RedisWriter::SerializeState(const Object::Ptr& object)
 		//attrs->Set("long_output", ) TODO
 		attrs->Set("performance_data", JsonEncode(cr->GetOutput()));
 		attrs->Set("command", JsonEncode(cr->GetCommand()));
+		attrs->Set("execution_time", cr->CalculateExecutionTime());
 	}
 	//attrs->Set("is_problem", !checkable->IsReachable() && !checkable->IsAcknowledged()); TODO
 	//attrs->Set("is_handled"); TODO
@@ -672,7 +673,6 @@ Dictionary::Ptr RedisWriter::SerializeState(const Object::Ptr& object)
 		attrs->Set("downtime_id", checkable->GetDowntimes()); TODO
 	*/
 
-	attrs->Set("execution_time", cr->CalculateExecutionTime());
 	//attrs->Set("latency", TODO: What);
 
 	if (checkable->GetCheckTimeout())
