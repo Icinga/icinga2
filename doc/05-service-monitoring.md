@@ -226,7 +226,7 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 * [ftp](10-icinga-template-library.md#plugin-check-command-ftp)
 * [webinject](10-icinga-template-library.md#plugin-contrib-command-webinject)
 * [squid](10-icinga-template-library.md#plugin-contrib-command-squid)
-* [apache_status](10-icinga-template-library.md#plugin-contrib-command-apache_status)
+* [apache-status](10-icinga-template-library.md#plugin-contrib-command-apache-status)
 * [nginx_status](10-icinga-template-library.md#plugin-contrib-command-nginx_status)
 * [kdc](10-icinga-template-library.md#plugin-contrib-command-kdc)
 * [rbl](10-icinga-template-library.md#plugin-contrib-command-rbl)

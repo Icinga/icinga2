@@ -1667,8 +1667,8 @@ Thresholds will always be "1".
 
 > **Note**
 >
-> If they are enabled, performance data will be shown in the web interface.  
-> If run without the optional parameters, the plugin will output critical if any important updates are available.  
+> If they are enabled, performance data will be shown in the web interface.
+> If run without the optional parameters, the plugin will output critical if any important updates are available.
 
 
 ### uptime-windows <a id="windows-plugins-uptime-windows"></a>
@@ -5138,7 +5138,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 This category includes all plugins for web-based checks.
 
-#### apache_status <a id="plugin-contrib-command-apache_status"></a>
+#### apache-status <a id="plugin-contrib-command-apache-status"></a>
 
 The [check_apache_status.pl](https://github.com/lbetz/check_apache_status) plugin
 uses the [/server-status](https://httpd.apache.org/docs/current/mod/mod_status.html)
