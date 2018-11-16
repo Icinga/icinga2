@@ -153,6 +153,9 @@ static ConfigObject::Ptr GetObjectByName(const String& name)
 // Used to update a single object, used for runtime updates
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate)
 {
+	if (!m_Rcon->IsConnected())
+		return;
+
 	String typeName = GetLowerCaseTypeNameDB(object);
 
 	auto attributes = std::vector<String>({"HMSET", m_PrefixConfigObject + typeName});
