@@ -1041,6 +1041,9 @@ void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
 			need_log = true;
 	}
 
+	if (!RelayMessageOne(target_zone, origin, message, master))
+		need_log = true;
+
 	if (log && need_log)
 		PersistMessage(message, secobj);
 }
