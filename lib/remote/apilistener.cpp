@@ -988,7 +988,7 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 		}
 
 		/* only relay message to the master if we're not currently the master */
-		if (currentMaster != myEndpoint && currentMaster != endpoint) {
+		if (currentMaster == myEndpoint && currentMaster == endpoint) {
 			skippedEndpoints.push_back(endpoint);
 			continue;
 		}
