@@ -36,6 +36,7 @@
 #include <ios>
 #include <fstream>
 #include <iostream>
+#include <stdlib.h>
 #include <future>
 
 #ifdef __FreeBSD__
@@ -1936,16 +1937,18 @@ String Utility::GetIcingaDataPath()
 
 #endif /* _WIN32 */
 
+/**
+ * Retrieve the environment variable value by given key.
+ *
+ * @param env Environment variable name.
+ */
+
 String Utility::GetFromEnvironment(const String& env)
 {
-#ifndef _WIN32
 	const char *envValue = getenv(env.CStr());
+
 	if (envValue == NULL)
 		return String();
 	else
 		return String(envValue);
-#else /* _WIN32 */
-	// While getenv exists on Windows, we don't set them. Therefore there is no reason to read them.
-	return String();
-#endif /* _WIN32 */
 }

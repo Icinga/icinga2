@@ -491,8 +491,8 @@ String Application::GetExePath(const String& argv0)
 	}
 
 	if (!foundSlash) {
-		const char *pathEnv = getenv("PATH");
-		if (pathEnv) {
+		String pathEnv = Utility::GetFromEnvironment("PATH");
+		if (!pathEnv.IsEmpty()) {
 			std::vector<String> paths = String(pathEnv).Split(":");
 
 			bool foundPath = false;

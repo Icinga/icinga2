@@ -245,8 +245,8 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 			<< "Type $help to view available commands.\n";
 
 
-	const char *addrEnv = getenv("ICINGA2_API_URL");
-	if (addrEnv)
+	String addrEnv = Utility::GetFromEnvironment("ICINGA2_API_URL");
+	if (!addrEnv.IsEmpty())
 		addr = addrEnv;
 
 	if (vm.count("connect"))
@@ -290,12 +290,12 @@ int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& add
 	int next_line = 1;
 
 #ifdef HAVE_EDITLINE
-	char *homeEnv = getenv("HOME");
+	String homeEnv = Utility::GetFromEnvironment("HOME");
 
 	String historyPath;
 	std::fstream historyfp;
 
-	if (homeEnv) {
+	if (!homeEnv.IsEmpty()) {
 		historyPath = String(homeEnv) + "/.icinga2_history";
 
 		historyfp.open(historyPath.CStr(), std::fstream::in);
@@ -321,12 +321,12 @@ int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& add
 			return EXIT_FAILURE;
 		}
 
-		const char *usernameEnv = getenv("ICINGA2_API_USERNAME");
-		const char *passwordEnv = getenv("ICINGA2_API_PASSWORD");
+		String usernameEnv = Utility::GetFromEnvironment("ICINGA2_API_USERNAME");
+		String passwordEnv = Utility::GetFromEnvironment("ICINGA2_API_PASSWORD");
 
-		if (usernameEnv)
+		if (!usernameEnv.IsEmpty())
 			url->SetUsername(usernameEnv);
-		if (passwordEnv)
+		if (!passwordEnv.IsEmpty())
 			url->SetPassword(passwordEnv);
 
 		if (url->GetPort().IsEmpty())

@@ -425,6 +425,22 @@ Example:
     	warn = null
     }
 
+### getenv <a id="global-functions-getenv"></a>
+
+Signature:
+
+    function getenv(key)
+
+Returns the value from the specified environment variable key.
+
+Example:
+
+    $ MY_ENV_VAR=icinga2 icinga2 console
+    Icinga 2 (version: v2.11.0)
+    Type $help to view available commands.
+    <1> => getenv("MY_ENV_VAR")
+    "icinga2"
+
 ### dirname <a id="global-functions-dirname"></a>
 
 Signature:

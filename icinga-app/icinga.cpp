@@ -925,7 +925,8 @@ static VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 int main(int argc, char **argv)
 {
 #ifndef _WIN32
-	if (!getenv("ICINGA2_KEEP_FDS")) {
+	String keepFDs = Utility::GetFromEnvironment("ICINGA2_KEEP_FDS");
+	if (keepFDs.IsEmpty()) {
 		rlimit rl;
 		if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
 			rlim_t maxfds = rl.rlim_max;

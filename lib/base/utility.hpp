@@ -69,6 +69,8 @@ public:
 	static String DirName(const String& path);
 	static String BaseName(const String& path);
 
+	static String GetEnv(const String& key);
+
 	static void NullDeleter(void *);
 
 	static double GetTime();

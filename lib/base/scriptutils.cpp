@@ -61,6 +61,7 @@ REGISTER_SAFE_FUNCTION(System, bool, &ScriptUtils::CastBool, "value");
 REGISTER_SAFE_FUNCTION(System, get_time, &Utility::GetTime, "");
 REGISTER_SAFE_FUNCTION(System, basename, &Utility::BaseName, "path");
 REGISTER_SAFE_FUNCTION(System, dirname, &Utility::DirName, "path");
+REGISTER_SAFE_FUNCTION(System, getenv, &ScriptUtils::GetEnv, "value");
 REGISTER_SAFE_FUNCTION(System, msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim, "component");
 REGISTER_SAFE_FUNCTION(System, track_parents, &ScriptUtils::TrackParents, "child");
 REGISTER_SAFE_FUNCTION(System, escape_shell_cmd, &Utility::EscapeShellCmd, "cmd");
@@ -529,4 +530,9 @@ Value ScriptUtils::GlobRecursive(const std::vector<Value>& args)
 	Utility::GlobRecursive(path, pattern, std::bind(&GlobCallbackHelper, std::ref(paths), _1), type);
 
 	return Array::FromVector(paths);
+}
+
+String ScriptUtils::GetEnv(const String& key)
+{
+	return Utility::GetFromEnvironment(key);
 }
