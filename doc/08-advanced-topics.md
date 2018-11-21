@@ -521,7 +521,7 @@ Database	| MySQL				| [mysql_health](10-icinga-template-library.md#plugin-contri
 Database	| PostgreSQL			| [postgres](10-icinga-template-library.md#plugin-contrib-command-postgres)
 Database	| Housekeeping			| Check the database size and growth and analyse metrics to examine trends.
 Database	| DB IDO			| [ido](10-icinga-template-library.md#itl-icinga-ido) (more below)
-Webserver	| Apache2, Nginx, etc.		| [http](10-icinga-template-library.md#plugin-check-command-http), [apache_status](10-icinga-template-library.md#plugin-contrib-command-apache_status), [nginx_status](10-icinga-template-library.md#plugin-contrib-command-nginx_status)
+Webserver	| Apache2, Nginx, etc.		| [http](10-icinga-template-library.md#plugin-check-command-http), [apache-status](10-icinga-template-library.md#plugin-contrib-command-apache-status), [nginx_status](10-icinga-template-library.md#plugin-contrib-command-nginx_status)
 Webserver	| Certificates			| [http](10-icinga-template-library.md#plugin-check-command-http)
 Webserver	| Authorization			| [http](10-icinga-template-library.md#plugin-check-command-http)
 Notifications	| Mail (queue)			| [smtp](10-icinga-template-library.md#plugin-check-command-smtp), [mailq](10-icinga-template-library.md#plugin-check-command-mailq)
