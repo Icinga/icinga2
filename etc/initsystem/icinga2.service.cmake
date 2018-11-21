@@ -12,6 +12,7 @@ ExecStart=@CMAKE_INSTALL_FULL_SBINDIR@/icinga2 daemon --close-stdio -e ${ICINGA2
 PIDFile=@ICINGA2_INITRUNDIR@/icinga2.pid
 ExecReload=@CMAKE_INSTALL_PREFIX@/lib/icinga2/safe-reload @ICINGA2_SYSCONFIGFILE@
 TimeoutStartSec=30m
+Restart=on-failure
 
 # Systemd >228 enforces a lower process number for services.
 # Depending on the distribution and Systemd version, this must
