@@ -87,6 +87,30 @@ status_update_time
 
 A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](24-appendix.md#schema-db-ido).
 
+### DB IDO Cleanup <a id="db-ido-cleanup"></a>
+
+Objects get deactivated when they are deleted from the configuration.
+This is visible with the `is_active` column in the `icinga_objects` table.
+Therefore all queries need to join this table and add `WHERE is_active=1` as
+condition. Deleted objects preserve their history table entries for later SLA
+reporting.
+
+Historical data isn't purged by default. You can enable the least
+kept data age inside the `cleanup` configuration attribute for the
+IDO features [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection)
+and [IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection).
+
+Example if you prefer to keep notification history for 30 days:
+
+```
+  cleanup = {
+     notifications_age = 30d
+     contactnotifications_age = 30d
+  }
+```
+
+The historical tables are populated depending on the data `categories` specified.
+Some tables are empty by default.
 
 ### DB IDO Tuning <a id="db-ido-tuning"></a>
 
