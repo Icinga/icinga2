@@ -111,7 +111,7 @@ void RedisWriter::TryToReconnect()
 	else
 		m_Rcon->Start();
 
-	if (!m_Rcon->IsConnected())
+	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
 	UpdateSubscriptions();
@@ -145,7 +145,7 @@ void RedisWriter::UpdateSubscriptions()
 	 * But since we expect and answer here and break Icinga in case of receiving no answer/an unexpected one we opt for
 	 * better safe than sorry here. Future implementation needs to include an improved error handling and answer verification.
 	 */
-	if (!m_Rcon->IsConnected())
+	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
 	long long cursor = 0;
@@ -220,7 +220,7 @@ void RedisWriter::PublishStats()
 {
 	AssertOnWorkQueue();
 
-	if (!m_Rcon->IsConnected())
+	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
 	Dictionary::Ptr status = GetStats();
@@ -303,7 +303,7 @@ void RedisWriter::SendEvent(const Dictionary::Ptr& event)
 {
 	AssertOnWorkQueue();
 
-	if (!m_Rcon->IsConnected())
+	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
 	String type = event->Get("type");

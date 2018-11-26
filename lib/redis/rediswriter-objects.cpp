@@ -153,7 +153,7 @@ static ConfigObject::Ptr GetObjectByName(const String& name)
 // Used to update a single object, used for runtime updates
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate)
 {
-	if (!m_Rcon->IsConnected())
+	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
 	String typeName = GetLowerCaseTypeNameDB(object);
