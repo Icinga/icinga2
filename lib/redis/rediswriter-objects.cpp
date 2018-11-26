@@ -685,7 +685,9 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 				}
 			}
 		}
-		attrs->Set("acknowledgement_comment_id", GetObjectIdentifier(AckComment));
+		if (AckComment != nullptr) {
+			attrs->Set("acknowledgement_comment_id", GetObjectIdentifier(AckComment));
+		}
 	}
 
 	attrs->Set("in_downtime", checkable->IsInDowntime());

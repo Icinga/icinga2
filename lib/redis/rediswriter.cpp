@@ -338,6 +338,7 @@ void RedisWriter::SendEvent(const Dictionary::Ptr& event)
 					if (c->GetEntryTime() > entry) {
 						entry = c->GetEntryTime();
 						AckComment = c;
+						StateChangeHandler(checkable);
 					}
 				}
 			}
