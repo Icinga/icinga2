@@ -663,13 +663,7 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 
 	bool isProblem = !checkable->IsStateOK(checkable->GetStateRaw());
 	attrs->Set("is_problem", isProblem);
-
-	bool isHandledNoDependency = isProblem && checkable->IsInDowntime() && checkable->IsAcknowledged();
-	if (service)
-		attrs->Set("is_handled", isHandledNoDependency && !checkable->IsStateOK(service->GetHost()->GetStateRaw()));
-	else
-		attrs->Set("is_handled", isHandledNoDependency);
-
+	attrs->Set("is_handled", isProblem && (checkable->IsInDowntime() || checkable->IsAcknowledged()));
 	attrs->Set("is_reachable", checkable->IsReachable());
 	attrs->Set("is_flapping", checkable->IsFlapping());
 
