@@ -3106,6 +3106,22 @@ ceph_client_key  | **Optional.** Ceph client keyring file.
 ceph_whitelist   | **Optional.** Whitelist regexp for ceph health warnings.
 ceph_details     | **Optional.** Run 'ceph health detail'.
 
+#### btrfs <a id="plugins-contrib-command-btrfs"></a>
+
+The [btrfs plugin](https://github.com/knorrie/python-btrfs/)
+is used to check the btrfs storage health on the server.
+
+[monitoring-plugins-btrfs](https://packages.debian.org/monitoring-plugins-btrfs) provide the necessary binary on debian/ubuntu.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name             | Description
+-----------------|---------------------------------------------------------
+btrfs_awg        | **Optional.** Exit with WARNING status if less than the specified amount of disk space (in GiB) is unallocated
+btrfs_acg        | **Optional.** Exit with CRITICAL status if less than the specified amount of disk space (in GiB) is unallocated
+btrfs_awp        | **Optional.** Exit with WARNING status if more than the specified percent of disk space is allocated
+btrfs_acp        | **Optional.** Exit with CRITICAL status if more than the specified percent of disk space is allocated
+btrfs_mountpoint | **Required.** Path to the BTRFS mountpoint
 
 ### Virtualization <a id="plugin-contrib-virtualization"></a>
 
