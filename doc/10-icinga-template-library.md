@@ -5359,3 +5359,14 @@ varnish_name            | **Optional.** Specify the Varnish instance name
 varnish_param           | **Optional.** Specify the parameter to check (see below). The default is 'ratio'.
 varnish_critical        | **Optional.** Set critical threshold: [@][lo:]hi
 varnish_warning         | **Optional.** Set warning threshold: [@][lo:]hi
+
+For *varnish_param*, all items reported by varnishstat(1) are available - use the
+identifier listed in the left column by `varnishstat -l`.  In
+addition, the following parameters are available:
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+uptime                  | How long the cache has been running (in seconds)
+ratio                   | The cache hit ratio expressed as a percentage of hits to hits + misses.  Default thresholds are 95 and 90.
+usage                   | Cache file usage as a percentage of the total cache space.
+
