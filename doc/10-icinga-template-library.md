@@ -5344,3 +5344,18 @@ webinject_no_output     | **Optional.** Suppresses all output to STDOUT except t
 webinject_timeout       | **Optional.** The value [given in seconds] will be compared to the global time elapsed to run all the tests. If the tests have all been successful, but have taken more time than the 'globaltimeout' value, a warning message is sent back to Icinga.
 webinject_report_type   | **Optional.** This setting is used to enable output formatting that is compatible for use with specific external programs. The available values you can set this to are: nagios, mrtg, external and standard.
 webinject_testcase_file | **Optional.** When you launch WebInject in console mode, you can optionally supply an argument for a testcase file to run. It will look for this file in the directory that webinject.pl resides in. If no filename is passed from the command line, it will look in config.xml for testcasefile declarations. If no files are specified, it will look for a default file named 'testcases.xml' in the current [webinject] directory. If none of these are found, the engine will stop and give you an error.
+
+#### varnish <a id="plugin-contrib-command-varnish"></a>
+
+The [check_varnish](https://github.com/varnish/varnish-nagios) plugin,
+also available in the [monitoring-plugins-contrib](https://packages.debian.org/sid/nagios-plugins-contrib) on debian,
+uses the `varnishstat` binary to monitor [varnish](https://varnish-cache.org/).
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+varnish_name            | **Optional.** Specify the Varnish instance name
+varnish_param           | **Optional.** Specify the parameter to check (see below). The default is 'ratio'.
+varnish_critical        | **Optional.** Set critical threshold: [@][lo:]hi
+varnish_warning         | **Optional.** Set warning threshold: [@][lo:]hi
