@@ -56,7 +56,6 @@ public:
 	bool IsInEffect() const;
 	bool IsTriggered() const;
 	bool IsExpired() const;
-	bool HasValidConfigOwner() const;
 
 	static void StaticInitialize();
 
