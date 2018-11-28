@@ -3111,6 +3111,18 @@ ceph_details     | **Optional.** Run 'ceph health detail'.
 The [btrfs plugin](https://github.com/knorrie/python-btrfs/)
 is used to check the btrfs storage health on the server.
 
+The plugin requires `sudo` permissions.
+You can add a sudoers file to allow your monitoring user to use the plugin, i.e. edit /etc/sudoers.d/nagios and add:
+```
+nagios ALL=(root) NOPASSWD:/usr/lib/nagios/plugins/check_btrfs
+```
+
+and set the correct permissions:
+```bash
+chown -c root: /etc/sudoers.d/nagios
+chmod -c 0440 /etc/sudoers.d/nagios
+```
+
 [monitoring-plugins-btrfs](https://packages.debian.org/monitoring-plugins-btrfs) provide the necessary binary on debian/ubuntu.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
