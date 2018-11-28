@@ -208,185 +208,39 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 		m_Rcon->ExecuteQuery(customVar);
 }
 
-void RedisWriter::MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<String>& propertiesBlacklist,
-									Dictionary::Ptr& checkSums)
+// Takes object and collects IcingaDB relevant attributes and computes checksums
+void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checksums)
 {
+	checksums->Set("name_checksum", CalculateCheckSumString(object->GetName()));
+	checksums->Set("environment_id", CalculateCheckSumString(GetEnvironment()));
+	attributes->Set("name", object->GetName());
+
+	Zone::Ptr ObjectsZone = static_pointer_cast<Zone>(object->GetZone());
+	if (ObjectsZone) {
+		checksums->Set("zone_id", GetObjectIdentifier(ObjectsZone));
+		attributes->Set("zone", ObjectsZone->GetName());
+	}
+
 	Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
 	if (endpoint) {
-		auto endpointZone(endpoint->GetZone());
-
-		if (endpointZone) {
-			checkSums->Set("zone_checksum", GetObjectIdentifier(endpointZone));
-		}
-
-		return;
-	} else {
-		/* 'zone' is available for all config objects, therefore calculate the checksum. */
-		auto zone(static_pointer_cast<Zone>(object->GetZone()));
-
-		if (zone)
-			checkSums->Set("zone_checksum", GetObjectIdentifier(zone));
-	}
-
-	User::Ptr user = dynamic_pointer_cast<User>(object);
-	if (user) {
-		propertiesBlacklist.emplace("groups");
-
-		Array::Ptr groups;
-		ConfigObject::Ptr (*getGroup)(const String& name);
-
-		groups = user->GetGroups();
-		getGroup = &::GetObjectByName<UserGroup>;
-
-		checkSums->Set("groups_checksum", CalculateCheckSumArray(groups));
-
-		Array::Ptr groupChecksums = new Array();
-
-		ObjectLock groupsLock(groups);
-		ObjectLock groupChecksumsLock(groupChecksums);
-
-		for (auto group : groups) {
-			groupChecksums->Add(GetObjectIdentifier((*getGroup)(group.Get<String>())));
-		}
-
-		checkSums->Set("group_checksums", groupChecksums);
-
-		auto period(user->GetPeriod());
-
-		if (period)
-			checkSums->Set("period_checksum", GetObjectIdentifier(period));
-
-		return;
-	}
-
-	Notification::Ptr notification = dynamic_pointer_cast<Notification>(object);
-	if (notification) {
-		Host::Ptr host;
-		Service::Ptr service;
-		auto users(notification->GetUsers());
-		Array::Ptr userChecksums = new Array();
-		Array::Ptr userNames = new Array();
-		auto usergroups(notification->GetUserGroups());
-		Array::Ptr usergroupChecksums = new Array();
-		Array::Ptr usergroupNames = new Array();
-
-		tie(host, service) = GetHostService(notification->GetCheckable());
-
-		checkSums->Set("host_checksum", GetObjectIdentifier(host));
-		checkSums->Set("command_checksum", GetObjectIdentifier(notification->GetCommand()));
-
-		if (service)
-			checkSums->Set("service_checksum", GetObjectIdentifier(service));
-
-		propertiesBlacklist.emplace("users");
-
-		userChecksums->Reserve(users.size());
-		userNames->Reserve(users.size());
-
-		for (auto& user : users) {
-			userChecksums->Add(GetObjectIdentifier(user));
-			userNames->Add(user->GetName());
-		}
-
-		checkSums->Set("user_checksums", userChecksums);
-		checkSums->Set("users_checksum", CalculateCheckSumArray(userNames));
-
-		propertiesBlacklist.emplace("user_groups");
-
-		usergroupChecksums->Reserve(usergroups.size());
-		usergroupNames->Reserve(usergroups.size());
-
-		for (auto& usergroup : usergroups) {
-			usergroupChecksums->Add(GetObjectIdentifier(usergroup));
-			usergroupNames->Add(usergroup->GetName());
-		}
-
-		checkSums->Set("usergroup_checksums", usergroupChecksums);
-		checkSums->Set("usergroups_checksum", CalculateCheckSumArray(usergroupNames));
-		return;
-	}
-
-	/* Calculate checkable checksums. */
-	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
-	if (checkable) {
-		/* groups_checksum, group_checksums */
-		propertiesBlacklist.emplace("groups");
-
-		Host::Ptr host;
-		Service::Ptr service;
-
-		tie(host, service) = GetHostService(checkable);
-
-		Array::Ptr groups;
-		ConfigObject::Ptr (*getGroup)(const String& name);
-
-		if (service) {
-			groups = service->GetGroups();
-			getGroup = &::GetObjectByName<ServiceGroup>;
-
-			/* Calculate the host_checksum */
-			checkSums->Set("host_checksum", GetObjectIdentifier(host));
-		} else {
-			groups = host->GetGroups();
-			getGroup = &::GetObjectByName<HostGroup>;
-		}
-
-		checkSums->Set("groups_checksum", CalculateCheckSumArray(groups));
-
-		Array::Ptr groupChecksums = new Array();
-
-		ObjectLock groupsLock(groups);
-		ObjectLock groupChecksumsLock(groupChecksums);
-
-		for (auto group : groups) {
-			groupChecksums->Add(GetObjectIdentifier((*getGroup)(group.Get<String>())));
-		}
-
-		checkSums->Set("group_checksums", groupChecksums);
-
-		/* command_endpoint_checksum / node_checksum */
-		Endpoint::Ptr commandEndpoint = checkable->GetCommandEndpoint();
-
-		if (commandEndpoint)
-			checkSums->Set("command_endpoint_checksum", GetObjectIdentifier(commandEndpoint));
-
-		/* *_command_checksum */
-		checkSums->Set("checkcommand_checksum", GetObjectIdentifier(checkable->GetCheckCommand()));
-
-		EventCommand::Ptr eventCommand = checkable->GetEventCommand();
-
-		if (eventCommand)
-			checkSums->Set("eventcommand_checksum", GetObjectIdentifier(eventCommand));
-
-		/* *_url_checksum, icon_image_checksum */
-		String actionUrl = checkable->GetActionUrl();
-		String notesUrl = checkable->GetNotesUrl();
-		String iconImage = checkable->GetIconImage();
-
-		if (!actionUrl.IsEmpty())
-			checkSums->Set("action_url_checksum", CalculateCheckSumString(actionUrl));
-		if (!notesUrl.IsEmpty())
-			checkSums->Set("notes_url_checksum", CalculateCheckSumString(notesUrl));
-		if (!iconImage.IsEmpty())
-			checkSums->Set("icon_image_checksum", CalculateCheckSumString(iconImage));
+		checksums->Set("properties_checksum", HashValue(attributes));
 
 		return;
 	}
 
 	Zone::Ptr zone = dynamic_pointer_cast<Zone>(object);
 	if (zone) {
-		propertiesBlacklist.emplace("endpoints");
+		attributes->Set("is_global", zone->GetGlobal());
 
-		auto endpointObjects = zone->GetEndpoints();
+		checksums->Set("properties_checksum", HashValue(attributes));
+
 		Array::Ptr endpoints = new Array();
-		endpoints->Resize(endpointObjects.size());
+		endpoints->Resize(zone->GetEndpoints().size());
 
 		Array::SizeType i = 0;
-		for (auto& endpointObject : endpointObjects) {
+		for (auto& endpointObject : zone->GetEndpoints()) {
 			endpoints->Set(i++, endpointObject->GetName());
 		}
-
-		checkSums->Set("endpoints_checksum", CalculateCheckSumArray(endpoints));
 
 		Array::Ptr parents(new Array);
 
@@ -394,63 +248,156 @@ void RedisWriter::MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<St
 			parents->Add(GetObjectIdentifier(parent));
 		}
 
-		checkSums->Set("all_parents_checksums", parents);
-		checkSums->Set("all_parents_checksum", HashValue(zone->GetAllParents()));
+		checksums->Set("parent_ids", parents);
+		checksums->Set("parents_checksum", HashValue(zone->GetAllParents()));
+
 		return;
 	}
 
-	/* zone_checksum for endpoints already is calculated above. */
+	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
+	if (checkable) {
+		attributes->Set("checkcommand", checkable->GetCheckCommand()->GetName());
+		attributes->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
+		attributes->Set("check_timeout", checkable->GetCheckTimeout());
+		attributes->Set("check_interval", checkable->GetCheckInterval());
+		attributes->Set("check_retry_interval", checkable->GetRetryInterval());
+		attributes->Set("active_checks_enabled", checkable->GetEnableActiveChecks());
+		attributes->Set("passive_checks_enabled", checkable->GetEnablePassiveChecks());
+		attributes->Set("event_handler_enabled", checkable->GetEnableEventHandler());
+		attributes->Set("notifications_enabled", checkable->GetEnableNotifications());
+		attributes->Set("flapping_enabled", checkable->GetEnableFlapping());
+		attributes->Set("flapping_threshold_low", checkable->GetFlappingThresholdLow());
+		attributes->Set("flapping_threshold_high", checkable->GetFlappingThresholdHigh());
+		attributes->Set("perfdata_enabled", checkable->GetEnablePerfdata());
+		attributes->Set("is_volatile", checkable->GetVolatile());
+		attributes->Set("notes", checkable->GetNotes());
+		attributes->Set("icon_image_alt", checkable->GetIconImageAlt());
 
-	Command::Ptr command = dynamic_pointer_cast<Command>(object);
-	if (command) {
-		Dictionary::Ptr arguments = command->GetArguments();
-		Dictionary::Ptr argumentChecksums = new Dictionary;
+		checksums->Set("checkcommand_id", GetObjectIdentifier(checkable->GetCheckCommand()));
 
-		if (arguments) {
-			ObjectLock argumentsLock(arguments);
-
-			for (auto& kv : arguments) {
-				argumentChecksums->Set(kv.first, HashValue(kv.second));
-			}
+		Endpoint::Ptr commandEndpoint = checkable->GetCommandEndpoint();
+		if (commandEndpoint) {
+			checksums->Set("command_endpoint_id", GetObjectIdentifier(commandEndpoint));
+			attributes->Set("command_endpoint", commandEndpoint->GetName());
 		}
 
-		checkSums->Set("arguments_checksum", HashValue(arguments));
-		checkSums->Set("argument_checksums", argumentChecksums);
-		propertiesBlacklist.emplace("arguments");
-
-		Dictionary::Ptr envvars = command->GetEnv();
-		Dictionary::Ptr envvarChecksums = new Dictionary;
-
-		if (envvars) {
-			ObjectLock argumentsLock(envvars);
-
-			for (auto& kv : envvars) {
-				envvarChecksums->Set(kv.first, HashValue(kv.second));
-			}
+		TimePeriod::Ptr timePeriod = checkable->GetCheckPeriod();
+		if (timePeriod) {
+			checksums->Set("check_period_id", GetObjectIdentifier(timePeriod));
+			attributes->Set("check_period", timePeriod->GetName());
 		}
 
-		checkSums->Set("envvars_checksum", HashValue(envvars));
-		checkSums->Set("envvar_checksums", envvarChecksums);
-		propertiesBlacklist.emplace("env");
+		EventCommand::Ptr eventCommand = checkable->GetEventCommand();
+		if (eventCommand) {
+			checksums->Set("eventcommand_id", GetObjectIdentifier(eventCommand));
+			attributes->Set("eventcommand", eventCommand->GetName());
+		}
+
+		String actionUrl = checkable->GetActionUrl();
+		String notesUrl = checkable->GetNotesUrl();
+		String iconImage = checkable->GetIconImage();
+		if (!actionUrl.IsEmpty())
+			checksums->Set("action_url_id", CalculateCheckSumArray(new Array({GetEnvironment(), actionUrl})));
+		if (!notesUrl.IsEmpty())
+			checksums->Set("notes_url_id", CalculateCheckSumArray(new Array({GetEnvironment(), notesUrl})));
+		if (!iconImage.IsEmpty())
+			checksums->Set("icon_image_id", CalculateCheckSumArray(new Array({GetEnvironment(), iconImage})));
+
+
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(checkable);
+
+		Array::Ptr groups;
+		ConfigObject::Ptr (*getGroup)(const String& name);
+
+		if (service) {
+			checksums->Set("host_id", GetObjectIdentifier(service->GetHost()));
+			attributes->Set("display_name", service->GetDisplayName());
+
+			groups = service->GetGroups();
+			getGroup = &::GetObjectByName<ServiceGroup>;
+		} else {
+			attributes->Set("display_name", host->GetDisplayName());
+			attributes->Set("address", host->GetAddress());
+			attributes->Set("address6", host->GetAddress6());
+
+			groups = host->GetGroups();
+			getGroup = &::GetObjectByName<HostGroup>;
+		}
+
+		checksums->Set("groups_checksum", CalculateCheckSumArray(groups));
+
+		Array::Ptr groupChecksums = new Array();
+
+		ObjectLock groupsLock(groups);
+		ObjectLock groupChecksumsLock(groupChecksums);
+
+		for (auto group : groups) {
+			groupChecksums->Add(GetObjectIdentifier((*getGroup)(group.Get<String>())));
+		}
+
+		checksums->Set("group_ids", groupChecksums);
+
+		checksums->Set("properties_checksum", HashValue(attributes));
+
+		return;
+	}
+
+	User::Ptr user = dynamic_pointer_cast<User>(object);
+	if (user) {
+		attributes->Set("display_name", user->GetDisplayName());
+		attributes->Set("email", user->GetEmail());
+		attributes->Set("pager", user->GetPager());
+		attributes->Set("notifications_enabled", user->GetEnableNotifications());
+		attributes->Set("states", user->GetStates());
+		attributes->Set("types", user->GetTypes());
+
+		Array::Ptr groups;
+		ConfigObject::Ptr (*getGroup)(const String& name);
+
+		groups = user->GetGroups();
+		getGroup = &::GetObjectByName<UserGroup>;
+
+		checksums->Set("groups_checksum", CalculateCheckSumArray(groups));
+
+		Array::Ptr groupChecksums = new Array();
+
+		ObjectLock groupsLock(groups);
+		ObjectLock groupChecksumsLock(groupChecksums);
+
+		for (auto group : groups) {
+			groupChecksums->Add(GetObjectIdentifier((*getGroup)(group.Get<String>())));
+		}
+
+		checksums->Set("group_ids", groupChecksums);
+
+		if (user->GetPeriod())
+			checksums->Set("period_id", GetObjectIdentifier(user->GetPeriod()));
+
+		checksums->Set("properties_checksum", HashValue(attributes));
 
 		return;
 	}
 
 	TimePeriod::Ptr timeperiod = dynamic_pointer_cast<TimePeriod>(object);
 	if (timeperiod) {
+		attributes->Set("display_name", timeperiod->GetDisplayName());
+		attributes->Set("prefer_includes", timeperiod->GetPreferIncludes());
+
+		checksums->Set("properties_checksum", HashValue(attributes));
 		Dictionary::Ptr ranges = timeperiod->GetRanges();
 
-		checkSums->Set("ranges_checksum", HashValue(ranges));
-		propertiesBlacklist.emplace("ranges");
+		attributes->Set("ranges", ranges);
+		checksums->Set("ranges_checksum", HashValue(ranges));
 
 		// Compute checksums for Includes (like groups)
 		Array::Ptr includes;
 		ConfigObject::Ptr (*getInclude)(const String& name);
-
 		includes = timeperiod->GetIncludes();
 		getInclude = &::GetObjectByName<TimePeriod>;
 
-		checkSums->Set("includes_checksum", CalculateCheckSumArray(includes));
+		checksums->Set("includes_checksum", CalculateCheckSumArray(includes));
 
 		Array::Ptr includeChecksums = new Array();
 
@@ -461,7 +408,7 @@ void RedisWriter::MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<St
 			includeChecksums->Add(GetObjectIdentifier((*getInclude)(include.Get<String>())));
 		}
 
-		checkSums->Set("include_checksums", includeChecksums);
+		checksums->Set("include_ids", includeChecksums);
 
 		// Compute checksums for Excludes (like groups)
 		Array::Ptr excludes;
@@ -470,7 +417,7 @@ void RedisWriter::MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<St
 		excludes = timeperiod->GetExcludes();
 		getExclude = &::GetObjectByName<TimePeriod>;
 
-		checkSums->Set("excludes_checksum", CalculateCheckSumArray(excludes));
+		checksums->Set("excludes_checksum", CalculateCheckSumArray(excludes));
 
 		Array::Ptr excludeChecksums = new Array();
 
@@ -481,44 +428,188 @@ void RedisWriter::MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<St
 			excludeChecksums->Add(GetObjectIdentifier((*getExclude)(exclude.Get<String>())));
 		}
 
-		checkSums->Set("exclude_checksums", excludeChecksums);
+		checksums->Set("exclude_ids", excludeChecksums);
+
+		return;
+	}
+
+	Notification::Ptr notification = dynamic_pointer_cast<Notification>(object);
+	if (notification) {
+		Host::Ptr host;
+		Service::Ptr service;
+		std::set<User::Ptr> users = notification->GetUsers();
+		Array::Ptr userChecksums = new Array();
+		Array::Ptr userNames = new Array();
+		auto usergroups(notification->GetUserGroups());
+		Array::Ptr usergroupChecksums = new Array();
+		Array::Ptr usergroupNames = new Array();
+
+		tie(host, service) = GetHostService(notification->GetCheckable());
+
+		checksums->Set("properties_checksum", HashValue(attributes));
+		checksums->Set("host_id", GetObjectIdentifier(host));
+		checksums->Set("command_id", GetObjectIdentifier(notification->GetCommand()));
+
+		TimePeriod::Ptr timeperiod = notification->GetPeriod();
+		if (timeperiod)
+			checksums->Set("period_id", GetObjectIdentifier(timeperiod));
+
+		if (service)
+			checksums->Set("service_id", GetObjectIdentifier(service));
+
+		userChecksums->Reserve(users.size());
+		userNames->Reserve(users.size());
+
+		for (auto& user : users) {
+			userChecksums->Add(GetObjectIdentifier(user));
+			userNames->Add(user->GetName());
+		}
+
+		checksums->Set("user_ids", userChecksums);
+		checksums->Set("users_checksum", CalculateCheckSumArray(userNames));
+
+		usergroupChecksums->Reserve(usergroups.size());
+		usergroupNames->Reserve(usergroups.size());
+
+		for (auto& usergroup : usergroups) {
+			usergroupChecksums->Add(GetObjectIdentifier(usergroup));
+			usergroupNames->Add(usergroup->GetName());
+		}
+
+		checksums->Set("usergroup_ids", usergroupChecksums);
+		checksums->Set("usergroups_checksum", CalculateCheckSumArray(usergroupNames));
+
+		if (notification->GetTimes()) {
+			attributes->Set("times_begin", notification->GetTimes()->Get("begin"));
+			attributes->Set("times_end",notification->GetTimes()->Get("end"));
+		}
 
 		return;
 	}
 
 	Comment::Ptr comment = dynamic_pointer_cast<Comment>(object);
 	if (comment) {
-		propertiesBlacklist.emplace("name");
-		propertiesBlacklist.emplace("host_name");
+		attributes->Set("author", comment->GetAuthor());
+		attributes->Set("text", comment->GetText());
+		attributes->Set("entry_type", comment->GetEntryType());
+		attributes->Set("is_persistent", comment->GetPersistent());
+		attributes->Set("expire_time", comment->GetExpireTime());
 
 		Host::Ptr host;
 		Service::Ptr service;
 		tie(host, service) = GetHostService(comment->GetCheckable());
 		if (service) {
-			propertiesBlacklist.emplace("service_name");
-			checkSums->Set("service_checksum", GetObjectIdentifier(service));
+			checksums->Set("service_id", GetObjectIdentifier(service));
 		} else
-			checkSums->Set("host_checksum", GetObjectIdentifier(host));
+			checksums->Set("host_id", GetObjectIdentifier(host));
+
+		checksums->Set("properties_checksum", HashValue(attributes));
 
 		return;
 	}
 
 	Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(object);
 	if (downtime) {
-		propertiesBlacklist.emplace("name");
-		propertiesBlacklist.emplace("host_name");
+		attributes->Set("author", downtime->GetAuthor());
+		attributes->Set("comment", downtime->GetComment());
+		attributes->Set("entry_time", downtime->GetEntryTime());
+		attributes->Set("scheduled_start_time", downtime->GetStartTime());
+		attributes->Set("scheduled_end_time", downtime->GetEndTime());
+		attributes->Set("duration", downtime->GetDuration());
+		attributes->Set("is_fixed", downtime->GetFixed());
+		attributes->Set("is_in_effect", downtime->IsInEffect());
+		if (downtime->IsInEffect())
+			attributes->Set("actual_start_time", downtime->GetTriggerTime());
+
 		Host::Ptr host;
 		Service::Ptr service;
 		tie(host, service) = GetHostService(downtime->GetCheckable());
 
 		if (service) {
-			propertiesBlacklist.emplace("service_name");
-			checkSums->Set("service_checksum", GetObjectIdentifier(service));
+			checksums->Set("service_id", GetObjectIdentifier(service));
 		} else
-			checkSums->Set("host_checksum", GetObjectIdentifier(host));
+			checksums->Set("host_id", GetObjectIdentifier(host));
+
+		checksums->Set("properties_checksum", HashValue(attributes));
+		return;
+	}
+
+	UserGroup::Ptr userGroup = dynamic_pointer_cast<UserGroup>(object);
+	if (userGroup) {
+		attributes->Set("display_name", userGroup->GetDisplayName());
+
+		checksums->Set("properties_checksum", HashValue(attributes));
 
 		return;
 	}
+
+	HostGroup::Ptr hostGroup = dynamic_pointer_cast<HostGroup>(object);
+	if (hostGroup) {
+		attributes->Set("display_name", hostGroup->GetDisplayName());
+
+		checksums->Set("properties_checksum", HashValue(attributes));
+
+		return;
+	}
+
+	ServiceGroup::Ptr serviceGroup = dynamic_pointer_cast<ServiceGroup>(object);
+	if (serviceGroup) {
+		attributes->Set("display_name", serviceGroup->GetDisplayName());
+
+		checksums->Set("properties_checksum", HashValue(attributes));
+
+		return;
+	}
+
+	Command::Ptr command = dynamic_pointer_cast<Command>(object);
+	if (command) {
+		if (dynamic_pointer_cast<CheckCommand>(object))
+			attributes->Set("type", "CheckCommand");
+		else if (dynamic_pointer_cast<EventCommand>(object))
+			attributes->Set("type", "EventCommand");
+		else
+			attributes->Set("type", "NotificationCommand");
+
+		attributes->Set("command", command->GetCommandLine());
+		attributes->Set("timeout", command->GetTimeout());
+
+		checksums->Set("properties_checksum", HashValue(attributes));
+
+		Dictionary::Ptr arguments = command->GetArguments();
+		Dictionary::Ptr argumentChecksums = new Dictionary;
+
+		if (arguments) {
+			ObjectLock argumentsLock(arguments);
+
+			for (auto& kv : arguments) {
+				argumentChecksums->Set(kv.first, HashValue(kv.second));
+			}
+
+			attributes->Set("arguments", arguments);
+		}
+
+		checksums->Set("arguments_checksum", HashValue(arguments));
+		checksums->Set("argument_ids", argumentChecksums);
+
+		Dictionary::Ptr envvars = command->GetEnv();
+		Dictionary::Ptr envvarChecksums = new Dictionary;
+
+		if (envvars) {
+			ObjectLock argumentsLock(envvars);
+
+			for (auto& kv : envvars) {
+				envvarChecksums->Set(kv.first, HashValue(kv.second));
+			}
+
+			attributes->Set("envvars", envvars);
+		}
+
+		checksums->Set("envvars_checksum", HashValue(envvars));
+		checksums->Set("envvar_ids", envvarChecksums);
+
+		return;
+	}
+
 }
 
 /* Creates a config update with computed checksums etc.
@@ -539,28 +630,20 @@ RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String ty
 	if (m_Rcon == nullptr)
 		return;
 
+	Dictionary::Ptr attr = new Dictionary;
+	Dictionary::Ptr chksm = new Dictionary;
+
+	PrepareObject(object, attr, chksm);
+
 	String objectKey = GetObjectIdentifier(object);
 
-	std::set<String> propertiesBlacklist({"name", "__name", "package", "source_location", "templates"});
+	attributes.emplace_back(objectKey);
+	attributes.emplace_back(JsonEncode(attr));
 
-	Dictionary::Ptr checkSums = new Dictionary();
-
-	checkSums->Set("name_checksum", CalculateCheckSumString(object->GetShortName()));
-	checkSums->Set("environment_checksum", CalculateCheckSumString(GetEnvironment()));
-
-	MakeTypeChecksums(object, propertiesBlacklist, checkSums);
-
-	/* Send all object attributes to Redis, no extra checksums involved here. */
-	auto tempAttrs = (UpdateObjectAttrs(object, FAConfig, typeName));
-	attributes.insert(attributes.end(), std::begin(tempAttrs), std::end(tempAttrs));
-
-	/* Custom var checksums. */
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
 
 	if (customVarObject) {
-		propertiesBlacklist.emplace("vars");
-
-		checkSums->Set("vars_checksum", CalculateCheckSumVars(customVarObject));
+		chksm->Set("customvars_checksum", CalculateCheckSumVars(customVarObject));
 
 		auto vars(SerializeVars(customVarObject));
 
@@ -572,15 +655,8 @@ RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String ty
 		}
 	}
 
-	checkSums->Set("metadata_checksum", CalculateCheckSumMetadata(object));
-
-	/* TODO: Problem: This does not account for `is_in_effect`, `trigger_time` of downtimes. */
-	checkSums->Set("properties_checksum", CalculateCheckSumProperties(object, propertiesBlacklist));
-
-	String checkSumsBody = JsonEncode(checkSums);
-
 	checksums.emplace_back(objectKey);
-	checksums.emplace_back(checkSumsBody);
+	checksums.emplace_back(JsonEncode(chksm));
 
 	/* Send an update event to subscribers. */
 	if (runtimeUpdate) {
