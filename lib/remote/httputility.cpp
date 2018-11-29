@@ -61,7 +61,7 @@ void HttpUtility::SendJsonBody(HttpResponse& response, const Dictionary::Ptr& pa
 	if (params)
 		prettyPrint = GetLastParameter(params, "pretty");
 
-	String body = JsonEncode(val, prettyPrint);
+	String body = JsonSanitize(val, prettyPrint);
 
 	response.WriteBody(body.CStr(), body.GetLength());
 }

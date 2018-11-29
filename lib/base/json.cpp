@@ -24,6 +24,7 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
+#include "base/utility.hpp"
 #include <boost/exception_ptr.hpp>
 #include <yajl/yajl_version.h>
 #include <yajl/yajl_gen.h>
@@ -32,7 +33,8 @@
 
 using namespace icinga;
 
-static void Encode(yajl_gen handle, const Value& value);
+template<void EncodeString(yajl_gen handle, const String& str)>
+static inline void Encode(yajl_gen handle, const Value& value);
 
 #if YAJL_MAJOR < 2
 typedef unsigned int yajl_size;
@@ -40,45 +42,60 @@ typedef unsigned int yajl_size;
 typedef size_t yajl_size;
 #endif /* YAJL_MAJOR */
 
-static void EncodeNamespace(yajl_gen handle, const Namespace::Ptr& ns)
+static inline void EncodeString(yajl_gen handle, const String& str)
+{
+	yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(str.CStr()), str.GetLength());
+}
+
+static inline void SanitizeString(yajl_gen handle, const String& str)
+{
+	String utf8ed = Utility::ValidateUTF8(str);
+	yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(utf8ed.CStr()), utf8ed.GetLength());
+}
+
+template<void EncodeString(yajl_gen handle, const String& str)>
+static inline void EncodeNamespace(yajl_gen handle, const Namespace::Ptr& ns)
 {
 	yajl_gen_map_open(handle);
 
 	ObjectLock olock(ns);
 	for (const Namespace::Pair& kv : ns) {
-		yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(kv.first.CStr()), kv.first.GetLength());
-		Encode(handle, kv.second->Get());
+		EncodeString(handle, kv.first);
+		Encode<EncodeString>(handle, kv.second->Get());
 	}
 
 	yajl_gen_map_close(handle);
 }
 
-static void EncodeDictionary(yajl_gen handle, const Dictionary::Ptr& dict)
+template<void EncodeString(yajl_gen handle, const String& str)>
+static inline void EncodeDictionary(yajl_gen handle, const Dictionary::Ptr& dict)
 {
 	yajl_gen_map_open(handle);
 
 	ObjectLock olock(dict);
 	for (const Dictionary::Pair& kv : dict) {
-		yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(kv.first.CStr()), kv.first.GetLength());
-		Encode(handle, kv.second);
+		EncodeString(handle, kv.first);
+		Encode<EncodeString>(handle, kv.second);
 	}
 
 	yajl_gen_map_close(handle);
 }
 
-static void EncodeArray(yajl_gen handle, const Array::Ptr& arr)
+template<void EncodeString(yajl_gen handle, const String& str)>
+static inline void EncodeArray(yajl_gen handle, const Array::Ptr& arr)
 {
 	yajl_gen_array_open(handle);
 
 	ObjectLock olock(arr);
 	for (const Value& value : arr) {
-		Encode(handle, value);
+		Encode<EncodeString>(handle, value);
 	}
 
 	yajl_gen_array_close(handle);
 }
 
-static void Encode(yajl_gen handle, const Value& value)
+template<void EncodeString(yajl_gen handle, const String& str)>
+static inline void Encode(yajl_gen handle, const Value& value)
 {
 	switch (value.GetType()) {
 		case ValueNumber:
@@ -91,7 +108,7 @@ static void Encode(yajl_gen handle, const Value& value)
 
 			break;
 		case ValueString:
-			yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(value.Get<String>().CStr()), value.Get<String>().GetLength());
+			EncodeString(handle, value.Get<String>());
 
 			break;
 		case ValueObject:
@@ -100,21 +117,21 @@ static void Encode(yajl_gen handle, const Value& value)
 				Namespace::Ptr ns = dynamic_pointer_cast<Namespace>(obj);
 
 				if (ns) {
-					EncodeNamespace(handle, ns);
+					EncodeNamespace<EncodeString>(handle, ns);
 					break;
 				}
 
 				Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
 
 				if (dict) {
-					EncodeDictionary(handle, dict);
+					EncodeDictionary<EncodeString>(handle, dict);
 					break;
 				}
 
 				Array::Ptr arr = dynamic_pointer_cast<Array>(obj);
 
 				if (arr) {
-					EncodeArray(handle, arr);
+					EncodeArray<EncodeString>(handle, arr);
 					break;
 				}
 			}
@@ -131,7 +148,8 @@ static void Encode(yajl_gen handle, const Value& value)
 	}
 }
 
-String icinga::JsonEncode(const Value& value, bool pretty_print)
+template<void EncodeString(yajl_gen handle, const String& str)>
+static inline String JsonEncodeBase(const Value& value, bool pretty_print)
 {
 #if YAJL_MAJOR < 2
 	yajl_gen_config conf = { pretty_print, "" };
@@ -142,7 +160,7 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 		yajl_gen_config(handle, yajl_gen_beautify, 1);
 #endif /* YAJL_MAJOR */
 
-	Encode(handle, value);
+	Encode<EncodeString>(handle, value);
 
 	const unsigned char *buf;
 	yajl_size len;
@@ -154,6 +172,16 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 	yajl_gen_free(handle);
 
 	return result;
+}
+
+String icinga::JsonEncode(const Value& value, bool pretty_print)
+{
+	return JsonEncodeBase<EncodeString>(value, pretty_print);
+}
+
+String icinga::JsonSanitize(const Value& value, bool pretty_print)
+{
+	return JsonEncodeBase<SanitizeString>(value, pretty_print);
 }
 
 struct JsonElement

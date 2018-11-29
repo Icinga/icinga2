@@ -29,6 +29,7 @@ class String;
 class Value;
 
 String JsonEncode(const Value& value, bool pretty_print = false);
+String JsonSanitize(const Value& value, bool pretty_print = false);
 Value JsonDecode(const String& data);
 
 }
