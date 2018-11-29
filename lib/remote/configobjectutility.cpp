@@ -120,11 +120,6 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	String path = GetObjectConfigPath(type, fullName);
 	Utility::MkDirP(Utility::DirName(path), 0700);
 
-	if (Utility::PathExists(path)) {
-		errors->Add("Cannot create object '" + fullName + "'. Configuration file '" + path + "' already exists.");
-		return false;
-	}
-
 	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
 	fp << config;
 	fp.close();
