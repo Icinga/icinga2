@@ -297,7 +297,11 @@ bool QueryPerfData(printInfoStruct& pI)
 	if (FAILED(status))
 		goto die;
 
-	status = PdhAddCounter(hQuery, pI.wsFullPath.c_str(), NULL, &hCounter);
+	status = PdhAddEnglishCounter(hQuery, pI.wsFullPath.c_str(), NULL, &hCounter);
+
+	if (FAILED(status))
+		status = PdhAddCounter(hQuery, pI.wsFullPath.c_str(), NULL, &hCounter);
+
 	if (FAILED(status))
 		goto die;
 
