@@ -632,15 +632,16 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 	attrs->Set("env_id", CalculateCheckSumString(GetEnvironment()));
 	attrs->Set("state_type", checkable->GetStateType());
 
-	if (service)
+	// TODO: last_hard/soft_state should be "previous".
+	if (service) {
 		attrs->Set("state", service->GetState());
-	else
-		attrs->Set("state", host->GetState());
-
-	if (service)
+		attrs->Set("last_soft_state", service->GetState());
 		attrs->Set("last_hard_state", service->GetLastHardState());
-	else
+	} else {
+		attrs->Set("state", host->GetState());
+		attrs->Set("last_soft_state", host->GetState());
 		attrs->Set("last_hard_state", host->GetLastHardState());
+	}
 
 	attrs->Set("check_attempt", checkable->GetCheckAttempt());
 
@@ -691,8 +692,6 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 
 	attrs->Set("last_update", Utility::GetTime());
 	attrs->Set("last_state_change", checkable->GetLastStateChange());
-	//attrs->Set("last_soft_state", TODO: We want "previous");
-	//attrs->Set("last_hard_state", TODO: We want "previous");
 	attrs->Set("next_check", checkable->GetNextCheck());
 
 	return attrs;
