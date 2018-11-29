@@ -3114,13 +3114,13 @@ is used to check the btrfs storage health on the server.
 The plugin requires `sudo` permissions.
 You can add a sudoers file to allow your monitoring user to use the plugin, i.e. edit /etc/sudoers.d/nagios and add:
 ```
-nagios ALL=(root) NOPASSWD:/usr/lib/nagios/plugins/check_btrfs
+icinga ALL=(root) NOPASSWD:/usr/lib/nagios/plugins/check_btrfs
 ```
 
 and set the correct permissions:
 ```bash
-chown -c root: /etc/sudoers.d/nagios
-chmod -c 0440 /etc/sudoers.d/nagios
+chown -c root: /etc/sudoers.d/icinga
+chmod -c 0440 /etc/sudoers.d/icinga
 ```
 
 [monitoring-plugins-btrfs](https://packages.debian.org/monitoring-plugins-btrfs) provide the necessary binary on debian/ubuntu.
