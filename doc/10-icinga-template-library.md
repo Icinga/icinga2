@@ -3112,7 +3112,7 @@ The [btrfs plugin](https://github.com/knorrie/python-btrfs/)
 is used to check the btrfs storage health on the server.
 
 The plugin requires `sudo` permissions.
-You can add a sudoers file to allow your monitoring user to use the plugin, i.e. edit /etc/sudoers.d/nagios and add:
+You can add a sudoers file to allow your monitoring user to use the plugin, i.e. edit /etc/sudoers.d/icinga and add:
 ```
 icinga ALL=(root) NOPASSWD:/usr/lib/nagios/plugins/check_btrfs
 ```
