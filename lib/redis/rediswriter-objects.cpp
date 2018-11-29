@@ -687,7 +687,9 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 
 	attrs->Set("in_downtime", checkable->IsInDowntime());
 
-	if (checkable->GetCheckTimeout())
+	if (checkable->GetCheckTimeout().IsEmpty())
+		attrs->Set("check_timeout",checkable->GetCheckCommand()->GetTimeout());
+	else
 		attrs->Set("check_timeout", checkable->GetCheckTimeout());
 
 	attrs->Set("last_update", Utility::GetTime());
