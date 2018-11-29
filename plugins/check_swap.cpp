@@ -194,16 +194,13 @@ static int printOutput(printInfoStruct& printInfo)
 	else
 		currentValue = printInfo.tSwap - printInfo.aSwap;
 
-	if (printInfo.warn.rend(currentValue, printInfo.tSwap)) {
+	if (printInfo.warn.rend(currentValue, printInfo.tSwap))
 		state = WARNING;
-		std::wcout << L"WARNING - ";
-	} else if (printInfo.crit.rend(currentValue, printInfo.tSwap)) {
+
+	if (printInfo.crit.rend(currentValue, printInfo.tSwap))
 		state = CRITICAL;
-		std::wcout << L"CRITICAL - ";
-	} else {
-		state = OK;
-		std::wcout << L"OK - ";
-	}
+
+	std::wcout << stateToString(state) << " ";
 
 	if (!printInfo.showUsed)
 		std::wcout << printInfo.percentFree << L"% free ";

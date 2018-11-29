@@ -164,7 +164,7 @@ static int printOutput(printInfoStruct& printInfo)
 	if (l_Debug)
 		std::wcout << L"Constructing output string" << '\n';
 
-	state state;
+	state state = OK;
 
 	std::wcout << L"MEMORY ";
 
@@ -175,16 +175,13 @@ static int printOutput(printInfoStruct& printInfo)
 	else
 		currentValue = printInfo.tRam - printInfo.aRam;
 
-	if (printInfo.warn.rend(currentValue, printInfo.tRam)) {
+	if (printInfo.warn.rend(currentValue, printInfo.tRam))
 		state = WARNING;
-		std::wcout << L"WARNING";
-	} else if (printInfo.crit.rend(currentValue, printInfo.tRam)) {
+
+	if (printInfo.crit.rend(currentValue, printInfo.tRam))
 		state = CRITICAL;
-		std::wcout << L"CRITICAL";
-	} else {
-		state = OK;
-		std::wcout << L"OK";
-	}
+
+	std::wcout << stateToString(state);
 
 	if (!printInfo.showUsed)
 		std::wcout << " - " << printInfo.percentFree << L"% free";
