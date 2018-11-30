@@ -660,7 +660,6 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
 	if (cr) {
-		// TODO: Long Output did not work in my test cases. Need to investigate
 		attrs->Set("output", CompatUtility::GetCheckResultOutput(cr));
 		attrs->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
 		attrs->Set("performance_data", cr->GetPerformanceData());
