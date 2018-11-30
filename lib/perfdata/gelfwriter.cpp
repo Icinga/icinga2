@@ -169,7 +169,30 @@ void GelfWriter::ReconnectInternal()
 		throw ex;
 	}
 
-	m_Stream = new NetworkStream(socket);
+	if (GetEnableTls()) {
+		std::shared_ptr<SSL_CTX> sslContext;
+
+		try  {
+			sslContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "GelfWriter")
+				<< "Unable to create SSL context.";
+			throw ex;
+		}
+
+		TlsStream::Ptr tlsStream = new TlsStream(socket, GetHost(), RoleClient, sslContext);
+
+		try {
+			tlsStream->Handshake();
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "GelfWriter")
+				<< "TLS handshake with host'" << GetHost() << "' on port '" << GetPort() << "' failed.'";
+			throw ex;
+		}
+
+		m_Stream = tlsStream;
+	} else
+		m_Stream = new NetworkStream(socket);
 
 	SetConnected(true);
 
