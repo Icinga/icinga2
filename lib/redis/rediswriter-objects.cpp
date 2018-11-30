@@ -781,6 +781,5 @@ void RedisWriter::VersionChangedHandler(const ConfigObject::Ptr& object)
 
 void RedisWriter::DowntimeChangedHandler(const Downtime::Ptr& downtime)
 {
-	Log(LogCritical, "Downtime", "Downtime sync got triggered");
 	StateChangeHandler(downtime->GetCheckable());
 }
