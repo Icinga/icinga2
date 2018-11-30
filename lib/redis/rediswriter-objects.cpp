@@ -221,17 +221,20 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		attributes->Set("zone", ObjectsZone->GetName());
 	}
 
-	Endpoint::Ptr endpoint = dynamic_pointer_cast<Endpoint>(object);
-	if (endpoint) {
+	Type::Ptr type = object->GetReflectionType();
+
+	if (type == Endpoint::TypeInstance) {
+		Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(object);
+
 		checksums->Set("properties_checksum", HashValue(attributes));
 
 		return;
 	}
 
-	Zone::Ptr zone = dynamic_pointer_cast<Zone>(object);
-	if (zone) {
-		attributes->Set("is_global", zone->GetGlobal());
+	if (type == Zone::TypeInstance) {
+		Zone::Ptr zone = static_pointer_cast<Zone>(object);
 
+		attributes->Set("is_global", zone->GetGlobal());
 		checksums->Set("properties_checksum", HashValue(attributes));
 
 		Array::Ptr endpoints = new Array();
@@ -254,8 +257,9 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		return;
 	}
 
-	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
-	if (checkable) {
+	if (type == Host::TypeInstance || type == Service::TypeInstance) {
+		Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
+
 		attributes->Set("checkcommand", checkable->GetCheckCommand()->GetName());
 		attributes->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
 		attributes->Set("check_timeout", checkable->GetCheckTimeout());
@@ -344,8 +348,9 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		return;
 	}
 
-	User::Ptr user = dynamic_pointer_cast<User>(object);
-	if (user) {
+	if (type == User::TypeInstance) {
+		User::Ptr user = static_pointer_cast<User>(object);
+
 		attributes->Set("display_name", user->GetDisplayName());
 		attributes->Set("email", user->GetEmail());
 		attributes->Set("pager", user->GetPager());
@@ -380,8 +385,9 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		return;
 	}
 
-	TimePeriod::Ptr timeperiod = dynamic_pointer_cast<TimePeriod>(object);
-	if (timeperiod) {
+	if (type == TimePeriod::TypeInstance) {
+		TimePeriod::Ptr timeperiod = static_pointer_cast<TimePeriod>(object);
+
 		attributes->Set("display_name", timeperiod->GetDisplayName());
 		attributes->Set("prefer_includes", timeperiod->GetPreferIncludes());
 
@@ -433,8 +439,9 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		return;
 	}
 
-	Notification::Ptr notification = dynamic_pointer_cast<Notification>(object);
-	if (notification) {
+	if (type == Notification::TypeInstance) {
+		Notification::Ptr notification = static_pointer_cast<Notification>(object);
+
 		Host::Ptr host;
 		Service::Ptr service;
 		std::set<User::Ptr> users = notification->GetUsers();
@@ -487,8 +494,9 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		return;
 	}
 
-	Comment::Ptr comment = dynamic_pointer_cast<Comment>(object);
-	if (comment) {
+	if (type == Comment::TypeInstance) {
+		Comment::Ptr comment = static_pointer_cast<Comment>(object);
+
 		attributes->Set("author", comment->GetAuthor());
 		attributes->Set("text", comment->GetText());
 		attributes->Set("entry_type", comment->GetEntryType());
@@ -508,8 +516,9 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		return;
 	}
 
-	Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(object);
-	if (downtime) {
+	if (type == Downtime::TypeInstance) {
+		Downtime::Ptr downtime = static_pointer_cast<Downtime>(object);
+
 		attributes->Set("author", downtime->GetAuthor());
 		attributes->Set("comment", downtime->GetComment());
 		attributes->Set("entry_time", downtime->GetEntryTime());
@@ -534,8 +543,9 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		return;
 	}
 
-	UserGroup::Ptr userGroup = dynamic_pointer_cast<UserGroup>(object);
-	if (userGroup) {
+	if (type == UserGroup::TypeInstance) {
+		UserGroup::Ptr userGroup = static_pointer_cast<UserGroup>(object);
+
 		attributes->Set("display_name", userGroup->GetDisplayName());
 
 		checksums->Set("properties_checksum", HashValue(attributes));
@@ -543,8 +553,9 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		return;
 	}
 
-	HostGroup::Ptr hostGroup = dynamic_pointer_cast<HostGroup>(object);
-	if (hostGroup) {
+	if (type == HostGroup::TypeInstance) {
+		HostGroup::Ptr hostGroup = static_pointer_cast<HostGroup>(object);
+
 		attributes->Set("display_name", hostGroup->GetDisplayName());
 
 		checksums->Set("properties_checksum", HashValue(attributes));
@@ -552,8 +563,9 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		return;
 	}
 
-	ServiceGroup::Ptr serviceGroup = dynamic_pointer_cast<ServiceGroup>(object);
-	if (serviceGroup) {
+	if (type == ServiceGroup::TypeInstance) {
+		ServiceGroup::Ptr serviceGroup = static_pointer_cast<ServiceGroup>(object);
+
 		attributes->Set("display_name", serviceGroup->GetDisplayName());
 
 		checksums->Set("properties_checksum", HashValue(attributes));
@@ -561,8 +573,9 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		return;
 	}
 
-	Command::Ptr command = dynamic_pointer_cast<Command>(object);
-	if (command) {
+	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
+		Command::Ptr command = static_pointer_cast<Command>(object);
+
 		if (dynamic_pointer_cast<CheckCommand>(object))
 			attributes->Set("type", "CheckCommand");
 		else if (dynamic_pointer_cast<EventCommand>(object))
