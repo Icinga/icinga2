@@ -27,6 +27,7 @@
 #include "base/workqueue.hpp"
 #include "redis/redisconnection.hpp"
 #include "icinga/checkable.hpp"
+#include "icinga/downtime.hpp"
 #include <hiredis/hiredis.h>
 
 namespace icinga
@@ -101,6 +102,7 @@ private:
 
 	static void StateChangeHandler(const ConfigObject::Ptr &object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
+	static void DowntimeChangedHandler(const Downtime::Ptr& downtime);
 
 	void AssertOnWorkQueue();
 

@@ -57,6 +57,13 @@ void RedisWriter::ConfigStaticInitialize()
 	/* triggered on create, update and delete objects */
 	ConfigObject::OnActiveChanged.connect(std::bind(&RedisWriter::VersionChangedHandler, _1));
 	ConfigObject::OnVersionChanged.connect(std::bind(&RedisWriter::VersionChangedHandler, _1));
+
+	/* fixed downtime start */
+	Downtime::OnDowntimeStarted.connect(std::bind(&RedisWriter::DowntimeChangedHandler, _1));
+	/* flexible downtime start */
+	Downtime::OnDowntimeTriggered.connect(std::bind(&RedisWriter::DowntimeChangedHandler, _1));
+	/* fixed/flexible downtime end */
+	Downtime::OnDowntimeRemoved.connect(std::bind(&RedisWriter::DowntimeChangedHandler, _1));
 }
 
 void RedisWriter::UpdateAllConfigObjects()
@@ -770,4 +777,10 @@ void RedisWriter::VersionChangedHandler(const ConfigObject::Ptr& object)
 				rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigDelete, rw, object));
 		}
 	}
+}
+
+void RedisWriter::DowntimeChangedHandler(const Downtime::Ptr& downtime)
+{
+	Log(LogCritical, "Downtime", "Downtime sync got triggered");
+	StateChangeHandler(downtime->GetCheckable());
 }
