@@ -208,8 +208,9 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 		m_Rcon->ExecuteQuery(customVar);
 }
 
-// Takes object and collects IcingaDB relevant attributes and computes checksums
-void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checksums)
+// Takes object and collects IcingaDB relevant attributes and computes checksums. Returns whether the object is relevant
+// for IcingaDB.
+bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checksums)
 {
 	checksums->Set("name_checksum", CalculateCheckSumString(object->GetName()));
 	checksums->Set("environment_id", CalculateCheckSumString(GetEnvironment()));
@@ -228,7 +229,7 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		checksums->Set("properties_checksum", HashValue(attributes));
 
-		return;
+		return true;
 	}
 
 	if (type == Zone::TypeInstance) {
@@ -254,7 +255,7 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		checksums->Set("parent_ids", parents);
 		checksums->Set("parents_checksum", HashValue(zone->GetAllParents()));
 
-		return;
+		return true;
 	}
 
 	if (type == Host::TypeInstance || type == Service::TypeInstance) {
@@ -345,7 +346,7 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		checksums->Set("properties_checksum", HashValue(attributes));
 
-		return;
+		return true;
 	}
 
 	if (type == User::TypeInstance) {
@@ -382,7 +383,7 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		checksums->Set("properties_checksum", HashValue(attributes));
 
-		return;
+		return true;
 	}
 
 	if (type == TimePeriod::TypeInstance) {
@@ -436,7 +437,7 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		checksums->Set("exclude_ids", excludeChecksums);
 
-		return;
+		return true;
 	}
 
 	if (type == Notification::TypeInstance) {
@@ -491,7 +492,7 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 			attributes->Set("times_end",notification->GetTimes()->Get("end"));
 		}
 
-		return;
+		return true;
 	}
 
 	if (type == Comment::TypeInstance) {
@@ -513,7 +514,7 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		checksums->Set("properties_checksum", HashValue(attributes));
 
-		return;
+		return true;
 	}
 
 	if (type == Downtime::TypeInstance) {
@@ -540,7 +541,7 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 			checksums->Set("host_id", GetObjectIdentifier(host));
 
 		checksums->Set("properties_checksum", HashValue(attributes));
-		return;
+		return true;
 	}
 
 	if (type == UserGroup::TypeInstance) {
@@ -550,7 +551,7 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		checksums->Set("properties_checksum", HashValue(attributes));
 
-		return;
+		return true;
 	}
 
 	if (type == HostGroup::TypeInstance) {
@@ -560,7 +561,7 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		checksums->Set("properties_checksum", HashValue(attributes));
 
-		return;
+		return true;
 	}
 
 	if (type == ServiceGroup::TypeInstance) {
@@ -570,7 +571,7 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		checksums->Set("properties_checksum", HashValue(attributes));
 
-		return;
+		return true;
 	}
 
 	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
@@ -620,9 +621,10 @@ void RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		checksums->Set("envvars_checksum", HashValue(envvars));
 		checksums->Set("envvar_ids", envvarChecksums);
 
-		return;
+		return true;
 	}
 
+	return false;
 }
 
 /* Creates a config update with computed checksums etc.
@@ -646,7 +648,8 @@ RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String ty
 	Dictionary::Ptr attr = new Dictionary;
 	Dictionary::Ptr chksm = new Dictionary;
 
-	PrepareObject(object, attr, chksm);
+	if (!PrepareObject(object, attr, chksm))
+		return;
 
 	String objectKey = GetObjectIdentifier(object);
 

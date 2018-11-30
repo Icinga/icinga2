@@ -98,7 +98,7 @@ private:
 	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
 
 	static String GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj);
-	static void PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checkSums);
+	static bool PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checkSums);
 
 	static void StateChangeHandler(const ConfigObject::Ptr& object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
