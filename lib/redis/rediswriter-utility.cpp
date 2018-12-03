@@ -72,6 +72,7 @@ String RedisWriter::FormatCommandLine(const Value& commandLine)
 	} else if (!commandLine.IsEmpty()) {
 		result = commandLine;
 		boost::algorithm::replace_all(result, "\'", "\\'");
+		result = "'" + result + "'";
 	}
 
 	return result;
