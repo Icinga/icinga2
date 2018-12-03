@@ -663,8 +663,20 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
 	if (cr) {
-		attrs->Set("output", CompatUtility::GetCheckResultOutput(cr));
-		attrs->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
+		String rawOutput = cr->GetOutput();
+		if (!rawOutput.IsEmpty()) {
+			size_t lineBreak = rawOutput.Find("\n");
+			String output = rawOutput.SubStr(0, lineBreak);
+			if (!output.IsEmpty())
+				attrs->Set("output", rawOutput.SubStr(0, lineBreak));
+
+			if (lineBreak > 0 && lineBreak != String::NPos) {
+				String longOutput = rawOutput.SubStr(lineBreak+1, rawOutput.GetLength());
+				if (!longOutput.IsEmpty())
+					attrs->Set("long_output", longOutput);
+			}
+		}
+
 		if (cr->GetPerformanceData())
 			attrs->Set("performance_data", PluginUtility::FormatPerfdata(cr->GetPerformanceData()));
 		if (!cr->GetCommand().IsEmpty())
