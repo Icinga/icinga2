@@ -663,7 +663,7 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 		attrs->Set("output", CompatUtility::GetCheckResultOutput(cr));
 		attrs->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
 		attrs->Set("performance_data", JsonEncode(cr->GetPerformanceData()));
-		attrs->Set("command", cr->GetCommand());
+		attrs->Set("command", JsonEncode(cr->GetCommand()));
 		attrs->Set("execution_time", cr->CalculateExecutionTime());
 		attrs->Set("latency", cr->CalculateLatency());
 	}
