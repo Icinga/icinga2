@@ -3,14 +3,14 @@
 This chapter provides hints on Icinga 2 debugging,
 development, package builds and tests.
 
-* [Debug Icinga 2](#development-debug)
-* [Develop Icinga 2](#development-develop)
- * [Linux Dev Environment](#development-linux-dev-env)
- * [macOS Dev Environment](#development-macos-dev-env)
- * [Windows Dev Environment](#development-windows-dev-env)
-* [Package Builds](#development-package-builds)
-* [Advanced Tips](#development-advanced)
-* [Tests](#development-tests)
+* [Debug Icinga 2](21-development.md#development-debug)
+* [Develop Icinga 2](21-development.md#development-develop)
+ * [Linux Dev Environment](21-development.md#development-linux-dev-env)
+ * [macOS Dev Environment](21-development.md#development-macos-dev-env)
+ * [Windows Dev Environment](21-development.md#development-windows-dev-env)
+* [Package Builds](21-development.md#development-package-builds)
+* [Advanced Tips](21-development.md#development-advanced)
+* [Tests](21-development.md#development-tests)
 
 
 ## Debug Icinga 2 <a id="development-debug"></a>
@@ -460,7 +460,7 @@ autocmd BufWinLeave * call clearmatches()
 Icinga 2 can run standalone or in distributed environments. It contains a whole lot
 more than a simple check execution engine.
 
-Read more about it in the [Technical Concepts](#technical-concepts) chapter.
+Read more about it in the [Technical Concepts](19-technical-concepts.md#technical-concepts) chapter.
 
 ### Get to know the code <a id="development-develop-get-to-know-the-code"></a>
 
@@ -511,7 +511,7 @@ db\_ido\_pgsql | IDO database driver for PgSQL.
 mysql\_shin    | Library stub for linking against the MySQL client libraries.
 pgsql\_shim    | Library stub for linking against the PgSQL client libraries.
 
-#### Class Compiler
+#### Class Compiler <a id="development-develop-design-patterns-class-compiler"></a>
 
 Another thing you will recognize are the `.ti` files which are compiled
 by our own class compiler into actual source code. The meta language allows
@@ -542,7 +542,7 @@ The logic is hidden in `tools/mkclass/` in case you want to learn more about it.
 The first steps during CMake & make also tell you about code generation.
 
 
-### Build Tool: CMake <a id="development-develop-get-to-know-the-code"></a>
+### Builds: CMake <a id="development-develop-builds-cmake"></a>
 
 In its early development stages in 2012, Icinga 2 was built with autoconf/automake
 and separate Windows project files. We've found this very fragile, and have changed
@@ -556,7 +556,7 @@ The most common benefits:
 * Separate binary build directories, the actual source tree stays clean.
 * CMake automatically generates a Visual Studio project file `icinga2.sln` on Windows.
 
-### Builds: Unity Builds <a id="development-develop-get-to-know-the-code"></a>
+### Builds: Unity Builds <a id="development-develop-builds-unity-builds"></a>
 
 Another thing you should be aware of: Unity builds on and off.
 
@@ -602,8 +602,8 @@ mkdir -p release debug
 
 Proceed with the specific distribution examples below.
 
-* [CentOS 7](#development-linux-dev-env-centos)
-* [Debian 9](#development-linux-dev-env-debian)
+* [CentOS 7](21-development.md#development-linux-dev-env-centos)
+* [Debian 9](21-development.md#development-linux-dev-env-debian)
 
 
 #### CentOS 7 <a id="development-linux-dev-env-centos"></a>
