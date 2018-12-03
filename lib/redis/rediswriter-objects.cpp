@@ -677,8 +677,10 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 			}
 		}
 
-		if (cr->GetPerformanceData())
-			attrs->Set("performance_data", PluginUtility::FormatPerfdata(cr->GetPerformanceData()));
+		String perfData = PluginUtility::FormatPerfdata(cr->GetPerformanceData());
+		if (!perfData.IsEmpty())
+			attrs->Set("performance_data", perfData);
+
 		if (!cr->GetCommand().IsEmpty())
 			attrs->Set("commandline", FormatCommandLine(cr->GetCommand()));
 		attrs->Set("execution_time", cr->CalculateExecutionTime());
