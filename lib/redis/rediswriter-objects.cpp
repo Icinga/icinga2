@@ -53,6 +53,8 @@ void RedisWriter::ConfigStaticInitialize()
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
 	Checkable::OnStateChange.connect(std::bind(&RedisWriter::StateChangeHandler, _1));
+	/* triggered when acknowledged host/service goes back to ok and when the acknowledgement gets deleted */
+	Checkable::OnAcknowledgementCleared.connect(std::bind(&RedisWriter::StateChangeHandler, _1));
 
 	/* triggered on create, update and delete objects */
 	ConfigObject::OnActiveChanged.connect(std::bind(&RedisWriter::VersionChangedHandler, _1));
