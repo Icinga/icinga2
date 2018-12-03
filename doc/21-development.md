@@ -1,7 +1,17 @@
 # Development <a id="development"></a>
 
-This chapter provides hints on Icinga 2 development
-and debugging.
+This chapter provides hints on Icinga 2 debugging,
+development, package builds and tests.
+
+* [Debug Icinga 2](#development-debug)
+* [Develop Icinga 2](#development-develop)
+ * [Linux Dev Environment](#development-linux-dev-env)
+ * [macOS Dev Environment](#development-macos-dev-env)
+ * [Windows Dev Environment](#development-windows-dev-env)
+* [Package Builds](#development-package-builds)
+* [Advanced Tips](#development-advanced)
+* [Tests](#development-tests)
+
 
 ## Debug Icinga 2 <a id="development-debug"></a>
 
@@ -348,6 +358,13 @@ In order to run Icinga 2 with LLDB you need to pass the binary as argument.
 lldb -- /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
+Breakpoint:
+
+```
+> b checkable.cpp:57
+> b icinga::Checkable::ProcessCheckResult
+```
+
 Full backtrace:
 
 ```
@@ -494,6 +511,8 @@ db\_ido\_pgsql | IDO database driver for PgSQL.
 mysql\_shin    | Library stub for linking against the MySQL client libraries.
 pgsql\_shim    | Library stub for linking against the PgSQL client libraries.
 
+#### Class Compiler
+
 Another thing you will recognize are the `.ti` files which are compiled
 by our own class compiler into actual source code. The meta language allows
 developers to easily add object attributes and specify their behaviour.
@@ -570,7 +589,7 @@ stuff like `epoll` is not available on Unix kernels.
 Depending on your workstation and environment, you may either develop and run locally,
 use a container deployment pipeline or put everything in a high end resource remote VM.
 
-#### Prepare Linux Dev Environment <a id="development-prepare-linux-dev-env"></a>
+Fork https://github.com/Icinga/icinga2 into your own repository, e.g. `https://github.com/dnsmichi/icinga2`.
 
 Create two build directories for different binary builds.
 
@@ -581,25 +600,55 @@ Create two build directories for different binary builds.
 mkdir -p release debug
 ```
 
-Next, check the required packages to build Icinga 2, and install them.
+Proceed with the specific distribution examples below.
 
-CentOS:
+* [CentOS 7](#development-linux-dev-env-centos)
+* [Debian 9](#development-linux-dev-env-debian)
 
+
+#### CentOS 7 <a id="development-linux-dev-env-centos"></a>
+
+```
+yum -y install gdb git bash-completion htop rpmdevtools \
+ ccache cmake make gcc-c++ flex bison \
+ openssl-devel boost-devel systemd-devel mysql-devel \
+ postgresql-devel libedit-devel libstdc++-devel
+
+groupadd icinga
+groupadd icingacmd
+useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga icinga
+
+ln -s /bin/ccache /usr/local/bin/gcc
+ln -s /bin/ccache /usr/local/bin/g++
+
+git clone https://github.com/icinga/icinga2.git && cd icinga2
+
+mkdir debug release
+cd debug
+cmake .. -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DICINGA2_PLUGINDIR=/usr/local/sbin
+cd ..
+make -j2 install -C debug
+```
+
+
+```
+chown -R icinga:icinga /usr/local/icinga2/var/
+
+/usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
+/usr/local/icinga2/sbin/icinga2 api setup
+vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
+
+gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
 ```
 
-Debian/Ubuntu:
-
-```
-
-```
-
-##### Debian Stretch
+##### Debian 9 <a id="development-linux-dev-env-debian"></a>
 
 ```
 apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev libboost-all-dev bison flex default-libmysqlclient-dev libpq-dev libyajl-dev libedit-dev monitoring-plugins
 
+ln -s /usr/bin/ccache /usr/local/bin/gcc
 ln -s /usr/bin/ccache /usr/local/bin/g++
 
 groupadd icinga
@@ -619,31 +668,154 @@ make -j2 install -C debug
 ```
 chown -R icinga:icinga /usr/local/icinga2/var/
 
-cd /usr/local/icinga2
-./lib/icinga2/prepare-dirs etc/sysconfig/icinga2
-icinga2 api setup
-vim etc/icinga2/conf.d/api-users.conf
+/usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
+/usr/local/icinga2/sbin/icinga2 api setup
+vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-gdb --args ./lib/icinga2/sbin/icinga2 daemon
+gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
 
 
 ### macOS Dev Environment <a id="development-macos-dev-env"></a>
 
-It is advised to use Homebrew to install all required build dependencies.
+It is advised to use Homebrew to install required build dependencies.
 Macports have been reported to work as well, typically you'll get more help
-with Homebrew.
+with Homebrew from Icinga developers.
 
-We will also build two different flavors.
+#### Users and Groups
+
+First off, create the following from `Settings - Users & Groups`:
+
+* Users: `icinga`
+* Groups: `icinga` with `icinga` as member
+* Groups: `icingaweb2`
+
+Then disallow login for these users.
+
+```
+dscl
+list Local/Default/Users
+read Local/Default/Users/icinga
+change Local/Default/Users/icinga UserShell /bin/bash /usr/bin/false
+sudo dscl . create /Users/icinga IsHidden 1
+sudo dseditgroup -o edit -a _www -t user icingaweb2
+```
+
+#### Requirements
+
+OpenSSL 1.0.x doesn't build anymore, so we're explicitly using 1.1.x here.
+
+```
+brew install ccache boost cmake bison flex yajl openssl@1.1 mysql-connector-c++ postgresql libpq
+```
+
+##### ccache
+
+```
+sudo mkdir /opt/ccache
+
+sudo ln -s `which ccache` /opt/ccache/clang
+sudo ln -s `which ccache` /opt/ccache/clang++
+
+vim $HOME/.bashrc
+
+# ccache is managed with symlinks to avoid collision with cgo
+export PATH="/opt/ccache:$PATH"
+
+source $HOME/.bashrc
+```
+
+#### Builds
+
+We will build two different flavors on macOS.
 
 ```
 mkdir -p release debug
+
+cd debug
+cmake -DICINGA2_UNITY_BUILD=OFF -DICINGA2_WITH_STUDIO=ON -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl@1.1/include -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib ..
+cd ..
+
+make -j4 -C debug
+sudo make -j4 install -C debug
+```
+
+##### Build Aliases
+
+This is derived from dnsmichi's flavour and not generally best practice.
+
+```
+vim $HOME/.bashrc
+
+export PATH=/usr/local/icinga2/sbin/:$PATH
+source /usr/local/icinga2/etc/bash_completion.d/icinga2
+
+export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl@1.1/include -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib -DICINGA2_PLUGINDIR=/usr/local/sbin"
+
+export I2_DEBUG="-DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF $I2_GENERIC"
+export I2_RELEASE="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DICINGA2_WITH_TESTS=ON -DICINGA2_UNITY_BUILD=ON $I2_GENERIC"
+
+alias i2_debug="mkdir -p debug; cd debug; cmake $I2_DEBUG ..; make -j4; sudo make -j4 install; cd .."
+alias i2_release="mkdir -p release; cd release; cmake $I2_RELEASE ..; make -j4; sudo make -j4 install; cd .."
+
+source $HOME/.bashrc
+```
+
+#### Run
+
+```
+chown -R icinga:icinga /usr/local/icinga2
+chown -R icinga:_www /usr/local/icinga2/var/run/icinga2/cmd
+
+icinga2 daemon
+```
+
+#### Plugins
+
+```
+brew install nagios-plugins
+
+sudo vim /usr/local/icinga2/etc/icinga2/constants.conf
+const PluginDir = "/usr/local/sbin"
+```
+
+#### Databases: MariaDB
+
+```
+brew install mariadb
+ln -sfv /usr/local/opt/mariadb/*.plist ~/Library/LaunchAgents
+launchctl load ~/Library/LaunchAgents/homebrew.mxcl.mariadb.plist
+mysql_secure_installation
+```
+
+```
+vim $HOME/.my.cnf
+
+[client]
+user = root
+password = supersecurerootpassword
+
+sudo -i
+ln -s /Users/michi/.my.cnf $HOME/.my.cnf
+exit
+```
+
+```
+cd $HOME/coding/icinga/icinga2
+
+sudo mysql
+
+CREATE DATABASE icinga;
+GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
+quit
+sudo mysql icinga < lib/db_ido_mysql/schema/mysql.sql
 ```
 
 
 
-### Windows Dev Environment <a id="development-macos-dev-env"></a>
+
+### Windows Dev Environment <a id="development-windows-dev-env"></a>
 
 The following sections explain how to setup the required build tools
 and how to run and debug the code.
@@ -791,7 +963,7 @@ Run CMake with the following command. This generates a new Visual Studio project
 You need to specify the previously installed component paths:
 
 Variable              | Value                                                                | Description
-----------------------|----------------------------------------------------------------------|
+----------------------|----------------------------------------------------------------------|-------------------------------------------------------
 BOOST_ROOT            | `C:\boost_1_65_1`                                                    | Root path where you've extracted and compiled Boost.
 BISON_EXECUTABLE      | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
 FLEX_EXECUTABLE       | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
@@ -875,7 +1047,9 @@ Again, put these lines into a batch/Powershell script and execute that.
 >
 > This isn't officially supported yet, just a few hints how you can do it yourself.
 
-armhf on Raspberry Pi, ccache:
+The following examples source from armhf on Raspberry Pi.
+
+#### ccache
 
 ```
 apt install -y ccache
@@ -885,6 +1059,20 @@ apt install -y ccache
 echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
 
 source ~/.bashrc && echo $PATH
+```
+
+#### Build
+
+Copy the icinga2 source code into `$HOME/icinga2`. Clone the `deb-icinga2` repository into `debian/`.
+
+```
+git clone https://github.com/Icinga/icinga2 $HOME/icinga2
+git clone https://github.com/Icinga/deb-icinga2 $HOME/icinga2/debian
+```
+
+Then build a Debian package and install it like normal.
+```
+dpkg-buildpackage -uc -us
 ```
 
 ## Package Builds <a id="development-package-builds"></a>
@@ -919,7 +1107,7 @@ Icinga application using a dist tarball (including notes for distributions):
   - Debian/Ubuntu: libsystemd-dev
   - RHEL/Fedora: systemd-devel
 
-### Optional features
+### Optional features <a id="development-package-builds-optional-features"></a>
 
 * MySQL (disable with CMake variable `ICINGA2_WITH_MYSQL` to `OFF`)
   - RHEL/Fedora: mysql-devel
@@ -941,14 +1129,14 @@ Icinga application using a dist tarball (including notes for distributions):
   - RHEL/Fedora: libtermcap-devel
   - Debian/Ubuntu: (not necessary)
 
-### Special requirements
+### Special requirements <a id="development-package-builds-special-requirements"></a>
 
 **FreeBSD**: libexecinfo (automatically used when Icinga 2 is installed via port or package)
 
 **RHEL6**: Requires a newer boost version which is available on packages.icinga.com
 with a version suffixed name.
 
-### Runtime user environment
+### Runtime user environment <a id="development-package-builds-runtime-user-env"></a>
 
 By default Icinga will run as user `icinga` and group `icinga`. Additionally the
 external command pipe and livestatus features require a dedicated command group
@@ -972,6 +1160,7 @@ On Alpine (which uses ash busybox) you can run:
 
 Add the web server user to the icingacmd group in order to grant it write
 permissions to the external command pipe and livestatus socket:
+
 ```
 # usermod -a -G icingacmd www-data
 ```
@@ -979,7 +1168,7 @@ permissions to the external command pipe and livestatus socket:
 Make sure to replace "www-data" with the name of the user your web server
 is running as.
 
-### Building Icinga 2: Example
+### Building Icinga 2: Example <a id="development-package-builds-example"></a>
 
 Once you have installed all the necessary build requirements you can build
 Icinga 2 using the following commands:
@@ -998,7 +1187,7 @@ You can specify an alternative installation prefix using `-DCMAKE_INSTALL_PREFIX
 $ cmake .. -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
 ```
 
-### CMake Variables
+### CMake Variables <a id="development-package-builds-cmake-variables"></a>
 
 In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-specific cmake variables.
 
@@ -1076,11 +1265,12 @@ directory. Alternatively the `-DICINGA2_GIT_VERSION_INFO=OFF` option for CMake
 can be used to disable the usage of `git describe`.
 
 
-### Building RPMs
+### Building RPMs <a id="development-package-builds-rpms"></a>
 
 #### Build Environment on RHEL, CentOS, Fedora, Amazon Linux
 
 Setup your build environment:
+
 ```
 yum -y install rpmdevtools
 ```
@@ -1088,28 +1278,32 @@ yum -y install rpmdevtools
 #### Build Environment on SuSE/SLES
 
 SLES:
+
 ```
-zypper addrepo http://download.opensuse.org/repositories/devel:tools/SLE_12_SP3/devel:tools.repo
+zypper addrepo http://download.opensuse.org/repositories/devel:tools/SLE_12_SP4/devel:tools.repo
 zypper refresh
 zypper install rpmdevtools spectool
 ```
 
 OpenSuSE:
+
 ```
 zypper addrepo http://download.opensuse.org/repositories/devel:tools/openSUSE_Leap_15.0/devel:tools.repo
 zypper refresh
 zypper install rpmdevtools spectool
 ```
 
-#### Package Builds
+#### Package Builds <a id="development-package-builds-rpms-package-builds"></a>
 
 Prepare the rpmbuild directory tree:
+
 ```
 cd $HOME
 rpmdev-setuptree
 ```
 
-Copy the icinga2.spec file to `rpmbuild/SPEC` or fetch the latest version:
+Snapshot builds:
+
 ```
 curl https://raw.githubusercontent.com/Icinga/rpm-icinga2/master/icinga2.spec -o $HOME/rpmbuild/SPECS/icinga2.spec
 ```
@@ -1121,6 +1315,7 @@ curl https://raw.githubusercontent.com/Icinga/rpm-icinga2/master/icinga2.spec -o
 
 Copy the tarball to `rpmbuild/SOURCES` e.g. by using the `spectool` binary
 provided with `rpmdevtools`:
+
 ```
 cd $HOME/rpmbuild/SOURCES
 spectool -g ../SPECS/icinga2.spec
@@ -1129,6 +1324,7 @@ cd $HOME/rpmbuild
 ```
 
 Install the build dependencies. Example for CentOS 7:
+
 ```
 yum -y install libedit-devel ncurses-devel gcc-c++ libstdc++-devel openssl-devel \
 cmake flex bison boost-devel systemd mysql-devel postgresql-devel httpd \
@@ -1138,16 +1334,18 @@ selinux-policy-devel checkpolicy selinux-policy selinux-policy-doc
 Note: If you are using Amazon Linux, systemd is not required.
 
 A shorter way is available using the `yum-builddep` command on RHEL based systems:
+
 ```
 yum-builddep SPECS/icinga2.spec
 ```
 
 Build the RPM:
+
 ```
 rpmbuild -ba SPECS/icinga2.spec
 ```
 
-#### Additional Hints
+#### Additional Hints <a id="development-package-builds-rpms-additional-hints"></a>
 
 ##### SELinux policy module
 
@@ -1182,28 +1380,27 @@ cat >$HOME/.rpmmacros <<MACROS
 MACROS
 ```
 
-#### Amazon Linux
+##### Amazon Linux
 
 If you prefer to build packages offline, a suitable Vagrant box is located
 [here](https://atlas.hashicorp.com/mvbcoding/boxes/awslinux/).
 
-#### SLES 11
+##### SLES 11
 
 The Icinga repository provides the required boost package version and must be
 added before building.
 
-## Build Debian/Ubuntu packages
-
-> **WARNING:** This information is outdated!
+### Build Debian/Ubuntu packages <a id="development-package-builds-deb"></a>
 
 Setup your build environment on Debian/Ubuntu, copy the 'debian' directory from
 the Debian packaging Git repository (https://github.com/Icinga/deb-icinga2)
 into your source tree and run the following command:
+
 ```
 $ dpkg-buildpackage -uc -us
 ```
 
-## Build Alpine Linux packages
+### Build Alpine Linux packages <a id="development-package-builds-alpine"></a>
 
 A simple way to setup a build environment is installing Alpine in a chroot.
 In this way, you can set up an Alpine build environment in a chroot under a
@@ -1214,7 +1411,7 @@ can be found [here](https://github.com/alpinelinux/alpine-chroot-install).
 Once the build environment is installed, you can setup the system to build
 the packages by following [this document](https://wiki.alpinelinux.org/wiki/Creating_an_Alpine_package).
 
-# Build Post Install Tasks
+### Build Post Install Tasks <a id="development-package-builds-post-install-tasks"></a>
 
 After building Icinga 2 yourself, your package build system should at least run the following post
 install requirements:
@@ -1222,29 +1419,33 @@ install requirements:
 * enable the `checker`, `notification` and `mainlog` feature by default
 * run 'icinga2 api setup' in order to enable the `api` feature and generate SSL certificates for the node
 
-## Run Icinga 2
+### Run Icinga 2 <a id="development-package-builds-run-icinga"></a>
 
 Icinga 2 comes with a binary that takes care of loading all the relevant
 components (e.g. for check execution, notifications, etc.):
+
 ```
-# icinga2 daemon
+icinga2 daemon
+
 [2016-12-08 16:44:24 +0100] information/cli: Icinga application loader (version: v2.5.4-231-gb10a6b7; debug)
 [2016-12-08 16:44:24 +0100] information/cli: Loading configuration file(s).
 [2016-12-08 16:44:25 +0100] information/ConfigItem: Committing config item(s).
 ...
 ```
 
-### Init Script
+#### Init Script <a id="development-package-builds-init-script"></a>
 
 Icinga 2 can be started as a daemon using the provided init script:
+
 ```
 # /etc/init.d/icinga2
 Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
 ```
 
-### Systemd
+### Systemd <a id="development-package-builds-systemd"></a>
 
 If your distribution uses Systemd:
+
 ```
 # systemctl {start|stop|reload|status|enable|disable} icinga2
 ```
@@ -1253,9 +1454,10 @@ In case the distribution is running Systemd >227, you'll also
 need to package and install the `etc/initsystem/icinga2.service.limits.conf`
 file into `/etc/systemd/system/icinga2.service.d`.
 
-### openrc
+### openrc <a id="development-package-builds-openrc"></a>
 
 Or if your distribution uses openrc (like Alpine):
+
 ```
 # rc-service icinga2
 Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
@@ -1264,6 +1466,7 @@ Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
 Note: the openrc's init.d is not shipped by default.
 A working init.d with openrc can be found here: (https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd). If you have customized some path, edit the file and adjust it according with your setup.
 Those few steps can be followed:
+
 ```
 # wget https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd
 # mv icinga2.initd /etc/init.d/icinga2
@@ -1279,11 +1482,11 @@ By default `make install` installs example configuration files in
 sysconfdir.
 
 
-### Windows <a id="development-package-builds-windows"></a>
+### Windows Builds <a id="development-package-builds-windows"></a>
 
 The Windows MSI packages are located at https://packages.icinga.com/windows/
 
-#### Requirements
+#### Requirements <a id="development-package-builds-windows-requirements"></a>
 
 * 32 or 64-bit system
 * Visual Studio >= 14 2015
