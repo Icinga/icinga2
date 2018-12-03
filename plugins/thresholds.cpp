@@ -282,3 +282,12 @@ std::wstring formatErrorInfo(unsigned long err) {
 
 	return out.str();
 }
+
+std::wstring stateToString(const state& state) {
+	switch (state) {
+		case OK: return L"OK";
+		case WARNING: return L"WARNING";
+		case CRITICAL: return L"CRITICAL";
+		default: return L"UNKNOWN";
+	}
+}
