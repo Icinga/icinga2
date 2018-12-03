@@ -36,6 +36,8 @@
 #include <map>
 #include <utility>
 #include <vector>
+#include <boost/algorithm/string.hpp>
+
 
 using namespace icinga;
 
@@ -46,6 +48,33 @@ String RedisWriter::FormatCheckSumBinary(const String& str)
 		sprintf(output + 2 * i, "%02x", str[i]);
 
 	return output;
+}
+
+
+String RedisWriter::FormatCommandLine(const Value& commandLine)
+{
+	String result;
+	if (commandLine.IsObjectType<Array>()) {
+		Array::Ptr args = commandLine;
+		bool first = true;
+
+		ObjectLock olock(args);
+		for (const Value& arg : args) {
+			String token = "'" + Convert::ToString(arg) + "'";
+
+			if (first)
+				first = false;
+			else
+				result += String(1, ' ');
+
+			result += token;
+		}
+	} else if (!commandLine.IsEmpty()) {
+		result = commandLine;
+		boost::algorithm::replace_all(result, "\'", "\\'");
+	}
+
+	return result;
 }
 
 static Value l_DefaultEnv = "production";

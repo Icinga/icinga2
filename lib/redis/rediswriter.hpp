@@ -83,6 +83,7 @@ private:
 
 	/* utilities */
 	static String FormatCheckSumBinary(const String& str);
+	static String FormatCommandLine(const Value& commandLine);
 
 	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
 	static String GetEnvironment();
@@ -98,7 +99,6 @@ private:
 
 	static String GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj);
 	static void MakeTypeChecksums(const ConfigObject::Ptr& object, std::set<String>& propertiesBlacklist, Dictionary::Ptr& checkSums);
-
 
 	static void StateChangeHandler(const ConfigObject::Ptr &object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);

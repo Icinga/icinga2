@@ -33,6 +33,7 @@
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/timeperiod.hpp"
+#include "icinga/pluginutility.hpp"
 #include "remote/zone.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
@@ -664,8 +665,10 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 	if (cr) {
 		attrs->Set("output", CompatUtility::GetCheckResultOutput(cr));
 		attrs->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
-		attrs->Set("performance_data", JsonEncode(cr->GetPerformanceData()));
-		attrs->Set("command", JsonEncode(cr->GetCommand()));
+		if (cr->GetPerformanceData())
+			attrs->Set("performance_data", PluginUtility::FormatPerfdata(cr->GetPerformanceData()));
+		if (!cr->GetCommand().IsEmpty())
+			attrs->Set("commandline", FormatCommandLine(cr->GetCommand()));
 		attrs->Set("execution_time", cr->CalculateExecutionTime());
 		attrs->Set("latency", cr->CalculateLatency());
 	}
@@ -706,7 +709,6 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 
 	return attrs;
 }
-
 
 std::vector<String>
 RedisWriter::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
