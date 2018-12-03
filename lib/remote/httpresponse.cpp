@@ -112,6 +112,12 @@ void HttpResponse::Finish()
 
 	m_State = HttpResponseEnd;
 
+	/* Close the connection on
+	 * a) HTTP/1.0
+	 * b) Connection: close in the sent header.
+	 *
+	 * Do this here and not in DataAvailableHandler - there might still be incoming data in there.
+	 */
 	if (m_Request->ProtocolVersion == HttpVersion10 || m_Request->Headers->Get("connection") == "close")
 		m_Stream->Shutdown();
 }
