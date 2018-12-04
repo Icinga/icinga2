@@ -407,15 +407,15 @@ Up/down in stacktrace:
 ## Develop Icinga 2 <a id="development-develop"></a>
 
 Icinga 2 can be built on many platforms such as Linux, Unix and Windows.
-There are limitations in terms of support, e.g. Windows is only supported for clients,
+There are limitations in terms of support, e.g. Windows is only supported for agents,
 not a full-featured master or satellite.
 
 Before you start with actual development, there is a couple of pre-requisites.
 
 ### Choose your Editor <a id="development-develop-choose-editor"></a>
 
-Icinga 2 can be developed with your favorite editor. Icinga developers prefer to use
-the tools below:
+Icinga 2 can be developed with your favorite editor. Icinga developers prefer
+these tools:
 
 - vim
 - CLion (macOS, Linux)
@@ -639,8 +639,6 @@ chown -R icinga:icinga /usr/local/icinga2/var/
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
 gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
-```
-
 ```
 
 ##### Debian 9 <a id="development-linux-dev-env-debian"></a>
