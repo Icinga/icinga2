@@ -225,8 +225,6 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 	Type::Ptr type = object->GetReflectionType();
 
 	if (type == Endpoint::TypeInstance) {
-		Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(object);
-
 		checksums->Set("properties_checksum", HashValue(attributes));
 
 		return true;
