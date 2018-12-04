@@ -4,11 +4,16 @@ This chapter provides hints on Icinga 2 debugging,
 development, package builds and tests.
 
 * [Debug Icinga 2](21-development.md#development-debug)
+  * [GDB Backtrace](21-development.md#development-debug-gdb-backtrace)
+  * [Core Dump](21-development.md#development-debug-core-dump)
 * [Develop Icinga 2](21-development.md#development-develop)
- * [Linux Dev Environment](21-development.md#development-linux-dev-env)
- * [macOS Dev Environment](21-development.md#development-macos-dev-env)
- * [Windows Dev Environment](21-development.md#development-windows-dev-env)
+  * [Linux Dev Environment](21-development.md#development-linux-dev-env)
+  * [macOS Dev Environment](21-development.md#development-macos-dev-env)
+  * [Windows Dev Environment](21-development.md#development-windows-dev-env)
 * [Package Builds](21-development.md#development-package-builds)
+  * [RPM](21-development.md#development-package-builds-rpms)
+  * [DEB](21-development.md#development-package-builds-deb)
+  * [Windows](21-development.md#development-package-builds-windows)
 * [Advanced Tips](21-development.md#development-advanced)
 * [Tests](21-development.md#development-tests)
 
@@ -20,6 +25,7 @@ a stack trace or coredump if the application crashed. It is also useful
 for developers working with different debuggers.
 
 > **Note:**
+>
 > This is intentionally mentioned before any development insights
 > as debugging is a more frequent and commonly asked question.
 
@@ -131,6 +137,12 @@ a new gdb run.
 #### GDB Backtrace <a id="development-debug-gdb-backtrace"></a>
 
 If Icinga 2 aborted its operation abnormally, generate a backtrace.
+
+> **Note**
+>
+> Please install the [required debug symbols](21-development.md#debug-requirements)
+> prior to generating a backtrace.
+
 `thread apply all` is important here since this includes all running threads.
 We need this information when e.g. debugging dead locks and hanging features.
 
@@ -154,6 +166,11 @@ make sure to attach as much detail as possible.
 
 If Icinga 2 is still running, generate a full backtrace from the running
 process and store it into a new file (e.g. for debugging dead locks).
+
+> **Note**
+>
+> Please install the [required debug symbols](21-development.md#debug-requirements)
+> prior to generating a backtrace.
 
 Icinga 2 runs with 2 processes: main and command executor, therefore generate two backtrace logs
 and add them to the GitHub issue.
@@ -1395,7 +1412,7 @@ the Debian packaging Git repository (https://github.com/Icinga/deb-icinga2)
 into your source tree and run the following command:
 
 ```
-$ dpkg-buildpackage -uc -us
+dpkg-buildpackage -uc -us
 ```
 
 ### Build Alpine Linux packages <a id="development-package-builds-alpine"></a>
