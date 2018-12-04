@@ -84,6 +84,7 @@ class Downtime : ConfigObject < DowntimeNameComposer
 	[state] int legacy_id;
 	[state] bool was_cancelled;
 	[config] String config_owner;
+	[config] String authoritative_zone;
 };
 
 }
