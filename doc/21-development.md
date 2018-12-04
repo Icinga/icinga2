@@ -279,10 +279,11 @@ developers to analyze and fix the problem.
 
 This requires setting the core dump file size to `unlimited`.
 
-Example for Systemd:
+
+##### Systemd
 
 ```
-vim /usr/lib/systemd/system/icinga2.service
+systemctl edit icinga2.service
 
 [Service]
 ...
@@ -293,7 +294,7 @@ systemctl daemon-reload
 systemctl restart icinga2
 ```
 
-Example for init script:
+##### Init Script
 
 ```
 vim /etc/init.d/icinga2
@@ -303,10 +304,13 @@ ulimit -c unlimited
 service icinga2 restart
 ```
 
+##### Verify
+
 Verify that the Icinga 2 process core file size limit is set to `unlimited`.
 
 ```
-cat /proc/`pidof icinga2`/limits
+for pid in $(pidof icinga2); do cat /proc/$pid/limits; done
+
 ...
 Max core file size        unlimited            unlimited            bytes
 ```
@@ -318,7 +322,7 @@ The Icinga 2 daemon runs with the SUID bit set. Therefore you need
 to explicitly enable core dumps for SUID on Linux.
 
 ```
-sysctl -w fs.suid_dumpable=1
+sysctl -w fs.suid_dumpable=2
 ```
 
 Adjust the coredump kernel format and file location on Linux:
