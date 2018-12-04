@@ -215,7 +215,7 @@ bool Downtime::HasValidConfigOwner() const
 	}
 
 	String configOwner = GetConfigOwner();
-	return configOwner.IsEmpty() || GetObject<ScheduledDowntime>(configOwner);
+	return configOwner.IsEmpty() || Zone::GetByName(GetAuthoritativeZone()) != Zone::GetLocalZone() || GetObject<ScheduledDowntime>(configOwner);
 }
 
 int Downtime::GetNextDowntimeID()
