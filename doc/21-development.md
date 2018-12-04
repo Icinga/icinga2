@@ -36,29 +36,12 @@ The Icinga 2 packages provide a debug package which must be
 installed separately for all involved binaries, like `icinga2-bin`
 or `icinga2-ido-mysql`.
 
-Debian/Ubuntu:
-
-```
-apt-get install icinga2-dbg
-```
-
-RHEL/CentOS:
-
-```
-yum install icinga2-debuginfo
-```
-
-Fedora:
-
-```
-dnf install icinga2-debuginfo icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo
-```
-
-SLES/openSUSE:
-
-```
-zypper install icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo
-```
+Distribution       | Command
+-------------------|------------------------------------------
+Debian/Ubuntu      | `apt-get install icinga2-dbg`
+RHEL/CentOS        | `yum install icinga2-debuginfo`
+Fedora             | `dnf install icinga2-debuginfo icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo`
+SLES/openSUSE      | `zypper install icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo`
 
 Furthermore, you may also have to install debug symbols for Boost and your C++ library.
 
@@ -70,23 +53,12 @@ build flag for debug builds.
 
 Install GDB in your development environment.
 
-Debian/Ubuntu:
-
-```
-apt-get install gdb
-```
-
-RHEL/CentOS/Fedora:
-
-```
-yum install gdb
-```
-
-SLES/openSUSE:
-
-```
-zypper install gdb
-```
+Distribution       | Command
+-------------------|------------------------------------------
+Debian/Ubuntu      | `apt-get install gdb`
+RHEL/CentOS        | `yum install gdb`
+Fedora             | `dnf install gdb`
+SLES/openSUSE      | `zypper install gdb`
 
 #### GDB Run <a id="development-debug-gdb-run"></a>
 
@@ -983,12 +955,12 @@ You need to specify the previously installed component paths:
 
 Variable              | Value                                                                | Description
 ----------------------|----------------------------------------------------------------------|-------------------------------------------------------
-BOOST_ROOT            | `C:\boost_1_65_1`                                                    | Root path where you've extracted and compiled Boost.
-BISON_EXECUTABLE      | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
-FLEX_EXECUTABLE       | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
-ICINGA2_WITH_MYSQL    | OFF                                                                  | Requires extra setup for MySQL if set to `ON`. Not supported for client setups.
-ICINGA2_WITH_PGSQL    | OFF                                                                  | Requires extra setup for PgSQL if set to `ON`. Not supported for client setups.
-ICINGA2_UNITY_BUILD   | OFF                                                                  | Disable unity builds for development environments.
+`BOOST_ROOT`          | `C:\boost_1_65_1`                                                    | Root path where you've extracted and compiled Boost.
+`BISON_EXECUTABLE`    | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
+`FLEX_EXECUTABLE`     | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
+`ICINGA2_WITH_MYSQL`  | OFF                                                                  | Requires extra setup for MySQL if set to `ON`. Not supported for client setups.
+`ICINGA2_WITH_PGSQL`  | OFF                                                                  | Requires extra setup for PgSQL if set to `ON`. Not supported for client setups.
+`ICINGA2_UNITY_BUILD` | OFF                                                                  | Disable unity builds for development environments.
 
 Tip: If you have previously opened a terminal, run `refreshenv` to re-read updated PATH variables.
 
