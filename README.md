@@ -33,6 +33,9 @@ on top in your Icinga Stack.
 For installing Icinga please check the [installation chapter](https://icinga.com/docs/icinga2/latest/doc/02-getting-started/)
 in the documentation.
 
+If you are a packager, please read the [development chapter](https://icinga.com/docs/icinga2/latest/doc/21-development/)
+for more details.
+
 ## Documentation
 
 The documentation is available on [icinga.com/docs](https://icinga.com/docs/icinga2/latest/).
