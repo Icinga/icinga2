@@ -247,6 +247,10 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 	attrs->Set("config_owner", scheduledDowntime);
 	attrs->Set("entry_time", Utility::GetTime());
 
+	if (!scheduledDowntime.IsEmpty()) {
+		attrs->Set("authoritative_zone", Zone::GetLocalZone()->GetName());
+	}
+
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
