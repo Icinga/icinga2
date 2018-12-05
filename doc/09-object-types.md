@@ -723,7 +723,7 @@ Configuration Attributes:
   check\_period             | Object name           | **Optional.** The name of a time period which determines when this host should be checked. Not set by default.
   check\_timeout            | Duration              | **Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
   check\_interval           | Duration              | **Optional.** The check interval (in seconds). This interval is used for checks when the host is in a `HARD` state. Defaults to `5m`.
-  retry\_interval           | Duration              | **Optional.** The retry interval (in seconds). This interval is used for checks when the host is in a `SOFT` state. Defaults to `1m`.
+  retry\_interval           | Duration              | **Optional.** The retry interval (in seconds). This interval is used for checks when the host is in a `SOFT` state. Defaults to `1m`. Note: This does not affect the scheduling [after a passive check result](08-advanced-topics.md#check-result-freshness).
   enable\_notifications     | Boolean               | **Optional.** Whether notifications are enabled. Defaults to true.
   enable\_active\_checks    | Boolean               | **Optional.** Whether active checks are enabled. Defaults to true.
   enable\_passive\_checks   | Boolean               | **Optional.** Whether passive checks are enabled. Defaults to true.
@@ -1454,7 +1454,7 @@ Configuration Attributes:
   check\_period             | Object name           | **Optional.** The name of a time period which determines when this service should be checked. Not set by default.
   check\_timeout            | Duration              | **Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
   check\_interval           | Duration              | **Optional.** The check interval (in seconds). This interval is used for checks when the service is in a `HARD` state. Defaults to `5m`.
-  retry\_interval           | Duration              | **Optional.** The retry interval (in seconds). This interval is used for checks when the service is in a `SOFT` state. Defaults to `1m`.
+  retry\_interval           | Duration              | **Optional.** The retry interval (in seconds). This interval is used for checks when the service is in a `SOFT` state. Defaults to `1m`. Note: This does not affect the scheduling [after a passive check result](08-advanced-topics.md#check-result-freshness).
   enable\_notifications     | Boolean               | **Optional.** Whether notifications are enabled. Defaults to `true`.
   enable\_active\_checks    | Boolean               | **Optional.** Whether active checks are enabled. Defaults to `true`.
   enable\_passive\_checks   | Boolean               | **Optional.** Whether passive checks are enabled. Defaults to `true`.
