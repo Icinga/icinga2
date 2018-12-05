@@ -293,7 +293,7 @@ bool NodeUtility::GetConfigurationIncludeState(const String& value, bool recursi
 		* First hit breaks out of the loop.
 		*/
 
-		if (!line.compare(affectedInclude)) {
+		if (line.compare(0, affectedInclude.GetLength(), affectedInclude) == 0) {
 			isIncluded = true;
 
 			/*
