@@ -197,6 +197,7 @@ apt_exclude             | **Optional.** Exclude packages matching REGEXP from th
 apt_critical            | **Optional.** If the full package information of any of the upgradable packages match this REGEXP, the plugin will return CRITICAL status. Can be specified multiple times.
 apt_timeout             | **Optional.** Seconds before plugin times out (default: 10).
 apt_only_critical       | **Optional.** Only warn about critical upgrades.
+apt_list                | **Optional.** List packages available for upgrade.
 
 
 ### breeze <a id="plugin-check-command-breeze"></a>
