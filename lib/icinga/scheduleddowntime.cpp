@@ -95,13 +95,14 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 		l_Timer->Start();
 	});
 
-	Utility::QueueAsyncCallback(std::bind(&ScheduledDowntime::CreateNextDowntime, this));
+	if (!IsPaused())
+		Utility::QueueAsyncCallback(std::bind(&ScheduledDowntime::CreateNextDowntime, this));
 }
 
 void ScheduledDowntime::TimerProc()
 {
 	for (const ScheduledDowntime::Ptr& sd : ConfigType::GetObjectsByType<ScheduledDowntime>()) {
-		if (sd->IsActive())
+		if (sd->IsActive() && !sd->IsPaused())
 			sd->CreateNextDowntime();
 	}
 }
@@ -235,6 +236,13 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment()
 
 void ScheduledDowntime::CreateNextDowntime()
 {
+	/* HA enabled zones. */
+	if (IsActive() && IsPaused()) {
+		Log(LogNotice, "Checkable")
+			<< "Skipping downtime creation for HA-paused Scheduled Downtime object '" << GetName() << "'";
+		return;
+	}
+
 	double minEnd = 0;
 
 	for (const Downtime::Ptr& downtime : GetCheckable()->GetDowntimes()) {
