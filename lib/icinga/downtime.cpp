@@ -210,6 +210,10 @@ bool Downtime::IsExpired() const
 
 bool Downtime::HasValidConfigOwner() const
 {
+	if (!ScheduledDowntime::AllConfigIsLoaded()) {
+		return true;
+	}
+
 	String configOwner = GetConfigOwner();
 	return configOwner.IsEmpty() || GetObject<ScheduledDowntime>(configOwner);
 }
