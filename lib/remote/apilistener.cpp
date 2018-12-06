@@ -304,6 +304,18 @@ void ApiListener::Stop(bool runtimeDeleted)
 
 	GetTP().Stop();
 
+	for (;;) {
+		{
+			boost::mutex::scoped_lock lock(m_HttpClientsLock);
+
+			if (!m_HttpClients.size()) {
+				break;
+			}
+		}
+
+		Utility::Sleep(0.1);
+	}
+
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
 	Log(LogInformation, "ApiListener")
