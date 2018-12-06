@@ -302,6 +302,8 @@ void ApiListener::Stop(bool runtimeDeleted)
 		Utility::Sleep(0.1);
 	}
 
+	GetTP().Stop();
+
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
 	Log(LogInformation, "ApiListener")
