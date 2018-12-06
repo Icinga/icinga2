@@ -31,6 +31,7 @@
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include "base/threadpool.hpp"
+#include <atomic>
 #include <set>
 
 namespace icinga
@@ -135,6 +136,9 @@ private:
 	Timer::Ptr m_AuthorityTimer;
 	Timer::Ptr m_CleanupCertificateRequestsTimer;
 	Endpoint::Ptr m_LocalEndpoint;
+
+	std::atomic<bool> m_ShuttingDown;
+	std::atomic<bool> m_IsAccepting;
 
 	static ApiListener::Ptr m_Instance;
 

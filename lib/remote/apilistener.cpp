@@ -35,7 +35,14 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 #include <fstream>
+
+#ifdef _WIN32
+#include <winsock.h>
+#else /* _WIN32 */
+#include <sys/time.h>
+#endif /* _WIN32 */
 
 using namespace icinga;
 
@@ -52,6 +59,8 @@ ApiListener::ApiListener()
 {
 	m_RelayQueue.SetName("ApiListener, RelayQueue");
 	m_SyncQueue.SetName("ApiListener, SyncQueue");
+	m_ShuttingDown.store(false);
+	m_IsAccepting.store(false);
 }
 
 String ApiListener::GetApiDir()
@@ -237,6 +246,8 @@ void ApiListener::OnAllConfigLoaded()
  */
 void ApiListener::Start(bool runtimeCreated)
 {
+	m_ShuttingDown.store(false);
+
 	Log(LogInformation, "ApiListener")
 		<< "'" << GetName() << "' started.";
 
@@ -285,6 +296,12 @@ void ApiListener::Start(bool runtimeCreated)
 
 void ApiListener::Stop(bool runtimeDeleted)
 {
+	m_ShuttingDown.store(true);
+
+	while (m_IsAccepting.load()) {
+		Utility::Sleep(0.1);
+	}
+
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
 	Log(LogInformation, "ApiListener")
@@ -375,11 +392,23 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 {
 	Utility::SetThreadName("API Listener");
 
+	struct timeval timeout = { 0, 100000 };
+
 	server->Listen();
 
+	m_IsAccepting.store(true);
+
 	for (;;) {
+		if (m_ShuttingDown.load()) {
+			m_IsAccepting.store(false);
+			break;
+		}
+
 		try {
-			Socket::Ptr client = server->Accept();
+			Socket::Ptr client = server->Accept(&timeout);
+			if (!client) {
+				continue;
+			}
 
 			/* Use dynamic thread pool with additional on demand resources with fast throughput. */
 			EnqueueAsyncCallback(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer), LowLatencyScheduler);
