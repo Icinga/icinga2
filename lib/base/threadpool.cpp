@@ -73,7 +73,6 @@ void ThreadPool::Stop()
 	for (auto& queue : m_Queues) {
 		boost::mutex::scoped_lock lock(queue.Mutex);
 		queue.Stopped = true;
-		queue.Items.clear();
 		queue.CV.notify_all();
 	}
 
