@@ -23,6 +23,7 @@
 #include "icinga/i2-icinga.hpp"
 #include "icinga/scheduleddowntime-ti.hpp"
 #include "icinga/checkable.hpp"
+#include <atomic>
 
 namespace icinga
 {
@@ -47,6 +48,7 @@ public:
 
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
+	static bool AllConfigIsLoaded();
 
 	void ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 	void ValidateChildOptions(const Lazy<Value>& lvalue, const ValidationUtils& utils) override;
@@ -61,6 +63,8 @@ private:
 	std::pair<double, double> FindRunningSegment(double minEnd = 0);
 	std::pair<double, double> FindNextSegment();
 	void CreateNextDowntime();
+
+	static std::atomic<bool> m_AllConfigLoaded;
 
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
