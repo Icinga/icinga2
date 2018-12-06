@@ -54,7 +54,7 @@ public:
 	size_t Write(const void *buffer, size_t size);
 
 	void Listen();
-	Socket::Ptr Accept();
+	Socket::Ptr Accept(struct timeval *timeout = nullptr);
 
 	bool Poll(bool read, bool write, struct timeval *timeout = nullptr);
 

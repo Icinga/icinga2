@@ -350,8 +350,12 @@ size_t Socket::Read(void *buffer, size_t count)
 /**
  * Accepts a new client and creates a new client object for it.
  */
-Socket::Ptr Socket::Accept()
+Socket::Ptr Socket::Accept(struct timeval *timeout)
 {
+	if (timeout != nullptr && !Poll(true, true, timeout)) {
+		return nullptr;
+	}
+
 	sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
 
