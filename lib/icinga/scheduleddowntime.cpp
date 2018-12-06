@@ -80,6 +80,8 @@ void ScheduledDowntime::OnAllConfigLoaded()
 
 	if (!GetCheckable())
 		BOOST_THROW_EXCEPTION(ScriptError("ScheduledDowntime '" + GetName() + "' references a host/service which doesn't exist.", GetDebugInfo()));
+
+	m_AllConfigLoaded.store(true);
 }
 
 void ScheduledDowntime::Start(bool runtimeCreated)
@@ -331,3 +333,10 @@ void ScheduledDowntime::ValidateChildOptions(const Lazy<Value>& lvalue, const Va
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "child_options" }, "Invalid child_options specified"));
 	}
 }
+
+bool ScheduledDowntime::AllConfigIsLoaded()
+{
+	return m_AllConfigLoaded.load();
+}
+
+std::atomic<bool> ScheduledDowntime::m_AllConfigLoaded (false);
