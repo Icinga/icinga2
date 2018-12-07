@@ -747,9 +747,7 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 
 	//attrs->Set("severity")
 	//attrs->Set(checkable->GetSeverity());
-
-	attrs->Set("is_active", checkable->IsActive());
-
+	
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
 	if (cr) {
