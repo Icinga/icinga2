@@ -27,6 +27,7 @@
 #include "base/workqueue.hpp"
 #include "redis/redisconnection.hpp"
 #include "icinga/checkable.hpp"
+#include "icinga/service.hpp"
 #include "icinga/downtime.hpp"
 #include <hiredis/hiredis.h>
 

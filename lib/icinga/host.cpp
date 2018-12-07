@@ -164,32 +164,39 @@ HostState Host::GetLastHardState() const
 	return CalculateState(GetLastHardStateRaw());
 }
 
-/* keep in sync with Service::GetSeverity() */
+/* keep in sync with Service::GetSeverity()
+ * One could think it may be smart to use an enum and some bitmask math here.
+ * But the only thing the consuming icingaweb2 cares about is being able to
+ * sort by severity. It is therefore easier to keep them seperated here. */
 int Host::GetSeverity() const
 {
 	int severity = 0;
 
 	ObjectLock olock(this);
-	ServiceState state = GetStateRaw();
+	HostState state = GetState();
 
-	/* OK/Warning = Up, Critical/Unknownb = Down */
-	if (!HasBeenChecked())
-		severity |= SeverityFlagPending;
-	else if (state == ServiceUnknown)
-		severity |= SeverityFlagCritical;
-	else if (state == ServiceCritical)
-		severity |= SeverityFlagCritical;
+	if (!HasBeenChecked()) {
+		severity = 16;
+	} else if (state == HostUp) {
+		severity = 0;
+	} else {
+		if (IsReachable())
+			severity = 64;
+		else
+			severity = 32;
 
-	if (IsInDowntime())
-		severity |= SeverityFlagDowntime;
-	else if (IsAcknowledged())
-		severity |= SeverityFlagAcknowledgement;
-	else
-		severity |= SeverityFlagUnhandled;
+		if (IsAcknowledged())
+			severity += 512;
+		else if (IsInDowntime())
+			severity += 256;
+		else
+			severity += 2048;
+	}
 
 	olock.Unlock();
 
 	return severity;
+
 }
 
 bool Host::IsStateOK(ServiceState state) const

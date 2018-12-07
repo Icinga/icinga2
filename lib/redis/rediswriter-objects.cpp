@@ -737,17 +737,18 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 		attrs->Set("state", service->GetState());
 		attrs->Set("last_soft_state", service->GetState());
 		attrs->Set("last_hard_state", service->GetLastHardState());
+		attrs->Set("severity", service->GetSeverity());
 	} else {
 		attrs->Set("state", host->GetState());
 		attrs->Set("last_soft_state", host->GetState());
 		attrs->Set("last_hard_state", host->GetLastHardState());
+		attrs->Set("severity", host->GetSeverity());
 	}
 
 	attrs->Set("check_attempt", checkable->GetCheckAttempt());
 
-	//attrs->Set("severity")
-	//attrs->Set(checkable->GetSeverity());
-	
+	attrs->Set("is_active", checkable->IsActive());
+
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
 	if (cr) {

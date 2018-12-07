@@ -103,32 +103,50 @@ Host::Ptr Service::GetHost() const
 	return m_Host;
 }
 
-/* keep in sync with Host::GetSeverity() */
+/* keep in sync with Host::GetSeverity()
+ * One could think it may be smart to use an enum and some bitmask math here.
+ * But the only thing the consuming icingaweb2 cares about is being able to
+ * sort by severity. It is therefore easier to keep them seperated here. */
 int Service::GetSeverity() const
 {
-	int severity = 0;
+	int severity;
 
 	ObjectLock olock(this);
 	ServiceState state = GetStateRaw();
 
-	if (!HasBeenChecked())
-		severity |= SeverityFlagPending;
-	else if (state == ServiceWarning)
-		severity |= SeverityFlagWarning;
-	else if (state == ServiceUnknown)
-		severity |= SeverityFlagUnknown;
-	else if (state == ServiceCritical)
-		severity |= SeverityFlagCritical;
+	if (!HasBeenChecked()) {
+		severity = 16;
+	} else if (state == ServiceOK) {
+		severity = 0;
+	} else {
+		switch (state) {
+			case ServiceWarning:
+				severity = 32;
+				break;
+			case ServiceUnknown:
+				severity = 64;
+				break;
+			case ServiceCritical:
+				severity = 128;
+				break;
+			default:
+				severity = 256;
+		}
 
-	/* TODO: Add host reachability and handled */
-	if (IsInDowntime())
-		severity |= SeverityFlagDowntime;
-	else if (IsAcknowledged())
-		severity |= SeverityFlagAcknowledgement;
-	else if (m_Host && m_Host->GetProblem())
-		severity |= SeverityFlagHostDown;
-	else
-		severity |= SeverityFlagUnhandled;
+		Host::Ptr host = GetHost();
+		ObjectLock hlock (host);
+		if (host->GetState() != HostUp || !host->IsReachable()) {
+			severity += 1024;
+		} else {
+			if (IsAcknowledged())
+				severity += 512;
+			else if (IsInDowntime())
+				severity += 256;
+			else
+				severity += 2048;
+		}
+		hlock.Unlock();
+	}
 
 	olock.Unlock();
 

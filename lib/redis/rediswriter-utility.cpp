@@ -50,7 +50,6 @@ String RedisWriter::FormatCheckSumBinary(const String& str)
 	return output;
 }
 
-
 String RedisWriter::FormatCommandLine(const Value& commandLine)
 {
 	String result;
