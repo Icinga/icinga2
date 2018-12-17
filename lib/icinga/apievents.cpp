@@ -19,6 +19,7 @@
 
 #include "icinga/apievents.hpp"
 #include "icinga/service.hpp"
+#include "icinga/notificationcommand.hpp"
 #include "remote/eventqueue.hpp"
 #include "base/initialize.hpp"
 #include "base/serializer.hpp"
@@ -128,6 +129,11 @@ void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notif
 	result->Set("host", host->GetName());
 	if (service)
 		result->Set("service", service->GetShortName());
+
+	NotificationCommand::Ptr command = notification->GetCommand();
+
+	if (command)
+		result->Set("command", command->GetName());
 
 	ArrayData userNames;
 

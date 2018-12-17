@@ -1333,6 +1333,7 @@ Example for all downtime events:
   timestamp     | Timestamp     | Unix timestamp when the event happened.
   host	        | String        | [Host](09-object-types.md#objecttype-host) name.
   service       | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host notification.
+  command       | String        | [NotificationCommand](09-object-types.md#objecttype-notificationcommand) name.
   users         | Array         | List of notified [user](09-object-types.md#objecttype-user) names.
   notification\_type | String   | [$notification.type$](03-monitoring-basics.md#notification-runtime-macros) runtime macro value.
   author        | String        | [$notification.author$](03-monitoring-basics.md#notification-runtime-macros) runtime macro value.
