@@ -318,6 +318,9 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 			checksums->Set("host_id", GetObjectIdentifier(service->GetHost()));
 			attributes->Set("display_name", service->GetDisplayName());
 
+			// Overwrite name here, `object->name` is 'HostName!ServiceName' but we only want the name of the Service
+			attributes->Set("name", service->GetShortName());
+
 			groups = service->GetGroups();
 			getGroup = &::GetObjectByName<ServiceGroup>;
 		} else {
