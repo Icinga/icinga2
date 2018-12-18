@@ -2,6 +2,9 @@ if (-not (Test-Path env:ICINGA2_BUILDPATH)) {
   $env:ICINGA2_BUILDPATH = '.\build'
 }
 
+if (-not (Test-Path env:CMAKE_BUILD_TYPE)) {
+  $env:CMAKE_BUILD_TYPE = 'RelWithDebInfo'
+}
 if (-not (Test-Path "$env:ICINGA2_BUILDPATH")) {
   mkdir "$env:ICINGA2_BUILDPATH" | out-null
 }
@@ -53,8 +56,13 @@ cd "$env:ICINGA2_BUILDPATH"
 
 #-DCMAKE_INSTALL_PREFIX="C:\Program Files\Icinga2" `
 
+# Invalidate cache in case something in the build environment changed
+if (Test-Path CMakeCache.txt) {
+  Remove-Item -Force CMakeCache.txt | Out-Null
+}
+
 & cmake.exe "$sourcePath" `
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo `
+  -DCMAKE_BUILD_TYPE="$env:CMAKE_BUILD_TYPE" `
   -G $env:CMAKE_GENERATOR -DCPACK_GENERATOR=WIX `
   -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF `
   -DOPENSSL_ROOT_DIR="$env:OPENSSL_ROOT_DIR" `
