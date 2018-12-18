@@ -2976,6 +2976,23 @@ nwc_health_oids			| **Optional.** A list of oids which are downloaded and writte
 nwc_health_offline		| **Optional.** The maximum number of seconds since the last update of cache file before it is considered too old.
 nwc_health_multiline		| **Optional.** Multiline output
 
+### Network Services <a id="plugin-contrib-network-services"></a>
+
+This category contains plugins which receive details about network services
+
+#### lsyncd <a id="plugin-contrib-command-lsyncd"></a>
+
+The [check_lsyncd](https://github.com/ohitz/check_lsyncd) plugin,
+uses the `lsyncd` status file to monitor [lsyncd](https://axkibe.github.io/lsyncd/).
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|---------------------------------------------------------------------------
+lsyncd_statfile         | **Optional.** Set status file path (default: /var/run/lsyncd.status).
+lsyncd_warning          | **Optional.** Warning if more than N delays (default: 10).
+lsyncd_critical         | **Optional.** Critical if more then N delays (default: 100).
+
 
 ### Operating System <a id="plugin-contrib-operating-system"></a>
 
