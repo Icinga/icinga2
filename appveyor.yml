@@ -11,6 +11,7 @@ environment:
   BOOST_LIBRARYDIR: 'C:\Libraries\boost_1_65_1\lib64-msvc-14.1'
   BISON_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe'
   FLEX_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe'
+  CMAKE_BUILD_TYPE: Debug
 
 branches:
   only:

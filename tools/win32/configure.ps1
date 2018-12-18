@@ -2,6 +2,9 @@ if (-not (Test-Path env:ICINGA2_BUILDPATH)) {
   $env:ICINGA2_BUILDPATH = '.\build'
 }
 
+if (-not (Test-Path env:CMAKE_BUILD_TYPE)) {
+  $env:CMAKE_BUILD_TYPE = 'RelWithDebInfo'
+}
 if (-not (Test-Path "$env:ICINGA2_BUILDPATH")) {
   mkdir "$env:ICINGA2_BUILDPATH" | out-null
 }
@@ -59,7 +62,7 @@ if (Test-Path CMakeCache.txt) {
 }
 
 & cmake.exe "$sourcePath" `
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo `
+  -DCMAKE_BUILD_TYPE="$env:CMAKE_BUILD_TYPE" `
   -G $env:CMAKE_GENERATOR -DCPACK_GENERATOR=WIX `
   -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF `
   -DOPENSSL_ROOT_DIR="$env:OPENSSL_ROOT_DIR" `
