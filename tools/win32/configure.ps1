@@ -53,6 +53,11 @@ cd "$env:ICINGA2_BUILDPATH"
 
 #-DCMAKE_INSTALL_PREFIX="C:\Program Files\Icinga2" `
 
+# Invalidate cache in case something in the build environment changed
+if (Test-Path CMakeCache.txt) {
+  Remove-Item -Force CMakeCache.txt | Out-Null
+}
+
 & cmake.exe "$sourcePath" `
   -DCMAKE_BUILD_TYPE=RelWithDebInfo `
   -G $env:CMAKE_GENERATOR -DCPACK_GENERATOR=WIX `
