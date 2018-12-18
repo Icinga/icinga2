@@ -215,7 +215,7 @@ bool Downtime::HasValidConfigOwner() const
 	}
 
 	String configOwner = GetConfigOwner();
-	return configOwner.IsEmpty() || GetObject<ScheduledDowntime>(configOwner);
+	return configOwner.IsEmpty() || Zone::GetByName(GetAuthoritativeZone()) != Zone::GetLocalZone() || GetObject<ScheduledDowntime>(configOwner);
 }
 
 int Downtime::GetNextDowntimeID()
@@ -250,6 +250,10 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 	attrs->Set("scheduled_by", scheduledBy);
 	attrs->Set("config_owner", scheduledDowntime);
 	attrs->Set("entry_time", Utility::GetTime());
+
+	if (!scheduledDowntime.IsEmpty()) {
+		attrs->Set("authoritative_zone", Zone::GetLocalZone()->GetName());
+	}
 
 	Host::Ptr host;
 	Service::Ptr service;
