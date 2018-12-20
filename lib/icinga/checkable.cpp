@@ -57,14 +57,16 @@ void Checkable::OnAllConfigLoaded()
 	if (endpoint) {
 		Zone::Ptr checkableZone = static_pointer_cast<Zone>(GetZone());
 
-		if (!checkableZone)
-			checkableZone = Zone::GetLocalZone();
+		if (checkableZone) {
+			Zone::Ptr cmdZone = endpoint->GetZone();
 
-		Zone::Ptr cmdZone = endpoint->GetZone();
-
-		if (checkableZone && cmdZone != checkableZone && cmdZone->GetParent() != checkableZone) {
+			if (cmdZone != checkableZone && cmdZone->GetParent() != checkableZone) {
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "command_endpoint" },
+					"Command endpoint must be in zone '" + checkableZone->GetName() + "' or in a direct child zone thereof."));
+			}
+		} else {
 			BOOST_THROW_EXCEPTION(ValidationError(this, { "command_endpoint" },
-				"Command endpoint must be in zone '" + checkableZone->GetName() + "' or in a direct child zone thereof."));
+				"Command endpoint must not be set."));
 		}
 	}
 }
