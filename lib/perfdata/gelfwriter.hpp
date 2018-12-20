@@ -14,6 +14,13 @@
 namespace icinga
 {
 
+enum GelfWriterEventType
+{
+	GelfWriterEventTypeCheckResult = 1,
+	GelfWriterEventTypeStateChange = 2,
+	GelfWriterEventTypeNotification = 4
+};
+
 /**
  * An Icinga Gelf writer for Graylog.
  *
@@ -26,6 +33,10 @@ public:
 	DECLARE_OBJECTNAME(GelfWriter);
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+	static void StaticInitialize();
+
+	void ValidateTypes(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
+	static const std::map<String, int>& GetTypeFilterMap();
 
 protected:
 	void OnConfigLoaded() override;
@@ -37,6 +48,8 @@ private:
 	WorkQueue m_WorkQueue{10000000, 1};
 
 	Timer::Ptr m_ReconnectTimer;
+
+	static std::map<String, int> m_TypeFilterMap;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void CheckResultHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
