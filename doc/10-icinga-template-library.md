@@ -5388,3 +5388,29 @@ uptime                  | How long the cache has been running (in seconds)
 ratio                   | The cache hit ratio expressed as a percentage of hits to hits + misses.  Default thresholds are 95 and 90.
 usage                   | Cache file usage as a percentage of the total cache space.
 
+#### haproxy <a id="plugin-contrib-command-haproxy"></a>
+
+The [check_haproxy](https://salsa.debian.org/nagios-team/pkg-nagios-plugins-contrib/blob/master/check_haproxy/check_haproxy) plugin,
+also available in the [monitoring-plugins-contrib](https://packages.debian.org/nagios-plugins-contrib) on debian,
+uses the `haproxy` csv statistics page to monitor [haproxy](http://www.haproxy.org/) response time. The plugin outputa performance data for backends sessions and statistics response time.
+
+This plugin need to access the csv statistics page. You can configure it in haproxy by adding a new frontend:
+```
+frontend stats
+    bind 127.0.0.1:80
+    stats enablestats
+    stats uri /stats
+```
+
+The statistics page will be available at `http://127.0.0.1/stats;csv;norefresh`.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+haproxy_username        | **Optional.** Username for HTTP Auth
+haproxy_password        | **Optional.** Password for HTTP Auth
+haproxy_url             | **Required.** URL of the HAProxy csv statistics page.
+haproxy_timeout         | **Optional.** Seconds before plugin times out (default: 10)
+haproxy_warning         | **Optional.** Warning request time threshold (in seconds)
+haproxy_critical        | **Optional.** Critical request time threshold (in seconds)
