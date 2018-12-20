@@ -2993,6 +2993,33 @@ lsyncd_statfile         | **Optional.** Set status file path (default: /var/run/
 lsyncd_warning          | **Optional.** Warning if more than N delays (default: 10).
 lsyncd_critical         | **Optional.** Critical if more then N delays (default: 100).
 
+#### fail2ban <a id="plugin-contrib-command-fail2ban"></a>
+
+The [check_fail2ban](https://github.com/fail2ban/fail2ban/tree/master/files/nagios) plugin
+uses the `fail2ban-client` binary to monitor [fail2ban](http://www.fail2ban.org) jails.
+
+The plugin requires `sudo` permissions.
+You can add a sudoers file to allow your monitoring user to use the plugin, i.e. edit /etc/sudoers.d/icinga and add:
+```
+icinga ALL=(root) NOPASSWD:/usr/lib/nagios/plugins/check_fail2ban
+```
+
+and set the correct permissions:
+```bash
+chown -c root: /etc/sudoers.d/icinga
+chmod -c 0440 /etc/sudoers.d/icinga
+```
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|---------------------------------------------------------------------------
+fail2ban_display        | **Optional.** To modify the output display, default is 'CHECK FAIL2BAN ACTIVITY'
+fail2ban_path           | **Optional.** Specify the path to the tw_cli binary, default value is /usr/bin/fail2ban-client
+fail2ban_warning        | **Optional.** Specify a warning threshold, default is 1
+fail2ban_critical       | **Optional.** Specify a critical threshold, default is 2
+fail2ban_socket         | **Optional.** Specify a socket path, default is unset
+fail2ban_perfdata       | **Optional.** If set to true, activate the perfdata output, default value for the plugin is set to true.
 
 ### Operating System <a id="plugin-contrib-operating-system"></a>
 
