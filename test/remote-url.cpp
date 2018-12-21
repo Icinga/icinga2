@@ -53,31 +53,50 @@ BOOST_AUTO_TEST_CASE(get_and_set)
 
 	BOOST_CHECK(url->Format(false, true) == "ftp://Horst:Seehofer@koenigreich.bayern:1918/path/to/m%C3%BCnchen");
 
-	std::map<String, std::vector<String> > m;
-	std::vector<String> v1 { "hip", "hip", "hurra" };
-	std::vector<String> v2 { "äü^ä+#ül-" };
-	std::vector<String> v3 { "1", "2" };
-	m.insert(std::make_pair("shout", v1));
-	m.insert(std::make_pair("sonderzeichen", v2));
-	url->SetQuery(m);
-	url->SetQueryElements("count", v3);
+	url->SetQuery({
+		{"shout", "hip"},
+		{"shout", "hip"},
+		{"shout", "hurra"},
+		{"sonderzeichen", "äü^ä+#ül-"}
+	});
 	url->AddQueryElement("count", "3");
 
-	std::map<String, std::vector<String> > mn = url->GetQuery();
-	BOOST_CHECK(mn["shout"][0] == v1[0]);
-	BOOST_CHECK(mn["sonderzeichen"][0] == v2[0]);
-	BOOST_CHECK(mn["count"][2] == "3");
+	auto mn (url->GetQuery());
+
+	BOOST_CHECK(mn.size() == 5);
+
+	BOOST_CHECK(mn[0].first == "shout");
+	BOOST_CHECK(mn[0].second == "hip");
+
+	BOOST_CHECK(mn[1].first == "shout");
+	BOOST_CHECK(mn[1].second == "hip");
+
+	BOOST_CHECK(mn[2].first == "shout");
+	BOOST_CHECK(mn[2].second == "hurra");
+
+	BOOST_CHECK(mn[3].first == "sonderzeichen");
+	BOOST_CHECK(mn[3].second == "äü^ä+#ül-");
+
+	BOOST_CHECK(mn[4].first == "count");
+	BOOST_CHECK(mn[4].second == "3");
 }
 
 BOOST_AUTO_TEST_CASE(parameters)
 {
 	Url::Ptr url = new Url("https://icinga.com/hya/?rain=karl&rair=robert&foo[]=bar");
 
-	BOOST_CHECK(url->GetQueryElement("rair") == "robert");
-	BOOST_CHECK(url->GetQueryElement("rain") == "karl");
-	std::vector<String> test = url->GetQueryElements("foo");
-	BOOST_CHECK(test.size() == 1);
-	BOOST_CHECK(test[0] == "bar");
+	auto query (url->GetQuery());
+
+	BOOST_CHECK(query.size() == 3);
+
+	BOOST_CHECK(query[0].first == "rain");
+	BOOST_CHECK(query[0].second == "karl");
+
+	BOOST_CHECK(query[1].first == "rair");
+	BOOST_CHECK(query[1].second == "robert");
+
+	BOOST_CHECK(query[2].first == "foo");
+	BOOST_CHECK(query[2].second == "bar");
 }
 
 BOOST_AUTO_TEST_CASE(format)

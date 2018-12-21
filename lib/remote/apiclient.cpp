@@ -42,11 +42,11 @@ void ApiClient::ExecuteScript(const String& session, const String& command, bool
 	url->SetPort(m_Connection->GetPort());
 	url->SetPath({ "v1", "console", "execute-script" });
 
-	std::map<String, std::vector<String> > params;
-	params["session"].push_back(session);
-	params["command"].push_back(command);
-	params["sandboxed"].emplace_back(sandboxed ? "1" : "0");
-	url->SetQuery(params);
+	url->SetQuery({
+		{"session", session},
+		{"command", command},
+		{"sandboxed", sandboxed ? "1" : "0"}
+	});
 
 	try {
 		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
@@ -121,11 +121,11 @@ void ApiClient::AutocompleteScript(const String& session, const String& command,
 	url->SetPort(m_Connection->GetPort());
 	url->SetPath({ "v1", "console", "auto-complete-script" });
 
-	std::map<String, std::vector<String> > params;
-	params["session"].push_back(session);
-	params["command"].push_back(command);
-	params["sandboxed"].emplace_back(sandboxed ? "1" : "0");
-	url->SetQuery(params);
+	url->SetQuery({
+		{"session", session},
+		{"command", command},
+		{"sandboxed", sandboxed ? "1" : "0"}
+	});
 
 	try {
 		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
