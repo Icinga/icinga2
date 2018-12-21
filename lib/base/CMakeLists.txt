@@ -81,6 +81,7 @@ set(base_SOURCES
   stream.cpp stream.hpp
   streamlogger.cpp streamlogger.hpp streamlogger-ti.hpp
   string.cpp string.hpp string-script.cpp
+  stringbuilder.cpp stringbuilder.hpp
   sysloglogger.cpp sysloglogger.hpp sysloglogger-ti.hpp
   tcpsocket.cpp tcpsocket.hpp
   threadpool.cpp threadpool.hpp

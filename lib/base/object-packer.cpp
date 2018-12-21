@@ -22,6 +22,7 @@
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
+#include "base/stringbuilder.hpp"
 #include <algorithm>
 #include <climits>
 #include <cstdint>
@@ -29,9 +30,6 @@
 #include <vector>
 
 using namespace icinga;
-
-// Just for the sake of code readability
-typedef std::vector<char> StringBuilder;
 
 union EndiannessDetector
 {
@@ -105,7 +103,7 @@ static inline void PackUInt64BE(uint_least64_t i, StringBuilder& builder)
 		UIntToByte(i & 255u)
 	};
 
-	builder.insert(builder.end(), (char*)buf, (char*)buf + 8);
+	builder.Append((char*)buf, (char*)buf + 8);
 }
 
 union Double2BytesConverter
@@ -142,7 +140,7 @@ static inline void PackFloat64BE(double f, StringBuilder& builder)
 		SwapBytes(converter.buf[3], converter.buf[4]);
 	}
 
-	builder.insert(builder.end(), (char*)converter.buf, (char*)converter.buf + 8);
+	builder.Append((char*)converter.buf, (char*)converter.buf + 8);
 }
 
 /**
@@ -151,7 +149,7 @@ static inline void PackFloat64BE(double f, StringBuilder& builder)
 static inline void PackString(const String& string, StringBuilder& builder)
 {
 	PackUInt64BE(string.GetLength(), builder);
-	builder.insert(builder.end(), string.Begin(), string.End());
+	builder.Append(string);
 }
 
 /**
@@ -161,7 +159,7 @@ static inline void PackArray(const Array::Ptr& arr, StringBuilder& builder)
 {
 	ObjectLock olock(arr);
 
-	builder.emplace_back(5);
+	builder.Append('\5');
 	PackUInt64BE(arr->GetLength(), builder);
 
 	for (const Value& value : arr) {
@@ -176,7 +174,7 @@ static inline void PackDictionary(const Dictionary::Ptr& dict, StringBuilder& bu
 {
 	ObjectLock olock(dict);
 
-	builder.emplace_back(6);
+	builder.Append('\6');
 	PackUInt64BE(dict->GetLength(), builder);
 
 	for (const Dictionary::Pair& kv : dict) {
@@ -192,21 +190,21 @@ static void PackAny(const Value& value, StringBuilder& builder)
 {
 	switch (value.GetType()) {
 		case ValueString:
-			builder.emplace_back(4);
+			builder.Append('\4');
 			PackString(value.Get<String>(), builder);
 			break;
 
 		case ValueNumber:
-			builder.emplace_back(3);
+			builder.Append('\3');
 			PackFloat64BE(value.Get<double>(), builder);
 			break;
 
 		case ValueBoolean:
-			builder.emplace_back(value.ToBool() ? 2 : 1);
+			builder.Append(value.ToBool() ? '\2' : '\1');
 			break;
 
 		case ValueEmpty:
-			builder.emplace_back(0);
+			builder.Append('\0');
 			break;
 
 		case ValueObject:
@@ -226,7 +224,7 @@ static void PackAny(const Value& value, StringBuilder& builder)
 				}
 			}
 
-			builder.emplace_back(0);
+			builder.Append('\0');
 			break;
 
 		default:
@@ -262,5 +260,5 @@ String icinga::PackObject(const Value& value)
 	StringBuilder builder;
 	PackAny(value, builder);
 
-	return String(builder.begin(), builder.end());
+	return builder.ToString();
 }
