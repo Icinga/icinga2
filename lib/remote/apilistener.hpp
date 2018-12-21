@@ -26,6 +26,7 @@
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include "base/configobject.hpp"
+#include "base/fastqueue.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "base/tcpsocket.hpp"
@@ -135,6 +136,7 @@ private:
 	Timer::Ptr m_AuthorityTimer;
 	Timer::Ptr m_CleanupCertificateRequestsTimer;
 	Endpoint::Ptr m_LocalEndpoint;
+	FastQueue<Socket::Ptr> m_WaitingClients;
 
 	static ApiListener::Ptr m_Instance;
 
@@ -148,6 +150,7 @@ private:
 	void NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
 	void NewClientHandlerInternal(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
 	void ListenerThreadProc(const Socket::Ptr& server);
+	void ClientHandlerThreadProc();
 
 	static ThreadPool& GetTP();
 	static void EnqueueAsyncCallback(const std::function<void ()>& callback, SchedulerPolicy policy = DefaultScheduler);

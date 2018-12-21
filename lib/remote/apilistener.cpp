@@ -48,7 +48,7 @@ REGISTER_STATSFUNCTION(ApiListener, &ApiListener::StatsFunc);
 
 REGISTER_APIFUNCTION(Hello, icinga, &ApiListener::HelloAPIHandler);
 
-ApiListener::ApiListener()
+ApiListener::ApiListener() : m_WaitingClients(128 * 1024)
 {
 	m_RelayQueue.SetName("ApiListener, RelayQueue");
 	m_SyncQueue.SetName("ApiListener, SyncQueue");
@@ -361,8 +361,15 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	Log(LogInformation, "ApiListener")
 		<< "Started new listener on '" << server->GetClientAddress() << "'";
 
-	std::thread thread(std::bind(&ApiListener::ListenerThreadProc, this, server));
-	thread.detach();
+	{
+		std::thread thread(std::bind(&ApiListener::ListenerThreadProc, this, server));
+		thread.detach();
+	}
+
+	{
+		std::thread thread(std::bind(&ApiListener::ClientHandlerThreadProc, this));
+		thread.detach();
+	}
 
 	m_Servers.insert(server);
 
@@ -379,13 +386,20 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 
 	for (;;) {
 		try {
-			Socket::Ptr client = server->Accept();
-
-			/* Use dynamic thread pool with additional on demand resources with fast throughput. */
-			EnqueueAsyncCallback(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer), LowLatencyScheduler);
+			m_WaitingClients.Push(server->Accept());
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
 		}
+	}
+}
+
+void ApiListener::ClientHandlerThreadProc()
+{
+	Utility::SetThreadName("API Listener");
+
+	for (;;) {
+		/* Use dynamic thread pool with additional on demand resources with fast throughput. */
+		EnqueueAsyncCallback(std::bind(&ApiListener::NewClientHandler, this, m_WaitingClients.Shift(), String(), RoleServer), LowLatencyScheduler);
 	}
 }
 
