@@ -83,17 +83,17 @@ BOOST_AUTO_TEST_CASE(get_and_set)
 
 BOOST_AUTO_TEST_CASE(parameters)
 {
-	Url::Ptr url = new Url("https://icinga.com/hya/?rain=karl&rair=robert&foo[]=bar");
+	Url::Ptr url = new Url("https://icinga.com/hya/?rair=robert&rain=karl&foo[]=bar");
 
 	auto query (url->GetQuery());
 
 	BOOST_CHECK(query.size() == 3);
 
-	BOOST_CHECK(query[0].first == "rain");
-	BOOST_CHECK(query[0].second == "karl");
+	BOOST_CHECK(query[0].first == "rair");
+	BOOST_CHECK(query[0].second == "robert");
 
-	BOOST_CHECK(query[1].first == "rair");
-	BOOST_CHECK(query[1].second == "robert");
+	BOOST_CHECK(query[1].first == "rain");
+	BOOST_CHECK(query[1].second == "karl");
 
 	BOOST_CHECK(query[2].first == "foo");
 	BOOST_CHECK(query[2].second == "bar");
