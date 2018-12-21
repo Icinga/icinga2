@@ -45,6 +45,7 @@ set(base_SOURCES
   dependencygraph.cpp dependencygraph.hpp
   dictionary.cpp dictionary.hpp dictionary-script.cpp
   exception.cpp exception.hpp
+  fastqueue.hpp
   fifo.cpp fifo.hpp
   filelogger.cpp filelogger.hpp filelogger-ti.hpp
   function.cpp function.hpp function-ti.hpp function-script.cpp functionwrapper.hpp
