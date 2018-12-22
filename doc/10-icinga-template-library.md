@@ -5415,3 +5415,28 @@ haproxy_url             | **Required.** URL of the HAProxy csv statistics page.
 haproxy_timeout         | **Optional.** Seconds before plugin times out (default: 10)
 haproxy_warning         | **Optional.** Warning request time threshold (in seconds)
 haproxy_critical        | **Optional.** Critical request time threshold (in seconds)
+
+#### phpfpm_status <a id="plugin-contrib-command-phpfpm_status"></a>
+
+The [check_phpfpm_status](http://github.com/regilero/check_phpfpm_status) plugin,
+uses the `php-fpm` status page to monitor php-fpm.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                      | Description
+--------------------------|----------------------------------------------------------------------------------
+phpfpm\_status\_hostname  | **Required.** name or IP address of host to check
+phpfpm\_status\_port      | **Optional.** Http port, or Fastcgi port when using --fastcgi
+phpfpm\_status\_url       | **Optional.** Specific URL (only the path part of it in fact) to use, instead of the default /fpm-status
+phpfpm\_status\_servername| **Optional.** ServerName, (host header of HTTP request) use it if you specified an IP in -H to match the good Virtualhost in your target
+phpfpm\_status\_fastcgi   | **Optional.** If set, connect directly to php-fpm via network or local socket, using fastcgi protocol instead of HTTP.
+phpfpm\_status\_user      | **Optional.** Username for basic auth
+phpfpm\_status\_pass      | **Optional.** Password for basic auth
+phpfpm\_status\_realm     | **Optional.** Realm for basic auth
+phpfpm\_status\_debug     | **Optional.** If set, debug mode (show http request response)
+phpfpm\_status\_timeout   | **Optional.** timeout in seconds (Default: 15)
+phpfpm\_status\_ssl       | **Optional.** Wether we should use HTTPS instead of HTTP. Note that you can give some extra parameters to this settings. Default value is 'TLSv1' but you could use things like 'TLSv1_1' or 'TLSV1_2' (or even 'SSLv23:!SSLv2:!SSLv3' for old stuff).
+phpfpm\_status\_verifyssl | **Optional.** If set, verify certificate and hostname from ssl cert, default is 0 (no security), set it to 1 to really make SSL peer name and certificater checks.
+phpfpm\_status\_cacert    | **Optional.** Full path to the cacert.pem certificate authority used to verify ssl certificates (use with --verifyssl). if not given the cacert from Mozilla::CA cpan plugin will be used.
+phpfpm\_status\_warn      | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause a warning. -1 for no warning
+phpfpm\_status\_critical  | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause an error, -1 for no CRITICAL
