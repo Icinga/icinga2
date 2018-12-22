@@ -2579,6 +2579,34 @@ openmanage_timeout		| **Optional.** Plugin timeout in seconds [default=30]
 openmanage_vdisk_critical	| **Optional.** Make any alerts on virtual disks critical
 openmanage_warning		| **Optional.** Custom temperature warning limits
 
+#### hddtemp <a id="plugin-contrib-command-hddtemp"></a>
+
+The [check_hddtemp](https://github.com/vint21h/nagios-check-hddtemp) plugin,
+uses the `hddtemp` binary to monitor hard drive temperature.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+hddtemp_server          | **Required.** server name or address
+hddtemp_port            | **Optional.** port number
+hddtemp_devices         | **Optional.** comma separated devices list, or empty for all devices in hddtemp response
+hddtemp_separator       | **Optional.** hddtemp separator
+hddtemp_warning         | **Required.** warning temperature
+hddtemp_critical        | **Required.** critical temperature
+hddtemp_timeout         | **Optional.** receiving data from hddtemp operation network timeout
+hddtemp_performance     | **Optional.** If set, return performance data
+hddtemp_quiet           | **Optional.** If set, be quiet
+
+The following sane default value are specified:
+```
+vars.hddtemp_server = "127.0.0.1"
+vars.hddtemp_warning = 55
+vars.hddtemp_critical = 60
+vars.hddtemp_performance = true
+vars.hddtemp_timeout = 5
+```
+
 #### adaptec-raid <a id="plugin-contrib-command-adaptec-raid"></a>
 
 The [check_adaptec_raid](https://github.com/thomas-krenn/check_adaptec_raid) plugin
