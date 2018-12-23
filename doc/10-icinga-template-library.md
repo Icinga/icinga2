@@ -2601,18 +2601,18 @@ openmanage_timeout		| **Optional.** Plugin timeout in seconds [default=30]
 openmanage_vdisk_critical	| **Optional.** Make any alerts on virtual disks critical
 openmanage_warning		| **Optional.** Custom temperature warning limits
 
-#### temp <a id="plugin-contrib-command-temp"></a>
+#### lmsensors <a id="plugin-contrib-command-lmsensors"></a>
 
-The [check_temp](https://github.com/jackbenny/check_temp) plugin,
+The [check_lmsensors](https://github.com/jackbenny/check_temp) plugin,
 uses the `lm-sensors` binary to monitor temperature sensors.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|----------------------------------------------------------------------------------
-temp_warning            | **Required.** Exit with WARNING status if above INTEGER degrees
-temp_critical           | **Required.** Exit with CRITICAL status if above INTEGER degrees
-temp_sensor             | **Optional.** Set what to monitor, for example CPU or MB (or M/B). Check sensors for the correct word. Default is CPU.
+lmsensors_warning       | **Required.** Exit with WARNING status if above INTEGER degrees
+lmsensors_critical      | **Required.** Exit with CRITICAL status if above INTEGER degrees
+lmsensors_sensor        | **Optional.** Set what to monitor, for example CPU or MB (or M/B). Check sensors for the correct word. Default is CPU.
 
 #### hddtemp <a id="plugin-contrib-command-hddtemp"></a>
 
