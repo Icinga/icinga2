@@ -2492,6 +2492,28 @@ redis_memory_utilization | **Optional.** This calculates percent of total memory
 redis_total_memory       | **Optional.** Amount of memory on a system for memory utilization calculation. Use system memory or max_memory setting of redis.
 redis_replication_delay  | **Optional.** Allows to set threshold on replication delay info.
 
+#### proxysql <a id="plugin-contrib-command-proxysql"></a>
+
+The [check_proxysql](https://github.com/sysown/proxysql-nagios) plugin,
+uses the `proxysql` binary to monitor [proxysql](https://proxysql.com/).
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                         | Description
+-----------------------------|----------------------------------------------------------------------------------
+proxysql_user                | **Optional.** ProxySQL admin username (default=admin)
+proxysql_password            | **Optional.** ProxySQL admin password (default=admin)
+proxysql_host                | **Optional.** ProxySQL hostname / IP (default=127.0.0.1)
+proxysql_port                | **Optional.** ProxySQL admin port (default=6032)
+proxysql_defaultfile         | **Optional.** ProxySQL defaults file
+proxysql_type                | **Required.** ProxySQL check type (one of conns,hg,rules,status,var)
+proxysql_name                | **Optional.** ProxySQL variable name to check
+proxysql_lower               | **Optional.** Alert if ProxySQL value are LOWER than defined WARN / CRIT thresholds (only applies to 'var' check type)
+proxysql_runtime             | **Optional.** Force ProxySQL Nagios check to query the runtime_mysql_XXX tables rather than the mysql_XXX tables
+proxysql_warning             | **Optional.** Warning threshold
+proxysql_critical            | **Optional.** Critical threshold
+proxysql\_include\_hostgroup | **Optional.** ProxySQL hostgroup(s) to include (only applies to '--type hg' checks, accepts comma-separated list)
+proxysql\_ignore\_hostgroup  | **Optional.** ProxySQL hostgroup(s) to ignore (only applies to '--type hg' checks, accepts comma-separated list)
 
 ### Hardware <a id="plugin-contrib-hardware"></a>
 
@@ -2591,6 +2613,34 @@ Name                    | Description
 temp_warning            | **Required.** Exit with WARNING status if above INTEGER degrees
 temp_critical           | **Required.** Exit with CRITICAL status if above INTEGER degrees
 temp_sensor             | **Optional.** Set what to monitor, for example CPU or MB (or M/B). Check sensors for the correct word. Default is CPU.
+
+#### hddtemp <a id="plugin-contrib-command-hddtemp"></a>
+
+The [check_hddtemp](https://github.com/vint21h/nagios-check-hddtemp) plugin,
+uses the `hddtemp` binary to monitor hard drive temperature.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+hddtemp_server          | **Required.** server name or address
+hddtemp_port            | **Optional.** port number
+hddtemp_devices         | **Optional.** comma separated devices list, or empty for all devices in hddtemp response
+hddtemp_separator       | **Optional.** hddtemp separator
+hddtemp_warning         | **Required.** warning temperature
+hddtemp_critical        | **Required.** critical temperature
+hddtemp_timeout         | **Optional.** receiving data from hddtemp operation network timeout
+hddtemp_performance     | **Optional.** If set, return performance data
+hddtemp_quiet           | **Optional.** If set, be quiet
+
+The following sane default value are specified:
+```
+vars.hddtemp_server = "127.0.0.1"
+vars.hddtemp_warning = 55
+vars.hddtemp_critical = 60
+vars.hddtemp_performance = true
+vars.hddtemp_timeout = 5
+```
 
 #### adaptec-raid <a id="plugin-contrib-command-adaptec-raid"></a>
 
@@ -5428,3 +5478,28 @@ haproxy_url             | **Required.** URL of the HAProxy csv statistics page.
 haproxy_timeout         | **Optional.** Seconds before plugin times out (default: 10)
 haproxy_warning         | **Optional.** Warning request time threshold (in seconds)
 haproxy_critical        | **Optional.** Critical request time threshold (in seconds)
+
+#### phpfpm_status <a id="plugin-contrib-command-phpfpm_status"></a>
+
+The [check_phpfpm_status](http://github.com/regilero/check_phpfpm_status) plugin,
+uses the `php-fpm` status page to monitor php-fpm.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                      | Description
+--------------------------|----------------------------------------------------------------------------------
+phpfpm\_status\_hostname  | **Required.** name or IP address of host to check
+phpfpm\_status\_port      | **Optional.** Http port, or Fastcgi port when using --fastcgi
+phpfpm\_status\_url       | **Optional.** Specific URL (only the path part of it in fact) to use, instead of the default /fpm-status
+phpfpm\_status\_servername| **Optional.** ServerName, (host header of HTTP request) use it if you specified an IP in -H to match the good Virtualhost in your target
+phpfpm\_status\_fastcgi   | **Optional.** If set, connect directly to php-fpm via network or local socket, using fastcgi protocol instead of HTTP.
+phpfpm\_status\_user      | **Optional.** Username for basic auth
+phpfpm\_status\_pass      | **Optional.** Password for basic auth
+phpfpm\_status\_realm     | **Optional.** Realm for basic auth
+phpfpm\_status\_debug     | **Optional.** If set, debug mode (show http request response)
+phpfpm\_status\_timeout   | **Optional.** timeout in seconds (Default: 15)
+phpfpm\_status\_ssl       | **Optional.** Wether we should use HTTPS instead of HTTP. Note that you can give some extra parameters to this settings. Default value is 'TLSv1' but you could use things like 'TLSv1_1' or 'TLSV1_2' (or even 'SSLv23:!SSLv2:!SSLv3' for old stuff).
+phpfpm\_status\_verifyssl | **Optional.** If set, verify certificate and hostname from ssl cert, default is 0 (no security), set it to 1 to really make SSL peer name and certificater checks.
+phpfpm\_status\_cacert    | **Optional.** Full path to the cacert.pem certificate authority used to verify ssl certificates (use with --verifyssl). if not given the cacert from Mozilla::CA cpan plugin will be used.
+phpfpm\_status\_warn      | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause a warning. -1 for no warning
+phpfpm\_status\_critical  | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause an error, -1 for no CRITICAL
