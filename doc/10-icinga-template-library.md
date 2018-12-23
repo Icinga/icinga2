@@ -2492,6 +2492,28 @@ redis_memory_utilization | **Optional.** This calculates percent of total memory
 redis_total_memory       | **Optional.** Amount of memory on a system for memory utilization calculation. Use system memory or max_memory setting of redis.
 redis_replication_delay  | **Optional.** Allows to set threshold on replication delay info.
 
+#### proxysql <a id="plugin-contrib-command-proxysql"></a>
+
+The [check_proxysql](https://github.com/sysown/proxysql-nagios) plugin,
+uses the `proxysql` binary to monitor [proxysql](https://proxysql.com/).
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                         | Description
+-----------------------------|----------------------------------------------------------------------------------
+proxysql_user                | **Optional.** ProxySQL admin username (default=admin)
+proxysql_password            | **Optional.** ProxySQL admin password (default=admin)
+proxysql_host                | **Optional.** ProxySQL hostname / IP (default=127.0.0.1)
+proxysql_port                | **Optional.** ProxySQL admin port (default=6032)
+proxysql_defaultfile         | **Optional.** ProxySQL defaults file
+proxysql_type                | **Required.** ProxySQL check type (one of conns,hg,rules,status,var)
+proxysql_name                | **Optional.** ProxySQL variable name to check
+proxysql_lower               | **Optional.** Alert if ProxySQL value are LOWER than defined WARN / CRIT thresholds (only applies to 'var' check type)
+proxysql_runtime             | **Optional.** Force ProxySQL Nagios check to query the runtime_mysql_XXX tables rather than the mysql_XXX tables
+proxysql_warning             | **Optional.** Warning threshold
+proxysql_critical            | **Optional.** Critical threshold
+proxysql\_include\_hostgroup | **Optional.** ProxySQL hostgroup(s) to include (only applies to '--type hg' checks, accepts comma-separated list)
+proxysql\_ignore\_hostgroup  | **Optional.** ProxySQL hostgroup(s) to ignore (only applies to '--type hg' checks, accepts comma-separated list)
 
 ### Hardware <a id="plugin-contrib-hardware"></a>
 
