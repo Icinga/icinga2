@@ -5466,7 +5466,7 @@ haproxy_timeout         | **Optional.** Seconds before plugin times out (default
 haproxy_warning         | **Optional.** Warning request time threshold (in seconds)
 haproxy_critical        | **Optional.** Critical request time threshold (in seconds)
 
-#### haproxy-status <a id="plugin-contrib-command-haproxy-status"></a>
+#### haproxy_status <a id="plugin-contrib-command-haproxy_status"></a>
 
 The [check_haproxy_status](https://github.com/jonathanio/monitoring-nagios-haproxy) plugin,
 uses the `haproxy` statistics socket to monitor [haproxy](http://www.haproxy.org/) frontends/backends.
