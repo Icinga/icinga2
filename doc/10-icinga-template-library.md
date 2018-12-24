@@ -5466,6 +5466,30 @@ haproxy_timeout         | **Optional.** Seconds before plugin times out (default
 haproxy_warning         | **Optional.** Warning request time threshold (in seconds)
 haproxy_critical        | **Optional.** Critical request time threshold (in seconds)
 
+#### haproxy-status <a id="plugin-contrib-command-haproxy-status"></a>
+
+The [check_haproxy_status](https://github.com/jonathanio/monitoring-nagios-haproxy) plugin,
+uses the `haproxy` statistics socket to monitor [haproxy](http://www.haproxy.org/) frontends/backends.
+
+This plugin need read/write access to the statistics socket with an operator level. You can configure it in the global section of haproxy to allow icinga user to use it:
+```
+stats socket /run/haproxy/admin.sock user haproxy group icinga mode 660 level operator
+```
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                        | Description
+----------------------------|----------------------------------------------------------------------------------
+haproxy\_status\_default    | **Optional.** Set/Override the defaults which will be applied to all checks (unless specifically set by --overrides).
+haproxy\_status\_frontends  | **Optional.** Enable checks for the frontends in HAProxy (that they're marked as OPEN and the session limits haven't been reached).
+haproxy\_status\_nofrontends| **Optional.** Disable checks for the frontends in HAProxy (that they're marked as OPEN and the session limits haven't been reached).
+haproxy\_status\_backends   | **Optional.** Enable checks for the backends in HAProxy (that they have the required quorum of servers, and that the session limits haven't been reached).
+haproxy\_status\_nobackends | **Optional.** Disable checks for the backends in HAProxy (that they have the required quorum of servers, and that the session limits haven't been reached).
+haproxy\_status\_servers    | **Optional.** Enable checks for the servers in HAProxy (that they haven't reached the limits for the sessions or for queues).
+haproxy\_status\_noservers  | **Optional.** Disable checks for the servers in HAProxy (that they haven't reached the limits for the sessions or for queues).
+haproxy\_status\_overrides  | **Optional.** Override the defaults for a particular frontend or backend, in the form {name}:{override}, where {override} is the same format as --defaults above.
+haproxy\_status\_socket     | **Required.** Path to the socket check_haproxy should connect to
+
 #### phpfpm_status <a id="plugin-contrib-command-phpfpm_status"></a>
 
 The [check_phpfpm_status](http://github.com/regilero/check_phpfpm_status) plugin,
