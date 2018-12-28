@@ -87,6 +87,12 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 		unit = "seconds";
 	} else if (unit == "s") {
 		unit = "seconds";
+	} else if (unit == "m") {
+		base *= 60.0;
+		unit = "seconds";
+	} else if (unit == "h") {
+		base *= 3600.0;
+		unit = "seconds";
 	} else if (unit == "tb") {
 		base *= 1024.0 * 1024.0 * 1024.0 * 1024.0;
 		unit = "bytes";

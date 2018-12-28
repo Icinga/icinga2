@@ -96,6 +96,28 @@ BOOST_AUTO_TEST_CASE(uom)
 
 	str = pv->Format();
 	BOOST_CHECK(str == "test=1s");
+
+	pv = PerfdataValue::Parse("test=10m;1;2");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 600);
+	BOOST_CHECK(pv->GetUnit() == "seconds");
+	BOOST_CHECK(pv->GetWarn() == 60);
+	BOOST_CHECK(pv->GetCrit() == 120);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=600s;60;120");
+
+	pv = PerfdataValue::Parse("test=1h;2;3");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 3600);
+	BOOST_CHECK(pv->GetUnit() == "seconds");
+	BOOST_CHECK(pv->GetWarn() == 7200);
+	BOOST_CHECK(pv->GetCrit() == 10800);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=3600s;7200;10800");
 }
 
 BOOST_AUTO_TEST_CASE(warncritminmax)
