@@ -71,7 +71,7 @@ std::vector<String> NodeSetupCommand::GetArgumentSuggestions(const String& argum
 
 ImpersonationLevel NodeSetupCommand::GetImpersonationLevel() const
 {
-	return ImpersonateRoot;
+	return ImpersonateIcinga;
 }
 
 /**
