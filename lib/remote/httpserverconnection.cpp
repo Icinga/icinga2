@@ -353,7 +353,7 @@ void HttpServerConnection::DataAvailableHandler()
 	if (!m_Stream->IsEof()) {
 		boost::recursive_mutex::scoped_try_lock lock(m_DataHandlerMutex);
 		if (!lock.owns_lock()) {
-			Log(LogInformation, "HttpServerConnection", "Unable to process available data, they're already being processed in another thread");
+			Log(LogNotice, "HttpServerConnection", "Unable to process available data, they're already being processed in another thread");
 			return;
 		}
 
