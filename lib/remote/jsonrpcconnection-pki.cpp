@@ -52,6 +52,15 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	else
 		cert = StringToCertificate(certText);
 
+	if (!cert) {
+		Log(LogWarning, "JsonRpcConnection") << "No certificate or CSR received";
+
+		result->Set("status_code", 1);
+		result->Set("error", "No certificate or CSR received.");
+
+		return result;
+	}
+
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	std::shared_ptr<X509> cacert = GetX509Certificate(listener->GetDefaultCaPath());
 
