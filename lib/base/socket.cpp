@@ -22,6 +22,7 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
+#include <climits>
 #include <sstream>
 #include <iostream>
 #include <boost/exception/errinfo_api_function.hpp>
@@ -260,7 +261,7 @@ String Socket::GetPeerAddress()
  */
 void Socket::Listen()
 {
-	if (listen(GetFD(), SOMAXCONN) < 0) {
+	if (listen(GetFD(), INT_MAX) < 0) {
 #ifndef _WIN32
 		Log(LogCritical, "Socket")
 			<< "listen() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
