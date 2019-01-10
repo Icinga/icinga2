@@ -159,7 +159,13 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 			return false;
 		}
 
-		ApiListener::UpdateObjectAuthority();
+		/* if (type != Comment::TypeInstance && type != Downtime::TypeInstance)
+		 * Does not work since this would require libicinga, which has a dependency on libremote
+		 * Would work if these libs were static.
+		 */
+		if (type->GetName() != "Comment" && type->GetName() != "Downtime")
+			ApiListener::UpdateObjectAuthority();
+
 
 		Log(LogInformation, "ConfigObjectUtility")
 			<< "Created and activated object '" << fullName << "' of type '" << type->GetName() << "'.";
