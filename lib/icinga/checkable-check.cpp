@@ -170,8 +170,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	long old_attempt = GetCheckAttempt();
 	bool recovery = false;
 
-	/* Ignore check results older than the current one. */
-	if (old_cr && cr->GetExecutionStart() < old_cr->GetExecutionStart())
+	/* Ignore check results older than the current one, except if the previous check result is from the future. */
+	if (old_cr && cr->GetExecutionStart() < old_cr->GetExecutionStart() && old_cr->GetExecutionStart() < now)
 		return;
 
 	/* The ExecuteCheck function already sets the old state, but we need to do it again
