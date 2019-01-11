@@ -17,6 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "base/object-packer.hpp"
+#include "base/tlsstream.hpp"
+#include "config.h"
 #include "icinga/checkable.hpp"
 #include "icinga/customvarobject.hpp"
 #impl_include "icinga/hostgroup.hpp"
@@ -59,6 +62,10 @@ class Host : Checkable
 	};
 	[state] Timestamp last_state_up;
 	[state] Timestamp last_state_down;
+
+	[no_user_modify] String plugin_cache_dir {
+		default {{{ return ICINGA_CACHEDIR + ("/plugins/" + SHA1(PackObject(GetName()))); }}}
+	};
 };
 
 }
