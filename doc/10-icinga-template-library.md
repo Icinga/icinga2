@@ -2752,6 +2752,7 @@ ipmi_no_sel_checking             | **Optional.** Turn off system event log check
 ipmi_no_thresholds               | **Optional.** Turn off performance data thresholds from output-sensor-thresholds.
 ipmi_verbose                     | **Optional.** Be Verbose multi line output, also with additional details for warnings.
 ipmi_debug                       | **Optional.** Be Verbose debugging output, followed by normal multi line output.
+ipmi_unify_file                  | **Optional.** Path to the unify file to unify sensor names.
 
 #### ipmi-alive <a id="plugin-contrib-command-ipmi-alive"></a>
 
