@@ -252,7 +252,11 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 	attrs->Set("entry_time", Utility::GetTime());
 
 	if (!scheduledDowntime.IsEmpty()) {
-		attrs->Set("authoritative_zone", Zone::GetLocalZone()->GetName());
+		auto localZone (Zone::GetLocalZone());
+
+		if (localZone) {
+			attrs->Set("authoritative_zone", localZone->GetName());
+		}
 	}
 
 	Host::Ptr host;
