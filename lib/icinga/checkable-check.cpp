@@ -79,7 +79,8 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 	if (interval > 1)
 		adj = fmod(now * 100 + GetSchedulingOffset(), interval * 100) / 100.0;
 
-	adj = std::min(0.5 + fmod(GetSchedulingOffset(), interval * 5) / 100.0, adj);
+	if (adj != 0.0)
+		adj = std::min(0.5 + fmod(GetSchedulingOffset(), interval * 5) / 100.0, adj);
 
 	double nextCheck = now - adj + interval;
 
