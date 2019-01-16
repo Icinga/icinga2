@@ -69,6 +69,17 @@ public:
 		return static_cast<long>(val);
 	}
 
+	static long ToLong(const String& val)
+	{
+		try {
+			return std::stol(val, nullptr, 10);
+		} catch (const std::exception&) {
+			std::ostringstream msgbuf;
+			msgbuf << "Can't convert '" << val << "' to an integer.";
+			BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
+		}
+	}
+
 	static double ToDouble(const Value& val)
 	{
 		return val;

@@ -35,6 +35,13 @@ BOOST_AUTO_TEST_CASE(tolong)
 	BOOST_CHECK(Convert::ToLong(Value(-7)) == -7);
 
 	BOOST_CHECK(Convert::ToLong(3.141386593) == 3);
+
+	String str = "10";
+	BOOST_CHECK(Convert::ToLong(str) == 10);
+	str = " 20 with text";
+	BOOST_CHECK(Convert::ToLong(str) == 20);
+	str = "text only";
+	BOOST_CHECK_THROW(Convert::ToLong(str), boost::exception);
 }
 
 BOOST_AUTO_TEST_CASE(todouble)
