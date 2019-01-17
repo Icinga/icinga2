@@ -45,8 +45,8 @@ private:
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void CheckResultHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void SendMetric(const String& prefix, const String& name, double value, double ts);
-	void SendPerfdata(const String& prefix, const CheckResult::Ptr& cr, double ts);
+	void SendMetric(const Checkable::Ptr& checkable, const String& prefix, const String& name, double value, double ts);
+	void SendPerfdata(const Checkable::Ptr& checkable, const String& prefix, const CheckResult::Ptr& cr, double ts);
 	static String EscapeMetric(const String& str);
 	static String EscapeMetricLabel(const String& str);
 	static Value EscapeMacroMetric(const Value& value);

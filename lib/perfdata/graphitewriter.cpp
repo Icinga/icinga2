@@ -3,6 +3,7 @@
 #include "perfdata/graphitewriter.hpp"
 #include "perfdata/graphitewriter-ti.cpp"
 #include "icinga/service.hpp"
+#include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "base/tcpsocket.hpp"
@@ -243,30 +244,32 @@ void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable,
 
 	if (GetEnableSendMetadata()) {
 		if (service) {
-			SendMetric(prefixMetadata, "state", service->GetState(), ts);
+			SendMetric(checkable, prefixMetadata, "state", service->GetState(), ts);
 		} else {
-			SendMetric(prefixMetadata, "state", host->GetState(), ts);
+			SendMetric(checkable, prefixMetadata, "state", host->GetState(), ts);
 		}
 
-		SendMetric(prefixMetadata, "current_attempt", checkable->GetCheckAttempt(), ts);
-		SendMetric(prefixMetadata, "max_check_attempts", checkable->GetMaxCheckAttempts(), ts);
-		SendMetric(prefixMetadata, "state_type", checkable->GetStateType(), ts);
-		SendMetric(prefixMetadata, "reachable", checkable->IsReachable(), ts);
-		SendMetric(prefixMetadata, "downtime_depth", checkable->GetDowntimeDepth(), ts);
-		SendMetric(prefixMetadata, "acknowledgement", checkable->GetAcknowledgement(), ts);
-		SendMetric(prefixMetadata, "latency", cr->CalculateLatency(), ts);
-		SendMetric(prefixMetadata, "execution_time", cr->CalculateExecutionTime(), ts);
+		SendMetric(checkable, prefixMetadata, "current_attempt", checkable->GetCheckAttempt(), ts);
+		SendMetric(checkable, prefixMetadata, "max_check_attempts", checkable->GetMaxCheckAttempts(), ts);
+		SendMetric(checkable, prefixMetadata, "state_type", checkable->GetStateType(), ts);
+		SendMetric(checkable, prefixMetadata, "reachable", checkable->IsReachable(), ts);
+		SendMetric(checkable, prefixMetadata, "downtime_depth", checkable->GetDowntimeDepth(), ts);
+		SendMetric(checkable, prefixMetadata, "acknowledgement", checkable->GetAcknowledgement(), ts);
+		SendMetric(checkable, prefixMetadata, "latency", cr->CalculateLatency(), ts);
+		SendMetric(checkable, prefixMetadata, "execution_time", cr->CalculateExecutionTime(), ts);
 	}
 
-	SendPerfdata(prefixPerfdata, cr, ts);
+	SendPerfdata(checkable, prefixPerfdata, cr, ts);
 }
 
-void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& cr, double ts)
+void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String& prefix, const CheckResult::Ptr& cr, double ts)
 {
 	Array::Ptr perfdata = cr->GetPerformanceData();
 
 	if (!perfdata)
 		return;
+
+	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
 	ObjectLock olock(perfdata);
 	for (const Value& val : perfdata) {
@@ -279,35 +282,37 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 				pdv = PerfdataValue::Parse(val);
 			} catch (const std::exception&) {
 				Log(LogWarning, "GraphiteWriter")
-					<< "Ignoring invalid perfdata value: " << val;
+					<< "Ignoring invalid perfdata for checkable '"
+					<< checkable->GetName() << "' and command '"
+					<< checkCommand->GetName() << "' with value: " << val;
 				continue;
 			}
 		}
 
 		String escapedKey = EscapeMetricLabel(pdv->GetLabel());
 
-		SendMetric(prefix, escapedKey + ".value", pdv->GetValue(), ts);
+		SendMetric(checkable, prefix, escapedKey + ".value", pdv->GetValue(), ts);
 
 		if (GetEnableSendThresholds()) {
 			if (pdv->GetCrit())
-				SendMetric(prefix, escapedKey + ".crit", pdv->GetCrit(), ts);
+				SendMetric(checkable, prefix, escapedKey + ".crit", pdv->GetCrit(), ts);
 			if (pdv->GetWarn())
-				SendMetric(prefix, escapedKey + ".warn", pdv->GetWarn(), ts);
+				SendMetric(checkable, prefix, escapedKey + ".warn", pdv->GetWarn(), ts);
 			if (pdv->GetMin())
-				SendMetric(prefix, escapedKey + ".min", pdv->GetMin(), ts);
+				SendMetric(checkable, prefix, escapedKey + ".min", pdv->GetMin(), ts);
 			if (pdv->GetMax())
-				SendMetric(prefix, escapedKey + ".max", pdv->GetMax(), ts);
+				SendMetric(checkable, prefix, escapedKey + ".max", pdv->GetMax(), ts);
 		}
 	}
 }
 
-void GraphiteWriter::SendMetric(const String& prefix, const String& name, double value, double ts)
+void GraphiteWriter::SendMetric(const Checkable::Ptr& checkable, const String& prefix, const String& name, double value, double ts)
 {
 	std::ostringstream msgbuf;
 	msgbuf << prefix << "." << name << " " << Convert::ToString(value) << " " << static_cast<long>(ts);
 
 	Log(LogDebug, "GraphiteWriter")
-		<< "Add to metric list: '" << msgbuf.str() << "'.";
+		<< "Checkable '" << checkable->GetName() << "' adds to metric list: '" << msgbuf.str() << "'.";
 
 	// do not send \n to debug log
 	msgbuf << "\n";
