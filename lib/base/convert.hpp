@@ -23,6 +23,7 @@
 #include "base/i2-base.hpp"
 #include "base/value.hpp"
 #include <boost/lexical_cast.hpp>
+#include <string>
 
 namespace icinga
 {
@@ -82,12 +83,18 @@ public:
 	template<typename T>
 	static String ToString(const T& val)
 	{
-		return boost::lexical_cast<std::string>(val);
+		return std::to_string(val);
 	}
 
 	static String ToString(const String& val);
 	static String ToString(const Value& val);
 	static String ToString(double val);
+
+	template<size_t S>
+	static String ToString(const char (&val)[S])
+	{
+		return std::string(val);
+	}
 
 	static double ToDateTimeValue(double val);
 	static double ToDateTimeValue(const Value& val);
