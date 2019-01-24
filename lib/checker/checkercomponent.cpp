@@ -84,9 +84,6 @@ void CheckerComponent::Start(bool runtimeCreated)
 
 void CheckerComponent::Stop(bool runtimeRemoved)
 {
-	Log(LogInformation, "CheckerComponent")
-		<< "'" << GetName() << "' stopped.";
-
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 		m_Stopped = true;
@@ -95,6 +92,9 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 
 	m_ResultTimer->Stop();
 	m_Thread.join();
+
+	Log(LogInformation, "CheckerComponent")
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<CheckerComponent>::Stop(runtimeRemoved);
 }
