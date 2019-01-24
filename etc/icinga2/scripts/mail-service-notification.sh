@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 # Copyright (C) 2012-2018 Icinga Development Team (https://icinga.com/)
 # Except of function urlencode which is Copyright (C) by Brian White (brian@aljex.com) used under MIT license
@@ -53,11 +53,14 @@ Error() {
 }
 
 urlencode() {
-  local LANG=C i c e=''
-  for ((i=0;i<${#1};i++)); do
-    c=${1:$i:1}
-    [[ "$c" =~ [a-zA-Z0-9\.\~\_\-] ]] || printf -v c '%%%02X' "'$c"
-    e+="$c"
+  local LANG=C i=0 c e s="$1"
+
+  while [ $i -lt ${#1} ]; do
+    [ "$i" -eq 0 ] || s="${s#?}"
+    c=${s%"${s#?}"}
+    [ -z "${c#[[:alnum:].~_-]}" ] || c=$(printf '%%%02X' "'$c")
+    e="${e}${c}"
+    i=$((i + 1))
   done
   echo "$e"
 }
