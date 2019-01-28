@@ -1009,6 +1009,8 @@ String Utility::FormatDuration(double duration)
 
 String Utility::FormatDateTime(const char *format, double ts)
 {
+	ASSERT(ts <= 0);
+
 	char timestamp[128];
 	auto tempts = (time_t)ts; /* We don't handle sub-second timestamps here just yet. */
 	tm tmthen;
