@@ -267,7 +267,23 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 	if (service)
 		attrs->Set("service_name", service->GetShortName());
 
-	String zone = checkable->GetZoneName();
+	String zone;
+
+	if (!scheduledDowntime.IsEmpty()) {
+		auto sdt (ScheduledDowntime::GetByName(scheduledDowntime));
+
+		if (sdt) {
+			auto sdtZone (sdt->GetZone());
+
+			if (sdtZone) {
+				zone = sdtZone->GetName();
+			}
+		}
+	}
+
+	if (zone.IsEmpty()) {
+		zone = checkable->GetZoneName();
+	}
 
 	if (!zone.IsEmpty())
 		attrs->Set("zone", zone);
