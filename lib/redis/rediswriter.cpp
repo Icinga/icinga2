@@ -121,6 +121,7 @@ void RedisWriter::TryToReconnect()
 
 	/* Config dump */
 	m_ConfigDumpInProgress = true;
+	PublishStats();
 
 	UpdateAllConfigObjects();
 
@@ -224,6 +225,7 @@ void RedisWriter::PublishStats()
 		return;
 
 	Dictionary::Ptr status = GetStats();
+	status->Set("config_dump_in_progress", m_ConfigDumpInProgress);
 	String jsonStats = JsonEncode(status);
 
 	m_Rcon->ExecuteQuery({ "PUBLISH", "icinga:stats", jsonStats });
