@@ -445,6 +445,7 @@ void ClusterEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	params->Set("comment", comment);
 	params->Set("acktype", type);
 	params->Set("notify", notify);
+	params->Set("persistent", persistent);
 	params->Set("expiry", expiry);
 
 	Dictionary::Ptr message = new Dictionary();
