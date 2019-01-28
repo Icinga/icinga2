@@ -107,7 +107,7 @@ void RedisWriter::UpdateAllConfigObjects()
 		std::vector<String> attributes = {"HMSET", m_PrefixConfigObject + lcType};
 		std::vector<String> customVars = {"HMSET", m_PrefixConfigCustomVar + lcType};
 		std::vector<String> checksums =  {"HMSET", m_PrefixConfigCheckSum + lcType};
-		std::vector<String> states =     {"HMSET", m_PrefixStateObject + lcType };
+		std::vector<String> states =     {"HMSET", m_PrefixStateObject + lcType};
 		std::vector<std::vector<String> > transaction = {{"MULTI"}};
 		bool dumpState = (lcType == "host" || lcType == "service");
 
@@ -125,38 +125,38 @@ void RedisWriter::UpdateAllConfigObjects()
 			bulkCounter++;
 			if (!bulkCounter % 100) {
 				if (attributes.size() > 2) {
-					transaction.push_back(attributes);
-					attributes.erase(attributes.begin() + 2, attributes.end());
+					transaction.push_back(std::move(attributes));
+					attributes = {"HMSET", m_PrefixConfigObject + lcType};
 				}
 				if (customVars.size() > 2) {
-					transaction.push_back(customVars);
-					customVars.erase(customVars.begin() + 2, customVars.end());
+					transaction.push_back(std::move(customVars));
+					customVars = {"HMSET", m_PrefixConfigCustomVar + lcType};
 				}
 				if (checksums.size() > 2) {
-					transaction.push_back(checksums);
-					checksums.erase(checksums.begin() + 2, checksums.end());
+					transaction.push_back(std::move(checksums));
+					checksums = {"HMSET", m_PrefixConfigCheckSum + lcType};
 				}
 				if (states.size() > 2) {
-					transaction.push_back(states);
-					states.erase(states.begin() + 2, states.end());
+					transaction.push_back(std::move(states));
+					states = {"HMSET", m_PrefixStateObject + lcType};
 				}
 
 				if (transaction.size() > 1) {
 					transaction.push_back({"EXEC"});
 					m_Rcon->ExecuteQueries(transaction);
-					transaction.erase(transaction.begin() + 1, transaction.end());
+					transaction = {{"MULTI"}};
 				}
 			}
 		}
 
 		if (attributes.size() > 2)
-			transaction.push_back(attributes);
+			transaction.push_back(std::move(attributes));
 		if (customVars.size() > 2)
-			transaction.push_back(customVars);
+			transaction.push_back(std::move(customVars));
 		if (checksums.size() > 2)
-			transaction.push_back(checksums);
+			transaction.push_back(std::move(checksums));
 		if (states.size() > 2)
-			transaction.push_back(states);
+			transaction.push_back(std::move(states));
 
 		if (transaction.size() > 1) {
 			transaction.push_back({"EXEC"});
