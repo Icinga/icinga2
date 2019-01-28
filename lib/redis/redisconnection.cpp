@@ -187,6 +187,7 @@ void RedisConnection::ExecuteQuery(const std::vector<String>& query, redisCallba
 void
 RedisConnection::ExecuteQueries(const std::vector<std::vector<String> >& queries, redisCallbackFn *fn, void *privdata)
 {
+	boost::mutex::scoped_lock lock = m_RedisConnectionWorkQueue.AcquireLock();
 	for (const auto& query : queries) {
 		m_RedisConnectionWorkQueue.Enqueue(std::bind(&RedisConnection::SendMessageInternal, this, query, fn, privdata));
 	}
