@@ -198,6 +198,14 @@ void Checkable::ValidateCheckInterval(const Lazy<double>& lvalue, const Validati
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "check_interval" }, "Interval must be greater than 0."));
 }
 
+void Checkable::ValidateRetryInterval(const Lazy<double>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<Checkable>::ValidateRetryInterval(lvalue, utils);
+
+	if (lvalue() <= 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "retry_interval" }, "Interval must be greater than 0."));
+}
+
 void Checkable::ValidateMaxCheckAttempts(const Lazy<int>& lvalue, const ValidationUtils& utils)
 {
 	ObjectImpl<Checkable>::ValidateMaxCheckAttempts(lvalue, utils);
