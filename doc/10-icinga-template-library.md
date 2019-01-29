@@ -1877,7 +1877,8 @@ Check command object for the `check_drivesize` NSClient++ plugin.
 
 Name                   | Description
 -----------------------|------------------
-nscp_disk_drive        | **Optional.** Drive character, default to all drives.
+nscp_disk_drive        | **Optional.** Drive character, default to all drives. Can be an array if multiple drives should be monitored.
+nscp_disk_exclude      | **Optional.** Drive character, default to none. Can be an array of drive characters if multiple drives should be excluded.
 nscp_disk_free         | **Optional.** Switch between checking free space (free=true) or used space (free=false), default to false.
 nscp_disk_warning      | **Optional.** Threshold for WARNING in percent or absolute (use MB, GB, ...), default to 80 (used) or 20 percent (free).
 nscp_disk_critical     | **Optional.** Threshold for CRITICAL in percent or absolute (use MB, GB, ...), default to 90 (used) or 10 percent (free).
