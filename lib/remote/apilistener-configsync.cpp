@@ -199,7 +199,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	Log(LogNotice, "ApiListener")
-		<< "Received update for object: " << JsonEncode(params);
+		<< "Received delete for object: " << JsonEncode(params);
 
 	/* check permissions */
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -209,7 +209,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (!listener->GetAcceptConfig()) {
 		Log(LogWarning, "ApiListener")
-			<< "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
+			<< "Ignoring config delete. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
 
@@ -217,14 +217,14 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (!endpoint) {
 		Log(LogNotice, "ApiListener")
-			<< "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+			<< "Discarding 'config delete object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
 
 	/* discard messages if the sender is in a child zone */
 	if (!Zone::GetLocalZone()->IsChildOf(endpoint->GetZone())) {
 		Log(LogNotice, "ApiListener")
-			<< "Discarding 'config update object' message from '"
+			<< "Discarding 'config delete object' message from '"
 			<< origin->FromClient->GetIdentity() << "'.";
 		return Empty;
 	}
