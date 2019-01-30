@@ -33,6 +33,8 @@ BOOST_AUTO_TEST_CASE(tolong)
 	BOOST_CHECK_THROW(Convert::ToLong("7a"), boost::exception);
 
 	BOOST_CHECK(Convert::ToLong(Value(-7)) == -7);
+
+	BOOST_CHECK(Convert::ToLong(3.141386593) == 3);
 }
 
 BOOST_AUTO_TEST_CASE(todouble)
