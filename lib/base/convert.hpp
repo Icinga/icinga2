@@ -64,6 +64,11 @@ public:
 		return val;
 	}
 
+	static long ToLong(double val)
+	{
+		return static_cast<long>(val);
+	}
+
 	static double ToDouble(const Value& val)
 	{
 		return val;
