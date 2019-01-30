@@ -192,6 +192,7 @@ public:
 	std::vector<intrusive_ptr<Dependency> > GetReverseDependencies() const;
 
 	void ValidateCheckInterval(const Lazy<double>& lvalue, const ValidationUtils& value) final;
+	void ValidateRetryInterval(const Lazy<double>& lvalue, const ValidationUtils& value) final;
 	void ValidateMaxCheckAttempts(const Lazy<int>& lvalue, const ValidationUtils& value) final;
 
 	static void IncreasePendingChecks();
