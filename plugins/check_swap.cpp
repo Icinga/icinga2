@@ -200,7 +200,7 @@ static int printOutput(printInfoStruct& printInfo)
 	if (printInfo.crit.rend(currentValue, printInfo.tSwap))
 		state = CRITICAL;
 
-	std::wcout << stateToString(state) << " ";
+	std::wcout << stateToString(state) << " - ";
 
 	if (!printInfo.showUsed)
 		std::wcout << printInfo.percentFree << L"% free ";
