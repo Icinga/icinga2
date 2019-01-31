@@ -2214,6 +2214,36 @@ cloudera_cluster      | **Required.** The cluster name in cloudera manager.
 cloudera_service      | **Required.** Name of cluster service to be checked.
 cloudera_verify_ssl   | **Optional.** Verify SSL. Defaults to true.
 
+#### cloudera_hdfs_space <a id="plugin-contrib-command-cloudera_hdfs_space"></a>
+
+The [cloudera_hdfs_space](https://github.com/miso231/icinga2-cloudera-plugin) plugin
+connects to Hadoop Namenode and gets used capacity of selected disk
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                  | Description
+----------------------|-----------------------------------------------------------------
+hdfs_space_host       | **Required.** Namenode host to connect to.
+hdfs_space_port       | **Optional.** Namenode port (default 50070).
+hdfs_space_disk       | **Required.** HDFS disk to check.
+hdfs_space_warn       | **Required.** Warning threshold in percent.
+hdfs_space_crit       | **Required.** Critical threshold in percent.
+
+#### cloudera_hdfs_files <a id="plugin-contrib-command-cloudera_hdfs_files"></a>
+
+The [cloudera_hdfs_files](https://github.com/miso231/icinga2-cloudera-plugin) plugin
+connects to Hadoop Namenode and gets total number of files on HDFS
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                  | Description
+----------------------|-----------------------------------------------------------------
+hdfs_files_host       | **Required.** Namenode host to connect to.
+hdfs_files_port       | **Optional.** Namenode port (default 50070).
+hdfs_files_warn       | **Required.** Warning threshold.
+hdfs_files_crit       | **Required.** Critical threshold.
+hdfs_files_max        | **Required.** Max files count that causes problems (default 140,000,000).
+
 ### Databases <a id="plugin-contrib-databases"></a>
 
 This category contains plugins for various database servers.
