@@ -845,6 +845,12 @@ Choose the following minimal set:
 
 After a while, Visual Studio will be ready.
 
+#### .NET Framework 3.5
+
+Windows 10 only have .NET Framework >= 4.6 installed by default, the Icinga Agent Wizard is built on .NET Framework 2.0 which is not included in .NET Framework 4.6. Thankfully Windows 10 have .NET Framework 3.5 (which includes .NET Framework 2.0) as a component on board, you just need to activate it.
+
+Go to `Control Panel` -> `Programs` -> `Turn Windows features on or off`. Tick `.NET Framework 3.5 (includes .NET 2.0 and 3.0)` and wait until the installation process succseded.
+
 #### Flex and Bison
 
 Install it using [chocolatey](https://www.wireshark.org/docs/wsdg_html_chunked/ChSetupWin32.html):
