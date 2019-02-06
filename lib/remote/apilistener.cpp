@@ -304,7 +304,9 @@ void ApiListener::Stop(bool runtimeDeleted)
 
 	GetTP().Stop();
 
-	for (;;) {
+	double time = Utility::GetTime();
+
+	do {
 		{
 			boost::mutex::scoped_lock lock(m_HttpClientsLock);
 
@@ -314,7 +316,7 @@ void ApiListener::Stop(bool runtimeDeleted)
 		}
 
 		Utility::Sleep(0.1);
-	}
+	} while (Utility::GetTime() - time < 30.0);
 
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
