@@ -38,10 +38,20 @@ String Convert::ToString(double val)
 	double integral;
 	double fractional = std::modf(val, &integral);
 
-	if (fractional == 0)
-		return Convert::ToString(static_cast<long long>(val));
-
 	std::ostringstream msgbuf;
+
+	if (fractional == 0) {
+		if (val < UINT64_MAX) {
+			if (val >= 0) {
+				return Convert::ToString(static_cast<unsigned long long>(val));
+			} else {
+				return Convert::ToString(static_cast<long long>(val));
+			}
+		} else {
+			msgbuf << std::setprecision(0);
+		}
+	}
+
 	msgbuf << std::fixed << val;
 	return msgbuf.str();
 }

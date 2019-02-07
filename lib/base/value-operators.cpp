@@ -80,6 +80,8 @@ std::ostream& icinga::operator<<(std::ostream& stream, const Value& value)
 {
 	if (value.IsBoolean())
 		stream << static_cast<int>(value);
+	else if (value.IsNumber())
+		stream << Convert::ToString(double(value));
 	else
 		stream << static_cast<String>(value);
 
