@@ -123,6 +123,8 @@ add_boost_test(base
     base_value/scalar
     base_value/convert
     base_value/format
+    base_value/floatValues
+    base_value/largeValues
     config_ops/simple
     config_ops/advanced
     icinga_checkresult/host_1attempt
@@ -146,6 +148,7 @@ add_boost_test(base
     icinga_perfdata/ignore_invalid_warn_crit_min_max
     icinga_perfdata/invalid
     icinga_perfdata/multi
+    icinga_perfdata/format_large_values
     remote_url/id_and_path
     remote_url/parameters
     remote_url/get_and_set

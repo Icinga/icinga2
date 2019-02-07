@@ -66,4 +66,31 @@ BOOST_AUTO_TEST_CASE(format)
 	BOOST_CHECK(v != 3);
 }
 
+BOOST_AUTO_TEST_CASE(floatValues)
+{
+	Value v = 3.1415;
+
+	std::ostringstream obuf;
+	obuf << v;
+
+	BOOST_CHECK(obuf.str() == "3.141500");
+}
+
+BOOST_AUTO_TEST_CASE(largeValues)
+{
+	// note that Value internally stores the number as double, so the actual
+	// value is 18446744073709551616.0 due to floating point imprecision
+	Value v = UINT64_MAX;
+
+	BOOST_CHECK(v != Value(INT64_MIN));
+	BOOST_CHECK(v == Value(UINT64_MAX));
+	BOOST_CHECK(v == 18446744073709551616.0);
+
+	std::ostringstream obuf;
+	obuf << v;
+
+	BOOST_CHECK(obuf.str() != "-9223372036854775808");
+	BOOST_CHECK(obuf.str() == "18446744073709551616");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

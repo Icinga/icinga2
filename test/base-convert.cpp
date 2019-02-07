@@ -58,6 +58,7 @@ BOOST_AUTO_TEST_CASE(tostring)
 	BOOST_CHECK(Convert::ToString(Value(7.5)) == "7.500000");
 	BOOST_CHECK(Convert::ToString(Value("hello")) == "hello");
 	BOOST_CHECK(Convert::ToString(Value("hello hello")) == "hello hello");
+	BOOST_CHECK(Convert::ToString(Value(UINT64_MAX)) == "18446744073709551616");
 }
 
 BOOST_AUTO_TEST_CASE(tobool)

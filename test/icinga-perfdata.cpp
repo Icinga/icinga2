@@ -140,4 +140,14 @@ BOOST_AUTO_TEST_CASE(multi)
 	BOOST_CHECK(pd->Get(1) == "test::b=4");
 }
 
+BOOST_AUTO_TEST_CASE(format_large_values)
+{
+	PerfdataValue::Ptr pv = PerfdataValue::Parse("test=18446744073709551615");
+	BOOST_CHECK(pv);
+	BOOST_CHECK(pv->GetValue() == UINT64_MAX);
+
+	BOOST_CHECK(pv->Format() != "test=-9223372036854775808");
+	BOOST_CHECK(pv->Format() == "test=18446744073709551616");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
