@@ -1,7 +1,7 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
 cmake_minimum_required(VERSION 2.8.8)
-set(BOOST_MIN_VERSION "1.53.0")
+set(BOOST_MIN_VERSION "1.66.0")
 
 project(icinga2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
