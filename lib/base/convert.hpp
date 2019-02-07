@@ -89,6 +89,7 @@ public:
 	static String ToString(const String& val);
 	static String ToString(const Value& val);
 	static String ToString(double val);
+	static String ToString(const DebugInfo& val);
 
 	template<size_t S>
 	static String ToString(const char (&val)[S])

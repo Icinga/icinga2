@@ -41,10 +41,6 @@ struct DebugInfo
 
 	int LastLine{0};
 	int LastColumn{0};
-
-	std::string ToString() {
-		return std::string(Convert::ToString(Path) + ": " + Convert::ToString(FirstLine) + ":" + Convert::ToString(FirstColumn) + "-" + Convert::ToString(LastLine) + ":" + Convert::ToString(LastColumn));
-	}
 };
 
 std::ostream& operator<<(std::ostream& out, const DebugInfo& val);

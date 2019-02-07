@@ -53,8 +53,8 @@ void ConfigType::RegisterObject(const ConfigObject::Ptr& object)
 
 			auto *type = dynamic_cast<Type *>(this);
 
-			BOOST_THROW_EXCEPTION(ScriptError("An object with type '" + type->GetName() + "' and name '" + name + "' already exists (in " +
-				it->second->GetDebugInfo().ToString() + "), new declaration: in " + object->GetDebugInfo().ToString(),
+			BOOST_THROW_EXCEPTION(ScriptError("An object with type '" + type->GetName() + "' and name '" + name + "' already exists (" +
+				Convert::ToString(it->second->GetDebugInfo()) + "), new declaration: " + Convert::ToString(object->GetDebugInfo()),
 				object->GetDebugInfo()));
 		}
 

@@ -19,7 +19,7 @@
 
 #include "base/convert.hpp"
 #include "base/datetime.hpp"
-#include <boost/lexical_cast.hpp>
+#include "base/debuginfo.hpp"
 
 using namespace icinga;
 
@@ -41,6 +41,13 @@ String Convert::ToString(double val)
 	if (fractional == 0)
 		return Convert::ToString(static_cast<long long>(val));
 
+	std::ostringstream msgbuf;
+	msgbuf << std::fixed << val;
+	return msgbuf.str();
+}
+
+String Convert::ToString(const DebugInfo& val)
+{
 	std::ostringstream msgbuf;
 	msgbuf << std::fixed << val;
 	return msgbuf.str();
