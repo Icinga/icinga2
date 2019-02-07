@@ -85,16 +85,24 @@ void NotificationComponent::NotificationTimerHandler()
 		if (!notification->IsActive())
 			continue;
 
-		if (notification->IsPaused() && GetEnableHA())
+		String notificationName = notification->GetName();
+
+		if (notification->IsPaused() && GetEnableHA()) {
+			Log(LogNotice, "NotificationComponent")
+				<< "Reminder notification '" << notificationName << "': HA cluster active, this endpoint does not have the authority (paused=true). Skipping.";
 			continue;
+		}
 
 		Checkable::Ptr checkable = notification->GetCheckable();
 
 		if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !checkable->GetEnableNotifications())
 			continue;
 
-		if (notification->GetInterval() <= 0 && notification->GetNoMoreNotifications())
+		if (notification->GetInterval() <= 0 && notification->GetNoMoreNotifications()) {
+			Log(LogNotice, "NotificationComponent")
+				<< "Reminder notification '" << notificationName << "': Notification was sent out once and interval=0 disables reminder notifications.";
 			continue;
+		}
 
 		if (notification->GetNextNotification() > now)
 			continue;
@@ -116,22 +124,24 @@ void NotificationComponent::NotificationTimerHandler()
 			if (checkable->GetStateType() == StateTypeSoft)
 				continue;
 
+			/* Don't send reminder notifications for OK/Up states. */
 			if ((service && service->GetState() == ServiceOK) || (!service && host->GetState() == HostUp))
 				continue;
 
+			/* Skip in runtime filters. */
 			if (!reachable || checkable->IsInDowntime() || checkable->IsAcknowledged() || checkable->IsFlapping())
 				continue;
 		}
 
 		try {
 			Log(LogNotice, "NotificationComponent")
-				<< "Attempting to send reminder notification '" << notification->GetName() << "'";
+				<< "Attempting to send reminder notification '" << notificationName << "'.";
 
 			notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false, true);
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "NotificationComponent")
 				<< "Exception occurred during notification for object '"
-				<< GetName() << "': " << DiagnosticInformation(ex);
+				<< notificationName << "': " << DiagnosticInformation(ex, false);
 		}
 	}
 }
