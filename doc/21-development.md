@@ -1093,8 +1093,8 @@ Icinga application using a dist tarball (including notes for distributions):
   - SUSE: libopenssl-devel (for SLES 11: libopenssl1-devel)
   - Debian/Ubuntu: libssl-dev
   - Alpine: libressl-dev
-* Boost library and header files >= 1.48.0
-  - RHEL/Fedora: boost148-devel
+* Boost library and header files >= 1.53.0
+  - RHEL/Fedora: boost153-devel
   - Debian/Ubuntu: libboost-all-dev
   - Alpine: boost-dev
 * GNU bison (bison)
