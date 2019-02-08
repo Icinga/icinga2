@@ -34,6 +34,7 @@ set(base_SOURCES
   filelogger.cpp filelogger.hpp filelogger-ti.hpp
   function.cpp function.hpp function-ti.hpp function-script.cpp functionwrapper.hpp
   initialize.cpp initialize.hpp
+  io-engine.cpp io-engine.hpp
   json.cpp json.hpp json-script.cpp
   lazy-init.hpp
   library.cpp library.hpp
