@@ -15,6 +15,7 @@
 #include "base/tlsstream.hpp"
 #include "base/threadpool.hpp"
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl/context.hpp>
 #include <set>
 
 namespace icinga
@@ -106,7 +107,7 @@ protected:
 	void ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
 
 private:
-	std::shared_ptr<SSL_CTX> m_SSLContext;
+	std::shared_ptr<boost::asio::ssl::context> m_SSLContext;
 
 	mutable boost::mutex m_AnonymousClientsLock;
 	mutable boost::mutex m_HttpClientsLock;

@@ -7,6 +7,7 @@
 #include "base/utility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
+#include <boost/asio/ssl/context.hpp>
 #include <fstream>
 
 namespace icinga
@@ -57,21 +58,9 @@ void InitializeOpenSSL()
 	l_SSLInitialized = true;
 }
 
-/**
- * Initializes an SSL context using the specified certificates.
- *
- * @param pubkey The public key.
- * @param privkey The matching private key.
- * @param cakey CA certificate chain file.
- * @returns An SSL context.
- */
-std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey)
+static void SetupSslContext(SSL_CTX *sslContext, const String& pubkey, const String& privkey, const String& cakey)
 {
 	char errbuf[120];
-
-	InitializeOpenSSL();
-
-	std::shared_ptr<SSL_CTX> sslContext = std::shared_ptr<SSL_CTX>(SSL_CTX_new(SSLv23_method()), SSL_CTX_free);
 
 	long flags = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_CIPHER_SERVER_PREFERENCE;
 
@@ -79,13 +68,13 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 	flags |= SSL_OP_NO_COMPRESSION;
 #endif /* SSL_OP_NO_COMPRESSION */
 
-	SSL_CTX_set_options(sslContext.get(), flags);
+	SSL_CTX_set_options(sslContext, flags);
 
-	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
-	SSL_CTX_set_session_id_context(sslContext.get(), (const unsigned char *)"Icinga 2", 8);
+	SSL_CTX_set_mode(sslContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+	SSL_CTX_set_session_id_context(sslContext, (const unsigned char *)"Icinga 2", 8);
 
 	if (!pubkey.IsEmpty()) {
-		if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr())) {
+		if (!SSL_CTX_use_certificate_chain_file(sslContext, pubkey.CStr())) {
 			Log(LogCritical, "SSL")
 				<< "Error with public key file '" << pubkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 			BOOST_THROW_EXCEPTION(openssl_error()
@@ -96,7 +85,7 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 	}
 
 	if (!privkey.IsEmpty()) {
-		if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.CStr(), SSL_FILETYPE_PEM)) {
+		if (!SSL_CTX_use_PrivateKey_file(sslContext, privkey.CStr(), SSL_FILETYPE_PEM)) {
 			Log(LogCritical, "SSL")
 				<< "Error with private key file '" << privkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 			BOOST_THROW_EXCEPTION(openssl_error()
@@ -105,7 +94,7 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 				<< boost::errinfo_file_name(privkey));
 		}
 
-		if (!SSL_CTX_check_private_key(sslContext.get())) {
+		if (!SSL_CTX_check_private_key(sslContext)) {
 			Log(LogCritical, "SSL")
 				<< "Error checking private key '" << privkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 			BOOST_THROW_EXCEPTION(openssl_error()
@@ -115,7 +104,7 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 	}
 
 	if (!cakey.IsEmpty()) {
-		if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), nullptr)) {
+		if (!SSL_CTX_load_verify_locations(sslContext, cakey.CStr(), nullptr)) {
 			Log(LogCritical, "SSL")
 				<< "Error loading and verifying locations in ca key file '" << cakey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 			BOOST_THROW_EXCEPTION(openssl_error()
@@ -136,10 +125,48 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 				<< boost::errinfo_file_name(cakey));
 		}
 
-		SSL_CTX_set_client_CA_list(sslContext.get(), cert_names);
+		SSL_CTX_set_client_CA_list(sslContext, cert_names);
 	}
+}
+
+/**
+ * Initializes an SSL context using the specified certificates.
+ *
+ * @param pubkey The public key.
+ * @param privkey The matching private key.
+ * @param cakey CA certificate chain file.
+ * @returns An SSL context.
+ */
+std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey)
+{
+	InitializeOpenSSL();
+
+	std::shared_ptr<SSL_CTX> sslContext = std::shared_ptr<SSL_CTX>(SSL_CTX_new(SSLv23_method()), SSL_CTX_free);
+
+	SetupSslContext(sslContext.get(), pubkey, privkey, cakey);
 
 	return sslContext;
+}
+
+/**
+ * Initializes an SSL context using the specified certificates.
+ *
+ * @param pubkey The public key.
+ * @param privkey The matching private key.
+ * @param cakey CA certificate chain file.
+ * @returns An SSL context.
+ */
+std::shared_ptr<boost::asio::ssl::context> MakeAsioSslContext(const String& pubkey, const String& privkey, const String& cakey)
+{
+	namespace ssl = boost::asio::ssl;
+
+	InitializeOpenSSL();
+
+	auto context (std::make_shared<ssl::context>(ssl::context::sslv23));
+
+	SetupSslContext(context->native_handle(), pubkey, privkey, cakey);
+
+	return context;
 }
 
 /**
@@ -147,11 +174,11 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
  * @param context The ssl context.
  * @param cipherList The ciper list.
  **/
-void SetCipherListToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& cipherList)
+void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& cipherList)
 {
 	char errbuf[256];
 
-	if (SSL_CTX_set_cipher_list(context.get(), cipherList.CStr()) == 0) {
+	if (SSL_CTX_set_cipher_list(context->native_handle(), cipherList.CStr()) == 0) {
 		Log(LogCritical, "SSL")
 			<< "Cipher list '"
 			<< cipherList
@@ -171,9 +198,9 @@ void SetCipherListToSSLContext(const std::shared_ptr<SSL_CTX>& context, const St
  * @param context The ssl context.
  * @param tlsProtocolmin The minimum TLS protocol version.
  */
-void SetTlsProtocolminToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& tlsProtocolmin)
+void SetTlsProtocolminToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& tlsProtocolmin)
 {
-	long flags = SSL_CTX_get_options(context.get());
+	long flags = SSL_CTX_get_options(context->native_handle());
 
 	flags |= SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
 
@@ -190,7 +217,7 @@ void SetTlsProtocolminToSSLContext(const std::shared_ptr<SSL_CTX>& context, cons
 	if (tlsProtocolmin != SSL_TXT_TLSV1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid TLS protocol version specified."));
 
-	SSL_CTX_set_options(context.get(), flags);
+	SSL_CTX_set_options(context->native_handle(), flags);
 }
 
 /**
@@ -199,10 +226,10 @@ void SetTlsProtocolminToSSLContext(const std::shared_ptr<SSL_CTX>& context, cons
  * @param context The SSL context.
  * @param crlPath The path to the CRL file.
  */
-void AddCRLToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& crlPath)
+void AddCRLToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& crlPath)
 {
 	char errbuf[120];
-	X509_STORE *x509_store = SSL_CTX_get_cert_store(context.get());
+	X509_STORE *x509_store = SSL_CTX_get_cert_store(context->native_handle());
 
 	X509_LOOKUP *lookup;
 	lookup = X509_STORE_add_lookup(x509_store, X509_LOOKUP_file());

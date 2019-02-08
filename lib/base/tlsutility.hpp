@@ -14,6 +14,7 @@
 #include <openssl/x509v3.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
+#include <boost/asio/ssl/context.hpp>
 #include <boost/exception/info.hpp>
 
 namespace icinga
@@ -21,9 +22,10 @@ namespace icinga
 
 void InitializeOpenSSL();
 std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
-void AddCRLToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& crlPath);
-void SetCipherListToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& cipherList);
-void SetTlsProtocolminToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& tlsProtocolmin);
+std::shared_ptr<boost::asio::ssl::context> MakeAsioSslContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
+void AddCRLToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& crlPath);
+void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& cipherList);
+void SetTlsProtocolminToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& tlsProtocolmin);
 String GetCertificateCN(const std::shared_ptr<X509>& certificate);
 std::shared_ptr<X509> GetX509Certificate(const String& pemfile);
 int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile = String(), const String& certfile = String(), bool ca = false);

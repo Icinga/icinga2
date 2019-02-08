@@ -9,6 +9,7 @@
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
 #include "base/fifo.hpp"
+#include <boost/asio/ssl/context.hpp>
 
 namespace icinga
 {
@@ -32,6 +33,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
 
 	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const std::shared_ptr<SSL_CTX>& sslContext = MakeSSLContext());
+	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const std::shared_ptr<boost::asio::ssl::context>& sslContext);
 	~TlsStream() override;
 
 	Socket::Ptr GetSocket() const;
@@ -79,6 +81,8 @@ private:
 
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
+
+	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, SSL_CTX* sslContext);
 
 	void OnEvent(int revents) override;
 

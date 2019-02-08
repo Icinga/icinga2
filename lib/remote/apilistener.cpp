@@ -22,6 +22,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ip/v6_only.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/asio/ssl/context.hpp>
 #include <climits>
 #include <fstream>
 #include <memory>
@@ -165,10 +166,12 @@ void ApiListener::OnConfigLoaded()
 
 void ApiListener::UpdateSSLContext()
 {
-	std::shared_ptr<SSL_CTX> context;
+	namespace ssl = boost::asio::ssl;
+
+	std::shared_ptr<ssl::context> context;
 
 	try {
-		context = MakeSSLContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath());
+		context = MakeAsioSslContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath());
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
 			+ GetDefaultCertPath() + "' key path: '" + GetDefaultKeyPath() + "' ca path: '" + GetDefaultCaPath() + "'.", GetDebugInfo()));
@@ -338,7 +341,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 
 	ObjectLock olock(this);
 
-	std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+	auto sslContext (m_SSLContext);
 
 	if (!sslContext) {
 		Log(LogCritical, "ApiListener", "SSL context is required for AddListener()");
@@ -389,7 +392,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	{
 		ObjectLock olock(this);
 
-		std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+		auto sslContext (m_SSLContext);
 
 		if (!sslContext) {
 			Log(LogCritical, "ApiListener", "SSL context is required for AddConnection()");
