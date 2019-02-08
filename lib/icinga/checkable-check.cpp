@@ -168,9 +168,34 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	long old_attempt = GetCheckAttempt();
 	bool recovery = false;
 
-	/* Ignore check results older than the current one, except if the previous check result is from the future. */
-	if (old_cr && cr->GetExecutionStart() < old_cr->GetExecutionStart() && old_cr->GetExecutionStart() < now)
-		return;
+	/* When we have an check result already (not after fresh start),
+	 * prevent to accept old check results and allow overrides for
+	 * CRs happened in the future.
+	 */
+	if (old_cr) {
+		double currentCRTimestamp = old_cr->GetExecutionStart();
+		double newCRTimestamp = cr->GetExecutionStart();
+
+		/* Our current timestamp may be from the future (wrong server time adjusted again). Allow overrides here. */
+		if (currentCRTimestamp > now) {
+			/* our current CR is from the future, let the new CR override it. */
+			Log(LogDebug, "Checkable")
+				<< std::fixed << std::setprecision(6) << "Processing check result for checkable '" << GetName() << "' from "
+				<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newCRTimestamp) << " (" << newCRTimestamp
+				<< "). Overriding since ours is from the future at "
+				<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", currentCRTimestamp) << " (" << currentCRTimestamp << ").";
+		} else {
+			/* Current timestamp is from the past, but the new timestamp is even more in the past. Skip it. */
+			if (newCRTimestamp < currentCRTimestamp) {
+				Log(LogDebug, "Checkable")
+					<< std::fixed << std::setprecision(6) << "Skipping check result for checkable '" << GetName() << "' from "
+					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newCRTimestamp) << " (" << newCRTimestamp
+					<< "). It is in the past compared to ours at "
+					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", currentCRTimestamp) << " (" << currentCRTimestamp << ").";
+				return;
+			}
+		}
+	}
 
 	/* The ExecuteCheck function already sets the old state, but we need to do it again
 	 * in case this was a passive check result. */
