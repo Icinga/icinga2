@@ -14,6 +14,7 @@
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include "base/threadpool.hpp"
+#include <boost/asio/ip/tcp.hpp>
 #include <set>
 
 namespace icinga
@@ -106,7 +107,6 @@ protected:
 
 private:
 	std::shared_ptr<SSL_CTX> m_SSLContext;
-	std::set<TcpSocket::Ptr> m_Servers;
 
 	mutable boost::mutex m_AnonymousClientsLock;
 	mutable boost::mutex m_HttpClientsLock;
@@ -130,7 +130,6 @@ private:
 
 	void NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
 	void NewClientHandlerInternal(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
-	void ListenerThreadProc(const Socket::Ptr& server);
 
 	static ThreadPool& GetTP();
 	static void EnqueueAsyncCallback(const std::function<void ()>& callback, SchedulerPolicy policy = DefaultScheduler);
@@ -154,7 +153,7 @@ private:
 
 	static void CopyCertificateFile(const String& oldCertPath, const String& newCertPath);
 
-	void UpdateStatusFile(TcpSocket::Ptr socket);
+	void UpdateStatusFile(boost::asio::ip::tcp::endpoint localEndpoint);
 	void RemoveStatusFile();
 
 	/* filesync */

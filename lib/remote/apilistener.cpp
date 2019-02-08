@@ -7,6 +7,7 @@
 #include "remote/jsonrpc.hpp"
 #include "remote/apifunction.hpp"
 #include "base/convert.hpp"
+#include "base/io-engine.hpp"
 #include "base/netstring.hpp"
 #include "base/json.hpp"
 #include "base/configtype.hpp"
@@ -18,7 +19,12 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include "base/exception.hpp"
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ip/v6_only.hpp>
+#include <boost/asio/spawn.hpp>
+#include <climits>
 #include <fstream>
+#include <memory>
 
 using namespace icinga;
 
@@ -326,6 +332,10 @@ bool ApiListener::IsMaster() const
  */
 bool ApiListener::AddListener(const String& node, const String& service)
 {
+	namespace asio = boost::asio;
+	namespace ip = asio::ip;
+	using ip::tcp;
+
 	ObjectLock olock(this);
 
 	std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
@@ -335,45 +345,38 @@ bool ApiListener::AddListener(const String& node, const String& service)
 		return false;
 	}
 
-	TcpSocket::Ptr server = new TcpSocket();
+	auto& io (IoEngine::Get().GetIoService());
+	auto acceptor (std::make_shared<tcp::acceptor>(io));
 
 	try {
-		server->Bind(node, service, AF_UNSPEC);
+		tcp::resolver resolver (io);
+		tcp::resolver::query query (node, service, tcp::resolver::query::passive);
+		auto endpoint (resolver.resolve(query)->endpoint());
+
+		acceptor->open(endpoint.protocol());
+		acceptor->set_option(ip::v6_only(false));
+		acceptor->set_option(tcp::acceptor::reuse_address(true));
+		acceptor->bind(endpoint);
 	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener")
 			<< "Cannot bind TCP socket for host '" << node << "' on port '" << service << "'.";
 		return false;
 	}
 
+	acceptor->listen(INT_MAX);
+
+	auto localEndpoint (acceptor->local_endpoint());
+
 	Log(LogInformation, "ApiListener")
-		<< "Started new listener on '" << server->GetClientAddress() << "'";
+		<< "Started new listener on '[" << localEndpoint.address() << "]:" << localEndpoint.port() << "'";
 
-	std::thread thread(std::bind(&ApiListener::ListenerThreadProc, this, server));
-	thread.detach();
+	asio::spawn(io, [acceptor](asio::yield_context yc) {
+		// TODO
+	});
 
-	m_Servers.insert(server);
-
-	UpdateStatusFile(server);
+	UpdateStatusFile(localEndpoint);
 
 	return true;
-}
-
-void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
-{
-	Utility::SetThreadName("API Listener");
-
-	server->Listen();
-
-	for (;;) {
-		try {
-			Socket::Ptr client = server->Accept();
-
-			/* Use dynamic thread pool with additional on demand resources with fast throughput. */
-			EnqueueAsyncCallback(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer), LowLatencyScheduler);
-		} catch (const std::exception&) {
-			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
-		}
-	}
 }
 
 /**
@@ -1513,14 +1516,13 @@ String ApiListener::GetFromZoneName(const Zone::Ptr& fromZone)
 	return fromZoneName;
 }
 
-void ApiListener::UpdateStatusFile(TcpSocket::Ptr socket)
+void ApiListener::UpdateStatusFile(boost::asio::ip::tcp::endpoint localEndpoint)
 {
 	String path = Configuration::CacheDir + "/api-state.json";
-	std::pair<String, String> details = socket->GetClientAddressDetails();
 
 	Utility::SaveJsonFile(path, 0644, new Dictionary({
-		{"host", details.first},
-		{"port", Convert::ToLong(details.second)}
+		{"host", String(localEndpoint.address().to_string())},
+		{"port", localEndpoint.port()}
 	}));
 }
 
