@@ -44,7 +44,9 @@ void Checkable::ResetNotificationNumbers()
 
 void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text)
 {
-	CONTEXT("Sending notifications for object '" + GetName() + "'");
+	String checkableName = GetName();
+
+	CONTEXT("Sending notifications for object '" + checkableName + "'");
 
 	bool force = GetForceNextNotification();
 
@@ -53,31 +55,31 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 	if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !GetEnableNotifications()) {
 		if (!force) {
 			Log(LogInformation, "Checkable")
-				<< "Notifications are disabled for service '" << GetName() << "'.";
+				<< "Notifications are disabled for checkable '" << checkableName << "'.";
 			return;
 		}
 	}
 
-	Log(LogInformation, "Checkable")
-		<< "Checking for configured notifications for object '" << GetName() << "'";
-
 	std::set<Notification::Ptr> notifications = GetNotifications();
 
-	if (notifications.empty())
-		Log(LogInformation, "Checkable")
-			<< "Checkable '" << GetName() << "' does not have any notifications.";
+	Log(LogInformation, "Checkable")
+		<< "Checkable '" << checkableName << "' has " << notifications.size() << " notification(s). Proceeding with filters, successful sends will be logged.";
 
-	Log(LogDebug, "Checkable")
-		<< "Checkable '" << GetName() << "' has " << notifications.size() << " notification(s).";
+	if (notifications.empty())
+		return;
 
 	for (const Notification::Ptr& notification : notifications) {
 		try {
-			if (!notification->IsPaused())
+			if (!notification->IsPaused()) {
 				notification->BeginExecuteNotification(type, cr, force, false, author, text);
+			} else {
+				Log(LogNotice, "Notification")
+					<< "Notification '" << notification->GetName() << "': HA cluster active, this endpoint does not have the authority (paused=true). Skipping.";
+			}
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "Checkable")
-				<< "Exception occurred during notification for service '"
-				<< GetName() << "': " << DiagnosticInformation(ex);
+				<< "Exception occurred during notification '" << notification->GetName() << "' for checkable '"
+				<< GetName() << "': " << DiagnosticInformation(ex, false);
 		}
 	}
 }
