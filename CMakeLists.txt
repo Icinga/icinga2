@@ -132,7 +132,7 @@ if(LOGROTATE_HAS_SU)
   set(LOGROTATE_USE_SU "\n\tsu ${ICINGA2_USER} ${ICINGA2_GROUP}")
 endif()
 
-find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS thread system program_options regex REQUIRED)
+find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS context coroutine date_time thread system program_options regex REQUIRED)
 
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
