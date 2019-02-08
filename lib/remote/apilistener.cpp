@@ -23,9 +23,13 @@
 #include <boost/asio/ip/v6_only.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <boost/asio/ssl/stream.hpp>
+#include <boost/asio/ssl/verify_mode.hpp>
 #include <climits>
 #include <fstream>
 #include <memory>
+#include <openssl/tls1.h>
+#include <sstream>
 
 using namespace icinga;
 
@@ -373,13 +377,34 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	Log(LogInformation, "ApiListener")
 		<< "Started new listener on '[" << localEndpoint.address() << "]:" << localEndpoint.port() << "'";
 
-	asio::spawn(io, [acceptor](asio::yield_context yc) {
-		// TODO
-	});
+	asio::spawn(io, [this, acceptor, sslContext](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor, sslContext); });
 
 	UpdateStatusFile(localEndpoint);
 
 	return true;
+}
+
+void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ip::tcp::acceptor>& server, const std::shared_ptr<boost::asio::ssl::context>& sslContext)
+{
+	namespace asio = boost::asio;
+	namespace ssl = asio::ssl;
+	using asio::ip::tcp;
+
+	auto& io (server->get_io_service());
+	auto sslConn (std::make_shared<ssl::stream<tcp::socket>>(io, *sslContext));
+
+	for (;;) {
+		try {
+			server->async_accept(sslConn->lowest_layer(), yc);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "ApiListener") << "Cannot accept new connection: " << DiagnosticInformation(ex, false);
+			continue;
+		}
+
+		asio::spawn(io, [this, sslConn](asio::yield_context yc) { NewClientHandler(yc, sslConn, String(), RoleServer); });
+
+		sslConn = std::make_shared<ssl::stream<tcp::socket>>(io, *sslContext);
+	}
 }
 
 /**
@@ -598,6 +623,70 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, tlsStream);
 		aclient->Start();
 		AddHttpClient(aclient);
+	}
+}
+
+void ApiListener::NewClientHandler(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>>& client, const String& hostname, ConnectionRole role)
+{
+	try {
+		NewClientHandlerInternal(yc, client, hostname, role);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiListener")
+			<< "Exception while handling new API client connection: " << DiagnosticInformation(ex, false);
+
+		Log(LogDebug, "ApiListener")
+			<< "Exception while handling new API client connection: " << DiagnosticInformation(ex);
+	}
+}
+
+/**
+ * Processes a new client connection.
+ *
+ * @param client The new client.
+ */
+void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>>& client, const String& hostname, ConnectionRole role)
+{
+	namespace ssl = boost::asio::ssl;
+
+	String conninfo;
+
+	{
+		std::ostringstream conninfo_;
+
+		if (role == RoleClient) {
+			conninfo_ << "to";
+		} else {
+			conninfo_ << "from";
+		}
+
+		auto endpoint (client->lowest_layer().remote_endpoint());
+
+		conninfo_ << " [" << endpoint.address() << "]:" << endpoint.port();
+
+		conninfo = conninfo_.str();
+	}
+
+	client->set_verify_mode(ssl::verify_peer | ssl::verify_client_once);
+
+	if (role == RoleClient) {
+		String environmentName = Application::GetAppEnvironment();
+		String serverName = hostname;
+
+		if (!environmentName.IsEmpty())
+			serverName += ":" + environmentName;
+
+#ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
+		if (!hostname.IsEmpty()) {
+			SSL_set_tlsext_host_name(client->native_handle(), serverName.CStr());
+		}
+#endif /* SSL_CTRL_SET_TLSEXT_HOSTNAME */
+	}
+
+	try {
+		client->async_handshake(role == RoleClient ? client->client : client->server, yc);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiListener")
+			<< "Client TLS handshake failed (" << conninfo << "): " << DiagnosticInformation(ex, false);
 	}
 }
 
