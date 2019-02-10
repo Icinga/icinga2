@@ -896,6 +896,11 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 {
 	ObjectLock olock(endpoint);
 
+	if (!message->Contains("ts")) {
+		double ts = Utility::GetTime();
+		message->Set("ts", ts);
+	}
+
 	if (!endpoint->GetSyncing()) {
 		Log(LogNotice, "ApiListener")
 			<< "Sending message '" << message->Get("method") << "' to '" << endpoint->GetName() << "'";
