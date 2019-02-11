@@ -1250,9 +1250,10 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 			Log(LogInformation, "ApiListener")
 				<< "Replayed " << count << " messages.";
 		}
-
-		Log(LogNotice, "ApiListener")
-			<< "Replayed " << count << " messages.";
+		else {
+			Log(LogNotice, "ApiListener")
+				<< "Replayed " << count << " messages.";
+		}
 
 		if (last_sync) {
 			{
