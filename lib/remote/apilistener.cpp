@@ -687,6 +687,8 @@ void ApiListener::ApiTimerHandler()
 {
 	double now = Utility::GetTime();
 
+	Zone::Ptr my_zone = Zone::GetLocalZone();
+
 	std::vector<int> files;
 	Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
 	std::sort(files.begin(), files.end());
@@ -699,6 +701,11 @@ void ApiListener::ApiTimerHandler()
 				continue;
 
 			if (endpoint->GetLogDuration() >= 0 && ts < now - endpoint->GetLogDuration())
+				continue;
+
+			Zone::Ptr zone = endpoint->GetZone();
+
+			if (zone->GetParent() != my_zone && zone != my_zone && zone != my_zone->GetParent())
 				continue;
 
 			if (ts > endpoint->GetLocalLogPosition()) {
