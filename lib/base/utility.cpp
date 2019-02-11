@@ -49,6 +49,7 @@
 
 #ifndef _WIN32
 #	include <sys/types.h>
+#	include <sys/utsname.h>
 #	include <pwd.h>
 #	include <grp.h>
 #	include <errno.h>
@@ -1463,28 +1464,23 @@ String Utility::UnescapeString(const String& s)
 #ifndef _WIN32
 static String UnameHelper(char type)
 {
-	/* Unfortunately the uname() system call doesn't support some of the
-	* query types we're interested in - so we're using popen() instead. */
+	struct utsname name;
+	uname(&name);
 
-	char cmd[] = "uname -X 2>&1";
-	cmd[7] = type;
-
-	FILE *fp = popen(cmd, "r");
-
-	if (!fp)
-		return "Unknown";
-
-	char line[1024];
-	std::ostringstream msgbuf;
-
-	while (fgets(line, sizeof(line), fp))
-		msgbuf << line;
-
-	pclose(fp);
-
-	String result = msgbuf.str();
-
-	return result.Trim();
+	switch (type) {
+		case 'm':
+			return (char*)name.machine;
+		case 'n':
+			return (char*)name.nodename;
+		case 'r':
+			return (char*)name.release;
+		case 's':
+			return (char*)name.sysname;
+		case 'v':
+			return (char*)name.version;
+		default:
+			VERIFY(!"Invalid uname query.");
+	}
 }
 #endif /* _WIN32 */
 static bool ReleaseHelper(String *platformName, String *platformVersion)
