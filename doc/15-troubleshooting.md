@@ -1058,3 +1058,33 @@ Check the following:
 * Check your [connection](15-troubleshooting.md#troubleshooting-cluster-connection-errors) in general.
 * Does the log replay work, e.g. are all events processed and the directory gets cleared up over time?
 * Decrease the `log_duration` attribute value for that specific [endpoint](09-object-types.md#objecttype-endpoint).
+
+
+
+### Cluster Troubleshooting: Windows Agents <a id="troubleshooting-cluster-windows-agents"></a>
+
+#### Windows blocking Icinga 2 with ephemeral port range <a id="troubleshooting-cluster-windows-agents-ephemeral-port-range"></a>
+
+When you see a message like this in your Windows agent logs:
+
+```
+critical/TcpSocket: Invalid socket: 10055, "An operation on a socket could not be performed because the system lacked sufficient buffer space or because a queue was full."
+```
+
+Windows is blocking Icinga 2 and as such, no more TCP connection handling is possible.
+
+Depending on the version, patch level and installed applications, Windows is changing its
+range of [ephemeral ports](https://en.wikipedia.org/wiki/Ephemeral_port#Range).
+
+In order to solve this, raise the the `MaxUserPort` value in the registry.
+
+```
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+
+Value Name: MaxUserPort Value
+Type: DWORD
+Value data: 65534
+```
+
+More details in [this blogpost](https://www.netways.de/blog/2019/01/24/windows-blocking-icinga-2-with-ephemeral-port-range/)
+and this [MS help entry](https://support.microsoft.com/en-us/help/196271/when-you-try-to-connect-from-tcp-ports-greater-than-5000-you-receive-t).
