@@ -44,6 +44,7 @@ public:
 
 	static bool WriteNodeConfigObjects(const String& filename, const Array::Ptr& objects);
 
+	static bool GetConfigurationIncludeState(const String& value, bool recursive);
 	static bool UpdateConfiguration(const String& value, bool include, bool recursive);
 	static void UpdateConstant(const String& name, const String& value);
 
