@@ -229,7 +229,10 @@ static int check_swap(printInfoStruct& printInfo)
 		printInfo.aSwap += round(pageFiles.at(i).availableSpwap / pow(1024.0, printInfo.unit));
 	}
 
-	printInfo.percentFree = 100.0 * printInfo.aSwap / printInfo.tSwap;
+	if (printInfo.aSwap > 0 && printInfo.tSwap > 0)
+		printInfo.percentFree = 100.0 * printInfo.aSwap / printInfo.tSwap;
+	else
+		printInfo.percentFree = 0;
 
 	return -1;
 }
