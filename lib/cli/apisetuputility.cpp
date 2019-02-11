@@ -152,6 +152,15 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 
 bool ApiSetupUtility::SetupMasterApiUser()
 {
+	if (!Utility::PathExists(GetConfdPath())) {
+		Log(LogWarning, "cli")
+			<< "Path '" << GetConfdPath() << "' do not exist.";
+		Log(LogInformation, "cli")
+			<< "Creating path '" << GetConfdPath() << "'.";
+
+		Utility::MkDirP(GetConfdPath(), 0755);
+	}
+
 	String api_username = "root"; // TODO make this available as cli parameter?
 	String api_password = RandomString(8);
 	String apiUsersPath = GetConfdPath() + "/api-users.conf";
