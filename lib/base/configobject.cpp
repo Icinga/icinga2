@@ -33,6 +33,7 @@
 #include "base/workqueue.hpp"
 #include "base/context.hpp"
 #include "base/application.hpp"
+#include <algorithm>
 #include <fstream>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
@@ -617,7 +618,13 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 
 void ConfigObject::StopObjects()
 {
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	auto types = Type::GetAllTypes();
+
+	std::sort(types.begin(), types.end(), [](const Type::Ptr& a, const Type::Ptr& b) {
+		return a->GetActivationPriority() > b->GetActivationPriority();
+	});
+
+	for (const Type::Ptr& type : types) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)

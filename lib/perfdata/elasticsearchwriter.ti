@@ -7,7 +7,7 @@ namespace icinga
 
 class ElasticsearchWriter : ConfigObject
 {
-	activation_priority 100;
+	activation_priority 80;
 
 	[config, required] String host {
 		default {{{ return "127.0.0.1"; }}}

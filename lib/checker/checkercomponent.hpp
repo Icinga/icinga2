@@ -25,11 +25,13 @@
 #include "base/configobject.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
+#include <atomic>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
+#include <cstdint>
 #include <thread>
 
 namespace icinga
@@ -90,6 +92,7 @@ private:
 	boost::condition_variable m_CV;
 	bool m_Stopped{false};
 	std::thread m_Thread;
+	std::atomic<uintmax_t> m_RunningChecks;
 
 	CheckableSet m_IdleCheckables;
 	CheckableSet m_PendingCheckables;
