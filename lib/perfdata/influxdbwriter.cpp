@@ -140,6 +140,14 @@ void InfluxdbWriter::Pause()
 	ObjectImpl<InfluxdbWriter>::Pause();
 }
 
+void InfluxdbWriter::Stop(bool runtimeDeleted)
+{
+	FlushTimeout();
+	m_WorkQueue.Join();
+
+	ObjectImpl<InfluxdbWriter>::Stop(runtimeDeleted);
+}
+
 void InfluxdbWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());

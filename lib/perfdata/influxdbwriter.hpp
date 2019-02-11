@@ -51,6 +51,7 @@ protected:
 	void OnConfigLoaded() override;
 	void Resume() override;
 	void Pause() override;
+	void Stop(bool runtimeDeleted) override;
 
 private:
 	WorkQueue m_WorkQueue{10000000, 1};
