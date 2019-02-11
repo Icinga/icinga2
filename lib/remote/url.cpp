@@ -138,31 +138,9 @@ const std::vector<String>& Url::GetPath() const
 	return m_Path;
 }
 
-const std::map<String, std::vector<String> >& Url::GetQuery() const
+const std::vector<std::pair<String, String>>& Url::GetQuery() const
 {
 	return m_Query;
-}
-
-String Url::GetQueryElement(const String& name) const
-{
-	auto it = m_Query.find(name);
-
-	if (it == m_Query.end())
-		return String();
-
-	return it->second.back();
-}
-
-const std::vector<String>& Url::GetQueryElements(const String& name) const
-{
-	auto it = m_Query.find(name);
-
-	if (it == m_Query.end()) {
-		static std::vector<String> emptyVector;
-		return emptyVector;
-	}
-
-	return it->second;
 }
 
 String Url::GetFragment() const
@@ -200,7 +178,7 @@ void Url::SetPath(const std::vector<String>& path)
 	m_Path = path;
 }
 
-void Url::SetQuery(const std::map<String, std::vector<String> >& query)
+void Url::SetQuery(const std::vector<std::pair<String, String>>& query)
 {
 	m_Query = query;
 }
@@ -212,16 +190,7 @@ void Url::SetArrayFormatUseBrackets(bool useBrackets)
 
 void Url::AddQueryElement(const String& name, const String& value)
 {
-	auto it = m_Query.find(name);
-	if (it == m_Query.end()) {
-		m_Query[name] = std::vector<String> { value };
-	} else
-		m_Query[name].push_back(value);
-}
-
-void Url::SetQueryElements(const String& name, const std::vector<String>& values)
-{
-	m_Query[name] = values;
+	m_Query.emplace_back(name, value);
 }
 
 void Url::SetFragment(const String& fragment) {
@@ -255,38 +224,16 @@ String Url::Format(bool onlyPathAndQuery, bool printCredentials) const
 	if (!m_Query.empty()) {
 		typedef std::pair<String, std::vector<String> > kv_pair;
 
-		for (const kv_pair& kv : m_Query) {
+		for (const auto& kv : m_Query) {
 			String key = Utility::EscapeString(kv.first, ACQUERY_ENCODE, false);
 			if (param.IsEmpty())
 				param = "?";
 			else
 				param += "&";
 
-			// Just one (or one empty) value
-			if (kv.second.size() == 1) {
-				param += key;
-				param += kv.second[0].IsEmpty() ?
-					String() : "=" + Utility::EscapeString(kv.second[0], ACQUERY_ENCODE, false);
-				continue;
-			}
-
-			// Array
-			String temp;
-			for (const String& s : kv.second) {
-				if (!temp.IsEmpty())
-					temp += "&";
-
-				temp += key;
-
-				if (m_ArrayFormatUseBrackets) {
-					if (kv.second.size() > 1)
-						temp += "[]";
-				}
-
-				if (!s.IsEmpty())
-					temp += "=" + Utility::EscapeString(s, ACQUERY_ENCODE, false);
-			}
-			param += temp;
+			param += key;
+			param += kv.second.IsEmpty() ?
+				String() : "=" + Utility::EscapeString(kv.second, ACQUERY_ENCODE, false);
 		}
 	}
 
@@ -408,14 +355,7 @@ bool Url::ParseQuery(const String& query)
 		if (!ValidateToken(key, ACQUERY))
 			return false;
 
-		key = Utility::UnescapeString(key);
-
-		auto it = m_Query.find(key);
-
-		if (it == m_Query.end()) {
-			m_Query[key] = std::vector<String> { std::move(value) };
-		} else
-			m_Query[key].emplace_back(std::move(value));
+		m_Query.emplace_back(Utility::UnescapeString(key), std::move(value));
 	}
 
 	return true;

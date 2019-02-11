@@ -26,6 +26,7 @@
 #include "base/array.hpp"
 #include "base/value.hpp"
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace icinga
@@ -53,9 +54,7 @@ public:
 	String GetHost() const;
 	String GetPort() const;
 	const std::vector<String>& GetPath() const;
-	const std::map<String, std::vector<String> >& GetQuery() const;
-	String GetQueryElement(const String& name) const;
-	const std::vector<String>& GetQueryElements(const String& name) const;
+	const std::vector<std::pair<String, String>>& GetQuery() const;
 	String GetFragment() const;
 
 	void SetScheme(const String& scheme);
@@ -64,11 +63,10 @@ public:
 	void SetHost(const String& host);
 	void SetPort(const String& port);
 	void SetPath(const std::vector<String>& path);
-	void SetQuery(const std::map<String, std::vector<String> >& query);
+	void SetQuery(const std::vector<std::pair<String, String>>& query);
 	void SetArrayFormatUseBrackets(bool useBrackets = true);
 
 	void AddQueryElement(const String& name, const String& query);
-	void SetQueryElements(const String& name, const std::vector<String>& query);
 	void SetFragment(const String& fragment);
 
 private:
@@ -78,7 +76,7 @@ private:
 	String m_Host;
 	String m_Port;
 	std::vector<String> m_Path;
-	std::map<String, std::vector<String> > m_Query;
+	std::vector<std::pair<String, String>> m_Query;
 	bool m_ArrayFormatUseBrackets;
 	String m_Fragment;
 

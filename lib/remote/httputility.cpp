@@ -20,6 +20,8 @@
 #include "remote/httputility.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
+#include <map>
+#include <vector>
 
 using namespace icinga;
 
@@ -44,8 +46,12 @@ Dictionary::Ptr HttpUtility::FetchRequestParameters(HttpRequest& request)
 	if (!result)
 		result = new Dictionary();
 
-	typedef std::pair<String, std::vector<String> > kv_pair;
-	for (const kv_pair& kv : request.RequestUrl->GetQuery()) {
+	std::map<String, std::vector<String>> query;
+	for (const auto& kv : request.RequestUrl->GetQuery()) {
+		query[kv.first].emplace_back(kv.second);
+	}
+
+	for (auto& kv : query) {
 		result->Set(kv.first, Array::FromVector(kv.second));
 	}
 
