@@ -24,11 +24,14 @@
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
+#include <boost/asio/ssl/verify_context.hpp>
 #include <boost/asio/ssl/verify_mode.hpp>
 #include <climits>
 #include <fstream>
 #include <memory>
+#include <openssl/ssl.h>
 #include <openssl/tls1.h>
+#include <openssl/x509.h>
 #include <sstream>
 
 using namespace icinga;
@@ -668,6 +671,23 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 
 	client->set_verify_mode(ssl::verify_peer | ssl::verify_client_once);
 
+	bool verify_ok = false;
+	String verifyError;
+
+	client->set_verify_callback([&verify_ok, &verifyError](bool preverified, ssl::verify_context& ctx) {
+		verify_ok = preverified;
+
+		if (!preverified) {
+			std::ostringstream msgbuf;
+			int err = X509_STORE_CTX_get_error(ctx.native_handle());
+
+			msgbuf << "code " << err << ": " << X509_verify_cert_error_string(err);
+			verifyError = msgbuf.str();
+		}
+
+		return preverified;
+	});
+
 	if (role == RoleClient) {
 		String environmentName = Application::GetAppEnvironment();
 		String serverName = hostname;
@@ -687,6 +707,51 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
 			<< "Client TLS handshake failed (" << conninfo << "): " << DiagnosticInformation(ex, false);
+		return;
+	}
+
+	std::shared_ptr<X509> cert (SSL_get_peer_certificate(client->native_handle()), X509_free);
+	String identity;
+	Endpoint::Ptr endpoint;
+
+	if (cert) {
+		try {
+			identity = GetCertificateCN(cert);
+		} catch (const std::exception&) {
+			Log(LogCritical, "ApiListener")
+				<< "Cannot get certificate common name from cert path: '" << GetDefaultCertPath() << "'.";
+			return;
+		}
+
+		if (!hostname.IsEmpty()) {
+			if (identity != hostname) {
+				Log(LogWarning, "ApiListener")
+					<< "Unexpected certificate common name while connecting to endpoint '"
+					<< hostname << "': got '" << identity << "'";
+				return;
+			} else if (!verify_ok) {
+				Log(LogWarning, "ApiListener")
+					<< "Certificate validation failed for endpoint '" << hostname
+					<< "': " << verifyError;
+			}
+		}
+
+		if (verify_ok) {
+			endpoint = Endpoint::GetByName(identity);
+		}
+
+		Log log(LogInformation, "ApiListener");
+
+		log << "New client connection for identity '" << identity << "' " << conninfo;
+
+		if (!verify_ok) {
+			log << " (certificate validation failed: " << verifyError << ")";
+		} else if (!endpoint) {
+			log << " (no Endpoint object found for identity)";
+		}
+	} else {
+		Log(LogInformation, "ApiListener")
+			<< "New client connection " << conninfo << " (no client certificate)";
 	}
 }
 
