@@ -35,6 +35,7 @@ set(base_SOURCES
   function.cpp function.hpp function-ti.hpp function-script.cpp functionwrapper.hpp
   initialize.cpp initialize.hpp
   json.cpp json.hpp json-script.cpp
+  lazy-init.hpp
   library.cpp library.hpp
   loader.cpp loader.hpp
   logger.cpp logger.hpp logger-ti.hpp
