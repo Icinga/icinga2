@@ -17,7 +17,6 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
-#include <boost/asio/ssl/stream.hpp>
 #include <set>
 
 namespace icinga
@@ -134,8 +133,8 @@ private:
 	void NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
 	void NewClientHandlerInternal(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
 
-	void NewClientHandler(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>>& client, const String& hostname, ConnectionRole role);
-	void NewClientHandlerInternal(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>>& client, const String& hostname, ConnectionRole role);
+	void NewClientHandler(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role);
+	void NewClientHandlerInternal(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role);
 	void ListenerCoroutineProc(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ip::tcp::acceptor>& server, const std::shared_ptr<boost::asio::ssl::context>& sslContext);
 
 	static ThreadPool& GetTP();

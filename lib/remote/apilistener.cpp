@@ -19,13 +19,14 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include "base/exception.hpp"
+#include <boost/asio/buffer.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ip/v6_only.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
-#include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/ssl/verify_context.hpp>
 #include <boost/asio/ssl/verify_mode.hpp>
+#include <boost/system/error_code.hpp>
 #include <climits>
 #include <fstream>
 #include <memory>
@@ -390,11 +391,9 @@ bool ApiListener::AddListener(const String& node, const String& service)
 void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ip::tcp::acceptor>& server, const std::shared_ptr<boost::asio::ssl::context>& sslContext)
 {
 	namespace asio = boost::asio;
-	namespace ssl = asio::ssl;
-	using asio::ip::tcp;
 
 	auto& io (server->get_io_service());
-	auto sslConn (std::make_shared<ssl::stream<tcp::socket>>(io, *sslContext));
+	auto sslConn (std::make_shared<AsioTlsStream>(io, *sslContext));
 
 	for (;;) {
 		try {
@@ -406,7 +405,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const std
 
 		asio::spawn(io, [this, sslConn](asio::yield_context yc) { NewClientHandler(yc, sslConn, String(), RoleServer); });
 
-		sslConn = std::make_shared<ssl::stream<tcp::socket>>(io, *sslContext);
+		sslConn = std::make_shared<AsioTlsStream>(io, *sslContext);
 	}
 }
 
@@ -629,7 +628,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 	}
 }
 
-void ApiListener::NewClientHandler(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>>& client, const String& hostname, ConnectionRole role)
+void ApiListener::NewClientHandler(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role)
 {
 	try {
 		NewClientHandlerInternal(yc, client, hostname, role);
@@ -647,9 +646,10 @@ void ApiListener::NewClientHandler(boost::asio::yield_context yc, const std::sha
  *
  * @param client The new client.
  */
-void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>>& client, const String& hostname, ConnectionRole role)
+void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role)
 {
-	namespace ssl = boost::asio::ssl;
+	namespace asio = boost::asio;
+	namespace ssl = asio::ssl;
 
 	String conninfo;
 
@@ -669,12 +669,14 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 		conninfo = conninfo_.str();
 	}
 
-	client->set_verify_mode(ssl::verify_peer | ssl::verify_client_once);
+	auto& sslConn (client->next_layer());
+
+	sslConn.set_verify_mode(ssl::verify_peer | ssl::verify_client_once);
 
 	bool verify_ok = false;
 	String verifyError;
 
-	client->set_verify_callback([&verify_ok, &verifyError](bool preverified, ssl::verify_context& ctx) {
+	sslConn.set_verify_callback([&verify_ok, &verifyError](bool preverified, ssl::verify_context& ctx) {
 		verify_ok = preverified;
 
 		if (!preverified) {
@@ -697,20 +699,20 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 
 #ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
 		if (!hostname.IsEmpty()) {
-			SSL_set_tlsext_host_name(client->native_handle(), serverName.CStr());
+			SSL_set_tlsext_host_name(sslConn.native_handle(), serverName.CStr());
 		}
 #endif /* SSL_CTRL_SET_TLSEXT_HOSTNAME */
 	}
 
 	try {
-		client->async_handshake(role == RoleClient ? client->client : client->server, yc);
+		sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
 			<< "Client TLS handshake failed (" << conninfo << "): " << DiagnosticInformation(ex, false);
 		return;
 	}
 
-	std::shared_ptr<X509> cert (SSL_get_peer_certificate(client->native_handle()), X509_free);
+	std::shared_ptr<X509> cert (SSL_get_peer_certificate(sslConn.native_handle()), X509_free);
 	String identity;
 	Endpoint::Ptr endpoint;
 
@@ -752,6 +754,41 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 	} else {
 		Log(LogInformation, "ApiListener")
 			<< "New client connection " << conninfo << " (no client certificate)";
+	}
+
+	ClientType ctype;
+
+	if (role != RoleClient) {
+		{
+			boost::system::error_code ec;
+
+			if (client->async_fill(yc[ec]) == 0u) {
+				if (identity.IsEmpty()) {
+					Log(LogInformation, "ApiListener")
+						<< "No data received on new API connection. "
+						<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+				} else {
+					Log(LogWarning, "ApiListener")
+						<< "No data received on new API connection for identity '" << identity << "'. "
+						<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+				}
+
+				return;
+			}
+		}
+
+		char firstByte = 0;
+
+		{
+			asio::mutable_buffer firstByteBuf (&firstByte, 1);
+			client->peek(firstByteBuf);
+		}
+
+		if (firstByte >= '0' && firstByte <= '9') {
+			ctype = ClientJsonRpc;
+		} else {
+			ctype = ClientHttp;
+		}
 	}
 }
 

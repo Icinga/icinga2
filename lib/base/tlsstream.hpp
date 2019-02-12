@@ -9,7 +9,12 @@
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
 #include "base/fifo.hpp"
+#include <utility>
+#include <boost/asio/buffered_stream.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <boost/asio/ssl/stream.hpp>
 
 namespace icinga
 {
@@ -92,6 +97,33 @@ private:
 	static void NullCertificateDeleter(X509 *certificate);
 
 	void CloseInternal(bool inDestructor);
+};
+
+class AsioTlsStreamHack : public boost::asio::ssl::stream<boost::asio::ip::tcp::socket>
+{
+public:
+	inline
+	AsioTlsStreamHack(std::pair<boost::asio::io_service*, boost::asio::ssl::context*>& init)
+		: stream(*init.first, *init.second)
+	{
+	}
+};
+
+class AsioTlsStream : public boost::asio::buffered_stream<AsioTlsStreamHack>
+{
+public:
+	inline
+	AsioTlsStream(boost::asio::io_service& ioService, boost::asio::ssl::context& sslContext)
+		: AsioTlsStream(std::make_pair(&ioService, &sslContext))
+	{
+	}
+
+private:
+	inline
+	AsioTlsStream(std::pair<boost::asio::io_service*, boost::asio::ssl::context*> init)
+		: buffered_stream(init)
+	{
+	}
 };
 
 }
