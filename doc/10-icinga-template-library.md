@@ -5469,7 +5469,7 @@ rbl_hostname	| **Optional.** The address or name of the SMTP server to check. De
 rbl_server	| **Required** List of RBL servers as an array.
 rbl_warning	| **Optional** Number of blacklisting servers for a warning.
 rbl_critical	| **Optional** Number of blacklisting servers for a critical.
-tbl_timeout	| **Optional** Seconds before plugin times out (default: 15).
+rbl_timeout	| **Optional** Seconds before plugin times out (default: 15).
 
 
 #### squid <a id="plugin-contrib-command-squid"></a>
