@@ -42,14 +42,12 @@ String Convert::ToString(double val)
 
 	if (fractional == 0) {
 		if (val < UINT64_MAX) {
-			if (val >= 0) {
+			if (val >= 0)
 				return Convert::ToString(static_cast<unsigned long long>(val));
-			} else {
+			else
 				return Convert::ToString(static_cast<long long>(val));
-			}
-		} else {
+		} else
 			msgbuf << std::setprecision(0);
-		}
 	}
 
 	msgbuf << std::fixed << val;
