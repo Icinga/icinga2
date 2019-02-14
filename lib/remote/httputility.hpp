@@ -26,6 +26,8 @@ public:
 	static Value GetLastParameter(const Dictionary::Ptr& params, const String& key);
 	static void SendJsonError(HttpResponse& response, const Dictionary::Ptr& params, const int code,
 		const String& verbose = String(), const String& diagnosticInformation = String());
+	static void SendJsonError(boost::beast::http::response<boost::beast::http::string_body>& response, const Dictionary::Ptr& params, const int code,
+		const String& verbose = String(), const String& diagnosticInformation = String());
 
 private:
 	static String GetErrorNameByCode(int code);

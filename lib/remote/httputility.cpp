@@ -103,6 +103,24 @@ void HttpUtility::SendJsonError(HttpResponse& response, const Dictionary::Ptr& p
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
+void HttpUtility::SendJsonError(boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params, int code, const String& info, const String& diagnosticInformation)
+{
+	Dictionary::Ptr result = new Dictionary({ { "error", code } });
+
+	if (!info.IsEmpty()) {
+		result->Set("status", info);
+	}
+
+	if (params && HttpUtility::GetLastParameter(params, "verbose") && !diagnosticInformation.IsEmpty()) {
+		result->Set("diagnostic_information", diagnosticInformation);
+	}
+
+	response.result(code);
+
+	HttpUtility::SendJsonBody(response, params, result);
+}
+
 String HttpUtility::GetErrorNameByCode(const int code)
 {
 	switch(code) {
