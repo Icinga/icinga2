@@ -1,28 +1,23 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/httputility.hpp"
+#include "remote/url.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include <map>
+#include <string>
 #include <vector>
 #include <boost/beast/http.hpp>
 
 using namespace icinga;
 
-Dictionary::Ptr HttpUtility::FetchRequestParameters(HttpRequest& request)
+Dictionary::Ptr HttpUtility::FetchRequestParameters(const Url::Ptr& url, const std::string& body)
 {
 	Dictionary::Ptr result;
 
-	String body;
-	char buffer[1024];
-	size_t count;
-
-	while ((count = request.ReadBody(buffer, sizeof(buffer))) > 0)
-		body += String(buffer, buffer + count);
-
-	if (!body.IsEmpty()) {
+	if (!body.empty()) {
 		Log(LogDebug, "HttpUtility")
-			<< "Request body: '" << body << "'";
+			<< "Request body: '" << body << '\'';
 
 		result = JsonDecode(body);
 	}
@@ -31,7 +26,7 @@ Dictionary::Ptr HttpUtility::FetchRequestParameters(HttpRequest& request)
 		result = new Dictionary();
 
 	std::map<String, std::vector<String>> query;
-	for (const auto& kv : request.RequestUrl->GetQuery()) {
+	for (const auto& kv : url->GetQuery()) {
 		query[kv.first].emplace_back(kv.second);
 	}
 

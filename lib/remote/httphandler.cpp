@@ -5,6 +5,7 @@
 #include "base/singleton.hpp"
 #include "base/exception.hpp"
 #include <boost/algorithm/string/join.hpp>
+#include <boost/beast/http.hpp>
 
 using namespace icinga;
 
@@ -44,11 +45,17 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 	handlers->Add(handler);
 }
 
-void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+void HttpHandler::ProcessRequest(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response
+)
 {
 	Dictionary::Ptr node = m_UrlTree;
 	std::vector<HttpHandler::Ptr> handlers;
-	const std::vector<String>& path = request.RequestUrl->GetPath();
+
+	Url::Ptr url = new Url(request.target().to_string());
+	auto& path (url->GetPath());
 
 	for (std::vector<String>::size_type i = 0; i <= path.size(); i++) {
 		Array::Ptr current_handlers = node->Get("handlers");
@@ -81,7 +88,7 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 	Dictionary::Ptr params;
 
 	try {
-		params = HttpUtility::FetchRequestParameters(request);
+		params = HttpUtility::FetchRequestParameters(url, request.body());
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid request body: " + DiagnosticInformation(ex, false));
 		return;
@@ -89,16 +96,15 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 
 	bool processed = false;
 	for (const HttpHandler::Ptr& handler : handlers) {
-		if (handler->HandleRequest(user, request, response, params)) {
+		if (handler->HandleRequest(user, request, url, response, params)) {
 			processed = true;
 			break;
 		}
 	}
 
 	if (!processed) {
-		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
-		HttpUtility::SendJsonError(response, params, 404, "The requested path '" + path +
-				"' could not be found or the request method is not valid for this path.");
+		HttpUtility::SendJsonError(response, params, 404, "The requested path '" + boost::algorithm::join(path, "/") +
+			"' could not be found or the request method is not valid for this path.");
 		return;
 	}
 }

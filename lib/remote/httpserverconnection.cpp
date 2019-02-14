@@ -321,7 +321,20 @@ void ProcessRequest(
 {
 	namespace http = boost::beast::http;
 
-	HttpUtility::SendJsonError(response, nullptr, 503, "Unhandled exception" , "");
+	try {
+		CpuBoundWork handlingRequest (yc);
+
+		HttpHandler::ProcessRequest(authenticatedUser, request, response);
+	} catch (const std::exception& ex) {
+		http::response<http::string_body> response;
+
+		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+
+		return;
+	}
 
 	http::async_write(stream, response, yc);
 	stream.async_flush(yc);
