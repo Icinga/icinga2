@@ -1,0 +1,53 @@
+
+@@ -1,5 +1,36 @@
+# Icinga 2.x CHANGELOG
+
+## 2.10.1 (2018-10-18)
+
+### Bug
+
+* [#6696](https://github.com/icinga/icinga2/issues/6696) (PR): Remove default environment, regression from e678fa1aa5
+* [#6694](https://github.com/icinga/icinga2/issues/6694): v2.10.0 sets a default environment "production" in SNI
+* [#6691](https://github.com/icinga/icinga2/issues/6691) (PR): Add missing shutdown/program state dumps for SIGUSR2 reload handler
+* [#6689](https://github.com/icinga/icinga2/issues/6689): State file not updated on reload
+* [#6685](https://github.com/icinga/icinga2/issues/6685) (API, PR): Fix regression with API permission filters and namespaces in v2.10
+* [#6682](https://github.com/icinga/icinga2/issues/6682) (API): API process-check-result fails in 2.10.0
+* [#6679](https://github.com/icinga/icinga2/issues/6679) (Windows, PR): Initialize Configuration::InitRunDir for Windows and writing the PID file
+* [#6624](https://github.com/icinga/icinga2/issues/6624) (Check Execution): Master Reload Causes Passive Check State Change
+* [#6592](https://github.com/icinga/icinga2/issues/6592): Reloads seem to reset the check atempt count. Also notifications go missing shortly after a reload.
+
+### Documentation
+
+* [#6701](https://github.com/icinga/icinga2/issues/6701) (Documentation, PR): Add GitHub release tag to README
+* [#6700](https://github.com/icinga/icinga2/issues/6700) (Documentation, PR): Enhance the addon chapter in the docs
+* [#6699](https://github.com/icinga/icinga2/issues/6699) (Documentation, PR): Update to https://icinga.com/
+* [#6692](https://github.com/icinga/icinga2/issues/6692) (Documentation, PR): Update release docs for Chocolatey
+* [#6690](https://github.com/icinga/icinga2/issues/6690) (Documentation, PR): Extend 09-object-types.md with argument array
+* [#6674](https://github.com/icinga/icinga2/issues/6674) (Documentation, PR): Add a note to the docs on \>2 endpoints in a zone
+* [#6673](https://github.com/icinga/icinga2/issues/6673) (Documentation, PR): Update RELEASE docs
+* [#6672](https://github.com/icinga/icinga2/issues/6672) (Documentation, PR): Extend upgrade docs
+* [#6671](https://github.com/icinga/icinga2/issues/6671) (Documentation): Zone requirements changed in 2.10 - Undocumented Change
+
+### Support
+
+* [#6681](https://github.com/icinga/icinga2/issues/6681) (code-quality, PR): Fix spelling errors.
+* [#6677](https://github.com/icinga/icinga2/issues/6677) (Packages, Windows): icinga does not start after Update to 2.10
+
+## 2.10.0 (2018-10-11)
+
+### Notes
+   
+2  RELEASE.md
+@@ -26,7 +26,7 @@
+Specify the release version.
+
+```
+VERSION=2.10.0
+VERSION=2.10.1
+```
+
+Add your signing key to your Git configuration file, if not already there.
+  
+2  VERSION
+@@ -1,2 +1,2 @@
+Version: 2.10.0
