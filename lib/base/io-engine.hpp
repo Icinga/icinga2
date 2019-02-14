@@ -48,6 +48,11 @@ public:
 	CpuBoundWork& operator=(const CpuBoundWork&) = delete;
 	CpuBoundWork& operator=(CpuBoundWork&&) = delete;
 	~CpuBoundWork();
+
+	void Done();
+
+private:
+	bool m_Done;
 };
 
 /**

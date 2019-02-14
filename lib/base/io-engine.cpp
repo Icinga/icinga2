@@ -31,6 +31,7 @@
 using namespace icinga;
 
 CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
+	: m_Done(false)
 {
 	auto& ioEngine (IoEngine::Get());
 
@@ -49,7 +50,18 @@ CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
 
 CpuBoundWork::~CpuBoundWork()
 {
-	IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
+	if (!m_Done) {
+		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
+	}
+}
+
+void CpuBoundWork::Done()
+{
+	if (!m_Done) {
+		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
+
+		m_Done = true;
+	}
 }
 
 LazyInit<std::unique_ptr<IoEngine>> IoEngine::m_Instance ([]() { return std::unique_ptr<IoEngine>(new IoEngine()); });
