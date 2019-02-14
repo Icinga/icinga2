@@ -692,6 +692,20 @@ void ApiListener::ApiTimerHandler()
 	std::sort(files.begin(), files.end());
 
 	for (int ts : files) {
+		String path = GetApiDir() + "log/" + Convert::ToString(ts);
+
+		std::ifstream fp(path.CStr(), std::ifstream::in);
+		if (fp.peek() == std::ifstream::traits_type::eof()) {
+			fp.close();
+			Log(LogNotice, "ApiListener")
+				<< "Removing empty log file: " << path;
+			void)unlink(path.CStr());
+			continue;
+		}
+		else {
+			fp.close();
+		}
+
 		bool need = false;
 
 		for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
@@ -708,7 +722,6 @@ void ApiListener::ApiTimerHandler()
 		}
 
 		if (!need) {
-			String path = GetApiDir() + "log/" + Convert::ToString(ts);
 			Log(LogNotice, "ApiListener")
 				<< "Removing old log file: " << path;
 			(void)unlink(path.CStr());
