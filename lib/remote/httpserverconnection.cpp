@@ -6,306 +6,94 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "remote/jsonrpc.hpp"
+#include "base/application.hpp"
 #include "base/base64.hpp"
 #include "base/convert.hpp"
 #include "base/configtype.hpp"
+#include "base/defer.hpp"
 #include "base/exception.hpp"
+#include "base/io-engine.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/timer.hpp"
+#include "base/tlsstream.hpp"
 #include "base/utility.hpp"
+#include <memory>
+#include <stdexcept>
+#include <boost/asio/spawn.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/system/system_error.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
 
-static boost::once_flag l_HttpServerConnectionOnceFlag = BOOST_ONCE_INIT;
-static Timer::Ptr l_HttpServerConnectionTimeoutTimer;
+auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0)
+HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream)
+	: m_Stream(stream)
 {
-	boost::call_once(l_HttpServerConnectionOnceFlag, &HttpServerConnection::StaticInitialize);
-
-	m_RequestQueue.SetName("HttpServerConnection");
-
-	if (authenticated)
+	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
-
-	/* Cache the peer address. */
-	m_PeerAddress = "<unknown>";
-
-	if (stream) {
-		Socket::Ptr socket = m_Stream->GetSocket();
-
-		if (socket) {
-			m_PeerAddress = socket->GetPeerAddress();
-		}
 	}
-}
 
-void HttpServerConnection::StaticInitialize()
-{
-	l_HttpServerConnectionTimeoutTimer = new Timer();
-	l_HttpServerConnectionTimeoutTimer->OnTimerExpired.connect(std::bind(&HttpServerConnection::TimeoutTimerHandler));
-	l_HttpServerConnectionTimeoutTimer->SetInterval(5);
-	l_HttpServerConnectionTimeoutTimer->Start();
+	{
+		std::ostringstream address;
+		auto endpoint (stream->lowest_layer().remote_endpoint());
+
+		address << '[' << endpoint.address() << "]:" << endpoint.port();
+
+		m_PeerAddress = address.str();
+	}
 }
 
 void HttpServerConnection::Start()
 {
-	/* the stream holds an owning reference to this object through the callback we're registering here */
-	m_Stream->RegisterDataHandler(std::bind(&HttpServerConnection::DataAvailableHandler, HttpServerConnection::Ptr(this)));
-	if (m_Stream->IsDataAvailable())
-		DataAvailableHandler();
+	namespace asio = boost::asio;
+
+	asio::spawn(IoEngine::Get().GetIoService(), [this](asio::yield_context yc) { ProcessMessages(yc); });
 }
 
-ApiUser::Ptr HttpServerConnection::GetApiUser() const
+static inline
+bool EnsureValidHeaders(
+	AsioTlsStream& stream,
+	boost::beast::flat_buffer& buf,
+	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
 {
-	return m_ApiUser;
-}
+	namespace http = boost::beast::http;
 
-TlsStream::Ptr HttpServerConnection::GetStream() const
-{
-	return m_Stream;
-}
-
-void HttpServerConnection::Disconnect()
-{
-	boost::recursive_mutex::scoped_try_lock lock(m_DataHandlerMutex);
-	if (!lock.owns_lock()) {
-		Log(LogInformation, "HttpServerConnection", "Unable to disconnect Http client, I/O thread busy");
-		return;
-	}
-
-	Log(LogInformation, "HttpServerConnection")
-		<< "HTTP client disconnected (from " << m_PeerAddress << ")";
-
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-	listener->RemoveHttpClient(this);
-
-	m_CurrentRequest.~HttpRequest();
-	new (&m_CurrentRequest) HttpRequest(nullptr);
-
-	m_Stream->Close();
-}
-
-bool HttpServerConnection::ProcessMessage()
-{
-	bool res;
-	HttpResponse response(m_Stream, m_CurrentRequest);
-
-	if (!m_CurrentRequest.CompleteHeaders) {
+	try {
 		try {
-			res = m_CurrentRequest.ParseHeaders(m_Context, false);
-		} catch (const std::invalid_argument& ex) {
-			response.SetStatus(400, "Bad Request");
-			String msg = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
-			response.WriteBody(msg.CStr(), msg.GetLength());
-			response.Finish();
-
-			m_CurrentRequest.~HttpRequest();
-			new (&m_CurrentRequest) HttpRequest(m_Stream);
-
-			m_Stream->Shutdown();
-
-			return false;
-		} catch (const std::exception& ex) {
-			response.SetStatus(500, "Internal Server Error");
-			String msg = "<h1>Internal Server Error</h1><p><pre>" + DiagnosticInformation(ex) + "</pre></p>";
-			response.WriteBody(msg.CStr(), msg.GetLength());
-			response.Finish();
-
-			m_CurrentRequest.~HttpRequest();
-			new (&m_CurrentRequest) HttpRequest(m_Stream);
-
-			m_Stream->Shutdown();
-
-			return false;
-		}
-		return res;
-	}
-
-	if (!m_CurrentRequest.CompleteHeaderCheck) {
-		m_CurrentRequest.CompleteHeaderCheck = true;
-		if (!ManageHeaders(response)) {
-			m_CurrentRequest.~HttpRequest();
-			new (&m_CurrentRequest) HttpRequest(m_Stream);
-
-			m_Stream->Shutdown();
-
-			return false;
-		}
-	}
-
-	if (!m_CurrentRequest.CompleteBody) {
-		try {
-			res = m_CurrentRequest.ParseBody(m_Context, false);
-		} catch (const std::invalid_argument& ex) {
-			response.SetStatus(400, "Bad Request");
-			String msg = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
-			response.WriteBody(msg.CStr(), msg.GetLength());
-			response.Finish();
-
-			m_CurrentRequest.~HttpRequest();
-			new (&m_CurrentRequest) HttpRequest(m_Stream);
-
-			m_Stream->Shutdown();
-
-			return false;
-		} catch (const std::exception& ex) {
-			response.SetStatus(500, "Internal Server Error");
-			String msg = "<h1>Internal Server Error</h1><p><pre>" + DiagnosticInformation(ex) + "</pre></p>";
-			response.WriteBody(msg.CStr(), msg.GetLength());
-			response.Finish();
-
-			m_CurrentRequest.~HttpRequest();
-			new (&m_CurrentRequest) HttpRequest(m_Stream);
-
-			m_Stream->Shutdown();
-
-			return false;
-		}
-		return res;
-	}
-
-	m_RequestQueue.Enqueue(std::bind(&HttpServerConnection::ProcessMessageAsync,
-		HttpServerConnection::Ptr(this), m_CurrentRequest, response, m_AuthenticatedUser));
-
-	m_Seen = Utility::GetTime();
-	m_PendingRequests++;
-
-	m_CurrentRequest.~HttpRequest();
-	new (&m_CurrentRequest) HttpRequest(m_Stream);
-
-	return false;
-}
-
-bool HttpServerConnection::ManageHeaders(HttpResponse& response)
-{
-	if (m_CurrentRequest.Headers->Get("expect") == "100-continue") {
-		String continueResponse = "HTTP/1.1 100 Continue\r\n\r\n";
-		m_Stream->Write(continueResponse.CStr(), continueResponse.GetLength());
-	}
-
-	/* client_cn matched. */
-	if (m_ApiUser)
-		m_AuthenticatedUser = m_ApiUser;
-	else
-		m_AuthenticatedUser = ApiUser::GetByAuthHeader(m_CurrentRequest.Headers->Get("authorization"));
-
-	String requestUrl = m_CurrentRequest.RequestUrl->Format();
-
-	Log(LogInformation, "HttpServerConnection")
-		<< "Request: " << m_CurrentRequest.RequestMethod << " " << requestUrl
-		<< " (from " << m_PeerAddress << ")"
-		<< ", user: " << (m_AuthenticatedUser ? m_AuthenticatedUser->GetName() : "<unauthenticated>") << ")";
-
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-
-	if (!listener)
-		return false;
-
-	Array::Ptr headerAllowOrigin = listener->GetAccessControlAllowOrigin();
-
-	if (headerAllowOrigin && headerAllowOrigin->GetLength() != 0) {
-		String origin = m_CurrentRequest.Headers->Get("origin");
-		{
-			ObjectLock olock(headerAllowOrigin);
-
-			for (const String& allowedOrigin : headerAllowOrigin) {
-				if (allowedOrigin == origin)
-					response.AddHeader("Access-Control-Allow-Origin", origin);
-			}
+			http::async_read_header(stream, buf, parser, yc);
+		} catch (const boost::system::system_error& ex) {
+			/**
+			 * Unfortunately there's no way to tell an HTTP protocol error
+			 * from an error on a lower layer:
+			 *
+			 * <https://github.com/boostorg/beast/issues/643>
+			 */
+			throw std::invalid_argument(ex.what());
 		}
 
-		response.AddHeader("Access-Control-Allow-Credentials", "true");
-
-		String accessControlRequestMethodHeader = m_CurrentRequest.Headers->Get("access-control-request-method");
-
-		if (m_CurrentRequest.RequestMethod == "OPTIONS" && !accessControlRequestMethodHeader.IsEmpty()) {
-			response.SetStatus(200, "OK");
-
-			response.AddHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-			response.AddHeader("Access-Control-Allow-Headers", "Authorization, X-HTTP-Method-Override");
-
-			String msg = "Preflight OK";
-			response.WriteBody(msg.CStr(), msg.GetLength());
-
-			response.Finish();
-			return false;
+		switch (parser.get().version()) {
+		case 10:
+		case 11:
+			break;
+		default:
+			throw std::invalid_argument("Unsupported HTTP version");
 		}
-	}
+	} catch (const std::invalid_argument& ex) {
+		response.result(http::status::bad_request);
+		response.set(http::field::content_type, "text/html");
+		response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
+		response.set(http::field::content_length, response.body().size());
+		response.set(http::field::connection, "close");
 
-	if (m_CurrentRequest.RequestMethod != "GET" && m_CurrentRequest.Headers->Get("accept") != "application/json") {
-		response.SetStatus(400, "Wrong Accept header");
-		response.AddHeader("Content-Type", "text/html");
-		String msg = "<h1>Accept header is missing or not set to 'application/json'.</h1>";
-		response.WriteBody(msg.CStr(), msg.GetLength());
-		response.Finish();
-		return false;
-	}
-
-	if (!m_AuthenticatedUser) {
-		Log(LogWarning, "HttpServerConnection")
-			<< "Unauthorized request: " << m_CurrentRequest.RequestMethod << " " << requestUrl;
-
-		response.SetStatus(401, "Unauthorized");
-		response.AddHeader("WWW-Authenticate", "Basic realm=\"Icinga 2\"");
-
-		if (m_CurrentRequest.Headers->Get("accept") == "application/json") {
-			Dictionary::Ptr result = new Dictionary({
-				{ "error", 401 },
-				{ "status", "Unauthorized. Please check your user credentials." }
-			});
-
-			HttpUtility::SendJsonBody(response, nullptr, result);
-		} else {
-			response.AddHeader("Content-Type", "text/html");
-			String msg = "<h1>Unauthorized. Please check your user credentials.</h1>";
-			response.WriteBody(msg.CStr(), msg.GetLength());
-		}
-
-		response.Finish();
-		return false;
-	}
-
-	static const size_t defaultContentLengthLimit = 1 * 1024 * 1024;
-	size_t maxSize = defaultContentLengthLimit;
-
-	Array::Ptr permissions = m_AuthenticatedUser->GetPermissions();
-
-	if (permissions) {
-		ObjectLock olock(permissions);
-
-		for (const Value& permissionInfo : permissions) {
-			String permission;
-
-			if (permissionInfo.IsObjectType<Dictionary>())
-				permission = static_cast<Dictionary::Ptr>(permissionInfo)->Get("permission");
-			else
-				permission = permissionInfo;
-
-			static std::vector<std::pair<String, size_t>> specialContentLengthLimits {
-				  { "config/modify", 512 * 1024 * 1024 }
-			};
-
-			for (const auto& limitInfo : specialContentLengthLimits) {
-				if (limitInfo.second <= maxSize)
-					continue;
-
-				if (Utility::Match(permission, limitInfo.first))
-					maxSize = limitInfo.second;
-			}
-		}
-	}
-
-	size_t contentLength = m_CurrentRequest.Headers->Get("content-length");
-
-	if (contentLength > maxSize) {
-		response.SetStatus(400, "Bad Request");
-		String msg = String("<h1>Content length exceeded maximum</h1>");
-		response.WriteBody(msg.CStr(), msg.GetLength());
-		response.Finish();
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -313,64 +101,319 @@ bool HttpServerConnection::ManageHeaders(HttpResponse& response)
 	return true;
 }
 
-void HttpServerConnection::ProcessMessageAsync(HttpRequest& request, HttpResponse& response, const ApiUser::Ptr& user)
+static inline
+void HandleExpect100(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::asio::yield_context& yc
+)
 {
-	response.RebindRequest(request);
+	namespace http = boost::beast::http;
+
+	if (request[http::field::expect] == "100-continue") {
+		http::response<http::string_body> response;
+
+		response.result(http::status::continue_);
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+	}
+}
+
+static inline
+bool HandleAccessControl(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	auto listener (ApiListener::GetInstance());
+
+	if (listener) {
+		auto headerAllowOrigin (listener->GetAccessControlAllowOrigin());
+
+		if (headerAllowOrigin) {
+			CpuBoundWork allowOriginHeader (yc);
+
+			auto allowedOrigins (headerAllowOrigin->ToSet<String>());
+
+			if (!allowedOrigins.empty()) {
+				auto& origin (request[http::field::origin]);
+
+				if (allowedOrigins.find(origin.to_string()) != allowedOrigins.end()) {
+					response.set(http::field::access_control_allow_origin, origin);
+				}
+
+				allowOriginHeader.Done();
+
+				response.set(http::field::access_control_allow_credentials, "true");
+
+				if (request.method() == http::verb::options && !request[http::field::access_control_request_method].empty()) {
+					response.result(http::status::ok);
+					response.set(http::field::access_control_allow_methods, "GET, POST, PUT, DELETE");
+					response.set(http::field::access_control_allow_headers, "Authorization, X-HTTP-Method-Override");
+					response.body() = "Preflight OK";
+					response.set(http::field::content_length, response.body().size());
+					response.set(http::field::connection, "close");
+
+					http::async_write(stream, response, yc);
+					stream.async_flush(yc);
+
+					return false;
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+static inline
+bool EnsureAcceptHeader(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	if (request.method() == http::verb::get && request[http::field::accept] != "application/json") {
+		response.result(http::status::bad_request);
+		response.set(http::field::content_type, "text/html");
+		response.body() = "<h1>Accept header is missing or not set to 'application/json'.</h1>";
+		response.set(http::field::content_length, response.body().size());
+		response.set(http::field::connection, "close");
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+
+		return false;
+	}
+
+	return true;
+}
+
+static inline
+bool EnsureAuthenticatedUser(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	ApiUser::Ptr& authenticatedUser,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	if (!authenticatedUser) {
+		Log(LogWarning, "HttpServerConnection")
+			<< "Unauthorized request: " << request.method_string() << ' ' << request.target();
+
+		response.result(http::status::unauthorized);
+		response.set(http::field::www_authenticate, "Basic realm=\"Icinga 2\"");
+		response.set(http::field::connection, "close");
+
+		if (request[http::field::accept] == "application/json") {
+			HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
+				{ "error", 401 },
+				{ "status", "Unauthorized. Please check your user credentials." }
+			}));
+		} else {
+			response.set(http::field::content_type, "text/html");
+			response.body() = "<h1>Unauthorized. Please check your user credentials.</h1>";
+			response.set(http::field::content_length, response.body().size());
+		}
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+
+		return false;
+	}
+
+	return true;
+}
+
+static inline
+bool EnsureValidBody(
+	AsioTlsStream& stream,
+	boost::beast::flat_buffer& buf,
+	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
+	ApiUser::Ptr& authenticatedUser,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	{
+		size_t maxSize = 1024 * 1024;
+		Array::Ptr permissions = authenticatedUser->GetPermissions();
+
+		if (permissions) {
+			CpuBoundWork evalPermissions (yc);
+
+			ObjectLock olock(permissions);
+
+			for (const Value& permissionInfo : permissions) {
+				String permission;
+
+				if (permissionInfo.IsObjectType<Dictionary>()) {
+					permission = static_cast<Dictionary::Ptr>(permissionInfo)->Get("permission");
+				} else {
+					permission = permissionInfo;
+				}
+
+				static std::vector<std::pair<String, size_t>> specialContentLengthLimits {
+					 { "config/modify", 512 * 1024 * 1024 }
+				};
+
+				for (const auto& limitInfo : specialContentLengthLimits) {
+					if (limitInfo.second <= maxSize) {
+						continue;
+					}
+
+					if (Utility::Match(permission, limitInfo.first)) {
+						maxSize = limitInfo.second;
+					}
+				}
+			}
+		}
+
+		parser.body_limit(maxSize);
+	}
 
 	try {
-		HttpHandler::ProcessRequest(user, request, response);
+		http::async_read(stream, buf, parser, yc);
+	} catch (const boost::system::system_error& ex) {
+		/**
+		 * Unfortunately there's no way to tell an HTTP protocol error
+		 * from an error on a lower layer:
+		 *
+		 * <https://github.com/boostorg/beast/issues/643>
+		 */
+
+		response.result(http::status::bad_request);
+		response.set(http::field::content_type, "text/html");
+		response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
+		response.set(http::field::content_length, response.body().size());
+		response.set(http::field::connection, "close");
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+
+		return false;
+	}
+
+	return true;
+}
+
+static inline
+void ProcessRequest(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	ApiUser::Ptr& authenticatedUser,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	HttpUtility::SendJsonError(response, nullptr, 503, "Unhandled exception" , "");
+
+	http::async_write(stream, response, yc);
+	stream.async_flush(yc);
+}
+
+void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
+{
+	namespace beast = boost::beast;
+	namespace http = beast::http;
+
+	Defer removeHttpClient ([this, &yc]() {
+		auto listener (ApiListener::GetInstance());
+
+		if (listener) {
+			CpuBoundWork removeHttpClient (yc);
+
+			listener->RemoveHttpClient(this);
+		}
+	});
+
+	Defer shutdown ([this, &yc]() {
+		try {
+			m_Stream->next_layer().async_shutdown(yc);
+		} catch (...) {
+			// https://stackoverflow.com/questions/130117/throwing-exceptions-out-of-a-destructor
+		}
+	});
+
+	try {
+		beast::flat_buffer buf;
+
+		for (;;) {
+			http::parser<true, http::string_body> parser;
+			http::response<http::string_body> response;
+
+			parser.header_limit(1024 * 1024);
+
+			response.set(http::field::server, l_ServerHeader);
+
+			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, yc)) {
+				break;
+			}
+
+			auto& request (parser.get());
+
+			{
+				auto method (http::string_to_verb(request["X-Http-Method-Override"]));
+
+				if (method != http::verb::unknown) {
+					request.method(method);
+				}
+			}
+
+			HandleExpect100(*m_Stream, request, yc);
+
+			auto authenticatedUser (m_ApiUser);
+
+			if (!authenticatedUser) {
+				CpuBoundWork fetchingAuthenticatedUser (yc);
+
+				authenticatedUser = ApiUser::GetByAuthHeader(request[http::field::authorization].to_string());
+			}
+
+			Log(LogInformation, "HttpServerConnection")
+				<< "Request: " << request.method_string() << ' ' << request.target()
+				<< " (from " << m_PeerAddress
+				<< "), user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>") << ')';
+
+			if (!HandleAccessControl(*m_Stream, request, response, yc)) {
+				break;
+			}
+
+			if (!EnsureAcceptHeader(*m_Stream, request, response, yc)) {
+				break;
+			}
+
+			if (!EnsureAuthenticatedUser(*m_Stream, request, authenticatedUser, response, yc)) {
+				break;
+			}
+
+			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, yc)) {
+				break;
+			}
+
+			ProcessRequest(*m_Stream, request, authenticatedUser, response, yc);
+
+			if (request.version() != 11 || request[http::field::connection] == "close") {
+				break;
+			}
+		}
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "HttpServerConnection")
-			<< "Unhandled exception while processing Http request: " << DiagnosticInformation(ex);
-		HttpUtility::SendJsonError(response, nullptr, 503, "Unhandled exception" , DiagnosticInformation(ex));
-	}
-
-	response.Finish();
-	m_PendingRequests--;
-}
-
-void HttpServerConnection::DataAvailableHandler()
-{
-	bool close = false;
-
-	if (!m_Stream->IsEof()) {
-		boost::recursive_mutex::scoped_try_lock lock(m_DataHandlerMutex);
-		if (!lock.owns_lock()) {
-			Log(LogNotice, "HttpServerConnection", "Unable to process available data, they're already being processed in another thread");
-			return;
-		}
-
-		try {
-			while (ProcessMessage())
-				; /* empty loop body */
-		} catch (const std::exception& ex) {
-			Log(LogWarning, "HttpServerConnection")
-				<< "Error while reading Http request: " << DiagnosticInformation(ex);
-
-			close = true;
-		}
-	} else
-		close = true;
-
-	if (close)
-		Disconnect();
-}
-
-void HttpServerConnection::CheckLiveness()
-{
-	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0 && m_Stream->IsEof()) {
-		Log(LogInformation, "HttpServerConnection")
-			<<  "No messages for Http connection have been received in the last 10 seconds.";
-		Disconnect();
+			<< "Unhandled exception while processing HTTP request: " << DiagnosticInformation(ex);
 	}
 }
-
-void HttpServerConnection::TimeoutTimerHandler()
-{
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-
-	for (const HttpServerConnection::Ptr& client : listener->GetHttpClients()) {
-		client->CheckLiveness();
-	}
-}
-

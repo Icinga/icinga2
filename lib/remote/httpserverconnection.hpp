@@ -3,12 +3,11 @@
 #ifndef HTTPSERVERCONNECTION_H
 #define HTTPSERVERCONNECTION_H
 
-#include "remote/httprequest.hpp"
-#include "remote/httpresponse.hpp"
 #include "remote/apiuser.hpp"
+#include "base/string.hpp"
 #include "base/tlsstream.hpp"
-#include "base/workqueue.hpp"
-#include <boost/thread/recursive_mutex.hpp>
+#include <memory>
+#include <boost/asio/spawn.hpp>
 
 namespace icinga
 {
@@ -23,39 +22,16 @@ class HttpServerConnection final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(HttpServerConnection);
 
-	HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream);
+	HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream);
 
 	void Start();
 
-	ApiUser::Ptr GetApiUser() const;
-	bool IsAuthenticated() const;
-	TlsStream::Ptr GetStream() const;
-
-	void Disconnect();
-
 private:
 	ApiUser::Ptr m_ApiUser;
-	ApiUser::Ptr m_AuthenticatedUser;
-	TlsStream::Ptr m_Stream;
-	double m_Seen;
-	HttpRequest m_CurrentRequest;
-	boost::recursive_mutex m_DataHandlerMutex;
-	WorkQueue m_RequestQueue;
-	int m_PendingRequests;
+	std::shared_ptr<AsioTlsStream> m_Stream;
 	String m_PeerAddress;
 
-	StreamReadContext m_Context;
-
-	bool ProcessMessage();
-	void DataAvailableHandler();
-
-	static void StaticInitialize();
-	static void TimeoutTimerHandler();
-	void CheckLiveness();
-
-	bool ManageHeaders(HttpResponse& response);
-
-	void ProcessMessageAsync(HttpRequest& request, HttpResponse& response, const ApiUser::Ptr&);
+	void ProcessMessages(boost::asio::yield_context yc);
 };
 
 }

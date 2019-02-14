@@ -619,12 +619,6 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 				aclient->Disconnect();
 			}
 		}
-	} else {
-		Log(LogNotice, "ApiListener", "New HTTP client");
-
-		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, tlsStream);
-		aclient->Start();
-		AddHttpClient(aclient);
 	}
 }
 
@@ -789,6 +783,14 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 		} else {
 			ctype = ClientHttp;
 		}
+	}
+
+	if (ctype != ClientJsonRpc) {
+		Log(LogNotice, "ApiListener", "New HTTP client");
+
+		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, client);
+		AddHttpClient(aclient);
+		aclient->Start();
 	}
 }
 
