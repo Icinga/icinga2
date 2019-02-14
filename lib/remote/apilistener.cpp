@@ -699,7 +699,7 @@ void ApiListener::ApiTimerHandler()
 			fp.close();
 			Log(LogNotice, "ApiListener")
 				<< "Removing empty log file: " << path;
-			void)unlink(path.CStr());
+			(void)unlink(path.CStr());
 			continue;
 		}
 		else {
