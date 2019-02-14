@@ -5,6 +5,7 @@
 #include "base/logger.hpp"
 #include <map>
 #include <vector>
+#include <boost/beast/http.hpp>
 
 using namespace icinga;
 
@@ -53,6 +54,15 @@ void HttpUtility::SendJsonBody(HttpResponse& response, const Dictionary::Ptr& pa
 	String body = JsonEncode(val, prettyPrint);
 
 	response.WriteBody(body.CStr(), body.GetLength());
+}
+
+void HttpUtility::SendJsonBody(boost::beast::http::response<boost::beast::http::string_body>& response, const Dictionary::Ptr& params, const Value& val)
+{
+	namespace http = boost::beast::http;
+
+	response.set(http::field::content_type, "application/json");
+	response.body() = JsonEncode(val, params && GetLastParameter(params, "pretty"));
+	response.set(http::field::content_length, response.body().size());
 }
 
 Value HttpUtility::GetLastParameter(const Dictionary::Ptr& params, const String& key)
