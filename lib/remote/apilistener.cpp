@@ -1160,11 +1160,16 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
 		std::sort(files.begin(), files.end());
 
+		int max_ts = 0;
+
 		for (int ts : files) {
 			String path = GetApiDir() + "log/" + Convert::ToString(ts);
 
 			if (ts < peer_ts)
 				continue;
+
+			if (ts > max_ts)
+				max_ts = ts;
 
 			Log(LogNotice, "ApiListener")
 				<< "Replaying log: " << path;
@@ -1253,6 +1258,9 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 			Log(LogNotice, "ApiListener")
 				<< "Replayed " << count << " messages.";
 		}
+
+		if (count == 0 && max_ts > endpoint->GetLocalLogPosition())
+			endpoint->SetLocalLogPosition(max_ts);
 
 		if (last_sync) {
 			{
