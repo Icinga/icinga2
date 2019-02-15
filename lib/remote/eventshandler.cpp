@@ -6,6 +6,7 @@
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
 #include "base/defer.hpp"
+#include "base/io-engine.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include <boost/asio/buffer.hpp>
@@ -91,22 +92,23 @@ bool EventsHandler::HandleRequest(
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
 
-	http::async_write(stream, response, yc);
-	stream.async_flush(yc);
+	{
+		IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+	}
 
 	asio::const_buffer newLine ("\n", 1);
 
 	for (;;) {
-		Dictionary::Ptr result = queue->WaitForEvent(&request);
-
-		if (!result)
-			continue;
-
-		String body = JsonEncode(result);
+		String body = JsonEncode(queue->WaitForEvent(&request, yc));
 
 		boost::algorithm::replace_all(body, "\n", "");
 
 		asio::const_buffer payload (body.CStr(), body.GetLength());
+
+		IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
 
 		stream.async_write_some(payload, yc);
 		stream.async_write_some(newLine, yc);

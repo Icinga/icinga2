@@ -2,8 +2,10 @@
 
 #include "remote/eventqueue.hpp"
 #include "remote/filterutility.hpp"
+#include "base/io-engine.hpp"
 #include "base/singleton.hpp"
 #include "base/logger.hpp"
+#include <boost/asio/spawn.hpp>
 
 using namespace icinga;
 
@@ -97,6 +99,26 @@ Dictionary::Ptr EventQueue::WaitForEvent(void *client, double timeout)
 
 		if (!m_CV.timed_wait(lock, boost::posix_time::milliseconds(long(timeout * 1000))))
 			return nullptr;
+	}
+}
+
+Dictionary::Ptr EventQueue::WaitForEvent(void *client, boost::asio::yield_context yc)
+{
+	for (;;) {
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+
+			auto it = m_Events.find(client);
+			ASSERT(it != m_Events.end());
+
+			if (!it->second.empty()) {
+				Dictionary::Ptr result = *it->second.begin();
+				it->second.pop_front();
+				return result;
+			}
+		}
+
+		IoBoundWorkSlot dontLockTheIoThreadWhileWaiting (yc);
 	}
 }
 
