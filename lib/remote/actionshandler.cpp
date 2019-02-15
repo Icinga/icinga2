@@ -12,15 +12,23 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
-bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool ActionsHandler::HandleRequest(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
-	if (request.RequestUrl->GetPath().size() != 3)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() != 3)
 		return false;
 
-	if (request.RequestMethod != "POST")
+	if (request.method() != http::verb::post)
 		return false;
 
-	String actionName = request.RequestUrl->GetPath()[2];
+	String actionName = url->GetPath()[2];
 
 	ApiAction::Ptr action = ApiAction::GetByName(actionName);
 
@@ -81,17 +89,15 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 	}
 
 	int statusCode = 500;
-	String statusMessage = "No action executed successfully";
 
 	for (const Dictionary::Ptr& res : results) {
 		if (res->Contains("code") && res->Get("code") == 200) {
 			statusCode = 200;
-			statusMessage = "OK";
 			break;
 		}
 	}
 
-	response.SetStatus(statusCode, statusMessage);
+	response.result(statusCode);
 
 	Dictionary::Ptr result = new Dictionary({
 		{ "results", new Array(std::move(results)) }

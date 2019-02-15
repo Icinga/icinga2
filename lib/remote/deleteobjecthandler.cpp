@@ -14,15 +14,23 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/objects", DeleteObjectHandler);
 
-bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool DeleteObjectHandler::HandleRequest(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
-	if (request.RequestUrl->GetPath().size() < 3 || request.RequestUrl->GetPath().size() > 4)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() < 3 || url->GetPath().size() > 4)
 		return false;
 
-	if (request.RequestMethod != "DELETE")
+	if (request.method() != http::verb::delete_)
 		return false;
 
-	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[2]);
+	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
 
 	if (!type) {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
@@ -35,10 +43,10 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	params->Set("type", type->GetName());
 
-	if (request.RequestUrl->GetPath().size() >= 4) {
+	if (url->GetPath().size() >= 4) {
 		String attr = type->GetName();
 		boost::algorithm::to_lower(attr);
-		params->Set(attr, request.RequestUrl->GetPath()[3]);
+		params->Set(attr, url->GetPath()[3]);
 	}
 
 	std::vector<Value> objs;
@@ -93,9 +101,9 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	});
 
 	if (!success)
-		response.SetStatus(500, "One or more objects could not be deleted");
+		response.result(http::status::internal_server_error);
 	else
-		response.SetStatus(200, "OK");
+		response.result(http::status::ok);
 
 	HttpUtility::SendJsonBody(response, params, result);
 

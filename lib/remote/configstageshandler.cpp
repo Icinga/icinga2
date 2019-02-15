@@ -11,32 +11,48 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/stages", ConfigStagesHandler);
 
-bool ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool ConfigStagesHandler::HandleRequest(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
-	if (request.RequestUrl->GetPath().size() > 5)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() > 5)
 		return false;
 
-	if (request.RequestMethod == "GET")
-		HandleGet(user, request, response, params);
-	else if (request.RequestMethod == "POST")
-		HandlePost(user, request, response, params);
-	else if (request.RequestMethod == "DELETE")
-		HandleDelete(user, request, response, params);
+	if (request.method() == http::verb::get)
+		HandleGet(user, request, url, response, params);
+	else if (request.method() == http::verb::post)
+		HandlePost(user, request, url, response, params);
+	else if (request.method() == http::verb::delete_)
+		HandleDelete(user, request, url, response, params);
 	else
 		return false;
 
 	return true;
 }
 
-void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+void ConfigStagesHandler::HandleGet(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
+	namespace http = boost::beast::http;
+
 	FilterUtility::CheckPermission(user, "config/query");
 
-	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("package", request.RequestUrl->GetPath()[3]);
+	if (url->GetPath().size() >= 4)
+		params->Set("package", url->GetPath()[3]);
 
-	if (request.RequestUrl->GetPath().size() >= 5)
-		params->Set("stage", request.RequestUrl->GetPath()[4]);
+	if (url->GetPath().size() >= 5)
+		params->Set("stage", url->GetPath()[4]);
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
@@ -64,16 +80,24 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 		{ "results", new Array(std::move(results)) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+void ConfigStagesHandler::HandlePost(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
+	namespace http = boost::beast::http;
+
 	FilterUtility::CheckPermission(user, "config/modify");
 
-	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("package", request.RequestUrl->GetPath()[3]);
+	if (url->GetPath().size() >= 4)
+		params->Set("package", url->GetPath()[3]);
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
@@ -123,19 +147,27 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 		{ "results", new Array({ result1 }) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+void ConfigStagesHandler::HandleDelete(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
+	namespace http = boost::beast::http;
+
 	FilterUtility::CheckPermission(user, "config/modify");
 
-	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("package", request.RequestUrl->GetPath()[3]);
+	if (url->GetPath().size() >= 4)
+		params->Set("package", url->GetPath()[3]);
 
-	if (request.RequestUrl->GetPath().size() >= 5)
-		params->Set("stage", request.RequestUrl->GetPath()[4]);
+	if (url->GetPath().size() >= 5)
+		params->Set("stage", url->GetPath()[4]);
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
@@ -165,7 +197,7 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 		{ "results", new Array({ result1 }) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 }
 

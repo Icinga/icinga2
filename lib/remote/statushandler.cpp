@@ -68,12 +68,20 @@ public:
 	}
 };
 
-bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool StatusHandler::HandleRequest(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
-	if (request.RequestUrl->GetPath().size() > 3)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() > 3)
 		return false;
 
-	if (request.RequestMethod != "GET")
+	if (request.method() != http::verb::get)
 		return false;
 
 	QueryDescription qd;
@@ -83,8 +91,8 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 
 	params->Set("type", "Status");
 
-	if (request.RequestUrl->GetPath().size() >= 3)
-		params->Set("status", request.RequestUrl->GetPath()[2]);
+	if (url->GetPath().size() >= 3)
+		params->Set("status", url->GetPath()[2]);
 
 	std::vector<Value> objs;
 
@@ -101,7 +109,7 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 		{ "results", new Array(std::move(objs)) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;

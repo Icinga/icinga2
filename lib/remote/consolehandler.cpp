@@ -53,17 +53,25 @@ static void EnsureFrameCleanupTimer()
 	});
 }
 
-bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool ConsoleHandler::HandleRequest(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
-	if (request.RequestUrl->GetPath().size() != 3)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() != 3)
 		return false;
 
-	if (request.RequestMethod != "POST")
+	if (request.method() != http::verb::post)
 		return false;
 
 	QueryDescription qd;
 
-	String methodName = request.RequestUrl->GetPath()[2];
+	String methodName = url->GetPath()[2];
 
 	FilterUtility::CheckPermission(user, "console");
 
@@ -85,9 +93,12 @@ bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 	return true;
 }
 
-bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& response,
+bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
 {
+	namespace http = boost::beast::http;
+
 	Log(LogNotice, "Console")
 		<< "Executing expression: " << command;
 
@@ -151,15 +162,18 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 		{ "results", new Array({ resultInfo }) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }
 
-bool ConsoleHandler::AutocompleteScriptHelper(HttpRequest& request, HttpResponse& response,
+bool ConsoleHandler::AutocompleteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
 {
+	namespace http = boost::beast::http;
+
 	Log(LogInformation, "Console")
 		<< "Auto-completing expression: " << command;
 
@@ -187,7 +201,7 @@ bool ConsoleHandler::AutocompleteScriptHelper(HttpRequest& request, HttpResponse
 		{ "results", new Array({ result1 }) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;

@@ -12,12 +12,20 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/files", ConfigFilesHandler);
 
-bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool ConfigFilesHandler::HandleRequest(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
-	if (request.RequestMethod != "GET")
+	namespace http = boost::beast::http;
+
+	if (request.method() != http::verb::get)
 		return false;
 
-	const std::vector<String>& urlPath = request.RequestUrl->GetPath();
+	const std::vector<String>& urlPath = url->GetPath();
 
 	if (urlPath.size() >= 4)
 		params->Set("package", urlPath[3]);
@@ -30,7 +38,7 @@ bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		params->Set("path", boost::algorithm::join(tmpPath, "/"));
 	}
 
-	if (request.Headers->Get("accept") == "application/json") {
+	if (request[http::field::accept] == "application/json") {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid Accept header. Either remove the Accept header or set it to 'application/octet-stream'.");
 		return true;
 	}
@@ -69,9 +77,10 @@ bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		fp.exceptions(std::ifstream::badbit);
 
 		String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
-		response.SetStatus(200, "OK");
-		response.AddHeader("Content-Type", "application/octet-stream");
-		response.WriteBody(content.CStr(), content.GetLength());
+		response.result(http::status::ok);
+		response.set(http::field::content_type, "application/octet-stream");
+		response.body() = content;
+		response.set(http::field::content_length, response.body().size());
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 500, "Could not read file.",
 			DiagnosticInformation(ex));

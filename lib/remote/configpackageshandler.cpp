@@ -10,25 +10,41 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/packages", ConfigPackagesHandler);
 
-bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool ConfigPackagesHandler::HandleRequest(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
-	if (request.RequestUrl->GetPath().size() > 4)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() > 4)
 		return false;
 
-	if (request.RequestMethod == "GET")
-		HandleGet(user, request, response, params);
-	else if (request.RequestMethod == "POST")
-		HandlePost(user, request, response, params);
-	else if (request.RequestMethod == "DELETE")
-		HandleDelete(user, request, response, params);
+	if (request.method() == http::verb::get)
+		HandleGet(user, request, url, response, params);
+	else if (request.method() == http::verb::post)
+		HandlePost(user, request, url, response, params);
+	else if (request.method() == http::verb::delete_)
+		HandleDelete(user, request, url, response, params);
 	else
 		return false;
 
 	return true;
 }
 
-void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+void ConfigPackagesHandler::HandleGet(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
+	namespace http = boost::beast::http;
+
 	FilterUtility::CheckPermission(user, "config/query");
 
 	std::vector<String> packages;
@@ -58,16 +74,24 @@ void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& req
 		{ "results", new Array(std::move(results)) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+void ConfigPackagesHandler::HandlePost(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
+	namespace http = boost::beast::http;
+
 	FilterUtility::CheckPermission(user, "config/modify");
 
-	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("package", request.RequestUrl->GetPath()[3]);
+	if (url->GetPath().size() >= 4)
+		params->Set("package", url->GetPath()[3]);
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
@@ -95,16 +119,24 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 		{ "results", new Array({ result1 }) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+void ConfigPackagesHandler::HandleDelete(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
+	namespace http = boost::beast::http;
+
 	FilterUtility::CheckPermission(user, "config/modify");
 
-	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("package", request.RequestUrl->GetPath()[3]);
+	if (url->GetPath().size() >= 4)
+		params->Set("package", url->GetPath()[3]);
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
@@ -131,6 +163,6 @@ void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& 
 		{ "results", new Array({ result1 }) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 }
