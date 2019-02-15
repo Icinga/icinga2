@@ -20,13 +20,6 @@
 #ifndef IO_ENGINE_H
 #define IO_ENGINE_H
 
-/**
- * Boost.Coroutine2 (the successor of Boost.Coroutine)
- * (1) doesn't even exist in old Boost versions and
- * (2) isn't supported by ASIO, yet.
- */
-#define BOOST_COROUTINES_NO_DEPRECATION_WARNING 1
-
 #include "base/lazy-init.hpp"
 #include <atomic>
 #include <memory>
