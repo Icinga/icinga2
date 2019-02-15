@@ -362,12 +362,28 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	try {
 		tcp::resolver resolver (io);
 		tcp::resolver::query query (node, service, tcp::resolver::query::passive);
-		auto endpoint (resolver.resolve(query)->endpoint());
 
-		acceptor->open(endpoint.protocol());
-		acceptor->set_option(ip::v6_only(false));
-		acceptor->set_option(tcp::acceptor::reuse_address(true));
-		acceptor->bind(endpoint);
+		auto result (resolver.resolve(query));
+		auto current (result.begin());
+
+		for (;;) {
+			try {
+				acceptor->open(current->endpoint().protocol());
+				acceptor->set_option(ip::v6_only(false));
+				acceptor->set_option(tcp::acceptor::reuse_address(true));
+				acceptor->bind(current->endpoint());
+
+				break;
+			} catch (const std::exception&) {
+				if (++current == result.end()) {
+					throw;
+				}
+
+				if (acceptor->is_open()) {
+					acceptor->close();
+				}
+			}
+		}
 	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener")
 			<< "Cannot bind TCP socket for host '" << node << "' on port '" << service << "'.";
