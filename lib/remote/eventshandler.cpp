@@ -5,8 +5,10 @@
 #include "remote/filterutility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
+#include "base/defer.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include <boost/asio/buffer.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
@@ -14,13 +16,17 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/events", EventsHandler);
 
 bool EventsHandler::HandleRequest(
+	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	const Url::Ptr& url,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	bool& hasStartedStreaming
 )
 {
+	namespace asio = boost::asio;
 	namespace http = boost::beast::http;
 
 	if (url->GetPath().size() != 2)
@@ -75,17 +81,23 @@ bool EventsHandler::HandleRequest(
 
 	queue->AddClient(&request);
 
+	Defer removeClient ([&queue, &request, &queueName]() {
+		queue->RemoveClient(&request);
+		EventQueue::UnregisterIfUnused(queueName, queue);
+	});
+
+	hasStartedStreaming = true;
+
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
 
+	http::async_write(stream, response, yc);
+	stream.async_flush(yc);
+
+	asio::const_buffer newLine ("\n", 1);
+
 	for (;;) {
 		Dictionary::Ptr result = queue->WaitForEvent(&request);
-
-		if (!response.IsPeerConnected()) {
-			queue->RemoveClient(&request);
-			EventQueue::UnregisterIfUnused(queueName, queue);
-			return true;
-		}
 
 		if (!result)
 			continue;
@@ -94,14 +106,11 @@ bool EventsHandler::HandleRequest(
 
 		boost::algorithm::replace_all(body, "\n", "");
 
-		try {
-			response.WriteBody(body.CStr(), body.GetLength());
-			response.WriteBody("\n", 1);
-		} catch (const std::exception&) {
-			queue->RemoveClient(&request);
-			EventQueue::UnregisterIfUnused(queueName, queue);
-			throw;
-		}
+		asio::const_buffer payload (body.CStr(), body.GetLength());
+
+		stream.async_write_some(payload, yc);
+		stream.async_write_some(newLine, yc);
+		stream.async_flush(yc);
 	}
 }
 

@@ -311,7 +311,7 @@ bool EnsureValidBody(
 }
 
 static inline
-void ProcessRequest(
+bool ProcessRequest(
 	AsioTlsStream& stream,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	ApiUser::Ptr& authenticatedUser,
@@ -321,11 +321,17 @@ void ProcessRequest(
 {
 	namespace http = boost::beast::http;
 
+	bool hasStartedStreaming = false;
+
 	try {
 		CpuBoundWork handlingRequest (yc);
 
-		HttpHandler::ProcessRequest(authenticatedUser, request, response);
+		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, hasStartedStreaming);
 	} catch (const std::exception& ex) {
+		if (hasStartedStreaming) {
+			return false;
+		}
+
 		http::response<http::string_body> response;
 
 		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
@@ -333,11 +339,17 @@ void ProcessRequest(
 		http::async_write(stream, response, yc);
 		stream.async_flush(yc);
 
-		return;
+		return true;
+	}
+
+	if (hasStartedStreaming) {
+		return false;
 	}
 
 	http::async_write(stream, response, yc);
 	stream.async_flush(yc);
+
+	return true;
 }
 
 void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
@@ -419,7 +431,9 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
-			ProcessRequest(*m_Stream, request, authenticatedUser, response, yc);
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, yc)) {
+				break;
+			}
 
 			if (request.version() != 11 || request[http::field::connection] == "close") {
 				break;

@@ -46,9 +46,12 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 }
 
 void HttpHandler::ProcessRequest(
+	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
-	boost::beast::http::response<boost::beast::http::string_body>& response
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc,
+	bool& hasStartedStreaming
 )
 {
 	Dictionary::Ptr node = m_UrlTree;
@@ -96,7 +99,7 @@ void HttpHandler::ProcessRequest(
 
 	bool processed = false;
 	for (const HttpHandler::Ptr& handler : handlers) {
-		if (handler->HandleRequest(user, request, url, response, params)) {
+		if (handler->HandleRequest(stream, user, request, url, response, params, yc, hasStartedStreaming)) {
 			processed = true;
 			break;
 		}
