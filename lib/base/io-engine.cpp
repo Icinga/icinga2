@@ -99,7 +99,7 @@ boost::asio::io_service& IoEngine::GetIoService()
 	return m_IoService;
 }
 
-IoEngine::IoEngine() : m_IoService(), m_KeepAlive(m_IoService), m_AlreadyExpiredTimer(m_IoService)
+IoEngine::IoEngine() : m_IoService(), m_KeepAlive(m_IoService), m_Threads(decltype(m_Threads)::size_type(std::thread::hardware_concurrency())), m_AlreadyExpiredTimer(m_IoService)
 {
 	m_AlreadyExpiredTimer.expires_at(boost::posix_time::neg_infin);
 
@@ -111,8 +111,21 @@ IoEngine::IoEngine() : m_IoService(), m_KeepAlive(m_IoService), m_AlreadyExpired
 		m_CpuBoundSemaphore.store(concurrency - 1u);
 	}
 
-	for (auto i (std::thread::hardware_concurrency()); i; --i) {
-		std::thread(&IoEngine::RunEventLoop, this).detach();
+	for (auto& thread : m_Threads) {
+		thread = std::thread(&IoEngine::RunEventLoop, this);
+	}
+}
+
+IoEngine::~IoEngine()
+{
+	for (auto& thread : m_Threads) {
+		m_IoService.post([]() {
+			throw TerminateIoThread();
+		});
+	}
+
+	for (auto& thread : m_Threads) {
+		thread.join();
 	}
 }
 
@@ -122,6 +135,8 @@ void IoEngine::RunEventLoop()
 		try {
 			m_IoService.run();
 
+			break;
+		} catch (const TerminateIoThread&) {
 			break;
 		} catch (const std::exception& e) {
 			Log(LogCritical, "IoEngine", "Exception during I/O operation!");

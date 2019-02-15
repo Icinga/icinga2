@@ -22,7 +22,10 @@
 
 #include "base/lazy-init.hpp"
 #include <atomic>
+#include <exception>
 #include <memory>
+#include <thread>
+#include <vector>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/spawn.hpp>
@@ -82,6 +85,7 @@ public:
 	IoEngine(IoEngine&&) = delete;
 	IoEngine& operator=(const IoEngine&) = delete;
 	IoEngine& operator=(IoEngine&&) = delete;
+	~IoEngine();
 
 	static IoEngine& Get();
 
@@ -96,8 +100,13 @@ private:
 
 	boost::asio::io_service m_IoService;
 	boost::asio::io_service::work m_KeepAlive;
+	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
 	std::atomic_uint_fast32_t m_CpuBoundSemaphore;
+};
+
+class TerminateIoThread : public std::exception
+{
 };
 
 #endif /* IO_ENGINE_H */
