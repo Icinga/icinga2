@@ -64,6 +64,29 @@ void CpuBoundWork::Done()
 	}
 }
 
+IoBoundWorkSlot::IoBoundWorkSlot(boost::asio::yield_context yc)
+	: yc(yc)
+{
+	IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
+}
+
+IoBoundWorkSlot::~IoBoundWorkSlot()
+{
+	auto& ioEngine (IoEngine::Get());
+
+	for (;;) {
+		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
+
+		if (availableSlots < 1) {
+			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
+			ioEngine.m_AlreadyExpiredTimer.async_wait(yc);
+			continue;
+		}
+
+		break;
+	}
+}
+
 LazyInit<std::unique_ptr<IoEngine>> IoEngine::m_Instance ([]() { return std::unique_ptr<IoEngine>(new IoEngine()); });
 
 IoEngine& IoEngine::Get()
