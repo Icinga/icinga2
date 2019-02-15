@@ -10,6 +10,7 @@
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include <boost/asio/buffer.hpp>
+#include <boost/asio/write.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
@@ -110,8 +111,8 @@ bool EventsHandler::HandleRequest(
 
 		IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
 
-		stream.async_write_some(payload, yc);
-		stream.async_write_some(newLine, yc);
+		asio::async_write(stream, payload, yc);
+		asio::async_write(stream, newLine, yc);
 		stream.async_flush(yc);
 	}
 }
