@@ -181,7 +181,7 @@ bool EnsureAcceptHeader(
 {
 	namespace http = boost::beast::http;
 
-	if (request.method() == http::verb::get && request[http::field::accept] != "application/json") {
+	if (request.method() != http::verb::get && request[http::field::accept] != "application/json") {
 		response.result(http::status::bad_request);
 		response.set(http::field::content_type, "text/html");
 		response.body() = "<h1>Accept header is missing or not set to 'application/json'.</h1>";
