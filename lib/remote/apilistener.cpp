@@ -626,7 +626,17 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 
 	ClientType ctype;
 
-	if (role != RoleClient) {
+	if (role == RoleClient) {
+		JsonRpc::SendMessage(client, new Dictionary({
+			{ "jsonrpc", "2.0" },
+			{ "method", "icinga::Hello" },
+			{ "params", new Dictionary() }
+		}), yc);
+
+		client->async_flush(yc);
+
+		ctype = ClientJsonRpc;
+	} else {
 		{
 			boost::system::error_code ec;
 
