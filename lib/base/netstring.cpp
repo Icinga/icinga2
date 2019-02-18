@@ -2,7 +2,12 @@
 
 #include "base/netstring.hpp"
 #include "base/debug.hpp"
+#include "base/tlsstream.hpp"
+#include <memory>
 #include <sstream>
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/spawn.hpp>
+#include <boost/asio/write.hpp>
 
 using namespace icinga;
 
@@ -107,6 +112,29 @@ size_t NetString::WriteStringToStream(const Stream::Ptr& stream, const String& s
 
 	String msg = msgbuf.str();
 	stream->Write(msg.CStr(), msg.GetLength());
+	return msg.GetLength();
+}
+
+/**
+ * Writes data into a stream using the netstring format and returns bytes written.
+ *
+ * @param stream The stream.
+ * @param str The String that is to be written.
+ *
+ * @return The amount of bytes written.
+ */
+size_t NetString::WriteStringToStream(const std::shared_ptr<AsioTlsStream>& stream, const String& str, boost::asio::yield_context yc)
+{
+	namespace asio = boost::asio;
+
+	std::ostringstream msgbuf;
+	WriteStringToStream(msgbuf, str);
+
+	String msg = msgbuf.str();
+	asio::const_buffer msgBuf (msg.CStr(), msg.GetLength());
+
+	asio::async_write(*stream, msgBuf, yc);
+
 	return msg.GetLength();
 }
 
