@@ -409,19 +409,17 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const std
 	namespace asio = boost::asio;
 
 	auto& io (server->get_io_service());
-	auto sslConn (std::make_shared<AsioTlsStream>(io, *sslContext));
 
 	for (;;) {
 		try {
+			auto sslConn (std::make_shared<AsioTlsStream>(io, *sslContext));
+
 			server->async_accept(sslConn->lowest_layer(), yc);
+
+			asio::spawn(io, [this, sslConn](asio::yield_context yc) { NewClientHandler(yc, sslConn, String(), RoleServer); });
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ApiListener") << "Cannot accept new connection: " << DiagnosticInformation(ex, false);
-			continue;
 		}
-
-		asio::spawn(io, [this, sslConn](asio::yield_context yc) { NewClientHandler(yc, sslConn, String(), RoleServer); });
-
-		sslConn = std::make_shared<AsioTlsStream>(io, *sslContext);
 	}
 }
 
