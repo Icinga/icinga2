@@ -831,16 +831,16 @@ Process a check result for a host or a service.
 
 Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
 
-  Parameter         | Type         | Description
-  ------------------|--------------|--------------
-  exit\_status      | Number       | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL.
-  plugin\_output    | String       | **Required.** One or more lines of the plugin main output. Does **not** contain the performance data.
-  performance\_data | Array|String | **Optional.** The performance data as array of strings. The raw performance data string can be used too.
-  check\_command    | Array        | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument.
-  check\_source     | String       | **Optional.** Usually the name of the `command_endpoint`
-  execution\_start  | Timestamp    | **Optional.** The timestamp where a script/process started its execution.
-  execution\_end    | Timestamp    | **Optional.** The timestamp where a script/process ended its execution. This timestamp is used in features to determine e.g. the metric timestamp.
-  ttl               | Number       | **Optional.** Time-to-live duration in seconds for this check result. The next expected check result is `now + ttl` where freshness checks are executed.
+  Parameter          | Type                           | Description
+  ------------------ | --------------                 | --------------
+  exit\_status       | Number                         | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL.
+  plugin\_output     | String                         | **Required.** One or more lines of the plugin main output. Does **not** contain the performance data.
+  performance\_data  | Array<code>&#124;</code>String | **Optional.** The performance data as array of strings. The raw performance data string can be used too.
+  check\_command     | Array                          | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument.
+  check\_source      | String                         | **Optional.** Usually the name of the `command_endpoint`
+  execution\_start   | Timestamp                      | **Optional.** The timestamp where a script/process started its execution.
+  execution\_end     | Timestamp                      | **Optional.** The timestamp where a script/process ended its execution. This timestamp is used in features to determine e.g. the metric timestamp.
+  ttl                | Number                         | **Optional.** Time-to-live duration in seconds for this check result. The next expected check result is `now + ttl` where freshness checks are executed.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
