@@ -6,7 +6,10 @@
 #include "base/console.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/convert.hpp"
+#include "base/tlsstream.hpp"
 #include <iostream>
+#include <memory>
+#include <boost/asio/spawn.hpp>
 
 using namespace icinga;
 
@@ -53,6 +56,25 @@ size_t JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& me
 #endif /* I2_DEBUG */
 
 	return NetString::WriteStringToStream(stream, json);
+}
+
+/**
+ * Sends a message to the connected peer and returns the bytes sent.
+ *
+ * @param message The message.
+ *
+ * @return The amount of bytes sent.
+ */
+size_t JsonRpc::SendMessage(const std::shared_ptr<AsioTlsStream>& stream, const Dictionary::Ptr& message, boost::asio::yield_context yc)
+{
+	String json = JsonEncode(message);
+
+#ifdef I2_DEBUG
+	if (GetDebugJsonRpcCached())
+		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << ">> " << json << ConsoleColorTag(Console_Normal) << "\n";
+#endif /* I2_DEBUG */
+
+	return NetString::WriteStringToStream(stream, json, yc);
 }
 
 StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait, ssize_t maxMessageLength)

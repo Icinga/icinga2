@@ -5,7 +5,10 @@
 
 #include "base/stream.hpp"
 #include "base/dictionary.hpp"
+#include "base/tlsstream.hpp"
 #include "remote/i2-remote.hpp"
+#include <memory>
+#include <boost/asio/spawn.hpp>
 
 namespace icinga
 {
@@ -19,6 +22,7 @@ class JsonRpc
 {
 public:
 	static size_t SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
+	static size_t SendMessage(const std::shared_ptr<AsioTlsStream>& stream, const Dictionary::Ptr& message, boost::asio::yield_context yc);
 	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait = false, ssize_t maxMessageLength = -1);
 	static Dictionary::Ptr DecodeMessage(const String& message);
 
