@@ -26,7 +26,7 @@ namespace icinga
 
 class OpenTsdbWriter : ConfigObject
 {
-	activation_priority 80;
+	activation_priority 100;
 
 	[config] String host {
 		default {{{ return "127.0.0.1"; }}}
