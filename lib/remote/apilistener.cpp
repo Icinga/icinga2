@@ -212,16 +212,6 @@ void ApiListener::UpdateSSLContext()
 	}
 
 	m_SSLContext = context;
-
-	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
-		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
-			client->Disconnect();
-		}
-	}
-
-	for (const JsonRpcConnection::Ptr& client : m_AnonymousClients) {
-		client->Disconnect();
-	}
 }
 
 void ApiListener::OnAllConfigLoaded()
@@ -669,7 +659,33 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 		}
 	}
 
-	if (ctype != ClientJsonRpc) {
+	if (ctype == ClientJsonRpc) {
+		Log(LogNotice, "ApiListener", "New JSON-RPC client");
+
+		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, client, role);
+
+		if (endpoint) {
+			bool needSync = !endpoint->GetConnected();
+
+			endpoint->AddClient(aclient);
+
+			asio::spawn(client->get_io_service(), [this, aclient, endpoint, needSync](asio::yield_context yc) {
+				CpuBoundWork syncClient (yc);
+
+				SyncClient(aclient, endpoint, needSync);
+			});
+		} else if (!AddAnonymousClient(aclient)) {
+			Log(LogNotice, "ApiListener")
+				<< "Ignoring anonymous JSON-RPC connection " << conninfo
+				<< ". Max connections (" << GetMaxAnonymousClients() << ") exceeded.";
+
+			aclient = nullptr;
+		}
+
+		if (aclient) {
+			aclient->Start();
+		}
+	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
 
 		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, client);
@@ -810,10 +826,9 @@ void ApiListener::ApiTimerHandler()
 		}
 
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
-			if (client->GetTimestamp() != maxTs)
-				client->Disconnect();
-			else
+			if (client->GetTimestamp() == maxTs) {
 				client->SendMessage(lmessage);
+			}
 		}
 
 		Log(LogNotice, "ApiListener")
@@ -1280,8 +1295,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 				}
 
 				try  {
-					size_t bytesSent = NetString::WriteStringToStream(client->GetStream(), pmessage->Get("message"));
-					endpoint->AddMessageSent(bytesSent);
+					client->SendMessage(JsonDecode(pmessage->Get("message")));
 					count++;
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ApiListener")
@@ -1306,8 +1320,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 						}) }
 					});
 
-					size_t bytesSent = JsonRpc::SendMessage(client->GetStream(), lmessage);
-					endpoint->AddMessageSent(bytesSent);
+					client->SendMessage(lmessage);
 				}
 			}
 
@@ -1426,11 +1439,8 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	/* connection stats */
 	size_t jsonRpcAnonymousClients = GetAnonymousClients().size();
 	size_t httpClients = GetHttpClients().size();
-	size_t workQueueItems = JsonRpcConnection::GetWorkQueueLength();
-	size_t workQueueCount = JsonRpcConnection::GetWorkQueueCount();
 	size_t syncQueueItems = m_SyncQueue.GetLength();
 	size_t relayQueueItems = m_RelayQueue.GetLength();
-	double workQueueItemRate = JsonRpcConnection::GetWorkQueueRate();
 	double syncQueueItemRate = m_SyncQueue.GetTaskCount(60) / 60.0;
 	double relayQueueItemRate = m_RelayQueue.GetTaskCount(60) / 60.0;
 
@@ -1446,11 +1456,8 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 
 		{ "json_rpc", new Dictionary({
 			{ "anonymous_clients", jsonRpcAnonymousClients },
-			{ "work_queue_items", workQueueItems },
-			{ "work_queue_count", workQueueCount },
 			{ "sync_queue_items", syncQueueItems },
 			{ "relay_queue_items", relayQueueItems },
-			{ "work_queue_item_rate", workQueueItemRate },
 			{ "sync_queue_item_rate", syncQueueItemRate },
 			{ "relay_queue_item_rate", relayQueueItemRate }
 		}) },
@@ -1467,12 +1474,9 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 
 	perfdata->Set("num_json_rpc_anonymous_clients", jsonRpcAnonymousClients);
 	perfdata->Set("num_http_clients", httpClients);
-	perfdata->Set("num_json_rpc_work_queue_items", workQueueItems);
-	perfdata->Set("num_json_rpc_work_queue_count", workQueueCount);
 	perfdata->Set("num_json_rpc_sync_queue_items", syncQueueItems);
 	perfdata->Set("num_json_rpc_relay_queue_items", relayQueueItems);
 
-	perfdata->Set("num_json_rpc_work_queue_item_rate", workQueueItemRate);
 	perfdata->Set("num_json_rpc_sync_queue_item_rate", syncQueueItemRate);
 	perfdata->Set("num_json_rpc_relay_queue_item_rate", relayQueueItemRate);
 

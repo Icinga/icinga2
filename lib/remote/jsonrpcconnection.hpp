@@ -8,6 +8,11 @@
 #include "base/tlsstream.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
+#include <memory>
+#include <vector>
+#include <boost/asio/io_service_strand.hpp>
+#include <boost/asio/spawn.hpp>
+#include <boost/asio/deadline_timer.hpp>
 
 namespace icinga
 {
@@ -36,7 +41,7 @@ class JsonRpcConnection final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(JsonRpcConnection);
 
-	JsonRpcConnection(const String& identity, bool authenticated, TlsStream::Ptr stream, ConnectionRole role);
+	JsonRpcConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role);
 
 	void Start();
 
@@ -44,45 +49,34 @@ public:
 	String GetIdentity() const;
 	bool IsAuthenticated() const;
 	Endpoint::Ptr GetEndpoint() const;
-	TlsStream::Ptr GetStream() const;
+	std::shared_ptr<AsioTlsStream> GetStream() const;
 	ConnectionRole GetRole() const;
-
-	void Disconnect();
 
 	void SendMessage(const Dictionary::Ptr& request);
 
-	static void HeartbeatTimerHandler();
 	static Value HeartbeatAPIHandler(const intrusive_ptr<MessageOrigin>& origin, const Dictionary::Ptr& params);
-
-	static size_t GetWorkQueueCount();
-	static size_t GetWorkQueueLength();
-	static double GetWorkQueueRate();
 
 	static void SendCertificateRequest(const JsonRpcConnection::Ptr& aclient, const intrusive_ptr<MessageOrigin>& origin, const String& path);
 
 private:
-	int m_ID;
 	String m_Identity;
 	bool m_Authenticated;
 	Endpoint::Ptr m_Endpoint;
-	TlsStream::Ptr m_Stream;
+	std::shared_ptr<AsioTlsStream> m_Stream;
 	ConnectionRole m_Role;
 	double m_Timestamp;
-	double m_Seen;
-	double m_NextHeartbeat;
-	double m_HeartbeatTimeout;
-	boost::mutex m_DataHandlerMutex;
+	boost::asio::io_service::strand m_IoStrand;
+	std::vector<Dictionary::Ptr> m_OutgoingMessagesQueue;
+	boost::asio::deadline_timer m_OutgoingMessagesQueued;
+	bool m_ReaderHasError;
+	unsigned char m_RunningCoroutines;
 
-	StreamReadContext m_Context;
+	void HandleIncomingMessages(boost::asio::yield_context yc);
+	void WriteOutgoingMessages(boost::asio::yield_context yc);
+	void ShutdownStreamOnce(boost::asio::yield_context& yc);
 
 	bool ProcessMessage();
-	void MessageHandlerWrapper(const String& jsonString);
 	void MessageHandler(const String& jsonString);
-	void DataAvailableHandler();
-
-	static void StaticInitialize();
-	static void TimeoutTimerHandler();
-	void CheckLiveness();
 
 	void CertificateRequestResponseHandler(const Dictionary::Ptr& message);
 };

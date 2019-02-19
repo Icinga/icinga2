@@ -323,7 +323,7 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 #endif /* I2_DEBUG */
 
 	if (client)
-		JsonRpc::SendMessage(client->GetStream(), message);
+		client->SendMessage(message);
 	else {
 		Zone::Ptr target = static_pointer_cast<Zone>(object->GetZone());
 
@@ -373,7 +373,7 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 #endif /* I2_DEBUG */
 
 	if (client)
-		JsonRpc::SendMessage(client->GetStream(), message);
+		client->SendMessage(message);
 	else {
 		Zone::Ptr target = static_pointer_cast<Zone>(object->GetZone());
 
