@@ -23,7 +23,6 @@
 #include "icinga/cib.hpp"
 #include "remote/apilistener.hpp"
 #include "base/configtype.hpp"
-#include "base/defer.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
@@ -74,7 +73,6 @@ void CheckerComponent::Start(bool runtimeCreated)
 	Log(LogInformation, "CheckerComponent")
 		<< "'" << GetName() << "' started.";
 
-	m_RunningChecks.store(0);
 
 	m_Thread = std::thread(std::bind(&CheckerComponent::CheckThreadProc, this));
 
@@ -94,10 +92,6 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 
 	m_ResultTimer->Stop();
 	m_Thread.join();
-
-	while (m_RunningChecks.load()) {
-		Utility::Sleep(1.0 / 60.0);
-	}
 
 	Log(LogInformation, "CheckerComponent")
 		<< "'" << GetName() << "' stopped.";
@@ -213,8 +207,6 @@ void CheckerComponent::CheckThreadProc()
 
 		Checkable::IncreasePendingChecks();
 
-		m_RunningChecks.fetch_add(1);
-
 		Utility::QueueAsyncCallback(std::bind(&CheckerComponent::ExecuteCheckHelper, CheckerComponent::Ptr(this), checkable));
 
 		lock.lock();
@@ -223,10 +215,6 @@ void CheckerComponent::CheckThreadProc()
 
 void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 {
-	Defer decrementRunningChecks ([this]{
-		m_RunningChecks.fetch_sub(1);
-	});
-
 	try {
 		checkable->ExecuteCheck();
 	} catch (const std::exception& ex) {
