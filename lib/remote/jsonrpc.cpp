@@ -9,6 +9,7 @@
 #include "base/tlsstream.hpp"
 #include <iostream>
 #include <memory>
+#include <utility>
 #include <boost/asio/spawn.hpp>
 
 using namespace icinga;
@@ -93,6 +94,18 @@ StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, String *message
 #endif /* I2_DEBUG */
 
 	return StatusNewItem;
+}
+
+String JsonRpc::ReadMessage(const std::shared_ptr<AsioTlsStream>& stream, boost::asio::yield_context yc, ssize_t maxMessageLength)
+{
+	String jsonString = NetString::ReadStringFromStream(stream, yc, maxMessageLength);
+
+#ifdef I2_DEBUG
+	if (GetDebugJsonRpcCached())
+		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << "<< " << jsonString << ConsoleColorTag(Console_Normal) << "\n";
+#endif /* I2_DEBUG */
+
+	return std::move(jsonString);
 }
 
 Dictionary::Ptr JsonRpc::DecodeMessage(const String& message)
