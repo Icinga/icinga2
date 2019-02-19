@@ -531,13 +531,13 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 
 	sslConn.set_verify_mode(ssl::verify_peer | ssl::verify_client_once);
 
-	bool verify_ok = false;
+	bool verify_ok = true;
 	String verifyError;
 
 	sslConn.set_verify_callback([&verify_ok, &verifyError](bool preverified, ssl::verify_context& ctx) {
-		verify_ok = preverified;
-
 		if (!preverified) {
+			verify_ok = false;
+
 			std::ostringstream msgbuf;
 			int err = X509_STORE_CTX_get_error(ctx.native_handle());
 
