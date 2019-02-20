@@ -338,8 +338,8 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 		fields->Set("acknowledgement", new InfluxdbInteger(checkable->GetAcknowledgement()));
 		fields->Set("latency", cr->CalculateLatency());
 		fields->Set("execution_time", cr->CalculateExecutionTime());
-		fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
-		fields->Set("full_message", cr->GetOutput());
+		//fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
+		//fields->Set("full_message", cr->GetOutput());
 		fields->Set("check_source", cr->GetCheckSource());
 
 		SendMetric(checkable, tmpl, Empty, fields, ts);
