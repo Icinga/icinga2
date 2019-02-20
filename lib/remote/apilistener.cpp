@@ -1466,6 +1466,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	size_t httpClients = GetHttpClients().size();
 	size_t syncQueueItems = m_SyncQueue.GetLength();
 	size_t relayQueueItems = m_RelayQueue.GetLength();
+	double workQueueItemRate = JsonRpcConnection::GetWorkQueueRate();
 	double syncQueueItemRate = m_SyncQueue.GetTaskCount(60) / 60.0;
 	double relayQueueItemRate = m_RelayQueue.GetTaskCount(60) / 60.0;
 
@@ -1483,6 +1484,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 			{ "anonymous_clients", jsonRpcAnonymousClients },
 			{ "sync_queue_items", syncQueueItems },
 			{ "relay_queue_items", relayQueueItems },
+			{ "work_queue_item_rate", workQueueItemRate },
 			{ "sync_queue_item_rate", syncQueueItemRate },
 			{ "relay_queue_item_rate", relayQueueItemRate }
 		}) },
@@ -1502,6 +1504,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	perfdata->Set("num_json_rpc_sync_queue_items", syncQueueItems);
 	perfdata->Set("num_json_rpc_relay_queue_items", relayQueueItems);
 
+	perfdata->Set("num_json_rpc_work_queue_item_rate", workQueueItemRate);
 	perfdata->Set("num_json_rpc_sync_queue_item_rate", syncQueueItemRate);
 	perfdata->Set("num_json_rpc_relay_queue_item_rate", relayQueueItemRate);
 

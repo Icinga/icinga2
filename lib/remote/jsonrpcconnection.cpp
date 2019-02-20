@@ -25,6 +25,8 @@ using namespace icinga;
 static Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 
+static RingBuffer l_TaskStats (15 * 60);
+
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 	const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream),
@@ -84,6 +86,8 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 
 			break;
 		}
+
+		l_TaskStats.InsertValue(Utility::GetTime(), 1);
 	}
 }
 
@@ -318,4 +322,9 @@ void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 			break;
 		}
 	}
+}
+
+double JsonRpcConnection::GetWorkQueueRate()
+{
+	return l_TaskStats.UpdateAndGetValues(Utility::GetTime(), 60) / 60.0;
 }
