@@ -26,7 +26,7 @@ REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 	const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream),
-	m_Role(role), m_Timestamp(Utility::GetTime()), m_IoStrand(stream->get_io_service()),
+	m_Role(role), m_Timestamp(Utility::GetTime()), m_NextHeartbeat(0), m_IoStrand(stream->get_io_service()),
 	m_OutgoingMessagesQueued(stream->get_io_service()), m_WriterDone(stream->get_io_service()), m_ShuttingDown(false)
 {
 	if (authenticated)
@@ -44,6 +44,7 @@ void JsonRpcConnection::Start()
 
 	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { HandleIncomingMessages(yc); });
 	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { WriteOutgoingMessages(yc); });
+	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { HandleAndWriteHeartbeats(yc); });
 }
 
 void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)

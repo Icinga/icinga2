@@ -67,6 +67,7 @@ private:
 	std::shared_ptr<AsioTlsStream> m_Stream;
 	ConnectionRole m_Role;
 	double m_Timestamp;
+	double m_NextHeartbeat;
 	boost::asio::io_service::strand m_IoStrand;
 	std::vector<Dictionary::Ptr> m_OutgoingMessagesQueue;
 	boost::asio::deadline_timer m_OutgoingMessagesQueued;
@@ -75,6 +76,7 @@ private:
 
 	void HandleIncomingMessages(boost::asio::yield_context yc);
 	void WriteOutgoingMessages(boost::asio::yield_context yc);
+	void HandleAndWriteHeartbeats(boost::asio::yield_context yc);
 
 	bool ProcessMessage();
 	void MessageHandler(const String& jsonString);
