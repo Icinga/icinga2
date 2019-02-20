@@ -31,11 +31,13 @@ public:
 private:
 	ApiUser::Ptr m_ApiUser;
 	std::shared_ptr<AsioTlsStream> m_Stream;
+	double m_Seen;
 	String m_PeerAddress;
 	boost::asio::io_service::strand m_IoStrand;
 	bool m_ShuttingDown;
 
 	void ProcessMessages(boost::asio::yield_context yc);
+	void CheckLiveness(boost::asio::yield_context yc);
 };
 
 }

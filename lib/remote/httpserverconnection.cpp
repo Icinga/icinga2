@@ -17,6 +17,7 @@
 #include "base/timer.hpp"
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
+#include <limits>
 #include <memory>
 #include <stdexcept>
 #include <boost/asio/spawn.hpp>
@@ -30,7 +31,7 @@ using namespace icinga;
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream)
-	: m_Stream(stream), m_IoStrand(stream->get_io_service()), m_ShuttingDown(false)
+	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(stream->get_io_service()), m_ShuttingDown(false)
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
@@ -53,6 +54,7 @@ void HttpServerConnection::Start()
 	HttpServerConnection::Ptr preventGc (this);
 
 	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { ProcessMessages(yc); });
+	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { CheckLiveness(yc); });
 }
 
 void HttpServerConnection::Disconnect()
@@ -351,6 +353,7 @@ bool ProcessRequest(
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	double& seen,
 	boost::asio::yield_context& yc
 )
 {
@@ -360,6 +363,8 @@ bool ProcessRequest(
 
 	try {
 		CpuBoundWork handlingRequest (yc);
+
+		Defer updateSeen ([&seen]() { seen = Utility::GetTime(); });
 
 		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, hasStartedStreaming);
 	} catch (const std::exception& ex) {
@@ -409,6 +414,8 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
+			m_Seen = Utility::GetTime();
+
 			auto& request (parser.get());
 
 			{
@@ -450,7 +457,9 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, yc)) {
+			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
+
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, m_Seen, yc)) {
 				break;
 			}
 
@@ -462,6 +471,28 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		if (!m_ShuttingDown) {
 			Log(LogCritical, "HttpServerConnection")
 				<< "Unhandled exception while processing HTTP request: " << DiagnosticInformation(ex);
+		}
+	}
+}
+
+void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
+{
+	boost::asio::deadline_timer timer (m_Stream->get_io_service());
+
+	for (;;) {
+		timer.expires_from_now(boost::posix_time::seconds(5));
+		timer.async_wait(yc);
+
+		if (m_ShuttingDown) {
+			break;
+		}
+
+		if (m_Seen < Utility::GetTime() - 10) {
+			Log(LogInformation, "HttpServerConnection")
+				<<  "No messages for HTTP connection have been received in the last 10 seconds.";
+
+			Disconnect();
+			break;
 		}
 	}
 }
