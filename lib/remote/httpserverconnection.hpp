@@ -7,6 +7,7 @@
 #include "base/string.hpp"
 #include "base/tlsstream.hpp"
 #include <memory>
+#include <boost/asio/io_service_strand.hpp>
 #include <boost/asio/spawn.hpp>
 
 namespace icinga
@@ -25,11 +26,14 @@ public:
 	HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream);
 
 	void Start();
+	void Disconnect();
 
 private:
 	ApiUser::Ptr m_ApiUser;
 	std::shared_ptr<AsioTlsStream> m_Stream;
 	String m_PeerAddress;
+	boost::asio::io_service::strand m_IoStrand;
+	bool m_ShuttingDown;
 
 	void ProcessMessages(boost::asio::yield_context yc);
 };

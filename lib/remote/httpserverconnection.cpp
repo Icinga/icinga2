@@ -12,7 +12,6 @@
 #include "base/configtype.hpp"
 #include "base/defer.hpp"
 #include "base/exception.hpp"
-#include "base/io-engine.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/timer.hpp"
@@ -31,7 +30,7 @@ using namespace icinga;
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream)
-	: m_Stream(stream)
+	: m_Stream(stream), m_IoStrand(stream->get_io_service()), m_ShuttingDown(false)
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
@@ -51,7 +50,43 @@ void HttpServerConnection::Start()
 {
 	namespace asio = boost::asio;
 
-	asio::spawn(IoEngine::Get().GetIoService(), [this](asio::yield_context yc) { ProcessMessages(yc); });
+	HttpServerConnection::Ptr preventGc (this);
+
+	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { ProcessMessages(yc); });
+}
+
+void HttpServerConnection::Disconnect()
+{
+	namespace asio = boost::asio;
+
+	HttpServerConnection::Ptr preventGc (this);
+
+	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) {
+		if (!m_ShuttingDown) {
+			m_ShuttingDown = true;
+
+			Log(LogInformation, "HttpServerConnection")
+				<< "HTTP client disconnected (from " << m_PeerAddress << ")";
+
+			try {
+				m_Stream->next_layer().async_shutdown(yc);
+			} catch (...) {
+			}
+
+			try {
+				m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both);
+			} catch (...) {
+			}
+
+			auto listener (ApiListener::GetInstance());
+
+			if (listener) {
+				CpuBoundWork removeHttpClient (yc);
+
+				listener->RemoveHttpClient(this);
+			}
+		}
+	});
 }
 
 static inline
@@ -357,23 +392,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 	namespace beast = boost::beast;
 	namespace http = beast::http;
 
-	Defer removeHttpClient ([this, &yc]() {
-		auto listener (ApiListener::GetInstance());
-
-		if (listener) {
-			CpuBoundWork removeHttpClient (yc);
-
-			listener->RemoveHttpClient(this);
-		}
-	});
-
-	Defer shutdown ([this, &yc]() {
-		try {
-			m_Stream->next_layer().async_shutdown(yc);
-		} catch (...) {
-			// https://stackoverflow.com/questions/130117/throwing-exceptions-out-of-a-destructor
-		}
-	});
+	Defer disconnect ([this]() { Disconnect(); });
 
 	try {
 		beast::flat_buffer buf;
@@ -440,7 +459,9 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			}
 		}
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "HttpServerConnection")
-			<< "Unhandled exception while processing HTTP request: " << DiagnosticInformation(ex);
+		if (!m_ShuttingDown) {
+			Log(LogCritical, "HttpServerConnection")
+				<< "Unhandled exception while processing HTTP request: " << DiagnosticInformation(ex);
+		}
 	}
 }
