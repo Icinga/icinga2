@@ -629,6 +629,8 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 			log << " (no Endpoint object found for identity)";
 		}
 	} else {
+		verify_ok = false;
+
 		Log(LogInformation, "ApiListener")
 			<< "New client connection " << conninfo << " (no client certificate)";
 	}
