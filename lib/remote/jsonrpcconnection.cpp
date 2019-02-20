@@ -14,7 +14,9 @@
 #include "base/tlsstream.hpp"
 #include <memory>
 #include <utility>
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/thread/once.hpp>
 
@@ -26,7 +28,7 @@ REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 	const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream),
-	m_Role(role), m_Timestamp(Utility::GetTime()), m_NextHeartbeat(0), m_IoStrand(stream->get_io_service()),
+	m_Role(role), m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_NextHeartbeat(0), m_IoStrand(stream->get_io_service()),
 	m_OutgoingMessagesQueued(stream->get_io_service()), m_WriterDone(stream->get_io_service()), m_ShuttingDown(false)
 {
 	if (authenticated)
@@ -45,6 +47,7 @@ void JsonRpcConnection::Start()
 	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { HandleIncomingMessages(yc); });
 	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { WriteOutgoingMessages(yc); });
 	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { HandleAndWriteHeartbeats(yc); });
+	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { CheckLiveness(yc); });
 }
 
 void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
@@ -65,6 +68,8 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 
 			break;
 		}
+
+		m_Seen = Utility::GetTime();
 
 		try {
 			CpuBoundWork handleMessage (yc);
@@ -293,3 +298,24 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 	return Empty;
 }
 
+void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
+{
+	boost::asio::deadline_timer timer (m_Stream->get_io_service());
+
+	for (;;) {
+		timer.expires_from_now(boost::posix_time::seconds(30));
+		timer.async_wait(yc);
+
+		if (m_ShuttingDown) {
+			break;
+		}
+
+		if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
+			Log(LogInformation, "JsonRpcConnection")
+				<<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
+
+			Disconnect();
+			break;
+		}
+	}
+}
