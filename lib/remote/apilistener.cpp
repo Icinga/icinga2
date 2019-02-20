@@ -213,6 +213,16 @@ void ApiListener::UpdateSSLContext()
 	}
 
 	m_SSLContext = context;
+
+	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
+			client->Disconnect();
+		}
+	}
+
+	for (const JsonRpcConnection::Ptr& client : m_AnonymousClients) {
+		client->Disconnect();
+	}
 }
 
 void ApiListener::OnAllConfigLoaded()
@@ -841,6 +851,8 @@ void ApiListener::ApiTimerHandler()
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
 			if (client->GetTimestamp() == maxTs) {
 				client->SendMessage(lmessage);
+			} else {
+				client->Disconnect();
 			}
 		}
 

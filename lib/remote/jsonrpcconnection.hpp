@@ -52,6 +52,8 @@ public:
 	std::shared_ptr<AsioTlsStream> GetStream() const;
 	ConnectionRole GetRole() const;
 
+	void Disconnect();
+
 	void SendMessage(const Dictionary::Ptr& request);
 
 	static Value HeartbeatAPIHandler(const intrusive_ptr<MessageOrigin>& origin, const Dictionary::Ptr& params);
@@ -68,12 +70,11 @@ private:
 	boost::asio::io_service::strand m_IoStrand;
 	std::vector<Dictionary::Ptr> m_OutgoingMessagesQueue;
 	boost::asio::deadline_timer m_OutgoingMessagesQueued;
-	bool m_ReaderHasError;
-	unsigned char m_RunningCoroutines;
+	boost::asio::deadline_timer m_WriterDone;
+	bool m_ShuttingDown;
 
 	void HandleIncomingMessages(boost::asio::yield_context yc);
 	void WriteOutgoingMessages(boost::asio::yield_context yc);
-	void ShutdownStreamOnce(boost::asio::yield_context& yc);
 
 	bool ProcessMessage();
 	void MessageHandler(const String& jsonString);
