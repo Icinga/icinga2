@@ -37,6 +37,8 @@ public:
 
 class Downtime : ConfigObject < DowntimeNameComposer
 {
+	activation_priority -10;
+
 	load_after Host;
 	load_after Service;
 
