@@ -340,7 +340,8 @@ bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
 	if (!empty) {
 		std::vector<String> paths;
 		paths.reserve(zoneDirs.size());
-for (const ZoneFragment& zf : zoneDirs) {
+
+		for (const ZoneFragment& zf : zoneDirs) {
 			paths.push_back(zf.Path);
 		}
 
