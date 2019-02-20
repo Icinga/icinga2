@@ -130,12 +130,29 @@ void InfluxdbWriter::Resume()
 	Checkable::OnNewCheckResult.connect(std::bind(&InfluxdbWriter::CheckResultHandler, this, _1, _2));
 }
 
+/* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void InfluxdbWriter::Pause()
 {
-	Log(LogInformation, "InfluxdbWriter")
-		<< "'" << GetName() << "' paused.";
+	/* Force a flush. */
+	Log(LogDebug, "InfluxdbWriter")
+		<< "Flushing pending data buffers.";
+
+	Flush();
+
+	/* Work on the missing tasks. TODO: Find a way to cache them on disk. */
+	Log(LogDebug, "InfluxdbWriter")
+		<< "Joining existing WQ tasks.";
 
 	m_WorkQueue.Join();
+
+	/* Flush again after the WQ tasks have filled the data buffer. */
+	Log(LogDebug, "InfluxdbWriter")
+		<< "Flushing data buffers from WQ tasks.";
+
+	Flush();
+
+	Log(LogInformation, "InfluxdbWriter")
+		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<InfluxdbWriter>::Pause();
 }
@@ -428,6 +445,9 @@ void InfluxdbWriter::FlushTimeoutWQ()
 
 void InfluxdbWriter::Flush()
 {
+	Log(LogDebug, "InfluxdbWriter")
+		<< "Flushing data buffer to InfluxDB.";
+
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
 
