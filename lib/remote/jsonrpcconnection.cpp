@@ -87,6 +87,8 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			break;
 		}
 
+		CpuBoundWork taskStats (yc);
+
 		l_TaskStats.InsertValue(Utility::GetTime(), 1);
 	}
 }
@@ -200,6 +202,8 @@ void JsonRpcConnection::Disconnect()
 				m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both);
 			} catch (...) {
 			}
+
+			CpuBoundWork removeClient (yc);
 
 			if (m_Endpoint) {
 				m_Endpoint->RemoveClient(this);
