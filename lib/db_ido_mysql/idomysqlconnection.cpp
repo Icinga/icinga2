@@ -107,9 +107,6 @@ void IdoMysqlConnection::Resume()
 
 void IdoMysqlConnection::Pause()
 {
-	Log(LogInformation, "IdoMysqlConnection")
-		<< "'" << GetName() << "' paused.";
-
 	m_ReconnectTimer.reset();
 
 	DbConnection::Pause();
@@ -119,8 +116,12 @@ void IdoMysqlConnection::Pause()
 		<< "Rescheduling disconnect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Disconnect, this), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Disconnect, this), PriorityLow);
 	m_QueryQueue.Join();
+
+	Log(LogInformation, "IdoMysqlConnection")
+		<< "'" << GetName() << "' paused.";
+
 }
 
 void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
@@ -192,7 +193,7 @@ void IdoMysqlConnection::ReconnectTimerHandler()
 		<< "Scheduling reconnect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Reconnect, this), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Reconnect, this), PriorityHigh);
 }
 
 void IdoMysqlConnection::Reconnect()
@@ -451,9 +452,9 @@ void IdoMysqlConnection::Reconnect()
 		<< "Scheduling session table clear and finish connect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::ClearTablesBySession, this), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::ClearTablesBySession, this), PriorityHigh);
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityHigh);
 }
 
 void IdoMysqlConnection::FinishConnect(double startTime)
@@ -726,7 +727,7 @@ void IdoMysqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 		<< "Scheduling object activation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalActivateObject, this, dbobj), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalActivateObject, this, dbobj), PriorityHigh);
 }
 
 void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
@@ -771,7 +772,7 @@ void IdoMysqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 		<< "Scheduling object deactivation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalDeactivateObject, this, dbobj), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalDeactivateObject, this, dbobj), PriorityHigh);
 }
 
 void IdoMysqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)

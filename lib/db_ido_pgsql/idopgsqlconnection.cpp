@@ -114,15 +114,16 @@ void IdoPgsqlConnection::Resume()
 
 void IdoPgsqlConnection::Pause()
 {
-	Log(LogInformation, "IdoPgsqlConnection")
-		<< "'" << GetName() << "' paused.";
-
 	m_ReconnectTimer.reset();
 
 	DbConnection::Pause();
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Disconnect, this), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Disconnect, this), PriorityLow);
 	m_QueryQueue.Join();
+
+	Log(LogInformation, "IdoPgsqlConnection")
+		<< "'" << GetName() << "' paused.";
+
 }
 
 void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
@@ -182,7 +183,7 @@ void IdoPgsqlConnection::InternalNewTransaction()
 
 void IdoPgsqlConnection::ReconnectTimerHandler()
 {
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Reconnect, this), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Reconnect, this), PriorityHigh);
 }
 
 void IdoPgsqlConnection::Reconnect()
@@ -425,9 +426,9 @@ void IdoPgsqlConnection::Reconnect()
 
 	UpdateAllObjects();
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::ClearTablesBySession, this), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::ClearTablesBySession, this), PriorityHigh);
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::FinishConnect, this, startTime), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::FinishConnect, this, startTime), PriorityHigh);
 }
 
 void IdoPgsqlConnection::FinishConnect(double startTime)
@@ -575,7 +576,7 @@ void IdoPgsqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 	if (IsPaused())
 		return;
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalActivateObject, this, dbobj), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalActivateObject, this, dbobj), PriorityHigh);
 }
 
 void IdoPgsqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
@@ -612,7 +613,7 @@ void IdoPgsqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 	if (IsPaused())
 		return;
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalDeactivateObject, this, dbobj), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalDeactivateObject, this, dbobj), PriorityHigh);
 }
 
 void IdoPgsqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)
