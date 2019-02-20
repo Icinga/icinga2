@@ -617,7 +617,15 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 
 void ConfigObject::StopObjects()
 {
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	std::vector<Type::Ptr> types = Type::GetAllTypes();
+
+	std::sort(types.begin(), types.end(), [](const Type::Ptr& a, const Type::Ptr& b) {
+		if (a->GetActivationPriority() > b->GetActivationPriority())
+			return true;
+		return false;
+	});
+
+	for (const Type::Ptr& type : types) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
