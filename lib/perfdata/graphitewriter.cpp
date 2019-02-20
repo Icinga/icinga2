@@ -102,12 +102,26 @@ void GraphiteWriter::Resume()
 	Checkable::OnNewCheckResult.connect(std::bind(&GraphiteWriter::CheckResultHandler, this, _1, _2));
 }
 
+/* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void GraphiteWriter::Pause()
 {
-	Log(LogInformation, "GraphiteWriter")
-		<< "'" << GetName() << "' paused.";
+	m_ReconnectTimer.reset();
+
+	try {
+		ReconnectInternal();
+	} catch (const std::exception&) {
+		Log(LogInformation, "GraphiteWriter")
+			<< "'" << GetName() << "' paused. Unable to connect, not flushing buffers. Data may be lost on reload.";
+
+		ObjectImpl<GraphiteWriter>::Pause();
+		return;
+	}
 
 	m_WorkQueue.Join();
+	DisconnectInternal();
+
+	Log(LogInformation, "GraphiteWriter")
+		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<GraphiteWriter>::Pause();
 }
@@ -140,6 +154,11 @@ void GraphiteWriter::Reconnect()
 		return;
 	}
 
+	ReconnectInternal();
+}
+
+void GraphiteWriter::ReconnectInternal()
+{
 	double startTime = Utility::GetTime();
 
 	CONTEXT("Reconnecting to Graphite '" + GetName() + "'");
@@ -172,6 +191,9 @@ void GraphiteWriter::Reconnect()
 
 void GraphiteWriter::ReconnectTimerHandler()
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&GraphiteWriter::Reconnect, this), PriorityNormal);
 }
 
@@ -179,6 +201,11 @@ void GraphiteWriter::Disconnect()
 {
 	AssertOnWorkQueue();
 
+	DisconnectInternal();
+}
+
+void GraphiteWriter::DisconnectInternal()
+{
 	if (!GetConnected())
 		return;
 
@@ -200,6 +227,10 @@ void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable,
 	AssertOnWorkQueue();
 
 	CONTEXT("Processing check result for '" + checkable->GetName() + "'");
+
+	/* TODO: Deal with missing connection here. Needs refactoring
+	 * into parsing the actual performance data and then putting it
+	 * into a queue for re-inserting. */
 
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;
@@ -293,7 +324,7 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 	msgbuf << prefix << "." << name << " " << Convert::ToString(value) << " " << static_cast<long>(ts);
 
 	Log(LogDebug, "GraphiteWriter")
-		<< "Add to metric list:'" << msgbuf.str() << "'.";
+		<< "Add to metric list: '" << msgbuf.str() << "'.";
 
 	// do not send \n to debug log
 	msgbuf << "\n";
