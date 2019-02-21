@@ -99,17 +99,10 @@ boost::asio::io_service& IoEngine::GetIoService()
 	return m_IoService;
 }
 
-IoEngine::IoEngine() : m_IoService(), m_KeepAlive(m_IoService), m_Threads(decltype(m_Threads)::size_type(std::thread::hardware_concurrency())), m_AlreadyExpiredTimer(m_IoService)
+IoEngine::IoEngine() : m_IoService(), m_KeepAlive(m_IoService), m_Threads(decltype(m_Threads)::size_type(std::thread::hardware_concurrency() * 2u)), m_AlreadyExpiredTimer(m_IoService)
 {
 	m_AlreadyExpiredTimer.expires_at(boost::posix_time::neg_infin);
-
-	auto concurrency (std::thread::hardware_concurrency());
-
-	if (concurrency < 2) {
-		m_CpuBoundSemaphore.store(1);
-	} else {
-		m_CpuBoundSemaphore.store(concurrency - 1u);
-	}
+	m_CpuBoundSemaphore.store(std::thread::hardware_concurrency() * 3u / 2u);
 
 	for (auto& thread : m_Threads) {
 		thread = std::thread(&IoEngine::RunEventLoop, this);
