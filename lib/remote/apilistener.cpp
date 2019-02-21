@@ -385,9 +385,9 @@ bool ApiListener::AddListener(const String& node, const String& service)
 				}
 			}
 		}
-	} catch (const std::exception&) {
+	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
-			<< "Cannot bind TCP socket for host '" << node << "' on port '" << service << "'.";
+			<< "Cannot bind TCP socket for host '" << node << "' on port '" << service << "': " << DiagnosticInformation(ex, false);
 		return false;
 	}
 
