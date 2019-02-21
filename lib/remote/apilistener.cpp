@@ -22,7 +22,6 @@
 #include "base/exception.hpp"
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ip/v6_only.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/verify_context.hpp>
@@ -370,8 +369,20 @@ bool ApiListener::AddListener(const String& node, const String& service)
 		for (;;) {
 			try {
 				acceptor->open(current->endpoint().protocol());
-				acceptor->set_option(ip::v6_only(false));
-				acceptor->set_option(tcp::acceptor::reuse_address(true));
+
+				{
+					auto fd (acceptor->native_handle());
+
+					const int optFalse = 0;
+					setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char *>(&optFalse), sizeof(optFalse));
+
+					const int optTrue = 1;
+					setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
+#ifndef _WIN32
+					setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
+#endif /* _WIN32 */
+				}
+
 				acceptor->bind(current->endpoint());
 
 				break;
