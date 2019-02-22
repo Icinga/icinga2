@@ -36,6 +36,7 @@ set(base_test_SOURCES
   base-string.cpp
   base-timer.cpp
   base-type.cpp
+  base-utility.cpp
   base-value.cpp
   config-ops.cpp
   icinga-checkresult.cpp
@@ -120,6 +121,8 @@ add_boost_test(base
     base_type/assign
     base_type/byname
     base_type/instantiate
+    base_utility/comparepasswords_works
+    base_utility/comparepasswords_issafe
     base_value/scalar
     base_value/convert
     base_value/format
