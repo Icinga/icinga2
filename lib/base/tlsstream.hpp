@@ -99,17 +99,17 @@ private:
 	void CloseInternal(bool inDestructor);
 };
 
-class AsioTlsStreamHack : public boost::asio::ssl::stream<boost::asio::ip::tcp::socket>
+class UnbufferedAsioTlsStream : public boost::asio::ssl::stream<boost::asio::ip::tcp::socket>
 {
 public:
 	inline
-	AsioTlsStreamHack(std::pair<boost::asio::io_service*, boost::asio::ssl::context*>& init)
+	UnbufferedAsioTlsStream(std::pair<boost::asio::io_service*, boost::asio::ssl::context*>& init)
 		: stream(*init.first, *init.second)
 	{
 	}
 };
 
-class AsioTlsStream : public boost::asio::buffered_stream<AsioTlsStreamHack>
+class AsioTlsStream : public boost::asio::buffered_stream<UnbufferedAsioTlsStream>
 {
 public:
 	inline
