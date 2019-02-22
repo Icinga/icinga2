@@ -30,6 +30,9 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/spawn.hpp>
 
+namespace icinga
+{
+
 /**
  * Scope lock for CPU-bound work done in an I/O thread
  *
@@ -126,5 +129,7 @@ public:
 private:
 	boost::asio::deadline_timer m_Timer;
 };
+
+}
 
 #endif /* IO_ENGINE_H */
