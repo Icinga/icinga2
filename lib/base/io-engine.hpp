@@ -102,7 +102,7 @@ private:
 	boost::asio::io_service::work m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
-	std::atomic_uint_fast32_t m_CpuBoundSemaphore;
+	std::atomic_int_fast32_t m_CpuBoundSemaphore;
 };
 
 class TerminateIoThread : public std::exception
