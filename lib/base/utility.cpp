@@ -26,6 +26,7 @@
 #include "base/utility.hpp"
 #include "base/json.hpp"
 #include "base/objectlock.hpp"
+#include <cstdint>
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/tss.hpp>
@@ -1948,4 +1949,39 @@ String Utility::GetFromEnvironment(const String& env)
 	// While getenv exists on Windows, we don't set them. Therefore there is no reason to read them.
 	return String();
 #endif /* _WIN32 */
+}
+
+/**
+ * Compare the password entered by a client with the actual password.
+ * The comparision is safe against timing attacks.
+ */
+bool Utility::ComparePasswords(const String& enteredPassword, const String& actualPassword)
+{
+	volatile const char * volatile enteredPasswordCStr = enteredPassword.CStr();
+	volatile size_t enteredPasswordLen = enteredPassword.GetLength();
+
+	volatile const char * volatile actualPasswordCStr = actualPassword.CStr();
+	volatile size_t actualPasswordLen = actualPassword.GetLength();
+
+	volatile uint_fast8_t result = enteredPasswordLen == actualPasswordLen;
+
+	if (result) {
+		auto cStr (actualPasswordCStr);
+		auto len (actualPasswordLen);
+
+		actualPasswordCStr = cStr;
+		actualPasswordLen = len;
+	} else {
+		auto cStr (enteredPasswordCStr);
+		auto len (enteredPasswordLen);
+
+		actualPasswordCStr = cStr;
+		actualPasswordLen = len;
+	}
+
+	for (volatile size_t i = 0; i < enteredPasswordLen; ++i) {
+		result &= uint_fast8_t(enteredPasswordCStr[i] == actualPasswordCStr[i]);
+	}
+
+	return result;
 }

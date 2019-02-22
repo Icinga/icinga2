@@ -22,6 +22,7 @@
 #include "base/configtype.hpp"
 #include "base/base64.hpp"
 #include "base/tlsutility.hpp"
+#include "base/utility.hpp"
 
 using namespace icinga;
 
@@ -63,7 +64,7 @@ ApiUser::Ptr ApiUser::GetByAuthHeader(const String& auth_header)
 	 */
 	if (!user || password.IsEmpty())
 		return nullptr;
-	else if (user && user->GetPassword() != password)
+	else if (user && !Utility::ComparePasswords(password, user->GetPassword()))
 		return nullptr;
 
 	return user;
