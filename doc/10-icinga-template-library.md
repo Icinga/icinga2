@@ -5317,15 +5317,19 @@ HTTP endpoint to monitor status metrics for the Apache webserver.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                    | Description
-------------------------|----------------------------------------------------------------------------------
-apache_status_address	| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, `address6` otherwise.
-apache_status_port	| **Optional.** the http port.
-apache_status_url	| **Optional.** URL to use, instead of the default (http://`apache_status_address`/server-status).
-apache_status_ssl	| **Optional.** set to use ssl connection
-apache_status_timeout	| **Optional.** timeout in seconds
-apache_status_warning	| **Optional.** Warning threshold (number of open slots, busy workers and idle workers that will cause a WARNING) like ':20,50,:50'.
-apache_status_critical	| **Optional.** Critical threshold (number of open slots, busy workers and idle workers that will cause a CRITICAL) like ':10,25,:20'.
+Name                            | Description
+--------------------------------|----------------------------------------------------------------------------------
+apache_status_address		| **Optional.** Host address. Defaults to "$address$" if the host's `address` attribute is set, `address6` otherwise.
+apache_status_port		| **Optional.** HTTP port.
+apache_status_uri		| **Optional.** URL to use, instead of the default (http://`apache_status_address`/server-status).
+apache_status_ssl		| **Optional.** Set to use SSL connection.
+apache_status_no_validate	| **Optional.** Skip SSL certificate validation.
+apache_status_username		| **Optional.** Username for basic auth.
+apache_status_password		| **Optional.** Password for basic auth.
+apache_status_timeout		| **Optional.** Timeout in seconds.
+apache_status_unreachable	| **Optional.** Return CRITICAL if socket timed out or http code >= 500.
+apache_status_warning		| **Optional.** Warning threshold (number of open slots, busy workers and idle workers that will cause a WARNING) like ':20,50,:50'.
+apache_status_critical		| **Optional.** Critical threshold (number of open slots, busy workers and idle workers that will cause a CRITICAL) like ':10,25,:20'.
 
 
 #### ssl_cert <a id="plugin-check-command-ssl_cert"></a>
