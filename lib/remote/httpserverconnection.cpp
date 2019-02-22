@@ -353,7 +353,6 @@ bool ProcessRequest(
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
-	double& seen,
 	boost::asio::yield_context& yc
 )
 {
@@ -363,8 +362,6 @@ bool ProcessRequest(
 
 	try {
 		CpuBoundWork handlingRequest (yc);
-
-		Defer updateSeen ([&seen]() { seen = Utility::GetTime(); });
 
 		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, hasStartedStreaming);
 	} catch (const std::exception& ex) {
@@ -403,6 +400,8 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		beast::flat_buffer buf;
 
 		for (;;) {
+			m_Seen = Utility::GetTime();
+
 			http::parser<true, http::string_body> parser;
 			http::response<http::string_body> response;
 
@@ -459,7 +458,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, m_Seen, yc)) {
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, yc)) {
 				break;
 			}
 
