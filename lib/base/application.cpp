@@ -77,6 +77,14 @@ void Application::OnConfigLoaded()
 
 	ASSERT(m_Instance == nullptr);
 	m_Instance = this;
+
+	String reloadTimeout;
+
+	if (ScriptGlobal::Exists("ReloadTimeout"))
+		reloadTimeout = ScriptGlobal::Get("ReloadTimeout");
+
+	if (!reloadTimeout.IsEmpty())
+		Configuration::ReloadTimeout = Convert::ToDouble(reloadTimeout);
 }
 
 /**
@@ -401,8 +409,6 @@ static void ReloadProcessCallback(const ProcessResult& pr)
 
 pid_t Application::StartReloadProcess()
 {
-	Log(LogInformation, "Application", "Got reload command: Starting new instance.");
-
 	// prepare arguments
 	ArrayData args;
 	args.push_back(GetExePath(m_ArgV[0]));
@@ -422,8 +428,13 @@ pid_t Application::StartReloadProcess()
 #endif /* _WIN32 */
 
 	Process::Ptr process = new Process(Process::PrepareCommand(new Array(std::move(args))));
-	process->SetTimeout(300);
+	process->SetTimeout(Configuration::ReloadTimeout);
 	process->Run(&ReloadProcessCallback);
+
+	Log(LogInformation, "Application")
+		<< "Got reload command: Started new instance with PID '"
+		<< (unsigned long)(process->GetPID()) << "' (timeout is "
+		<< Configuration::ReloadTimeout << "s).";
 
 	return process->GetPID();
 }

@@ -111,6 +111,11 @@ abstract class Configuration
 		set;
 	};
 
+	[config, no_storage, virtual] double ReloadTimeout {
+		get;
+		set;
+	};
+
 	[config, no_storage, virtual] int RLimitFiles {
 		get;
 		set;

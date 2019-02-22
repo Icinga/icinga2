@@ -84,17 +84,40 @@ void CheckerComponent::Start(bool runtimeCreated)
 
 void CheckerComponent::Stop(bool runtimeRemoved)
 {
-	Log(LogInformation, "CheckerComponent")
-		<< "'" << GetName() << "' stopped.";
-
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 		m_Stopped = true;
 		m_CV.notify_all();
 	}
 
+	double wait = 0.0;
+
+	while (GetPendingCheckables() > 0) {
+		Log(LogDebug, "CheckerComponent")
+			<< "Waiting for running checks (" << GetPendingCheckables()
+			<< ") to finish. Waited for " << wait << " seconds now.";
+
+		Utility::Sleep(0.1);
+		wait += 0.1;
+
+		/* Pick a timeout slightly shorther than the process reload timeout. */
+		double waitMax = Configuration::ReloadTimeout - 30;
+		if (waitMax <= 0)
+			waitMax = 1;
+
+		if (wait > waitMax) {
+			Log(LogWarning, "CheckerComponent")
+				<< "Checks running too long for " << wait
+				<< " seconds, hard shutdown before reload timeout: " << Configuration::ReloadTimeout << ".";
+			break;
+		}
+	}
+
 	m_ResultTimer->Stop();
 	m_Thread.join();
+
+	Log(LogInformation, "CheckerComponent")
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<CheckerComponent>::Stop(runtimeRemoved);
 }

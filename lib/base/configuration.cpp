@@ -42,6 +42,7 @@ String Configuration::PidPath;
 String Configuration::PkgDataDir;
 String Configuration::PrefixDir;
 String Configuration::ProgramData;
+double Configuration::ReloadTimeout{300};
 int Configuration::RLimitFiles;
 int Configuration::RLimitProcesses;
 int Configuration::RLimitStack;
@@ -238,6 +239,16 @@ String Configuration::GetProgramData() const
 void Configuration::SetProgramData(const String& val, bool suppress_events, const Value& cookie)
 {
 	HandleUserWrite("ProgramData", &Configuration::ProgramData, val, m_ReadOnly);
+}
+
+double Configuration::GetReloadTimeout() const
+{
+	return Configuration::ReloadTimeout;
+}
+
+void Configuration::SetReloadTimeout(double val, bool suppress_events, const Value& cookie)
+{
+	HandleUserWrite("ReloadTimeout", &Configuration::ReloadTimeout, val, m_ReadOnly);
 }
 
 int Configuration::GetRLimitFiles() const
