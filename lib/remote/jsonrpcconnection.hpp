@@ -5,6 +5,7 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint.hpp"
+#include "base/io-engine.hpp"
 #include "base/tlsstream.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
@@ -12,7 +13,6 @@
 #include <vector>
 #include <boost/asio/io_service_strand.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/asio/deadline_timer.hpp>
 
 namespace icinga
 {
@@ -73,8 +73,8 @@ private:
 	double m_NextHeartbeat;
 	boost::asio::io_service::strand m_IoStrand;
 	std::vector<Dictionary::Ptr> m_OutgoingMessagesQueue;
-	boost::asio::deadline_timer m_OutgoingMessagesQueued;
-	boost::asio::deadline_timer m_WriterDone;
+	AsioConditionVariable m_OutgoingMessagesQueued;
+	AsioConditionVariable m_WriterDone;
 	bool m_ShuttingDown;
 
 	void HandleIncomingMessages(boost::asio::yield_context yc);

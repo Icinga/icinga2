@@ -17,7 +17,6 @@
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -35,9 +34,6 @@ JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 {
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);
-
-	m_OutgoingMessagesQueued.expires_at(boost::posix_time::pos_infin);
-	m_WriterDone.expires_at(boost::posix_time::pos_infin);
 }
 
 void JsonRpcConnection::Start()
@@ -97,18 +93,15 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 {
 	Defer disconnect ([this]() { Disconnect(); });
 
-	Defer signalWriterDone ([this]() { m_WriterDone.expires_at(boost::posix_time::neg_infin); });
+	Defer signalWriterDone ([this]() { m_WriterDone.Set(); });
 
 	do {
-		try {
-			m_OutgoingMessagesQueued.async_wait(yc);
-		} catch (...) {
-		}
+		m_OutgoingMessagesQueued.Wait(yc);
 
 		auto queue (std::move(m_OutgoingMessagesQueue));
 
 		m_OutgoingMessagesQueue.clear();
-		m_OutgoingMessagesQueued.expires_at(boost::posix_time::pos_infin);
+		m_OutgoingMessagesQueued.Clear();
 
 		if (!queue.empty()) {
 			try {
@@ -169,7 +162,7 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 {
 	m_IoStrand.post([this, message]() {
 		m_OutgoingMessagesQueue.emplace_back(message);
-		m_OutgoingMessagesQueued.expires_at(boost::posix_time::neg_infin);
+		m_OutgoingMessagesQueued.Set();
 	});
 }
 
@@ -186,12 +179,9 @@ void JsonRpcConnection::Disconnect()
 			Log(LogWarning, "JsonRpcConnection")
 				<< "API client disconnected for identity '" << m_Identity << "'";
 
-			m_OutgoingMessagesQueued.expires_at(boost::posix_time::neg_infin);
+			m_OutgoingMessagesQueued.Set();
 
-			try {
-				m_WriterDone.async_wait(yc);
-			} catch (...) {
-			}
+			m_WriterDone.Wait(yc);
 
 			try {
 				m_Stream->next_layer().async_shutdown(yc);
@@ -288,7 +278,7 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 		resultMessage->Set("id", message->Get("id"));
 
 		m_OutgoingMessagesQueue.emplace_back(resultMessage);
-		m_OutgoingMessagesQueued.expires_at(boost::posix_time::neg_infin);
+		m_OutgoingMessagesQueued.Set();
 	}
 }
 

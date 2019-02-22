@@ -27,6 +27,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/system/error_code.hpp>
 
 using namespace icinga;
 
@@ -136,4 +137,26 @@ void IoEngine::RunEventLoop()
 			Log(LogDebug, "IoEngine") << "Exception during I/O operation: " << DiagnosticInformation(e);
 		}
 	}
+}
+
+AsioConditionVariable::AsioConditionVariable(boost::asio::io_service& io, bool init)
+	: m_Timer(io)
+{
+	m_Timer.expires_at(init ? boost::posix_time::neg_infin : boost::posix_time::pos_infin);
+}
+
+void AsioConditionVariable::Set()
+{
+	m_Timer.expires_at(boost::posix_time::neg_infin);
+}
+
+void AsioConditionVariable::Clear()
+{
+	m_Timer.expires_at(boost::posix_time::pos_infin);
+}
+
+void AsioConditionVariable::Wait(boost::asio::yield_context yc)
+{
+	boost::system::error_code ec;
+	m_Timer.async_wait(yc[ec]);
 }

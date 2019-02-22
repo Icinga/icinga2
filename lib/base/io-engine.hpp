@@ -109,4 +109,22 @@ class TerminateIoThread : public std::exception
 {
 };
 
+/**
+ * Condition variable which doesn't block I/O threads
+ *
+ * @ingroup base
+ */
+class AsioConditionVariable
+{
+public:
+	AsioConditionVariable(boost::asio::io_service& io, bool init = false);
+
+	void Set();
+	void Clear();
+	void Wait(boost::asio::yield_context yc);
+
+private:
+	boost::asio::deadline_timer m_Timer;
+};
+
 #endif /* IO_ENGINE_H */

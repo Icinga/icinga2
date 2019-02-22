@@ -44,7 +44,7 @@ void JsonRpcConnection::HandleAndWriteHeartbeats(boost::asio::yield_context yc)
 			}) }
 		}));
 
-		m_OutgoingMessagesQueued.expires_at(boost::posix_time::neg_infin);
+		m_OutgoingMessagesQueued.Set();
 	}
 }
 
