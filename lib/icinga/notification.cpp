@@ -290,11 +290,9 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 					<< notificationName << "': before specified begin time (" << Utility::FormatDuration(timesBegin) << ")";
 
 				/* we need to adjust the next notification time
-				 * to now + begin delaying the first notification
+				 * delaying the first notification
 				 */
-				double nextProposedNotification = now + timesBegin + 1.0;
-				if (GetNextNotification() > nextProposedNotification)
-					SetNextNotification(nextProposedNotification);
+				SetNextNotification(checkable->GetLastHardStateChange() + timesBegin + 1.0);
 
 				return;
 			}
