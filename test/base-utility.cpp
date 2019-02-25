@@ -17,56 +17,54 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/apiuser.hpp"
-#include "remote/apiuser-ti.cpp"
-#include "base/configtype.hpp"
-#include "base/base64.hpp"
-#include "base/tlsutility.hpp"
 #include "base/utility.hpp"
+#include <chrono>
+#include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 
-REGISTER_TYPE(ApiUser);
+BOOST_AUTO_TEST_SUITE(base_utility)
 
-ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
+BOOST_AUTO_TEST_CASE(comparepasswords_works)
 {
-	for (const ApiUser::Ptr& user : ConfigType::GetObjectsByType<ApiUser>()) {
-		if (user->GetClientCN() == cn)
-			return user;
-	}
+	BOOST_CHECK(Utility::ComparePasswords("", ""));
 
-	return nullptr;
+	BOOST_CHECK(!Utility::ComparePasswords("x", ""));
+	BOOST_CHECK(!Utility::ComparePasswords("", "x"));
+
+	BOOST_CHECK(Utility::ComparePasswords("x", "x"));
+	BOOST_CHECK(!Utility::ComparePasswords("x", "y"));
+
+	BOOST_CHECK(Utility::ComparePasswords("abcd", "abcd"));
+	BOOST_CHECK(!Utility::ComparePasswords("abc", "abcd"));
+	BOOST_CHECK(!Utility::ComparePasswords("abcde", "abcd"));
 }
 
-ApiUser::Ptr ApiUser::GetByAuthHeader(const String& auth_header)
+BOOST_AUTO_TEST_CASE(comparepasswords_issafe)
 {
-	String::SizeType pos = auth_header.FindFirstOf(" ");
-	String username, password;
+	using std::chrono::duration_cast;
+	using std::chrono::microseconds;
+	using std::chrono::steady_clock;
 
-	if (pos != String::NPos && auth_header.SubStr(0, pos) == "Basic") {
-		String credentials_base64 = auth_header.SubStr(pos + 1);
-		String credentials = Base64::Decode(credentials_base64);
+	String a, b;
 
-		String::SizeType cpos = credentials.FindFirstOf(":");
+	a.Append(200000001, 'a');
+	b.Append(200000002, 'b');
 
-		if (cpos != String::NPos) {
-			username = credentials.SubStr(0, cpos);
-			password = credentials.SubStr(cpos + 1);
-		}
-	}
+	auto start1 (steady_clock::now());
 
-	const ApiUser::Ptr& user = ApiUser::GetByName(username);
+	Utility::ComparePasswords(a, a);
 
-	/* Deny authentication if:
-	 * 1) user does not exist
-	 * 2) given password is empty
-	 * 2) configured password does not match.
-	 */
-	if (!user || password.IsEmpty())
-		return nullptr;
-	else if (user && !Utility::ComparePasswords(password, user->GetPassword()))
-		return nullptr;
+	auto duration1 (steady_clock::now() - start1);
 
-	return user;
+	auto start2 (steady_clock::now());
+
+	Utility::ComparePasswords(a, b);
+
+	auto duration2 (steady_clock::now() - start2);
+
+	double diff = (double)duration_cast<microseconds>(duration1).count() / (double)duration_cast<microseconds>(duration2).count();
+	BOOST_CHECK(0.9 <= diff && diff <= 1.1);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
