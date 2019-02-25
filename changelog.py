@@ -198,8 +198,7 @@ for milestone in sorted(milestones.values(), key=lambda ms: (ms["due_on"], ms["t
         continue
 
     if milestone["due_on"] == None:
-        print "Milestone", milestone["title"], "does not have a due date."
-        sys.exit(1)
+        print "Warning: Milestone", milestone["title"], "does not have a due date."
 
     ms_due_on = datetime.strptime(milestone["due_on"], "%Y-%m-%dT%H:%M:%SZ")
 

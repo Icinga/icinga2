@@ -1,5 +1,95 @@
 # Icinga 2.x CHANGELOG
 
+## 2.10.3 (2019-02-26)
+
+### Notes
+
+Bugfixes:
+
+- Stalled TLS connections on reload/Director deployments (#6816 #6898 ref/NC/588119)
+- 'Connection: close' header leading to unstable instance, affects Ruby clients (#6799)
+- Server time in the future breaks check result processing (#6797 ref/NC/595861)
+- ScheduledDowntimes: Generate downtime objects only on one HA endpoint (#2844 ref/IC/9673 ref/NC/590167 ref/NC/591721)
+- Improve activation & syncing for downtime objects generated from ScheduledDowntimes (#6826 ref/IC/9673 ref/NC/585559)
+- Generate a runtime downtime object from already running ScheduledDowntime objects (#6704)
+- DB IDO: Don't enqueue queries when the feature is paused in HA zones (#5876)
+- Crashes with localtime_r errors (#6887)
+
+Documentation updates:
+
+- Ephemeral port range blocking on Windows agents (ref/NC/597307)
+- Technical concepts for the check scheduler (#6775)
+- DB IDO cleanup (#6791)
+- Unified development docs (#6819)
+
+### Bug
+
+* [#6971](https://github.com/icinga/icinga2/issues/6971) (Notifications, PR): Activate downtimes before any checkable object
+* [#6968](https://github.com/icinga/icinga2/issues/6968) (API, PR): Secure ApiUser::GetByAuthHeader\(\) against timing attacks
+* [#6940](https://github.com/icinga/icinga2/issues/6940) (Plugins, Windows, PR): Fix check\_swap percentage calculation
+* [#6925](https://github.com/icinga/icinga2/issues/6925) (Plugins, Windows, PR): Fix check\_swap formatting
+* [#6924](https://github.com/icinga/icinga2/issues/6924) (PR): Fix double to long conversions
+* [#6922](https://github.com/icinga/icinga2/issues/6922) (API, DB IDO): IDO MySQL fails on start if check\_interval is a float \(Icinga 2.9.2\)
+* [#6920](https://github.com/icinga/icinga2/issues/6920) (PR): Downtime::AddDowntime\(\): place Downtimes in the same zone as the origin ScheduledDowntimes
+* [#6917](https://github.com/icinga/icinga2/issues/6917) (Cluster, Log, PR): Cluster: Delete object message should log that
+* [#6916](https://github.com/icinga/icinga2/issues/6916) (PR): Don't allow retry\_interval \<= 0
+* [#6914](https://github.com/icinga/icinga2/issues/6914) (Cluster, PR): ClusterEvents::AcknowledgementSet event should forward 'persistent' attribute
+* [#6913](https://github.com/icinga/icinga2/issues/6913) (Plugins, Windows): check\_swap return value wrong when no swap file configured
+* [#6901](https://github.com/icinga/icinga2/issues/6901) (API, PR): TcpSocket\#Bind\(\): also set SO\_REUSEPORT
+* [#6899](https://github.com/icinga/icinga2/issues/6899) (PR): Log: Ensure not to pass negative values to localtime\(\)
+* [#6898](https://github.com/icinga/icinga2/issues/6898) (API): API action restart-process fails on FreeBSD
+* [#6894](https://github.com/icinga/icinga2/issues/6894) (Check Execution, PR): Fix checkresults from the future breaking checks
+* [#6887](https://github.com/icinga/icinga2/issues/6887) (Check Execution, Windows): Icinga2 Windows Service does not start critical/checker: Exception occurred while checking 'hostname.tld'
+* [#6883](https://github.com/icinga/icinga2/issues/6883) (Check Execution, PR): Allow Checkable\#retry\_interval to be 0
+* [#6871](https://github.com/icinga/icinga2/issues/6871): Icinga2 crashes after localtime\_r call
+* [#6857](https://github.com/icinga/icinga2/issues/6857) (Plugins, Windows, PR): Url\#m\_Query: preserve order
+* [#6826](https://github.com/icinga/icinga2/issues/6826) (Configuration, PR): Downtime\#HasValidConfigOwner\(\): wait for ScheduledDowntimes
+* [#6821](https://github.com/icinga/icinga2/issues/6821) (Cluster, Configuration, PR): Don't delete downtimes in satellite zones
+* [#6820](https://github.com/icinga/icinga2/issues/6820) (Cluster, PR): Only create downtimes from non-paused ScheduledDowntime objects in HA enabled cluster zones
+* [#6817](https://github.com/icinga/icinga2/issues/6817) (API, PR): HttpServerConnection\#DataAvailableHandler\(\): be aware of being called multiple times concurrently
+* [#6816](https://github.com/icinga/icinga2/issues/6816) (API, Cluster): Stalled TLS connections and lock waits in SocketEventEngine
+* [#6814](https://github.com/icinga/icinga2/issues/6814) (API, PR): Restore 'Connection: close' behaviour in HTTP responses
+* [#6811](https://github.com/icinga/icinga2/issues/6811) (Plugins, Windows, PR): Fix state conditions in check\_memory and check\_swap
+* [#6810](https://github.com/icinga/icinga2/issues/6810) (Plugins, Windows): Windows check\_memory never gets critical
+* [#6808](https://github.com/icinga/icinga2/issues/6808) (API, PR): Remove redundand check for object existence on creation via API
+* [#6807](https://github.com/icinga/icinga2/issues/6807) (API): \[2.10.2\] Director deploy crashes the Icinga service \[FreeBSD\]
+* [#6799](https://github.com/icinga/icinga2/issues/6799) (API): "Connection: close" header leads to unstable instance
+* [#6797](https://github.com/icinga/icinga2/issues/6797) (Check Execution): Servertime in the future breaks check results processing
+* [#6750](https://github.com/icinga/icinga2/issues/6750) (Configuration, PR): \#6749 Wrong operator on stride variable causing incorrect behaviour
+* [#6749](https://github.com/icinga/icinga2/issues/6749) (Configuration): Stride is misinterpreted in multi-date legacydatetime
+* [#6748](https://github.com/icinga/icinga2/issues/6748) (CLI, PR): Fix api setup to automatically create the conf.d directory
+* [#6718](https://github.com/icinga/icinga2/issues/6718) (API, Cluster, PR): Call SSL\_shutdown\(\) at least twice
+* [#6704](https://github.com/icinga/icinga2/issues/6704) (Notifications, PR): Put newly configured already running ScheduledDowntime immediately in effect
+* [#6542](https://github.com/icinga/icinga2/issues/6542) (Configuration, Log): /var/log/icinga2/icinga2.log is growing very fast on satellites 
+* [#6536](https://github.com/icinga/icinga2/issues/6536) (Windows, help wanted): check\_nscp\_api: Query arguments are sorted on Url::Format\(\)
+* [#4790](https://github.com/icinga/icinga2/issues/4790) (Notifications): Newly configured already running ScheduledDowntime not put into effect
+* [#3937](https://github.com/icinga/icinga2/issues/3937) (API): Icinga2 API: PUT request fails at 0-byte file
+* [#2844](https://github.com/icinga/icinga2/issues/2844) (Cluster): Duplicated scheduled downtimes created in cluster HA zone
+
+### Documentation
+
+* [#6956](https://github.com/icinga/icinga2/issues/6956) (Documentation, PR): Escape pipe symbol in api documentation
+* [#6944](https://github.com/icinga/icinga2/issues/6944) (Documentation, PR): Troubleshooting: Add notes on ephemeral port range blocking on Windows agents
+* [#6928](https://github.com/icinga/icinga2/issues/6928) (Documentation, PR): Doc: Add .NET 3.5 to the windows build stack
+* [#6825](https://github.com/icinga/icinga2/issues/6825) (Documentation, PR): Document that retry\_interval is only used after an active check result
+* [#6819](https://github.com/icinga/icinga2/issues/6819) (Documentation, PR): Enhance and unify development docs for debug, develop, package
+* [#6791](https://github.com/icinga/icinga2/issues/6791) (Documentation, PR): Docs: Add a section for DB IDO Cleanup
+* [#6776](https://github.com/icinga/icinga2/issues/6776) (Documentation, PR): Doc fix: update apache section
+* [#6775](https://github.com/icinga/icinga2/issues/6775) (Documentation, PR): Add technical docs for the check scheduler \(general, initial check, offsets\)
+* [#6751](https://github.com/icinga/icinga2/issues/6751) (Documentation, PR): Doc fix: documentation link for apt
+* [#6743](https://github.com/icinga/icinga2/issues/6743) (Documentation, PR): Doc fix: error in example path.
+* [#5341](https://github.com/icinga/icinga2/issues/5341) (Documentation): Enhance development documentation
+
+### Support
+
+* [#6972](https://github.com/icinga/icinga2/issues/6972) (PR): Fix formatting in development docs
+* [#6958](https://github.com/icinga/icinga2/issues/6958) (code-quality, PR): Debug: Log calls to ConfigObject::Deactivate\(\)
+* [#6897](https://github.com/icinga/icinga2/issues/6897) (PR): Validate Zone::GetLocalZone\(\) before using
+* [#6872](https://github.com/icinga/icinga2/issues/6872) (Windows): 2.10 is unstable \(Windows Agent\)
+* [#6843](https://github.com/icinga/icinga2/issues/6843) (Tests, Windows, PR): Improve AppVeyor builds
+* [#6479](https://github.com/icinga/icinga2/issues/6479) (code-quality, PR): SocketEvents: inherit from Stream
+* [#6477](https://github.com/icinga/icinga2/issues/6477) (code-quality): SocketEvents: inherit from Object
+
 ## 2.10.2 (2018-11-14)
 
 ### Bug
