@@ -465,6 +465,11 @@ String UnbufferedAsioTlsStream::GetVerifyError() const
 	return m_VerifyError;
 }
 
+std::shared_ptr<X509> UnbufferedAsioTlsStream::GetPeerCertificate()
+{
+	return std::shared_ptr<X509>(SSL_get_peer_certificate(native_handle()), X509_free);
+}
+
 void UnbufferedAsioTlsStream::BeforeHandshake(handshake_type type)
 {
 	namespace ssl = boost::asio::ssl;
