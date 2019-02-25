@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Icinga 2 Agent Wizard")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Icinga Development Team")]
+[assembly: AssemblyCompany("Icinga GmbH")]
 [assembly: AssemblyProduct("Icinga 2")]
-[assembly: AssemblyCopyright("Copyright © 2014-2018 Icinga Development Team")]
+[assembly: AssemblyCopyright("Copyright © 2014 Icinga GmbH")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

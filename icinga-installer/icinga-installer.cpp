@@ -111,6 +111,7 @@ static void MkDirP(const std::string& path)
 static std::string GetNSISInstallPath(void)
 {
 	HKEY hKey;
+	//TODO: Change hardcoded key
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Icinga Development Team\\ICINGA2", 0,
 		KEY_QUERY_VALUE | KEY_WOW64_32KEY, &hKey) == ERROR_SUCCESS) {
 		BYTE pvData[MAX_PATH];

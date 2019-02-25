@@ -7,8 +7,8 @@
     <id>icinga2</id>
     <title>Icinga 2</title>
     <version>${SPEC_VERSION}</version>
-    <authors>The Icinga Project</authors>
-    <owners>Icinga Development Team</owners>
+    <authors>Icinga GmbH</authors>
+    <owners>Icinga GmbH</owners>
     <summary>icinga2 - Monitoring Agent for Windows</summary>
     <description>Icinga 2 is an open source monitoring platform which notifies users about host and service outages.</description>
     <projectUrl>https://icinga.com/</projectUrl>

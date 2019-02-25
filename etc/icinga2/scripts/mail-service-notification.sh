@@ -1,6 +1,5 @@
 #!/bin/sh
-#
-# Copyright (C) 2012-2018 Icinga Development Team (https://icinga.com/)
+# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 # Except of function urlencode which is Copyright (C) by Brian White (brian@aljex.com) used under MIT license
 
 PROG="`basename $0`"
