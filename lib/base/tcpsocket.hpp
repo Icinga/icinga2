@@ -28,6 +28,35 @@ public:
 };
 
 template<class Socket>
+void Connect(Socket& socket, const String& node, const String& service)
+{
+	using boost::asio::ip::tcp;
+
+	tcp::resolver resolver (socket.get_io_service());
+	tcp::resolver::query query (node, service);
+	auto result (resolver.resolve(query));
+	auto current (result.begin());
+
+	for (;;) {
+		try {
+			socket.open(current->endpoint().protocol());
+			socket.set_option(tcp::socket::keep_alive(true));
+			socket.connect(current->endpoint());
+
+			break;
+		} catch (const std::exception&) {
+			if (++current == result.end()) {
+				throw;
+			}
+
+			if (socket.is_open()) {
+				socket.close();
+			}
+		}
+	}
+}
+
+template<class Socket>
 void Connect(Socket& socket, const String& node, const String& service, boost::asio::yield_context yc)
 {
 	using boost::asio::ip::tcp;
