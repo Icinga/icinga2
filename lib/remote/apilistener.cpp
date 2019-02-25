@@ -20,12 +20,11 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include "base/exception.hpp"
+#include "base/tcpsocket.hpp"
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
-#include <boost/asio/ssl/verify_context.hpp>
-#include <boost/asio/ssl/verify_mode.hpp>
 #include <boost/system/error_code.hpp>
 #include <climits>
 #include <fstream>
@@ -462,34 +461,9 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 			<< "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 
 		try {
-			auto sslConn (std::make_shared<AsioTlsStream>(io, *sslContext));
+			auto sslConn (std::make_shared<AsioTlsStream>(io, *sslContext, endpoint->GetName()));
 
-			{
-				tcp::resolver resolver (io);
-				tcp::resolver::query query (host, port);
-				auto result (resolver.async_resolve(query, yc));
-				auto current (result.begin());
-
-				for (;;) {
-					auto& tcpConn (sslConn->lowest_layer());
-
-					try {
-						tcpConn.open(current->endpoint().protocol());
-						tcpConn.set_option(tcp::socket::keep_alive(true));
-						tcpConn.async_connect(current->endpoint(), yc);
-
-						break;
-					} catch (const std::exception&) {
-						if (++current == result.end()) {
-							throw;
-						}
-
-						if (tcpConn.is_open()) {
-							tcpConn.close();
-						}
-					}
-				}
-			}
+			Connect(sslConn->lowest_layer(), host, port, yc);
 
 			NewClientHandler(yc, sslConn, endpoint->GetName(), RoleClient);
 
@@ -551,39 +525,6 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 
 	auto& sslConn (client->next_layer());
 
-	sslConn.set_verify_mode(ssl::verify_peer | ssl::verify_client_once);
-
-	bool verify_ok = true;
-	String verifyError;
-
-	sslConn.set_verify_callback([&verify_ok, &verifyError](bool preverified, ssl::verify_context& ctx) {
-		if (!preverified) {
-			verify_ok = false;
-
-			std::ostringstream msgbuf;
-			int err = X509_STORE_CTX_get_error(ctx.native_handle());
-
-			msgbuf << "code " << err << ": " << X509_verify_cert_error_string(err);
-			verifyError = msgbuf.str();
-		}
-
-		return true;
-	});
-
-	if (role == RoleClient) {
-		String environmentName = Application::GetAppEnvironment();
-		String serverName = hostname;
-
-		if (!environmentName.IsEmpty())
-			serverName += ":" + environmentName;
-
-#ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
-		if (!hostname.IsEmpty()) {
-			SSL_set_tlsext_host_name(sslConn.native_handle(), serverName.CStr());
-		}
-#endif /* SSL_CTRL_SET_TLSEXT_HOSTNAME */
-	}
-
 	try {
 		sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc);
 	} catch (const std::exception& ex) {
@@ -601,10 +542,15 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 	});
 
 	std::shared_ptr<X509> cert (SSL_get_peer_certificate(sslConn.native_handle()), X509_free);
+	bool verify_ok = false;
 	String identity;
 	Endpoint::Ptr endpoint;
 
 	if (cert) {
+		verify_ok = sslConn.IsVerifyOK();
+
+		String verifyError = sslConn.GetVerifyError();
+
 		try {
 			identity = GetCertificateCN(cert);
 		} catch (const std::exception&) {
@@ -640,8 +586,6 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 			log << " (no Endpoint object found for identity)";
 		}
 	} else {
-		verify_ok = false;
-
 		Log(LogInformation, "ApiListener")
 			<< "New client connection " << conninfo << " (no client certificate)";
 	}

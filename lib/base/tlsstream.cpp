@@ -7,7 +7,13 @@
 #include "base/configuration.hpp"
 #include "base/convert.hpp"
 #include <boost/asio/ssl/context.hpp>
+#include <boost/asio/ssl/verify_context.hpp>
+#include <boost/asio/ssl/verify_mode.hpp>
 #include <iostream>
+#include <openssl/ssl.h>
+#include <openssl/tls1.h>
+#include <openssl/x509.h>
+#include <sstream>
 
 #ifndef _WIN32
 #	include <poll.h>
@@ -446,4 +452,47 @@ bool TlsStream::IsDataAvailable() const
 Socket::Ptr TlsStream::GetSocket() const
 {
 	return m_Socket;
+}
+
+bool UnbufferedAsioTlsStream::IsVerifyOK() const
+{
+	return m_VerifyOK;
+}
+
+String UnbufferedAsioTlsStream::GetVerifyError() const
+{
+	return m_VerifyError;
+}
+
+void UnbufferedAsioTlsStream::BeforeHandshake(handshake_type type)
+{
+	namespace ssl = boost::asio::ssl;
+
+	set_verify_mode(ssl::verify_peer | ssl::verify_client_once);
+
+	set_verify_callback([this](bool preverified, ssl::verify_context& ctx) {
+		if (!preverified) {
+			m_VerifyOK = false;
+
+			std::ostringstream msgbuf;
+			int err = X509_STORE_CTX_get_error(ctx.native_handle());
+
+			msgbuf << "code " << err << ": " << X509_verify_cert_error_string(err);
+			m_VerifyError = msgbuf.str();
+		}
+
+		return true;
+	});
+
+#ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
+	if (type == client && !m_Hostname.IsEmpty()) {
+		String environmentName = Application::GetAppEnvironment();
+		String serverName = m_Hostname;
+
+		if (!environmentName.IsEmpty())
+			serverName += ":" + environmentName;
+
+		SSL_set_tlsext_host_name(native_handle(), serverName.CStr());
+	}
+#endif /* SSL_CTRL_SET_TLSEXT_HOSTNAME */
 }

@@ -99,28 +99,66 @@ private:
 	void CloseInternal(bool inDestructor);
 };
 
+struct UnbufferedAsioTlsStreamParams
+{
+	boost::asio::io_service& IoService;
+	boost::asio::ssl::context& SslContext;
+	const String& Hostname;
+};
+
 class UnbufferedAsioTlsStream : public boost::asio::ssl::stream<boost::asio::ip::tcp::socket>
 {
+private:
+	typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> Parent;
+
 public:
 	inline
-	UnbufferedAsioTlsStream(std::pair<boost::asio::io_service*, boost::asio::ssl::context*>& init)
-		: stream(*init.first, *init.second)
+	UnbufferedAsioTlsStream(UnbufferedAsioTlsStreamParams& init)
+		: stream(init.IoService, init.SslContext), m_VerifyOK(true), m_Hostname(init.Hostname)
 	{
 	}
+
+	bool IsVerifyOK() const;
+	String GetVerifyError() const;
+
+	template<class... Args>
+	inline
+	auto async_handshake(handshake_type type, Args&&... args) -> decltype(Parent::async_handshake(type, std::forward<Args>(args)...))
+	{
+		BeforeHandshake(type);
+
+		return Parent::async_handshake(type, std::forward<Args>(args)...);
+	}
+
+	template<class... Args>
+	inline
+	auto handshake(handshake_type type, Args&&... args) -> decltype(Parent::handshake(type, std::forward<Args>(args)...))
+	{
+		BeforeHandshake(type);
+
+		return Parent::handshake(type, std::forward<Args>(args)...);
+	}
+
+private:
+	bool m_VerifyOK;
+	String m_VerifyError;
+	String m_Hostname;
+
+	void BeforeHandshake(handshake_type type);
 };
 
 class AsioTlsStream : public boost::asio::buffered_stream<UnbufferedAsioTlsStream>
 {
 public:
 	inline
-	AsioTlsStream(boost::asio::io_service& ioService, boost::asio::ssl::context& sslContext)
-		: AsioTlsStream(std::make_pair(&ioService, &sslContext))
+	AsioTlsStream(boost::asio::io_service& ioService, boost::asio::ssl::context& sslContext, const String& hostname = String())
+		: AsioTlsStream(UnbufferedAsioTlsStreamParams{ioService, sslContext, hostname})
 	{
 	}
 
 private:
 	inline
-	AsioTlsStream(std::pair<boost::asio::io_service*, boost::asio::ssl::context*> init)
+	AsioTlsStream(UnbufferedAsioTlsStreamParams init)
 		: buffered_stream(init)
 	{
 	}
