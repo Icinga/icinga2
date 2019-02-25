@@ -1435,39 +1435,39 @@ icinga2 daemon
 Icinga 2 can be started as a daemon using the provided init script:
 
 ```
-# /etc/init.d/icinga2
+/etc/init.d/icinga2
 Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
 ```
 
-### Systemd <a id="development-package-builds-systemd"></a>
+#### Systemd <a id="development-package-builds-systemd"></a>
 
 If your distribution uses Systemd:
 
 ```
-# systemctl {start|stop|reload|status|enable|disable} icinga2
+systemctl {start|stop|reload|status|enable|disable} icinga2
 ```
 
 In case the distribution is running Systemd >227, you'll also
 need to package and install the `etc/initsystem/icinga2.service.limits.conf`
 file into `/etc/systemd/system/icinga2.service.d`.
 
-### openrc <a id="development-package-builds-openrc"></a>
+#### openrc <a id="development-package-builds-openrc"></a>
 
 Or if your distribution uses openrc (like Alpine):
 
 ```
-# rc-service icinga2
+rc-service icinga2
 Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
-  ```
+```
 
 Note: the openrc's init.d is not shipped by default.
 A working init.d with openrc can be found here: (https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd). If you have customized some path, edit the file and adjust it according with your setup.
 Those few steps can be followed:
 
 ```
-# wget https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd
-# mv icinga2.initd /etc/init.d/icinga2
-# chmod +x /etc/init.d/icinga2
+wget https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd
+mv icinga2.initd /etc/init.d/icinga2
+chmod +x /etc/init.d/icinga2
 ```
 
 Icinga 2 reads a single configuration file which is used to specify all
