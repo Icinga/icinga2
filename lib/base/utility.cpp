@@ -1345,6 +1345,21 @@ bool Utility::PathExists(const String& path)
 #endif /* _WIN32 */
 }
 
+bool Utility::FileIsEmpty(const String& path)
+{
+#ifndef _WIN32
+	struct stat statbuf;
+	if (stat(path.CStr(), &statbuf) < 0)
+	    return true;
+#else /* _WIN32 */
+	struct _stat statbuf;
+	if (_stat(path.CStr(), &statbuf) < 0)
+	    return true;
+#endif /* _WIN32 */
+
+    return (statbuf.st_size == 0);
+}
+
 Value Utility::LoadJsonFile(const String& path)
 {
 	std::ifstream fp;

@@ -141,6 +141,7 @@ private:
 	boost::mutex m_LogLock;
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount{0};
+	double m_LogLastRotation{0};
 
 	bool RelayMessageOne(const Zone::Ptr& zone, const MessageOrigin::Ptr& origin, const Dictionary::Ptr& message, const Endpoint::Ptr& currentMaster);
 	void SyncRelayMessage(const MessageOrigin::Ptr& origin, const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);

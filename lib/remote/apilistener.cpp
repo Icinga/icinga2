@@ -675,6 +675,14 @@ void ApiListener::ApiTimerHandler()
 	std::sort(files.begin(), files.end());
 
 	for (int ts : files) {
+		String path = GetApiDir() + "log/" + Convert::ToString(ts);
+
+		if (Utility::FileIsEmpty(path)) {
+			Log(LogNotice, "ApiListener")
+				<< "Removing empty log file: " << path;
+			(void)unlink(path.CStr());
+		}
+
 		bool need = false;
 
 		for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
@@ -684,6 +692,12 @@ void ApiListener::ApiTimerHandler()
 			if (endpoint->GetLogDuration() >= 0 && ts < now - endpoint->GetLogDuration())
 				continue;
 
+			Zone::Ptr my_zone = Zone::GetLocalZone();
+			Zone::Ptr zone = endpoint->GetZone();
+
+			if (zone->GetParent() != my_zone && zone != my_zone && zone != my_zone->GetParent())
+				continue;
+
 			if (ts > endpoint->GetLocalLogPosition()) {
 				need = true;
 				break;
@@ -691,7 +705,6 @@ void ApiListener::ApiTimerHandler()
 		}
 
 		if (!need) {
-			String path = GetApiDir() + "log/" + Convert::ToString(ts);
 			Log(LogNotice, "ApiListener")
 				<< "Removing old log file: " << path;
 			(void)unlink(path.CStr());
@@ -1067,15 +1080,29 @@ void ApiListener::RotateLogFile()
 		ts = Utility::GetTime();
 
 	String oldpath = GetApiDir() + "log/current";
-	String newpath = GetApiDir() + "log/" + Convert::ToString(static_cast<int>(ts)+1);
+	String newpath;
+	int int_ts = static_cast<int>(ts);
 
+	int offset = 1;
+	while (offset < 20) {
+		newpath = GetApiDir() + "log/" + Convert::ToString(int_ts + offset);
+		if (!Utility::PathExists(newpath))
+			break;
+		offset++;
+	}
+
+	if (offset == 20) {
+		Log(LogWarning, "ApiListener")
+			<< "Error rotating cluster log, maximum retries reached";
+		return;
+	}
 
 #ifdef _WIN32
 	_unlink(newpath.CStr());
 #endif /* _WIN32 */
 
-
 	(void) rename(oldpath.CStr(), newpath.CStr());
+	m_LogLastRotation = Utility::GetTime();
 }
 
 void ApiListener::LogGlobHandler(std::vector<int>& files, const String& file)
@@ -1108,11 +1135,6 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 	CONTEXT("Replaying log for Endpoint '" + endpoint->GetName() + "'");
 
-	int count = -1;
-	double peer_ts = endpoint->GetLocalLogPosition();
-	double logpos_ts = peer_ts;
-	bool last_sync = false;
-
 	Endpoint::Ptr target_endpoint = client->GetEndpoint();
 	ASSERT(target_endpoint);
 
@@ -1124,31 +1146,33 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		return;
 	}
 
-	for (;;) {
+	int count = 0;
+	double last_rotation;
+
+	while (true) {
 		boost::mutex::scoped_lock lock(m_LogLock);
 
-		CloseLogFile();
-		RotateLogFile();
-
-		if (count == -1 || count > 50000) {
+		if (m_LogMessageCount > 0) {
+			CloseLogFile();
+			RotateLogFile();
 			OpenLogFile();
-			lock.unlock();
-		} else {
-			last_sync = true;
 		}
 
-		count = 0;
+		last_rotation = m_LogLastRotation;
+		lock.unlock();
 
 		std::vector<int> files;
 		Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
 		std::sort(files.begin(), files.end());
 
 		for (int ts : files) {
+
+			double logpos_ts = endpoint->GetLocalLogPosition();
+
+			if (ts < logpos_ts)
+				break;
+
 			String path = GetApiDir() + "log/" + Convert::ToString(ts);
-
-			if (ts < peer_ts)
-				continue;
-
 			Log(LogNotice, "ApiListener")
 				<< "Replaying log: " << path;
 
@@ -1157,6 +1181,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 			String message;
 			StreamReadContext src;
+
 			while (true) {
 				Dictionary::Ptr pmessage;
 
@@ -1178,11 +1203,10 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					break;
 				}
 
-				if (pmessage->Get("timestamp") <= peer_ts)
+				if (pmessage->Get("timestamp") <= logpos_ts)
 					continue;
 
 				Dictionary::Ptr secname = pmessage->Get("secobj");
-
 				if (secname) {
 					ConfigObject::Ptr secobj = ConfigObject::GetObject(secname->Get("type"), secname->Get("name"));
 
@@ -1193,7 +1217,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 						continue;
 				}
 
-				try  {
+				try {
 					size_t bytesSent = NetString::WriteStringToStream(client->GetStream(), pmessage->Get("message"));
 					endpoint->AddMessageSent(bytesSent);
 					count++;
@@ -1206,38 +1230,17 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 					break;
 				}
+			}
 
-				peer_ts = pmessage->Get("timestamp");
-
-				if (ts > logpos_ts + 10) {
-					logpos_ts = ts;
-
-					Dictionary::Ptr lmessage = new Dictionary({
-						{ "jsonrpc", "2.0" },
-						{ "method", "log::SetLogPosition" },
-						{ "params", new Dictionary({
-							{ "log_position", logpos_ts }
-						}) }
-					});
-
-					size_t bytesSent = JsonRpc::SendMessage(client->GetStream(), lmessage);
-					endpoint->AddMessageSent(bytesSent);
-				}
+			if (ts > logpos_ts) {
+				logpos_ts =ts;
+				endpoint->SetLocalLogPosition(logpos_ts);
 			}
 
 			logStream->Close();
 		}
 
-		if (count > 0) {
-			Log(LogInformation, "ApiListener")
-				<< "Replayed " << count << " messages.";
-		}
-		else {
-			Log(LogNotice, "ApiListener")
-				<< "Replayed " << count << " messages.";
-		}
-
-		if (last_sync) {
+		if (m_LogLastRotation <= last_rotation) {
 			{
 				ObjectLock olock2(endpoint);
 				endpoint->SetSyncing(false);
@@ -1247,6 +1250,15 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 			break;
 		}
+	}
+
+	if (count > 0) {
+		Log(LogInformation, "ApiListener")
+			<< "Replayed " << count << " messages.";
+	}
+	else {
+		Log(LogNotice, "ApiListener")
+			<< "Replayed " << count << " messages.";
 	}
 }
 

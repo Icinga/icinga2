@@ -110,6 +110,7 @@ public:
 	static tm LocalTime(time_t ts);
 
 	static bool PathExists(const String& path);
+	static bool FileIsEmpty(const String& path);
 
 	static void RemoveDirRecursive(const String& path);
 	static void CopyFile(const String& source, const String& target);

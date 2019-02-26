@@ -33,6 +33,9 @@ void JsonRpcConnection::HeartbeatTimerHandler()
 				}) }
 			});
 
+			if (!endpoint->GetSyncing())
+				request->Set("ts", Utility::GetTime());
+
 			client->SendMessage(request);
 		}
 	}
@@ -49,4 +52,3 @@ Value JsonRpcConnection::HeartbeatAPIHandler(const MessageOrigin::Ptr& origin, c
 
 	return Empty;
 }
-
