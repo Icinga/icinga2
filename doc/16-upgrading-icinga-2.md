@@ -165,7 +165,7 @@ sane compile-time defaults.
 > your changes.
 
 There is a bug with existing sysconfig files where path variables are not expanded
-because Systemd [does not support](https://github.com/systemd/systemd/issues/2123)
+because systemd [does not support](https://github.com/systemd/systemd/issues/2123)
 shell variable expansion. This worked with SysVInit though.
 
 Edit the sysconfig file and either remove everything, or edit this line
@@ -187,7 +187,7 @@ vim /etc/sysconfig/icinga2
 ICINGA2_RLIMIT_FILES=50000
 ```
 
-Restart Icinga 2 afterwards, the Systemd service file automatically puts the
+Restart Icinga 2 afterwards, the systemd service file automatically puts the
 value into the application's environment where this is read on startup.
 
 ### Setup Wizard Changes <a id="upgrading-to-2-9-setup-wizard-changes"></a>
