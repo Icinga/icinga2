@@ -183,9 +183,6 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	DbObject::OnMultipleQueries(queries);
 
 	/* service dependencies */
-	Log(LogDebug, "ServiceDbObject")
-		<< "service dependencies for '" << service->GetName() << "'";
-
 	queries.clear();
 
 	DbQuery query2;
@@ -233,9 +230,6 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	DbObject::OnMultipleQueries(queries);
 
 	/* service contacts, contactgroups */
-	Log(LogDebug, "ServiceDbObject")
-		<< "service contacts: " << service->GetName();
-
 	queries.clear();
 
 	DbQuery query3;
@@ -248,9 +242,6 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	queries.emplace_back(std::move(query3));
 
 	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
-		Log(LogDebug, "ServiceDbObject")
-			<< "service contacts: " << user->GetName();
-
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contacts";
 		query_contact.Type = DbQueryInsert;
@@ -266,9 +257,6 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 
 	DbObject::OnMultipleQueries(queries);
 
-	Log(LogDebug, "ServiceDbObject")
-		<< "service contactgroups: " << service->GetName();
-
 	queries.clear();
 
 	DbQuery query4;
@@ -281,9 +269,6 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	queries.emplace_back(std::move(query4));
 
 	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
-		Log(LogDebug, "ServiceDbObject")
-			<< "service contactgroups: " << usergroup->GetName();
-
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contactgroups";
 		query_contact.Type = DbQueryInsert;

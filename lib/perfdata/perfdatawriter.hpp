@@ -34,14 +34,16 @@ protected:
 	void Pause() override;
 
 private:
+	Timer::Ptr m_RotationTimer;
+	std::ofstream m_ServiceOutputFile;
+	std::ofstream m_HostOutputFile;
+	boost::mutex m_StreamMutex;
+
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	static Value EscapeMacroMetric(const Value& value);
 
-	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler();
-
-	std::ofstream m_ServiceOutputFile;
-	std::ofstream m_HostOutputFile;
+	void RotateAllFiles();
 	void RotateFile(std::ofstream& output, const String& temp_path, const String& perfdata_path);
 };
 

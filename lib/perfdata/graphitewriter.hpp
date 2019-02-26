@@ -54,7 +54,9 @@ private:
 	void ReconnectTimerHandler();
 
 	void Disconnect();
+	void DisconnectInternal();
 	void Reconnect();
+	void ReconnectInternal();
 
 	void AssertOnWorkQueue();
 

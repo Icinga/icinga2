@@ -66,6 +66,16 @@ void PerfdataWriter::Resume()
 
 void PerfdataWriter::Pause()
 {
+	m_RotationTimer.reset();
+
+#ifdef I2_DEBUG
+	//m_HostOutputFile << "\n# Pause the feature" << "\n\n";
+	//m_ServiceOutputFile << "\n# Pause the feature" << "\n\n";
+#endif /* I2_DEBUG */
+
+	/* Force a rotation closing the file stream. */
+	RotateAllFiles();
+
 	Log(LogInformation, "PerfdataWriter")
 		<< "'" << GetName() << "' paused.";
 
@@ -108,7 +118,8 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
 
 		{
-			ObjectLock olock(this);
+			boost::mutex::scoped_lock lock(m_StreamMutex);
+
 			if (!m_ServiceOutputFile.good())
 				return;
 
@@ -118,7 +129,8 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		String line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
 
 		{
-			ObjectLock olock(this);
+			boost::mutex::scoped_lock lock(m_StreamMutex);
+
 			if (!m_HostOutputFile.good())
 				return;
 
@@ -129,13 +141,20 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, const String& perfdata_path)
 {
-	ObjectLock olock(this);
+	Log(LogDebug, "PerfdataWriter")
+		<< "Rotating perfdata files.";
+
+	boost::mutex::scoped_lock lock(m_StreamMutex);
 
 	if (output.good()) {
 		output.close();
 
 		if (Utility::PathExists(temp_path)) {
 			String finalFile = perfdata_path + "." + Convert::ToString((long)Utility::GetTime());
+
+			Log(LogDebug, "PerfdataWriter")
+				<< "Closed output file and renaming into '" << finalFile << "'.";
+
 			if (rename(temp_path.CStr(), finalFile.CStr()) < 0) {
 				BOOST_THROW_EXCEPTION(posix_error()
 					<< boost::errinfo_api_function("rename")
@@ -147,9 +166,10 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 
 	output.open(temp_path.CStr());
 
-	if (!output.good())
+	if (!output.good()) {
 		Log(LogWarning, "PerfdataWriter")
 			<< "Could not open perfdata file '" << temp_path << "' for writing. Perfdata will be lost.";
+	}
 }
 
 void PerfdataWriter::RotationTimerHandler()
@@ -157,6 +177,11 @@ void PerfdataWriter::RotationTimerHandler()
 	if (IsPaused())
 		return;
 
+	RotateAllFiles();
+}
+
+void PerfdataWriter::RotateAllFiles()
+{
 	RotateFile(m_ServiceOutputFile, GetServiceTempPath(), GetServicePerfdataPath());
 	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
 }

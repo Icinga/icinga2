@@ -90,12 +90,26 @@ void GelfWriter::Resume()
 	Checkable::OnStateChange.connect(std::bind(&GelfWriter::StateChangeHandler, this, _1, _2, _3));
 }
 
+/* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void GelfWriter::Pause()
 {
-	Log(LogInformation, "GelfWriter")
-		<< "'" << GetName() << "' paused.";
+	m_ReconnectTimer.reset();
+
+	try {
+		ReconnectInternal();
+	} catch (const std::exception&) {
+		Log(LogInformation, "GelfWriter")
+			<< "'" << GetName() << "' paused. Unable to connect, not flushing buffers. Data may be lost on reload.";
+
+		ObjectImpl<GelfWriter>::Pause();
+		return;
+	}
 
 	m_WorkQueue.Join();
+	DisconnectInternal();
+
+	Log(LogInformation, "GraphiteWriter")
+		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<GelfWriter>::Pause();
 }
@@ -128,6 +142,11 @@ void GelfWriter::Reconnect()
 		return;
 	}
 
+	ReconnectInternal();
+}
+
+void GelfWriter::ReconnectInternal()
+{
 	double startTime = Utility::GetTime();
 
 	CONTEXT("Reconnecting to Graylog Gelf '" + GetName() + "'");
@@ -167,6 +186,11 @@ void GelfWriter::Disconnect()
 {
 	AssertOnWorkQueue();
 
+	DisconnectInternal();
+}
+
+void GelfWriter::DisconnectInternal()
+{
 	if (!GetConnected())
 		return;
 

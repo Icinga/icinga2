@@ -218,7 +218,7 @@ void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, cons
 	args->Add("ActiveStageOverride=" + packageName + ":" + stageName);
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
-	process->SetTimeout(300);
+	process->SetTimeout(Configuration::ReloadTimeout);
 	process->Run(std::bind(&TryActivateStageCallback, _1, packageName, stageName, reload));
 }
 

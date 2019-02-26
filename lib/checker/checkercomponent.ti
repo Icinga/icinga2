@@ -9,7 +9,7 @@ namespace icinga
 
 class CheckerComponent : ConfigObject
 {
-	activation_priority 100;
+	activation_priority 300;
 
 	[config, no_storage] int concurrent_checks {
 		get {{{

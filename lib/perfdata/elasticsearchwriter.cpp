@@ -87,12 +87,15 @@ void ElasticsearchWriter::Resume()
 	Checkable::OnNotificationSentToAllUsers.connect(std::bind(&ElasticsearchWriter::NotificationSentToAllUsersHandler, this, _1, _2, _3, _4, _5, _6, _7));
 }
 
+/* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void ElasticsearchWriter::Pause()
 {
+	Flush();
+	m_WorkQueue.Join();
+	Flush();
+
 	Log(LogInformation, "ElasticsearchWriter")
 		<< "'" << GetName() << "' paused.";
-
-	m_WorkQueue.Join();
 
 	ObjectImpl<ElasticsearchWriter>::Pause();
 }

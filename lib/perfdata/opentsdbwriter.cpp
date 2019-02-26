@@ -68,8 +68,11 @@ void OpenTsdbWriter::Resume()
 	Service::OnNewCheckResult.connect(std::bind(&OpenTsdbWriter::CheckResultHandler, this, _1, _2));
 }
 
+/* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void OpenTsdbWriter::Pause()
 {
+	m_ReconnectTimer.reset();
+
 	Log(LogInformation, "OpentsdbWriter")
 		<< "'" << GetName() << "' paused.";
 
