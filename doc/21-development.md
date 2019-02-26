@@ -1099,8 +1099,8 @@ Icinga application using a dist tarball (including notes for distributions):
   - Alpine: boost-dev
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
-* Systemd headers
-  - Only required when using Systemd
+* systemd headers
+  - Only required when using systemd
   - Debian/Ubuntu: libsystemd-dev
   - RHEL/Fedora: systemd-devel
 
@@ -1441,13 +1441,13 @@ Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
 
 #### Systemd <a id="development-package-builds-systemd"></a>
 
-If your distribution uses Systemd:
+If your distribution uses systemd:
 
 ```
 systemctl {start|stop|reload|status|enable|disable} icinga2
 ```
 
-In case the distribution is running Systemd >227, you'll also
+In case the distribution is running systemd >227, you'll also
 need to package and install the `etc/initsystem/icinga2.service.limits.conf`
 file into `/etc/systemd/system/icinga2.service.d`.
 

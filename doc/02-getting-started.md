@@ -215,8 +215,8 @@ By default Icinga 2 uses the following files and directories:
   Path                                		| Description
   ----------------------------------------------|------------------------------------
   /etc/icinga2                        		| Contains Icinga 2 configuration files.
-  /usr/lib/systemd/system/icinga2.service 	| The Icinga 2 Systemd service file on systems using Systemd.
-  /etc/systemd/system/icinga2.service.d/limits.conf | On distributions with Systemd >227, additional service limits are required.
+  /usr/lib/systemd/system/icinga2.service 	| The Icinga 2 systemd service file on systems using systemd.
+  /etc/systemd/system/icinga2.service.d/limits.conf | On distributions with systemd >227, additional service limits are required.
   /etc/init.d/icinga2                 		| The Icinga 2 init script on systems using SysVinit or OpenRC.
   /usr/sbin/icinga2                   		| Shell wrapper for the Icinga 2 binary.
   /usr/lib\*/icinga2				| Libraries and the Icinga 2 binary (use `find /usr -type f -name icinga2` to locate the binary path).
@@ -335,10 +335,10 @@ to determine where to find the plugin binaries.
 
 ### Systemd Service <a id="systemd-service"></a>
 
-Some distributions (e.g. Fedora, openSUSE and RHEL/CentOS 7) use Systemd. The
-Icinga 2 packages automatically install the necessary Systemd unit files.
+Some distributions (e.g. Fedora, openSUSE and RHEL/CentOS 7) use systemd. The
+Icinga 2 packages automatically install the necessary systemd unit files.
 
-The Icinga 2 Systemd service can be (re-)started, reloaded, stopped and also
+The Icinga 2 systemd service can be (re-)started, reloaded, stopped and also
 queried for its current status.
 
 ```
@@ -387,7 +387,7 @@ If you're stuck with configuration errors, you can manually invoke the
 
 > **Tip**
 >
-> If you are running into fork errors with Systemd enabled distributions,
+> If you are running into fork errors with systemd enabled distributions,
 > please check the [troubleshooting chapter](15-troubleshooting.md#check-fork-errors).
 
 ### Init Script <a id="init-script"></a>
