@@ -116,11 +116,11 @@ This can be migrated to Icinga 2 and [using group assign](17-language-reference.
 
 
     object HostGroup "hg1" {
+      groups = [ "hg2" ]
       assign where host.name in [ "host1", "host2" ]
     }
 
     object HostGroup "hg2" {
-      groups = [ "hg1" ]
       assign where host.name == "host3"
     }
 
