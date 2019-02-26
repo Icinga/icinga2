@@ -23,6 +23,7 @@ class JsonRpc
 public:
 	static size_t SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
 	static size_t SendMessage(const std::shared_ptr<AsioTlsStream>& stream, const Dictionary::Ptr& message, boost::asio::yield_context yc);
+	static size_t SendRawMessage(const std::shared_ptr<AsioTlsStream>& stream, const String& json, boost::asio::yield_context yc);
 	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait = false, ssize_t maxMessageLength = -1);
 	static String ReadMessage(const std::shared_ptr<AsioTlsStream>& stream, boost::asio::yield_context yc, ssize_t maxMessageLength = -1);
 	static Dictionary::Ptr DecodeMessage(const String& message);

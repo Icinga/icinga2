@@ -1277,7 +1277,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 				}
 
 				try  {
-					client->SendMessage(JsonDecode(pmessage->Get("message")));
+					client->SendRawMessage(pmessage->Get("message"));
 					count++;
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ApiListener")

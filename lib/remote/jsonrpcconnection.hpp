@@ -55,6 +55,7 @@ public:
 	void Disconnect();
 
 	void SendMessage(const Dictionary::Ptr& request);
+	void SendRawMessage(const String& request);
 
 	static Value HeartbeatAPIHandler(const intrusive_ptr<MessageOrigin>& origin, const Dictionary::Ptr& params);
 
@@ -72,7 +73,7 @@ private:
 	double m_Seen;
 	double m_NextHeartbeat;
 	boost::asio::io_service::strand m_IoStrand;
-	std::vector<Dictionary::Ptr> m_OutgoingMessagesQueue;
+	std::vector<String> m_OutgoingMessagesQueue;
 	AsioConditionVariable m_OutgoingMessagesQueued;
 	AsioConditionVariable m_WriterDone;
 	bool m_ShuttingDown;

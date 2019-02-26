@@ -6,6 +6,7 @@
 #include "remote/jsonrpc.hpp"
 #include "base/configtype.hpp"
 #include "base/io-engine.hpp"
+#include "base/json.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
@@ -106,7 +107,7 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 		if (!queue.empty()) {
 			try {
 				for (auto& message : queue) {
-					size_t bytesSent = JsonRpc::SendMessage(m_Stream, message, yc);
+					size_t bytesSent = JsonRpc::SendRawMessage(m_Stream, message, yc);
 
 					if (m_Endpoint) {
 						m_Endpoint->AddMessageSent(bytesSent);
@@ -163,9 +164,17 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 	m_IoStrand.post([this, message]() { SendMessageInternal(message); });
 }
 
+void JsonRpcConnection::SendRawMessage(const String& message)
+{
+	m_IoStrand.post([this, message]() {
+		m_OutgoingMessagesQueue.emplace_back(message);
+		m_OutgoingMessagesQueued.Set();
+	});
+}
+
 void JsonRpcConnection::SendMessageInternal(const Dictionary::Ptr& message)
 {
-	m_OutgoingMessagesQueue.emplace_back(message);
+	m_OutgoingMessagesQueue.emplace_back(JsonEncode(message));
 	m_OutgoingMessagesQueued.Set();
 }
 
