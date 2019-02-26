@@ -2,7 +2,7 @@
 -- mysql.sql
 -- DB definition for IDO MySQL
 --
--- Copyright (c) 2009-2018 Icinga Development Team (https://icinga.com/)
+-- Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 --
 -- -- --------------------------------------------------------
 
