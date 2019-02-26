@@ -36,15 +36,13 @@ void JsonRpcConnection::HandleAndWriteHeartbeats(boost::asio::yield_context yc)
 			break;
 		}
 
-		m_OutgoingMessagesQueue.emplace_back(new Dictionary({
+		SendMessageInternal(new Dictionary({
 			{ "jsonrpc", "2.0" },
 			{ "method", "event::Heartbeat" },
 			{ "params", new Dictionary({
 				{ "timeout", 120 }
 			}) }
 		}));
-
-		m_OutgoingMessagesQueued.Set();
 	}
 }
 
