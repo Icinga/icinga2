@@ -1133,6 +1133,66 @@ Icinga application using a dist tarball (including notes for distributions):
 **RHEL6**: Requires a newer boost version which is available on packages.icinga.com
 with a version suffixed name.
 
+### Dependencies matrix <a id="development-package-builds-dependencies-matrix"></a>
+
+The dependencies versions shipped by
+[the officially supported OSes](https://icinga.com/support/details/):
+
+Dependency | Debian 8 | 9       | Ubuntu 16.04 | 18.04  | 18.10
+-----------|----------|---------|--------------|--------|-------
+CMake      | 3.0.2    | 3.7.2   | 3.5.1        | 3.10.2 | 3.12.1
+make       | 4.0      | 4.1     | 4.1          | 4.1    | 4.2.1
+GCC        | 4.9.2    | 6.3.0   | 5.3.1        | 7.3.0  | 8.2.0
+pkg-config | 0.28     | 0.29    | 0.29.1       | 0.29.1 | 0.29.1
+OpenSSL    | 1.0.1t   | 1.1.0j  | 1.0.2g       | 1.1.0g | 1.1.1
+Boost      | 1.55.0   | 1.62.0  | 1.58.0       | 1.65.1 | 1.67.0
+bison      | 3.0.2    | 3.0.4   | 3.0.4        | 3.0.4  | 3.0.4
+flex       | 2.5.39   | 2.6.1   | 2.6.0        | 2.6.4  | 2.6.4
+systemd    | 215      | 232     | 229          | 237    | 239
+MySQL      | 5.5.62   | 10.1.37 | 5.7.25       | 5.7.25 | 5.7.25
+PostgreSQL | 9.4.21   | 9.6.11  | 9.5.14       | 10.6   | 10.6
+YAJL       | 2.1.0    | 2.1.0   | 2.1.0        | 2.1.0  | 2.1.0
+libedit    | 3.1      | 3.1     | 3.1          | 3.1    | 3.1
+
+Dependency | CentOS \* 6 | 7      | Fedora 28 | 29
+-----------|-------------|--------|-----------|--------
+CMake      | 3.6.1       | 3.13.4 | 3.11.2    | 3.12.1
+make       | 3.81        | 3.82   | 4.2.1     | 4.2.1
+GCC        | 7.3.1       | 8.2.1  | 8.2.1     | 8.2.1
+pkg-config | 0.23        | 0.27.1 | 0.29.1    | 0.29.1
+OpenSSL    | 1.0.1e      | 1.0.2k | 1.1.0i    | 1.1.1a
+Boost      | 1.48.0      | 1.53.0 | 1.66.0    | 1.66.0
+bison      | 2.4.1       | 3.0.4  | 3.0.4     | 3.0.5
+flex       | 2.5.35      | 2.5.37 | 2.6.1     | 2.6.1
+systemd    | N/A         | 219    | 238       | 239
+MySQL      | 10.2.8      | 10.2.8 | 10.2.21   | 10.3.12
+PostgreSQL | 9.6.10      | 9.6.10 | 10.6      | 10.7
+YAJL       | 1.0.7       | 2.0.4  | 2.1.0     | 2.1.0
+libedit    | 2.11        | 3.0    | 3.1       | 3.1
+ncurses    | 5.7         | 5.9    | 6.1       | 6.1
+
+\* with SCL and EPEL
+
+Dependency | SLES 11.4 | 12.3 | 15.0 | openSUSE 42.3 | 15.0
+-----------|-----------|------|------|---------------|--------
+CMake      |           |      |      | 3.5.2         | 3.10.2
+make       |           |      |      | 4.0           | 4.2.1
+GCC        |           |      |      | 4.8           | 7
+pkg-config |           |      |      | 0.28          | 0.29.2
+OpenSSL    |           |      |      | 1.0.2j        | 1.1.0i
+Boost      |           |      |      | 1.54.0        | 1.66.0
+bison      |           |      |      | 2.7           | 3.0.4
+flex       |           |      |      | 2.5.37        | 2.6.4
+systemd    |           |      |      | 228           | 234
+MySQL      |           |      |      | 10.0.35       | 10.2.15
+PostgreSQL |           |      |      | 9.6           | 10
+YAJL       |           |      |      | 2.0.1         | 2.1.0
+libedit    |           |      |      | 3.1           | 3.1
+ncurses    |           |      |      | 5.9           | 6.1
+
+Windows doesn't ship such dependencies by itself so the packagers
+have to install all of them from upstream.
+
 ### Runtime user environment <a id="development-package-builds-runtime-user-env"></a>
 
 By default Icinga will run as user `icinga` and group `icinga`. Additionally the
