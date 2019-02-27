@@ -2069,7 +2069,7 @@ snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. 
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
-snmp_storage_name       | **Optional.** Storage name. Default to regex "^/$$". More options available in the [snmp storage](http://nagios.manubulon.com/snmp_storage.html) documentation.
+snmp_storage_name       | **Optional.** Storage name. Default to regex "^/$". More options available in the [snmp storage](http://nagios.manubulon.com/snmp_storage.html) documentation.
 snmp_storage_type       | **Optional.** Filter by storage type. Valid options are Other, Ram, VirtualMemory, FixedDisk, RemovableDisk, FloppyDisk, CompactDisk, RamDisk, FlashMemory, or NetworkDisk. No value defined as default.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
 snmp_exclude            | **Optional.** Select all storages except the one(s) selected by -m. No action on storage type selection.
