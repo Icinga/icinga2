@@ -8,8 +8,13 @@
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
+#include "base/tlsstream.hpp"
 #include "base/workqueue.hpp"
 #include <fstream>
+#include <memory>
+#include <utility>
+#include <boost/asio/buffered_stream.hpp>
+#include <boost/asio/ip/tcp.hpp>
 
 namespace icinga
 {
@@ -36,6 +41,9 @@ protected:
 	void Pause() override;
 
 private:
+	typedef boost::asio::buffered_stream<boost::asio::ip::tcp::socket> AsioTcpStream;
+	typedef std::pair<std::shared_ptr<AsioTlsStream>, std::shared_ptr<AsioTcpStream>> OptionalTlsStream;
+
 	WorkQueue m_WorkQueue{10000000, 1};
 	Timer::Ptr m_FlushTimer;
 	std::vector<String> m_DataBuffer;
@@ -51,7 +59,7 @@ private:
 	static String EscapeKeyOrTagValue(const String& str);
 	static String EscapeValue(const Value& value);
 
-	Stream::Ptr Connect();
+	OptionalTlsStream Connect();
 
 	void AssertOnWorkQueue();
 
