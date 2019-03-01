@@ -26,6 +26,7 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/checkcommand.hpp"
+#include "base/defer.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
@@ -431,6 +432,8 @@ void InfluxdbWriter::Flush()
 
 	if (!stream)
 		return;
+
+	Defer close ([&stream]() { stream->Close(); });
 
 	Url::Ptr url = new Url();
 	url->SetScheme(GetSslEnable() ? "https" : "http");
