@@ -30,7 +30,11 @@ public:
 	inline
 	~Defer()
 	{
-		m_Func();
+		try {
+			m_Func();
+		} catch (...) {
+			// https://stackoverflow.com/questions/130117/throwing-exceptions-out-of-a-destructor
+		}
 	}
 
 private:
