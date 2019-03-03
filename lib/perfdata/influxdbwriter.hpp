@@ -49,6 +49,9 @@ private:
 	void FlushTimeoutWQ();
 	void Flush();
 
+public:
+	static String IXBuildMetric(const String& str);
+private:
 	static String EscapeKeyOrTagValue(const String& str);
 	static String EscapeValue(const Value& value);
 

@@ -25,6 +25,7 @@ set(base_test_SOURCES
   base-value.cpp
   config-ops.cpp
   icinga-checkresult.cpp
+  icinga-influxdbwriter.cpp
   icinga-legacytimeperiod.cpp
   icinga-macros.cpp
   icinga-notification.cpp
@@ -34,6 +35,7 @@ set(base_test_SOURCES
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>
   $<TARGET_OBJECTS:icinga>
+  $<TARGET_OBJECTS:perfdata>
 )
 
 if(ICINGA2_UNITY_BUILD)
@@ -124,6 +126,7 @@ add_boost_test(base
     icinga_checkresult/service_3attempts
     icinga_checkresult/host_flapping_notification
     icinga_checkresult/service_flapping_notification
+    icinga_influxdbwriter/json_label
     icinga_notification/state_filter
     icinga_notification/type_filter
     icinga_macros/simple
@@ -138,6 +141,7 @@ add_boost_test(base
     icinga_perfdata/ignore_invalid_warn_crit_min_max
     icinga_perfdata/invalid
     icinga_perfdata/multi
+    icinga_perfdata/json_label
     remote_url/id_and_path
     remote_url/parameters
     remote_url/get_and_set

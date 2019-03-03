@@ -123,4 +123,18 @@ BOOST_AUTO_TEST_CASE(multi)
 	BOOST_CHECK(pd->Get(1) == "test::b=4");
 }
 
+BOOST_AUTO_TEST_CASE(json_label)
+{
+	PerfdataValue::Ptr pv = PerfdataValue::Parse("{\"metric\":\"test-metric\",\"label\":\"test-label\"}=123456B;;;;");
+	BOOST_CHECK(pv);
+	BOOST_CHECK(pv->GetValue() == 123456);
+	BOOST_CHECK(!pv->GetCounter());
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	BOOST_CHECK(pv->Format() == "{\"metric\":\"test-metric\",\"label\":\"test-label\"}=123456B");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

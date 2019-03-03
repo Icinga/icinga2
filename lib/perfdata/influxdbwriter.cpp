@@ -356,6 +356,26 @@ String InfluxdbWriter::EscapeKeyOrTagValue(const String& str)
 	return result;
 }
 
+String InfluxdbWriter::IXBuildMetric(const String& str)
+{
+	String result;
+
+	if (!str.IsEmpty() && str.SubStr(0,1) == "{") {
+		try {
+			Dictionary::Ptr jsonLabel = JsonDecode(str);
+			for (const auto pair : jsonLabel)
+				result += "," + EscapeKeyOrTagValue(pair.first) + "=" + EscapeKeyOrTagValue(pair.second);
+		} catch (...) {
+			Log(LogWarning, "InfluxdbWriter")
+					<< "Unable to parse JSON metric label:\n" << str;
+		}
+	}
+
+	if (result.IsEmpty())
+		result = ",metric=" + EscapeKeyOrTagValue(str);
+	return result;
+}
+
 String InfluxdbWriter::EscapeValue(const Value& value)
 {
 	if (value.IsObjectType<InfluxdbInteger>()) {
@@ -392,7 +412,7 @@ void InfluxdbWriter::SendMetric(const Checkable::Ptr& checkable, const Dictionar
 
 	// Label may be empty in the case of metadata
 	if (!label.IsEmpty())
-		msgbuf << ",metric=" << EscapeKeyOrTagValue(label);
+		msgbuf << IXBuildMetric(label);
 
 	msgbuf << " ";
 
