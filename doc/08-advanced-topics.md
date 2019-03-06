@@ -437,12 +437,12 @@ Icinga 2 supports optional detection of hosts and services that are "flapping".
 
 Flapping occurs when a service or host changes state too frequently, which would result in a storm of problem and
 recovery notifications. With flapping detection enabled a flapping notification will be sent while other notifications are
-suppresed until it calms down after receiving the same status from checks a few times. Flapping detection can help detect
+suppressed until it calms down after receiving the same status from checks a few times. Flapping detection can help detect
 configuration problems (wrong thresholds), troublesome services or network problems.
 
 Flapping detection can be enabled or disabled using the `enable_flapping` attribute.
 The `flapping_threshold_high` and `flapping_threshold_low` attributes allows to specify the thresholds that control
-when a [host](09-object-types.md#objecttype-host) or [service](objecttype-service) is considered to be flapping.
+when a [host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) is considered to be flapping.
 
 The default thresholds are 30% for high and 25% for low. If the computed flapping value exceeds the high threshold a
 host or service is considered flapping until it drops below the low flapping threshold.
