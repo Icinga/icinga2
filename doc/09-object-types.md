@@ -57,7 +57,7 @@ Configuration Attributes:
   ca\_path                              | String                | **Deprecated.** Path to the CA certificate file.
   ticket\_salt                          | String                | **Optional.** Private key for [CSR auto-signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing). **Required** for a signing master instance.
   crl\_path                             | String                | **Optional.** Path to the CRL file.
-  bind\_host                            | String                | **Optional.** The IP address the api listener should be bound to. Defaults to `0.0.0.0`.
+  bind\_host                            | String                | **Optional.** The IP address the api listener should be bound to. If not specified, the ApiListener is bound to `::` and listens for both IPv4 and IPv6 connections.
   bind\_port                            | Number                | **Optional.** The port the api listener should be bound to. Defaults to `5665`.
   accept\_config                        | Boolean               | **Optional.** Accept zone configuration. Defaults to `false`.
   accept\_commands                      | Boolean               | **Optional.** Accept remote commands. Defaults to `false`.
