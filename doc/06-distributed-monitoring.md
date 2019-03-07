@@ -52,19 +52,21 @@ Zones depend on a parent-child relationship in order to trust each other.
 
 Have a look at this example for the `satellite` zones which have the `master` zone as a parent zone:
 
-    object Zone "master" {
-       //...
-    }
+```
+object Zone "master" {
+   //...
+}
 
-    object Zone "satellite region 1" {
-      parent = "master"
-      //...
-    }
+object Zone "satellite region 1" {
+  parent = "master"
+  //...
+}
 
-    object Zone "satellite region 2" {
-      parent = "master"
-      //...
-    }
+object Zone "satellite region 2" {
+  parent = "master"
+  //...
+}
+```
 
 There are certain limitations for child zones, e.g. their members are not allowed
 to send configuration commands to the parent zone members. Vice versa, the
@@ -83,22 +85,24 @@ Nodes which are a member of a zone are so-called [Endpoint](09-object-types.md#o
 
 Here is an example configuration for two endpoints in different zones:
 
-    object Endpoint "icinga2-master1.localdomain" {
-      host = "192.168.56.101"
-    }
+```
+object Endpoint "icinga2-master1.localdomain" {
+  host = "192.168.56.101"
+}
 
-    object Endpoint "icinga2-satellite1.localdomain" {
-      host = "192.168.56.105"
-    }
+object Endpoint "icinga2-satellite1.localdomain" {
+  host = "192.168.56.105"
+}
 
-    object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain" ]
-    }
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain" ]
+}
 
-    object Zone "satellite" {
-      endpoints = [ "icinga2-satellite1.localdomain" ]
-      parent = "master"
-    }
+object Zone "satellite" {
+  endpoints = [ "icinga2-satellite1.localdomain" ]
+  parent = "master"
+}
+```
 
 All endpoints in the same zone work as high-availability setup. For
 example, if you have two nodes in the `master` zone, they will load-balance the check execution.
@@ -135,7 +139,9 @@ and `accept_config` can be configured here.
 
 In order to use the `api` feature you need to enable it and restart Icinga 2.
 
-    icinga2 feature enable api
+```
+icinga2 feature enable api
+```
 
 ## Conventions <a id="distributed-monitoring-conventions"></a>
 
@@ -359,24 +365,28 @@ Required information:
 
 The following example shows how to generate a ticket on the master node `icinga2-master1.localdomain` for the client `icinga2-client1.localdomain`:
 
-    [root@icinga2-master1.localdomain /]# icinga2 pki ticket --cn icinga2-client1.localdomain
+```
+[root@icinga2-master1.localdomain /]# icinga2 pki ticket --cn icinga2-client1.localdomain
+```
 
 Querying the [Icinga 2 API](12-icinga2-api.md#icinga2-api) on the master requires an [ApiUser](12-icinga2-api.md#icinga2-api-authentication)
 object with at least the `actions/generate-ticket` permission.
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/conf.d/api-users.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/conf.d/api-users.conf
 
-    object ApiUser "client-pki-ticket" {
-      password = "bea11beb7b810ea9ce6ea" //change this
-      permissions = [ "actions/generate-ticket" ]
-    }
+object ApiUser "client-pki-ticket" {
+  password = "bea11beb7b810ea9ce6ea" //change this
+  permissions = [ "actions/generate-ticket" ]
+}
 
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
 
 Retrieve the ticket on the master node `icinga2-master1.localdomain` with `curl`, for example:
 
-     [root@icinga2-master1.localdomain /]# curl -k -s -u client-pki-ticket:bea11beb7b810ea9ce6ea -H 'Accept: application/json' \
-     -X POST 'https://localhost:5665/v1/actions/generate-ticket' -d '{ "cn": "icinga2-client1.localdomain" }'
+ [root@icinga2-master1.localdomain /]# curl -k -s -u client-pki-ticket:bea11beb7b810ea9ce6ea -H 'Accept: application/json' \
+ -X POST 'https://localhost:5665/v1/actions/generate-ticket' -d '{ "cn": "icinga2-client1.localdomain" }'
+```
 
 Store that ticket number for the satellite/client setup below.
 
@@ -448,8 +458,10 @@ The next step is to run the `node wizard` CLI command.
 
 In this example we're generating a ticket on the master node `icinga2-master1.localdomain` for the client `icinga2-client1.localdomain`:
 
-    [root@icinga2-master1.localdomain /]# icinga2 pki ticket --cn icinga2-client1.localdomain
-    4f75d2ecd253575fe9180938ebff7cbca262f96e
+```
+[root@icinga2-master1.localdomain /]# icinga2 pki ticket --cn icinga2-client1.localdomain
+4f75d2ecd253575fe9180938ebff7cbca262f96e
+```
 
 Note: You don't need this step if you have chosen to use [On-Demand CSR Signing](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing).
 
@@ -923,15 +935,17 @@ Include the endpoint and zone configuration on **both** nodes in the file `/etc/
 
 The endpoint configuration could look like this, for example:
 
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Endpoint "icinga2-master1.localdomain" {
-      host = "192.168.56.101"
-    }
+object Endpoint "icinga2-master1.localdomain" {
+  host = "192.168.56.101"
+}
 
-    object Endpoint "icinga2-client1.localdomain" {
-      host = "192.168.56.111"
-    }
+object Endpoint "icinga2-client1.localdomain" {
+  host = "192.168.56.111"
+}
+```
 
 Next, you need to define two zones. There is no naming convention, best practice is to either use `master`, `satellite`/`client-fqdn` or to choose region names for example `Europe`, `USA` and `Asia`, though.
 
@@ -940,17 +954,19 @@ is to use the client's FQDN for all object names.
 
 The `master` zone is a parent of the `icinga2-client1.localdomain` zone:
 
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain" ] //array with endpoint names
-    }
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain" ] //array with endpoint names
+}
 
-    object Zone "icinga2-client1.localdomain" {
-      endpoints = [ "icinga2-client1.localdomain" ]
+object Zone "icinga2-client1.localdomain" {
+  endpoints = [ "icinga2-client1.localdomain" ]
 
-      parent = "master" //establish zone hierarchy
-    }
+  parent = "master" //establish zone hierarchy
+}
+  ```
 
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
@@ -974,11 +990,13 @@ on both nodes.
 
 Example on CentOS 7:
 
-    [root@icinga2-client1.localdomain /]# icinga2 daemon -C
-    [root@icinga2-client1.localdomain /]# systemctl restart icinga2
+```
+[root@icinga2-client1.localdomain /]# icinga2 daemon -C
+[root@icinga2-client1.localdomain /]# systemctl restart icinga2
 
-    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+[root@icinga2-master1.localdomain /]# icinga2 daemon -C
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
 
 Once the clients have successfully connected, you are ready for the next step: **execute
 a remote check on the client using the command endpoint**.
@@ -986,7 +1004,9 @@ a remote check on the client using the command endpoint**.
 Include the host and service object configuration in the `master` zone
 -- this will help adding a secondary master for high-availability later.
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
+```
+[root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
+```
 
 Add the host and service objects you want to monitor. There is
 no limitation for files and directories -- best practice is to
@@ -995,46 +1015,55 @@ sort things by type.
 By convention a master/satellite/client host object should use the same name as the endpoint object.
 You can also add multiple hosts which execute checks against remote services/clients.
 
-    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
+```
+[root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
 
-    object Host "icinga2-client1.localdomain" {
-      check_command = "hostalive" //check is executed on the master
-      address = "192.168.56.111"
+object Host "icinga2-client1.localdomain" {
+  check_command = "hostalive" //check is executed on the master
+  address = "192.168.56.111"
 
-      vars.client_endpoint = name //follows the convention that host name == endpoint name
-    }
+  vars.client_endpoint = name //follows the convention that host name == endpoint name
+}
+```
 
 Given that you are monitoring a Linux client, we'll add a remote [disk](10-icinga-template-library.md#plugin-check-command-disk)
 check.
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
+```
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
 
-    apply Service "disk" {
-      check_command = "disk"
+apply Service "disk" {
+  check_command = "disk"
 
-      //specify where the check is executed
-      command_endpoint = host.vars.client_endpoint
+  //specify where the check is executed
+  command_endpoint = host.vars.client_endpoint
 
-      assign where host.vars.client_endpoint
-    }
+  assign where host.vars.client_endpoint
+}
+```
 
 If you have your own custom `CheckCommand` definition, add it to the global zone:
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/global-templates
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/commands.conf
+```
+[root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/global-templates
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/commands.conf
 
-    object CheckCommand "my-cmd" {
-      //...
-    }
+object CheckCommand "my-cmd" {
+  //...
+}
+```
 
 Save the changes and validate the configuration on the master node:
 
-    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
-
+```
+[root@icinga2-master1.localdomain /]# icinga2 daemon -C
+```
 Restart the Icinga 2 daemon (example for CentOS 7):
 
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
 
 The following steps will happen:
 
@@ -1084,15 +1113,17 @@ Include the endpoint and zone configuration on **both** nodes in the file `/etc/
 
 The endpoint configuration could look like this:
 
-    [root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Endpoint "icinga2-master1.localdomain" {
-      host = "192.168.56.101"
-    }
+object Endpoint "icinga2-master1.localdomain" {
+  host = "192.168.56.101"
+}
 
-    object Endpoint "icinga2-client2.localdomain" {
-      host = "192.168.56.112"
-    }
+object Endpoint "icinga2-client2.localdomain" {
+  host = "192.168.56.112"
+}
+```
 
 Next, you need to define two zones. There is no naming convention, best practice is to either use `master`, `satellite`/`client-fqdn` or to choose region names for example `Europe`, `USA` and `Asia`, though.
 
@@ -1101,40 +1132,45 @@ is to use the client's FQDN for all object names.
 
 The `master` zone is a parent of the `icinga2-client2.localdomain` zone:
 
-    [root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain" ] //array with endpoint names
-    }
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain" ] //array with endpoint names
+}
 
-    object Zone "icinga2-client2.localdomain" {
-      endpoints = [ "icinga2-client2.localdomain" ]
+object Zone "icinga2-client2.localdomain" {
+  endpoints = [ "icinga2-client2.localdomain" ]
 
-      parent = "master" //establish zone hierarchy
-    }
+  parent = "master" //establish zone hierarchy
+}
+```
 
 Edit the `api` feature on the client `icinga2-client2.localdomain` in
 the `/etc/icinga2/features-enabled/api.conf` file and set
 `accept_config` to `true`.
 
-    [root@icinga2-client2.localdomain /]# vim /etc/icinga2/features-enabled/api.conf
+```
+[root@icinga2-client2.localdomain /]# vim /etc/icinga2/features-enabled/api.conf
 
-    object ApiListener "api" {
-       //...
-       accept_config = true
-    }
+object ApiListener "api" {
+   //...
+   accept_config = true
+}
+```
 
 Now it is time to validate the configuration and to restart the Icinga 2 daemon
 on both nodes.
 
 Example on CentOS 7:
 
-    [root@icinga2-client2.localdomain /]# icinga2 daemon -C
-    [root@icinga2-client2.localdomain /]# systemctl restart icinga2
+```
+[root@icinga2-client2.localdomain /]# icinga2 daemon -C
+[root@icinga2-client2.localdomain /]# systemctl restart icinga2
 
-    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
-
+[root@icinga2-master1.localdomain /]# icinga2 daemon -C
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
 
 **Tip**: Best practice is to use a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
 for common configuration items (check commands, templates, groups, etc.).
@@ -1146,7 +1182,9 @@ Navigate to `/etc/icinga2/zones.d` on your master node
 `icinga2-master1.localdomain` and create a new directory with the same
 name as your satellite/client zone name:
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/icinga2-client2.localdomain
+```
+[root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/icinga2-client2.localdomain
+```
 
 Add the host and service objects you want to monitor. There is
 no limitation for files and directories -- best practice is to
@@ -1155,33 +1193,41 @@ sort things by type.
 By convention a master/satellite/client host object should use the same name as the endpoint object.
 You can also add multiple hosts which execute checks against remote services/clients.
 
-    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/icinga2-client2.localdomain
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/icinga2-client2.localdomain]# vim hosts.conf
+```
+[root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/icinga2-client2.localdomain
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/icinga2-client2.localdomain]# vim hosts.conf
 
-    object Host "icinga2-client2.localdomain" {
-      check_command = "hostalive"
-      address = "192.168.56.112"
-      zone = "master" //optional trick: sync the required host object to the client, but enforce the "master" zone to execute the check
-    }
+object Host "icinga2-client2.localdomain" {
+  check_command = "hostalive"
+  address = "192.168.56.112"
+  zone = "master" //optional trick: sync the required host object to the client, but enforce the "master" zone to execute the check
+}
+```
 
 Given that you are monitoring a Linux client we'll just add a local [disk](10-icinga-template-library.md#plugin-check-command-disk)
 check.
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/icinga2-client2.localdomain]# vim services.conf
+```
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/icinga2-client2.localdomain]# vim services.conf
 
-    object Service "disk" {
-      host_name = "icinga2-client2.localdomain"
+object Service "disk" {
+  host_name = "icinga2-client2.localdomain"
 
-      check_command = "disk"
-    }
+  check_command = "disk"
+}
+```
 
 Save the changes and validate the configuration on the master node:
 
-    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
+```
+[root@icinga2-master1.localdomain /]# icinga2 daemon -C
+```
 
 Restart the Icinga 2 daemon (example for CentOS 7):
 
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
 
 The following steps will happen:
 
@@ -1236,39 +1282,41 @@ Setup requirements:
 
 Edit the `zones.conf` configuration file on the master:
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Endpoint "icinga2-master1.localdomain" {
-    }
+object Endpoint "icinga2-master1.localdomain" {
+}
 
-    object Endpoint "icinga2-client1.localdomain" {
-      host = "192.168.56.111" //the master actively tries to connect to the client
-    }
+object Endpoint "icinga2-client1.localdomain" {
+  host = "192.168.56.111" //the master actively tries to connect to the client
+}
 
-    object Endpoint "icinga2-client2.localdomain" {
-      host = "192.168.56.112" //the master actively tries to connect to the client
-    }
+object Endpoint "icinga2-client2.localdomain" {
+  host = "192.168.56.112" //the master actively tries to connect to the client
+}
 
-    object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain" ]
-    }
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain" ]
+}
 
-    object Zone "icinga2-client1.localdomain" {
-      endpoints = [ "icinga2-client1.localdomain" ]
+object Zone "icinga2-client1.localdomain" {
+  endpoints = [ "icinga2-client1.localdomain" ]
 
-      parent = "master"
-    }
+  parent = "master"
+}
 
-    object Zone "icinga2-client2.localdomain" {
-      endpoints = [ "icinga2-client2.localdomain" ]
+object Zone "icinga2-client2.localdomain" {
+  endpoints = [ "icinga2-client2.localdomain" ]
 
-      parent = "master"
-    }
+  parent = "master"
+}
 
-    /* sync global commands */
-    object Zone "global-templates" {
-      global = true
-    }
+/* sync global commands */
+object Zone "global-templates" {
+  global = true
+}
+```
 
 The two client nodes do not necessarily need to know about each other. The only important thing
 is that they know about the parent zone and their endpoint members (and optionally the global zone).
@@ -1278,53 +1326,55 @@ the client will actively try to connect to the master node. Since we've specifie
 endpoint's attribute on the master node already, we don't want the clients to connect to the
 master. **Choose one [connection direction](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction).**
 
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Endpoint "icinga2-master1.localdomain" {
-      //do not actively connect to the master by leaving out the 'host' attribute
-    }
+object Endpoint "icinga2-master1.localdomain" {
+  //do not actively connect to the master by leaving out the 'host' attribute
+}
 
-    object Endpoint "icinga2-client1.localdomain" {
-    }
+object Endpoint "icinga2-client1.localdomain" {
+}
 
-    object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain" ]
-    }
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain" ]
+}
 
-    object Zone "icinga2-client1.localdomain" {
-      endpoints = [ "icinga2-client1.localdomain" ]
+object Zone "icinga2-client1.localdomain" {
+  endpoints = [ "icinga2-client1.localdomain" ]
 
-      parent = "master"
-    }
+  parent = "master"
+}
 
-    /* sync global commands */
-    object Zone "global-templates" {
-      global = true
-    }
+/* sync global commands */
+object Zone "global-templates" {
+  global = true
+}
 
-    [root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
+[root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Endpoint "icinga2-master1.localdomain" {
-      //do not actively connect to the master by leaving out the 'host' attribute
-    }
+object Endpoint "icinga2-master1.localdomain" {
+  //do not actively connect to the master by leaving out the 'host' attribute
+}
 
-    object Endpoint "icinga2-client2.localdomain" {
-    }
+object Endpoint "icinga2-client2.localdomain" {
+}
 
-    object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain" ]
-    }
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain" ]
+}
 
-    object Zone "icinga2-client2.localdomain" {
-      endpoints = [ "icinga2-client2.localdomain" ]
+object Zone "icinga2-client2.localdomain" {
+  endpoints = [ "icinga2-client2.localdomain" ]
 
-      parent = "master"
-    }
+  parent = "master"
+}
 
-    /* sync global commands */
-    object Zone "global-templates" {
-      global = true
-    }
+/* sync global commands */
+object Zone "global-templates" {
+  global = true
+}
+```
 
 Now it is time to define the two client hosts and apply service checks using
 the command endpoint execution method on them. Note: You can also use the
@@ -1332,48 +1382,56 @@ config sync mode here.
 
 Create a new configuration directory on the master node:
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
+```
+[root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
+```
 
 Add the two client nodes as host objects:
 
-    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
+```
+[root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
 
-    object Host "icinga2-client1.localdomain" {
-      check_command = "hostalive"
-      address = "192.168.56.111"
-      vars.client_endpoint = name //follows the convention that host name == endpoint name
-    }
+object Host "icinga2-client1.localdomain" {
+  check_command = "hostalive"
+  address = "192.168.56.111"
+  vars.client_endpoint = name //follows the convention that host name == endpoint name
+}
 
-    object Host "icinga2-client2.localdomain" {
-      check_command = "hostalive"
-      address = "192.168.56.112"
-      vars.client_endpoint = name //follows the convention that host name == endpoint name
-    }
+object Host "icinga2-client2.localdomain" {
+  check_command = "hostalive"
+  address = "192.168.56.112"
+  vars.client_endpoint = name //follows the convention that host name == endpoint name
+}
+```
 
 Add services using command endpoint checks:
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
+```
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
 
-    apply Service "ping4" {
-      check_command = "ping4"
-      //check is executed on the master node
-      assign where host.address
-    }
+apply Service "ping4" {
+  check_command = "ping4"
+  //check is executed on the master node
+  assign where host.address
+}
 
-    apply Service "disk" {
-      check_command = "disk"
+apply Service "disk" {
+  check_command = "disk"
 
-      //specify where the check is executed
-      command_endpoint = host.vars.client_endpoint
+  //specify where the check is executed
+  command_endpoint = host.vars.client_endpoint
 
-      assign where host.vars.client_endpoint
-    }
+  assign where host.vars.client_endpoint
+}
+```
 
 Validate the configuration and restart Icinga 2 on the master node `icinga2-master1.localdomain`.
 
-    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
+[root@icinga2-master1.localdomain /]# icinga2 daemon -C
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
 
 Open Icinga Web 2 and check the two newly created client hosts with two new services
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
@@ -1421,44 +1479,46 @@ backend, IDO database, used transports, etc.).
 The zone hierarchy could look like this. It involves putting the two master nodes
 `icinga2-master1.localdomain` and `icinga2-master2.localdomain` into the `master` zone.
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Endpoint "icinga2-master1.localdomain" {
-      host = "192.168.56.101"
-    }
+object Endpoint "icinga2-master1.localdomain" {
+  host = "192.168.56.101"
+}
 
-    object Endpoint "icinga2-master2.localdomain" {
-      host = "192.168.56.102"
-    }
+object Endpoint "icinga2-master2.localdomain" {
+  host = "192.168.56.102"
+}
 
-    object Endpoint "icinga2-client1.localdomain" {
-      host = "192.168.56.111" //the master actively tries to connect to the client
-    }
+object Endpoint "icinga2-client1.localdomain" {
+  host = "192.168.56.111" //the master actively tries to connect to the client
+}
 
-    object Endpoint "icinga2-client2.localdomain" {
-      host = "192.168.56.112" //the master actively tries to connect to the client
-    }
+object Endpoint "icinga2-client2.localdomain" {
+  host = "192.168.56.112" //the master actively tries to connect to the client
+}
 
-    object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
-    }
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
+}
 
-    object Zone "icinga2-client1.localdomain" {
-      endpoints = [ "icinga2-client1.localdomain" ]
+object Zone "icinga2-client1.localdomain" {
+  endpoints = [ "icinga2-client1.localdomain" ]
 
-      parent = "master"
-    }
+  parent = "master"
+}
 
-    object Zone "icinga2-client2.localdomain" {
-      endpoints = [ "icinga2-client2.localdomain" ]
+object Zone "icinga2-client2.localdomain" {
+  endpoints = [ "icinga2-client2.localdomain" ]
 
-      parent = "master"
-    }
+  parent = "master"
+}
 
-    /* sync global commands */
-    object Zone "global-templates" {
-      global = true
-    }
+/* sync global commands */
+object Zone "global-templates" {
+  global = true
+}
+```
 
 The two client nodes do not necessarily need to know about each other. The only important thing
 is that they know about the parent zone and their endpoint members (and optionally about the global zone).
@@ -1468,61 +1528,63 @@ endpoint objects, the client will actively try to connect to the master node. Si
 endpoint's attribute on the master node already, we don't want the clients to connect to the
 master nodes. **Choose one [connection direction](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction).**
 
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Endpoint "icinga2-master1.localdomain" {
-      //do not actively connect to the master by leaving out the 'host' attribute
-    }
+object Endpoint "icinga2-master1.localdomain" {
+  //do not actively connect to the master by leaving out the 'host' attribute
+}
 
-    object Endpoint "icinga2-master2.localdomain" {
-      //do not actively connect to the master by leaving out the 'host' attribute
-    }
+object Endpoint "icinga2-master2.localdomain" {
+  //do not actively connect to the master by leaving out the 'host' attribute
+}
 
-    object Endpoint "icinga2-client1.localdomain" {
-    }
+object Endpoint "icinga2-client1.localdomain" {
+}
 
-    object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
-    }
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
+}
 
-    object Zone "icinga2-client1.localdomain" {
-      endpoints = [ "icinga2-client1.localdomain" ]
+object Zone "icinga2-client1.localdomain" {
+  endpoints = [ "icinga2-client1.localdomain" ]
 
-      parent = "master"
-    }
+  parent = "master"
+}
 
-    /* sync global commands */
-    object Zone "global-templates" {
-      global = true
-    }
+/* sync global commands */
+object Zone "global-templates" {
+  global = true
+}
 
-    [root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
+[root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Endpoint "icinga2-master1.localdomain" {
-      //do not actively connect to the master by leaving out the 'host' attribute
-    }
+object Endpoint "icinga2-master1.localdomain" {
+  //do not actively connect to the master by leaving out the 'host' attribute
+}
 
-    object Endpoint "icinga2-master2.localdomain" {
-      //do not actively connect to the master by leaving out the 'host' attribute
-    }
+object Endpoint "icinga2-master2.localdomain" {
+  //do not actively connect to the master by leaving out the 'host' attribute
+}
 
-    object Endpoint "icinga2-client2.localdomain" {
-    }
+object Endpoint "icinga2-client2.localdomain" {
+}
 
-    object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
-    }
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
+}
 
-    object Zone "icinga2-client2.localdomain" {
-      endpoints = [ "icinga2-client2.localdomain" ]
+object Zone "icinga2-client2.localdomain" {
+  endpoints = [ "icinga2-client2.localdomain" ]
 
-      parent = "master"
-    }
+  parent = "master"
+}
 
-    /* sync global commands */
-    object Zone "global-templates" {
-      global = true
-    }
+/* sync global commands */
+object Zone "global-templates" {
+  global = true
+}
+```
 
 Now it is time to define the two client hosts and apply service checks using
 the command endpoint execution method. Note: You can also use the
@@ -1532,48 +1594,56 @@ Create a new configuration directory on the master node `icinga2-master1.localdo
 **Note**: The secondary master node `icinga2-master2.localdomain` receives the
 configuration using the [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync).
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
+```
+[root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
+```
 
 Add the two client nodes as host objects:
 
-    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
+```
+[root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
 
-    object Host "icinga2-client1.localdomain" {
-      check_command = "hostalive"
-      address = "192.168.56.111"
-      vars.client_endpoint = name //follows the convention that host name == endpoint name
-    }
+object Host "icinga2-client1.localdomain" {
+  check_command = "hostalive"
+  address = "192.168.56.111"
+  vars.client_endpoint = name //follows the convention that host name == endpoint name
+}
 
-    object Host "icinga2-client2.localdomain" {
-      check_command = "hostalive"
-      address = "192.168.56.112"
-      vars.client_endpoint = name //follows the convention that host name == endpoint name
-    }
+object Host "icinga2-client2.localdomain" {
+  check_command = "hostalive"
+  address = "192.168.56.112"
+  vars.client_endpoint = name //follows the convention that host name == endpoint name
+}
+```
 
 Add services using command endpoint checks:
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
+```
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
 
-    apply Service "ping4" {
-      check_command = "ping4"
-      //check is executed on the master node
-      assign where host.address
-    }
+apply Service "ping4" {
+  check_command = "ping4"
+  //check is executed on the master node
+  assign where host.address
+}
 
-    apply Service "disk" {
-      check_command = "disk"
+apply Service "disk" {
+  check_command = "disk"
 
-      //specify where the check is executed
-      command_endpoint = host.vars.client_endpoint
+  //specify where the check is executed
+  command_endpoint = host.vars.client_endpoint
 
-      assign where host.vars.client_endpoint
-    }
+  assign where host.vars.client_endpoint
+}
+```
 
 Validate the configuration and restart Icinga 2 on the master node `icinga2-master1.localdomain`.
 
-    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
+[root@icinga2-master1.localdomain /]# icinga2 daemon -C
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
 
 Open Icinga Web 2 and check the two newly created client hosts with two new services
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
@@ -1814,32 +1884,34 @@ we must configure the client endpoint and zone objects.
 In order to minimize the effort, we'll sync the client zone and endpoint configuration to the
 satellites where the connection information is needed as well.
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/{master,satellite,global-templates}
-    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/satellite
+```
+[root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/{master,satellite,global-templates}
+[root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/satellite
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-client1.localdomain.conf
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-client1.localdomain.conf
 
-    object Endpoint "icinga2-client1.localdomain" {
-      host = "192.168.56.111" //the satellite actively tries to connect to the client
-    }
+object Endpoint "icinga2-client1.localdomain" {
+  host = "192.168.56.111" //the satellite actively tries to connect to the client
+}
 
-    object Zone "icinga2-client1.localdomain" {
-      endpoints = [ "icinga2-client1.localdomain" ]
+object Zone "icinga2-client1.localdomain" {
+  endpoints = [ "icinga2-client1.localdomain" ]
 
-      parent = "satellite"
-    }
+  parent = "satellite"
+}
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-client2.localdomain.conf
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-client2.localdomain.conf
 
-    object Endpoint "icinga2-client2.localdomain" {
-      host = "192.168.56.112" //the satellite actively tries to connect to the client
-    }
+object Endpoint "icinga2-client2.localdomain" {
+  host = "192.168.56.112" //the satellite actively tries to connect to the client
+}
 
-    object Zone "icinga2-client2.localdomain" {
-      endpoints = [ "icinga2-client2.localdomain" ]
+object Zone "icinga2-client2.localdomain" {
+  endpoints = [ "icinga2-client2.localdomain" ]
 
-      parent = "satellite"
-    }
+  parent = "satellite"
+}
+```
 
 The two client nodes do not necessarily need to know about each other, either. The only important thing
 is that they know about the parent zone (the satellite) and their endpoint members (and optionally the global zone).
@@ -1851,73 +1923,77 @@ satellite nodes. **Choose one [connection direction](06-distributed-monitoring.m
 
 Example for `icinga2-client1.localdomain`:
 
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Endpoint "icinga2-satellite1.localdomain" {
-      //do not actively connect to the satellite by leaving out the 'host' attribute
-    }
+object Endpoint "icinga2-satellite1.localdomain" {
+  //do not actively connect to the satellite by leaving out the 'host' attribute
+}
 
-    object Endpoint "icinga2-satellite2.localdomain" {
-      //do not actively connect to the satellite by leaving out the 'host' attribute
-    }
+object Endpoint "icinga2-satellite2.localdomain" {
+  //do not actively connect to the satellite by leaving out the 'host' attribute
+}
 
-    object Endpoint "icinga2-client1.localdomain" {
-      //that's us
-    }
+object Endpoint "icinga2-client1.localdomain" {
+  //that's us
+}
 
-    object Zone "satellite" {
-      endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite2.localdomain" ]
-    }
+object Zone "satellite" {
+  endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite2.localdomain" ]
+}
 
-    object Zone "icinga2-client1.localdomain" {
-      endpoints = [ "icinga2-client1.localdomain" ]
+object Zone "icinga2-client1.localdomain" {
+  endpoints = [ "icinga2-client1.localdomain" ]
 
-      parent = "satellite"
-    }
+  parent = "satellite"
+}
 
-    /* sync global commands */
-    object Zone "global-templates" {
-      global = true
-    }
+/* sync global commands */
+object Zone "global-templates" {
+  global = true
+}
 
-    object Zone "director-global" {
-      global = true
-    }
+object Zone "director-global" {
+  global = true
+}
+```
 
 Example for `icinga2-client2.localdomain`:
 
-    [root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Endpoint "icinga2-satellite1.localdomain" {
-      //do not actively connect to the satellite by leaving out the 'host' attribute
-    }
+object Endpoint "icinga2-satellite1.localdomain" {
+  //do not actively connect to the satellite by leaving out the 'host' attribute
+}
 
-    object Endpoint "icinga2-satellite2.localdomain" {
-      //do not actively connect to the satellite by leaving out the 'host' attribute
-    }
+object Endpoint "icinga2-satellite2.localdomain" {
+  //do not actively connect to the satellite by leaving out the 'host' attribute
+}
 
-    object Endpoint "icinga2-client2.localdomain" {
-      //that's us
-    }
+object Endpoint "icinga2-client2.localdomain" {
+  //that's us
+}
 
-    object Zone "satellite" {
-      endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite2.localdomain" ]
-    }
+object Zone "satellite" {
+  endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite2.localdomain" ]
+}
 
-    object Zone "icinga2-client2.localdomain" {
-      endpoints = [ "icinga2-client2.localdomain" ]
+object Zone "icinga2-client2.localdomain" {
+  endpoints = [ "icinga2-client2.localdomain" ]
 
-      parent = "satellite"
-    }
+  parent = "satellite"
+}
 
-    /* sync global commands */
-    object Zone "global-templates" {
-      global = true
-    }
+/* sync global commands */
+object Zone "global-templates" {
+  global = true
+}
 
-    object Zone "director-global" {
-      global = true
-    }
+object Zone "director-global" {
+  global = true
+}
+```
 
 Now it is time to define the two client hosts on the master, sync them to the satellites
 and apply service checks using the command endpoint execution method to them.
@@ -1926,57 +2002,69 @@ Add the two client nodes as host objects to the `satellite` zone.
 We've already created the directories in `/etc/icinga2/zones.d` including the files for the
 zone and endpoint configuration for the clients.
 
-    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/satellite
+```
+[root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/satellite
+```
 
 Add the host object configuration for the `icinga2-client1.localdomain` client. You should
 have created the configuration file in the previous steps and it should contain the endpoint
 and zone object configuration already.
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-client1.localdomain.conf
+```
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-client1.localdomain.conf
 
-    object Host "icinga2-client1.localdomain" {
-      check_command = "hostalive"
-      address = "192.168.56.111"
-      vars.client_endpoint = name //follows the convention that host name == endpoint name
-    }
+object Host "icinga2-client1.localdomain" {
+  check_command = "hostalive"
+  address = "192.168.56.111"
+  vars.client_endpoint = name //follows the convention that host name == endpoint name
+}
+```
 
 Add the host object configuration for the `icinga2-client2.localdomain` client configuration file:
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-client2.localdomain.conf
+```
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-client2.localdomain.conf
 
-    object Host "icinga2-client2.localdomain" {
-      check_command = "hostalive"
-      address = "192.168.56.112"
-      vars.client_endpoint = name //follows the convention that host name == endpoint name
-    }
+object Host "icinga2-client2.localdomain" {
+  check_command = "hostalive"
+  address = "192.168.56.112"
+  vars.client_endpoint = name //follows the convention that host name == endpoint name
+}
+```
 
 Add a service object which is executed on the satellite nodes (e.g. `ping4`). Pin the apply rule to the `satellite` zone only.
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim services.conf
+```
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim services.conf
 
-    apply Service "ping4" {
-      check_command = "ping4"
-      //check is executed on the satellite node
-      assign where host.zone == "satellite" && host.address
-    }
+apply Service "ping4" {
+  check_command = "ping4"
+  //check is executed on the satellite node
+  assign where host.zone == "satellite" && host.address
+}
+```
 
 Add services using command endpoint checks. Pin the apply rules to the `satellite` zone only.
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim services.conf
+```
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim services.conf
 
-    apply Service "disk" {
-      check_command = "disk"
+apply Service "disk" {
+  check_command = "disk"
 
-      //specify where the check is executed
-      command_endpoint = host.vars.client_endpoint
+  //specify where the check is executed
+  command_endpoint = host.vars.client_endpoint
 
-      assign where host.zone == "satellite" && host.vars.client_endpoint
-    }
+  assign where host.zone == "satellite" && host.vars.client_endpoint
+}
+```
 
 Validate the configuration and restart Icinga 2 on the master node `icinga2-master1.localdomain`.
 
-    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
+[root@icinga2-master1.localdomain /]# icinga2 daemon -C
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
 
 Open Icinga Web 2 and check the two newly created client hosts with two new services
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
@@ -2014,26 +2102,32 @@ zone. The configuration validation will terminate with an error.
 The zone object configuration must be deployed on all nodes which should receive
 the global configuration files:
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    object Zone "global-commands" {
-      global = true
-    }
+object Zone "global-commands" {
+  global = true
+}
+```
 
 The default global zones generated by the setup wizards are called `global-templates` and `director-global`.
 
 Similar to the zone configuration sync you'll need to create a new directory in
 `/etc/icinga2/zones.d`:
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/global-commands
+```
+[root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/global-commands
+```
 
 Next, add a new check command, for example:
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-commands/web.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-commands/web.conf
 
-    object CheckCommand "webinject" {
-      //...
-    }
+object CheckCommand "webinject" {
+  //...
+}
+```
 
 Restart the client(s) which should receive the global zone before
 before restarting the parent master/satellite nodes.
@@ -2045,8 +2139,10 @@ into the default global zone `global-templates`.
 
 Example:
 
-    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/conf.d
-    [root@icinga2-master1.localdomain /etc/icinga2/conf.d]# cp {commands,groups,notifications,services,templates,timeperiods,users}.conf /etc/icinga2/zones.d/global-templates
+```
+[root@icinga2-master1.localdomain /]# cd /etc/icinga2/conf.d
+[root@icinga2-master1.localdomain /etc/icinga2/conf.d]# cp {commands,groups,notifications,services,templates,timeperiods,users}.conf /etc/icinga2/zones.d/global-templates
+```
 
 ### Health Checks <a id="distributed-monitoring-health-checks"></a>
 
@@ -2060,69 +2156,76 @@ additional health checks.
 The `cluster` check, for example, will check if all endpoints in the current zone and the directly
 connected zones are working properly:
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-master1.localdomain.conf
+```
+[root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-master1.localdomain.conf
 
-    object Host "icinga2-master1.localdomain" {
-      check_command = "hostalive"
-      address = "192.168.56.101"
-    }
+object Host "icinga2-master1.localdomain" {
+  check_command = "hostalive"
+  address = "192.168.56.101"
+}
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/cluster.conf
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/cluster.conf
 
-    object Service "cluster" {
-      check_command = "cluster"
-      check_interval = 5s
-      retry_interval = 1s
+object Service "cluster" {
+  check_command = "cluster"
+  check_interval = 5s
+  retry_interval = 1s
 
-      host_name = "icinga2-master1.localdomain"
-    }
+  host_name = "icinga2-master1.localdomain"
+}
+```
 
 The `cluster-zone` check will test whether the configured target zone is currently
 connected or not. This example adds a health check for the [ha master with clients scenario](06-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-clients).
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/services.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/services.conf
 
-    apply Service "cluster-health" {
-      check_command = "cluster-zone"
+apply Service "cluster-health" {
+  check_command = "cluster-zone"
 
-      display_name = "cluster-health-" + host.name
+  display_name = "cluster-health-" + host.name
 
-      /* This follows the convention that the client zone name is the FQDN which is the same as the host object name. */
-      vars.cluster_zone = host.name
+  /* This follows the convention that the client zone name is the FQDN which is the same as the host object name. */
+  vars.cluster_zone = host.name
 
-      assign where host.vars.client_endpoint
-    }
+  assign where host.vars.client_endpoint
+}
+```
 
 In case you cannot assign the `cluster_zone` attribute, add specific
 checks to your cluster:
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/cluster.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/cluster.conf
 
-    object Service "cluster-zone-satellite" {
-      check_command = "cluster-zone"
-      check_interval = 5s
-      retry_interval = 1s
-      vars.cluster_zone = "satellite"
+object Service "cluster-zone-satellite" {
+  check_command = "cluster-zone"
+  check_interval = 5s
+  retry_interval = 1s
+  vars.cluster_zone = "satellite"
 
-      host_name = "icinga2-master1.localdomain"
-    }
-
+  host_name = "icinga2-master1.localdomain"
+}
+```
 
 If you are using top down checks with command endpoint configuration, you can
 add a dependency which prevents notifications for all other failing services:
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/dependencies.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/dependencies.conf
 
-    apply Dependency "health-check" to Service {
-      parent_service_name = "child-health"
+apply Dependency "health-check" to Service {
+  parent_service_name = "child-health"
 
-      states = [ OK ]
-      disable_notifications = true
+  states = [ OK ]
+  disable_notifications = true
 
-      assign where host.vars.client_endpoint
-      ignore where service.name == "child-health"
-    }
+  assign where host.vars.client_endpoint
+  ignore where service.name == "child-health"
+}
+```
 
 ### Pin Checks in a Zone <a id="distributed-monitoring-pin-checks-zone"></a>
 
@@ -2130,23 +2233,25 @@ In case you want to pin specific checks to their endpoints in a given zone you'l
 the `command_endpoint` attribute. This is reasonable if you want to
 execute a local disk check in the `master` Zone on a specific endpoint then.
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-master1.localdomain.conf
+```
+[root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-master1.localdomain.conf
 
-    object Host "icinga2-master1.localdomain" {
-      check_command = "hostalive"
-      address = "192.168.56.101"
-    }
+object Host "icinga2-master1.localdomain" {
+  check_command = "hostalive"
+  address = "192.168.56.101"
+}
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/services.conf
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/services.conf
 
-    apply Service "disk" {
-      check_command = "disk"
+apply Service "disk" {
+  check_command = "disk"
 
-      command_endpoint = host.name //requires a host object matching the endpoint object name e.g. icinga2-master1.localdomain
+  command_endpoint = host.name //requires a host object matching the endpoint object name e.g. icinga2-master1.localdomain
 
-      assign where host.zone == "master" && match("icinga2-master*", host.name)
-    }
+  assign where host.zone == "master" && match("icinga2-master*", host.name)
+}
+```
 
 The `host.zone` attribute check inside the expression ensures that
 the service object is only created for host objects inside the `master`
@@ -2160,21 +2265,27 @@ function ensures to only create services for the master nodes.
 By default ICMP requests are disabled in the Windows firewall. You can
 change that by [adding a new rule](https://support.microsoft.com/en-us/kb/947709).
 
-    C:\WINDOWS\system32>netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" protocol=icmpv4:8,any dir=in action=allow
+```
+C:\WINDOWS\system32>netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" protocol=icmpv4:8,any dir=in action=allow
+```
 
 #### Icinga 2 <a id="distributed-monitoring-windows-firewall-icinga2"></a>
 
 If your master/satellite nodes should actively connect to the Windows client
 you'll also need to ensure that port `5665` is enabled.
 
-    C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 5665 (Icinga 2)" dir=in action=allow protocol=TCP localport=5665
+```
+C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 5665 (Icinga 2)" dir=in action=allow protocol=TCP localport=5665
+```
 
 #### NSClient++ API <a id="distributed-monitoring-windows-firewall-nsclient-api"></a>
 
 If the [check_nscp_api](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api)
 plugin is used to query NSClient++, you need to ensure that its port is enabled.
 
-    C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 8443 (NSClient++ API)" dir=in action=allow protocol=TCP localport=8443
+```
+C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 8443 (NSClient++ API)" dir=in action=allow protocol=TCP localport=8443
+```
 
 For security reasons, it is advised to enable the NSClient++ HTTP API for local
 connection from the Icinga 2 client only. Remote connections to the HTTP API
@@ -2187,45 +2298,53 @@ Detailed [documentation](10-icinga-template-library.md#windows-plugins) is avail
 
 Add the following `include` statement on all your nodes (master, satellite, client):
 
-    vim /etc/icinga2/icinga2.conf
+```
+vim /etc/icinga2/icinga2.conf
 
-    include <windows-plugins>
+include <windows-plugins>
+```
 
 Based on the [master with clients](06-distributed-monitoring.md#distributed-monitoring-master-clients)
 scenario we'll now add a local disk check.
 
 First, add the client node as host object:
 
-    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
+```
+[root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
 
-    object Host "icinga2-client2.localdomain" {
-      check_command = "hostalive"
-      address = "192.168.56.112"
-      vars.client_endpoint = name //follows the convention that host name == endpoint name
-      vars.os_type = "windows"
-    }
+object Host "icinga2-client2.localdomain" {
+  check_command = "hostalive"
+  address = "192.168.56.112"
+  vars.client_endpoint = name //follows the convention that host name == endpoint name
+  vars.os_type = "windows"
+}
+```
 
 Next, add the disk check using command endpoint checks (details in the
 [disk-windows](10-icinga-template-library.md#windows-plugins-disk-windows) documentation):
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
+```
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
 
-    apply Service "disk C:" {
-      check_command = "disk-windows"
+apply Service "disk C:" {
+  check_command = "disk-windows"
 
-      vars.disk_win_path = "C:"
+  vars.disk_win_path = "C:"
 
-      //specify where the check is executed
-      command_endpoint = host.vars.client_endpoint
+  //specify where the check is executed
+  command_endpoint = host.vars.client_endpoint
 
-      assign where host.vars.os_type == "windows" && host.vars.client_endpoint
-    }
+  assign where host.vars.os_type == "windows" && host.vars.client_endpoint
+}
+```
 
 Validate the configuration and restart Icinga 2.
 
-    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
+[root@icinga2-master1.localdomain /]# icinga2 daemon -C
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
 
 Open Icinga Web 2 and check your newly added Windows disk check :)
 
@@ -2260,43 +2379,49 @@ scenario we'll now add a local nscp check which queries the NSClient++ API to ch
 Define a host object called `icinga2-client2.localdomain` on the master. Add the `nscp_api_password`
 custom attribute and specify the drives to check.
 
-    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
+```
+[root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
 
-    object Host "icinga2-client1.localdomain" {
-        check_command = "hostalive"
-        address = "192.168.56.111"
-        vars.client_endpoint = name //follows the convention that host name == endpoint name
-        vars.os_type = "Windows"
-        vars.nscp_api_password = "icinga"
-        vars.drives = [ "C:", "D:" ]
-    }
+object Host "icinga2-client1.localdomain" {
+check_command = "hostalive"
+address = "192.168.56.111"
+vars.client_endpoint = name //follows the convention that host name == endpoint name
+vars.os_type = "Windows"
+vars.nscp_api_password = "icinga"
+vars.drives = [ "C:", "D:" ]
+}
+```
 
 The service checks are generated using an [apply for](03-monitoring-basics.md#using-apply-for)
 rule based on `host.vars.drives`:
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
+```
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
 
-    apply Service "nscp-api-" for (drive in host.vars.drives) {
-      import "generic-service"
+apply Service "nscp-api-" for (drive in host.vars.drives) {
+  import "generic-service"
 
-      check_command = "nscp_api"
-      command_endpoint = host.vars.client_endpoint
+  check_command = "nscp_api"
+  command_endpoint = host.vars.client_endpoint
 
-      //display_name = "nscp-drive-" + drive
+  //display_name = "nscp-drive-" + drive
 
-      vars.nscp_api_host = "localhost"
-      vars.nscp_api_query = "check_drivesize"
-      vars.nscp_api_password = host.vars.nscp_api_password
-      vars.nscp_api_arguments = [ "drive=" +  drive ]
+  vars.nscp_api_host = "localhost"
+  vars.nscp_api_query = "check_drivesize"
+  vars.nscp_api_password = host.vars.nscp_api_password
+  vars.nscp_api_arguments = [ "drive=" +  drive ]
 
-      ignore where host.vars.os_type != "Windows"
-    }
+  ignore where host.vars.os_type != "Windows"
+}
+```
 
 Validate the configuration and restart Icinga 2.
 
-    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
+[root@icinga2-master1.localdomain /]# icinga2 daemon -C
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
 
 Two new services ("nscp-drive-D:" and "nscp-drive-C:") will be visible in Icinga Web 2.
 
@@ -2306,44 +2431,48 @@ Note: You can also omit the `command_endpoint` configuration to execute
 the command on the master. This also requires a different value for `nscp_api_host`
 which defaults to `host.address`.
 
-      //command_endpoint = host.vars.client_endpoint
+```
+  //command_endpoint = host.vars.client_endpoint
 
-      //vars.nscp_api_host = "localhost"
+  //vars.nscp_api_host = "localhost"
+```
 
 You can verify the check execution by looking at the `Check Source` attribute
 in Icinga Web 2 or the REST API.
 
 If you want to monitor specific Windows services, you could use the following example:
 
-    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
+```
+[root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
 
-    object Host "icinga2-client1.localdomain" {
-        check_command = "hostalive"
-        address = "192.168.56.111"
-        vars.client_endpoint = name //follows the convention that host name == endpoint name
-        vars.os_type = "Windows"
-        vars.nscp_api_password = "icinga"
-        vars.services = [ "Windows Update", "wscsvc" ]
-    }
+object Host "icinga2-client1.localdomain" {
+check_command = "hostalive"
+address = "192.168.56.111"
+vars.client_endpoint = name //follows the convention that host name == endpoint name
+vars.os_type = "Windows"
+vars.nscp_api_password = "icinga"
+vars.services = [ "Windows Update", "wscsvc" ]
+}
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
 
-    apply Service "nscp-api-" for (svc in host.vars.services) {
-      import "generic-service"
+apply Service "nscp-api-" for (svc in host.vars.services) {
+  import "generic-service"
 
-      check_command = "nscp_api"
-      command_endpoint = host.vars.client_endpoint
+  check_command = "nscp_api"
+  command_endpoint = host.vars.client_endpoint
 
-      //display_name = "nscp-service-" + svc
+  //display_name = "nscp-service-" + svc
 
-      vars.nscp_api_host = "localhost"
-      vars.nscp_api_query = "check_service"
-      vars.nscp_api_password = host.vars.nscp_api_password
-      vars.nscp_api_arguments = [ "service=" + svc ]
+  vars.nscp_api_host = "localhost"
+  vars.nscp_api_query = "check_service"
+  vars.nscp_api_password = host.vars.nscp_api_password
+  vars.nscp_api_arguments = [ "service=" + svc ]
 
-      ignore where host.vars.os_type != "Windows"
-    }
+  ignore where host.vars.os_type != "Windows"
+}
+```
 
 #### NSCLient++ with nscp-local <a id="distributed-monitoring-windows-nscp-check-local"></a>
 
@@ -2356,9 +2485,11 @@ provided by the Icinga Template Library (ITL).
 
 Add the following `include` statement on all your nodes (master, satellite, client):
 
-    vim /etc/icinga2/icinga2.conf
+```
+vim /etc/icinga2/icinga2.conf
 
-    include <nscp>
+include <nscp>
+```
 
 The CheckCommand definitions will automatically determine the installed path
 to the `nscp.exe` binary.
@@ -2368,39 +2499,45 @@ scenario we'll now add a local nscp check querying a given performance counter.
 
 First, add the client node as host object:
 
-    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
+```
+[root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
 
-    object Host "icinga2-client1.localdomain" {
-      check_command = "hostalive"
-      address = "192.168.56.111"
-      vars.client_endpoint = name //follows the convention that host name == endpoint name
-      vars.os_type = "windows"
-    }
+object Host "icinga2-client1.localdomain" {
+  check_command = "hostalive"
+  address = "192.168.56.111"
+  vars.client_endpoint = name //follows the convention that host name == endpoint name
+  vars.os_type = "windows"
+}
+```
 
 Next, add a performance counter check using command endpoint checks (details in the
 [nscp-local-counter](10-icinga-template-library.md#nscp-check-local-counter) documentation):
 
-    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
+```
+[root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
 
-    apply Service "nscp-local-counter-cpu" {
-      check_command = "nscp-local-counter"
-      command_endpoint = host.vars.client_endpoint
+apply Service "nscp-local-counter-cpu" {
+  check_command = "nscp-local-counter"
+  command_endpoint = host.vars.client_endpoint
 
-      vars.nscp_counter_name = "\\Processor(_total)\\% Processor Time"
-      vars.nscp_counter_perfsyntax = "Total Processor Time"
-      vars.nscp_counter_warning = 1
-      vars.nscp_counter_critical = 5
+  vars.nscp_counter_name = "\\Processor(_total)\\% Processor Time"
+  vars.nscp_counter_perfsyntax = "Total Processor Time"
+  vars.nscp_counter_warning = 1
+  vars.nscp_counter_critical = 5
 
-      vars.nscp_counter_showall = true
+  vars.nscp_counter_showall = true
 
-      assign where host.vars.os_type == "windows" && host.vars.client_endpoint
-    }
+  assign where host.vars.os_type == "windows" && host.vars.client_endpoint
+}
+```
 
 Validate the configuration and restart Icinga 2.
 
-    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
+[root@icinga2-master1.localdomain /]# icinga2 daemon -C
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
 
 Open Icinga Web 2 and check your newly added Windows NSClient++ check :)
 
@@ -2448,7 +2585,9 @@ have the `checker` feature enabled.
 
 Example:
 
-    # icinga2 feature enable checker
+```
+# icinga2 feature enable checker
+```
 
 All nodes in the same zone load-balance the check execution. If one instance shuts down,
 the other nodes will automatically take over the remaining checks.
@@ -2460,7 +2599,9 @@ have the `notification` feature enabled.
 
 Example:
 
-    # icinga2 feature enable notification
+```
+# icinga2 feature enable notification
+```
 
 Notifications are load-balanced amongst all nodes in a zone. By default this functionality
 is enabled.
@@ -2475,7 +2616,9 @@ have the DB IDO feature enabled.
 
 Example DB IDO MySQL:
 
-    # icinga2 feature enable ido-mysql
+```
+# icinga2 feature enable ido-mysql
+```
 
 By default the DB IDO feature only runs on one node. All other nodes in the same zone disable
 the active IDO database connection at runtime. The node with the active DB IDO connection is
@@ -2496,11 +2639,13 @@ The DB IDO feature will try to determine which cluster endpoint is currently wri
 to the database and bail out if another endpoint is active. You can manually verify that
 by running the following query command:
 
-    icinga=> SELECT status_update_time, endpoint_name FROM icinga_programstatus;
-       status_update_time   | endpoint_name
-    ------------------------+---------------
-     2016-08-15 15:52:26+02 | icinga2-master1.localdomain
-    (1 Zeile)
+```
+icinga=> SELECT status_update_time, endpoint_name FROM icinga_programstatus;
+   status_update_time   | endpoint_name
+------------------------+---------------
+ 2016-08-15 15:52:26+02 | icinga2-master1.localdomain
+(1 Zeile)
+```
 
 This is useful when the cluster connection between endpoints breaks, and prevents
 data duplication in split-brain-scenarios. The failover timeout can be set for the
@@ -2514,26 +2659,30 @@ configuration specifies a valid `host` attribute (FQDN or IP address).
 Example for the master node `icinga2-master1.localdomain` actively connecting
 to the client node `icinga2-client1.localdomain`:
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    //...
+//...
 
-    object Endpoint "icinga2-client1.localdomain" {
-      host = "192.168.56.111" //the master actively tries to connect to the client
-      log_duration = 0
-    }
+object Endpoint "icinga2-client1.localdomain" {
+  host = "192.168.56.111" //the master actively tries to connect to the client
+  log_duration = 0
+}
+```
 
 Example for the client node `icinga2-client1.localdomain` not actively
 connecting to the master node `icinga2-master1.localdomain`:
 
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    //...
+//...
 
-    object Endpoint "icinga2-master1.localdomain" {
-      //do not actively connect to the master by leaving out the 'host' attribute
-      log_duration = 0
-    }
+object Endpoint "icinga2-master1.localdomain" {
+  //do not actively connect to the master by leaving out the 'host' attribute
+  log_duration = 0
+}
+```
 
 It is not necessary that both the master and the client node establish
 two connections to each other. Icinga 2 will only use one connection
@@ -2559,35 +2708,39 @@ client is not connected.
 
 Configuration on the master node `icinga2-master1.localdomain`:
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    //...
+//...
 
-    object Endpoint "icinga2-client1.localdomain" {
-      host = "192.168.56.111" //the master actively tries to connect to the client
-      log_duration = 0
-    }
+object Endpoint "icinga2-client1.localdomain" {
+  host = "192.168.56.111" //the master actively tries to connect to the client
+  log_duration = 0
+}
 
-    object Endpoint "icinga2-client2.localdomain" {
-      host = "192.168.56.112" //the master actively tries to connect to the client
-      log_duration = 0
-    }
+object Endpoint "icinga2-client2.localdomain" {
+  host = "192.168.56.112" //the master actively tries to connect to the client
+  log_duration = 0
+}
+```
 
 Configuration on the client `icinga2-client1.localdomain`:
 
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+```
+[root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
-    //...
+//...
 
-    object Endpoint "icinga2-master1.localdomain" {
-      //do not actively connect to the master by leaving out the 'host' attribute
-      log_duration = 0
-    }
+object Endpoint "icinga2-master1.localdomain" {
+  //do not actively connect to the master by leaving out the 'host' attribute
+  log_duration = 0
+}
 
-    object Endpoint "icinga2-master2.localdomain" {
-      //do not actively connect to the master by leaving out the 'host' attribute
-      log_duration = 0
-    }
+object Endpoint "icinga2-master2.localdomain" {
+  //do not actively connect to the master by leaving out the 'host' attribute
+  log_duration = 0
+}
+```
 
 ### Manual Certificate Creation <a id="distributed-monitoring-advanced-hints-certificates-manual"></a>
 
@@ -2598,7 +2751,9 @@ Choose the host which should store the certificate authority (one of the master 
 The first step is the creation of the certificate authority (CA) by running the following command
 as root user:
 
-    [root@icinga2-master1.localdomain /root]# icinga2 pki new-ca
+```
+[root@icinga2-master1.localdomain /root]# icinga2 pki new-ca
+```
 
 #### Create CSR and Certificate <a id="distributed-monitoring-advanced-hints-certificates-manual-create"></a>
 
@@ -2680,7 +2835,9 @@ This will tremendously help when someone is trying to help in the [community cha
 If you want to install the client silently/unattended, use the `/qn` modifier. The
 installation should not trigger a restart, but if you want to be completely sure, you can use the `/norestart` modifier.
 
-    C:> msiexec /i C:\Icinga2-v2.5.0-x86.msi /qn /norestart
+```
+C:> msiexec /i C:\Icinga2-v2.5.0-x86.msi /qn /norestart
+```
 
 Once the setup is completed you can use the `node setup` cli command too.
 
@@ -2714,7 +2871,9 @@ Example:
 In case you want to bind the `ApiListener` object to a specific
 host/port you can specify it like this:
 
-    --listen 192.68.56.101,5665
+```
+--listen 192.68.56.101,5665
+```
 
 In case you don't need anything in `conf.d`, use the following command line:
 
@@ -2728,8 +2887,10 @@ In case you don't need anything in `conf.d`, use the following command line:
 Make sure that the `/var/lib/icinga2/certs` directory exists and is owned by the `icinga`
 user (or the user Icinga 2 is running as).
 
-    [root@icinga2-client1.localdomain /]# mkdir -p /var/lib/icinga2/certs
-    [root@icinga2-client1.localdomain /]# chown -R icinga:icinga /var/lib/icinga2/certs
+```
+[root@icinga2-client1.localdomain /]# mkdir -p /var/lib/icinga2/certs
+[root@icinga2-client1.localdomain /]# chown -R icinga:icinga /var/lib/icinga2/certs
+```
 
 First you'll need to generate a new local self-signed certificate.
 Pass the following details to the `pki new-cert` CLI command:
@@ -2741,9 +2902,11 @@ Pass the following details to the `pki new-cert` CLI command:
 
 Example:
 
-    [root@icinga2-client1.localdomain /]# icinga2 pki new-cert --cn icinga2-client1.localdomain \
-    --key /var/lib/icinga2/certs/icinga2-client1.localdomain.key \
-    --cert /var/lib/icinga2/certs/icinga2-client1.localdomain.crt
+```
+[root@icinga2-client1.localdomain /]# icinga2 pki new-cert --cn icinga2-client1.localdomain \
+--key /var/lib/icinga2/certs/icinga2-client1.localdomain.key \
+--cert /var/lib/icinga2/certs/icinga2-client1.localdomain.crt
+```
 
 Request the master certificate from the master host (`icinga2-master1.localdomain`)
 and store it as `trusted-master.crt`. Review it and continue.
@@ -2758,10 +2921,12 @@ Pass the following details to the `pki save-cert` CLI command:
 
 Example:
 
-    [root@icinga2-client1.localdomain /]# icinga2 pki save-cert --key /var/lib/icinga2/certs/icinga2-client1.localdomain.key \
-    --cert /var/lib/icinga2/certs/icinga2-client1.localdomain.crt \
-    --trustedcert /var/lib/icinga2/certs/trusted-parent.crt \
-    --host icinga2-master1.localdomain
+```
+[root@icinga2-client1.localdomain /]# icinga2 pki save-cert --key /var/lib/icinga2/certs/icinga2-client1.localdomain.key \
+--cert /var/lib/icinga2/certs/icinga2-client1.localdomain.crt \
+--trustedcert /var/lib/icinga2/certs/trusted-parent.crt \
+--host icinga2-master1.localdomain
+```
 
 Continue with the additional node setup step. Specify a local endpoint and zone name (`icinga2-client1.localdomain`)
 and set the master host (`icinga2-master1.localdomain`) as parent zone configuration. Specify the path to
@@ -2804,17 +2969,23 @@ Example for Icinga 2 v2.9:
 In case the client should connect to the master node, you'll
 need to modify the `--endpoint` parameter using the format `cn,host,port`:
 
-    --endpoint icinga2-master1.localdomain,192.168.56.101,5665
+```
+--endpoint icinga2-master1.localdomain,192.168.56.101,5665
+```
 
 Specify the parent zone using the `--parent_zone` parameter. This is useful
 if the client connects to a satellite, not the master instance.
 
-    --parent_zone satellite
+```
+--parent_zone satellite
+```
 
 In case the client should know the additional global zone `linux-templates`, you'll
 need to set the `--global-zones` parameter.
 
-    --global_zones linux-templates
+```
+--global_zones linux-templates
+```
 
 The `--parent-host` parameter is optional since v2.9 and allows you to perform a connection-less setup.
 You cannot restart Icinga 2 yet, the CLI command asked to to manually copy the parent's public CA
@@ -2831,46 +3002,58 @@ which holds the CA's key pair.
 If this client node is configured as [remote command endpoint execution](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 you can safely disable the `checker` feature. The `node setup` CLI command already disabled the `notification` feature.
 
-    [root@icinga2-client1.localdomain /]# icinga2 feature disable checker
+```
+[root@icinga2-client1.localdomain /]# icinga2 feature disable checker
+```
 
 Disable "conf.d" inclusion if this is a [top down](06-distributed-monitoring.md#distributed-monitoring-top-down)
 configured client.
 
-    [root@icinga2-client1.localdomain /]# sed -i 's/include_recursive "conf.d"/\/\/include_recursive "conf.d"/g' /etc/icinga2/icinga2.conf
+```
+[root@icinga2-client1.localdomain /]# sed -i 's/include_recursive "conf.d"/\/\/include_recursive "conf.d"/g' /etc/icinga2/icinga2.conf
+```
 
 **Note**: This is the default since v2.9.
 
 **Optional**: Add an ApiUser object configuration for remote troubleshooting.
 
-    [root@icinga2-client1.localdomain /]# cat <<EOF >/etc/icinga2/conf.d/api-users.conf
-    object ApiUser "root" {
-      password = "clientsupersecretpassword"
-      permissions = ["*"]
-    }
-    EOF
+```
+[root@icinga2-client1.localdomain /]# cat <<EOF >/etc/icinga2/conf.d/api-users.conf
+object ApiUser "root" {
+  password = "clientsupersecretpassword"
+  permissions = ["*"]
+}
+EOF
+```
 
 In case you've previously disabled the "conf.d" directory only
 add the file file `conf.d/api-users.conf`:
 
-    [root@icinga2-client1.localdomain /]# echo 'include "conf.d/api-users.conf"' >> /etc/icinga2/icinga2.conf
+```
+[root@icinga2-client1.localdomain /]# echo 'include "conf.d/api-users.conf"' >> /etc/icinga2/icinga2.conf
+```
 
 Finally restart Icinga 2.
 
-    [root@icinga2-client1.localdomain /]# systemctl restart icinga2
+```
+[root@icinga2-client1.localdomain /]# systemctl restart icinga2
+```
 
 Your automation tool must then configure master node in the meantime.
 
-    # cat <<EOF >>/etc/icinga2/zones.conf
-    object Endpoint "icinga2-client1.localdomain" {
-      //client connects itself
-    }
+```
+# cat <<EOF >>/etc/icinga2/zones.conf
+object Endpoint "icinga2-client1.localdomain" {
+  //client connects itself
+}
 
-    object Zone "icinga2-client1.localdomain" {
-      endpoints = [ "icinga2-client1.localdomain" ]
-      parent = "master"
-    }
+object Zone "icinga2-client1.localdomain" {
+  endpoints = [ "icinga2-client1.localdomain" ]
+  parent = "master"
+}
 
-    EOF
+EOF
+```
 
 ## Using Multiple Environments <a id="distributed-monitoring-environments"></a>
 

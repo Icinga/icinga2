@@ -77,12 +77,14 @@ If you prefer to organize your own local object tree, you can also remove
 Create a new configuration directory, e.g. `objects.d` and include it
 in your icinga2.conf file.
 
-    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/objects.d
+```
+[root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/objects.d
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/icinga2.conf
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/icinga2.conf
 
-    /* Local object configuration on our master instance. */
-    include_recursive "objects.d"
+/* Local object configuration on our master instance. */
+include_recursive "objects.d"
+```
 
 This approach is used by the [Icinga 2 Puppet module](https://github.com/Icinga/puppet-icinga2).
 
@@ -97,74 +99,82 @@ An example configuration file is installed for you in `/etc/icinga2/icinga2.conf
 
 Here's a brief description of the example configuration:
 
-    /**
-     * Icinga 2 configuration file
-     * -- this is where you define settings for the Icinga application including
-     * which hosts/services to check.
-     *
-     * For an overview of all available configuration options please refer
-     * to the documentation that is distributed as part of Icinga 2.
-     */
+```
+/**
+* Icinga 2 configuration file
+* -- this is where you define settings for the Icinga application including
+* which hosts/services to check.
+*
+* For an overview of all available configuration options please refer
+* to the documentation that is distributed as part of Icinga 2.
+*/
+```
 
 Icinga 2 supports [C/C++-style comments](17-language-reference.md#comments).
 
-    /**
-     * The constants.conf defines global constants.
-     */
-    include "constants.conf"
+/**
+* The constants.conf defines global constants.
+*/
+include "constants.conf"
 
 The `include` directive can be used to include other files.
 
-    /**
-     * The zones.conf defines zones for a cluster setup.
-     * Not required for single instance setups.
-     */
-     include "zones.conf"
+```
+/**
+* The zones.conf defines zones for a cluster setup.
+* Not required for single instance setups.
+*/
+include "zones.conf"
+```
 
 The [Icinga Template Library](10-icinga-template-library.md#icinga-template-library) provides a set of common templates
 and [CheckCommand](03-monitoring-basics.md#check-commands) definitions.
 
-    /**
-     * The Icinga Template Library (ITL) provides a number of useful templates
-     * and command definitions.
-     * Common monitoring plugin command definitions are included separately.
-     */
-    include <itl>
-    include <plugins>
-    include <plugins-contrib>
-    include <manubulon>
+```
+/**
+* The Icinga Template Library (ITL) provides a number of useful templates
+* and command definitions.
+* Common monitoring plugin command definitions are included separately.
+*/
+include <itl>
+include <plugins>
+include <plugins-contrib>
+include <manubulon>
 
-    /**
-     * This includes the Icinga 2 Windows plugins. These command definitions
-     * are required on a master node when a client is used as command endpoint.
-     */
-    include <windows-plugins>
+/**
+* This includes the Icinga 2 Windows plugins. These command definitions
+* are required on a master node when a client is used as command endpoint.
+*/
+include <windows-plugins>
 
-    /**
-     * This includes the NSClient++ check commands. These command definitions
-     * are required on a master node when a client is used as command endpoint.
-     */
-    include <nscp>
+/**
+* This includes the NSClient++ check commands. These command definitions
+* are required on a master node when a client is used as command endpoint.
+*/
+include <nscp>
 
-    /**
-     * The features-available directory contains a number of configuration
-     * files for features which can be enabled and disabled using the
-     * icinga2 feature enable / icinga2 feature disable CLI commands.
-     * These commands work by creating and removing symbolic links in
-     * the features-enabled directory.
-     */
-    include "features-enabled/*.conf"
+/**
+* The features-available directory contains a number of configuration
+* files for features which can be enabled and disabled using the
+* icinga2 feature enable / icinga2 feature disable CLI commands.
+* These commands work by creating and removing symbolic links in
+* the features-enabled directory.
+*/
+include "features-enabled/*.conf"
+```
 
 This `include` directive takes care of including the configuration files for all
 the features which have been enabled with `icinga2 feature enable`. See
 [Enabling/Disabling Features](11-cli-commands.md#enable-features) for more details.
 
-    /**
-     * Although in theory you could define all your objects in this file
-     * the preferred way is to create separate directories and files in the conf.d
-     * directory. Each of these files must have the file extension ".conf".
-     */
-    include_recursive "conf.d"
+```
+/**
+* Although in theory you could define all your objects in this file
+* the preferred way is to create separate directories and files in the conf.d
+* directory. Each of these files must have the file extension ".conf".
+*/
+include_recursive "conf.d"
+```
 
 You can put your own configuration files in the [conf.d](04-configuring-icinga-2.md#conf-d) directory. This
 directive makes sure that all of your own configuration files are included.
@@ -184,24 +194,26 @@ cluster setup.
 
 Example:
 
-    /* The directory which contains the plugins from the Monitoring Plugins project. */
-    const PluginDir = "/usr/lib64/nagios/plugins"
+```
+/* The directory which contains the plugins from the Monitoring Plugins project. */
+const PluginDir = "/usr/lib64/nagios/plugins"
 
-    /* The directory which contains the Manubulon plugins.
-     * Check the documentation, chapter "SNMP Manubulon Plugin Check Commands", for details.
-     */
-    const ManubulonPluginDir = "/usr/lib64/nagios/plugins"
+/* The directory which contains the Manubulon plugins.
+* Check the documentation, chapter "SNMP Manubulon Plugin Check Commands", for details.
+*/
+const ManubulonPluginDir = "/usr/lib64/nagios/plugins"
 
-    /* Our local instance name. By default this is the server's hostname as returned by `hostname --fqdn`.
-     * This should be the common name from the API certificate.
-     */
-    //const NodeName = "localhost"
+/* Our local instance name. By default this is the server's hostname as returned by `hostname --fqdn`.
+* This should be the common name from the API certificate.
+*/
+//const NodeName = "localhost"
 
-    /* Our local zone name. */
-    const ZoneName = NodeName
+/* Our local zone name. */
+const ZoneName = NodeName
 
-    /* Secret key for remote node tickets */
-    const TicketSalt = ""
+/* Secret key for remote node tickets */
+const TicketSalt = ""
+```
 
 The `ZoneName` and `TicketSalt` constants are required for remote client
 and distributed setups only.
@@ -286,57 +298,59 @@ rules in [services.conf](04-configuring-icinga-2.md#services-conf) will automati
 generate a new service checking the `/icingaweb2` URI using the `http`
 check.
 
-    /*
-     * Host definitions with object attributes
-     * used for apply rules for Service, Notification,
-     * Dependency and ScheduledDowntime objects.
-     *
-     * Tip: Use `icinga2 object list --type Host` to
-     * list all host objects after running
-     * configuration validation (`icinga2 daemon -C`).
-     */
+```
+/*
+* Host definitions with object attributes
+* used for apply rules for Service, Notification,
+* Dependency and ScheduledDowntime objects.
+*
+* Tip: Use `icinga2 object list --type Host` to
+* list all host objects after running
+* configuration validation (`icinga2 daemon -C`).
+*/
 
-    /*
-     * This is an example host based on your
-     * local host's FQDN. Specify the NodeName
-     * constant in `constants.conf` or use your
-     * own description, e.g. "db-host-1".
-     */
+/*
+ * This is an example host based on your
+ * local host's FQDN. Specify the NodeName
+ * constant in `constants.conf` or use your
+ * own description, e.g. "db-host-1".
+ */
 
-    object Host NodeName {
-      /* Import the default host template defined in `templates.conf`. */
-      import "generic-host"
+object Host NodeName {
+  /* Import the default host template defined in `templates.conf`. */
+  import "generic-host"
 
-      /* Specify the address attributes for checks e.g. `ssh` or `http`. */
-      address = "127.0.0.1"
-      address6 = "::1"
+  /* Specify the address attributes for checks e.g. `ssh` or `http`. */
+  address = "127.0.0.1"
+  address6 = "::1"
 
-      /* Set custom attribute `os` for hostgroup assignment in `groups.conf`. */
-      vars.os = "Linux"
+  /* Set custom attribute `os` for hostgroup assignment in `groups.conf`. */
+  vars.os = "Linux"
 
-      /* Define http vhost attributes for service apply rules in `services.conf`. */
-      vars.http_vhosts["http"] = {
-        http_uri = "/"
-      }
-      /* Uncomment if you've sucessfully installed Icinga Web 2. */
-      //vars.http_vhosts["Icinga Web 2"] = {
-      //  http_uri = "/icingaweb2"
-      //}
+  /* Define http vhost attributes for service apply rules in `services.conf`. */
+  vars.http_vhosts["http"] = {
+    http_uri = "/"
+  }
+  /* Uncomment if you've sucessfully installed Icinga Web 2. */
+  //vars.http_vhosts["Icinga Web 2"] = {
+  //  http_uri = "/icingaweb2"
+  //}
 
-      /* Define disks and attributes for service apply rules in `services.conf`. */
-      vars.disks["disk"] = {
-        /* No parameters. */
-      }
-      vars.disks["disk /"] = {
-        disk_partitions = "/"
-      }
+  /* Define disks and attributes for service apply rules in `services.conf`. */
+  vars.disks["disk"] = {
+    /* No parameters. */
+  }
+  vars.disks["disk /"] = {
+    disk_partitions = "/"
+  }
 
-      /* Define notification mail attributes for notification apply rules in `notifications.conf`. */
-      vars.notification["mail"] = {
-        /* The UserGroup `icingaadmins` is defined in `users.conf`. */
-        groups = [ "icingaadmins" ]
-      }
-    }
+  /* Define notification mail attributes for notification apply rules in `notifications.conf`. */
+  vars.notification["mail"] = {
+    /* The UserGroup `icingaadmins` is defined in `users.conf`. */
+    groups = [ "icingaadmins" ]
+  }
+}
+```
 
 This is only the host object definition. Now we'll need to make sure that this
 host and your additional hosts are getting [services](04-configuring-icinga-2.md#services-conf) applied.
@@ -376,16 +390,18 @@ which we enabled earlier by including the `itl` and `plugins` configuration file
 
 Example `load` service apply rule:
 
-    apply Service "load" {
-      import "generic-service"
+```
+apply Service "load" {
+import "generic-service"
 
-      check_command = "load"
+check_command = "load"
 
-      /* Used by the ScheduledDowntime apply rule in `downtimes.conf`. */
-      vars.backup_downtime = "02:00-03:00"
+/* Used by the ScheduledDowntime apply rule in `downtimes.conf`. */
+vars.backup_downtime = "02:00-03:00"
 
-      assign where host.name == NodeName
-    }
+assign where host.name == NodeName
+}
+```
 
 The `apply` keyword can be used to create new objects which are associated with
 another group of objects. You can `import` existing templates, define (custom)
@@ -403,13 +419,15 @@ may be used in `assign where` conditions.
 Multiple `assign where` condition can be combined with `AND` using the `&&` operator
 as shown in the `ssh` example:
 
-    apply Service "ssh" {
-      import "generic-service"
+```
+apply Service "ssh" {
+  import "generic-service"
 
-      check_command = "ssh"
+  check_command = "ssh"
 
-      assign where host.address && host.vars.os == "Linux"
-    }
+  assign where host.address && host.vars.os == "Linux"
+}
+```
 
 In this example, the service `ssh` is applied to all hosts having the `address`
 attribute defined `AND` having the custom attribute `os` set to the string
@@ -429,16 +447,17 @@ The idea is simple: Your host in [hosts.conf](04-configuring-icinga-2.md#hosts-c
 
 Remember the example from [hosts.conf](04-configuring-icinga-2.md#hosts-conf):
 
-    ...
-      /* Define disks and attributes for service apply rules in `services.conf`. */
-      vars.disks["disk"] = {
-        /* No parameters. */
-      }
-      vars.disks["disk /"] = {
-        disk_partition = "/"
-      }
-    ...
-
+```
+...
+  /* Define disks and attributes for service apply rules in `services.conf`. */
+  vars.disks["disk"] = {
+    /* No parameters. */
+  }
+  vars.disks["disk /"] = {
+    disk_partition = "/"
+  }
+...
+```
 
 This dictionary contains multiple service names we want to monitor. `disk`
 should just check all available disks, while `disk /` will pass an additional
@@ -466,13 +485,15 @@ generated service
 
 Configuration example:
 
-    apply Service for (disk => config in host.vars.disks) {
-      import "generic-service"
+```
+apply Service for (disk => config in host.vars.disks) {
+  import "generic-service"
 
-      check_command = "disk"
+  check_command = "disk"
 
-      vars += config
-    }
+  vars += config
+}
+```
 
 A similar example is used for the `http` services. That way you can make your
 host the information provider for all apply rules. Define them once, and only
@@ -494,19 +515,20 @@ Defines the `icingaadmin` User and the `icingaadmins` UserGroup. The latter is u
 [hosts.conf](04-configuring-icinga-2.md#hosts-conf) for defining a custom host attribute later used in
 [notifications.conf](04-configuring-icinga-2.md#notifications-conf) for notification apply rules.
 
-    object User "icingaadmin" {
-      import "generic-user"
+```
+object User "icingaadmin" {
+  import "generic-user"
 
-      display_name = "Icinga 2 Admin"
-      groups = [ "icingaadmins" ]
+  display_name = "Icinga 2 Admin"
+  groups = [ "icingaadmins" ]
 
-      email = "icinga@localhost"
-    }
+  email = "icinga@localhost"
+}
 
-    object UserGroup "icingaadmins" {
-      display_name = "Icinga 2 Admin Group"
-    }
-
+object UserGroup "icingaadmins" {
+  display_name = "Icinga 2 Admin Group"
+}
+```
 
 #### notifications.conf <a id="notifications-conf"></a>
 
@@ -527,23 +549,25 @@ By setting the `user_groups` to the value provided by the
 respective [host.vars.notification.mail](04-configuring-icinga-2.md#hosts-conf) attribute we'll
 implicitely use the `icingaadmins` UserGroup defined in [users.conf](04-configuring-icinga-2.md#users-conf).
 
-    apply Notification "mail-icingaadmin" to Host {
-      import "mail-host-notification"
+```
+apply Notification "mail-icingaadmin" to Host {
+  import "mail-host-notification"
 
-      user_groups = host.vars.notification.mail.groups
-      users = host.vars.notification.mail.users
+  user_groups = host.vars.notification.mail.groups
+  users = host.vars.notification.mail.users
 
-      assign where host.vars.notification.mail
-    }
+  assign where host.vars.notification.mail
+}
 
-    apply Notification "mail-icingaadmin" to Service {
-      import "mail-service-notification"
+apply Notification "mail-icingaadmin" to Service {
+  import "mail-service-notification"
 
-      user_groups = host.vars.notification.mail.groups
-      users = host.vars.notification.mail.users
+  user_groups = host.vars.notification.mail.groups
+  users = host.vars.notification.mail.users
 
-      assign where host.vars.notification.mail
-    }
+  assign where host.vars.notification.mail
+}
+```
 
 More details on defining notifications and their additional attributes such as
 filters can be read in [this chapter](03-monitoring-basics.md#alert-notifications).
@@ -565,85 +589,91 @@ a member of the host group `linux-servers`.
 This is done by using the [group assign](17-language-reference.md#group-assign) expressions similar
 to previously seen [apply rules](03-monitoring-basics.md#using-apply).
 
-    object HostGroup "linux-servers" {
-      display_name = "Linux Servers"
+```
+object HostGroup "linux-servers" {
+  display_name = "Linux Servers"
 
-      assign where host.vars.os == "Linux"
-    }
+  assign where host.vars.os == "Linux"
+}
 
-    object HostGroup "windows-servers" {
-      display_name = "Windows Servers"
+object HostGroup "windows-servers" {
+  display_name = "Windows Servers"
 
-      assign where host.vars.os == "Windows"
-    }
+  assign where host.vars.os == "Windows"
+}
+```
 
 Service groups can be grouped together by similar pattern matches.
 The [match function](18-library-reference.md#global-functions-match) expects a wildcard match string
 and the attribute string to match with.
 
-    object ServiceGroup "ping" {
-      display_name = "Ping Checks"
+```
+object ServiceGroup "ping" {
+  display_name = "Ping Checks"
 
-      assign where match("ping*", service.name)
-    }
+  assign where match("ping*", service.name)
+}
 
-    object ServiceGroup "http" {
-      display_name = "HTTP Checks"
+object ServiceGroup "http" {
+  display_name = "HTTP Checks"
 
-      assign where match("http*", service.check_command)
-    }
+  assign where match("http*", service.check_command)
+}
 
-    object ServiceGroup "disk" {
-      display_name = "Disk Checks"
+object ServiceGroup "disk" {
+  display_name = "Disk Checks"
 
-      assign where match("disk*", service.check_command)
-    }
-
+  assign where match("disk*", service.check_command)
+}
+```
 
 #### templates.conf <a id="templates-conf"></a>
 
 Most of the example configuration objects use generic global templates by
 default:
 
-    template Host "generic-host" {
-      max_check_attempts = 5
-      check_interval = 1m
-      retry_interval = 30s
+```
+template Host "generic-host" {
+  max_check_attempts = 5
+  check_interval = 1m
+  retry_interval = 30s
 
-      check_command = "hostalive"
-    }
+  check_command = "hostalive"
+}
 
-    template Service "generic-service" {
-      max_check_attempts = 3
-      check_interval = 1m
-      retry_interval = 30s
-    }
+template Service "generic-service" {
+  max_check_attempts = 3
+  check_interval = 1m
+  retry_interval = 30s
+}
+```
 
 The `hostalive` check command is part of the
 [Plugin Check Commands](10-icinga-template-library.md#icinga-template-library).
 
+```
+template Notification "mail-host-notification" {
+  command = "mail-host-notification"
 
-    template Notification "mail-host-notification" {
-      command = "mail-host-notification"
+  states = [ Up, Down ]
+  types = [ Problem, Acknowledgement, Recovery, Custom,
+            FlappingStart, FlappingEnd,
+            DowntimeStart, DowntimeEnd, DowntimeRemoved ]
 
-      states = [ Up, Down ]
-      types = [ Problem, Acknowledgement, Recovery, Custom,
-                FlappingStart, FlappingEnd,
-                DowntimeStart, DowntimeEnd, DowntimeRemoved ]
+  period = "24x7"
+}
 
-      period = "24x7"
-    }
+template Notification "mail-service-notification" {
+  command = "mail-service-notification"
 
-    template Notification "mail-service-notification" {
-      command = "mail-service-notification"
+  states = [ OK, Warning, Critical, Unknown ]
+  types = [ Problem, Acknowledgement, Recovery, Custom,
+            FlappingStart, FlappingEnd,
+            DowntimeStart, DowntimeEnd, DowntimeRemoved ]
 
-      states = [ OK, Warning, Critical, Unknown ]
-      types = [ Problem, Acknowledgement, Recovery, Custom,
-                FlappingStart, FlappingEnd,
-                DowntimeStart, DowntimeEnd, DowntimeRemoved ]
-
-      period = "24x7"
-    }
+  period = "24x7"
+}
+```
 
 More details on `Notification` object attributes can be found [here](09-object-types.md#objecttype-notification).
 
@@ -658,23 +688,24 @@ for the time ranges required for recurring downtime slots.
 
 Learn more about downtimes in [this chapter](08-advanced-topics.md#downtimes).
 
-    apply ScheduledDowntime "backup-downtime" to Service {
-      author = "icingaadmin"
-      comment = "Scheduled downtime for backup"
+```
+apply ScheduledDowntime "backup-downtime" to Service {
+  author = "icingaadmin"
+  comment = "Scheduled downtime for backup"
 
-      ranges = {
-        monday = service.vars.backup_downtime
-        tuesday = service.vars.backup_downtime
-        wednesday = service.vars.backup_downtime
-        thursday = service.vars.backup_downtime
-        friday = service.vars.backup_downtime
-        saturday = service.vars.backup_downtime
-        sunday = service.vars.backup_downtime
-      }
+  ranges = {
+    monday = service.vars.backup_downtime
+    tuesday = service.vars.backup_downtime
+    wednesday = service.vars.backup_downtime
+    thursday = service.vars.backup_downtime
+    friday = service.vars.backup_downtime
+    saturday = service.vars.backup_downtime
+    sunday = service.vars.backup_downtime
+  }
 
-      assign where service.vars.backup_downtime != ""
-    }
-
+  assign where service.vars.backup_downtime != ""
+}
+```
 
 #### timeperiods.conf <a id="timeperiods-conf"></a>
 
