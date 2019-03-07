@@ -213,32 +213,34 @@ If you want to delete all breakpoints, use `d` and select `yes`.
 
 Breakpoint Example:
 
-    (gdb) b __cxa_throw
-    (gdb) r
-    (gdb) up
-    ....
-    (gdb) up
-    #11 0x00007ffff7cbf9ff in icinga::Utility::GlobRecursive(icinga::String const&, icinga::String const&, boost::function<void (icinga::String const&)> const&, int) (path=..., pattern=..., callback=..., type=1)
-        at /home/michi/coding/icinga/icinga2/lib/base/utility.cpp:609
-    609			callback(cpath);
-    (gdb) l
-    604
-    605	#endif /* _WIN32 */
-    606
-    607		std::sort(files.begin(), files.end());
-    608		BOOST_FOREACH(const String& cpath, files) {
-    609			callback(cpath);
-    610		}
-    611
-    612		std::sort(dirs.begin(), dirs.end());
-    613		BOOST_FOREACH(const String& cpath, dirs) {
-    (gdb) p files
-    $3 = std::vector of length 11, capacity 16 = {{static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/agent.conf"}, {static NPos = 18446744073709551615,
-        m_Data = "/etc/icinga2/conf.d/commands.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/downtimes.conf"}, {static NPos = 18446744073709551615,
-        m_Data = "/etc/icinga2/conf.d/groups.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/notifications.conf"}, {static NPos = 18446744073709551615,
-        m_Data = "/etc/icinga2/conf.d/satellite.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/services.conf"}, {static NPos = 18446744073709551615,
-        m_Data = "/etc/icinga2/conf.d/templates.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/test.conf"}, {static NPos = 18446744073709551615,
-        m_Data = "/etc/icinga2/conf.d/timeperiods.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/users.conf"}}
+```
+(gdb) b __cxa_throw
+(gdb) r
+(gdb) up
+....
+(gdb) up
+#11 0x00007ffff7cbf9ff in icinga::Utility::GlobRecursive(icinga::String const&, icinga::String const&, boost::function<void (icinga::String const&)> const&, int) (path=..., pattern=..., callback=..., type=1)
+    at /home/michi/coding/icinga/icinga2/lib/base/utility.cpp:609
+609			callback(cpath);
+(gdb) l
+604
+605	#endif /* _WIN32 */
+606
+607		std::sort(files.begin(), files.end());
+608		BOOST_FOREACH(const String& cpath, files) {
+609			callback(cpath);
+610		}
+611
+612		std::sort(dirs.begin(), dirs.end());
+613		BOOST_FOREACH(const String& cpath, dirs) {
+(gdb) p files
+$3 = std::vector of length 11, capacity 16 = {{static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/agent.conf"}, {static NPos = 18446744073709551615,
+    m_Data = "/etc/icinga2/conf.d/commands.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/downtimes.conf"}, {static NPos = 18446744073709551615,
+    m_Data = "/etc/icinga2/conf.d/groups.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/notifications.conf"}, {static NPos = 18446744073709551615,
+    m_Data = "/etc/icinga2/conf.d/satellite.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/services.conf"}, {static NPos = 18446744073709551615,
+    m_Data = "/etc/icinga2/conf.d/templates.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/test.conf"}, {static NPos = 18446744073709551615,
+    m_Data = "/etc/icinga2/conf.d/timeperiods.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/users.conf"}}
+```
 
 
 ### Core Dump <a id="development-debug-core-dump"></a>
@@ -1584,66 +1586,76 @@ Please check `appveyor.yml` for instructions.
 Install the `boost`, `python` and `icinga2` pretty printers. Absolute paths are required,
 so please make sure to update the installation paths accordingly (`pwd`).
 
-    $ mkdir -p ~/.gdb_printers && cd ~/.gdb_printers
+```
+$ mkdir -p ~/.gdb_printers && cd ~/.gdb_printers
+```
 
 Boost Pretty Printers compatible with Python 3:
 
-    $ git clone https://github.com/mateidavid/Boost-Pretty-Printer.git && cd Boost-Pretty-Printer
-    $ git checkout python-3
-    $ pwd
-    /home/michi/.gdb_printers/Boost-Pretty-Printer
+```
+$ git clone https://github.com/mateidavid/Boost-Pretty-Printer.git && cd Boost-Pretty-Printer
+$ git checkout python-3
+$ pwd
+/home/michi/.gdb_printers/Boost-Pretty-Printer
+```
 
 Python Pretty Printers:
 
-    $ cd ~/.gdb_printers
-    $ svn co svn://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/python
+```
+$ cd ~/.gdb_printers
+$ svn co svn://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/python
+```
 
 Icinga 2 Pretty Printers:
 
-    $ mkdir -p ~/.gdb_printers/icinga2 && cd ~/.gdb_printers/icinga2
-    $ wget https://raw.githubusercontent.com/Icinga/icinga2/master/tools/debug/gdb/icingadbg.py
+```
+$ mkdir -p ~/.gdb_printers/icinga2 && cd ~/.gdb_printers/icinga2
+$ wget https://raw.githubusercontent.com/Icinga/icinga2/master/tools/debug/gdb/icingadbg.py
+```
 
 Now you'll need to modify/setup your `~/.gdbinit` configuration file.
 You can download the one from Icinga 2 and modify all paths.
 
 Example on Fedora 22:
 
-    $ wget https://raw.githubusercontent.com/Icinga/icinga2/master/tools/debug/gdb/gdbinit -O ~/.gdbinit
-    $ vim ~/.gdbinit
+```
+$ wget https://raw.githubusercontent.com/Icinga/icinga2/master/tools/debug/gdb/gdbinit -O ~/.gdbinit
+$ vim ~/.gdbinit
 
-    set print pretty on
-    
-    python
-    import sys
-    sys.path.insert(0, '/home/michi/.gdb_printers/icinga2')
-    from icingadbg import register_icinga_printers
-    register_icinga_printers()
-    end
-    
-    python
-    import sys
-    sys.path.insert(0, '/home/michi/.gdb_printers/python')
-    from libstdcxx.v6.printers import register_libstdcxx_printers
-    try:
-        register_libstdcxx_printers(None)
-    except:
-        pass
-    end
-    
-    python
-    import sys
-    sys.path.insert(0, '/home/michi/.gdb_printers/Boost-Pretty-Printer')
-    import boost_print
-    boost_print.register_printers()
-    end
+set print pretty on
 
+python
+import sys
+sys.path.insert(0, '/home/michi/.gdb_printers/icinga2')
+from icingadbg import register_icinga_printers
+register_icinga_printers()
+end
+
+python
+import sys
+sys.path.insert(0, '/home/michi/.gdb_printers/python')
+from libstdcxx.v6.printers import register_libstdcxx_printers
+try:
+    register_libstdcxx_printers(None)
+except:
+    pass
+end
+
+python
+import sys
+sys.path.insert(0, '/home/michi/.gdb_printers/Boost-Pretty-Printer')
+import boost_print
+boost_print.register_printers()
+end
+```
 
 If you are getting the following error when running gdb, the `libstdcxx`
 printers are already preloaded in your environment and you can remove
 the duplicate import in your `~/.gdbinit` file.
 
-    RuntimeError: pretty-printer already registered: libstdc++-v6
-
+```
+RuntimeError: pretty-printer already registered: libstdc++-v6
+```
 
 ## Development Tests <a id="development-tests"></a>
 

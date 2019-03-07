@@ -18,16 +18,18 @@ There are two ways of installing the SELinux Policy for Icinga 2 on Enterprise L
 
 If the system runs in enforcing mode and you encounter problems you can set Icinga 2's domain to permissive mode.
 
-    # sestatus
-    SELinux status:                 enabled
-    SELinuxfs mount:                /sys/fs/selinux
-    SELinux root directory:         /etc/selinux
-    Loaded policy name:             targeted
-    Current mode:                   enforcing
-    Mode from config file:          enforcing
-    Policy MLS status:              enabled
-    Policy deny_unknown status:     allowed
-    Max kernel policy version:      28
+```
+# sestatus
+SELinux status:                 enabled
+SELinuxfs mount:                /sys/fs/selinux
+SELinux root directory:         /etc/selinux
+Loaded policy name:             targeted
+Current mode:                   enforcing
+Mode from config file:          enforcing
+Policy MLS status:              enabled
+Policy deny_unknown status:     allowed
+Max kernel policy version:      28
+```
 
 You can change the configured mode by editing `/etc/selinux/config` and the current mode by executing `setenforce 0`.
 
@@ -35,13 +37,17 @@ You can change the configured mode by editing `/etc/selinux/config` and the curr
 
 Simply add the `icinga2-selinux` package to your installation.
 
-    # yum install icinga2-selinux
+```
+# yum install icinga2-selinux
+```
 
 Ensure that the `icinga2` process is running in its own `icinga2_t` domain after installing the policy package:
 
-    # systemctl restart icinga2.service
-    # ps -eZ | grep icinga2
-    system_u:system_r:icinga2_t:s0   2825 ?        00:00:00 icinga2
+```
+# systemctl restart icinga2.service
+# ps -eZ | grep icinga2
+system_u:system_r:icinga2_t:s0   2825 ?        00:00:00 icinga2
+```
 
 #### Manual installation <a id="selinux-policy-installation-manual"></a>
 
@@ -49,24 +55,32 @@ This section describes the installation to support development and testing. It a
 
 As a prerequisite install the `git`, `selinux-policy-devel` and `audit` packages. Enable and start the audit daemon afterwards:
 
-    # yum install git selinux-policy-devel audit
-    # systemctl enable auditd.service
-    # systemctl start auditd.service
+```
+# yum install git selinux-policy-devel audit
+# systemctl enable auditd.service
+# systemctl start auditd.service
+```
 
 After that clone the icinga2 git repository:
 
-    # git clone https://github.com/icinga/icinga2
+```
+# git clone https://github.com/icinga/icinga2
+```
 
 To create and install the policy package run the installation script which also labels the resources. (The script assumes Icinga 2 was started once after system startup, the labeling of the port will only happen once and fail later on.)
 
-    # cd tools/selinux/
-    # ./icinga.sh
+```
+# cd tools/selinux/
+# ./icinga.sh
+```
 
 After that restart Icinga 2 and verify it running in its own domain `icinga2_t`.
 
-    # systemctl restart icinga2.service
-    # ps -eZ | grep icinga2
-    system_u:system_r:icinga2_t:s0   2825 ?        00:00:00 icinga2
+```
+# systemctl restart icinga2.service
+# ps -eZ | grep icinga2
+system_u:system_r:icinga2_t:s0   2825 ?        00:00:00 icinga2
+```
 
 ### General <a id="selinux-policy-general"></a>
 
@@ -126,23 +140,29 @@ Make sure to report the bugs in the policy afterwards.
 
 Download and install a plugin, for example check_mysql_health.
 
-    # wget https://labs.consol.de/download/shinken-nagios-plugins/check_mysql_health-2.1.9.2.tar.gz
-    # tar xvzf check_mysql_health-2.1.9.2.tar.gz
-    # cd check_mysql_health-2.1.9.2/
-    # ./configure --libexecdir /usr/lib64/nagios/plugins
-    # make
-    # make install
+```
+# wget https://labs.consol.de/download/shinken-nagios-plugins/check_mysql_health-2.1.9.2.tar.gz
+# tar xvzf check_mysql_health-2.1.9.2.tar.gz
+# cd check_mysql_health-2.1.9.2/
+# ./configure --libexecdir /usr/lib64/nagios/plugins
+# make
+# make install
+```
 
 It is labeled `nagios_unconfined_plugins_exec_t` by default, so it runs without restrictions.
 
-    # ls -lZ /usr/lib64/nagios/plugins/check_mysql_health
-    -rwxr-xr-x. root root system_u:object_r:nagios_unconfined_plugin_exec_t:s0 /usr/lib64/nagios/plugins/check_mysql_health
+```
+# ls -lZ /usr/lib64/nagios/plugins/check_mysql_health
+-rwxr-xr-x. root root system_u:object_r:nagios_unconfined_plugin_exec_t:s0 /usr/lib64/nagios/plugins/check_mysql_health
+```
 
 In this case the plugin is monitoring a service, so it should be labeled `nagios_services_plugin_exec_t` to restrict its permissions.
 
-    # chcon -t nagios_services_plugin_exec_t /usr/lib64/nagios/plugins/check_mysql_health
-    # ls -lZ /usr/lib64/nagios/plugins/check_mysql_health
-    -rwxr-xr-x. root root system_u:object_r:nagios_services_plugin_exec_t:s0 /usr/lib64/nagios/plugins/check_mysql_health
+```
+# chcon -t nagios_services_plugin_exec_t /usr/lib64/nagios/plugins/check_mysql_health
+# ls -lZ /usr/lib64/nagios/plugins/check_mysql_health
+-rwxr-xr-x. root root system_u:object_r:nagios_services_plugin_exec_t:s0 /usr/lib64/nagios/plugins/check_mysql_health
+```
 
 The plugin still runs fine but if someone changes the script to do weird stuff it will fail to do so.
 
@@ -152,25 +172,29 @@ You are running graphite on a different port than `2003` and want `icinga2` to c
 
 Change the port value for the graphite feature according to your graphite installation before enabling it.
 
-    # cat /etc/icinga2/features-enabled/graphite.conf
-    /**
-     * The GraphiteWriter type writes check result metrics and
-     * performance data to a graphite tcp socket.
-     */
+```
+# cat /etc/icinga2/features-enabled/graphite.conf
+/**
+ * The GraphiteWriter type writes check result metrics and
+ * performance data to a graphite tcp socket.
+ */
 
-    library "perfdata"
+library "perfdata"
 
-    object GraphiteWriter "graphite" {
-      //host = "127.0.0.1"
-      //port = 2003
-      port = 2004
-    }
-    # icinga2 feature enable graphite
+object GraphiteWriter "graphite" {
+  //host = "127.0.0.1"
+  //port = 2003
+  port = 2004
+}
+# icinga2 feature enable graphite
+```
 
 Before you restart the icinga2 service allow it to connect to all ports by enabling the boolean ´icinga2_can_connect_all` (now and permanent).
 
-    # setsebool icinga2_can_connect_all true
-    # setsebool -P icinga2_can_connect_all true
+```
+# setsebool icinga2_can_connect_all true
+# setsebool -P icinga2_can_connect_all true
+```
 
 If you restart the daemon now it will successfully connect to graphite.
 
@@ -181,49 +205,63 @@ this user. This is completly optional!
 
 Start by adding the Icinga 2 administrator role `icinga2adm_r` to the administrative SELinux user `staff_u`.
 
-    # semanage user -m -R "staff_r sysadm_r system_r unconfined_r icinga2adm_r" staff_u
+```
+# semanage user -m -R "staff_r sysadm_r system_r unconfined_r icinga2adm_r" staff_u
+```
 
 Confine your user login and create a sudo rule.
 
-    # semanage login -a dirk -s staff_u
-    # echo "dirk ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/dirk
+```
+# semanage login -a dirk -s staff_u
+# echo "dirk ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/dirk
+```
 
 Login to the system using ssh and verify your id.
 
-    $ id -Z
-    staff_u:staff_r:staff_t:s0-s0:c0.c1023
+```
+$ id -Z
+staff_u:staff_r:staff_t:s0-s0:c0.c1023
+```
 
 Try to execute some commands as root using sudo.
 
-    $ sudo id -Z
-    staff_u:staff_r:staff_t:s0-s0:c0.c1023
-    $ sudo vi /etc/icinga2/icinga2.conf
-    "/etc/icinga2/icinga2.conf" [Permission Denied]
-    $ sudo cat /var/log/icinga2/icinga2.log
-    cat: /var/log/icinga2/icinga2.log: Keine Berechtigung
-    $ sudo systemctl reload icinga2.service
-    Failed to get D-Bus connection: No connection to service manager.
+```
+$ sudo id -Z
+staff_u:staff_r:staff_t:s0-s0:c0.c1023
+$ sudo vi /etc/icinga2/icinga2.conf
+"/etc/icinga2/icinga2.conf" [Permission Denied]
+$ sudo cat /var/log/icinga2/icinga2.log
+cat: /var/log/icinga2/icinga2.log: Keine Berechtigung
+$ sudo systemctl reload icinga2.service
+Failed to get D-Bus connection: No connection to service manager.
+```
 
 Those commands fail because you only switch to root but do not change your SELinux role. Try again but tell sudo also to switch the SELinux role and type.
 
-    $ sudo -r icinga2adm_r -t icinga2adm_t id -Z
-    staff_u:icinga2adm_r:icinga2adm_t:s0-s0:c0.c1023
-    $ sudo -r icinga2adm_r -t icinga2adm_t vi /etc/icinga2/icinga2.conf
-    "/etc/icinga2/icinga2.conf"
-    $ sudo -r icinga2adm_r -t icinga2adm_t cat /var/log/icinga2/icinga2.log
-    [2015-03-26 20:48:14 +0000] information/DynamicObject: Dumping program state to file '/var/lib/icinga2/icinga2.state'
-    $ sudo -r icinga2adm_r -t icinga2adm_t systemctl reload icinga2.service
+```
+$ sudo -r icinga2adm_r -t icinga2adm_t id -Z
+staff_u:icinga2adm_r:icinga2adm_t:s0-s0:c0.c1023
+$ sudo -r icinga2adm_r -t icinga2adm_t vi /etc/icinga2/icinga2.conf
+"/etc/icinga2/icinga2.conf"
+$ sudo -r icinga2adm_r -t icinga2adm_t cat /var/log/icinga2/icinga2.log
+[2015-03-26 20:48:14 +0000] information/DynamicObject: Dumping program state to file '/var/lib/icinga2/icinga2.state'
+$ sudo -r icinga2adm_r -t icinga2adm_t systemctl reload icinga2.service
+```
 
 Now the commands will work, but you have always to remember to add the arguments, so change the sudo rule to set it by default.
 
-    # echo "dirk ALL=(ALL) ROLE=icinga2adm_r TYPE=icinga2adm_t NOPASSWD: ALL" > /etc/sudoers.d/dirk
+```
+# echo "dirk ALL=(ALL) ROLE=icinga2adm_r TYPE=icinga2adm_t NOPASSWD: ALL" > /etc/sudoers.d/dirk
+```
 
 Now try the commands again without providing the role and type and they will work, but if you try to read apache logs or restart apache for example it will still fail.
 
-    $ sudo cat /var/log/httpd/error_log
-    /bin/cat: /var/log/httpd/error_log: Keine Berechtigung
-    $ sudo systemctl reload httpd.service
-    Failed to issue method call: Access denied
+```
+$ sudo cat /var/log/httpd/error_log
+/bin/cat: /var/log/httpd/error_log: Keine Berechtigung
+$ sudo systemctl reload httpd.service
+Failed to issue method call: Access denied
+```
 
 ## Bugreports <a id="selinux-bugreports"></a>
 
