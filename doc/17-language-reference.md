@@ -252,7 +252,7 @@ A list of available functions is available in the [Library Reference](18-library
 
 In addition to the `=` operator shown above a number of other operators
 to manipulate attributes are supported. Here's a list of all
-available operators:
+available operators (the outermost `{` `}` stand for a local variable scope):
 
 ### Operator = <a id="operator-assignment"></a>
 
