@@ -413,12 +413,11 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 
 	msg.msg_controllen = cmsg->cmsg_len;
 
-send_message:
-	while (sendmsg(l_ProcessControlFD, &msg, 0) < 0)
-		StartSpawnProcessHelper();
-
-	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
-		goto send_message;
+	do {
+		while (sendmsg(l_ProcessControlFD, &msg, 0) < 0) {
+			StartSpawnProcessHelper();
+		}
+	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
 
 	char buf[4096];
 
@@ -450,12 +449,11 @@ static int ProcessKill(pid_t pid, int signum)
 
 	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
 
-send_message:
-	while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0)
-		StartSpawnProcessHelper();
-
-	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
-		goto send_message;
+	do {
+		while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0) {
+			StartSpawnProcessHelper();
+		}
+	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
 
 	char buf[4096];
 
@@ -482,12 +480,11 @@ static int ProcessWaitPID(pid_t pid, int *status)
 
 	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
 
-send_message:
-	while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0)
-		StartSpawnProcessHelper();
-
-	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
-		goto send_message;
+	do {
+		while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0) {
+			StartSpawnProcessHelper();
+		}
+	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
 
 	char buf[4096];
 
