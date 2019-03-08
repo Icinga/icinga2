@@ -171,7 +171,7 @@ void Application::SetResourceLimits()
 	rlim_t fileLimit = Configuration::RLimitFiles;
 
 	if (fileLimit != 0) {
-		if (fileLimit < GetDefaultRLimitFiles()) {
+		if (fileLimit < (rlim_t)GetDefaultRLimitFiles()) {
 			Log(LogWarning, "Application")
 				<< "The user-specified value for RLimitFiles cannot be smaller than the default value (" << GetDefaultRLimitFiles() << "). Using the default value instead.";
 			fileLimit = GetDefaultRLimitFiles();
@@ -192,7 +192,7 @@ void Application::SetResourceLimits()
 	rlim_t processLimit = Configuration::RLimitProcesses;
 
 	if (processLimit != 0) {
-		if (processLimit < GetDefaultRLimitProcesses()) {
+		if (processLimit < (rlim_t)GetDefaultRLimitProcesses()) {
 			Log(LogWarning, "Application")
 				<< "The user-specified value for RLimitProcesses cannot be smaller than the default value (" << GetDefaultRLimitProcesses() << "). Using the default value instead.";
 			processLimit = GetDefaultRLimitProcesses();
@@ -231,7 +231,7 @@ void Application::SetResourceLimits()
 	stackLimit = Configuration::RLimitStack;
 
 	if (stackLimit != 0) {
-		if (stackLimit < GetDefaultRLimitStack()) {
+		if (stackLimit < (rlim_t)GetDefaultRLimitStack()) {
 			Log(LogWarning, "Application")
 				<< "The user-specified value for RLimitStack cannot be smaller than the default value (" << GetDefaultRLimitStack() << "). Using the default value instead.";
 			stackLimit = GetDefaultRLimitStack();

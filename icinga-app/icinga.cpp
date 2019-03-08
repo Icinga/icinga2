@@ -940,6 +940,8 @@ int main(int argc, char **argv)
 #ifdef I2_DEBUG
 				if (rc >= 0)
 					std::cerr << "Closed FD " << i << " which we inherited from our parent process." << std::endl;
+#else /* I2_DEBUG */
+				(void)rc;
 #endif /* I2_DEBUG */
 			}
 		}

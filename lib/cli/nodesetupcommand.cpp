@@ -170,7 +170,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	if (vm.count("global_zones"))
 		setupGlobalZones = vm["global_zones"].as<std::vector<std::string> >();
 
-	for (int i = 0; i < setupGlobalZones.size(); i++) {
+	for (decltype(setupGlobalZones.size()) i = 0; i < setupGlobalZones.size(); i++) {
 		if (std::find(globalZones.begin(), globalZones.end(), setupGlobalZones[i]) != globalZones.end()) {
 			Log(LogCritical, "cli")
 				<< "The global zone '" << setupGlobalZones[i] << "' is already specified.";
@@ -522,7 +522,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	if (vm.count("global_zones"))
 		setupGlobalZones = vm["global_zones"].as<std::vector<std::string> >();
 
-	for (int i = 0; i < setupGlobalZones.size(); i++) {
+	for (decltype(setupGlobalZones.size()) i = 0; i < setupGlobalZones.size(); i++) {
 		if (std::find(globalZones.begin(), globalZones.end(), setupGlobalZones[i]) != globalZones.end()) {
 			Log(LogCritical, "cli")
 				<< "The global zone '" << setupGlobalZones[i] << "' is already specified.";

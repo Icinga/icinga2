@@ -476,15 +476,15 @@ incomplete:
 
 				std::vector<String> ulines = text.Split("\n");
 
-				for (int i = 1; i <= ulines.size(); i++) {
+				for (decltype(ulines.size()) i = 1; i <= ulines.size(); i++) {
 					int start, len;
 
-					if (i == di.FirstLine)
+					if (i == (decltype(i))di.FirstLine)
 						start = di.FirstColumn;
 					else
 						start = 0;
 
-					if (i == di.LastLine)
+					if (i == (decltype(i))di.LastLine)
 						len = di.LastColumn - di.FirstColumn + 1;
 					else
 						len = ulines[i - 1].GetLength();
@@ -497,7 +497,7 @@ incomplete:
 					} else
 						offset = 4;
 
-					if (i >= di.FirstLine && i <= di.LastLine) {
+					if (i >= (decltype(i))di.FirstLine && i <= (decltype(i))di.LastLine) {
 						std::cout << String(di.Path.GetLength() + offset, ' ');
 						std::cout << String(start, ' ') << String(len, '^') << "\n";
 					}

@@ -1424,7 +1424,7 @@ bool ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
 	boost::mutex::scoped_lock lock(m_AnonymousClientsLock);
 
-	if (GetMaxAnonymousClients() >= 0 && m_AnonymousClients.size() + 1 > GetMaxAnonymousClients())
+	if (GetMaxAnonymousClients() >= 0 && (long)m_AnonymousClients.size() + 1 > (long)GetMaxAnonymousClients())
 		return false;
 
 	m_AnonymousClients.insert(aclient);
