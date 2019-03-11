@@ -24,7 +24,7 @@ int PkiUtility::NewCa()
 	String caKeyFile = caDir + "/ca.key";
 
 	if (Utility::PathExists(caCertFile) && Utility::PathExists(caKeyFile)) {
-		Log(LogCritical, "cli")
+		Log(LogWarning, "cli")
 			<< "CA files '" << caCertFile << "' and '" << caKeyFile << "' already exist.";
 		return 1;
 	}
