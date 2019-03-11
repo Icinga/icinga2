@@ -51,19 +51,19 @@ void HttpServerConnection::Start()
 {
 	namespace asio = boost::asio;
 
-	HttpServerConnection::Ptr preventGc (this);
+	HttpServerConnection::Ptr keepAlive (this);
 
-	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { ProcessMessages(yc); });
-	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) { CheckLiveness(yc); });
+	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { ProcessMessages(yc); });
+	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
 }
 
 void HttpServerConnection::Disconnect()
 {
 	namespace asio = boost::asio;
 
-	HttpServerConnection::Ptr preventGc (this);
+	HttpServerConnection::Ptr keepAlive (this);
 
-	asio::spawn(m_IoStrand, [this, preventGc](asio::yield_context yc) {
+	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
 		if (!m_ShuttingDown) {
 			m_ShuttingDown = true;
 
