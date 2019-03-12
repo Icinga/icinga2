@@ -342,7 +342,7 @@ void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *referenc
 
 	if (begin->tm_hour * 3600 + begin->tm_min * 60 + begin->tm_sec >=
 		end->tm_hour * 3600 + end->tm_min * 60 + end->tm_sec)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Time period segment ends before it begins"));
+		end->tm_hour += 24;
 }
 
 Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *reference)
