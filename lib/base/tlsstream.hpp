@@ -106,11 +106,10 @@ struct UnbufferedAsioTlsStreamParams
 	const String& Hostname;
 };
 
-class UnbufferedAsioTlsStream : public boost::asio::ssl::stream<boost::asio::ip::tcp::socket>
-{
-private:
-	typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> Parent;
+typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> AsioTcpTlsStream;
 
+class UnbufferedAsioTlsStream : public AsioTcpTlsStream
+{
 public:
 	inline
 	UnbufferedAsioTlsStream(UnbufferedAsioTlsStreamParams& init)
@@ -123,20 +122,20 @@ public:
 
 	template<class... Args>
 	inline
-	auto async_handshake(handshake_type type, Args&&... args) -> decltype(Parent::async_handshake(type, std::forward<Args>(args)...))
+	auto async_handshake(handshake_type type, Args&&... args) -> decltype(AsioTcpTlsStream::async_handshake(type, std::forward<Args>(args)...))
 	{
 		BeforeHandshake(type);
 
-		return Parent::async_handshake(type, std::forward<Args>(args)...);
+		return AsioTcpTlsStream::async_handshake(type, std::forward<Args>(args)...);
 	}
 
 	template<class... Args>
 	inline
-	auto handshake(handshake_type type, Args&&... args) -> decltype(Parent::handshake(type, std::forward<Args>(args)...))
+	auto handshake(handshake_type type, Args&&... args) -> decltype(AsioTcpTlsStream::handshake(type, std::forward<Args>(args)...))
 	{
 		BeforeHandshake(type);
 
-		return Parent::handshake(type, std::forward<Args>(args)...);
+		return AsioTcpTlsStream::handshake(type, std::forward<Args>(args)...);
 	}
 
 private:
