@@ -4,6 +4,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "remote/jsonrpc.hpp"
+#include "base/defer.hpp"
 #include "base/configtype.hpp"
 #include "base/io-engine.hpp"
 #include "base/json.hpp"

@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/application.hpp"
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
