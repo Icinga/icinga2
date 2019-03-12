@@ -122,7 +122,7 @@ public:
 
 	template<class... Args>
 	inline
-	auto async_handshake(handshake_type type, Args&&... args) -> decltype(AsioTcpTlsStream::async_handshake(type, std::forward<Args>(args)...))
+	auto async_handshake(handshake_type type, Args&&... args) -> decltype(((AsioTcpTlsStream*)nullptr)->async_handshake(type, std::forward<Args>(args)...))
 	{
 		BeforeHandshake(type);
 
@@ -131,7 +131,7 @@ public:
 
 	template<class... Args>
 	inline
-	auto handshake(handshake_type type, Args&&... args) -> decltype(AsioTcpTlsStream::handshake(type, std::forward<Args>(args)...))
+	auto handshake(handshake_type type, Args&&... args) -> decltype(((AsioTcpTlsStream*)nullptr)->handshake(type, std::forward<Args>(args)...))
 	{
 		BeforeHandshake(type);
 
