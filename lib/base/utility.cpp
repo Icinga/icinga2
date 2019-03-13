@@ -22,6 +22,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <future>
+#include <vector>
 
 #ifdef __FreeBSD__
 #	include <pthread_np.h>
@@ -1701,40 +1702,39 @@ String Utility::GetPlatformArchitecture()
 #endif /* _WIN32 */
 }
 
+const char *l_BadUtf8Placeholder = "\xEF\xBF\xBD";
+
 String Utility::ValidateUTF8(const String& input)
 {
-	String output;
+	std::vector<char> output;
 	size_t length = input.GetLength();
+
+	output.reserve(length * 3u);
 
 	for (size_t i = 0; i < length; i++) {
 		if ((input[i] & 0x80) == 0) {
-			output += input[i];
+			output.insert(output.end(), &input[i], &input[i] + 1);
 			continue;
 		}
 
 		if ((input[i] & 0xE0) == 0xC0 && length > i + 1 &&
 			(input[i + 1] & 0xC0) == 0x80) {
-			output += input[i];
-			output += input[i + 1];
+			output.insert(output.end(), &input[i], &input[i] + 2);
 			i++;
 			continue;
 		}
 
 		if ((input[i] & 0xF0) == 0xE0 && length > i + 2 &&
 			(input[i + 1] & 0xC0) == 0x80 && (input[i + 2] & 0xC0) == 0x80) {
-			output += input[i];
-			output += input[i + 1];
-			output += input[i + 2];
+			output.insert(output.end(), &input[i], &input[i] + 3);
 			i += 2;
 			continue;
 		}
 
-		output += '\xEF';
-		output += '\xBF';
-		output += '\xBD';
+		output.insert(output.end(), l_BadUtf8Placeholder, l_BadUtf8Placeholder + 3);
 	}
 
-	return output;
+	return String(output.begin(), output.end());
 }
 
 String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
