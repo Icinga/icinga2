@@ -50,4 +50,12 @@ BOOST_AUTO_TEST_CASE(comparepasswords_issafe)
 	BOOST_CHECK(0.9 <= diff && diff <= 1.1);
 }
 
+BOOST_AUTO_TEST_CASE(validateutf8)
+{
+	BOOST_CHECK(Utility::ValidateUTF8("") == "");
+	BOOST_CHECK(Utility::ValidateUTF8("a") == "a");
+	BOOST_CHECK(Utility::ValidateUTF8("\xC3") == "\xEF\xBF\xBD");
+	BOOST_CHECK(Utility::ValidateUTF8("\xC3\xA4") == "\xC3\xA4");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
