@@ -13,8 +13,46 @@
 #include <yajl/yajl_parse.h>
 #include <json.hpp>
 #include <stack>
+#include <utility>
 
 using namespace icinga;
+
+class JsonSax : public nlohmann::json_sax<nlohmann::json>
+{
+public:
+	bool null() override;
+	bool boolean(bool val) override;
+	bool number_integer(number_integer_t val) override;
+	bool number_unsigned(number_unsigned_t val) override;
+	bool number_float(number_float_t val, const string_t& s) override;
+	bool string(string_t& val) override;
+	bool start_object(std::size_t elements) override;
+	bool key(string_t& val) override;
+	bool end_object() override;
+	bool start_array(std::size_t elements) override;
+	bool end_array() override;
+	bool parse_error(std::size_t position, const std::string& last_token, const nlohmann::detail::exception& ex) override;
+
+	Value GetResult();
+
+private:
+	struct Node
+	{
+		union
+		{
+			Dictionary *Object;
+			Array *Aray;
+		};
+
+		bool IsObject;
+	};
+
+	Value m_Root;
+	std::stack<Node> m_CurrentSubtree;
+	String m_CurrentKey;
+
+	void FillCurrentTarget(Value value);
+};
 
 static void Encode(yajl_gen handle, const Value& value);
 
@@ -140,231 +178,136 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 	return result;
 }
 
-struct JsonElement
-{
-	String Key;
-	bool KeySet{false};
-	Value EValue;
-};
-
-struct JsonContext
-{
-public:
-	void Push(const Value& value)
-	{
-		JsonElement element;
-		element.EValue = value;
-
-		m_Stack.push(element);
-	}
-
-	JsonElement Pop()
-	{
-		JsonElement value = m_Stack.top();
-		m_Stack.pop();
-		return value;
-	}
-
-	void AddValue(const Value& value)
-	{
-		if (m_Stack.empty()) {
-			JsonElement element;
-			element.EValue = value;
-			m_Stack.push(element);
-			return;
-		}
-
-		JsonElement& element = m_Stack.top();
-
-		if (element.EValue.IsObjectType<Dictionary>()) {
-			if (!element.KeySet) {
-				element.Key = value;
-				element.KeySet = true;
-			} else {
-				Dictionary::Ptr dict = element.EValue;
-				dict->Set(element.Key, value);
-				element.KeySet = false;
-			}
-		} else if (element.EValue.IsObjectType<Array>()) {
-			Array::Ptr arr = element.EValue;
-			arr->Add(value);
-		} else {
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot add value to JSON element."));
-		}
-	}
-
-	Value GetValue() const
-	{
-		ASSERT(m_Stack.size() == 1);
-		return m_Stack.top().EValue;
-	}
-
-	void SaveException()
-	{
-		m_Exception = boost::current_exception();
-	}
-
-	void ThrowException() const
-	{
-		if (m_Exception)
-			boost::rethrow_exception(m_Exception);
-	}
-
-private:
-	std::stack<JsonElement> m_Stack;
-	Value m_Key;
-	boost::exception_ptr m_Exception;
-};
-
-static int DecodeNull(void *ctx)
-{
-	auto *context = static_cast<JsonContext *>(ctx);
-
-	try {
-		context->AddValue(Empty);
-	} catch (...) {
-		context->SaveException();
-		return 0;
-	}
-
-	return 1;
-}
-
-static int DecodeBoolean(void *ctx, int value)
-{
-	auto *context = static_cast<JsonContext *>(ctx);
-
-	try {
-		context->AddValue(static_cast<bool>(value));
-	} catch (...) {
-		context->SaveException();
-		return 0;
-	}
-
-	return 1;
-}
-
-static int DecodeNumber(void *ctx, const char *str, yajl_size len)
-{
-	auto *context = static_cast<JsonContext *>(ctx);
-
-	try {
-		String jstr = String(str, str + len);
-		context->AddValue(Convert::ToDouble(jstr));
-	} catch (...) {
-		context->SaveException();
-		return 0;
-	}
-
-	return 1;
-}
-
-static int DecodeString(void *ctx, const unsigned char *str, yajl_size len)
-{
-	auto *context = static_cast<JsonContext *>(ctx);
-
-	try {
-		context->AddValue(String(str, str + len));
-	} catch (...) {
-		context->SaveException();
-		return 0;
-	}
-
-	return 1;
-}
-
-static int DecodeStartMap(void *ctx)
-{
-	auto *context = static_cast<JsonContext *>(ctx);
-
-	try {
-		context->Push(new Dictionary());
-	} catch (...) {
-		context->SaveException();
-		return 0;
-	}
-
-	return 1;
-}
-
-static int DecodeEndMapOrArray(void *ctx)
-{
-	auto *context = static_cast<JsonContext *>(ctx);
-
-	try {
-		context->AddValue(context->Pop().EValue);
-	} catch (...) {
-		context->SaveException();
-		return 0;
-	}
-
-	return 1;
-}
-
-static int DecodeStartArray(void *ctx)
-{
-	auto *context = static_cast<JsonContext *>(ctx);
-
-	try {
-		context->Push(new Array());
-	} catch (...) {
-		context->SaveException();
-		return 0;
-	}
-
-	return 1;
-}
-
 Value icinga::JsonDecode(const String& data)
 {
-	static const yajl_callbacks callbacks = {
-		DecodeNull,
-		DecodeBoolean,
-		nullptr,
-		nullptr,
-		DecodeNumber,
-		DecodeString,
-		DecodeStartMap,
-		DecodeString,
-		DecodeEndMapOrArray,
-		DecodeStartArray,
-		DecodeEndMapOrArray
-	};
+	JsonSax stateMachine;
 
-	yajl_handle handle;
-#if YAJL_MAJOR < 2
-	yajl_parser_config cfg = { 1, 0 };
-#endif /* YAJL_MAJOR */
-	JsonContext context;
+	nlohmann::json::sax_parse(data.Begin(), data.End(), &stateMachine);
 
-#if YAJL_MAJOR < 2
-	handle = yajl_alloc(&callbacks, &cfg, nullptr, &context);
-#else /* YAJL_MAJOR */
-	handle = yajl_alloc(&callbacks, nullptr, &context);
-	yajl_config(handle, yajl_dont_validate_strings, 1);
-	yajl_config(handle, yajl_allow_comments, 1);
-#endif /* YAJL_MAJOR */
+	return stateMachine.GetResult();
+}
 
-	yajl_parse(handle, reinterpret_cast<const unsigned char *>(data.CStr()), data.GetLength());
+inline
+bool JsonSax::null()
+{
+	FillCurrentTarget(Value());
 
-#if YAJL_MAJOR < 2
-	if (yajl_parse_complete(handle) != yajl_status_ok) {
-#else /* YAJL_MAJOR */
-	if (yajl_complete_parse(handle) != yajl_status_ok) {
-#endif /* YAJL_MAJOR */
-		unsigned char *internal_err_str = yajl_get_error(handle, 1, reinterpret_cast<const unsigned char *>(data.CStr()), data.GetLength());
-		String msg = reinterpret_cast<char *>(internal_err_str);
-		yajl_free_error(handle, internal_err_str);
+	return true;
+}
 
-		yajl_free(handle);
+inline
+bool JsonSax::boolean(bool val)
+{
+	FillCurrentTarget(val);
 
-		/* throw saved exception (if there is one) */
-		context.ThrowException();
+	return true;
+}
 
-		BOOST_THROW_EXCEPTION(std::invalid_argument(msg));
+inline
+bool JsonSax::number_integer(JsonSax::number_integer_t val)
+{
+	FillCurrentTarget((double)val);
+
+	return true;
+}
+
+inline
+bool JsonSax::number_unsigned(JsonSax::number_unsigned_t val)
+{
+	FillCurrentTarget((double)val);
+
+	return true;
+}
+
+inline
+bool JsonSax::number_float(JsonSax::number_float_t val, const JsonSax::string_t&)
+{
+	FillCurrentTarget((double)val);
+
+	return true;
+}
+
+inline
+bool JsonSax::string(JsonSax::string_t& val)
+{
+	FillCurrentTarget(String(std::move(val)));
+
+	return true;
+}
+
+inline
+bool JsonSax::start_object(std::size_t)
+{
+	auto object (new Dictionary());
+
+	FillCurrentTarget(object);
+
+	m_CurrentSubtree.push(Node{{.Object = object}, true});
+
+	return true;
+}
+
+inline
+bool JsonSax::key(JsonSax::string_t& val)
+{
+	m_CurrentKey = String(std::move(val));
+
+	return true;
+}
+
+inline
+bool JsonSax::end_object()
+{
+	m_CurrentSubtree.pop();
+	m_CurrentKey = String();
+
+	return true;
+}
+
+inline
+bool JsonSax::start_array(std::size_t)
+{
+	auto array (new Array());
+
+	FillCurrentTarget(array);
+
+	m_CurrentSubtree.push(Node{{.Aray = array}, false});
+
+	return true;
+}
+
+inline
+bool JsonSax::end_array()
+{
+	m_CurrentSubtree.pop();
+
+	return true;
+}
+
+inline
+bool JsonSax::parse_error(std::size_t, const std::string&, const nlohmann::detail::exception& ex)
+{
+	throw std::invalid_argument(ex.what());
+}
+
+inline
+Value JsonSax::GetResult()
+{
+	return m_Root;
+}
+
+inline
+void JsonSax::FillCurrentTarget(Value value)
+{
+	if (m_CurrentSubtree.empty()) {
+		m_Root = value;
+	} else {
+		auto& node (m_CurrentSubtree.top());
+
+		if (node.IsObject) {
+			node.Object->Set(m_CurrentKey, value);
+		} else {
+			node.Aray->Add(value);
+		}
 	}
-
-	yajl_free(handle);
-
-	return context.GetValue();
 }
