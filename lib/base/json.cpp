@@ -37,19 +37,8 @@ public:
 	Value GetResult();
 
 private:
-	struct Node
-	{
-		union
-		{
-			Dictionary *Object;
-			Array *Aray;
-		};
-
-		bool IsObject;
-	};
-
 	Value m_Root;
-	std::stack<Node> m_CurrentSubtree;
+	std::stack<std::pair<Dictionary*, Array*>> m_CurrentSubtree;
 	String m_CurrentKey;
 
 	void FillCurrentTarget(Value value);
@@ -280,7 +269,7 @@ bool JsonSax::start_object(std::size_t)
 
 	FillCurrentTarget(object);
 
-	m_CurrentSubtree.push(Node{{.Object = object}, true});
+	m_CurrentSubtree.push({object, nullptr});
 
 	return true;
 }
@@ -309,7 +298,7 @@ bool JsonSax::start_array(std::size_t)
 
 	FillCurrentTarget(array);
 
-	m_CurrentSubtree.push(Node{{.Aray = array}, false});
+	m_CurrentSubtree.push({nullptr, array});
 
 	return true;
 }
@@ -342,10 +331,10 @@ void JsonSax::FillCurrentTarget(Value value)
 	} else {
 		auto& node (m_CurrentSubtree.top());
 
-		if (node.IsObject) {
-			node.Object->Set(m_CurrentKey, value);
+		if (node.first) {
+			node.first->Set(m_CurrentKey, value);
 		} else {
-			node.Aray->Add(value);
+			node.second->Add(value);
 		}
 	}
 }
