@@ -7,13 +7,16 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
+#include <bitset>
 #include <boost/exception_ptr.hpp>
+#include <cstdint>
 #include <yajl/yajl_version.h>
 #include <yajl/yajl_gen.h>
 #include <yajl/yajl_parse.h>
 #include <json.hpp>
 #include <stack>
 #include <utility>
+#include <vector>
 
 using namespace icinga;
 
@@ -54,100 +57,143 @@ private:
 	void FillCurrentTarget(Value value);
 };
 
-static void Encode(yajl_gen handle, const Value& value);
+const char l_Null[] = "null";
+const char l_False[] = "false";
+const char l_True[] = "true";
+const char l_Indent[] = "    ";
 
-#if YAJL_MAJOR < 2
-typedef unsigned int yajl_size;
-#else /* YAJL_MAJOR */
-typedef size_t yajl_size;
-#endif /* YAJL_MAJOR */
-
-static void EncodeNamespace(yajl_gen handle, const Namespace::Ptr& ns)
+// https://github.com/nlohmann/json/issues/1512
+template<bool prettyPrint>
+class JsonEncoder
 {
-	yajl_gen_map_open(handle);
+public:
+	void Null();
+	void Boolean(bool value);
+	void NumberFloat(double value);
+	void Strng(String value);
+	void StartObject();
+	void Key(String value);
+	void EndObject();
+	void StartArray();
+	void EndArray();
+
+	String GetResult();
+
+private:
+	std::vector<char> m_Result;
+	String m_CurrentKey;
+	std::stack<std::bitset<2>> m_CurrentSubtree;
+
+	void AppendChar(char c);
+
+	template<class Iterator>
+	void AppendChars(Iterator begin, Iterator end);
+
+	void AppendJson(nlohmann::json json);
+
+	void BeforeItem();
+
+	void FinishContainer(char terminator);
+};
+
+template<bool prettyPrint>
+void Encode(JsonEncoder<prettyPrint>& stateMachine, const Value& value);
+
+template<bool prettyPrint>
+inline
+void EncodeNamespace(JsonEncoder<prettyPrint>& stateMachine, const Namespace::Ptr& ns)
+{
+	stateMachine.StartObject();
 
 	ObjectLock olock(ns);
 	for (const Namespace::Pair& kv : ns) {
-		yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(kv.first.CStr()), kv.first.GetLength());
-		Encode(handle, kv.second->Get());
+		stateMachine.Key(kv.first);
+		Encode(stateMachine, kv.second->Get());
 	}
 
-	yajl_gen_map_close(handle);
+	stateMachine.EndObject();
 }
 
-static void EncodeDictionary(yajl_gen handle, const Dictionary::Ptr& dict)
+template<bool prettyPrint>
+inline
+void EncodeDictionary(JsonEncoder<prettyPrint>& stateMachine, const Dictionary::Ptr& dict)
 {
-	yajl_gen_map_open(handle);
+	stateMachine.StartObject();
 
 	ObjectLock olock(dict);
 	for (const Dictionary::Pair& kv : dict) {
-		yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(kv.first.CStr()), kv.first.GetLength());
-		Encode(handle, kv.second);
+		stateMachine.Key(kv.first);
+		Encode(stateMachine, kv.second);
 	}
 
-	yajl_gen_map_close(handle);
+	stateMachine.EndObject();
 }
 
-static void EncodeArray(yajl_gen handle, const Array::Ptr& arr)
+template<bool prettyPrint>
+inline
+void EncodeArray(JsonEncoder<prettyPrint>& stateMachine, const Array::Ptr& arr)
 {
-	yajl_gen_array_open(handle);
+	stateMachine.StartArray();
 
 	ObjectLock olock(arr);
 	for (const Value& value : arr) {
-		Encode(handle, value);
+		Encode(stateMachine, value);
 	}
 
-	yajl_gen_array_close(handle);
+	stateMachine.EndArray();
 }
 
-static void Encode(yajl_gen handle, const Value& value)
+template<bool prettyPrint>
+void Encode(JsonEncoder<prettyPrint>& stateMachine, const Value& value)
 {
 	switch (value.GetType()) {
 		case ValueNumber:
-			if (yajl_gen_double(handle, value.Get<double>()) == yajl_gen_invalid_number)
-				yajl_gen_double(handle, 0);
-
+			stateMachine.NumberFloat(value.Get<double>());
 			break;
+
 		case ValueBoolean:
-			yajl_gen_bool(handle, value.ToBool());
-
+			stateMachine.Boolean(value.ToBool());
 			break;
+
 		case ValueString:
-			yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(value.Get<String>().CStr()), value.Get<String>().GetLength());
-
+			stateMachine.Strng(value.Get<String>());
 			break;
+
 		case ValueObject:
 			{
 				const Object::Ptr& obj = value.Get<Object::Ptr>();
-				Namespace::Ptr ns = dynamic_pointer_cast<Namespace>(obj);
 
-				if (ns) {
-					EncodeNamespace(handle, ns);
-					break;
+				{
+					Namespace::Ptr ns = dynamic_pointer_cast<Namespace>(obj);
+					if (ns) {
+						EncodeNamespace(stateMachine, ns);
+						break;
+					}
 				}
 
-				Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
-
-				if (dict) {
-					EncodeDictionary(handle, dict);
-					break;
+				{
+					Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
+					if (dict) {
+						EncodeDictionary(stateMachine, dict);
+						break;
+					}
 				}
 
 				Array::Ptr arr = dynamic_pointer_cast<Array>(obj);
-
 				if (arr) {
-					EncodeArray(handle, arr);
+					EncodeArray(stateMachine, arr);
 					break;
 				}
 			}
 
-			yajl_gen_null(handle);
+			stateMachine.Null();
 
 			break;
+
 		case ValueEmpty:
-			yajl_gen_null(handle);
-
+			stateMachine.Null();
 			break;
+
 		default:
 			VERIFY(!"Invalid variant type.");
 	}
@@ -155,27 +201,19 @@ static void Encode(yajl_gen handle, const Value& value)
 
 String icinga::JsonEncode(const Value& value, bool pretty_print)
 {
-#if YAJL_MAJOR < 2
-	yajl_gen_config conf = { pretty_print, "" };
-	yajl_gen handle = yajl_gen_alloc(&conf, nullptr);
-#else /* YAJL_MAJOR */
-	yajl_gen handle = yajl_gen_alloc(nullptr);
-	if (pretty_print)
-		yajl_gen_config(handle, yajl_gen_beautify, 1);
-#endif /* YAJL_MAJOR */
+	if (pretty_print) {
+		JsonEncoder<true> stateMachine;
 
-	Encode(handle, value);
+		Encode(stateMachine, value);
 
-	const unsigned char *buf;
-	yajl_size len;
+		return stateMachine.GetResult();
+	} else {
+		JsonEncoder<false> stateMachine;
 
-	yajl_gen_get_buf(handle, &buf, &len);
+		Encode(stateMachine, value);
 
-	String result = String(buf, buf + len);
-
-	yajl_gen_free(handle);
-
-	return result;
+		return stateMachine.GetResult();
+	}
 }
 
 Value icinga::JsonDecode(const String& data)
@@ -310,4 +348,160 @@ void JsonSax::FillCurrentTarget(Value value)
 			node.Aray->Add(value);
 		}
 	}
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::Null()
+{
+	BeforeItem();
+	AppendChars((const char*)l_Null, (const char*)l_Null + 4);
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::Boolean(bool value)
+{
+	BeforeItem();
+
+	if (value) {
+		AppendChars((const char*)l_True, (const char*)l_True + 4);
+	} else {
+		AppendChars((const char*)l_False, (const char*)l_False + 5);
+	}
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::NumberFloat(double value)
+{
+	BeforeItem();
+	AppendJson(value);
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::Strng(String value)
+{
+	BeforeItem();
+	AppendJson(std::move(value));
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::StartObject()
+{
+	BeforeItem();
+	AppendChar('{');
+
+	m_CurrentSubtree.push(2);
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::Key(String value)
+{
+	m_CurrentKey = std::move(value);
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::EndObject()
+{
+	FinishContainer('}');
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::StartArray()
+{
+	BeforeItem();
+	AppendChar('[');
+
+	m_CurrentSubtree.push(0);
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::EndArray()
+{
+	FinishContainer(']');
+}
+
+template<bool prettyPrint>
+inline
+String JsonEncoder<prettyPrint>::GetResult()
+{
+	return String(m_Result.begin(), m_Result.end());
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::AppendChar(char c)
+{
+	m_Result.emplace_back(c);
+}
+
+template<bool prettyPrint>
+template<class Iterator>
+inline
+void JsonEncoder<prettyPrint>::AppendChars(Iterator begin, Iterator end)
+{
+	m_Result.insert(m_Result.end(), begin, end);
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::AppendJson(nlohmann::json json)
+{
+	nlohmann::detail::serializer<nlohmann::json>(nlohmann::detail::output_adapter<char>(m_Result), ' ').dump(std::move(json), prettyPrint, true, 0);
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::BeforeItem()
+{
+	if (!m_CurrentSubtree.empty()) {
+		auto& node (m_CurrentSubtree.top());
+
+		if (node[0]) {
+			AppendChar(',');
+		} else {
+			node[0] = true;
+		}
+
+		if (prettyPrint) {
+			AppendChar('\n');
+
+			for (auto i (m_CurrentSubtree.size()); i; --i) {
+				AppendChars((const char*)l_Indent, (const char*)l_Indent + 4);
+			}
+		}
+
+		if (node[1]) {
+			AppendJson(std::move(m_CurrentKey));
+			AppendChar(':');
+
+			if (prettyPrint) {
+				AppendChar(' ');
+			}
+		}
+	}
+}
+
+template<bool prettyPrint>
+inline
+void JsonEncoder<prettyPrint>::FinishContainer(char terminator)
+{
+	if (prettyPrint && m_CurrentSubtree.top()[0]) {
+		AppendChar('\n');
+
+		for (auto i (m_CurrentSubtree.size() - 1u); i; --i) {
+			AppendChars((const char*)l_Indent, (const char*)l_Indent + 4);
+		}
+	}
+
+	AppendChar(terminator);
+
+	m_CurrentSubtree.pop();
 }
