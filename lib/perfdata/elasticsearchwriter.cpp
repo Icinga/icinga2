@@ -25,6 +25,7 @@
 #include "icinga/compatutility.hpp"
 #include "icinga/service.hpp"
 #include "icinga/checkcommand.hpp"
+#include "base/defer.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/stream.hpp"
 #include "base/base64.hpp"
@@ -440,6 +441,8 @@ void ElasticsearchWriter::SendRequest(const String& body)
 
 	if (!stream)
 		return;
+
+	Defer close ([&stream]() { stream->Close(); });
 
 	HttpRequest req(stream);
 
