@@ -7,6 +7,7 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
+#include "base/utility.hpp"
 #include <bitset>
 #include <boost/exception_ptr.hpp>
 #include <cstdint>
@@ -104,7 +105,7 @@ void EncodeNamespace(JsonEncoder<prettyPrint>& stateMachine, const Namespace::Pt
 
 	ObjectLock olock(ns);
 	for (const Namespace::Pair& kv : ns) {
-		stateMachine.Key(kv.first);
+		stateMachine.Key(Utility::ValidateUTF8(kv.first));
 		Encode(stateMachine, kv.second->Get());
 	}
 
@@ -119,7 +120,7 @@ void EncodeDictionary(JsonEncoder<prettyPrint>& stateMachine, const Dictionary::
 
 	ObjectLock olock(dict);
 	for (const Dictionary::Pair& kv : dict) {
-		stateMachine.Key(kv.first);
+		stateMachine.Key(Utility::ValidateUTF8(kv.first));
 		Encode(stateMachine, kv.second);
 	}
 
@@ -153,7 +154,7 @@ void Encode(JsonEncoder<prettyPrint>& stateMachine, const Value& value)
 			break;
 
 		case ValueString:
-			stateMachine.Strng(value.Get<String>());
+			stateMachine.Strng(Utility::ValidateUTF8(value.Get<String>()));
 			break;
 
 		case ValueObject:
@@ -215,9 +216,11 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 
 Value icinga::JsonDecode(const String& data)
 {
+	String sanitized (Utility::ValidateUTF8(data));
+
 	JsonSax stateMachine;
 
-	nlohmann::json::sax_parse(data.Begin(), data.End(), &stateMachine);
+	nlohmann::json::sax_parse(sanitized.Begin(), sanitized.End(), &stateMachine);
 
 	return stateMachine.GetResult();
 }
