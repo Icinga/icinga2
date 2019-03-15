@@ -10,9 +10,6 @@
 #include <bitset>
 #include <boost/exception_ptr.hpp>
 #include <cstdint>
-#include <yajl/yajl_version.h>
-#include <yajl/yajl_gen.h>
-#include <yajl/yajl_parse.h>
 #include <json.hpp>
 #include <stack>
 #include <utility>
