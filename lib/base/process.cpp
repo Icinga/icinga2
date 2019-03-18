@@ -147,8 +147,11 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		(void)close(fds[2]);
 
 #ifdef HAVE_NICE
-		if (adjustPriority)
-			(void)nice(5);
+		if (adjustPriority) {
+			// Cheating the compiler on "warning: ignoring return value of 'int nice(int)', declared with attribute warn_unused_result [-Wunused-result]".
+			auto x (nice(5));
+			(void)x;
+		}
 #endif /* HAVE_NICE */
 
 		sigset_t mask;

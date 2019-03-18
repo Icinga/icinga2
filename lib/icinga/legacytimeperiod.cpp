@@ -391,7 +391,7 @@ Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const
 			ProcessTimeRanges(timeranges, &iter, segments);
 
 			Dictionary::Ptr bestSegment;
-			double bestEnd;
+			double bestEnd = 0.0;
 
 			ObjectLock olock(segments);
 			for (const Dictionary::Ptr& segment : segments) {

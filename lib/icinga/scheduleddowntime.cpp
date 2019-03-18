@@ -119,7 +119,7 @@ std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 	Array::Ptr segments = new Array();
 
 	Dictionary::Ptr bestSegment;
-	double bestBegin, bestEnd;
+	double bestBegin = 0.0, bestEnd = 0.0;
 	double now = Utility::GetTime();
 
 	ObjectLock olock(ranges);
@@ -179,7 +179,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment()
 	Array::Ptr segments = new Array();
 
 	Dictionary::Ptr bestSegment;
-	double bestBegin, bestEnd;
+	double bestBegin = 0.0, bestEnd = 0.0;
 	double now = Utility::GetTime();
 
 	ObjectLock olock(ranges);

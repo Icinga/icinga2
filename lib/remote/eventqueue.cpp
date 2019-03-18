@@ -48,6 +48,10 @@ void EventQueue::AddClient(void *client)
 
 	auto result = m_Events.insert(std::make_pair(client, std::deque<Dictionary::Ptr>()));
 	ASSERT(result.second);
+
+#ifndef I2_DEBUG
+	(void)result;
+#endif /* I2_DEBUG */
 }
 
 void EventQueue::RemoveClient(void *client)

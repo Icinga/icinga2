@@ -73,6 +73,10 @@ ScriptFrame::~ScriptFrame()
 {
 	ScriptFrame *frame = PopFrame();
 	ASSERT(frame == this);
+
+#ifndef I2_DEBUG
+	(void)frame;
+#endif /* I2_DEBUG */
 }
 
 void ScriptFrame::IncreaseStackDepth()
