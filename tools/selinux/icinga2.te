@@ -1,4 +1,4 @@
-policy_module(icinga2, 0.1.7)
+policy_module(icinga2, 0.1.8)
 
 ########################################
 #
@@ -25,6 +25,7 @@ require {
 	type nagios_openshift_plugin_t; type nagios_openshift_plugin_exec_t;
 	type httpd_t; type system_mail_t;
 	role staff_r;
+	attribute unreserved_port_type;
 }
 
 type icinga2_t;
@@ -64,6 +65,8 @@ type icinga2_tmp_t;
 files_tmp_file(icinga2_tmp_t)
 
 type icinga2_port_t;
+# There is no interface for unreserved_port_type
+typeattribute icinga2_port_t unreserved_port_type;
 corenet_port(icinga2_port_t)
 
 ########################################
