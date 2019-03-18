@@ -2,6 +2,7 @@
 
 #include "base/dictionary.hpp"
 #include "base/namespace.hpp"
+#include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include <boost/algorithm/string/replace.hpp>
