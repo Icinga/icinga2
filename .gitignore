@@ -1,13 +1,14 @@
-## Editors
-.idea/
-*.komodoproject
-.*.sw[op]
-*~
+# Exclude all hidden files
+.*
 
-## C++ and Tools
-*.patch
-*.playground
-.vagrant
+# Except those related to git and vagrant
+!.git*
+!.puppet*
+!.travis.yml
+!.mailmap
+
+## Tools
+*~
 tickets.pickle
 
 ## Build artifacts
