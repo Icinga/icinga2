@@ -1130,7 +1130,7 @@ Icinga application using a dist tarball (including notes for distributions):
 
 **FreeBSD**: libexecinfo (automatically used when Icinga 2 is installed via port or package)
 
-**RHEL6**: Requires a newer boost version which is available on packages.icinga.com
+**RHEL6** and **SLES11**: Requires a newer boost version which is available on packages.icinga.com
 with a version suffixed name.
 
 ### Runtime user environment <a id="development-package-builds-runtime-user-env"></a>
