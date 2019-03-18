@@ -108,6 +108,7 @@ add_boost_test(base
     base_type/instantiate
     base_utility/comparepasswords_works
     base_utility/comparepasswords_issafe
+    base_utility/validateutf8
     base_value/scalar
     base_value/convert
     base_value/format

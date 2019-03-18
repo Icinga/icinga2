@@ -20,8 +20,11 @@
 #include <ios>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <stdlib.h>
 #include <future>
+#include <utf8.h>
+#include <vector>
 
 #ifdef __FreeBSD__
 #	include <pthread_np.h>
@@ -1701,40 +1704,20 @@ String Utility::GetPlatformArchitecture()
 #endif /* _WIN32 */
 }
 
+const char l_Utf8Replacement[] = "\xEF\xBF\xBD";
+
 String Utility::ValidateUTF8(const String& input)
 {
-	String output;
-	size_t length = input.GetLength();
+	std::vector<char> output;
+	output.reserve(input.GetLength() * 3u);
 
-	for (size_t i = 0; i < length; i++) {
-		if ((input[i] & 0x80) == 0) {
-			output += input[i];
-			continue;
-		}
-
-		if ((input[i] & 0xE0) == 0xC0 && length > i + 1 &&
-			(input[i + 1] & 0xC0) == 0x80) {
-			output += input[i];
-			output += input[i + 1];
-			i++;
-			continue;
-		}
-
-		if ((input[i] & 0xF0) == 0xE0 && length > i + 2 &&
-			(input[i + 1] & 0xC0) == 0x80 && (input[i + 2] & 0xC0) == 0x80) {
-			output += input[i];
-			output += input[i + 1];
-			output += input[i + 2];
-			i += 2;
-			continue;
-		}
-
-		output += '\xEF';
-		output += '\xBF';
-		output += '\xBD';
+	try {
+		utf8::replace_invalid(input.Begin(), input.End(), std::back_inserter(output));
+	} catch (const utf8::not_enough_room&) {
+		output.insert(output.end(), (const char*)l_Utf8Replacement, (const char*)l_Utf8Replacement + 3);
 	}
 
-	return output;
+	return String(output.begin(), output.end());
 }
 
 String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)

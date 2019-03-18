@@ -153,6 +153,10 @@ else()
   list(APPEND base_DEPS ${YAJL_LIBRARIES})
 endif()
 
+# UTF8CPP
+find_package(UTF8CPP)
+include_directories(${UTF8CPP_INCLUDE})
+
 find_package(Editline)
 set(HAVE_EDITLINE "${EDITLINE_FOUND}")
 
