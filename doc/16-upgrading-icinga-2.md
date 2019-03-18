@@ -27,6 +27,18 @@ This affects the following features:
 * [OpenTsdb](09-object-types.md#objecttype-opentsdbwriter)
 * [Perfdata](09-object-types.md#objecttype-perfdatawriter) (for PNP)
 
+### Package Dependencies <a id="upgrading-to-2-11-package-dependencies"></a>
+
+#### Removed: YAJL
+
+Our JSON library, namely [YAJL](https://github.com/lloyd/yajl), isn't maintained anymore
+and may cause [crashes](https://github.com/Icinga/icinga2/issues/6684).
+
+It is replaced by [JSON for Modern C++](https://github.com/nlohmann/json) by Niels Lohmann
+and compiled into the binary as header only include. It helps our way to C++11 and allows
+to fix additional UTF8 issues more easily. Read more about its [design goals](https://github.com/nlohmann/json#design-goals)
+and [benchmarks](https://github.com/miloyip/nativejson-benchmark#parsing-time).
+
 ## Upgrading to v2.10 <a id="upgrading-to-2-10"></a>
 
 ### Path Constant Changes <a id="upgrading-to-2-10-path-constant-changes"></a>

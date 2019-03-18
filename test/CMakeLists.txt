@@ -69,6 +69,8 @@ add_boost_test(base
     base_dictionary/json
     base_fifo/construct
     base_fifo/io
+    base_json/encode
+    base_json/decode
     base_json/invalid1
     base_object_packer/pack_null
     base_object_packer/pack_false

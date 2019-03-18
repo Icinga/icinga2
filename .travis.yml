@@ -23,7 +23,6 @@ addons:
     - libpq-dev
     - libmysqlclient-dev
     - libedit-dev
-    - libyajl-dev
     - libwxbase3.0-dev
     - libwxgtk3.0-dev
   coverity_scan:

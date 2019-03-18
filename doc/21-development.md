@@ -637,7 +637,7 @@ gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ##### Debian 9 <a id="development-linux-dev-env-debian"></a>
 
 ```
-apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev libboost-all-dev bison flex default-libmysqlclient-dev libpq-dev libyajl-dev libedit-dev monitoring-plugins
+apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev libboost-all-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
 
 ln -s /usr/bin/ccache /usr/local/bin/gcc
 ln -s /usr/bin/ccache /usr/local/bin/g++
@@ -698,7 +698,7 @@ sudo dseditgroup -o edit -a _www -t user icingaweb2
 OpenSSL 1.0.x doesn't build anymore, so we're explicitly using 1.1.x here.
 
 ```
-brew install ccache boost cmake bison flex yajl openssl@1.1 mysql-connector-c++ postgresql libpq
+brew install ccache boost cmake bison flex openssl@1.1 mysql-connector-c++ postgresql libpq
 ```
 
 ##### ccache
@@ -1115,10 +1115,6 @@ Icinga application using a dist tarball (including notes for distributions):
   - RHEL/Fedora: postgresql-devel
   - Debian/Ubuntu: libpq-dev
   - postgresql-dev on Alpine
-* YAJL (Faster JSON library)
-  - RHEL/Fedora: yajl-devel
-  - Debian: libyajl-dev
-  - Alpine: yajl-dev
 * libedit (CLI console)
   - RHEL/Fedora: libedit-devel on CentOS (RHEL requires rhel-7-server-optional-rpms)
   - Debian/Ubuntu/Alpine: libedit-dev
