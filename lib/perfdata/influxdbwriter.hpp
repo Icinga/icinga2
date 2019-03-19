@@ -42,7 +42,8 @@ private:
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void CheckResultHandlerWQ(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void SendMetric(const Dictionary::Ptr& tmpl, const String& label, const Dictionary::Ptr& fields, double ts);
+	void SendMetric(const Checkable::Ptr& checkable, const Dictionary::Ptr& tmpl,
+		const String& label, const Dictionary::Ptr& fields, double ts);
 	void FlushTimeout();
 	void FlushTimeoutWQ();
 	void Flush();
