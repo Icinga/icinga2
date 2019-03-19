@@ -512,15 +512,13 @@ void ElasticsearchWriter::SendRequest(const String& body)
 			return;
 		}
 
-		Log(LogWarning, "ElasticsearchWriter")
-			<< "Unexpected response code " << resp.StatusCode;
+		std::ostringstream msgbuf;
+		msgbuf << "Unexpected response code " << resp.StatusCode << " from URL '" << req.RequestUrl->Format() << "'";
 
 		String contentType = resp.Headers->Get("content-type");
 
-		if (contentType != "application/json") {
-			Log(LogWarning, "ElasticsearchWriter")
-				<< "Unexpected Content-Type: " << contentType;
-			return;
+		if (contentType != "application/json" && contentType != "application/json; charset=utf-8") {
+			msgbuf << "; Unexpected Content-Type: '" << contentType << "'";
 		}
 
 		size_t responseSize = resp.GetBodySize();
@@ -528,6 +526,11 @@ void ElasticsearchWriter::SendRequest(const String& body)
 		resp.ReadBody(buffer.get(), responseSize);
 		buffer.get()[responseSize] = '\0';
 
+#ifdef I2_DEBUG
+		msgbuf << "; Response body: '" << buffer.get() << "'";
+#endif /* I2_DEBUG */
+
+		/* {"statusCode":404,"error":"Not Found","message":"Not Found"} */
 		Dictionary::Ptr jsonResponse;
 		try {
 			jsonResponse = JsonDecode(buffer.get());
@@ -540,7 +543,7 @@ void ElasticsearchWriter::SendRequest(const String& body)
 		String error = jsonResponse->Get("error");
 
 		Log(LogCritical, "ElasticsearchWriter")
-			<< "Elasticsearch error message:\n" << error;
+			<< "Error: '" << error << "'. " << msgbuf.str();
 
 		return;
 	}
