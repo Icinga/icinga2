@@ -127,6 +127,8 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 
 	Array::Ptr perfdata = cr->GetPerformanceData();
 
+	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
+
 	if (perfdata) {
 		ObjectLock olock(perfdata);
 		for (const Value& val : perfdata) {
@@ -139,8 +141,9 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 					pdv = PerfdataValue::Parse(val);
 				} catch (const std::exception&) {
 					Log(LogWarning, "ElasticsearchWriter")
-						<< "Ignoring invalid perfdata value: '" << val << "' for object '"
-						<< checkable->GetName() << "'.";
+						<< "Ignoring invalid perfdata for checkable '"
+						<< checkable->GetName() << "' and command '"
+						<< checkCommand->GetName() << "' with value: " << val;
 					continue;
 				}
 			}
@@ -224,7 +227,7 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 		ts = cr->GetExecutionEnd();
 	}
 
-	Enqueue("checkresult", fields, ts);
+	Enqueue(checkable, "checkresult", fields, ts);
 }
 
 void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
@@ -274,7 +277,7 @@ void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& check
 		ts = cr->GetExecutionEnd();
 	}
 
-	Enqueue("statechange", fields, ts);
+	Enqueue(checkable, "statechange", fields, ts);
 }
 
 void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
@@ -343,10 +346,11 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 		ts = cr->GetExecutionEnd();
 	}
 
-	Enqueue("notification", fields, ts);
+	Enqueue(checkable, "notification", fields, ts);
 }
 
-void ElasticsearchWriter::Enqueue(const String& type, const Dictionary::Ptr& fields, double ts)
+void ElasticsearchWriter::Enqueue(const Checkable::Ptr& checkable, const String& type,
+	const Dictionary::Ptr& fields, double ts)
 {
 	/* Atomically buffer the data point. */
 	boost::mutex::scoped_lock lock(m_DataBufferMutex);
@@ -365,7 +369,7 @@ void ElasticsearchWriter::Enqueue(const String& type, const Dictionary::Ptr& fie
 	String fieldsBody = JsonEncode(fields);
 
 	Log(LogDebug, "ElasticsearchWriter")
-		<< "Add to fields to message list: '" << fieldsBody << "'.";
+		<< "Checkable '" << checkable->GetName() << "' adds to metric list: '" << fieldsBody << "'.";
 
 	m_DataBuffer.emplace_back(indexBody + fieldsBody);
 
