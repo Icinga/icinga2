@@ -103,11 +103,6 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			L"warn is VALUE is inside the range spanned by THR1 and THR2\n\n"
 			L"-w ![THR1-THR2]\n"
 			L"warn if VALUE is outside the range spanned by THR1 and THR2\n\n"
-			L"-w THRESHOLD%%\n"
-			L"if the plugin accepts percentage based thresholds those will be used.\n"
-			L"Does nothing if the plugin does not accept percentages, or only uses\n"
-			L"percentage thresholds. Ranges can be used with \"%%\", but both range values need\n"
-			L"to end with a percentage sign.\n\n"
 			L"All of these options work with the critical threshold \"-c\" too."
 			, progName);
 		std::cout << '\n';
