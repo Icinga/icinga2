@@ -241,10 +241,10 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 
 	fields->Set("_reachable", checkable->IsReachable());
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
-	if (commandObj)
-		fields->Set("_check_command", commandObj->GetName());
+	if (checkCommand)
+		fields->Set("_check_command", checkCommand->GetName());
 
 	double ts = Utility::GetTime();
 
@@ -272,8 +272,9 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 						pdv = PerfdataValue::Parse(val);
 					} catch (const std::exception&) {
 						Log(LogWarning, "GelfWriter")
-							<< "Ignoring invalid perfdata value: '" << val << "' for object '"
-							<< checkable->GetName() << "'.";
+							<< "Ignoring invalid perfdata for checkable '"
+							<< checkable->GetName() << "' and command '"
+							<< checkCommand->GetName() << "' with value: " << val;
 						continue;
 					}
 				}
@@ -301,7 +302,7 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 		}
 	}
 
-	SendLogMessage(ComposeGelfMessage(fields, GetSource(), ts));
+	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
 }
 
 void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
@@ -370,7 +371,7 @@ void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& noti
 	if (commandObj)
 		fields->Set("_check_command", commandObj->GetName());
 
-	SendLogMessage(ComposeGelfMessage(fields, GetSource(), ts));
+	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
 }
 
 void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
@@ -426,7 +427,7 @@ void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, con
 		ts = cr->GetExecutionEnd();
 	}
 
-	SendLogMessage(ComposeGelfMessage(fields, GetSource(), ts));
+	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
 }
 
 String GelfWriter::ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts)
@@ -438,7 +439,7 @@ String GelfWriter::ComposeGelfMessage(const Dictionary::Ptr& fields, const Strin
 	return JsonEncode(fields);
 }
 
-void GelfWriter::SendLogMessage(const String& gelfMessage)
+void GelfWriter::SendLogMessage(const Checkable::Ptr& checkable, const String& gelfMessage)
 {
 	std::ostringstream msgbuf;
 	msgbuf << gelfMessage;
@@ -453,7 +454,7 @@ void GelfWriter::SendLogMessage(const String& gelfMessage)
 
 	try {
 		Log(LogDebug, "GelfWriter")
-			<< "Sending '" << log << "'.";
+			<< "Checkable '" << checkable->GetName() << "' sending message '" << log << "'.";
 
 		m_Stream->Write(log.CStr(), log.GetLength());
 	} catch (const std::exception& ex) {
