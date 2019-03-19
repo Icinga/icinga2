@@ -26,7 +26,7 @@
 Specify the release version.
 
 ```
-VERSION=2.10.2
+VERSION=2.10.4
 ```
 
 Add your signing key to your Git configuration file, if not already there.
@@ -162,17 +162,19 @@ git checkout release && git pull
 Set the `Version`, `Revision` and `changelog` inside the spec file.
 
 ```
+VERSION=2.10.4
+
 sed -i "s/Version: .*/Version: $VERSION/g" icinga2.spec
 
 vim icinga2.spec
 
 %changelog
-* Tue Jul 17 2018 Michael Friedrich <michael.friedrich@icinga.com> 2.9.0-1
-- Update to 2.9.0
+* Tue Mar 19 2019 Michael Friedrich <michael.friedrich@icinga.com> 2.10.4-1
+- Update to 2.10.4
 ```
 
 ```
-git commit -av -m "Release 2.9.0-1"
+git commit -av -m "Release $VERSION-1"
 git push
 ```
 
@@ -211,20 +213,19 @@ git checkout release && git pull
 
 #### Release Commit
 
-Set the `Version`, `Revision` and `changelog` inside the spec file.
+Set the `Version`, `Revision` and `changelog` by using the `dch` helper.
 
 ```
-./dch 2.9.0-1 "Update to 2.9.0"
+VERSION=2.10.4
+
+./dch $VERSION-1 "Update to $VERSION"
 ```
 
 ```
-git commit -av -m "Release 2.9.0-1"
+git commit -av -m "Release $VERSION-1"
 git push
 ```
 
-```
-git commit -av -m "Release 2.9.0-1"
-```
 
 **Note for major releases**: Update release branch to latest.
 
@@ -241,7 +242,7 @@ git checkout master && git pull && git cherry-pick release && git push
 #### DEB with dch on macOS
 
 ```
-docker run -v `pwd`:/mnt/packaging -ti ubuntu:xenial bash
+docker run -v `pwd`:/mnt/packaging -ti ubuntu:bionic bash
 
 apt-get update && apt-get install git ubuntu-dev-tools vim -y
 cd /mnt/packaging
@@ -249,7 +250,9 @@ cd /mnt/packaging
 git config --global user.name "Michael Friedrich"
 git config --global user.email "michael.friedrich@icinga.com"
 
-./dch 2.10.0-1 "Update to 2.10.0"
+VERSION=2.10.4
+
+./dch $VERSION-1 "Update to $VERSION"
 ```
 
 
@@ -354,7 +357,7 @@ git merge testing
 git push
 ```
 
-SSH into icinga-web1 and do a manual Puppet run from the production environment (default).
+SSH into icinga-web2 and do a manual Puppet run from the production environment (default).
 
 ```
 puppet agent -t
@@ -362,9 +365,9 @@ puppet agent -t
 
 ### Announcement  <a id="announcement"></a>
 
-* Create a new blog post on icinga.com/blog
-* Social media: [Twitter](https://twitter.com/icinga), [Facebook](https://www.facebook.com/icinga), [Xing](https://www.xing.com/communities/groups/icinga-da4b-1060043), [LinkedIn](https://www.linkedin.com/groups/Icinga-1921830/about)
-* Update IRC channel topic
+* Create a new blog post on [icinga.com/blog](https://icinga.com/blog) including a featured image
+* Create a release topic on [community.icinga.com](https://community.icinga.com)
+* Release email to team
 
 ### Project Management  <a id="project-management"></a>
 
