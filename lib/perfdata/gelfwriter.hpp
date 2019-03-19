@@ -50,7 +50,7 @@ private:
 	void StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
 
 	String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts);
-	void SendLogMessage(const String& gelfMessage);
+	void SendLogMessage(const Checkable::Ptr& checkable, const String& gelfMessage);
 
 	void ReconnectTimerHandler();
 

@@ -246,7 +246,10 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 		}
 	}
 
+	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
+
 	Array::Ptr perfdata = cr->GetPerformanceData();
+
 	if (perfdata) {
 		ObjectLock olock(perfdata);
 		for (const Value& val : perfdata) {
@@ -259,7 +262,9 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 					pdv = PerfdataValue::Parse(val);
 				} catch (const std::exception&) {
 					Log(LogWarning, "InfluxdbWriter")
-						<< "Ignoring invalid perfdata value: " << val;
+						<< "Ignoring invalid perfdata for checkable '"
+						<< checkable->GetName() << "' and command '"
+						<< checkCommand->GetName() << "' with value: " << val;
 					continue;
 				}
 			}
@@ -281,7 +286,7 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 				fields->Set("unit", pdv->GetUnit());
 			}
 
-			SendMetric(tmpl, pdv->GetLabel(), fields, ts);
+			SendMetric(checkable, tmpl, pdv->GetLabel(), fields, ts);
 		}
 	}
 
@@ -306,7 +311,7 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 		fields->Set("latency", cr->CalculateLatency());
 		fields->Set("execution_time", cr->CalculateExecutionTime());
 
-		SendMetric(tmpl, Empty, fields, ts);
+		SendMetric(checkable, tmpl, Empty, fields, ts);
 	}
 }
 
@@ -349,7 +354,8 @@ String InfluxdbWriter::EscapeValue(const Value& value)
 	return value;
 }
 
-void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label, const Dictionary::Ptr& fields, double ts)
+void InfluxdbWriter::SendMetric(const Checkable::Ptr& checkable, const Dictionary::Ptr& tmpl,
+	const String& label, const Dictionary::Ptr& fields, double ts)
 {
 	std::ostringstream msgbuf;
 	msgbuf << EscapeKeyOrTagValue(tmpl->Get("measurement"));
@@ -387,10 +393,8 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 
 	msgbuf << " " <<  static_cast<unsigned long>(ts);
 
-#ifdef I2_DEBUG
 	Log(LogDebug, "InfluxdbWriter")
-		<< "Add to metric list: '" << msgbuf.str() << "'.";
-#endif /* I2_DEBUG */
+		<< "Checkable '" << checkable->GetName() << "' adds to metric list:'" << msgbuf.str() << "'.";
 
 	// Buffer the data point
 	m_DataBuffer.emplace_back(msgbuf.str());
