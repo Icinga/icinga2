@@ -634,7 +634,7 @@ vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
-##### Debian 9 <a id="development-linux-dev-env-debian"></a>
+#### Debian 9 <a id="development-linux-dev-env-debian"></a>
 
 ```
 apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev libboost-all-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
