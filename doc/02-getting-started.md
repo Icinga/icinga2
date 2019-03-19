@@ -13,13 +13,21 @@ First off you have to install Icinga 2. The preferred way of doing this
 is to use the official package repositories depending on which operating system
 and distribution you are running.
 
+Official repositories ([support matrix](https://icinga.com/support/details/)):
+
   Distribution            | Repository
   ------------------------|---------------------------
   Debian                  | [Icinga Repository](https://packages.icinga.com/debian/)
   Ubuntu                  | [Icinga Repository](https://packages.icinga.com/ubuntu/)
+  Raspbian		  | [Icinga Repository](https://packages.icinga.com/raspbian/)
   RHEL/CentOS             | [Icinga Repository](https://packages.icinga.com/epel/)
   openSUSE                | [Icinga Repository](https://packages.icinga.com/openSUSE/)
   SLES                    | [Icinga Repository](https://packages.icinga.com/SUSE/)
+
+Community repositories:
+
+  Distribution            | Repository
+  ------------------------|---------------------------
   Gentoo                  | [Upstream](https://packages.gentoo.org/package/net-analyzer/icinga2)
   FreeBSD                 | [Upstream](https://www.freshports.org/net-mgmt/icinga2)
   OpenBSD                 | [Upstream](http://ports.su/net/icinga/core2,-main)
@@ -34,13 +42,21 @@ available. Please contact your distribution packagers.
 You need to add the Icinga repository to your package management configuration.
 The following commands must be executed with `root` permissions unless noted otherwise.
 
+#### Debian/Ubuntu/Raspbian Repositories <a id="package-repositories-debian-ubuntu-raspbian"></a>
+
 Debian:
 
 ```
 apt-get -y install apt-transport-https
 
 wget -O - https://packages.icinga.com/icinga.key | apt-key add -
-echo 'deb https://packages.icinga.com/debian icinga-stretch main' >/etc/apt/sources.list.d/icinga.list
+
+DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
+ echo "deb https://packages.icinga.com/debian icinga-${DIST} main" > \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+ echo "deb-src https://packages.icinga.com/debian icinga-${DIST} main" >> \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+
 apt-get update
 ```
 
@@ -50,9 +66,33 @@ Ubuntu:
 apt-get -y install apt-transport-https
 
 wget -O - https://packages.icinga.com/icinga.key | apt-key add -
-echo 'deb https://packages.icinga.com/ubuntu icinga-xenial main' >/etc/apt/sources.list.d/icinga.list
+
+. /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
+ echo "deb https://packages.icinga.com/ubuntu icinga-${DIST} main" > \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+ echo "deb-src https://packages.icinga.com/ubuntu icinga-${DIST} main" >> \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+
 apt-get update
 ```
+
+Raspbian:
+
+```
+apt-get -y install apt-transport-https
+
+wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+
+DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
+ echo "deb https://packages.icinga.com/raspbian icinga-${DIST} main" > \
+ /etc/apt/sources.list.d/icinga.list
+ echo "deb-src https://packages.icinga.com/raspbian icinga-${DIST} main" >> \
+ /etc/apt/sources.list.d/icinga.list
+
+apt-get update
+```
+
+#### RHEL/CentOS/Fedora Repositories <a id="package-repositories-rhel-centos-fedora"></a>
 
 RHEL/CentOS 7:
 
@@ -66,45 +106,10 @@ RHEL/CentOS 6:
 yum install https://packages.icinga.com/epel/icinga-rpm-release-6-latest.noarch.rpm
 ```
 
-Fedora 27:
+Fedora 29:
 
 ```
-dnf install https://packages.icinga.com/fedora/icinga-rpm-release-27-latest.noarch.rpm
-```
-
-Fedora 26:
-
-```
-dnf install https://packages.icinga.com/fedora/icinga-rpm-release-26-latest.noarch.rpm
-```
-
-SLES 12:
-
-```
-zypper ar https://packages.icinga.com/SUSE/ICINGA-release.repo
-zypper ref
-```
-
-SLES 11:
-
-```
-zypper ar https://packages.icinga.com/SUSE/ICINGA-release-11.repo
-zypper ref
-```
-
-openSUSE:
-
-```
-zypper ar https://packages.icinga.com/openSUSE/ICINGA-release.repo
-zypper ref
-```
-
-Alpine Linux:
-
-```
-echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
-echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
-apk update
+dnf install https://packages.icinga.com/fedora/icinga-rpm-release-29-latest.noarch.rpm
 ```
 
 #### RHEL/CentOS EPEL Repository <a id="package-repositories-rhel-epel"></a>
@@ -127,6 +132,35 @@ subscription-manager repos --enable rhel-7-server-optional-rpms
 subscription-manager repos --enable rhel-6-server-optional-rpms
 ```
 
+#### SLES/OpenSUSE Repositories <a id="package-repositories-sles-opensuse"></a>
+
+SLES 15/12:
+
+```
+rpm --import https://packages.icinga.com/icinga.key
+
+zypper ar https://packages.icinga.com/SUSE/ICINGA-release.repo
+zypper ref
+```
+
+SLES 11:
+
+```
+rpm --import https://packages.icinga.com/icinga.key
+
+zypper ar https://packages.icinga.com/SUSE/ICINGA-release-11.repo
+zypper ref
+```
+
+openSUSE:
+
+```
+rpm --import https://packages.icinga.com/icinga.key
+
+zypper ar https://packages.icinga.com/openSUSE/ICINGA-release.repo
+zypper ref
+```
+
 #### SLES Security Repository <a id="package-repositories-sles-security"></a>
 
 The packages for SLES 11 depend on the `openssl1` package which is distributed
@@ -137,7 +171,15 @@ as part of the [SLES 11 Security Module](https://www.suse.com/communities/conver
 Icinga 2 requires the `libboost_chrono1_54_0` package from the `SLES 12 SDK` repository. Refer to the SUSE Enterprise
 Linux documentation for further information.
 
-#### Alpine Linux Notes  <a id="package-repositories-alpine-notes"></a>
+#### Alpine Linux Repositories <a id="package-repositories-alpine"></a>
+
+Alpine Linux:
+
+```
+echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
+echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
+apk update
+```
 
 The example provided assumes that you are running Alpine edge, which is the -dev branch and is a rolling release.
 If you are using a stable version please "pin" the edge repository on the latest Icinga 2 package version.
@@ -156,20 +198,20 @@ Debian/Ubuntu:
 apt-get install icinga2
 ```
 
-RHEL/CentOS 6:
-
-```
-yum install icinga2
-chkconfig icinga2 on
-service icinga2 start
-```
-
 RHEL/CentOS 7 and Fedora:
 
 ```
 yum install icinga2
 systemctl enable icinga2
 systemctl start icinga2
+```
+
+RHEL/CentOS 6:
+
+```
+yum install icinga2
+chkconfig icinga2 on
+service icinga2 start
 ```
 
 SLES/openSUSE:
@@ -269,7 +311,7 @@ SLES/OpenSUSE          | monitoring-plugins | [server:monitoring](https://build.
 Debian/Ubuntu          | monitoring-plugins | -                         | /usr/lib/nagios/plugins
 FreeBSD                | monitoring-plugins | -                         | /usr/local/libexec/nagios
 Alpine Linux           | monitoring-plugins | -                         | /usr/lib/monitoring-plugins
-OS X                   | nagios-plugins     | [MacPorts](https://www.macports.org), [Homebrew](https://brew.sh) | /opt/local/libexec or /usr/local/sbin
+macOS                  | monitoring-plugins | [MacPorts](https://www.macports.org), [Homebrew](https://brew.sh) | /opt/local/libexec or /usr/local/sbin
 
 The recommended way of installing these standard plugins is to use your
 distribution's package manager.
@@ -287,9 +329,7 @@ yum install nagios-plugins-all
 ```
 
 The packages for RHEL/CentOS depend on other packages which are distributed
-as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL). Please
-make sure to enable this repository by following
-[these instructions](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
+as part of the [EPEL repository](#package-repositories-rhel-epel).
 
 Fedora:
 
@@ -579,16 +619,6 @@ systemctl start mariadb
 mysql_secure_installation
 ```
 
-RHEL/CentOS 6:
-
-```
-yum install mysql-server mysql
-chkconfig mysqld on
-service mysqld start
-
-mysql_secure_installation
-```
-
 SUSE:
 
 ```
@@ -716,15 +746,6 @@ Debian/Ubuntu:
 
 ```
 apt-get install postgresql
-```
-
-RHEL/CentOS 6:
-
-```
-yum install postgresql-server postgresql
-chkconfig postgresql on
-service postgresql initdb
-service postgresql start
 ```
 
 RHEL/CentOS 7:
@@ -901,14 +922,6 @@ RHEL/CentOS 7, Fedora:
 yum install httpd
 systemctl enable httpd
 systemctl start httpd
-```
-
-RHEL/CentOS 6:
-
-```
-yum install httpd
-chkconfig httpd on
-service httpd start
 ```
 
 SUSE:
