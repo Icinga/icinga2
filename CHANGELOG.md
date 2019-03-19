@@ -1,5 +1,56 @@
 # Icinga 2.x CHANGELOG
 
+## 2.10.4 (2019-03-19)
+
+### Notes
+
+* Fix TLS connections in Influxdb/Elasticsearch features leaking file descriptors (#6989 #7018 ref/IP/12219)
+* Fixes for delayed and one-time notifications (#5561 #6757)
+* Improve performance for downtimes/comments added in HA clusters (#6885 ref/IP/9235)
+* check_perfmon supports non-localized performance counter names (#5546 #6418)
+
+### Enhancement
+
+* [#6732](https://github.com/icinga/icinga2/issues/6732) (Windows, PR): Update Windows Agent with new design
+* [#6729](https://github.com/icinga/icinga2/issues/6729) (Windows): Polish the Windows Agent design
+* [#6418](https://github.com/icinga/icinga2/issues/6418) (Windows): check\_perfmon.exe: Add fallback support for localized performance counters
+
+### Bug
+
+* [#7020](https://github.com/icinga/icinga2/issues/7020) (Elasticsearch, PR): ElasticsearchWriter: don't leak sockets
+* [#7018](https://github.com/icinga/icinga2/issues/7018) (Elasticsearch): ElasticsearchWriter not closing SSL connections on  Icinga2 2.10.3.1
+* [#6991](https://github.com/icinga/icinga2/issues/6991) (CLI, PR): PkiUtility::NewCa\(\): just warn if the CA files already exist
+* [#6990](https://github.com/icinga/icinga2/issues/6990) (InfluxDB, PR): InfluxdbWriter: don't leak sockets
+* [#6989](https://github.com/icinga/icinga2/issues/6989) (InfluxDB): InfluxdbWriter not closing connections Icinga2 2.10.3 CentOS 7
+* [#6976](https://github.com/icinga/icinga2/issues/6976) (Cluster, PR): Don't require OS headers to provide SO\_REUSEPORT
+* [#6896](https://github.com/icinga/icinga2/issues/6896) (Notifications, PR): Notification\#BeginExecuteNotification\(\): SetNextNotification\(\) correctly
+* [#6885](https://github.com/icinga/icinga2/issues/6885) (API, Configuration, PR): Don't run UpdateObjectAuthority for Comments and Downtimes
+* [#6800](https://github.com/icinga/icinga2/issues/6800) (Plugins, Windows, PR): Fix check\_perfmon to support non-localized names
+* [#6757](https://github.com/icinga/icinga2/issues/6757) (Notifications, PR): Fix that no\_more\_notifications gets reset when Recovery notifications are filtered away
+* [#5561](https://github.com/icinga/icinga2/issues/5561) (Notifications): Set the notification mode times.begin is not 0, the first notification has a delay
+* [#5546](https://github.com/icinga/icinga2/issues/5546) (Plugins, Windows): check\_perfmon.exe doesn't support cyrillic names of perf counters
+
+### Documentation
+
+* [#7033](https://github.com/icinga/icinga2/issues/7033) (Documentation, PR): Docs: Update supported package repos in Getting Started chapter
+* [#7028](https://github.com/icinga/icinga2/issues/7028) (Documentation, PR): Fix heading level in development chapter
+* [#7001](https://github.com/icinga/icinga2/issues/7001) (Documentation, PR): Assignment operators doc: tell what the { } are for
+* [#6995](https://github.com/icinga/icinga2/issues/6995) (Documentation, PR): Typo and link fix
+* [#6979](https://github.com/icinga/icinga2/issues/6979) (Documentation, PR): Doc: write systemd lower-case
+* [#6975](https://github.com/icinga/icinga2/issues/6975) (Documentation, PR): Fix nested hostgroup example
+* [#6949](https://github.com/icinga/icinga2/issues/6949) (Documentation, PR): Doc fix: update check\_rbl parameter
+* [#6708](https://github.com/icinga/icinga2/issues/6708) (Documentation, PR): Docs: Alpine needs 'edge/main' repository too
+* [#5430](https://github.com/icinga/icinga2/issues/5430) (Documentation): Documentation about dictionaries and assignements
+
+### Support
+
+* [#7032](https://github.com/icinga/icinga2/issues/7032) (code-quality, PR): Backport Defer class for 2.10
+* [#7030](https://github.com/icinga/icinga2/issues/7030) (Packages, PR): SELinux: add unreserved\_port\_type attribute to icinga2\_port\_t
+* [#7029](https://github.com/icinga/icinga2/issues/7029) (Packages): Add unreserved\_port\_type attribute to icinga2\_port\_t
+* [#7002](https://github.com/icinga/icinga2/issues/7002) (Plugins, Windows, PR): check\_network -h: drop non-existent feature
+* [#6987](https://github.com/icinga/icinga2/issues/6987) (Tests): base-base\_utility/comparepasswords\_issafe test fails on i386
+* [#6977](https://github.com/icinga/icinga2/issues/6977) (Tests, PR): Ignore failure of unit test base\_utility/comparepasswords\_issafe
+
 ## 2.10.3 (2019-02-26)
 
 ### Notes
