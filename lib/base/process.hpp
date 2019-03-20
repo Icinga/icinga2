@@ -100,6 +100,22 @@ private:
 	int GetTID() const;
 };
 
+/**
+ * Prevents the process spawner from being created
+ *
+ * @ingroup base
+ */
+class BlockSpawnProcessHelper
+{
+public:
+	BlockSpawnProcessHelper();
+	BlockSpawnProcessHelper(const BlockSpawnProcessHelper&) = delete;
+	BlockSpawnProcessHelper(BlockSpawnProcessHelper&&) = delete;
+	BlockSpawnProcessHelper& operator=(const BlockSpawnProcessHelper&) = delete;
+	BlockSpawnProcessHelper& operator=(BlockSpawnProcessHelper&&) = delete;
+	~BlockSpawnProcessHelper();
+};
+
 }
 
 #endif /* PROCESS_H */

@@ -9,6 +9,7 @@
 #include "config/configitembuilder.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
+#include "base/process.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
@@ -265,27 +266,31 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	}
 
 	{
-		WorkQueue upq(25000, Configuration::Concurrency);
-		upq.SetName("DaemonCommand::Run");
+		BlockSpawnProcessHelper bsph;
 
-		// activate config only after daemonization: it starts threads and that is not compatible with fork()
-		if (!ConfigItem::ActivateItems(upq, newItems, false, false, true)) {
-			Log(LogCritical, "cli", "Error activating configuration.");
-			return EXIT_FAILURE;
+		{
+			WorkQueue upq(25000, Configuration::Concurrency);
+			upq.SetName("DaemonCommand::Run");
+
+			// activate config only after daemonization: it starts threads and that is not compatible with fork()
+			if (!ConfigItem::ActivateItems(upq, newItems, false, false, true)) {
+				Log(LogCritical, "cli", "Error activating configuration.");
+				return EXIT_FAILURE;
+			}
 		}
-	}
 
-	if (vm.count("daemonize") || vm.count("close-stdio")) {
-		// After disabling the console log, any further errors will go to the configured log only.
-		// Let's try to make this clear and say good bye.
-		Log(LogInformation, "cli", "Closing console log.");
+		if (vm.count("daemonize") || vm.count("close-stdio")) {
+			// After disabling the console log, any further errors will go to the configured log only.
+			// Let's try to make this clear and say good bye.
+			Log(LogInformation, "cli", "Closing console log.");
 
-		String errorLog;
-		if (vm.count("errorlog"))
-			errorLog = vm["errorlog"].as<std::string>();
+			String errorLog;
+			if (vm.count("errorlog"))
+				errorLog = vm["errorlog"].as<std::string>();
 
-		CloseStdIO(errorLog);
-		Logger::DisableConsoleLog();
+			CloseStdIO(errorLog);
+			Logger::DisableConsoleLog();
+		}
 	}
 
 	/* Remove ignored Downtime/Comment objects. */

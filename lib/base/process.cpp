@@ -13,6 +13,7 @@
 #include "base/json.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread/once.hpp>
+#include <mutex>
 #include <thread>
 #include <iostream>
 
@@ -48,6 +49,10 @@ static pid_t l_ProcessControlPID;
 static boost::once_flag l_ProcessOnceFlag = BOOST_ONCE_INIT;
 static boost::once_flag l_SpawnHelperOnceFlag = BOOST_ONCE_INIT;
 
+#ifndef _WIN32
+static std::mutex l_SpawnProcessHelper;
+#endif /* _WIN32 */
+
 Process::Process(Process::Arguments arguments, Dictionary::Ptr extraEnvironment)
 	: m_Arguments(std::move(arguments)), m_ExtraEnvironment(std::move(extraEnvironment)), m_Timeout(600), m_AdjustPriority(false)
 #ifdef _WIN32
@@ -69,6 +74,8 @@ Process::~Process()
 #ifndef _WIN32
 static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& request)
 {
+	std::unique_lock<std::mutex> lock (l_SpawnProcessHelper);
+
 	struct cmsghdr *cmsg = CMSG_FIRSTHDR(msgh);
 
 	if (cmsg == nullptr || cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_len != CMSG_LEN(sizeof(int) * 3)) {
@@ -1136,3 +1143,16 @@ int Process::GetTID() const
 	return (reinterpret_cast<uintptr_t>(this) / sizeof(void *)) % IOTHREADS;
 }
 
+BlockSpawnProcessHelper::BlockSpawnProcessHelper()
+{
+#ifndef _WIN32
+	l_SpawnProcessHelper.lock();
+#endif /* _WIN32 */
+}
+
+BlockSpawnProcessHelper::~BlockSpawnProcessHelper()
+{
+#ifndef _WIN32
+	l_SpawnProcessHelper.unlock();
+#endif /* _WIN32 */
+}
