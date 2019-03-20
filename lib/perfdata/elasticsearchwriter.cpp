@@ -456,7 +456,12 @@ void ElasticsearchWriter::SendRequest(const String& body)
 
 	/* Specify required headers by Elasticsearch. */
 	req.AddHeader("Accept", "application/json");
-	req.AddHeader("Content-Type", "application/json");
+
+	/* Use application/x-ndjson for bulk streams. While ES
+	 * is able to handle application/json, the newline separator
+	 * causes problems with Logstash (#6609).
+	 */
+	req.AddHeader("Content-Type", "application/x-ndjson");
 
 	/* Send authentication if configured. */
 	String username = GetUsername();
