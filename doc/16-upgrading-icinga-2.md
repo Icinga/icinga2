@@ -27,6 +27,7 @@ This affects the following features:
 * [OpenTsdb](09-object-types.md#objecttype-opentsdbwriter)
 * [Perfdata](09-object-types.md#objecttype-perfdatawriter) (for PNP)
 
+
 ### Package Dependencies <a id="upgrading-to-2-11-package-dependencies"></a>
 
 #### Removed: YAJL
