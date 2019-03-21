@@ -1633,7 +1633,7 @@ have an active stage.
     }
 
 
-### List Configuration Packages and their Stages <a id="icinga2-api-config-management-list-config-package-stage-files"></a>
+### List Configuration Package Stage Files <a id="icinga2-api-config-management-list-config-package-stage-files"></a>
 
 In order to retrieve a list of files for a stage you can send a `GET` request to
 the URL endpoint `/v1/config/stages`. You need to include
@@ -1916,9 +1916,9 @@ The following example uses **Python** and the `requests` and `json` module:
     $ vim icinga2-api-example.py
 
     #!/usr/bin/env python
-    
+
     import requests, json
-    
+
     # Replace 'localhost' with your FQDN and certificate CN
     # for SSL verification
     request_url = "https://localhost:5665/v1/objects/services"
@@ -1931,16 +1931,16 @@ The following example uses **Python** and the `requests` and `json` module:
             "joins": [ "host.name", "host.state", "host.last_check_result" ],
             "filter": "match(\"ping*\", service.name)",
     }
-    
+
     r = requests.post(request_url,
             headers=headers,
             auth=('root', 'icinga'),
             data=json.dumps(data),
             verify="pki/icinga2-ca.crt")
-    
+
     print "Request URL: " + str(r.url)
     print "Status code: " + str(r.status_code)
-    
+
     if (r.status_code == 200):
             print "Result: " + json.dumps(r.json())
     else:
@@ -1959,9 +1959,9 @@ The following example uses **Ruby** and the `rest_client` gem:
     $ vim icinga2-api-example.rb
 
     #!/usr/bin/ruby
-    
+
     require 'rest_client'
-    
+
     # Replace 'localhost' with your FQDN and certificate CN
     # for SSL verification
     request_url = "https://localhost:5665/v1/objects/services"
@@ -1974,20 +1974,20 @@ The following example uses **Ruby** and the `rest_client` gem:
             "joins" => [ "host.name", "host.state", "host.last_check_result" ],
             "filter" => "match(\"ping*\", service.name)",
     }
-    
+
     r = RestClient::Resource.new(
             URI.encode(request_url),
             :headers => headers,
             :user => "root",
             :password => "icinga",
             :ssl_ca_file => "pki/icinga2-ca.crt")
-    
+
     begin
             response = r.post(data.to_json)
     rescue => e
             response = e.response
     end
-    
+
     puts "Status: " + response.code.to_s
     if response.code == 200
             puts "Result: " + (JSON.pretty_generate JSON.parse(response.body))
@@ -2021,7 +2021,7 @@ The following example uses **PHP** and its `curl` library:
             joins => array('host.name', 'host.state', 'host.last_check_result'),
             filter => 'match("ping*", service.name)',
     );
-    
+
     $ch = curl_init();
     curl_setopt_array($ch, array(
             CURLOPT_URL => $request_url,
@@ -2032,16 +2032,16 @@ The following example uses **PHP** and its `curl` library:
             CURLOPT_POST => count($data),
             CURLOPT_POSTFIELDS => json_encode($data)
     ));
-    
+
     $response = curl_exec($ch);
     if ($response === false) {
             print "Error: " . curl_error($ch) . "(" . $response . ")\n";
     }
-    
+
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     print "Status: " . $code . "\n";
-    
+
     if ($code == 200) {
             $response = json_decode($response, true);
             print_r($response);
@@ -2062,19 +2062,19 @@ The following example uses **Perl** and the `Rest::Client` module:
     $ vim icinga2-api-example.pl
 
     #!/usr/bin/env perl
-    
+
     use strict;
     use warnings;
     use REST::Client;
     use MIME::Base64;
     use JSON;
     use Data::Dumper;
-    
+
     # Replace 'localhost' with your FQDN and certificate CN
     # for SSL verification
     my $request_host = "https://localhost:5665";
     my $userpass = "root:icinga";
-    
+
     my $client = REST::Client->new();
     $client->setHost($request_host);
     $client->setCa("pki/icinga2-ca.crt");
@@ -2088,7 +2088,7 @@ The following example uses **Perl** and the `Rest::Client` module:
     );
     my $data = encode_json(\%json_data);
     $client->POST("/v1/objects/services", $data);
-    
+
     my $status = $client->responseCode();
     print "Status: " . $status . "\n";
     my $response = $client->responseContent();
