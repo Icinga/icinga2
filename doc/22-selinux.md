@@ -106,6 +106,10 @@ SELinux is based on the least level of access required for a service to run. Usi
 
 Having this boolean enabled allows icinga2 to connect to all ports. This can be necessary if you use features which connect to unconfined services, for example the [influxdb writer](14-features.md#influxdb-writer).
 
+**icinga2_run_sudo** 
+
+To allow Icinga 2 executing plugins via sudo you can toogle this boolean. It is disabled by default, resulting in error messages like `execvpe(sudo) failed: Permission denied`.
+
 **httpd_can_write_icinga2_command** 
 
 To allow httpd to write to the command pipe of icinga2 this boolean has to be enabled. This is enabled by default, if not needed you can disable it for more security.
@@ -167,12 +171,36 @@ Change the port value for the graphite feature according to your graphite instal
     }
     # icinga2 feature enable graphite
 
-Before you restart the icinga2 service allow it to connect to all ports by enabling the boolean ´icinga2_can_connect_all` (now and permanent).
+Before you restart the icinga2 service allow it to connect to all ports by enabling the boolean `icinga2_can_connect_all` (now and permanent).
 
     # setsebool icinga2_can_connect_all true
     # setsebool -P icinga2_can_connect_all true
 
 If you restart the daemon now it will successfully connect to graphite.
+
+#### Running plugins requiring sudo  <a id="selinux-policy-examples-sudo"></a>
+
+Some plugins require privileged access to the system and are designied to be executed via `sudo` to get these privileges.
+
+In this case it is the CheckCommand [running_kernel](10-icinga-template-library.md#plugin-contrib-command-running_kernel) which is set to use `sudo`.
+
+    # cat /etc/icinga2/conf.d/services.conf
+    apply Service "kernel" {
+      import "generic-service"
+
+      check_command = "running_kernel"
+
+      vars.running_kernel_use_sudo = true
+
+      assign where host.name == NodeName
+    }
+
+Having this Service defined will result in a UNKNOWN state and the error message `execvpe(sudo) failed: Permission denied` because SELinux dening the execution.
+
+Switching the boolean `icinga2_run_sudo` to allow the execution will result in the check executed successfully.
+
+    # setsebool icinga2_run_sudo true
+    # setsebool -P icinga2_run_sudo true
 
 #### Confining a user <a id="selinux-policy-examples-user"></a>
 
