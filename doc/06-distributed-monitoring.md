@@ -428,6 +428,11 @@ and pass its fingerprint as argument.
 information/cli: Signed certificate for 'CN = icinga2-client2.localdomain'.
 ```
 
+> **Note**
+>
+> `ca list` cannot be used as historical inventory. Certificate
+> signing requests older than 1 week are automatically deleted.
+
 ## Client/Satellite Setup <a id="distributed-monitoring-setup-satellite-client"></a>
 
 This section describes the setup of a satellite and/or client connected to an
