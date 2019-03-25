@@ -265,6 +265,20 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 		}
 	}
 
+	Dictionary::Ptr tfields = tmpl->Get("fields");
+	if (tfields) {
+		ObjectLock olock(tfields);
+		for (const Dictionary::Pair& pair : tfields) {
+			String missing_macro;
+			Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
+
+			if (!missing_macro.IsEmpty())
+				continue;
+
+			tfields->Set(pair.first, value);
+		}
+	}
+
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
 	Array::Ptr perfdata = cr->GetPerformanceData();
@@ -407,6 +421,19 @@ void InfluxdbWriter::SendMetric(const Checkable::Ptr& checkable, const Dictionar
 				msgbuf << ",";
 
 			msgbuf << EscapeKeyOrTagValue(pair.first) << "=" << EscapeValue(pair.second);
+		}
+
+		Dictionary::Ptr tfields = tmpl->Get("fields");
+		if (tfields) {
+			ObjectLock tfieldLock(tfields);
+			for (const Dictionary::Pair& pair : tfields) {
+				if (first)
+					first = false;
+				else
+					msgbuf << ",";
+
+				msgbuf << EscapeKeyOrTagValue(pair.first) << "=" << EscapeValue(pair.second);
+			}
 		}
 	}
 

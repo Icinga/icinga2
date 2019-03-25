@@ -44,6 +44,8 @@ class InfluxdbWriter : ConfigObject
 				{ "measurement", "$host.check_command$" },
 				{ "tags", new Dictionary({
 					{ "hostname", "$host.name$" }
+				}) },
+				{ "fields", new Dictionary({
 				}) }
 			});
 		}}}
@@ -55,6 +57,8 @@ class InfluxdbWriter : ConfigObject
 				{ "tags", new Dictionary({
 					{ "hostname", "$host.name$" },
 					{ "service", "$service.name$" }
+				}) },
+				{ "fields", new Dictionary({
 				}) }
 			});
 		}}}
@@ -83,11 +87,17 @@ validator InfluxdbWriter {
 		Dictionary "tags" {
 			String "*";
 		};
+		Dictionary "fields" {
+			String "*";
+		};
 	};
 	Dictionary service_template {
 		required measurement;
 		String measurement;
 		Dictionary "tags" {
+			String "*";
+		};
+		Dictionary "fields" {
 			String "*";
 		};
 	};
