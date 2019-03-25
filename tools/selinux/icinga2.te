@@ -1,4 +1,4 @@
-policy_module(icinga2, 0.1.8)
+policy_module(icinga2, 0.2.0)
 
 ########################################
 #
@@ -11,8 +11,27 @@ policy_module(icinga2, 0.1.8)
 ## </p>
 ## </desc>
 gen_tunable(icinga2_can_connect_all, false)
+
+## <desc>
+## <p>
+## Allow Apache to connect to Icinga 2 API
+## </p>
+## </desc>
 gen_tunable(httpd_can_connect_icinga2_api, true)
+
+## <desc>
+## <p>
+## Allow Apache to write into Icinga 2 Commandpipe
+## </p>
+## </desc>
 gen_tunable(httpd_can_write_icinga2_command, true)
+
+## <desc>
+## <p>
+## Allow Icinga 2 to run plugins via sudo
+## </p>
+## </desc>
+gen_tunable(icinga2_run_sudo, false)
 
 require {
 	type nagios_admin_plugin_t; type nagios_admin_plugin_exec_t;
@@ -24,6 +43,7 @@ require {
 	type nagios_eventhandler_plugin_t; type nagios_eventhandler_plugin_exec_t;
 	type nagios_openshift_plugin_t; type nagios_openshift_plugin_exec_t;
 	type httpd_t; type system_mail_t;
+	type devlog_t;
 	role staff_r;
 	attribute unreserved_port_type;
 }
@@ -181,6 +201,34 @@ corenet_tcp_connect_lmtp_port(icinga2_t)
 tunable_policy(`icinga2_can_connect_all',`
 	corenet_tcp_connect_all_ports(icinga2_t)
 ')
+
+# This is for plugins requiring to be executed via sudo
+tunable_policy(`icinga2_run_sudo',`
+    allow icinga2_t self:capability { audit_write net_admin };
+    allow icinga2_t self:netlink_audit_socket { create_netlink_socket_perms nlmsg_relay };
+    allow icinga2_t devlog_t:sock_file write;
+
+    init_read_utmp(icinga2_t)
+
+    auth_domtrans_chkpwd(icinga2_t)
+    allow icinga2_t chkpwd_t:process { noatsecure rlimitinh siginh };
+
+    selinux_compute_access_vector(icinga2_t)
+
+    dbus_send_system_bus(icinga2_t)
+    dbus_stream_connect_system_dbusd(icinga2_t)
+    systemd_dbus_chat_logind(icinga2_t)
+    # Without this it works but is very slow
+    systemd_write_inherited_logind_sessions_pipes(icinga2_t)
+')
+
+optional_policy(`
+    tunable_policy(`icinga2_run_sudo',`
+        sudo_exec(icinga2_t)
+    ')
+')
+
+
 
 ########################################
 #
