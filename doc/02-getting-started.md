@@ -329,7 +329,7 @@ yum install nagios-plugins-all
 ```
 
 The packages for RHEL/CentOS depend on other packages which are distributed
-as part of the [EPEL repository](#package-repositories-rhel-epel).
+as part of the [EPEL repository](02-getting-started.md#package-repositories-rhel-epel).
 
 Fedora:
 
