@@ -172,7 +172,9 @@ through the web interface).
 In order to enable the `ExternalCommandListener` configuration use the
 following command and restart Icinga 2 afterwards:
 
-    # icinga2 feature enable command
+```
+# icinga2 feature enable command
+```
 
 Icinga 2 creates the command pipe file as `/var/run/icinga2/cmd/icinga2.cmd`
 using the default configuration.
@@ -181,12 +183,14 @@ Web interfaces and other Icinga addons are able to send commands to
 Icinga 2 through the external command pipe, for example for rescheduling
 a forced service check:
 
-    # /bin/echo "[`date +%s`] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;`date +%s`" >> /var/run/icinga2/cmd/icinga2.cmd
+```
+# /bin/echo "[`date +%s`] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;`date +%s`" >> /var/run/icinga2/cmd/icinga2.cmd
 
-    # tail -f /var/log/messages
+# tail -f /var/log/messages
 
-    Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
-    Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
+Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
+Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
+```
 
 A list of currently supported external commands can be found [here](24-appendix.md#external-commands-list-detail).
 
@@ -216,13 +220,17 @@ Therefore the Icinga 2 [PerfdataWriter](09-object-types.md#objecttype-perfdatawr
 feature allows you to define the output template format for host and services helped
 with Icinga 2 runtime vars.
 
-    host_format_template = "DATATYPE::HOSTPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tHOSTPERFDATA::$host.perfdata$\tHOSTCHECKCOMMAND::$host.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$"
-    service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.state_type$"
+```
+host_format_template = "DATATYPE::HOSTPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tHOSTPERFDATA::$host.perfdata$\tHOSTCHECKCOMMAND::$host.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$"
+service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.state_type$"
+```
 
 The default templates are already provided with the Icinga 2 feature configuration
 which can be enabled using
 
-    # icinga2 feature enable perfdata
+```
+# icinga2 feature enable perfdata
+```
 
 By default all performance data files are rotated in a 15 seconds interval into
 the `/var/spool/icinga2/perfdata/` directory as `host-perfdata.<timestamp>` and
@@ -240,7 +248,9 @@ write them to the defined Graphite Carbon daemon tcp socket.
 
 You can enable the feature using
 
-    # icinga2 feature enable graphite
+```
+# icinga2 feature enable graphite
+```
 
 By default the [GraphiteWriter](09-object-types.md#objecttype-graphitewriter) feature
 expects the Graphite Carbon Cache to listen at `127.0.0.1` on TCP port `2003`.
@@ -253,8 +263,10 @@ depends on this schema.
 The default prefix for hosts and services is configured using
 [runtime macros](03-monitoring-basics.md#runtime-macros)like this:
 
-    icinga2.$host.name$.host.$host.check_command$
-    icinga2.$host.name$.services.$service.name$.$service.check_command$
+```
+icinga2.$host.name$.host.$host.check_command$
+icinga2.$host.name$.services.$service.name$.$service.check_command$
+```
 
 You can customize the prefix name by using the `host_name_template` and
 `service_name_template` configuration attributes.
@@ -274,7 +286,9 @@ The following characters are escaped in prefix labels:
 
 Metric values are stored like this:
 
-    <prefix>.perfdata.<perfdata-label>.value
+```
+<prefix>.perfdata.<perfdata-label>.value
+```
 
 The following characters are escaped in perfdata labels:
 
@@ -292,22 +306,26 @@ and is therefore replaced by `.`.
 
 By enabling `enable_send_thresholds` Icinga 2 automatically adds the following threshold metrics:
 
-    <prefix>.perfdata.<perfdata-label>.min
-    <prefix>.perfdata.<perfdata-label>.max
-    <prefix>.perfdata.<perfdata-label>.warn
-    <prefix>.perfdata.<perfdata-label>.crit
+```
+<prefix>.perfdata.<perfdata-label>.min
+<prefix>.perfdata.<perfdata-label>.max
+<prefix>.perfdata.<perfdata-label>.warn
+<prefix>.perfdata.<perfdata-label>.crit
+```
 
 By enabling `enable_send_metadata` Icinga 2 automatically adds the following metadata metrics:
 
-    <prefix>.metadata.current_attempt
-    <prefix>.metadata.downtime_depth
-    <prefix>.metadata.acknowledgement
-    <prefix>.metadata.execution_time
-    <prefix>.metadata.latency
-    <prefix>.metadata.max_check_attempts
-    <prefix>.metadata.reachable
-    <prefix>.metadata.state
-    <prefix>.metadata.state_type
+```
+<prefix>.metadata.current_attempt
+<prefix>.metadata.downtime_depth
+<prefix>.metadata.acknowledgement
+<prefix>.metadata.execution_time
+<prefix>.metadata.latency
+<prefix>.metadata.max_check_attempts
+<prefix>.metadata.reachable
+<prefix>.metadata.state
+<prefix>.metadata.state_type
+```
 
 Metadata metric overview:
 
@@ -326,10 +344,12 @@ Metadata metric overview:
 The following example illustrates how to configure the storage schemas for Graphite Carbon
 Cache.
 
-    [icinga2_default]
-    # intervals like PNP4Nagios uses them per default
-    pattern = ^icinga2\.
-    retentions = 1m:2d,5m:10d,30m:90d,360m:4y
+```
+[icinga2_default]
+# intervals like PNP4Nagios uses them per default
+pattern = ^icinga2\.
+retentions = 1m:2d,5m:10d,30m:90d,360m:4y
+```
 
 
 ### InfluxDB Writer <a id="influxdb-writer"></a>
@@ -339,7 +359,9 @@ defined InfluxDB HTTP API.
 
 You can enable the feature using
 
-    # icinga2 feature enable influxdb
+```
+# icinga2 feature enable influxdb
+```
 
 By default the [InfluxdbWriter](09-object-types.md#objecttype-influxdbwriter) feature
 expects the InfluxDB daemon to listen at `127.0.0.1` on port `8086`.
@@ -456,7 +478,9 @@ attribute.
 
 Metric values are stored like this:
 
-    check_result.perfdata.<perfdata-label>.value
+```
+check_result.perfdata.<perfdata-label>.value
+```
 
 The following characters are escaped in perfdata labels:
 
@@ -475,10 +499,12 @@ and is therefore replaced by `.`.
 Icinga 2 automatically adds the following threshold metrics
 if existing:
 
-    check_result.perfdata.<perfdata-label>.min
-    check_result.perfdata.<perfdata-label>.max
-    check_result.perfdata.<perfdata-label>.warn
-    check_result.perfdata.<perfdata-label>.crit
+```
+check_result.perfdata.<perfdata-label>.min
+check_result.perfdata.<perfdata-label>.max
+check_result.perfdata.<perfdata-label>.warn
+check_result.perfdata.<perfdata-label>.crit
+```
 
 ### Graylog Integration <a id="graylog-integration"></a>
 
@@ -494,7 +520,9 @@ While it has been specified by the [Graylog](https://www.graylog.org) project as
 
 You can enable the feature using
 
-    # icinga2 feature enable gelf
+```
+# icinga2 feature enable gelf
+```
 
 By default the `GelfWriter` object expects the GELF receiver to listen at `127.0.0.1` on TCP port `12201`.
 The default `source`  attribute is set to `icinga2`. You can customize that for your needs if required.
@@ -514,27 +542,35 @@ write them to the defined TSDB TCP socket.
 
 You can enable the feature using
 
-    # icinga2 feature enable opentsdb
+```
+# icinga2 feature enable opentsdb
+```
 
 By default the `OpenTsdbWriter` object expects the TSD to listen at
 `127.0.0.1` on port `4242`.
 
 The current naming schema is
 
-    icinga.host.<metricname>
-    icinga.service.<servicename>.<metricname>
+```
+icinga.host.<metricname>
+icinga.service.<servicename>.<metricname>
+```
 
 for host and service checks. The tag host is always applied.
 
 To make sure Icinga 2 writes a valid metric into OpenTSDB some characters are replaced
 with `_` in the target name:
 
-    \  (and space)
+```
+\  (and space)
+```
 
 The resulting name in OpenTSDB might look like:
 
-    www-01 / http-cert / response time
-    icinga.http_cert.response_time
+```
+www-01 / http-cert / response time
+icinga.http_cert.response_time
+```
 
 In addition to the performance data retrieved from the check plugin, Icinga 2 sends
 internal check statistic data to OpenTSDB:
@@ -554,7 +590,9 @@ internal check statistic data to OpenTSDB:
 While reachable, state and state_type are metrics for the host or service the
 other metrics follow the current naming schema
 
-    icinga.check.<metricname>
+```
+icinga.check.<metricname>
+```
 
 with the following tags
 
@@ -592,18 +630,24 @@ in the [Livestatus Schema](24-appendix.md#schema-livestatus) section.
 
 You can enable Livestatus using icinga2 feature enable:
 
-    # icinga2 feature enable livestatus
+```
+# icinga2 feature enable livestatus
+```
 
 After that you will have to restart Icinga 2:
 
-    # systemctl restart icinga2
+```
+# systemctl restart icinga2
+```
 
 By default the Livestatus socket is available in `/var/run/icinga2/cmd/livestatus`.
 
 In order for queries and commands to work you will need to add your query user
 (e.g. your web server) to the `icingacmd` group:
 
-    # usermod -a -G icingacmd www-data
+```
+# usermod -a -G icingacmd www-data
+```
 
 The Debian packages use `nagios` as the user and group name. Make sure to change `icingacmd` to
 `nagios` if you're using Debian.
@@ -615,8 +659,9 @@ In order to use the historical tables provided by the livestatus feature (for ex
 are expected to be in `/var/log/icinga2/compat`. A different path can be set using the
 `compat_log_path` configuration attribute.
 
-    # icinga2 feature enable compatlog
-
+```
+# icinga2 feature enable compatlog
+```
 
 ### Livestatus Sockets <a id="livestatus-sockets"></a>
 
@@ -642,26 +687,28 @@ programmatically: [Monitoring::Livestatus](http://search.cpan.org/~nierlein/Moni
 
 Example using the unix socket:
 
-    # echo -e "GET services\n" | /usr/bin/nc -U /var/run/icinga2/cmd/livestatus
+```
+# echo -e "GET services\n" | /usr/bin/nc -U /var/run/icinga2/cmd/livestatus
 
 Example using the tcp socket listening on port `6558`:
 
-    # echo -e 'GET services\n' | netcat 127.0.0.1 6558
+# echo -e 'GET services\n' | netcat 127.0.0.1 6558
 
-    # cat servicegroups <<EOF
-    GET servicegroups
+# cat servicegroups <<EOF
+GET servicegroups
 
-    EOF
+EOF
 
-    (cat servicegroups; sleep 1) | netcat 127.0.0.1 6558
-
+(cat servicegroups; sleep 1) | netcat 127.0.0.1 6558
+```
 
 ### Livestatus COMMAND Queries <a id="livestatus-command-queries"></a>
 
 A list of available external commands and their parameters can be found [here](24-appendix.md#external-commands-list-detail)
 
-    $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
-
+```
+$ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
+```
 
 ### Livestatus Filters <a id="livestatus-filters"></a>
 
@@ -696,20 +743,22 @@ Schema: "Stats: aggregatefunction aggregateattribute"
 
 Example:
 
-    GET hosts
-    Filter: has_been_checked = 1
-    Filter: check_type = 0
-    Stats: sum execution_time
-    Stats: sum latency
-    Stats: sum percent_state_change
-    Stats: min execution_time
-    Stats: min latency
-    Stats: min percent_state_change
-    Stats: max execution_time
-    Stats: max latency
-    Stats: max percent_state_change
-    OutputFormat: json
-    ResponseHeader: fixed16
+```
+GET hosts
+Filter: has_been_checked = 1
+Filter: check_type = 0
+Stats: sum execution_time
+Stats: sum latency
+Stats: sum percent_state_change
+Stats: min execution_time
+Stats: min latency
+Stats: min percent_state_change
+Stats: max execution_time
+Stats: max latency
+Stats: max percent_state_change
+OutputFormat: json
+ResponseHeader: fixed16
+```
 
 ### Livestatus Output <a id="livestatus-output"></a>
 
@@ -721,7 +770,9 @@ is a pipe (2nd level).
 
 Separators can be set using ASCII codes like:
 
-    Separators: 10 59 44 124
+```
+Separators: 10 59 44 124
+```
 
 * JSON
 
@@ -773,7 +824,9 @@ interval to its `objects.cache` and `status.dat` files. Icinga 2 provides
 the `StatusDataWriter` object which dumps all configuration objects and
 status updates in a regular interval.
 
-    # icinga2 feature enable statusdata
+```
+# icinga2 feature enable statusdata
+```
 
 If you are not using any web interface or addon which uses these files,
 you can safely disable this feature.
@@ -795,7 +848,9 @@ for answering queries to historical tables.
 
 The `CompatLogger` object can be enabled with
 
-    # icinga2 feature enable compatlog
+```
+# icinga2 feature enable compatlog
+```
 
 By default, the Icinga 1.x log file called `icinga.log` is located
 in `/var/log/icinga2/compat`. Rotated log files are moved into
@@ -820,7 +875,8 @@ environments, Icinga 2 supports the `CheckResultReader` object.
 There is no feature configuration available, but it must be defined
 on-demand in your Icinga 2 objects configuration.
 
-    object CheckResultReader "reader" {
-      spool_dir = "/data/check-results"
-    }
-
+```
+object CheckResultReader "reader" {
+  spool_dir = "/data/check-results"
+}
+```

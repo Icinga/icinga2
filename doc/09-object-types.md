@@ -396,12 +396,14 @@ Configuration Attributes:
 
 Available state filters:
 
-    OK
-    Warning
-    Critical
-    Unknown
-    Up
-    Down
+```
+OK
+Warning
+Critical
+Unknown
+Up
+Down
+```
 
 When using [apply rules](03-monitoring-basics.md#using-apply) for dependencies, you can leave out certain attributes which will be
 automatically determined by Icinga 2.
@@ -1154,27 +1156,33 @@ Configuration Attributes:
 
 Available notification state filters for Service:
 
-    OK
-    Warning
-    Critical
-    Unknown
+```
+OK
+Warning
+Critical
+Unknown
+```
 
 Available notification state filters for Host:
 
-    Up
-    Down
+```
+Up
+Down
+```
 
 Available notification type filters:
 
-    DowntimeStart
-    DowntimeEnd
-    DowntimeRemoved
-    Custom
-    Acknowledgement
-    Problem
-    Recovery
-    FlappingStart
-    FlappingEnd
+```
+DowntimeStart
+DowntimeEnd
+DowntimeRemoved
+Custom
+Acknowledgement
+Problem
+Recovery
+FlappingStart
+FlappingEnd
+```
 
 Runtime Attributes:
 
@@ -1687,24 +1695,28 @@ object User "icingaadmin" {
 
 Available notification state filters:
 
-    OK
-    Warning
-    Critical
-    Unknown
-    Up
-    Down
+```
+OK
+Warning
+Critical
+Unknown
+Up
+Down
+```
 
 Available notification type filters:
 
-    DowntimeStart
-    DowntimeEnd
-    DowntimeRemoved
-    Custom
-    Acknowledgement
-    Problem
-    Recovery
-    FlappingStart
-    FlappingEnd
+```
+DowntimeStart
+DowntimeEnd
+DowntimeRemoved
+Custom
+Acknowledgement
+Problem
+Recovery
+FlappingStart
+FlappingEnd
+```
 
 Configuration Attributes:
 

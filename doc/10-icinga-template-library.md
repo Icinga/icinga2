@@ -25,7 +25,9 @@ You are advised to create your own CheckCommand definitions in
 
 By default the generic templates are included in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file:
 
-    include <itl>
+```
+include <itl>
+```
 
 These templates are imported by the provided example configuration.
 

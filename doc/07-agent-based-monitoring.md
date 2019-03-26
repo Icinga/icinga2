@@ -15,15 +15,17 @@ The following example uses the [SNMP ITL](10-icinga-template-library.md#plugin-c
 overrides the `snmp_oid` custom attribute. A service is created for all hosts which
 have the `snmp-community` custom attribute.
 
-    apply Service "uptime" {
-      import "generic-service"
+```
+apply Service "uptime" {
+  import "generic-service"
 
-      check_command = "snmp"
-      vars.snmp_oid = "1.3.6.1.2.1.1.3.0"
-      vars.snmp_miblist = "DISMAN-EVENT-MIB"
+  check_command = "snmp"
+  vars.snmp_oid = "1.3.6.1.2.1.1.3.0"
+  vars.snmp_miblist = "DISMAN-EVENT-MIB"
 
-      assign where host.vars.snmp_community != ""
-    }
+  assign where host.vars.snmp_community != ""
+}
+```
 
 Additional SNMP plugins are available using the [Manubulon SNMP Plugins](10-icinga-template-library.md#snmp-manubulon-plugin-check-commands).
 
@@ -37,23 +39,25 @@ Calling a plugin using the SSH protocol to execute a plugin on the remote server
 its return code and output. The `by_ssh` command object is part of the built-in templates and
 requires the `check_by_ssh` check plugin which is available in the [Monitoring Plugins package](02-getting-started.md#setting-up-check-plugins).
 
-    object CheckCommand "by_ssh_swap" {
-      import "by_ssh"
+```
+object CheckCommand "by_ssh_swap" {
+  import "by_ssh"
 
-      vars.by_ssh_command = "/usr/lib/nagios/plugins/check_swap -w $by_ssh_swap_warn$ -c $by_ssh_swap_crit$"
-      vars.by_ssh_swap_warn = "75%"
-      vars.by_ssh_swap_crit = "50%"
-    }
+  vars.by_ssh_command = "/usr/lib/nagios/plugins/check_swap -w $by_ssh_swap_warn$ -c $by_ssh_swap_crit$"
+  vars.by_ssh_swap_warn = "75%"
+  vars.by_ssh_swap_crit = "50%"
+}
 
-    object Service "swap" {
-      import "generic-service"
+object Service "swap" {
+  import "generic-service"
 
-      host_name = "remote-ssh-host"
+  host_name = "remote-ssh-host"
 
-      check_command = "by_ssh_swap"
+  check_command = "by_ssh_swap"
 
-      vars.by_ssh_logname = "icinga"
-    }
+  vars.by_ssh_logname = "icinga"
+}
+```
 
 ## NSClient++ <a id="agent-based-checks-nsclient"></a>
 
@@ -67,18 +71,20 @@ Icinga 2 provides the [nscp check command](10-icinga-template-library.md#plugin-
 
 Example:
 
-    object Service "disk" {
-      import "generic-service"
+```
+object Service "disk" {
+  import "generic-service"
 
-      host_name = "remote-windows-host"
+  host_name = "remote-windows-host"
 
-      check_command = "nscp"
+  check_command = "nscp"
 
-      vars.nscp_variable = "USEDDISKSPACE"
-      vars.nscp_params = "c"
-      vars.nscp_warn = 70
-      vars.nscp_crit = 80
-    }
+  vars.nscp_variable = "USEDDISKSPACE"
+  vars.nscp_params = "c"
+  vars.nscp_warn = 70
+  vars.nscp_crit = 80
+}
+```
 
 For details on the `NSClient++` configuration please refer to the [official documentation](https://docs.nsclient.org/).
 
@@ -116,18 +122,22 @@ Icinga 2 provides the [nrpe check command](10-icinga-template-library.md#plugin-
 
 Example:
 
-    object Service "users" {
-      import "generic-service"
+```
+object Service "users" {
+  import "generic-service"
 
-      host_name = "remote-nrpe-host"
+  host_name = "remote-nrpe-host"
 
-      check_command = "nrpe"
-      vars.nrpe_command = "check_users"
-    }
+  check_command = "nrpe"
+  vars.nrpe_command = "check_users"
+}
+```
 
 nrpe.cfg:
 
-    command[check_users]=/usr/local/icinga/libexec/check_users -w 5 -c 10
+```
+command[check_users]=/usr/local/icinga/libexec/check_users -w 5 -c 10
+```
 
 If you are planning to pass arguments to NRPE using the `-a`
 command line parameter, make sure that your NRPE daemon has them
@@ -144,19 +154,23 @@ attribute which expects either a single value or an array of values.
 
 Example:
 
-    object Service "nrpe-disk-/" {
-      import "generic-service"
+```
+object Service "nrpe-disk-/" {
+  import "generic-service"
 
-      host_name = "remote-nrpe-host"
+  host_name = "remote-nrpe-host"
 
-      check_command = "nrpe"
-      vars.nrpe_command = "check_disk"
-      vars.nrpe_arguments = [ "20%", "10%", "/" ]
-    }
+  check_command = "nrpe"
+  vars.nrpe_command = "check_disk"
+  vars.nrpe_arguments = [ "20%", "10%", "/" ]
+}
+```
 
 Icinga 2 will execute the nrpe plugin like this:
 
-    /usr/lib/nagios/plugins/check_nrpe -H <remote-nrpe-host> -c 'check_disk' -a '20%' '10%' '/'
+```
+/usr/lib/nagios/plugins/check_nrpe -H <remote-nrpe-host> -c 'check_disk' -a '20%' '10%' '/'
+```
 
 NRPE expects all additional arguments in an ordered fashion
 and interprets the first value as `$ARG1$` macro, the second
@@ -164,12 +178,16 @@ value as `$ARG2$`, and so on.
 
 nrpe.cfg:
 
-    command[check_disk]=/usr/local/icinga/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$
+```
+command[check_disk]=/usr/local/icinga/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$
+```
 
 Using the above example with `nrpe_arguments` the command
 executed by the NRPE daemon looks similar to that:
 
-    /usr/local/icinga/libexec/check_disk -w 20% -c 10% -p /
+```
+/usr/local/icinga/libexec/check_disk -w 20% -c 10% -p /
+```
 
 You can pass arguments in a similar manner to [NSClient++](07-agent-based-monitoring.md#agent-based-checks-nsclient)
 when using its NRPE supported check method.
@@ -193,14 +211,16 @@ state or from a missed reset event.
 
 Add a directive in `snmptt.conf`
 
-    EVENT coldStart .1.3.6.1.6.3.1.1.5.1 "Status Events" Normal
-    FORMAT Device reinitialized (coldStart)
-    EXEC echo "[$@] PROCESS_SERVICE_CHECK_RESULT;$A;Coldstart;2;The snmp agent has reinitialized." >> /var/run/icinga2/cmd/icinga2.cmd
-    SDESC
-    A coldStart trap signifies that the SNMPv2 entity, acting
-    in an agent role, is reinitializing itself and that its
-    configuration may have been altered.
-    EDESC
+```
+EVENT coldStart .1.3.6.1.6.3.1.1.5.1 "Status Events" Normal
+FORMAT Device reinitialized (coldStart)
+EXEC echo "[$@] PROCESS_SERVICE_CHECK_RESULT;$A;Coldstart;2;The snmp agent has reinitialized." >> /var/run/icinga2/cmd/icinga2.cmd
+SDESC
+A coldStart trap signifies that the SNMPv2 entity, acting
+in an agent role, is reinitializing itself and that its
+configuration may have been altered.
+EDESC
+```
 
 1. Define the `EVENT` as per your need.
 2. Construct the `EXEC` statement with the service name matching your template
@@ -210,105 +230,111 @@ match your Icinga convention.
 
 Add an `EventCommand` configuration object for the passive service auto reset event.
 
-    object EventCommand "coldstart-reset-event" {
-      command = [ ConfigDir + "/conf.d/custom/scripts/coldstart_reset_event.sh" ]
+```
+object EventCommand "coldstart-reset-event" {
+  command = [ ConfigDir + "/conf.d/custom/scripts/coldstart_reset_event.sh" ]
 
-      arguments = {
-        "-i" = "$service.state_id$"
-        "-n" = "$host.name$"
-        "-s" = "$service.name$"
-      }
-    }
+  arguments = {
+    "-i" = "$service.state_id$"
+    "-n" = "$host.name$"
+    "-s" = "$service.name$"
+  }
+}
+```
 
 Create the `coldstart_reset_event.sh` shell script to pass the expanded variable
 data in. The `$service.state_id$` is important in order to prevent an endless loop
 of event firing after the service has been reset.
 
-    #!/bin/bash
+```
+#!/bin/bash
 
-    SERVICE_STATE_ID=""
-    HOST_NAME=""
-    SERVICE_NAME=""
+SERVICE_STATE_ID=""
+HOST_NAME=""
+SERVICE_NAME=""
 
-    show_help()
-    {
-    cat <<-EOF
-    	Usage: ${0##*/} [-h] -n HOST_NAME -s SERVICE_NAME
-    	Writes a coldstart reset event to the Icinga command pipe.
+show_help()
+{
+cat <<-EOF
+	Usage: ${0##*/} [-h] -n HOST_NAME -s SERVICE_NAME
+	Writes a coldstart reset event to the Icinga command pipe.
 
-    	  -h                  Display this help and exit.
-    	  -i SERVICE_STATE_ID The associated service state id.
-    	  -n HOST_NAME        The associated host name.
-    	  -s SERVICE_NAME     The associated service name.
-    EOF
-    }
+	  -h                  Display this help and exit.
+	  -i SERVICE_STATE_ID The associated service state id.
+	  -n HOST_NAME        The associated host name.
+	  -s SERVICE_NAME     The associated service name.
+EOF
+}
 
-    while getopts "hi:n:s:" opt; do
-        case "$opt" in
-          h)
-              show_help
-              exit 0
-              ;;
-          i)
-              SERVICE_STATE_ID=$OPTARG
-              ;;
-          n)
-              HOST_NAME=$OPTARG
-              ;;
-          s)
-              SERVICE_NAME=$OPTARG
-              ;;
-          '?')
-              show_help
-              exit 0
-              ;;
-          esac
-    done
+while getopts "hi:n:s:" opt; do
+    case "$opt" in
+      h)
+          show_help
+          exit 0
+          ;;
+      i)
+          SERVICE_STATE_ID=$OPTARG
+          ;;
+      n)
+          HOST_NAME=$OPTARG
+          ;;
+      s)
+          SERVICE_NAME=$OPTARG
+          ;;
+      '?')
+          show_help
+          exit 0
+          ;;
+      esac
+done
 
-    if [ -z "$SERVICE_STATE_ID" ]; then
-        show_help
-        printf "\n  Error: -i required.\n"
-        exit 1
-    fi
+if [ -z "$SERVICE_STATE_ID" ]; then
+    show_help
+    printf "\n  Error: -i required.\n"
+    exit 1
+fi
 
-    if [ -z "$HOST_NAME" ]; then
-        show_help
-        printf "\n  Error: -n required.\n"
-        exit 1
-    fi
+if [ -z "$HOST_NAME" ]; then
+    show_help
+    printf "\n  Error: -n required.\n"
+    exit 1
+fi
 
-    if [ -z "$SERVICE_NAME" ]; then
-        show_help
-        printf "\n  Error: -s required.\n"
-        exit 1
-    fi
+if [ -z "$SERVICE_NAME" ]; then
+    show_help
+    printf "\n  Error: -s required.\n"
+    exit 1
+fi
 
-    if [ "$SERVICE_STATE_ID" -gt 0 ]; then
-        echo "[`date +%s`] PROCESS_SERVICE_CHECK_RESULT;$HOST_NAME;$SERVICE_NAME;0;Auto-reset (`date +"%m-%d-%Y %T"`)." >> /var/run/icinga2/cmd/icinga2.cmd
-    fi
+if [ "$SERVICE_STATE_ID" -gt 0 ]; then
+    echo "[`date +%s`] PROCESS_SERVICE_CHECK_RESULT;$HOST_NAME;$SERVICE_NAME;0;Auto-reset (`date +"%m-%d-%Y %T"`)." >> /var/run/icinga2/cmd/icinga2.cmd
+fi
+```
 
 Finally create the `Service` and assign it:
 
-    apply Service "Coldstart" {
-      import "generic-service-custom"
+```
+apply Service "Coldstart" {
+  import "generic-service-custom"
 
-      check_command         = "dummy"
-      event_command         = "coldstart-reset-event"
+  check_command         = "dummy"
+  event_command         = "coldstart-reset-event"
 
-      enable_notifications  = 1
-      enable_active_checks  = 0
-      enable_passive_checks = 1
-      enable_flapping       = 0
-      volatile              = 1
-      enable_perfdata       = 0
+  enable_notifications  = 1
+  enable_active_checks  = 0
+  enable_passive_checks = 1
+  enable_flapping       = 0
+  volatile              = 1
+  enable_perfdata       = 0
 
-      vars.dummy_state      = 0
-      vars.dummy_text       = "Manual reset."
+  vars.dummy_state      = 0
+  vars.dummy_text       = "Manual reset."
 
-      vars.sla              = "24x7"
+  vars.sla              = "24x7"
 
-      assign where (host.vars.os == "Linux" || host.vars.os == "Windows")
-    }
+  assign where (host.vars.os == "Linux" || host.vars.os == "Windows")
+}
+```
 
 ### Complex SNMP Traps <a id="complex-traps"></a>
 
@@ -321,13 +347,15 @@ As long as the most recent passive update has occurred, the active check is bypa
 
 Add a directive in `snmptt.conf`
 
-    EVENT enterpriseSpecific <YOUR OID> "Status Events" Normal
-    FORMAT Enterprise specific trap
-    EXEC echo "[$@] PROCESS_SERVICE_CHECK_RESULT;$A;$1;$2;$3" >> /var/run/icinga2/cmd/icinga2.cmd
-    SDESC
-    An enterprise specific trap.
-    The varbinds in order denote the Icinga service name, state and text.
-    EDESC
+```
+EVENT enterpriseSpecific <YOUR OID> "Status Events" Normal
+FORMAT Enterprise specific trap
+EXEC echo "[$@] PROCESS_SERVICE_CHECK_RESULT;$A;$1;$2;$3" >> /var/run/icinga2/cmd/icinga2.cmd
+SDESC
+An enterprise specific trap.
+The varbinds in order denote the Icinga service name, state and text.
+EDESC
+```
 
 1. Define the `EVENT` as per your need using your actual oid.
 2. The service name, state and text are extracted from the first three varbinds.
@@ -337,22 +365,24 @@ Create a `Service` for the specific use case associated to the host. If the host
 matches and the first varbind value is `Backup`, SNMPTT will submit the corresponding
 passive update with the state and text from the second and third varbind:
 
-    object Service "Backup" {
-      import "generic-service-custom"
+```
+object Service "Backup" {
+  import "generic-service-custom"
 
-      host_name             = "host.domain.com"
-      check_command         = "dummy"
+  host_name             = "host.domain.com"
+  check_command         = "dummy"
 
-      enable_notifications  = 1
-      enable_active_checks  = 1
-      enable_passive_checks = 1
-      enable_flapping       = 0
-      volatile              = 1
-      max_check_attempts    = 1
-      check_interval        = 87000
-      enable_perfdata       = 0
+  enable_notifications  = 1
+  enable_active_checks  = 1
+  enable_passive_checks = 1
+  enable_flapping       = 0
+  volatile              = 1
+  max_check_attempts    = 1
+  check_interval        = 87000
+  enable_perfdata       = 0
 
-      vars.sla              = "24x7"
-      vars.dummy_state      = 2
-      vars.dummy_text       = "No passive check result received."
-    }
+  vars.sla              = "24x7"
+  vars.dummy_state      = 2
+  vars.dummy_text       = "No passive check result received."
+}
+```

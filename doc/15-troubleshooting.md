@@ -547,15 +547,19 @@ settings of the Icinga 2 systemd service by creating
 `/etc/systemd/system/icinga2.service.d/override.conf` with the following
 content:
 
-    [Service]
-    Restart=always
-    RestartSec=1
-    StartLimitInterval=10
-    StartLimitBurst=3
+```
+[Service]
+Restart=always
+RestartSec=1
+StartLimitInterval=10
+StartLimitBurst=3
+```
 
 Using the watchdog can also help with monitoring Icinga 2, to activate and use it add the following to the override:
 
-    WatchdogSec=30s
+```
+WatchdogSec=30s
+```
 
 This way systemd will kill Icinga 2 if does not notify for over 30 seconds, a timout of less than 10 seconds is not
 recommended. When the watchdog is activated, `Restart=` can be set to `watchdog` to restart Icinga 2 in the case of a

@@ -387,12 +387,16 @@ In Icinga 2 active check freshness is enabled by default. It is determined by th
 
 The threshold is calculated based on the last check execution time for actively executed checks:
 
-    (last check execution time + check interval) > current time
+```
+(last check execution time + check interval) > current time
+```
 
 If this host/service receives check results from an [external source](08-advanced-topics.md#external-check-results),
 the threshold is based on the last time a check result was received:
 
-    (last check result time + check interval) > current time
+```
+(last check result time + check interval) > current time
+```
 
 > **Tip**
 >
@@ -579,65 +583,69 @@ In addition to that you can optionally define the `ssl` attribute which enables 
 
 Host definition:
 
-    object Host "webserver01" {
-      import "generic-host"
-      address = "192.168.56.200"
-      vars.os = "Linux"
+```
+object Host "webserver01" {
+  import "generic-host"
+  address = "192.168.56.200"
+  vars.os = "Linux"
 
-      vars.webserver = {
-        instance["status"] = {
-          address = "192.168.56.201"
-          port = "80"
-          url = "/status"
-        }
-        instance["tomcat"] = {
-          address = "192.168.56.202"
-          port = "8080"
-        }
-        instance["icingaweb2"] = {
-          address = "192.168.56.210"
-          port = "443"
-          url = "/icingaweb2"
-          ssl = true
-        }
-      }
+  vars.webserver = {
+    instance["status"] = {
+      address = "192.168.56.201"
+      port = "80"
+      url = "/status"
     }
+    instance["tomcat"] = {
+      address = "192.168.56.202"
+      port = "8080"
+    }
+    instance["icingaweb2"] = {
+      address = "192.168.56.210"
+      port = "443"
+      url = "/icingaweb2"
+      ssl = true
+    }
+  }
+}
+```
 
 Service apply for definitions:
 
-    apply Service "webserver_ping" for (instance => config in host.vars.webserver.instance) {
-      display_name = "webserver_" + instance
-      check_command = "ping4"
+```
+apply Service "webserver_ping" for (instance => config in host.vars.webserver.instance) {
+  display_name = "webserver_" + instance
+  check_command = "ping4"
 
-      vars.ping_address = config.address
+  vars.ping_address = config.address
 
-      assign where host.vars.webserver.instance
-    }
+  assign where host.vars.webserver.instance
+}
 
-    apply Service "webserver_port" for (instance => config in host.vars.webserver.instance) {
-      display_name = "webserver_" + instance + "_" + config.port
-      check_command = "tcp"
+apply Service "webserver_port" for (instance => config in host.vars.webserver.instance) {
+  display_name = "webserver_" + instance + "_" + config.port
+  check_command = "tcp"
 
-      vars.tcp_address = config.address
-      vars.tcp_port = config.port
+  vars.tcp_address = config.address
+  vars.tcp_port = config.port
 
-      assign where host.vars.webserver.instance
-    }
+  assign where host.vars.webserver.instance
+}
 
-    apply Service "webserver_url" for (instance => config in host.vars.webserver.instance) {
-      display_name = "webserver_" + instance + "_" + config.url
-      check_command = "http"
+apply Service "webserver_url" for (instance => config in host.vars.webserver.instance) {
+  display_name = "webserver_" + instance + "_" + config.url
+  check_command = "http"
 
-      vars.http_address = config.address
-      vars.http_port = config.port
-      vars.http_uri = config.url
+  vars.http_address = config.address
+  vars.http_port = config.port
+  vars.http_uri = config.url
 
-      if (config.ssl) {
-        vars.http_ssl = config.ssl
-      }
+  if (config.ssl) {
+    vars.http_ssl = config.ssl
+  }
 
-      assign where config.url != ""
-    }
+  assign where config.url != ""
+}
+```
 
 The variables defined in the host dictionary are not using the typical custom attribute
 prefix recommended for CheckCommand parameters. Instead they are re-used for multiple
@@ -756,25 +764,27 @@ slightly unexpected way. The following example shows how to assign values
 depending on group membership. All hosts in the `slow-lan` host group use 300
 as value for `ping_wrta`, all other hosts use 100.
 
-    globals.group_specific_value = function(group, group_value, non_group_value) {
-        return function() use (group, group_value, non_group_value) {
-            if (group in host.groups) {
-                return group_value
-            } else {
-                return non_group_value
-            }
+```
+globals.group_specific_value = function(group, group_value, non_group_value) {
+    return function() use (group, group_value, non_group_value) {
+        if (group in host.groups) {
+            return group_value
+        } else {
+            return non_group_value
         }
     }
+}
 
-    apply Service "ping4" {
-        import "generic-service"
-        check_command = "ping4"
+apply Service "ping4" {
+    import "generic-service"
+    check_command = "ping4"
 
-        vars.ping_wrta = group_specific_value("slow-lan", 300, 100)
-        vars.ping_crta = group_specific_value("slow-lan", 500, 200)
+    vars.ping_wrta = group_specific_value("slow-lan", 300, 100)
+    vars.ping_crta = group_specific_value("slow-lan", 500, 200)
 
-        assign where true
-    }
+    assign where true
+}
+```
 
 #### Use Functions in Assign Where Expressions <a id="use-functions-assign-where"></a>
 
@@ -790,36 +800,37 @@ The following example requires the host `myprinter` being added
 to the host group `printers-lexmark` but only if the host uses
 a template matching the name `lexmark*`.
 
-    template Host "lexmark-printer-host" {
-      vars.printer_type = "Lexmark"
+```
+template Host "lexmark-printer-host" {
+  vars.printer_type = "Lexmark"
+}
+
+object Host "myprinter" {
+  import "generic-host"
+  import "lexmark-printer-host"
+
+  address = "192.168.1.1"
+}
+
+/* register a global function for the assign where call */
+globals.check_host_templates = function(host, search) {
+  /* iterate over all host templates and check if the search matches */
+  for (tmpl in host.templates) {
+    if (match(search, tmpl)) {
+      return true
     }
+  }
 
-    object Host "myprinter" {
-      import "generic-host"
-      import "lexmark-printer-host"
+  /* nothing matched */
+  return false
+}
 
-      address = "192.168.1.1"
-    }
-
-    /* register a global function for the assign where call */
-    globals.check_host_templates = function(host, search) {
-      /* iterate over all host templates and check if the search matches */
-      for (tmpl in host.templates) {
-        if (match(search, tmpl)) {
-          return true
-        }
-      }
-
-      /* nothing matched */
-      return false
-    }
-
-    object HostGroup "printers-lexmark" {
-      display_name = "Lexmark Printers"
-      /* call the global function and pass the arguments */
-      assign where check_host_templates(host, "lexmark*")
-    }
-
+object HostGroup "printers-lexmark" {
+  display_name = "Lexmark Printers"
+  /* call the global function and pass the arguments */
+  assign where check_host_templates(host, "lexmark*")
+}
+```
 
 Take a different more complex example: All hosts with the
 custom attribute `vars_app` as nested dictionary should be
@@ -828,43 +839,46 @@ added to the host group `ABAP-app-server`. But only if the
 
 It could read as wildcard match for nested dictionaries:
 
+```
     where host.vars.vars_app["*"].app_type == "ABAP"
+```
 
 The solution for this problem is to register a global
 function which checks the `app_type` for all hosts
 with the `vars_app` dictionary.
 
-    object Host "appserver01" {
-      check_command = "dummy"
-      vars.vars_app["ABC"] = { app_type = "ABAP" }
+```
+object Host "appserver01" {
+  check_command = "dummy"
+  vars.vars_app["ABC"] = { app_type = "ABAP" }
+}
+object Host "appserver02" {
+  check_command = "dummy"
+  vars.vars_app["DEF"] = { app_type = "ABAP" }
+}
+
+globals.check_app_type = function(host, type) {
+  /* ensure that other hosts without the custom attribute do not match */
+  if (typeof(host.vars.vars_app) != Dictionary) {
+    return false
+  }
+
+  /* iterate over the vars_app dictionary */
+  for (key => val in host.vars.vars_app) {
+    /* if the value is a dictionary and if contains the app_type being the requested type */
+    if (typeof(val) == Dictionary && val.app_type == type) {
+      return true
     }
-    object Host "appserver02" {
-      check_command = "dummy"
-      vars.vars_app["DEF"] = { app_type = "ABAP" }
-    }
+  }
 
-    globals.check_app_type = function(host, type) {
-      /* ensure that other hosts without the custom attribute do not match */
-      if (typeof(host.vars.vars_app) != Dictionary) {
-        return false
-      }
+  /* nothing matched */
+  return false
+}
 
-      /* iterate over the vars_app dictionary */
-      for (key => val in host.vars.vars_app) {
-        /* if the value is a dictionary and if contains the app_type being the requested type */
-        if (typeof(val) == Dictionary && val.app_type == type) {
-          return true
-        }
-      }
-
-      /* nothing matched */
-      return false
-    }
-
-    object HostGroup "ABAP-app-server" {
-      assign where check_app_type(host, "ABAP")
-    }
-
+object HostGroup "ABAP-app-server" {
+  assign where check_app_type(host, "ABAP")
+}
+```
 
 #### Use Functions in Command Arguments set_if <a id="use-functions-command-arguments-setif"></a>
 
@@ -879,13 +893,15 @@ multiple conditions and attributes.
 The following example was found on the community support channels. The user had defined a host
 dictionary named `compellent` with the key `disks`. This was then used inside service apply for rules.
 
-    object Host "dict-host" {
-      check_command = "check_compellent"
-      vars.compellent["disks"] = {
-        file = "/var/lib/check_compellent/san_disks.0.json",
-        checks = ["disks"]
-      }
-    }
+```
+object Host "dict-host" {
+  check_command = "check_compellent"
+  vars.compellent["disks"] = {
+    file = "/var/lib/check_compellent/san_disks.0.json",
+    checks = ["disks"]
+  }
+}
+```
 
 The more significant problem was to only add the command parameter `--disk` to the plugin call
 when the dictionary `compellent` contains the key `disks`, and omit it if not found.
@@ -894,20 +910,22 @@ By defining `set_if` as [abbreviated lambda function](17-language-reference.md#n
 and evaluating the host custom attribute `compellent` containing the `disks` this problem was
 solved like this:
 
-    object CheckCommand "check_compellent" {
-      command   = [ "/usr/bin/check_compellent" ]
-      arguments   = {
-        "--disks"  = {
-          set_if = {{
-            var host_vars = host.vars
-            log(host_vars)
-            var compel = host_vars.compellent
-            log(compel)
-            compel.contains("disks")
-          }}
-        }
-      }
+```
+object CheckCommand "check_compellent" {
+  command   = [ "/usr/bin/check_compellent" ]
+  arguments   = {
+    "--disks"  = {
+      set_if = {{
+        var host_vars = host.vars
+        log(host_vars)
+        var compel = host_vars.compellent
+        log(compel)
+        compel.contains("disks")
+      }}
     }
+  }
+}
+```
 
 This implementation uses the dictionary type method [contains](18-library-reference.md#dictionary-contains)
 and will fail if `host.vars.compellent` is not of the type `Dictionary`.
@@ -915,35 +933,38 @@ Therefore you can extend the checks using the [typeof](17-language-reference.md#
 
 You can test the types using the `icinga2 console`:
 
-    # icinga2 console
-    Icinga (version: v2.3.0-193-g3eb55ad)
-    <1> => srv_vars.compellent["check_a"] = { file="outfile_a.json", checks = [ "disks", "fans" ] }
-    null
-    <2> => srv_vars.compellent["check_b"] = { file="outfile_b.json", checks = [ "power", "voltages" ] }
-    null
-    <3> => typeof(srv_vars.compellent)
-    type 'Dictionary'
-    <4> =>
+```
+# icinga2 console
+Icinga (version: v2.3.0-193-g3eb55ad)
+<1> => srv_vars.compellent["check_a"] = { file="outfile_a.json", checks = [ "disks", "fans" ] }
+null
+<2> => srv_vars.compellent["check_b"] = { file="outfile_b.json", checks = [ "power", "voltages" ] }
+null
+<3> => typeof(srv_vars.compellent)
+type 'Dictionary'
+<4> =>
+```
 
 The more programmatic approach for `set_if` could look like this:
 
-        "--disks" = {
-          set_if = {{
-            var srv_vars = service.vars
-            if(len(srv_vars) > 0) {
-              if (typeof(srv_vars.compellent) == Dictionary) {
-                return srv_vars.compellent.contains("disks")
-              } else {
-                log(LogInformationen, "checkcommand set_if", "custom attribute compellent_checks is not a dictionary, ignoring it.")
-                return false
-              }
-            } else {
-              log(LogWarning, "checkcommand set_if", "empty custom attributes")
-              return false
-            }
-          }}
+```
+    "--disks" = {
+      set_if = {{
+        var srv_vars = service.vars
+        if(len(srv_vars) > 0) {
+          if (typeof(srv_vars.compellent) == Dictionary) {
+            return srv_vars.compellent.contains("disks")
+          } else {
+            log(LogInformationen, "checkcommand set_if", "custom attribute compellent_checks is not a dictionary, ignoring it.")
+            return false
+          }
+        } else {
+          log(LogWarning, "checkcommand set_if", "empty custom attributes")
+          return false
         }
-
+      }}
+    }
+```
 
 #### Use Functions as Command Attribute <a id="use-functions-command-attribute"></a>
 
@@ -955,20 +976,22 @@ The following example was taken from the community support channels. The require
 specify a custom attribute inside the notification apply rule and decide which notification
 script to call based on that.
 
-    object User "short-dummy" {
-    }
+```
+object User "short-dummy" {
+}
 
-    object UserGroup "short-dummy-group" {
-      assign where user.name == "short-dummy"
-    }
+object UserGroup "short-dummy-group" {
+  assign where user.name == "short-dummy"
+}
 
-    apply Notification "mail-admins-short" to Host {
-       import "mail-host-notification"
-       command = "mail-host-notification-test"
-       user_groups = [ "short-dummy-group" ]
-       vars.short = true
-       assign where host.vars.notification.mail
-    }
+apply Notification "mail-admins-short" to Host {
+   import "mail-host-notification"
+   command = "mail-host-notification-test"
+   user_groups = [ "short-dummy-group" ]
+   vars.short = true
+   assign where host.vars.notification.mail
+}
+```
 
 The solution is fairly simple: The `command` attribute is implemented as function returning
 an array required by the caller Icinga 2.
@@ -980,25 +1003,26 @@ returned.
 
 You can omit the `log()` calls, they only help debugging.
 
-    object NotificationCommand "mail-host-notification-test" {
-      command = {{
-        log("command as function")
-        var mailscript = "mail-host-notification-long.sh"
-        if (notification.vars.short) {
-           mailscript = "mail-host-notification-short.sh"
-        }
-        log("Running command")
-        log(mailscript)
-
-        var cmd = [ ConfigDir + "/scripts/" + mailscript ]
-        log(LogCritical, "me", cmd)
-        return cmd
-      }}
-
-      env = {
-      }
+```
+object NotificationCommand "mail-host-notification-test" {
+  command = {{
+    log("command as function")
+    var mailscript = "mail-host-notification-long.sh"
+    if (notification.vars.short) {
+       mailscript = "mail-host-notification-short.sh"
     }
+    log("Running command")
+    log(mailscript)
 
+    var cmd = [ ConfigDir + "/scripts/" + mailscript ]
+    log(LogCritical, "me", cmd)
+    return cmd
+  }}
+
+  env = {
+  }
+}
+```
 
 ### Access Object Attributes at Runtime <a id="access-object-attributes-at-runtime"></a>
 

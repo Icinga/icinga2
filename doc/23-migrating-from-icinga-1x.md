@@ -33,24 +33,28 @@ all existing Icinga 1.x `*_interval` attributes require an additional `m` durati
 
 Icinga 1.x:
 
-    define service {
-      service_description             service1
-      host_name                       localhost1
-      check_command                   test_customvar
-      use                             generic-service
-      check_interval                  5
-      retry_interval                  1
-    }
+```
+define service {
+  service_description             service1
+  host_name                       localhost1
+  check_command                   test_customvar
+  use                             generic-service
+  check_interval                  5
+  retry_interval                  1
+}
+```
 
 Icinga 2:
 
-    object Service "service1" {
-      import "generic-service"
-      host_name = "localhost1"
-      check_command = "test_customvar"
-      check_interval = 5m
-      retry_interval = 1m
-    }
+```
+object Service "service1" {
+  import "generic-service"
+  host_name = "localhost1"
+  check_command = "test_customvar"
+  check_interval = 5m
+  retry_interval = 1m
+}
+```
 
 #### Manual Config Migration Hints for Services <a id="manual-config-migration-hints-services"></a>
 
@@ -59,70 +63,81 @@ belongs to, you can migrate this to the [apply rules](03-monitoring-basics.md#us
 
 Icinga 1.x:
 
-    define service {
-      service_description             service1
-      host_name                       localhost1,localhost2
-      check_command                   test_check
-      use                             generic-service
-    }
+```
+define service {
+  service_description             service1
+  host_name                       localhost1,localhost2
+  check_command                   test_check
+  use                             generic-service
+}
+```
 
 Icinga 2:
 
-    apply Service "service1" {
-      import "generic-service"
-      check_command = "test_check"
+```
+apply Service "service1" {
+  import "generic-service"
+  check_command = "test_check"
 
-      assign where host.name in [ "localhost1", "localhost2" ]
-    }
+  assign where host.name in [ "localhost1", "localhost2" ]
+}
+```
 
 In Icinga 1.x you would have organized your services with hostgroups using the `hostgroup_name` attribute
 like the following example:
 
-    define service {
-      service_description             servicewithhostgroups
-      hostgroup_name                  hostgroup1,hostgroup3
-      check_command                   test_check
-      use                             generic-service
-    }
+```
+define service {
+  service_description             servicewithhostgroups
+  hostgroup_name                  hostgroup1,hostgroup3
+  check_command                   test_check
+  use                             generic-service
+}
+```
 
 Using Icinga 2 you can migrate this to the [apply rules](03-monitoring-basics.md#using-apply) syntax:
 
-    apply Service "servicewithhostgroups" {
-      import "generic-service"
-      check_command = "test_check"
+```
+apply Service "servicewithhostgroups" {
+  import "generic-service"
+  check_command = "test_check"
 
-      assign where "hostgroup1" in host.groups
-      assign where "hostgroup3" in host.groups
-    }
+  assign where "hostgroup1" in host.groups
+  assign where "hostgroup3" in host.groups
+}
+```
 
 #### Manual Config Migration Hints for Group Members <a id="manual-config-migration-hints-group-members"></a>
 
 The Icinga 1.x hostgroup `hg1` has two members `host1` and `host2`. The hostgroup `hg2` has `host3` as
 a member and includes all members of the `hg1` hostgroup.
 
-    define hostgroup {
-      hostgroup_name                  hg1
-      members                         host1,host2
-    }
+```
+define hostgroup {
+  hostgroup_name                  hg1
+  members                         host1,host2
+}
 
-    define hostgroup {
-      hostgroup_name                  hg2
-      members                         host3
-      hostgroup_members               hg1
-    }
+define hostgroup {
+  hostgroup_name                  hg2
+  members                         host3
+  hostgroup_members               hg1
+}
+```
 
 This can be migrated to Icinga 2 and [using group assign](17-language-reference.md#group-assign). The additional nested hostgroup
 `hg1` is included into `hg2` with the `groups` attribute.
 
+```
+object HostGroup "hg1" {
+  groups = [ "hg2" ]
+  assign where host.name in [ "host1", "host2" ]
+}
 
-    object HostGroup "hg1" {
-      groups = [ "hg2" ]
-      assign where host.name in [ "host1", "host2" ]
-    }
-
-    object HostGroup "hg2" {
-      assign where host.name == "host3"
-    }
+object HostGroup "hg2" {
+  assign where host.name == "host3"
+}
+```
 
 These assign rules can be applied for all groups: `HostGroup`, `ServiceGroup` and `UserGroup`
 (requires renaming from `contactgroup`).
@@ -138,50 +153,54 @@ These assign rules can be applied for all groups: `HostGroup`, `ServiceGroup` an
 Host and service check command arguments are separated by a `!` in Icinga 1.x. Their order is important and they
 are referenced as `$ARGn$` where `n` is the argument counter.
 
-    define command {
-      command_name                      my-ping
-      command_line                      $USER1$/check_ping -H $HOSTADDRESS$ -w $ARG1$ -c $ARG2$ -p 5
-    }
+```
+define command {
+  command_name                      my-ping
+  command_line                      $USER1$/check_ping -H $HOSTADDRESS$ -w $ARG1$ -c $ARG2$ -p 5
+}
 
-    define service {
-      use                               generic-service
-      host_name                         my-server
-      service_description               my-ping
-      check_command                     my-ping-check!100.0,20%!500.0,60%
-    }
+define service {
+  use                               generic-service
+  host_name                         my-server
+  service_description               my-ping
+  check_command                     my-ping-check!100.0,20%!500.0,60%
+}
+```
 
 While you could manually migrate this like (please note the new generic command arguments and default argument values!):
 
-    object CheckCommand "my-ping-check" {
-      command = [
-        PluginDir + "/check_ping", "-4"
-      ]
+```
+object CheckCommand "my-ping-check" {
+  command = [
+    PluginDir + "/check_ping", "-4"
+  ]
 
-      arguments = {
-        "-H" = "$ping_address$"
-        "-w" = "$ping_wrta$,$ping_wpl$%"
-        "-c" = "$ping_crta$,$ping_cpl$%"
-        "-p" = "$ping_packets$"
-        "-t" = "$ping_timeout$"
-      }
+  arguments = {
+    "-H" = "$ping_address$"
+    "-w" = "$ping_wrta$,$ping_wpl$%"
+    "-c" = "$ping_crta$,$ping_cpl$%"
+    "-p" = "$ping_packets$"
+    "-t" = "$ping_timeout$"
+  }
 
-      vars.ping_address = "$address$"
-      vars.ping_wrta = 100
-      vars.ping_wpl = 5
-      vars.ping_crta = 200
-      vars.ping_cpl = 15
-    }
+  vars.ping_address = "$address$"
+  vars.ping_wrta = 100
+  vars.ping_wpl = 5
+  vars.ping_crta = 200
+  vars.ping_cpl = 15
+}
 
-    object Service "my-ping" {
-      import "generic-service"
-      host_name = "my-server"
-      check_command = "my-ping-check"
+object Service "my-ping" {
+  import "generic-service"
+  host_name = "my-server"
+  check_command = "my-ping-check"
 
-      vars.ping_wrta = 100
-      vars.ping_wpl = 20
-      vars.ping_crta = 500
-      vars.ping_cpl = 60
-    }
+  vars.ping_wrta = 100
+  vars.ping_wpl = 20
+  vars.ping_crta = 500
+  vars.ping_cpl = 60
+}
+```
 
 #### Manual Config Migration Hints for Runtime Macros <a id="manual-config-migration-hints-runtime-macros"></a>
 
@@ -189,62 +208,73 @@ Runtime macros have been renamed. A detailed comparison table can be found [here
 
 For example, accessing the service check output looks like the following in Icinga 1.x:
 
-    $SERVICEOUTPUT$
+```
+$SERVICEOUTPUT$
+```
 
 In Icinga 2 you will need to write:
 
-    $service.output$
+```
+$service.output$
+```
 
 Another example referencing the host's address attribute in Icinga 1.x:
 
-    $HOSTADDRESS$
+```
+$HOSTADDRESS$
+```
 
 In Icinga 2 you'd just use the following macro to access all `address` attributes (even overridden from the service objects):
 
-    $address$
-
+```
+$address$
+```
 
 #### Manual Config Migration Hints for Runtime Custom Attributes <a id="manual-config-migration-hints-runtime-custom-attributes"></a>
 
 Custom variables from Icinga 1.x are available as Icinga 2 custom attributes.
 
-    define command {
-      command_name                    test_customvar
-      command_line                    echo "Host CV: $_HOSTCVTEST$ Service CV: $_SERVICECVTEST$\n"
-    }
+```
+define command {
+  command_name                    test_customvar
+  command_line                    echo "Host CV: $_HOSTCVTEST$ Service CV: $_SERVICECVTEST$\n"
+}
 
-    define host {
-      host_name                       localhost1
-      check_command                   test_customvar
-      use                             generic-host
-      _CVTEST                         host cv value
-    }
+define host {
+  host_name                       localhost1
+  check_command                   test_customvar
+  use                             generic-host
+  _CVTEST                         host cv value
+}
 
-    define service {
-      service_description             service1
-      host_name                       localhost1
-      check_command                   test_customvar
-      use                             generic-service
-      _CVTEST                         service cv value
-    }
+define service {
+  service_description             service1
+  host_name                       localhost1
+  check_command                   test_customvar
+  use                             generic-service
+  _CVTEST                         service cv value
+}
+```
 
 Can be written as the following in Icinga 2:
 
-    object CheckCommand "test_customvar" {
-      command = "echo "Host CV: $host.vars.CVTEST$ Service CV: $service.vars.CVTEST$\n""
-    }
+```
+object CheckCommand "test_customvar" {
+  command = "echo "Host CV: $host.vars.CVTEST$ Service CV: $service.vars.CVTEST$\n""
+}
 
-    object Host "localhost1" {
-      import "generic-host"
-      check_command = "test_customvar"
-      vars.CVTEST = "host cv value"
-    }
+object Host "localhost1" {
+  import "generic-host"
+  check_command = "test_customvar"
+  vars.CVTEST = "host cv value"
+}
 
-    object Service "service1" {
-      host_name = "localhost1"
-      check_command = "test_customvar"
-      vars.CVTEST = "service cv value"
-    }
+object Service "service1" {
+  host_name = "localhost1"
+  check_command = "test_customvar"
+  vars.CVTEST = "service cv value"
+}
+```
 
 If you are just defining `$CVTEST$` in your command definition, its value depends on the
 execution scope -- the host check command will fetch the host attribute value of `vars.CVTEST`
@@ -259,23 +289,27 @@ while the service check command resolves its value to the service attribute attr
 Contacts in Icinga 1.x act as users in Icinga 2, but do not have any notification commands specified.
 This migration part is explained in the [next chapter](23-migrating-from-icinga-1x.md#manual-config-migration-hints-notifications).
 
-    define contact{
-      contact_name                    testconfig-user
-      use                             generic-user
-      alias                           Icinga Test User
-      service_notification_options    c,f,s,u
-      email                           icinga@localhost
-    }
+```
+define contact{
+  contact_name                    testconfig-user
+  use                             generic-user
+  alias                           Icinga Test User
+  service_notification_options    c,f,s,u
+  email                           icinga@localhost
+}
+```
 
 The `service_notification_options` can be [mapped](23-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters)
 into generic `state` and `type` filters, if additional notification filtering is required. `alias` gets
 renamed to `display_name`.
 
-    object User "testconfig-user" {
-      import "generic-user"
-      display_name = "Icinga Test User"
-      email = "icinga@localhost"
-    }
+```
+object User "testconfig-user" {
+  import "generic-user"
+  display_name = "Icinga Test User"
+  email = "icinga@localhost"
+}
+```
 
 This user can be put into usergroups (former contactgroups) or referenced in newly migration notification
 objects.
@@ -312,23 +346,28 @@ the host and service notification commands involved.
 Generate a new notification object based on these values. Import the generic template based on the type (`host` or `service`).
 Assign it to the host or service and set the newly generated notification command name as `command` attribute.
 
-    object Notification "<notificationname>" {
-      import "mail-host-notification"
-      host_name = "<thishostname>"
-      command = "<notificationcommandname>"
-
+```
+object Notification "<notificationname>" {
+  import "mail-host-notification"
+  host_name = "<thishostname>"
+  command = "<notificationcommandname>"
+```
 
 Convert the `notification_options` attribute from Icinga 1.x to Icinga 2 `states` and `types`. Details
 [here](23-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters). Add the notification period.
 
-      states = [ OK, Warning, Critical ]
-      types = [ Recovery, Problem, Custom ]
-      period = "24x7"
+```
+  states = [ OK, Warning, Critical ]
+  types = [ Recovery, Problem, Custom ]
+  period = "24x7"
+```
 
 The current contact acts as `users` attribute.
 
-      users = [ "<contactwithnotificationcommand>" ]
-    }
+```
+  users = [ "<contactwithnotificationcommand>" ]
+}
+```
 
 Do this in a loop for all notification commands (depending if host or service contact). Once done, dump the
 collected notification commands.
@@ -374,53 +413,57 @@ hostgroup. The default `notification_interval` is set to `10` minutes notifying 
 After 20 minutes (`10*2`, notification_interval * first_notification) the notification is escalated to the
 `cg_ops` contactgroup until 60 minutes (`10*6`) have passed.
 
-    define service {
-      service_description             dep_svc01
-      host_name                       dep_hostsvc01,dep_hostsvc03
-      check_command                   test2
-      use                             generic-service
-      notification_interval           10
-      contact_groups                  cg_admin
-    }
+```
+define service {
+  service_description             dep_svc01
+  host_name                       dep_hostsvc01,dep_hostsvc03
+  check_command                   test2
+  use                             generic-service
+  notification_interval           10
+  contact_groups                  cg_admin
+}
 
-    define hostgroup {
-      hostgroup_name                  hg_svcdep2
-      members                         dep_hostsvc03
-    }
+define hostgroup {
+  hostgroup_name                  hg_svcdep2
+  members                         dep_hostsvc03
+}
 
-    # with hostgroup_name and service_description
-    define serviceescalation {
-      hostgroup_name                  hg_svcdep2
-      service_description             dep_svc01
-      first_notification              2
-      last_notification               6
-      contact_groups                  cg_ops
-    }
+# with hostgroup_name and service_description
+define serviceescalation {
+  hostgroup_name                  hg_svcdep2
+  service_description             dep_svc01
+  first_notification              2
+  last_notification               6
+  contact_groups                  cg_ops
+}
+```
 
 In Icinga 2 the service and hostgroup definition will look quite the same. Save the `notification_interval`
 and `contact_groups` attribute for an additional notification.
 
-    apply Service "dep_svc01" {
-      import "generic-service"
+```
+apply Service "dep_svc01" {
+  import "generic-service"
 
-      check_command = "test2"
+  check_command = "test2"
 
-      assign where host.name == "dep_hostsvc01"
-      assign where host.name == "dep_hostsvc03"
-    }
+  assign where host.name == "dep_hostsvc01"
+  assign where host.name == "dep_hostsvc03"
+}
 
-    object HostGroup "hg_svcdep2" {
-      assign where host.name == "dep_hostsvc03"
-    }
+object HostGroup "hg_svcdep2" {
+  assign where host.name == "dep_hostsvc03"
+}
 
-    apply Notification "email" to Service {
-      import "service-mail-notification"
+apply Notification "email" to Service {
+  import "service-mail-notification"
 
-      interval = 10m
-      user_groups = [ "cg_admin" ]
+  interval = 10m
+  user_groups = [ "cg_admin" ]
 
-      assign where service.name == "dep_svc01" && (host.name == "dep_hostsvc01" || host.name == "dep_hostsvc03")
-    }
+  assign where service.name == "dep_svc01" && (host.name == "dep_hostsvc01" || host.name == "dep_hostsvc03")
+}
+```
 
 Calculate the begin and end time for the newly created escalation notification:
 
@@ -429,19 +472,21 @@ Calculate the begin and end time for the newly created escalation notification:
 
 Assign the notification escalation to the service `dep_svc01` on all hosts in the hostgroup `hg_svcdep2`.
 
-    apply Notification "email-escalation" to Service {
-      import "service-mail-notification"
+```
+apply Notification "email-escalation" to Service {
+  import "service-mail-notification"
 
-      interval = 10m
-      user_groups = [ "cg_ops" ]
+  interval = 10m
+  user_groups = [ "cg_ops" ]
 
-      times = {
-        begin = 20m
-        end = 1h
-      }
+  times = {
+    begin = 20m
+    end = 1h
+  }
 
-      assign where service.name == "dep_svc01" && "hg_svcdep2" in host.groups
-    }
+  assign where service.name == "dep_svc01" && "hg_svcdep2" in host.groups
+}
+```
 
 The assign rule could be made more generic and the notification be applied to more than
 just this service belonging to hosts in the matched hostgroup.
@@ -469,41 +514,43 @@ If the state filter matches, you can define whether to disable checks and notifi
 The following example describes service dependencies. If you migrate from Icinga 1.x, you will only
 want to use the classic `Host-to-Host` and `Service-to-Service` dependency relationships.
 
-    define service {
-      service_description             dep_svc01
-      hostgroup_name                  hg_svcdep1
-      check_command                   test2
-      use                             generic-service
-    }
+```
+define service {
+  service_description             dep_svc01
+  hostgroup_name                  hg_svcdep1
+  check_command                   test2
+  use                             generic-service
+}
 
-    define service {
-      service_description             dep_svc02
-      hostgroup_name                  hg_svcdep2
-      check_command                   test2
-      use                             generic-service
-    }
+define service {
+  service_description             dep_svc02
+  hostgroup_name                  hg_svcdep2
+  check_command                   test2
+  use                             generic-service
+}
 
-    define hostgroup {
-      hostgroup_name                  hg_svcdep2
-      members                         host2
-    }
+define hostgroup {
+  hostgroup_name                  hg_svcdep2
+  members                         host2
+}
 
-    define host{
-      use                             linux-server-template
-      host_name                       host1
-      address                         192.168.1.10
-    }
+define host{
+  use                             linux-server-template
+  host_name                       host1
+  address                         192.168.1.10
+}
 
-    # with hostgroup_name and service_description
-    define servicedependency {
-      host_name                       host1
-      dependent_hostgroup_name        hg_svcdep2
-      service_description             dep_svc01
-      dependent_service_description   *
-      execution_failure_criteria      u,c
-      notification_failure_criteria   w,u,c
-      inherits_parent                 1
-    }
+# with hostgroup_name and service_description
+define servicedependency {
+  host_name                       host1
+  dependent_hostgroup_name        hg_svcdep2
+  service_description             dep_svc01
+  dependent_service_description   *
+  execution_failure_criteria      u,c
+  notification_failure_criteria   w,u,c
+  inherits_parent                 1
+}
+```
 
 Map the dependency attributes accordingly.
 
@@ -517,44 +564,48 @@ Map the dependency attributes accordingly.
 
 And migrate the host and services.
 
-    object Host "host1" {
-      import "linux-server-template"
-      address = "192.168.1.10"
-    }
+```
+object Host "host1" {
+  import "linux-server-template"
+  address = "192.168.1.10"
+}
 
-    object HostGroup "hg_svcdep2" {
-      assign where host.name == "host2"
-    }
+object HostGroup "hg_svcdep2" {
+  assign where host.name == "host2"
+}
 
-    apply Service "dep_svc01" {
-      import "generic-service"
-      check_command = "test2"
+apply Service "dep_svc01" {
+  import "generic-service"
+  check_command = "test2"
 
-      assign where "hp_svcdep1" in host.groups
-    }
+  assign where "hp_svcdep1" in host.groups
+}
 
-    apply Service "dep_svc02" {
-      import "generic-service"
-      check_command = "test2"
+apply Service "dep_svc02" {
+  import "generic-service"
+  check_command = "test2"
 
-      assign where "hp_svcdep2" in host.groups
-    }
+  assign where "hp_svcdep2" in host.groups
+}
+```
 
 When it comes to the `execution_failure_criteria` and `notification_failure_criteria` attribute migration,
 you will need to map the most common values, in this example `u,c` (`Unknown` and `Critical` will cause the
 dependency to fail). Therefore the `Dependency` should be ok on Ok and Warning. `inherits_parents` is always
 enabled.
 
-    apply Dependency "all-svc-for-hg-hg_svcdep2-on-host1-dep_svc01" to Service {
-      parent_host_name = "host1"
-      parent_service_name = "dep_svc01"
+```
+apply Dependency "all-svc-for-hg-hg_svcdep2-on-host1-dep_svc01" to Service {
+  parent_host_name = "host1"
+  parent_service_name = "dep_svc01"
 
-      states = [ Ok, Warning ]
-      disable_checks = true
-      disable_notifications = true
+  states = [ Ok, Warning ]
+  disable_checks = true
+  disable_notifications = true
 
-      assign where "hg_svcdep2" in host.groups
-    }
+  assign where "hg_svcdep2" in host.groups
+}
+```
 
 Host dependencies are explained in the [next chapter](23-migrating-from-icinga-1x.md#manual-config-migration-hints-host-parents).
 
@@ -570,42 +621,46 @@ virtual machines `vmware-vm1` and `vmware-vm2`.
 By default all hosts in the hostgroup `vmware` should get the parent assigned. This isn't really
 solvable with Icinga 1.x parents, but only with host dependencies.
 
-    define host{
-      use                             linux-server-template
-      host_name                       vmware-master
-      hostgroups                      vmware
-      address                         192.168.1.10
-    }
+```
+define host{
+  use                             linux-server-template
+  host_name                       vmware-master
+  hostgroups                      vmware
+  address                         192.168.1.10
+}
 
-    define host{
-      use                             linux-server-template
-      host_name                       vmware-vm1
-      hostgroups                      vmware
-      address                         192.168.27.1
-      parents                         vmware-master
-    }
+define host{
+  use                             linux-server-template
+  host_name                       vmware-vm1
+  hostgroups                      vmware
+  address                         192.168.27.1
+  parents                         vmware-master
+}
 
-    define host{
-      use                             linux-server-template
-      host_name                       vmware-vm2
-      hostgroups                      vmware
-      address                         192.168.28.1
-      parents                         vmware-master
-    }
+define host{
+  use                             linux-server-template
+  host_name                       vmware-vm2
+  hostgroups                      vmware
+  address                         192.168.28.1
+  parents                         vmware-master
+}
+```
 
 By default all hosts in the hostgroup `vmware` should get the parent assigned (but not the `vmware-master`
 host itself). This isn't really solvable with Icinga 1.x parents, but only with host dependencies as shown
 below:
 
-    define hostdependency {
-      dependent_hostgroup_name        vmware
-      dependent_host_name             !vmware-master
-      host_name                       vmware-master
-      inherits_parent                 1
-      notification_failure_criteria   d,u
-      execution_failure_criteria      d,u
-      dependency_period               testconfig-24x7
-    }
+```
+define hostdependency {
+  dependent_hostgroup_name        vmware
+  dependent_host_name             !vmware-master
+  host_name                       vmware-master
+  inherits_parent                 1
+  notification_failure_criteria   d,u
+  execution_failure_criteria      d,u
+  dependency_period               testconfig-24x7
+}
+```
 
 When migrating to Icinga 2, the parents must be changed to a newly created host dependency.
 
@@ -620,33 +675,34 @@ Map the following attributes
 
 The Icinga 2 configuration looks like this:
 
+```
+object Host "vmware-master" {
+  import "linux-server-template"
+  groups += [ "vmware" ]
+  address = "192.168.1.10"
+  vars.is_vmware_master = true
+}
 
-    object Host "vmware-master" {
-      import "linux-server-template"
-      groups += [ "vmware" ]
-      address = "192.168.1.10"
-      vars.is_vmware_master = true
-    }
+object Host "vmware-vm1" {
+  import "linux-server-template"
+  groups += [ "vmware" ]
+  address = "192.168.27.1"
+}
 
-    object Host "vmware-vm1" {
-      import "linux-server-template"
-      groups += [ "vmware" ]
-      address = "192.168.27.1"
-    }
+object Host "vmware-vm2" {
+  import "linux-server-template"
+  groups += [ "vmware" ]
+  address = "192.168.28.1"
+}
 
-    object Host "vmware-vm2" {
-      import "linux-server-template"
-      groups += [ "vmware" ]
-      address = "192.168.28.1"
-    }
+apply Dependency "vmware-master" to Host {
+  parent_host_name = "vmware-master"
 
-    apply Dependency "vmware-master" to Host {
-      parent_host_name = "vmware-master"
-
-      assign where "vmware" in host.groups
-      ignore where host.vars.is_vmware_master
-      ignore where host.name == "vmware-master"
-    }
+  assign where "vmware" in host.groups
+  ignore where host.vars.is_vmware_master
+  ignore where host.name == "vmware-master"
+}
+```
 
 For easier identification you could add the `vars.is_vmware_master` attribute to the `vmware-master`
 host and let the dependency ignore that instead of the hardcoded host name. That's different
@@ -655,29 +711,31 @@ to the Icinga 1.x example and a best practice hint only.
 
 Another way to express the same configuration would be something like:
 
-    object Host "vmware-master" {
-      import "linux-server-template"
-      groups += [ "vmware" ]
-      address = "192.168.1.10"
-    }
+```
+object Host "vmware-master" {
+  import "linux-server-template"
+  groups += [ "vmware" ]
+  address = "192.168.1.10"
+}
 
-    object Host "vmware-vm1" {
-      import "linux-server-template"
-      groups += [ "vmware" ]
-      address = "192.168.27.1"
-      vars.parents = [ "vmware-master" ]
-    }
+object Host "vmware-vm1" {
+  import "linux-server-template"
+  groups += [ "vmware" ]
+  address = "192.168.27.1"
+  vars.parents = [ "vmware-master" ]
+}
 
-    object Host "vmware-vm2" {
-      import "linux-server-template"
-      groups += [ "vmware" ]
-      address = "192.168.28.1"
-      vars.parents = [ "vmware-master" ]
-    }
+object Host "vmware-vm2" {
+  import "linux-server-template"
+  groups += [ "vmware" ]
+  address = "192.168.28.1"
+  vars.parents = [ "vmware-master" ]
+}
 
-    apply Dependency "host-to-parent-" for (parent in host.vars.parents) to Host {
-      parent_host_name = parent
-    }
+apply Dependency "host-to-parent-" for (parent in host.vars.parents) to Host {
+  parent_host_name = parent
+}
+```
 
 This example allows finer grained host-to-host dependency, as well as multiple dependency support.
 
@@ -707,24 +765,30 @@ the Icinga daemon at startup.
 
 icinga.cfg:
 
-    enable_notifications=1
+```
+enable_notifications=1
+```
 
 objects.cfg:
 
-    define service {
-       notifications_enabled    0
-    }
+```
+define service {
+   notifications_enabled    0
+}
+```
 
 Icinga 2 supports objects and (global) variables, but does not make a difference 
 between the main configuration file or any other included file.
 
 icinga2.conf:
 
-    const EnableNotifications = true
+```
+const EnableNotifications = true
 
-    object Service "test" {
-        enable_notifications = false
-    }
+object Service "test" {
+    enable_notifications = false
+}
+```
 
 #### Sample Configuration and ITL <a id="differences-1x-2-sample-configuration-itl"></a>
 
@@ -765,25 +829,33 @@ suffix in the given directory. Only absolute paths may be used. The `cfg_file`
 and `cfg_dir` directives can include the same file twice which leads to
 configuration errors in Icinga 1.x.
 
-    cfg_file=/etc/icinga/objects/commands.cfg
-    cfg_dir=/etc/icinga/objects
+```
+cfg_file=/etc/icinga/objects/commands.cfg
+cfg_dir=/etc/icinga/objects
+```
 
 Icinga 2 supports wildcard includes and relative paths, e.g. for including
 `conf.d/*.conf` in the same directory.
 
-    include "conf.d/*.conf"
+```
+include "conf.d/*.conf"
+```
 
 If you want to include files and directories recursively, you need to define
 a separate option and add the directory and an optional pattern.
 
-    include_recursive "conf.d"
+```
+include_recursive "conf.d"
+```
 
 A global search path for includes is available for advanced features like
 the Icinga Template Library (ITL) or additional monitoring plugins check
 command configuration.
 
-    include <itl>
-    include <plugins>
+```
+include <itl>
+include <plugins>
+```
 
 By convention the `.conf` suffix is used for Icinga 2 configuration files.
 
@@ -796,13 +868,15 @@ set in the `resource.cfg` configuration file in Icinga 1.x. By convention the
 Icinga 2 uses global constants instead. In the default config these are
 set in the `constants.conf` configuration file:
 
-    /**
-     * This file defines global constants which can be used in
-     * the other configuration files. At a minimum the
-     * PluginDir constant should be defined.
-     */
+```
+/**
+ * This file defines global constants which can be used in
+ * the other configuration files. At a minimum the
+ * PluginDir constant should be defined.
+ */
 
-    const PluginDir = "/usr/lib/nagios/plugins"
+const PluginDir = "/usr/lib/nagios/plugins"
+```
 
 [Global macros](17-language-reference.md#constants) can only be defined once. Trying to modify a
 global constant will result in an error.
@@ -825,35 +899,41 @@ Icinga Web 2 for example).
 Object names are not specified using attributes (e.g. `service_description` for
 services) like in Icinga 1.x but directly after their type definition.
 
-    define service {
-        host_name  localhost
-        service_description  ping4
-    }
+```
+define service {
+    host_name  localhost
+    service_description  ping4
+}
 
-    object Service "ping4" {
-      host_name = "localhost"
-    }
+object Service "ping4" {
+  host_name = "localhost"
+}
+```
 
 ### Templates <a id="differences-1x-2-templates"></a>
 
 In Icinga 1.x templates are identified using the `register 0` setting. Icinga 2
 uses the `template` identifier:
 
-    template Service "ping4-template" { }
+```
+template Service "ping4-template" { }
+```
 
 Icinga 1.x objects inherit from templates using the `use` attribute.
 Icinga 2 uses the keyword `import` with template names in double quotes.
 
-    define service {
-        service_description testservice
-        use                 tmpl1,tmpl2,tmpl3
-    }
+```
+define service {
+    service_description testservice
+    use                 tmpl1,tmpl2,tmpl3
+}
 
-    object Service "testservice" {
-      import "tmpl1"
-      import "tmpl2"
-      import "tmpl3"
-    }
+object Service "testservice" {
+  import "tmpl1"
+  import "tmpl2"
+  import "tmpl3"
+}
+```
 
 The last template overrides previously set values.
 
@@ -862,13 +942,15 @@ The last template overrides previously set values.
 Icinga 1.x separates attribute and value pairs with whitespaces/tabs. Icinga 2
 requires an equal sign (=) between them.
 
-    define service {
-        check_interval  5
-    }
+```
+define service {
+    check_interval  5
+}
 
-    object Service "test" {
-        check_interval = 5m
-    }
+object Service "test" {
+    check_interval = 5m
+}
+```
 
 Please note that the default time value is seconds if no duration literal
 is given. `check_interval = 5` behaves the same as `check_interval = 5s`.
@@ -899,8 +981,10 @@ attributes for host and service objects are still available in Icinga 2.
 Icinga 1.x custom variable attributes must be prefixed using an underscore (`_`).
 In Icinga 2 these attributes must be added to the `vars` dictionary as custom attributes.
 
-    vars.dn = "cn=icinga2-dev-host,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org"
-    vars.cv = "my custom cmdb description"
+```
+vars.dn = "cn=icinga2-dev-host,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org"
+vars.cv = "my custom cmdb description"
+```
 
 These custom attributes are also used as [command parameters](03-monitoring-basics.md#command-passing-parameters).
 
@@ -1110,47 +1194,49 @@ Changes to global statistic macros:
 
 The following external commands are not supported:
 
-    CHANGE_*MODATTR
-    CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD
-    CHANGE_HOST_NOTIFICATION_TIMEPERIOD
-    CHANGE_SVC_NOTIFICATION_TIMEPERIOD
-    DEL_DOWNTIME_BY_HOSTGROUP_NAME
-    DEL_DOWNTIME_BY_START_TIME_COMMENT
-    DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST
-    DISABLE_CONTACT_HOST_NOTIFICATIONS
-    DISABLE_CONTACT_SVC_NOTIFICATIONS
-    DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS
-    DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS
-    DISABLE_FAILURE_PREDICTION
-    DISABLE_HOST_AND_CHILD_NOTIFICATIONS
-    DISABLE_HOST_FRESHNESS_CHECKS
-    DISABLE_NOTIFICATIONS_EXPIRE_TIME
-    DISABLE_SERVICE_FRESHNESS_CHECKS
-    ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST
-    ENABLE_CONTACT_HOST_NOTIFICATIONS
-    ENABLE_CONTACT_SVC_NOTIFICATIONS
-    ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS
-    ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS
-    ENABLE_FAILURE_PREDICTION
-    ENABLE_HOST_AND_CHILD_NOTIFICATIONS
-    ENABLE_HOST_FRESHNESS_CHECKS
-    ENABLE_SERVICE_FRESHNESS_CHECKS
-    READ_STATE_INFORMATION
-    SAVE_STATE_INFORMATION
-    SET_HOST_NOTIFICATION_NUMBER
-    SET_SVC_NOTIFICATION_NUMBER
-    START_ACCEPTING_PASSIVE_HOST_CHECKS
-    START_ACCEPTING_PASSIVE_SVC_CHECKS
-    START_OBSESSING_OVER_HOST
-    START_OBSESSING_OVER_HOST_CHECKS
-    START_OBSESSING_OVER_SVC
-    START_OBSESSING_OVER_SVC_CHECKS
-    STOP_ACCEPTING_PASSIVE_HOST_CHECKS
-    STOP_ACCEPTING_PASSIVE_SVC_CHECKS
-    STOP_OBSESSING_OVER_HOST
-    STOP_OBSESSING_OVER_HOST_CHECKS
-    STOP_OBSESSING_OVER_SVC
-    STOP_OBSESSING_OVER_SVC_CHECKS
+```
+CHANGE_*MODATTR
+CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD
+CHANGE_HOST_NOTIFICATION_TIMEPERIOD
+CHANGE_SVC_NOTIFICATION_TIMEPERIOD
+DEL_DOWNTIME_BY_HOSTGROUP_NAME
+DEL_DOWNTIME_BY_START_TIME_COMMENT
+DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST
+DISABLE_CONTACT_HOST_NOTIFICATIONS
+DISABLE_CONTACT_SVC_NOTIFICATIONS
+DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS
+DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS
+DISABLE_FAILURE_PREDICTION
+DISABLE_HOST_AND_CHILD_NOTIFICATIONS
+DISABLE_HOST_FRESHNESS_CHECKS
+DISABLE_NOTIFICATIONS_EXPIRE_TIME
+DISABLE_SERVICE_FRESHNESS_CHECKS
+ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST
+ENABLE_CONTACT_HOST_NOTIFICATIONS
+ENABLE_CONTACT_SVC_NOTIFICATIONS
+ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS
+ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS
+ENABLE_FAILURE_PREDICTION
+ENABLE_HOST_AND_CHILD_NOTIFICATIONS
+ENABLE_HOST_FRESHNESS_CHECKS
+ENABLE_SERVICE_FRESHNESS_CHECKS
+READ_STATE_INFORMATION
+SAVE_STATE_INFORMATION
+SET_HOST_NOTIFICATION_NUMBER
+SET_SVC_NOTIFICATION_NUMBER
+START_ACCEPTING_PASSIVE_HOST_CHECKS
+START_ACCEPTING_PASSIVE_SVC_CHECKS
+START_OBSESSING_OVER_HOST
+START_OBSESSING_OVER_HOST_CHECKS
+START_OBSESSING_OVER_SVC
+START_OBSESSING_OVER_SVC_CHECKS
+STOP_ACCEPTING_PASSIVE_HOST_CHECKS
+STOP_ACCEPTING_PASSIVE_SVC_CHECKS
+STOP_OBSESSING_OVER_HOST
+STOP_OBSESSING_OVER_HOST_CHECKS
+STOP_OBSESSING_OVER_SVC
+STOP_OBSESSING_OVER_SVC_CHECKS
+```
 
 ### Asynchronous Event Execution <a id="differences-1x-2-async-event-execution"></a>
 
@@ -1222,27 +1308,31 @@ attribute in the object. The old way of listing all group members in the group's
 `members` attribute is available through `assign where` and `ignore where`
 expressions by using [group assign](03-monitoring-basics.md#group-assign-intro).
 
-    object Host "web-dev" {
-      import "generic-host"
-    }
+```
+object Host "web-dev" {
+  import "generic-host"
+}
 
-    object HostGroup "dev-hosts" {
-      display_name = "Dev Hosts"
-      assign where match("*-dev", host.name)
-    }
+object HostGroup "dev-hosts" {
+  display_name = "Dev Hosts"
+  assign where match("*-dev", host.name)
+}
+```
 
 #### Add Service to Hostgroup where Host is Member <a id="differences-1x-2-service-hostgroup-host"></a>
 
 In order to associate a service with all hosts in a host group the [apply](03-monitoring-basics.md#using-apply)
 keyword can be used:
 
-    apply Service "ping4" {
-      import "generic-service"
+```
+apply Service "ping4" {
+  import "generic-service"
 
-      check_command = "ping4"
+  check_command = "ping4"
 
-      assign where "dev-hosts" in host.groups
-    }
+  assign where "dev-hosts" in host.groups
+}
+```
 
 ### Notifications <a id="differences-1x-2-notifications"></a>
 
@@ -1282,12 +1372,16 @@ Icinga 2 attempts to solve that problem in this way
 
 Previously in Icinga 1.x it looked like this:
 
-    service -> (contact, contactgroup) -> notification command
+```
+service -> (contact, contactgroup) -> notification command
+```
 
 In Icinga 2 it will look like this:
 
-    Service -> Notification -> NotificationCommand
-                            -> User, UserGroup
+```
+Service -> Notification -> NotificationCommand
+                        -> User, UserGroup
+```
 
 #### Escalations <a id="differences-1x-2-escalations"></a>
 
@@ -1295,8 +1389,10 @@ Escalations in Icinga 1.x require a separated object matching on existing
 objects. Escalations happen between a defined start and end time which is
 calculated from the notification_interval:
 
-    start = notification start + (notification_interval * first_notification)
-    end = notification start + (notification_interval * last_notification)
+```
+start = notification start + (notification_interval * first_notification)
+end = notification start + (notification_interval * last_notification)
+```
 
 In theory first_notification and last_notification can be set to readable
 numbers. In practice users are manipulating those attributes in combination
@@ -1319,10 +1415,12 @@ Unlike Icinga 1.x with the 'notification_options' attribute with comma-separated
 state and type filters, Icinga 2 uses two configuration attributes for that.
 All state and type filter use long names OR'd with a pipe together
 
-    notification_options w,u,c,r,f,s
+```
+notification_options w,u,c,r,f,s
 
-    states = [ Warning, Unknown, Critical ]
-    types = [ Problem, Recovery, FlappingStart, FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
+states = [ Warning, Unknown, Critical ]
+types = [ Problem, Recovery, FlappingStart, FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
+```
 
 Icinga 2 adds more fine-grained type filters for acknowledgements, downtime,
 and flapping type (start, end, ...).
@@ -1358,7 +1456,9 @@ The Icinga 1.x flapping detection uses the last 21 states of a service. This
 value is hardcoded and cannot be changed. The algorithm on determining a flapping state
 is as follows:
 
-    flapping value = (number of actual state changes / number of possible state changes)
+```
+flapping value = (number of actual state changes / number of possible state changes)
+```
 
 The flapping value is then compared to the low and high flapping thresholds.
 

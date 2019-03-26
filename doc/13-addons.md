@@ -19,7 +19,9 @@ You need to install Graphite first, then proceed with configuring it in Icinga 2
 Use the [GraphiteWriter](14-features.md#graphite-carbon-cache-writer) feature
 for sending real-time metrics from Icinga 2 to Graphite.
 
-    # icinga2 feature enable graphite
+```
+# icinga2 feature enable graphite
+```
 
 A popular alternative frontend for Graphite is for example [Grafana](https://grafana.org).
 
@@ -36,7 +38,9 @@ It’s written in Go and has no external dependencies.
 Use the [InfluxdbWriter](14-features.md#influxdb-writer) feature
 for sending real-time metrics from Icinga 2 to InfluxDB.
 
-    # icinga2 feature enable influxdb
+```
+# icinga2 feature enable influxdb
+```
 
 A popular frontend for InfluxDB is for example [Grafana](https://grafana.org).
 
@@ -61,11 +65,15 @@ data files which Icinga 2 generates.
 
 Enable performance data writer in icinga 2
 
-    # icinga2 feature enable perfdata
+```
+# icinga2 feature enable perfdata
+```
 
 Configure npcd to use the performance data created by Icinga 2:
 
-    vim /etc/pnp4nagios/npcd.cfg
+```
+vim /etc/pnp4nagios/npcd.cfg
+```
 
 Set `perfdata_spool_dir = /var/spool/icinga2/perfdata` and restart the `npcd` daemon.
 
@@ -120,9 +128,11 @@ based on your monitoring configuration and status data using [NagVis](https://ww
 
 The configuration in nagvis.ini.php should look like this for Livestatus for example:
 
-    [backend_live_1]
-    backendtype="mklivestatus"
-    socket="unix:/var/run/icinga2/cmd/livestatus"
+```
+[backend_live_1]
+backendtype="mklivestatus"
+socket="unix:/var/run/icinga2/cmd/livestatus"
+```
 
 If you are planning an integration into Icinga Web 2, look at [this module](https://github.com/Icinga/icingaweb2-module-nagvis).
 
@@ -190,13 +200,15 @@ These tools are currently in development and require feedback and tests:
 They work in a similar fashion for Icinga 2 and are used for 1.x web interfaces (Icinga Web 2 doesn't require
 the action url attribute in its own module).
 
-    template Host "pnp-hst" {
-      action_url = "/pnp4nagios/graph?host=$HOSTNAME$"
-    }
+```
+template Host "pnp-hst" {
+  action_url = "/pnp4nagios/graph?host=$HOSTNAME$"
+}
 
-    template Service "pnp-svc" {
-      action_url = "/pnp4nagios/graph?host=$HOSTNAME$&srv=$SERVICEDESC$"
-    }
+template Service "pnp-svc" {
+  action_url = "/pnp4nagios/graph?host=$HOSTNAME$&srv=$SERVICEDESC$"
+}
+```
 
 ### PNP Custom Templates with Icinga 2 <a id="addons-graphing-pnp-custom-templates"></a>
 
@@ -213,24 +225,26 @@ and use that inside the formatting templates as `SERVICECHECKCOMMAND` for instan
 
 Example for services:
 
-    # vim /etc/icinga2/features-enabled/perfdata.conf
+```
+# vim /etc/icinga2/features-enabled/perfdata.conf
 
-    service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.check_command$$pnp_check_arg1$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.state_type$"
+service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.check_command$$pnp_check_arg1$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.state_type$"
 
-    # vim /etc/icinga2/conf.d/services.conf
+# vim /etc/icinga2/conf.d/services.conf
 
-    template Service "pnp-svc" {
-      action_url = "/pnp4nagios/graph?host=$HOSTNAME$&srv=$SERVICEDESC$"
-      vars.pnp_check_arg1 = ""
-    }
+template Service "pnp-svc" {
+  action_url = "/pnp4nagios/graph?host=$HOSTNAME$&srv=$SERVICEDESC$"
+  vars.pnp_check_arg1 = ""
+}
 
-    apply Service "nrpe-check" {
-      import "pnp-svc"
-      check_command = nrpe
-      vars.nrpe_command = "check_disk"
+apply Service "nrpe-check" {
+  import "pnp-svc"
+  check_command = nrpe
+  vars.nrpe_command = "check_disk"
 
-      vars.pnp_check_arg1 = "!$nrpe_command$"
-    }
+  vars.pnp_check_arg1 = "!$nrpe_command$"
+}
+```
 
 If there are warnings about unresolved macros, make sure to specify a default value for `vars.pnp_check_arg1` inside the
 
