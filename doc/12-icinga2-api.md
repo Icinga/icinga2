@@ -2048,9 +2048,13 @@ Add the `--connect` parameter to debug and evaluate expressions via the API.
 
 ### API Clients Programmatic Examples <a id="icinga2-api-clients-programmatic-examples"></a>
 
-The programmatic examples use HTTP basic authentication and SSL certificate
-verification. The CA file is expected in `pki/icinga2-ca.crt`
-but you may adjust the examples for your likings.
+The following languages are covered:
+
+* [Python](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-python)
+* [Ruby](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-ruby)
+* [PHP](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-php)
+* [Perl](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-perl)
+* [Golang](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-golang)
 
 The [request method](icinga2-api-requests) is `POST` using
 [X-HTTP-Method-Override: GET](12-icinga2-api.md#icinga2-api-requests-method-override)
@@ -2259,4 +2263,73 @@ if ($status == 200) {
 }
 
 $ perl icinga2-api-example.pl
+```
+
+
+#### Example API Client in Golang <a id="icinga2-api-clients-programmatic-examples-golang"></a>
+
+Requires the Golang build chain.
+
+```
+$ vim icinga2-api-example.go
+
+package main
+
+import (
+	"bytes"
+	"crypto/tls"
+	"log"
+	"io/ioutil"
+	"net/http"
+)
+
+func main() {
+	var urlBase= "https://localhost:5665"
+	var apiUser= "root"
+	var apiPass= "icinga"
+
+	urlEndpoint := urlBase + "/v1/objects/services"
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	httpClient := &http.Client{Transport: tr}
+
+	var requestBody = []byte(`{
+		"attrs": [ "name", "state", "last_check_result" ],
+		"joins": [ "host.name", "host.state", "host.last_check_result" ],
+		"filter": "match(\"ping*\", service.name)"
+	}`)
+
+	req, err := http.NewRequest("POST", urlEndpoint, bytes.NewBuffer(requestBody))
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("X-HTTP-Method-Override", "GET")
+
+	req.SetBasicAuth(apiUser, apiPass)
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		log.Fatal("Server error:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	log.Print("Response status:", resp.Status)
+
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	bodyString := string(bodyBytes)
+
+	if resp.StatusCode == http.StatusOK {
+		log.Print("Result: " + bodyString)
+	} else {
+		log.Fatal(bodyString)
+	}
+}
+```
+
+Build the binary:
+
+```
+go build icinga2-api-example.go
+./icinga2-api-example
 ```
