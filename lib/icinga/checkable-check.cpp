@@ -256,6 +256,9 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	else
 		stateChange = (Host::CalculateState(old_state) != Host::CalculateState(new_state));
 
+	/* Store the current last state change for the next iteration. */
+	SetPreviousStateChange(GetLastStateChange());
+
 	if (stateChange) {
 		SetLastStateChange(now);
 
