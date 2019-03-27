@@ -398,6 +398,10 @@ void ElasticsearchWriter::FlushTimeout()
 
 void ElasticsearchWriter::Flush()
 {
+	/* Flush can be called from 1) Timeout 2) Threshold 3) on shutdown/reload. */
+	if (m_DataBuffer.empty())
+		return;
+
 	/* Ensure you hold a lock against m_DataBuffer so that things
 	 * don't go missing after creating the body and clearing the buffer.
 	 */
