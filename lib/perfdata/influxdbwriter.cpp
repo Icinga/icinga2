@@ -421,10 +421,6 @@ void InfluxdbWriter::FlushTimeoutWQ()
 {
 	AssertOnWorkQueue();
 
-	// Flush if there are any data available
-	if (m_DataBuffer.empty())
-		return;
-
 	Log(LogDebug, "InfluxdbWriter")
 		<< "Timer expired writing " << m_DataBuffer.size() << " data points";
 
@@ -433,6 +429,10 @@ void InfluxdbWriter::FlushTimeoutWQ()
 
 void InfluxdbWriter::Flush()
 {
+	/* Flush can be called from 1) Timeout 2) Threshold 3) on shutdown/reload. */
+	if (m_DataBuffer.empty())
+		return;
+
 	Log(LogDebug, "InfluxdbWriter")
 		<< "Flushing data buffer to InfluxDB.";
 
