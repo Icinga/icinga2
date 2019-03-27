@@ -54,7 +54,7 @@ class PerfdataWriter : ConfigObject
 		default {{{ return 30; }}}
 	};
 	[config] bool enable_ha {
-		default {{{ return true; }}}
+		default {{{ return false; }}}
 	};
 };
 

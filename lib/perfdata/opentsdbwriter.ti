@@ -18,7 +18,7 @@ class OpenTsdbWriter : ConfigObject
 		default {{{ return "4242"; }}}
 	};
 	[config] bool enable_ha {
-		default {{{ return true; }}}
+		default {{{ return false; }}}
 	};
 };
 
