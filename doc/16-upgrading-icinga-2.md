@@ -15,8 +15,9 @@ v2.11 introduces additional HA functionality similar to the DB IDO feature.
 This enables the feature being active only on one endpoint while the other
 endpoint is paused. When one endpoint is shut down, automatic failover happens.
 
-This feature is turned on by default. If you need one of the features twice,
-please use `enable_ha = false` to restore the old behaviour.
+This feature is turned off by default keeping the current behaviour. If you need
+it active on just one endpoint, set `enable_ha = true` on both endpoints in the
+feature configuration.
 
 This affects the following features:
 

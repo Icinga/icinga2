@@ -29,7 +29,7 @@ class GelfWriter : ConfigObject
 		default {{{ return true; }}}
 	};
 	[config] bool enable_ha {
-		default {{{ return true; }}}
+		default {{{ return false; }}}
 	};
 };
 
