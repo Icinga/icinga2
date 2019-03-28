@@ -539,7 +539,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		command->Execute(this, user, cr, nr, type, author, text);
 
 		/* required by compatlogger */
-		Checkable::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, command->GetName(), nullptr);
+		Checkable::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, nr, author, text, command->GetName(), nullptr);
 
 		Log(LogInformation, "Notification")
 			<< "Completed sending '" << NotificationTypeToStringInternal(type)

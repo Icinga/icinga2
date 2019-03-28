@@ -94,8 +94,8 @@ public:
 	static void AddTriggerDowntimeLogHistory(const Downtime::Ptr& downtime);
 	static void AddRemoveDowntimeLogHistory(const Downtime::Ptr& downtime);
 	static void AddNotificationSentLogHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-		const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author,
-		const String& comment_text);
+		const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
+		const String& author, const String& comment_text);
 
 	static void AddFlappingChangedLogHistory(const Checkable::Ptr& checkable);
 	static void AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkable);

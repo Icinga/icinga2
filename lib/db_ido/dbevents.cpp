@@ -56,7 +56,7 @@ void DbEvents::StaticInitialize()
 	Checkable::OnStateChange.connect(std::bind(&DbEvents::AddStateChangeHistory, _1, _2, _3));
 
 	Checkable::OnNewCheckResult.connect(std::bind(&DbEvents::AddCheckResultLogHistory, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(std::bind(&DbEvents::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7));
+	Checkable::OnNotificationSentToUser.connect(std::bind(&DbEvents::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7, _8));
 	Checkable::OnFlappingChanged.connect(std::bind(&DbEvents::AddFlappingChangedLogHistory, _1));
 	Checkable::OnEnableFlappingChanged.connect(std::bind(&DbEvents::AddEnableFlappingChangedLogHistory, _1));
 	Downtime::OnDowntimeTriggered.connect(std::bind(&DbEvents::AddTriggerDowntimeLogHistory, _1));
@@ -1061,7 +1061,7 @@ void DbEvents::AddRemoveDowntimeLogHistory(const Downtime::Ptr& downtime)
 }
 
 void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const User::Ptr& user,
-	NotificationType notification_type, const CheckResult::Ptr& cr,
+	NotificationType notification_type, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
 	const String& author, const String& comment_text)
 {
 	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
