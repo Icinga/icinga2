@@ -1775,7 +1775,7 @@ $ curl -k -s -u root:icinga 'https://localhost:5665/v1/config/packages?pretty=1'
 }
 ```
 
-### List Configuration Packages and their Stages <a id="icinga2-api-config-management-list-config-package-stage-files"></a>
+### List Configuration Package Stage Files <a id="icinga2-api-config-management-list-config-package-stage-files"></a>
 
 In order to retrieve a list of files for a stage you can send a `GET` request to
 the URL endpoint `/v1/config/stages`. You need to include
