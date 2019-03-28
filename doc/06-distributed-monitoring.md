@@ -971,7 +971,7 @@ object Zone "icinga2-client1.localdomain" {
 
   parent = "master" //establish zone hierarchy
 }
-  ```
+```
 
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
