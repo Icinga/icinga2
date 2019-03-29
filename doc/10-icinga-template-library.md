@@ -2718,6 +2718,24 @@ Name                                      | Description
 icingacli_director_check                  | **Optional.** Run only a specific test suite.
 icingacli_director_db                     | **Optional.** Use a specific Icinga Web DB resource.
 
+#### Elasticsearch <a id="plugin-contrib-icingacli-elasticsearch"></a>
+
+This subcommand is provided by the [elasticsearch_module](https://github.com/Icinga/icingaweb2-module-elasticsearch) and executed as `icingacli elasticsearch check`.
+
+* The value of `icingacli_elasticsearch_instance` is the same like in the configuration of the module.
+* The value of `icingacli_elasticsearch_filter` are filters for events in Icinga Web 2 syntax. e.g. `"beat.hostname=www.example.com" AND severity=critical`
+* The thresholds are just numerical values. They get checked against how many events match the filter within the given timeframe.
+* The value of `icingacli_elasticsearch_index` is an index pattern. e.g. `logstash*`
+
+Name                                      | Description
+------------------------------------------|-----------------------------------------------------------------------------------------
+icingacli_elasticsearch_instance          | **Required.** The Elasticsearch to connect to
+icingacli_elasticsearch_index             | **Required.** Index pattern to use when searching
+icingacli_elasticsearch_critical          | **Required.** Critical threshold
+icingacli_elasticsearch_warning           | **Required.** Warning threshold
+icingacli_elasticsearch_filter            | **Required.** Filter for events
+icingacli_elasticsearch_from              | **Optional.** Negative value of time to search from now (Default: -5m)
+
 ### IPMI Devices <a id="plugin-contrib-ipmi"></a>
 
 This category includes all plugins for IPMI devices.
