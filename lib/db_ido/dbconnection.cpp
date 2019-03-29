@@ -435,8 +435,8 @@ void DbConnection::ValidateFailoverTimeout(const Lazy<double>& lvalue, const Val
 {
 	ObjectImpl<DbConnection>::ValidateFailoverTimeout(lvalue, utils);
 
-	if (lvalue() < 60)
-		BOOST_THROW_EXCEPTION(ValidationError(this, { "failover_timeout" }, "Failover timeout minimum is 60s."));
+	if (lvalue() < 30)
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "failover_timeout" }, "Failover timeout minimum is 30s."));
 }
 
 void DbConnection::ValidateCategories(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)

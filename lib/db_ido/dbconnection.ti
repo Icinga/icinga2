@@ -42,8 +42,10 @@ abstract class DbConnection : ConfigObject
 	};
 
 	[config] double failover_timeout {
-		default {{{ return 60; }}}
+		default {{{ return 30; }}}
 	};
+
+	[state, no_user_modify] double last_failover;
 
 	[no_user_modify] String schema_version;
 	[no_user_modify] bool connected;
