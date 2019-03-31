@@ -4,8 +4,7 @@
 	compress
 	delaycompress
 	missingok
-	notifempty
-	create 644 @ICINGA2_USER@ @ICINGA2_GROUP@
+	notifempty@LOGROTATE_CREATE@
 	postrotate
 		/bin/kill -USR1 $(cat @ICINGA2_INITRUNDIR@/icinga2.pid 2> /dev/null) 2> /dev/null || true
 	endscript
@@ -17,7 +16,6 @@
 	compress
 	delaycompress
 	missingok
-	notifempty
-	create 644 @ICINGA2_USER@ @ICINGA2_GROUP@
+	notifempty@LOGROTATE_CREATE@
 	# TODO: figure out how to get Icinga to re-open this log file
 }
