@@ -406,6 +406,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			http::response<http::string_body> response;
 
 			parser.header_limit(1024 * 1024);
+			parser.body_limit(-1);
 
 			response.set(http::field::server, l_ServerHeader);
 
