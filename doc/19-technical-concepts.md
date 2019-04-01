@@ -165,6 +165,15 @@ The following signals are triggered in the stages:
 - **Activate**: Calls `Start()` on the object, sets the local HA authority and notifies subscribers that this object is now activated (e.g. for config updates in the DB backend).
 
 
+### References <a id="technical-concepts-configuration-references"></a>
+
+* [The Icinga Config Compiler: An Overview](https://www.netways.de/blog/2018/07/12/the-icinga-config-compiler-an-overview/)
+* [A parser/lexer/compiler for the Leonardo language](https://github.com/EmilGedda/Leonardo)
+* [I wrote a programming language. Here’s how you can, too.](https://medium.freecodecamp.org/the-programming-language-pipeline-91d3f449c919)
+* [http://onoffswitch.net/building-a-custom-lexer/](http://onoffswitch.net/building-a-custom-lexer/)
+* [Writing an Interpreter with Lex, Yacc, and Memphis](http://memphis.compilertools.net/interpreter.html)
+* [Flex](https://github.com/westes/flex)
+* [GNU Bison](https://www.gnu.org/software/bison/)
 
 ## Features <a id="technical-concepts-features"></a>
 
