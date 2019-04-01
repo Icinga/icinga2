@@ -28,6 +28,19 @@ This affects the following features:
 * [OpenTsdb](09-object-types.md#objecttype-opentsdbwriter)
 * [Perfdata](09-object-types.md#objecttype-perfdatawriter) (for PNP)
 
+### HA Failover <a id="upgrading-to-2-11-ha-failover"></a>
+
+The reconnect failover has been improved, and the default `failover_timeout`
+for the DB IDO features has been lowered from 60 to 30 seconds.
+Object authority updates (required for balancing in the cluster) happen
+more frequenty (was 30, is 10 seconds).
+Also the cold startup without object authority updates has been reduced
+from 60 to 30 seconds. This is to allow cluster reconnects (lowered from 60s to 10s in 2.10)
+before actually considering a failover/split brain scenario.
+
+The [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection) and [IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection)
+objects provide a new attribute named `last_failover` which shows the last failover timestamp.
+This value also is available in the [ido](10-icinga-template-library.md#itl-icinga-ido) CheckCommand output.
 
 ### Package Dependencies <a id="upgrading-to-2-11-package-dependencies"></a>
 
