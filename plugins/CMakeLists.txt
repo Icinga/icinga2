@@ -9,7 +9,6 @@ add_executable(check_nscp_api
 target_link_libraries(check_nscp_api ${base_DEPS})
 set_target_properties (
   check_nscp_api PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
   DEFINE_SYMBOL I2_PLUGINS_BUILD
   FOLDER Plugins)
 
@@ -32,7 +31,6 @@ if (WIN32)
 
   set_target_properties(
     thresholds PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
     FOLDER Plugins
   )
 
@@ -50,7 +48,6 @@ if (WIN32)
 
     set_target_properties(
       ${check_OUT} PROPERTIES
-      INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
       DEFINE_SYMBOL I2_PLUGINS_BUILD
       FOLDER Plugins
     )

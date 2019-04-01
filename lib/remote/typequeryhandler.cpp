@@ -46,12 +46,23 @@ public:
 	}
 };
 
-bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool TypeQueryHandler::HandleRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	bool& hasStartedStreaming
+)
 {
-	if (request.RequestUrl->GetPath().size() > 3)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() > 3)
 		return false;
 
-	if (request.RequestMethod != "GET")
+	if (request.method() != http::verb::get)
 		return false;
 
 	QueryDescription qd;
@@ -64,8 +75,8 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 
 	params->Set("type", "Type");
 
-	if (request.RequestUrl->GetPath().size() >= 3)
-		params->Set("name", request.RequestUrl->GetPath()[2]);
+	if (url->GetPath().size() >= 3)
+		params->Set("name", url->GetPath()[2]);
 
 	std::vector<Value> objs;
 
@@ -138,7 +149,7 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 		{ "results", new Array(std::move(results)) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;

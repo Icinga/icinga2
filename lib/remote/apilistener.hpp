@@ -14,6 +14,9 @@
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include "base/threadpool.hpp"
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/spawn.hpp>
+#include <boost/asio/ssl/context.hpp>
 #include <set>
 
 namespace icinga
@@ -105,8 +108,7 @@ protected:
 	void ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
 
 private:
-	std::shared_ptr<SSL_CTX> m_SSLContext;
-	std::set<TcpSocket::Ptr> m_Servers;
+	std::shared_ptr<boost::asio::ssl::context> m_SSLContext;
 
 	mutable boost::mutex m_AnonymousClientsLock;
 	mutable boost::mutex m_HttpClientsLock;
@@ -128,12 +130,9 @@ private:
 	bool AddListener(const String& node, const String& service);
 	void AddConnection(const Endpoint::Ptr& endpoint);
 
-	void NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
-	void NewClientHandlerInternal(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
-	void ListenerThreadProc(const Socket::Ptr& server);
-
-	static ThreadPool& GetTP();
-	static void EnqueueAsyncCallback(const std::function<void ()>& callback, SchedulerPolicy policy = DefaultScheduler);
+	void NewClientHandler(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role);
+	void NewClientHandlerInternal(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role);
+	void ListenerCoroutineProc(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ip::tcp::acceptor>& server, const std::shared_ptr<boost::asio::ssl::context>& sslContext);
 
 	WorkQueue m_RelayQueue;
 	WorkQueue m_SyncQueue{0, 4};
@@ -154,7 +153,7 @@ private:
 
 	static void CopyCertificateFile(const String& oldCertPath, const String& newCertPath);
 
-	void UpdateStatusFile(TcpSocket::Ptr socket);
+	void UpdateStatusFile(boost::asio::ip::tcp::endpoint localEndpoint);
 	void RemoveStatusFile();
 
 	/* filesync */

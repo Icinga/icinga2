@@ -7,8 +7,9 @@ platform: x64
 environment:
   CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
   VSCMD_VER: 15.0
-  BOOST_ROOT: 'C:\Libraries\boost_1_65_1'
-  BOOST_LIBRARYDIR: 'C:\Libraries\boost_1_65_1\lib64-msvc-14.1'
+  # https://www.appveyor.com/docs/windows-images-software/#boost
+  BOOST_ROOT: 'C:\Libraries\boost_1_66_0'
+  BOOST_LIBRARYDIR: 'C:\Libraries\boost_1_66_0\lib64-msvc-14.1'
   BISON_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe'
   FLEX_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe'
   CMAKE_BUILD_TYPE: Debug

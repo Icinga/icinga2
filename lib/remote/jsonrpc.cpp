@@ -6,7 +6,11 @@
 #include "base/console.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/convert.hpp"
+#include "base/tlsstream.hpp"
 #include <iostream>
+#include <memory>
+#include <utility>
+#include <boost/asio/spawn.hpp>
 
 using namespace icinga;
 
@@ -55,6 +59,35 @@ size_t JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& me
 	return NetString::WriteStringToStream(stream, json);
 }
 
+/**
+ * Sends a message to the connected peer and returns the bytes sent.
+ *
+ * @param message The message.
+ *
+ * @return The amount of bytes sent.
+ */
+size_t JsonRpc::SendMessage(const std::shared_ptr<AsioTlsStream>& stream, const Dictionary::Ptr& message, boost::asio::yield_context yc)
+{
+	return JsonRpc::SendRawMessage(stream, JsonEncode(message), yc);
+}
+
+/**
+ * Sends a message to the connected peer and returns the bytes sent.
+ *
+ * @param message The message.
+ *
+ * @return The amount of bytes sent.
+ */
+size_t JsonRpc::SendRawMessage(const std::shared_ptr<AsioTlsStream>& stream, const String& json, boost::asio::yield_context yc)
+{
+#ifdef I2_DEBUG
+	if (GetDebugJsonRpcCached())
+		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << ">> " << json << ConsoleColorTag(Console_Normal) << "\n";
+#endif /* I2_DEBUG */
+
+	return NetString::WriteStringToStream(stream, json, yc);
+}
+
 StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait, ssize_t maxMessageLength)
 {
 	String jsonString;
@@ -71,6 +104,18 @@ StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, String *message
 #endif /* I2_DEBUG */
 
 	return StatusNewItem;
+}
+
+String JsonRpc::ReadMessage(const std::shared_ptr<AsioTlsStream>& stream, boost::asio::yield_context yc, ssize_t maxMessageLength)
+{
+	String jsonString = NetString::ReadStringFromStream(stream, yc, maxMessageLength);
+
+#ifdef I2_DEBUG
+	if (GetDebugJsonRpcCached())
+		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << "<< " << jsonString << ConsoleColorTag(Console_Normal) << "\n";
+#endif /* I2_DEBUG */
+
+	return std::move(jsonString);
 }
 
 Dictionary::Ptr JsonRpc::DecodeMessage(const String& message)

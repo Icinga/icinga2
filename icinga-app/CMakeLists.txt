@@ -68,7 +68,6 @@ target_link_libraries(icinga-app ${base_DEPS})
 
 set_target_properties (
   icinga-app PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
   FOLDER Bin
   OUTPUT_NAME icinga2
 )

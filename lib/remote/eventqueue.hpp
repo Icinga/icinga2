@@ -6,6 +6,7 @@
 #include "remote/httphandler.hpp"
 #include "base/object.hpp"
 #include "config/expression.hpp"
+#include <boost/asio/spawn.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <set>
@@ -31,6 +32,7 @@ public:
 	void SetFilter(std::unique_ptr<Expression> filter);
 
 	Dictionary::Ptr WaitForEvent(void *client, double timeout = 5);
+	Dictionary::Ptr WaitForEvent(void *client, boost::asio::yield_context yc);
 
 	static std::vector<EventQueue::Ptr> GetQueuesForType(const String& type);
 	static void UnregisterIfUnused(const String& name, const EventQueue::Ptr& queue);

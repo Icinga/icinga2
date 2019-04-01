@@ -4,10 +4,14 @@
 #define HTTPHANDLER_H
 
 #include "remote/i2-remote.hpp"
+#include "remote/url.hpp"
 #include "remote/httpresponse.hpp"
 #include "remote/apiuser.hpp"
 #include "base/registry.hpp"
+#include "base/tlsstream.hpp"
 #include <vector>
+#include <boost/asio/spawn.hpp>
+#include <boost/beast/http.hpp>
 
 namespace icinga
 {
@@ -22,10 +26,26 @@ class HttpHandler : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(HttpHandler);
 
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params) = 0;
+	virtual bool HandleRequest(
+		AsioTlsStream& stream,
+		const ApiUser::Ptr& user,
+		boost::beast::http::request<boost::beast::http::string_body>& request,
+		const Url::Ptr& url,
+		boost::beast::http::response<boost::beast::http::string_body>& response,
+		const Dictionary::Ptr& params,
+		boost::asio::yield_context& yc,
+		bool& hasStartedStreaming
+	) = 0;
 
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
-	static void ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
+	static void ProcessRequest(
+		AsioTlsStream& stream,
+		const ApiUser::Ptr& user,
+		boost::beast::http::request<boost::beast::http::string_body>& request,
+		boost::beast::http::response<boost::beast::http::string_body>& response,
+		boost::asio::yield_context& yc,
+		bool& hasStartedStreaming
+	);
 
 private:
 	static Dictionary::Ptr m_UrlTree;

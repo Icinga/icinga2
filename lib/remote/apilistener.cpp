@@ -7,6 +7,8 @@
 #include "remote/jsonrpc.hpp"
 #include "remote/apifunction.hpp"
 #include "base/convert.hpp"
+#include "base/defer.hpp"
+#include "base/io-engine.hpp"
 #include "base/netstring.hpp"
 #include "base/json.hpp"
 #include "base/configtype.hpp"
@@ -18,7 +20,19 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include "base/exception.hpp"
+#include "base/tcpsocket.hpp"
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/spawn.hpp>
+#include <boost/asio/ssl/context.hpp>
+#include <boost/system/error_code.hpp>
+#include <climits>
 #include <fstream>
+#include <memory>
+#include <openssl/ssl.h>
+#include <openssl/tls1.h>
+#include <openssl/x509.h>
+#include <sstream>
 
 using namespace icinga;
 
@@ -95,22 +109,6 @@ void ApiListener::CopyCertificateFile(const String& oldCertPath, const String& n
 	}
 }
 
-/**
- * Returns the API thread pool.
- *
- * @returns The API thread pool.
- */
-ThreadPool& ApiListener::GetTP()
-{
-	static ThreadPool tp;
-	return tp;
-}
-
-void ApiListener::EnqueueAsyncCallback(const std::function<void ()>& callback, SchedulerPolicy policy)
-{
-	GetTP().Post(callback, policy);
-}
-
 void ApiListener::OnConfigLoaded()
 {
 	if (m_Instance)
@@ -159,10 +157,12 @@ void ApiListener::OnConfigLoaded()
 
 void ApiListener::UpdateSSLContext()
 {
-	std::shared_ptr<SSL_CTX> context;
+	namespace ssl = boost::asio::ssl;
+
+	std::shared_ptr<ssl::context> context;
 
 	try {
-		context = MakeSSLContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath());
+		context = MakeAsioSslContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath());
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
 			+ GetDefaultCertPath() + "' key path: '" + GetDefaultKeyPath() + "' ca path: '" + GetDefaultCaPath() + "'.", GetDebugInfo()));
@@ -326,52 +326,95 @@ bool ApiListener::IsMaster() const
  */
 bool ApiListener::AddListener(const String& node, const String& service)
 {
+	namespace asio = boost::asio;
+	namespace ip = asio::ip;
+	using ip::tcp;
+
 	ObjectLock olock(this);
 
-	std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+	auto sslContext (m_SSLContext);
 
 	if (!sslContext) {
 		Log(LogCritical, "ApiListener", "SSL context is required for AddListener()");
 		return false;
 	}
 
-	TcpSocket::Ptr server = new TcpSocket();
+	auto& io (IoEngine::Get().GetIoService());
+	auto acceptor (std::make_shared<tcp::acceptor>(io));
 
 	try {
-		server->Bind(node, service, AF_UNSPEC);
-	} catch (const std::exception&) {
+		tcp::resolver resolver (io);
+		tcp::resolver::query query (node, service, tcp::resolver::query::passive);
+
+		auto result (resolver.resolve(query));
+		auto current (result.begin());
+
+		for (;;) {
+			try {
+				acceptor->open(current->endpoint().protocol());
+
+				{
+					auto fd (acceptor->native_handle());
+
+					const int optFalse = 0;
+					setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char *>(&optFalse), sizeof(optFalse));
+
+					const int optTrue = 1;
+					setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
+#ifndef _WIN32
+					setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
+#endif /* _WIN32 */
+				}
+
+				acceptor->bind(current->endpoint());
+
+				break;
+			} catch (const std::exception&) {
+				if (++current == result.end()) {
+					throw;
+				}
+
+				if (acceptor->is_open()) {
+					acceptor->close();
+				}
+			}
+		}
+	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
-			<< "Cannot bind TCP socket for host '" << node << "' on port '" << service << "'.";
+			<< "Cannot bind TCP socket for host '" << node << "' on port '" << service << "': " << DiagnosticInformation(ex, false);
 		return false;
 	}
 
+	acceptor->listen(INT_MAX);
+
+	auto localEndpoint (acceptor->local_endpoint());
+
 	Log(LogInformation, "ApiListener")
-		<< "Started new listener on '" << server->GetClientAddress() << "'";
+		<< "Started new listener on '[" << localEndpoint.address() << "]:" << localEndpoint.port() << "'";
 
-	std::thread thread(std::bind(&ApiListener::ListenerThreadProc, this, server));
-	thread.detach();
+	asio::spawn(io, [this, acceptor, sslContext](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor, sslContext); });
 
-	m_Servers.insert(server);
-
-	UpdateStatusFile(server);
+	UpdateStatusFile(localEndpoint);
 
 	return true;
 }
 
-void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
+void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ip::tcp::acceptor>& server, const std::shared_ptr<boost::asio::ssl::context>& sslContext)
 {
-	Utility::SetThreadName("API Listener");
+	namespace asio = boost::asio;
 
-	server->Listen();
+	auto& io (server->get_io_service());
 
 	for (;;) {
 		try {
-			Socket::Ptr client = server->Accept();
+			auto sslConn (std::make_shared<AsioTlsStream>(io, *sslContext));
 
-			/* Use dynamic thread pool with additional on demand resources with fast throughput. */
-			EnqueueAsyncCallback(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer), LowLatencyScheduler);
-		} catch (const std::exception&) {
-			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
+			server->async_accept(sslConn->lowest_layer(), yc);
+
+			asio::spawn(io, [this, sslConn](asio::yield_context yc) { NewClientHandler(yc, sslConn, String(), RoleServer); });
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "ApiListener")
+				<< "Cannot accept new connection: " << DiagnosticInformation(ex, false);
 		}
 	}
 }
@@ -383,49 +426,48 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
  */
 void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 {
-	{
-		ObjectLock olock(this);
+	namespace asio = boost::asio;
+	using asio::ip::tcp;
 
-		std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+	auto sslContext (m_SSLContext);
 
-		if (!sslContext) {
-			Log(LogCritical, "ApiListener", "SSL context is required for AddConnection()");
-			return;
-		}
+	if (!sslContext) {
+		Log(LogCritical, "ApiListener", "SSL context is required for AddConnection()");
+		return;
 	}
 
-	String host = endpoint->GetHost();
-	String port = endpoint->GetPort();
+	auto& io (IoEngine::Get().GetIoService());
 
-	Log(LogInformation, "ApiListener")
-		<< "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
+	asio::spawn(io, [this, endpoint, &io, sslContext](asio::yield_context yc) {
+		String host = endpoint->GetHost();
+		String port = endpoint->GetPort();
 
-	TcpSocket::Ptr client = new TcpSocket();
-
-	try {
-		client->Connect(host, port);
-
-		NewClientHandler(client, endpoint->GetName(), RoleClient);
-
-		endpoint->SetConnecting(false);
 		Log(LogInformation, "ApiListener")
-				<< "Finished reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
-	} catch (const std::exception& ex) {
-		endpoint->SetConnecting(false);
-		client->Close();
+			<< "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 
-		std::ostringstream info;
-		info << "Cannot connect to host '" << host << "' on port '" << port << "'";
-		Log(LogCritical, "ApiListener", info.str());
-		Log(LogDebug, "ApiListener")
-			<< info.str() << "\n" << DiagnosticInformation(ex);
-	}
+		try {
+			auto sslConn (std::make_shared<AsioTlsStream>(io, *sslContext, endpoint->GetName()));
+
+			Connect(sslConn->lowest_layer(), host, port, yc);
+
+			NewClientHandler(yc, sslConn, endpoint->GetName(), RoleClient);
+
+			endpoint->SetConnecting(false);
+			Log(LogInformation, "ApiListener")
+				<< "Finished reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
+		} catch (const std::exception& ex) {
+			endpoint->SetConnecting(false);
+
+			Log(LogCritical, "ApiListener")
+				<< "Cannot connect to host '" << host << "' on port '" << port << "': " << ex.what();
+		}
+	});
 }
 
-void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role)
+void ApiListener::NewClientHandler(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role)
 {
 	try {
-		NewClientHandlerInternal(client, hostname, role);
+		NewClientHandlerInternal(yc, client, hostname, role);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
 			<< "Exception while handling new API client connection: " << DiagnosticInformation(ex, false);
@@ -440,90 +482,90 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& host
  *
  * @param client The new client.
  */
-void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const String& hostname, ConnectionRole role)
+void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role)
 {
-	CONTEXT("Handling new API client connection");
+	namespace asio = boost::asio;
+	namespace ssl = asio::ssl;
 
 	String conninfo;
 
-	if (role == RoleClient)
-		conninfo = "to";
-	else
-		conninfo = "from";
-
-	conninfo += " " + client->GetPeerAddress();
-
-	TlsStream::Ptr tlsStream;
-
-	String environmentName = Application::GetAppEnvironment();
-
-	String serverName = hostname;
-
-	if (!environmentName.IsEmpty())
-		serverName += ":" + environmentName;
-
 	{
-		ObjectLock olock(this);
-		try {
-			tlsStream = new TlsStream(client, serverName, role, m_SSLContext);
-		} catch (const std::exception&) {
-			Log(LogCritical, "ApiListener")
-				<< "Cannot create TLS stream from client connection (" << conninfo << ")";
-			return;
+		std::ostringstream conninfo_;
+
+		if (role == RoleClient) {
+			conninfo_ << "to";
+		} else {
+			conninfo_ << "from";
 		}
+
+		auto endpoint (client->lowest_layer().remote_endpoint());
+
+		conninfo_ << " [" << endpoint.address() << "]:" << endpoint.port();
+
+		conninfo = conninfo_.str();
 	}
 
+	auto& sslConn (client->next_layer());
+
 	try {
-		tlsStream->Handshake();
+		sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
 			<< "Client TLS handshake failed (" << conninfo << "): " << DiagnosticInformation(ex, false);
-		tlsStream->Close();
 		return;
 	}
 
-	std::shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
+	bool willBeShutDown = false;
+
+	Defer shutDownIfNeeded ([&sslConn, &willBeShutDown, &yc]() {
+		if (!willBeShutDown) {
+			sslConn.async_shutdown(yc);
+		}
+	});
+
+	std::shared_ptr<X509> cert (SSL_get_peer_certificate(sslConn.native_handle()), X509_free);
+	bool verify_ok = false;
 	String identity;
 	Endpoint::Ptr endpoint;
-	bool verify_ok = false;
 
 	if (cert) {
+		verify_ok = sslConn.IsVerifyOK();
+
+		String verifyError = sslConn.GetVerifyError();
+
 		try {
 			identity = GetCertificateCN(cert);
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener")
 				<< "Cannot get certificate common name from cert path: '" << GetDefaultCertPath() << "'.";
-			tlsStream->Close();
 			return;
 		}
 
-		verify_ok = tlsStream->IsVerifyOK();
 		if (!hostname.IsEmpty()) {
 			if (identity != hostname) {
 				Log(LogWarning, "ApiListener")
 					<< "Unexpected certificate common name while connecting to endpoint '"
 					<< hostname << "': got '" << identity << "'";
-				tlsStream->Close();
 				return;
 			} else if (!verify_ok) {
 				Log(LogWarning, "ApiListener")
 					<< "Certificate validation failed for endpoint '" << hostname
-					<< "': " << tlsStream->GetVerifyError();
+					<< "': " << verifyError;
 			}
 		}
 
-		if (verify_ok)
+		if (verify_ok) {
 			endpoint = Endpoint::GetByName(identity);
+		}
 
-		{
-			Log log(LogInformation, "ApiListener");
+		Log log(LogInformation, "ApiListener");
 
-			log << "New client connection for identity '" << identity << "' " << conninfo;
+		log << "New client connection for identity '" << identity << "' " << conninfo;
 
-			if (!verify_ok)
-				log << " (certificate validation failed: " << tlsStream->GetVerifyError() << ")";
-			else if (!endpoint)
-				log << " (no Endpoint object found for identity)";
+		if (!verify_ok) {
+			log << " (certificate validation failed: " << verifyError << ")";
+		} else if (!endpoint) {
+			log << " (no Endpoint object found for identity)";
 		}
 	} else {
 		Log(LogInformation, "ApiListener")
@@ -533,65 +575,84 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 	ClientType ctype;
 
 	if (role == RoleClient) {
-		Dictionary::Ptr message = new Dictionary({
+		JsonRpc::SendMessage(client, new Dictionary({
 			{ "jsonrpc", "2.0" },
 			{ "method", "icinga::Hello" },
 			{ "params", new Dictionary() }
-		});
+		}), yc);
 
-		JsonRpc::SendMessage(tlsStream, message);
+		client->async_flush(yc);
+
 		ctype = ClientJsonRpc;
 	} else {
-		tlsStream->WaitForData(10);
+		{
+			boost::system::error_code ec;
 
-		if (!tlsStream->IsDataAvailable()) {
-			if (identity.IsEmpty())
-				Log(LogInformation, "ApiListener")
-					<< "No data received on new API connection. "
-					<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
-			else
-				Log(LogWarning, "ApiListener")
-					<< "No data received on new API connection for identity '" << identity << "'. "
-					<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
-			tlsStream->Close();
-			return;
+			if (client->async_fill(yc[ec]) == 0u) {
+				if (identity.IsEmpty()) {
+					Log(LogInformation, "ApiListener")
+						<< "No data received on new API connection. "
+						<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+				} else {
+					Log(LogWarning, "ApiListener")
+						<< "No data received on new API connection for identity '" << identity << "'. "
+						<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+				}
+
+				return;
+			}
 		}
 
-		char firstByte;
-		tlsStream->Peek(&firstByte, 1, false);
+		char firstByte = 0;
 
-		if (firstByte >= '0' && firstByte <= '9')
+		{
+			asio::mutable_buffer firstByteBuf (&firstByte, 1);
+			client->peek(firstByteBuf);
+		}
+
+		if (firstByte >= '0' && firstByte <= '9') {
 			ctype = ClientJsonRpc;
-		else
+		} else {
 			ctype = ClientHttp;
+		}
 	}
 
 	if (ctype == ClientJsonRpc) {
 		Log(LogNotice, "ApiListener", "New JSON-RPC client");
 
-		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, tlsStream, role);
-		aclient->Start();
+		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, client, role);
 
 		if (endpoint) {
 			bool needSync = !endpoint->GetConnected();
 
 			endpoint->AddClient(aclient);
 
-			m_SyncQueue.Enqueue(std::bind(&ApiListener::SyncClient, this, aclient, endpoint, needSync));
-		} else {
-			if (!AddAnonymousClient(aclient)) {
-				Log(LogNotice, "ApiListener")
-					<< "Ignoring anonymous JSON-RPC connection " << conninfo
-					<< ". Max connections (" << GetMaxAnonymousClients() << ") exceeded.";
-				aclient->Disconnect();
-			}
+			asio::spawn(client->get_io_service(), [this, aclient, endpoint, needSync](asio::yield_context yc) {
+				CpuBoundWork syncClient (yc);
+
+				SyncClient(aclient, endpoint, needSync);
+			});
+		} else if (!AddAnonymousClient(aclient)) {
+			Log(LogNotice, "ApiListener")
+				<< "Ignoring anonymous JSON-RPC connection " << conninfo
+				<< ". Max connections (" << GetMaxAnonymousClients() << ") exceeded.";
+
+			aclient = nullptr;
+		}
+
+		if (aclient) {
+			aclient->Start();
+
+			willBeShutDown = true;
 		}
 	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
 
-		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, tlsStream);
-		aclient->Start();
+		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, client);
 		AddHttpClient(aclient);
+		aclient->Start();
+
+		willBeShutDown = true;
 	}
 }
 
@@ -727,10 +788,11 @@ void ApiListener::ApiTimerHandler()
 		}
 
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
-			if (client->GetTimestamp() != maxTs)
-				client->Disconnect();
-			else
+			if (client->GetTimestamp() == maxTs) {
 				client->SendMessage(lmessage);
+			} else {
+				client->Disconnect();
+			}
 		}
 
 		Log(LogNotice, "ApiListener")
@@ -791,8 +853,7 @@ void ApiListener::ApiReconnectTimerHandler()
 			/* Set connecting state to prevent duplicated queue inserts later. */
 			endpoint->SetConnecting(true);
 
-			/* Use dynamic thread pool with additional on demand resources with fast throughput. */
-			EnqueueAsyncCallback(std::bind(&ApiListener::AddConnection, this, endpoint), LowLatencyScheduler);
+			AddConnection(endpoint);
 		}
 	}
 
@@ -1198,8 +1259,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 				}
 
 				try  {
-					size_t bytesSent = NetString::WriteStringToStream(client->GetStream(), pmessage->Get("message"));
-					endpoint->AddMessageSent(bytesSent);
+					client->SendRawMessage(pmessage->Get("message"));
 					count++;
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ApiListener")
@@ -1224,8 +1284,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 						}) }
 					});
 
-					size_t bytesSent = JsonRpc::SendMessage(client->GetStream(), lmessage);
-					endpoint->AddMessageSent(bytesSent);
+					client->SendMessage(lmessage);
 				}
 			}
 
@@ -1344,8 +1403,6 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	/* connection stats */
 	size_t jsonRpcAnonymousClients = GetAnonymousClients().size();
 	size_t httpClients = GetHttpClients().size();
-	size_t workQueueItems = JsonRpcConnection::GetWorkQueueLength();
-	size_t workQueueCount = JsonRpcConnection::GetWorkQueueCount();
 	size_t syncQueueItems = m_SyncQueue.GetLength();
 	size_t relayQueueItems = m_RelayQueue.GetLength();
 	double workQueueItemRate = JsonRpcConnection::GetWorkQueueRate();
@@ -1364,8 +1421,6 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 
 		{ "json_rpc", new Dictionary({
 			{ "anonymous_clients", jsonRpcAnonymousClients },
-			{ "work_queue_items", workQueueItems },
-			{ "work_queue_count", workQueueCount },
 			{ "sync_queue_items", syncQueueItems },
 			{ "relay_queue_items", relayQueueItems },
 			{ "work_queue_item_rate", workQueueItemRate },
@@ -1385,8 +1440,6 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 
 	perfdata->Set("num_json_rpc_anonymous_clients", jsonRpcAnonymousClients);
 	perfdata->Set("num_http_clients", httpClients);
-	perfdata->Set("num_json_rpc_work_queue_items", workQueueItems);
-	perfdata->Set("num_json_rpc_work_queue_count", workQueueCount);
 	perfdata->Set("num_json_rpc_sync_queue_items", syncQueueItems);
 	perfdata->Set("num_json_rpc_relay_queue_items", relayQueueItems);
 
@@ -1513,14 +1566,13 @@ String ApiListener::GetFromZoneName(const Zone::Ptr& fromZone)
 	return fromZoneName;
 }
 
-void ApiListener::UpdateStatusFile(TcpSocket::Ptr socket)
+void ApiListener::UpdateStatusFile(boost::asio::ip::tcp::endpoint localEndpoint)
 {
 	String path = Configuration::CacheDir + "/api-state.json";
-	std::pair<String, String> details = socket->GetClientAddressDetails();
 
 	Utility::SaveJsonFile(path, 0644, new Dictionary({
-		{"host", details.first},
-		{"port", Convert::ToLong(details.second)}
+		{"host", String(localEndpoint.address().to_string())},
+		{"port", localEndpoint.port()}
 	}));
 }
 

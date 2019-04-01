@@ -9,6 +9,12 @@
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
 #include "base/fifo.hpp"
+#include <utility>
+#include <boost/asio/buffered_stream.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl/context.hpp>
+#include <boost/asio/ssl/stream.hpp>
 
 namespace icinga
 {
@@ -32,6 +38,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
 
 	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const std::shared_ptr<SSL_CTX>& sslContext = MakeSSLContext());
+	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const std::shared_ptr<boost::asio::ssl::context>& sslContext);
 	~TlsStream() override;
 
 	Socket::Ptr GetSocket() const;
@@ -80,6 +87,8 @@ private:
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
+	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, SSL_CTX* sslContext);
+
 	void OnEvent(int revents) override;
 
 	void HandleError() const;
@@ -88,6 +97,70 @@ private:
 	static void NullCertificateDeleter(X509 *certificate);
 
 	void CloseInternal(bool inDestructor);
+};
+
+struct UnbufferedAsioTlsStreamParams
+{
+	boost::asio::io_service& IoService;
+	boost::asio::ssl::context& SslContext;
+	const String& Hostname;
+};
+
+typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> AsioTcpTlsStream;
+
+class UnbufferedAsioTlsStream : public AsioTcpTlsStream
+{
+public:
+	inline
+	UnbufferedAsioTlsStream(UnbufferedAsioTlsStreamParams& init)
+		: stream(init.IoService, init.SslContext), m_VerifyOK(true), m_Hostname(init.Hostname)
+	{
+	}
+
+	bool IsVerifyOK() const;
+	String GetVerifyError() const;
+
+	template<class... Args>
+	inline
+	auto async_handshake(handshake_type type, Args&&... args) -> decltype(((AsioTcpTlsStream*)nullptr)->async_handshake(type, std::forward<Args>(args)...))
+	{
+		BeforeHandshake(type);
+
+		return AsioTcpTlsStream::async_handshake(type, std::forward<Args>(args)...);
+	}
+
+	template<class... Args>
+	inline
+	auto handshake(handshake_type type, Args&&... args) -> decltype(((AsioTcpTlsStream*)nullptr)->handshake(type, std::forward<Args>(args)...))
+	{
+		BeforeHandshake(type);
+
+		return AsioTcpTlsStream::handshake(type, std::forward<Args>(args)...);
+	}
+
+private:
+	bool m_VerifyOK;
+	String m_VerifyError;
+	String m_Hostname;
+
+	void BeforeHandshake(handshake_type type);
+};
+
+class AsioTlsStream : public boost::asio::buffered_stream<UnbufferedAsioTlsStream>
+{
+public:
+	inline
+	AsioTlsStream(boost::asio::io_service& ioService, boost::asio::ssl::context& sslContext, const String& hostname = String())
+		: AsioTlsStream(UnbufferedAsioTlsStreamParams{ioService, sslContext, hostname})
+	{
+	}
+
+private:
+	inline
+	AsioTlsStream(UnbufferedAsioTlsStreamParams init)
+		: buffered_stream(init)
+	{
+	}
 };
 
 }

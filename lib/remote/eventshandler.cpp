@@ -5,23 +5,39 @@
 #include "remote/filterutility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
+#include "base/defer.hpp"
+#include "base/io-engine.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/write.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/events", EventsHandler);
 
-bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool EventsHandler::HandleRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	bool& hasStartedStreaming
+)
 {
-	if (request.RequestUrl->GetPath().size() != 2)
+	namespace asio = boost::asio;
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() != 2)
 		return false;
 
-	if (request.RequestMethod != "POST")
+	if (request.method() != http::verb::post)
 		return false;
 
-	if (request.ProtocolVersion == HttpVersion10) {
+	if (request.version() == 10) {
 		HttpUtility::SendJsonError(response, params, 400, "HTTP/1.0 not supported for event streams.");
 		return true;
 	}
@@ -67,33 +83,37 @@ bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 
 	queue->AddClient(&request);
 
-	response.SetStatus(200, "OK");
-	response.AddHeader("Content-Type", "application/json");
+	Defer removeClient ([&queue, &request, &queueName]() {
+		queue->RemoveClient(&request);
+		EventQueue::UnregisterIfUnused(queueName, queue);
+	});
+
+	hasStartedStreaming = true;
+
+	response.result(http::status::ok);
+	response.set(http::field::content_type, "application/json");
+
+	{
+		IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+	}
+
+	asio::const_buffer newLine ("\n", 1);
 
 	for (;;) {
-		Dictionary::Ptr result = queue->WaitForEvent(&request);
-
-		if (!response.IsPeerConnected()) {
-			queue->RemoveClient(&request);
-			EventQueue::UnregisterIfUnused(queueName, queue);
-			return true;
-		}
-
-		if (!result)
-			continue;
-
-		String body = JsonEncode(result);
+		String body = JsonEncode(queue->WaitForEvent(&request, yc));
 
 		boost::algorithm::replace_all(body, "\n", "");
 
-		try {
-			response.WriteBody(body.CStr(), body.GetLength());
-			response.WriteBody("\n", 1);
-		} catch (const std::exception&) {
-			queue->RemoveClient(&request);
-			EventQueue::UnregisterIfUnused(queueName, queue);
-			throw;
-		}
+		asio::const_buffer payload (body.CStr(), body.GetLength());
+
+		IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
+
+		asio::async_write(stream, payload, yc);
+		asio::async_write(stream, newLine, yc);
+		stream.async_flush(yc);
 	}
 }
 

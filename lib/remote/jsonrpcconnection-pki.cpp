@@ -13,6 +13,8 @@
 #include <boost/thread/once.hpp>
 #include <boost/regex.hpp>
 #include <fstream>
+#include <openssl/ssl.h>
+#include <openssl/x509.h>
 
 using namespace icinga;
 
@@ -30,10 +32,12 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	Dictionary::Ptr result = new Dictionary();
 
 	/* Use the presented client certificate if not provided. */
-	if (certText.IsEmpty())
-		cert = origin->FromClient->GetStream()->GetPeerCertificate();
-	else
+	if (certText.IsEmpty()) {
+		auto stream (origin->FromClient->GetStream());
+		cert = std::shared_ptr<X509>(SSL_get_peer_certificate(stream->next_layer().native_handle()), X509_free);
+	} else {
 		cert = StringToCertificate(certText);
+	}
 
 	if (!cert) {
 		Log(LogWarning, "JsonRpcConnection") << "No certificate or CSR received";
@@ -121,7 +125,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 				{ "method", "pki::UpdateCertificate" },
 				{ "params", result }
 			});
-			JsonRpc::SendMessage(client->GetStream(), message);
+			client->SendMessage(message);
 
 			return result;
 		}
@@ -192,7 +196,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		{ "method", "pki::UpdateCertificate" },
 		{ "params", result }
 	});
-	JsonRpc::SendMessage(client->GetStream(), message);
+	client->SendMessage(message);
 
 	return result;
 
@@ -255,7 +259,7 @@ void JsonRpcConnection::SendCertificateRequest(const JsonRpcConnection::Ptr& acl
 	 * or b) the local zone and all parents.
 	 */
 	if (aclient)
-		JsonRpc::SendMessage(aclient->GetStream(), message);
+		aclient->SendMessage(message);
 	else
 		listener->RelayMessage(origin, Zone::GetLocalZone(), message, false);
 }
