@@ -102,6 +102,8 @@ bool EnsureValidHeaders(
 {
 	namespace http = boost::beast::http;
 
+	bool httpError = true;
+
 	try {
 		try {
 			http::async_read_header(stream, buf, parser, yc);
@@ -115,6 +117,8 @@ bool EnsureValidHeaders(
 			throw std::invalid_argument(ex.what());
 		}
 
+		httpError = false;
+
 		switch (parser.get().version()) {
 		case 10:
 		case 11:
@@ -124,9 +128,18 @@ bool EnsureValidHeaders(
 		}
 	} catch (const std::invalid_argument& ex) {
 		response.result(http::status::bad_request);
-		response.set(http::field::content_type, "text/html");
-		response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
-		response.set(http::field::content_length, response.body().size());
+
+		if (!httpError && parser.get()[http::field::accept] == "application/json") {
+			HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
+				{ "error", 400 },
+				{ "status", String("Bad Request: ") + ex.what() }
+			}));
+		} else {
+			response.set(http::field::content_type, "text/html");
+			response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
+			response.set(http::field::content_length, response.body().size());
+		}
+
 		response.set(http::field::connection, "close");
 
 		http::async_write(stream, response, yc);
@@ -333,9 +346,18 @@ bool EnsureValidBody(
 		 */
 
 		response.result(http::status::bad_request);
-		response.set(http::field::content_type, "text/html");
-		response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
-		response.set(http::field::content_length, response.body().size());
+
+		if (parser.get()[http::field::accept] == "application/json") {
+			HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
+				{ "error", 400 },
+				{ "status", String("Bad Request: ") + ex.what() }
+			}));
+		} else {
+			response.set(http::field::content_type, "text/html");
+			response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
+			response.set(http::field::content_length, response.body().size());
+		}
+
 		response.set(http::field::connection, "close");
 
 		http::async_write(stream, response, yc);
