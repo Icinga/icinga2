@@ -252,9 +252,13 @@ void ApiListener::Start(bool runtimeCreated)
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
+	/* Keep this in relative sync with the cold startup in UpdateObjectAuthority() and the reconnect interval above.
+	 * Previous: 60s reconnect, 30s OA, 60s cold startup.
+	 * Now: 10s reconnect, 10s OA, 30s cold startup. 
+	 */
 	m_AuthorityTimer = new Timer();
 	m_AuthorityTimer->OnTimerExpired.connect(std::bind(&ApiListener::UpdateObjectAuthority));
-	m_AuthorityTimer->SetInterval(30);
+	m_AuthorityTimer->SetInterval(10);
 	m_AuthorityTimer->Start();
 
 	m_CleanupCertificateRequestsTimer = new Timer();

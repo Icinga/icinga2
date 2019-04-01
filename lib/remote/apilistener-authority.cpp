@@ -4,11 +4,20 @@
 #include "remote/apilistener.hpp"
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
+#include "base/convert.hpp"
 
 using namespace icinga;
 
 void ApiListener::UpdateObjectAuthority()
 {
+	ApiListener::Ptr instance = ApiListener::GetInstance();
+
+	if (!instance)
+		return;
+
+	Log(LogNotice, "ApiListener")
+		<< "Updating object authority for objects at endpoint '" << instance->GetIdentity() << "'.";
+
 	Zone::Ptr my_zone = Zone::GetLocalZone();
 
 	std::vector<Endpoint::Ptr> endpoints;
@@ -30,7 +39,8 @@ void ApiListener::UpdateObjectAuthority()
 
 		double mainTime = Application::GetMainTime();
 
-		if (num_total > 1 && endpoints.size() <= 1 && (mainTime == 0 || Utility::GetTime() - mainTime < 60))
+		/* 30 seconds cold startup, don't update any authority to give the secondary endpoint time to reconnect. */
+		if (num_total > 1 && endpoints.size() <= 1 && (mainTime == 0 || Utility::GetTime() - mainTime < 30))
 			return;
 
 		std::sort(endpoints.begin(), endpoints.end(),
@@ -56,6 +66,12 @@ void ApiListener::UpdateObjectAuthority()
 				authority = true;
 			else
 				authority = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()] == my_endpoint;
+
+#ifdef I2_DEBUG
+// 			//Enable on demand, causes heavy logging on each run.
+//			Log(LogDebug, "ApiListener")
+//				<< "Setting authority '" << Convert::ToString(authority) << "' for object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'.";
+#endif /* I2_DEBUG */
 
 			object->SetAuthority(authority);
 		}

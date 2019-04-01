@@ -139,6 +139,12 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		cr->SetState(ServiceOK);
 	}
 
+	if (conn->GetEnableHa()) {
+		double failoverTs = conn->GetLastFailover();
+
+		msgbuf << " Last failover: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", failoverTs) << ".";
+	}
+
 	/* Check whether the thresholds have been defined and match. */
 	if (missingQueriesCritical.IsEmpty() && qps < queriesCritical) {
 		msgbuf << " " << qps << " queries/s lower than critical threshold (" << queriesCritical << " queries/s).";

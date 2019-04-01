@@ -12,8 +12,8 @@ set(remote_SOURCES
   apiclient.cpp apiclient.hpp
   apifunction.cpp apifunction.hpp
   apilistener.cpp apilistener.hpp apilistener-ti.hpp apilistener-configsync.cpp apilistener-filesync.cpp
+  apilistener-authority.cpp
   apiuser.cpp apiuser.hpp apiuser-ti.hpp
-  authority.cpp
   configfileshandler.cpp configfileshandler.hpp
   configobjectutility.cpp configobjectutility.hpp
   configpackageshandler.cpp configpackageshandler.hpp

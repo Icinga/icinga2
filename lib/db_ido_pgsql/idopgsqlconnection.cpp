@@ -72,14 +72,15 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 
 void IdoPgsqlConnection::Resume()
 {
-	DbConnection::Resume();
-
 	Log(LogInformation, "IdoPgsqlConnection")
 		<< "'" << GetName() << "' resumed.";
 
 	SetConnected(false);
 
 	m_QueryQueue.SetExceptionCallback(std::bind(&IdoPgsqlConnection::ExceptionHandler, this, _1));
+
+	/* Immediately try to connect on Resume() without timer. */
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Reconnect, this), PriorityImmediate);
 
 	m_TxTimer = new Timer();
 	m_TxTimer->SetInterval(1);
@@ -90,23 +91,26 @@ void IdoPgsqlConnection::Resume()
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&IdoPgsqlConnection::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
-	m_ReconnectTimer->Reschedule(0);
+
+	/* Start with queries after connect. */
+	DbConnection::Resume();
 
 	ASSERT(m_Pgsql->isthreadsafe());
 }
 
 void IdoPgsqlConnection::Pause()
 {
-	m_ReconnectTimer.reset();
-
 	DbConnection::Pause();
 
+	m_ReconnectTimer.reset();
+
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Disconnect, this), PriorityLow);
+
+	/* Work on remaining tasks but never delete the threads, for HA resuming later. */
 	m_QueryQueue.Join();
 
 	Log(LogInformation, "IdoPgsqlConnection")
 		<< "'" << GetName() << "' paused.";
-
 }
 
 void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
@@ -138,6 +142,9 @@ void IdoPgsqlConnection::Disconnect()
 
 	m_Pgsql->finish(m_Connection);
 	SetConnected(false);
+
+	Log(LogInformation, "IdoPgsqlConnection")
+		<< "Disconnected from '" << GetName() << "' database '" << GetDatabase() << "'.";
 }
 
 void IdoPgsqlConnection::TxTimerHandler()
@@ -150,7 +157,7 @@ void IdoPgsqlConnection::NewTransaction()
 	if (IsPaused())
 		return;
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalNewTransaction, this), PriorityHigh, true);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalNewTransaction, this), PriorityNormal, true);
 }
 
 void IdoPgsqlConnection::InternalNewTransaction()
@@ -166,6 +173,7 @@ void IdoPgsqlConnection::InternalNewTransaction()
 
 void IdoPgsqlConnection::ReconnectTimerHandler()
 {
+	/* Only allow Reconnect events with high priority. */
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Reconnect, this), PriorityHigh);
 }
 
@@ -323,12 +331,16 @@ void IdoPgsqlConnection::Reconnect()
 			else
 				status_update_time = 0;
 
-			double status_update_age = Utility::GetTime() - status_update_time;
+			double now = Utility::GetTime();
 
-			Log(LogNotice, "IdoPgsqlConnection")
-				<< "Last update by '" << endpoint_name << "' was " << status_update_age << "s ago.";
+			double status_update_age = now - status_update_time;
+			double failoverTimeout = GetFailoverTimeout();
 
 			if (status_update_age < GetFailoverTimeout()) {
+				Log(LogInformation, "IdoPgsqlConnection")
+					<< "Last update by endpoint '" << endpoint_name << "' was "
+					<< status_update_age << "s ago (< failover timeout of " << failoverTimeout << "s). Retrying.";
+
 				m_Pgsql->finish(m_Connection);
 				SetConnected(false);
 				SetShouldConnect(false);
@@ -346,6 +358,12 @@ void IdoPgsqlConnection::Reconnect()
 
 				return;
 			}
+
+			SetLastFailover(now);
+
+			Log(LogInformation, "IdoPgsqlConnection")
+				<< "Last update by endpoint '" << endpoint_name << "' was "
+				<< status_update_age << "s ago. Taking over '" << GetName() << "' in HA zone '" << Zone::GetLocalZone()->GetName() << "'.";
 		}
 
 		Log(LogNotice, "IdoPgsqlConnection", "Enabling IDO connection.");
@@ -409,9 +427,9 @@ void IdoPgsqlConnection::Reconnect()
 
 	UpdateAllObjects();
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::ClearTablesBySession, this), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::ClearTablesBySession, this), PriorityNormal);
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::FinishConnect, this, startTime), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::FinishConnect, this, startTime), PriorityNormal);
 }
 
 void IdoPgsqlConnection::FinishConnect(double startTime)
@@ -422,7 +440,8 @@ void IdoPgsqlConnection::FinishConnect(double startTime)
 		return;
 
 	Log(LogInformation, "IdoPgsqlConnection")
-		<< "Finished reconnecting to PostgreSQL IDO database in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
+		<< "Finished reconnecting to '" << GetName() << "' database '" << GetDatabase() << "' in "
+		<< std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 
 	Query("COMMIT");
 	Query("BEGIN");
@@ -559,7 +578,7 @@ void IdoPgsqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 	if (IsPaused())
 		return;
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalActivateObject, this, dbobj), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalActivateObject, this, dbobj), PriorityNormal);
 }
 
 void IdoPgsqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
@@ -596,7 +615,7 @@ void IdoPgsqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 	if (IsPaused())
 		return;
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalDeactivateObject, this, dbobj), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalDeactivateObject, this, dbobj), PriorityNormal);
 }
 
 void IdoPgsqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)

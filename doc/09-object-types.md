@@ -875,7 +875,7 @@ Configuration Attributes:
   instance\_name            | String                | **Optional.** Unique identifier for the local Icinga 2 instance. Defaults to `default`.
   instance\_description     | String                | **Optional.** Description for the Icinga 2 instance.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to `true`.
-  failover\_timeout         | Duration              | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to `60s`.
+  failover\_timeout         | Duration              | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 30s. Defaults to `30s`.
   cleanup                   | Dictionary            | **Optional.** Dictionary with items for historical table cleanup.
   categories                | Array                 | **Optional.** Array of information types that should be written to the database.
 
@@ -923,6 +923,12 @@ by Icinga Web 2 in the table above.
 
 In addition to the category flags listed above the `DbCatEverything`
 flag may be used as a shortcut for listing all flags.
+
+Runtime Attributes:
+
+  Name                        | Type                  | Description
+  ----------------------------|-----------------------|-----------------
+  last\_failover              | Timestamp             | When the last failover happened for this connection (only available with `enable_ha = true`.
 
 ## IdoPgsqlConnection <a id="objecttype-idopgsqlconnection"></a>
 
@@ -963,7 +969,7 @@ Configuration Attributes:
   instance\_name            | String                | **Optional.** Unique identifier for the local Icinga 2 instance. Defaults to `default`.
   instance\_description     | String                | **Optional.** Description for the Icinga 2 instance.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to `true`.
-  failover\_timeout         | Duration              | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to `60s`.
+  failover\_timeout         | Duration              | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 30s. Defaults to `30s`.
   cleanup                   | Dictionary            | **Optional.** Dictionary with items for historical table cleanup.
   categories                | Array                 | **Optional.** Array of information types that should be written to the database.
 
@@ -1011,6 +1017,12 @@ by Icinga Web 2 in the table above.
 
 In addition to the category flags listed above the `DbCatEverything`
 flag may be used as a shortcut for listing all flags.
+
+Runtime Attributes:
+
+  Name                        | Type                  | Description
+  ----------------------------|-----------------------|-----------------
+  last\_failover              | Timestamp             | When the last failover happened for this connection (only available with `enable_ha = true`.
 
 ## InfluxdbWriter <a id="objecttype-influxdbwriter"></a>
 

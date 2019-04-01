@@ -19,9 +19,10 @@ namespace icinga
 
 enum WorkQueuePriority
 {
-	PriorityLow,
-	PriorityNormal,
-	PriorityHigh
+	PriorityLow = 0,
+	PriorityNormal = 1,
+	PriorityHigh = 2,
+	PriorityImmediate = 4
 };
 
 using TaskFunction = std::function<void ()>;

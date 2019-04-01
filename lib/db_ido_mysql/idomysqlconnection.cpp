@@ -65,14 +65,15 @@ void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 
 void IdoMysqlConnection::Resume()
 {
-	DbConnection::Resume();
-
 	Log(LogInformation, "IdoMysqlConnection")
 		<< "'" << GetName() << "' resumed.";
 
 	SetConnected(false);
 
 	m_QueryQueue.SetExceptionCallback(std::bind(&IdoMysqlConnection::ExceptionHandler, this, _1));
+
+	/* Immediately try to connect on Resume() without timer. */
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Reconnect, this), PriorityImmediate);
 
 	m_TxTimer = new Timer();
 	m_TxTimer->SetInterval(1);
@@ -83,16 +84,21 @@ void IdoMysqlConnection::Resume()
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&IdoMysqlConnection::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
-	m_ReconnectTimer->Reschedule(0);
+
+	/* Start with queries after connect. */
+	DbConnection::Resume();
 
 	ASSERT(m_Mysql->thread_safe());
 }
 
 void IdoMysqlConnection::Pause()
 {
-	m_ReconnectTimer.reset();
+	Log(LogDebug, "IdoMysqlConnection")
+		<< "Attempting to pause '" << GetName() << "'.";
 
 	DbConnection::Pause();
+
+	m_ReconnectTimer.reset();
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
@@ -100,6 +106,8 @@ void IdoMysqlConnection::Pause()
 #endif /* I2_DEBUG */
 
 	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Disconnect, this), PriorityLow);
+
+	/* Work on remaining tasks but never delete the threads, for HA resuming later. */
 	m_QueryQueue.Join();
 
 	Log(LogInformation, "IdoMysqlConnection")
@@ -137,6 +145,9 @@ void IdoMysqlConnection::Disconnect()
 	m_Mysql->close(&m_Connection);
 
 	SetConnected(false);
+
+	Log(LogInformation, "IdoMysqlConnection")
+		<< "Disconnected from '" << GetName() << "' database '" << GetDatabase() << "'.";
 }
 
 void IdoMysqlConnection::TxTimerHandler()
@@ -154,8 +165,8 @@ void IdoMysqlConnection::NewTransaction()
 		<< "Scheduling new transaction and finishing async queries.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalNewTransaction, this), PriorityHigh);
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishAsyncQueries, this), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalNewTransaction, this), PriorityNormal);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishAsyncQueries, this), PriorityNormal);
 }
 
 void IdoMysqlConnection::InternalNewTransaction()
@@ -176,7 +187,8 @@ void IdoMysqlConnection::ReconnectTimerHandler()
 		<< "Scheduling reconnect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Reconnect, this), PriorityHigh);
+	/* Only allow Reconnect events with high priority. */
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Reconnect, this), PriorityImmediate);
 }
 
 void IdoMysqlConnection::Reconnect()
@@ -194,6 +206,7 @@ void IdoMysqlConnection::Reconnect()
 
 	bool reconnect = false;
 
+	/* Ensure to close old connections first. */
 	if (GetConnected()) {
 		/* Check if we're really still connected */
 		if (m_Mysql->ping(&m_Connection) == 0)
@@ -203,6 +216,9 @@ void IdoMysqlConnection::Reconnect()
 		SetConnected(false);
 		reconnect = true;
 	}
+
+	Log(LogDebug, "IdoMysqlConnection")
+		<< "Reconnect: Clearing ID cache.";
 
 	ClearIDCache();
 
@@ -257,6 +273,9 @@ void IdoMysqlConnection::Reconnect()
 
 		BOOST_THROW_EXCEPTION(std::runtime_error(m_Mysql->error(&m_Connection)));
 	}
+
+	Log(LogNotice, "IdoMysqlConnection")
+		<< "Reconnect: '" << GetName() << "' is now connected to database '" << GetDatabase() << "'.";
 
 	SetConnected(true);
 
@@ -343,12 +362,16 @@ void IdoMysqlConnection::Reconnect()
 			else
 				status_update_time = 0;
 
-			double status_update_age = Utility::GetTime() - status_update_time;
+			double now = Utility::GetTime();
 
-			Log(LogNotice, "IdoMysqlConnection")
-				<< "Last update by '" << endpoint_name << "' was " << status_update_age << "s ago.";
+			double status_update_age = now - status_update_time;
+			double failoverTimeout = GetFailoverTimeout();
 
-			if (status_update_age < GetFailoverTimeout()) {
+			if (status_update_age < failoverTimeout) {
+				Log(LogInformation, "IdoMysqlConnection")
+					<< "Last update by endpoint '" << endpoint_name << "' was "
+					<< status_update_age << "s ago (< failover timeout of " << failoverTimeout << "s). Retrying.";
+
 				m_Mysql->close(&m_Connection);
 				SetConnected(false);
 				SetShouldConnect(false);
@@ -366,9 +389,15 @@ void IdoMysqlConnection::Reconnect()
 
 				return;
 			}
+
+			SetLastFailover(now);
+
+			Log(LogInformation, "IdoMysqlConnection")
+				<< "Last update by endpoint '" << endpoint_name << "' was "
+				<< status_update_age << "s ago. Taking over '" << GetName() << "' in HA zone '" << Zone::GetLocalZone()->GetName() << "'.";
 		}
 
-		Log(LogNotice, "IdoMysqlConnection", "Enabling IDO connection.");
+		Log(LogNotice, "IdoMysqlConnection", "Enabling IDO connection in HA zone.");
 	}
 
 	Log(LogInformation, "IdoMysqlConnection")
@@ -435,9 +464,9 @@ void IdoMysqlConnection::Reconnect()
 		<< "Scheduling session table clear and finish connect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::ClearTablesBySession, this), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::ClearTablesBySession, this), PriorityNormal);
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityNormal);
 }
 
 void IdoMysqlConnection::FinishConnect(double startTime)
@@ -450,7 +479,8 @@ void IdoMysqlConnection::FinishConnect(double startTime)
 	FinishAsyncQueries();
 
 	Log(LogInformation, "IdoMysqlConnection")
-		<< "Finished reconnecting to MySQL IDO database in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
+		<< "Finished reconnecting to '" << GetName() << "' database '" << GetDatabase() << "' in "
+		<< std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 
 	Query("COMMIT");
 	Query("BEGIN");
@@ -710,7 +740,7 @@ void IdoMysqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 		<< "Scheduling object activation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalActivateObject, this, dbobj), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalActivateObject, this, dbobj), PriorityNormal);
 }
 
 void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
@@ -755,7 +785,7 @@ void IdoMysqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 		<< "Scheduling object deactivation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalDeactivateObject, this, dbobj), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalDeactivateObject, this, dbobj), PriorityNormal);
 }
 
 void IdoMysqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)
