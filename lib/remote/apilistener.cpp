@@ -413,7 +413,8 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const std
 
 			asio::spawn(io, [this, sslConn](asio::yield_context yc) { NewClientHandler(yc, sslConn, String(), RoleServer); });
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "ApiListener") << "Cannot accept new connection: " << DiagnosticInformation(ex, false);
+			Log(LogCritical, "ApiListener")
+				<< "Cannot accept new connection: " << DiagnosticInformation(ex, false);
 		}
 	}
 }
@@ -457,11 +458,8 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		} catch (const std::exception& ex) {
 			endpoint->SetConnecting(false);
 
-			std::ostringstream info;
-			info << "Cannot connect to host '" << host << "' on port '" << port << "'";
-			Log(LogCritical, "ApiListener", info.str());
-			Log(LogDebug, "ApiListener")
-				<< info.str() << "\n" << DiagnosticInformation(ex);
+			Log(LogCritical, "ApiListener")
+				<< "Cannot connect to host '" << host << "' on port '" << port << "': " << ex.what();
 		}
 	});
 }
