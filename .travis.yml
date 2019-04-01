@@ -1,4 +1,4 @@
-dist: trusty
+dist: xenial
 sudo: false
 
 language: cpp
@@ -15,16 +15,18 @@ before_install:
       - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 addons:
-  apt_packages:
-    - libboost-all-dev
-    - flex
-    - bison
-    - libssl-dev
-    - libpq-dev
-    - libmysqlclient-dev
-    - libedit-dev
-    - libwxbase3.0-dev
-    - libwxgtk3.0-dev
+  apt:
+    sources:
+      - sourceline: 'deb http://packages.icinga.com/ubuntu icinga-xenial main'
+        key_url: 'https://packages.icinga.com/icinga.key'
+    packages:
+      - libboost1.67-icinga-all-dev
+      - flex
+      - bison
+      - libssl-dev
+      - libpq-dev
+      - libmysqlclient-dev
+      - libedit-dev
   coverity_scan:
     project:
       name: "Icinga/icinga2"
