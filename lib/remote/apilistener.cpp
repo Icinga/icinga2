@@ -109,22 +109,6 @@ void ApiListener::CopyCertificateFile(const String& oldCertPath, const String& n
 	}
 }
 
-/**
- * Returns the API thread pool.
- *
- * @returns The API thread pool.
- */
-ThreadPool& ApiListener::GetTP()
-{
-	static ThreadPool tp;
-	return tp;
-}
-
-void ApiListener::EnqueueAsyncCallback(const std::function<void ()>& callback, SchedulerPolicy policy)
-{
-	GetTP().Post(callback, policy);
-}
-
 void ApiListener::OnConfigLoaded()
 {
 	if (m_Instance)
