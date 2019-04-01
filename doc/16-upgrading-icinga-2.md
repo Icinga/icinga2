@@ -9,6 +9,31 @@ follow the instructions for v2.7 too.
 
 ## Upgrading to v2.11 <a id="upgrading-to-2-11"></a>
 
+### Package Dependencies <a id="upgrading-to-2-11-package-dependencies"></a>
+
+#### Added: Boost 1.66+
+
+The rewrite of our core network stack for cluster and REST API
+requires newer Boost versions, specifically >= 1.66. For technical
+details, please continue reading in [this issue](https://github.com/Icinga/icinga2/issues/7041).
+
+The package dependencies have been updated for RPM/DEB already.
+On platforms where EPEL or Backports cannot satisfy this dependency,
+we provide Boost as package on our [package repository](https://packages.icinga.com).
+
+After upgrade, you may remove the old Boost packages (1.53 or anything above)
+if you don't need them anymore.
+
+#### Removed: YAJL
+
+Our JSON library, namely [YAJL](https://github.com/lloyd/yajl), isn't maintained anymore
+and may cause [crashes](https://github.com/Icinga/icinga2/issues/6684).
+
+It is replaced by [JSON for Modern C++](https://github.com/nlohmann/json) by Niels Lohmann
+and compiled into the binary as header only include. It helps our way to C++11 and allows
+to fix additional UTF8 issues more easily. Read more about its [design goals](https://github.com/nlohmann/json#design-goals)
+and [benchmarks](https://github.com/miloyip/nativejson-benchmark#parsing-time).
+
 ### HA-aware Features <a id="upgrading-to-2-11-ha-aware-features"></a>
 
 v2.11 introduces additional HA functionality similar to the DB IDO feature.
@@ -41,18 +66,6 @@ before actually considering a failover/split brain scenario.
 The [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection) and [IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection)
 objects provide a new attribute named `last_failover` which shows the last failover timestamp.
 This value also is available in the [ido](10-icinga-template-library.md#itl-icinga-ido) CheckCommand output.
-
-### Package Dependencies <a id="upgrading-to-2-11-package-dependencies"></a>
-
-#### Removed: YAJL
-
-Our JSON library, namely [YAJL](https://github.com/lloyd/yajl), isn't maintained anymore
-and may cause [crashes](https://github.com/Icinga/icinga2/issues/6684).
-
-It is replaced by [JSON for Modern C++](https://github.com/nlohmann/json) by Niels Lohmann
-and compiled into the binary as header only include. It helps our way to C++11 and allows
-to fix additional UTF8 issues more easily. Read more about its [design goals](https://github.com/nlohmann/json#design-goals)
-and [benchmarks](https://github.com/miloyip/nativejson-benchmark#parsing-time).
 
 ## Upgrading to v2.10 <a id="upgrading-to-2-10"></a>
 
