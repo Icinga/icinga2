@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/exception.hpp"
+#include <boost/thread/tss.hpp>
 
 #ifdef HAVE_CXXABI_H
 #	include <cxxabi.h>

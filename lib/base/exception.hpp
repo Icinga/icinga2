@@ -7,7 +7,6 @@
 #include "base/string.hpp"
 #include "base/stacktrace.hpp"
 #include "base/context.hpp"
-#include "base/utility.hpp"
 #include "base/debuginfo.hpp"
 #include "base/dictionary.hpp"
 #include "base/configobject.hpp"

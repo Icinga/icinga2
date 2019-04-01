@@ -5,6 +5,7 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/utility.hpp"
 #include <boost/thread/once.hpp>
 #include <map>
 #ifdef __linux__

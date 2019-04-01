@@ -7,6 +7,7 @@
 #include "base/logger.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 #include <fstream>
 #include <iomanip>
 

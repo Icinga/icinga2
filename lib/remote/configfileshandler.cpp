@@ -5,6 +5,7 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <fstream>
 

@@ -10,6 +10,7 @@
 #include "base/string.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <iostream>

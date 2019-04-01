@@ -12,6 +12,7 @@
 #include "base/timer.hpp"
 #include "base/namespace.hpp"
 #include "base/initialize.hpp"
+#include "base/utility.hpp"
 #include <boost/thread/once.hpp>
 #include <set>
 
