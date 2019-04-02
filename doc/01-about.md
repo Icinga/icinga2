@@ -34,8 +34,7 @@ Please continue reading in the [Contributing chapter](https://github.com/Icinga/
 The Git repository is located on [GitHub](https://github.com/Icinga/icinga2).
 
 Icinga 2 is written in C++ and can be built on Linux/Unix and Windows.
-Read more about development builds in the [INSTALL.md](https://github.com/Icinga/icinga2/blob/master/INSTALL.md)
-file.
+Read more about development builds in the [development chapter](21-development.md#development).
 
 ## What's New <a id="whats-new"></a>
 

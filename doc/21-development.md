@@ -468,6 +468,7 @@ Here's a few books we can recommend:
 
 * [Accelerated C++: Practical Programming by Example](https://www.amazon.com/Accelerated-C-Practical-Programming-Example/dp/020170353X) (Andrew Koenig, Barbara E. Moo)
 * [Effective C++](https://www.amazon.com/Effective-Specific-Improve-Programs-Designs/dp/0321334876) (Scott Meyers)
+* [Boost C++ Application Development Cookbook - Second Edition: Recipes to simplify your application development](https://www.amazon.com/dp/1787282244/ref=cm_sw_em_r_mt_dp_U_dN1OCbERS00EQ) (Antony Polukhin)
 * [Der C++ Programmierer](https://www.amazon.de/Programmierer-lernen-Professionell-anwenden-L%C3%B6sungen/dp/3446416447), German (Ulrich Breymann)
 * [C++11 programmieren](https://www.amazon.de/gp/product/3836217325/), German (Torsten T. Will)
 
@@ -676,24 +677,7 @@ It is advised to use Homebrew to install required build dependencies.
 Macports have been reported to work as well, typically you'll get more help
 with Homebrew from Icinga developers.
 
-#### Users and Groups
-
-First off, create the following from `Settings - Users & Groups`:
-
-* Users: `icinga`
-* Groups: `icinga` with `icinga` as member
-* Groups: `icingaweb2`
-
-Then disallow login for these users.
-
-```
-dscl
-list Local/Default/Users
-read Local/Default/Users/icinga
-change Local/Default/Users/icinga UserShell /bin/bash /usr/bin/false
-sudo dscl . create /Users/icinga IsHidden 1
-sudo dseditgroup -o edit -a _www -t user icingaweb2
-```
+The idea is to run Icinga with the current user, avoiding root permissions.
 
 #### Requirements
 
@@ -711,48 +695,50 @@ sudo mkdir /opt/ccache
 sudo ln -s `which ccache` /opt/ccache/clang
 sudo ln -s `which ccache` /opt/ccache/clang++
 
-vim $HOME/.bashrc
+vim $HOME/.bash_profile
 
 # ccache is managed with symlinks to avoid collision with cgo
 export PATH="/opt/ccache:$PATH"
 
-source $HOME/.bashrc
+source $HOME/.bash_profile
 ```
 
 #### Builds
 
-We will build two different flavors on macOS.
+Icinga is built as release (optimized build for packages) and debug (more symbols and details for debugging). Debug builds
+typically run slower than release builds and must not be used for performance benchmarks.
 
 ```
 mkdir -p release debug
 
 cd debug
-cmake -DICINGA2_UNITY_BUILD=OFF -DICINGA2_WITH_STUDIO=ON -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl@1.1/include -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib ..
+cmake -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl@1.1/include -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib -DICINGA2_PLUGINDIR=/usr/local/sbin ..
 cd ..
 
 make -j4 -C debug
-sudo make -j4 install -C debug
+make -j4 install -C debug
 ```
 
 ##### Build Aliases
 
-This is derived from dnsmichi's flavour and not generally best practice.
+This is derived from [dnsmichi's flavour](https://github.com/dnsmichi/dotfiles) and not generally best practice.
 
 ```
-vim $HOME/.bashrc
+vim $HOME/.bash_profile
 
-export PATH=/usr/local/icinga2/sbin/:$PATH
-source /usr/local/icinga2/etc/bash_completion.d/icinga2
-
-export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl@1.1/include -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib -DICINGA2_PLUGINDIR=/usr/local/sbin"
+export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga/icinga2 -DICINGA2_USER=`id -u -n` -DICINGA2_GROUP=`id -g -n` -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl@1.1/include -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib -DICINGA2_PLUGINDIR=/usr/local/sbin -DICINGA2_WITH_PGSQL=OFF"
 
 export I2_DEBUG="-DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF $I2_GENERIC"
 export I2_RELEASE="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DICINGA2_WITH_TESTS=ON -DICINGA2_UNITY_BUILD=ON $I2_GENERIC"
 
-alias i2_debug="mkdir -p debug; cd debug; cmake $I2_DEBUG ..; make -j4; sudo make -j4 install; cd .."
-alias i2_release="mkdir -p release; cd release; cmake $I2_RELEASE ..; make -j4; sudo make -j4 install; cd .."
+alias i2_debug="mkdir -p debug; cd debug; cmake $I2_DEBUG ..; make -j4; make -j4 install; cd .."
+alias i2_release="mkdir -p release; cd release; cmake $I2_RELEASE ..; make -j4; make -j4 install; cd .."
 
-source $HOME/.bashrc
+export PATH=/usr/local/icinga/icinga2/sbin/:$PATH
+test -f /usr/local/icinga/icinga2/etc/bash_completion.d/icinga2 && source /usr/local/icinga/icinga2/etc/bash_completion.d/icinga2
+
+
+source $HOME/.bash_profile
 ```
 
 #### Run
@@ -767,18 +753,26 @@ icinga2 daemon
 #### Plugins
 
 ```
-brew install nagios-plugins
+brew install monitoring-plugins
 
 sudo vim /usr/local/icinga2/etc/icinga2/constants.conf
 const PluginDir = "/usr/local/sbin"
+```
+
+#### Backends: Redis
+
+```
+brew install redis
+brew services start redis
 ```
 
 #### Databases: MariaDB
 
 ```
 brew install mariadb
-ln -sfv /usr/local/opt/mariadb/*.plist ~/Library/LaunchAgents
-launchctl load ~/Library/LaunchAgents/homebrew.mxcl.mariadb.plist
+mkdir -p /usr/local/etc/my.cnf.d
+brew services start mariadb
+
 mysql_secure_installation
 ```
 
@@ -795,14 +789,20 @@ exit
 ```
 
 ```
-cd $HOME/coding/icinga/icinga2
+mysql -e 'create database icinga;'
+mysql -e "grant all on icinga.* to 'icinga'@'localhost' identified by 'icinga';"
+mysql icinga < $HOME/dev/icinga/icinga2/lib/db_ido_mysql/schema/mysql.sql
+```
 
-sudo mysql
+#### API
 
-CREATE DATABASE icinga;
-GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
-quit
-sudo mysql icinga < lib/db_ido_mysql/schema/mysql.sql
+```
+icinga2 api setup
+cd /usr/local/icinga/icinga2/var/lib/icinga2/certs
+HOST_NAME=mbpmif.int.netways.de
+icinga2 pki new-cert --cn ${HOST_NAME} --csr ${HOST_NAME}.csr --key ${HOST_NAME}.key
+icinga2 pki sign-csr --csr ${HOST_NAME}.csr --cert ${HOST_NAME}.crt
+echo "const NodeName = \"${HOST_NAME}\"" >> /usr/local/icinga/icinga2/etc/icinga2/constants.conf
 ```
 
 
@@ -830,28 +830,47 @@ the web installer and start the installation.
 
 You need a free Microsoft account to download and also store your preferences.
 
-Choose the following minimal set:
+Choose these individual components on Visual Studio 2017:
 
-* .NET Framework 4.x SDK
-* C# Compiler
-* Visual Studio C++ core features
-* VC++ toolset
-* Windows 10 SDK (10.0.10240.0 - required)
-* Just-in-time debugger
-* Windows 8 SDK (includes mscoree.lib required by clrchecktask)
-* C++/CLI support
-* Windows Universal C Runtime
-* Git for Windows
-* .NET Framework 3.5 development tools
-* Github extension for Visual Studio
+* .NET
+  * .NET Framework 3.5 development tools
+  * .NET Framework 4.6.1 SDK
+  * .NET Framework 4.6.1 targeting pack
+* Code tools
+  * Git for Windows
+  * Static analysis tools
+* Compilers, build tools and runtimes
+  * C# and Visual Basic Roslyn compilers
+  * C++/CU Support
+  * VC++ 2017 v141 toolset (x86_64)
+* Debugging and testing
+  * C++ profiling tools
+  * Just-in-Time debugger
+* Development activities
+  * Visual Studio C++ core features
+* Games and Graphics
+  * Graphics debugger and GPU profiler for DirectX (required by C++ profiling tools)
+* SDKs, libraries and frameworks
+  * Graphics Tools Windows 8.1 SDK (required by C++ profiling tools)
+  * Windows 10 SDK **10.0.10240.0 - exactly this version**
+  * Windows 8.1 SDK
+  * Windows Universal C Runtime
+* Uncategorized
+  * GitHub Extension for Visual Studio
+
 
 After a while, Visual Studio will be ready.
 
 #### .NET Framework 3.5
 
-Windows 10 only have .NET Framework >= 4.6 installed by default, the Icinga Agent Wizard is built on .NET Framework 2.0 which is not included in .NET Framework 4.6. Thankfully Windows 10 have .NET Framework 3.5 (which includes .NET Framework 2.0) as a component on board, you just need to activate it.
+Windows 10 has .NET Framework >= 4.6 installed by default. The Icinga Agent Wizard
+is built on .NET Framework 2.0 which is not included in .NET Framework 4.6.
 
-Go to `Control Panel` -> `Programs` -> `Turn Windows features on or off`. Tick `.NET Framework 3.5 (includes .NET 2.0 and 3.0)` and wait until the installation process succseded.
+Windows 10 provides .NET Framework 3.5 which includes .NET Framework 2.0.
+
+Navigate into `Control Panel` -> `Programs` -> `Turn Windows features on or off`.
+Select `.NET Framework 3.5 (includes .NET 2.0 and 3.0)` and wait until the installation process
+is finished.
 
 #### Flex and Bison
 
@@ -875,42 +894,38 @@ will automatically detect them for builds and packaging.
 >
 > We cannot use the chocolatey package as this one does not provide any development headers.
 >
-> Choose 1.0.2 LTS from manual downloads for best compatibility if unsure.
+> Choose 1.1.1 LTS from manual downloads for best compatibility.
 
 #### Boost
 
 In order to use the boost development header and library files you need to [download](http://www.boost.org/users/download/)
-Boost and then extract it to e.g. `C:\boost_1_65_1`.
+Boost and then extract it to e.g. `C:\boost_1_69_0`.
 
 > **Note**
 >
 > Just use `C:`, the zip file already contains the sub folder. Extraction takes a while,
-> the archive contains more than 10k files.
+> the archive contains more than 70k files.
 
-For integrating Boost into Visual Studio 2017, open the `Developer Command Prompt` from the start menu,
-and navigate to `C:\boost_1_65_1`.
+In order to integrate Boost into Visual Studio 2017, open the `Developer Command Prompt` from the start menu,
+and navigate to `C:\boost_1_69_0`.
 
 Execute `bootstrap.bat` first.
 
 ```
-cd C:\boost_1_65_1
+cd C:\boost_1_69_0
 bootstrap.bat
 ```
 
 Once finished, specify the required `toolset` to compile boost against Visual Studio.
-This takes quite some time in a Windows VM.
-
-Visual Studio 2015:
-
-```
-b2 --toolset=msvc-14.0
-```
-
-Visual Studio 2017:
+This takes quite some time in a Windows VM. Boost Context uses Assembler code,
+which isn't treated as exception safe by the VS compiler. Therefore set the
+additional compilation flag according to [this entry](https://lists.boost.org/Archives/boost/2015/08/224570.php).
 
 ```
-b2 --toolset=msvc-14.1
+b2 --toolset=msvc-14.1 asmflags=\safeseh
 ```
+
+![Windows Boost Build in VS2017 Development Console](images/development/windows_boost_build_dev_cmd.png)
 
 #### TortoiseGit
 
@@ -928,10 +943,9 @@ Start the setup routine and choose `OpenSSH` as default secure transport when as
 
 Open a Windows Explorer window and navigate into
 
-Version             | Project Location
---------------------|------------------------------
-Visual Studio 2015  | `C:\Users\michi\Documents\Visual Studio 2015\Projects`
-Visual Studio 2017+ | `C:\Users\michi\source\repos`
+```
+cd %HOMEPATH%\source\repos
+```
 
 Right click and select `Git Clone` from the context menu.
 
@@ -943,18 +957,14 @@ Icinga 2 uses CMake to manage the build environment. You can generate the Visual
 using CMake. [Download](https://cmake.org/download/) and install CMake. Select to add it to PATH for all users
 when asked.
 
+> **Note**
+>
+> In order to properly detect the Boost libraries, install the CMake 3.14+.
+
 Once setup is completed, open a command prompt and navigate to
 
-Visual Studio 2015
-
 ```
-cd C:\Users\<username>\Documents\Visual Studio 2015\Projects\icinga2
-```
-
-Visual Studio 2017
-
-```
-cd C:\Users\michi\source\repos
+cd %HOMEPATH%\source\repos
 ```
 
 Run CMake with the following command. This generates a new Visual Studio project file called `icinga2.sln`.
@@ -963,7 +973,8 @@ You need to specify the previously installed component paths:
 
 Variable              | Value                                                                | Description
 ----------------------|----------------------------------------------------------------------|-------------------------------------------------------
-`BOOST_ROOT`          | `C:\boost_1_65_1`                                                    | Root path where you've extracted and compiled Boost.
+`BOOST_ROOT`          | `C:\boost_1_69_0`                                                    | Root path where you've extracted and compiled Boost.
+`BOOST_LIBRARYDIR`    | `C:\boost_1_69_0\stage`                                              | Path to the static compiled Boost libraries, directory must contain `lib`.
 `BISON_EXECUTABLE`    | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
 `FLEX_EXECUTABLE`     | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
 `ICINGA2_WITH_MYSQL`  | OFF                                                                  | Requires extra setup for MySQL if set to `ON`. Not supported for client setups.
@@ -973,20 +984,34 @@ Variable              | Value                                                   
 Tip: If you have previously opened a terminal, run `refreshenv` to re-read updated PATH variables.
 
 ```
-cmake . -DBOOST_ROOT=C:\boost_1_65_1 -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=OFF
+cmake . -DCPACK_GENERATOR=WIX -DCMAKE_BUILD_TYPE=Debug -DBOOST_ROOT=C:\boost_1_69_0 -DBOOST_LIBRARYDIR=C:\boost_1_69_0\stage -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=OFF
 ```
 
 Best is write a small batch/Powershell script which just executes these lines.
+
+```
+@echo off
+
+cd icinga2
+mkdir debug
+cd debug
+del CMakeCache.txt
+
+cmake . -DCPACK_GENERATOR=WIX -DCMAKE_BUILD_TYPE=Debug -DBOOST_ROOT=C:\boost_1_69_0 -DBOOST_LIBRARYDIR=C:\boost_1_69_0\stage -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=OFF
+
+cmake --build . --target PACKAGE --config Debug
+
+cd ..
+```
 
 
 #### Icinga 2 in Visual Studio
 
 Navigate to
 
-Version             | Project location
---------------------|-------------------------
-Visual Studio 2015  | `C:\Users\michi\Documents\Visual Studio 2015\Projects\icinga2`
-Visual Studio 2017+ | `C:\Users\michi\source\repos\icinga2`
+```
+cd %HOMEPATH%\source\repos\icinga2
+```
 
 Open `icinga2.sln`. Log into Visual Studio when asked.
 
@@ -997,10 +1022,8 @@ project directory.
 
 Navigate there and run `icinga2.exe --version`.
 
-Example for Visual Studio 2017:
-
 ```
-cd C:\Users\michi\source\repos\icinga2\Bin\Release\Debug
+cd %HOMEPATH%\source\repos\icinga2\Bin\Release\Debug
 icinga2.exe --version
 ```
 
@@ -1018,11 +1041,12 @@ choco install -y wixtoolset
 ```
 
 Once completed open an administrative shell and navigate to your Visual Studio project.
+
 Let CMake to build a release package.
 
 ```
-cd "c:\Users\michi\Documents\Visual Studio 2015\Projects\icinga2"
-cmake --build . --target PACKAGE --config Release
+cd %HOMEPATH%\source\repos\icinga2
+cmake --build debug --target PACKAGE --config Release
 ```
 
 Note: This will still use the debug builds. A yet more clean approach
@@ -1030,14 +1054,37 @@ is to run CMake with changed release parameters beforehand and then
 re-run the release package builder.
 
 ```
-C:\Users\michi\Documents\Visual Studio 2015\Projects\icinga2>
-cmake . -DCPACK_GENERATOR=WIX -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=C:\boost_1_65_1 -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=OFF
+cd %HOMEPATH%\source\repos\icinga2
+mkdir release
+cd release
 
-cmake --build . --target PACKAGE --config Release
+cmake .. -DCPACK_GENERATOR=WIX -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=C:\boost_1_69_0 -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=OFF
+cd ..
+
+cmake --build release --target PACKAGE --config Release
 ```
 
 Again, put these lines into a batch/Powershell script and execute that.
 
+```
+@echo off
+cd icinga2
+
+mkdir release
+cd release
+
+del CMakeCache.txt
+
+; set gen=Visual Studio 15 2017 Win64
+set gen=Visual Studio 15 2017
+
+cmake .. -G "%gen%" -DCPACK_GENERATOR=WIX -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBOOST_ROOT=C:\boost_1_69_0 -DBOOST_LIBRARYDIR=C:\boost_1_69_0\stage -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=ON
+cd ..
+
+cmake --build release --target PACKAGE --config Release
+
+cd ..
+```
 
 
 ### Embedded Dev Env: Pi <a id="development-embedded-dev-env"></a>
@@ -1085,44 +1132,44 @@ Icinga application using a dist tarball (including notes for distributions):
 * cmake >= 2.6
 * GNU make (make) or ninja-build
 * C++ compiler which supports C++11
-  - RHEL/Fedora/SUSE: gcc-c++ >= 4.7 (extra Developer Tools on RHEL5/6 see below)
-  - Debian/Ubuntu: build-essential
-  - Alpine: build-base
-  - you can also use clang++
+  * RHEL/Fedora/SUSE: gcc-c++ >= 4.7 (extra Developer Tools on RHEL5/6 see below)
+  * Debian/Ubuntu: build-essential
+  * Alpine: build-base
+  * you can also use clang++
 * pkg-config
 * OpenSSL library and header files >= 1.0.1
-  - RHEL/Fedora: openssl-devel
-  - SUSE: libopenssl-devel (for SLES 11: libopenssl1-devel)
-  - Debian/Ubuntu: libssl-dev
-  - Alpine: libressl-dev
+  * RHEL/Fedora: openssl-devel
+  * SUSE: libopenssl-devel (for SLES 11: libopenssl1-devel)
+  * Debian/Ubuntu: libssl-dev
+  * Alpine: libressl-dev
 * Boost library and header files >= 1.66.0
-  - RHEL/Fedora: boost166-devel
-  - Debian/Ubuntu: libboost-all-dev
-  - Alpine: boost-dev
+  * RHEL/Fedora: boost166-devel
+  * Debian/Ubuntu: libboost-all-dev
+  * Alpine: boost-dev
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
 * systemd headers
-  - Only required when using systemd
-  - Debian/Ubuntu: libsystemd-dev
-  - RHEL/Fedora: systemd-devel
+  * Only required when using systemd
+  * Debian/Ubuntu: libsystemd-dev
+  * RHEL/Fedora: systemd-devel
 
 ### Optional features <a id="development-package-builds-optional-features"></a>
 
 * MySQL (disable with CMake variable `ICINGA2_WITH_MYSQL` to `OFF`)
-  - RHEL/Fedora: mysql-devel
-  - SUSE: libmysqlclient-devel
-  - Debian/Ubuntu: default-libmysqlclient-dev | libmysqlclient-dev
-  - Alpine: mariadb-dev
+  * RHEL/Fedora: mysql-devel
+  * SUSE: libmysqlclient-devel
+  * Debian/Ubuntu: default-libmysqlclient-dev | libmysqlclient-dev
+  * Alpine: mariadb-dev
 * PostgreSQL (disable with CMake variable `ICINGA2_WITH_PGSQL` to `OFF`)
-  - RHEL/Fedora: postgresql-devel
-  - Debian/Ubuntu: libpq-dev
-  - postgresql-dev on Alpine
+  * RHEL/Fedora: postgresql-devel
+  * Debian/Ubuntu: libpq-dev
+  * postgresql-dev on Alpine
 * libedit (CLI console)
-  - RHEL/Fedora: libedit-devel on CentOS (RHEL requires rhel-7-server-optional-rpms)
-  - Debian/Ubuntu/Alpine: libedit-dev
+  * RHEL/Fedora: libedit-devel on CentOS (RHEL requires rhel-7-server-optional-rpms)
+  * Debian/Ubuntu/Alpine: libedit-dev
 * Termcap (only required if libedit doesn't already link against termcap/ncurses)
-  - RHEL/Fedora: libtermcap-devel
-  - Debian/Ubuntu: (not necessary)
+  * RHEL/Fedora: libtermcap-devel
+  * Debian/Ubuntu: (not necessary)
 
 ### Special requirements <a id="development-package-builds-special-requirements"></a>
 
@@ -1191,66 +1238,70 @@ For all variables regarding defaults paths on in CMake, see
 
 Also see `CMakeLists.txt` for details.
 
-**System Environment**
-- `CMAKE_INSTALL_SYSCONFDIR`: The configuration directory; defaults to `CMAKE_INSTALL_PREFIX/etc`
-- `CMAKE_INSTALL_LOCALSTATEDIR`: The state directory; defaults to `CMAKE_INSTALL_PREFIX/var`
-- `ICINGA2_CONFIGDIR`: Main config directory; defaults to `CMAKE_INSTALL_SYSCONFDIR/icinga2` usually `/etc/icinga2`
-- `ICINGA2_CACHEDIR`: Directory for cache files; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/cache/icinga2` usually `/var/cache/icinga2`
-- `ICINGA2_DATADIR`: Data directory  for the daemon; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/lib/icinga2` usually `/var/lib/icinga2`
-- `ICINGA2_LOGDIR`: Logfiles of the daemon; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/log/icinga2 usually `/var/log/icinga2`
-- `ICINGA2_SPOOLDIR`: Spooling directory ; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/spool/icinga2` usually `/var/spool/icinga2`
-- `ICINGA2_INITRUNDIR`: Runtime data for the init system; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/run/icinga2` usually `/run/icinga2`
-- `ICINGA2_GIT_VERSION_INFO`: Whether to use Git to determine the version number; defaults to `ON`
-- `ICINGA2_USER`: The user Icinga 2 should run as; defaults to `icinga`
-- `ICINGA2_GROUP`: The group Icinga 2 should run as; defaults to `icinga`
-- `ICINGA2_COMMAND_GROUP`: The command group Icinga 2 should use; defaults to `icingacmd`
-- `ICINGA2_SYSCONFIGFILE`: Where to put the config file the initscript/systemd pulls it's dirs from;
-  defaults to `CMAKE_INSTALL_PREFIX/etc/sysconfig/icinga2`
-- `ICINGA2_PLUGINDIR`: The path for the Monitoring Plugins project binaries; defaults to `/usr/lib/nagios/plugins`
+#### System Environment
 
-**Build Optimization**
-- `ICINGA2_UNITY_BUILD`: Whether to perform a unity build; defaults to `ON`. Note: This requires additional memory and is not advised for building VMs, Docker for Mac and embedded hardware.
-- `ICINGA2_LTO_BUILD`: Whether to use link time optimization (LTO); defaults to `OFF`
+* `CMAKE_INSTALL_SYSCONFDIR`: The configuration directory; defaults to `CMAKE_INSTALL_PREFIX/etc`
+* `CMAKE_INSTALL_LOCALSTATEDIR`: The state directory; defaults to `CMAKE_INSTALL_PREFIX/var`
+* `ICINGA2_CONFIGDIR`: Main config directory; defaults to `CMAKE_INSTALL_SYSCONFDIR/icinga2` usually `/etc/icinga2`
+* `ICINGA2_CACHEDIR`: Directory for cache files; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/cache/icinga2` usually `/var/cache/icinga2`
+* `ICINGA2_DATADIR`: Data directory  for the daemon; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/lib/icinga2` usually `/var/lib/icinga2`
+* `ICINGA2_LOGDIR`: Logfiles of the daemon; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/log/icinga2 usually `/var/log/icinga2`
+* `ICINGA2_SPOOLDIR`: Spooling directory ; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/spool/icinga2` usually `/var/spool/icinga2`
+* `ICINGA2_INITRUNDIR`: Runtime data for the init system; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/run/icinga2` usually `/run/icinga2`
+* `ICINGA2_GIT_VERSION_INFO`: Whether to use Git to determine the version number; defaults to `ON`
+* `ICINGA2_USER`: The user Icinga 2 should run as; defaults to `icinga`
+* `ICINGA2_GROUP`: The group Icinga 2 should run as; defaults to `icinga`
+* `ICINGA2_COMMAND_GROUP`: The command group Icinga 2 should use; defaults to `icingacmd`
+* `ICINGA2_SYSCONFIGFILE`: Where to put the config file the initscript/systemd pulls it's dirs from;
+* defaults to `CMAKE_INSTALL_PREFIX/etc/sysconfig/icinga2`
+* `ICINGA2_PLUGINDIR`: The path for the Monitoring Plugins project binaries; defaults to `/usr/lib/nagios/plugins`
 
-**Init System**
-- `USE_SYSTEMD=ON|OFF`: Use systemd or a classic SysV initscript; defaults to `OFF`
-- `INSTALL_SYSTEMD_SERVICE_AND_INITSCRIPT=ON|OFF` Force install both the systemd service definition file
+#### Build Optimization
+
+* `ICINGA2_UNITY_BUILD`: Whether to perform a unity build; defaults to `ON`. Note: This requires additional memory and is not advised for building VMs, Docker for Mac and embedded hardware.
+* `ICINGA2_LTO_BUILD`: Whether to use link time optimization (LTO); defaults to `OFF`
+
+#### Init System
+
+* `USE_SYSTEMD=ON|OFF`: Use systemd or a classic SysV initscript; defaults to `OFF`
+* `INSTALL_SYSTEMD_SERVICE_AND_INITSCRIPT=ON|OFF` Force install both the systemd service definition file
   and the SysV initscript in parallel, regardless of how `USE_SYSTEMD` is set.
   Only use this for special packaging purposes and if you know what you are doing.
   Defaults to `OFF`.
 
-**Features:**
-- `ICINGA2_WITH_CHECKER`: Determines whether the checker module is built; defaults to `ON`
-- `ICINGA2_WITH_COMPAT`: Determines whether the compat module is built; defaults to `ON`
-- `ICINGA2_WITH_DEMO`: Determines whether the demo module is built; defaults to `OFF`
-- `ICINGA2_WITH_HELLO`: Determines whether the hello module is built; defaults to `OFF`
-- `ICINGA2_WITH_LIVESTATUS`: Determines whether the Livestatus module is built; defaults to `ON`
-- `ICINGA2_WITH_NOTIFICATION`: Determines whether the notification module is built; defaults to `ON`
-- `ICINGA2_WITH_PERFDATA`: Determines whether the perfdata module is built; defaults to `ON`
-- `ICINGA2_WITH_TESTS`: Determines whether the unit tests are built; defaults to `ON`
+#### Features
 
-**MySQL or MariaDB:**
+* `ICINGA2_WITH_CHECKER`: Determines whether the checker module is built; defaults to `ON`
+* `ICINGA2_WITH_COMPAT`: Determines whether the compat module is built; defaults to `ON`
+* `ICINGA2_WITH_LIVESTATUS`: Determines whether the Livestatus module is built; defaults to `ON`
+* `ICINGA2_WITH_NOTIFICATION`: Determines whether the notification module is built; defaults to `ON`
+* `ICINGA2_WITH_PERFDATA`: Determines whether the perfdata module is built; defaults to `ON`
+* `ICINGA2_WITH_TESTS`: Determines whether the unit tests are built; defaults to `ON`
+
+#### MySQL or MariaDB
 
 The following settings can be tuned for the MySQL / MariaDB IDO feature.
 
-- `ICINGA2_WITH_MYSQL`: Determines whether the MySQL IDO module is built; defaults to `ON`
-- `MYSQL_CLIENT_LIBS`: Client implementation used (mysqlclient / mariadbclient); defaults searches for `mysqlclient` and `mariadbclient`
-- `MYSQL_INCLUDE_DIR`: Directory containing include files for the mysqlclient; default empty -
+* `ICINGA2_WITH_MYSQL`: Determines whether the MySQL IDO module is built; defaults to `ON`
+* `MYSQL_CLIENT_LIBS`: Client implementation used (mysqlclient / mariadbclient); defaults searches for `mysqlclient` and `mariadbclient`
+* `MYSQL_INCLUDE_DIR`: Directory containing include files for the mysqlclient; default empty -
   checking multiple paths like `/usr/include/mysql`
 
-See [FindMySQL.cmake](third-party/cmake/FindMySQL.cmake) for the implementation.
+See [FindMySQL.cmake](https://github.com/Icinga/icinga2/blob/master/third-party/cmake/FindMySQL.cmake)
+for implementation details.
 
-**PostgreSQL:**
+#### PostgreSQL
 
 The following settings can be tuned for the PostgreSQL IDO feature.
 
-- `ICINGA2_WITH_PGSQL`: Determines whether the PostgreSQL IDO module is built; defaults to `ON`
-- `PostgreSQL_INCLUDE_DIR`: Top-level directory containing the PostgreSQL include directories
-- `PostgreSQL_LIBRARY`: File path to PostgreSQL library : libpq.so (or libpq.so.[ver] file)
+* `ICINGA2_WITH_PGSQL`: Determines whether the PostgreSQL IDO module is built; defaults to `ON`
+* `PostgreSQL_INCLUDE_DIR`: Top-level directory containing the PostgreSQL include directories
+* `PostgreSQL_LIBRARY`: File path to PostgreSQL library : libpq.so (or libpq.so.[ver] file)
 
-See [FindMySQL.cmake](third-party/cmake/FindPostgreSQL.cmake) for the implementation.
+See [FindPostgreSQL.cmake](https://github.com/Icinga/icinga2/blob/master/third-party/cmake/FindPostgreSQL.cmake)
+for implementation details.
 
-**Version detection:**
+#### Version detection
 
 CMake determines the Icinga 2 version number using `git describe` if the
 source directory is contained in a Git repository. Otherwise the version number
