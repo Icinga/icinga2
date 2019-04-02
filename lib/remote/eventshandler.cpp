@@ -25,7 +25,7 @@ bool EventsHandler::HandleRequest(
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params,
 	boost::asio::yield_context& yc,
-	bool& hasStartedStreaming
+	HttpServerConnection& server
 )
 {
 	namespace asio = boost::asio;
@@ -88,7 +88,7 @@ bool EventsHandler::HandleRequest(
 		EventQueue::UnregisterIfUnused(queueName, queue);
 	});
 
-	hasStartedStreaming = true;
+	server.StartStreaming();
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");

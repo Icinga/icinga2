@@ -31,7 +31,7 @@ using namespace icinga;
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(stream->get_io_service()), m_ShuttingDown(false)
+	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(stream->get_io_service()), m_ShuttingDown(false), m_HasStartedStreaming(false)
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
@@ -89,6 +89,11 @@ void HttpServerConnection::Disconnect()
 			}
 		}
 	});
+}
+
+void HttpServerConnection::StartStreaming()
+{
+	m_HasStartedStreaming = true;
 }
 
 static inline
@@ -375,17 +380,17 @@ bool ProcessRequest(
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	HttpServerConnection& server,
+	bool& hasStartedStreaming,
 	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
-	bool hasStartedStreaming = false;
-
 	try {
 		CpuBoundWork handlingRequest (yc);
 
-		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, hasStartedStreaming);
+		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
 	} catch (const std::exception& ex) {
 		if (hasStartedStreaming) {
 			return false;
@@ -481,7 +486,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, yc)) {
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, yc)) {
 				break;
 			}
 
