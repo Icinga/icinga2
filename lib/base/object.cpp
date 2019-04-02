@@ -22,6 +22,14 @@ static Timer::Ptr l_ObjectCountTimer;
 #endif /* I2_LEAK_DEBUG */
 
 /**
+ * Constructor for the Object class.
+ */
+Object::Object()
+{
+	m_References.store(0);
+}
+
+/**
  * Destructor for the Object class.
  */
 Object::~Object()
@@ -238,28 +246,18 @@ INITIALIZE_ONCE([]() {
 void icinga::intrusive_ptr_add_ref(Object *object)
 {
 #ifdef I2_LEAK_DEBUG
-	if (object->m_References == 0)
+	if (object->m_References.fetch_add(1) == 0u)
 		TypeAddObject(object);
+#else /* I2_LEAK_DEBUG */
+	object->m_References.fetch_add(1);
 #endif /* I2_LEAK_DEBUG */
-
-#ifdef _WIN32
-	InterlockedIncrement(&object->m_References);
-#else /* _WIN32 */
-	__sync_add_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
 }
 
 void icinga::intrusive_ptr_release(Object *object)
 {
-	uintptr_t refs;
+	auto previous (object->m_References.fetch_sub(1));
 
-#ifdef _WIN32
-	refs = InterlockedDecrement(&object->m_References);
-#else /* _WIN32 */
-	refs = __sync_sub_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
-
-	if (unlikely(refs == 0)) {
+	if (previous == 1u) {
 #ifdef I2_LEAK_DEBUG
 		TypeRemoveObject(object);
 #endif /* I2_LEAK_DEBUG */

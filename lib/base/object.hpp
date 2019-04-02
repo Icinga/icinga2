@@ -6,7 +6,9 @@
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
+#include <atomic>
 #include <cstddef>
+#include <cstdint>
 #include <vector>
 
 using boost::intrusive_ptr;
@@ -154,7 +156,7 @@ class Object
 public:
 	DECLARE_PTR_TYPEDEFS(Object);
 
-	Object() = default;
+	Object();
 	virtual ~Object();
 
 	virtual String ToString() const;
@@ -187,7 +189,7 @@ private:
 	Object(const Object& other) = delete;
 	Object& operator=(const Object& rhs) = delete;
 
-	uintptr_t m_References{0};
+	std::atomic<uint_fast64_t> m_References;
 	mutable uintptr_t m_Mutex{0};
 
 #ifdef I2_DEBUG
