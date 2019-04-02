@@ -106,15 +106,17 @@ Dictionary::Ptr EventQueue::WaitForEvent(void *client, boost::asio::yield_contex
 {
 	for (;;) {
 		{
-			boost::mutex::scoped_lock lock(m_Mutex);
+			boost::mutex::scoped_try_lock lock(m_Mutex);
 
-			auto it = m_Events.find(client);
-			ASSERT(it != m_Events.end());
+			if (lock.owns_lock()) {
+				auto it = m_Events.find(client);
+				ASSERT(it != m_Events.end());
 
-			if (!it->second.empty()) {
-				Dictionary::Ptr result = *it->second.begin();
-				it->second.pop_front();
-				return result;
+				if (!it->second.empty()) {
+					Dictionary::Ptr result = *it->second.begin();
+					it->second.pop_front();
+					return result;
+				}
 			}
 		}
 
