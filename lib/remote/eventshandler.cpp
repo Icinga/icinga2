@@ -103,17 +103,21 @@ bool EventsHandler::HandleRequest(
 	asio::const_buffer newLine ("\n", 1);
 
 	for (;;) {
-		String body = JsonEncode(queue->WaitForEvent(&request, yc));
+		auto event (queue->WaitForEvent(&request, yc));
 
-		boost::algorithm::replace_all(body, "\n", "");
+		if (event) {
+			String body = JsonEncode(event);
 
-		asio::const_buffer payload (body.CStr(), body.GetLength());
+			boost::algorithm::replace_all(body, "\n", "");
 
-		IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
+			asio::const_buffer payload (body.CStr(), body.GetLength());
 
-		asio::async_write(stream, payload, yc);
-		asio::async_write(stream, newLine, yc);
-		stream.async_flush(yc);
+			IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
+
+			asio::async_write(stream, payload, yc);
+			asio::async_write(stream, newLine, yc);
+			stream.async_flush(yc);
+		}
 	}
 }
 

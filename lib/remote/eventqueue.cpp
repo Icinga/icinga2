@@ -5,6 +5,7 @@
 #include "base/io-engine.hpp"
 #include "base/singleton.hpp"
 #include "base/logger.hpp"
+#include "base/utility.hpp"
 #include <boost/asio/spawn.hpp>
 
 using namespace icinga;
@@ -102,8 +103,10 @@ Dictionary::Ptr EventQueue::WaitForEvent(void *client, double timeout)
 	}
 }
 
-Dictionary::Ptr EventQueue::WaitForEvent(void *client, boost::asio::yield_context yc)
+Dictionary::Ptr EventQueue::WaitForEvent(void *client, boost::asio::yield_context yc, double timeout)
 {
+	double deadline = -1.0;
+
 	for (;;) {
 		{
 			boost::mutex::scoped_try_lock lock(m_Mutex);
@@ -112,7 +115,13 @@ Dictionary::Ptr EventQueue::WaitForEvent(void *client, boost::asio::yield_contex
 				auto it = m_Events.find(client);
 				ASSERT(it != m_Events.end());
 
-				if (!it->second.empty()) {
+				if (it->second.empty()) {
+					if (deadline == -1.0) {
+						deadline = Utility::GetTime() + timeout;
+					} else if (Utility::GetTime() >= deadline) {
+						return nullptr;
+					}
+				} else {
 					Dictionary::Ptr result = *it->second.begin();
 					it->second.pop_front();
 					return result;

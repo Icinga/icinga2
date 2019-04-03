@@ -32,7 +32,7 @@ public:
 	void SetFilter(std::unique_ptr<Expression> filter);
 
 	Dictionary::Ptr WaitForEvent(void *client, double timeout = 5);
-	Dictionary::Ptr WaitForEvent(void *client, boost::asio::yield_context yc);
+	Dictionary::Ptr WaitForEvent(void *client, boost::asio::yield_context yc, double timeout = 5);
 
 	static std::vector<EventQueue::Ptr> GetQueuesForType(const String& type);
 	static void UnregisterIfUnused(const String& name, const EventQueue::Ptr& queue);
