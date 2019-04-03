@@ -270,6 +270,11 @@ Configuration Attributes:
 Reads Icinga 1.x check result files from a directory. This functionality is provided
 to help existing Icinga 1.x users and might be useful for migration scenarios.
 
+> **Note**
+>
+> This feature is DEPRECATED and will be removed in future releases.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+
 Example:
 
 ```
@@ -318,6 +323,11 @@ Configuration Attributes:
 
 Writes log files in a format that's compatible with Icinga 1.x.
 This configuration object is available as [compatlog feature](14-features.md#compat-logging).
+
+> **Note**
+>
+> This feature is DEPRECATED and will be removed in future releases.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 Example:
 
@@ -598,6 +608,11 @@ More advanced examples for event command usage can be found [here](03-monitoring
 
 Implements the Icinga 1.x command pipe which can be used to send commands to Icinga.
 This configuration object is available as [command feature](14-features.md#external-commands).
+
+> **Note**
+>
+> This feature is DEPRECATED and will be removed in future releases.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 Example:
 
@@ -1557,6 +1572,11 @@ Configuration Attributes:
 
 Periodically writes status and configuration data files which are used by third-party tools.
 This configuration object is available as [statusdata feature](14-features.md#status-data).
+
+> **Note**
+>
+> This feature is DEPRECATED and will be removed in future releases.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 Example:
 
