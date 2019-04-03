@@ -64,13 +64,17 @@ void NotificationComponent::NotificationTimerHandler()
 {
 	double now = Utility::GetTime();
 
+	/* Function already checks whether 'api' feature is enabled. */
+	Endpoint::Ptr myEndpoint = Endpoint::GetLocalEndpoint();
+
 	for (const Notification::Ptr& notification : ConfigType::GetObjectsByType<Notification>()) {
 		if (!notification->IsActive())
 			continue;
 
 		String notificationName = notification->GetName();
 
-		if (notification->IsPaused() && GetEnableHA()) {
+		/* Skip notification if paused, in a cluster setup & HA feature is enabled. */
+		if (notification->IsPaused() && myEndpoint && GetEnableHA()) {
 			Log(LogNotice, "NotificationComponent")
 				<< "Reminder notification '" << notificationName << "': HA cluster active, this endpoint does not have the authority (paused=true). Skipping.";
 			continue;
