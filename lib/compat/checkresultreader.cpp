@@ -45,7 +45,7 @@ void CheckResultReader::Start(bool runtimeCreated)
 		<< "'" << GetName() << "' started.";
 
 	Log(LogWarning, "CheckResultReader")
-		<< "The CheckResultReader feature is DEPRECATED and will be removed in Icinga v2.11.";
+		<< "This feature is DEPRECATED and will be removed in future releases. Check the roadmap at https://github.com/Icinga/icinga2/milestones";
 
 #ifndef _WIN32
 	m_ReadTimer = new Timer();
