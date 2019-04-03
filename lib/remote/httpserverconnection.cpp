@@ -93,7 +93,25 @@ void HttpServerConnection::Disconnect()
 
 void HttpServerConnection::StartStreaming()
 {
+	namespace asio = boost::asio;
+
 	m_HasStartedStreaming = true;
+
+	HttpServerConnection::Ptr keepAlive (this);
+
+	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
+		if (!m_ShuttingDown) {
+			char buf[128];
+			asio::mutable_buffer readBuf (buf, 128);
+			boost::system::error_code ec;
+
+			do {
+				m_Stream->async_read_some(readBuf, yc[ec]);
+			} while (!ec);
+
+			Disconnect();
+		}
+	});
 }
 
 static inline
