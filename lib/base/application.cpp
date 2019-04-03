@@ -300,52 +300,48 @@ void Application::RunEventLoop()
 
 	double lastLoop = Utility::GetTime();
 
-mainloop:
-	while (!m_ShuttingDown && !m_RequestRestart) {
-		/* Watches for changes to the system time. Adjusts timers if necessary. */
-		Utility::Sleep(2.5);
-
-		if (m_RequestReopenLogs) {
-			Log(LogNotice, "Application", "Reopening log files");
-			m_RequestReopenLogs = false;
-			OnReopenLogs();
-		}
-
-		double now = Utility::GetTime();
-		double timeDiff = lastLoop - now;
+	while (!m_ShuttingDown) {
+		if (m_RequestRestart) {
+			m_RequestRestart = false;         // we are now handling the request, once is enough
 
 #ifdef HAVE_SYSTEMD
-		sd_notify(0, "WATCHDOG=1");
+			sd_notify(0, "RELOADING=1");
 #endif /* HAVE_SYSTEMD */
 
-		if (std::fabs(timeDiff) > 15) {
-			/* We made a significant jump in time. */
-			Log(LogInformation, "Application")
-				<< "We jumped "
-				<< (timeDiff < 0 ? "forward" : "backward")
-				<< " in time: " << std::fabs(timeDiff) << " seconds";
+			// are we already restarting? ignore request if we already are
+			if (!l_Restarting) {
+				l_Restarting = true;
+				m_ReloadProcess = StartReloadProcess();
+			}
+		} else {
+			/* Watches for changes to the system time. Adjusts timers if necessary. */
+			Utility::Sleep(2.5);
 
-			Timer::AdjustTimers(-timeDiff);
-		}
+			if (m_RequestReopenLogs) {
+				Log(LogNotice, "Application", "Reopening log files");
+				m_RequestReopenLogs = false;
+				OnReopenLogs();
+			}
 
-		lastLoop = now;
-	}
-
-	if (m_RequestRestart) {
-		m_RequestRestart = false;         // we are now handling the request, once is enough
+			double now = Utility::GetTime();
+			double timeDiff = lastLoop - now;
 
 #ifdef HAVE_SYSTEMD
-		sd_notify(0, "RELOADING=1");
+			sd_notify(0, "WATCHDOG=1");
 #endif /* HAVE_SYSTEMD */
 
-		// are we already restarting? ignore request if we already are
-		if (l_Restarting)
-			goto mainloop;
+			if (std::fabs(timeDiff) > 15) {
+				/* We made a significant jump in time. */
+				Log(LogInformation, "Application")
+					<< "We jumped "
+					<< (timeDiff < 0 ? "forward" : "backward")
+					<< " in time: " << std::fabs(timeDiff) << " seconds";
 
-		l_Restarting = true;
-		m_ReloadProcess = StartReloadProcess();
+				Timer::AdjustTimers(-timeDiff);
+			}
 
-		goto mainloop;
+			lastLoop = now;
+		}
 	}
 
 #ifdef HAVE_SYSTEMD
