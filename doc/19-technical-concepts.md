@@ -966,7 +966,7 @@ Event Receiver (Client): `CheckResultAPIHandler` in `REGISTER_APIFUNCTION`
 
 ### Messages
 
-#### <a id="technical-concepts-json-rpc-messages-icinga-hello"></a> icinga::Hello
+#### icinga::Hello <a id="technical-concepts-json-rpc-messages-icinga-hello"></a>
 
 > Location: `apilistener.cpp`
 
@@ -991,7 +991,7 @@ Event Receiver: `HelloAPIHandler`
 
 None, this is a required message.
 
-#### <a id="technical-concepts-json-rpc-messages-event-heartbeat"></a> event::Heartbeat
+#### event::Heartbeat <a id="technical-concepts-json-rpc-messages-event-heartbeat"></a>
 
 > Location: `jsonrpcconnection-heartbeat.cpp`
 
@@ -1023,7 +1023,7 @@ the client. This is to avoid stale connections with no message processing.
 
 None, this is a required message.
 
-#### <a id="technical-concepts-json-rpc-messages-event-checkresult"></a> event::CheckResult
+#### event::CheckResult <a id="technical-concepts-json-rpc-messages-event-checkresult"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1057,7 +1057,7 @@ Message updates will be dropped when:
 * Hosts/services do not exist
 * Origin is a remote command endpoint different to the configured, and whose zone is not allowed to access this checkable.
 
-#### <a id="technical-concepts-json-rpc-messages-event-setnextcheck"></a> event::SetNextCheck
+#### event::SetNextCheck <a id="technical-concepts-json-rpc-messages-event-setnextcheck"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1091,7 +1091,7 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
-#### <a id="technical-concepts-json-rpc-messages-event-setnextnotification"></a> event::SetNextNotification
+#### event::SetNextNotification <a id="technical-concepts-json-rpc-messages-event-setnextnotification"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1126,7 +1126,7 @@ Message updates will be dropped when:
 * Notification does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
-#### <a id="technical-concepts-json-rpc-messages-event-setforcenextcheck"></a> event::SetForceNextCheck
+#### event::SetForceNextCheck <a id="technical-concepts-json-rpc-messages-event-setforcenextcheck"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1160,7 +1160,7 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
-#### <a id="technical-concepts-json-rpc-messages-event-setforcenextnotification"></a> event::SetForceNextNotification
+#### event::SetForceNextNotification <a id="technical-concepts-json-rpc-messages-event-setforcenextnotification"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1194,7 +1194,7 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
-#### <a id="technical-concepts-json-rpc-messages-event-setacknowledgement"></a> event::SetAcknowledgement
+#### event::SetAcknowledgement <a id="technical-concepts-json-rpc-messages-event-setacknowledgement"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1233,7 +1233,7 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
-#### <a id="technical-concepts-json-rpc-messages-event-clearacknowledgement"></a> event::ClearAcknowledgement
+#### event::ClearAcknowledgement <a id="technical-concepts-json-rpc-messages-event-clearacknowledgement"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1266,7 +1266,7 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
-#### <a id="technical-concepts-json-rpc-messages-event-sendnotifications"></a> event::SendNotifications
+#### event::SendNotifications <a id="technical-concepts-json-rpc-messages-event-sendnotifications"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1303,7 +1303,7 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone the same as the receiver. This binds notification messages to the HA zone.
 
-#### <a id="technical-concepts-json-rpc-messages-event-notificationsentuser"></a> event::NotificationSentUser
+#### event::NotificationSentUser <a id="technical-concepts-json-rpc-messages-event-notificationsentuser"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1343,7 +1343,7 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone the same as the receiver. This binds notification messages to the HA zone.
 
-#### <a id="technical-concepts-json-rpc-messages-event-notificationsenttoallusers"></a> event::NotificationSentToAllUsers
+#### event::NotificationSentToAllUsers <a id="technical-concepts-json-rpc-messages-event-notificationsenttoallusers"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1387,7 +1387,7 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone the same as the receiver. This binds notification messages to the HA zone.
 
-#### <a id="technical-concepts-json-rpc-messages-event-executecommand"></a> event::ExecuteCommand
+#### event::ExecuteCommand <a id="technical-concepts-json-rpc-messages-event-executecommand"></a>
 
 > Location: `clusterevents-check.cpp` and `checkable-check.cpp`
 
@@ -1443,7 +1443,7 @@ The returned messages are synced directly to the sender's endpoint, no cluster b
 
 > **Note**: EventCommand errors are just logged on the remote endpoint.
 
-#### <a id="technical-concepts-json-rpc-messages-config-update"></a> config::Update
+#### config::Update <a id="technical-concepts-json-rpc-messages-config-update"></a>
 
 > Location: `apilistener-filesync.cpp`
 
@@ -1482,7 +1482,7 @@ Config updates will be ignored when:
 * The zone is not configured on the receiver endpoint.
 * The zone is authoritative on this instance (this only happens on a master which has `/etc/icinga2/zones.d` populated, and prevents sync loops)
 
-#### <a id="technical-concepts-json-rpc-messages-config-updateobject"></a> config::UpdateObject
+#### config::UpdateObject <a id="technical-concepts-json-rpc-messages-config-updateobject"></a>
 
 > Location: `apilistener-configsync.cpp`
 
@@ -1556,7 +1556,7 @@ Error handling:
 * Compare modified and original attributes and restore any type of change here.
 
 
-#### <a id="technical-concepts-json-rpc-messages-config-deleteobject"></a> config::DeleteObject
+#### config::DeleteObject <a id="technical-concepts-json-rpc-messages-config-deleteobject"></a>
 
 > Location: `apilistener-configsync.cpp`
 
@@ -1608,7 +1608,7 @@ Error handling:
 
 * Log an error if `DeleteObject` fails (only if the object does not already exist)
 
-#### <a id="technical-concepts-json-rpc-messages-pki-requestcertificate"></a> pki::RequestCertificate
+#### pki::RequestCertificate <a id="technical-concepts-json-rpc-messages-pki-requestcertificate"></a>
 
 > Location: `jsonrpcconnection-pki.cpp`
 
@@ -1640,7 +1640,7 @@ in the `api` feature.
 Only valid certificate request messages are processed, and valid signed certificates
 won't be signed again.
 
-#### <a id="technical-concepts-json-rpc-messages-pki-updatecertificate"></a> pki::UpdateCertificate
+#### pki::UpdateCertificate <a id="technical-concepts-json-rpc-messages-pki-updatecertificate"></a>
 
 > Location: `jsonrpcconnection-pki.cpp`
 
@@ -1680,7 +1680,7 @@ Message updates are dropped when
 * The origin sender is not in a parent zone of the receiver.
 * The certificate fingerprint is in an invalid format.
 
-#### <a id="technical-concepts-json-rpc-messages-pki-updatecertificate"></a> log::SetLogPosition
+#### log::SetLogPosition <a id="technical-concepts-json-rpc-messages-pki-updatecertificate"></a>
 
 > Location: `apilistener.cpp` and `jsonrpcconnection.cpp`
 
