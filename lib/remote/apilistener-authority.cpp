@@ -10,13 +10,14 @@ using namespace icinga;
 
 void ApiListener::UpdateObjectAuthority()
 {
-	ApiListener::Ptr instance = ApiListener::GetInstance();
-
-	if (!instance)
-		return;
-
-	Log(LogNotice, "ApiListener")
-		<< "Updating object authority for objects at endpoint '" << instance->GetIdentity() << "'.";
+	/* Always run this, even if there is no 'api' feature enabled. */
+	if (auto listener = ApiListener::GetInstance()) {
+		Log(LogNotice, "ApiListener")
+			<< "Updating object authority for objects at endpoint '" << listener->GetIdentity() << "'.";
+	} else {
+		Log(LogNotice, "ApiListener")
+			<< "Updating object authority for local objects.";
+	}
 
 	Zone::Ptr my_zone = Zone::GetLocalZone();
 
