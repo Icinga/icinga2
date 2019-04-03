@@ -36,7 +36,7 @@ int FeatureDisableCommand::GetMaxArguments() const
 
 ImpersonationLevel FeatureDisableCommand::GetImpersonationLevel() const
 {
-	return ImpersonateRoot;
+	return ImpersonateIcinga;
 }
 
 /**

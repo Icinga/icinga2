@@ -67,6 +67,23 @@ The [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection) and [
 objects provide a new attribute named `last_failover` which shows the last failover timestamp.
 This value also is available in the [ido](10-icinga-template-library.md#itl-icinga-ido) CheckCommand output.
 
+
+### CLI Commands <a id="upgrading-to-2-11-cli-commands"></a>
+
+CLI commands such as `api setup`, `node wizard/setup`, `feature enable/disable/list`
+required root permissions previously. Since the file permissions allow
+the Icinga user to change things already, and users kept asking to
+run Icinga on their own webspace without root permissions, this is now possible
+with 2.11.
+
+If you are running the commands with a different user than the
+compiled `ICINGA_USER` and `ICINGA_GROUP` CMake settings (`icinga` everywhere,
+except Debian with `nagios` for historical reasons`), ensure that this
+user has the capabilities to change to a different user.
+
+If you still encounter problems, run the aforementioned CLI commands as root,
+or with sudo.
+
 ## Upgrading to v2.10 <a id="upgrading-to-2-10"></a>
 
 ### Path Constant Changes <a id="upgrading-to-2-10-path-constant-changes"></a>

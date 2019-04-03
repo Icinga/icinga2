@@ -24,7 +24,7 @@ String ApiSetupCommand::GetShortDescription() const
 
 ImpersonationLevel ApiSetupCommand::GetImpersonationLevel() const
 {
-	return ImpersonateRoot;
+	return ImpersonateIcinga;
 }
 
 int ApiSetupCommand::GetMaxArguments() const
