@@ -114,6 +114,11 @@ void HttpServerConnection::StartStreaming()
 	});
 }
 
+bool HttpServerConnection::Disconnected()
+{
+	return m_ShuttingDown;
+}
+
 static inline
 bool EnsureValidHeaders(
 	AsioTlsStream& stream,

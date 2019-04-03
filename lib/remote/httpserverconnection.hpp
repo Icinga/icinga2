@@ -29,6 +29,8 @@ public:
 	void Disconnect();
 	void StartStreaming();
 
+	bool Disconnected();
+
 private:
 	ApiUser::Ptr m_ApiUser;
 	std::shared_ptr<AsioTlsStream> m_Stream;

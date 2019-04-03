@@ -117,6 +117,8 @@ bool EventsHandler::HandleRequest(
 			asio::async_write(stream, payload, yc);
 			asio::async_write(stream, newLine, yc);
 			stream.async_flush(yc);
+		} else if (server.Disconnected()) {
+			return true;
 		}
 	}
 }
