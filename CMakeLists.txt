@@ -110,7 +110,8 @@ endif()
 
 if(WIN32)
   set(Boost_USE_STATIC_LIBS ON)
-  add_definitions(-DBOOST_ALL_NO_LIB)
+  # Disabled for linking issues for newer Boost versions, they link against Windows SDKs
+  #add_definitions(-DBOOST_ALL_NO_LIB)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 endif()
