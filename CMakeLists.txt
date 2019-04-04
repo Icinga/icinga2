@@ -27,9 +27,6 @@ option (USE_SYSTEMD
 
 set(HAVE_SYSTEMD ${USE_SYSTEMD})
 
-file(STRINGS VERSION VERSION_LINE REGEX "^Version: ")
-string(REPLACE "Version: " "" ICINGA2_VERSION ${VERSION_LINE})
-
 include(GNUInstallDirs)
 include(InstallConfig)
 include(SetFullDir)
@@ -104,9 +101,16 @@ else()
     string(SUBSTRING ${SPEC_REVISION} 10 ${SPEC_REVISION_LENGTH} SPEC_REVISION)
 
     set(GIT_VERSION "r${SPEC_VERSION}-${SPEC_REVISION}")
+    set(ICINGA2_VERSION "${SPEC_VERSION}")
+  else()
+    # use GIT version as ICINGA2_VERSION
+    string(REGEX REPLACE "^[rv]" "" ICINGA2_VERSION "${GIT_VERSION}")
   endif()
   configure_file(icinga-version.h.cmake icinga-version.h)
 endif()
+
+# NuGet on Windows requires a semantic versioning, example: 2.10.4.123 (only 4 element, only numeric)
+string(REGEX REPLACE "-([0-9]+).*$" ".\\1" ICINGA2_VERSION_SAFE "${ICINGA2_VERSION}")
 
 if(WIN32)
   set(Boost_USE_STATIC_LIBS ON)
@@ -391,7 +395,7 @@ endif()
 
 set(CPACK_PACKAGE_NAME "Icinga 2")
 set(CPACK_PACKAGE_VENDOR "Icinga GmbH")
-set(CPACK_PACKAGE_VERSION ${ICINGA2_VERSION})
+set(CPACK_PACKAGE_VERSION ${ICINGA2_VERSION_SAFE})
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "ICINGA2")
 set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
