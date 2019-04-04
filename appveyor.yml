@@ -1,18 +1,20 @@
 ---
-version: 2.9.0.dev.{build}
+version: 2.11.0.dev.{build}
 
 os: Visual Studio 2017
 platform: x64
 
 environment:
+  BITS: 64
+  CMAKE_BUILD_TYPE: Debug
   CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
-  VSCMD_VER: 15.0
   # https://www.appveyor.com/docs/windows-images-software/#boost
-  BOOST_ROOT: 'C:\Libraries\boost_1_66_0'
-  BOOST_LIBRARYDIR: 'C:\Libraries\boost_1_66_0\lib64-msvc-14.1'
+  BOOST_ROOT: 'C:\Libraries\boost_1_67_0'
+  BOOST_LIBRARYDIR: 'C:\Libraries\boost_1_67_0\lib64-msvc-14.1'
+  # https://www.appveyor.com/docs/windows-images-software/#tools
+  OPENSSL_ROOT_DIR: 'C:\OpenSSL-v111-Win64'
   BISON_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe'
   FLEX_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe'
-  CMAKE_BUILD_TYPE: Debug
 
 branches:
   only:
@@ -33,32 +35,21 @@ install:
 # https://help.appveyor.com/discussions/questions/18777-how-to-use-vcvars64bat-from-powershell#comment_44999171
 before_build:
 - ps: |
-    $bits = $env:PLATFORM -replace "^x", ""
-    cmd.exe /c "call `"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars${bits}.bat`" && set > `"${env:TEMP}\vcvars.txt`""
-    Get-Content "$env:TEMP\vcvars.txt" | Foreach-Object {
-      if ($_ -match "^(VSCMD.*?)=(.*)$") {
-        Set-Content ("env:" + $matches[1]) $matches[2]
-      }
-    }
+    & .\tools\win32\load-vsenv.ps1
 
-    if (-not (Test-Path ".\build\vendor\OpenSSL")) {
-      & .\tools\win32\download-openssl.ps1
-      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
-    }
-
-    & .\tools\win32\configure.ps1
+    & powershell.exe .\tools\win32\configure.ps1
     if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
 
     del build\Icinga*.msi
 
 build_script:
 - ps: |
-    & .\tools\win32\build.ps1
+    & powershell.exe .\tools\win32\build.ps1
     if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
 
 test_script:
 - ps: |
-    & .\tools\win32\test.ps1
+    & powershell.exe .\tools\win32\test.ps1
     if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
 
 # Disable until we really need them
