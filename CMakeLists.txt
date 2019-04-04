@@ -122,6 +122,15 @@ if(WIN32)
   # https://docs.microsoft.com/en-us/cpp/build/reference/gl-whole-program-optimization?view=vs-2017
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /GL- /EHs")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /GL- /EHs")
+
+  # detect if 32-bit target
+  if(CMAKE_VS_PLATFORM_NAME STREQUAL "Win32")
+    # SAFESEH is not supported in Boost on Windows x86
+    # maybe it is when Boost is compiled with it...
+    # https://lists.boost.org/Archives/boost/2013/10/206720.php
+    # https://docs.microsoft.com/en-us/cpp/build/reference/safeseh-image-has-safe-exception-handlers?view=vs-2017
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+  endif()
 endif()
 
 if(NOT DEFINED LOGROTATE_HAS_SU)
