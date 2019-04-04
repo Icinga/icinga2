@@ -1067,6 +1067,33 @@ Check the following:
 
 ### Cluster Troubleshooting: Windows Agents <a id="troubleshooting-cluster-windows-agents"></a>
 
+#### Windows Agents consuming 100% CPU <a id="troubleshooting-cluster-windows-agents-cpu"></a>
+
+Icinga 2 requires the `NodeName` [constant](17-language-reference.md#constants) in various places to run.
+This includes loading the TLS certificates, setting the proper check source,
+and so on.
+
+Typically the Windows setup wizard and also the CLI commands populate the [constants.conf](04-configuring-icinga-2.md#constants-conf)
+file with the auto-detected or user-provided FQDN/Common Name.
+
+If this constant is not set during startup, Icinga will try to resolve the
+FQDN, if that fails, fetch the hostname. If everything fails, it logs
+an error and sets this to `localhost`. This results in undefined behaviour
+if ignored by the admin.
+
+Querying the DNS when not reachable is CPU consuming, and may look like Icinga
+is doing lots of checks, etc. but actually really is just starting up.
+
+In order to fix this, edit the `constants.conf` file and populate
+the `NodeName` constant with the FQDN. Ensure this is the same value
+as the local endpoint object name.
+
+```
+const NodeName = "windows-client1.domain.com"
+```
+
+
+
 #### Windows blocking Icinga 2 with ephemeral port range <a id="troubleshooting-cluster-windows-agents-ephemeral-port-range"></a>
 
 When you see a message like this in your Windows agent logs:
