@@ -30,7 +30,7 @@ struct pageFileInfo
 
 static bool l_Debug;
 
-BOOL EnumPageFilesProc(LPVOID pContext, PENUM_PAGE_FILE_INFORMATION pPageFileInfo, LPCTSTR lpFilename) {
+BOOL EnumPageFilesProc(LPVOID pContext, PENUM_PAGE_FILE_INFORMATION pPageFileInfo, LPCWSTR lpFilename) {
 	std::vector<pageFileInfo>* pageFile = static_cast<std::vector<pageFileInfo>*>(pContext);
 	SYSTEM_INFO systemInfo;
 
@@ -199,10 +199,10 @@ static int printOutput(printInfoStruct& printInfo)
 
 static int check_swap(printInfoStruct& printInfo)
 {
-	PENUM_PAGE_FILE_CALLBACK pageFileCallback = &EnumPageFilesProc;
+	PENUM_PAGE_FILE_CALLBACKW pageFileCallback = &EnumPageFilesProc;
 	std::vector<pageFileInfo> pageFiles;
 
-	if(!EnumPageFiles(pageFileCallback, &pageFiles)) {
+	if(!EnumPageFilesW(pageFileCallback, &pageFiles)) {
 		printErrorInfo();
 		return 3;
 	}
