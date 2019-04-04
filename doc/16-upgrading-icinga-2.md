@@ -78,7 +78,7 @@ with 2.11.
 
 If you are running the commands with a different user than the
 compiled `ICINGA_USER` and `ICINGA_GROUP` CMake settings (`icinga` everywhere,
-except Debian with `nagios` for historical reasons`), ensure that this
+except Debian with `nagios` for historical reasons), ensure that this
 user has the capabilities to change to a different user.
 
 If you still encounter problems, run the aforementioned CLI commands as root,
