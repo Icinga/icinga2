@@ -112,8 +112,12 @@ if(WIN32)
   set(Boost_USE_STATIC_LIBS ON)
   # Disabled for linking issues for newer Boost versions, they link against Windows SDKs
   #add_definitions(-DBOOST_ALL_NO_LIB)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+
+  # Disable optimization for Boost::context
+  # https://www.boost.org/doc/libs/1_69_0/libs/context/doc/html/context/overview.html
+  # https://docs.microsoft.com/en-us/cpp/build/reference/gl-whole-program-optimization?view=vs-2017
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /GL- /EHs")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /GL- /EHs")
 endif()
 
 if(NOT DEFINED LOGROTATE_HAS_SU)
