@@ -200,12 +200,14 @@ void RedisConnection::SendMessageInternal(const std::vector<String>& query, redi
 {
 	AssertOnWorkQueue();
 
-	boost::mutex::scoped_lock lock(m_CMutex);
+	{
+		boost::mutex::scoped_lock lock(m_CMutex);
 
-	if (!m_Context || !m_Connected) {
-		Log(LogCritical, "RedisWriter")
-				<< "Not connected to Redis";
-		return;
+		if (!m_Context || !m_Connected) {
+			Log(LogCritical, "RedisWriter")
+					<< "Not connected to Redis";
+			return;
+		}
 	}
 
 	const char **argv;
@@ -224,7 +226,14 @@ void RedisConnection::SendMessageInternal(const std::vector<String>& query, redi
 
 	Log(LogDebug, "RedisWriter, Connection")
 		<< "Sending Command: " << debugstr;
-	int r = redisAsyncCommandArgv(m_Context, fn, privdata, query.size(), argv, argvlen);
+
+	int r;
+
+	{
+		boost::mutex::scoped_lock lock(m_CMutex);
+
+		r = redisAsyncCommandArgv(m_Context, fn, privdata, query.size(), argv, argvlen);
+	}
 
 	delete[] argv;
 	delete[] argvlen;
