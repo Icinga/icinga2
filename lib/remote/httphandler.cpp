@@ -51,7 +51,7 @@ void HttpHandler::ProcessRequest(
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	boost::asio::yield_context& yc,
-	bool& hasStartedStreaming
+	HttpServerConnection& server
 )
 {
 	Dictionary::Ptr node = m_UrlTree;
@@ -99,7 +99,7 @@ void HttpHandler::ProcessRequest(
 
 	bool processed = false;
 	for (const HttpHandler::Ptr& handler : handlers) {
-		if (handler->HandleRequest(stream, user, request, url, response, params, yc, hasStartedStreaming)) {
+		if (handler->HandleRequest(stream, user, request, url, response, params, yc, server)) {
 			processed = true;
 			break;
 		}

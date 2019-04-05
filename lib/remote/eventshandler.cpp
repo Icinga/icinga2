@@ -25,7 +25,7 @@ bool EventsHandler::HandleRequest(
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params,
 	boost::asio::yield_context& yc,
-	bool& hasStartedStreaming
+	HttpServerConnection& server
 )
 {
 	namespace asio = boost::asio;
@@ -88,7 +88,7 @@ bool EventsHandler::HandleRequest(
 		EventQueue::UnregisterIfUnused(queueName, queue);
 	});
 
-	hasStartedStreaming = true;
+	server.StartStreaming();
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
@@ -101,19 +101,28 @@ bool EventsHandler::HandleRequest(
 	}
 
 	asio::const_buffer newLine ("\n", 1);
+	AsioConditionVariable dontLockOwnStrand (stream.get_io_service(), true);
 
 	for (;;) {
-		String body = JsonEncode(queue->WaitForEvent(&request, yc));
+		auto event (queue->WaitForEvent(&request, yc));
 
-		boost::algorithm::replace_all(body, "\n", "");
+		if (event) {
+			String body = JsonEncode(event);
 
-		asio::const_buffer payload (body.CStr(), body.GetLength());
+			boost::algorithm::replace_all(body, "\n", "");
 
-		IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
+			asio::const_buffer payload (body.CStr(), body.GetLength());
 
-		asio::async_write(stream, payload, yc);
-		asio::async_write(stream, newLine, yc);
-		stream.async_flush(yc);
+			IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
+
+			asio::async_write(stream, payload, yc);
+			asio::async_write(stream, newLine, yc);
+			stream.async_flush(yc);
+		} else if (server.Disconnected()) {
+			return true;
+		} else {
+			dontLockOwnStrand.Wait(yc);
+		}
 	}
 }
 

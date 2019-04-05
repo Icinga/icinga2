@@ -6,6 +6,7 @@
 #include "remote/i2-remote.hpp"
 #include "remote/url.hpp"
 #include "remote/httpresponse.hpp"
+#include "remote/httpserverconnection.hpp"
 #include "remote/apiuser.hpp"
 #include "base/registry.hpp"
 #include "base/tlsstream.hpp"
@@ -34,7 +35,7 @@ public:
 		boost::beast::http::response<boost::beast::http::string_body>& response,
 		const Dictionary::Ptr& params,
 		boost::asio::yield_context& yc,
-		bool& hasStartedStreaming
+		HttpServerConnection& server
 	) = 0;
 
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
@@ -44,7 +45,7 @@ public:
 		boost::beast::http::request<boost::beast::http::string_body>& request,
 		boost::beast::http::response<boost::beast::http::string_body>& response,
 		boost::asio::yield_context& yc,
-		bool& hasStartedStreaming
+		HttpServerConnection& server
 	);
 
 private:

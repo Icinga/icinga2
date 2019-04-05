@@ -27,6 +27,9 @@ public:
 
 	void Start();
 	void Disconnect();
+	void StartStreaming();
+
+	bool Disconnected();
 
 private:
 	ApiUser::Ptr m_ApiUser;
@@ -35,6 +38,7 @@ private:
 	String m_PeerAddress;
 	boost::asio::io_service::strand m_IoStrand;
 	bool m_ShuttingDown;
+	bool m_HasStartedStreaming;
 
 	void ProcessMessages(boost::asio::yield_context yc);
 	void CheckLiveness(boost::asio::yield_context yc);

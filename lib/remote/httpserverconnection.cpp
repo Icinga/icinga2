@@ -31,7 +31,7 @@ using namespace icinga;
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(stream->get_io_service()), m_ShuttingDown(false)
+	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(stream->get_io_service()), m_ShuttingDown(false), m_HasStartedStreaming(false)
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
@@ -89,6 +89,34 @@ void HttpServerConnection::Disconnect()
 			}
 		}
 	});
+}
+
+void HttpServerConnection::StartStreaming()
+{
+	namespace asio = boost::asio;
+
+	m_HasStartedStreaming = true;
+
+	HttpServerConnection::Ptr keepAlive (this);
+
+	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
+		if (!m_ShuttingDown) {
+			char buf[128];
+			asio::mutable_buffer readBuf (buf, 128);
+			boost::system::error_code ec;
+
+			do {
+				m_Stream->async_read_some(readBuf, yc[ec]);
+			} while (!ec);
+
+			Disconnect();
+		}
+	});
+}
+
+bool HttpServerConnection::Disconnected()
+{
+	return m_ShuttingDown;
 }
 
 static inline
@@ -375,17 +403,17 @@ bool ProcessRequest(
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	HttpServerConnection& server,
+	bool& hasStartedStreaming,
 	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
-	bool hasStartedStreaming = false;
-
 	try {
 		CpuBoundWork handlingRequest (yc);
 
-		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, hasStartedStreaming);
+		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
 	} catch (const std::exception& ex) {
 		if (hasStartedStreaming) {
 			return false;
@@ -481,7 +509,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, yc)) {
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, yc)) {
 				break;
 			}
 

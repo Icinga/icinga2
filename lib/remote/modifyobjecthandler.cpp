@@ -20,7 +20,7 @@ bool ModifyObjectHandler::HandleRequest(
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params,
 	boost::asio::yield_context& yc,
-	bool& hasStartedStreaming
+	HttpServerConnection& server
 )
 {
 	namespace http = boost::beast::http;
