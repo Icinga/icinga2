@@ -199,7 +199,8 @@ static int printOutput(printInfoStruct& printInfo)
 
 static int check_swap(printInfoStruct& printInfo)
 {
-	PENUM_PAGE_FILE_CALLBACKW pageFileCallback = &EnumPageFilesProc;
+	// Needs explicit cast: http://msinilo.pl/blog2/post/p1348/
+	PENUM_PAGE_FILE_CALLBACKW pageFileCallback = (PENUM_PAGE_FILE_CALLBACKW)EnumPageFilesProc;
 	std::vector<pageFileInfo> pageFiles;
 
 	if(!EnumPageFilesW(pageFileCallback, &pageFiles)) {
