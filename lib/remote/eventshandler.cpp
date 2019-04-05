@@ -110,7 +110,6 @@ bool EventsHandler::HandleRequest(
 	}
 
 	asio::const_buffer newLine ("\n", 1);
-	AsioConditionVariable dontLockOwnStrand (stream.get_io_service(), true);
 
 	for (;;) {
 		auto event (subscriber.GetInbox()->Shift(yc));
@@ -129,8 +128,6 @@ bool EventsHandler::HandleRequest(
 			stream.async_flush(yc);
 		} else if (server.Disconnected()) {
 			return true;
-		} else {
-			dontLockOwnStrand.Wait(yc);
 		}
 	}
 }
