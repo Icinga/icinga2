@@ -145,7 +145,7 @@ EventQueueRegistry *EventQueueRegistry::GetInstance()
 }
 
 std::mutex EventsInbox::m_FiltersMutex;
-std::map<String, EventsInbox::Filter> EventsInbox::m_Filters;
+std::map<String, EventsInbox::Filter> EventsInbox::m_Filters ({{"", EventsInbox::Filter{1, nullptr}}});
 
 EventsRouter EventsRouter::m_Instance;
 
@@ -262,17 +262,19 @@ EventsFilter::operator bool()
 void EventsFilter::Push(Dictionary::Ptr event)
 {
 	for (auto& perFilter : m_Inboxes) {
-		ScriptFrame frame(true);
-		frame.Sandboxed = true;
+		if (perFilter.first) {
+			ScriptFrame frame(true);
+			frame.Sandboxed = true;
 
-		try {
-			if (!FilterUtility::EvaluateFilter(frame, perFilter.first.get(), event, "event")) {
+			try {
+				if (!FilterUtility::EvaluateFilter(frame, perFilter.first.get(), event, "event")) {
+					continue;
+				}
+			} catch (const std::exception& ex) {
+				Log(LogWarning, "EventQueue")
+					<< "Error occurred while evaluating event filter for queue: " << DiagnosticInformation(ex);
 				continue;
 			}
-		} catch (const std::exception& ex) {
-			Log(LogWarning, "EventQueue")
-				<< "Error occurred while evaluating event filter for queue: " << DiagnosticInformation(ex);
-			continue;
 		}
 
 		for (auto& inbox : perFilter.second) {
