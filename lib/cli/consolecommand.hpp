@@ -6,6 +6,9 @@
 #include "cli/clicommand.hpp"
 #include "base/exception.hpp"
 #include "base/scriptframe.hpp"
+#include "base/tlsstream.hpp"
+#include "remote/url.hpp"
+
 
 namespace icinga
 {
@@ -29,7 +32,7 @@ public:
 		boost::program_options::options_description& hiddenDesc) const override;
 	int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 
-	static int RunScriptConsole(ScriptFrame& scriptFrame, const String& addr = String(),
+	static int RunScriptConsole(ScriptFrame& scriptFrame, const String& connectAddr = String(),
 		const String& session = String(), const String& commandOnce = String(), const String& commandOnceFileName = String(),
 		bool syntaxOnly = false);
 
@@ -37,11 +40,12 @@ private:
 	mutable boost::mutex m_Mutex;
 	mutable boost::condition_variable m_CV;
 
-	static void ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-		bool& ready, const boost::exception_ptr& eptr, const Value& result, Value& resultOut,
-		boost::exception_ptr& eptrOut);
-	static void AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-		bool& ready, const boost::exception_ptr& eptr, const Array::Ptr& result, Array::Ptr& resultOut);
+	static std::shared_ptr<AsioTlsStream> Connect();
+
+	static Value ExecuteScript(const String& session, const String& command, bool sandboxed);
+	static Array::Ptr AutoCompleteScript(const String& session, const String& command, bool sandboxed);
+
+	static Dictionary::Ptr SendRequest();
 
 #ifdef HAVE_EDITLINE
 	static char *ConsoleCompleteHelper(const char *word, int state);
