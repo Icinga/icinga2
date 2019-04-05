@@ -14,9 +14,26 @@
 #include "base/unixsocket.hpp"
 #include "base/utility.hpp"
 #include "base/networkstream.hpp"
+#include "base/defer.hpp"
+#include "base/io-engine.hpp"
+#include "base/stream.hpp"
+#include "base/tcpsocket.hpp" /* include global icinga::Connect */
+#include <base/base64.hpp>
 #include "base/exception.hpp"
+#include <boost/asio/ssl/context.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/http/field.hpp>
+#include <boost/beast/http/message.hpp>
+#include <boost/beast/http/parser.hpp>
+#include <boost/beast/http/read.hpp>
+#include <boost/beast/http/status.hpp>
+#include <boost/beast/http/string_body.hpp>
+#include <boost/beast/http/verb.hpp>
+#include <boost/beast/http/write.hpp>
 #include <iostream>
 #include <fstream>
+
+
 #ifdef HAVE_EDITLINE
 #include "cli/editline.hpp"
 #endif /* HAVE_EDITLINE */
@@ -25,7 +42,7 @@ using namespace icinga;
 namespace po = boost::program_options;
 
 static ScriptFrame *l_ScriptFrame;
-static ApiClient::Ptr l_ApiClient;
+static std::shared_ptr<AsioTlsStream> l_TlsStream;
 static String l_Session;
 
 REGISTER_CLICOMMAND("console", ConsoleCommand);
@@ -161,11 +178,55 @@ void ConsoleCommand::InitParameters(boost::program_options::options_description&
 	;
 }
 
+/**
+ * Connects to host:port and performs a TLS shandshake
+ *
+ * @param host To connect to.
+ * @param port To connect to.
+ *
+ * @returns AsioTlsStream pointer for future HTTP connections.
+ */
+std::shared_ptr<AsioTlsStream> ConsoleCommand::Connect(const String& host, const String& port)
+{
+	std::shared_ptr<boost::asio::ssl::context> sslContext;
+
+	try {
+		sslContext = MakeAsioSslContext(Empty, Empty, Empty); //TODO: Add support for cert, key, ca parameters
+	} catch(const std::exception& ex) {
+		Log(LogCritical, "DebugConsole")
+				<< "Cannot make SSL context: " << ex.what();
+		throw;
+	}
+
+	std::shared_ptr<AsioTlsStream> stream = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoService(), *sslContext, host);
+
+	try {
+		icinga::Connect(stream->lowest_layer(), host, port);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "DebugConsole")
+			<< "Cannot connect to REST API on host '" << host << "' port '" << port << "': " << ex.what();
+		throw;
+	}
+
+	auto& tlsStream (stream->next_layer());
+
+	try {
+		tlsStream.handshake(tlsStream.client);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "DebugConsole")
+			<< "TLS handshake with host '" << host << "' failed: " << ex.what();
+		throw;
+	}
+
+	return std::move(stream);
+}
+
+
 #ifdef HAVE_EDITLINE
 char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 {
 	static std::vector<String> matches;
-
+/* TODO XXX
 	if (state == 0) {
 		if (!l_ApiClient)
 			matches = ConsoleHandler::GetAutocompletionSuggestions(word, *l_ScriptFrame);
@@ -198,6 +259,7 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 		return nullptr;
 
 	return strdup(matches[state].CStr());
+ */
 }
 #endif /* HAVE_EDITLINE */
 
@@ -267,7 +329,8 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 	return RunScriptConsole(scriptFrame, addr, session, command, commandFileName, syntaxOnly);
 }
 
-int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& addr, const String& session, const String& commandOnce, const String& commandOnceFileName, bool syntaxOnly)
+int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& connectAddr, const String& session,
+        const String& commandOnce, const String& commandOnceFileName, bool syntaxOnly)
 {
 	std::map<String, String> lines;
 	int next_line = 1;
@@ -294,11 +357,15 @@ int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& add
 	l_ScriptFrame = &scriptFrame;
 	l_Session = session;
 
-	if (!addr.IsEmpty()) {
-		Url::Ptr url;
+	/* User passed --connect and wants to run the expression via REST API.
+	 * Evaluate this now before any user input happens.
+	 */
+	Url::Ptr url;
+	std::shared_ptr<AsioTlsStream> tlsStream;
 
+	if (!connectAddr.IsEmpty()) {
 		try {
-			url = new Url(addr);
+			url = new Url(connectAddr);
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ConsoleCommand", ex.what());
 			return EXIT_FAILURE;
@@ -315,7 +382,11 @@ int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& add
 		if (url->GetPort().IsEmpty())
 			url->SetPort("5665");
 
-		l_ApiClient = new ApiClient(url->GetHost(), url->GetPort(), url->GetUsername(), url->GetPassword());
+		try {
+			l_TlsStream = ConsoleCommand::Connect(url->GetHost(), url->GetPort());
+		} catch (const std::exception& ex) {
+			return EXIT_FAILURE;
+		}
 	}
 
 	while (std::cin.good()) {
@@ -405,7 +476,8 @@ incomplete:
 
 			Value result;
 
-			if (!l_ApiClient) {
+			/* Local debug console. */
+			if (connectAddr.IsEmpty()) {
 				expr = ConfigCompiler::CompileText(fileName, command);
 
 				/* This relies on the fact that - for syntax errors - CompileText()
@@ -417,25 +489,29 @@ incomplete:
 				} else
 					result = true;
 			} else {
-				boost::mutex mutex;
-				boost::condition_variable cv;
-				bool ready = false;
-				boost::exception_ptr eptr;
-
-				l_ApiClient->ExecuteScript(l_Session, command, scriptFrame.Sandboxed,
-					std::bind(&ConsoleCommand::ExecuteScriptCompletionHandler,
-					std::ref(mutex), std::ref(cv), std::ref(ready),
-					_1, _2,
-					std::ref(result), std::ref(eptr)));
-
-				{
-					boost::mutex::scoped_lock lock(mutex);
-					while (!ready)
-						cv.wait(lock);
+				/* Remote debug console. */
+				try {
+					l_TlsStream = ConsoleCommand::Connect(url->GetHost(), url->GetPort());
+				} catch (const std::exception& ex) {
+					return EXIT_FAILURE;
 				}
 
-				if (eptr)
-					boost::rethrow_exception(eptr);
+				try {
+					result = ExecuteScript(l_Session, l_TlsStream, url, command, scriptFrame.Sandboxed);
+				} catch (const ScriptError&) {
+					/* Re-throw the exception for the outside try-catch block. */
+					boost::rethrow_exception(boost::current_exception());
+				} catch (const std::exception& ex) {
+					Log(LogCritical, "ConsoleCommand")
+						<< "HTTP query failed: " << ex.what();
+
+#ifdef HAVE_EDITLINE
+					/* Ensures that the terminal state is resetted */
+					rl_deprep_terminal();
+#endif /* HAVE_EDITLINE */
+
+					return EXIT_FAILURE;
+				}
 			}
 
 			if (commandOnce.IsEmpty()) {
@@ -504,34 +580,107 @@ incomplete:
 	return EXIT_SUCCESS;
 }
 
-void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-	bool& ready, const boost::exception_ptr& eptr, const Value& result, Value& resultOut, boost::exception_ptr& eptrOut)
+/**
+ * Executes the DSL script via HTTP and returns HTTP and user errors.
+ *
+ * @param session Local session handler.
+ * @param tlsStream AsioTlsStream pointer, must be constructed by the caller.
+ * @param url Url object, must be constructed by the caller.
+ * @param command The DSL string.
+ * @param sandboxed Whether to run this sandboxed.
+ * @return Result value, also contains user errors.
+ */
+Value ConsoleCommand::ExecuteScript(const String& session, const std::shared_ptr<AsioTlsStream>& tlsStream,
+		const Url::Ptr& url, const String& command, bool sandboxed)
 {
-	if (eptr) {
-		try {
-			boost::rethrow_exception(eptr);
-		} catch (const ScriptError&) {
-			eptrOut = boost::current_exception();
-		} catch (const std::exception& ex) {
-			Log(LogCritical, "ConsoleCommand")
-				<< "HTTP query failed: " << ex.what();
+	namespace beast = boost::beast;
+	namespace http = beast::http;
 
-#ifdef HAVE_EDITLINE
-			/* Ensures that the terminal state is resetted */
-			rl_deprep_terminal();
-#endif /* HAVE_EDITLINE */
+	/* Extend the url parameters for the request. */
+	url->SetPath({ "v1", "console", "execute-script" });
 
-			Application::Exit(EXIT_FAILURE);
+	url->SetQuery({
+		{"session", session},
+		{"command", command},
+		{"sandboxed", sandboxed ? "1" : "0"}
+	});
+
+	http::request<http::string_body> request (http::verb::post, std::string(url->Format(false)), 10);
+
+	request.set(http::field::user_agent, "Icinga/DebugConsole/" + Application::GetAppVersion());
+	request.set(http::field::host, url->GetHost() + ":" + url->GetPort());
+
+    request.set(http::field::accept, "application/json");
+    request.set(http::field::authorization, "Basic " + Base64::Encode(url->GetUsername() + ":" + url->GetPassword()));
+
+	try {
+		http::write(*tlsStream, request);
+		tlsStream->flush();
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "DebugConsole")
+			<< "Cannot write HTTP request to REST API at URL '" << url->Format(true) << "': " << ex.what();
+		throw;
+	}
+
+	http::parser<false, http::string_body> parser;
+	beast::flat_buffer buf;
+
+	try {
+		http::read(*tlsStream, buf, parser);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "DebugConsole")
+			<< "Failed to parse HTTP response from REST API at URL '" << url->Format(true) << "': " << ex.what();
+		throw;
+	}
+
+	auto& response (parser.get());
+
+	/* Handle HTTP errors first. */
+	if (response.result() != http::status::ok) {
+
+		std::string message = "HTTP request failed; Code: " + Convert::ToString(response.result()) + "; Body: " + response.body();
+		BOOST_THROW_EXCEPTION(ScriptError(message));
+	}
+
+	Dictionary::Ptr jsonResponse;
+	auto& body (response.body());
+
+	try {
+		jsonResponse = JsonDecode(body);
+	} catch (...) {
+		std::string message = "Cannot parse JSON response body: " + response.body();
+		BOOST_THROW_EXCEPTION(ScriptError(message));
+	}
+
+	/* Extract the result, and handle user input errors too. */
+	Array::Ptr results = jsonResponse->Get("results");
+	Value result;
+
+	if (results && results->GetLength() > 0) {
+		Dictionary::Ptr resultInfo = results->Get(0);
+
+		if (resultInfo->Get("code") >= 200 && resultInfo->Get("code") <= 299) {
+			result = resultInfo->Get("result");
+		} else {
+			String errorMessage = resultInfo->Get("status");
+
+			DebugInfo di;
+			Dictionary::Ptr debugInfo = resultInfo->Get("debug_info");
+
+			if (debugInfo) {
+				di.Path = debugInfo->Get("path");
+				di.FirstLine = debugInfo->Get("first_line");
+				di.FirstColumn = debugInfo->Get("first_column");
+				di.LastLine = debugInfo->Get("last_line");
+				di.LastColumn = debugInfo->Get("last_column");
+			}
+
+			bool incompleteExpression = resultInfo->Get("incomplete_expression");
+			BOOST_THROW_EXCEPTION(ScriptError(errorMessage, di, incompleteExpression));
 		}
 	}
 
-	resultOut = result;
-
-	{
-		boost::mutex::scoped_lock lock(mutex);
-		ready = true;
-		cv.notify_all();
-	}
+	return result;
 }
 
 void ConsoleCommand::AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
