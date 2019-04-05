@@ -6,7 +6,7 @@
     <!-- Read this before publishing packages to chocolatey.org: https://github.com/chocolatey/chocolatey/wiki/CreatePackages -->
     <id>icinga2</id>
     <title>Icinga 2</title>
-    <version>${SPEC_VERSION}</version>
+    <version>${ICINGA2_VERSION_SAFE}</version>
     <authors>Icinga GmbH</authors>
     <owners>Icinga GmbH</owners>
     <summary>icinga2 - Monitoring Agent for Windows</summary>

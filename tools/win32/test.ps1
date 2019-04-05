@@ -1,5 +1,11 @@
+Set-PsDebug -Trace 1
+
 if (-not (Test-Path env:ICINGA2_BUILDPATH)) {
   $env:ICINGA2_BUILDPATH = 'build'
+}
+
+if (-not (Test-Path env:CMAKE_BUILD_TYPE)) {
+  $env:CMAKE_BUILD_TYPE = 'RelWithDebInfo'
 }
 
 [string]$pwd = Get-Location
@@ -18,7 +24,7 @@ if (-not ($env:PATH -contains $env:CMAKE_PATH)) {
 
 cd "$env:ICINGA2_BUILDPATH"
 
-ctest.exe -C RelWithDebInfo -T test -O $env:ICINGA2_BUILDPATH/Test.xml --output-on-failure
+ctest.exe -C "${env:CMAKE_BUILD_TYPE}" -T test -O $env:ICINGA2_BUILDPATH/Test.xml --output-on-failure
 if ($lastexitcode -ne 0) {
   cd ..
   exit $lastexitcode

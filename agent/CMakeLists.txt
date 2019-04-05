@@ -5,7 +5,6 @@ if(MSVC)
     icinga2setupagent
     ${CMAKE_CURRENT_SOURCE_DIR}/windows-setup-agent/Icinga2SetupAgent.csproj
     TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC
-    PLATFORM Win32
   )
 
   install(

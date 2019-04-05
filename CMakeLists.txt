@@ -27,9 +27,6 @@ option (USE_SYSTEMD
 
 set(HAVE_SYSTEMD ${USE_SYSTEMD})
 
-file(STRINGS VERSION VERSION_LINE REGEX "^Version: ")
-string(REPLACE "Version: " "" ICINGA2_VERSION ${VERSION_LINE})
-
 include(GNUInstallDirs)
 include(InstallConfig)
 include(SetFullDir)
@@ -104,15 +101,36 @@ else()
     string(SUBSTRING ${SPEC_REVISION} 10 ${SPEC_REVISION_LENGTH} SPEC_REVISION)
 
     set(GIT_VERSION "r${SPEC_VERSION}-${SPEC_REVISION}")
+    set(ICINGA2_VERSION "${SPEC_VERSION}")
+  else()
+    # use GIT version as ICINGA2_VERSION
+    string(REGEX REPLACE "^[rv]" "" ICINGA2_VERSION "${GIT_VERSION}")
   endif()
   configure_file(icinga-version.h.cmake icinga-version.h)
 endif()
 
+# NuGet on Windows requires a semantic versioning, example: 2.10.4.123 (only 4 element, only numeric)
+string(REGEX REPLACE "-([0-9]+).*$" ".\\1" ICINGA2_VERSION_SAFE "${ICINGA2_VERSION}")
+
 if(WIN32)
   set(Boost_USE_STATIC_LIBS ON)
-  add_definitions(-DBOOST_ALL_NO_LIB)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+  # Disabled for linking issues for newer Boost versions, they link against Windows SDKs
+  #add_definitions(-DBOOST_ALL_NO_LIB)
+
+  # Disable optimization for Boost::context
+  # https://www.boost.org/doc/libs/1_69_0/libs/context/doc/html/context/overview.html
+  # https://docs.microsoft.com/en-us/cpp/build/reference/gl-whole-program-optimization?view=vs-2017
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /GL- /EHs")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /GL- /EHs")
+
+  # detect if 32-bit target
+  if(CMAKE_VS_PLATFORM_NAME STREQUAL "Win32")
+    # SAFESEH is not supported in Boost on Windows x86
+    # maybe it is when Boost is compiled with it...
+    # https://lists.boost.org/Archives/boost/2013/10/206720.php
+    # https://docs.microsoft.com/en-us/cpp/build/reference/safeseh-image-has-safe-exception-handlers?view=vs-2017
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+  endif()
 endif()
 
 if(NOT DEFINED LOGROTATE_HAS_SU)
@@ -386,7 +404,7 @@ endif()
 
 set(CPACK_PACKAGE_NAME "Icinga 2")
 set(CPACK_PACKAGE_VENDOR "Icinga GmbH")
-set(CPACK_PACKAGE_VERSION ${ICINGA2_VERSION})
+set(CPACK_PACKAGE_VERSION ${ICINGA2_VERSION_SAFE})
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "ICINGA2")
 set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
