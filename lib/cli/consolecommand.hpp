@@ -45,6 +45,8 @@ private:
 	static Value ExecuteScript(const String& session, const std::shared_ptr<AsioTlsStream>& tlsStream,
 		const Url::Ptr& url, const String& command, bool sandboxed);
 
+	static Dictionary::Ptr SendRequest(const std::shared_ptr<AsioTlsStream>& tlsStream, const Url::Ptr& url);
+
 	static void ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
 		bool& ready, const boost::exception_ptr& eptr, const Value& result, Value& resultOut,
 		boost::exception_ptr& eptrOut);

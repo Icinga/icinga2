@@ -226,14 +226,11 @@ std::shared_ptr<AsioTlsStream> ConsoleCommand::Connect(const String& host, const
 char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 {
 	static std::vector<String> matches;
-/* TODO XXX
+/*
 	if (state == 0) {
-		if (!l_ApiClient)
+		if (!l_TlsStream)
 			matches = ConsoleHandler::GetAutocompletionSuggestions(word, *l_ScriptFrame);
 		else {
-			boost::mutex mutex;
-			boost::condition_variable cv;
-			bool ready = false;
 			Array::Ptr suggestions;
 
 			l_ApiClient->AutocompleteScript(l_Session, word, l_ScriptFrame->Sandboxed,
@@ -242,11 +239,6 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 				_1, _2,
 				std::ref(suggestions)));
 
-			{
-				boost::mutex::scoped_lock lock(mutex);
-				while (!ready)
-					cv.wait(lock);
-			}
 
 			matches.clear();
 
@@ -581,6 +573,68 @@ incomplete:
 }
 
 /**
+ * Sends the request via REST API and returns the parsed response.
+ *
+ * @param tlsStream Caller must prepare TLS stream/handshake.
+ * @param url Fully prepared Url object.
+ * @return A dictionary decoded from JSON.
+ */
+Dictionary::Ptr ConsoleCommand::SendRequest(const std::shared_ptr<AsioTlsStream>& tlsStream, const Url::Ptr& url)
+{
+	namespace beast = boost::beast;
+	namespace http = beast::http;
+
+	http::request<http::string_body> request(http::verb::post, std::string(url->Format(false)), 10);
+
+	request.set(http::field::user_agent, "Icinga/DebugConsole/" + Application::GetAppVersion());
+	request.set(http::field::host, url->GetHost() + ":" + url->GetPort());
+
+	request.set(http::field::accept, "application/json");
+	request.set(http::field::authorization, "Basic " + Base64::Encode(url->GetUsername() + ":" + url->GetPassword()));
+
+	try {
+		http::write(*tlsStream, request);
+		tlsStream->flush();
+	} catch (const std::exception &ex) {
+		Log(LogWarning, "DebugConsole")
+				<< "Cannot write HTTP request to REST API at URL '" << url->Format(true) << "': " << ex.what();
+		throw;
+	}
+
+	http::parser<false, http::string_body> parser;
+	beast::flat_buffer buf;
+
+	try {
+		http::read(*tlsStream, buf, parser);
+	} catch (const std::exception &ex) {
+		Log(LogWarning, "DebugConsole")
+				<< "Failed to parse HTTP response from REST API at URL '" << url->Format(true) << "': " << ex.what();
+		throw;
+	}
+
+	auto &response(parser.get());
+
+	/* Handle HTTP errors first. */
+	if (response.result() != http::status::ok) {
+		std::string message = "HTTP request failed; Code: " + Convert::ToString(response.result())
+				+ "; Body: " + response.body();
+		BOOST_THROW_EXCEPTION(ScriptError(message));
+	}
+
+	Dictionary::Ptr jsonResponse;
+	auto &body(response.body());
+
+	try {
+		jsonResponse = JsonDecode(body);
+	} catch (...) {
+		std::string message = "Cannot parse JSON response body: " + response.body();
+		BOOST_THROW_EXCEPTION(ScriptError(message));
+	}
+
+	return jsonResponse;
+}
+
+/**
  * Executes the DSL script via HTTP and returns HTTP and user errors.
  *
  * @param session Local session handler.
@@ -593,64 +647,16 @@ incomplete:
 Value ConsoleCommand::ExecuteScript(const String& session, const std::shared_ptr<AsioTlsStream>& tlsStream,
 		const Url::Ptr& url, const String& command, bool sandboxed)
 {
-	namespace beast = boost::beast;
-	namespace http = beast::http;
-
 	/* Extend the url parameters for the request. */
-	url->SetPath({ "v1", "console", "execute-script" });
+	url->SetPath({"v1", "console", "execute-script"});
 
 	url->SetQuery({
-		{"session", session},
-		{"command", command},
+		{"session",   session},
+		{"command",   command},
 		{"sandboxed", sandboxed ? "1" : "0"}
 	});
 
-	http::request<http::string_body> request (http::verb::post, std::string(url->Format(false)), 10);
-
-	request.set(http::field::user_agent, "Icinga/DebugConsole/" + Application::GetAppVersion());
-	request.set(http::field::host, url->GetHost() + ":" + url->GetPort());
-
-    request.set(http::field::accept, "application/json");
-    request.set(http::field::authorization, "Basic " + Base64::Encode(url->GetUsername() + ":" + url->GetPassword()));
-
-	try {
-		http::write(*tlsStream, request);
-		tlsStream->flush();
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "DebugConsole")
-			<< "Cannot write HTTP request to REST API at URL '" << url->Format(true) << "': " << ex.what();
-		throw;
-	}
-
-	http::parser<false, http::string_body> parser;
-	beast::flat_buffer buf;
-
-	try {
-		http::read(*tlsStream, buf, parser);
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "DebugConsole")
-			<< "Failed to parse HTTP response from REST API at URL '" << url->Format(true) << "': " << ex.what();
-		throw;
-	}
-
-	auto& response (parser.get());
-
-	/* Handle HTTP errors first. */
-	if (response.result() != http::status::ok) {
-
-		std::string message = "HTTP request failed; Code: " + Convert::ToString(response.result()) + "; Body: " + response.body();
-		BOOST_THROW_EXCEPTION(ScriptError(message));
-	}
-
-	Dictionary::Ptr jsonResponse;
-	auto& body (response.body());
-
-	try {
-		jsonResponse = JsonDecode(body);
-	} catch (...) {
-		std::string message = "Cannot parse JSON response body: " + response.body();
-		BOOST_THROW_EXCEPTION(ScriptError(message));
-	}
+	Dictionary::Ptr jsonResponse = SendRequest(tlsStream, url);
 
 	/* Extract the result, and handle user input errors too. */
 	Array::Ptr results = jsonResponse->Get("results");
