@@ -32,7 +32,7 @@ Example for string values:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => host.vars.os_type = "Linux/Unix"
 null
 <2> => regex("^Linux", host.vars.os_type)
@@ -45,7 +45,7 @@ Example for an array of string values:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => host.vars.databases = [ "db-prod1", "db-prod2", "db-dev" ]
 null
 <2> => regex("^db-prod\\d+", host.vars.databases, MatchAny)
@@ -74,7 +74,7 @@ Example for string values:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => var name = "db-prod-sfo-657"
 null
 <2> => match("*prod-sfo*", name)
@@ -87,7 +87,7 @@ Example for an array of string values:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0-28)
+Icinga 2 (version: v2.11.0-28)
 <1> => host.vars.application_types = [ "web-wp", "web-rt", "db-local" ]
 null
 <2> => match("web-*", host.vars.application_types, MatchAll)
@@ -116,7 +116,7 @@ Example for a single IP address:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => host.address = "192.168.56.101"
 null
 <2> => cidr_match("192.168.56.0/24", host.address)
@@ -129,7 +129,7 @@ Example for an array of IP addresses:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => host.vars.vhost_ips = [ "192.168.56.101", "192.168.56.102", "10.0.10.99" ]
 null
 <2> => cidr_match("192.168.56.0/24", host.vars.vhost_ips, MatchAll)
@@ -162,7 +162,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => range(5)
 [ 0.000000, 1.000000, 2.000000, 3.000000, 4.000000 ]
 <2> => range(2,4)
@@ -190,7 +190,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => host.groups = [ "linux-servers", "db-servers" ]
 null
 <2> => host.groups.len()
@@ -220,7 +220,7 @@ Returns an array containing all unique elements from the specified arrays.
 Example:
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => var dev_notification_groups = [ "devs", "slack" ]
 null
 <2> => var host_notification_groups = [ "slack", "noc" ]
@@ -244,7 +244,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => var dev_notification_groups = [ "devs", "slack" ]
 null
 <2> => var host_notification_groups = [ "slack", "noc" ]
@@ -270,7 +270,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => host.vars.disks["/"] = {}
 null
 <2> => host.vars.disks["/var"] = {}
@@ -302,7 +302,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => 5.to_string()
 "5"
 <2> => false.to_string()
@@ -331,7 +331,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => number(false)
 0.000000
 <2> => number("78")
@@ -352,7 +352,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => bool(1)
 true
 <2> => bool(0)
@@ -371,7 +371,7 @@ Returns a random value between 0 and RAND\_MAX (as defined in stdlib.h).
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => random()
 1263171996.000000
 <2> => random()
@@ -403,7 +403,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => log(LogCritical, "Console", "First line")
 critical/Console: First line
 null
@@ -428,7 +428,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => typeof(3) == Number
 true
 <2> => typeof("str") == String
@@ -455,7 +455,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => get_time()
 1480072135.633008
 <2> => get_time()
@@ -476,7 +476,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => var pd = "'time'=1480074205.197363;;;"
 null
 <2> => parse_performance_data(pd)
@@ -527,7 +527,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => var path = "/etc/icinga2/scripts/xmpp-notification.pl"
 null
 <2> => dirname(path)
@@ -548,7 +548,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => var path = "/etc/icinga2/scripts/xmpp-notification.pl"
 null
 <2> => basename(path)
@@ -569,7 +569,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => var path = "/etc/icinga2/scripts/xmpp-notification.pl"
 null
 <2> => path_exists(path)
@@ -593,7 +593,7 @@ and `GlobDirectory` constants. The default value is `GlobFile | GlobDirectory`.
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => var pathSpec = "/etc/icinga2/conf.d/*.conf"
 null
 <2> => glob(pathSpec)
@@ -617,7 +617,7 @@ and `GlobDirectory` constants. The default value is `GlobFile | GlobDirectory`.
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => var path = "/etc/icinga2/zones.d/"
 null
 <2> => var pattern = "*.conf"
@@ -640,7 +640,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => escape_shell_arg("'$host.name$' '$service.name$'")
 "''\\''$host.name$'\\'' '\\''$service.name$'\\'''"
 ```
@@ -659,7 +659,7 @@ Example:
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 <1> => escape_shell_cmd("/bin/echo 'shell test' $ENV")
 "/bin/echo 'shell test' \\$ENV"
 ```
@@ -788,7 +788,7 @@ which fetches the `disk` service object from the current Icinga 2 node:
 
 ```
 $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 
 <1> => get_service(NodeName, "disk")
 <2> => get_service(NodeName, "disk").__name
@@ -815,7 +815,7 @@ which fetches all service objects from the current Icinga 2 node:
 
 ```
 $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
-Icinga 2 (version: v2.7.0)
+Icinga 2 (version: v2.11.0)
 
 <1> => get_services(NodeName).map(s => s.name)
 [ "disk", "disk /", "http", "icinga", "load", "ping4", "ping6", "procs", "ssh", "users" ]

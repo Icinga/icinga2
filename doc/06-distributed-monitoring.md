@@ -203,15 +203,15 @@ Prior to upgrading, make sure to plan a maintenance window.
 The Icinga project aims to allow the following compatibility:
 
 ```
-master (2.9) >= satellite (2.8) >= clients (2.7)
+master (2.11) >= satellite (2.10) >= clients (2.9)
 ```
 
 Older client versions may work, but there's no guarantee. Always keep in mind that
 older versions are out of support and can contain bugs.
 
 In terms of an upgrade, ensure that the master is upgraded first, then
-involved satellites, and last the Icinga 2 clients. If you are on v2.8
-currently, first upgrade the master instance(s) to 2.9, and then proceed
+involved satellites, and last the Icinga 2 clients. If you are on v2.10
+currently, first upgrade the master instance(s) to 2.11, and then proceed
 with the satellites. Things are getting easier with any sort of automation
 tool (Puppet, Ansible, etc.).
 
@@ -332,7 +332,7 @@ and sign the request.
 
 > **Note**
 >
-> Icinga 2 v2.8 adds the possibility to forward signing requests on a satellite
+> Icinga 2 v2.8 added the possibility to forward signing requests on a satellite
 > to the master node. This is called `CA Proxy` in blog posts and design drafts.
 > This functionality helps with the setup of [three level clusters](#06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-client)
 > and more.
@@ -2561,7 +2561,7 @@ with automating setups (setup, certificates, configuration).
 
 ### Certificate Auto-Renewal <a id="distributed-monitoring-certificate-auto-renewal"></a>
 
-Icinga 2 v2.8+ adds the possibility that nodes request certificate updates
+Icinga 2 v2.8+ added the possibility that nodes request certificate updates
 on their own. If their expiration date is soon enough, they automatically
 renew their already signed certificate by sending a signing request to the
 parent node. You'll also see a message in the logs if certificate renewal
@@ -2955,9 +2955,9 @@ Pass the following details to the `node setup` CLI command:
 
 > **Note**
 >
-> The `master_host` parameter is deprecated and will be removed in 2.10.0. Please use `--parent_host` instead.
+> The `master_host` parameter is deprecated and will be removed. Please use `--parent_host` instead.
 
-Example for Icinga 2 v2.9:
+Example:
 
 ```
 [root@icinga2-client1.localdomain /]# icinga2 node setup --ticket ead2d570e18c78abf285d6b85524970a0f69c22d \

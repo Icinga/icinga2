@@ -1,6 +1,7 @@
 # Upgrading Icinga 2 <a id="upgrading-icinga-2"></a>
 
-Upgrading Icinga 2 is usually quite straightforward. Ordinarily the only manual steps involved
+Upgrading Icinga 2 is usually quite straightforward.
+Ordinarily the only manual steps involved
 are scheme updates for the IDO database.
 
 Specific version upgrades are described below. Please note that version
