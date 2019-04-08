@@ -102,12 +102,10 @@ bool EventsHandler::HandleRequest(
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
 
-	{
-		IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
+	IoBoundWorkSlot dontLockTheIoThread (yc);
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
-	}
+	http::async_write(stream, response, yc);
+	stream.async_flush(yc);
 
 	asio::const_buffer newLine ("\n", 1);
 
@@ -115,13 +113,15 @@ bool EventsHandler::HandleRequest(
 		auto event (subscriber.GetInbox()->Shift(yc));
 
 		if (event) {
+			CpuBoundWork buildingResponse (yc);
+
 			String body = JsonEncode(event);
 
 			boost::algorithm::replace_all(body, "\n", "");
 
 			asio::const_buffer payload (body.CStr(), body.GetLength());
 
-			IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
+			buildingResponse.Done();
 
 			asio::async_write(stream, payload, yc);
 			asio::async_write(stream, newLine, yc);
