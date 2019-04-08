@@ -722,7 +722,7 @@ to connect to the REST API.
 
 ```
 $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
-Icinga 2 (version: v2.8.1-373-g4bea6d25c)
+Icinga 2 (version: v2.11.0)
 <1> => globals.state_to_string(1)
 "Warning"
 <2> => state_to_string(2)

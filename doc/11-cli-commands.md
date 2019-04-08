@@ -13,7 +13,7 @@ options.
 
 ```
 # icinga2
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -141,7 +141,7 @@ More details in the [Icinga 2 API](12-icinga2-api.md#icinga2-api-setup) chapter.
 
 ```
 # icinga2 api --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -176,7 +176,7 @@ chapter. This CLI command is available since v2.8.
 
 ```
 # icinga2 ca --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -210,7 +210,7 @@ e.g. to test [functions](17-language-reference.md#functions) in your local sandb
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.8.0)
+Icinga 2 (version: v2.11.0)
 <1> => function test(name) {
 <1> ..   log("Hello " + name)
 <1> .. }
@@ -225,7 +225,7 @@ Further usage examples can be found in the [library reference](18-library-refere
 
 ```
 # icinga2 console --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 console [<arguments>]
@@ -293,7 +293,7 @@ Here's an example:
 
 ```
 $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
-Icinga 2 (version: v2.8.0)
+Icinga 2 (version: v2.11.0)
 <1> =>
 ```
 
@@ -362,7 +362,7 @@ Furthermore it allows to run the [configuration validation](11-cli-commands.md#c
 
 ```
 # icinga2 daemon --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 daemon [<arguments>]
@@ -443,7 +443,7 @@ nodes in a [distributed monitoring](06-distributed-monitoring.md#distributed-mon
 
 ```
 # icinga2 node --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -486,7 +486,7 @@ More information can be found in the [troubleshooting](15-troubleshooting.md#tro
 
 ```
 # icinga2 object --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.7.1-196-g23e8a6253; debug)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -528,7 +528,7 @@ You will need them in the [distributed monitoring chapter](06-distributed-monito
 
 ```
 # icinga2 pki --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -572,7 +572,7 @@ This is only a tool to collect information to help others help you, it will not 
 
 ```
 # icinga2 troubleshoot --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 troubleshoot [<arguments>]
@@ -609,7 +609,7 @@ Lists all configured variables (constants) in a similar fashion like [object lis
 
 ```
 # icinga2 variable --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0; debug)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]

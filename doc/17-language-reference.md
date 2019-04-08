@@ -480,7 +480,7 @@ once they are set.
 Icinga 2 provides a number of special global constants. These include directory paths, global configuration
 and runtime parameters for the application version and (build) platform.
 
-Directory paths:
+#### Directory Path Constants <a id="icinga-constants-director-path"></a>
 
 Constant            | Description
 --------------------|-------------------
@@ -492,7 +492,7 @@ SpoolDir            |**Read-only.** Spool directory for certain data outputs. Us
 InitRunDir          |**Read-only.** Directory for PID files and sockets in daemon mode. Usually set to `/run/icinga2`.
 ZonesDir            |**Read-only.** Contains the path of the zones.d directory. Defaults to `ConfigDir + "/zones.d"`.
 
-Global configuration:
+#### Global Configuration Constants <a id="icinga-constants-global-config"></a>
 
 Constant            | Description
 --------------------|-------------------
@@ -506,7 +506,7 @@ MaxConcurrentChecks |**Read-write.** The number of max checks run simultaneously
 ApiBindHost         |**Read-write.** Overrides the default value for the ApiListener `bind_host` attribute. Not set by default.
 ApiBindPort         |**Read-write.** Overrides the default value for the ApiListener `bind_port` attribute. Not set by default.
 
-Application runtime details:
+#### Application Runtime Constants <a id="icinga-constants-application-runtime"></a>
 
 Constant            | Description
 --------------------|-------------------
@@ -518,6 +518,8 @@ BuildCompilerName   |**Read-only.** The name of the compiler Icinga was built wi
 BuildCompilerVersion|**Read-only.** The version of the compiler Icinga was built with, e.g. `7.3.0.7030031`.
 BuildHostName       |**Read-only.** The name of the host Icinga was built on, e.g. `acheron`.
 ApplicationVersion  |**Read-only.** The application version, e.g. `2.9.0`.
+
+#### Additional Constants <a id="icinga-constants-additional"></a>
 
 Writable constants can be specified on the CLI using the `--define/-D` parameter.
 
@@ -546,15 +548,23 @@ SysconfDir          |**Read-only.** Contains the path of the sysconf directory. 
 LocalStateDir       |**Read-only.** Contains the path of the local state directory. Defaults to `PrefixDir + "/var"`.
 RunDir              |**Read-only.** Contains the path of the run directory. Defaults to `LocalStateDir + "/run"`.
 
+#### Advanced Constants and Variables <a id="icinga-constants-advanced"></a>
+
 Advanced runtime constants. Please only use them if advised by support or developers.
 
 Variable                   | Description
 ---------------------------|-------------------
 EventEngine                |**Read-write.** The name of the socket event engine, can be `poll` or `epoll`. The epoll interface is only supported on Linux.
 AttachDebugger             |**Read-write.** Whether to attach a debugger when Icinga 2 crashes. Defaults to `false`.
-ICINGA2\_RLIMIT\_FILES     |**Read-write.** Defines the resource limit for RLIMIT_NOFILE that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
-ICINGA2\_RLIMIT\_PROCESSES |**Read-write.** Defines the resource limit for RLIMIT_NPROC that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
-ICINGA2\_RLIMIT\_STACK     |**Read-write.** Defines the resource limit for RLIMIT_STACK that should be set at start-up. Value cannot be set lower than the default `256 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
+
+Advanced sysconfig environment variables, defined in `/etc/sysconfig/icinga2` (RHEL/SLES) or `/etc/default/icinga2` (Debian/Ubuntu).
+
+Variable                   | Description
+---------------------------|-------------------
+ICINGA2\_RLIMIT\_FILES     |**Read-write.** Defines the resource limit for `RLIMIT_NOFILE` that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
+ICINGA2\_RLIMIT\_PROCESSES |**Read-write.** Defines the resource limit for `RLIMIT_NPROC` that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
+ICINGA2\_RLIMIT\_STACK     |**Read-write.** Defines the resource limit for `RLIMIT_STACK` that should be set at start-up. Value cannot be set lower than the default `256 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
+
 
 ## Apply <a id="apply"></a>
 
