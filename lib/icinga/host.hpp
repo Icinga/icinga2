@@ -39,7 +39,7 @@ public:
 	HostState GetLastHardState() const override;
 	int GetSeverity() const override;
 
-	bool IsStateOK(ServiceState state) override;
+	bool IsStateOK(ServiceState state) const override;
 	void SaveLastState(ServiceState state, double timestamp) override;
 
 	static HostState StateFromString(const String& state);

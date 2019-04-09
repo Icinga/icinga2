@@ -97,7 +97,7 @@ public:
 	void UpdateNextCheck(const MessageOrigin::Ptr& origin = nullptr);
 
 	bool HasBeenChecked() const;
-	virtual bool IsStateOK(ServiceState state) = 0;
+	virtual bool IsStateOK(ServiceState state) const = 0;
 
 	double GetLastCheck() const final;
 

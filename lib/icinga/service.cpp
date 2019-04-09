@@ -133,7 +133,7 @@ int Service::GetSeverity() const
 	return severity;
 }
 
-bool Service::IsStateOK(ServiceState state)
+bool Service::IsStateOK(ServiceState state) const
 {
 	return state == ServiceOK;
 }
