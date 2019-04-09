@@ -861,8 +861,6 @@ Fetch the `ca.crt` file from the client node and compare it to your master's `ca
 # diff -ur /var/lib/icinga2/certs/ca.crt test-client-ca.crt
 ```
 
-On SLES11 you'll need to use the `openssl1` command instead of `openssl`.
-
 <!--
 ### Certificate Signing <a id="troubleshooting-certificate-signing"></a>
 -->

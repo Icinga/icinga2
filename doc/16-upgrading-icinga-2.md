@@ -9,6 +9,13 @@ follow the instructions for v2.7 too.
 
 ## Upgrading to v2.10 <a id="upgrading-to-2-10"></a>
 
+### 2.10.5 Packages <a id="upgrading-to-2-10-5-packages"></a>
+
+EOL distributions where no packages are available with 2.10.5:
+
+* SLES 11
+* Ubuntu 14 LTS
+
 ### Path Constant Changes <a id="upgrading-to-2-10-path-constant-changes"></a>
 
 During package upgrades you may see a notice that the configuration

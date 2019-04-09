@@ -37,6 +37,11 @@ Community repositories:
 Packages for distributions other than the ones listed above may also be
 available. Please contact your distribution packagers.
 
+> **Note**
+>
+> Windows is only supported for agent installations. Please refer
+> to the [distributed monitoring chapter](06-distributed-monitoring.md#distributed-monitoring-setup-client-windows).
+
 ### Package Repositories <a id="package-repositories"></a>
 
 You need to add the Icinga repository to your package management configuration.
@@ -47,7 +52,8 @@ The following commands must be executed with `root` permissions unless noted oth
 Debian:
 
 ```
-apt-get -y install apt-transport-https
+apt-get update
+apt-get -y install apt-transport-https wget gnupg
 
 wget -O - https://packages.icinga.com/icinga.key | apt-key add -
 
@@ -63,7 +69,8 @@ apt-get update
 Ubuntu:
 
 ```
-apt-get -y install apt-transport-https
+apt-get update
+apt-get -y install apt-transport-https wget gnupg
 
 wget -O - https://packages.icinga.com/icinga.key | apt-key add -
 
@@ -79,7 +86,8 @@ apt-get update
 Raspbian:
 
 ```
-apt-get -y install apt-transport-https
+apt-get update
+apt-get -y install apt-transport-https wget gnupg
 
 wget -O - https://packages.icinga.com/icinga.key | apt-key add -
 
@@ -92,6 +100,18 @@ DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
 apt-get update
 ```
 
+##### Debian Backports Repository <a id="package-repositories-debian-backports"></a>
+
+Debian Stretch:
+
+```
+DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
+ echo "deb https://deb.debian.org/debian ${DIST}-backports main" > \
+ /etc/apt/sources.list.d/${DIST}-backports.list
+
+apt-get update
+```
+
 #### RHEL/CentOS/Fedora Repositories <a id="package-repositories-rhel-centos-fedora"></a>
 
 RHEL/CentOS 7:
@@ -100,7 +120,7 @@ RHEL/CentOS 7:
 yum install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
 ```
 
-RHEL/CentOS 6:
+RHEL/CentOS 6 x64:
 
 ```
 yum install https://packages.icinga.com/epel/icinga-rpm-release-6-latest.noarch.rpm
@@ -112,7 +132,7 @@ Fedora 29:
 dnf install https://packages.icinga.com/fedora/icinga-rpm-release-29-latest.noarch.rpm
 ```
 
-#### RHEL/CentOS EPEL Repository <a id="package-repositories-rhel-epel"></a>
+##### RHEL/CentOS EPEL Repository <a id="package-repositories-rhel-epel"></a>
 
 The packages for RHEL/CentOS depend on other packages which are distributed
 as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
@@ -143,15 +163,6 @@ zypper ar https://packages.icinga.com/SUSE/ICINGA-release.repo
 zypper ref
 ```
 
-SLES 11:
-
-```
-rpm --import https://packages.icinga.com/icinga.key
-
-zypper ar https://packages.icinga.com/SUSE/ICINGA-release-11.repo
-zypper ref
-```
-
 openSUSE:
 
 ```
@@ -160,16 +171,6 @@ rpm --import https://packages.icinga.com/icinga.key
 zypper ar https://packages.icinga.com/openSUSE/ICINGA-release.repo
 zypper ref
 ```
-
-#### SLES Security Repository <a id="package-repositories-sles-security"></a>
-
-The packages for SLES 11 depend on the `openssl1` package which is distributed
-as part of the [SLES 11 Security Module](https://www.suse.com/communities/conversations/introducing-the-suse-linux-enterprise-11-security-module/).
-
-#### SLES 12 SDK <a id="package-sles-sdk"></a>
-
-Icinga 2 requires the `libboost_chrono1_54_0` package from the `SLES 12 SDK` repository. Refer to the SUSE Enterprise
-Linux documentation for further information.
 
 #### Alpine Linux Repositories <a id="package-repositories-alpine"></a>
 
