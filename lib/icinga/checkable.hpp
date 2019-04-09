@@ -86,6 +86,8 @@ public:
 
 	int GetSeverity() const override;
 	bool GetReachable() const override;
+	bool GetProblem() const override;
+	bool GetHandled() const override;
 
 	/* Checks */
 	intrusive_ptr<CheckCommand> GetCheckCommand() const;
