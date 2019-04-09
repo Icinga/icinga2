@@ -9,7 +9,13 @@ follow the instructions for v2.7 too.
 
 ## Upgrading to v2.11 <a id="upgrading-to-2-11"></a>
 
-### Package Dependencies <a id="upgrading-to-2-11-package-dependencies"></a>
+### Packages <a id="upgrading-to-2-11-packages"></a>
+
+EOL distributions where no packages are available with this release:
+
+* SLES 11
+* Ubuntu 14 LTS
+* RHEL/CentOS 6 x86
 
 #### Added: Boost 1.66+
 
@@ -19,7 +25,12 @@ details, please continue reading in [this issue](https://github.com/Icinga/icing
 
 The package dependencies have been updated for RPM/DEB already.
 On platforms where EPEL or Backports cannot satisfy this dependency,
-we provide Boost as package on our [package repository](https://packages.icinga.com).
+we provide Boost as package on our [package repository](https://packages.icinga.com):
+
+* SLES 12 (this replaces the SDK requirement)
+* CentOS 6 x64
+* Debian Jessie
+* Ubuntu Xenial/Bionic
 
 After upgrade, you may remove the old Boost packages (1.53 or anything above)
 if you don't need them anymore.

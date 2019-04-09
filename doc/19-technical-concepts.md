@@ -913,7 +913,7 @@ below have been collected too. [This thread](https://www.reddit.com/r/cpp/commen
 also sheds more light in modern programming techniques.
 
 Our main "problem" with Icinga 2 are modern compilers supporting the full C++11 feature set.
-Recent analysis have proven that gcc on CentOS 6 or SLES11 are too old to use modern
+Recent analysis have proven that gcc on CentOS 6 are too old to use modern
 programming techniques or anything which implemens C++14 at least.
 
 Given the below projects, we are also not fans of wrapping C interfaces into
