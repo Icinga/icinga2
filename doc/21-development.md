@@ -6,6 +6,8 @@ development, package builds and tests.
 * [Debug Icinga 2](21-development.md#development-debug)
   * [GDB Backtrace](21-development.md#development-debug-gdb-backtrace)
   * [Core Dump](21-development.md#development-debug-core-dump)
+* [Test Icinga 2](21-development.md#development-tests)
+  * [Snapshot Packages (Nightly Builds)](21-development.md#development-tests-snapshot-packages)
 * [Develop Icinga 2](21-development.md#development-develop)
   * [Linux Dev Environment](21-development.md#development-linux-dev-env)
   * [macOS Dev Environment](21-development.md#development-macos-dev-env)
@@ -15,7 +17,6 @@ development, package builds and tests.
   * [DEB](21-development.md#development-package-builds-deb)
   * [Windows](21-development.md#development-package-builds-windows)
 * [Advanced Tips](21-development.md#development-advanced)
-* [Tests](21-development.md#development-tests)
 
 
 ## Debug Icinga 2 <a id="development-debug"></a>
@@ -395,6 +396,157 @@ Up/down in stacktrace:
 ```
 > up
 > down
+```
+
+## Test Icinga 2 <a id="development-tests"></a>
+
+### Snapshot Packages (Nightly Builds) <a id="development-tests-snapshot-packages"></a>
+
+Icinga provides snapshot packages as nightly builds from [Git master](https://github.com/icinga/icinga2).
+
+These packages contain development code which should be considered "work in progress".
+While developers ensure that tests are running fine with CI actions on PRs,
+things might break, or changes are not yet documented in the changelog.
+
+You can help the developers and test the snapshot packages, e.g. when larger
+changes or rewrites are taking place for a new major version. Your feedback
+is very much appreciated.
+
+Snapshot packages are available for all supported platforms including
+Linux and Windows and can be obtained from [https://packages.icinga.com](https://packages.icinga.com).
+
+The [Vagrant boxes](https://github.com/Icinga/icinga-vagrant) also use
+the Icinga snapshot packages to allow easier integration tests. It is also
+possible to use Docker with base OS images and installing the snapshot
+packages.
+
+If you encounter a problem, please [open a new issue](https://github.com/Icinga/icinga2/issues/new/choose)
+on GitHub and mention that you're testing the snapshot packages.
+
+#### RHEL/CentOS <a id="development-tests-snapshot-packages-rhel"></a>
+
+2.11+ requires the [EPEL repository](02-getting-started.md#package-repositories-rhel-epel) for Boost 1.66+.
+
+In addition to that, the `icinga-rpm-release` package already provides the `icinga-snapshot-build`
+repository but it is disabled by default.
+
+```
+yum -y install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
+yum -y install epel-release
+yum makecache
+
+yum install --enablerepo=icinga-snapshot-build icinga2
+```
+
+#### Debian <a id="development-tests-snapshot-packages-debian"></a>
+
+2.11+ requires Boost 1.66+ which either is provided by the OS, backports or Icinga stable repositories.
+It is advised to configure both Icinga repositories, stable and snapshot and selectively
+choose the repository with the `-t` flag on `apt-get install`.
+
+```
+apt-get update
+apt-get -y install apt-transport-https wget gnupg
+
+wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+
+DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
+ echo "deb https://packages.icinga.com/debian icinga-${DIST} main" > \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+ echo "deb-src https://packages.icinga.com/debian icinga-${DIST} main" >> \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+
+DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
+ echo "deb http://packages.icinga.com/debian icinga-${DIST}-snapshots main" > \
+ /etc/apt/sources.list.d/${DIST}-icinga-snapshots.list
+ echo "deb-src http://packages.icinga.com/debian icinga-${DIST}-snapshots main" >> \
+ /etc/apt/sources.list.d/${DIST}-icinga-snapshots.list
+
+apt-get update
+```
+
+On Debian Stretch, you'll also need to add Debian Backports.
+
+```
+DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
+ echo "deb https://deb.debian.org/debian ${DIST}-backports main" > \
+ /etc/apt/sources.list.d/${DIST}-backports.list
+
+apt-get update
+```
+
+Then install the snapshot packages.
+
+```
+DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
+apt-get install -t icinga-${DIST}-snapshots icinga2
+```
+
+#### Ubuntu <a id="development-tests-snapshot-packages-ubuntu"></a>
+
+```
+apt-get update
+apt-get -y install apt-transport-https wget gnupg
+
+wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+
+. /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
+ echo "deb https://packages.icinga.com/ubuntu icinga-${DIST} main" > \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+ echo "deb-src https://packages.icinga.com/ubuntu icinga-${DIST} main" >> \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+
+. /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
+ echo "deb https://packages.icinga.com/ubuntu icinga-${DIST}-snapshots main" > \
+ /etc/apt/sources.list.d/${DIST}-icinga-snapshots.list
+ echo "deb-src https://packages.icinga.com/ubuntu icinga-${DIST}-snapshots main" >> \
+ /etc/apt/sources.list.d/${DIST}-icinga-snapshots.list
+
+apt-get update
+```
+
+Then install the snapshot packages.
+
+```
+. /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
+apt-get install -t icinga-${DIST}-snapshots icinga2
+```
+
+#### SLES <a id="development-tests-snapshot-packages-sles"></a>
+
+The required Boost packages are provided with the stable release repository.
+
+```
+rpm --import https://packages.icinga.com/icinga.key
+
+zypper ar https://packages.icinga.com/SUSE/ICINGA-release.repo
+zypper ref
+
+zypper ar https://packages.icinga.com/SUSE/ICINGA-snapshot.repo
+zypper ref
+```
+
+Selectively install the snapshot packages using the `-r` parameter.
+
+```
+zypper in -r icinga-snapshot-builds icinga2
+```
+
+
+### Unit Tests <a id="development-tests-unit"></a>
+
+Build the binaries and run the tests.
+
+
+```
+make -j4 -C debug
+make test -C debug
+```
+
+Run a specific boost test:
+
+```
+debug/Bin/Debug/boosttest-test-base --run_test=remote_url
 ```
 
 
@@ -1139,7 +1291,7 @@ Icinga application using a dist tarball (including notes for distributions):
 * pkg-config
 * OpenSSL library and header files >= 1.0.1
   * RHEL/Fedora: openssl-devel
-  * SUSE: libopenssl-devel (for SLES 11: libopenssl1-devel)
+  * SUSE: libopenssl-devel
   * Debian/Ubuntu: libssl-dev
   * Alpine: libressl-dev
 * Boost library and header files >= 1.66.0
@@ -1175,7 +1327,7 @@ Icinga application using a dist tarball (including notes for distributions):
 
 **FreeBSD**: libexecinfo (automatically used when Icinga 2 is installed via port or package)
 
-**RHEL6** and **SLES11**: Requires a newer boost version which is available on packages.icinga.com
+**RHEL6**: Requires a newer boost version which is available on packages.icinga.com
 with a version suffixed name.
 
 ### Runtime user environment <a id="development-package-builds-runtime-user-env"></a>
@@ -1430,11 +1582,6 @@ MACROS
 
 If you prefer to build packages offline, a suitable Vagrant box is located
 [here](https://atlas.hashicorp.com/mvbcoding/boxes/awslinux/).
-
-##### SLES 11
-
-The Icinga repository provides the required boost package version and must be
-added before building.
 
 ### Build Debian/Ubuntu packages <a id="development-package-builds-deb"></a>
 
@@ -1702,21 +1849,5 @@ the duplicate import in your `~/.gdbinit` file.
 
 ```
 RuntimeError: pretty-printer already registered: libstdc++-v6
-```
-
-## Development Tests <a id="development-tests"></a>
-
-Build the binaries and run the tests.
-
-
-```
-make -j4 -C debug
-make test -C debug
-```
-
-Run a specific boost test:
-
-```
-debug/Bin/Debug/boosttest-test-base --run_test=remote_url
 ```
 
