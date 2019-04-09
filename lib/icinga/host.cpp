@@ -192,7 +192,7 @@ int Host::GetSeverity() const
 	return severity;
 }
 
-bool Host::IsStateOK(ServiceState state)
+bool Host::IsStateOK(ServiceState state) const
 {
 	return Host::CalculateState(state) == HostUp;
 }

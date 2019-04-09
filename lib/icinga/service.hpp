@@ -32,7 +32,7 @@ public:
 
 	bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
-	bool IsStateOK(ServiceState state) override;
+	bool IsStateOK(ServiceState state) const override;
 	void SaveLastState(ServiceState state, double timestamp) override;
 
 	static ServiceState StateFromString(const String& state);
