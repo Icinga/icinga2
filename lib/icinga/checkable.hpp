@@ -85,6 +85,7 @@ public:
 	void ClearAcknowledgement(const MessageOrigin::Ptr& origin = nullptr);
 
 	int GetSeverity() const override;
+	bool GetReachable() const override;
 
 	/* Checks */
 	intrusive_ptr<CheckCommand> GetCheckCommand() const;

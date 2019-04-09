@@ -123,6 +123,9 @@ abstract class Checkable : CustomVarObject
 	[no_storage] int severity {
 		get;
 	};
+	[no_storage] bool reachable {
+		get;
+	};
 
 	[state] bool force_next_check;
 	[state] int acknowledgement (AcknowledgementRaw) {

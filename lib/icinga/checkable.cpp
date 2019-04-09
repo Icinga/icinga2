@@ -139,6 +139,11 @@ int Checkable::GetSeverity() const
 	return 0;
 }
 
+bool Checkable::GetReachable() const
+{
+	return IsReachable();
+}
+
 void Checkable::NotifyFixedDowntimeStart(const Downtime::Ptr& downtime)
 {
 	if (!downtime->GetFixed())
