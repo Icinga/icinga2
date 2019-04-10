@@ -11,7 +11,10 @@
 #include "base/objectlock.hpp"
 #include <cstdint>
 #include <mmatch.h>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/thread/tss.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -249,47 +252,7 @@ bool Utility::CidrMatch(const String& pattern, const String& ip)
  */
 String Utility::DirName(const String& path)
 {
-	char *dir;
-
-#ifdef _WIN32
-	String dupPath = path;
-
-	/* PathRemoveFileSpec doesn't properly handle forward slashes. */
-	for (char& ch : dupPath) {
-		if (ch == '/')
-			ch = '\\';
-	}
-
-	dir = strdup(dupPath.CStr());
-#else /* _WIN32 */
-	dir = strdup(path.CStr());
-#endif /* _WIN32 */
-
-	if (!dir)
-		BOOST_THROW_EXCEPTION(std::bad_alloc());
-
-	String result;
-
-#ifndef _WIN32
-	result = dirname(dir);
-#else /* _WIN32 */
-	if (dir[0] != 0 && !PathRemoveFileSpec(dir)) {
-		free(dir);
-
-		BOOST_THROW_EXCEPTION(win32_error()
-			<< boost::errinfo_api_function("PathRemoveFileSpec")
-			<< errinfo_win32_error(GetLastError()));
-	}
-
-	result = dir;
-
-	if (result.IsEmpty())
-		result = ".";
-#endif /* _WIN32 */
-
-	free(dir);
-
-	return result;
+	return boost::filesystem::path(path).parent_path().string();
 }
 
 /**
@@ -300,21 +263,7 @@ String Utility::DirName(const String& path)
  */
 String Utility::BaseName(const String& path)
 {
-	char *dir = strdup(path.CStr());
-	String result;
-
-	if (!dir)
-		BOOST_THROW_EXCEPTION(std::bad_alloc());
-
-#ifndef _WIN32
-	result = basename(dir);
-#else /* _WIN32 */
-	result = PathFindFileName(dir);
-#endif /* _WIN32 */
-
-	free(dir);
-
-	return result;
+	return boost::filesystem::path(path).filename().string();
 }
 
 /**
@@ -755,36 +704,9 @@ void Utility::MkDirP(const String& path, int mode)
 
 void Utility::RemoveDirRecursive(const String& path)
 {
-	std::vector<String> paths;
-	Utility::GlobRecursive(path, "*", std::bind(&Utility::CollectPaths, _1, std::ref(paths)), GlobFile | GlobDirectory);
+	namespace fs = boost::filesystem;
 
-	/* This relies on the fact that GlobRecursive lists the parent directory
-	 * first before recursing into subdirectories.
-	 */
-	std::reverse(paths.begin(), paths.end());
-
-	for (const String& path : paths) {
-		if (remove(path.CStr()) < 0)
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("remove")
-				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(path));
-	}
-
-#ifndef _WIN32
-	if (rmdir(path.CStr()) < 0)
-#else /* _WIN32 */
-	if (_rmdir(path.CStr()) < 0)
-#endif /* _WIN32 */
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rmdir")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
-}
-
-void Utility::CollectPaths(const String& path, std::vector<String>& paths)
-{
-	paths.push_back(path);
+	(void)fs::remove_all(fs::path(path));
 }
 
 /*
@@ -793,10 +715,9 @@ void Utility::CollectPaths(const String& path, std::vector<String>& paths)
  */
 void Utility::CopyFile(const String& source, const String& target)
 {
-	std::ifstream ifs(source.CStr(), std::ios::binary);
-	std::ofstream ofs(target.CStr(), std::ios::binary | std::ios::trunc);
+	namespace fs = boost::filesystem;
 
-	ofs << ifs.rdbuf();
+	fs::copy_file(fs::path(source), fs::path(target), fs::copy_option::overwrite_if_exists);
 }
 
 /*
@@ -1339,13 +1260,11 @@ tm Utility::LocalTime(time_t ts)
 
 bool Utility::PathExists(const String& path)
 {
-#ifndef _WIN32
-	struct stat statbuf;
-	return (lstat(path.CStr(), &statbuf) >= 0);
-#else /* _WIN32 */
-	struct _stat statbuf;
-	return (_stat(path.CStr(), &statbuf) >= 0);
-#endif /* _WIN32 */
+	namespace fs = boost::filesystem;
+
+	boost::system::error_code ec;
+
+	return fs::exists(fs::path(path), ec) && !ec;
 }
 
 Value Utility::LoadJsonFile(const String& path)
@@ -1365,6 +1284,8 @@ Value Utility::LoadJsonFile(const String& path)
 
 void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 {
+	namespace fs = boost::filesystem;
+
 	std::fstream fp;
 	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", mode, fp);
 
@@ -1376,12 +1297,7 @@ void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 	_unlink(path.CStr());
 #endif /* _WIN32 */
 
-	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempFilename));
-	}
+	fs::rename(fs::path(tempFilename), fs::path(path));
 }
 
 static void HexEncode(char ch, std::ostream& os)

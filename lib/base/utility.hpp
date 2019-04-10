@@ -143,7 +143,6 @@ public:
 
 private:
 	Utility();
-	static void CollectPaths(const String& path, std::vector<String>& paths);
 
 #ifdef _WIN32
 	static int MksTemp (char *tmpl);
