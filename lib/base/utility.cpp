@@ -721,6 +721,17 @@ void Utility::CopyFile(const String& source, const String& target)
 }
 
 /*
+ * Renames a source file to a target location.
+ * Caller must ensure that the target's base directory exists and is writable.
+ */
+void Utility::RenameFile(const String& source, const String& target)
+{
+	namespace fs = boost::filesystem;
+
+	fs::rename(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()));
+}
+
+/*
  * Set file permissions
  */
 bool Utility::SetFileOwnership(const String& file, const String& user, const String& group)
@@ -1293,11 +1304,7 @@ void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 	fp << JsonEncode(value);
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(path.CStr());
-#endif /* _WIN32 */
-
-	fs::rename(fs::path(tempFilename.Begin(), tempFilename.End()), fs::path(path.Begin(), path.End()));
+	RenameFile(tempFilename, path);
 }
 
 static void HexEncode(char ch, std::ostream& os)

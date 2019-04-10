@@ -113,6 +113,7 @@ public:
 
 	static void RemoveDirRecursive(const String& path);
 	static void CopyFile(const String& source, const String& target);
+	static void RenameFile(const String& source, const String& target);
 
 	static Value LoadJsonFile(const String& path);
 	static void SaveJsonFile(const String& path, int mode, const Value& value);

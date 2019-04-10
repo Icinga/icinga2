@@ -334,16 +334,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	cafp << ca;
 	cafp.close();
 
-#ifdef _WIN32
-	_unlink(caPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempCaPath.CStr(), caPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempCaPath));
-	}
+	Utility::RenameFile(tempCaPath, caPath);
 
 	/* Update signed certificate. */
 	String certPath = listener->GetDefaultCertPath();
@@ -356,16 +347,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	certfp << cert;
 	certfp.close();
 
-#ifdef _WIN32
-	_unlink(certPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempCertPath.CStr(), certPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempCertPath));
-	}
+	Utility::RenameFile(tempCertPath, certPath);
 
 	/* Remove ticket for successful signing request. */
 	String ticketPath = ApiListener::GetCertsDir() + "/ticket";
