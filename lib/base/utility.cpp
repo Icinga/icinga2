@@ -252,7 +252,7 @@ bool Utility::CidrMatch(const String& pattern, const String& ip)
  */
 String Utility::DirName(const String& path)
 {
-	return boost::filesystem::path(path).parent_path().string();
+	return boost::filesystem::path(path.Begin(), path.End()).parent_path().string();
 }
 
 /**
@@ -263,7 +263,7 @@ String Utility::DirName(const String& path)
  */
 String Utility::BaseName(const String& path)
 {
-	return boost::filesystem::path(path).filename().string();
+	return boost::filesystem::path(path.Begin(), path.End()).filename().string();
 }
 
 /**
@@ -706,7 +706,7 @@ void Utility::RemoveDirRecursive(const String& path)
 {
 	namespace fs = boost::filesystem;
 
-	(void)fs::remove_all(fs::path(path));
+	(void)fs::remove_all(fs::path(path.Begin(), path.End()));
 }
 
 /*
@@ -717,7 +717,7 @@ void Utility::CopyFile(const String& source, const String& target)
 {
 	namespace fs = boost::filesystem;
 
-	fs::copy_file(fs::path(source), fs::path(target), fs::copy_option::overwrite_if_exists);
+	fs::copy_file(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()), fs::copy_option::overwrite_if_exists);
 }
 
 /*
@@ -1264,7 +1264,7 @@ bool Utility::PathExists(const String& path)
 
 	boost::system::error_code ec;
 
-	return fs::exists(fs::path(path), ec) && !ec;
+	return fs::exists(fs::path(path.Begin(), path.End()), ec) && !ec;
 }
 
 Value Utility::LoadJsonFile(const String& path)
@@ -1297,7 +1297,7 @@ void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 	_unlink(path.CStr());
 #endif /* _WIN32 */
 
-	fs::rename(fs::path(tempFilename), fs::path(path));
+	fs::rename(fs::path(tempFilename.Begin(), tempFilename.End()), fs::path(path.Begin(), path.End()));
 }
 
 static void HexEncode(char ch, std::ostream& os)
