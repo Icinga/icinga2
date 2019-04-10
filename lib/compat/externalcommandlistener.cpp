@@ -67,12 +67,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 		if (S_ISFIFO(statbuf.st_mode) && access(commandPath.CStr(), R_OK) >= 0) {
 			fifo_ok = true;
 		} else {
-			if (unlink(commandPath.CStr()) < 0) {
-				BOOST_THROW_EXCEPTION(posix_error()
-					<< boost::errinfo_api_function("unlink")
-					<< boost::errinfo_errno(errno)
-					<< boost::errinfo_file_name(commandPath));
-			}
+			Utility::Remove(commandPath);
 		}
 	}
 

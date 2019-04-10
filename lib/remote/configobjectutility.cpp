@@ -124,12 +124,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		/* Disable logging for object creation, but do so ourselves later on. */
 		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems, true) || !ConfigItem::ActivateItems(upq, newItems, true, true)) {
 			if (errors) {
-				if (unlink(path.CStr()) < 0 && errno != ENOENT) {
-					BOOST_THROW_EXCEPTION(posix_error()
-						<< boost::errinfo_api_function("unlink")
-						<< boost::errinfo_errno(errno)
-						<< boost::errinfo_file_name(path));
-				}
+				Utility::Remove(path);
 
 				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex, false));
@@ -154,12 +149,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 			<< "Created and activated object '" << fullName << "' of type '" << type->GetName() << "'.";
 
 	} catch (const std::exception& ex) {
-		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("unlink")
-				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(path));
-		}
+		Utility::Remove(path);
 
 		if (errors)
 			errors->Add(DiagnosticInformation(ex, false));
@@ -226,14 +216,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 
 	String path = GetObjectConfigPath(object->GetReflectionType(), name);
 
-	if (Utility::PathExists(path)) {
-		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("unlink")
-				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(path));
-		}
-	}
+	Utility::Remove(path);
 
 	return true;
 }

@@ -702,6 +702,13 @@ void Utility::MkDirP(const String& path, int mode)
 	}
 }
 
+void Utility::Remove(const String& path)
+{
+	namespace fs = boost::filesystem;
+
+	(void)fs::remove(fs::path(path.Begin(), path.End()));
+}
+
 void Utility::RemoveDirRecursive(const String& path)
 {
 	namespace fs = boost::filesystem;

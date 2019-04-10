@@ -1605,12 +1605,5 @@ void ApiListener::RemoveStatusFile()
 {
 	String path = Configuration::CacheDir + "/api-state.json";
 
-	if (Utility::PathExists(path)) {
-		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("unlink")
-				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(path));
-		}
-	}
+	Utility::Remove(path);
 }

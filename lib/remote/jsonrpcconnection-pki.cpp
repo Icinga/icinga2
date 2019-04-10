@@ -352,12 +352,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	/* Remove ticket for successful signing request. */
 	String ticketPath = ApiListener::GetCertsDir() + "/ticket";
 
-	if (unlink(ticketPath.CStr()) < 0 && errno != ENOENT) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("unlink")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(ticketPath));
-	}
+	Utility::Remove(ticketPath);
 
 	/* Update the certificates at runtime and reconnect all endpoints. */
 	Log(LogInformation, "JsonRpcConnection")
