@@ -125,6 +125,8 @@ int Service::GetSeverity() const
 		severity |= SeverityFlagDowntime;
 	else if (IsAcknowledged())
 		severity |= SeverityFlagAcknowledgement;
+	else if (m_Host->GetProblem())
+		severity |= SeverityFlagHostDown;
 	else
 		severity |= SeverityFlagUnhandled;
 
