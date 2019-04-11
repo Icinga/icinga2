@@ -29,6 +29,7 @@ public:
 
 	Host::Ptr GetHost() const override;
 	int GetSeverity() const override;
+	bool GetHandled() const override;
 
 	bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 

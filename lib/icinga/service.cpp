@@ -133,6 +133,11 @@ int Service::GetSeverity() const
 	return severity;
 }
 
+bool Service::GetHandled() const
+{
+	return Checkable::GetHandled() || m_Host->GetProblem();
+}
+
 bool Service::IsStateOK(ServiceState state) const
 {
 	return state == ServiceOK;
