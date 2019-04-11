@@ -964,21 +964,21 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 	}
 }
 
-bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrigin::Ptr& origin, const Dictionary::Ptr& message, const Endpoint::Ptr& currentMaster)
+bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrigin::Ptr& origin, const Dictionary::Ptr& message, const Endpoint::Ptr& currentZoneMaster)
 {
 	ASSERT(targetZone);
 
-	Zone::Ptr myZone = Zone::GetLocalZone();
+	Zone::Ptr localZone = Zone::GetLocalZone();
 
-	/* only relay the message to a) the same zone, b) the parent zone and c) direct child zones. Exception is a global zone. */
+	/* only relay the message to a) the same local zone, b) the parent zone and c) direct child zones. Exception is a global zone. */
 	if (!targetZone->GetGlobal() &&
-		targetZone != myZone &&
-		targetZone != myZone->GetParent() &&
-		targetZone->GetParent() != myZone) {
+		targetZone != localZone &&
+		targetZone != localZone->GetParent() &&
+		targetZone->GetParent() != localZone) {
 		return true;
 	}
 
-	Endpoint::Ptr myEndpoint = GetLocalEndpoint();
+	Endpoint::Ptr localEndpoint = GetLocalEndpoint();
 
 	std::vector<Endpoint::Ptr> skippedEndpoints;
 
@@ -987,11 +987,11 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 	std::set<Endpoint::Ptr> targetEndpoints;
 
 	if (targetZone->GetGlobal()) {
-		targetEndpoints = myZone->GetEndpoints();
+		targetEndpoints = localZone->GetEndpoints();
 
 		for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
 			/* Fetch immediate child zone members */
-			if (zone->GetParent() == myZone) {
+			if (zone->GetParent() == localZone) {
 				std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
 				targetEndpoints.insert(endpoints.begin(), endpoints.end());
 			}
@@ -1000,16 +1000,16 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 		targetEndpoints = targetZone->GetEndpoints();
 	}
 
-	for (const Endpoint::Ptr& endpoint : targetEndpoints) {
-		/* don't relay messages to ourselves */
-		if (endpoint == GetLocalEndpoint())
+	for (const Endpoint::Ptr& targetEndpoint : targetEndpoints) {
+		/* Don't relay messages to ourselves. */
+		if (targetEndpoint == localEndpoint)
 			continue;
 
 		log_needed = true;
 
-		/* don't relay messages to disconnected endpoints */
-		if (!endpoint->GetConnected()) {
-			if (targetZone == myZone)
+		/* Don't relay messages to disconnected endpoints. */
+		if (!targetEndpoint->GetConnected()) {
+			if (targetZone == localZone)
 				log_done = false;
 
 			continue;
@@ -1017,40 +1017,54 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 
 		log_done = true;
 
-		/* don't relay the message to the zone through more than one endpoint unless this is our own zone */
-		if (relayed && targetZone != myZone) {
-			skippedEndpoints.push_back(endpoint);
+		/* Don't relay the message to the zone through more than one endpoint unless this is our own zone.
+		 * 'relayed' is set to true on success below, enabling the checks in the second iteration.
+		 */
+		if (relayed && targetZone != localZone) {
+			skippedEndpoints.push_back(targetEndpoint);
 			continue;
 		}
 
-		/* don't relay messages back to the endpoint which we got the message from */
-		if (origin && origin->FromClient && endpoint == origin->FromClient->GetEndpoint()) {
-			skippedEndpoints.push_back(endpoint);
+		/* Don't relay messages back to the endpoint which we got the message from. */
+		if (origin && origin->FromClient && targetEndpoint == origin->FromClient->GetEndpoint()) {
+			skippedEndpoints.push_back(targetEndpoint);
 			continue;
 		}
 
-		/* don't relay messages back to the zone which we got the message from */
+		/* Don't relay messages back to the zone which we got the message from. */
 		if (origin && origin->FromZone && targetZone == origin->FromZone) {
-			skippedEndpoints.push_back(endpoint);
+			skippedEndpoints.push_back(targetEndpoint);
 			continue;
 		}
 
-		/* only relay message to the master if we're not currently the master */
-		if (currentMaster != myEndpoint && currentMaster != endpoint) {
-			skippedEndpoints.push_back(endpoint);
+		/* Only relay message to the zone master if we're not currently the zone master.
+		 * e1 is zone master, e2 and e3 are zone members.
+		 *
+		 * Message is sent from e2 or e3:
+		 *   !isMaster == true
+		 *   targetEndpoint e1 is zone master -> send the message
+		 *   targetEndpoint e3 is not zone master -> skip it, avoid routing loops
+		 *
+		 * Message is sent from e1:
+		 *   !isMaster == false -> send the messages to e2 and e3 being the zone routing master.
+		 */
+		bool isMaster = (currentZoneMaster == localEndpoint);
+
+		if (!isMaster && targetEndpoint != currentZoneMaster) {
+			skippedEndpoints.push_back(targetEndpoint);
 			continue;
 		}
 
 		relayed = true;
 
-		SyncSendMessage(endpoint, message);
+		SyncSendMessage(targetEndpoint, message);
 	}
 
 	if (!skippedEndpoints.empty()) {
 		double ts = message->Get("ts");
 
-		for (const Endpoint::Ptr& endpoint : skippedEndpoints)
-			endpoint->SetLocalLogPosition(ts);
+		for (const Endpoint::Ptr& skippedEndpoint : skippedEndpoints)
+			skippedEndpoint->SetLocalLogPosition(ts);
 	}
 
 	return !log_needed || log_done;
