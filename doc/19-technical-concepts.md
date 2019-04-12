@@ -1680,7 +1680,7 @@ Message updates are dropped when
 * The origin sender is not in a parent zone of the receiver.
 * The certificate fingerprint is in an invalid format.
 
-#### log::SetLogPosition <a id="technical-concepts-json-rpc-messages-pki-updatecertificate"></a>
+#### log::SetLogPosition <a id="technical-concepts-json-rpc-messages-log-setlogposition"></a>
 
 > Location: `apilistener.cpp` and `jsonrpcconnection.cpp`
 
