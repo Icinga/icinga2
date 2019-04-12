@@ -108,7 +108,6 @@ int Service::GetSeverity() const
 {
 	int severity = 0;
 
-	ObjectLock olock(this);
 	ServiceState state = GetStateRaw();
 
 	if (!HasBeenChecked())
@@ -127,8 +126,6 @@ int Service::GetSeverity() const
 		severity |= SeverityFlagAcknowledgement;
 	else
 		severity |= SeverityFlagUnhandled;
-
-	olock.Unlock();
 
 	return severity;
 }

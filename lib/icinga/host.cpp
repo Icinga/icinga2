@@ -169,7 +169,6 @@ int Host::GetSeverity() const
 {
 	int severity = 0;
 
-	ObjectLock olock(this);
 	ServiceState state = GetStateRaw();
 
 	/* OK/Warning = Up, Critical/Unknownb = Down */
@@ -186,8 +185,6 @@ int Host::GetSeverity() const
 		severity |= SeverityFlagAcknowledgement;
 	else
 		severity |= SeverityFlagUnhandled;
-
-	olock.Unlock();
 
 	return severity;
 }
