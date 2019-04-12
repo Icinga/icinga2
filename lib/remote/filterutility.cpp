@@ -188,7 +188,8 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 	Expression *permissionFilter;
 	CheckPermission(user, qd.Permission, &permissionFilter);
 
-	ScriptFrame permissionFrame(true);
+	Namespace::Ptr permissionFrameNS = new Namespace();
+	ScriptFrame permissionFrame(true, permissionFrameNS);
 
 	for (const String& type : qd.Types) {
 		String attr = type;
