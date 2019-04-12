@@ -427,7 +427,7 @@ on GitHub and mention that you're testing the snapshot packages.
 
 2.11+ requires the [EPEL repository](02-getting-started.md#package-repositories-rhel-epel) for Boost 1.66+.
 
-In addition to that, the `icinga-rpm-release` package already provides the `icinga-snapshot-build`
+In addition to that, the `icinga-rpm-release` package already provides the `icinga-snapshot-builds`
 repository but it is disabled by default.
 
 ```
@@ -435,7 +435,7 @@ yum -y install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noar
 yum -y install epel-release
 yum makecache
 
-yum install --enablerepo=icinga-snapshot-build icinga2
+yum install --enablerepo=icinga-snapshot-builds icinga2
 ```
 
 #### Debian <a id="development-tests-snapshot-packages-debian"></a>
