@@ -11,6 +11,7 @@
 #include "icinga/downtime.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
+#include <atomic>
 
 namespace icinga
 {
@@ -132,6 +133,8 @@ public:
 
 	/* Downtimes */
 	int GetDowntimeDepth() const final;
+	void IncrementDowntimeDepth();
+	void DecrementDowntimeDepth();
 
 	void RemoveAllDowntimes();
 	void TriggerDowntimes();
@@ -204,6 +207,7 @@ private:
 	/* Downtimes */
 	std::set<Downtime::Ptr> m_Downtimes;
 	mutable boost::mutex m_DowntimeMutex;
+	std::atomic<int> m_DowntimeDepth;
 
 	static void NotifyFixedDowntimeStart(const Downtime::Ptr& downtime);
 	static void NotifyFlexibleDowntimeStart(const Downtime::Ptr& downtime);

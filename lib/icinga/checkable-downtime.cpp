@@ -25,24 +25,22 @@ void Checkable::TriggerDowntimes()
 
 bool Checkable::IsInDowntime() const
 {
-	for (const Downtime::Ptr& downtime : GetDowntimes()) {
-		if (downtime->IsInEffect())
-			return true;
-	}
-
-	return false;
+	return m_DowntimeDepth.load();
 }
 
 int Checkable::GetDowntimeDepth() const
 {
-	int downtime_depth = 0;
+	return m_DowntimeDepth.load();
+}
 
-	for (const Downtime::Ptr& downtime : GetDowntimes()) {
-		if (downtime->IsInEffect())
-			downtime_depth++;
-	}
+void Checkable::IncrementDowntimeDepth()
+{
+	m_DowntimeDepth.fetch_add(1);
+}
 
-	return downtime_depth;
+void Checkable::DecrementDowntimeDepth()
+{
+	m_DowntimeDepth.fetch_sub(1);
 }
 
 std::set<Downtime::Ptr> Checkable::GetDowntimes() const

@@ -28,6 +28,8 @@ void Checkable::StaticInitialize()
 
 Checkable::Checkable()
 {
+	m_DowntimeDepth.store(0);
+
 	SetSchedulingOffset(Utility::Random());
 }
 

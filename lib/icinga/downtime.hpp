@@ -7,6 +7,7 @@
 #include "icinga/downtime-ti.hpp"
 #include "icinga/checkable-ti.hpp"
 #include "remote/messageorigin.hpp"
+#include <atomic>
 
 namespace icinga
 {
@@ -33,6 +34,9 @@ public:
 	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeRemoved;
 	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeStarted;
 	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeTriggered;
+
+	Downtime();
+	~Downtime();
 
 	intrusive_ptr<Checkable> GetCheckable() const;
 
@@ -69,8 +73,11 @@ protected:
 
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;
+	std::atomic<bool> m_CheckableIsInDowntime;
 
 	bool CanBeTriggered();
+
+	void SetCheckableIsInDowntime(bool isInDowntime);
 
 	static void DowntimesStartTimerHandler();
 	static void DowntimesExpireTimerHandler();
