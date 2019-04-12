@@ -37,7 +37,8 @@ bool EventQueue::CanProcessEvent(const String& type) const
 
 void EventQueue::ProcessEvent(const Dictionary::Ptr& event)
 {
-	ScriptFrame frame(true);
+	Namespace::Ptr frameNS = new Namespace();
+	ScriptFrame frame(true, frameNS);
 	frame.Sandboxed = true;
 
 	try {
