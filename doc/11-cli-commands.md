@@ -22,7 +22,7 @@ Supported commands:
   * api setup (setup for API)
   * ca list (lists all certificate signing requests)
   * ca sign (signs an outstanding certificate request)
-  * console (Icinga console)
+  * console (Icinga debug console)
   * daemon (starts Icinga 2)
   * feature disable (disables specified feature)
   * feature enable (enables specified feature)
@@ -272,7 +272,7 @@ are required for executing config expressions and auto-completion.
 
 > **Note**
 >
-> The debug console does not currently support SSL certificate verification.
+> The debug console does not currently support TLS certificate verification.
 >
 > Runtime modifications are not validated and might cause the Icinga 2
 > daemon to crash or behave in an unexpected way. Use these runtime changes
