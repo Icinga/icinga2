@@ -77,9 +77,7 @@ public:
 	static int GetDefaultRLimitProcesses();
 	static int GetDefaultRLimitStack();
 
-	static int GetMaxConcurrentChecks();
-	static int GetDefaultMaxConcurrentChecks();
-	static void SetMaxConcurrentChecks(int maxChecks);
+	static double GetReloadTimeout();
 
 	static ThreadPool& GetTP();
 

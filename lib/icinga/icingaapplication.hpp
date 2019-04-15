@@ -33,6 +33,8 @@ public:
 
 	String GetNodeName() const;
 
+	int GetMaxConcurrentChecks() const;
+
 	String GetEnvironment() const override;
 	void SetEnvironment(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
 

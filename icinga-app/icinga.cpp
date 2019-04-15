@@ -282,8 +282,7 @@ static int Main()
 #endif /* RLIMIT_STACK */
 	}
 
-	ScriptGlobal::Set("MaxConcurrentChecks", Application::GetDefaultMaxConcurrentChecks());
-
+	/* Calculate additional global constants. */
 	ScriptGlobal::Set("System.PlatformKernel", Utility::GetPlatformKernel(), true);
 	ScriptGlobal::Set("System.PlatformKernelVersion", Utility::GetPlatformKernelVersion(), true);
 	ScriptGlobal::Set("System.PlatformName", Utility::GetPlatformName(), true);
