@@ -123,9 +123,6 @@ abstract class Checkable : CustomVarObject
 	[no_storage] int severity {
 		get;
 	};
-	[no_storage] bool reachable {
-		get;
-	};
 	[no_storage] bool problem {
 		get;
 	};

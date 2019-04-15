@@ -139,11 +139,6 @@ int Checkable::GetSeverity() const
 	return 0;
 }
 
-bool Checkable::GetReachable() const
-{
-	return IsReachable();
-}
-
 bool Checkable::GetProblem() const
 {
 	return !IsStateOK(GetStateRaw());
