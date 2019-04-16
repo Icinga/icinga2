@@ -106,6 +106,8 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 		ASSERT(frame.Self.IsObjectType<Namespace>());
 
 		frameNS = frame.Self;
+
+		ASSERT(frameNS != ScriptGlobal::GetGlobals());
 	}
 
 	frameNS->Set("obj", target);
@@ -256,9 +258,9 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		if (qd.Types.find(type) == qd.Types.end())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type specified for this query."));
 
-		ScriptFrame frame(true);
-		frame.Sandboxed = true;
 		Namespace::Ptr frameNS = new Namespace();
+		ScriptFrame frame(true, frameNS);
+		frame.Sandboxed = true;
 
 		if (query->Contains("filter")) {
 			String filter = HttpUtility::GetLastParameter(query, "filter");
@@ -271,8 +273,6 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 					frameNS->Set(kv.first, kv.second);
 				}
 			}
-
-			frame.Self = frameNS;
 
 			provider->FindTargets(type, std::bind(&FilteredAddTarget,
 				std::ref(permissionFrame), permissionFilter,
