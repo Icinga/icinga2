@@ -32,7 +32,9 @@ public:
 	static String CreateStage(const String& packageName, const Dictionary::Ptr& files = nullptr);
 	static void DeleteStage(const String& packageName, const String& stageName);
 	static std::vector<String> GetStages(const String& packageName);
+	static String GetActiveStageFromFile(const String& packageName);
 	static String GetActiveStage(const String& packageName);
+	static void SetActiveStage(const String& packageName, const String& stageName);
 	static void ActivateStage(const String& packageName, const String& stageName);
 	static void AsyncTryActivateStage(const String& packageName, const String& stageName, bool reload);
 

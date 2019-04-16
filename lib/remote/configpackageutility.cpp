@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/configpackageutility.hpp"
+#include "remote/apilistener.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
@@ -33,6 +34,14 @@ void ConfigPackageUtility::DeletePackage(const String& name)
 
 	if (!Utility::PathExists(path))
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Package does not exist."));
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	/* config packages without API make no sense. */
+	if (!listener)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
+
+	listener->RemoveActivePackageStage(name);
 
 	Utility::RemoveDirRecursive(path);
 	Application::RequestRestart();
@@ -157,10 +166,7 @@ void ConfigPackageUtility::WriteStageConfig(const String& packageName, const Str
 
 void ConfigPackageUtility::ActivateStage(const String& packageName, const String& stageName)
 {
-	String activeStagePath = GetPackageDir() + "/" + packageName + "/active-stage";
-	std::ofstream fpActiveStage(activeStagePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
-	fpActiveStage << stageName;
-	fpActiveStage.close();
+	SetActiveStage(packageName, stageName);
 
 	WritePackageConfig(packageName);
 }
@@ -242,8 +248,11 @@ std::vector<String> ConfigPackageUtility::GetStages(const String& packageName)
 	return stages;
 }
 
-String ConfigPackageUtility::GetActiveStage(const String& packageName)
+String ConfigPackageUtility::GetActiveStageFromFile(const String& packageName)
 {
+	/* Lock the transaction, reading this only happens on startup or when something really is broken. */
+	boost::mutex::scoped_lock lock(GetStaticMutex());
+
 	String path = GetPackageDir() + "/" + packageName + "/active-stage";
 
 	std::ifstream fp;
@@ -255,11 +264,55 @@ String ConfigPackageUtility::GetActiveStage(const String& packageName)
 	fp.close();
 
 	if (fp.fail())
-		return "";
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot detect active stage for package '" + packageName + "'. Broken config package, check the troubleshooting documentation."));
 
 	return stage.Trim();
 }
 
+String ConfigPackageUtility::GetActiveStage(const String& packageName)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	/* config packages without API make no sense. */
+	if (!listener)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
+
+	String activeStage;
+
+	/* First use runtime state. */
+	try {
+		activeStage = listener->GetActivePackageStage(packageName);
+	} catch (const std::exception& ex) {
+		/* Fallback to reading the file, happens on restarts. */
+		activeStage = GetActiveStageFromFile(packageName);
+
+		/* When we've read something, correct memory. */
+		if (!activeStage.IsEmpty())
+			listener->SetActivePackageStage(packageName, activeStage);
+		else
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot detect active stage for package '" + packageName + "'. Broken config package, check the troubleshooting documentation."));
+	}
+
+	return activeStage;
+}
+
+void ConfigPackageUtility::SetActiveStage(const String& packageName, const String& stageName)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	/* config packages without API make no sense. */
+	if (!listener)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
+
+	listener->SetActivePackageStage(packageName, stageName);
+
+	/* Also update the marker on disk for restarts. */
+	String activeStagePath = GetPackageDir() + "/" + packageName + "/active-stage";
+
+	std::ofstream fpActiveStage(activeStagePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc); //TODO: fstream exceptions
+	fpActiveStage << stageName;
+	fpActiveStage.close();
+}
 
 std::vector<std::pair<String, bool> > ConfigPackageUtility::GetFiles(const String& packageName, const String& stageName)
 {

@@ -6,6 +6,7 @@
 #include "remote/endpoint.hpp"
 #include "remote/jsonrpc.hpp"
 #include "remote/apifunction.hpp"
+#include "remote/configpackageutility.hpp"
 #include "base/convert.hpp"
 #include "base/defer.hpp"
 #include "base/io-engine.hpp"
@@ -133,6 +134,9 @@ void ApiListener::OnConfigLoaded()
 	if (!oldCertPath.IsEmpty() && !oldKeyPath.IsEmpty() && !oldCaPath.IsEmpty()) {
 		Log(LogWarning, "ApiListener", "Please read the upgrading documentation for v2.8: https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/");
 	}
+
+	/* Cache API packages and their active stage name. */
+	UpdateActivePackageStagesCache();
 
 	/* set up SSL context */
 	std::shared_ptr<X509> cert;
@@ -1535,6 +1539,57 @@ Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dicti
 Endpoint::Ptr ApiListener::GetLocalEndpoint() const
 {
 	return m_LocalEndpoint;
+}
+
+void ApiListener::UpdateActivePackageStagesCache()
+{
+	boost::mutex::scoped_lock lock(m_ActivePackageStagesLock);
+
+	for (auto package : ConfigPackageUtility::GetPackages()) {
+		String activeStage;
+
+		try {
+			activeStage = ConfigPackageUtility::GetActiveStageFromFile(package);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "ApiListener")
+				<< ex.what();
+			continue;
+		}
+
+		Log(LogNotice, "ApiListener")
+			<< "Updating cache: Config package '" << package << "' has active stage '" << activeStage << "'.";
+
+		m_ActivePackageStages[package] = activeStage;
+	}
+}
+
+void ApiListener::SetActivePackageStage(const String& package, const String& stage)
+{
+	boost::mutex::scoped_lock lock(m_ActivePackageStagesLock);
+	m_ActivePackageStages[package] = stage;
+}
+
+String ApiListener::GetActivePackageStage(const String& package)
+{
+	boost::mutex::scoped_lock lock(m_ActivePackageStagesLock);
+
+	if (m_ActivePackageStages.find(package) == m_ActivePackageStages.end())
+		BOOST_THROW_EXCEPTION(ScriptError("Package " + package + " has no active stage."));
+
+	return m_ActivePackageStages[package];
+}
+
+void ApiListener::RemoveActivePackageStage(const String& package)
+{
+	/* This is the rare occassion when a package has been deleted. */
+	boost::mutex::scoped_lock lock(m_ActivePackageStagesLock);
+
+	auto it = m_ActivePackageStages.find(package);
+
+	if (it == m_ActivePackageStages.end())
+		return;
+
+	m_ActivePackageStages.erase(it);
 }
 
 void ApiListener::ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils)

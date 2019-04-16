@@ -102,6 +102,28 @@ The deprecated `concurrent_checks` attribute in the [checker feature](09-object-
 has no effect anymore if set. Please use the [MaxConcurrentChecks](17-language-reference.md#icinga-constants-global-config)
 constant in [constants.conf](04-configuring-icinga-2.md#constants-conf) instead.
 
+### REST API <a id="upgrading-to-2-11-api"></a>
+
+#### Config Packages <a id="upgrading-to-2-11-api-config-packages"></a>
+
+Deployed configuration packages require an active stage, with many previous
+allowed. This mechanism is used by the Icinga Director as external consumer,
+and Icinga itself for storing runtime created objects inside the `_api`
+package.
+
+This includes downtimes and comments, which where sometimes stored in the wrong
+directory path, because the active-stage file was empty/truncated/unreadable at
+this point.
+
+2.11 makes this mechanism more stable and detects broken config packages.
+
+```
+[2019-04-26 12:58:14 +0200] critical/ApiListener: Cannot detect active stage for package '_api'. Broken config package, check the troubleshooting documentation.
+```
+
+In order to fix this, please follow [this troubleshooting entry](15-troubleshooting.md#troubleshooting-api-missing-runtime-objects).
+
+
 ## Upgrading to v2.10 <a id="upgrading-to-2-10"></a>
 
 ### Path Constant Changes <a id="upgrading-to-2-10-path-constant-changes"></a>
