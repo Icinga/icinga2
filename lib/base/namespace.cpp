@@ -37,6 +37,8 @@ Namespace::Namespace(NamespaceBehavior *behavior)
 
 Value Namespace::Get(const String& field) const
 {
+	ObjectLock olock(this);
+
 	Value value;
 	if (!GetOwnField(field, &value))
 		BOOST_THROW_EXCEPTION(ScriptError("Namespace does not contain field '" + field + "'"));
@@ -45,6 +47,8 @@ Value Namespace::Get(const String& field) const
 
 bool Namespace::Get(const String& field, Value *value) const
 {
+	ObjectLock olock(this);
+
 	auto nsVal = GetAttribute(field);
 
 	if (!nsVal)
@@ -56,16 +60,22 @@ bool Namespace::Get(const String& field, Value *value) const
 
 void Namespace::Set(const String& field, const Value& value, bool overrideFrozen)
 {
+	ObjectLock olock(this);
+
 	return SetFieldByName(field, value, overrideFrozen, DebugInfo());
 }
 
 bool Namespace::Contains(const String& field) const
 {
+	ObjectLock olock(this);
+
 	return HasOwnField(field);
 }
 
 void Namespace::Remove(const String& field, bool overrideFrozen)
 {
+	ObjectLock olock(this);
+
 	m_Behavior->Remove(this, field, overrideFrozen);
 }
 
@@ -103,6 +113,8 @@ void Namespace::SetAttribute(const String& key, const std::shared_ptr<NamespaceV
 
 Value Namespace::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const
 {
+	ObjectLock olock(this);
+
 	auto nsVal = GetAttribute(field);
 
 	if (nsVal)
@@ -113,6 +125,8 @@ Value Namespace::GetFieldByName(const String& field, bool, const DebugInfo& debu
 
 void Namespace::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
 {
+	ObjectLock olock(this);
+
 	auto nsVal = GetAttribute(field);
 
 	if (!nsVal)
@@ -123,11 +137,15 @@ void Namespace::SetFieldByName(const String& field, const Value& value, bool ove
 
 bool Namespace::HasOwnField(const String& field) const
 {
+	ObjectLock olock(this);
+
 	return GetAttribute(field) != nullptr;
 }
 
 bool Namespace::GetOwnField(const String& field, Value *result) const
 {
+	ObjectLock olock(this);
+
 	auto nsVal = GetAttribute(field);
 
 	if (!nsVal)
