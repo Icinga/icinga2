@@ -2,6 +2,7 @@
 
 #include "base/objectlock.hpp"
 #include <boost/thread/recursive_mutex.hpp>
+#include <thread>
 
 using namespace icinga;
 
@@ -72,11 +73,7 @@ void ObjectLock::Lock()
 
 #ifdef I2_DEBUG
 	if (++m_Object->m_LockCount == 1u) {
-#	ifdef _WIN32
-		InterlockedExchange(&m_Object->m_LockOwner, GetCurrentThreadId());
-#	else /* _WIN32 */
-		__sync_lock_test_and_set(&m_Object->m_LockOwner, pthread_self());
-#	endif /* _WIN32 */
+		m_Object->m_LockOwner.store(std::this_thread::get_id());
 	}
 #endif /* I2_DEBUG */
 }
@@ -104,11 +101,7 @@ void ObjectLock::Unlock()
 {
 #ifdef I2_DEBUG
 	if (m_Locked && !--m_Object->m_LockCount) {
-#	ifdef _WIN32
-		InterlockedExchange(&m_Object->m_LockOwner, 0);
-#	else /* _WIN32 */
-		__sync_lock_release(&m_Object->m_LockOwner);
-#	endif /* _WIN32 */
+		m_Object->m_LockOwner.store(decltype(m_Object->m_LockOwner.load())());
 	}
 #endif /* I2_DEBUG */
 

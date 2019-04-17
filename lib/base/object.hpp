@@ -9,6 +9,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <thread>
 #include <vector>
 
 using boost::intrusive_ptr;
@@ -193,11 +194,7 @@ private:
 	mutable uintptr_t m_Mutex{0};
 
 #ifdef I2_DEBUG
-#	ifndef _WIN32
-	mutable pthread_t m_LockOwner;
-#	else /* _WIN32 */
-	mutable DWORD m_LockOwner;
-#	endif /* _WIN32 */
+	mutable std::atomic<std::thread::id> m_LockOwner;
 	mutable size_t m_LockCount = 0;
 #endif /* I2_DEBUG */
 
