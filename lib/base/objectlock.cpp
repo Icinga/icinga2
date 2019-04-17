@@ -14,10 +14,8 @@ ObjectLock::~ObjectLock()
 }
 
 ObjectLock::ObjectLock(const Object::Ptr& object)
-	: m_Object(object.get()), m_Locked(false)
+	: ObjectLock(object.get())
 {
-	if (m_Object)
-		Lock();
 }
 
 ObjectLock::ObjectLock(const Object *object)
