@@ -39,7 +39,7 @@ public:
 	void Reschedule(double next = -1);
 	double GetNext() const;
 
-	boost::signals2::signal<void(const Timer::Ptr&)> OnTimerExpired;
+	boost::signals2::signal<void(const Timer * const&)> OnTimerExpired;
 
 private:
 	double m_Interval{0}; /**< The interval of the timer. */
