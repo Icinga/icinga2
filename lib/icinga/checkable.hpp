@@ -45,6 +45,7 @@ enum SeverityFlag
 {
 	SeverityFlagDowntime = 1,
 	SeverityFlagAcknowledgement = 2,
+	SeverityFlagHostDown = 4,
 	SeverityFlagUnhandled = 8,
 	SeverityFlagPending = 16,
 	SeverityFlagWarning = 32,

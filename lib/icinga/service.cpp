@@ -125,12 +125,19 @@ int Service::GetSeverity() const
 		severity |= SeverityFlagDowntime;
 	else if (IsAcknowledged())
 		severity |= SeverityFlagAcknowledgement;
+	else if (m_Host->GetProblem())
+		severity |= SeverityFlagHostDown;
 	else
 		severity |= SeverityFlagUnhandled;
 
 	olock.Unlock();
 
 	return severity;
+}
+
+bool Service::GetHandled() const
+{
+	return Checkable::GetHandled() || m_Host->GetProblem();
 }
 
 bool Service::IsStateOK(ServiceState state) const
