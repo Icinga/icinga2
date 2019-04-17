@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(interval)
 
 int counter = 0;
 
-static void Callback(const Timer::Ptr&)
+static void Callback(const Timer * const&)
 {
 	counter++;
 }
