@@ -70,9 +70,6 @@ public:
 	String GetProgramData() const override;
 	void SetProgramData(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
 
-	double GetReloadTimeout() const override;
-	void SetReloadTimeout(double value, bool suppress_events = false, const Value& cookie = Empty) override;
-
 	int GetRLimitFiles() const override;
 	void SetRLimitFiles(int value, bool suppress_events = false, const Value& cookie = Empty) override;
 
@@ -133,7 +130,6 @@ public:
 	static String PkgDataDir;
 	static String PrefixDir;
 	static String ProgramData;
-	static double ReloadTimeout;
 	static int RLimitFiles;
 	static int RLimitProcesses;
 	static int RLimitStack;

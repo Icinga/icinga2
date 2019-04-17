@@ -96,6 +96,12 @@ user has the capabilities to change to a different user.
 If you still encounter problems, run the aforementioned CLI commands as root,
 or with sudo.
 
+### Configuration <a id="upgrading-to-2-11-configuration"></a>
+
+The deprecated `concurrent_checks` attribute in the [checker feature](09-object-types.md#objecttype-checkercomponent)
+has no effect anymore if set. Please use the [MaxConcurrentChecks](17-language-reference.md#icinga-constants-global-config)
+constant in [constants.conf](04-configuring-icinga-2.md#constants-conf) instead.
+
 ## Upgrading to v2.10 <a id="upgrading-to-2-10"></a>
 
 ### Path Constant Changes <a id="upgrading-to-2-10-path-constant-changes"></a>

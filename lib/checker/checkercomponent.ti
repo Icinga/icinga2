@@ -11,17 +11,8 @@ class CheckerComponent : ConfigObject
 {
 	activation_priority 300;
 
-	[config, no_storage] int concurrent_checks {
-		get {{{
-			return Application::GetMaxConcurrentChecks();
-		}}}
-		set {{{
-			Application::SetMaxConcurrentChecks(value);
-		}}}
-		default {{{
-			return Application::GetDefaultMaxConcurrentChecks();
-		}}}
-	};
+	/* Has no effect. Keep this here to avoid breaking config changes. */
+	[deprecated, config] int concurrent_checks;
 };
 
 }

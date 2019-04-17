@@ -5,6 +5,7 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/cib.hpp"
 #include "remote/apilistener.hpp"
+#include "base/configuration.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -84,14 +85,15 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 		wait += 0.1;
 
 		/* Pick a timeout slightly shorther than the process reload timeout. */
-		double waitMax = Configuration::ReloadTimeout - 30;
+		double reloadTimeout = Application::GetReloadTimeout();
+		double waitMax = reloadTimeout - 30;
 		if (waitMax <= 0)
 			waitMax = 1;
 
 		if (wait > waitMax) {
 			Log(LogWarning, "CheckerComponent")
 				<< "Checks running too long for " << wait
-				<< " seconds, hard shutdown before reload timeout: " << Configuration::ReloadTimeout << ".";
+				<< " seconds, hard shutdown before reload timeout: " << reloadTimeout << ".";
 			break;
 		}
 	}
@@ -108,6 +110,7 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 void CheckerComponent::CheckThreadProc()
 {
 	Utility::SetThreadName("Check Scheduler");
+	IcingaApplication::Ptr icingaApp = IcingaApplication::GetInstance();
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -126,7 +129,13 @@ void CheckerComponent::CheckThreadProc()
 
 		double wait = csi.NextCheck - Utility::GetTime();
 
-		if (Checkable::GetPendingChecks() >= GetConcurrentChecks())
+//#ifdef I2_DEBUG
+//		Log(LogDebug, "CheckerComponent")
+//			<< "Pending checks " << Checkable::GetPendingChecks()
+//			<< " vs. max concurrent checks " << icingaApp->GetMaxConcurrentChecks() << ".";
+//#endif /* I2_DEBUG */
+
+		if (Checkable::GetPendingChecks() >= icingaApp->GetMaxConcurrentChecks())
 			wait = 0.5;
 
 		if (wait > 0) {
@@ -154,12 +163,12 @@ void CheckerComponent::CheckThreadProc()
 			Service::Ptr service;
 			tie(host, service) = GetHostService(checkable);
 
-			if (host && !service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableHostChecks())) {
+			if (host && !service && (!checkable->GetEnableActiveChecks() || !icingaApp->GetEnableHostChecks())) {
 				Log(LogNotice, "CheckerComponent")
 					<< "Skipping check for host '" << host->GetName() << "': active host checks are disabled";
 				check = false;
 			}
-			if (host && service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableServiceChecks())) {
+			if (host && service && (!checkable->GetEnableActiveChecks() || !icingaApp->GetEnableServiceChecks())) {
 				Log(LogNotice, "CheckerComponent")
 					<< "Skipping check for service '" << service->GetName() << "': active service checks are disabled";
 				check = false;

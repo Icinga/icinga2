@@ -1,7 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/clusterevents.hpp"
+#include "icinga/icingaapplication.hpp"
 #include "remote/apilistener.hpp"
+#include "base/configuration.hpp"
 #include "base/serializer.hpp"
 #include "base/exception.hpp"
 #include <boost/thread/once.hpp>
@@ -20,6 +22,8 @@ void ClusterEvents::RemoteCheckThreadProc()
 {
 	Utility::SetThreadName("Remote Check Scheduler");
 
+	int maxConcurrentChecks = IcingaApplication::GetInstance()->GetMaxConcurrentChecks();
+
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	for(;;) {
@@ -27,7 +31,7 @@ void ClusterEvents::RemoteCheckThreadProc()
 			break;
 
 		lock.unlock();
-		Checkable::AquirePendingCheckSlot(Application::GetMaxConcurrentChecks());
+		Checkable::AquirePendingCheckSlot(maxConcurrentChecks);
 		lock.lock();
 
 		auto callback = m_CheckRequestQueue.front();

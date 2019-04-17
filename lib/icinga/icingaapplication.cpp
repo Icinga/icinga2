@@ -29,6 +29,7 @@ INITIALIZE_ONCE_WITH_PRIORITY(&IcingaApplication::StaticInitialize, 50);
 
 void IcingaApplication::StaticInitialize()
 {
+	/* Pre-fill global constants, can be overridden with user input later in icinga-app/icinga.cpp. */
 	String node_name = Utility::GetFQDN();
 
 	if (node_name.IsEmpty()) {
@@ -42,6 +43,9 @@ void IcingaApplication::StaticInitialize()
 	}
 
 	ScriptGlobal::Set("NodeName", node_name);
+
+	ScriptGlobal::Set("ReloadTimeout", 300);
+	ScriptGlobal::Set("MaxConcurrentChecks", 512);
 
 	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
 	/* Ensure that the System namespace is already initialized. Otherwise this is a programming error. */
@@ -287,6 +291,12 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 String IcingaApplication::GetNodeName() const
 {
 	return ScriptGlobal::Get("NodeName");
+}
+
+/* Intentionally kept here, since an agent may not have the CheckerComponent loaded. */
+int IcingaApplication::GetMaxConcurrentChecks() const
+{
+	return ScriptGlobal::Get("MaxConcurrentChecks");
 }
 
 String IcingaApplication::GetEnvironment() const

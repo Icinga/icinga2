@@ -60,14 +60,6 @@ void Application::OnConfigLoaded()
 
 	ASSERT(m_Instance == nullptr);
 	m_Instance = this;
-
-	String reloadTimeout;
-
-	if (ScriptGlobal::Exists("ReloadTimeout"))
-		reloadTimeout = ScriptGlobal::Get("ReloadTimeout");
-
-	if (!reloadTimeout.IsEmpty())
-		Configuration::ReloadTimeout = Convert::ToDouble(reloadTimeout);
 }
 
 /**
@@ -406,14 +398,16 @@ pid_t Application::StartReloadProcess()
 	args.push_back("--validate");
 #endif /* _WIN32 */
 
+	double reloadTimeout = Application::GetReloadTimeout();
+
 	Process::Ptr process = new Process(Process::PrepareCommand(new Array(std::move(args))));
-	process->SetTimeout(Configuration::ReloadTimeout);
+	process->SetTimeout(reloadTimeout);
 	process->Run(&ReloadProcessCallback);
 
 	Log(LogInformation, "Application")
 		<< "Got reload command: Started new instance with PID '"
 		<< (unsigned long)(process->GetPID()) << "' (timeout is "
-		<< Configuration::ReloadTimeout << "s).";
+		<< reloadTimeout << "s).";
 
 	return process->GetPID();
 }
@@ -1179,35 +1173,9 @@ int Application::GetDefaultRLimitStack()
 	return 256 * 1024;
 }
 
-/**
- * Sets the max concurrent checks.
- *
- * @param maxChecks The new limit.
- */
-void Application::SetMaxConcurrentChecks(int maxChecks)
+double Application::GetReloadTimeout()
 {
-	ScriptGlobal::Set("MaxConcurrentChecks", maxChecks, true);
-}
-
-/**
- * Retrieves the max concurrent checks.
- *
- * @returns The max number of concurrent checks.
- */
-int Application::GetMaxConcurrentChecks()
-{
-	Value defaultMaxConcurrentChecks = GetDefaultMaxConcurrentChecks();
-	return ScriptGlobal::Get("MaxConcurrentChecks", &defaultMaxConcurrentChecks);
-}
-
-/**
- * Retrieves the default value for max concurrent checks.
- *
- * @returns The default max number of concurrent checks.
- */
-int Application::GetDefaultMaxConcurrentChecks()
-{
-	return 512;
+	return ScriptGlobal::Get("ReloadTimeout");
 }
 
 /**

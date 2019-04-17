@@ -1156,7 +1156,7 @@ requires to use `cipher_list` compatible with the endpoint using the oldest vers
 other tools to connect to the API ensure also compatibility with them as this setting affects not only inter-cluster
 communcation but also the REST API.
 
-### CheckerComponent <a id="objecttype-checkcomponent"></a>
+### CheckerComponent <a id="objecttype-checkercomponent"></a>
 
 The checker component is responsible for scheduling active checks.
 This configuration object is available as [checker feature](11-cli-commands.md#cli-command-feature).
@@ -1167,11 +1167,10 @@ Example:
 object CheckerComponent "checker" { }
 ```
 
-Configuration Attributes:
-
-  Name                      | Type                  | Description
-  --------------------------|-----------------------|----------------------------------
-  concurrent\_checks        | Number                | **Optional and deprecated.** The maximum number of concurrent checks. Was replaced by global constant `MaxConcurrentChecks` which will be set if you still use `concurrent_checks`.
+In order to limit the concurrent checks on a master/satellite endpoint,
+use [MaxConcurrentChecks](17-language-reference.md#icinga-constants-global-config) constant.
+This also applies to an agent as command endpoint where the checker
+feature is disabled.
 
 ### CheckResultReader <a id="objecttype-checkresultreader"></a>
 
