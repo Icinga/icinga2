@@ -36,7 +36,6 @@ Object::Object()
  */
 Object::~Object()
 {
-	delete reinterpret_cast<boost::recursive_mutex *>(m_Mutex);
 }
 
 /**

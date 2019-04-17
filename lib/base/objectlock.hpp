@@ -19,12 +19,7 @@ public:
 
 	~ObjectLock();
 
-	static void LockMutex(const Object *object);
-
 	void Lock();
-
-	static void Spin(unsigned int it);
-
 	void Unlock();
 
 private:

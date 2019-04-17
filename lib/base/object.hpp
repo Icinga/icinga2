@@ -9,6 +9,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -191,7 +192,7 @@ private:
 	Object& operator=(const Object& rhs) = delete;
 
 	std::atomic<uint_fast64_t> m_References;
-	mutable uintptr_t m_Mutex{0};
+	mutable std::recursive_mutex m_Mutex;
 
 #ifdef I2_DEBUG
 	mutable std::atomic<std::thread::id> m_LockOwner;
