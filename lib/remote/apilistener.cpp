@@ -33,6 +33,7 @@
 #include <openssl/tls1.h>
 #include <openssl/x509.h>
 #include <sstream>
+#include <utility>
 
 using namespace icinga;
 
@@ -1205,7 +1206,6 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		boost::mutex::scoped_lock lock(m_LogLock);
 
 		CloseLogFile();
-		RotateLogFile();
 
 		if (count == -1 || count > 50000) {
 			OpenLogFile();
@@ -1220,16 +1220,21 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
 		std::sort(files.begin(), files.end());
 
+		std::vector<std::pair<int, String>> allFiles;
+
 		for (int ts : files) {
-			String path = GetApiDir() + "log/" + Convert::ToString(ts);
+			if (ts >= peer_ts) {
+				allFiles.emplace_back(ts, GetApiDir() + "log/" + Convert::ToString(ts));
+			}
+		}
 
-			if (ts < peer_ts)
-				continue;
+		allFiles.emplace_back(Utility::GetTime() + 1, GetApiDir() + "log/current");
 
+		for (auto& file : allFiles) {
 			Log(LogNotice, "ApiListener")
-				<< "Replaying log: " << path;
+				<< "Replaying log: " << file.second;
 
-			auto *fp = new std::fstream(path.CStr(), std::fstream::in | std::fstream::binary);
+			auto *fp = new std::fstream(file.second.CStr(), std::fstream::in | std::fstream::binary);
 			StdioStream::Ptr logStream = new StdioStream(fp, true);
 
 			String message;
@@ -1249,7 +1254,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					pmessage = JsonDecode(message);
 				} catch (const std::exception&) {
 					Log(LogWarning, "ApiListener")
-						<< "Unexpected end-of-file for cluster log: " << path;
+						<< "Unexpected end-of-file for cluster log: " << file.second;
 
 					/* Log files may be incomplete or corrupted. This is perfectly OK. */
 					break;
@@ -1285,8 +1290,8 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 				peer_ts = pmessage->Get("timestamp");
 
-				if (ts > logpos_ts + 10) {
-					logpos_ts = ts;
+				if (file.first > logpos_ts + 10) {
+					logpos_ts = file.first;
 
 					Dictionary::Ptr lmessage = new Dictionary({
 						{ "jsonrpc", "2.0" },
