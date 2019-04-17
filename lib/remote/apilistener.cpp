@@ -229,7 +229,6 @@ void ApiListener::Start(bool runtimeCreated)
 
 	{
 		boost::mutex::scoped_lock lock(m_LogLock);
-		RotateLogFile();
 		OpenLogFile();
 	}
 
@@ -280,6 +279,7 @@ void ApiListener::Stop(bool runtimeDeleted)
 	{
 		boost::mutex::scoped_lock lock(m_LogLock);
 		CloseLogFile();
+		RotateLogFile();
 	}
 
 	RemoveStatusFile();
