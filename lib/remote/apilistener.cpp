@@ -1095,13 +1095,11 @@ void ApiListener::RotateLogFile()
 	String oldpath = GetApiDir() + "log/current";
 	String newpath = GetApiDir() + "log/" + Convert::ToString(static_cast<int>(ts)+1);
 
-
-#ifdef _WIN32
-	_unlink(newpath.CStr());
-#endif /* _WIN32 */
-
-
-	(void) rename(oldpath.CStr(), newpath.CStr());
+	// If the log is being rotated more than once per second,
+	// don't overwrite the previous one, but silently deny rotation.
+	if (!Utility::PathExists(newpath)) {
+		(void) rename(oldpath.CStr(), newpath.CStr());
+	}
 }
 
 void ApiListener::LogGlobHandler(std::vector<int>& files, const String& file)
