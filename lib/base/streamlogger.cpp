@@ -72,10 +72,12 @@ void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)
 	m_Stream = stream;
 	m_OwnsStream = ownsStream;
 
-	m_FlushLogTimer = new Timer();
-	m_FlushLogTimer->SetInterval(1);
-	m_FlushLogTimer->OnTimerExpired.connect(std::bind(&StreamLogger::FlushLogTimerHandler, this));
-	m_FlushLogTimer->Start();
+	if (!m_FlushLogTimer) {
+		m_FlushLogTimer = new Timer();
+		m_FlushLogTimer->SetInterval(1);
+		m_FlushLogTimer->OnTimerExpired.connect(std::bind(&StreamLogger::FlushLogTimerHandler, this));
+		m_FlushLogTimer->Start();
+	}
 }
 
 /**
