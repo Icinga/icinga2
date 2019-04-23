@@ -10,6 +10,7 @@
 #include "base/exception.hpp"
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/recursive_mutex.hpp>
+#include <thread>
 
 using namespace icinga;
 
@@ -27,6 +28,7 @@ static Timer::Ptr l_ObjectCountTimer;
 Object::Object()
 {
 	m_References.store(0);
+	m_LockOwner.store(decltype(m_LockOwner.load())());
 }
 
 /**
@@ -34,7 +36,6 @@ Object::Object()
  */
 Object::~Object()
 {
-	delete reinterpret_cast<boost::recursive_mutex *>(m_Mutex);
 }
 
 /**
@@ -53,15 +54,7 @@ String Object::ToString() const
  */
 bool Object::OwnsLock() const
 {
-#ifdef _WIN32
-	DWORD tid = InterlockedExchangeAdd(&m_LockOwner, 0);
-
-	return (tid == GetCurrentThreadId());
-#else /* _WIN32 */
-	pthread_t tid = __sync_fetch_and_add(&m_LockOwner, 0);
-
-	return (tid == pthread_self());
-#endif /* _WIN32 */
+	return m_LockOwner.load() == std::this_thread::get_id();
 }
 #endif /* I2_DEBUG */
 
