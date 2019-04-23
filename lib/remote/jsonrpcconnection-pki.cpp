@@ -34,7 +34,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	/* Use the presented client certificate if not provided. */
 	if (certText.IsEmpty()) {
 		auto stream (origin->FromClient->GetStream());
-		cert = std::shared_ptr<X509>(SSL_get_peer_certificate(stream->next_layer().native_handle()), X509_free);
+		cert = stream->next_layer().GetPeerCertificate();
 	} else {
 		cert = StringToCertificate(certText);
 	}

@@ -66,6 +66,25 @@ size_t JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& me
  *
  * @return The amount of bytes sent.
  */
+size_t JsonRpc::SendMessage(const std::shared_ptr<AsioTlsStream>& stream, const Dictionary::Ptr& message)
+{
+	String json = JsonEncode(message);
+
+#ifdef I2_DEBUG
+	if (GetDebugJsonRpcCached())
+		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << ">> " << json << ConsoleColorTag(Console_Normal) << "\n";
+#endif /* I2_DEBUG */
+
+	return NetString::WriteStringToStream(stream, json);
+}
+
+/**
+ * Sends a message to the connected peer and returns the bytes sent.
+ *
+ * @param message The message.
+ *
+ * @return The amount of bytes sent.
+ */
 size_t JsonRpc::SendMessage(const std::shared_ptr<AsioTlsStream>& stream, const Dictionary::Ptr& message, boost::asio::yield_context yc)
 {
 	return JsonRpc::SendRawMessage(stream, JsonEncode(message), yc);
@@ -104,6 +123,18 @@ StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, String *message
 #endif /* I2_DEBUG */
 
 	return StatusNewItem;
+}
+
+String JsonRpc::ReadMessage(const std::shared_ptr<AsioTlsStream>& stream, ssize_t maxMessageLength)
+{
+	String jsonString = NetString::ReadStringFromStream(stream, maxMessageLength);
+
+#ifdef I2_DEBUG
+	if (GetDebugJsonRpcCached())
+		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << "<< " << jsonString << ConsoleColorTag(Console_Normal) << "\n";
+#endif /* I2_DEBUG */
+
+	return std::move(jsonString);
 }
 
 String JsonRpc::ReadMessage(const std::shared_ptr<AsioTlsStream>& stream, boost::asio::yield_context yc, ssize_t maxMessageLength)

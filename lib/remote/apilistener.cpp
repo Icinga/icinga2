@@ -524,7 +524,7 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 		}
 	});
 
-	std::shared_ptr<X509> cert (SSL_get_peer_certificate(sslConn.native_handle()), X509_free);
+	std::shared_ptr<X509> cert (sslConn.GetPeerCertificate());
 	bool verify_ok = false;
 	String identity;
 	Endpoint::Ptr endpoint;
