@@ -880,7 +880,7 @@ This section describes the internal cluster messages exchanged between endpoints
 
 > **Tip**
 >
-> Debug builds with `icinga2 daemon -DDebugJsonRpc=1` unveils the JSON-RPC messages.
+> Debug builds with `icinga2 daemon -DInternal.DebugJsonRpc=1` unveils the JSON-RPC messages.
 
 ### Registered Handler Functions
 
