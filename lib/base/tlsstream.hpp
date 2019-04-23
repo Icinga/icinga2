@@ -9,6 +9,7 @@
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
 #include "base/fifo.hpp"
+#include <memory>
 #include <utility>
 #include <boost/asio/buffered_stream.hpp>
 #include <boost/asio/io_service.hpp>
@@ -162,6 +163,9 @@ private:
 	{
 	}
 };
+
+typedef boost::asio::buffered_stream<boost::asio::ip::tcp::socket> AsioTcpStream;
+typedef std::pair<std::shared_ptr<AsioTlsStream>, std::shared_ptr<AsioTcpStream>> OptionalTlsStream;
 
 }
 
