@@ -8,6 +8,7 @@
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
 #include "base/timer.hpp"
+#include "base/tlsstream.hpp"
 
 namespace icinga
 {
@@ -50,7 +51,7 @@ private:
 	void Enqueue(const Checkable::Ptr& checkable, const String& type,
 		const Dictionary::Ptr& fields, double ts);
 
-	Stream::Ptr Connect();
+	OptionalTlsStream Connect();
 	void AssertOnWorkQueue();
 	void ExceptionHandler(boost::exception_ptr exp);
 	void FlushTimeout();
