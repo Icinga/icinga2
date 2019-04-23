@@ -18,9 +18,7 @@
 #include <utility>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/asio/ssl/error.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
-#include <boost/system/system_error.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -63,17 +61,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			message = JsonRpc::ReadMessage(m_Stream, yc, m_Endpoint ? -1 : 1024 * 1024);
 		} catch (const std::exception& ex) {
 			if (!m_ShuttingDown) {
-				auto logLevelOnReadError (LogWarning);
-
-				{
-					auto boostError (dynamic_cast<const boost::system::system_error*>(&ex));
-
-					if (boostError && boostError->code().category() == boost::asio::error::get_ssl_category()) {
-						logLevelOnReadError = LogNotice;
-					}
-				}
-
-				Log(logLevelOnReadError, "JsonRpcConnection")
+				Log(LogNotice, "JsonRpcConnection")
 					<< "Error while reading JSON-RPC message for identity '" << m_Identity
 					<< "': " << DiagnosticInformation(ex);
 			}
