@@ -263,7 +263,7 @@ void EventsFilter::Push(Dictionary::Ptr event)
 {
 	for (auto& perFilter : m_Inboxes) {
 		if (perFilter.first) {
-			ScriptFrame frame(true);
+			ScriptFrame frame(true, new Namespace());
 			frame.Sandboxed = true;
 
 			try {
