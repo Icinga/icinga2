@@ -78,4 +78,4 @@ private:
 
 }
 
-#endif /* EVENTQUEUE_H */
+#endif /* THREADPOOL_H */
