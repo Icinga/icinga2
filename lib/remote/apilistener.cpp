@@ -741,10 +741,18 @@ void ApiListener::ApiTimerHandler()
 
 	for (int ts : files) {
 		bool need = false;
+		auto localZone (GetLocalEndpoint()->GetZone());
 
 		for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
 			if (endpoint == GetLocalEndpoint())
 				continue;
+
+			auto zone (endpoint->GetZone());
+
+			/* only care for endpoints in a) the same zone b) our parent zone c) immediate child zones */
+			if (!(zone == localZone || zone == localZone->GetParent() || zone->GetParent() == localZone)) {
+				continue;
+			}
 
 			if (endpoint->GetLogDuration() >= 0 && ts < now - endpoint->GetLogDuration())
 				continue;
