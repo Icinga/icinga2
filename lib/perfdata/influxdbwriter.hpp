@@ -8,6 +8,7 @@
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
+#include "base/tlsstream.hpp"
 #include "base/workqueue.hpp"
 #include <fstream>
 
@@ -51,7 +52,7 @@ private:
 	static String EscapeKeyOrTagValue(const String& str);
 	static String EscapeValue(const Value& value);
 
-	Stream::Ptr Connect();
+	OptionalTlsStream Connect();
 
 	void AssertOnWorkQueue();
 
