@@ -188,7 +188,7 @@ Argument array with `repeat_key = false`:
 'key' 'value[0]' 'value[1]' 'value[2]'
 ```
 
-## Dependency <a id="objecttype-dependency"></a>
+### Dependency <a id="objecttype-dependency"></a>
 
 Dependency objects are used to specify dependencies between hosts and services. Dependencies
 can be defined as Host-to-Host, Service-to-Service, Service-to-Host, or Host-to-Service
@@ -294,7 +294,7 @@ Dependency objects have composite names, i.e. their names are based on the `chil
 name you specified. This means you can define more than one object with the same (short) name as long as one of the `child_host_name` and
 `child_service_name` attributes has a different value.
 
-## Endpoint <a id="objecttype-endpoint"></a>
+### Endpoint <a id="objecttype-endpoint"></a>
 
 Endpoint objects are used to specify connection information for remote
 Icinga 2 instances. More details can be found in the [distributed monitoring chapter](06-distributed-monitoring.md#distributed-monitoring).
@@ -329,7 +329,7 @@ Configuration Attributes:
 
 Endpoint objects cannot currently be created with the API.
 
-## EventCommand <a id="objecttype-eventcommand"></a>
+### EventCommand <a id="objecttype-eventcommand"></a>
 
 An event command definition.
 
@@ -357,7 +357,7 @@ Command arguments can be used the same way as for [CheckCommand objects](09-obje
 More advanced examples for event command usage can be found [here](03-monitoring-basics.md#event-commands).
 
 
-## Host <a id="objecttype-host"></a>
+### Host <a id="objecttype-host"></a>
 
 A host.
 
@@ -444,7 +444,7 @@ Runtime Attributes:
 
 
 
-## HostGroup <a id="objecttype-hostgroup"></a>
+### HostGroup <a id="objecttype-hostgroup"></a>
 
 A group of hosts.
 
@@ -471,7 +471,7 @@ Configuration Attributes:
 
 
 
-## Notification <a id="objecttype-notification"></a>
+### Notification <a id="objecttype-notification"></a>
 
 Notification objects are used to specify how users should be notified in case
 of host and service state changes and other events.
@@ -557,7 +557,7 @@ Runtime Attributes:
   last\_problem\_notification | Timestamp             | When the last notification was sent for a problem (as a UNIX timestamp).
 
 
-## NotificationCommand <a id="objecttype-notificationcommand"></a>
+### NotificationCommand <a id="objecttype-notificationcommand"></a>
 
 A notification command definition.
 
@@ -651,7 +651,7 @@ Command arguments can be used the same way as for [CheckCommand objects](09-obje
 
 More details on specific attributes can be found in [this chapter](03-monitoring-basics.md#notification-commands).
 
-## ScheduledDowntime <a id="objecttype-scheduleddowntime"></a>
+### ScheduledDowntime <a id="objecttype-scheduleddowntime"></a>
 
 ScheduledDowntime objects can be used to set up recurring downtimes for hosts/services.
 
@@ -702,7 +702,7 @@ with the same (short) name as long as one of the `host_name` and
 `service_name` attributes has a different value.
 
 
-## Service <a id="objecttype-service"></a>
+### Service <a id="objecttype-service"></a>
 
 Service objects describe network services and how they should be checked
 by Icinga 2.
@@ -802,7 +802,7 @@ Runtime Attributes:
   last\_state\_unknown      | Timestamp             | When the last UNKNOWN state occurred (as a UNIX timestamp).
 
 
-## ServiceGroup <a id="objecttype-servicegroup"></a>
+### ServiceGroup <a id="objecttype-servicegroup"></a>
 
 A group of services.
 
@@ -827,7 +827,7 @@ Configuration Attributes:
 
 
 
-## TimePeriod <a id="objecttype-timeperiod"></a>
+### TimePeriod <a id="objecttype-timeperiod"></a>
 
 Time periods can be used to specify when hosts/services should be checked or to limit
 when notifications should be sent out.
@@ -888,7 +888,7 @@ Runtime Attributes:
   is\_inside                | Boolean               | Whether we're currently inside this timeperiod.
 
 
-## User <a id="objecttype-user"></a>
+### User <a id="objecttype-user"></a>
 
 A user.
 
@@ -955,7 +955,7 @@ Runtime Attributes:
   --------------------------|-----------------------|----------------------------------
   last\_notification        | Timestamp             | When the last notification was sent for this user (as a UNIX timestamp).
 
-## UserGroup <a id="objecttype-usergroup"></a>
+### UserGroup <a id="objecttype-usergroup"></a>
 
 A user group.
 
@@ -979,7 +979,7 @@ Configuration Attributes:
   groups                    | Array of object names | **Optional.** An array of nested group names.
 
 
-## Zone <a id="objecttype-zone"></a>
+### Zone <a id="objecttype-zone"></a>
 
 Zone objects are used to specify which Icinga 2 instances are located in a zone.
 Please read the [distributed monitoring chapter](06-distributed-monitoring.md#distributed-monitoring) for additional details.
