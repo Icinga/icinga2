@@ -706,6 +706,9 @@ void Application::SigIntTermHandler(int signum)
  */
 void Application::SigUsr1Handler(int)
 {
+	Log(LogInformation, "Application")
+		<< "Received USR1 signal, reopening application logs.";
+
 	RequestReopenLogs();
 }
 
