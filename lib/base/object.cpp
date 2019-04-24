@@ -28,7 +28,10 @@ static Timer::Ptr l_ObjectCountTimer;
 Object::Object()
 {
 	m_References.store(0);
+
+#ifdef I2_DEBUG
 	m_LockOwner.store(decltype(m_LockOwner.load())());
+#endif /* I2_DEBUG */
 }
 
 /**
