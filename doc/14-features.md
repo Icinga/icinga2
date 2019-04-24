@@ -21,9 +21,22 @@ By default file the `mainlog` feature is enabled. When running Icinga 2
 on a terminal log messages with severity `information` or higher are
 written to the console.
 
-Packages will install a configuration file for logrotate on supported
-platforms. This configuration ensures that the `icinga2.log`, `error.log` and
-`debug.log` files are rotated on a daily basis.
+### Log Rotation <a id="logging-logrotate"></a>
+
+Packages provide a configuration file for [logrotate](https://linux.die.net/man/8/logrotate)
+on Linux/Unix. Typically this is installed into `/etc/logrotate.d/icinga2`
+and modifications won't be overridden on upgrade.
+
+Instead of sending the reload HUP signal, logrotate
+sends the USR1 signal to notify the Icinga daemon
+that it has rotate the log file. Icinga reopens the log
+files then:
+
+* `/var/log/icinga2/icinga2.log` (requires `mainlog` enabled)
+* `/var/log/icinga2/debug.log` (requires `debuglog` enabled)
+* `/var/log/icinga2/erorr.log`
+
+By default, log files will be rotated daily.
 
 ## DB IDO <a id="db-ido"></a>
 
