@@ -3,6 +3,7 @@
 #include "base/socketevents.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
+#include "base/utility.hpp"
 #include <boost/thread/once.hpp>
 #include <map>
 

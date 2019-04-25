@@ -3,17 +3,20 @@
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 
-#include "base/i2-base.hpp"
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <deque>
+#include "base/exception.hpp"
+#include "base/logger.hpp"
+#include <cstddef>
+#include <exception>
+#include <functional>
+#include <memory>
 #include <thread>
+#include <boost/asio/post.hpp>
+#include <boost/asio/thread_pool.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 namespace icinga
 {
-
-#define QUEUECOUNT 4U
 
 enum SchedulerPolicy
 {
@@ -31,85 +34,48 @@ class ThreadPool
 public:
 	typedef std::function<void ()> WorkFunction;
 
-	ThreadPool(size_t max_threads = UINT_MAX);
+	ThreadPool(size_t threads = std::thread::hardware_concurrency() * 2u);
 	~ThreadPool();
 
 	void Start();
 	void Stop();
 
-	bool Post(const WorkFunction& callback, SchedulerPolicy policy = DefaultScheduler);
+	/**
+	 * Appends a work item to the work queue. Work items will be processed in FIFO order.
+	 *
+	 * @param callback The callback function for the work item.
+	 * @returns true if the item was queued, false otherwise.
+	 */
+	template<class T>
+	bool Post(T callback, SchedulerPolicy)
+	{
+		boost::shared_lock<decltype(m_Mutex)> lock (m_Mutex);
+
+		if (m_Pool) {
+			boost::asio::post(*m_Pool, [callback]() {
+				try {
+					callback();
+				} catch (const std::exception& ex) {
+					Log(LogCritical, "ThreadPool")
+						<< "Exception thrown in event handler:\n"
+						<< DiagnosticInformation(ex);
+				} catch (...) {
+					Log(LogCritical, "ThreadPool", "Exception of unknown type thrown in event handler.");
+				}
+			});
+
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 private:
-	enum ThreadState
-	{
-		ThreadUnspecified,
-		ThreadDead,
-		ThreadIdle,
-		ThreadBusy
-	};
-
-	struct WorkItem
-	{
-		WorkFunction Callback;
-		double Timestamp;
-	};
-
-	struct Queue;
-
-	struct WorkerThread
-	{
-		ThreadState State{ThreadDead};
-		bool Zombie{false};
-		double Utilization{0};
-		double LastUpdate{0};
-		boost::thread *Thread{nullptr};
-
-		WorkerThread(ThreadState state = ThreadDead)
-			: State(state)
-		{ }
-
-		void UpdateUtilization(ThreadState state = ThreadUnspecified);
-
-		void ThreadProc(Queue& queue);
-	};
-
-	struct Queue
-	{
-		boost::mutex Mutex;
-		boost::condition_variable CV;
-		boost::condition_variable CVStarved;
-
-		std::deque<WorkItem> Items;
-
-		double WaitTime{0};
-		double ServiceTime{0};
-		int TaskCount{0};
-
-		bool Stopped{false};
-
-		WorkerThread Threads[16];
-
-		void SpawnWorker(boost::thread_group& group);
-		void KillWorker(boost::thread_group& group);
-	};
-
-	int m_ID;
-	static int m_NextID;
-
-	size_t m_MaxThreads;
-
-	boost::thread_group m_ThreadGroup;
-
-	std::thread m_MgmtThread;
-	boost::mutex m_MgmtMutex;
-	boost::condition_variable m_MgmtCV;
-	bool m_Stopped{true};
-
-	Queue m_Queues[QUEUECOUNT];
-
-	void ManagerThreadProc();
+	boost::shared_mutex m_Mutex;
+	std::unique_ptr<boost::asio::thread_pool> m_Pool;
+	size_t m_Threads;
 };
 
 }
 
-#endif /* EVENTQUEUE_H */
+#endif /* THREADPOOL_H */

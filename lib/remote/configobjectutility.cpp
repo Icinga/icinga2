@@ -8,6 +8,7 @@
 #include "base/configwriter.hpp"
 #include "base/exception.hpp"
 #include "base/dependencygraph.hpp"
+#include "base/utility.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <fstream>
 

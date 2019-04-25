@@ -6,6 +6,7 @@
 #include "base/netstring.hpp"
 #include "base/exception.hpp"
 #include "base/application.hpp"
+#include "base/utility.hpp"
 
 using namespace icinga;
 

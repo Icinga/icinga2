@@ -19,6 +19,7 @@
 #include "base/json.hpp"
 #include "base/exception.hpp"
 #include "base/function.hpp"
+#include "base/utility.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <sstream>
 #include <fstream>

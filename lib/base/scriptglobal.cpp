@@ -10,6 +10,7 @@
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
 #include "base/namespace.hpp"
+#include "base/utility.hpp"
 #include <fstream>
 
 using namespace icinga;
