@@ -12,10 +12,29 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <map>
+#include <set>
 
 using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/events", EventsHandler);
+
+const std::map<String, EventType> l_EventTypes ({
+	{"AcknowledgementCleared", EventType::AcknowledgementCleared},
+	{"AcknowledgementSet", EventType::AcknowledgementSet},
+	{"CheckResult", EventType::CheckResult},
+	{"CommentAdded", EventType::CommentAdded},
+	{"CommentRemoved", EventType::CommentRemoved},
+	{"DowntimeAdded", EventType::DowntimeAdded},
+	{"DowntimeRemoved", EventType::DowntimeRemoved},
+	{"DowntimeStarted", EventType::DowntimeStarted},
+	{"DowntimeTriggered", EventType::DowntimeTriggered},
+	{"Flapping", EventType::Flapping},
+	{"Notification", EventType::Notification},
+	{"StateChange", EventType::StateChange}
+});
+
+const String l_ApiQuery ("<API query>");
 
 bool EventsHandler::HandleRequest(
 	AsioTlsStream& stream,
@@ -63,65 +82,52 @@ bool EventsHandler::HandleRequest(
 		return true;
 	}
 
-	String filter = HttpUtility::GetLastParameter(params, "filter");
+	std::set<EventType> eventTypes;
 
-	std::unique_ptr<Expression> ufilter;
+	{
+		ObjectLock olock(types);
+		for (const String& type : types) {
+			auto typeId (l_EventTypes.find(type));
 
-	if (!filter.IsEmpty())
-		ufilter = ConfigCompiler::CompileText("<API query>", filter);
-
-	/* create a new queue or update an existing one */
-	EventQueue::Ptr queue = EventQueue::GetByName(queueName);
-
-	if (!queue) {
-		queue = new EventQueue(queueName);
-		EventQueue::Register(queueName, queue);
+			if (typeId != l_EventTypes.end()) {
+				eventTypes.emplace(typeId->second);
+			}
+		}
 	}
 
-	queue->SetTypes(types->ToSet<String>());
-	queue->SetFilter(std::move(ufilter));
-
-	queue->AddClient(&request);
-
-	Defer removeClient ([&queue, &request, &queueName]() {
-		queue->RemoveClient(&request);
-		EventQueue::UnregisterIfUnused(queueName, queue);
-	});
+	EventsSubscriber subscriber (std::move(eventTypes), HttpUtility::GetLastParameter(params, "filter"), l_ApiQuery);
 
 	server.StartStreaming();
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
 
-	{
-		IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
+	IoBoundWorkSlot dontLockTheIoThread (yc);
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
-	}
+	http::async_write(stream, response, yc);
+	stream.async_flush(yc);
 
 	asio::const_buffer newLine ("\n", 1);
-	AsioConditionVariable dontLockOwnStrand (stream.get_io_service(), true);
 
 	for (;;) {
-		auto event (queue->WaitForEvent(&request, yc));
+		auto event (subscriber.GetInbox()->Shift(yc));
 
 		if (event) {
+			CpuBoundWork buildingResponse (yc);
+
 			String body = JsonEncode(event);
 
 			boost::algorithm::replace_all(body, "\n", "");
 
 			asio::const_buffer payload (body.CStr(), body.GetLength());
 
-			IoBoundWorkSlot dontLockTheIoThreadWhileWriting (yc);
+			buildingResponse.Done();
 
 			asio::async_write(stream, payload, yc);
 			asio::async_write(stream, newLine, yc);
 			stream.async_flush(yc);
 		} else if (server.Disconnected()) {
 			return true;
-		} else {
-			dontLockOwnStrand.Wait(yc);
 		}
 	}
 }
