@@ -470,16 +470,7 @@ wizard_ticket:
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(apiConfPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempApiConfPath.CStr(), apiConfPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempApiConfPath));
-	}
+	Utility::RenameFile(tempApiConfPath, apiConfPath);
 
 	/* Zones configuration. */
 	Log(LogInformation, "cli", "Generating local zones.conf.");
@@ -578,16 +569,7 @@ wizard_global_zone_loop_start:
 
 		fp.close();
 
-#ifdef _WIN32
-		_unlink(ticketPath.CStr());
-#endif /* _WIN32 */
-
-		if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("rename")
-				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(tempTicketPath));
-		}
+		Utility::RenameFile(tempTicketPath, ticketPath);
 	}
 
 	/* If no parent connection was made, the user must supply the ca.crt before restarting Icinga 2.*/
@@ -782,16 +764,7 @@ wizard_global_zone_loop_start:
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(apiConfPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempApiConfPath.CStr(), apiConfPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempApiConfPath));
-	}
+	Utility::RenameFile(tempApiConfPath, apiConfPath);
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
 	if (cn != Utility::GetFQDN()) {

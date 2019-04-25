@@ -181,16 +181,7 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 	fp << std::endl;
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(filename.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempFilename));
-	}
+	Utility::RenameFile(tempFilename, filename);
 
 	return true;
 }
@@ -360,16 +351,7 @@ bool NodeUtility::UpdateConfiguration(const String& value, bool include, bool re
 	ifp.close();
 	ofp.close();
 
-#ifdef _WIN32
-	_unlink(configurationFile.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFile.CStr(), configurationFile.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(configurationFile));
-	}
+	Utility::RenameFile(tempFile, configurationFile);
 
 	return (found || include);
 }
@@ -404,14 +386,5 @@ void NodeUtility::UpdateConstant(const String& name, const String& value)
 	ifp.close();
 	ofp.close();
 
-#ifdef _WIN32
-	_unlink(constantsConfPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFile.CStr(), constantsConfPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(constantsConfPath));
-	}
+	Utility::RenameFile(tempFile, constantsConfPath);
 }

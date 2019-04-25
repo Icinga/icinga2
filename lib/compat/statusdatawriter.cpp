@@ -763,16 +763,7 @@ void StatusDataWriter::UpdateObjectsCache()
 
 	objectfp.close();
 
-#ifdef _WIN32
-	_unlink(objectsPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempObjectsPath.CStr(), objectsPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempObjectsPath));
-	}
+	Utility::RenameFile(tempObjectsPath, objectsPath);
 }
 
 /**
@@ -845,16 +836,7 @@ void StatusDataWriter::StatusTimerHandler()
 
 	statusfp.close();
 
-#ifdef _WIN32
-	_unlink(statusPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempStatusPath.CStr(), statusPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempStatusPath));
-	}
+	Utility::RenameFile(tempStatusPath, statusPath);
 
 	Log(LogNotice, "StatusDataWriter")
 		<< "Writing status.dat file took " << Utility::FormatDuration(Utility::GetTime() - start);

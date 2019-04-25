@@ -111,8 +111,10 @@ public:
 
 	static bool PathExists(const String& path);
 
+	static void Remove(const String& path);
 	static void RemoveDirRecursive(const String& path);
 	static void CopyFile(const String& source, const String& target);
+	static void RenameFile(const String& source, const String& target);
 
 	static Value LoadJsonFile(const String& path);
 	static void SaveJsonFile(const String& path, int mode, const Value& value);
@@ -143,7 +145,6 @@ public:
 
 private:
 	Utility();
-	static void CollectPaths(const String& path, std::vector<String>& paths);
 
 #ifdef _WIN32
 	static int MksTemp (char *tmpl);
