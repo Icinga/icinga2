@@ -2,15 +2,17 @@
 
 #define VERSION "1.0.1"
 
-#include "remote/httpclientconnection.hpp"
-#include "remote/httprequest.hpp"
-#include "remote/url-characters.hpp"
+// ensure to include base first
+#include "base/i2-base.hpp"
 #include "base/application.hpp"
 #include "base/json.hpp"
 #include "base/string.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
+#include "remote/httpclientconnection.hpp"
+#include "remote/httprequest.hpp"
+#include "remote/url-characters.hpp"
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <iostream>
