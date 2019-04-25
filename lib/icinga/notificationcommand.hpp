@@ -23,8 +23,8 @@ public:
 	DECLARE_OBJECTNAME(NotificationCommand);
 
 	virtual Dictionary::Ptr Execute(const intrusive_ptr<Notification>& notification,
-		const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationType& type,
-		const String& author, const String& comment,
+		const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
+		const NotificationType& type, const String& author, const String& comment,
 		const Dictionary::Ptr& resolvedMacros = nullptr,
 		bool useResolvedMacros = false);
 };

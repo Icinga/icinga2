@@ -20,14 +20,15 @@ class PluginNotificationTask
 {
 public:
 	static void ScriptFunc(const Notification::Ptr& notification,
-		const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
-		const String& author, const String& comment,
+		const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
+		int itype, const String& author, const String& comment,
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	PluginNotificationTask();
 
 	static void ProcessFinishedHandler(const Checkable::Ptr& checkable,
+		const Notification::Ptr& notification, const NotificationResult::Ptr& nr,
 		const Value& commandLine, const ProcessResult& pr);
 };
 

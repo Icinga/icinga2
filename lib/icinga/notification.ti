@@ -1,6 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/customvarobject.hpp"
+#include "icinga/notificationresult.hpp"
+#include "base/array.hpp"
 #impl_include "icinga/notificationcommand.hpp"
 #impl_include "icinga/service.hpp"
 
@@ -16,6 +18,7 @@ public:
 	virtual String MakeName(const String& shortName, const Object::Ptr& context) const;
 	virtual Dictionary::Ptr ParseName(const String& name) const;
 };
+
 }}}
 
 class Notification : CustomVarObject < NotificationNameComposer
@@ -81,6 +84,7 @@ class Notification : CustomVarObject < NotificationNameComposer
 	[state] Timestamp next_notification;
 	[state] int notification_number;
 	[state] Timestamp last_problem_notification;
+	[state] NotificationResult::Ptr last_notification_result;
 
 	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
 		navigate {{{

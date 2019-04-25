@@ -51,7 +51,8 @@ public:
 	static Value SendNotificationsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static void NotificationSentUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const User::Ptr& user,
-		NotificationType notificationType, const CheckResult::Ptr& cr, const String& author, const String& commentText, const String& command, const MessageOrigin::Ptr& origin);
+		NotificationType notificationType, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
+		const String& author, const String& commentText, const String& command, const MessageOrigin::Ptr& origin);
 	static Value NotificationSentUserAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static void NotificationSentToAllUsersHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,

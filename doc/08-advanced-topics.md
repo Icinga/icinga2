@@ -1170,3 +1170,16 @@ Icinga 2 parses performance data strings returned by check plugins and makes the
   warn                      | Value                 | Warning threshold value.
   min                       | Value                 | Minimum value returned by the check.
   max                       | Value                 | Maximum value returned by the check.
+
+### NotificationResult <a id="advanced-value-types-notificationresult"></a>
+
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  exit\_status              | Number                | The exit status returned by the check execution.
+  output                    | String                | The notification command output.
+  execution\_endpoint       | String                | Name of the node executing the check.
+  command                   | Value                 | Array of command with shell-escaped arguments or command line string.
+  execution\_start          | Timestamp             | Check execution start time (as a UNIX timestamp).
+  execution\_end            | Timestamp             | Check execution end time (as a UNIX timestamp).
+  active                    | Boolean               | Whether the result is from an active or passive check.
+

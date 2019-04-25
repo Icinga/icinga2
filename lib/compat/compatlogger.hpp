@@ -36,8 +36,8 @@ private:
 
 	void CheckResultHandler(const Checkable::Ptr& service, const CheckResult::Ptr& cr);
 	void NotificationSentHandler(const Notification::Ptr& notification, const Checkable::Ptr& service,
-		const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
-		const String& author, const String& comment_text, const String& command_name);
+		const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr,
+		const NotificationResult::Ptr& nr, const String& author, const String& comment_text, const String& command_name);
 	void FlappingChangedHandler(const Checkable::Ptr& checkable);
 	void EnableFlappingChangedHandler(const Checkable::Ptr& checkable);
 	void TriggerDowntimeHandler(const Downtime::Ptr& downtime);
