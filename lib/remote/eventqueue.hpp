@@ -36,8 +36,6 @@ public:
 	void SetTypes(const std::set<String>& types);
 	void SetFilter(std::unique_ptr<Expression> filter);
 
-	Dictionary::Ptr WaitForEvent(void *client, double timeout = 5);
-
 	static std::vector<EventQueue::Ptr> GetQueuesForType(const String& type);
 	static void UnregisterIfUnused(const String& name, const EventQueue::Ptr& queue);
 
