@@ -35,6 +35,7 @@ public:
 	static String GetActiveStageFromFile(const String& packageName);
 	static String GetActiveStage(const String& packageName);
 	static void SetActiveStage(const String& packageName, const String& stageName);
+	static void SetActiveStageToFile(const String& packageName, const String& stageName);
 	static void ActivateStage(const String& packageName, const String& stageName);
 	static void AsyncTryActivateStage(const String& packageName, const String& stageName, bool reload);
 

@@ -271,6 +271,11 @@ void ApiListener::Start(bool runtimeCreated)
 	m_CleanupCertificateRequestsTimer->Start();
 	m_CleanupCertificateRequestsTimer->Reschedule(0);
 
+	m_ApiPackageIntegrityTimer = new Timer();
+	m_ApiPackageIntegrityTimer->OnTimerExpired.connect(std::bind(&ApiListener::CheckApiPackageIntegrity, this));
+	m_ApiPackageIntegrityTimer->SetInterval(300);
+	m_ApiPackageIntegrityTimer->Start();
+
 	OnMasterChanged(true);
 }
 
@@ -1560,6 +1565,27 @@ void ApiListener::UpdateActivePackageStagesCache()
 			<< "Updating cache: Config package '" << package << "' has active stage '" << activeStage << "'.";
 
 		m_ActivePackageStages[package] = activeStage;
+	}
+}
+
+void ApiListener::CheckApiPackageIntegrity()
+{
+	boost::mutex::scoped_lock lock(m_ActivePackageStagesLock);
+
+	for (auto package : ConfigPackageUtility::GetPackages()) {
+		String activeStage;
+		try {
+			activeStage = ConfigPackageUtility::GetActiveStageFromFile(package);
+		} catch (const std::exception& ex) {
+			/* An error means that the stage is broken, try to repair it. */
+			String activeStageCached = m_ActivePackageStages[package];
+
+			Log(LogInformation, "ApiListener")
+				<< "Repairing broken API config package '" << package
+				<< "', setting active stage '" << activeStageCached << "'.";
+
+			ConfigPackageUtility::SetActiveStageToFile(package, activeStageCached);
+		}
 	}
 }
 

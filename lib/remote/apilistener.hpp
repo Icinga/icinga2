@@ -124,6 +124,8 @@ private:
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_AuthorityTimer;
 	Timer::Ptr m_CleanupCertificateRequestsTimer;
+	Timer::Ptr m_ApiPackageIntegrityTimer;
+
 	Endpoint::Ptr m_LocalEndpoint;
 
 	static ApiListener::Ptr m_Instance;
@@ -131,6 +133,7 @@ private:
 	void ApiTimerHandler();
 	void ApiReconnectTimerHandler();
 	void CleanupCertificateRequestsTimerHandler();
+	void CheckApiPackageIntegrity();
 
 	bool AddListener(const String& node, const String& service);
 	void AddConnection(const Endpoint::Ptr& endpoint);

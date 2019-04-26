@@ -269,6 +269,17 @@ String ConfigPackageUtility::GetActiveStageFromFile(const String& packageName)
 	return stage.Trim();
 }
 
+void ConfigPackageUtility::SetActiveStageToFile(const String& packageName, const String& stageName)
+{
+	boost::mutex::scoped_lock lock(GetStaticMutex());
+
+	String activeStagePath = GetPackageDir() + "/" + packageName + "/active-stage";
+
+	std::ofstream fpActiveStage(activeStagePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc); //TODO: fstream exceptions
+	fpActiveStage << stageName;
+	fpActiveStage.close();
+}
+
 String ConfigPackageUtility::GetActiveStage(const String& packageName)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -307,11 +318,7 @@ void ConfigPackageUtility::SetActiveStage(const String& packageName, const Strin
 	listener->SetActivePackageStage(packageName, stageName);
 
 	/* Also update the marker on disk for restarts. */
-	String activeStagePath = GetPackageDir() + "/" + packageName + "/active-stage";
-
-	std::ofstream fpActiveStage(activeStagePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc); //TODO: fstream exceptions
-	fpActiveStage << stageName;
-	fpActiveStage.close();
+	SetActiveStageToFile(packageName, stageName);
 }
 
 std::vector<std::pair<String, bool> > ConfigPackageUtility::GetFiles(const String& packageName, const String& stageName)
