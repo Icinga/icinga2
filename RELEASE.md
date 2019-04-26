@@ -68,28 +68,10 @@ sed -i "s/Version: .*/Version: $VERSION/g" VERSION
 
 ## Changelog <a id="changelog"></a>
 
-Update the [CHANGELOG.md](CHANGELOG.md) file.
+Link to the milestone and closed=1 as filter.
 
-### Requirements
-
-Export these environment variables:
-
-```
-export ICINGA_GITHUB_AUTH_USERNAME='user'
-export ICINGA_GITHUB_AUTH_TOKEN='token'
-export ICINGA_GITHUB_PROJECT='icinga/icinga2'
-```
-
-### Generation
-
-**Close the version on [GitHub](https://github.com/Icinga/icinga2/milestones).**
-
-Run the script which updates the [CHANGELOG.md](CHANGELOG.md) file.
-
-```
-./changelog.py
-git diff
-```
+Manually update the best of collected from the
+milestone description.
 
 ## Git Tag  <a id="git-tag"></a>
 
@@ -289,9 +271,9 @@ docker run -ti debian:stretch bash
 apt-get update && apt-get install -y wget curl gnupg apt-transport-https
 
 DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb http://packages.icinga.com/debian icinga-${DIST} main" > \
+ echo "deb https://packages.icinga.com/debian icinga-${DIST} main" > \
  /etc/apt/sources.list.d/${DIST}-icinga.list
- echo "deb-src http://packages.icinga.com/debian icinga-${DIST} main" >> \
+ echo "deb-src https://packages.icinga.com/debian icinga-${DIST} main" >> \
  /etc/apt/sources.list.d/${DIST}-icinga.list
 
 curl https://packages.icinga.com/icinga.key | apt-key add -
@@ -302,6 +284,13 @@ icinga2 daemon
 ## GitHub Release  <a id="github-release"></a>
 
 Create a new release for the newly created Git tag: https://github.com/Icinga/icinga2/releases
+
+> Hint: Choose [tags](https://github.com/Icinga/icinga2/tags), pick one to edit and
+> make this a release. You can also create a draft release.
+
+The release body should contain a short changelog, with links
+into the roadmap, changelog and blogpost.
+
 
 ## Chocolatey  <a id="chocolatey"></a>
 
@@ -328,6 +317,8 @@ choco push Icinga2-v2.10.0.nupkg --source https://push.chocolatey.org/
 
 ### Online Documentation  <a id="online-documentation"></a>
 
+> Only required for major releases.
+
 Navigate to `puppet-customer/icinga.git` and do the following steps:
 
 #### Testing
@@ -336,12 +327,12 @@ Navigate to `puppet-customer/icinga.git` and do the following steps:
 git checkout testing && git pull
 vim files/var/www/docs/config/icinga2-latest.yml
 
-git commit -av -m "icinga-web1: Update docs for Icinga 2"
+git commit -av -m "icinga-web: Update docs for Icinga 2"
 
 git push
 ```
 
-SSH into icinga-web1 and do a manual Puppet dry run with the testing environment.
+SSH into the webserver and do a manual Puppet dry run with the testing environment.
 
 ```
 puppet agent -t --environment testing --noop
@@ -357,17 +348,25 @@ git merge testing
 git push
 ```
 
-SSH into icinga-web2 and do a manual Puppet run from the production environment (default).
+SSH into the webserver and do a manual Puppet run from the production environment (default).
 
 ```
 puppet agent -t
+```
+
+#### Manual Generation
+
+SSH into the webserver or ask @bobapple.
+
+```
+cd /usr/local/icinga-docs-tools && ./build-docs.rb -c /var/www/docs/config/icinga2-latest.yml
 ```
 
 ### Announcement  <a id="announcement"></a>
 
 * Create a new blog post on [icinga.com/blog](https://icinga.com/blog) including a featured image
 * Create a release topic on [community.icinga.com](https://community.icinga.com)
-* Release email to team
+* Release email to net-tech & team
 
 ### Project Management  <a id="project-management"></a>
 

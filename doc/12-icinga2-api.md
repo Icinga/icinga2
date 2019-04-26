@@ -2271,6 +2271,7 @@ Name												| Language	| Description
 [Logstash input event stream](https://github.com/bobapple/logstash-input-icinga_eventstream)	| Ruby		| Forward events as Logstash input
 [Flapjack events](https://github.com/sol1/flapjack-icinga2)					| Golang	| Dumping events into Redis for Flapjack processing
 [Stackstorm integration](https://github.com/StackStorm-Exchange/stackstorm-icinga2)		| Python	| Processing events and fetching status information
+[NodeJS consumer](https://community.icinga.com/t/consume-api-event-stream/1010/6)		| NodeJS	| Example from our community :)
 
 ### Actions <a id="icinga2-api-clients-actions"></a>
 
