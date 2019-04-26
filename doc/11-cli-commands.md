@@ -135,20 +135,19 @@ added.
 
 ## CLI command: Api <a id="cli-command-api"></a>
 
-Provides the helper functions `api setup` and `api user`. The first to enable the REST API, the second to create
-ApiUser objects with hashed password strings.
-More details in the [Icinga 2 API](12-icinga2-api.md#icinga2-api-setup) chapter.
+Provides helper functions to enable and setup the
+[Icinga 2 API](12-icinga2-api.md#icinga2-api-setup).
+
+### CLI command: Api Setup <a id="cli-command-api-setup "></a>
 
 ```
-# icinga2 api --help
+# icinga2 api setup --help
 icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
-  icinga2 <command> [<arguments>]
+  icinga2 api setup [<arguments>]
 
-Supported commands:
-  * api setup (setup for API)
-  * api user (API user creation helper)
+Setup for Icinga 2 API.
 
 Global options:
   -h [ --help ]             show this help message
@@ -156,15 +155,18 @@ Global options:
   --color                   use VT100 color codes even when stdout is not a
                             terminal
   -D [ --define ] arg       define a constant
-  -a [ --app ] arg          application library name (default: icinga)
-  -l [ --library ] arg      load a library
   -I [ --include ] arg      add include search directory
   -x [ --log-level ] arg    specify the log level for the console log.
                             The valid value is either debug, notice,
                             information (default), warning, or critical
   -X [ --script-debugger ]  whether to enable the script debugger
 
+Command options:
+  --cn arg                  The certificate's common name
+
 Report bugs at <https://github.com/Icinga/icinga2>
+Get support: <https://icinga.com/support/>
+Documentation: <https://icinga.com/docs/>
 Icinga home page: <https://icinga.com/>
 ```
 

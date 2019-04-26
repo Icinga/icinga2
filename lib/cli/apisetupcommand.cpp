@@ -27,9 +27,11 @@ ImpersonationLevel ApiSetupCommand::GetImpersonationLevel() const
 	return ImpersonateIcinga;
 }
 
-int ApiSetupCommand::GetMaxArguments() const
+void ApiSetupCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+	boost::program_options::options_description& hiddenDesc) const
 {
-	return -1;
+	visibleDesc.add_options()
+		("cn", po::value<std::string>(), "The certificate's common name");
 }
 
 /**
@@ -39,10 +41,16 @@ int ApiSetupCommand::GetMaxArguments() const
  */
 int ApiSetupCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String cn = VariableUtility::GetVariable("NodeName");
+	String cn;
 
-	if (cn.IsEmpty())
-		cn = Utility::GetFQDN();
+	if (vm.count("cn")) {
+		cn = vm["cn"].as<std::string>();
+	} else {
+		cn = VariableUtility::GetVariable("NodeName");
+
+		if (cn.IsEmpty())
+			cn = Utility::GetFQDN();
+	}
 
 	if (!ApiSetupUtility::SetupMaster(cn, true))
 		return 1;
