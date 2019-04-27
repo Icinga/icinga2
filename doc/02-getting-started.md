@@ -928,7 +928,7 @@ SUSE:
 
 ```
 zypper install apache2
-chkconfig on
+chkconfig apache2 on
 service apache2 start
 ```
 
