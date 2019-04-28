@@ -129,6 +129,8 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes,
 	DictionaryData fields;
 	fields.reserve(type->GetFieldCount() + 1);
 
+	ObjectLock olock(input);
+
 	for (int i = 0; i < type->GetFieldCount(); i++) {
 		Field field = type->GetFieldInfo(i);
 
