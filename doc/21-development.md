@@ -985,7 +985,7 @@ You need a free Microsoft account to download and also store your preferences.
 Choose these individual components on Visual Studio 2017:
 
 * .NET
-  * .NET Framework 3.5 development tools
+  * .NET Framework 4.6 targeting pack
   * .NET Framework 4.6.1 SDK
   * .NET Framework 4.6.1 targeting pack
 * Code tools
@@ -1010,19 +1010,7 @@ Choose these individual components on Visual Studio 2017:
 * Uncategorized
   * GitHub Extension for Visual Studio
 
-
 After a while, Visual Studio will be ready.
-
-#### .NET Framework 3.5
-
-Windows 10 has .NET Framework >= 4.6 installed by default. The Icinga Agent Wizard
-is built on .NET Framework 2.0 which is not included in .NET Framework 4.6.
-
-Windows 10 provides .NET Framework 3.5 which includes .NET Framework 2.0.
-
-Navigate into `Control Panel` -> `Programs` -> `Turn Windows features on or off`.
-Select `.NET Framework 3.5 (includes .NET 2.0 and 3.0)` and wait until the installation process
-is finished.
 
 #### Flex and Bison
 

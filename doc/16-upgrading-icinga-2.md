@@ -36,6 +36,13 @@ we provide Boost as package on our [package repository](https://packages.icinga.
 After upgrade, you may remove the old Boost packages (1.53 or anything above)
 if you don't need them anymore.
 
+#### Added: .NET Framework 4.6
+
+We modernized the graphical Windows wizard to use the more recent .NET Framework 4.6. This requires that Windows versions
+older than Windows 10/Windows Server 2016 installs at least [.NET Framework 4.6](https://www.microsoft.com/en-US/download/details.aspx?id=53344). Starting with Windows 10/Windows Server 2016 a .NET Framework 4.6 or higher is installed by default.
+
+The MSI-Installer package checks if the .NET Framework 4.6 or higher is present, if not the installation wizard will abort with an error message telling you to install at least .NET Framework 4.6.
+
 #### Removed: YAJL
 
 Our JSON library, namely [YAJL](https://github.com/lloyd/yajl), isn't maintained anymore
