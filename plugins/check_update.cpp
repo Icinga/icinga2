@@ -87,7 +87,7 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			L"threshold will be set to one greater than the set warning threshold.\n\n"
 			L"The \"possible-reboot\" option is not recommended since this true for nearly\n"
 			L"every update."
-			, progName, progName);
+			, progName);
 		std::cout << '\n';
 		return 0;
 	} if (vm.count("version")) {

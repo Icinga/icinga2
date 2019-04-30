@@ -317,7 +317,7 @@ bool QueryPerfData(printInfoStruct& pI)
 		pI.dValue = pDisplayValues[0].FmtValue.longValue;
 		break;
 	case (PDH_FMT_LARGE):
-		pI.dValue = pDisplayValues[0].FmtValue.largeValue;
+		pI.dValue = (double) pDisplayValues[0].FmtValue.largeValue;
 		break;
 	default:
 		pI.dValue = pDisplayValues[0].FmtValue.doubleValue;
