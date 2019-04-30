@@ -720,6 +720,35 @@ void Notification::ValidateTypes(const Lazy<Array::Ptr>& lvalue, const Validatio
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "types" }, "Type filter is invalid."));
 }
 
+void Notification::ValidateTimes(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<Notification>::ValidateTimes(lvalue, utils);
+
+	Dictionary::Ptr times = lvalue();
+
+	if (!times)
+		return;
+
+	double begin;
+	double end;
+
+	try {
+		begin = Convert::ToDouble(times->Get("begin"));
+	} catch (const std::exception&) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "times" }, "'begin' is invalid, must be duration or number." ));
+	}
+
+	try {
+		end = Convert::ToDouble(times->Get("end"));
+	} catch (const std::exception&) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "times" }, "'end' is invalid, must be duration or number." ));
+	}
+
+	/* Also solve logical errors where begin > end. */
+	if (begin > 0 && end > 0 && begin > end)
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "times" }, "'begin' must be smaller than 'end'."));
+}
+
 Endpoint::Ptr Notification::GetCommandEndpoint() const
 {
 	return Endpoint::GetByName(GetCommandEndpointRaw());
