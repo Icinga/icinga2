@@ -167,7 +167,7 @@ static std::wstring getServiceByDescription(const std::wstring& description)
 	EnumServicesStatus(hSCM, SERVICE_WIN32 | SERVICE_DRIVER, SERVICE_STATE_ALL, lpServices, pcbBytesNeeded,
 		&pcbBytesNeeded, &lpServicesReturned, &lpResumeHandle);
 
-	for (int index = 0; index < lpServicesReturned; index++) {
+	for (decltype(lpServicesReturned) index = 0; index < lpServicesReturned; index++) {
 		LPWSTR lpCurrent = lpServices[index].lpServiceName;
 
 		if (l_Debug) {

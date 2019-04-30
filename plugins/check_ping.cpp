@@ -345,7 +345,7 @@ static int check_ping4(const printInfoStruct& pi, response& response)
 		QueryPerformanceCounter(&timer2);
 
 		if (((timer2.QuadPart - timer1.QuadPart) * 1000 / frequency.QuadPart) < pi.timeout)
-			Sleep(pi.timeout - ((timer2.QuadPart - timer1.QuadPart) * 1000 / frequency.QuadPart));
+			Sleep((DWORD) (pi.timeout - ((timer2.QuadPart - timer1.QuadPart) * 1000 / frequency.QuadPart)));
 	} while (--num);
 
 	if (l_Debug)
@@ -400,82 +400,80 @@ static int check_ping6(const printInfoStruct& pi, response& response)
 
 	HANDLE hIcmp = Icmp6CreateFile();
 	if (hIcmp == INVALID_HANDLE_VALUE) {
-		goto die;
+		printErrorInfo(GetLastError());
+
+		if (hIcmp)
+			IcmpCloseHandle(hIcmp);
+
+		if (repBuf)
+			delete reinterpret_cast<BYTE *>(repBuf);
+
+		return 3;
+	} else {
+		IP_OPTION_INFORMATION ipInfo = { 30, 0, 0, 0, NULL };
+
+		LARGE_INTEGER frequency;
+		QueryPerformanceFrequency(&frequency);
+
+		do {
+			LARGE_INTEGER timer1;
+			QueryPerformanceCounter(&timer1);
+
+			if (l_Debug)
+				std::wcout << L"Sending Icmp echo" << '\n';
+
+			if (!Icmp6SendEcho2(hIcmp, NULL, NULL, NULL, &ipSource6, &ipDest6,
+				NULL, 0, &ipInfo, repBuf, dwRepSize, pi.timeout)) {
+				response.dropped++;
+				if (l_Debug)
+					std::wcout << L"Dropped: Response was 0" << '\n';
+				continue;
+			}
+
+			if (l_Debug)
+				std::wcout << "Ping recieved" << '\n';
+
+			Icmp6ParseReplies(repBuf, dwRepSize);
+
+			ICMPV6_ECHO_REPLY *pEchoReply = static_cast<ICMPV6_ECHO_REPLY *>(repBuf);
+
+			if (pEchoReply->Status != IP_SUCCESS) {
+				response.dropped++;
+				if (l_Debug)
+					std::wcout << L"Dropped: echo reply status " << pEchoReply->Status << '\n';
+				continue;
+			}
+
+			rtt += pEchoReply->RoundTripTime;
+
+			if (l_Debug)
+				std::wcout << L"Recorded rtt of " << pEchoReply->RoundTripTime << '\n';
+
+			if (response.pMin == 0 || pEchoReply->RoundTripTime < response.pMin)
+				response.pMin = pEchoReply->RoundTripTime;
+			else if (pEchoReply->RoundTripTime > response.pMax)
+				response.pMax = pEchoReply->RoundTripTime;
+
+			LARGE_INTEGER timer2;
+			QueryPerformanceCounter(&timer2);
+
+			if (((timer2.QuadPart - timer1.QuadPart) * 1000 / frequency.QuadPart) < pi.timeout)
+				Sleep((DWORD) (pi.timeout - ((timer2.QuadPart - timer1.QuadPart) * 1000 / frequency.QuadPart)));
+		} while (--num);
+
+		if (l_Debug)
+			std::wcout << L"All pings sent. Cleaning up and returning" << '\n';
+
+		if (hIcmp)
+			IcmpCloseHandle(hIcmp);
+
+		if (repBuf)
+			delete reinterpret_cast<BYTE *>(repBuf);
+
+		response.avg = ((double)rtt / pi.num);
+
+		return -1;
 	}
-
-	IP_OPTION_INFORMATION ipInfo = { 30, 0, 0, 0, NULL };
-
-	LARGE_INTEGER frequency;
-	QueryPerformanceFrequency(&frequency);
-
-	do {
-		LARGE_INTEGER timer1;
-		QueryPerformanceCounter(&timer1);
-
-		if (l_Debug)
-			std::wcout << L"Sending Icmp echo" << '\n';
-
-		if (!Icmp6SendEcho2(hIcmp, NULL, NULL, NULL, &ipSource6, &ipDest6,
-			NULL, 0, &ipInfo, repBuf, dwRepSize, pi.timeout)) {
-			response.dropped++;
-			if (l_Debug)
-				std::wcout << L"Dropped: Response was 0" << '\n';
-			continue;
-		}
-
-		if (l_Debug)
-			std::wcout << "Ping recieved" << '\n';
-
-		Icmp6ParseReplies(repBuf, dwRepSize);
-
-		ICMPV6_ECHO_REPLY *pEchoReply = static_cast<ICMPV6_ECHO_REPLY *>(repBuf);
-
-		if (pEchoReply->Status != IP_SUCCESS) {
-			response.dropped++;
-			if (l_Debug)
-				std::wcout << L"Dropped: echo reply status " << pEchoReply->Status << '\n';
-			continue;
-		}
-
-		rtt += pEchoReply->RoundTripTime;
-
-		if (l_Debug)
-			std::wcout << L"Recorded rtt of " << pEchoReply->RoundTripTime << '\n';
-
-		if (response.pMin == 0 || pEchoReply->RoundTripTime < response.pMin)
-			response.pMin = pEchoReply->RoundTripTime;
-		else if (pEchoReply->RoundTripTime > response.pMax)
-			response.pMax = pEchoReply->RoundTripTime;
-
-		LARGE_INTEGER timer2;
-		QueryPerformanceCounter(&timer2);
-
-		if (((timer2.QuadPart - timer1.QuadPart) * 1000 / frequency.QuadPart) < pi.timeout)
-			Sleep(pi.timeout - ((timer2.QuadPart - timer1.QuadPart) * 1000 / frequency.QuadPart));
-	} while (--num);
-
-	if (l_Debug)
-		std::wcout << L"All pings sent. Cleaning up and returning" << '\n';
-
-	if (hIcmp)
-		IcmpCloseHandle(hIcmp);
-
-	if (repBuf)
-		delete reinterpret_cast<BYTE *>(repBuf);
-
-	response.avg = ((double)rtt / pi.num);
-
-	return -1;
-die:
-	printErrorInfo(GetLastError());
-
-	if (hIcmp)
-		IcmpCloseHandle(hIcmp);
-
-	if (repBuf)
-		delete reinterpret_cast<BYTE *>(repBuf);
-
-	return 3;
 }
 
 int wmain(int argc, WCHAR **argv)

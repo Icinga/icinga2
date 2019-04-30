@@ -143,9 +143,9 @@ static int printOutput(printInfoStruct& printInfo)
 
 	state state = OK;
 
-	if (printInfo.warn.rend(printInfo.time))
+	if (printInfo.warn.rend((double) printInfo.time))
 		state = WARNING;
-	if (printInfo.crit.rend(printInfo.time))
+	if (printInfo.crit.rend((double) printInfo.time))
 		state = CRITICAL;
 
 	switch (state) {
