@@ -1578,7 +1578,12 @@ void ApiListener::CheckApiPackageIntegrity()
 			activeStage = ConfigPackageUtility::GetActiveStageFromFile(package);
 		} catch (const std::exception& ex) {
 			/* An error means that the stage is broken, try to repair it. */
-			String activeStageCached = m_ActivePackageStages[package];
+			auto it = m_ActivePackageStages.find(package);
+
+			if (it == m_ActivePackageStages.end())
+				continue;
+
+			String activeStageCached = it->second;
 
 			Log(LogInformation, "ApiListener")
 				<< "Repairing broken API config package '" << package
