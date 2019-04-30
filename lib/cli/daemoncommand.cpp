@@ -289,7 +289,13 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	}
 
 	/* Remove ignored Downtime/Comment objects. */
-	ConfigItem::RemoveIgnoredItems(ConfigObjectUtility::GetConfigDir());
+	try {
+		String configDir = ConfigObjectUtility::GetConfigDir();
+		ConfigItem::RemoveIgnoredItems(configDir);
+	} catch (const std::exception& ex) {
+		Log(LogNotice, "cli")
+			<< "Cannot clean ignored downtimes/comments: " << ex.what();
+	}
 
 #ifndef _WIN32
 	struct sigaction sa;

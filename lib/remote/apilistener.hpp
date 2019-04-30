@@ -84,6 +84,11 @@ public:
 	static Value ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	static Value ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
+	/* API config packages */
+	void SetActivePackageStage(const String& package, const String& stage);
+	String GetActivePackageStage(const String& package);
+	void RemoveActivePackageStage(const String& package);
+
 	static Value HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static void UpdateObjectAuthority();
@@ -119,6 +124,8 @@ private:
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_AuthorityTimer;
 	Timer::Ptr m_CleanupCertificateRequestsTimer;
+	Timer::Ptr m_ApiPackageIntegrityTimer;
+
 	Endpoint::Ptr m_LocalEndpoint;
 
 	static ApiListener::Ptr m_Instance;
@@ -126,6 +133,7 @@ private:
 	void ApiTimerHandler();
 	void ApiReconnectTimerHandler();
 	void CleanupCertificateRequestsTimerHandler();
+	void CheckApiPackageIntegrity();
 
 	bool AddListener(const String& node, const String& service);
 	void AddConnection(const Endpoint::Ptr& endpoint);
@@ -175,6 +183,12 @@ private:
 	void SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient);
 
 	void SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint, bool needSync);
+
+	/* API Config Packages */
+	mutable boost::mutex m_ActivePackageStagesLock;
+	std::map<String, String> m_ActivePackageStages;
+
+	void UpdateActivePackageStagesCache();
 };
 
 }

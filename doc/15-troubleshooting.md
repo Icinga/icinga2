@@ -747,7 +747,7 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE 'https://loc
 }
 ```
 
-## REST API Troubleshooting: No Objects Found <a id="troubleshooting-api-no-objects-found"></a>
+### REST API Troubleshooting: No Objects Found <a id="troubleshooting-api-no-objects-found"></a>
 
 Please note that the `404` status with no objects being found can also originate
 from missing or too strict object permissions for the authenticated user.
@@ -760,6 +760,93 @@ In order to analyse and fix the problem, please check the following:
 
 - use an administrative account with full permissions to check whether the objects are actually there.
 - verify the permissions on the affected ApiUser object and fix them.
+
+### Missing Runtime Objects (Hosts, Downtimes, etc.) <a id="troubleshooting-api-missing-runtime-objects"></a>
+
+Runtime objects consume the internal config packages shared with
+the REST API config packages. Each host, downtime, comment, service, etc. created
+via the REST API is stored in the `_api` package.
+
+This includes downtimes and comments, which where sometimes stored in the wrong
+directory path, because the active-stage file was empty/truncated/unreadable at
+this point.
+
+Wrong:
+
+```
+/var/lib/icinga2/api/packages/_api//conf.d/downtimes/1234-5678-9012-3456.conf
+```
+
+Correct:
+
+```
+/var/lib/icinga2/api/packages/_api/abcd-ef12-3456-7890/conf.d/downtimes/1234-5678-9012-3456.conf
+```
+
+At creation time, the object lives in memory but its storage is broken. Upon restart,
+it is missing and e.g. a missing downtime will re-enable unwanted notifications.
+
+`abcd-ef12-3456-7890` is the active stage name which wasn't correctly
+read by the Icinga daemon. This information is stored in `/var/lib/icinga2/api/packages/_api/active-stage`.
+
+2.11 now limits the direct active-stage file access (this is hidden from the user),
+and caches active stages for packages in-memory.
+
+Bonus on startup/config validation: Icinga now logs a critical message when a deployed
+config package is broken.
+
+```
+icinga2 daemon -C
+
+[2019-04-26 12:58:14 +0200] critical/ApiListener: Cannot detect active stage for package '_api'. Broken config package, check the troubleshooting documentation.
+```
+
+In order to fix the broken config package, and mark a deployed stage as active
+again, carefully do the following steps with creating a backup before:
+
+Navigate into the API package prefix.
+
+```
+cd /var/lib/icinga2/api/packages
+```
+
+Change into the broken package directory and list all directories and files
+ordered by latest changes.
+
+```
+cd _api
+ls -lahtr
+
+drwx------  4 michi  wheel   128B Mar 27 14:39 ..
+-rw-r--r--  1 michi  wheel    25B Mar 27 14:39 include.conf
+-rw-r--r--  1 michi  wheel   405B Mar 27 14:39 active.conf
+drwx------  7 michi  wheel   224B Mar 27 15:01 abcd-ef12-3456-7890
+drwx------  5 michi  wheel   160B Apr 26 12:47 .
+```
+
+As you can see, the `active-stage` file is missing. When it is there, verify that its content
+is set to the stage directory as follows.
+
+If you have more than one stage directory here, pick the latest modified
+directory. Copy the directory name `abcd-ef12-3456-7890` and
+add it into a new file `active-stage`. This can be done like this:
+
+```
+echo "abcd-ef12-3456-7890" > active-stage
+```
+
+Re-run config validation.
+
+```
+icinga2 daemon -C
+```
+
+The validation should not show an error.
+
+> **Note**
+>
+> The internal `_api` config package structure may change in the future. Do not modify
+> things in there manually or with scripts unless guided here or asked by a developer.
 
 
 ## Certificate Troubleshooting <a id="troubleshooting-certificate"></a>
