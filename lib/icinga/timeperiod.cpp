@@ -238,6 +238,7 @@ void TimePeriod::Merge(const TimePeriod::Ptr& timeperiod, bool include)
 void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 {
 	if (clearExisting) {
+		ObjectLock olock(this);
 		SetSegments(new Array());
 	} else {
 		if (begin < GetValidEnd())
@@ -363,6 +364,8 @@ void TimePeriod::UpdateTimerHandler()
 
 void TimePeriod::Dump()
 {
+	ObjectLock olock(this);
+
 	Array::Ptr segments = GetSegments();
 
 	Log(LogDebug, "TimePeriod")
