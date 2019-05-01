@@ -142,7 +142,7 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes,
 
 		Value value = input->GetField(i);
 		stack.Push(field.Name, value);
-		fields.emplace_back(field.Name, SerializeInternal(input->GetField(i), attributeTypes, stack));
+		fields.emplace_back(field.Name, SerializeInternal(value, attributeTypes, stack));
 		stack.Pop();
 	}
 
