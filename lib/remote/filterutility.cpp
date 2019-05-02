@@ -208,7 +208,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 	CheckPermission(user, qd.Permission, &permissionFilter);
 
 	Namespace::Ptr permissionFrameNS = new Namespace();
-	ScriptFrame permissionFrame(true, permissionFrameNS);
+	ScriptFrame permissionFrame(false, permissionFrameNS);
 
 	for (const String& type : qd.Types) {
 		String attr = type;
@@ -259,7 +259,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type specified for this query."));
 
 		Namespace::Ptr frameNS = new Namespace();
-		ScriptFrame frame(true, frameNS);
+		ScriptFrame frame(false, frameNS);
 		frame.Sandboxed = true;
 
 		if (query->Contains("filter")) {
