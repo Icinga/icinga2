@@ -157,7 +157,7 @@ void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& perm
 
 			if (filter && permissionFilter) {
 				std::vector<std::unique_ptr<Expression> > args;
-				args.emplace_back(new GetScopeExpression(ScopeLocal));
+				args.emplace_back(new GetScopeExpression(ScopeThis));
 				std::unique_ptr<Expression> indexer{new IndexerExpression(std::unique_ptr<Expression>(MakeLiteral(filter)), std::unique_ptr<Expression>(MakeLiteral("call")))};
 				FunctionCallExpression *fexpr = new FunctionCallExpression(std::move(indexer), std::move(args));
 
