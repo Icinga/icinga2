@@ -16,6 +16,7 @@ set(methods_SOURCES
   pluginnotificationtask.cpp pluginnotificationtask.hpp
   randomchecktask.cpp randomchecktask.hpp
   timeperiodtask.cpp timeperiodtask.hpp
+  sleepchecktask.cpp sleepchecktask.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)
