@@ -353,6 +353,11 @@ bool Application::IsShuttingDown()
 	return m_ShuttingDown;
 }
 
+bool Application::IsRestarting()
+{
+	return l_Restarting;
+}
+
 void Application::OnShutdown()
 {
 	/* Nothing to do here. */

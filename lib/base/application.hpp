@@ -58,6 +58,7 @@ public:
 	static void RequestReopenLogs();
 
 	static bool IsShuttingDown();
+	static bool IsRestarting();
 
 	static void SetDebuggingSeverity(LogSeverity severity);
 	static LogSeverity GetDebuggingSeverity();

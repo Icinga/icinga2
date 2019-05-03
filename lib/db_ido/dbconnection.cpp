@@ -375,7 +375,26 @@ bool DbConnection::GetStatusUpdate(const DbObject::Ptr& dbobj) const
 
 void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 {
-	if (!GetConnected() || Application::IsShuttingDown())
+	bool isShuttingDown = Application::IsShuttingDown();
+	bool isRestarting = Application::IsRestarting();
+
+#ifdef I2_DEBUG
+	if (isShuttingDown || isRestarting) {
+		//Log(LogDebug, "DbConnection")
+		//	<< "Updating object '" << object->GetName() << "' \t\t active '" << Convert::ToLong(object->IsActive())
+		//	<< "' shutting down '" << Convert::ToLong(isShuttingDown) << "' restarting '" << Convert::ToLong(isRestarting) << "'.";
+	}
+#endif /* I2_DEBUG */
+
+	/* Wait until a database connection is established on reconnect. */
+	if (!GetConnected())
+		return;
+
+	/* Don't update inactive objects during shutdown/reload/restart.
+	 * They would be marked as deleted. This gets triggered with ConfigObject::StopObjects().
+	 * During startup/reconnect this is fine, the handler is not active there.
+	 */
+	if (isShuttingDown || isRestarting)
 		return;
 
 	DbObject::Ptr dbobj = DbObject::GetOrCreateByObject(object);
@@ -402,7 +421,10 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 				dbobj->SendConfigUpdateLight();
 			}
 		} else if (!active) {
-			/* Deactivate the deleted object no matter
+			/* This may happen on reload/restart actions too
+			 * and is blocked above already.
+			 *
+			 * Deactivate the deleted object no matter
 			 * which state it had in the database.
 			 */
 			DeactivateObject(dbobj);
