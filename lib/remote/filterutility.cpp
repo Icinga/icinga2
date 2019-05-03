@@ -157,7 +157,7 @@ void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& perm
 
 			if (filter && permissionFilter) {
 				std::vector<std::unique_ptr<Expression> > args;
-				args.emplace_back(new GetScopeExpression(ScopeLocal));
+				args.emplace_back(new GetScopeExpression(ScopeThis));
 				std::unique_ptr<Expression> indexer{new IndexerExpression(std::unique_ptr<Expression>(MakeLiteral(filter)), std::unique_ptr<Expression>(MakeLiteral("call")))};
 				FunctionCallExpression *fexpr = new FunctionCallExpression(std::move(indexer), std::move(args));
 
@@ -192,7 +192,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 	CheckPermission(user, qd.Permission, &permissionFilter);
 
 	Namespace::Ptr permissionFrameNS = new Namespace();
-	ScriptFrame permissionFrame(true, permissionFrameNS);
+	ScriptFrame permissionFrame(false, permissionFrameNS);
 
 	for (const String& type : qd.Types) {
 		String attr = type;
@@ -243,7 +243,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type specified for this query."));
 
 		Namespace::Ptr frameNS = new Namespace();
-		ScriptFrame frame(true, frameNS);
+		ScriptFrame frame(false, frameNS);
 		frame.Sandboxed = true;
 
 		if (query->Contains("filter")) {
