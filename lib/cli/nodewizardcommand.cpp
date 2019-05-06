@@ -103,7 +103,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	 * 8. copy key information to /var/lib/icinga2/certs
 	 * 9. enable ApiListener feature
 	 * 10. generate zones.conf with endpoints and zone objects
-	 * 11. set NodeName = cn in constants.conf
+	 * 11. set NodeName = cn and ZoneName in constants.conf
 	 * 12. disable conf.d directory?
 	 * 13. reload icinga2, or tell the user to
 	 */
@@ -570,14 +570,14 @@ wizard_global_zone_loop_start:
 	/* Generate node configuration. */
 	NodeUtility::GenerateNodeIcingaConfig(endpointName, zoneName, parentZoneName, endpoints, globalZones);
 
-	if (cn != Utility::GetFQDN()) {
+	if (endpointName != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
-			<< "CN '" << cn << "' does not match the default FQDN '"
+			<< "CN/Endpoint name '" << endpointName << "' does not match the default FQDN '"
 			<< Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 	}
 
-	NodeUtility::UpdateConstant("NodeName", cn);
-	NodeUtility::UpdateConstant("ZoneName", cn);
+	NodeUtility::UpdateConstant("NodeName", endpointName);
+	NodeUtility::UpdateConstant("ZoneName", zoneName);
 
 	if (!ticket.IsEmpty()) {
 		String ticketPath = ApiListener::GetCertsDir() + "/ticket";
@@ -821,8 +821,8 @@ wizard_global_zone_loop_start:
 
 	NodeUtility::CreateBackupFile(NodeUtility::GetConstantsConfPath());
 
-	NodeUtility::UpdateConstant("NodeName", cn);
-	NodeUtility::UpdateConstant("ZoneName", cn);
+	NodeUtility::UpdateConstant("NodeName", endpointName);
+	NodeUtility::UpdateConstant("ZoneName", zoneName);
 
 	String salt = RandomString(16);
 
