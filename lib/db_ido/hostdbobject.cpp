@@ -90,7 +90,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 
 	int currentState = host->GetState();
 
-	if (currentState != HostUp && !host->IsReachable())
+	if (currentState != HostUp && !host->GetLastReachable())
 		currentState = 2; /* hardcoded compat state */
 
 	fields->Set("current_state", currentState);
@@ -122,7 +122,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	fields->Set("normal_check_interval", host->GetCheckInterval() / 60.0);
 	fields->Set("retry_check_interval", host->GetRetryInterval() / 60.0);
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
-	fields->Set("is_reachable", host->IsReachable());
+	fields->Set("is_reachable", host->GetLastReachable());
 	fields->Set("original_attributes", JsonEncode(host->GetOriginalAttributes()));
 
 	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(host));

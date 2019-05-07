@@ -119,7 +119,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	fields->Set("normal_check_interval", service->GetCheckInterval() / 60.0);
 	fields->Set("retry_check_interval", service->GetRetryInterval() / 60.0);
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
-	fields->Set("is_reachable", service->IsReachable());
+	fields->Set("is_reachable", service->GetLastReachable());
 	fields->Set("original_attributes", JsonEncode(service->GetOriginalAttributes()));
 
 	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(service));
