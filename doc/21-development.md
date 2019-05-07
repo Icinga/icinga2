@@ -982,7 +982,12 @@ the web installer and start the installation.
 
 You need a free Microsoft account to download and also store your preferences.
 
-Choose these individual components on Visual Studio 2017:
+Install the following Workloads:
+
+* C++ Desktop
+* .NET Desktop
+
+In addition also choose these individual components on Visual Studio 2017:
 
 * .NET
     * .NET Framework 4.6 targeting pack
@@ -994,7 +999,7 @@ Choose these individual components on Visual Studio 2017:
     * GitHub Extension for Visual Studio
 * Compilers, build tools and runtimes
     * C# and Visual Basic Roslyn compilers
-    * C++/CU Support
+    * C++/CLI Support
     * VC++ 2017 v141 toolset (x86_64)
 * Debugging and testing
     * C++ profiling tools
