@@ -1271,44 +1271,44 @@ Icinga application using a dist tarball (including notes for distributions):
 * cmake >= 2.6
 * GNU make (make) or ninja-build
 * C++ compiler which supports C++11
-  * RHEL/Fedora/SUSE: gcc-c++ >= 4.7 (extra Developer Tools on RHEL5/6 see below)
-  * Debian/Ubuntu: build-essential
-  * Alpine: build-base
-  * you can also use clang++
+    * RHEL/Fedora/SUSE: gcc-c++ >= 4.7 (extra Developer Tools on RHEL5/6 see below)
+    * Debian/Ubuntu: build-essential
+    * Alpine: build-base
+    * you can also use clang++
 * pkg-config
 * OpenSSL library and header files >= 1.0.1
-  * RHEL/Fedora: openssl-devel
-  * SUSE: libopenssl-devel
-  * Debian/Ubuntu: libssl-dev
-  * Alpine: libressl-dev
+    * RHEL/Fedora: openssl-devel
+    * SUSE: libopenssl-devel
+    * Debian/Ubuntu: libssl-dev
+    * Alpine: libressl-dev
 * Boost library and header files >= 1.66.0
-  * RHEL/Fedora: boost166-devel
-  * Debian/Ubuntu: libboost-all-dev
-  * Alpine: boost-dev
+    * RHEL/Fedora: boost166-devel
+    * Debian/Ubuntu: libboost-all-dev
+    * Alpine: boost-dev
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
 * systemd headers
-  * Only required when using systemd
-  * Debian/Ubuntu: libsystemd-dev
-  * RHEL/Fedora: systemd-devel
+    * Only required when using systemd
+    * Debian/Ubuntu: libsystemd-dev
+    * RHEL/Fedora: systemd-devel
 
 ### Optional features <a id="development-package-builds-optional-features"></a>
 
 * MySQL (disable with CMake variable `ICINGA2_WITH_MYSQL` to `OFF`)
-  * RHEL/Fedora: mysql-devel
-  * SUSE: libmysqlclient-devel
-  * Debian/Ubuntu: default-libmysqlclient-dev | libmysqlclient-dev
-  * Alpine: mariadb-dev
+    * RHEL/Fedora: mysql-devel
+    * SUSE: libmysqlclient-devel
+    * Debian/Ubuntu: default-libmysqlclient-dev | libmysqlclient-dev
+    * Alpine: mariadb-dev
 * PostgreSQL (disable with CMake variable `ICINGA2_WITH_PGSQL` to `OFF`)
-  * RHEL/Fedora: postgresql-devel
-  * Debian/Ubuntu: libpq-dev
-  * postgresql-dev on Alpine
+    * RHEL/Fedora: postgresql-devel
+    * Debian/Ubuntu: libpq-dev
+    * postgresql-dev on Alpine
 * libedit (CLI console)
-  * RHEL/Fedora: libedit-devel on CentOS (RHEL requires rhel-7-server-optional-rpms)
-  * Debian/Ubuntu/Alpine: libedit-dev
+    * RHEL/Fedora: libedit-devel on CentOS (RHEL requires rhel-7-server-optional-rpms)
+    * Debian/Ubuntu/Alpine: libedit-dev
 * Termcap (only required if libedit doesn't already link against termcap/ncurses)
-  * RHEL/Fedora: libtermcap-devel
-  * Debian/Ubuntu: (not necessary)
+    * RHEL/Fedora: libtermcap-devel
+    * Debian/Ubuntu: (not necessary)
 
 ### Special requirements <a id="development-package-builds-special-requirements"></a>
 
@@ -1679,6 +1679,7 @@ The Windows MSI packages are located at https://packages.icinga.com/windows/
 Download the community edition from [visualstudio.com](https://www.visualstudio.com/en/downloads/)
 
 Workloads to install:
+
 * C++ Desktop
 * .NET Desktop
 
