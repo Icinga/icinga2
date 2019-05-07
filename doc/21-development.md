@@ -985,30 +985,30 @@ You need a free Microsoft account to download and also store your preferences.
 Choose these individual components on Visual Studio 2017:
 
 * .NET
-  * .NET Framework 4.6 targeting pack
-  * .NET Framework 4.6.1 SDK
-  * .NET Framework 4.6.1 targeting pack
+    * .NET Framework 4.6 targeting pack
+    * .NET Framework 4.6.1 SDK
+    * .NET Framework 4.6.1 targeting pack
 * Code tools
-  * Git for Windows
-  * Static analysis tools
+    * Git for Windows
+    * Static analysis tools
 * Compilers, build tools and runtimes
-  * C# and Visual Basic Roslyn compilers
-  * C++/CU Support
-  * VC++ 2017 v141 toolset (x86_64)
+    * C# and Visual Basic Roslyn compilers
+    * C++/CU Support
+    * VC++ 2017 v141 toolset (x86_64)
 * Debugging and testing
-  * C++ profiling tools
-  * Just-in-Time debugger
+    * C++ profiling tools
+    * Just-in-Time debugger
 * Development activities
-  * Visual Studio C++ core features
+    * Visual Studio C++ core features
 * Games and Graphics
-  * Graphics debugger and GPU profiler for DirectX (required by C++ profiling tools)
+    * Graphics debugger and GPU profiler for DirectX (required by C++ profiling tools)
 * SDKs, libraries and frameworks
-  * Graphics Tools Windows 8.1 SDK (required by C++ profiling tools)
-  * Windows 10 SDK **10.0.10240.0 - exactly this version**
-  * Windows 8.1 SDK
-  * Windows Universal C Runtime
+    * Graphics Tools Windows 8.1 SDK (required by C++ profiling tools)
+    * Windows 10 SDK **10.0.10240.0 - exactly this version**
+    * Windows 8.1 SDK
+    * Windows Universal C Runtime
 * Uncategorized
-  * GitHub Extension for Visual Studio
+    * GitHub Extension for Visual Studio
 
 After a while, Visual Studio will be ready.
 
