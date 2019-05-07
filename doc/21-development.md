@@ -991,6 +991,7 @@ Choose these individual components on Visual Studio 2017:
 * Code tools
     * Git for Windows
     * Static analysis tools
+    * GitHub Extension for Visual Studio
 * Compilers, build tools and runtimes
     * C# and Visual Basic Roslyn compilers
     * C++/CU Support
@@ -1007,8 +1008,6 @@ Choose these individual components on Visual Studio 2017:
     * Windows 10 SDK **10.0.10240.0 - exactly this version**
     * Windows 8.1 SDK
     * Windows Universal C Runtime
-* Uncategorized
-    * GitHub Extension for Visual Studio
 
 After a while, Visual Studio will be ready.
 
