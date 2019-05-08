@@ -16,6 +16,7 @@ using namespace icinga;
 
 String ConfigObjectUtility::GetConfigDir()
 {
+	/* This may throw an exception the caller above must handle. */
 	return ConfigPackageUtility::GetPackageDir() + "/_api/" +
 		ConfigPackageUtility::GetActiveStage("_api");
 }
@@ -25,7 +26,10 @@ String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const Str
 	String typeDir = type->GetPluralName();
 	boost::algorithm::to_lower(typeDir);
 
-	return GetConfigDir() + "/conf.d/" + typeDir +
+	/* This may throw an exception the caller above must handle. */
+	String prefix = GetConfigDir();
+
+	return prefix + "/conf.d/" + typeDir +
 		"/" + EscapeName(fullName) + ".conf";
 }
 
@@ -102,7 +106,15 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		return false;
 	}
 
-	String path = GetObjectConfigPath(type, fullName);
+	String path;
+
+	try {
+		path = GetObjectConfigPath(type, fullName);
+	} catch (const std::exception& ex) {
+		errors->Add("Config package broken: " + DiagnosticInformation(ex, false));
+		return false;
+	}
+
 	Utility::MkDirP(Utility::DirName(path), 0700);
 
 	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
@@ -216,7 +228,14 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		return false;
 	}
 
-	String path = GetObjectConfigPath(object->GetReflectionType(), name);
+	String path;
+
+	try {
+		path = GetObjectConfigPath(object->GetReflectionType(), name);
+	} catch (const std::exception& ex) {
+		errors->Add("Config package broken: " + DiagnosticInformation(ex, false));
+		return false;
+	}
 
 	Utility::Remove(path);
 

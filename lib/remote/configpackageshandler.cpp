@@ -66,10 +66,16 @@ void ConfigPackagesHandler::HandleGet(
 		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
 
 		for (const String& package : packages) {
+			String activeStage;
+
+			try {
+				activeStage = ConfigPackageUtility::GetActiveStage(package);
+			} catch (const std::exception&) { } /* Should never happen. */
+
 			results.emplace_back(new Dictionary({
 				{ "name", package },
 				{ "stages", Array::FromVector(ConfigPackageUtility::GetStages(package)) },
-				{ "active-stage", ConfigPackageUtility::GetActiveStage(package) }
+				{ "active-stage", activeStage }
 			}));
 		}
 	}
