@@ -120,7 +120,8 @@ void ConfigStagesHandler::HandlePost(
 		if (!files)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'files' must be specified."));
 
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
+		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+
 		stageName = ConfigPackageUtility::CreateStage(packageName, files);
 
 		/* validate the config. on success, activate stage and reload */

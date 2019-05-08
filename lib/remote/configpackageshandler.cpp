@@ -63,12 +63,19 @@ void ConfigPackagesHandler::HandleGet(
 	ArrayData results;
 
 	{
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
+		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+
 		for (const String& package : packages) {
+			String activeStage;
+
+			try {
+				activeStage = ConfigPackageUtility::GetActiveStage(package);
+			} catch (const std::exception&) { } /* Should never happen. */
+
 			results.emplace_back(new Dictionary({
 				{ "name", package },
 				{ "stages", Array::FromVector(ConfigPackageUtility::GetStages(package)) },
-				{ "active-stage", ConfigPackageUtility::GetActiveStage(package) }
+				{ "active-stage", activeStage }
 			}));
 		}
 	}
@@ -104,7 +111,8 @@ void ConfigPackagesHandler::HandlePost(
 	}
 
 	try {
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
+		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+
 		ConfigPackageUtility::CreatePackage(packageName);
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 500, "Could not create package '" + packageName + "'.",
