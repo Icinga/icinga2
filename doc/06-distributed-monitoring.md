@@ -1266,14 +1266,25 @@ If you are eager to start fresh instead you might take a look into the
 
 The following examples should give you an idea on how to build your own
 distributed monitoring environment. We've seen them all in production
-environments and received feedback from our [community](https://icinga.com/community/)
+environments and received feedback from our [community](https://community.icinga.com/)
 and [partner support](https://icinga.com/support/) channels:
 
-* Single master with clients.
-* HA master with clients as command endpoint.
-* Three level cluster with config HA masters, satellites receiving config sync, and clients checked using command endpoint.
+* [Single master with client](06-distributed-monitoring.md#distributed-monitoring-master-clients).
+* [HA master with clients as command endpoint](06-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-clients)
+* [Three level cluster](06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-client) with config HA masters, satellites receiving config sync, and clients checked using command endpoint.
+
+You can also extend the cluster tree depth to four levels e.g. with 2 satellite levels.
+Just keep in mind that multiple levels become harder to debug in case of errors.
+
+You can also start with a single master setup, and later add a secondary
+master endpoint. This requires an extra step with the [initial sync](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-initial-sync)
+for cloning the runtime state. This is described in detail [here](06-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-clients).
 
 ### Master with Clients <a id="distributed-monitoring-master-clients"></a>
+
+In this scenario, a single master node runs the check scheduler, notifications
+and IDO database backend and uses the [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
+to execute checks on the remote clients.
 
 ![Icinga 2 Distributed Master with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_master_clients.png)
 
@@ -1441,16 +1452,22 @@ Validate the configuration and restart Icinga 2 on the master node `icinga2-mast
 Open Icinga Web 2 and check the two newly created client hosts with two new services
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
 
-### High-Availability Master with Clients <a id="distributed-monitoring-scenarios-ha-master-clients"></a>
 
-![Icinga 2 Distributed High Availability Master with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_ha_master_clients.png)
+### High-Availability Master with Clients <a id="distributed-monitoring-scenarios-ha-master-clients"></a>
 
 This scenario is similar to the one in the [previous section](06-distributed-monitoring.md#distributed-monitoring-master-clients). The only difference is that we will now set up two master nodes in a high-availability setup.
 These nodes must be configured as zone and endpoints objects.
 
+![Icinga 2 Distributed High Availability Master with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_ha_master_clients.png)
+
 The setup uses the capabilities of the Icinga 2 cluster. All zone members
 replicate cluster events amongst each other. In addition to that, several Icinga 2
-features can enable HA functionality.
+features can enable [HA functionality](06-distributed-monitoring.md#distributed-monitoring-high-availability-features).
+
+Best practice is to run the database backend on a dedicated server/cluster and
+only expose a virtual IP address to Icinga and the IDO feature. By default, only one
+endpoint will actively write to the backend then. Typical setups for MySQL clusters
+involve Galera, more tips can be found on our [community forums](https://community.icinga.com/).
 
 **Note**: All nodes in the same zone require that you enable the same features for high-availability (HA).
 
@@ -1480,6 +1497,12 @@ and leave the IDO feature with enabled HA capabilities. Alternatively,
 you can disable the HA feature and write to a local database on each node.
 Both methods require that you configure Icinga Web 2 accordingly (monitoring
 backend, IDO database, used transports, etc.).
+
+> **Note**
+>
+> You can also start with a single master shown [here](06-distributed-monitoring.md#distributed-monitoring-master-clients) and later add
+> the second master. This requires an extra step with the [initial sync](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-initial-sync)
+> for cloning the runtime state after done. Once done, proceed here.
 
 The zone hierarchy could look like this. It involves putting the two master nodes
 `icinga2-master1.localdomain` and `icinga2-master2.localdomain` into the `master` zone.
@@ -1659,16 +1682,21 @@ to make sure that your cluster notifies you in case of failure.
 
 ### Three Levels with Master, Satellites, and Clients <a id="distributed-monitoring-scenarios-master-satellite-client"></a>
 
-![Icinga 2 Distributed Master and Satellites with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_master_satellite_client.png)
-
 This scenario combines everything you've learned so far: High-availability masters,
 satellites receiving their configuration from the master zone, and clients checked via command
 endpoint from the satellite zones.
+
+![Icinga 2 Distributed Master and Satellites with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_master_satellite_client.png)
 
 > **Tip**:
 >
 > It can get complicated, so grab a pen and paper and bring your thoughts to life.
 > Play around with a test setup before using it in a production environment!
+
+Best practice is to run the database backend on a dedicated server/cluster and
+only expose a virtual IP address to Icinga and the IDO feature. By default, only one
+endpoint will actively write to the backend then. Typical setups for MySQL clusters
+involve Galera, more tips can be found on our [community forums](https://community.icinga.com/).
 
 Overview:
 
@@ -2740,6 +2768,24 @@ object Endpoint "icinga2-master2.localdomain" {
   log_duration = 0
 }
 ```
+
+### Initial Sync for new Endpoints in a Zone <a id="distributed-monitoring-advanced-hints-initial-sync"></a>
+
+In order to make sure that all of your zone endpoints have the same state you need
+to pick the authoritative running one and copy the following content:
+
+* State file from `/var/lib/icinga2/icinga2.state`
+* Internal config package for runtime created objects (downtimes, comments, hosts, etc.) at `/var/lib/icinga2/api/packages/_api`
+
+If you need already deployed config packages from the Director, or synced cluster zones,
+you can also sync the entire `/var/lib/icinga2` directory. This directory should also be
+included in your [backup strategy](02-getting-started.md#install-backup).
+
+> **Note**
+>
+> Ensure that all endpoints are shut down during this procedure. Once you have
+> synced the cached files, proceed with configuring the remaining endpoints
+> to let them know about the new master/satellite node (zones.conf).
 
 ### Manual Certificate Creation <a id="distributed-monitoring-advanced-hints-certificates-manual"></a>
 
