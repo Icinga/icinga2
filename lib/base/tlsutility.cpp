@@ -60,7 +60,7 @@ void InitializeOpenSSL()
 
 static void SetupSslContext(SSL_CTX *sslContext, const String& pubkey, const String& privkey, const String& cakey)
 {
-	char errbuf[120];
+	char errbuf[256];
 
 	long flags = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_CIPHER_SERVER_PREFERENCE;
 
@@ -228,7 +228,7 @@ void SetTlsProtocolminToSSLContext(const std::shared_ptr<boost::asio::ssl::conte
  */
 void AddCRLToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& crlPath)
 {
-	char errbuf[120];
+	char errbuf[256];
 	X509_STORE *x509_store = SSL_CTX_get_cert_store(context->native_handle());
 
 	X509_LOOKUP *lookup;
@@ -259,7 +259,7 @@ void AddCRLToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& contex
 
 static String GetX509NameCN(X509_NAME *name)
 {
-	char errbuf[120];
+	char errbuf[256];
 	char buffer[256];
 
 	int rc = X509_NAME_get_text_by_NID(name, NID_commonName, buffer, sizeof(buffer));
@@ -294,7 +294,7 @@ String GetCertificateCN(const std::shared_ptr<X509>& certificate)
  */
 std::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 {
-	char errbuf[120];
+	char errbuf[256];
 	X509 *cert;
 	BIO *fpcert = BIO_new(BIO_s_file());
 
@@ -332,14 +332,14 @@ std::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 
 int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile, bool ca)
 {
-	char errbuf[120];
+	char errbuf[256];
 
 	InitializeOpenSSL();
 
 	RSA *rsa = RSA_new();
 	BIGNUM *e = BN_new();
 
-	if (rsa == NULL || e == NULL) {
+	if (!rsa || !e) {
 		Log(LogCritical, "SSL")
 			<< "Error while creating RSA key: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		BOOST_THROW_EXCEPTION(openssl_error()
@@ -349,7 +349,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 
 	BN_set_word(e, RSA_F4);
 
-	if (RSA_generate_key_ex(rsa, 4096, e, NULL) == NULL) {
+	if (!RSA_generate_key_ex(rsa, 4096, e, nullptr)) {
 		Log(LogCritical, "SSL")
 			<< "Error while creating RSA key: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		BOOST_THROW_EXCEPTION(openssl_error()
