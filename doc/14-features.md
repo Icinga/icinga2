@@ -38,7 +38,13 @@ files then:
 
 By default, log files will be rotated daily.
 
-## DB IDO <a id="db-ido"></a>
+## Core Backends <a id="core-backends"></a>
+
+### REST API <a id="core-backends-api"></a>
+
+The REST API is documented [here](12-icinga2-api.md#icinga2-api) as a core feature.
+
+### IDO Database (DB IDO) <a id="db-ido"></a>
 
 The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
 configuration and status information into a database. The IDO database is used
@@ -49,10 +55,8 @@ chapter. Details on the configuration can be found in the
 [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection) and
 [IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection)
 object configuration documentation.
-The DB IDO feature supports [High Availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido) in
-the Icinga 2 cluster.
 
-### DB IDO Health <a id="db-ido-health"></a>
+#### DB IDO Health <a id="db-ido-health"></a>
 
 If the monitoring health indicator is critical in Icinga Web 2,
 you can use the following queries to manually check whether Icinga 2
@@ -100,7 +104,21 @@ status_update_time
 
 A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](24-appendix.md#schema-db-ido).
 
-### DB IDO Cleanup <a id="db-ido-cleanup"></a>
+#### DB IDO in Cluster HA Zones <a id="db-ido-cluster-ha"></a>
+
+The DB IDO feature supports [High Availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido) in
+the Icinga 2 cluster.
+
+By default, both endpoints in a zone calculate the
+endpoint which activates the feature, the other endpoint
+automatically pauses it. If the cluster connection
+breaks at some point, the paused IDO feature automatically
+does a failover.
+
+You can disable this behaviour by setting `enable_ha = false`
+in both feature configuration files.
+
+#### DB IDO Cleanup <a id="db-ido-cleanup"></a>
 
 Objects get deactivated when they are deleted from the configuration.
 This is visible with the `is_active` column in the `icinga_objects` table.
@@ -125,7 +143,7 @@ Example if you prefer to keep notification history for 30 days:
 The historical tables are populated depending on the data `categories` specified.
 Some tables are empty by default.
 
-### DB IDO Tuning <a id="db-ido-tuning"></a>
+#### DB IDO Tuning <a id="db-ido-tuning"></a>
 
 As with any application database, there are ways to optimize and tune the database performance.
 
@@ -171,93 +189,30 @@ VACUUM
 > Don't use `VACUUM FULL` as this has a severe impact on performance.
 
 
-## External Commands <a id="external-commands"></a>
+## Metrics <a id="metrics"></a>
 
-> **Note**
->
-> Please use the [REST API](12-icinga2-api.md#icinga2-api) as modern and secure alternative
-> for external actions.
+Whenever a host or service check is executed, or received via the REST API,
+best practice is to provide performance data.
 
-Icinga 2 provides an external command pipe for processing commands
-triggering specific actions (for example rescheduling a service check
-through the web interface).
+This data is parsed by features sending metrics to time series databases (TSDB):
 
-In order to enable the `ExternalCommandListener` configuration use the
-following command and restart Icinga 2 afterwards:
+* [Graphite](14-features.md#graphite-carbon-cache-writer)
+* [InfluxDB](14-features.md#influxdb-writer)
+* [OpenTSDB](14-features.md#opentsdb-writer)
 
-```
-# icinga2 feature enable command
-```
+Metrics, state changes and notifications can be managed with the following integrations:
 
-Icinga 2 creates the command pipe file as `/var/run/icinga2/cmd/icinga2.cmd`
-using the default configuration.
+* [Elastic Stack](14-features.md#elastic-stack-integration)
+* [Graylog](14-features.md#graylog-integration)
 
-Web interfaces and other Icinga addons are able to send commands to
-Icinga 2 through the external command pipe, for example for rescheduling
-a forced service check:
 
-```
-# /bin/echo "[`date +%s`] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;`date +%s`" >> /var/run/icinga2/cmd/icinga2.cmd
+### Graphite Writer <a id="graphite-carbon-cache-writer"></a>
 
-# tail -f /var/log/messages
+[Graphite](13-addons.md#addons-graphing-graphite) is a tool stack for storing
+metrics and needs to be running prior to enabling the `graphite` feature.
 
-Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
-Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
-```
-
-A list of currently supported external commands can be found [here](24-appendix.md#external-commands-list-detail).
-
-Detailed information on the commands and their required parameters can be found
-on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2.html).
-
-## Performance Data <a id="performance-data"></a>
-
-When a host or service check is executed plugins should provide so-called
-`performance data`. Next to that additional check performance data
-can be fetched using Icinga 2 runtime macros such as the check latency
-or the current service state (or additional custom attributes).
-
-The performance data can be passed to external applications which aggregate and
-store them in their backends. These tools usually generate graphs for historical
-reporting and trending.
-
-Well-known addons processing Icinga performance data are [PNP4Nagios](13-addons.md#addons-graphing-pnp),
-[Graphite](13-addons.md#addons-graphing-graphite) or [OpenTSDB](14-features.md#opentsdb-writer).
-
-### Writing Performance Data Files <a id="writing-performance-data-files"></a>
-
-PNP4Nagios and Graphios use performance data collector daemons to fetch
-the current performance files for their backend updates.
-
-Therefore the Icinga 2 [PerfdataWriter](09-object-types.md#objecttype-perfdatawriter)
-feature allows you to define the output template format for host and services helped
-with Icinga 2 runtime vars.
-
-```
-host_format_template = "DATATYPE::HOSTPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tHOSTPERFDATA::$host.perfdata$\tHOSTCHECKCOMMAND::$host.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$"
-service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.state_type$"
-```
-
-The default templates are already provided with the Icinga 2 feature configuration
-which can be enabled using
-
-```
-# icinga2 feature enable perfdata
-```
-
-By default all performance data files are rotated in a 15 seconds interval into
-the `/var/spool/icinga2/perfdata/` directory as `host-perfdata.<timestamp>` and
-`service-perfdata.<timestamp>`.
-External collectors need to parse the rotated performance data files and then
-remove the processed files.
-
-### Graphite Carbon Cache Writer <a id="graphite-carbon-cache-writer"></a>
-
-While there are some [Graphite](13-addons.md#addons-graphing-graphite)
-collector scripts and daemons like Graphios available for Icinga 1.x it's more
-reasonable to directly process the check and plugin performance
-in memory in Icinga 2. Once there are new metrics available, Icinga 2 will directly
-write them to the defined Graphite Carbon daemon tcp socket.
+Icinga 2 writes parsed metrics directly to Graphite's Carbon Cache
+TCP port, defaulting to `2003`.
 
 You can enable the feature using
 
@@ -268,7 +223,7 @@ You can enable the feature using
 By default the [GraphiteWriter](09-object-types.md#objecttype-graphitewriter) feature
 expects the Graphite Carbon Cache to listen at `127.0.0.1` on TCP port `2003`.
 
-#### Current Graphite Schema <a id="graphite-carbon-cache-writer-schema"></a>
+#### Graphite Schema <a id="graphite-carbon-cache-writer-schema"></a>
 
 The current naming schema is defined as follows. The [Icinga Web 2 Graphite module](https://github.com/icinga/icingaweb2-module-graphite)
 depends on this schema.
@@ -303,7 +258,8 @@ Metric values are stored like this:
 <prefix>.perfdata.<perfdata-label>.value
 ```
 
-The following characters are escaped in perfdata labels:
+The following characters are escaped in performance labels
+parsed from plugin output:
 
   Character	| Escaped character
   --------------|--------------------------
@@ -312,7 +268,7 @@ The following characters are escaped in perfdata labels:
   /		| _
   ::		| .
 
-Note that perfdata labels may contain dots (`.`) allowing to
+Note that labels may contain dots (`.`) allowing to
 add more subsequent levels inside the Graphite tree.
 `::` adds support for [multi performance labels](http://my-plugin.de/wiki/projects/check_multi/configuration/performance)
 and is therefore replaced by `.`.
@@ -363,7 +319,6 @@ Cache.
 pattern = ^icinga2\.
 retentions = 1m:2d,5m:10d,30m:90d,360m:4y
 ```
-
 
 ### InfluxDB Writer <a id="influxdb-writer"></a>
 
@@ -519,6 +474,7 @@ check_result.perfdata.<perfdata-label>.warn
 check_result.perfdata.<perfdata-label>.crit
 ```
 
+
 ### Graylog Integration <a id="graylog-integration"></a>
 
 #### GELF Writer <a id="gelfwriter"></a>
@@ -619,6 +575,35 @@ with the following tags
 >
 > You might want to set the tsd.core.auto_create_metrics setting to `true`
 > in your opentsdb.conf configuration file.
+
+
+### Writing Performance Data Files <a id="writing-performance-data-files"></a>
+
+PNP and Graphios use performance data collector daemons to fetch
+the current performance files for their backend updates.
+
+Therefore the Icinga 2 [PerfdataWriter](09-object-types.md#objecttype-perfdatawriter)
+feature allows you to define the output template format for host and services helped
+with Icinga 2 runtime vars.
+
+```
+host_format_template = "DATATYPE::HOSTPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tHOSTPERFDATA::$host.perfdata$\tHOSTCHECKCOMMAND::$host.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$"
+service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.state_type$"
+```
+
+The default templates are already provided with the Icinga 2 feature configuration
+which can be enabled using
+
+```
+# icinga2 feature enable perfdata
+```
+
+By default all performance data files are rotated in a 15 seconds interval into
+the `/var/spool/icinga2/perfdata/` directory as `host-perfdata.<timestamp>` and
+`service-perfdata.<timestamp>`.
+External collectors need to parse the rotated performance data files and then
+remove the processed files.
+
 
 
 ## Livestatus <a id="setting-up-livestatus"></a>
@@ -826,7 +811,9 @@ The `commands` table is populated with `CheckCommand`, `EventCommand` and `Notif
 A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](24-appendix.md#schema-livestatus).
 
 
-## Status Data Files <a id="status-data"></a>
+## Deprecated Features <a id="deprecated-features"></a>
+
+### Status Data Files <a id="status-data"></a>
 
 > **Note**
 >
@@ -844,7 +831,7 @@ status updates in a regular interval.
 If you are not using any web interface or addon which uses these files,
 you can safely disable this feature.
 
-## Compat Log Files <a id="compat-logging"></a>
+### Compat Log Files <a id="compat-logging"></a>
 
 > **Note**
 >
@@ -869,7 +856,52 @@ By default, the Icinga 1.x log file called `icinga.log` is located
 in `/var/log/icinga2/compat`. Rotated log files are moved into
 `var/log/icinga2/compat/archives`.
 
-## Check Result Files <a id="check-result-files"></a>
+### External Command Pipe <a id="external-commands"></a>
+
+> **Note**
+>
+> Please use the [REST API](12-icinga2-api.md#icinga2-api) as modern and secure alternative
+> for external actions.
+
+> **Note**
+>
+> This feature is DEPRECATED with 2.11 and will be removed in future releases.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+
+Icinga 2 provides an external command pipe for processing commands
+triggering specific actions (for example rescheduling a service check
+through the web interface).
+
+In order to enable the `ExternalCommandListener` configuration use the
+following command and restart Icinga 2 afterwards:
+
+```
+# icinga2 feature enable command
+```
+
+Icinga 2 creates the command pipe file as `/var/run/icinga2/cmd/icinga2.cmd`
+using the default configuration.
+
+Web interfaces and other Icinga addons are able to send commands to
+Icinga 2 through the external command pipe, for example for rescheduling
+a forced service check:
+
+```
+# /bin/echo "[`date +%s`] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;`date +%s`" >> /var/run/icinga2/cmd/icinga2.cmd
+
+# tail -f /var/log/messages
+
+Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
+Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
+```
+
+A list of currently supported external commands can be found [here](24-appendix.md#external-commands-list-detail).
+
+Detailed information on the commands and their required parameters can be found
+on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2.html).
+
+
+### Check Result Files <a id="check-result-files"></a>
 
 > **Note**
 >
