@@ -60,7 +60,7 @@ Use your distribution's package manager to install the `pnp4nagios` package.
 
 If you're planning to use it, configure it to use the
 [bulk mode with npcd and npcdmod](https://docs.pnp4nagios.org/pnp-0.6/modes#bulk_mode_with_npcd_and_npcdmod)
-in combination with Icinga 2's [PerfdataWriter](14-features.md#performance-data). NPCD collects the performance
+in combination with Icinga 2's [PerfdataWriter](14-features.md#writing-performance-data-files). NPCD collects the performance
 data files which Icinga 2 generates.
 
 Enable performance data writer in icinga 2
