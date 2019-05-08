@@ -63,7 +63,8 @@ void ConfigPackagesHandler::HandleGet(
 	ArrayData results;
 
 	{
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
+		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+
 		for (const String& package : packages) {
 			results.emplace_back(new Dictionary({
 				{ "name", package },
@@ -104,7 +105,8 @@ void ConfigPackagesHandler::HandlePost(
 	}
 
 	try {
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
+		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+
 		ConfigPackageUtility::CreatePackage(packageName);
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 500, "Could not create package '" + packageName + "'.",
