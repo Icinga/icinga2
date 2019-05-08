@@ -2424,14 +2424,19 @@ states = [ OK, Critical, Unknown ]
 > If the parent service object changes into the `Warning` state, this
 > dependency will fail and render all child objects (hosts or services) unreachable.
 
-You can determine the child's reachability by querying the `is_reachable` attribute
-in for example [DB IDO](24-appendix.md#schema-db-ido-extensions).
+You can determine the child's reachability by querying the `last_reachable` attribute
+via the [REST API](12-icinga2-api.md#icinga2-api).
+
+> **Note**
+>
+> Reachability calculation depends on fresh and processed check results. If dependencies
+> disable checks for child objects, this won't work reliably.
 
 ### Implicit Dependencies for Services on Host <a id="dependencies-implicit-host-service"></a>
 
 Icinga 2 automatically adds an implicit dependency for services on their host. That way
 service notifications are suppressed when a host is `DOWN` or `UNREACHABLE`. This dependency
-does not overwrite other dependencies and implicitely sets `disable_notifications = true` and
+does not overwrite other dependencies and implicitly sets `disable_notifications = true` and
 `states = [ Up ]` for all service objects.
 
 Service checks are still executed. If you want to prevent them from happening, you can
