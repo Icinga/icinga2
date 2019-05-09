@@ -102,7 +102,106 @@ If you have created your own `CheckCommand` definition, please kindly
 
 ### Plugin API <a id="service-monitoring-plugin-api"></a>
 
-Currently Icinga 2 supports the native plugin API specification from the Monitoring Plugins project. It is defined in the [Monitoring Plugins Development Guidelines](https://www.monitoring-plugins.org/doc/guidelines.html).
+Icinga 2 supports the native plugin API specification from the Monitoring Plugins project.
+It is defined in the [Monitoring Plugins Development Guidelines](https://www.monitoring-plugins.org/doc/guidelines.html).
+
+#### Output <a id="service-monitoring-plugin-api-output"></a>
+
+```
+<STATUS>: <A short description what happened>
+
+OK: MySQL connection time is fine (0.0002s)
+WARNING: MySQL connection time is slow (0.5s > 0.1s threshold)
+CRITICAL: MySQL connection time is causing degraded performance (3s > 0.5s threshold)
+```
+
+Icinga supports reading multi-line output where Icinga Web
+only shows the first line in the listings and everything in the detail view.
+
+Example for an end2end check with many smaller test cases integrated:
+
+```
+OK: Online banking works.
+Testcase 1: Site reached.
+Testcase 2: Attempted login, JS loads.
+Testcase 3: Login succeeded.
+Testcase 4: View current state works.
+Testcase 5: Transactions fine.
+```
+
+If the extended output shouldn't be visible in your monitoring, but only for testing,
+it is recommended to implement the `-v` or `--verbose` plugin parameter to allow
+developers and users to debug further.
+
+
+#### Status <a id="service-monitoring-plugin-api-status"></a>
+
+Value | Status    | Description
+------|-----------|-------------------------------
+0     | OK        | The check went fine and everything is considered working.
+1     | Warning   | The check is above the given warning threshold, or anything else is suspicious requiring attention before it breaks.
+2     | Critical  | The check exceeded the critical threshold, or something really is broken and will harm the production environment.
+3     | Unknown   | Invalid parameters, low level resource errors (IO device busy, no fork resources, TCP sockets, etc.) preventing the actual check. Higher level errors such as DNS resolving, TCP connection timeouts should be treated as `Critical` instead. Whenever the plugin reaches its timeout (best practice) it should also terminate with `Unknown`.
+
+Keep in mind that these are service states. Icinga automatically maps
+the [host state](03-monitoring-basics.md#check-result-state-mapping) from the returned plugin states.
+
+
+#### Performance Data Metrics <a id="service-monitoring-plugin-api-performance-data-metrics"></a>
+
+
+
+
+#### Timeout <a id="service-monitoring-plugin-api-timeout"></a>
+
+Icinga has a safety mechanism where it kills processes running for too
+long. The timeout can be specified in [CheckCommand objects](09-object-types.md#objecttype-checkcommand)
+or on the host/service object.
+
+Best practice is to control the timeout in the plugin itself
+and provide a clear message followed by the Unknown state.
+
+Example in Python taken from [check_tinkerforge](https://github.com/NETWAYS/check_tinkerforge/blob/master/check_tinkerforge.py):
+
+```
+import argparse
+import signal
+import sys
+
+def handle_sigalrm(signum, frame, timeout=None):
+    output('Plugin timed out after %d seconds' % timeout, 3)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    # ... add more arguments
+    parser.add_argument("-t", "--timeout", help="Timeout in seconds (default 10s)", type=int, default=10)
+    args = parser.parse_args()
+
+    signal.signal(signal.SIGALRM, partial(handle_sigalrm, timeout=args.timeout))
+    signal.alarm(args.timeout)
+
+    # ... perform the check and generate output/status
+```
+
+#### Versions <a id="service-monitoring-plugin-api-versions"></a>
+
+Plugins should provide a version via `-V` or `--version` parameter
+which is bumped on releases. This allows to identify problems with
+too old or new versions on the community support channels.
+
+Example in Python taken from [check_tinkerforge](https://github.com/NETWAYS/check_tinkerforge/blob/master/check_tinkerforge.py):
+
+```
+import argparse
+import signal
+import sys
+
+__version__ = '0.9.1'
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-V', '--version', action='version', version='%(prog)s v' + sys.modules[__name__].__version__)
+```
 
 ### Create a new Plugin <a id="service-monitoring-plugin-new"></a>
 
