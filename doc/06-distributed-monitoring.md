@@ -1467,7 +1467,8 @@ features can enable [HA functionality](06-distributed-monitoring.md#distributed-
 Best practice is to run the database backend on a dedicated server/cluster and
 only expose a virtual IP address to Icinga and the IDO feature. By default, only one
 endpoint will actively write to the backend then. Typical setups for MySQL clusters
-involve Galera, more tips can be found on our [community forums](https://community.icinga.com/).
+involve Master-Master-Replication (Master-Slave-Replication in both directions) or Galera,
+more tips can be found on our [community forums](https://community.icinga.com/).
 
 **Note**: All nodes in the same zone require that you enable the same features for high-availability (HA).
 
@@ -1696,7 +1697,8 @@ endpoint from the satellite zones.
 Best practice is to run the database backend on a dedicated server/cluster and
 only expose a virtual IP address to Icinga and the IDO feature. By default, only one
 endpoint will actively write to the backend then. Typical setups for MySQL clusters
-involve Galera, more tips can be found on our [community forums](https://community.icinga.com/).
+involve Master-Master-Replication (Master-Slave-Replication in both directions) or Galera,
+more tips can be found on our [community forums](https://community.icinga.com/).
 
 Overview:
 
