@@ -211,6 +211,9 @@ private:
 
 	static void NotifyDowntimeEnd(const Downtime::Ptr& downtime);
 
+	static bool QuestionNotification(bool notification_reachable, bool in_downtime, bool is_acknowledged, bool hardChange, StateType old_stateType,
+	StateType new_stateType, bool is_ok, bool is_volatile, bool was_ok, bool is_flapping);
+
 	/* Comments */
 	std::set<Comment::Ptr> m_Comments;
 	mutable boost::mutex m_CommentMutex;

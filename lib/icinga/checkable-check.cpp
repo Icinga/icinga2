@@ -308,23 +308,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	bool in_downtime = IsInDowntime();
 
-	bool send_notification = false;
-
-	if (notification_reachable && !in_downtime && !IsAcknowledged()) {
-		/* Send notifications whether when a hard state change occurred. */
-		if (hardChange && !(old_stateType == StateTypeSoft && IsStateOK(new_state)))
-			send_notification = true;
-		/* Or if the checkable is volatile and in a HARD state. */
-		else if (is_volatile && GetStateType() == StateTypeHard)
-			send_notification = true;
-	}
-
-	if (IsStateOK(old_state) && old_stateType == StateTypeSoft)
-		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
-
-	if (is_volatile && IsStateOK(old_state) && IsStateOK(new_state))
-		send_notification = false; /* Don't send notifications for volatile OK -> OK changes. */
-
 	olock.Unlock();
 
 	if (remove_acknowledgement_comments)
@@ -428,10 +411,33 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		NotifyFlapping(origin);
 	}
 
-	if (send_notification && !is_flapping) {
+	if (QuestionNotification(notification_reachable, in_downtime, IsAcknowledged(), hardChange, old_stateType,
+			GetStateType(), IsStateOK(new_state), is_volatile, IsStateOK(old_state), is_flapping)) {
 		if (!IsPaused())
 			OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", nullptr);
 	}
+}
+
+bool Checkable::QuestionNotification(bool notification_reachable, bool in_downtime, bool is_acknowledged, bool hardChange, StateType old_stateType,
+									 StateType new_stateType, bool is_ok, bool is_volatile, bool was_ok, bool is_flapping) {
+	bool send_notification = false;
+
+	if (notification_reachable && !in_downtime && !is_acknowledged) {
+		/* Send notifications whether when a hard state change occurred. */
+		if (hardChange && !(old_stateType == StateTypeSoft && is_ok))
+			send_notification = true;
+			/* Or if the checkable is volatile and in a HARD state. */
+		else if (is_volatile && new_stateType == StateTypeHard)
+			send_notification = true;
+	}
+
+	if (was_ok && old_stateType == StateTypeSoft)
+		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
+
+	if (is_volatile && was_ok && is_ok)
+		send_notification = false; /* Don't send notifications for volatile OK -> OK changes. */
+
+	return (send_notification && !is_flapping);
 }
 
 void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
