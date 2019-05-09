@@ -61,7 +61,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, Connecti
 	m_CurrentAction(TlsActionNone), m_Retry(false), m_Shutdown(false)
 {
 	std::ostringstream msgbuf;
-	char errbuf[120];
+	char errbuf[256];
 
 	m_SSL = std::shared_ptr<SSL>(SSL_new(sslContext), SSL_free);
 
@@ -272,8 +272,9 @@ void TlsStream::OnEvent(int revents)
 				m_ErrorOccurred = true;
 
 				if (m_ErrorCode != 0) {
+					char errbuf[256];
 					Log(LogWarning, "TlsStream")
-						<< "OpenSSL error: " << ERR_error_string(m_ErrorCode, nullptr);
+						<< "OpenSSL error: " << ERR_error_string(m_ErrorCode, errbuf);
 				} else {
 					Log(LogWarning, "TlsStream", "TLS stream was disconnected.");
 				}
