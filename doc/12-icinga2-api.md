@@ -307,6 +307,10 @@ Whenever filters and other URL parameters don't work due to encoding issues,
 consider passing them in the request body. For GET requests, this method is explained
 [here](12-icinga2-api.md#icinga2-api-requests-method-override).
 
+You can use [jo](https://github.com/jpmens/jo) to format JSON strings on the shell. An example
+for API actions shown [here](#icinga2-api-actions-unix-timestamps).
+
+
 ### Global Parameters <a id="icinga2-api-parameters-global"></a>
 
 Name            | Description
@@ -1024,6 +1028,35 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/objects/icingaapplications/app' \
  -d '{ "attrs": { "enable_notifications": false } }'
 ```
+
+### Unix Timestamp Handling <a id="icinga2-api-actions-unix-timestamps"></a>
+
+If you don't want to write JSON manually, especially for adding the `start_time`
+and `end_time` parameters, you can use [jo](https://github.com/jpmens/jo) to format this.
+
+```
+$ jo -p pretty=true type=Service filter="service.name==\"ping4\"" author=icingaadmin comment="IPv4 network maintenance" fixed=true start_time=$(date +%s -d "+0 hour") end_time=$(date +%s -d "+1 hour")
+{
+   "pretty": true,
+   "type": "Service",
+   "filter": "service.name==\"ping4\"",
+   "author": "icingaadmin",
+   "comment": "IPv4 network maintenance",
+   "fixed": true,
+   "start_time": 1557414097,
+   "end_time": 1557417697
+}
+```
+
+Now wrap this into the actual curl command:
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' \
+ -X POST 'https://localhost:5665/v1/actions/schedule-downtime' \
+ -d "$(jo -p pretty=true type=Service filter="service.name==\"ping4\"" author=icingaadmin comment="IPv4 network maintanence" fixed=true start_time=$(date +%s -d "+0 hour") end_time=$(date +%s -d "+1 hour"))"
+```
+
+Note: This requires GNU date. On macOS, install `coreutils` from Homebrew and use `gdate`.
 
 ### process-check-result <a id="icinga2-api-actions-process-check-result"></a>
 
