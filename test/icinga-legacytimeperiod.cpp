@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(advanced) {
 	timestamp = "09:00-30:00";
 	ref.tm_year = 2014 - 1900;
 	ref.tm_mon = 9 - 1;
-	ref.tm_mday = 25;
+	ref.tm_mday = 24;
 
 	LegacyTimePeriod::ProcessTimeRangeRaw(timestamp, &ref, &beg, &end);
 	ts_beg = mktime(&beg);
