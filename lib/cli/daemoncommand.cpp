@@ -288,6 +288,9 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		Logger::DisableConsoleLog();
 	}
 
+	/* Create the internal API object storage. Do this here too with setups without API. */
+	ConfigObjectUtility::CreateStorage();
+
 	/* Remove ignored Downtime/Comment objects. */
 	try {
 		String configDir = ConfigObjectUtility::GetConfigDir();

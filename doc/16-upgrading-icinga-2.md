@@ -123,12 +123,13 @@ directory path, because the active-stage file was empty/truncated/unreadable at
 this point.
 
 2.11 makes this mechanism more stable and detects broken config packages.
+It will also attempt to fix them, the following log entry is perfectly fine.
 
 ```
-[2019-04-26 12:58:14 +0200] critical/ApiListener: Cannot detect active stage for package '_api'. Broken config package, check the troubleshooting documentation.
+[2019-05-10 12:12:09 +0200] information/ConfigObjectUtility: Repairing config package '_api' with stage 'dbe0bef8-c72c-4cc9-9779-da7c4527c5b2'.
 ```
 
-In order to fix this, please follow [this troubleshooting entry](15-troubleshooting.md#troubleshooting-api-missing-runtime-objects).
+If you still encounter problems, please follow [this troubleshooting entry](15-troubleshooting.md#troubleshooting-api-missing-runtime-objects).
 
 
 ## Upgrading to v2.10 <a id="upgrading-to-2-10"></a>

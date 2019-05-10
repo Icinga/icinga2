@@ -7,6 +7,7 @@
 #include "remote/jsonrpc.hpp"
 #include "remote/apifunction.hpp"
 #include "remote/configpackageutility.hpp"
+#include "remote/configobjectutility.hpp"
 #include "base/convert.hpp"
 #include "base/defer.hpp"
 #include "base/io-engine.hpp"
@@ -134,6 +135,9 @@ void ApiListener::OnConfigLoaded()
 	if (!oldCertPath.IsEmpty() && !oldKeyPath.IsEmpty() && !oldCaPath.IsEmpty()) {
 		Log(LogWarning, "ApiListener", "Please read the upgrading documentation for v2.8: https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/");
 	}
+
+	/* Create the internal API object storage. */
+	ConfigObjectUtility::CreateStorage();
 
 	/* Cache API packages and their active stage name. */
 	UpdateActivePackageStagesCache();

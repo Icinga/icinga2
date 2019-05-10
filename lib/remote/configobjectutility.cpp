@@ -10,15 +10,21 @@
 #include "base/dependencygraph.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/system/error_code.hpp>
 #include <fstream>
 
 using namespace icinga;
 
 String ConfigObjectUtility::GetConfigDir()
 {
-	/* This may throw an exception the caller above must handle. */
-	return ConfigPackageUtility::GetPackageDir() + "/_api/" +
-		ConfigPackageUtility::GetActiveStage("_api");
+	String prefix = ConfigPackageUtility::GetPackageDir() + "/_api/";
+	String activeStage = ConfigPackageUtility::GetActiveStage("_api");
+
+	if (activeStage.IsEmpty())
+		RepairPackage("_api");
+
+	return prefix + activeStage;
 }
 
 String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const String& fullName)
@@ -31,6 +37,62 @@ String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const Str
 
 	return prefix + "/conf.d/" + typeDir +
 		"/" + EscapeName(fullName) + ".conf";
+}
+
+void ConfigObjectUtility::RepairPackage(const String& package)
+{
+	/* Try to fix the active stage, whenever we find a directory in there.
+	 * This automatically heals packages < 2.11 which remained broken.
+	 */
+	String dir = ConfigPackageUtility::GetPackageDir() + "/" + package + "/";
+
+	namespace fs = boost::filesystem;
+
+	/* Use iterators to workaround VS builds on Windows. */
+	fs::path path(dir.Begin(), dir.End());
+
+	fs::recursive_directory_iterator end;
+
+	String foundActiveStage;
+
+	for (fs::recursive_directory_iterator it(path); it != end; it++) {
+		boost::system::error_code ec;
+
+		const fs::path d = *it;
+		if (fs::is_directory(d, ec)) {
+			/* Extract the relative directory name. */
+			foundActiveStage = d.stem().string();
+
+			break; // Use the first found directory.
+		}
+	}
+
+	if (!foundActiveStage.IsEmpty()) {
+		Log(LogInformation, "ConfigObjectUtility")
+			<< "Repairing config package '" << package << "' with stage '" << foundActiveStage << "'.";
+
+		ConfigPackageUtility::ActivateStage(package, foundActiveStage);
+	} else {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot repair package '" + package + "', please check the troubleshooting docs."));
+	}
+}
+
+void ConfigObjectUtility::CreateStorage()
+{
+	boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+
+	/* For now, we only use _api as our creation target. */
+	String package = "_api";
+
+	if (!ConfigPackageUtility::PackageExists(package)) {
+		Log(LogNotice, "ConfigObjectUtility")
+			<< "Package " << package << " doesn't exist yet, creating it.";
+
+		ConfigPackageUtility::CreatePackage(package);
+
+		String stage = ConfigPackageUtility::CreateStage(package);
+		ConfigPackageUtility::ActivateStage(package, stage);
+	}
 }
 
 String ConfigObjectUtility::EscapeName(const String& name)
@@ -88,16 +150,7 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& fullName,
 	const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation)
 {
-	{
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
-
-		if (!ConfigPackageUtility::PackageExists("_api")) {
-			ConfigPackageUtility::CreatePackage("_api");
-
-			String stage = ConfigPackageUtility::CreateStage("_api");
-			ConfigPackageUtility::ActivateStage("_api", stage);
-		}
-	}
+	CreateStorage();
 
 	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, fullName);
 
