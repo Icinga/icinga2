@@ -29,6 +29,7 @@ void CAListCommand::InitParameters(boost::program_options::options_description& 
 {
 	visibleDesc.add_options()
 		("all", "List all certificate signing requests, including signed. Note: Old requests are automatically cleaned by Icinga after 1 week.")
+		("removed", "List all removed CSRs (for use with 'ca restore')")
 		("json", "encode output as JSON");
 }
 
@@ -39,7 +40,7 @@ void CAListCommand::InitParameters(boost::program_options::options_description& 
  */
 int CAListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	Dictionary::Ptr requests = PkiUtility::GetCertificateRequests();
+	Dictionary::Ptr requests = PkiUtility::GetCertificateRequests(vm.count("removed"));
 
 	if (vm.count("json"))
 		std::cout << JsonEncode(requests);

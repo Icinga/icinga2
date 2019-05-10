@@ -236,6 +236,7 @@ Command options:
   --all                     List all certificate signing requests, including
                             signed. Note: Old requests are automatically
                             cleaned by Icinga after 1 week.
+  --removed                 List all removed CSRs (for use with 'ca restore')
   --json                    encode output as JSON
 
 Report bugs at <https://github.com/Icinga/icinga2>

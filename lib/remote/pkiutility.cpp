@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <boost/asio/ssl/context.hpp>
+#include <boost/filesystem/path.hpp>
 
 using namespace icinga;
 
@@ -368,8 +369,9 @@ static void CollectRequestHandler(const Dictionary::Ptr& requests, const String&
 
 	Dictionary::Ptr result = new Dictionary();
 
-	String fingerprint = Utility::BaseName(requestFile);
-	fingerprint = fingerprint.SubStr(0, fingerprint.GetLength() - 5);
+	namespace fs = boost::filesystem;
+	fs::path file(requestFile.Begin(), requestFile.End());
+	String fingerprint = file.stem().string();
 
 	String certRequestText = request->Get("cert_request");
 	result->Set("cert_request", certRequestText);
@@ -414,14 +416,19 @@ static void CollectRequestHandler(const Dictionary::Ptr& requests, const String&
 	requests->Set(fingerprint, result);
 }
 
-Dictionary::Ptr PkiUtility::GetCertificateRequests()
+Dictionary::Ptr PkiUtility::GetCertificateRequests(bool removed)
 {
 	Dictionary::Ptr requests = new Dictionary();
 
 	String requestDir = ApiListener::GetCertificateRequestsDir();
+	String ext = "json";
+
+	if (removed)
+		ext = "removed";
 
 	if (Utility::PathExists(requestDir))
-		Utility::Glob(requestDir + "/*.json", std::bind(&CollectRequestHandler, requests, _1), GlobFile);
+		Utility::Glob(requestDir + "/*." + ext, std::bind(&CollectRequestHandler, requests, _1), GlobFile);
 
 	return requests;
 }
+
