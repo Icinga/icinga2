@@ -840,7 +840,7 @@ echo "dbe0bef8-c72c-4cc9-9779-da7c4527c5b2" > active-stage
 like this. Note: This is deep down in the code, use with care!
 
 ```
-sed -i 's/ActiveStages\["_api"\].*/ActiveStages\["_api"\] = "dbe0bef8-c72c-4cc9-9779-da7c4527c5b2"/g' /var/lib/icinga2/api/packages/_api/active.conf
+sed -i 's/ActiveStages\["_api"\] = .*/ActiveStages\["_api"\] = "dbe0bef8-c72c-4cc9-9779-da7c4527c5b2"/g' /var/lib/icinga2/api/packages/_api/active.conf
 ```
 
 Restart Icinga 2.

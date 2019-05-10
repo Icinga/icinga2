@@ -44,9 +44,12 @@ void ConfigObjectUtility::RepairPackage(const String& package)
 	/* Try to fix the active stage, whenever we find a directory in there.
 	 * This automatically heals packages < 2.11 which remained broken.
 	 */
+	String dir = ConfigPackageUtility::GetPackageDir() + "/" + package + "/";
+
 	namespace fs = boost::filesystem;
 
-	fs::path path(ConfigPackageUtility::GetPackageDir() + "/" + package + "/");
+	/* Use iterators to workaround VS builds on Windows. */
+	fs::path path(dir.Begin(), dir.End());
 
 	fs::recursive_directory_iterator end;
 
