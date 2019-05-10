@@ -132,6 +132,8 @@ void Notification::Start(bool runtimeCreated)
 	if (ApiListener::IsHACluster() && GetNextNotification() < Utility::GetTime() + 60)
 		SetNextNotification(Utility::GetTime() + 60, true);
 
+	SetNextNotification(GetNextNotification());
+
 	ObjectImpl<Notification>::Start(runtimeCreated);
 }
 
@@ -241,9 +243,142 @@ String Notification::NotificationTypeToString(NotificationType type)
 	}
 }
 
+const bool Notification::CheckTimeperiod(bool reminder)
+{
+	TimePeriod::Ptr tp = GetPeriod();
+
+	if (tp && !tp->IsInside(Utility::GetTime())) {
+		Log(LogNotice, "Notification")
+			<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
+			<< GetName() << "': not in timeperiod '" << tp->GetName() << "'";
+		return false;
+	}
+
+	return true;
+}
+
+bool Notification::CheckTimes(NotificationType type, bool reminder)
+{
+	double now = Utility::GetTime();
+	Dictionary::Ptr times = GetTimes();
+
+	if (times && type == NotificationProblem) {
+		Value timesBegin = times->Get("begin");
+		Value timesEnd = times->Get("end");
+
+		if (timesBegin != Empty && timesBegin >= 0 && now < GetCheckable()->GetLastHardStateChange() + timesBegin) {
+			Log(LogNotice, "Notification")
+				<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
+				<< GetName() << "': before specified begin time (" << Utility::FormatDuration(timesBegin) << ")";
+
+			/* we need to adjust the next notification time
+			 * delaying the first notification
+			 */
+			SetNextNotification(GetCheckable()->GetLastHardStateChange() + timesBegin + 1.0);
+
+			return false;
+		}
+
+		if (timesEnd != Empty && timesEnd >= 0 && now > GetCheckable()->GetLastHardStateChange() + timesEnd) {
+			Log(LogNotice, "Notification")
+				<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
+				<< GetName() << "': after specified end time (" << Utility::FormatDuration(timesEnd) << ")";
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool Notification::CheckTypeFilter(NotificationType type, bool reminder)
+{
+	unsigned long ftype = type;
+
+	Log(LogDebug, "Notification")
+			<< "Type '" << NotificationTypeToStringInternal(type)
+			<< "', TypeFilter: " << NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap())
+			<< " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
+
+	if (!(ftype & GetTypeFilter())) {
+		Log(LogNotice, "Notification")
+				<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
+				<< GetName() << "': type '"
+				<< NotificationTypeToStringInternal(type) << "' does not match type filter: "
+				<< NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap()) << ".";
+
+		/* Ensure to reset no_more_notifications on Recovery notifications,
+		 * even if the admin did not configure them in the filter.
+		 */
+		{
+			ObjectLock olock(this);
+			if (type == NotificationRecovery && GetInterval() <= 0)
+				SetNoMoreNotifications(false);
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+bool Notification::SendNotificationQuestion(NotificationType type, const CheckResult::Ptr& cr, bool reminder) {
+	String notificationName = GetName();
+
+	Checkable::Ptr checkable = GetCheckable();
+
+	if(!CheckTimeperiod(reminder)) {
+		return false;
+	}
+
+	if (!CheckTimes(type, reminder)) {
+		return false;
+	}
+
+	if (!CheckTypeFilter(type, reminder)) {
+		return false;
+	}
+
+	/* Check state filters for problem notifications. Recovery notifications will be filtered away later. */
+	if (type == NotificationProblem) {
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(checkable);
+
+		unsigned long fstate;
+		String stateStr;
+
+		if (service) {
+			fstate = ServiceStateToFilter(service->GetState());
+			stateStr = NotificationServiceStateToString(service->GetState());
+		} else {
+			fstate = HostStateToFilter(host->GetState());
+			stateStr = NotificationHostStateToString(host->GetState());
+		}
+
+		Log(LogDebug, "Notification")
+				<< "State '" << stateStr << "', StateFilter: " << NotificationFilterToString(GetStateFilter(), GetStateFilterMap())
+				<< " (FState=" << fstate << ", StateFilter=" << GetStateFilter() << ")";
+
+		if (!(fstate & GetStateFilter())) {
+			Log(LogNotice, "Notification")
+					<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
+					<< notificationName << "': state '" << stateStr
+					<< "' does not match state filter: " << NotificationFilterToString(GetStateFilter(), GetStateFilterMap()) << ".";
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void Notification::BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force, bool reminder, const String& author, const String& text)
 {
+	// TODO: Throw exceptions
+	// TODO: Return if notification was sent
+	// Nice to have: Move whether to send notifcation out of here
 	String notificationName = GetName();
+
+	bool sendNotification = force;
 
 	Log(LogNotice, "Notification")
 		<< "Attempting to send " << (reminder ? "reminder " : " ") << "notifications for notification object '" << notificationName << "'.";
@@ -251,103 +386,15 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	Checkable::Ptr checkable = GetCheckable();
 
 	if (!force) {
-		TimePeriod::Ptr tp = GetPeriod();
-
-		if (tp && !tp->IsInside(Utility::GetTime())) {
-			Log(LogNotice, "Notification")
-				<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << notificationName
-				<< "': not in timeperiod '" << tp->GetName() << "'";
-			return;
-		}
-
-		double now = Utility::GetTime();
-		Dictionary::Ptr times = GetTimes();
-
-		if (times && type == NotificationProblem) {
-			Value timesBegin = times->Get("begin");
-			Value timesEnd = times->Get("end");
-
-			if (timesBegin != Empty && timesBegin >= 0 && now < checkable->GetLastHardStateChange() + timesBegin) {
-				Log(LogNotice, "Notification")
-					<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
-					<< notificationName << "': before specified begin time (" << Utility::FormatDuration(timesBegin) << ")";
-
-				/* we need to adjust the next notification time
-				 * delaying the first notification
-				 */
-				SetNextNotification(checkable->GetLastHardStateChange() + timesBegin + 1.0);
-
-				return;
-			}
-
-			if (timesEnd != Empty && timesEnd >= 0 && now > checkable->GetLastHardStateChange() + timesEnd) {
-				Log(LogNotice, "Notification")
-					<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
-					<< notificationName << "': after specified end time (" << Utility::FormatDuration(timesEnd) << ")";
-				return;
-			}
-		}
-
-		unsigned long ftype = type;
-
-		Log(LogDebug, "Notification")
-			<< "Type '" << NotificationTypeToStringInternal(type)
-			<< "', TypeFilter: " << NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap())
-			<< " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
-
-		if (!(ftype & GetTypeFilter())) {
-			Log(LogNotice, "Notification")
-				<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
-				<< notificationName << "': type '"
-				<< NotificationTypeToStringInternal(type) << "' does not match type filter: "
-				<< NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap()) << ".";
-
-			/* Ensure to reset no_more_notifications on Recovery notifications,
-			 * even if the admin did not configure them in the filter.
-			 */
-			{
-				ObjectLock olock(this);
-				if (type == NotificationRecovery && GetInterval() <= 0)
-					SetNoMoreNotifications(false);
-			}
-
-			return;
-		}
-
-		/* Check state filters for problem notifications. Recovery notifications will be filtered away later. */
-		if (type == NotificationProblem) {
-			Host::Ptr host;
-			Service::Ptr service;
-			tie(host, service) = GetHostService(checkable);
-
-			unsigned long fstate;
-			String stateStr;
-
-			if (service) {
-				fstate = ServiceStateToFilter(service->GetState());
-				stateStr = NotificationServiceStateToString(service->GetState());
-			} else {
-				fstate = HostStateToFilter(host->GetState());
-				stateStr = NotificationHostStateToString(host->GetState());
-			}
-
-			Log(LogDebug, "Notification")
-				<< "State '" << stateStr << "', StateFilter: " << NotificationFilterToString(GetStateFilter(), GetStateFilterMap())
-				<< " (FState=" << fstate << ", StateFilter=" << GetStateFilter() << ")";
-
-			if (!(fstate & GetStateFilter())) {
-				Log(LogNotice, "Notification")
-					<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
-					<< notificationName << "': state '" << stateStr
-					<< "' does not match state filter: " << NotificationFilterToString(GetStateFilter(), GetStateFilterMap()) << ".";
-				return;
-			}
-		}
+		sendNotification = SendNotificationQuestion(type, cr, reminder);
 	} else {
 		Log(LogNotice, "Notification")
 			<< "Not checking " << (reminder ? "reminder " : " ") << "notification filters for notification object '"
 			<< notificationName << "': Notification was forced.";
 	}
+
+	if (!sendNotification)
+		return;
 
 	{
 		ObjectLock olock(this);
@@ -540,13 +587,13 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		/* required by compatlogger */
 		Checkable::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, nr, author, text, command->GetName(), nullptr);
 
-		Log(LogInformation, "Notification")
+		Log(LogCritical, "Notification")
 			<< "Completed sending '" << NotificationTypeToStringInternal(type)
 			<< "' notification '" << notificationName
 			<< "' for checkable '" << checkableName
 			<< "' and user '" << userName << "' using command '" << commandName << "'.";
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "Notification")
+		Log(LogCritical, "Notification")
 			<< "Exception occurred during notification '" << notificationName
 			<< "' for checkable '" << checkableName
 			<< "' and user '" << userName << "' using command '" << commandName << "': "

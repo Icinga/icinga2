@@ -90,6 +90,11 @@ public:
 
 	static boost::signals2::signal<void (const Notification::Ptr&, const NotificationResult::Ptr&, const MessageOrigin::Ptr&)> OnNewNotificationResult;
 
+	const bool CheckTimeperiod(bool reminder);
+	bool CheckTimes(NotificationType type, bool reminder);
+	bool CheckTypeFilter(NotificationType type, bool reminder);
+
+
 	void Validate(int types, const ValidationUtils& utils) override;
 
 	void ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
@@ -112,6 +117,8 @@ private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;
 
 	bool CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force, bool reminder);
+
+	bool SendNotificationQuestion(NotificationType type, const CheckResult::Ptr& cr, bool reminder);
 
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
