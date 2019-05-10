@@ -327,13 +327,8 @@ static int Main()
 	po::variables_map vm;
 
 	try {
-		if (!CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, positionalDesc,
-			vm, cmdname, command, autocomplete)) {
-
-			Log(LogCritical, "icinga-app")
-				<< "Command parsing error. Try '--help'.";
-			return EXIT_FAILURE;
-		}
+		CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, positionalDesc,
+			vm, cmdname, command, autocomplete);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "icinga-app")
 			<< "Error while parsing command-line options: " << ex.what();

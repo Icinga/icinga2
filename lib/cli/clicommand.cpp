@@ -200,11 +200,8 @@ found_command:
 		visibleDesc.add(vdesc);
 	}
 
-	if (autocomplete)
+	if (autocomplete || (tried_command && !command))
 		return true;
-
-	if (tried_command && !command)
-		return false;
 
 	po::options_description adesc;
 	adesc.add(visibleDesc);
