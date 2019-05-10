@@ -265,7 +265,7 @@ String ConfigPackageUtility::GetActiveStageFromFile(const String& packageName)
 	fp.close();
 
 	if (fp.fail())
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot detect active stage for package '" + packageName + "'. Broken config package, check the troubleshooting documentation."));
+		return ""; /* Don't use exceptions here. The caller must deal with empty stages at this point. Happens on initial package creation for example. */
 
 	return stage.Trim();
 }
@@ -283,13 +283,16 @@ void ConfigPackageUtility::SetActiveStageToFile(const String& packageName, const
 
 String ConfigPackageUtility::GetActiveStage(const String& packageName)
 {
+	String activeStage;
+
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	/* config packages without API make no sense. */
+	/* If we don't have an API feature, just use the file storage without caching this.
+	 * This happens when ScheduledDowntime objects generate Downtime objects.
+	 * TODO: Make the API a first class citizen.
+	 */
 	if (!listener)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
-
-	String activeStage;
+		return GetActiveStageFromFile(packageName);
 
 	/* First use runtime state. */
 	try {
@@ -301,8 +304,6 @@ String ConfigPackageUtility::GetActiveStage(const String& packageName)
 		/* When we've read something, correct memory. */
 		if (!activeStage.IsEmpty())
 			listener->SetActivePackageStage(packageName, activeStage);
-		else
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot detect active stage for package '" + packageName + "'. Broken config package, check the troubleshooting documentation."));
 	}
 
 	return activeStage;
@@ -310,16 +311,16 @@ String ConfigPackageUtility::GetActiveStage(const String& packageName)
 
 void ConfigPackageUtility::SetActiveStage(const String& packageName, const String& stageName)
 {
+	/* Update the marker on disk for restarts. */
+	SetActiveStageToFile(packageName, stageName);
+
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	/* config packages without API make no sense. */
+	/* No API, no caching. */
 	if (!listener)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
+		return;
 
 	listener->SetActivePackageStage(packageName, stageName);
-
-	/* Also update the marker on disk for restarts. */
-	SetActiveStageToFile(packageName, stageName);
 }
 
 std::vector<std::pair<String, bool> > ConfigPackageUtility::GetFiles(const String& packageName, const String& stageName)

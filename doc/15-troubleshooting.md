@@ -780,7 +780,7 @@ Wrong:
 Correct:
 
 ```
-/var/lib/icinga2/api/packages/_api/abcd-ef12-3456-7890/conf.d/downtimes/1234-5678-9012-3456.conf
+/var/lib/icinga2/api/packages/_api/dbe0bef8-c72c-4cc9-9779-da7c4527c5b2/conf.d/downtimes/1234-5678-9012-3456.conf
 ```
 
 At creation time, the object lives in memory but its storage is broken. Upon restart,
@@ -792,16 +792,17 @@ read by the Icinga daemon. This information is stored in `/var/lib/icinga2/api/p
 2.11 now limits the direct active-stage file access (this is hidden from the user),
 and caches active stages for packages in-memory.
 
-Bonus on startup/config validation: Icinga now logs a critical message when a deployed
-config package is broken.
+It also tries to repair the broken package, and lots a new message:
 
 ```
-icinga2 daemon -C
+systemctl restart icinga2
 
-[2019-04-26 12:58:14 +0200] critical/ApiListener: Cannot detect active stage for package '_api'. Broken config package, check the troubleshooting documentation.
+tail -f /var/log/icinga2/icinga2.log
+
+[2019-05-10 12:27:15 +0200] information/ConfigObjectUtility: Repairing config package '_api' with stage 'dbe0bef8-c72c-4cc9-9779-da7c4527c5b2'.
 ```
 
-In order to fix the broken config package, and mark a deployed stage as active
+If this does not happen, you can manually fixthe broken config package, and mark a deployed stage as active
 again, carefully do the following steps with creating a backup before:
 
 Navigate into the API package prefix.
@@ -820,7 +821,7 @@ ls -lahtr
 drwx------  4 michi  wheel   128B Mar 27 14:39 ..
 -rw-r--r--  1 michi  wheel    25B Mar 27 14:39 include.conf
 -rw-r--r--  1 michi  wheel   405B Mar 27 14:39 active.conf
-drwx------  7 michi  wheel   224B Mar 27 15:01 abcd-ef12-3456-7890
+drwx------  7 michi  wheel   224B Mar 27 15:01 dbe0bef8-c72c-4cc9-9779-da7c4527c5b2
 drwx------  5 michi  wheel   160B Apr 26 12:47 .
 ```
 
@@ -832,16 +833,22 @@ directory. Copy the directory name `abcd-ef12-3456-7890` and
 add it into a new file `active-stage`. This can be done like this:
 
 ```
-echo "abcd-ef12-3456-7890" > active-stage
+echo "dbe0bef8-c72c-4cc9-9779-da7c4527c5b2" > active-stage
 ```
 
-Re-run config validation.
+`active.conf` needs to have the correct active stage too, add it again
+like this. Note: This is deep down in the code, use with care!
 
 ```
-icinga2 daemon -C
+sed -i 's/ActiveStages\["_api"\].*/ActiveStages\["_api"\] = "dbe0bef8-c72c-4cc9-9779-da7c4527c5b2"/g' /var/lib/icinga2/api/packages/_api/active.conf
 ```
 
-The validation should not show an error.
+Restart Icinga 2.
+
+```
+systemctl restart icinga2
+```
+
 
 > **Note**
 >
