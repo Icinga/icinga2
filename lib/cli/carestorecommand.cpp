@@ -1,27 +1,10 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/carestorecommand.hpp"
-#include "remote/apilistener.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
+#include "remote/apilistener.hpp"
 
 using namespace icinga;
 
@@ -54,29 +37,32 @@ ImpersonationLevel CARestoreCommand::GetImpersonationLevel() const
  */
 int CARestoreCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String requestFile = ApiListener::GetCertificateRequestsDir() + "/" + ap[0] + ".removed";
+	String fingerPrint = ap[0];
+	String removedRequestFile = ApiListener::GetCertificateRequestsDir() + "/" + fingerPrint + ".removed";
 
-	if (!Utility::PathExists(requestFile)) {
+	if (!Utility::PathExists(removedRequestFile)) {
 		Log(LogCritical, "cli")
-			<< "No removed request exists for fingerprint '" << ap[0] << "'.";
+			<< "Cannot find removed fingerprint '" << fingerPrint << "', bailing out.";
 		return 1;
 	}
 
-	Dictionary::Ptr request = Utility::LoadJsonFile(requestFile);
+	Dictionary::Ptr request = Utility::LoadJsonFile(removedRequestFile);
 	std::shared_ptr<X509> certRequest = StringToCertificate(request->Get("cert_request"));
 
 	if (!certRequest) {
 		Log(LogCritical, "cli", "Certificate request is invalid. Could not parse X.509 certificate for the 'cert_request' attribute.");
+		/* Purge the file when we know that it is broken. */
+		Utility::Remove(removedRequestFile);
 		return 1;
 	}
 
-	Utility::SaveJsonFile(ApiListener::GetCertificateRequestsDir() + "/" + ap[0] + ".json", 0600, request);
-	if(remove(requestFile.CStr()) != 0)
-		return 1;
+	Utility::SaveJsonFile(ApiListener::GetCertificateRequestsDir() + "/" + fingerPrint + ".json", 0600, request);
+
+	Utility::Remove(removedRequestFile);
 
 	Log(LogInformation, "cli")
-		<< "Certificate " << GetCertificateCN(certRequest) << " restored, you can now sign it using:\n"
-	       	<< "\"icinga2 ca sign " << ap[0] << "\"";
+		<< "Restored certificate request for CN '" << GetCertificateCN(certRequest) << "', sign it with:\n"
+	       	<< "\"icinga2 ca sign " << fingerPrint << "\"";
 
 	return 0;
 }

@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/casigncommand.hpp"
-#include "remote/apilistener.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
+#include "remote/apilistener.hpp"
 
 using namespace icinga;
 

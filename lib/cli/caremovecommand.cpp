@@ -1,27 +1,10 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/caremovecommand.hpp"
-#include "remote/apilistener.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
+#include "remote/apilistener.hpp"
 
 using namespace icinga;
 
@@ -54,11 +37,12 @@ ImpersonationLevel CARemoveCommand::GetImpersonationLevel() const
  */
 int CARemoveCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String requestFile = ApiListener::GetCertificateRequestsDir() + "/" + ap[0] + ".json";
+	String fingerPrint = ap[0];
+	String requestFile = ApiListener::GetCertificateRequestsDir() + "/" + fingerPrint + ".json";
 
 	if (!Utility::PathExists(requestFile)) {
 		Log(LogCritical, "cli")
-			<< "No request exists for fingerprint '" << ap[0] << "'.";
+			<< "No request exists for fingerprint '" << fingerPrint << "'.";
 		return 1;
 	}
 
@@ -69,17 +53,21 @@ int CARemoveCommand::Run(const boost::program_options::variables_map& vm, const 
 		Log(LogCritical, "cli", "Certificate request is invalid. Could not parse X.509 certificate for the 'cert_request' attribute.");
 		return 1;
 	}
+
+	String cn = GetCertificateCN(certRequest);
+
 	if (request->Contains("cert_response")) {
-		Log(LogCritical, "cli", "Certificate request already signed, you cannot remove it.");
+		Log(LogCritical, "cli")
+			<< "Certificate request for CN '" << cn << "' already signed, removal is not possible.";
 		return 1;
 	}
 
-	Utility::SaveJsonFile(ApiListener::GetCertificateRequestsDir() + "/" + ap[0] + ".removed", 0600, request);
-	if(remove(requestFile.CStr()) != 0)
-		return 1;
+	Utility::SaveJsonFile(ApiListener::GetCertificateRequestsDir() + "/" + fingerPrint + ".removed", 0600, request);
+
+	Utility::Remove(requestFile);
 
 	Log(LogInformation, "cli")
-		<< "Certificate for CN " << GetCertificateCN(certRequest) << " removed.";
+		<< "Certificate request for CN " << cn << " removed.";
 
 	return 0;
 }
