@@ -3303,7 +3303,7 @@ This category includes all plugins for various virtualization technologies.
 
 #### esxi_hardware <a id="plugin-contrib-command-esxi-hardware"></a>
 
-The [check_esxi_hardware.py](https://www.claudiokuenzler.com/nagios-plugins/check_esxi_hardware.php) plugin
+The [check_esxi_hardware.py](https://www.claudiokuenzler.com/monitoring-plugins/check_esxi_hardware.php) plugin
 uses the [pywbem](https://pywbem.github.io/pywbem/) Python library to monitor the hardware of ESXi servers
 through the [VMWare API](https://www.vmware.com/support/pubs/sdk_pubs.html) and CIM service.
 
@@ -3317,7 +3317,8 @@ esxi_hardware_pass      | **Required.** Password of the user. Can also be provid
 esxi_hardware_port      | **Optional.** Specifies the CIM port to connect to. Defaults to 5989.
 esxi_hardware_vendor    | **Optional.** Defines the vendor of the server: "auto", "dell", "hp", "ibm", "intel", "unknown" (default).
 esxi_hardware_html      | **Optional.** Add web-links to hardware manuals for Dell servers (use your country extension). Only useful with **esxi_hardware_vendor** = dell.
-esxi_hardware_ignore    | **Optional.** Comma separated list of elements to ignore.
+esxi_hardware_ignore    | **Optional.** Comma separated list of CIM elements to ignore.
+esxi_hardware_regex     | **Optional.** Allow regular expression lookups of elements in ignore list. Defaults to false.
 esxi_hardware_perfdata  | **Optional.** Add performcedata for graphers like PNP4Nagios to the output. Defaults to false.
 esxi_hardware_nopower   | **Optional.** Do not collect power performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
 esxi_hardware_novolts   | **Optional.** Do not collect voltage performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
