@@ -205,6 +205,42 @@ Report bugs at <https://github.com/Icinga/icinga2>
 Icinga home page: <https://icinga.com/>
 ```
 
+
+### CLI command: Ca List <a id="cli-command-ca-list"></a>
+
+```
+icinga2 ca list --help
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
+
+Usage:
+  icinga2 ca list [<arguments>]
+
+Lists pending certificate signing requests.
+
+Global options:
+  -h [ --help ]             show this help message
+  -V [ --version ]          show version information
+  --color                   use VT100 color codes even when stdout is not a
+                            terminal
+  -D [ --define ] arg       define a constant
+  -I [ --include ] arg      add include search directory
+  -x [ --log-level ] arg    specify the log level for the console log.
+                            The valid value is either debug, notice,
+                            information (default), warning, or critical
+  -X [ --script-debugger ]  whether to enable the script debugger
+
+Command options:
+  --all                     List all certificate signing requests, including
+                            signed. Note: Old requests are automatically
+                            cleaned by Icinga after 1 week.
+  --json                    encode output as JSON
+
+Report bugs at <https://github.com/Icinga/icinga2>
+Get support: <https://icinga.com/support/>
+Documentation: <https://icinga.com/docs/>
+Icinga home page: <https://icinga.com/>
+```
+
 ## CLI command: Console <a id="cli-command-console"></a>
 
 The CLI command `console` can be used to debug and evaluate Icinga 2 config expressions,

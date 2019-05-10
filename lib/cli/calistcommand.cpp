@@ -16,20 +16,20 @@ REGISTER_CLICOMMAND("ca/list", CAListCommand);
 
 String CAListCommand::GetDescription() const
 {
-	return "Lists all certificate signing requests.";
+	return "Lists pending certificate signing requests.";
 }
 
 String CAListCommand::GetShortDescription() const
 {
-	return "lists all certificate signing requests";
+	return "lists pending certificate signing requests";
 }
 
 void CAListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
 	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-		("json", "encode output as JSON")
-	;
+		("all", "List all certificate signing requests, including signed. Note: Old requests are automatically cleaned by Icinga after 1 week.")
+		("json", "encode output as JSON");
 }
 
 /**
@@ -51,6 +51,10 @@ int CAListCommand::Run(const boost::program_options::variables_map& vm, const st
 
 		for (auto& kv : requests) {
 			Dictionary::Ptr request = kv.second;
+
+			/* Skip signed requests by default. */
+			if (!vm.count("all") && request->Contains("cert_response"))
+				continue;
 
 			std::cout << kv.first
 				<< " | "

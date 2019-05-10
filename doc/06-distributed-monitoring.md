@@ -417,11 +417,19 @@ Disadvantages:
 * Needs client verification on the master.
 
 
-You can list certificate requests by using the `ca list` CLI command. This also shows
-which requests already have been signed.
+You can list pending certificate signing requests with the `ca list` CLI command.
 
 ```
 [root@icinga2-master1.localdomain /]# icinga2 ca list
+Fingerprint                                                      | Timestamp           | Signed | Subject
+-----------------------------------------------------------------|---------------------|--------|--------
+71700c28445109416dd7102038962ac3fd421fbb349a6e7303b6033ec1772850 | 2017/09/06 17:20:02 |        | CN = icinga2-client2.localdomain
+```
+
+In order to show all requests, use the `--all` parameter.
+
+```
+[root@icinga2-master1.localdomain /]# icinga2 ca list --all
 Fingerprint                                                      | Timestamp           | Signed | Subject
 -----------------------------------------------------------------|---------------------|--------|--------
 403da5b228df384f07f980f45ba50202529cded7c8182abf96740660caa09727 | 2017/09/06 17:02:40 | *      | CN = icinga2-client1.localdomain
