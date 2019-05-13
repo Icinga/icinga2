@@ -792,7 +792,7 @@ read by the Icinga daemon. This information is stored in `/var/lib/icinga2/api/p
 2.11 now limits the direct active-stage file access (this is hidden from the user),
 and caches active stages for packages in-memory.
 
-It also tries to repair the broken package, and lots a new message:
+It also tries to repair the broken package, and logs a new message:
 
 ```
 systemctl restart icinga2
@@ -802,7 +802,7 @@ tail -f /var/log/icinga2/icinga2.log
 [2019-05-10 12:27:15 +0200] information/ConfigObjectUtility: Repairing config package '_api' with stage 'dbe0bef8-c72c-4cc9-9779-da7c4527c5b2'.
 ```
 
-If this does not happen, you can manually fixthe broken config package, and mark a deployed stage as active
+If this does not happen, you can manually fix the broken config package, and mark a deployed stage as active
 again, carefully do the following steps with creating a backup before:
 
 Navigate into the API package prefix.
