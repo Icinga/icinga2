@@ -83,7 +83,7 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 		}
 	}
 
-	int sumUpdates = newConfigInfo.UpdateV1->GetLength() + newConfigInfo.UpdateV2->GetLength();
+	size_t sumUpdates = newConfigInfo.UpdateV1->GetLength() + newConfigInfo.UpdateV2->GetLength();
 
 	if (sumUpdates == 0)
 		return;
@@ -140,16 +140,21 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 
 	if (!Utility::PathExists(authPath)) {
 		std::ofstream fp(authPath.CStr(), std::ofstream::out | std::ostream::trunc);
+		fp.close();
 	}
 
 	String checksumsPath = productionZonesDir + "/.checksums";
 
 	if (Utility::PathExists(checksumsPath))
-		(void) unlink(checksumsPath.CStr());
+		Utility::Remove(checksumsPath);
 
 	std::ofstream fp(checksumsPath.CStr(), std::ofstream::out | std::ostream::trunc);
 	fp << std::fixed << JsonEncode(newConfigInfo.Checksums);
 	fp.close();
+
+	Log(LogNotice, "ApiListener")
+		<< "Updated meta data for cluster config sync. Checksum: '" << checksumsPath
+		<< "', timestamp: '" << tsPath << "', auth: '" << authPath << "'.";
 }
 
 /**
@@ -174,7 +179,7 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 
 	Dictionary::Ptr configUpdateV1 = new Dictionary();
 	Dictionary::Ptr configUpdateV2 = new Dictionary();
-	Dictionary::Ptr configUpdateChecksums = new Dictionary();
+	Dictionary::Ptr configUpdateChecksums = new Dictionary(); /* new since 2.11 */
 
 	String zonesDir = GetApiZonesDir();
 
@@ -198,7 +203,7 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 
 		configUpdateV1->Set(zoneName, config.UpdateV1);
 		configUpdateV2->Set(zoneName, config.UpdateV2);
-		configUpdateChecksums->Set(zoneName, config.Checksums);
+		configUpdateChecksums->Set(zoneName, config.Checksums); /* new since 2.11 */
 	}
 
 	Dictionary::Ptr message = new Dictionary({
@@ -437,7 +442,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 					configChange = true;
 
 					String path = stageConfigZoneDir + "/" + kv.first;
-					(void) unlink(path.CStr());
+					Utility::Remove(path);
 				}
 			}
 		}
