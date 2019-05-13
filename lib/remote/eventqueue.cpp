@@ -90,6 +90,25 @@ void EventQueue::SetFilter(std::unique_ptr<Expression> filter)
 	m_Filter.swap(filter);
 }
 
+Dictionary::Ptr EventQueue::WaitForEvent(void *client, double timeout)
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	for (;;) {
+		auto it = m_Events.find(client);
+		ASSERT(it != m_Events.end());
+
+		if (!it->second.empty()) {
+			Dictionary::Ptr result = *it->second.begin();
+			it->second.pop_front();
+			return result;
+		}
+
+		if (!m_CV.timed_wait(lock, boost::posix_time::milliseconds(long(timeout * 1000))))
+			return nullptr;
+	}
+}
+
 std::vector<EventQueue::Ptr> EventQueue::GetQueuesForType(const String& type)
 {
 	EventQueueRegistry::ItemMap queues = EventQueueRegistry::GetInstance()->GetItems();
