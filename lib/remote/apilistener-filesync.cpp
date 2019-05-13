@@ -8,6 +8,7 @@
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
+#include "base/application.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
 #include <fstream>
@@ -564,7 +565,7 @@ void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relative
 	args->Add("System.ZonesStageVarDir=" + GetApiZonesStageDir());
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
-	process->SetTimeout(300);
+	process->SetTimeout(Application::GetReloadTimeout());
 	process->Run(std::bind(&TryActivateZonesStageCallback, _1, relativePaths));
 }
 
