@@ -217,7 +217,7 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 /**
  * Registered handler when a new config::Update message is received.
  *
- * Checks destination and permissions first, then analyses the update.
+ * Checks destination and permissions first, locks the transaction and analyses the update.
  * The newly received configuration is not copied to production immediately,
  * but into the staging directory first.
  * Last, the async validation and restart is triggered.
