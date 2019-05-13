@@ -78,7 +78,7 @@ void RedisWriter::Start(bool runtimeCreated)
 	m_SubscriptionTimer->Start();
 
 	m_StatsTimer = new Timer();
-	m_StatsTimer->SetInterval(10);
+	m_StatsTimer->SetInterval(1);
 	m_StatsTimer->OnTimerExpired.connect(std::bind(&RedisWriter::PublishStatsTimerHandler, this));
 	m_StatsTimer->Start();
 
