@@ -165,6 +165,8 @@ private:
 	void RemoveStatusFile();
 
 	/* filesync */
+	static boost::mutex m_ConfigSyncStageLock;
+
 	static ConfigDirInformation LoadConfigDir(const String& dir);
 	static Dictionary::Ptr MergeConfigUpdate(const ConfigDirInformation& config);
 	static bool UpdateConfigDir(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig, const String& configDir, bool authoritative);

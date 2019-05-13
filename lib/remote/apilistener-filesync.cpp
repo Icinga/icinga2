@@ -15,6 +15,8 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
+boost::mutex ApiListener::m_ConfigSyncStageLock;
+
 void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file)
 {
 	CONTEXT("Creating config update for file '" + file + "'");
@@ -273,6 +275,11 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 			<< "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
+
+	/* Only one transaction is allowed, concurrent message handlers need to wait.
+	 * This affects two parent endpoints sending the config in the same moment.
+	 */
+	boost::mutex::scoped_lock lock(m_ConfigSyncStageLock);
 
 	Log(LogInformation, "ApiListener")
 		<< "Applying config update from endpoint '" << origin->FromClient->GetEndpoint()->GetName()
