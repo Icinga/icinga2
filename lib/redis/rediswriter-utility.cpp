@@ -77,11 +77,9 @@ String RedisWriter::FormatCommandLine(const Value& commandLine)
 	return result;
 }
 
-static Value l_DefaultEnv = "production";
-
 String RedisWriter::GetEnvironment()
 {
-	return ScriptGlobal::Get("Environment", &l_DefaultEnv);
+	return ConfigType::GetObjectsByType<IcingaApplication>()[0]->GetEnvironment();
 }
 
 String RedisWriter::GetObjectIdentifier(const ConfigObject::Ptr& object)
