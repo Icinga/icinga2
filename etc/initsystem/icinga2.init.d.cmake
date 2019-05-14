@@ -138,7 +138,7 @@ status() {
 
 	if [ ! -e $ICINGA2_PID_FILE ]; then
 		echo "Not running"
-		exit 7
+		exit 3
 	fi
 
 	pid=`cat $ICINGA2_PID_FILE`
@@ -146,7 +146,7 @@ status() {
 		echo "Running"
 	else
 		echo "Not running"
-		exit 7
+		exit 3
 	fi
 }
 
@@ -168,7 +168,8 @@ case "$1" in
 	start
   ;;
   condrestart)
-	status > /dev/null 2>&1 || exit 0
+	STATUS=$(status > /dev/null 2>&1)
+	if [ $? != 0 ]; then exit 0; fi
 	checkconfig restart fail
 	stop nofail
 	start
