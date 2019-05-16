@@ -33,7 +33,7 @@ protected:
 	void Pause() override;
 
 private:
-	Stream::Ptr m_Stream;
+	OptionalTlsStream m_Stream;
 	WorkQueue m_WorkQueue{10000000, 1};
 
 	Timer::Ptr m_ReconnectTimer;
