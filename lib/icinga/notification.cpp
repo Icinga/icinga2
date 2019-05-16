@@ -21,7 +21,6 @@ INITIALIZE_ONCE(&Notification::StaticInitialize);
 std::map<String, int> Notification::m_StateFilterMap;
 std::map<String, int> Notification::m_TypeFilterMap;
 
-boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNextNotificationChanged;
 boost::signals2::signal<void (const Notification::Ptr&, const NotificationResult::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNewNotificationResult;
 
 String NotificationNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const

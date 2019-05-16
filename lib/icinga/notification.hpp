@@ -88,7 +88,6 @@ public:
 	static String NotificationTypeToString(NotificationType type);
 	static String NotificationFilterToString(int filter, const std::map<String, int>& filterMap);
 
-	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnNextNotificationChanged;
 	static boost::signals2::signal<void (const Notification::Ptr&, const NotificationResult::Ptr&, const MessageOrigin::Ptr&)> OnNewNotificationResult;
 
 	void Validate(int types, const ValidationUtils& utils) override;
