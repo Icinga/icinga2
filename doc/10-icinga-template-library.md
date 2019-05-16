@@ -2783,6 +2783,21 @@ icingacli_elasticsearch_warning           | **Required.** Warning threshold
 icingacli_elasticsearch_filter            | **Required.** Filter for events
 icingacli_elasticsearch_from              | **Optional.** Negative value of time to search from now (Default: -5m)
 
+#### x509 <a id="plugin-contrib-icingacli-x509"></a>
+
+This subcommand is provided by the [x509 module](https://github.com/Icinga/icingaweb2-module-x509) and executed as `icingacli x509 check host`. Please refer to the [documentation](https://github.com/Icinga/icingaweb2-module-x509/blob/master/doc/10-Monitoring.md#host-check-command) for more information.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                                      | Description
+------------------------------------------|-----------------------------------------------------------------------------------------
+icingacli_x509_ip                         | **Required.** A hosts IP address [or]
+icingacli_x509_host                       | **Required.** A hosts name
+icingacli_x509_port                       | **Optional.** The port to check in particular
+icingacli_x509_warning                    | **Optional.** Less remaining time results in state WARNING (Default: 25%)
+icingacli_x509_critical                   | **Optional.** Less remaining time results in state CRITICAL (Default: 10%)
+icingacli_x509_allow_self_signed          | **Optional.** Ignore if a certificate or its issuer has been self-signed (Default: false)
+
 ### IPMI Devices <a id="plugin-contrib-ipmi"></a>
 
 This category includes all plugins for IPMI devices.
