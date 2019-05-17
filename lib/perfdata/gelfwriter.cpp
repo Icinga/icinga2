@@ -108,7 +108,7 @@ void GelfWriter::Pause()
 	m_WorkQueue.Join();
 	DisconnectInternal();
 
-	Log(LogInformation, "GraphiteWriter")
+	Log(LogInformation, "GelfWriter")
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<GelfWriter>::Pause();
