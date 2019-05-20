@@ -43,8 +43,10 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			parser
 			.options(desc)
 			.style(
-			po::command_line_style::unix_style |
-			po::command_line_style::allow_long_disguise)
+			po::command_line_style::unix_style &
+			~po::command_line_style::allow_guessing |
+			po::command_line_style::allow_long_disguise
+			)
 			.run(),
 			vm);
 		vm.notify();
