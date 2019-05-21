@@ -308,7 +308,7 @@ consider passing them in the request body. For GET requests, this method is expl
 [here](12-icinga2-api.md#icinga2-api-requests-method-override).
 
 You can use [jo](https://github.com/jpmens/jo) to format JSON strings on the shell. An example
-for API actions shown [here](#icinga2-api-actions-unix-timestamps).
+for API actions shown [here](12-icinga2-api.md#icinga2-api-actions-unix-timestamps).
 
 
 ### Global Parameters <a id="icinga2-api-parameters-global"></a>
@@ -2247,11 +2247,11 @@ and developers have been working hard to add more REST API
 clients and integrations into DevOps tools.
 
 * [Libraries](12-icinga2-api.md#icinga2-api-clients-libraries)
-* [Status](#icinga2-api-clients-status)
-* [Management](#icinga2-api-clients-management)
-* [Event Streams](#icinga2-api-clients-event-streams)
-* [Actions](#icinga2-api-clients-actions)
-* [REST API Apps](#icinga2-api-clients-apps)
+* [Status](12-icinga2-api.md#icinga2-api-clients-status)
+* [Management](12-icinga2-api.md#icinga2-api-clients-management)
+* [Event Streams](12-icinga2-api.md#icinga2-api-clients-event-streams)
+* [Actions](12-icinga2-api.md#icinga2-api-clients-actions)
+* [REST API Apps](12-icinga2-api.md#icinga2-api-clients-apps)
 
 Additional [programmatic examples](12-icinga2-api.md#icinga2-api-clients-programmatic-examples)
 will help you getting started using the Icinga 2 API in your environment.

@@ -594,27 +594,27 @@ support HA awareness, provide the `enable_ha` configuration attribute. When `ena
 is set to `true` (usually the default), "Run-Once" is set and the feature pauses on one side.
 
 ```
-vim /etc/icinga2/features-enabled/graphite.conf
+vim /etc/icinga2/features-enabled/ido-mysql.conf
 
-object GraphiteWriter "graphite" {
+object IdoMysqlConnection "ido-mysql" {
   ...
   enable_ha = true
 }
 ```
 
-Once such a feature is paused, there won't be any more event handling, e.g. the Elasticsearch
-feature won't process any checkresults nor write to the Elasticsearch REST API.
+Once such a feature is paused, there won't be any more event handling, e.g. the IDO MySQL
+feature won't write status and config updates anymore for this endpoint.
 
 When the cluster connection drops, the feature configuration object is updated with
 the new object authority by the ApiListener timer and resumes its operation. You can see
 that by grepping the log file for `resumed` and `paused`.
 
 ```
-[2018-10-24 13:28:28 +0200] information/GraphiteWriter: 'g-ha' paused.
+[2018-10-24 13:28:28 +0200] information/IdoMysqlConnection: 'ido-mysql' paused.
 ```
 
 ```
-[2018-10-24 13:28:28 +0200] information/GraphiteWriter: 'g-ha' resumed.
+[2018-10-24 13:28:28 +0200] information/IdoMysqlConnection: 'ido-mysql' resumed.
 ```
 
 Specific features with HA capabilities are explained below.
