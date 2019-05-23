@@ -1,5 +1,27 @@
 # Icinga 2.x CHANGELOG
 
+## 2.10.5 (2019-05-23)
+
+[Issues and PRs](https://github.com/Icinga/icinga2/milestone/81?closed=1)
+
+### Bugfixes
+
+* Core
+  * Fix crashes with logrotate signals #6737 (thanks Elias Ohm)
+* API
+  * Fix crashes and problems with permission filters from recent Namespace introduction #6785 (thanks Elias Ohm) #6874 (backported from 2.11)
+  * Reduce log spam with locked connections (real fix is the network stack rewrite in 2.11) #6877
+* Cluster
+  * Fix problems with replay log rotation and storage #6932 (thanks Peter Eckel)
+* IDO DB
+  * Fix that reload shutdown deactivates hosts and hostgroups (introduced in 2.9) #7157
+* Documentation
+  * Improve the [REST API](https://icinga.com/docs/icinga2/latest/doc/12-icinga2-api/) chapter: Unix timestamp handling, filters, unify POST requests with filters in the body
+  * Better layout for the [features](https://icinga.com/docs/icinga2/latest/doc/14-features/) chapter, specifically metrics and events
+  * Split [object types](https://icinga.com/docs/icinga2/latest/doc/09-object-types/) into monitoring, runtime, features
+  * Add technical concepts for [cluster messages](https://icinga.com/docs/icinga2/latest/doc/19-technical-concepts/#json-rpc-message-api)
+
+
 ## 2.10.4 (2019-03-19)
 
 ### Notes
