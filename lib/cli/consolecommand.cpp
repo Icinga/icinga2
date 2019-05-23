@@ -2,7 +2,6 @@
 
 #include "cli/consolecommand.hpp"
 #include "config/configcompiler.hpp"
-#include "remote/apiclient.hpp"
 #include "remote/consolehandler.hpp"
 #include "remote/url.hpp"
 #include "base/configwriter.hpp"
