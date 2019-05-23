@@ -1,6 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#define VERSION "1.0.1"
+#include "icinga-version.h" /* include VERSION */
 
 // ensure to include base first
 #include "base/i2-base.hpp"
@@ -10,11 +10,19 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
-#include "remote/httpclientconnection.hpp"
-#include "remote/httprequest.hpp"
-#include "remote/url-characters.hpp"
+#include "base/defer.hpp"
+#include "base/io-engine.hpp"
+#include "base/stream.hpp"
+#include "base/tcpsocket.hpp" /* include global icinga::Connect */
+#include "base/tlsstream.hpp"
+#include "base/base64.hpp"
+#include "remote/url.hpp"
+#include <remote/url-characters.hpp>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/range/algorithm/remove_if.hpp>
+#include <boost/asio/ssl/context.hpp>
+#include <boost/beast.hpp>
 #include <iostream>
 
 using namespace icinga;
@@ -22,98 +30,17 @@ namespace po = boost::program_options;
 
 static bool l_Debug;
 
-/*
- * This function is called by an 'HttpRequest' once the server answers. After doing a short check on the 'response' it
- * decodes it to a Dictionary and then tells 'QueryEndpoint()' that it's done
- */
-static void ResultHttpCompletionCallback(const HttpRequest& request, HttpResponse& response, bool& ready,
-	boost::condition_variable& cv, boost::mutex& mtx, Dictionary::Ptr& result)
-{
-	String body;
-	char buffer[1024];
-	size_t count;
-
-	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
-		body += String(buffer, buffer + count);
-
-	if (l_Debug) {
-		std::cout << "Received answer\n"
-			<< "\tHTTP code: " << response.StatusCode << "\n"
-			<< "\tHTTP message: '" << response.StatusMessage << "'\n"
-			<< "\tHTTP body: '" << body << "'.\n";
-	}
-
-	// Only try to decode the body if the 'HttpRequest' was successful
-	if (response.StatusCode != 200)
-		result = Dictionary::Ptr();
-	else
-		result = JsonDecode(body);
-
-	// Unlock our mutex, set ready and notify 'QueryEndpoint()'
-	boost::mutex::scoped_lock lock(mtx);
-	ready = true;
-	cv.notify_all();
-}
-
-/*
- * This function takes all the information required to query an nscp instance on
- * 'host':'port' with 'password'. The String 'endpoint' contains the specific
- * query name and all the arguments formatted as an URL.
- */
-static Dictionary::Ptr QueryEndpoint(const String& host, const String& port, const String& password,
-	const String& endpoint)
-{
-	HttpClientConnection::Ptr m_Connection = new HttpClientConnection(host, port, true);
-
-	try {
-		bool ready = false;
-		boost::condition_variable cv;
-		boost::mutex mtx;
-		Dictionary::Ptr result;
-		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
-		req->RequestMethod = "GET";
-
-		// Url() will call Utillity::UnescapeString() which will thrown an exception if it finds a lonely %
-		req->RequestUrl = new Url(endpoint);
-
-		// NSClient++ uses `time=1m&time=5m` instead of `time[]=1m&time[]=5m`
-		req->RequestUrl->SetArrayFormatUseBrackets(false);
-
-		req->AddHeader("password", password);
-		if (l_Debug) {
-			std::cout << "Sending request to 'https://" << host << ":" << port << req->RequestUrl->Format(false, false) << "'\n"
-				<< "Headers: " << JsonEncode(req->Headers) << "\n";
-		}
-
-		// Submits the request. The 'ResultHttpCompletionCallback' is called once the HttpRequest receives an answer,
-		// which then sets 'ready' to true
-		m_Connection->SubmitRequest(req, std::bind(ResultHttpCompletionCallback, _1, _2,
-			boost::ref(ready), boost::ref(cv), boost::ref(mtx), boost::ref(result)));
-
-		// We need to spinlock here because our 'HttpRequest' works asynchronous
-		boost::mutex::scoped_lock lock(mtx);
-		while (!ready) {
-			cv.wait(lock);
-		}
-
-		return result;
-	}
-	catch (const std::exception& ex) {
-		// Exceptions should only happen in extreme edge cases we can't recover from
-		std::cout << "Caught exception: " << DiagnosticInformation(ex, false) << '\n';
-		return Dictionary::Ptr();
-	}
-}
-
-/*
- * Takes a Dictionary 'result' and constructs an icinga compliant output string.
- * If 'result' is not in the expected format it returns 3 ("UNKNOWN") and prints an informative, icinga compliant,
- * output string.
+/**
+ * Prints an Icinga plugin API compliant output, including error handling.
+ *
+ * @param result
+ *
+ * @return Status code for exit()
  */
 static int FormatOutput(const Dictionary::Ptr& result)
 {
 	if (!result) {
-		std::cout << "UNKNOWN: No data received.\n";
+		std::cerr << "UNKNOWN: No data received.\n";
 		return 3;
 	}
 
@@ -122,54 +49,59 @@ static int FormatOutput(const Dictionary::Ptr& result)
 
 	Array::Ptr payloads = result->Get("payload");
 	if (!payloads) {
-		std::cout << "UNKNOWN: Answer format error: Answer is missing 'payload'.\n";
+		std::cerr << "UNKNOWN: Answer format error: Answer is missing 'payload'.\n";
 		return 3;
 	}
 
 	if (payloads->GetLength() == 0) {
-		std::cout << "UNKNOWN: Answer format error: 'payload' was empty.\n";
+		std::cerr << "UNKNOWN: Answer format error: 'payload' was empty.\n";
 		return 3;
 	}
 
 	if (payloads->GetLength() > 1) {
-		std::cout << "UNKNOWN: Answer format error: Multiple payloads are not supported.";
+		std::cerr << "UNKNOWN: Answer format error: Multiple payloads are not supported.";
 		return 3;
 	}
 
 	Dictionary::Ptr payload;
+
 	try {
 		payload = payloads->Get(0);
 	} catch (const std::exception&) {
-		std::cout << "UNKNOWN: Answer format error: 'payload' was not a Dictionary.\n";
+		std::cerr << "UNKNOWN: Answer format error: 'payload' was not a Dictionary.\n";
 		return 3;
 	}
 
 	Array::Ptr lines;
+
 	try {
 		lines = payload->Get("lines");
 	} catch (const std::exception&) {
-		std::cout << "UNKNOWN: Answer format error: 'payload' is missing 'lines'.\n";
+		std::cerr << "UNKNOWN: Answer format error: 'payload' is missing 'lines'.\n";
 		return 3;
 	}
 
 	if (!lines) {
-		std::cout << "UNKNOWN: Answer format error: 'lines' is Null.\n";
+		std::cerr << "UNKNOWN: Answer format error: 'lines' is Null.\n";
 		return 3;
 	}
 
 	std::stringstream ssout;
+
 	ObjectLock olock(lines);
 
 	for (const Value& vline : lines) {
 		Dictionary::Ptr line;
+
 		try {
 			line = vline;
 		} catch (const std::exception&) {
-			std::cout << "UNKNOWN: Answer format error: 'lines' entry was not a Dictionary.\n";
+			std::cerr << "UNKNOWN: Answer format error: 'lines' entry was not a Dictionary.\n";
 			return 3;
 		}
+
 		if (!line) {
-			std::cout << "UNKNOWN: Answer format error: 'lines' entry was Null.\n";
+			std::cerr << "UNKNOWN: Answer format error: 'lines' entry was Null.\n";
 			return 3;
 		}
 
@@ -181,11 +113,17 @@ static int FormatOutput(const Dictionary::Ptr& result)
 		}
 
 		Array::Ptr perfs = line->Get("perf");
+
 		ObjectLock olock(perfs);
 
 		for (const Dictionary::Ptr& perf : perfs) {
 			ssout << "'" << perf->Get("alias") << "'=";
-			Dictionary::Ptr values = perf->Contains("int_value") ? perf->Get("int_value") : perf->Get("float_value");
+
+			Dictionary::Ptr values = perf->Get("float_value");
+
+			if (perf->Contains("int_value"))
+				values = perf->Get("int_value");
+
 			ssout << values->Get("value") << values->Get("unit") << ';' << values->Get("warning") << ';' << values->Get("critical");
 
 			if (values->Contains("minimum") || values->Contains("maximum")) {
@@ -204,24 +142,218 @@ static int FormatOutput(const Dictionary::Ptr& result)
 		ssout << '\n';
 	}
 
-	//TODO: Fix
-	String state = static_cast<String>(payload->Get("result")).ToUpper();
-	int creturn = state == "OK" ? 0 :
-		state == "WARNING" ? 1 :
-		state == "CRITICAL" ? 2 :
-		state == "UNKNOWN" ? 3 : 4;
+	std::map<String, unsigned int> stateMap = {
+		{ "OK", 0 },
+		{ "WARNING", 1},
+		{ "CRITICAL", 2},
+		{ "UNKNWON", 3}
+	};
 
-	if (creturn == 4) {
-		std::cout << "check_nscp_api UNKNOWN Answer format error: 'result' was not a known state.\n";
+	String state = static_cast<String>(payload->Get("result")).ToUpper();
+
+	auto it = stateMap.find(state);
+
+	if (it == stateMap.end()) {
+		std::cerr << "UNKNOWN Answer format error: 'result' was not a known state.\n";
 		return 3;
 	}
 
 	std::cout << ssout.rdbuf();
-	return creturn;
+
+	return it->second;
 }
 
-/*
- *  Process arguments, initialize environment and shut down gracefully.
+/**
+ * Connects to host:port and performs a TLS shandshake
+ *
+ * @param host To connect to.
+ * @param port To connect to.
+ *
+ * @returns AsioTlsStream pointer for future HTTP connections.
+ */
+static std::shared_ptr<AsioTlsStream> Connect(const String& host, const String& port)
+{
+	std::shared_ptr<boost::asio::ssl::context> sslContext;
+
+	try {
+		sslContext = MakeAsioSslContext(Empty, Empty, Empty); //TODO: Add support for cert, key, ca parameters
+	} catch(const std::exception& ex) {
+		Log(LogCritical, "DebugConsole")
+			<< "Cannot make SSL context: " << ex.what();
+		throw;
+	}
+
+	std::shared_ptr<AsioTlsStream> stream = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoService(), *sslContext, host);
+
+	try {
+		icinga::Connect(stream->lowest_layer(), host, port);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "DebugConsole")
+			<< "Cannot connect to REST API on host '" << host << "' port '" << port << "': " << ex.what();
+		throw;
+	}
+
+	auto& tlsStream (stream->next_layer());
+
+	try {
+		tlsStream.handshake(tlsStream.client);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "DebugConsole")
+			<< "TLS handshake with host '" << host << "' failed: " << ex.what();
+		throw;
+	}
+
+	return std::move(stream);
+}
+
+/**
+ * Queries the given endpoint and host:port and retrieves data.
+ *
+ * @param host To connect to.
+ * @param port To connect to.
+ * @param password For auth header (required).
+ * @param endpoint Caller must construct the full endpoint including the command query.
+ *
+ * @return Dictionary de-serialized from JSON data.
+ */
+
+static Dictionary::Ptr FetchData(const String& host, const String& port, const String& password,
+	const String& endpoint)
+{
+	namespace beast = boost::beast;
+	namespace http = beast::http;
+
+	std::shared_ptr<AsioTlsStream> tlsStream;
+
+	try {
+		tlsStream = Connect(host, port);
+	} catch (const std::exception& ex) {
+		std::cerr << "Connection error: " << ex.what();
+		throw ex;
+	}
+
+	Url::Ptr url;
+
+	try {
+		url = new Url(endpoint);
+	} catch (const std::exception& ex) {
+		std::cerr << "URL error: " << ex.what();
+		throw ex;
+	}
+
+	url->SetScheme("https");
+	url->SetHost(host);
+	url->SetPort(port);
+
+	// NSClient++ uses `time=1m&time=5m` instead of `time[]=1m&time[]=5m`
+	url->SetArrayFormatUseBrackets(false);
+
+	http::request<http::string_body> request (http::verb::get, std::string(url->Format(true)), 10);
+
+	request.set(http::field::user_agent, "Icinga/check_nscp_api/" + String(VERSION));
+	request.set(http::field::host, host + ":" + port);
+
+	request.set(http::field::accept, "application/json");
+	request.set("password", password);
+
+	if (l_Debug) {
+		std::cout << "Sending request to " << url->Format(false, false) << "'.\n";
+	}
+
+	try {
+		http::write(*tlsStream, request);
+		tlsStream->flush();
+	} catch (const std::exception& ex) {
+		std::cerr << "Cannot write HTTP request to REST API at URL '" << url->Format(false, false) << "': " << ex.what();
+		throw ex;
+	}
+
+	/* We need to read the header and body manually, since the header will always throw an error.
+	 * Details: Missing status string in header, https://github.com/mickem/nscp/issues/610
+	 * Inspiration: example_incremental_read from https://www.boost.org/doc/libs/1_66_0/libs/beast/example/doc/http_examples.hpp
+	 */
+	std::ostringstream msgbuf;
+
+	beast::flat_buffer buffer;
+	boost::system::error_code ec;
+
+	/* Create a parser which has a buffer body for reading the input.
+	 * Ensure to pass ec for handling errors ourselves, and having the buffer ready.
+	 */
+	http::parser<false, http::buffer_body> p;
+
+	http::read(*tlsStream, buffer, p, ec);
+
+	if (ec) {
+		/* Ignore any bad_status/bad_reason errors since NSCP doesn't set them. */
+		if (ec != http::error::bad_status && ec != http::error::bad_reason) {
+			String message = "Error reading HTTP response data: " + ec.message();
+			BOOST_THROW_EXCEPTION(ScriptError(message));
+		} else if (l_Debug) {
+			std::cout << "NSCP just sent a wrong status reason, we've ignored it. See https://github.com/Icinga/icinga2/pull/7142" << std::endl;
+		}
+	}
+
+	String rawResponse = beast::buffers_to_string(buffer.data());
+
+	if (l_Debug)
+		std::cout << "Raw data: " << rawResponse << std::endl;
+
+	/* At this stage we have the raw request. Since NSCP always returns HTTP/1.1 200 with missing OK for requests anyways,
+	 * we don't care about the header. Let's just extract the JSON body.
+	 */
+
+	std::vector<String> lines = rawResponse.Split("\n");
+
+	size_t i = 0;
+
+	for (i = 0; i < lines.size(); i++) {
+		String line = lines[i].Trim();
+
+		if (l_Debug)
+			std::cout << "Line: " << line << std::endl;
+
+		if (line == "") // Empty line means that body is reached.
+			break;
+	}
+
+	String body;
+	size_t bodyIdx = ++i;
+
+	// Avoid crashes with empty bodies.
+	if (bodyIdx < lines.size())
+		body = lines[bodyIdx];
+
+	// Strip any control characters
+	body.erase(boost::remove_if(body, ::iscntrl), body.End());
+
+	if (l_Debug)
+		std::cout << "Received body from NSCP: '" << body << "'." << std::endl;
+
+	// Add some rudimentary error handling.
+	if (body.IsEmpty()) {
+		String message = "No body received. Ensure that connection parameters are good and check the NSCP logs.";
+		BOOST_THROW_EXCEPTION(ScriptError(message));
+	}
+
+	Dictionary::Ptr jsonResponse;
+
+	try {
+		jsonResponse = JsonDecode(body);
+	} catch (const std::exception& ex) {
+		String message = "Cannot parse JSON response body '" + body + "', error: " + ex.what();
+		BOOST_THROW_EXCEPTION(ScriptError(message));
+	}
+
+	return jsonResponse;
+}
+
+/**
+ * Main function
+ *
+ * @param argc
+ * @param argv
+ * @return exit code
  */
 int main(int argc, char **argv)
 {
@@ -296,11 +428,15 @@ int main(int argc, char **argv)
 		}
 	}
 
-	// This needs to happen for HttpRequest to work
-	Application::InitializeBase();
+	Dictionary::Ptr result;
 
-	Dictionary::Ptr result = QueryEndpoint(vm["host"].as<std::string>(), vm["port"].as<std::string>(),
-		vm["password"].as<std::string>(), endpoint);
+	try {
+		result = FetchData(vm["host"].as<std::string>(), vm["port"].as<std::string>(),
+		   vm["password"].as<std::string>(), endpoint);
+	} catch (const std::exception& ex) {
+		std::cerr << "UNKNOWN - " << ex.what();
+		exit(3);
+	}
 
 	// Application::Exit() is the clean way to exit after calling InitializeBase()
 	Application::Exit(FormatOutput(result));
