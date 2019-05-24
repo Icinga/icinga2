@@ -308,7 +308,7 @@ consider passing them in the request body. For GET requests, this method is expl
 [here](12-icinga2-api.md#icinga2-api-requests-method-override).
 
 You can use [jo](https://github.com/jpmens/jo) to format JSON strings on the shell. An example
-for API actions shown [here](#icinga2-api-actions-unix-timestamps).
+for API actions shown [here](12-icinga2-api.md#icinga2-api-actions-unix-timestamps).
 
 
 ### Global Parameters <a id="icinga2-api-parameters-global"></a>

@@ -246,11 +246,8 @@ git push -f origin bugfix/notifications
 
 ## <a id="contributing-testing"></a> Testing
 
-Basic unit test coverage is provided by running `make test` during package builds.
-Read the [INSTALL.md](INSTALL.md) file for more information about development builds.
-
-Snapshot packages from the latest development branch are available inside the
-[package repository](https://packages.icinga.com).
+Please follow the [documentation](https://icinga.com/docs/icinga2/snapshot/doc/21-development/#test-icinga-2)
+for build and test instructions.
 
 You can help test-drive the latest Icinga 2 snapshot packages inside the
 [Icinga 2 Vagrant boxes](https://github.com/icinga/icinga-vagrant).
@@ -258,17 +255,11 @@ You can help test-drive the latest Icinga 2 snapshot packages inside the
 
 ## <a id="contributing-patches-source-code"></a> Source Code Patches
 
-Icinga 2 is written in C++ and uses the Boost libraries. We are also using the C++11 standard where applicable (please
-note the minimum required compiler versions in the [INSTALL.md](INSTALL.md) file.
-
 Icinga 2 can be built on Linux/Unix nodes and Windows clients. In order to develop patches for Icinga 2,
 you should prepare your own local build environment and know how to work with C++.
 
-More tips:
-
-* Requirements and source code installation for Linux/Unix is explained inside the [INSTALL.md](INSTALL.md) file.
-* Debug requirements and GDB instructions can be found in the [documentation](https://github.com/Icinga/icinga2/blob/master/doc/20-development.md).
-* If you are planning to develop and debug the Windows client, setup a Windows environment with [Visual Studio](https://www.visualstudio.com/vs/community/). An example can be found in [this blogpost](https://blog.netways.de/2015/08/24/developing-icinga-2-on-windows-10-using-visual-studio-2015/).
+Please follow the [development documentation](https://icinga.com/docs/icinga2/latest/doc/21-development/)
+for development environments, the style guide and more advanced insights.
 
 ## <a id="contributing-patches-documentation"></a> Documentation Patches
 
