@@ -22,6 +22,11 @@
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string/replace.hpp>
 #include <utility>
+#include "base/io-engine.hpp"
+#include <boost/asio/write.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/asio/error.hpp>
 
 using namespace icinga;
 
@@ -126,11 +131,7 @@ void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogDebug, "GelfWriter")
 		<< "Exception during Graylog Gelf operation: " << DiagnosticInformation(std::move(exp));
 
-	if (GetConnected()) {
-		m_Stream->Close();
-
-		SetConnected(false);
-	}
+	DisconnectInternal();
 }
 
 void GelfWriter::Reconnect()
@@ -156,20 +157,46 @@ void GelfWriter::ReconnectInternal()
 	if (GetConnected())
 		return;
 
-	TcpSocket::Ptr socket = new TcpSocket();
-
 	Log(LogNotice, "GelfWriter")
 		<< "Reconnecting to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
-	try {
-		socket->Connect(GetHost(), GetPort());
-	} catch (const std::exception& ex) {
-		Log(LogCritical, "GelfWriter")
-			<< "Can't connect to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw ex;
+	bool ssl = GetEnableTls();
+
+	if (ssl) {
+		std::shared_ptr<boost::asio::ssl::context> sslContext;
+
+		try {
+			sslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "GelfWriter")
+				<< "Unable to create SSL context.";
+			throw;
+		}
+
+		m_Stream.first = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoService(), *sslContext, GetHost());
+	} else {
+		m_Stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoService());
 	}
 
-	m_Stream = new NetworkStream(socket);
+	try {
+		icinga::Connect(ssl ? m_Stream.first->lowest_layer() : m_Stream.second->lowest_layer(), GetHost(), GetPort());
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "GelfWriter")
+			<< "Can't connect to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << ".'";
+		throw;
+	}
+
+	if (ssl) {
+		auto& tlsStream (m_Stream.first->next_layer());
+
+		try {
+			tlsStream.handshake(tlsStream.client);
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "GelfWriter")
+				<< "TLS handshake with host '" << GetHost() << " failed.'";
+			throw;
+		}
+	}
 
 	SetConnected(true);
 
@@ -194,9 +221,22 @@ void GelfWriter::DisconnectInternal()
 	if (!GetConnected())
 		return;
 
-	m_Stream->Close();
+	if (m_Stream.first) {
+		boost::system::error_code ec;
+		m_Stream.first->next_layer().shutdown(ec);
+
+		// https://stackoverflow.com/a/25703699
+		// As long as the error code's category is not an SSL category, then the protocol was securely shutdown
+		if (ec.category() == boost::asio::error::get_ssl_category()) {
+			Log(LogCritical, "GelfWriter")
+				<< "TLS shutdown with host '" << GetHost() << "' could not be done securely.";
+		}
+	} else if (m_Stream.second) {
+		m_Stream.second->close();
+	}
 
 	SetConnected(false);
+
 }
 
 void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -456,7 +496,13 @@ void GelfWriter::SendLogMessage(const Checkable::Ptr& checkable, const String& g
 		Log(LogDebug, "GelfWriter")
 			<< "Checkable '" << checkable->GetName() << "' sending message '" << log << "'.";
 
-		m_Stream->Write(log.CStr(), log.GetLength());
+		if (m_Stream.first) {
+			boost::asio::write(*m_Stream.first, boost::asio::buffer(msgbuf.str()));
+			m_Stream.first->flush();
+		} else {
+			boost::asio::write(*m_Stream.second, boost::asio::buffer(msgbuf.str()));
+			m_Stream.second->flush();
+		}
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "GelfWriter")
 			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
