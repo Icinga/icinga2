@@ -1,3 +1,5 @@
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+
 #include "base/configobject.hpp"
 
 library perfdata;
