@@ -13,7 +13,6 @@
 #include "base/configtype.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/tuple/tuple.hpp>
 #include <utility>
 
 using namespace icinga;

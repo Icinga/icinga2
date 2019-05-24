@@ -6,7 +6,6 @@
 #include "icinga/service.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
-#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 

@@ -19,7 +19,6 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
-#include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/predicate.hpp>

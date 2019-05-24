@@ -22,7 +22,6 @@
 #include "base/application.hpp"
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
