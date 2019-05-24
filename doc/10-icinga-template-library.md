@@ -160,6 +160,15 @@ Check command for the built-in `exception` check. This check throws an exception
 For test and demo purposes only. The `exception` check command does not support
 any vars.
 
+### sleep <a id="itl-sleep"></a>
+
+Check command for the built-in `sleep` check. This allows to use sleep for testing
+and debugging only.
+
+Name            | Description
+----------------|--------------
+sleep\_time     | **Optional.** The duration of the sleep in seconds. Defaults to 1s.
+
 <!-- keep this anchor for URL link history only -->
 <a id="plugin-check-commands"></a>
 
