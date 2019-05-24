@@ -1188,7 +1188,7 @@ required though.
 #### Whitespace Cleanup <a id="development-develop-choose-editor-whitespaces"></a>
 
 Patches must be cleaned up and follow the indent style (tabs instead of spaces).
-You should also remove any training whitespaces.
+You should also remove any trailing whitespaces.
 
 `git diff` allows to highlight such.
 
