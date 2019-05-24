@@ -5,7 +5,6 @@
 
 #include "base/i2-base.hpp"
 #include "base/socket.hpp"
-#include "base/socketevents.hpp"
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
 #include "base/fifo.hpp"
