@@ -25,7 +25,6 @@ set(remote_SOURCES
   eventqueue.cpp eventqueue.hpp
   eventshandler.cpp eventshandler.hpp
   filterutility.cpp filterutility.hpp
-  httpchunkedencoding.cpp httpchunkedencoding.hpp
   httphandler.cpp httphandler.hpp
   httpserverconnection.cpp httpserverconnection.hpp
   httputility.cpp httputility.hpp
