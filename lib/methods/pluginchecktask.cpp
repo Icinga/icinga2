@@ -40,9 +40,11 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (!checkable->GetCheckTimeout().IsEmpty())
 		timeout = checkable->GetCheckTimeout();
 
+	auto lambdaProcessFinishedHandler = [&, checkable, cr](const Value& commandLine, const ProcessResult& pr){
+		return PluginCheckTask::ProcessFinishedHandler(checkable, cr, commandLine, pr);
+	};
 	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
-		resolvers, resolvedMacros, useResolvedMacros, timeout,
-		std::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2));
+		resolvers, resolvedMacros, useResolvedMacros, timeout, lambdaProcessFinishedHandler);
 
 	if (!resolvedMacros || useResolvedMacros)
 		Checkable::IncreasePendingChecks();
