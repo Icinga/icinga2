@@ -491,7 +491,8 @@ Value ScriptUtils::Glob(const std::vector<Value>& args)
 		type = args[1];
 
 	std::vector<String> paths;
-	Utility::Glob(pathSpec, std::bind(&GlobCallbackHelper, std::ref(paths), _1), type);
+	auto lambdaGlobCallbackHelper = [&](const String& path){return GlobCallbackHelper(paths, path);};
+	Utility::Glob(pathSpec, lambdaGlobCallbackHelper, type);
 
 	return Array::FromVector(paths);
 }
@@ -510,7 +511,8 @@ Value ScriptUtils::GlobRecursive(const std::vector<Value>& args)
 		type = args[2];
 
 	std::vector<String> paths;
-	Utility::GlobRecursive(path, pattern, std::bind(&GlobCallbackHelper, std::ref(paths), _1), type);
+	auto lambdaGlobCallbackHelper = [&](const String& path){return GlobCallbackHelper(paths, path);};
+	Utility::GlobRecursive(path, pattern, lambdaGlobCallbackHelper, type);
 
 	return Array::FromVector(paths);
 }
