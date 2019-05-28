@@ -39,7 +39,8 @@ void ExternalCommandListener::Start(bool runtimeCreated)
 	Log(LogWarning, "ExternalCommandListener")
 		<< "This feature is DEPRECATED and will be removed in future releases. Check the roadmap at https://github.com/Icinga/icinga2/milestones";
 #ifndef _WIN32
-	m_CommandThread = std::thread(std::bind(&ExternalCommandListener::CommandPipeThread, this, GetCommandPath()));
+	auto lambdaCommandPipeThread = [&](){return ExternalCommandListener::CommandPipeThread(GetCommandPath());};
+	m_CommandThread = std::thread(lambdaCommandPipeThread);
 	m_CommandThread.detach();
 #endif /* _WIN32 */
 }
