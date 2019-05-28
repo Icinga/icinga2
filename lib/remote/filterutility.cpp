@@ -258,16 +258,18 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 				}
 			}
 
-			provider->FindTargets(type, std::bind(&FilteredAddTarget,
-				std::ref(permissionFrame), permissionFilter,
-				std::ref(frame), &*ufilter, std::ref(result), variableName, _1));
+			auto lambdaFilteredAddTarget = [&, permissionFilter, variableName](const Object::Ptr& target){
+				return FilteredAddTarget(permissionFrame, permissionFilter, frame, &*ufilter, result, variableName, target);
+			};
+			provider->FindTargets(type, lambdaFilteredAddTarget);
 		} else {
 			/* Ensure to pass a nullptr as filter expression.
 			 * GCC 8.1.1 on F28 causes problems, see GH #6533.
 			 */
-			provider->FindTargets(type, std::bind(&FilteredAddTarget,
-				std::ref(permissionFrame), permissionFilter,
-				std::ref(frame), nullptr, std::ref(result), variableName, _1));
+			auto lambdaFilteredAddTarget = [&, permissionFilter, variableName](const Object::Ptr& target){
+				return FilteredAddTarget(permissionFrame, permissionFilter, frame, nullptr, result, variableName, target);
+			};
+			provider->FindTargets(type, lambdaFilteredAddTarget);
 		}
 	}
 
