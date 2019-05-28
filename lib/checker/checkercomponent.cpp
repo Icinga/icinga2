@@ -58,7 +58,8 @@ void CheckerComponent::Start(bool runtimeCreated)
 		<< "'" << GetName() << "' started.";
 
 
-	m_Thread = std::thread(std::bind(&CheckerComponent::CheckThreadProc, this));
+	auto lambdaCheckThreadProc = [&](){return CheckerComponent::CheckThreadProc();};
+	m_Thread = std::thread(lambdaCheckThreadProc);
 
 	m_ResultTimer = new Timer();
 	m_ResultTimer->SetInterval(5);
@@ -222,7 +223,8 @@ void CheckerComponent::CheckThreadProc()
 
 		Checkable::IncreasePendingChecks();
 
-		Utility::QueueAsyncCallback(std::bind(&CheckerComponent::ExecuteCheckHelper, CheckerComponent::Ptr(this), checkable));
+		auto lambdaExecuteCheckHelper = [&, checkable](){return CheckerComponent::ExecuteCheckHelper(checkable);};
+		Utility::QueueAsyncCallback(lambdaExecuteCheckHelper);
 
 		lock.lock();
 	}
