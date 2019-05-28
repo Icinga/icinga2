@@ -36,7 +36,6 @@ Supported commands:
   * pki save-cert (saves another Icinga 2 instance's certificate)
   * pki sign-csr (signs a CSR)
   * pki ticket (generates a ticket)
-  * troubleshoot (collect information for troubleshooting)
   * variable get (gets a variable)
   * variable list (lists all variables)
 
@@ -592,50 +591,6 @@ Global options:
                             The valid value is either debug, notice,
                             information (default), warning, or critical
   -X [ --script-debugger ]  whether to enable the script debugger
-
-Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://icinga.com/>
-```
-
-## CLI command: Troubleshoot <a id="cli-command-troubleshoot"></a>
-
-Collects basic information like version, paths, log files and crash reports for troubleshooting
-purposes and prints them to a file or the console. See [troubleshooting](15-troubleshooting.md#troubleshooting-information-required).
-
-Its output defaults to a file named `troubleshooting-[TIMESTAMP].log` so it won't overwrite older troubleshooting files.
-
-Keep in mind that this tool can not collect information from other icinga2 nodes, you will have to run it on
-each of one of you instances.
-This is only a tool to collect information to help others help you, it will not attempt to fix anything.
-
-```
-# icinga2 troubleshoot --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
-
-Usage:
-  icinga2 troubleshoot [<arguments>]
-
-Collect logs and other relevant information for troubleshooting purposes.
-
-Global options:
-  -h [ --help ]             show this help message
-  -V [ --version ]          show version information
-  --color                   use VT100 color codes even when stdout is not a
-                            terminal
-  -D [ --define ] arg       define a constant
-  -a [ --app ] arg          application library name (default: icinga)
-  -l [ --library ] arg      load a library
-  -I [ --include ] arg      add include search directory
-  -x [ --log-level ] arg    specify the log level for the console log.
-                            The valid value is either debug, notice,
-                            information (default), warning, or critical
-  -X [ --script-debugger ]  whether to enable the script debugger
-
-Command options:
-  -c [ --console ]          print to console instead of file
-  -o [ --output ] arg       path to output file
-  --include-objects         Print the whole objectfile (like `object list`)
-  --include-vars            Print all Variables (like `variable list`)
 
 Report bugs at <https://github.com/Icinga/icinga2>
 Icinga home page: <https://icinga.com/>
