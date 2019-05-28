@@ -57,8 +57,8 @@ std::vector<String> ConfigPackageUtility::GetPackages()
 	if (!Utility::PathExists(packageDir))
 		return packages;
 
-	Utility::Glob(packageDir + "/*", std::bind(&ConfigPackageUtility::CollectDirNames,
-		_1, std::ref(packages)), GlobDirectory);
+	auto lambdaCollectDirNames = [&](const String& path){return ConfigPackageUtility::CollectDirNames(path, packages);};
+	Utility::Glob(packageDir + "/*", lambdaCollectDirNames, GlobDirectory);
 
 	return packages;
 }
@@ -226,7 +226,10 @@ void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, cons
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(Application::GetReloadTimeout());
-	process->Run(std::bind(&TryActivateStageCallback, _1, packageName, stageName, reload));
+	auto lambdaTryActivateStageCallback = [&, packageName, stageName, reload](const ProcessResult& pr){
+		return TryActivateStageCallback(pr, packageName, stageName, reload);
+	};
+	process->Run(lambdaTryActivateStageCallback);
 }
 
 void ConfigPackageUtility::DeleteStage(const String& packageName, const String& stageName)
@@ -245,7 +248,8 @@ void ConfigPackageUtility::DeleteStage(const String& packageName, const String& 
 std::vector<String> ConfigPackageUtility::GetStages(const String& packageName)
 {
 	std::vector<String> stages;
-	Utility::Glob(GetPackageDir() + "/" + packageName + "/*", std::bind(&ConfigPackageUtility::CollectDirNames, _1, std::ref(stages)), GlobDirectory);
+	auto lambdaCollectDirNames = [&](const String& path){return ConfigPackageUtility::CollectDirNames(path, stages);};
+	Utility::Glob(GetPackageDir() + "/" + packageName + "/*", lambdaCollectDirNames, GlobDirectory);
 	return stages;
 }
 
@@ -326,7 +330,8 @@ void ConfigPackageUtility::SetActiveStage(const String& packageName, const Strin
 std::vector<std::pair<String, bool> > ConfigPackageUtility::GetFiles(const String& packageName, const String& stageName)
 {
 	std::vector<std::pair<String, bool> > paths;
-	Utility::GlobRecursive(GetPackageDir() + "/" + packageName + "/" + stageName, "*", std::bind(&ConfigPackageUtility::CollectPaths, _1, std::ref(paths)), GlobDirectory | GlobFile);
+	auto lambdaCollectPaths = [&](const String& path){return ConfigPackageUtility::CollectPaths(path, paths);};
+	Utility::GlobRecursive(GetPackageDir() + "/" + packageName + "/" + stageName, "*", lambdaCollectPaths, GlobDirectory | GlobFile);
 
 	return paths;
 }
