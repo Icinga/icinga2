@@ -422,7 +422,11 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			<< "Sending " << (reminder ? "reminder " : "") << "'" << NotificationTypeToStringInternal(type) << "' notification '"
 			<< notificationName << "' for user '" << userName << "'";
 
-		Utility::QueueAsyncCallback(std::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
+		auto lambdaExecuteNotificationHelper = [&, type, user, cr, force, author, text](){
+		    return Notification::ExecuteNotificationHelper(type, user, cr, force, author, text);
+		};
+		Utility::QueueAsyncCallback(lambdaExecuteNotificationHelper);
+
 
 		/* collect all notified users */
 		allNotifiedUsers.insert(user);
