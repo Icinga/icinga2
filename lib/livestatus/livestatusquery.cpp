@@ -435,7 +435,7 @@ String LivestatusQuery::QuoteStringPython(const String& str) {
 	return "r\"" + result + "\"";
 }
 
-void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
+void LivestatusQuery::ExecuteGetHelper(const Socket::Ptr& socket)
 {
 	Log(LogNotice, "LivestatusQuery")
 		<< "Table: " << m_Table;
@@ -443,7 +443,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 	Table::Ptr table = Table::GetByName(m_Table, m_CompatLogPath, m_LogTimeFrom, m_LogTimeUntil);
 
 	if (!table) {
-		SendResponse(stream, LivestatusErrorNotFound, "Table '" + m_Table + "' does not exist.");
+		SendResponse(socket, LivestatusErrorNotFound, "Table '" + m_Table + "' does not exist.");
 
 		return;
 	}
@@ -567,10 +567,10 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 	EndResultSet(result);
 
-	SendResponse(stream, LivestatusErrorOK, result.str());
+	SendResponse(socket, LivestatusErrorOK, result.str());
 }
 
-void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
+void LivestatusQuery::ExecuteCommandHelper(const Socket::Ptr& socket)
 {
 	{
 		boost::mutex::scoped_lock lock(l_QueryMutex);
@@ -581,32 +581,36 @@ void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 	Log(LogNotice, "LivestatusQuery")
 		<< "Executing command: " << m_Command;
 	ExternalCommandProcessor::Execute(m_Command);
-	SendResponse(stream, LivestatusErrorOK, "");
+	SendResponse(socket, LivestatusErrorOK, "");
 }
 
-void LivestatusQuery::ExecuteErrorHelper(const Stream::Ptr& stream)
+void LivestatusQuery::ExecuteErrorHelper(const Socket::Ptr& socket)
 {
 	Log(LogDebug, "LivestatusQuery")
 		<< "ERROR: Code: '" << m_ErrorCode << "' Message: '" << m_ErrorMessage << "'.";
-	SendResponse(stream, m_ErrorCode, m_ErrorMessage);
+	SendResponse(socket, m_ErrorCode, m_ErrorMessage);
 }
 
-void LivestatusQuery::SendResponse(const Stream::Ptr& stream, int code, const String& data)
+void LivestatusQuery::SendResponse(const Socket::Ptr& socket, int code, const String& data)
 {
+	namespace asio = boost::asio;
+
 	if (m_ResponseHeader == "fixed16")
-		PrintFixed16(stream, code, data);
+		PrintFixed16(socket, code, data);
 
 	if (m_ResponseHeader == "fixed16" || code == LivestatusErrorOK) {
 		try {
-			stream->Write(data.CStr(), data.GetLength());
+			asio::write(*socket, asio::buffer(data.CStr(), data.GetLength()));
 		} catch (const std::exception&) {
 			Log(LogCritical, "LivestatusQuery", "Cannot write query response to socket.");
 		}
 	}
 }
 
-void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const String& data)
+void LivestatusQuery::PrintFixed16(const Socket::Ptr& socket, int code, const String& data)
 {
+	namespace asio = boost::asio;
+
 	ASSERT(code >= 100 && code <= 999);
 
 	String sCode = Convert::ToString(code);
@@ -615,32 +619,32 @@ void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const St
 	String header = sCode + String(16 - 3 - sLength.GetLength() - 1, ' ') + sLength + m_Separators[0];
 
 	try {
-		stream->Write(header.CStr(), header.GetLength());
+		asio::write(*socket, asio::buffer(header.CStr(), header.GetLength()));
 	} catch (const std::exception&) {
 		Log(LogCritical, "LivestatusQuery", "Cannot write to TCP socket.");
 	}
 }
 
-bool LivestatusQuery::Execute(const Stream::Ptr& stream)
+bool LivestatusQuery::Execute(const Socket::Ptr& socket)
 {
 	try {
 		Log(LogNotice, "LivestatusQuery")
 			<< "Executing livestatus query: " << m_Verb;
 
 		if (m_Verb == "GET")
-			ExecuteGetHelper(stream);
+			ExecuteGetHelper(socket);
 		else if (m_Verb == "COMMAND")
-			ExecuteCommandHelper(stream);
+			ExecuteCommandHelper(socket);
 		else if (m_Verb == "ERROR")
-			ExecuteErrorHelper(stream);
+			ExecuteErrorHelper(socket);
 		else
 			BOOST_THROW_EXCEPTION(std::runtime_error("Invalid livestatus query verb."));
 	} catch (const std::exception& ex) {
-		SendResponse(stream, LivestatusErrorQuery, DiagnosticInformation(ex));
+		SendResponse(socket, LivestatusErrorQuery, DiagnosticInformation(ex));
 	}
 
 	if (!m_KeepAlive) {
-		stream->Close();
+		socket->Close();
 		return false;
 	}
 

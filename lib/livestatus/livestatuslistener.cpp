@@ -11,10 +11,14 @@
 #include "base/tcpsocket.hpp"
 #include "base/unixsocket.hpp"
 #include "base/networkstream.hpp"
+#include "base/io-engine.hpp"
 #include "base/application.hpp"
 #include "base/function.hpp"
 #include "base/statsfunction.hpp"
 #include "base/convert.hpp"
+#include <boost/asio/read_until.hpp>
+#include <boost/asio/streambuf.hpp>
+#include <string>
 
 using namespace icinga;
 
@@ -75,7 +79,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 
 		try {
 			socket->Bind(GetSocketPath());
-		} catch (std::exception&) {
+		} catch (std::exception &) {
 			Log(LogCritical, "LivestatusListener")
 				<< "Cannot bind UNIX socket to '" << GetSocketPath() << "'.";
 			return;
@@ -86,7 +90,8 @@ void LivestatusListener::Start(bool runtimeCreated)
 
 		if (chmod(GetSocketPath().CStr(), mode) < 0) {
 			Log(LogCritical, "LivestatusListener")
-				<< "chmod() on unix socket '" << GetSocketPath() << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				<< "chmod() on unix socket '" << GetSocketPath() << "' failed with error code " << errno << ", \""
+				<< Utility::FormatErrorNumber(errno) << "\"";
 			return;
 		}
 
@@ -155,31 +160,34 @@ void LivestatusListener::ServerThreadProc()
 	m_Listener->Close();
 }
 
-void LivestatusListener::ClientHandler(const Socket::Ptr& client)
+void LivestatusListener::ClientHandler(const Socket::Ptr& socket)
 {
+	namespace asio = boost::asio;
+
 	{
 		boost::mutex::scoped_lock lock(l_ComponentMutex);
 		l_ClientsConnected++;
 		l_Connections++;
 	}
 
-	Stream::Ptr stream = new NetworkStream(client);
-
-	StreamReadContext context;
-
 	for (;;) {
-		String line;
-
 		std::vector<String> lines;
 
 		for (;;) {
-			StreamReadStatus srs = stream->ReadLine(&line, context);
+			asio::streambuf buf;
 
-			if (srs == StatusEof)
+			try {
+				asio::read_until(socket, buf, "\r\n");
+			} catch (const boost::system::system_error& ec) {
 				break;
+			}
 
-			if (srs != StatusNewItem)
-				continue;
+			std::istream is(&buf);
+			std::string l;
+
+			std::getline(is, l);
+
+			String line = l;
 
 			if (line.GetLength() > 0)
 				lines.push_back(line);
@@ -191,7 +199,7 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 			break;
 
 		LivestatusQuery::Ptr query = new LivestatusQuery(lines, GetCompatLogPath());
-		if (!query->Execute(stream))
+		if (!query->Execute(socket))
 			break;
 	}
 

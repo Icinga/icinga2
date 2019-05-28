@@ -36,7 +36,7 @@ protected:
 
 private:
 	void ServerThreadProc();
-	void ClientHandler(const Socket::Ptr& client);
+	void ClientHandler(const Socket::Ptr& socket);
 
 	Socket::Ptr m_Listener;
 	std::thread m_Thread;

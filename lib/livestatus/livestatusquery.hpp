@@ -7,7 +7,7 @@
 #include "livestatus/aggregator.hpp"
 #include "base/object.hpp"
 #include "base/array.hpp"
-#include "base/stream.hpp"
+#include "base/socket.hpp"
 #include "base/scriptframe.hpp"
 #include <deque>
 
@@ -33,7 +33,7 @@ public:
 
 	LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path);
 
-	bool Execute(const Stream::Ptr& stream);
+	bool Execute(const Socket::Ptr& socket);
 
 	static int GetExternalCommands();
 
@@ -75,12 +75,12 @@ private:
 	void PrintPythonArray(std::ostream& fp, const Array::Ptr& array) const;
 	static String QuoteStringPython(const String& str);
 
-	void ExecuteGetHelper(const Stream::Ptr& stream);
-	void ExecuteCommandHelper(const Stream::Ptr& stream);
-	void ExecuteErrorHelper(const Stream::Ptr& stream);
+	void ExecuteGetHelper(const Socket::Ptr& socket);
+	void ExecuteCommandHelper(const Socket::Ptr& socket);
+	void ExecuteErrorHelper(const Socket::Ptr& socket);
 
-	void SendResponse(const Stream::Ptr& stream, int code, const String& data);
-	void PrintFixed16(const Stream::Ptr& stream, int code, const String& data);
+	void SendResponse(const Socket::Ptr& socket, int code, const String& data);
+	void PrintFixed16(const Socket::Ptr& socket, int code, const String& data);
 
 	static Filter::Ptr ParseFilter(const String& params, unsigned long& from, unsigned long& until);
 };
