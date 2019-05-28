@@ -31,8 +31,8 @@ void FileLogger::Start(bool runtimeCreated)
 {
 	ReopenLogFile();
 
-	Application::OnReopenLogs.connect(std::bind(&FileLogger::ReopenLogFile, this));
-
+	auto lambdaReopenLogFile = [&](){return FileLogger::ReopenLogFile();};
+	Application::OnReopenLogs.connect(lambdaReopenLogFile);
 	ObjectImpl<FileLogger>::Start(runtimeCreated);
 
 	Log(LogInformation, "FileLogger")
