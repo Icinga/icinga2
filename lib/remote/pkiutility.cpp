@@ -420,8 +420,11 @@ Dictionary::Ptr PkiUtility::GetCertificateRequests()
 
 	String requestDir = ApiListener::GetCertificateRequestsDir();
 
-	if (Utility::PathExists(requestDir))
-		Utility::Glob(requestDir + "/*.json", std::bind(&CollectRequestHandler, requests, _1), GlobFile);
-
+	if (Utility::PathExists(requestDir)) {
+	    auto lambdaCollectRequestHandler = [&, requests](const String& requestFile){
+	    	return CollectRequestHandler(requests, requestFile);
+	    };
+        Utility::Glob(requestDir + "/*.json", lambdaCollectRequestHandler, GlobFile);
+    }
 	return requests;
 }
