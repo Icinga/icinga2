@@ -379,7 +379,8 @@ static void ReloadProcessCallback(const ProcessResult& pr)
 {
 	l_Restarting = false;
 
-	std::thread t(std::bind(&ReloadProcessCallbackInternal, pr));
+	auto lambdaReloadProcessCallbackInternal = [&, pr](){return ReloadProcessCallbackInternal(pr);};
+	std::thread t(lambdaReloadProcessCallbackInternal);
 	t.detach();
 }
 
