@@ -559,7 +559,8 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 		if (srs != StatusNewItem)
 			continue;
 
-		upq.Enqueue(std::bind(&ConfigObject::RestoreObject, message, attributeTypes));
+		auto lambdaRestoreObject = [&, message, attributeTypes](){return ConfigObject::RestoreObject(message, attributeTypes);};
+		upq.Enqueue(lambdaRestoreObject);
 		restored++;
 	}
 
