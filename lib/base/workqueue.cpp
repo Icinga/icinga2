@@ -60,7 +60,8 @@ void WorkQueue::EnqueueUnlocked(boost::mutex::scoped_lock& lock, std::function<v
 			<< "Spawning WorkQueue threads for '" << m_Name << "'";
 
 		for (int i = 0; i < m_ThreadCount; i++) {
-			m_Threads.create_thread(std::bind(&WorkQueue::WorkerThreadProc, this));
+			auto lambdaWorkerThreadProc = [&](){return WorkQueue::WorkerThreadProc();};
+			m_Threads.create_thread(lambdaWorkerThreadProc);
 		}
 
 		m_Spawned = true;
