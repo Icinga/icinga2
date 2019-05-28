@@ -53,9 +53,11 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 
 	int timeout = commandObj->GetTimeout();
 
+	auto lambdaProcessFinishedHandler = [&, checkable, notification, nr](const Value& commandLine, const ProcessResult& pr){
+		return PluginNotificationTask::ProcessFinishedHandler(checkable, notification, nr, commandLine, pr);
+	};
 	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
-		resolvedMacros, useResolvedMacros, timeout,
-		std::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, notification, nr, _1, _2));
+		resolvedMacros, useResolvedMacros, timeout, lambdaProcessFinishedHandler);
 }
 
 void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable,
