@@ -137,25 +137,6 @@ static void SetupSslContext(SSL_CTX *sslContext, const String& pubkey, const Str
  * @param cakey CA certificate chain file.
  * @returns An SSL context.
  */
-std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey)
-{
-	InitializeOpenSSL();
-
-	std::shared_ptr<SSL_CTX> sslContext = std::shared_ptr<SSL_CTX>(SSL_CTX_new(SSLv23_method()), SSL_CTX_free);
-
-	SetupSslContext(sslContext.get(), pubkey, privkey, cakey);
-
-	return sslContext;
-}
-
-/**
- * Initializes an SSL context using the specified certificates.
- *
- * @param pubkey The public key.
- * @param privkey The matching private key.
- * @param cakey CA certificate chain file.
- * @returns An SSL context.
- */
 std::shared_ptr<boost::asio::ssl::context> MakeAsioSslContext(const String& pubkey, const String& privkey, const String& cakey)
 {
 	namespace ssl = boost::asio::ssl;
