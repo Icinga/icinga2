@@ -19,11 +19,20 @@ boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)>
 void Checkable::StaticInitialize()
 {
 	/* fixed downtime start */
-	Downtime::OnDowntimeStarted.connect(std::bind(&Checkable::NotifyFixedDowntimeStart, _1));
+	auto lambdaNotifyFixedDowntimeStart = [&](const Downtime::Ptr& downtime){
+	    return Checkable::NotifyFixedDowntimeStart(downtime);
+	};
+	Downtime::OnDowntimeStarted.connect(lambdaNotifyFixedDowntimeStart);
 	/* flexible downtime start */
-	Downtime::OnDowntimeTriggered.connect(std::bind(&Checkable::NotifyFlexibleDowntimeStart, _1));
+	auto lambdaNotifyFlexibleDowntimeStart = [&](const Downtime::Ptr& downtime){
+	    return Checkable::NotifyFixedDowntimeStart(downtime);
+	};
+	Downtime::OnDowntimeTriggered.connect(lambdaNotifyFlexibleDowntimeStart);
 	/* fixed/flexible downtime end */
-	Downtime::OnDowntimeRemoved.connect(std::bind(&Checkable::NotifyDowntimeEnd, _1));
+	auto lambdaNotifyDowntimeEnd = [&](const Downtime::Ptr& downtime){
+	    return Checkable::NotifyDowntimeEnd(downtime);
+	};
+	Downtime::OnDowntimeRemoved.connect(lambdaNotifyDowntimeEnd);
 }
 
 Checkable::Checkable()
