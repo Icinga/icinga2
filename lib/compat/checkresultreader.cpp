@@ -73,7 +73,8 @@ void CheckResultReader::ReadTimerHandler() const
 {
 	CONTEXT("Processing check result files in '" + GetSpoolDir() + "'");
 
-	Utility::Glob(GetSpoolDir() + "/c??????.ok", std::bind(&CheckResultReader::ProcessCheckResultFile, this, _1), GlobFile);
+	auto lambdaProcessCheckResultFile = [&](const String& path){return CheckResultReader::ProcessCheckResultFile(path);};
+	Utility::Glob(GetSpoolDir() + "/c??????.ok", lambdaProcessCheckResultFile, GlobFile);
 }
 
 void CheckResultReader::ProcessCheckResultFile(const String& path) const
