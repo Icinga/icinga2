@@ -44,7 +44,10 @@ static void IncludeZoneDirRecursive(const String& path, const String& package, b
 	ConfigCompiler::RegisterZoneDir("_etc", path, zoneName);
 
 	std::vector<std::unique_ptr<Expression> > expressions;
-	Utility::GlobRecursive(path, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
+	auto lambdaCollectIncludes = [&, zoneName, package](const String& file){
+		return ConfigCompiler::CollectIncludes(expressions, file, zoneName, package);
+	};
+	Utility::GlobRecursive(path, "*.conf", lambdaCollectIncludes, GlobFile);
 	DictExpression expr(std::move(expressions));
 	if (!ExecuteExpression(&expr))
 		success = false;
@@ -76,7 +79,10 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 	}
 
 	std::vector<std::unique_ptr<Expression> > expressions;
-	Utility::GlobRecursive(zonePath, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
+	auto lambdaCollectIncludes = [&, zoneName, package](const String& file){
+		return ConfigCompiler::CollectIncludes(expressions, file, zoneName, package);
+	};
+	Utility::GlobRecursive(zonePath, "*.conf", lambdaCollectIncludes, GlobFile);
 	DictExpression expr(std::move(expressions));
 	if (!ExecuteExpression(&expr))
 		success = false;
@@ -123,8 +129,10 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	success = true;
 
 	String zonesEtcDir = Configuration::ZonesDir;
-	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
-		Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", std::ref(success)), GlobDirectory);
+	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir)) {
+		auto lambdaIncludeZoneDirRecursive = [&](const String& path){return IncludeZoneDirRecursive(path, "_etc", success);};
+		Utility::Glob(zonesEtcDir + "/*", lambdaIncludeZoneDirRecursive, GlobDirectory);
+	}
 
 	if (!success)
 		return false;
@@ -132,16 +140,20 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	/* Load package config files - they may contain additional zones which
 	 * are authoritative on this node and are checked in HasZoneConfigAuthority(). */
 	String packagesVarDir = Configuration::DataDir + "/api/packages";
-	if (Utility::PathExists(packagesVarDir))
-		Utility::Glob(packagesVarDir + "/*", std::bind(&IncludePackage, _1, std::ref(success)), GlobDirectory);
+	if (Utility::PathExists(packagesVarDir)) {
+		auto lambdaIncludePackage = [&](const String &packagePath){return IncludePackage(packagePath, success);};
+		Utility::Glob(packagesVarDir + "/*", lambdaIncludePackage, GlobDirectory);
+	}
 
 	if (!success)
 		return false;
 
 	/* Load cluster synchronized configuration files */
 	String zonesVarDir = Configuration::DataDir + "/api/zones";
-	if (Utility::PathExists(zonesVarDir))
-		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", std::ref(success)), GlobDirectory);
+	if (Utility::PathExists(zonesVarDir)) {
+		auto lambdaIncludeNonLocalZone = [&](const String& zonePath){return IncludeNonLocalZone(zonePath, "_cluster", success);};
+		Utility::Glob(zonesVarDir + "/*", lambdaIncludeNonLocalZone, GlobDirectory);
+	}
 
 	if (!success)
 		return false;
