@@ -56,7 +56,8 @@ ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
 	ConfigDirInformation config;
 	config.UpdateV1 = new Dictionary();
 	config.UpdateV2 = new Dictionary();
-	Utility::GlobRecursive(dir, "*", std::bind(&ApiListener::ConfigGlobHandler, std::ref(config), dir, _1), GlobFile);
+	auto lambdaConfigGlobHandler = [&, dir](const String& file){return ApiListener::ConfigGlobHandler(config, dir, file);};
+	Utility::GlobRecursive(dir, "*", lambdaConfigGlobHandler, GlobFile);
 	return config;
 }
 
