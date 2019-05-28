@@ -80,8 +80,10 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 		l_Timer->Start();
 	});
 
-	if (!IsPaused())
-		Utility::QueueAsyncCallback(std::bind(&ScheduledDowntime::CreateNextDowntime, this));
+	if (!IsPaused()) {
+	    auto lambdaCreateNextDowntime = [&](){return ScheduledDowntime::CreateNextDowntime();};
+        Utility::QueueAsyncCallback(lambdaCreateNextDowntime);
+    }
 }
 
 void ScheduledDowntime::TimerProc()
