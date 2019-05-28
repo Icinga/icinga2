@@ -66,7 +66,8 @@ void ClusterEvents::EnqueueCheck(const MessageOrigin::Ptr& origin, const Diction
 		return;
 	}
 
-	m_CheckRequestQueue.push_back(std::bind(ClusterEvents::ExecuteCheckFromQueue, origin, params));
+	auto lambdaExecuteCheckFromQueue = [=](){return ClusterEvents::ExecuteCheckFromQueue(origin, params);};
+	m_CheckRequestQueue.push_back(lambdaExecuteCheckFromQueue);
 
 	if (!m_CheckSchedulerRunning) {
 		std::thread t(ClusterEvents::RemoteCheckThreadProc);
