@@ -184,11 +184,17 @@ bool FeatureUtility::GetFeatures(std::vector<String>& features, bool get_disable
 		/* disable = available-enabled */
 		String available_pattern = GetFeaturesAvailablePath() + "/*.conf";
 		std::vector<String> available;
-		Utility::Glob(available_pattern, std::bind(&FeatureUtility::CollectFeatures, _1, std::ref(available)), GlobFile);
+		auto lambdaCollectFeatures = [&](const String& feature_file){
+			return FeatureUtility::CollectFeatures(feature_file, available);
+		};
+		Utility::Glob(available_pattern, lambdaCollectFeatures, GlobFile);
 
 		String enabled_pattern = GetFeaturesEnabledPath() + "/*.conf";
 		std::vector<String> enabled;
-		Utility::Glob(enabled_pattern, std::bind(&FeatureUtility::CollectFeatures, _1, std::ref(enabled)), GlobFile);
+		auto lambdaEnableFeatures = [&](const String& feature_file){
+			return FeatureUtility::CollectFeatures(feature_file, enabled);
+		};
+		Utility::Glob(enabled_pattern, lambdaEnableFeatures, GlobFile);
 
 		std::sort(available.begin(), available.end());
 		std::sort(enabled.begin(), enabled.end());
@@ -201,7 +207,10 @@ bool FeatureUtility::GetFeatures(std::vector<String>& features, bool get_disable
 		/* all enabled features */
 		String enabled_pattern = GetFeaturesEnabledPath() + "/*.conf";
 
-		Utility::Glob(enabled_pattern, std::bind(&FeatureUtility::CollectFeatures, _1, std::ref(features)), GlobFile);
+		auto lambdaCollectFeatures = [&](const String& feature_file){
+			return FeatureUtility::CollectFeatures(feature_file, features);
+		};
+		Utility::Glob(enabled_pattern, lambdaCollectFeatures, GlobFile);
 	}
 
 	return true;
