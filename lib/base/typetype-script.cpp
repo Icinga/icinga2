@@ -21,7 +21,8 @@ static void TypeRegisterAttributeHandler(const String& fieldName, const Function
 	REQUIRE_NOT_NULL(self);
 
 	int fid = self->GetFieldId(fieldName);
-	self->RegisterAttributeHandler(fid, std::bind(&InvokeAttributeHandlerHelper, callback, _1, _2));
+	auto lambdaInvokeAttributeHandlerHelper = [&](const Object::Ptr& object, const Value& cookie){return InvokeAttributeHandlerHelper(callback, object, cookie);};
+	self->RegisterAttributeHandler(fid, lambdaInvokeAttributeHandlerHelper);
 }
 
 Object::Ptr TypeType::GetPrototype()
