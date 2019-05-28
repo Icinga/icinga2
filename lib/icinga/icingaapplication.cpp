@@ -168,7 +168,10 @@ void IcingaApplication::DumpModifiedAttributes()
 	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 
 	ConfigObject::Ptr previousObject;
-	ConfigObject::DumpModifiedAttributes(std::bind(&PersistModAttrHelper, std::ref(fp), std::ref(previousObject), _1, _2, _3));
+	auto lambdaPersistModAttrHelper = [&](const ConfigObject::Ptr& object, const String& attr, const Value& value){
+	    return PersistModAttrHelper(fp, previousObject, object, attr, value);
+	};
+	ConfigObject::DumpModifiedAttributes(lambdaPersistModAttrHelper);
 
 	if (previousObject) {
 		ConfigWriter::EmitRaw(fp, "\tobj.version = ");
