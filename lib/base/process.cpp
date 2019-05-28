@@ -531,7 +531,8 @@ void Process::ThreadInitialize()
 {
 	/* Note to self: Make sure this runs _after_ we've daemonized. */
 	for (int tid = 0; tid < IOTHREADS; tid++) {
-		std::thread t(std::bind(&Process::IOThreadProc, tid));
+	    auto lambdaIOThreadProc = [&, tid](){return Process::IOThreadProc(tid);};
+		std::thread t(lambdaIOThreadProc);
 		t.detach();
 	}
 }
@@ -918,9 +919,10 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 
 		delete [] args;
 
-		if (callback)
-			Utility::QueueAsyncCallback(std::bind(callback, m_Result));
-
+		if (callback) {
+		    auto lambdaCallback = [=](){return callback(m_Result);};
+			Utility::QueueAsyncCallback(lambdaCallback);
+			}
 		return;
 	}
 
@@ -1119,8 +1121,10 @@ bool Process::DoEvents()
 	m_Result.ExitStatus = exitcode;
 	m_Result.Output = output;
 
-	if (m_Callback)
-		Utility::QueueAsyncCallback(std::bind(m_Callback, m_Result));
+	if (m_Callback) {
+		auto lambdam_Callback = [=](){return m_Callback(m_Result);};
+		Utility::QueueAsyncCallback(lambdam_Callback);
+	}
 
 	return false;
 }
