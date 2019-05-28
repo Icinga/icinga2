@@ -689,8 +689,12 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 
 			JsonRpcConnection::SendCertificateRequest(aclient, nullptr, String());
 
-			if (Utility::PathExists(ApiListener::GetCertificateRequestsDir()))
-				Utility::Glob(ApiListener::GetCertificateRequestsDir() + "/*.json", std::bind(&JsonRpcConnection::SendCertificateRequest, aclient, nullptr, _1), GlobFile);
+			if (Utility::PathExists(ApiListener::GetCertificateRequestsDir())) {
+			    auto lambdaSendCertificateRequest = [&, aclient](const String& s){
+			        return JsonRpcConnection::SendCertificateRequest(aclient, nullptr, s);
+			    };
+                Utility::Glob(ApiListener::GetCertificateRequestsDir() + "/*.json", lambdaSendCertificateRequest, GlobFile);
+            }
 		}
 
 		/* Make sure that the config updates are synced
@@ -750,7 +754,8 @@ void ApiListener::ApiTimerHandler()
 	double now = Utility::GetTime();
 
 	std::vector<int> files;
-	Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
+	auto lambdaLogGlobHandler = [&](const String& file){return ApiListener::LogGlobHandler(files, file);};
+	Utility::Glob(GetApiDir() + "log/*", lambdaLogGlobHandler, GlobFile);
 	std::sort(files.begin(), files.end());
 
 	for (int ts : files) {
@@ -917,7 +922,10 @@ void ApiListener::CleanupCertificateRequestsTimerHandler()
 	if (Utility::PathExists(requestsDir)) {
 		/* remove certificate requests that are older than a week */
 		double expiryTime = Utility::GetTime() - 7 * 24 * 60 * 60;
-		Utility::Glob(requestsDir + "/*.json", std::bind(&CleanupCertificateRequest, _1, expiryTime), GlobFile);
+		auto lambdaCleanupCertificateRequest = [&, expiryTime](const String& path){
+		    return CleanupCertificateRequest(path, expiryTime);
+		};
+		Utility::Glob(requestsDir + "/*.json", lambdaCleanupCertificateRequest, GlobFile);
 	}
 }
 
@@ -927,7 +935,10 @@ void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin,
 	if (!IsActive())
 		return;
 
-	m_RelayQueue.Enqueue(std::bind(&ApiListener::SyncRelayMessage, this, origin, secobj, message, log), PriorityNormal, true);
+	auto lambdaSyncRelayMessage = [&, origin, secobj, message, log](){
+	    return ApiListener::SyncRelayMessage(origin, secobj, message, log);
+	};
+	m_RelayQueue.Enqueue(lambdaSyncRelayMessage, PriorityNormal, true);
 }
 
 void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObject::Ptr& secobj)
@@ -1238,7 +1249,8 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		count = 0;
 
 		std::vector<int> files;
-		Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
+		auto lambdaLogGlobHandler = [&](const String& file){return ApiListener::LogGlobHandler(files, file);};
+		Utility::Glob(GetApiDir() + "log/*", lambdaLogGlobHandler, GlobFile);
 		std::sort(files.begin(), files.end());
 
 		std::vector<std::pair<int, String>> allFiles;
