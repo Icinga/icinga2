@@ -89,6 +89,15 @@ This value also is available in the [ido](10-icinga-template-library.md#itl-icin
 
 ### CLI Commands <a id="upgrading-to-2-11-cli-commands"></a>
 
+The `troubleshoot` CLI command has been removed. It was never completed,
+and turned out not to provide required details for GitHub issues anyways.
+
+We didn't ask nor endorse users on GitHub/Discourse in the past 2 years, so
+we're removing it without deprecation.
+
+Issue templates, the troubleshooting docs and support knowledge has
+proven to be better.
+
 #### Permissions <a id="upgrading-to-2-11-cli-commands-permissions"></a>
 
 CLI commands such as `api setup`, `node wizard/setup`, `feature enable/disable/list`
