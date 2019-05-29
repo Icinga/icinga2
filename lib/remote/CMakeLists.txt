@@ -9,7 +9,6 @@ set(remote_SOURCES
   i2-remote.hpp
   actionshandler.cpp actionshandler.hpp
   apiaction.cpp apiaction.hpp
-  apiclient.cpp apiclient.hpp
   apifunction.cpp apifunction.hpp
   apilistener.cpp apilistener.hpp apilistener-ti.hpp apilistener-configsync.cpp apilistener-filesync.cpp
   apilistener-authority.cpp
@@ -26,11 +25,7 @@ set(remote_SOURCES
   eventqueue.cpp eventqueue.hpp
   eventshandler.cpp eventshandler.hpp
   filterutility.cpp filterutility.hpp
-  httpchunkedencoding.cpp httpchunkedencoding.hpp
-  httpclientconnection.cpp httpclientconnection.hpp
   httphandler.cpp httphandler.hpp
-  httprequest.cpp httprequest.hpp
-  httpresponse.cpp httpresponse.hpp
   httpserverconnection.cpp httpserverconnection.hpp
   httputility.cpp httputility.hpp
   infohandler.cpp infohandler.hpp

@@ -3,8 +3,6 @@
 #include "perfdata/elasticsearchwriter.hpp"
 #include "perfdata/elasticsearchwriter-ti.cpp"
 #include "remote/url.hpp"
-#include "remote/httprequest.hpp"
-#include "remote/httpresponse.hpp"
 #include "icinga/compatutility.hpp"
 #include "icinga/service.hpp"
 #include "icinga/checkcommand.hpp"

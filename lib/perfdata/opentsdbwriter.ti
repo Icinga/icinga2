@@ -20,6 +20,11 @@ class OpenTsdbWriter : ConfigObject
 	[config] bool enable_ha {
 		default {{{ return false; }}}
 	};
+
+	[no_user_modify] bool connected;
+	[no_user_modify] bool should_connect {
+		default {{{ return true; }}}
+	};
 };
 
 }

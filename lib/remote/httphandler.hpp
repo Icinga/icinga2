@@ -5,7 +5,6 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/url.hpp"
-#include "remote/httpresponse.hpp"
 #include "remote/httpserverconnection.hpp"
 #include "remote/apiuser.hpp"
 #include "base/registry.hpp"

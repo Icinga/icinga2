@@ -20,7 +20,6 @@
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
-#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 

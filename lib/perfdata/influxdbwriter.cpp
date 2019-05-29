@@ -3,8 +3,6 @@
 #include "perfdata/influxdbwriter.hpp"
 #include "perfdata/influxdbwriter-ti.cpp"
 #include "remote/url.hpp"
-#include "remote/httprequest.hpp"
-#include "remote/httpresponse.hpp"
 #include "icinga/service.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"

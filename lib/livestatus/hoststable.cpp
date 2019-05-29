@@ -18,7 +18,6 @@
 #include "base/json.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
-#include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;

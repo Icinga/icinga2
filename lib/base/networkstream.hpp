@@ -11,7 +11,7 @@ namespace icinga
 {
 
 /**
- * A network stream.
+ * A network stream. DEPRECATED - Use Boost ASIO instead.
  *
  * @ingroup base
  */

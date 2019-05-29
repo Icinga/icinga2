@@ -9,6 +9,11 @@
 namespace icinga
 {
 
+/**
+ * A TCP socket. DEPRECATED - Use Boost ASIO instead.
+ *
+ * @ingroup base
+ */
 class UnixSocket final : public Socket
 {
 public:

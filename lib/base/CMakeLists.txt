@@ -61,7 +61,6 @@ set(base_SOURCES
   serializer.cpp serializer.hpp
   singleton.hpp
   socket.cpp socket.hpp
-  socketevents.cpp socketevents-epoll.cpp socketevents-poll.cpp socketevents.hpp
   stacktrace.cpp stacktrace.hpp
   statsfunction.hpp
   stdiostream.cpp stdiostream.hpp
