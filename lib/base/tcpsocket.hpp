@@ -12,7 +12,7 @@ namespace icinga
 {
 
 /**
- * A TCP socket.
+ * A TCP socket. DEPRECATED - Use Boost ASIO instead.
  *
  * @ingroup base
  */
@@ -27,6 +27,11 @@ public:
 	void Connect(const String& node, const String& service);
 };
 
+/**
+ * TCP Connect based on Boost ASIO.
+ *
+ * @ingroup base
+ */
 template<class Socket>
 void Connect(Socket& socket, const String& node, const String& service)
 {
