@@ -2999,6 +2999,7 @@ Name                    | Description
 ------------------------|---------------------------------------------------------
 iftraffic_address	| **Required.** Specifies the remote host. Defaults to "$address$".
 iftraffic_community	| **Optional.** SNMP community. Defaults to "public'" if omitted.
+iftraffic_version	| **Optional.** SNMP version to use. Defaults to "1" if omitted.
 iftraffic_interface	| **Required.** Queried interface name.
 iftraffic_bandwidth	| **Required.** Interface maximum speed in kilo/mega/giga/bits per second.
 iftraffic_units		| **Optional.** Interface units can be one of these values: `g` (gigabits/s),`m` (megabits/s), `k` (kilobits/s),`b` (bits/s)
