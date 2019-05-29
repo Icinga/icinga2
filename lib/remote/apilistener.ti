@@ -21,7 +21,7 @@ class ApiListener : ConfigObject
 		default {{{ return "ALL:!LOW:!WEAK:!MEDIUM:!EXP:!NULL"; }}}
 	};
 	[config] String tls_protocolmin {
-		default {{{ return "TLSv1"; }}}
+		default {{{ return "TLSv1.2"; }}}
 	};
 
 	[config] String bind_host {

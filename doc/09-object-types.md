@@ -1122,7 +1122,7 @@ Configuration Attributes:
   accept\_commands                      | Boolean               | **Optional.** Accept remote commands. Defaults to `false`.
   max\_anonymous\_clients               | Number                | **Optional.** Limit the number of anonymous client connections (not configured endpoints and signing requests).
   cipher\_list                          | String                | **Optional.** Cipher list that is allowed. For a list of available ciphers run `openssl ciphers`. Defaults to `ALL:!LOW:!WEAK:!MEDIUM:!EXP:!NULL`.
-  tls\_protocolmin                      | String                | **Optional.** Minimum TLS protocol version. Must be one of `TLSv1`, `TLSv1.1` or `TLSv1.2`. Defaults to `TLSv1`.
+  tls\_protocolmin                      | String                | **Optional.** Minimum TLS protocol version. Since v2.11, only `TLSv1.2` is supported. Defaults to `TLSv1.2`.
   tls\_handshake\_timeout               | Number                | **Optional.** TLS Handshake timeout. Defaults to `10s`.
   access\_control\_allow\_origin        | Array                 | **Optional.** Specifies an array of origin URLs that may access the API. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Origin)
   access\_control\_allow\_credentials   | Boolean               | **Deprecated.** Indicates whether or not the actual request can be made using credentials. Defaults to `true`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Credentials)
