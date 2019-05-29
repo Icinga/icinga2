@@ -18,6 +18,8 @@
 #include "base/convert.hpp"
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/streambuf.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/local/stream_protocol.hpp>
 #include <string>
 
 using namespace icinga;
@@ -55,52 +57,114 @@ void LivestatusListener::Start(bool runtimeCreated)
 	Log(LogInformation, "LivestatusListener")
 		<< "'" << GetName() << "' started.";
 
+	auto& io (IoEngine::Get().GetIoService());
+
+	// TCP
 	if (GetSocketType() == "tcp") {
-		TcpSocket::Ptr socket = new TcpSocket();
+		namespace asio = boost::asio;
+		namespace ip = asio::ip;
+		using ip::tcp;
+
+		String host = GetBindHost();
+		String port = GetBindPort();
+
+		std::shared_ptr<tcp::socket> socket(io);
+
+		auto acceptor (std::make_shared<tcp::acceptor>(io));
 
 		try {
-			socket->Bind(GetBindHost(), GetBindPort(), AF_UNSPEC);
-		} catch (std::exception&) {
+			tcp::resolver resolver (io);
+			tcp::resolver::query query (host, port, tcp::resolver::query::passive);
+
+			auto result (resolver.resolve(query));
+			auto current (result.begin());
+
+			for (;;) {
+				try {
+					acceptor->open(current->endpoint().protocol());
+
+					{
+						auto fd (acceptor->native_handle());
+
+						const int optFalse = 0;
+						setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char *>(&optFalse), sizeof(optFalse));
+
+						const int optTrue = 1;
+						setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
+#ifndef _WIN32
+						setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
+#endif /* _WIN32 */
+					}
+
+					acceptor->bind(current->endpoint());
+
+					break;
+				} catch (const std::exception&) {
+					if (++current == result.end()) {
+						throw;
+					}
+
+					if (acceptor->is_open()) {
+						acceptor->close();
+					}
+				}
+			}
+
+		} catch (const boost::system::system_error& ec) {
 			Log(LogCritical, "LivestatusListener")
-				<< "Cannot bind TCP socket on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
+				<< "Cannot bind TCP socket on host '" << host
+				<< "' port '" << port << "': " << ec.what();
 			return;
 		}
 
-		m_Listener = socket;
+		acceptor->listen(INT_MAX);
 
-		m_Thread = std::thread(std::bind(&LivestatusListener::ServerThreadProc, this));
+		auto localEndpoint (acceptor->local_endpoint());
 
 		Log(LogInformation, "LivestatusListener")
-			<< "Created TCP socket listening on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
+			<< "Started new listener on '[" << localEndpoint.address() << "]:" << localEndpoint.port() << "'";
+
+		// Start listener
+		m_Thread = std::thread(std::bind(&LivestatusListener::TcpServerThreadProc, this, acceptor));
 	}
+	// UNIX
 	else if (GetSocketType() == "unix") {
 #ifndef _WIN32
-		UnixSocket::Ptr socket = new UnixSocket();
+		namespace asio = boost::asio;
+		namespace local = asio::local;
+		using local::stream_protocol;
+
+		String socketPath = GetSocketPath();
+
+		Utility::Remove(socketPath); // Cleanup before
+
+		stream_protocol::endpoint endpoint(socketPath);
+		stream_protocol::socket socket(io);
+		stream_protocol::acceptor acceptor(io, endpoint);
 
 		try {
-			socket->Bind(GetSocketPath());
-		} catch (std::exception &) {
+			socket.bind(endpoint);
+		} catch (const boost::system::system_error& ec) {
 			Log(LogCritical, "LivestatusListener")
-				<< "Cannot bind UNIX socket to '" << GetSocketPath() << "'.";
+				<< "Cannot bind UNIX socket to '" << socketPath << "': " << ec.what();
 			return;
 		}
 
 		/* group must be able to write */
 		mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
 
-		if (chmod(GetSocketPath().CStr(), mode) < 0) {
+		if (chmod(socketPath.CStr(), mode) < 0) {
 			Log(LogCritical, "LivestatusListener")
-				<< "chmod() on unix socket '" << GetSocketPath() << "' failed with error code " << errno << ", \""
+				<< "chmod() on unix socket '" << socketPath << "' failed with error code " << errno << ", \""
 				<< Utility::FormatErrorNumber(errno) << "\"";
 			return;
 		}
 
-		m_Listener = socket;
-
-		m_Thread = std::thread(std::bind(&LivestatusListener::ServerThreadProc, this));
+		// Start listener
+		m_Thread = std::thread(std::bind(&LivestatusListener::UnixServerThreadProc, this, acceptor));
 
 		Log(LogInformation, "LivestatusListener")
-			<< "Created UNIX socket in '" << GetSocketPath() << "'.";
+			<< "Created UNIX socket in '" << socketPath << "'.";
 #else
 		/* no UNIX sockets on windows */
 		Log(LogCritical, "LivestatusListener", "Unix sockets are not supported on Windows.");
@@ -115,8 +179,6 @@ void LivestatusListener::Stop(bool runtimeRemoved)
 
 	Log(LogInformation, "LivestatusListener")
 		<< "'" << GetName() << "' stopped.";
-
-	m_Listener->Close();
 
 	if (m_Thread.joinable())
 		m_Thread.join();
@@ -136,8 +198,65 @@ int LivestatusListener::GetConnections()
 	return l_Connections;
 }
 
+void LivestatusListener::TcpServerThreadProc(const std::shared_ptr<boost::asio::ip::tcp::acceptor>& server)
+{
+	namespace asio = boost::asio;
+	namespace ip = asio::ip;
+	using ip::tcp;
+
+	auto& io = server->get_executor().context();
+
+	try {
+		for (;;) {
+			tcp::socket newSocket(io);
+
+			// Throws exception and breaks loop
+			server->async_accept([this](boost::system::error_code ec, tcp::socket&& newSocket) {
+				LivestatusSocket socket(std::shared_ptr<boost::asio::generic::stream_protocol::socket>(newSocket));
+
+				Log(LogNotice, "LivestatusListener", "Client connected");
+				Utility::QueueAsyncCallback(std::bind(&LivestatusListener::ClientHandler, this), LowLatencyScheduler);
+			});
+
+			if (!IsActive())
+				break;
+		}
+
+	} catch (const boost::system::system_error& ec) {
+		Log(LogCritical, "LivestatusListener")
+			<< "Cannot accept new TCP connection: " << ec.what();
+	}
+
+	server->close();
+}
+
+void LivestatusListener::UnixServerThreadProc(const std::shared_ptr<boost::asio::local::stream_protocol::acceptor>& server)
+{
+	namespace asio = boost::asio;
+	namespace local = asio::local;
+	using local::stream_protocol;
+
+	//TODO
+}
+
+/*
 void LivestatusListener::ServerThreadProc()
 {
+	namespace asio = boost::asio;
+	namespace ip = asio::ip;
+	using ip::tcp;
+
+	auto endpoint = m_Listener.local_endpoint();
+	auto& io = m_Listener.get_executor().context();
+
+	if (GetSocketType() == "tcp") {
+
+	}
+	else if (GetSocketType() == "unix") {
+		asio::local::stream_protocol::acceptor acceptor(io, endpoint);
+	}
+
+
 	m_Listener->Listen();
 
 	try {
@@ -157,10 +276,13 @@ void LivestatusListener::ServerThreadProc()
 		Log(LogCritical, "LivestatusListener", "Cannot accept new connection.");
 	}
 
-	m_Listener->Close();
-}
+	m_Listener.shutdown(tcp::socket::shutdown_both);
+	m_Listener.close();
 
-void LivestatusListener::ClientHandler(const Socket::Ptr& socket)
+}
+ */
+
+void LivestatusListener::ClientHandler(const std::shared_ptr<boost::asio::generic::stream_protocol::socket>& socket)
 {
 	namespace asio = boost::asio;
 

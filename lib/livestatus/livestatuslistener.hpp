@@ -7,6 +7,9 @@
 #include "livestatus/livestatuslistener-ti.hpp"
 #include "livestatus/livestatusquery.hpp"
 #include "base/socket.hpp"
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/local/stream_protocol.hpp>
+#include <boost/asio/generic/stream_protocol.hpp>
 #include <thread>
 
 using namespace icinga;
@@ -23,6 +26,8 @@ public:
 	DECLARE_OBJECT(LivestatusListener);
 	DECLARE_OBJECTNAME(LivestatusListener);
 
+	typedef std::shared_ptr<boost::asio::generic::stream_protocol::socket> LivestatusSocket;
+
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	static int GetClientsConnected();
@@ -35,10 +40,11 @@ protected:
 	void Stop(bool runtimeRemoved) override;
 
 private:
-	void ServerThreadProc();
-	void ClientHandler(const Socket::Ptr& socket);
+	void TcpServerThreadProc(const std::shared_ptr<boost::asio::ip::tcp::acceptor>& server);
+	void UnixServerThreadProc(const std::shared_ptr<boost::asio::local::stream_protocol::acceptor>& server);
 
-	Socket::Ptr m_Listener;
+	void ClientHandler(const std::shared_ptr<boost::asio::generic::stream_protocol::socket>& socket);
+
 	std::thread m_Thread;
 };
 

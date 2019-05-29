@@ -9,6 +9,7 @@
 #include "base/array.hpp"
 #include "base/socket.hpp"
 #include "base/scriptframe.hpp"
+#include <boost/asio/generic/stream_protocol.hpp>
 #include <deque>
 
 using namespace icinga;
@@ -31,9 +32,11 @@ class LivestatusQuery final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(LivestatusQuery);
 
+	typedef std::shared_ptr<boost::asio::generic::stream_protocol::socket> LivestatusSocket;
+
 	LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path);
 
-	bool Execute(const Socket::Ptr& socket);
+	bool Execute(const LivestatusSocket& socket);
 
 	static int GetExternalCommands();
 
@@ -75,12 +78,12 @@ private:
 	void PrintPythonArray(std::ostream& fp, const Array::Ptr& array) const;
 	static String QuoteStringPython(const String& str);
 
-	void ExecuteGetHelper(const Socket::Ptr& socket);
-	void ExecuteCommandHelper(const Socket::Ptr& socket);
-	void ExecuteErrorHelper(const Socket::Ptr& socket);
+	void ExecuteGetHelper(const LivestatusSocket& socket);
+	void ExecuteCommandHelper(const LivestatusSocket& socket);
+	void ExecuteErrorHelper(const LivestatusSocket& socket);
 
-	void SendResponse(const Socket::Ptr& socket, int code, const String& data);
-	void PrintFixed16(const Socket::Ptr& socket, int code, const String& data);
+	void SendResponse(const LivestatusSocket& socket, int code, const String& data);
+	void PrintFixed16(const LivestatusSocket& socket, int code, const String& data);
 
 	static Filter::Ptr ParseFilter(const String& params, unsigned long& from, unsigned long& until);
 };

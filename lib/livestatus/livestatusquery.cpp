@@ -435,7 +435,7 @@ String LivestatusQuery::QuoteStringPython(const String& str) {
 	return "r\"" + result + "\"";
 }
 
-void LivestatusQuery::ExecuteGetHelper(const Socket::Ptr& socket)
+void LivestatusQuery::ExecuteGetHelper(const LivestatusSocket& socket)
 {
 	Log(LogNotice, "LivestatusQuery")
 		<< "Table: " << m_Table;
@@ -570,7 +570,7 @@ void LivestatusQuery::ExecuteGetHelper(const Socket::Ptr& socket)
 	SendResponse(socket, LivestatusErrorOK, result.str());
 }
 
-void LivestatusQuery::ExecuteCommandHelper(const Socket::Ptr& socket)
+void LivestatusQuery::ExecuteCommandHelper(const LivestatusSocket& socket)
 {
 	{
 		boost::mutex::scoped_lock lock(l_QueryMutex);
@@ -584,14 +584,14 @@ void LivestatusQuery::ExecuteCommandHelper(const Socket::Ptr& socket)
 	SendResponse(socket, LivestatusErrorOK, "");
 }
 
-void LivestatusQuery::ExecuteErrorHelper(const Socket::Ptr& socket)
+void LivestatusQuery::ExecuteErrorHelper(const LivestatusSocket& socket)
 {
 	Log(LogDebug, "LivestatusQuery")
 		<< "ERROR: Code: '" << m_ErrorCode << "' Message: '" << m_ErrorMessage << "'.";
 	SendResponse(socket, m_ErrorCode, m_ErrorMessage);
 }
 
-void LivestatusQuery::SendResponse(const Socket::Ptr& socket, int code, const String& data)
+void LivestatusQuery::SendResponse(const LivestatusSocket& socket, int code, const String& data)
 {
 	namespace asio = boost::asio;
 
@@ -600,14 +600,14 @@ void LivestatusQuery::SendResponse(const Socket::Ptr& socket, int code, const St
 
 	if (m_ResponseHeader == "fixed16" || code == LivestatusErrorOK) {
 		try {
-			asio::write(*socket, asio::buffer(data.CStr(), data.GetLength()));
+			asio::write(socket, asio::buffer(data.CStr(), data.GetLength()));
 		} catch (const std::exception&) {
 			Log(LogCritical, "LivestatusQuery", "Cannot write query response to socket.");
 		}
 	}
 }
 
-void LivestatusQuery::PrintFixed16(const Socket::Ptr& socket, int code, const String& data)
+void LivestatusQuery::PrintFixed16(const LivestatusSocket& socket, int code, const String& data)
 {
 	namespace asio = boost::asio;
 
@@ -619,13 +619,14 @@ void LivestatusQuery::PrintFixed16(const Socket::Ptr& socket, int code, const St
 	String header = sCode + String(16 - 3 - sLength.GetLength() - 1, ' ') + sLength + m_Separators[0];
 
 	try {
-		asio::write(*socket, asio::buffer(header.CStr(), header.GetLength()));
-	} catch (const std::exception&) {
-		Log(LogCritical, "LivestatusQuery", "Cannot write to TCP socket.");
+		asio::write(socket, asio::buffer(header.CStr(), header.GetLength()));
+	} catch (const boost::system::system_error& ec) {
+		Log(LogCritical, "LivestatusQuery")
+			<< "Cannot write to socket: " << ec.what();
 	}
 }
 
-bool LivestatusQuery::Execute(const Socket::Ptr& socket)
+bool LivestatusQuery::Execute(const LivestatusSocket& socket)
 {
 	try {
 		Log(LogNotice, "LivestatusQuery")
@@ -644,7 +645,7 @@ bool LivestatusQuery::Execute(const Socket::Ptr& socket)
 	}
 
 	if (!m_KeepAlive) {
-		socket->Close();
+		socket->close();
 		return false;
 	}
 
