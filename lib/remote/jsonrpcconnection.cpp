@@ -31,8 +31,8 @@ static RingBuffer l_TaskStats (15 * 60);
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 	const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream),
-	m_Role(role), m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_NextHeartbeat(0), m_IoStrand(stream->get_io_service()),
-	m_OutgoingMessagesQueued(stream->get_io_service()), m_WriterDone(stream->get_io_service()), m_ShuttingDown(false)
+	m_Role(role), m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_NextHeartbeat(0), m_IoStrand(stream->get_executor().context()),
+	m_OutgoingMessagesQueued(stream->get_executor().context()), m_WriterDone(stream->get_executor().context()), m_ShuttingDown(false)
 {
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);
@@ -310,7 +310,7 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 
 void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 {
-	boost::asio::deadline_timer timer (m_Stream->get_io_service());
+	boost::asio::deadline_timer timer (m_Stream->get_executor().context());
 
 	for (;;) {
 		timer.expires_from_now(boost::posix_time::seconds(30));
