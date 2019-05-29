@@ -32,7 +32,7 @@ void Connect(Socket& socket, const String& node, const String& service)
 {
 	using boost::asio::ip::tcp;
 
-	tcp::resolver resolver (socket.get_io_service());
+	tcp::resolver resolver (socket.get_executor().context());
 	tcp::resolver::query query (node, service);
 	auto result (resolver.resolve(query));
 	auto current (result.begin());
@@ -61,7 +61,7 @@ void Connect(Socket& socket, const String& node, const String& service, boost::a
 {
 	using boost::asio::ip::tcp;
 
-	tcp::resolver resolver (socket.get_io_service());
+	tcp::resolver resolver (socket.get_executor().context());
 	tcp::resolver::query query (node, service);
 	auto result (resolver.async_resolve(query, yc));
 	auto current (result.begin());

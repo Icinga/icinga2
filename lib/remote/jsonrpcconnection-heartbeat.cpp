@@ -17,7 +17,7 @@ REGISTER_APIFUNCTION(Heartbeat, event, &JsonRpcConnection::HeartbeatAPIHandler);
 
 void JsonRpcConnection::HandleAndWriteHeartbeats(boost::asio::yield_context yc)
 {
-	boost::asio::deadline_timer timer (m_Stream->get_io_service());
+	boost::asio::deadline_timer timer (m_Stream->get_executor().context());
 
 	for (;;) {
 		timer.expires_from_now(boost::posix_time::seconds(10));

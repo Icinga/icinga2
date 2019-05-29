@@ -31,7 +31,7 @@ using namespace icinga;
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(stream->get_io_service()), m_ShuttingDown(false), m_HasStartedStreaming(false)
+	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(stream->get_executor().context()), m_ShuttingDown(false), m_HasStartedStreaming(false)
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
@@ -529,7 +529,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 {
-	boost::asio::deadline_timer timer (m_Stream->get_io_service());
+	boost::asio::deadline_timer timer (m_Stream->get_executor().context());
 
 	for (;;) {
 		timer.expires_from_now(boost::posix_time::seconds(5));
