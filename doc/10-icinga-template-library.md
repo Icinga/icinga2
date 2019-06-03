@@ -2999,7 +2999,7 @@ Name                    | Description
 ------------------------|---------------------------------------------------------
 iftraffic_address	| **Required.** Specifies the remote host. Defaults to "$address$".
 iftraffic_community	| **Optional.** SNMP community. Defaults to "public'" if omitted.
-iftraffic_version	| **Optional.** SNMP version to use. Defaults to "1" if omitted.
+iftraffic_version	| **Optional.** SNMP version to use. Defaults to "1" if omitted. Requires v1.0.2+.
 iftraffic_interface	| **Required.** Queried interface name.
 iftraffic_bandwidth	| **Required.** Interface maximum speed in kilo/mega/giga/bits per second.
 iftraffic_units		| **Optional.** Interface units can be one of these values: `g` (gigabits/s),`m` (megabits/s), `k` (kilobits/s),`b` (bits/s)
@@ -3009,7 +3009,7 @@ iftraffic_max_counter	| **Optional.** Maximum counter value of net devices in ki
 
 #### iftraffic64 <a id="plugin-contrib-command-iftraffic64"></a>
 
-The [check_iftraffic64](https://exchange.icinga.com/exchange/iftraffic64) plugin
+The [check_iftraffic64](https://exchange.icinga.com/exchange/check_iftraffic64) plugin
 checks the utilization of a given interface name using the SNMP protocol.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
