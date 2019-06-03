@@ -143,7 +143,7 @@ std::shared_ptr<boost::asio::ssl::context> MakeAsioSslContext(const String& pubk
 
 	InitializeOpenSSL();
 
-	auto context (std::make_shared<ssl::context>(ssl::context::sslv23));
+	auto context (std::make_shared<ssl::context>(ssl::context::tlsv12));
 
 	SetupSslContext(context->native_handle(), pubkey, privkey, cakey);
 
@@ -181,24 +181,15 @@ void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>&
  */
 void SetTlsProtocolminToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& tlsProtocolmin)
 {
-	long flags = SSL_CTX_get_options(context->native_handle());
+	// tlsProtocolmin has no effect since we enforce TLS 1.2 since 2.11.
 
-	flags |= SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
-
-#ifdef SSL_TXT_TLSV1_1
-	if (tlsProtocolmin == SSL_TXT_TLSV1_1)
-		flags |= SSL_OP_NO_TLSv1;
-	else
-#endif /* SSL_TXT_TLSV1_1 */
-#ifdef SSL_TXT_TLSV1_2
-	if (tlsProtocolmin == SSL_TXT_TLSV1_2)
-		flags |= SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
-	else
-#endif /* SSL_TXT_TLSV1_2 */
-	if (tlsProtocolmin != SSL_TXT_TLSV1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid TLS protocol version specified."));
-
-	SSL_CTX_set_options(context->native_handle(), flags);
+	context->set_options(
+		boost::asio::ssl::context::default_workarounds |
+		boost::asio::ssl::context::no_sslv2 |
+		boost::asio::ssl::context::no_sslv3 |
+		boost::asio::ssl::context::no_tlsv1 |
+		boost::asio::ssl::context::no_tlsv1_1
+	);
 }
 
 /**

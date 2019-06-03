@@ -53,6 +53,17 @@ and compiled into the binary as header only include. It helps our way to C++11 a
 to fix additional UTF8 issues more easily. Read more about its [design goals](https://github.com/nlohmann/json#design-goals)
 and [benchmarks](https://github.com/miloyip/nativejson-benchmark#parsing-time).
 
+### TLS 1.2 <a id="upgrading-to-2-11-tls-1-2"></a>
+
+v2.11 raises the minimum required TLS version to 1.2.
+This is available since OpenSSL 1.0.1 (EL6 & Debian Jessie).
+
+Older Icinga satellites/agents need to support TLS 1.2 during the TLS
+handshake.
+
+The `api` feature attribute `tls_protocolmin` now only supports the
+value `TLSv1.2` being the default.
+
 ### HA-aware Features <a id="upgrading-to-2-11-ha-aware-features"></a>
 
 v2.11 introduces additional HA functionality similar to the DB IDO feature.

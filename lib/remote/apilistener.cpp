@@ -1631,16 +1631,8 @@ void ApiListener::ValidateTlsProtocolmin(const Lazy<String>& lvalue, const Valid
 {
 	ObjectImpl<ApiListener>::ValidateTlsProtocolmin(lvalue, utils);
 
-	if (lvalue() != SSL_TXT_TLSV1
-#ifdef SSL_TXT_TLSV1_1
-		&& lvalue() != SSL_TXT_TLSV1_1 &&
-		lvalue() != SSL_TXT_TLSV1_2
-#endif /* SSL_TXT_TLSV1_1 */
-		) {
-		String message = "Invalid TLS version. Must be one of '" SSL_TXT_TLSV1 "'";
-#ifdef SSL_TXT_TLSV1_1
-		message += ", '" SSL_TXT_TLSV1_1 "' or '" SSL_TXT_TLSV1_2 "'";
-#endif /* SSL_TXT_TLSV1_1 */
+	if (lvalue() != SSL_TXT_TLSV1_2) {
+		String message = "Invalid TLS version. Must be '" SSL_TXT_TLSV1_2 "'";
 
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_protocolmin" }, message));
 	}
