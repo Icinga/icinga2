@@ -1878,7 +1878,7 @@ Adding a number to a DateTime object yields a new DateTime object that is in the
 Example:
 
 ```
-var dt = DateTime() + 24 * 60 60 /* Current time plus 24 hours */
+var dt = DateTime() + 24 * 60 * 60 /* Current time plus 24 hours */
 ```
 
 ### DateTime#format <a id="datetime-format"></a>
