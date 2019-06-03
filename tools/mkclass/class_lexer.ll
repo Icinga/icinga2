@@ -1,22 +1,5 @@
 %{
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "classcompiler.hpp"
 
@@ -135,6 +118,7 @@ class				{ return T_CLASS; }
 namespace			{ return T_NAMESPACE; }
 code				{ return T_CODE; }
 load_after			{ return T_LOAD_AFTER; }
+activation_priority	{ return T_ACTIVATION_PRIORITY; }
 library				{ return T_LIBRARY; }
 abstract			{ yylval->num = TAAbstract; return T_CLASS_ATTRIBUTE; }
 vararg_constructor		{ yylval->num = TAVarArgConstructor; return T_CLASS_ATTRIBUTE; }
@@ -164,6 +148,7 @@ navigate			{ yylval->num = FTNavigate; return T_FIELD_ACCESSOR_TYPE; }
 \"[^\"]+\"			{ yylval->text = strdup(yytext + 1); yylval->text[strlen(yylval->text) - 1] = '\0'; return T_STRING; }
 \<[^ \>]*\>			{ yylval->text = strdup(yytext + 1); yylval->text[strlen(yylval->text) - 1] = '\0'; return T_ANGLE_STRING; }
 [a-zA-Z_][:a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
+-?[0-9]+(\.[0-9]+)?		{ yylval->num = strtod(yytext, NULL); return T_NUMBER; }
 
 .				return yytext[0];
 

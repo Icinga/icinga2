@@ -1,24 +1,8 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/timer.hpp"
 #include "base/debug.hpp"
+#include "base/logger.hpp"
 #include "base/utility.hpp"
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -37,17 +21,17 @@ public:
 		: m_Timer(timer)
 	{ }
 
-	inline Timer *GetObject(void) const
+	inline Timer *GetObject() const
 	{
 		return m_Timer;
 	}
 
-	inline double GetNextUnlocked(void) const
+	inline double GetNextUnlocked() const
 	{
 		return m_Timer->m_Next;
 	}
 
-	operator Timer *(void) const
+	operator Timer *() const
 	{
 		return m_Timer;
 	}
@@ -71,42 +55,62 @@ static boost::condition_variable l_TimerCV;
 static std::thread l_TimerThread;
 static bool l_StopTimerThread;
 static TimerSet l_Timers;
-static int l_AliveTimers;
-
-/**
- * Constructor for the Timer class.
- */
-Timer::Timer(void)
-	: m_Interval(0), m_Next(0), m_Started(false), m_Running(false)
-{ }
+static int l_AliveTimers = 0;
 
 /**
  * Destructor for the Timer class.
  */
-Timer::~Timer(void)
+Timer::~Timer()
 {
 	Stop(true);
 }
 
-void Timer::Uninitialize(void)
+void Timer::Initialize()
 {
-       {
-	       boost::mutex::scoped_lock lock(l_TimerMutex);
-	       l_StopTimerThread = true;
-	       l_TimerCV.notify_all();
-       }
+	boost::mutex::scoped_lock lock(l_TimerMutex);
 
-       if (l_TimerThread.joinable())
-	       l_TimerThread.join();
+	if (l_AliveTimers > 0) {
+		InitializeThread();
+	}
+}
+
+void Timer::Uninitialize()
+{
+	boost::mutex::scoped_lock lock(l_TimerMutex);
+
+	if (l_AliveTimers > 0) {
+		UninitializeThread();
+	}
+}
+
+void Timer::InitializeThread()
+{
+	l_StopTimerThread = false;
+	l_TimerThread = std::thread(&Timer::TimerThreadProc);
+}
+
+void Timer::UninitializeThread()
+{
+	{
+		l_StopTimerThread = true;
+		l_TimerCV.notify_all();
+	}
+
+	l_TimerMutex.unlock();
+
+	if (l_TimerThread.joinable())
+		l_TimerThread.join();
+
+	l_TimerMutex.lock();
 }
 
 /**
  * Calls this timer.
  */
-void Timer::Call(void)
+void Timer::Call()
 {
 	try {
-		OnTimerExpired(Timer::Ptr(this));
+		OnTimerExpired(this);
 	} catch (...) {
 		InternalReschedule(true);
 
@@ -132,7 +136,7 @@ void Timer::SetInterval(double interval)
  *
  * @returns The interval.
  */
-double Timer::GetInterval(void) const
+double Timer::GetInterval() const
 {
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 	return m_Interval;
@@ -141,15 +145,14 @@ double Timer::GetInterval(void) const
 /**
  * Registers the timer and starts processing events for it.
  */
-void Timer::Start(void)
+void Timer::Start()
 {
 	{
 		boost::mutex::scoped_lock lock(l_TimerMutex);
 		m_Started = true;
 
-		if (l_AliveTimers++ == 0) {
-			l_StopTimerThread = false;
-			l_TimerThread = std::thread(&Timer::TimerThreadProc);
+		if (++l_AliveTimers == 1) {
+			InitializeThread();
 		}
 	}
 
@@ -167,15 +170,7 @@ void Timer::Stop(bool wait)
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 
 	if (m_Started && --l_AliveTimers == 0) {
-		l_StopTimerThread = true;
-		l_TimerCV.notify_all();
-
-		lock.unlock();
-
-		if (l_TimerThread.joinable() && l_TimerThread.get_id() != std::this_thread::get_id())
-			l_TimerThread.join();
-
-		lock.lock();
+		UninitializeThread();
 	}
 
 	m_Started = false;
@@ -198,7 +193,7 @@ void Timer::Reschedule(double next)
  *
  * @param completed Whether the timer has just completed its callback.
  * @param next The time when this timer should be called again. Use -1 to let
- * 	       the timer figure out a suitable time based on the interval.
+ *        the timer figure out a suitable time based on the interval.
  */
 void Timer::InternalReschedule(bool completed, double next)
 {
@@ -232,7 +227,7 @@ void Timer::InternalReschedule(bool completed, double next)
  *
  * @returns The timestamp.
  */
-double Timer::GetNext(void) const
+double Timer::GetNext() const
 {
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 	return m_Next;
@@ -257,7 +252,7 @@ void Timer::AdjustTimers(double adjustment)
 
 	for (Timer *timer : idx) {
 		if (std::fabs(now - (timer->m_Next + adjustment)) <
-		    std::fabs(now - timer->m_Next)) {
+			std::fabs(now - timer->m_Next)) {
 			timer->m_Next += adjustment;
 			timers.push_back(timer);
 		}
@@ -275,8 +270,10 @@ void Timer::AdjustTimers(double adjustment)
 /**
  * Worker thread proc for Timer objects.
  */
-void Timer::TimerThreadProc(void)
+void Timer::TimerThreadProc()
 {
+	Log(LogDebug, "Timer", "TimerThreadProc started.");
+
 	Utility::SetThreadName("Timer Thread");
 
 	for (;;) {
@@ -299,12 +296,10 @@ void Timer::TimerThreadProc(void)
 
 		if (wait > 0.01) {
 			/* Wait for the next timer. */
-			l_TimerCV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
+			l_TimerCV.timed_wait(lock, boost::posix_time::milliseconds(long(wait * 1000)));
 
 			continue;
 		}
-
-		Timer::Ptr ptimer = timer;
 
 		/* Remove the timer from the list so it doesn't get called again
 		 * until the current call is completed. */
@@ -315,6 +310,6 @@ void Timer::TimerThreadProc(void)
 		lock.unlock();
 
 		/* Asynchronously call the timer. */
-		Utility::QueueAsyncCallback(std::bind(&Timer::Call, ptimer));
+		Utility::QueueAsyncCallback([timer]() { timer->Call(); });
 	}
 }

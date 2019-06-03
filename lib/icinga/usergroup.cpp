@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/usergroup.hpp"
-#include "icinga/usergroup.tcpp"
+#include "icinga/usergroup-ti.cpp"
 #include "config/objectrule.hpp"
 #include "config/configitem.hpp"
 #include "base/configtype.hpp"
@@ -37,11 +20,11 @@ INITIALIZE_ONCE([]() {
 
 bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr& group)
 {
-	String group_name = group->GetName();
+	String groupName = group->GetName();
 
-	CONTEXT("Evaluating rule for group '" + group_name + "'");
+	CONTEXT("Evaluating rule for group '" + groupName + "'");
 
-	ScriptFrame frame;
+	ScriptFrame frame(true);
 	if (group->GetScope())
 		group->GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("user", user);
@@ -50,10 +33,12 @@ bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr&
 		return false;
 
 	Log(LogDebug, "UserGroup")
-	    << "Assigning membership for group '" << group_name << "' to user '" << user->GetName() << "'";
+		<< "Assigning membership for group '" << groupName << "' to user '" << user->GetName() << "'";
 
 	Array::Ptr groups = user->GetGroups();
-	groups->Add(group_name);
+
+	if (groups && !groups->Contains(groupName))
+		groups->Add(groupName);
 
 	return true;
 }
@@ -71,7 +56,7 @@ void UserGroup::EvaluateObjectRules(const User::Ptr& user)
 	}
 }
 
-std::set<User::Ptr> UserGroup::GetMembers(void) const
+std::set<User::Ptr> UserGroup::GetMembers() const
 {
 	boost::mutex::scoped_lock lock(m_UserGroupMutex);
 	return m_Members;
@@ -95,8 +80,8 @@ bool UserGroup::ResolveGroupMembership(const User::Ptr& user, bool add, int rsta
 
 	if (add && rstack > 20) {
 		Log(LogWarning, "UserGroup")
-		    << "Too many nested groups for group '" << GetName() << "': User '"
-		    << user->GetName() << "' membership assignment failed.";
+			<< "Too many nested groups for group '" << GetName() << "': User '"
+			<< user->GetName() << "' membership assignment failed.";
 
 		return false;
 	}

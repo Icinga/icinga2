@@ -939,7 +939,7 @@ In the example above the notification template `mail-host-notification`
 contains all relevant notification settings.
 The apply rule is applied on all host objects where the `host.address` is defined.
 
-If the host object as a specific custom attributed set, its value is inherited
+If the host object has a specific custom attribute set, its value is inherited
 into the local notification object scope, e.g. `host.vars.notification_interval`,
 `host.vars.notification_period` and `host.vars.notification_type`.
 This overwrites attributes already specified in the imported `mail-host-notification`
@@ -984,7 +984,7 @@ types. This could look like the following example:
 ```
 object Host "router-v6" {
   check_command = "hostalive"
-  address6 = "::1"
+  address6 = "2001:db8:1234::42"
 
   vars.oids["if01"] = "1.1.1.1.1"
   vars.oids["temp"] = "1.1.1.1.2"
@@ -1082,7 +1082,7 @@ object Host "cisco-catalyst-6509-34" {
      iftraffic_units = "g"
      //iftraffic_community = IftrafficSnmpCommunity
      iftraffic_bandwidth = 1
-     vlan = "renote"
+     vlan = "remote"
      qos = "enabled"
   }
   vars.interfaces["MgmtInterface1"] = {
@@ -1245,7 +1245,7 @@ Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/4' of type 'Service':
     * iftraffic_units = "g"
       % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 52:3-52:57
     * qos = "enabled"
-    * vlan = "renote"
+    * vlan = "remote"
 
 Object 'cisco-catalyst-6509-34!if-MgmtInterface1' of type 'Service':
 ...
@@ -1553,6 +1553,14 @@ send notifications to all group members.
 > Only users who have been notified of a problem before  (`Warning`, `Critical`, `Unknown`
 states for services, `Down` for hosts) will receive `Recovery` notifications.
 
+Icinga 2 v2.10 allows you to configure `Acknowledgement` and/or `Recovery`
+without a `Problem` notification. These notifications will be sent without
+any problem notifications beforehand, and can be used for e.g. ticket systems.
+
+```
+  types = [ Acknowledgement, Recovery ]
+```
+
 ### Notifications: Users from Host/Service <a id="alert-notifications-users-host-service"></a>
 
 A common pattern is to store the users and user groups
@@ -1675,7 +1683,7 @@ apply Notification "mail-host-notification" to Service {
 
   if (service.vars.notification.mail.groups) {
     user_groups = service.vars.notification.mail.groups
-  } else {host.vars.notification.mail.groups) {
+  } else (host.vars.notification.mail.groups) {
     user_groups = host.vars.notification.mail.groups
   }
 
@@ -2161,17 +2169,14 @@ References: [abbreviated lambda syntax](17-language-reference.md#nullary-lambdas
 #### Environment Variables <a id="command-environment-variables"></a>
 
 The `env` command object attribute specifies a list of environment variables with values calculated
-from either runtime macros or custom attributes which should be exported as environment variables
-prior to executing the command.
+from custom attributes which should be exported as environment variables prior to executing the command.
 
 This is useful for example for hiding sensitive information on the command line output
 when passing credentials to database checks:
 
 ```
-object CheckCommand "mysql-health" {
-  command = [
-    PluginDir + "/check_mysql"
-  ]
+object CheckCommand "mysql" {
+  command = [ PluginDir + "/check_mysql" ]
 
   arguments = {
     "-H" = "$mysql_address$"
@@ -2188,6 +2193,47 @@ object CheckCommand "mysql-health" {
 }
 ```
 
+The executed command line visible with `ps` or `top` looks like this and hides
+the database credentials in the user's environment.
+
+```
+/usr/lib/nagios/plugins/check_mysql -H 192.168.56.101 -d icinga
+```
+
+> **Note**
+>
+> If the CheckCommand also supports setting the parameter in the command line,
+> ensure to use a different name for the custom attribute. Otherwise Icinga 2
+> adds the command line parameter.
+
+If a specific CheckCommand object provided with the [Icinga Template Library](10-icinga-template-library.md#icinga-template-library)
+needs additional environment variables, you can import it into a new custom
+CheckCommand object and add additional `env` keys. Example for the [mysql_health](10-icinga-template-library.md#plugin-contrib-command-mysql_health)
+CheckCommand:
+
+```
+object CheckCommand "mysql_health_env" {
+  import "mysql_health"
+
+  // https://labs.consol.de/nagios/check_mysql_health/
+  env.NAGIOS__SERVICEMYSQL_USER = "$mysql_health_env_username$"
+  env.NAGIOS__SERVICEMYSQL_PASS = "$mysql_health_env_password$"
+}
+```
+
+Specify the custom attributes `mysql_health_env_username` and `mysql_health_env_password`
+in the service object then.
+
+> **Note**
+>
+> Keep in mind that the values are still visible with the [debug console](11-cli-commands.md#cli-command-console)
+> and the inspect mode in the [Icinga Director](https://icinga.com/docs/director/latest/).
+
+You can also set global environment variables in the application's
+sysconfig configuration file, e.g. `HOME` or specific library paths
+for Oracle. Beware that these environment variables can be used
+by any CheckCommand object and executed plugin and can leak sensitive
+information.
 
 ### Notification Commands <a id="notification-commands"></a>
 
@@ -2227,54 +2273,13 @@ defaults can always be overwritten locally.
 >
 > This example requires the `mail` binary installed on the Icinga 2
 > master.
-
-#### Notification Commands in 2.7 <a id="notification-command-2-7"></a>
-
-Icinga 2 v2.7.0 introduced new notification scripts which support both
-environment variables and command line parameters.
-
-Therefore the `NotificationCommand` objects inside the [commands.conf](04-configuring-icinga-2.md#commands-conf)
-and `Notification` apply rules inside the [notifications.conf](04-configuring-icinga-2.md#notifications-conf)
-configuration files have been updated. Your configuration needs to be
-updated next to the notification scripts themselves.
-
-> **Note**
 >
-> Several parameters have been changed. Please review the notification
-> script parameters and configuration objects before updating your production
-> environment.
-
-The safest way is to incorporate the configuration updates from
-v2.7.0 inside the [commands.conf](04-configuring-icinga-2.md#commands-conf) and [notifications.conf](04-configuring-icinga-2.md#notifications-conf)
-configuration files.
-
-A quick-fix is shown below:
-
-```
-@@ -5,7 +5,8 @@ object NotificationCommand "mail-host-notification" {
-
-   env = {
-     NOTIFICATIONTYPE = "$notification.type$"
--    HOSTALIAS = "$host.display_name$"
-+    HOSTNAME = "$host.name$"
-+    HOSTDISPLAYNAME = "$host.display_name$"
-     HOSTADDRESS = "$address$"
-     HOSTSTATE = "$host.state$"
-     LONGDATETIME = "$icinga.long_date_time$"
-@@ -22,8 +23,9 @@ object NotificationCommand "mail-service-notification" {
-
-   env = {
-     NOTIFICATIONTYPE = "$notification.type$"
--    SERVICEDESC = "$service.name$"
--    HOSTALIAS = "$host.display_name$"
-+    SERVICENAME = "$service.name$"
-+    HOSTNAME = "$host.name$"
-+    HOSTDISPLAYNAME = "$host.display_name$"
-     HOSTADDRESS = "$address$"
-     SERVICESTATE = "$service.state$"
-     LONGDATETIME = "$icinga.long_date_time$"
-```
-
+> Depending on the distribution, you need a local mail transfer
+> agent (MTA) such as Postfix, Exim or Sendmail in order
+> to send emails.
+>
+> These tools virtually provide the `mail` binary executed
+> by the notification scripts below.
 
 #### mail-host-notification <a id="mail-host-notification"></a>
 
@@ -2378,14 +2383,19 @@ states = [ OK, Critical, Unknown ]
 > If the parent service object changes into the `Warning` state, this
 > dependency will fail and render all child objects (hosts or services) unreachable.
 
-You can determine the child's reachability by querying the `is_reachable` attribute
-in for example [DB IDO](24-appendix.md#schema-db-ido-extensions).
+You can determine the child's reachability by querying the `last_reachable` attribute
+via the [REST API](12-icinga2-api.md#icinga2-api).
+
+> **Note**
+>
+> Reachability calculation depends on fresh and processed check results. If dependencies
+> disable checks for child objects, this won't work reliably.
 
 ### Implicit Dependencies for Services on Host <a id="dependencies-implicit-host-service"></a>
 
 Icinga 2 automatically adds an implicit dependency for services on their host. That way
 service notifications are suppressed when a host is `DOWN` or `UNREACHABLE`. This dependency
-does not overwrite other dependencies and implicitely sets `disable_notifications = true` and
+does not overwrite other dependencies and implicitly sets `disable_notifications = true` and
 `states = [ Up ]` for all service objects.
 
 Service checks are still executed. If you want to prevent them from happening, you can

@@ -18,8 +18,8 @@ findings and details please.
 	* `icinga2 --version`
 	* `icinga2 feature list`
 	* `icinga2 daemon -C`
-	* [Icinga Web 2](https://www.icinga.com/products/icinga-web-2/) version (screenshot from System - About)
-	* [Icinga Web 2 modules](https://www.icinga.com/products/icinga-web-2-modules/) e.g. the Icinga Director (optional)
+	* [Icinga Web 2](https://icinga.com/products/icinga-web-2/) version (screenshot from System - About)
+	* [Icinga Web 2 modules](https://icinga.com/products/icinga-web-2-modules/) e.g. the Icinga Director (optional)
 * Configuration insights:
 	* Provide complete configuration snippets explaining your problem in detail
 	* Your [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) file
@@ -237,9 +237,9 @@ include <itl>
 include <plugins>
 ```
 
-in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered configuration files and will be overridden
-on upgrade, so please send modifications as proposed patches upstream. The default include path is set to
-`LocalStateDir + "/share/icinga2/includes"`.
+in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered
+configuration files and will be overridden on upgrade, so please send modifications as proposed patches upstream.
+The default include path is set to `/usr/share/icinga2/includes` with the constant `IncludeConfDir`.
 
 You should add your own command definitions to a new file in `conf.d/` called `commands.conf`
 or similar.
@@ -296,7 +296,7 @@ on the name:
 
 ```
 $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/services' \
--d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^http" }, "attrs": [ "__name", "last_check_result" ] }' | python -m json.tool
+-d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^http" }, "attrs": [ "__name", "last_check_result" ], "pretty": true }'
 {
     "results": [
         {
@@ -388,7 +388,7 @@ Example for retrieving the check source from all `disk` services using a
 
 ```
 $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/services' \
--d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^disk" }, "attrs": [ "__name", "last_check_result" ] }' | python -m json.tool
+-d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^disk" }, "attrs": [ "__name", "last_check_result" ], "pretty": true }'
 {
     "results": [
         {
@@ -498,7 +498,7 @@ Solution:
 
 ### Check Fork Errors <a id="check-fork-errors"></a>
 
-Newer versions of Systemd on Linux limit spawned processes for
+Newer versions of systemd on Linux limit spawned processes for
 services.
 
 * v227 introduces the `TasksMax` setting to units which allows to specify the spawned process limit.
@@ -506,7 +506,7 @@ services.
 * v231 changes the default value to 15%
 
 This can cause problems with Icinga 2 in large environments with many
-commands executed in parallel starting with Systemd v228. Some distributions
+commands executed in parallel starting with systemd v228. Some distributions
 also may have changed the defaults.
 
 The error message could look like this:
@@ -534,20 +534,52 @@ An example is available inside the GitHub repository in [etc/initsystem](https:/
 External Resources:
 
 * [Fork limit for cgroups](https://lwn.net/Articles/663873/)
-* [Systemd changelog](https://github.com/systemd/systemd/blob/master/NEWS)
+* [systemd changelog](https://github.com/systemd/systemd/blob/master/NEWS)
 * [Icinga 2 upstream issue](https://github.com/Icinga/icinga2/issues/5611)
-* [Systemd upstream discussion](https://github.com/systemd/systemd/issues/3211)
+* [systemd upstream discussion](https://github.com/systemd/systemd/issues/3211)
+
+### Systemd Watchdog <a id="check-systemd-watchdog"></a>
+
+Usually Icinga 2 is a mission critical part of infrastructure and should be
+online at all times. In case of a recoverable crash (e.g. OOM) you may want to
+restart Icinga 2 automatically. With systemd it is as easy as overriding some
+settings of the Icinga 2 systemd service by creating
+`/etc/systemd/system/icinga2.service.d/override.conf` with the following
+content:
+
+```
+[Service]
+Restart=always
+RestartSec=1
+StartLimitInterval=10
+StartLimitBurst=3
+```
+
+Using the watchdog can also help with monitoring Icinga 2, to activate and use it add the following to the override:
+
+```
+WatchdogSec=30s
+```
+
+This way systemd will kill Icinga 2 if does not notify for over 30 seconds, a timout of less than 10 seconds is not
+recommended. When the watchdog is activated, `Restart=` can be set to `watchdog` to restart Icinga 2 in the case of a
+watchdog timeout.
+
+Run `systemctl daemon-reload && systemctl restart icinga2` to apply the changes.
+Now systemd will always try to restart Icinga 2 (except if you run
+`systemctl stop icinga2`). After three failures in ten seconds it will stop
+trying because you probably have a problem that requires manual intervention.
 
 ### Late Check Results <a id="late-check-results"></a>
 
-[Icinga Web 2](https://www.icinga.com/products/icinga-web-2/) provides
+[Icinga Web 2](https://icinga.com/products/icinga-web-2/) provides
 a dashboard overview for `overdue checks`.
 
 The REST API provides the [status](12-icinga2-api.md#icinga2-api-status) URL endpoint with some generic metrics
 on Icinga and its features.
 
 ```
-# curl -k -s -u root:icinga 'https://localhost:5665/v1/status' | python -m json.tool | less
+# curl -k -s -u root:icinga 'https://localhost:5665/v1/status?pretty=1' | less
 ```
 
 You can also calculate late check results via the REST API:
@@ -556,7 +588,7 @@ You can also calculate late check results via the REST API:
 * Compare the timestamp with the current time and add `check_interval` multiple times (change it to see which results are really late, like five times check_interval)
 
 You can use the [icinga2 console](11-cli-commands.md#cli-command-console) to connect to the instance, fetch all data
-and calculate the differences. More infos can be found in [this blogpost](https://www.icinga.com/2016/08/11/analyse-icinga-2-problems-using-the-console-api/).
+and calculate the differences. More infos can be found in [this blogpost](https://icinga.com/2016/08/11/analyse-icinga-2-problems-using-the-console-api/).
 
 ```
 # ICINGA2_API_USERNAME=root ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://localhost:5665/'
@@ -702,6 +734,127 @@ Look into the log and check whether the feature logs anything specific for this 
 grep GraphiteWriter /var/log/icinga2/icinga2.log
 ```
 
+## REST API Troubleshooting <a id="troubleshooting-api"></a>
+
+In order to analyse errors on API requests, you can explicitly enable the [verbose parameter](12-icinga2-api.md#icinga2-api-parameters-global).
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE 'https://localhost:5665/v1/objects/hosts/example-cmdb?pretty=1&verbose=1'
+{
+    "diagnostic_information": "Error: Object does not exist.\n\n ....",
+    "error": 404.0,
+    "status": "No objects found."
+}
+```
+
+### REST API Troubleshooting: No Objects Found <a id="troubleshooting-api-no-objects-found"></a>
+
+Please note that the `404` status with no objects being found can also originate
+from missing or too strict object permissions for the authenticated user.
+
+This is a security feature to disable object name guessing. If this would not be the
+case, restricted users would be able to get a list of names of your objects just by
+trying every character combination.
+
+In order to analyse and fix the problem, please check the following:
+
+- use an administrative account with full permissions to check whether the objects are actually there.
+- verify the permissions on the affected ApiUser object and fix them.
+
+### Missing Runtime Objects (Hosts, Downtimes, etc.) <a id="troubleshooting-api-missing-runtime-objects"></a>
+
+Runtime objects consume the internal config packages shared with
+the REST API config packages. Each host, downtime, comment, service, etc. created
+via the REST API is stored in the `_api` package.
+
+This includes downtimes and comments, which where sometimes stored in the wrong
+directory path, because the active-stage file was empty/truncated/unreadable at
+this point.
+
+Wrong:
+
+```
+/var/lib/icinga2/api/packages/_api//conf.d/downtimes/1234-5678-9012-3456.conf
+```
+
+Correct:
+
+```
+/var/lib/icinga2/api/packages/_api/dbe0bef8-c72c-4cc9-9779-da7c4527c5b2/conf.d/downtimes/1234-5678-9012-3456.conf
+```
+
+At creation time, the object lives in memory but its storage is broken. Upon restart,
+it is missing and e.g. a missing downtime will re-enable unwanted notifications.
+
+`abcd-ef12-3456-7890` is the active stage name which wasn't correctly
+read by the Icinga daemon. This information is stored in `/var/lib/icinga2/api/packages/_api/active-stage`.
+
+2.11 now limits the direct active-stage file access (this is hidden from the user),
+and caches active stages for packages in-memory.
+
+It also tries to repair the broken package, and logs a new message:
+
+```
+systemctl restart icinga2
+
+tail -f /var/log/icinga2/icinga2.log
+
+[2019-05-10 12:27:15 +0200] information/ConfigObjectUtility: Repairing config package '_api' with stage 'dbe0bef8-c72c-4cc9-9779-da7c4527c5b2'.
+```
+
+If this does not happen, you can manually fix the broken config package, and mark a deployed stage as active
+again, carefully do the following steps with creating a backup before:
+
+Navigate into the API package prefix.
+
+```
+cd /var/lib/icinga2/api/packages
+```
+
+Change into the broken package directory and list all directories and files
+ordered by latest changes.
+
+```
+cd _api
+ls -lahtr
+
+drwx------  4 michi  wheel   128B Mar 27 14:39 ..
+-rw-r--r--  1 michi  wheel    25B Mar 27 14:39 include.conf
+-rw-r--r--  1 michi  wheel   405B Mar 27 14:39 active.conf
+drwx------  7 michi  wheel   224B Mar 27 15:01 dbe0bef8-c72c-4cc9-9779-da7c4527c5b2
+drwx------  5 michi  wheel   160B Apr 26 12:47 .
+```
+
+As you can see, the `active-stage` file is missing. When it is there, verify that its content
+is set to the stage directory as follows.
+
+If you have more than one stage directory here, pick the latest modified
+directory. Copy the directory name `abcd-ef12-3456-7890` and
+add it into a new file `active-stage`. This can be done like this:
+
+```
+echo "dbe0bef8-c72c-4cc9-9779-da7c4527c5b2" > active-stage
+```
+
+`active.conf` needs to have the correct active stage too, add it again
+like this. Note: This is deep down in the code, use with care!
+
+```
+sed -i 's/ActiveStages\["_api"\] = .*/ActiveStages\["_api"\] = "dbe0bef8-c72c-4cc9-9779-da7c4527c5b2"/g' /var/lib/icinga2/api/packages/_api/active.conf
+```
+
+Restart Icinga 2.
+
+```
+systemctl restart icinga2
+```
+
+
+> **Note**
+>
+> The internal `_api` config package structure may change in the future. Do not modify
+> things in there manually or with scripts unless guided here or asked by a developer.
+
 
 ## Certificate Troubleshooting <a id="troubleshooting-certificate"></a>
 
@@ -802,8 +955,6 @@ Fetch the `ca.crt` file from the client node and compare it to your master's `ca
 # diff -ur /var/lib/icinga2/certs/ca.crt test-client-ca.crt
 ```
 
-On SLES11 you'll need to use the `openssl1` command instead of `openssl`.
-
 <!--
 ### Certificate Signing <a id="troubleshooting-certificate-signing"></a>
 -->
@@ -824,7 +975,7 @@ critical/config: Error: Cannot make SSL context for cert path: 'C:\ProgramData\i
 ```
 
 A technical analysis and solution for re-creating the public CA certificate is
-available in [this advisory](https://www.icinga.com/2017/08/30/advisory-for-ssl-problems-with-leading-zeros-on-openssl-1-1-0/).
+available in [this advisory](https://icinga.com/2017/08/30/advisory-for-ssl-problems-with-leading-zeros-on-openssl-1-1-0/).
 
 
 ## Cluster and Clients Troubleshooting <a id="troubleshooting-cluster"></a>
@@ -1003,3 +1154,60 @@ Check the following:
 * Check your [connection](15-troubleshooting.md#troubleshooting-cluster-connection-errors) in general.
 * Does the log replay work, e.g. are all events processed and the directory gets cleared up over time?
 * Decrease the `log_duration` attribute value for that specific [endpoint](09-object-types.md#objecttype-endpoint).
+
+
+
+### Cluster Troubleshooting: Windows Agents <a id="troubleshooting-cluster-windows-agents"></a>
+
+#### Windows Agents consuming 100% CPU <a id="troubleshooting-cluster-windows-agents-cpu"></a>
+
+Icinga 2 requires the `NodeName` [constant](17-language-reference.md#constants) in various places to run.
+This includes loading the TLS certificates, setting the proper check source,
+and so on.
+
+Typically the Windows setup wizard and also the CLI commands populate the [constants.conf](04-configuring-icinga-2.md#constants-conf)
+file with the auto-detected or user-provided FQDN/Common Name.
+
+If this constant is not set during startup, Icinga will try to resolve the
+FQDN, if that fails, fetch the hostname. If everything fails, it logs
+an error and sets this to `localhost`. This results in undefined behaviour
+if ignored by the admin.
+
+Querying the DNS when not reachable is CPU consuming, and may look like Icinga
+is doing lots of checks, etc. but actually really is just starting up.
+
+In order to fix this, edit the `constants.conf` file and populate
+the `NodeName` constant with the FQDN. Ensure this is the same value
+as the local endpoint object name.
+
+```
+const NodeName = "windows-client1.domain.com"
+```
+
+
+
+#### Windows blocking Icinga 2 with ephemeral port range <a id="troubleshooting-cluster-windows-agents-ephemeral-port-range"></a>
+
+When you see a message like this in your Windows agent logs:
+
+```
+critical/TcpSocket: Invalid socket: 10055, "An operation on a socket could not be performed because the system lacked sufficient buffer space or because a queue was full."
+```
+
+Windows is blocking Icinga 2 and as such, no more TCP connection handling is possible.
+
+Depending on the version, patch level and installed applications, Windows is changing its
+range of [ephemeral ports](https://en.wikipedia.org/wiki/Ephemeral_port#Range).
+
+In order to solve this, raise the the `MaxUserPort` value in the registry.
+
+```
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+
+Value Name: MaxUserPort Value
+Type: DWORD
+Value data: 65534
+```
+
+More details in [this blogpost](https://www.netways.de/blog/2019/01/24/windows-blocking-icinga-2-with-ephemeral-port-range/)
+and this [MS help entry](https://support.microsoft.com/en-us/help/196271/when-you-try-to-connect-from-tcp-ports-greater-than-5000-you-receive-t).

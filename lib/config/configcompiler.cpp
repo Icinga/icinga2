@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "config/configcompiler.hpp"
 #include "config/configitem.hpp"
@@ -36,14 +19,14 @@ std::map<String, std::vector<ZoneFragment> > ConfigCompiler::m_ZoneDirs;
  * Constructor for the ConfigCompiler class.
  *
  * @param path The path of the configuration file (or another name that
- *	       identifies the source of the configuration text).
+ *        identifies the source of the configuration text).
  * @param input Input stream for the configuration file.
  * @param zone The zone.
  */
-ConfigCompiler::ConfigCompiler(const String& path, std::istream *input,
-    const String& zone, const String& package)
-	: m_Path(path), m_Input(input), m_Zone(zone), m_Package(package),
-	  m_Eof(false), m_OpenBraces(0)
+ConfigCompiler::ConfigCompiler(String path, std::istream *input,
+	String zone, String package)
+	: m_Path(std::move(path)), m_Input(input), m_Zone(std::move(zone)),
+	m_Package(std::move(package)), m_Eof(false), m_OpenBraces(0)
 {
 	InitializeScanner();
 }
@@ -51,7 +34,7 @@ ConfigCompiler::ConfigCompiler(const String& path, std::istream *input,
 /**
  * Destructor for the ConfigCompiler class.
  */
-ConfigCompiler::~ConfigCompiler(void)
+ConfigCompiler::~ConfigCompiler()
 {
 	DestroyScanner();
 }
@@ -74,7 +57,7 @@ size_t ConfigCompiler::ReadInput(char *buffer, size_t max_size)
  *
  * @returns The scanner object.
  */
-void *ConfigCompiler::GetScanner(void) const
+void *ConfigCompiler::GetScanner() const
 {
 	return m_Scanner;
 }
@@ -84,7 +67,7 @@ void *ConfigCompiler::GetScanner(void) const
  *
  * @returns The path.
  */
-const char *ConfigCompiler::GetPath(void) const
+const char *ConfigCompiler::GetPath() const
 {
 	return m_Path.CStr();
 }
@@ -94,7 +77,7 @@ void ConfigCompiler::SetZone(const String& zone)
 	m_Zone = zone;
 }
 
-String ConfigCompiler::GetZone(void) const
+String ConfigCompiler::GetZone() const
 {
 	return m_Zone;
 }
@@ -104,20 +87,20 @@ void ConfigCompiler::SetPackage(const String& package)
 	m_Package = package;
 }
 
-String ConfigCompiler::GetPackage(void) const
+String ConfigCompiler::GetPackage() const
 {
 	return m_Package;
 }
 
 void ConfigCompiler::CollectIncludes(std::vector<std::unique_ptr<Expression> >& expressions,
-    const String& file, const String& zone, const String& package)
+	const String& file, const String& zone, const String& package)
 {
 	try {
 		expressions.emplace_back(CompileFile(file, zone, package));
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "ConfigCompiler")
-		    << "Cannot compile file '"
-		    << file << "': " << DiagnosticInformation(ex);
+			<< "Cannot compile file '"
+			<< file << "': " << DiagnosticInformation(ex);
 	}
 }
 
@@ -130,7 +113,7 @@ void ConfigCompiler::CollectIncludes(std::vector<std::unique_ptr<Expression> >& 
  * @param debuginfo Debug information.
  */
 std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relativeBase, const String& path,
-    bool search, const String& zone, const String& package, const DebugInfo& debuginfo)
+	bool search, const String& zone, const String& package, const DebugInfo& debuginfo)
 {
 	String upath;
 
@@ -174,7 +157,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relative
  * @param debuginfo Debug information.
  */
 std::unique_ptr<Expression> ConfigCompiler::HandleIncludeRecursive(const String& relativeBase, const String& path,
-    const String& pattern, const String& zone, const String& package, const DebugInfo&)
+	const String& pattern, const String& zone, const String& package, const DebugInfo&)
 {
 	String ppath;
 
@@ -217,7 +200,7 @@ void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String&
  * @param debuginfo Debug information.
  */
 std::unique_ptr<Expression> ConfigCompiler::HandleIncludeZones(const String& relativeBase, const String& tag,
-    const String& path, const String& pattern, const String& package, const DebugInfo&)
+	const String& path, const String& pattern, const String& package, const DebugInfo&)
 {
 	String ppath;
 	String newRelativeBase = relativeBase;
@@ -242,7 +225,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleIncludeZones(const String& rel
  * @returns Configuration items.
  */
 std::unique_ptr<Expression> ConfigCompiler::CompileStream(const String& path,
-    std::istream *stream, const String& zone, const String& package)
+	std::istream *stream, const String& zone, const String& package)
 {
 	CONTEXT("Compiling configuration stream with name '" + path + "'");
 
@@ -266,7 +249,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileStream(const String& path,
  * @returns Configuration items.
  */
 std::unique_ptr<Expression> ConfigCompiler::CompileFile(const String& path, const String& zone,
-    const String& package)
+	const String& package)
 {
 	CONTEXT("Compiling configuration file '" + path + "'");
 
@@ -279,7 +262,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileFile(const String& path, cons
 			<< boost::errinfo_file_name(path));
 
 	Log(LogNotice, "ConfigCompiler")
-	    << "Compiling config file: " << path;
+		<< "Compiling config file: " << path;
 
 	return CompileStream(path, &stream, zone, package);
 }
@@ -292,7 +275,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileFile(const String& path, cons
  * @returns Configuration items.
  */
 std::unique_ptr<Expression> ConfigCompiler::CompileText(const String& path, const String& text,
-    const String& zone, const String& package)
+	const String& zone, const String& package)
 {
 	std::stringstream stream(text);
 	return CompileStream(path, &stream, zone, package);
@@ -306,7 +289,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileText(const String& path, cons
 void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 {
 	Log(LogInformation, "ConfigCompiler")
-	    << "Adding include search dir: " << dir;
+		<< "Adding include search dir: " << dir;
 
 	m_IncludeSearchDirs.push_back(dir);
 }
@@ -339,12 +322,14 @@ bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
 
 	if (!empty) {
 		std::vector<String> paths;
+		paths.reserve(zoneDirs.size());
+
 		for (const ZoneFragment& zf : zoneDirs) {
 			paths.push_back(zf.Path);
 		}
 
 		Log(LogNotice, "ConfigCompiler")
-		    << "Registered authoritative config directories for zone '" << zoneName << "': " << Utility::NaturalJoin(paths);
+			<< "Registered authoritative config directories for zone '" << zoneName << "': " << Utility::NaturalJoin(paths);
 	}
 
 	return !empty;
@@ -360,3 +345,12 @@ bool ConfigCompiler::IsAbsolutePath(const String& path)
 #endif /* _WIN32 */
 }
 
+void ConfigCompiler::AddImport(const std::shared_ptr<Expression>& import)
+{
+	m_Imports.push_back(import);
+}
+
+std::vector<std::shared_ptr<Expression> > ConfigCompiler::GetImports() const
+{
+	return m_Imports;
+}

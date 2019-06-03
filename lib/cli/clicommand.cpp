@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/clicommand.hpp"
 #include "base/logger.hpp"
@@ -78,7 +61,7 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type::Ptr& type,
 			continue;
 
 		if (strcmp(field.TypeName, "int") != 0 && strcmp(field.TypeName, "double") != 0
-		    && strcmp(field.TypeName, "bool") != 0 && strcmp(field.TypeName, "String") != 0)
+			&& strcmp(field.TypeName, "bool") != 0 && strcmp(field.TypeName, "String") != 0)
 			continue;
 
 		String fname = field.Name;
@@ -92,33 +75,33 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type::Ptr& type,
 	return result;
 }
 
-int CLICommand::GetMinArguments(void) const
+int CLICommand::GetMinArguments() const
 {
 	return 0;
 }
 
-int CLICommand::GetMaxArguments(void) const
+int CLICommand::GetMaxArguments() const
 {
 	return GetMinArguments();
 }
 
-bool CLICommand::IsHidden(void) const
+bool CLICommand::IsHidden() const
 {
 	return false;
 }
 
-bool CLICommand::IsDeprecated(void) const
+bool CLICommand::IsDeprecated() const
 {
 	return false;
 }
 
-boost::mutex& CLICommand::GetRegistryMutex(void)
+boost::mutex& CLICommand::GetRegistryMutex()
 {
 	static boost::mutex mtx;
 	return mtx;
 }
 
-std::map<std::vector<String>, CLICommand::Ptr>& CLICommand::GetRegistry(void)
+std::map<std::vector<String>, CLICommand::Ptr>& CLICommand::GetRegistry()
 {
 	static std::map<std::vector<String>, CLICommand::Ptr> registry;
 	return registry;
@@ -159,18 +142,18 @@ std::vector<String> CLICommand::GetPositionalSuggestions(const String& word) con
 }
 
 void CLICommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 { }
 
-ImpersonationLevel CLICommand::GetImpersonationLevel(void) const
+ImpersonationLevel CLICommand::GetImpersonationLevel() const
 {
 	return ImpersonateIcinga;
 }
 
 bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& visibleDesc,
-    po::options_description& hiddenDesc,
-    po::positional_options_description& positionalDesc,
-    po::variables_map& vm, String& cmdname, CLICommand::Ptr& command, bool autocomplete)
+	po::options_description& hiddenDesc,
+	po::positional_options_description& positionalDesc,
+	po::variables_map& vm, String& cmdname, CLICommand::Ptr& command, bool autocomplete)
 {
 	boost::mutex::scoped_lock lock(GetRegistryMutex());
 
@@ -186,7 +169,7 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 		std::vector<String>::size_type i;
 		int k;
 		for (i = 0, k = 1; i < vname.size() && k < argc; i++, k++) {
-			if (strncmp(argv[k], "--", 2) == 0) {
+			if (strncmp(argv[k], "-", 1) == 0 || strncmp(argv[k], "--", 2) == 0) {
 				i--;
 				continue;
 			}
@@ -226,8 +209,8 @@ found_command:
 
 	if (command && command->IsDeprecated()) {
 		std::cerr << ConsoleColorTag(Console_ForegroundRed | Console_Bold)
-		    << "Warning: CLI command '" << cmdname << "' is DEPRECATED! Please read the Changelog."
-		    << ConsoleColorTag(Console_Normal) << std::endl << std::endl;
+			<< "Warning: CLI command '" << cmdname << "' is DEPRECATED! Please read the Changelog."
+			<< ConsoleColorTag(Console_Normal) << std::endl << std::endl;
 	}
 
 	po::store(po::command_line_parser(argc - arg_end, argv + arg_end).options(adesc).positional(positionalDesc).run(), vm);
@@ -237,9 +220,9 @@ found_command:
 }
 
 void CLICommand::ShowCommands(int argc, char **argv, po::options_description *visibleDesc,
-    po::options_description *hiddenDesc,
-    ArgumentCompletionCallback globalArgCompletionCallback,
-    bool autocomplete, int autoindex)
+	po::options_description *hiddenDesc,
+	ArgumentCompletionCallback globalArgCompletionCallback,
+	bool autocomplete, int autoindex)
 {
 	boost::mutex::scoped_lock lock(GetRegistryMutex());
 
@@ -320,8 +303,8 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 			}
 		} else {
 			std::cout << "  * " << boost::algorithm::join(vname, " ")
-			    << " (" << kv.second->GetShortDescription() << ")"
-			    << (kv.second->IsDeprecated() ? " (DEPRECATED)" : "") << std::endl;
+				<< " (" << kv.second->GetShortDescription() << ")"
+				<< (kv.second->IsDeprecated() ? " (DEPRECATED)" : "") << std::endl;
 		}
 	}
 

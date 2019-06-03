@@ -112,6 +112,8 @@ if ( WIN32 )
   foreach (suffix ${PostgreSQL_KNOWN_VERSIONS} )
     set(PostgreSQL_ADDITIONAL_SEARCH_PATHS ${PostgreSQL_ADDITIONAL_SEARCH_PATHS} "C:/Program Files/PostgreSQL/${suffix}" )
   endforeach()
+else()
+  set(PostgreSQL_ADDITIONAL_SEARCH_PATHS ${PostgreSQL_ADDITIONAL_SEARCH_PATHS} "/Library/PostgreSQL/*")
 endif()
 set( PostgreSQL_ROOT_DIRECTORIES
    ENV PostgreSQL_ROOT

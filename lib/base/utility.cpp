@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/utility.hpp"
 #include "base/convert.hpp"
@@ -26,11 +9,13 @@
 #include "base/utility.hpp"
 #include "base/json.hpp"
 #include "base/objectlock.hpp"
+#include <cstdint>
 #include <mmatch.h>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/thread/tss.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -38,7 +23,11 @@
 #include <ios>
 #include <fstream>
 #include <iostream>
+#include <iterator>
+#include <stdlib.h>
 #include <future>
+#include <utf8.h>
+#include <vector>
 
 #ifdef __FreeBSD__
 #	include <pthread_np.h>
@@ -50,6 +39,7 @@
 
 #ifndef _WIN32
 #	include <sys/types.h>
+#	include <sys/utsname.h>
 #	include <pwd.h>
 #	include <grp.h>
 #	include <errno.h>
@@ -84,7 +74,7 @@ String Utility::DemangleSymbolName(const String& sym)
 
 #ifdef HAVE_CXXABI_H
 	int status;
-	char *realname = abi::__cxa_demangle(sym.CStr(), 0, 0, &status);
+	char *realname = abi::__cxa_demangle(sym.CStr(), nullptr, nullptr, &status);
 
 	if (realname) {
 		result = String(realname);
@@ -262,47 +252,7 @@ bool Utility::CidrMatch(const String& pattern, const String& ip)
  */
 String Utility::DirName(const String& path)
 {
-	char *dir;
-
-#ifdef _WIN32
-	String dupPath = path;
-
-	/* PathRemoveFileSpec doesn't properly handle forward slashes. */
-	for (char& ch : dupPath) {
-		if (ch == '/')
-			ch = '\\';
-	}
-
-	dir = strdup(dupPath.CStr());
-#else /* _WIN32 */
-	dir = strdup(path.CStr());
-#endif /* _WIN32 */
-
-	if (!dir)
-		BOOST_THROW_EXCEPTION(std::bad_alloc());
-
-	String result;
-
-#ifndef _WIN32
-	result = dirname(dir);
-#else /* _WIN32 */
-	if (dir[0] != 0 && !PathRemoveFileSpec(dir)) {
-		free(dir);
-
-		BOOST_THROW_EXCEPTION(win32_error()
-		    << boost::errinfo_api_function("PathRemoveFileSpec")
-		    << errinfo_win32_error(GetLastError()));
-	}
-
-	result = dir;
-
-	if (result.IsEmpty())
-		result = ".";
-#endif /* _WIN32 */
-
-	free(dir);
-
-	return result;
+	return boost::filesystem::path(path.Begin(), path.End()).parent_path().string();
 }
 
 /**
@@ -313,21 +263,7 @@ String Utility::DirName(const String& path)
  */
 String Utility::BaseName(const String& path)
 {
-	char *dir = strdup(path.CStr());
-	String result;
-
-	if (!dir)
-		BOOST_THROW_EXCEPTION(std::bad_alloc());
-
-#ifndef _WIN32
-	result = basename(dir);
-#else /* _WIN32 */
-	result = PathFindFileName(dir);
-#endif /* _WIN32 */
-
-	free(dir);
-
-	return result;
+	return boost::filesystem::path(path.Begin(), path.End()).filename().string();
 }
 
 /**
@@ -368,7 +304,7 @@ void Utility::IncrementTime(double diff)
  *
  * @returns The current time.
  */
-double Utility::GetTime(void)
+double Utility::GetTime()
 {
 #ifdef I2_DEBUG
 	if (m_DebugTime >= 0) {
@@ -408,7 +344,7 @@ double Utility::GetTime(void)
  *
  * @returns The PID.
  */
-pid_t Utility::GetPid(void)
+pid_t Utility::GetPid()
 {
 #ifndef _WIN32
 	return getpid();
@@ -440,7 +376,7 @@ void Utility::Sleep(double timeout)
  *
  * @returns The new unique ID.
  */
-String Utility::NewUniqueID(void)
+String Utility::NewUniqueID()
 {
 	return boost::lexical_cast<std::string>(boost::uuids::random_generator()());
 }
@@ -509,8 +445,7 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 	std::vector<String> files, dirs;
 
 #ifdef _WIN32
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, pathSpec, boost::is_any_of("\\/"));
+	std::vector<String> tokens = pathSpec.Split("\\/");
 
 	String part1;
 
@@ -558,9 +493,9 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 			return false;
 
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("glob")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(pathSpec));
+			<< boost::errinfo_api_function("glob")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(pathSpec));
 	}
 
 	if (gr.gl_pathc == 0) {
@@ -580,9 +515,9 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 			continue;
 
 		if (S_ISDIR(statbuf.st_mode) && (type & GlobDirectory))
-			dirs.push_back(*gp);
+			dirs.emplace_back(*gp);
 		else if (!S_ISDIR(statbuf.st_mode) && (type & GlobFile))
-			files.push_back(*gp);
+			files.emplace_back(*gp);
 	}
 
 	globfree(&gr);
@@ -630,9 +565,9 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 			return false;
 
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << boost::errinfo_api_function("FindFirstFile")
+			<< boost::errinfo_api_function("FindFirstFile")
 			<< errinfo_win32_error(errorCode)
-		    << boost::errinfo_file_name(pathSpec));
+			<< boost::errinfo_file_name(pathSpec));
 	}
 
 	do {
@@ -656,8 +591,8 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 
 	if (!FindClose(handle)) {
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << boost::errinfo_api_function("FindClose")
-		    << errinfo_win32_error(GetLastError()));
+			<< boost::errinfo_api_function("FindClose")
+			<< errinfo_win32_error(GetLastError()));
 	}
 #else /* _WIN32 */
 	DIR *dirp;
@@ -666,9 +601,9 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 
 	if (!dirp)
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("opendir")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("opendir")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 
 	while (dirp) {
 		dirent *pent;
@@ -679,9 +614,9 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 			closedir(dirp);
 
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("readdir")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(path));
+				<< boost::errinfo_api_function("readdir")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(path));
 		}
 
 		if (!pent)
@@ -743,9 +678,9 @@ void Utility::MkDir(const String& path, int mode)
 #endif /* _WIN32 */
 
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("mkdir")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("mkdir")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 	}
 }
 
@@ -767,37 +702,18 @@ void Utility::MkDirP(const String& path, int mode)
 	}
 }
 
-void Utility::RemoveDirRecursive(const String& path)
+void Utility::Remove(const String& path)
 {
-	std::vector<String> paths;
-	Utility::GlobRecursive(path, "*", std::bind(&Utility::CollectPaths, _1, std::ref(paths)), GlobFile | GlobDirectory);
+	namespace fs = boost::filesystem;
 
-	/* This relies on the fact that GlobRecursive lists the parent directory
-	   first before recursing into subdirectories. */
-	std::reverse(paths.begin(), paths.end());
-
-	for (const String& path : paths) {
-		if (remove(path.CStr()) < 0)
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("remove")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(path));
-	}
-
-#ifndef _WIN32
-	if (rmdir(path.CStr()) < 0)
-#else /* _WIN32 */
-	if (_rmdir(path.CStr()) < 0)
-#endif /* _WIN32 */
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rmdir")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+	(void)fs::remove(fs::path(path.Begin(), path.End()));
 }
 
-void Utility::CollectPaths(const String& path, std::vector<String>& paths)
+void Utility::RemoveDirRecursive(const String& path)
 {
-	paths.push_back(path);
+	namespace fs = boost::filesystem;
+
+	(void)fs::remove_all(fs::path(path.Begin(), path.End()));
 }
 
 /*
@@ -806,10 +722,20 @@ void Utility::CollectPaths(const String& path, std::vector<String>& paths)
  */
 void Utility::CopyFile(const String& source, const String& target)
 {
-	std::ifstream ifs(source.CStr(), std::ios::binary);
-	std::ofstream ofs(target.CStr(), std::ios::binary | std::ios::trunc);
+	namespace fs = boost::filesystem;
 
-	ofs << ifs.rdbuf();
+	fs::copy_file(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()), fs::copy_option::overwrite_if_exists);
+}
+
+/*
+ * Renames a source file to a target location.
+ * Caller must ensure that the target's base directory exists and is writable.
+ */
+void Utility::RenameFile(const String& source, const String& target)
+{
+	namespace fs = boost::filesystem;
+
+	fs::rename(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()));
 }
 
 /*
@@ -824,11 +750,11 @@ bool Utility::SetFileOwnership(const String& file, const String& user, const Str
 	if (!pw) {
 		if (errno == 0) {
 			Log(LogCritical, "cli")
-			    << "Invalid user specified: " << user;
+				<< "Invalid user specified: " << user;
 			return false;
 		} else {
 			Log(LogCritical, "cli")
-			    << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				<< "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return false;
 		}
 	}
@@ -839,18 +765,18 @@ bool Utility::SetFileOwnership(const String& file, const String& user, const Str
 	if (!gr) {
 		if (errno == 0) {
 			Log(LogCritical, "cli")
-			    << "Invalid group specified: " << group;
+				<< "Invalid group specified: " << group;
 			return false;
 		} else {
 			Log(LogCritical, "cli")
-			    << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				<< "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return false;
 		}
 	}
 
 	if (chown(file.CStr(), pw->pw_uid, gr->gr_gid) < 0) {
 		Log(LogCritical, "cli")
-		    << "chown() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "chown() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return false;
 	}
 #endif /* _WIN32 */
@@ -865,8 +791,8 @@ void Utility::SetNonBlocking(int fd, bool nb)
 
 	if (flags < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("fcntl")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("fcntl")
+			<< boost::errinfo_errno(errno));
 	}
 
 	if (nb)
@@ -876,8 +802,8 @@ void Utility::SetNonBlocking(int fd, bool nb)
 
 	if (fcntl(fd, F_SETFL, flags) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("fcntl")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("fcntl")
+			<< boost::errinfo_errno(errno));
 	}
 }
 
@@ -887,8 +813,8 @@ void Utility::SetCloExec(int fd, bool cloexec)
 
 	if (flags < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("fcntl")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("fcntl")
+			<< boost::errinfo_errno(errno));
 	}
 
 	if (cloexec)
@@ -898,8 +824,8 @@ void Utility::SetCloExec(int fd, bool cloexec)
 
 	if (fcntl(fd, F_SETFD, flags) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("fcntl")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("fcntl")
+			<< boost::errinfo_errno(errno));
 	}
 }
 #endif /* _WIN32 */
@@ -914,7 +840,7 @@ void Utility::SetNonBlockingSocket(SOCKET s, bool nb)
 #endif /* _WIN32 */
 }
 
-void Utility::QueueAsyncCallback(const boost::function<void (void)>& callback, SchedulerPolicy policy)
+void Utility::QueueAsyncCallback(const std::function<void ()>& callback, SchedulerPolicy policy)
 {
 	Application::GetTP().Post(callback, policy);
 }
@@ -1002,7 +928,7 @@ String Utility::FormatDuration(double duration)
 		if (milliseconds >= 1)
 			tokens.emplace_back(Convert::ToString(milliseconds) + (milliseconds != 1 ? " milliseconds" : " millisecond"));
 		else
-			tokens.push_back("less than 1 millisecond");
+			tokens.emplace_back("less than 1 millisecond");
 	}
 
 	return NaturalJoin(tokens);
@@ -1011,7 +937,7 @@ String Utility::FormatDuration(double duration)
 String Utility::FormatDateTime(const char *format, double ts)
 {
 	char timestamp[128];
-	time_t tempts = (time_t)ts; /* We don't handle sub-second timestamps here just yet. */
+	auto tempts = (time_t)ts; /* We don't handle sub-second timestamps here just yet. */
 	tm tmthen;
 
 #ifdef _MSC_VER
@@ -1019,16 +945,16 @@ String Utility::FormatDateTime(const char *format, double ts)
 
 	if (!temp) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime")
+			<< boost::errinfo_errno(errno));
 	}
 
 	tmthen = *temp;
 #else /* _MSC_VER */
 	if (!localtime_r(&tempts, &tmthen)) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime_r")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime_r")
+			<< boost::errinfo_errno(errno));
 	}
 #endif /* _MSC_VER */
 
@@ -1090,10 +1016,10 @@ String Utility::EscapeShellCmd(const String& s)
 #endif /* _WIN32 */
 
 		if (ch == '#' || ch == '&' || ch == ';' || ch == '`' || ch == '|' ||
-		    ch == '*' || ch == '?' || ch == '~' || ch == '<' || ch == '>' ||
-		    ch == '^' || ch == '(' || ch == ')' || ch == '[' || ch == ']' ||
-		    ch == '{' || ch == '}' || ch == '$' || ch == '\\' || ch == '\x0A' ||
-		    ch == '\xFF')
+			ch == '*' || ch == '?' || ch == '~' || ch == '<' || ch == '>' ||
+			ch == '^' || ch == '(' || ch == ')' || ch == '[' || ch == ']' ||
+			ch == '{' || ch == '}' || ch == '$' || ch == '\\' || ch == '\x0A' ||
+			ch == '\xFF')
 			escape = true;
 
 		if (escape)
@@ -1216,7 +1142,7 @@ void Utility::SetThreadName(const String& name, bool os)
 #endif /* HAVE_PTHREAD_SETNAME_NP */
 }
 
-String Utility::GetThreadName(void)
+String Utility::GetThreadName()
 {
 	String *name = m_ThreadName.get();
 
@@ -1248,15 +1174,14 @@ unsigned long Utility::SDBM(const String& str, size_t len)
 
 int Utility::CompareVersion(const String& v1, const String& v2)
 {
-	std::vector<String> tokensv1, tokensv2;
-	boost::algorithm::split(tokensv1, v1, boost::is_any_of("."));
-	boost::algorithm::split(tokensv2, v2, boost::is_any_of("."));
+	std::vector<String> tokensv1 = v1.Split(".");
+	std::vector<String> tokensv2 = v2.Split(".");
 
 	for (std::vector<String>::size_type i = 0; i < tokensv2.size() - tokensv1.size(); i++)
-		tokensv1.push_back("0");
+		tokensv1.emplace_back("0");
 
 	for (std::vector<String>::size_type i = 0; i < tokensv1.size() - tokensv2.size(); i++)
-		tokensv2.push_back("0");
+		tokensv2.emplace_back("0");
 
 	for (std::vector<String>::size_type i = 0; i < tokensv1.size(); i++) {
 		if (Convert::ToLong(tokensv2[i]) > Convert::ToLong(tokensv1[i]))
@@ -1268,7 +1193,7 @@ int Utility::CompareVersion(const String& v1, const String& v2)
 	return 0;
 }
 
-String Utility::GetHostName(void)
+String Utility::GetHostName()
 {
 	char name[255];
 
@@ -1284,7 +1209,7 @@ String Utility::GetHostName(void)
  *
  * @returns The FQDN.
  */
-String Utility::GetFQDN(void)
+String Utility::GetFQDN()
 {
 	String hostname = GetHostName();
 
@@ -1310,7 +1235,7 @@ String Utility::GetFQDN(void)
 	return hostname;
 }
 
-int Utility::Random(void)
+int Utility::Random()
 {
 #ifdef _WIN32
 	return rand();
@@ -1333,8 +1258,8 @@ tm Utility::LocalTime(time_t ts)
 
 	if (!result) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime")
+			<< boost::errinfo_errno(errno));
 	}
 
 	return *result;
@@ -1343,8 +1268,8 @@ tm Utility::LocalTime(time_t ts)
 
 	if (!localtime_r(&ts, &result)) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime_r")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime_r")
+			<< boost::errinfo_errno(errno));
 	}
 
 	return result;
@@ -1353,13 +1278,11 @@ tm Utility::LocalTime(time_t ts)
 
 bool Utility::PathExists(const String& path)
 {
-#ifndef _WIN32
-	struct stat statbuf;
-	return (lstat(path.CStr(), &statbuf) >= 0);
-#else /* _WIN32 */
-	struct _stat statbuf;
-	return (_stat(path.CStr(), &statbuf) >= 0);
-#endif /* _WIN32 */
+	namespace fs = boost::filesystem;
+
+	boost::system::error_code ec;
+
+	return fs::exists(fs::path(path.Begin(), path.End()), ec) && !ec;
 }
 
 Value Utility::LoadJsonFile(const String& path)
@@ -1379,6 +1302,8 @@ Value Utility::LoadJsonFile(const String& path)
 
 void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 {
+	namespace fs = boost::filesystem;
+
 	std::fstream fp;
 	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", mode, fp);
 
@@ -1386,16 +1311,7 @@ void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 	fp << JsonEncode(value);
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(path.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
+	RenameFile(tempFilename, path);
 }
 
 static void HexEncode(char ch, std::ostream& os)
@@ -1465,28 +1381,23 @@ String Utility::UnescapeString(const String& s)
 #ifndef _WIN32
 static String UnameHelper(char type)
 {
-	/* Unfortunately the uname() system call doesn't support some of the
-	* query types we're interested in - so we're using popen() instead. */
+	struct utsname name;
+	uname(&name);
 
-	char cmd[] = "uname -X 2>&1";
-	cmd[7] = type;
-
-	FILE *fp = popen(cmd, "r");
-
-	if (!fp)
-		return "Unknown";
-
-	char line[1024];
-	std::ostringstream msgbuf;
-
-	while (fgets(line, sizeof(line), fp))
-		msgbuf << line;
-
-	pclose(fp);
-
-	String result = msgbuf.str();
-
-	return result.Trim();
+	switch (type) {
+		case 'm':
+			return (char*)name.machine;
+		case 'n':
+			return (char*)name.nodename;
+		case 'r':
+			return (char*)name.release;
+		case 's':
+			return (char*)name.sysname;
+		case 'v':
+			return (char*)name.version;
+		default:
+			VERIFY(!"Invalid uname query.");
+	}
 }
 #endif /* _WIN32 */
 static bool ReleaseHelper(String *platformName, String *platformVersion)
@@ -1662,7 +1573,7 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 #endif /* _WIN32 */
 }
 
-String Utility::GetPlatformKernel(void)
+String Utility::GetPlatformKernel()
 {
 #ifdef _WIN32
 	return "Windows";
@@ -1671,7 +1582,7 @@ String Utility::GetPlatformKernel(void)
 #endif /* _WIN32 */
 }
 
-String Utility::GetPlatformKernelVersion(void)
+String Utility::GetPlatformKernelVersion()
 {
 #ifdef _WIN32
 	OSVERSIONINFO info;
@@ -1687,7 +1598,7 @@ String Utility::GetPlatformKernelVersion(void)
 #endif /* _WIN32 */
 }
 
-String Utility::GetPlatformName(void)
+String Utility::GetPlatformName()
 {
 	String platformName;
 	if (!ReleaseHelper(&platformName, nullptr))
@@ -1695,7 +1606,7 @@ String Utility::GetPlatformName(void)
 	return platformName;
 }
 
-String Utility::GetPlatformVersion(void)
+String Utility::GetPlatformVersion()
 {
 	String platformVersion;
 	if (!ReleaseHelper(nullptr, &platformVersion))
@@ -1703,7 +1614,7 @@ String Utility::GetPlatformVersion(void)
 	return platformVersion;
 }
 
-String Utility::GetPlatformArchitecture(void)
+String Utility::GetPlatformArchitecture()
 {
 #ifdef _WIN32
 	SYSTEM_INFO info;
@@ -1723,40 +1634,20 @@ String Utility::GetPlatformArchitecture(void)
 #endif /* _WIN32 */
 }
 
+const char l_Utf8Replacement[] = "\xEF\xBF\xBD";
+
 String Utility::ValidateUTF8(const String& input)
 {
-	String output;
-	size_t length = input.GetLength();
+	std::vector<char> output;
+	output.reserve(input.GetLength() * 3u);
 
-	for (size_t i = 0; i < length; i++) {
-		if ((input[i] & 0x80) == 0) {
-			output += input[i];
-			continue;
-		}
-
-		if ((input[i] & 0xE0) == 0xC0 && length > i + 1 &&
-		    (input[i + 1] & 0xC0) == 0x80) {
-			output += input[i];
-			output += input[i + 1];
-			i++;
-			continue;
-		}
-
-		if ((input[i] & 0xF0) == 0xE0 && length > i + 2 &&
-		    (input[i + 1] & 0xC0) == 0x80 && (input[i + 2] & 0xC0) == 0x80) {
-			output += input[i];
-			output += input[i + 1];
-			output += input[i + 2];
-			i += 2;
-			continue;
-		}
-
-		output += '\xEF';
-		output += '\xBF';
-		output += '\xBD';
+	try {
+		utf8::replace_invalid(input.Begin(), input.End(), std::back_inserter(output));
+	} catch (const utf8::not_enough_room&) {
+		output.insert(output.end(), (const char*)l_Utf8Replacement, (const char*)l_Utf8Replacement + 3);
 	}
 
-	return output;
+	return String(output.begin(), output.end());
 }
 
 String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
@@ -1773,9 +1664,9 @@ String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
 
 	if (fd < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("mkstemp")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("mkstemp")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 	}
 
 	try {
@@ -1791,9 +1682,9 @@ String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
 
 	if (chmod(resultPath.CStr(), mode) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("chmod")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(resultPath));
+			<< boost::errinfo_api_function("chmod")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(resultPath));
 	}
 
 	return resultPath;
@@ -1801,12 +1692,13 @@ String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
 
 #ifdef _WIN32
 /* mkstemp extracted from libc/sysdeps/posix/tempname.c.  Copyright
-   (C) 1991-1999, 2000, 2001, 2006 Free Software Foundation, Inc.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.  */
+ * (C) 1991-1999, 2000, 2001, 2006 Free Software Foundation, Inc.
+ *
+ * The GNU C Library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ */
 
 #define _O_EXCL 0x0400
 #define _O_CREAT 0x0100
@@ -1818,9 +1710,10 @@ String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
 static const char letters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 /* Generate a temporary file name based on TMPL.  TMPL must match the
-   rules for mk[s]temp (i.e. end in "XXXXXX").  The name constructed
-   does not exist at the time of the call to mkstemp.  TMPL is
-   overwritten with the result.  */
+ * rules for mk[s]temp (i.e. end in "XXXXXX").  The name constructed
+ * does not exist at the time of the call to mkstemp.  TMPL is
+ * overwritten with the result.
+ */
 int Utility::MksTemp(char *tmpl)
 {
 	int len;
@@ -1832,15 +1725,17 @@ int Utility::MksTemp(char *tmpl)
 	int save_errno = errno;
 
 	/* A lower bound on the number of temporary files to attempt to
-	generate.  The maximum total number of temporary file names that
-	can exist for a given template is 62**6.  It should never be
-	necessary to try all these combinations.  Instead if a reasonable
-	number of names is tried (we define reasonable as 62**3) fail to
-	give the system administrator the chance to remove the problems.  */
+	 * generate.  The maximum total number of temporary file names that
+	 * can exist for a given template is 62**6.  It should never be
+	 * necessary to try all these combinations.  Instead if a reasonable
+	 * number of names is tried (we define reasonable as 62**3) fail to
+	 * give the system administrator the chance to remove the problems.
+	 */
 #define ATTEMPTS_MIN (62 * 62 * 62)
 
-	/* The number of times to attempt to generate a temporary file.  To
-	   conform to POSIX, this must be no smaller than TMP_MAX.  */
+	/* The number of times to attempt to generate a temporary file
+	 * To conform to POSIX, this must be no smaller than TMP_MAX.
+	 */
 #if ATTEMPTS_MIN < TMP_MAX
 	unsigned int attempts = TMP_MAX;
 #else
@@ -1865,8 +1760,8 @@ int Utility::MksTemp(char *tmpl)
 		GetSystemTime(&stNow);
 		stNow.wMilliseconds = 500;
 		if (!SystemTimeToFileTime(&stNow, &ftNow)) {
-		    errno = -1;
-		    return -1;
+			errno = -1;
+			return -1;
 		}
 
 		random_time_bits = (((unsigned long long)ftNow.dwHighDateTime << 32) | (unsigned long long)ftNow.dwLowDateTime);
@@ -1903,7 +1798,7 @@ int Utility::MksTemp(char *tmpl)
 	return -1;
 }
 
-String Utility::GetIcingaInstallPath(void)
+String Utility::GetIcingaInstallPath()
 {
 	char szProduct[39];
 
@@ -1925,7 +1820,7 @@ String Utility::GetIcingaInstallPath(void)
 	return "";
 }
 
-String Utility::GetIcingaDataPath(void)
+String Utility::GetIcingaDataPath()
 {
 	char path[MAX_PATH];
 	if (!SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_COMMON_APPDATA, nullptr, 0, path)))
@@ -1934,3 +1829,54 @@ String Utility::GetIcingaDataPath(void)
 }
 
 #endif /* _WIN32 */
+
+/**
+ * Retrieve the environment variable value by given key.
+ *
+ * @param env Environment variable name.
+ */
+
+String Utility::GetFromEnvironment(const String& env)
+{
+	const char *envValue = getenv(env.CStr());
+
+	if (envValue == NULL)
+		return String();
+	else
+		return String(envValue);
+}
+
+/**
+ * Compare the password entered by a client with the actual password.
+ * The comparision is safe against timing attacks.
+ */
+bool Utility::ComparePasswords(const String& enteredPassword, const String& actualPassword)
+{
+	volatile const char * volatile enteredPasswordCStr = enteredPassword.CStr();
+	volatile size_t enteredPasswordLen = enteredPassword.GetLength();
+
+	volatile const char * volatile actualPasswordCStr = actualPassword.CStr();
+	volatile size_t actualPasswordLen = actualPassword.GetLength();
+
+	volatile uint_fast8_t result = enteredPasswordLen == actualPasswordLen;
+
+	if (result) {
+		auto cStr (actualPasswordCStr);
+		auto len (actualPasswordLen);
+
+		actualPasswordCStr = cStr;
+		actualPasswordLen = len;
+	} else {
+		auto cStr (enteredPasswordCStr);
+		auto len (enteredPasswordLen);
+
+		actualPasswordCStr = cStr;
+		actualPasswordLen = len;
+	}
+
+	for (volatile size_t i = 0; i < enteredPasswordLen; ++i) {
+		result &= uint_fast8_t(enteredPasswordCStr[i] == actualPasswordCStr[i]);
+	}
+
+	return result;
+}

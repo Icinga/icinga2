@@ -1,36 +1,10 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "config/configitembuilder.hpp"
 #include "base/configtype.hpp"
 #include <sstream>
 
 using namespace icinga;
-
-ConfigItemBuilder::ConfigItemBuilder(void)
-	: m_Abstract(false), m_DefaultTmpl(false), m_IgnoreOnError(false)
-{
-	m_DebugInfo.FirstLine = 0;
-	m_DebugInfo.FirstColumn = 0;
-	m_DebugInfo.LastLine = 0;
-	m_DebugInfo.LastColumn = 0;
-}
 
 ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
 	: m_Abstract(false), m_DefaultTmpl(false), m_IgnoreOnError(false)
@@ -40,6 +14,7 @@ ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
 
 void ConfigItemBuilder::SetType(const Type::Ptr& type)
 {
+	ASSERT(type);
 	m_Type = type;
 }
 
@@ -88,7 +63,7 @@ void ConfigItemBuilder::SetIgnoreOnError(bool ignoreOnError)
 	m_IgnoreOnError = ignoreOnError;
 }
 
-ConfigItem::Ptr ConfigItemBuilder::Compile(void)
+ConfigItem::Ptr ConfigItemBuilder::Compile()
 {
 	if (!m_Type) {
 		std::ostringstream msgbuf;
@@ -96,7 +71,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
 	}
 
-	ConfigType *ctype = dynamic_cast<ConfigType *>(m_Type.get());
+	auto *ctype = dynamic_cast<ConfigType *>(m_Type.get());
 
 	if (!ctype) {
 		std::ostringstream msgbuf;
@@ -112,11 +87,10 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 
 	std::vector<std::unique_ptr<Expression> > exprs;
 
-	Array::Ptr templateArray = new Array();
-	templateArray->Add(m_Name);
+	Array::Ptr templateArray = new Array({ m_Name });
 
 	exprs.emplace_back(new SetExpression(MakeIndexer(ScopeThis, "templates"), OpSetAdd,
-	    std::unique_ptr<LiteralExpression>(new LiteralExpression(templateArray)), m_DebugInfo));
+		std::unique_ptr<LiteralExpression>(new LiteralExpression(templateArray)), m_DebugInfo));
 
 #ifdef I2_DEBUG
 	if (!m_Abstract) {
@@ -133,7 +107,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	}
 #endif /* I2_DEBUG */
 
-	DictExpression *dexpr = new DictExpression(std::move(m_Expressions), m_DebugInfo);
+	auto *dexpr = new DictExpression(std::move(m_Expressions), m_DebugInfo);
 	dexpr->MakeInline();
 	exprs.emplace_back(dexpr);
 
@@ -141,6 +115,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	exprl->MakeInline();
 
 	return new ConfigItem(m_Type, m_Name, m_Abstract, exprl, m_Filter,
-	    m_DefaultTmpl, m_IgnoreOnError, m_DebugInfo, m_Scope, m_Zone, m_Package);
+		m_DefaultTmpl, m_IgnoreOnError, m_DebugInfo, m_Scope, m_Zone, m_Package);
 }
 

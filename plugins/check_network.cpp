@@ -1,67 +1,43 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #define WIN32_LEAN_AND_MEAN
 
-#include <Windows.h>
-#include <Pdh.h>
-#include <Shlwapi.h>
+#include "plugins/thresholds.hpp"
+#include <boost/program_options.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <vector>
+#include <map>
+#include <windows.h>
+#include <pdh.h>
+#include <shlwapi.h>
 #include <iostream>
 #include <pdhmsg.h>
-#include <WinSock2.h>
-#include <map>
-
-#include <IPHlpApi.h>
-
-#include "check_network.h"
-#include "boost/algorithm/string/replace.hpp"
+#include <winsock2.h>
+#include <iphlpapi.h>
 
 #define VERSION 1.2
 
 namespace po = boost::program_options;
 
-static BOOL debug = FALSE;
-static BOOL noisatap = FALSE;
-
-INT wmain(INT argc, WCHAR **argv) 
+struct nInterface
 {
-	std::vector<nInterface> vInterfaces;
-	std::map<std::wstring, std::wstring> mapNames;
-	printInfoStruct printInfo{};
-	po::variables_map vm;
+	std::wstring name;
+	LONG BytesInSec, BytesOutSec;
+	nInterface(std::wstring p)
+		: name(p)
+	{ }
+};
 
-	INT ret = parseArguments(argc, argv, vm, printInfo);
+struct printInfoStruct
+{
+	threshold warn;
+	threshold crit;
+};
 
-	if (ret != -1)
-		return ret;
+static bool l_Debug;
+static bool l_NoISATAP;
 
-	if (!mapSystemNamesToFamiliarNames(mapNames))
-		return 3;
-
-	ret = check_network(vInterfaces);
-	if (ret != -1)
-		return ret;
-
-	return printOutput(printInfo, vInterfaces, mapNames);
-}
-
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
+static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
 	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -78,19 +54,19 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		("critical,c", po::wvalue<std::wstring>(), "critical value")
 		;
 
-	po::basic_command_line_parser<WCHAR> parser(ac, av);
+	po::wcommand_line_parser parser(ac, av);
 
 	try {
 		po::store(
 			parser
 			.options(desc)
 			.style(
-			po::command_line_style::unix_style |
-			po::command_line_style::allow_long_disguise)
+				po::command_line_style::unix_style |
+				po::command_line_style::allow_long_disguise)
 			.run(),
 			vm);
 		vm.notify();
-	} catch (std::exception& e) {
+	} catch (const std::exception& e) {
 		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
@@ -127,11 +103,6 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 			L"warn is VALUE is inside the range spanned by THR1 and THR2\n\n"
 			L"-w ![THR1-THR2]\n"
 			L"warn if VALUE is outside the range spanned by THR1 and THR2\n\n"
-			L"-w THRESHOLD%%\n"
-			L"if the plugin accepts percentage based thresholds those will be used.\n"
-			L"Does nothing if the plugin does not accept percentages, or only uses\n"
-			L"percentage thresholds. Ranges can be used with \"%%\", but both range values need\n"
-			L"to end with a percentage sign.\n\n"
 			L"All of these options work with the critical threshold \"-c\" too."
 			, progName);
 		std::cout << '\n';
@@ -144,7 +115,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	if (vm.count("warning")) {
 		try {
 			printInfo.warn = threshold(vm["warning"].as<std::wstring>());
-		} catch (std::invalid_argument& e) {
+		} catch (const std::invalid_argument& e) {
 			std::cout << e.what() << '\n';
 			return 3;
 		}
@@ -152,28 +123,25 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	if (vm.count("critical")) {
 		try {
 			printInfo.crit = threshold(vm["critical"].as<std::wstring>());
-		} catch (std::invalid_argument& e) {
+		} catch (const std::invalid_argument& e) {
 			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
 
-	if (vm.count("debug"))
-		debug = TRUE;
-
-	if (vm.count("noisatap"))
-		noisatap = TRUE;
+	l_Debug = vm.count("debug") > 0;
+	l_NoISATAP = vm.count("noisatap") > 0;
 
 	return -1;
 }
 
-INT printOutput(printInfoStruct& printInfo, CONST std::vector<nInterface>& vInterfaces, CONST std::map<std::wstring, std::wstring>& mapNames)
+static int printOutput(printInfoStruct& printInfo, const std::vector<nInterface>& vInterfaces, const std::map<std::wstring, std::wstring>& mapNames)
 {
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Constructing output string" << '\n';
 
 	long tIn = 0, tOut = 0;
-	std::wstringstream tss, perfDataFirst;
+	std::wstringstream tss;
 	state state = OK;
 
 	std::map<std::wstring, std::wstring>::const_iterator mapIt;
@@ -182,27 +150,25 @@ INT printOutput(printInfoStruct& printInfo, CONST std::vector<nInterface>& vInte
 	for (std::vector<nInterface>::const_iterator it = vInterfaces.begin(); it != vInterfaces.end(); ++it) {
 		tIn += it->BytesInSec;
 		tOut += it->BytesOutSec;
-		if (debug)
+		if (l_Debug)
 			std::wcout << "Getting friendly name of " << it->name << '\n';
 		mapIt = mapNames.find(it->name);
 		if (mapIt != mapNames.end()) {
-			if (debug)
+			if (l_Debug)
 				std::wcout << "\tIs " << mapIt->second << '\n';
 			wsFriendlyName = mapIt->second;
 		} else {
-			if (debug)
+			if (l_Debug)
 				std::wcout << "\tNo friendly name found, using adapter name\n";
 			wsFriendlyName = it->name;
 		}
-		if(wsFriendlyName.find(L"isatap") != std::wstring::npos && noisatap) {
-			if (debug)
+		if (wsFriendlyName.find(L"isatap") != std::wstring::npos && l_NoISATAP) {
+			if (l_Debug)
 				std::wcout << "\tSkipping isatap interface " << wsFriendlyName << "\n";
 			continue;
-		}
-		else
-		{
+		} else {
 			boost::algorithm::replace_all(wsFriendlyName, "'", "''");
-			tss << L"\'" << wsFriendlyName << L"_in\'=" << it->BytesInSec << L"B \'" << wsFriendlyName << L"_out\'=" << it->BytesOutSec << L"B ";
+			tss << L"'" << wsFriendlyName << L"_in'=" << it->BytesInSec << L"B '" << wsFriendlyName << L"_out'=" << it->BytesOutSec << L"B ";
 		}
 	}
 
@@ -211,77 +177,83 @@ INT printOutput(printInfoStruct& printInfo, CONST std::vector<nInterface>& vInte
 	if (printInfo.crit.rend(tIn + tOut))
 		state = CRITICAL;
 
-	perfDataFirst << L"network=" << tIn + tOut << L"B;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; ";
+	std::wcout << "NETWORK ";
 
 	switch (state) {
 	case OK:
-		std::wcout << L"NETWORK OK " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << '\n';
+		std::wcout << L"OK";
 		break;
 	case WARNING:
-		std::wcout << L"NETWORK WARNING " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << '\n';
+		std::wcout << L"WARNING";
 		break;
 	case CRITICAL:
-		std::wcout << L"NETWORK CRITICAL " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << '\n';
+		std::wcout << L"CRITICAL";
 		break;
 	}
+
+	std::wcout << " " << tIn + tOut << L"B/s | "
+		<< L"'network'=" << tIn + tOut << L"B;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; "
+		<< tss.str() << '\n';
 
 	return state;
 }
 
-INT check_network(std::vector <nInterface>& vInterfaces) 
+static int check_network(std::vector<nInterface>& vInterfaces)
 {
-	CONST WCHAR *perfIn = L"\\Network Interface(*)\\Bytes Received/sec";
-	CONST WCHAR *perfOut = L"\\Network Interface(*)\\Bytes Sent/sec";
 
-	PDH_HQUERY phQuery = NULL;
-	PDH_HCOUNTER phCounterIn, phCounterOut;
-	DWORD dwBufferSizeIn = 0, dwBufferSizeOut = 0, dwItemCount = 0;
-	PDH_FMT_COUNTERVALUE_ITEM *pDisplayValuesIn = NULL, *pDisplayValuesOut = NULL;
-	PDH_STATUS err;
-
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Creating Query and adding counters" << '\n';
 
-	err = PdhOpenQuery(NULL, NULL, &phQuery);
+	PDH_FMT_COUNTERVALUE_ITEM *pDisplayValuesIn = NULL, *pDisplayValuesOut = NULL;
+
+	PDH_HQUERY phQuery;
+	PDH_STATUS err = PdhOpenQuery(NULL, NULL, &phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
+	const WCHAR *perfIn = L"\\Network Interface(*)\\Bytes Received/sec";
+	PDH_HCOUNTER phCounterIn;
 	err = PdhAddEnglishCounter(phQuery, perfIn, NULL, &phCounterIn);
-	if (!SUCCEEDED(err)) 
+	if (!SUCCEEDED(err))
 		goto die;
 
+	const WCHAR *perfOut = L"\\Network Interface(*)\\Bytes Sent/sec";
+	PDH_HCOUNTER phCounterOut;
 	err = PdhAddEnglishCounter(phQuery, perfOut, NULL, &phCounterOut);
-	if (!SUCCEEDED(err)) 
+	if (!SUCCEEDED(err))
 		goto die;
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Collecting first batch of query data" << '\n';
 
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Sleep for one second" << '\n';
 
 	Sleep(1000);
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Collecting second batch of query data" << '\n';
 
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Creating formatted counter arrays" << '\n';
 
+	DWORD dwItemCount;
+	DWORD dwBufferSizeIn = 0;
 	err = PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn);
 	if (err == PDH_MORE_DATA || SUCCEEDED(err))
 		pDisplayValuesIn = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(new BYTE[dwItemCount*dwBufferSizeIn]);
 	else
 		goto die;
 
+	DWORD dwBufferSizeOut = 0;
 	err = PdhGetFormattedCounterArray(phCounterOut, PDH_FMT_LONG, &dwBufferSizeOut, &dwItemCount, pDisplayValuesOut);
 	if (err == PDH_MORE_DATA || SUCCEEDED(err))
 		pDisplayValuesOut = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(new BYTE[dwItemCount*dwBufferSizeIn]);
@@ -296,48 +268,42 @@ INT check_network(std::vector <nInterface>& vInterfaces)
 	if (!SUCCEEDED(err))
 		goto die;
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Going over counter array" << '\n';
 
 	for (DWORD i = 0; i < dwItemCount; i++) {
-		nInterface *iface = new nInterface(std::wstring(pDisplayValuesIn[i].szName));
-		iface->BytesInSec = pDisplayValuesIn[i].FmtValue.longValue;
-		iface->BytesOutSec = pDisplayValuesOut[i].FmtValue.longValue;
-		vInterfaces.push_back(*iface);
-		if (debug)
+		nInterface iface{pDisplayValuesIn[i].szName};
+		iface.BytesInSec = pDisplayValuesIn[i].FmtValue.longValue;
+		iface.BytesOutSec = pDisplayValuesOut[i].FmtValue.longValue;
+		vInterfaces.push_back(iface);
+
+		if (l_Debug)
 			std::wcout << L"Collected interface " << pDisplayValuesIn[i].szName << '\n';
 	}
-	if (debug)
+
+	if (l_Debug)
 		std::wcout << L"Finished collection. Cleaning up and returning" << '\n';
 
 	if (phQuery)
 		PdhCloseQuery(phQuery);
-	if (pDisplayValuesIn)
-		delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesIn);
-	if (pDisplayValuesOut)
-		delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesOut);
+
+	delete reinterpret_cast<BYTE *>(pDisplayValuesIn);
+	delete reinterpret_cast<BYTE *>(pDisplayValuesOut);
+
 	return -1;
 die:
-	die(err);
+	printErrorInfo(err);
 	if (phQuery)
 		PdhCloseQuery(phQuery);
-	if (pDisplayValuesIn)
-		delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesIn);
-	if (pDisplayValuesOut)
-		delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesOut);
+
+	delete reinterpret_cast<BYTE *>(pDisplayValuesIn);
+	delete reinterpret_cast<BYTE *>(pDisplayValuesOut);
+
 	return 3;
 }
 
-BOOL mapSystemNamesToFamiliarNames(std::map<std::wstring, std::wstring>& mapNames)
+static bool mapSystemNamesToFamiliarNames(std::map<std::wstring, std::wstring>& mapNames)
 {
-	DWORD dwSize = 0, dwRetVal = 0;
-
-	ULONG family = AF_UNSPEC, flags = GAA_FLAG_INCLUDE_PREFIX,
-		outBufLen = 0, Iterations = 0;
-	LPVOID lpMsgBuf = NULL;
-
-	PIP_ADAPTER_ADDRESSES pAddresses = NULL;
-	PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
 	/*
 	PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
 	PIP_ADAPTER_ANYCAST_ADDRESS pAnycast = NULL;
@@ -345,15 +311,20 @@ BOOL mapSystemNamesToFamiliarNames(std::map<std::wstring, std::wstring>& mapName
 	PIP_ADAPTER_DNS_SERVER_ADDRESS pDnsServer = NULL;
 	PIP_ADAPTER_PREFIX pPrefix = NULL;
 	*/
-	outBufLen = 15000; //15KB as suggestet by msdn of GetAdaptersAddresses
+	ULONG outBufLen = 15000; //15KB as suggestet by msdn of GetAdaptersAddresses
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << "Mapping adapter system names to friendly names\n";
+
+	PIP_ADAPTER_ADDRESSES pAddresses;
+
+	unsigned int Iterations = 0;
+	DWORD dwRetVal = 0;
 
 	do {
 		pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(new BYTE[outBufLen]);
 
-		dwRetVal = GetAdaptersAddresses(family, flags, NULL, pAddresses, &outBufLen);
+		dwRetVal = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen);
 
 		if (dwRetVal == ERROR_BUFFER_OVERFLOW) {
 			delete[]pAddresses;
@@ -365,23 +336,38 @@ BOOL mapSystemNamesToFamiliarNames(std::map<std::wstring, std::wstring>& mapName
 	if (dwRetVal != NO_ERROR) {
 		std::wcout << "Failed to collect friendly adapter names\n";
 		delete[]pAddresses;
-		return FALSE;
+		return false;
 	}
 
-	pCurrAddresses = pAddresses;
-	std::wstringstream wssAdapterName;
-	std::wstringstream wssFriendlyName;
-	for (pCurrAddresses = pAddresses; pCurrAddresses; pCurrAddresses = pCurrAddresses->Next) {
-		wssAdapterName.str(std::wstring());
-		wssFriendlyName.str(std::wstring());
-		wssAdapterName << pCurrAddresses->Description;
-		wssFriendlyName << pCurrAddresses->FriendlyName;
-		if (debug)
-			std::wcout << "Got: " << wssAdapterName.str() << " -- " << wssFriendlyName.str() << '\n';
+	for (PIP_ADAPTER_ADDRESSES pCurrAddresses = pAddresses; pCurrAddresses; pCurrAddresses = pCurrAddresses->Next) {
+		if (l_Debug)
+			std::wcout << "Got: " << pCurrAddresses->Description << " -- " << pCurrAddresses->FriendlyName << '\n';
 
-		mapNames.insert(std::pair<std::wstring, std::wstring>(wssAdapterName.str(), wssFriendlyName.str()));
+		mapNames[pCurrAddresses->Description] = pCurrAddresses->FriendlyName;
 	}
 
 	delete[]pAddresses;
-	return TRUE;
+	return true;
+}
+
+int wmain(int argc, WCHAR **argv)
+{
+	std::vector<nInterface> vInterfaces;
+	std::map<std::wstring, std::wstring> mapNames;
+	printInfoStruct printInfo;
+	po::variables_map vm;
+
+	int ret = parseArguments(argc, argv, vm, printInfo);
+
+	if (ret != -1)
+		return ret;
+
+	if (!mapSystemNamesToFamiliarNames(mapNames))
+		return 3;
+
+	ret = check_network(vInterfaces);
+	if (ret != -1)
+		return ret;
+
+	return printOutput(printInfo, vInterfaces, mapNames);
 }

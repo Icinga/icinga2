@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/typequeryhandler.hpp"
 #include "remote/httputility.hpp"
@@ -23,27 +6,26 @@
 #include "base/configtype.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/logger.hpp"
-#include <boost/algorithm/string.hpp>
 #include <set>
 
 using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/types", TypeQueryHandler);
 
-class TypeTargetProvider : public TargetProvider
+class TypeTargetProvider final : public TargetProvider
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TypeTargetProvider);
 
-	virtual void FindTargets(const String& type,
-	    const std::function<void (const Value&)>& addTarget) const override
+	void FindTargets(const String& type,
+		const std::function<void (const Value&)>& addTarget) const override
 	{
 		for (const Type::Ptr& target : Type::GetAllTypes()) {
 			addTarget(target);
 		}
 	}
 
-	virtual Value GetTargetByName(const String& type, const String& name) const override
+	Value GetTargetByName(const String& type, const String& name) const override
 	{
 		Type::Ptr ptype = Type::GetByName(name);
 
@@ -53,23 +35,34 @@ public:
 		return ptype;
 	}
 
-	virtual bool IsValidType(const String& type) const override
+	bool IsValidType(const String& type) const override
 	{
 		return type == "Type";
 	}
 
-	virtual String GetPluralName(const String& type) const override
+	String GetPluralName(const String& type) const override
 	{
 		return "types";
 	}
 };
 
-bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool TypeQueryHandler::HandleRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	HttpServerConnection& server
+)
 {
-	if (request.RequestUrl->GetPath().size() > 3)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() > 3)
 		return false;
 
-	if (request.RequestMethod != "GET")
+	if (request.method() != http::verb::get)
 		return false;
 
 	QueryDescription qd;
@@ -82,25 +75,25 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 
 	params->Set("type", "Type");
 
-	if (request.RequestUrl->GetPath().size() >= 3)
-		params->Set("name", request.RequestUrl->GetPath()[2]);
+	if (url->GetPath().size() >= 3)
+		params->Set("name", url->GetPath()[2]);
 
 	std::vector<Value> objs;
 
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, 404,
-		    "No objects found.",
-		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+		HttpUtility::SendJsonError(response, params, 404,
+			"No objects found.",
+			DiagnosticInformation(ex));
 		return true;
 	}
 
-	Array::Ptr results = new Array();
+	ArrayData results;
 
 	for (const Type::Ptr& obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
-		results->Add(result1);
+		results.push_back(result1);
 
 		Dictionary::Ptr resultAttrs = new Dictionary();
 		result1->Set("name", obj->GetName());
@@ -140,25 +133,24 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 				fieldInfo->Set("navigation_name", field.NavigationName);
 			fieldInfo->Set("array_rank", field.ArrayRank);
 
-			Dictionary::Ptr attributeInfo = new Dictionary();
-			fieldInfo->Set("attributes", attributeInfo);
-
-			attributeInfo->Set("config", static_cast<bool>(field.Attributes & FAConfig));
-			attributeInfo->Set("state", static_cast<bool>(field.Attributes & FAState));
-			attributeInfo->Set("required", static_cast<bool>(field.Attributes & FARequired));
-			attributeInfo->Set("navigation", static_cast<bool>(field.Attributes & FANavigation));
-			attributeInfo->Set("no_user_modify", static_cast<bool>(field.Attributes & FANoUserModify));
-			attributeInfo->Set("no_user_view", static_cast<bool>(field.Attributes & FANoUserView));
-			attributeInfo->Set("deprecated", static_cast<bool>(field.Attributes & FADeprecated));
+			fieldInfo->Set("attributes", new Dictionary({
+				{ "config", static_cast<bool>(field.Attributes & FAConfig) },
+				{ "state", static_cast<bool>(field.Attributes & FAState) },
+				{ "required", static_cast<bool>(field.Attributes & FARequired) },
+				{ "navigation", static_cast<bool>(field.Attributes & FANavigation) },
+				{ "no_user_modify", static_cast<bool>(field.Attributes & FANoUserModify) },
+				{ "no_user_view", static_cast<bool>(field.Attributes & FANoUserView) },
+				{ "deprecated", static_cast<bool>(field.Attributes & FADeprecated) }
+			}));
 		}
 	}
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(results)) }
+	});
 
-	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	response.result(http::status::ok);
+	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }
-

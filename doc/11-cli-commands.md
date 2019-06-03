@@ -13,16 +13,16 @@ options.
 
 ```
 # icinga2
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
 
 Supported commands:
-  * api setup (setup for api)
+  * api setup (setup for API)
   * ca list (lists all certificate signing requests)
   * ca sign (signs an outstanding certificate request)
-  * console (Icinga console)
+  * console (Icinga debug console)
   * daemon (starts Icinga 2)
   * feature disable (disables specified feature)
   * feature enable (enables specified feature)
@@ -36,7 +36,6 @@ Supported commands:
   * pki save-cert (saves another Icinga 2 instance's certificate)
   * pki sign-csr (signs a CSR)
   * pki ticket (generates a ticket)
-  * troubleshoot (collect information for troubleshooting)
   * variable get (gets a variable)
   * variable list (lists all variables)
 
@@ -55,7 +54,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 
@@ -135,18 +134,19 @@ added.
 
 ## CLI command: Api <a id="cli-command-api"></a>
 
-Provides the setup CLI command to enable the REST API. More details
-in the [Icinga 2 API](12-icinga2-api.md#icinga2-api-setup) chapter.
+Provides helper functions to enable and setup the
+[Icinga 2 API](12-icinga2-api.md#icinga2-api-setup).
+
+### CLI command: Api Setup <a id="cli-command-api-setup "></a>
 
 ```
-# icinga2 api --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+# icinga2 api setup --help
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
-  icinga2 <command> [<arguments>]
+  icinga2 api setup [<arguments>]
 
-Supported commands:
-  * api setup (setup for api)
+Setup for Icinga 2 API.
 
 Global options:
   -h [ --help ]             show this help message
@@ -154,16 +154,19 @@ Global options:
   --color                   use VT100 color codes even when stdout is not a
                             terminal
   -D [ --define ] arg       define a constant
-  -a [ --app ] arg          application library name (default: icinga)
-  -l [ --library ] arg      load a library
   -I [ --include ] arg      add include search directory
   -x [ --log-level ] arg    specify the log level for the console log.
                             The valid value is either debug, notice,
                             information (default), warning, or critical
   -X [ --script-debugger ]  whether to enable the script debugger
 
+Command options:
+  --cn arg                  The certificate's common name
+
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Get support: <https://icinga.com/support/>
+Documentation: <https://icinga.com/docs/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## CLI command: Ca <a id="cli-command-ca"></a>
@@ -174,7 +177,7 @@ chapter. This CLI command is available since v2.8.
 
 ```
 # icinga2 ca --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -198,7 +201,43 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
+```
+
+
+### CLI command: Ca List <a id="cli-command-ca-list"></a>
+
+```
+icinga2 ca list --help
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
+
+Usage:
+  icinga2 ca list [<arguments>]
+
+Lists pending certificate signing requests.
+
+Global options:
+  -h [ --help ]             show this help message
+  -V [ --version ]          show version information
+  --color                   use VT100 color codes even when stdout is not a
+                            terminal
+  -D [ --define ] arg       define a constant
+  -I [ --include ] arg      add include search directory
+  -x [ --log-level ] arg    specify the log level for the console log.
+                            The valid value is either debug, notice,
+                            information (default), warning, or critical
+  -X [ --script-debugger ]  whether to enable the script debugger
+
+Command options:
+  --all                     List all certificate signing requests, including
+                            signed. Note: Old requests are automatically
+                            cleaned by Icinga after 1 week.
+  --json                    encode output as JSON
+
+Report bugs at <https://github.com/Icinga/icinga2>
+Get support: <https://icinga.com/support/>
+Documentation: <https://icinga.com/docs/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## CLI command: Console <a id="cli-command-console"></a>
@@ -208,7 +247,7 @@ e.g. to test [functions](17-language-reference.md#functions) in your local sandb
 
 ```
 $ icinga2 console
-Icinga 2 (version: v2.8.0)
+Icinga 2 (version: v2.11.0)
 <1> => function test(name) {
 <1> ..   log("Hello " + name)
 <1> .. }
@@ -223,7 +262,7 @@ Further usage examples can be found in the [library reference](18-library-refere
 
 ```
 # icinga2 console --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 console [<arguments>]
@@ -252,7 +291,7 @@ Command options:
   --sandbox                 enable sandbox mode
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 
@@ -270,7 +309,7 @@ are required for executing config expressions and auto-completion.
 
 > **Note**
 >
-> The debug console does not currently support SSL certificate verification.
+> The debug console does not currently support TLS certificate verification.
 >
 > Runtime modifications are not validated and might cause the Icinga 2
 > daemon to crash or behave in an unexpected way. Use these runtime changes
@@ -291,7 +330,7 @@ Here's an example:
 
 ```
 $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
-Icinga 2 (version: v2.8.0)
+Icinga 2 (version: v2.11.0)
 <1> =>
 ```
 
@@ -360,7 +399,7 @@ Furthermore it allows to run the [configuration validation](11-cli-commands.md#c
 
 ```
 # icinga2 daemon --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 daemon [<arguments>]
@@ -386,23 +425,25 @@ Command options:
   -z [ --no-config ]        start without a configuration file
   -C [ --validate ]         exit after validating the configuration
   -e [ --errorlog ] arg     log fatal errors to the specified log file (only
-                            works in combination with --daemonize)
+                            works in combination with --daemonize or
+                            --close-stdio)
   -d [ --daemonize ]        detach from the controlling terminal
+  --close-stdio             do not log to stdout (or stderr) after startup
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
-### Config Files
+### Config Files <a id="cli-command-daemon-config-files"></a>
 
 You can specify one or more configuration files with the `--config` option.
 Configuration files are processed in the order they're specified on the command-line.
 
 When no configuration file is specified and the `--no-config` is not used
 Icinga 2 automatically falls back to using the configuration file
-`SysconfDir + "/icinga2/icinga2.conf"` (where SysconfDir is usually `/etc`).
+`ConfigDir + "/icinga2.conf"` (where ConfigDir is usually `/etc/icinga2`).
 
-### Config Validation
+### Validation <a id="cli-command-daemon-validation"></a>
 
 The `--validate` option can be used to check if configuration files
 contain errors. If any errors are found, the exit status is 1, otherwise 0
@@ -439,7 +480,7 @@ nodes in a [distributed monitoring](06-distributed-monitoring.md#distributed-mon
 
 ```
 # icinga2 node --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -463,7 +504,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## CLI command: Object <a id="cli-command-object"></a>
@@ -482,7 +523,7 @@ More information can be found in the [troubleshooting](15-troubleshooting.md#tro
 
 ```
 # icinga2 object --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.7.1-196-g23e8a6253; debug)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -505,7 +546,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## CLI command: Pki <a id="cli-command-pki"></a>
@@ -524,7 +565,7 @@ You will need them in the [distributed monitoring chapter](06-distributed-monito
 
 ```
 # icinga2 pki --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -552,51 +593,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
-```
-
-## CLI command: Troubleshoot <a id="cli-command-troubleshoot"></a>
-
-Collects basic information like version, paths, log files and crash reports for troubleshooting
-purposes and prints them to a file or the console. See [troubleshooting](15-troubleshooting.md#troubleshooting-information-required).
-
-Its output defaults to a file named `troubleshooting-[TIMESTAMP].log` so it won't overwrite older troubleshooting files.
-
-Keep in mind that this tool can not collect information from other icinga2 nodes, you will have to run it on
-each of one of you instances.
-This is only a tool to collect information to help others help you, it will not attempt to fix anything.
-
-```
-# icinga2 troubleshoot --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0)
-
-Usage:
-  icinga2 troubleshoot [<arguments>]
-
-Collect logs and other relevant information for troubleshooting purposes.
-
-Global options:
-  -h [ --help ]             show this help message
-  -V [ --version ]          show version information
-  --color                   use VT100 color codes even when stdout is not a
-                            terminal
-  -D [ --define ] arg       define a constant
-  -a [ --app ] arg          application library name (default: icinga)
-  -l [ --library ] arg      load a library
-  -I [ --include ] arg      add include search directory
-  -x [ --log-level ] arg    specify the log level for the console log.
-                            The valid value is either debug, notice,
-                            information (default), warning, or critical
-  -X [ --script-debugger ]  whether to enable the script debugger
-
-Command options:
-  -c [ --console ]          print to console instead of file
-  -o [ --output ] arg       path to output file
-  --include-objects         Print the whole objectfile (like `object list`)
-  --include-vars            Print all Variables (like `variable list`)
-
-Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## CLI command: Variable <a id="cli-command-variable"></a>
@@ -605,7 +602,7 @@ Lists all configured variables (constants) in a similar fashion like [object lis
 
 ```
 # icinga2 variable --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.8.0; debug)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -629,7 +626,7 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 ```
 
 ## Enabling/Disabling Features <a id="enable-features"></a>
@@ -728,4 +725,3 @@ safely reload the Icinga 2 daemon.
 The `reload` action will send the `SIGHUP` signal to the Icinga 2 daemon
 which will validate the configuration in a separate process and not stop
 the other events like check execution, notifications, etc.
-

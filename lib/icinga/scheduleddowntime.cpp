@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/scheduleddowntime.hpp"
-#include "icinga/scheduleddowntime.tcpp"
+#include "icinga/scheduleddowntime-ti.cpp"
 #include "icinga/legacytimeperiod.hpp"
 #include "icinga/downtime.hpp"
 #include "icinga/service.hpp"
@@ -29,8 +12,6 @@
 #include "base/convert.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -58,8 +39,7 @@ String ScheduledDowntimeNameComposer::MakeName(const String& shortName, const Ob
 
 Dictionary::Ptr ScheduledDowntimeNameComposer::ParseName(const String& name) const
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, name, boost::is_any_of("!"));
+	std::vector<String> tokens = name.Split("!");
 
 	if (tokens.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid ScheduledDowntime name."));
@@ -77,12 +57,14 @@ Dictionary::Ptr ScheduledDowntimeNameComposer::ParseName(const String& name) con
 	return result;
 }
 
-void ScheduledDowntime::OnAllConfigLoaded(void)
+void ScheduledDowntime::OnAllConfigLoaded()
 {
 	ObjectImpl<ScheduledDowntime>::OnAllConfigLoaded();
 
 	if (!GetCheckable())
 		BOOST_THROW_EXCEPTION(ScriptError("ScheduledDowntime '" + GetName() + "' references a host/service which doesn't exist.", GetDebugInfo()));
+
+	m_AllConfigLoaded.store(true);
 }
 
 void ScheduledDowntime::Start(bool runtimeCreated)
@@ -91,25 +73,26 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
-	boost::call_once(once, []() {
+	boost::call_once(once, [this]() {
 		l_Timer = new Timer();
 		l_Timer->SetInterval(60);
 		l_Timer->OnTimerExpired.connect(std::bind(&ScheduledDowntime::TimerProc));
 		l_Timer->Start();
 	});
 
-	Utility::QueueAsyncCallback(std::bind(&ScheduledDowntime::CreateNextDowntime, this));
+	if (!IsPaused())
+		Utility::QueueAsyncCallback(std::bind(&ScheduledDowntime::CreateNextDowntime, this));
 }
 
-void ScheduledDowntime::TimerProc(void)
+void ScheduledDowntime::TimerProc()
 {
 	for (const ScheduledDowntime::Ptr& sd : ConfigType::GetObjectsByType<ScheduledDowntime>()) {
-		if (sd->IsActive())
+		if (sd->IsActive() && !sd->IsPaused())
 			sd->CreateNextDowntime();
 	}
 }
 
-Checkable::Ptr ScheduledDowntime::GetCheckable(void) const
+Checkable::Ptr ScheduledDowntime::GetCheckable() const
 {
 	Host::Ptr host = Host::GetByName(GetHostName());
 
@@ -119,13 +102,14 @@ Checkable::Ptr ScheduledDowntime::GetCheckable(void) const
 		return host->GetServiceByShortName(GetServiceName());
 }
 
-std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
+std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 {
 	time_t refts = Utility::GetTime();
 	tm reference = Utility::LocalTime(refts);
 
 	Log(LogDebug, "ScheduledDowntime")
-	    << "Finding next scheduled downtime segment for time " << refts;
+	    << "Finding running scheduled downtime segment for time " << refts
+	    << " (minEnd " << (minEnd > 0 ? Utility::FormatDateTime("%c", minEnd) : "-") << ")";
 
 	Dictionary::Ptr ranges = GetRanges();
 
@@ -135,72 +119,176 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 	Array::Ptr segments = new Array();
 
 	Dictionary::Ptr bestSegment;
-	double bestBegin;
+	double bestBegin = 0.0, bestEnd = 0.0;
 	double now = Utility::GetTime();
 
 	ObjectLock olock(ranges);
+
+	/* Find the longest lasting (and longer than minEnd, if given) segment that's already running */  
 	for (const Dictionary::Pair& kv : ranges) {
 		Log(LogDebug, "ScheduledDowntime")
-		    << "Evaluating segment: " << kv.first << ": " << kv.second << " at ";
+		    << "Evaluating (running?) segment: " << kv.first << ": " << kv.second;
+
+		Dictionary::Ptr segment = LegacyTimePeriod::FindRunningSegment(kv.first, kv.second, &reference);
+
+		if (!segment)
+			continue;
+
+		double begin = segment->Get("begin");
+		double end = segment->Get("end");
+
+		Log(LogDebug, "ScheduledDowntime")
+		    << "Considering (running?) segment: " << Utility::FormatDateTime("%c", begin) << " -> " << Utility::FormatDateTime("%c", end);
+
+		if (begin >= now || end < now) {
+			Log(LogDebug, "ScheduledDowntime") << "not running.";
+			continue;
+		}
+		if (minEnd && end <= minEnd) {
+			Log(LogDebug, "ScheduledDowntime") << "ending too early.";
+			continue;
+		}
+
+		if (!bestSegment || end > bestEnd) {
+			Log(LogDebug, "ScheduledDowntime") << "(best match yet)";
+			bestSegment = segment;
+			bestBegin = begin;
+			bestEnd = end;
+		}
+	}
+
+	if (bestSegment)
+		return std::make_pair(bestBegin, bestEnd);
+
+	return std::make_pair(0, 0);
+}
+
+std::pair<double, double> ScheduledDowntime::FindNextSegment()
+{
+	time_t refts = Utility::GetTime();
+	tm reference = Utility::LocalTime(refts);
+
+	Log(LogDebug, "ScheduledDowntime")
+		<< "Finding next scheduled downtime segment for time " << refts;
+
+	Dictionary::Ptr ranges = GetRanges();
+
+	if (!ranges)
+		return std::make_pair(0, 0);
+
+	Array::Ptr segments = new Array();
+
+	Dictionary::Ptr bestSegment;
+	double bestBegin = 0.0, bestEnd = 0.0;
+	double now = Utility::GetTime();
+
+	ObjectLock olock(ranges);
+
+	/* Find the segment starting earliest */
+	for (const Dictionary::Pair& kv : ranges) {
+		Log(LogDebug, "ScheduledDowntime")
+			<< "Evaluating segment: " << kv.first << ": " << kv.second;
 
 		Dictionary::Ptr segment = LegacyTimePeriod::FindNextSegment(kv.first, kv.second, &reference);
 
 		if (!segment)
 			continue;
 
-		Log(LogDebug, "ScheduledDowntime")
-		    << "Considering segment: " << Utility::FormatDateTime("%c", segment->Get("begin")) << " -> " << Utility::FormatDateTime("%c", segment->Get("end"));
-
 		double begin = segment->Get("begin");
+		double end = segment->Get("end");
 
-		if (begin < now)
+		Log(LogDebug, "ScheduledDowntime")
+			<< "Considering segment: " << Utility::FormatDateTime("%c", begin) << " -> " << Utility::FormatDateTime("%c", end);
+
+		if (begin < now) {
+			Log(LogDebug, "ScheduledDowntime") << "already running.";
 			continue;
+		}
 
 		if (!bestSegment || begin < bestBegin) {
+			Log(LogDebug, "ScheduledDowntime") << "(best match yet)";
 			bestSegment = segment;
 			bestBegin = begin;
+			bestEnd = end;
 		}
 	}
 
 	if (bestSegment)
-		return std::make_pair(bestSegment->Get("begin"), bestSegment->Get("end"));
-	else
-		return std::make_pair(0, 0);
+		return std::make_pair(bestBegin, bestEnd);
+
+	return std::make_pair(0, 0);
 }
 
-void ScheduledDowntime::CreateNextDowntime(void)
+void ScheduledDowntime::CreateNextDowntime()
 {
+	/* HA enabled zones. */
+	if (IsActive() && IsPaused()) {
+		Log(LogNotice, "Checkable")
+			<< "Skipping downtime creation for HA-paused Scheduled Downtime object '" << GetName() << "'";
+		return;
+	}
+
+	double minEnd = 0;
+
 	for (const Downtime::Ptr& downtime : GetCheckable()->GetDowntimes()) {
+		double end = downtime->GetEndTime();
+		if (end > minEnd)
+			minEnd = end;
+
 		if (downtime->GetScheduledBy() != GetName() ||
-		    downtime->GetStartTime() < Utility::GetTime())
+			downtime->GetStartTime() < Utility::GetTime())
 			continue;
 
 		/* We've found a downtime that is owned by us and that hasn't started yet - we're done. */
 		return;
 	}
 
-	std::pair<double, double> segment = FindNextSegment();
+	Log(LogDebug, "ScheduledDowntime")
+		<< "Creating new Downtime for ScheduledDowntime \"" << GetName() << "\"";
 
+	std::pair<double, double> segment = FindRunningSegment(minEnd);
 	if (segment.first == 0 && segment.second == 0) {
-		tm reference = Utility::LocalTime(Utility::GetTime());
-		reference.tm_mday++;
-		reference.tm_hour = 0;
-		reference.tm_min = 0;
-		reference.tm_sec = 0;
-
-		return;
+		segment = FindNextSegment();
+		if (segment.first == 0 && segment.second == 0)
+			return;
 	}
 
-	Downtime::AddDowntime(GetCheckable(), GetAuthor(), GetComment(),
-	    segment.first, segment.second,
-	    GetFixed(), String(), GetDuration(), GetName(), GetName());
+	String downtimeName = Downtime::AddDowntime(GetCheckable(), GetAuthor(), GetComment(),
+		segment.first, segment.second,
+		GetFixed(), String(), GetDuration(), GetName(), GetName());
+
+	Downtime::Ptr downtime = Downtime::GetByName(downtimeName);
+
+	int childOptions = Downtime::ChildOptionsFromValue(GetChildOptions());
+	if (childOptions > 0) {
+		/* 'DowntimeTriggeredChildren' schedules child downtimes triggered by the parent downtime.
+		 * 'DowntimeNonTriggeredChildren' schedules non-triggered downtimes for all children.
+		 */
+		String triggerName;
+		if (childOptions == 1)
+			triggerName = downtimeName;
+
+		Log(LogNotice, "ScheduledDowntime")
+				<< "Processing child options " << childOptions << " for downtime " << downtimeName;
+
+		for (const Checkable::Ptr& child : GetCheckable()->GetAllChildren()) {
+			Log(LogNotice, "ScheduledDowntime")
+				<< "Scheduling downtime for child object " << child->GetName();
+
+			String childDowntimeName = Downtime::AddDowntime(child, GetAuthor(), GetComment(),
+				segment.first, segment.second, GetFixed(), triggerName, GetDuration(), GetName(), GetName());
+
+			Log(LogNotice, "ScheduledDowntime")
+				<< "Add child downtime '" << childDowntimeName << "'.";
+		}
+	}
 }
 
-void ScheduledDowntime::ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils)
+void ScheduledDowntime::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<ScheduledDowntime>::ValidateRanges(value, utils);
+	ObjectImpl<ScheduledDowntime>::ValidateRanges(lvalue, utils);
 
-	if (!value)
+	if (!lvalue())
 		return;
 
 	/* create a fake time environment to validate the definitions */
@@ -208,8 +296,8 @@ void ScheduledDowntime::ValidateRanges(const Dictionary::Ptr& value, const Valid
 	tm reference = Utility::LocalTime(refts);
 	Array::Ptr segments = new Array();
 
-	ObjectLock olock(value);
-	for (const Dictionary::Pair& kv : value) {
+	ObjectLock olock(lvalue());
+	for (const Dictionary::Pair& kv : lvalue()) {
 		try {
 			tm begin_tm, end_tm;
 			int stride;
@@ -226,3 +314,20 @@ void ScheduledDowntime::ValidateRanges(const Dictionary::Ptr& value, const Valid
 	}
 }
 
+void ScheduledDowntime::ValidateChildOptions(const Lazy<Value>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ScheduledDowntime>::ValidateChildOptions(lvalue, utils);
+
+	try {
+		Downtime::ChildOptionsFromValue(lvalue());
+	} catch (const std::exception&) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "child_options" }, "Invalid child_options specified"));
+	}
+}
+
+bool ScheduledDowntime::AllConfigIsLoaded()
+{
+	return m_AllConfigLoaded.load();
+}
+
+std::atomic<bool> ScheduledDowntime::m_AllConfigLoaded (false);

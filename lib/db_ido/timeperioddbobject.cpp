@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "db_ido/timeperioddbobject.hpp"
 #include "db_ido/dbtype.hpp"
@@ -34,22 +17,21 @@ TimePeriodDbObject::TimePeriodDbObject(const DbType::Ptr& type, const String& na
 	: DbObject(type, name1, name2)
 { }
 
-Dictionary::Ptr TimePeriodDbObject::GetConfigFields(void) const
+Dictionary::Ptr TimePeriodDbObject::GetConfigFields() const
 {
-	Dictionary::Ptr fields = new Dictionary();
 	TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(GetObject());
 
-	fields->Set("alias", tp->GetDisplayName());
-
-	return fields;
+	return new Dictionary({
+		{ "alias", tp->GetDisplayName() }
+	});
 }
 
-Dictionary::Ptr TimePeriodDbObject::GetStatusFields(void) const
+Dictionary::Ptr TimePeriodDbObject::GetStatusFields() const
 {
 	return Empty;
 }
 
-void TimePeriodDbObject::OnConfigUpdateHeavy(void)
+void TimePeriodDbObject::OnConfigUpdateHeavy()
 {
 	TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(GetObject());
 
@@ -57,8 +39,9 @@ void TimePeriodDbObject::OnConfigUpdateHeavy(void)
 	query_del1.Table = GetType()->GetTable() + "_timeranges";
 	query_del1.Type = DbQueryDelete;
 	query_del1.Category = DbCatConfig;
-	query_del1.WhereCriteria = new Dictionary();
-	query_del1.WhereCriteria->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));
+	query_del1.WhereCriteria = new Dictionary({
+		{ "timeperiod_id", DbValue::FromObjectInsertID(tp) }
+	});
 	OnQuery(query_del1);
 
 	Dictionary::Ptr ranges = tp->GetRanges();
@@ -89,12 +72,13 @@ void TimePeriodDbObject::OnConfigUpdateHeavy(void)
 			query.Table = GetType()->GetTable() + "_timeranges";
 			query.Type = DbQueryInsert;
 			query.Category = DbCatConfig;
-			query.Fields = new Dictionary();
-			query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query.Fields->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));
-			query.Fields->Set("day", wday);
-			query.Fields->Set("start_sec", begin % 86400);
-			query.Fields->Set("end_sec", end % 86400);
+			query.Fields = new Dictionary({
+				{ "instance_id", 0 }, /* DbConnection class fills in real ID */
+				{ "timeperiod_id", DbValue::FromObjectInsertID(tp) },
+				{ "day", wday },
+				{ "start_sec", begin % 86400 },
+				{ "end_sec", end % 86400 }
+			});
 			OnQuery(query);
 		}
 	}

@@ -25,7 +25,9 @@ You are advised to create your own CheckCommand definitions in
 
 By default the generic templates are included in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file:
 
-    include <itl>
+```
+include <itl>
+```
 
 These templates are imported by the provided example configuration.
 
@@ -74,9 +76,13 @@ plugin scripts.
 ### icinga <a id="itl-icinga"></a>
 
 Check command for the built-in `icinga` check. This check returns performance
-data for the current Icinga instance.
+data for the current Icinga instance and optionally allows for minimum version checks.
 
-The `icinga` check command does not support any vars.
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                   | Description
+-----------------------|---------------
+icinga\_min\_version   | **Optional.** Required minimum Icinga 2 version, e.g. `2.8.0`. If not satisfied, the state changes to `Critical`. Release packages only.
 
 ### cluster <a id="itl-icinga-cluster"></a>
 
@@ -103,10 +109,15 @@ Check command for the built-in `ido` check.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name         | Description
--------------|---------------
-ido\_type    | **Required.** The type of the IDO connection object. Can be either "IdoMysqlConnection" or "IdoPgsqlConnection".
-ido\_name    | **Required.** The name of the IDO connection object.
+Name                            | Description
+--------------------------------|-----------------------------
+ido\_type                       | **Required.** The type of the IDO connection object. Can be either "IdoMysqlConnection" or "IdoPgsqlConnection".
+ido\_name                       | **Required.** The name of the IDO connection object.
+ido\_queries\_warning           | **Optional.** Warning threshold for queries/s. Applies if the rate is lower than the threshold.
+ido\_queries\_critical          | **Optional.** Critical threshold for queries/s. Applies if the rate is lower than the threshold.
+ido\_pending\_queries\_warning  | **Optional.** Warning threshold for pending queries. Applies if pending queries are higher than the threshold. Supersedes the `ido_queries` thresholds above.
+ido\_pending\_queries\_critical | **Optional.** Critical threshold for pending queries. Applies if pending queries are higher than the threshold. Supersedes the `ido_queries` thresholds above.
+
 
 ### dummy <a id="itl-dummy"></a>
 
@@ -123,6 +134,17 @@ Name            | Description
 dummy\_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 0.
 dummy\_text      | **Optional.** Plugin output. Defaults to "Check was successful.".
 
+### passive <a id="itl-check-command-passive"></a>
+
+Specialised check command object for passive checks which uses the functionality of the "dummy" check command with appropriate default values.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name            | Description
+----------------|--------------
+dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
+dummy_text      | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
+
 ### random <a id="itl-random"></a>
 
 Check command for the built-in `random` check. This check returns random states
@@ -137,6 +159,15 @@ Check command for the built-in `exception` check. This check throws an exception
 
 For test and demo purposes only. The `exception` check command does not support
 any vars.
+
+### sleep <a id="itl-sleep"></a>
+
+Check command for the built-in `sleep` check. This allows to use sleep for testing
+and debugging only.
+
+Name            | Description
+----------------|--------------
+sleep\_time     | **Optional.** The duration of the sleep in seconds. Defaults to 1s.
 
 <!-- keep this anchor for URL link history only -->
 <a id="plugin-check-commands"></a>
@@ -154,13 +185,15 @@ file:
 The plugin check commands assume that there's a global constant named `PluginDir`
 which contains the path of the plugins from the Monitoring Plugins project.
 
-**Note**: If there are command parameters missing for the provided CheckCommand
-definitions please kindly send a patch upstream. This should include an update
-for the ITL CheckCommand itself and this documentation section.
+> **Note**:
+>
+> Please be aware that the CheckCommand definitions are based on the [Monitoring Plugins](https://www.monitoring-plugins.org), other Plugin collections might not support
+> all parameters. If there are command parameters missing for the provided CheckCommand definitions please kindly send a patch upstream.
+> This should include an update for the ITL CheckCommand itself and this documentation section.
 
 ### apt <a id="plugin-check-command-apt"></a>
 
-The plugin [apt](https://www.monitoring-plugins.org/doc/index.html) checks for software updates on systems that use
+The plugin [apt](https://www.monitoring-plugins.org/doc/man/check_apt.html) checks for software updates on systems that use
 package management systems based on the apt-get(8) command found in Debian based systems.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
@@ -175,6 +208,7 @@ apt_exclude             | **Optional.** Exclude packages matching REGEXP from th
 apt_critical            | **Optional.** If the full package information of any of the upgradable packages match this REGEXP, the plugin will return CRITICAL status. Can be specified multiple times.
 apt_timeout             | **Optional.** Seconds before plugin times out (default: 10).
 apt_only_critical       | **Optional.** Only warn about critical upgrades.
+apt_list                | **Optional.** List packages available for upgrade.
 
 
 ### breeze <a id="plugin-check-command-breeze"></a>
@@ -199,21 +233,22 @@ commands on a remote host.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name            | Description
-----------------|--------------
-by_ssh_address  | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-by_ssh_port     | **Optional.** The SSH port. Defaults to 22.
-by_ssh_command  | **Required.** The command that should be executed. Can be an array if multiple arguments should be passed to `check_by_ssh`.
-by_ssh_arguments| **Optional.** A dictionary with arguments for the command. This works exactly like the 'arguments' dictionary for ordinary CheckCommands.
-by_ssh_logname  | **Optional.** The SSH username.
-by_ssh_identity | **Optional.** The SSH identity.
-by_ssh_quiet    | **Optional.** Whether to suppress SSH warnings. Defaults to false.
-by_ssh_warn     | **Optional.** The warning threshold.
-by_ssh_crit     | **Optional.** The critical threshold.
-by_ssh_timeout  | **Optional.** The timeout in seconds.
-by_ssh_options  | **Optional.** Call ssh with '-o OPTION' (multiple options may be specified as an array).
-by_ssh_ipv4     | **Optional.** Use IPv4 connection. Defaults to false.
-by_ssh_ipv6     | **Optional.** Use IPv6 connection. Defaults to false.
+Name               | Description
+----------------   | --------------
+by_ssh_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+by_ssh_port        | **Optional.** The SSH port. Defaults to 22.
+by_ssh_command     | **Required.** The command that should be executed. Can be an array if multiple arguments should be passed to `check_by_ssh`.
+by_ssh_arguments   | **Optional.** A dictionary with arguments for the command. This works exactly like the 'arguments' dictionary for ordinary CheckCommands.
+by_ssh_logname     | **Optional.** The SSH username.
+by_ssh_identity    | **Optional.** The SSH identity.
+by_ssh_quiet       | **Optional.** Whether to suppress SSH warnings. Defaults to false.
+by_ssh_warn        | **Optional.** The warning threshold.
+by_ssh_crit        | **Optional.** The critical threshold.
+by_ssh_timeout     | **Optional.** The timeout in seconds.
+by_ssh_options     | **Optional.** Call ssh with '-o OPTION' (multiple options may be specified as an array).
+by_ssh_ipv4        | **Optional.** Use IPv4 connection. Defaults to false.
+by_ssh_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
+by_ssh_skip_stderr | **Optional.** Ignore all or (if specified) first n lines on STDERR.
 
 
 ### clamd <a id="plugin-check-command-clamd"></a>
@@ -322,7 +357,8 @@ disk\_ignore\_eregi\_path | **Optional.** Regular expression to ignore selected 
 disk\_ignore\_ereg\_path  | **Optional.** Regular expression to ignore selected path or partition. Multiple regular expression strings must be defined as array.
 disk\_timeout             | **Optional.** Seconds before connection times out (default: 10).
 disk\_units               | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
-disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "configfs", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fdescfs".
+disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "configfs", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fdescfs", "overlay", "nsfs", "squashfs".
+disk\_include\_type       | **Optional.** Check only filesystems of indicated type. Multiple regular expression strings must be defined as array.
 
 ### disk_smb <a id="plugin-check-command-disk-smb"></a>
 
@@ -577,6 +613,8 @@ tests the HTTP service on the specified host. It can test normal (http) and secu
 (https) servers, follow redirects, search for strings and regular expressions,
 check connection times, and report on certificate expiration times.
 
+The plugin can either test the HTTP response of a server, or if `http_certificate` is set to a non-empty value, the TLS certificate age for a HTTPS host.
+
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
 Name                             | Description
@@ -607,7 +645,7 @@ http_invertregex                 | **Optional.** Changes behavior of http_expect
 http_warn_time                   | **Optional.** The warning threshold.
 http_critical_time               | **Optional.** The critical threshold.
 http_expect                      | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
-http_certificate                 | **Optional.** Minimum number of days a certificate has to be valid. This parameter explicitly sets the port to 443 and ignores the URL if passed.
+http_certificate                 | **Optional.** Minimum number of days a certificate has to be valid. Port defaults to 443. When this option is used the URL is not checked. The first parameter defines the warning threshold (in days), the second parameter the critical threshold (in days). (Example `http_certificate = "30,20"`).
 http_clientcert                  | **Optional.** Name of file contains the client certificate (PEM format).
 http_privatekey                  | **Optional.** Name of file contains the private key (PEM format).
 http_headerstring                | **Optional.** String to expect in the response headers.
@@ -824,7 +862,7 @@ negate_arguments      | **Optional.** Arguments for the negated command.
 
 ### nrpe <a id="plugin-check-command-nrpe"></a>
 
-The `check_nrpe` plugin can be used to query an [NRPE](https://docs.icinga.com/latest/en/nrpe.html)
+The `check_nrpe` plugin can be used to query an [NRPE](https://icinga.com/docs/icinga1/latest/en/nrpe.html)
 server or [NSClient++](https://www.nsclient.org). **Note**: This plugin
 is considered insecure/deprecated.
 
@@ -912,17 +950,6 @@ ntp_timeout     | **Optional.** Seconds before connection times out (default: 10
 ntp_ipv4        | **Optional.** Use IPv4 connection. Defaults to false.
 ntp_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
 
-
-### passive <a id="plugin-check-command-passive"></a>
-
-Specialised check command object for passive checks executing the `check_dummy` plugin with appropriate default values.
-
-Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
-
-Name            | Description
-----------------|--------------
-dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
-dummy_text      | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
 
 ### pgsql <a id="plugin-check-command-pgsql"></a>
 
@@ -1496,8 +1523,8 @@ Custom attributes:
 
 Name                  | Description
 :---------------------|:------------
-disk\_win\_warn       | **Optional**. The warning threshold.
-disk\_win\_crit       | **Optional**. The critical threshold.
+disk\_win\_warn       | **Optional**. The warning threshold. Defaults to "20%".
+disk\_win\_crit       | **Optional**. The critical threshold. Defaults to "10%".
 disk\_win\_path       | **Optional**. Check only these paths, default checks all.
 disk\_win\_unit       | **Optional**. Use this unit to display disk space, thresholds are interpreted in this unit. Defaults to "mb", possible values are: b, kb, mb, gb and tb.
 disk\_win\_exclude    | **Optional**. Exclude these drives from check.
@@ -1531,9 +1558,10 @@ Custom attributes:
 
 Name              | Description
 :-----------------|:------------
-memory\_win\_warn | **Optional**. The warning threshold.
-memory\_win\_crit | **Optional**. The critical threshold.
+memory\_win\_warn | **Optional**. The warning threshold. Defaults to "10%".
+memory\_win\_crit | **Optional**. The critical threshold. Defaults to "5%".
 memory\_win\_unit | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabyte), possible values are: b, kb, mb, gb and tb.
+memory\_win\_show\_used | **Optional**. Show used memory instead of the free memory.
 
 
 ### network-windows <a id="windows-plugins-network-windows"></a>
@@ -1620,12 +1648,12 @@ The data collection is instant.
 
 Custom attributes:
 
-Name            | Description
-:---------------|:------------
-swap\_win\_warn | **Optional**. The warning threshold.
-swap\_win\_crit | **Optional**. The critical threshold.
-swap\_win\_unit | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabyte).
-
+Name             | Description
+:--------------- | :------------
+swap\_win\_warn  | **Optional**. The warning threshold. Defaults to "10%".
+swap\_win\_crit  | **Optional**. The critical threshold. Defaults to "5%".
+swap\_win\_unit  | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabyte).
+swap\_win\_show\_used | **Optional**. Show used swap instead of the free swap.
 
 ### update-windows <a id="windows-plugins-update-windows"></a>
 
@@ -1641,19 +1669,19 @@ Custom attributes:
 
 Name                | Description
 :-------------------|:------------
-update\_win\_warn   | **Optional**. If set, returns warning when important updates are available.
-update\_win\_crit   | **Optional**. If set, return critical when important updates that require a reboot are available.
+update\_win\_warn   | **Optional**. The warning threshold.
+update\_win\_crit   | **Optional**. The critical threshold.
 update\_win\_reboot | **Optional**. Set to treat 'may need update' as 'definitely needs update'. Please Note that this is true for almost every update and is therefore not recommended.
+ignore\_reboot      | **Optional**. Set to disable behavior of returning critical if any updates require a reboot.
 
 
-In contrast to most other plugins, the values of check_update's custom attributes do not set thresholds, but just enable/disable the behavior described in the table above.  
-It can be enabled/disabled for example by setting them to "true" or "false", "1" or "0" would also work.  
-Thresholds will always be "1".
+If a warning threshold is set but not a critical threshold, the critical threshold will be set to one greater than the set warning threshold.
+Unless the `ignore_reboot` flag is set, if any updates require a reboot the plugin will return critical.
 
 > **Note**
 >
-> If they are enabled, performance data will be shown in the web interface.  
-> If run without the optional parameters, the plugin will output critical if any important updates are available.  
+> If they are enabled, performance data will be shown in the web interface.
+> If run without the optional parameters, the plugin will output critical if any important updates are available.
 
 
 ### uptime-windows <a id="windows-plugins-uptime-windows"></a>
@@ -1686,12 +1714,16 @@ users\_win\_crit | **Optional**. The critical threshold.
 
 There are two methods available for querying NSClient++:
 
-* Query the [HTTP API](10-icinga-template-library.md#nscp-check-api) locally or remotely (requires a running NSClient++ service)
+* Query the [HTTP API](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api) locally from an Icinga 2 client (requires a running NSClient++ service)
 * Run a [local CLI check](10-icinga-template-library.md#nscp-check-local) (does not require NSClient++ as a service)
 
 Both methods have their advantages and disadvantages. One thing to
 note: If you rely on performance counter delta calculations such as
 CPU utilization, please use the HTTP API instead of the CLI sample call.
+
+For security reasons, it is advised to enable the NSClient++ HTTP API for local
+connection from the Icinga 2 client only. Remote connections to the HTTP API
+are not recommended with using the legacy HTTP API.
 
 ### nscp_api <a id="nscp-check-api"></a>
 
@@ -1769,6 +1801,12 @@ nscp_boot       | **Optional.** Whether to use the --boot option. Defaults to tr
 nscp_query      | **Required.** The NSClient++ query. Try `nscp client -q x` for a list.
 nscp_arguments  | **Optional.** An array of query arguments.
 nscp_showall	| **Optional.** Shows more details in plugin output, default to false.
+
+> **Tip**
+>
+> In order to measure CPU load, you'll need a running NSClient++ service.
+> Therefore it is advised to use a local [nscp-api](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api)
+> check against its REST API.
 
 ### nscp-local-cpu <a id="nscp-check-local-cpu"></a>
 
@@ -1850,7 +1888,8 @@ Check command object for the `check_drivesize` NSClient++ plugin.
 
 Name                   | Description
 -----------------------|------------------
-nscp_disk_drive        | **Optional.** Drive character, default to all drives.
+nscp_disk_drive        | **Optional.** Drive character, default to all drives. Can be an array if multiple drives should be monitored.
+nscp_disk_exclude      | **Optional.** Drive character, default to none. Can be an array of drive characters if multiple drives should be excluded.
 nscp_disk_free         | **Optional.** Switch between checking free space (free=true) or used space (free=false), default to false.
 nscp_disk_warning      | **Optional.** Threshold for WARNING in percent or absolute (use MB, GB, ...), default to 80 (used) or 20 percent (free).
 nscp_disk_critical     | **Optional.** Threshold for CRITICAL in percent or absolute (use MB, GB, ...), default to 90 (used) or 10 percent (free).
@@ -1871,6 +1910,25 @@ nscp_counter_arguments | **Optional.** Additional arguments.
 nscp_counter_showall   | **Optional.** Shows more details in plugin output, default to false.
 nscp_counter_perfsyntax | **Optional.** Apply performance data label, e.g. `Total Processor Time` to avoid special character problems. Defaults to `nscp_counter_name`.
 
+### nscp-local-tasksched <a id="nscp-check-local-tasksched"></a>
+
+Check Command object for the `check_tasksched` NSClient++ plugin.
+You can check for a single task or for a complete folder (and sub folders) of tasks.
+
+Name                   | Description
+-----------------------|------------------
+nscp_tasksched_name         | **Optional.** Name of the task to check.
+nscp_tasksched_folder       | **Optional.** The folder in which the tasks to check reside.
+nscp_tasksched_recursive    | **Optional.** Recurse sub folder, defaults to true.
+nscp_tasksched_hidden       | **Optional.** Look for hidden tasks, defaults to false.
+nscp_tasksched_warning      | **Optional.** Filter which marks items which generates a warning state, defaults to `exit_code != 0`.
+nscp_tasksched_critical     | **Optional.** Filter which marks items which generates a critical state, defaults to `exit_code < 0`.
+nscp_tasksched_emptystate   | **Optional.** Return status to use when nothing matched filter, defaults to warning.
+nscp_tasksched_perfsyntax   | **Optional.** Performance alias syntax., defaults to `%(title)`
+nscp_tasksched_detailsyntax | **Optional.** Detail level syntax, defaults to `%(folder)/%(title): %(exit_code) != 0`
+nscp_tasksched_arguments    | **Optional.** Additional arguments.
+nscp_tasksched_showall      | **Optional.** Shows more details in plugin output, default to false.
+nscp_modules                | **Optional.** An array of NSClient++ modules to load. Defaults to `[ "CheckTaskSched" ]`.
 
 
 ## Plugin Check Commands for Manubulon SNMP <a id="snmp-manubulon-plugin-check-commands"></a>
@@ -1996,6 +2054,8 @@ snmp_crit               | **Optional.** The critical threshold.
 snmp_is_cisco		| **Optional.** Change OIDs for Cisco switches. Defaults to false.
 snmp_is_hp              | **Optional.** Change OIDs for HP/Procurve switches. Defaults to false.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
+snmp_memcached          | **Optional.** Include cached memory in used memory, Defaults to false.
+snmp_membuffer          | **Optional.** Exclude buffered memory in used memory, Defaults to false.
 snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
 ### snmp-storage <a id="plugin-check-command-snmp-storage"></a>
@@ -2021,8 +2081,11 @@ snmp_privpass           | **Required.** SNMP version 3 priv password. No value d
 snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
 snmp_storage_name       | **Optional.** Storage name. Default to regex "^/$$". More options available in the [snmp storage](http://nagios.manubulon.com/snmp_storage.html) documentation.
+snmp_storage_type       | **Optional.** Filter by storage type. Valid options are Other, Ram, VirtualMemory, FixedDisk, RemovableDisk, FloppyDisk, CompactDisk, RamDisk, FlashMemory, or NetworkDisk. No value defined as default.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
+snmp_exclude            | **Optional.** Select all storages except the one(s) selected by -m. No action on storage type selection.
 snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
+snmp_storage_olength	| **Optional.** Max-size of the SNMP message, usefull in case of Too Long responses.
 
 ### snmp-interface <a id="plugin-check-command-snmp-interface"></a>
 
@@ -2140,6 +2203,58 @@ include <plugin-contrib>
 
 This is enabled by default since Icinga 2 2.5.0.
 
+### Big Data <a id="plugin-contrib-big-data"></a>
+
+This category contains plugins for various Big Data systems.
+
+#### cloudera_service_status <a id="plugin-contrib-command-cloudera_service_status"></a>
+
+The [cloudera_service_status](https://github.com/miso231/icinga2-cloudera-plugin) plugin
+uses Cloudera Manager API to monitor cluster services
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                  | Description
+----------------------|-----------------------------------------------------------------
+cloudera_host         | **Required.** Hostname of cloudera server.
+cloudera_port         | **Optional.** Port where cloudera is listening. Defaults to 443.
+cloudera_user         | **Required.** The username for the API connection.
+cloudera_pass         | **Required.** The password for the API connection.
+cloudera_api_version  | **Required.** API version of cloudera.
+cloudera_cluster      | **Required.** The cluster name in cloudera manager.
+cloudera_service      | **Required.** Name of cluster service to be checked.
+cloudera_verify_ssl   | **Optional.** Verify SSL. Defaults to true.
+
+#### cloudera_hdfs_space <a id="plugin-contrib-command-cloudera_hdfs_space"></a>
+
+The [cloudera_hdfs_space](https://github.com/miso231/icinga2-cloudera-plugin) plugin
+connects to Hadoop Namenode and gets used capacity of selected disk
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                      | Description
+--------------------------|-----------------------------------------------------------------
+cloudera_hdfs_space_host  | **Required.** Namenode host to connect to.
+cloudera_hdfs_space_port  | **Optional.** Namenode port (default 50070).
+cloudera_hdfs_space_disk  | **Required.** HDFS disk to check.
+cloudera_hdfs_space_warn  | **Required.** Warning threshold in percent.
+cloudera_hdfs_space_crit  | **Required.** Critical threshold in percent.
+
+#### cloudera_hdfs_files <a id="plugin-contrib-command-cloudera_hdfs_files"></a>
+
+The [cloudera_hdfs_files](https://github.com/miso231/icinga2-cloudera-plugin) plugin
+connects to Hadoop Namenode and gets total number of files on HDFS
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                      | Description
+--------------------------|-----------------------------------------------------------------
+cloudera_hdfs_files_host  | **Required.** Namenode host to connect to.
+cloudera_hdfs_files_port  | **Optional.** Namenode port (default 50070).
+cloudera_hdfs_files_warn  | **Required.** Warning threshold.
+cloudera_hdfs_files_crit  | **Required.** Critical threshold.
+cloudera_hdfs_files_max   | **Required.** Max files count that causes problems (default 140,000,000).
+
 ### Databases <a id="plugin-contrib-databases"></a>
 
 This category contains plugins for various database servers.
@@ -2156,7 +2271,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                             | Description
 ---------------------------------|------------------------------------------------------------------------------------------------------------------------------
-db2_health_database           | **Required.** The name of the database. (If it was catalogued locally, this parameter is the only you need. Otherwise you must specify database, hostname and port)
+db2_health_database           | **Required.** The name of the database. (If it was catalogued locally, this parameter and `db2_health_not_catalogued = false` are the only you need. Otherwise you must specify database, hostname and port)
 db2_health_username           | **Optional.** The username for the database connection.
 db2_health_password           | **Optional.** The password for the database connection.
 db2_health_port               | **Optional.** The port where DB2 is listening.
@@ -2172,6 +2287,7 @@ db2_health_maxinactivity      | **Optional.** Used for the maximum amount of tim
 db2_health_mitigation         | **Optional.** Classifies the severity of an offline tablespace.
 db2_health_lookback           | **Optional.** How many days in the past db2_health check should look back to calculate exitcode.
 db2_health_report             | **Optional.** Report can be used to output only the bad news. Possible values are "short", "long", "html". Defaults to `short`.
+db2_health_not_catalogued     | **Optional.** Set this variable to false if you want to use a catalogued locally database. Defaults to `true`.
 db2_health_env_db2_home       | **Required.** Specifies the location of the db2 client libraries as environment variable `DB2_HOME`. Defaults to "/opt/ibm/db2/V10.5".
 db2_health_env_db2_version    | **Optional.** Specifies the DB2 version as environment variable `DB2_VERSION`.
 
@@ -2355,6 +2471,7 @@ mongodb_host                     | **Required.** Specifies the hostname or addre
 mongodb_port                     | **Required.** The port mongodb is running on.
 mongodb_user                     | **Optional.** The username you want to login as.
 mongodb_passwd                   | **Optional.** The password you want to use for that user.
+mongodb_authdb                   | **Optional.** The database you want to authenticate against.
 mongodb_warning                  | **Optional.** The warning threshold we want to set.
 mongodb_critical                 | **Optional.** The critical threshold we want to set.
 mongodb_action                   | **Required.** The action you want to take.
@@ -2418,6 +2535,28 @@ redis_memory_utilization | **Optional.** This calculates percent of total memory
 redis_total_memory       | **Optional.** Amount of memory on a system for memory utilization calculation. Use system memory or max_memory setting of redis.
 redis_replication_delay  | **Optional.** Allows to set threshold on replication delay info.
 
+#### proxysql <a id="plugin-contrib-command-proxysql"></a>
+
+The [check_proxysql](https://github.com/sysown/proxysql-nagios) plugin,
+uses the `proxysql` binary to monitor [proxysql](https://proxysql.com/).
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                         | Description
+-----------------------------|----------------------------------------------------------------------------------
+proxysql_user                | **Optional.** ProxySQL admin username (default=admin)
+proxysql_password            | **Optional.** ProxySQL admin password (default=admin)
+proxysql_host                | **Optional.** ProxySQL hostname / IP (default=127.0.0.1)
+proxysql_port                | **Optional.** ProxySQL admin port (default=6032)
+proxysql_defaultfile         | **Optional.** ProxySQL defaults file
+proxysql_type                | **Required.** ProxySQL check type (one of conns,hg,rules,status,var)
+proxysql_name                | **Optional.** ProxySQL variable name to check
+proxysql_lower               | **Optional.** Alert if ProxySQL value are LOWER than defined WARN / CRIT thresholds (only applies to 'var' check type)
+proxysql_runtime             | **Optional.** Force ProxySQL Nagios check to query the runtime_mysql_XXX tables rather than the mysql_XXX tables
+proxysql_warning             | **Optional.** Warning threshold
+proxysql_critical            | **Optional.** Critical threshold
+proxysql\_include\_hostgroup | **Optional.** ProxySQL hostgroup(s) to include (only applies to '--type hg' checks, accepts comma-separated list)
+proxysql\_ignore\_hostgroup  | **Optional.** ProxySQL hostgroup(s) to ignore (only applies to '--type hg' checks, accepts comma-separated list)
 
 ### Hardware <a id="plugin-contrib-hardware"></a>
 
@@ -2464,6 +2603,88 @@ hpasm_servertype		| **Optional.** The type of the server: proliant (default) or 
 hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it and report me whyt you think about it. I need to build up some know how on this subject. If you get an error and think, it is not justified for your configuration, please tell me about it. (always send the output of "snmpwalk -On .... 1.3.6.1.4.1.232" and a description how you setup your nics and why it is correct opposed to the plugins error message.
 hpasm_remote			| **Optional.** Run remote SNMP checks if enabled. Otherwise checks are executed locally using the `hpasmcli` binary. Defaults to `true`.
 
+#### openmanage <a id="plugin-contrib-command-openmanage"></a>
+
+The [check_openmanage](http://folk.uio.no/trondham/software/check_openmanage.html) plugin
+checks the hardware health of Dell PowerEdge (and some PowerVault) servers.
+It uses the Dell OpenManage Server Administrator (OMSA) software, which must be running on
+the monitored system. check_openmanage can be used remotely with SNMP or locally with icinga2 agent,
+check_by_ssh or similar, whichever suits your needs and particular taste.
+
+The plugin checks the health of the storage subsystem, power supplies, memory modules,
+temperature probes etc., and gives an alert if any of the components are faulty or operate outside normal parameters.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    	| Description
+--------------------------------|-----------------------------------------------------------------------
+openmanage_all			| **Optional.** Check everything, even log content
+openmanage_blacklist		| **Optional.** Blacklist missing and/or failed components
+openmanage_check		| **Optional.** Fine-tune which components are checked
+openmanage_community		| **Optional.** SNMP community string [default=public]
+openmanage_config		| **Optional.** Specify configuration file
+openmanage_critical		| **Optional.** Custom temperature critical limits
+openmanage_extinfo		| **Optional.** Append system info to alerts
+openmanage_fahrenheit		| **Optional.** Use Fahrenheit as temperature unit
+openmanage_hostname		| **Optional.** Hostname or IP (required for SNMP)
+openmanage_htmlinfo		| **Optional.** HTML output with clickable links
+openmanage_info			| **Optional.** Prefix any alerts with the service tag
+openmanage_ipv6			| **Optional.** Use IPv6 instead of IPv4 [default=no]
+openmanage_legacy_perfdata	| **Optional.** Legacy performance data output
+openmanage_no_storage		| **Optional.** Don't check storage
+openmanage_only			| **Optional.** Only check a certain component or alert type
+openmanage_perfdata		| **Optional.** Output performance data [default=no]
+openmanage_port			| **Optional.** SNMP port number [default=161]
+openmanage_protocol		| **Optional.** SNMP protocol version [default=2c]
+openmanage_short_state		| **Optional.** Prefix alerts with alert state abbreviated
+openmanage_show_blacklist	| **Optional.** Show blacklistings in OK output
+openmanage_state		| **Optional.** Prefix alerts with alert state
+openmanage_tcp			| **Optional.** Use TCP instead of UDP [default=no]
+openmanage_timeout		| **Optional.** Plugin timeout in seconds [default=30]
+openmanage_vdisk_critical	| **Optional.** Make any alerts on virtual disks critical
+openmanage_warning		| **Optional.** Custom temperature warning limits
+
+#### lmsensors <a id="plugin-contrib-command-lmsensors"></a>
+
+The [check_lmsensors](https://github.com/jackbenny/check_temp) plugin,
+uses the `lm-sensors` binary to monitor temperature sensors.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+lmsensors_warning       | **Required.** Exit with WARNING status if above INTEGER degrees
+lmsensors_critical      | **Required.** Exit with CRITICAL status if above INTEGER degrees
+lmsensors_sensor        | **Optional.** Set what to monitor, for example CPU or MB (or M/B). Check sensors for the correct word. Default is CPU.
+
+#### hddtemp <a id="plugin-contrib-command-hddtemp"></a>
+
+The [check_hddtemp](https://github.com/vint21h/nagios-check-hddtemp) plugin,
+uses the `hddtemp` binary to monitor hard drive temperature.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+hddtemp_server          | **Required.** server name or address
+hddtemp_port            | **Optional.** port number
+hddtemp_devices         | **Optional.** comma separated devices list, or empty for all devices in hddtemp response
+hddtemp_separator       | **Optional.** hddtemp separator
+hddtemp_warning         | **Required.** warning temperature
+hddtemp_critical        | **Required.** critical temperature
+hddtemp_timeout         | **Optional.** receiving data from hddtemp operation network timeout
+hddtemp_performance     | **Optional.** If set, return performance data
+hddtemp_quiet           | **Optional.** If set, be quiet
+
+The following sane default value are specified:
+```
+vars.hddtemp_server = "127.0.0.1"
+vars.hddtemp_warning = 55
+vars.hddtemp_critical = 60
+vars.hddtemp_performance = true
+vars.hddtemp_timeout = 5
+```
+
 #### adaptec-raid <a id="plugin-contrib-command-adaptec-raid"></a>
 
 The [check_adaptec_raid](https://github.com/thomas-krenn/check_adaptec_raid) plugin
@@ -2485,8 +2706,29 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                            | Description
 --------------------------------|-----------------------------------------------------------------------
-lsi_controller_number           | **Required.** Controller number to monitor.
-storcli_path                    | **Required.** Path to the `storcli` binary, e.g. "/usr/sbin/storcli".
+lsi_controller_number           | **Optional.** Controller number to monitor.
+storcli_path                    | **Optional.** Path to the `storcli` binary, e.g. "/usr/sbin/storcli".
+lsi_enclosure_id                | **Optional.** Enclosure numbers to be checked, comma-separated.
+lsi_ld_id                       | **Optional.** Logical devices to be checked, comma-separated.
+lsi_pd_id                       | **Optional.** Physical devices to be checked, comma-separated.
+lsi_temp_warning                | **Optional.** RAID controller warning temperature.
+lsi_temp_critical               | **Optional.** RAID controller critical temperature.
+lsi_pd_temp_warning             | **Optional.** Disk warning temperature.
+lsi_pd_temp_critical            | **Optional.** Disk critical temperature.
+lsi_bbu_temp_warning            | **Optional.** Battery warning temperature.
+lsi_bbu_temp_critical           | **Optional.** Battery critical temperature.
+lsi_cv_temp_warning             | **Optional.** CacheVault warning temperature.
+lsi_cv_temp_critical            | **Optional.** CacheVault critical temperature.
+lsi_ignored_media_errors        | **Optional.** Warning threshold for media errors.
+lsi_ignored_other_errors        | **Optional.** Warning threshold for other errors.
+lsi_ignored_predictive_fails    | **Optional.** Warning threshold for predictive failures.
+lsi_ignored_shield_counters     | **Optional.** Warning threshold for shield counter.
+lsi_ignored_bbm_counters        | **Optional.** Warning threshold for BBM counter.
+lsi_bbu                         | **Optional.** Define if BBU is present and it's state should be checked.
+lsi_noenclosures                | **Optional.** If set to true, does not check enclosures.
+lsi_nosudo                      | **Optional.** If set to true, does not use sudo when running storcli.
+lsi_nocleanlogs                 | **Optional.** If set to true, does not clean up the log files after executing storcli checks.
+
 
 #### smart-attributes <a id="plugin-contrib-command-smart-attributes"></a>
 
@@ -2505,6 +2747,8 @@ smart_attributes_device         | **Required.** Device name (e.g. /dev/sda) to m
 
 This category includes all plugins using the icingacli provided by Icinga Web 2.
 
+The user running Icinga 2 needs sufficient permissions to read the Icinga Web 2 configuration directory. e.g. `usermod -a -G icingaweb2 icinga`. You need to restart, not reload Icinga 2 for the new group membership to work.
+
 #### Business Process <a id="plugin-contrib-icingacli-businessprocess"></a>
 
 This subcommand is provided by the [business process module](https://exchange.icinga.com/icinga/Business+Process)
@@ -2519,6 +2763,49 @@ icingacli_businessprocess_config          | **Optional.** Configuration file con
 icingacli_businessprocess_details         | **Optional.** Get details for root cause analysis. Defaults to false.
 icingacli_businessprocess_statetype       | **Optional.** Define which state type to look at, `soft` or `hard`. Overrides the default value inside the businessprocess module, if configured.
 
+#### Director <a id="plugin-contrib-icingacli-director"></a>
+
+This subcommand is provided by the [director module](https://github.com/Icinga/icingaweb2-module-director) > 1.4.2 and executed as `icingacli director health check`. Please refer to the [documentation](https://github.com/Icinga/icingaweb2-module-director/blob/master/doc/60-CLI.md#health-check-plugin) for all available sub-checks.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                                      | Description
+------------------------------------------|-----------------------------------------------------------------------------------------
+icingacli_director_check                  | **Optional.** Run only a specific test suite.
+icingacli_director_db                     | **Optional.** Use a specific Icinga Web DB resource.
+
+#### Elasticsearch <a id="plugin-contrib-icingacli-elasticsearch"></a>
+
+This subcommand is provided by the [elasticsearch_module](https://github.com/Icinga/icingaweb2-module-elasticsearch) and executed as `icingacli elasticsearch check`.
+
+* The value of `icingacli_elasticsearch_instance` is the same like in the configuration of the module.
+* The value of `icingacli_elasticsearch_filter` are filters for events in Icinga Web 2 syntax. e.g. `"beat.hostname=www.example.com" AND severity=critical`
+* The thresholds are just numerical values. They get checked against how many events match the filter within the given timeframe.
+* The value of `icingacli_elasticsearch_index` is an index pattern. e.g. `logstash*`
+
+Name                                      | Description
+------------------------------------------|-----------------------------------------------------------------------------------------
+icingacli_elasticsearch_instance          | **Required.** The Elasticsearch to connect to
+icingacli_elasticsearch_index             | **Required.** Index pattern to use when searching
+icingacli_elasticsearch_critical          | **Required.** Critical threshold
+icingacli_elasticsearch_warning           | **Required.** Warning threshold
+icingacli_elasticsearch_filter            | **Required.** Filter for events
+icingacli_elasticsearch_from              | **Optional.** Negative value of time to search from now (Default: -5m)
+
+#### x509 <a id="plugin-contrib-icingacli-x509"></a>
+
+This subcommand is provided by the [x509 module](https://github.com/Icinga/icingaweb2-module-x509) and executed as `icingacli x509 check host`. Please refer to the [documentation](https://github.com/Icinga/icingaweb2-module-x509/blob/master/doc/10-Monitoring.md#host-check-command) for more information.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                                      | Description
+------------------------------------------|-----------------------------------------------------------------------------------------
+icingacli_x509_ip                         | **Required.** A hosts IP address [or]
+icingacli_x509_host                       | **Required.** A hosts name
+icingacli_x509_port                       | **Optional.** The port to check in particular
+icingacli_x509_warning                    | **Optional.** Less remaining time results in state WARNING (Default: 25%)
+icingacli_x509_critical                   | **Optional.** Less remaining time results in state CRITICAL (Default: 10%)
+icingacli_x509_allow_self_signed          | **Optional.** Ignore if a certificate or its issuer has been self-signed (Default: false)
 
 ### IPMI Devices <a id="plugin-contrib-ipmi"></a>
 
@@ -2554,6 +2841,7 @@ ipmi_no_sel_checking             | **Optional.** Turn off system event log check
 ipmi_no_thresholds               | **Optional.** Turn off performance data thresholds from output-sensor-thresholds.
 ipmi_verbose                     | **Optional.** Be Verbose multi line output, also with additional details for warnings.
 ipmi_debug                       | **Optional.** Be Verbose debugging output, followed by normal multi line output.
+ipmi_unify_file                  | **Optional.** Path to the unify file to unify sensor names.
 
 #### ipmi-alive <a id="plugin-contrib-command-ipmi-alive"></a>
 
@@ -2711,6 +2999,7 @@ Name                    | Description
 ------------------------|---------------------------------------------------------
 iftraffic_address	| **Required.** Specifies the remote host. Defaults to "$address$".
 iftraffic_community	| **Optional.** SNMP community. Defaults to "public'" if omitted.
+iftraffic_version	| **Optional.** SNMP version to use. Defaults to "1" if omitted. Requires v1.0.2+.
 iftraffic_interface	| **Required.** Queried interface name.
 iftraffic_bandwidth	| **Required.** Interface maximum speed in kilo/mega/giga/bits per second.
 iftraffic_units		| **Optional.** Interface units can be one of these values: `g` (gigabits/s),`m` (megabits/s), `k` (kilobits/s),`b` (bits/s)
@@ -2720,7 +3009,7 @@ iftraffic_max_counter	| **Optional.** Maximum counter value of net devices in ki
 
 #### iftraffic64 <a id="plugin-contrib-command-iftraffic64"></a>
 
-The [check_iftraffic64](https://exchange.icinga.com/exchange/iftraffic64) plugin
+The [check_iftraffic64](https://exchange.icinga.com/exchange/check_iftraffic64) plugin
 checks the utilization of a given interface name using the SNMP protocol.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
@@ -2829,6 +3118,50 @@ nwc_health_oids			| **Optional.** A list of oids which are downloaded and writte
 nwc_health_offline		| **Optional.** The maximum number of seconds since the last update of cache file before it is considered too old.
 nwc_health_multiline		| **Optional.** Multiline output
 
+### Network Services <a id="plugin-contrib-network-services"></a>
+
+This category contains plugins which receive details about network services
+
+#### lsyncd <a id="plugin-contrib-command-lsyncd"></a>
+
+The [check_lsyncd](https://github.com/ohitz/check_lsyncd) plugin,
+uses the `lsyncd` status file to monitor [lsyncd](https://axkibe.github.io/lsyncd/).
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|---------------------------------------------------------------------------
+lsyncd_statfile         | **Optional.** Set status file path (default: /var/run/lsyncd.status).
+lsyncd_warning          | **Optional.** Warning if more than N delays (default: 10).
+lsyncd_critical         | **Optional.** Critical if more then N delays (default: 100).
+
+#### fail2ban <a id="plugin-contrib-command-fail2ban"></a>
+
+The [check_fail2ban](https://github.com/fail2ban/fail2ban/tree/master/files/nagios) plugin
+uses the `fail2ban-client` binary to monitor [fail2ban](http://www.fail2ban.org) jails.
+
+The plugin requires `sudo` permissions.
+You can add a sudoers file to allow your monitoring user to use the plugin, i.e. edit /etc/sudoers.d/icinga and add:
+```
+icinga ALL=(root) NOPASSWD:/usr/lib/nagios/plugins/check_fail2ban
+```
+
+and set the correct permissions:
+```bash
+chown -c root: /etc/sudoers.d/icinga
+chmod -c 0440 /etc/sudoers.d/icinga
+```
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|---------------------------------------------------------------------------
+fail2ban_display        | **Optional.** To modify the output display, default is 'CHECK FAIL2BAN ACTIVITY'
+fail2ban_path           | **Optional.** Specify the path to the tw_cli binary, default value is /usr/bin/fail2ban-client
+fail2ban_warning        | **Optional.** Specify a warning threshold, default is 1
+fail2ban_critical       | **Optional.** Specify a critical threshold, default is 2
+fail2ban_socket         | **Optional.** Specify a socket path, default is unset
+fail2ban_perfdata       | **Optional.** If set to true, activate the perfdata output, default value for the plugin is set to true.
 
 ### Operating System <a id="plugin-contrib-operating-system"></a>
 
@@ -2839,7 +3172,7 @@ or the guest system.
 
 The [check_mem.pl](https://github.com/justintime/nagios-plugins) plugin checks the
 memory usage on linux and unix hosts. It is able to count cache memory as free when
-compared to thresholds. More details can be found on [this blog entry]((http://sysadminsjourney.com/content/2009/06/04/new-and-improved-checkmempl-nagios-plugin).
+compared to thresholds. More details can be found on [this blog entry](http://sysadminsjourney.com/content/2009/06/04/new-and-improved-checkmempl-nagios-plugin).
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
@@ -2942,6 +3275,52 @@ glusterfs_disk_critical    | **Optional.** Return a critical error if disk usage
 glusterfs_inode_warning    | **Optional.** Warn if inode usage is above *DISKWARN*. Defaults to 90 (percent).
 glusterfs_inode_critical   | **Optional.** Return a critical error if inode usage is above *DISKCRIT*. Defaults to 95 (percent).
 
+#### ceph <a id="plugins-contrib-command-ceph"></a>
+
+The [ceph plugin](https://github.com/ceph/ceph-nagios-plugins)
+is used to check the Ceph storage health on the server.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name             | Description
+-----------------|---------------------------------------------------------
+ceph_exec_dir    | **Optional.** Ceph executable. Default /usr/bin/ceph.
+ceph_conf_file   | **Optional.** Alternative ceph conf file.
+ceph_mon_address | **Optional.** Ceph monitor address[:port].
+ceph_client_id   | **Optional.** Ceph client id.
+ceph_client_name | **Optional.** Ceph client name.
+ceph_client_key  | **Optional.** Ceph client keyring file.
+ceph_whitelist   | **Optional.** Whitelist regexp for ceph health warnings.
+ceph_details     | **Optional.** Run 'ceph health detail'.
+
+#### btrfs <a id="plugins-contrib-command-btrfs"></a>
+
+The [btrfs plugin](https://github.com/knorrie/python-btrfs/)
+is used to check the btrfs storage health on the server.
+
+The plugin requires `sudo` permissions.
+You can add a sudoers file to allow your monitoring user to use the plugin, i.e. edit /etc/sudoers.d/icinga and add:
+```
+icinga ALL=(root) NOPASSWD:/usr/lib/nagios/plugins/check_btrfs
+```
+
+and set the correct permissions:
+```bash
+chown -c root: /etc/sudoers.d/icinga
+chmod -c 0440 /etc/sudoers.d/icinga
+```
+
+[monitoring-plugins-btrfs](https://packages.debian.org/monitoring-plugins-btrfs) provide the necessary binary on debian/ubuntu.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name             | Description
+-----------------|---------------------------------------------------------
+btrfs_awg        | **Optional.** Exit with WARNING status if less than the specified amount of disk space (in GiB) is unallocated
+btrfs_acg        | **Optional.** Exit with CRITICAL status if less than the specified amount of disk space (in GiB) is unallocated
+btrfs_awp        | **Optional.** Exit with WARNING status if more than the specified percent of disk space is allocated
+btrfs_acp        | **Optional.** Exit with CRITICAL status if more than the specified percent of disk space is allocated
+btrfs_mountpoint | **Required.** Path to the BTRFS mountpoint
 
 ### Virtualization <a id="plugin-contrib-virtualization"></a>
 
@@ -2949,7 +3328,7 @@ This category includes all plugins for various virtualization technologies.
 
 #### esxi_hardware <a id="plugin-contrib-command-esxi-hardware"></a>
 
-The [check_esxi_hardware.py](https://www.claudiokuenzler.com/nagios-plugins/check_esxi_hardware.php) plugin
+The [check_esxi_hardware.py](https://www.claudiokuenzler.com/monitoring-plugins/check_esxi_hardware.php) plugin
 uses the [pywbem](https://pywbem.github.io/pywbem/) Python library to monitor the hardware of ESXi servers
 through the [VMWare API](https://www.vmware.com/support/pubs/sdk_pubs.html) and CIM service.
 
@@ -2963,7 +3342,8 @@ esxi_hardware_pass      | **Required.** Password of the user. Can also be provid
 esxi_hardware_port      | **Optional.** Specifies the CIM port to connect to. Defaults to 5989.
 esxi_hardware_vendor    | **Optional.** Defines the vendor of the server: "auto", "dell", "hp", "ibm", "intel", "unknown" (default).
 esxi_hardware_html      | **Optional.** Add web-links to hardware manuals for Dell servers (use your country extension). Only useful with **esxi_hardware_vendor** = dell.
-esxi_hardware_ignore    | **Optional.** Comma separated list of elements to ignore.
+esxi_hardware_ignore    | **Optional.** Comma separated list of CIM elements to ignore.
+esxi_hardware_regex     | **Optional.** Allow regular expression lookups of elements in ignore list. Defaults to false.
 esxi_hardware_perfdata  | **Optional.** Add performcedata for graphers like PNP4Nagios to the output. Defaults to false.
 esxi_hardware_nopower   | **Optional.** Do not collect power performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
 esxi_hardware_novolts   | **Optional.** Do not collect voltage performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
@@ -4019,6 +4399,9 @@ vmware_nosession        | **Optional.** No auth session -- IT SHOULD BE USED FOR
 vmware_username         | **Optional.** The username to connect to Host or vCenter server. No value defined as default.
 vmware_password         | **Optional.** The username's password. No value defined as default.
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Authentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
+vmware_exclude          | **Optional.** Blacklist VMs name. No value defined as default.
+vmware_include          | **Optional.** Whitelist VMs name. No value defined as default.
+vmware_isregexp         | **Optional.** Treat blacklist and whitelist expressions as regexp.
 
 
 **vmware-esx-soap-host-runtime-con**
@@ -4972,7 +5355,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 This category includes all plugins for web-based checks.
 
-#### apache_status <a id="plugin-contrib-command-apache_status"></a>
+#### apache-status <a id="plugin-contrib-command-apache-status"></a>
 
 The [check_apache_status.pl](https://github.com/lbetz/check_apache_status) plugin
 uses the [/server-status](https://httpd.apache.org/docs/current/mod/mod_status.html)
@@ -4980,18 +5363,22 @@ HTTP endpoint to monitor status metrics for the Apache webserver.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                    | Description
-------------------------|----------------------------------------------------------------------------------
-apache_status_address	| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, `address6` otherwise.
-apache_status_port	| **Optional.** the http port.
-apache_status_url	| **Optional.** URL to use, instead of the default (http://`apache_status_address`/server-status).
-apache_status_ssl	| **Optional.** set to use ssl connection
-apache_status_timeout	| **Optional.** timeout in seconds
-apache_status_warning	| **Optional.** Warning threshold (number of open slots, busy workers and idle workers that will cause a WARNING) like ':20,50,:50'.
-apache_status_critical	| **Optional.** Critical threshold (number of open slots, busy workers and idle workers that will cause a CRITICAL) like ':10,25,:20'.
+Name                            | Description
+--------------------------------|----------------------------------------------------------------------------------
+apache_status_address		| **Optional.** Host address. Defaults to "$address$" if the host's `address` attribute is set, `address6` otherwise.
+apache_status_port		| **Optional.** HTTP port.
+apache_status_uri		| **Optional.** URL to use, instead of the default (http://`apache_status_address`/server-status).
+apache_status_ssl		| **Optional.** Set to use SSL connection.
+apache_status_no_validate	| **Optional.** Skip SSL certificate validation.
+apache_status_username		| **Optional.** Username for basic auth.
+apache_status_password		| **Optional.** Password for basic auth.
+apache_status_timeout		| **Optional.** Timeout in seconds.
+apache_status_unreachable	| **Optional.** Return CRITICAL if socket timed out or http code >= 500.
+apache_status_warning		| **Optional.** Warning threshold (number of open slots, busy workers and idle workers that will cause a WARNING) like ':20,50,:50'.
+apache_status_critical		| **Optional.** Critical threshold (number of open slots, busy workers and idle workers that will cause a CRITICAL) like ':10,25,:20'.
 
 
-### cert <a id="plugin-check-command-ssl_cert"></a>
+#### ssl_cert <a id="plugin-check-command-ssl_cert"></a>
 
 The [check_ssl_cert](https://github.com/matteocorti/check_ssl_cert) plugin
 uses the openssl binary (and optional curl) to check a X.509 certificate.
@@ -5132,7 +5519,7 @@ rbl_hostname	| **Optional.** The address or name of the SMTP server to check. De
 rbl_server	| **Required** List of RBL servers as an array.
 rbl_warning	| **Optional** Number of blacklisting servers for a warning.
 rbl_critical	| **Optional** Number of blacklisting servers for a critical.
-tbl_timeout	| **Optional** Seconds before plugin times out (default: 15).
+rbl_timeout	| **Optional** Seconds before plugin times out (default: 15).
 
 
 #### squid <a id="plugin-contrib-command-squid"></a>
@@ -5177,3 +5564,104 @@ webinject_no_output     | **Optional.** Suppresses all output to STDOUT except t
 webinject_timeout       | **Optional.** The value [given in seconds] will be compared to the global time elapsed to run all the tests. If the tests have all been successful, but have taken more time than the 'globaltimeout' value, a warning message is sent back to Icinga.
 webinject_report_type   | **Optional.** This setting is used to enable output formatting that is compatible for use with specific external programs. The available values you can set this to are: nagios, mrtg, external and standard.
 webinject_testcase_file | **Optional.** When you launch WebInject in console mode, you can optionally supply an argument for a testcase file to run. It will look for this file in the directory that webinject.pl resides in. If no filename is passed from the command line, it will look in config.xml for testcasefile declarations. If no files are specified, it will look for a default file named 'testcases.xml' in the current [webinject] directory. If none of these are found, the engine will stop and give you an error.
+
+#### varnish <a id="plugin-contrib-command-varnish"></a>
+
+The [check_varnish](https://github.com/varnish/varnish-nagios) plugin,
+also available in the [monitoring-plugins-contrib](https://packages.debian.org/sid/nagios-plugins-contrib) on debian,
+uses the `varnishstat` binary to monitor [varnish](https://varnish-cache.org/).
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+varnish_name            | **Optional.** Specify the Varnish instance name
+varnish_param           | **Optional.** Specify the parameter to check (see below). The default is 'ratio'.
+varnish_critical        | **Optional.** Set critical threshold: [@][lo:]hi
+varnish_warning         | **Optional.** Set warning threshold: [@][lo:]hi
+
+For *varnish_param*, all items reported by varnishstat(1) are available - use the
+identifier listed in the left column by `varnishstat -l`.  In
+addition, the following parameters are available:
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+uptime                  | How long the cache has been running (in seconds)
+ratio                   | The cache hit ratio expressed as a percentage of hits to hits + misses.  Default thresholds are 95 and 90.
+usage                   | Cache file usage as a percentage of the total cache space.
+
+#### haproxy <a id="plugin-contrib-command-haproxy"></a>
+
+The [check_haproxy](https://salsa.debian.org/nagios-team/pkg-nagios-plugins-contrib/blob/master/check_haproxy/check_haproxy) plugin,
+also available in the [monitoring-plugins-contrib](https://packages.debian.org/nagios-plugins-contrib) on debian,
+uses the `haproxy` csv statistics page to monitor [haproxy](http://www.haproxy.org/) response time. The plugin outputa performance data for backends sessions and statistics response time.
+
+This plugin need to access the csv statistics page. You can configure it in haproxy by adding a new frontend:
+```
+frontend stats
+    bind 127.0.0.1:80
+    stats enablestats
+    stats uri /stats
+```
+
+The statistics page will be available at `http://127.0.0.1/stats;csv;norefresh`.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+haproxy_username        | **Optional.** Username for HTTP Auth
+haproxy_password        | **Optional.** Password for HTTP Auth
+haproxy_url             | **Required.** URL of the HAProxy csv statistics page.
+haproxy_timeout         | **Optional.** Seconds before plugin times out (default: 10)
+haproxy_warning         | **Optional.** Warning request time threshold (in seconds)
+haproxy_critical        | **Optional.** Critical request time threshold (in seconds)
+
+#### haproxy_status <a id="plugin-contrib-command-haproxy_status"></a>
+
+The [check_haproxy_status](https://github.com/jonathanio/monitoring-nagios-haproxy) plugin,
+uses the `haproxy` statistics socket to monitor [haproxy](http://www.haproxy.org/) frontends/backends.
+
+This plugin need read/write access to the statistics socket with an operator level. You can configure it in the global section of haproxy to allow icinga user to use it:
+```
+stats socket /run/haproxy/admin.sock user haproxy group icinga mode 660 level operator
+```
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                        | Description
+----------------------------|----------------------------------------------------------------------------------
+haproxy\_status\_default    | **Optional.** Set/Override the defaults which will be applied to all checks (unless specifically set by --overrides).
+haproxy\_status\_frontends  | **Optional.** Enable checks for the frontends in HAProxy (that they're marked as OPEN and the session limits haven't been reached).
+haproxy\_status\_nofrontends| **Optional.** Disable checks for the frontends in HAProxy (that they're marked as OPEN and the session limits haven't been reached).
+haproxy\_status\_backends   | **Optional.** Enable checks for the backends in HAProxy (that they have the required quorum of servers, and that the session limits haven't been reached).
+haproxy\_status\_nobackends | **Optional.** Disable checks for the backends in HAProxy (that they have the required quorum of servers, and that the session limits haven't been reached).
+haproxy\_status\_servers    | **Optional.** Enable checks for the servers in HAProxy (that they haven't reached the limits for the sessions or for queues).
+haproxy\_status\_noservers  | **Optional.** Disable checks for the servers in HAProxy (that they haven't reached the limits for the sessions or for queues).
+haproxy\_status\_overrides  | **Optional.** Override the defaults for a particular frontend or backend, in the form {name}:{override}, where {override} is the same format as --defaults above.
+haproxy\_status\_socket     | **Required.** Path to the socket check_haproxy should connect to
+
+#### phpfpm_status <a id="plugin-contrib-command-phpfpm_status"></a>
+
+The [check_phpfpm_status](http://github.com/regilero/check_phpfpm_status) plugin,
+uses the `php-fpm` status page to monitor php-fpm.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                      | Description
+--------------------------|----------------------------------------------------------------------------------
+phpfpm\_status\_hostname  | **Required.** name or IP address of host to check
+phpfpm\_status\_port      | **Optional.** Http port, or Fastcgi port when using --fastcgi
+phpfpm\_status\_url       | **Optional.** Specific URL (only the path part of it in fact) to use, instead of the default /fpm-status
+phpfpm\_status\_servername| **Optional.** ServerName, (host header of HTTP request) use it if you specified an IP in -H to match the good Virtualhost in your target
+phpfpm\_status\_fastcgi   | **Optional.** If set, connect directly to php-fpm via network or local socket, using fastcgi protocol instead of HTTP.
+phpfpm\_status\_user      | **Optional.** Username for basic auth
+phpfpm\_status\_pass      | **Optional.** Password for basic auth
+phpfpm\_status\_realm     | **Optional.** Realm for basic auth
+phpfpm\_status\_debug     | **Optional.** If set, debug mode (show http request response)
+phpfpm\_status\_timeout   | **Optional.** timeout in seconds (Default: 15)
+phpfpm\_status\_ssl       | **Optional.** Wether we should use HTTPS instead of HTTP. Note that you can give some extra parameters to this settings. Default value is 'TLSv1' but you could use things like 'TLSv1_1' or 'TLSV1_2' (or even 'SSLv23:!SSLv2:!SSLv3' for old stuff).
+phpfpm\_status\_verifyssl | **Optional.** If set, verify certificate and hostname from ssl cert, default is 0 (no security), set it to 1 to really make SSL peer name and certificater checks.
+phpfpm\_status\_cacert    | **Optional.** Full path to the cacert.pem certificate authority used to verify ssl certificates (use with --verifyssl). if not given the cacert from Mozilla::CA cpan plugin will be used.
+phpfpm\_status\_warn      | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause a warning. -1 for no warning
+phpfpm\_status\_critical  | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause an error, -1 for no CRITICAL

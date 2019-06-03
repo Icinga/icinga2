@@ -1,30 +1,15 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/type.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/namespace.hpp"
 #include "base/objectlock.hpp"
 
 using namespace icinga;
 
 Type::Ptr Type::TypeInstance;
 
+/* Ensure that the priority is lower than the basic namespace initialization in scriptframe.cpp. */
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Type::Ptr type = new TypeType();
 	type->SetPrototype(TypeType::GetPrototype());
@@ -32,26 +17,26 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Type::Register(type);
 }, 20);
 
-String Type::ToString(void) const
+String Type::ToString() const
 {
 	return "type '" + GetName() + "'";
 }
 
 void Type::Register(const Type::Ptr& type)
 {
-	VERIFY(!GetByName(type->GetName()));
-
-	ScriptGlobal::Set("Types." + type->GetName(), type);
+	ScriptGlobal::Set("Types." + type->GetName(), type, true);
 }
 
 Type::Ptr Type::GetByName(const String& name)
 {
-	Dictionary::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
+	Namespace::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
 
 	if (!typesNS)
 		return nullptr;
 
-	Value ptype = typesNS->Get(name);
+	Value ptype;
+	if (!typesNS->Get(name, &ptype))
+		return nullptr;
 
 	if (!ptype.IsObjectType<Type>())
 		return nullptr;
@@ -59,30 +44,32 @@ Type::Ptr Type::GetByName(const String& name)
 	return ptype;
 }
 
-std::vector<Type::Ptr> Type::GetAllTypes(void)
+std::vector<Type::Ptr> Type::GetAllTypes()
 {
 	std::vector<Type::Ptr> types;
 
-	Dictionary::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
+	Namespace::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
 
 	if (typesNS) {
 		ObjectLock olock(typesNS);
 
-		for (const Dictionary::Pair& kv : typesNS) {
-			if (kv.second.IsObjectType<Type>())
-				types.push_back(kv.second);
+		for (const Namespace::Pair& kv : typesNS) {
+			Value value = kv.second->Get();
+
+			if (value.IsObjectType<Type>())
+				types.push_back(value);
 		}
 	}
 
 	return types;
 }
 
-String Type::GetPluralName(void) const
+String Type::GetPluralName() const
 {
 	String name = GetName();
 
 	if (name.GetLength() >= 2 && name[name.GetLength() - 1] == 'y' &&
-	    name.SubStr(name.GetLength() - 2, 1).FindFirstOf("aeiou") == String::NPos)
+		name.SubStr(name.GetLength() - 2, 1).FindFirstOf("aeiou") == String::NPos)
 		return name.SubStr(0, name.GetLength() - 1) + "ies";
 	else
 		return name + "s";
@@ -98,7 +85,7 @@ Object::Ptr Type::Instantiate(const std::vector<Value>& args) const
 	return factory(args);
 }
 
-bool Type::IsAbstract(void) const
+bool Type::IsAbstract() const
 {
 	return ((GetAttributes() & TAAbstract) != 0);
 }
@@ -113,7 +100,7 @@ bool Type::IsAssignableFrom(const Type::Ptr& other) const
 	return false;
 }
 
-Object::Ptr Type::GetPrototype(void) const
+Object::Ptr Type::GetPrototype() const
 {
 	return m_Prototype;
 }
@@ -149,9 +136,14 @@ Value Type::GetField(int id) const
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
-std::vector<String> Type::GetLoadDependencies(void) const
+std::vector<String> Type::GetLoadDependencies() const
 {
 	return std::vector<String>();
+}
+
+int Type::GetActivationPriority() const
+{
+	return 0;
 }
 
 void Type::RegisterAttributeHandler(int fieldId, const AttributeHandler& callback)
@@ -159,17 +151,17 @@ void Type::RegisterAttributeHandler(int fieldId, const AttributeHandler& callbac
 	throw std::runtime_error("Invalid field ID.");
 }
 
-String TypeType::GetName(void) const
+String TypeType::GetName() const
 {
 	return "Type";
 }
 
-Type::Ptr TypeType::GetBaseType(void) const
+Type::Ptr TypeType::GetBaseType() const
 {
 	return Object::TypeInstance;
 }
 
-int TypeType::GetAttributes(void) const
+int TypeType::GetAttributes() const
 {
 	return 0;
 }
@@ -195,7 +187,7 @@ Field TypeType::GetFieldInfo(int id) const
 		return GetBaseType()->GetFieldInfo(id);
 
 	if (real_id == 0)
-		return Field(0, "String", "name", "", nullptr, 0, 0);
+		return {0, "String", "name", "", nullptr, 0, 0};
 	else if (real_id == 1)
 		return Field(1, "Object", "prototype", "", nullptr, 0, 0);
 	else if (real_id == 2)
@@ -204,12 +196,12 @@ Field TypeType::GetFieldInfo(int id) const
 	throw std::runtime_error("Invalid field ID.");
 }
 
-int TypeType::GetFieldCount(void) const
+int TypeType::GetFieldCount() const
 {
 	return GetBaseType()->GetFieldCount() + 3;
 }
 
-ObjectFactory TypeType::GetFactory(void) const
+ObjectFactory TypeType::GetFactory() const
 {
 	return nullptr;
 }

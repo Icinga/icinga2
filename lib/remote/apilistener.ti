@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/i2-remote.hpp"
 #include "base/configobject.hpp"
@@ -28,6 +11,8 @@ namespace icinga
 
 class ApiListener : ConfigObject
 {
+	activation_priority 50;
+
 	[config, deprecated] String cert_path;
 	[config, deprecated] String key_path;
 	[config, deprecated] String ca_path;
@@ -39,31 +24,31 @@ class ApiListener : ConfigObject
 		default {{{ return "TLSv1"; }}}
 	};
 
-	[config] String bind_host;
+	[config] String bind_host {
+		default {{{ return Configuration::ApiBindHost; }}}
+	};
 	[config] String bind_port {
-		default {{{ return "5665"; }}}
+		default {{{ return Configuration::ApiBindPort; }}}
 	};
 
 	[config] bool accept_config;
 	[config] bool accept_commands;
+	[config] int max_anonymous_clients {
+		default {{{ return -1; }}}
+	};
+
+	[config] double tls_handshake_timeout {
+		get;
+		set;
+		default {{{ return Configuration::TlsHandshakeTimeout; }}}
+	};
 
 	[config] String ticket_salt;
 
-	[config] Array::Ptr access_control_allow_origin {
-		default {{{ return new Array(); }}}
-	};
-	[config] bool access_control_allow_credentials
-	{
-		default {{{ return true; }}}
-	};
-	[config] String access_control_allow_headers
-	{
-		default {{{ return "Authorization"; }}}
-	};
-	[config] String access_control_allow_methods
-	{
-		default {{{ return "GET, POST, PUT, DELETE"; }}}
-	};
+	[config] Array::Ptr access_control_allow_origin;
+	[config, deprecated] bool access_control_allow_credentials;
+	[config, deprecated] String access_control_allow_headers;
+	[config, deprecated] String access_control_allow_methods;
 
 
 	[state, no_user_modify] Timestamp log_message_timestamp;

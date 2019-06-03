@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/contactstable.hpp"
 #include "icinga/user.hpp"
@@ -25,11 +8,10 @@
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include "base/utility.hpp"
-#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
-ContactsTable::ContactsTable(void)
+ContactsTable::ContactsTable()
 {
 	AddColumns(this);
 }
@@ -57,12 +39,12 @@ void ContactsTable::AddColumns(Table *table, const String& prefix,
 
 }
 
-String ContactsTable::GetName(void) const
+String ContactsTable::GetName() const
 {
 	return "contacts";
 }
 
-String ContactsTable::GetPrefix(void) const
+String ContactsTable::GetPrefix() const
 {
 	return "contact";
 }
@@ -203,24 +185,18 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars;
+	Dictionary::Ptr vars = user->GetVars();
 
-	{
-		ObjectLock olock(user);
-		vars = CompatUtility::GetCustomAttributeConfig(user);
+	ArrayData result;
+
+	if (vars) {
+		ObjectLock olock(vars);
+		for (const Dictionary::Pair& kv : vars) {
+			result.push_back(kv.first);
+		}
 	}
 
-	Array::Ptr cv = new Array();
-
-	if (!vars)
-		return cv;
-
-	ObjectLock olock(vars);
-	for (const Dictionary::Pair& kv : vars) {
-		cv->Add(kv.first);
-	}
-
-	return cv;
+	return new Array(std::move(result));
 }
 
 Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
@@ -230,27 +206,21 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars;
+	Dictionary::Ptr vars = user->GetVars();
 
-	{
-		ObjectLock olock(user);
-		vars = CompatUtility::GetCustomAttributeConfig(user);
+	ArrayData result;
+
+	if (vars) {
+		ObjectLock olock(vars);
+		for (const Dictionary::Pair& kv : vars) {
+			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+				result.push_back(JsonEncode(kv.second));
+			else
+				result.push_back(kv.second);
+		}
 	}
 
-	Array::Ptr cv = new Array();
-
-	if (!vars)
-		return cv;
-
-	ObjectLock olock(vars);
-	for (const Dictionary::Pair& kv : vars) {
-		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
-			cv->Add(JsonEncode(kv.second));
-		else
-			cv->Add(kv.second);
-	}
-
-	return cv;
+	return new Array(std::move(result));
 }
 
 Value ContactsTable::CustomVariablesAccessor(const Value& row)
@@ -260,32 +230,28 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars;
+	Dictionary::Ptr vars = user->GetVars();
 
-	{
-		ObjectLock olock(user);
-		vars = CompatUtility::GetCustomAttributeConfig(user);
+	ArrayData result;
+
+	if (vars) {
+		ObjectLock olock(vars);
+		for (const Dictionary::Pair& kv : vars) {
+			Value val;
+
+			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+				val = JsonEncode(kv.second);
+			else
+				val = kv.second;
+
+			result.push_back(new Array({
+				kv.first,
+				val
+			}));
+		}
 	}
 
-	Array::Ptr cv = new Array();
-
-	if (!vars)
-		return cv;
-
-	ObjectLock olock(vars);
-	for (const Dictionary::Pair& kv : vars) {
-		Array::Ptr key_val = new Array();
-		key_val->Add(kv.first);
-
-		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
-			key_val->Add(JsonEncode(kv.second));
-		else
-			key_val->Add(kv.second);
-
-		cv->Add(key_val);
-	}
-
-	return cv;
+	return new Array(std::move(result));
 }
 
 Value ContactsTable::CVIsJsonAccessor(const Value& row)
@@ -295,12 +261,7 @@ Value ContactsTable::CVIsJsonAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(user);
-		vars = CompatUtility::GetCustomAttributeConfig(user);
-	}
+	Dictionary::Ptr vars = user->GetVars();
 
 	if (!vars)
 		return Empty;

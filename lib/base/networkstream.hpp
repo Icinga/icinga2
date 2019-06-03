@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef NETWORKSTREAM_H
 #define NETWORKSTREAM_H
@@ -28,23 +11,23 @@ namespace icinga
 {
 
 /**
- * A network stream.
+ * A network stream. DEPRECATED - Use Boost ASIO instead.
  *
  * @ingroup base
  */
-class I2_BASE_API NetworkStream : public Stream
+class NetworkStream final : public Stream
 {
 public:
 	DECLARE_PTR_TYPEDEFS(NetworkStream);
 
-	NetworkStream(const Socket::Ptr& socket);
+	NetworkStream(Socket::Ptr socket);
 
-	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
-	virtual void Write(const void *buffer, size_t count) override;
+	size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
+	void Write(const void *buffer, size_t count) override;
 
-	virtual void Close(void) override;
+	void Close() override;
 
-	virtual bool IsEof(void) const override;
+	bool IsEof() const override;
 
 private:
 	Socket::Ptr m_Socket;

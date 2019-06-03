@@ -1,3 +1,5 @@
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+
 #include "base/configobject.hpp"
 
 library perfdata;
@@ -7,6 +9,8 @@ namespace icinga
 
 class ElasticsearchWriter : ConfigObject
 {
+	activation_priority 100;
+
 	[config, required] String host {
 		default {{{ return "127.0.0.1"; }}}
 	};
@@ -34,6 +38,9 @@ class ElasticsearchWriter : ConfigObject
 	};
 	[config] int flush_threshold {
 		default {{{ return 1024; }}}
+	};
+	[config] bool enable_ha {
+		default {{{ return false; }}}
 	};
 };
 

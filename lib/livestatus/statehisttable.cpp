@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/statehisttable.hpp"
 #include "livestatus/livestatuslogutility.hpp"
@@ -36,10 +19,7 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
-#include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <fstream>
@@ -116,7 +96,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 		state_hist_service_states->Add(state_hist_bag);
 
 		Log(LogDebug, "StateHistTable")
-		    << "statehist: Adding new object '" << checkable->GetName() << "' to services cache.";
+			<< "statehist: Adding new object '" << checkable->GetName() << "' to services cache.";
 	} else {
 		state_hist_service_states = m_CheckablesCache[checkable];
 		state_hist_bag = state_hist_service_states->Get(state_hist_service_states->GetLength()-1); /* fetch latest state from history */
@@ -173,7 +153,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 					state_hist_service_states->Add(state_hist_bag_new);
 
 					Log(LogDebug, "StateHistTable")
-					    << "statehist: State change detected for object '" << checkable->GetName() << "' in '" << log_line << "'.";
+						<< "statehist: State change detected for object '" << checkable->GetName() << "' in '" << log_line << "'.";
 				}
 				break;
 			case LogEntryTypeHostFlapping:
@@ -210,7 +190,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 }
 
 void StateHistTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "time", Column(&StateHistTable::TimeAccessor, objectAccessor));
 	table->AddColumn(prefix + "lineno", Column(&StateHistTable::LinenoAccessor, objectAccessor));
@@ -244,12 +224,12 @@ void StateHistTable::AddColumns(Table *table, const String& prefix,
 	ServicesTable::AddColumns(table, "current_service_", std::bind(&StateHistTable::ServiceAccessor, _1, objectAccessor));
 }
 
-String StateHistTable::GetName(void) const
+String StateHistTable::GetName() const
 {
 	return "log";
 }
 
-String StateHistTable::GetPrefix(void) const
+String StateHistTable::GetPrefix() const
 {
 	return "log";
 }
@@ -257,7 +237,7 @@ String StateHistTable::GetPrefix(void) const
 void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	Log(LogDebug, "StateHistTable")
-	    << "Pre-selecting log file from " << m_TimeFrom << " until " << m_TimeUntil;
+		<< "Pre-selecting log file from " << m_TimeFrom << " until " << m_TimeUntil;
 
 	/* create log file index */
 	LivestatusLogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);

@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef LOADER_H
 #define LOADER_H
@@ -31,22 +14,22 @@ namespace icinga
 struct DeferredInitializer
 {
 public:
-	DeferredInitializer(const std::function<void (void)>& callback, int priority)
-	    : m_Callback(callback), m_Priority(priority)
+	DeferredInitializer(std::function<void ()> callback, int priority)
+		: m_Callback(std::move(callback)), m_Priority(priority)
 	{ }
 
-	inline bool operator<(const DeferredInitializer& other) const
+	bool operator<(const DeferredInitializer& other) const
 	{
 		return m_Priority < other.m_Priority;
 	}
 
-	inline void operator()(void)
+	void operator()()
 	{
 		m_Callback();
 	}
 
 private:
-	std::function<void (void)> m_Callback;
+	std::function<void ()> m_Callback;
 	int m_Priority;
 };
 
@@ -55,18 +38,16 @@ private:
  *
  * @ingroup base
  */
-class I2_BASE_API Loader
+class Loader
 {
 public:
-	static void LoadExtensionLibrary(const String& library);
-
-	static void AddDeferredInitializer(const std::function<void(void)>& callback, int priority = 0);
-	static void ExecuteDeferredInitializers(void);
+	static void AddDeferredInitializer(const std::function<void ()>& callback, int priority = 0);
+	static void ExecuteDeferredInitializers();
 
 private:
-	Loader(void);
+	Loader();
 
-	static boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& GetDeferredInitializers(void);
+	static boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& GetDeferredInitializers();
 };
 
 }

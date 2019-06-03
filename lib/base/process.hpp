@@ -1,30 +1,14 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef PROCESS_H
 #define PROCESS_H
 
 #include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
-#include <sstream>
+#include <iosfwd>
 #include <deque>
 #include <vector>
+#include <sstream>
 
 namespace icinga
 {
@@ -49,7 +33,7 @@ struct ProcessResult
  *
  * @ingroup base
  */
-class I2_BASE_API Process : public Object
+class Process final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Process);
@@ -66,27 +50,27 @@ public:
 
 	static const std::deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
 
-	Process(const Arguments& arguments, const Dictionary::Ptr& extraEnvironment = nullptr);
-	~Process(void);
+	Process(Arguments arguments, Dictionary::Ptr extraEnvironment = nullptr);
+	~Process() override;
 
 	void SetTimeout(double timeout);
-	double GetTimeout(void) const;
+	double GetTimeout() const;
 
 	void SetAdjustPriority(bool adjust);
-	bool GetAdjustPriority(void) const;
+	bool GetAdjustPriority() const;
 
 	void Run(const std::function<void (const ProcessResult&)>& callback = std::function<void (const ProcessResult&)>());
 
-	pid_t GetPID(void) const;
+	pid_t GetPID() const;
 
 	static Arguments PrepareCommand(const Value& command);
 
-	static void ThreadInitialize(void);
+	static void ThreadInitialize();
 
 	static String PrettyPrintArguments(const Arguments& arguments);
 
 #ifndef _WIN32
-	static void InitializeSpawnHelper(void);
+	static void InitializeSpawnHelper();
 #endif /* _WIN32 */
 
 private:
@@ -112,8 +96,8 @@ private:
 	ProcessResult m_Result;
 
 	static void IOThreadProc(int tid);
-	bool DoEvents(void);
-	int GetTID(void) const;
+	bool DoEvents();
+	int GetTID() const;
 };
 
 }

@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/pkisavecertcommand.hpp"
 #include "remote/pkiutility.hpp"
@@ -29,25 +12,25 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("pki/save-cert", PKISaveCertCommand);
 
-String PKISaveCertCommand::GetDescription(void) const
+String PKISaveCertCommand::GetDescription() const
 {
 	return "Saves another Icinga 2 instance's certificate.";
 }
 
-String PKISaveCertCommand::GetShortDescription(void) const
+String PKISaveCertCommand::GetShortDescription() const
 {
 	return "saves another Icinga 2 instance's certificate";
 }
 
 void PKISaveCertCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-	    ("key", po::value<std::string>(), "Key file path (input), obsolete")
-	    ("cert", po::value<std::string>(), "Certificate file path (input), obsolete")
-	    ("trustedcert", po::value<std::string>(), "Trusted certificate file path (output)")
-	    ("host", po::value<std::string>(), "Icinga 2 host")
-	    ("port", po::value<std::string>()->default_value("5665"), "Icinga 2 port");
+		("key", po::value<std::string>(), "Key file path (input), obsolete")
+		("cert", po::value<std::string>(), "Certificate file path (input), obsolete")
+		("trustedcert", po::value<std::string>(), "Trusted certificate file path (output)")
+		("host", po::value<std::string>(), "Icinga 2 host")
+		("port", po::value<std::string>()->default_value("5665"), "Icinga 2 port");
 }
 
 std::vector<String> PKISaveCertCommand::GetArgumentSuggestions(const String& argument, const String& word) const
@@ -83,7 +66,7 @@ int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, con
 	String port = vm["port"].as<std::string>();
 
 	Log(LogInformation, "cli")
-	    << "Retrieving X.509 certificate for '" << host << ":" << port << "'.";
+		<< "Retrieving X.509 certificate for '" << host << ":" << port << "'.";
 
 	std::shared_ptr<X509> cert = PkiUtility::FetchCert(host, port);
 
@@ -94,11 +77,11 @@ int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, con
 
 	std::cout << PkiUtility::GetCertificateInformation(cert) << "\n";
 	std::cout << ConsoleColorTag(Console_ForegroundRed)
-	    << "***\n"
-	    << "*** You have to ensure that this certificate actually matches the parent\n"
-	    << "*** instance's certificate in order to avoid man-in-the-middle attacks.\n"
-	    << "***\n\n"
-	    << ConsoleColorTag(Console_Normal);
+		<< "***\n"
+		<< "*** You have to ensure that this certificate actually matches the parent\n"
+		<< "*** instance's certificate in order to avoid man-in-the-middle attacks.\n"
+		<< "***\n\n"
+		<< ConsoleColorTag(Console_Normal);
 
 	return PkiUtility::WriteCert(cert, vm["trustedcert"].as<std::string>());
 }

@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef VMOPS_H
 #define VMOPS_H
@@ -28,6 +11,7 @@
 #include "base/debuginfo.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
+#include "base/namespace.hpp"
 #include "base/function.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/exception.hpp"
@@ -42,15 +26,13 @@ namespace icinga
 class VMOps
 {
 public:
-	static inline bool FindVarImportRef(ScriptFrame& frame, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
+	static inline bool FindVarImportRef(ScriptFrame& frame, const std::vector<std::shared_ptr<Expression> >& imports, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
 	{
-		Array::Ptr imports = ScriptFrame::GetImports();
-
-		ObjectLock olock(imports);
-		for (const Value& import : imports) {
-			Object::Ptr obj = import;
+		for (const auto& import : imports) {
+			ExpressionResult res = import->Evaluate(frame);
+			Object::Ptr obj = res.GetValue();
 			if (obj->HasOwnField(name)) {
-				*result = import;
+				*result = obj;
 				return true;
 			}
 		}
@@ -58,11 +40,11 @@ public:
 		return false;
 	}
 
-	static inline bool FindVarImport(ScriptFrame& frame, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
+	static inline bool FindVarImport(ScriptFrame& frame, const std::vector<std::shared_ptr<Expression> >& imports, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
 	{
 		Value parent;
 
-		if (FindVarImportRef(frame, name, &parent, debugInfo)) {
+		if (FindVarImportRef(frame, imports, name, &parent, debugInfo)) {
 			*result = GetField(parent, name, frame.Sandboxed, debugInfo);
 			return true;
 		}
@@ -109,11 +91,11 @@ public:
 	}
 
 	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& argNames,
-	    const std::map<String, std::unique_ptr<Expression> >& closedVars, const std::shared_ptr<Expression>& expression)
+		const std::map<String, std::unique_ptr<Expression> >& closedVars, const std::shared_ptr<Expression>& expression)
 	{
 		auto evaluatedClosedVars = EvaluateClosedVars(frame, closedVars);
 
-		auto wrapper = [argNames, evaluatedClosedVars, expression](const std::vector<Value>& arguments) {
+		auto wrapper = [argNames, evaluatedClosedVars, expression](const std::vector<Value>& arguments) -> Value {
 			if (arguments.size() < argNames.size())
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
 
@@ -138,7 +120,7 @@ public:
 		bool ignoreOnError, const std::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ApplyRule::AddRule(type, target, name, expression, filter, package, fkvar,
-		    fvvar, fterm, ignoreOnError, debugInfo, EvaluateClosedVars(frame, closedVars));
+			fvvar, fterm, ignoreOnError, debugInfo, EvaluateClosedVars(frame, closedVars));
 
 		return Empty;
 	}
@@ -146,12 +128,12 @@ public:
 	static inline Value NewObject(ScriptFrame& frame, bool abstract, const Type::Ptr& type, const String& name, const std::shared_ptr<Expression>& filter,
 		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, const std::map<String, std::unique_ptr<Expression> >& closedVars, const std::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
-		ConfigItemBuilder::Ptr item = new ConfigItemBuilder(debugInfo);
+		ConfigItemBuilder item{debugInfo};
 
 		String checkName = name;
 
 		if (!abstract) {
-			NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
+			auto *nc = dynamic_cast<NameComposer *>(type.get());
 
 			if (nc)
 				checkName = nc->MakeName(name, nullptr);
@@ -173,21 +155,21 @@ public:
 			BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debugInfo));
 		}
 
-		item->SetType(type);
-		item->SetName(name);
+		item.SetType(type);
+		item.SetName(name);
 
 		if (!abstract)
-			item->AddExpression(new ImportDefaultTemplatesExpression());
+			item.AddExpression(new ImportDefaultTemplatesExpression());
 
-		item->AddExpression(new OwnedExpression(expression));
-		item->SetAbstract(abstract);
-		item->SetScope(EvaluateClosedVars(frame, closedVars));
-		item->SetZone(zone);
-		item->SetPackage(package);
-		item->SetFilter(filter);
-		item->SetDefaultTemplate(defaultTmpl);
-		item->SetIgnoreOnError(ignoreOnError);
-		item->Compile()->Register();
+		item.AddExpression(new OwnedExpression(expression));
+		item.SetAbstract(abstract);
+		item.SetScope(EvaluateClosedVars(frame, closedVars));
+		item.SetZone(zone);
+		item.SetPackage(package);
+		item.SetFilter(filter);
+		item.SetDefaultTemplate(defaultTmpl);
+		item.SetIgnoreOnError(ignoreOnError);
+		item.Compile()->Register();
 
 		return Empty;
 	}
@@ -225,6 +207,26 @@ public:
 				ExpressionResult res = expression->Evaluate(frame);
 				CHECK_RESULT_LOOP(res);
 			}
+		} else if (value.IsObjectType<Namespace>()) {
+			if (fvvar.IsEmpty())
+				BOOST_THROW_EXCEPTION(ScriptError("Cannot use array iterator for namespace.", debugInfo));
+
+			Namespace::Ptr ns = value;
+			std::vector<String> keys;
+
+			{
+				ObjectLock olock(ns);
+				for (const Namespace::Pair& kv : ns) {
+					keys.push_back(kv.first);
+				}
+			}
+
+			for (const String& key : keys) {
+				frame.Locals->Set(fkvar, key);
+				frame.Locals->Set(fvvar, ns->Get(key));
+				ExpressionResult res = expression->Evaluate(frame);
+				CHECK_RESULT_LOOP(res);
+			}
 		} else
 			BOOST_THROW_EXCEPTION(ScriptError("Invalid type in for expression: " + value.GetTypeName(), debugInfo));
 
@@ -244,28 +246,26 @@ public:
 		return object->GetFieldByName(field, sandboxed, debugInfo);
 	}
 
-	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value, const DebugInfo& debugInfo = DebugInfo())
+	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo = DebugInfo())
 	{
 		if (!context)
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set field '" + field + "' on a value that is not an object.", debugInfo));
 
-		return context->SetFieldByName(field, value, debugInfo);
+		return context->SetFieldByName(field, value, overrideFrozen, debugInfo);
 	}
 
 private:
 	static inline Dictionary::Ptr EvaluateClosedVars(ScriptFrame& frame, const std::map<String, std::unique_ptr<Expression> >& closedVars)
 	{
-		Dictionary::Ptr locals;
+		if (closedVars.empty())
+			return nullptr;
 
-		if (!closedVars.empty()) {
-			locals = new Dictionary();
+		DictionaryData locals;
 
-			for (const auto& cvar : closedVars) {
-				locals->Set(cvar.first, cvar.second->Evaluate(frame));
-			}
-		}
+		for (const auto& cvar : closedVars)
+			locals.emplace_back(cvar.first, cvar.second->Evaluate(frame));
 
-		return locals;
+		return new Dictionary(std::move(locals));
 	}
 };
 

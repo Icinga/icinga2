@@ -1,14 +1,21 @@
-.vagrant
-.idea
-*.patch
-*.komodoproject
-*.playground
-.*.swp
-.*.swo
-build/
-build-debug/
-build-release/
-build32/
-build64/
+# Exclude all hidden files
+.*
+
+# Except those related to git and vagrant
+!.git*
+!.puppet*
+!.travis.yml
+!.mailmap
+
+## Tools
+*~
+tickets.pickle
+
+## Build artifacts
+build*/
 debug/
 release/
+cmake-build-debug
+/Testing/
+/install/
+/vendor/

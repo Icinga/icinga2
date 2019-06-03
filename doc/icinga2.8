@@ -13,7 +13,7 @@ icinga2 \- The Icinga 2 network monitoring daemon
 
 .I command
 := [
-.B api | console | daemon | feature | node | object | pki | repository | troubleshoot | variable
+.B api | ca | console | daemon | feature | node | object | pki | variable
 ]
 .B --help
 
@@ -69,9 +69,9 @@ Config files are processed in the order they are specified on the command-line.
 When no configuration file is specified and the
 .B --no-config
 is not used, Icinga 2 automatically falls back to using the configuration file
-.B SysconfDir + "/icinga2/icinga2.conf"
-(where SysconfDir is usually
-.BI "/etc" ")."
+.B ConfigDir + "/icinga2.conf"
+(where ConfigDir is usually
+.BI "/etc/icinga2" ")."
 
 .TP
 .B "-z, --noconfig"
@@ -90,9 +90,9 @@ Detach from the controlling terminal.
 .SH "REPORTING BUGS"
 Report bugs at <https://github.com/Icinga/icinga2>
 .br
-Icinga home page: <https://www.icinga.com/>
+Icinga home page: <https://icinga.com/>
 .SH COPYRIGHT
-Copyright \(co 2012\-2014 Icinga Development Team (https://www.icinga.com)
+Copyright \(co 2012 Icinga GmbH
 License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>
 .br
 This is free software: you are free to change and redistribute it.

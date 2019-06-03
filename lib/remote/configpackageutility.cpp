@@ -1,26 +1,9 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/configpackageutility.hpp"
+#include "remote/apilistener.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
-#include "base/scriptglobal.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
@@ -29,9 +12,9 @@
 
 using namespace icinga;
 
-String ConfigPackageUtility::GetPackageDir(void)
+String ConfigPackageUtility::GetPackageDir()
 {
-	return Application::GetLocalStateDir() + "/lib/icinga2/api/packages";
+	return Configuration::DataDir + "/api/packages";
 }
 
 void ConfigPackageUtility::CreatePackage(const String& name)
@@ -52,15 +35,31 @@ void ConfigPackageUtility::DeletePackage(const String& name)
 	if (!Utility::PathExists(path))
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Package does not exist."));
 
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	/* config packages without API make no sense. */
+	if (!listener)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
+
+	listener->RemoveActivePackageStage(name);
+
 	Utility::RemoveDirRecursive(path);
 	Application::RequestRestart();
 }
 
-std::vector<String> ConfigPackageUtility::GetPackages(void)
+std::vector<String> ConfigPackageUtility::GetPackages()
 {
+	String packageDir = GetPackageDir();
+
 	std::vector<String> packages;
-	Utility::Glob(GetPackageDir() + "/*", std::bind(&ConfigPackageUtility::CollectDirNames,
-	    _1, std::ref(packages)), GlobDirectory);
+
+	/* Package directory does not exist, no packages have been created thus far. */
+	if (!Utility::PathExists(packageDir))
+		return packages;
+
+	Utility::Glob(packageDir + "/*", std::bind(&ConfigPackageUtility::CollectDirNames,
+		_1, std::ref(packages)), GlobDirectory);
+
 	return packages;
 }
 
@@ -103,7 +102,7 @@ String ConfigPackageUtility::CreateStage(const String& packageName, const Dictio
 			String filePath = path + "/" + kv.first;
 
 			Log(LogInformation, "ConfigPackageUtility")
-			    << "Updating configuration file: " << filePath;
+				<< "Updating configuration file: " << filePath;
 
 			// Pass the directory and generate a dir tree, if it does not already exist
 			Utility::MkDirP(Utility::DirName(filePath), 0750);
@@ -133,23 +132,23 @@ void ConfigPackageUtility::WritePackageConfig(const String& packageName)
 	String activePath = GetPackageDir() + "/" + packageName + "/active.conf";
 	std::ofstream fpActive(activePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fpActive << "if (!globals.contains(\"ActiveStages\")) {\n"
-		 << "  globals.ActiveStages = {}\n"
-		 << "}\n"
-		 << "\n"
-		 << "if (globals.contains(\"ActiveStageOverride\")) {\n"
-		 << "  var arr = ActiveStageOverride.split(\":\")\n"
-		 << "  if (arr[0] == \"" << packageName << "\") {\n"
-		 << "    if (arr.len() < 2) {\n"
-		 << "      log(LogCritical, \"Config\", \"Invalid value for ActiveStageOverride\")\n"
-		 << "    } else {\n"
-		 << "      ActiveStages[\"" << packageName << "\"] = arr[1]\n"
-		 << "    }\n"
-		 << "  }\n"
-		 << "}\n"
-		 << "\n"
-		 << "if (!ActiveStages.contains(\"" << packageName << "\")) {\n"
-		 << "  ActiveStages[\"" << packageName << "\"] = \"" << stageName << "\"\n"
-		 << "}\n";
+		<< "  globals.ActiveStages = {}\n"
+		<< "}\n"
+		<< "\n"
+		<< "if (globals.contains(\"ActiveStageOverride\")) {\n"
+		<< "  var arr = ActiveStageOverride.split(\":\")\n"
+		<< "  if (arr[0] == \"" << packageName << "\") {\n"
+		<< "    if (arr.len() < 2) {\n"
+		<< "      log(LogCritical, \"Config\", \"Invalid value for ActiveStageOverride\")\n"
+		<< "    } else {\n"
+		<< "      ActiveStages[\"" << packageName << "\"] = arr[1]\n"
+		<< "    }\n"
+		<< "  }\n"
+		<< "}\n"
+		<< "\n"
+		<< "if (!ActiveStages.contains(\"" << packageName << "\")) {\n"
+		<< "  ActiveStages[\"" << packageName << "\"] = \"" << stageName << "\"\n"
+		<< "}\n";
 	fpActive.close();
 }
 
@@ -158,19 +157,16 @@ void ConfigPackageUtility::WriteStageConfig(const String& packageName, const Str
 	String path = GetPackageDir() + "/" + packageName + "/" + stageName + "/include.conf";
 	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fp << "include \"../active.conf\"\n"
-	   << "if (ActiveStages[\"" << packageName << "\"] == \"" << stageName << "\") {\n"
-	   << "  include_recursive \"conf.d\"\n"
-	   << "  include_zones \"" << packageName << "\", \"zones.d\"\n"
-	   << "}\n";
+		<< "if (ActiveStages[\"" << packageName << "\"] == \"" << stageName << "\") {\n"
+		<< "  include_recursive \"conf.d\"\n"
+		<< "  include_zones \"" << packageName << "\", \"zones.d\"\n"
+		<< "}\n";
 	fp.close();
 }
 
 void ConfigPackageUtility::ActivateStage(const String& packageName, const String& stageName)
 {
-	String activeStagePath = GetPackageDir() + "/" + packageName + "/active-stage";
-	std::ofstream fpActiveStage(activeStagePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
-	fpActiveStage << stageName;
-	fpActiveStage.close();
+	SetActiveStage(packageName, stageName);
 
 	WritePackageConfig(packageName);
 }
@@ -190,7 +186,8 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 	/* validation went fine, activate stage and reload */
 	if (pr.ExitStatus == 0) {
 		{
-			boost::mutex::scoped_lock lock(GetStaticMutex());
+			boost::mutex::scoped_lock lock(GetStaticPackageMutex());
+
 			ActivateStage(packageName, stageName);
 		}
 
@@ -198,8 +195,8 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 			Application::RequestRestart();
 	} else {
 		Log(LogCritical, "ConfigPackageUtility")
-		    << "Config validation failed for package '"
-		    << packageName << "' and stage '" << stageName << "'.";
+			<< "Config validation failed for package '"
+			<< packageName << "' and stage '" << stageName << "'.";
 	}
 }
 
@@ -208,15 +205,27 @@ void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, cons
 	VERIFY(Application::GetArgC() >= 1);
 
 	// prepare arguments
-	Array::Ptr args = new Array();
-	args->Add(Application::GetExePath(Application::GetArgV()[0]));
-	args->Add("daemon");
+	Array::Ptr args = new Array({
+		Application::GetExePath(Application::GetArgV()[0]),
+	});
+
+	// copy all arguments of parent process
+	for (int i = 1; i < Application::GetArgC(); i++) {
+		String argV = Application::GetArgV()[i];
+
+		if (argV == "-d" || argV == "--daemonize")
+			continue;
+
+		args->Add(argV);
+	}
+
+	// add arguments for validation
 	args->Add("--validate");
 	args->Add("--define");
 	args->Add("ActiveStageOverride=" + packageName + ":" + stageName);
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
-	process->SetTimeout(300);
+	process->SetTimeout(Application::GetReloadTimeout());
 	process->Run(std::bind(&TryActivateStageCallback, _1, packageName, stageName, reload));
 }
 
@@ -240,8 +249,11 @@ std::vector<String> ConfigPackageUtility::GetStages(const String& packageName)
 	return stages;
 }
 
-String ConfigPackageUtility::GetActiveStage(const String& packageName)
+String ConfigPackageUtility::GetActiveStageFromFile(const String& packageName)
 {
+	/* Lock the transaction, reading this only happens on startup or when something really is broken. */
+	boost::mutex::scoped_lock lock(GetStaticActiveStageMutex());
+
 	String path = GetPackageDir() + "/" + packageName + "/active-stage";
 
 	std::ifstream fp;
@@ -253,11 +265,63 @@ String ConfigPackageUtility::GetActiveStage(const String& packageName)
 	fp.close();
 
 	if (fp.fail())
-		return "";
+		return ""; /* Don't use exceptions here. The caller must deal with empty stages at this point. Happens on initial package creation for example. */
 
 	return stage.Trim();
 }
 
+void ConfigPackageUtility::SetActiveStageToFile(const String& packageName, const String& stageName)
+{
+	boost::mutex::scoped_lock lock(GetStaticActiveStageMutex());
+
+	String activeStagePath = GetPackageDir() + "/" + packageName + "/active-stage";
+
+	std::ofstream fpActiveStage(activeStagePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc); //TODO: fstream exceptions
+	fpActiveStage << stageName;
+	fpActiveStage.close();
+}
+
+String ConfigPackageUtility::GetActiveStage(const String& packageName)
+{
+	String activeStage;
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	/* If we don't have an API feature, just use the file storage without caching this.
+	 * This happens when ScheduledDowntime objects generate Downtime objects.
+	 * TODO: Make the API a first class citizen.
+	 */
+	if (!listener)
+		return GetActiveStageFromFile(packageName);
+
+	/* First use runtime state. */
+	try {
+		activeStage = listener->GetActivePackageStage(packageName);
+	} catch (const std::exception& ex) {
+		/* Fallback to reading the file, happens on restarts. */
+		activeStage = GetActiveStageFromFile(packageName);
+
+		/* When we've read something, correct memory. */
+		if (!activeStage.IsEmpty())
+			listener->SetActivePackageStage(packageName, activeStage);
+	}
+
+	return activeStage;
+}
+
+void ConfigPackageUtility::SetActiveStage(const String& packageName, const String& stageName)
+{
+	/* Update the marker on disk for restarts. */
+	SetActiveStageToFile(packageName, stageName);
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	/* No API, no caching. */
+	if (!listener)
+		return;
+
+	listener->SetActivePackageStage(packageName, stageName);
+}
 
 std::vector<std::pair<String, bool> > ConfigPackageUtility::GetFiles(const String& packageName, const String& stageName)
 {
@@ -274,9 +338,9 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 	int rc = lstat(path.CStr(), &statbuf);
 	if (rc < 0)
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("lstat")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("lstat")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 
 	paths.emplace_back(path, S_ISDIR(statbuf.st_mode));
 #else /* _WIN32 */
@@ -284,9 +348,9 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 	int rc = _stat(path.CStr(), &statbuf);
 	if (rc < 0)
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("_stat")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("_stat")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 
 	paths.emplace_back(path, ((statbuf.st_mode & S_IFMT) == S_IFDIR));
 #endif /* _WIN32 */
@@ -294,8 +358,7 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 
 bool ConfigPackageUtility::ContainsDotDot(const String& path)
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, path, boost::is_any_of("/\\"));
+	std::vector<String> tokens = path.Split("/\\");
 
 	for (const String& part : tokens) {
 		if (part == "..")
@@ -319,7 +382,13 @@ bool ConfigPackageUtility::ValidateName(const String& name)
 	return (!boost::regex_search(name.GetData(), what, expr));
 }
 
-boost::mutex& ConfigPackageUtility::GetStaticMutex(void)
+boost::mutex& ConfigPackageUtility::GetStaticPackageMutex()
+{
+	static boost::mutex mutex;
+	return mutex;
+}
+
+boost::mutex& ConfigPackageUtility::GetStaticActiveStageMutex()
 {
 	static boost::mutex mutex;
 	return mutex;

@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/statustable.hpp"
 #include "livestatus/livestatuslistener.hpp"
@@ -29,13 +12,13 @@
 
 using namespace icinga;
 
-StatusTable::StatusTable(void)
+StatusTable::StatusTable()
 {
 	AddColumns(this);
 }
 
 void StatusTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "neb_callbacks", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "neb_callbacks_rate", Column(&Table::ZeroAccessor, objectAccessor));
@@ -102,12 +85,12 @@ void StatusTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "custom_variables", Column(&StatusTable::CustomVariablesAccessor, objectAccessor));
 }
 
-String StatusTable::GetName(void) const
+String StatusTable::GetName() const
 {
 	return "status";
 }
 
-String StatusTable::GetPrefix(void) const
+String StatusTable::GetPrefix() const
 {
 	return "status";
 }
@@ -132,25 +115,25 @@ Value StatusTable::ConnectionsRateAccessor(const Value&)
 
 Value StatusTable::HostChecksAccessor(const Value&)
 {
-	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	auto timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
 	return CIB::GetActiveHostChecksStatistics(timespan);
 }
 
 Value StatusTable::HostChecksRateAccessor(const Value&)
 {
-	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	auto timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
 	return (CIB::GetActiveHostChecksStatistics(timespan) / (Utility::GetTime() - Application::GetStartTime()));
 }
 
 Value StatusTable::ServiceChecksAccessor(const Value&)
 {
-	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	auto timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
 	return CIB::GetActiveServiceChecksStatistics(timespan);
 }
 
 Value StatusTable::ServiceChecksRateAccessor(const Value&)
 {
-	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	auto timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
 	return (CIB::GetActiveServiceChecksStatistics(timespan) / (Utility::GetTime() - Application::GetStartTime()));
 }
 
@@ -233,58 +216,49 @@ Value StatusTable::CustomVariableNamesAccessor(const Value&)
 {
 	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
 
-	Array::Ptr cv = new Array();
+	ArrayData result;
 
-	if (!vars)
-		return cv;
-
-	{
+	if (vars) {
 		ObjectLock olock(vars);
 		for (const auto& kv : vars) {
-			cv->Add(kv.first);
+			result.push_back(kv.first);
 		}
 	}
 
-	return cv;
+	return new Array(std::move(result));
 }
 
 Value StatusTable::CustomVariableValuesAccessor(const Value&)
 {
 	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
 
-	Array::Ptr cv = new Array();
+	ArrayData result;
 
-	if (!vars)
-		return cv;
-
-	{
+	if (vars) {
 		ObjectLock olock(vars);
 		for (const auto& kv : vars) {
-			cv->Add(kv.second);
+			result.push_back(kv.second);
 		}
 	}
 
-	return cv;
+	return new Array(std::move(result));
 }
 
 Value StatusTable::CustomVariablesAccessor(const Value&)
 {
 	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
 
-	Array::Ptr cv = new Array();
+	ArrayData result;
 
-	if (!vars)
-		return cv;
-
-	{
+	if (vars) {
 		ObjectLock olock(vars);
 		for (const auto& kv : vars) {
-			Array::Ptr key_val = new Array();
-			key_val->Add(kv.first);
-			key_val->Add(kv.second);
-			cv->Add(key_val);
+			result.push_back(new Array({
+				kv.first,
+				kv.second
+			}));
 		}
 	}
 
-	return cv;
+	return new Array(std::move(result));
 }

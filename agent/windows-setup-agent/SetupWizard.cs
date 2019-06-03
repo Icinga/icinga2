@@ -176,9 +176,12 @@ namespace Icinga
 			}
 
 			SetRetrievalStatus(100);
-
-			X509Certificate2 cert = new X509Certificate2(_TrustedFile);
-			Invoke((MethodInvoker)delegate { ShowCertificatePrompt(cert); });
+			try {
+				X509Certificate2 cert = new X509Certificate2(_TrustedFile);
+				Invoke((MethodInvoker)delegate { ShowCertificatePrompt(cert); });
+			} catch (Exception e) {
+				ShowErrorText("Failed to receive certificate: " + e.Message);
+			}
 		}
 
 		private void ConfigureService()
@@ -194,16 +197,13 @@ namespace Icinga
 				string master_host, master_port;
 				GetMasterHostPort(out master_host, out master_port);
 
-				args += " --master_host " + master_host
-				    + "," + master_port;
+				args += " --master_host " + master_host + "," + master_port;
 
 				foreach (ListViewItem lvi in lvwEndpoints.Items) {
 					args += " --endpoint " + lvi.SubItems[0].Text.Trim();
 
-					if (lvi.SubItems.Count > 1) {
-						args += "," + lvi.SubItems[1].Text.Trim()
-						    + "," + lvi.SubItems[2].Text.Trim();
-					}
+					if (lvi.SubItems.Count > 1)
+						args += "," + lvi.SubItems[1].Text.Trim() + "," + lvi.SubItems[2].Text.Trim();
 				}
 			});
 
@@ -224,6 +224,13 @@ namespace Icinga
 			args += " --trustedcert \"" + _TrustedFile + "\"";
 			args += " --cn \"" + txtInstanceName.Text.Trim() + "\"";
 			args += " --zone \"" + txtInstanceName.Text.Trim() + "\"";
+
+			foreach (ListViewItem lvi in lvwGlobalZones.Items) {
+				args += " --global_zones " + lvi.SubItems[0].Text.Trim();
+			}
+
+			if (chkDisableConf.Checked)
+				args += " --disable-confd";
 
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"node setup" + args,
@@ -518,6 +525,62 @@ namespace Icinga
 			}
 
 			lvwEndpoints.Items.Add(lvi2);
+		}
+
+		private void btnAddGlobalZone_Click(object sender, EventArgs e)
+		{
+			GlobalZonesInputBox gzib = new GlobalZonesInputBox(lvwGlobalZones.Items);
+
+			if (gzib.ShowDialog(this) == DialogResult.Cancel)
+				return;
+
+			ListViewItem lvi = new ListViewItem();
+			lvi.Text = gzib.txtGlobalZoneName.Text;
+
+			lvwGlobalZones.Items.Add(lvi);
+		}
+
+		private void btnRemoveGlobalZone_Click(object sender, EventArgs e)
+		{
+			while (lvwGlobalZones.SelectedItems.Count > 0) {
+				lvwGlobalZones.Items.Remove(lvwGlobalZones.SelectedItems[0]);
+			}
+		}
+
+		private void lvwGlobalZones_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			btnEditGlobalZone.Enabled = lvwGlobalZones.SelectedItems.Count > 0;
+			btnRemoveGlobalZone.Enabled = lvwGlobalZones.SelectedItems.Count > 0;
+		}
+
+		private void btnEditGlobalZone_Click(object sender, EventArgs e)
+		{
+			ListViewItem lvi = lvwGlobalZones.SelectedItems[0];
+			GlobalZonesInputBox gzib = new GlobalZonesInputBox(lvwGlobalZones.Items);
+
+			gzib.Text = "Edit Global Zone";
+			gzib.txtGlobalZoneName.Text = lvi.SubItems[0].Text;
+			
+			if (gzib.ShowDialog(this) == DialogResult.Cancel)
+				return;
+
+			lvwGlobalZones.Items.Remove(lvi);
+
+			ListViewItem lvi2 = new ListViewItem();
+			lvi2.Text = gzib.txtGlobalZoneName.Text;
+			
+			lvwGlobalZones.Items.Add(lvi2);
+		}
+
+		private void checkBox1_CheckedChanged(object sender, EventArgs e)
+		{
+
+		}
+
+		private void SetupWizard_Load(object sender, EventArgs e)
+		{
+			this.MinimumSize = this.Size;
+			this.MaximumSize = this.Size;
 		}
 	}
 }

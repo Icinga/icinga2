@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/timeperiod.hpp"
-#include "icinga/timeperiod.tcpp"
+#include "icinga/timeperiod-ti.cpp"
 #include "icinga/legacytimeperiod.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
@@ -40,7 +23,7 @@ void TimePeriod::Start(bool runtimeCreated)
 
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
-	boost::call_once(once, []() {
+	boost::call_once(once, [this]() {
 		l_UpdateTimer = new Timer();
 		l_UpdateTimer->SetInterval(300);
 		l_UpdateTimer->OnTimerExpired.connect(std::bind(&TimePeriod::UpdateTimerHandler));
@@ -60,8 +43,8 @@ void TimePeriod::AddSegment(double begin, double end)
 	ASSERT(OwnsLock());
 
 	Log(LogDebug, "TimePeriod")
-	    << "Adding segment '" << Utility::FormatDateTime("%c", begin) << "' <-> '"
-	    << Utility::FormatDateTime("%c", end) << "' to TimePeriod '" << GetName() << "'";
+		<< "Adding segment '" << Utility::FormatDateTime("%c", begin) << "' <-> '"
+		<< Utility::FormatDateTime("%c", end) << "' to TimePeriod '" << GetName() << "'";
 
 	if (GetValidBegin().IsEmpty() || begin < GetValidBegin())
 		SetValidBegin(begin);
@@ -98,9 +81,10 @@ void TimePeriod::AddSegment(double begin, double end)
 	}
 
 	/* Create new segment if we weren't able to merge this into an existing segment. */
-	Dictionary::Ptr segment = new Dictionary();
-	segment->Set("begin", begin);
-	segment->Set("end", end);
+	Dictionary::Ptr segment = new Dictionary({
+		{ "begin", begin },
+		{ "end", end }
+	});
 
 	if (!segments) {
 		segments = new Array();
@@ -120,8 +104,8 @@ void TimePeriod::RemoveSegment(double begin, double end)
 	ASSERT(OwnsLock());
 
 	Log(LogDebug, "TimePeriod")
-	    << "Removing segment '" << Utility::FormatDateTime("%c", begin) << "' <-> '"
-	    << Utility::FormatDateTime("%c", end) << "' from TimePeriod '" << GetName() << "'";
+		<< "Removing segment '" << Utility::FormatDateTime("%c", begin) << "' <-> '"
+		<< Utility::FormatDateTime("%c", end) << "' from TimePeriod '" << GetName() << "'";
 
 	if (GetValidBegin().IsEmpty() || begin < GetValidBegin())
 		SetValidBegin(begin);
@@ -141,27 +125,27 @@ void TimePeriod::RemoveSegment(double begin, double end)
 	for (const Dictionary::Ptr& segment : segments) {
 		/* Fully contained in the specified range? */
 		if (segment->Get("begin") >= begin && segment->Get("end") <= end)
+			// Don't add the old segment, because the segment is fully contained into our range
 			continue;
 
 		/* Not overlapping at all? */
 		if (segment->Get("end") < begin || segment->Get("begin") > end) {
 			newSegments->Add(segment);
-
 			continue;
 		}
 
 		/* Cut between */
 		if (segment->Get("begin") < begin && segment->Get("end") > end) {
-			Dictionary::Ptr firstsegment = new Dictionary();
-			firstsegment->Set("begin", segment->Get("begin"));
-			firstsegment->Set("end", begin);
+			newSegments->Add(new Dictionary({
+				{ "begin", segment->Get("begin") },
+				{ "end", begin }
+			}));
 
-			Dictionary::Ptr secondsegment = new Dictionary();
-			secondsegment->Set("begin", end);
-			secondsegment->Set("end", segment->Get("end"));
-
-			newSegments->Add(firstsegment);
-			newSegments->Add(secondsegment);
+			newSegments->Add(new Dictionary({
+				{ "begin", end },
+				{ "end", segment->Get("end") }
+			}));
+			// Don't add the old segment, because we have now two new segments and a gap between
 			continue;
 		}
 
@@ -192,8 +176,8 @@ void TimePeriod::PurgeSegments(double end)
 	ASSERT(OwnsLock());
 
 	Log(LogDebug, "TimePeriod")
-	    << "Purging segments older than '" << Utility::FormatDateTime("%c", end)
-	    << "' from TimePeriod '" << GetName() << "'";
+		<< "Purging segments older than '" << Utility::FormatDateTime("%c", end)
+		<< "' from TimePeriod '" << GetName() << "'";
 
 	if (GetValidBegin().IsEmpty() || end < GetValidBegin())
 		return;
@@ -220,8 +204,8 @@ void TimePeriod::PurgeSegments(double end)
 void TimePeriod::Merge(const TimePeriod::Ptr& timeperiod, bool include)
 {
 	Log(LogDebug, "TimePeriod")
-	    << "Merge TimePeriod '" << GetName() << "' with '" << timeperiod->GetName() << "' "
-	    << "Method: " << (include ? "include" : "exclude");
+		<< "Merge TimePeriod '" << GetName() << "' with '" << timeperiod->GetName() << "' "
+		<< "Method: " << (include ? "include" : "exclude");
 
 	Array::Ptr segments = timeperiod->GetSegments();
 
@@ -236,7 +220,10 @@ void TimePeriod::Merge(const TimePeriod::Ptr& timeperiod, bool include)
 
 void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 {
-	if (!clearExisting) {
+	if (clearExisting) {
+		ObjectLock olock(this);
+		SetSegments(new Array());
+	} else {
 		if (begin < GetValidEnd())
 			begin = GetValidEnd();
 
@@ -287,7 +274,7 @@ void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 	}
 }
 
-bool TimePeriod::GetIsInside(void) const
+bool TimePeriod::GetIsInside() const
 {
 	return IsInside(Utility::GetTime());
 }
@@ -334,7 +321,7 @@ double TimePeriod::FindNextTransition(double begin)
 	return closestTransition;
 }
 
-void TimePeriod::UpdateTimerHandler(void)
+void TimePeriod::UpdateTimerHandler()
 {
 	double now = Utility::GetTime();
 
@@ -358,32 +345,34 @@ void TimePeriod::UpdateTimerHandler(void)
 	}
 }
 
-void TimePeriod::Dump(void)
+void TimePeriod::Dump()
 {
+	ObjectLock olock(this);
+
 	Array::Ptr segments = GetSegments();
 
 	Log(LogDebug, "TimePeriod")
-	    << "Dumping TimePeriod '" << GetName() << "'";
+		<< "Dumping TimePeriod '" << GetName() << "'";
 
 	Log(LogDebug, "TimePeriod")
-	    << "Valid from '" << Utility::FormatDateTime("%c", GetValidBegin())
-	    << "' until '" << Utility::FormatDateTime("%c", GetValidEnd());
+		<< "Valid from '" << Utility::FormatDateTime("%c", GetValidBegin())
+		<< "' until '" << Utility::FormatDateTime("%c", GetValidEnd());
 
 	if (segments) {
 		ObjectLock dlock(segments);
 		for (const Dictionary::Ptr& segment : segments) {
 			Log(LogDebug, "TimePeriod")
-			    << "Segment: " << Utility::FormatDateTime("%c", segment->Get("begin")) << " <-> "
-			    << Utility::FormatDateTime("%c", segment->Get("end"));
+				<< "Segment: " << Utility::FormatDateTime("%c", segment->Get("begin")) << " <-> "
+				<< Utility::FormatDateTime("%c", segment->Get("end"));
 		}
 	}
 
 	Log(LogDebug, "TimePeriod", "---");
 }
 
-void TimePeriod::ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils)
+void TimePeriod::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	if (!value)
+	if (!lvalue())
 		return;
 
 	/* create a fake time environment to validate the definitions */
@@ -391,8 +380,8 @@ void TimePeriod::ValidateRanges(const Dictionary::Ptr& value, const ValidationUt
 	tm reference = Utility::LocalTime(refts);
 	Array::Ptr segments = new Array();
 
-	ObjectLock olock(value);
-	for (const Dictionary::Pair& kv : value) {
+	ObjectLock olock(lvalue());
+	for (const Dictionary::Pair& kv : lvalue()) {
 		try {
 			tm begin_tm, end_tm;
 			int stride;

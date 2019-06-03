@@ -15,24 +15,28 @@ The recommended way of setting up these plugins is to copy them to a common dire
 and create a new global constant, e.g. `CustomPluginDir` in your [constants.conf](04-configuring-icinga-2.md#constants-conf)
 configuration file:
 
-    # cp check_snmp_int.pl /opt/monitoring/plugins
-    # chmod +x /opt/plugins/check_snmp_int.pl
+```
+# cp check_snmp_int.pl /opt/monitoring/plugins
+# chmod +x /opt/monitoring/plugins/check_snmp_int.pl
 
-    # cat /etc/icinga2/constants.conf
-    /**
-     * This file defines global constants which can be used in
-     * the other configuration files. At a minimum the
-     * PluginDir constant should be defined.
-     */
+# cat /etc/icinga2/constants.conf
+/**
+ * This file defines global constants which can be used in
+ * the other configuration files. At a minimum the
+ * PluginDir constant should be defined.
+ */
 
-    const PluginDir = "/usr/lib/nagios/plugins"
-    const CustomPluginDir = "/opt/monitoring/plugins"
+const PluginDir = "/usr/lib/nagios/plugins"
+const CustomPluginDir = "/opt/monitoring/plugins"
+```
 
 Prior to using the check plugin with Icinga 2 you should ensure that it is working properly
 by trying to run it on the console using whichever user Icinga 2 is running as:
 
-    # su - icinga -s /bin/bash
-    $ /opt/monitoring/plugins/check_snmp_int.pl --help
+```
+# su - icinga -s /bin/bash
+$ /opt/monitoring/plugins/check_snmp_int.pl --help
+```
 
 Additional libraries may be required for some plugins. Please consult the plugin
 documentation and/or the included README file for installation instructions.
@@ -64,36 +68,37 @@ set them on host/service level and you'll always know which command they control
 
 This is an example for a custom `my-snmp-int` check command:
 
-    object CheckCommand "my-snmp-int" {
-      command = [ CustomPluginDir + "/check_snmp_int.pl" ]
+```
+object CheckCommand "my-snmp-int" {
+  command = [ CustomPluginDir + "/check_snmp_int.pl" ]
 
-      arguments = {
-        "-H" = "$snmp_address$"
-        "-C" = "$snmp_community$"
-        "-p" = "$snmp_port$"
-        "-2" = {
-          set_if = "$snmp_v2$"
-        }
-        "-n" = "$snmp_interface$"
-        "-f" = {
-          set_if = "$snmp_perf$"
-        }
-        "-w" = "$snmp_warn$"
-        "-c" = "$snmp_crit$"
-      }
-
-      vars.snmp_v2 = true
-      vars.snmp_perf = true
-      vars.snmp_warn = "300,400"
-      vars.snmp_crit = "0,600"
+  arguments = {
+    "-H" = "$snmp_address$"
+    "-C" = "$snmp_community$"
+    "-p" = "$snmp_port$"
+    "-2" = {
+      set_if = "$snmp_v2$"
     }
+    "-n" = "$snmp_interface$"
+    "-f" = {
+      set_if = "$snmp_perf$"
+    }
+    "-w" = "$snmp_warn$"
+    "-c" = "$snmp_crit$"
+  }
 
+  vars.snmp_v2 = true
+  vars.snmp_perf = true
+  vars.snmp_warn = "300,400"
+  vars.snmp_crit = "0,600"
+}
+```
 
 For further information on your monitoring configuration read the
 [Monitoring Basics](03-monitoring-basics.md#monitoring-basics) chapter.
 
 If you have created your own `CheckCommand` definition, please kindly
-[send it upstream](https://www.icinga.com/community/get-involved/).
+[send it upstream](https://github.com/Icinga/icinga2/blob/master/CONTRIBUTING.md).
 
 ### Plugin API <a id="service-monitoring-plugin-api"></a>
 
@@ -127,28 +132,30 @@ Common best practices when creating a new plugin are for example:
 
 Example skeleton:
 
-    # 1. include optional libraries
-    # 2. global variables
-    # 3. helper functions and/or classes
-    # 4. define timeout condition
+```
+# 1. include optional libraries
+# 2. global variables
+# 3. helper functions and/or classes
+# 4. define timeout condition
 
-    if (<timeout_reached>) then
-      print "UNKNOWN - Timeout (...) reached | 'time'=30.0
-    endif
+if (<timeout_reached>) then
+  print "UNKNOWN - Timeout (...) reached | 'time'=30.0
+endif
 
-    # 5. main method
+# 5. main method
 
-    <execute and fetch data>
+<execute and fetch data>
 
-    if (<threshold_critical_condition>) then
-      print "CRITICAL - ... | 'time'=0.1 'myperfdatavalue'=5.0
-      exit(2)
-    else if (<threshold_warning_condition>) then
-      print "WARNING - ... | 'time'=0.1 'myperfdatavalue'=3.0
-      exit(1)
-    else
-      print "OK - ... | 'time'=0.2 'myperfdatavalue'=1.0
-    endif
+if (<threshold_critical_condition>) then
+  print "CRITICAL - ... | 'time'=0.1 'myperfdatavalue'=5.0
+  exit(2)
+else if (<threshold_warning_condition>) then
+  print "WARNING - ... | 'time'=0.1 'myperfdatavalue'=3.0
+  exit(1)
+else
+  print "OK - ... | 'time'=0.2 'myperfdatavalue'=1.0
+endif
+```
 
 There are various plugin libraries available which will help
 with plugin execution and output formatting too, for example
@@ -226,7 +233,7 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 * [ftp](10-icinga-template-library.md#plugin-check-command-ftp)
 * [webinject](10-icinga-template-library.md#plugin-contrib-command-webinject)
 * [squid](10-icinga-template-library.md#plugin-contrib-command-squid)
-* [apache_status](10-icinga-template-library.md#plugin-contrib-command-apache_status)
+* [apache-status](10-icinga-template-library.md#plugin-contrib-command-apache-status)
 * [nginx_status](10-icinga-template-library.md#plugin-contrib-command-nginx_status)
 * [kdc](10-icinga-template-library.md#plugin-contrib-command-kdc)
 * [rbl](10-icinga-template-library.md#plugin-contrib-command-rbl)
@@ -260,6 +267,8 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 
 **Tip**: If you are encountering timeouts using the VMware Perl SDK,
 check [this blog entry](https://www.claudiokuenzler.com/blog/650/slow-vmware-perl-sdk-soap-request-error-libwww-version).
+Ubuntu 16.04 LTS can have troubles with random entropy in Perl asked [here](https://monitoring-portal.org/t/check-vmware-api-slow-when-run-multiple-times/2868).
+In that case, [haveged](http://issihosts.com/haveged/) may help.
 
 ### SAP Monitoring <a id="service-monitoring-sap"></a>
 

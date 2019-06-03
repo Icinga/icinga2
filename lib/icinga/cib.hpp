@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef CIB_H
 #define CIB_H
@@ -29,12 +12,12 @@ namespace icinga
 {
 
 struct CheckableCheckStatistics {
-    double min_latency;
-    double max_latency;
-    double avg_latency;
-    double min_execution_time;
-    double max_execution_time;
-    double avg_execution_time;
+	double min_latency;
+	double max_latency;
+	double avg_latency;
+	double min_execution_time;
+	double max_execution_time;
+	double avg_execution_time;
 };
 
 struct ServiceStatistics {
@@ -65,7 +48,7 @@ struct HostStatistics {
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API CIB
+class CIB
 {
 public:
 	static void UpdateActiveHostChecksStatistics(long tv, int num);
@@ -80,17 +63,17 @@ public:
 	static void UpdatePassiveServiceChecksStatistics(long tv, int num);
 	static int GetPassiveServiceChecksStatistics(long timespan);
 
-	static CheckableCheckStatistics CalculateHostCheckStats(void);
-	static CheckableCheckStatistics CalculateServiceCheckStats(void);
-	static HostStatistics CalculateHostStats(void);
-	static ServiceStatistics CalculateServiceStats(void);
+	static CheckableCheckStatistics CalculateHostCheckStats();
+	static CheckableCheckStatistics CalculateServiceCheckStats();
+	static HostStatistics CalculateHostStats();
+	static ServiceStatistics CalculateServiceStats();
 
-	static std::pair<Dictionary::Ptr, Array::Ptr> GetFeatureStats(void);
+	static std::pair<Dictionary::Ptr, Array::Ptr> GetFeatureStats();
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 private:
-	CIB(void);
+	CIB();
 
 	static boost::mutex m_Mutex;
 	static RingBuffer m_ActiveHostChecksStatistics;

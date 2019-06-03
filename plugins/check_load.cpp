@@ -1,56 +1,29 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include <Pdh.h>
-#include <Shlwapi.h>
-#include <pdhmsg.h>
+#include "plugins/thresholds.hpp"
+#include <boost/program_options.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #include <iostream>
-
-#include "check_load.h"
-
-#include "boost/algorithm/string/split.hpp"
-#include "boost/algorithm/string/classification.hpp"
+#include <pdh.h>
+#include <shlwapi.h>
+#include <pdhmsg.h>
 
 #define VERSION 1.0
 
 namespace po = boost::program_options;
 
-static BOOL debug = FALSE;
-
-
-INT wmain(INT argc, WCHAR **argv) 
+struct printInfoStruct
 {
-	printInfoStruct printInfo{ };
-	po::variables_map vm;
+	threshold warn;
+	threshold crit;
+	double load;
+};
 
-	INT ret = parseArguments(argc, argv, vm, printInfo);
-	if (ret != -1)
-		return ret;
+static bool l_Debug;
 
-	ret = check_load(printInfo);
-	if (ret != -1)
-		return ret;
-
-	return printOutput(printInfo);
-}
-
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) {
+static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
+{
 	wchar_t namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
 	wchar_t *progName = PathFindFileName(namePath);
@@ -65,19 +38,19 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		("critical,c", po::wvalue<std::wstring>(), "Critical value (in percent)")
 		;
 
-	po::basic_command_line_parser<wchar_t> parser(ac, av);
+	po::wcommand_line_parser parser(ac, av);
 
 	try {
 		po::store(
 			parser
 			.options(desc)
 			.style(
-			po::command_line_style::unix_style |
-			po::command_line_style::allow_long_disguise)
+				po::command_line_style::unix_style |
+				po::command_line_style::allow_long_disguise)
 			.run(),
 			vm);
 		vm.notify();
-	} catch (std::exception& e) {
+	} catch (const std::exception& e) {
 		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
@@ -131,32 +104,32 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 			std::vector<std::wstring> tokens;
 			boost::algorithm::split(tokens, wthreshold, boost::algorithm::is_any_of(","));
 			printInfo.warn = threshold(tokens[0]);
-		} catch (std::invalid_argument& e) {
+		} catch (const std::invalid_argument& e) {
 			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
+
 	if (vm.count("critical")) {
 		try {
 			std::wstring cthreshold = vm["critical"].as<std::wstring>();
 			std::vector<std::wstring> tokens;
 			boost::algorithm::split(tokens, cthreshold, boost::algorithm::is_any_of(","));
 			printInfo.crit = threshold(tokens[0]);
-		} catch (std::invalid_argument& e) {
+		} catch (const std::invalid_argument& e) {
 			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
 
-	if (vm.count("debug"))
-		debug = TRUE;
+	l_Debug = vm.count("debug") > 0;
 
 	return -1;
 }
 
-INT printOutput(printInfoStruct& printInfo) 
+static int printOutput(printInfoStruct& printInfo)
 {
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Constructing output string" << '\n';
 
 	state state = OK;
@@ -167,82 +140,80 @@ INT printOutput(printInfoStruct& printInfo)
 	if (printInfo.crit.rend(printInfo.load))
 		state = CRITICAL;
 
-	std::wstringstream perf;
-	perf << L"% | load=" << printInfo.load << L"%;" << printInfo.warn.pString() << L";" 
-		<< printInfo.crit.pString() << L";0;100" << '\n';
+	std::wcout << L"LOAD ";
 
 	switch (state) {
 	case OK:
-		std::wcout << L"LOAD OK " << printInfo.load << perf.str();
+		std::wcout << L"OK";
 		break;
 	case WARNING:
-		std::wcout << L"LOAD WARNING " << printInfo.load << perf.str();
+		std::wcout << L"WARNING";
 		break;
 	case CRITICAL:
-		std::wcout << L"LOAD CRITICAL " << printInfo.load << perf.str();
+		std::wcout << L"CRITICAL";
 		break;
 	}
+
+	std::wcout << " " << printInfo.load << L"% | 'load'=" << printInfo.load << L"%;"
+		<< printInfo.warn.pString() << L";"
+		<< printInfo.crit.pString() << L";0;100" << '\n';
 
 	return state;
 }
 
-INT check_load(printInfoStruct& printInfo) 
+static int check_load(printInfoStruct& printInfo)
 {
-	PDH_HQUERY phQuery = NULL;
-	PDH_HCOUNTER phCounter;
-	DWORD dwBufferSize = 0;
-	DWORD CounterType;
-	PDH_FMT_COUNTERVALUE DisplayValue;
-	PDH_STATUS err;
-
-	LPCWSTR path = L"\\Processor(_Total)\\% Idle Time";
-
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Creating query and adding counter" << '\n';
 
-	err = PdhOpenQuery(NULL, NULL, &phQuery);
+	PDH_HQUERY phQuery;
+	PDH_STATUS err = PdhOpenQuery(NULL, NULL, &phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
-	err = PdhAddEnglishCounter(phQuery, path, NULL, &phCounter);
+	PDH_HCOUNTER phCounter;
+	err = PdhAddEnglishCounter(phQuery, L"\\Processor(_Total)\\% Idle Time", NULL, &phCounter);
 	if (!SUCCEEDED(err))
 		goto die;
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Collecting first batch of query data" << '\n';
 
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Sleep for one second" << '\n';
 
 	Sleep(1000);
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Collecting second batch of query data" << '\n';
 
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Creating formatted counter array" << '\n';
 
+	DWORD CounterType;
+	PDH_FMT_COUNTERVALUE DisplayValue;
 	err = PdhGetFormattedCounterValue(phCounter, PDH_FMT_DOUBLE, &CounterType, &DisplayValue);
 	if (SUCCEEDED(err)) {
 		if (DisplayValue.CStatus == PDH_CSTATUS_VALID_DATA) {
-			if (debug)
+			if (l_Debug)
 				std::wcout << L"Recieved Value of " << DisplayValue.doubleValue << L" (idle)" << '\n';
 			printInfo.load = 100.0 - DisplayValue.doubleValue;
-		} else {
-			if (debug)
+		}
+		else {
+			if (l_Debug)
 				std::wcout << L"Received data was not valid\n";
 			goto die;
 		}
 
-		if (debug)
+		if (l_Debug)
 			std::wcout << L"Finished collection. Cleaning up and returning" << '\n';
 
 		PdhCloseQuery(phQuery);
@@ -250,8 +221,24 @@ INT check_load(printInfoStruct& printInfo)
 	}
 
 die:
-	die();
+	printErrorInfo();
 	if (phQuery)
 		PdhCloseQuery(phQuery);
 	return 3;
+}
+
+int wmain(int argc, WCHAR **argv)
+{
+	printInfoStruct printInfo;
+	po::variables_map vm;
+
+	int ret = parseArguments(argc, argv, vm, printInfo);
+	if (ret != -1)
+		return ret;
+
+	ret = check_load(printInfo);
+	if (ret != -1)
+		return ret;
+
+	return printOutput(printInfo);
 }

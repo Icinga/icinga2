@@ -1,30 +1,17 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef HTTPHANDLER_H
 #define HTTPHANDLER_H
 
 #include "remote/i2-remote.hpp"
-#include "remote/httpresponse.hpp"
+#include "remote/url.hpp"
+#include "remote/httpserverconnection.hpp"
 #include "remote/apiuser.hpp"
 #include "base/registry.hpp"
+#include "base/tlsstream.hpp"
 #include <vector>
+#include <boost/asio/spawn.hpp>
+#include <boost/beast/http.hpp>
 
 namespace icinga
 {
@@ -34,15 +21,31 @@ namespace icinga
  *
  * @ingroup remote
  */
-class I2_REMOTE_API HttpHandler : public Object
+class HttpHandler : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(HttpHandler);
 
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params) = 0;
+	virtual bool HandleRequest(
+		AsioTlsStream& stream,
+		const ApiUser::Ptr& user,
+		boost::beast::http::request<boost::beast::http::string_body>& request,
+		const Url::Ptr& url,
+		boost::beast::http::response<boost::beast::http::string_body>& response,
+		const Dictionary::Ptr& params,
+		boost::asio::yield_context& yc,
+		HttpServerConnection& server
+	) = 0;
 
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
-	static void ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
+	static void ProcessRequest(
+		AsioTlsStream& stream,
+		const ApiUser::Ptr& user,
+		boost::beast::http::request<boost::beast::http::string_body>& request,
+		boost::beast::http::response<boost::beast::http::string_body>& response,
+		boost::asio::yield_context& yc,
+		HttpServerConnection& server
+	);
 
 private:
 	static Dictionary::Ptr m_UrlTree;
@@ -53,7 +56,7 @@ private:
  *
  * @ingroup remote
  */
-class I2_REMOTE_API RegisterHttpHandler
+class RegisterHttpHandler
 {
 public:
 	RegisterHttpHandler(const String& url, const HttpHandler& function);

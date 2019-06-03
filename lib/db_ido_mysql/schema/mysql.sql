@@ -2,7 +2,7 @@
 -- mysql.sql
 -- DB definition for IDO MySQL
 --
--- Copyright (c) 2009-2017 Icinga Development Team (https://www.icinga.com/)
+-- Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 --
 -- -- --------------------------------------------------------
 
@@ -80,8 +80,7 @@ CREATE TABLE IF NOT EXISTS icinga_commenthistory (
   deletion_time timestamp NULL,
   deletion_time_usec  int default 0,
   name TEXT character set latin1 default NULL,
-  PRIMARY KEY  (commenthistory_id),
-  UNIQUE KEY instance_id (instance_id,object_id,comment_time,internal_comment_id)
+  PRIMARY KEY  (commenthistory_id)
 ) ENGINE=InnoDB  COMMENT='Historical host and service comments';
 
 -- --------------------------------------------------------
@@ -108,8 +107,7 @@ CREATE TABLE IF NOT EXISTS icinga_comments (
   expiration_time timestamp NULL,
   name TEXT character set latin1 default NULL,
   session_token int default NULL,
-  PRIMARY KEY  (comment_id),
-  UNIQUE KEY instance_id (instance_id,object_id,comment_time,internal_comment_id)
+  PRIMARY KEY  (comment_id)
 ) ENGINE=InnoDB  COMMENT='Usercomments on Icinga objects';
 
 -- --------------------------------------------------------
@@ -412,8 +410,7 @@ CREATE TABLE IF NOT EXISTS icinga_downtimehistory (
   is_in_effect smallint default 0,
   trigger_time timestamp NULL,
   name TEXT character set latin1 default NULL,
-  PRIMARY KEY  (downtimehistory_id),
-  UNIQUE KEY instance_id (instance_id,object_id,entry_time,internal_downtime_id)
+  PRIMARY KEY  (downtimehistory_id)
 ) ENGINE=InnoDB  COMMENT='Historical scheduled host and service downtime';
 
 -- --------------------------------------------------------
@@ -695,8 +692,7 @@ CREATE TABLE IF NOT EXISTS icinga_hosts (
   z_3d double  default '0',
   config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (host_id),
-  UNIQUE KEY instance_id (instance_id,config_type,host_object_id),
-  KEY host_object_id (host_object_id)
+  UNIQUE KEY instance_id (instance_id,config_type,host_object_id)
 ) ENGINE=InnoDB  COMMENT='Host definitions';
 
 -- --------------------------------------------------------
@@ -977,8 +973,7 @@ CREATE TABLE IF NOT EXISTS icinga_scheduleddowntime (
   trigger_time timestamp NULL,
   name TEXT character set latin1 default NULL,
   session_token int default NULL,
-  PRIMARY KEY  (scheduleddowntime_id),
-  UNIQUE KEY instance_id (instance_id,object_id,entry_time,internal_downtime_id)
+  PRIMARY KEY  (scheduleddowntime_id)
 ) ENGINE=InnoDB COMMENT='Current scheduled host and service downtime';
 
 -- --------------------------------------------------------
@@ -1185,8 +1180,7 @@ CREATE TABLE IF NOT EXISTS icinga_services (
   icon_image_alt TEXT character set latin1,
   config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (service_id),
-  UNIQUE KEY instance_id (instance_id,config_type,service_object_id),
-  KEY service_object_id (service_object_id)
+  UNIQUE KEY instance_id (instance_id,config_type,service_object_id)
 ) ENGINE=InnoDB  COMMENT='Service definitions';
 
 -- --------------------------------------------------------
@@ -1467,10 +1461,8 @@ ALTER TABLE icinga_systemcommands ADD COLUMN endpoint_object_id bigint default N
 -- EXTERNALCOMMANDS => entry_time
 
 -- instance_id
-CREATE INDEX systemcommands_i_id_idx on icinga_systemcommands(instance_id);
 CREATE INDEX servicechecks_i_id_idx on icinga_servicechecks(instance_id);
 CREATE INDEX hostchecks_i_id_idx on icinga_hostchecks(instance_id);
-CREATE INDEX eventhandlers_i_id_idx on icinga_eventhandlers(instance_id);
 CREATE INDEX externalcommands_i_id_idx on icinga_externalcommands(instance_id);
 
 -- time
@@ -1485,40 +1477,22 @@ CREATE INDEX externalcommands_time_id_idx on icinga_externalcommands(entry_time)
 -- instance_id only
 
 -- realtime data
-CREATE INDEX programstatus_i_id_idx on icinga_programstatus(instance_id);
 CREATE INDEX hoststatus_i_id_idx on icinga_hoststatus(instance_id);
 CREATE INDEX servicestatus_i_id_idx on icinga_servicestatus(instance_id);
 CREATE INDEX contactstatus_i_id_idx on icinga_contactstatus(instance_id);
-CREATE INDEX comments_i_id_idx on icinga_comments(instance_id);
-CREATE INDEX scheduleddowntime_i_id_idx on icinga_scheduleddowntime(instance_id);
-CREATE INDEX runtimevariables_i_id_idx on icinga_runtimevariables(instance_id);
 CREATE INDEX customvariablestatus_i_id_idx on icinga_customvariablestatus(instance_id);
 
 -- config data
-CREATE INDEX configfiles_i_id_idx on icinga_configfiles(instance_id);
 CREATE INDEX configfilevariables_i_id_idx on icinga_configfilevariables(instance_id);
 CREATE INDEX customvariables_i_id_idx on icinga_customvariables(instance_id);
-CREATE INDEX commands_i_id_idx on icinga_commands(instance_id);
-CREATE INDEX timeperiods_i_id_idx on icinga_timeperiods(instance_id);
 CREATE INDEX timeperiod_timeranges_i_id_idx on icinga_timeperiod_timeranges(instance_id);
-CREATE INDEX contactgroups_i_id_idx on icinga_contactgroups(instance_id);
 CREATE INDEX contactgroup_members_i_id_idx on icinga_contactgroup_members(instance_id);
-CREATE INDEX hostgroups_i_id_idx on icinga_hostgroups(instance_id);
 CREATE INDEX hostgroup_members_i_id_idx on icinga_hostgroup_members(instance_id);
-CREATE INDEX servicegroups_i_id_idx on icinga_servicegroups(instance_id);
 CREATE INDEX servicegroup_members_i_id_idx on icinga_servicegroup_members(instance_id);
-CREATE INDEX hostesc_i_id_idx on icinga_hostescalations(instance_id);
-CREATE INDEX hostesc_contacts_i_id_idx on icinga_hostescalation_contacts(instance_id);
-CREATE INDEX serviceesc_i_id_idx on icinga_serviceescalations(instance_id);
-CREATE INDEX serviceesc_contacts_i_id_idx on icinga_serviceescalation_contacts(instance_id);
-CREATE INDEX hostdependencies_i_id_idx on icinga_hostdependencies(instance_id);
-CREATE INDEX contacts_i_id_idx on icinga_contacts(instance_id);
 CREATE INDEX contact_addresses_i_id_idx on icinga_contact_addresses(instance_id);
 CREATE INDEX contact_notifcommands_i_id_idx on icinga_contact_notificationcommands(instance_id);
-CREATE INDEX hosts_i_id_idx on icinga_hosts(instance_id);
 CREATE INDEX host_parenthosts_i_id_idx on icinga_host_parenthosts(instance_id);
 CREATE INDEX host_contacts_i_id_idx on icinga_host_contacts(instance_id);
-CREATE INDEX services_i_id_idx on icinga_services(instance_id);
 CREATE INDEX service_contacts_i_id_idx on icinga_service_contacts(instance_id);
 CREATE INDEX service_contactgroups_i_id_idx on icinga_service_contactgroups(instance_id);
 CREATE INDEX host_contactgroups_i_id_idx on icinga_host_contactgroups(instance_id);
@@ -1578,7 +1552,6 @@ CREATE INDEX hostchks_h_obj_id_idx on icinga_hostchecks(host_object_id);
 CREATE INDEX servicechks_s_obj_id_idx on icinga_servicechecks(service_object_id);
 
 -- objects
-CREATE INDEX objects_objtype_id_idx ON icinga_objects(objecttype_id);
 CREATE INDEX objects_name1_idx ON icinga_objects(name1);
 CREATE INDEX objects_name2_idx ON icinga_objects(name2);
 CREATE INDEX objects_inst_id_idx ON icinga_objects(instance_id);
@@ -1647,10 +1620,6 @@ CREATE INDEX sla_idx_obj ON icinga_objects (objecttype_id, is_active, name1);
 -- #4985
 CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, comment_time, internal_comment_id);
 
--- #10070
-CREATE INDEX idx_comments_object_id on icinga_comments(object_id);
-CREATE INDEX idx_scheduleddowntime_object_id on icinga_scheduleddowntime(object_id);
-
 -- #10066
 CREATE INDEX idx_endpoints_object_id on icinga_endpoints(endpoint_object_id);
 CREATE INDEX idx_endpointstatus_object_id on icinga_endpointstatus(endpoint_object_id);
@@ -1672,7 +1641,6 @@ CREATE INDEX idx_downtimes_session_del ON icinga_scheduleddowntime (instance_id,
 CREATE INDEX idx_statehistory_cleanup on icinga_statehistory(instance_id, state_time);
 
 -- #12435
-CREATE INDEX idx_customvariables_object_id on icinga_customvariables(object_id);
 CREATE INDEX idx_contactgroup_members_object_id on icinga_contactgroup_members(contact_object_id);
 CREATE INDEX idx_hostgroup_members_object_id on icinga_hostgroup_members(host_object_id);
 CREATE INDEX idx_servicegroup_members_object_id on icinga_servicegroup_members(service_object_id);

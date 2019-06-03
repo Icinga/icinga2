@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
@@ -30,12 +13,14 @@
 namespace icinga
 {
 
+typedef std::vector<std::pair<String, Value> > DictionaryData;
+
 /**
  * A container that holds key-value pairs.
  *
  * @ingroup base
  */
-class I2_BASE_API Dictionary : public Object
+class Dictionary final : public Object
 {
 public:
 	DECLARE_OBJECT(Dictionary);
@@ -49,94 +34,55 @@ public:
 
 	typedef std::map<String, Value>::value_type Pair;
 
-	inline Dictionary(void)
-	{ }
-
-	inline ~Dictionary(void)
-	{ }
+	Dictionary() = default;
+	Dictionary(const DictionaryData& other);
+	Dictionary(DictionaryData&& other);
+	Dictionary(std::initializer_list<Pair> init);
 
 	Value Get(const String& key) const;
 	bool Get(const String& key, Value *result) const;
-	void Set(const String& key, const Value& value);
-	void Set(const String& key, Value&& value);
+	void Set(const String& key, Value value, bool overrideFrozen = false);
 	bool Contains(const String& key) const;
 
-	/**
-	 * Returns an iterator to the beginning of the dictionary.
-	 *
-	 * Note: Caller must hold the object lock while using the iterator.
-	 *
-	 * @returns An iterator.
-	 */
-	inline Iterator Begin(void)
-	{
-		ASSERT(OwnsLock());
+	Iterator Begin();
+	Iterator End();
 
-		return m_Data.begin();
-	}
+	size_t GetLength() const;
 
-	/**
-	 * Returns an iterator to the end of the dictionary.
-	 *
-	 * Note: Caller must hold the object lock while using the iterator.
-	 *
-	 * @returns An iterator.
-	 */
-	inline Iterator End(void)
-	{
-		ASSERT(OwnsLock());
+	void Remove(const String& key, bool overrideFrozen = false);
 
-		return m_Data.end();
-	}
+	void Remove(Iterator it, bool overrideFrozen = false);
 
-	size_t GetLength(void) const;
-
-	void Remove(const String& key);
-
-	/**
-	 * Removes the item specified by the iterator from the dictionary.
-	 *
-	 * @param it The iterator.
-	 */
-	inline void Remove(Iterator it)
-	{
-		ASSERT(OwnsLock());
-
-		m_Data.erase(it);
-	}
-
-	void Clear(void);
+	void Clear(bool overrideFrozen = false);
 
 	void CopyTo(const Dictionary::Ptr& dest) const;
-	Dictionary::Ptr ShallowClone(void) const;
+	Dictionary::Ptr ShallowClone() const;
 
-	std::vector<String> GetKeys(void) const;
+	std::vector<String> GetKeys() const;
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
-	virtual Object::Ptr Clone(void) const override;
+	Object::Ptr Clone() const override;
 
-	virtual String ToString(void) const override;
+	String ToString() const override;
 
-	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
-	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
-	virtual bool HasOwnField(const String& field) const override;
-	virtual bool GetOwnField(const String& field, Value *result) const override;
+	void Freeze();
+
+	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
+	void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
+	bool HasOwnField(const String& field) const override;
+	bool GetOwnField(const String& field, Value *result) const override;
 
 private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */
+	bool m_Frozen{false};
 };
 
-inline Dictionary::Iterator begin(Dictionary::Ptr x)
-{
-	return x->Begin();
-}
-
-inline Dictionary::Iterator end(Dictionary::Ptr x)
-{
-	return x->End();
-}
+Dictionary::Iterator begin(const Dictionary::Ptr& x);
+Dictionary::Iterator end(const Dictionary::Ptr& x);
 
 }
+
+extern template class std::map<icinga::String, icinga::Value>;
 
 #endif /* DICTIONARY_H */

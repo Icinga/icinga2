@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/commandstable.hpp"
 #include "icinga/icingaapplication.hpp"
@@ -30,13 +13,13 @@
 
 using namespace icinga;
 
-CommandsTable::CommandsTable(void)
+CommandsTable::CommandsTable()
 {
 	AddColumns(this);
 }
 
 void CommandsTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&CommandsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "line", Column(&CommandsTable::LineAccessor, objectAccessor));
@@ -47,12 +30,12 @@ void CommandsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "modified_attributes_list", Column(&Table::ZeroAccessor, objectAccessor));
 }
 
-String CommandsTable::GetName(void) const
+String CommandsTable::GetName() const
 {
 	return "commands";
 }
 
-String CommandsTable::GetPrefix(void) const
+String CommandsTable::GetPrefix() const
 {
 	return "command";
 }
@@ -99,26 +82,18 @@ Value CommandsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!command)
 		return Empty;
 
-	Dictionary::Ptr vars;
+	Dictionary::Ptr vars = command->GetVars();
 
-	{
-		ObjectLock olock(command);
-		vars = CompatUtility::GetCustomAttributeConfig(command);
-	}
+	ArrayData keys;
 
-	Array::Ptr cv = new Array();
-
-	if (!vars)
-		return cv;
-
-	{
+	if (vars) {
 		ObjectLock xlock(vars);
 		for (const auto& kv : vars) {
-			cv->Add(kv.first);
+			keys.push_back(kv.first);
 		}
 	}
 
-	return cv;
+	return new Array(std::move(keys));
 }
 
 Value CommandsTable::CustomVariableValuesAccessor(const Value& row)
@@ -128,26 +103,18 @@ Value CommandsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!command)
 		return Empty;
 
-	Dictionary::Ptr vars;
+	Dictionary::Ptr vars = command->GetVars();
 
-	{
-		ObjectLock olock(command);
-		vars = CompatUtility::GetCustomAttributeConfig(command);
-	}
+	ArrayData keys;
 
-	Array::Ptr cv = new Array();
-
-	if (!vars)
-		return cv;
-
-	{
+	if (vars) {
 		ObjectLock xlock(vars);
 		for (const auto& kv : vars) {
-			cv->Add(kv.second);
+			keys.push_back(kv.second);
 		}
 	}
 
-	return cv;
+	return new Array(std::move(keys));
 }
 
 Value CommandsTable::CustomVariablesAccessor(const Value& row)
@@ -157,27 +124,19 @@ Value CommandsTable::CustomVariablesAccessor(const Value& row)
 	if (!command)
 		return Empty;
 
-	Dictionary::Ptr vars;
+	Dictionary::Ptr vars = command->GetVars();
 
-	{
-		ObjectLock olock(command);
-		vars = CompatUtility::GetCustomAttributeConfig(command);
-	}
+	ArrayData result;
 
-	Array::Ptr cv = new Array();
-
-	if (!vars)
-		return cv;
-
-	{
+	if (vars) {
 		ObjectLock xlock(vars);
 		for (const auto& kv : vars) {
-			Array::Ptr key_val = new Array();
-			key_val->Add(kv.first);
-			key_val->Add(kv.second);
-			cv->Add(key_val);
+			result.push_back(new Array({
+				kv.first,
+				kv.second
+			}));
 		}
 	}
 
-	return cv;
+	return new Array(std::move(result));
 }

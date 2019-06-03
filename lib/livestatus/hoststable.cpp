@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/hoststable.hpp"
 #include "livestatus/hostgroupstable.hpp"
@@ -29,24 +12,24 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/pluginutility.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
-#include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
 
 HostsTable::HostsTable(LivestatusGroupByType type)
-    :Table(type)
+	:Table(type)
 {
 	AddColumns(this);
 }
 
 void HostsTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&HostsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "host_name", Column(&HostsTable::NameAccessor, objectAccessor)); //ugly compatibility hack
@@ -76,7 +59,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "max_check_attempts", Column(&HostsTable::MaxCheckAttemptsAccessor, objectAccessor));
 	table->AddColumn(prefix + "flap_detection_enabled", Column(&HostsTable::FlapDetectionEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_freshness", Column(&Table::OneAccessor, objectAccessor));
-	table->AddColumn(prefix + "process_performance_data", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "process_performance_data", Column(&HostsTable::ProcessPerformanceDataAccessor, objectAccessor));
 	table->AddColumn(prefix + "accept_passive_checks", Column(&HostsTable::AcceptPassiveChecksAccessor, objectAccessor));
 	table->AddColumn(prefix + "event_handler_enabled", Column(&HostsTable::EventHandlerEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "acknowledgement_type", Column(&HostsTable::AcknowledgementTypeAccessor, objectAccessor));
@@ -108,7 +91,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "scheduled_downtime_depth", Column(&HostsTable::ScheduledDowntimeDepthAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_executing", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "active_checks_enabled", Column(&HostsTable::ActiveChecksEnabledAccessor, objectAccessor));
-	table->AddColumn(prefix + "check_options", Column(&HostsTable::CheckOptionsAccessor, objectAccessor));
+	table->AddColumn(prefix + "check_options", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "obsess_over_host", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes_list", Column(&Table::ZeroAccessor, objectAccessor));
@@ -169,17 +152,17 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	if (table->GetGroupByType() == LivestatusGroupByHostGroup) {
 		/* _1 = row, _2 = groupByType, _3 = groupByObject */
 		Log(LogDebug, "Livestatus")
-		    << "Processing hosts group by hostgroup table.";
+			<< "Processing hosts group by hostgroup table.";
 		HostGroupsTable::AddColumns(table, "hostgroup_", std::bind(&HostsTable::HostGroupAccessor, _1, _2, _3));
 	}
 }
 
-String HostsTable::GetName(void) const
+String HostsTable::GetName() const
 {
 	return "hosts";
 }
 
-String HostsTable::GetPrefix(void) const
+String HostsTable::GetPrefix() const
 {
 	return "host";
 }
@@ -303,7 +286,12 @@ Value HostsTable::CheckPeriodAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckPeriod(host);
+	TimePeriod::Ptr checkPeriod = host->GetCheckPeriod();
+
+	if (!checkPeriod)
+		return Empty;
+
+	return checkPeriod->GetName();
 }
 
 Value HostsTable::NotesAccessor(const Value& row)
@@ -324,8 +312,8 @@ Value HostsTable::NotesExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "host", host },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "host", host },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetNotes(), resolvers);
@@ -349,8 +337,8 @@ Value HostsTable::NotesUrlExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "host", host },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "host", host },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetNotesUrl(), resolvers);
@@ -374,8 +362,8 @@ Value HostsTable::ActionUrlExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "host", host },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "host", host },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetActionUrl(), resolvers);
@@ -407,10 +395,10 @@ Value HostsTable::PerfDataAccessor(const Value& row)
 	String perfdata;
 	CheckResult::Ptr cr = host->GetLastCheckResult();
 
-	if (cr)
-		perfdata = CompatUtility::GetCheckResultPerfdata(cr);
+	if (!cr)
+		return Empty;
 
-	return perfdata;
+	return PluginUtility::FormatPerfdata(cr->GetPerformanceData());
 }
 
 Value HostsTable::IconImageAccessor(const Value& row)
@@ -431,8 +419,8 @@ Value HostsTable::IconImageExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "host", host },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "host", host },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetIconImage(), resolvers);
@@ -481,7 +469,7 @@ Value HostsTable::FlapDetectionEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableFlapDetectionEnabled(host);
+	return Convert::ToLong(host->GetEnableFlapping());
 }
 
 Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
@@ -491,7 +479,7 @@ Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckablePassiveChecksEnabled(host);
+	return Convert::ToLong(host->GetEnablePassiveChecks());
 }
 
 Value HostsTable::EventHandlerEnabledAccessor(const Value& row)
@@ -501,7 +489,7 @@ Value HostsTable::EventHandlerEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableEventHandlerEnabled(host);
+	return Convert::ToLong(host->GetEnableEventHandler());
 }
 
 Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
@@ -512,7 +500,7 @@ Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
 		return Empty;
 
 	ObjectLock olock(host);
-	return CompatUtility::GetCheckableAcknowledgementType(host);
+	return host->GetAcknowledgement();
 }
 
 Value HostsTable::CheckTypeAccessor(const Value& row)
@@ -522,7 +510,7 @@ Value HostsTable::CheckTypeAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckType(host);
+	return (host->GetEnableActiveChecks() ? 0 : 1); /* 0 .. active, 1 .. passive */
 }
 
 Value HostsTable::LastStateAccessor(const Value& row)
@@ -602,7 +590,7 @@ Value HostsTable::HasBeenCheckedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableHasBeenChecked(host);
+	return Convert::ToLong(host->HasBeenChecked());
 }
 
 Value HostsTable::CurrentNotificationNumberAccessor(const Value& row)
@@ -632,7 +620,7 @@ Value HostsTable::ChecksEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableActiveChecksEnabled(host);
+	return Convert::ToLong(host->GetEnableActiveChecks());
 }
 
 Value HostsTable::NotificationsEnabledAccessor(const Value& row)
@@ -642,7 +630,17 @@ Value HostsTable::NotificationsEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableNotificationsEnabled(host);
+	return Convert::ToLong(host->GetEnableNotifications());
+}
+
+Value HostsTable::ProcessPerformanceDataAccessor(const Value& row)
+{
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+
+	if (!host)
+		return Empty;
+
+	return Convert::ToLong(host->GetEnablePerfdata());
 }
 
 Value HostsTable::AcknowledgedAccessor(const Value& row)
@@ -653,7 +651,7 @@ Value HostsTable::AcknowledgedAccessor(const Value& row)
 		return Empty;
 
 	ObjectLock olock(host);
-	return CompatUtility::GetCheckableIsAcknowledged(host);
+	return host->IsAcknowledged();
 }
 
 Value HostsTable::StateAccessor(const Value& row)
@@ -683,7 +681,7 @@ Value HostsTable::NoMoreNotificationsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableNoMoreNotifications(host);
+	return (CompatUtility::GetCheckableNotificationNotificationInterval(host) == 0 && !host->GetVolatile()) ? 1 : 0;
 }
 
 Value HostsTable::LastCheckAccessor(const Value& row)
@@ -763,13 +761,7 @@ Value HostsTable::ActiveChecksEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableActiveChecksEnabled(host);
-}
-
-Value HostsTable::CheckOptionsAccessor(const Value&)
-{
-	/* TODO - forcexec, freshness, orphan, none */
-	return Empty;
+	return Convert::ToLong(host->GetEnableActiveChecks());
 }
 
 Value HostsTable::CheckIntervalAccessor(const Value& row)
@@ -779,7 +771,7 @@ Value HostsTable::CheckIntervalAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckInterval(host);
+	return host->GetCheckInterval() / 60.0;
 }
 
 Value HostsTable::RetryIntervalAccessor(const Value& row)
@@ -789,7 +781,7 @@ Value HostsTable::RetryIntervalAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableRetryInterval(host);
+	return host->GetRetryInterval() / 60.0;
 }
 
 Value HostsTable::NotificationIntervalAccessor(const Value& row)
@@ -809,7 +801,7 @@ Value HostsTable::LowFlapThresholdAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableLowFlapThreshold(host);
+	return host->GetFlappingThresholdLow();
 }
 
 Value HostsTable::HighFlapThresholdAccessor(const Value& row)
@@ -819,7 +811,7 @@ Value HostsTable::HighFlapThresholdAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableHighFlapThreshold(host);
+	return host->GetFlappingThresholdHigh();
 }
 
 Value HostsTable::LatencyAccessor(const Value& row)
@@ -859,7 +851,7 @@ Value HostsTable::PercentStateChangeAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckablePercentStateChange(host);
+	return host->GetFlappingCurrent();
 }
 
 Value HostsTable::InNotificationPeriodAccessor(const Value& row)
@@ -869,7 +861,14 @@ Value HostsTable::InNotificationPeriodAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableInNotificationPeriod(host);
+	for (const Notification::Ptr& notification : host->GetNotifications()) {
+		TimePeriod::Ptr timeperiod = notification->GetPeriod();
+
+		if (!timeperiod || timeperiod->IsInside(Utility::GetTime()))
+			return 1;
+	}
+
+	return 0;
 }
 
 Value HostsTable::InCheckPeriodAccessor(const Value& row)
@@ -879,7 +878,13 @@ Value HostsTable::InCheckPeriodAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableInCheckPeriod(host);
+	TimePeriod::Ptr timeperiod = host->GetCheckPeriod();
+
+	/* none set means always checked */
+	if (!timeperiod)
+		return 1;
+
+	return Convert::ToLong(timeperiod->IsInside(Utility::GetTime()));
 }
 
 Value HostsTable::ContactsAccessor(const Value& row)
@@ -889,13 +894,13 @@ Value HostsTable::ContactsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr contact_names = new Array();
+	ArrayData result;
 
 	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(host)) {
-		contact_names->Add(user->GetName());
+		result.push_back(user->GetName());
 	}
 
-	return contact_names;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::DowntimesAccessor(const Value& row)
@@ -905,16 +910,16 @@ Value HostsTable::DowntimesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr results = new Array();
+	ArrayData result;
 
 	for (const Downtime::Ptr& downtime : host->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
-		results->Add(downtime->GetLegacyId());
+		result.push_back(downtime->GetLegacyId());
 	}
 
-	return results;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
@@ -924,20 +929,20 @@ Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr results = new Array();
+	ArrayData result;
 
 	for (const Downtime::Ptr& downtime : host->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
-		Array::Ptr downtime_info = new Array();
-		downtime_info->Add(downtime->GetLegacyId());
-		downtime_info->Add(downtime->GetAuthor());
-		downtime_info->Add(downtime->GetComment());
-		results->Add(downtime_info);
+		result.push_back(new Array({
+			downtime->GetLegacyId(),
+			downtime->GetAuthor(),
+			downtime->GetComment()
+		}));
 	}
 
-	return results;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::CommentsAccessor(const Value& row)
@@ -947,15 +952,16 @@ Value HostsTable::CommentsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr results = new Array();
+	ArrayData result;
+
 	for (const Comment::Ptr& comment : host->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
-		results->Add(comment->GetLegacyId());
+		result.push_back(comment->GetLegacyId());
 	}
 
-	return results;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::CommentsWithInfoAccessor(const Value& row)
@@ -965,20 +971,20 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr results = new Array();
+	ArrayData result;
 
 	for (const Comment::Ptr& comment : host->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
-		Array::Ptr comment_info = new Array();
-		comment_info->Add(comment->GetLegacyId());
-		comment_info->Add(comment->GetAuthor());
-		comment_info->Add(comment->GetText());
-		results->Add(comment_info);
+		result.push_back(new Array({
+			comment->GetLegacyId(),
+			comment->GetAuthor(),
+			comment->GetText()
+		}));
 	}
 
-	return results;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
@@ -988,22 +994,22 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr results = new Array();
+	ArrayData result;
 
 	for (const Comment::Ptr& comment : host->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
-		Array::Ptr comment_info = new Array();
-		comment_info->Add(comment->GetLegacyId());
-		comment_info->Add(comment->GetAuthor());
-		comment_info->Add(comment->GetText());
-		comment_info->Add(comment->GetEntryType());
-		comment_info->Add(static_cast<int>(comment->GetEntryTime()));
-		results->Add(comment_info);
+		result.push_back(new Array({
+			comment->GetLegacyId(),
+			comment->GetAuthor(),
+			comment->GetText(),
+			comment->GetEntryType(),
+			static_cast<int>(comment->GetEntryTime())
+		}));
 	}
 
-	return results;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::CustomVariableNamesAccessor(const Value& row)
@@ -1013,24 +1019,18 @@ Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
+	Dictionary::Ptr vars = host->GetVars();
 
-	{
-		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
+	ArrayData result;
+
+	if (vars) {
+		ObjectLock olock(vars);
+		for (const Dictionary::Pair& kv : vars) {
+			result.push_back(kv.first);
+		}
 	}
 
-	Array::Ptr cv = new Array();
-
-	if (!vars)
-		return cv;
-
-	ObjectLock olock(vars);
-	for (const Dictionary::Pair& kv : vars) {
-		cv->Add(kv.first);
-	}
-
-	return cv;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::CustomVariableValuesAccessor(const Value& row)
@@ -1040,27 +1040,21 @@ Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
+	Dictionary::Ptr vars = host->GetVars();
 
-	{
-		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
+	ArrayData result;
+
+	if (vars) {
+		ObjectLock olock(vars);
+		for (const Dictionary::Pair& kv : vars) {
+			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+				result.push_back(JsonEncode(kv.second));
+			else
+				result.push_back(kv.second);
+		}
 	}
 
-	Array::Ptr cv = new Array();
-
-	if (!vars)
-		return cv;
-
-	ObjectLock olock(vars);
-	for (const Dictionary::Pair& kv : vars) {
-		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
-			cv->Add(JsonEncode(kv.second));
-		else
-			cv->Add(kv.second);
-	}
-
-	return cv;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::CustomVariablesAccessor(const Value& row)
@@ -1070,32 +1064,28 @@ Value HostsTable::CustomVariablesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
+	Dictionary::Ptr vars = host->GetVars();
 
-	{
-		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
+	ArrayData result;
+
+	if (vars) {
+		ObjectLock olock(vars);
+		for (const Dictionary::Pair& kv : vars) {
+			Value val;
+
+			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+				val = JsonEncode(kv.second);
+			else
+				val = kv.second;
+
+			result.push_back(new Array({
+				kv.first,
+				val
+			}));
+		}
 	}
 
-	Array::Ptr cv = new Array();
-
-	if (!vars)
-		return cv;
-
-	ObjectLock olock(vars);
-	for (const Dictionary::Pair& kv : vars) {
-		Array::Ptr key_val = new Array();
-		key_val->Add(kv.first);
-
-		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
-			key_val->Add(JsonEncode(kv.second));
-		else
-			key_val->Add(kv.second);
-
-		cv->Add(key_val);
-	}
-
-	return cv;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::CVIsJsonAccessor(const Value& row)
@@ -1105,12 +1095,7 @@ Value HostsTable::CVIsJsonAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
-	}
+	Dictionary::Ptr vars = host->GetVars();
 
 	if (!vars)
 		return Empty;
@@ -1133,7 +1118,7 @@ Value HostsTable::ParentsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr parents = new Array();
+	ArrayData result;
 
 	for (const Checkable::Ptr& parent : host->GetParents()) {
 		Host::Ptr parent_host = dynamic_pointer_cast<Host>(parent);
@@ -1141,10 +1126,10 @@ Value HostsTable::ParentsAccessor(const Value& row)
 		if (!parent_host)
 			continue;
 
-		parents->Add(parent_host->GetName());
+		result.push_back(parent_host->GetName());
 	}
 
-	return parents;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::ChildsAccessor(const Value& row)
@@ -1154,7 +1139,7 @@ Value HostsTable::ChildsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr childs = new Array();
+	ArrayData result;
 
 	for (const Checkable::Ptr& child : host->GetChildren()) {
 		Host::Ptr child_host = dynamic_pointer_cast<Host>(child);
@@ -1162,10 +1147,10 @@ Value HostsTable::ChildsAccessor(const Value& row)
 		if (!child_host)
 			continue;
 
-		childs->Add(child_host->GetName());
+		result.push_back(child_host->GetName());
 	}
 
-	return childs;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::NumServicesAccessor(const Value& row)
@@ -1390,7 +1375,10 @@ Value HostsTable::StalenessAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableStaleness(host);
+	if (host->HasBeenChecked() && host->GetLastCheck() > 0)
+		return (Utility::GetTime() - host->GetLastCheck()) / (host->GetCheckInterval() * 3600);
+
+	return 0.0;
 }
 
 Value HostsTable::GroupsAccessor(const Value& row)
@@ -1415,13 +1403,13 @@ Value HostsTable::ContactGroupsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr contactgroup_names = new Array();
+	ArrayData result;
 
 	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
-		contactgroup_names->Add(usergroup->GetName());
+		result.push_back(usergroup->GetName());
 	}
 
-	return contactgroup_names;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::ServicesAccessor(const Value& row)
@@ -1433,14 +1421,14 @@ Value HostsTable::ServicesAccessor(const Value& row)
 
 	std::vector<Service::Ptr> rservices = host->GetServices();
 
-	Array::Ptr services = new Array();
-	services->Reserve(rservices.size());
+	ArrayData result;
+	result.reserve(rservices.size());
 
 	for (const Service::Ptr& service : rservices) {
-		services->Add(service->GetShortName());
+		result.push_back(service->GetShortName());
 	}
 
-	return services;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::ServicesWithStateAccessor(const Value& row)
@@ -1452,19 +1440,18 @@ Value HostsTable::ServicesWithStateAccessor(const Value& row)
 
 	std::vector<Service::Ptr> rservices = host->GetServices();
 
-	Array::Ptr services = new Array();
-	services->Reserve(rservices.size());
+	ArrayData result;
+	result.reserve(rservices.size());
 
 	for (const Service::Ptr& service : rservices) {
-		Array::Ptr svc_add = new Array();
-
-		svc_add->Add(service->GetShortName());
-		svc_add->Add(service->GetState());
-		svc_add->Add(service->HasBeenChecked() ? 1 : 0);
-		services->Add(svc_add);
+		result.push_back(new Array({
+			service->GetShortName(),
+			service->GetState(),
+			service->HasBeenChecked() ? 1 : 0
+		}));
 	}
 
-	return services;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::ServicesWithInfoAccessor(const Value& row)
@@ -1476,27 +1463,25 @@ Value HostsTable::ServicesWithInfoAccessor(const Value& row)
 
 	std::vector<Service::Ptr> rservices = host->GetServices();
 
-	Array::Ptr services = new Array();
-	services->Reserve(rservices.size());
+	ArrayData result;
+	result.reserve(rservices.size());
 
 	for (const Service::Ptr& service : rservices) {
-		Array::Ptr svc_add = new Array();
-
-		svc_add->Add(service->GetShortName());
-		svc_add->Add(service->GetState());
-		svc_add->Add(service->HasBeenChecked() ? 1 : 0);
-
 		String output;
 		CheckResult::Ptr cr = service->GetLastCheckResult();
 
 		if (cr)
 			output = CompatUtility::GetCheckResultOutput(cr);
 
-		svc_add->Add(output);
-		services->Add(svc_add);
+		result.push_back(new Array({
+			service->GetShortName(),
+			service->GetState(),
+			service->HasBeenChecked() ? 1 : 0,
+			output
+		}));
 	}
 
-	return services;
+	return new Array(std::move(result));
 }
 
 Value HostsTable::CheckSourceAccessor(const Value& row)

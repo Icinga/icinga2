@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/service.hpp"
 #include "icinga/dependency.hpp"
@@ -35,7 +18,7 @@ void Checkable::RemoveDependency(const Dependency::Ptr& dep)
 	m_Dependencies.erase(dep);
 }
 
-std::vector<Dependency::Ptr> Checkable::GetDependencies(void) const
+std::vector<Dependency::Ptr> Checkable::GetDependencies() const
 {
 	boost::mutex::scoped_lock lock(m_DependencyMutex);
 	return std::vector<Dependency::Ptr>(m_Dependencies.begin(), m_Dependencies.end());
@@ -53,7 +36,7 @@ void Checkable::RemoveReverseDependency(const Dependency::Ptr& dep)
 	m_ReverseDependencies.erase(dep);
 }
 
-std::vector<Dependency::Ptr> Checkable::GetReverseDependencies(void) const
+std::vector<Dependency::Ptr> Checkable::GetReverseDependencies() const
 {
 	boost::mutex::scoped_lock lock(m_DependencyMutex);
 	return std::vector<Dependency::Ptr>(m_ReverseDependencies.begin(), m_ReverseDependencies.end());
@@ -61,9 +44,12 @@ std::vector<Dependency::Ptr> Checkable::GetReverseDependencies(void) const
 
 bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency, int rstack) const
 {
-	if (rstack > 20) {
+	/* Anything greater than 256 causes recursion bus errors. */
+	int limit = 256;
+
+	if (rstack > limit) {
 		Log(LogWarning, "Checkable")
-		    << "Too many nested dependencies for service '" << GetName() << "': Dependency failed.";
+			<< "Too many nested dependencies (>" << limit << ") for checkable '" << GetName() << "': Dependency failed.";
 
 		return false;
 	}
@@ -74,7 +60,7 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 	}
 
 	/* implicit dependency on host if this is a service */
-	const Service *service = dynamic_cast<const Service *>(this);
+	const auto *service = dynamic_cast<const Service *>(this);
 	if (service && (dt == DependencyState || dt == DependencyNotification)) {
 		Host::Ptr host = service->GetHost();
 
@@ -101,7 +87,7 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 	return true;
 }
 
-std::set<Checkable::Ptr> Checkable::GetParents(void) const
+std::set<Checkable::Ptr> Checkable::GetParents() const
 {
 	std::set<Checkable::Ptr> parents;
 
@@ -115,7 +101,7 @@ std::set<Checkable::Ptr> Checkable::GetParents(void) const
 	return parents;
 }
 
-std::set<Checkable::Ptr> Checkable::GetChildren(void) const
+std::set<Checkable::Ptr> Checkable::GetChildren() const
 {
 	std::set<Checkable::Ptr> parents;
 
@@ -129,7 +115,7 @@ std::set<Checkable::Ptr> Checkable::GetChildren(void) const
 	return parents;
 }
 
-std::set<Checkable::Ptr> Checkable::GetAllChildren(void) const
+std::set<Checkable::Ptr> Checkable::GetAllChildren() const
 {
 	std::set<Checkable::Ptr> children = GetChildren();
 

@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/httpserverconnection.hpp"
 #include "remote/httphandler.hpp"
@@ -23,287 +6,545 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "remote/jsonrpc.hpp"
+#include "base/application.hpp"
 #include "base/base64.hpp"
-#include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/utility.hpp"
-#include "base/logger.hpp"
-#include "base/exception.hpp"
 #include "base/convert.hpp"
+#include "base/configtype.hpp"
+#include "base/defer.hpp"
+#include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/timer.hpp"
+#include "base/tlsstream.hpp"
+#include "base/utility.hpp"
+#include <limits>
+#include <memory>
+#include <stdexcept>
+#include <boost/asio/spawn.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/system/system_error.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
 
-static boost::once_flag l_HttpServerConnectionOnceFlag = BOOST_ONCE_INIT;
-static Timer::Ptr l_HttpServerConnectionTimeoutTimer;
+auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0)
+HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream)
+	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(stream->get_executor().context()), m_ShuttingDown(false), m_HasStartedStreaming(false)
 {
-	boost::call_once(l_HttpServerConnectionOnceFlag, &HttpServerConnection::StaticInitialize);
-
-	m_RequestQueue.SetName("HttpServerConnection");
-
-	if (authenticated)
+	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
+	}
+
+	{
+		std::ostringstream address;
+		auto endpoint (stream->lowest_layer().remote_endpoint());
+
+		address << '[' << endpoint.address() << "]:" << endpoint.port();
+
+		m_PeerAddress = address.str();
+	}
 }
 
-void HttpServerConnection::StaticInitialize(void)
+void HttpServerConnection::Start()
 {
-	l_HttpServerConnectionTimeoutTimer = new Timer();
-	l_HttpServerConnectionTimeoutTimer->OnTimerExpired.connect(std::bind(&HttpServerConnection::TimeoutTimerHandler));
-	l_HttpServerConnectionTimeoutTimer->SetInterval(15);
-	l_HttpServerConnectionTimeoutTimer->Start();
+	namespace asio = boost::asio;
+
+	HttpServerConnection::Ptr keepAlive (this);
+
+	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { ProcessMessages(yc); });
+	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
 }
 
-void HttpServerConnection::Start(void)
+void HttpServerConnection::Disconnect()
 {
-	/* the stream holds an owning reference to this object through the callback we're registering here */
-	m_Stream->RegisterDataHandler(std::bind(&HttpServerConnection::DataAvailableHandler, HttpServerConnection::Ptr(this)));
-	if (m_Stream->IsDataAvailable())
-		DataAvailableHandler();
+	namespace asio = boost::asio;
+
+	HttpServerConnection::Ptr keepAlive (this);
+
+	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
+		if (!m_ShuttingDown) {
+			m_ShuttingDown = true;
+
+			Log(LogInformation, "HttpServerConnection")
+				<< "HTTP client disconnected (from " << m_PeerAddress << ")";
+
+			try {
+				m_Stream->next_layer().async_shutdown(yc);
+			} catch (...) {
+			}
+
+			try {
+				m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both);
+			} catch (...) {
+			}
+
+			auto listener (ApiListener::GetInstance());
+
+			if (listener) {
+				CpuBoundWork removeHttpClient (yc);
+
+				listener->RemoveHttpClient(this);
+			}
+		}
+	});
 }
 
-ApiUser::Ptr HttpServerConnection::GetApiUser(void) const
+void HttpServerConnection::StartStreaming()
 {
-	return m_ApiUser;
+	namespace asio = boost::asio;
+
+	m_HasStartedStreaming = true;
+
+	HttpServerConnection::Ptr keepAlive (this);
+
+	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
+		if (!m_ShuttingDown) {
+			char buf[128];
+			asio::mutable_buffer readBuf (buf, 128);
+			boost::system::error_code ec;
+
+			do {
+				m_Stream->async_read_some(readBuf, yc[ec]);
+			} while (!ec);
+
+			Disconnect();
+		}
+	});
 }
 
-TlsStream::Ptr HttpServerConnection::GetStream(void) const
+bool HttpServerConnection::Disconnected()
 {
-	return m_Stream;
+	return m_ShuttingDown;
 }
 
-void HttpServerConnection::Disconnect(void)
+static inline
+bool EnsureValidHeaders(
+	AsioTlsStream& stream,
+	boost::beast::flat_buffer& buf,
+	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
 {
-	Log(LogDebug, "HttpServerConnection", "Http client disconnected");
+	namespace http = boost::beast::http;
 
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-	listener->RemoveHttpClient(this);
-
-	m_CurrentRequest.~HttpRequest();
-	new (&m_CurrentRequest) HttpRequest(nullptr);
-
-	m_Stream->Close();
-}
-
-bool HttpServerConnection::ProcessMessage(void)
-{
-	bool res;
+	bool httpError = true;
 
 	try {
-		res = m_CurrentRequest.Parse(m_Context, false);
+		try {
+			http::async_read_header(stream, buf, parser, yc);
+		} catch (const boost::system::system_error& ex) {
+			/**
+			 * Unfortunately there's no way to tell an HTTP protocol error
+			 * from an error on a lower layer:
+			 *
+			 * <https://github.com/boostorg/beast/issues/643>
+			 */
+			throw std::invalid_argument(ex.what());
+		}
+
+		httpError = false;
+
+		switch (parser.get().version()) {
+		case 10:
+		case 11:
+			break;
+		default:
+			throw std::invalid_argument("Unsupported HTTP version");
+		}
 	} catch (const std::invalid_argument& ex) {
-		HttpResponse response(m_Stream, m_CurrentRequest);
-		response.SetStatus(400, "Bad request");
-		String msg = String("<h1>Bad request</h1><p><pre>") + ex.what() + "</pre></p>";
-		response.WriteBody(msg.CStr(), msg.GetLength());
-		response.Finish();
+		response.result(http::status::bad_request);
 
-		m_Stream->Shutdown();
-		return false;
-	} catch (const std::exception& ex) {
-		HttpResponse response(m_Stream, m_CurrentRequest);
-		response.SetStatus(400, "Bad request");
-		String msg = "<h1>Bad request</h1><p><pre>" + DiagnosticInformation(ex) + "</pre></p>";
-		response.WriteBody(msg.CStr(), msg.GetLength());
-		response.Finish();
+		if (!httpError && parser.get()[http::field::accept] == "application/json") {
+			HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
+				{ "error", 400 },
+				{ "status", String("Bad Request: ") + ex.what() }
+			}));
+		} else {
+			response.set(http::field::content_type, "text/html");
+			response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
+			response.set(http::field::content_length, response.body().size());
+		}
 
-		m_Stream->Shutdown();
+		response.set(http::field::connection, "close");
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+
 		return false;
 	}
 
-	if (m_CurrentRequest.Complete) {
-		m_RequestQueue.Enqueue(std::bind(&HttpServerConnection::ProcessMessageAsync,
-		    HttpServerConnection::Ptr(this), m_CurrentRequest));
+	return true;
+}
 
-		m_Seen = Utility::GetTime();
-		m_PendingRequests++;
+static inline
+void HandleExpect100(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
 
-		m_CurrentRequest.~HttpRequest();
-		new (&m_CurrentRequest) HttpRequest(m_Stream);
+	if (request[http::field::expect] == "100-continue") {
+		http::response<http::string_body> response;
+
+		response.result(http::status::continue_);
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+	}
+}
+
+static inline
+bool HandleAccessControl(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	auto listener (ApiListener::GetInstance());
+
+	if (listener) {
+		auto headerAllowOrigin (listener->GetAccessControlAllowOrigin());
+
+		if (headerAllowOrigin) {
+			CpuBoundWork allowOriginHeader (yc);
+
+			auto allowedOrigins (headerAllowOrigin->ToSet<String>());
+
+			if (!allowedOrigins.empty()) {
+				auto& origin (request[http::field::origin]);
+
+				if (allowedOrigins.find(origin.to_string()) != allowedOrigins.end()) {
+					response.set(http::field::access_control_allow_origin, origin);
+				}
+
+				allowOriginHeader.Done();
+
+				response.set(http::field::access_control_allow_credentials, "true");
+
+				if (request.method() == http::verb::options && !request[http::field::access_control_request_method].empty()) {
+					response.result(http::status::ok);
+					response.set(http::field::access_control_allow_methods, "GET, POST, PUT, DELETE");
+					response.set(http::field::access_control_allow_headers, "Authorization, X-HTTP-Method-Override");
+					response.body() = "Preflight OK";
+					response.set(http::field::content_length, response.body().size());
+					response.set(http::field::connection, "close");
+
+					http::async_write(stream, response, yc);
+					stream.async_flush(yc);
+
+					return false;
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+static inline
+bool EnsureAcceptHeader(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	if (request.method() != http::verb::get && request[http::field::accept] != "application/json") {
+		response.result(http::status::bad_request);
+		response.set(http::field::content_type, "text/html");
+		response.body() = "<h1>Accept header is missing or not set to 'application/json'.</h1>";
+		response.set(http::field::content_length, response.body().size());
+		response.set(http::field::connection, "close");
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+
+		return false;
+	}
+
+	return true;
+}
+
+static inline
+bool EnsureAuthenticatedUser(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	ApiUser::Ptr& authenticatedUser,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	if (!authenticatedUser) {
+		Log(LogWarning, "HttpServerConnection")
+			<< "Unauthorized request: " << request.method_string() << ' ' << request.target();
+
+		response.result(http::status::unauthorized);
+		response.set(http::field::www_authenticate, "Basic realm=\"Icinga 2\"");
+		response.set(http::field::connection, "close");
+
+		if (request[http::field::accept] == "application/json") {
+			HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
+				{ "error", 401 },
+				{ "status", "Unauthorized. Please check your user credentials." }
+			}));
+		} else {
+			response.set(http::field::content_type, "text/html");
+			response.body() = "<h1>Unauthorized. Please check your user credentials.</h1>";
+			response.set(http::field::content_length, response.body().size());
+		}
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+
+		return false;
+	}
+
+	return true;
+}
+
+static inline
+bool EnsureValidBody(
+	AsioTlsStream& stream,
+	boost::beast::flat_buffer& buf,
+	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
+	ApiUser::Ptr& authenticatedUser,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	{
+		size_t maxSize = 1024 * 1024;
+		Array::Ptr permissions = authenticatedUser->GetPermissions();
+
+		if (permissions) {
+			CpuBoundWork evalPermissions (yc);
+
+			ObjectLock olock(permissions);
+
+			for (const Value& permissionInfo : permissions) {
+				String permission;
+
+				if (permissionInfo.IsObjectType<Dictionary>()) {
+					permission = static_cast<Dictionary::Ptr>(permissionInfo)->Get("permission");
+				} else {
+					permission = permissionInfo;
+				}
+
+				static std::vector<std::pair<String, size_t>> specialContentLengthLimits {
+					 { "config/modify", 512 * 1024 * 1024 }
+				};
+
+				for (const auto& limitInfo : specialContentLengthLimits) {
+					if (limitInfo.second <= maxSize) {
+						continue;
+					}
+
+					if (Utility::Match(permission, limitInfo.first)) {
+						maxSize = limitInfo.second;
+					}
+				}
+			}
+		}
+
+		parser.body_limit(maxSize);
+	}
+
+	try {
+		http::async_read(stream, buf, parser, yc);
+	} catch (const boost::system::system_error& ex) {
+		/**
+		 * Unfortunately there's no way to tell an HTTP protocol error
+		 * from an error on a lower layer:
+		 *
+		 * <https://github.com/boostorg/beast/issues/643>
+		 */
+
+		response.result(http::status::bad_request);
+
+		if (parser.get()[http::field::accept] == "application/json") {
+			HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
+				{ "error", 400 },
+				{ "status", String("Bad Request: ") + ex.what() }
+			}));
+		} else {
+			response.set(http::field::content_type, "text/html");
+			response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
+			response.set(http::field::content_length, response.body().size());
+		}
+
+		response.set(http::field::connection, "close");
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+
+		return false;
+	}
+
+	return true;
+}
+
+static inline
+bool ProcessRequest(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	ApiUser::Ptr& authenticatedUser,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	HttpServerConnection& server,
+	bool& hasStartedStreaming,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	try {
+		CpuBoundWork handlingRequest (yc);
+
+		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
+	} catch (const std::exception& ex) {
+		if (hasStartedStreaming) {
+			return false;
+		}
+
+		http::response<http::string_body> response;
+
+		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return true;
 	}
 
-	return res;
+	if (hasStartedStreaming) {
+		return false;
+	}
+
+	http::async_write(stream, response, yc);
+	stream.async_flush(yc);
+
+	return true;
 }
 
-void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
+void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 {
-	String auth_header = request.Headers->Get("authorization");
+	namespace beast = boost::beast;
+	namespace http = beast::http;
 
-	String::SizeType pos = auth_header.FindFirstOf(" ");
-	String username, password;
+	Defer disconnect ([this]() { Disconnect(); });
 
-	if (pos != String::NPos && auth_header.SubStr(0, pos) == "Basic") {
-		String credentials_base64 = auth_header.SubStr(pos + 1);
-		String credentials = Base64::Decode(credentials_base64);
+	try {
+		beast::flat_buffer buf;
 
-		String::SizeType cpos = credentials.FindFirstOf(":");
+		for (;;) {
+			m_Seen = Utility::GetTime();
 
-		if (cpos != String::NPos) {
-			username = credentials.SubStr(0, cpos);
-			password = credentials.SubStr(cpos + 1);
-		}
-	}
+			http::parser<true, http::string_body> parser;
+			http::response<http::string_body> response;
 
-	ApiUser::Ptr user;
+			parser.header_limit(1024 * 1024);
+			parser.body_limit(-1);
 
-	/* client_cn matched. */
-	if (m_ApiUser)
-		user = m_ApiUser;
-	else {
-		user = ApiUser::GetByName(username);
+			response.set(http::field::server, l_ServerHeader);
 
-		/* Deny authentication if 1) given password is empty 2) configured password does not match. */
-		if (password.IsEmpty())
-			user.reset();
-		else if (user && user->GetPassword() != password)
-			user.reset();
-	}
+			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, yc)) {
+				break;
+			}
 
-	String requestUrl = request.RequestUrl->Format();
+			m_Seen = Utility::GetTime();
 
-	Log(LogInformation, "HttpServerConnection")
-	    << "Request: " << request.RequestMethod << " " << requestUrl
-	    << " (from " << m_Stream->GetSocket()->GetPeerAddress() << ", user: " << (user ? user->GetName() : "<unauthenticated>") << ")";
+			auto& request (parser.get());
 
-	HttpResponse response(m_Stream, request);
+			{
+				auto method (http::string_to_verb(request["X-Http-Method-Override"]));
 
-	ApiListener::Ptr listener = ApiListener::GetInstance();
+				if (method != http::verb::unknown) {
+					request.method(method);
+				}
+			}
 
-	if (!listener)
-		return;
+			HandleExpect100(*m_Stream, request, yc);
 
-	Array::Ptr headerAllowOrigin = listener->GetAccessControlAllowOrigin();
+			auto authenticatedUser (m_ApiUser);
 
-	if (headerAllowOrigin->GetLength() != 0) {
-		String origin = request.Headers->Get("origin");
+			if (!authenticatedUser) {
+				CpuBoundWork fetchingAuthenticatedUser (yc);
 
-		{
-			ObjectLock olock(headerAllowOrigin);
+				authenticatedUser = ApiUser::GetByAuthHeader(request[http::field::authorization].to_string());
+			}
 
-			for (const String& allowedOrigin : headerAllowOrigin) {
-				if (allowedOrigin == origin)
-					response.AddHeader("Access-Control-Allow-Origin", origin);
+			Log(LogInformation, "HttpServerConnection")
+				<< "Request: " << request.method_string() << ' ' << request.target()
+				<< " (from " << m_PeerAddress
+				<< "), user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>")
+				<< ", agent: " << request[http::field::user_agent] << ")."; //operator[] - Returns the value for a field, or "" if it does not exist.
+
+
+			if (!HandleAccessControl(*m_Stream, request, response, yc)) {
+				break;
+			}
+
+			if (!EnsureAcceptHeader(*m_Stream, request, response, yc)) {
+				break;
+			}
+
+			if (!EnsureAuthenticatedUser(*m_Stream, request, authenticatedUser, response, yc)) {
+				break;
+			}
+
+			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, yc)) {
+				break;
+			}
+
+			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
+
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, yc)) {
+				break;
+			}
+
+			if (request.version() != 11 || request[http::field::connection] == "close") {
+				break;
 			}
 		}
-
-		if (listener->GetAccessControlAllowCredentials())
-			response.AddHeader("Access-Control-Allow-Credentials", "true");
-
-		String accessControlRequestMethodHeader = request.Headers->Get("access-control-request-method");
-
-		if (!accessControlRequestMethodHeader.IsEmpty()) {
-			response.SetStatus(200, "OK");
-
-			response.AddHeader("Access-Control-Allow-Methods", listener->GetAccessControlAllowMethods());
-			response.AddHeader("Access-Control-Allow-Headers", listener->GetAccessControlAllowHeaders());
-
-			String msg = "Preflight OK";
-			response.WriteBody(msg.CStr(), msg.GetLength());
-
-			response.Finish();
-			m_PendingRequests--;
-
-			return;
-		}
-	}
-
-	String accept_header = request.Headers->Get("accept");
-
-	if (request.RequestMethod != "GET" && accept_header != "application/json") {
-		response.SetStatus(400, "Wrong Accept header");
-		response.AddHeader("Content-Type", "text/html");
-		String msg = "<h1>Accept header is missing or not set to 'application/json'.</h1>";
-		response.WriteBody(msg.CStr(), msg.GetLength());
-	} else if (!user) {
-		Log(LogWarning, "HttpServerConnection")
-		    << "Unauthorized request: " << request.RequestMethod << " " << requestUrl;
-
-		response.SetStatus(401, "Unauthorized");
-		response.AddHeader("WWW-Authenticate", "Basic realm=\"Icinga 2\"");
-
-		if (request.Headers->Get("accept") == "application/json") {
-			Dictionary::Ptr result = new Dictionary();
-
-			result->Set("error", 401);
-			result->Set("status", "Unauthorized. Please check your user credentials.");
-
-			HttpUtility::SendJsonBody(response, result);
-		} else {
-			response.AddHeader("Content-Type", "text/html");
-			String msg = "<h1>Unauthorized. Please check your user credentials.</h1>";
-			response.WriteBody(msg.CStr(), msg.GetLength());
-		}
-	} else {
-		try {
-			HttpHandler::ProcessRequest(user, request, response);
-		} catch (const std::exception& ex) {
+	} catch (const std::exception& ex) {
+		if (!m_ShuttingDown) {
 			Log(LogCritical, "HttpServerConnection")
-			    << "Unhandled exception while processing Http request: " << DiagnosticInformation(ex);
-			response.SetStatus(503, "Unhandled exception");
-
-			String errorInfo = DiagnosticInformation(ex);
-
-			if (request.Headers->Get("accept") == "application/json") {
-				Dictionary::Ptr result = new Dictionary();
-
-				result->Set("error", 503);
-				result->Set("status", errorInfo);
-
-				HttpUtility::SendJsonBody(response, result);
-			} else {
-				response.AddHeader("Content-Type", "text/plain");
-				response.WriteBody(errorInfo.CStr(), errorInfo.GetLength());
-			}
+				<< "Unhandled exception while processing HTTP request: " << DiagnosticInformation(ex);
 		}
 	}
-
-	response.Finish();
-
-	m_PendingRequests--;
 }
 
-void HttpServerConnection::DataAvailableHandler(void)
+void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 {
-	bool close = false;
+	boost::asio::deadline_timer timer (m_Stream->get_executor().context());
 
-	if (!m_Stream->IsEof()) {
-		boost::mutex::scoped_lock lock(m_DataHandlerMutex);
+	for (;;) {
+		timer.expires_from_now(boost::posix_time::seconds(5));
+		timer.async_wait(yc);
 
-		try {
-			while (ProcessMessage())
-				; /* empty loop body */
-		} catch (const std::exception& ex) {
-			Log(LogWarning, "HttpServerConnection")
-			    << "Error while reading Http request: " << DiagnosticInformation(ex);
-
-			close = true;
+		if (m_ShuttingDown) {
+			break;
 		}
-	} else
-		close = true;
 
-	if (close)
-		Disconnect();
-}
+		if (m_Seen < Utility::GetTime() - 10) {
+			Log(LogInformation, "HttpServerConnection")
+				<<  "No messages for HTTP connection have been received in the last 10 seconds.";
 
-void HttpServerConnection::CheckLiveness(void)
-{
-	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0) {
-		Log(LogInformation, "HttpServerConnection")
-		    <<  "No messages for Http connection have been received in the last 10 seconds.";
-		Disconnect();
+			Disconnect();
+			break;
+		}
 	}
 }
-
-void HttpServerConnection::TimeoutTimerHandler(void)
-{
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-
-	for (const HttpServerConnection::Ptr& client : listener->GetHttpClients()) {
-		client->CheckLiveness();
-	}
-}
-

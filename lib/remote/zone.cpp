@@ -1,25 +1,9 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/zone.hpp"
-#include "remote/zone.tcpp"
+#include "remote/zone-ti.cpp"
 #include "remote/jsonrpcconnection.hpp"
+#include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 
@@ -27,11 +11,14 @@ using namespace icinga;
 
 REGISTER_TYPE(Zone);
 
-void Zone::OnAllConfigLoaded(void)
+void Zone::OnAllConfigLoaded()
 {
 	ObjectImpl<Zone>::OnAllConfigLoaded();
 
 	m_Parent = Zone::GetByName(GetParentRaw());
+
+	if (m_Parent && m_Parent->IsGlobal())
+		BOOST_THROW_EXCEPTION(ScriptError("Zone '" + GetName() + "' can not have a global zone as parent.", GetDebugInfo()));
 
 	Zone::Ptr zone = m_Parent;
 	int levels = 0;
@@ -59,12 +46,12 @@ void Zone::OnAllConfigLoaded(void)
 	}
 }
 
-Zone::Ptr Zone::GetParent(void) const
+Zone::Ptr Zone::GetParent() const
 {
 	return m_Parent;
 }
 
-std::set<Endpoint::Ptr> Zone::GetEndpoints(void) const
+std::set<Endpoint::Ptr> Zone::GetEndpoints() const
 {
 	std::set<Endpoint::Ptr> result;
 
@@ -86,9 +73,19 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints(void) const
 	return result;
 }
 
-std::vector<Zone::Ptr> Zone::GetAllParents(void) const
+std::vector<Zone::Ptr> Zone::GetAllParentsRaw() const
 {
 	return m_AllParents;
+}
+
+Array::Ptr Zone::GetAllParents() const
+{
+	auto result (new Array);
+
+	for (auto& parent : m_AllParents)
+		result->Add(parent->GetName());
+
+	return result;
 }
 
 bool Zone::CanAccessObject(const ConfigObject::Ptr& object)
@@ -123,18 +120,18 @@ bool Zone::IsChildOf(const Zone::Ptr& zone)
 	return false;
 }
 
-bool Zone::IsGlobal(void) const
+bool Zone::IsGlobal() const
 {
 	return GetGlobal();
 }
 
-bool Zone::IsSingleInstance(void) const
+bool Zone::IsSingleInstance() const
 {
 	Array::Ptr endpoints = GetEndpointsRaw();
 	return !endpoints || endpoints->GetLength() < 2;
 }
 
-Zone::Ptr Zone::GetLocalZone(void)
+Zone::Ptr Zone::GetLocalZone()
 {
 	Endpoint::Ptr local = Endpoint::GetLocalEndpoint();
 
@@ -144,14 +141,14 @@ Zone::Ptr Zone::GetLocalZone(void)
 	return local->GetZone();
 }
 
-void Zone::ValidateEndpointsRaw(const Array::Ptr& value, const ValidationUtils& utils)
+void Zone::ValidateEndpointsRaw(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<Zone>::ValidateEndpointsRaw(value, utils);
+	ObjectImpl<Zone>::ValidateEndpointsRaw(lvalue, utils);
 
-	if (value && value->GetLength() > 2) {
+	if (lvalue() && lvalue()->GetLength() > 2) {
 		Log(LogWarning, "Zone")
-		    << "The Zone object '" << GetName() << "' has more than two endpoints."
-		    << " Due to a known issue this type of configuration is strongly"
-		    << " discouraged and may cause Icinga to use excessive amounts of CPU time.";
+			<< "The Zone object '" << GetName() << "' has more than two endpoints."
+			<< " Due to a known issue this type of configuration is strongly"
+			<< " discouraged and may cause Icinga to use excessive amounts of CPU time.";
 	}
 }

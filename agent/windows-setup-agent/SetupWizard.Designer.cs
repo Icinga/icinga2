@@ -38,6 +38,13 @@
 			this.lblConfigStatus = new System.Windows.Forms.Label();
 			this.prgConfig = new System.Windows.Forms.ProgressBar();
 			this.tabParameters = new System.Windows.Forms.TabPage();
+			this.groupBox4 = new System.Windows.Forms.GroupBox();
+			this.btnEditGlobalZone = new System.Windows.Forms.Button();
+			this.btnRemoveGlobalZone = new System.Windows.Forms.Button();
+			this.btnAddGlobalZone = new System.Windows.Forms.Button();
+			this.lvwGlobalZones = new System.Windows.Forms.ListView();
+			this.colGlobalZoneName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.introduction1 = new System.Windows.Forms.Label();
 			this.groupBox3 = new System.Windows.Forms.GroupBox();
 			this.txtUser = new System.Windows.Forms.TextBox();
 			this.chkRunServiceAsThisUser = new System.Windows.Forms.CheckBox();
@@ -80,10 +87,11 @@
 			this.txtError = new System.Windows.Forms.TextBox();
 			this.lblError = new System.Windows.Forms.Label();
 			this.picBanner = new System.Windows.Forms.PictureBox();
-			this.introduction1 = new System.Windows.Forms.Label();
+			this.chkDisableConf = new System.Windows.Forms.CheckBox();
 			this.tabFinish.SuspendLayout();
 			this.tabConfigure.SuspendLayout();
 			this.tabParameters.SuspendLayout();
+			this.groupBox4.SuspendLayout();
 			this.groupBox3.SuspendLayout();
 			this.groupBox2.SuspendLayout();
 			this.groupBox1.SuspendLayout();
@@ -98,7 +106,7 @@
 			// btnBack
 			// 
 			this.btnBack.Enabled = false;
-			this.btnBack.Location = new System.Drawing.Point(367, 592);
+			this.btnBack.Location = new System.Drawing.Point(376, 587);
 			this.btnBack.Name = "btnBack";
 			this.btnBack.Size = new System.Drawing.Size(75, 23);
 			this.btnBack.TabIndex = 1;
@@ -108,7 +116,7 @@
 			// 
 			// btnNext
 			// 
-			this.btnNext.Location = new System.Drawing.Point(448, 592);
+			this.btnNext.Location = new System.Drawing.Point(457, 587);
 			this.btnNext.Name = "btnNext";
 			this.btnNext.Size = new System.Drawing.Size(75, 23);
 			this.btnNext.TabIndex = 2;
@@ -119,7 +127,7 @@
 			// btnCancel
 			// 
 			this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.btnCancel.Location = new System.Drawing.Point(538, 592);
+			this.btnCancel.Location = new System.Drawing.Point(538, 587);
 			this.btnCancel.Name = "btnCancel";
 			this.btnCancel.Size = new System.Drawing.Size(75, 23);
 			this.btnCancel.TabIndex = 3;
@@ -133,7 +141,7 @@
 			this.tabFinish.Location = new System.Drawing.Point(4, 5);
 			this.tabFinish.Name = "tabFinish";
 			this.tabFinish.Padding = new System.Windows.Forms.Padding(3);
-			this.tabFinish.Size = new System.Drawing.Size(617, 500);
+			this.tabFinish.Size = new System.Drawing.Size(617, 471);
 			this.tabFinish.TabIndex = 5;
 			this.tabFinish.Text = "Finish";
 			this.tabFinish.UseVisualStyleBackColor = true;
@@ -154,7 +162,7 @@
 			this.tabConfigure.Location = new System.Drawing.Point(4, 5);
 			this.tabConfigure.Name = "tabConfigure";
 			this.tabConfigure.Padding = new System.Windows.Forms.Padding(3);
-			this.tabConfigure.Size = new System.Drawing.Size(617, 500);
+			this.tabConfigure.Size = new System.Drawing.Size(617, 471);
 			this.tabConfigure.TabIndex = 4;
 			this.tabConfigure.Text = "Configure Icinga 2";
 			this.tabConfigure.UseVisualStyleBackColor = true;
@@ -177,6 +185,7 @@
 			// 
 			// tabParameters
 			// 
+			this.tabParameters.Controls.Add(this.groupBox4);
 			this.tabParameters.Controls.Add(this.introduction1);
 			this.tabParameters.Controls.Add(this.groupBox3);
 			this.tabParameters.Controls.Add(this.txtTicket);
@@ -188,21 +197,94 @@
 			this.tabParameters.Location = new System.Drawing.Point(4, 5);
 			this.tabParameters.Name = "tabParameters";
 			this.tabParameters.Padding = new System.Windows.Forms.Padding(3);
-			this.tabParameters.Size = new System.Drawing.Size(617, 500);
+			this.tabParameters.Size = new System.Drawing.Size(617, 495);
 			this.tabParameters.TabIndex = 3;
 			this.tabParameters.Text = "Agent Parameters";
 			this.tabParameters.UseVisualStyleBackColor = true;
 			// 
+			// groupBox4
+			// 
+			this.groupBox4.Controls.Add(this.btnEditGlobalZone);
+			this.groupBox4.Controls.Add(this.btnRemoveGlobalZone);
+			this.groupBox4.Controls.Add(this.btnAddGlobalZone);
+			this.groupBox4.Controls.Add(this.lvwGlobalZones);
+			this.groupBox4.Location = new System.Drawing.Point(8, 210);
+			this.groupBox4.Name = "groupBox4";
+			this.groupBox4.Size = new System.Drawing.Size(601, 110);
+			this.groupBox4.TabIndex = 9;
+			this.groupBox4.TabStop = false;
+			this.groupBox4.Text = "Global Zones";
+			// 
+			// btnEditGlobalZone
+			// 
+			this.btnEditGlobalZone.Enabled = false;
+			this.btnEditGlobalZone.Location = new System.Drawing.Point(520, 48);
+			this.btnEditGlobalZone.Name = "btnEditGlobalZone";
+			this.btnEditGlobalZone.Size = new System.Drawing.Size(75, 23);
+			this.btnEditGlobalZone.TabIndex = 7;
+			this.btnEditGlobalZone.Text = "Edit";
+			this.btnEditGlobalZone.UseVisualStyleBackColor = true;
+			this.btnEditGlobalZone.Click += new System.EventHandler(this.btnEditGlobalZone_Click);
+			// 
+			// btnRemoveGlobalZone
+			// 
+			this.btnRemoveGlobalZone.Enabled = false;
+			this.btnRemoveGlobalZone.Location = new System.Drawing.Point(520, 77);
+			this.btnRemoveGlobalZone.Name = "btnRemoveGlobalZone";
+			this.btnRemoveGlobalZone.Size = new System.Drawing.Size(75, 23);
+			this.btnRemoveGlobalZone.TabIndex = 6;
+			this.btnRemoveGlobalZone.Text = "Remove";
+			this.btnRemoveGlobalZone.UseVisualStyleBackColor = true;
+			this.btnRemoveGlobalZone.Click += new System.EventHandler(this.btnRemoveGlobalZone_Click);
+			// 
+			// btnAddGlobalZone
+			// 
+			this.btnAddGlobalZone.Location = new System.Drawing.Point(520, 19);
+			this.btnAddGlobalZone.Name = "btnAddGlobalZone";
+			this.btnAddGlobalZone.Size = new System.Drawing.Size(75, 23);
+			this.btnAddGlobalZone.TabIndex = 5;
+			this.btnAddGlobalZone.Text = "Add";
+			this.btnAddGlobalZone.UseVisualStyleBackColor = true;
+			this.btnAddGlobalZone.Click += new System.EventHandler(this.btnAddGlobalZone_Click);
+			// 
+			// lvwGlobalZones
+			// 
+			this.lvwGlobalZones.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.colGlobalZoneName});
+			this.lvwGlobalZones.FullRowSelect = true;
+			this.lvwGlobalZones.Location = new System.Drawing.Point(6, 19);
+			this.lvwGlobalZones.Name = "lvwGlobalZones";
+			this.lvwGlobalZones.Size = new System.Drawing.Size(500, 81);
+			this.lvwGlobalZones.TabIndex = 4;
+			this.lvwGlobalZones.UseCompatibleStateImageBehavior = false;
+			this.lvwGlobalZones.View = System.Windows.Forms.View.Details;
+			this.lvwGlobalZones.SelectedIndexChanged += new System.EventHandler(this.lvwGlobalZones_SelectedIndexChanged);
+			// 
+			// colGlobalZoneName
+			// 
+			this.colGlobalZoneName.Text = "Zone Name";
+			this.colGlobalZoneName.Width = 496;
+			// 
+			// introduction1
+			// 
+			this.introduction1.AutoSize = true;
+			this.introduction1.Location = new System.Drawing.Point(11, 3);
+			this.introduction1.Name = "introduction1";
+			this.introduction1.Size = new System.Drawing.Size(269, 13);
+			this.introduction1.TabIndex = 6;
+			this.introduction1.Text = "Welcome to the Icinga 2 Windows Client Setup Wizard!";
+			// 
 			// groupBox3
 			// 
+			this.groupBox3.Controls.Add(this.chkDisableConf);
 			this.groupBox3.Controls.Add(this.txtUser);
 			this.groupBox3.Controls.Add(this.chkRunServiceAsThisUser);
 			this.groupBox3.Controls.Add(this.chkInstallNSCP);
 			this.groupBox3.Controls.Add(this.chkAcceptConfig);
 			this.groupBox3.Controls.Add(this.chkAcceptCommands);
-			this.groupBox3.Location = new System.Drawing.Point(308, 291);
+			this.groupBox3.Location = new System.Drawing.Point(308, 326);
 			this.groupBox3.Name = "groupBox3";
-			this.groupBox3.Size = new System.Drawing.Size(301, 188);
+			this.groupBox3.Size = new System.Drawing.Size(301, 163);
 			this.groupBox3.TabIndex = 5;
 			this.groupBox3.TabStop = false;
 			this.groupBox3.Text = "Advanced Options";
@@ -295,9 +377,9 @@
 			this.groupBox2.Controls.Add(this.txtListenerPort);
 			this.groupBox2.Controls.Add(this.lblListenerPort);
 			this.groupBox2.Controls.Add(this.rdoListener);
-			this.groupBox2.Location = new System.Drawing.Point(8, 291);
+			this.groupBox2.Location = new System.Drawing.Point(8, 326);
 			this.groupBox2.Name = "groupBox2";
-			this.groupBox2.Size = new System.Drawing.Size(298, 188);
+			this.groupBox2.Size = new System.Drawing.Size(298, 163);
 			this.groupBox2.TabIndex = 2;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "TCP Listener";
@@ -352,7 +434,7 @@
 			this.groupBox1.Controls.Add(this.lvwEndpoints);
 			this.groupBox1.Location = new System.Drawing.Point(8, 94);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(601, 191);
+			this.groupBox1.Size = new System.Drawing.Size(601, 110);
 			this.groupBox1.TabIndex = 1;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Parent master/satellite instance(s) for this client";
@@ -392,13 +474,13 @@
 			// lvwEndpoints
 			// 
 			this.lvwEndpoints.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-			this.colInstanceName,
-			this.colHost,
-			this.colPort});
+            this.colInstanceName,
+            this.colHost,
+            this.colPort});
 			this.lvwEndpoints.FullRowSelect = true;
 			this.lvwEndpoints.Location = new System.Drawing.Point(6, 19);
 			this.lvwEndpoints.Name = "lvwEndpoints";
-			this.lvwEndpoints.Size = new System.Drawing.Size(500, 166);
+			this.lvwEndpoints.Size = new System.Drawing.Size(500, 81);
 			this.lvwEndpoints.TabIndex = 4;
 			this.lvwEndpoints.UseCompatibleStateImageBehavior = false;
 			this.lvwEndpoints.View = System.Windows.Forms.View.Details;
@@ -433,7 +515,7 @@
 			this.tbcPages.Margin = new System.Windows.Forms.Padding(0);
 			this.tbcPages.Name = "tbcPages";
 			this.tbcPages.SelectedIndex = 0;
-			this.tbcPages.Size = new System.Drawing.Size(625, 509);
+			this.tbcPages.Size = new System.Drawing.Size(625, 504);
 			this.tbcPages.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
 			this.tbcPages.TabIndex = 0;
 			this.tbcPages.SelectedIndexChanged += new System.EventHandler(this.tbcPages_SelectedIndexChanged);
@@ -445,7 +527,7 @@
 			this.tabRetrieveCertificate.Location = new System.Drawing.Point(4, 5);
 			this.tabRetrieveCertificate.Name = "tabRetrieveCertificate";
 			this.tabRetrieveCertificate.Padding = new System.Windows.Forms.Padding(3);
-			this.tabRetrieveCertificate.Size = new System.Drawing.Size(617, 500);
+			this.tabRetrieveCertificate.Size = new System.Drawing.Size(617, 471);
 			this.tabRetrieveCertificate.TabIndex = 7;
 			this.tabRetrieveCertificate.Text = "Checking Certificate";
 			this.tabRetrieveCertificate.UseVisualStyleBackColor = true;
@@ -477,7 +559,7 @@
 			this.tabVerifyCertificate.Location = new System.Drawing.Point(4, 5);
 			this.tabVerifyCertificate.Name = "tabVerifyCertificate";
 			this.tabVerifyCertificate.Padding = new System.Windows.Forms.Padding(3);
-			this.tabVerifyCertificate.Size = new System.Drawing.Size(617, 500);
+			this.tabVerifyCertificate.Size = new System.Drawing.Size(617, 471);
 			this.tabVerifyCertificate.TabIndex = 6;
 			this.tabVerifyCertificate.Text = "Verify Certificate";
 			this.tabVerifyCertificate.UseVisualStyleBackColor = true;
@@ -507,8 +589,8 @@
 			// lvwX509Fields
 			// 
 			this.lvwX509Fields.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-			this.colField,
-			this.colValue});
+            this.colField,
+            this.colValue});
 			this.lvwX509Fields.Location = new System.Drawing.Point(6, 19);
 			this.lvwX509Fields.Name = "lvwX509Fields";
 			this.lvwX509Fields.Size = new System.Drawing.Size(586, 172);
@@ -566,7 +648,7 @@
 			this.lblX509Prompt.AutoSize = true;
 			this.lblX509Prompt.Location = new System.Drawing.Point(8, 15);
 			this.lblX509Prompt.Name = "lblX509Prompt";
-			this.lblX509Prompt.Size = new System.Drawing.Size(201, 13);
+			this.lblX509Prompt.Size = new System.Drawing.Size(241, 13);
 			this.lblX509Prompt.TabIndex = 0;
 			this.lblX509Prompt.Text = "Please verify the master/satellite\'s SSL certificate:";
 			// 
@@ -577,7 +659,7 @@
 			this.tabError.Location = new System.Drawing.Point(4, 5);
 			this.tabError.Name = "tabError";
 			this.tabError.Padding = new System.Windows.Forms.Padding(3);
-			this.tabError.Size = new System.Drawing.Size(617, 500);
+			this.tabError.Size = new System.Drawing.Size(617, 471);
 			this.tabError.TabIndex = 8;
 			this.tabError.Text = "Error";
 			this.tabError.UseVisualStyleBackColor = true;
@@ -611,14 +693,18 @@
 			this.picBanner.TabIndex = 1;
 			this.picBanner.TabStop = false;
 			// 
-			// introduction1
+			// chkDisableConf
 			// 
-			this.introduction1.AutoSize = true;
-			this.introduction1.Location = new System.Drawing.Point(11, 3);
-			this.introduction1.Name = "introduction1";
-			this.introduction1.Size = new System.Drawing.Size(269, 13);
-			this.introduction1.TabIndex = 6;
-			this.introduction1.Text = "Welcome to the Icinga 2 Windows Client Setup Wizard!";
+			this.chkDisableConf.AutoSize = true;
+			this.chkDisableConf.Checked = true;
+			this.chkDisableConf.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.chkDisableConf.Location = new System.Drawing.Point(9, 137);
+			this.chkDisableConf.Name = "chkDisableConf";
+			this.chkDisableConf.Size = new System.Drawing.Size(138, 17);
+			this.chkDisableConf.TabIndex = 9;
+			this.chkDisableConf.Text = "Disable conf.d inclusion";
+			this.chkDisableConf.UseVisualStyleBackColor = true;
+			this.chkDisableConf.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
 			// 
 			// SetupWizard
 			// 
@@ -626,7 +712,7 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.btnCancel;
-			this.ClientSize = new System.Drawing.Size(625, 624);
+			this.ClientSize = new System.Drawing.Size(625, 622);
 			this.Controls.Add(this.btnCancel);
 			this.Controls.Add(this.btnNext);
 			this.Controls.Add(this.btnBack);
@@ -643,6 +729,7 @@
 			this.tabConfigure.PerformLayout();
 			this.tabParameters.ResumeLayout(false);
 			this.tabParameters.PerformLayout();
+			this.groupBox4.ResumeLayout(false);
 			this.groupBox3.ResumeLayout(false);
 			this.groupBox3.PerformLayout();
 			this.groupBox2.ResumeLayout(false);
@@ -659,7 +746,7 @@
 			this.tabError.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picBanner)).EndInit();
 			this.ResumeLayout(false);
-
+			this.Load += new System.EventHandler(this.SetupWizard_Load);
 		}
 
 		#endregion
@@ -716,6 +803,13 @@
 		private System.Windows.Forms.CheckBox chkRunServiceAsThisUser;
 		private System.Windows.Forms.Button btnEditEndpoint;
 		private System.Windows.Forms.Label introduction1;
+		private System.Windows.Forms.GroupBox groupBox4;
+		private System.Windows.Forms.Button btnEditGlobalZone;
+		private System.Windows.Forms.Button btnRemoveGlobalZone;
+		private System.Windows.Forms.Button btnAddGlobalZone;
+		private System.Windows.Forms.ListView lvwGlobalZones;
+		private System.Windows.Forms.ColumnHeader colGlobalZoneName;
+		private System.Windows.Forms.CheckBox chkDisableConf;
 	}
 }
 

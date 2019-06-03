@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/servicegroupstable.hpp"
 #include "icinga/servicegroup.hpp"
@@ -23,13 +6,13 @@
 
 using namespace icinga;
 
-ServiceGroupsTable::ServiceGroupsTable(void)
+ServiceGroupsTable::ServiceGroupsTable()
 {
 	AddColumns(this);
 }
 
 void ServiceGroupsTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&ServiceGroupsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "alias", Column(&ServiceGroupsTable::AliasAccessor, objectAccessor));
@@ -51,12 +34,12 @@ void ServiceGroupsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "num_services_hard_unknown", Column(&ServiceGroupsTable::NumServicesHardUnknownAccessor, objectAccessor));
 }
 
-String ServiceGroupsTable::GetName(void) const
+String ServiceGroupsTable::GetName() const
 {
 	return "servicegroups";
 }
 
-String ServiceGroupsTable::GetPrefix(void) const
+String ServiceGroupsTable::GetPrefix() const
 {
 	return "servicegroup";
 }
@@ -126,16 +109,16 @@ Value ServiceGroupsTable::MembersAccessor(const Value& row)
 	if (!sg)
 		return Empty;
 
-	Array::Ptr members = new Array();
+	ArrayData result;
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
-		Array::Ptr host_svc = new Array();
-		host_svc->Add(service->GetHost()->GetName());
-		host_svc->Add(service->GetShortName());
-		members->Add(host_svc);
+		result.push_back(new Array({
+			service->GetHost()->GetName(),
+			service->GetShortName()
+		}));
 	}
 
-	return members;
+	return new Array(std::move(result));
 }
 
 Value ServiceGroupsTable::MembersWithStateAccessor(const Value& row)
@@ -145,18 +128,18 @@ Value ServiceGroupsTable::MembersWithStateAccessor(const Value& row)
 	if (!sg)
 		return Empty;
 
-	Array::Ptr members = new Array();
+	ArrayData result;
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
-		Array::Ptr host_svc = new Array();
-		host_svc->Add(service->GetHost()->GetName());
-		host_svc->Add(service->GetShortName());
-		host_svc->Add(service->GetHost()->GetState());
-		host_svc->Add(service->GetState());
-		members->Add(host_svc);
+		result.push_back(new Array({
+			service->GetHost()->GetName(),
+			service->GetShortName(),
+			service->GetHost()->GetState(),
+			service->GetState()
+		}));
 	}
 
-	return members;
+	return new Array(std::move(result));
 }
 
 Value ServiceGroupsTable::WorstServiceStateAccessor(const Value& row)

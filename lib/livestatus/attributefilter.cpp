@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/attributefilter.hpp"
 #include "base/convert.hpp"
@@ -27,8 +10,8 @@
 
 using namespace icinga;
 
-AttributeFilter::AttributeFilter(const String& column, const String& op, const String& operand)
-	: m_Column(column), m_Operator(op), m_Operand(operand)
+AttributeFilter::AttributeFilter(String column, String op, String operand)
+	: m_Column(std::move(column)), m_Operator(std::move(op)), m_Operand(std::move(operand))
 { }
 
 bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
@@ -70,7 +53,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 				ret = boost::regex_search(operand.GetData(), what, expr);
 			} catch (boost::exception&) {
 				Log(LogWarning, "AttributeFilter")
-				    << "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";
+					<< "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";
 				ret = false;
 			}
 
@@ -86,7 +69,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 				ret = boost::iequals(operand, m_Operand.GetData());
 			} catch (boost::exception&) {
 				Log(LogWarning, "AttributeFilter")
-				    << "Case-insensitive equality '" << m_Operand << " " << m_Operator << " " << value << "' error.";
+					<< "Case-insensitive equality '" << m_Operand << " " << m_Operator << " " << value << "' error.";
 				ret = false;
 			}
 
@@ -100,7 +83,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 				ret = boost::regex_search(operand.GetData(), what, expr);
 			} catch (boost::exception&) {
 				Log(LogWarning, "AttributeFilter")
-				    << "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";
+					<< "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";
 				ret = false;
 			}
 

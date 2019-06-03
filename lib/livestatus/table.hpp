@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef TABLE_H
 #define TABLE_H
@@ -42,23 +25,23 @@ class Filter;
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API Table : public Object
+class Table : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Table);
 
 	static Table::Ptr GetByName(const String& name, const String& compat_log_path = "", const unsigned long& from = 0, const unsigned long& until = 0);
 
-	virtual String GetName(void) const = 0;
-	virtual String GetPrefix(void) const = 0;
+	virtual String GetName() const = 0;
+	virtual String GetPrefix() const = 0;
 
 	std::vector<LivestatusRowValue> FilterRows(const intrusive_ptr<Filter>& filter, int limit = -1);
 
 	void AddColumn(const String& name, const Column& column);
 	Column GetColumn(const String& name) const;
-	std::vector<String> GetColumnNames(void) const;
+	std::vector<String> GetColumnNames() const;
 
-	virtual LivestatusGroupByType GetGroupByType(void) const;
+	LivestatusGroupByType GetGroupByType() const;
 
 protected:
 	Table(LivestatusGroupByType type = LivestatusGroupByNone);

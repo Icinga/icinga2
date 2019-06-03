@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/variablegetcommand.hpp"
 #include "cli/variableutility.hpp"
@@ -41,12 +24,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("variable/get", VariableGetCommand);
 
-String VariableGetCommand::GetDescription(void) const
+String VariableGetCommand::GetDescription() const
 {
 	return "Prints the value of an Icinga 2 variable.";
 }
 
-String VariableGetCommand::GetShortDescription(void) const
+String VariableGetCommand::GetShortDescription() const
 {
 	return "gets a variable";
 }
@@ -58,7 +41,7 @@ void VariableGetCommand::InitParameters(boost::program_options::options_descript
 		("current", "Uses the current value (i.e. from the running process, rather than from the vars file)");
 }
 
-int VariableGetCommand::GetMinArguments(void) const
+int VariableGetCommand::GetMinArguments() const
 {
 	return 1;
 }
@@ -75,7 +58,7 @@ int VariableGetCommand::Run(const boost::program_options::variables_map& vm, con
 		return 0;
 	}
 
-	String varsfile = Application::GetVarsPath();
+	String varsfile = Configuration::VarsPath;
 
 	if (!Utility::PathExists(varsfile)) {
 		Log(LogCritical, "cli")

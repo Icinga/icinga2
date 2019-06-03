@@ -1,25 +1,9 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/cib.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
+#include "icinga/clusterevents.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
@@ -73,7 +57,7 @@ int CIB::GetPassiveServiceChecksStatistics(long timespan)
 	return m_PassiveServiceChecksStatistics.UpdateAndGetValues(Utility::GetTime(), timespan);
 }
 
-CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
+CheckableCheckStatistics CIB::CalculateHostCheckStats()
 {
 	double min_latency = -1, max_latency = 0, sum_latency = 0;
 	int count_latency = 0;
@@ -134,7 +118,7 @@ CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
 	return ccs;
 }
 
-CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
+CheckableCheckStatistics CIB::CalculateServiceCheckStats()
 {
 	double min_latency = -1, max_latency = 0, sum_latency = 0;
 	int count_latency = 0;
@@ -195,7 +179,7 @@ CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
 	return ccs;
 }
 
-ServiceStatistics CIB::CalculateServiceStats(void)
+ServiceStatistics CIB::CalculateServiceStats()
 {
 	ServiceStatistics ss = {};
 
@@ -229,7 +213,7 @@ ServiceStatistics CIB::CalculateServiceStats(void)
 	return ss;
 }
 
-HostStatistics CIB::CalculateHostStats(void)
+HostStatistics CIB::CalculateHostStats()
 {
 	HostStatistics hs = {};
 
@@ -262,18 +246,18 @@ HostStatistics CIB::CalculateHostStats(void)
  * 'perfdata' must be a flat dictionary with double values
  * 'status' dictionary can contain multiple levels of dictionaries
  */
-std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats(void)
+std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats()
 {
 	Dictionary::Ptr status = new Dictionary();
 	Array::Ptr perfdata = new Array();
 
-	Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
+	Namespace::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
 
 	if (statsFunctions) {
 		ObjectLock olock(statsFunctions);
 
-		for (const Dictionary::Pair& kv : statsFunctions)
-			static_cast<Function::Ptr>(kv.second)->Invoke({ status, perfdata });
+		for (const Namespace::Pair& kv : statsFunctions)
+			static_cast<Function::Ptr>(kv.second->Get())->Invoke({ status, perfdata });
 	}
 
 	return std::make_pair(status, perfdata);
@@ -304,6 +288,8 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("passive_service_checks_5min", GetPassiveServiceChecksStatistics(60 * 5));
 	status->Set("active_service_checks_15min", GetActiveServiceChecksStatistics(60 * 15));
 	status->Set("passive_service_checks_15min", GetPassiveServiceChecksStatistics(60 * 15));
+
+	status->Set("remote_check_queue", ClusterEvents::GetCheckRequestQueueSize());
 
 	CheckableCheckStatistics scs = CalculateServiceCheckStats();
 

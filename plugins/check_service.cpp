@@ -1,59 +1,25 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
-#include <Windows.h>
-#include <Shlwapi.h>
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+
+#include "plugins/thresholds.hpp"
+#include <boost/program_options.hpp>
 #include <iostream>
-
-#include "check_service.h"
-
+#include <windows.h>
+#include <shlwapi.h>
 
 #define VERSION 1.1
 
 namespace po = boost::program_options;
 
-static BOOL debug;
-
-INT wmain(INT argc, WCHAR **argv)
+struct printInfoStruct
 {
-	po::variables_map vm;
-	printInfoStruct printInfo;
+	bool warn;
+	DWORD ServiceState;
+	std::wstring service;
+};
 
-	INT ret = parseArguments(argc, argv, vm, printInfo);
-	if (ret != -1)
-		return ret;
+static bool l_Debug;
 
-	if (vm.count("description"))
-		printInfo.service = GetServiceByDescription(vm["service"].as<std::wstring>());
-
-	if (printInfo.service.empty()) {
-		std::wcout << "Could not find service matching description\n";
-		return 3;
-	}
-
-	printInfo.ServiceState = ServiceStatus(printInfo);
-	if (printInfo.ServiceState == -1)
-		return 3;
-
-	return printOutput(printInfo);
-}
-
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
+static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
 	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -64,26 +30,27 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	desc.add_options()
 		("help,h", "Print help message and exit")
 		("version,V", "Print version and exit")
-		("D", "Verbose/Debug output")
+		("debug,D", "Verbose/Debug output")
 		("service,s", po::wvalue<std::wstring>(), "Service name to check")
 		("description,d", "Use \"service\" to match on description")
 		("warn,w", "Return warning (1) instead of critical (2),\n when service is not running")
 		;
 
-	po::basic_command_line_parser<WCHAR> parser(ac, av);
+	po::wcommand_line_parser parser(ac, av);
 
 	try {
 		po::store(
 			parser
 			.options(desc)
 			.style(
-			po::command_line_style::unix_style |
-			po::command_line_style::allow_long_disguise)
+			po::command_line_style::unix_style &
+			~po::command_line_style::allow_guessing |
+			po::command_line_style::allow_long_disguise
+			)
 			.run(),
 			vm);
 		vm.notify();
-	}
-	catch (std::exception& e) {
+	} catch (const std::exception& e) {
 		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
@@ -128,59 +95,60 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 
 	printInfo.warn = vm.count("warn");
 
-	if (vm.count("D"))
-		debug = TRUE;
+	l_Debug = vm.count("debug") > 0;
 
 	return -1;
 }
 
-INT printOutput(CONST printInfoStruct& printInfo) 
+static int printOutput(const printInfoStruct& printInfo)
 {
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Constructing output string" << '\n';
 
 	std::wstring perf;
 	state state = OK;
 
 	if (!printInfo.ServiceState) {
-		std::wcout << L"SERVICE CRITICAL NOTFOUND | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE CRITICAL NOT FOUND | 'service'=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		return 3;
 	}
 
-	if (printInfo.ServiceState != 0x04) 
+	if (printInfo.ServiceState != 0x04)
 		printInfo.warn ? state = WARNING : state = CRITICAL;
 
 	switch (state) {
 	case OK:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\" OK RUNNING | service=4;;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" OK RUNNING | 'service'=4;;;1;7" << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\" WARNING NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" WARNING NOT RUNNING | 'service'=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\" CRITICAL NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" CRITICAL NOT RUNNING | 'service'=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		break;
 	}
 
 	return state;
 }
 
-std::wstring GetServiceByDescription(CONST std::wstring& description) {
+static std::wstring getServiceByDescription(const std::wstring& description)
+{
 	SC_HANDLE hSCM = NULL;
+	LPENUM_SERVICE_STATUSW lpServices = NULL;
 	LPBYTE lpBuf = NULL;
 	DWORD cbBufSize = 0;
 	DWORD lpServicesReturned = 0;
 	DWORD pcbBytesNeeded = 0;
 	DWORD lpResumeHandle = 0;;
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Opening SC Manager" << '\n';
 
 	hSCM = OpenSCManager(NULL, NULL, GENERIC_READ);
 	if (hSCM == NULL)
 		goto die;
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Determining initially required memory" << '\n';
 
 	EnumServicesStatus(hSCM, SERVICE_WIN32 | SERVICE_DRIVER, SERVICE_STATE_ALL, NULL, 0,
@@ -193,27 +161,27 @@ std::wstring GetServiceByDescription(CONST std::wstring& description) {
 	if (GetLastError() != ERROR_INSUFFICIENT_BUFFER && GetLastError() != ERROR_MORE_DATA)
 		goto die;
 
-	LPENUM_SERVICE_STATUSW lpServices = reinterpret_cast<LPENUM_SERVICE_STATUSW>(new BYTE[pcbBytesNeeded]);
+	lpServices = reinterpret_cast<LPENUM_SERVICE_STATUSW>(new BYTE[pcbBytesNeeded]);
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Requesting Service Information. Entry point: " << lpResumeHandle << '\n';
 
 	EnumServicesStatus(hSCM, SERVICE_WIN32 | SERVICE_DRIVER, SERVICE_STATE_ALL, lpServices, pcbBytesNeeded,
 		&pcbBytesNeeded, &lpServicesReturned, &lpResumeHandle);
 
-	for (int index = 0; index < lpServicesReturned; index++) {
+	for (decltype(lpServicesReturned) index = 0; index < lpServicesReturned; index++) {
 		LPWSTR lpCurrent = lpServices[index].lpServiceName;
 
-		if (debug) {
+		if (l_Debug) {
 			std::wcout << L"Opening Service \"" << lpServices[index].lpServiceName << L"\"\n";
 		}
 
 		SC_HANDLE hService = OpenService(hSCM, lpCurrent, SERVICE_QUERY_CONFIG);
-		if (hService == NULL)
+		if (!hService)
 			goto die;
 
 		DWORD dwBytesNeeded = 0;
-		if (debug)
+		if (l_Debug)
 			std::wcout << "Accessing config\n";
 
 		if (!QueryServiceConfig2(hService, SERVICE_CONFIG_DESCRIPTION, NULL, 0, &dwBytesNeeded) && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
@@ -226,13 +194,13 @@ std::wstring GetServiceByDescription(CONST std::wstring& description) {
 
 		if (lpsd->lpDescription != NULL && lstrcmp(lpsd->lpDescription, L"") != 0) {
 			std::wstring desc(lpsd->lpDescription);
-			if (debug)
+			if (l_Debug)
 				std::wcout << "Got description:\n" << desc << '\n';
 			size_t p = desc.find(description);
 			if (desc.find(description) != desc.npos)
 				return lpCurrent;
 		}
-		else if (debug)
+		else if (l_Debug)
 			std::wcout << "No description found\n";
 	}
 
@@ -241,7 +209,7 @@ std::wstring GetServiceByDescription(CONST std::wstring& description) {
 	return L"";
 
 die:
-	die();
+	printErrorInfo();
 	if (hSCM)
 		CloseServiceHandle(hSCM);
 	if (lpServices)
@@ -249,7 +217,7 @@ die:
 	return L"";
 }
 
-DWORD ServiceStatus(CONST printInfoStruct& printInfo) 
+static DWORD getServiceStatus(const printInfoStruct& printInfo)
 {
 	SC_HANDLE hSCM;
 	SC_HANDLE hService;
@@ -257,7 +225,7 @@ DWORD ServiceStatus(CONST printInfoStruct& printInfo)
 	DWORD lpResumeHandle = 0;
 	LPBYTE lpBuf = NULL;
 
-	if (debug)
+	if (l_Debug)
 		std::wcout << L"Opening SC Manager" << '\n';
 
 	hSCM = OpenSCManager(NULL, NULL, GENERIC_READ);
@@ -279,7 +247,7 @@ DWORD ServiceStatus(CONST printInfoStruct& printInfo)
 	}
 
 die:
-	die();
+	printErrorInfo();
 	if (hSCM)
 		CloseServiceHandle(hSCM);
 	if (hService)
@@ -289,3 +257,28 @@ die:
 
 	return -1;
 }
+
+int wmain(int argc, WCHAR **argv)
+{
+	po::variables_map vm;
+	printInfoStruct printInfo;
+
+	int ret = parseArguments(argc, argv, vm, printInfo);
+	if (ret != -1)
+		return ret;
+
+	if (vm.count("description"))
+		printInfo.service = getServiceByDescription(vm["service"].as<std::wstring>());
+
+	if (printInfo.service.empty()) {
+		std::wcout << "Could not find service matching description\n";
+		return 3;
+	}
+
+	printInfo.ServiceState = getServiceStatus(printInfo);
+	if (printInfo.ServiceState == -1)
+		return 3;
+
+	return printOutput(printInfo);
+}
+

@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "perfdata/gelfwriter.hpp"
-#include "perfdata/gelfwriter.tcpp"
+#include "perfdata/gelfwriter-ti.cpp"
 #include "icinga/service.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/checkcommand.hpp"
@@ -38,6 +21,12 @@
 #include "base/json.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string/replace.hpp>
+#include <utility>
+#include "base/io-engine.hpp"
+#include <boost/asio/write.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/asio/error.hpp>
 
 using namespace icinga;
 
@@ -45,46 +34,50 @@ REGISTER_TYPE(GelfWriter);
 
 REGISTER_STATSFUNCTION(GelfWriter, &GelfWriter::StatsFunc);
 
-GelfWriter::GelfWriter(void)
-    : m_WorkQueue(10000000, 1)
-{ }
-
-void GelfWriter::OnConfigLoaded(void)
+void GelfWriter::OnConfigLoaded()
 {
 	ObjectImpl<GelfWriter>::OnConfigLoaded();
 
 	m_WorkQueue.SetName("GelfWriter, " + GetName());
+
+	if (!GetEnableHa()) {
+		Log(LogDebug, "GelfWriter")
+			<< "HA functionality disabled. Won't pause connection: " << GetName();
+
+		SetHAMode(HARunEverywhere);
+	} else {
+		SetHAMode(HARunOnce);
+	}
 }
 
 void GelfWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const GelfWriter::Ptr& gelfwriter : ConfigType::GetObjectsByType<GelfWriter>()) {
 		size_t workQueueItems = gelfwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = gelfwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
 
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("work_queue_items", workQueueItems);
-		stats->Set("work_queue_item_rate", workQueueItemRate);
-		stats->Set("connected", gelfwriter->GetConnected());
-		stats->Set("source", gelfwriter->GetSource());
-
-		nodes->Set(gelfwriter->GetName(), stats);
+		nodes.emplace_back(gelfwriter->GetName(), new Dictionary({
+			{ "work_queue_items", workQueueItems },
+			{ "work_queue_item_rate", workQueueItemRate },
+			{ "connected", gelfwriter->GetConnected() },
+			{ "source", gelfwriter->GetSource() }
+		}));
 
 		perfdata->Add(new PerfdataValue("gelfwriter_" + gelfwriter->GetName() + "_work_queue_items", workQueueItems));
 		perfdata->Add(new PerfdataValue("gelfwriter_" + gelfwriter->GetName() + "_work_queue_item_rate", workQueueItemRate));
 	}
 
-	status->Set("gelfwriter", nodes);
+	status->Set("gelfwriter", new Dictionary(std::move(nodes)));
 }
 
-void GelfWriter::Start(bool runtimeCreated)
+void GelfWriter::Resume()
 {
-	ObjectImpl<GelfWriter>::Start(runtimeCreated);
+	ObjectImpl<GelfWriter>::Resume();
 
 	Log(LogInformation, "GelfWriter")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
 	m_WorkQueue.SetExceptionCallback(std::bind(&GelfWriter::ExceptionHandler, this, _1));
@@ -98,21 +91,35 @@ void GelfWriter::Start(bool runtimeCreated)
 
 	/* Register event handlers. */
 	Checkable::OnNewCheckResult.connect(std::bind(&GelfWriter::CheckResultHandler, this, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(std::bind(&GelfWriter::NotificationToUserHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
+	Checkable::OnNotificationSentToUser.connect(std::bind(&GelfWriter::NotificationToUserHandler, this, _1, _2, _3, _4, _5, _6, _7, _8, _9));
 	Checkable::OnStateChange.connect(std::bind(&GelfWriter::StateChangeHandler, this, _1, _2, _3));
 }
 
-void GelfWriter::Stop(bool runtimeRemoved)
+/* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
+void GelfWriter::Pause()
 {
-	Log(LogInformation, "GelfWriter")
-	    << "'" << GetName() << "' stopped.";
+	m_ReconnectTimer.reset();
+
+	try {
+		ReconnectInternal();
+	} catch (const std::exception&) {
+		Log(LogInformation, "GelfWriter")
+			<< "'" << GetName() << "' paused. Unable to connect, not flushing buffers. Data may be lost on reload.";
+
+		ObjectImpl<GelfWriter>::Pause();
+		return;
+	}
 
 	m_WorkQueue.Join();
+	DisconnectInternal();
 
-	ObjectImpl<GelfWriter>::Stop(runtimeRemoved);
+	Log(LogInformation, "GelfWriter")
+		<< "'" << GetName() << "' paused.";
+
+	ObjectImpl<GelfWriter>::Pause();
 }
 
-void GelfWriter::AssertOnWorkQueue(void)
+void GelfWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
@@ -122,19 +129,25 @@ void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "GelfWriter", "Exception during Graylog Gelf operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "GelfWriter")
-	    << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp);
+		<< "Exception during Graylog Gelf operation: " << DiagnosticInformation(std::move(exp));
 
-	if (GetConnected()) {
-		m_Stream->Close();
-
-		SetConnected(false);
-	}
+	DisconnectInternal();
 }
 
-void GelfWriter::Reconnect(void)
+void GelfWriter::Reconnect()
 {
 	AssertOnWorkQueue();
 
+	if (IsPaused()) {
+		SetConnected(false);
+		return;
+	}
+
+	ReconnectInternal();
+}
+
+void GelfWriter::ReconnectInternal()
+{
 	double startTime = Utility::GetTime();
 
 	CONTEXT("Reconnecting to Graylog Gelf '" + GetName() + "'");
@@ -144,46 +157,93 @@ void GelfWriter::Reconnect(void)
 	if (GetConnected())
 		return;
 
-	TcpSocket::Ptr socket = new TcpSocket();
-
 	Log(LogNotice, "GelfWriter")
-	    << "Reconnecting to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << "'.";
+		<< "Reconnecting to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
-	try {
-		socket->Connect(GetHost(), GetPort());
-	} catch (const std::exception& ex) {
-		Log(LogCritical, "GelfWriter")
-		    << "Can't connect to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw ex;
+	bool ssl = GetEnableTls();
+
+	if (ssl) {
+		std::shared_ptr<boost::asio::ssl::context> sslContext;
+
+		try {
+			sslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "GelfWriter")
+				<< "Unable to create SSL context.";
+			throw;
+		}
+
+		m_Stream.first = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoService(), *sslContext, GetHost());
+	} else {
+		m_Stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoService());
 	}
 
-	m_Stream = new NetworkStream(socket);
+	try {
+		icinga::Connect(ssl ? m_Stream.first->lowest_layer() : m_Stream.second->lowest_layer(), GetHost(), GetPort());
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "GelfWriter")
+			<< "Can't connect to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << ".'";
+		throw;
+	}
+
+	if (ssl) {
+		auto& tlsStream (m_Stream.first->next_layer());
+
+		try {
+			tlsStream.handshake(tlsStream.client);
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "GelfWriter")
+				<< "TLS handshake with host '" << GetHost() << " failed.'";
+			throw;
+		}
+	}
 
 	SetConnected(true);
 
 	Log(LogInformation, "GelfWriter")
-	    << "Finished reconnecting to Graylog Gelf in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
+		<< "Finished reconnecting to Graylog Gelf in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 }
 
-void GelfWriter::ReconnectTimerHandler(void)
+void GelfWriter::ReconnectTimerHandler()
 {
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::Reconnect, this), PriorityNormal);
 }
 
-void GelfWriter::Disconnect(void)
+void GelfWriter::Disconnect()
 {
 	AssertOnWorkQueue();
 
+	DisconnectInternal();
+}
+
+void GelfWriter::DisconnectInternal()
+{
 	if (!GetConnected())
 		return;
 
-	m_Stream->Close();
+	if (m_Stream.first) {
+		boost::system::error_code ec;
+		m_Stream.first->next_layer().shutdown(ec);
+
+		// https://stackoverflow.com/a/25703699
+		// As long as the error code's category is not an SSL category, then the protocol was securely shutdown
+		if (ec.category() == boost::asio::error::get_ssl_category()) {
+			Log(LogCritical, "GelfWriter")
+				<< "TLS shutdown with host '" << GetHost() << "' could not be done securely.";
+		}
+	} else if (m_Stream.second) {
+		m_Stream.second->close();
+	}
 
 	SetConnected(false);
+
 }
 
 void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::CheckResultHandlerInternal, this, checkable, cr));
 }
 
@@ -194,7 +254,7 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 	CONTEXT("GELF Processing check result for '" + checkable->GetName() + "'");
 
 	Log(LogDebug, "GelfWriter")
-	    << "Processing check result for '" << checkable->GetName() << "'";
+		<< "Processing check result for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -221,10 +281,10 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 
 	fields->Set("_reachable", checkable->IsReachable());
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
-	if (commandObj)
-		fields->Set("_check_command", commandObj->GetName());
+	if (checkCommand)
+		fields->Set("_check_command", checkCommand->GetName());
 
 	double ts = Utility::GetTime();
 
@@ -252,8 +312,10 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 						pdv = PerfdataValue::Parse(val);
 					} catch (const std::exception&) {
 						Log(LogWarning, "GelfWriter")
-						    << "Ignoring invalid perfdata value: '" << val << "' for object '"
-						    << checkable->GetName() << "'.";
+							<< "Ignoring invalid perfdata for checkable '"
+							<< checkable->GetName() << "' and command '"
+							<< checkCommand->GetName() << "' with value: " << val;
+						continue;
 					}
 				}
 
@@ -273,31 +335,37 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 					fields->Set("_" + escaped_key + "_warn", pdv->GetWarn());
 				if (pdv->GetCrit())
 					fields->Set("_" + escaped_key + "_crit", pdv->GetCrit());
+
+				if (!pdv->GetUnit().IsEmpty())
+					fields->Set("_" + escaped_key + "_unit", pdv->GetUnit());
 			}
 		}
 	}
 
-	SendLogMessage(ComposeGelfMessage(fields, GetSource(), ts));
+	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
 }
 
 void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-    const User::Ptr& user, NotificationType notificationType, CheckResult::Ptr const& cr,
-    const String& author, const String& commentText, const String& commandName)
+	const User::Ptr& user, NotificationType notificationType, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
+	const String& author, const String& commentText, const String& commandName)
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::NotificationToUserHandlerInternal, this,
-	    notification, checkable, user, notificationType, cr, author, commentText, commandName));
+		notification, checkable, user, notificationType, cr, nr, author, commentText, commandName));
 }
 
 void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-    const User::Ptr& user, NotificationType notificationType, CheckResult::Ptr const& cr,
-    const String& author, const String& commentText, const String& commandName)
+	const User::Ptr& user, NotificationType notificationType, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
+	const String& author, const String& commentText, const String& commandName)
 {
 	AssertOnWorkQueue();
 
-  	CONTEXT("GELF Processing notification to all users '" + checkable->GetName() + "'");
+	CONTEXT("GELF Processing notification to all users '" + checkable->GetName() + "'");
 
 	Log(LogDebug, "GelfWriter")
-	    << "Processing notification for '" << checkable->GetName() << "'";
+		<< "Processing notification for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -328,8 +396,7 @@ void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& noti
 		fields->Set("short_message", output);
 	} else {
 		fields->Set("_type", "HOST NOTIFICATION");
-		//TODO: why?
-		fields->Set("short_message", "(" + CompatUtility::GetHostStateString(host) + ")");
+		fields->Set("short_message", output);
 	}
 
 	fields->Set("_state", service ? Service::StateToString(service->GetState()) : Host::StateToString(host->GetState()));
@@ -344,11 +411,14 @@ void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& noti
 	if (commandObj)
 		fields->Set("_check_command", commandObj->GetName());
 
-	SendLogMessage(ComposeGelfMessage(fields, GetSource(), ts));
+	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
 }
 
 void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::StateChangeHandlerInternal, this, checkable, cr, type));
 }
 
@@ -359,7 +429,7 @@ void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, con
 	CONTEXT("GELF Processing state change '" + checkable->GetName() + "'");
 
 	Log(LogDebug, "GelfWriter")
-	    << "Processing state change for '" << checkable->GetName() << "'";
+		<< "Processing state change for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -397,7 +467,7 @@ void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, con
 		ts = cr->GetExecutionEnd();
 	}
 
-	SendLogMessage(ComposeGelfMessage(fields, GetSource(), ts));
+	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
 }
 
 String GelfWriter::ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts)
@@ -409,7 +479,7 @@ String GelfWriter::ComposeGelfMessage(const Dictionary::Ptr& fields, const Strin
 	return JsonEncode(fields);
 }
 
-void GelfWriter::SendLogMessage(const String& gelfMessage)
+void GelfWriter::SendLogMessage(const Checkable::Ptr& checkable, const String& gelfMessage)
 {
 	std::ostringstream msgbuf;
 	msgbuf << gelfMessage;
@@ -424,12 +494,18 @@ void GelfWriter::SendLogMessage(const String& gelfMessage)
 
 	try {
 		Log(LogDebug, "GelfWriter")
-		    << "Sending '" << log << "'.";
+			<< "Checkable '" << checkable->GetName() << "' sending message '" << log << "'.";
 
-		m_Stream->Write(log.CStr(), log.GetLength());
+		if (m_Stream.first) {
+			boost::asio::write(*m_Stream.first, boost::asio::buffer(msgbuf.str()));
+			m_Stream.first->flush();
+		} else {
+			boost::asio::write(*m_Stream.second, boost::asio::buffer(msgbuf.str()));
+			m_Stream.second->flush();
+		}
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "GelfWriter")
-		    << "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
+			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
 		throw ex;
 	}

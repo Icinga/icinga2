@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef VALUE_H
 #define VALUE_H
@@ -24,6 +7,7 @@
 #include "base/string.hpp"
 #include <boost/variant/variant.hpp>
 #include <boost/variant/get.hpp>
+#include <boost/throw_exception.hpp>
 
 namespace icinga
 {
@@ -49,110 +33,41 @@ enum ValueType
  *
  * @ingroup base
  */
-class I2_BASE_API Value
+class Value
 {
 public:
-	inline Value(void)
-	{ }
-
-	inline Value(std::nullptr_t)
-	{ }
-
-	inline Value(int value)
-		: m_Value(double(value))
-	{ }
-
-	inline Value(unsigned int value)
-		: m_Value(double(value))
-	{ }
-
-	inline Value(long value)
-		: m_Value(double(value))
-	{ }
-
-	inline Value(unsigned long value)
-		: m_Value(double(value))
-	{ }
-
-	inline Value(long long value)
-		: m_Value(double(value))
-	{ }
-
-	inline Value(unsigned long long value)
-		: m_Value(double(value))
-	{ }
-
-	inline Value(double value)
-		: m_Value(value)
-	{ }
-
-	inline Value(bool value)
-		: m_Value(value)
-	{ }
-
-	inline Value(const String& value)
-		: m_Value(value)
-	{ }
-
-	inline Value(String&& value)
-		: m_Value(value)
-	{ }
-
-	inline Value(const char *value)
-		: m_Value(String(value))
-	{ }
-
-	Value(const Value& other)
-		: m_Value(other.m_Value)
-	{ }
-
-	Value(Value&& other)
-	{
-#if BOOST_VERSION >= 105400
-		m_Value = std::move(other.m_Value);
-#else /* BOOST_VERSION */
-		m_Value.swap(other.m_Value);
-#endif /* BOOST_VERSION */
-	}
-
-	inline Value(Object *value)
-	{
-		if (!value)
-			return;
-
-		m_Value = Object::Ptr(value);
-	}
+	Value() = default;
+	Value(std::nullptr_t);
+	Value(int value);
+	Value(unsigned int value);
+	Value(long value);
+	Value(unsigned long value);
+	Value(long long value);
+	Value(unsigned long long value);
+	Value(double value);
+	Value(bool value);
+	Value(const String& value);
+	Value(String&& value);
+	Value(const char *value);
+	Value(const Value& other);
+	Value(Value&& other);
+	Value(Object *value);
+	Value(const intrusive_ptr<Object>& value);
 
 	template<typename T>
-	inline Value(const intrusive_ptr<T>& value)
+	Value(const intrusive_ptr<T>& value)
+		: Value(static_pointer_cast<Object>(value))
 	{
-		if (!value)
-			return;
-
-		m_Value = static_pointer_cast<Object>(value);
+		static_assert(!std::is_same<T, Object>::value, "T must not be Object");
 	}
 
-	bool ToBool(void) const;
+	bool ToBool() const;
 
-	operator double(void) const;
-	operator String(void) const;
+	operator double() const;
+	operator String() const;
 
-	Value& operator=(const Value& other)
-	{
-		m_Value = other.m_Value;
-		return *this;
-	}
-
-	Value& operator=(Value&& other)
-	{
-#if BOOST_VERSION >= 105400
-		m_Value = std::move(other.m_Value);
-#else /* BOOST_VERSION */
-		m_Value.swap(other.m_Value);
-#endif /* BOOST_VERSION */
-
-		return *this;
-	}
+	Value& operator=(const Value& other);
+	Value& operator=(Value&& other);
 
 	bool operator==(bool rhs) const;
 	bool operator!=(bool rhs) const;
@@ -173,7 +88,7 @@ public:
 	bool operator!=(const Value& rhs) const;
 
 	template<typename T>
-	operator intrusive_ptr<T>(void) const
+	operator intrusive_ptr<T>() const
 	{
 		if (IsEmpty() && !IsString())
 			return intrusive_ptr<T>();
@@ -181,7 +96,7 @@ public:
 		if (!IsObject())
 			BOOST_THROW_EXCEPTION(std::runtime_error("Cannot convert value of type '" + GetTypeName() + "' to an object."));
 
-		const Object::Ptr& object = boost::get<Object::Ptr>(m_Value);
+		const auto& object = Get<Object::Ptr>();
 
 		ASSERT(object);
 
@@ -193,98 +108,34 @@ public:
 		return tobject;
 	}
 
-	/**
-	* Checks whether the variant is empty.
-	*
-	* @returns true if the variant is empty, false otherwise.
-	*/
-	inline bool IsEmpty(void) const
-	{
-		return (GetType() == ValueEmpty || (IsString() && boost::get<String>(m_Value).IsEmpty()));
-	}
-
-	/**
-	* Checks whether the variant is scalar (i.e. not an object and not empty).
-	*
-	* @returns true if the variant is scalar, false otherwise.
-	*/
-	inline bool IsScalar(void) const
-	{
-		return !IsEmpty() && !IsObject();
-	}
-
-	/**
-	* Checks whether the variant is a number.
-	*
-	* @returns true if the variant is a number.
-	*/
-	inline bool IsNumber(void) const
-	{
-		return (GetType() == ValueNumber);
-	}
-
-	/**
-	 * Checks whether the variant is a boolean.
-	 *
-	 * @returns true if the variant is a boolean.
-	 */
-	inline bool IsBoolean(void) const
-	{
-		return (GetType() == ValueBoolean);
-	}
-
-	/**
-	* Checks whether the variant is a string.
-	*
-	* @returns true if the variant is a string.
-	*/
-	inline bool IsString(void) const
-	{
-		return (GetType() == ValueString);
-	}
-
-	/**
-	* Checks whether the variant is a non-null object.
-	*
-	* @returns true if the variant is a non-null object, false otherwise.
-	*/
-	inline bool IsObject(void) const
-	{
-		return  (GetType() == ValueObject);
-	}
+	bool IsEmpty() const;
+	bool IsScalar() const;
+	bool IsNumber() const;
+	bool IsBoolean() const;
+	bool IsString() const;
+	bool IsObject() const;
 
 	template<typename T>
-	bool IsObjectType(void) const
+	bool IsObjectType() const
 	{
 		if (!IsObject())
 			return false;
 
-		return dynamic_cast<T *>(boost::get<Object::Ptr>(m_Value).get());
+		return dynamic_cast<T *>(Get<Object::Ptr>().get());
 	}
 
-	/**
-	* Returns the type of the value.
-	*
-	* @returns The type.
-	*/
-	inline ValueType GetType(void) const
-	{
-		return static_cast<ValueType>(m_Value.which());
-	}
+	ValueType GetType() const;
 
-	inline void Swap(Value& other)
-	{
-		m_Value.swap(other.m_Value);
-	}
+	void Swap(Value& other);
 
-	String GetTypeName(void) const;
+	String GetTypeName() const;
 
-	Type::Ptr GetReflectionType(void) const;
+	Type::Ptr GetReflectionType() const;
 
-	Value Clone(void) const;
+	Value Clone() const;
 
 	template<typename T>
-	const T& Get(void) const
+	const T& Get() const
 	{
 		return boost::get<T>(m_Value);
 	}
@@ -293,101 +144,108 @@ private:
 	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
 };
 
-extern I2_BASE_API Value Empty;
+extern template const double& Value::Get<double>() const;
+extern template const bool& Value::Get<bool>() const;
+extern template const String& Value::Get<String>() const;
+extern template const Object::Ptr& Value::Get<Object::Ptr>() const;
 
-I2_BASE_API Value operator+(const Value& lhs, const char *rhs);
-I2_BASE_API Value operator+(const char *lhs, const Value& rhs);
+extern Value Empty;
 
-I2_BASE_API Value operator+(const Value& lhs, const String& rhs);
-I2_BASE_API Value operator+(const String& lhs, const Value& rhs);
+Value operator+(const Value& lhs, const char *rhs);
+Value operator+(const char *lhs, const Value& rhs);
 
-I2_BASE_API Value operator+(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator+(const Value& lhs, double rhs);
-I2_BASE_API Value operator+(double lhs, const Value& rhs);
-I2_BASE_API Value operator+(const Value& lhs, int rhs);
-I2_BASE_API Value operator+(int lhs, const Value& rhs);
+Value operator+(const Value& lhs, const String& rhs);
+Value operator+(const String& lhs, const Value& rhs);
 
-I2_BASE_API Value operator-(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator-(const Value& lhs, double rhs);
-I2_BASE_API Value operator-(double lhs, const Value& rhs);
-I2_BASE_API Value operator-(const Value& lhs, int rhs);
-I2_BASE_API Value operator-(int lhs, const Value& rhs);
+Value operator+(const Value& lhs, const Value& rhs);
+Value operator+(const Value& lhs, double rhs);
+Value operator+(double lhs, const Value& rhs);
+Value operator+(const Value& lhs, int rhs);
+Value operator+(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator*(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator*(const Value& lhs, double rhs);
-I2_BASE_API Value operator*(double lhs, const Value& rhs);
-I2_BASE_API Value operator*(const Value& lhs, int rhs);
-I2_BASE_API Value operator*(int lhs, const Value& rhs);
+Value operator-(const Value& lhs, const Value& rhs);
+Value operator-(const Value& lhs, double rhs);
+Value operator-(double lhs, const Value& rhs);
+Value operator-(const Value& lhs, int rhs);
+Value operator-(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator/(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator/(const Value& lhs, double rhs);
-I2_BASE_API Value operator/(double lhs, const Value& rhs);
-I2_BASE_API Value operator/(const Value& lhs, int rhs);
-I2_BASE_API Value operator/(int lhs, const Value& rhs);
+Value operator*(const Value& lhs, const Value& rhs);
+Value operator*(const Value& lhs, double rhs);
+Value operator*(double lhs, const Value& rhs);
+Value operator*(const Value& lhs, int rhs);
+Value operator*(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator%(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator%(const Value& lhs, double rhs);
-I2_BASE_API Value operator%(double lhs, const Value& rhs);
-I2_BASE_API Value operator%(const Value& lhs, int rhs);
-I2_BASE_API Value operator%(int lhs, const Value& rhs);
+Value operator/(const Value& lhs, const Value& rhs);
+Value operator/(const Value& lhs, double rhs);
+Value operator/(double lhs, const Value& rhs);
+Value operator/(const Value& lhs, int rhs);
+Value operator/(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator^(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator^(const Value& lhs, double rhs);
-I2_BASE_API Value operator^(double lhs, const Value& rhs);
-I2_BASE_API Value operator^(const Value& lhs, int rhs);
-I2_BASE_API Value operator^(int lhs, const Value& rhs);
+Value operator%(const Value& lhs, const Value& rhs);
+Value operator%(const Value& lhs, double rhs);
+Value operator%(double lhs, const Value& rhs);
+Value operator%(const Value& lhs, int rhs);
+Value operator%(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator&(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator&(const Value& lhs, double rhs);
-I2_BASE_API Value operator&(double lhs, const Value& rhs);
-I2_BASE_API Value operator&(const Value& lhs, int rhs);
-I2_BASE_API Value operator&(int lhs, const Value& rhs);
+Value operator^(const Value& lhs, const Value& rhs);
+Value operator^(const Value& lhs, double rhs);
+Value operator^(double lhs, const Value& rhs);
+Value operator^(const Value& lhs, int rhs);
+Value operator^(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator|(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator|(const Value& lhs, double rhs);
-I2_BASE_API Value operator|(double lhs, const Value& rhs);
-I2_BASE_API Value operator|(const Value& lhs, int rhs);
-I2_BASE_API Value operator|(int lhs, const Value& rhs);
+Value operator&(const Value& lhs, const Value& rhs);
+Value operator&(const Value& lhs, double rhs);
+Value operator&(double lhs, const Value& rhs);
+Value operator&(const Value& lhs, int rhs);
+Value operator&(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator<<(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator<<(const Value& lhs, double rhs);
-I2_BASE_API Value operator<<(double lhs, const Value& rhs);
-I2_BASE_API Value operator<<(const Value& lhs, int rhs);
-I2_BASE_API Value operator<<(int lhs, const Value& rhs);
+Value operator|(const Value& lhs, const Value& rhs);
+Value operator|(const Value& lhs, double rhs);
+Value operator|(double lhs, const Value& rhs);
+Value operator|(const Value& lhs, int rhs);
+Value operator|(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator>>(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator>>(const Value& lhs, double rhs);
-I2_BASE_API Value operator>>(double lhs, const Value& rhs);
-I2_BASE_API Value operator>>(const Value& lhs, int rhs);
-I2_BASE_API Value operator>>(int lhs, const Value& rhs);
+Value operator<<(const Value& lhs, const Value& rhs);
+Value operator<<(const Value& lhs, double rhs);
+Value operator<<(double lhs, const Value& rhs);
+Value operator<<(const Value& lhs, int rhs);
+Value operator<<(int lhs, const Value& rhs);
 
-I2_BASE_API bool operator<(const Value& lhs, const Value& rhs);
-I2_BASE_API bool operator<(const Value& lhs, double rhs);
-I2_BASE_API bool operator<(double lhs, const Value& rhs);
-I2_BASE_API bool operator<(const Value& lhs, int rhs);
-I2_BASE_API bool operator<(int lhs, const Value& rhs);
+Value operator>>(const Value& lhs, const Value& rhs);
+Value operator>>(const Value& lhs, double rhs);
+Value operator>>(double lhs, const Value& rhs);
+Value operator>>(const Value& lhs, int rhs);
+Value operator>>(int lhs, const Value& rhs);
 
-I2_BASE_API bool operator>(const Value& lhs, const Value& rhs);
-I2_BASE_API bool operator>(const Value& lhs, double rhs);
-I2_BASE_API bool operator>(double lhs, const Value& rhs);
-I2_BASE_API bool operator>(const Value& lhs, int rhs);
-I2_BASE_API bool operator>(int lhs, const Value& rhs);
+bool operator<(const Value& lhs, const Value& rhs);
+bool operator<(const Value& lhs, double rhs);
+bool operator<(double lhs, const Value& rhs);
+bool operator<(const Value& lhs, int rhs);
+bool operator<(int lhs, const Value& rhs);
 
-I2_BASE_API bool operator<=(const Value& lhs, const Value& rhs);
-I2_BASE_API bool operator<=(const Value& lhs, double rhs);
-I2_BASE_API bool operator<=(double lhs, const Value& rhs);
-I2_BASE_API bool operator<=(const Value& lhs, int rhs);
-I2_BASE_API bool operator<=(int lhs, const Value& rhs);
+bool operator>(const Value& lhs, const Value& rhs);
+bool operator>(const Value& lhs, double rhs);
+bool operator>(double lhs, const Value& rhs);
+bool operator>(const Value& lhs, int rhs);
+bool operator>(int lhs, const Value& rhs);
 
-I2_BASE_API bool operator>=(const Value& lhs, const Value& rhs);
-I2_BASE_API bool operator>=(const Value& lhs, double rhs);
-I2_BASE_API bool operator>=(double lhs, const Value& rhs);
-I2_BASE_API bool operator>=(const Value& lhs, int rhs);
-I2_BASE_API bool operator>=(int lhs, const Value& rhs);
+bool operator<=(const Value& lhs, const Value& rhs);
+bool operator<=(const Value& lhs, double rhs);
+bool operator<=(double lhs, const Value& rhs);
+bool operator<=(const Value& lhs, int rhs);
+bool operator<=(int lhs, const Value& rhs);
 
-I2_BASE_API std::ostream& operator<<(std::ostream& stream, const Value& value);
-I2_BASE_API std::istream& operator>>(std::istream& stream, Value& value);
+bool operator>=(const Value& lhs, const Value& rhs);
+bool operator>=(const Value& lhs, double rhs);
+bool operator>=(double lhs, const Value& rhs);
+bool operator>=(const Value& lhs, int rhs);
+bool operator>=(int lhs, const Value& rhs);
+
+std::ostream& operator<<(std::ostream& stream, const Value& value);
+std::istream& operator>>(std::istream& stream, Value& value);
 
 }
+
+extern template class boost::variant<boost::blank, double, bool, icinga::String, icinga::Object::Ptr>;
 
 #endif /* VALUE_H */

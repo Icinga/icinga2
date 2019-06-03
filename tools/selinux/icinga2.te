@@ -1,4 +1,4 @@
-policy_module(icinga2, 0.1.4)
+policy_module(icinga2, 0.2.0)
 
 ########################################
 #
@@ -11,8 +11,27 @@ policy_module(icinga2, 0.1.4)
 ## </p>
 ## </desc>
 gen_tunable(icinga2_can_connect_all, false)
+
+## <desc>
+## <p>
+## Allow Apache to connect to Icinga 2 API
+## </p>
+## </desc>
 gen_tunable(httpd_can_connect_icinga2_api, true)
+
+## <desc>
+## <p>
+## Allow Apache to write into Icinga 2 Commandpipe
+## </p>
+## </desc>
 gen_tunable(httpd_can_write_icinga2_command, true)
+
+## <desc>
+## <p>
+## Allow Icinga 2 to run plugins via sudo
+## </p>
+## </desc>
+gen_tunable(icinga2_run_sudo, false)
 
 require {
 	type nagios_admin_plugin_t; type nagios_admin_plugin_exec_t;
@@ -24,7 +43,9 @@ require {
 	type nagios_eventhandler_plugin_t; type nagios_eventhandler_plugin_exec_t;
 	type nagios_openshift_plugin_t; type nagios_openshift_plugin_exec_t;
 	type httpd_t; type system_mail_t;
+	type devlog_t;
 	role staff_r;
+	attribute unreserved_port_type;
 }
 
 type icinga2_t;
@@ -64,6 +85,8 @@ type icinga2_tmp_t;
 files_tmp_file(icinga2_tmp_t)
 
 type icinga2_port_t;
+# There is no interface for unreserved_port_type
+typeattribute icinga2_port_t unreserved_port_type;
 corenet_port(icinga2_port_t)
 
 ########################################
@@ -122,6 +145,7 @@ corecmd_exec_bin(icinga2_t)
 
 kernel_read_system_state(icinga2_t)
 kernel_read_network_state(icinga2_t)
+kernel_dgram_send(icinga2_t)
 
 # should be moved to nagios_plugin_template in nagios.if
 icinga2_execstrans(nagios_admin_plugin_exec_t, nagios_admin_plugin_t)
@@ -146,12 +170,19 @@ files_tmp_file(nagios_notification_plugin_tmp_t)
 manage_files_pattern(nagios_notification_plugin_t, nagios_notification_plugin_tmp_t, nagios_notification_plugin_tmp_t)
 manage_dirs_pattern(nagios_notification_plugin_t, nagios_notification_plugin_tmp_t, nagios_notification_plugin_tmp_t)
 files_tmp_filetrans(nagios_notification_plugin_t, nagios_notification_plugin_tmp_t, { dir file })
-auth_dontaudit_read_passwd(nagios_notification_plugin_t)
 fs_dontaudit_getattr_xattr_fs(nagios_notification_plugin_t)
 optional_policy(`
         mta_send_mail(nagios_notification_plugin_t)
 ')
 icinga2_dontaudit_leaks_fifo(system_mail_t)
+# hipsaint notification
+auth_read_passwd(nagios_notification_plugin_t)
+sysnet_read_config(nagios_notification_plugin_t)
+allow nagios_notification_plugin_t self:udp_socket create_stream_socket_perms;
+allow nagios_notification_plugin_t self:tcp_socket create_stream_socket_perms;
+allow nagios_notification_plugin_t self:netlink_route_socket create_netlink_socket_perms;
+corenet_tcp_connect_http_port(nagios_notification_plugin_t)
+miscfiles_read_generic_certs(nagios_notification_plugin_t)
 
 allow icinga2_t icinga2_port_t:tcp_socket name_bind;
 allow icinga2_t self:tcp_socket create_stream_socket_perms;
@@ -170,6 +201,34 @@ corenet_tcp_connect_lmtp_port(icinga2_t)
 tunable_policy(`icinga2_can_connect_all',`
 	corenet_tcp_connect_all_ports(icinga2_t)
 ')
+
+# This is for plugins requiring to be executed via sudo
+tunable_policy(`icinga2_run_sudo',`
+    allow icinga2_t self:capability { audit_write net_admin };
+    allow icinga2_t self:netlink_audit_socket { create_netlink_socket_perms nlmsg_relay };
+    allow icinga2_t devlog_t:sock_file write;
+
+    init_read_utmp(icinga2_t)
+
+    auth_domtrans_chkpwd(icinga2_t)
+    allow icinga2_t chkpwd_t:process { noatsecure rlimitinh siginh };
+
+    selinux_compute_access_vector(icinga2_t)
+
+    dbus_send_system_bus(icinga2_t)
+    dbus_stream_connect_system_dbusd(icinga2_t)
+    systemd_dbus_chat_logind(icinga2_t)
+    # Without this it works but is very slow
+    systemd_write_inherited_logind_sessions_pipes(icinga2_t)
+')
+
+optional_policy(`
+    tunable_policy(`icinga2_run_sudo',`
+        sudo_exec(icinga2_t)
+    ')
+')
+
+
 
 ########################################
 #

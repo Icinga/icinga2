@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/pluginutility.hpp"
 #include "icinga/macroprocessor.hpp"
@@ -26,16 +9,14 @@
 #include "base/process.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace icinga;
 
 void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
-    const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
-    const std::function<void(const Value& commandLine, const ProcessResult&)>& callback)
+	const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int timeout,
+	const std::function<void(const Value& commandLine, const ProcessResult&)>& callback)
 {
 	Value raw_command = commandObj->GetCommandLine();
 	Dictionary::Ptr raw_arguments = commandObj->GetArguments();
@@ -44,7 +25,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 	try {
 		command = MacroProcessor::ResolveArguments(raw_command, raw_arguments,
-		    macroResolvers, cr, resolvedMacros, useResolvedMacros);
+			macroResolvers, cr, resolvedMacros, useResolvedMacros);
 	} catch (const std::exception& ex) {
 		String message = DiagnosticInformation(ex);
 
@@ -72,9 +53,16 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 		for (const Dictionary::Pair& kv : env) {
 			String name = kv.second;
 
+			String missingMacro;
 			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, cr,
-			    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
-			    useResolvedMacros);
+				&missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
+				useResolvedMacros);
+
+#ifdef I2_DEBUG
+			if (!missingMacro.IsEmpty())
+				Log(LogDebug, "PluginUtility")
+					<< "Macro '" << name << "' is not defined.";
+#endif /* I2_DEBUG */
 
 			if (value.IsObjectType<Array>())
 				value = Utility::Join(value, ';');
@@ -88,11 +76,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 	Process::Ptr process = new Process(Process::PrepareCommand(command), envMacros);
 
-	if (checkable->GetCheckTimeout().IsEmpty())
-		process->SetTimeout(commandObj->GetTimeout());
-	else
-		process->SetTimeout(checkable->GetCheckTimeout());
-
+	process->SetTimeout(timeout);
 	process->SetAdjustPriority(true);
 
 	process->Run(std::bind(callback, command, _1));
@@ -117,8 +101,7 @@ std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 	String text;
 	String perfdata;
 
-	std::vector<String> lines;
-	boost::algorithm::split(lines, output, boost::is_any_of("\r\n"));
+	std::vector<String> lines = output.Split("\r\n");
 
 	for (const String& line : lines) {
 		size_t delim = line.FindFirstOf("|");
@@ -145,7 +128,7 @@ std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 
 Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)
 {
-	Array::Ptr result = new Array();
+	ArrayData result;
 
 	size_t begin = 0;
 	String multi_prefix;
@@ -182,7 +165,7 @@ Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)
 		else
 			pdv = label + "=" + value;
 
-		result->Add(pdv);
+		result.emplace_back(std::move(pdv));
 
 		if (multi_index != String::NPos)
 			multi_prefix = label.SubStr(0, multi_index);
@@ -190,7 +173,7 @@ Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)
 		begin = spq + 1;
 	}
 
-	return result;
+	return new Array(std::move(result));
 }
 
 String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata)

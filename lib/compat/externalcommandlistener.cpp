@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "compat/externalcommandlistener.hpp"
-#include "compat/externalcommandlistener.tcpp"
+#include "compat/externalcommandlistener-ti.cpp"
 #include "icinga/externalcommandprocessor.hpp"
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
@@ -34,13 +17,13 @@ REGISTER_STATSFUNCTION(ExternalCommandListener, &ExternalCommandListener::StatsF
 
 void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const ExternalCommandListener::Ptr& externalcommandlistener : ConfigType::GetObjectsByType<ExternalCommandListener>()) {
-		nodes->Set(externalcommandlistener->GetName(), 1); //add more stats
+		nodes.emplace_back(externalcommandlistener->GetName(), 1); //add more stats
 	}
 
-	status->Set("externalcommandlistener", nodes);
+	status->Set("externalcommandlistener", new Dictionary(std::move(nodes)));
 }
 
 /**
@@ -51,8 +34,10 @@ void ExternalCommandListener::Start(bool runtimeCreated)
 	ObjectImpl<ExternalCommandListener>::Start(runtimeCreated);
 
 	Log(LogInformation, "ExternalCommandListener")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
+	Log(LogWarning, "ExternalCommandListener")
+		<< "This feature is DEPRECATED and will be removed in future releases. Check the roadmap at https://github.com/Icinga/icinga2/milestones";
 #ifndef _WIN32
 	m_CommandThread = std::thread(std::bind(&ExternalCommandListener::CommandPipeThread, this, GetCommandPath()));
 	m_CommandThread.detach();
@@ -65,7 +50,7 @@ void ExternalCommandListener::Start(bool runtimeCreated)
 void ExternalCommandListener::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "ExternalCommandListener")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<ExternalCommandListener>::Stop(runtimeRemoved);
 }
@@ -82,12 +67,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 		if (S_ISFIFO(statbuf.st_mode) && access(commandPath.CStr(), R_OK) >= 0) {
 			fifo_ok = true;
 		} else {
-			if (unlink(commandPath.CStr()) < 0) {
-				BOOST_THROW_EXCEPTION(posix_error()
-				    << boost::errinfo_api_function("unlink")
-				    << boost::errinfo_errno(errno)
-				    << boost::errinfo_file_name(commandPath));
-			}
+			Utility::Remove(commandPath);
 		}
 	}
 
@@ -95,7 +75,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 
 	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0) {
 		Log(LogCritical, "ExternalCommandListener")
-		    << "mkfifo() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "mkfifo() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return;
 	}
 
@@ -103,7 +83,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 	 * fifo to get the right mask. */
 	if (chmod(commandPath.CStr(), mode) < 0) {
 		Log(LogCritical, "ExternalCommandListener")
-		    << "chmod() on fifo '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "chmod() on fifo '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return;
 	}
 
@@ -112,7 +92,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 
 		if (fd < 0) {
 			Log(LogCritical, "ExternalCommandListener")
-			    << "open() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				<< "open() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return;
 		}
 
@@ -134,7 +114,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 					continue;
 
 				Log(LogWarning, "ExternalCommandListener")
-				    << "Cannot read from command pipe." << DiagnosticInformation(ex);
+					<< "Cannot read from command pipe." << DiagnosticInformation(ex);
 				break;
 			}
 
@@ -153,14 +133,14 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 
 				try {
 					Log(LogInformation, "ExternalCommandListener")
-					    << "Executing external command: " << command;
+						<< "Executing external command: " << command;
 
 					ExternalCommandProcessor::Execute(command);
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ExternalCommandListener")
-					    << "External command failed: " << DiagnosticInformation(ex, false);
+						<< "External command failed: " << DiagnosticInformation(ex, false);
 					Log(LogNotice, "ExternalCommandListener")
-					    << "External command failed: " << DiagnosticInformation(ex, true);
+						<< "External command failed: " << DiagnosticInformation(ex, true);
 				}
 			}
 		}

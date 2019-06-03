@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/user.hpp"
-#include "icinga/user.tcpp"
+#include "icinga/user-ti.cpp"
 #include "icinga/usergroup.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/usergroup.hpp"
@@ -29,7 +12,7 @@ using namespace icinga;
 
 REGISTER_TYPE(User);
 
-void User::OnConfigLoaded(void)
+void User::OnConfigLoaded()
 {
 	ObjectImpl<User>::OnConfigLoaded();
 
@@ -37,7 +20,7 @@ void User::OnConfigLoaded(void)
 	SetStateFilter(FilterArrayToInt(GetStates(), Notification::GetStateFilterMap(), ~0));
 }
 
-void User::OnAllConfigLoaded(void)
+void User::OnAllConfigLoaded()
 {
 	ObjectImpl<User>::OnAllConfigLoaded();
 
@@ -92,29 +75,29 @@ void User::AddGroup(const String& name)
 	groups->Add(name);
 }
 
-TimePeriod::Ptr User::GetPeriod(void) const
+TimePeriod::Ptr User::GetPeriod() const
 {
 	return TimePeriod::GetByName(GetPeriodRaw());
 }
 
-void User::ValidateStates(const Array::Ptr& value, const ValidationUtils& utils)
+void User::ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<User>::ValidateStates(value, utils);
+	ObjectImpl<User>::ValidateStates(lvalue, utils);
 
-	int filter = FilterArrayToInt(value, Notification::GetStateFilterMap(), 0);
+	int filter = FilterArrayToInt(lvalue(), Notification::GetStateFilterMap(), 0);
 
 	if (filter == -1 || (filter & ~(StateFilterUp | StateFilterDown | StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "states" }, "State filter is invalid."));
 }
 
-void User::ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils)
+void User::ValidateTypes(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<User>::ValidateTypes(value, utils);
+	ObjectImpl<User>::ValidateTypes(lvalue, utils);
 
-	int filter = FilterArrayToInt(value, Notification::GetTypeFilterMap(), 0);
+	int filter = FilterArrayToInt(lvalue(), Notification::GetTypeFilterMap(), 0);
 
 	if (filter == -1 || (filter & ~(NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved |
-	    NotificationCustom | NotificationAcknowledgement | NotificationProblem | NotificationRecovery |
-	    NotificationFlappingStart | NotificationFlappingEnd)) != 0)
+		NotificationCustom | NotificationAcknowledgement | NotificationProblem | NotificationRecovery |
+		NotificationFlappingStart | NotificationFlappingEnd)) != 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "types" }, "Type filter is invalid."));
 }

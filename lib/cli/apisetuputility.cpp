@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/apisetuputility.hpp"
 #include "cli/nodeutility.hpp"
@@ -28,6 +11,7 @@
 #include "base/tlsutility.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
@@ -38,9 +22,14 @@
 
 using namespace icinga;
 
-String ApiSetupUtility::GetConfdPath(void)
+String ApiSetupUtility::GetConfdPath()
 {
-        return Application::GetSysconfDir() + "/icinga2/conf.d";
+	return Configuration::ConfigDir + "/conf.d";
+}
+
+String ApiSetupUtility::GetApiUsersConfPath()
+{
+	return ApiSetupUtility::GetConfdPath() + "/api-users.conf";
 }
 
 bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart)
@@ -75,12 +64,12 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String pki_path = ApiListener::GetCertsDir();
 	Utility::MkDirP(pki_path, 0700);
 
-	String user = ScriptGlobal::Get("RunAsUser");
-	String group = ScriptGlobal::Get("RunAsGroup");
+	String user = Configuration::RunAsUser;
+	String group = Configuration::RunAsGroup;
 
 	if (!Utility::SetFileOwnership(pki_path, user, group)) {
 		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'.";
+			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'.";
 	}
 
 	String key = pki_path + "/" + cn + ".key";
@@ -88,12 +77,12 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 
 	if (Utility::PathExists(key)) {
 		Log(LogInformation, "cli")
-		    << "Private key file '" << key << "' already exists, not generating new certificate.";
+			<< "Private key file '" << key << "' already exists, not generating new certificate.";
 		return true;
 	}
 
 	Log(LogInformation, "cli")
-	    << "Generating new CSR in '" << csr << "'.";
+		<< "Generating new CSR in '" << csr << "'.";
 
 	if (Utility::PathExists(key))
 		NodeUtility::CreateBackupFile(key, true);
@@ -109,7 +98,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String cert = pki_path + "/" + cn + ".crt";
 
 	Log(LogInformation, "cli")
-	    << "Signing CSR with CA and writing certificate to '" << cert << "'.";
+		<< "Signing CSR with CA and writing certificate to '" << cert << "'.";
 
 	if (Utility::PathExists(cert))
 		NodeUtility::CreateBackupFile(cert);
@@ -126,7 +115,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String target_ca = pki_path + "/ca.crt";
 
 	Log(LogInformation, "cli")
-	    << "Copying CA certificate to '" << target_ca << "'.";
+		<< "Copying CA certificate to '" << target_ca << "'.";
 
 	if (Utility::PathExists(target_ca))
 		NodeUtility::CreateBackupFile(target_ca);
@@ -138,27 +127,36 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	for (const String& file : { ca_path, ca, ca_key, target_ca, key, csr, cert }) {
 		if (!Utility::SetFileOwnership(file, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'.";
+				<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'.";
 		}
 	}
 
 	return true;
 }
 
-bool ApiSetupUtility::SetupMasterApiUser(void)
+bool ApiSetupUtility::SetupMasterApiUser()
 {
+	if (!Utility::PathExists(GetConfdPath())) {
+		Log(LogWarning, "cli")
+			<< "Path '" << GetConfdPath() << "' do not exist.";
+		Log(LogInformation, "cli")
+			<< "Creating path '" << GetConfdPath() << "'.";
+
+		Utility::MkDirP(GetConfdPath(), 0755);
+	}
+
 	String api_username = "root"; // TODO make this available as cli parameter?
 	String api_password = RandomString(8);
 	String apiUsersPath = GetConfdPath() + "/api-users.conf";
 
 	if (Utility::PathExists(apiUsersPath)) {
 		Log(LogInformation, "cli")
-		    << "API user config file '" << apiUsersPath << "' already exists, not creating config file.";
+			<< "API user config file '" << apiUsersPath << "' already exists, not creating config file.";
 		return true;
 	}
 
 	Log(LogInformation, "cli")
-	    << "Adding new ApiUser '" << api_username << "' in '" << apiUsersPath << "'.";
+		<< "Adding new ApiUser '" << api_username << "' in '" << apiUsersPath << "'.";
 
 	NodeUtility::CreateBackupFile(apiUsersPath);
 
@@ -166,33 +164,33 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 	String tempFilename = Utility::CreateTempFile(apiUsersPath + ".XXXXXX", 0644, fp);
 
 	fp << "/**\n"
-	    << " * The APIUser objects are used for authentication against the API.\n"
-	    << " */\n"
-	    << "object ApiUser \"" << api_username << "\" {\n"
-	    << "  password = \"" << api_password << "\"\n"
-	    << "  // client_cn = \"\"\n"
-	    << "\n"
-	    << "  permissions = [ \"*\" ]\n"
-	    << "}\n";
+		<< " * The ApiUser objects are used for authentication against the API.\n"
+		<< " */\n"
+		<< "object ApiUser \"" << api_username << "\" {\n"
+		<< "  password = \"" << api_password << "\"\n"
+		<< "  // client_cn = \"\"\n"
+		<< "\n"
+		<< "  permissions = [ \"*\" ]\n"
+		<< "}\n";
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(apiUsersPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), apiUsersPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
+	Utility::RenameFile(tempFilename, apiUsersPath);
 
 	return true;
 }
 
-bool ApiSetupUtility::SetupMasterEnableApi(void)
+bool ApiSetupUtility::SetupMasterEnableApi()
 {
+	/*
+	* Ensure the api-users.conf file is included, when conf.d inclusion is disabled.
+	*/
+	if (!NodeUtility::GetConfigurationIncludeState("\"conf.d\"", true))
+		NodeUtility::UpdateConfiguration("\"conf.d/api-users.conf\"", true, false);
+
+	/*
+	* Enable the API feature
+	*/
 	Log(LogInformation, "cli", "Enabling the 'api' feature.");
 
 	FeatureUtility::EnableFeatures({ "api" });

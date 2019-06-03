@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/array.hpp"
 #include "base/function.hpp"
@@ -26,10 +9,11 @@
 
 using namespace icinga;
 
-static double ArrayLen(void)
+static double ArrayLen()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	return self->GetLength();
 }
 
@@ -37,6 +21,7 @@ static void ArraySet(int index, const Value& value)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	self->Set(index, value);
 }
 
@@ -44,6 +29,7 @@ static Value ArrayGet(int index)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	return self->Get(index);
 }
 
@@ -51,6 +37,7 @@ static void ArrayAdd(const Value& value)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	self->Add(value);
 }
 
@@ -58,6 +45,7 @@ static void ArrayRemove(int index)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	self->Remove(index);
 }
 
@@ -65,13 +53,15 @@ static bool ArrayContains(const Value& value)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	return self->Contains(value);
 }
 
-static void ArrayClear(void)
+static void ArrayClear()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	self->Clear();
 }
 
@@ -84,6 +74,7 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 
 	Array::Ptr arr = self->ShallowClone();
 
@@ -103,10 +94,11 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 	return arr;
 }
 
-static Array::Ptr ArrayShallowClone(void)
+static Array::Ptr ArrayShallowClone()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	return self->ShallowClone();
 }
 
@@ -114,6 +106,7 @@ static Value ArrayJoin(const Value& separator)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 
 	Value result;
 	bool first = true;
@@ -132,10 +125,11 @@ static Value ArrayJoin(const Value& separator)
 	return result;
 }
 
-static Array::Ptr ArrayReverse(void)
+static Array::Ptr ArrayReverse()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 	return self->Reverse();
 }
 
@@ -143,24 +137,26 @@ static Array::Ptr ArrayMap(const Function::Ptr& function)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Map function must be side-effect free."));
 
-	Array::Ptr result = new Array();
+	ArrayData result;
 
 	ObjectLock olock(self);
 	for (const Value& item : self) {
-		result->Add(function->Invoke({ item }));
+		result.push_back(function->Invoke({ item }));
 	}
 
-	return result;
+	return new Array(std::move(result));
 }
 
 static Value ArrayReduce(const Function::Ptr& function)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Reduce function must be side-effect free."));
@@ -182,25 +178,27 @@ static Array::Ptr ArrayFilter(const Function::Ptr& function)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
 
-	Array::Ptr result = new Array();
+	ArrayData result;
 
 	ObjectLock olock(self);
 	for (const Value& item : self) {
 		if (function->Invoke({ item }))
-			result->Add(item);
+			result.push_back(item);
 	}
 
-	return result;
+	return new Array(std::move(result));
 }
 
 static bool ArrayAny(const Function::Ptr& function)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
@@ -218,6 +216,7 @@ static bool ArrayAll(const Function::Ptr& function)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
@@ -230,45 +229,43 @@ static bool ArrayAll(const Function::Ptr& function)
 
 	return true;
 }
-static Array::Ptr ArrayUnique(void)
+static Array::Ptr ArrayUnique()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-
-	std::set<Value> result;
-
-	ObjectLock olock(self);
-	for (const Value& item : self) {
-		result.insert(item);
-	}
-
-	return Array::FromSet(result);
+	REQUIRE_NOT_NULL(self);
+	return self->Unique();
 }
 
-Object::Ptr Array::GetPrototype(void)
+static void ArrayFreeze()
 {
-	static Dictionary::Ptr prototype;
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	self->Freeze();
+}
 
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("len", new Function("Array#len", ArrayLen, {}, true));
-		prototype->Set("set", new Function("Array#set", ArraySet, { "index", "value" }));
-		prototype->Set("get", new Function("Array#get", ArrayGet, { "index" }));
-		prototype->Set("add", new Function("Array#add", ArrayAdd, { "value" }));
-		prototype->Set("remove", new Function("Array#remove", ArrayRemove, { "index" }));
-		prototype->Set("contains", new Function("Array#contains", ArrayContains, { "value" }, true));
-		prototype->Set("clear", new Function("Array#clear", ArrayClear));
-		prototype->Set("sort", new Function("Array#sort", ArraySort, { "less_cmp" }, true));
-		prototype->Set("shallow_clone", new Function("Array#shallow_clone", ArrayShallowClone, {}, true));
-		prototype->Set("join", new Function("Array#join", ArrayJoin, { "separator" }, true));
-		prototype->Set("reverse", new Function("Array#reverse", ArrayReverse, {}, true));
-		prototype->Set("map", new Function("Array#map", ArrayMap, { "func" }, true));
-		prototype->Set("reduce", new Function("Array#reduce", ArrayReduce, { "reduce" }, true));
-		prototype->Set("filter", new Function("Array#filter", ArrayFilter, { "func" }, true));
-		prototype->Set("any", new Function("Array#any", ArrayAny, { "func" }, true));
-		prototype->Set("all", new Function("Array#all", ArrayAll, { "func" }, true));
-		prototype->Set("unique", new Function("Array#unique", ArrayUnique, {}, true));
-	}
+Object::Ptr Array::GetPrototype()
+{
+	static Dictionary::Ptr prototype = new Dictionary({
+		{ "len", new Function("Array#len", ArrayLen, {}, true) },
+		{ "set", new Function("Array#set", ArraySet, { "index", "value" }) },
+		{ "get", new Function("Array#get", ArrayGet, { "index" }) },
+		{ "add", new Function("Array#add", ArrayAdd, { "value" }) },
+		{ "remove", new Function("Array#remove", ArrayRemove, { "index" }) },
+		{ "contains", new Function("Array#contains", ArrayContains, { "value" }, true) },
+		{ "clear", new Function("Array#clear", ArrayClear) },
+		{ "sort", new Function("Array#sort", ArraySort, { "less_cmp" }, true) },
+		{ "shallow_clone", new Function("Array#shallow_clone", ArrayShallowClone, {}, true) },
+		{ "join", new Function("Array#join", ArrayJoin, { "separator" }, true) },
+		{ "reverse", new Function("Array#reverse", ArrayReverse, {}, true) },
+		{ "map", new Function("Array#map", ArrayMap, { "func" }, true) },
+		{ "reduce", new Function("Array#reduce", ArrayReduce, { "reduce" }, true) },
+		{ "filter", new Function("Array#filter", ArrayFilter, { "func" }, true) },
+		{ "any", new Function("Array#any", ArrayAny, { "func" }, true) },
+		{ "all", new Function("Array#all", ArrayAll, { "func" }, true) },
+		{ "unique", new Function("Array#unique", ArrayUnique, {}, true) },
+		{ "freeze", new Function("Array#freeze", ArrayFreeze, {}) }
+	});
 
 	return prototype;
 }

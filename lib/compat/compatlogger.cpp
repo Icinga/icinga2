@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "compat/compatlogger.hpp"
-#include "compat/compatlogger.tcpp"
+#include "compat/compatlogger-ti.cpp"
 #include "icinga/service.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
@@ -44,13 +27,13 @@ REGISTER_STATSFUNCTION(CompatLogger, &CompatLogger::StatsFunc);
 
 void CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const CompatLogger::Ptr& compat_logger : ConfigType::GetObjectsByType<CompatLogger>()) {
-		nodes->Set(compat_logger->GetName(), 1); //add more stats
+		nodes.emplace_back(compat_logger->GetName(), 1); // add more stats
 	}
 
-	status->Set("compatlogger", nodes);
+	status->Set("compatlogger", new Dictionary(std::move(nodes)));
 }
 
 /**
@@ -61,10 +44,13 @@ void CompatLogger::Start(bool runtimeCreated)
 	ObjectImpl<CompatLogger>::Start(runtimeCreated);
 
 	Log(LogInformation, "CompatLogger")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
+
+	Log(LogWarning, "CompatLogger")
+		<< "This feature is DEPRECATED and will be removed in future releases. Check the roadmap at https://github.com/Icinga/icinga2/milestones";
 
 	Checkable::OnNewCheckResult.connect(std::bind(&CompatLogger::CheckResultHandler, this, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(std::bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
+	Checkable::OnNotificationSentToUser.connect(std::bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8, _9));
 	Downtime::OnDowntimeTriggered.connect(std::bind(&CompatLogger::TriggerDowntimeHandler, this, _1));
 	Downtime::OnDowntimeRemoved.connect(std::bind(&CompatLogger::RemoveDowntimeHandler, this, _1));
 	Checkable::OnEventCommandExecuted.connect(std::bind(&CompatLogger::EventCommandHandler, this, _1));
@@ -88,7 +74,7 @@ void CompatLogger::Start(bool runtimeCreated)
 void CompatLogger::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "CompatLogger")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<CompatLogger>::Stop(runtimeRemoved);
 }
@@ -118,7 +104,7 @@ void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const Che
 		bool reachable_before = vars_before->Get("reachable");
 
 		if (state_before == state_after && stateType_before == stateType_after &&
-		    attempt_before == attempt_after && reachable_before == reachable_after)
+			attempt_before == attempt_after && reachable_before == reachable_after)
 			return; /* Nothing changed, ignore this checkresult. */
 	}
 
@@ -130,23 +116,23 @@ void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const Che
 
 	if (service) {
 		msgbuf << "SERVICE ALERT: "
-		       << host->GetName() << ";"
-		       << service->GetShortName() << ";"
-		       << Service::StateToString(service->GetState()) << ";"
-		       << Service::StateTypeToString(service->GetStateType()) << ";"
-		       << attempt_after << ";"
-		       << output << ""
-		       << "";
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< Service::StateToString(service->GetState()) << ";"
+			<< Service::StateTypeToString(service->GetStateType()) << ";"
+			<< attempt_after << ";"
+			<< output << ""
+			<< "";
 	} else {
 		String state = Host::StateToString(Host::CalculateState(static_cast<ServiceState>(state_after)));
 
 		msgbuf << "HOST ALERT: "
-		       << host->GetName() << ";"
-		       << CompatUtility::GetHostStateString(host) << ";"
-		       << Host::StateTypeToString(host->GetStateType()) << ";"
-		       << attempt_after << ";"
-		       << output << ""
-		       << "";
+			<< host->GetName() << ";"
+			<< GetHostStateString(host) << ";"
+			<< Host::StateTypeToString(host->GetStateType()) << ";"
+			<< attempt_after << ";"
+			<< output << ""
+			<< "";
 
 	}
 
@@ -244,8 +230,8 @@ void CompatLogger::RemoveDowntimeHandler(const Downtime::Ptr& downtime)
  * @threadsafety Always.
  */
 void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-    const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
-    const String& author, const String& comment_text, const String& command_name)
+	const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
+	const String& author, const String& comment_text, const String& command_name)
 {
 	Host::Ptr host;
 	Service::Ptr service;
@@ -258,7 +244,7 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 		if (service)
 			notification_type_str = Service::StateToString(service->GetState());
 		else
-			notification_type_str = CompatUtility::GetHostStateString(host);
+			notification_type_str = GetHostStateString(host);
 	}
 
 	String author_comment = "";
@@ -290,7 +276,7 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 			<< user->GetName() << ";"
 			<< host->GetName() << ";"
 			<< notification_type_str << " "
-			<< "(" << CompatUtility::GetHostStateString(host) << ");"
+			<< "(" << GetHostStateString(host) << ");"
 			<< command_name << ";"
 			<< output << ";"
 			<< author_comment
@@ -422,7 +408,7 @@ void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
 	} else {
 		msgbuf << "HOST EVENT HANDLER: "
 			<< host->GetName() << ";"
-			<< CompatUtility::GetHostStateString(host) << ";"
+			<< GetHostStateString(host) << ";"
 			<< Host::StateTypeToString(host->GetStateType()) << ";"
 			<< current_attempt << ";"
 			<< event_command_name;
@@ -435,6 +421,14 @@ void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
 	}
 }
 
+String CompatLogger::GetHostStateString(const Host::Ptr& host)
+{
+	if (host->GetState() != HostUp && !host->IsReachable())
+		return "UNREACHABLE"; /* hardcoded compat state */
+
+	return Host::StateToString(host->GetState());
+}
+
 void CompatLogger::WriteLine(const String& line)
 {
 	ASSERT(OwnsLock());
@@ -445,7 +439,7 @@ void CompatLogger::WriteLine(const String& line)
 	m_OutputFile << "[" << (long)Utility::GetTime() << "] " << line << "\n";
 }
 
-void CompatLogger::Flush(void)
+void CompatLogger::Flush()
 {
 	ASSERT(OwnsLock());
 
@@ -471,7 +465,7 @@ void CompatLogger::ReopenFile(bool rotate)
 			String archiveFile = GetLogDir() + "/archives/icinga-" + Utility::FormatDateTime("%m-%d-%Y-%H", Utility::GetTime()) + ".log";
 
 			Log(LogNotice, "CompatLogger")
-			    << "Rotating compat log file '" << tempFile << "' -> '" << archiveFile << "'";
+				<< "Rotating compat log file '" << tempFile << "' -> '" << archiveFile << "'";
 
 			(void) rename(tempFile.CStr(), archiveFile.CStr());
 		}
@@ -481,7 +475,7 @@ void CompatLogger::ReopenFile(bool rotate)
 
 	if (!m_OutputFile) {
 		Log(LogWarning, "CompatLogger")
-		    << "Could not open compat log file '" << tempFile << "' for writing. Log output will be lost.";
+			<< "Could not open compat log file '" << tempFile << "' for writing. Log output will be lost.";
 
 		return;
 	}
@@ -498,11 +492,11 @@ void CompatLogger::ReopenFile(bool rotate)
 
 		std::ostringstream msgbuf;
 		msgbuf << "CURRENT HOST STATE: "
-		       << host->GetName() << ";"
-		       << CompatUtility::GetHostStateString(host) << ";"
-		       << Host::StateTypeToString(host->GetStateType()) << ";"
-		       << host->GetCheckAttempt() << ";"
-		       << output << "";
+			<< host->GetName() << ";"
+			<< GetHostStateString(host) << ";"
+			<< Host::StateTypeToString(host->GetStateType()) << ";"
+			<< host->GetCheckAttempt() << ";"
+			<< output << "";
 
 		WriteLine(msgbuf.str());
 	}
@@ -518,12 +512,12 @@ void CompatLogger::ReopenFile(bool rotate)
 
 		std::ostringstream msgbuf;
 		msgbuf << "CURRENT SERVICE STATE: "
-		       << host->GetName() << ";"
-		       << service->GetShortName() << ";"
-		       << Service::StateToString(service->GetState()) << ";"
-		       << Service::StateTypeToString(service->GetStateType()) << ";"
-		       << service->GetCheckAttempt() << ";"
-		       << output << "";
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< Service::StateToString(service->GetState()) << ";"
+			<< Service::StateTypeToString(service->GetStateType()) << ";"
+			<< service->GetCheckAttempt() << ";"
+			<< output << "";
 
 		WriteLine(msgbuf.str());
 	}
@@ -531,9 +525,9 @@ void CompatLogger::ReopenFile(bool rotate)
 	Flush();
 }
 
-void CompatLogger::ScheduleNextRotation(void)
+void CompatLogger::ScheduleNextRotation()
 {
-	time_t now = (time_t)Utility::GetTime();
+	auto now = (time_t)Utility::GetTime();
 	String method = GetRotationMethod();
 
 	tm tmthen;
@@ -543,16 +537,16 @@ void CompatLogger::ScheduleNextRotation(void)
 
 	if (!temp) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime")
+			<< boost::errinfo_errno(errno));
 	}
 
 	tmthen = *temp;
 #else /* _MSC_VER */
 	if (!localtime_r(&now, &tmthen)) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime_r")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime_r")
+			<< boost::errinfo_errno(errno));
 	}
 #endif /* _MSC_VER */
 
@@ -576,8 +570,8 @@ void CompatLogger::ScheduleNextRotation(void)
 	time_t ts = mktime(&tmthen);
 
 	Log(LogNotice, "CompatLogger")
-	    << "Rescheduling rotation timer for compat log '"
-	    << GetName() << "' to '" << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S %z", ts) << "'";
+		<< "Rescheduling rotation timer for compat log '"
+		<< GetName() << "' to '" << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S %z", ts) << "'";
 
 	m_RotationTimer->Reschedule(ts);
 }
@@ -585,7 +579,7 @@ void CompatLogger::ScheduleNextRotation(void)
 /**
  * @threadsafety Always.
  */
-void CompatLogger::RotationTimerHandler(void)
+void CompatLogger::RotationTimerHandler()
 {
 	try {
 		ReopenFile(true);
@@ -598,12 +592,12 @@ void CompatLogger::RotationTimerHandler(void)
 	ScheduleNextRotation();
 }
 
-void CompatLogger::ValidateRotationMethod(const String& value, const ValidationUtils& utils)
+void CompatLogger::ValidateRotationMethod(const Lazy<String>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<CompatLogger>::ValidateRotationMethod(value, utils);
+	ObjectImpl<CompatLogger>::ValidateRotationMethod(lvalue, utils);
 
-	if (value != "HOURLY" && value != "DAILY" &&
-	    value != "WEEKLY" && value != "MONTHLY" && value != "NONE") {
-		BOOST_THROW_EXCEPTION(ValidationError(this, { "rotation_method" }, "Rotation method '" + value + "' is invalid."));
+	if (lvalue() != "HOURLY" && lvalue() != "DAILY" &&
+		lvalue() != "WEEKLY" && lvalue() != "MONTHLY" && lvalue() != "NONE") {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "rotation_method" }, "Rotation method '" + lvalue() + "' is invalid."));
 	}
 }

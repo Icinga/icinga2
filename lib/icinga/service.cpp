@@ -1,32 +1,13 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/service.hpp"
-#include "icinga/service.tcpp"
+#include "icinga/service-ti.cpp"
 #include "icinga/servicegroup.hpp"
 #include "icinga/scheduleddowntime.hpp"
 #include "icinga/pluginutility.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -44,20 +25,18 @@ String ServiceNameComposer::MakeName(const String& shortName, const Object::Ptr&
 
 Dictionary::Ptr ServiceNameComposer::ParseName(const String& name) const
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, name, boost::is_any_of("!"));
+	std::vector<String> tokens = name.Split("!");
 
 	if (tokens.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid Service name."));
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("host_name", tokens[0]);
-	result->Set("name", tokens[1]);
-
-	return result;
+	return new Dictionary({
+		{ "host_name", tokens[0] },
+		{ "name", tokens[1] }
+	});
 }
 
-void Service::OnAllConfigLoaded(void)
+void Service::OnAllConfigLoaded()
 {
 	ObjectImpl<Service>::OnAllConfigLoaded();
 
@@ -119,13 +98,13 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
 	}
 }
 
-Host::Ptr Service::GetHost(void) const
+Host::Ptr Service::GetHost() const
 {
 	return m_Host;
 }
 
 /* keep in sync with Host::GetSeverity() */
-int Service::GetSeverity(void) const
+int Service::GetSeverity() const
 {
 	int severity = 0;
 
@@ -146,6 +125,8 @@ int Service::GetSeverity(void) const
 		severity |= SeverityFlagDowntime;
 	else if (IsAcknowledged())
 		severity |= SeverityFlagAcknowledgement;
+	else if (m_Host->GetProblem())
+		severity |= SeverityFlagHostDown;
 	else
 		severity |= SeverityFlagUnhandled;
 
@@ -154,7 +135,12 @@ int Service::GetSeverity(void) const
 	return severity;
 }
 
-bool Service::IsStateOK(ServiceState state)
+bool Service::GetHandled() const
+{
+	return Checkable::GetHandled() || m_Host->GetProblem();
+}
+
+bool Service::IsStateOK(ServiceState state) const
 {
 	return state == ServiceOK;
 }

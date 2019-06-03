@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbconnection.hpp"
@@ -25,26 +8,26 @@
 
 using namespace icinga;
 
-DbType::DbType(const String& name, const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
-	: m_Name(name), m_Table(table), m_TypeID(tid), m_IDColumn(idcolumn), m_ObjectFactory(factory)
+DbType::DbType(String name, String table, long tid, String idcolumn, DbType::ObjectFactory factory)
+	: m_Name(std::move(name)), m_Table(std::move(table)), m_TypeID(tid), m_IDColumn(std::move(idcolumn)), m_ObjectFactory(std::move(factory))
 { }
 
-String DbType::GetName(void) const
+String DbType::GetName() const
 {
 	return m_Name;
 }
 
-String DbType::GetTable(void) const
+String DbType::GetTable() const
 {
 	return m_Table;
 }
 
-long DbType::GetTypeID(void) const
+long DbType::GetTypeID() const
 {
 	return m_TypeID;
 }
 
-String DbType::GetIDColumn(void) const
+String DbType::GetIDColumn() const
 {
 	return m_IDColumn;
 }
@@ -122,7 +105,7 @@ DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String&
 	return dbobj;
 }
 
-boost::mutex& DbType::GetStaticMutex(void)
+boost::mutex& DbType::GetStaticMutex()
 {
 	static boost::mutex mutex;
 	return mutex;
@@ -131,13 +114,13 @@ boost::mutex& DbType::GetStaticMutex(void)
 /**
  * Caller must hold static mutex.
  */
-DbType::TypeMap& DbType::GetTypes(void)
+DbType::TypeMap& DbType::GetTypes()
 {
 	static DbType::TypeMap tm;
 	return tm;
 }
 
-std::set<DbType::Ptr> DbType::GetAllTypes(void)
+std::set<DbType::Ptr> DbType::GetAllTypes()
 {
 	std::set<DbType::Ptr> result;
 
@@ -151,7 +134,7 @@ std::set<DbType::Ptr> DbType::GetAllTypes(void)
 	return result;
 }
 
-DbTypeRegistry *DbTypeRegistry::GetInstance(void)
+DbTypeRegistry *DbTypeRegistry::GetInstance()
 {
 	return Singleton<DbTypeRegistry>::GetInstance();
 }

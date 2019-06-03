@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef SERVICESTABLE_H
 #define SERVICESTABLE_H
@@ -30,7 +13,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API ServicesTable : public Table
+class ServicesTable final : public Table
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ServicesTable);
@@ -38,13 +21,13 @@ public:
 	ServicesTable(LivestatusGroupByType type = LivestatusGroupByNone);
 
 	static void AddColumns(Table *table, const String& prefix = String(),
-	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
+		const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
-	virtual String GetName(void) const override;
-	virtual String GetPrefix(void) const override;
+	String GetName() const override;
+	String GetPrefix() const override;
 
 protected:
-	virtual void FetchRows(const AddRowFunction& addRowFn) override;
+	void FetchRows(const AddRowFunction& addRowFn) override;
 
 	static Object::Ptr HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
 	static Object::Ptr ServiceGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
@@ -98,9 +81,7 @@ protected:
 	static Value NotificationsEnabledAccessor(const Value& row);
 	static Value ProcessPerformanceDataAccessor(const Value& row);
 	static Value ActiveChecksEnabledAccessor(const Value& row);
-	static Value CheckOptionsAccessor(const Value& row);
 	static Value FlapDetectionEnabledAccessor(const Value& row);
-	static Value CheckFreshnessAccessor(const Value& row);
 	static Value StalenessAccessor(const Value& row);
 	static Value CheckIntervalAccessor(const Value& row);
 	static Value RetryIntervalAccessor(const Value& row);

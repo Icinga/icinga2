@@ -1,22 +1,5 @@
 %{
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "classcompiler.hpp"
 #include <iostream>
@@ -61,6 +44,7 @@ using namespace icinga;
 %token T_CLASS "class (T_CLASS)"
 %token T_CODE "code (T_CODE)"
 %token T_LOAD_AFTER "load_after (T_LOAD_AFTER)"
+%token T_ACTIVATION_PRIORITY "activation_priority (T_ACTIVATION_PRIORITY)"
 %token T_LIBRARY "library (T_LIBRARY)"
 %token T_NAMESPACE "namespace (T_NAMESPACE)"
 %token T_VALIDATOR "validator (T_VALIDATOR)"
@@ -77,6 +61,7 @@ using namespace icinga;
 %token T_SET "set (T_SET)"
 %token T_DEFAULT "default (T_DEFAULT)"
 %token T_FIELD_ACCESSOR_TYPE "field_accessor_type (T_FIELD_ACCESSOR_TYPE)"
+%token T_NUMBER "number (T_NUMBER)"
 %type <text> T_IDENTIFIER
 %type <text> T_STRING
 %type <text> T_ANGLE_STRING
@@ -106,6 +91,7 @@ using namespace icinga;
 %type <rule> validator_rule
 %type <rules> validator_rules
 %type <validator> validator
+%type <num> T_NUMBER
 
 %{
 
@@ -113,9 +99,8 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
 void yyerror(YYLTYPE *locp, ClassCompiler *, const char *err)
 {
-	std::cerr << "in " << locp->path << " at " << locp->first_line << ":" << locp->first_column << "-" << locp->last_line << ":" << locp->last_column << ": "
-			  << err
-			  << std::endl;
+	std::cerr << "in " << locp->path << " at " << locp->first_line << ":" << locp->first_column << "-"
+		<< locp->last_line << ":" << locp->last_column << ": " << err << std::endl;
 	std::exit(1);
 }
 
@@ -251,6 +236,8 @@ class: class_attribute_list T_CLASS T_IDENTIFIER inherits_specifier type_base_sp
 		for (const Field& field : *$7) {
 			if (field.Attributes & FALoadDependency) {
 				$$->LoadDependencies.push_back(field.Name);
+			} else if (field.Attributes & FAActivationPriority) {
+				$$->ActivationPriority = field.Priority;
 			} else
 				$$->Fields.push_back(field);
 		}
@@ -375,10 +362,17 @@ class_field: field_attribute_list field_type identifier alternative_name_specifi
 	}
 	| T_LOAD_AFTER identifier ';'
 	{
-		Field *field = new Field();
+		auto *field = new Field();
 		field->Attributes = FALoadDependency;
 		field->Name = $2;
 		std::free($2);
+		$$ = field;
+	}
+	| T_ACTIVATION_PRIORITY T_NUMBER ';'
+	{
+		auto *field = new Field();
+		field->Attributes = FAActivationPriority;
+		field->Priority = $2;
 		$$ = field;
 	}
 	;

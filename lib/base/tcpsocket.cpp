@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/tcpsocket.hpp"
 #include "base/logger.hpp"
@@ -59,15 +42,15 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 	hints.ai_flags = AI_PASSIVE;
 
 	int rc = getaddrinfo(node.IsEmpty() ? nullptr : node.CStr(),
-	    service.CStr(), &hints, &result);
+		service.CStr(), &hints, &result);
 
 	if (rc != 0) {
 		Log(LogCritical, "TcpSocket")
-		    << "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
+			<< "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("getaddrinfo")
-		    << errinfo_getaddrinfo_error(rc));
+			<< boost::errinfo_api_function("getaddrinfo")
+			<< errinfo_getaddrinfo_error(rc));
 	}
 
 	int fd = INVALID_SOCKET;
@@ -76,7 +59,7 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 		fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
 
 		if (fd == INVALID_SOCKET) {
-#ifdef _WIN32           
+#ifdef _WIN32
 			error = WSAGetLastError();
 #else /* _WIN32 */
 			error = errno;
@@ -89,10 +72,11 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 		const int optFalse = 0;
 		setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char *>(&optFalse), sizeof(optFalse));
 
-#ifndef _WIN32
 		const int optTrue = 1;
 		setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
-#endif /* _WIN32 */
+#ifdef SO_REUSEPORT
+		setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
+#endif /* SO_REUSEPORT */
 
 		int rc = bind(fd, info->ai_addr, info->ai_addrlen);
 
@@ -118,16 +102,16 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 
 	if (GetFD() == INVALID_SOCKET) {
 		Log(LogCritical, "TcpSocket")
-		    << "Invalid socket: " << Utility::FormatErrorNumber(error);
+			<< "Invalid socket: " << Utility::FormatErrorNumber(error);
 
 #ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function(func)
-		    << boost::errinfo_errno(error));
+			<< boost::errinfo_api_function(func)
+			<< boost::errinfo_errno(error));
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function(func)
-		    << errinfo_win32_error(error));
+			<< boost::errinfo_api_function(func)
+			<< errinfo_win32_error(error));
 #endif /* _WIN32 */
 	}
 }
@@ -154,11 +138,11 @@ void TcpSocket::Connect(const String& node, const String& service)
 
 	if (rc != 0) {
 		Log(LogCritical, "TcpSocket")
-		    << "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
+			<< "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("getaddrinfo")
-		    << errinfo_getaddrinfo_error(rc));
+			<< boost::errinfo_api_function("getaddrinfo")
+			<< errinfo_getaddrinfo_error(rc));
 	}
 
 	SOCKET fd = INVALID_SOCKET;
@@ -185,7 +169,7 @@ void TcpSocket::Connect(const String& node, const String& service)
 			error = errno;
 #endif /* _WIN32 */
 			Log(LogWarning, "TcpSocket")
-			    << "setsockopt() unable to enable TCP keep-alives with error code " << rc;
+				<< "setsockopt() unable to enable TCP keep-alives with error code " << rc;
 		}
 
 		rc = connect(fd, info->ai_addr, info->ai_addrlen);
@@ -212,16 +196,16 @@ void TcpSocket::Connect(const String& node, const String& service)
 
 	if (GetFD() == INVALID_SOCKET) {
 		Log(LogCritical, "TcpSocket")
-		    << "Invalid socket: " << Utility::FormatErrorNumber(error);
+			<< "Invalid socket: " << Utility::FormatErrorNumber(error);
 
 #ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function(func)
-		    << boost::errinfo_errno(error));
+			<< boost::errinfo_api_function(func)
+			<< boost::errinfo_errno(error));
 #else /* _WIN32 */
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function(func)
-		    << errinfo_win32_error(error));
+			<< boost::errinfo_api_function(func)
+			<< errinfo_win32_error(error));
 #endif /* _WIN32 */
 	}
 }

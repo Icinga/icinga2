@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef DBEVENTS_H
 #define DBEVENTS_H
@@ -29,26 +12,26 @@ namespace icinga
 
 enum LogEntryType
 {
-    LogEntryTypeRuntimeError = 1,
-    LogEntryTypeRuntimeWarning = 2,
-    LogEntryTypeVerificationError = 4,
-    LogEntryTypeVerificationWarning = 8,
-    LogEntryTypeConfigError = 16,
-    LogEntryTypeConfigWarning = 32,
-    LogEntryTypeProcessInfo = 64,
-    LogEntryTypeEventHandler = 128,
-    LogEntryTypeExternalCommand = 512,
-    LogEntryTypeHostUp = 1024,
-    LogEntryTypeHostDown = 2048,
-    LogEntryTypeHostUnreachable = 4096,
-    LogEntryTypeServiceOk = 8192,
-    LogEntryTypeServiceUnknown = 16384,
-    LogEntryTypeServiceWarning = 32768,
-    LogEntryTypeServiceCritical = 65536,
-    LogEntryTypePassiveCheck = 1231072,
-    LogEntryTypeInfoMessage = 262144,
-    LogEntryTypeHostNotification = 524288,
-    LogEntryTypeServiceNotification = 1048576
+	LogEntryTypeRuntimeError = 1,
+	LogEntryTypeRuntimeWarning = 2,
+	LogEntryTypeVerificationError = 4,
+	LogEntryTypeVerificationWarning = 8,
+	LogEntryTypeConfigError = 16,
+	LogEntryTypeConfigWarning = 32,
+	LogEntryTypeProcessInfo = 64,
+	LogEntryTypeEventHandler = 128,
+	LogEntryTypeExternalCommand = 512,
+	LogEntryTypeHostUp = 1024,
+	LogEntryTypeHostDown = 2048,
+	LogEntryTypeHostUnreachable = 4096,
+	LogEntryTypeServiceOk = 8192,
+	LogEntryTypeServiceUnknown = 16384,
+	LogEntryTypeServiceWarning = 32768,
+	LogEntryTypeServiceCritical = 65536,
+	LogEntryTypePassiveCheck = 1231072,
+	LogEntryTypeInfoMessage = 262144,
+	LogEntryTypeHostNotification = 524288,
+	LogEntryTypeServiceNotification = 1048576
 };
 
 /**
@@ -59,14 +42,14 @@ enum LogEntryType
 class DbEvents
 {
 public:
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
 	static void AddComments(const Checkable::Ptr& checkable);
 
 	static void AddDowntimes(const Checkable::Ptr& checkable);
 	static void RemoveDowntimes(const Checkable::Ptr& checkable);
 
-	static void AddLogHistory(const Checkable::Ptr& checkable, String buffer, LogEntryType type);
+	static void AddLogHistory(const Checkable::Ptr& checkable, const String& buffer, LogEntryType type);
 
 	/* Status */
 	static void NextCheckUpdatedHandler(const Checkable::Ptr& checkable);
@@ -96,12 +79,12 @@ public:
 	static void AddCommentHistory(const Comment::Ptr& comment);
 	static void AddDowntimeHistory(const Downtime::Ptr& downtime);
 	static void AddAcknowledgementHistory(const Checkable::Ptr& checkable, const String& author, const String& comment,
-	    AcknowledgementType type, bool notify, double expiry);
+		AcknowledgementType type, bool notify, double expiry);
 
 	/* notification & contactnotification history */
 	static void AddNotificationHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	    const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
-	    const String& text);
+		const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
+		const String& text);
 
 	/* statehistory */
 	static void AddStateChangeHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
@@ -111,8 +94,8 @@ public:
 	static void AddTriggerDowntimeLogHistory(const Downtime::Ptr& downtime);
 	static void AddRemoveDowntimeLogHistory(const Downtime::Ptr& downtime);
 	static void AddNotificationSentLogHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	    const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author,
-	    const String& comment_text);
+		const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
+		const String& author, const String& comment_text);
 
 	static void AddFlappingChangedLogHistory(const Checkable::Ptr& checkable);
 	static void AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkable);
@@ -125,13 +108,19 @@ public:
 	static void AddExternalCommandHistory(double time, const String& command, const std::vector<String>& arguments);
 
 private:
-	DbEvents(void);
+	DbEvents();
 
 	static void AddCommentInternal(std::vector<DbQuery>& queries, const Comment::Ptr& comment, bool historical);
 	static void RemoveCommentInternal(std::vector<DbQuery>& queries, const Comment::Ptr& comment);
 	static void AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime::Ptr& downtime, bool historical);
 	static void RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downtime::Ptr& downtime);
 	static void EnableChangedHandlerInternal(const Checkable::Ptr& checkable, const String& fieldName, bool enabled);
+
+	static int GetHostState(const Host::Ptr& host);
+	static String GetHostStateString(const Host::Ptr& host);
+	static std::pair<unsigned long, unsigned long> ConvertTimestamp(double time);
+	static int MapNotificationReasonType(NotificationType type);
+	static int MapExternalCommandType(const String& name);
 };
 
 }

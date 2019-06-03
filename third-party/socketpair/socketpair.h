@@ -28,22 +28,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SOCKETPAIR_H
 #define SOCKETPAIR_H
 
-#include "base/visibility.hpp"
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#ifdef I2_SOCKETPAIR_BUILD
-#       define I2_SOCKETPAIR_API I2_EXPORT
-#else
-#       define I2_SOCKETPAIR_API I2_IMPORT
-#endif /* I2_SOCKETPAIR_BUILD */
-
 #ifdef _WIN32
-I2_SOCKETPAIR_API int dumb_socketpair(SOCKET socks[2], int make_overlapped);
+int dumb_socketpair(SOCKET socks[2], int make_overlapped);
 #else /* _WIN32 */
-I2_SOCKETPAIR_API int dumb_socketpair(int socks[2], int dummy);
+int dumb_socketpair(int socks[2], int dummy);
 #endif
 
 #ifdef __cplusplus

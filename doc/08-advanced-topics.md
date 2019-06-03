@@ -8,21 +8,35 @@ can safely skip over things you're not interested in.
 Downtimes can be scheduled for planned server maintenance or
 any other targeted service outage you are aware of in advance.
 
-Downtimes will suppress any notifications, and may trigger other
+Downtimes suppress notifications and can trigger other
 downtimes too. If the downtime was set by accident, or the duration
-exceeds the maintenance, you can manually cancel the downtime.
-Planned downtimes will also be taken into account for SLA reporting
-tools calculating the SLAs based on the state and downtime history.
+exceeds the maintenance windows, you can manually cancel the downtime.
+
+### Scheduling a downtime <a id="scheduling-downtime"></a>
+
+The most convenient way to schedule planned downtimes is to create
+them in Icinga Web 2 inside the host/service detail view. Select
+multiple hosts/services from the listing with the shift key to
+schedule multiple downtimes.
+
+![Downtime in Icinga Web 2](images/advanced-topics/icingaweb2_downtime_handled.png)
+
+In addition to that you can schedule a downtime by using the Icinga 2 API action
+[schedule-downtime](12-icinga2-api.md#icinga2-api-actions-schedule-downtime).
+This is especially useful to schedule a downtime on-demand inside a (remote) backup
+script, or create maintenance downtimes from a cron job for specific dates and intervals.
 
 Multiple downtimes for a single object may overlap. This is useful
 when you want to extend your maintenance window taking longer than expected.
 If there are multiple downtimes triggered for one object, the overall downtime depth
 will be greater than `1`.
 
-
 If the downtime was scheduled after the problem changed to a critical hard
 state triggering a problem notification, and the service recovers during
 the downtime window, the recovery notification won't be suppressed.
+
+Planned downtimes are also taken into account for SLA reporting
+tools calculating the SLAs based on the state and downtime history.
 
 ### Fixed and Flexible Downtimes <a id="fixed-flexible-downtimes"></a>
 
@@ -50,13 +64,6 @@ For that reason, you may want to schedule a downtime between 07:30 and
 08:00 with a duration of 15 minutes. The downtime will then last from
 its trigger time until the duration is over. After that, the downtime
 is removed (may happen before or after the actual end time!).
-
-### Scheduling a downtime <a id="scheduling-downtime"></a>
-
-You can schedule a downtime either by using the Icinga 2 API action
-[schedule-downtime](12-icinga2-api.md#icinga2-api-actions-schedule-downtime) or
-by sending an [external command](14-features.md#external-commands).
-
 
 #### Fixed Downtime <a id="fixed-downtime"></a>
 
@@ -102,22 +109,37 @@ recurring downtimes for services.
 
 Example:
 
-    apply ScheduledDowntime "backup-downtime" to Service {
-      author = "icingaadmin"
-      comment = "Scheduled downtime for backup"
+```
+apply ScheduledDowntime "backup-downtime" to Service {
+  author = "icingaadmin"
+  comment = "Scheduled downtime for backup"
 
-      ranges = {
-        monday = "02:00-03:00"
-        tuesday = "02:00-03:00"
-        wednesday = "02:00-03:00"
-        thursday = "02:00-03:00"
-        friday = "02:00-03:00"
-        saturday = "02:00-03:00"
-        sunday = "02:00-03:00"
-      }
+  ranges = {
+    monday = "02:00-03:00"
+    tuesday = "02:00-03:00"
+    wednesday = "02:00-03:00"
+    thursday = "02:00-03:00"
+    friday = "02:00-03:00"
+    saturday = "02:00-03:00"
+    sunday = "02:00-03:00"
+  }
 
-      assign where "backup" in service.groups
-    }
+  assign where "backup" in service.groups
+}
+```
+
+Icinga 2 attempts to find the next possible segment from a ScheduledDowntime object's
+`ranges` attribute, and wont create multiple downtimes in the future. In case you need
+all these downtimes planned and visible for the next days, weeks or months, schedule them
+manually via the [REST API](12-icinga2-api.md#icinga2-api-actions-schedule-downtime) using
+a script or cron job.
+
+> **Note**
+>
+> If ScheduledDowntime objects are synced in a distributed high-availability setup,
+> both will create the next possible downtime on their own. These runtime generated
+> downtimes are synced among both zone instances, and you may see sort-of duplicate downtimes
+> in Icinga Web 2.
 
 
 ## Comments <a id="comments-intro"></a>
@@ -184,14 +206,6 @@ the `check_period` attribute. Or a notification should be sent to
 users or not, filtered by the `period` and `notification_period`
 configuration attributes for `Notification` and `User` objects.
 
-> **Note**
->
-> If you are familiar with Icinga 1.x, these time period definitions
-> are called `legacy timeperiods` in Icinga 2.
->
-> An Icinga 2 legacy timeperiod requires the `ITL` provided template
->`legacy-timeperiod`.
-
 The `TimePeriod` attribute `ranges` may contain multiple directives,
 including weekdays, days of the month, and calendar dates.
 These types may overlap/override other types in your ranges dictionary.
@@ -209,78 +223,80 @@ If you don't set any `check_period` or `notification_period` attribute
 on your configuration objects, Icinga 2 assumes `24x7` as time period
 as shown below.
 
-    object TimePeriod "24x7" {
-      import "legacy-timeperiod"
-
-      display_name = "Icinga 2 24x7 TimePeriod"
-      ranges = {
-        "monday"    = "00:00-24:00"
-        "tuesday"   = "00:00-24:00"
-        "wednesday" = "00:00-24:00"
-        "thursday"  = "00:00-24:00"
-        "friday"    = "00:00-24:00"
-        "saturday"  = "00:00-24:00"
-        "sunday"    = "00:00-24:00"
-      }
-    }
+```
+object TimePeriod "24x7" {
+  display_name = "Icinga 2 24x7 TimePeriod"
+  ranges = {
+    "monday"    = "00:00-24:00"
+    "tuesday"   = "00:00-24:00"
+    "wednesday" = "00:00-24:00"
+    "thursday"  = "00:00-24:00"
+    "friday"    = "00:00-24:00"
+    "saturday"  = "00:00-24:00"
+    "sunday"    = "00:00-24:00"
+  }
+}
+```
 
 If your operation staff should only be notified during workhours,
 create a new timeperiod named `workhours` defining a work day from
 09:00 to 17:00.
 
-    object TimePeriod "workhours" {
-      import "legacy-timeperiod"
+```
+object TimePeriod "workhours" {
+  display_name = "Icinga 2 8x5 TimePeriod"
+  ranges = {
+    "monday"    = "09:00-17:00"
+    "tuesday"   = "09:00-17:00"
+    "wednesday" = "09:00-17:00"
+    "thursday"  = "09:00-17:00"
+    "friday"    = "09:00-17:00"
+  }
+}
+```
 
-      display_name = "Icinga 2 8x5 TimePeriod"
-      ranges = {
-        "monday"    = "09:00-17:00"
-        "tuesday"   = "09:00-17:00"
-        "wednesday" = "09:00-17:00"
-        "thursday"  = "09:00-17:00"
-        "friday"    = "09:00-17:00"
-      }
-    }
-
-Furthermore if you wish to specify a notification period across midnight,
+If you want to specify a notification period across midnight,
 you can define it the following way:
 
-    object Timeperiod "across-midnight" {
-      import "legacy-timeperiod"
-
-      display_name = "Nightly Notification"
-      ranges = {
-        "saturday" = "22:00-24:00"
-        "sunday" = "00:00-03:00"
-      }
-    }
+```
+object Timeperiod "across-midnight" {
+  display_name = "Nightly Notification"
+  ranges = {
+    "saturday" = "22:00-24:00"
+    "sunday" = "00:00-03:00"
+  }
+}
+```
 
 Below you can see another example for configuring timeperiods across several
 days, weeks or months. This can be useful when taking components offline
 for a distinct period of time.
 
-    object Timeperiod "standby" {
-      import "legacy-timeperiod"
-
-      display_name = "Standby"
-      ranges = {
-        "2016-09-30 - 2016-10-30" = "00:00-24:00"
-      }
-    }
+```
+object Timeperiod "standby" {
+  display_name = "Standby"
+  ranges = {
+    "2016-09-30 - 2016-10-30" = "00:00-24:00"
+  }
+}
+```
 
 Please note that the spaces before and after the dash are mandatory.
 
 Once your time period is configured you can Use the `period` attribute
 to assign time periods to `Notification` and `Dependency` objects:
 
-    object Notification "mail" {
-      import "generic-notification"
+```
+apply Notification "mail-icingaadmin" to Service {
+  import "mail-service-notification"
+  user_groups = host.vars.notification.mail.groups
+  users = host.vars.notification.mail.users
 
-      host_name = "localhost"
+  period = "workhours"
 
-      command = "mail-notification"
-      users = [ "icingaadmin" ]
-      period = "workhours"
-    }
+  assign where host.vars.notification.mail
+}
+```
 
 ### Time Periods Inclusion and Exclusion <a id="timeperiods-includes-excludes"></a>
 
@@ -297,51 +313,51 @@ preferred.
 The following example defines a time period called `holidays` where
 notifications should be suppressed:
 
-    object TimePeriod "holidays" {
-      import "legacy-timeperiod"
-
-      ranges = {
-        "january 1" = "00:00-24:00"                 //new year's day
-        "july 4" = "00:00-24:00"                    //independence day
-        "december 25" = "00:00-24:00"               //christmas
-        "december 31" = "18:00-24:00"               //new year's eve (6pm+)
-        "2017-04-16" = "00:00-24:00"                //easter 2017
-        "monday -1 may" = "00:00-24:00"             //memorial day (last monday in may)
-        "monday 1 september" = "00:00-24:00"        //labor day (1st monday in september)
-        "thursday 4 november" = "00:00-24:00"       //thanksgiving (4th thursday in november)
-      }
-    }
+```
+object TimePeriod "holidays" {
+  ranges = {
+    "january 1" = "00:00-24:00"                 //new year's day
+    "july 4" = "00:00-24:00"                    //independence day
+    "december 25" = "00:00-24:00"               //christmas
+    "december 31" = "18:00-24:00"               //new year's eve (6pm+)
+    "2017-04-16" = "00:00-24:00"                //easter 2017
+    "monday -1 may" = "00:00-24:00"             //memorial day (last monday in may)
+    "monday 1 september" = "00:00-24:00"        //labor day (1st monday in september)
+    "thursday 4 november" = "00:00-24:00"       //thanksgiving (4th thursday in november)
+  }
+}
+```
 
 In addition to that the time period `weekends` defines an additional
 time window which should be excluded from notifications:
 
-    object TimePeriod "weekends-excluded" {
-      import "legacy-timeperiod"
-
-      ranges = {
-        "saturday"  = "00:00-09:00,18:00-24:00"
-        "sunday"    = "00:00-09:00,18:00-24:00"
-      }
-    }
+```
+object TimePeriod "weekends-excluded" {
+  ranges = {
+    "saturday"  = "00:00-09:00,18:00-24:00"
+    "sunday"    = "00:00-09:00,18:00-24:00"
+  }
+}
+```
 
 The time period `prod-notification` defines the default time ranges
 and adds the excluded time period names as an array.
 
-    object TimePeriod "prod-notification" {
-      import "legacy-timeperiod"
+```
+object TimePeriod "prod-notification" {
+  excludes = [ "holidays", "weekends-excluded" ]
 
-      excludes = [ "holidays", "weekends-excluded" ]
-
-      ranges = {
-        "monday"    = "00:00-24:00"
-        "tuesday"   = "00:00-24:00"
-        "wednesday" = "00:00-24:00"
-        "thursday"  = "00:00-24:00"
-        "friday"    = "00:00-24:00"
-        "saturday"  = "00:00-24:00"
-        "sunday"    = "00:00-24:00"
-      }
-    }
+  ranges = {
+    "monday"    = "00:00-24:00"
+    "tuesday"   = "00:00-24:00"
+    "wednesday" = "00:00-24:00"
+    "thursday"  = "00:00-24:00"
+    "friday"    = "00:00-24:00"
+    "saturday"  = "00:00-24:00"
+    "sunday"    = "00:00-24:00"
+  }
+}
+```
 
 ## External Check Results <a id="external-check-results"></a>
 
@@ -371,12 +387,21 @@ In Icinga 2 active check freshness is enabled by default. It is determined by th
 
 The threshold is calculated based on the last check execution time for actively executed checks:
 
-    (last check execution time + check interval) > current time
+```
+(last check execution time + check interval) > current time
+```
 
 If this host/service receives check results from an [external source](08-advanced-topics.md#external-check-results),
 the threshold is based on the last time a check result was received:
 
-    (last check result time + check interval) > current time
+```
+(last check result time + check interval) > current time
+```
+
+> **Tip**
+>
+> The [process-check-result](12-icinga2-api.md#icinga2-api-actions-process-check-result) REST API
+> action allows to overrule the pre-defined check interval with a specified TTL in Icinga 2 v2.9+.
 
 If the freshness checks fail, Icinga 2 will execute the defined check command.
 
@@ -403,7 +428,7 @@ apply Service "external-check" {
 }
 ```
 
-References: [get_service](18-library-reference.md#objref-get_service), [nacro](18-library-reference.md#scoped-functions-macro), [DateTime](18-library-reference.md#datetime-type).
+References: [get_service](18-library-reference.md#objref-get_service), [macro](18-library-reference.md#scoped-functions-macro), [DateTime](18-library-reference.md#datetime-type).
 
 Example output in Icinga Web 2:
 
@@ -416,13 +441,12 @@ Icinga 2 supports optional detection of hosts and services that are "flapping".
 
 Flapping occurs when a service or host changes state too frequently, which would result in a storm of problem and
 recovery notifications. With flapping detection enabled a flapping notification will be sent while other notifications are
-suppresed until it calms down after receiving the same status from checks a few times. Flapping detection can help detect
-
-configuration problems (wrong thresholds), troublesome services, or network problems.
+suppressed until it calms down after receiving the same status from checks a few times. Flapping detection can help detect
+configuration problems (wrong thresholds), troublesome services or network problems.
 
 Flapping detection can be enabled or disabled using the `enable_flapping` attribute.
 The `flapping_threshold_high` and `flapping_threshold_low` attributes allows to specify the thresholds that control
-when a [host](09-object-types.md#objecttype-host) or [service](objecttype-service) is considered to be flapping.
+when a [host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) is considered to be flapping.
 
 The default thresholds are 30% for high and 25% for low. If the computed flapping value exceeds the high threshold a
 host or service is considered flapping until it drops below the low flapping threshold.
@@ -439,7 +463,7 @@ Icinga 2 saves the last 20 state changes for every host and service. See the gra
 
 ![Icinga 2 Flapping State Timeline](images/advanced-topics/flapping-state-graph.png)
 
-All the states ware weighted, with the most recent one being worth the most (1.15) and the 20th the least (0.8). The
+All the states are weighted, with the most recent one being worth the most (1.15) and the 20th the least (0.8). The
 states in between are fairly distributed. The final flapping value are the weighted state changes divided by the total
 count of 20.
 
@@ -450,18 +474,21 @@ considered flapping.
 If the next seven check results then would not be state changes, the flapping percentage would fall below the lower threshold
 of 25% and therefore the host or service would recover from flapping.
 
-## Volatile Services <a id="volatile-services"></a>
+## Volatile Services and Hosts <a id="volatile-services-hosts"></a>
 
-By default all services remain in a non-volatile state. When a problem
-occurs, the `SOFT` state applies and once `max_check_attempts` attribute
-is reached with the check counter, a `HARD` state transition happens.
-Notifications are only triggered by `HARD` state changes and are then
-re-sent defined by the `interval` attribute.
+The `volatile` option, if enabled for a host or service, makes it treat every [state change](03-monitoring-basics.md#hard-soft-states)
+as a `HARD` state change. It is comparable to `max_check_attempts = 1`. With this any `NOT-OK` result will
+ignore `max_check_attempts` and trigger notifications etc. It will further cause any additional `NOT-OK`
+result to re-send notifications.
 
-It may be reasonable to have a volatile service which stays in a `HARD`
-state type if the service stays in a `NOT-OK` state. That way each
-service recheck will automatically trigger a notification unless the
-service is acknowledged or in a scheduled downtime.
+It may be reasonable to have a volatile service which stays in a `HARD` state if the service stays in a `NOT-OK`
+state. That way each service recheck will automatically trigger a notification unless the service is acknowledged or
+in a scheduled downtime.
+
+A common example are security checks where each `NOT-OK` check result should immediately trigger a notification.
+
+The default for this option is `false` and should only be enabled when required.
+
 
 ## Monitoring Icinga 2 <a id="monitoring-icinga"></a>
 
@@ -498,7 +525,7 @@ Database	| MySQL				| [mysql_health](10-icinga-template-library.md#plugin-contri
 Database	| PostgreSQL			| [postgres](10-icinga-template-library.md#plugin-contrib-command-postgres)
 Database	| Housekeeping			| Check the database size and growth and analyse metrics to examine trends.
 Database	| DB IDO			| [ido](10-icinga-template-library.md#itl-icinga-ido) (more below)
-Webserver	| Apache2, Nginx, etc.		| [http](10-icinga-template-library.md#plugin-check-command-http), [apache_status](10-icinga-template-library.md#plugin-contrib-command-apache_status), [nginx_status](10-icinga-template-library.md#plugin-contrib-command-nginx_status)
+Webserver	| Apache2, Nginx, etc.		| [http](10-icinga-template-library.md#plugin-check-command-http), [apache-status](10-icinga-template-library.md#plugin-contrib-command-apache-status), [nginx_status](10-icinga-template-library.md#plugin-contrib-command-nginx_status)
 Webserver	| Certificates			| [http](10-icinga-template-library.md#plugin-check-command-http)
 Webserver	| Authorization			| [http](10-icinga-template-library.md#plugin-check-command-http)
 Notifications	| Mail (queue)			| [smtp](10-icinga-template-library.md#plugin-check-command-smtp), [mailq](10-icinga-template-library.md#plugin-check-command-mailq)
@@ -556,65 +583,69 @@ In addition to that you can optionally define the `ssl` attribute which enables 
 
 Host definition:
 
-    object Host "webserver01" {
-      import "generic-host"
-      address = "192.168.56.200"
-      vars.os = "Linux"
+```
+object Host "webserver01" {
+  import "generic-host"
+  address = "192.168.56.200"
+  vars.os = "Linux"
 
-      vars.webserver = {
-        instance["status"] = {
-          address = "192.168.56.201"
-          port = "80"
-          url = "/status"
-        }
-        instance["tomcat"] = {
-          address = "192.168.56.202"
-          port = "8080"
-        }
-        instance["icingaweb2"] = {
-          address = "192.168.56.210"
-          port = "443"
-          url = "/icingaweb2"
-          ssl = true
-        }
-      }
+  vars.webserver = {
+    instance["status"] = {
+      address = "192.168.56.201"
+      port = "80"
+      url = "/status"
     }
+    instance["tomcat"] = {
+      address = "192.168.56.202"
+      port = "8080"
+    }
+    instance["icingaweb2"] = {
+      address = "192.168.56.210"
+      port = "443"
+      url = "/icingaweb2"
+      ssl = true
+    }
+  }
+}
+```
 
 Service apply for definitions:
 
-    apply Service "webserver_ping" for (instance => config in host.vars.webserver.instance) {
-      display_name = "webserver_" + instance
-      check_command = "ping4"
+```
+apply Service "webserver_ping" for (instance => config in host.vars.webserver.instance) {
+  display_name = "webserver_" + instance
+  check_command = "ping4"
 
-      vars.ping_address = config.address
+  vars.ping_address = config.address
 
-      assign where host.vars.webserver.instance
-    }
+  assign where host.vars.webserver.instance
+}
 
-    apply Service "webserver_port" for (instance => config in host.vars.webserver.instance) {
-      display_name = "webserver_" + instance + "_" + config.port
-      check_command = "tcp"
+apply Service "webserver_port" for (instance => config in host.vars.webserver.instance) {
+  display_name = "webserver_" + instance + "_" + config.port
+  check_command = "tcp"
 
-      vars.tcp_address = config.address
-      vars.tcp_port = config.port
+  vars.tcp_address = config.address
+  vars.tcp_port = config.port
 
-      assign where host.vars.webserver.instance
-    }
+  assign where host.vars.webserver.instance
+}
 
-    apply Service "webserver_url" for (instance => config in host.vars.webserver.instance) {
-      display_name = "webserver_" + instance + "_" + config.url
-      check_command = "http"
+apply Service "webserver_url" for (instance => config in host.vars.webserver.instance) {
+  display_name = "webserver_" + instance + "_" + config.url
+  check_command = "http"
 
-      vars.http_address = config.address
-      vars.http_port = config.port
-      vars.http_uri = config.url
+  vars.http_address = config.address
+  vars.http_port = config.port
+  vars.http_uri = config.url
 
-      if (config.ssl) {
-        vars.http_ssl = config.ssl
-      }
+  if (config.ssl) {
+    vars.http_ssl = config.ssl
+  }
 
-      assign where config.url != ""
-    }
+  assign where config.url != ""
+}
+```
 
 The variables defined in the host dictionary are not using the typical custom attribute
 prefix recommended for CheckCommand parameters. Instead they are re-used for multiple
@@ -645,138 +676,86 @@ inside the `icinga2.log` file depending in your log severity
 * Use the `icinga2 console` to test basic functionality (e.g. iterating over a dictionary)
 * Build them step-by-step. You can always refactor your code later on.
 
-#### Use Functions in Command Arguments set_if <a id="use-functions-command-arguments-setif"></a>
+#### Register and Use Global Functions <a id="use-functions-global-register"></a>
 
-The `set_if` attribute inside the command arguments definition in the
-[CheckCommand object definition](09-object-types.md#objecttype-checkcommand) is primarily used to
-evaluate whether the command parameter should be set or not.
+[Functions](17-language-reference.md#functions) can be registered into the global scope. This allows custom functions being available
+in objects and other functions. Keep in mind that these functions are not marked
+as side-effect-free and as such are not available via the REST API.
 
-By default you can evaluate runtime macros for their existence. If the result is not an empty
-string, the command parameter is passed. This becomes fairly complicated when want to evaluate
-multiple conditions and attributes.
+Add a new configuration file `functions.conf` and include it into the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf)
+configuration file in the very beginning, e.g. after `constants.conf`. You can also manage global
+functions inside `constants.conf` if you prefer.
 
-The following example was found on the community support channels. The user had defined a host
-dictionary named `compellent` with the key `disks`. This was then used inside service apply for rules.
+The following function converts a given state parameter into a returned string value. The important
+bits for registering it into the global scope are:
 
-    object Host "dict-host" {
-      check_command = "check_compellent"
-      vars.compellent["disks"] = {
-        file = "/var/lib/check_compellent/san_disks.0.json",
-        checks = ["disks"]
-      }
-    }
+* `globals.<unique_function_name>` adds a new globals entry.
+* `function()` specifies that a call to `state_to_string()` executes a function.
+* Function parameters are defined inside the `function()` definition.
 
-The more significant problem was to only add the command parameter `--disk` to the plugin call
-when the dictionary `compellent` contains the key `disks`, and omit it if not found.
+```
+globals.state_to_string = function(state) {
+  if (state == 2) {
+    return "Critical"
+  } else if (state == 1) {
+    return "Warning"
+  } else if (state == 0) {
+    return "OK"
+  } else if (state == 3) {
+    return "Unknown"
+  } else {
+    log(LogWarning, "state_to_string", "Unknown state " + state + " provided.")
+  }
+}
+```
 
-By defining `set_if` as [abbreviated lambda function](17-language-reference.md#nullary-lambdas)
-and evaluating the host custom attribute `compellent` containing the `disks` this problem was
-solved like this:
+The else-condition allows for better error handling. This warning will be shown in the Icinga 2
+log file once the function is called.
 
-    object CheckCommand "check_compellent" {
-      command   = [ "/usr/bin/check_compellent" ]
-      arguments   = {
-        "--disks"  = {
-          set_if = {{
-            var host_vars = host.vars
-            log(host_vars)
-            var compel = host_vars.compellent
-            log(compel)
-            compel.contains("disks")
-          }}
-        }
-      }
-    }
+> **Note**
+>
+> If these functions are used in a distributed environment, you must ensure to deploy them
+> everywhere needed.
 
-This implementation uses the dictionary type method [contains](18-library-reference.md#dictionary-contains)
-and will fail if `host.vars.compellent` is not of the type `Dictionary`.
-Therefore you can extend the checks using the [typeof](17-language-reference.md#types) function.
+In order to test-drive the newly created function, restart Icinga 2 and use the [debug console](11-cli-commands.md#cli-command-console)
+to connect to the REST API.
 
-You can test the types using the `icinga2 console`:
+```
+$ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
+Icinga 2 (version: v2.11.0)
+<1> => globals.state_to_string(1)
+"Warning"
+<2> => state_to_string(2)
+"Critical"
+```
 
-    # icinga2 console
-    Icinga (version: v2.3.0-193-g3eb55ad)
-    <1> => srv_vars.compellent["check_a"] = { file="outfile_a.json", checks = [ "disks", "fans" ] }
-    null
-    <2> => srv_vars.compellent["check_b"] = { file="outfile_b.json", checks = [ "power", "voltages" ] }
-    null
-    <3> => typeof(srv_vars.compellent)
-    type 'Dictionary'
-    <4> =>
+You can see that this function is now registered into the [global scope](17-language-reference.md#variable-scopes). The function call
+`state_to_string()` can be used in any object at static config compile time or inside runtime
+lambda functions.
 
-The more programmatic approach for `set_if` could look like this:
+The following service object example uses the service state and converts it to string output.
+The function definition is not optimized and is enrolled for better readability including a log message.
 
-        "--disks" = {
-          set_if = {{
-            var srv_vars = service.vars
-            if(len(srv_vars) > 0) {
-              if (typeof(srv_vars.compellent) == Dictionary) {
-                return srv_vars.compellent.contains("disks")
-              } else {
-                log(LogInformationen, "checkcommand set_if", "custom attribute compellent_checks is not a dictionary, ignoring it.")
-                return false
-              }
-            } else {
-              log(LogWarning, "checkcommand set_if", "empty custom attributes")
-              return false
-            }
-          }}
-        }
+```
+object Service "state-test" {
+  check_command = "dummy"
+  host_name = NodeName
 
+  vars.dummy_state = 2
 
-#### Use Functions as Command Attribute <a id="use-functions-command-attribute"></a>
+  vars.dummy_text = {{
+    var h = macro("$host.name$")
+    var s = macro("$service.name$")
 
-This comes in handy for [NotificationCommands](09-object-types.md#objecttype-notificationcommand)
-or [EventCommands](09-object-types.md#objecttype-eventcommand) which does not require
-a returned checkresult including state/output.
+    var state = get_service(h, s).state
 
-The following example was taken from the community support channels. The requirement was to
-specify a custom attribute inside the notification apply rule and decide which notification
-script to call based on that.
+    log(LogInformation, "dummy_state", "Host: " + h + " Service: " + s + " State: " + state)
 
-    object User "short-dummy" {
-    }
+    return state_to_string(state)
+  }}
+}
+```
 
-    object UserGroup "short-dummy-group" {
-      assign where user.name == "short-dummy"
-    }
-
-    apply Notification "mail-admins-short" to Host {
-       import "mail-host-notification"
-       command = "mail-host-notification-test"
-       user_groups = [ "short-dummy-group" ]
-       vars.short = true
-       assign where host.vars.notification.mail
-    }
-
-The solution is fairly simple: The `command` attribute is implemented as function returning
-an array required by the caller Icinga 2.
-The local variable `mailscript` sets the default value for the notification scrip location.
-If the notification custom attribute `short` is set, it will override the local variable `mailscript`
-with a new value.
-The `mailscript` variable is then used to compute the final notification command array being
-returned.
-
-You can omit the `log()` calls, they only help debugging.
-
-    object NotificationCommand "mail-host-notification-test" {
-      command = {{
-        log("command as function")
-        var mailscript = "mail-host-notification-long.sh"
-        if (notification.vars.short) {
-           mailscript = "mail-host-notification-short.sh"
-        }
-        log("Running command")
-        log(mailscript)
-
-        var cmd = [ SysconfDir + "/icinga2/scripts/" + mailscript ]
-        log(LogCritical, "me", cmd)
-        return cmd
-      }}
-
-      env = {
-      }
-    }
 
 #### Use Custom Functions as Attribute <a id="custom-functions-as-attribute"></a>
 
@@ -785,25 +764,27 @@ slightly unexpected way. The following example shows how to assign values
 depending on group membership. All hosts in the `slow-lan` host group use 300
 as value for `ping_wrta`, all other hosts use 100.
 
-    globals.group_specific_value = function(group, group_value, non_group_value) {
-        return function() use (group, group_value, non_group_value) {
-            if (group in host.groups) {
-                return group_value
-            } else {
-                return non_group_value
-            }
+```
+globals.group_specific_value = function(group, group_value, non_group_value) {
+    return function() use (group, group_value, non_group_value) {
+        if (group in host.groups) {
+            return group_value
+        } else {
+            return non_group_value
         }
     }
+}
 
-    apply Service "ping4" {
-        import "generic-service"
-        check_command = "ping4"
+apply Service "ping4" {
+    import "generic-service"
+    check_command = "ping4"
 
-        vars.ping_wrta = group_specific_value("slow-lan", 300, 100)
-        vars.ping_crta = group_specific_value("slow-lan", 500, 200)
+    vars.ping_wrta = group_specific_value("slow-lan", 300, 100)
+    vars.ping_crta = group_specific_value("slow-lan", 500, 200)
 
-        assign where true
-    }
+    assign where true
+}
+```
 
 #### Use Functions in Assign Where Expressions <a id="use-functions-assign-where"></a>
 
@@ -819,36 +800,37 @@ The following example requires the host `myprinter` being added
 to the host group `printers-lexmark` but only if the host uses
 a template matching the name `lexmark*`.
 
-    template Host "lexmark-printer-host" {
-      vars.printer_type = "Lexmark"
+```
+template Host "lexmark-printer-host" {
+  vars.printer_type = "Lexmark"
+}
+
+object Host "myprinter" {
+  import "generic-host"
+  import "lexmark-printer-host"
+
+  address = "192.168.1.1"
+}
+
+/* register a global function for the assign where call */
+globals.check_host_templates = function(host, search) {
+  /* iterate over all host templates and check if the search matches */
+  for (tmpl in host.templates) {
+    if (match(search, tmpl)) {
+      return true
     }
+  }
 
-    object Host "myprinter" {
-      import "generic-host"
-      import "lexmark-printer-host"
+  /* nothing matched */
+  return false
+}
 
-      address = "192.168.1.1"
-    }
-
-    /* register a global function for the assign where call */
-    globals.check_host_templates = function(host, search) {
-      /* iterate over all host templates and check if the search matches */
-      for (tmpl in host.templates) {
-        if (match(search, tmpl)) {
-          return true
-        }
-      }
-
-      /* nothing matched */
-      return false
-    }
-
-    object HostGroup "printers-lexmark" {
-      display_name = "Lexmark Printers"
-      /* call the global function and pass the arguments */
-      assign where check_host_templates(host, "lexmark*")
-    }
-
+object HostGroup "printers-lexmark" {
+  display_name = "Lexmark Printers"
+  /* call the global function and pass the arguments */
+  assign where check_host_templates(host, "lexmark*")
+}
+```
 
 Take a different more complex example: All hosts with the
 custom attribute `vars_app` as nested dictionary should be
@@ -857,42 +839,190 @@ added to the host group `ABAP-app-server`. But only if the
 
 It could read as wildcard match for nested dictionaries:
 
+```
     where host.vars.vars_app["*"].app_type == "ABAP"
+```
 
 The solution for this problem is to register a global
 function which checks the `app_type` for all hosts
 with the `vars_app` dictionary.
 
-    object Host "appserver01" {
-      check_command = "dummy"
-      vars.vars_app["ABC"] = { app_type = "ABAP" }
-    }
-    object Host "appserver02" {
-      check_command = "dummy"
-      vars.vars_app["DEF"] = { app_type = "ABAP" }
-    }
+```
+object Host "appserver01" {
+  check_command = "dummy"
+  vars.vars_app["ABC"] = { app_type = "ABAP" }
+}
+object Host "appserver02" {
+  check_command = "dummy"
+  vars.vars_app["DEF"] = { app_type = "ABAP" }
+}
 
-    globals.check_app_type = function(host, type) {
-      /* ensure that other hosts without the custom attribute do not match */
-      if (typeof(host.vars.vars_app) != Dictionary) {
-        return false
-      }
+globals.check_app_type = function(host, type) {
+  /* ensure that other hosts without the custom attribute do not match */
+  if (typeof(host.vars.vars_app) != Dictionary) {
+    return false
+  }
 
-      /* iterate over the vars_app dictionary */
-      for (key => val in host.vars.vars_app) {
-        /* if the value is a dictionary and if contains the app_type being the requested type */
-        if (typeof(val) == Dictionary && val.app_type == type) {
-          return true
+  /* iterate over the vars_app dictionary */
+  for (key => val in host.vars.vars_app) {
+    /* if the value is a dictionary and if contains the app_type being the requested type */
+    if (typeof(val) == Dictionary && val.app_type == type) {
+      return true
+    }
+  }
+
+  /* nothing matched */
+  return false
+}
+
+object HostGroup "ABAP-app-server" {
+  assign where check_app_type(host, "ABAP")
+}
+```
+
+#### Use Functions in Command Arguments set_if <a id="use-functions-command-arguments-setif"></a>
+
+The `set_if` attribute inside the command arguments definition in the
+[CheckCommand object definition](09-object-types.md#objecttype-checkcommand) is primarily used to
+evaluate whether the command parameter should be set or not.
+
+By default you can evaluate runtime macros for their existence. If the result is not an empty
+string, the command parameter is passed. This becomes fairly complicated when want to evaluate
+multiple conditions and attributes.
+
+The following example was found on the community support channels. The user had defined a host
+dictionary named `compellent` with the key `disks`. This was then used inside service apply for rules.
+
+```
+object Host "dict-host" {
+  check_command = "check_compellent"
+  vars.compellent["disks"] = {
+    file = "/var/lib/check_compellent/san_disks.0.json",
+    checks = ["disks"]
+  }
+}
+```
+
+The more significant problem was to only add the command parameter `--disk` to the plugin call
+when the dictionary `compellent` contains the key `disks`, and omit it if not found.
+
+By defining `set_if` as [abbreviated lambda function](17-language-reference.md#nullary-lambdas)
+and evaluating the host custom attribute `compellent` containing the `disks` this problem was
+solved like this:
+
+```
+object CheckCommand "check_compellent" {
+  command   = [ "/usr/bin/check_compellent" ]
+  arguments   = {
+    "--disks"  = {
+      set_if = {{
+        var host_vars = host.vars
+        log(host_vars)
+        var compel = host_vars.compellent
+        log(compel)
+        compel.contains("disks")
+      }}
+    }
+  }
+}
+```
+
+This implementation uses the dictionary type method [contains](18-library-reference.md#dictionary-contains)
+and will fail if `host.vars.compellent` is not of the type `Dictionary`.
+Therefore you can extend the checks using the [typeof](17-language-reference.md#types) function.
+
+You can test the types using the `icinga2 console`:
+
+```
+# icinga2 console
+Icinga (version: v2.3.0-193-g3eb55ad)
+<1> => srv_vars.compellent["check_a"] = { file="outfile_a.json", checks = [ "disks", "fans" ] }
+null
+<2> => srv_vars.compellent["check_b"] = { file="outfile_b.json", checks = [ "power", "voltages" ] }
+null
+<3> => typeof(srv_vars.compellent)
+type 'Dictionary'
+<4> =>
+```
+
+The more programmatic approach for `set_if` could look like this:
+
+```
+    "--disks" = {
+      set_if = {{
+        var srv_vars = service.vars
+        if(len(srv_vars) > 0) {
+          if (typeof(srv_vars.compellent) == Dictionary) {
+            return srv_vars.compellent.contains("disks")
+          } else {
+            log(LogInformationen, "checkcommand set_if", "custom attribute compellent_checks is not a dictionary, ignoring it.")
+            return false
+          }
+        } else {
+          log(LogWarning, "checkcommand set_if", "empty custom attributes")
+          return false
         }
-      }
-
-      /* nothing matched */
-      return false
+      }}
     }
+```
 
-    object HostGroup "ABAP-app-server" {
-      assign where check_app_type(host, "ABAP")
+#### Use Functions as Command Attribute <a id="use-functions-command-attribute"></a>
+
+This comes in handy for [NotificationCommands](09-object-types.md#objecttype-notificationcommand)
+or [EventCommands](09-object-types.md#objecttype-eventcommand) which does not require
+a returned checkresult including state/output.
+
+The following example was taken from the community support channels. The requirement was to
+specify a custom attribute inside the notification apply rule and decide which notification
+script to call based on that.
+
+```
+object User "short-dummy" {
+}
+
+object UserGroup "short-dummy-group" {
+  assign where user.name == "short-dummy"
+}
+
+apply Notification "mail-admins-short" to Host {
+   import "mail-host-notification"
+   command = "mail-host-notification-test"
+   user_groups = [ "short-dummy-group" ]
+   vars.short = true
+   assign where host.vars.notification.mail
+}
+```
+
+The solution is fairly simple: The `command` attribute is implemented as function returning
+an array required by the caller Icinga 2.
+The local variable `mailscript` sets the default value for the notification scrip location.
+If the notification custom attribute `short` is set, it will override the local variable `mailscript`
+with a new value.
+The `mailscript` variable is then used to compute the final notification command array being
+returned.
+
+You can omit the `log()` calls, they only help debugging.
+
+```
+object NotificationCommand "mail-host-notification-test" {
+  command = {{
+    log("command as function")
+    var mailscript = "mail-host-notification-long.sh"
+    if (notification.vars.short) {
+       mailscript = "mail-host-notification-short.sh"
     }
+    log("Running command")
+    log(mailscript)
+
+    var cmd = [ ConfigDir + "/scripts/" + mailscript ]
+    log(LogCritical, "me", cmd)
+    return cmd
+  }}
+
+  env = {
+  }
+}
+```
 
 ### Access Object Attributes at Runtime <a id="access-object-attributes-at-runtime"></a>
 
@@ -964,8 +1094,6 @@ time of the day compared to the defined time period.
 
 ```
 object TimePeriod "backup" {
-  import "legacy-timeperiod"
-
   ranges = {
     monday = "02:00-03:00"
     tuesday = "02:00-03:00"
@@ -1026,6 +1154,7 @@ to represent its internal state. The following types are exposed via the [API](1
   active                    | Boolean               | Whether the result is from an active or passive check.
   vars\_before              | Dictionary            | Internal attribute used for calculations.
   vars\_after               | Dictionary            | Internal attribute used for calculations.
+  ttl                       | Number                | Time-to-live duration in seconds for this check result. The next expected check result is `now + ttl` where freshness checks are executed.
 
 ### PerfdataValue <a id="advanced-value-types-perfdatavalue"></a>
 
@@ -1041,3 +1170,16 @@ Icinga 2 parses performance data strings returned by check plugins and makes the
   warn                      | Value                 | Warning threshold value.
   min                       | Value                 | Minimum value returned by the check.
   max                       | Value                 | Maximum value returned by the check.
+
+### NotificationResult <a id="advanced-value-types-notificationresult"></a>
+
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  exit\_status              | Number                | The exit status returned by the check execution.
+  output                    | String                | The notification command output.
+  execution\_endpoint       | String                | Name of the node executing the check.
+  command                   | Value                 | Array of command with shell-escaped arguments or command line string.
+  execution\_start          | Timestamp             | Check execution start time (as a UNIX timestamp).
+  execution\_end            | Timestamp             | Check execution end time (as a UNIX timestamp).
+  active                    | Boolean               | Whether the result is from an active or passive check.
+

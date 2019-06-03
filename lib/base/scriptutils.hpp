@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef SCRIPTUTILS_H
 #define SCRIPTUTILS_H
@@ -33,10 +16,10 @@ namespace icinga
 /**
  * @ingroup base
  */
-class I2_BASE_API ScriptUtils
+class ScriptUtils
 {
 public:
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 	static String CastString(const Value& value);
 	static double CastNumber(const Value& value);
 	static bool CastBool(const Value& value);
@@ -49,7 +32,7 @@ public:
 	static void Log(const std::vector<Value>& arguments);
 	static Array::Ptr Range(const std::vector<Value>& arguments);
 	static Type::Ptr TypeOf(const Value& value);
-	static Array::Ptr Keys(const Dictionary::Ptr& dict);
+	static Array::Ptr Keys(const Object::Ptr& obj);
 	static ConfigObject::Ptr GetObject(const Value& type, const String& name);
 	static Array::Ptr GetObjects(const Type::Ptr& type);
 	static void Assert(const Value& arg);
@@ -58,9 +41,10 @@ public:
 	static double Ptr(const Object::Ptr& object);
 	static Value Glob(const std::vector<Value>& args);
 	static Value GlobRecursive(const std::vector<Value>& args);
+	static String GetEnv(const String& key);
 
 private:
-	ScriptUtils(void);
+	ScriptUtils();
 };
 
 }

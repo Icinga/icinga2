@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/socket.hpp"
 #include "base/objectlock.hpp"
@@ -37,15 +20,7 @@ using namespace icinga;
 /**
  * Constructor for the Socket class.
  */
-Socket::Socket(void)
-	: m_FD(INVALID_SOCKET)
-{ }
-
-/**
- * Constructor for the Socket class.
- */
 Socket::Socket(SOCKET fd)
-	: m_FD(INVALID_SOCKET)
 {
 	SetFD(fd);
 }
@@ -53,7 +28,7 @@ Socket::Socket(SOCKET fd)
 /**
  * Destructor for the Socket class.
  */
-Socket::~Socket(void)
+Socket::~Socket()
 {
 	Close();
 }
@@ -81,7 +56,7 @@ void Socket::SetFD(SOCKET fd)
  *
  * @returns The file descriptor.
  */
-SOCKET Socket::GetFD(void) const
+SOCKET Socket::GetFD() const
 {
 	ObjectLock olock(this);
 
@@ -91,7 +66,7 @@ SOCKET Socket::GetFD(void) const
 /**
  * Closes the socket.
  */
-void Socket::Close(void)
+void Socket::Close()
 {
 	ObjectLock olock(this);
 
@@ -102,11 +77,11 @@ void Socket::Close(void)
 }
 
 /**
- * Retrieves the last error that occured for the socket.
+ * Retrieves the last error that occurred for the socket.
  *
  * @returns An error code.
  */
-int Socket::GetError(void) const
+int Socket::GetError() const
 {
 	int opt;
 	socklen_t optlen = sizeof(opt);
@@ -122,43 +97,53 @@ int Socket::GetError(void) const
 /**
  * Formats a sockaddr in a human-readable way.
  *
- * @returns A String describing the sockaddr.
+ * @returns A pair of host and service.
  */
-String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
+String Socket::GetHumanReadableAddress(const std::pair<String, String>& socketDetails)
+{
+	std::ostringstream s;
+	s << "[" << socketDetails.first << "]:" << socketDetails.second;
+	return s.str();
+}
+
+/**
+ * Returns host and service as pair.
+ *
+ * @returns A pair with host and service.
+ */
+std::pair<String, String> Socket::GetDetailsFromSockaddr(sockaddr *address, socklen_t len)
 {
 	char host[NI_MAXHOST];
 	char service[NI_MAXSERV];
 
 	if (getnameinfo(address, len, host, sizeof(host), service,
-	    sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0) {
+		sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0) {
 #ifndef _WIN32
 		Log(LogCritical, "Socket")
-		    << "getnameinfo() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "getnameinfo() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("getnameinfo")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("getnameinfo")
+			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		Log(LogCritical, "Socket")
-		    << "getnameinfo() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
+			<< "getnameinfo() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("getnameinfo")
-		    << errinfo_win32_error(WSAGetLastError()));
+			<< boost::errinfo_api_function("getnameinfo")
+			<< errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
-	std::ostringstream s;
-	s << "[" << host << "]:" << service;
-	return s.str();
+	return std::make_pair(host, service);
 }
 
 /**
- * Returns a String describing the local address of the socket.
+ * Returns a pair describing the local host and service of the socket.
  *
- * @returns A String describing the local address.
+ * @returns A pair describing the local host and service.
  */
-String Socket::GetClientAddress(void)
+std::pair<String, String> Socket::GetClientAddressDetails()
 {
 	boost::mutex::scoped_lock lock(m_SocketMutex);
 
@@ -168,37 +153,47 @@ String Socket::GetClientAddress(void)
 	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0) {
 #ifndef _WIN32
 		Log(LogCritical, "Socket")
-		    << "getsockname() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "getsockname() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("getsockname")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("getsockname")
+			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		Log(LogCritical, "Socket")
-		    << "getsockname() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
+			<< "getsockname() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("getsockname")
-		    << errinfo_win32_error(WSAGetLastError()));
+			<< boost::errinfo_api_function("getsockname")
+			<< errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
-	String address;
+	std::pair<String, String> details;
 	try {
-		address = GetAddressFromSockaddr((sockaddr *)&sin, len);
+		details = GetDetailsFromSockaddr((sockaddr *)&sin, len);
 	} catch (const std::exception&) {
 		/* already logged */
 	}
 
-	return address;
+	return details;
 }
 
 /**
- * Returns a String describing the peer address of the socket.
+ * Returns a String describing the local address of the socket.
  *
- * @returns A String describing the peer address.
+ * @returns A String describing the local address.
  */
-String Socket::GetPeerAddress(void)
+String Socket::GetClientAddress()
+{
+	return GetHumanReadableAddress(GetClientAddressDetails());
+}
+
+/**
+ * Returns a pair describing the peer host and service of the socket.
+ *
+ * @returns A pair describing the peer host and service.
+ */
+std::pair<String, String> Socket::GetPeerAddressDetails()
 {
 	boost::mutex::scoped_lock lock(m_SocketMutex);
 
@@ -208,51 +203,61 @@ String Socket::GetPeerAddress(void)
 	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0) {
 #ifndef _WIN32
 		Log(LogCritical, "Socket")
-		    << "getpeername() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "getpeername() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("getpeername")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("getpeername")
+			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		Log(LogCritical, "Socket")
-		    << "getpeername() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
+			<< "getpeername() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("getpeername")
-		    << errinfo_win32_error(WSAGetLastError()));
+			<< boost::errinfo_api_function("getpeername")
+			<< errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
-	String address;
+	std::pair<String, String> details;
 	try {
-		address = GetAddressFromSockaddr((sockaddr *)&sin, len);
+		details = GetDetailsFromSockaddr((sockaddr *)&sin, len);
 	} catch (const std::exception&) {
 		/* already logged */
 	}
 
-	return address;
+	return details;
+}
+
+/**
+ * Returns a String describing the peer address of the socket.
+ *
+ * @returns A String describing the peer address.
+ */
+String Socket::GetPeerAddress()
+{
+	return GetHumanReadableAddress(GetPeerAddressDetails());
 }
 
 /**
  * Starts listening for incoming client connections.
  */
-void Socket::Listen(void)
+void Socket::Listen()
 {
 	if (listen(GetFD(), SOMAXCONN) < 0) {
 #ifndef _WIN32
 		Log(LogCritical, "Socket")
-		    << "listen() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "listen() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("listen")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("listen")
+			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		Log(LogCritical, "Socket")
-		    << "listen() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
+			<< "listen() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("listen")
-		    << errinfo_win32_error(WSAGetLastError()));
+			<< boost::errinfo_api_function("listen")
+			<< errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 }
@@ -273,18 +278,18 @@ size_t Socket::Write(const void *buffer, size_t count)
 	if (rc < 0) {
 #ifndef _WIN32
 		Log(LogCritical, "Socket")
-		    << "send() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "send() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("send")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("send")
+			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		Log(LogCritical, "Socket")
-		    << "send() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
+			<< "send() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("send")
-		    << errinfo_win32_error(WSAGetLastError()));
+			<< boost::errinfo_api_function("send")
+			<< errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -307,18 +312,18 @@ size_t Socket::Read(void *buffer, size_t count)
 	if (rc < 0) {
 #ifndef _WIN32
 		Log(LogCritical, "Socket")
-		    << "recv() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "recv() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("recv")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("recv")
+			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
 		Log(LogCritical, "Socket")
-		    << "recv() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
+			<< "recv() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("recv")
-		    << errinfo_win32_error(WSAGetLastError()));
+			<< boost::errinfo_api_function("recv")
+			<< errinfo_win32_error(WSAGetLastError()));
 #endif /* _WIN32 */
 	}
 
@@ -328,7 +333,7 @@ size_t Socket::Read(void *buffer, size_t count)
 /**
  * Accepts a new client and creates a new client object for it.
  */
-Socket::Ptr Socket::Accept(void)
+Socket::Ptr Socket::Accept()
 {
 	sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
@@ -380,11 +385,11 @@ bool Socket::Poll(bool read, bool write, struct timeval *timeout)
 
 	if (rc < 0) {
 		Log(LogCritical, "Socket")
-		    << "select() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
+			<< "select() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("select")
-		    << errinfo_win32_error(WSAGetLastError()));
+			<< boost::errinfo_api_function("select")
+			<< errinfo_win32_error(WSAGetLastError()));
 	}
 #else /* _WIN32 */
 	pollfd pfd;
@@ -396,18 +401,18 @@ bool Socket::Poll(bool read, bool write, struct timeval *timeout)
 
 	if (rc < 0) {
 		Log(LogCritical, "Socket")
-		    << "poll() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "poll() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("poll")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("poll")
+			<< boost::errinfo_errno(errno));
 	}
 #endif /* _WIN32 */
 
 	return (rc != 0);
 }
 
-void Socket::MakeNonBlocking(void)
+void Socket::MakeNonBlocking()
 {
 #ifdef _WIN32
 	Utility::SetNonBlockingSocket(GetFD());
@@ -420,7 +425,6 @@ void Socket::SocketPair(SOCKET s[2])
 {
 	if (dumb_socketpair(s, 0) < 0)
 		BOOST_THROW_EXCEPTION(socket_error()
-		    << boost::errinfo_api_function("socketpair")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("socketpair")
+			<< boost::errinfo_errno(errno));
 }
-

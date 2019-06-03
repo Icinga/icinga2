@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "config/configcompiler.hpp"
 #include "base/exception.hpp"
@@ -27,7 +10,7 @@ BOOST_AUTO_TEST_SUITE(config_ops)
 
 BOOST_AUTO_TEST_CASE(simple)
 {
-	ScriptFrame frame;
+	ScriptFrame frame(true);
 	std::unique_ptr<Expression> expr;
 	Dictionary::Ptr dict;
 
@@ -109,34 +92,34 @@ BOOST_AUTO_TEST_CASE(simple)
 	expr = ConfigCompiler::CompileText("<test>", "256 >> 4 >> 3");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue() == 2);
 
-	expr = ConfigCompiler::CompileText("<test>", "\"hello\" == \"hello\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("hello" == "hello")");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"hello\" != \"hello\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("hello" != "hello")");
 	BOOST_CHECK(!expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in [ \"foo\", \"bar\" ]");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" in [ "foo", "bar" ])");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in [ \"bar\", \"baz\" ]");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" in [ "bar", "baz" ])");
 	BOOST_CHECK(!expr->Evaluate(frame).GetValue());
 
 	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in null");
 	BOOST_CHECK(!expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in \"bar\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" in "bar")");
 	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in [ \"bar\", \"baz\" ]");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" !in [ "bar", "baz" ])");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in [ \"foo\", \"bar\" ]");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" !in [ "foo", "bar" ])");
 	BOOST_CHECK(!expr->Evaluate(frame).GetValue());
 
 	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in null");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in \"bar\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" !in "bar")");
 	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
 
 	expr = ConfigCompiler::CompileText("<test>", "{ a += 3 }");
@@ -156,10 +139,10 @@ BOOST_AUTO_TEST_CASE(simple)
 	expr = ConfigCompiler::CompileText("<test>", "\"test\" + 3");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue() == "test3");
 
-	expr = ConfigCompiler::CompileText("<test>", "\"\\\"te\\\\st\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("\"te\\st")");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue() == "\"te\\st");
 
-	expr = ConfigCompiler::CompileText("<test>", "\"\\'test\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("\'test")");
 	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
 
 	expr = ConfigCompiler::CompileText("<test>", "({ a = 3\nb = 3 })");
@@ -168,18 +151,18 @@ BOOST_AUTO_TEST_CASE(simple)
 
 BOOST_AUTO_TEST_CASE(advanced)
 {
-	ScriptFrame frame;
+	ScriptFrame frame(true);
 	std::unique_ptr<Expression> expr;
 	Function::Ptr func;
 
-	expr = ConfigCompiler::CompileText("<test>", "regex(\"^Hello\", \"Hello World\")");
+	expr = ConfigCompiler::CompileText("<test>", R"(regex("^Hello", "Hello World"))");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
 	expr = ConfigCompiler::CompileText("<test>", "__boost_test()");
 	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
 
 	Object::Ptr self = new Object();
-	ScriptFrame frame2(self);
+	ScriptFrame frame2(true, self);
 	expr = ConfigCompiler::CompileText("<test>", "this");
 	BOOST_CHECK(expr->Evaluate(frame2).GetValue() == Value(self));
 

@@ -1,0 +1,24 @@
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+
+library icinga;
+
+namespace icinga
+{
+
+class NotificationResult
+{
+	[state] Timestamp execution_start;
+	[state] Timestamp execution_end;
+
+	[state] Value command;
+	[state] int exit_status;
+	[state] String output;
+
+	[state] bool active {
+		default {{{ return true; }}}
+	};
+
+	[state] String execution_endpoint;
+};
+
+}

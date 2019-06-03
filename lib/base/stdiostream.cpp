@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/stdiostream.hpp"
 #include "base/objectlock.hpp"
@@ -33,7 +16,7 @@ StdioStream::StdioStream(std::iostream *innerStream, bool ownsStream)
 	: m_InnerStream(innerStream), m_OwnsStream(ownsStream)
 { }
 
-StdioStream::~StdioStream(void)
+StdioStream::~StdioStream()
 {
 	Close();
 }
@@ -53,7 +36,7 @@ void StdioStream::Write(const void *buffer, size_t size)
 	m_InnerStream->write(static_cast<const char *>(buffer), size);
 }
 
-void StdioStream::Close(void)
+void StdioStream::Close()
 {
 	Stream::Close();
 
@@ -63,12 +46,12 @@ void StdioStream::Close(void)
 	}
 }
 
-bool StdioStream::IsDataAvailable(void) const
+bool StdioStream::IsDataAvailable() const
 {
 	return !IsEof();
 }
 
-bool StdioStream::IsEof(void) const
+bool StdioStream::IsEof() const
 {
 	return !m_InnerStream->good();
 }

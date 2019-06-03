@@ -1,19 +1,4 @@
-# Icinga 2
-# Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation
-# Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
 find_package(BISON 2.3.0 REQUIRED)
 find_package(FLEX 2.5.31 REQUIRED)
@@ -34,37 +19,29 @@ add_flex_bison_dependency(config_lexer config_parser)
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(config_SOURCES
-  activationcontext.cpp applyrule.cpp
-  configcompilercontext.cpp configcompiler.cpp configitembuilder.cpp
-  configitem.cpp ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
-  expression.cpp objectrule.cpp
+  i2-config.hpp
+  activationcontext.cpp activationcontext.hpp
+  applyrule.cpp applyrule.hpp
+  configcompiler.cpp configcompiler.hpp
+  configcompilercontext.cpp configcompilercontext.hpp
+  configfragment.hpp
+  configitem.cpp configitem.hpp
+  configitembuilder.cpp configitembuilder.hpp
+  expression.cpp expression.hpp
+  objectrule.cpp objectrule.hpp
+  vmops.hpp
+  ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(config config config_SOURCES)
+  mkunity_target(config config config_SOURCES)
 endif()
 
-add_library(config SHARED ${config_SOURCES})
+add_library(config OBJECT ${config_SOURCES})
 
-target_link_libraries(config ${Boost_LIBRARIES} base) 
+add_dependencies(config base)
 
 set_target_properties (
   config PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_CONFIG_BUILD
   FOLDER Lib
-  VERSION ${SPEC_VERSION}
 )
-
-install(
-  TARGETS config
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
-)
-
-if(APPLE)
-  install(
-    TARGETS config
-    LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}/icinga-studio.app/Contents
-  )
-endif()

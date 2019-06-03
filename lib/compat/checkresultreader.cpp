@@ -1,25 +1,8 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/compatutility.hpp"
 #include "compat/checkresultreader.hpp"
-#include "compat/checkresultreader.tcpp"
+#include "compat/checkresultreader-ti.cpp"
 #include "icinga/service.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/icingaapplication.hpp"
@@ -42,13 +25,13 @@ REGISTER_STATSFUNCTION(CheckResultReader, &CheckResultReader::StatsFunc);
 
 void CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const CheckResultReader::Ptr& checkresultreader : ConfigType::GetObjectsByType<CheckResultReader>()) {
-		nodes->Set(checkresultreader->GetName(), 1); //add more stats
+		nodes.emplace_back(checkresultreader->GetName(), 1); //add more stats
 	}
 
-	status->Set("checkresultreader", nodes);
+	status->Set("checkresultreader", new Dictionary(std::move(nodes)));
 }
 
 /**
@@ -59,7 +42,10 @@ void CheckResultReader::Start(bool runtimeCreated)
 	ObjectImpl<CheckResultReader>::Start(runtimeCreated);
 
 	Log(LogInformation, "CheckResultReader")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
+
+	Log(LogWarning, "CheckResultReader")
+		<< "This feature is DEPRECATED and will be removed in future releases. Check the roadmap at https://github.com/Icinga/icinga2/milestones";
 
 #ifndef _WIN32
 	m_ReadTimer = new Timer();
@@ -75,7 +61,7 @@ void CheckResultReader::Start(bool runtimeCreated)
 void CheckResultReader::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "CheckResultReader")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<CheckResultReader>::Stop(runtimeRemoved);
 }
@@ -83,7 +69,7 @@ void CheckResultReader::Stop(bool runtimeRemoved)
 /**
  * @threadsafety Always.
  */
-void CheckResultReader::ReadTimerHandler(void) const
+void CheckResultReader::ReadTimerHandler() const
 {
 	CONTEXT("Processing check result files in '" + GetSpoolDir() + "'");
 
@@ -121,17 +107,9 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	}
 
 	/* Remove the checkresult files. */
-	if (unlink(path.CStr()) < 0)
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("unlink")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+	Utility::Remove(path);
 
-	if (unlink(crfile.CStr()) < 0)
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("unlink")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(crfile));
+	Utility::Remove(crfile);
 
 	Checkable::Ptr checkable;
 
@@ -139,7 +117,7 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 
 	if (!host) {
 		Log(LogWarning, "CheckResultReader")
-		    << "Ignoring checkresult file for host '" << attrs["host_name"] << "': Host does not exist.";
+			<< "Ignoring checkresult file for host '" << attrs["host_name"] << "': Host does not exist.";
 
 		return;
 	}
@@ -149,8 +127,8 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 
 		if (!service) {
 			Log(LogWarning, "CheckResultReader")
-			    << "Ignoring checkresult file for host '" << attrs["host_name"]
-			    << "', service '" << attrs["service_description"] << "': Service does not exist.";
+				<< "Ignoring checkresult file for host '" << attrs["host_name"]
+				<< "', service '" << attrs["service_description"] << "': Service does not exist.";
 
 			return;
 		}
@@ -179,7 +157,7 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	checkable->ProcessCheckResult(result);
 
 	Log(LogDebug, "CheckResultReader")
-	    << "Processed checkresult file for object '" << checkable->GetName() << "'";
+		<< "Processed checkresult file for object '" << checkable->GetName() << "'";
 
 	/* Reschedule the next check. The side effect of this is that for as long
 	 * as we receive check result files for a host/service we won't execute any

@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "db_ido_pgsql/idopgsqlconnection.hpp"
-#include "db_ido_pgsql/idopgsqlconnection.tcpp"
+#include "db_ido_pgsql/idopgsqlconnection-ti.cpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
 #include "base/logger.hpp"
@@ -31,7 +14,7 @@
 #include "base/exception.hpp"
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/tuple/tuple.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -39,35 +22,41 @@ REGISTER_TYPE(IdoPgsqlConnection);
 
 REGISTER_STATSFUNCTION(IdoPgsqlConnection, &IdoPgsqlConnection::StatsFunc);
 
-IdoPgsqlConnection::IdoPgsqlConnection(void)
-	: m_QueryQueue(1000000)
+IdoPgsqlConnection::IdoPgsqlConnection()
 {
 	m_QueryQueue.SetName("IdoPgsqlConnection, " + GetName());
 }
 
-void IdoPgsqlConnection::OnConfigLoaded(void)
+void IdoPgsqlConnection::OnConfigLoaded()
 {
 	ObjectImpl<IdoPgsqlConnection>::OnConfigLoaded();
 
 	m_QueryQueue.SetName("IdoPgsqlConnection, " + GetName());
+
+	Library shimLibrary{"pgsql_shim"};
+
+	auto create_pgsql_shim = shimLibrary.GetSymbolAddress<create_pgsql_shim_ptr>("create_pgsql_shim");
+
+	m_Pgsql.reset(create_pgsql_shim());
+
+	std::swap(m_Library, shimLibrary);
 }
 
 void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const IdoPgsqlConnection::Ptr& idopgsqlconnection : ConfigType::GetObjectsByType<IdoPgsqlConnection>()) {
 		size_t queryQueueItems = idopgsqlconnection->m_QueryQueue.GetLength();
 		double queryQueueItemRate = idopgsqlconnection->m_QueryQueue.GetTaskCount(60) / 60.0;
 
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("version", idopgsqlconnection->GetSchemaVersion());
-		stats->Set("instance_name", idopgsqlconnection->GetInstanceName());
-		stats->Set("connected", idopgsqlconnection->GetConnected());
-		stats->Set("query_queue_items", queryQueueItems);
-		stats->Set("query_queue_item_rate", queryQueueItemRate);
-
-		nodes->Set(idopgsqlconnection->GetName(), stats);
+		nodes.emplace_back(idopgsqlconnection->GetName(), new Dictionary({
+			{ "version", idopgsqlconnection->GetSchemaVersion() },
+			{ "instance_name", idopgsqlconnection->GetInstanceName() },
+			{ "connected", idopgsqlconnection->GetConnected() },
+			{ "query_queue_items", queryQueueItems },
+			{ "query_queue_item_rate", queryQueueItemRate }
+		}));
 
 		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_queries_rate", idopgsqlconnection->GetQueryCount(60) / 60.0));
 		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_queries_1min", idopgsqlconnection->GetQueryCount(60)));
@@ -77,19 +66,20 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_item_rate", queryQueueItemRate));
 	}
 
-	status->Set("idopgsqlconnection", nodes);
+	status->Set("idopgsqlconnection", new Dictionary(std::move(nodes)));
 }
 
-void IdoPgsqlConnection::Resume(void)
+void IdoPgsqlConnection::Resume()
 {
-	DbConnection::Resume();
-
 	Log(LogInformation, "IdoPgsqlConnection")
-	    << "'" << GetName() << "' resumed.";
+		<< "'" << GetName() << "' resumed.";
 
 	SetConnected(false);
 
 	m_QueryQueue.SetExceptionCallback(std::bind(&IdoPgsqlConnection::ExceptionHandler, this, _1));
+
+	/* Immediately try to connect on Resume() without timer. */
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Reconnect, this), PriorityImmediate);
 
 	m_TxTimer = new Timer();
 	m_TxTimer->SetInterval(1);
@@ -100,22 +90,26 @@ void IdoPgsqlConnection::Resume(void)
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&IdoPgsqlConnection::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
-	m_ReconnectTimer->Reschedule(0);
 
-	ASSERT(PQisthreadsafe());
+	/* Start with queries after connect. */
+	DbConnection::Resume();
+
+	ASSERT(m_Pgsql->isthreadsafe());
 }
 
-void IdoPgsqlConnection::Pause(void)
+void IdoPgsqlConnection::Pause()
 {
-	Log(LogInformation, "IdoPgsqlConnection")
-	    << "'" << GetName() << "' paused.";
+	DbConnection::Pause();
 
 	m_ReconnectTimer.reset();
 
-	DbConnection::Pause();
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Disconnect, this), PriorityLow);
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Disconnect, this), PriorityHigh);
+	/* Work on remaining tasks but never delete the threads, for HA resuming later. */
 	m_QueryQueue.Join();
+
+	Log(LogInformation, "IdoPgsqlConnection")
+		<< "'" << GetName() << "' paused.";
 }
 
 void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
@@ -123,20 +117,20 @@ void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogWarning, "IdoPgsqlConnection", "Exception during database operation: Verify that your database is operational!");
 
 	Log(LogDebug, "IdoPgsqlConnection")
-	    << "Exception during database operation: " << DiagnosticInformation(exp);
+		<< "Exception during database operation: " << DiagnosticInformation(std::move(exp));
 
 	if (GetConnected()) {
-		PQfinish(m_Connection);
+		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 	}
 }
 
-void IdoPgsqlConnection::AssertOnWorkQueue(void)
+void IdoPgsqlConnection::AssertOnWorkQueue()
 {
 	ASSERT(m_QueryQueue.IsWorkerThread());
 }
 
-void IdoPgsqlConnection::Disconnect(void)
+void IdoPgsqlConnection::Disconnect()
 {
 	AssertOnWorkQueue();
 
@@ -145,21 +139,27 @@ void IdoPgsqlConnection::Disconnect(void)
 
 	Query("COMMIT");
 
-	PQfinish(m_Connection);
+	m_Pgsql->finish(m_Connection);
 	SetConnected(false);
+
+	Log(LogInformation, "IdoPgsqlConnection")
+		<< "Disconnected from '" << GetName() << "' database '" << GetDatabase() << "'.";
 }
 
-void IdoPgsqlConnection::TxTimerHandler(void)
+void IdoPgsqlConnection::TxTimerHandler()
 {
 	NewTransaction();
 }
 
-void IdoPgsqlConnection::NewTransaction(void)
+void IdoPgsqlConnection::NewTransaction()
 {
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalNewTransaction, this), PriorityHigh, true);
+	if (IsPaused())
+		return;
+
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalNewTransaction, this), PriorityNormal, true);
 }
 
-void IdoPgsqlConnection::InternalNewTransaction(void)
+void IdoPgsqlConnection::InternalNewTransaction()
 {
 	AssertOnWorkQueue();
 
@@ -170,12 +170,13 @@ void IdoPgsqlConnection::InternalNewTransaction(void)
 	Query("BEGIN");
 }
 
-void IdoPgsqlConnection::ReconnectTimerHandler(void)
+void IdoPgsqlConnection::ReconnectTimerHandler()
 {
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Reconnect, this), PriorityLow);
+	/* Only allow Reconnect events with high priority. */
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Reconnect, this), PriorityHigh);
 }
 
-void IdoPgsqlConnection::Reconnect(void)
+void IdoPgsqlConnection::Reconnect()
 {
 	AssertOnWorkQueue();
 
@@ -193,7 +194,7 @@ void IdoPgsqlConnection::Reconnect(void)
 			Query("SELECT 1");
 			return;
 		} catch (const std::exception&) {
-			PQfinish(m_Connection);
+			m_Pgsql->finish(m_Connection);
 			SetConnected(false);
 			reconnect = true;
 		}
@@ -201,34 +202,53 @@ void IdoPgsqlConnection::Reconnect(void)
 
 	ClearIDCache();
 
-	String ihost, iport, iuser, ipasswd, idb;
-	const char *host, *port, *user , *passwd, *db;
+	String host = GetHost();
+	String port = GetPort();
+	String user = GetUser();
+	String password = GetPassword();
+	String database = GetDatabase();
 
-	ihost = GetHost();
-	iport = GetPort();
-	iuser = GetUser();
-	ipasswd = GetPassword();
-	idb = GetDatabase();
+	String sslMode = GetSslMode();
+	String sslKey = GetSslKey();
+	String sslCert = GetSslCert();
+	String sslCa = GetSslCa();
 
-	host = (!ihost.IsEmpty()) ? ihost.CStr() : nullptr;
-	port = (!iport.IsEmpty()) ? iport.CStr() : nullptr;
-	user = (!iuser.IsEmpty()) ? iuser.CStr() : nullptr;
-	passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : nullptr;
-	db = (!idb.IsEmpty()) ? idb.CStr() : nullptr;
+	String conninfo;
 
-	m_Connection = PQsetdbLogin(host, port, nullptr, nullptr, db, user, passwd);
+	if (!host.IsEmpty())
+		conninfo += " host=" + host;
+	if (!port.IsEmpty())
+		conninfo += " port=" + port;
+	if (!user.IsEmpty())
+		conninfo += " user=" + user;
+	if (!password.IsEmpty())
+		conninfo += " password=" + password;
+	if (!database.IsEmpty())
+		conninfo += " dbname=" + database;
+
+	if (!sslMode.IsEmpty())
+		conninfo += " sslmode=" + sslMode;
+	if (!sslKey.IsEmpty())
+		conninfo += " sslkey=" + sslKey;
+	if (!sslCert.IsEmpty())
+		conninfo += " sslcert=" + sslCert;
+	if (!sslCa.IsEmpty())
+		conninfo += " sslrootcert=" + sslCa;
+
+	/* connection */
+	m_Connection = m_Pgsql->connectdb(conninfo.CStr());
 
 	if (!m_Connection)
 		return;
 
-	if (PQstatus(m_Connection) != CONNECTION_OK) {
-		String message = PQerrorMessage(m_Connection);
-		PQfinish(m_Connection);
+	if (m_Pgsql->status(m_Connection) != CONNECTION_OK) {
+		String message = m_Pgsql->errorMessage(m_Connection);
+		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoPgsqlConnection")
-		    << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
-		    << "' failed: \"" << message << "\"";
+			<< "Connection to database '" << database << "' with user '" << user << "' on '" << host << ":" << port
+			<< "' failed: \"" << message << "\"";
 
 		BOOST_THROW_EXCEPTION(std::runtime_error(message));
 	}
@@ -240,7 +260,7 @@ void IdoPgsqlConnection::Reconnect(void)
 	/* explicitely require legacy mode for string escaping in PostgreSQL >= 9.1
 	 * changing standard_conforming_strings to on by default
 	 */
-	if (PQserverVersion(m_Connection) >= 90100)
+	if (m_Pgsql->serverVersion(m_Connection) >= 90100)
 		result = Query("SET standard_conforming_strings TO off");
 
 	String dbVersionName = "idoutils";
@@ -249,7 +269,7 @@ void IdoPgsqlConnection::Reconnect(void)
 	Dictionary::Ptr row = FetchRow(result, 0);
 
 	if (!row) {
-		PQfinish(m_Connection);
+		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoPgsqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
@@ -262,13 +282,13 @@ void IdoPgsqlConnection::Reconnect(void)
 	SetSchemaVersion(version);
 
 	if (Utility::CompareVersion(IDO_COMPAT_SCHEMA_VERSION, version) < 0) {
-		PQfinish(m_Connection);
+		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoPgsqlConnection")
-		    << "Schema version '" << version << "' does not match the required version '"
-		    << IDO_COMPAT_SCHEMA_VERSION << "' (or newer)! Please check the upgrade documentation at "
-		    << "https://docs.icinga.com/icinga2/latest/doc/module/icinga2/chapter/upgrading-icinga-2#upgrading-postgresql-db";
+			<< "Schema version '" << version << "' does not match the required version '"
+			<< IDO_COMPAT_SCHEMA_VERSION << "' (or newer)! Please check the upgrade documentation at "
+			<< "https://docs.icinga.com/icinga2/latest/doc/module/icinga2/chapter/upgrading-icinga-2#upgrading-postgresql-db";
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Schema version mismatch."));
 	}
@@ -291,7 +311,7 @@ void IdoPgsqlConnection::Reconnect(void)
 	if (my_endpoint && GetHAMode() == HARunOnce) {
 		/* get the current endpoint writing to programstatus table */
 		result = Query("SELECT UNIX_TIMESTAMP(status_update_time) AS status_update_time, endpoint_name FROM " +
-		    GetTablePrefix() + "programstatus WHERE instance_id = " + Convert::ToString(m_InstanceID));
+			GetTablePrefix() + "programstatus WHERE instance_id = " + Convert::ToString(m_InstanceID));
 		row = FetchRow(result, 0);
 
 		String endpoint_name;
@@ -310,13 +330,17 @@ void IdoPgsqlConnection::Reconnect(void)
 			else
 				status_update_time = 0;
 
-			double status_update_age = Utility::GetTime() - status_update_time;
+			double now = Utility::GetTime();
 
-			Log(LogNotice, "IdoPgsqlConnection")
-			    << "Last update by '" << endpoint_name << "' was " << status_update_age << "s ago.";
+			double status_update_age = now - status_update_time;
+			double failoverTimeout = GetFailoverTimeout();
 
 			if (status_update_age < GetFailoverTimeout()) {
-				PQfinish(m_Connection);
+				Log(LogInformation, "IdoPgsqlConnection")
+					<< "Last update by endpoint '" << endpoint_name << "' was "
+					<< status_update_age << "s ago (< failover timeout of " << failoverTimeout << "s). Retrying.";
+
+				m_Pgsql->finish(m_Connection);
 				SetConnected(false);
 				SetShouldConnect(false);
 
@@ -326,20 +350,27 @@ void IdoPgsqlConnection::Reconnect(void)
 			/* activate the IDO only, if we're authoritative in this zone */
 			if (IsPaused()) {
 				Log(LogNotice, "IdoPgsqlConnection")
-				    << "Local endpoint '" << my_endpoint->GetName() << "' is not authoritative, bailing out.";
+					<< "Local endpoint '" << my_endpoint->GetName() << "' is not authoritative, bailing out.";
 
-				PQfinish(m_Connection);
+				m_Pgsql->finish(m_Connection);
 				SetConnected(false);
 
 				return;
 			}
+
+			SetLastFailover(now);
+
+			Log(LogInformation, "IdoPgsqlConnection")
+				<< "Last update by endpoint '" << endpoint_name << "' was "
+				<< status_update_age << "s ago. Taking over '" << GetName() << "' in HA zone '" << Zone::GetLocalZone()->GetName() << "'.";
 		}
 
 		Log(LogNotice, "IdoPgsqlConnection", "Enabling IDO connection.");
 	}
 
 	Log(LogInformation, "IdoPgsqlConnection")
-	    << "pgSQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
+		<< "PGSQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')"
+		<< (!sslMode.IsEmpty() ? ", sslmode='" + sslMode + "'" : "");
 
 	Query("BEGIN");
 
@@ -348,9 +379,9 @@ void IdoPgsqlConnection::Reconnect(void)
 
 	/* record connection */
 	Query("INSERT INTO " + GetTablePrefix() + "conninfo " +
-	    "(instance_id, connect_time, last_checkin_time, agent_name, agent_version, connect_type, data_start_time) VALUES ("
-	    + Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), E'icinga2 db_ido_pgsql', E'" + Escape(Application::GetAppVersion())
-	    + "', E'" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
+		"(instance_id, connect_time, last_checkin_time, agent_name, agent_version, connect_type, data_start_time) VALUES ("
+		+ Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), E'icinga2 db_ido_pgsql', E'" + Escape(Application::GetAppVersion())
+		+ "', E'" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
 
 	/* clear config tables for the initial config dump */
 	PrepareDatabase();
@@ -388,16 +419,16 @@ void IdoPgsqlConnection::Reconnect(void)
 			continue;
 
 		Log(LogNotice, "IdoPgsqlConnection")
-		    << "Deactivate deleted object name1: '" << dbobj->GetName1()
-		    << "' name2: '" << dbobj->GetName2() + "'.";
+			<< "Deactivate deleted object name1: '" << dbobj->GetName1()
+			<< "' name2: '" << dbobj->GetName2() + "'.";
 		DeactivateObject(dbobj);
 	}
 
 	UpdateAllObjects();
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::ClearTablesBySession, this), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::ClearTablesBySession, this), PriorityNormal);
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::FinishConnect, this, startTime), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::FinishConnect, this, startTime), PriorityNormal);
 }
 
 void IdoPgsqlConnection::FinishConnect(double startTime)
@@ -408,13 +439,14 @@ void IdoPgsqlConnection::FinishConnect(double startTime)
 		return;
 
 	Log(LogInformation, "IdoPgsqlConnection")
-	    << "Finished reconnecting to PostgreSQL IDO database in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
+		<< "Finished reconnecting to '" << GetName() << "' database '" << GetDatabase() << "' in "
+		<< std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 
 	Query("COMMIT");
 	Query("BEGIN");
 }
 
-void IdoPgsqlConnection::ClearTablesBySession(void)
+void IdoPgsqlConnection::ClearTablesBySession()
 {
 	/* delete all comments and downtimes without current session token */
 	ClearTableBySession("comments");
@@ -424,8 +456,8 @@ void IdoPgsqlConnection::ClearTablesBySession(void)
 void IdoPgsqlConnection::ClearTableBySession(const String& table)
 {
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
-	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
-	    Convert::ToString(GetSessionToken()));
+		Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
+		Convert::ToString(GetSessionToken()));
 }
 
 IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
@@ -433,47 +465,47 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 	AssertOnWorkQueue();
 
 	Log(LogDebug, "IdoPgsqlConnection")
-	    << "Query: " << query;
+		<< "Query: " << query;
 
 	IncreaseQueryCount();
 
-	PGresult *result = PQexec(m_Connection, query.CStr());
+	PGresult *result = m_Pgsql->exec(m_Connection, query.CStr());
 
 	if (!result) {
-		String message = PQerrorMessage(m_Connection);
+		String message = m_Pgsql->errorMessage(m_Connection);
 		Log(LogCritical, "IdoPgsqlConnection")
-		    << "Error \"" << message << "\" when executing query \"" << query << "\"";
+			<< "Error \"" << message << "\" when executing query \"" << query << "\"";
 
 		BOOST_THROW_EXCEPTION(
-		    database_error()
+			database_error()
 			<< errinfo_message(message)
 			<< errinfo_database_query(query)
 		);
 	}
 
-	char *rowCount = PQcmdTuples(result);
+	char *rowCount = m_Pgsql->cmdTuples(result);
 	m_AffectedRows = atoi(rowCount);
 
-	if (PQresultStatus(result) == PGRES_COMMAND_OK) {
-		PQclear(result);
+	if (m_Pgsql->resultStatus(result) == PGRES_COMMAND_OK) {
+		m_Pgsql->clear(result);
 		return IdoPgsqlResult();
 	}
 
-	if (PQresultStatus(result) != PGRES_TUPLES_OK) {
-		String message = PQresultErrorMessage(result);
-		PQclear(result);
+	if (m_Pgsql->resultStatus(result) != PGRES_TUPLES_OK) {
+		String message = m_Pgsql->resultErrorMessage(result);
+		m_Pgsql->clear(result);
 
 		Log(LogCritical, "IdoPgsqlConnection")
-		    << "Error \"" << message << "\" when executing query \"" << query << "\"";
+			<< "Error \"" << message << "\" when executing query \"" << query << "\"";
 
 		BOOST_THROW_EXCEPTION(
-		    database_error()
+			database_error()
 			<< errinfo_message(message)
 			<< errinfo_database_query(query)
 		);
 	}
 
-	return IdoPgsqlResult(result, std::ptr_fun(PQclear));
+	return IdoPgsqlResult(result, std::bind(&PgsqlInterface::clear, std::cref(m_Pgsql), _1));
 }
 
 DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const String& column)
@@ -487,12 +519,12 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 	ASSERT(row);
 
 	Log(LogDebug, "IdoPgsqlConnection")
-	    << "Sequence Value: " << row->Get("id");
+		<< "Sequence Value: " << row->Get("id");
 
-	return DbReference(Convert::ToLong(row->Get("id")));
+	return {Convert::ToLong(row->Get("id"))};
 }
 
-int IdoPgsqlConnection::GetAffectedRows(void)
+int IdoPgsqlConnection::GetAffectedRows()
 {
 	AssertOnWorkQueue();
 
@@ -506,9 +538,9 @@ String IdoPgsqlConnection::Escape(const String& s)
 	String utf8s = Utility::ValidateUTF8(s);
 
 	size_t length = utf8s.GetLength();
-	char *to = new char[utf8s.GetLength() * 2 + 1];
+	auto *to = new char[utf8s.GetLength() * 2 + 1];
 
-	PQescapeStringConn(m_Connection, to, utf8s.CStr(), length, nullptr);
+	m_Pgsql->escapeStringConn(m_Connection, to, utf8s.CStr(), length, nullptr);
 
 	String result = String(to);
 
@@ -521,28 +553,31 @@ Dictionary::Ptr IdoPgsqlConnection::FetchRow(const IdoPgsqlResult& result, int r
 {
 	AssertOnWorkQueue();
 
-	if (row >= PQntuples(result.get()))
+	if (row >= m_Pgsql->ntuples(result.get()))
 		return nullptr;
 
-	int columns = PQnfields(result.get());
+	int columns = m_Pgsql->nfields(result.get());
 
-	Dictionary::Ptr dict = new Dictionary();
+	DictionaryData dict;
 
 	for (int column = 0; column < columns; column++) {
 		Value value;
 
-		if (!PQgetisnull(result.get(), row, column))
-			value = PQgetvalue(result.get(), row, column);
+		if (!m_Pgsql->getisnull(result.get(), row, column))
+			value = m_Pgsql->getvalue(result.get(), row, column);
 
-		dict->Set(PQfname(result.get(), column), value);
+		dict.emplace_back(m_Pgsql->fname(result.get(), column), value);
 	}
 
-	return dict;
+	return new Dictionary(std::move(dict));
 }
 
 void IdoPgsqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 {
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalActivateObject, this, dbobj), PriorityLow);
+	if (IsPaused())
+		return;
+
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalActivateObject, this, dbobj), PriorityNormal);
 }
 
 void IdoPgsqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
@@ -558,12 +593,12 @@ void IdoPgsqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 	if (!dbref.IsValid()) {
 		if (!dbobj->GetName2().IsEmpty()) {
 			qbuf << "INSERT INTO " + GetTablePrefix() + "objects (instance_id, objecttype_id, name1, name2, is_active) VALUES ("
-			      << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
-			      << "E'" << Escape(dbobj->GetName1()) << "', E'" << Escape(dbobj->GetName2()) << "', 1)";
+				<< static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
+				<< "E'" << Escape(dbobj->GetName1()) << "', E'" << Escape(dbobj->GetName2()) << "', 1)";
 		} else {
 			qbuf << "INSERT INTO " + GetTablePrefix() + "objects (instance_id, objecttype_id, name1, is_active) VALUES ("
-			     << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
-			     << "E'" << Escape(dbobj->GetName1()) << "', 1)";
+				<< static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
+				<< "E'" << Escape(dbobj->GetName1()) << "', 1)";
 		}
 
 		Query(qbuf.str());
@@ -576,7 +611,10 @@ void IdoPgsqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 
 void IdoPgsqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 {
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalDeactivateObject, this, dbobj), PriorityLow);
+	if (IsPaused())
+		return;
+
+	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalDeactivateObject, this, dbobj), PriorityNormal);
 }
 
 void IdoPgsqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)
@@ -648,10 +686,8 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 		std::ostringstream msgbuf;
 		msgbuf << "TO_TIMESTAMP(" << ts << ") AT TIME ZONE 'UTC'";
 		*result = Value(msgbuf.str());
-	} else if (DbValue::IsTimestampNow(value)) {
-		*result = "NOW()";
 	} else if (DbValue::IsObjectInsertID(value)) {
-		long id = static_cast<long>(rawvalue);
+		auto id = static_cast<long>(rawvalue);
 
 		if (id <= 0)
 			return false;
@@ -674,6 +710,9 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 {
+	if (IsPaused())
+		return;
+
 	ASSERT(query.Category != DbCatInvalid);
 
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, -1), query.Priority, true);
@@ -681,6 +720,9 @@ void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 
 void IdoPgsqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& queries)
 {
+	if (IsPaused())
+		return;
+
 	if (queries.empty())
 		return;
 
@@ -723,6 +765,9 @@ void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 {
 	AssertOnWorkQueue();
 
+	if (IsPaused())
+		return;
+
 	if (!GetConnected())
 		return;
 
@@ -743,6 +788,9 @@ void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOverride)
 {
 	AssertOnWorkQueue();
+
+	if (IsPaused())
+		return;
 
 	if (!GetConnected())
 		return;
@@ -908,6 +956,9 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 void IdoPgsqlConnection::CleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
 {
+	if (IsPaused())
+		return;
+
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), PriorityLow, true);
 }
 
@@ -919,8 +970,8 @@ void IdoPgsqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 		return;
 
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
-	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
-	    " < TO_TIMESTAMP(" + Convert::ToString(static_cast<long>(max_age)) + ")");
+		Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
+		" < TO_TIMESTAMP(" + Convert::ToString(static_cast<long>(max_age)) + ") AT TIME ZONE 'UTC'");
 }
 
 void IdoPgsqlConnection::FillIDCache(const DbType::Ptr& type)
@@ -939,7 +990,7 @@ void IdoPgsqlConnection::FillIDCache(const DbType::Ptr& type)
 	}
 }
 
-int IdoPgsqlConnection::GetPendingQueryCount(void) const
+int IdoPgsqlConnection::GetPendingQueryCount() const
 {
 	return m_QueryQueue.GetLength();
 }

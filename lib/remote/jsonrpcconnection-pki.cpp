@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/jsonrpcconnection.hpp"
 #include "remote/apilistener.hpp"
@@ -30,6 +13,8 @@
 #include <boost/thread/once.hpp>
 #include <boost/regex.hpp>
 #include <fstream>
+#include <openssl/ssl.h>
+#include <openssl/x509.h>
 
 using namespace icinga;
 
@@ -40,9 +25,6 @@ REGISTER_APIFUNCTION(UpdateCertificate, pki, &UpdateCertificateHandler);
 
 Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	if (!params)
-		return Empty;
-
 	String certText = params->Get("cert_request");
 
 	std::shared_ptr<X509> cert;
@@ -50,10 +32,21 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	Dictionary::Ptr result = new Dictionary();
 
 	/* Use the presented client certificate if not provided. */
-	if (certText.IsEmpty())
-		cert = origin->FromClient->GetStream()->GetPeerCertificate();
-	else
+	if (certText.IsEmpty()) {
+		auto stream (origin->FromClient->GetStream());
+		cert = stream->next_layer().GetPeerCertificate();
+	} else {
 		cert = StringToCertificate(certText);
+	}
+
+	if (!cert) {
+		Log(LogWarning, "JsonRpcConnection") << "No certificate or CSR received";
+
+		result->Set("status_code", 1);
+		result->Set("error", "No certificate or CSR received.");
+
+		return result;
+	}
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	std::shared_ptr<X509> cacert = GetX509Certificate(listener->GetDefaultCaPath());
@@ -63,8 +56,8 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	bool signedByCA = VerifyCertificate(cacert, cert);
 
 	Log(LogInformation, "JsonRpcConnection")
-	    << "Received certificate request for CN '" << cn << "'"
-	    << (signedByCA ? "" : " not") << " signed by our CA.";
+		<< "Received certificate request for CN '" << cn << "'"
+		<< (signedByCA ? "" : " not") << " signed by our CA.";
 
 	if (signedByCA) {
 		time_t now;
@@ -79,9 +72,9 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		if (X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1) {
 
 			Log(LogInformation, "JsonRpcConnection")
-			    << "The certificate for CN '" << cn << "' cannot be renewed yet.";
+				<< "The certificate for CN '" << cn << "' is valid and uptodate. Skipping automated renewal.";
 			result->Set("status_code", 1);
-			result->Set("error", "The certificate for CN '" + cn + "' cannot be renewed yet.");
+			result->Set("error", "The certificate for CN '" + cn + "' is valid and uptodate. Skipping automated renewal.");
 			return result;
 		}
 	}
@@ -94,8 +87,8 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		result->Set("error", "Could not calculate fingerprint for the X509 certificate for CN '" + cn + "'.");
 
 		Log(LogWarning, "JsonRpcConnection")
-		    << "Could not calculate fingerprint for the X509 certificate requested for CN '"
-		    << cn << "'.";
+			<< "Could not calculate fingerprint for the X509 certificate requested for CN '"
+			<< cn << "'.";
 
 		return result;
 	}
@@ -121,17 +114,18 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 		if (!certResponse.IsEmpty()) {
 			Log(LogInformation, "JsonRpcConnection")
-			    << "Sending certificate response for CN '" << cn
-			    << "' to endpoint '" << client->GetIdentity() << "'.";
+				<< "Sending certificate response for CN '" << cn
+				<< "' to endpoint '" << client->GetIdentity() << "'.";
 
 			result->Set("cert", certResponse);
 			result->Set("status_code", 0);
 
-			Dictionary::Ptr message = new Dictionary();
-			message->Set("jsonrpc", "2.0");
-			message->Set("method", "pki::UpdateCertificate");
-			message->Set("params", result);
-			JsonRpc::SendMessage(client->GetStream(), message);
+			Dictionary::Ptr message = new Dictionary({
+				{ "jsonrpc", "2.0" },
+				{ "method", "pki::UpdateCertificate" },
+				{ "params", result }
+			});
+			client->SendMessage(message);
 
 			return result;
 		}
@@ -164,7 +158,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 		if (ticket != realTicket) {
 			Log(LogWarning, "JsonRpcConnection")
-			    << "Ticket for CN '" << cn << "' is invalid.";
+				<< "Ticket '" << ticket << "' for CN '" << cn << "' is invalid.";
 
 			result->Set("status_code", 1);
 			result->Set("error", "Invalid ticket for CN '" + cn + "'.");
@@ -183,25 +177,26 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	 * a certificate it wouldn't be able to use to connect to us anyway) */
 	if (!VerifyCertificate(cacert, newcert)) {
 		Log(LogWarning, "JsonRpcConnection")
-		    << "The CA in '" << listener->GetDefaultCaPath() << "' does not match the CA which Icinga uses "
-		    << "for its own cluster connections. This is most likely a configuration problem.";
+			<< "The CA in '" << listener->GetDefaultCaPath() << "' does not match the CA which Icinga uses "
+			<< "for its own cluster connections. This is most likely a configuration problem.";
 		goto delayed_request;
 	}
 
 	/* Send the signed certificate update. */
 	Log(LogInformation, "JsonRpcConnection")
-	    << "Sending certificate response for CN '" << cn << "' to endpoint '"
-	    << client->GetIdentity() << "'" << (!ticket.IsEmpty() ? " (auto-signing ticket)" : "" ) << ".";
+		<< "Sending certificate response for CN '" << cn << "' to endpoint '"
+		<< client->GetIdentity() << "'" << (!ticket.IsEmpty() ? " (auto-signing ticket)" : "" ) << ".";
 
 	result->Set("cert", CertificateToString(newcert));
 
 	result->Set("status_code", 0);
 
-	message = new Dictionary();
-	message->Set("jsonrpc", "2.0");
-	message->Set("method", "pki::UpdateCertificate");
-	message->Set("params", result);
-	JsonRpc::SendMessage(client->GetStream(), message);
+	message = new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "pki::UpdateCertificate" },
+		{ "params", result }
+	});
+	client->SendMessage(message);
 
 	return result;
 
@@ -209,9 +204,10 @@ delayed_request:
 	/* Send a delayed certificate signing request. */
 	Utility::MkDirP(requestDir, 0700);
 
-	Dictionary::Ptr request = new Dictionary();
-	request->Set("cert_request", CertificateToString(cert));
-	request->Set("ticket", params->Get("ticket"));
+	Dictionary::Ptr request = new Dictionary({
+		{ "cert_request", CertificateToString(cert) },
+		{ "ticket", params->Get("ticket") }
+	});
 
 	Utility::SaveJsonFile(requestPath, 0600, request);
 
@@ -221,7 +217,7 @@ delayed_request:
 	result->Set("error", "Certificate request for CN '" + cn + "' is pending. Waiting for approval from the parent Icinga instance.");
 
 	Log(LogInformation, "JsonRpcConnection")
-	    << "Certificate request for CN '" << cn << "' is pending. Waiting for approval.";
+		<< "Certificate request for CN '" << cn << "' is pending. Waiting for approval.";
 
 	return result;
 }
@@ -263,7 +259,7 @@ void JsonRpcConnection::SendCertificateRequest(const JsonRpcConnection::Ptr& acl
 	 * or b) the local zone and all parents.
 	 */
 	if (aclient)
-		JsonRpc::SendMessage(aclient->GetStream(), message);
+		aclient->SendMessage(message);
 	else
 		listener->RelayMessage(origin, Zone::GetLocalZone(), message, false);
 }
@@ -272,7 +268,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 {
 	if (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone)) {
 		Log(LogWarning, "ClusterEvents")
-		    << "Discarding 'update certificate' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+			<< "Discarding 'update certificate' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 
 		return Empty;
 	}
@@ -291,14 +287,14 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	String cn = GetCertificateCN(newCert);
 
 	Log(LogInformation, "JsonRpcConnection")
-	    << "Received certificate update message for CN '" << cn << "'";
+		<< "Received certificate update message for CN '" << cn << "'";
 
 	/* Check if this is a certificate update for a subordinate instance. */
 	std::shared_ptr<EVP_PKEY> oldKey = std::shared_ptr<EVP_PKEY>(X509_get_pubkey(oldCert.get()), EVP_PKEY_free);
 	std::shared_ptr<EVP_PKEY> newKey = std::shared_ptr<EVP_PKEY>(X509_get_pubkey(newCert.get()), EVP_PKEY_free);
 
 	if (X509_NAME_cmp(X509_get_subject_name(oldCert.get()), X509_get_subject_name(newCert.get())) != 0 ||
-	    EVP_PKEY_cmp(oldKey.get(), newKey.get()) != 1) {
+		EVP_PKEY_cmp(oldKey.get(), newKey.get()) != 1) {
 		String certFingerprint = params->Get("fingerprint_request");
 
 		/* Validate the fingerprint format. */
@@ -306,8 +302,8 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 
 		if (!boost::regex_match(certFingerprint.GetData(), expr)) {
 			Log(LogWarning, "JsonRpcConnection")
-			    << "Endpoint '" << origin->FromClient->GetIdentity() << "' sent an invalid certificate fingerprint: '"
-			    << certFingerprint << "' for CN '" << cn << "'.";
+				<< "Endpoint '" << origin->FromClient->GetIdentity() << "' sent an invalid certificate fingerprint: '"
+				<< certFingerprint << "' for CN '" << cn << "'.";
 			return Empty;
 		}
 
@@ -317,7 +313,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 		/* Save the received signed certificate request to disk. */
 		if (Utility::PathExists(requestPath)) {
 			Log(LogInformation, "JsonRpcConnection")
-			    << "Saved certificate update for CN '" << cn << "'";
+				<< "Saved certificate update for CN '" << cn << "'";
 
 			Dictionary::Ptr request = Utility::LoadJsonFile(requestPath);
 			request->Set("cert_response", cert);
@@ -331,59 +327,36 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	String caPath = listener->GetDefaultCaPath();
 
 	Log(LogInformation, "JsonRpcConnection")
-	    << "Updating CA certificate in '" << caPath << "'.";
+		<< "Updating CA certificate in '" << caPath << "'.";
 
 	std::fstream cafp;
 	String tempCaPath = Utility::CreateTempFile(caPath + ".XXXXXX", 0644, cafp);
 	cafp << ca;
 	cafp.close();
 
-#ifdef _WIN32
-	_unlink(caPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempCaPath.CStr(), caPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempCaPath));
-	}
+	Utility::RenameFile(tempCaPath, caPath);
 
 	/* Update signed certificate. */
 	String certPath = listener->GetDefaultCertPath();
 
 	Log(LogInformation, "JsonRpcConnection")
-	    << "Updating client certificate for CN '" << cn << "' in '" << certPath << "'.";
+		<< "Updating client certificate for CN '" << cn << "' in '" << certPath << "'.";
 
 	std::fstream certfp;
 	String tempCertPath = Utility::CreateTempFile(certPath + ".XXXXXX", 0644, certfp);
 	certfp << cert;
 	certfp.close();
 
-#ifdef _WIN32
-	_unlink(certPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempCertPath.CStr(), certPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempCertPath));
-	}
+	Utility::RenameFile(tempCertPath, certPath);
 
 	/* Remove ticket for successful signing request. */
 	String ticketPath = ApiListener::GetCertsDir() + "/ticket";
 
-	if (unlink(ticketPath.CStr()) < 0 && errno != ENOENT) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("unlink")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(ticketPath));
-	}
+	Utility::Remove(ticketPath);
 
 	/* Update the certificates at runtime and reconnect all endpoints. */
 	Log(LogInformation, "JsonRpcConnection")
-	    << "Updating the client certificate for CN '" << cn << "' at runtime and reconnecting the endpoints.";
+		<< "Updating the client certificate for CN '" << cn << "' at runtime and reconnecting the endpoints.";
 
 	listener->UpdateSSLContext();
 

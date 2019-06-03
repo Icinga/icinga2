@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/servicegroup.hpp"
-#include "icinga/servicegroup.tcpp"
+#include "icinga/servicegroup-ti.cpp"
 #include "config/objectrule.hpp"
 #include "config/configitem.hpp"
 #include "base/configtype.hpp"
@@ -37,13 +20,13 @@ INITIALIZE_ONCE([]() {
 
 bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigItem::Ptr& group)
 {
-	String group_name = group->GetName();
+	String groupName = group->GetName();
 
-	CONTEXT("Evaluating rule for group '" + group_name + "'");
+	CONTEXT("Evaluating rule for group '" + groupName + "'");
 
 	Host::Ptr host = service->GetHost();
 
-	ScriptFrame frame;
+	ScriptFrame frame(true);
 	if (group->GetScope())
 		group->GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("host", host);
@@ -53,10 +36,12 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigI
 		return false;
 
 	Log(LogDebug, "ServiceGroup")
-	    << "Assigning membership for group '" << group_name << "' to service '" << service->GetName() << "'";
+		<< "Assigning membership for group '" << groupName << "' to service '" << service->GetName() << "'";
 
 	Array::Ptr groups = service->GetGroups();
-	groups->Add(group_name);
+
+	if (groups && !groups->Contains(groupName))
+		groups->Add(groupName);
 
 	return true;
 }
@@ -74,7 +59,7 @@ void ServiceGroup::EvaluateObjectRules(const Service::Ptr& service)
 	}
 }
 
-std::set<Service::Ptr> ServiceGroup::GetMembers(void) const
+std::set<Service::Ptr> ServiceGroup::GetMembers() const
 {
 	boost::mutex::scoped_lock lock(m_ServiceGroupMutex);
 	return m_Members;
@@ -98,8 +83,8 @@ bool ServiceGroup::ResolveGroupMembership(const Service::Ptr& service, bool add,
 
 	if (add && rstack > 20) {
 		Log(LogWarning, "ServiceGroup")
-		    << "Too many nested groups for group '" << GetName() << "': Service '"
-		    << service->GetName() << "' membership assignment failed.";
+			<< "Too many nested groups for group '" << GetName() << "': Service '"
+			<< service->GetName() << "' membership assignment failed.";
 
 		return false;
 	}

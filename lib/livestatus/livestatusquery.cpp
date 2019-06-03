@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/livestatusquery.hpp"
 #include "livestatus/countaggregator.hpp"
@@ -41,9 +24,7 @@
 #include "base/serializer.hpp"
 #include "base/timer.hpp"
 #include "base/initialize.hpp"
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
@@ -53,7 +34,7 @@ static boost::mutex l_QueryMutex;
 
 LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path)
 	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1), m_ErrorCode(0),
-	  m_LogTimeFrom(0), m_LogTimeUntil(static_cast<long>(Utility::GetTime()))
+	m_LogTimeFrom(0), m_LogTimeUntil(static_cast<long>(Utility::GetTime()))
 {
 	if (lines.size() == 0) {
 		m_Verb = "ERROR";
@@ -71,10 +52,10 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	m_CompatLogPath = compat_log_path;
 
 	/* default separators */
-	m_Separators.push_back("\n");
-	m_Separators.push_back(";");
-	m_Separators.push_back(",");
-	m_Separators.push_back("|");
+	m_Separators.emplace_back("\n");
+	m_Separators.emplace_back(";");
+	m_Separators.emplace_back(",");
+	m_Separators.emplace_back("|");
 
 	String line = lines[0];
 
@@ -122,11 +103,10 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 			m_KeepAlive = (params == "on");
 		else if (header == "Columns") {
 			m_ColumnHeaders = false; // Might be explicitly re-enabled later on
-			boost::algorithm::split(m_Columns, params, boost::is_any_of(" "));
+			m_Columns = params.Split(" ");
 		} else if (header == "Separators") {
-			std::vector<String> separators;
+			std::vector<String> separators = params.Split(" ");
 
-			boost::algorithm::split(separators, params, boost::is_any_of(" "));
 			/* ugly ascii long to char conversion, but works */
 			if (separators.size() > 0)
 				m_Separators[0] = String(1, static_cast<char>(Convert::ToLong(separators[0])));
@@ -154,8 +134,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 		} else if (header == "Stats") {
 			m_ColumnHeaders = false; // Might be explicitly re-enabled later on
 
-			std::vector<String> tokens;
-			boost::algorithm::split(tokens, params, boost::is_any_of(" "));
+			std::vector<String> tokens = params.Split(" ");
 
 			if (tokens.size() < 2) {
 				m_Verb = "ERROR";
@@ -210,11 +189,11 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 			if (header == "Or" || header == "StatsOr") {
 				filter = new OrFilter();
 				Log(LogDebug, "LivestatusQuery")
-				    << "Add OR filter for " << params << " column(s). " << deq.size() << " filters available.";
+					<< "Add OR filter for " << params << " column(s). " << deq.size() << " filters available.";
 			} else {
 				filter = new AndFilter();
 				Log(LogDebug, "LivestatusQuery")
-				    << "Add AND filter for " << params << " column(s). " << deq.size() << " filters available.";
+					<< "Add AND filter for " << params << " column(s). " << deq.size() << " filters available.";
 			}
 
 			if (num > deq.size()) {
@@ -227,13 +206,13 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 			while (num > 0 && num--) {
 				filter->AddSubFilter(deq.back());
 				Log(LogDebug, "LivestatusQuery")
-				    << "Add " << num << " filter.";
+					<< "Add " << num << " filter.";
 				deq.pop_back();
 				if (&deq == &stats)
 					aggregators.pop_back();
 			}
 
-			deq.push_back(filter);
+			deq.emplace_back(filter);
 			if (&deq == &stats) {
 				Aggregator::Ptr aggregator = new CountAggregator();
 				aggregator->SetFilter(filter);
@@ -279,7 +258,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	m_Aggregators.swap(aggregators);
 }
 
-int LivestatusQuery::GetExternalCommands(void)
+int LivestatusQuery::GetExternalCommands()
 {
 	boost::mutex::scoped_lock lock(l_QueryMutex);
 
@@ -317,7 +296,7 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 	tokens.emplace_back(std::move(temp_buffer));
 
 	if (tokens.size() == 2)
-		tokens.push_back("");
+		tokens.emplace_back("");
 
 	if (tokens.size() < 3)
 		return nullptr;
@@ -356,7 +335,7 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 	}
 
 	Log(LogDebug, "LivestatusQuery")
-	    << "Parsed filter with attr: '" << attr << "' op: '" << op << "' val: '" << val << "'.";
+		<< "Parsed filter with attr: '" << attr << "' op: '" << op << "' val: '" << val << "'.";
 
 	return filter;
 }
@@ -459,7 +438,7 @@ String LivestatusQuery::QuoteStringPython(const String& str) {
 void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 {
 	Log(LogNotice, "LivestatusQuery")
-	    << "Table: " << m_Table;
+		<< "Table: " << m_Table;
 
 	Table::Ptr table = Table::GetByName(m_Table, m_CompatLogPath, m_LogTimeFrom, m_LogTimeUntil);
 
@@ -482,8 +461,6 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 	BeginResultSet(result);
 
 	if (m_Aggregators.empty()) {
-		Array::Ptr header = new Array();
-
 		typedef std::pair<String, Column> ColumnPair;
 
 		std::vector<ColumnPair> column_objs;
@@ -492,24 +469,26 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		for (const String& columnName : columns)
 			column_objs.emplace_back(columnName, table->GetColumn(columnName));
 
-		for (const LivestatusRowValue& object : objects) {
-			Array::Ptr row = new Array();
+		ArrayData header;
 
-			row->Reserve(column_objs.size());
+		for (const LivestatusRowValue& object : objects) {
+			ArrayData row;
+
+			row.reserve(column_objs.size());
 
 			for (const ColumnPair& cv : column_objs) {
 				if (m_ColumnHeaders)
-					header->Add(cv.first);
+					header.push_back(cv.first);
 
-				row->Add(cv.second.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
+				row.push_back(cv.second.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
 			}
 
 			if (m_ColumnHeaders) {
-				AppendResultRow(result, header, first_row);
+				AppendResultRow(result, new Array(std::move(header)), first_row);
 				m_ColumnHeaders = false;
 			}
 
-			AppendResultRow(result, row, first_row);
+			AppendResultRow(result, new Array(std::move(row)), first_row);
 		}
 	} else {
 		std::map<std::vector<Value>, std::vector<AggregatorState *> > allStats;
@@ -534,7 +513,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 			int index = 0;
 
-			for (const Aggregator::Ptr aggregator : m_Aggregators) {
+			for (const Aggregator::Ptr& aggregator : m_Aggregators) {
 				aggregator->Apply(table, object.Row, &stats[index]);
 				index++;
 			}
@@ -542,45 +521,47 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 		/* add column headers both for raw and aggregated data */
 		if (m_ColumnHeaders) {
-			Array::Ptr header = new Array();
+			ArrayData header;
 
 			for (const String& columnName : m_Columns) {
-				header->Add(columnName);
+				header.push_back(columnName);
 			}
 
 			for (size_t i = 1; i <= m_Aggregators.size(); i++) {
-				header->Add("stats_" + Convert::ToString(i));
+				header.push_back("stats_" + Convert::ToString(i));
 			}
 
-			AppendResultRow(result, header, first_row);
+			AppendResultRow(result, new Array(std::move(header)), first_row);
 		}
 
 		for (const auto& kv : allStats) {
-			Array::Ptr row = new Array();
+			ArrayData row;
 
-			row->Reserve(m_Columns.size() + m_Aggregators.size());
+			row.reserve(m_Columns.size() + m_Aggregators.size());
 
 			for (const Value& keyPart : kv.first) {
-				row->Add(keyPart);
+				row.push_back(keyPart);
 			}
 
 			auto& stats = kv.second;
 
 			for (size_t i = 0; i < m_Aggregators.size(); i++)
-				row->Add(m_Aggregators[i]->GetResultAndFreeState(stats[i]));
+				row.push_back(m_Aggregators[i]->GetResultAndFreeState(stats[i]));
 
-			AppendResultRow(result, row, first_row);
+			AppendResultRow(result, new Array(std::move(row)), first_row);
 		}
 
 		/* add a bogus zero value if aggregated is empty*/
 		if (allStats.empty()) {
-			Array::Ptr row = new Array();
+			ArrayData row;
+
+			row.reserve(m_Aggregators.size());
 
 			for (size_t i = 1; i <= m_Aggregators.size(); i++) {
-				row->Add(0);
+				row.push_back(0);
 			}
 
-			AppendResultRow(result, row, first_row);
+			AppendResultRow(result, new Array(std::move(row)), first_row);
 		}
 	}
 
@@ -598,7 +579,7 @@ void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 	}
 
 	Log(LogNotice, "LivestatusQuery")
-	    << "Executing command: " << m_Command;
+		<< "Executing command: " << m_Command;
 	ExternalCommandProcessor::Execute(m_Command);
 	SendResponse(stream, LivestatusErrorOK, "");
 }
@@ -606,7 +587,7 @@ void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 void LivestatusQuery::ExecuteErrorHelper(const Stream::Ptr& stream)
 {
 	Log(LogDebug, "LivestatusQuery")
-	    << "ERROR: Code: '" << m_ErrorCode << "' Message: '" << m_ErrorMessage << "'.";
+		<< "ERROR: Code: '" << m_ErrorCode << "' Message: '" << m_ErrorMessage << "'.";
 	SendResponse(stream, m_ErrorCode, m_ErrorMessage);
 }
 
@@ -644,7 +625,7 @@ bool LivestatusQuery::Execute(const Stream::Ptr& stream)
 {
 	try {
 		Log(LogNotice, "LivestatusQuery")
-		    << "Executing livestatus query: " << m_Verb;
+			<< "Executing livestatus query: " << m_Verb;
 
 		if (m_Verb == "GET")
 			ExecuteGetHelper(stream);

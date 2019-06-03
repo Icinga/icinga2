@@ -1,30 +1,16 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef OBJECT_H
 #define OBJECT_H
 
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
-#include <boost/thread/recursive_mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
 #include <boost/smart_ptr/intrusive_ptr.hpp>
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <mutex>
+#include <thread>
 #include <vector>
 
 using boost::intrusive_ptr;
@@ -41,7 +27,7 @@ class String;
 struct DebugInfo;
 class ValidationUtils;
 
-extern I2_BASE_API Value Empty;
+extern Value Empty;
 
 #define DECLARE_PTR_TYPEDEFS(klass) \
 	typedef intrusive_ptr<klass> Ptr
@@ -50,7 +36,7 @@ extern I2_BASE_API Value Empty;
 
 #define IMPL_TYPE_LOOKUP() 							\
 	static intrusive_ptr<Type> TypeInstance;				\
-	virtual intrusive_ptr<Type> GetReflectionType(void) const override	\
+	virtual intrusive_ptr<Type> GetReflectionType() const override		\
 	{									\
 		return TypeInstance;						\
 	}
@@ -59,11 +45,16 @@ extern I2_BASE_API Value Empty;
 	DECLARE_PTR_TYPEDEFS(klass); \
 	IMPL_TYPE_LOOKUP();
 
+#define REQUIRE_NOT_NULL(ptr) RequireNotNullInternal(ptr, #ptr)
+
+void RequireNotNullInternal(const intrusive_ptr<Object>& object, const char *description);
+
+void DefaultObjectFactoryCheckArgs(const std::vector<Value>& args);
+
 template<typename T>
 intrusive_ptr<Object> DefaultObjectFactory(const std::vector<Value>& args)
 {
-	if (!args.empty())
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Constructor does not take any arguments."));
+	DefaultObjectFactoryCheckArgs(args);
 
 	return new T();
 }
@@ -84,7 +75,7 @@ struct TypeHelper
 template<typename T>
 struct TypeHelper<T, false>
 {
-	static ObjectFactory GetFactory(void)
+	static ObjectFactory GetFactory()
 	{
 		return DefaultObjectFactory<T>;
 	}
@@ -93,10 +84,67 @@ struct TypeHelper<T, false>
 template<typename T>
 struct TypeHelper<T, true>
 {
-	static ObjectFactory GetFactory(void)
+	static ObjectFactory GetFactory()
 	{
 		return DefaultObjectFactoryVA<T>;
 	}
+};
+
+template<typename T>
+struct Lazy
+{
+	using Accessor = std::function<T ()>;
+
+	explicit Lazy(T value)
+		: m_Cached(true), m_Value(value)
+ 	{ }
+
+	explicit Lazy(Accessor accessor)
+		: m_Accessor(accessor)
+	{ }
+
+	template<typename U>
+	explicit Lazy(const Lazy<U>& other)
+	{
+		if (other.m_Cached) {
+			m_Accessor = Accessor();
+			m_Value = static_cast<T>(other.m_Value);
+			m_Cached = true;
+		} else {
+			auto accessor = other.m_Accessor;
+			m_Accessor = [accessor]() { return static_cast<T>(accessor()); };
+			m_Cached = false;
+		}
+	}
+
+	template<typename U>
+	operator Lazy<U>() const
+	{
+		if (m_Cached)
+			return Lazy<U>(static_cast<U>(m_Value));
+		else {
+			Accessor accessor = m_Accessor;
+			return Lazy<U>(static_cast<typename Lazy<U>::Accessor>([accessor]() { return static_cast<U>(accessor()); }));
+		}
+	}
+
+	const T& operator()() const
+	{
+		if (!m_Cached) {
+			m_Value = m_Accessor();
+			m_Cached = true;
+		}
+
+		return m_Value;
+	}
+
+private:
+	Accessor m_Accessor;
+	mutable bool m_Cached{false};
+	mutable T m_Value;
+
+	template<typename U>
+	friend struct Lazy;
 };
 
 /**
@@ -105,53 +153,50 @@ struct TypeHelper<T, true>
  *
  * @ingroup base
  */
-class I2_BASE_API Object
+class Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Object);
 
-	Object(void);
-	virtual ~Object(void);
+	Object();
+	virtual ~Object();
 
-	virtual String ToString(void) const;
+	virtual String ToString() const;
 
-	virtual intrusive_ptr<Type> GetReflectionType(void) const;
+	virtual intrusive_ptr<Type> GetReflectionType() const;
 
 	virtual void Validate(int types, const ValidationUtils& utils);
 
 	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty);
 	virtual Value GetField(int id) const;
 	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const;
-	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo);
+	virtual void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo);
 	virtual bool HasOwnField(const String& field) const;
 	virtual bool GetOwnField(const String& field, Value *result) const;
-	virtual void ValidateField(int id, const Value& value, const ValidationUtils& utils);
+	virtual void ValidateField(int id, const Lazy<Value>& lvalue, const ValidationUtils& utils);
 	virtual void NotifyField(int id, const Value& cookie = Empty);
 	virtual Object::Ptr NavigateField(int id) const;
 
 #ifdef I2_DEBUG
-	bool OwnsLock(void) const;
+	bool OwnsLock() const;
 #endif /* I2_DEBUG */
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
-	virtual Object::Ptr Clone(void) const;
+	virtual Object::Ptr Clone() const;
 
 	static intrusive_ptr<Type> TypeInstance;
 
 private:
-	Object(const Object& other);
-	Object& operator=(const Object& rhs);
+	Object(const Object& other) = delete;
+	Object& operator=(const Object& rhs) = delete;
 
-	uintptr_t m_References;
-	mutable uintptr_t m_Mutex;
+	std::atomic<uint_fast64_t> m_References;
+	mutable std::recursive_mutex m_Mutex;
 
 #ifdef I2_DEBUG
-#	ifndef _WIN32
-	mutable pthread_t m_LockOwner;
-#	else /* _WIN32 */
-	mutable DWORD m_LockOwner;
-#	endif /* _WIN32 */
+	mutable std::atomic<std::thread::id> m_LockOwner;
+	mutable size_t m_LockCount = 0;
 #endif /* I2_DEBUG */
 
 	friend struct ObjectLock;
@@ -160,43 +205,13 @@ private:
 	friend void intrusive_ptr_release(Object *object);
 };
 
-I2_BASE_API Value GetPrototypeField(const Value& context, const String& field, bool not_found_error, const DebugInfo& debugInfo);
+Value GetPrototypeField(const Value& context, const String& field, bool not_found_error, const DebugInfo& debugInfo);
 
-I2_BASE_API void TypeAddObject(Object *object);
-I2_BASE_API void TypeRemoveObject(Object *object);
+void TypeAddObject(Object *object);
+void TypeRemoveObject(Object *object);
 
-inline void intrusive_ptr_add_ref(Object *object)
-{
-#ifdef I2_LEAK_DEBUG
-	if (object->m_References == 0)
-		TypeAddObject(object);
-#endif /* I2_LEAK_DEBUG */
-
-#ifdef _WIN32
-	InterlockedIncrement(&object->m_References);
-#else /* _WIN32 */
-	__sync_add_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
-}
-
-inline void intrusive_ptr_release(Object *object)
-{
-	uintptr_t refs;
-
-#ifdef _WIN32
-	refs = InterlockedDecrement(&object->m_References);
-#else /* _WIN32 */
-	refs = __sync_sub_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
-
-	if (unlikely(refs == 0)) {
-#ifdef I2_LEAK_DEBUG
-		TypeRemoveObject(object);
-#endif /* I2_LEAK_DEBUG */
-
-		delete object;
-	}
-}
+void intrusive_ptr_add_ref(Object *object);
+void intrusive_ptr_release(Object *object);
 
 template<typename T>
 class ObjectImpl

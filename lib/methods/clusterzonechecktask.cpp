@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "methods/clusterzonechecktask.hpp"
 #include "icinga/checkcommand.hpp"
@@ -29,11 +12,14 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, ClusterZoneCheck, &ClusterZoneCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, ClusterZoneCheck, &ClusterZoneCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	REQUIRE_NOT_NULL(checkable);
+	REQUIRE_NOT_NULL(cr);
+
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
 	if (!listener) {
@@ -58,16 +44,16 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String zoneName = MacroProcessor::ResolveMacros("$cluster_zone$", resolvers, checkable->GetLastCheckResult(),
-	    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	String missingLagWarning;
 	String missingLagCritical;
 
 	double lagWarning = MacroProcessor::ResolveMacros("$cluster_lag_warning$", resolvers, checkable->GetLastCheckResult(),
-	    &missingLagWarning, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+		&missingLagWarning, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	double lagCritical = MacroProcessor::ResolveMacros("$cluster_lag_critical$", resolvers, checkable->GetLastCheckResult(),
-	    &missingLagCritical, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+		&missingLagCritical, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;
@@ -119,34 +105,34 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 		bytesReceivedPerSecond += endpoint->GetBytesReceivedPerSecond();
 	}
 
-	if (!connected) {
-		cr->SetState(ServiceCritical);
-		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(zoneLag));
-	} else {
+	if (connected) {
 		cr->SetState(ServiceOK);
 		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag));
-	}
 
-	/* Check whether the thresholds have been resolved and compare them */
-	if (missingLagCritical.IsEmpty() && zoneLag > lagCritical) {
+		/* Check whether the thresholds have been resolved and compare them */
+		if (missingLagCritical.IsEmpty() && zoneLag > lagCritical) {
+			cr->SetState(ServiceCritical);
+			cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
+				+ " greater than critical threshold: " + Utility::FormatDuration(lagCritical));
+		} else if (missingLagWarning.IsEmpty() && zoneLag > lagWarning) {
+			cr->SetState(ServiceWarning);
+			cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
+				+ " greater than warning threshold: " + Utility::FormatDuration(lagWarning));
+		}
+	} else {
 		cr->SetState(ServiceCritical);
-		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
-		    + " greater than critical threshold: " + Utility::FormatDuration(lagCritical));
-	} else if (missingLagWarning.IsEmpty() && zoneLag > lagWarning) {
-		cr->SetState(ServiceWarning);
-		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
-		    + " greater than warning threshold: " + Utility::FormatDuration(lagWarning));
+		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(zoneLag));
 	}
 
-	Array::Ptr perfdata = new Array();
-	perfdata->Add(new PerfdataValue("slave_lag", zoneLag, false, "s", lagWarning, lagCritical));
-	perfdata->Add(new PerfdataValue("last_messages_sent", lastMessageSent));
-	perfdata->Add(new PerfdataValue("last_messages_received", lastMessageReceived));
-	perfdata->Add(new PerfdataValue("sum_messages_sent_per_second", messagesSentPerSecond));
-	perfdata->Add(new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond));
-	perfdata->Add(new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond));
-	perfdata->Add(new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond));
-	cr->SetPerformanceData(perfdata);
+	cr->SetPerformanceData(new Array({
+		new PerfdataValue("slave_lag", zoneLag, false, "s", lagWarning, lagCritical),
+		new PerfdataValue("last_messages_sent", lastMessageSent),
+		new PerfdataValue("last_messages_received", lastMessageReceived),
+		new PerfdataValue("sum_messages_sent_per_second", messagesSentPerSecond),
+		new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond),
+		new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond),
+		new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond)
+	}));
 
 	checkable->ProcessCheckResult(cr);
 }

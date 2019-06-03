@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/objectlistcommand.hpp"
 #include "cli/objectlistutility.hpp"
@@ -41,18 +24,18 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("object/list", ObjectListCommand);
 
-String ObjectListCommand::GetDescription(void) const
+String ObjectListCommand::GetDescription() const
 {
 	return "Lists all Icinga 2 objects.";
 }
 
-String ObjectListCommand::GetShortDescription(void) const
+String ObjectListCommand::GetShortDescription() const
 {
 	return "lists all objects";
 }
 
 void ObjectListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("count,c", "display object counts by types")
@@ -67,11 +50,11 @@ void ObjectListCommand::InitParameters(boost::program_options::options_descripti
  */
 int ObjectListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String objectfile = Application::GetObjectsPath();
+	String objectfile = Configuration::ObjectsPath;
 
 	if (!Utility::PathExists(objectfile)) {
 		Log(LogCritical, "cli")
-		    << "Cannot open objects file '" << Application::GetObjectsPath() << "'.";
+			<< "Cannot open objects file '" << Configuration::ObjectsPath << "'.";
 		Log(LogCritical, "cli", "Run 'icinga2 daemon -C' to validate config and generate the cache file.");
 		return 1;
 	}
@@ -119,7 +102,7 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	}
 
 	Log(LogNotice, "cli")
-	    << "Parsed " << objects_count << " objects.";
+		<< "Parsed " << objects_count << " objects.";
 
 	return 0;
 }

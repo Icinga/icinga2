@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef MAXAGGREGATOR_H
 #define MAXAGGREGATOR_H
@@ -29,27 +12,23 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-struct I2_LIVESTATUS_API MaxAggregatorState : public AggregatorState
+struct MaxAggregatorState final : public AggregatorState
 {
-	MaxAggregatorState(void)
-	    : Max(0)
-	{ }
-
-	double Max;
+	double Max{0};
 };
 
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API MaxAggregator : public Aggregator
+class MaxAggregator final : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(MaxAggregator);
 
-	MaxAggregator(const String& attr);
+	MaxAggregator(String attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
-	virtual double GetResultAndFreeState(AggregatorState *state) const override;
+	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
+	double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
 	String m_MaxAttr;

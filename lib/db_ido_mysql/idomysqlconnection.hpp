@@ -1,30 +1,14 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef IDOMYSQLCONNECTION_H
 #define IDOMYSQLCONNECTION_H
 
-#include "db_ido_mysql/idomysqlconnection.thpp"
+#include "db_ido_mysql/idomysqlconnection-ti.hpp"
+#include "mysql_shim/mysqlinterface.hpp"
 #include "base/array.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include <mysql.h>
+#include "base/library.hpp"
 
 namespace icinga
 {
@@ -44,35 +28,36 @@ struct IdoAsyncQuery
  *
  * @ingroup ido
  */
-class IdoMysqlConnection : public ObjectImpl<IdoMysqlConnection>
+class IdoMysqlConnection final : public ObjectImpl<IdoMysqlConnection>
 {
 public:
 	DECLARE_OBJECT(IdoMysqlConnection);
 	DECLARE_OBJECTNAME(IdoMysqlConnection);
 
-	IdoMysqlConnection(void);
-
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual int GetPendingQueryCount(void) const override;
+	int GetPendingQueryCount() const override;
 
 protected:
-	virtual void OnConfigLoaded(void) override;
-	virtual void Resume(void) override;
-	virtual void Pause(void) override;
+	void OnConfigLoaded() override;
+	void Resume() override;
+	void Pause() override;
 
-	virtual void ActivateObject(const DbObject::Ptr& dbobj) override;
-	virtual void DeactivateObject(const DbObject::Ptr& dbobj) override;
-	virtual void ExecuteQuery(const DbQuery& query) override;
-	virtual void ExecuteMultipleQueries(const std::vector<DbQuery>& queries) override;
-	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) override;
-	virtual void FillIDCache(const DbType::Ptr& type) override;
-	virtual void NewTransaction(void) override;
+	void ActivateObject(const DbObject::Ptr& dbobj) override;
+	void DeactivateObject(const DbObject::Ptr& dbobj) override;
+	void ExecuteQuery(const DbQuery& query) override;
+	void ExecuteMultipleQueries(const std::vector<DbQuery>& queries) override;
+	void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) override;
+	void FillIDCache(const DbType::Ptr& type) override;
+	void NewTransaction() override;
 
 private:
 	DbReference m_InstanceID;
 
-	WorkQueue m_QueryQueue;
+	WorkQueue m_QueryQueue{10000000};
+
+	Library m_Library;
+	std::unique_ptr<MysqlInterface, MysqlInterfaceDeleter> m_Mysql;
 
 	MYSQL m_Connection;
 	int m_AffectedRows;
@@ -84,26 +69,26 @@ private:
 	Timer::Ptr m_TxTimer;
 
 	IdoMysqlResult Query(const String& query);
-	DbReference GetLastInsertID(void);
-	int GetAffectedRows(void);
+	DbReference GetLastInsertID();
+	int GetAffectedRows();
 	String Escape(const String& s);
 	Dictionary::Ptr FetchRow(const IdoMysqlResult& result);
 	void DiscardRows(const IdoMysqlResult& result);
 
 	void AsyncQuery(const String& query, const IdoAsyncCallback& callback = IdoAsyncCallback());
-	void FinishAsyncQueries(void);
+	void FinishAsyncQueries();
 
 	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
 	void InternalActivateObject(const DbObject::Ptr& dbobj);
 	void InternalDeactivateObject(const DbObject::Ptr& dbobj);
 
-	void Disconnect(void);
-	void Reconnect(void);
+	void Disconnect();
+	void Reconnect();
 
-	void AssertOnWorkQueue(void);
+	void AssertOnWorkQueue();
 
-	void TxTimerHandler(void);
-	void ReconnectTimerHandler(void);
+	void TxTimerHandler();
+	void ReconnectTimerHandler();
 
 	bool CanExecuteQuery(const DbQuery& query);
 
@@ -112,10 +97,10 @@ private:
 
 	void FinishExecuteQuery(const DbQuery& query, int type, bool upsert);
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
-	void InternalNewTransaction(void);
+	void InternalNewTransaction();
 
 	void ClearTableBySession(const String& table);
-	void ClearTablesBySession(void);
+	void ClearTablesBySession();
 
 	void ExceptionHandler(boost::exception_ptr exp);
 

@@ -1,50 +1,42 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/actionshandler.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
 #include "base/exception.hpp"
-#include "base/serializer.hpp"
 #include "base/logger.hpp"
-#include <boost/algorithm/string.hpp>
 #include <set>
 
 using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
-bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool ActionsHandler::HandleRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	HttpServerConnection& server
+)
 {
-	if (request.RequestUrl->GetPath().size() != 3)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() != 3)
 		return false;
 
-	if (request.RequestMethod != "POST")
+	if (request.method() != http::verb::post)
 		return false;
 
-	String actionName = request.RequestUrl->GetPath()[2];
+	String actionName = url->GetPath()[2];
 
 	ApiAction::Ptr action = ApiAction::GetByName(actionName);
 
 	if (!action) {
-		HttpUtility::SendJsonError(response, 404, "Action '" + actionName + "' does not exist.");
+		HttpUtility::SendJsonError(response, params, 404, "Action '" + actionName + "' does not exist.");
 		return true;
 	}
 
@@ -62,40 +54,59 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		try {
 			objs = FilterUtility::GetFilterTargets(qd, params, user);
 		} catch (const std::exception& ex) {
-			HttpUtility::SendJsonError(response, 404,
-			    "No objects found.",
-			    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			HttpUtility::SendJsonError(response, params, 404,
+				"No objects found.",
+				DiagnosticInformation(ex));
 			return true;
 		}
 	} else {
 		FilterUtility::CheckPermission(user, permission);
-		objs.push_back(nullptr);
+		objs.emplace_back(nullptr);
 	}
 
-	Array::Ptr results = new Array();
+	ArrayData results;
 
 	Log(LogNotice, "ApiActionHandler")
-	    << "Running action " << actionName;
+		<< "Running action " << actionName;
+
+	bool verbose = false;
+
+	if (params)
+		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
 	for (const ConfigObject::Ptr& obj : objs) {
 		try {
-			results->Add(action->Invoke(obj, params));
+			results.emplace_back(action->Invoke(obj, params));
 		} catch (const std::exception& ex) {
-			Dictionary::Ptr fail = new Dictionary();
-			fail->Set("code", 500);
-			fail->Set("status", "Action execution failed: '" + DiagnosticInformation(ex, false) + "'.");
-			if (HttpUtility::GetLastParameter(params, "verboseErrors"))
-				fail->Set("diagnostic information", DiagnosticInformation(ex));
-			results->Add(fail);
+			Dictionary::Ptr fail = new Dictionary({
+				{ "code", 500 },
+				{ "status", "Action execution failed: '" + DiagnosticInformation(ex, false) + "'." }
+			});
+
+			/* Exception for actions. Normally we would handle this inside SendJsonError(). */
+			if (verbose)
+				fail->Set("diagnostic_information", DiagnosticInformation(ex));
+
+			results.emplace_back(std::move(fail));
 		}
 	}
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	int statusCode = 500;
 
-	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	for (const Dictionary::Ptr& res : results) {
+		if (res->Contains("code") && res->Get("code") == 200) {
+			statusCode = 200;
+			break;
+		}
+	}
+
+	response.result(statusCode);
+
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(results)) }
+	});
+
+	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }
-

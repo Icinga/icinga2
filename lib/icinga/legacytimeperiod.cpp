@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/legacytimeperiod.hpp"
 #include "base/function.hpp"
@@ -25,12 +8,10 @@
 #include "base/logger.hpp"
 #include "base/debug.hpp"
 #include "base/utility.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, LegacyTimePeriod, &LegacyTimePeriod::ScriptFunc, "tp:begin:end");
+REGISTER_FUNCTION_NONCONST(Internal, LegacyTimePeriod, &LegacyTimePeriod::ScriptFunc, "tp:begin:end");
 
 bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *reference)
 {
@@ -44,7 +25,7 @@ bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *referen
 
 	int daynumber = (tsref - tsbegin) / (24 * 60 * 60);
 
-	if (stride > 1 && daynumber % stride == 0)
+	if (stride > 1 && daynumber % stride > 0)
 		return false;
 
 	return true;
@@ -171,8 +152,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 		return;
 	}
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, timespec, boost::is_any_of(" "));
+	std::vector<String> tokens = timespec.Split(" ");
 
 	int mon = -1;
 
@@ -327,28 +307,25 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
 	Log(LogDebug, "LegacyTimePeriod")
-	    << "ParseTimeRange: '" << daydef << "' => " << mktime(&begin)
-	    << " -> " << mktime(&end) << ", stride: " << stride;
+		<< "ParseTimeRange: '" << daydef << "' => " << mktime(&begin)
+		<< " -> " << mktime(&end) << ", stride: " << stride;
 
 	return IsInTimeRange(&begin, &end, stride, reference);
 }
 
 void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *reference, tm *begin, tm *end)
 {
-	std::vector<String> times;
-
-	boost::algorithm::split(times, timerange, boost::is_any_of("-"));
+	std::vector<String> times = timerange.Split("-");
 
 	if (times.size() != 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid timerange: " + timerange));
 
-	std::vector<String> hd1, hd2;
-	boost::algorithm::split(hd1, times[0], boost::is_any_of(":"));
+	std::vector<String> hd1 = times[0].Split(":");
 
 	if (hd1.size() != 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + times[0]));
 
-	boost::algorithm::split(hd2, times[1], boost::is_any_of(":"));
+	std::vector<String> hd2 = times[1].Split(":");
 
 	if (hd2.size() != 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + times[1]));
@@ -364,7 +341,7 @@ void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *referenc
 	end->tm_hour = Convert::ToLong(hd2[0]);
 
 	if (begin->tm_hour * 3600 + begin->tm_min * 60 + begin->tm_sec >=
-	    end->tm_hour * 3600 + end->tm_min * 60 + end->tm_sec)
+		end->tm_hour * 3600 + end->tm_min * 60 + end->tm_sec)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Time period segment ends before it begins"));
 }
 
@@ -374,17 +351,15 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *
 
 	ProcessTimeRangeRaw(timestamp, reference, &begin, &end);
 
-	Dictionary::Ptr segment = new Dictionary();
-	segment->Set("begin", (long)mktime(&begin));
-	segment->Set("end", (long)mktime(&end));
-	return segment;
+	return new Dictionary({
+		{ "begin", (long)mktime(&begin) },
+		{ "end", (long)mktime(&end) }
+	});
 }
 
 void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference, const Array::Ptr& result)
 {
-	std::vector<String> ranges;
-
-	boost::algorithm::split(ranges, timeranges, boost::is_any_of(","));
+	std::vector<String> ranges = timeranges.Split(",");
 
 	for (const String& range : ranges) {
 		Dictionary::Ptr segment = ProcessTimeRange(range, reference);
@@ -394,6 +369,56 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference
 
 		result->Add(segment);
 	}
+}
+
+Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const String& timeranges, tm *reference)
+{
+	tm begin, end, iter;
+	time_t tsend, tsiter, tsref;
+	int stride;
+
+	tsref = mktime(reference);
+
+	ParseTimeRange(daydef, &begin, &end, &stride, reference);
+
+	iter = begin;
+
+	tsend = mktime(&end);
+
+	do {
+		if (IsInTimeRange(&begin, &end, stride, &iter)) {
+			Array::Ptr segments = new Array();
+			ProcessTimeRanges(timeranges, &iter, segments);
+
+			Dictionary::Ptr bestSegment;
+			double bestEnd = 0.0;
+
+			ObjectLock olock(segments);
+			for (const Dictionary::Ptr& segment : segments) {
+				double begin = segment->Get("begin");
+				double end = segment->Get("end");
+
+				if (begin >= tsref || end < tsref)
+					continue;
+
+				if (!bestSegment || end > bestEnd) {
+					bestSegment = segment;
+					bestEnd = end;
+				}
+			}
+
+			if (bestSegment)
+				return bestSegment;
+		}
+
+		iter.tm_mday++;
+		iter.tm_hour = 0;
+		iter.tm_min = 0;
+		iter.tm_sec = 0;
+		tsiter = mktime(&iter);
+	} while (tsiter < tsend);
+
+	return nullptr;
 }
 
 Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const String& timeranges, tm *reference)
@@ -467,7 +492,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 
 #ifdef I2_DEBUG
 			Log(LogDebug, "LegacyTimePeriod")
-			    << "Checking reference time " << refts;
+				<< "Checking reference time " << refts;
 #endif /* I2_DEBUG */
 
 			ObjectLock olock(ranges);
@@ -475,14 +500,14 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 				if (!IsInDayDefinition(kv.first, &reference)) {
 #ifdef I2_DEBUG
 					Log(LogDebug, "LegacyTimePeriod")
-					    << "Not in day definition '" << kv.first << "'.";
+						<< "Not in day definition '" << kv.first << "'.";
 #endif /* I2_DEBUG */
 					continue;
 				}
 
 #ifdef I2_DEBUG
 				Log(LogDebug, "LegacyTimePeriod")
-				    << "In day definition '" << kv.first << "'.";
+					<< "In day definition '" << kv.first << "'.";
 #endif /* I2_DEBUG */
 
 				ProcessTimeRanges(kv.second, &reference, segments);
@@ -491,7 +516,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 	}
 
 	Log(LogDebug, "LegacyTimePeriod")
-	    << "Legacy timeperiod update returned " << segments->GetLength() << " segments.";
+		<< "Legacy timeperiod update returned " << segments->GetLength() << " segments.";
 
 	return segments;
 }

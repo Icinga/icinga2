@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/host.hpp"
 #include <bitset>
@@ -47,15 +30,16 @@ static void LogFlapping(const Checkable::Ptr& obj)
 	std::bitset<20> stateChangeBuf = obj->GetFlappingBuffer();
 	int oldestIndex = (obj->GetFlappingBuffer() & 0xFF00000) >> 20;
 
-    std::cout << "Flapping: " << obj->IsFlapping() << "\nHT: " << obj->GetFlappingThresholdHigh() << " LT: " << obj->GetFlappingThresholdLow()
-       << "\nOur value: " << obj->GetFlappingCurrent() << "\nPtr: " << oldestIndex << " Buf: " << stateChangeBuf.to_ulong() << '\n';
+	std::cout << "Flapping: " << obj->IsFlapping() << "\nHT: " << obj->GetFlappingThresholdHigh() << " LT: "
+		<< obj->GetFlappingThresholdLow() << "\nOur value: " << obj->GetFlappingCurrent() << "\nPtr: " << oldestIndex
+		<< " Buf: " << stateChangeBuf.to_ulong() << '\n';
 }
 
 
 static void LogHostStatus(const Host::Ptr &host)
 {
 	std::cout << "Current status: state: " << host->GetState() << " state_type: " << host->GetStateType()
-	    << " check attempt: " << host->GetCheckAttempt() << "/" << host->GetMaxCheckAttempts() << std::endl;
+		<< " check attempt: " << host->GetCheckAttempt() << "/" << host->GetMaxCheckAttempts() << " Active: " << host->IsActive() << std::endl;
 }
 #endif /* I2_DEBUG */
 
@@ -64,7 +48,7 @@ BOOST_AUTO_TEST_SUITE(icinga_checkable_flapping)
 BOOST_AUTO_TEST_CASE(host_not_flapping)
 {
 #ifndef I2_DEBUG
-    BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
 	std::cout << "Running test with a non-flapping host...\n";
 
@@ -72,6 +56,7 @@ BOOST_AUTO_TEST_CASE(host_not_flapping)
 	host->SetName("test");
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
+	host->SetActive(true);
 
 	// Host otherwise is soft down
 	host->SetState(HostUp);
@@ -107,7 +92,7 @@ BOOST_AUTO_TEST_CASE(host_not_flapping)
 BOOST_AUTO_TEST_CASE(host_flapping)
 {
 #ifndef I2_DEBUG
-    BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
 	std::cout << "Running test with host changing state with every check...\n";
 
@@ -115,6 +100,7 @@ BOOST_AUTO_TEST_CASE(host_flapping)
 	host->SetName("test");
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
+	host->SetActive(true);
 
 	Utility::SetTime(0);
 
@@ -141,7 +127,7 @@ BOOST_AUTO_TEST_CASE(host_flapping)
 BOOST_AUTO_TEST_CASE(host_flapping_recover)
 {
 #ifndef I2_DEBUG
-    BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
 	std::cout << "Running test with flapping recovery...\n";
 
@@ -149,6 +135,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_recover)
 	host->SetName("test");
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
+	host->SetActive(true);
 
 	// Host otherwise is soft down
 	host->SetState(HostUp);
@@ -156,7 +143,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_recover)
 
 	Utility::SetTime(0);
 
-	// A few warning 
+	// A few warning
 	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
 	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
 	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
@@ -200,7 +187,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_recover)
 BOOST_AUTO_TEST_CASE(host_flapping_docs_example)
 {
 #ifndef I2_DEBUG
-    BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
 	std::cout << "Simulating the documentation example...\n";
 
@@ -208,6 +195,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_docs_example)
 	host->SetName("test");
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
+	host->SetActive(true);
 
 	// Host otherwise is soft down
 	host->SetState(HostUp);

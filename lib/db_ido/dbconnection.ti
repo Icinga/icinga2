@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "db_ido/dbquery.hpp"
 #include "base/configobject.hpp"
@@ -37,20 +20,19 @@ abstract class DbConnection : ConfigObject
 
 	[config] Array::Ptr categories {
 		default {{{
-			Array::Ptr cat = new Array();
-			cat->Add("DbCatConfig");
-			cat->Add("DbCatState");
-			cat->Add("DbCatAcknowledgement");
-			cat->Add("DbCatComment");
-			cat->Add("DbCatDowntime");
-			cat->Add("DbCatEventHandler");
-			cat->Add("DbCatFlapping");
-			cat->Add("DbCatNotification");
-			cat->Add("DbCatProgramStatus");
-			cat->Add("DbCatRetention");
-			cat->Add("DbCatStateHistory");
-
-			return cat;
+			return new Array({
+				"DbCatConfig",
+				"DbCatState",
+				"DbCatAcknowledgement",
+				"DbCatComment",
+				"DbCatDowntime",
+				"DbCatEventHandler",
+				"DbCatFlapping",
+				"DbCatNotification",
+				"DbCatProgramStatus",
+				"DbCatRetention",
+				"DbCatStateHistory"
+			});
 		}}}
 	};
 	[no_user_view, no_user_modify] int categories_filter_real (CategoryFilter);
@@ -60,8 +42,10 @@ abstract class DbConnection : ConfigObject
 	};
 
 	[config] double failover_timeout {
-		default {{{ return 60; }}}
+		default {{{ return 30; }}}
 	};
+
+	[state, no_user_modify] double last_failover;
 
 	[no_user_modify] String schema_version;
 	[no_user_modify] bool connected;

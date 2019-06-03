@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/table.hpp"
 #include "livestatus/statustable.hpp"
@@ -37,12 +20,11 @@
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
-#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
 Table::Table(LivestatusGroupByType type)
-    : m_GroupByType(type), m_GroupByObject(Empty)
+	: m_GroupByType(type), m_GroupByObject(Empty)
 { }
 
 Table::Ptr Table::GetByName(const String& name, const String& compat_log_path, const unsigned long& from, const unsigned long& until)
@@ -113,7 +95,7 @@ Column Table::GetColumn(const String& name) const
 	return it->second;
 }
 
-std::vector<String> Table::GetColumnNames(void) const
+std::vector<String> Table::GetColumnNames() const
 {
 	std::vector<String> names;
 
@@ -175,7 +157,7 @@ Value Table::EmptyDictionaryAccessor(const Value&)
 	return new Dictionary();
 }
 
-LivestatusGroupByType Table::GetGroupByType(void) const
+LivestatusGroupByType Table::GetGroupByType() const
 {
 	return m_GroupByType;
 }

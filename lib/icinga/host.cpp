@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/host.hpp"
-#include "icinga/host.tcpp"
+#include "icinga/host-ti.cpp"
 #include "icinga/service.hpp"
 #include "icinga/hostgroup.hpp"
 #include "icinga/pluginutility.hpp"
@@ -33,7 +16,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Host);
 
-void Host::OnAllConfigLoaded(void)
+void Host::OnAllConfigLoaded()
 {
 	ObjectImpl<Host>::OnAllConfigLoaded();
 
@@ -99,7 +82,7 @@ void Host::Stop(bool runtimeRemoved)
 	// TODO: unregister slave services/notifications?
 }
 
-std::vector<Service::Ptr> Host::GetServices(void) const
+std::vector<Service::Ptr> Host::GetServices() const
 {
 	boost::mutex::scoped_lock lock(m_ServicesMutex);
 
@@ -127,7 +110,7 @@ void Host::RemoveService(const Service::Ptr& service)
 	m_Services.erase(service->GetShortName());
 }
 
-int Host::GetTotalServices(void) const
+int Host::GetTotalServices() const
 {
 	return GetServices().size();
 }
@@ -166,23 +149,23 @@ HostState Host::CalculateState(ServiceState state)
 	}
 }
 
-HostState Host::GetState(void) const
+HostState Host::GetState() const
 {
 	return CalculateState(GetStateRaw());
 }
 
-HostState Host::GetLastState(void) const
+HostState Host::GetLastState() const
 {
 	return CalculateState(GetLastStateRaw());
 }
 
-HostState Host::GetLastHardState(void) const
+HostState Host::GetLastHardState() const
 {
 	return CalculateState(GetLastHardStateRaw());
 }
 
 /* keep in sync with Service::GetSeverity() */
-int Host::GetSeverity(void) const
+int Host::GetSeverity() const
 {
 	int severity = 0;
 
@@ -209,7 +192,7 @@ int Host::GetSeverity(void) const
 	return severity;
 }
 
-bool Host::IsStateOK(ServiceState state)
+bool Host::IsStateOK(ServiceState state) const
 {
 	return Host::CalculateState(state) == HostUp;
 }
@@ -288,7 +271,7 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *res
 		*result = Utility::GetTime() - GetLastStateChange();
 		return true;
 	} else if (macro == "num_services" || macro == "num_services_ok" || macro == "num_services_warning"
-		    || macro == "num_services_unknown" || macro == "num_services_critical") {
+			|| macro == "num_services_unknown" || macro == "num_services_critical") {
 			int filter = -1;
 			int count = 0;
 

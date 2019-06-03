@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/host.hpp"
 #include <BoostTestTargetConfig.h>
@@ -63,6 +46,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Host::Ptr host = new Host();
+	host->SetActive(true);
 	host->SetMaxCheckAttempts(1);
 	host->Activate();
 	host->SetAuthority(true);
@@ -111,6 +95,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Host::Ptr host = new Host();
+	host->SetActive(true);
 	host->SetMaxCheckAttempts(2);
 	host->Activate();
 	host->SetAuthority(true);
@@ -166,6 +151,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Host::Ptr host = new Host();
+	host->SetActive(true);
 	host->SetMaxCheckAttempts(3);
 	host->Activate();
 	host->SetAuthority(true);
@@ -228,6 +214,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Service::Ptr service = new Service();
+	service->SetActive(true);
 	service->SetMaxCheckAttempts(1);
 	service->Activate();
 	service->SetAuthority(true);
@@ -276,6 +263,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Service::Ptr service = new Service();
+	service->SetActive(true);
 	service->SetMaxCheckAttempts(2);
 	service->Activate();
 	service->SetAuthority(true);
@@ -331,6 +319,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Service::Ptr service = new Service();
+	service->SetActive(true);
 	service->SetMaxCheckAttempts(3);
 	service->Activate();
 	service->SetAuthority(true);
@@ -398,6 +387,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_notification)
 	int timeStepInterval = 60;
 
 	Host::Ptr host = new Host();
+	host->SetActive(true);
 	host->Activate();
 	host->SetAuthority(true);
 	host->SetStateRaw(ServiceOK);
@@ -451,6 +441,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 	int timeStepInterval = 60;
 
 	Service::Ptr service = new Service();
+	service->SetActive(true);
 	service->Activate();
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);

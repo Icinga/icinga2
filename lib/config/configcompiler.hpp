@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef CONFIGCOMPILER_H
 #define CONFIGCOMPILER_H
@@ -46,7 +29,7 @@ struct CompilerDebugInfo
 	int LastLine;
 	int LastColumn;
 
-	operator DebugInfo(void) const
+	operator DebugInfo() const
 	{
 		DebugInfo di;
 		di.Path = Path;
@@ -83,44 +66,47 @@ struct ZoneFragment
  *
  * @ingroup config
  */
-class I2_CONFIG_API ConfigCompiler
+class ConfigCompiler
 {
 public:
-	explicit ConfigCompiler(const String& path, std::istream *input,
-	    const String& zone = String(), const String& package = String());
-	virtual ~ConfigCompiler(void);
+	explicit ConfigCompiler(String path, std::istream *input,
+		String zone = String(), String package = String());
+	virtual ~ConfigCompiler();
 
-	std::unique_ptr<Expression> Compile(void);
+	std::unique_ptr<Expression> Compile();
 
 	static std::unique_ptr<Expression>CompileStream(const String& path, std::istream *stream,
-	    const String& zone = String(), const String& package = String());
+		const String& zone = String(), const String& package = String());
 	static std::unique_ptr<Expression>CompileFile(const String& path, const String& zone = String(),
-	    const String& package = String());
+		const String& package = String());
 	static std::unique_ptr<Expression>CompileText(const String& path, const String& text,
-	    const String& zone = String(), const String& package = String());
+		const String& zone = String(), const String& package = String());
 
 	static void AddIncludeSearchDir(const String& dir);
 
-	const char *GetPath(void) const;
+	const char *GetPath() const;
 
 	void SetZone(const String& zone);
-	String GetZone(void) const;
+	String GetZone() const;
 
 	void SetPackage(const String& package);
-	String GetPackage(void) const;
+	String GetPackage() const;
+
+	void AddImport(const std::shared_ptr<Expression>& import);
+	std::vector<std::shared_ptr<Expression> > GetImports() const;
 
 	static void CollectIncludes(std::vector<std::unique_ptr<Expression> >& expressions,
-	    const String& file, const String& zone, const String& package);
+		const String& file, const String& zone, const String& package);
 
 	static std::unique_ptr<Expression> HandleInclude(const String& relativeBase, const String& path, bool search,
-	    const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
+		const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
 	static std::unique_ptr<Expression> HandleIncludeRecursive(const String& relativeBase, const String& path,
-	    const String& pattern, const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
+		const String& pattern, const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
 	static std::unique_ptr<Expression> HandleIncludeZones(const String& relativeBase, const String& tag,
-	    const String& path, const String& pattern, const String& package, const DebugInfo& debuginfo = DebugInfo());
+		const String& path, const String& pattern, const String& package, const DebugInfo& debuginfo = DebugInfo());
 
 	size_t ReadInput(char *buffer, size_t max_bytes);
-	void *GetScanner(void) const;
+	void *GetScanner() const;
 
 	static std::vector<ZoneFragment> GetZoneDirs(const String& zone);
 	static void RegisterZoneDir(const String& tag, const String& ppath, const String& zoneName);
@@ -134,6 +120,7 @@ private:
 	std::istream *m_Input;
 	String m_Zone;
 	String m_Package;
+	std::vector<std::shared_ptr<Expression> > m_Imports;
 
 	void *m_Scanner;
 
@@ -141,8 +128,8 @@ private:
 	static boost::mutex m_ZoneDirsMutex;
 	static std::map<String, std::vector<ZoneFragment> > m_ZoneDirs;
 
-	void InitializeScanner(void);
-	void DestroyScanner(void);
+	void InitializeScanner();
+	void DestroyScanner();
 
 	static void HandleIncludeZone(const String& relativeBase, const String& tag, const String& path, const String& pattern, const String& package, std::vector<std::unique_ptr<Expression> >& expressions);
 

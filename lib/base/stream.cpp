@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/stream.hpp"
 #include <boost/algorithm/string/trim.hpp>
@@ -30,17 +13,17 @@ void Stream::RegisterDataHandler(const std::function<void(const Stream::Ptr&)>& 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support waiting."));
 }
 
-bool Stream::SupportsWaiting(void) const
+bool Stream::SupportsWaiting() const
 {
 	return false;
 }
 
-bool Stream::IsDataAvailable(void) const
+bool Stream::IsDataAvailable() const
 {
 	return false;
 }
 
-void Stream::Shutdown(void)
+void Stream::Shutdown()
 {
 	BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support Shutdown()."));
 }
@@ -50,7 +33,7 @@ size_t Stream::Peek(void *buffer, size_t count, bool allow_partial)
 	BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support Peek()."));
 }
 
-void Stream::SignalDataAvailable(void)
+void Stream::SignalDataAvailable()
 {
 	OnDataAvailable(this);
 
@@ -60,7 +43,7 @@ void Stream::SignalDataAvailable(void)
 	}
 }
 
-bool Stream::WaitForData(int timeout)
+bool Stream::WaitForData()
 {
 	if (!SupportsWaiting())
 		BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support waiting."));
@@ -68,18 +51,33 @@ bool Stream::WaitForData(int timeout)
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	while (!IsDataAvailable() && !IsEof())
-		if (timeout < 0)
-			m_CV.wait(lock);
-		else
-			m_CV.timed_wait(lock, boost::posix_time::milliseconds(timeout * 1000));
+		m_CV.wait(lock);
 
 	return IsDataAvailable() || IsEof();
 }
 
-static void StreamDummyCallback(void)
+bool Stream::WaitForData(int timeout)
+{
+	if (!SupportsWaiting())
+		BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support waiting."));
+
+	if (timeout < 0)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Timeout can't be negative"));
+
+	boost::system_time const point_of_timeout = boost::get_system_time() + boost::posix_time::seconds(timeout);
+
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	while (!IsDataAvailable() && !IsEof() && point_of_timeout > boost::get_system_time())
+		m_CV.timed_wait(lock, point_of_timeout);
+
+	return IsDataAvailable() || IsEof();
+}
+
+static void StreamDummyCallback()
 { }
 
-void Stream::Close(void)
+void Stream::Close()
 {
 	OnDataAvailable.disconnect_all_slots();
 
@@ -104,31 +102,19 @@ StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context, bool
 		}
 	}
 
-	int count = 0;
-	size_t first_newline;
-
 	for (size_t i = 0; i < context.Size; i++) {
 		if (context.Buffer[i] == '\n') {
-			count++;
+			*line = String(context.Buffer, context.Buffer + i);
+			boost::algorithm::trim_right(*line);
 
-			if (count == 1)
-				first_newline = i;
-			else if (count > 1)
-				break;
+			context.DropData(i + 1u);
+
+			context.MustRead = !context.Size;
+			return StatusNewItem;
 		}
 	}
 
-	context.MustRead = (count <= 1);
-
-	if (count > 0) {
-		*line = String(context.Buffer, &(context.Buffer[first_newline]));
-		boost::algorithm::trim_right(*line);
-
-		context.DropData(first_newline + 1);
-
-		return StatusNewItem;
-	}
-
+	context.MustRead = true;
 	return StatusNeedData;
 }
 

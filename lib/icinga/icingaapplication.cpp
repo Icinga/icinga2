@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/icingaapplication.hpp"
-#include "icinga/icingaapplication.tcpp"
+#include "icinga/icingaapplication-ti.cpp"
 #include "icinga/cib.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "config/configcompiler.hpp"
@@ -34,18 +17,19 @@
 #include "base/initialize.hpp"
 #include "base/statsfunction.hpp"
 #include "base/loader.hpp"
+#include <fstream>
 
 using namespace icinga;
 
 static Timer::Ptr l_RetentionTimer;
 
 REGISTER_TYPE(IcingaApplication);
-INITIALIZE_ONCE(&IcingaApplication::StaticInitialize);
+/* Ensure that the priority is lower than the basic System namespace initialization in scriptframe.cpp. */
+INITIALIZE_ONCE_WITH_PRIORITY(&IcingaApplication::StaticInitialize, 50);
 
-void IcingaApplication::StaticInitialize(void)
+void IcingaApplication::StaticInitialize()
 {
-	Loader::LoadExtensionLibrary("methods");
-
+	/* Pre-fill global constants, can be overridden with user input later in icinga-app/icinga.cpp. */
 	String node_name = Utility::GetFQDN();
 
 	if (node_name.IsEmpty()) {
@@ -60,32 +44,48 @@ void IcingaApplication::StaticInitialize(void)
 
 	ScriptGlobal::Set("NodeName", node_name);
 
-	ScriptGlobal::Set("ApplicationType", "IcingaApplication");
+	ScriptGlobal::Set("ReloadTimeout", 300);
+	ScriptGlobal::Set("MaxConcurrentChecks", 512);
+
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+	/* Ensure that the System namespace is already initialized. Otherwise this is a programming error. */
+	VERIFY(systemNS);
+
+	systemNS->Set("ApplicationType", "IcingaApplication", true);
+	systemNS->Set("ApplicationVersion", Application::GetAppVersion(), true);
+
+	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
+	VERIFY(globalNS);
+
+	auto icingaNSBehavior = new ConstNamespaceBehavior();
+	icingaNSBehavior->Freeze();
+	Namespace::Ptr icingaNS = new Namespace(icingaNSBehavior);
+	globalNS->SetAttribute("Icinga", std::make_shared<ConstEmbeddedNamespaceValue>(icingaNS));
 }
 
 REGISTER_STATSFUNCTION(IcingaApplication, &IcingaApplication::StatsFunc);
 
 void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const IcingaApplication::Ptr& icingaapplication : ConfigType::GetObjectsByType<IcingaApplication>()) {
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("node_name", icingaapplication->GetNodeName());
-		stats->Set("enable_notifications", icingaapplication->GetEnableNotifications());
-		stats->Set("enable_event_handlers", icingaapplication->GetEnableEventHandlers());
-		stats->Set("enable_flapping", icingaapplication->GetEnableFlapping());
-		stats->Set("enable_host_checks", icingaapplication->GetEnableHostChecks());
-		stats->Set("enable_service_checks", icingaapplication->GetEnableServiceChecks());
-		stats->Set("enable_perfdata", icingaapplication->GetEnablePerfdata());
-		stats->Set("pid", Utility::GetPid());
-		stats->Set("program_start", Application::GetStartTime());
-		stats->Set("version", Application::GetAppVersion());
-
-		nodes->Set(icingaapplication->GetName(), stats);
+		nodes.emplace_back(icingaapplication->GetName(), new Dictionary({
+			{ "node_name", icingaapplication->GetNodeName() },
+			{ "enable_notifications", icingaapplication->GetEnableNotifications() },
+			{ "enable_event_handlers", icingaapplication->GetEnableEventHandlers() },
+			{ "enable_flapping", icingaapplication->GetEnableFlapping() },
+			{ "enable_host_checks", icingaapplication->GetEnableHostChecks() },
+			{ "enable_service_checks", icingaapplication->GetEnableServiceChecks() },
+			{ "enable_perfdata", icingaapplication->GetEnablePerfdata() },
+			{ "environment", icingaapplication->GetEnvironment() },
+			{ "pid", Utility::GetPid() },
+			{ "program_start", Application::GetStartTime() },
+			{ "version", Application::GetAppVersion() }
+		}));
 	}
 
-	status->Set("icingaapplication", nodes);
+	status->Set("icingaapplication", new Dictionary(std::move(nodes)));
 }
 
 /**
@@ -93,7 +93,7 @@ void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
  *
  * @returns An exit status.
  */
-int IcingaApplication::Main(void)
+int IcingaApplication::Main()
 {
 	Log(LogDebug, "IcingaApplication", "In IcingaApplication::Main()");
 
@@ -110,7 +110,7 @@ int IcingaApplication::Main(void)
 	return EXIT_SUCCESS;
 }
 
-void IcingaApplication::OnShutdown(void)
+void IcingaApplication::OnShutdown()
 {
 	{
 		ObjectLock olock(this);
@@ -131,9 +131,10 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 
 		ConfigWriter::EmitRaw(fp, "var obj = ");
 
-		Array::Ptr args1 = new Array();
-		args1->Add(object->GetReflectionType()->GetName());
-		args1->Add(object->GetName());
+		Array::Ptr args1 = new Array({
+			object->GetReflectionType()->GetName(),
+			object->GetName()
+		});
 		ConfigWriter::EmitFunctionCall(fp, "get_object", args1);
 
 		ConfigWriter::EmitRaw(fp, "\nif (obj) {\n");
@@ -141,9 +142,10 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 
 	ConfigWriter::EmitRaw(fp, "\tobj.");
 
-	Array::Ptr args2 = new Array();
-	args2->Add(attr);
-	args2->Add(value);
+	Array::Ptr args2 = new Array({
+		attr,
+		value
+	});
 	ConfigWriter::EmitFunctionCall(fp, "modify_attribute", args2);
 
 	ConfigWriter::EmitRaw(fp, "\n");
@@ -151,15 +153,15 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 	previousObject = object;
 }
 
-void IcingaApplication::DumpProgramState(void)
+void IcingaApplication::DumpProgramState()
 {
-	ConfigObject::DumpObjects(GetStatePath());
+	ConfigObject::DumpObjects(Configuration::StatePath);
 	DumpModifiedAttributes();
 }
 
-void IcingaApplication::DumpModifiedAttributes(void)
+void IcingaApplication::DumpModifiedAttributes()
 {
-	String path = GetModAttrPath();
+	String path = Configuration::ModAttrPath;
 
 	std::fstream fp;
 	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", 0644, fp);
@@ -176,19 +178,10 @@ void IcingaApplication::DumpModifiedAttributes(void)
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(path.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
+	Utility::RenameFile(tempFilename, path);
 }
 
-IcingaApplication::Ptr IcingaApplication::GetInstance(void)
+IcingaApplication::Ptr IcingaApplication::GetInstance()
 {
 	return static_pointer_cast<IcingaApplication>(Application::GetInstance());
 }
@@ -286,12 +279,28 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 	return false;
 }
 
-String IcingaApplication::GetNodeName(void) const
+String IcingaApplication::GetNodeName() const
 {
 	return ScriptGlobal::Get("NodeName");
 }
 
-void IcingaApplication::ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils)
+/* Intentionally kept here, since an agent may not have the CheckerComponent loaded. */
+int IcingaApplication::GetMaxConcurrentChecks() const
 {
-	MacroProcessor::ValidateCustomVars(this, value);
+	return ScriptGlobal::Get("MaxConcurrentChecks");
+}
+
+String IcingaApplication::GetEnvironment() const
+{
+	return Application::GetAppEnvironment();
+}
+
+void IcingaApplication::SetEnvironment(const String& value, bool suppress_events, const Value& cookie)
+{
+	Application::SetAppEnvironment(value);
+}
+
+void IcingaApplication::ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	MacroProcessor::ValidateCustomVars(this, lvalue());
 }

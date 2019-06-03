@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/objectqueryhandler.hpp"
 #include "remote/httputility.hpp"
@@ -23,7 +6,7 @@
 #include "base/serializer.hpp"
 #include "base/dependencygraph.hpp"
 #include "base/configtype.hpp"
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <set>
 
 using namespace icinga;
@@ -31,7 +14,7 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/objects", ObjectQueryHandler);
 
 Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& object,
-    const String& attrPrefix, const Array::Ptr& attrs, bool isJoin, bool allAttrs)
+	const String& attrPrefix, const Array::Ptr& attrs, bool isJoin, bool allAttrs)
 {
 	Type::Ptr type = object->GetReflectionType();
 
@@ -81,10 +64,10 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 		}
 	}
 
-	Dictionary::Ptr resultAttrs = new Dictionary();
+	DictionaryData resultAttrs;
+	resultAttrs.reserve(fids.size());
 
-	for (int fid : fids)
-	{
+	for (int fid : fids) {
 		Field field = type->GetFieldInfo(fid);
 
 		Value val = object->GetField(fid);
@@ -98,24 +81,35 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 			continue;
 
 		Value sval = Serialize(val, FAConfig | FAState);
-		resultAttrs->Set(field.Name, sval);
+		resultAttrs.emplace_back(field.Name, sval);
 	}
 
-	return resultAttrs;
+	return new Dictionary(std::move(resultAttrs));
 }
 
-bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool ObjectQueryHandler::HandleRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	HttpServerConnection& server
+)
 {
-	if (request.RequestUrl->GetPath().size() < 3 || request.RequestUrl->GetPath().size() > 4)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() < 3 || url->GetPath().size() > 4)
 		return false;
 
-	if (request.RequestMethod != "GET")
+	if (request.method() != http::verb::get)
 		return false;
 
-	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[2]);
+	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, 400, "Invalid type specified.");
+		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
 		return true;
 	}
 
@@ -128,24 +122,24 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	try {
 		uattrs = params->Get("attrs");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, 400,
-                    "Invalid type for 'attrs' attribute specified. Array type is required.", Empty);
-                return true;
+		HttpUtility::SendJsonError(response, params, 400,
+			"Invalid type for 'attrs' attribute specified. Array type is required.");
+		return true;
 	}
 
 	try {
 		ujoins = params->Get("joins");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, 400,
-                    "Invalid type for 'joins' attribute specified. Array type is required.", Empty);
-                return true;
+		HttpUtility::SendJsonError(response, params, 400,
+			"Invalid type for 'joins' attribute specified. Array type is required.");
+		return true;
 	}
 
 	try {
 		umetas = params->Get("meta");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, 400,
-                    "Invalid type for 'meta' attribute specified. Array type is required.", Empty);
+		HttpUtility::SendJsonError(response, params, 400,
+			"Invalid type for 'meta' attribute specified. Array type is required.");
 		return true;
 	}
 
@@ -153,10 +147,10 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 	params->Set("type", type->GetName());
 
-	if (request.RequestUrl->GetPath().size() >= 4) {
+	if (url->GetPath().size() >= 4) {
 		String attr = type->GetName();
 		boost::algorithm::to_lower(attr);
-		params->Set(attr, request.RequestUrl->GetPath()[3]);
+		params->Set(attr, url->GetPath()[3]);
 	}
 
 	std::vector<Value> objs;
@@ -164,14 +158,14 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, 404,
-		    "No objects found.",
-		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+		HttpUtility::SendJsonError(response, params, 404,
+			"No objects found.",
+			DiagnosticInformation(ex));
 		return true;
 	}
 
-	Array::Ptr results = new Array();
-	results->Reserve(objs.size());
+	ArrayData results;
+	results.reserve(objs.size());
 
 	std::set<String> joinAttrs;
 	std::set<String> userJoinAttrs;
@@ -196,21 +190,19 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	}
 
 	for (const ConfigObject::Ptr& obj : objs) {
-		Dictionary::Ptr result1 = new Dictionary();
-		results->Add(result1);
+		DictionaryData result1{
+			{ "name", obj->GetName() },
+			{ "type", obj->GetReflectionType()->GetName() }
+		};
 
-		result1->Set("name", obj->GetName());
-		result1->Set("type", obj->GetReflectionType()->GetName());
-
-		Dictionary::Ptr metaAttrs = new Dictionary();
-		result1->Set("meta", metaAttrs);
+		DictionaryData metaAttrs;
 
 		if (umetas) {
 			ObjectLock olock(umetas);
 			for (const String& meta : umetas) {
 				if (meta == "used_by") {
 					Array::Ptr used_by = new Array();
-					metaAttrs->Set("used_by", used_by);
+					metaAttrs.emplace_back("used_by", used_by);
 
 					for (const Object::Ptr& pobj : DependencyGraph::GetParents((obj)))
 					{
@@ -219,50 +211,44 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 						if (!configObj)
 							continue;
 
-						Dictionary::Ptr refInfo = new Dictionary();
-						refInfo->Set("type", configObj->GetReflectionType()->GetName());
-						refInfo->Set("name", configObj->GetName());
-						used_by->Add(refInfo);
+						used_by->Add(new Dictionary({
+							{ "type", configObj->GetReflectionType()->GetName() },
+							{ "name", configObj->GetName() }
+						}));
 					}
 				} else if (meta == "location") {
-					DebugInfo di = obj->GetDebugInfo();
-					Dictionary::Ptr dinfo = new Dictionary();
-					dinfo->Set("path", di.Path);
-					dinfo->Set("first_line", di.FirstLine);
-					dinfo->Set("first_column", di.FirstColumn);
-					dinfo->Set("last_line", di.LastLine);
-					dinfo->Set("last_column", di.LastColumn);
-					metaAttrs->Set("location", dinfo);
+					metaAttrs.emplace_back("location", obj->GetSourceLocation());
 				} else {
-					HttpUtility::SendJsonError(response, 400, "Invalid field specified for meta: " + meta);
+					HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for meta: " + meta);
 					return true;
 				}
 			}
 		}
 
+		result1.emplace_back("meta", new Dictionary(std::move(metaAttrs)));
+
 		try {
-			result1->Set("attrs", SerializeObjectAttrs(obj, String(), uattrs, false, false));
+			result1.emplace_back("attrs", SerializeObjectAttrs(obj, String(), uattrs, false, false));
 		} catch (const ScriptError& ex) {
-			HttpUtility::SendJsonError(response, 400, ex.what());
+			HttpUtility::SendJsonError(response, params, 400, ex.what());
 			return true;
 		}
 
-		Dictionary::Ptr joins = new Dictionary();
-		result1->Set("joins", joins);
+		DictionaryData joins;
 
 		for (const String& joinAttr : joinAttrs) {
 			Object::Ptr joinedObj;
 			int fid = type->GetFieldId(joinAttr);
 
 			if (fid < 0) {
-				HttpUtility::SendJsonError(response, 400, "Invalid field specified for join: " + joinAttr);
+				HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for join: " + joinAttr);
 				return true;
 			}
 
 			Field field = type->GetFieldInfo(fid);
 
 			if (!(field.Attributes & FANavigation)) {
-				HttpUtility::SendJsonError(response, 400, "Not a joinable field: " + joinAttr);
+				HttpUtility::SendJsonError(response, params, 400, "Not a joinable field: " + joinAttr);
 				return true;
 			}
 
@@ -274,19 +260,24 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 			String prefix = field.NavigationName;
 
 			try {
-				joins->Set(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, true, allJoins));
+				joins.emplace_back(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, true, allJoins));
 			} catch (const ScriptError& ex) {
-				HttpUtility::SendJsonError(response, 400, ex.what());
+				HttpUtility::SendJsonError(response, params, 400, ex.what());
 				return true;
 			}
 		}
+
+		result1.emplace_back("joins", new Dictionary(std::move(joins)));
+
+		results.push_back(new Dictionary(std::move(result1)));
 	}
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(results)) }
+	});
 
-	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	response.result(http::status::ok);
+	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }

@@ -1,111 +1,91 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef TLSSTREAM_H
 #define TLSSTREAM_H
 
 #include "base/i2-base.hpp"
 #include "base/socket.hpp"
-#include "base/socketevents.hpp"
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
 #include "base/fifo.hpp"
+#include <memory>
+#include <utility>
+#include <boost/asio/buffered_stream.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl/context.hpp>
+#include <boost/asio/ssl/stream.hpp>
 
 namespace icinga
 {
 
-enum TlsAction
+struct UnbufferedAsioTlsStreamParams
 {
-	TlsActionNone,
-	TlsActionRead,
-	TlsActionWrite,
-	TlsActionHandshake
+	boost::asio::io_service& IoService;
+	boost::asio::ssl::context& SslContext;
+	const String& Hostname;
 };
 
-/**
- * A TLS stream.
- *
- * @ingroup base
- */
-class I2_BASE_API TlsStream : public Stream, private SocketEvents
+typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> AsioTcpTlsStream;
+
+class UnbufferedAsioTlsStream : public AsioTcpTlsStream
 {
 public:
-	DECLARE_PTR_TYPEDEFS(TlsStream);
+	inline
+	UnbufferedAsioTlsStream(UnbufferedAsioTlsStreamParams& init)
+		: stream(init.IoService, init.SslContext), m_VerifyOK(true), m_Hostname(init.Hostname)
+	{
+	}
 
-	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const std::shared_ptr<SSL_CTX>& sslContext = MakeSSLContext());
-	~TlsStream(void);
+	bool IsVerifyOK() const;
+	String GetVerifyError() const;
+	std::shared_ptr<X509> GetPeerCertificate();
 
-	Socket::Ptr GetSocket(void) const;
+	template<class... Args>
+	inline
+	auto async_handshake(handshake_type type, Args&&... args) -> decltype(((AsioTcpTlsStream*)nullptr)->async_handshake(type, std::forward<Args>(args)...))
+	{
+		BeforeHandshake(type);
 
-	std::shared_ptr<X509> GetClientCertificate(void) const;
-	std::shared_ptr<X509> GetPeerCertificate(void) const;
+		return AsioTcpTlsStream::async_handshake(type, std::forward<Args>(args)...);
+	}
 
-	void Handshake(void);
+	template<class... Args>
+	inline
+	auto handshake(handshake_type type, Args&&... args) -> decltype(((AsioTcpTlsStream*)nullptr)->handshake(type, std::forward<Args>(args)...))
+	{
+		BeforeHandshake(type);
 
-	virtual void Close(void) override;
-	virtual void Shutdown(void) override;
-
-	virtual size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
-	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
-	virtual void Write(const void *buffer, size_t count) override;
-
-	virtual bool IsEof(void) const override;
-
-	virtual bool SupportsWaiting(void) const override;
-	virtual bool IsDataAvailable(void) const override;
-
-	bool IsVerifyOK(void) const;
-	String GetVerifyError(void) const;
+		return AsioTcpTlsStream::handshake(type, std::forward<Args>(args)...);
+	}
 
 private:
-	std::shared_ptr<SSL> m_SSL;
-	bool m_Eof;
-	mutable boost::mutex m_Mutex;
-	mutable boost::condition_variable m_CV;
-	bool m_HandshakeOK;
 	bool m_VerifyOK;
 	String m_VerifyError;
-	int m_ErrorCode;
-	bool m_ErrorOccurred;
+	String m_Hostname;
 
-	Socket::Ptr m_Socket;
-	ConnectionRole m_Role;
-
-	FIFO::Ptr m_SendQ;
-	FIFO::Ptr m_RecvQ;
-
-	TlsAction m_CurrentAction;
-	bool m_Retry;
-	bool m_Shutdown;
-
-	static int m_SSLIndex;
-	static bool m_SSLIndexInitialized;
-
-	virtual void OnEvent(int revents) override;
-
-	void HandleError(void) const;
-
-	static int ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx);
-	static void NullCertificateDeleter(X509 *certificate);
-
-	void CloseInternal(bool inDestructor);
+	void BeforeHandshake(handshake_type type);
 };
+
+class AsioTlsStream : public boost::asio::buffered_stream<UnbufferedAsioTlsStream>
+{
+public:
+	inline
+	AsioTlsStream(boost::asio::io_service& ioService, boost::asio::ssl::context& sslContext, const String& hostname = String())
+		: AsioTlsStream(UnbufferedAsioTlsStreamParams{ioService, sslContext, hostname})
+	{
+	}
+
+private:
+	inline
+	AsioTlsStream(UnbufferedAsioTlsStreamParams init)
+		: buffered_stream(init)
+	{
+	}
+};
+
+typedef boost::asio::buffered_stream<boost::asio::ip::tcp::socket> AsioTcpStream;
+typedef std::pair<std::shared_ptr<AsioTlsStream>, std::shared_ptr<AsioTcpStream>> OptionalTlsStream;
 
 }
 

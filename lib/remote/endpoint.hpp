@@ -1,27 +1,10 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef ENDPOINT_H
 #define ENDPOINT_H
 
 #include "remote/i2-remote.hpp"
-#include "remote/endpoint.thpp"
+#include "remote/endpoint-ti.hpp"
 #include "base/ringbuffer.hpp"
 #include <set>
 
@@ -36,50 +19,48 @@ class Zone;
  *
  * @ingroup remote
  */
-class I2_REMOTE_API Endpoint : public ObjectImpl<Endpoint>
+class Endpoint final : public ObjectImpl<Endpoint>
 {
 public:
 	DECLARE_OBJECT(Endpoint);
 	DECLARE_OBJECTNAME(Endpoint);
-
-	Endpoint(void);
 
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnConnected;
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnDisconnected;
 
 	void AddClient(const intrusive_ptr<JsonRpcConnection>& client);
 	void RemoveClient(const intrusive_ptr<JsonRpcConnection>& client);
-	std::set<intrusive_ptr<JsonRpcConnection> > GetClients(void) const;
+	std::set<intrusive_ptr<JsonRpcConnection> > GetClients() const;
 
-	intrusive_ptr<Zone> GetZone(void) const;
+	intrusive_ptr<Zone> GetZone() const;
 
-	virtual bool GetConnected(void) const override;
+	bool GetConnected() const override;
 
-	static Endpoint::Ptr GetLocalEndpoint(void);
+	static Endpoint::Ptr GetLocalEndpoint();
 
 	void SetCachedZone(const intrusive_ptr<Zone>& zone);
 
 	void AddMessageSent(int bytes);
 	void AddMessageReceived(int bytes);
 
-	double GetMessagesSentPerSecond(void) const override;
-	double GetMessagesReceivedPerSecond(void) const override;
+	double GetMessagesSentPerSecond() const override;
+	double GetMessagesReceivedPerSecond() const override;
 
-	double GetBytesSentPerSecond(void) const override;
-	double GetBytesReceivedPerSecond(void) const override;
+	double GetBytesSentPerSecond() const override;
+	double GetBytesReceivedPerSecond() const override;
 
 protected:
-	virtual void OnAllConfigLoaded(void) override;
+	void OnAllConfigLoaded() override;
 
 private:
 	mutable boost::mutex m_ClientsLock;
 	std::set<intrusive_ptr<JsonRpcConnection> > m_Clients;
 	intrusive_ptr<Zone> m_Zone;
 
-	mutable RingBuffer m_MessagesSent;
-	mutable RingBuffer m_MessagesReceived;
-	mutable RingBuffer m_BytesSent;
-	mutable RingBuffer m_BytesReceived;
+	mutable RingBuffer m_MessagesSent{60};
+	mutable RingBuffer m_MessagesReceived{60};
+	mutable RingBuffer m_BytesSent{60};
+	mutable RingBuffer m_BytesReceived{60};
 };
 
 }

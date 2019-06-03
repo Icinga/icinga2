@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "perfdata/perfdatawriter.hpp"
-#include "perfdata/perfdatawriter.tcpp"
+#include "perfdata/perfdatawriter-ti.cpp"
 #include "icinga/service.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
@@ -38,23 +21,37 @@ REGISTER_TYPE(PerfdataWriter);
 
 REGISTER_STATSFUNCTION(PerfdataWriter, &PerfdataWriter::StatsFunc);
 
-void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+void PerfdataWriter::OnConfigLoaded()
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	ObjectImpl<PerfdataWriter>::OnConfigLoaded();
 
-	for (const PerfdataWriter::Ptr& perfdatawriter : ConfigType::GetObjectsByType<PerfdataWriter>()) {
-		nodes->Set(perfdatawriter->GetName(), 1); //add more stats
+	if (!GetEnableHa()) {
+		Log(LogDebug, "PerfdataWriter")
+			<< "HA functionality disabled. Won't pause connection: " << GetName();
+
+		SetHAMode(HARunEverywhere);
+	} else {
+		SetHAMode(HARunOnce);
 	}
-
-	status->Set("perfdatawriter", nodes);
 }
 
-void PerfdataWriter::Start(bool runtimeCreated)
+void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	ObjectImpl<PerfdataWriter>::Start(runtimeCreated);
+	DictionaryData nodes;
+
+	for (const PerfdataWriter::Ptr& perfdatawriter : ConfigType::GetObjectsByType<PerfdataWriter>()) {
+		nodes.emplace_back(perfdatawriter->GetName(), 1); //add more stats
+	}
+
+	status->Set("perfdatawriter", new Dictionary(std::move(nodes)));
+}
+
+void PerfdataWriter::Resume()
+{
+	ObjectImpl<PerfdataWriter>::Resume();
 
 	Log(LogInformation, "PerfdataWriter")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' resumed.";
 
 	Checkable::OnNewCheckResult.connect(std::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
 
@@ -67,12 +64,22 @@ void PerfdataWriter::Start(bool runtimeCreated)
 	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
 }
 
-void PerfdataWriter::Stop(bool runtimeRemoved)
+void PerfdataWriter::Pause()
 {
-	Log(LogInformation, "PerfdataWriter")
-	    << "'" << GetName() << "' stopped.";
+	m_RotationTimer.reset();
 
-	ObjectImpl<PerfdataWriter>::Stop(runtimeRemoved);
+#ifdef I2_DEBUG
+	//m_HostOutputFile << "\n# Pause the feature" << "\n\n";
+	//m_ServiceOutputFile << "\n# Pause the feature" << "\n\n";
+#endif /* I2_DEBUG */
+
+	/* Force a rotation closing the file stream. */
+	RotateAllFiles();
+
+	Log(LogInformation, "PerfdataWriter")
+		<< "'" << GetName() << "' paused.";
+
+	ObjectImpl<PerfdataWriter>::Pause();
 }
 
 Value PerfdataWriter::EscapeMacroMetric(const Value& value)
@@ -85,6 +92,9 @@ Value PerfdataWriter::EscapeMacroMetric(const Value& value)
 
 void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
+	if (IsPaused())
+		return;
+
 	CONTEXT("Writing performance data for object '" + checkable->GetName() + "'");
 
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
@@ -108,7 +118,8 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
 
 		{
-			ObjectLock olock(this);
+			boost::mutex::scoped_lock lock(m_StreamMutex);
+
 			if (!m_ServiceOutputFile.good())
 				return;
 
@@ -118,7 +129,8 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		String line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
 
 		{
-			ObjectLock olock(this);
+			boost::mutex::scoped_lock lock(m_StreamMutex);
+
 			if (!m_HostOutputFile.good())
 				return;
 
@@ -129,47 +141,58 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, const String& perfdata_path)
 {
-	ObjectLock olock(this);
+	Log(LogDebug, "PerfdataWriter")
+		<< "Rotating perfdata files.";
+
+	boost::mutex::scoped_lock lock(m_StreamMutex);
 
 	if (output.good()) {
 		output.close();
 
 		if (Utility::PathExists(temp_path)) {
 			String finalFile = perfdata_path + "." + Convert::ToString((long)Utility::GetTime());
-			if (rename(temp_path.CStr(), finalFile.CStr()) < 0) {
-				BOOST_THROW_EXCEPTION(posix_error()
-				    << boost::errinfo_api_function("rename")
-				    << boost::errinfo_errno(errno)
-				    << boost::errinfo_file_name(temp_path));
-			}
+
+			Log(LogDebug, "PerfdataWriter")
+				<< "Closed output file and renaming into '" << finalFile << "'.";
+
+			Utility::RenameFile(temp_path, finalFile);
 		}
 	}
 
 	output.open(temp_path.CStr());
 
-	if (!output.good())
+	if (!output.good()) {
 		Log(LogWarning, "PerfdataWriter")
-		    << "Could not open perfdata file '" << temp_path << "' for writing. Perfdata will be lost.";
+			<< "Could not open perfdata file '" << temp_path << "' for writing. Perfdata will be lost.";
+	}
 }
 
-void PerfdataWriter::RotationTimerHandler(void)
+void PerfdataWriter::RotationTimerHandler()
+{
+	if (IsPaused())
+		return;
+
+	RotateAllFiles();
+}
+
+void PerfdataWriter::RotateAllFiles()
 {
 	RotateFile(m_ServiceOutputFile, GetServiceTempPath(), GetServicePerfdataPath());
 	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
 }
 
-void PerfdataWriter::ValidateHostFormatTemplate(const String& value, const ValidationUtils& utils)
+void PerfdataWriter::ValidateHostFormatTemplate(const Lazy<String>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<PerfdataWriter>::ValidateHostFormatTemplate(value, utils);
+	ObjectImpl<PerfdataWriter>::ValidateHostFormatTemplate(lvalue, utils);
 
-	if (!MacroProcessor::ValidateMacroString(value))
-		BOOST_THROW_EXCEPTION(ValidationError(this, { "host_format_template" }, "Closing $ not found in macro format string '" + value + "'."));
+	if (!MacroProcessor::ValidateMacroString(lvalue()))
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "host_format_template" }, "Closing $ not found in macro format string '" + lvalue() + "'."));
 }
 
-void PerfdataWriter::ValidateServiceFormatTemplate(const String& value, const ValidationUtils& utils)
+void PerfdataWriter::ValidateServiceFormatTemplate(const Lazy<String>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<PerfdataWriter>::ValidateServiceFormatTemplate(value, utils);
+	ObjectImpl<PerfdataWriter>::ValidateServiceFormatTemplate(lvalue, utils);
 
-	if (!MacroProcessor::ValidateMacroString(value))
-		BOOST_THROW_EXCEPTION(ValidationError(this, { "service_format_template" }, "Closing $ not found in macro format string '" + value + "'."));
+	if (!MacroProcessor::ValidateMacroString(lvalue()))
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "service_format_template" }, "Closing $ not found in macro format string '" + lvalue() + "'."));
 }

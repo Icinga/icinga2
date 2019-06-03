@@ -1,27 +1,10 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef CONFIGOBJECT_H
 #define CONFIGOBJECT_H
 
 #include "base/i2-base.hpp"
-#include "base/configobject.thpp"
+#include "base/configobject-ti.hpp"
 #include "base/object.hpp"
 #include "base/type.hpp"
 #include "base/dictionary.hpp"
@@ -37,52 +20,52 @@ class ConfigType;
  *
  * @ingroup base
  */
-class I2_BASE_API ConfigObject : public ObjectImpl<ConfigObject>
+class ConfigObject : public ObjectImpl<ConfigObject>
 {
 public:
 	DECLARE_OBJECT(ConfigObject);
 
 	static boost::signals2::signal<void (const ConfigObject::Ptr&)> OnStateChanged;
 
-	bool IsActive(void) const;
-	bool IsPaused(void) const;
+	bool IsActive() const;
+	bool IsPaused() const;
 
 	void SetExtension(const String& key, const Value& value);
 	Value GetExtension(const String& key);
 	void ClearExtension(const String& key);
 
-	ConfigObject::Ptr GetZone(void) const;
+	ConfigObject::Ptr GetZone() const;
 
 	void ModifyAttribute(const String& attr, const Value& value, bool updateVersion = true);
 	void RestoreAttribute(const String& attr, bool updateVersion = true);
 	bool IsAttributeModified(const String& attr) const;
 
-	void Register(void);
-	void Unregister(void);
+	void Register();
+	void Unregister();
 
-	void PreActivate(void);
+	void PreActivate();
 	void Activate(bool runtimeCreated = false);
 	void Deactivate(bool runtimeRemoved = false);
 	void SetAuthority(bool authority);
 
-	virtual void Start(bool runtimeCreated = false) override;
-	virtual void Stop(bool runtimeRemoved = false) override;
+	void Start(bool runtimeCreated = false) override;
+	void Stop(bool runtimeRemoved = false) override;
 
-	virtual void Pause(void);
-	virtual void Resume(void);
+	virtual void Pause();
+	virtual void Resume();
 
-	virtual void OnConfigLoaded(void);
+	virtual void OnConfigLoaded();
 	virtual void CreateChildObjects(const Type::Ptr& childType);
-	virtual void OnAllConfigLoaded(void);
-	virtual void OnStateLoaded(void);
+	virtual void OnAllConfigLoaded();
+	virtual void OnStateLoaded();
 
-	virtual Dictionary::Ptr GetSourceLocation(void) const override;
+	Dictionary::Ptr GetSourceLocation() const override;
 
 	template<typename T>
 	static intrusive_ptr<T> GetObject(const String& name)
 	{
 		typedef TypeImpl<T> ObjType;
-		ObjType *ptype = static_cast<ObjType *>(T::TypeInstance.get());
+		auto *ptype = static_cast<ObjType *>(T::TypeInstance.get());
 		return static_pointer_cast<T>(ptype->GetObject(name));
 	}
 
@@ -90,14 +73,11 @@ public:
 
 	static void DumpObjects(const String& filename, int attributeTypes = FAState);
 	static void RestoreObjects(const String& filename, int attributeTypes = FAState);
-	static void StopObjects(void);
+	static void StopObjects();
 
 	static void DumpModifiedAttributes(const std::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback);
 
-	static Object::Ptr GetPrototype(void);
-
-protected:
-	explicit ConfigObject(void);
+	static Object::Ptr GetPrototype();
 
 private:
 	ConfigObject::Ptr m_Zone;
@@ -106,7 +86,7 @@ private:
 };
 
 #define DECLARE_OBJECTNAME(klass)						\
-	inline static String GetTypeName(void)					\
+	inline static String GetTypeName()					\
 	{									\
 		return #klass;							\
 	}									\

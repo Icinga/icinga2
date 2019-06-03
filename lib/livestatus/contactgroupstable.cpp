@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/contactgroupstable.hpp"
 #include "icinga/usergroup.hpp"
@@ -23,25 +6,25 @@
 
 using namespace icinga;
 
-ContactGroupsTable::ContactGroupsTable(void)
+ContactGroupsTable::ContactGroupsTable()
 {
 	AddColumns(this);
 }
 
 void ContactGroupsTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&ContactGroupsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "alias", Column(&ContactGroupsTable::AliasAccessor, objectAccessor));
 	table->AddColumn(prefix + "members", Column(&ContactGroupsTable::MembersAccessor, objectAccessor));
 }
 
-String ContactGroupsTable::GetName(void) const
+String ContactGroupsTable::GetName() const
 {
 	return "contactgroups";
 }
 
-String ContactGroupsTable::GetPrefix(void) const
+String ContactGroupsTable::GetPrefix() const
 {
 	return "contactgroup";
 }
@@ -81,11 +64,11 @@ Value ContactGroupsTable::MembersAccessor(const Value& row)
 	if (!user_group)
 		return Empty;
 
-	Array::Ptr members = new Array();
+	ArrayData result;
 
 	for (const User::Ptr& user : user_group->GetMembers()) {
-		members->Add(user->GetName());
+		result.push_back(user->GetName());
 	}
 
-	return members;
+	return new Array(std::move(result));
 }

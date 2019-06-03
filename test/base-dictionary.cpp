@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/dictionary.hpp"
 #include "base/objectlock.hpp"
@@ -30,6 +13,28 @@ BOOST_AUTO_TEST_CASE(construct)
 {
 	Dictionary::Ptr dictionary = new Dictionary();
 	BOOST_CHECK(dictionary);
+}
+
+BOOST_AUTO_TEST_CASE(initializer1)
+{
+	DictionaryData dict;
+
+	dict.emplace_back("test1", "Gin-o-clock");
+
+	Dictionary::Ptr dictionary = new Dictionary(std::move(dict));
+
+	Value test1;
+	test1 = dictionary->Get("test1");
+	BOOST_CHECK(test1 == "Gin-o-clock");
+}
+
+BOOST_AUTO_TEST_CASE(initializer2)
+{
+	Dictionary::Ptr dictionary = new Dictionary({ {"test1", "Gin-for-the-win"} });
+
+	Value test1;
+	test1 = dictionary->Get("test1");
+	BOOST_CHECK(test1 == "Gin-for-the-win");
 }
 
 BOOST_AUTO_TEST_CASE(get1)
@@ -133,7 +138,7 @@ BOOST_AUTO_TEST_CASE(remove)
 	{
 		ObjectLock olock(dictionary);
 
-		Dictionary::Iterator it = dictionary->Begin();
+		auto it = dictionary->Begin();
 		dictionary->Remove(it);
 	}
 

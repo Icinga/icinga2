@@ -1,30 +1,13 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/daemonutility.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
+#include "base/scriptglobal.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
-
 
 using namespace icinga;
 
@@ -34,7 +17,7 @@ static bool ExecuteExpression(Expression *expression)
 		return false;
 
 	try {
-		ScriptFrame frame;
+		ScriptFrame frame(true);
 		expression->Evaluate(frame);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "config", DiagnosticInformation(ex));
@@ -47,6 +30,15 @@ static bool ExecuteExpression(Expression *expression)
 static void IncludeZoneDirRecursive(const String& path, const String& package, bool& success)
 {
 	String zoneName = Utility::BaseName(path);
+
+	/* We don't have an activated zone object yet. We may forcefully guess from configitems
+	 * to not include this specific synced zones directory.
+	 */
+	if(!ConfigItem::GetByTypeAndName(Type::GetByName("Zone"), zoneName)) {
+		Log(LogWarning, "config")
+			<< "Ignoring directory '" << path << "' for unknown zone '" << zoneName << "'.";
+		return;
+	}
 
 	/* register this zone path for cluster config sync */
 	ConfigCompiler::RegisterZoneDir("_etc", path, zoneName);
@@ -65,12 +57,21 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 
 	String zoneName = Utility::BaseName(zonePath);
 
+	/* We don't have an activated zone object yet. We may forcefully guess from configitems
+	 * to not include this specific synced zones directory.
+	 */
+	if(!ConfigItem::GetByTypeAndName(Type::GetByName("Zone"), zoneName)) {
+		Log(LogWarning, "config")
+			<< "Ignoring directory '" << zonePath << "' for unknown zone '" << zoneName << "'.";
+		return;
+	}
+
 	/* Check whether this node already has an authoritative config version
 	 * from zones.d in etc or api package directory, or a local marker file)
 	 */
 	if (ConfigCompiler::HasZoneConfigAuthority(zoneName) || Utility::PathExists(zonePath + "/.authoritative")) {
 		Log(LogNotice, "config")
-		    << "Ignoring non local config include for zone '" << zoneName << "': We already have an authoritative copy included.";
+			<< "Ignoring non local config include for zone '" << zoneName << "': We already have an authoritative copy included.";
 		return;
 	}
 
@@ -89,7 +90,7 @@ static void IncludePackage(const String& packagePath, bool& success)
 
 	if (Utility::PathExists(packagePath + "/include.conf")) {
 		std::unique_ptr<Expression> expr = ConfigCompiler::CompileFile(packagePath + "/include.conf",
-		    String(), packageName);
+			String(), packageName);
 
 		if (!ExecuteExpression(&*expr))
 			success = false;
@@ -121,7 +122,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	 * unfortunately moving it there is somewhat non-trivial. */
 	success = true;
 
-	String zonesEtcDir = Application::GetZonesDir();
+	String zonesEtcDir = Configuration::ZonesDir;
 	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
 		Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", std::ref(success)), GlobDirectory);
 
@@ -130,7 +131,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 
 	/* Load package config files - they may contain additional zones which
 	 * are authoritative on this node and are checked in HasZoneConfigAuthority(). */
-	String packagesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/packages";
+	String packagesVarDir = Configuration::DataDir + "/api/packages";
 	if (Utility::PathExists(packagesVarDir))
 		Utility::Glob(packagesVarDir + "/*", std::bind(&IncludePackage, _1, std::ref(success)), GlobDirectory);
 
@@ -138,21 +139,28 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 		return false;
 
 	/* Load cluster synchronized configuration files */
-	String zonesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
+	String zonesVarDir = Configuration::DataDir + "/api/zones";
 	if (Utility::PathExists(zonesVarDir))
 		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", std::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
 
-	Type::Ptr appType = Type::GetByName(ScriptGlobal::Get("ApplicationType", &Empty));
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+	VERIFY(systemNS);
+
+	/* This is initialized inside the IcingaApplication class. */
+	Value vAppType;
+	VERIFY(systemNS->Get("ApplicationType", &vAppType));
+
+	Type::Ptr appType = Type::GetByName(vAppType);
 
 	if (ConfigItem::GetItems(appType).empty()) {
-		ConfigItemBuilder::Ptr builder = new ConfigItemBuilder();
-		builder->SetType(appType);
-		builder->SetName("app");
-		builder->AddExpression(new ImportDefaultTemplatesExpression());
-		ConfigItem::Ptr item = builder->Compile();
+		ConfigItemBuilder builder;
+		builder.SetType(appType);
+		builder.SetName("app");
+		builder.AddExpression(new ImportDefaultTemplatesExpression());
+		ConfigItem::Ptr item = builder.Compile();
 		item->Register();
 	}
 
@@ -160,8 +168,8 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 }
 
 bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
-    std::vector<ConfigItem::Ptr>& newItems,
-    const String& objectsFile, const String& varsfile)
+	std::vector<ConfigItem::Ptr>& newItems,
+	const String& objectsFile, const String& varsfile)
 {
 	ActivationScope ascope;
 
@@ -170,7 +178,7 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 		return false;
 	}
 
-	WorkQueue upq(25000, Application::GetConcurrency());
+	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("DaemonUtility::LoadConfigFiles");
 	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
 

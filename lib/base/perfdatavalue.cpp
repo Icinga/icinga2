@@ -1,43 +1,20 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/perfdatavalue.hpp"
-#include "base/perfdatavalue.tcpp"
+#include "base/perfdatavalue-ti.cpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include "base/function.hpp"
-#include <boost/algorithm/string/case_conv.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(PerfdataValue);
-REGISTER_SCRIPTFUNCTION_NS(System, parse_performance_data, PerfdataValue::Parse, "perfdata");
+REGISTER_FUNCTION(System, parse_performance_data, PerfdataValue::Parse, "perfdata");
 
-PerfdataValue::PerfdataValue(void)
-{ }
-
-PerfdataValue::PerfdataValue(String label, double value, bool counter,
-    const String& unit, const Value& warn, const Value& crit, const Value& min,
-    const Value& max)
+PerfdataValue::PerfdataValue(const String& label, double value, bool counter,
+	const String& unit, const Value& warn, const Value& crit, const Value& min,
+	const Value& max)
 {
 	SetLabel(label, true);
 	SetValue(value, true);
@@ -72,8 +49,7 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 
 	double value = Convert::ToDouble(valueStr.SubStr(0, pos));
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, valueStr, boost::is_any_of(";"));
+	std::vector<String> tokens = valueStr.Split(";");
 
 	bool counter = false;
 	String unit;
@@ -82,7 +58,7 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 	if (pos != String::NPos)
 		unit = valueStr.SubStr(pos, tokens[0].GetLength() - pos);
 
-	boost::algorithm::to_lower(unit);
+	unit = unit.ToLower();
 
 	double base = 1.0;
 
@@ -139,7 +115,7 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 	return new PerfdataValue(label, value, counter, unit, warn, crit, min, max);
 }
 
-String PerfdataValue::Format(void) const
+String PerfdataValue::Format() const
 {
 	std::ostringstream result;
 
@@ -189,7 +165,7 @@ Value PerfdataValue::ParseWarnCritMinMaxToken(const std::vector<String>& tokens,
 	else {
 		if (tokens.size() > index && tokens[index] != "")
 			Log(LogDebug, "PerfdataValue")
-			    << "Ignoring unsupported perfdata " << description << " range, value: '" << tokens[index] << "'.";
+				<< "Ignoring unsupported perfdata " << description << " range, value: '" << tokens[index] << "'.";
 		return Empty;
 	}
 }

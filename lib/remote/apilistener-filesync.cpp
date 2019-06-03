@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
@@ -24,6 +7,7 @@
 #include "base/logger.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 #include <fstream>
 #include <iomanip>
 
@@ -36,7 +20,7 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 	CONTEXT("Creating config update for file '" + file + "'");
 
 	Log(LogNotice, "ApiListener")
-	    << "Creating config update for file '" << file << "'.";
+		<< "Creating config update for file '" << file << "'.";
 
 	std::ifstream fp(file.CStr(), std::ifstream::binary);
 	if (!fp)
@@ -100,13 +84,13 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 	/* skip update if our configuration files are more recent */
 	if (oldTimestamp >= newTimestamp) {
 		Log(LogNotice, "ApiListener")
-		    << "Our configuration is more recent than the received configuration update."
-		    << " Ignoring configuration file update for path '" << configDir << "'. Current timestamp '"
-		    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
-		    << std::fixed << std::setprecision(6) << oldTimestamp
-		    << ") >= received timestamp '"
-		    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
-		    << newTimestamp << ").";
+			<< "Our configuration is more recent than the received configuration update."
+			<< " Ignoring configuration file update for path '" << configDir << "'. Current timestamp '"
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
+			<< std::fixed << std::setprecision(6) << oldTimestamp
+			<< ") >= received timestamp '"
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
+			<< newTimestamp << ").";
 		return false;
 	}
 
@@ -121,7 +105,7 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 
 				String path = configDir + "/" + kv.first;
 				Log(LogInformation, "ApiListener")
-				    << "Updating configuration file: " << path;
+					<< "Updating configuration file: " << path;
 
 				/* Sync string content only. */
 				String content = kv.second;
@@ -138,12 +122,12 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 	}
 
 	Log(LogInformation, "ApiListener")
-	    << "Applying configuration file update for path '" << configDir << "' (" << numBytes << " Bytes). Received timestamp '"
-	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
-	    << std::fixed << std::setprecision(6) << newTimestamp
-	    << "), Current timestamp '"
-	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
-	    << oldTimestamp << ").";
+		<< "Applying configuration file update for path '" << configDir << "' (" << numBytes << " Bytes). Received timestamp '"
+		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
+		<< std::fixed << std::setprecision(6) << newTimestamp
+		<< "), Current timestamp '"
+		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
+		<< oldTimestamp << ").";
 
 	ObjectLock xlock(oldConfig);
 	for (const Dictionary::Pair& kv : oldConfig) {
@@ -202,10 +186,10 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	if (sumUpdates == 0)
 		return;
 
-	String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
+	String oldDir = Configuration::DataDir + "/api/zones/" + zone->GetName();
 
 	Log(LogInformation, "ApiListener")
-	    << "Copying " << sumUpdates << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
+		<< "Copying " << sumUpdates << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
 
 	Utility::MkDirP(oldDir, 0700);
 
@@ -214,7 +198,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	UpdateConfigDir(oldConfigInfo, newConfigInfo, oldDir, true);
 }
 
-void ApiListener::SyncZoneDirs(void) const
+void ApiListener::SyncZoneDirs() const
 {
 	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
 		try {
@@ -240,7 +224,7 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	Dictionary::Ptr configUpdateV1 = new Dictionary();
 	Dictionary::Ptr configUpdateV2 = new Dictionary();
 
-	String zonesDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
+	String zonesDir = Configuration::DataDir + "/api/zones";
 
 	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
 		String zoneDir = zonesDir + "/" + zone->GetName();
@@ -252,22 +236,22 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 			continue;
 
 		Log(LogInformation, "ApiListener")
-		    << "Syncing configuration files for " << (zone->IsGlobal() ? "global " : "")
-		    << "zone '" << zone->GetName() << "' to endpoint '" << endpoint->GetName() << "'.";
+			<< "Syncing configuration files for " << (zone->IsGlobal() ? "global " : "")
+			<< "zone '" << zone->GetName() << "' to endpoint '" << endpoint->GetName() << "'.";
 
 		ConfigDirInformation config = LoadConfigDir(zonesDir + "/" + zone->GetName());
 		configUpdateV1->Set(zone->GetName(), config.UpdateV1);
 		configUpdateV2->Set(zone->GetName(), config.UpdateV2);
 	}
 
-	Dictionary::Ptr params = new Dictionary();
-	params->Set("update", configUpdateV1);
-	params->Set("update_v2", configUpdateV2);
-
-	Dictionary::Ptr message = new Dictionary();
-	message->Set("jsonrpc", "2.0");
-	message->Set("method", "config::Update");
-	message->Set("params", params);
+	Dictionary::Ptr message = new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::Update" },
+		{ "params", new Dictionary({
+			{ "update", configUpdateV1 },
+			{ "update_v2", configUpdateV2 }
+		}) }
+	});
 
 	aclient->SendMessage(message);
 }
@@ -286,13 +270,13 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 	if (!listener->GetAcceptConfig()) {
 		Log(LogWarning, "ApiListener")
-		    << "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
+			<< "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
 
 	Log(LogInformation, "ApiListener")
-	    << "Applying config update from endpoint '" << origin->FromClient->GetEndpoint()->GetName()
-	    << "' of zone '" << GetFromZoneName(origin->FromZone) << "'.";
+		<< "Applying config update from endpoint '" << origin->FromClient->GetEndpoint()->GetName()
+		<< "' of zone '" << GetFromZoneName(origin->FromZone) << "'.";
 
 	Dictionary::Ptr updateV1 = params->Get("update");
 	Dictionary::Ptr updateV2 = params->Get("update_v2");
@@ -305,17 +289,17 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 		if (!zone) {
 			Log(LogWarning, "ApiListener")
-			    << "Ignoring config update for unknown zone '" << kv.first << "'.";
+				<< "Ignoring config update for unknown zone '" << kv.first << "'.";
 			continue;
 		}
 
 		if (ConfigCompiler::HasZoneConfigAuthority(kv.first)) {
 			Log(LogWarning, "ApiListener")
-			    << "Ignoring config update for zone '" << kv.first << "' because we have an authoritative version of the zone's config.";
+				<< "Ignoring config update for zone '" << kv.first << "' because we have an authoritative version of the zone's config.";
 			continue;
 		}
 
-		String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
+		String oldDir = Configuration::DataDir + "/api/zones/" + zone->GetName();
 
 		Utility::MkDirP(oldDir, 0700);
 

@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/workqueue.hpp"
 #include "base/utility.hpp"
@@ -24,6 +7,7 @@
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include <boost/thread/tss.hpp>
+#include <math.h>
 
 using namespace icinga;
 
@@ -31,8 +15,8 @@ std::atomic<int> WorkQueue::m_NextID(1);
 boost::thread_specific_ptr<WorkQueue *> l_ThreadWorkQueue;
 
 WorkQueue::WorkQueue(size_t maxItems, int threadCount)
-	: m_ID(m_NextID++), m_ThreadCount(threadCount), m_Spawned(false), m_MaxItems(maxItems), m_Stopped(false),
-	  m_Processing(0), m_NextTaskID(0), m_TaskStats(15 * 60), m_PendingTasks(0), m_PendingTasksTimestamp(0)
+	: m_ID(m_NextID++), m_ThreadCount(threadCount), m_MaxItems(maxItems),
+	m_TaskStats(15 * 60)
 {
 	/* Initialize logger. */
 	m_StatusTimerTimeout = Utility::GetTime();
@@ -43,7 +27,7 @@ WorkQueue::WorkQueue(size_t maxItems, int threadCount)
 	m_StatusTimer->Start();
 }
 
-WorkQueue::~WorkQueue(void)
+WorkQueue::~WorkQueue()
 {
 	m_StatusTimer->Stop(true);
 
@@ -55,33 +39,25 @@ void WorkQueue::SetName(const String& name)
 	m_Name = name;
 }
 
-String WorkQueue::GetName(void) const
+String WorkQueue::GetName() const
 {
 	return m_Name;
 }
 
+boost::mutex::scoped_lock WorkQueue::AcquireLock()
+{
+	return boost::mutex::scoped_lock(m_Mutex);
+}
+
 /**
  * Enqueues a task. Tasks are guaranteed to be executed in the order
- * they were enqueued in except if there is more than one worker thread or when
- * allowInterleaved is true in which case the new task might be run
- * immediately if it's being enqueued from within the WorkQueue thread.
+ * they were enqueued in except if there is more than one worker thread.
  */
-void WorkQueue::Enqueue(std::function<void (void)>&& function, WorkQueuePriority priority,
-    bool allowInterleaved)
+void WorkQueue::EnqueueUnlocked(boost::mutex::scoped_lock& lock, std::function<void ()>&& function, WorkQueuePriority priority)
 {
-	bool wq_thread = IsWorkerThread();
-
-	if (wq_thread && allowInterleaved) {
-		function();
-
-		return;
-	}
-
-	boost::mutex::scoped_lock lock(m_Mutex);
-
 	if (!m_Spawned) {
 		Log(LogNotice, "WorkQueue")
-		    << "Spawning WorkQueue threads for '" << m_Name << "'";
+			<< "Spawning WorkQueue threads for '" << m_Name << "'";
 
 		for (int i = 0; i < m_ThreadCount; i++) {
 			m_Threads.create_thread(std::bind(&WorkQueue::WorkerThreadProc, this));
@@ -89,6 +65,8 @@ void WorkQueue::Enqueue(std::function<void (void)>&& function, WorkQueuePriority
 
 		m_Spawned = true;
 	}
+
+	bool wq_thread = IsWorkerThread();
 
 	if (!wq_thread) {
 		while (m_Tasks.size() >= m_MaxItems && m_MaxItems != 0)
@@ -98,6 +76,27 @@ void WorkQueue::Enqueue(std::function<void (void)>&& function, WorkQueuePriority
 	m_Tasks.emplace(std::move(function), priority, ++m_NextTaskID);
 
 	m_CVEmpty.notify_one();
+}
+
+/**
+ * Enqueues a task. Tasks are guaranteed to be executed in the order
+ * they were enqueued in except if there is more than one worker thread or when
+ * allowInterleaved is true in which case the new task might be run
+ * immediately if it's being enqueued from within the WorkQueue thread.
+ */
+void WorkQueue::Enqueue(std::function<void ()>&& function, WorkQueuePriority priority,
+	bool allowInterleaved)
+{
+	bool wq_thread = IsWorkerThread();
+
+	if (wq_thread && allowInterleaved) {
+		function();
+
+		return;
+	}
+
+	auto lock = AcquireLock();
+	EnqueueUnlocked(lock, std::move(function), priority);
 }
 
 /**
@@ -122,7 +121,7 @@ void WorkQueue::Join(bool stop)
 		m_Spawned = false;
 
 		Log(LogNotice, "WorkQueue")
-		    << "Stopped WorkQueue threads for '" << m_Name << "'";
+			<< "Stopped WorkQueue threads for '" << m_Name << "'";
 	}
 }
 
@@ -132,7 +131,7 @@ void WorkQueue::Join(bool stop)
  *
  * @returns true if called from one of the worker threads, false otherwise
  */
-bool WorkQueue::IsWorkerThread(void) const
+bool WorkQueue::IsWorkerThread() const
 {
 	WorkQueue **pwq = l_ThreadWorkQueue.get();
 
@@ -152,10 +151,10 @@ void WorkQueue::SetExceptionCallback(const ExceptionCallback& callback)
  * work queue. When a custom exception callback is set this method will always
  * return false.
  */
-bool WorkQueue::HasExceptions(void) const
+bool WorkQueue::HasExceptions() const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
- 
+
 	return !m_Exceptions.empty();
 }
 
@@ -163,10 +162,10 @@ bool WorkQueue::HasExceptions(void) const
  * Returns all exceptions which have occurred for tasks in this work queue. When a
  * custom exception callback is set this method will always return an empty list.
  */
-std::vector<boost::exception_ptr> WorkQueue::GetExceptions(void) const
+std::vector<boost::exception_ptr> WorkQueue::GetExceptions() const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
- 
+
 	return m_Exceptions;
 }
 
@@ -176,21 +175,21 @@ void WorkQueue::ReportExceptions(const String& facility) const
 
 	for (const auto& eptr : exceptions) {
 		Log(LogCritical, facility)
-		    << DiagnosticInformation(eptr);
+			<< DiagnosticInformation(eptr);
 	}
 
 	Log(LogCritical, facility)
-	    << exceptions.size() << " error" << (exceptions.size() != 1 ? "s" : "");
+		<< exceptions.size() << " error" << (exceptions.size() != 1 ? "s" : "");
 }
 
-size_t WorkQueue::GetLength(void) const
+size_t WorkQueue::GetLength() const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	return m_Tasks.size();
 }
 
-void WorkQueue::StatusTimerHandler(void)
+void WorkQueue::StatusTimerHandler()
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -206,7 +205,7 @@ void WorkQueue::StatusTimerHandler(void)
 
 	if (pending > GetTaskCount(5)) {
 		timeInfo = " empty in ";
-		if (timeToZero < 0)
+		if (timeToZero < 0 || std::isinf(timeToZero))
 			timeInfo += "infinite time, your task handler isn't able to keep up";
 		else
 			timeInfo += Utility::FormatDuration(timeToZero);
@@ -218,11 +217,11 @@ void WorkQueue::StatusTimerHandler(void)
 	/* Log if there are pending items, or 5 minute timeout is reached. */
 	if (pending > 0 || m_StatusTimerTimeout < now) {
 		Log(LogInformation, "WorkQueue")
-		    << "#" << m_ID << " (" << m_Name << ") "
-		    << "items: " << pending << ", "
-		    << "rate: " << std::setw(2) << GetTaskCount(60) / 60.0 << "/s "
-		    << "(" << GetTaskCount(60) << "/min " << GetTaskCount(60 * 5) << "/5min " << GetTaskCount(60 * 15) << "/15min);"
-		    << timeInfo;
+			<< "#" << m_ID << " (" << m_Name << ") "
+			<< "items: " << pending << ", "
+			<< "rate: " << std::setw(2) << GetTaskCount(60) / 60.0 << "/s "
+			<< "(" << GetTaskCount(60) << "/min " << GetTaskCount(60 * 5) << "/5min " << GetTaskCount(60 * 15) << "/15min);"
+			<< timeInfo;
 	}
 
 	/* Reschedule next log entry in 5 minutes. */
@@ -231,7 +230,26 @@ void WorkQueue::StatusTimerHandler(void)
 	}
 }
 
-void WorkQueue::WorkerThreadProc(void)
+void WorkQueue::RunTaskFunction(const TaskFunction& func)
+{
+	try {
+		func();
+	} catch (const std::exception&) {
+		boost::exception_ptr eptr = boost::current_exception();
+
+		{
+			boost::mutex::scoped_lock mutex(m_Mutex);
+
+			if (!m_ExceptionCallback)
+				m_Exceptions.push_back(eptr);
+		}
+
+		if (m_ExceptionCallback)
+			m_ExceptionCallback(eptr);
+	}
+}
+
+void WorkQueue::WorkerThreadProc()
 {
 	std::ostringstream idbuf;
 	idbuf << "WQ #" << m_ID;
@@ -258,22 +276,9 @@ void WorkQueue::WorkerThreadProc(void)
 
 		lock.unlock();
 
-		try {
-			task.Function();
-		} catch (const std::exception&) {
-			lock.lock();
+		RunTaskFunction(task.Function);
 
-			if (!m_ExceptionCallback)
-				m_Exceptions.push_back(boost::current_exception());
-
-			lock.unlock();
-
-			if (m_ExceptionCallback)
-				m_ExceptionCallback(boost::current_exception());
-		}
-
-		/* clear the task so whatever other resources it holds are released
-		   _before_ we re-acquire the mutex */
+		/* clear the task so whatever other resources it holds are released _before_ we re-acquire the mutex */
 		task = Task();
 
 		IncreaseTaskCount();
@@ -287,16 +292,27 @@ void WorkQueue::WorkerThreadProc(void)
 	}
 }
 
-void WorkQueue::IncreaseTaskCount(void)
+void WorkQueue::IncreaseTaskCount()
 {
-	double now = Utility::GetTime();
-
-	boost::mutex::scoped_lock lock(m_StatsMutex);
-	m_TaskStats.InsertValue(now, 1);
+	m_TaskStats.InsertValue(Utility::GetTime(), 1);
 }
 
 size_t WorkQueue::GetTaskCount(RingBuffer::SizeType span)
 {
-	boost::mutex::scoped_lock lock(m_StatsMutex);
 	return m_TaskStats.UpdateAndGetValues(Utility::GetTime(), span);
+}
+
+bool icinga::operator<(const Task& a, const Task& b)
+{
+	if (a.Priority < b.Priority)
+		return true;
+
+	if (a.Priority == b.Priority) {
+		if (a.ID > b.ID)
+			return true;
+		else
+			return false;
+	}
+
+	return false;
 }

@@ -1,18 +1,6 @@
 <!--- Provide a general summary of the issue in the Title above -->
 
-<!-- If you are reporting a problem or a bug, please ensure to read https://github.com/Icinga/icinga2/blob/master/doc/15-troubleshooting.md first. -->
-
-<!-- Formatting tips:
-
-GitHub supports Markdown: https://guides.github.com/features/mastering-markdown/
-Multi-line code blocks either with three back ticks, or four space indent.
-
-```
-object Host "myhost" {
-  ...
-}
-```
--->
+<!-- If you are reporting a problem or a bug, please ensure to read https://github.com/Icinga/icinga2/blob/master/doc/15-troubleshooting.md first. Formatting tips: GitHub supports Markdown: https://guides.github.com/features/mastering-markdown/ -->
 
 ## Expected Behavior
 <!--- If you're describing a bug, tell us what should happen -->

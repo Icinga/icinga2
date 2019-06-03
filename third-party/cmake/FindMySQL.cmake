@@ -28,20 +28,31 @@
 ##########################################################################
 
 
+FILE(GLOB _macports_include_dirs /opt/local/include/mysql*/mysql)
+
 #-------------- FIND MYSQL_INCLUDE_DIR ------------------
 FIND_PATH(MYSQL_INCLUDE_DIR mysql.h
   $ENV{MYSQL_INCLUDE_DIR}
   $ENV{MYSQL_DIR}/include
   /usr/include/mysql
   /usr/local/include/mysql
+  /usr/include/mariadb
+  /usr/local/include/mariadb
   /opt/mysql/mysql/include
   /opt/mysql/mysql/include/mysql
   /opt/mysql/include
+  /opt/mariadb/include/mysql
   /opt/local/include/mysql5
   /usr/local/mysql/include
   /usr/local/mysql/include/mysql
+  ${_macports_include_dirs}
   $ENV{ProgramFiles}/MySQL/*/include
-  $ENV{SystemDrive}/MySQL/*/include)
+  $ENV{SystemDrive}/MySQL/*/include
+  $ENV{ProgramFiles}/MariaDB*/include/mysql
+  $ENV{SystemDrive}/MariaDB*/include/mysql
+)
+
+UNSET(_macports_include_dirs)
 
 #----------------- FIND MYSQL_LIB_DIR -------------------
 IF (WIN32)
@@ -61,6 +72,7 @@ IF (WIN32)
 
   FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient
     PATHS
+    $ENV{MYSQL_DIR}
     $ENV{MYSQL_DIR}/lib/${libsuffixDist}
     $ENV{MYSQL_DIR}/libmysql
     $ENV{MYSQL_DIR}/libmysql/${libsuffixBuild}
@@ -69,9 +81,15 @@ IF (WIN32)
     $ENV{ProgramFiles}/MySQL/*/lib/${libsuffixDist}
     $ENV{SystemDrive}/MySQL/*/lib/${libsuffixDist})
 ELSE (WIN32)
-  SET(MYSQL_CLIENT_LIBS mysqlclient)
-  FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient
+  IF (NOT MYSQL_CLIENT_LIBS)
+    SET(MYSQL_CLIENT_LIBS mysqlclient mariadbclient)
+  ENDIF (NOT MYSQL_CLIENT_LIBS)
+
+  FILE(GLOB _macports_lib_dirs /opt/local/lib/mysql*/mysql)
+
+  FIND_LIBRARY(MYSQL_LIB NAMES ${MYSQL_CLIENT_LIBS}
     PATHS
+    $ENV{MYSQL_DIR}
     $ENV{MYSQL_DIR}/libmysql_r/.libs
     $ENV{MYSQL_DIR}/lib
     $ENV{MYSQL_DIR}/lib/mysql
@@ -82,7 +100,10 @@ ELSE (WIN32)
     /opt/local/mysql5/lib
     /opt/local/lib/mysql5/mysql
     /opt/mysql/mysql/lib/mysql
-    /opt/mysql/lib/mysql)
+    /opt/mysql/lib/mysql
+    ${_macports_lib_dirs})
+
+  UNSET(_macports_lib_dirs)
 ENDIF (WIN32)
 
 IF(MYSQL_LIB)

@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "methods/clusterchecktask.hpp"
 #include "remote/apilistener.hpp"
@@ -33,11 +16,14 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, ClusterCheck, &ClusterCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, ClusterCheck, &ClusterCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	REQUIRE_NOT_NULL(checkable);
+	REQUIRE_NOT_NULL(cr);
+
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
@@ -58,18 +44,24 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 	std::pair<Dictionary::Ptr, Array::Ptr> feature_stats = CIB::GetFeatureStats();
 	cr->SetPerformanceData(feature_stats.second);
 
-	String connected_endpoints = FormatArray(status->Get("conn_endpoints"));
-	String not_connected_endpoints = FormatArray(status->Get("not_conn_endpoints"));
+	int numConnEndpoints = status->Get("num_conn_endpoints");
+	int numNotConnEndpoints = status->Get("num_not_conn_endpoints");
 
-	if (status->Get("num_not_conn_endpoints") > 0) {
+	String output = "Icinga 2 Cluster";
+
+	if (numNotConnEndpoints > 0) {
+		output += " Problem: " + Convert::ToString(numNotConnEndpoints) + " endpoints are not connected.";
+		output += "\n(" + FormatArray(status->Get("not_conn_endpoints")) + ")";
+
 		cr->SetState(ServiceCritical);
-		cr->SetOutput("Icinga 2 Cluster Problem: " + Convert::ToString(status->Get("num_not_conn_endpoints")) +
-		    " Endpoints (" + not_connected_endpoints + ") not connected.");
 	} else {
+		output += " OK: " + Convert::ToString(numConnEndpoints) + " endpoints are connected.";
+		output += "\n(" + FormatArray(status->Get("conn_endpoints")) + ")";
+
 		cr->SetState(ServiceOK);
-		cr->SetOutput("Icinga 2 Cluster is running: Connected Endpoints: "+ Convert::ToString(status->Get("num_conn_endpoints")) +
-		    " (" + connected_endpoints + ").");
 	}
+
+	cr->SetOutput(output);
 
 	checkable->ProcessCheckResult(cr);
 }

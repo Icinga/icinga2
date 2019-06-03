@@ -1,13 +1,15 @@
 [Unit]
 Description=Icinga host/service/network monitoring system
+Requires=network-online.target
 After=syslog.target network-online.target postgresql.service mariadb.service carbon-cache.service carbon-relay.service
 
 [Service]
-Type=forking
+Type=notify
+Environment="ICINGA2_ERROR_LOG=@ICINGA2_LOGDIR@/error.log"
 EnvironmentFile=@ICINGA2_SYSCONFIGFILE@
 ExecStartPre=@CMAKE_INSTALL_PREFIX@/lib/icinga2/prepare-dirs @ICINGA2_SYSCONFIGFILE@
-ExecStart=@CMAKE_INSTALL_FULL_SBINDIR@/icinga2 daemon -d -e ${ICINGA2_ERROR_LOG}
-PIDFile=@ICINGA2_RUNDIR@/icinga2/icinga2.pid
+ExecStart=@CMAKE_INSTALL_FULL_SBINDIR@/icinga2 daemon --close-stdio -e ${ICINGA2_ERROR_LOG}
+PIDFile=@ICINGA2_INITRUNDIR@/icinga2.pid
 ExecReload=@CMAKE_INSTALL_PREFIX@/lib/icinga2/safe-reload @ICINGA2_SYSCONFIGFILE@
 TimeoutStartSec=30m
 

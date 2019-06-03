@@ -16,11 +16,11 @@ BEGIN
 	BEGIN
 		BLOCK "040904E4"
 		BEGIN
-			VALUE "CompanyName", "Icinga Development Team"
+			VALUE "CompanyName", "Icinga GmbH"
 			VALUE "FileDescription", "Icinga 2"
 			VALUE "FileVersion", VERSION
 			VALUE "InternalName", "icinga2.exe"
-			VALUE "LegalCopyright", "© Icinga Development Team"
+			VALUE "LegalCopyright", "© Icinga GmbH"
 			VALUE "OriginalFilename", "icinga2.exe"
 			VALUE "ProductName", "Icinga 2"
 			VALUE "ProductVersion", VERSION

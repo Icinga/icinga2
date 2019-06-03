@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "db_ido_mysql/idomysqlconnection.hpp"
-#include "db_ido_mysql/idomysqlconnection.tcpp"
+#include "db_ido_mysql/idomysqlconnection-ti.cpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
 #include "base/logger.hpp"
@@ -30,40 +13,43 @@
 #include "base/configtype.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/tuple/tuple.hpp>
+#include <utility>
 
 using namespace icinga;
 
 REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnection, &IdoMysqlConnection::StatsFunc);
 
-IdoMysqlConnection::IdoMysqlConnection(void)
-	: m_QueryQueue(10000000)
-{ }
-
-void IdoMysqlConnection::OnConfigLoaded(void)
+void IdoMysqlConnection::OnConfigLoaded()
 {
 	ObjectImpl<IdoMysqlConnection>::OnConfigLoaded();
 
 	m_QueryQueue.SetName("IdoMysqlConnection, " + GetName());
+
+	Library shimLibrary{"mysql_shim"};
+
+	auto create_mysql_shim = shimLibrary.GetSymbolAddress<create_mysql_shim_ptr>("create_mysql_shim");
+
+	m_Mysql.reset(create_mysql_shim());
+
+	std::swap(m_Library, shimLibrary);
 }
 
 void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const IdoMysqlConnection::Ptr& idomysqlconnection : ConfigType::GetObjectsByType<IdoMysqlConnection>()) {
 		size_t queryQueueItems = idomysqlconnection->m_QueryQueue.GetLength();
 		double queryQueueItemRate = idomysqlconnection->m_QueryQueue.GetTaskCount(60) / 60.0;
 
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("version", idomysqlconnection->GetSchemaVersion());
-		stats->Set("instance_name", idomysqlconnection->GetInstanceName());
-		stats->Set("connected", idomysqlconnection->GetConnected());
-		stats->Set("query_queue_items", queryQueueItems);
-		stats->Set("query_queue_item_rate", queryQueueItemRate);
-
-		nodes->Set(idomysqlconnection->GetName(), stats);
+		nodes.emplace_back(idomysqlconnection->GetName(), new Dictionary({
+			{ "version", idomysqlconnection->GetSchemaVersion() },
+			{ "instance_name", idomysqlconnection->GetInstanceName() },
+			{ "connected", idomysqlconnection->GetConnected() },
+			{ "query_queue_items", queryQueueItems },
+			{ "query_queue_item_rate", queryQueueItemRate }
+		}));
 
 		perfdata->Add(new PerfdataValue("idomysqlconnection_" + idomysqlconnection->GetName() + "_queries_rate", idomysqlconnection->GetQueryCount(60) / 60.0));
 		perfdata->Add(new PerfdataValue("idomysqlconnection_" + idomysqlconnection->GetName() + "_queries_1min", idomysqlconnection->GetQueryCount(60)));
@@ -73,19 +59,20 @@ void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 		perfdata->Add(new PerfdataValue("idomysqlconnection_" + idomysqlconnection->GetName() + "_query_queue_item_rate", queryQueueItemRate));
 	}
 
-	status->Set("idomysqlconnection", nodes);
+	status->Set("idomysqlconnection", new Dictionary(std::move(nodes)));
 }
 
-void IdoMysqlConnection::Resume(void)
+void IdoMysqlConnection::Resume()
 {
-	DbConnection::Resume();
-
 	Log(LogInformation, "IdoMysqlConnection")
-	    << "'" << GetName() << "' resumed.";
+		<< "'" << GetName() << "' resumed.";
 
 	SetConnected(false);
 
 	m_QueryQueue.SetExceptionCallback(std::bind(&IdoMysqlConnection::ExceptionHandler, this, _1));
+
+	/* Immediately try to connect on Resume() without timer. */
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Reconnect, this), PriorityImmediate);
 
 	m_TxTimer = new Timer();
 	m_TxTimer->SetInterval(1);
@@ -96,27 +83,35 @@ void IdoMysqlConnection::Resume(void)
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&IdoMysqlConnection::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
-	m_ReconnectTimer->Reschedule(0);
 
-	ASSERT(mysql_thread_safe());
+	/* Start with queries after connect. */
+	DbConnection::Resume();
+
+	ASSERT(m_Mysql->thread_safe());
 }
 
-void IdoMysqlConnection::Pause(void)
+void IdoMysqlConnection::Pause()
 {
-	Log(LogInformation, "IdoMysqlConnection")
-	    << "'" << GetName() << "' paused.";
-
-	m_ReconnectTimer.reset();
+	Log(LogDebug, "IdoMysqlConnection")
+		<< "Attempting to pause '" << GetName() << "'.";
 
 	DbConnection::Pause();
 
+	m_ReconnectTimer.reset();
+
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
-	    << "Rescheduling disconnect task.";
+		<< "Rescheduling disconnect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Disconnect, this), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Disconnect, this), PriorityLow);
+
+	/* Work on remaining tasks but never delete the threads, for HA resuming later. */
 	m_QueryQueue.Join();
+
+	Log(LogInformation, "IdoMysqlConnection")
+		<< "'" << GetName() << "' paused.";
+
 }
 
 void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
@@ -124,21 +119,21 @@ void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "IdoMysqlConnection", "Exception during database operation: Verify that your database is operational!");
 
 	Log(LogDebug, "IdoMysqlConnection")
-	    << "Exception during database operation: " << DiagnosticInformation(exp);
+		<< "Exception during database operation: " << DiagnosticInformation(std::move(exp));
 
 	if (GetConnected()) {
-		mysql_close(&m_Connection);
+		m_Mysql->close(&m_Connection);
 
 		SetConnected(false);
 	}
 }
 
-void IdoMysqlConnection::AssertOnWorkQueue(void)
+void IdoMysqlConnection::AssertOnWorkQueue()
 {
 	ASSERT(m_QueryQueue.IsWorkerThread());
 }
 
-void IdoMysqlConnection::Disconnect(void)
+void IdoMysqlConnection::Disconnect()
 {
 	AssertOnWorkQueue();
 
@@ -146,28 +141,34 @@ void IdoMysqlConnection::Disconnect(void)
 		return;
 
 	Query("COMMIT");
-	mysql_close(&m_Connection);
+	m_Mysql->close(&m_Connection);
 
 	SetConnected(false);
+
+	Log(LogInformation, "IdoMysqlConnection")
+		<< "Disconnected from '" << GetName() << "' database '" << GetDatabase() << "'.";
 }
 
-void IdoMysqlConnection::TxTimerHandler(void)
+void IdoMysqlConnection::TxTimerHandler()
 {
 	NewTransaction();
 }
 
-void IdoMysqlConnection::NewTransaction(void)
+void IdoMysqlConnection::NewTransaction()
 {
+	if (IsPaused())
+		return;
+
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
-	    << "Scheduling new transaction and finishing async queries.";
+		<< "Scheduling new transaction and finishing async queries.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalNewTransaction, this), PriorityHigh);
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishAsyncQueries, this), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalNewTransaction, this), PriorityNormal);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishAsyncQueries, this), PriorityNormal);
 }
 
-void IdoMysqlConnection::InternalNewTransaction(void)
+void IdoMysqlConnection::InternalNewTransaction()
 {
 	AssertOnWorkQueue();
 
@@ -178,17 +179,18 @@ void IdoMysqlConnection::InternalNewTransaction(void)
 	AsyncQuery("BEGIN");
 }
 
-void IdoMysqlConnection::ReconnectTimerHandler(void)
+void IdoMysqlConnection::ReconnectTimerHandler()
 {
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
-	    << "Scheduling reconnect task.";
+		<< "Scheduling reconnect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Reconnect, this), PriorityLow);
+	/* Only allow Reconnect events with high priority. */
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Reconnect, this), PriorityImmediate);
 }
 
-void IdoMysqlConnection::Reconnect(void)
+void IdoMysqlConnection::Reconnect()
 {
 	AssertOnWorkQueue();
 
@@ -203,15 +205,19 @@ void IdoMysqlConnection::Reconnect(void)
 
 	bool reconnect = false;
 
+	/* Ensure to close old connections first. */
 	if (GetConnected()) {
 		/* Check if we're really still connected */
-		if (mysql_ping(&m_Connection) == 0)
+		if (m_Mysql->ping(&m_Connection) == 0)
 			return;
 
-		mysql_close(&m_Connection);
+		m_Mysql->close(&m_Connection);
 		SetConnected(false);
 		reconnect = true;
 	}
+
+	Log(LogDebug, "IdoMysqlConnection")
+		<< "Reconnect: Clearing ID cache.";
 
 	ClearIDCache();
 
@@ -249,23 +255,26 @@ void IdoMysqlConnection::Reconnect(void)
 	sslCipher = (!isslCipher.IsEmpty()) ? isslCipher.CStr() : nullptr;
 
 	/* connection */
-	if (!mysql_init(&m_Connection)) {
+	if (!m_Mysql->init(&m_Connection)) {
 		Log(LogCritical, "IdoMysqlConnection")
-		    << "mysql_init() failed: out of memory";
+			<< "mysql_init() failed: out of memory";
 
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 	}
 
 	if (enableSsl)
-		mysql_ssl_set(&m_Connection, sslKey, sslCert, sslCa, sslCaPath, sslCipher);
+		m_Mysql->ssl_set(&m_Connection, sslKey, sslCert, sslCa, sslCaPath, sslCipher);
 
-	if (!mysql_real_connect(&m_Connection, host, user, passwd, db, port, socket_path, CLIENT_FOUND_ROWS | CLIENT_MULTI_STATEMENTS)) {
+	if (!m_Mysql->real_connect(&m_Connection, host, user, passwd, db, port, socket_path, CLIENT_FOUND_ROWS | CLIENT_MULTI_STATEMENTS)) {
 		Log(LogCritical, "IdoMysqlConnection")
-		    << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
-		    << "' " << (enableSsl ? "(SSL enabled) " : "") << "failed: \"" << mysql_error(&m_Connection) << "\"";
+			<< "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
+			<< "' " << (enableSsl ? "(SSL enabled) " : "") << "failed: \"" << m_Mysql->error(&m_Connection) << "\"";
 
-		BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
+		BOOST_THROW_EXCEPTION(std::runtime_error(m_Mysql->error(&m_Connection)));
 	}
+
+	Log(LogNotice, "IdoMysqlConnection")
+		<< "Reconnect: '" << GetName() << "' is now connected to database '" << GetDatabase() << "'.";
 
 	SetConnected(true);
 
@@ -286,7 +295,7 @@ void IdoMysqlConnection::Reconnect(void)
 	row = FetchRow(result);
 
 	if (!row) {
-		mysql_close(&m_Connection);
+		m_Mysql->close(&m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoMysqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
@@ -301,13 +310,13 @@ void IdoMysqlConnection::Reconnect(void)
 	SetSchemaVersion(version);
 
 	if (Utility::CompareVersion(IDO_COMPAT_SCHEMA_VERSION, version) < 0) {
-		mysql_close(&m_Connection);
+		m_Mysql->close(&m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoMysqlConnection")
-		    << "Schema version '" << version << "' does not match the required version '"
-		    << IDO_COMPAT_SCHEMA_VERSION << "' (or newer)! Please check the upgrade documentation at "
-		    << "https://docs.icinga.com/icinga2/latest/doc/module/icinga2/chapter/upgrading-icinga-2#upgrading-mysql-db";
+			<< "Schema version '" << version << "' does not match the required version '"
+			<< IDO_COMPAT_SCHEMA_VERSION << "' (or newer)! Please check the upgrade documentation at "
+			<< "https://docs.icinga.com/icinga2/latest/doc/module/icinga2/chapter/upgrading-icinga-2#upgrading-mysql-db";
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Schema version mismatch."));
 	}
@@ -332,7 +341,7 @@ void IdoMysqlConnection::Reconnect(void)
 	if (my_endpoint && GetHAMode() == HARunOnce) {
 		/* get the current endpoint writing to programstatus table */
 		result = Query("SELECT UNIX_TIMESTAMP(status_update_time) AS status_update_time, endpoint_name FROM " +
-		    GetTablePrefix() + "programstatus WHERE instance_id = " + Convert::ToString(m_InstanceID));
+			GetTablePrefix() + "programstatus WHERE instance_id = " + Convert::ToString(m_InstanceID));
 		row = FetchRow(result);
 		DiscardRows(result);
 
@@ -352,13 +361,17 @@ void IdoMysqlConnection::Reconnect(void)
 			else
 				status_update_time = 0;
 
-			double status_update_age = Utility::GetTime() - status_update_time;
+			double now = Utility::GetTime();
 
-			Log(LogNotice, "IdoMysqlConnection")
-			    << "Last update by '" << endpoint_name << "' was " << status_update_age << "s ago.";
+			double status_update_age = now - status_update_time;
+			double failoverTimeout = GetFailoverTimeout();
 
-			if (status_update_age < GetFailoverTimeout()) {
-				mysql_close(&m_Connection);
+			if (status_update_age < failoverTimeout) {
+				Log(LogInformation, "IdoMysqlConnection")
+					<< "Last update by endpoint '" << endpoint_name << "' was "
+					<< status_update_age << "s ago (< failover timeout of " << failoverTimeout << "s). Retrying.";
+
+				m_Mysql->close(&m_Connection);
 				SetConnected(false);
 				SetShouldConnect(false);
 
@@ -368,20 +381,26 @@ void IdoMysqlConnection::Reconnect(void)
 			/* activate the IDO only, if we're authoritative in this zone */
 			if (IsPaused()) {
 				Log(LogNotice, "IdoMysqlConnection")
-				    << "Local endpoint '" << my_endpoint->GetName() << "' is not authoritative, bailing out.";
+					<< "Local endpoint '" << my_endpoint->GetName() << "' is not authoritative, bailing out.";
 
-				mysql_close(&m_Connection);
+				m_Mysql->close(&m_Connection);
 				SetConnected(false);
 
 				return;
 			}
+
+			SetLastFailover(now);
+
+			Log(LogInformation, "IdoMysqlConnection")
+				<< "Last update by endpoint '" << endpoint_name << "' was "
+				<< status_update_age << "s ago. Taking over '" << GetName() << "' in HA zone '" << Zone::GetLocalZone()->GetName() << "'.";
 		}
 
-		Log(LogNotice, "IdoMysqlConnection", "Enabling IDO connection.");
+		Log(LogNotice, "IdoMysqlConnection", "Enabling IDO connection in HA zone.");
 	}
 
 	Log(LogInformation, "IdoMysqlConnection")
-	    << "MySQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
+		<< "MySQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
 
 	/* set session time zone to utc */
 	Query("SET SESSION TIME_ZONE='+00:00'");
@@ -395,9 +414,9 @@ void IdoMysqlConnection::Reconnect(void)
 
 	/* record connection */
 	Query("INSERT INTO " + GetTablePrefix() + "conninfo " +
-	    "(instance_id, connect_time, last_checkin_time, agent_name, agent_version, connect_type, data_start_time) VALUES ("
-	    + Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), 'icinga2 db_ido_mysql', '" + Escape(Application::GetAppVersion())
-	    + "', '" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
+		"(instance_id, connect_time, last_checkin_time, agent_name, agent_version, connect_type, data_start_time) VALUES ("
+		+ Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), 'icinga2 db_ido_mysql', '" + Escape(Application::GetAppVersion())
+		+ "', '" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
 
 	/* clear config tables for the initial config dump */
 	PrepareDatabase();
@@ -432,8 +451,8 @@ void IdoMysqlConnection::Reconnect(void)
 			continue;
 
 		Log(LogNotice, "IdoMysqlConnection")
-		    << "Deactivate deleted object name1: '" << dbobj->GetName1()
-		    << "' name2: '" << dbobj->GetName2() + "'.";
+			<< "Deactivate deleted object name1: '" << dbobj->GetName1()
+			<< "' name2: '" << dbobj->GetName2() + "'.";
 		DeactivateObject(dbobj);
 	}
 
@@ -441,12 +460,12 @@ void IdoMysqlConnection::Reconnect(void)
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
-	    << "Scheduling session table clear and finish connect task.";
+		<< "Scheduling session table clear and finish connect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::ClearTablesBySession, this), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::ClearTablesBySession, this), PriorityNormal);
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityNormal);
 }
 
 void IdoMysqlConnection::FinishConnect(double startTime)
@@ -459,13 +478,14 @@ void IdoMysqlConnection::FinishConnect(double startTime)
 	FinishAsyncQueries();
 
 	Log(LogInformation, "IdoMysqlConnection")
-	    << "Finished reconnecting to MySQL IDO database in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
+		<< "Finished reconnecting to '" << GetName() << "' database '" << GetDatabase() << "' in "
+		<< std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 
 	Query("COMMIT");
 	Query("BEGIN");
 }
 
-void IdoMysqlConnection::ClearTablesBySession(void)
+void IdoMysqlConnection::ClearTablesBySession()
 {
 	/* delete all comments and downtimes without current session token */
 	ClearTableBySession("comments");
@@ -475,8 +495,8 @@ void IdoMysqlConnection::ClearTablesBySession(void)
 void IdoMysqlConnection::ClearTableBySession(const String& table)
 {
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
-	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
-	    Convert::ToString(GetSessionToken()));
+		Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
+		Convert::ToString(GetSessionToken()));
 }
 
 void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<void (const IdoMysqlResult&)>& callback)
@@ -497,7 +517,7 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<voi
 	}
 }
 
-void IdoMysqlConnection::FinishAsyncQueries(void)
+void IdoMysqlConnection::FinishAsyncQueries()
 {
 	std::vector<IdoAsyncQuery> queries;
 	m_AsyncQueries.swap(queries);
@@ -515,17 +535,18 @@ void IdoMysqlConnection::FinishAsyncQueries(void)
 
 			size_t size_query = aq.Query.GetLength() + 1;
 
-			if (num_bytes + size_query > m_MaxPacketSize - 512)
-				break;
+			if (count > 0) {
+				if (num_bytes + size_query > m_MaxPacketSize - 512)
+					break;
 
-			if (count > 0)
 				querybuf << ";";
+			}
 
 			IncreaseQueryCount();
 			count++;
 
 			Log(LogDebug, "IdoMysqlConnection")
-			    << "Query: " << aq.Query;
+				<< "Query: " << aq.Query;
 
 			querybuf << aq.Query;
 			num_bytes += size_query;
@@ -533,15 +554,15 @@ void IdoMysqlConnection::FinishAsyncQueries(void)
 
 		String query = querybuf.str();
 
-		if (mysql_query(&m_Connection, query.CStr()) != 0) {
+		if (m_Mysql->query(&m_Connection, query.CStr()) != 0) {
 			std::ostringstream msgbuf;
-			String message = mysql_error(&m_Connection);
+			String message = m_Mysql->error(&m_Connection);
 			msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
 			Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 			BOOST_THROW_EXCEPTION(
-			    database_error()
-				<< errinfo_message(mysql_error(&m_Connection))
+				database_error()
+				<< errinfo_message(m_Mysql->error(&m_Connection))
 				<< errinfo_database_query(query)
 			);
 		}
@@ -549,40 +570,40 @@ void IdoMysqlConnection::FinishAsyncQueries(void)
 		for (std::vector<IdoAsyncQuery>::size_type i = offset; i < offset + count; i++) {
 			const IdoAsyncQuery& aq = queries[i];
 
-			MYSQL_RES *result = mysql_store_result(&m_Connection);
+			MYSQL_RES *result = m_Mysql->store_result(&m_Connection);
 
-			m_AffectedRows = mysql_affected_rows(&m_Connection);
+			m_AffectedRows = m_Mysql->affected_rows(&m_Connection);
 
 			IdoMysqlResult iresult;
 
 			if (!result) {
-				if (mysql_field_count(&m_Connection) > 0) {
+				if (m_Mysql->field_count(&m_Connection) > 0) {
 					std::ostringstream msgbuf;
-					String message = mysql_error(&m_Connection);
+					String message = m_Mysql->error(&m_Connection);
 					msgbuf << "Error \"" << message << "\" when executing query \"" << aq.Query << "\"";
 					Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 					BOOST_THROW_EXCEPTION(
-					    database_error()
-						<< errinfo_message(mysql_error(&m_Connection))
+						database_error()
+						<< errinfo_message(m_Mysql->error(&m_Connection))
 						<< errinfo_database_query(query)
 					);
 				}
 			} else
-				iresult = IdoMysqlResult(result, std::ptr_fun(mysql_free_result));
+				iresult = IdoMysqlResult(result, std::bind(&MysqlInterface::free_result, std::cref(m_Mysql), _1));
 
 			if (aq.Callback)
 				aq.Callback(iresult);
 
-			if (mysql_next_result(&m_Connection) > 0) {
+			if (m_Mysql->next_result(&m_Connection) > 0) {
 				std::ostringstream msgbuf;
-				String message = mysql_error(&m_Connection);
+				String message = m_Mysql->error(&m_Connection);
 				msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
 				Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 				BOOST_THROW_EXCEPTION(
-				    database_error()
-					<< errinfo_message(mysql_error(&m_Connection))
+					database_error()
+					<< errinfo_message(m_Mysql->error(&m_Connection))
 					<< errinfo_database_query(query)
 				);
 			}
@@ -600,37 +621,37 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 	FinishAsyncQueries();
 
 	Log(LogDebug, "IdoMysqlConnection")
-	    << "Query: " << query;
+		<< "Query: " << query;
 
 	IncreaseQueryCount();
 
-	if (mysql_query(&m_Connection, query.CStr()) != 0) {
+	if (m_Mysql->query(&m_Connection, query.CStr()) != 0) {
 		std::ostringstream msgbuf;
-		String message = mysql_error(&m_Connection);
+		String message = m_Mysql->error(&m_Connection);
 		msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
 		Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 		BOOST_THROW_EXCEPTION(
-		    database_error()
-			<< errinfo_message(mysql_error(&m_Connection))
+			database_error()
+			<< errinfo_message(m_Mysql->error(&m_Connection))
 			<< errinfo_database_query(query)
 		);
 	}
 
-	MYSQL_RES *result = mysql_store_result(&m_Connection);
+	MYSQL_RES *result = m_Mysql->store_result(&m_Connection);
 
-	m_AffectedRows = mysql_affected_rows(&m_Connection);
+	m_AffectedRows = m_Mysql->affected_rows(&m_Connection);
 
 	if (!result) {
-		if (mysql_field_count(&m_Connection) > 0) {
+		if (m_Mysql->field_count(&m_Connection) > 0) {
 			std::ostringstream msgbuf;
-			String message = mysql_error(&m_Connection);
+			String message = m_Mysql->error(&m_Connection);
 			msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
 			Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 			BOOST_THROW_EXCEPTION(
-			    database_error()
-				<< errinfo_message(mysql_error(&m_Connection))
+				database_error()
+				<< errinfo_message(m_Mysql->error(&m_Connection))
 				<< errinfo_database_query(query)
 			);
 		}
@@ -638,17 +659,17 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 		return IdoMysqlResult();
 	}
 
-	return IdoMysqlResult(result, std::ptr_fun(mysql_free_result));
+	return IdoMysqlResult(result, std::bind(&MysqlInterface::free_result, std::cref(m_Mysql), _1));
 }
 
-DbReference IdoMysqlConnection::GetLastInsertID(void)
+DbReference IdoMysqlConnection::GetLastInsertID()
 {
 	AssertOnWorkQueue();
 
-	return DbReference(mysql_insert_id(&m_Connection));
+	return {static_cast<long>(m_Mysql->insert_id(&m_Connection))};
 }
 
-int IdoMysqlConnection::GetAffectedRows(void)
+int IdoMysqlConnection::GetAffectedRows()
 {
 	AssertOnWorkQueue();
 
@@ -662,9 +683,9 @@ String IdoMysqlConnection::Escape(const String& s)
 	String utf8s = Utility::ValidateUTF8(s);
 
 	size_t length = utf8s.GetLength();
-	char *to = new char[utf8s.GetLength() * 2 + 1];
+	auto *to = new char[utf8s.GetLength() * 2 + 1];
 
-	mysql_real_escape_string(&m_Connection, to, utf8s.CStr(), length);
+	m_Mysql->real_escape_string(&m_Connection, to, utf8s.CStr(), length);
 
 	String result = String(to);
 
@@ -681,20 +702,20 @@ Dictionary::Ptr IdoMysqlConnection::FetchRow(const IdoMysqlResult& result)
 	MYSQL_FIELD *field;
 	unsigned long *lengths, i;
 
-	row = mysql_fetch_row(result.get());
+	row = m_Mysql->fetch_row(result.get());
 
 	if (!row)
 		return nullptr;
 
-	lengths = mysql_fetch_lengths(result.get());
+	lengths = m_Mysql->fetch_lengths(result.get());
 
 	if (!lengths)
 		return nullptr;
 
 	Dictionary::Ptr dict = new Dictionary();
 
-	mysql_field_seek(result.get(), 0);
-	for (field = mysql_fetch_field(result.get()), i = 0; field; field = mysql_fetch_field(result.get()), i++)
+	m_Mysql->field_seek(result.get(), 0);
+	for (field = m_Mysql->fetch_field(result.get()), i = 0; field; field = m_Mysql->fetch_field(result.get()), i++)
 		dict->Set(field->name, String(row[i], row[i] + lengths[i]));
 
 	return dict;
@@ -710,17 +731,23 @@ void IdoMysqlConnection::DiscardRows(const IdoMysqlResult& result)
 
 void IdoMysqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 {
+	if (IsPaused())
+		return;
+
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
-	    << "Scheduling object activation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
+		<< "Scheduling object activation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalActivateObject, this, dbobj), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalActivateObject, this, dbobj), PriorityNormal);
 }
 
 void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 {
 	AssertOnWorkQueue();
+
+	if (IsPaused())
+		return;
 
 	if (!GetConnected())
 		return;
@@ -731,12 +758,12 @@ void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 	if (!dbref.IsValid()) {
 		if (!dbobj->GetName2().IsEmpty()) {
 			qbuf << "INSERT INTO " + GetTablePrefix() + "objects (instance_id, objecttype_id, name1, name2, is_active) VALUES ("
-			     << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
-			     << "'" << Escape(dbobj->GetName1()) << "', '" << Escape(dbobj->GetName2()) << "', 1)";
+				<< static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
+				<< "'" << Escape(dbobj->GetName1()) << "', '" << Escape(dbobj->GetName2()) << "', 1)";
 		} else {
 			qbuf << "INSERT INTO " + GetTablePrefix() + "objects (instance_id, objecttype_id, name1, is_active) VALUES ("
-			     << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
-			     << "'" << Escape(dbobj->GetName1()) << "', 1)";
+				<< static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
+				<< "'" << Escape(dbobj->GetName1()) << "', 1)";
 		}
 
 		Query(qbuf.str());
@@ -749,17 +776,23 @@ void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 
 void IdoMysqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 {
+	if (IsPaused())
+		return;
+
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
-	    << "Scheduling object deactivation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
+		<< "Scheduling object deactivation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalDeactivateObject, this, dbobj), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalDeactivateObject, this, dbobj), PriorityNormal);
 }
 
 void IdoMysqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)
 {
 	AssertOnWorkQueue();
+
+	if (IsPaused())
+		return;
 
 	if (!GetConnected())
 		return;
@@ -826,10 +859,8 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 		std::ostringstream msgbuf;
 		msgbuf << "FROM_UNIXTIME(" << ts << ")";
 		*result = Value(msgbuf.str());
-	} else if (DbValue::IsTimestampNow(value)) {
-		*result = "NOW()";
 	} else if (DbValue::IsObjectInsertID(value)) {
-		long id = static_cast<long>(rawvalue);
+		auto id = static_cast<long>(rawvalue);
 
 		if (id <= 0)
 			return false;
@@ -852,11 +883,14 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
+	if (IsPaused())
+		return;
+
 	ASSERT(query.Category != DbCatInvalid);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
-	    << "Scheduling execute query task, type " << query.Type << ", table '" << query.Table << "'.";
+		<< "Scheduling execute query task, type " << query.Type << ", table '" << query.Table << "'.";
 #endif /* I2_DEBUG */
 
 	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority, true);
@@ -864,12 +898,15 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 
 void IdoMysqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& queries)
 {
+	if (IsPaused())
+		return;
+
 	if (queries.empty())
 		return;
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
-	    << "Scheduling multiple execute query task, type " << queries[0].Type << ", table '" << queries[0].Table << "'.";
+		<< "Scheduling multiple execute query task, type " << queries[0].Type << ", table '" << queries[0].Table << "'.";
 #endif /* I2_DEBUG */
 
 	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteMultipleQueries, this, queries), queries[0].Priority, true);
@@ -911,6 +948,9 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 {
 	AssertOnWorkQueue();
 
+	if (IsPaused())
+		return;
+
 	if (!GetConnected())
 		return;
 
@@ -921,8 +961,8 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 			Log(LogDebug, "IdoMysqlConnection")
-			    << "Scheduling multiple execute query task again: Cannot execute query now. Type '"
-			    << query.Type << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
+				<< "Scheduling multiple execute query task again: Cannot execute query now. Type '"
+				<< query.Type << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
 #endif /* I2_DEBUG */
 
 			m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteMultipleQueries, this, queries), query.Priority);
@@ -938,6 +978,9 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOverride)
 {
 	AssertOnWorkQueue();
+
+	if (IsPaused())
+		return;
 
 	if (!GetConnected())
 		return;
@@ -959,8 +1002,8 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 		Log(LogDebug, "IdoMysqlConnection")
-		    << "Scheduling execute query task again: Cannot execute query now. Type '"
-		    << typeOverride << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
+			<< "Scheduling execute query task again: Cannot execute query now. Type '"
+			<< typeOverride << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
 #endif /* I2_DEBUG */
 
 		m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, typeOverride), query.Priority);
@@ -982,8 +1025,8 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 				Log(LogDebug, "IdoMysqlConnection")
-				    << "Scheduling execute query task again: Cannot execute query now. Type '"
-				    << typeOverride << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
+					<< "Scheduling execute query task again: Cannot execute query now. Type '"
+					<< typeOverride << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
 #endif /* I2_DEBUG */
 
 				m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
@@ -1061,8 +1104,8 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 				Log(LogDebug, "IdoMysqlConnection")
-				    << "Scheduling execute query task again: Cannot extract required INSERT/UPDATE fields, key '"
-				    << kv.first << "', val '" << kv.second << "', type " << typeOverride << ", table '" << query.Table << "'.";
+					<< "Scheduling execute query task again: Cannot extract required INSERT/UPDATE fields, key '"
+					<< kv.first << "', val '" << kv.second << "', type " << typeOverride << ", table '" << query.Table << "'.";
 #endif /* I2_DEBUG */
 
 				m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
@@ -1104,7 +1147,7 @@ void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 		Log(LogDebug, "IdoMysqlConnection")
-		    << "Rescheduling DELETE/INSERT query: Upsert UPDATE did not affect rows, type " << type << ", table '" << query.Table << "'.";
+			<< "Rescheduling DELETE/INSERT query: Upsert UPDATE did not affect rows, type " << type << ", table '" << query.Table << "'.";
 #endif /* I2_DEBUG */
 
 		m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, DbQueryDelete | DbQueryInsert), query.Priority);
@@ -1126,10 +1169,13 @@ void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool
 
 void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
 {
+	if (IsPaused())
+		return;
+
 #ifdef I2_DEBUG /* I2_DEBUG */
 		Log(LogDebug, "IdoMysqlConnection")
-		    << "Rescheduling cleanup query for table '" << table << "' and column '"
-		    << time_column << "'. max_age is set to '" << max_age << "'.";
+			<< "Rescheduling cleanup query for table '" << table << "' and column '"
+			<< time_column << "'. max_age is set to '" << max_age << "'.";
 #endif /* I2_DEBUG */
 
 	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), PriorityLow, true);
@@ -1139,12 +1185,15 @@ void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 {
 	AssertOnWorkQueue();
 
+	if (IsPaused())
+		return;
+
 	if (!GetConnected())
 		return;
 
 	AsyncQuery("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
-	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
-	    " < FROM_UNIXTIME(" + Convert::ToString(static_cast<long>(max_age)) + ")");
+		Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
+		" < FROM_UNIXTIME(" + Convert::ToString(static_cast<long>(max_age)) + ")");
 }
 
 void IdoMysqlConnection::FillIDCache(const DbType::Ptr& type)
@@ -1161,7 +1210,7 @@ void IdoMysqlConnection::FillIDCache(const DbType::Ptr& type)
 	}
 }
 
-int IdoMysqlConnection::GetPendingQueryCount(void) const
+int IdoMysqlConnection::GetPendingQueryCount() const
 {
 	return m_QueryQueue.GetLength();
 }

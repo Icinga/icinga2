@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef STREAM_H
 #define STREAM_H
@@ -23,6 +6,8 @@
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
 #include <boost/signals2.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 
 namespace icinga
 {
@@ -36,13 +21,9 @@ enum ConnectionRole
 	RoleServer
 };
 
-struct I2_BASE_API StreamReadContext
+struct StreamReadContext
 {
-	StreamReadContext(void)
-		: Buffer(nullptr), Size(0), MustRead(true), Eof(false)
-	{ }
-
-	~StreamReadContext(void)
+	~StreamReadContext()
 	{
 		free(Buffer);
 	}
@@ -50,10 +31,10 @@ struct I2_BASE_API StreamReadContext
 	bool FillFromStream(const intrusive_ptr<Stream>& stream, bool may_wait);
 	void DropData(size_t count);
 
-	char *Buffer;
-	size_t Size;
-	bool MustRead;
-	bool Eof;
+	char *Buffer{nullptr};
+	size_t Size{0};
+	bool MustRead{true};
+	bool Eof{false};
 };
 
 enum StreamReadStatus
@@ -68,7 +49,7 @@ enum StreamReadStatus
  *
  * @ingroup base
  */
-class I2_BASE_API Stream : public Object
+class Stream : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Stream);
@@ -108,35 +89,37 @@ public:
 	 * Causes the stream to be closed (via Close()) once all pending data has been
 	 * written.
 	 */
-	virtual void Shutdown(void);
+	virtual void Shutdown();
 
 	/**
 	 * Closes the stream and releases resources.
 	 */
-	virtual void Close(void);
+	virtual void Close();
 
 	/**
 	 * Checks whether we've reached the end-of-file condition.
 	 *
 	 * @returns true if EOF.
 	 */
-	virtual bool IsEof(void) const = 0;
+	virtual bool IsEof() const = 0;
 
 	/**
 	 * Waits until data can be read from the stream.
+	 * Optionally with a timeout.
 	 */
-	bool WaitForData(int timeout = -1);
+	bool WaitForData();
+	bool WaitForData(int timeout);
 
-	virtual bool SupportsWaiting(void) const;
+	virtual bool SupportsWaiting() const;
 
-	virtual bool IsDataAvailable(void) const;
+	virtual bool IsDataAvailable() const;
 
 	void RegisterDataHandler(const std::function<void(const Stream::Ptr&)>& handler);
 
 	StreamReadStatus ReadLine(String *line, StreamReadContext& context, bool may_wait = false);
 
 protected:
-	void SignalDataAvailable(void);
+	void SignalDataAvailable();
 
 private:
 	boost::signals2::signal<void(const Stream::Ptr&)> OnDataAvailable;

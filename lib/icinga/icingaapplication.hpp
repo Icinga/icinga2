@@ -1,27 +1,10 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef ICINGAAPPLICATION_H
 #define ICINGAAPPLICATION_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/icingaapplication.thpp"
+#include "icinga/icingaapplication-ti.hpp"
 #include "icinga/macroresolver.hpp"
 
 namespace icinga
@@ -32,33 +15,36 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API IcingaApplication : public ObjectImpl<IcingaApplication>, public MacroResolver
+class IcingaApplication final : public ObjectImpl<IcingaApplication>, public MacroResolver
 {
 public:
 	DECLARE_OBJECT(IcingaApplication);
 	DECLARE_OBJECTNAME(IcingaApplication);
 
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
-	virtual int Main(void) override;
+	int Main() override;
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	static IcingaApplication::Ptr GetInstance(void);
+	static IcingaApplication::Ptr GetInstance();
 
-	String GetPidPath(void) const;
+	bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
+	String GetNodeName() const;
 
-	String GetNodeName(void) const;
+	int GetMaxConcurrentChecks() const;
 
-	virtual void ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
+	String GetEnvironment() const override;
+	void SetEnvironment(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
+
+	void ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 private:
-	void DumpProgramState(void);
-	void DumpModifiedAttributes(void);
+	void DumpProgramState();
+	void DumpModifiedAttributes();
 
-	virtual void OnShutdown(void) override;
+	void OnShutdown() override;
 };
 
 }

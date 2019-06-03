@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/casigncommand.hpp"
 #include "remote/apilistener.hpp"
@@ -27,24 +10,24 @@ using namespace icinga;
 
 REGISTER_CLICOMMAND("ca/sign", CASignCommand);
 
-String CASignCommand::GetDescription(void) const
+String CASignCommand::GetDescription() const
 {
 	return "Signs an outstanding certificate request.";
 }
 
-String CASignCommand::GetShortDescription(void) const
+String CASignCommand::GetShortDescription() const
 {
 	return "signs an outstanding certificate request";
 }
 
-int CASignCommand::GetMinArguments(void) const
+int CASignCommand::GetMinArguments() const
 {
 	return 1;
 }
 
-ImpersonationLevel CASignCommand::GetImpersonationLevel(void) const
+ImpersonationLevel CASignCommand::GetImpersonationLevel() const
 {
-        return ImpersonateIcinga;
+	return ImpersonateIcinga;
 }
 
 /**
@@ -58,7 +41,7 @@ int CASignCommand::Run(const boost::program_options::variables_map& vm, const st
 
 	if (!Utility::PathExists(requestFile)) {
 		Log(LogCritical, "cli")
-		    << "No request exists for fingerprint '" << ap[0] << "'.";
+			<< "No request exists for fingerprint '" << ap[0] << "'.";
 		return 1;
 	}
 
@@ -90,7 +73,7 @@ int CASignCommand::Run(const boost::program_options::variables_map& vm, const st
 
 	if (!certResponse) {
 		Log(LogCritical, "cli")
-		    << "Could not sign certificate for '" << subject << "'.";
+			<< "Could not sign certificate for '" << subject << "'.";
 		return 1;
 	}
 
@@ -99,7 +82,7 @@ int CASignCommand::Run(const boost::program_options::variables_map& vm, const st
 	Utility::SaveJsonFile(requestFile, 0600, request);
 
 	Log(LogInformation, "cli")
-	    << "Signed certificate for '" << subject << "'.";
+		<< "Signed certificate for '" << subject << "'.";
 
 	return 0;
 }

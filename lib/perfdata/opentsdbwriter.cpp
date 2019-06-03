@@ -1,25 +1,9 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "perfdata/opentsdbwriter.hpp"
-#include "perfdata/opentsdbwriter.tcpp"
+#include "perfdata/opentsdbwriter-ti.cpp"
 #include "icinga/service.hpp"
+#include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/compatutility.hpp"
@@ -36,8 +20,6 @@
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
@@ -46,23 +28,50 @@ REGISTER_TYPE(OpenTsdbWriter);
 
 REGISTER_STATSFUNCTION(OpenTsdbWriter, &OpenTsdbWriter::StatsFunc);
 
-void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+/*
+ * Enable HA capabilities once the config object is loaded.
+ */
+void OpenTsdbWriter::OnConfigLoaded()
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	ObjectImpl<OpenTsdbWriter>::OnConfigLoaded();
 
-	for (const OpenTsdbWriter::Ptr& opentsdbwriter : ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
-		nodes->Set(opentsdbwriter->GetName(), 1); //add more stats
+	if (!GetEnableHa()) {
+		Log(LogDebug, "OpenTsdbWriter")
+			<< "HA functionality disabled. Won't pause connection: " << GetName();
+
+		SetHAMode(HARunEverywhere);
+	} else {
+		SetHAMode(HARunOnce);
 	}
-
-	status->Set("opentsdbwriter", nodes);
 }
 
-void OpenTsdbWriter::Start(bool runtimeCreated)
+/**
+ * Feature stats interface
+ *
+ * @param status Key value pairs for feature stats
+ */
+void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	ObjectImpl<OpenTsdbWriter>::Start(runtimeCreated);
+	DictionaryData nodes;
+
+	for (const OpenTsdbWriter::Ptr& opentsdbwriter : ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
+		nodes.emplace_back(opentsdbwriter->GetName(), new Dictionary({
+			{ "connected", opentsdbwriter->GetConnected() }
+		}));
+	}
+
+	status->Set("opentsdbwriter", new Dictionary(std::move(nodes)));
+}
+
+/**
+ * Resume is equivalent to Start, but with HA capabilities to resume at runtime.
+ */
+void OpenTsdbWriter::Resume()
+{
+	ObjectImpl<OpenTsdbWriter>::Resume();
 
 	Log(LogInformation, "OpentsdbWriter")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' resumed.";
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
@@ -73,37 +82,69 @@ void OpenTsdbWriter::Start(bool runtimeCreated)
 	Service::OnNewCheckResult.connect(std::bind(&OpenTsdbWriter::CheckResultHandler, this, _1, _2));
 }
 
-void OpenTsdbWriter::Stop(bool runtimeRemoved)
+/**
+ * Pause is equivalent to Stop, but with HA capabilities to resume at runtime.
+ */
+void OpenTsdbWriter::Pause()
 {
-	Log(LogInformation, "OpentsdbWriter")
-	    << "'" << GetName() << "' stopped.";
+	m_ReconnectTimer.reset();
 
-	ObjectImpl<OpenTsdbWriter>::Stop(runtimeRemoved);
+	Log(LogInformation, "OpentsdbWriter")
+		<< "'" << GetName() << "' paused.";
+
+	m_Stream->close();
+
+	SetConnected(false);
+
+	ObjectImpl<OpenTsdbWriter>::Pause();
 }
 
-void OpenTsdbWriter::ReconnectTimerHandler(void)
+/**
+ * Reconnect handler called by the timer.
+ * Handles TLS
+ */
+void OpenTsdbWriter::ReconnectTimerHandler()
 {
-	if (m_Stream)
+	if (IsPaused())
 		return;
 
-	TcpSocket::Ptr socket = new TcpSocket();
+	SetShouldConnect(true);
+
+	if (GetConnected())
+		return;
 
 	Log(LogNotice, "OpenTsdbWriter")
 		<< "Reconnect to OpenTSDB TSD on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
+	/*
+	 * We're using telnet as input method. Future PRs may change this into using the HTTP API.
+	 * http://opentsdb.net/docs/build/html/user_guide/writing/index.html#telnet
+	 */
+
+	m_Stream = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoService());
+
 	try {
-		socket->Connect(GetHost(), GetPort());
-	} catch (std::exception&) {
-		Log(LogCritical, "OpenTsdbWriter")
-			<< "Can't connect to OpenTSDB TSD on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		return;
+		icinga::Connect(m_Stream->lowest_layer(), GetHost(), GetPort());
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "OpenTsdbWriter")
+			<< "Can't connect to OpenTSDB on host '" << GetHost() << "' port '" << GetPort() << ".'";
 	}
 
-	m_Stream = new NetworkStream(socket);
+	SetConnected(true);
 }
 
+/**
+ * Registered check result handler processing data.
+ * Calculates tags from the config.
+ *
+ * @param checkable Host/service object
+ * @param cr Check result
+ */
 void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
+	if (IsPaused())
+		return;
+
 	CONTEXT("Processing check result for '" + checkable->GetName() + "'");
 
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
@@ -120,7 +161,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	String metric;
 	std::map<String, String> tags;
 
-	String escaped_hostName = EscapeMetric(host->GetName());
+	String escaped_hostName = EscapeTag(host->GetName());
 	tags["host"] = escaped_hostName;
 
 	double ts = cr->GetExecutionEnd();
@@ -130,18 +171,18 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		String escaped_serviceName = EscapeMetric(serviceName);
 		metric = "icinga.service." + escaped_serviceName;
 
-		SendMetric(metric + ".state", tags, service->GetState(), ts);
+		SendMetric(checkable, metric + ".state", tags, service->GetState(), ts);
 	} else {
 		metric = "icinga.host";
-		SendMetric(metric + ".state", tags, host->GetState(), ts);
+		SendMetric(checkable, metric + ".state", tags, host->GetState(), ts);
 	}
 
-	SendMetric(metric + ".state_type", tags, checkable->GetStateType(), ts);
-	SendMetric(metric + ".reachable", tags, checkable->IsReachable(), ts);
-	SendMetric(metric + ".downtime_depth", tags, checkable->GetDowntimeDepth(), ts);
-	SendMetric(metric + ".acknowledgement", tags, checkable->GetAcknowledgement(), ts);
+	SendMetric(checkable, metric + ".state_type", tags, checkable->GetStateType(), ts);
+	SendMetric(checkable, metric + ".reachable", tags, checkable->IsReachable(), ts);
+	SendMetric(checkable, metric + ".downtime_depth", tags, checkable->GetDowntimeDepth(), ts);
+	SendMetric(checkable, metric + ".acknowledgement", tags, checkable->GetAcknowledgement(), ts);
 
-	SendPerfdata(metric, tags, cr, ts);
+	SendPerfdata(checkable, metric, tags, cr, ts);
 
 	metric = "icinga.check";
 
@@ -154,18 +195,30 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		tags["type"] = "host";
 	}
 
-	SendMetric(metric + ".current_attempt", tags, checkable->GetCheckAttempt(), ts);
-	SendMetric(metric + ".max_check_attempts", tags, checkable->GetMaxCheckAttempts(), ts);
-	SendMetric(metric + ".latency", tags, cr->CalculateLatency(), ts);
-	SendMetric(metric + ".execution_time", tags, cr->CalculateExecutionTime(), ts);
+	SendMetric(checkable, metric + ".current_attempt", tags, checkable->GetCheckAttempt(), ts);
+	SendMetric(checkable, metric + ".max_check_attempts", tags, checkable->GetMaxCheckAttempts(), ts);
+	SendMetric(checkable, metric + ".latency", tags, cr->CalculateLatency(), ts);
+	SendMetric(checkable, metric + ".execution_time", tags, cr->CalculateExecutionTime(), ts);
 }
 
-void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, String>& tags, const CheckResult::Ptr& cr, double ts)
+/**
+ * Parse and send performance data metrics to OpenTSDB
+ *
+ * @param checkable Host/service object
+ * @param metric Full metric name
+ * @param tags Tag key pairs
+ * @param cr Check result containing performance data
+ * @param ts Timestamp when the check result was received
+ */
+void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String& metric,
+	const std::map<String, String>& tags, const CheckResult::Ptr& cr, double ts)
 {
 	Array::Ptr perfdata = cr->GetPerformanceData();
 
 	if (!perfdata)
 		return;
+
+	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
 	ObjectLock olock(perfdata);
 	for (const Value& val : perfdata) {
@@ -178,7 +231,9 @@ void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, S
 				pdv = PerfdataValue::Parse(val);
 			} catch (const std::exception&) {
 				Log(LogWarning, "OpenTsdbWriter")
-					<< "Ignoring invalid perfdata value: " << val;
+					<< "Ignoring invalid perfdata for checkable '"
+					<< checkable->GetName() << "' and command '"
+					<< checkCommand->GetName() << "' with value: " << val;
 				continue;
 			}
 		}
@@ -186,36 +241,47 @@ void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, S
 		String escaped_key = EscapeMetric(pdv->GetLabel());
 		boost::algorithm::replace_all(escaped_key, "::", ".");
 
-		SendMetric(metric + "." + escaped_key, tags, pdv->GetValue(), ts);
+		SendMetric(checkable, metric + "." + escaped_key, tags, pdv->GetValue(), ts);
 
 		if (pdv->GetCrit())
-			SendMetric(metric + "." + escaped_key + "_crit", tags, pdv->GetCrit(), ts);
+			SendMetric(checkable, metric + "." + escaped_key + "_crit", tags, pdv->GetCrit(), ts);
 		if (pdv->GetWarn())
-			SendMetric(metric + "." + escaped_key + "_warn", tags, pdv->GetWarn(), ts);
+			SendMetric(checkable, metric + "." + escaped_key + "_warn", tags, pdv->GetWarn(), ts);
 		if (pdv->GetMin())
-			SendMetric(metric + "." + escaped_key + "_min", tags, pdv->GetMin(), ts);
+			SendMetric(checkable, metric + "." + escaped_key + "_min", tags, pdv->GetMin(), ts);
 		if (pdv->GetMax())
-			SendMetric(metric + "." + escaped_key + "_max", tags, pdv->GetMax(), ts);
+			SendMetric(checkable, metric + "." + escaped_key + "_max", tags, pdv->GetMax(), ts);
 	}
 }
 
-void OpenTsdbWriter::SendMetric(const String& metric, const std::map<String, String>& tags, double value, double ts)
+/**
+ * Send given metric to OpenTSDB
+ *
+ * @param checkable Host/service object
+ * @param metric Full metric name
+ * @param tags Tag key pairs
+ * @param value Floating point metric value
+ * @param ts Timestamp where the metric was received from the check result
+ */
+void OpenTsdbWriter::SendMetric(const Checkable::Ptr& checkable, const String& metric,
+	const std::map<String, String>& tags, double value, double ts)
 {
 	String tags_string = "";
+
 	for (const Dictionary::Pair& tag : tags) {
 		tags_string += " " + tag.first + "=" + Convert::ToString(tag.second);
 	}
 
 	std::ostringstream msgbuf;
 	/*
-	 * must be (http://opentsdb.net/docs/build/html/user_guide/writing.html)
+	 * must be (http://opentsdb.net/docs/build/html/user_guide/query/timeseries.html)
 	 * put <metric> <timestamp> <value> <tagk1=tagv1[ tagk2=tagv2 ...tagkN=tagvN]>
 	 * "tags" must include at least one tag, we use "host=HOSTNAME"
 	 */
 	msgbuf << "put " << metric << " " << static_cast<long>(ts) << " " << Convert::ToString(value) << " " << tags_string;
 
 	Log(LogDebug, "OpenTsdbWriter")
-		<< "Add to metric list:'" << msgbuf.str() << "'.";
+		<< "Checkable '" << checkable->GetName() << "' adds to metric list: '" << msgbuf.str() << "'.";
 
 	/* do not send \n to debug log */
 	msgbuf << "\n";
@@ -223,21 +289,27 @@ void OpenTsdbWriter::SendMetric(const String& metric, const std::map<String, Str
 
 	ObjectLock olock(this);
 
-	if (!m_Stream)
+	if (!GetConnected())
 		return;
 
 	try {
-		m_Stream->Write(put.CStr(), put.GetLength());
+		Log(LogDebug, "OpenTsdbWriter")
+			<< "Checkable '" << checkable->GetName() << "' sending message '" << put << "'.";
+
+		boost::asio::write(*m_Stream, boost::asio::buffer(msgbuf.str()));
+		m_Stream->flush();
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "OpenTsdbWriter")
-			<< "Cannot write to OpenTSDB TSD on host '" << GetHost() << "' port '" << GetPort() + "'.";
-
-		m_Stream.reset();
+			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
 	}
 }
 
-/* for metric and tag name rules, see
- * http://opentsdb.net/docs/build/html/user_guide/writing.html#metrics-and-tags
+/**
+ * Escape tags for OpenTSDB
+ * http://opentsdb.net/docs/build/html/user_guide/query/timeseries.html#precisions-on-metrics-and-tags
+ *
+ * @param str Tag name
+ * @return Escaped tag
  */
 String OpenTsdbWriter::EscapeTag(const String& str)
 {
@@ -249,6 +321,13 @@ String OpenTsdbWriter::EscapeTag(const String& str)
 	return result;
 }
 
+/**
+ * Escape metric name for OpenTSDB
+ * http://opentsdb.net/docs/build/html/user_guide/query/timeseries.html#precisions-on-metrics-and-tags
+ *
+ * @param str Metric name
+ * @return Escaped metric
+ */
 String OpenTsdbWriter::EscapeMetric(const String& str)
 {
 	String result = str;
@@ -256,6 +335,7 @@ String OpenTsdbWriter::EscapeMetric(const String& str)
 	boost::replace_all(result, " ", "_");
 	boost::replace_all(result, ".", "_");
 	boost::replace_all(result, "\\", "_");
+	boost::replace_all(result, ":", "_");
 
 	return result;
 }

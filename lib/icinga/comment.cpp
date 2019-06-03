@@ -1,31 +1,12 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/comment.hpp"
-#include "icinga/comment.tcpp"
+#include "icinga/comment-ti.cpp"
 #include "icinga/host.hpp"
 #include "remote/configobjectutility.hpp"
 #include "base/utility.hpp"
 #include "base/configtype.hpp"
 #include "base/timer.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -59,8 +40,7 @@ String CommentNameComposer::MakeName(const String& shortName, const Object::Ptr&
 
 Dictionary::Ptr CommentNameComposer::ParseName(const String& name) const
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, name, boost::is_any_of("!"));
+	std::vector<String> tokens = name.Split("!");
 
 	if (tokens.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid Comment name."));
@@ -78,7 +58,7 @@ Dictionary::Ptr CommentNameComposer::ParseName(const String& name) const
 	return result;
 }
 
-void Comment::OnAllConfigLoaded(void)
+void Comment::OnAllConfigLoaded()
 {
 	ConfigObject::OnAllConfigLoaded();
 
@@ -99,7 +79,7 @@ void Comment::Start(bool runtimeCreated)
 
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
-	boost::call_once(once, []() {
+	boost::call_once(once, [this]() {
 		l_CommentsExpireTimer = new Timer();
 		l_CommentsExpireTimer->SetInterval(60);
 		l_CommentsExpireTimer->OnTimerExpired.connect(std::bind(&Comment::CommentsExpireTimerHandler));
@@ -130,19 +110,19 @@ void Comment::Stop(bool runtimeRemoved)
 	ObjectImpl<Comment>::Stop(runtimeRemoved);
 }
 
-Checkable::Ptr Comment::GetCheckable(void) const
+Checkable::Ptr Comment::GetCheckable() const
 {
 	return static_pointer_cast<Checkable>(m_Checkable);
 }
 
-bool Comment::IsExpired(void) const
+bool Comment::IsExpired() const
 {
 	double expire_time = GetExpireTime();
 
 	return (expire_time != 0 && expire_time < Utility::GetTime());
 }
 
-int Comment::GetNextCommentID(void)
+int Comment::GetNextCommentID()
 {
 	boost::mutex::scoped_lock lock(l_CommentMutex);
 
@@ -150,7 +130,7 @@ int Comment::GetNextCommentID(void)
 }
 
 String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryType, const String& author,
-    const String& text, bool persistent, double expireTime, const String& id, const MessageOrigin::Ptr& origin)
+	const String& text, bool persistent, double expireTime, const String& id, const MessageOrigin::Ptr& origin)
 {
 	String fullName;
 
@@ -185,7 +165,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 
 	Array::Ptr errors = new Array();
 
-	if (!ConfigObjectUtility::CreateObject(Comment::TypeInstance, fullName, config, errors)) {
+	if (!ConfigObjectUtility::CreateObject(Comment::TypeInstance, fullName, config, errors, nullptr)) {
 		ObjectLock olock(errors);
 		for (const String& error : errors) {
 			Log(LogCritical, "Comment", error);
@@ -200,7 +180,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create comment."));
 
 	Log(LogNotice, "Comment")
-	    << "Added comment '" << comment->GetName() << "'.";
+		<< "Added comment '" << comment->GetName() << "'.";
 
 	return fullName;
 }
@@ -213,11 +193,11 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 		return;
 
 	Log(LogNotice, "Comment")
-	    << "Removed comment '" << comment->GetName() << "' from object '" << comment->GetCheckable()->GetName() << "'.";
+		<< "Removed comment '" << comment->GetName() << "' from object '" << comment->GetCheckable()->GetName() << "'.";
 
 	Array::Ptr errors = new Array();
 
-	if (!ConfigObjectUtility::DeleteObject(comment, false, errors)) {
+	if (!ConfigObjectUtility::DeleteObject(comment, false, errors, nullptr)) {
 		ObjectLock olock(errors);
 		for (const String& error : errors) {
 			Log(LogCritical, "Comment", error);
@@ -239,7 +219,7 @@ String Comment::GetCommentIDFromLegacyID(int id)
 	return it->second;
 }
 
-void Comment::CommentsExpireTimerHandler(void)
+void Comment::CommentsExpireTimerHandler()
 {
 	std::vector<Comment::Ptr> comments;
 

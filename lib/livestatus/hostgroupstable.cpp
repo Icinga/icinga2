@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/hostgroupstable.hpp"
 #include "icinga/hostgroup.hpp"
@@ -25,13 +8,13 @@
 
 using namespace icinga;
 
-HostGroupsTable::HostGroupsTable(void)
+HostGroupsTable::HostGroupsTable()
 {
 	AddColumns(this);
 }
 
 void HostGroupsTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&HostGroupsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "alias", Column(&HostGroupsTable::AliasAccessor, objectAccessor));
@@ -60,12 +43,12 @@ void HostGroupsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "num_services_hard_unknown", Column(&HostGroupsTable::NumServicesHardUnknownAccessor, objectAccessor));
 }
 
-String HostGroupsTable::GetName(void) const
+String HostGroupsTable::GetName() const
 {
 	return "hostgroups";
 }
 
-String HostGroupsTable::GetPrefix(void) const
+String HostGroupsTable::GetPrefix() const
 {
 	return "hostgroup";
 }
@@ -135,13 +118,13 @@ Value HostGroupsTable::MembersAccessor(const Value& row)
 	if (!hg)
 		return Empty;
 
-	Array::Ptr members = new Array();
+	ArrayData members;
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
-		members->Add(host->GetName());
+		members.push_back(host->GetName());
 	}
 
-	return members;
+	return new Array(std::move(members));
 }
 
 Value HostGroupsTable::MembersWithStateAccessor(const Value& row)
@@ -151,16 +134,16 @@ Value HostGroupsTable::MembersWithStateAccessor(const Value& row)
 	if (!hg)
 		return Empty;
 
-	Array::Ptr members = new Array();
+	ArrayData members;
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
-		Array::Ptr member_state = new Array();
-		member_state->Add(host->GetName());
-		member_state->Add(host->GetState());
-		members->Add(member_state);
+		members.push_back(new Array({
+			host->GetName(),
+			host->GetState()
+		}));
 	}
 
-	return members;
+	return new Array(std::move(members));
 }
 
 Value HostGroupsTable::WorstHostStateAccessor(const Value& row)

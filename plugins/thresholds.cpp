@@ -1,23 +1,6 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "thresholds.h"
+#include "plugins/thresholds.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
@@ -28,7 +11,14 @@ threshold::threshold()
 	: set(false)
 {}
 
-threshold::threshold(CONST std::wstring& stri)
+threshold::threshold(const double v, const double c, bool l , bool p ) {
+	lower = v;
+	upper = c;
+	legal = l;
+	perc = p;
+}
+
+threshold::threshold(const std::wstring& stri)
 {
 	if (stri.empty())
 		throw std::invalid_argument("Threshold must not be empty");
@@ -64,7 +54,7 @@ threshold::threshold(CONST std::wstring& stri)
 			boost::algorithm::trim(str2);
 			upper = boost::lexical_cast<DOUBLE>(str2);
 			legal = !low; perc = pc; set = true;
-		} catch (CONST boost::bad_lexical_cast&) {
+		} catch (const boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
 		}
 	} else { //not range
@@ -76,17 +66,17 @@ threshold::threshold(CONST std::wstring& stri)
 			boost::algorithm::trim(str);
 			lower = upper = boost::lexical_cast<DOUBLE>(str);
 			legal = !low; perc = pc; set = true;
-		} catch (CONST boost::bad_lexical_cast&) {
+		} catch (const boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
 		}
 	}
 }
 
 //return TRUE if the threshold is broken
-BOOL threshold::rend(CONST DOUBLE val, CONST DOUBLE max)
+bool threshold::rend(const double val, const double max)
 {
-	DOUBLE upperAbs = upper;
-	DOUBLE lowerAbs = lower;
+	double upperAbs = upper;
+	double lowerAbs = lower;
 
 	if (perc) {
 		upperAbs = upper / 100.0 * max;
@@ -102,31 +92,60 @@ BOOL threshold::rend(CONST DOUBLE val, CONST DOUBLE max)
 }
 
 //returns a printable string of the threshold
-std::wstring threshold::pString(CONST DOUBLE max)
+std::wstring threshold::pString(const double max)
 {
 	if (!set)
 		return L"";
 	//transform percentages to abolute values
-	DOUBLE lowerAbs = lower;
-	DOUBLE upperAbs = upper;
+	double lowerAbs = lower;
+	double upperAbs = upper;
 	if (perc) {
 		lowerAbs = lower / 100.0 * max;
 		upperAbs = upper / 100.0 * max;
 	}
 
-	std::wstring s, lowerStr = removeZero(lowerAbs), 
+	std::wstring s, lowerStr = removeZero(lowerAbs),
 					upperStr = removeZero(upperAbs);
 
 	if (lower != upper) {
 		s.append(L"[").append(lowerStr).append(L"-")
 		.append(upperStr).append(L"]");
-	} else 
+	} else
 		s.append(lowerStr);
 
 	return s;
 }
 
-std::wstring removeZero(DOUBLE val)
+threshold threshold::toSeconds(const Tunit& fromUnit) {
+	if (!set)
+		return *this;
+
+	double lowerAbs = lower;
+	double upperAbs = upper;
+
+	switch (fromUnit) {
+	case TunitMS:
+		lowerAbs = lowerAbs / 1000;
+		upperAbs = upperAbs / 1000;
+		break;
+	case TunitS:
+		lowerAbs = lowerAbs ;
+		upperAbs = upperAbs ;
+		break;
+	case TunitM:
+		lowerAbs = lowerAbs * 60;
+		upperAbs = upperAbs * 60;
+		break;
+	case TunitH:
+		lowerAbs = lowerAbs * 60 * 60;
+		upperAbs = upperAbs * 60 * 60;
+		break;
+	}
+
+	return threshold(lowerAbs, upperAbs, legal, perc);
+}
+
+std::wstring removeZero(double val)
 {
 	std::wstring ret = boost::lexical_cast<std::wstring>(val);
 	std::wstring::size_type pos = ret.length();
@@ -144,14 +163,14 @@ std::wstring removeZero(DOUBLE val)
 	return L"0";
 }
 
-std::vector<std::wstring> splitMultiOptions(std::wstring str)
+std::vector<std::wstring> splitMultiOptions(const std::wstring& str)
 {
 	std::vector<std::wstring> sVec;
 	boost::split(sVec, str, boost::is_any_of(L","));
 	return sVec;
 }
 
-Bunit parseBUnit(CONST std::wstring& str)
+Bunit parseBUnit(const std::wstring& str)
 {
 	std::wstring wstr = to_upper_copy(str);
 
@@ -169,7 +188,7 @@ Bunit parseBUnit(CONST std::wstring& str)
 	throw std::invalid_argument("Unknown unit type");
 }
 
-std::wstring BunitStr(CONST Bunit& unit) 
+std::wstring BunitStr(const Bunit& unit)
 {
 	switch (unit) {
 	case BunitB:
@@ -186,7 +205,7 @@ std::wstring BunitStr(CONST Bunit& unit)
 	return NULL;
 }
 
-Tunit parseTUnit(CONST std::wstring& str) {
+Tunit parseTUnit(const std::wstring& str) {
 	std::wstring wstr = to_lower_copy(str);
 
 	if (wstr == L"ms")
@@ -201,7 +220,7 @@ Tunit parseTUnit(CONST std::wstring& str) {
 	throw std::invalid_argument("Unknown unit type");
 }
 
-std::wstring TunitStr(CONST Tunit& unit) 
+std::wstring TunitStr(const Tunit& unit)
 {
 	switch (unit) {
 	case TunitMS:
@@ -216,14 +235,42 @@ std::wstring TunitStr(CONST Tunit& unit)
 	return NULL;
 }
 
-VOID die(DWORD err)
+void printErrorInfo(unsigned long err)
 {
 	if (!err)
 		err = GetLastError();
 	LPWSTR mBuf = NULL;
 	if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL))
-			std::wcout << "Failed to format error message, last error was: " << err << '\n';
-	else
+		std::wcout << "Failed to format error message, last error was: " << err << '\n';
+	else {
+		boost::trim_right(std::wstring(mBuf));
 		std::wcout << mBuf << std::endl;
+	}
+}
+
+std::wstring formatErrorInfo(unsigned long err) {
+	std::wostringstream out;
+	if (!err)
+		err = GetLastError();
+	LPWSTR mBuf = NULL;
+	if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL))
+		out << "Failed to format error message, last error was: " << err;
+	else {
+		std::wstring tempOut = std::wstring(mBuf);
+		boost::trim_right(tempOut);
+		out << tempOut;
+	}
+
+	return out.str();
+}
+
+std::wstring stateToString(const state& state) {
+	switch (state) {
+		case OK: return L"OK";
+		case WARNING: return L"WARNING";
+		case CRITICAL: return L"CRITICAL";
+		default: return L"UNKNOWN";
+	}
 }

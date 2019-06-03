@@ -1,0 +1,3 @@
+LIBRARY pgsql_shim
+EXPORTS
+	create_pgsql_shim

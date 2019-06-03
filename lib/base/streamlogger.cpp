@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/streamlogger.hpp"
-#include "base/streamlogger.tcpp"
+#include "base/streamlogger-ti.cpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include "base/console.hpp"
@@ -29,13 +12,6 @@ using namespace icinga;
 REGISTER_TYPE(StreamLogger);
 
 boost::mutex StreamLogger::m_Mutex;
-
-/**
- * Constructor for the StreamLogger class.
- */
-StreamLogger::StreamLogger(void)
-	: m_Stream(nullptr), m_OwnsStream(false)
-{ }
 
 void StreamLogger::Stop(bool runtimeRemoved)
 {
@@ -49,21 +25,21 @@ void StreamLogger::Stop(bool runtimeRemoved)
 /**
  * Destructor for the StreamLogger class.
  */
-StreamLogger::~StreamLogger(void)
+StreamLogger::~StreamLogger()
 {
 	if (m_FlushLogTimer)
 		m_FlushLogTimer->Stop();
 
-	if (m_OwnsStream)
+	if (m_Stream && m_OwnsStream)
 		delete m_Stream;
 }
 
-void StreamLogger::FlushLogTimerHandler(void)
+void StreamLogger::FlushLogTimerHandler()
 {
 	Flush();
 }
 
-void StreamLogger::Flush(void)
+void StreamLogger::Flush()
 {
 	if (m_Stream)
 		m_Stream->flush();
@@ -73,16 +49,18 @@ void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)
 {
 	ObjectLock olock(this);
 
-	if (m_OwnsStream)
+	if (m_Stream && m_OwnsStream)
 		delete m_Stream;
 
 	m_Stream = stream;
 	m_OwnsStream = ownsStream;
 
-	m_FlushLogTimer = new Timer();
-	m_FlushLogTimer->SetInterval(1);
-	m_FlushLogTimer->OnTimerExpired.connect(std::bind(&StreamLogger::FlushLogTimerHandler, this));
-	m_FlushLogTimer->Start();
+	if (!m_FlushLogTimer) {
+		m_FlushLogTimer = new Timer();
+		m_FlushLogTimer->SetInterval(1);
+		m_FlushLogTimer->OnTimerExpired.connect(std::bind(&StreamLogger::FlushLogTimerHandler, this));
+		m_FlushLogTimer->Start();
+	}
 }
 
 /**

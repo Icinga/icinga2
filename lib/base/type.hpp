@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef TYPE_H
 #define TYPE_H
@@ -70,73 +53,75 @@ public:
 	virtual bool ValidateName(const String& type, const String& name) const = 0;
 };
 
-class I2_BASE_API Type : public Object
+class Type : public Object
 {
 public:
 	DECLARE_OBJECT(Type);
 
-	virtual String ToString(void) const override;
+	String ToString() const override;
 
-	virtual String GetName(void) const = 0;
-	virtual Type::Ptr GetBaseType(void) const = 0;
-	virtual int GetAttributes(void) const = 0;
+	virtual String GetName() const = 0;
+	virtual Type::Ptr GetBaseType() const = 0;
+	virtual int GetAttributes() const = 0;
 	virtual int GetFieldId(const String& name) const = 0;
 	virtual Field GetFieldInfo(int id) const = 0;
-	virtual int GetFieldCount(void) const = 0;
+	virtual int GetFieldCount() const = 0;
 
-	String GetPluralName(void) const;
+	String GetPluralName() const;
 
 	Object::Ptr Instantiate(const std::vector<Value>& args) const;
 
 	bool IsAssignableFrom(const Type::Ptr& other) const;
 
-	bool IsAbstract(void) const;
+	bool IsAbstract() const;
 
-	Object::Ptr GetPrototype(void) const;
+	Object::Ptr GetPrototype() const;
 	void SetPrototype(const Object::Ptr& object);
 
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
-	static std::vector<Type::Ptr> GetAllTypes(void);
+	static std::vector<Type::Ptr> GetAllTypes();
 
-	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
-	virtual Value GetField(int id) const override;
+	void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
+	Value GetField(int id) const override;
 
-	virtual std::vector<String> GetLoadDependencies(void) const;
+	virtual std::vector<String> GetLoadDependencies() const;
+	virtual int GetActivationPriority() const;
 
 	typedef std::function<void (const Object::Ptr&, const Value&)> AttributeHandler;
 	virtual void RegisterAttributeHandler(int fieldId, const AttributeHandler& callback);
 
 protected:
-	virtual ObjectFactory GetFactory(void) const = 0;
+	virtual ObjectFactory GetFactory() const = 0;
 
 private:
 	Object::Ptr m_Prototype;
 };
 
-class I2_BASE_API TypeType : public Type
+class TypeType final : public Type
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Type);
 
-	virtual String GetName(void) const override;
-	virtual Type::Ptr GetBaseType(void) const override;
-	virtual int GetAttributes(void) const override;
-	virtual int GetFieldId(const String& name) const override;
-	virtual Field GetFieldInfo(int id) const override;
-	virtual int GetFieldCount(void) const override;
+	String GetName() const override;
+	Type::Ptr GetBaseType() const override;
+	int GetAttributes() const override;
+	int GetFieldId(const String& name) const override;
+	Field GetFieldInfo(int id) const override;
+	int GetFieldCount() const override;
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
 protected:
-	virtual ObjectFactory GetFactory(void) const override;
+	ObjectFactory GetFactory() const override;
 };
 
 template<typename T>
-class I2_BASE_API TypeImpl
+class TypeImpl
 {
 };
 
+/* Ensure that the priority is lower than the basic namespace initialization in scriptframe.cpp. */
 #define REGISTER_TYPE(type) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		icinga::Type::Ptr t = new TypeImpl<type>(); \
