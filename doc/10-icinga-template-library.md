@@ -1262,6 +1262,7 @@ snmpv3_getnext       | **Optional.** Use SNMP GETNEXT instead of SNMP GET.
 snmpv3_seclevel      | **Optional.** The security level. Defaults to authPriv.
 snmpv3_auth_alg      | **Optional.** The authentication algorithm. Defaults to SHA.
 snmpv3_user          | **Required.** The username to log in with.
+snmpv3_context       | **Optional.** The SNMPv3 context.
 snmpv3_auth_key      | **Required,** The authentication key. Required if `snmpv3_seclevel` is set to `authPriv` otherwise optional.
 snmpv3_priv_key      | **Required.** The encryption key.
 snmpv3_oid           | **Required.** The SNMP OID.
