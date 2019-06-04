@@ -1082,6 +1082,7 @@ Configuration Attributes:
   start\_time               | Timestamp             | **Required.** The start time as UNIX timestamp.
   end\_time                 | Timestamp             | **Required.** The end time as UNIX timestamp.
   duration                  | Number                | **Optional.** The duration as number.
+  sequence\_id              | String                | **Optional.** The generated sequence string. If multiple downtimes were created from the same API action, this sequence number allows to delete them in one shot. Available since v2.11.
   entry\_time               | Timestamp             | **Optional.** The UNIX timestamp when this downtime was added.
   fixed                     | Boolean               | **Optional.** Whether the downtime is fixed (true) or flexible (false). Defaults to flexible. Details in the [advanced topics chapter](08-advanced-topics.md#fixed-flexible-downtimes).
   triggers                  | Array of object names | **Optional.** List of downtimes which should be triggered by this downtime.

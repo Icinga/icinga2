@@ -1431,16 +1431,14 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' \
 
 ### remove-downtime <a id="icinga2-api-actions-remove-downtime"></a>
 
-Remove the downtime using its `name` attribute , returns `OK` if the
-downtime did not exist.
-**Note**: This is **not** the legacy ID but the downtime name returned by
-Icinga 2 when [scheduling a downtime](12-icinga2-api.md#icinga2-api-actions-schedule-downtime).
-
 Send a `POST` request to the URL endpoint `/v1/actions/remove-downtime`.
 
 A [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host`, `Service` and `Downtime`.
 
-Example for a simple filter using the `downtime` URL parameter:
+#### Downtime Name <a id="icinga2-api-actions-remove-downtime-name"></a>
+
+Example for a simple filter using the `downtime` URL parameter.
+This is the downtime name returned by the REST API when [scheduling a downtime](12-icinga2-api.md#icinga2-api-actions-schedule-downtime).
 
 ```
 $ curl -k -s -u root:icinga -H 'Accept: application/json' \
@@ -1456,23 +1454,11 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' \
 }
 ```
 
-Example for removing all host downtimes using a host name filter for `icinga2-satellite2.localdomain`:
+#### Filter by Downtime Attributes <a id="icinga2-api-actions-remove-downtime-filter-attributes"></a>
 
-```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' \
- -X POST 'https://localhost:5665/v1/actions/remove-downtime' \
- -d '{ "type": "Host", "filter": "host.name==\"icinga2-satellite2.localdomain\"", "pretty": true }'
-{
-    "results": [
-        {
-            "code": 200.0,
-            "status": "Successfully removed all downtimes for object 'icinga2-satellite2.localdomain'."
-        }
-    ]
-}
-```
+Downtime objects can be filtered like any other objects, e.g. by `author` matching a string pattern.
 
-Example for removing a downtime from a host but not the services filtered by the author name. This example uses
+The following example removes a downtime from a host but not the services filtered by the author name. This example uses
 filter variables explained in the [advanced filters](12-icinga2-api.md#icinga2-api-advanced-filters) chapter.
 
 ```
@@ -1497,6 +1483,76 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' \
     ]
 }
 ```
+
+If multiple downtimes were created in a sequence before, e.g. with `all_services` or `child_options`,
+you can use the returned `sequence_id` to remove these downtimes in one shot. This is available since v2.11
+and requires newly created downtimes.
+
+The response to the client on creation looks like this, extract the `sequence_id`
+with the value `c42c055c-f467-4ad1-a9ab-23e2a0028aa3`.
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' \
+ -X POST 'https://localhost:5665/v1/actions/schedule-downtime' \
+ -d "$(jo -p pretty=true type=Host filter="match(\"*satellite*\", host.name)" all_services=true child_options=1 author=icingaadmin comment="Cluster upgrade maintenance" fixed=true start_time=$(date +%s -d "+0 hour") end_time=$(date +%s -d "+1 hour"))"
+
+        {
+            "child_downtimes": [],
+            "code": 200.0,
+            "legacy_id": 1240.0,
+            "name": "icinga2-satellite1.localdomain!f5ce8372-4968-4cd7-8cd8-efb5ef19a8ab",
+            "sequence_id": "c42c055c-f467-4ad1-a9ab-23e2a0028aa3",
+            "service_downtimes": [
+                {
+                    "legacy_id": 1241.0,
+                    "name": "icinga2-satellite1.localdomain!ping4!4b44c589-ed46-47a7-946f-1c7b87758985",
+                    "sequence_id": "c42c055c-f467-4ad1-a9ab-23e2a0028aa3"
+                },
+...
+```
+
+The `sequence_id` attribute is available via GET request at the URL endpoint `/v1/objects/downtimes` too.
+
+Now remove all downtimes filtered by the sequence_id `c42c055c-f467-4ad1-a9ab-23e2a0028aa3`.
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' \
+ -X POST 'https://localhost:5665/v1/acions/remove-downtime' \
+ -d "$(jo -p pretty=true type=Downtime filter='downtime.sequence_id=="c42c055c-f467-4ad1-a9ab-23e2a0028aa3"')"
+
+{
+    "results": [
+        {
+            "code": 200.0,
+            "status": "Successfully removed downtime 'icinga2-satellite1.localdomain!f5ce8372-4968-4cd7-8cd8-efb5ef19a8ab'."
+        },
+        {
+            "code": 200.0,
+            "status": "Successfully removed downtime 'icinga2-satellite1.localdomain!ping4!4b44c589-ed46-47a7-946f-1c7b87758985'."
+        },
+
+...
+```
+
+
+#### Filter by Host/Service <a id="icinga2-api-actions-remove-downtime-filter-host-service"></a>
+
+Example for removing all host downtimes using a host name filter for `icinga2-satellite2.localdomain`:
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' \
+ -X POST 'https://localhost:5665/v1/actions/remove-downtime' \
+ -d '{ "type": "Host", "filter": "host.name==\"icinga2-satellite2.localdomain\"", "pretty": true }'
+{
+    "results": [
+        {
+            "code": 200.0,
+            "status": "Successfully removed all downtimes for object 'icinga2-satellite2.localdomain'."
+        }
+    ]
+}
+```
+
 
 ### shutdown-process <a id="icinga2-api-actions-shutdown-process"></a>
 

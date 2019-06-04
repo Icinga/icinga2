@@ -210,7 +210,7 @@ int Downtime::GetNextDowntimeID()
 
 String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& author,
 	const String& comment, double startTime, double endTime, bool fixed,
-	const String& triggeredBy, double duration,
+	const String& triggeredBy, double duration, const String& sequenceID,
 	const String& scheduledDowntime, const String& scheduledBy,
 	const String& id, const MessageOrigin::Ptr& origin)
 {
@@ -233,6 +233,7 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 	attrs->Set("scheduled_by", scheduledBy);
 	attrs->Set("config_owner", scheduledDowntime);
 	attrs->Set("entry_time", Utility::GetTime());
+	attrs->Set("sequence_id", sequenceID);
 
 	if (!scheduledDowntime.IsEmpty()) {
 		auto localZone (Zone::GetLocalZone());
