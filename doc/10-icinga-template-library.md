@@ -2861,6 +2861,44 @@ ping_packets                     | **Optional.** The number of packets to send. 
 ping_timeout                     | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
 
 
+### Log Files <a id="plugins-contrib-log-files"></a>
+
+This category includes all plugins for matching log files.
+
+#### logfiles <a id="plugins-contrib-command-logfiles"></a>
+
+The [logfiles](https://labs.consol.de/nagios/check_logfiles/) plugin finds
+specified patterns in log files.
+
+Name                        | Description
+----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+logfiles_hostname           | **Optional.** Hostname where log files are
+logfiles_tag                | **Optional.** A short unique descriptor for this search. It will appear in the output of the plugin and is used to separare the different services.
+logfiles_tag                | **Optional.** This is the name of the log file you want to scan.
+logfiles_rotation           | **Optional.** This is the method how log files are rotated. One of the predefined methods or a regular expression, which helps identify the rotated archives. If this key is missing, check_logfiles assumes that the log file will be simply overwritten instead of rotated.
+logfiles_critical_pattern   | **Optional.** A regular expression which will trigger a critical error.
+logfiles_warning_pattern    | **Optional.** A regular expression which will trigger a warning error.
+logfiles_critical_exception | **Optional.** A regular expression, the exceptions which are not counted as critical errors.
+logfiles_warning_exception  | **Optional.** A regular expression, the exceptions which are not counted as warning errors.
+logfiles_ok_pattern         | **Optional.** A regular expression which resets the error counters.
+logfiles_no_protocol        | **Optional.** Normally all the matched lines are written into a protocol file with this file’s name appearing in the plugin’s output. This option switches this off.
+logfiles_syslog_server      | **Optional.** With this option you limit the pattern matching to lines originating from the host check_logfiles is running on.
+logfiles_syslog_client      | **Optional.** With this option you limit the pattern matching to lines originating from the host named in this option.
+logfiles_sticky             | **Optional.** Errors are propagated through successive runs.
+logfiles_unstick            | **Optional.** Resets sticky errors.
+logfiles_config             | **Optional.** Te name of a configuration file.
+logfiles_configdir          | **Optional.** The name of a configuration directory. Configfiles ending in .cfg or .conf are (recursively) imported.
+logfiles_searches           | **Optional.** A list of tags of those searches which are to be run. Using this parameter, not all searches listed in the config file are run, but only those selected.
+logfiles_selectedsearches   | **Optional.** A list of tags of those searches which are to be run. Using this parameter, not all searches listed in the config file are run, but only those selected.
+logfiles_report             | **Optional.** This option turns on multiline output (Default: off). The setting html generates a table which display the last hits in the service details view. Possible values are: short, long, html or off.
+logfiles_max_length         | **Optional.** With this parameter long lines are truncated (Default: off). Some programs (e.g. TrueScan) generate entries in the eventlog of such a length, that the output of the plugin becomes longer than 1024 characters. NSClient++ discards these.
+logfiles_winwarncrit        | **Optional.** With this parameter messages in the eventlog are classified by the type WARNING/ERROR (Default: off). Replaces or complements warning/criticalpattern.
+logfiles_run_unique         | **Optional.** This parameter prevents check_logfiles from starting when there’s already another instance using the same config file. (exits with UNKNOWN).
+logfiles_timeout            | **Optional.** This parameter causes an abort of a running search after a defined number of seconds. It is an aborted in a controlled manner, so that the lines which have been read so far, are used for the computation of the final result.
+logfiles_warning            | **Optional.** Complex handler-scripts can be provided with a warning-parameter this way. Inside the scripts the value is accessible as the macro CL_WARNING.
+logfiles_critical           | **Optional.** Complex handler-scripts can be provided with a critical-parameter this way. Inside the scripts the value is accessible as the macro CL_CRITICAL.
+
+
 ### Log Management <a id="plugins-contrib-log-management"></a>
 
 This category includes all plugins for log management, for example [Logstash](https://www.elastic.co/products/logstash).
