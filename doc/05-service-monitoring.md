@@ -8,43 +8,121 @@ the [Monitoring Plugins project](https://www.monitoring-plugins.org).
 
 ### Plugins <a id="service-monitoring-plugins"></a>
 
-All existing Nagios or Icinga 1.x plugins work with Icinga 2. Community
+All existing Icinga or Nagios plugins work with Icinga 2. Community
 plugins can be found for example on [Icinga Exchange](https://exchange.icinga.com).
 
-The recommended way of setting up these plugins is to copy them to a common directory
-and create a new global constant, e.g. `CustomPluginDir` in your [constants.conf](04-configuring-icinga-2.md#constants-conf)
-configuration file:
+The recommended way of setting up these plugins is to copy them
+into the `PluginDir` directory.
 
-```
-# cp check_snmp_int.pl /opt/monitoring/plugins
-# chmod +x /opt/monitoring/plugins/check_snmp_int.pl
+If you have plugins with many dependencies, consider creating a
+custom RPM/DEB package which handles the required libraries and binaries.
 
-# cat /etc/icinga2/constants.conf
-/**
- * This file defines global constants which can be used in
- * the other configuration files. At a minimum the
- * PluginDir constant should be defined.
- */
+Configuration management tools such as Puppet, Ansible, Chef or Saltstack
+also help with automatically installing the plugins on different
+operating systems. They can also help with installing the required
+dependencies, e.g. Python libraries, Perl modules, etc.
 
-const PluginDir = "/usr/lib/nagios/plugins"
-const CustomPluginDir = "/opt/monitoring/plugins"
-```
+### Plugin Setup <a id="service-monitoring-plugins-setup"></a>
+
+Good plugins provide installations and configuration instructions
+in their docs and/or README on GitHub.
+
+Sometimes dependencies are not listed, or your distribution differs from the one
+described. Try running the plugin after setup and [ensure it works](05-service-monitoring.md#service-monitoring-plugins-it-works).
+
+#### Ensure it works <a id="service-monitoring-plugins-it-works"></a>
 
 Prior to using the check plugin with Icinga 2 you should ensure that it is working properly
 by trying to run it on the console using whichever user Icinga 2 is running as:
 
+RHEL/CentOS/Fedora
+
 ```
-# su - icinga -s /bin/bash
-$ /opt/monitoring/plugins/check_snmp_int.pl --help
+sudo -u icinga /usr/lib64/nagios/plugins/check_mysql_health --help
+```
+
+Debian/Ubuntu
+
+```
+sudo -u nagios /usr/lib/nagios/plugins/check_mysql_health --help
 ```
 
 Additional libraries may be required for some plugins. Please consult the plugin
 documentation and/or the included README file for installation instructions.
 Sometimes plugins contain hard-coded paths to other components. Instead of changing
-the plugin it might be easier to create a symbolic link to make sure it doesn't get overwritten during the next update.
+the plugin it might be easier to create a symbolic link to make sure it doesn't get
+overwritten during the next update.
 
 Sometimes there are plugins which do not exactly fit your requirements.
 In that case you can modify an existing plugin or just write your own.
+
+#### Plugin Dependency Errors <a id="service-monitoring-plugins-setup-dependency-errors"></a>
+
+Plugins can be scripts (Shell, Python, Perl, Ruby, PHP, etc.)
+or compiled binaries (C, C++, Go).
+
+These scripts/binaries may require additional libraries
+which must be installed on every system they are executed.
+
+> **Tip**
+>
+> Don't test the plugins on your master instance, instead
+> do that on the satellites and clients which execute the
+> checks.
+
+There are errors, now what? Typical errors are missing libraries,
+binaries or packages.
+
+##### Python Example
+
+Example for a Python plugin which uses the `tinkerforge` module
+to query a network service:
+
+```
+ImportError: No module named tinkerforge.ip_connection
+```
+
+Its [documentation](https://github.com/NETWAYS/check_tinkerforge#installation)
+points to installing the `tinkerforge` Python module.
+
+##### Perl Example
+
+Example for a Perl plugin which uses SNMP:
+
+```
+Can't locate Net/SNMP.pm in @INC (you may need to install the Net::SNMP module)
+```
+
+Prior to installing the Perl module via CPAN, look for a distribution
+specific package, e.g. `libnet-snmp-perl` on Debian/Ubuntu or `perl-Net-SNMP`
+on RHEL/CentOS.
+
+
+#### Optional: Custom Path <a id="service-monitoring-plugins-custom-path"></a>
+
+If you are not using the default `PluginDir` directory, you
+can create a custom plugin directory and constant
+and reference this in the created CheckCommand objects.
+
+Create a common directory e.g. `/opt/monitoring/plugins`
+and install the plugin there.
+
+```
+mkdir -p /opt/monitoring/plugins
+cp check_snmp_int.pl /opt/monitoring/plugins
+chmod +x /opt/monitoring/plugins/check_snmp_int.pl
+```
+
+Next create a new global constant, e.g. `CustomPluginDir`
+in your [constants.conf](04-configuring-icinga-2.md#constants-conf)
+configuration file:
+
+```
+vim /etc/icinga2/constants.conf
+
+const PluginDir = "/usr/lib/nagios/plugins"
+const CustomPluginDir = "/opt/monitoring/plugins"
+```
 
 ### CheckCommand Definition <a id="service-monitoring-plugin-checkcommand"></a>
 
@@ -54,51 +132,281 @@ configuration which can be used in the [Service](09-object-types.md#objecttype-s
 
 Please check if the Icinga 2 package already provides an
 [existing CheckCommand definition](10-icinga-template-library.md#icinga-template-library).
-If that's the case, throroughly check the required parameters and integrate the check command
-into your host and service objects.
+
+If that's the case, thoroughly check the required parameters and integrate the check command
+into your host and service objects. Best practice is to run the plugin on the CLI
+with the required parameters first.
+
+Example for database size checks with [check_mysql_health](10-icinga-template-library.md#plugin-contrib-command-mysql_health).
+
+```
+/usr/lib64/nagios/plugins/check_mysql_health --hostname '127.0.0.1' --username root --password icingar0xx --mode sql --name 'select sum(data_length + index_length) / 1024 / 1024 from information_schema.tables where table_schema = '\''icinga'\'';' '--name2' 'db_size' --units 'MB' --warning 4096 --critical 8192
+```
+
+The parameter names inside the ITL commands follow the
+`<command name>_<parameter name>` schema.
+
+#### Icinga Director <a id="service-monitoring-plugin-checkcommand-integration-director"></a>
+
+Navigate into `Commands > External Commands` and search for `mysql_health`.
+Select `mysql_health` and navigate into the `Fields` tab.
+
+In order to access the parameters, the Director requires you to first
+define the needed custom data fields:
+
+* `mysql_health_hostname`
+* `mysql_health_username` and `mysql_health_password`
+* `mysql_health_mode`
+* `mysql_health_name`, `mysql_health_name2` and `mysql_health_units`
+* `mysql_health_warning` and `mysql_health_critical`
+
+Create a new host template and object where you'll generic
+settings like `mysql_health_hostname` (if it differs from the host's
+`address` attribute) and `mysql_health_username` and `mysql_health_password`.
+
+Create a new service template for `mysql-health` and set the `mysql_health`
+as check command. You can also define a default for `mysql_health_mode`.
+
+Next, create a service apply rule or a new service set which gets assigned
+to matching host objects.
+
+
+##### Icinga Config Files <a id="service-monitoring-plugin-checkcommand-integration-config-files"></a>
+
+Create or modify a host object which stores
+the generic database defaults and prepares details
+for a service apply for rule.
+
+```
+object Host "icinga2-master1.localdomain" {
+  check_command = "hostalive"
+  address = "..."
+
+  // Database listens locally, not external
+  vars.mysql_health_hostname = "127.0.0.1"
+
+  // Basic database size checks for Icinga DBs
+  vars.databases["icinga"] = {
+    mysql_health_warning = 4096 //MB
+    mysql_health_critical = 8192 //MB
+  }
+  vars.databases["icingaweb2"] = {
+    mysql_health_warning = 4096 //MB
+    mysql_health_critical = 8192 //MB
+  }
+}
+```
+
+The host object prepares the database details and thresholds already
+for advanced [apply for](03-monitoring-basics.md#using-apply-for) rules. It also uses
+conditions to fetch host specified values, or set default values.
+
+```
+apply Service "db-size-" for (db_name => config in host.vars.databases) {
+  check_interval = 1m
+  retry_interval = 30s
+
+  check_command = "mysql_health"
+
+  if (config.mysql_health_username) {
+    vars.mysql_healt_username = config.mysql_health_username
+  } else {
+    vars.mysql_health_username = "root"
+  }
+  if (config.mysql_health_password) {
+    vars.mysql_healt_password = config.mysql_health_password
+  } else {
+    vars.mysql_health_password = "icingar0xx"
+  }
+
+  vars.mysql_health_mode = "sql"
+  vars.mysql_health_name = "select sum(data_length + index_length) / 1024 / 1024 from information_schema.tables where table_schema = '" + db_name + "';"
+  vars.mysql_health_name2 = "db_size"
+  vars.mysql_health_units = "MB"
+
+  if (config.mysql_health_warning) {
+    vars.mysql_health_warning = config.mysql_health_warning
+  }
+  if (config.mysql_health_critical) {
+    vars.mysql_health_critical = config.mysql_health_critical
+  }
+
+  vars += config
+}
+```
+
+#### New CheckCommand <a id="service-monitoring-plugin-checkcommand-new"></a>
+
+This chapter describes how to add a new CheckCommand object for a plugin.
 
 Please make sure to follow these conventions when adding a new command object definition:
 
 * Use [command arguments](03-monitoring-basics.md#command-arguments) whenever possible. The `command` attribute
 must be an array in `[ ... ]` for shell escaping.
-* Define a unique `prefix` for the command's specific arguments. That way you can safely
-set them on host/service level and you'll always know which command they control.
+* Define a unique `prefix` for the command's specific arguments. Best practice is to follow this schema:
+
+```
+<command name>_<parameter name>
+```
+
+That way you can safely set them on host/service level and you'll always know which command they control.
 * Use command argument default values, e.g. for thresholds.
 * Use [advanced conditions](09-object-types.md#objecttype-checkcommand) like `set_if` definitions.
 
-This is an example for a custom `my-snmp-int` check command:
+Before starting with the CheckCommand definition, please check
+the existing objects available inside the ITL. They follow best
+practices and are maintained by developers and our community.
+
+This example picks a new plugin called [check_systemd](https://exchange.icinga.com/joseffriedrich/check_systemd)
+uploaded to Icinga Exchange in June 2019.
+
+First, [install](05-service-monitoring.md#service-monitoring-plugins-setup) the plugin and ensure
+that [it works](05-service-monitoring.md#service-monitoring-plugins-it-works). Then run it with the
+`--help` parameter to see the actual parameters (docs might be outdated).
 
 ```
-object CheckCommand "my-snmp-int" {
-  command = [ CustomPluginDir + "/check_snmp_int.pl" ]
+./check_systemd.py --help
 
-  arguments = {
-    "-H" = "$snmp_address$"
-    "-C" = "$snmp_community$"
-    "-p" = "$snmp_port$"
-    "-2" = {
-      set_if = "$snmp_v2$"
-    }
-    "-n" = "$snmp_interface$"
-    "-f" = {
-      set_if = "$snmp_perf$"
-    }
-    "-w" = "$snmp_warn$"
-    "-c" = "$snmp_crit$"
-  }
+usage: check_systemd.py [-h] [-c SECONDS] [-e UNIT | -u UNIT] [-v] [-V]
+                        [-w SECONDS]
 
-  vars.snmp_v2 = true
-  vars.snmp_perf = true
-  vars.snmp_warn = "300,400"
-  vars.snmp_crit = "0,600"
+...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c SECONDS, --critical SECONDS
+                        Startup time in seconds to result in critical status.
+  -e UNIT, --exclude UNIT
+                        Exclude a systemd unit from the checks. This option
+                        can be applied multiple times. For example: -e mnt-
+                        data.mount -e task.service.
+  -u UNIT, --unit UNIT  Name of the systemd unit that is beeing tested.
+  -v, --verbose         Increase output verbosity (use up to 3 times).
+  -V, --version         show program's version number and exit
+  -w SECONDS, --warning SECONDS
+                        Startup time in seconds to result in warning status.
+```
+
+The argument description is important, based on this you need to create the
+command arguments.
+
+> **Tip**
+>
+> When you are using the Director, you can prepare the commands as files
+> e.g. inside the `global-templates` zone. Then run the kickstart wizard
+> again to import the commands as external reference.
+>
+> If you prefer to use the Director GUI/CLI, please apply the steps
+> in the `Add Command` form.
+
+Start with the basic plugin call without any parameters.
+
+```
+object CheckCommand "systemd" { // Plugin name without 'check_' prefix
+  command = [ PluginContribDir + "/check_systemd.py" ] // Use the 'PluginContribDir' constant, see the contributed ITL commands
 }
 ```
 
-For further information on your monitoring configuration read the
-[Monitoring Basics](03-monitoring-basics.md#monitoring-basics) chapter.
+Run a config validation to see if that works, `icinga2 daemon -C`
 
-If you have created your own `CheckCommand` definition, please kindly
-[send it upstream](https://github.com/Icinga/icinga2/blob/master/CONTRIBUTING.md).
+Next, analyse the plugin parameters. Plugins with a good help output show
+optional parameters in square brackes. This is the case for all parameters
+for this plugin. If there are required parameters, use the `required` key
+inside the argument.
+
+The `arguments` attribute is a dictionary which takes the parameters as keys.
+
+```
+  arguments = {
+    "--unit" = { ... }
+  }
+```
+
+If there a long parameter names available, prefer them. This increases
+readability in both the configuration as well as the executed command line.
+
+The argument value itself is a sub dictionary which has additional keys:
+
+* `value` which references the runtime macro string
+* `description` where you copy the plugin parameter help text into
+* `required`, `set_if`, etc. for advanced parameters, check the [CheckCommand object](09-object-types.md#objecttype-checkcommand) chapter.
+
+The runtime macro syntax is required to allow value extraction when
+the command is executed.
+
+> **Tip**
+>
+> Inside the Director, store the new command first in order to
+> unveil the `Arguments` tab.
+
+Best practice is to use the command name as prefix, in this specific
+case e.g. `systemd_unit`.
+
+```
+  arguments = {
+    "--unit" = {
+      value = "$systemd_unit$" // The service parameter would then be defined as 'vars.systemd_unit = "icinga2"'
+      description = "Name of the systemd unit that is beeing tested."
+    }
+    "--warning" = {
+      value = "$systemd_warning$"
+      description = "Startup time in seconds to result in warning status."
+    }
+    "--critical" = {
+      value = "$systemd_critical$"
+      description = "Startup time in seconds to result in critical status."
+    }
+  }
+```
+
+This may take a while -- validate the configuration in between up until
+the CheckCommand definition is done.
+
+Then test and integrate it into your monitoring configuration.
+
+Remember: Do it once and right, and never touch the CheckCommand again.
+Optional arguments allow different use cases and scenarios.
+
+
+Once you have created your really good CheckCommand, please consider
+sharing it with our community by creating a new PR on [GitHub](https://github.com/Icinga/icinga2/blob/master/CONTRIBUTING.md).
+_Please also update the documentation for the ITL._
+
+
+> **Tip**
+>
+> Inside the Director, you can render the configuration in the Deployment
+> section. Extract the static configuration object and use that as a source
+> for sending it upstream.
+
+
+
+#### Modify Existing CheckCommand <a id="service-monitoring-plugin-checkcommand-modify"></a>
+
+Sometimes an existing CheckCommand inside the ITL is missing a parameter.
+Or you don't need a default parameter value being set.
+
+Instead of copying the entire configuration object, you can import
+an object into another new object.
+
+```
+object CheckCommand "http-custom" {
+  import "http" // Import existing http object
+
+  arguments += { // Use additive assignment to add missing parameters
+    "--key" = {
+      value = "$http_..." // Keep the parameter name the same as with http
+    }
+  }
+
+  // Override default parameters
+  vars.http_address = "..."
+}
+```
+
+This CheckCommand can then be referenced in your host/service object
+definitions.
+
 
 ### Plugin API <a id="service-monitoring-plugin-api"></a>
 
