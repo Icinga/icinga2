@@ -361,40 +361,6 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		{ "legacy_id", downtime->GetLegacyId() }
 	});
 
-	/* Schedule downtime for all child objects. */
-	if (childOptions != DowntimeNoChildren) {
-		/* 'DowntimeTriggeredChildren' schedules child downtimes triggered by the parent downtime.
-		 * 'DowntimeNonTriggeredChildren' schedules non-triggered downtimes for all children.
-		 */
-		if (childOptions == DowntimeTriggeredChildren)
-			triggerName = downtimeName;
-
-		Log(LogNotice, "ApiActions")
-			<< "Processing child options " << childOptions << " for downtime " << downtimeName;
-
-		ArrayData childDowntimes;
-
-		for (const Checkable::Ptr& child : checkable->GetAllChildren()) {
-			Log(LogNotice, "ApiActions")
-				<< "Scheduling downtime for child object " << child->GetName();
-
-			String childDowntimeName = Downtime::AddDowntime(child, author, comment, startTime, endTime,
-				fixed, triggerName, duration);
-
-			Log(LogNotice, "ApiActions")
-				<< "Add child downtime '" << childDowntimeName << "'.";
-
-			Downtime::Ptr childDowntime = Downtime::GetByName(childDowntimeName);
-
-			childDowntimes.push_back(new Dictionary({
-				{ "name", childDowntimeName },
-				{ "legacy_id", childDowntime->GetLegacyId() }
-			}));
-		}
-
-		additional->Set("child_downtimes", new Array(std::move(childDowntimes)));
-	}
-
 	/* Schedule downtime for all services for the host type. */
 	bool allServices = false;
 
@@ -420,6 +386,68 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		}
 
 		additional->Set("service_downtimes", new Array(std::move(serviceDowntimes)));
+	}
+
+	/* Schedule downtime for all child objects. */
+	if (childOptions != DowntimeNoChildren) {
+		/* 'DowntimeTriggeredChildren' schedules child downtimes triggered by the parent downtime.
+		 * 'DowntimeNonTriggeredChildren' schedules non-triggered downtimes for all children.
+		 */
+		if (childOptions == DowntimeTriggeredChildren)
+			triggerName = downtimeName;
+
+		Log(LogNotice, "ApiActions")
+			<< "Processing child options " << childOptions << " for downtime " << downtimeName;
+
+		ArrayData childDowntimes;
+
+		for (const Checkable::Ptr& child : checkable->GetAllChildren()) {
+			Log(LogNotice, "ApiActions")
+				<< "Scheduling downtime for child object " << child->GetName();
+
+			String childDowntimeName = Downtime::AddDowntime(child, author, comment, startTime, endTime,
+				fixed, triggerName, duration);
+
+			Log(LogNotice, "ApiActions")
+				<< "Add child downtime '" << childDowntimeName << "'.";
+
+			Downtime::Ptr childDowntime = Downtime::GetByName(childDowntimeName);
+
+			Dictionary::Ptr childAdditional = new Dictionary({
+				{ "name", childDowntimeName },
+				{ "legacy_id", childDowntime->GetLegacyId() }
+			});
+
+			/* For a host, also schedule all service downtimes if requested. */
+			Host::Ptr childHost;
+			Service::Ptr childService;
+			tie(childHost, childService) = GetHostService(child);
+
+			if (allServices && !childService) {
+				ArrayData childServiceDowntimes;
+
+				for (const Service::Ptr& hostService : host->GetServices()) {
+					Log(LogNotice, "ApiActions")
+						<< "Creating downtime for service " << hostService->GetName() << " on child host " << host->GetName();
+
+					String serviceDowntimeName = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
+						fixed, triggerName, duration);
+
+					Downtime::Ptr serviceDowntime = Downtime::GetByName(serviceDowntimeName);
+
+					childServiceDowntimes.push_back(new Dictionary({
+						{ "name", serviceDowntimeName },
+						{ "legacy_id", serviceDowntime->GetLegacyId() }
+					}));
+				}
+
+				childAdditional->Set("service_downtimes", new Array(std::move(childServiceDowntimes)));
+			}
+
+			childDowntimes.push_back(childAdditional);
+		}
+
+		additional->Set("child_downtimes", new Array(std::move(childDowntimes)));
 	}
 
 	return ApiActions::CreateResult(200, "Successfully scheduled downtime '" +
