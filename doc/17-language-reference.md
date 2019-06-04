@@ -756,6 +756,14 @@ When no pattern is specified the default pattern "*.conf" is used.
 
 ## Zone Includes <a id="zone-includes"></a>
 
+> **Note**
+>
+> This is an internal functionality consumed by Icinga itself.
+>
+> The preferred way for users managing configuration files in
+> zones is to use the [cluster config sync](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)
+> or [REST API config packages](12-icinga2-api.md#icinga2-api-config-management).
+
 The `include_zones` recursively includes all subdirectories for the
 given path.
 
