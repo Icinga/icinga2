@@ -11,6 +11,7 @@
 #include "base/workqueue.hpp"
 #include <memory>
 #include <vector>
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_service_strand.hpp>
 #include <boost/asio/spawn.hpp>
 
@@ -77,6 +78,7 @@ private:
 	AsioConditionVariable m_OutgoingMessagesQueued;
 	AsioConditionVariable m_WriterDone;
 	bool m_ShuttingDown;
+	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
 
 	void HandleIncomingMessages(boost::asio::yield_context yc);
 	void WriteOutgoingMessages(boost::asio::yield_context yc);

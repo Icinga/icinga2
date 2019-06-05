@@ -16,9 +16,9 @@
 #include "base/tlsstream.hpp"
 #include <memory>
 #include <utility>
-#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
+#include <boost/system/system_error.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -32,7 +32,8 @@ JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 	const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream),
 	m_Role(role), m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_NextHeartbeat(0), m_IoStrand(stream->get_executor().context()),
-	m_OutgoingMessagesQueued(stream->get_executor().context()), m_WriterDone(stream->get_executor().context()), m_ShuttingDown(false)
+	m_OutgoingMessagesQueued(stream->get_executor().context()), m_WriterDone(stream->get_executor().context()), m_ShuttingDown(false),
+	m_CheckLivenessTimer(stream->get_executor().context()), m_HeartbeatTimer(stream->get_executor().context())
 {
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);
@@ -206,6 +207,14 @@ void JsonRpcConnection::Disconnect()
 			} catch (...) {
 			}
 
+			try {
+				m_Stream->lowest_layer().cancel();
+			} catch (...) {
+			}
+
+			m_CheckLivenessTimer.cancel();
+			m_HeartbeatTimer.cancel();
+
 			CpuBoundWork removeClient (yc);
 
 			if (m_Endpoint) {
@@ -310,11 +319,11 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 
 void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 {
-	boost::asio::deadline_timer timer (m_Stream->get_executor().context());
+	boost::system::error_code ec;
 
 	for (;;) {
-		timer.expires_from_now(boost::posix_time::seconds(30));
-		timer.async_wait(yc);
+		m_CheckLivenessTimer.expires_from_now(boost::posix_time::seconds(30));
+		m_CheckLivenessTimer.async_wait(yc[ec]);
 
 		if (m_ShuttingDown) {
 			break;

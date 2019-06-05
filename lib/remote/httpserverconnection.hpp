@@ -7,6 +7,7 @@
 #include "base/string.hpp"
 #include "base/tlsstream.hpp"
 #include <memory>
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_service_strand.hpp>
 #include <boost/asio/spawn.hpp>
 
@@ -39,6 +40,7 @@ private:
 	boost::asio::io_service::strand m_IoStrand;
 	bool m_ShuttingDown;
 	bool m_HasStartedStreaming;
+	boost::asio::deadline_timer m_CheckLivenessTimer;
 
 	void ProcessMessages(boost::asio::yield_context yc);
 	void CheckLiveness(boost::asio::yield_context yc);
