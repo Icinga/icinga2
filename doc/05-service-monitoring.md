@@ -472,7 +472,134 @@ Value | Status    | Description
 Keep in mind that these are service states. Icinga automatically maps
 the [host state](03-monitoring-basics.md#check-result-state-mapping) from the returned plugin states.
 
-#### Thresholds and Ranges <a id="service-monitoring-plugin-api-thresholds-ranges"></a>
+#### Thresholds <a id="service-monitoring-plugin-api-thresholds"></a>
+
+A plugin calculates specific values and may decide about the exit state on its own.
+This is done with thresholds - warning and critical values which are compared with
+the actual value. Upon this logic, the exit state is determined.
+
+Imagine the following value and defined thresholds:
+
+```
+ptc_value = 57.8
+
+warning = 50
+critical = 60
+```
+
+Whenever `ptc_value` is higher than warning or critical, it should return
+the appropriate [state](05-service-monitoring.md#service-monitoring-plugin-api-status).
+
+The threshold evaluation order also is important:
+
+* Critical thresholds are evaluated first and superseed everything else.
+* Warning thresholds are evaluated second
+* If no threshold is matched, return the OK state
+
+Avoid using hardcoded threshold values in your plugins, always
+add them to the argument parser.
+
+Example for Python:
+
+```
+import argparse
+import signal
+import sys
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-w", "--warning", help="Warning threshold. Single value or range, e.g. '20:50'.")
+    parser.add_argument("-c", "--critical", help="Critical threshold. Single vluae or range, e.g. '25:45'.")
+
+    args = parser.parse_args()
+```
+
+Users might call plugins only with the critical threshold parameter,
+leaving out the warning parameter. Keep this in mind when evaluating
+the thresholds, always check if the parameters have been defined before.
+
+```
+    if args.critical:
+        if ptc_value > args.critical:
+            print("CRITICAL - ...")
+            sys.exit(2) # Critical
+
+    if args.warning:
+        if ptc_value > args.warning:
+            print("WARNING - ...")
+            sys.exit(1) # Warning
+
+    print("OK - ...")
+    sys.exit(0) # OK
+```
+
+The above is a simplified example for printing the [output](05-service-monitoring.md#service-monitoring-plugin-api-output)
+and using the [state](05-service-monitoring.md#service-monitoring-plugin-api-status)
+as exit code.
+
+Before diving into the implementation, learn more about required
+[performance data metrics](05-service-monitoring.md#service-monitoring-plugin-api-performance-data-metrics)
+and more best practices below.
+
+##### Threshold Ranges <a id="service-monitoring-plugin-api-thresholds-ranges"></a>
+
+Threshold ranges can be used to specify an alert window, e.g. whenever a calculated
+value is between a lower and higher critical threshold.
+
+The schema for threshold ranges looks as follows. The `@` character in square brackets
+is optional.
+
+```
+[@]start:end
+```
+
+There are a few requirements for ranges:
+
+* `start <= end`. Add a check in your code and let the user know about problematic values.
+
+```
+10:20 	# OK
+
+30:10 	# Error
+```
+
+* `start:` can be omitted if its value is 0. This is the default handling for single threshold values too.
+
+```
+10 	# Every value > 10 and < 0, outside of 0..10
+```
+
+* If `end` is omitted, assume end is infinity.
+
+```
+10: 	# < 10, outside of 10..∞
+```
+
+* In order to specify negative infinity, use the `~` character.
+
+```
+~:10	# > 10, outside of -∞..10
+```
+
+* Raise alert if value is outside of the defined range.
+
+```
+10:20 	# < 10 or > 20, outside of 10..20
+```
+
+* Start with `@` to raise an alert if the value is **inside** the defined range, inclusive start/end values.
+
+```
+@10:20	# >= 10 and <= 20, inside of 10..20
+```
+
+Best practice is to either implement single threshold values, or fully support ranges.
+This requires parsing the input parameter values, therefore look for existing libraries
+already providing this functionality.
+
+[check_tinkerforge](https://github.com/NETWAYS/check_tinkerforge/blob/master/check_tinkerforge.py)
+implements a simple parser to avoid dependencies.
 
 
 #### Performance Data Metrics <a id="service-monitoring-plugin-api-performance-data-metrics"></a>
@@ -498,18 +625,7 @@ Example:
 Values must respect the C/POSIX locale and not implement e.g. German locale for floating point numbers with `,`.
 Icinga sets `LC_NUMERIC=C` to enforce this locale on plugin execution.
 
-##### Thresholds and Min/Max
-
-Next to the performance data value, warn, crit, min, max can optionally be provided. They must be separated
-with the semi-colon `;` character. They share the same UOM with the performance data value.
-
-```
-$ check_ping -4 -H icinga.com -c '200,15%' -w '100,5%'
-
-PING OK - Packet loss = 0%, RTA = 12.44 ms|rta=12.445000ms;100.000000;200.000000;0.000000 pl=0%;5;15;0
-```
-
-##### Unit of Measurement (UOM)
+##### Unit of Measurement (UOM) <a id="service-monitoring-plugin-api-performance-data-metrics-uom"></a>
 
 Unit     | Description
 ---------|---------------------------------
@@ -523,7 +639,22 @@ Icinga metric writers normalize these values to the lowest common base, e.g. sec
 Bad plugins change the UOM for different sizing, e.g. returning the disk usage in MB and later GB
 for the same performance data label. This is to ensure that graphs always look the same.
 
-##### Multiple Performance Data Values
+```
+'rta'=12.445000ms 'pl'=0%
+```
+
+##### Thresholds and Min/Max <a id="service-monitoring-plugin-api-performance-data-metrics-thresholds-min-max"></a>
+
+Next to the performance data value, warn, crit, min, max can optionally be provided. They must be separated
+with the semi-colon `;` character. They share the same UOM with the performance data value.
+
+```
+$ check_ping -4 -H icinga.com -c '200,15%' -w '100,5%'
+
+PING OK - Packet loss = 0%, RTA = 12.44 ms|rta=12.445000ms;100.000000;200.000000;0.000000 pl=0%;5;15;0
+```
+
+##### Multiple Performance Data Values <a id="service-monitoring-plugin-api-performance-data-metrics-multiple"></a>
 
 Multiple performance data values must be joined with a space character. The below example
 is from the [check_load](10-icinga-template-library.md#plugin-check-command-load) plugin.
@@ -609,6 +740,7 @@ if __name__ == '__main__':
         print("Verbose debug output")
 ```
 
+
 ### Create a new Plugin <a id="service-monitoring-plugin-new"></a>
 
 Sometimes an existing plugin does not satisfy your requirements. You
@@ -623,17 +755,23 @@ its output/exit code and return your specified output/exit code.
 On the other hand plugins for specific services and hardware might not yet
 exist.
 
-Common best practices when creating a new plugin are for example:
+Common best practices:
 
 * Choose the programming language wisely
  * Scripting languages (Bash, Python, Perl, Ruby, PHP, etc.) are easier to write and setup but their check execution might take longer (invoking the script interpreter as overhead, etc.).
  * Plugins written in C/C++, Go, etc. improve check execution time but may generate an overhead with installation and packaging.
-* Use a modern VCS such as Git for developing the plugin (e.g. share your plugin on GitHub).
+* Use a modern VCS such as Git for developing the plugin, e.g. share your plugin on GitHub and let it sync to [Icinga Exchange](https://exchange.icinga.com).
+* **Look into existing plugins endorsed by community members.**
+
+Implementation hints:
+
 * Add parameters with key-value pairs to your plugin. They should allow long names (e.g. `--host localhost`) and also short parameters (e.g. `-H localhost`)
- * `-h|--help` should print the version and all details about parameters and runtime invocation.
-* Add a verbose/debug output functionality for detailed on-demand logging.
+ * `-h|--help` should print the version and all details about parameters and runtime invocation. Note: Python's ArgParse class provides this OOTB.
+ * `--version` should print the plugin [version](05-service-monitoring.md#service-monitoring-plugin-api-versions).
+* Add a [verbose/debug output](05-service-monitoring.md#service-monitoring-plugin-api-verbose) functionality for detailed on-demand logging.
 * Respect the exit codes required by the [Plugin API](05-service-monitoring.md#service-monitoring-plugin-api).
-* Always add performance data to your plugin output
+* Always add [performance data](05-service-monitoring.md#service-monitoring-plugin-api-performance-data-metrics) to your plugin output.
+* Allow to specify [warning/critical thresholds](05-service-monitoring.md#service-monitoring-plugin-api-thresholds) as parameters.
 
 Example skeleton:
 
