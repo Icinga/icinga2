@@ -4,6 +4,22 @@ The power of Icinga 2 lies in its modularity. There are thousands of
 community plugins available next to the standard plugins provided by
 the [Monitoring Plugins project](https://www.monitoring-plugins.org).
 
+Start your research on [Icinga Exchange](https://exchange.icinga.com)
+and look which services are already [covered](05-service-monitoring.md#service-monitoring-overview).
+
+The [requirements chapter](05-service-monitoring.md#service-monitoring-requirements) guides you
+through the plugin setup, tests and their integration with an [existing](05-service-monitoring.md#service-monitoring-plugin-checkcommand)
+or [new](05-service-monitoring.md#service-monitoring-plugin-checkcommand-new) CheckCommand object
+and host/service objects inside the [Director](05-service-monitoring.md#service-monitoring-plugin-checkcommand-integration-director)
+or [Icinga config files](05-service-monitoring.md#service-monitoring-plugin-checkcommand-integration-config-files).
+It also adds hints on [modifying](05-service-monitoring.md#service-monitoring-plugin-checkcommand-modify) existing commands.
+
+Plugins follow the [Plugin API specification](05-service-monitoring.md#service-monitoring-plugin-api)
+which is enriched with examples and also code examples to get you started with
+[your own plugin](05-service-monitoring.md#service-monitoring-plugin-new).
+
+
+
 ## Requirements <a id="service-monitoring-requirements"></a>
 
 ### Plugins <a id="service-monitoring-plugins"></a>
@@ -413,6 +429,9 @@ definitions.
 Icinga 2 supports the native plugin API specification from the Monitoring Plugins project.
 It is defined in the [Monitoring Plugins Development Guidelines](https://www.monitoring-plugins.org/doc/guidelines.html).
 
+The Icinga documentation revamps the specification into our
+own guideline enriched with examples and best practices.
+
 #### Output <a id="service-monitoring-plugin-api-output"></a>
 
 The output should be as short and as detailed as possible. The
@@ -755,6 +774,11 @@ its output/exit code and return your specified output/exit code.
 On the other hand plugins for specific services and hardware might not yet
 exist.
 
+> **Tip**
+>
+> Watch this presentation from Icinga Camp Berlin to learn more
+> about [How to write checks that don't suck](https://www.youtube.com/watch?v=Ey_APqSCoFQ).
+
 Common best practices:
 
 * Choose the programming language wisely
@@ -811,6 +835,7 @@ with plugin execution and output formatting too, for example
 
 Once you've finished your plugin please upload/sync it to [Icinga Exchange](https://exchange.icinga.com/new).
 Thanks in advance!
+
 
 ## Service Monitoring Overview <a id="service-monitoring-overview"></a>
 
