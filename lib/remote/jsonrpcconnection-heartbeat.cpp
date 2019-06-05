@@ -7,9 +7,9 @@
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
-#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
+#include <boost/system/system_error.hpp>
 
 using namespace icinga;
 
@@ -17,11 +17,11 @@ REGISTER_APIFUNCTION(Heartbeat, event, &JsonRpcConnection::HeartbeatAPIHandler);
 
 void JsonRpcConnection::HandleAndWriteHeartbeats(boost::asio::yield_context yc)
 {
-	boost::asio::deadline_timer timer (m_Stream->get_executor().context());
+	boost::system::error_code ec;
 
 	for (;;) {
-		timer.expires_from_now(boost::posix_time::seconds(10));
-		timer.async_wait(yc);
+		m_HeartbeatTimer.expires_from_now(boost::posix_time::seconds(10));
+		m_HeartbeatTimer.async_wait(yc[ec]);
 
 		if (m_ShuttingDown) {
 			break;

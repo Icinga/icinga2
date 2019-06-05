@@ -31,7 +31,8 @@ using namespace icinga;
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(stream->get_executor().context()), m_ShuttingDown(false), m_HasStartedStreaming(false)
+	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(stream->get_executor().context()), m_ShuttingDown(false), m_HasStartedStreaming(false),
+	m_CheckLivenessTimer(stream->get_executor().context())
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
@@ -79,6 +80,13 @@ void HttpServerConnection::Disconnect()
 				m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both);
 			} catch (...) {
 			}
+
+			try {
+				m_Stream->lowest_layer().cancel();
+			} catch (...) {
+			}
+
+			m_CheckLivenessTimer.cancel();
 
 			auto listener (ApiListener::GetInstance());
 
@@ -529,11 +537,11 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 {
-	boost::asio::deadline_timer timer (m_Stream->get_executor().context());
+	boost::system::error_code ec;
 
 	for (;;) {
-		timer.expires_from_now(boost::posix_time::seconds(5));
-		timer.async_wait(yc);
+		m_CheckLivenessTimer.expires_from_now(boost::posix_time::seconds(5));
+		m_CheckLivenessTimer.async_wait(yc[ec]);
 
 		if (m_ShuttingDown) {
 			break;
