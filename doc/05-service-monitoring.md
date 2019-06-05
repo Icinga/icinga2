@@ -438,8 +438,17 @@ Testcase 5: Transactions fine.
 ```
 
 If the extended output shouldn't be visible in your monitoring, but only for testing,
-it is recommended to implement the `-v` or `--verbose` plugin parameter to allow
-developers and users to debug further.
+it is recommended to implement the `--verbose` plugin parameter to allow
+developers and users to debug further. Check [here](05-service-monitoring.md#service-monitoring-plugin-api-verbose)
+for more implementation tips.
+
+> **Tip**
+>
+> More debug output also helps when implementing your plugin.
+>
+> Best practice is to have the plugin parameter and handling implemented first,
+> then add it anywhere you want to see more, e.g. from initial database connections
+> to actual query results.
 
 
 #### Status <a id="service-monitoring-plugin-api-status"></a>
@@ -508,7 +517,33 @@ __version__ = '0.9.1'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+
     parser.add_argument('-V', '--version', action='version', version='%(prog)s v' + sys.modules[__name__].__version__)
+```
+
+#### Verbose <a id="service-monitoring-plugin-api-verbose"></a>
+
+Plugins should provide a verbose mode with `-v` or `--verbose` in order
+to show more detailed log messages. This helps to debug and analyse the
+flow and execution steps inside the plugin.
+
+Ensure to add the parameter prior to implementing the check logic into
+the plugin.
+
+Example in Python taken from [check_tinkerforge](https://github.com/NETWAYS/check_tinkerforge/blob/master/check_tinkerforge.py):
+
+```
+import argparse
+import signal
+import sys
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-v', '--verbose', action='store_true')
+
+    if args.verbose:
+        print("Verbose debug output")
 ```
 
 ### Create a new Plugin <a id="service-monitoring-plugin-new"></a>
@@ -581,6 +616,10 @@ Thanks in advance!
 The following examples should help you to start implementing your own ideas.
 There is a variety of plugins available. This collection is not complete --
 if you have any updates, please send a documentation patch upstream.
+
+Please visit our [community forum](https://community.icinga.com) which
+may provide an answer to your use case already. If not, do not hesitate
+to create a new topic.
 
 ### General Monitoring <a id="service-monitoring-general"></a>
 
