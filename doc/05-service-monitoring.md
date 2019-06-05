@@ -651,7 +651,7 @@ Unit     | Description
 None     | Integer or floating point number for any type (processes, users, etc.).
 `s`      | Seconds, can be `s`, `ms`, `us`.
 `%`      | Percentage.
-`B`      | Bytes, can be `KB`, `MB, `GB`, `TB`. Lowercase is also possible.
+`B`      | Bytes, can be `KB`, `MB`, `GB`, `TB`. Lowercase is also possible.
 `c`      | A continuous counter (e.g. interface traffic counters).
 
 Icinga metric writers normalize these values to the lowest common base, e.g. seconds and bytes.
