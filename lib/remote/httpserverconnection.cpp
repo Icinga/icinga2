@@ -530,7 +530,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 	} catch (const std::exception& ex) {
 		if (!m_ShuttingDown) {
 			Log(LogCritical, "HttpServerConnection")
-				<< "Unhandled exception while processing HTTP request: " << DiagnosticInformation(ex);
+				<< "Unhandled exception while processing HTTP request: " << ex.what();
 		}
 	}
 }
