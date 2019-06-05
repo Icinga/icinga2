@@ -162,7 +162,7 @@ Example for database size checks with [check_mysql_health](10-icinga-template-li
 The parameter names inside the ITL commands follow the
 `<command name>_<parameter name>` schema.
 
-#### Icinga Director <a id="service-monitoring-plugin-checkcommand-integration-director"></a>
+#### Icinga Director Integration <a id="service-monitoring-plugin-checkcommand-integration-director"></a>
 
 Navigate into `Commands > External Commands` and search for `mysql_health`.
 Select `mysql_health` and navigate into the `Fields` tab.
@@ -187,7 +187,7 @@ Next, create a service apply rule or a new service set which gets assigned
 to matching host objects.
 
 
-##### Icinga Config Files <a id="service-monitoring-plugin-checkcommand-integration-config-files"></a>
+#### Icinga Config File Integration <a id="service-monitoring-plugin-checkcommand-integration-config-files"></a>
 
 Create or modify a host object which stores
 the generic database defaults and prepares details
