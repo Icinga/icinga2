@@ -53,7 +53,22 @@ and compiled into the binary as header only include. It helps our way to C++11 a
 to fix additional UTF8 issues more easily. Read more about its [design goals](https://github.com/nlohmann/json#design-goals)
 and [benchmarks](https://github.com/miloyip/nativejson-benchmark#parsing-time).
 
-### TLS 1.2 <a id="upgrading-to-2-11-tls-1-2"></a>
+### Network Stack <a id="upgrading-to-2-11-network-stack"></a>
+
+The core network stack has been rewritten in 2.11 (some say this could be Icinga 3).
+
+You can read the full story [here](https://github.com/Icinga/icinga2/issues/7041).
+
+The only visible changes for users are:
+
+- No more dead-locks with hanging TLS connections (Cluster, REST API)
+- Better log messages in error cases
+- More robust and stable with using external libraries instead of self-written socket I/O
+
+Coming with this release, we've also updated TLS specific requirements
+explained below.
+
+#### TLS 1.2 <a id="upgrading-to-2-11-network-stack-tls-1-2"></a>
 
 v2.11 raises the minimum required TLS version to 1.2.
 This is available since OpenSSL 1.0.1 (EL6 & Debian Jessie).
@@ -63,6 +78,23 @@ handshake.
 
 The `api` feature attribute `tls_protocolmin` now only supports the
 value `TLSv1.2` being the default.
+
+#### Hardened Cipher List <a id="upgrading-to-2-11-network-stack-cipher-list"></a>
+
+The previous default cipher list allowed weak ciphers. There's no sane way
+other than explicitly setting the allowed ciphers.
+
+The new default sets this to:
+
+```
+ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+```
+
+You can override this setting in the [api](09-object-types.md#objecttype-apilistener)
+feature with the `cipher_list` attribute.
+
+In case that one of these ciphers is marked as insecure in the future,
+please let us know with an issue on GitHub.
 
 ### HA-aware Features <a id="upgrading-to-2-11-ha-aware-features"></a>
 
