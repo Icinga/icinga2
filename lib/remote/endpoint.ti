@@ -10,7 +10,7 @@ namespace icinga
 class Endpoint : ConfigObject
 {
 	// Load before Host, Service, Others
-	load_priority 150;
+	load_priority -150;
 
 	[config] String host;
 	[config, required] String port {

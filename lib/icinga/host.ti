@@ -12,7 +12,7 @@ namespace icinga
 class Host : Checkable
 {
 	// Load before Service
-	load_priority 100;
+	load_priority -100;
 
 	[config, no_user_modify, required] array(name(HostGroup)) groups {
 		default {{{ return new Array(); }}}

@@ -12,7 +12,7 @@ namespace icinga
 class ApiListener : ConfigObject
 {
 	// Load before Host, Service, Others
-	load_priority 150;
+	load_priority -150;
 	activation_priority 50;
 
 	[config, deprecated] String cert_path;

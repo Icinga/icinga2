@@ -23,7 +23,7 @@ public:
 class Service : Checkable < ServiceNameComposer
 {
 	// Load before other objects
-	load_priority 50;
+	load_priority -50;
 
 	[config, no_user_modify, required] array(name(ServiceGroup)) groups {
 		default {{{ return new Array(); }}}

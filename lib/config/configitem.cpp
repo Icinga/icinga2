@@ -443,7 +443,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	}
 
 	std::sort(types.begin(), types.end(), [](const Type::Ptr& a, const Type::Ptr& b) {
-		if (a->GetLoadPriority() > b->GetLoadPriority())
+		if (a->GetLoadPriority() < b->GetLoadPriority())
 			return true;
 		return false;
 	});
