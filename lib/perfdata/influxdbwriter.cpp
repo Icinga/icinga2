@@ -604,6 +604,15 @@ void InfluxdbWriter::ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lvalue, c
 				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
 		}
 	}
+
+	Dictionary::Ptr fields = lvalue()->Get("fields");
+	if (fields) {
+		ObjectLock olock(fields);
+		for (const Dictionary::Pair& pair : fields) {
+			if (!MacroProcessor::ValidateMacroString(pair.second))
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_template", "fields", pair.first }, "Closing $ not found in macro format string '" + pair.second));
+		}
+	}
 }
 
 void InfluxdbWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
@@ -620,6 +629,15 @@ void InfluxdbWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue
 		for (const Dictionary::Pair& pair : tags) {
 			if (!MacroProcessor::ValidateMacroString(pair.second))
 				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
+		}
+	}
+
+	Dictionary::Ptr fields = lvalue()->Get("fields");
+	if (fields) {
+		ObjectLock olock(fields);
+		for (const Dictionary::Pair& pair : fields) {
+			if (!MacroProcessor::ValidateMacroString(pair.second))
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_template", "fields", pair.first }, "Closing $ not found in macro format string '" + pair.second));
 		}
 	}
 }
