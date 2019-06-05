@@ -415,6 +415,15 @@ It is defined in the [Monitoring Plugins Development Guidelines](https://www.mon
 
 #### Output <a id="service-monitoring-plugin-api-output"></a>
 
+The output should be as short and as detailed as possible. The
+most common cases include:
+
+- Viewing a problem list in Icinga Web and dashboards
+- Getting paged about a problem
+- Receiving the alert on the CLI or forwarding it to external (ticket) systems
+
+Examples:
+
 ```
 <STATUS>: <A short description what happened>
 
@@ -463,11 +472,65 @@ Value | Status    | Description
 Keep in mind that these are service states. Icinga automatically maps
 the [host state](03-monitoring-basics.md#check-result-state-mapping) from the returned plugin states.
 
+#### Thresholds and Ranges <a id="service-monitoring-plugin-api-thresholds-ranges"></a>
+
 
 #### Performance Data Metrics <a id="service-monitoring-plugin-api-performance-data-metrics"></a>
 
+Performance data metrics must be appended to the plugin output with a preceding `|` character.
+The schema is as follows:
 
+```
+<output> | 'label'=value[UOM];[warn];[crit];[min];[max]
+```
 
+The label should be encapsulated with single quotes. Avoid spaces or special characters such
+as `%` in there, this could lead to problems with metric receivers such as Graphite.
+
+Labels must not include `'` and `=` characters. Keep the label length as short and unique as possible.
+
+Example:
+
+```
+'load1'=4.7
+```
+
+Values must respect the C/POSIX locale and not implement e.g. German locale for floating point numbers with `,`.
+Icinga sets `LC_NUMERIC=C` to enforce this locale on plugin execution.
+
+##### Thresholds and Min/Max
+
+Next to the performance data value, warn, crit, min, max can optionally be provided. They must be separated
+with the semi-colon `;` character. They share the same UOM with the performance data value.
+
+```
+$ check_ping -4 -H icinga.com -c '200,15%' -w '100,5%'
+
+PING OK - Packet loss = 0%, RTA = 12.44 ms|rta=12.445000ms;100.000000;200.000000;0.000000 pl=0%;5;15;0
+```
+
+##### Unit of Measurement (UOM)
+
+Unit     | Description
+---------|---------------------------------
+None     | Integer or floating point number for any type (processes, users, etc.).
+`s`      | Seconds, can be `s`, `ms`, `us`.
+`%`      | Percentage.
+`B`      | Bytes, can be `KB`, `MB, `GB`, `TB`. Lowercase is also possible.
+`c`      | A continuous counter (e.g. interface traffic counters).
+
+Icinga metric writers normalize these values to the lowest common base, e.g. seconds and bytes.
+Bad plugins change the UOM for different sizing, e.g. returning the disk usage in MB and later GB
+for the same performance data label. This is to ensure that graphs always look the same.
+
+##### Multiple Performance Data Values
+
+Multiple performance data values must be joined with a space character. The below example
+is from the [check_load](10-icinga-template-library.md#plugin-check-command-load) plugin.
+
+```
+load1=4.680;1.000;2.000;0; load5=0.000;5.000;10.000;0; load15=0.000;10.000;20.000;0;
+```
 
 #### Timeout <a id="service-monitoring-plugin-api-timeout"></a>
 
