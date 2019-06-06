@@ -441,6 +441,11 @@ Runtime Attributes:
   last\_hard\_state         | Number                | The last hard state (0 = UP, 1 = DOWN).
   last\_state\_up           | Timestamp             | When the last UP state occurred (as a UNIX timestamp).
   last\_state\_down         | Timestamp             | When the last DOWN state occurred (as a UNIX timestamp).
+  last\_state\_unreachable  | Timestamp             | When the host was unreachable the last time (as a UNIX timestamp).
+  previous\_state\_change   | Timestamp             | Previous timestamp of `last_state_change` before processing a new check result.
+  severity                  | Number                | [Severity](19-technical-concepts.md#technical-concepts-checks-severity) calculated value.
+  problem                   | Boolean               | Whether the host is considered in a problem state type (NOT-UP).
+  handled                   | Boolean               | Whether the host problem is handled (downtime or acknowledgement).
 
 
 
@@ -792,7 +797,7 @@ Runtime Attributes:
   downtime\_depth           | Number                | Whether the service has one or more active downtimes.
   flapping\_last\_change    | Timestamp             | When the last flapping change occurred (as a UNIX timestamp).
   flapping\_current         | Number                | Current flapping value in percent (see flapping\_thresholds)
-  flapping                  | Boolean               | Whether the host is flapping between states.
+  flapping                  | Boolean               | Whether the service is flapping between states.
   state                     | Number                | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
   last\_state               | Number                | The previous state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
   last\_hard\_state         | Number                | The last hard state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
@@ -800,6 +805,11 @@ Runtime Attributes:
   last\_state\_warning      | Timestamp             | When the last WARNING state occurred (as a UNIX timestamp).
   last\_state\_critical     | Timestamp             | When the last CRITICAL state occurred (as a UNIX timestamp).
   last\_state\_unknown      | Timestamp             | When the last UNKNOWN state occurred (as a UNIX timestamp).
+  last\_state\_unreachable  | Timestamp             | When the service was unreachable the last time (as a UNIX timestamp).
+  previous\_state\_change   | Timestamp             | Previous timestamp of `last_state_change` before processing a new check result.
+  severity                  | Number                | [Severity](19-technical-concepts.md#technical-concepts-checks-severity) calculated value.
+  problem                   | Boolean               | Whether the service is considered in a problem state type (NOT-OK).
+  handled                   | Boolean               | Whether the service problem is handled (downtime or acknowledgement).
 
 
 ### ServiceGroup <a id="objecttype-servicegroup"></a>
