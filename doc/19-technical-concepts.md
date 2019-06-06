@@ -7,6 +7,7 @@ into specific Icinga 2 components such as:
 * [Configuration](19-technical-concepts.md#technical-concepts-configuration)
 * [Features](19-technical-concepts.md#technical-concepts-features)
 * [Check Scheduler](19-technical-concepts.md#technical-concepts-check-scheduler)
+* [Checks](19-technical-concepts.md#technical-concepts-checks)
 * [Cluster](19-technical-concepts.md#technical-concepts-cluster)
 * [TLS Network IO](19-technical-concepts.md#technical-concepts-tls-network-io)
 
@@ -371,7 +372,9 @@ deletes/inserts the next check event from the scheduling queue. This basically
 is a list with multiple indexes with the keys for scheduling info and the object.
 
 
-### Check Latency and Execution Time <a id="technical-concepts-check-scheduler-latency"></a>
+## Checks<a id="technical-concepts-checks"></a>
+
+### Check Latency and Execution Time <a id="technical-concepts-checks-latency"></a>
 
 Each check command execution logs the start and end time where
 Icinga 2 (and the end user) is able to calculate the plugin execution time from it.
@@ -395,6 +398,81 @@ The difference between the two deltas is called `check latency`.
 ```
 (GetScheduleEnd() - GetScheduleStart()) - CalculateExecutionTime()
 ```
+
+### Severity <a id="technical-concepts-checks-severity"></a>
+
+The severity attribute is introduced with Icinga v2.11 and provides
+a bit mask calculated value from specific checkable object states.
+
+The severity value is pre-calculated for visualization interfaces
+such as Icinga Web which sorts the problem dashboard by severity by default.
+
+The higher the severity number is, the more important the problem is.
+
+Flags:
+
+```
+/**
+ * Severity Flags
+ *
+ * @ingroup icinga
+ */
+enum SeverityFlag
+{
+	SeverityFlagDowntime = 1,
+	SeverityFlagAcknowledgement = 2,
+	SeverityFlagHostDown = 4,
+	SeverityFlagUnhandled = 8,
+	SeverityFlagPending = 16,
+	SeverityFlagWarning = 32,
+	SeverityFlagUnknown = 64,
+	SeverityFlagCritical = 128,
+};
+```
+
+
+Host:
+
+```
+	/* OK/Warning = Up, Critical/Unknown = Down */
+	if (!HasBeenChecked())
+		severity |= SeverityFlagPending;
+	else if (state == ServiceUnknown)
+		severity |= SeverityFlagCritical;
+	else if (state == ServiceCritical)
+		severity |= SeverityFlagCritical;
+
+	if (IsInDowntime())
+		severity |= SeverityFlagDowntime;
+	else if (IsAcknowledged())
+		severity |= SeverityFlagAcknowledgement;
+	else
+		severity |= SeverityFlagUnhandled;
+```
+
+
+Service:
+
+```
+	if (!HasBeenChecked())
+		severity |= SeverityFlagPending;
+	else if (state == ServiceWarning)
+		severity |= SeverityFlagWarning;
+	else if (state == ServiceUnknown)
+		severity |= SeverityFlagUnknown;
+	else if (state == ServiceCritical)
+		severity |= SeverityFlagCritical;
+
+	if (IsInDowntime())
+		severity |= SeverityFlagDowntime;
+	else if (IsAcknowledged())
+		severity |= SeverityFlagAcknowledgement;
+	else if (m_Host->GetProblem())
+		severity |= SeverityFlagHostDown;
+	else
+		severity |= SeverityFlagUnhandled;
+```
+
 
 
 ## Cluster <a id="technical-concepts-cluster"></a>
