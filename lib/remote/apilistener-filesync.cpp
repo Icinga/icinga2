@@ -684,6 +684,10 @@ ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
  */
 void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file)
 {
+	/* Avoid loading the authoritative marker for syncs. */
+	if (Utility::BaseName(file) == ".authoritative")
+		return;
+
 	CONTEXT("Creating config update for file '" + file + "'");
 
 	Log(LogNotice, "ApiListener")
@@ -710,7 +714,10 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 
 	update->Set(relativePath, content);
 
-	/* Calculate a checksum for each file (and a global one later). */
+	/* Calculate a checksum for each file (and a global one later).
+	 *
+	 * IMPORTANT: Ignore the .authoritative file, this will not be synced.
+	 * */
 	config.Checksums->Set(relativePath, GetChecksum(content));
 }
 
