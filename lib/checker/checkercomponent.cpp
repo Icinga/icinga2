@@ -76,9 +76,9 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 
 	double wait = 0.0;
 
-	while (GetPendingCheckables() > 0) {
+	while (Checkable::GetPendingChecks() > 0) {
 		Log(LogDebug, "CheckerComponent")
-			<< "Waiting for running checks (" << GetPendingCheckables()
+			<< "Waiting for running checks (" << Checkable::GetPendingChecks()
 			<< ") to finish. Waited for " << wait << " seconds now.";
 
 		Utility::Sleep(0.1);
