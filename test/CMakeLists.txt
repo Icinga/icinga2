@@ -128,6 +128,7 @@ add_boost_test(base
     icinga_notification/type_filter
     icinga_macros/simple
     icinga_legacytimeperiod/simple
+    icinga_legacytimeperiod/advanced
     icinga_perfdata/empty
     icinga_perfdata/simple
     icinga_perfdata/quotes

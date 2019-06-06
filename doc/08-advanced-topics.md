@@ -255,6 +255,8 @@ object TimePeriod "workhours" {
 }
 ```
 
+### Across midnight <a id="timeperiods-across-midnight"></a>
+
 If you want to specify a notification period across midnight,
 you can define it the following way:
 
@@ -267,6 +269,21 @@ object Timeperiod "across-midnight" {
   }
 }
 ```
+
+Starting with v2.11 this can be shortened to using
+the first day as start with an overlapping range into
+the next day:
+
+```
+object Timeperiod "do-not-disturb" {
+  display_name = "Weekend DND"
+  ranges = {
+    "saturday" = "22:00-06:00"
+  }
+}
+```
+
+### Across several days, weeks or months <a id="timeperiods-across-days-weeks-months"></a>
 
 Below you can see another example for configuring timeperiods across several
 days, weeks or months. This can be useful when taking components offline
