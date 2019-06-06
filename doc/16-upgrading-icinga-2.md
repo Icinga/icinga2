@@ -172,6 +172,11 @@ constant in [constants.conf](04-configuring-icinga-2.md#constants-conf) instead.
 
 ### REST API <a id="upgrading-to-2-11-api"></a>
 
+#### Actions <a id="upgrading-to-2-11-api-config-packages"></a>
+
+The [schedule-downtime](12-icinga2-api.md#icinga2-api-actions-schedule-downtime-host-all-services)
+action supports the `all_services` parameter for Host types. Defaults to false.
+
 #### Config Packages <a id="upgrading-to-2-11-api-config-packages"></a>
 
 Deployed configuration packages require an active stage, with many previous

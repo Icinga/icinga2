@@ -1381,6 +1381,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
   end\_time     | Timestamp | **Required.** Timestamp marking the end of the downtime.
   fixed         | Boolean   | **Optional.** Defaults to `true`. If true, the downtime is `fixed` otherwise `flexible`. See [downtimes](08-advanced-topics.md#downtimes) for more information.
   duration      | Number    | **Required for flexible downtimes.** Duration of the downtime in seconds if `fixed` is set to false.
+  all\_services | Boolean   | **Optional for host downtimes.** Sets downtime for [all services](12-icinga2-api.md#icinga2-api-actions-schedule-downtime-host-all-services) for the matched host objects. If `child_options` are set, all child hosts and their services will schedule a downtime too. Defaults to `false`.
   trigger\_name | String    | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](08-advanced-topics.md#downtimes) for more information on triggered downtimes.
   child\_options| String    | **Optional.** Schedule child downtimes. `DowntimeNoChildren` does not do anything, `DowntimeTriggeredChildren` schedules child downtimes triggered by this downtime, `DowntimeNonTriggeredChildren` schedules non-triggered downtimes. Defaults to `DowntimeNoChildren`.
 
@@ -1415,6 +1416,17 @@ like this:
 
 ```
 "filter": "host.name==\"icinga2-satellite1.localdomain\" && service.name==\"ping4\""
+```
+
+#### Schedule Host Downtime(s) with all Services <a id="icinga2-api-actions-schedule-downtime-host-all-services"></a>
+
+Schedule a downtime for one (or multiple) hosts and all of their services.
+Note the `all_services` attribute.
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' \
+ -X POST 'https://localhost:5665/v1/actions/schedule-downtime' \
+ -d "$(jo -p pretty=true type=Host filter="match(\"*satellite*\", host.name)" all_services=true author=icingaadmin comment="Cluster upgrade maintenance" fixed=true start_time=$(date +%s -d "+0 hour") end_time=$(date +%s -d "+1 hour"))"
 ```
 
 ### remove-downtime <a id="icinga2-api-actions-remove-downtime"></a>
