@@ -21,8 +21,8 @@ REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 boost::mutex ApiListener::m_ConfigSyncStageLock;
 
 /**
- * Entrypoint for updating all authoritative configs into var/lib/icinga2/api/zones
- *
+ * Entrypoint for updating all authoritative configs from /etc/zones.d, packages, etc.
+ * into var/lib/icinga2/api/zones
  */
 void ApiListener::SyncLocalZoneDirs() const
 {
@@ -36,7 +36,7 @@ void ApiListener::SyncLocalZoneDirs() const
 }
 
 /**
- * Sync a zone directory where we have an authoritative copy (zones.d, etc.)
+ * Sync a zone directory where we have an authoritative copy (zones.d, packages, etc.)
  *
  * This function collects the registered zone config dirs from
  * the config compiler and reads the file content into the config
@@ -58,25 +58,27 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 
 	String zoneName = zone->GetName();
 
-	/* Load registered zone paths, e.g. '_etc', '_api' and user packages. */
+	// Load registered zone paths, e.g. '_etc', '_api' and user packages.
 	for (const ZoneFragment& zf : ConfigCompiler::GetZoneDirs(zoneName)) {
 		ConfigDirInformation newConfigPart = LoadConfigDir(zf.Path);
 
-		/* Config files '*.conf'. */
+		// Config files '*.conf'.
 		{
 			ObjectLock olock(newConfigPart.UpdateV1);
 			for (const Dictionary::Pair& kv : newConfigPart.UpdateV1) {
 				String path = "/" + zf.Tag + kv.first;
+
 				newConfigInfo.UpdateV1->Set(path, kv.second);
 				newConfigInfo.Checksums->Set(path, GetChecksum(kv.second));
 			}
 		}
 
-		/* Meta files. */
+		// Meta files.
 		{
 			ObjectLock olock(newConfigPart.UpdateV2);
 			for (const Dictionary::Pair& kv : newConfigPart.UpdateV2) {
 				String path = "/" + zf.Tag + kv.first;
+
 				newConfigInfo.UpdateV2->Set(path, kv.second);
 				newConfigInfo.Checksums->Set(path, GetChecksum(kv.second));
 			}
@@ -85,6 +87,7 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 
 	size_t sumUpdates = newConfigInfo.UpdateV1->GetLength() + newConfigInfo.UpdateV2->GetLength();
 
+	// Return early if there are no updates.
 	if (sumUpdates == 0)
 		return;
 
@@ -93,13 +96,13 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 	Log(LogInformation, "ApiListener")
 		<< "Copying " << sumUpdates << " zone configuration files for zone '" << zoneName << "' to '" << productionZonesDir << "'.";
 
-	/* Purge files to allow deletion via zones.d. */
+	// Purge files to allow deletion via zones.d.
 	if (Utility::PathExists(productionZonesDir))
 		Utility::RemoveDirRecursive(productionZonesDir);
 
 	Utility::MkDirP(productionZonesDir, 0700);
 
-	/* Copy content and add additional meta data. */
+	// Copy content and add additional meta data.
 	size_t numBytes = 0;
 
 	/* Note: We cannot simply copy directories here.
@@ -111,15 +114,19 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 
 	{
 		ObjectLock olock(newConfig);
+
 		for (const Dictionary::Pair& kv : newConfig) {
 			String dst = productionZonesDir + "/" + kv.first;
+
 			Utility::MkDirP(Utility::DirName(dst), 0755);
 
 			Log(LogInformation, "ApiListener")
 				<< "Updating configuration file: " << dst;
 
 			String content = kv.second;
+
 			std::ofstream fp(dst.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
+
 			fp << content;
 			fp.close();
 
@@ -127,11 +134,12 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 		}
 	}
 
-	/* Additional metadata. */
+	// Additional metadata.
 	String tsPath = productionZonesDir + "/.timestamp";
 
 	if (!Utility::PathExists(tsPath)) {
 		std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
+
 		fp << std::fixed << Utility::GetTime();
 		fp.close();
 	}
@@ -143,12 +151,14 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 		fp.close();
 	}
 
+	// Checksums.
 	String checksumsPath = productionZonesDir + "/.checksums";
 
 	if (Utility::PathExists(checksumsPath))
 		Utility::Remove(checksumsPath);
 
 	std::ofstream fp(checksumsPath.CStr(), std::ofstream::out | std::ostream::trunc);
+
 	fp << std::fixed << JsonEncode(newConfigInfo.Checksums);
 	fp.close();
 
@@ -173,13 +183,13 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	Zone::Ptr clientZone = endpoint->GetZone();
 	Zone::Ptr localZone = Zone::GetLocalZone();
 
-	/* don't try to send config updates to our master */
+	// Don't send config updates to parent zones
 	if (!clientZone->IsChildOf(localZone))
 		return;
 
 	Dictionary::Ptr configUpdateV1 = new Dictionary();
 	Dictionary::Ptr configUpdateV2 = new Dictionary();
-	Dictionary::Ptr configUpdateChecksums = new Dictionary(); /* new since 2.11 */
+	Dictionary::Ptr configUpdateChecksums = new Dictionary(); // new since 2.11
 
 	String zonesDir = GetApiZonesDir();
 
@@ -187,11 +197,11 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 		String zoneName = zone->GetName();
 		String zoneDir = zonesDir + zoneName;
 
-		/* Only sync child and global zones. */
+		// Only sync child and global zones.
 		if (!zone->IsChildOf(clientZone) && !zone->IsGlobal())
 			continue;
 
-		/* Zone was configured, but there's no configuration directory. */
+		// Zone was configured, but there's no configuration directory.
 		if (!Utility::PathExists(zoneDir))
 			continue;
 
@@ -203,7 +213,7 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 
 		configUpdateV1->Set(zoneName, config.UpdateV1);
 		configUpdateV2->Set(zoneName, config.UpdateV2);
-		configUpdateChecksums->Set(zoneName, config.Checksums); /* new since 2.11 */
+		configUpdateChecksums->Set(zoneName, config.Checksums); // new since 2.11
 	}
 
 	Dictionary::Ptr message = new Dictionary({
@@ -211,8 +221,8 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 		{ "method", "config::Update" },
 		{ "params", new Dictionary({
 			{ "update", configUpdateV1 },
-			{ "update_v2", configUpdateV2 },	/* Since 2.4.2. */
-			{ "checksums", configUpdateChecksums } 	/* Since 2.11.0. */
+			{ "update_v2", configUpdateV2 },	// Since 2.4.2.
+			{ "checksums", configUpdateChecksums } 	// Since 2.11.0.
 		}) }
 	});
 
@@ -233,7 +243,7 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
  */
 Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	/* Verify permissions and trust relationship. */
+	// Verify permissions and trust relationship.
 	if (!origin->FromClient->GetEndpoint() || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone)))
 		return Empty;
 
@@ -263,12 +273,12 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		<< "Applying config update from endpoint '" << fromEndpointName
 		<< "' of zone '" << fromZoneName << "'.";
 
-	/* Config files. */
+	// Config files.
 	Dictionary::Ptr updateV1 = params->Get("update");
-	/* Meta data files: .timestamp, etc. */
+	// Meta data files: .timestamp, etc.
 	Dictionary::Ptr updateV2 = params->Get("update_v2");
 
-	/* New since 2.11.0. */
+	// New since 2.11.0.
 	Dictionary::Ptr checksums;
 
 	if (params->Contains("checksums"))
@@ -276,7 +286,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 	bool configChange = false;
 
-	/* Keep track of the relative config paths for later validation and copying. */
+	// Keep track of the relative config paths for later validation and copying. TODO: Find a better algorithm.
 	std::vector<String> relativePaths;
 
 	/*
@@ -290,11 +300,12 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 	Utility::MkDirP(apiZonesStageDir, 0700);
 
-	/* Analyse and process the update. */
+	// Analyse and process the update.
 	ObjectLock olock(updateV1);
+
 	for (const Dictionary::Pair& kv : updateV1) {
 
-		/* Check for the configured zones. */
+		// Check for the configured zones.
 		String zoneName = kv.first;
 		Zone::Ptr zone = Zone::GetByName(zoneName);
 
@@ -302,39 +313,42 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 			Log(LogWarning, "ApiListener")
 				<< "Ignoring config update from endpoint '" << fromEndpointName
 				<< "' for unknown zone '" << zoneName << "'.";
+
 			continue;
 		}
 
-		/* Whether we already have configuration in zones.d. */
+		// Ignore updates where we have an authoritive copy in etc/zones.d, packages, etc.
 		if (ConfigCompiler::HasZoneConfigAuthority(zoneName)) {
 			Log(LogInformation, "ApiListener")
 				<< "Ignoring config update from endpoint '" << fromEndpointName
 				<< "' for zone '" << zoneName << "' because we have an authoritative version of the zone's config.";
+
 			continue;
 		}
 
-		/* Put the received configuration into our stage directory. */
+		// Put the received configuration into our stage directory.
 		String productionConfigZoneDir = GetApiZonesDir() + zoneName;
 		String stageConfigZoneDir = GetApiZonesStageDir() + zoneName;
 
 		Utility::MkDirP(productionConfigZoneDir, 0700);
 		Utility::MkDirP(stageConfigZoneDir, 0700);
 
-		/* Merge the config information. */
+		// Merge the config information.
 		ConfigDirInformation newConfigInfo;
 		newConfigInfo.UpdateV1 = kv.second;
 
-		/* Load metadata. */
+		// Load metadata.
 		if (updateV2)
 			newConfigInfo.UpdateV2 = updateV2->Get(kv.first);
 
-		/* Load checksums. New since 2.11. */
+		// Load checksums. New since 2.11.
 		if (checksums)
 			newConfigInfo.Checksums = checksums->Get(kv.first);
 
-		/* Load the current production config details. */
+		// Load the current production config details.
 		ConfigDirInformation productionConfigInfo = LoadConfigDir(productionConfigZoneDir);
 
+		// Merge updateV1 and updateV2
 		Dictionary::Ptr productionConfig = MergeConfigUpdate(productionConfigInfo);
 		Dictionary::Ptr newConfig = MergeConfigUpdate(newConfigInfo);
 
@@ -346,11 +360,21 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 				<< "Received configuration for zone '" << zoneName << "' from endpoint '"
 				<< fromEndpointName << "'. Comparing the checksums.";
 
-			/* TODO: Do this earlier in hello-handshakes. */
+			// TODO: Do this earlier in hello-handshakes?
 			if (CheckConfigChange(productionConfigInfo, newConfigInfo))
 				configChange = true;
+
 		} else {
-			/* TODO: Figure out whether we always need to rely on the timestamp flags when there are checksums involved. */
+			/* Fallback to timestamp handling when the parent endpoint didn't send checks.
+			 * This can happen when the satellite is 2.11 and the master is 2.10.
+			 *
+			 * TODO: Deprecate and remove this behaviour in 2.13+.
+			 */
+
+			Log(LogWarning, "ApiListener")
+				<< "Received configuration update without checksums from parent endpoint "
+				<< fromEndpointName << ". This behaviour is deprecated. Please upgrade the parent endpoint to 2.11+";
+
 			double productionTimestamp;
 
 			if (!productionConfig->Contains("/.timestamp"))
@@ -365,8 +389,9 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 			else
 				newTimestamp = newConfig->Get("/.timestamp");
 
-			/* skip update if our configuration files are more recent */
+			// Skip update if our configuration files are more recent.
 			if (productionTimestamp >= newTimestamp) {
+
 				Log(LogInformation, "ApiListener")
 					<< "Our configuration is more recent than the received configuration update."
 					<< " Ignoring configuration file update for path '" << stageConfigZoneDir << "'. Current timestamp '"
@@ -375,21 +400,26 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 					<< ") >= received timestamp '"
 					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
 					<< newTimestamp << ").";
+
 			} else {
 				configChange = true;
 			}
 
-			/* Keep another hack when there's a timestamp file missing. */
-			ObjectLock olock(newConfig);
-			for (const Dictionary::Pair& kv : newConfig) {
-				/* This is super expensive with a string content comparison. */
-				if (productionConfig->Get(kv.first) != kv.second) {
-					if (!Utility::Match("*/.timestamp", kv.first))
-						configChange = true;
+			// Keep another hack when there's a timestamp file missing.
+			{
+				ObjectLock olock(newConfig);
+
+				for (const Dictionary::Pair &kv : newConfig) {
+
+					// This is super expensive with a string content comparison.
+					if (productionConfig->Get(kv.first) != kv.second) {
+						if (!Utility::Match("*/.timestamp", kv.first))
+							configChange = true;
+					}
 				}
 			}
 
-			/* Update the .timestamp file. */
+			// Update the .timestamp file.
 			String tsPath = stageConfigZoneDir + "/.timestamp";
 			if (!Utility::PathExists(tsPath)) {
 				std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
@@ -398,17 +428,20 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 			}
 		}
 
-		/* Dump the received configuration for this zone into the stage directory. */
+		// Dump the received configuration for this zone into the stage directory.
 		size_t numBytes = 0;
 
 		{
 			ObjectLock olock(newConfig);
+
 			for (const Dictionary::Pair& kv : newConfig) {
+
 				/* Store the relative config file path for later validation and activation.
-				 * IMPORTANT: Store this prior to any filters. */
+				 * IMPORTANT: Store this prior to any filters.
+				 * */
 				relativePaths.push_back(zoneName + "/" + kv.first);
 
-				/* Ignore same config content. This is an expensive comparison. */
+				// Ignore same config content. This is an expensive comparison.
 				if (productionConfig->Get(kv.first) == kv.second)
 					continue;
 
@@ -417,11 +450,13 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 				Log(LogInformation, "ApiListener")
 					<< "Stage: Updating received configuration file '" << path << "' for zone '" << zoneName << "'.";
 
-				/* Sync string content only. */
+				// Sync string content only.
 				String content = kv.second;
 
-				/* Generate a directory tree (zones/1/2/3 might not exist yet). */
+				// Generate a directory tree (zones/1/2/3 might not exist yet).
 				Utility::MkDirP(Utility::DirName(path), 0755);
+
+				// Write the content to file.
 				std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 				fp << content;
 				fp.close();
@@ -434,9 +469,10 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 			<< "Applying configuration file update for path '" << stageConfigZoneDir << "' ("
 			<< numBytes << " Bytes).";
 
-		/* If the update removes a path, delete it on disk and signal a config change. */
+		// If the update removes a path, delete it on disk and signal a config change.
 		{
 			ObjectLock xlock(productionConfig);
+
 			for (const Dictionary::Pair& kv : productionConfig) {
 				if (!newConfig->Contains(kv.first)) {
 					configChange = true;
@@ -450,9 +486,11 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 	/*
 	 * We have processed all configuration files and stored them in the staging directory.
+	 *
 	 * We need to store them locally for later analysis. A config change means
 	 * that we will validate the configuration in a separate process sandbox,
 	 * and only copy the configuration to production when everything is ok.
+	 *
 	 * A successful validation also triggers the final restart.
 	 */
 	if (configChange) {
@@ -494,18 +532,18 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 	fpStatus << pr.ExitStatus;
 	fpStatus.close();
 
-	/* validation went fine, copy stage and reload */
+	// Validation went fine, copy stage and reload.
 	if (pr.ExitStatus == 0) {
 		Log(LogInformation, "ApiListener")
 			<< "Config validation for stage '" << apiZonesStageDir << "' was OK, replacing into '" << apiZonesDir << "' and triggering reload.";
 
-		/* Purge production before copying stage. */
+		// Purge production before copying stage.
 		if (Utility::PathExists(apiZonesDir))
 			Utility::RemoveDirRecursive(apiZonesDir);
 
 		Utility::MkDirP(apiZonesDir, 0700);
 
-		/* Copy all synced configuration files from stage to production. */
+		// Copy all synced configuration files from stage to production.
 		for (const String& path : relativePaths) {
 			Log(LogInformation, "ApiListener")
 				<< "Copying file '" << path << "' from config sync staging to production zones directory.";
@@ -518,6 +556,7 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 			Utility::CopyFile(stagePath, currentPath);
 		}
 
+		// Clear any failed deployment before
 		ApiListener::Ptr listener = ApiListener::GetInstance();
 
 		if (listener)
@@ -525,10 +564,11 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 
 		Application::RequestRestart();
 
+		// All good, return early.
 		return;
 	}
 
-	/* Error case. */
+	// Error case.
 	Log(LogCritical, "ApiListener")
 		<< "Config validation failed for staged cluster config sync in '" << apiZonesStageDir
 		<< "'. Aborting. Logs: '" << logFile << "'";
@@ -565,7 +605,7 @@ void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relative
 
 	args->Add("--validate");
 
-	/* Set the ZonesStageDir. This creates our own local chroot without any additional automated zone includes. */
+	// Set the ZonesStageDir. This creates our own local chroot without any additional automated zone includes.
 	args->Add("--define");
 	args->Add("System.ZonesStageVarDir=" + GetApiZonesStageDir());
 
@@ -615,39 +655,43 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 	Dictionary::Ptr oldChecksums = oldConfig.Checksums;
 	Dictionary::Ptr newChecksums = newConfig.Checksums;
 
-	Log(LogCritical, "ApiListener")
-		<< "Comparing old (" << oldChecksums->GetLength() << "): '"
+	// TODO: Figure out whether normal users need this for debugging.
+	Log(LogDebug, "ApiListener")
+		<< "Checking for config change between stage and production. Old (" << oldChecksums->GetLength() << "): '"
 		<< JsonEncode(oldChecksums)
-		<< "' to new (" << newChecksums->GetLength() << "): '"
+		<< "' vs. new (" << newChecksums->GetLength() << "): '"
 		<< JsonEncode(newChecksums) << "'.";
 
-	/* Different length means that either one or the other side added or removed something. */
+	// Different length means that either one or the other side added or removed something. */
 	if (oldChecksums->GetLength() != newChecksums->GetLength())
 		return true;
 
-	/* Both dictionaries have an equal size. */
+	// Both dictionaries have an equal size.
 	ObjectLock olock(oldChecksums);
+
 	for (const Dictionary::Pair& kv : oldChecksums) {
 		String path = kv.first;
 		String oldChecksum = kv.second;
-		/* Only use configuration files for checksum calculation. */
+
+		// TODO: Figure out if config changes only apply to '.conf'. Leaving this open for other config files.
 		//if (!Utility::Match("*.conf", path))
 		//	continue;
 
 		/* Ignore internal files, especially .timestamp and .checksums.
+		 *
 		 * If we don't, this results in "always change" restart loops.
 		 */
 		if (Utility::Match("/.*", path))
 			continue;
 
-		Log(LogCritical, "ApiListener")
+		Log(LogDebug, "ApiListener")
 			<< "Checking " << path << " for checksum: " << oldChecksum;
 
-		/* Check whether our key exists in the new checksums, and they have an equal value. */
+		// Check whether our key exists in the new checksums, and they have an equal value.
 		String newChecksum = newChecksums->Get(path);
 
 		if (newChecksums->Get(path) != kv.second) {
-			Log(LogCritical, "ApiListener")
+			Log(LogDebug, "ApiListener")
 				<< "Path '" << path << "' doesn't match old checksum '"
 				<< newChecksum << "' with new checksum '" << oldChecksum << "'.";
 			return true;
@@ -684,7 +728,7 @@ ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
  */
 void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file)
 {
-	/* Avoid loading the authoritative marker for syncs. */
+	// Avoid loading the authoritative marker for syncs at all cost.
 	if (Utility::BaseName(file) == ".authoritative")
 		return;
 
@@ -716,7 +760,7 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 
 	/* Calculate a checksum for each file (and a global one later).
 	 *
-	 * IMPORTANT: Ignore the .authoritative file, this will not be synced.
+	 * IMPORTANT: Ignore the .authoritative file above, this must not be synced.
 	 * */
 	config.Checksums->Set(relativePath, GetChecksum(content));
 }
@@ -739,4 +783,3 @@ Dictionary::Ptr ApiListener::MergeConfigUpdate(const ConfigDirInformation& confi
 
 	return result;
 }
-
