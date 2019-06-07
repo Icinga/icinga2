@@ -417,7 +417,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const std
 {
 	namespace asio = boost::asio;
 
-	auto& io (server->get_executor().context());
+	auto& io (IoEngine::Get().GetIoService());
 
 	for (;;) {
 		try {
@@ -651,7 +651,7 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 
 			endpoint->AddClient(aclient);
 
-			asio::spawn(client->get_executor().context(), [this, aclient, endpoint, needSync](asio::yield_context yc) {
+			asio::spawn(IoEngine::Get().GetIoService(), [this, aclient, endpoint, needSync](asio::yield_context yc) {
 				CpuBoundWork syncClient (yc);
 
 				SyncClient(aclient, endpoint, needSync);

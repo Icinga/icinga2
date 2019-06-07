@@ -12,6 +12,7 @@
 #include "base/configtype.hpp"
 #include "base/defer.hpp"
 #include "base/exception.hpp"
+#include "base/io-engine.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/timer.hpp"
@@ -20,6 +21,7 @@
 #include <limits>
 #include <memory>
 #include <stdexcept>
+#include <boost/asio/io_service.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -31,8 +33,13 @@ using namespace icinga;
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(stream->get_executor().context()), m_ShuttingDown(false), m_HasStartedStreaming(false),
-	m_CheckLivenessTimer(stream->get_executor().context())
+	: HttpServerConnection(identity, authenticated, stream, IoEngine::Get().GetIoService())
+{
+}
+
+HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream, boost::asio::io_service& io)
+	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_HasStartedStreaming(false),
+	m_CheckLivenessTimer(io)
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
