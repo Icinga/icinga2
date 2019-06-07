@@ -10,21 +10,41 @@ using namespace icinga;
 
 REGISTER_CLICOMMAND("ca/sign", CASignCommand);
 
+/**
+ * Provide a long CLI description sentence.
+ *
+ * @return text
+ */
 String CASignCommand::GetDescription() const
 {
 	return "Signs an outstanding certificate request.";
 }
 
+/**
+ * Provide a short CLI description.
+ *
+ * @return text
+ */
 String CASignCommand::GetShortDescription() const
 {
 	return "signs an outstanding certificate request";
 }
 
+/**
+ * Define minimum arguments without key parameter.
+ *
+ * @return number of arguments
+ */
 int CASignCommand::GetMinArguments() const
 {
 	return 1;
 }
 
+/**
+ * Impersonate as Icinga user.
+ *
+ * @return impersonate level
+ */
 ImpersonationLevel CASignCommand::GetImpersonationLevel() const
 {
 	return ImpersonateIcinga;
@@ -33,7 +53,7 @@ ImpersonationLevel CASignCommand::GetImpersonationLevel() const
 /**
  * The entry point for the "ca sign" CLI command.
  *
- * @returns An exit status.
+ * @return An exit status.
  */
 int CASignCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {

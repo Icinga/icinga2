@@ -10,21 +10,41 @@ using namespace icinga;
 
 REGISTER_CLICOMMAND("ca/restore", CARestoreCommand);
 
+/**
+ * Provide a long CLI description sentence.
+ *
+ * @return text
+ */
 String CARestoreCommand::GetDescription() const
 {
 	return "Restores a previously removed certificate request.";
 }
 
+/**
+ * Provide a short CLI description.
+ *
+ * @return text
+ */
 String CARestoreCommand::GetShortDescription() const
 {
 	return "restores a removed certificate request";
 }
 
+/**
+ * Define minimum arguments without key parameter.
+ *
+ * @return number of arguments
+ */
 int CARestoreCommand::GetMinArguments() const
 {
 	return 1;
 }
 
+/**
+ * Impersonate as Icinga user.
+ *
+ * @return impersonate level
+ */
 ImpersonationLevel CARestoreCommand::GetImpersonationLevel() const
 {
 	return ImpersonateIcinga;

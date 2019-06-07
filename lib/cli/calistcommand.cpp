@@ -14,16 +14,32 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("ca/list", CAListCommand);
 
+/**
+ * Provide a long CLI description sentence.
+ *
+ * @return text
+ */
 String CAListCommand::GetDescription() const
 {
 	return "Lists pending certificate signing requests.";
 }
 
+/**
+ * Provide a short CLI description.
+ *
+ * @return text
+ */
 String CAListCommand::GetShortDescription() const
 {
 	return "lists pending certificate signing requests";
 }
 
+/**
+ * Initialize available CLI parameters.
+ *
+ * @param visibleDesc Register visible parameters.
+ * @param hiddenDesc Register hidden parameters.
+ */
 void CAListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
 	boost::program_options::options_description& hiddenDesc) const
 {
@@ -36,7 +52,7 @@ void CAListCommand::InitParameters(boost::program_options::options_description& 
 /**
  * The entry point for the "ca list" CLI command.
  *
- * @returns An exit status.
+ * @return An exit status.
  */
 int CAListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {

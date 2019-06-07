@@ -10,21 +10,41 @@ using namespace icinga;
 
 REGISTER_CLICOMMAND("ca/remove", CARemoveCommand);
 
+/**
+ * Provide a long CLI description sentence.
+ *
+ * @return text
+ */
 String CARemoveCommand::GetDescription() const
 {
 	return "Removes an outstanding certificate request.";
 }
 
+/**
+ * Provide a short CLI description.
+ *
+ * @return text
+ */
 String CARemoveCommand::GetShortDescription() const
 {
 	return "removes an outstanding certificate request";
 }
 
+/**
+ * Define minimum arguments without key parameter.
+ *
+ * @return number of arguments
+ */
 int CARemoveCommand::GetMinArguments() const
 {
 	return 1;
 }
 
+/**
+ * Impersonate as Icinga user.
+ *
+ * @return impersonate level
+ */
 ImpersonationLevel CARemoveCommand::GetImpersonationLevel() const
 {
 	return ImpersonateIcinga;
