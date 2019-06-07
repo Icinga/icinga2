@@ -164,6 +164,16 @@ or with sudo.
 You can use the new `--all` parameter to show all signing requests.
 Note that Icinga automatically purges signed requests older than 1 week.
 
+#### New: CA Remove/Restore <a id="upgrading-to-2-11-cli-commands-ca-remove-restore></a>
+
+`ca remove` allows you to remove pending signing requests. Once the
+master receives a CSR, and it is marked as removed, the request is
+denied.
+
+`ca restore` allows you to restore a removed signing request. You
+can list removed signing requests with the new `--removed` parameter
+for `ca list`.
+
 ### Configuration <a id="upgrading-to-2-11-configuration"></a>
 
 The deprecated `concurrent_checks` attribute in the [checker feature](09-object-types.md#objecttype-checkercomponent)
