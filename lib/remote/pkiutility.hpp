@@ -29,7 +29,7 @@ public:
 		const String& certfile, const String& cafile, const std::shared_ptr<X509>& trustedcert,
 		const String& ticket = String());
 	static String GetCertificateInformation(const std::shared_ptr<X509>& certificate);
-	static Dictionary::Ptr GetCertificateRequests();
+	static Dictionary::Ptr GetCertificateRequests(bool removed = false);
 
 private:
 	PkiUtility();

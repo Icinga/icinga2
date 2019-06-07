@@ -21,6 +21,8 @@ Usage:
 Supported commands:
   * api setup (setup for API)
   * ca list (lists all certificate signing requests)
+  * ca restore (restores a removed certificate request)
+  * ca remove (removes an outstanding certificate request)  
   * ca sign (signs an outstanding certificate request)
   * console (Icinga debug console)
   * daemon (starts Icinga 2)
@@ -185,6 +187,8 @@ Usage:
 Supported commands:
   * ca list (lists all certificate signing requests)
   * ca sign (signs an outstanding certificate request)
+  * ca restore (restores a removed certificate request)
+  * ca remove (removes an outstanding certificate request)
 
 Global options:
   -h [ --help ]             show this help message
@@ -232,6 +236,7 @@ Command options:
   --all                     List all certificate signing requests, including
                             signed. Note: Old requests are automatically
                             cleaned by Icinga after 1 week.
+  --removed                 List all removed CSRs (for use with 'ca restore')
   --json                    encode output as JSON
 
 Report bugs at <https://github.com/Icinga/icinga2>
