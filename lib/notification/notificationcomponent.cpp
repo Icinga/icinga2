@@ -11,6 +11,9 @@ using namespace icinga;
 REGISTER_TYPE(NotificationComponent);
 REGISTER_STATSFUNCTION(NotificationComponent, &NotificationComponent::StatsFunc);
 
+/**
+ * Run once when the feature is loaded. Registers Event handlers.
+ */
 void NotificationComponent::OnConfigLoaded()
 {
 	ConfigObject::OnActiveChanged.connect(std::bind(&NotificationComponent::ObjectHandler, this, _1));
@@ -28,6 +31,11 @@ void NotificationComponent::OnConfigLoaded()
 
 }
 
+/**
+ * Starts the NotificationComponent
+ *
+ * @param runtimeCreated
+ */
 void NotificationComponent::Start(bool runtimeCreated)
 {
 	ObjectImpl<NotificationComponent>::Start(runtimeCreated);
@@ -38,6 +46,11 @@ void NotificationComponent::Start(bool runtimeCreated)
 	m_Thread = std::thread(std::bind(&NotificationComponent::NotificationThreadProc, this));
 }
 
+/**
+ * Stops the NotificationComponent
+ *
+ * @param runtimeRemoved
+ */
 void NotificationComponent::Stop(bool runtimeRemoved)
 {
 	{
@@ -58,7 +71,12 @@ void NotificationComponent::Stop(bool runtimeRemoved)
 
 	ObjectImpl<NotificationComponent>::Stop(runtimeRemoved);
 }
-
+/**
+ * Fills perfdata with information about the NotificationComponent
+ *
+ * @param status Dictionary receiving the values
+ * @param perfdata Array for perfomance data
+ */
 void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	DictionaryData nodes;
@@ -81,6 +99,11 @@ void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array
 }
 
 // It's dumb to go through this, but we need to support SetNextNotification
+/**
+ * Reschedules a notification with the scheduler.
+ *
+ * @param notification Notification to be rescheduled
+ */
 void NotificationComponent::NextNotificationChangedHandlerHelper(const Notification::Ptr& notification)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
@@ -102,6 +125,11 @@ void NotificationComponent::NextNotificationChangedHandlerHelper(const Notificat
 
 
 //PROBLEM: ThreadProc sets next notification, triggers this aaaaand deadlock
+/**
+ * Handles a NextNotificationChanged event.
+ *
+ * @param notification Notification which changed the next notification
+ */
 void NotificationComponent::NextNotificationChangedHandler(const Notification::Ptr& notification)
 {
 	Log(LogCritical, "DEBUG")
@@ -111,7 +139,12 @@ void NotificationComponent::NextNotificationChangedHandler(const Notification::P
 	Utility::QueueAsyncCallback(std::bind(&NotificationComponent::NextNotificationChangedHandlerHelper, NotificationComponent::Ptr(this), notification));
 
 }
-
+/**
+ * Sends the Problem or Recovery notification. Add or removes notification from the scheduler.
+ *
+ * @param checkable Checkable which had a hard state change
+ * @param cr Check result which triggered the state change
+ */
 void NotificationComponent::StateChangeHelper(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
@@ -160,7 +193,13 @@ void NotificationComponent::StateChangeHelper(const Checkable::Ptr& checkable, c
 	}
 	m_CV.notify_all();
 }
-
+/**
+ * Handles a StateChange event.
+ *
+ * @param checkable Checkable that changed state
+ * @param cr Check result responsible for the state change
+ * @param type Type of state change, function immediately return if != StateTypeHard
+ */
 void NotificationComponent::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
 {
 	// Need to know if this was a recovery (state = ok?)
@@ -170,6 +209,12 @@ void NotificationComponent::StateChangeHandler(const Checkable::Ptr& checkable, 
 	Utility::QueueAsyncCallback(std::bind(&NotificationComponent::StateChangeHelper, this, checkable, cr));
 }
 
+/**
+ * Sends the FlappingStart/FlappingEnd notification
+ *
+ * @param checkable Checkable which changed flapping
+ * @param type Either FlappingStart or FlappingEnd
+ */
 void NotificationComponent::FlappingChangeHelper(const Checkable::Ptr& checkable, NotificationType type)
 {
 	for (const Notification::Ptr notification : checkable->GetNotifications()) {
@@ -177,10 +222,15 @@ void NotificationComponent::FlappingChangeHelper(const Checkable::Ptr& checkable
 				<< "Checkable " << checkable->GetName() << " his flapping and wants to check Notification "
 				<< notification->GetName();
 
-		SendMessageHelper(notification, type, false);
+		SendMessageHelper(notification, type);
 	}
 }
 
+/**
+ * Handles FlappingChanged events.
+ *
+ * @param checkable Checkable which started or stopped flapping
+ */
 void NotificationComponent::FlappingChangedHandler(const Checkable::Ptr& checkable)
 {
 	NotificationType ntype = checkable->IsFlapping() ? NotificationFlappingStart : NotificationFlappingEnd;
@@ -188,14 +238,24 @@ void NotificationComponent::FlappingChangedHandler(const Checkable::Ptr& checkab
 
 	Utility::QueueAsyncCallback(std::bind(&NotificationComponent::FlappingChangeHelper, this, checkable, ntype));
 }
-
+/**
+ * Sends the Acknowledgement notification.
+ *
+ * @param checkable Checkable that has been acknowledged
+ */
 void NotificationComponent::SetAcknowledgementHelper(const Checkable::Ptr& checkable)
 {
 	for (const Notification::Ptr notification : checkable->GetNotifications()) {
-		SendMessageHelper(notification, NotificationAcknowledgement, false);
+		SendMessageHelper(notification, NotificationAcknowledgement);
 	}
 }
-
+/**
+ * Handles SetAcknowledgement event.
+ *
+ * @param checkable Checkable that has been acknowledged
+ * @param author Author of the acknwoledgement
+ * @param text Comment text of the acknowledgement
+ */
 void NotificationComponent::SetAcknowledgementHandler(const Checkable::Ptr& checkable, const String& author, const String& text)
 {
 	Log(LogCritical, "DEBUG")
@@ -203,16 +263,25 @@ void NotificationComponent::SetAcknowledgementHandler(const Checkable::Ptr& chec
 
 	Utility::QueueAsyncCallback(std::bind(&NotificationComponent::SetAcknowledgementHelper, this, checkable));
 }
-
+/**
+ * Sends the Downtime Triggered notification.
+ *
+ * @param downtime Downtime that has been removed
+ */
 void NotificationComponent::TriggerDowntimeHelper(const Downtime::Ptr& downtime)
 {
 	Checkable::Ptr checkable = downtime->GetCheckable();
 
 	for (const Notification::Ptr notification : checkable->GetNotifications()) {
-		SendMessageHelper(notification, NotificationDowntimeStart, false);
+		SendMessageHelper(notification, NotificationDowntimeStart);
 	}
 }
 
+/**
+ * Handles TriggerDowntime event.
+ *
+ * @param downtime Downtime that has been triggered
+ */
 void NotificationComponent::TriggerDowntimeHandler(const Downtime::Ptr& downtime)
 {
 	Log(LogCritical, "DEBUG")
@@ -221,13 +290,35 @@ void NotificationComponent::TriggerDowntimeHandler(const Downtime::Ptr& downtime
 	Utility::QueueAsyncCallback(std::bind(&NotificationComponent::TriggerDowntimeHelper, this, downtime));
 
 }
+/**
+ * Sends the Downtime Removed notification.
+ *
+ * @param downtime Downtime that has been removed
+ */
+void NotificationComponent::RemoveDowntimeHelper(const Downtime::Ptr& downtime)
+{
+	Checkable::Ptr checkable = downtime->GetCheckable();
 
+	for (const Notification::Ptr notification : checkable->GetNotifications()) {
+		SendMessageHelper(notification, NotificationDowntimeEnd);
+	}
+}
+/**
+ * Handles a RemoveDowntime event
+ *
+ * @param downtime Downtime that has been removed
+ */
 void NotificationComponent::RemoveDowntimeHandler(const Downtime::Ptr& downtime)
 {
 	Log(LogCritical, "DEBUG")
 		<< "Downtime " << downtime->GetName() << " has been removed.";
-}
 
+	Utility::QueueAsyncCallback(std::bind(&NotificationComponent::RemoveDowntimeHelper, this, downtime));
+}
+/**
+ * Main function of the NotificationComponent.
+ * Reminder notifications are kept in a boost multi index set sorted by next execution.
+ */
 void NotificationComponent::NotificationThreadProc()
 {
 	Utility::SetThreadName("Notification Scheduler");
@@ -280,6 +371,11 @@ void NotificationComponent::NotificationThreadProc()
 	}
 }
 
+/**
+ * Tests if a hard state change notification should be sent for a checkable
+ * @param checkable The object to test
+ * @return True or false whether the checkable passed
+ */
 bool NotificationComponent::HardStateNotificationCheck(const Checkable::Ptr& checkable)
 {
 	bool send_notification = true;
@@ -326,6 +422,11 @@ bool NotificationComponent::HardStateNotificationCheck(const Checkable::Ptr& che
 	return send_notification;
 }
 
+/**
+ * Sends problem reminder notifications.
+ *
+ * @param notification Notification to send
+ */
 void NotificationComponent::SendReminderNotification(const Notification::Ptr& notification)
 {
 	auto it = m_PendingNotifications.find(notification);
@@ -335,7 +436,7 @@ void NotificationComponent::SendReminderNotification(const Notification::Ptr& no
 
 	if (notification->IsPaused()) {
 		Log(LogCritical, "DEBUG")
-				<< notification->GetName() << " is paused";
+				<< notification->GetName() << " is paused. Scheduling for:" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", notification->GetNextNotification() + notification->GetInterval());
 		notification->SetNextNotification(notification->GetNextNotification() + notification->GetInterval());
 		return;
 	}
@@ -348,7 +449,13 @@ void NotificationComponent::SendReminderNotification(const Notification::Ptr& no
 
 }
 
-void NotificationComponent::SendMessageHelper(const Notification::Ptr& notification, NotificationType type, bool reminder)
+/**
+ * Sends one-shot notifications.
+ *
+ * @param notification Notification to send
+ * @param type Notification type
+ */
+void NotificationComponent::SendMessageHelper(const Notification::Ptr& notification, NotificationType type)
 {
 	if (notification->IsPaused()) {
 		Log(LogCritical, "DEBUG")
@@ -372,15 +479,15 @@ void NotificationComponent::SendMessageHelper(const Notification::Ptr& notificat
 
 	if (type == NotificationProblem) {
 		if (HardStateNotificationCheck(notification->GetCheckable()))
-			notification->BeginExecuteNotification(type, notification->GetCheckable()->GetLastCheckResult(), false, reminder);
+			notification->BeginExecuteNotification(type, notification->GetCheckable()->GetLastCheckResult(), false, false);
 		else
 			notification->SetNextNotification(notification->GetNextNotification() + notification->GetNextNotification());
 
 	} else if (type == NotificationRecovery) {
 		if (HardStateNotificationCheck(notification->GetCheckable()))
-			notification->BeginExecuteNotification(type, notification->GetCheckable()->GetLastCheckResult(), false, reminder);
+			notification->BeginExecuteNotification(type, notification->GetCheckable()->GetLastCheckResult(), false, false);
 	} else {
-		notification->BeginExecuteNotification(type, notification->GetCheckable()->GetLastCheckResult(), false, reminder);
+		notification->BeginExecuteNotification(type, notification->GetCheckable()->GetLastCheckResult(), false, false);
 	}
 
 
@@ -397,6 +504,11 @@ void NotificationComponent::SendMessageHelper(const Notification::Ptr& notificat
 	}
 }
 
+/**
+ * Handles OnActiveChanged and OnPausedChanged events for Notifications. Other object types are ignored.
+ *
+ * @param object The object which triggered the event.
+ */
 void NotificationComponent::ObjectHandler(const ConfigObject::Ptr& object)
 {
 	Notification::Ptr notification = dynamic_pointer_cast<Notification>(object);
@@ -446,6 +558,11 @@ void NotificationComponent::ObjectHandler(const ConfigObject::Ptr& object)
 	}
 }
 
+/**
+ * Creates a NotificationScheduleInfo from a Notification. Used by the scheduler.
+ * @param Notification Notification from which the NotificationScheduleInfo is created
+ * @return A NotificationScheduleInfo struct
+ */
 NotificationScheduleInfo NotificationComponent::GetNotificationScheduleInfo(const Notification::Ptr& notification)
 {
 	NotificationScheduleInfo nsi;
@@ -454,6 +571,11 @@ NotificationScheduleInfo NotificationComponent::GetNotificationScheduleInfo(cons
 	return nsi;
 }
 
+/**
+ * Reports number of idle Notifications. Used for the StatsFunc.
+ *
+ * @return Number of idle Notifications.
+ */
 unsigned long NotificationComponent::GetIdleNotifications()
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
@@ -461,6 +583,11 @@ unsigned long NotificationComponent::GetIdleNotifications()
 	return m_IdleNotifications.size();
 }
 
+/**
+ * Reports number of pending Notifications. Used for the StatsFunc.
+ *
+ * @return Number of pending Notifications.
+ */
 unsigned long NotificationComponent::GetPendingNotifications()
 {
 	boost::mutex::scoped_lock lock(m_Mutex);

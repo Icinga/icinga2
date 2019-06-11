@@ -81,6 +81,7 @@ private:
 	void TriggerDowntimeHandler(const Downtime::Ptr& downtime);
 	void TriggerDowntimeHelper(const Downtime::Ptr& downtime);
 	void RemoveDowntimeHandler(const Downtime::Ptr& downtime);
+	void RemoveDowntimeHelper(const Downtime::Ptr& downtime);
 
 
 	void StateChangeHelper(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
@@ -92,7 +93,7 @@ private:
 
 	void NotificationThreadProc();
 	void SendReminderNotification(const Notification::Ptr& notification);
-	void SendMessageHelper(const Notification::Ptr& notification, NotificationType type, bool reminder);
+	void SendMessageHelper(const Notification::Ptr& notification, NotificationType type);
 	NotificationScheduleInfo GetNotificationScheduleInfo(const Notification::Ptr& notification);
 
 	bool HardStateNotificationCheck(const Checkable::Ptr& checkable);
