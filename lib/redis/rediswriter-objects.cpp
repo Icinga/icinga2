@@ -107,23 +107,38 @@ void RedisWriter::UpdateAllConfigObjects()
 		}
 	}
 
-	upq.ParallelFor(types, [this](const TypePair& type)
-	{
+	const std::vector<String> globalKeys = {
+			m_PrefixConfigObject + "customvar",
+			m_PrefixConfigObject + "action_url",
+			m_PrefixConfigObject + "notes_url",
+			m_PrefixConfigObject + "icon_image",
+			m_PrefixConfigObject + "commandargument",
+			m_PrefixConfigObject + "commandenvvar",
+			m_PrefixConfigObject + "timerange",
+	};
+	DeleteKeys(globalKeys);
+
+	upq.ParallelFor(types, [this, &globalKeys](const TypePair& type) {
 		String lcType = type.second;
-		m_Rcon->ExecuteQuery(
-				{"DEL", m_PrefixConfigCheckSum + lcType, m_PrefixConfigObject + lcType, m_PrefixStateObject + lcType});
-		size_t bulkCounter = 0;
-		std::vector<String> attributes = {"HMSET", m_PrefixConfigObject + lcType};
-		std::vector<String> customVars = {"HMSET", m_PrefixConfigCustomVar + lcType};
-		std::vector<String> checksums =  {"HMSET", m_PrefixConfigCheckSum + lcType};
-		std::vector<String> states =     {"HMSET", m_PrefixStateObject + lcType};
-		std::vector<std::vector<String> > transaction = {{"MULTI"}};
+
+		std::vector<String> keys = GetTypeObjectKeys(lcType);
+		DeleteKeys(keys);
+
+		keys.reserve(globalKeys.size());
+		keys.insert(keys.end(), globalKeys.begin(), globalKeys.end());
+
+		std::map<String, std::vector<String> > statements 	= GenerateHmsetStatements(keys);
+		std::vector<String> states 							= {"HMSET", m_PrefixStateObject + lcType};
+		std::vector<std::vector<String> > transaction 		= {{"MULTI"}};
+
 		bool dumpState = (lcType == "host" || lcType == "service");
 
+		size_t bulkCounter = 0;
 		for (const ConfigObject::Ptr& object : type.first->GetObjects()) {
 			if (lcType != GetLowerCaseTypeNameDB(object))
 				continue;
-			CreateConfigUpdate(object, lcType, attributes, customVars, checksums, false);
+
+			CreateConfigUpdate(object, lcType, statements, false);
 
 			// Write out inital state for checkables
 			if (dumpState) {
@@ -133,22 +148,16 @@ void RedisWriter::UpdateAllConfigObjects()
 
 			bulkCounter++;
 			if (!bulkCounter % 100) {
-				if (attributes.size() > 2) {
-					transaction.push_back(std::move(attributes));
-					attributes = {"HMSET", m_PrefixConfigObject + lcType};
-				}
-				if (customVars.size() > 2) {
-					transaction.push_back(std::move(customVars));
-					customVars = {"HMSET", m_PrefixConfigCustomVar + lcType};
-				}
-				if (checksums.size() > 2) {
-					transaction.push_back(std::move(checksums));
-					checksums = {"HMSET", m_PrefixConfigCheckSum + lcType};
-				}
+				for (const auto& kv : statements)
+					if (kv.second.size() > 2)
+						transaction.push_back(kv.second);
+
 				if (states.size() > 2) {
 					transaction.push_back(std::move(states));
 					states = {"HMSET", m_PrefixStateObject + lcType};
 				}
+
+				statements = GenerateHmsetStatements(keys);
 
 				if (transaction.size() > 1) {
 					transaction.push_back({"EXEC"});
@@ -158,12 +167,10 @@ void RedisWriter::UpdateAllConfigObjects()
 			}
 		}
 
-		if (attributes.size() > 2)
-			transaction.push_back(std::move(attributes));
-		if (customVars.size() > 2)
-			transaction.push_back(std::move(customVars));
-		if (checksums.size() > 2)
-			transaction.push_back(std::move(checksums));
+		for (const auto& kv : statements)
+			if (kv.second.size() > 2)
+				transaction.push_back(kv.second);
+
 		if (states.size() > 2)
 			transaction.push_back(std::move(states));
 
@@ -181,9 +188,15 @@ void RedisWriter::UpdateAllConfigObjects()
 	upq.Join();
 
 	if (upq.HasExceptions()) {
-		for (auto exc : upq.GetExceptions()) {
-			Log(LogCritical, "RedisWriter")
-					<< "Exception during ConfigDump: " << exc;
+		for (boost::exception_ptr exc : upq.GetExceptions()) {
+			try {
+				if (exc) {
+					boost::rethrow_exception(exc);
+			}
+			} catch(const std::exception& e) {
+				Log(LogCritical, "RedisWriter")
+						<< "Exception during ConfigDump: " << e.what();
+			}
 		}
 	}
 
@@ -191,16 +204,331 @@ void RedisWriter::UpdateAllConfigObjects()
 			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
 
-void RedisWriter::UpdateState(const Checkable::Ptr& checkable) {
-	Dictionary::Ptr stateAttrs = SerializeState(checkable);
+void RedisWriter::DeleteKeys(const std::vector<String>& keys) {
+	std::vector<String> query = {"DEL"};
+	for (auto& key : keys) {
+		query.emplace_back(key);
+	}
 
-	m_Rcon->ExecuteQuery({"HSET", m_PrefixStateObject + GetLowerCaseTypeNameDB(checkable), GetObjectIdentifier(checkable), JsonEncode(stateAttrs)});
+	m_Rcon->ExecuteQuery(query);
+}
+
+std::map<String, std::vector<String> > RedisWriter::GenerateHmsetStatements(const std::vector<String>& keys)
+{
+	std::map<String, std::vector<String> > statements;
+	for (auto& key : keys) {
+		std::vector<String> statement = {"HMSET", key};
+		statements.insert(std::pair<String, std::vector<String> >(key, statement));
+	}
+
+	return statements;
+}
+
+std::vector<String> RedisWriter::GetTypeObjectKeys(const String& type)
+{
+	std::vector<String> keys = {
+			m_PrefixConfigObject + type,
+			m_PrefixConfigCheckSum + type,
+			m_PrefixConfigObject + type + ":customvar",
+			m_PrefixConfigCheckSum + type + ":customvar",
+	};
+
+	if (type == "host" || type == "service" || type == "user") {
+		keys.emplace_back(m_PrefixConfigObject + type + ":groupmember");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":groupmember");
+	} else if (type == "timeperiod") {
+		keys.emplace_back(m_PrefixConfigObject + type + ":overwrite:include");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":overwrite:include");
+		keys.emplace_back(m_PrefixConfigObject + type + ":overwrite:exclude");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":overwrite:exclude");
+		keys.emplace_back(m_PrefixConfigObject + type + ":range");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":range");
+	} else if (type == "zone") {
+		keys.emplace_back(m_PrefixConfigObject + type + ":parent");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":parent");
+	} else if (type == "notification") {
+		keys.emplace_back(m_PrefixConfigObject + type + ":user");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":user");
+		keys.emplace_back(m_PrefixConfigObject + type + ":usergroup");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":usergroup");
+	} else if (type == "checkcommand" || type == "notificationcommand" || type == "eventcommand") {
+		keys.emplace_back(m_PrefixConfigObject + type + ":envvar");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":envvar");
+		keys.emplace_back(m_PrefixConfigObject + type + ":argument");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":argument");
+	}
+
+	return keys;
 }
 
 template<typename ConfigType>
 static ConfigObject::Ptr GetObjectByName(const String& name)
 {
 	return ConfigObject::GetObject<ConfigType>(name);
+}
+
+void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String> >& statements)
+{
+	String objectKey = GetObjectIdentifier(object);
+	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
+	String envId = CalculateCheckSumString(GetEnvironment());
+
+	if (customVarObject) {
+		auto vars(SerializeVars(customVarObject));
+		if (vars) {
+			statements[m_PrefixConfigCheckSum + typeName + ":customvar"].emplace_back(objectKey);
+			statements[m_PrefixConfigCheckSum + typeName + ":customvar"].emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumVars(customVarObject)}})));
+
+			ObjectLock varsLock(vars);
+			Array::Ptr varsArray(new Array);
+			for (auto& kv : vars) {
+				statements[m_PrefixConfigObject + "customvar"].emplace_back(kv.first);
+				statements[m_PrefixConfigObject + "customvar"].emplace_back(JsonEncode(kv.second));
+				varsArray->Add(kv.first);
+			}
+
+			statements[m_PrefixConfigObject + typeName + ":customvar"].emplace_back(objectKey);
+			statements[m_PrefixConfigObject + typeName + ":customvar"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"customvars", varsArray}})));
+		}
+	}
+
+	Type::Ptr type = object->GetReflectionType();
+	if (type == Host::TypeInstance || type == Service::TypeInstance) {
+		Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
+
+		String actionUrl = checkable->GetActionUrl();
+		String notesUrl = checkable->GetNotesUrl();
+		String iconImage = checkable->GetIconImage();
+		if (!actionUrl.IsEmpty()) {
+			statements[m_PrefixConfigObject + "action_url"].emplace_back(CalculateCheckSumArray(new Array({envId, actionUrl})));
+			statements[m_PrefixConfigObject + "action_url"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"action_url", actionUrl}})));
+		}
+		if (!notesUrl.IsEmpty()) {
+			statements[m_PrefixConfigObject + "notes_url"].emplace_back(CalculateCheckSumArray(new Array({envId, notesUrl})));
+			statements[m_PrefixConfigObject + "notes_url"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"notes_url", notesUrl}})));
+		}
+		if (!iconImage.IsEmpty()) {
+			statements[m_PrefixConfigObject + "icon_image"].emplace_back(CalculateCheckSumArray(new Array({envId, iconImage})));
+			statements[m_PrefixConfigObject + "icon_image"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"icon_image", iconImage}})));
+		}
+
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(checkable);
+
+		ConfigObject::Ptr (*getGroup)(const String& name);
+		Array::Ptr groups;
+		if (service) {
+			groups = service->GetGroups();
+			getGroup = &::GetObjectByName<ServiceGroup>;
+		} else {
+			groups = host->GetGroups();
+			getGroup = &::GetObjectByName<HostGroup>;
+		}
+
+		if (groups) {
+			ObjectLock groupsLock(groups);
+			Array::Ptr groupIds(new Array);
+			for (auto& group : groups) {
+				groupIds->Add(GetObjectIdentifier((*getGroup)(group)));
+			}
+
+			statements[m_PrefixConfigCheckSum + typeName + ":groupmember"].emplace_back(objectKey);
+			statements[m_PrefixConfigCheckSum + typeName + ":groupmember"].emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(groupIds)}})));
+			statements[m_PrefixConfigObject + typeName + ":groupmember"].emplace_back(objectKey);
+			statements[m_PrefixConfigObject + typeName + ":groupmember"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"groups", groupIds}})));
+		}
+
+		return;
+	}
+
+	if (type == TimePeriod::TypeInstance) {
+		TimePeriod::Ptr timeperiod = static_pointer_cast<TimePeriod>(object);
+
+		Dictionary::Ptr ranges = timeperiod->GetRanges();
+		if (ranges) {
+			ObjectLock rangesLock(ranges);
+			Array::Ptr rangeIds(new Array);
+			for (auto& kv : ranges) {
+				String id = CalculateCheckSumArray(new Array({envId, kv.first, kv.second}));
+				rangeIds->Add(id);
+
+				statements[m_PrefixConfigObject + "timerange"].emplace_back(id);
+				statements[m_PrefixConfigObject + "timerange"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"range_key", kv.first}, {"range_value", kv.second}})));
+			}
+
+			statements[m_PrefixConfigCheckSum + typeName + ":range"].emplace_back(objectKey);
+			statements[m_PrefixConfigCheckSum + typeName + ":range"].emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(rangeIds)}})));
+			statements[m_PrefixConfigObject + typeName + ":range"].emplace_back(objectKey);
+			statements[m_PrefixConfigObject + typeName + ":range"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"ranges", rangeIds}})));
+		}
+
+		Array::Ptr includes;
+		ConfigObject::Ptr (*getInclude)(const String& name);
+		includes = timeperiod->GetIncludes();
+		getInclude = &::GetObjectByName<TimePeriod>;
+
+		Array::Ptr includeChecksums = new Array();
+
+		ObjectLock includesLock(includes);
+		ObjectLock includeChecksumsLock(includeChecksums);
+
+		for (auto include : includes) {
+			includeChecksums->Add(GetObjectIdentifier((*getInclude)(include.Get<String>())));
+		}
+
+		statements[m_PrefixConfigCheckSum + typeName + ":overwrite:include"].emplace_back(objectKey);
+		statements[m_PrefixConfigCheckSum + typeName + ":overwrite:include"].emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(includes)}})));
+		statements[m_PrefixConfigObject + typeName + ":overwrite:include"].emplace_back(objectKey);
+		statements[m_PrefixConfigObject + typeName + ":overwrite:include"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"includes", includeChecksums}})));
+
+		Array::Ptr excludes;
+		ConfigObject::Ptr (*getExclude)(const String& name);
+
+		excludes = timeperiod->GetExcludes();
+		getExclude = &::GetObjectByName<TimePeriod>;
+
+		Array::Ptr excludeChecksums = new Array();
+
+		ObjectLock excludesLock(excludes);
+		ObjectLock excludeChecksumsLock(excludeChecksums);
+
+		for (auto exclude : excludes) {
+			excludeChecksums->Add(GetObjectIdentifier((*getExclude)(exclude.Get<String>())));
+		}
+
+		statements[m_PrefixConfigCheckSum + typeName + ":overwrite:exclude"].emplace_back(objectKey);
+		statements[m_PrefixConfigCheckSum + typeName + ":overwrite:exclude"].emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(excludes)}})));
+		statements[m_PrefixConfigObject + typeName + ":overwrite:exclude"].emplace_back(objectKey);
+		statements[m_PrefixConfigObject + typeName + ":overwrite:exclude"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"excludes", excludeChecksums}})));
+
+		return;
+	}
+
+	if (type == Zone::TypeInstance) {
+		Zone::Ptr zone = static_pointer_cast<Zone>(object);
+
+		Array::Ptr parents(new Array);
+
+		for (auto& parent : zone->GetAllParentsRaw()) {
+			parents->Add(GetObjectIdentifier(parent));
+		}
+
+		statements[m_PrefixConfigCheckSum + typeName + ":parent"].emplace_back(objectKey);
+		statements[m_PrefixConfigCheckSum + typeName + ":parent"].emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(zone->GetAllParents())}})));
+		statements[m_PrefixConfigObject + typeName + ":parent"].emplace_back(objectKey);
+		statements[m_PrefixConfigObject + typeName + ":parent"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"parents", parents}})));
+
+		return;
+	}
+
+	if (type == User::TypeInstance) {
+		User::Ptr user = static_pointer_cast<User>(object);
+
+		Array::Ptr groups;
+		ConfigObject::Ptr (*getGroup)(const String& name);
+
+		groups = user->GetGroups();
+		getGroup = &::GetObjectByName<UserGroup>;
+
+		if (groups) {
+			ObjectLock groupsLock(groups);
+			Array::Ptr groupIds(new Array);
+			for (auto& group : groups) {
+				groupIds->Add(GetObjectIdentifier((*getGroup)(group)));
+			}
+
+			statements[m_PrefixConfigCheckSum + typeName + ":groupmember"].emplace_back(objectKey);
+			statements[m_PrefixConfigCheckSum + typeName + ":groupmember"].emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(groupIds)}})));
+			statements[m_PrefixConfigObject + typeName + ":groupmember"].emplace_back(objectKey);
+			statements[m_PrefixConfigObject + typeName + ":groupmember"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"groups", groupIds}})));
+		}
+
+		return;
+	}
+
+	if (type == Notification::TypeInstance) {
+		Notification::Ptr notification = static_pointer_cast<Notification>(object);
+
+		std::set<User::Ptr> users = notification->GetUsers();
+		Array::Ptr userIds = new Array();
+
+		auto usergroups(notification->GetUserGroups());
+		Array::Ptr usergroupIds = new Array();
+
+		userIds->Reserve(users.size());
+
+		for (auto& user : users) {
+			userIds->Add(GetObjectIdentifier(user));
+		}
+
+		statements[m_PrefixConfigCheckSum + typeName + ":user"].emplace_back(objectKey);
+		statements[m_PrefixConfigCheckSum + typeName + ":user"].emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(userIds)}})));
+		statements[m_PrefixConfigObject + typeName + ":user"].emplace_back(objectKey);
+		statements[m_PrefixConfigObject + typeName + ":user"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"users", userIds}})));
+
+		usergroupIds->Reserve(usergroups.size());
+
+		for (auto& usergroup : usergroups) {
+			usergroupIds->Add(GetObjectIdentifier(usergroup));
+		}
+
+		statements[m_PrefixConfigCheckSum + typeName + ":usergroup"].emplace_back(objectKey);
+		statements[m_PrefixConfigCheckSum + typeName + ":usergroup"].emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(usergroupIds)}})));
+		statements[m_PrefixConfigObject + typeName + ":usergroup"].emplace_back(objectKey);
+		statements[m_PrefixConfigObject + typeName + ":usergroup"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"usergroups", usergroupIds}})));
+
+		return;
+	}
+
+	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
+		Command::Ptr command = static_pointer_cast<Command>(object);
+
+		Dictionary::Ptr arguments = command->GetArguments();
+		if (arguments) {
+			ObjectLock argumentsLock(arguments);
+			Array::Ptr argumentIds(new Array);
+			for (auto& kv : arguments) {
+				String id = HashValue(kv.first + HashValue(kv.second));
+				argumentIds->Add(id);
+
+				statements[m_PrefixConfigObject + "commandargument"].emplace_back(id);
+				statements[m_PrefixConfigObject + "commandargument"].emplace_back(JsonEncode(kv.second));
+			}
+
+			statements[m_PrefixConfigCheckSum + typeName + ":argument"].emplace_back(objectKey);
+			statements[m_PrefixConfigCheckSum + typeName + ":argument"].emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(argumentIds)}})));
+			statements[m_PrefixConfigObject + typeName + ":argument"].emplace_back(objectKey);
+			statements[m_PrefixConfigObject + typeName + ":argument"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"arguments", argumentIds}})));
+		}
+
+		Dictionary::Ptr envvars = command->GetArguments();
+		if (envvars) {
+			ObjectLock envvarsLock(envvars);
+			Array::Ptr envvarIds(new Array);
+			for (auto& kv : envvars) {
+				String id = HashValue(kv.first + HashValue(kv.second));
+				envvarIds->Add(id);
+
+				statements[m_PrefixConfigObject + "commandenvvar"].emplace_back(id);
+				statements[m_PrefixConfigObject + "commandenvvar"].emplace_back(JsonEncode(kv.second));
+			}
+
+			statements[m_PrefixConfigCheckSum + typeName + ":envvar"].emplace_back(objectKey);
+			statements[m_PrefixConfigCheckSum + typeName + ":envvar"].emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(envvarIds)}})));
+			statements[m_PrefixConfigObject + typeName + ":envvar"].emplace_back(objectKey);
+			statements[m_PrefixConfigObject + typeName + ":envvar"].emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"envvars", envvarIds}})));
+		}
+
+		return;
+	}
+}
+
+void RedisWriter::UpdateState(const Checkable::Ptr& checkable)
+{
+	Dictionary::Ptr stateAttrs = SerializeState(checkable);
+
+	m_Rcon->ExecuteQuery({"HSET", m_PrefixStateObject + GetLowerCaseTypeNameDB(checkable), GetObjectIdentifier(checkable), JsonEncode(stateAttrs)});
 }
 
 // Used to update a single object, used for runtime updates
@@ -211,44 +539,45 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 
 	String typeName = GetLowerCaseTypeNameDB(object);
 
-	std::vector<String> attribute = {"HSET", m_PrefixConfigObject + typeName};
-	std::vector<String> customVar = {"HSET", m_PrefixConfigCustomVar + typeName};
-	std::vector<String> checksum =  {"HSET", m_PrefixConfigCheckSum + typeName};
-	std::vector<String> state =     {"HSET", m_PrefixStateObject + typeName};
+	std::vector<String> keys = GetTypeObjectKeys(typeName);
 
+	std::map<String, std::vector<String> > statements 	= GenerateHmsetStatements(keys);
+	std::vector<String> states 							= {"HMSET", m_PrefixStateObject + typeName};
 
-	CreateConfigUpdate(object, typeName, attribute, customVar, checksum, runtimeUpdate);
+	CreateConfigUpdate(object, typeName, statements, runtimeUpdate);
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (checkable) {
 		m_Rcon->ExecuteQuery({"HSET", m_PrefixStateObject + typeName,
 							  GetObjectIdentifier(checkable), JsonEncode(SerializeState(checkable))});
 	}
 
-	m_Rcon->ExecuteQuery(attribute);
-	m_Rcon->ExecuteQuery(checksum);
-	if (customVar.size() > 2)
-		m_Rcon->ExecuteQuery(customVar);
+	std::vector<std::vector<String> > transaction = {{"MULTI"}};
+	for (const auto& kv : statements)
+		transaction.push_back(kv.second);
+
+	if (transaction.size() > 1) {
+		transaction.push_back({"EXEC"});
+		m_Rcon->ExecuteQueries(transaction);
+	}
 }
 
 // Takes object and collects IcingaDB relevant attributes and computes checksums. Returns whether the object is relevant
 // for IcingaDB.
 bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checksums)
 {
-	checksums->Set("name_checksum", CalculateCheckSumString(object->GetName()));
-	checksums->Set("environment_id", CalculateCheckSumString(GetEnvironment()));
+	attributes->Set("name_checksum", CalculateCheckSumString(object->GetName()));
+	attributes->Set("env_id", CalculateCheckSumString(GetEnvironment()));
 	attributes->Set("name", object->GetName());
 
 	Zone::Ptr ObjectsZone = static_pointer_cast<Zone>(object->GetZone());
 	if (ObjectsZone) {
-		checksums->Set("zone_id", GetObjectIdentifier(ObjectsZone));
+		attributes->Set("zone_id", GetObjectIdentifier(ObjectsZone));
 		attributes->Set("zone", ObjectsZone->GetName());
 	}
 
 	Type::Ptr type = object->GetReflectionType();
 
 	if (type == Endpoint::TypeInstance) {
-		checksums->Set("properties_checksum", HashValue(attributes));
-
 		return true;
 	}
 
@@ -256,24 +585,11 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		Zone::Ptr zone = static_pointer_cast<Zone>(object);
 
 		attributes->Set("is_global", zone->GetGlobal());
-		checksums->Set("properties_checksum", HashValue(attributes));
 
-		Array::Ptr endpoints = new Array();
-		endpoints->Resize(zone->GetEndpoints().size());
-
-		Array::SizeType i = 0;
-		for (auto& endpointObject : zone->GetEndpoints()) {
-			endpoints->Set(i++, endpointObject->GetName());
+		Zone::Ptr parent = zone->GetParent();
+		if (parent) {
+			attributes->Set("parent_id", GetObjectIdentifier(zone));
 		}
-
-		Array::Ptr parents(new Array);
-
-		for (auto& parent : zone->GetAllParentsRaw()) {
-			parents->Add(GetObjectIdentifier(parent));
-		}
-
-		checksums->Set("parent_ids", parents);
-		checksums->Set("parents_checksum", HashValue(zone->GetAllParents()));
 
 		return true;
 	}
@@ -298,23 +614,23 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		attributes->Set("notes", checkable->GetNotes());
 		attributes->Set("icon_image_alt", checkable->GetIconImageAlt());
 
-		checksums->Set("checkcommand_id", GetObjectIdentifier(checkable->GetCheckCommand()));
+		attributes->Set("checkcommand_id", GetObjectIdentifier(checkable->GetCheckCommand()));
 
 		Endpoint::Ptr commandEndpoint = checkable->GetCommandEndpoint();
 		if (commandEndpoint) {
-			checksums->Set("command_endpoint_id", GetObjectIdentifier(commandEndpoint));
+			attributes->Set("command_endpoint_id", GetObjectIdentifier(commandEndpoint));
 			attributes->Set("command_endpoint", commandEndpoint->GetName());
 		}
 
 		TimePeriod::Ptr timePeriod = checkable->GetCheckPeriod();
 		if (timePeriod) {
-			checksums->Set("check_period_id", GetObjectIdentifier(timePeriod));
+			attributes->Set("check_period_id", GetObjectIdentifier(timePeriod));
 			attributes->Set("check_period", timePeriod->GetName());
 		}
 
 		EventCommand::Ptr eventCommand = checkable->GetEventCommand();
 		if (eventCommand) {
-			checksums->Set("eventcommand_id", GetObjectIdentifier(eventCommand));
+			attributes->Set("eventcommand_id", GetObjectIdentifier(eventCommand));
 			attributes->Set("eventcommand", eventCommand->GetName());
 		}
 
@@ -322,52 +638,28 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		String notesUrl = checkable->GetNotesUrl();
 		String iconImage = checkable->GetIconImage();
 		if (!actionUrl.IsEmpty())
-			checksums->Set("action_url_id", CalculateCheckSumArray(new Array({GetEnvironment(), actionUrl})));
+			attributes->Set("action_url_id", CalculateCheckSumArray(new Array({CalculateCheckSumString(GetEnvironment()), actionUrl})));
 		if (!notesUrl.IsEmpty())
-			checksums->Set("notes_url_id", CalculateCheckSumArray(new Array({GetEnvironment(), notesUrl})));
+			attributes->Set("notes_url_id", CalculateCheckSumArray(new Array({CalculateCheckSumString(GetEnvironment()), notesUrl})));
 		if (!iconImage.IsEmpty())
-			checksums->Set("icon_image_id", CalculateCheckSumArray(new Array({GetEnvironment(), iconImage})));
+			attributes->Set("icon_image_id", CalculateCheckSumArray(new Array({CalculateCheckSumString(GetEnvironment()), iconImage})));
 
 
 		Host::Ptr host;
 		Service::Ptr service;
 		tie(host, service) = GetHostService(checkable);
 
-		Array::Ptr groups;
-		ConfigObject::Ptr (*getGroup)(const String& name);
-
 		if (service) {
-			checksums->Set("host_id", GetObjectIdentifier(service->GetHost()));
+			attributes->Set("host_id", GetObjectIdentifier(service->GetHost()));
 			attributes->Set("display_name", service->GetDisplayName());
 
 			// Overwrite name here, `object->name` is 'HostName!ServiceName' but we only want the name of the Service
 			attributes->Set("name", service->GetShortName());
-
-			groups = service->GetGroups();
-			getGroup = &::GetObjectByName<ServiceGroup>;
 		} else {
 			attributes->Set("display_name", host->GetDisplayName());
 			attributes->Set("address", host->GetAddress());
 			attributes->Set("address6", host->GetAddress6());
-
-			groups = host->GetGroups();
-			getGroup = &::GetObjectByName<HostGroup>;
 		}
-
-		checksums->Set("groups_checksum", CalculateCheckSumArray(groups));
-
-		Array::Ptr groupChecksums = new Array();
-
-		ObjectLock groupsLock(groups);
-		ObjectLock groupChecksumsLock(groupChecksums);
-
-		for (auto group : groups) {
-			groupChecksums->Add(GetObjectIdentifier((*getGroup)(group.Get<String>())));
-		}
-
-		checksums->Set("group_ids", groupChecksums);
-
-		checksums->Set("properties_checksum", HashValue(attributes));
 
 		return true;
 	}
@@ -382,29 +674,8 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		attributes->Set("states", user->GetStates());
 		attributes->Set("types", user->GetTypes());
 
-		Array::Ptr groups;
-		ConfigObject::Ptr (*getGroup)(const String& name);
-
-		groups = user->GetGroups();
-		getGroup = &::GetObjectByName<UserGroup>;
-
-		checksums->Set("groups_checksum", CalculateCheckSumArray(groups));
-
-		Array::Ptr groupChecksums = new Array();
-
-		ObjectLock groupsLock(groups);
-		ObjectLock groupChecksumsLock(groupChecksums);
-
-		for (auto group : groups) {
-			groupChecksums->Add(GetObjectIdentifier((*getGroup)(group.Get<String>())));
-		}
-
-		checksums->Set("group_ids", groupChecksums);
-
 		if (user->GetPeriod())
-			checksums->Set("period_id", GetObjectIdentifier(user->GetPeriod()));
-
-		checksums->Set("properties_checksum", HashValue(attributes));
+			attributes->Set("period_id", GetObjectIdentifier(user->GetPeriod()));
 
 		return true;
 	}
@@ -414,52 +685,6 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		attributes->Set("display_name", timeperiod->GetDisplayName());
 		attributes->Set("prefer_includes", timeperiod->GetPreferIncludes());
-
-		checksums->Set("properties_checksum", HashValue(attributes));
-		Dictionary::Ptr ranges = timeperiod->GetRanges();
-
-		attributes->Set("ranges", ranges);
-		checksums->Set("ranges_checksum", HashValue(ranges));
-
-		// Compute checksums for Includes (like groups)
-		Array::Ptr includes;
-		ConfigObject::Ptr (*getInclude)(const String& name);
-		includes = timeperiod->GetIncludes();
-		getInclude = &::GetObjectByName<TimePeriod>;
-
-		checksums->Set("includes_checksum", CalculateCheckSumArray(includes));
-
-		Array::Ptr includeChecksums = new Array();
-
-		ObjectLock includesLock(includes);
-		ObjectLock includeChecksumsLock(includeChecksums);
-
-		for (auto include : includes) {
-			includeChecksums->Add(GetObjectIdentifier((*getInclude)(include.Get<String>())));
-		}
-
-		checksums->Set("include_ids", includeChecksums);
-
-		// Compute checksums for Excludes (like groups)
-		Array::Ptr excludes;
-		ConfigObject::Ptr (*getExclude)(const String& name);
-
-		excludes = timeperiod->GetExcludes();
-		getExclude = &::GetObjectByName<TimePeriod>;
-
-		checksums->Set("excludes_checksum", CalculateCheckSumArray(excludes));
-
-		Array::Ptr excludeChecksums = new Array();
-
-		ObjectLock excludesLock(excludes);
-		ObjectLock excludeChecksumsLock(excludeChecksums);
-
-		for (auto exclude : excludes) {
-			excludeChecksums->Add(GetObjectIdentifier((*getExclude)(exclude.Get<String>())));
-		}
-
-		checksums->Set("exclude_ids", excludeChecksums);
-
 		return true;
 	}
 
@@ -468,52 +693,27 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		Host::Ptr host;
 		Service::Ptr service;
-		std::set<User::Ptr> users = notification->GetUsers();
-		Array::Ptr userChecksums = new Array();
-		Array::Ptr userNames = new Array();
-		auto usergroups(notification->GetUserGroups());
-		Array::Ptr usergroupChecksums = new Array();
-		Array::Ptr usergroupNames = new Array();
 
 		tie(host, service) = GetHostService(notification->GetCheckable());
 
-		checksums->Set("properties_checksum", HashValue(attributes));
-		checksums->Set("host_id", GetObjectIdentifier(host));
-		checksums->Set("command_id", GetObjectIdentifier(notification->GetCommand()));
+		attributes->Set("host_id", GetObjectIdentifier(host));
+		attributes->Set("command_id", GetObjectIdentifier(notification->GetCommand()));
+
+		if (service)
+			attributes->Set("service_id", GetObjectIdentifier(service));
 
 		TimePeriod::Ptr timeperiod = notification->GetPeriod();
 		if (timeperiod)
-			checksums->Set("period_id", GetObjectIdentifier(timeperiod));
-
-		if (service)
-			checksums->Set("service_id", GetObjectIdentifier(service));
-
-		userChecksums->Reserve(users.size());
-		userNames->Reserve(users.size());
-
-		for (auto& user : users) {
-			userChecksums->Add(GetObjectIdentifier(user));
-			userNames->Add(user->GetName());
-		}
-
-		checksums->Set("user_ids", userChecksums);
-		checksums->Set("users_checksum", CalculateCheckSumArray(userNames));
-
-		usergroupChecksums->Reserve(usergroups.size());
-		usergroupNames->Reserve(usergroups.size());
-
-		for (auto& usergroup : usergroups) {
-			usergroupChecksums->Add(GetObjectIdentifier(usergroup));
-			usergroupNames->Add(usergroup->GetName());
-		}
-
-		checksums->Set("usergroup_ids", usergroupChecksums);
-		checksums->Set("usergroups_checksum", CalculateCheckSumArray(usergroupNames));
+			attributes->Set("period_id", GetObjectIdentifier(timeperiod));
 
 		if (notification->GetTimes()) {
 			attributes->Set("times_begin", notification->GetTimes()->Get("begin"));
 			attributes->Set("times_end",notification->GetTimes()->Get("end"));
 		}
+
+		attributes->Set("notification_interval", notification->GetInterval());
+		attributes->Set("states", notification->GetStates());
+		attributes->Set("types", notification->GetTypes());
 
 		return true;
 	}
@@ -524,18 +724,17 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		attributes->Set("author", comment->GetAuthor());
 		attributes->Set("text", comment->GetText());
 		attributes->Set("entry_type", comment->GetEntryType());
+		attributes->Set("entry_time", comment->GetEntryTime());
 		attributes->Set("is_persistent", comment->GetPersistent());
 		attributes->Set("expire_time", comment->GetExpireTime());
 
 		Host::Ptr host;
 		Service::Ptr service;
 		tie(host, service) = GetHostService(comment->GetCheckable());
-		if (service) {
-			checksums->Set("service_id", GetObjectIdentifier(service));
-		} else
-			checksums->Set("host_id", GetObjectIdentifier(host));
-
-		checksums->Set("properties_checksum", HashValue(attributes));
+		if (service)
+			attributes->Set("service_id", GetObjectIdentifier(service));
+		else
+			attributes->Set("host_id", GetObjectIdentifier(host));
 
 		return true;
 	}
@@ -559,11 +758,10 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		tie(host, service) = GetHostService(downtime->GetCheckable());
 
 		if (service) {
-			checksums->Set("service_id", GetObjectIdentifier(service));
+			attributes->Set("service_id", GetObjectIdentifier(service));
 		} else
-			checksums->Set("host_id", GetObjectIdentifier(host));
+			attributes->Set("host_id", GetObjectIdentifier(host));
 
-		checksums->Set("properties_checksum", HashValue(attributes));
 		return true;
 	}
 
@@ -571,8 +769,6 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		UserGroup::Ptr userGroup = static_pointer_cast<UserGroup>(object);
 
 		attributes->Set("display_name", userGroup->GetDisplayName());
-
-		checksums->Set("properties_checksum", HashValue(attributes));
 
 		return true;
 	}
@@ -582,8 +778,6 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		attributes->Set("display_name", hostGroup->GetDisplayName());
 
-		checksums->Set("properties_checksum", HashValue(attributes));
-
 		return true;
 	}
 
@@ -592,57 +786,14 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		attributes->Set("display_name", serviceGroup->GetDisplayName());
 
-		checksums->Set("properties_checksum", HashValue(attributes));
-
 		return true;
 	}
 
 	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
 		Command::Ptr command = static_pointer_cast<Command>(object);
 
-		if (dynamic_pointer_cast<CheckCommand>(object))
-			attributes->Set("type", "CheckCommand");
-		else if (dynamic_pointer_cast<EventCommand>(object))
-			attributes->Set("type", "EventCommand");
-		else
-			attributes->Set("type", "NotificationCommand");
-
 		attributes->Set("command", command->GetCommandLine());
 		attributes->Set("timeout", command->GetTimeout());
-
-		checksums->Set("properties_checksum", HashValue(attributes));
-
-		Dictionary::Ptr arguments = command->GetArguments();
-		Dictionary::Ptr argumentChecksums = new Dictionary;
-
-		if (arguments) {
-			ObjectLock argumentsLock(arguments);
-
-			for (auto& kv : arguments) {
-				argumentChecksums->Set(kv.first, HashValue(kv.second));
-			}
-
-			attributes->Set("arguments", arguments);
-		}
-
-		checksums->Set("arguments_checksum", HashValue(arguments));
-		checksums->Set("argument_ids", argumentChecksums);
-
-		Dictionary::Ptr envvars = command->GetEnv();
-		Dictionary::Ptr envvarChecksums = new Dictionary;
-
-		if (envvars) {
-			ObjectLock argumentsLock(envvars);
-
-			for (auto& kv : envvars) {
-				envvarChecksums->Set(kv.first, HashValue(kv.second));
-			}
-
-			attributes->Set("envvars", envvars);
-		}
-
-		checksums->Set("envvars_checksum", HashValue(envvars));
-		checksums->Set("envvar_ids", envvarChecksums);
 
 		return true;
 	}
@@ -656,8 +807,7 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
  * icinga:config:object:downtime) need to be prepended. There is nothing to indicate success or failure.
  */
 void
-RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName, std::vector<String>& attributes,
-								std::vector<String>& customVars, std::vector<String>& checksums,
+RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String> >& statements,
 								bool runtimeUpdate)
 {
 	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
@@ -674,28 +824,15 @@ RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String ty
 	if (!PrepareObject(object, attr, chksm))
 		return;
 
+	InsertObjectDependencies(object, typeName, statements);
+
 	String objectKey = GetObjectIdentifier(object);
 
-	attributes.emplace_back(objectKey);
-	attributes.emplace_back(JsonEncode(attr));
+	statements[m_PrefixConfigObject + typeName].emplace_back(objectKey);
+	statements[m_PrefixConfigObject + typeName].emplace_back(JsonEncode(attr));
 
-	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
-
-	if (customVarObject) {
-		chksm->Set("customvars_checksum", CalculateCheckSumVars(customVarObject));
-
-		auto vars(SerializeVars(customVarObject));
-
-		if (vars) {
-			auto varsJson(JsonEncode(vars));
-
-			customVars.emplace_back(objectKey);
-			customVars.emplace_back(varsJson);
-		}
-	}
-
-	checksums.emplace_back(objectKey);
-	checksums.emplace_back(JsonEncode(chksm));
+	statements[m_PrefixConfigCheckSum + typeName].emplace_back(objectKey);;
+	statements[m_PrefixConfigCheckSum + typeName].emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(attr)}})));
 
 	/* Send an update event to subscribers. */
 	if (runtimeUpdate) {
@@ -717,6 +854,9 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 
 void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 {
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (!checkable)
 		return;

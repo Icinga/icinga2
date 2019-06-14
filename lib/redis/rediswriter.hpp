@@ -70,10 +70,14 @@ private:
 
 	/* config & status dump */
 	void UpdateAllConfigObjects();
+	void DeleteKeys(const std::vector<String>& keys);
+	std::map<String, std::vector<String> > GenerateHmsetStatements(const std::vector<String>& keys);
+	std::vector<String> GetTypeObjectKeys(const String& type);
+	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String> >& statements);
 	void UpdateState(const Checkable::Ptr& checkable);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
-	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::vector<String>& attributes,
-			std::vector<String>& customVars, std::vector<String>& checksums, bool runtimeUpdate);
+	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String> >& statements,
+			bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStatusUpdate(const ConfigObject::Ptr& object);
 	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
@@ -123,7 +127,6 @@ private:
 
 	String m_PrefixConfigObject;
 	String m_PrefixConfigCheckSum;
-	String m_PrefixConfigCustomVar;
 	String m_PrefixStateObject;
 
 	bool m_ConfigDumpInProgress;

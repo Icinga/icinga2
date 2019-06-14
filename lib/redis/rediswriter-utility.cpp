@@ -277,32 +277,13 @@ Dictionary::Ptr RedisWriter::SerializeVars(const CustomVarObject::Ptr& object)
 	ObjectLock olock(vars);
 
 	for (auto& kv : vars) {
-		Dictionary::Ptr flatVars = new Dictionary();
-
-		{
-			auto it (scalarVars.find(kv.first));
-			if (it != scalarVars.end()) {
-				for (auto& scalarVar : it->second) {
-					String strVal = Convert::ToString(scalarVar.second);
-					if (scalarVar.second.GetType() == ValueEmpty)
-						strVal = "NULL";
-
-					flatVars->Set(SHA1(PackObject(scalarVar.first)), (Dictionary::Ptr)new Dictionary({
-						{"name", scalarVar.first},
-						{"value", strVal}
-					}));
-				}
-			}
-		}
-
 		res->Set(
 			SHA1(PackObject((Array::Ptr)new Array({env, kv.first, kv.second}))),
 			(Dictionary::Ptr)new Dictionary({
-				{"env_checksum", envChecksum},
+				{"env_id", envChecksum},
 				{"name_checksum", SHA1(kv.first)},
 				{"name", kv.first},
 				{"value", kv.second},
-				{"flat", flatVars}
 			})
 		);
 	}

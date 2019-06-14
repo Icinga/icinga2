@@ -43,9 +43,8 @@ RedisWriter::RedisWriter()
 
 	m_WorkQueue.SetName("RedisWriter");
 
-	m_PrefixConfigObject = "icinga:config:object:";
-	m_PrefixConfigCheckSum = "icinga:config:checksum:";
-	m_PrefixConfigCustomVar = "icinga:config:customvar:";
+	m_PrefixConfigObject = "icinga:config:";
+	m_PrefixConfigCheckSum = "icinga:checksum:";
 	m_PrefixStateObject = "icinga:state:object:";
 }
 
