@@ -73,6 +73,9 @@ static void SetupSslContext(SSL_CTX *sslContext, const String& pubkey, const Str
 	SSL_CTX_set_mode(sslContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 	SSL_CTX_set_session_id_context(sslContext, (const unsigned char *)"Icinga 2", 8);
 
+	// Explicitly load ECC ciphers, required on el7 - https://github.com/Icinga/icinga2/issues/7247
+	SSL_CTX_set_ecdh_auto(sslContext, 1);
+
 	if (!pubkey.IsEmpty()) {
 		if (!SSL_CTX_use_certificate_chain_file(sslContext, pubkey.CStr())) {
 			Log(LogCritical, "SSL")
