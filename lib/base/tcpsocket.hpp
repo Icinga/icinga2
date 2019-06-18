@@ -4,6 +4,7 @@
 #define TCPSOCKET_H
 
 #include "base/i2-base.hpp"
+#include "base/io-engine.hpp"
 #include "base/socket.hpp"
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
@@ -37,7 +38,7 @@ void Connect(Socket& socket, const String& node, const String& service)
 {
 	using boost::asio::ip::tcp;
 
-	tcp::resolver resolver (socket.get_executor().context());
+	tcp::resolver resolver (IoEngine::Get().GetIoService());
 	tcp::resolver::query query (node, service);
 	auto result (resolver.resolve(query));
 	auto current (result.begin());
@@ -66,7 +67,7 @@ void Connect(Socket& socket, const String& node, const String& service, boost::a
 {
 	using boost::asio::ip::tcp;
 
-	tcp::resolver resolver (socket.get_executor().context());
+	tcp::resolver resolver (IoEngine::Get().GetIoService());
 	tcp::resolver::query query (node, service);
 	auto result (resolver.async_resolve(query, yc));
 	auto current (result.begin());

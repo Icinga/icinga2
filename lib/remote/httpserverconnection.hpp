@@ -8,6 +8,7 @@
 #include "base/tlsstream.hpp"
 #include <memory>
 #include <boost/asio/deadline_timer.hpp>
+#include <boost/asio/io_service.hpp>
 #include <boost/asio/io_service_strand.hpp>
 #include <boost/asio/spawn.hpp>
 
@@ -41,6 +42,8 @@ private:
 	bool m_ShuttingDown;
 	bool m_HasStartedStreaming;
 	boost::asio::deadline_timer m_CheckLivenessTimer;
+
+	HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream, boost::asio::io_service& io);
 
 	void ProcessMessages(boost::asio::yield_context yc);
 	void CheckLiveness(boost::asio::yield_context yc);

@@ -16,6 +16,7 @@
 #include "base/tlsstream.hpp"
 #include <memory>
 #include <utility>
+#include <boost/asio/io_service.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/system/system_error.hpp>
@@ -30,10 +31,16 @@ static RingBuffer l_TaskStats (15 * 60);
 
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 	const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role)
-	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream),
-	m_Role(role), m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_NextHeartbeat(0), m_IoStrand(stream->get_executor().context()),
-	m_OutgoingMessagesQueued(stream->get_executor().context()), m_WriterDone(stream->get_executor().context()), m_ShuttingDown(false),
-	m_CheckLivenessTimer(stream->get_executor().context()), m_HeartbeatTimer(stream->get_executor().context())
+	: JsonRpcConnection(identity, authenticated, stream, role, IoEngine::Get().GetIoService())
+{
+}
+
+JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
+	const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role, boost::asio::io_service& io)
+	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role),
+	m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_NextHeartbeat(0), m_IoStrand(io),
+	m_OutgoingMessagesQueued(io), m_WriterDone(io), m_ShuttingDown(false),
+	m_CheckLivenessTimer(io), m_HeartbeatTimer(io)
 {
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);
