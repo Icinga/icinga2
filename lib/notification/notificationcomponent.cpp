@@ -188,7 +188,8 @@ void NotificationComponent::StateChangeHelper(const Checkable::Ptr& checkable, c
 			else
 				notification->BeginExecuteNotification(NotificationProblem, cr, false);
 
-//			m_IdleNotifications.insert(GetNotificationScheduleInfo(notification));
+			if (notification->GetInterval() > 0)
+				m_IdleNotifications.insert(GetNotificationScheduleInfo(notification));
 		}
 	}
 	m_CV.notify_all();
@@ -315,6 +316,7 @@ void NotificationComponent::RemoveDowntimeHandler(const Downtime::Ptr& downtime)
 
 	Utility::QueueAsyncCallback(std::bind(&NotificationComponent::RemoveDowntimeHelper, this, downtime));
 }
+
 /**
  * Main function of the NotificationComponent.
  * Reminder notifications are kept in a boost multi index set sorted by next execution.
@@ -429,6 +431,8 @@ bool NotificationComponent::HardStateNotificationCheck(const Checkable::Ptr& che
  */
 void NotificationComponent::SendReminderNotification(const Notification::Ptr& notification)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	auto it = m_PendingNotifications.find(notification);
 	if (it != m_PendingNotifications.end()) {
 		m_PendingNotifications.erase(it);
@@ -446,6 +450,8 @@ void NotificationComponent::SendReminderNotification(const Notification::Ptr& no
 		notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false, true);
 	else
 		notification->SetNextNotification(notification->GetNextNotification() + notification->GetInterval());
+
+	m_IdleNotifications.insert(GetNotificationScheduleInfo(notification));
 
 }
 

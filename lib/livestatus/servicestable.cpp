@@ -65,7 +65,6 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "check_type", Column(&ServicesTable::CheckTypeAccessor, objectAccessor));
 	table->AddColumn(prefix + "acknowledged", Column(&ServicesTable::AcknowledgedAccessor, objectAccessor));
 	table->AddColumn(prefix + "acknowledgement_type", Column(&ServicesTable::AcknowledgementTypeAccessor, objectAccessor));
-	table->AddColumn(prefix + "no_more_notifications", Column(&ServicesTable::NoMoreNotificationsAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_time_ok", Column(&ServicesTable::LastTimeOkAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_time_warning", Column(&ServicesTable::LastTimeWarningAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_time_critical", Column(&ServicesTable::LastTimeCriticalAccessor, objectAccessor));
@@ -560,16 +559,6 @@ Value ServicesTable::AcknowledgementTypeAccessor(const Value& row)
 
 	ObjectLock olock(service);
 	return service->GetAcknowledgement();
-}
-
-Value ServicesTable::NoMoreNotificationsAccessor(const Value& row)
-{
-	Service::Ptr service = static_cast<Service::Ptr>(row);
-
-	if (!service)
-		return Empty;
-
-	return (CompatUtility::GetCheckableNotificationNotificationInterval(service) == 0 && !service->GetVolatile()) ? 1 : 0;
 }
 
 Value ServicesTable::LastTimeOkAccessor(const Value& row)

@@ -73,7 +73,6 @@ protected:
 	static Value AcknowledgedAccessor(const Value& row);
 	static Value StateAccessor(const Value& row);
 	static Value StateTypeAccessor(const Value& row);
-	static Value NoMoreNotificationsAccessor(const Value& row);
 	static Value LastCheckAccessor(const Value& row);
 	static Value LastStateChangeAccessor(const Value& row);
 	static Value LastTimeUpAccessor(const Value& row);

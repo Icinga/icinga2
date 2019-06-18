@@ -80,7 +80,6 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "acknowledged", Column(&HostsTable::AcknowledgedAccessor, objectAccessor));
 	table->AddColumn(prefix + "state", Column(&HostsTable::StateAccessor, objectAccessor));
 	table->AddColumn(prefix + "state_type", Column(&HostsTable::StateTypeAccessor, objectAccessor));
-	table->AddColumn(prefix + "no_more_notifications", Column(&HostsTable::NoMoreNotificationsAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_flapping_recovery_notification", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_check", Column(&HostsTable::LastCheckAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_state_change", Column(&HostsTable::LastStateChangeAccessor, objectAccessor));
@@ -672,16 +671,6 @@ Value HostsTable::StateTypeAccessor(const Value& row)
 		return Empty;
 
 	return host->GetStateType();
-}
-
-Value HostsTable::NoMoreNotificationsAccessor(const Value& row)
-{
-	Host::Ptr host = static_cast<Host::Ptr>(row);
-
-	if (!host)
-		return Empty;
-
-	return (CompatUtility::GetCheckableNotificationNotificationInterval(host) == 0 && !host->GetVolatile()) ? 1 : 0;
 }
 
 Value HostsTable::LastCheckAccessor(const Value& row)

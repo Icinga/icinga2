@@ -306,15 +306,6 @@ bool Notification::CheckTypeFilter(NotificationType type, bool reminder)
 				<< NotificationTypeToStringInternal(type) << "' does not match type filter: "
 				<< NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap()) << ".";
 
-		/* Ensure to reset no_more_notifications on Recovery notifications,
-		 * even if the admin did not configure them in the filter.
-		 */
-		{
-			ObjectLock olock(this);
-			if (type == NotificationRecovery && GetInterval() <= 0)
-				SetNoMoreNotifications(false);
-		}
-
 		return false;
 	}
 
@@ -402,11 +393,6 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		UpdateNotificationNumber();
 		double now = Utility::GetTime();
 		SetLastNotification(now);
-
-		if (type == NotificationProblem && GetInterval() <= 0)
-			SetNoMoreNotifications(true);
-		else
-			SetNoMoreNotifications(false);
 
 		if (type == NotificationProblem && GetInterval() > 0)
 			SetNextNotification(now + GetInterval());
