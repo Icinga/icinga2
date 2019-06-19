@@ -103,7 +103,7 @@ public:
 
 	bool HasExceptions() const;
 	std::vector<boost::exception_ptr> GetExceptions() const;
-	void ReportExceptions(const String& facility) const;
+	void ReportExceptions(const String& facility, bool verbose = false) const;
 
 protected:
 	void IncreaseTaskCount();
