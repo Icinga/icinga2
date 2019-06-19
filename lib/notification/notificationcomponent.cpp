@@ -539,6 +539,29 @@ void NotificationComponent::ObjectHandler(const ConfigObject::Ptr& object)
 	if (!notification)
 		return;
 
+	Checkable::Ptr checkable = notification->GetCheckable();
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	ObjectLock olock(checkable);
+
+	boost::mutex::scoped_lock lock(m_Mutex);
+	if ((service && service->GetState() != 0) || (!service && host->GetState() != 0)) {
+		if (object->IsActive() && !object->IsPaused()) {
+			if (m_IdleNotifications.find(notification) == m_IdleNotifications.end()) {
+				m_IdleNotifications.insert(GetNotificationScheduleInfo(notification));
+				Log(LogCritical, "DEBUG") << checkable->GetName() <<  " YEAHHHH Scheduling at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", notification->GetNextNotification());
+			}
+		} else {
+			Log(LogCritical, "DEBUG") << "Inactive/paused: " << notification->GetName();
+		}
+	} else {
+		Log(LogCritical, "DEBUG") << "Not in problem state:" << notification->GetName();
+	}
+
+	/*
 	Zone::Ptr zone = Zone::GetByName(notification->GetZoneName());
 	bool same_zone = (!zone || Zone::GetLocalZone() == zone);
 
@@ -579,6 +602,7 @@ void NotificationComponent::ObjectHandler(const ConfigObject::Ptr& object)
 
 		m_CV.notify_all();
 	}
+	 */
 }
 
 /**
