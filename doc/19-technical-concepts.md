@@ -813,6 +813,188 @@ Icinga 2 v2.9+ adds more performance metrics for these values:
 * `sum_bytes_sent_per_second` and `sum_bytes_received_per_second`
 
 
+### Config Sync <a id="technical-concepts-cluster-config-sync"></a>
+
+The visible feature for the user is to put configuration files in `/etc/icinga2/zones.d/<zonename>`
+and have them synced automatically to all involved zones and endpoints.
+
+This not only includes host and service objects being checked
+in a satellite zone, but also additional config objects such as
+commands, groups, timeperiods and also templates.
+
+Additional thoughts and complexity added:
+
+- Putting files into zone directory names removes the burden to set the `zone` attribute on each object in this directory. This is done automatically by the config compiler.
+- Inclusion of `zones.d` happens automatically, the user shouldn't be bothered about this.
+- Before the REST API was created, only static configuration files in `/etc/icinga2/zones.d` existed. With the addition of config packages, additional `zones.d` targets must be registered (e.g. used by the Director)
+- Only one config master is allowed. This one identifies itself with configuration files in `/etc/icinga2/zones.d`. This is not necessarily the zone master seen in the debug logs, that one is important for message routing internally.
+- Objects and templates which cannot be bound into a specific zone (e.g. hosts in the satellite zone) must be made available "globally".
+- Users must be able to deny the synchronisation of specific zones, e.g. for security reasons.
+
+#### Config Sync: Config Master <a id="technical-concepts-cluster-config-sync-config-master"></a>
+
+All zones must be configured and included in the `zones.conf` config file beforehand.
+The zone names are the identifier for the directories underneath the `/etc/icinga2/zones.d`
+directory. If a zone is not configured, it will not be included in the config sync - keep this
+in mind for troubleshooting.
+
+When the config master starts, the content of `/etc/icinga2/zones.d` is automatically
+included. There's no need for an additional entry in `icinga2.conf` like `conf.d`.
+You can verify this by running the config validation on debug level:
+
+```
+icinga2 daemon -C -x debug | grep 'zones.d'
+
+[2019-06-19 15:16:19 +0200] notice/ConfigCompiler: Compiling config file: /etc/icinga2/zones.d/global-templates/commands.conf
+```
+
+Once the config validation succeeds, the startup routine for the daemon
+copies the files into the "production" directory in `/var/lib/icinga2/api/zones`.
+This directory is used for all endpoints where Icinga stores the received configuration.
+With the exception of the config master retrieving this from `/etc/icinga2/zones.d` instead.
+
+These operations are logged for better visibility.
+
+```
+[2019-06-19 15:26:38 +0200] information/ApiListener: Copying 1 zone configuration files for zone 'global-templates' to '/var/lib/icinga2/api/zones/global-templates'.
+[2019-06-19 15:26:38 +0200] information/ApiListener: Updating configuration file: /var/lib/icinga2/api/zones/global-templates//_etc/commands.conf
+```
+
+The master is finished at this point. Depending on the cluster configuration,
+the next iteration is a connected endpoint after successful TLS handshake and certificate
+authentication.
+
+It calls `SendConfigUpdate(client)` which sends the [config::Update](19-technical-concepts.md#technical-concepts-json-rpc-messages-config-update)
+JSON-RPC message including all required zones and their configuration file content.
+
+
+#### Config Sync: Receive Config <a id="technical-concepts-cluster-config-sync-receive-config"></a>
+
+The secondary master endpoint and endpoints in a child zone will be connected to the config
+master. The endpoint receives the [config::Update](19-technical-concepts.md#technical-concepts-json-rpc-messages-config-update)
+JSON-RPC message and processes the content in `ConfigUpdateHandler()`. This method checks
+whether config should be accepted. In addition to that, it locks a local mutex to avoid race conditions
+with multiple syncs in parallel.
+
+After that, the received configuration content is analysed.
+
+> **Note**
+>
+> The cluster design allows that satellite endpoints may connect to the secondary master first.
+> There is no immediate need to always connect to the config master first, especially since
+> the satellite endpoints don't know that.
+>
+> The secondary master not only stores the master zone config files, but also all child zones.
+> This is also the case for any HA enabled zone with more than one endpoint.
+
+
+2.11 puts the received configuration files into a staging directory in
+`/var/lib/icinga2/api/zones-stage`. Previous versions directly wrote the
+files into production which could have led to broken configuration on the
+next manual restart.
+
+```
+[2019-06-19 16:08:29 +0200] information/ApiListener: New client connection for identity 'master1' to [127.0.0.1]:5665
+[2019-06-19 16:08:30 +0200] information/ApiListener: Applying config update from endpoint 'master1' of zone 'master'.
+[2019-06-19 16:08:30 +0200] information/ApiListener: Received configuration for zone 'agent' from endpoint 'master1'. Comparing the checksums.
+[2019-06-19 16:08:30 +0200] information/ApiListener: Stage: Updating received configuration file '/var/lib/icinga2/api/zones-stage/agent//_etc/host.conf' for zone 'agent'.
+[2019-06-19 16:08:30 +0200] information/ApiListener: Applying configuration file update for path '/var/lib/icinga2/api/zones-stage/agent' (176 Bytes).
+[2019-06-19 16:08:30 +0200] information/ApiListener: Received configuration for zone 'master' from endpoint 'master1'. Comparing the checksums.
+[2019-06-19 16:08:30 +0200] information/ApiListener: Applying configuration file update for path '/var/lib/icinga2/api/zones-stage/master' (17 Bytes).
+[2019-06-19 16:08:30 +0200] information/ApiListener: Received configuration from endpoint 'master1' is different to production, triggering validation and reload.
+```
+
+It then validates the received configuration in its own config stage. There is
+an parameter override in place which disables the automatic inclusion of the production
+config in `/var/lib/icinga2/api/zones`.
+
+Once completed, the reload is triggered. This follows the same configurable timeout
+as with the global reload.
+
+```
+[2019-06-19 16:52:26 +0200] information/ApiListener: Config validation for stage '/var/lib/icinga2/api/zones-stage/' was OK, replacing into '/var/lib/icinga2/api/zones/' and triggering reload.
+[2019-06-19 16:52:27 +0200] information/Application: Got reload command: Started new instance with PID '19945' (timeout is 300s).
+[2019-06-19 16:52:28 +0200] information/Application: Reload requested, letting new process take over.
+```
+
+Whenever the staged configuration validation fails, Icinga logs this including a reference
+to the startup log file which includes additional errors.
+
+```
+[2019-06-19 15:45:27 +0200] critical/ApiListener: Config validation failed for staged cluster config sync in '/var/lib/icinga2/api/zones-stage/'. Aborting. Logs: '/var/lib/icinga2/api/zones-stage//startup.log'
+```
+
+
+#### Config Sync: Changes and Reload <a id="technical-concepts-cluster-config-sync-changes-reload"></a>
+
+Whenever a new configuration is received, it is validated and upon success, the
+daemon automatically reloads. While the daemon continues with checks, the reload
+cannot hand over open TCP connections. That being said, reloading the daemon everytime
+a configuration is synchronized would lead into many not connected endpoints.
+
+Therefore the cluster config sync checks whether the configuration files actually
+changed, and will only trigger a reload when such a change happened.
+
+2.11 calculates a checksum from each file content and compares this to the
+production configuration. Previous versions used additional metadata with timestamps from
+files which sometimes led to problems with asynchronous dates.
+
+> **Note**
+>
+> For compatibility reasons, the timestamp metadata algorithm is still intact, e.g.
+> when the client is 2.11 already, but the parent endpoint is still on 2.10.
+
+Icinga logs a warning when this happens.
+
+```
+Received configuration update without checksums from parent endpoint satellite1. This behaviour is deprecated. Please upgrade the parent endpoint to 2.11+
+```
+
+
+The debug log provides more details on the actual checksums and checks. Future output
+may change, use this solely for troubleshooting and debugging whenever the cluster
+config sync fails.
+
+```
+[2019-06-19 16:13:16 +0200] information/ApiListener: Received configuration for zone 'agent' from endpoint 'master1'. Comparing the checksums.
+[2019-06-19 16:13:16 +0200] debug/ApiListener: Checking for config change between stage and production. Old (3): '{"/.checksums":"7ede1276a9a32019c1412a52779804a976e163943e268ec4066e6b6ec4d15d73","/.timestamp":"ec4354b0eca455f7c2ca386fddf5b9ea810d826d402b3b6ac56ba63b55c2892c","/_etc/host.conf":"35d4823684d83a5ab0ca853c9a3aa8e592adfca66210762cdf2e54339ccf0a44"}' vs. new (3): '{"/.checksums":"84a586435d732327e2152e7c9b6d85a340cc917b89ae30972042f3dc344ea7cf","/.timestamp":"0fd6facf35e49ab1b2a161872fa7ad794564eba08624373d99d31c32a7a4c7d3","/_etc/host.conf":"0d62075e89be14088de1979644b40f33a8f185fcb4bb6ff1f7da2f63c7723fcb"}'.
+[2019-06-19 16:13:16 +0200] debug/ApiListener: Checking /_etc/host.conf for checksum: 35d4823684d83a5ab0ca853c9a3aa8e592adfca66210762cdf2e54339ccf0a44
+[2019-06-19 16:13:16 +0200] debug/ApiListener: Path '/_etc/host.conf' doesn't match old checksum '0d62075e89be14088de1979644b40f33a8f185fcb4bb6ff1f7da2f63c7723fcb' with new checksum '35d4823684d83a5ab0ca853c9a3aa8e592adfca66210762cdf2e54339ccf0a44'.
+```
+
+
+#### Config Sync: Trust <a id="technical-concepts-cluster-config-sync-trust"></a>
+
+The config sync follows the "top down" approach, where the master endpoint in the master
+zone is allowed to synchronize configuration to the child zone, e.g. the satellite zone.
+
+Endpoints in the same zone, e.g. a secondary master, receive configuration for the same
+zone and all child zones.
+
+Endpoints in the satellite zone trust the parent zone, and will accept the pushed
+configuration via JSON-RPC cluster messages. By default, this is disabled and must
+be enabled with the `accept_config` attribute in the ApiListener feature (manually or with CLI
+helpers).
+
+The satellite zone will not only accept zone configuration for its own zone, but also
+all configured child zones. That is why it is important to configure the zone hierarchy
+on the satellite as well.
+
+Child zones are not allowed to sync configuration up to the parent zone. Each Icinga instance
+evaluates this in startup and knows on endpoint connect which config zones need to be synced.
+
+
+Global zones have a special trust relationship: They are synced to all child zones, be it
+a satellite zone or client zone. Since checkable objects such as a Host or a Service object
+must have only one endpoint as authority, they cannot be put into a global zone (denied by
+the config compiler).
+
+Apply rules and templates are allowed, since they are evaluated in the endpoint which received
+the synced configuration. Keep in mind that there may be differences on the master and the satellite
+when e.g. hostgroup membership is used for assign where expressions, but the groups are only
+available on the master.
+
+
 ## TLS Network IO <a id="technical-concepts-tls-network-io"></a>
 
 ### TLS Connection Handling <a id="technical-concepts-tls-network-io-connection-handling"></a>

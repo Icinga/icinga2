@@ -96,7 +96,33 @@ feature with the `cipher_list` attribute.
 In case that one of these ciphers is marked as insecure in the future,
 please let us know with an issue on GitHub.
 
-### HA-aware Features <a id="upgrading-to-2-11-ha-aware-features"></a>
+### Cluster <a id="upgrading-to-2-11-cluster"></a>
+
+#### Config Sync <a id="upgrading-to-2-11-cluster-config-sync"></a>
+
+2.11 overhauls the cluster config sync in many ways. This includes the
+following under the hood:
+
+- Synced configuration files are not immediately put into production, but left inside a stage.
+- Unsuccessful config validation never puts the config into production, additional logging and API states are available.
+- Zone directories which are not configured in zones.conf, are not included anymore on secondary master/satellites/clients.
+- Synced config change calculation use checksums instead of timestamps to trigger validation/reload. This is more safe, and the usage of timestamps is now deprecated.
+- Don't allow parallel cluster syncs to avoid race conditions with overridden files.
+- Deleted directories and files are now purged, previous versions had a bug.
+
+Whenever a newer child endpoint receives a configuration update without
+checksums, it will log a warning.
+
+```
+Received configuration update without checksums from parent endpoint satellite1. This behaviour is deprecated. Please upgrade the parent endpoint to 2.11+
+```
+
+This is a gentle reminder to upgrade the master and satellites first,
+prior to installing new clients/agents.
+
+Technical details are available in the [technical concepts](19-technical-concepts.md#technical-concepts-cluster-config-sync) chapter.
+
+#### HA-aware Features <a id="upgrading-to-2-11-cluster-ha-aware-features"></a>
 
 v2.11 introduces additional HA functionality similar to the DB IDO feature.
 This enables the feature being active only on one endpoint while the other
@@ -182,7 +208,7 @@ constant in [constants.conf](04-configuring-icinga-2.md#constants-conf) instead.
 
 ### REST API <a id="upgrading-to-2-11-api"></a>
 
-#### Actions <a id="upgrading-to-2-11-api-config-packages"></a>
+#### Actions <a id="upgrading-to-2-11-api-actions"></a>
 
 The [schedule-downtime](12-icinga2-api.md#icinga2-api-actions-schedule-downtime-host-all-services)
 action supports the `all_services` parameter for Host types. Defaults to false.

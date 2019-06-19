@@ -100,6 +100,10 @@ static void IncludePackage(const String& packagePath, bool& success)
 bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs, const String& objectsFile)
 {
 	bool success;
+
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+	VERIFY(systemNS);
+
 	if (!objectsFile.IsEmpty())
 		ConfigCompilerContext::GetInstance()->OpenObjectsFile(objectsFile);
 
@@ -122,12 +126,15 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	 * unfortunately moving it there is somewhat non-trivial. */
 	success = true;
 
-	String zonesEtcDir = Configuration::ZonesDir;
-	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
-		Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", std::ref(success)), GlobDirectory);
+	/* Only load zone directory if we're not in staging validation. */
+	if (!systemNS->Contains("ZonesStageVarDir")) {
+		String zonesEtcDir = Configuration::ZonesDir;
+		if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
+			Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", std::ref(success)), GlobDirectory);
 
-	if (!success)
-		return false;
+		if (!success)
+			return false;
+	}
 
 	/* Load package config files - they may contain additional zones which
 	 * are authoritative on this node and are checked in HasZoneConfigAuthority(). */
@@ -138,16 +145,23 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (!success)
 		return false;
 
-	/* Load cluster synchronized configuration files */
+	/* Load cluster synchronized configuration files. This can be overridden for staged sync validations. */
 	String zonesVarDir = Configuration::DataDir + "/api/zones";
+
+	/* Cluster config sync stage validation needs this. */
+	if (systemNS->Contains("ZonesStageVarDir")) {
+		zonesVarDir = systemNS->Get("ZonesStageVarDir");
+
+		Log(LogNotice, "DaemonUtility")
+			<< "Overriding zones var directory with '" << zonesVarDir << "' for cluster config sync staging.";
+	}
+
+
 	if (Utility::PathExists(zonesVarDir))
 		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", std::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
-
-	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
-	VERIFY(systemNS);
 
 	/* This is initialized inside the IcingaApplication class. */
 	Value vAppType;

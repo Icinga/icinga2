@@ -9,6 +9,7 @@
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include "base/configobject.hpp"
+#include "base/process.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "base/tcpsocket.hpp"
@@ -31,6 +32,7 @@ struct ConfigDirInformation
 {
 	Dictionary::Ptr UpdateV1;
 	Dictionary::Ptr UpdateV2;
+	Dictionary::Ptr Checksums;
 };
 
 /**
@@ -47,6 +49,8 @@ public:
 	ApiListener();
 
 	static String GetApiDir();
+	static String GetApiZonesDir();
+	static String GetApiZonesStageDir();
 	static String GetCertsDir();
 	static String GetCaDir();
 	static String GetCertificateRequestsDir();
@@ -167,15 +171,25 @@ private:
 	/* filesync */
 	static boost::mutex m_ConfigSyncStageLock;
 
-	static ConfigDirInformation LoadConfigDir(const String& dir);
-	static Dictionary::Ptr MergeConfigUpdate(const ConfigDirInformation& config);
-	static bool UpdateConfigDir(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig, const String& configDir, bool authoritative);
+	void SyncLocalZoneDirs() const;
+	void SyncLocalZoneDir(const Zone::Ptr& zone) const;
 
-	void SyncZoneDirs() const;
-	void SyncZoneDir(const Zone::Ptr& zone) const;
-
-	static void ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file);
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
+
+	static Dictionary::Ptr MergeConfigUpdate(const ConfigDirInformation& config);
+
+	static ConfigDirInformation LoadConfigDir(const String& dir);
+	static void ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file);
+
+	static void TryActivateZonesStageCallback(const ProcessResult& pr,
+		const std::vector<String>& relativePaths);
+	static void AsyncTryActivateZonesStage(const std::vector<String>& relativePaths);
+
+	static String GetChecksum(const String& content);
+	static bool CheckConfigChange(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig);
+
+	void UpdateLastFailedZonesStageValidation(const String& log);
+	void ClearLastFailedZonesStageValidation();
 
 	/* configsync */
 	void UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,

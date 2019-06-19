@@ -54,6 +54,8 @@ class ApiListener : ConfigObject
 	[state, no_user_modify] Timestamp log_message_timestamp;
 
 	[no_user_modify] String identity;
+
+	[state, no_user_modify] Dictionary::Ptr last_failed_zones_stage_validation;
 };
 
 }
