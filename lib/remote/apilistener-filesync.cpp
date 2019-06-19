@@ -447,8 +447,10 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 				String path = stageConfigZoneDir + "/" + kv.first;
 
-				Log(LogInformation, "ApiListener")
-					<< "Stage: Updating received configuration file '" << path << "' for zone '" << zoneName << "'.";
+				if (Utility::Match("*.conf", path)) {
+					Log(LogInformation, "ApiListener")
+						<< "Stage: Updating received configuration file '" << path << "' for zone '" << zoneName << "'.";
+				}
 
 				// Sync string content only.
 				String content = kv.second;
