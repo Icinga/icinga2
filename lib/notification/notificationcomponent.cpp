@@ -24,6 +24,7 @@ void NotificationComponent::OnConfigLoaded()
 
 	Checkable::OnAcknowledgementSet.connect(std::bind(&NotificationComponent::SetAcknowledgementHandler, this, _1, _2, _3));
 
+//	Downtime::OnDowntimeStarted.connect(std::bind(&NotificationComponent::TriggerDowntimeHandler, this, _1));
 	Downtime::OnDowntimeTriggered.connect(std::bind(&NotificationComponent::TriggerDowntimeHandler, this, _1));
 	Downtime::OnDowntimeRemoved.connect(std::bind(&NotificationComponent::RemoveDowntimeHandler, this, _1));
 
@@ -71,6 +72,7 @@ void NotificationComponent::Stop(bool runtimeRemoved)
 
 	ObjectImpl<NotificationComponent>::Stop(runtimeRemoved);
 }
+
 /**
  * Fills perfdata with information about the NotificationComponent
  *
@@ -104,8 +106,13 @@ void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array
  *
  * @param notification Notification to be rescheduled
  */
+
 void NotificationComponent::NextNotificationChangedHandlerHelper(const Notification::Ptr& notification)
 {
+	/* ISSUE: The next notification changes whenever a notification is sent and on startup. With the API action
+	 * `delay-next-notification` there is a way for users to trigger this. We need to deal with both cases.
+	 */
+	return;
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	/* remove and re-insert the object from the set in order to force an index update */
@@ -139,6 +146,7 @@ void NotificationComponent::NextNotificationChangedHandler(const Notification::P
 	Utility::QueueAsyncCallback(std::bind(&NotificationComponent::NextNotificationChangedHandlerHelper, NotificationComponent::Ptr(this), notification));
 
 }
+
 /**
  * Sends the Problem or Recovery notification. Add or removes notification from the scheduler.
  *
@@ -194,6 +202,7 @@ void NotificationComponent::StateChangeHelper(const Checkable::Ptr& checkable, c
 	}
 	m_CV.notify_all();
 }
+
 /**
  * Handles a StateChange event.
  *
@@ -239,6 +248,7 @@ void NotificationComponent::FlappingChangedHandler(const Checkable::Ptr& checkab
 
 	Utility::QueueAsyncCallback(std::bind(&NotificationComponent::FlappingChangeHelper, this, checkable, ntype));
 }
+
 /**
  * Sends the Acknowledgement notification.
  *
@@ -250,6 +260,7 @@ void NotificationComponent::SetAcknowledgementHelper(const Checkable::Ptr& check
 		SendMessageHelper(notification, NotificationAcknowledgement);
 	}
 }
+
 /**
  * Handles SetAcknowledgement event.
  *
@@ -264,6 +275,7 @@ void NotificationComponent::SetAcknowledgementHandler(const Checkable::Ptr& chec
 
 	Utility::QueueAsyncCallback(std::bind(&NotificationComponent::SetAcknowledgementHelper, this, checkable));
 }
+
 /**
  * Sends the Downtime Triggered notification.
  *
@@ -291,6 +303,7 @@ void NotificationComponent::TriggerDowntimeHandler(const Downtime::Ptr& downtime
 	Utility::QueueAsyncCallback(std::bind(&NotificationComponent::TriggerDowntimeHelper, this, downtime));
 
 }
+
 /**
  * Sends the Downtime Removed notification.
  *
@@ -304,6 +317,7 @@ void NotificationComponent::RemoveDowntimeHelper(const Downtime::Ptr& downtime)
 		SendMessageHelper(notification, NotificationDowntimeEnd);
 	}
 }
+
 /**
  * Handles a RemoveDowntime event
  *
@@ -412,7 +426,7 @@ bool NotificationComponent::HardStateNotificationCheck(const Checkable::Ptr& che
 	if (checkable->GetLastStateRaw() == ServiceOK && checkable->GetLastStateType() == StateTypeSoft) {
 		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
 		Log(LogCritical, "DEBUG")
-			<< "Not sending becuase soft-ok -> hard-ok: " << checkable->GetName();
+			<< "Not sending because soft-ok -> hard-ok: " << checkable->GetName();
 	}
 
 	if (checkable->GetVolatile() && checkable->GetLastStateRaw() == ServiceOK && checkable->GetStateRaw() == ServiceOK) {
@@ -446,10 +460,13 @@ void NotificationComponent::SendReminderNotification(const Notification::Ptr& no
 	}
 
 	Checkable::Ptr checkable = notification->GetCheckable();
-	if (HardStateNotificationCheck(checkable))
+	if (HardStateNotificationCheck(checkable)) {
 		notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false, true);
-	else
+		Log(LogCritical, "DEBUG") << "Sending reminder for " << notification->GetName();
+	} else {
 		notification->SetNextNotification(notification->GetNextNotification() + notification->GetInterval());
+		Log(LogCritical, "DEBUG") << "Not sending reminder notification for " << notification->GetName();
+	}
 
 	m_IdleNotifications.insert(GetNotificationScheduleInfo(notification));
 

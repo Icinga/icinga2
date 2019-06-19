@@ -83,7 +83,6 @@ private:
 	void RemoveDowntimeHandler(const Downtime::Ptr& downtime);
 	void RemoveDowntimeHelper(const Downtime::Ptr& downtime);
 
-
 	void StateChangeHelper(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 
