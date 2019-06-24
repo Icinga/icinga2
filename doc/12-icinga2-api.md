@@ -2293,6 +2293,7 @@ Name												| Language	| Description
 [IcingaBusyLightAgent](https://github.com/stdevel/IcingaBusylightAgent) 			| C#		| Notification Agent in Systray
 [BitBar for OSX](https://getbitbar.com/plugins/Dev/Icinga2/icinga2.24m.py)			| Python	| macOS tray app for highlighting the host/service status
 [Icinga 2 Multistatus](https://chrome.google.com/webstore/detail/icinga-multi-status/khabbhcojgkibdeipanmiphceeoiijal/related)	| - 	| Chrome Extension
+[Naglite4](https://github.com/wftech/icinga2-naglite4)						| Python	| Naglite3 rewrite using the Icinga 2 REST API.
 
 ### Manage Objects <a id="icinga2-api-clients-management"></a>
 
