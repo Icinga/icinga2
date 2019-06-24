@@ -169,13 +169,13 @@ std::vector<boost::exception_ptr> WorkQueue::GetExceptions() const
 	return m_Exceptions;
 }
 
-void WorkQueue::ReportExceptions(const String& facility) const
+void WorkQueue::ReportExceptions(const String& facility, bool verbose) const
 {
 	std::vector<boost::exception_ptr> exceptions = GetExceptions();
 
 	for (const auto& eptr : exceptions) {
 		Log(LogCritical, facility)
-			<< DiagnosticInformation(eptr);
+			<< DiagnosticInformation(eptr, verbose);
 	}
 
 	Log(LogCritical, facility)
