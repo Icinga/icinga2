@@ -39,7 +39,7 @@ icolor red 		"(^|^\s+)(vars\.\w+)"
 icolor red 		"(^|^\s+)|(icinga2Keyword|template|const|import|include|include_recursive|var|function|return|to|use|locals|globals|this)\s+"
 
 ## Assign conditions
-icolor magenta 	"(assign|ignone)[ \t]+where"
+icolor magenta 	"(assign|ignore)[ \t]+where"
 
 ## Global functions
 icolor white 	"(regex|match|len|union|intersection|keys|string|number|bool|random|log|typeof|get_time|exit)"
