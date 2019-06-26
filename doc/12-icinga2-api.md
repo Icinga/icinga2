@@ -2045,7 +2045,7 @@ The following example fetches the configuration file `conf.d/test.conf`:
 ```
 $ curl -k -s -u root:icinga 'https://localhost:5665/v1/config/files/example-cmdb/7e7861c8-8008-4e8d-9910-2a0bb26921bd/conf.d/test.conf'
 
-object Host "cmdb-host" { chec_command = "dummy" }
+object Host "cmdb-host" { check_command = "dummy" }
 ```
 
 You can fetch a [list of existing files](12-icinga2-api.md#icinga2-api-config-management-list-config-package-stage-files)
