@@ -547,7 +547,7 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
 
 		// Copy all synced configuration files from stage to production.
 		for (const String& path : relativePaths) {
-			if (!Utility::PathExists(path))
+			if (!Utility::PathExists(apiZonesStageDir + path))
 				continue;
 
 			Log(LogInformation, "ApiListener")
