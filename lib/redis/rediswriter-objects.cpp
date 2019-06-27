@@ -864,12 +864,14 @@ RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String ty
 	InsertObjectDependencies(object, typeName, statements);
 
 	String objectKey = GetObjectIdentifier(object);
+	auto& attrs (statements.at(m_PrefixConfigObject + typeName));
+	auto& chksms (statements.at(m_PrefixConfigCheckSum + typeName));
 
-	statements[m_PrefixConfigObject + typeName].emplace_back(objectKey);
-	statements[m_PrefixConfigObject + typeName].emplace_back(JsonEncode(attr));
+	attrs.emplace_back(objectKey);
+	attrs.emplace_back(JsonEncode(attr));
 
-	statements[m_PrefixConfigCheckSum + typeName].emplace_back(objectKey);;
-	statements[m_PrefixConfigCheckSum + typeName].emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(attr)}})));
+	chksms.emplace_back(objectKey);
+	chksms.emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(attr)}})));
 
 	/* Send an update event to subscribers. */
 	if (runtimeUpdate) {
