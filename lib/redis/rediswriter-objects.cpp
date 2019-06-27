@@ -43,6 +43,7 @@
 #include "base/convert.hpp"
 #include "base/array.hpp"
 #include "base/exception.hpp"
+#include <iterator>
 #include <map>
 #include <set>
 #include <utility>
@@ -127,13 +128,12 @@ void RedisWriter::UpdateAllConfigObjects()
 
 		keys.insert(keys.end(), globalKeys.begin(), globalKeys.end());
 
-		std::vector<Array::Ptr> objectChunks = ChunkObjects(type.first->GetObjects(), 500);
+		auto objectChunks (ChunkObjects(type.first->GetObjects(), 500));
 
 		WorkQueue upqObjectType(25000, Configuration::Concurrency);
 		upqObjectType.SetName("RedisWriter:ConfigDump:" + lcType);
 
-		upqObjectType.ParallelFor(objectChunks, [this, &type, &lcType, &keys](const Array::Ptr chunk) {
-			ObjectLock chunkLock(chunk);
+		upqObjectType.ParallelFor(objectChunks, [this, &type, &lcType, &keys](decltype(objectChunks)::const_reference chunk) {
 			std::map<String, std::vector<String> > statements 	= GenerateHmsetStatements(keys);
 			std::vector<String> states 							= {"HMSET", m_PrefixStateObject + lcType};
 			std::vector<std::vector<String> > transaction 		= {{"MULTI"}};
@@ -222,25 +222,24 @@ void RedisWriter::UpdateAllConfigObjects()
 			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
 
-std::vector<Array::Ptr> RedisWriter::ChunkObjects(std::vector<intrusive_ptr<ConfigObject> > objects, size_t chunkSize) {
-	std::vector<Array::Ptr> chunks;
-	Array::Ptr currentChunk(new Array);
-	size_t currentChunkSize = 0;
-	for (auto object : objects) {
-		currentChunk->Add(object);
-		currentChunkSize++;
-		if (currentChunkSize >= chunkSize) {
-			chunks.push_back(currentChunk);
-			currentChunk = new Array();
-			currentChunkSize = 0;
-		}
+std::vector<std::vector<intrusive_ptr<ConfigObject>>> RedisWriter::ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize) {
+	std::vector<std::vector<intrusive_ptr<ConfigObject>>> chunks;
+	auto offset (objects.begin());
+	auto end (objects.end());
+
+	chunks.reserve((std::distance(offset, end) + chunkSize - 1) / chunkSize);
+
+	while (std::distance(offset, end) >= chunkSize) {
+		auto until (offset + chunkSize);
+		chunks.emplace_back(offset, until);
+		offset = until;
 	}
 
-	if (currentChunkSize > 0) {
-		chunks.push_back(currentChunk);
+	if (offset != end) {
+		chunks.emplace_back(offset, end);
 	}
 
-	return chunks;
+	return std::move(chunks);
 }
 
 void RedisWriter::DeleteKeys(const std::vector<String>& keys) {
