@@ -45,6 +45,7 @@
 #include "base/exception.hpp"
 #include <map>
 #include <set>
+#include <utility>
 
 using namespace icinga;
 
@@ -297,7 +298,7 @@ std::vector<String> RedisWriter::GetTypeObjectKeys(const String& type)
 		keys.emplace_back(m_PrefixConfigCheckSum + type + ":argument");
 	}
 
-	return keys;
+	return std::move(keys);
 }
 
 template<typename ConfigType>
