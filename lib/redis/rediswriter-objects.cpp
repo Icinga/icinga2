@@ -255,11 +255,10 @@ std::map<String, std::vector<String> > RedisWriter::GenerateHmsetStatements(cons
 {
 	std::map<String, std::vector<String> > statements;
 	for (auto& key : keys) {
-		std::vector<String> statement = {"HMSET", key};
-		statements.insert(std::pair<String, std::vector<String> >(key, statement));
+		statements.emplace(key, std::vector<String>({"HMSET", key}));
 	}
 
-	return statements;
+	return std::move(statements);
 }
 
 std::vector<String> RedisWriter::GetTypeObjectKeys(const String& type)
