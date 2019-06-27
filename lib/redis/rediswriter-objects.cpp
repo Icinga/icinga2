@@ -125,7 +125,6 @@ void RedisWriter::UpdateAllConfigObjects()
 		std::vector<String> keys = GetTypeObjectKeys(lcType);
 		DeleteKeys(keys);
 
-		keys.reserve(globalKeys.size());
 		keys.insert(keys.end(), globalKeys.begin(), globalKeys.end());
 
 		std::vector<Array::Ptr> objectChunks = ChunkObjects(type.first->GetObjects(), 500);
