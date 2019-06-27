@@ -34,7 +34,6 @@ class ScriptError : virtual public user_error
 public:
 	ScriptError(String message);
 	ScriptError(String message, DebugInfo di, bool incompleteExpr = false);
-	~ScriptError() throw() = default;
 
 	const char *what(void) const throw() final;
 
