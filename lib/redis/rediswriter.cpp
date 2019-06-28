@@ -26,6 +26,7 @@
 #include "icinga/host.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include <utility>
 
 
 using namespace icinga;
@@ -64,27 +65,27 @@ void RedisWriter::Start(bool runtimeCreated)
 	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex());
 	m_Rcon->Start();
 
-	m_WorkQueue.SetExceptionCallback(std::bind(&RedisWriter::ExceptionHandler, this, _1));
+	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(15);
-	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&RedisWriter::ReconnectTimerHandler, this));
+	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ReconnectTimerHandler(); });
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
 	m_SubscriptionTimer = new Timer();
 	m_SubscriptionTimer->SetInterval(15);
-	m_SubscriptionTimer->OnTimerExpired.connect(std::bind(&RedisWriter::UpdateSubscriptionsTimerHandler, this));
+	m_SubscriptionTimer->OnTimerExpired.connect([this](const Timer * const&) { UpdateSubscriptionsTimerHandler(); });
 	m_SubscriptionTimer->Start();
 
 	m_StatsTimer = new Timer();
 	m_StatsTimer->SetInterval(1);
-	m_StatsTimer->OnTimerExpired.connect(std::bind(&RedisWriter::PublishStatsTimerHandler, this));
+	m_StatsTimer->OnTimerExpired.connect([this](const Timer * const&) { PublishStatsTimerHandler(); });
 	m_StatsTimer->Start();
 
 	m_WorkQueue.SetName("RedisWriter");
 
-	boost::thread thread(std::bind(&RedisWriter::HandleEvents, this));
+	boost::thread thread(&RedisWriter::HandleEvents, this);
 	thread.detach();
 
 }
@@ -99,7 +100,7 @@ void RedisWriter::ExceptionHandler(boost::exception_ptr exp)
 
 void RedisWriter::ReconnectTimerHandler()
 {
-	m_WorkQueue.Enqueue(std::bind(&RedisWriter::TryToReconnect, this));
+	m_WorkQueue.Enqueue([this]() { TryToReconnect(); });
 }
 
 void RedisWriter::TryToReconnect()
@@ -132,7 +133,7 @@ void RedisWriter::TryToReconnect()
 
 void RedisWriter::UpdateSubscriptionsTimerHandler()
 {
-	m_WorkQueue.Enqueue(std::bind(&RedisWriter::UpdateSubscriptions, this));
+	m_WorkQueue.Enqueue([this]() { UpdateSubscriptions(); });
 }
 
 void RedisWriter::UpdateSubscriptions()
@@ -214,7 +215,7 @@ bool RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 
 void RedisWriter::PublishStatsTimerHandler(void)
 {
-	m_WorkQueue.Enqueue(std::bind(&RedisWriter::PublishStats, this));
+	m_WorkQueue.Enqueue([this]() { PublishStats(); });
 }
 
 void RedisWriter::PublishStats()
@@ -260,7 +261,7 @@ void RedisWriter::HandleEvents()
 		if (!event)
 			continue;
 
-		m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendEvent, this, event));
+		m_WorkQueue.Enqueue([this, event]() { SendEvent(event); });
 	}
 
 	queue->RemoveClient(this);
@@ -318,7 +319,7 @@ void RedisWriter::SendEvent(const Dictionary::Ptr& event)
 			checkable = Host::GetByName(event->Get("host"));
 		}
 		// Update State for icingaweb
-		m_WorkQueue.Enqueue(std::bind(&RedisWriter::UpdateState, this, checkable));
+		m_WorkQueue.Enqueue([this, checkable]() { UpdateState(checkable); });
 	}
 
 	if (type.Contains("Acknowledgement")) {

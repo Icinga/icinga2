@@ -43,7 +43,7 @@ void RedisConnection::Start()
 {
 	RedisConnection::Connect();
 
-	std::thread thread(std::bind(&RedisConnection::HandleRW, this));
+	std::thread thread(&RedisConnection::HandleRW, this);
 	thread.detach();
 }
 
@@ -181,14 +181,18 @@ void RedisConnection::DisconnectCallback(const redisAsyncContext *c, int status)
 
 void RedisConnection::ExecuteQuery(const std::vector<String>& query, redisCallbackFn *fn, void *privdata)
 {
-	m_RedisConnectionWorkQueue.Enqueue(std::bind(&RedisConnection::SendMessageInternal, this, query, fn, privdata));
+	m_RedisConnectionWorkQueue.Enqueue([this, query, fn, privdata]() {
+		SendMessageInternal(query, fn, privdata);
+	});
 }
 
 void
 RedisConnection::ExecuteQueries(const std::vector<std::vector<String> >& queries, redisCallbackFn *fn, void *privdata)
 {
 	for (const auto& query : queries) {
-		m_RedisConnectionWorkQueue.Enqueue(std::bind(&RedisConnection::SendMessageInternal, this, query, fn, privdata));
+		m_RedisConnectionWorkQueue.Enqueue([this, query, fn, privdata]() {
+			SendMessageInternal(query, fn, privdata);
+		});
 	}
 }
 

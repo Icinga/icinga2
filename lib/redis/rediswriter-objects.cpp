@@ -53,20 +53,29 @@ INITIALIZE_ONCE(&RedisWriter::ConfigStaticInitialize);
 void RedisWriter::ConfigStaticInitialize()
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
-	Checkable::OnStateChange.connect(std::bind(&RedisWriter::StateChangeHandler, _1));
+	Checkable::OnStateChange.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr&, StateType, const MessageOrigin::Ptr&) {
+		RedisWriter::StateChangeHandler(checkable);
+	});
+
 	/* triggered when acknowledged host/service goes back to ok and when the acknowledgement gets deleted */
-	Checkable::OnAcknowledgementCleared.connect(std::bind(&RedisWriter::StateChangeHandler, _1));
+	Checkable::OnAcknowledgementCleared.connect([](const Checkable::Ptr& checkable, const MessageOrigin::Ptr&) {
+		RedisWriter::StateChangeHandler(checkable);
+	});
 
 	/* triggered on create, update and delete objects */
-	ConfigObject::OnActiveChanged.connect(std::bind(&RedisWriter::VersionChangedHandler, _1));
-	ConfigObject::OnVersionChanged.connect(std::bind(&RedisWriter::VersionChangedHandler, _1));
+	ConfigObject::OnActiveChanged.connect([](const ConfigObject::Ptr& object, const Value&) {
+		RedisWriter::VersionChangedHandler(object);
+	});
+	ConfigObject::OnVersionChanged.connect([](const ConfigObject::Ptr& object, const Value&) {
+		RedisWriter::VersionChangedHandler(object);
+	});
 
 	/* fixed downtime start */
-	Downtime::OnDowntimeStarted.connect(std::bind(&RedisWriter::DowntimeChangedHandler, _1));
+	Downtime::OnDowntimeStarted.connect(&RedisWriter::DowntimeChangedHandler);
 	/* flexible downtime start */
-	Downtime::OnDowntimeTriggered.connect(std::bind(&RedisWriter::DowntimeChangedHandler, _1));
+	Downtime::OnDowntimeTriggered.connect(&RedisWriter::DowntimeChangedHandler);
 	/* fixed/flexible downtime end */
-	Downtime::OnDowntimeRemoved.connect(std::bind(&RedisWriter::DowntimeChangedHandler, _1));
+	Downtime::OnDowntimeRemoved.connect(&RedisWriter::DowntimeChangedHandler);
 }
 
 void RedisWriter::UpdateAllConfigObjects()
@@ -877,7 +886,7 @@ void RedisWriter::StateChangeHandler(const ConfigObject::Ptr &object)
 	Type::Ptr type = object->GetReflectionType();
 
 	for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-		rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendStatusUpdate, rw, object));
+		rw->m_WorkQueue.Enqueue([rw, object]() { rw->SendStatusUpdate(object); });
 	}
 }
 
@@ -889,14 +898,14 @@ void RedisWriter::VersionChangedHandler(const ConfigObject::Ptr& object)
 		// Create or update the object config
 		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
 			if (rw)
-				rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigUpdate, rw, object, true));
+				rw->m_WorkQueue.Enqueue([rw, object]() { rw->SendConfigUpdate(object, true); });
 		}
 	} else if (!object->IsActive() &&
 			   object->GetExtension("ConfigObjectDeleted")) { // same as in apilistener-configsync.cpp
 		// Delete object config
 		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
 			if (rw)
-				rw->m_WorkQueue.Enqueue(std::bind(&RedisWriter::SendConfigDelete, rw, object));
+				rw->m_WorkQueue.Enqueue([rw, object]() { rw->SendConfigDelete(object); });
 		}
 	}
 }
