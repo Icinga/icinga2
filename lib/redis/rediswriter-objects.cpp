@@ -152,7 +152,7 @@ void RedisWriter::UpdateAllConfigObjects()
 				}
 
 				bulkCounter++;
-				if (!bulkCounter % 100) {
+				if (!(bulkCounter % 100)) {
 					for (auto& kv : statements) {
 						if (!kv.second.empty()) {
 							kv.second.insert(kv.second.begin(), {"HMSET", kv.first});
