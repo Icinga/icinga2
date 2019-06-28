@@ -175,6 +175,9 @@ void Array::Remove(SizeType index, bool overrideFrozen)
 	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
+	if (index >= m_Data.size())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Index to remove must be within bounds."));
+
 	m_Data.erase(m_Data.begin() + index);
 }
 
