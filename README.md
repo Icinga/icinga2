@@ -74,6 +74,10 @@ contribution is appreciated!
 
 Please continue reading in the [contributing chapter](CONTRIBUTING.md).
 
+### Security Issues
+
+For reporting security issues please visit [this page](https://icinga.com/contact/security/).
+
 <!-- TOC URLs -->
 [About]: #about
 [License]: #license
