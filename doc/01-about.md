@@ -29,6 +29,10 @@ contribution is appreciated!
 
 Please continue reading in the [Contributing chapter](https://github.com/Icinga/icinga2/blob/master/CONTRIBUTING.md).
 
+### Security Issues <a id="security"></a>
+
+For reporting security issues please visit [this page](https://icinga.com/contact/security/).
+
 ### Icinga 2 Development <a id="development-info"></a>
 
 The Git repository is located on [GitHub](https://github.com/Icinga/icinga2).
