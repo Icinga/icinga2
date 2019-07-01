@@ -2559,6 +2559,27 @@ proxysql_critical            | **Optional.** Critical threshold
 proxysql\_include\_hostgroup | **Optional.** ProxySQL hostgroup(s) to include (only applies to '--type hg' checks, accepts comma-separated list)
 proxysql\_ignore\_hostgroup  | **Optional.** ProxySQL hostgroup(s) to ignore (only applies to '--type hg' checks, accepts comma-separated list)
 
+#### memcached <a id="plugin-contrib-command-memcached"></a>
+
+The [check_memcached](https://packages.debian.org/stretch/nagios-plugins-contrib) plugin
+is provided by the `nagios-plugin-contrib` package on Debian/Ubuntu.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                            | Description
+--------------------------------|----------------------------------------------------------------------------------
+memcached_hostname              | **Required.** Hostname or IP address (required) optional ':port' overrides -p
+memcached_port                  | **Optional.** Port number (default: 11211)
+memcached_verbose               | **Optional.** verbose messages
+memcached_keep                  | **Optional.** Keep up to this many items in the history object in memcached (default: 30)
+memcached_minimum_stat_interval | **Optional.** Minimum time interval (in minutes) to use to analyse stats. (default: 30)
+memcached_warning_hits_misses   | **Optional.** Generate warning if quotient of hits/misses falls below this value (default: 2.0)
+memcached_warning_evictions     | **Optional.** Generate warning if number of evictions exceeds this threshold. 0=disable. (default: 10)
+memcached_timeout               | **Optional.** timeout in seconds (default: 1.0)
+memcached_key                   | **Optional.** key name for history object (default: check_memcached)
+memcached_expiry                | **Optional.** expiry time in seconds for history object (default: 7200)
+memcached_performance_output    | **Optional.** output performance statistics as rate-per-minute figures (better suited to pnp4nagios)
+
 ### Hardware <a id="plugin-contrib-hardware"></a>
 
 This category includes all plugin check commands for various hardware checks.
