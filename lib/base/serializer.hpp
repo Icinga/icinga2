@@ -15,7 +15,6 @@ class CircularReferenceError : virtual public user_error
 {
 public:
 	CircularReferenceError(String message, std::vector<String> path);
-	~CircularReferenceError() throw() = default;
 
 	const char *what(void) const throw() final;
 	std::vector<String> GetPath() const;
