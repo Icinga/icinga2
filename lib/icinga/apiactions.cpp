@@ -337,6 +337,16 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	String comment = HttpUtility::GetLastParameter(params, "comment");
 	double startTime = HttpUtility::GetLastParameter(params, "start_time");
 	double endTime = HttpUtility::GetLastParameter(params, "end_time");
+	double now = Utility::GetTime();
+
+	if (author.IsEmpty() || comment.IsEmpty())
+		return ApiActions::CreateResult(400, "Options 'author' and 'comment' must not be empty");
+
+	if (startTime < now || endTime < now)
+		return ApiActions::CreateResult(400, "Options 'start_time' and 'end_time' must be greater than current timestamp");
+
+	if (endTime < startTime)
+		return ApiActions::CreateResult(400, "Option 'end_time' must be greater than 'start_time'");
 
 	Host::Ptr host;
 	Service::Ptr service;
