@@ -1,7 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/checkable.hpp"
+#include "icinga/host.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "icinga/service.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
@@ -83,4 +85,89 @@ void Checkable::UnregisterNotification(const Notification::Ptr& notification)
 {
 	boost::mutex::scoped_lock lock(m_NotificationMutex);
 	m_Notifications.erase(notification);
+}
+
+static void FireSuppressedNotifications(Checkable* checkable)
+{
+	if (!checkable->IsActive())
+		return;
+
+	if (checkable->IsPaused())
+		return;
+
+	if (!checkable->GetEnableNotifications())
+		return;
+
+	int suppressed_types (checkable->GetSuppressedNotifications());
+	if (!suppressed_types)
+		return;
+
+	int subtract = 0;
+
+	for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
+		if (suppressed_types & type) {
+			bool still_applies;
+			auto cr (checkable->GetLastCheckResult());
+
+			switch (type) {
+			case NotificationProblem:
+				still_applies = cr && !checkable->IsStateOK(cr->GetState()) && checkable->GetStateType() == StateTypeHard;
+				break;
+			case NotificationRecovery:
+				still_applies = cr && checkable->IsStateOK(cr->GetState());
+				break;
+			case NotificationFlappingStart:
+				still_applies = checkable->IsFlapping();
+				break;
+			case NotificationFlappingEnd:
+				still_applies = !checkable->IsFlapping();
+			}
+
+			if (still_applies) {
+				bool still_suppressed;
+
+				switch (type) {
+				case NotificationProblem:
+				case NotificationRecovery:
+					still_suppressed = !checkable->IsReachable(DependencyNotification) || checkable->IsInDowntime() || checkable->IsAcknowledged();
+					break;
+				case NotificationFlappingStart:
+				case NotificationFlappingEnd:
+					still_suppressed = checkable->IsInDowntime();
+				}
+
+				if (!still_suppressed) {
+					Checkable::OnNotificationsRequested(checkable, type, cr, "", "", nullptr);
+
+					subtract |= type;
+				}
+			} else {
+				subtract |= type;
+			}
+		}
+	}
+
+	if (subtract) {
+		ObjectLock olock (checkable);
+		int suppressed_types_before (checkable->GetSuppressedNotifications());
+		int suppressed_types_after (suppressed_types_before & ~subtract);
+
+		if (suppressed_types_after != suppressed_types_before) {
+			checkable->SetSuppressedNotifications(suppressed_types_after);
+		}
+	}
+}
+
+/**
+ * Re-sends all notifications previously suppressed by e.g. downtimes if the notification reason still applies.
+ */
+void Checkable::FireSuppressedNotifications(const Timer * const&)
+{
+	for (auto& host : ConfigType::GetObjectsByType<Host>()) {
+		::FireSuppressedNotifications(host.get());
+	}
+
+	for (auto& service : ConfigType::GetObjectsByType<Service>()) {
+		::FireSuppressedNotifications(service.get());
+	}
 }

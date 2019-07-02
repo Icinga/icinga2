@@ -7,6 +7,8 @@
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
+#include "base/timer.hpp"
+#include <boost/thread/once.hpp>
 
 using namespace icinga;
 
@@ -15,6 +17,8 @@ INITIALIZE_ONCE(&Checkable::StaticInitialize);
 
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, bool, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
+
+static Timer::Ptr l_CheckablesFireSuppressedNotifications;
 
 void Checkable::StaticInitialize()
 {
@@ -65,6 +69,15 @@ void Checkable::Start(bool runtimeCreated)
 	}
 
 	ObjectImpl<Checkable>::Start(runtimeCreated);
+
+	static boost::once_flag once = BOOST_ONCE_INIT;
+
+	boost::call_once(once, []() {
+		l_CheckablesFireSuppressedNotifications = new Timer();
+		l_CheckablesFireSuppressedNotifications->SetInterval(5);
+		l_CheckablesFireSuppressedNotifications->OnTimerExpired.connect(&Checkable::FireSuppressedNotifications);
+		l_CheckablesFireSuppressedNotifications->Start();
+	});
 }
 
 void Checkable::AddGroup(const String& name)

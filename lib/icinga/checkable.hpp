@@ -3,6 +3,7 @@
 #ifndef CHECKABLE_H
 #define CHECKABLE_H
 
+#include "base/timer.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkable-ti.hpp"
 #include "icinga/timeperiod.hpp"
@@ -210,6 +211,8 @@ private:
 	static void NotifyDowntimeInternal(const Downtime::Ptr& downtime);
 
 	static void NotifyDowntimeEnd(const Downtime::Ptr& downtime);
+
+	static void FireSuppressedNotifications(const Timer * const&);
 
 	/* Comments */
 	std::set<Comment::Ptr> m_Comments;
