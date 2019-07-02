@@ -337,7 +337,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	String comment = HttpUtility::GetLastParameter(params, "comment");
 	double startTime = HttpUtility::GetLastParameter(params, "start_time");
 	double endTime = HttpUtility::GetLastParameter(params, "end_time");
-	double now = Utility::GetTime();
+	double now = Utility::GetTime() - 10; //Take a request delay into account.
 
 	if (author.IsEmpty() || comment.IsEmpty())
 		return ApiActions::CreateResult(400, "Options 'author' and 'comment' must not be empty");
