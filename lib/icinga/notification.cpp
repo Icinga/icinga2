@@ -12,6 +12,7 @@
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
 #include "base/scriptglobal.hpp"
+#include <algorithm>
 
 using namespace icinga;
 
@@ -215,39 +216,15 @@ void Notification::ResetNotificationNumber()
 	SetNotificationNumber(0);
 }
 
-/* the upper case string used in all interfaces */
-String Notification::NotificationTypeToString(NotificationType type)
-{
-	switch (type) {
-		case NotificationDowntimeStart:
-			return "DOWNTIMESTART";
-		case NotificationDowntimeEnd:
-			return "DOWNTIMEEND";
-		case NotificationDowntimeRemoved:
-			return "DOWNTIMECANCELLED";
-		case NotificationCustom:
-			return "CUSTOM";
-		case NotificationAcknowledgement:
-			return "ACKNOWLEDGEMENT";
-		case NotificationProblem:
-			return "PROBLEM";
-		case NotificationRecovery:
-			return "RECOVERY";
-		case NotificationFlappingStart:
-			return "FLAPPINGSTART";
-		case NotificationFlappingEnd:
-			return "FLAPPINGEND";
-		default:
-			return "UNKNOWN_NOTIFICATION";
-	}
-}
-
 void Notification::BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force, bool reminder, const String& author, const String& text)
 {
 	String notificationName = GetName();
+	String notificationTypeName = NotificationTypeToString(type);
 
 	Log(LogNotice, "Notification")
-		<< "Attempting to send " << (reminder ? "reminder " : "") << "notifications for notification object '" << notificationName << "'.";
+		<< "Attempting to send " << (reminder ? "reminder " : "")
+		<< "notifications of type '" << notificationTypeName
+		<< "' for notification object '" << notificationName << "'.";
 
 	Checkable::Ptr checkable = GetCheckable();
 
@@ -292,7 +269,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		unsigned long ftype = type;
 
 		Log(LogDebug, "Notification")
-			<< "Type '" << NotificationTypeToStringInternal(type)
+			<< "Type '" << NotificationTypeToString(type)
 			<< "', TypeFilter: " << NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap())
 			<< " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
 
@@ -300,7 +277,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			Log(LogNotice, "Notification")
 				<< "Not sending " << (reminder ? "reminder " : "") << "notifications for notification object '"
 				<< notificationName << "': type '"
-				<< NotificationTypeToStringInternal(type) << "' does not match type filter: "
+				<< NotificationTypeToString(type) << "' does not match type filter: "
 				<< NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap()) << ".";
 
 			/* Ensure to reset no_more_notifications on Recovery notifications,
@@ -419,7 +396,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		}
 
 		Log(LogInformation, "Notification")
-			<< "Sending " << (reminder ? "reminder " : "") << "'" << NotificationTypeToStringInternal(type) << "' notification '"
+			<< "Sending " << (reminder ? "reminder " : "") << "'" << NotificationTypeToString(type) << "' notification '"
 			<< notificationName << "' for user '" << userName << "'";
 
 		Utility::QueueAsyncCallback(std::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
@@ -460,7 +437,7 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 
 		Log(LogDebug, "Notification")
 			<< "User '" << userName << "' notification '" << notificationName
-			<< "', Type '" << NotificationTypeToStringInternal(type)
+			<< "', Type '" << NotificationTypeToString(type)
 			<< "', TypeFilter: " << NotificationFilterToString(user->GetTypeFilter(), GetTypeFilterMap())
 			<< " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
 
@@ -469,7 +446,7 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 			Log(LogNotice, "Notification")
 				<< "Not sending " << (reminder ? "reminder " : "") << "notifications for notification object '"
 				<< notificationName << " and user '" << userName << "': type '"
-				<< NotificationTypeToStringInternal(type) << "' does not match type filter: "
+				<< NotificationTypeToString(type) << "' does not match type filter: "
 				<< NotificationFilterToString(user->GetTypeFilter(), GetTypeFilterMap()) << ".";
 			return false;
 		}
@@ -542,7 +519,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		Checkable::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, nr, author, text, command->GetName(), nullptr);
 
 		Log(LogInformation, "Notification")
-			<< "Completed sending '" << NotificationTypeToStringInternal(type)
+			<< "Completed sending '" << NotificationTypeToString(type)
 			<< "' notification '" << notificationName
 			<< "' for checkable '" << checkableName
 			<< "' and user '" << userName << "' using command '" << commandName << "'.";
@@ -626,30 +603,51 @@ String Notification::NotificationFilterToString(int filter, const std::map<Strin
 	return Utility::NaturalJoin(sFilters);
 }
 
-/* internal for logging */
-String Notification::NotificationTypeToStringInternal(NotificationType type)
+/*
+ * Main interface to translate NotificationType values into strings.
+ */
+String Notification::NotificationTypeToString(NotificationType type)
+{
+	auto typeMap = Notification::m_TypeFilterMap;
+
+	auto it = std::find_if(typeMap.begin(), typeMap.end(),
+		[&type](const std::pair<String, int>& p) {
+			return p.second == type;
+	});
+
+	if (it == typeMap.end())
+		return Empty;
+
+	return it->first;
+}
+
+
+/*
+ * Compat interface used in external features.
+ */
+String Notification::NotificationTypeToStringCompat(NotificationType type)
 {
 	switch (type) {
 		case NotificationDowntimeStart:
-			return "DowntimeStart";
+			return "DOWNTIMESTART";
 		case NotificationDowntimeEnd:
-			return "DowntimeEnd";
+			return "DOWNTIMEEND";
 		case NotificationDowntimeRemoved:
-			return "DowntimeRemoved";
+			return "DOWNTIMECANCELLED";
 		case NotificationCustom:
-			return "Custom";
+			return "CUSTOM";
 		case NotificationAcknowledgement:
-			return "Acknowledgement";
+			return "ACKNOWLEDGEMENT";
 		case NotificationProblem:
-			return "Problem";
+			return "PROBLEM";
 		case NotificationRecovery:
-			return "Recovery";
+			return "RECOVERY";
 		case NotificationFlappingStart:
-			return "FlappingStart";
+			return "FLAPPINGSTART";
 		case NotificationFlappingEnd:
-			return "FlappingEnd";
+			return "FLAPPINGEND";
 		default:
-			return Empty;
+			return "UNKNOWN_NOTIFICATION";
 	}
 }
 

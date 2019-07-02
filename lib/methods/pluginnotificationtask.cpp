@@ -32,7 +32,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	Checkable::Ptr checkable = notification->GetCheckable();
 
 	Dictionary::Ptr notificationExtra = new Dictionary({
-		{ "type", Notification::NotificationTypeToString(type) },
+		{ "type", Notification::NotificationTypeToStringCompat(type) }, //TODO: Change that to our types.
 		{ "author", author },
 		{ "comment", comment }
 	});
