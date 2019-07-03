@@ -1,4 +1,20 @@
-# Icinga 2 API <a id="icinga2-api"></a>
+# REST API <a id="icinga2-api"></a>
+
+* [Setup](12-icinga2-api.md#icinga2-api-setup)
+* [Introduction](12-icinga2-api.md#icinga2-api-introduction)
+* Endpoints
+    * [Config Objects](12-icinga2-api.md#icinga2-api-config-objects)
+    * [Actions](12-icinga2-api.md#icinga2-api-actions)
+    * [Event Streams](12-icinga2-api.md#icinga2-api-event-streams)
+    * [Status and Statistics](12-icinga2-api.md#icinga2-api-status)
+    * [Config Management](12-icinga2-api.md#icinga2-api-config-management)
+    * [Types](12-icinga2-api.md#icinga2-api-types)
+    * [Templates](12-icinga2-api.md#icinga2-api-config-templates)
+    * [Variables](12-icinga2-api.md#icinga2-api-variables)
+    * [Debug Console](12-icinga2-api.md#icinga2-api-console)
+* [API Clients](12-icinga2-api.md#icinga2-api-clients)
+    * [Programmatic Examples](12-icinga2-api.md#icinga2-api-clients-programmatic-examples)
+
 
 ## Setting up the API <a id="icinga2-api-setup"></a>
 
@@ -921,87 +937,6 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' \
     ]
 }
 ```
-
-## Config Templates <a id="icinga2-api-config-templates"></a>
-
-Provides methods to manage configuration templates:
-
-* [querying templates](12-icinga2-api.md#icinga2-api-config-templates-query)
-
-Creation, modification and deletion of templates at runtime is not supported.
-
-### Querying Templates <a id="icinga2-api-config-templates-query"></a>
-
-You can request information about configuration templates by sending
-a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type` has
-to be replaced with the plural name of the object type you are interested
-in:
-
-```
-$ curl -k -s -u root:icinga 'https://localhost:5665/v1/templates/hosts'
-```
-
-A list of all available configuration types is available in the
-[object types](09-object-types.md#object-types) chapter.
-
-A [filter](12-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
-template object can be accessed in the filter using the `tmpl` variable. In this
-example the [match function](18-library-reference.md#global-functions-match) is used to
-check a wildcard string pattern against `tmpl.name`.
-The `filter` attribute is passed inside the request body thus requiring to use [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
-here.
-
-```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' \
- -H 'X-HTTP-Method-Override: GET' -X POST \
- 'https://localhost:5661/v1/templates/hosts' \
- -d '{ "filter": "match(\"g*\", tmpl.name)" }'
-```
-
-Instead of using a filter you can optionally specify the template name in the
-URL path when querying a single object:
-
-```
-$ curl -k -s -u root:icinga 'https://localhost:5665/v1/templates/hosts/generic-host'
-```
-
-The result set contains the type, name as well as the location of the template.
-
-## Variables <a id="icinga2-api-variables"></a>
-
-Provides methods to manage global variables:
-
-* [querying variables](12-icinga2-api.md#icinga2-api-variables-query)
-
-### Querying Variables <a id="icinga2-api-variables-query"></a>
-
-You can request information about global variables by sending
-a `GET` query to the `/v1/variables/` URL endpoint:
-
-```
-$ curl -k -s -u root:icinga 'https://localhost:5665/v1/variables'
-```
-
-A [filter](12-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
-variable information object can be accessed in the filter using the `variable` variable.
-The `filter` attribute is passed inside the request body thus requiring to use [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
-here.
-
-```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' \
- -H 'X-HTTP-Method-Override: GET' -X POST \
- 'https://localhost:5661/v1/variables' \
- -d '{ "filter": "variable.type in [ \"String\", \"Number\" ]" }'
-```
-
-Instead of using a filter you can optionally specify the variable name in the
-URL path when querying a single variable:
-
-```
-$ curl -k -s -u root:icinga 'https://localhost:5665/v1/variables/PrefixDir'
-```
-
-The result set contains the type, name and value of the global variable.
 
 ## Actions <a id="icinga2-api-actions"></a>
 
@@ -2174,6 +2109,87 @@ $ curl -k -s -u root:icinga 'https://localhost:5665/v1/types/Object?pretty=1'
 }
 ```
 
+## Config Templates <a id="icinga2-api-config-templates"></a>
+
+Provides methods to manage configuration templates:
+
+* [querying templates](12-icinga2-api.md#icinga2-api-config-templates-query)
+
+Creation, modification and deletion of templates at runtime is not supported.
+
+### Querying Templates <a id="icinga2-api-config-templates-query"></a>
+
+You can request information about configuration templates by sending
+a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type` has
+to be replaced with the plural name of the object type you are interested
+in:
+
+```
+$ curl -k -s -u root:icinga 'https://localhost:5665/v1/templates/hosts'
+```
+
+A list of all available configuration types is available in the
+[object types](09-object-types.md#object-types) chapter.
+
+A [filter](12-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
+template object can be accessed in the filter using the `tmpl` variable. In this
+example the [match function](18-library-reference.md#global-functions-match) is used to
+check a wildcard string pattern against `tmpl.name`.
+The `filter` attribute is passed inside the request body thus requiring to use [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
+here.
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' \
+ -H 'X-HTTP-Method-Override: GET' -X POST \
+ 'https://localhost:5661/v1/templates/hosts' \
+ -d '{ "filter": "match(\"g*\", tmpl.name)" }'
+```
+
+Instead of using a filter you can optionally specify the template name in the
+URL path when querying a single object:
+
+```
+$ curl -k -s -u root:icinga 'https://localhost:5665/v1/templates/hosts/generic-host'
+```
+
+The result set contains the type, name as well as the location of the template.
+
+## Variables <a id="icinga2-api-variables"></a>
+
+Provides methods to manage global variables:
+
+* [querying variables](12-icinga2-api.md#icinga2-api-variables-query)
+
+### Querying Variables <a id="icinga2-api-variables-query"></a>
+
+You can request information about global variables by sending
+a `GET` query to the `/v1/variables/` URL endpoint:
+
+```
+$ curl -k -s -u root:icinga 'https://localhost:5665/v1/variables'
+```
+
+A [filter](12-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
+variable information object can be accessed in the filter using the `variable` variable.
+The `filter` attribute is passed inside the request body thus requiring to use [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
+here.
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' \
+ -H 'X-HTTP-Method-Override: GET' -X POST \
+ 'https://localhost:5661/v1/variables' \
+ -d '{ "filter": "variable.type in [ \"String\", \"Number\" ]" }'
+```
+
+Instead of using a filter you can optionally specify the variable name in the
+URL path when querying a single variable:
+
+```
+$ curl -k -s -u root:icinga 'https://localhost:5665/v1/variables/PrefixDir'
+```
+
+The result set contains the type, name and value of the global variable.
+
 ## Debug Console <a id="icinga2-api-console"></a>
 
 You can inspect variables and execute other expressions by sending a `POST` request to the URL endpoint `/v1/console/execute-script`.
@@ -2288,6 +2304,7 @@ Name												| Language	| Description
 ------------------------------------------------------------------------------------------------|---------------|--------------------------------------------------------
 [Dashing](https://github.com/dnsmichi/dashing-icinga2)						| Ruby, HTML	| Dashboard for Dashing querying the REST API for current host/service/global status
 [InfluxDB Telegraf Input](https://github.com/influxdata/telegraf/blob/master/plugins/inputs/icinga2/README.md) | Golang	| [Telegraf](https://github.com/influxdata/telegraf) is an agent written in Go for collecting, processing, aggregating, and writing metrics.
+[Icinga Slack Bot](https://github.com/bb-Ricardo/icinga-slack-bot)				| Python	| It can be used to interact with Icinga2 from your Slack client. It uses the Icinga2 API to get Host/Service status details. Simple status filters can be used to narrow down the returned status list.
 [Icinga 2 Slack Bot](https://github.com/mlabouardy/icinga2-slack-bot) 				| Golang | Query host/service details from a [Slack](https://slack.com/) channel
 [icinga2bot](https://github.com/reikoNeko/icinga2bot)						| Python	| [Errbot](http://errbot.io/en/latest/user_guide/setup.html) plugin to fetch status and event stream information and forward to XMPP, IRC, etc.
 [IcingaBusyLightAgent](https://github.com/stdevel/IcingaBusylightAgent) 			| C#		| Notification Agent in Systray
@@ -2307,6 +2324,7 @@ Name												| Language	| Description
 [Rancher integration](https://github.com/Nexinto/rancher-icinga)         		        | Golang        | Registers [Rancher](http://rancher.com/rancher/) resources in Icinga 2 for monitoring.
 [AWS/EC2](https://github.com/Icinga/icinga2-api-examples/tree/master/aws-ec2)			| Ruby		| Example script for creating and deleting AWS instances in Icinga 2
 [Ansible Host Module](https://docs.ansible.com/ansible/latest/modules/icinga2_host_module.html) | Python 	| In progress, [Ansible Feature](https://docs.ansible.com/ansible/latest/modules/icinga2_feature_module.html#icinga2-feature-module) is also there.
+[gocinga](https://gitlab.com/sambadevi/gocinga)							| Golang	| CLI Tool for Icinga, written in go
 
 ### Event Streams <a id="icinga2-api-clients-event-streams"></a>
 
@@ -2351,6 +2369,7 @@ The following languages are covered:
 * [PHP](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-php)
 * [Perl](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-perl)
 * [Golang](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-golang)
+* [Powershell](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-powershell)
 
 The [request method](icinga2-api-requests) is `POST` using [X-HTTP-Method-Override: GET](12-icinga2-api.md#icinga2-api-requests-method-override)
 which allows you to send a JSON request body. The examples request specific service
@@ -2367,7 +2386,7 @@ The following example uses **Python** and the `requests` and `json` module:
 # pip install requests
 # pip install json
 
-$ vim icinga2-api-example.py
+$ vim icinga.py
 
 #!/usr/bin/env python
 
@@ -2401,7 +2420,7 @@ else:
         print r.text
         r.raise_for_status()
 
-$ python icinga2-api-example.py
+$ python icinga.py
 ```
 
 #### Example API Client in Ruby <a id="icinga2-api-clients-programmatic-examples-ruby"></a>
@@ -2411,7 +2430,7 @@ The following example uses **Ruby** and the `rest_client` gem:
 ```
 # gem install rest_client
 
-$ vim icinga2-api-example.rb
+$ vim icinga.rb
 
 #!/usr/bin/ruby
 
@@ -2450,7 +2469,7 @@ else
         puts "Error: " + response
 end
 
-$ ruby icinga2-api-example.rb
+$ ruby icinga.rb
 ```
 
 A more detailed example can be found in the [Dashing demo](https://github.com/Icinga/dashing-icinga2).
@@ -2460,7 +2479,7 @@ A more detailed example can be found in the [Dashing demo](https://github.com/Ic
 The following example uses **PHP** and its `curl` library:
 
 ```
-$ vim icinga2-api-example.php
+$ vim icinga.php
 
 #!/usr/bin/env php
 <?php
@@ -2505,7 +2524,7 @@ if ($code == 200) {
 }
 ?>
 
-$ php icinga2-api-example.php
+$ php icinga.php
 ```
 
 #### Example API Client in Perl <a id="icinga2-api-clients-programmatic-examples-perl"></a>
@@ -2518,7 +2537,7 @@ The following example uses **Perl** and the `Rest::Client` module:
 # perl -MCPAN -e 'install MIME::Base64'
 # perl -MCPAN -e 'install Data::Dumper'
 
-$ vim icinga2-api-example.pl
+$ vim icinga.pl
 
 #!/usr/bin/env perl
 
@@ -2557,7 +2576,7 @@ if ($status == 200) {
         print "Error: " . $response . "\n";
 }
 
-$ perl icinga2-api-example.pl
+$ perl icinga.pl
 ```
 
 
@@ -2566,7 +2585,7 @@ $ perl icinga2-api-example.pl
 Requires the Golang build chain.
 
 ```
-$ vim icinga2-api-example.go
+$ vim icinga.go
 
 package main
 
@@ -2625,6 +2644,86 @@ func main() {
 Build the binary:
 
 ```
-go build icinga2-api-example.go
-./icinga2-api-example
+go build icinga.go
+./icinga
+```
+
+#### Example API Client in Powershell <a id="icinga2-api-clients-programmatic-examples-powershell"></a>
+
+Requires Windows 10+ with Powershell 5+.
+
+Note: The workaround for self signed certificates is not considered
+best practice.
+
+```
+# Workaround for self signed certificates
+# https://stackoverflow.com/questions/36456104/invoke-restmethod-ignore-self-signed-certs
+if (-not("dummy" -as [type])) {
+    add-type -TypeDefinition @"
+using System;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
+public static class Dummy {
+    public static bool ReturnTrue(object sender,
+        X509Certificate certificate,
+        X509Chain chain,
+        SslPolicyErrors sslPolicyErrors) { return true; }
+
+    public static RemoteCertificateValidationCallback GetDelegate() {
+        return new RemoteCertificateValidationCallback(Dummy.ReturnTrue);
+    }
+}
+"@
+}
+
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = [dummy]::GetDelegate()
+
+$icingaApiHost = "localhost"
+$icingaApiUser = "root"
+$icingaApiPassword = "icinga"
+
+$requestUrl = "https://{0}:5665/v1/objects/services" -f $icingaApiHost
+
+$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $icingaApiUser, $icingaApiPassword)))
+$httpAuthInfo = "Basic $base64AuthInfo"
+$httpAcceptInfo = "application/json"
+
+$httpHeaders = @{
+    "Authorization" = $httpAuthInfo
+    "Accept" = $httpAcceptInfo
+    "X-HTTP-Method-Override" = "GET"
+}
+
+$attrs =  @( "name", "state", "last_check_result" )
+$joins = @( "host.name", "host.state", "host.last_check_result")
+$filter = 'match("ping*", service.name)'
+
+$data = @{
+    "attrs" = $attrs
+    "joins" = $joins
+    "filter" = $filter
+}
+
+$result = Invoke-RestMethod -Headers $httpHeaders -Uri $requestUrl -Method "POST" -Body ($data|ConvertTo-Json)
+
+foreach ($s in $result.results) {
+    Write-Host "Service " $s.attrs.name " on Host " $s.joins.host.name "State " $s.attrs.state " Output: " $s.attrs.last_check_result.output
+    # Debug
+    Write-Host "Debug: Attributes " $s.attrs | ConvertTo-Json
+    Write-Host "Debug: Joins Host" $s.joins.host | ConvertTo-Json
+    Write-Host "`n"
+}
+```
+
+Run the Powershell ISE as administrator, and execute the script as you change it.
+
+![Icinga 2 API Windows Powershell ISE Script](images/api/icinga2_api_powershell_ise.png)
+
+
+Alternatively, save the code and run it in Powershell:
+
+```
+.\icinga.ps1
 ```
