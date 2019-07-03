@@ -2630,3 +2630,83 @@ Build the binary:
 go build icinga2-api-example.go
 ./icinga2-api-example
 ```
+
+#### Example API Client in Powershell <a id="icinga2-api-clients-programmatic-examples-powershell"></a>
+
+Requires Windows 10+ with Powershell 5+.
+
+Note: The workaround for self signed certificates is not considered
+best practice.
+
+```
+# Workaround for self signed certificates
+# https://stackoverflow.com/questions/36456104/invoke-restmethod-ignore-self-signed-certs
+if (-not("dummy" -as [type])) {
+    add-type -TypeDefinition @"
+using System;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
+public static class Dummy {
+    public static bool ReturnTrue(object sender,
+        X509Certificate certificate,
+        X509Chain chain,
+        SslPolicyErrors sslPolicyErrors) { return true; }
+
+    public static RemoteCertificateValidationCallback GetDelegate() {
+        return new RemoteCertificateValidationCallback(Dummy.ReturnTrue);
+    }
+}
+"@
+}
+
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = [dummy]::GetDelegate()
+
+$icingaApiHost = "localhost"
+$icingaApiUser = "root"
+$icingaApiPassword = "icinga"
+
+$requestUrl = "https://{0}:5665/v1/objects/services" -f $icingaApiHost
+
+$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $icingaApiUser, $icingaApiPassword)))
+$httpAuthInfo = "Basic $base64AuthInfo"
+$httpAcceptInfo = "application/json"
+
+$httpHeaders = @{
+    "Authorization" = $httpAuthInfo
+    "Accept" = $httpAcceptInfo
+    "X-HTTP-Method-Override" = "GET"
+}
+
+$attrs =  @( "name", "state", "last_check_result" )
+$joins = @( "host.name", "host.state", "host.last_check_result")
+$filter = 'match("ping*", service.name)'
+
+$data = @{
+    "attrs" = $attrs
+    "joins" = $joins
+    "filter" = $filter
+}
+
+$result = Invoke-RestMethod -Headers $httpHeaders -Uri $requestUrl -Method "POST" -Body ($data|ConvertTo-Json)
+
+foreach ($s in $result.results) {
+    Write-Host "Service " $s.attrs.name " on Host " $s.joins.host.name "State " $s.attrs.state " Output: " $s.attrs.last_check_result.output
+    # Debug
+    Write-Host "Debug: Attributes " $s.attrs | ConvertTo-Json
+    Write-Host "Debug: Joins Host" $s.joins.host | ConvertTo-Json
+    Write-Host "`n"
+}
+```
+
+Run the Powershell ISE as administrator, and execute the script as you change it.
+
+![Icinga 2 API Windows Powershell ISE Script](images/api/icinga2_api_powershell_ise.png)
+
+
+Alternatively, save the code and run it in Powershell:
+
+```
+.\icinga.ps1
+```
