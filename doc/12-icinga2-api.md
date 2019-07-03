@@ -1,4 +1,20 @@
-# Icinga 2 API <a id="icinga2-api"></a>
+# REST API <a id="icinga2-api"></a>
+
+* [Setup](12-icinga2-api.md#icinga2-api-setup)
+* [Introduction](12-icinga2-api.md#icinga2-api-introduction)
+* Endpoints
+    * [Config Objects](12-icinga2-api.md#icinga2-api-config-objects)
+    * [Actions](12-icinga2-api.md#icinga2-api-actions)
+    * [Event Streams](12-icinga2-api.md#icinga2-api-event-streams)
+    * [Status and Statistics](12-icinga2-api.md#icinga2-api-status)
+    * [Config Management](12-icinga2-api.md#icinga2-api-config-management)
+    * [Types](12-icinga2-api.md#icinga2-api-types)
+    * [Templates](12-icinga2-api.md#icinga2-api-config-templates)
+    * [Variables](12-icinga2-api.md#icinga2-api-variables)
+    * [Debug Console](12-icinga2-api.md#icinga2-api-console)
+* [API Clients](12-icinga2-api.md#icinga2-api-clients)
+    * [Programmatic Examples](12-icinga2-api.md#icinga2-api-clients-programmatic-examples)
+
 
 ## Setting up the API <a id="icinga2-api-setup"></a>
 
@@ -921,87 +937,6 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' \
     ]
 }
 ```
-
-## Config Templates <a id="icinga2-api-config-templates"></a>
-
-Provides methods to manage configuration templates:
-
-* [querying templates](12-icinga2-api.md#icinga2-api-config-templates-query)
-
-Creation, modification and deletion of templates at runtime is not supported.
-
-### Querying Templates <a id="icinga2-api-config-templates-query"></a>
-
-You can request information about configuration templates by sending
-a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type` has
-to be replaced with the plural name of the object type you are interested
-in:
-
-```
-$ curl -k -s -u root:icinga 'https://localhost:5665/v1/templates/hosts'
-```
-
-A list of all available configuration types is available in the
-[object types](09-object-types.md#object-types) chapter.
-
-A [filter](12-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
-template object can be accessed in the filter using the `tmpl` variable. In this
-example the [match function](18-library-reference.md#global-functions-match) is used to
-check a wildcard string pattern against `tmpl.name`.
-The `filter` attribute is passed inside the request body thus requiring to use [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
-here.
-
-```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' \
- -H 'X-HTTP-Method-Override: GET' -X POST \
- 'https://localhost:5661/v1/templates/hosts' \
- -d '{ "filter": "match(\"g*\", tmpl.name)" }'
-```
-
-Instead of using a filter you can optionally specify the template name in the
-URL path when querying a single object:
-
-```
-$ curl -k -s -u root:icinga 'https://localhost:5665/v1/templates/hosts/generic-host'
-```
-
-The result set contains the type, name as well as the location of the template.
-
-## Variables <a id="icinga2-api-variables"></a>
-
-Provides methods to manage global variables:
-
-* [querying variables](12-icinga2-api.md#icinga2-api-variables-query)
-
-### Querying Variables <a id="icinga2-api-variables-query"></a>
-
-You can request information about global variables by sending
-a `GET` query to the `/v1/variables/` URL endpoint:
-
-```
-$ curl -k -s -u root:icinga 'https://localhost:5665/v1/variables'
-```
-
-A [filter](12-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
-variable information object can be accessed in the filter using the `variable` variable.
-The `filter` attribute is passed inside the request body thus requiring to use [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
-here.
-
-```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' \
- -H 'X-HTTP-Method-Override: GET' -X POST \
- 'https://localhost:5661/v1/variables' \
- -d '{ "filter": "variable.type in [ \"String\", \"Number\" ]" }'
-```
-
-Instead of using a filter you can optionally specify the variable name in the
-URL path when querying a single variable:
-
-```
-$ curl -k -s -u root:icinga 'https://localhost:5665/v1/variables/PrefixDir'
-```
-
-The result set contains the type, name and value of the global variable.
 
 ## Actions <a id="icinga2-api-actions"></a>
 
@@ -2174,6 +2109,87 @@ $ curl -k -s -u root:icinga 'https://localhost:5665/v1/types/Object?pretty=1'
 }
 ```
 
+## Config Templates <a id="icinga2-api-config-templates"></a>
+
+Provides methods to manage configuration templates:
+
+* [querying templates](12-icinga2-api.md#icinga2-api-config-templates-query)
+
+Creation, modification and deletion of templates at runtime is not supported.
+
+### Querying Templates <a id="icinga2-api-config-templates-query"></a>
+
+You can request information about configuration templates by sending
+a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type` has
+to be replaced with the plural name of the object type you are interested
+in:
+
+```
+$ curl -k -s -u root:icinga 'https://localhost:5665/v1/templates/hosts'
+```
+
+A list of all available configuration types is available in the
+[object types](09-object-types.md#object-types) chapter.
+
+A [filter](12-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
+template object can be accessed in the filter using the `tmpl` variable. In this
+example the [match function](18-library-reference.md#global-functions-match) is used to
+check a wildcard string pattern against `tmpl.name`.
+The `filter` attribute is passed inside the request body thus requiring to use [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
+here.
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' \
+ -H 'X-HTTP-Method-Override: GET' -X POST \
+ 'https://localhost:5661/v1/templates/hosts' \
+ -d '{ "filter": "match(\"g*\", tmpl.name)" }'
+```
+
+Instead of using a filter you can optionally specify the template name in the
+URL path when querying a single object:
+
+```
+$ curl -k -s -u root:icinga 'https://localhost:5665/v1/templates/hosts/generic-host'
+```
+
+The result set contains the type, name as well as the location of the template.
+
+## Variables <a id="icinga2-api-variables"></a>
+
+Provides methods to manage global variables:
+
+* [querying variables](12-icinga2-api.md#icinga2-api-variables-query)
+
+### Querying Variables <a id="icinga2-api-variables-query"></a>
+
+You can request information about global variables by sending
+a `GET` query to the `/v1/variables/` URL endpoint:
+
+```
+$ curl -k -s -u root:icinga 'https://localhost:5665/v1/variables'
+```
+
+A [filter](12-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
+variable information object can be accessed in the filter using the `variable` variable.
+The `filter` attribute is passed inside the request body thus requiring to use [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
+here.
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' \
+ -H 'X-HTTP-Method-Override: GET' -X POST \
+ 'https://localhost:5661/v1/variables' \
+ -d '{ "filter": "variable.type in [ \"String\", \"Number\" ]" }'
+```
+
+Instead of using a filter you can optionally specify the variable name in the
+URL path when querying a single variable:
+
+```
+$ curl -k -s -u root:icinga 'https://localhost:5665/v1/variables/PrefixDir'
+```
+
+The result set contains the type, name and value of the global variable.
+
 ## Debug Console <a id="icinga2-api-console"></a>
 
 You can inspect variables and execute other expressions by sending a `POST` request to the URL endpoint `/v1/console/execute-script`.
@@ -2353,6 +2369,7 @@ The following languages are covered:
 * [PHP](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-php)
 * [Perl](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-perl)
 * [Golang](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-golang)
+* [Powershell](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-powershell)
 
 The [request method](icinga2-api-requests) is `POST` using [X-HTTP-Method-Override: GET](12-icinga2-api.md#icinga2-api-requests-method-override)
 which allows you to send a JSON request body. The examples request specific service
