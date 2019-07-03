@@ -170,7 +170,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			begin->tm_min = 0;
 			begin->tm_sec = 0;
 
-			/* Negative days are relative to the next month. */
+			/* day -1: Negative days are relative to the next month. */
 			if (mday < 0) {
 				begin->tm_mday = mday * -1 - 1;
 				begin->tm_mon++;
@@ -185,7 +185,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			end->tm_min = 0;
 			end->tm_sec = 0;
 
-			/* Negative days are relative to the next month. */
+			/* day -1: Negative days are relative to the next month. */
 			if (mday < 0) {
 				end->tm_mday = mday * -1 - 1;
 				end->tm_mon++;
