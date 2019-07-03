@@ -2288,6 +2288,7 @@ Name												| Language	| Description
 ------------------------------------------------------------------------------------------------|---------------|--------------------------------------------------------
 [Dashing](https://github.com/dnsmichi/dashing-icinga2)						| Ruby, HTML	| Dashboard for Dashing querying the REST API for current host/service/global status
 [InfluxDB Telegraf Input](https://github.com/influxdata/telegraf/blob/master/plugins/inputs/icinga2/README.md) | Golang	| [Telegraf](https://github.com/influxdata/telegraf) is an agent written in Go for collecting, processing, aggregating, and writing metrics.
+[Icinga Slack Bot](https://github.com/bb-Ricardo/icinga-slack-bot)				| Python	| It can be used to interact with Icinga2 from your Slack client. It uses the Icinga2 API to get Host/Service status details. Simple status filters can be used to narrow down the returned status list.
 [Icinga 2 Slack Bot](https://github.com/mlabouardy/icinga2-slack-bot) 				| Golang | Query host/service details from a [Slack](https://slack.com/) channel
 [icinga2bot](https://github.com/reikoNeko/icinga2bot)						| Python	| [Errbot](http://errbot.io/en/latest/user_guide/setup.html) plugin to fetch status and event stream information and forward to XMPP, IRC, etc.
 [IcingaBusyLightAgent](https://github.com/stdevel/IcingaBusylightAgent) 			| C#		| Notification Agent in Systray
