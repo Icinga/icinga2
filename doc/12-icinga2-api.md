@@ -2386,7 +2386,7 @@ The following example uses **Python** and the `requests` and `json` module:
 # pip install requests
 # pip install json
 
-$ vim icinga2-api-example.py
+$ vim icinga.py
 
 #!/usr/bin/env python
 
@@ -2420,7 +2420,7 @@ else:
         print r.text
         r.raise_for_status()
 
-$ python icinga2-api-example.py
+$ python icinga.py
 ```
 
 #### Example API Client in Ruby <a id="icinga2-api-clients-programmatic-examples-ruby"></a>
@@ -2430,7 +2430,7 @@ The following example uses **Ruby** and the `rest_client` gem:
 ```
 # gem install rest_client
 
-$ vim icinga2-api-example.rb
+$ vim icinga.rb
 
 #!/usr/bin/ruby
 
@@ -2469,7 +2469,7 @@ else
         puts "Error: " + response
 end
 
-$ ruby icinga2-api-example.rb
+$ ruby icinga.rb
 ```
 
 A more detailed example can be found in the [Dashing demo](https://github.com/Icinga/dashing-icinga2).
@@ -2479,7 +2479,7 @@ A more detailed example can be found in the [Dashing demo](https://github.com/Ic
 The following example uses **PHP** and its `curl` library:
 
 ```
-$ vim icinga2-api-example.php
+$ vim icinga.php
 
 #!/usr/bin/env php
 <?php
@@ -2524,7 +2524,7 @@ if ($code == 200) {
 }
 ?>
 
-$ php icinga2-api-example.php
+$ php icinga.php
 ```
 
 #### Example API Client in Perl <a id="icinga2-api-clients-programmatic-examples-perl"></a>
@@ -2537,7 +2537,7 @@ The following example uses **Perl** and the `Rest::Client` module:
 # perl -MCPAN -e 'install MIME::Base64'
 # perl -MCPAN -e 'install Data::Dumper'
 
-$ vim icinga2-api-example.pl
+$ vim icinga.pl
 
 #!/usr/bin/env perl
 
@@ -2576,7 +2576,7 @@ if ($status == 200) {
         print "Error: " . $response . "\n";
 }
 
-$ perl icinga2-api-example.pl
+$ perl icinga.pl
 ```
 
 
@@ -2585,7 +2585,7 @@ $ perl icinga2-api-example.pl
 Requires the Golang build chain.
 
 ```
-$ vim icinga2-api-example.go
+$ vim icinga.go
 
 package main
 
@@ -2644,8 +2644,8 @@ func main() {
 Build the binary:
 
 ```
-go build icinga2-api-example.go
-./icinga2-api-example
+go build icinga.go
+./icinga
 ```
 
 #### Example API Client in Powershell <a id="icinga2-api-clients-programmatic-examples-powershell"></a>
