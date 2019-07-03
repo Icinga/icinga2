@@ -3,6 +3,10 @@
 #include "base/exception.hpp"
 #include <boost/thread/tss.hpp>
 
+#ifdef _WIN32
+#	include "base/utility.hpp"
+#endif /* _WIN32 */
+
 #ifdef HAVE_CXXABI_H
 #	include <cxxabi.h>
 #endif /* HAVE_CXXABI_H */
