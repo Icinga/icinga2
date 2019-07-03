@@ -386,7 +386,7 @@ Configuration Attributes:
   vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this host.
   check\_command            | Object name           | **Required.** The name of the check command.
   max\_check\_attempts      | Number                | **Optional.** The number of times a host is re-checked before changing into a hard state. Defaults to 3.
-  check\_period             | Object name           | **Optional.** The name of a time period which determines when this host should be checked. Not set by default.
+  check\_period             | Object name           | **Optional.** The name of a time period which determines when this host should be checked. Not set by default (effectively 24x7).
   check\_timeout            | Duration              | **Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
   check\_interval           | Duration              | **Optional.** The check interval (in seconds). This interval is used for checks when the host is in a `HARD` state. Defaults to `5m`.
   retry\_interval           | Duration              | **Optional.** The retry interval (in seconds). This interval is used for checks when the host is in a `SOFT` state. Defaults to `1m`. Note: This does not affect the scheduling [after a passive check result](08-advanced-topics.md#check-result-freshness).
@@ -517,7 +517,7 @@ Configuration Attributes:
   times                     | Dictionary            | **Optional.** A dictionary containing `begin` and `end` attributes for the notification.
   command                   | Object name           | **Required.** The name of the notification command which should be executed when the notification is triggered.
   interval                  | Duration              | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes. If set to 0, [re-notifications](03-monitoring-basics.md#disable-renotification) are disabled.
-  period                    | Object name           | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default.
+  period                    | Object name           | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default (effectively 24x7).
   zone		            | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
   types                     | Array                 | **Optional.** A list of type filters when this notification should be triggered. By default everything is matched.
   states                    | Array                 | **Optional.** A list of state filters when this notification should be triggered. By default everything is matched. Note that the states filter is ignored for notifications of type Acknowledgement!
@@ -749,7 +749,7 @@ Configuration Attributes:
   vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this service.
   check\_command            | Object name           | **Required.** The name of the check command.
   max\_check\_attempts      | Number                | **Optional.** The number of times a service is re-checked before changing into a hard state. Defaults to 3.
-  check\_period             | Object name           | **Optional.** The name of a time period which determines when this service should be checked. Not set by default.
+  check\_period             | Object name           | **Optional.** The name of a time period which determines when this service should be checked. Not set by default (effectively 24x7).
   check\_timeout            | Duration              | **Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
   check\_interval           | Duration              | **Optional.** The check interval (in seconds). This interval is used for checks when the service is in a `HARD` state. Defaults to `5m`.
   retry\_interval           | Duration              | **Optional.** The retry interval (in seconds). This interval is used for checks when the service is in a `SOFT` state. Defaults to `1m`. Note: This does not affect the scheduling [after a passive check result](08-advanced-topics.md#check-result-freshness).
@@ -955,7 +955,7 @@ Configuration Attributes:
   vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this user.
   groups                    | Array of object names | **Optional.** An array of group names.
   enable\_notifications     | Boolean               | **Optional.** Whether notifications are enabled for this user. Defaults to true.
-  period                    | Object name           | **Optional.** The name of a time period which determines when a notification for this user should be triggered. Not set by default.
+  period                    | Object name           | **Optional.** The name of a time period which determines when a notification for this user should be triggered. Not set by default (effectively 24x7).
   types                     | Array                 | **Optional.** A set of type filters when a notification for this user should be triggered. By default everything is matched.
   states                    | Array                 | **Optional.** A set of state filters when a notification for this should be triggered. By default everything is matched.
 
