@@ -136,6 +136,26 @@ static void FireSuppressedNotifications(Checkable* checkable)
 					still_suppressed = checkable->IsInDowntime();
 				}
 
+				if (!still_suppressed && checkable->GetEnableActiveChecks()) {
+					/* If e.g. the downtime just ended, but the service is still not ok, we would re-send the stashed problem notification.
+					 * But if the next check result recovers the service soon, we would send a recovery notification soon after the problem one.
+					 * This is not desired, especially for lots of services at once.
+					 * Because of that if there's likely to be a check result soon,
+					 * we delay the re-sending of the stashed notification until the next check.
+					 * That check either doesn't change anything and we finally re-send the stashed problem notification
+					 * or recovers the service and we drop the stashed notification. */
+
+					/* One minute unless the check interval is too short so the next check will always run during the next minute. */
+					auto threshold (checkable->GetCheckInterval() - 10);
+
+					if (threshold > 60)
+						threshold = 60;
+					else if (threshold < 0)
+						threshold = 0;
+
+					still_suppressed = checkable->GetNextCheck() <= Utility::GetTime() + threshold;
+				}
+
 				if (!still_suppressed) {
 					Checkable::OnNotificationsRequested(checkable, type, cr, "", "", nullptr);
 
