@@ -667,11 +667,7 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 		<< "' vs. new (" << newChecksums->GetLength() << "): '"
 		<< JsonEncode(newChecksums) << "'.";
 
-	// Different length means that either one or the other side added or removed something. */
-	if (oldChecksums->GetLength() != newChecksums->GetLength())
-		return true;
-
-	// Both dictionaries have an equal size.
+	// Don't check for different length, this may be influenced from internal files
 	ObjectLock olock(oldChecksums);
 
 	for (const Dictionary::Pair& kv : oldChecksums) {
