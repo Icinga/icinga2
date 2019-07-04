@@ -2274,13 +2274,13 @@ add a dependency which prevents notifications for all other failing services:
 [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/dependencies.conf
 
 apply Dependency "health-check" to Service {
-  parent_service_name = "child-health"
+  parent_service_name = "cluster-health"
 
   states = [ OK ]
   disable_notifications = true
 
   assign where host.vars.client_endpoint
-  ignore where service.name == "child-health"
+  ignore where service.name == "cluster-health"
 }
 ```
 
