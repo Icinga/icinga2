@@ -3119,6 +3119,59 @@ nwc_health_oids			| **Optional.** A list of oids which are downloaded and writte
 nwc_health_offline		| **Optional.** The maximum number of seconds since the last update of cache file before it is considered too old.
 nwc_health_multiline		| **Optional.** Multiline output
 
+#### printer_health <a id="plugin-contrib-command-nwc_health"></a>
+
+The [check_printer_health](https://labs.consol.de/nagios/check_printer_health/index.html) plugin
+uses SNMP to monitor printer. The plugin is able to generate supply statistics and check hardware.
+A complete list can be found in the plugin [documentation](https://labs.consol.de/nagios/check_printer_health/index.html).
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name				| Description
+--------------------------------|---------------------------------------------------------
+printer_health_hostname		| **Required.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+printer_health_mode		| **Required.** The plugin mode. A list of all available modes can be found in the [plugin documentation](https://labs.consol.de/nagios/check_printer_health/index.html).
+printer_health_timeout		| **Optional.** Seconds before plugin times out (default: 15)
+printer_health_blacklist	| **Optional.** Blacklist some (missing/failed) components.
+printer_health_port		| **Optional.** The SNMP port to use (default: 161).
+printer_health_domain	  	| **Optional.** The transport domain to use (default: udp/ipv4, other possible values: udp6, udp/ipv6, tcp, tcp4, tcp/ipv4, tcp6, tcp/ipv6).
+printer_health_protocol		| **Optional.** The SNMP protocol to use (default: 2c, other possibilities: 1,3).
+printer_health_community	| **Optional.** SNMP community of the server (SNMP v1/2 only).
+printer_health_username	  	| **Optional.** The securityName for the USM security model (SNMPv3 only).
+printer_health_authpassword	| **Optional.** The authentication password for SNMPv3.
+printer_health_authprotocol	| **Optional.** The authentication protocol for SNMPv3 (md5\|sha).
+printer_health_privpassword   	| **Optional.** The password for authPriv security level.
+printer_health_privprotocol	| **Optional.** The private protocol for SNMPv3 (des\|aes\|aes128\|3des\|3desde).
+printer_health_contextengineid	| **Optional.** The context engine id for SNMPv3 (10 to 64 hex characters).
+printer_health_contextname	| **Optional.** The context name for SNMPv3 (empty represents the default context).
+printer_health_community2	| **Optional.** SNMP community which can be used to switch the context during runtime.
+printer_health_name		| **Optional.** The name of an interface (ifDescr).
+printer_health_regexp		| **Optional.** A flag indicating that --name is a regular expression
+printer_health_ifspeedin	| **Optional.** Override the ifspeed oid of an interface (only inbound)
+printer_health_ifspeedout	| **Optional.** Override the ifspeed oid of an interface (only outbound)
+printer_health_ifspeed		| **Optional.** Override the ifspeed oid of an interface
+printer_health_units		| **Optional.** One of %, B, KB, MB, GB, Bit, KBi, MBi, GBi. (used for e.g. mode interface-usage)
+printer_health_name2		| **Optional.** The secondary name of a component.
+printer_health_name3		| **Optional.** The teritary name of a component.
+printer_health_role		| **Optional.** The role of this device in a hsrp group (active/standby/listen).
+printer_health_report		| **Optional.** Can be used to shorten the output. Possible values are: 'long' (default), 'short' (to shorten if available), or 'html' (to produce some html outputs if available)
+printer_health_lookback		| **Optional.** The amount of time you want to look back when calculating average rates. Use it for mode interface-errors or interface-usage. Without --lookback the time between two runs of `check_printer_health` is the base for calculations. If you want your checkresult to be based for example on the past hour, use --lookback 3600.
+printer_health_warning		| **Optional.** The warning threshold
+printer_health_critical		| **Optional.** The critical threshold
+printer_health_warningx		| **Optional.** The extended warning thresholds
+printer_health_criticalx	| **Optional.** The extended critical thresholds
+printer_health_mitigation	| **Optional.** The parameter allows you to change a critical error to a warning (1) or ok (0).
+printer_health_selectedperfdata	| **Optional.** The parameter allows you to limit the list of performance data. It's a perl regexp. Only matching perfdata show up in the output.
+printer_health_morphperfdata	| **Optional.** The parameter allows you to change performance data labels. It's a perl regexp and a substitution. --morphperfdata '(.*)ISATAP(.*)'='$1patasi$2'
+printer_health_negate		| **Optional.** The parameter allows you to map exit levels, such as warning=critical.
+printer_health_mymodules-dyn-dir | **Optional.** A directory where own extensions can be found.
+printer_health_servertype	| **Optional.** The type of the network device: cisco (default). Use it if auto-detection is not possible.
+printer_health_statefilesdir	| **Optional.** An alternate directory where the plugin can save files.
+printer_health_oids		| **Optional.** A list of oids which are downloaded and written to a cache file. Use it together with --mode oidcache.
+printer_health_offline		| **Optional.** The maximum number of seconds since the last update of cache file before it is considered too old.
+printer_health_multiline	| **Optional.** Multiline output
+
+
 ### Network Services <a id="plugin-contrib-network-services"></a>
 
 This category contains plugins which receive details about network services
