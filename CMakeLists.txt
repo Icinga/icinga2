@@ -148,6 +148,8 @@ if(NOT DEFINED LOGROTATE_HAS_SU)
 endif()
 if(LOGROTATE_HAS_SU)
   set(LOGROTATE_USE_SU "\n\tsu ${ICINGA2_USER} ${ICINGA2_GROUP}")
+else()
+  set(LOGROTATE_CREATE "\n\tcreate 644 ${ICINGA2_USER} ${ICINGA2_GROUP}")
 endif()
 
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS context coroutine date_time filesystem thread system program_options regex REQUIRED)
