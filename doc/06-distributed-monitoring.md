@@ -1487,6 +1487,7 @@ only expose a virtual IP address to Icinga and the IDO feature. By default, only
 endpoint will actively write to the backend then. Typical setups for MySQL clusters
 involve Master-Master-Replication (Master-Slave-Replication in both directions) or Galera,
 more tips can be found on our [community forums](https://community.icinga.com/).
+The IDO object must have the same `instance_name` on all master nodes.
 
 **Note**: All nodes in the same zone require that you enable the same features for high-availability (HA).
 

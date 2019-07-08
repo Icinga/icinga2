@@ -1456,7 +1456,7 @@ Configuration Attributes:
   ssl\_capath               | String                | **Optional.** MySQL SSL trusted SSL CA certificates in PEM format directory path.
   ssl\_cipher               | String                | **Optional.** MySQL SSL list of allowed ciphers.
   table\_prefix             | String                | **Optional.** MySQL database table prefix. Defaults to `icinga_`.
-  instance\_name            | String                | **Optional.** Unique identifier for the local Icinga 2 instance. Defaults to `default`.
+  instance\_name            | String                | **Optional.** Unique identifier for the local Icinga 2 instance, used for multiple Icinga 2 clusters writing to the same database. Defaults to `default`.
   instance\_description     | String                | **Optional.** Description for the Icinga 2 instance.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to `true`.
   failover\_timeout         | Duration              | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 30s. Defaults to `30s`.
@@ -1550,7 +1550,7 @@ Configuration Attributes:
   ssl\_cert                 | String                | **Optional.** PostgreSQL SSL certificate file path.
   ssl\_ca                   | String                | **Optional.** PostgreSQL SSL certificate authority certificate file path.
   table\_prefix             | String                | **Optional.** PostgreSQL database table prefix. Defaults to `icinga_`.
-  instance\_name            | String                | **Optional.** Unique identifier for the local Icinga 2 instance. Defaults to `default`.
+  instance\_name            | String                | **Optional.** Unique identifier for the local Icinga 2 instance, used for multiple Icinga 2 clusters writing to the same database. Defaults to `default`.
   instance\_description     | String                | **Optional.** Description for the Icinga 2 instance.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to `true`.
   failover\_timeout         | Duration              | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 30s. Defaults to `30s`.
