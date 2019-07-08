@@ -2801,6 +2801,13 @@ object Endpoint "icinga2-master2.localdomain" {
 
 ### Initial Sync for new Endpoints in a Zone <a id="distributed-monitoring-advanced-hints-initial-sync"></a>
 
+> **Note**
+>
+> This is required if you decide to change an already running single endpoint production
+> environment into a HA-enabled cluster zone with two endpoints.
+> The [initial setup](06-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-clients)
+> with 2 HA masters doesn't require this step.
+
 In order to make sure that all of your zone endpoints have the same state you need
 to pick the authoritative running one and copy the following content:
 
@@ -2808,8 +2815,11 @@ to pick the authoritative running one and copy the following content:
 * Internal config package for runtime created objects (downtimes, comments, hosts, etc.) at `/var/lib/icinga2/api/packages/_api`
 
 If you need already deployed config packages from the Director, or synced cluster zones,
-you can also sync the entire `/var/lib/icinga2` directory. This directory should also be
+you can also sync the entire `/var/lib/icinga2/api/packages` directory. This directory should also be
 included in your [backup strategy](02-getting-started.md#install-backup).
+
+Do **not** sync `/var/lib/icinga2/api/zones*` manually - this is an internal directory
+and handled by the Icinga cluster config sync itself.
 
 > **Note**
 >
