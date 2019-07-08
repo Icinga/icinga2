@@ -4,11 +4,13 @@
 #include "icinga/host.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/service.hpp"
+#include "base/dictionary.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/context.hpp"
 #include "base/convert.hpp"
+#include "remote/apilistener.hpp"
 
 using namespace icinga;
 
@@ -54,17 +56,47 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 		return;
 
 	for (const Notification::Ptr& notification : notifications) {
-		try {
-			if (!notification->IsPaused()) {
-				notification->BeginExecuteNotification(type, cr, force, false, author, text);
-			} else {
-				Log(LogNotice, "Notification")
-					<< "Notification '" << notification->GetName() << "': HA cluster active, this endpoint does not have the authority (paused=true). Skipping.";
+		if (ApiListener::UpdatedObjectAuthority()) {
+			try {
+				if (!notification->IsPaused()) {
+					auto stashedNotifications (notification->GetStashedNotifications());
+
+					if (stashedNotifications->GetLength()) {
+						Log(LogNotice, "Notification")
+							<< "Notification '" << notification->GetName() << "': there are some stashed notifications. Stashing notification to preserve order.";
+
+						stashedNotifications->Add(new Dictionary({
+							{"type", type},
+							{"cr", cr},
+							{"force", force},
+							{"reminder", false},
+							{"author", author},
+							{"text", text}
+						}));
+					} else {
+						notification->BeginExecuteNotification(type, cr, force, false, author, text);
+					}
+				} else {
+					Log(LogNotice, "Notification")
+						<< "Notification '" << notification->GetName() << "': HA cluster active, this endpoint does not have the authority (paused=true). Skipping.";
+				}
+			} catch (const std::exception& ex) {
+				Log(LogWarning, "Checkable")
+					<< "Exception occurred during notification '" << notification->GetName() << "' for checkable '"
+					<< GetName() << "': " << DiagnosticInformation(ex, false);
 			}
-		} catch (const std::exception& ex) {
-			Log(LogWarning, "Checkable")
-				<< "Exception occurred during notification '" << notification->GetName() << "' for checkable '"
-				<< GetName() << "': " << DiagnosticInformation(ex, false);
+		} else {
+			Log(LogNotice, "Notification")
+				<< "Notification '" << notification->GetName() << "': object authority hasn't been updated, yet. Stashing notification.";
+
+			notification->GetStashedNotifications()->Add(new Dictionary({
+				{"type", type},
+				{"cr", cr},
+				{"force", force},
+				{"reminder", false},
+				{"author", author},
+				{"text", text}
+			}));
 		}
 	}
 }

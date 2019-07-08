@@ -10,6 +10,7 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
+#include "remote/apilistener.hpp"
 
 using namespace icinga;
 
@@ -72,18 +73,69 @@ void NotificationComponent::NotificationTimerHandler()
 			continue;
 
 		String notificationName = notification->GetName();
+		bool updatedObjectAuthority = ApiListener::UpdatedObjectAuthority();
 
 		/* Skip notification if paused, in a cluster setup & HA feature is enabled. */
-		if (notification->IsPaused() && myEndpoint && GetEnableHA()) {
-			Log(LogNotice, "NotificationComponent")
-				<< "Reminder notification '" << notificationName << "': HA cluster active, this endpoint does not have the authority (paused=true). Skipping.";
-			continue;
+		if (notification->IsPaused()) {
+			if (updatedObjectAuthority) {
+				auto stashedNotifications (notification->GetStashedNotifications());
+				ObjectLock olock(stashedNotifications);
+
+				if (stashedNotifications->GetLength()) {
+					Log(LogNotice, "NotificationComponent")
+						<< "Notification '" << notificationName << "': HA cluster active, this endpoint does not have the authority. Dropping all stashed notifications.";
+
+					stashedNotifications->Clear();
+				}
+			}
+
+			if (myEndpoint && GetEnableHA()) {
+				Log(LogNotice, "NotificationComponent")
+					<< "Reminder notification '" << notificationName << "': HA cluster active, this endpoint does not have the authority (paused=true). Skipping.";
+				continue;
+			}
 		}
 
 		Checkable::Ptr checkable = notification->GetCheckable();
 
 		if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !checkable->GetEnableNotifications())
 			continue;
+
+		bool reachable = checkable->IsReachable(DependencyNotification);
+
+		if (reachable) {
+			Array::Ptr unstashedNotifications = new Array();
+
+			{
+				auto stashedNotifications (notification->GetStashedNotifications());
+				ObjectLock olock(stashedNotifications);
+
+				stashedNotifications->CopyTo(unstashedNotifications);
+				stashedNotifications->Clear();
+			}
+
+			ObjectLock olock(unstashedNotifications);
+
+			for (Dictionary::Ptr unstashedNotification : unstashedNotifications) {
+				try {
+					Log(LogNotice, "NotificationComponent")
+						<< "Attempting to send stashed notification '" << notificationName << "'.";
+
+					notification->BeginExecuteNotification(
+						(NotificationType)(int)unstashedNotification->Get("type"),
+						(CheckResult::Ptr)unstashedNotification->Get("cr"),
+						(bool)unstashedNotification->Get("force"),
+						(bool)unstashedNotification->Get("reminder"),
+						(String)unstashedNotification->Get("author"),
+						(String)unstashedNotification->Get("text")
+					);
+				} catch (const std::exception& ex) {
+					Log(LogWarning, "NotificationComponent")
+						<< "Exception occurred during notification for object '"
+						<< notificationName << "': " << DiagnosticInformation(ex, false);
+				}
+			}
+		}
 
 		if (notification->GetInterval() <= 0 && notification->GetNoMoreNotifications()) {
 			Log(LogNotice, "NotificationComponent")
@@ -93,8 +145,6 @@ void NotificationComponent::NotificationTimerHandler()
 
 		if (notification->GetNextNotification() > now)
 			continue;
-
-		bool reachable = checkable->IsReachable(DependencyNotification);
 
 		{
 			ObjectLock olock(notification);
