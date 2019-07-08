@@ -8,6 +8,8 @@
 
 using namespace icinga;
 
+std::atomic<bool> ApiListener::m_UpdatedObjectAuthority (false);
+
 void ApiListener::UpdateObjectAuthority()
 {
 	/* Always run this, even if there is no 'api' feature enabled. */
@@ -77,4 +79,6 @@ void ApiListener::UpdateObjectAuthority()
 			object->SetAuthority(authority);
 		}
 	}
+
+	m_UpdatedObjectAuthority.store(true);
 }

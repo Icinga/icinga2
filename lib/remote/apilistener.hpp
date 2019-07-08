@@ -15,6 +15,7 @@
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include "base/threadpool.hpp"
+#include <atomic>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
@@ -104,6 +105,12 @@ public:
 	static String GetDefaultKeyPath();
 	static String GetDefaultCaPath();
 
+	static inline
+	bool UpdatedObjectAuthority()
+	{
+		return m_UpdatedObjectAuthority.load();
+	}
+
 	double GetTlsHandshakeTimeout() const override;
 	void SetTlsHandshakeTimeout(double value, bool suppress_events, const Value& cookie) override;
 
@@ -133,6 +140,7 @@ private:
 	Endpoint::Ptr m_LocalEndpoint;
 
 	static ApiListener::Ptr m_Instance;
+	static std::atomic<bool> m_UpdatedObjectAuthority;
 
 	void ApiTimerHandler();
 	void ApiReconnectTimerHandler();
