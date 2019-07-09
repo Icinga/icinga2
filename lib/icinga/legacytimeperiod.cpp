@@ -181,6 +181,9 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			if (mday < 0) {
 				boost::gregorian::date d(GetEndOfMonthDay(reference->tm_year + 1900, mon + 1)); //TODO: Refactor this mess into full Boost.DateTime
 
+				//Depending on the number, we need to substract specific days (counting starts at 0).
+				d = d - boost::gregorian::days(mday * -1 - 1);
+
 				*begin = boost::gregorian::to_tm(d);
 				begin->tm_hour = 0;
 				begin->tm_min = 0;
@@ -199,6 +202,9 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			/* day -X: Negative days are relative to the next month. */
 			if (mday < 0) {
 				boost::gregorian::date d(GetEndOfMonthDay(reference->tm_year + 1900, mon + 1)); //TODO: Refactor this mess into full Boost.DateTime
+
+				//Depending on the number, we need to substract specific days (counting starts at 0).
+				d = d - boost::gregorian::days(mday * -1 - 1);
 
 				// End date is one day in the future, starting 00:00:00
 				d = d + boost::gregorian::days(1);

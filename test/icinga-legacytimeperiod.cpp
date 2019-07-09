@@ -159,6 +159,26 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK_EQUAL(end, expectedEnd);
 
 	//-----------------------------------------------------
+	// Third last day of the month
+	timestamp = "day -3";
+	tm_ref.tm_year = 2019 - 1900;
+	tm_ref.tm_mon = 7 - 1;
+
+	expectedBegin = boost::posix_time::ptime(boost::gregorian::date(2019, 7, 29), boost::posix_time::time_duration(0, 0, 0));
+
+	expectedEnd = boost::posix_time::ptime(boost::gregorian::date(2019, 7, 30), boost::posix_time::time_duration(0, 0, 0));
+
+	// Run Tests
+	LegacyTimePeriod::ParseTimeSpec(timestamp, &tm_beg, &tm_end, &tm_ref);
+
+	// Compare times
+	begin = boost::posix_time::ptime_from_tm(tm_beg);
+	end = boost::posix_time::ptime_from_tm(tm_end);
+
+	BOOST_CHECK_EQUAL(begin, expectedBegin);
+	BOOST_CHECK_EQUAL(end, expectedEnd);
+
+	//-----------------------------------------------------
 	// Leap year with the last day of the month
 	timestamp = "day -1";
 	tm_ref.tm_year = 2016 - 1900; // leap year
