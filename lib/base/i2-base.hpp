@@ -72,14 +72,6 @@
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#if defined(__GNUC__)
-#	define likely(x) __builtin_expect(!!(x), 1)
-#	define unlikely(x) __builtin_expect(!!(x), 0)
-#else
-#	define likely(x) (x)
-#	define unlikely(x) (x)
-#endif
-
 #define BOOST_BIND_NO_PLACEHOLDERS
 
 #include <functional>
