@@ -441,10 +441,6 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 				 * */
 				relativePaths.push_back(zoneName + "/" + kv.first);
 
-				// Ignore same config content. This is an expensive comparison.
-				if (productionConfig->Get(kv.first) == kv.second)
-					continue;
-
 				String path = stageConfigZoneDir + "/" + kv.first;
 
 				if (Utility::Match("*.conf", path)) {
@@ -667,35 +663,81 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 		<< "' vs. new (" << newChecksums->GetLength() << "): '"
 		<< JsonEncode(newChecksums) << "'.";
 
-	// Don't check for different length, this may be influenced from internal files
-	ObjectLock olock(oldChecksums);
 
-	for (const Dictionary::Pair& kv : oldChecksums) {
-		String path = kv.first;
-		String oldChecksum = kv.second;
+	/* Since internal files are synced here too, we can not depend on length.
+	 * So we need to go through both checksum sets to cover the cases"everything is new" and "everything was deleted".
+	 */
+	{
+		ObjectLock olock(oldChecksums);
+		for (const Dictionary::Pair& kv : oldChecksums) {
+			String path = kv.first;
+			String oldChecksum = kv.second;
 
-		// TODO: Figure out if config changes only apply to '.conf'. Leaving this open for other config files.
-		//if (!Utility::Match("*.conf", path))
-		//	continue;
+			// TODO: Figure out if config changes only apply to '.conf'. Leaving this open for other config files.
+			//if (!Utility::Match("*.conf", path))
+			//	continue;
 
-		/* Ignore internal files, especially .timestamp and .checksums.
-		 *
-		 * If we don't, this results in "always change" restart loops.
-		 */
-		if (Utility::Match("/.*", path))
-			continue;
+			/* Ignore internal files, especially .timestamp and .checksums.
+			 *
+			 * If we don't, this results in "always change" restart loops.
+			 */
+			if (Utility::Match("/.*", path)) {
+				Log(LogDebug, "ApiListener")
+						<< "Ignoring internal file '" << path << "'";
+				continue;
+			}
 
-		Log(LogDebug, "ApiListener")
-			<< "Checking " << path << " for checksum: " << oldChecksum;
-
-		// Check whether our key exists in the new checksums, and they have an equal value.
-		String newChecksum = newChecksums->Get(path);
-
-		if (newChecksums->Get(path) != kv.second) {
 			Log(LogDebug, "ApiListener")
-				<< "Path '" << path << "' doesn't match old checksum '"
-				<< newChecksum << "' with new checksum '" << oldChecksum << "'.";
-			return true;
+					<< "Checking " << path << " for old checksum: " << oldChecksum;
+
+			// Check if key exists first for more verbose logging.
+			// TODO: Don't do this later on.
+			if (!newChecksums->Contains(path)) {
+				Log(LogDebug, "ApiListener")
+						<< "File '" << path << "' was deleted by remote.";
+				return true;
+			}
+
+			String newChecksum = newChecksums->Get(path);
+			if (newChecksum != kv.second) {
+				Log(LogDebug, "ApiListener")
+						<< "Path '" << path << "' doesn't match old checksum '"
+						<< oldChecksum << "' with new checksum '" << newChecksum << "'.";
+				return true;
+			}
+		}
+	}
+
+	{
+		ObjectLock olock(newChecksums);
+		for (const Dictionary::Pair& kv : newChecksums) {
+			String path = kv.first;
+			String newChecksum = kv.second;
+
+			// TODO: Figure out if config changes only apply to '.conf'. Leaving this open for other config files.
+			//if (!Utility::Match("*.conf", path))
+			//	continue;
+
+			/* Ignore internal files, especially .timestamp and .checksums.
+			 *
+			 * If we don't, this results in "always change" restart loops.
+			 */
+			if (Utility::Match("/.*", path)) {
+				Log(LogDebug, "ApiListener")
+						<< "Ignoring internal file '" << path << "'";
+				continue;
+			}
+
+			Log(LogDebug, "ApiListener")
+				<< "Checking " << path << " for new checksum: " << newChecksum;
+
+			// Here we only need to check if the checksum exists, checksums in both sets have already been compared
+			// TODO: Don't do this later on.
+			if (!oldChecksums->Contains(path)) {
+				Log(LogDebug, "ApiListener")
+					<< "File '" << path << "' was added by remote.";
+				return true;
+			}
 		}
 	}
 
