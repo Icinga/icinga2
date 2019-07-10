@@ -375,6 +375,54 @@ if(NOT MSVC)
   endif()
 endif()
 
+# Architecture specifics
+# - Log the target architecture
+# - ARM needs to link against atomic
+if(NOT MSVC)
+  # inspired by https://github.com/civetweb/civetweb/blob/master/cmake/DetermineTargetArchitecture.cmake
+  execute_process(
+    COMMAND ${CMAKE_C_COMPILER} -dumpmachine
+    RESULT_VARIABLE RESULT
+    OUTPUT_VARIABLE ARCH
+    ERROR_QUIET
+  )
+
+  if (RESULT)
+    message(FATAL_ERROR "Failed to detect target architecture: ${RESULT}")
+  endif()
+
+  string(REGEX MATCH "([^-]+).*" ARCH_MATCH ${ARCH})
+  if (NOT CMAKE_MATCH_1 OR NOT ARCH_MATCH)
+    message(FATAL_ERROR "Failed to match the target architecture: ${ARCH}")
+  endif()
+
+  set(ARCH ${CMAKE_MATCH_1})
+
+  message(STATUS "Target architecture - ${ARCH}")
+
+  # ARM settings
+  if("${ARCH}" STREQUAL "arm")
+    check_cxx_source_compiles( "include <atomic>; int main(){ std::atomic<uint_fast64_t> x; x.fetch_add(1); x.sub_add(1);  }" CXX_ATOMIC)
+
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -latomic")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -latomic")
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -latomic")
+  endif()
+
+else()
+  if("${MSVC_C_ARCHITECTURE_ID}" STREQUAL "X86")
+    set(ARCH "i686")
+  elseif("${MSVC_C_ARCHITECTURE_ID}" STREQUAL "x64")
+    set(ARCH "x86_64")
+  elseif("${MSVC_C_ARCHITECTURE_ID}" STREQUAL "ARM")
+    set(ARCH "arm")
+  else()
+    message(FATAL_ERROR "Failed to determine the MSVC target architecture: ${MSVC_C_ARCHITECTURE_ID}")
+  endif()
+
+  message(STATUS "Target architecture - ${ARCH}")
+endif()
+
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)
 
 install(
