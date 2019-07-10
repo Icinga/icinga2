@@ -672,15 +672,30 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 		<< JsonEncode(newChecksums) << "'.";
 
 	// If we didn't have any configuration, and now receive one, trigger a change.
-	if (oldChecksums->GetLength() == 0 && newChecksums->GetLength() > 0)
+	size_t oldChecksumsLength = oldChecksums->GetLength();
+	size_t newChecksumsLength = newChecksums->GetLength();
+
+	if (oldChecksumsLength == 0 && newChecksumsLength > 0)
 		return true;
 
 	// At this stage, we are sure to have had old production config.
-	ObjectLock olock(oldChecksums);
+	// Depending on the site, use the larger dictionary to check against paths.
 
-	for (const Dictionary::Pair& kv : oldChecksums) {
+	Dictionary::Ptr checksums;
+	Dictionary::Ptr targetChecksums;
+
+	if (oldChecksumsLength > newChecksumsLength) {
+		checksums = oldChecksums;
+		targetChecksums = newChecksums;
+	} else {
+		checksums = newChecksums;
+		targetChecksums = oldChecksums;
+	}
+
+	ObjectLock olock(checksums);
+	for (const Dictionary::Pair& kv : checksums) {
 		String path = kv.first;
-		String oldChecksum = kv.second;
+		String checksum = kv.second;
 
 		// TODO: Figure out if config changes only apply to '.conf'. Leaving this open for other config files.
 		//if (!Utility::Match("*.conf", path))
@@ -694,15 +709,15 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 			continue;
 
 		Log(LogDebug, "ApiListener")
-			<< "Checking " << path << " for checksum: " << oldChecksum;
+			<< "Checking " << path << " for checksum: " << checksum;
 
 		// Check whether our key exists in the new checksums, and they have an equal value.
-		String newChecksum = newChecksums->Get(path);
+		String targetChecksum = targetChecksums->Get(path);
 
-		if (newChecksums->Get(path) != kv.second) {
+		if (targetChecksums->Get(path) != kv.second) {
 			Log(LogDebug, "ApiListener")
 				<< "Path '" << path << "' doesn't match old checksum '"
-				<< newChecksum << "' with new checksum '" << oldChecksum << "'.";
+				<< targetChecksum << "' with new checksum '" << checksum << "'.";
 			return true;
 		}
 	}
