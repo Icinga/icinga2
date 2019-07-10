@@ -110,30 +110,38 @@ static void FireSuppressedNotifications(Checkable* checkable)
 			auto cr (checkable->GetLastCheckResult());
 
 			switch (type) {
-			case NotificationProblem:
-				still_applies = cr && !checkable->IsStateOK(cr->GetState()) && checkable->GetStateType() == StateTypeHard;
-				break;
-			case NotificationRecovery:
-				still_applies = cr && checkable->IsStateOK(cr->GetState());
-				break;
-			case NotificationFlappingStart:
-				still_applies = checkable->IsFlapping();
-				break;
-			case NotificationFlappingEnd:
-				still_applies = !checkable->IsFlapping();
+				case NotificationProblem:
+					still_applies = cr && !checkable->IsStateOK(cr->GetState()) && checkable->GetStateType() == StateTypeHard;
+					break;
+				case NotificationRecovery:
+					still_applies = cr && checkable->IsStateOK(cr->GetState());
+					break;
+				case NotificationFlappingStart:
+					still_applies = checkable->IsFlapping();
+					break;
+				case NotificationFlappingEnd:
+					still_applies = !checkable->IsFlapping();
+					break;
+				default:
+					break;
 			}
 
 			if (still_applies) {
 				bool still_suppressed;
 
 				switch (type) {
-				case NotificationProblem:
-				case NotificationRecovery:
-					still_suppressed = !checkable->IsReachable(DependencyNotification) || checkable->IsInDowntime() || checkable->IsAcknowledged();
-					break;
-				case NotificationFlappingStart:
-				case NotificationFlappingEnd:
-					still_suppressed = checkable->IsInDowntime();
+					case NotificationProblem:
+						/* Fall through. */
+					case NotificationRecovery:
+						still_suppressed = !checkable->IsReachable(DependencyNotification) || checkable->IsInDowntime() || checkable->IsAcknowledged();
+						break;
+					case NotificationFlappingStart:
+						/* Fall through. */
+					case NotificationFlappingEnd:
+						still_suppressed = checkable->IsInDowntime();
+						break;
+					default:
+						break;
 				}
 
 				if (!still_suppressed && checkable->GetEnableActiveChecks()) {
@@ -169,6 +177,7 @@ static void FireSuppressedNotifications(Checkable* checkable)
 
 	if (subtract) {
 		ObjectLock olock (checkable);
+
 		int suppressed_types_before (checkable->GetSuppressedNotifications());
 		int suppressed_types_after (suppressed_types_before & ~subtract);
 

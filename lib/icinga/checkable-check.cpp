@@ -461,7 +461,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		for (int conflict : {NotificationProblem | NotificationRecovery, NotificationFlappingStart | NotificationFlappingEnd}) {
 			/* E.g. problem and recovery notifications neutralize each other. */
 
-			if (suppressed_types_after & conflict == conflict) {
+			if ((suppressed_types_after & conflict) == conflict) {
 				suppressed_types_after &= ~conflict;
 			}
 		}
