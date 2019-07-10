@@ -667,7 +667,11 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 		<< "' vs. new (" << newChecksums->GetLength() << "): '"
 		<< JsonEncode(newChecksums) << "'.";
 
-	// Don't check for different length, this may be influenced from internal files
+	// If we didn't have any configuration, and now receive one, trigger a change.
+	if (oldChecksums->GetLength() == 0 && newChecksums->GetLength() > 0)
+		return true;
+
+	// At this stage, we are sure to have had old production config.
 	ObjectLock olock(oldChecksums);
 
 	for (const Dictionary::Pair& kv : oldChecksums) {
