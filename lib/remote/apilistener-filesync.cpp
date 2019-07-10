@@ -301,6 +301,8 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	Utility::MkDirP(apiZonesStageDir, 0700);
 
 	// Analyse and process the update.
+	size_t count = 0;
+
 	ObjectLock olock(updateV1);
 
 	for (const Dictionary::Pair& kv : updateV1) {
@@ -480,6 +482,8 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 				}
 			}
 		}
+
+		count++;
 	}
 
 	/*
@@ -493,13 +497,13 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	 */
 	if (configChange) {
 		Log(LogInformation, "ApiListener")
-			<< "Received configuration from endpoint '" << fromEndpointName
-			<< "' is different to production, triggering validation and reload.";
+			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
+			<< "' are different to production, triggering validation and reload.";
 		AsyncTryActivateZonesStage(relativePaths);
 	} else {
 		Log(LogInformation, "ApiListener")
-			<< "Received configuration from endpoint '" << fromEndpointName
-			<< "' is equal to production, not triggering reload.";
+			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
+			<< "' are equal to production, not triggering reload.";
 	}
 
 	return Empty;
