@@ -6,6 +6,7 @@
 #include "icinga/cib.hpp"
 #include "icinga/service.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "icinga/checkcommand.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -26,6 +27,9 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;
+
+	CheckCommand::Ptr command = checkable->GetCheckCommand();
+	cr->SetCommand(command->GetName());
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 

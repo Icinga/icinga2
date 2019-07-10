@@ -47,5 +47,8 @@ void SleepCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
     cr->SetExecutionStart(now);
     cr->SetExecutionEnd(now);
 
+    CheckCommand::Ptr command = checkable->GetCheckCommand();
+    cr->SetCommand(command->GetName());
+
     checkable->ProcessCheckResult(cr);
 }

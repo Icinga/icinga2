@@ -29,8 +29,8 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 		return;
 	}
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-	Value raw_command = commandObj->GetCommandLine();
+	CheckCommand::Ptr command = checkable->GetCheckCommand();
+	Value raw_command = command->GetCommandLine();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -40,7 +40,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
-	resolvers.emplace_back("command", commandObj);
+	resolvers.emplace_back("command", command);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String zoneName = MacroProcessor::ResolveMacros("$cluster_zone$", resolvers, checkable->GetLastCheckResult(),
@@ -57,6 +57,8 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;
+
+	cr->SetCommand(command->GetName());
 
 	if (zoneName.IsEmpty()) {
 		cr->SetOutput("Macro 'cluster_zone' must be set.");

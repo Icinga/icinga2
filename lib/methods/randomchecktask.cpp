@@ -5,6 +5,7 @@
 #endif /* _WIN32 */
 #include "methods/randomchecktask.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "icinga/checkcommand.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/function.hpp"
@@ -43,6 +44,9 @@ void RandomCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	}));
 
 	cr->SetState(static_cast<ServiceState>(Utility::Random() % 4));
+
+	CheckCommand::Ptr command = checkable->GetCheckCommand();
+	cr->SetCommand(command->GetName());
 
 	checkable->ProcessCheckResult(cr);
 }

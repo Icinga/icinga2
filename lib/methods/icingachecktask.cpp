@@ -26,7 +26,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	CheckCommand::Ptr command = checkable->GetCheckCommand();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -36,7 +36,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
-	resolvers.emplace_back("command", commandObj);
+	resolvers.emplace_back("command", command);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String missingIcingaMinVersion;
@@ -185,6 +185,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	}
 
 	cr->SetOutput(output);
+	cr->SetCommand(command->GetName());
 
 	checkable->ProcessCheckResult(cr);
 }
