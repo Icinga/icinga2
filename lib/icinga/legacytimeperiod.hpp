@@ -6,6 +6,7 @@
 #include "icinga/i2-icinga.hpp"
 #include "icinga/timeperiod.hpp"
 #include "base/dictionary.hpp"
+#include <boost/date_time/gregorian/gregorian.hpp>
 
 namespace icinga
 {
@@ -35,6 +36,8 @@ public:
 
 private:
 	LegacyTimePeriod();
+
+	static boost::gregorian::date GetEndOfMonthDay(int year, int month);
 };
 
 }

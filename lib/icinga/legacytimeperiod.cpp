@@ -113,6 +113,13 @@ int LegacyTimePeriod::MonthFromString(const String& monthdef)
 		return -1;
 }
 
+boost::gregorian::date LegacyTimePeriod::GetEndOfMonthDay(int year, int month)
+{
+	boost::gregorian::date d(boost::gregorian::greg_year(year), boost::gregorian::greg_month(month), 1);
+
+	return d.end_of_month();
+}
+
 void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end, tm *reference)
 {
 	/* Let mktime() figure out whether we're in DST or not. */
@@ -170,10 +177,17 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			begin->tm_min = 0;
 			begin->tm_sec = 0;
 
-			/* Negative days are relative to the next month. */
+			/* day -X: Negative days are relative to the next month. */
 			if (mday < 0) {
-				begin->tm_mday = mday * -1 - 1;
-				begin->tm_mon++;
+				boost::gregorian::date d(GetEndOfMonthDay(reference->tm_year + 1900, mon + 1)); //TODO: Refactor this mess into full Boost.DateTime
+
+				//Depending on the number, we need to substract specific days (counting starts at 0).
+				d = d - boost::gregorian::days(mday * -1 - 1);
+
+				*begin = boost::gregorian::to_tm(d);
+				begin->tm_hour = 0;
+				begin->tm_min = 0;
+				begin->tm_sec = 0;
 			}
 		}
 
@@ -185,10 +199,20 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			end->tm_min = 0;
 			end->tm_sec = 0;
 
-			/* Negative days are relative to the next month. */
+			/* day -X: Negative days are relative to the next month. */
 			if (mday < 0) {
-				end->tm_mday = mday * -1 - 1;
-				end->tm_mon++;
+				boost::gregorian::date d(GetEndOfMonthDay(reference->tm_year + 1900, mon + 1)); //TODO: Refactor this mess into full Boost.DateTime
+
+				//Depending on the number, we need to substract specific days (counting starts at 0).
+				d = d - boost::gregorian::days(mday * -1 - 1);
+
+				// End date is one day in the future, starting 00:00:00
+				d = d + boost::gregorian::days(1);
+
+				*end = boost::gregorian::to_tm(d);
+				end->tm_hour = 0;
+				end->tm_min = 0;
+				end->tm_sec = 0;
 			}
 		}
 
