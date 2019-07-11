@@ -154,6 +154,9 @@ abstract class Checkable : CustomVarObject
 	[state, no_user_view, no_user_modify] int flapping_buffer;
 	[state, no_user_view, no_user_modify] int flapping_index;
 	[state, protected] bool flapping;
+	[state, no_user_view, no_user_modify] int suppressed_notifications {
+		default {{{ return 0; }}}
+	};
 
 	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
 		navigate {{{

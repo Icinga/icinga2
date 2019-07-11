@@ -1,7 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/checkable.hpp"
+#include "icinga/host.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "icinga/service.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
@@ -83,4 +85,118 @@ void Checkable::UnregisterNotification(const Notification::Ptr& notification)
 {
 	boost::mutex::scoped_lock lock(m_NotificationMutex);
 	m_Notifications.erase(notification);
+}
+
+static void FireSuppressedNotifications(Checkable* checkable)
+{
+	if (!checkable->IsActive())
+		return;
+
+	if (checkable->IsPaused())
+		return;
+
+	if (!checkable->GetEnableNotifications())
+		return;
+
+	int suppressed_types (checkable->GetSuppressedNotifications());
+	if (!suppressed_types)
+		return;
+
+	int subtract = 0;
+
+	for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
+		if (suppressed_types & type) {
+			bool still_applies;
+			auto cr (checkable->GetLastCheckResult());
+
+			switch (type) {
+				case NotificationProblem:
+					still_applies = cr && !checkable->IsStateOK(cr->GetState()) && checkable->GetStateType() == StateTypeHard;
+					break;
+				case NotificationRecovery:
+					still_applies = cr && checkable->IsStateOK(cr->GetState());
+					break;
+				case NotificationFlappingStart:
+					still_applies = checkable->IsFlapping();
+					break;
+				case NotificationFlappingEnd:
+					still_applies = !checkable->IsFlapping();
+					break;
+				default:
+					break;
+			}
+
+			if (still_applies) {
+				bool still_suppressed;
+
+				switch (type) {
+					case NotificationProblem:
+						/* Fall through. */
+					case NotificationRecovery:
+						still_suppressed = !checkable->IsReachable(DependencyNotification) || checkable->IsInDowntime() || checkable->IsAcknowledged();
+						break;
+					case NotificationFlappingStart:
+						/* Fall through. */
+					case NotificationFlappingEnd:
+						still_suppressed = checkable->IsInDowntime();
+						break;
+					default:
+						break;
+				}
+
+				if (!still_suppressed && checkable->GetEnableActiveChecks()) {
+					/* If e.g. the downtime just ended, but the service is still not ok, we would re-send the stashed problem notification.
+					 * But if the next check result recovers the service soon, we would send a recovery notification soon after the problem one.
+					 * This is not desired, especially for lots of services at once.
+					 * Because of that if there's likely to be a check result soon,
+					 * we delay the re-sending of the stashed notification until the next check.
+					 * That check either doesn't change anything and we finally re-send the stashed problem notification
+					 * or recovers the service and we drop the stashed notification. */
+
+					/* One minute unless the check interval is too short so the next check will always run during the next minute. */
+					auto threshold (checkable->GetCheckInterval() - 10);
+
+					if (threshold > 60)
+						threshold = 60;
+					else if (threshold < 0)
+						threshold = 0;
+
+					still_suppressed = checkable->GetNextCheck() <= Utility::GetTime() + threshold;
+				}
+
+				if (!still_suppressed) {
+					Checkable::OnNotificationsRequested(checkable, type, cr, "", "", nullptr);
+
+					subtract |= type;
+				}
+			} else {
+				subtract |= type;
+			}
+		}
+	}
+
+	if (subtract) {
+		ObjectLock olock (checkable);
+
+		int suppressed_types_before (checkable->GetSuppressedNotifications());
+		int suppressed_types_after (suppressed_types_before & ~subtract);
+
+		if (suppressed_types_after != suppressed_types_before) {
+			checkable->SetSuppressedNotifications(suppressed_types_after);
+		}
+	}
+}
+
+/**
+ * Re-sends all notifications previously suppressed by e.g. downtimes if the notification reason still applies.
+ */
+void Checkable::FireSuppressedNotifications(const Timer * const&)
+{
+	for (auto& host : ConfigType::GetObjectsByType<Host>()) {
+		::FireSuppressedNotifications(host.get());
+	}
+
+	for (auto& service : ConfigType::GetObjectsByType<Service>()) {
+		::FireSuppressedNotifications(service.get());
+	}
 }

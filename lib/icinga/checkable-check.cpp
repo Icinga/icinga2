@@ -309,15 +309,14 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	bool in_downtime = IsInDowntime();
 
 	bool send_notification = false;
+	bool suppress_notification = !notification_reachable || in_downtime || IsAcknowledged();
 
-	if (notification_reachable && !in_downtime && !IsAcknowledged()) {
-		/* Send notifications whether when a hard state change occurred. */
-		if (hardChange && !(old_stateType == StateTypeSoft && IsStateOK(new_state)))
-			send_notification = true;
-		/* Or if the checkable is volatile and in a HARD state. */
-		else if (is_volatile && GetStateType() == StateTypeHard)
-			send_notification = true;
-	}
+	/* Send notifications whether when a hard state change occurred. */
+	if (hardChange && !(old_stateType == StateTypeSoft && IsStateOK(new_state)))
+		send_notification = true;
+	/* Or if the checkable is volatile and in a HARD state. */
+	else if (is_volatile && GetStateType() == StateTypeHard)
+		send_notification = true;
 
 	if (IsStateOK(old_state) && old_stateType == StateTypeSoft)
 		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
@@ -405,21 +404,33 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		(is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state))))
 		ExecuteEventHandler();
 
+	int suppressed_types = 0;
+
 	/* Flapping start/end notifications */
-	if (!in_downtime && !was_flapping && is_flapping) {
+	if (!was_flapping && is_flapping) {
 		/* FlappingStart notifications happen on state changes, not in downtimes */
-		if (!IsPaused())
-			OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", nullptr);
+		if (!IsPaused()) {
+			if (in_downtime) {
+				suppressed_types |= NotificationFlappingStart;
+			} else {
+				OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", nullptr);
+			}
+		}
 
 		Log(LogNotice, "Checkable")
 			<< "Flapping Start: Checkable '" << GetName() << "' started flapping (Current flapping value "
 			<< GetFlappingCurrent() << "% > high threshold " << GetFlappingThresholdHigh() << "%).";
 
 		NotifyFlapping(origin);
-	} else if (!in_downtime && was_flapping && !is_flapping) {
+	} else if (was_flapping && !is_flapping) {
 		/* FlappingEnd notifications are independent from state changes, must not happen in downtine */
-		if (!IsPaused())
-			OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", nullptr);
+		if (!IsPaused()) {
+			if (in_downtime) {
+				suppressed_types |= NotificationFlappingEnd;
+			} else {
+				OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", nullptr);
+			}
+		}
 
 		Log(LogNotice, "Checkable")
 			<< "Flapping Stop: Checkable '" << GetName() << "' stopped flapping (Current flapping value "
@@ -429,8 +440,35 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	}
 
 	if (send_notification && !is_flapping) {
-		if (!IsPaused())
-			OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", nullptr);
+		if (!IsPaused()) {
+			if (suppress_notification) {
+				suppressed_types |= (recovery ? NotificationRecovery : NotificationProblem);
+			} else {
+				OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", nullptr);
+			}
+		}
+	}
+
+	if (suppressed_types) {
+		/* If some notifications were suppressed, but just because of e.g. a downtime,
+		 * stash them into a notification types bitmask for maybe re-sending later.
+		 */
+
+		ObjectLock olock (this);
+		int suppressed_types_before (GetSuppressedNotifications());
+		int suppressed_types_after (suppressed_types_before | suppressed_types);
+
+		for (int conflict : {NotificationProblem | NotificationRecovery, NotificationFlappingStart | NotificationFlappingEnd}) {
+			/* E.g. problem and recovery notifications neutralize each other. */
+
+			if ((suppressed_types_after & conflict) == conflict) {
+				suppressed_types_after &= ~conflict;
+			}
+		}
+
+		if (suppressed_types_after != suppressed_types_before) {
+			SetSuppressedNotifications(suppressed_types_after);
+		}
 	}
 }
 
