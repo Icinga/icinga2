@@ -53,6 +53,36 @@ and compiled into the binary as header only include. It helps our way to C++11 a
 to fix additional UTF8 issues more easily. Read more about its [design goals](https://github.com/nlohmann/json#design-goals)
 and [benchmarks](https://github.com/miloyip/nativejson-benchmark#parsing-time).
 
+### Core <a id="upgrading-to-2-11-core"></a>
+
+#### Downtime Notifications <a id="upgrading-to-2-11-core-downtime-notifications"></a>
+
+Imagine that a host/service changes to a HARD NOT-OK state,
+and its check interval is set to a high interval e.g. 1 hour.
+
+A maintenance downtime prevents the notification being sent,
+but once it ends and the host/service is still in a downtime,
+no immediate notification is re-sent but you'll have to wait
+for the next check.
+
+Another scenario is with one-shot notifications (interval=0)
+which would never notify again after the downtime ends and
+the problem state being intact. The state change logic requires
+to recover and become HARD NOT-OK to notify again.
+
+In order to solve these problems with filtered/suppressed notifications
+in downtimes, v2.11 changes the behaviour like this:
+
+- If there was a notification suppressed in a downtime, the core stores that information
+- Once the downtime ends and the problem state is still intact, Icinga checks whether a re-notification should be sent immediately
+
+A new cluster message was added to keep this in sync amongst HA masters.
+
+> **Important**
+>
+> In order to properly use this new feature, all involved endpoints
+> must be upgraded to v2.11.
+
 ### Network Stack <a id="upgrading-to-2-11-network-stack"></a>
 
 The core network stack has been rewritten in 2.11 (some say this could be Icinga 3).
