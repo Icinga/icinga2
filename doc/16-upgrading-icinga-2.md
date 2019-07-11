@@ -126,6 +126,12 @@ feature with the `cipher_list` attribute.
 In case that one of these ciphers is marked as insecure in the future,
 please let us know with an issue on GitHub.
 
+#### Known error `no shared cipher`
+
+With the hardened cipher list and new TLS version older (Icinga v2.10.4 and below) may fail to connect to an instance
+running version 2.11 and newer when using on demand signing.
+You can remedy this `no shared cipher` error by using the [manual certificate creation](06-distributed-monitoring#manual-certificate-creation).
+
 ### Cluster <a id="upgrading-to-2-11-cluster"></a>
 
 #### Config Sync <a id="upgrading-to-2-11-cluster-config-sync"></a>
