@@ -687,12 +687,12 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 			 */
 			if (Utility::Match("/.*", path)) {
 				Log(LogDebug, "ApiListener")
-						<< "Ignoring internal file '" << path << "'";
+						<< "Ignoring old internal file '" << path << "'.";
 				continue;
 			}
 
 			Log(LogDebug, "ApiListener")
-					<< "Checking " << path << " for old checksum: " << oldChecksum;
+					<< "Checking " << path << " for old checksum: " << oldChecksum << ".";
 
 			// Check if key exists first for more verbose logging.
 			// TODO: Don't do this later on.
@@ -728,15 +728,14 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 			 */
 			if (Utility::Match("/.*", path)) {
 				Log(LogDebug, "ApiListener")
-						<< "Ignoring internal file '" << path << "'";
+						<< "Ignoring new internal file '" << path << "'.";
 				continue;
 			}
 
 			Log(LogDebug, "ApiListener")
-				<< "Checking " << path << " for new checksum: " << newChecksum;
+				<< "Checking " << path << " for new checksum: " << newChecksum << ".";
 
 			// Here we only need to check if the checksum exists, checksums in both sets have already been compared
-			// TODO: Don't do this later on.
 			if (!oldChecksums->Contains(path)) {
 				Log(LogDebug, "ApiListener")
 					<< "File '" << path << "' was added by remote.";
