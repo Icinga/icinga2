@@ -80,6 +80,10 @@ class Notification : CustomVarObject < NotificationNameComposer
 		default {{{ return false; }}}
 	};
 
+	[state, no_user_view, no_user_modify] Array::Ptr stashed_notifications {
+		default {{{ return new Array(); }}}
+	};
+
 	[state] Timestamp last_notification;
 	[state] Timestamp next_notification;
 	[state] int notification_number;
