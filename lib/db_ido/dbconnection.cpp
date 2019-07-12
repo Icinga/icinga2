@@ -132,6 +132,11 @@ void DbConnection::InsertRuntimeVariable(const String& key, const Value& value)
 
 void DbConnection::UpdateProgramStatus()
 {
+	IcingaApplication::Ptr icingaApplication = IcingaApplication::GetInstance();
+
+	if (!icingaApplication)
+		return;
+
 	Log(LogNotice, "DbConnection")
 		<< "Updating programstatus table.";
 
@@ -149,18 +154,18 @@ void DbConnection::UpdateProgramStatus()
 		{ "status_update_time", DbValue::FromTimestamp(Utility::GetTime()) },
 		{ "program_start_time", DbValue::FromTimestamp(Application::GetStartTime()) },
 		{ "is_currently_running", 1 },
-		{ "endpoint_name", IcingaApplication::GetInstance()->GetNodeName() },
+		{ "endpoint_name", icingaApplication->GetNodeName() },
 		{ "process_id", Utility::GetPid() },
 		{ "daemon_mode", 1 },
 		{ "last_command_check", DbValue::FromTimestamp(Utility::GetTime()) },
-		{ "notifications_enabled", (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0) },
-		{ "active_host_checks_enabled", (IcingaApplication::GetInstance()->GetEnableHostChecks() ? 1 : 0) },
+		{ "notifications_enabled", (icingaApplication->GetEnableNotifications() ? 1 : 0) },
+		{ "active_host_checks_enabled", (icingaApplication->GetEnableHostChecks() ? 1 : 0) },
 		{ "passive_host_checks_enabled", 1 },
-		{ "active_service_checks_enabled", (IcingaApplication::GetInstance()->GetEnableServiceChecks() ? 1 : 0) },
+		{ "active_service_checks_enabled", (icingaApplication->GetEnableServiceChecks() ? 1 : 0) },
 		{ "passive_service_checks_enabled", 1 },
-		{ "event_handlers_enabled", (IcingaApplication::GetInstance()->GetEnableEventHandlers() ? 1 : 0) },
-		{ "flap_detection_enabled", (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0) },
-		{ "process_performance_data", (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0) }
+		{ "event_handlers_enabled", (icingaApplication->GetEnableEventHandlers() ? 1 : 0) },
+		{ "flap_detection_enabled", (icingaApplication->GetEnableFlapping() ? 1 : 0) },
+		{ "process_performance_data", (icingaApplication->GetEnablePerfdata() ? 1 : 0) }
 	});
 
 	query1.WhereCriteria = new Dictionary({
