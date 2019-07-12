@@ -1323,6 +1323,17 @@ Macports have been reported to work as well, typically you'll get more help
 with Homebrew from Icinga developers.
 
 The idea is to run Icinga with the current user, avoiding root permissions.
+This requires at least v2.11.
+
+> **Note**
+>
+> This is a pure development setup for Icinga developers reducing the compile
+> time in contrast to VMs. There are no packages, startup scripts or dependency management involved.
+>
+> **macOS agents are not officially supported.**
+>
+> macOS uses its own TLS implementation, Icinga relies on extra OpenSSL packages
+> requiring updates apart from vendor security updates.
 
 #### Requirements
 
@@ -1353,15 +1364,32 @@ source $HOME/.bash_profile
 Icinga is built as release (optimized build for packages) and debug (more symbols and details for debugging). Debug builds
 typically run slower than release builds and must not be used for performance benchmarks.
 
+The preferred installation prefix is `/usr/local/icinga/icinga2`. This allows to put e.g. Icinga Web 2 into the `/usr/local/icinga` directory as well.
+
 ```
 mkdir -p release debug
 
+export I2_USER=$(id -u -n)
+export I2_GROUP=$(id -g -n)
+export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga/icinga2 -DICINGA2_USER=$I2_USER -DICINGA2_GROUP=$I2_GROUP -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl@1.1/include -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib -DICINGA2_PLUGINDIR=/usr/local/sbin -DICINGA2_WITH_PGSQL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+export I2_DEBUG="-DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF $I2_GENERIC"
+export I2_RELEASE="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DICINGA2_WITH_TESTS=ON -DICINGA2_UNITY_BUILD=ON $I2_GENERIC"
+
 cd debug
-cmake -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl@1.1/include -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib -DICINGA2_PLUGINDIR=/usr/local/sbin ..
+cmake $I2_DEBUG ..
 cd ..
 
 make -j4 -C debug
 make -j4 install -C debug
+```
+
+In order to run Icinga without any path prefix, and also use Bash completion it is advised to source additional
+things into the local dev environment.
+
+```
+export PATH=/usr/local/icinga/icinga2/sbin/:$PATH
+
+test -f /usr/local/icinga/icinga2/etc/bash_completion.d/icinga2 && source /usr/local/icinga/icinga2/etc/bash_completion.d/icinga2
 ```
 
 ##### Build Aliases
@@ -1371,7 +1399,9 @@ This is derived from [dnsmichi's flavour](https://github.com/dnsmichi/dotfiles) 
 ```
 vim $HOME/.bash_profile
 
-export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga/icinga2 -DICINGA2_USER=`id -u -n` -DICINGA2_GROUP=`id -g -n` -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl@1.1/include -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib -DICINGA2_PLUGINDIR=/usr/local/sbin -DICINGA2_WITH_PGSQL=OFF"
+export I2_USER=$(id -u -n)
+export I2_GROUP=$(id -g -n)
+export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga/icinga2 -DICINGA2_USER=$I2_USER -DICINGA2_GROUP=$I2_GROUP -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl@1.1/include -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib -DICINGA2_PLUGINDIR=/usr/local/sbin -DICINGA2_WITH_PGSQL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 
 export I2_DEBUG="-DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF $I2_GENERIC"
 export I2_RELEASE="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DICINGA2_WITH_TESTS=ON -DICINGA2_UNITY_BUILD=ON $I2_GENERIC"
@@ -1386,21 +1416,30 @@ test -f /usr/local/icinga/icinga2/etc/bash_completion.d/icinga2 && source /usr/l
 source $HOME/.bash_profile
 ```
 
+#### Permissions
+
+`make install` doesn't set all required permissions, override this.
+
+```
+chown -R $I2_USER:$I2_GROUP /usr/local/icinga/icinga2
+```
+
 #### Run
 
-```
-chown -R icinga:icinga /usr/local/icinga2
-chown -R icinga:_www /usr/local/icinga2/var/run/icinga2/cmd
+Start Icinga in foreground.
 
+```
 icinga2 daemon
 ```
+
+Reloads triggered with HUP or cluster syncs just put the process into background.
 
 #### Plugins
 
 ```
 brew install monitoring-plugins
 
-sudo vim /usr/local/icinga2/etc/icinga2/constants.conf
+sudo vim /usr/local/icinga/icinga2/etc/icinga2/constants.conf
 const PluginDir = "/usr/local/sbin"
 ```
 
@@ -1450,8 +1489,11 @@ icinga2 pki sign-csr --csr ${HOST_NAME}.csr --cert ${HOST_NAME}.crt
 echo "const NodeName = \"${HOST_NAME}\"" >> /usr/local/icinga/icinga2/etc/icinga2/constants.conf
 ```
 
+#### Web
 
+While it is recommended to use Docker or the Icinga Web 2 development VM pointing to the shared IDO database resource/REST API, you can also install it locally on macOS.
 
+The required steps are described in [this script](https://github.com/dnsmichi/dotfiles/blob/master/icingaweb2.sh).
 
 ### Windows Dev Environment <a id="development-windows-dev-env"></a>
 
