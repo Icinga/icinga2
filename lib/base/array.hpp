@@ -94,6 +94,7 @@ public:
 	void Sort(bool overrideFrozen = false);
 
 	String ToString() const override;
+	Value Join(const Value& separator) const;
 
 	Array::Ptr Unique() const;
 	void Freeze();

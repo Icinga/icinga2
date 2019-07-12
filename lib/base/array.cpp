@@ -297,6 +297,26 @@ String Array::ToString() const
 	return msgbuf.str();
 }
 
+Value Array::Join(const Value& separator) const
+{
+	Value result;
+	bool first = true;
+
+	ObjectLock olock(this);
+
+	for (const Value& item : m_Data) {
+		if (first) {
+			first = false;
+		} else {
+			result = result + separator;
+		}
+
+		result = result + item;
+	}
+
+	return result;
+}
+
 Array::Ptr Array::Unique() const
 {
 	std::set<Value> result;
