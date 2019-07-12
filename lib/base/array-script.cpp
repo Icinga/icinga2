@@ -107,22 +107,7 @@ static Value ArrayJoin(const Value& separator)
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
-
-	Value result;
-	bool first = true;
-
-	ObjectLock olock(self);
-	for (const Value& item : self) {
-		if (first) {
-			first = false;
-		} else {
-			result = result + separator;
-		}
-
-		result = result + item;
-	}
-
-	return result;
+	return self->Join(separator);
 }
 
 static Array::Ptr ArrayReverse()
