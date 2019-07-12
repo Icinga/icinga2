@@ -1466,6 +1466,9 @@ Open an administrative command prompt (Win key, type “cmd”, right-click and 
 @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))" && SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
 ```
 
+In case you are used to `vim`, start a new administrative Powershell and run `choco install -y vim`.
+
+
 #### Visual Studio
 
 Thanks to Microsoft they’ll now provide their Professional Edition of Visual Studio 2017
@@ -1523,6 +1526,8 @@ Chocolatey installs these tools into the hidden directory `C:\ProgramData\chocol
 
 Icinga 2 requires the OpenSSL library. [Download](http://slproweb.com/products/Win32OpenSSL.html)
 and install it into the default path.
+
+Install both, 32 and 64 bit variants.
 
 Once asked for `Copy OpenSSLs DLLs to` select `The Windows system directory`. That way CMake/Visual Studio
 will automatically detect them for builds and packaging.
@@ -1588,6 +1593,18 @@ Right click and select `Git Clone` from the context menu.
 
 Use `ssh://git@github.com/icinga/icinga2.git` for SSH clones, `https://github.com/icinga/icinga2.git` otherwise.
 
+#### Packages
+
+CMake uses CPack and NSIS to create the setup executable including all binaries and libraries
+in addition to setup dialogues and configuration. Therefore we’ll need to install [NSIS](http://nsis.sourceforge.net/Download)
+first.
+
+We also need to install the Windows Installer XML (WIX) toolset.
+
+```
+choco install -y wixtoolset
+```
+
 #### CMake
 
 Icinga 2 uses CMake to manage the build environment. You can generate the Visual Studio project files
@@ -1604,7 +1621,7 @@ Once setup is completed, open a command prompt and navigate to
 cd %HOMEPATH%\source\repos
 ```
 
-Run CMake with the following command. This generates a new Visual Studio project file called `icinga2.sln`.
+Build Icinga with specific CMake variables. This generates a new Visual Studio project file called `icinga2.sln`.
 
 You need to specify the previously installed component paths:
 
@@ -1620,27 +1637,32 @@ Variable              | Value                                                   
 
 Tip: If you have previously opened a terminal, run `refreshenv` to re-read updated PATH variables.
 
+##### Build Scripts
+
+Icinga provides the build scripts inside the Git repository.
+
+Open a new Powershell and navigate into the cloned Git repository. Set
+specific environment variables and run the build scripts.
+
 ```
-cmake . -DCPACK_GENERATOR=WIX -DCMAKE_BUILD_TYPE=Debug -DBOOST_ROOT=C:\boost_1_69_0 -DBOOST_LIBRARYDIR=C:\boost_1_69_0\stage -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=OFF
+cd %HOMEPATH%\source\repos
+
+$env:ICINGA2_BUILDPATH='debug'
+$env:CMAKE_BUILD_TYPE='Debug'
+$env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
+$env:BOOST_ROOT='C:\boost_1_69_0'
+$env:BOOST_LIBRARYDIR='C:\boost_1_69_0\stage'
+
+.\tools\win32\configure.ps1
+.\tools\win32\build.ps1
+.\tools\win32\test.ps1
 ```
 
-Best is write a small batch/Powershell script which just executes these lines.
-
-```
-@echo off
-
-cd icinga2
-mkdir debug
-cd debug
-del CMakeCache.txt
-
-cmake . -DCPACK_GENERATOR=WIX -DCMAKE_BUILD_TYPE=Debug -DBOOST_ROOT=C:\boost_1_69_0 -DBOOST_LIBRARYDIR=C:\boost_1_69_0\stage -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=OFF
-
-cmake --build . --target PACKAGE --config Debug
-
-cd ..
-```
-
+> **Note**
+>
+> You may need to modify `configure.ps1` and
+> add a changed CMake variable for the installation
+> prefix: `-DCMAKE_INSTALL_PREFIX="C:\Program Files\Icinga2-build"`.
 
 #### Icinga 2 in Visual Studio
 
@@ -1667,61 +1689,28 @@ icinga2.exe --version
 
 #### Release Package
 
-CMake uses CPack and NSIS to create the setup executable including all binaries and libraries
-in addition to setup dialogues and configuration. Therefore we’ll need to install [NSIS](http://nsis.sourceforge.net/Download)
-first.
+This is part of the build process script already.
 
-We also need to install the Windows Installer XML (WIX) toolset.
-
-```
-choco install -y wixtoolset
-```
-
-Once completed open an administrative shell and navigate to your Visual Studio project.
-
-Let CMake to build a release package.
+> **Note**
+>
+> You may need to modify `configure.ps1` and
+> add a changed CMake variable for the installation
+> prefix: `-DCMAKE_INSTALL_PREFIX="C:\Program Files\Icinga2-build"`.
 
 ```
-cd %HOMEPATH%\source\repos\icinga2
-cmake --build debug --target PACKAGE --config Release
+cd %HOMEPATH%\source\repos
+
+$env:ICINGA2_BUILDPATH='debug'
+$env:CMAKE_BUILD_TYPE='Debug'
+$env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
+$env:BOOST_ROOT='C:\boost_1_69_0'
+$env:BOOST_LIBRARYDIR='C:\boost_1_69_0\stage'
+
+.\tools\win32\configure.ps1
+.\tools\win32\build.ps1
+.\tools\win32\test.ps1
 ```
 
-Note: This will still use the debug builds. A yet more clean approach
-is to run CMake with changed release parameters beforehand and then
-re-run the release package builder.
-
-```
-cd %HOMEPATH%\source\repos\icinga2
-mkdir release
-cd release
-
-cmake .. -DCPACK_GENERATOR=WIX -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=C:\boost_1_69_0 -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=OFF
-cd ..
-
-cmake --build release --target PACKAGE --config Release
-```
-
-Again, put these lines into a batch/Powershell script and execute that.
-
-```
-@echo off
-cd icinga2
-
-mkdir release
-cd release
-
-del CMakeCache.txt
-
-; set gen=Visual Studio 15 2017 Win64
-set gen=Visual Studio 15 2017
-
-cmake .. -G "%gen%" -DCPACK_GENERATOR=WIX -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBOOST_ROOT=C:\boost_1_69_0 -DBOOST_LIBRARYDIR=C:\boost_1_69_0\stage -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=ON
-cd ..
-
-cmake --build release --target PACKAGE --config Release
-
-cd ..
-```
 
 
 ### Embedded Dev Env: Pi <a id="development-embedded-dev-env"></a>
