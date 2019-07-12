@@ -680,29 +680,6 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 #endif /* _WIN32 */
 }
 
-#ifndef _WIN32
-/**
- * Signal handler for SIGINT and SIGTERM. Prepares the application for cleanly
- * shutting down during the next execution of the event loop.
- *
- * @param - The signal number.
- */
-void Application::SigIntTermHandler(int signum)
-{
-	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = SIG_DFL;
-	sigaction(signum, &sa, nullptr);
-
-	Application::Ptr instance = Application::GetInstance();
-
-	if (!instance)
-		return;
-
-	instance->RequestShutdown();
-}
-#endif /* _WIN32 */
-
 /**
  * Signal handler for SIGUSR1. This signal causes Icinga to re-open
  * its log files and is mainly for use by logrotate.
@@ -715,42 +692,6 @@ void Application::SigUsr1Handler(int)
 		<< "Received USR1 signal, reopening application logs.";
 
 	RequestReopenLogs();
-}
-
-/**
- * Signal handler for SIGUSR2. Hands over PID to child and commits suicide
- *
- * @param - The signal number.
- */
-void Application::SigUsr2Handler(int)
-{
-	Log(LogInformation, "Application", "Reload requested, letting new process take over.");
-#ifdef HAVE_SYSTEMD
-	sd_notifyf(0, "MAINPID=%lu", (unsigned long) m_ReloadProcess);
-#endif /* HAVE_SYSTEMD */
-
-	/* Write the PID of the new process to the pidfile before this
-	 * process exits to keep systemd happy.
-	 */
-	Application::Ptr instance = GetInstance();
-	try {
-		instance->UpdatePidFile(Configuration::PidPath, m_ReloadProcess);
-	} catch (const std::exception&) {
-		/* abort restart */
-		Log(LogCritical, "Application", "Cannot update PID file. Aborting restart operation.");
-		return;
-	}
-
-	instance->ClosePidFile(false);
-
-	/* Ensure to dump the program state on reload. */
-	ConfigObject::StopObjects();
-	instance->OnShutdown();
-
-	Log(LogInformation, "Application")
-		<< "Reload done, parent process shutting down. Child process with PID '" << m_ReloadProcess << "' is taking over.";
-
-	Exit(0);
 }
 
 /**
@@ -999,15 +940,8 @@ int Application::Run()
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = &Application::SigIntTermHandler;
-	sigaction(SIGINT, &sa, nullptr);
-	sigaction(SIGTERM, &sa, nullptr);
-
 	sa.sa_handler = &Application::SigUsr1Handler;
 	sigaction(SIGUSR1, &sa, nullptr);
-
-	sa.sa_handler = &Application::SigUsr2Handler;
-	sigaction(SIGUSR2, &sa, nullptr);
 #else /* _WIN32 */
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */

@@ -27,13 +27,6 @@ static po::variables_map g_AppParams;
 
 REGISTER_CLICOMMAND("daemon", DaemonCommand);
 
-#ifndef _WIN32
-static void SigHupHandler(int)
-{
-	Application::RequestRestart();
-}
-#endif /* _WIN32 */
-
 /*
  * Daemonize().  On error, this function logs by itself and exits (i.e. does not return).
  *
@@ -298,13 +291,6 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		Log(LogNotice, "cli")
 			<< "Cannot clean ignored downtimes/comments: " << ex.what();
 	}
-
-#ifndef _WIN32
-	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = &SigHupHandler;
-	sigaction(SIGHUP, &sa, nullptr);
-#endif /* _WIN32 */
 
 	ApiListener::UpdateObjectAuthority();
 

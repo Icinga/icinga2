@@ -132,9 +132,7 @@ private:
 	static bool m_ScriptDebuggerEnabled;
 	static double m_LastReloadFailed;
 
-#ifndef _WIN32
-	static void SigIntTermHandler(int signum);
-#else /* _WIN32 */
+#ifdef _WIN32
 	static BOOL WINAPI CtrlHandler(DWORD type);
 	static LONG WINAPI SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi);
 #endif /* _WIN32 */
@@ -143,7 +141,6 @@ private:
 
 	static void SigAbrtHandler(int signum);
 	static void SigUsr1Handler(int signum);
-	static void SigUsr2Handler(int signum);
 	static void ExceptionHandler();
 
 	static String GetCrashReportFilename();
