@@ -176,6 +176,21 @@ void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>&
 			<< boost::errinfo_api_function("SSL_CTX_set_cipher_list")
 			<< errinfo_openssl_error(ERR_peek_error()));
 	}
+
+	//With OpenSSL 1.1.0, there might not be any returned 0.
+	STACK_OF(SSL_CIPHER) *ciphers;
+	Array::Ptr cipherNames = new Array();
+
+	ciphers = SSL_CTX_get_ciphers(context->native_handle());
+	for (int i = 0; i < sk_SSL_CIPHER_num(ciphers); i++) {
+		const SSL_CIPHER *cipher = sk_SSL_CIPHER_value(ciphers, i);
+		String cipher_name = SSL_CIPHER_get_name(cipher);
+
+		cipherNames->Add(cipher_name);
+	}
+
+	Log(LogNotice, "TlsUtility")
+		<< "Available TLS cipher list: " << cipherNames->Join(" ");
 }
 
 /**
