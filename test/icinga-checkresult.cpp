@@ -49,6 +49,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	host->SetActive(true);
 	host->SetMaxCheckAttempts(1);
 	host->Activate();
+	host->SetPaused(false); // Simulate a non-cluster setup
 	host->SetAuthority(true);
 	host->SetStateRaw(ServiceOK);
 	host->SetStateType(StateTypeHard);
@@ -98,6 +99,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	host->SetActive(true);
 	host->SetMaxCheckAttempts(2);
 	host->Activate();
+	host->SetPaused(false); // Simulate a non-cluster setup
 	host->SetAuthority(true);
 	host->SetStateRaw(ServiceOK);
 	host->SetStateType(StateTypeHard);
@@ -154,6 +156,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	host->SetActive(true);
 	host->SetMaxCheckAttempts(3);
 	host->Activate();
+	host->SetPaused(false); // Simulate a non-cluster setup
 	host->SetAuthority(true);
 	host->SetStateRaw(ServiceOK);
 	host->SetStateType(StateTypeHard);
@@ -217,6 +220,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	service->SetActive(true);
 	service->SetMaxCheckAttempts(1);
 	service->Activate();
+	service->SetPaused(false); // Simulate a non-cluster setup
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);
 	service->SetStateType(StateTypeHard);
@@ -266,6 +270,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	service->SetActive(true);
 	service->SetMaxCheckAttempts(2);
 	service->Activate();
+	service->SetPaused(false); // Simulate a non-cluster setup
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);
 	service->SetStateType(StateTypeHard);
@@ -322,6 +327,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	service->SetActive(true);
 	service->SetMaxCheckAttempts(3);
 	service->Activate();
+	service->SetPaused(false); // Simulate a non-cluster setup
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);
 	service->SetStateType(StateTypeHard);
@@ -389,6 +395,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_notification)
 	Host::Ptr host = new Host();
 	host->SetActive(true);
 	host->Activate();
+	host->SetPaused(false); // Simulate a non-cluster setup
 	host->SetAuthority(true);
 	host->SetStateRaw(ServiceOK);
 	host->SetStateType(StateTypeHard);
@@ -443,6 +450,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 	Service::Ptr service = new Service();
 	service->SetActive(true);
 	service->Activate();
+	service->SetPaused(false); // Simulate a non-cluster setup
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);
 	service->SetStateType(StateTypeHard);
@@ -497,6 +505,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
 
 	Service::Ptr service = new Service();
 	service->Activate();
+	service->SetPaused(false); // Simulate a non-cluster setup
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);
 	service->SetStateType(StateTypeHard);
@@ -596,6 +605,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad)
 	Service::Ptr service = new Service();
 	service->Activate();
 	service->SetAuthority(true);
+	service->SetPaused(false); // Simulate a non-cluster setup
 	service->SetStateRaw(ServiceOK);
 	service->SetStateType(StateTypeHard);
 	service->SetEnableFlapping(true);
@@ -673,6 +683,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_over_bad_into_ok)
 
 	Service::Ptr service = new Service();
 	service->Activate();
+	service->SetPaused(false); // Simulate a non-cluster setup
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);
 	service->SetStateType(StateTypeHard);
