@@ -177,6 +177,7 @@ void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>&
 			<< errinfo_openssl_error(ERR_peek_error()));
 	}
 
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	//With OpenSSL 1.1.0, there might not be any returned 0.
 	STACK_OF(SSL_CIPHER) *ciphers;
 	Array::Ptr cipherNames = new Array();
@@ -191,6 +192,7 @@ void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>&
 
 	Log(LogNotice, "TlsUtility")
 		<< "Available TLS cipher list: " << cipherNames->Join(" ");
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 }
 
 /**
