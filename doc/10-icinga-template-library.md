@@ -3172,7 +3172,7 @@ nwc_health_oids			| **Optional.** A list of oids which are downloaded and writte
 nwc_health_offline		| **Optional.** The maximum number of seconds since the last update of cache file before it is considered too old.
 nwc_health_multiline		| **Optional.** Multiline output
 
-#### printer_health <a id="plugin-contrib-command-nwc_health"></a>
+#### printer_health <a id="plugin-contrib-command-printer_health"></a>
 
 The [check_printer_health](https://labs.consol.de/nagios/check_printer_health/index.html) plugin
 uses SNMP to monitor printer. The plugin is able to generate supply statistics and check hardware.
