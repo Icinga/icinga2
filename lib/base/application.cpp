@@ -30,9 +30,6 @@
 #else /* _WIN32 */
 #include <signal.h>
 #endif /* _WIN32 */
-#ifdef HAVE_SYSTEMD
-#include <systemd/sd-daemon.h>
-#endif /* HAVE_SYSTEMD */
 
 using namespace icinga;
 
@@ -295,19 +292,11 @@ void Application::SetArgV(char **argv)
  */
 void Application::RunEventLoop()
 {
-#ifdef HAVE_SYSTEMD
-	sd_notify(0, "READY=1");
-#endif /* HAVE_SYSTEMD */
-
 	double lastLoop = Utility::GetTime();
 
 	while (!m_ShuttingDown) {
 		if (m_RequestRestart) {
 			m_RequestRestart = false;         // we are now handling the request, once is enough
-
-#ifdef HAVE_SYSTEMD
-			sd_notify(0, "RELOADING=1");
-#endif /* HAVE_SYSTEMD */
 
 #ifdef _WIN32
 			// are we already restarting? ignore request if we already are
@@ -331,10 +320,6 @@ void Application::RunEventLoop()
 			double now = Utility::GetTime();
 			double timeDiff = lastLoop - now;
 
-#ifdef HAVE_SYSTEMD
-			sd_notify(0, "WATCHDOG=1");
-#endif /* HAVE_SYSTEMD */
-
 			if (std::fabs(timeDiff) > 15) {
 				/* We made a significant jump in time. */
 				Log(LogInformation, "Application")
@@ -348,10 +333,6 @@ void Application::RunEventLoop()
 			lastLoop = now;
 		}
 	}
-
-#ifdef HAVE_SYSTEMD
-	sd_notify(0, "STOPPING=1");
-#endif /* HAVE_SYSTEMD */
 
 	Log(LogInformation, "Application", "Shutting down...");
 

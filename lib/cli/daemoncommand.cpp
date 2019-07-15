@@ -31,6 +31,10 @@
 #include <unistd.h>
 #endif /* _WIN32 */
 
+#ifdef HAVE_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif /* HAVE_SYSTEMD */
+
 using namespace icinga;
 namespace po = boost::program_options;
 
@@ -319,6 +323,20 @@ static void WorkerSignalHandler(int num, siginfo_t *info, void*)
 	}
 }
 
+#ifdef HAVE_SYSTEMD
+static std::atomic<double> l_LastNotifiedWatchdog (0);
+
+static void NotifyWatchdog()
+{
+	double now = Utility::GetTime();
+
+	if (now - l_LastNotifiedWatchdog.load() >= 2.5) {
+		sd_notify(0, "WATCHDOG=1");
+		l_LastNotifiedWatchdog.store(now);
+	}
+}
+#endif /* HAVE_SYSTEMD */
+
 static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 {
 	try {
@@ -383,11 +401,18 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 			(void)sigprocmask(SIG_UNBLOCK, &l_UnixWorkerSignals, nullptr);
 
 			for (;;) {
+#ifdef HAVE_SYSTEMD
+				NotifyWatchdog();
+#endif /* HAVE_SYSTEMD */
+
 				switch (l_CurrentlyStartingUnixWorkerState.load()) {
 					case UnixWorkerState::LoadedConfig:
 						break;
 					case UnixWorkerState::Failed:
 						while (waitpid(pid, nullptr, 0) == -1 && errno == EINTR) {
+#ifdef HAVE_SYSTEMD
+							NotifyWatchdog();
+#endif /* HAVE_SYSTEMD */
 						}
 						pid = -1;
 						break;
@@ -533,34 +558,69 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 	(void)kill(currentWorker, SIGUSR2);
 
+#ifdef HAVE_SYSTEMD
+	sd_notify(0, "READY=1");
+#endif /* HAVE_SYSTEMD */
+
 	bool requestedTermination = false;
+	bool notifiedTermination = false;
 
 	for (;;) {
+#ifdef HAVE_SYSTEMD
+		NotifyWatchdog();
+#endif /* HAVE_SYSTEMD */
+
 		if (!requestedTermination) {
 			int termSig = l_TermSignal.load();
 			if (termSig != -1) {
 				(void)kill(currentWorker, termSig);
 				requestedTermination = true;
+
+#ifdef HAVE_SYSTEMD
+				if (!notifiedTermination) {
+					notifiedTermination = true;
+					sd_notify(0, "STOPPING=1");
+				}
+#endif /* HAVE_SYSTEMD */
 			}
 		}
 
 		if (l_RequestedReload.exchange(false)) {
+#ifdef HAVE_SYSTEMD
+			sd_notify(0, "RELOADING=1");
+#endif /* HAVE_SYSTEMD */
+
 			pid_t nextWorker = StartUnixWorker(configs);
 
 			if (nextWorker != -1) {
 				(void)kill(currentWorker, SIGTERM);
 				while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
+#ifdef HAVE_SYSTEMD
+					NotifyWatchdog();
+#endif /* HAVE_SYSTEMD */
 				}
 
 				(void)kill(nextWorker, SIGUSR2);
 
 				currentWorker = nextWorker;
 			}
+
+#ifdef HAVE_SYSTEMD
+			sd_notify(0, "READY=1");
+#endif /* HAVE_SYSTEMD */
+
 		}
 
 		{
 			int status;
 			if (waitpid(currentWorker, &status, WNOHANG) > 0) {
+#ifdef HAVE_SYSTEMD
+				if (!notifiedTermination) {
+					notifiedTermination = true;
+					sd_notify(0, "STOPPING=1");
+				}
+#endif /* HAVE_SYSTEMD */
+
 				return WIFSIGNALED(status) ? 128 + WTERMSIG(status) : WEXITSTATUS(status);
 			}
 		}
