@@ -7,6 +7,7 @@
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
+#include "base/defer.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/timer.hpp"
@@ -412,6 +413,15 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 
 	return pid;
 }
+
+class PidFileManagementApp : public Application
+{
+public:
+	inline int Main() override
+	{
+		return EXIT_FAILURE;
+	}
+};
 #endif /* _WIN32 */
 
 /**
@@ -465,6 +475,22 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		// and terminates the process (does not return).
 		Daemonize();
 	}
+
+#ifndef _WIN32
+	PidFileManagementApp app;
+
+	try {
+		app.UpdatePidFile(Configuration::PidPath);
+	} catch (const std::exception&) {
+		Log(LogCritical, "Application")
+			<< "Cannot update PID file '" << Configuration::PidPath << "'. Aborting.";
+		return EXIT_FAILURE;
+	}
+
+	Defer closePidFile ([&app]() {
+		app.ClosePidFile(true);
+	});
+#endif /* _WIN32 */
 
 	if (vm.count("daemonize") || vm.count("close-stdio")) {
 		// After disabling the console log, any further errors will go to the configured log only.

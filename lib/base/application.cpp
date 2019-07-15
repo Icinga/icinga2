@@ -80,7 +80,9 @@ void Application::Stop(bool runtimeRemoved)
 	WSACleanup();
 #endif /* _WIN32 */
 
+#ifdef _WIN32
 	ClosePidFile(true);
+#endif /* _WIN32 */
 
 	ObjectImpl<Application>::Stop(runtimeRemoved);
 }
@@ -964,6 +966,7 @@ int Application::Run()
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */
 
+#ifdef _WIN32
 	try {
 		UpdatePidFile(Configuration::PidPath);
 	} catch (const std::exception&) {
@@ -971,6 +974,7 @@ int Application::Run()
 			<< "Cannot update PID file '" << Configuration::PidPath << "'. Aborting.";
 		return EXIT_FAILURE;
 	}
+#endif /* _WIN32 */
 
 	SetMainTime(Utility::GetTime());
 

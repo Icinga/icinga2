@@ -132,7 +132,7 @@ private:
 
 	static int m_ArgC; /**< The number of command-line arguments. */
 	static char **m_ArgV; /**< Command-line arguments. */
-	FILE *m_PidFile; /**< The PID file */
+	FILE *m_PidFile = nullptr; /**< The PID file */
 	static bool m_Debugging; /**< Whether debugging is enabled. */
 	static LogSeverity m_DebuggingSeverity; /**< Whether debugging severity is set. */
 	static double m_StartTime;
