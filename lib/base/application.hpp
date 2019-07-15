@@ -57,6 +57,10 @@ public:
 	static void RequestRestart();
 	static void RequestReopenLogs();
 
+#ifndef _WIN32
+	static void SetUmbrellaProcess(pid_t pid);
+#endif /* _WIN32 */
+
 	static bool IsShuttingDown();
 	static bool IsRestarting();
 
@@ -121,6 +125,10 @@ private:
 	static bool m_RequestRestart; /**< A restart was requested through SIGHUP */
 	static pid_t m_ReloadProcess; /**< The PID of a subprocess doing a reload, only valid when l_Restarting==true */
 	static bool m_RequestReopenLogs; /**< Whether we should re-open log files. */
+
+#ifndef _WIN32
+	static pid_t m_UmbrellaProcess;
+#endif /* _WIN32 */
 
 	static int m_ArgC; /**< The number of command-line arguments. */
 	static char **m_ArgV; /**< Command-line arguments. */

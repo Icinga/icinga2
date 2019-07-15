@@ -27,6 +27,8 @@
 #endif /* __linux__ */
 #ifdef _WIN32
 #include <windows.h>
+#else /* _WIN32 */
+#include <signal.h>
 #endif /* _WIN32 */
 #ifdef HAVE_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -42,6 +44,11 @@ bool Application::m_ShuttingDown = false;
 bool Application::m_RequestRestart = false;
 bool Application::m_RequestReopenLogs = false;
 pid_t Application::m_ReloadProcess = 0;
+
+#ifndef _WIN32
+pid_t Application::m_UmbrellaProcess = 0;
+#endif /* _WIN32 */
+
 static bool l_Restarting = false;
 static bool l_InExceptionHandler = false;
 int Application::m_ArgC;
@@ -300,11 +307,15 @@ void Application::RunEventLoop()
 			sd_notify(0, "RELOADING=1");
 #endif /* HAVE_SYSTEMD */
 
+#ifdef _WIN32
 			// are we already restarting? ignore request if we already are
 			if (!l_Restarting) {
 				l_Restarting = true;
 				m_ReloadProcess = StartReloadProcess();
 			}
+#else /* _WIN32 */
+			(void)kill(m_UmbrellaProcess, SIGHUP);
+#endif /* _WIN32 */
 		} else {
 			/* Watches for changes to the system time. Adjusts timers if necessary. */
 			Utility::Sleep(2.5);
@@ -445,6 +456,13 @@ void Application::RequestReopenLogs()
 {
 	m_RequestReopenLogs = true;
 }
+
+#ifndef _WIN32
+void Application::SetUmbrellaProcess(pid_t pid)
+{
+	m_UmbrellaProcess = pid;
+}
+#endif /* _WIN32 */
 
 /**
  * Retrieves the full path of the executable.

@@ -477,6 +477,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	return RunWorker(configs);
 #else /* _WIN32 */
 	l_UmbrellaPid = getpid();
+	Application::SetUmbrellaProcess(l_UmbrellaPid);
 
 	{
 		struct sigaction sa;
