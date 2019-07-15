@@ -260,6 +260,7 @@ static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 
 	(void)sigemptyset(&s);
 	(void)sigaddset(&s, SIGCHLD);
+	(void)sigaddset(&s, SIGUSR1);
 	(void)sigaddset(&s, SIGUSR2);
 	(void)sigaddset(&s, SIGINT);
 	(void)sigaddset(&s, SIGTERM);
@@ -272,10 +273,14 @@ static std::atomic<pid_t> l_CurrentlyStartingUnixWorkerPid (-1);
 static std::atomic<UnixWorkerState> l_CurrentlyStartingUnixWorkerState (UnixWorkerState::Pending);
 static std::atomic<int> l_TermSignal (-1);
 static std::atomic<bool> l_RequestedReload (false);
+static std::atomic<bool> l_RequestedReopenLogs (false);
 
 static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 {
 	switch (num) {
+		case SIGUSR1:
+			l_RequestedReopenLogs.store(true);
+			break;
 		case SIGUSR2:
 			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
 				&& info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) {
@@ -373,6 +378,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 					sa.sa_handler = SIG_DFL;
 
 					(void)sigaction(SIGCHLD, &sa, nullptr);
+					(void)sigaction(SIGUSR1, &sa, nullptr);
 					(void)sigaction(SIGHUP, &sa, nullptr);
 				}
 
@@ -556,6 +562,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		sa.sa_flags = SA_NOCLDSTOP | SA_RESTART | SA_SIGINFO;
 
 		(void)sigaction(SIGCHLD, &sa, nullptr);
+		(void)sigaction(SIGUSR1, &sa, nullptr);
 		(void)sigaction(SIGUSR2, &sa, nullptr);
 		(void)sigaction(SIGINT, &sa, nullptr);
 		(void)sigaction(SIGTERM, &sa, nullptr);
@@ -636,6 +643,12 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 			sd_notify(0, "READY=1");
 #endif /* HAVE_SYSTEMD */
 
+		}
+
+		if (l_RequestedReopenLogs.exchange(false)) {
+			Log(LogNotice, "cli") << "Got signal " << SIGUSR1 << ", forwarding to seemless worker (PID " << currentWorker << ")";
+
+			(void)kill(currentWorker, SIGUSR1);
 		}
 
 		{
