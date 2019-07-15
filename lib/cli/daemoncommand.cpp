@@ -198,12 +198,17 @@ int RunWorker(const std::vector<std::string>& configs)
 			return EXIT_FAILURE;
 
 #ifndef _WIN32
-		// Notify umbrella process about the config loading success.
+		Log(LogNotice, "cli") << "Notifying umbrella process (PID " << l_UmbrellaPid << ") about the config loading success";
+
 		(void)kill(l_UmbrellaPid, SIGUSR2);
+
+		Log(LogNotice, "cli") << "Waiting for the umbrella process to let us doing the actual work";
 
 		while (!l_AllowedToWork.load()) {
 			Utility::Sleep(0.2);
 		}
+
+		Log(LogNotice, "cli") << "The umbrella process let us continuing";
 #endif /* _WIN32 */
 
 		/* restore the previous program state */
@@ -339,6 +344,8 @@ static void NotifyWatchdog()
 
 static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 {
+	Log(LogNotice, "cli") << "Spawning seemless worker process doing the actual work";
+
 	try {
 		Application::UninitializeBase();
 	} catch (const std::exception& ex) {
@@ -400,6 +407,8 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 			l_CurrentlyStartingUnixWorkerPid.store(pid);
 			(void)sigprocmask(SIG_UNBLOCK, &l_UnixWorkerSignals, nullptr);
 
+			Log(LogNotice, "cli") << "Spawned worker process (PID " << pid << "), waiting for it to load its config";
+
 			for (;;) {
 #ifdef HAVE_SYSTEMD
 				NotifyWatchdog();
@@ -407,8 +416,11 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 
 				switch (l_CurrentlyStartingUnixWorkerState.load()) {
 					case UnixWorkerState::LoadedConfig:
+						Log(LogNotice, "cli") << "Worker process successfully loaded its config";
 						break;
 					case UnixWorkerState::Failed:
+						Log(LogNotice, "cli") << "Worker process couldn't load its config";
+
 						while (waitpid(pid, nullptr, 0) == -1 && errno == EINTR) {
 #ifdef HAVE_SYSTEMD
 							NotifyWatchdog();
@@ -573,6 +585,8 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		if (!requestedTermination) {
 			int termSig = l_TermSignal.load();
 			if (termSig != -1) {
+				Log(LogNotice, "cli") << "Got signal " << termSig << ", forwarding to seemless worker (PID " << currentWorker << ")";
+
 				(void)kill(currentWorker, termSig);
 				requestedTermination = true;
 
@@ -586,18 +600,31 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		}
 
 		if (l_RequestedReload.exchange(false)) {
+			Log(LogInformation, "Application") << "Got reload command: Starting new instance.";
+
 #ifdef HAVE_SYSTEMD
 			sd_notify(0, "RELOADING=1");
 #endif /* HAVE_SYSTEMD */
 
 			pid_t nextWorker = StartUnixWorker(configs);
 
-			if (nextWorker != -1) {
+			if (nextWorker == -1) {
+				Log(LogCritical, "Application", "Found error in config: reloading aborted");
+			} else {
+				Log(LogInformation, "Application") << "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
+
 				(void)kill(currentWorker, SIGTERM);
-				while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
+
+				{
+					double start = Utility::GetTime();
+
+					while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
 #ifdef HAVE_SYSTEMD
-					NotifyWatchdog();
+						NotifyWatchdog();
 #endif /* HAVE_SYSTEMD */
+					}
+
+					Log(LogNotice, "cli") << "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
 				}
 
 				(void)kill(nextWorker, SIGUSR2);
@@ -614,6 +641,8 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		{
 			int status;
 			if (waitpid(currentWorker, &status, WNOHANG) > 0) {
+				Log(LogNotice, "cli") << "Seemless worker (PID " << currentWorker << ") stopped, stopping as well";
+
 #ifdef HAVE_SYSTEMD
 				if (!notifiedTermination) {
 					notifiedTermination = true;
