@@ -667,7 +667,6 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 		<< "' vs. new (" << newChecksums->GetLength() << "): '"
 		<< JsonEncode(newChecksums) << "'.";
 
-
 	/* Since internal files are synced here too, we can not depend on length.
 	 * So we need to go through both checksum sets to cover the cases"everything is new" and "everything was deleted".
 	 */
@@ -677,36 +676,36 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 			String path = kv.first;
 			String oldChecksum = kv.second;
 
-			// TODO: Figure out if config changes only apply to '.conf'. Leaving this open for other config files.
-			//if (!Utility::Match("*.conf", path))
-			//	continue;
-
 			/* Ignore internal files, especially .timestamp and .checksums.
 			 *
 			 * If we don't, this results in "always change" restart loops.
 			 */
 			if (Utility::Match("/.*", path)) {
 				Log(LogDebug, "ApiListener")
-						<< "Ignoring old internal file '" << path << "'.";
+					<< "Ignoring old internal file '" << path << "'.";
+
 				continue;
 			}
 
 			Log(LogDebug, "ApiListener")
-					<< "Checking " << path << " for old checksum: " << oldChecksum << ".";
+				<< "Checking " << path << " for old checksum: " << oldChecksum << ".";
 
 			// Check if key exists first for more verbose logging.
-			// TODO: Don't do this later on.
+			// Note: Don't do this later on.
 			if (!newChecksums->Contains(path)) {
 				Log(LogDebug, "ApiListener")
-						<< "File '" << path << "' was deleted by remote.";
+					<< "File '" << path << "' was deleted by remote.";
+
 				return true;
 			}
 
 			String newChecksum = newChecksums->Get(path);
+
 			if (newChecksum != kv.second) {
 				Log(LogDebug, "ApiListener")
-						<< "Path '" << path << "' doesn't match old checksum '"
-						<< oldChecksum << "' with new checksum '" << newChecksum << "'.";
+					<< "Path '" << path << "' doesn't match old checksum '"
+					<< oldChecksum << "' with new checksum '" << newChecksum << "'.";
+
 				return true;
 			}
 		}
@@ -718,27 +717,25 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 			String path = kv.first;
 			String newChecksum = kv.second;
 
-			// TODO: Figure out if config changes only apply to '.conf'. Leaving this open for other config files.
-			//if (!Utility::Match("*.conf", path))
-			//	continue;
-
 			/* Ignore internal files, especially .timestamp and .checksums.
 			 *
 			 * If we don't, this results in "always change" restart loops.
 			 */
 			if (Utility::Match("/.*", path)) {
 				Log(LogDebug, "ApiListener")
-						<< "Ignoring new internal file '" << path << "'.";
+					<< "Ignoring new internal file '" << path << "'.";
+
 				continue;
 			}
 
 			Log(LogDebug, "ApiListener")
 				<< "Checking " << path << " for new checksum: " << newChecksum << ".";
 
-			// Here we only need to check if the checksum exists, checksums in both sets have already been compared
+			// Check if the checksum exists, checksums in both sets have already been compared
 			if (!oldChecksums->Contains(path)) {
 				Log(LogDebug, "ApiListener")
 					<< "File '" << path << "' was added by remote.";
+
 				return true;
 			}
 		}
