@@ -293,6 +293,9 @@ static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 			break;
 		case SIGHUP:
 			l_RequestedReload.store(true);
+			break;
+		default:
+			VERIFY(!"Caught unexpected signal");
 	}
 }
 
@@ -309,6 +312,9 @@ static void WorkerSignalHandler(int num, siginfo_t *info, void*)
 			if (info->si_pid == l_UmbrellaPid) {
 				Application::RequestShutdown();
 			}
+			break;
+		default:
+			VERIFY(!"Caught unexpected signal");
 	}
 }
 
