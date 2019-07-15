@@ -301,6 +301,8 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	Utility::MkDirP(apiZonesStageDir, 0700);
 
 	// Analyse and process the update.
+	size_t count = 0;
+
 	ObjectLock olock(updateV1);
 
 	for (const Dictionary::Pair& kv : updateV1) {
@@ -441,10 +443,6 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 				 * */
 				relativePaths.push_back(zoneName + "/" + kv.first);
 
-				// Ignore same config content. This is an expensive comparison.
-				if (productionConfig->Get(kv.first) == kv.second)
-					continue;
-
 				String path = stageConfigZoneDir + "/" + kv.first;
 
 				if (Utility::Match("*.conf", path)) {
@@ -484,6 +482,8 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 				}
 			}
 		}
+
+		count++;
 	}
 
 	/*
@@ -497,13 +497,13 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	 */
 	if (configChange) {
 		Log(LogInformation, "ApiListener")
-			<< "Received configuration from endpoint '" << fromEndpointName
-			<< "' is different to production, triggering validation and reload.";
+			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
+			<< "' are different to production, triggering validation and reload.";
 		AsyncTryActivateZonesStage(relativePaths);
 	} else {
 		Log(LogInformation, "ApiListener")
-			<< "Received configuration from endpoint '" << fromEndpointName
-			<< "' is equal to production, not triggering reload.";
+			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
+			<< "' are equal to production, not triggering reload.";
 	}
 
 	return Empty;
@@ -667,35 +667,77 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 		<< "' vs. new (" << newChecksums->GetLength() << "): '"
 		<< JsonEncode(newChecksums) << "'.";
 
-	// Don't check for different length, this may be influenced from internal files
-	ObjectLock olock(oldChecksums);
+	/* Since internal files are synced here too, we can not depend on length.
+	 * So we need to go through both checksum sets to cover the cases"everything is new" and "everything was deleted".
+	 */
+	{
+		ObjectLock olock(oldChecksums);
+		for (const Dictionary::Pair& kv : oldChecksums) {
+			String path = kv.first;
+			String oldChecksum = kv.second;
 
-	for (const Dictionary::Pair& kv : oldChecksums) {
-		String path = kv.first;
-		String oldChecksum = kv.second;
+			/* Ignore internal files, especially .timestamp and .checksums.
+			 *
+			 * If we don't, this results in "always change" restart loops.
+			 */
+			if (Utility::Match("/.*", path)) {
+				Log(LogDebug, "ApiListener")
+					<< "Ignoring old internal file '" << path << "'.";
 
-		// TODO: Figure out if config changes only apply to '.conf'. Leaving this open for other config files.
-		//if (!Utility::Match("*.conf", path))
-		//	continue;
+				continue;
+			}
 
-		/* Ignore internal files, especially .timestamp and .checksums.
-		 *
-		 * If we don't, this results in "always change" restart loops.
-		 */
-		if (Utility::Match("/.*", path))
-			continue;
-
-		Log(LogDebug, "ApiListener")
-			<< "Checking " << path << " for checksum: " << oldChecksum;
-
-		// Check whether our key exists in the new checksums, and they have an equal value.
-		String newChecksum = newChecksums->Get(path);
-
-		if (newChecksums->Get(path) != kv.second) {
 			Log(LogDebug, "ApiListener")
-				<< "Path '" << path << "' doesn't match old checksum '"
-				<< newChecksum << "' with new checksum '" << oldChecksum << "'.";
-			return true;
+				<< "Checking " << path << " for old checksum: " << oldChecksum << ".";
+
+			// Check if key exists first for more verbose logging.
+			// Note: Don't do this later on.
+			if (!newChecksums->Contains(path)) {
+				Log(LogDebug, "ApiListener")
+					<< "File '" << path << "' was deleted by remote.";
+
+				return true;
+			}
+
+			String newChecksum = newChecksums->Get(path);
+
+			if (newChecksum != kv.second) {
+				Log(LogDebug, "ApiListener")
+					<< "Path '" << path << "' doesn't match old checksum '"
+					<< oldChecksum << "' with new checksum '" << newChecksum << "'.";
+
+				return true;
+			}
+		}
+	}
+
+	{
+		ObjectLock olock(newChecksums);
+		for (const Dictionary::Pair& kv : newChecksums) {
+			String path = kv.first;
+			String newChecksum = kv.second;
+
+			/* Ignore internal files, especially .timestamp and .checksums.
+			 *
+			 * If we don't, this results in "always change" restart loops.
+			 */
+			if (Utility::Match("/.*", path)) {
+				Log(LogDebug, "ApiListener")
+					<< "Ignoring new internal file '" << path << "'.";
+
+				continue;
+			}
+
+			Log(LogDebug, "ApiListener")
+				<< "Checking " << path << " for new checksum: " << newChecksum << ".";
+
+			// Check if the checksum exists, checksums in both sets have already been compared
+			if (!oldChecksums->Contains(path)) {
+				Log(LogDebug, "ApiListener")
+					<< "File '" << path << "' was added by remote.";
+
+				return true;
+			}
 		}
 	}
 
