@@ -178,6 +178,7 @@ std::vector<String> DaemonCommand::GetArgumentSuggestions(const String& argument
 
 #ifndef _WIN32
 pid_t l_UmbrellaPid = 0;
+static std::atomic<bool> l_AllowedToWork (false);
 #endif /* _WIN32 */
 
 static inline
@@ -194,6 +195,10 @@ int RunWorker(const std::vector<std::string>& configs)
 #ifndef _WIN32
 		// Notify umbrella process about the config loading success.
 		(void)kill(l_UmbrellaPid, SIGUSR2);
+
+		while (!l_AllowedToWork.load()) {
+			Utility::Sleep(0.2);
+		}
 #endif /* _WIN32 */
 
 		/* restore the previous program state */
@@ -248,6 +253,7 @@ static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 	(void)sigaddset(&s, SIGUSR2);
 	(void)sigaddset(&s, SIGINT);
 	(void)sigaddset(&s, SIGTERM);
+	(void)sigaddset(&s, SIGHUP);
 
 	return s;
 })();
@@ -255,6 +261,7 @@ static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 static std::atomic<pid_t> l_CurrentlyStartingUnixWorkerPid (-1);
 static std::atomic<UnixWorkerState> l_CurrentlyStartingUnixWorkerState (UnixWorkerState::Pending);
 static std::atomic<int> l_TermSignal (-1);
+static std::atomic<bool> l_RequestedReload (false);
 
 static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 {
@@ -283,12 +290,20 @@ static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 			}
 
 			l_TermSignal.store(num);
+			break;
+		case SIGHUP:
+			l_RequestedReload.store(true);
 	}
 }
 
 static void WorkerSignalHandler(int num, siginfo_t *info, void*)
 {
 	switch (num) {
+		case SIGUSR2:
+			if (info->si_pid == l_UmbrellaPid) {
+				l_AllowedToWork.store(true);
+			}
+			break;
 		case SIGINT:
 		case SIGTERM:
 			if (info->si_pid == l_UmbrellaPid) {
@@ -326,7 +341,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 					sa.sa_handler = SIG_DFL;
 
 					(void)sigaction(SIGCHLD, &sa, nullptr);
-					(void)sigaction(SIGUSR2, &sa, nullptr);
+					(void)sigaction(SIGHUP, &sa, nullptr);
 				}
 
 				{
@@ -336,6 +351,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 					sa.sa_sigaction = &WorkerSignalHandler;
 					sa.sa_flags = SA_RESTART | SA_SIGINFO;
 
+					(void)sigaction(SIGUSR2, &sa, nullptr);
 					(void)sigaction(SIGINT, &sa, nullptr);
 					(void)sigaction(SIGTERM, &sa, nullptr);
 				}
@@ -473,6 +489,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		(void)sigaction(SIGUSR2, &sa, nullptr);
 		(void)sigaction(SIGINT, &sa, nullptr);
 		(void)sigaction(SIGTERM, &sa, nullptr);
+		(void)sigaction(SIGHUP, &sa, nullptr);
 	}
 
 	pid_t currentWorker = StartUnixWorker(configs);
@@ -480,6 +497,8 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	if (currentWorker == -1) {
 		return EXIT_FAILURE;
 	}
+
+	(void)kill(currentWorker, SIGUSR2);
 
 	bool requestedTermination = false;
 
@@ -489,6 +508,20 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 			if (termSig != -1) {
 				(void)kill(currentWorker, termSig);
 				requestedTermination = true;
+			}
+		}
+
+		if (l_RequestedReload.exchange(false)) {
+			pid_t nextWorker = StartUnixWorker(configs);
+
+			if (nextWorker != -1) {
+				(void)kill(currentWorker, SIGTERM);
+				while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
+				}
+
+				(void)kill(nextWorker, SIGUSR2);
+
+				currentWorker = nextWorker;
 			}
 		}
 
