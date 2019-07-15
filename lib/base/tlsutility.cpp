@@ -58,15 +58,26 @@ void InitializeOpenSSL()
 	l_SSLInitialized = true;
 }
 
-static void SetupSslContext(SSL_CTX *sslContext, const String& pubkey, const String& privkey, const String& cakey)
+static void SetupSslContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& pubkey, const String& privkey, const String& cakey)
 {
 	char errbuf[256];
 
-	long flags = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_CIPHER_SERVER_PREFERENCE;
+	// Enforce TLS v1.2 as minimum
+	context->set_options(
+		boost::asio::ssl::context::default_workarounds |
+		boost::asio::ssl::context::no_compression |
+		boost::asio::ssl::context::no_sslv2 |
+		boost::asio::ssl::context::no_sslv3 |
+		boost::asio::ssl::context::no_tlsv1 |
+		boost::asio::ssl::context::no_tlsv1_1
+	);
 
-#ifdef SSL_OP_NO_COMPRESSION
-	flags |= SSL_OP_NO_COMPRESSION;
-#endif /* SSL_OP_NO_COMPRESSION */
+	// Custom TLS flags
+	SSL_CTX *sslContext = context->native_handle();
+
+	long flags = SSL_CTX_get_options(sslContext);
+
+	flags |= SSL_OP_CIPHER_SERVER_PREFERENCE;
 
 	SSL_CTX_set_options(sslContext, flags);
 
@@ -150,7 +161,7 @@ std::shared_ptr<boost::asio::ssl::context> MakeAsioSslContext(const String& pubk
 
 	auto context (std::make_shared<ssl::context>(ssl::context::tlsv12));
 
-	SetupSslContext(context->native_handle(), pubkey, privkey, cakey);
+	SetupSslContext(context, pubkey, privkey, cakey);
 
 	return context;
 }
@@ -204,14 +215,15 @@ void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>&
 void SetTlsProtocolminToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& tlsProtocolmin)
 {
 	// tlsProtocolmin has no effect since we enforce TLS 1.2 since 2.11.
+	/*
+	std::shared_ptr<SSL_CTX> sslContext = std::shared_ptr<SSL_CTX>(context->native_handle());
 
-	context->set_options(
-		boost::asio::ssl::context::default_workarounds |
-		boost::asio::ssl::context::no_sslv2 |
-		boost::asio::ssl::context::no_sslv3 |
-		boost::asio::ssl::context::no_tlsv1 |
-		boost::asio::ssl::context::no_tlsv1_1
-	);
+	long flags = SSL_CTX_get_options(sslContext.get());
+
+	flags |= ...;
+
+	SSL_CTX_set_options(sslContext.get(), flags);
+	*/
 }
 
 /**
