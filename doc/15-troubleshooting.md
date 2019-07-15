@@ -959,6 +959,122 @@ Fetch the `ca.crt` file from the client node and compare it to your master's `ca
 ### Certificate Signing <a id="troubleshooting-certificate-signing"></a>
 -->
 
+### TLS Handshake: Ciphers <a id="troubleshooting-certificate-handshake-ciphers"></a>
+
+Starting with v2.11, the default configured ciphers have been hardened to modern
+standards. This includes TLS v1.2 as minimum protocol version too.
+
+In case the TLS handshake fails with `no shared cipher`, first analyse whether both
+instances support the same ciphers.
+
+Connect using `openssl s_client` and try to reproduce the connection problem.
+
+> **Important**
+>
+> The endpoint with the server role **accepting** the connection picks the preferred
+> cipher. E.g. when a satellite connects to the master, the master chooses the cipher.
+>
+> Keep this in mind where to simulate the client role connecting to a server with
+> CLI tools such as `openssl s_client`.
+
+
+`openssl s_client` tells you about the supported and shared cipher suites
+on the remove server. `openssl ciphers` lists locally available ciphers.
+
+```
+$ openssl s_client -connect 192.168.33.5:5665
+...
+
+---
+SSL handshake has read 2899 bytes and written 786 bytes
+---
+New, TLSv1/SSLv3, Cipher is AES256-GCM-SHA384
+Server public key is 4096 bit
+Secure Renegotiation IS supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+SSL-Session:
+    Protocol  : TLSv1.2
+    Cipher    : AES256-GCM-SHA384
+
+...
+```
+
+You can specifically use one cipher or a list with the `-cipher` parameter:
+
+```
+openssl s_client -connect 192.168.33.5:5665 -cipher 'ECDHE-RSA-AES256-GCM-SHA384'
+```
+
+In order to fully simulate a connecting client, provide the certificates too:
+
+```
+CERTPATH='/var/lib/icinga2/certs'
+HOSTNAME='icinga2.vagrant.demo.icinga.com'
+openssl s_client -connect 192.168.33.5:5665 -cert "${CERTPATH}/${HOSTNAME}.crt" -key "${CERTPATH}/${HOSTNAME}.key" -CAfile "${CERTPATH}/ca.crt" -cipher 'ECDHE-RSA-AES256-GCM-SHA384'
+```
+
+In case to need to change the default cipher list,
+set the [cipher_list](09-object-types.md#objecttype-apilistener) attribute
+in the `api` feature configuration accordingly.
+
+Beware of using insecure ciphers, this may become a
+security risk in your organisation.
+
+
+#### Cipher Scan Tools
+
+You can also use different tools to test the available cipher suites, this is what SSL Labs, etc.
+provide for TLS enabled websites as well. [This post](https://superuser.com/questions/109213/how-do-i-list-the-ssl-tls-cipher-suites-a-particular-website-offers)
+highlights some tools and scripts such as [sslscan](https://github.com/rbsec/sslscan) or [testssl.sh](https://github.com/drwetter/testssl.sh/)
+
+Example for sslscan on macOS against a Debian 10 Buster instance
+running v2.11:
+
+```
+$ brew install sslscan
+
+$ sslscan 192.168.33.22:5665
+Version: 1.11.13-static
+OpenSSL 1.0.2f  28 Jan 2016
+
+Connected to 192.168.33.22
+
+Testing SSL server 192.168.33.22 on port 5665 using SNI name 192.168.33.22
+
+  TLS Fallback SCSV:
+Server supports TLS Fallback SCSV
+
+  TLS renegotiation:
+Session renegotiation not supported
+
+  TLS Compression:
+Compression disabled
+
+  Heartbleed:
+TLS 1.2 not vulnerable to heartbleed
+TLS 1.1 not vulnerable to heartbleed
+TLS 1.0 not vulnerable to heartbleed
+
+  Supported Server Cipher(s):
+Preferred TLSv1.2  256 bits  ECDHE-RSA-AES256-GCM-SHA384   Curve P-256 DHE 256
+Accepted  TLSv1.2  128 bits  ECDHE-RSA-AES128-GCM-SHA256   Curve P-256 DHE 256
+Accepted  TLSv1.2  256 bits  ECDHE-RSA-AES256-SHA384       Curve P-256 DHE 256
+Accepted  TLSv1.2  128 bits  ECDHE-RSA-AES128-SHA256       Curve P-256 DHE 256
+
+  SSL Certificate:
+Signature Algorithm: sha256WithRSAEncryption
+RSA Key Strength:    4096
+
+Subject:  icinga2-debian10.vagrant.demo.icinga.com
+Altnames: DNS:icinga2-debian10.vagrant.demo.icinga.com
+Issuer:   Icinga CA
+
+Not valid before: Jul 12 07:39:55 2019 GMT
+Not valid after:  Jul  8 07:39:55 2034 GMT
+```
+
 
 ### Certificate Problems with OpenSSL 1.1.0 <a id="troubleshooting-certificate-openssl-1-1-0"></a>
 
