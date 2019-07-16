@@ -15,6 +15,7 @@ set(base_SOURCES
   i2-base.hpp
   application.cpp application.hpp application-ti.hpp application-version.cpp application-environment.cpp
   array.cpp array.hpp array-script.cpp
+  atomic.hpp
   base64.cpp base64.hpp
   boolean.cpp boolean.hpp boolean-script.cpp
   configobject.cpp configobject.hpp configobject-ti.hpp configobject-script.cpp

@@ -7,6 +7,7 @@
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
+#include "base/atomic.hpp"
 #include "base/defer.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
@@ -17,7 +18,6 @@
 #include "base/scriptglobal.hpp"
 #include "base/context.hpp"
 #include "config.h"
-#include <atomic>
 #include <cstdint>
 #include <cstring>
 #include <boost/program_options.hpp>
@@ -186,7 +186,7 @@ std::vector<String> DaemonCommand::GetArgumentSuggestions(const String& argument
 pid_t l_UmbrellaPid = 0;
 
 // Whether the umbrella process allowed us to continue working beyond config validation
-static std::atomic<bool> l_AllowedToWork (false);
+static Atomic<bool> l_AllowedToWork (false);
 #endif /* _WIN32 */
 
 /**
@@ -284,19 +284,19 @@ static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 })();
 
 // The PID of the seemless worker currently being started by StartUnixWorker()
-static std::atomic<pid_t> l_CurrentlyStartingUnixWorkerPid (-1);
+static Atomic<pid_t> l_CurrentlyStartingUnixWorkerPid (-1);
 
 // The state of the seemless worker currently being started by StartUnixWorker()
-static std::atomic<UnixWorkerState> l_CurrentlyStartingUnixWorkerState (UnixWorkerState::Pending);
+static Atomic<UnixWorkerState> l_CurrentlyStartingUnixWorkerState (UnixWorkerState::Pending);
 
 // The last temination signal we received
-static std::atomic<int> l_TermSignal (-1);
+static Atomic<int> l_TermSignal (-1);
 
 // Whether someone requested to re-load config (and we didn't handle that request, yet)
-static std::atomic<bool> l_RequestedReload (false);
+static Atomic<bool> l_RequestedReload (false);
 
 // Whether someone requested to re-open logs (and we didn't handle that request, yet)
-static std::atomic<bool> l_RequestedReopenLogs (false);
+static Atomic<bool> l_RequestedReopenLogs (false);
 
 /**
  * Umbrella process' signal handlers
@@ -374,7 +374,7 @@ static void WorkerSignalHandler(int num, siginfo_t *info, void*)
 
 #ifdef HAVE_SYSTEMD
 // When we last notified the watchdog.
-static std::atomic<double> l_LastNotifiedWatchdog (0);
+static Atomic<double> l_LastNotifiedWatchdog (0);
 
 /**
  * Notify the watchdog if not notified during the last 2.5s.
