@@ -305,7 +305,8 @@ void Application::RunEventLoop()
 				m_ReloadProcess = StartReloadProcess();
 			}
 #else /* _WIN32 */
-			Log(LogNotice, "Application") << "Got reload command, forwarding to umbrella process (PID " << m_UmbrellaProcess << ")";
+			Log(LogNotice, "Application")
+				<< "Got reload command, forwarding to umbrella process (PID " << m_UmbrellaProcess << ")";
 
 			(void)kill(m_UmbrellaProcess, SIGHUP);
 #endif /* _WIN32 */
