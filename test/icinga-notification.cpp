@@ -8,6 +8,21 @@ using namespace icinga;
 
 BOOST_AUTO_TEST_SUITE(icinga_notification)
 
+BOOST_AUTO_TEST_CASE(strings)
+{
+	// States
+	BOOST_CHECK("OK" == Notification::NotificationServiceStateToString(ServiceOK));
+	BOOST_CHECK("Critical" == Notification::NotificationServiceStateToString(ServiceCritical));
+	BOOST_CHECK("Up" == Notification::NotificationHostStateToString(HostUp));
+
+	// Types
+	BOOST_CHECK("DowntimeStart" == Notification::NotificationTypeToString(NotificationDowntimeStart));
+	BOOST_CHECK("Problem" == Notification::NotificationTypeToString(NotificationProblem));
+
+	// Compat
+	BOOST_CHECK("DOWNTIMECANCELLED" == Notification::NotificationTypeToStringCompat(NotificationDowntimeRemoved));
+}
+
 BOOST_AUTO_TEST_CASE(state_filter)
 {
 	unsigned long fstate;
