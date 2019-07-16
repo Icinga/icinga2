@@ -182,10 +182,20 @@ std::vector<String> DaemonCommand::GetArgumentSuggestions(const String& argument
 }
 
 #ifndef _WIN32
+// The PID of the Icinga umbrella process
 pid_t l_UmbrellaPid = 0;
+
+// Whether the umbrella process allowed us to continue working beyond config validation
 static std::atomic<bool> l_AllowedToWork (false);
 #endif /* _WIN32 */
 
+/**
+ * Do the actual work (config loading, ...)
+ *
+ * @param configs Files to read config from
+ *
+ * @return Exit code
+ */
 static inline
 int RunWorker(const std::vector<std::string>& configs)
 {
@@ -248,6 +258,9 @@ int RunWorker(const std::vector<std::string>& configs)
 }
 
 #ifndef _WIN32
+/**
+ * The possible states of a seemless worker being started by StartUnixWorker().
+ */
 enum class UnixWorkerState : uint_fast8_t
 {
 	Pending,
@@ -255,6 +268,7 @@ enum class UnixWorkerState : uint_fast8_t
 	Failed
 };
 
+// The signals to block temporarily in StartUnixWorker().
 static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 	sigset_t s;
 
@@ -269,32 +283,49 @@ static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 	return s;
 })();
 
+// The PID of the seemless worker currently being started by StartUnixWorker()
 static std::atomic<pid_t> l_CurrentlyStartingUnixWorkerPid (-1);
+
+// The state of the seemless worker currently being started by StartUnixWorker()
 static std::atomic<UnixWorkerState> l_CurrentlyStartingUnixWorkerState (UnixWorkerState::Pending);
+
+// The last temination signal we received
 static std::atomic<int> l_TermSignal (-1);
+
+// Whether someone requested to re-load config (and we didn't handle that request, yet)
 static std::atomic<bool> l_RequestedReload (false);
+
+// Whether someone requested to re-open logs (and we didn't handle that request, yet)
 static std::atomic<bool> l_RequestedReopenLogs (false);
 
+/**
+ * Umbrella process' signal handlers
+ */
 static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 {
 	switch (num) {
 		case SIGUSR1:
+			// Someone requested to re-open logs
 			l_RequestedReopenLogs.store(true);
 			break;
 		case SIGUSR2:
 			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
 				&& info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) {
+				// The seemless worker currently being started by StartUnixWorker() successfully loaded its config
 				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::LoadedConfig);
 			}
 			break;
 		case SIGCHLD:
 			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
 				&& info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) {
+				// The seemless worker currently being started by StartUnixWorker() failed
 				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Failed);
 			}
 			break;
 		case SIGINT:
 		case SIGTERM:
+			// Someone requested our termination
+
 			{
 				struct sigaction sa;
 				memset(&sa, 0, sizeof(sa));
@@ -307,35 +338,47 @@ static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 			l_TermSignal.store(num);
 			break;
 		case SIGHUP:
+			// Someone requested to re-load config
 			l_RequestedReload.store(true);
 			break;
 		default:
+			// Programming error (or someone has broken the userspace)
 			VERIFY(!"Caught unexpected signal");
 	}
 }
 
+/**
+ * Seemless worker's signal handlers
+ */
 static void WorkerSignalHandler(int num, siginfo_t *info, void*)
 {
 	switch (num) {
 		case SIGUSR2:
 			if (info->si_pid == l_UmbrellaPid) {
+				// The umbrella process allowed us to continue working beyond config validation
 				l_AllowedToWork.store(true);
 			}
 			break;
 		case SIGINT:
 		case SIGTERM:
 			if (info->si_pid == l_UmbrellaPid) {
+				// The umbrella process requested our termination
 				Application::RequestShutdown();
 			}
 			break;
 		default:
+			// Programming error (or someone has broken the userspace)
 			VERIFY(!"Caught unexpected signal");
 	}
 }
 
 #ifdef HAVE_SYSTEMD
+// When we last notified the watchdog.
 static std::atomic<double> l_LastNotifiedWatchdog (0);
 
+/**
+ * Notify the watchdog if not notified during the last 2.5s.
+ */
 static void NotifyWatchdog()
 {
 	double now = Utility::GetTime();
@@ -347,6 +390,13 @@ static void NotifyWatchdog()
 }
 #endif /* HAVE_SYSTEMD */
 
+/**
+ * Starts seemless worker process doing the actual work (config loading, ...)
+ *
+ * @param configs Files to read config from
+ *
+ * @return The worker's PID on success, -1 on failure (if the worker couldn't load its config)
+ */
 static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 {
 	Log(LogNotice, "cli") << "Spawning seemless worker process doing the actual work";
@@ -359,6 +409,9 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 		exit(EXIT_FAILURE);
 	}
 
+	/* Block the signal handlers we'd like to change in the child process until we changed them.
+	 * Block SIGUSR2 and SIGCHLD handlers until we've set l_CurrentlyStartingUnixWorkerPid.
+	 */
 	(void)sigprocmask(SIG_BLOCK, &l_UnixWorkerSignals, nullptr);
 
 	pid_t pid = fork();
@@ -415,6 +468,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 
 			Log(LogNotice, "cli") << "Spawned worker process (PID " << pid << "), waiting for it to load its config";
 
+			// Wait for the newly spawned process to either load its config or fail.
 			for (;;) {
 #ifdef HAVE_SYSTEMD
 				NotifyWatchdog();
@@ -442,6 +496,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 				break;
 			}
 
+			// Reset flags for the next time
 			l_CurrentlyStartingUnixWorkerPid.store(-1);
 			l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Pending);
 
@@ -457,6 +512,9 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 	return pid;
 }
 
+/**
+ * Workaround to instantiate Application (which is abstract) in DaemonCommand#Run()
+ */
 class PidFileManagementApp : public Application
 {
 public:
@@ -520,6 +578,10 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	}
 
 #ifndef _WIN32
+	/* The Application manages the PID file,
+	 * but on *nix this process doesn't load any config
+	 * so there's no central Application instance.
+	 */
 	PidFileManagementApp app;
 
 	try {
@@ -569,19 +631,24 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		(void)sigaction(SIGHUP, &sa, nullptr);
 	}
 
+	// The PID of the current seemless worker
 	pid_t currentWorker = StartUnixWorker(configs);
 
 	if (currentWorker == -1) {
 		return EXIT_FAILURE;
 	}
 
+	// Immediately allow the first (non-reload) worker to continue working beyond config validation
 	(void)kill(currentWorker, SIGUSR2);
 
 #ifdef HAVE_SYSTEMD
 	sd_notify(0, "READY=1");
 #endif /* HAVE_SYSTEMD */
 
+	// Whether we already forwarded a termination signal to the seemless worker
 	bool requestedTermination = false;
+
+	// Whether we already notified systemd about our termination
 	bool notifiedTermination = false;
 
 	for (;;) {
@@ -634,6 +701,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 					Log(LogNotice, "cli") << "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
 				}
 
+				// Old instance shut down, allow the new one to continue working beyond config validation
 				(void)kill(nextWorker, SIGUSR2);
 
 				currentWorker = nextWorker;
@@ -663,6 +731,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 				}
 #endif /* HAVE_SYSTEMD */
 
+				// If killed by signal, forward it via the exit code (to be as seemless as possible)
 				return WIFSIGNALED(status) ? 128 + WTERMSIG(status) : WEXITSTATUS(status);
 			}
 		}

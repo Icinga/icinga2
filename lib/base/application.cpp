@@ -443,6 +443,11 @@ void Application::RequestReopenLogs()
 }
 
 #ifndef _WIN32
+/**
+ * Sets the PID of the Icinga umbrella process.
+ *
+ * @param pid The PID of the Icinga umbrella process.
+ */
 void Application::SetUmbrellaProcess(pid_t pid)
 {
 	m_UmbrellaProcess = pid;

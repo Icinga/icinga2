@@ -127,7 +127,7 @@ private:
 	static bool m_RequestReopenLogs; /**< Whether we should re-open log files. */
 
 #ifndef _WIN32
-	static pid_t m_UmbrellaProcess;
+	static pid_t m_UmbrellaProcess; /**< The PID of the Icinga umbrella process */
 #endif /* _WIN32 */
 
 	static int m_ArgC; /**< The number of command-line arguments. */
