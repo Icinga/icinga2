@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/defer.hpp"
 #include "base/timer.hpp"
 #include "base/debug.hpp"
 #include "base/logger.hpp"
@@ -56,6 +57,8 @@ static std::thread l_TimerThread;
 static bool l_StopTimerThread;
 static TimerSet l_Timers;
 static int l_AliveTimers = 0;
+
+static Defer l_ShutdownTimersCleanlyOnExit (&Timer::Uninitialize);
 
 /**
  * Destructor for the Timer class.
