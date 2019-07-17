@@ -322,11 +322,10 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 			for (auto& kv : vars) {
 				allCvs.emplace_back(kv.first);
 				allCvs.emplace_back(JsonEncode(kv.second));
-				varsArray->Add(kv.first);
+				String id = CalculateCheckSumArray(new Array({envId, kv.first, objectKey}));
+				typeCvs.emplace_back(id);
+				typeCvs.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"env_id", envId}, {"customvar_id", kv.first}})));
 			}
-
-			typeCvs.emplace_back(objectKey);
-			typeCvs.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"customvars", varsArray}})));
 		}
 	}
 
@@ -373,17 +372,20 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 			groupIds->Reserve(groups->GetLength());
 
-			for (auto& group : groups) {
-				groupIds->Add(GetObjectIdentifier((*getGroup)(group)));
-			}
-
 			auto& members (statements[m_PrefixConfigObject + typeName + ":groupmember"]);
 			auto& memberChksms (statements[m_PrefixConfigCheckSum + typeName + ":groupmember"]);
 
+			for (auto& group : groups) {
+				String groupId = GetObjectIdentifier((*getGroup)(group));
+				String id = CalculateCheckSumArray(new Array({envId, groupId, objectKey}));
+				members.emplace_back(id);
+				members.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"env_id", envId}, {"group_id", groupId}})));
+
+				groupIds->Add(groupId);
+			}
+
 			memberChksms.emplace_back(objectKey);
 			memberChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(groupIds)}})));
-			members.emplace_back(objectKey);
-			members.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"groups", groupIds}})));
 		}
 
 		return;
@@ -403,17 +405,19 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 			rangeIds->Reserve(ranges->GetLength());
 
 			for (auto& kv : ranges) {
-				String id = CalculateCheckSumArray(new Array({envId, kv.first, kv.second}));
-				rangeIds->Add(id);
+				String rangeId = CalculateCheckSumArray(new Array({envId, kv.first, kv.second}));
+				rangeIds->Add(rangeId);
 
-				allRanges.emplace_back(id);
+				String id = CalculateCheckSumArray(new Array({envId, rangeId, objectKey}));
+				typeRanges.emplace_back(id);
+				typeRanges.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"timeperiod_id", objectKey}, {"range_id", rangeId}})));
+
+				allRanges.emplace_back(rangeId);
 				allRanges.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"range_key", kv.first}, {"range_value", kv.second}})));
 			}
 
 			rangeChksms.emplace_back(objectKey);
 			rangeChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(rangeIds)}})));
-			typeRanges.emplace_back(objectKey);
-			typeRanges.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"ranges", rangeIds}})));
 		}
 
 		Array::Ptr includes;
@@ -428,17 +432,20 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 		includeChecksums->Reserve(includes->GetLength());
 
-		for (auto include : includes) {
-			includeChecksums->Add(GetObjectIdentifier((*getInclude)(include.Get<String>())));
-		}
 
 		auto& includs (statements[m_PrefixConfigObject + typeName + ":overwrite:include"]);
 		auto& includeChksms (statements[m_PrefixConfigCheckSum + typeName + ":overwrite:include"]);
+		for (auto include : includes) {
+			String includeId = GetObjectIdentifier((*getInclude)(include.Get<String>()));
+			includeChecksums->Add(includeId);
+
+			String id = CalculateCheckSumArray(new Array({envId, includeId, objectKey}));
+			includs.emplace_back(id);
+			includs.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"timeperiod_id", objectKey}, {"include_id", includeId}})));
+		}
 
 		includeChksms.emplace_back(objectKey);
 		includeChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(includes)}})));
-		includs.emplace_back(objectKey);
-		includs.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"includes", includeChecksums}})));
 
 		Array::Ptr excludes;
 		ConfigObject::Ptr (*getExclude)(const String& name);
@@ -453,17 +460,20 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 		excludeChecksums->Reserve(excludes->GetLength());
 
-		for (auto exclude : excludes) {
-			excludeChecksums->Add(GetObjectIdentifier((*getExclude)(exclude.Get<String>())));
-		}
-
 		auto& excluds (statements[m_PrefixConfigObject + typeName + ":overwrite:exclude"]);
 		auto& excludeChksms (statements[m_PrefixConfigCheckSum + typeName + ":overwrite:exclude"]);
 
+		for (auto exclude : excludes) {
+			String excludeId = GetObjectIdentifier((*getExclude)(exclude.Get<String>()));
+			excludeChecksums->Add(excludeId);
+
+			String id = CalculateCheckSumArray(new Array({envId, excludeId, objectKey}));
+			excluds.emplace_back(id);
+			excluds.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"timeperiod_id", objectKey}, {"exclude_id", excludeId}})));
+		}
+
 		excludeChksms.emplace_back(objectKey);
 		excludeChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(excludes)}})));
-		excluds.emplace_back(objectKey);
-		excluds.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"excludes", excludeChecksums}})));
 
 		return;
 	}
@@ -476,17 +486,19 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 		parents->Reserve(parentsRaw.size());
 
-		for (auto& parent : parentsRaw) {
-			parents->Add(GetObjectIdentifier(parent));
-		}
-
 		auto& parnts (statements[m_PrefixConfigObject + typeName + ":parent"]);
 		auto& parentChksms (statements[m_PrefixConfigCheckSum + typeName + ":parent"]);
 
+		for (auto& parent : parentsRaw) {
+			String parentId = GetObjectIdentifier(parent);
+			String id = CalculateCheckSumArray(new Array({envId, parentId, objectKey}));
+			parnts.emplace_back(id);
+			parnts.emplace_back(JsonEncode(new Dictionary({{"zone_id", objectKey}, {"env_id", envId}, {"parent_id", parentId}})));
+			parents->Add(GetObjectIdentifier(parent));
+		}
+
 		parentChksms.emplace_back(objectKey);
 		parentChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(zone->GetAllParents())}})));
-		parnts.emplace_back(objectKey);
-		parnts.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"parents", parents}})));
 
 		return;
 	}
@@ -506,17 +518,19 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 			groupIds->Reserve(groups->GetLength());
 
-			for (auto& group : groups) {
-				groupIds->Add(GetObjectIdentifier((*getGroup)(group)));
-			}
-
 			auto& members (statements[m_PrefixConfigObject + typeName + ":groupmember"]);
 			auto& memberChksms (statements[m_PrefixConfigCheckSum + typeName + ":groupmember"]);
 
+			for (auto& group : groups) {
+				String groupId = GetObjectIdentifier((*getGroup)(group));
+				String id = CalculateCheckSumArray(new Array({envId, groupId, objectKey}));
+				members.emplace_back(id);
+				members.emplace_back(JsonEncode(new Dictionary({{"user_id", objectKey}, {"env_id", envId}, {"group_id", groupId}})));
+				groupIds->Add(groupId);
+			}
+
 			memberChksms.emplace_back(objectKey);
 			memberChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(groupIds)}})));
-			members.emplace_back(objectKey);
-			members.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"groups", groupIds}})));
 		}
 
 		return;
@@ -533,31 +547,35 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 		userIds->Reserve(users.size());
 
-		for (auto& user : users) {
-			userIds->Add(GetObjectIdentifier(user));
-		}
-
 		auto& usrs (statements[m_PrefixConfigObject + typeName + ":user"]);
 		auto& userChksms (statements[m_PrefixConfigCheckSum + typeName + ":user"]);
 
+		for (auto& user : users) {
+			String userId = GetObjectIdentifier(user);
+			String id = CalculateCheckSumArray(new Array({envId, userId, objectKey}));
+			usrs.emplace_back(id);
+			usrs.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"env_id", envId}, {"user_id", userId}})));
+			userIds->Add(userId);
+		}
+
 		userChksms.emplace_back(objectKey);
 		userChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(userIds)}})));
-		usrs.emplace_back(objectKey);
-		usrs.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"users", userIds}})));
 
 		usergroupIds->Reserve(usergroups.size());
-
-		for (auto& usergroup : usergroups) {
-			usergroupIds->Add(GetObjectIdentifier(usergroup));
-		}
 
 		auto& groups (statements[m_PrefixConfigObject + typeName + ":usergroup"]);
 		auto& groupChksms (statements[m_PrefixConfigCheckSum + typeName + ":usergroup"]);
 
+		for (auto& usergroup : usergroups) {
+			String usergroupId = GetObjectIdentifier(usergroup);
+			String id = CalculateCheckSumArray(new Array({envId, usergroupId, objectKey}));
+			groups.emplace_back(id);
+			groups.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"env_id", envId}, {"usergroup_id", usergroupId}})));
+			usergroupIds->Add(usergroupId);
+		}
+
 		groupChksms.emplace_back(objectKey);
 		groupChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(usergroupIds)}})));
-		groups.emplace_back(objectKey);
-		groups.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"usergroups", usergroupIds}})));
 
 		return;
 	}
