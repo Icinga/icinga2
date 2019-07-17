@@ -132,7 +132,7 @@ void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notif
 	}
 
 	result->Set("users", new Array(std::move(userNames)));
-	result->Set("notification_type", Notification::NotificationTypeToString(type));
+	result->Set("notification_type", Notification::NotificationTypeToStringCompat(type)); //TODO: Change this to our own types.
 	result->Set("author", author);
 	result->Set("text", text);
 	result->Set("check_result", Serialize(cr));

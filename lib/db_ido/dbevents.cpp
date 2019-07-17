@@ -1071,7 +1071,7 @@ void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notificati
 	if (commandObj)
 		checkCommandName = commandObj->GetName();
 
-	String notificationTypeStr = Notification::NotificationTypeToString(notification_type);
+	String notificationTypeStr = Notification::NotificationTypeToStringCompat(notification_type); //TODO: Change that to our own types.
 
 	String author_comment = "";
 	if (notification_type == NotificationCustom || notification_type == NotificationAcknowledgement) {

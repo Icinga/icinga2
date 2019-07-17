@@ -318,7 +318,7 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	String notificationTypeString = Notification::NotificationTypeToString(type);
+	String notificationTypeString = Notification::NotificationTypeToStringCompat(type); //TODO: Change that to our own types.
 
 	Dictionary::Ptr fields = new Dictionary();
 

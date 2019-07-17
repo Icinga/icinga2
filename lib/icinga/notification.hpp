@@ -85,8 +85,14 @@ public:
 
 	void ProcessNotificationResult(const NotificationResult::Ptr& nr, const MessageOrigin::Ptr& origin = nullptr);
 
+	// Logging, etc.
 	static String NotificationTypeToString(NotificationType type);
+	// Compat, used for notifications, etc.
+	static String NotificationTypeToStringCompat(NotificationType type);
 	static String NotificationFilterToString(int filter, const std::map<String, int>& filterMap);
+
+	static String NotificationServiceStateToString(ServiceState state);
+	static String NotificationHostStateToString(HostState state);
 
 	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnNextNotificationChanged;
 	static boost::signals2::signal<void (const Notification::Ptr&, const NotificationResult::Ptr&, const MessageOrigin::Ptr&)> OnNewNotificationResult;
@@ -118,10 +124,6 @@ private:
 
 	static bool EvaluateApplyRuleInstance(const intrusive_ptr<Checkable>& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const intrusive_ptr<Checkable>& checkable, const ApplyRule& rule);
-
-	static String NotificationTypeToStringInternal(NotificationType type);
-	static String NotificationServiceStateToString(ServiceState state);
-	static String NotificationHostStateToString(HostState state);
 
 	static std::map<String, int> m_StateFilterMap;
 	static std::map<String, int> m_TypeFilterMap;

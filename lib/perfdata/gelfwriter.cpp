@@ -371,7 +371,7 @@ void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& noti
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	String notificationTypeString = Notification::NotificationTypeToString(notificationType);
+	String notificationTypeString = Notification::NotificationTypeToStringCompat(notificationType); //TODO: Change that to our own types.
 
 	String authorComment = "";
 

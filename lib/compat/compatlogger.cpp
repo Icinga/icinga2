@@ -237,7 +237,7 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	String notification_type_str = Notification::NotificationTypeToString(notification_type);
+	String notification_type_str = Notification::NotificationTypeToStringCompat(notification_type);
 
 	/* override problem notifications with their current state string */
 	if (notification_type == NotificationProblem) {

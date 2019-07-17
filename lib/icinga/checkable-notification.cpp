@@ -49,13 +49,21 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 
 	std::set<Notification::Ptr> notifications = GetNotifications();
 
-	Log(LogInformation, "Checkable")
-		<< "Checkable '" << checkableName << "' has " << notifications.size() << " notification(s). Proceeding with filters, successful sends will be logged.";
+	String notificationTypeName = Notification::NotificationTypeToString(type);
 
-	if (notifications.empty())
+	// Bail early if there are no notifications.
+	if (notifications.empty()) {
+		Log(LogNotice, "Checkable")
+			<< "Skipping checkable '" << checkableName << "' which doesn't have any notification objects configured.";
 		return;
+	}
+
+	Log(LogInformation, "Checkable")
+		<< "Checkable '" << checkableName << "' has " << notifications.size()
+		<< " notification(s). Checking filters for type '" << notificationTypeName << "', sends will be logged.";
 
 	for (const Notification::Ptr& notification : notifications) {
+		// Re-send stashed notifications from cold startup.
 		if (ApiListener::UpdatedObjectAuthority()) {
 			try {
 				if (!notification->IsPaused()) {
@@ -86,6 +94,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 					<< GetName() << "': " << DiagnosticInformation(ex, false);
 			}
 		} else {
+			// Cold startup phase. Stash notification for later.
 			Log(LogNotice, "Notification")
 				<< "Notification '" << notification->GetName() << "': object authority hasn't been updated, yet. Stashing notification.";
 
