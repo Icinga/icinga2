@@ -268,10 +268,10 @@ std::vector<String> RedisWriter::GetTypeObjectKeys(const String& type)
 		keys.emplace_back(m_PrefixConfigObject + type + ":groupmember");
 		keys.emplace_back(m_PrefixConfigCheckSum + type + ":groupmember");
 	} else if (type == "timeperiod") {
-		keys.emplace_back(m_PrefixConfigObject + type + ":overwrite:include");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":overwrite:include");
-		keys.emplace_back(m_PrefixConfigObject + type + ":overwrite:exclude");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":overwrite:exclude");
+		keys.emplace_back(m_PrefixConfigObject + type + ":override:include");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":override:include");
+		keys.emplace_back(m_PrefixConfigObject + type + ":override:exclude");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":override:exclude");
 		keys.emplace_back(m_PrefixConfigObject + type + ":range");
 		keys.emplace_back(m_PrefixConfigCheckSum + type + ":range");
 	} else if (type == "zone") {
@@ -433,8 +433,8 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 		includeChecksums->Reserve(includes->GetLength());
 
 
-		auto& includs (statements[m_PrefixConfigObject + typeName + ":overwrite:include"]);
-		auto& includeChksms (statements[m_PrefixConfigCheckSum + typeName + ":overwrite:include"]);
+		auto& includs (statements[m_PrefixConfigObject + typeName + ":override:include"]);
+		auto& includeChksms (statements[m_PrefixConfigCheckSum + typeName + ":override:include"]);
 		for (auto include : includes) {
 			String includeId = GetObjectIdentifier((*getInclude)(include.Get<String>()));
 			includeChecksums->Add(includeId);
@@ -460,8 +460,8 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 		excludeChecksums->Reserve(excludes->GetLength());
 
-		auto& excluds (statements[m_PrefixConfigObject + typeName + ":overwrite:exclude"]);
-		auto& excludeChksms (statements[m_PrefixConfigCheckSum + typeName + ":overwrite:exclude"]);
+		auto& excluds (statements[m_PrefixConfigObject + typeName + ":override:exclude"]);
+		auto& excludeChksms (statements[m_PrefixConfigCheckSum + typeName + ":override:exclude"]);
 
 		for (auto exclude : excludes) {
 			String excludeId = GetObjectIdentifier((*getExclude)(exclude.Get<String>()));
