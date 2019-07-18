@@ -283,7 +283,7 @@ Dictionary::Ptr RedisWriter::SerializeVars(const CustomVarObject::Ptr& object)
 				{"env_id", envChecksum},
 				{"name_checksum", SHA1(kv.first)},
 				{"name", kv.first},
-				{"value", kv.second},
+				{"value", JsonEncode(kv.second)},
 			})
 		);
 	}
