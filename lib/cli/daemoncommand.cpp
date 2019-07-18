@@ -7,6 +7,8 @@
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
+#include "base/atomic.hpp"
+#include "base/defer.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/timer.hpp"
@@ -16,9 +18,22 @@
 #include "base/scriptglobal.hpp"
 #include "base/context.hpp"
 #include "config.h"
+#include <cstdint>
+#include <cstring>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <fstream>
+
+#ifndef _WIN32
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif /* _WIN32 */
+
+#ifdef HAVE_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif /* HAVE_SYSTEMD */
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -26,13 +41,6 @@ namespace po = boost::program_options;
 static po::variables_map g_AppParams;
 
 REGISTER_CLICOMMAND("daemon", DaemonCommand);
-
-#ifndef _WIN32
-static void SigHupHandler(int)
-{
-	Application::RequestRestart();
-}
-#endif /* _WIN32 */
 
 /*
  * Daemonize().  On error, this function logs by itself and exits (i.e. does not return).
@@ -163,11 +171,6 @@ void DaemonCommand::InitParameters(boost::program_options::options_description& 
 		("close-stdio", "do not log to stdout (or stderr) after startup")
 #endif /* _WIN32 */
 	;
-
-#ifndef _WIN32
-	hiddenDesc.add_options()
-		("reload-internal", po::value<int>(), "used internally to implement config reload: do not call manually, send SIGHUP instead");
-#endif /* _WIN32 */
 }
 
 std::vector<String> DaemonCommand::GetArgumentSuggestions(const String& argument, const String& word) const
@@ -177,6 +180,357 @@ std::vector<String> DaemonCommand::GetArgumentSuggestions(const String& argument
 	else
 		return CLICommand::GetArgumentSuggestions(argument, word);
 }
+
+#ifndef _WIN32
+// The PID of the Icinga umbrella process
+pid_t l_UmbrellaPid = 0;
+
+// Whether the umbrella process allowed us to continue working beyond config validation
+static Atomic<bool> l_AllowedToWork (false);
+#endif /* _WIN32 */
+
+/**
+ * Do the actual work (config loading, ...)
+ *
+ * @param configs Files to read config from
+ *
+ * @return Exit code
+ */
+static inline
+int RunWorker(const std::vector<std::string>& configs)
+{
+	Log(LogInformation, "cli", "Loading configuration file(s).");
+
+	{
+		std::vector<ConfigItem::Ptr> newItems;
+
+		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath))
+			return EXIT_FAILURE;
+
+#ifndef _WIN32
+		Log(LogNotice, "cli")
+			<< "Notifying umbrella process (PID " << l_UmbrellaPid << ") about the config loading success";
+
+		(void)kill(l_UmbrellaPid, SIGUSR2);
+
+		Log(LogNotice, "cli")
+			<< "Waiting for the umbrella process to let us doing the actual work";
+
+		while (!l_AllowedToWork.load()) {
+			Utility::Sleep(0.2);
+		}
+
+		Log(LogNotice, "cli")
+			<< "The umbrella process let us continuing";
+#endif /* _WIN32 */
+
+		/* restore the previous program state */
+		try {
+			ConfigObject::RestoreObjects(Configuration::StatePath);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "cli")
+				<< "Failed to restore state file: " << DiagnosticInformation(ex);
+			return EXIT_FAILURE;
+		}
+
+		WorkQueue upq(25000, Configuration::Concurrency);
+		upq.SetName("DaemonCommand::Run");
+
+		// activate config only after daemonization: it starts threads and that is not compatible with fork()
+		if (!ConfigItem::ActivateItems(upq, newItems, false, false, true)) {
+			Log(LogCritical, "cli", "Error activating configuration.");
+			return EXIT_FAILURE;
+		}
+	}
+
+	/* Create the internal API object storage. Do this here too with setups without API. */
+	ConfigObjectUtility::CreateStorage();
+
+	/* Remove ignored Downtime/Comment objects. */
+	try {
+		String configDir = ConfigObjectUtility::GetConfigDir();
+		ConfigItem::RemoveIgnoredItems(configDir);
+	} catch (const std::exception& ex) {
+		Log(LogNotice, "cli")
+			<< "Cannot clean ignored downtimes/comments: " << ex.what();
+	}
+
+	ApiListener::UpdateObjectAuthority();
+
+	return Application::GetInstance()->Run();
+}
+
+#ifndef _WIN32
+/**
+ * The possible states of a seemless worker being started by StartUnixWorker().
+ */
+enum class UnixWorkerState : uint_fast8_t
+{
+	Pending,
+	LoadedConfig,
+	Failed
+};
+
+// The signals to block temporarily in StartUnixWorker().
+static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
+	sigset_t s;
+
+	(void)sigemptyset(&s);
+	(void)sigaddset(&s, SIGCHLD);
+	(void)sigaddset(&s, SIGUSR1);
+	(void)sigaddset(&s, SIGUSR2);
+	(void)sigaddset(&s, SIGINT);
+	(void)sigaddset(&s, SIGTERM);
+	(void)sigaddset(&s, SIGHUP);
+
+	return s;
+})();
+
+// The PID of the seemless worker currently being started by StartUnixWorker()
+static Atomic<pid_t> l_CurrentlyStartingUnixWorkerPid (-1);
+
+// The state of the seemless worker currently being started by StartUnixWorker()
+static Atomic<UnixWorkerState> l_CurrentlyStartingUnixWorkerState (UnixWorkerState::Pending);
+
+// The last temination signal we received
+static Atomic<int> l_TermSignal (-1);
+
+// Whether someone requested to re-load config (and we didn't handle that request, yet)
+static Atomic<bool> l_RequestedReload (false);
+
+// Whether someone requested to re-open logs (and we didn't handle that request, yet)
+static Atomic<bool> l_RequestedReopenLogs (false);
+
+/**
+ * Umbrella process' signal handlers
+ */
+static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
+{
+	switch (num) {
+		case SIGUSR1:
+			// Someone requested to re-open logs
+			l_RequestedReopenLogs.store(true);
+			break;
+		case SIGUSR2:
+			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
+				&& info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) {
+				// The seemless worker currently being started by StartUnixWorker() successfully loaded its config
+				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::LoadedConfig);
+			}
+			break;
+		case SIGCHLD:
+			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
+				&& info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) {
+				// The seemless worker currently being started by StartUnixWorker() failed
+				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Failed);
+			}
+			break;
+		case SIGINT:
+		case SIGTERM:
+			// Someone requested our termination
+
+			{
+				struct sigaction sa;
+				memset(&sa, 0, sizeof(sa));
+
+				sa.sa_handler = SIG_DFL;
+
+				(void)sigaction(num, &sa, nullptr);
+			}
+
+			l_TermSignal.store(num);
+			break;
+		case SIGHUP:
+			// Someone requested to re-load config
+			l_RequestedReload.store(true);
+			break;
+		default:
+			// Programming error (or someone has broken the userspace)
+			VERIFY(!"Caught unexpected signal");
+	}
+}
+
+/**
+ * Seemless worker's signal handlers
+ */
+static void WorkerSignalHandler(int num, siginfo_t *info, void*)
+{
+	switch (num) {
+		case SIGUSR2:
+			if (info->si_pid == l_UmbrellaPid) {
+				// The umbrella process allowed us to continue working beyond config validation
+				l_AllowedToWork.store(true);
+			}
+			break;
+		case SIGINT:
+		case SIGTERM:
+			if (info->si_pid == l_UmbrellaPid) {
+				// The umbrella process requested our termination
+				Application::RequestShutdown();
+			}
+			break;
+		default:
+			// Programming error (or someone has broken the userspace)
+			VERIFY(!"Caught unexpected signal");
+	}
+}
+
+#ifdef HAVE_SYSTEMD
+// When we last notified the watchdog.
+static Atomic<double> l_LastNotifiedWatchdog (0);
+
+/**
+ * Notify the watchdog if not notified during the last 2.5s.
+ */
+static void NotifyWatchdog()
+{
+	double now = Utility::GetTime();
+
+	if (now - l_LastNotifiedWatchdog.load() >= 2.5) {
+		sd_notify(0, "WATCHDOG=1");
+		l_LastNotifiedWatchdog.store(now);
+	}
+}
+#endif /* HAVE_SYSTEMD */
+
+/**
+ * Starts seemless worker process doing the actual work (config loading, ...)
+ *
+ * @param configs Files to read config from
+ *
+ * @return The worker's PID on success, -1 on failure (if the worker couldn't load its config)
+ */
+static pid_t StartUnixWorker(const std::vector<std::string>& configs)
+{
+	Log(LogNotice, "cli")
+		<< "Spawning seemless worker process doing the actual work";
+
+	try {
+		Application::UninitializeBase();
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+			<< "Failed to stop thread pool before forking, unexpected error: " << DiagnosticInformation(ex);
+		exit(EXIT_FAILURE);
+	}
+
+	/* Block the signal handlers we'd like to change in the child process until we changed them.
+	 * Block SIGUSR2 and SIGCHLD handlers until we've set l_CurrentlyStartingUnixWorkerPid.
+	 */
+	(void)sigprocmask(SIG_BLOCK, &l_UnixWorkerSignals, nullptr);
+
+	pid_t pid = fork();
+
+	switch (pid) {
+		case -1:
+			Log(LogCritical, "cli")
+				<< "fork() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			exit(EXIT_FAILURE);
+
+		case 0:
+			try {
+				{
+					struct sigaction sa;
+					memset(&sa, 0, sizeof(sa));
+
+					sa.sa_handler = SIG_DFL;
+
+					(void)sigaction(SIGCHLD, &sa, nullptr);
+					(void)sigaction(SIGUSR1, &sa, nullptr);
+					(void)sigaction(SIGHUP, &sa, nullptr);
+				}
+
+				{
+					struct sigaction sa;
+					memset(&sa, 0, sizeof(sa));
+
+					sa.sa_sigaction = &WorkerSignalHandler;
+					sa.sa_flags = SA_RESTART | SA_SIGINFO;
+
+					(void)sigaction(SIGUSR2, &sa, nullptr);
+					(void)sigaction(SIGINT, &sa, nullptr);
+					(void)sigaction(SIGTERM, &sa, nullptr);
+				}
+
+				(void)sigprocmask(SIG_UNBLOCK, &l_UnixWorkerSignals, nullptr);
+
+				try {
+					Application::InitializeBase();
+				} catch (const std::exception& ex) {
+					Log(LogCritical, "cli")
+						<< "Failed to re-initialize thread pool after forking (child): " << DiagnosticInformation(ex);
+					_exit(EXIT_FAILURE);
+				}
+
+				_exit(RunWorker(configs));
+			} catch (...) {
+				_exit(EXIT_FAILURE);
+			}
+
+		default:
+			l_CurrentlyStartingUnixWorkerPid.store(pid);
+			(void)sigprocmask(SIG_UNBLOCK, &l_UnixWorkerSignals, nullptr);
+
+			Log(LogNotice, "cli")
+				<< "Spawned worker process (PID " << pid << "), waiting for it to load its config";
+
+			// Wait for the newly spawned process to either load its config or fail.
+			for (;;) {
+#ifdef HAVE_SYSTEMD
+				NotifyWatchdog();
+#endif /* HAVE_SYSTEMD */
+
+				switch (l_CurrentlyStartingUnixWorkerState.load()) {
+					case UnixWorkerState::LoadedConfig:
+						Log(LogNotice, "cli")
+							<< "Worker process successfully loaded its config";
+						break;
+					case UnixWorkerState::Failed:
+						Log(LogNotice, "cli")
+							<< "Worker process couldn't load its config";
+
+						while (waitpid(pid, nullptr, 0) == -1 && errno == EINTR) {
+#ifdef HAVE_SYSTEMD
+							NotifyWatchdog();
+#endif /* HAVE_SYSTEMD */
+						}
+						pid = -1;
+						break;
+					default:
+						Utility::Sleep(0.2);
+						continue;
+				}
+
+				break;
+			}
+
+			// Reset flags for the next time
+			l_CurrentlyStartingUnixWorkerPid.store(-1);
+			l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Pending);
+
+			try {
+				Application::InitializeBase();
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "cli")
+					<< "Failed to re-initialize thread pool after forking (parent): " << DiagnosticInformation(ex);
+				exit(EXIT_FAILURE);
+			}
+	}
+
+	return pid;
+}
+
+/**
+ * Workaround to instantiate Application (which is abstract) in DaemonCommand#Run()
+ */
+class PidFileManagementApp : public Application
+{
+public:
+	inline int Main() override
+	{
+		return EXIT_FAILURE;
+	}
+};
+#endif /* _WIN32 */
 
 /**
  * The entry point for the "daemon" CLI command.
@@ -194,15 +548,6 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 #endif /* I2_DEBUG */
 		<< ")";
 
-	if (!vm.count("validate") && !vm.count("reload-internal")) {
-		pid_t runningpid = Application::ReadPidFile(Configuration::PidPath);
-		if (runningpid > 0) {
-			Log(LogCritical, "cli")
-				<< "Another instance of Icinga already running with PID " << runningpid;
-			return EXIT_FAILURE;
-		}
-	}
-
 	std::vector<std::string> configs;
 	if (vm.count("config") > 0)
 		configs = vm["config"].as<std::vector<std::string> >();
@@ -212,67 +557,52 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		configs.push_back(configDir + "/icinga2.conf");
 	}
 
-	Log(LogInformation, "cli", "Loading configuration file(s).");
-
-	std::vector<ConfigItem::Ptr> newItems;
-
-	if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath))
-		return EXIT_FAILURE;
-
 	if (vm.count("validate")) {
+		Log(LogInformation, "cli", "Loading configuration file(s).");
+
+		std::vector<ConfigItem::Ptr> newItems;
+
+		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath))
+			return EXIT_FAILURE;
+
 		Log(LogInformation, "cli", "Finished validating the configuration file(s).");
 		return EXIT_SUCCESS;
 	}
 
-#ifndef _WIN32
-	if (vm.count("reload-internal")) {
-		/* We went through validation and now ask the old process kindly to die */
-		Log(LogInformation, "cli", "Requesting to take over.");
-		int rc = kill(vm["reload-internal"].as<int>(), SIGUSR2);
-		if (rc) {
+	{
+		pid_t runningpid = Application::ReadPidFile(Configuration::PidPath);
+		if (runningpid > 0) {
 			Log(LogCritical, "cli")
-				<< "Failed to send signal to \"" << vm["reload-internal"].as<int>() <<  "\" with " << strerror(errno);
+				<< "Another instance of Icinga already running with PID " << runningpid;
 			return EXIT_FAILURE;
 		}
-
-		double start = Utility::GetTime();
-		while (kill(vm["reload-internal"].as<int>(), SIGCHLD) == 0)
-			Utility::Sleep(0.2);
-
-		Log(LogNotice, "cli")
-			<< "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
 	}
-#endif /* _WIN32 */
 
 	if (vm.count("daemonize")) {
-		if (!vm.count("reload-internal")) {
-			// no additional fork neccessary on reload
-
-			// this subroutine either succeeds, or logs an error
-			// and terminates the process (does not return).
-			Daemonize();
-		}
+		// this subroutine either succeeds, or logs an error
+		// and terminates the process (does not return).
+		Daemonize();
 	}
 
-	/* restore the previous program state */
+#ifndef _WIN32
+	/* The Application manages the PID file,
+	 * but on *nix this process doesn't load any config
+	 * so there's no central Application instance.
+	 */
+	PidFileManagementApp app;
+
 	try {
-		ConfigObject::RestoreObjects(Configuration::StatePath);
-	} catch (const std::exception& ex) {
-		Log(LogCritical, "cli")
-			<< "Failed to restore state file: " << DiagnosticInformation(ex);
+		app.UpdatePidFile(Configuration::PidPath);
+	} catch (const std::exception&) {
+		Log(LogCritical, "Application")
+			<< "Cannot update PID file '" << Configuration::PidPath << "'. Aborting.";
 		return EXIT_FAILURE;
 	}
 
-	{
-		WorkQueue upq(25000, Configuration::Concurrency);
-		upq.SetName("DaemonCommand::Run");
-
-		// activate config only after daemonization: it starts threads and that is not compatible with fork()
-		if (!ConfigItem::ActivateItems(upq, newItems, false, false, true)) {
-			Log(LogCritical, "cli", "Error activating configuration.");
-			return EXIT_FAILURE;
-		}
-	}
+	Defer closePidFile ([&app]() {
+		app.ClosePidFile(true);
+	});
+#endif /* _WIN32 */
 
 	if (vm.count("daemonize") || vm.count("close-stdio")) {
 		// After disabling the console log, any further errors will go to the configured log only.
@@ -287,26 +617,139 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		Logger::DisableConsoleLog();
 	}
 
-	/* Create the internal API object storage. Do this here too with setups without API. */
-	ConfigObjectUtility::CreateStorage();
+#ifdef _WIN32
+	return RunWorker(configs);
+#else /* _WIN32 */
+	l_UmbrellaPid = getpid();
+	Application::SetUmbrellaProcess(l_UmbrellaPid);
 
-	/* Remove ignored Downtime/Comment objects. */
-	try {
-		String configDir = ConfigObjectUtility::GetConfigDir();
-		ConfigItem::RemoveIgnoredItems(configDir);
-	} catch (const std::exception& ex) {
-		Log(LogNotice, "cli")
-			<< "Cannot clean ignored downtimes/comments: " << ex.what();
+	{
+		struct sigaction sa;
+		memset(&sa, 0, sizeof(sa));
+
+		sa.sa_sigaction = &UmbrellaSignalHandler;
+		sa.sa_flags = SA_NOCLDSTOP | SA_RESTART | SA_SIGINFO;
+
+		(void)sigaction(SIGCHLD, &sa, nullptr);
+		(void)sigaction(SIGUSR1, &sa, nullptr);
+		(void)sigaction(SIGUSR2, &sa, nullptr);
+		(void)sigaction(SIGINT, &sa, nullptr);
+		(void)sigaction(SIGTERM, &sa, nullptr);
+		(void)sigaction(SIGHUP, &sa, nullptr);
 	}
 
-#ifndef _WIN32
-	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = &SigHupHandler;
-	sigaction(SIGHUP, &sa, nullptr);
+	// The PID of the current seemless worker
+	pid_t currentWorker = StartUnixWorker(configs);
+
+	if (currentWorker == -1) {
+		return EXIT_FAILURE;
+	}
+
+	// Immediately allow the first (non-reload) worker to continue working beyond config validation
+	(void)kill(currentWorker, SIGUSR2);
+
+#ifdef HAVE_SYSTEMD
+	sd_notify(0, "READY=1");
+#endif /* HAVE_SYSTEMD */
+
+	// Whether we already forwarded a termination signal to the seemless worker
+	bool requestedTermination = false;
+
+	// Whether we already notified systemd about our termination
+	bool notifiedTermination = false;
+
+	for (;;) {
+#ifdef HAVE_SYSTEMD
+		NotifyWatchdog();
+#endif /* HAVE_SYSTEMD */
+
+		if (!requestedTermination) {
+			int termSig = l_TermSignal.load();
+			if (termSig != -1) {
+				Log(LogNotice, "cli")
+					<< "Got signal " << termSig << ", forwarding to seemless worker (PID " << currentWorker << ")";
+
+				(void)kill(currentWorker, termSig);
+				requestedTermination = true;
+
+#ifdef HAVE_SYSTEMD
+				if (!notifiedTermination) {
+					notifiedTermination = true;
+					sd_notify(0, "STOPPING=1");
+				}
+#endif /* HAVE_SYSTEMD */
+			}
+		}
+
+		if (l_RequestedReload.exchange(false)) {
+			Log(LogInformation, "Application")
+				<< "Got reload command: Starting new instance.";
+
+#ifdef HAVE_SYSTEMD
+			sd_notify(0, "RELOADING=1");
+#endif /* HAVE_SYSTEMD */
+
+			pid_t nextWorker = StartUnixWorker(configs);
+
+			if (nextWorker == -1) {
+				Log(LogCritical, "Application", "Found error in config: reloading aborted");
+			} else {
+				Log(LogInformation, "Application")
+					<< "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
+
+				(void)kill(currentWorker, SIGTERM);
+
+				{
+					double start = Utility::GetTime();
+
+					while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
+#ifdef HAVE_SYSTEMD
+						NotifyWatchdog();
+#endif /* HAVE_SYSTEMD */
+					}
+
+					Log(LogNotice, "cli")
+						<< "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
+				}
+
+				// Old instance shut down, allow the new one to continue working beyond config validation
+				(void)kill(nextWorker, SIGUSR2);
+
+				currentWorker = nextWorker;
+			}
+
+#ifdef HAVE_SYSTEMD
+			sd_notify(0, "READY=1");
+#endif /* HAVE_SYSTEMD */
+
+		}
+
+		if (l_RequestedReopenLogs.exchange(false)) {
+			Log(LogNotice, "cli")
+				<< "Got signal " << SIGUSR1 << ", forwarding to seemless worker (PID " << currentWorker << ")";
+
+			(void)kill(currentWorker, SIGUSR1);
+		}
+
+		{
+			int status;
+			if (waitpid(currentWorker, &status, WNOHANG) > 0) {
+				Log(LogNotice, "cli")
+					<< "Seemless worker (PID " << currentWorker << ") stopped, stopping as well";
+
+#ifdef HAVE_SYSTEMD
+				if (!notifiedTermination) {
+					notifiedTermination = true;
+					sd_notify(0, "STOPPING=1");
+				}
+#endif /* HAVE_SYSTEMD */
+
+				// If killed by signal, forward it via the exit code (to be as seemless as possible)
+				return WIFSIGNALED(status) ? 128 + WTERMSIG(status) : WEXITSTATUS(status);
+			}
+		}
+
+		Utility::Sleep(0.2);
+	}
 #endif /* _WIN32 */
-
-	ApiListener::UpdateObjectAuthority();
-
-	return Application::GetInstance()->Run();
 }

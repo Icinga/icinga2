@@ -57,6 +57,10 @@ public:
 	static void RequestRestart();
 	static void RequestReopenLogs();
 
+#ifndef _WIN32
+	static void SetUmbrellaProcess(pid_t pid);
+#endif /* _WIN32 */
+
 	static bool IsShuttingDown();
 	static bool IsRestarting();
 
@@ -122,9 +126,13 @@ private:
 	static pid_t m_ReloadProcess; /**< The PID of a subprocess doing a reload, only valid when l_Restarting==true */
 	static bool m_RequestReopenLogs; /**< Whether we should re-open log files. */
 
+#ifndef _WIN32
+	static pid_t m_UmbrellaProcess; /**< The PID of the Icinga umbrella process */
+#endif /* _WIN32 */
+
 	static int m_ArgC; /**< The number of command-line arguments. */
 	static char **m_ArgV; /**< Command-line arguments. */
-	FILE *m_PidFile; /**< The PID file */
+	FILE *m_PidFile = nullptr; /**< The PID file */
 	static bool m_Debugging; /**< Whether debugging is enabled. */
 	static LogSeverity m_DebuggingSeverity; /**< Whether debugging severity is set. */
 	static double m_StartTime;
@@ -132,9 +140,7 @@ private:
 	static bool m_ScriptDebuggerEnabled;
 	static double m_LastReloadFailed;
 
-#ifndef _WIN32
-	static void SigIntTermHandler(int signum);
-#else /* _WIN32 */
+#ifdef _WIN32
 	static BOOL WINAPI CtrlHandler(DWORD type);
 	static LONG WINAPI SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi);
 #endif /* _WIN32 */
@@ -143,7 +149,6 @@ private:
 
 	static void SigAbrtHandler(int signum);
 	static void SigUsr1Handler(int signum);
-	static void SigUsr2Handler(int signum);
 	static void ExceptionHandler();
 
 	static String GetCrashReportFilename();

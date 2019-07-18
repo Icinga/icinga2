@@ -55,6 +55,17 @@ and [benchmarks](https://github.com/miloyip/nativejson-benchmark#parsing-time).
 
 ### Core <a id="upgrading-to-2-11-core"></a>
 
+#### Reload Handling <a id="upgrading-to-2-11-core-reload-handling"></a>
+
+2.11 provides fixes for unwanted notifications during restarts.
+The updated systemd service file now uses the `KillMode=mixed` setting.
+
+The reload handling was improved with an umbrella process, which means
+that normal runtime operations include **3 processes**. You may need to
+adjust the local instance monitoring of the [procs](08-advanced-topics.md#monitoring-icinga) check.
+
+More details can be found in the [technical concepts](19-technical-concepts.md#technical-concepts-core-reload) chapter.
+
 #### Downtime Notifications <a id="upgrading-to-2-11-core-downtime-notifications"></a>
 
 Imagine that a host/service changes to a HARD NOT-OK state,

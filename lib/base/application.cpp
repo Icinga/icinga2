@@ -27,10 +27,9 @@
 #endif /* __linux__ */
 #ifdef _WIN32
 #include <windows.h>
+#else /* _WIN32 */
+#include <signal.h>
 #endif /* _WIN32 */
-#ifdef HAVE_SYSTEMD
-#include <systemd/sd-daemon.h>
-#endif /* HAVE_SYSTEMD */
 
 using namespace icinga;
 
@@ -42,6 +41,11 @@ bool Application::m_ShuttingDown = false;
 bool Application::m_RequestRestart = false;
 bool Application::m_RequestReopenLogs = false;
 pid_t Application::m_ReloadProcess = 0;
+
+#ifndef _WIN32
+pid_t Application::m_UmbrellaProcess = 0;
+#endif /* _WIN32 */
+
 static bool l_Restarting = false;
 static bool l_InExceptionHandler = false;
 int Application::m_ArgC;
@@ -73,7 +77,9 @@ void Application::Stop(bool runtimeRemoved)
 	WSACleanup();
 #endif /* _WIN32 */
 
+#ifdef _WIN32
 	ClosePidFile(true);
+#endif /* _WIN32 */
 
 	ObjectImpl<Application>::Stop(runtimeRemoved);
 }
@@ -286,25 +292,24 @@ void Application::SetArgV(char **argv)
  */
 void Application::RunEventLoop()
 {
-#ifdef HAVE_SYSTEMD
-	sd_notify(0, "READY=1");
-#endif /* HAVE_SYSTEMD */
-
 	double lastLoop = Utility::GetTime();
 
 	while (!m_ShuttingDown) {
 		if (m_RequestRestart) {
 			m_RequestRestart = false;         // we are now handling the request, once is enough
 
-#ifdef HAVE_SYSTEMD
-			sd_notify(0, "RELOADING=1");
-#endif /* HAVE_SYSTEMD */
-
+#ifdef _WIN32
 			// are we already restarting? ignore request if we already are
 			if (!l_Restarting) {
 				l_Restarting = true;
 				m_ReloadProcess = StartReloadProcess();
 			}
+#else /* _WIN32 */
+			Log(LogNotice, "Application")
+				<< "Got reload command, forwarding to umbrella process (PID " << m_UmbrellaProcess << ")";
+
+			(void)kill(m_UmbrellaProcess, SIGHUP);
+#endif /* _WIN32 */
 		} else {
 			/* Watches for changes to the system time. Adjusts timers if necessary. */
 			Utility::Sleep(2.5);
@@ -317,10 +322,6 @@ void Application::RunEventLoop()
 
 			double now = Utility::GetTime();
 			double timeDiff = lastLoop - now;
-
-#ifdef HAVE_SYSTEMD
-			sd_notify(0, "WATCHDOG=1");
-#endif /* HAVE_SYSTEMD */
 
 			if (std::fabs(timeDiff) > 15) {
 				/* We made a significant jump in time. */
@@ -335,10 +336,6 @@ void Application::RunEventLoop()
 			lastLoop = now;
 		}
 	}
-
-#ifdef HAVE_SYSTEMD
-	sd_notify(0, "STOPPING=1");
-#endif /* HAVE_SYSTEMD */
 
 	Log(LogInformation, "Application", "Shutting down...");
 
@@ -445,6 +442,18 @@ void Application::RequestReopenLogs()
 {
 	m_RequestReopenLogs = true;
 }
+
+#ifndef _WIN32
+/**
+ * Sets the PID of the Icinga umbrella process.
+ *
+ * @param pid The PID of the Icinga umbrella process.
+ */
+void Application::SetUmbrellaProcess(pid_t pid)
+{
+	m_UmbrellaProcess = pid;
+}
+#endif /* _WIN32 */
 
 /**
  * Retrieves the full path of the executable.
@@ -680,29 +689,6 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 #endif /* _WIN32 */
 }
 
-#ifndef _WIN32
-/**
- * Signal handler for SIGINT and SIGTERM. Prepares the application for cleanly
- * shutting down during the next execution of the event loop.
- *
- * @param - The signal number.
- */
-void Application::SigIntTermHandler(int signum)
-{
-	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = SIG_DFL;
-	sigaction(signum, &sa, nullptr);
-
-	Application::Ptr instance = Application::GetInstance();
-
-	if (!instance)
-		return;
-
-	instance->RequestShutdown();
-}
-#endif /* _WIN32 */
-
 /**
  * Signal handler for SIGUSR1. This signal causes Icinga to re-open
  * its log files and is mainly for use by logrotate.
@@ -715,42 +701,6 @@ void Application::SigUsr1Handler(int)
 		<< "Received USR1 signal, reopening application logs.";
 
 	RequestReopenLogs();
-}
-
-/**
- * Signal handler for SIGUSR2. Hands over PID to child and commits suicide
- *
- * @param - The signal number.
- */
-void Application::SigUsr2Handler(int)
-{
-	Log(LogInformation, "Application", "Reload requested, letting new process take over.");
-#ifdef HAVE_SYSTEMD
-	sd_notifyf(0, "MAINPID=%lu", (unsigned long) m_ReloadProcess);
-#endif /* HAVE_SYSTEMD */
-
-	/* Write the PID of the new process to the pidfile before this
-	 * process exits to keep systemd happy.
-	 */
-	Application::Ptr instance = GetInstance();
-	try {
-		instance->UpdatePidFile(Configuration::PidPath, m_ReloadProcess);
-	} catch (const std::exception&) {
-		/* abort restart */
-		Log(LogCritical, "Application", "Cannot update PID file. Aborting restart operation.");
-		return;
-	}
-
-	instance->ClosePidFile(false);
-
-	/* Ensure to dump the program state on reload. */
-	ConfigObject::StopObjects();
-	instance->OnShutdown();
-
-	Log(LogInformation, "Application")
-		<< "Reload done, parent process shutting down. Child process with PID '" << m_ReloadProcess << "' is taking over.";
-
-	Exit(0);
 }
 
 /**
@@ -999,19 +949,13 @@ int Application::Run()
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = &Application::SigIntTermHandler;
-	sigaction(SIGINT, &sa, nullptr);
-	sigaction(SIGTERM, &sa, nullptr);
-
 	sa.sa_handler = &Application::SigUsr1Handler;
 	sigaction(SIGUSR1, &sa, nullptr);
-
-	sa.sa_handler = &Application::SigUsr2Handler;
-	sigaction(SIGUSR2, &sa, nullptr);
 #else /* _WIN32 */
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */
 
+#ifdef _WIN32
 	try {
 		UpdatePidFile(Configuration::PidPath);
 	} catch (const std::exception&) {
@@ -1019,6 +963,7 @@ int Application::Run()
 			<< "Cannot update PID file '" << Configuration::PidPath << "'. Aborting.";
 		return EXIT_FAILURE;
 	}
+#endif /* _WIN32 */
 
 	SetMainTime(Utility::GetTime());
 
