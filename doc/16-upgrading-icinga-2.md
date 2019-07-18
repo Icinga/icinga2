@@ -234,7 +234,7 @@ for `ca list`.
 
 The deprecated `concurrent_checks` attribute in the [checker feature](09-object-types.md#objecttype-checkercomponent)
 has no effect anymore if set. Please use the [MaxConcurrentChecks](17-language-reference.md#icinga-constants-global-config)
-constant in [constants.conf](04-configuring-icinga-2.md#constants-conf) instead.
+constant in [constants.conf](04-configuration.md#constants-conf) instead.
 
 ### REST API <a id="upgrading-to-2-11-api"></a>
 

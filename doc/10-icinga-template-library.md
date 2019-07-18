@@ -23,7 +23,7 @@ You are advised to create your own CheckCommand definitions in
 
 ## Generic Templates <a id="itl-generic-templates"></a>
 
-By default the generic templates are included in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file:
+By default the generic templates are included in the [icinga2.conf](04-configuration.md#icinga2-conf) configuration file:
 
 ```
 include <itl>
@@ -177,7 +177,7 @@ sleep\_time     | **Optional.** The duration of the sleep in seconds. Defaults t
 The Plugin Check Commands provides example configuration for plugin check commands
 provided by the [Monitoring Plugins](https://www.monitoring-plugins.org) project.
 
-By default the Plugin Check Commands are included in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration
+By default the Plugin Check Commands are included in the [icinga2.conf](04-configuration.md#icinga2-conf) configuration
 file:
 
     include <plugins>
@@ -1731,7 +1731,7 @@ are not recommended with using the legacy HTTP API.
 `check_nscp_api` is part of the Icinga 2 plugins. This plugin is available for
 both, Windows and Linux/Unix.
 
-Verify that the ITL CheckCommand is included in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file:
+Verify that the ITL CheckCommand is included in the [icinga2.conf](04-configuration.md#icinga2-conf) configuration file:
 
     vim /etc/icinga2/icinga2.conf
 
@@ -1774,12 +1774,12 @@ check_cpu CRITICAL: critical(5m: 48%, 1m: 36%), 5s: 0% | 'total 5m'=48%;40;30 't
 Icinga 2 can use the `nscp client` command to run arbitrary NSClient++ checks locally on the client.
 
 You can enable these check commands by adding the following the include directive in your
-[icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file:
+[icinga2.conf](04-configuration.md#icinga2-conf) configuration file:
 
     include <nscp>
 
 You can also optionally specify an alternative installation directory for NSClient++ by adding
-the NscpPath constant in your [constants.conf](04-configuring-icinga-2.md#constants-conf) configuration
+the NscpPath constant in your [constants.conf](04-configuration.md#constants-conf) configuration
 file:
 
     const NscpPath = "C:\\Program Files (x86)\\NSClient++"
@@ -1944,7 +1944,7 @@ The SNMP manubulon plugin check commands assume that the global constant named `
 is set to the path where the Manubublon SNMP plugins are installed.
 
 You can enable these plugin check commands by adding the following the include directive in your
-[icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file:
+[icinga2.conf](04-configuration.md#icinga2-conf) configuration file:
 
     include <manubulon>
 
@@ -2194,7 +2194,7 @@ contributed by community members.
 
 These check commands assume that the global constant named `PluginContribDir`
 is set to the path where the user installs custom plugins and can be enabled by
-uncommenting the corresponding line in [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf):
+uncommenting the corresponding line in [icinga2.conf](04-configuration.md#icinga2-conf):
 
 ```
 vim /etc/icinga2/icinga2.conf

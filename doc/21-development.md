@@ -432,7 +432,7 @@ on GitHub and mention that you're testing the snapshot packages.
 
 #### RHEL/CentOS <a id="development-tests-snapshot-packages-rhel"></a>
 
-2.11+ requires the [EPEL repository](02-getting-started.md#package-repositories-rhel-epel) for Boost 1.66+.
+2.11+ requires the [EPEL repository](02-installation.md#package-repositories-rhel-epel) for Boost 1.66+.
 
 In addition to that, the `icinga-rpm-release` package already provides the `icinga-snapshot-builds`
 repository but it is disabled by default.

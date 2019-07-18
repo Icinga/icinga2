@@ -699,7 +699,7 @@ inside the `icinga2.log` file depending in your log severity
 in objects and other functions. Keep in mind that these functions are not marked
 as side-effect-free and as such are not available via the REST API.
 
-Add a new configuration file `functions.conf` and include it into the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf)
+Add a new configuration file `functions.conf` and include it into the [icinga2.conf](04-configuration.md#icinga2-conf)
 configuration file in the very beginning, e.g. after `constants.conf`. You can also manage global
 functions inside `constants.conf` if you prefer.
 
