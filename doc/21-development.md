@@ -1315,6 +1315,66 @@ gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
 
+#### Ubuntu 18 Bionic <a id="development-linux-dev-env-ubuntu"></a>
+
+Requires Boost packages from packages.icinga.com.
+
+```
+$ docker run -ti ubuntu:bionic bash
+
+apt-get update
+apt-get -y install apt-transport-https wget gnupg
+
+wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+
+. /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
+ echo "deb https://packages.icinga.com/ubuntu icinga-${DIST} main" > \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+ echo "deb-src https://packages.icinga.com/ubuntu icinga-${DIST} main" >> \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+
+apt-get update
+```
+
+```
+apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
+
+apt-get install -y libboost1.67-icinga-all-dev
+
+ln -s /usr/bin/ccache /usr/local/bin/gcc
+ln -s /usr/bin/ccache /usr/local/bin/g++
+
+groupadd icinga
+groupadd icingacmd
+useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga icinga
+
+git clone https://github.com/icinga/icinga2.git && cd icinga2
+
+mkdir debug release
+
+export I2_DEB="-DBoost_NO_BOOST_CMAKE=TRUE -DBoost_NO_SYSTEM_PATHS=TRUE -DBOOST_LIBRARYDIR=/usr/lib/x86_64-linux-gnu/icinga-boost -DBOOST_INCLUDEDIR=/usr/include/icinga-boost -DCMAKE_INSTALL_RPATH=/usr/lib/x86_64-linux-gnu/icinga-boost"
+export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DICINGA2_PLUGINDIR=/usr/local/sbin"
+export I2_DEBUG="$I2_DEB $I2_GENERIC -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF"
+
+cd debug
+cmake .. $I2_DEBUG
+cd ..
+```
+
+```
+make -j2 install -C debug
+```
+
+
+```
+chown -R icinga:icinga /usr/local/icinga2/var/
+
+/usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
+/usr/local/icinga2/sbin/icinga2 api setup
+vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
+
+gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+```
 
 ### macOS Dev Environment <a id="development-macos-dev-env"></a>
 
