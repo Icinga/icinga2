@@ -2435,7 +2435,7 @@ Based on the [master with clients](06-distributed-monitoring.md#distributed-moni
 scenario we'll now add a local nscp check which queries the NSClient++ API to check the free disk space.
 
 Define a host object called `icinga2-client2.localdomain` on the master. Add the `nscp_api_password`
-custom attribute and specify the drives to check.
+custom variable and specify the drives to check.
 
 ```
 [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master

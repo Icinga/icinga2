@@ -144,7 +144,7 @@ These assign rules can be applied for all groups: `HostGroup`, `ServiceGroup` an
 
 > **Tip**
 >
-> Define custom attributes and assign/ignore members based on these attribute pattern matches.
+> Define custom variables and assign/ignore members based on these attribute pattern matches.
 
 
 
@@ -230,9 +230,9 @@ In Icinga 2 you'd just use the following macro to access all `address` attribute
 $address$
 ```
 
-#### Manual Config Migration Hints for Runtime Custom Attributes <a id="manual-config-migration-hints-runtime-custom-attributes"></a>
+#### Manual Config Migration Hints for Runtime Custom Variables <a id="manual-config-migration-hints-runtime-custom-variables"></a>
 
-Custom variables from Icinga 1.x are available as Icinga 2 custom attributes.
+Custom variables from Icinga 1.x are available as Icinga 2 custom variables.
 
 ```
 define command {
@@ -282,7 +282,7 @@ while the service check command resolves its value to the service attribute attr
 
 > **Note**
 >
-> Custom attributes in Icinga 2 are case-sensitive. `vars.CVTEST` is not the same as `vars.CvTest`.
+> Custom variables in Icinga 2 are case-sensitive. `vars.CVTEST` is not the same as `vars.CvTest`.
 
 #### Manual Config Migration Hints for Contacts (Users) <a id="manual-config-migration-hints-contacts-users"></a>
 
@@ -968,29 +968,27 @@ The `alias` is used for group, timeperiod, etc. objects too.
 Icinga 2 only supports the `display_name` attribute which is also taken into
 account by Icinga web interfaces.
 
-### Custom Attributes <a id="differences-1x-2-custom-attributes"></a>
+### Custom Variables <a id="differences-1x-2-custom-variables"></a>
 
-Icinga 2 allows you to define custom attributes in the `vars` dictionary.
+Icinga 2 allows you to define custom variables in the `vars` dictionary.
 The `notes`, `notes_url`, `action_url`, `icon_image`, `icon_image_alt`
 attributes for host and service objects are still available in Icinga 2.
 
 `2d_coords` and `statusmap_image` are not supported in Icinga 2.
 
-#### Custom Variables <a id="differences-1x-2-custom-variables"></a>
-
 Icinga 1.x custom variable attributes must be prefixed using an underscore (`_`).
-In Icinga 2 these attributes must be added to the `vars` dictionary as custom attributes.
+In Icinga 2 these attributes must be added to the `vars` dictionary as custom variables.
 
 ```
 vars.dn = "cn=icinga2-dev-host,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org"
 vars.cv = "my custom cmdb description"
 ```
 
-These custom attributes are also used as [command parameters](03-monitoring-basics.md#command-passing-parameters).
+These custom variables are also used as [command parameters](03-monitoring-basics.md#command-passing-parameters).
 
-While Icinga 1.x only supports numbers and strings as custom attribute values,
+While Icinga 1.x only supports numbers and strings as custom variable values,
 Icinga 2 extends that to arrays and (nested) dictionaries. For more details
-look [here](03-monitoring-basics.md#custom-attributes).
+look [here](03-monitoring-basics.md#custom-variables).
 
 ### Host Service Relation <a id="differences-1x-2-host-service-relation"></a>
 
@@ -1026,13 +1024,13 @@ and their users.
 ### Macros <a id="differences-1x-2-macros"></a>
 
 Various object attributes and runtime variables can be accessed as macros in
-commands in Icinga 1.x -- Icinga 2 supports all required [custom attributes](03-monitoring-basics.md#custom-attributes).
+commands in Icinga 1.x -- Icinga 2 supports all required [custom variables](03-monitoring-basics.md#custom-variables).
 
 #### Command Arguments <a id="differences-1x-2-command-arguments"></a>
 
 If you have previously used Icinga 1.x, you may already be familiar with
 user and argument definitions (e.g., `USER1` or `ARG1`). Unlike in Icinga 1.x
-the Icinga 2 custom attributes may have arbitrary names and arguments are no
+the Icinga 2 custom variables may have arbitrary names and arguments are no
 longer specified in the `check_command` setting.
 
 In Icinga 1.x arguments are specified in the `check_command` attribute and
@@ -1056,7 +1054,7 @@ can be set using the `env` attribute in command objects.
 #### Runtime Macros <a id="differences-1x-2-runtime-macros"></a>
 
 Icinga 2 requires an object specific namespace when accessing configuration
-and stateful runtime macros. Custom attributes can be accessed directly.
+and stateful runtime macros. Custom variables can be accessed directly.
 
 If a runtime macro from Icinga 1.x is not listed here, it is not supported
 by Icinga 2.

@@ -63,7 +63,7 @@ chapter.
 
 ### CheckCommand <a id="objecttype-checkcommand"></a>
 
-A check command definition. Additional default command custom attributes can be
+A check command definition. Additional default command custom variables can be
 defined here.
 
 Example:
@@ -108,7 +108,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   command                   | Array                 | **Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
   env                       | Dictionary            | **Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
-  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this command.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom variables that are specific to this command.
   timeout                   | Duration              | **Optional.** The command timeout in seconds. Defaults to `1m`.
   arguments                 | Dictionary            | **Optional.** A dictionary of command arguments.
 
@@ -348,7 +348,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   command                   | Array                 | **Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
   env                       | Dictionary            | **Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
-  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this command.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom variables that are specific to this command.
   timeout                   | Duration              | **Optional.** The command timeout in seconds. Defaults to `1m`.
   arguments                 | Dictionary            | **Optional.** A dictionary of command arguments.
 
@@ -383,7 +383,7 @@ Configuration Attributes:
   address                   | String                | **Optional.** The host's IPv4 address. Available as command runtime macro `$address$` if set.
   address6                  | String                | **Optional.** The host's IPv6 address. Available as command runtime macro `$address6$` if set.
   groups                    | Array of object names | **Optional.** A list of host groups this host belongs to.
-  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this host.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom variables that are specific to this host.
   check\_command            | Object name           | **Required.** The name of the check command.
   max\_check\_attempts      | Number                | **Optional.** The number of times a host is re-checked before changing into a hard state. Defaults to 3.
   check\_period             | Object name           | **Optional.** The name of a time period which determines when this host should be checked. Not set by default (effectively 24x7).
@@ -511,7 +511,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host\_name                | Object name           | **Required.** The name of the host this notification belongs to.
   service\_name             | Object name           | **Optional.** The short name of the service this notification belongs to. If omitted, this notification object is treated as host notification.
-  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this notification object.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom variables that are specific to this notification object.
   users                     | Array of object names | **Required.** A list of user names who should be notified. **Optional.** if the `user_groups` attribute is set.
   user\_groups              | Array of object names | **Required.** A list of user group names who should be notified. **Optional.** if the `users` attribute is set.
   times                     | Dictionary            | **Optional.** A dictionary containing `begin` and `end` attributes for the notification.
@@ -648,7 +648,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   command                   | Array                 | **Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
   env                       | Dictionary            | **Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
-  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this command.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom variables that are specific to this command.
   timeout                   | Duration              | **Optional.** The command timeout in seconds. Defaults to `1m`.
   arguments                 | Dictionary            | **Optional.** A dictionary of command arguments.
 
@@ -746,7 +746,7 @@ Configuration Attributes:
   display\_name             | String                | **Optional.** A short description of the service.
   host\_name                | Object name           | **Required.** The host this service belongs to. There must be a `Host` object with that name.
   groups                    | Array of object names | **Optional.** The service groups this service belongs to.
-  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this service.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom variables that are specific to this service.
   check\_command            | Object name           | **Required.** The name of the check command.
   max\_check\_attempts      | Number                | **Optional.** The number of times a service is re-checked before changing into a hard state. Defaults to 3.
   check\_period             | Object name           | **Optional.** The name of a time period which determines when this service should be checked. Not set by default (effectively 24x7).
@@ -952,7 +952,7 @@ Configuration Attributes:
   display\_name             | String                | **Optional.** A short description of the user.
   email                     | String                | **Optional.** An email string for this user. Useful for notification commands.
   pager                     | String                | **Optional.** A pager string for this user. Useful for notification commands.
-  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this user.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom variables that are specific to this user.
   groups                    | Array of object names | **Optional.** An array of group names.
   enable\_notifications     | Boolean               | **Optional.** Whether notifications are enabled for this user. Defaults to true.
   period                    | Object name           | **Optional.** The name of a time period which determines when a notification for this user should be triggered. Not set by default (effectively 24x7).
@@ -1414,7 +1414,7 @@ Configuration Attributes:
   enable\_host\_checks      | Boolean               | **Optional.** Whether active host checks are globally enabled. Defaults to true.
   enable\_service\_checks   | Boolean               | **Optional.** Whether active service checks are globally enabled. Defaults to true.
   enable\_perfdata          | Boolean               | **Optional.** Whether performance data processing is globally enabled. Defaults to true.
-  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are available globally.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom variables that are available globally.
   environment               | String                | **Optional.** Specify the Icinga environment. This overrides the `Environment` constant specified in the configuration or on the CLI with `--define`. Defaults to empty.
 
 ### IdoMySqlConnection <a id="objecttype-idomysqlconnection"></a>
@@ -1746,7 +1746,7 @@ Configuration Attributes:
 ### PerfdataWriter <a id="objecttype-perfdatawriter"></a>
 
 Writes check result performance data to a defined path using macro
-pattern consisting of custom attributes and runtime macros.
+pattern consisting of custom variables and runtime macros.
 This configuration object is available as [perfdata feature](14-features.md#writing-performance-data-files).
 
 Example:
