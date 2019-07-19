@@ -1,4 +1,4 @@
-# Getting Started <a id="getting-started"></a>
+# Installation <a id="installation"></a>
 
 This tutorial is a step-by-step introduction to installing [Icinga 2](02-installation.md#setting-up-icinga2)
 and [Icinga Web 2](02-installation.md#setting-up-icingaweb2).
@@ -104,7 +104,7 @@ apt-get update
 
 > **Note**:
 >
-> This repository is required since v2.11.
+> This repository is required for Debian Stretch since v2.11.
 
 Debian Stretch:
 
