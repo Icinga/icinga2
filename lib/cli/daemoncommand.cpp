@@ -24,7 +24,9 @@
 #include <iostream>
 #include <fstream>
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <windows.h>
+#else /* _WIN32 */
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -539,6 +541,10 @@ public:
  */
 int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
 {
+#ifdef _WIN32
+	SetConsoleOutputCP(65001);
+#endif /* _WIN32 */
+
 	Logger::EnableTimestamp();
 
 	Log(LogInformation, "cli")
