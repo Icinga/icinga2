@@ -342,12 +342,12 @@ Icinga 2 (version: v2.11.0)
 Once connected you can inspect variables and execute other expressions by entering them at the prompt:
 
 ```
-<1> => var h = get_host("icinga2-client1.localdomain")
+<1> => var h = get_host("icinga2-agent1.localdomain")
 null
 <2> => h.last_check_result
 {
         active = true
-        check_source = "icinga2-client1.localdomain"
+        check_source = "icinga2-agent1.localdomain"
         command = [ "/usr/local/sbin/check_ping", "-H", "127.0.0.1", "-c", "5000,100%", "-w", "3000,80%" ]
         execution_end = 1446653527.174983
         execution_start = 1446653523.152673
@@ -382,10 +382,10 @@ The `--syntax-only` option can be used in combination with `--eval` or `--file`
 to check a script for syntax errors. In this mode the script is parsed to identify
 syntax errors but not evaluated.
 
-Here's an example that retrieves the command that was used by Icinga to check the `icinga2-client1.localdomain` host:
+Here's an example that retrieves the command that was used by Icinga to check the `icinga2-agent1.localdomain` host:
 
 ```
-$ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' --eval 'get_host("icinga2-client1.localdomain").last_check_result.command' | python -m json.tool
+$ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' --eval 'get_host("icinga2-agent1.localdomain").last_check_result.command' | python -m json.tool
 [
     "/usr/local/sbin/check_ping",
     "-H",

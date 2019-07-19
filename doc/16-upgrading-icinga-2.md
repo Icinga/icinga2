@@ -534,8 +534,8 @@ The default certificate path was changed from `/etc/icinga2/pki` to
 
   Old Path                                           | New Path
   ---------------------------------------------------|---------------------------------------------------
-  `/etc/icinga2/pki/icinga2-client1.localdomain.crt` | `/var/lib/icinga2/certs/icinga2-client1.localdomain.crt`
-  `/etc/icinga2/pki/icinga2-client1.localdomain.key` | `/var/lib/icinga2/certs/icinga2-client1.localdomain.key`
+  `/etc/icinga2/pki/icinga2-agent1.localdomain.crt` | `/var/lib/icinga2/certs/icinga2-agent1.localdomain.crt`
+  `/etc/icinga2/pki/icinga2-agent1.localdomain.key` | `/var/lib/icinga2/certs/icinga2-agent1.localdomain.key`
   `/etc/icinga2/pki/ca.crt`                          | `/var/lib/icinga2/certs/ca.crt`
 
 This applies to Windows clients in the same way: `%ProgramData%\etc\icinga2\pki`
@@ -543,8 +543,8 @@ was moved to `%ProgramData%\var\lib\icinga2\certs`.
 
   Old Path                                                        | New Path
   ----------------------------------------------------------------|----------------------------------------------------------------
-  `%ProgramData%\etc\icinga2\pki\icinga2-client1.localdomain.crt` | `%ProgramData%\var\lib\icinga2\certs\icinga2-client1.localdomain.crt`
-  `%ProgramData%\etc\icinga2\pki\icinga2-client1.localdomain.key` | `%ProgramData%\var\lib\icinga2\certs\icinga2-client1.localdomain.key`
+  `%ProgramData%\etc\icinga2\pki\icinga2-agent1.localdomain.crt` | `%ProgramData%\var\lib\icinga2\certs\icinga2-agent1.localdomain.crt`
+  `%ProgramData%\etc\icinga2\pki\icinga2-agent1.localdomain.key` | `%ProgramData%\var\lib\icinga2\certs\icinga2-agent1.localdomain.key`
   `%ProgramData%\etc\icinga2\pki\ca.crt`                          | `%ProgramData%\var\lib\icinga2\certs\ca.crt`
 
 
