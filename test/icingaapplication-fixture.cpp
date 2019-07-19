@@ -26,6 +26,9 @@ void IcingaApplicationFixture::InitIcingaApplication()
 
 IcingaApplicationFixture::~IcingaApplicationFixture()
 {
+	BOOST_TEST_MESSAGE("cleanup Icinga 2 core");
+	Application::UninitializeBase();
+
 	IcingaApplication::GetInstance().reset();
 }
 
