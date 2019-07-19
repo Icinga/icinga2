@@ -246,7 +246,7 @@ filter expression has to be a [lambda function](17-language-reference.md#nullary
 which must return a boolean value.
 
 The following example allows the API user to query all hosts and services which have a
-custom attribute `os` that matches the regular expression `^Linux`.
+custom variable `os` that matches the regular expression `^Linux`.
 The [regex function](18-library-reference.md#global-functions-regex) is available as global function.
 
 ```
@@ -661,7 +661,7 @@ The following joins are available:
   Zones        | parent
 
 Here's an example that retrieves all service objects for hosts which have had their `os`
-custom attribute set to `Linux`. The result set contains the `display_name` and `check_command`
+custom variable set to `Linux`. The result set contains the `display_name` and `check_command`
 attributes for the service. The query also returns the host's `name` and `address` attribute
 via a join:
 
@@ -892,7 +892,7 @@ If attributes are of the [Dictionary](17-language-reference.md#dictionary) type,
 "attrs": { "vars.os": "Linux" }
 ```
 
-The following example updates the `address` attribute and the custom attribute `os` for the `example.localdomain` host:
+The following example updates the `address` attribute and the custom variable `os` for the `example.localdomain` host:
 
 ```
 $ curl -k -s -u root:icinga -H 'Accept: application/json' \

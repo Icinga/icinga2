@@ -587,7 +587,7 @@ You might also want to add additional checks for SSL certificate expiration.
 
 [Apply rules](03-monitoring-basics.md#using-apply) can be used to create a rule set which is
 entirely based on host objects and their attributes.
-In addition to that [apply for and custom attribute override](03-monitoring-basics.md#using-apply-for)
+In addition to that [apply for and custom variable override](03-monitoring-basics.md#using-apply-for)
 extend the possibilities.
 
 The following example defines a dictionary on the host object which contains
@@ -664,7 +664,7 @@ apply Service "webserver_url" for (instance => config in host.vars.webserver.ins
 }
 ```
 
-The variables defined in the host dictionary are not using the typical custom attribute
+The variables defined in the host dictionary are not using the typical custom variable
 prefix recommended for CheckCommand parameters. Instead they are re-used for multiple
 service checks in this example.
 In addition to defining check parameters this way, you can also enrich the `display_name`
@@ -674,7 +674,7 @@ attribute with more details. This will be shown in in Icinga Web 2 for example.
 
 There is a limited scope where functions can be used as object attributes such as:
 
-* As value for [Custom Attributes](03-monitoring-basics.md#custom-attributes-functions)
+* As value for [Custom Variables](03-monitoring-basics.md#custom-variables-functions)
 * Returning boolean expressions for [set_if](08-advanced-topics.md#use-functions-command-arguments-setif) inside command arguments
 * Returning a [command](08-advanced-topics.md#use-functions-command-attribute) array inside command objects
 
@@ -683,7 +683,7 @@ The other way around you can create objects dynamically using your own global fu
 > **Note**
 >
 > Functions called inside command objects share the same global scope as runtime macros.
-> Therefore you can access host custom attributes like `host.vars.os`, or any other
+> Therefore you can access host custom variables like `host.vars.os`, or any other
 > object attribute from inside the function definition used for [set_if](08-advanced-topics.md#use-functions-command-arguments-setif) or [command](08-advanced-topics.md#use-functions-command-attribute).
 
 Tips when implementing functions:
@@ -850,7 +850,7 @@ object HostGroup "printers-lexmark" {
 ```
 
 Take a different more complex example: All hosts with the
-custom attribute `vars_app` as nested dictionary should be
+custom variable `vars_app` as nested dictionary should be
 added to the host group `ABAP-app-server`. But only if the
 `app_type` for all entries is set to `ABAP`.
 
@@ -875,7 +875,7 @@ object Host "appserver02" {
 }
 
 globals.check_app_type = function(host, type) {
-  /* ensure that other hosts without the custom attribute do not match */
+  /* ensure that other hosts without the custom variable do not match */
   if (typeof(host.vars.vars_app) != Dictionary) {
     return false
   }
@@ -924,7 +924,7 @@ The more significant problem was to only add the command parameter `--disk` to t
 when the dictionary `compellent` contains the key `disks`, and omit it if not found.
 
 By defining `set_if` as [abbreviated lambda function](17-language-reference.md#nullary-lambdas)
-and evaluating the host custom attribute `compellent` containing the `disks` this problem was
+and evaluating the host custom variable `compellent` containing the `disks` this problem was
 solved like this:
 
 ```
@@ -972,11 +972,11 @@ The more programmatic approach for `set_if` could look like this:
           if (typeof(srv_vars.compellent) == Dictionary) {
             return srv_vars.compellent.contains("disks")
           } else {
-            log(LogInformationen, "checkcommand set_if", "custom attribute compellent_checks is not a dictionary, ignoring it.")
+            log(LogInformationen, "checkcommand set_if", "custom variable compellent_checks is not a dictionary, ignoring it.")
             return false
           }
         } else {
-          log(LogWarning, "checkcommand set_if", "empty custom attributes")
+          log(LogWarning, "checkcommand set_if", "empty custom variables")
           return false
         }
       }}
@@ -990,7 +990,7 @@ or [EventCommands](09-object-types.md#objecttype-eventcommand) which does not re
 a returned checkresult including state/output.
 
 The following example was taken from the community support channels. The requirement was to
-specify a custom attribute inside the notification apply rule and decide which notification
+specify a custom variable inside the notification apply rule and decide which notification
 script to call based on that.
 
 ```
@@ -1013,7 +1013,7 @@ apply Notification "mail-admins-short" to Host {
 The solution is fairly simple: The `command` attribute is implemented as function returning
 an array required by the caller Icinga 2.
 The local variable `mailscript` sets the default value for the notification scrip location.
-If the notification custom attribute `short` is set, it will override the local variable `mailscript`
+If the notification custom variable `short` is set, it will override the local variable `mailscript`
 with a new value.
 The `mailscript` variable is then used to compute the final notification command array being
 returned.

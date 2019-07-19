@@ -25,7 +25,7 @@ Here is a list of common errors which can be diagnosed with the script debugger:
 ## Debugging Configuration Errors <a id="script-debugger-config-errors"></a>
 
 The following example illustrates the problem of a service [apply rule](03-monitoring-basics.md#using-apply-for)
-which expects a dictionary value for `config`, but the host custom attribute only
+which expects a dictionary value for `config`, but the host custom variable only
 provides a string value:
 
 ```
@@ -130,7 +130,7 @@ an internal error, they return an empty result to the caller.
 
 In order to analyse these server-side errors, you can use the script debugger.
 
-The following example tries filter for all host objects where the custom attribute
+The following example tries filter for all host objects where the custom variable
 `os` is set. There are various possibilities to check that, one of them would be
 `host.vars.os != ""`. Another idea is to use the [contains](18-library-reference.md#dictionary-contains) method on the custom
 attribute dictionary like this: `host.vars.contains("os")`.
@@ -141,7 +141,7 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Over
  -d '{ "filter": "host.vars.contains(\"os\")", "attrs": [ "__name" ], "joins": [ "host.name", "host.vars" ], "pretty": true }'
 ```
 
-This will fail on all hosts which don't have any custom attribute specified.
+This will fail on all hosts which don't have any custom variable specified.
 
 ```
 # icinga2 daemon -X

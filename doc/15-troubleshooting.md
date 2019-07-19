@@ -274,7 +274,7 @@ did not properly escape the single dollar sign preventing its usage as [runtime 
 critical/config: Error: Validation failed for Object 'ping4' (Type: 'Service') at /etc/icinga2/zones.d/global-templates/windows.conf:24: Closing $ not found in macro format string 'top-syntax=${list}'.
 ```
 
-Correct the custom attribute value to
+Correct the custom variable value to
 
 ```
 "top-syntax=$${list}"

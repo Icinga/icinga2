@@ -704,10 +704,10 @@ The returned value depends on the attribute value which is resolved
 from the specified runtime macro.
 
 This function is only available in runtime evaluated functions, e.g.
-for [custom attributes](03-monitoring-basics.md#custom-attributes-functions) which
+for [custom variables](03-monitoring-basics.md#custom-variables-functions) which
 use the [abbreviated lambda syntax](17-language-reference.md#nullary-lambdas).
 
-This example sets the `snmp_address` custom attribute
+This example sets the `snmp_address` custom variable
 based on `$address$` and `$address6$`.
 
 ```

@@ -220,7 +220,7 @@ fix this:
 * Pass the check command name inside the [format template configuration](14-features.md#writing-performance-data-files)
 
 The latter becomes difficult with agent based checks like NRPE or SSH where the first command argument acts as
-graph template identifier. There is the possibility to define the pnp template name as custom attribute
+graph template identifier. There is the possibility to define the pnp template name as custom variable
 and use that inside the formatting templates as `SERVICECHECKCOMMAND` for instance.
 
 Example for services:

@@ -440,7 +440,7 @@ instantiated at run-time. Parent objects do not necessarily have to be
 templates, however in general they are.
 
 The `vars` dictionary for the `localhost` object contains all three
-custom attributes and the custom attribute `colour` has the value `"blue"`.
+custom variables and the custom variable `colour` has the value `"blue"`.
 
 Parent objects are resolved in the order they're specified using the
 `import` keyword.
@@ -496,7 +496,7 @@ ZonesDir            |**Read-only.** Contains the path of the zones.d directory. 
 
 Constant            | Description
 --------------------|-------------------
-Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
+Vars                |**Read-write.** Contains a dictionary with global custom variables. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
 ReloadTimeout       |**Read-write.** Defines the reload timeout for child processes. Defaults to `300s`.
 Environment         |**Read-write.** The name of the Icinga environment. Included in the SNI host name for outbound connections. Not set by default.
@@ -632,7 +632,7 @@ In this example all generated service object names consist of `prefix-` and
 the value of the `key` iterator. The prefix string can be omitted if not required.
 
 The `key` and `value` variables can be used for object attribute assignment, e.g. for
-setting the `check_command` attribute or custom attributes as command parameters.
+setting the `check_command` attribute or custom variables as command parameters.
 
 `apply for` rules are first evaluated against all objects matching the `for loop` list
 and afterwards the `assign where` and `ignore where` conditions are evaluated.
@@ -1173,7 +1173,7 @@ log("Hello from '" + current_filename + "' in line " + current_line)
 
 ## Reserved Keywords <a id="reserved-keywords"></a>
 
-These keywords are reserved and must not be used as constants or custom attributes.
+These keywords are reserved and must not be used as constants or custom variables.
 
 ```
 object

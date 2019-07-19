@@ -12,8 +12,8 @@ the `check_snmp` plugin binary, but there are plenty of [existing plugins](05-se
 for specific use cases already around, for example monitoring Cisco routers.
 
 The following example uses the [SNMP ITL](10-icinga-template-library.md#plugin-check-command-snmp) `CheckCommand` and just
-overrides the `snmp_oid` custom attribute. A service is created for all hosts which
-have the `snmp-community` custom attribute.
+overrides the `snmp_oid` custom variable. A service is created for all hosts which
+have the `snmp-community` custom variable.
 
 ```
 apply Service "uptime" {

@@ -48,7 +48,7 @@ Consider these ideas:
 
 In either way of choosing the right strategy you should additionally check the following:
 
-* Are there any specific attributes describing the host/service you could set as `vars` custom attributes?
+* Are there any specific attributes describing the host/service you could set as `vars` custom variables?
 You can later use them for applying assign/ignore rules, or export them into external interfaces.
 * Put hosts into hostgroups, services into servicegroups and use these attributes for your apply rules.
 * Use templates to store generic attributes for your objects and apply rules making your configuration more readable.
@@ -276,11 +276,11 @@ The `import` keyword is used to import the `generic-host` template which
 takes care of setting up the host check command to `hostalive`. If you
 require a different check command, you can override it in the object definition.
 
-The `vars` attribute can be used to define custom attributes which are available
+The `vars` attribute can be used to define custom variables which are available
 for check and notification commands. Most of the [Plugin Check Commands](10-icinga-template-library.md#icinga-template-library)
 in the Icinga Template Library require an `address` attribute.
 
-The custom attribute `os` is evaluated by the `linux-servers` group in
+The custom variable `os` is evaluated by the `linux-servers` group in
 [groups.conf](04-configuration.md#groups-conf) making the local host a member.
 
 The example host will show you how to:
@@ -324,7 +324,7 @@ object Host NodeName {
   address = "127.0.0.1"
   address6 = "::1"
 
-  /* Set custom attribute `os` for hostgroup assignment in `groups.conf`. */
+  /* Set custom variable `os` for hostgroup assignment in `groups.conf`. */
   vars.os = "Linux"
 
   /* Define http vhost attributes for service apply rules in `services.conf`. */
@@ -377,8 +377,8 @@ Service(s)                                  | Applied on host(s)
 `load`, `procs`, `swap`, `users`, `icinga`  | The `NodeName` host only.
 `ping4`, `ping6`                            | All hosts with `address` resp. `address6` attribute.
 `ssh`                                       | All hosts with `address` and `vars.os` set to `Linux`
-`http`, optional: `Icinga Web 2`            | All hosts with custom attribute `http_vhosts` defined as dictionary.
-`disk`, `disk /`                            | All hosts with custom attribute `disks` defined as dictionary.
+`http`, optional: `Icinga Web 2`            | All hosts with custom variable `http_vhosts` defined as dictionary.
+`disk`, `disk /`                            | All hosts with custom variable `disks` defined as dictionary.
 
 The Debian packages also include an additional `apt` service check applied to the local host.
 
@@ -407,7 +407,7 @@ The `apply` keyword can be used to create new objects which are associated with
 another group of objects. You can `import` existing templates, define (custom)
 attributes.
 
-The custom attribute `backup_downtime` is defined to a specific timerange string.
+The custom variable `backup_downtime` is defined to a specific timerange string.
 This variable value will be used for applying a `ScheduledDowntime` object to
 these services in [downtimes.conf](04-configuration.md#downtimes-conf).
 
@@ -430,7 +430,7 @@ apply Service "ssh" {
 ```
 
 In this example, the service `ssh` is applied to all hosts having the `address`
-attribute defined `AND` having the custom attribute `os` set to the string
+attribute defined `AND` having the custom variable `os` set to the string
 `Linux`.
 You can modify this condition to match multiple expressions by combining `AND`
 and `OR` using `&&` and `||` [operators](17-language-reference.md#expression-operators), for example
@@ -443,7 +443,7 @@ hosts, you can go one step further: Generate apply rules based on array items
 or dictionary key-value pairs.
 
 The idea is simple: Your host in [hosts.conf](04-configuration.md#hosts-conf) defines the
-`disks` dictionary as custom attribute in `vars`.
+`disks` dictionary as custom variable in `vars`.
 
 Remember the example from [hosts.conf](04-configuration.md#hosts-conf):
 
@@ -583,7 +583,7 @@ Read more on that topic [here](03-monitoring-basics.md#notification-commands).
 #### groups.conf <a id="groups-conf"></a>
 
 The example host defined in [hosts.conf](hosts-conf) already has the
-custom attribute `os` set to `Linux` and is therefore automatically
+custom variable `os` set to `Linux` and is therefore automatically
 a member of the host group `linux-servers`.
 
 This is done by using the [group assign](17-language-reference.md#group-assign) expressions similar
@@ -681,7 +681,7 @@ More details on `Notification` object attributes can be found [here](09-object-t
 #### downtimes.conf <a id="downtimes-conf"></a>
 
 The `load` service apply rule defined in [services.conf](04-configuration.md#services-conf) defines
-the `backup_downtime` custom attribute.
+the `backup_downtime` custom variable.
 
 The ScheduledDowntime apply rule uses this attribute to define the default value
 for the time ranges required for recurring downtime slots.
