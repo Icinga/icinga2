@@ -130,7 +130,7 @@ chmod +x /opt/monitoring/plugins/check_snmp_int.pl
 ```
 
 Next create a new global constant, e.g. `CustomPluginDir`
-in your [constants.conf](04-configuring-icinga-2.md#constants-conf)
+in your [constants.conf](04-configuration.md#constants-conf)
 configuration file:
 
 ```

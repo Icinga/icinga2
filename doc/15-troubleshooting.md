@@ -22,8 +22,8 @@ findings and details please.
 	* [Icinga Web 2 modules](https://icinga.com/products/icinga-web-2-modules/) e.g. the Icinga Director (optional)
 * Configuration insights:
 	* Provide complete configuration snippets explaining your problem in detail
-	* Your [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) file
-	* If you run multiple Icinga 2 instances, the [zones.conf](04-configuring-icinga-2.md#zones-conf) file (or `icinga2 object list --type Endpoint` and `icinga2 object list --type Zone`) from all affected nodes.
+	* Your [icinga2.conf](04-configuration.md#icinga2-conf) file
+	* If you run multiple Icinga 2 instances, the [zones.conf](04-configuration.md#zones-conf) file (or `icinga2 object list --type Endpoint` and `icinga2 object list --type Zone`) from all affected nodes.
 * Logs
 	* Relevant output from your main and [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) in `/var/log/icinga2`. Please add step-by-step explanations with timestamps if required.
 	* The newest Icinga 2 crash log if relevant, located in `/var/log/icinga2/crash`
@@ -237,7 +237,7 @@ include <itl>
 include <plugins>
 ```
 
-in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered
+in the [icinga2.conf](04-configuration.md#icinga2-conf) configuration file. These files are not considered
 configuration files and will be overridden on upgrade, so please send modifications as proposed patches upstream.
 The default include path is set to `/usr/share/icinga2/includes` with the constant `IncludeConfDir`.
 
@@ -248,7 +248,7 @@ or similar.
 
 * Make sure that the line(s) are not [commented out](17-language-reference.md#comments) (starting with `//` or `#`, or
 encapsulated by `/* ... */`).
-* Is the configuration file included in [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf)?
+* Is the configuration file included in [icinga2.conf](04-configuration.md#icinga2-conf)?
 
 Run the [configuration validation](11-cli-commands.md#config-validation) and add `notice` as log severity.
 Search for the file which should be included i.e. using the `grep` CLI command.
@@ -481,7 +481,7 @@ critical thresholds are sometimes to applied and unwanted notification
 alerts are raised.
 
 This happens because the client itself includes a host object with
-its `NodeName` and a basic set of checks in the [conf.d](04-configuring-icinga-2.md#conf-d)
+its `NodeName` and a basic set of checks in the [conf.d](04-configuration.md#conf-d)
 directory, i.e. `disk` with the default thresholds.
 
 Clients which have the `checker` feature enabled will attempt
@@ -494,7 +494,7 @@ master you will receive wrong check results from the client.
 Solution:
 
 * Disable the `checker` feature on clients: `icinga2 feature disable checker`.
-* Remove the inclusion of [conf.d](04-configuring-icinga-2.md#conf-d) as suggested in the [client setup docs](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
+* Remove the inclusion of [conf.d](04-configuration.md#conf-d) as suggested in the [client setup docs](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
 
 ### Check Fork Errors <a id="check-fork-errors"></a>
 
@@ -712,7 +712,7 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://local
 ### Feature is not working <a id="feature-not-working"></a>
 
 * Make sure that the feature configuration is enabled by symlinking from `features-available/`
-to `features-enabled` and that the latter is included in [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf).
+to `features-enabled` and that the latter is included in [icinga2.conf](04-configuration.md#icinga2-conf).
 * Are the feature attributes set correctly according to the documentation?
 * Any errors on the logs?
 
@@ -1236,7 +1236,7 @@ certificate's CN, the master will deny all events.
 
 > **Tip**
 >
-> [Icinga Web 2](02-getting-started.md#setting-up-icingaweb2) provides a dashboard view
+> [Icinga Web 2](02-installation.md#setting-up-icingaweb2) provides a dashboard view
 > for overdue check results.
 
 Enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) on the master
@@ -1281,7 +1281,7 @@ Icinga 2 requires the `NodeName` [constant](17-language-reference.md#constants) 
 This includes loading the TLS certificates, setting the proper check source,
 and so on.
 
-Typically the Windows setup wizard and also the CLI commands populate the [constants.conf](04-configuring-icinga-2.md#constants-conf)
+Typically the Windows setup wizard and also the CLI commands populate the [constants.conf](04-configuration.md#constants-conf)
 file with the auto-detected or user-provided FQDN/Common Name.
 
 If this constant is not set during startup, Icinga will try to resolve the

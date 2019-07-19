@@ -50,7 +50,7 @@ The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
 configuration and status information into a database. The IDO database is used
 by Icinga Web 2 as data backend.
 
-Details on the installation can be found in the [Configuring DB IDO](02-getting-started.md#configuring-db-ido-mysql)
+Details on the installation can be found in the [Configuring DB IDO](02-installation.md#configuring-db-ido-mysql)
 chapter. Details on the configuration can be found in the
 [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection) and
 [IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection)
@@ -736,7 +736,7 @@ Livestatus.
 >
 > Only install the Livestatus feature if your web interface or addon requires
 > you to do so.
-> [Icinga Web 2](02-getting-started.md#setting-up-icingaweb2) does not need
+> [Icinga Web 2](02-installation.md#setting-up-icingaweb2) does not need
 > Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found

@@ -473,7 +473,7 @@ once they are set.
 
 > **Tip**
 >
-> Best practice is to manage constants in the [constants.conf](04-configuring-icinga-2.md#constants-conf) file.
+> Best practice is to manage constants in the [constants.conf](04-configuration.md#constants-conf) file.
 
 ### Icinga 2 Specific Constants <a id="icinga-constants"></a>
 

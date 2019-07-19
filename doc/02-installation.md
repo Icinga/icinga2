@@ -1,7 +1,7 @@
-# Getting Started <a id="getting-started"></a>
+# Installation <a id="installation"></a>
 
-This tutorial is a step-by-step introduction to installing [Icinga 2](02-getting-started.md#setting-up-icinga2)
-and [Icinga Web 2](02-getting-started.md#setting-up-icingaweb2).
+This tutorial is a step-by-step introduction to installing [Icinga 2](02-installation.md#setting-up-icinga2)
+and [Icinga Web 2](02-installation.md#setting-up-icingaweb2).
 It assumes that you are familiar with the operating system you're using to install Icinga 2.
 
 In case you are upgrading an existing setup, please ensure to
@@ -104,7 +104,7 @@ apt-get update
 
 > **Note**:
 >
-> This repository is required since v2.11.
+> This repository is required for Debian Stretch since v2.11.
 
 Debian Stretch:
 
@@ -306,7 +306,7 @@ Without plugins Icinga 2 does not know how to check external services. The
 an extensive set of plugins which can be used with Icinga 2 to check whether
 services are working properly.
 
-These plugins are required to make the [example configuration](04-configuring-icinga-2.md#configuring-icinga2-overview)
+These plugins are required to make the [example configuration](04-configuration.md#configuring-icinga2-overview)
 work out-of-the-box.
 
 For your convenience here is a list of package names for some of the more
@@ -337,7 +337,7 @@ yum install nagios-plugins-all
 ```
 
 The packages for RHEL/CentOS depend on other packages which are distributed
-as part of the [EPEL repository](02-getting-started.md#package-repositories-rhel-epel).
+as part of the [EPEL repository](02-installation.md#package-repositories-rhel-epel).
 
 Fedora:
 
@@ -371,7 +371,7 @@ Note: For Alpine you don't need to explicitly add the `monitoring-plugins` packa
 `icinga2` and is pulled automatically.
 
 Depending on which directory your plugins are installed into you may need to
-update the global `PluginDir` constant in your [Icinga 2 configuration](04-configuring-icinga-2.md#constants-conf).
+update the global `PluginDir` constant in your [Icinga 2 configuration](04-configuration.md#constants-conf).
 This constant is used by the check command definitions contained in the Icinga Template Library
 to determine where to find the plugin binaries.
 
@@ -603,8 +603,8 @@ This chapter explains how to set up Icinga Web 2.
 The DB IDO (Database Icinga Data Output) feature for Icinga 2 take care of
 exporting all configuration and status information into a database.
 
-Please choose whether to install [MySQL](02-getting-started.md#configuring-db-ido-mysql) or
-[PostgreSQL](02-getting-started.md#configuring-db-ido-postgresql).
+Please choose whether to install [MySQL](02-installation.md#configuring-db-ido-mysql) or
+[PostgreSQL](02-installation.md#configuring-db-ido-postgresql).
 
 ### Configuring DB IDO MySQL <a id="configuring-db-ido-mysql"></a>
 
@@ -744,7 +744,7 @@ Alpine Linux:
 rc-service icinga2 restart
 ```
 
-Continue with the [webserver setup](02-getting-started.md#icinga2-user-interface-webserver).
+Continue with the [webserver setup](02-installation.md#icinga2-user-interface-webserver).
 
 ### Configuring DB IDO PostgreSQL <a id="configuring-db-ido-postgresql"></a>
 
@@ -910,7 +910,7 @@ Alpine Linux:
 rc-service icinga2 restart
 ```
 
-Continue with the [webserver setup](02-getting-started.md#icinga2-user-interface-webserver).
+Continue with the [webserver setup](02-installation.md#icinga2-user-interface-webserver).
 
 ### Webserver <a id="icinga2-user-interface-webserver"></a>
 

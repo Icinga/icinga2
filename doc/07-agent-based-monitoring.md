@@ -7,7 +7,7 @@ become handy.
 ## SNMP <a id="agent-based-checks-snmp"></a>
 
 The SNMP daemon runs on the remote system and answers SNMP queries by plugin
-binaries. The [Monitoring Plugins package](02-getting-started.md#setting-up-check-plugins) ships
+binaries. The [Monitoring Plugins package](02-installation.md#setting-up-check-plugins) ships
 the `check_snmp` plugin binary, but there are plenty of [existing plugins](05-service-monitoring.md#service-monitoring-plugins)
 for specific use cases already around, for example monitoring Cisco routers.
 
@@ -37,7 +37,7 @@ As such, it is recommended to always specify at least one `MIB`.
 
 Calling a plugin using the SSH protocol to execute a plugin on the remote server fetching
 its return code and output. The `by_ssh` command object is part of the built-in templates and
-requires the `check_by_ssh` check plugin which is available in the [Monitoring Plugins package](02-getting-started.md#setting-up-check-plugins).
+requires the `check_by_ssh` check plugin which is available in the [Monitoring Plugins package](02-installation.md#setting-up-check-plugins).
 
 ```
 object CheckCommand "by_ssh_swap" {

@@ -36,7 +36,7 @@ In case you are planning a huge cluster setup with multiple levels and
 lots of clients, read on -- we'll deal with these cases later on.
 
 The installation on each system is the same: You need to install the
-[Icinga 2 package](02-getting-started.md#setting-up-icinga2) and the required [plugins](02-getting-started.md#setting-up-check-plugins).
+[Icinga 2 package](02-installation.md#setting-up-icinga2) and the required [plugins](02-installation.md#setting-up-check-plugins).
 
 The required configuration steps are mostly happening
 on the command line. You can also [automate the setup](06-distributed-monitoring.md#distributed-monitoring-automation).
@@ -227,8 +227,8 @@ This section explains how to install a central single master node using
 the `node wizard` command. If you prefer to do an automated installation, please
 refer to the [automated setup](06-distributed-monitoring.md#distributed-monitoring-automation) section.
 
-Install the [Icinga 2 package](02-getting-started.md#setting-up-icinga2) and setup
-the required [plugins](02-getting-started.md#setting-up-check-plugins) if you haven't done
+Install the [Icinga 2 package](02-installation.md#setting-up-icinga2) and setup
+the required [plugins](02-installation.md#setting-up-check-plugins) if you haven't done
 so already.
 
 **Note**: Windows is not supported for a master node setup.
@@ -250,9 +250,9 @@ The setup wizard will ensure that the following steps are taken:
 * Enable the `api` feature.
 * Generate a new certificate authority (CA) in `/var/lib/icinga2/ca` if it doesn't exist.
 * Create a certificate for this node signed by the CA key.
-* Update the [zones.conf](04-configuring-icinga-2.md#zones-conf) file with the new zone hierarchy.
-* Update the [ApiListener](06-distributed-monitoring.md#distributed-monitoring-apilistener) and [constants](04-configuring-icinga-2.md#constants-conf) configuration.
-* Update the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) to disable the `conf.d` inclusion, and add the `api-users.conf` file inclusion.
+* Update the [zones.conf](04-configuration.md#zones-conf) file with the new zone hierarchy.
+* Update the [ApiListener](06-distributed-monitoring.md#distributed-monitoring-apilistener) and [constants](04-configuration.md#constants-conf) configuration.
+* Update the [icinga2.conf](04-configuration.md#icinga2-conf) to disable the `conf.d` inclusion, and add the `api-users.conf` file inclusion.
 
 Here is an example of a master setup for the `icinga2-master1.localdomain` node on CentOS 7:
 
@@ -293,7 +293,7 @@ Now restart your Icinga 2 daemon to finish the installation!
 ```
 
 You can verify that the CA public and private keys are stored in the `/var/lib/icinga2/ca` directory.
-Keep this path secure and include it in your [backups](02-getting-started.md#install-backup).
+Keep this path secure and include it in your [backups](02-installation.md#install-backup).
 
 In case you lose the CA private key you have to generate a new CA for signing new client
 certificate requests. You then have to also re-create new signed certificates for all
@@ -473,8 +473,8 @@ Icinga 2 on the master node must be running and accepting connections on port `5
 
 Please ensure that you've run all the steps mentioned in the [client/satellite section](06-distributed-monitoring.md#distributed-monitoring-setup-satellite-client).
 
-Install the [Icinga 2 package](02-getting-started.md#setting-up-icinga2) and setup
-the required [plugins](02-getting-started.md#setting-up-check-plugins) if you haven't done
+Install the [Icinga 2 package](02-installation.md#setting-up-icinga2) and setup
+the required [plugins](02-installation.md#setting-up-check-plugins) if you haven't done
 so already.
 
 The next step is to run the `node wizard` CLI command.
@@ -929,7 +929,7 @@ The host/service object configuration is located on the master/satellite and the
 needs the CheckCommand object definitions being used there.
 
 Every endpoint has its own remote check queue. The amount of checks executed simultaneously
-can be limited on the endpoint with the `MaxConcurrentChecks` constant defined in [constants.conf](04-configuring-icinga-2.md#constants-conf). Icinga 2 may discard check requests,
+can be limited on the endpoint with the `MaxConcurrentChecks` constant defined in [constants.conf](04-configuration.md#constants-conf). Icinga 2 may discard check requests,
 if the remote check queue is full.
 
 ![Icinga 2 Distributed Top Down Command Endpoint](images/distributed-monitoring/icinga2_distributed_top_down_command_endpoint.png)
@@ -2817,7 +2817,7 @@ to pick the authoritative running one and copy the following content:
 
 If you need already deployed config packages from the Director, or synced cluster zones,
 you can also sync the entire `/var/lib/icinga2/api/packages` directory. This directory should also be
-included in your [backup strategy](02-getting-started.md#install-backup).
+included in your [backup strategy](02-installation.md#install-backup).
 
 Do **not** sync `/var/lib/icinga2/api/zones*` manually - this is an internal directory
 and handled by the Icinga cluster config sync itself.

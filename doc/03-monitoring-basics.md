@@ -867,8 +867,8 @@ More advanced examples are covered [here](08-advanced-topics.md#use-functions-as
 
 ### Apply Services to Hosts <a id="using-apply-services"></a>
 
-The sample configuration already includes a detailed example in [hosts.conf](04-configuring-icinga-2.md#hosts-conf)
-and [services.conf](04-configuring-icinga-2.md#services-conf) for this use case.
+The sample configuration already includes a detailed example in [hosts.conf](04-configuration.md#hosts-conf)
+and [services.conf](04-configuration.md#services-conf) for this use case.
 
 The example for `ssh` applies a service object to all hosts with the `address`
 attribute being defined and the custom attribute `os` set to the string `Linux` in `vars`.
@@ -964,7 +964,7 @@ Detailed examples can be found in the [dependencies](03-monitoring-basics.md#dep
 
 ### Apply Recurring Downtimes to Hosts and Services <a id="using-apply-scheduledowntimes"></a>
 
-The sample configuration includes an example in [downtimes.conf](04-configuring-icinga-2.md#downtimes-conf).
+The sample configuration includes an example in [downtimes.conf](04-configuration.md#downtimes-conf).
 
 Detailed examples can be found in the [recurring downtimes](08-advanced-topics.md#recurring-downtimes) chapter.
 
@@ -975,8 +975,8 @@ Next to the standard way of using [apply rules](03-monitoring-basics.md#using-ap
 there is the requirement of applying objects based on a set (array or
 dictionary) using [apply for](17-language-reference.md#apply-for) expressions.
 
-The sample configuration already includes a detailed example in [hosts.conf](04-configuring-icinga-2.md#hosts-conf)
-and [services.conf](04-configuring-icinga-2.md#services-conf) for this use case.
+The sample configuration already includes a detailed example in [hosts.conf](04-configuration.md#hosts-conf)
+and [services.conf](04-configuration.md#services-conf) for this use case.
 
 Take the following example: A host provides the snmp oids for different service check
 types. This could look like the following example:
@@ -1046,7 +1046,7 @@ dynamically generated.
 
 > **Tip**
 >
-> Define the SNMP community as global constant in your [constants.conf](04-configuring-icinga-2.md#constants-conf) file.
+> Define the SNMP community as global constant in your [constants.conf](04-configuration.md#constants-conf) file.
 
 ```
 const IftrafficSnmpCommunity = "public"
@@ -1567,7 +1567,7 @@ A common pattern is to store the users and user groups
 on the host or service objects instead of the notification
 object itself.
 
-The sample configuration provided in [hosts.conf](04-configuring-icinga-2.md#hosts-conf) and [notifications.conf](notifications-conf)
+The sample configuration provided in [hosts.conf](04-configuration.md#hosts-conf) and [notifications.conf](notifications-conf)
 already provides an example for this question.
 
 > **Tip**
@@ -1874,7 +1874,7 @@ using the `check_command` attribute.
 #### Integrate the Plugin with a CheckCommand Definition <a id="command-plugin-integration"></a>
 
 Unless you have done so already, download your check plugin and put it
-into the [PluginDir](04-configuring-icinga-2.md#constants-conf) directory. The following example uses the
+into the [PluginDir](04-configuration.md#constants-conf) directory. The following example uses the
 `check_mysql` plugin contained in the Monitoring Plugins package.
 
 The plugin path and all command arguments are made a list of
@@ -1913,7 +1913,7 @@ The check command parameters for ITL provided plugin check command definitions a
 
 In order to practice passing command parameters you should [integrate your own plugin](03-monitoring-basics.md#command-plugin-integration).
 
-The following example will use `check_mysql` provided by the [Monitoring Plugins installation](02-getting-started.md#setting-up-check-plugins).
+The following example will use `check_mysql` provided by the [Monitoring Plugins installation](02-installation.md#setting-up-check-plugins).
 
 Define the default check command custom attributes, for example `mysql_user` and `mysql_password`
 (freely definable naming schema) and optional their default threshold values. You can
@@ -1973,7 +1973,7 @@ The check command definition also sets `mysql_host` to the `$address$` default v
 this command parameter if for example your MySQL host is not running on the same server's ip address.
 
 Make sure pass all required command parameters, such as `mysql_user`, `mysql_password` and `mysql_database`.
-`MysqlUsername` and `MysqlPassword` are specified as [global constants](04-configuring-icinga-2.md#constants-conf)
+`MysqlUsername` and `MysqlPassword` are specified as [global constants](04-configuration.md#constants-conf)
 in this example.
 
 ```
@@ -1996,10 +1996,10 @@ apply Service "mysql-icinga-db-health" {
 ```
 
 
-Take a different example: The example host configuration in [hosts.conf](04-configuring-icinga-2.md#hosts-conf)
+Take a different example: The example host configuration in [hosts.conf](04-configuration.md#hosts-conf)
 also applies an `ssh` service check. Your host's ssh port is not the default `22`, but set to `2022`.
 You can pass the command parameter as custom attribute `ssh_port` directly inside the service apply rule
-inside [services.conf](04-configuring-icinga-2.md#services-conf):
+inside [services.conf](04-configuration.md#services-conf):
 
 ```
 apply Service "ssh" {
