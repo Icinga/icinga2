@@ -1,10 +1,10 @@
-# Distributed Monitoring with Master, Satellites, and Clients <a id="distributed-monitoring"></a>
+# Distributed Monitoring with Master, Satellites and Agents <a id="distributed-monitoring"></a>
 
 This chapter will guide you through the setup of a distributed monitoring
 environment, including high-availability clustering and setup details
 for Icinga masters, satellites and agents.
 
-## Roles: Master, Satellites, and Clients <a id="distributed-monitoring-roles"></a>
+## Roles: Master, Satellites and Agents <a id="distributed-monitoring-roles"></a>
 
 Icinga 2 nodes can be given names for easier understanding:
 
@@ -12,7 +12,7 @@ Icinga 2 nodes can be given names for easier understanding:
 * A `satellite` node which is a child of a `satellite` or `master` node.
 * An `agent` node which is connected to `master` and/or `satellite` nodes.
 
-![Icinga 2 Distributed Roles](images/distributed-monitoring/icinga2_distributed_roles.png)
+![Icinga 2 Distributed Roles](images/distributed-monitoring/icinga2_distributed_monitoring_roles.png)
 
 Rephrasing this picture into more details:
 
@@ -57,7 +57,7 @@ The first thing you need learn about a distributed setup is the hierarchy of the
 The Icinga 2 hierarchy consists of so-called [zone](09-object-types.md#objecttype-zone) objects.
 Zones depend on a parent-child relationship in order to trust each other.
 
-![Icinga 2 Distributed Zones](images/distributed-monitoring/icinga2_distributed_zones.png)
+![Icinga 2 Distributed Zones](images/distributed-monitoring/icinga2_distributed_monitoring_zones.png)
 
 Have a look at this example for the `satellite` zones which have the `master` zone as a parent zone:
 
@@ -90,7 +90,7 @@ must use the FQDN for the zone name.
 
 Nodes which are a member of a zone are so-called [Endpoint](09-object-types.md#objecttype-endpoint) objects.
 
-![Icinga 2 Distributed Endpoints](images/distributed-monitoring/icinga2_distributed_endpoints.png)
+![Icinga 2 Distributed Endpoints](images/distributed-monitoring/icinga2_distributed_monitoring_endpoints.png)
 
 Here is an example configuration for two endpoints in different zones:
 
@@ -522,7 +522,7 @@ Press `Enter` to use the proposed name in brackets, or add a specific common nam
 this should be the FQDN.
 
 ```
-Starting the Client/Satellite setup routine...
+Starting the Agent/Satellite setup routine...
 
 Please specify the common name (CN) [icinga2-agent1.localdomain]: icinga2-agent1.localdomain
 ```
@@ -844,7 +844,7 @@ The NSClient++ REST API can be used to query metrics. [check_nscp_api](06-distri
 uses this transport method.
 
 
-#### Finish Windows Client Setup <a id="distributed-monitoring-setup-agent-windows-finish"></a>
+#### Finish Windows Agent Setup <a id="distributed-monitoring-setup-agent-windows-finish"></a>
 
 Finish the Windows setup wizard.
 
@@ -950,7 +950,7 @@ Every endpoint has its own remote check queue. The amount of checks executed sim
 can be limited on the endpoint with the `MaxConcurrentChecks` constant defined in [constants.conf](04-configuration.md#constants-conf). Icinga 2 may discard check requests,
 if the remote check queue is full.
 
-![Icinga 2 Distributed Top Down Command Endpoint](images/distributed-monitoring/icinga2_distributed_top_down_command_endpoint.png)
+![Icinga 2 Distributed Top Down Command Endpoint](images/distributed-monitoring/icinga2_distributed_monitoring_agent_checks_command_endpoint.png)
 
 Advantages:
 
@@ -1136,7 +1136,7 @@ It comes in handy if you want to configure everything on the master node
 and sync the satellite checks (disk, memory, etc.). The satellites run their
 own local scheduler and will send the check result messages back to the master.
 
-![Icinga 2 Distributed Top Down Config Sync](images/distributed-monitoring/icinga2_distributed_top_down_config_sync.png)
+![Icinga 2 Distributed Top Down Config Sync](images/distributed-monitoring/icinga2_distributed_monitoring_satellite_config_sync.png)
 
 Advantages:
 
@@ -1331,7 +1331,7 @@ In this scenario, a single master node runs the check scheduler, notifications
 and IDO database backend and uses the [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 to execute checks on the remote agents.
 
-![Icinga 2 Distributed Master with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_master_clients.png)
+![Icinga 2 Distributed Master with Agents](images/distributed-monitoring/icinga2_distributed_monitoring_scenarios_master_with_agents.png)
 
 * `icinga2-master1.localdomain` is the primary master node.
 * `icinga2-agent1.localdomain` and `icinga2-agent2.localdomain` are two child nodes as agents.
@@ -1537,12 +1537,12 @@ Proceed in [this chapter](06-distributed-monitoring.md#distributed-monitoring-he
 <!-- Keep this for compatibility -->
 <a id="distributed-monitoring-scenarios-ha-master-clients"></a>
 
-### High-Availability Master with Clients <a id="distributed-monitoring-scenarios-ha-master-agents"></a>
+### High-Availability Master with Agents <a id="distributed-monitoring-scenarios-ha-master-agents"></a>
 
 This scenario is similar to the one in the [previous section](06-distributed-monitoring.md#distributed-monitoring-master-agents). The only difference is that we will now set up two master nodes in a high-availability setup.
 These nodes must be configured as zone and endpoints objects.
 
-![Icinga 2 Distributed High Availability Master with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_ha_master_clients.png)
+![Icinga 2 Distributed High Availability Master with Agents](images/distributed-monitoring/icinga2_distributed_monitoring_scenario_ha_masters_with_agents.png)
 
 The setup uses the capabilities of the Icinga 2 cluster. All zone members
 replicate cluster events between each other. In addition to that, several Icinga 2
@@ -1860,7 +1860,7 @@ This scenario combines everything you've learned so far: High-availability maste
 satellites receiving their configuration from the master zone, and agents checked via command
 endpoint from the satellite zones.
 
-![Icinga 2 Distributed Master and Satellites with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_master_satellite_client.png)
+![Icinga 2 Distributed Master and Satellites with Agents](images/distributed-monitoring/icinga2_distributed_monitoring_scenarios_master_satellites_agents.png)
 
 > **Tip**:
 >
@@ -2666,7 +2666,7 @@ For security reasons, it is advised to enable the NSClient++ HTTP API for local
 connection from the Icinga agent only. Remote connections to the HTTP API
 are not recommended with using the legacy HTTP API.
 
-### Windows Client and Plugins <a id="distributed-monitoring-windows-plugins"></a>
+### Windows Agent and Plugins <a id="distributed-monitoring-windows-plugins"></a>
 
 The Icinga 2 package on Windows already provides several plugins.
 Detailed [documentation](10-icinga-template-library.md#windows-plugins) is available for all check command definitions.
@@ -2723,12 +2723,12 @@ Validate the configuration and restart Icinga 2.
 
 Open Icinga Web 2 and check your newly added Windows disk check :)
 
-![Icinga 2 Client Windows](images/distributed-monitoring/icinga2_distributed_windows_client_disk_icingaweb2.png)
+![Icinga Windows Agent](images/distributed-monitoring/icinga2_distributed_windows_client_disk_icingaweb2.png)
 
 If you want to add your own plugins please check [this chapter](05-service-monitoring.md#service-monitoring-requirements)
 for the requirements.
 
-### Windows Client and NSClient++ <a id="distributed-monitoring-windows-nscp"></a>
+### Windows Agent and NSClient++ <a id="distributed-monitoring-windows-nscp"></a>
 
 There are two methods available for querying NSClient++:
 
@@ -2801,7 +2801,7 @@ Validate the configuration and restart Icinga 2.
 
 Two new services ("nscp-drive-D:" and "nscp-drive-C:") will be visible in Icinga Web 2.
 
-![Icinga 2 Distributed Monitoring Windows Client with NSClient++ nscp-api](images/distributed-monitoring/icinga2_distributed_windows_nscp_api_drivesize_icingaweb2.png)
+![Icinga 2 Distributed Monitoring Windows Agent with NSClient++ nscp-api](images/distributed-monitoring/icinga2_distributed_windows_nscp_api_drivesize_icingaweb2.png)
 
 Note: You can also omit the `command_endpoint` configuration to execute
 the command on the master. This also requires a different value for `nscp_api_host`
@@ -2917,7 +2917,7 @@ Validate the configuration and restart Icinga 2.
 
 Open Icinga Web 2 and check your newly added Windows NSClient++ check :)
 
-![Icinga 2 Distributed Monitoring Windows Client with NSClient++ nscp-local](images/distributed-monitoring/icinga2_distributed_windows_nscp_counter_icingaweb2.png)
+![Icinga 2 Distributed Monitoring Windows Agent with NSClient++ nscp-local](images/distributed-monitoring/icinga2_distributed_windows_nscp_counter_icingaweb2.png)
 
 > **Tip**
 >
