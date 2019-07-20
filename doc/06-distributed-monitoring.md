@@ -17,14 +17,14 @@ Icinga 2 nodes can be given names for easier understanding:
 Rephrasing this picture into more details:
 
 * A `master` node has no parent node.
-  * A `master`node is where you usually install Icinga Web 2.
-  * A `master` node can combine executed checks from child nodes into backends and notifications.
+    * A `master`node is where you usually install Icinga Web 2.
+    * A `master` node can combine executed checks from child nodes into backends and notifications.
 * A `satellite` node has a parent and a child node.
-  * A `satellite` node may execute checks on its own or delegate check execution to child nodes.
-  * A `satellite` node can receive configuration for hosts/services, etc. from the parent node.
-  * A `satellite` node continues to run even if the master node is temporarily unavailable.
+    * A `satellite` node may execute checks on its own or delegate check execution to child nodes.
+    * A `satellite` node can receive configuration for hosts/services, etc. from the parent node.
+    * A `satellite` node continues to run even if the master node is temporarily unavailable.
 * An `agent` node only has a parent node.
-  * An `agent` node will either run its own configured checks or receive command execution events from the parent node.
+    * An `agent` node will either run its own configured checks or receive command execution events from the parent node.
 
 A client can be a secondary master, a satellite or an agent. It
 typically requests something from the primary master or parent node.
