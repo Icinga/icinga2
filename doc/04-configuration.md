@@ -1,4 +1,4 @@
-# Configuration: First Steps <a id="configuration-first-steps"></a>
+# Configuration: First Steps <a id="configuration"></a>
 
 This chapter provides an introduction into best practices for your Icinga 2 configuration.
 The configuration files which are automatically created when installing the Icinga 2 packages
