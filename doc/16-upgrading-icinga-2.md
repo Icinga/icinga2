@@ -274,6 +274,14 @@ It will also attempt to fix them, the following log entry is perfectly fine.
 
 If you still encounter problems, please follow [this troubleshooting entry](15-troubleshooting.md#troubleshooting-api-missing-runtime-objects).
 
+### Documentation <a id="upgrading-to-2-11-documentation"></a>
+
+* `Custom attributes` have been renamed to `Custom variables` following the name `vars` and their usage in backends and web interfaces.
+The term `custom attribute` still applies, but referring from the web to the core docs is easier.
+* The distributed environment term `client` has been refined into `agent`. Wordings and images have been adjusted, and a `client` only is used as
+general term when requesting something from a parent server role.
+* The images for basics, modes and scenarios in the distributed monitoring chapter have been re-created from scratch.
+* `02-getting-started.md` was renamed to `02-installation.md`, `04-configuring-icinga-2.md` into `04-configuration.md`. Apache redirects will be in place.
 
 ## Upgrading to v2.10 <a id="upgrading-to-2-10"></a>
 
