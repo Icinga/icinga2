@@ -153,7 +153,7 @@
 			this.lblSetupCompleted.Name = "lblSetupCompleted";
 			this.lblSetupCompleted.Size = new System.Drawing.Size(259, 13);
 			this.lblSetupCompleted.TabIndex = 0;
-			this.lblSetupCompleted.Text = "The Icinga 2 Windows client was set up successfully.";
+			this.lblSetupCompleted.Text = "The Icinga Windows agent was set up successfully.";
 			// 
 			// tabConfigure
 			// 
@@ -272,7 +272,7 @@
 			this.introduction1.Name = "introduction1";
 			this.introduction1.Size = new System.Drawing.Size(269, 13);
 			this.introduction1.TabIndex = 6;
-			this.introduction1.Text = "Welcome to the Icinga 2 Windows Client Setup Wizard!";
+			this.introduction1.Text = "Welcome to the Icinga Windows Agent Setup Wizard!";
 			// 
 			// groupBox3
 			// 
@@ -437,7 +437,7 @@
 			this.groupBox1.Size = new System.Drawing.Size(601, 110);
 			this.groupBox1.TabIndex = 1;
 			this.groupBox1.TabStop = false;
-			this.groupBox1.Text = "Parent master/satellite instance(s) for this client";
+			this.groupBox1.Text = "Parent master/satellite instance(s) for this agent";
 			// 
 			// btnEditEndpoint
 			// 
