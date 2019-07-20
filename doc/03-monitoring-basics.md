@@ -678,7 +678,7 @@ attribute and reference an existing host attribute.
 ```
 object Service "ping4" {
   check_command = "ping4"
-  host_name = "icinga2-client1.localdomain"
+  host_name = "icinga2-agent1.localdomain"
 }
 ```
 
@@ -1599,7 +1599,7 @@ already provides an example for this question.
 Specify the user and groups as nested custom variable on the host object:
 
 ```
-object Host "icinga2-client1.localdomain" {
+object Host "icinga2-agent1.localdomain" {
   [...]
 
   vars.notification["mail"] = {
@@ -2035,7 +2035,7 @@ If you prefer this being configured at the host instead of the service, modify t
 object instead. The runtime macro resolving order is described [here](03-monitoring-basics.md#macro-evaluation-order).
 
 ```
-object Host "icinga2-client1.localdomain {
+object Host "icinga2-agent1.localdomain {
 ...
   vars.ssh_port = 2022
 }
@@ -2763,7 +2763,7 @@ The script only is executed if the service state is `CRITICAL`. Warning and Unkn
 are ignored as they indicate not an immediate failure.
 
 ```
-[root@icinga2-client1.localdomain /]# vim /usr/lib64/nagios/plugins/restart_service
+[root@icinga2-agent1.localdomain /]# vim /usr/lib64/nagios/plugins/restart_service
 
 #!/bin/bash
 
@@ -2794,7 +2794,7 @@ else
   fi
 fi
 
-[root@icinga2-client1.localdomain /]# chmod +x /usr/lib64/nagios/plugins/restart_service
+[root@icinga2-agent1.localdomain /]# chmod +x /usr/lib64/nagios/plugins/restart_service
 ```
 
 Add a service on the master node which is executed via command endpoint on the client.
@@ -2802,15 +2802,15 @@ Set the `event_command` attribute to `restart_service`, the name of the previous
 EventCommand object.
 
 ```
-[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client1.localdomain.conf
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-agent1.localdomain.conf
 
 object Service "Process httpd" {
   check_command = "procs"
   event_command = "restart_service"
   max_check_attempts = 4
 
-  host_name = "icinga2-client1.localdomain"
-  command_endpoint = "icinga2-client1.localdomain"
+  host_name = "icinga2-agent1.localdomain"
+  command_endpoint = "icinga2-agent1.localdomain"
 
   vars.procs_command = "httpd"
   vars.procs_warning = "1:10"
@@ -2818,17 +2818,17 @@ object Service "Process httpd" {
 }
 ```
 
-In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
+In order to test this configuration just stop the `httpd` on the remote host `icinga2-agent1.localdomain`.
 
 ```
-[root@icinga2-client1.localdomain /]# systemctl stop httpd
+[root@icinga2-agent1.localdomain /]# systemctl stop httpd
 ```
 
 You can enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and search for the
 executed command line.
 
 ```
-[root@icinga2-client1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep restart_service
+[root@icinga2-agent1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep restart_service
 ```
 
 #### Use Event Commands to Restart Service Daemon via Command Endpoint on Windows <a id="event-command-restart-service-daemon-command-endpoint-windows"></a>
@@ -2904,21 +2904,21 @@ Set the `event_command` attribute to `restart_service-windows`, the name of the 
 EventCommand object.
 
 ```
-[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client2.localdomain.conf
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-agent2.localdomain.conf
 
 object Service "Service httpd" {
   check_command = "service-windows"
   event_command = "restart_service-windows"
   max_check_attempts = 4
 
-  host_name = "icinga2-client2.localdomain"
-  command_endpoint = "icinga2-client2.localdomain"
+  host_name = "icinga2-agent2.localdomain"
+  command_endpoint = "icinga2-agent2.localdomain"
 
   vars.service_win_service = "httpd"
 }
 ```
 
-In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
+In order to test this configuration just stop the `httpd` on the remote host `icinga2-agent1.localdomain`.
 
 ```
 C:> net stop httpd
@@ -3024,15 +3024,15 @@ object Host "remote-http-host" {
 }
 ```
 
-In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
+In order to test this configuration just stop the `httpd` on the remote host `icinga2-agent1.localdomain`.
 
 ```
-[root@icinga2-client1.localdomain /]# systemctl stop httpd
+[root@icinga2-agent1.localdomain /]# systemctl stop httpd
 ```
 
 You can enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and search for the
 executed command line.
 
 ```
-[root@icinga2-client1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep by_ssh
+[root@icinga2-agent1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep by_ssh
 ```

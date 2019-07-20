@@ -1503,12 +1503,12 @@ Example:
 ```
 $ curl -k -s -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/actions/generate-ticket' \
- -d '{ "cn": "icinga2-client1.localdomain", "pretty": true }'
+ -d '{ "cn": "icinga2-agent1.localdomain", "pretty": true }'
 {
     "results": [
         {
             "code": 200.0,
-            "status": "Generated PKI ticket '4f75d2ecd253575fe9180938ebff7cbca262f96e' for common name 'icinga2-client1.localdomain'.",
+            "status": "Generated PKI ticket '4f75d2ecd253575fe9180938ebff7cbca262f96e' for common name 'icinga2-agent1.localdomain'.",
             "ticket": "4f75d2ecd253575fe9180938ebff7cbca262f96e"
         }
     ]

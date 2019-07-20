@@ -520,6 +520,16 @@ Service:
 
 ## Cluster <a id="technical-concepts-cluster"></a>
 
+This documentation refers to technical roles between cluster
+endpoints.
+
+- The `server` or `parent` role accepts incoming connection attempts and handles requests
+- The `client` role actively connects to remote endpoints receiving config/commands, requesting certificates, etc.
+
+A client role is not necessarily bound to the Icinga agent.
+It may also be a satellite which actively connects to the
+master.
+
 ### Communication <a id="technical-concepts-cluster-communication"></a>
 
 Icinga 2 uses its own certificate authority (CA) by default. The
@@ -565,7 +575,7 @@ signing master.
 
 Icinga 2 v2.8 introduces the possibility to request certificates
 from indirectly connected nodes. This is required for multi level
-cluster environments with masters, satellites and clients.
+cluster environments with masters, satellites and agents.
 
 CSR Signing in general starts with the master setup. This step
 ensures that the master is in a working CSR signing state with:
@@ -613,7 +623,7 @@ cluster message.
 
 If the child node was not the certificate request origin, it only updates
 the cached request for the child node and send another cluster message
-down to its child node (e.g. from a satellite to a client).
+down to its child node (e.g. from a satellite to an agent).
 
 
 If no ticket was specified, the signing master waits until the
@@ -635,6 +645,10 @@ not necessarily need a connection to the parent node.
 This mode leaves the node in a semi-configured state. You need
 to manually copy the master's public CA key into `/var/lib/icinga2/certs/ca.crt`
 on the client before starting Icinga 2.
+
+> **Note**
+>
+> The `client` in this case can be either a satellite or an agent.
 
 The parent node needs to actively connect to the child node.
 Once this connections succeeds, the child node will actively
@@ -1028,7 +1042,7 @@ evaluates this in startup and knows on endpoint connect which config zones need 
 
 
 Global zones have a special trust relationship: They are synced to all child zones, be it
-a satellite zone or client zone. Since checkable objects such as a Host or a Service object
+a satellite zone or agent zone. Since checkable objects such as a Host or a Service object
 must have only one endpoint as authority, they cannot be put into a global zone (denied by
 the config compiler).
 
@@ -1058,9 +1072,9 @@ is transmitted.
 When the master connects to the child zone member(s), this requires more
 resources there. Keep this in mind when endpoints are not reachable, the
 TCP timeout blocks other resources. Moving a satellite zone in the middle
-between masters and agents/clients helps to split the tasks - the master
+between masters and agents helps to split the tasks - the master
 processes and stores data, deploys configuration and serves the API. The
-satellites schedule the checks, connect to the agents/clients and receive
+satellites schedule the checks, connect to the agents and receive
 check results.
 
 Agents/Clients can also connect to the parent endpoints - be it a master or

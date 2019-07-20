@@ -302,7 +302,7 @@ Icinga 2 instances. More details can be found in the [distributed monitoring cha
 Example:
 
 ```
-object Endpoint "icinga2-client1.localdomain" {
+object Endpoint "icinga2-agent1.localdomain" {
   host = "192.168.56.111"
   port = 5665
   log_duration = 1d
@@ -312,7 +312,7 @@ object Endpoint "icinga2-client1.localdomain" {
 Example (disable replay log):
 
 ```
-object Endpoint "icinga2-client1.localdomain" {
+object Endpoint "icinga2-agent1.localdomain" {
   host = "192.168.5.111"
   port = 5665
   log_duration = 0
@@ -364,7 +364,7 @@ A host.
 Example:
 
 ```
-object Host "icinga2-client1.localdomain" {
+object Host "icinga2-agent1.localdomain" {
   display_name = "Linux Client 1"
   address = "192.168.56.111"
   address6 = "2a00:1450:4001:815::2003"

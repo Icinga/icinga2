@@ -393,10 +393,10 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Over
     "results": [
         {
             "attrs": {
-                "__name": "icinga2-client1.localdomain!disk",
+                "__name": "icinga2-agent1.localdomain!disk",
                 "last_check_result": {
                     "active": true,
-                    "check_source": "icinga2-client1.localdomain",
+                    "check_source": "icinga2-agent1.localdomain",
 
   ...
 
@@ -404,7 +404,7 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Over
             },
             "joins": {},
             "meta": {},
-            "name": "icinga2-client1.localdomain!disk",
+            "name": "icinga2-agent1.localdomain!disk",
             "type": "Service"
         }
     ]
@@ -415,9 +415,9 @@ Example for using the `icinga2 console` CLI command evaluation functionality:
 
 ```
 $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' \
---eval 'get_service("icinga2-client1.localdomain", "disk").last_check_result.check_source' | python -m json.tool
+--eval 'get_service("icinga2-agent1.localdomain", "disk").last_check_result.check_source' | python -m json.tool
 
-"icinga2-client1.localdomain"
+"icinga2-agent1.localdomain"
 ```
 
 
@@ -475,7 +475,7 @@ in mind when using a different package.
 
 This could happen with [clients as command endpoint execution](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
 
-If you have for example a client host `icinga2-client1.localdomain`
+If you have for example a client host `icinga2-agent1.localdomain`
 and a service `disk` check defined on the master, the warning and
 critical thresholds are sometimes to applied and unwanted notification
 alerts are raised.
@@ -909,7 +909,7 @@ Certificate:
 Client public certificate:
 
 ```
-# openssl x509 -in icinga2-client1.localdomain.crt -text
+# openssl x509 -in icinga2-agent1.localdomain.crt -text
 
 Certificate:
     Data:
@@ -921,7 +921,7 @@ Certificate:
         Validity
             Not Before: Aug 20 16:20:05 2016 GMT
             Not After : Aug 17 16:20:05 2031 GMT
-        Subject: CN=icinga2-client1.localdomain
+        Subject: CN=icinga2-agent1.localdomain
         Subject Public Key Info:
             Public Key Algorithm: rsaEncryption
                 Public-Key: (4096 bit)
@@ -932,7 +932,7 @@ Certificate:
             X509v3 Basic Constraints: critical
                 CA:FALSE
             X509v3 Subject Alternative Name:
-                DNS:icinga2-client1.localdomain
+                DNS:icinga2-agent1.localdomain
     Signature Algorithm: sha256WithRSAEncryption
 ...
 ```
@@ -944,14 +944,14 @@ both instances are signed by the **same CA**.
 # openssl verify -verbose -CAfile /var/lib/icinga2/certs/ca.crt /var/lib/icinga2/certs/icinga2-master1.localdomain.crt
 icinga2-master1.localdomain.crt: OK
 
-# openssl verify -verbose -CAfile /var/lib/icinga2/certs/ca.crt /var/lib/icinga2/certs/icinga2-client1.localdomain.crt
-icinga2-client1.localdomain.crt: OK
+# openssl verify -verbose -CAfile /var/lib/icinga2/certs/ca.crt /var/lib/icinga2/certs/icinga2-agent1.localdomain.crt
+icinga2-agent1.localdomain.crt: OK
 ```
 
 Fetch the `ca.crt` file from the client node and compare it to your master's `ca.crt` file:
 
 ```
-# scp icinga2-client1:/var/lib/icinga2/certs/ca.crt test-client-ca.crt
+# scp icinga2-agent1:/var/lib/icinga2/certs/ca.crt test-client-ca.crt
 # diff -ur /var/lib/icinga2/certs/ca.crt test-client-ca.crt
 ```
 
@@ -1122,7 +1122,7 @@ works (default port is `5665`).
 
 # netstat -tulpen | grep icinga
 
-# nmap icinga2-client1.localdomain
+# nmap icinga2-agent1.localdomain
 ```
 
 ### Cluster Troubleshooting SSL Errors <a id="troubleshooting-cluster-ssl-errors"></a>
@@ -1136,10 +1136,10 @@ the following
   * Verify the `Subject` containing your endpoint's common name (CN)
   * Check the validity of the certificate itself
 
-Try to manually connect from `icinga2-client1.localdomain` to the master node `icinga2-master1.localdomain`:
+Try to manually connect from `icinga2-agent1.localdomain` to the master node `icinga2-master1.localdomain`:
 
 ```
-# openssl s_client -CAfile /var/lib/icinga2/certs/ca.crt -cert /var/lib/icinga2/certs/icinga2-client1.localdomain.crt -key /var/lib/icinga2/certs/icinga2-client1.localdomain.key -connect icinga2-master1.localdomain:5665
+# openssl s_client -CAfile /var/lib/icinga2/certs/ca.crt -cert /var/lib/icinga2/certs/icinga2-agent1.localdomain.crt -key /var/lib/icinga2/certs/icinga2-agent1.localdomain.key -connect icinga2-master1.localdomain:5665
 
 CONNECTED(00000003)
 ---
@@ -1156,7 +1156,7 @@ Unauthenticated nodes are able to connect. This is required for client setups.
 Master:
 
 ```
-[2015-07-13 18:29:25 +0200] information/ApiListener: New client connection for identity 'icinga2-client1.localdomain' (unauthenticated)
+[2015-07-13 18:29:25 +0200] information/ApiListener: New client connection for identity 'icinga2-agent1.localdomain' (unauthenticated)
 ```
 
 Client as command execution bridge:
@@ -1247,14 +1247,14 @@ If the client cannot authenticate, it's a more general [problem](15-troubleshoot
 The client's endpoint is not configured on nor trusted by the master node:
 
 ```
-Discarding 'check result' message from 'icinga2-client1.localdomain': Invalid endpoint origin (client not allowed).
+Discarding 'check result' message from 'icinga2-agent1.localdomain': Invalid endpoint origin (client not allowed).
 ```
 
 The check result message sent by the client does not belong to the zone the checkable object is
 in on the master:
 
 ```
-Discarding 'check result' message from 'icinga2-client1.localdomain': Unauthorized access.
+Discarding 'check result' message from 'icinga2-agent1.localdomain': Unauthorized access.
 ```
 
 
@@ -1297,7 +1297,7 @@ the `NodeName` constant with the FQDN. Ensure this is the same value
 as the local endpoint object name.
 
 ```
-const NodeName = "windows-client1.domain.com"
+const NodeName = "windows-agent1.domain.com"
 ```
 
 

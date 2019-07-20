@@ -290,7 +290,7 @@ namespace Icinga
 			SetConfigureStatus(100, "Finished.");
 
 			// Override the completed text
-			lblSetupCompleted.Text = "The Icinga 2 Windows client was set up successfully.";
+			lblSetupCompleted.Text = "The Icinga Windows agent was set up successfully.";
 
 			// Add a note for the user for ticket-less signing
 			if (ticket.Length == 0) {

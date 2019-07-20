@@ -92,9 +92,9 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	 */
 
 	std::string answer;
-	/* master or satellite/client setup */
+	/* master or satellite/agent setup */
 	std::cout << ConsoleColorTag(Console_Bold)
-		<< "Please specify if this is a satellite/client setup "
+		<< "Please specify if this is an agent/satellite setup "
 		<< "('n' installs a master setup)" << ConsoleColorTag(Console_Normal)
 		<< " [Y/n]: ";
 	std::getline (std::cin, answer);
@@ -110,7 +110,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	if (choice.Contains("n"))
 		res = MasterSetup();
 	else
-		res = ClientSetup();
+		res = AgentSatelliteSetup();
 
 	if (res != 0)
 		return res;
@@ -127,13 +127,13 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	return 0;
 }
 
-int NodeWizardCommand::ClientSetup() const
+int NodeWizardCommand::AgentSatelliteSetup() const
 {
 	std::string answer;
 	String choice;
 	bool connectToParent = false;
 
-	std::cout << "Starting the Client/Satellite setup routine...\n\n";
+	std::cout << "Starting the Agent/Satellite setup routine...\n\n";
 
 	/* CN */
 	std::cout << ConsoleColorTag(Console_Bold)
@@ -439,7 +439,7 @@ wizard_ticket:
 		<< "Reconfiguring Icinga...\n"
 		<< ConsoleColorTag(Console_Normal);
 
-	/* disable the notifications feature on client nodes */
+	/* disable the notifications feature on agent/satellite nodes */
 	Log(LogInformation, "cli", "Disabling the Notification feature.");
 
 	FeatureUtility::DisableFeatures({ "notification" });
@@ -603,7 +603,7 @@ wizard_global_zone_loop_start:
 				<< ConsoleColorTag(Console_Normal);
 		}
 
-		/* Satellite/Clients should not include the api-users.conf file.
+		/* Satellite/Agents should not include the api-users.conf file.
 		 * The configuration should instead be managed via config sync or automation tools.
 		 */
 	}

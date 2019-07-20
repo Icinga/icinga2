@@ -27,7 +27,7 @@ public:
 		boost::program_options::options_description& hiddenDesc) const override;
 
 private:
-	int ClientSetup() const;
+	int AgentSatelliteSetup() const;
 	int MasterSetup() const;
 };
 
