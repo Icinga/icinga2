@@ -2858,8 +2858,6 @@ you to install the bundled NSClient++ package. In addition to the Windows plugin
 use the [nscp-local commands](10-icinga-template-library.md#nscp-plugin-check-commands)
 provided by the Icinga Template Library (ITL).
 
-![Icinga 2 Distributed Monitoring Windows Client with NSClient++](images/distributed-monitoring/icinga2_distributed_windows_nscp.png)
-
 Add the following `include` statement on all your nodes (master, satellite, agent):
 
 ```
