@@ -2080,110 +2080,349 @@ More details on using arrays in custom variables can be found in
 
 #### Command Arguments <a id="command-arguments"></a>
 
-By defining a check command line using the `command` attribute Icinga 2
-will resolve all macros in the static string or array. Sometimes it is
-required to extend the arguments list based on a met condition evaluated
-at command execution. Or making arguments optional -- only set if the
-macro value can be resolved by Icinga 2.
+Next to the short `command` array specified in the command object,
+it is advised to define plugin/script parameters in the `arguments`
+dictionary attribute.
+
+The value of the `--parameter` key itself is a dictionary with additional
+keys. They allow to create generic command objects and are also for documentation
+purposes, e.g. with the `description` field copying the plugin's help text in there.
+The Icinga Director uses this field to show the argument's purpose when selecting it.
 
 ```
-object CheckCommand "http" {
-  command = [ PluginDir + "/check_http" ]
+  arguments = {
+    "--parameter" = {
+      description = "..."
+      value = "..."
+    }
+  }
+```
+
+Each argument is optional by default and is omitted if
+the value is not set.
+
+Learn more about integrating plugins with CheckCommand
+objects in [this chapter](05-service-monitoring.md#service-monitoring-plugin-checkcommand).
+
+There are additional possibilities for creating a command only once,
+with different parameters and arguments, shown below.
+
+##### Command Arguments: Value <a id="command-arguments-value"></a>
+
+In order to find out about the command argument, call the plugin's help
+or consult the README.
+
+```
+./check_systemd.py --help
+
+...
+
+  -u UNIT, --unit UNIT  Name of the systemd unit that is beeing tested.
+```
+
+Whenever the long parameter name is available, prefer this over the short one.
+
+```
+  arguments = {
+    "--unit" = {
+
+    }
+  }
+```
+
+Define a unique `prefix` for the command's specific arguments. Best practice is to follow this schema:
+
+```
+<command name>_<parameter name>
+```
+
+Therefore use `systemd_` as prefix, and use the long plugin parameter name `unit` inside the [runtime macro](03-monitoring-basics.md#runtime-macros)
+syntax.
+
+```
+  arguments = {
+    "--unit" = {
+      value = "$systemd_unit$"
+    }
+  }
+```
+
+In order to specify a default value, specify
+a [custom variable](03-monitoring-basics.md#custom-variables) inside
+the CheckCommand object.
+
+```
+  vars.systemd_unit = "icinga2"
+```
+
+This value can be overridden from the host/service
+object as command parameters.
+
+
+##### Command Arguments: Description <a id="command-arguments-description"></a>
+
+Best practice, also inside the [ITL](10-icinga-template-library.md#icinga-template-library), is to always
+copy the command parameter help output into the `description`
+field of your check command.
+
+Learn more about integrating plugins with CheckCommand
+objects in [this chapter](05-service-monitoring.md#service-monitoring-plugin-checkcommand).
+
+With the [example above](03-monitoring-basics.md#command-arguments-value),
+inspect the parameter's help text.
+
+```
+./check_systemd.py --help
+
+...
+
+  -u UNIT, --unit UNIT  Name of the systemd unit that is beeing tested.
+```
+
+Copy this into the command arguments `description` entry.
+
+```
+  arguments = {
+    "--unit" = {
+      value = "$systemd_unit$"
+      description = "Name of the systemd unit that is beeing tested."
+    }
+  }
+```
+
+##### Command Arguments: Required <a id="command-arguments-required"></a>
+
+Specifies whether this command argument is required, or not. By
+default all arguments are optional.
+
+> **Tip**
+>
+> Good plugins provide optional parameters in square brackets, e.g. `[-w SECONDS]`.
+
+The `required` field can be toggled with a [boolean](17-language-reference.md#boolean-literals) value.
+
+```
+  arguments = {
+    "--host" = {
+      value = "..."
+      description = "..."
+      required = true
+    }
+  }
+```
+
+Whenever the check is executed and the argument is missing, Icinga
+logs an error. This allows to better debug configuration errors
+instead of sometimes unreadable plugin errors when parameters are
+missing.
+
+##### Command Arguments: Skip Key <a id="command-arguments-skip-key"></a>
+
+The `arguments` attribute requires a key, empty values are not allowed.
+To overcome this for parameters which don't need the name in front of
+the value, use the `skip_key` [boolean](17-language-reference.md#boolean-literals) toggle.
+
+```
+  command = [ PrefixDir + "/bin/icingacli", "businessprocess", "process", "check" ]
 
   arguments = {
-    "-H" = "$http_vhost$"
-    "-I" = "$http_address$"
-    "-u" = "$http_uri$"
-    "-p" = "$http_port$"
-    "-S" = {
-      set_if = "$http_ssl$"
+    "--process" = {
+      value = "$icingacli_businessprocess_process$"
+      description = "Business process to monitor"
+      skip_key = true
+      required = true
+      order = -1
     }
+  }
+```
+
+The service specifies the [custom variable](03-monitoring-basics.md#custom-variables) `icingacli_businessprocess_process`.
+
+```
+  vars.icingacli_businessprocess_process = "bp-shop-web"
+```
+
+This results in this command line without the `--process` parameter:
+
+```
+'/bin/icingacli' 'businessprocess' 'process' 'check' 'bp-shop-web'
+```
+
+You can use this method to put everything into the `arguments` attribute
+in a defined order and without keys. This avoids entries in the `command`
+attributes too.
+
+
+##### Command Arguments: Set If <a id="command-arguments-set-if"></a>
+
+This can be used for the following scenarios:
+
+**Parameters without value, e.g. `--sni`.**
+
+```
+  command = [ PluginDir + "/check_http"]
+
+  arguments = {
     "--sni" = {
       set_if = "$http_sni$"
     }
-    "-a" = {
-      value = "$http_auth_pair$"
-      description = "Username:password on sites with basic authentication"
-    }
-    "--no-body" = {
-      set_if = "$http_ignore_body$"
-    }
-    "-r" = "$http_expect_body_regex$"
-    "-w" = "$http_warn_time$"
-    "-c" = "$http_critical_time$"
-    "-e" = "$http_expect$"
   }
-
-  vars.http_address = "$address$"
-  vars.http_ssl = false
-  vars.http_sni = false
-}
 ```
 
-The example shows the `check_http` check command defining the most common
-arguments. Each of them is optional by default and is omitted if
-the value is not set. For example, if the service calling the check command
-does not have `vars.http_port` set, it won't get added to the command
-line.
+Whenever a host/service object sets the `http_sni` [custom variable](03-monitoring-basics.md#custom-variables)
+to `true`, the parameter is added to the command line.
 
-If the `vars.http_ssl` custom variable is set in the service, host or command
-object definition, Icinga 2 will add the `-S` argument based on the `set_if`
-numeric value to the command line. String values are not supported.
+```
+'/usr/lib64/nagios/plugins/check_http' '--sni'
+```
 
-If the macro value cannot be resolved, Icinga 2 will not add the defined argument
-to the final command argument array. Empty strings for macro values won't omit
-the argument.
-
-That way you can use the `check_http` command definition for both, with and
-without SSL enabled checks saving you duplicated command definitions.
-
-Details on all available options can be found in the
-[CheckCommand object definition](09-object-types.md#objecttype-checkcommand).
-
-##### Command Arguments: set_if <a id="command-arguments-set-if"></a>
-
-The `set_if` attribute in command arguments can be used to only add
-this parameter if the runtime macro value is boolean `true`.
-
-Best practice is to define and pass only [boolean](17-language-reference.md#boolean-literals) values here.
 [Numeric](17-language-reference.md#numeric-literals) values are allowed too.
 
-Examples:
+**Parameters with value, but additionally controlled with an extra custom variable boolean flag.**
+
+The following example is taken from the [postgres]() CheckCommand. The host
+parameter should use a `value` but only whenever the `postgres_unixsocket`
+[custom variable](03-monitoring-basics.md#custom-variables) is set to false.
+
+Note: `set_if` is using a runtime lambda function because the value
+is evaluated at runtime. This is explained in [this chapter](08-advanced-topics.md#use-functions-object-config).
 
 ```
-vars.test_b = true
-vars.test_n = 3.0
+  command = [ PluginContribDir + "/check_postgres.pl" ]
 
-arguments = {
-  "-x" = {
-    set_if = "$test_b$"
+  arguments = {
+    "-H" = {
+      value = "$postgres_host$"
+      set_if = {{ macro("$postgres_unixsocket$") == false }}
+      description = "hostname(s) to connect to; defaults to none (Unix socket)"
   }
-  "-y" = {
-    set_if = "$test_n$"
+```
+
+An executed check for this host and services ...
+
+```
+object Host "postgresql-cluster" {
+  // ...
+
+  vars.postgres_host = "192.168.56.200"
+  vars.postgres_unixsocket = false
+}
+```
+
+... use the following command line:
+
+```
+'/usr/lib64/nagios/plugins/check_postgres.pl' '-H' '192.168.56.200'
+```
+
+Host/service objects which set `postgres_unixsocket` to `false` don't add the `-H` parameter
+and its value to the command line.
+
+References: [abbreviated lambda syntax](17-language-reference.md#nullary-lambdas), [macro](18-library-reference.md#scoped-functions-macro).
+
+##### Command Arguments: Order <a id="command-arguments-order"></a>
+
+Plugin may require parameters in a special order. One after the other,
+or e.g. one parameter always in the first position.
+
+```
+  arguments = {
+    "--first" = {
+      value = "..."
+      description = "..."
+      order = -5
+    }
+    "--second" = {
+      value = "..."
+      description = "..."
+      order = -4
+    }
+    "--last" = {
+      value = "..."
+      description = "..."
+      order = 99
+    }
+  }
+```
+
+Keep in mind that positional arguments need to be tested thoroughly.
+
+##### Command Arguments: Repeat Key <a id="command-arguments-repeat-key"></a>
+
+Parameters can use [Array](17-language-reference.md#array) as value type. Whenever Icinga encounters
+an array, it repeats the parameter key and each value element by default.
+
+```
+  command = [ NscpPath + "\\nscp.exe", "client" ]
+
+  arguments = {
+    "-a" = {
+      value = "$nscp_arguments$"
+      description = "..."
+      repeat_key = true
+    }
+  }
+```
+
+On a host/service object, specify the `nscp_arguments` [custom variable](03-monitoring-basics.md#custom-variables)
+as an array.
+
+```
+  vars.nscp_arguments = [ "exclude=sppsvc", "exclude=ShellHWDetection" ]
+```
+
+This translates into the following command line:
+
+```
+nscp.exe 'client' '-a' 'exclude=sppsvc' '-a' 'exclude=ShellHWDetection'
+```
+
+If the plugin requires you to pass the list without repeating the key,
+set `repeat_key = false` in the argument definition.
+
+```
+  command = [ NscpPath + "\\nscp.exe", "client" ]
+
+  arguments = {
+    "-a" = {
+      value = "$nscp_arguments$"
+      description = "..."
+      repeat_key = false
+    }
+  }
+```
+
+This translates into the following command line:
+
+```
+nscp.exe 'client' '-a' 'exclude=sppsvc' 'exclude=ShellHWDetection'
+```
+
+
+##### Command Arguments: Key <a id="command-arguments-key"></a>
+
+The `arguments` attribute requires unique keys. Sometimes, you'll
+need to override this in the resulting command line with same key
+names. Therefore you can specifically override the arguments key.
+
+```
+arguments = {
+  "--key1" = {
+    value = "..."
+    key = "-specialkey"
+  }
+  "--key2" = {
+    value = "..."
+    key = "-specialkey"
   }
 }
 ```
 
-If you accidentally used a [String](17-language-reference.md#string-literals) value, this could lead into
-an undefined behaviour.
-
-If you still want to work with String values and other variants, you can also
-use runtime evaluated functions for `set_if`.
+This results in the following command line:
 
 ```
-vars.test_s = "1.1.2.1"
-arguments = {
-  "-z" = {
-    set_if = {{
-      var str = macro("$test_s$")
-
-      return regex("^\d.\d.\d.\d$", str)
-    }}
-  }
+  '-specialkey' '...' '-specialkey' '...'
 ```
-
-References: [abbreviated lambda syntax](17-language-reference.md#nullary-lambdas), [macro](18-library-reference.md#scoped-functions-macro), [regex](18-library-reference.md#global-functions-regex).
-
 
 #### Environment Variables <a id="command-environment-variables"></a>
 

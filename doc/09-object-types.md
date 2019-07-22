@@ -116,77 +116,37 @@ Configuration Attributes:
 #### CheckCommand Arguments <a id="objecttype-checkcommand-arguments"></a>
 
 Command arguments can be defined as key-value-pairs in the `arguments`
-dictionary. If the argument requires additional configuration, for example
-a `description` attribute or an optional condition, the value can be defined
-as dictionary specifying additional options.
-
-Service:
+dictionary. Best practice is to assign a dictionary as value which
+provides additional details such as the `description` next to the `value`.
 
 ```
-vars.x_val = "My command argument value."
-vars.have_x = "true"
-```
-
-CheckCommand:
-
-```
-arguments = {
-  "-X" = {
-    value = "$x_val$"
-    key = "-Xnew"	    /* optional, set a new key identifier */
-    description = "My plugin requires this argument for doing X."
-    required = false    /* optional, no error if not set */
-    skip_key = false    /* always use "-X <value>" */
-    set_if = "$have_x$" /* only set if variable defined and resolves to a numeric value. String values are not supported */
-    order = -1          /* first position */
-    repeat_key = true   /* if `value` is an array, repeat the key as parameter: ... 'key' 'value[0]' 'key' 'value[1]' 'key' 'value[2]' ... */
+  arguments = {
+    "--parameter" = {
+      description = "..."
+      value = "..."
+    }
   }
-  "-Y" = {
-    value = "$y_val$"
-    description = "My plugin requires this argument for doing Y."
-    required = false    /* optional, no error if not set */
-    skip_key = true     /* don't prefix "-Y" only use "<value>" */
-    set_if = "$have_y$" /* only set if variable defined and resolves to a numeric value. String values are not supported */
-    order = 0           /* second position */
-    repeat_key = false  /* if `value` is an array, do not repeat the key as parameter: ... 'key' 'value[0]' 'value[1]' 'value[2]' ... */
-  }
-}
 ```
+
+All available argument value entries are shown below:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  value                     | String/Function       | Optional argument value set by a [runtime macro string](03-monitoring-basics.md#runtime-macros) or a [function call](17-language-reference.md#functions).
-  key 	                    | String                | Optional argument key overriding the key identifier.
-  description               | String                | Optional argument description.
-  required                  | Boolean               | Required argument. Execution error if not set. Defaults to false (optional).
-  skip\_key                 | Boolean               | Use the value as argument and skip the key.
-  set\_if                   | String/Function       | Argument is added if the [runtime macro string](03-monitoring-basics.md#runtime-macros) resolves to a defined numeric or boolean value. String values are not supported. [Function calls](17-language-reference.md#functions) returning a value are supported too.
-  order                     | Number                | Set if multiple arguments require a defined argument order.
-  repeat\_key               | Boolean               | If the argument value is an array, repeat the argument key, or not. Defaults to true (repeat).
+  value                     | String/Function       | Optional argument value set by a [runtime macro string](03-monitoring-basics.md#runtime-macros) or a [function call](17-language-reference.md#functions). [More details](03-monitoring-basics.md#command-arguments-value).
+  description               | String                | Optional argument description. [More details](03-monitoring-basics.md#command-arguments-description).
+  required                  | Boolean               | Required argument. Execution error if not set. Defaults to false (optional). [More details](03-monitoring-basics.md#command-arguments-required).
+  skip\_key                 | Boolean               | Use the value as argument and skip the key. [More details](03-monitoring-basics.md#command-arguments-skip-key).
+  set\_if                   | String/Function       | Argument is added if the [runtime macro string](03-monitoring-basics.md#runtime-macros) resolves to a defined numeric or boolean value. String values are not supported. [Function calls](17-language-reference.md#functions) returning a value are supported too. [More details](03-monitoring-basics.md#command-arguments-set-if).
+  order                     | Number                | Set if multiple arguments require a defined argument order. The syntax is `..., -3, -2, -1, <un-ordered keys>, 1, 2, 3, ...`. [More details](03-monitoring-basics.md#command-arguments-order).
+  repeat\_key               | Boolean               | If the argument value is an array, repeat the argument key, or not. Defaults to true (repeat). [More details](03-monitoring-basics.md#command-arguments-repeat-key).
+  key 	                    | String                | Optional argument key overriding the key identifier. [More details](03-monitoring-basics.md#command-arguments-key).
 
-Argument order:
+`value` and `description` are commonly used, the other entries allow
+to build more advanced CheckCommand objects and arguments.
 
-```
-..., -3, -2, -1, <un-ordered keys>, 1, 2, 3, ...
-```
+Please continue reading [here](03-monitoring-basics.md#command-arguments) for advanced usage and examples
+for command arguments.
 
-Define argument array:
-
-```
-value = "[ 'one', 'two', 'three' ]"
-```
-
-Argument array with `repeat_key = true`:
-
-```
-'key' 'value[0]' 'key' 'value[1]' 'key' 'value[2]'
-```
-
-Argument array with `repeat_key = false`:
-
-```
-'key' 'value[0]' 'value[1]' 'value[2]'
-```
 
 ### Dependency <a id="objecttype-dependency"></a>
 
