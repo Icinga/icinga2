@@ -154,6 +154,13 @@ was malformed.
 A status in the range of 500 generally means that there was a server-side problem
 and Icinga 2 is unable to process your request.
 
+### Security <a id="icinga2-api-security"></a>
+
+* HTTPS only.
+* TLS v1.2+ is required.
+* TLS cipher lists are hardened [by default](09-object-types.md#objecttype-apilistener).
+* Authentication is [required](12-icinga2-api.md#icinga2-api-authentication).
+
 ### Authentication <a id="icinga2-api-authentication"></a>
 
 There are two different ways for authenticating against the Icinga 2 API:
