@@ -173,8 +173,10 @@ While there are certain mechanisms to ensure a secure communication between all
 nodes (firewalls, policies, software hardening, etc.), Icinga 2 also provides
 additional security:
 
-* TLS/SSL certificates are mandatory for communication between nodes. The CLI commands
-help you create those certificates.
+* TLS v1.2+ is required.
+* TLS cipher lists are hardened [by default](09-object-types.md#objecttype-apilistener).
+* TLS certificates are mandatory for communication between nodes. The CLI command wizards
+help you create these certificates.
 * Child zones only receive updates (check results, commands, etc.) for their configured objects.
 * Child zones are not allowed to push configuration updates to parent zones.
 * Zones cannot interfere with other zones and influence each other. Each checkable host or service object is assigned to **one zone** only.
