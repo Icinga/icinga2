@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/daemoncommand.hpp"
+#include "cli/daemoncontrol.hpp"
 #include "cli/daemonutility.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/configobjectutility.hpp"
@@ -301,6 +302,10 @@ static Atomic<bool> l_RequestedReload (false);
 // Whether someone requested to re-open logs (and we didn't handle that request, yet)
 static Atomic<bool> l_RequestedReopenLogs (false);
 
+#ifndef _WIN32
+static DaemonControl::Ptr l_DaemonControl;
+#endif /* _WIN32 */
+
 /**
  * Umbrella process' signal handlers
  */
@@ -407,6 +412,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 
 	try {
 		Application::UninitializeBase();
+		l_DaemonControl->BeforeFork();
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli")
 			<< "Failed to stop thread pool before forking, unexpected error: " << DiagnosticInformation(ex);
@@ -454,6 +460,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 				(void)sigprocmask(SIG_UNBLOCK, &l_UnixWorkerSignals, nullptr);
 
 				try {
+					l_DaemonControl->AfterFork(false);
 					Application::InitializeBase();
 				} catch (const std::exception& ex) {
 					Log(LogCritical, "cli")
@@ -469,6 +476,15 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 		default:
 			l_CurrentlyStartingUnixWorkerPid.store(pid);
 			(void)sigprocmask(SIG_UNBLOCK, &l_UnixWorkerSignals, nullptr);
+
+			try {
+				l_DaemonControl->AfterFork(true);
+				Application::InitializeBase();
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "cli")
+					<< "Failed to re-initialize thread pool after forking (parent): " << DiagnosticInformation(ex);
+				exit(EXIT_FAILURE);
+			}
 
 			Log(LogNotice, "cli")
 				<< "Spawned worker process (PID " << pid << "), waiting for it to load its config";
@@ -506,14 +522,6 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 			// Reset flags for the next time
 			l_CurrentlyStartingUnixWorkerPid.store(-1);
 			l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Pending);
-
-			try {
-				Application::InitializeBase();
-			} catch (const std::exception& ex) {
-				Log(LogCritical, "cli")
-					<< "Failed to re-initialize thread pool after forking (parent): " << DiagnosticInformation(ex);
-				exit(EXIT_FAILURE);
-			}
 	}
 
 	return pid;
@@ -622,6 +630,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 #else /* _WIN32 */
 	l_UmbrellaPid = getpid();
 	Application::SetUmbrellaProcess(l_UmbrellaPid);
+	l_DaemonControl = new DaemonControl();
 
 	{
 		struct sigaction sa;
@@ -647,6 +656,16 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 	// Immediately allow the first (non-reload) worker to continue working beyond config validation
 	(void)kill(currentWorker, SIGUSR2);
+
+	try {
+		l_DaemonControl->Start();
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+			<< "Failed to initialize daemon control API (*nix socket): " << DiagnosticInformation(ex);
+		return EXIT_FAILURE;
+	}
+
+	Defer stopDaemonControl ([]() { l_DaemonControl->Stop(); });
 
 #ifdef HAVE_SYSTEMD
 	sd_notify(0, "READY=1");
