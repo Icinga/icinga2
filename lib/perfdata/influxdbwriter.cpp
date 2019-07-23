@@ -258,8 +258,10 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 			String missing_macro;
 			Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
 
-			if (!missing_macro.IsEmpty())
+			if (!missing_macro.IsEmpty()) {
+				tags->Remove(pair.first);
 				continue;
+			}
 
 			tags->Set(pair.first, value);
 		}
