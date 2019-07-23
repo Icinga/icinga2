@@ -7,10 +7,17 @@
 
 #include "base/object.hpp"
 #include <boost/asio/buffered_stream.hpp>
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/local/stream_protocol.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
+#include <functional>
+#include <mutex>
 #include <thread>
+#include <vector>
 
 namespace icinga
 {
@@ -23,9 +30,12 @@ class DaemonControl : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(DaemonControl);
 
+	typedef std::function<void(bool)> ReloadResultHandler;
+
 	inline DaemonControl()
-		: m_IO(), m_KeepAlive(m_IO), m_Acceptor(m_IO), m_WasRunningBeforeFork(false)
+		: m_IO(), m_KeepAlive(m_IO), m_AlreadyExpiredTimer(m_IO), m_Acceptor(m_IO), m_WasRunningBeforeFork(false)
 	{
+		m_AlreadyExpiredTimer.expires_at(boost::posix_time::neg_infin);
 	}
 
 	DaemonControl(const DaemonControl&) = delete;
@@ -39,6 +49,8 @@ public:
 	void Stop();
 	void BeforeFork();
 	void AfterFork(bool parent);
+
+	std::vector<ReloadResultHandler> PopPendingReloadResultHandlers();
 private:
 	typedef boost::asio::local::stream_protocol UnixStream;
 	typedef boost::asio::buffered_stream<UnixStream::socket> BufferedUnixStream;
@@ -48,7 +60,7 @@ private:
 	public:
 		DECLARE_PTR_TYPEDEFS(Connection);
 
-		inline Connection(boost::asio::io_context& io) : m_Peer(io)
+		inline Connection(DaemonControl& dc) : m_Peer(dc.m_IO), m_DaemonControl(dc)
 		{
 		}
 
@@ -65,16 +77,33 @@ private:
 		void Start();
 
 	private:
+		typedef boost::beast::http::parser<true, boost::beast::http::string_body> RequestParser;
+		typedef boost::beast::http::request<boost::beast::http::string_body> Request;
+		typedef boost::beast::http::response<boost::beast::http::string_body> Response;
+
 		BufferedUnixStream m_Peer;
+		boost::beast::flat_buffer m_Buf;
+		DaemonControl& m_DaemonControl;
 
 		void ProcessMessages(boost::asio::yield_context& yc);
+
+		inline bool EnsureValidHeaders(RequestParser& parser, Response& response, boost::asio::yield_context& yc);
+		inline bool EnsureValidBody(RequestParser& parser, Response& response, boost::asio::yield_context& yc);
+		inline void ProcessRequest(Request& request, Response& response, boost::asio::yield_context& yc);
+
+		inline bool HandleV1Reload(Request& request, Response& response, boost::asio::yield_context& yc);
 	};
+
+	friend Connection;
 
 	boost::asio::io_context m_IO;
 	boost::asio::io_context::work m_KeepAlive;
+	boost::asio::deadline_timer m_AlreadyExpiredTimer;
 	UnixStream::acceptor m_Acceptor;
 	std::thread m_Thread;
 	bool m_WasRunningBeforeFork;
+	std::vector<ReloadResultHandler> m_PendingReloadResultHandlers;
+	std::mutex m_PendingReloadResultHandlersMutex;
 
 	void RunEventLoop();
 	void RunAcceptLoop(boost::asio::yield_context& yc);
