@@ -85,9 +85,12 @@ static void SetupSslContext(const std::shared_ptr<boost::asio::ssl::context>& co
 	SSL_CTX_set_session_id_context(sslContext, (const unsigned char *)"Icinga 2", 8);
 
 	// Explicitly load ECC ciphers, required on el7 - https://github.com/Icinga/icinga2/issues/7247
-#ifdef SSL_CTX_set_ecdh_auto
+	// SSL_CTX_set_ecdh_auto is deprecated and removed in OpenSSL 1.1.x - https://github.com/openssl/openssl/issues/1437
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#	ifdef SSL_CTX_set_ecdh_auto
 	SSL_CTX_set_ecdh_auto(sslContext, 1);
-#endif /* SSL_CTX_set_ecdh_auto */
+#	endif /* SSL_CTX_set_ecdh_auto */
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
 
 	if (!pubkey.IsEmpty()) {
 		if (!SSL_CTX_use_certificate_chain_file(sslContext, pubkey.CStr())) {
