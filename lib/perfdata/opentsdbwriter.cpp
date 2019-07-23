@@ -379,6 +379,13 @@ String OpenTsdbWriter::EscapeMetric(const String& str)
 	return result;
 }
 
+/**
+* Validates the host_template configuration block in the configuration
+* file and checks for syntax errors.
+*
+* @param lvalue The host_template dictionary
+* @param utils Validation helper utilities
+*/
 void OpenTsdbWriter::ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
 	ObjectImpl<OpenTsdbWriter>::ValidateHostTemplate(lvalue, utils);
@@ -393,6 +400,13 @@ void OpenTsdbWriter::ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lvalue, c
 	}
 }
 
+/**
+* Validates the service_template configuration block in the 
+* configuration file and checks for syntax errors.
+*
+* @param lvalue The service_template dictionary
+* @param utils Validation helper utilities
+*/
 void OpenTsdbWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
 	ObjectImpl<OpenTsdbWriter>::ValidateServiceTemplate(lvalue, utils);
