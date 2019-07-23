@@ -176,7 +176,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	String metric;
 	std::map<String, String> tags;
 
-	// Resolve macros in configuration template
+	// Resolve macros in configuration template and build custom tag list
 	if (config_tmpl_tags) {
 		
 		ObjectLock olock(config_tmpl_tags);
@@ -188,7 +188,8 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			
 			if (!missing_macro.IsEmpty()) {
 				Log(LogDebug, "OpenTsdbWriter")
-					<< "Macro in config template does not exist:'" << missing_macro << "'.";
+					<< "Unable to resolve macro:'" << missing_macro 
+					<< "' for this host or service.";
 				
 				continue;
 			}
