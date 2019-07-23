@@ -194,7 +194,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 				continue;
 			}
 			
-			String tagname = pair.first;
+			String tagname = Convert::ToString(pair.first);
 			tags[tagname] = EscapeTag(value);
 			
 		}
