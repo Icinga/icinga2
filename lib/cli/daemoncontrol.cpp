@@ -4,9 +4,11 @@
 #ifndef _WIN32
 
 #include "base/application.hpp"
+#include "base/atomic.hpp"
 #include "base/configuration.hpp"
 #include "base/dictionary.hpp"
 #include "base/exception.hpp"
+#include "base/io-engine.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/string.hpp"
@@ -20,9 +22,11 @@
 #include <boost/system/system_error.hpp>
 #include <climits>
 #include <exception>
+#include <mutex>
 #include <sys/stat.h>
 #include <thread>
 #include <unistd.h>
+#include <utility>
 
 using namespace icinga;
 
@@ -135,6 +139,19 @@ void DaemonControl::AfterFork(bool parent)
 	}
 }
 
+std::vector<DaemonControl::ReloadResultHandler> DaemonControl::PopPendingReloadResultHandlers()
+{
+	std::unique_lock<std::mutex> lock (m_PendingReloadResultHandlersMutex, std::try_to_lock);
+
+	if (lock) {
+		auto handlers (std::move(m_PendingReloadResultHandlers));
+		m_PendingReloadResultHandlers = std::vector<ReloadResultHandler>();
+		return std::move(handlers);
+	} else {
+		return {};
+	}
+}
+
 void DaemonControl::RunEventLoop()
 {
 	for (;;) {
@@ -154,7 +171,7 @@ void DaemonControl::RunAcceptLoop(boost::asio::yield_context& yc)
 {
 	try {
 		for (;;) {
-			Connection::Ptr peer = new Connection(m_IO);
+			Connection::Ptr peer = new Connection(*this);
 
 			m_Acceptor.async_accept(peer->GetSocket(), yc);
 			peer->Start();
@@ -167,7 +184,9 @@ void DaemonControl::RunAcceptLoop(boost::asio::yield_context& yc)
 	}
 }
 
-void DaemonControl::Connection::Start()
+#define DCC DaemonControl::Connection
+
+void DCC::Start()
 {
 	namespace asio = boost::asio;
 
@@ -176,21 +195,13 @@ void DaemonControl::Connection::Start()
 	asio::spawn(m_Peer.get_executor(), [this, keepAlive](asio::yield_context yc) { ProcessMessages(yc); }, IoEngine::GetDetachedSpawnToken());
 }
 
-template<class Stream>
-static inline
-bool EnsureValidHeaders(
-	Stream& stream,
-	boost::beast::flat_buffer& buf,
-	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	boost::asio::yield_context& yc
-)
+inline bool DCC::EnsureValidHeaders(DCC::RequestParser& parser, DCC::Response& response, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
 	try {
 		try {
-			http::async_read_header(stream, buf, parser, yc);
+			http::async_read_header(m_Peer, m_Buf, parser, yc);
 		} catch (const boost::system::system_error& ex) {
 			/**
 			 * Unfortunately there's no way to tell an HTTP protocol error
@@ -218,8 +229,8 @@ bool EnsureValidHeaders(
 
 		response.set(http::field::connection, "close");
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		http::async_write(m_Peer, response, yc);
+		m_Peer.async_flush(yc);
 
 		return false;
 	}
@@ -227,20 +238,12 @@ bool EnsureValidHeaders(
 	return true;
 }
 
-template<class Stream>
-static inline
-bool EnsureValidBody(
-	Stream& stream,
-	boost::beast::flat_buffer& buf,
-	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	boost::asio::yield_context& yc
-)
+inline bool DCC::EnsureValidBody(DCC::RequestParser& parser, DCC::Response& response, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
 	try {
-		http::async_read(stream, buf, parser, yc);
+		http::async_read(m_Peer, m_Buf, parser, yc);
 	} catch (const boost::system::system_error& ex) {
 		/**
 		 * Unfortunately there's no way to tell an HTTP protocol error
@@ -258,8 +261,8 @@ bool EnsureValidBody(
 
 		response.set(http::field::connection, "close");
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		http::async_write(m_Peer, response, yc);
+		m_Peer.async_flush(yc);
 
 		return false;
 	}
@@ -267,22 +270,17 @@ bool EnsureValidBody(
 	return true;
 }
 
-template<class Stream>
-static inline
-void ProcessRequest(
-	Stream& stream,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	boost::asio::yield_context& yc
-)
+inline void DCC::ProcessRequest(DCC::Request& request, DCC::Response& response, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
 	try {
 		String path (request.target().data(), request.target().data() + request.target().size());
 
-		SendJsonError(response, 404, "The requested path '" + path +
-			"' could not be found or the request method is not valid for this path.");
+		if (!HandleV1Reload(request, response, yc)) {
+			SendJsonError(response, 404, "The requested path '" + path +
+				"' could not be found or the request method is not valid for this path.");
+		}
 	} catch (const boost::coroutines::detail::forced_unwind&) {
 		throw;
 	} catch (const std::exception& ex) {
@@ -290,27 +288,25 @@ void ProcessRequest(
 
 		SendJsonError(response, 500, String("Unhandled exception: ") + DiagnosticInformation(ex));
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		http::async_write(m_Peer, response, yc);
+		m_Peer.async_flush(yc);
 
 		return;
 	}
 
-	http::async_write(stream, response, yc);
-	stream.async_flush(yc);
+	http::async_write(m_Peer, response, yc);
+	m_Peer.async_flush(yc);
 }
 
 const auto l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 const boost::system::error_code l_EPipe (boost::system::errc::broken_pipe, boost::system::system_category());
 
-void DaemonControl::Connection::ProcessMessages(boost::asio::yield_context& yc)
+void DCC::ProcessMessages(boost::asio::yield_context& yc)
 {
 	namespace beast = boost::beast;
 	namespace http = beast::http;
 
 	try {
-		beast::flat_buffer buf;
-
 		for (;;) {
 			http::parser<true, http::string_body> parser;
 			http::response<http::string_body> response;
@@ -320,7 +316,7 @@ void DaemonControl::Connection::ProcessMessages(boost::asio::yield_context& yc)
 
 			response.set(http::field::server, l_ServerHeader);
 
-			if (!EnsureValidHeaders(m_Peer, buf, parser, response, yc)) {
+			if (!EnsureValidHeaders(parser, response, yc)) {
 				break;
 			}
 
@@ -331,11 +327,11 @@ void DaemonControl::Connection::ProcessMessages(boost::asio::yield_context& yc)
 				<< ", agent: " << request[http::field::user_agent] << ")."; //operator[] - Returns the value for a field, or "" if it does not exist.
 
 
-			if (!EnsureValidBody(m_Peer, buf, parser, response, yc)) {
+			if (!EnsureValidBody(parser, response, yc)) {
 				break;
 			}
 
-			ProcessRequest(m_Peer, request, response, yc);
+			ProcessRequest(request, response, yc);
 
 			if (request.version() != 11 || request[http::field::connection] == "close") {
 				break;
@@ -357,6 +353,47 @@ void DaemonControl::Connection::ProcessMessages(boost::asio::yield_context& yc)
 		Log(logLevel, "DaemonControl")
 			<< "Unhandled exception while processing HTTP request: " << ex.what();
 	}
+}
+
+inline bool DCC::HandleV1Reload(DCC::Request& request, DCC::Response& response, boost::asio::yield_context& yc)
+{
+	namespace asio = boost::asio;
+	namespace http = boost::beast::http;
+
+	if (!(request.method() == http::verb::post && request.target() == "/v1/reload")) {
+		return false;
+	}
+
+	Atomic<bool> reloadSucceeded (false);
+	AsioEvent cv (m_DaemonControl.m_IO);
+
+	{
+		std::unique_lock<std::mutex> lock (m_DaemonControl.m_PendingReloadResultHandlersMutex, std::try_to_lock);
+
+		while (!lock) {
+			m_DaemonControl.m_AlreadyExpiredTimer.async_wait(yc);
+			lock.try_lock();
+		}
+
+		m_DaemonControl.m_PendingReloadResultHandlers.emplace_back([this, &reloadSucceeded, &cv](bool succeeded) {
+			asio::post(m_DaemonControl.m_IO, [&reloadSucceeded, &cv, succeeded]() {
+				reloadSucceeded.store(succeeded);
+				cv.Set();
+			});
+		});
+	}
+
+	cv.Wait(yc);
+
+	if (reloadSucceeded.load()) {
+		response.result(http::status::ok);
+		SendJsonBody(response, new Dictionary({{ "status", "Reload succeeded" }}));
+	} else {
+		response.result(http::status::internal_server_error);
+		SendJsonBody(response, new Dictionary({{ "status", "Reload failed" }}));
+	}
+
+	return true;
 }
 
 #endif /* _WIN32 */

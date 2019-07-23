@@ -826,61 +826,78 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 			}
 		}
 
-		if (l_RequestedReload.exchange(false)) {
-			Log(LogInformation, "Application")
-				<< "Got reload command: Starting new instance.";
+		{
+			auto reloadRequests (l_DaemonControl->PopPendingReloadResultHandlers());
+
+			if (!reloadRequests.empty() || l_RequestedReload.exchange(false)) {
+				Log(LogInformation, "Application")
+					<< "Got reload command: Starting new instance.";
 
 #ifdef HAVE_SYSTEMD
-			sd_notify(0, "RELOADING=1");
+				sd_notify(0, "RELOADING=1");
 #endif /* HAVE_SYSTEMD */
 
-			// The old process is still active, yet.
-			// Its config changes would not be visible to the new one after config load.
-			ConfigObjectsExclusiveLock lock;
+				// The old process is still active, yet.
+				// Its config changes would not be visible to the new one after config load.
+				ConfigObjectsExclusiveLock lock;
 
-			pid_t nextWorker = StartUnixWorker(configs);
+				pid_t nextWorker = StartUnixWorker(configs);
 
-			switch (nextWorker) {
-				case -1:
-					break;
-				case -2:
-					Log(LogCritical, "Application", "Found error in config: reloading aborted");
-					Application::SetLastReloadFailed(Utility::GetTime());
-					break;
-				default:
-					Log(LogInformation, "Application")
-						<< "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
-
-					NotifyStatus("Shutting down old instance...");
-
-					Application::SetLastReloadFailed(0);
-					(void)kill(currentWorker, SIGTERM);
-
-					{
-						double start = Utility::GetTime();
-
-						while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
-	#ifdef HAVE_SYSTEMD
-							NotifyWatchdog();
-	#endif /* HAVE_SYSTEMD */
+				switch (nextWorker) {
+					case -1:
+						for (auto& handler : reloadRequests) {
+							handler(false);
 						}
 
-						Log(LogNotice, "cli")
-							<< "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
-					}
+						break;
+					case -2:
+						Log(LogCritical, "Application", "Found error in config: reloading aborted");
+						Application::SetLastReloadFailed(Utility::GetTime());
 
-					// Old instance shut down, allow the new one to continue working beyond config validation
-					(void)kill(nextWorker, SIGUSR2);
+						for (auto& handler : reloadRequests) {
+							handler(false);
+						}
 
-					NotifyStatus("Shut down old instance.");
+						break;
+					default:
+						Log(LogInformation, "Application")
+							<< "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
 
-					currentWorker = nextWorker;
-			}
+						NotifyStatus("Shutting down old instance...");
+
+						Application::SetLastReloadFailed(0);
+						(void)kill(currentWorker, SIGTERM);
+
+						{
+							double start = Utility::GetTime();
+
+							while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
+#ifdef HAVE_SYSTEMD
+								NotifyWatchdog();
+#endif /* HAVE_SYSTEMD */
+							}
+
+							Log(LogNotice, "cli")
+								<< "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
+						}
+
+						// Old instance shut down, allow the new one to continue working beyond config validation
+						(void)kill(nextWorker, SIGUSR2);
+
+						NotifyStatus("Shut down old instance.");
+
+						currentWorker = nextWorker;
+
+						for (auto& handler : reloadRequests) {
+							handler(true);
+						}
+				}
 
 #ifdef HAVE_SYSTEMD
-			sd_notify(0, "READY=1");
+				sd_notify(0, "READY=1");
 #endif /* HAVE_SYSTEMD */
 
+			}
 		}
 
 		if (l_RequestedReopenLogs.exchange(false)) {
