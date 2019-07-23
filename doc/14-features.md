@@ -652,6 +652,96 @@ with the following tags
 > You might want to set the tsd.core.auto_create_metrics setting to `true`
 > in your opentsdb.conf configuration file.
 
+#### Custom Tags <a id="opentsdb-custom-tags"></a>
+
+In addition to the default tags listed above, it is possible to send
+your own custom tags with your data to OpenTSDB.
+
+Note that custom tags are sent **in addition** to the default hostname,
+type and service name tags. If you do not include this section in the
+config file, no custom tags will be included.
+
+Custom tags can be custom attributes or built in attributes.
+
+Consider a host object:
+
+```
+object Host "my-server1" {
+  address = "10.0.0.1"
+  check_command = "hostalive"
+  vars.location = "Australia"
+}
+```
+
+and a service object:
+
+```
+object Service "ping" {
+  host_name = "localhost"
+  check_command = "my-ping"
+
+  vars.ping_packets = 10
+}
+```
+
+It is possible to send `vars.location` and `vars.ping_packets` along
+with performance data. Additionally, any other attribute can be sent
+as a tag, such as `check_command`.
+
+You can make use of the `host_template` and `service_template` blocks
+in the `opentsdb.conf` configuration file.
+
+An example OpenTSDB configuration file which makes use of custom tags:
+
+```
+object OpenTsdbWriter "opentsdb" {
+  host = "127.0.0.1"
+  port = 4242
+  host_template = {
+    tags = {
+      location = "$host.vars.location$"
+      checkcommand = "$host.check_command$"
+    }
+  }
+  service_template = {
+    tags = {
+      location = "$host.vars.location$"
+      pingpackets = "$service.vars.ping_packets$"
+      checkcommand = "$service.check_command$"
+    }
+  }
+}
+```
+
+Depending on what keyword the macro begins with, will determine what
+attributes are available in the macro context. The below table explains
+what attributes are available with links to each object type.
+
+  start of macro | description
+  ---------------|------------------------------------------
+  \$host...$     | Attributes available on a [Host object](09-object-types.md#objecttype-host)
+  \$service...$  | Attributes available on a [Service object](09-object-types.md#objecttype-service)
+  \$icinga...$   | Attributes available on the [IcingaApplication object](09-object-types.md#icingaapplication)
+
+> **Note**
+>
+> Ensure you do not name your custom attributes with a dot in the name.
+> Dots located inside a macro tell the interpreter to expand a
+> dictionary.
+> 
+> Do not do this in your object configuration:
+> 
+> `vars["my.attribute"]`
+> 
+> as you will be unable to reference `my.attribute` because it is not a
+> dictionary.
+> 
+> Instead, use underscores or another character:
+> 
+> `vars.my_attribute` or `vars["my_attribute"]`
+
+
+
 #### OpenTSDB in Cluster HA Zones <a id="opentsdb-writer-cluster-ha"></a>
 
 The OpenTSDB feature supports [high availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
