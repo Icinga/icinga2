@@ -18,6 +18,10 @@ EOL distributions where no packages are available with this release:
 * Ubuntu 14 LTS
 * RHEL/CentOS 6 x86
 
+Raspbian Packages for Debian Buster (Raspbian 4) are available.
+Please note that Stretch is not supported suffering from compiler
+regressions. Upgrade to Raspbian 4+ is highly recommended.
+
 #### Added: Boost 1.66+
 
 The rewrite of our core network stack for cluster and REST API

@@ -19,7 +19,7 @@ Official repositories ([support matrix](https://icinga.com/support/details/)):
   ------------------------|---------------------------
   Debian                  | [Icinga Repository](https://packages.icinga.com/debian/)
   Ubuntu                  | [Icinga Repository](https://packages.icinga.com/ubuntu/)
-  Raspbian		  | [Icinga Repository](https://packages.icinga.com/raspbian/)
+  Raspbian		  | [Icinga Repository](https://packages.icinga.com/raspbian/). Note that **Raspbian 4+ `icinga-buster` is required.**
   RHEL/CentOS             | [Icinga Repository](https://packages.icinga.com/epel/)
   openSUSE                | [Icinga Repository](https://packages.icinga.com/openSUSE/)
   SLES                    | [Icinga Repository](https://packages.icinga.com/SUSE/)
@@ -83,7 +83,7 @@ wget -O - https://packages.icinga.com/icinga.key | apt-key add -
 apt-get update
 ```
 
-Raspbian:
+Raspbian 4+ / `icinga-buster`:
 
 ```
 apt-get update
