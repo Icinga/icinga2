@@ -151,14 +151,53 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 	Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
 	Host::Ptr host;
+	Dictionary::Ptr config_tmpl_clean;
 
-	if (service)
+	if (service) {
 		host = service->GetHost();
-	else
+		config_tmpl_clean = GetServiceTemplate();
+	}
+	else {
 		host = static_pointer_cast<Host>(checkable);
+		config_tmpl_clean = GetHostTemplate();
+	}
+
+	// Clone the config template and perform an in-place macro expansion of measurement and tag values
+	Dictionary::Ptr config_tmpl = static_pointer_cast<Dictionary>(config_tmpl_clean->Clone());
+	Dictionary::Ptr config_tmpl_tags = config_tmpl->Get("tags");
+
+	// Configure config template macro resolver
+	MacroProcessor::ResolverList resolvers;
+	if (service)
+		resolvers.emplace_back("service", service);
+	resolvers.emplace_back("host", host);
+	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String metric;
 	std::map<String, String> tags;
+
+	// Resolve macros in configuration template
+	if (config_tmpl_tags) {
+		
+		ObjectLock olock(config_tmpl_tags);
+		
+		for (const Dictionary::Pair& pair : config_tmpl_tags) {
+			
+			String missing_macro;
+			Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
+			
+			if (!missing_macro.IsEmpty()) {
+				Log(LogDebug, "OpenTsdbWriter")
+					<< "Macro in config template does not exist:'" << missing_macro << "'.";
+				
+				continue;
+			}
+			
+			String tagname = pair.first;
+			tags[tagname] = EscapeTag(value);
+			
+		}
+	}
 
 	String escaped_hostName = EscapeTag(host->GetName());
 	tags["host"] = escaped_hostName;
@@ -337,4 +376,32 @@ String OpenTsdbWriter::EscapeMetric(const String& str)
 	boost::replace_all(result, ":", "_");
 
 	return result;
+}
+
+void OpenTsdbWriter::ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<OpenTsdbWriter>::ValidateHostTemplate(lvalue, utils);
+
+	Dictionary::Ptr tags = lvalue()->Get("tags");
+	if (tags) {
+		ObjectLock olock(tags);
+		for (const Dictionary::Pair& pair : tags) {
+			if (!MacroProcessor::ValidateMacroString(pair.second))
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
+		}
+	}
+}
+
+void OpenTsdbWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<OpenTsdbWriter>::ValidateServiceTemplate(lvalue, utils);
+
+	Dictionary::Ptr tags = lvalue()->Get("tags");
+	if (tags) {
+		ObjectLock olock(tags);
+		for (const Dictionary::Pair& pair : tags) {
+			if (!MacroProcessor::ValidateMacroString(pair.second))
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
+		}
+	}
 }
