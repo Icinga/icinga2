@@ -116,7 +116,6 @@ void RedisWriter::UpdateAllConfigObjects()
 			m_PrefixConfigObject + "icon_image",
 			m_PrefixConfigObject + "commandargument",
 			m_PrefixConfigObject + "commandenvvar",
-			m_PrefixConfigObject + "timerange",
 	};
 	DeleteKeys(globalKeys);
 
@@ -399,7 +398,6 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 			ObjectLock rangesLock(ranges);
 			Array::Ptr rangeIds(new Array);
 			auto& typeRanges (statements[m_PrefixConfigObject + typeName + ":range"]);
-			auto& allRanges (statements[m_PrefixConfigObject + "timerange"]);
 			auto& rangeChksms (statements[m_PrefixConfigCheckSum + typeName + ":range"]);
 
 			rangeIds->Reserve(ranges->GetLength());
@@ -410,10 +408,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 				String id = CalculateCheckSumArray(new Array({envId, rangeId, objectKey}));
 				typeRanges.emplace_back(id);
-				typeRanges.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"timeperiod_id", objectKey}, {"range_id", rangeId}})));
-
-				allRanges.emplace_back(rangeId);
-				allRanges.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"range_key", kv.first}, {"range_value", kv.second}})));
+				typeRanges.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"timeperiod_id", objectKey}, {"range_key", kv.first}, {"range_value", kv.second}})));
 			}
 
 			rangeChksms.emplace_back(objectKey);
