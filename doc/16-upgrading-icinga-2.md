@@ -18,9 +18,10 @@ EOL distributions where no packages are available with this release:
 * Ubuntu 14 LTS
 * RHEL/CentOS 6 x86
 
-Raspbian Packages for Debian Buster (Raspbian 4) are available.
+Raspbian Packages are available inside the `icinga-buster` repository
+on [https://packages.icinga.com](http://packages.icinga.com/raspbian/).
 Please note that Stretch is not supported suffering from compiler
-regressions. Upgrade to Raspbian 4+ is highly recommended.
+regressions. Upgrade to Raspbian Buster is highly recommended.
 
 #### Added: Boost 1.66+
 
