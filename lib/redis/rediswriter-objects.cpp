@@ -901,7 +901,7 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
 		Command::Ptr command = static_pointer_cast<Command>(object);
 
-		attributes->Set("command", command->GetCommandLine());
+		attributes->Set("command", JsonEncode(command->GetCommandLine()));
 		attributes->Set("timeout", command->GetTimeout());
 
 		return true;
