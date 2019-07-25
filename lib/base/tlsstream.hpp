@@ -4,6 +4,7 @@
 #define TLSSTREAM_H
 
 #include "base/i2-base.hpp"
+#include "base/shared.hpp"
 #include "base/socket.hpp"
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
@@ -85,7 +86,7 @@ private:
 };
 
 typedef boost::asio::buffered_stream<boost::asio::ip::tcp::socket> AsioTcpStream;
-typedef std::pair<std::shared_ptr<AsioTlsStream>, std::shared_ptr<AsioTcpStream>> OptionalTlsStream;
+typedef std::pair<Shared<AsioTlsStream>::Ptr, std::shared_ptr<AsioTcpStream>> OptionalTlsStream;
 
 }
 

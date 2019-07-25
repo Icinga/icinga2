@@ -40,7 +40,7 @@ private:
 	mutable boost::mutex m_Mutex;
 	mutable boost::condition_variable m_CV;
 
-	static std::shared_ptr<AsioTlsStream> Connect();
+	static Shared<AsioTlsStream>::Ptr Connect();
 
 	static Value ExecuteScript(const String& session, const String& command, bool sandboxed);
 	static Array::Ptr AutoCompleteScript(const String& session, const String& command, bool sandboxed);
