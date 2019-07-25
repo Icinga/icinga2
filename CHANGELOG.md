@@ -16,6 +16,8 @@ Released closed milestones can be found [here](https://github.com/Icinga/icinga2
 
 Upgrading docs: https://icinga.com/docs/icinga2/snapshot/doc/16-upgrading-icinga-2/
 
+Thanks to all contributors: [BarbUk](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3ABarbUk), [alanlitster](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aalanlitster), [mcktr](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Amcktr), [KAMI911](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AKAMI911), [peteeckel](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Apeteeckel), [breml](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Abreml), [episodeiv](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aepisodeiv), [Crited](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3ACrited), [robert-scheck](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Arobert-scheck), [west0rmann](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Awest0rmann), [Napsty](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3ANapsty), [Elias481](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AElias481), [uubk](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Auubk), [miso231](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Amiso231), [neubi4](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aneubi4), [atj](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aatj), [mvanduren-itisit](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Amvanduren-itisit), [jschanz](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Ajschanz), [MaBauMeBad](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AMaBauMeBad), [markleary](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Amarkleary), [leeclemens](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aleeclemens), [m4k5ym](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Am4k5ym)
+
 ### Enhancements
 
 * Core
@@ -48,15 +50,20 @@ Upgrading docs: https://icinga.com/docs/icinga2/snapshot/doc/16-upgrading-icinga
   * Permissions: node wizard/setup, feature, api setup now run in the Icinga user context, not root
   * `ca list` shows pending CSRs by default, `ca remove/restore` allow to delete signing requests
 * ITL
-  * Add new commands and missing attributes
+  * Add new commands and missing attributes - thanks to all contributors!
 * Windows
   * Update bundled NSClient++ to 0.5.2.39
+  * Update agent installer and OpenSSL
 * Documentation
-  * Service Monitoring: How to create plugins by example, check commands and a modern version of the supported plugin API with best practices
-  * Features: Better structure on metrics, and supported features
-  * Technical Concepts: TLS Network IO, Cluster Feature HA, Cluster Config Sync
+  * Service Monitoring: How to create plugins by example, check commands and a modern version of the supported plugin API with best practices.
+  * Features: Better structure on metrics, and supported features.
+  * Basics: Rename `Custom Attributes` to `Custom Variables`.
+  * Basics: Refine explanation of command arguments.
+  * Distributed: Reword `Icinga client` into `Icinga agent` and add new images for scenarios and modes.
+  * Security: Add TLS v1.2+ requirement, hardened cipher lists
+  * Technical Concepts: TLS Network IO, Cluster Feature HA, Cluster Config Sync, Core Reload Handling.
   * Development: Rewritten for better debugging and development experience for contributors including a style guide.  Add nightly build setup instructions.
-  * Packaging: INSTALL.md was integrated into the Development chapter, being available at https://icinga.com/docs too.
+  * Packaging: INSTALL.md was integrated into the Development chapter available at https://icinga.com/docs too.
 
 
 
