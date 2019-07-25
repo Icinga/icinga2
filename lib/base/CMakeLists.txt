@@ -60,6 +60,7 @@ set(base_SOURCES
   scriptglobal.cpp scriptglobal.hpp
   scriptutils.cpp scriptutils.hpp
   serializer.cpp serializer.hpp
+  shared.hpp
   singleton.hpp
   socket.cpp socket.hpp
   stacktrace.cpp stacktrace.hpp
