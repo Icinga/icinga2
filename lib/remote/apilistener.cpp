@@ -364,7 +364,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	}
 
 	auto& io (IoEngine::Get().GetIoContext());
-	auto acceptor (std::make_shared<tcp::acceptor>(io));
+	auto acceptor (Shared<tcp::acceptor>::Make(io));
 
 	try {
 		tcp::resolver resolver (io);
@@ -423,7 +423,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	return true;
 }
 
-void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ip::tcp::acceptor>& server, const std::shared_ptr<boost::asio::ssl::context>& sslContext)
+void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server, const std::shared_ptr<boost::asio::ssl::context>& sslContext)
 {
 	namespace asio = boost::asio;
 
