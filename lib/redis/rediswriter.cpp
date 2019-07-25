@@ -408,11 +408,11 @@ struct RedisReplyDeleter
 	}
 };
 
-std::shared_ptr<redisReply> RedisWriter::RedisGet(const std::vector<String>& query) {
+std::shared_ptr<redisReply> RedisWriter::RedisGet(std::vector<String> query) {
 	auto *wait = new synchronousWait;
 	wait->ready = false;
 
-	m_Rcon->ExecuteQuery(query, RedisQueryCallback, wait);
+	m_Rcon->ExecuteQuery(std::move(query), RedisQueryCallback, wait);
 
 	boost::mutex::scoped_lock lock(wait->mtx);
 	while (!wait->ready) {
