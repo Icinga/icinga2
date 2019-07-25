@@ -26,7 +26,7 @@
 Specify the release version.
 
 ```
-VERSION=2.10.4
+VERSION=2.11.0-rc1
 ```
 
 Add your signing key to your Git configuration file, if not already there.
@@ -102,18 +102,18 @@ git push --tags
 git checkout master
 git push
 
-git checkout -b support/2.11
-git push -u origin support/2.11
+git checkout -b support/2.12
+git push -u origin support/2.12
 ```
 
 **For minor releases:** Push the support branch, cherry-pick the release commit
 into master and merge the support branch:
 
 ```
-git push -u origin support/2.10
+git push -u origin support/2.11
 git checkout master
-git cherry-pick support/2.10
-git merge --strategy=ours support/2.10
+git cherry-pick support/2.11
+git merge --strategy=ours support/2.11
 git push origin master
 ```
 
@@ -144,7 +144,7 @@ git checkout release && git pull
 Set the `Version`, `Revision` and `changelog` inside the spec file.
 
 ```
-VERSION=2.10.4
+VERSION=2.11.0-rc1
 
 sed -i "s/Version: .*/Version: $VERSION/g" icinga2.spec
 
@@ -232,7 +232,7 @@ cd /mnt/packaging
 git config --global user.name "Michael Friedrich"
 git config --global user.email "michael.friedrich@icinga.com"
 
-VERSION=2.10.4
+VERSION=2.11.0-rc1
 
 ./dch $VERSION-1 "Update to $VERSION"
 ```
@@ -309,7 +309,7 @@ command line.
 ```
 choco apikey --key xxx --source https://push.chocolatey.org/
 
-choco push Icinga2-v2.10.0.nupkg --source https://push.chocolatey.org/
+choco push Icinga2-v2.11.0.nupkg --source https://push.chocolatey.org/
 ```
 
 
