@@ -60,9 +60,9 @@ namespace icinga
 
 		bool IsConnected();
 
-		void ExecuteQuery(const std::vector<String>& query, redisCallbackFn *fn = NULL, void *privdata = NULL);
+		void ExecuteQuery(std::vector<String> query, redisCallbackFn *fn = NULL, void *privdata = NULL);
 
-		void ExecuteQueries(const std::vector<std::vector<String> >& queries, redisCallbackFn *fn = NULL,
+		void ExecuteQueries(std::vector<std::vector<String>> queries, redisCallbackFn *fn = NULL,
 							void *privdata = NULL);
 
 	private:

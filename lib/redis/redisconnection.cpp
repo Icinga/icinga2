@@ -25,7 +25,8 @@
 #include "base/utility.hpp"
 #include "redis/rediswriter.hpp"
 #include "hiredis/hiredis.h"
-
+#include <memory>
+#include <utility>
 
 using namespace icinga;
 
@@ -179,18 +180,22 @@ void RedisConnection::DisconnectCallback(const redisAsyncContext *c, int status)
 	rc->m_Connected = false;
 }
 
-void RedisConnection::ExecuteQuery(const std::vector<String>& query, redisCallbackFn *fn, void *privdata)
+void RedisConnection::ExecuteQuery(std::vector<String> query, redisCallbackFn *fn, void *privdata)
 {
-	m_RedisConnectionWorkQueue.Enqueue([this, query, fn, privdata]() {
-		SendMessageInternal(query, fn, privdata);
+	auto queryPtr (std::make_shared<decltype(query)>(std::move(query)));
+
+	m_RedisConnectionWorkQueue.Enqueue([this, queryPtr, fn, privdata]() {
+		SendMessageInternal(*queryPtr, fn, privdata);
 	});
 }
 
 void
-RedisConnection::ExecuteQueries(const std::vector<std::vector<String> >& queries, redisCallbackFn *fn, void *privdata)
+RedisConnection::ExecuteQueries(std::vector<std::vector<String>> queries, redisCallbackFn *fn, void *privdata)
 {
-	m_RedisConnectionWorkQueue.Enqueue([this, queries, fn, privdata]() {
-		SendMessagesInternal(queries, fn, privdata);
+	auto queriesPtr (std::make_shared<decltype(queries)>(std::move(queries)));
+
+	m_RedisConnectionWorkQueue.Enqueue([this, queriesPtr, fn, privdata]() {
+		SendMessagesInternal(*queriesPtr, fn, privdata);
 	});
 }
 

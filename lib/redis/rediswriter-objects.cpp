@@ -166,7 +166,7 @@ void RedisWriter::UpdateAllConfigObjects()
 
 					if (transaction.size() > 1) {
 						transaction.push_back({"EXEC"});
-						m_Rcon->ExecuteQueries(transaction);
+						m_Rcon->ExecuteQueries(std::move(transaction));
 						transaction = {{"MULTI"}};
 					}
 				}
@@ -184,7 +184,7 @@ void RedisWriter::UpdateAllConfigObjects()
 
 			if (transaction.size() > 1) {
 				transaction.push_back({"EXEC"});
-				m_Rcon->ExecuteQueries(transaction);
+				m_Rcon->ExecuteQueries(std::move(transaction));
 			}
 
 			m_Rcon->ExecuteQuery({"PUBLISH", "icinga:config:dump", lcType});
@@ -249,7 +249,7 @@ void RedisWriter::DeleteKeys(const std::vector<String>& keys) {
 		query.emplace_back(key);
 	}
 
-	m_Rcon->ExecuteQuery(query);
+	m_Rcon->ExecuteQuery(std::move(query));
 }
 
 std::vector<String> RedisWriter::GetTypeObjectKeys(const String& type)
@@ -679,7 +679,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 
 	if (transaction.size() > 1) {
 		transaction.push_back({"EXEC"});
-		m_Rcon->ExecuteQueries(transaction);
+		m_Rcon->ExecuteQueries(std::move(transaction));
 	}
 }
 
@@ -1008,7 +1008,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 		streamadd.emplace_back(kv.second);
 	}
 
-	m_Rcon->ExecuteQuery(streamadd);
+	m_Rcon->ExecuteQuery(std::move(streamadd));
 }
 
 Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
