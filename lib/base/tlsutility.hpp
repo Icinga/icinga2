@@ -5,6 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
+#include "base/shared.hpp"
 #include "base/string.hpp"
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
@@ -22,10 +23,10 @@ namespace icinga
 
 void InitializeOpenSSL();
 
-std::shared_ptr<boost::asio::ssl::context> MakeAsioSslContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
-void AddCRLToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& crlPath);
-void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& cipherList);
-void SetTlsProtocolminToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& tlsProtocolmin);
+Shared<boost::asio::ssl::context>::Ptr MakeAsioSslContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
+void AddCRLToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& crlPath);
+void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& cipherList);
+void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& tlsProtocolmin);
 
 String GetCertificateCN(const std::shared_ptr<X509>& certificate);
 std::shared_ptr<X509> GetX509Certificate(const String& pemfile);

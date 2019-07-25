@@ -81,7 +81,7 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 
 std::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& port)
 {
-	std::shared_ptr<boost::asio::ssl::context> sslContext;
+	Shared<boost::asio::ssl::context>::Ptr sslContext;
 
 	try {
 		sslContext = MakeAsioSslContext();
@@ -149,7 +149,7 @@ int PkiUtility::GenTicket(const String& cn, const String& salt, std::ostream& ti
 int PkiUtility::RequestCertificate(const String& host, const String& port, const String& keyfile,
 	const String& certfile, const String& cafile, const std::shared_ptr<X509>& trustedCert, const String& ticket)
 {
-	std::shared_ptr<boost::asio::ssl::context> sslContext;
+	Shared<boost::asio::ssl::context>::Ptr sslContext;
 
 	try {
 		sslContext = MakeAsioSslContext(certfile, keyfile);

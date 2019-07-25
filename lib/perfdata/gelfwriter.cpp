@@ -163,7 +163,7 @@ void GelfWriter::ReconnectInternal()
 	bool ssl = GetEnableTls();
 
 	if (ssl) {
-		std::shared_ptr<boost::asio::ssl::context> sslContext;
+		Shared<boost::asio::ssl::context>::Ptr sslContext;
 
 		try {
 			sslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());

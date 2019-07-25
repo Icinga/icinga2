@@ -178,7 +178,7 @@ void ApiListener::UpdateSSLContext()
 {
 	namespace ssl = boost::asio::ssl;
 
-	std::shared_ptr<ssl::context> context;
+	Shared<ssl::context>::Ptr context;
 
 	try {
 		context = MakeAsioSslContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath());
@@ -423,7 +423,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	return true;
 }
 
-void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server, const std::shared_ptr<boost::asio::ssl::context>& sslContext)
+void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server, const Shared<boost::asio::ssl::context>::Ptr& sslContext)
 {
 	namespace asio = boost::asio;
 
