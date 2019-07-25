@@ -189,11 +189,9 @@ void RedisConnection::ExecuteQuery(const std::vector<String>& query, redisCallba
 void
 RedisConnection::ExecuteQueries(const std::vector<std::vector<String> >& queries, redisCallbackFn *fn, void *privdata)
 {
-	for (const auto& query : queries) {
-		m_RedisConnectionWorkQueue.Enqueue([this, query, fn, privdata]() {
-			SendMessageInternal(query, fn, privdata);
-		});
-	}
+	m_RedisConnectionWorkQueue.Enqueue([this, queries, fn, privdata]() {
+		SendMessagesInternal(queries, fn, privdata);
+	});
 }
 
 void RedisConnection::SendMessageInternal(const std::vector<String>& query, redisCallbackFn *fn, void *privdata)
@@ -246,5 +244,12 @@ void RedisConnection::SendMessageInternal(const std::vector<String>& query, redi
 				redis_error()
 						<< errinfo_redis_query(Utility::Join(Array::FromVector(query), ' ', false))
 		);
+	}
+}
+
+void RedisConnection::SendMessagesInternal(const std::vector<std::vector<String>>& queries, redisCallbackFn *fn, void *privdata)
+{
+	for (const auto& query : queries) {
+		SendMessageInternal(query, fn, privdata);
 	}
 }

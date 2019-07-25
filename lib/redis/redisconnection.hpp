@@ -69,6 +69,7 @@ namespace icinga
 		static void StaticInitialize();
 
 		void SendMessageInternal(const std::vector<String>& query, redisCallbackFn *fn, void *privdata);
+		void SendMessagesInternal(const std::vector<std::vector<String>>& queries, redisCallbackFn *fn, void *privdata);
 
 		void AssertOnWorkQueue();
 
