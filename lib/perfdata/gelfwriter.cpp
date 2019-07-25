@@ -176,7 +176,7 @@ void GelfWriter::ReconnectInternal()
 		m_Stream.first = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
 
 	} else {
-		m_Stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoContext());
+		m_Stream.second = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
 	}
 
 	try {

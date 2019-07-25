@@ -86,7 +86,7 @@ private:
 };
 
 typedef boost::asio::buffered_stream<boost::asio::ip::tcp::socket> AsioTcpStream;
-typedef std::pair<Shared<AsioTlsStream>::Ptr, std::shared_ptr<AsioTcpStream>> OptionalTlsStream;
+typedef std::pair<Shared<AsioTlsStream>::Ptr, Shared<AsioTcpStream>::Ptr> OptionalTlsStream;
 
 }
 

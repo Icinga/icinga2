@@ -37,7 +37,7 @@ protected:
 	void Pause() override;
 
 private:
-	std::shared_ptr<AsioTcpStream> m_Stream;
+	Shared<AsioTcpStream>::Ptr m_Stream;
 	boost::mutex m_StreamMutex;
 	WorkQueue m_WorkQueue{10000000, 1};
 

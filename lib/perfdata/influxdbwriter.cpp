@@ -190,7 +190,7 @@ OptionalTlsStream InfluxdbWriter::Connect()
 		stream.first = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
 
 	} else {
-		stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoContext());
+		stream.second = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
 	}
 
 	try {

@@ -32,7 +32,7 @@ protected:
 	void Pause() override;
 
 private:
-	std::shared_ptr<AsioTcpStream> m_Stream;
+	Shared<AsioTcpStream>::Ptr m_Stream;
 
 	Timer::Ptr m_ReconnectTimer;
 
