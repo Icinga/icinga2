@@ -1,19 +1,27 @@
+Aaron Bishop <erroneous@gmail.com>
 Adam Bolte <abolte@systemsaviour.com>
 Adam James <adam.james@transitiv.co.uk>
 Alan Jenkins <alan.christopher.jenkins@gmail.com>
+Alan Litster <alan.litster@twentyci.co.uk>
+Alex <alexp710@hotmail.com>
+Alex Merry <alexander.merry@nanoporetech.com>
 Alexander A. Klimov <alexander.klimov@icinga.com>
 Alexander Fuhr <alexander.fuhr@netways.de>
 Alexander Schomburg <script.acc@alex.schomb.org>
+Alexander Stoll <astoll@netways.de>
 Alexander Wirt <formorer@debian.org>
 Andrea Kao <eirinikos@gmail.com>
 Andreas Scherbaum <andreas@scherbaum.biz>
 Andres Ivanov <andres@andres.wtf>
+Andrew Jaffie <ajaffie@gmail.com>
 Andrew Meyer <ameyer+secure@nodnetwork.org>
 Andy Grunwald <andygrunwald@gmail.com>
 Arnd Hannemann <arnd@arndnet.de>
 Assaf Flatto <assaf@aikilinux.com>
+BarbUk <julien.virey@gmail.com>
 Bas Couwenberg <sebastic@xs4all.nl>
 Bastian Guse <bguse@nocopy.de>
+Bauerheim, Marcus <mbauerheim@spirit21.com>
 Benedikt Heine <bebe@bebehei.de>
 Bernd Erk <bernd.erk@icinga.com>
 Berthold Cogel <cogel@uni-koeln.de>
@@ -40,7 +48,10 @@ Daniel Helgenberger <daniel.helgenberger@m-box.de>
 Daniel Kesselberg <mail@danielkesselberg.de>
 Daniil Yaroslavtsev <dyaroslavtsev@confyrm.com>
 David Beck <techiscool@gmail.com>
+David Lublink <github.com@spam.lublink.net>
 Denis <zaharden@gmail.com>
+Dennis Lichtenthäler <dennis.lichtenthaeler@stiftung-tannenhof.de>
+Diana Flach <diana.flach@icinga.com>
 Dinesh Majrekar <dinesh.majrekar@serverchoice.com>
 Dirk Goetz <dirk.goetz@icinga.com>
 Dirk Melchers <dirk@dirk-melchers.de>
@@ -48,6 +59,7 @@ Dolf Schimmel <dolf@transip.nl>
 Edgar Fuß <ef@math.uni-bonn.de>
 Eduard Güldner <eduard.gueldner@gmail.com>
 Edvin Seferovic <edvin@seferovic.net>
+Elias Ohm <eohm@novomind.com>
 Eric Lippmann <eric.lippmann@icinga.com>
 Evgeni Golov <evgeni@golov.de>
 Ewoud Kohl van Wijngaarden <ewoud@kohlvanwijngaarden.nl>
@@ -62,12 +74,14 @@ Georg Haas <hax404foogit@hax404.de>
 Gerd von Egidy <gerd@egidy.de>
 Gerhardt Roman <roman.gerhardt@cbc-x.com>
 Glauco Vinicius <gl4uc0@gmail.com>
+Greg Hewgill <greg@hewgill.com>
 Gunnar Beutner <gunnar.beutner@icinga.com>
 Hannes Happle <info@h2-it.de>
 Hannes Van de Vel <h@nnes.be>
 Harald Laabs <github@dasr.de>
 Heike Jurzik <icinga@huhnix.org>
 Hendrik Röder <hendrik.biz@gmail.com>
+Henrik Triem <Henrik.Triem@icinga.com>
 Ian Kelling <ian@iankelling.org>
 Ildar Hizbulin <hizel@vyborg.ru>
 Irina Kaprizkina <ikapriz@gmail.com>
@@ -76,11 +90,11 @@ James Pharaoh <james@pharaoh.uk>
 Jan Andres <jan.andres@berenberg.de>
 Jan Beich <jbeich@FreeBSD.org>
 Jan Wagner <waja@cyconet.org>
+Janne Heß <janne@hess.ooo>
 Jason Young <jason.young@velaspan.com>
-Jean Flach <jean-marcel.flach@icinga.com>
 Jean-Louis Dupond <jean-louis@dupond.be>
 Jens Link <jenslink@quux.de>
-Jens Schanz <mail@jensschanz.de>
+Jens Schanz <jens.schanz@mueller.de>
 Jeon Sang Wan <maxswjeon@naver.com>
 Jeremy Armstrong <lepubel@gmail.com>
 Jesse Morgan <morgajel@gmail.com>
@@ -94,14 +108,19 @@ Jérôme Drouet <jerome.drouet@gmail.com>
 Kai Goller <kai.goller@netways.de>
 Konstantin Kelemen <konstantin@kel.mn>
 Kálmán Szalai - KAMI <kami911@gmail.com>
+Kálmán „KAMI” Szalai <kami911@gmail.com>
 Lars Engels <lars.engels@0x20.net>
 Lars Krüger <krueger-lars@web.de>
 Leah Oswald <mail@leahoswald.de>
 Lee Clemens <java@leeclemens.net>
+Lee Garrett <lgarrett@rocketjump.eu>
 Lennart Betz <lennart.betz@icinga.com>
+Leon Stringer <leon@priorsvle.com>
 Louis Sautier <sautier.louis@gmail.com>
 Luca Lesinigo <luca@lm-net.it>
+Lucas Bremgartner <breml@users.noreply.github.com>
 Lucas Fairchild-Madar <lucas.madar@gmail.com>
+Luiz Amaral <luiz.amaral@innogames.com>
 Magnus Bäck <magnus@noun.se>
 Malte Rabenseifner <mail@malte-rabenseifner.de>
 Manuel Reiter <reiter@csc.uni-frankfurt.de>
@@ -110,16 +129,21 @@ MarcusCaepio <MarcusCaepio@users.noreply.github.com>
 Marianne Spiller <github@spiller.me>
 Marius Bergmann <marius@yeai.de>
 Marius Sturm <marius@graylog.com>
+Mark Leary <mleary@mit.edu>
 Markus Frosch <markus.frosch@icinga.com>
 Markus Waldmüller <markus.waldmueller@netways.de>
+Martijn van Duren <m.vanduren@itisit.nl>
+Martin Neubert <martin.neubert@t-systems.com>
 Martin Stiborsky <martin.stiborsky@gmail.com>
 Mathieu Arnold <mat@mat.cc>
 Mathieu Lutfy <mathieu@bidon.ca>
 Matthaus Owens <matthaus@puppetlabs.com>
 Matthias Schales <black-dragon131@web.de>
 Maurice Meyer <morre@mor.re>
+Max Deparade <max.deparade@netways.de>
 Max Rosin <git@hackrid.de>
 Max Zhang <zhenzhan@tibco.com>
+Maximilian Falkenstein <maxf@njsm.de>
 Mhd Sulhan <ms@kilabit.info>
 Micha Ahrweiler <me@schnitzi.net>
 Michael Friedrich <michael.friedrich@icinga.com>
@@ -131,11 +155,15 @@ Michal Petko <michal.petko@jumpshot.com>
 Mikesch-mp <mikesch-mp@koebbes.de>
 Mirco Bauer <meebey@meebey.net>
 Mirko Nardin <mirko.nardin@gmx.net>
+Muhammad Mominul Huque <nahidbinbaten1995@gmail.com>
+Nemanja Trifunovic <ntrifunovic@hotmail.com>
 Nicolai <nbuchwitz@users.noreply.github.com>
 Nicolas Limage <github@xephon.org>
 Nicole Lang <nicole.lang@icinga.com>
 Niflou <dubuscyr@gmail.com>
 Noah Hilverling <noah.hilverling@icinga.com>
+Obihörnchen <obihoernchende@gmail.com>
+Oleg Artenii <oleg@artenii.email>
 Pall Sigurdsson <palli-github@minor.is>
 Paolo Schiro <paolo.schiro@kpnqwest.it>
 Patrick Huy <frz@frz.cc>
@@ -151,12 +179,14 @@ Ralph Breier <ralph.breier@roedl.com>
 Reto Zeder <reto.zeder@arcade.ch>
 Ricardo Bartels <ricardo@bitchbrothers.com>
 Robert Lindgren <robert.lindgren@gmail.com>
+Robert Scheck <robert@fedoraproject.org>
 Robin O'Brien <robin@labs.epiuse.com>
 Roland Hopferwieser <rhopfer@ica.jku.at>
 Roman Gerhardt <roman.gerhardt@cbc-x.com>
 Rudy Gevaert <rudy.gevaert@ugent.be>
 Rune Darrud <theflyingcorpse@gmail.com>
 Sam Kottler <shk@linux.com>
+Sascha Westermann <sascha.westermann@hl-services.de>
 Sebastian Brückner <mail@invlid.com>
 Sebastian Chrostek <sebastian@chrostek.net>
 Sebastian Eikenberg <eikese@mail.uni-paderborn.de>
@@ -173,6 +203,7 @@ Steve McMaster <mcmaster@hurricanelabs.com>
 Strajan Sebastian Ioan <strajan.sebastian@yahoo.com>
 Strix <660956+MrStrix@users.noreply.github.com>
 Sven Nierlein <sven@nierlein.de>
+Sven Wegener <swegener@gentoo.org>
 T. Mulyana <nothinux@gmail.com>
 Thomas Forrer <thomas.forrer@wuerth-phoenix.com>
 Thomas Gelf <thomas.gelf@icinga.com>
@@ -188,6 +219,7 @@ Uwe Ebel <kobmaki@aol.com>
 Valentin Hoebel <valentin@xenuser.org>
 Vytenis Darulis <vytenis@uber.com>
 Wenger Florian <wenger@unifox.at>
+Will Frey <will.frey@digitalreasoning.com>
 Winfried Angele <winfried.angele@gmail.com>
 Wolfgang Nieder <wnd@gmx.net>
 Yannick Charton <tontonitch-pro@yahoo.fr>
@@ -202,11 +234,15 @@ ctrlaltca <ctrlaltca@gmail.com>
 dh.harald <dh.harald@gmail.com>
 dominik-r-s <43005480+dominik-r-s@users.noreply.github.com>
 fbachmann <bachmann.f@gmail.com>
+fluxX04 <alexp710@hotmail.com>
 gitmopp <mopp@gmx.net>
+htriem <henrik.triem@netways.de>
 jre3brg <jorge.rebelo@pt.bosch.com>
 krishna <gskrishna44@gmail.com>
 lihan <tclh123@gmail.com>
+marxin <mliska@suse.cz>
 mocruz <mocruz@theworkshop.com>
+nemtrif <ntrifunovic@hotmail.com>
 noobahoi <20069422+noobahoi@users.noreply.github.com>
 pv2b <pvz@pvz.pp.se>
 ryanohnemus <ryan.ohnemus@tradingtechnologies.com>
