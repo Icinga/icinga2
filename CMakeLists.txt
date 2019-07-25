@@ -111,6 +111,8 @@ endif()
 
 # NuGet on Windows requires a semantic versioning, example: 2.10.4.123 (only 4 element, only numeric)
 string(REGEX REPLACE "-([0-9]+).*$" ".\\1" ICINGA2_VERSION_SAFE "${ICINGA2_VERSION}")
+string(REGEX REPLACE "-[^\\.]*(.*)$" "\\1" ICINGA2_VERSION_SAFE "${ICINGA2_VERSION_SAFE}")
+message(STATUS "ICINGA2_VERSION_SAFE=${ICINGA2_VERSION_SAFE}")
 
 if(WIN32)
   set(Boost_USE_STATIC_LIBS ON)
