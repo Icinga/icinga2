@@ -689,7 +689,7 @@ ExpressionResult SetConstExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	CHECK_RESULT(operandres);
 	Value operand = operandres.GetValue();
 
-	globals->SetAttribute(m_Name, std::make_shared<ConstEmbeddedNamespaceValue>(operand));
+	globals->SetAttribute(m_Name, new ConstEmbeddedNamespaceValue(operand));
 
 	return Empty;
 }

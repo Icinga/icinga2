@@ -25,5 +25,5 @@ INITIALIZE_ONCE([]() {
 	jsonNSBehavior->Freeze();
 
 	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
-	systemNS->SetAttribute("Json", std::make_shared<ConstEmbeddedNamespaceValue>(jsonNS));
+	systemNS->SetAttribute("Json", new ConstEmbeddedNamespaceValue(jsonNS));
 });

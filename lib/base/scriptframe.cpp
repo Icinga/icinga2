@@ -22,22 +22,22 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	auto systemNSBehavior = new ConstNamespaceBehavior();
 	systemNSBehavior->Freeze();
 	Namespace::Ptr systemNS = new Namespace(systemNSBehavior);
-	globalNS->SetAttribute("System", std::make_shared<ConstEmbeddedNamespaceValue>(systemNS));
+	globalNS->SetAttribute("System", new ConstEmbeddedNamespaceValue(systemNS));
 
-	systemNS->SetAttribute("Configuration", std::make_shared<EmbeddedNamespaceValue>(new Configuration()));
+	systemNS->SetAttribute("Configuration", new EmbeddedNamespaceValue(new Configuration()));
 
 	auto typesNSBehavior = new ConstNamespaceBehavior();
 	typesNSBehavior->Freeze();
 	Namespace::Ptr typesNS = new Namespace(typesNSBehavior);
-	globalNS->SetAttribute("Types", std::make_shared<ConstEmbeddedNamespaceValue>(typesNS));
+	globalNS->SetAttribute("Types", new ConstEmbeddedNamespaceValue(typesNS));
 
 	auto statsNSBehavior = new ConstNamespaceBehavior();
 	statsNSBehavior->Freeze();
 	Namespace::Ptr statsNS = new Namespace(statsNSBehavior);
-	globalNS->SetAttribute("StatsFunctions", std::make_shared<ConstEmbeddedNamespaceValue>(statsNS));
+	globalNS->SetAttribute("StatsFunctions", new ConstEmbeddedNamespaceValue(statsNS));
 
 	Namespace::Ptr internalNS = new Namespace(l_InternalNSBehavior);
-	globalNS->SetAttribute("Internal", std::make_shared<ConstEmbeddedNamespaceValue>(internalNS));
+	globalNS->SetAttribute("Internal", new ConstEmbeddedNamespaceValue(internalNS));
 }, 1000);
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
