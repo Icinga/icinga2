@@ -126,7 +126,7 @@ EventQueueRegistry *EventQueueRegistry::GetInstance()
 }
 
 std::mutex EventsInbox::m_FiltersMutex;
-std::map<String, EventsInbox::Filter> EventsInbox::m_Filters ({{"", EventsInbox::Filter{1, nullptr}}});
+std::map<String, EventsInbox::Filter> EventsInbox::m_Filters ({{"", EventsInbox::Filter{1, Expression::Ptr()}}});
 
 EventsRouter EventsRouter::m_Instance;
 
@@ -146,7 +146,7 @@ EventsInbox::EventsInbox(String filter, const String& filterSource)
 		m_Filter = m_Filters.find(filter);
 
 		if (m_Filter == m_Filters.end()) {
-			m_Filter = m_Filters.emplace(std::move(filter), Filter{1, std::shared_ptr<Expression>(expr.release())}).first;
+			m_Filter = m_Filters.emplace(std::move(filter), Filter{1, Expression::Ptr(expr.release())}).first;
 		} else {
 			++m_Filter->second.Refs;
 		}
@@ -164,7 +164,7 @@ EventsInbox::~EventsInbox()
 	}
 }
 
-const std::shared_ptr<Expression>& EventsInbox::GetFilter()
+const Expression::Ptr& EventsInbox::GetFilter()
 {
 	return m_Filter->second.Expr;
 }
@@ -230,7 +230,7 @@ const EventsInbox::Ptr& EventsSubscriber::GetInbox()
 	return m_Inbox;
 }
 
-EventsFilter::EventsFilter(std::map<std::shared_ptr<Expression>, std::set<EventsInbox::Ptr>> inboxes)
+EventsFilter::EventsFilter(std::map<Expression::Ptr, std::set<EventsInbox::Ptr>> inboxes)
 	: m_Inboxes(std::move(inboxes))
 {
 }

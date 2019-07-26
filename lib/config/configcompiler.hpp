@@ -92,8 +92,8 @@ public:
 	void SetPackage(const String& package);
 	String GetPackage() const;
 
-	void AddImport(const std::shared_ptr<Expression>& import);
-	std::vector<std::shared_ptr<Expression> > GetImports() const;
+	void AddImport(const Expression::Ptr& import);
+	std::vector<Expression::Ptr> GetImports() const;
 
 	static void CollectIncludes(std::vector<std::unique_ptr<Expression> >& expressions,
 		const String& file, const String& zone, const String& package);
@@ -114,13 +114,13 @@ public:
 	static bool HasZoneConfigAuthority(const String& zoneName);
 
 private:
-	std::promise<std::shared_ptr<Expression> > m_Promise;
+	std::promise<Expression::Ptr> m_Promise;
 
 	String m_Path;
 	std::istream *m_Input;
 	String m_Zone;
 	String m_Package;
-	std::vector<std::shared_ptr<Expression> > m_Imports;
+	std::vector<Expression::Ptr> m_Imports;
 
 	void *m_Scanner;
 

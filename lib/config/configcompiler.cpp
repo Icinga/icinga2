@@ -345,12 +345,12 @@ bool ConfigCompiler::IsAbsolutePath(const String& path)
 #endif /* _WIN32 */
 }
 
-void ConfigCompiler::AddImport(const std::shared_ptr<Expression>& import)
+void ConfigCompiler::AddImport(const Expression::Ptr& import)
 {
 	m_Imports.push_back(import);
 }
 
-std::vector<std::shared_ptr<Expression> > ConfigCompiler::GetImports() const
+std::vector<Expression::Ptr> ConfigCompiler::GetImports() const
 {
 	return m_Imports;
 }

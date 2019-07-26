@@ -21,12 +21,12 @@ public:
 
 	String GetTargetType() const;
 	String GetName() const;
-	std::shared_ptr<Expression> GetExpression() const;
-	std::shared_ptr<Expression> GetFilter() const;
+	Expression::Ptr GetExpression() const;
+	Expression::Ptr GetFilter() const;
 	String GetPackage() const;
 	String GetFKVar() const;
 	String GetFVVar() const;
-	std::shared_ptr<Expression> GetFTerm() const;
+	Expression::Ptr GetFTerm() const;
 	bool GetIgnoreOnError() const;
 	DebugInfo GetDebugInfo() const;
 	Dictionary::Ptr GetScope() const;
@@ -35,8 +35,8 @@ public:
 
 	bool EvaluateFilter(ScriptFrame& frame) const;
 
-	static void AddRule(const String& sourceType, const String& targetType, const String& name, const std::shared_ptr<Expression>& expression,
-		const std::shared_ptr<Expression>& filter, const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm,
+	static void AddRule(const String& sourceType, const String& targetType, const String& name, const Expression::Ptr& expression,
+		const Expression::Ptr& filter, const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
 		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static std::vector<ApplyRule>& GetRules(const String& type);
 
@@ -50,12 +50,12 @@ public:
 private:
 	String m_TargetType;
 	String m_Name;
-	std::shared_ptr<Expression> m_Expression;
-	std::shared_ptr<Expression> m_Filter;
+	Expression::Ptr m_Expression;
+	Expression::Ptr m_Filter;
 	String m_Package;
 	String m_FKVar;
 	String m_FVVar;
-	std::shared_ptr<Expression> m_FTerm;
+	Expression::Ptr m_FTerm;
 	bool m_IgnoreOnError;
 	DebugInfo m_DebugInfo;
 	Dictionary::Ptr m_Scope;
@@ -64,8 +64,8 @@ private:
 	static TypeMap m_Types;
 	static RuleMap m_Rules;
 
-	ApplyRule(String targetType, String name, std::shared_ptr<Expression> expression,
-		std::shared_ptr<Expression> filter, String package, String fkvar, String fvvar, std::shared_ptr<Expression> fterm,
+	ApplyRule(String targetType, String name, Expression::Ptr expression,
+		Expression::Ptr filter, String package, String fkvar, String fvvar, Expression::Ptr fterm,
 		bool ignoreOnError, DebugInfo di, Dictionary::Ptr scope);
 };
 
