@@ -114,8 +114,6 @@ void RedisWriter::UpdateAllConfigObjects()
 			m_PrefixConfigObject + "action_url",
 			m_PrefixConfigObject + "notes_url",
 			m_PrefixConfigObject + "icon_image",
-			m_PrefixConfigObject + "commandargument",
-			m_PrefixConfigObject + "commandenvvar",
 	};
 	DeleteKeys(globalKeys);
 
@@ -581,49 +579,64 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 		Dictionary::Ptr arguments = command->GetArguments();
 		if (arguments) {
 			ObjectLock argumentsLock(arguments);
-			Array::Ptr argumentIds(new Array);
 			auto& typeArgs (statements[m_PrefixConfigObject + typeName + ":argument"]);
-			auto& allArgs (statements[m_PrefixConfigObject + "commandargument"]);
 			auto& argChksms (statements[m_PrefixConfigCheckSum + typeName + ":argument"]);
 
-			argumentIds->Reserve(arguments->GetLength());
-
 			for (auto& kv : arguments) {
-				String id = HashValue(kv.first + HashValue(kv.second));
-				argumentIds->Add(id);
+				Dictionary::Ptr values;
+				if (kv.second.IsObjectType<Dictionary>()) {
+					values = kv.second;
+				} else if (kv.second.IsObjectType<Array>()) {
+					values = new Dictionary({{"value", JsonEncode(kv.second)}});
+				} else {
+					values = new Dictionary({{"value", kv.second}});
+				}
 
-				allArgs.emplace_back(id);
-				allArgs.emplace_back(JsonEncode(kv.second));
+				values->Set("value", JsonEncode(values->Get("value")));
+				values->Set("command_id", objectKey);
+				values->Set("argument_key", kv.first);
+				values->Set("env_id", envId);
+
+				String id = HashValue(objectKey + kv.first + envId);
+
+				typeArgs.emplace_back(id);
+				typeArgs.emplace_back(JsonEncode(values));
+				argChksms.emplace_back(id);
+				argChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(kv.second)}})));
 			}
-
-			argChksms.emplace_back(objectKey);
-			argChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(argumentIds)}})));
-			typeArgs.emplace_back(objectKey);
-			typeArgs.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"arguments", argumentIds}})));
 		}
 
-		Dictionary::Ptr envvars = command->GetArguments();
+		Dictionary::Ptr envvars = command->GetEnv();
 		if (envvars) {
 			ObjectLock envvarsLock(envvars);
 			Array::Ptr envvarIds(new Array);
 			auto& typeVars (statements[m_PrefixConfigObject + typeName + ":envvar"]);
-			auto& allVars (statements[m_PrefixConfigObject + "commandenvvar"]);
 			auto& varChksms (statements[m_PrefixConfigCheckSum + typeName + ":envvar"]);
 
 			envvarIds->Reserve(envvars->GetLength());
 
 			for (auto& kv : envvars) {
-				String id = HashValue(kv.first + HashValue(kv.second));
-				envvarIds->Add(id);
+				Dictionary::Ptr values;
+				if (kv.second.IsObjectType<Dictionary>()) {
+					values = kv.second;
+				} else if (kv.second.IsObjectType<Array>()) {
+					values = new Dictionary({{"value", JsonEncode(kv.second)}});
+				} else {
+					values = new Dictionary({{"value", kv.second}});
+				}
 
-				allVars.emplace_back(id);
-				allVars.emplace_back(JsonEncode(kv.second));
+				values->Set("value", JsonEncode(values->Get("value")));
+				values->Set("command_id", objectKey);
+				values->Set("envvar_key", kv.first);
+				values->Set("env_id", envId);
+
+				String id = HashValue(objectKey + kv.first + envId);
+
+				typeVars.emplace_back(id);
+				typeVars.emplace_back(JsonEncode(values));
+				varChksms.emplace_back(id);
+				varChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(kv.second)}})));
 			}
-
-			varChksms.emplace_back(objectKey);
-			varChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(envvarIds)}})));
-			typeVars.emplace_back(objectKey);
-			typeVars.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"envvars", envvarIds}})));
 		}
 
 		return;
