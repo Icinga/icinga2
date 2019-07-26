@@ -73,6 +73,8 @@ void OpenTsdbWriter::Resume()
 	Log(LogInformation, "OpentsdbWriter")
 		<< "'" << GetName() << "' resumed.";
 
+	ReadConfigTemplate(m_ServiceConfigTemplate, m_HostConfigTemplate);
+
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&OpenTsdbWriter::ReconnectTimerHandler, this));
@@ -151,33 +153,35 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 	Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
 	Host::Ptr host;
-	Dictionary::Ptr config_tmpl_clean;
+	Dictionary::Ptr config_tmpl;
+	Dictionary::Ptr config_tmpl_tags;
 
 	if (service) {
 		host = service->GetHost();
-		config_tmpl_clean = GetServiceTemplate();
+		config_tmpl = m_ServiceConfigTemplate;
 	}
 	else {
 		host = static_pointer_cast<Host>(checkable);
-		config_tmpl_clean = GetHostTemplate();
+		config_tmpl = m_HostConfigTemplate;
 	}
 
-	// Clone the config template and perform an in-place macro expansion of measurement and tag values
-	Dictionary::Ptr config_tmpl = static_pointer_cast<Dictionary>(config_tmpl_clean->Clone());
-	Dictionary::Ptr config_tmpl_tags = config_tmpl->Get("tags");
-
-	// Configure config template macro resolver
-	MacroProcessor::ResolverList resolvers;
-	if (service)
-		resolvers.emplace_back("service", service);
-	resolvers.emplace_back("host", host);
-	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+	// Get the tags nested dictionary in the service/host template in the config
+	if (config_tmpl) {
+		config_tmpl_tags = config_tmpl->Get("tags");
+	}
 
 	String metric;
 	std::map<String, String> tags;
 
 	// Resolve macros in configuration template and build custom tag list
 	if (config_tmpl_tags) {
+
+		// Configure config template macro resolver
+		MacroProcessor::ResolverList resolvers;
+		if (service)
+			resolvers.emplace_back("service", service);
+		resolvers.emplace_back("host", host);
+		resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 		
 		ObjectLock olock(config_tmpl_tags);
 		
@@ -378,6 +382,39 @@ String OpenTsdbWriter::EscapeMetric(const String& str)
 
 	return result;
 }
+
+/**
+* Saves the template dictionaries defined in the config file into running memory
+*
+* @param stemplate The dictionary to save the service configuration to
+* @param htemplate The dictionary to save the host configuration to
+*/
+void OpenTsdbWriter::ReadConfigTemplate(const Dictionary::Ptr& stemplate, 
+	const Dictionary::Ptr& htemplate)
+{
+
+	m_ServiceConfigTemplate = GetServiceTemplate();
+
+	if (!m_ServiceConfigTemplate) {
+		Log(LogDebug, "OpenTsdbWriter")
+			<< "Unable to locate service template configuration.";
+	} else if (m_ServiceConfigTemplate->GetLength() == 0) {
+		Log(LogDebug, "OpenTsdbWriter")
+			<< "The service template configuration is empty.";
+	}
+
+	m_HostConfigTemplate = GetHostTemplate();
+
+	if (!m_HostConfigTemplate) {
+		Log(LogDebug, "OpenTsdbWriter")
+			<< "Unable to locate host template configuration.";
+	} else if (m_HostConfigTemplate->GetLength() == 0) {
+		Log(LogDebug, "OpenTsdbWriter")
+			<< "The host template configuration is empty.";
+	}
+
+}
+
 
 /**
 * Validates the host_template configuration block in the configuration
