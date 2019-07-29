@@ -713,6 +713,9 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 			attributes->Set("parent_id", GetObjectIdentifier(zone));
 		}
 
+		auto parentsRaw (zone->GetAllParentsRaw());
+		attributes->Set("depth", parentsRaw.size());
+
 		return true;
 	}
 
