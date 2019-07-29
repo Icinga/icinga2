@@ -146,7 +146,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
 		{ "OK", 0 },
 		{ "WARNING", 1},
 		{ "CRITICAL", 2},
-		{ "UNKNWON", 3}
+		{ "UNKNOWN", 3}
 	};
 
 	String state = static_cast<String>(payload->Get("result")).ToUpper();

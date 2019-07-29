@@ -1713,7 +1713,7 @@ Message updates will be dropped when:
 
 The receiver constructs a virtual host object and looks for the local CheckCommand object.
 
-Returns UNKNWON as check result to the sender
+Returns UNKNOWN as check result to the sender
 
 * when the CheckCommand object does not exist.
 * when there was an exception triggered from check execution, e.g. the plugin binary could not be executed or similar.
