@@ -101,6 +101,14 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 	SSL_CTX_set_session_id_context(sslContext.get(), (const unsigned char *)"Icinga 2", 8);
 
+	// Explicitly load ECC ciphers, required on el7 - https://github.com/Icinga/icinga2/issues/7247
+	// SSL_CTX_set_ecdh_auto is deprecated and removed in OpenSSL 1.1.x - https://github.com/openssl/openssl/issues/1437
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#	ifdef SSL_CTX_set_ecdh_auto
+	SSL_CTX_set_ecdh_auto(sslContext.get(), 1);
+#	endif /* SSL_CTX_set_ecdh_auto */
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+
 	if (!pubkey.IsEmpty()) {
 		if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr())) {
 			Log(LogCritical, "SSL")
