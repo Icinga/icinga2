@@ -360,6 +360,17 @@ Disadvantages:
 * Tickets need to be generated on the master and copied to client setup wizards.
 * No central signing management.
 
+#### CSR Auto-Signing: Preparation <a id="distributed-monitoring-setup-csr-auto-signing-preparation"></a>
+
+Prior to using this mode, ensure that the following steps are taken on
+the signing master:
+
+* The [master setup](06-distributed-monitoring.md#distributed-monitoring-setup-master) was run successfully. This includes:
+    * Generated a CA key pair
+    * Generated a private ticket salt stored in the `TicketSalt` constant, set as `ticket_salt` attribute inside the [api](09-object-types.md#objecttype-apilistener) feature.
+* Restart of the master instance.
+
+#### CSR Auto-Signing: On the master <a id="distributed-monitoring-setup-csr-auto-signing-master"></a>
 
 Setup wizards for agent/satellite nodes will ask you for this specific client ticket.
 
@@ -367,6 +378,7 @@ There are two possible ways to retrieve the ticket:
 
 * [CLI command](11-cli-commands.md#cli-command-pki) executed on the master node.
 * [REST API](12-icinga2-api.md#icinga2-api) request against the master node.
+
 
 Required information:
 
@@ -399,7 +411,7 @@ Retrieve the ticket on the master node `icinga2-master1.localdomain` with `curl`
  -X POST 'https://localhost:5665/v1/actions/generate-ticket' -d '{ "cn": "icinga2-agent1.localdomain" }'
 ```
 
-Store that ticket number for the agent/satellite setup below.
+Store that ticket number for the [agent/satellite setup](06-distributed-monitoring.md#distributed-monitoring-setup-agent-satellite) below.
 
 > **Note**
 >
@@ -407,6 +419,7 @@ Store that ticket number for the agent/satellite setup below.
 > Example: Retrieve the ticket on the Puppet master node and send the compiled catalog
 > to the authorized Puppet agent node which will invoke the
 > [automated setup steps](06-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup).
+
 
 ### On-Demand CSR Signing <a id="distributed-monitoring-setup-on-demand-csr-signing"></a>
 
@@ -428,6 +441,16 @@ Disadvantages:
 * Asynchronous step for automated deployments.
 * Needs client verification on the master.
 
+#### On-Demand CSR Signing: Preparation <a id="distributed-monitoring-setup-on-demand-csr-signing-preparation"></a>
+
+Prior to using this mode, ensure that the following steps are taken on
+the signing master:
+
+* The [master setup](06-distributed-monitoring.md#distributed-monitoring-setup-master) was run successfully. This includes:
+    * Generated a CA key pair
+* Restart of the master instance.
+
+#### On-Demand CSR Signing: On the master <a id="distributed-monitoring-setup-on-demand-csr-signing-master"></a>
 
 You can list pending certificate signing requests with the `ca list` CLI command.
 
