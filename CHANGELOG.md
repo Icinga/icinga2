@@ -1,4 +1,20 @@
-# Icinga 2.x CHANGELOG
+# Icinga 2 CHANGELOG
+
+Please make sure to always read our [Upgrading](https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/)
+documentation before switching to a new version.
+
+Released closed milestones can be found [here](https://github.com/Icinga/icinga2/milestones?state=closed).
+
+
+## 2.9.3 (2019-07-30)
+
+[Issue and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.9.3)
+
+### Bugfixes
+
+* Fix el7 not loading ECDHE cipher suites #7247
+* Fix checkresults from the future breaking checks #6797 ref/NC/595861
+* DB IDO: Don't enqueue queries when the feature is paused (HA) #5876
 
 ## 2.9.2 (2018-09-26)
 
