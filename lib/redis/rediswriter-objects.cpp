@@ -158,7 +158,7 @@ void RedisWriter::UpdateAllConfigObjects()
 					}
 
 					if (states.size() > 2) {
-						transaction.push_back(std::move(states));
+						transaction.emplace_back(std::move(states));
 						states = {"HMSET", m_PrefixStateObject + lcType};
 					}
 
@@ -180,7 +180,7 @@ void RedisWriter::UpdateAllConfigObjects()
 			}
 
 			if (states.size() > 2)
-				transaction.push_back(std::move(states));
+				transaction.emplace_back(std::move(states));
 
 			if (transaction.size() > 1) {
 				transaction.push_back({"EXEC"});
