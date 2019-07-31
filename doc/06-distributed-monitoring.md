@@ -750,6 +750,8 @@ the [configuration modes](06-distributed-monitoring.md#distributed-monitoring-co
 
 ### Agent Setup on Windows <a id="distributed-monitoring-setup-agent-windows"></a>
 
+#### Agent Setup on Windows: Installer <a id="distributed-monitoring-setup-agent-windows-installer"></a>
+
 Download the MSI-Installer package from [https://packages.icinga.com/windows/](https://packages.icinga.com/windows/).
 
 Requirements:
@@ -769,8 +771,6 @@ to get you started more easily.
 > Please note that Icinga 2 was designed to run as light-weight agent on Windows.
 > There is no support for satellite instances.
 
-#### Windows Agent Setup Start <a id="distributed-monitoring-setup-agent-windows-start"></a>
-
 Run the MSI-Installer package and follow the instructions shown in the screenshots.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_installer_01.png)
@@ -779,12 +779,14 @@ Run the MSI-Installer package and follow the instructions shown in the screensho
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_installer_04.png)
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_installer_05.png)
 
-The graphical installer offers to run the Icinga 2 setup wizard after the installation. Select
-the check box to proceed.
+The graphical installer offers to run the [Icinga Agent setup wizard](06-distributed-monitoring.md#distributed-monitoring-setup-agent-windows-configuration-wizard)
+after the installation. Select the check box to proceed.
 
 > **Tip**
 >
-> You can also run the Icinga 2 setup wizard from the Start menu later.
+> You can also run the Icinga agent setup wizard from the Start menu later.
+
+#### Agent Setup on Windows: Configuration Wizard <a id="distributed-monitoring-setup-agent-windows-configuration-wizard"></a>
 
 On a fresh installation the setup wizard guides you through the initial configuration.
 It also provides a mechanism to send a certificate request to the [CSR signing master](distributed-monitoring-setup-sign-certificates-master).
@@ -816,13 +818,13 @@ When needed you can add an additional global zone (the zones `global-templates` 
 
 Optionally enable the following settings:
 
-  Parameter                         | Description
-  ----------------------------------|----------------------------------
-  Accept config                     | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
-  Accept commands                   | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
-  Run Icinga 2 service as this user | **Optional.** Specify a different Windows user. This defaults to `NT AUTHORITY\Network Service` and is required for more privileged service checks.
-  Install NSClient++                | **Optional.** The Windows installer bundles the NSClient++ installer for additional [plugin checks](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
-  Disable conf.d                    | **Optional.** Allows to disable the `include_recursive "conf.d"` directive except for the `api-users.conf` file in the `icinga2.conf` file. Defaults to `true`.
+  Parameter                                               | Description
+  --------------------------------------------------------|----------------------------------
+  Accept commands from master/satellite instance(s)       | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
+  Accept config updates from master/satellite instance(s) | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
+  Run Icinga 2 service as this user                       | **Optional.** Specify a different Windows user. This defaults to `NT AUTHORITY\Network Service` and is required for more privileged service checks.
+  Install/Update bundled NSClient++                       | **Optional.** The Windows installer bundles the NSClient++ installer for additional [plugin checks](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
+  Disable including local 'conf.d' directory              | **Optional.** Allows to disable the `include_recursive "conf.d"` directive except for the `api-users.conf` file in the `icinga2.conf` file. Defaults to `true`.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_03.png)
 
