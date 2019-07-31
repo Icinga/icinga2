@@ -9,7 +9,7 @@ development, package builds and tests.
 * [Test Icinga 2](21-development.md#development-tests)
     * [Snapshot Packages (Nightly Builds)](21-development.md#development-tests-snapshot-packages)
 * [Develop Icinga 2](21-development.md#development-develop)
-    * [Preparations](21-development.md#development-develop-styleguide)
+    * [Preparations](21-development.md#development-develop-prepare)
     * [Design Patterns](21-development.md#development-develop-design-patterns)
     * [Build Tools](21-development.md#development-develop-builds-tools)
     * [Unit Tests](21-development.md#development-develop-tests)
@@ -748,6 +748,9 @@ Depending on the file type, this must be a comment.
 ```
 
 #### Code Formatting <a id="development-develop-code-formatting"></a>
+
+**Tabs instead of spaces.** Inside Visual Studio, choose to keep tabs instead of
+spaces. Tabs should use 4 spaces indent by default, depending on your likings.
 
 We follow the clang format, with some exceptions.
 
@@ -1613,6 +1616,23 @@ In addition also choose these individual components on Visual Studio 2017:
     * Windows Universal C Runtime
 
 After a while, Visual Studio will be ready.
+
+##### Style Guide for Visual Studio
+
+Navigate into `Tools > Options > Text Editor` and repeat the following for
+
+- C++
+- C#
+
+Navigate into `Tabs` and set:
+
+- Indenting: Smart (default)
+- Tab size: 4
+- Indent size: 4
+- Keep tabs (instead of spaces)
+
+![Visual Studio Tabs](images/development/windows_visual_studio_tabs_c++.png)
+
 
 #### Flex and Bison
 
