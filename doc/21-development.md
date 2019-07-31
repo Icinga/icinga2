@@ -1568,8 +1568,47 @@ Open an administrative command prompt (Win key, type “cmd”, right-click and 
 @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))" && SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
 ```
 
-In case you are used to `vim`, start a new administrative Powershell and run `choco install -y vim`.
+#### Git, Posh and Vim
 
+In case you are used to `vim`, start a new administrative Powershell:
+
+```
+choco install -y vim
+```
+
+The same applies for Git integration in Powershell:
+
+```
+choco install -y poshgit
+```
+
+![Powershell Posh Git](images/development/windows_powershell_posh_git.png)
+
+In order to fix the colors for commands like `git status` or `git diff`,
+edit `$HOME/.gitconfig` in your Powershell and add the following lines:
+
+```
+vim $HOME/.gitconfig
+
+[color "status"]
+    changed = cyan bold
+    untracked = yellow bold
+    added = green bold
+    branch = cyan bold
+    unmerged = red bold
+
+[color "diff"]
+    frag = cyan
+    new = green bold
+    commit = yellow
+    old = red white
+
+[color "branch"]
+  current = yellow reverse
+  local = yellow
+  remote = green bold
+  remote = red bold
+```
 
 #### Visual Studio
 
@@ -1582,8 +1621,8 @@ You need a free Microsoft account to download and also store your preferences.
 
 Install the following Workloads:
 
-* C++ Desktop
-* .NET Desktop
+* C++ Desktop Development (icinga2.exe)
+* .NET Desktop Development (Agent Setup Wizard in C#)
 
 In addition also choose these individual components on Visual Studio 2017:
 
