@@ -540,11 +540,11 @@ Each node certificate must be signed by the private CA key.
 Note: The following description uses `parent node` and `child node`.
 This also applies to nodes in the same cluster zone.
 
-During the connection attempt, an SSL handshake is performed.
+During the connection attempt, a TLS handshake is performed.
 If the public certificate of a child node is not signed by the same
 CA, the child node is not trusted and the connection will be closed.
 
-If the SSL handshake succeeds, the parent node reads the
+If the TLS handshake succeeds, the parent node reads the
 certificate's common name (CN) of the child node and looks for
 a local Endpoint object name configuration.
 
@@ -1085,7 +1085,7 @@ benchmark this when TCP connections are broken and timeouts are encountered.
 #### Master Processes Incoming Connection <a id="technical-concepts-tls-network-io-connection-handling-incoming"></a>
 
 * The node starts a new ApiListener, this invokes `AddListener()`
-    * Setup SSL Context
+    * Setup TLS Context (SslContext)
     * Initialize global I/O engine and create a TCP acceptor
     * Resolve bind host/port (optional)
     * Listen on IPv4 and IPv6
@@ -1101,7 +1101,7 @@ benchmark this when TCP connections are broken and timeouts are encountered.
     * Loop over all configured zones, exclude global zones and not direct parent/child zones
     * Get the endpoints configured in the zones, exclude: local endpoint, no 'host' attribute, already connected or in progress
     * Call `AddConnection()`
-* Spawn a new Coroutine after making the SSL context
+* Spawn a new Coroutine after making the TLS context
     * Use the global I/O engine for socket I/O
     * Create TLS stream
     * Connect to endpoint host/port details

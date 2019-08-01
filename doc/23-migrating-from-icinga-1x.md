@@ -1553,6 +1553,6 @@ and configuration distribution problems Icinga 1.x distributed monitoring curren
 
 Icinga 2 implements a new built-in
 [distributed monitoring architecture](06-distributed-monitoring.md#distributed-monitoring-scenarios),
-including config and check distribution, IPv4/IPv6 support, SSL certificates and zone support for DMZ.
+including config and check distribution, IPv4/IPv6 support, TLS certificates and zone support for DMZ.
 High Availability and load balancing are also part of the Icinga 2 Cluster feature, next to local replay
 logs on connection loss ensuring that the event history is kept in sync.

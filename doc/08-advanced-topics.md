@@ -543,7 +543,7 @@ Database	| PostgreSQL			| [postgres](10-icinga-template-library.md#plugin-contri
 Database	| Housekeeping			| Check the database size and growth and analyse metrics to examine trends.
 Database	| DB IDO			| [ido](10-icinga-template-library.md#itl-icinga-ido) (more below)
 Webserver	| Apache2, Nginx, etc.		| [http](10-icinga-template-library.md#plugin-check-command-http), [apache-status](10-icinga-template-library.md#plugin-contrib-command-apache-status), [nginx_status](10-icinga-template-library.md#plugin-contrib-command-nginx_status)
-Webserver	| Certificates			| [http](10-icinga-template-library.md#plugin-check-command-http)
+Webserver	| Certificates			| [http](10-icinga-template-library.md#plugin-check-command-http), [Icinga certificate monitoring](https://icinga.com/products/icinga-certificate-monitoring/)
 Webserver	| Authorization			| [http](10-icinga-template-library.md#plugin-check-command-http)
 Notifications	| Mail (queue)			| [smtp](10-icinga-template-library.md#plugin-check-command-smtp), [mailq](10-icinga-template-library.md#plugin-check-command-mailq)
 Notifications	| SMS (GSM modem)		| [check_sms3_status](https://exchange.icinga.com/netways/check_sms3status)
@@ -578,7 +578,10 @@ apply Service "ido-mysql" {
 More specific database queries can be found in the [DB IDO](14-features.md#db-ido) chapter.
 
 Distributed setups should include specific [health checks](06-distributed-monitoring.md#distributed-monitoring-health-checks).
-You might also want to add additional checks for SSL certificate expiration.
+
+You might also want to add additional checks for TLS certificate expiration.
+This can be done using the [Icinga certificate monitoring](https://icinga.com/products/icinga-certificate-monitoring/) module.
+
 
 
 ## Advanced Configuration Hints <a id="advanced-configuration-hints"></a>

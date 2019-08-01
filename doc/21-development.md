@@ -1400,7 +1400,7 @@ This requires at least v2.11.
 
 #### Requirements
 
-OpenSSL 1.0.x doesn't build anymore, so we're explicitly using 1.1.x here.
+Explicitly use OpenSSL 1.1.x, older versions are out of support.
 
 ```
 brew install ccache boost cmake bison flex openssl@1.1 mysql-connector-c++ postgresql libpq
@@ -2245,7 +2245,7 @@ After building Icinga 2 yourself, your package build system should at least run 
 install requirements:
 
 * enable the `checker`, `notification` and `mainlog` feature by default
-* run 'icinga2 api setup' in order to enable the `api` feature and generate SSL certificates for the node
+* run 'icinga2 api setup' in order to enable the `api` feature and generate TLS certificates for the node
 
 ### Run Icinga 2 <a id="development-package-builds-run-icinga"></a>
 
@@ -2317,9 +2317,9 @@ The Windows MSI packages are located at https://packages.icinga.com/windows/
 #### Requirements <a id="development-package-builds-windows-requirements"></a>
 
 * 32 or 64-bit system
-* Visual Studio >= 14 2015
+* Visual Studio >= 14.1 2017
 * CMake >= 2.6
-* OpenSSL >= 1.0.1
+* OpenSSL >= 1.1.1
 * Flex and Bison
 
 ##### Visual Studio
