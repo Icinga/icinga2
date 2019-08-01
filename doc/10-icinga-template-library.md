@@ -3145,6 +3145,7 @@ nwc_health_privpassword   	| **Optional.** The password for authPriv security le
 nwc_health_privprotocol		| **Optional.** The private protocol for SNMPv3 (des\|aes\|aes128\|3des\|3desde).
 nwc_health_contextengineid	| **Optional.** The context engine id for SNMPv3 (10 to 64 hex characters).
 nwc_health_contextname		| **Optional.** The context name for SNMPv3 (empty represents the default context).
+nwc_health_community2		| **Optional.** SNMP community which can be used to switch the context during runtime.
 nwc_health_name			| **Optional.** The name of an interface (ifDescr).
 nwc_health_drecksptkdb		| **Optional.** This parameter must be used instead of --name, because Devel::ptkdb is stealing the latter from the command line.
 nwc_health_alias		| **Optional.** The alias name of a 64bit-interface (ifAlias)
@@ -3154,6 +3155,7 @@ nwc_health_ifspeedout		| **Optional.** Override the ifspeed oid of an interface 
 nwc_health_ifspeed		| **Optional.** Override the ifspeed oid of an interface
 nwc_health_units		| **Optional.** One of %, B, KB, MB, GB, Bit, KBi, MBi, GBi. (used for e.g. mode interface-usage)
 nwc_health_name2		| **Optional.** The secondary name of a component.
+nwc_health_name3		| **Optional.** The tertiary name of a component.
 nwc_health_role			| **Optional.** The role of this device in a hsrp group (active/standby/listen).
 nwc_health_report		| **Optional.** Can be used to shorten the output. Possible values are: 'long' (default), 'short' (to shorten if available), or 'html' (to produce some html outputs if available)
 nwc_health_lookback		| **Optional.** The amount of time you want to look back when calculating average rates. Use it for mode interface-errors or interface-usage. Without --lookback the time between two runs of check_nwc_health is the base for calculations. If you want your checkresult to be based for example on the past hour, use --lookback 3600.
