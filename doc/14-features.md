@@ -386,7 +386,7 @@ apply Service "disk" for (disk => attributes in host.vars.disks) {
 }
 ```
 
-This is a typical pattern for checking individual disks, NICs, SSL certificates etc associated
+This is a typical pattern for checking individual disks, NICs, TLS certificates etc associated
 with a host.  What would be useful is to have the data points tagged with the specific instance
 for that check.  This would allow you to query time series data for a check on a host and for a
 specific instance e.g. /dev/sda.  To do this quite simply add the instance to the service variables:

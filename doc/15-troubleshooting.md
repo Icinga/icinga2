@@ -1075,25 +1075,6 @@ Not valid before: Jul 12 07:39:55 2019 GMT
 Not valid after:  Jul  8 07:39:55 2034 GMT
 ```
 
-
-### Certificate Problems with OpenSSL 1.1.0 <a id="troubleshooting-certificate-openssl-1-1-0"></a>
-
-Users have reported problems with SSL certificates inside a distributed monitoring setup when they
-
-* updated their Icinga 2 package to 2.7.0 on Windows or
-* upgraded their distribution which included an update to OpenSSL 1.1.0.
-
-Example during startup on a Windows client:
-
-```
-critical/SSL: Error loading and verifying locations in ca key file 'C:\ProgramData\icinga2\etc/icinga2/pki/ca.crt': 219029726, "error:0D0E20DE:asn1 encoding routines:c2i_ibuf:illegal zero content"
-critical/config: Error: Cannot make SSL context for cert path: 'C:\ProgramData\icinga2\etc/icinga2/pki/client.crt' key path: 'C:\ProgramData\icinga2\etc/icinga2/pki/client.key' ca path: 'C:\ProgramData\icinga2\etc/icinga2/pki/ca.crt'.
-```
-
-A technical analysis and solution for re-creating the public CA certificate is
-available in [this advisory](https://icinga.com/2017/08/30/advisory-for-ssl-problems-with-leading-zeros-on-openssl-1-1-0/).
-
-
 ## Cluster and Clients Troubleshooting <a id="troubleshooting-cluster"></a>
 
 This applies to any Icinga 2 node in a [distributed monitoring setup](06-distributed-monitoring.md#distributed-monitoring-scenarios).
@@ -1125,12 +1106,12 @@ works (default port is `5665`).
 # nmap icinga2-agent1.localdomain
 ```
 
-### Cluster Troubleshooting SSL Errors <a id="troubleshooting-cluster-ssl-errors"></a>
+### Cluster Troubleshooting TLS Errors <a id="troubleshooting-cluster-tls-errors"></a>
 
-If the cluster communication fails with SSL error messages, make sure to check
+If the cluster communication fails with TLS/SSL error messages, make sure to check
 the following
 
-* File permissions on the SSL certificate files
+* File permissions on the TLS certificate files
 * Does the used CA match for all cluster endpoints?
   * Verify the `Issuer` being your trusted CA
   * Verify the `Subject` containing your endpoint's common name (CN)
@@ -1151,7 +1132,7 @@ If the connection attempt fails or your CA does not match, [verify the certifica
 
 #### Cluster Troubleshooting Unauthenticated Clients <a id="troubleshooting-cluster-unauthenticated-clients"></a>
 
-Unauthenticated nodes are able to connect. This is required for client setups.
+Unauthenticated nodes are able to connect. This is required for agent/satellite setups.
 
 Master:
 
@@ -1159,13 +1140,14 @@ Master:
 [2015-07-13 18:29:25 +0200] information/ApiListener: New client connection for identity 'icinga2-agent1.localdomain' (unauthenticated)
 ```
 
-Client as command execution bridge:
+Agent as command execution bridge:
 
 ```
 [2015-07-13 18:29:26 +1000] notice/ClusterEvents: Discarding 'execute command' message from 'icinga2-master1.localdomain': Invalid endpoint origin (client not allowed).
 ```
 
-If these messages do not go away, make sure to [verify the master and client certificates](15-troubleshooting.md#troubleshooting-certificate-verification).
+If these messages do not go away, make sure to [verify the master and agent certificates](15-troubleshooting.md#troubleshooting-certificate-verification).
+
 
 ### Cluster Troubleshooting Message Errors <a id="troubleshooting-cluster-message-errors"></a>
 
@@ -1212,7 +1194,7 @@ If the cluster zones do not sync their configuration, make sure to check the fol
 
 * Within a config master zone, only one configuration master is allowed to have its config in `/etc/icinga2/zones.d`.
 ** The master syncs the configuration to `/var/lib/icinga2/api/zones/` during startup and only syncs valid configuration to the other nodes.
-** The other nodes receive the configuration into `/var/lib/icinga2/api/zones/`.
+** The other nodes receive the configuration into `/var/lib/icinga2/api/zones-stage` and copy them to the production directory `/var/lib/icinga2/api/zones` upon successful validation (since v2.11).
 * The `icinga2.log` log file in `/var/log/icinga2` will indicate whether this ApiListener
 [accepts config](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync), or not.
 

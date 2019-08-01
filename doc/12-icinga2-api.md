@@ -2400,7 +2400,7 @@ $ vim icinga.py
 import requests, json
 
 # Replace 'localhost' with your FQDN and certificate CN
-# for SSL verification
+# for TLS verification
 request_url = "https://localhost:5665/v1/objects/services"
 headers = {
         'Accept': 'application/json',
@@ -2444,7 +2444,7 @@ $ vim icinga.rb
 require 'rest_client'
 
 # Replace 'localhost' with your FQDN and certificate CN
-# for SSL verification
+# for TLS verification
 request_url = "https://localhost:5665/v1/objects/services"
 headers = {
         "Accept" => "application/json",
@@ -2491,7 +2491,7 @@ $ vim icinga.php
 #!/usr/bin/env php
 <?php
 # Replace 'localhost' with your FQDN and certificate CN
-# for SSL verification
+# for TLS verification
 $request_url = "https://localhost:5665/v1/objects/services";
 $username = "root";
 $password = "icinga";
@@ -2556,7 +2556,7 @@ use JSON;
 use Data::Dumper;
 
 # Replace 'localhost' with your FQDN and certificate CN
-# for SSL verification
+# for TLS verification
 my $request_host = "https://localhost:5665";
 my $userpass = "root:icinga";
 
