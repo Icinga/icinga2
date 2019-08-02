@@ -172,6 +172,15 @@ Since the config sync change detection now uses checksums, this may fail
 with anything else than syncing configuration text files. Syncing binary
 files were never supported, but rumors say that some users do so.
 
+This is now prohibited and logged.
+
+```
+[2019-08-02 16:03:19 +0200] critical/ApiListener: Ignoring file '/etc/icinga2/zones.d/global-templates/forbidden.exe' for cluster config sync: Does not contain valid UTF8. Binary files are not supported.
+Context:
+	(0) Creating config update for file '/etc/icinga2/zones.d/global-templates/forbidden.exe'
+	(1) Activating object 'api' of type 'ApiListener'
+```
+
 Such binaries wrapped into JSON-RPC cluster messages may always cause changes
 and trigger reload loops. In order to prevent such harm in production,
 use infrastructure tools such as Foreman, Puppet, Ansible, etc. to install
