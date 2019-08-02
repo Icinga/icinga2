@@ -1179,6 +1179,17 @@ Disadvantages:
 * Additional zone and endpoint configuration needed.
 * Replay log is replicated on reconnect after connection loss. This might increase the data transfer and create an overload on the connection.
 
+> **Note**
+>
+> This mode only supports **configuration text files** for Icinga. Do not abuse
+> this for syncing binaries, this is not supported and may harm your production
+> environment. The config sync uses checksums to detect changes, binaries may
+> trigger reload loops.
+>
+> This is a fair warning. If you want to deploy plugin binaries, create
+> packages for dependency management and use infrastructure lifecycle tools
+> such as Foreman, Puppet, Ansible, etc.
+
 To make sure that all involved nodes accept configuration and/or
 commands, you need to configure the `Zone` and `Endpoint` hierarchy
 on all nodes.
