@@ -611,7 +611,7 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   host_                 | join      | Prefix for attributes from implicit join with hosts table.
 
 
-#### Livestatus Timeperiod Table Attributes <a id="schema-livestatus-timeperiod-table-attributes"></a>
+#### Livestatus Timeperiods Table Attributes <a id="schema-livestatus-timeperiods-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
