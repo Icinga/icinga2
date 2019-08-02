@@ -168,6 +168,16 @@ prior to installing new clients/agents.
 
 Technical details are available in the [technical concepts](19-technical-concepts.md#technical-concepts-cluster-config-sync) chapter.
 
+Since the config sync change detection now uses checksums, this may fail
+with anything else than syncing configuration text files. Syncing binary
+files were never supported, but rumors say that some users do so.
+
+Such binaries wrapped into JSON-RPC cluster messages may always cause changes
+and trigger reload loops. In order to prevent such harm in production,
+use infrastructure tools such as Foreman, Puppet, Ansible, etc. to install
+plugins on the masters, satellites and agents.
+
+
 #### HA-aware Features <a id="upgrading-to-2-11-cluster-ha-aware-features"></a>
 
 v2.11 introduces additional HA functionality similar to the DB IDO feature.
