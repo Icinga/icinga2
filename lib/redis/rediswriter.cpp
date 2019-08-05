@@ -367,24 +367,3 @@ void RedisWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
-
-
-/*
- * This whole spiel is required as we mostly use a "fire and forget" approach with the Redis Connection. To wait for a
- * reply from Redis we have to wait for the callback to finish, this is done with the help of this struct. ready, cv
- * and mtx are used for making sure we have the redisReply when we return.
- */
-struct synchronousWait {
-	bool ready;
-	boost::condition_variable cv;
-	boost::mutex mtx;
-	redisReply* reply;
-};
-
-struct RedisReplyDeleter
-{
-	inline void operator() (redisReply *reply)
-	{
-		freeReplyObject(reply);
-	}
-};

@@ -31,8 +31,6 @@ include_directories(${icinga2_SOURCE_DIR}/third-party)
 
 add_dependencies(redis base config icinga remote)
 
-link_directories(${icinga2_BINARY_DIR}/third-party/hiredis)
-
 set_target_properties (
   redis PROPERTIES
   FOLDER Components

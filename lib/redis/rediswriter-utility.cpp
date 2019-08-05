@@ -277,34 +277,3 @@ String RedisWriter::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
 
 	return typeName;
 }
-
-//Used to duplicate a redisReply, needed as redisReplies are freed when the async callback finishes
-redisReply* RedisWriter::dupReplyObject(redisReply* reply)
-{
-	redisReply* r = (redisReply*)calloc(1, sizeof(*r));
-	memcpy(r, reply, sizeof(*r));
-	if(REDIS_REPLY_ERROR==reply->type || REDIS_REPLY_STRING==reply->type || REDIS_REPLY_STATUS==reply->type) //copy str
-	{
-		r->str = (char*)malloc(reply->len+1);
-		memcpy(r->str, reply->str, reply->len);
-		r->str[reply->len] = '\0';
-	}
-	else if(REDIS_REPLY_ARRAY==reply->type) //copy array
-	{
-		r->element = (redisReply**)calloc(reply->elements, sizeof(redisReply*));
-		memset(r->element, 0, r->elements*sizeof(redisReply*));
-		for(uint32_t i=0; i<reply->elements; ++i)
-		{
-			if(NULL!=reply->element[i])
-			{
-				if( NULL == (r->element[i] = dupReplyObject(reply->element[i])) )
-				{
-					//clone child failed, free current reply, and return NULL
-					freeReplyObject(r);
-					return NULL;
-				}
-			}
-		}
-	}
-	return r;
-}

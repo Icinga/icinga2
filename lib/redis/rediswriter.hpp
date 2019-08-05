@@ -30,7 +30,6 @@
 #include "icinga/service.hpp"
 #include "icinga/downtime.hpp"
 #include <memory>
-#include <hiredis/hiredis.h>
 
 namespace icinga
 {
@@ -113,10 +112,6 @@ private:
 	void AssertOnWorkQueue();
 
 	void ExceptionHandler(boost::exception_ptr exp);
-
-	//Used to get a reply from the asyncronous connection
-	static redisReply* dupReplyObject(redisReply* reply);
-
 
 	Timer::Ptr m_StatsTimer;
 	Timer::Ptr m_ReconnectTimer;
