@@ -289,6 +289,12 @@ It will also attempt to fix them, the following log entry is perfectly fine.
 
 If you still encounter problems, please follow [this troubleshooting entry](15-troubleshooting.md#troubleshooting-api-missing-runtime-objects).
 
+### DB IDO MySQL Schema <a id="upgrading-to-2-11-db-ido"></a>
+
+The schema for MySQL contains an optional update which
+drops unneeded indexes. You don't necessarily need to apply
+this update.
+
 ### Documentation <a id="upgrading-to-2-11-documentation"></a>
 
 * `Custom attributes` have been renamed to `Custom variables` following the name `vars` and their usage in backends and web interfaces.
