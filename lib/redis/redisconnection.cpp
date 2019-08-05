@@ -17,244 +17,283 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/object.hpp"
 #include "redis/redisconnection.hpp"
-#include "base/workqueue.hpp"
-#include "base/logger.hpp"
+#include "base/array.hpp"
 #include "base/convert.hpp"
-#include "base/utility.hpp"
-#include "redis/rediswriter.hpp"
-#include "hiredis/hiredis.h"
+#include "base/defer.hpp"
+#include "base/io-engine.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/string.hpp"
+#include "base/tcpsocket.hpp"
+#include <boost/asio/post.hpp>
+#include <boost/asio/spawn.hpp>
+#include <boost/coroutine/exceptions.hpp>
+#include <boost/utility/string_view.hpp>
+#include <boost/variant/get.hpp>
+#include <iterator>
 #include <memory>
 #include <utility>
 
 using namespace icinga;
+namespace asio = boost::asio;
 
 RedisConnection::RedisConnection(const String host, const int port, const String path, const String password, const int db) :
-		m_Host(host), m_Port(port), m_Path(path), m_Password(password), m_DbIndex(db), m_Context(NULL), m_Connected(false)
+	RedisConnection(IoEngine::Get().GetIoService(), host, port, path, password, db)
 {
-	m_RedisConnectionWorkQueue.SetName("RedisConnection");
 }
 
-void RedisConnection::StaticInitialize()
+RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int port, String path, String password, int db)
+	: m_Host(std::move(host)), m_Port(port), m_Path(std::move(path)), m_Password(std::move(password)), m_DbIndex(db),
+	  m_Connecting(false), m_Connected(false), m_Strand(io), m_QueuedWrites(io), m_QueuedReads(io)
 {
 }
 
 void RedisConnection::Start()
 {
-	RedisConnection::Connect();
+	if (!m_Connecting.exchange(true)) {
+		Ptr keepAlive (this);
 
-	std::thread thread(&RedisConnection::HandleRW, this);
-	thread.detach();
-}
-
-void RedisConnection::AssertOnWorkQueue()
-{
-	ASSERT(m_RedisConnectionWorkQueue.IsWorkerThread());
-}
-
-void RedisConnection::HandleRW()
-{
-	Utility::SetThreadName("RedisConnection Handler");
-
-	for (;;) {
-		try {
-			{
-				boost::mutex::scoped_lock lock(m_CMutex);
-				if (!m_Connected)
-					return;
-				redisAsyncHandleWrite(m_Context);
-				redisAsyncHandleRead(m_Context);
-			}
-			Utility::Sleep(0.1);
-		} catch (const std::exception&) {
-			Log(LogCritical, "RedisWriter", "Internal Redis Error");
-		}
+		asio::spawn(m_Strand, [this, keepAlive](asio::yield_context yc) { Connect(yc); });
 	}
 }
 
-
-void RedisConnection::RedisInitialCallback(redisAsyncContext *c, void *r, void *p)
-{
-	auto state = (ConnectionState *) p;
-	if (state->state != Starting && !r) {
-		Log(LogCritical, "RedisConnection")
-			<< "No answer from Redis during initial connection, is the Redis server running?";
-		return;
-	} else if (r != nullptr) {
-		redisReply *rep = (redisReply *) r;
-		if (rep->type == REDIS_REPLY_ERROR) {
-			Log(LogCritical, "RedisConnection")
-				<< "Failed to connect to Redis: " << rep->str;
-			state->conn->m_Connected = false;
-			return;
-		}
-	}
-
-	if (state->state == Starting) {
-		state->state = Auth;
-		if (!state->conn->m_Password.IsEmpty()) {
-			boost::mutex::scoped_lock lock(state->conn->m_CMutex);
-			redisAsyncCommand(c, &RedisInitialCallback, p, "AUTH %s", state->conn->m_Password.CStr());
-			return;
-		}
-	}
-	if (state->state == Auth)
-	{
-		state->state = DBSelect;
-		if (state->conn->m_DbIndex != 0) {
-			boost::mutex::scoped_lock lock(state->conn->m_CMutex);
-			redisAsyncCommand(c, &RedisInitialCallback, p, "SELECT %d", state->conn->m_DbIndex);
-			return;
-		}
-	}
-	if (state->state == DBSelect)
-		state->conn->m_Connected = true;
-}
 bool RedisConnection::IsConnected() {
-	return m_Connected;
+	return m_Connected.load();
 }
 
-
-void RedisConnection::Connect()
+void RedisConnection::FireAndForgetQuery(RedisConnection::Query query)
 {
-	if (m_Connected)
-		return;
+	auto item (std::make_shared<decltype(m_Queues.FireAndForgetQuery)::value_type>(std::move(query)));
 
-	Log(LogInformation, "RedisWriter", "Trying to connect to redis server Async");
-	{
-		boost::mutex::scoped_lock lock(m_CMutex);
-
-		if (m_Path.IsEmpty())
-			m_Context = redisAsyncConnect(m_Host.CStr(), m_Port);
-		else
-			m_Context = redisAsyncConnectUnix(m_Path.CStr());
-
-		m_Context->data = (void*) this;
-
-		redisAsyncSetConnectCallback(m_Context, &ConnectCallback);
-		redisAsyncSetDisconnectCallback(m_Context, &DisconnectCallback);
-	}
-
-	m_State = ConnectionState{Starting, this};
-	RedisInitialCallback(m_Context, nullptr, (void*)&m_State);
+	asio::post(m_Strand, [this, item]() {
+		m_Queues.FireAndForgetQuery.emplace(std::move(*item));
+		m_QueuedWrites.Set();
+	});
 }
 
-void RedisConnection::Disconnect()
+void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries)
 {
-	redisAsyncDisconnect(m_Context);
+	auto item (std::make_shared<decltype(m_Queues.FireAndForgetQueries)::value_type>(std::move(queries)));
+
+	asio::post(m_Strand, [this, item]() {
+		m_Queues.FireAndForgetQueries.emplace(std::move(*item));
+		m_QueuedWrites.Set();
+	});
 }
 
-void RedisConnection::ConnectCallback(const redisAsyncContext *c, int status)
+RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query)
 {
-	auto *rc = (RedisConnection* ) const_cast<redisAsyncContext*>(c)->data;
-	if (status != REDIS_OK) {
-		if (c->err != 0) {
-			Log(LogCritical, "RedisConnection")
-					<< "Redis connection failure: " << c->errstr;
+	std::promise<Reply> promise;
+	auto future (promise.get_future());
+	auto item (std::make_shared<decltype(m_Queues.GetResultOfQuery)::value_type>(std::move(query), std::move(promise)));
+
+	asio::post(m_Strand, [this, item]() {
+		m_Queues.GetResultOfQuery.emplace(std::move(*item));
+		m_QueuedWrites.Set();
+	});
+
+	item = nullptr;
+	future.wait();
+	return future.get();
+}
+
+RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries)
+{
+	std::promise<Replies> promise;
+	auto future (promise.get_future());
+	auto item (std::make_shared<decltype(m_Queues.GetResultsOfQueries)::value_type>(std::move(queries), std::move(promise)));
+
+	asio::post(m_Strand, [this, item]() {
+		m_Queues.GetResultsOfQueries.emplace(std::move(*item));
+		m_QueuedWrites.Set();
+	});
+
+	item = nullptr;
+	future.wait();
+	return future.get();
+}
+
+void RedisConnection::Connect(asio::yield_context& yc)
+{
+	Defer notConnecting ([this]() {
+		if (!m_Connected.load()) {
+			m_Connecting.store(false);
+		}
+	});
+
+	Log(LogInformation, "RedisWriter", "Trying to connect to Redis server (async)");
+
+	try {
+		if (m_Path.IsEmpty()) {
+			m_TcpConn = decltype(m_TcpConn)(new TcpConn(m_Strand.context()));
+			icinga::Connect(m_TcpConn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
 		} else {
-			Log(LogCritical, "RedisConnection")
-					<< "Redis connection failure";
+			m_UnixConn = decltype(m_UnixConn)(new UnixConn(m_Strand.context()));
+			m_UnixConn->next_layer().async_connect(Unix::endpoint(m_Path.CStr()), yc);
 		}
-		rc->m_Connected = false;
-	} else {
-		Log(LogInformation, "RedisConnection")
-			<< "Redis Connection: O N L I N E";
-	}
-}
 
-// It's unfortunate we can not pass any user data here. All we get to do is log a message and hope for the best
-void RedisConnection::DisconnectCallback(const redisAsyncContext *c, int status)
-{
-	auto *rc = (RedisConnection* ) const_cast<redisAsyncContext*>(c)->data;
-	boost::mutex::scoped_lock lock(rc->m_CMutex);
-	if (status == REDIS_OK)
-		Log(LogInformation, "RedisConnection") << "Redis disconnected by us";
-	else {
-		if (c->err != 0)
-			Log(LogCritical, "RedisConnection") << "Redis disconnected by server. Reason: " << c->errstr;
-		else
-			Log(LogCritical, "RedisConnection") << "Redis disconnected by server";
-	}
+		{
+			Ptr keepAlive (this);
 
-	rc->m_Connected = false;
-}
-
-void RedisConnection::ExecuteQuery(std::vector<String> query, redisCallbackFn *fn, void *privdata)
-{
-	auto queryPtr (std::make_shared<decltype(query)>(std::move(query)));
-
-	m_RedisConnectionWorkQueue.Enqueue([this, queryPtr, fn, privdata]() {
-		SendMessageInternal(*queryPtr, fn, privdata);
-	});
-}
-
-void
-RedisConnection::ExecuteQueries(std::vector<std::vector<String>> queries, redisCallbackFn *fn, void *privdata)
-{
-	auto queriesPtr (std::make_shared<decltype(queries)>(std::move(queries)));
-
-	m_RedisConnectionWorkQueue.Enqueue([this, queriesPtr, fn, privdata]() {
-		SendMessagesInternal(*queriesPtr, fn, privdata);
-	});
-}
-
-void RedisConnection::SendMessageInternal(const std::vector<String>& query, redisCallbackFn *fn, void *privdata)
-{
-	AssertOnWorkQueue();
-
-	{
-		boost::mutex::scoped_lock lock(m_CMutex);
-
-		if (!m_Context || !m_Connected) {
-			Log(LogCritical, "RedisWriter")
-					<< "Not connected to Redis";
-			return;
+			asio::spawn(m_Strand, [this, keepAlive](asio::yield_context yc) { ReadLoop(yc); });
+			asio::spawn(m_Strand, [this, keepAlive](asio::yield_context yc) { WriteLoop(yc); });
 		}
-	}
 
-	const char **argv;
-	size_t *argvlen;
-
-	argv = new const char *[query.size()];
-	argvlen = new size_t[query.size()];
-	String debugstr;
-
-	for (std::vector<String>::size_type i = 0; i < query.size(); i++) {
-		argv[i] = query[i].CStr();
-		argvlen[i] = query[i].GetLength();
-		debugstr += argv[i];
-		debugstr += " ";
-	}
-
-	Log(LogDebug, "RedisWriter, Connection")
-		<< "Sending Command: " << debugstr;
-
-	int r;
-
-	{
-		boost::mutex::scoped_lock lock(m_CMutex);
-
-		r = redisAsyncCommandArgv(m_Context, fn, privdata, query.size(), argv, argvlen);
-	}
-
-	delete[] argv;
-	delete[] argvlen;
-
-	if (r == REDIS_REPLY_ERROR) {
+		m_Connected.store(true);
+	} catch (const boost::coroutines::detail::forced_unwind&) {
+		throw;
+	} catch (const std::exception& ex) {
 		Log(LogCritical, "RedisWriter")
-				<< "Redis Async query failed";
-
-		BOOST_THROW_EXCEPTION(
-				redis_error()
-						<< errinfo_redis_query(Utility::Join(Array::FromVector(query), ' ', false))
-		);
+			<< "Cannot connect to " << m_Host << ":" << m_Port << ": " << ex.what();
 	}
 }
 
-void RedisConnection::SendMessagesInternal(const std::vector<std::vector<String>>& queries, redisCallbackFn *fn, void *privdata)
+void RedisConnection::ReadLoop(asio::yield_context& yc)
 {
-	for (const auto& query : queries) {
-		SendMessageInternal(query, fn, privdata);
+	for (;;) {
+		m_QueuedReads.Wait(yc);
+
+		do {
+			auto item (std::move(m_Queues.FutureResponseActions.front()));
+			m_Queues.FutureResponseActions.pop();
+
+			switch (item.Action) {
+				case ResponseAction::Ignore:
+					for (auto i (item.Amount); i; --i) {
+						ReadOne(yc);
+					}
+					break;
+				case ResponseAction::Deliver:
+					for (auto i (item.Amount); i; --i) {
+						auto promise (std::move(m_Queues.ReplyPromises.front()));
+						m_Queues.ReplyPromises.pop();
+
+						promise.set_value(ReadOne(yc));
+					}
+					break;
+				case ResponseAction::DeliverBulk:
+					{
+						auto promise (std::move(m_Queues.RepliesPromises.front()));
+						m_Queues.RepliesPromises.pop();
+
+						Replies replies;
+						replies.reserve(item.Amount);
+
+						for (auto i (item.Amount); i; --i) {
+							replies.emplace_back(ReadOne(yc));
+						}
+
+						promise.set_value(std::move(replies));
+					}
+			}
+		} while (!m_Queues.FutureResponseActions.empty());
+
+		m_QueuedReads.Clear();
+	}
+}
+
+void RedisConnection::WriteLoop(asio::yield_context& yc)
+{
+	for (;;) {
+		m_QueuedWrites.Wait(yc);
+
+		bool writtenAll = true;
+
+		do {
+			writtenAll = true;
+
+			if (!m_Queues.FireAndForgetQuery.empty()) {
+				auto item (std::move(m_Queues.FireAndForgetQuery.front()));
+				m_Queues.FireAndForgetQuery.pop();
+
+				if (m_Queues.FutureResponseActions.empty() || m_Queues.FutureResponseActions.back().Action != ResponseAction::Ignore) {
+					m_Queues.FutureResponseActions.emplace(FutureResponseAction{1, ResponseAction::Ignore});
+				} else {
+					++m_Queues.FutureResponseActions.back().Amount;
+				}
+
+				m_QueuedReads.Set();
+				writtenAll = false;
+
+				WriteOne(item, yc);
+			}
+
+			if (!m_Queues.FireAndForgetQueries.empty()) {
+				auto item (std::move(m_Queues.FireAndForgetQueries.front()));
+				m_Queues.FireAndForgetQueries.pop();
+
+				if (m_Queues.FutureResponseActions.empty() || m_Queues.FutureResponseActions.back().Action != ResponseAction::Ignore) {
+					m_Queues.FutureResponseActions.emplace(FutureResponseAction{item.size(), ResponseAction::Ignore});
+				} else {
+					m_Queues.FutureResponseActions.back().Amount += item.size();
+				}
+
+				m_QueuedReads.Set();
+				writtenAll = false;
+
+				for (auto& query : item) {
+					WriteOne(query, yc);
+				}
+			}
+
+			if (!m_Queues.GetResultOfQuery.empty()) {
+				auto item (std::move(m_Queues.GetResultOfQuery.front()));
+				m_Queues.GetResultOfQuery.pop();
+				m_Queues.ReplyPromises.emplace(std::move(item.second));
+
+				if (m_Queues.FutureResponseActions.empty() || m_Queues.FutureResponseActions.back().Action != ResponseAction::Deliver) {
+					m_Queues.FutureResponseActions.emplace(FutureResponseAction{1, ResponseAction::Deliver});
+				} else {
+					++m_Queues.FutureResponseActions.back().Amount;
+				}
+
+				m_QueuedReads.Set();
+				writtenAll = false;
+
+				WriteOne(item.first, yc);
+			}
+
+			if (!m_Queues.GetResultsOfQueries.empty()) {
+				auto item (std::move(m_Queues.GetResultsOfQueries.front()));
+				m_Queues.GetResultsOfQueries.pop();
+				m_Queues.RepliesPromises.emplace(std::move(item.second));
+				m_Queues.FutureResponseActions.emplace(FutureResponseAction{item.first.size(), ResponseAction::DeliverBulk});
+
+				m_QueuedReads.Set();
+				writtenAll = false;
+
+				for (auto& query : item.first) {
+					WriteOne(query, yc);
+				}
+			}
+		} while (!writtenAll);
+
+		m_QueuedWrites.Clear();
+
+		if (m_Path.IsEmpty()) {
+			m_TcpConn->async_flush(yc);
+		} else {
+			m_UnixConn->async_flush(yc);
+		}
+
+	}
+}
+
+RedisConnection::Reply RedisConnection::ReadOne(boost::asio::yield_context& yc)
+{
+	if (m_Path.IsEmpty()) {
+		return ReadRESP(*m_TcpConn, yc);
+	} else {
+		return ReadRESP(*m_UnixConn, yc);
+	}
+}
+
+void RedisConnection::WriteOne(RedisConnection::Query& query, asio::yield_context& yc)
+{
+	if (m_Path.IsEmpty()) {
+		WriteRESP(*m_TcpConn, query, yc);
+	} else {
+		WriteRESP(*m_UnixConn, query, yc);
 	}
 }

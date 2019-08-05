@@ -166,7 +166,7 @@ void RedisWriter::UpdateAllConfigObjects()
 
 					if (transaction.size() > 1) {
 						transaction.push_back({"EXEC"});
-						m_Rcon->ExecuteQueries(std::move(transaction));
+						m_Rcon->FireAndForgetQueries(std::move(transaction));
 						transaction = {{"MULTI"}};
 					}
 				}
@@ -184,10 +184,10 @@ void RedisWriter::UpdateAllConfigObjects()
 
 			if (transaction.size() > 1) {
 				transaction.push_back({"EXEC"});
-				m_Rcon->ExecuteQueries(std::move(transaction));
+				m_Rcon->FireAndForgetQueries(std::move(transaction));
 			}
 
-			m_Rcon->ExecuteQuery({"PUBLISH", "icinga:config:dump", lcType});
+			m_Rcon->FireAndForgetQuery({"PUBLISH", "icinga:config:dump", lcType});
 
 			Log(LogNotice, "RedisWriter")
 					<< "Dumped " << bulkCounter << " objects of type " << type.second;
@@ -249,7 +249,7 @@ void RedisWriter::DeleteKeys(const std::vector<String>& keys) {
 		query.emplace_back(key);
 	}
 
-	m_Rcon->ExecuteQuery(std::move(query));
+	m_Rcon->FireAndForgetQuery(std::move(query));
 }
 
 std::vector<String> RedisWriter::GetTypeObjectKeys(const String& type)
@@ -649,7 +649,7 @@ void RedisWriter::UpdateState(const Checkable::Ptr& checkable)
 {
 	Dictionary::Ptr stateAttrs = SerializeState(checkable);
 
-	m_Rcon->ExecuteQuery({"HSET", m_PrefixStateObject + GetLowerCaseTypeNameDB(checkable), GetObjectIdentifier(checkable), JsonEncode(stateAttrs)});
+	m_Rcon->FireAndForgetQuery({"HSET", m_PrefixStateObject + GetLowerCaseTypeNameDB(checkable), GetObjectIdentifier(checkable), JsonEncode(stateAttrs)});
 }
 
 // Used to update a single object, used for runtime updates
@@ -666,7 +666,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 	CreateConfigUpdate(object, typeName, statements, runtimeUpdate);
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (checkable) {
-		m_Rcon->ExecuteQuery({"HSET", m_PrefixStateObject + typeName,
+		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixStateObject + typeName,
 							  GetObjectIdentifier(checkable), JsonEncode(SerializeState(checkable))});
 	}
 
@@ -681,7 +681,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 
 	if (transaction.size() > 1) {
 		transaction.push_back({"EXEC"});
-		m_Rcon->ExecuteQueries(std::move(transaction));
+		m_Rcon->FireAndForgetQueries(std::move(transaction));
 	}
 }
 
@@ -965,7 +965,7 @@ RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String ty
 
 	/* Send an update event to subscribers. */
 	if (runtimeUpdate) {
-		m_Rcon->ExecuteQuery({"PUBLISH", "icinga:config:update", typeName + ":" + objectKey});
+		m_Rcon->FireAndForgetQuery({"PUBLISH", "icinga:config:update", typeName + ":" + objectKey});
 	}
 }
 
@@ -974,7 +974,7 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 	String typeName = object->GetReflectionType()->GetName().ToLower();
 	String objectKey = GetObjectIdentifier(object);
 
-	m_Rcon->ExecuteQueries({
+	m_Rcon->FireAndForgetQueries({
 								   {"HDEL",    m_PrefixConfigObject + typeName, objectKey},
 								   {"DEL",     m_PrefixStateObject + typeName + ":" + objectKey},
 								   {"PUBLISH", "icinga:config:delete", typeName + ":" + objectKey}
@@ -1010,7 +1010,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 		streamadd.emplace_back(kv.second);
 	}
 
-	m_Rcon->ExecuteQuery(std::move(streamadd));
+	m_Rcon->FireAndForgetQuery(std::move(streamadd));
 }
 
 Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
@@ -1147,7 +1147,7 @@ RedisWriter::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
 		typeName = typeNameOverride.ToLower();
 
 	return {GetObjectIdentifier(object), JsonEncode(attrs)};
-	//m_Rcon->ExecuteQuery({"HSET", keyPrefix + typeName, GetObjectIdentifier(object), JsonEncode(attrs)});
+	//m_Rcon->FireAndForgetQuery({"HSET", keyPrefix + typeName, GetObjectIdentifier(object), JsonEncode(attrs)});
 }
 
 void RedisWriter::StateChangeHandler(const ConfigObject::Ptr &object)

@@ -150,29 +150,23 @@ void RedisWriter::UpdateSubscriptions()
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	long long cursor = 0;
-
+	String cursor = "0";
 	String keyPrefix = "icinga:subscription:";
 
 	do {
-		auto reply = RedisGet({ "SCAN", Convert::ToString(cursor), "MATCH", keyPrefix + "*", "COUNT", "1000" });
+		Array::Ptr reply = m_Rcon->GetResultOfQuery({ "SCAN", cursor, "MATCH", keyPrefix + "*", "COUNT", "1000" });
+		VERIFY(reply->GetLength() % 2u == 0u);
 
-		VERIFY(reply->type == REDIS_REPLY_ARRAY);
-		VERIFY(reply->elements % 2 == 0);
+		cursor = reply->Get(0);
 
-		redisReply *cursorReply = reply->element[0];
-		cursor = Convert::ToLong(cursorReply->str);
+		Array::Ptr keys = reply->Get(1);
+		ObjectLock oLock (keys);
 
-		redisReply *keysReply = reply->element[1];
-
-		for (size_t i = 0; i < keysReply->elements; i++) {
-			if (boost::algorithm::ends_with(keysReply->element[i]->str, ":limit"))
+		for (String key : keys) {
+			if (boost::algorithm::ends_with(key, ":limit"))
 				continue;
-			redisReply *keyReply = keysReply->element[i];
-			VERIFY(keyReply->type == REDIS_REPLY_STRING);
 
 			RedisSubscriptionInfo rsi;
-			String key = keysReply->element[i]->str;
 
 			if (!RedisWriter::GetSubscriptionTypes(key, rsi)) {
 				Log(LogInformation, "RedisWriter")
@@ -181,7 +175,7 @@ void RedisWriter::UpdateSubscriptions()
 				m_Subscriptions[key.SubStr(keyPrefix.GetLength())] = rsi;
 			}
 		}
-	} while (cursor != 0);
+	} while (cursor != "0");
 
 	Log(LogInformation, "RedisWriter")
 		<< "Current Redis event subscriptions: " << m_Subscriptions.size();
@@ -190,14 +184,17 @@ void RedisWriter::UpdateSubscriptions()
 bool RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 {
 	try {
-		auto redisReply = RedisGet({ "SMEMBERS", key });
-		VERIFY(redisReply->type == REDIS_REPLY_ARRAY);
+		Array::Ptr redisReply = m_Rcon->GetResultOfQuery({ "SMEMBERS", key });
 
-		if (redisReply->elements == 0)
+		if (redisReply->GetLength() == 0)
 			return false;
 
-		for (size_t j = 0; j < redisReply->elements; j++) {
-			rsi.EventTypes.insert(redisReply->element[j]->str);
+		{
+			ObjectLock oLock (redisReply);
+
+			for (String member : redisReply) {
+				rsi.EventTypes.insert(member);
+			}
 		}
 
 		Log(LogInformation, "RedisWriter")
@@ -229,7 +226,7 @@ void RedisWriter::PublishStats()
 	status->Set("config_dump_in_progress", m_ConfigDumpInProgress);
 	String jsonStats = JsonEncode(status);
 
-	m_Rcon->ExecuteQuery({ "PUBLISH", "icinga:stats", jsonStats });
+	m_Rcon->FireAndForgetQuery({ "PUBLISH", "icinga:stats", jsonStats });
 }
 
 void RedisWriter::HandleEvents()
@@ -281,20 +278,19 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 
 		String body = JsonEncode(event);
 
-		auto maxExists = RedisGet({ "EXISTS", "icinga:subscription:" + name + ":limit" });
+		double maxExists = m_Rcon->GetResultOfQuery({ "EXISTS", "icinga:subscription:" + name + ":limit" });
 
 		long maxEvents = MAX_EVENTS_DEFAULT;
-		if (maxExists->integer) {
-			auto redisReply = RedisGet({ "GET", "icinga:subscription:" + name + ":limit"});
-			VERIFY(redisReply->type == REDIS_REPLY_STRING);
+		if (maxExists != 0) {
+			String redisReply = m_Rcon->GetResultOfQuery({ "GET", "icinga:subscription:" + name + ":limit"});
 
 			Log(LogInformation, "RedisWriter")
-				<< "Got limit " << redisReply->str << " for " << name;
+				<< "Got limit " << redisReply << " for " << name;
 
-			maxEvents = Convert::ToLong(redisReply->str);
+			maxEvents = Convert::ToLong(redisReply);
 		}
 
-		m_Rcon->ExecuteQueries({
+		m_Rcon->FireAndForgetQueries({
 			{ "MULTI" },
 			{ "LPUSH", "icinga:event:" + name, body },
 			{ "LTRIM", "icinga:event:" + name, "0", String(maxEvents - 1)},
@@ -354,7 +350,7 @@ void RedisWriter::SendEvent(const Dictionary::Ptr& event)
 //	Log(LogInformation, "RedisWriter")
 //		<< "Sending event \"" << body << "\"";
 
-	m_Rcon->ExecuteQueries({
+	m_Rcon->FireAndForgetQueries({
 		{ "PUBLISH", "icinga:event:all", body },
 		{ "PUBLISH", "icinga:event:" + event->Get("type"), body }});
 }
@@ -385,21 +381,6 @@ struct synchronousWait {
 	redisReply* reply;
 };
 
-void RedisWriter::RedisQueryCallback(redisAsyncContext *c, void *r, void *p) {
-	auto wait = (struct synchronousWait*) p;
-	auto rp = reinterpret_cast<redisReply *>(r);
-
-
-	if (r == NULL)
-		wait->reply = nullptr;
-	else
-		wait->reply = RedisWriter::dupReplyObject(rp);
-
-	boost::mutex::scoped_lock lock(wait->mtx);
-	wait->ready = true;
-	wait->cv.notify_all();
-}
-
 struct RedisReplyDeleter
 {
 	inline void operator() (redisReply *reply)
@@ -407,19 +388,3 @@ struct RedisReplyDeleter
 		freeReplyObject(reply);
 	}
 };
-
-std::shared_ptr<redisReply> RedisWriter::RedisGet(std::vector<String> query) {
-	auto *wait = new synchronousWait;
-	wait->ready = false;
-
-	m_Rcon->ExecuteQuery(std::move(query), RedisQueryCallback, wait);
-
-	boost::mutex::scoped_lock lock(wait->mtx);
-	while (!wait->ready) {
-		wait->cv.wait(lock);
-		if (!wait->ready)
-			wait->ready = true;
-	}
-
-	return std::shared_ptr<redisReply>(wait->reply, RedisReplyDeleter());
-}

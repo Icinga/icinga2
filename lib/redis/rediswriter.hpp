@@ -115,8 +115,6 @@ private:
 	void ExceptionHandler(boost::exception_ptr exp);
 
 	//Used to get a reply from the asyncronous connection
-	std::shared_ptr<redisReply> RedisGet(std::vector<String> query);
-	static void RedisQueryCallback(redisAsyncContext *c, void *r, void *p);
 	static redisReply* dupReplyObject(redisReply* reply);
 
 
