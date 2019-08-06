@@ -289,7 +289,9 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("active_service_checks_15min", GetActiveServiceChecksStatistics(60 * 15));
 	status->Set("passive_service_checks_15min", GetPassiveServiceChecksStatistics(60 * 15));
 
+	// Checker related stats
 	status->Set("remote_check_queue", ClusterEvents::GetCheckRequestQueueSize());
+	status->Set("current_concurrent_checks", Checkable::GetPendingChecks());
 
 	CheckableCheckStatistics scs = CalculateServiceCheckStats();
 
