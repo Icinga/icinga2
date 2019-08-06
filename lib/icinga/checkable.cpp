@@ -130,6 +130,9 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 	if (notify && !IsPaused())
 		OnNotificationsRequested(this, NotificationAcknowledgement, GetLastCheckResult(), author, comment, nullptr);
 
+	Log(LogInformation, "Checkable")
+		<< "Acknowledgement set for checkable '" << GetName() << "'.";
+
 	OnAcknowledgementSet(this, author, comment, type, notify, persistent, expiry, origin);
 }
 
@@ -137,6 +140,9 @@ void Checkable::ClearAcknowledgement(const MessageOrigin::Ptr& origin)
 {
 	SetAcknowledgementRaw(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
+
+	Log(LogInformation, "Checkable")
+		<< "Acknowledgement cleared for checkable '" << GetName() << "'.";
 
 	OnAcknowledgementCleared(this, origin);
 }
