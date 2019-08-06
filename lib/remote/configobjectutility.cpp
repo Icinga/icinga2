@@ -292,6 +292,9 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 
 	Utility::Remove(path);
 
+	Log(LogInformation, "ConfigObjectUtility")
+		<< "Deleted object '" << name << "' of type '" << type->GetName() << "'.";
+
 	return true;
 }
 
