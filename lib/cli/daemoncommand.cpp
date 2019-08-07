@@ -206,8 +206,10 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 	{
 		std::vector<ConfigItem::Ptr> newItems;
 
-		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath))
+		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath)) {
+			Log(LogCritical, "cli", "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
 			return EXIT_FAILURE;
+		}
 
 #ifndef _WIN32
 		Log(LogNotice, "cli")
@@ -571,8 +573,10 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 		std::vector<ConfigItem::Ptr> newItems;
 
-		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath))
+		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath)) {
+			Log(LogCritical, "cli", "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
 			return EXIT_FAILURE;
+		}
 
 		Log(LogInformation, "cli", "Finished validating the configuration file(s).");
 		return EXIT_SUCCESS;
