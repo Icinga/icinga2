@@ -792,7 +792,7 @@ Value ServicesTable::CheckIntervalAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return service->GetCheckInterval() / 60.0;
+	return service->GetCheckInterval() / LIVESTATUS_INTERVAL_LENGTH;
 }
 
 Value ServicesTable::RetryIntervalAccessor(const Value& row)
@@ -802,7 +802,7 @@ Value ServicesTable::RetryIntervalAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return service->GetRetryInterval() / 60.0;
+	return service->GetRetryInterval() / LIVESTATUS_INTERVAL_LENGTH;
 }
 
 Value ServicesTable::NotificationIntervalAccessor(const Value& row)

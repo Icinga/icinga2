@@ -12,6 +12,9 @@
 namespace icinga
 {
 
+// Well, don't ask.
+#define LIVESTATUS_INTERVAL_LENGTH 60.0
+
 struct LivestatusRowValue {
 	Value Row;
 	LivestatusGroupByType GroupByType;
