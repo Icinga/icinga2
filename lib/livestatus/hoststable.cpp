@@ -771,7 +771,7 @@ Value HostsTable::CheckIntervalAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return host->GetCheckInterval() / 60.0;
+	return host->GetCheckInterval() / LIVESTATUS_INTERVAL_LENGTH;
 }
 
 Value HostsTable::RetryIntervalAccessor(const Value& row)
@@ -781,7 +781,7 @@ Value HostsTable::RetryIntervalAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return host->GetRetryInterval() / 60.0;
+	return host->GetRetryInterval() / LIVESTATUS_INTERVAL_LENGTH;
 }
 
 Value HostsTable::NotificationIntervalAccessor(const Value& row)

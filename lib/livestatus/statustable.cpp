@@ -67,7 +67,7 @@ void StatusTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "program_start", Column(&StatusTable::ProgramStartAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_command_check", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_log_rotation", Column(&Table::ZeroAccessor, objectAccessor));
-	table->AddColumn(prefix + "interval_length", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "interval_length", Column(&StatusTable::IntervalLengthAccessor, objectAccessor));
 	table->AddColumn(prefix + "num_hosts", Column(&StatusTable::NumHostsAccessor, objectAccessor));
 	table->AddColumn(prefix + "num_services", Column(&StatusTable::NumServicesAccessor, objectAccessor));
 	table->AddColumn(prefix + "program_version", Column(&StatusTable::ProgramVersionAccessor, objectAccessor));
@@ -185,6 +185,11 @@ Value StatusTable::ProcessPerformanceDataAccessor(const Value&)
 Value StatusTable::ProgramStartAccessor(const Value&)
 {
 	return static_cast<long>(Application::GetStartTime());
+}
+
+Value StatusTable::IntervalLengthAccessor(const Value&)
+{
+	return LIVESTATUS_INTERVAL_LENGTH;
 }
 
 Value StatusTable::NumHostsAccessor(const Value&)

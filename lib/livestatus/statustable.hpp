@@ -45,6 +45,7 @@ protected:
 	static Value EnableFlapDetectionAccessor(const Value& row);
 	static Value ProcessPerformanceDataAccessor(const Value& row);
 	static Value ProgramStartAccessor(const Value& row);
+	static Value IntervalLengthAccessor(const Value& row);
 	static Value NumHostsAccessor(const Value& row);
 	static Value NumServicesAccessor(const Value& row);
 	static Value ProgramVersionAccessor(const Value& row);
