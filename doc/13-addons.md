@@ -80,10 +80,6 @@ Set `perfdata_spool_dir = /var/spool/icinga2/perfdata` and restart the `npcd` da
 There's also an Icinga Web 2 module for direct PNP graph integration
 available at [Icinga Exchange](https://exchange.icinga.com/icinga/PNP).
 
-More information on [action_url as attribute](13-addons.md#addons-graphing-pnp-action-url)
-and [graph template names](13-addons.md#addons-graphing-pnp-custom-templates).
-
-
 ## Visualization <a id="addons-visualization"></a>
 
 ### Maps <a id="addons-visualization-maps"></a>
@@ -210,43 +206,3 @@ template Service "pnp-svc" {
 }
 ```
 
-### PNP Custom Templates with Icinga 2 <a id="addons-graphing-pnp-custom-templates"></a>
-
-PNP automatically determines the graph template from the check command name (or the argument's name).
-This behavior changed in Icinga 2 compared to Icinga 1.x. Though there are certain possibilities to
-fix this:
-
-* Create a symlink for example from the `templates.dist/check_ping.php` template to the actual check name in Icinga 2 (`templates/ping4.php`)
-* Pass the check command name inside the [format template configuration](14-features.md#writing-performance-data-files)
-
-The latter becomes difficult with agent based checks like NRPE or SSH where the first command argument acts as
-graph template identifier. There is the possibility to define the pnp template name as custom variable
-and use that inside the formatting templates as `SERVICECHECKCOMMAND` for instance.
-
-Example for services:
-
-```
-# vim /etc/icinga2/features-enabled/perfdata.conf
-
-service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.check_command$$pnp_check_arg1$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.state_type$"
-
-# vim /etc/icinga2/conf.d/services.conf
-
-template Service "pnp-svc" {
-  action_url = "/pnp4nagios/graph?host=$HOSTNAME$&srv=$SERVICEDESC$"
-  vars.pnp_check_arg1 = ""
-}
-
-apply Service "nrpe-check" {
-  import "pnp-svc"
-  check_command = nrpe
-  vars.nrpe_command = "check_disk"
-
-  vars.pnp_check_arg1 = "!$nrpe_command$"
-}
-```
-
-If there are warnings about unresolved macros, make sure to specify a default value for `vars.pnp_check_arg1` inside the
-
-In PNP, the custom template for nrpe is then defined in `/etc/pnp4nagios/custom/nrpe.cfg`
-and the additional command arg string will be seen in the xml too for other templates.
