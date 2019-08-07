@@ -376,7 +376,7 @@ object TimePeriod "prod-notification" {
 }
 ```
 
-## External Check Results <a id="external-check-results"></a>
+## External Passive Check Results <a id="external-check-results"></a>
 
 Hosts or services which do not actively execute a check plugin to receive
 the state and output are called "passive checks" or "external check results".
