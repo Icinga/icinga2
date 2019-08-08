@@ -117,6 +117,12 @@ namespace icinga
 		Reply ReadOne(boost::asio::yield_context& yc);
 		void WriteOne(Query& query, boost::asio::yield_context& yc);
 
+		template<class StreamPtr>
+		Reply ReadOne(StreamPtr& stream, boost::asio::yield_context& yc);
+
+		template<class StreamPtr>
+		void WriteOne(StreamPtr& stream, Query& query, boost::asio::yield_context& yc);
+
 		String m_Path;
 		String m_Host;
 		int m_Port;
@@ -124,9 +130,9 @@ namespace icinga
 		int m_DbIndex;
 
 		boost::asio::io_context::strand m_Strand;
-		std::unique_ptr<TcpConn> m_TcpConn;
-		std::unique_ptr<UnixConn> m_UnixConn;
-		Atomic<bool> m_Connecting, m_Connected;
+		std::shared_ptr<TcpConn> m_TcpConn;
+		std::shared_ptr<UnixConn> m_UnixConn;
+		Atomic<bool> m_Connecting, m_Connected, m_Started;
 
 		struct {
 			std::queue<Query> FireAndForgetQuery;
@@ -157,6 +163,14 @@ public:
 
 private:
 	String m_Message;
+};
+
+class RedisDisconnected : public std::runtime_error
+{
+public:
+	inline RedisDisconnected() : runtime_error("")
+	{
+	}
 };
 
 class RedisProtocolError : public std::runtime_error
@@ -199,6 +213,51 @@ public:
 private:
 	std::vector<char> m_What;
 };
+
+template<class StreamPtr>
+RedisConnection::Reply RedisConnection::ReadOne(StreamPtr& stream, boost::asio::yield_context& yc)
+{
+	if (!stream) {
+		throw RedisDisconnected();
+	}
+
+	auto strm (stream);
+
+	try {
+		return ReadRESP(*strm, yc);
+	} catch (const boost::coroutines::detail::forced_unwind&) {
+		throw;
+	} catch (...) {
+		if (m_Connecting.exchange(false)) {
+			m_Connected.store(false);
+			stream = nullptr;
+		}
+		throw;
+	}
+}
+
+template<class StreamPtr>
+void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query, boost::asio::yield_context& yc)
+{
+	if (!stream) {
+		throw RedisDisconnected();
+	}
+
+	auto strm (stream);
+
+	try {
+		WriteRESP(*strm, query, yc);
+		strm->async_flush(yc);
+	} catch (const boost::coroutines::detail::forced_unwind&) {
+		throw;
+	} catch (...) {
+		if (m_Connecting.exchange(false)) {
+			m_Connected.store(false);
+			stream = nullptr;
+		}
+		throw;
+	}
+}
 
 template<class AsyncReadStream>
 Value RedisConnection::ReadRESP(AsyncReadStream& stream, boost::asio::yield_context& yc)
