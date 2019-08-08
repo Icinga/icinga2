@@ -586,6 +586,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 				Dictionary::Ptr values;
 				if (kv.second.IsObjectType<Dictionary>()) {
 					values = kv.second;
+					values = values->ShallowClone();
 				} else if (kv.second.IsObjectType<Array>()) {
 					values = new Dictionary({{"value", JsonEncode(kv.second)}});
 				} else {
@@ -619,6 +620,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 				Dictionary::Ptr values;
 				if (kv.second.IsObjectType<Dictionary>()) {
 					values = kv.second;
+					values = values->ShallowClone();
 				} else if (kv.second.IsObjectType<Array>()) {
 					values = new Dictionary({{"value", JsonEncode(kv.second)}});
 				} else {
