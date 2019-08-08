@@ -33,6 +33,8 @@ public:
 	static Array::Ptr Range(const std::vector<Value>& arguments);
 	static Type::Ptr TypeOf(const Value& value);
 	static Array::Ptr Keys(const Object::Ptr& obj);
+	static Dictionary::Ptr GetTemplate(const Value& vtype, const String& name);
+	static Array::Ptr GetTemplates(const Type::Ptr& type);
 	static ConfigObject::Ptr GetObject(const Value& type, const String& name);
 	static Array::Ptr GetObjects(const Type::Ptr& type);
 	static void Assert(const Value& arg);

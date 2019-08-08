@@ -14,6 +14,7 @@
 #include "base/dependencygraph.hpp"
 #include "base/initialize.hpp"
 #include "base/namespace.hpp"
+#include "config/configitem.hpp"
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <set>
@@ -35,6 +36,8 @@ REGISTER_FUNCTION(System, exit, &Application::Exit, "status");
 REGISTER_SAFE_FUNCTION(System, typeof, &ScriptUtils::TypeOf, "value");
 REGISTER_SAFE_FUNCTION(System, keys, &ScriptUtils::Keys, "value");
 REGISTER_SAFE_FUNCTION(System, random, &Utility::Random, "");
+REGISTER_SAFE_FUNCTION(System, get_template, &ScriptUtils::GetTemplate, "type:name");
+REGISTER_SAFE_FUNCTION(System, get_templates, &ScriptUtils::GetTemplates, "type");
 REGISTER_SAFE_FUNCTION(System, get_object, &ScriptUtils::GetObject, "type:name");
 REGISTER_SAFE_FUNCTION(System, get_objects, &ScriptUtils::GetObjects, "type");
 REGISTER_FUNCTION(System, assert, &ScriptUtils::Assert, "value");
@@ -402,6 +405,57 @@ Array::Ptr ScriptUtils::Keys(const Object::Ptr& obj)
 		for (const Namespace::Pair& kv : ns) {
 			result.push_back(kv.first);
 		}
+	}
+
+	return new Array(std::move(result));
+}
+
+static Dictionary::Ptr GetTargetForTemplate(const ConfigItem::Ptr& item)
+{
+	DebugInfo di = item->GetDebugInfo();
+
+	return new Dictionary({
+		{ "name", item->GetName() },
+		{ "type", item->GetType()->GetName() },
+		{ "location", new Dictionary({
+			{ "path", di.Path },
+			{ "first_line", di.FirstLine },
+			{ "first_column", di.FirstColumn },
+			{ "last_line", di.LastLine },
+			{ "last_column", di.LastColumn }
+		}) }
+	});
+}
+
+Dictionary::Ptr ScriptUtils::GetTemplate(const Value& vtype, const String& name)
+{
+	Type::Ptr ptype;
+
+	if (vtype.IsObjectType<Type>())
+		ptype = vtype;
+	else
+		ptype = Type::GetByName(vtype);
+
+	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(ptype, name);
+
+	if (!item || !item->IsAbstract())
+		return nullptr;
+
+	DebugInfo di = item->GetDebugInfo();
+
+	return GetTargetForTemplate(item);
+}
+
+Array::Ptr ScriptUtils::GetTemplates(const Type::Ptr& type)
+{
+	if (!type)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type: Must not be null"));
+
+	ArrayData result;
+
+	for (const ConfigItem::Ptr& item : ConfigItem::GetItems(type)) {
+		if (item->IsAbstract())
+			result.push_back(GetTargetForTemplate(item));
 	}
 
 	return new Array(std::move(result));
