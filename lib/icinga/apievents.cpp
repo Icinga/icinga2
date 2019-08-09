@@ -229,7 +229,7 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, c
 	if (queues.empty() && !inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'AcknowledgementCleared'.");
+	Log(LogCritical, "ApiEvents", "Processing event type 'AcknowledgementCleared'.");
 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("type", "AcknowledgementCleared");

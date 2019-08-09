@@ -16,29 +16,39 @@ REGISTER_APIFUNCTION(UpdateObject, config, &ApiListener::ConfigUpdateObjectAPIHa
 REGISTER_APIFUNCTION(DeleteObject, config, &ApiListener::ConfigDeleteObjectAPIHandler);
 
 INITIALIZE_ONCE([]() {
-	ConfigObject::OnActiveChanged.connect(&ApiListener::ConfigUpdateObjectHandler);
-	ConfigObject::OnVersionChanged.connect(&ApiListener::ConfigUpdateObjectHandler);
+	ConfigObject::OnActiveChanged.connect(std::bind(&ApiListener::ConfigUpdateObjectHandler,_1, _2, true));
+	ConfigObject::OnVersionChanged.connect(std::bind(&ApiListener::ConfigUpdateObjectHandler,_1, _2, false));
 });
 
-void ApiListener::ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, const Value& cookie)
+void ApiListener::ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, const Value& cookie, bool activechanged)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
 	if (!listener)
 		return;
 
+	if (activechanged)
+		Log(LogCritical, "DEBUG") << object->GetName() << " active changed";
+	else
+		Log(LogCritical, "DEBUG") << object->GetName() << " version changed";
+
+
 	if (object->IsActive()) {
 		/* Sync object config */
+		Log(LogCritical, "DEBUG")
+				<< "CUOH: object '" << object->GetName() << "' is active and Extension is set to:" << object->GetExtension("ConfigObjectDeleted");
 		listener->UpdateConfigObject(object, cookie);
 	} else if (!object->IsActive() && object->GetExtension("ConfigObjectDeleted")) {
 		/* Delete object */
+		Log(LogCritical, "DEBUG")
+				<< "CUOH: object '" << object->GetName() << "' is inactive and Extension is set to:" << object->GetExtension("ConfigObjectDeleted");
 		listener->DeleteConfigObject(object, cookie);
 	}
 }
 
 Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	Log(LogNotice, "ApiListener")
+	Log(LogCritical, "ApiListener")
 		<< "Received update for object: " << JsonEncode(params);
 
 	/* check permissions */
@@ -54,14 +64,14 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	/* discard messages if the client is not configured on this node */
 	if (!endpoint) {
-		Log(LogNotice, "ApiListener")
+		Log(LogCritical, "ApiListener")
 			<< "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
 
 	/* discard messages if the sender is in a child zone */
 	if (!Zone::GetLocalZone()->IsChildOf(endpoint->GetZone())) {
-		Log(LogNotice, "ApiListener")
+		Log(LogCritical, "ApiListener")
 			<< "Discarding 'config update object' message from '"
 			<< origin->FromClient->GetIdentity() << "' for object '"
 			<< objName << "' of type '" << objType << "'. Sender is in a child zone.";
@@ -70,7 +80,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	/* ignore messages if the endpoint does not accept config */
 	if (!listener->GetAcceptConfig()) {
-		Log(LogWarning, "ApiListener")
+		Log(LogCritical, "ApiListener")
 			<< "Ignoring config update from '" << origin->FromClient->GetIdentity() << "' for object '" << objName << "' of type '" << objType << "'. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
@@ -133,7 +143,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 		return Empty;
 	}
 
-	Log(LogNotice, "ApiListener")
+	Log(LogCritical, "ApiListener")
 		<< "Processing config update for object '" << object->GetName()
 		<< "': Object version " << object->GetVersion()
 		<< " is older than the received version " << objVersion << ".";

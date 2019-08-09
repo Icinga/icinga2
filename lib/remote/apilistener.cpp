@@ -1118,8 +1118,6 @@ void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
 	double ts = Utility::GetTime();
 	message->Set("ts", ts);
 
-	Log(LogNotice, "ApiListener")
-		<< "Relaying '" << message->Get("method") << "' message";
 
 	if (origin && origin->FromZone)
 		message->Set("originZone", origin->FromZone->GetName());
@@ -1139,6 +1137,9 @@ void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
 	Endpoint::Ptr master = GetMaster();
 
 	bool need_log = !RelayMessageOne(target_zone, origin, message, master);
+
+	Log(LogCritical, "ApiListener")
+			<< "Relaying '" << JsonEncode(message) << "' message from '"<< origin << "' to '" << target_zone->GetName() << "' Want log: " << log << " need log: " << need_log;
 
 	for (const Zone::Ptr& zone : target_zone->GetAllParentsRaw()) {
 		if (!RelayMessageOne(zone, origin, message, master))

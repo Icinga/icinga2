@@ -435,7 +435,9 @@ void Downtime::DowntimesExpireTimerHandler()
 
 	for (const Downtime::Ptr& downtime : downtimes) {
 		/* Only remove downtimes which are activated after daemon start. */
-		if (downtime->IsActive() && (downtime->IsExpired() || !downtime->HasValidConfigOwner()))
+		Log(LogCritical, "DEBUG")
+			<< "DETH: " << downtime->GetName() << " is active: " << downtime->IsActive() << " is expired: " << downtime->IsExpired() << " has valid owner:" << downtime->HasValidConfigOwner();
+ 		if (downtime->IsActive() && (downtime->IsExpired() || !downtime->HasValidConfigOwner()))
 			RemoveDowntime(downtime->GetName(), false, true);
 	}
 }

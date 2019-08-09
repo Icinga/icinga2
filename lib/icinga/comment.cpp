@@ -233,8 +233,11 @@ void Comment::CommentsExpireTimerHandler()
 			/* Do not remove persistent comments from an acknowledgement */
 			if (comment->GetEntryType() == CommentAcknowledgement && comment->GetPersistent())
 				continue;
-
+			Log(LogCritical, "DEBUG") << "Comment " << comment->GetName() << " expired";
 			RemoveComment(comment->GetName());
+		} else {
+			Log(LogCritical, "DEBUG")
+				<< "Comment " << comment->GetName() << " is active or not expired";
 		}
 	}
 }
