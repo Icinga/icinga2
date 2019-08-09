@@ -50,6 +50,19 @@
 
 using namespace icinga;
 
+static const char * const l_LuaResetDump = R"EOF(
+
+local id = redis.call('XADD', KEYS[1], '*', 'type', '*', 'state', 'wip')
+
+local xr = redis.call('XRANGE', KEYS[1], '-', '+')
+for i = 1, #xr - 1 do
+	redis.call('XDEL', KEYS[1], xr[i][1])
+end
+
+return id
+
+)EOF";
+
 INITIALIZE_ONCE(&RedisWriter::ConfigStaticInitialize);
 
 void RedisWriter::ConfigStaticInitialize()
@@ -108,6 +121,8 @@ void RedisWriter::UpdateAllConfigObjects()
 			types.emplace_back(ctype, lcType);
 		}
 	}
+
+	m_Rcon->FireAndForgetQuery({"EVAL", l_LuaResetDump, "1", "icinga:dump"});
 
 	const std::vector<String> globalKeys = {
 			m_PrefixConfigObject + "customvar",
@@ -187,8 +202,6 @@ void RedisWriter::UpdateAllConfigObjects()
 				m_Rcon->FireAndForgetQueries(std::move(transaction));
 			}
 
-			m_Rcon->FireAndForgetQuery({"PUBLISH", "icinga:config:dump", lcType});
-
 			Log(LogNotice, "RedisWriter")
 					<< "Dumped " << bulkCounter << " objects of type " << type.second;
 		});
@@ -202,6 +215,8 @@ void RedisWriter::UpdateAllConfigObjects()
 				}
 			}
 		}
+
+		m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", lcType, "state", "done"});
 	});
 
 	upq.Join();
@@ -218,6 +233,8 @@ void RedisWriter::UpdateAllConfigObjects()
 			}
 		}
 	}
+
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", "*", "state", "done"});
 
 	Log(LogInformation, "RedisWriter")
 			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
