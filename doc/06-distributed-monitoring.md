@@ -757,8 +757,8 @@ Download the MSI-Installer package from [https://packages.icinga.com/windows/](h
 Requirements:
 
 * Windows Vista/Server 2008 or higher
+* [Microsoft .NET Framework 4.6](https://www.microsoft.com/en-US/download/details.aspx?id=53344) or higher for the setup wizard
 * Versions older than Windows 10/Server 2016 require the [Universal C Runtime for Windows](https://support.microsoft.com/en-us/help/2999226/update-for-universal-c-runtime-in-windows)
-* [Microsoft .NET Framework 4.6] or higher (https://www.microsoft.com/en-US/download/details.aspx?id=53344) for the setup wizard
 
 The installer package includes the [NSClient++](https://www.nsclient.org/) package
 so that Icinga 2 can use its built-in plugins. You can find more details in
