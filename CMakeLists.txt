@@ -390,12 +390,12 @@ if(NOT MSVC)
   )
 
   if (RESULT)
-    message(FATAL_ERROR "Failed to detect target architecture: ${RESULT}")
+    message(STATUS "Failed to detect target architecture with compiler ${CMAKE_C_COMPILER}: ${RESULT}")
   endif()
 
-  string(REGEX MATCH "([^-]+).*" ARCH_MATCH ${ARCH})
+  string(REGEX MATCH "([^-]+).*" ARCH_MATCH "${ARCH}")
   if (NOT CMAKE_MATCH_1 OR NOT ARCH_MATCH)
-    message(FATAL_ERROR "Failed to match the target architecture: ${ARCH}")
+    message(STATUS "Failed to match the target architecture: ${ARCH}")
   endif()
 
   set(ARCH ${CMAKE_MATCH_1})
