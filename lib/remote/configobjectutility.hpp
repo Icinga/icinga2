@@ -30,15 +30,15 @@ public:
 		bool ignoreOnError, const Array::Ptr& templates, const Dictionary::Ptr& attrs);
 
 	static bool CreateObject(const Type::Ptr& type, const String& fullName,
-		const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation);
+		const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie = Empty);
 
 	static bool DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors,
-		const Array::Ptr& diagnosticInformation);
+		const Array::Ptr& diagnosticInformation, const Value& cookie = Empty);
 
 private:
 	static String EscapeName(const String& name);
 	static bool DeleteObjectHelper(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors,
-		const Array::Ptr& diagnosticInformation);
+		const Array::Ptr& diagnosticInformation, const Value& cookie = Empty);
 };
 
 }

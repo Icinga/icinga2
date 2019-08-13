@@ -357,7 +357,7 @@ void ConfigObject::PreActivate()
 	SetActive(true, true);
 }
 
-void ConfigObject::Activate(bool runtimeCreated)
+void ConfigObject::Activate(bool runtimeCreated, const Value& cookie)
 {
 	CONTEXT("Activating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
 
@@ -372,7 +372,7 @@ void ConfigObject::Activate(bool runtimeCreated)
 			SetAuthority(true);
 	}
 
-	NotifyActive();
+	NotifyActive(cookie);
 }
 
 void ConfigObject::Stop(bool runtimeRemoved)
@@ -384,7 +384,7 @@ void ConfigObject::Stop(bool runtimeRemoved)
 	SetStopCalled(true);
 }
 
-void ConfigObject::Deactivate(bool runtimeRemoved)
+void ConfigObject::Deactivate(bool runtimeRemoved, const Value& cookie)
 {
 	CONTEXT("Deactivating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
 
@@ -403,7 +403,7 @@ void ConfigObject::Deactivate(bool runtimeRemoved)
 
 	ASSERT(GetStopCalled());
 
-	NotifyActive();
+	NotifyActive(cookie);
 }
 
 void ConfigObject::OnConfigLoaded()

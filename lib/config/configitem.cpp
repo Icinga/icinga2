@@ -624,7 +624,8 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	return true;
 }
 
-bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated, bool silent, bool withModAttrs)
+bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated,
+	bool silent, bool withModAttrs, const Value& cookie)
 {
 	static boost::mutex mtx;
 	boost::mutex::scoped_lock lock(mtx);
@@ -692,7 +693,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 				<< objectType->GetActivationPriority();
 #endif /* I2_DEBUG */
 
-			object->Activate(runtimeCreated);
+			object->Activate(runtimeCreated, cookie);
 		}
 	}
 
