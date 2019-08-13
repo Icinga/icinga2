@@ -5,6 +5,7 @@
 
 #include "checker/checkercomponent-ti.hpp"
 #include "icinga/service.hpp"
+#include "icinga/wip.hpp"
 #include "base/configobject.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
@@ -82,7 +83,7 @@ private:
 	void CheckThreadProc();
 	void ResultTimerHandler();
 
-	void ExecuteCheckHelper(const Checkable::Ptr& checkable);
+	void ExecuteCheckHelper(const Checkable::Ptr& checkable, Bench);
 
 	void AdjustCheckTimer();
 

@@ -4,6 +4,7 @@
 #include "checker/checkercomponent-ti.cpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/cib.hpp"
+#include "icinga/wip.hpp"
 #include "remote/apilistener.hpp"
 #include "base/configuration.hpp"
 #include "base/configtype.hpp"
@@ -115,6 +116,8 @@ void CheckerComponent::CheckThreadProc()
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	for (;;) {
+		Bench GetNextPending;
+
 		typedef boost::multi_index::nth_index<CheckableSet, 1>::type CheckTimeView;
 		CheckTimeView& idx = boost::get<1>(m_IdleCheckables);
 
@@ -127,6 +130,8 @@ void CheckerComponent::CheckThreadProc()
 		auto it = idx.begin();
 		CheckableScheduleInfo csi = *it;
 
+		l_Wip.Lantencies.CheckerComponent.GetNextPending.Add(GetNextPending.Stop() * MinSecFrac);
+
 		double wait = csi.NextCheck - Utility::GetTime();
 
 //#ifdef I2_DEBUG
@@ -136,7 +141,14 @@ void CheckerComponent::CheckThreadProc()
 //#endif /* I2_DEBUG */
 
 		if (Checkable::GetPendingChecks() >= icingaApp->GetMaxConcurrentChecks())
+		{
 			wait = 0.5;
+			l_Wip.Lantencies.CheckerComponent.AquireSlot.Add(wait * MinSecFrac);
+		}
+		else
+		{
+			l_Wip.Lantencies.CheckerComponent.AquireSlot.Add(0);
+		}
 
 		if (wait > 0) {
 			/* Wait for the next check. */
@@ -144,6 +156,8 @@ void CheckerComponent::CheckThreadProc()
 
 			continue;
 		}
+
+		Bench Prepare;
 
 		Checkable::Ptr checkable = csi.Object;
 
@@ -220,16 +234,28 @@ void CheckerComponent::CheckThreadProc()
 		Log(LogDebug, "CheckerComponent")
 			<< "Executing check for '" << checkable->GetName() << "'";
 
-		Checkable::IncreasePendingChecks();
+		l_Wip.Lantencies.CheckerComponent.Prepare.Add(Prepare.Stop() * MinSecFrac);
 
-		Utility::QueueAsyncCallback(std::bind(&CheckerComponent::ExecuteCheckHelper, CheckerComponent::Ptr(this), checkable));
+		Bench IncreaseSlot;
+		Checkable::IncreasePendingChecks();
+		l_Wip.Lantencies.CheckerComponent.IncreaseSlot.Add(IncreaseSlot.Stop() * MinSecFrac);
+
+		l_Wip.CC.Inc.fetch_add(1);
+
+		Bench Enqueue;
+		Utility::QueueAsyncCallback(std::bind(&CheckerComponent::ExecuteCheckHelper, CheckerComponent::Ptr(this), checkable, Bench()));
+		l_Wip.Lantencies.CheckerComponent.Enqueue.Add(Enqueue.Stop() * MinSecFrac);
 
 		lock.lock();
 	}
 }
 
-void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
+void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable, Bench HaveTurn)
 {
+	l_Wip.Lantencies.CheckerComponent.HaveTurn.Add(HaveTurn.Stop() * MinSecFrac);
+
+	Bench FireCheck;
+
 	try {
 		checkable->ExecuteCheck();
 	} catch (const std::exception& ex) {
@@ -250,7 +276,15 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		Log(LogCritical, "checker", output);
 	}
 
+	l_Wip.Lantencies.CheckerComponent.FireCheck.Add(FireCheck.Stop() * MinSecFrac);
+
+	Bench DecreaseSlot;
 	Checkable::DecreasePendingChecks();
+	l_Wip.Lantencies.CheckerComponent.DecreaseSlot.Add(DecreaseSlot.Stop() * MinSecFrac);
+
+	l_Wip.CC.Dec.fetch_add(1);
+
+	Bench PostProcess;
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -272,6 +306,8 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 
 	Log(LogDebug, "CheckerComponent")
 		<< "Check finished for object '" << checkable->GetName() << "'";
+
+	l_Wip.Lantencies.CheckerComponent.PostProcess.Add(PostProcess.Stop() * MinSecFrac);
 }
 
 void CheckerComponent::ResultTimerHandler()

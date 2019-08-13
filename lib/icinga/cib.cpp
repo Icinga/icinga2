@@ -4,6 +4,7 @@
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
 #include "icinga/clusterevents.hpp"
+#include "icinga/wip.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
@@ -326,4 +327,25 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("num_hosts_flapping", hs.hosts_flapping);
 	status->Set("num_hosts_in_downtime", hs.hosts_in_downtime);
 	status->Set("num_hosts_acknowledged", hs.hosts_acknowledged);
+
+	status->Set("wip_cc_inc", l_Wip.CC.Inc.load());
+	status->Set("wip_cc_dec", l_Wip.CC.Dec.load());
+	status->Set("wip_ce_inc", l_Wip.CE.Inc.load());
+	status->Set("wip_ce_dec", l_Wip.CE.Dec.load());
+	status->Set("wip_pt_inc", l_Wip.PT.Inc.load());
+	status->Set("wip_pt_dec", l_Wip.PT.Dec.load());
+
+	status->Set("Lantencies", new Dictionary({
+		{ "CheckerComponent", new Dictionary({
+			{ "GetNextPending", l_Wip.Lantencies.CheckerComponent.GetNextPending.Calc() / MinSecFrac },
+			{ "AquireSlot", l_Wip.Lantencies.CheckerComponent.AquireSlot.Calc() / MinSecFrac },
+			{ "Prepare", l_Wip.Lantencies.CheckerComponent.Prepare.Calc() / MinSecFrac },
+			{ "IncreaseSlot", l_Wip.Lantencies.CheckerComponent.IncreaseSlot.Calc() / MinSecFrac },
+			{ "Enqueue", l_Wip.Lantencies.CheckerComponent.Enqueue.Calc() / MinSecFrac },
+			{ "HaveTurn", l_Wip.Lantencies.CheckerComponent.HaveTurn.Calc() / MinSecFrac },
+			{ "FireCheck", l_Wip.Lantencies.CheckerComponent.FireCheck.Calc() / MinSecFrac },
+			{ "DecreaseSlot", l_Wip.Lantencies.CheckerComponent.DecreaseSlot.Calc() / MinSecFrac },
+			{ "PostProcess", l_Wip.Lantencies.CheckerComponent.PostProcess.Calc() / MinSecFrac }
+		}) }
+	}));
 }

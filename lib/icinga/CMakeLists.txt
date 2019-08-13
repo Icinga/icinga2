@@ -61,6 +61,7 @@ set(icinga_SOURCES
   timeperiod.cpp timeperiod.hpp timeperiod-ti.hpp
   user.cpp user.hpp user-ti.hpp
   usergroup.cpp usergroup.hpp usergroup-ti.hpp
+  wip.cpp wip.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

@@ -2,6 +2,7 @@
 
 #include "icinga/clusterevents.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "icinga/wip.hpp"
 #include "remote/apilistener.hpp"
 #include "base/configuration.hpp"
 #include "base/serializer.hpp"
@@ -32,6 +33,7 @@ void ClusterEvents::RemoteCheckThreadProc()
 
 		lock.unlock();
 		Checkable::AquirePendingCheckSlot(maxConcurrentChecks);
+		l_Wip.CE.Inc.fetch_add(1);
 		lock.lock();
 
 		auto callback = m_CheckRequestQueue.front();
@@ -41,6 +43,7 @@ void ClusterEvents::RemoteCheckThreadProc()
 
 		callback();
 		Checkable::DecreasePendingChecks();
+		l_Wip.CE.Dec.fetch_add(1);
 
 		lock.lock();
 	}

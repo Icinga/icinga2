@@ -5,6 +5,7 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "icinga/wip.hpp"
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/function.hpp"
@@ -45,12 +46,16 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		std::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2));
 
 	if (!resolvedMacros || useResolvedMacros)
+	{
 		Checkable::IncreasePendingChecks();
+		l_Wip.PT.Inc.fetch_add(1);
+	}
 }
 
 void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr)
 {
 	Checkable::DecreasePendingChecks();
+	l_Wip.PT.Dec.fetch_add(1);
 
 	if (pr.ExitStatus > 3) {
 		Process::Arguments parguments = Process::PrepareCommand(commandLine);
