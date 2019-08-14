@@ -8,6 +8,16 @@ using namespace icinga;
 
 BOOST_AUTO_TEST_SUITE(base_utility)
 
+BOOST_AUTO_TEST_CASE(parse_version)
+{
+	BOOST_CHECK(Utility::ParseVersion("2.11.0-0.rc1.1") == "2.11.0");
+	BOOST_CHECK(Utility::ParseVersion("v2.10.5") == "2.10.5");
+	BOOST_CHECK(Utility::ParseVersion("r2.11.1") == "2.11.1");
+	BOOST_CHECK(Utility::ParseVersion("v2.11.0-rc1-58-g7c1f716da") == "2.11.0");
+
+	BOOST_CHECK(Utility::ParseVersion("v2.11butactually3.0") == "v2.11butactually3.0");
+}
+
 BOOST_AUTO_TEST_CASE(comparepasswords_works)
 {
 	BOOST_CHECK(Utility::ComparePasswords("", ""));
