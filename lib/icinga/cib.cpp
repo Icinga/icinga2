@@ -5,6 +5,7 @@
 #include "icinga/service.hpp"
 #include "icinga/clusterevents.hpp"
 #include "icinga/wip.hpp"
+#include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
@@ -293,6 +294,7 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	// Checker related stats
 	status->Set("remote_check_queue", ClusterEvents::GetCheckRequestQueueSize());
 	status->Set("current_concurrent_checks", Checkable::GetPendingChecks());
+	status->Set("current_pending_callbacks", Application::GetTP().GetPending());
 
 	CheckableCheckStatistics scs = CalculateServiceCheckStats();
 
