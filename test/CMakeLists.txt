@@ -109,6 +109,7 @@ add_boost_test(base
     base_type/byname
     base_type/instantiate
     base_utility/parse_version
+    base_utility/compare_version
     base_utility/comparepasswords_works
     base_utility/comparepasswords_issafe
     base_utility/validateutf8

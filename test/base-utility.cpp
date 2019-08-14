@@ -18,6 +18,13 @@ BOOST_AUTO_TEST_CASE(parse_version)
 	BOOST_CHECK(Utility::ParseVersion("v2.11butactually3.0") == "v2.11butactually3.0");
 }
 
+BOOST_AUTO_TEST_CASE(compare_version)
+{
+	BOOST_CHECK(Utility::CompareVersion("2.10.5", Utility::ParseVersion("v2.10.4")) < 0);
+	BOOST_CHECK(Utility::CompareVersion("2.11.0", Utility::ParseVersion("2.11.0-0")) == 0);
+	BOOST_CHECK(Utility::CompareVersion("2.10.5", Utility::ParseVersion("2.11.0-0.rc1.1")) > 0);
+}
+
 BOOST_AUTO_TEST_CASE(comparepasswords_works)
 {
 	BOOST_CHECK(Utility::ComparePasswords("", ""));
