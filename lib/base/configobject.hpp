@@ -44,8 +44,8 @@ public:
 	void Unregister();
 
 	void PreActivate();
-	void Activate(bool runtimeCreated = false);
-	void Deactivate(bool runtimeRemoved = false);
+	void Activate(bool runtimeCreated = false, const Value& cookie = Empty);
+	void Deactivate(bool runtimeRemoved = false, const Value& cookie = Empty);
 	void SetAuthority(bool authority);
 
 	void Start(bool runtimeCreated = false) override;
