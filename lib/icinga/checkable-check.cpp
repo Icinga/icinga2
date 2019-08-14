@@ -23,6 +23,8 @@ boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, st
 boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&, const MessageOrigin::Ptr&)> Checkable::OnNotificationsRequested;
 boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnNextCheckUpdated;
 
+Atomic<uint_fast64_t> Checkable::CurrentConcurrentChecks (0);
+
 boost::mutex Checkable::m_StatsMutex;
 int Checkable::m_PendingChecks = 0;
 boost::condition_variable Checkable::m_PendingChecksCV;
