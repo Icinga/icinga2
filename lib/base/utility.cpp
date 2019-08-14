@@ -20,6 +20,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/regex.hpp>
 #include <ios>
 #include <fstream>
 #include <iostream>
@@ -1170,6 +1171,26 @@ unsigned long Utility::SDBM(const String& str, size_t len)
 	}
 
 	return hash;
+}
+
+String Utility::ParseVersion(const String& v)
+{
+	/*
+	 * 2.11.0-0.rc1.1
+	 * v2.10.5
+	 * r2.10.3
+	 * v2.11.0-rc1-58-g7c1f716da
+	 */
+	boost::regex pattern("^[vr]?(2\\.\\d+\\.\\d+).*$");
+	boost::smatch result;
+
+	if (boost::regex_search(v.GetData(), result, pattern)) {
+		String res(result[1].first, result[1].second);
+		return res;
+	}
+
+	// Couldn't not extract anything, return unparsed version
+	return v;
 }
 
 int Utility::CompareVersion(const String& v1, const String& v2)
