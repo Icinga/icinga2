@@ -754,7 +754,7 @@ that by grepping the log file for `resumed` and `paused`.
 
 Specific features with HA capabilities are explained below.
 
-### High Availability: Checker <a id="technical-concepts-cluster-ha-checker"></a>
+#### High Availability: Checker <a id="technical-concepts-cluster-ha-checker"></a>
 
 The `checker` feature only executes checks for `Checkable` objects (Host, Service)
 where it is authoritative.
@@ -765,7 +765,7 @@ The cluster message routing ensures that all check results are synchronized
 to nodes which are not authoritative for this configuration object.
 
 
-### High Availability: Notifications <a id="technical-concepts-cluster-notifications"></a>
+#### High Availability: Notifications <a id="technical-concepts-cluster-notifications"></a>
 
 The `notification` feature only sends notifications for `Notification` objects
 where it is authoritative.
@@ -775,7 +775,7 @@ That way each node only executes notifications for a segment of all notification
 Notified users and other event details are synchronized throughout the cluster.
 This is required if for example the DB IDO feature is active on the other node.
 
-### High Availability: DB IDO <a id="technical-concepts-cluster-ha-ido"></a>
+#### High Availability: DB IDO <a id="technical-concepts-cluster-ha-ido"></a>
 
 If you don't have HA enabled for the IDO feature, both nodes will
 write their status and historical data to their own separate database
@@ -1051,6 +1051,68 @@ the synced configuration. Keep in mind that there may be differences on the mast
 when e.g. hostgroup membership is used for assign where expressions, but the groups are only
 available on the master.
 
+
+### Cluster: Message Routing <a id="technical-concepts-cluster-message-routing"></a>
+
+One fundamental part of the cluster message routing is the MessageOrigin object.
+This is created when a new JSON-RPC message is received in `JsonRpcConnection::MessageHandler()`.
+
+It contains
+
+- FromZone being extracted from the endpoint object which owns the JsonRpcConnection
+- FromClient being the JsonRpcConnection bound to the endpoint object
+
+These attributes are checked in message receive api handlers for security access. E.g. whether a
+message origin is from a child zone which is not allowed, etc.
+This is explained in the [JSON-RPC messages](19-technical-concepts.md#technical-concepts-json-rpc-messages) chapter.
+
+Whenever such a message is processed on the client, it may trigger additional cluster events
+which are sent back to other endpoints. Therefore it is key to always pass the MessageOrigin
+`origin` when processing these messages locally.
+
+Example:
+
+- Client receives a CheckResult from another endpoint in the same zone, call it `sender` for now
+- Calls ProcessCheckResult() to store the CR and calculcate states, notifications, etc.
+- Calls the OnNewCheckResult() signal to trigger IDO updates
+
+OnNewCheckResult() also calls a registered cluster handler which forwards the CheckResult to other cluster members.
+
+Without any origin details, this CheckResult would be relayed to the `sender` endpoint again.
+Which processes the message, ProcessCheckResult(), OnNewCheckResult(), sends back and so on.
+
+That creates a loop which our cluster protocol needs to prevent at all cost.
+
+RelayMessageOne() takes care of the routing. This involves fetching the targetZone for this message and its endpoints.
+
+- Don't relay messages to ourselves.
+- Don't relay messages to disconnected endpoints.
+- Don't relay the message to the zone through more than one endpoint unless this is our own zone.
+- Don't relay messages back to the endpoint which we got the message from. **THIS**
+- Don't relay messages back to the zone which we got the message from.
+- Only relay message to the zone master if we're not currently the zone master.
+
+```
+ e1 is zone master, e2 and e3 are zone members.
+
+ Message is sent from e2 or e3:
+   !isMaster == true
+   targetEndpoint e1 is zone master -> send the message
+   targetEndpoint e3 is not zone master -> skip it, avoid routing loops
+
+ Message is sent from e1:
+   !isMaster == false -> send the messages to e2 and e3 being the zone routing master.
+```
+
+With passing the `origin` the following condition prevents sending a message back to sender:
+
+```
+if (origin && origin->FromClient && targetEndpoint == origin->FromClient->GetEndpoint()) {
+```
+
+This message then simply gets skipped for this specific Endpoint and is never sent.
+
+This analysis originates from a long-lasting [downtime loop bug](https://github.com/Icinga/icinga2/issues/7198).
 
 ## TLS Network IO <a id="technical-concepts-tls-network-io"></a>
 
