@@ -76,7 +76,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("passive_service_checks_15min", CIB::GetPassiveServiceChecksStatistics(60 * 15)));
 
 	perfdata->Add(new PerfdataValue("current_pending_callbacks", Application::GetTP().GetPending()));
-	perfdata->Add(new PerfdataValue("current_concurrent_checks", Checkable::GetPendingChecks()));
+	perfdata->Add(new PerfdataValue("current_concurrent_checks", Checkable::CurrentConcurrentChecks.load()));
 	perfdata->Add(new PerfdataValue("remote_check_queue", ClusterEvents::GetCheckRequestQueueSize()));
 
 	CheckableCheckStatistics scs = CIB::CalculateServiceCheckStats();

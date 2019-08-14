@@ -47,6 +47,7 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	if (!resolvedMacros || useResolvedMacros)
 	{
+		Checkable::CurrentConcurrentChecks.fetch_add(1);
 		Checkable::IncreasePendingChecks();
 		l_Wip.PT.Inc.fetch_add(1);
 	}
@@ -54,6 +55,7 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr)
 {
+	Checkable::CurrentConcurrentChecks.fetch_sub(1);
 	Checkable::DecreasePendingChecks();
 	l_Wip.PT.Dec.fetch_add(1);
 
