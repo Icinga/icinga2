@@ -240,8 +240,17 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		if (type->GetName() != "Comment" && type->GetName() != "Downtime")
 			ApiListener::UpdateObjectAuthority();
 
-		Log(LogInformation, "ConfigObjectUtility")
-			<< "Created and activated object '" << fullName << "' of type '" << type->GetName() << "'.";
+		// At this stage we should have a config object already. If not, it was ignored before.
+		auto *ctype = dynamic_cast<ConfigType *>(type.get());
+		ConfigObject::Ptr obj = ctype->GetObject(fullName);
+
+		if (obj) {
+			Log(LogInformation, "ConfigObjectUtility")
+				<< "Created and activated object '" << fullName << "' of type '" << type->GetName() << "'.";
+		} else {
+			Log(LogNotice, "ConfigObjectUtility")
+				<< "Object '" << fullName << "' was not created but ignored due to errors.";
+		}
 
 	} catch (const std::exception& ex) {
 		Utility::Remove(path);

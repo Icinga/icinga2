@@ -277,7 +277,7 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 	String method = vmethod;
 
 	Log(LogNotice, "JsonRpcConnection")
-		<< "Received '" << method << "' message from '" << m_Identity << "'";
+		<< "Received '" << method << "' message from identity '" << m_Identity << "'.";
 
 	Dictionary::Ptr resultMessage = new Dictionary();
 
