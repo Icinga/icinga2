@@ -15,6 +15,7 @@
 #include <boost/thread/once.hpp>
 #include <thread>
 #include <iostream>
+#include <vector>
 
 #ifndef _WIN32
 #	include <execvpe.h>
@@ -31,16 +32,23 @@ extern char **environ;
 
 using namespace icinga;
 
-#define IOTHREADS 4
-
-static boost::mutex l_ProcessMutex[IOTHREADS];
-static std::map<Process::ProcessHandle, Process::Ptr> l_Processes[IOTHREADS];
+struct IoThread
+{
+	boost::mutex ProcessMutex;
+	std::map<Process::ProcessHandle, Process::Ptr> Processes;
 #ifdef _WIN32
-static HANDLE l_Events[IOTHREADS];
+	HANDLE Events;
 #else /* _WIN32 */
-static int l_EventFDs[IOTHREADS][2];
-static std::map<Process::ConsoleHandle, Process::ProcessHandle> l_FDs[IOTHREADS];
+	int EventFDs[2];
+	std::map<Process::ConsoleHandle, Process::ProcessHandle> FDs;
+#endif /* _WIN32 */
 
+	IoThread();
+};
+
+static std::vector<IoThread> l_IoThreads;
+
+#ifndef _WIN32
 static boost::mutex l_ProcessControlMutex;
 static int l_ProcessControlFD = -1;
 static pid_t l_ProcessControlPID;
@@ -493,45 +501,47 @@ void Process::InitializeSpawnHelper()
 }
 #endif /* _WIN32 */
 
-static void InitializeProcess()
+IoThread::IoThread()
 {
 #ifdef _WIN32
-	for (auto& event : l_Events) {
-		event = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-	}
+	Events = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 #else /* _WIN32 */
-	for (auto& eventFD : l_EventFDs) {
 #	ifdef HAVE_PIPE2
-		if (pipe2(eventFD, O_CLOEXEC) < 0) {
-			if (errno == ENOSYS) {
+	if (pipe2(EventFDs, O_CLOEXEC) < 0) {
+		if (errno == ENOSYS) {
 #	endif /* HAVE_PIPE2 */
-				if (pipe(eventFD) < 0) {
-					BOOST_THROW_EXCEPTION(posix_error()
-						<< boost::errinfo_api_function("pipe")
-						<< boost::errinfo_errno(errno));
-				}
-
-				Utility::SetCloExec(eventFD[0]);
-				Utility::SetCloExec(eventFD[1]);
-#	ifdef HAVE_PIPE2
-			} else {
+			if (pipe(EventFDs) < 0) {
 				BOOST_THROW_EXCEPTION(posix_error()
-					<< boost::errinfo_api_function("pipe2")
+					<< boost::errinfo_api_function("pipe")
 					<< boost::errinfo_errno(errno));
 			}
+
+			Utility::SetCloExec(EventFDs[0]);
+			Utility::SetCloExec(EventFDs[1]);
+#	ifdef HAVE_PIPE2
+		} else {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("pipe2")
+				<< boost::errinfo_errno(errno));
 		}
-#	endif /* HAVE_PIPE2 */
 	}
+#	endif /* HAVE_PIPE2 */
 #endif /* _WIN32 */
 }
 
-INITIALIZE_ONCE(InitializeProcess);
-
 void Process::ThreadInitialize()
 {
+	auto threads (std::thread::hardware_concurrency());
+
+	if (threads < 4u) {
+		threads = 4u;
+	}
+
+	l_IoThreads = decltype(l_IoThreads)(threads);
+
 	/* Note to self: Make sure this runs _after_ we've daemonized. */
-	for (int tid = 0; tid < IOTHREADS; tid++) {
-		std::thread t(std::bind(&Process::IOThreadProc, tid));
+	for (auto tid (l_IoThreads.size()); tid;) {
+		std::thread t(std::bind(&Process::IOThreadProc, --tid));
 		t.detach();
 	}
 }
@@ -608,26 +618,26 @@ void Process::IOThreadProc(int tid)
 		now = Utility::GetTime();
 
 		{
-			boost::mutex::scoped_lock lock(l_ProcessMutex[tid]);
+			boost::mutex::scoped_lock lock(l_IoThreads[tid].ProcessMutex);
 
-			count = 1 + l_Processes[tid].size();
+			count = 1 + l_IoThreads[tid].Processes.size();
 #ifdef _WIN32
 			handles = reinterpret_cast<HANDLE *>(realloc(handles, sizeof(HANDLE) * count));
 			fhandles = reinterpret_cast<HANDLE *>(realloc(fhandles, sizeof(HANDLE) * count));
 
-			fhandles[0] = l_Events[tid];
+			fhandles[0] = l_IoThreads[tid].Events;
 
 #else /* _WIN32 */
 			pfds = reinterpret_cast<pollfd *>(realloc(pfds, sizeof(pollfd) * count));
 
-			pfds[0].fd = l_EventFDs[tid][0];
+			pfds[0].fd = l_IoThreads[tid].EventFDs[0];
 			pfds[0].events = POLLIN;
 			pfds[0].revents = 0;
 #endif /* _WIN32 */
 
 			int i = 1;
 			typedef std::pair<ProcessHandle, Process::Ptr> kv_pair;
-			for (const kv_pair& kv : l_Processes[tid]) {
+			for (const kv_pair& kv : l_IoThreads[tid].Processes) {
 				const Process::Ptr& process = kv.second;
 #ifdef _WIN32
 				handles[i] = kv.first;
@@ -677,32 +687,32 @@ void Process::IOThreadProc(int tid)
 		now = Utility::GetTime();
 
 		{
-			boost::mutex::scoped_lock lock(l_ProcessMutex[tid]);
+			boost::mutex::scoped_lock lock(l_IoThreads[tid].ProcessMutex);
 
 #ifdef _WIN32
 			if (rc == WAIT_OBJECT_0)
-				ResetEvent(l_Events[tid]);
+				ResetEvent(l_IoThreads[tid].Events);
 #else /* _WIN32 */
 			if (pfds[0].revents & (POLLIN | POLLHUP | POLLERR)) {
 				char buffer[512];
-				if (read(l_EventFDs[tid][0], buffer, sizeof(buffer)) < 0)
+				if (read(l_IoThreads[tid].EventFDs[0], buffer, sizeof(buffer)) < 0)
 					Log(LogCritical, "base", "Read from event FD failed.");
 			}
 #endif /* _WIN32 */
 
 			for (int i = 1; i < count; i++) {
 #ifdef _WIN32
-				auto it = l_Processes[tid].find(handles[i]);
+				auto it = l_IoThreads[tid].Processes.find(handles[i]);
 #else /* _WIN32 */
-				auto it2 = l_FDs[tid].find(pfds[i].fd);
+				auto it2 = l_IoThreads[tid].FDs.find(pfds[i].fd);
 
-				if (it2 == l_FDs[tid].end())
+				if (it2 == l_IoThreads[tid].FDs.end())
 					continue; /* This should never happen. */
 
-				auto it = l_Processes[tid].find(it2->second);
+				auto it = l_IoThreads[tid].Processes.find(it2->second);
 #endif /* _WIN32 */
 
-				if (it == l_Processes[tid].end())
+				if (it == l_IoThreads[tid].Processes.end())
 					continue; /* This should never happen. */
 
 				bool is_timeout = false;
@@ -724,10 +734,10 @@ void Process::IOThreadProc(int tid)
 						CloseHandle(it->first);
 						CloseHandle(it->second->m_FD);
 #else /* _WIN32 */
-						l_FDs[tid].erase(it->second->m_FD);
+						l_IoThreads[tid].FDs.erase(it->second->m_FD);
 						(void)close(it->second->m_FD);
 #endif /* _WIN32 */
-						l_Processes[tid].erase(it);
+						l_IoThreads[tid].Processes.erase(it);
 					}
 				}
 			}
@@ -992,17 +1002,17 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	int tid = GetTID();
 
 	{
-		boost::mutex::scoped_lock lock(l_ProcessMutex[tid]);
-		l_Processes[tid][m_Process] = this;
+		boost::mutex::scoped_lock lock(l_IoThreads[tid].ProcessMutex);
+		l_IoThreads[tid].Processes[m_Process] = this;
 #ifndef _WIN32
-		l_FDs[tid][m_FD] = m_Process;
+		l_IoThreads[tid].FDs[m_FD] = m_Process;
 #endif /* _WIN32 */
 	}
 
 #ifdef _WIN32
-	SetEvent(l_Events[tid]);
+	SetEvent(l_IoThreads[tid].Events);
 #else /* _WIN32 */
-	if (write(l_EventFDs[tid][1], "T", 1) < 0 && errno != EINTR && errno != EAGAIN)
+	if (write(l_IoThreads[tid].EventFDs[1], "T", 1) < 0 && errno != EINTR && errno != EAGAIN)
 		Log(LogCritical, "base", "Write to event FD failed.");
 #endif /* _WIN32 */
 }
@@ -1133,6 +1143,6 @@ pid_t Process::GetPID() const
 
 int Process::GetTID() const
 {
-	return (reinterpret_cast<uintptr_t>(this) / sizeof(void *)) % IOTHREADS;
+	return (reinterpret_cast<uintptr_t>(this) / sizeof(void *)) % l_IoThreads.size();
 }
 
