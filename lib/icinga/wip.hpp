@@ -33,6 +33,9 @@ public:
 		struct {
 			Avg GetNextPending, AquireSlot, Prepare, IncreaseSlot, Enqueue, HaveTurn, FireCheck, DecreaseSlot, PostProcess;
 		} CheckerComponent;
+		struct {
+			Avg Prepare, FireCheck, IncreaseSlot;
+		} PluginCheckTask;
 	} Lantencies;
 };
 

@@ -20,6 +20,8 @@ REGISTER_FUNCTION_NONCONST(Internal, PluginCheck,  &PluginCheckTask::ScriptFunc,
 void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	Bench Prepare;
+
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
 
@@ -41,15 +43,25 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (!checkable->GetCheckTimeout().IsEmpty())
 		timeout = checkable->GetCheckTimeout();
 
+	l_Wip.Lantencies.PluginCheckTask.Prepare.Add(Prepare.Stop() * MinSecFrac);
+
+	Bench FireCheck;
+
 	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
 		resolvers, resolvedMacros, useResolvedMacros, timeout,
 		std::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2));
 
+	l_Wip.Lantencies.PluginCheckTask.FireCheck.Add(FireCheck.Stop() * MinSecFrac);
+
 	if (!resolvedMacros || useResolvedMacros)
 	{
+		Bench IncreaseSlot;
+
 		Checkable::CurrentConcurrentChecks.fetch_add(1);
 		Checkable::IncreasePendingChecks();
 		l_Wip.PT.Inc.fetch_add(1);
+
+		l_Wip.Lantencies.PluginCheckTask.IncreaseSlot.Add(IncreaseSlot.Stop() * MinSecFrac);
 	}
 }
 

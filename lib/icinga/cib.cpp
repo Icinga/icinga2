@@ -348,6 +348,11 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 			{ "FireCheck", l_Wip.Lantencies.CheckerComponent.FireCheck.Calc() / MinSecFrac },
 			{ "DecreaseSlot", l_Wip.Lantencies.CheckerComponent.DecreaseSlot.Calc() / MinSecFrac },
 			{ "PostProcess", l_Wip.Lantencies.CheckerComponent.PostProcess.Calc() / MinSecFrac }
+		}) },
+		{ "PluginCheckTask", new Dictionary({
+			{ "Prepare", l_Wip.Lantencies.PluginCheckTask.Prepare.Calc() / MinSecFrac },
+			{ "FireCheck", l_Wip.Lantencies.PluginCheckTask.FireCheck.Calc() / MinSecFrac },
+			{ "IncreaseSlot", l_Wip.Lantencies.PluginCheckTask.IncreaseSlot.Calc() / MinSecFrac }
 		}) }
 	}));
 }
