@@ -3,6 +3,7 @@
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 
+#include "base/atomic.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include <cstddef>
@@ -14,6 +15,7 @@
 #include <boost/asio/thread_pool.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
+#include <cstdint>
 
 namespace icinga
 {
@@ -52,7 +54,11 @@ public:
 		boost::shared_lock<decltype(m_Mutex)> lock (m_Mutex);
 
 		if (m_Pool) {
-			boost::asio::post(*m_Pool, [callback]() {
+			m_Pending.fetch_add(1);
+
+			boost::asio::post(*m_Pool, [this, callback]() {
+				m_Pending.fetch_sub(1);
+
 				try {
 					callback();
 				} catch (const std::exception& ex) {
@@ -70,10 +76,21 @@ public:
 		}
 	}
 
+	/**
+	 * Returns the amount of queued tasks not started yet.
+	 *
+	 * @returns amount of queued tasks.
+	 */
+	inline uint_fast64_t GetPending()
+	{
+		return m_Pending.load();
+	}
+
 private:
 	boost::shared_mutex m_Mutex;
 	std::unique_ptr<boost::asio::thread_pool> m_Pool;
 	size_t m_Threads;
+	Atomic<uint_fast64_t> m_Pending;
 };
 
 }
