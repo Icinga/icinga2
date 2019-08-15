@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/atomic.hpp"
 #include "base/process.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
@@ -13,6 +14,7 @@
 #include "base/json.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread/once.hpp>
+#include <cstdint>
 #include <thread>
 #include <iostream>
 #include <vector>
@@ -46,13 +48,36 @@ struct IoThread
 	IoThread();
 };
 
+#ifndef _WIN32
+struct SpawnProcessHelper
+{
+	boost::mutex ProcessControlMutex;
+	int ProcessControlFD = -1;
+	pid_t ProcessControlPID = -1;
+
+	inline SpawnProcessHelper()
+	{
+		Start();
+	}
+
+	inline pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment, bool adjustPriority, int fds[3]);
+	inline int ProcessKill(pid_t pid, int signum);
+	inline int ProcessWaitPID(pid_t pid, int *status);
+
+private:
+	void Start();
+	inline void Run();
+	inline Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& request);
+};
+#endif /* _WIN32 */
+
 static std::vector<IoThread> l_IoThreads;
 
 #ifndef _WIN32
-static boost::mutex l_ProcessControlMutex;
-static int l_ProcessControlFD = -1;
-static pid_t l_ProcessControlPID;
+static std::vector<SpawnProcessHelper> l_SpawnProcessHelpers;
+static Atomic<uint_fast64_t> l_NextHelperForSpawn (0);
 #endif /* _WIN32 */
+
 static boost::once_flag l_ProcessOnceFlag = BOOST_ONCE_INIT;
 static boost::once_flag l_SpawnHelperOnceFlag = BOOST_ONCE_INIT;
 
@@ -75,7 +100,7 @@ Process::~Process()
 }
 
 #ifndef _WIN32
-static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& request)
+inline Value SpawnProcessHelper::ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& request)
 {
 	struct cmsghdr *cmsg = CMSG_FIRSTHDR(msgh);
 
@@ -138,7 +163,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	if (pid == 0) {
 		// child process
 
-		(void)close(l_ProcessControlFD);
+		(void)close(ProcessControlFD);
 
 		if (setsid() < 0) {
 			perror("setsid() failed");
@@ -234,7 +259,7 @@ static Value ProcessWaitPIDImpl(struct msghdr *msgh, const Dictionary::Ptr& requ
 	return response;
 }
 
-static void ProcessHandler()
+inline void SpawnProcessHelper::Run()
 {
 	sigset_t mask;
 	sigfillset(&mask);
@@ -248,7 +273,7 @@ static void ProcessHandler()
 			maxfds = 65536;
 
 		for (rlim_t i = 3; i < maxfds; i++)
-			if (i != static_cast<rlim_t>(l_ProcessControlFD))
+			if (i != static_cast<rlim_t>(ProcessControlFD))
 				(void)close(i);
 	}
 
@@ -269,7 +294,7 @@ static void ProcessHandler()
 		msg.msg_control = cbuf;
 		msg.msg_controllen = sizeof(cbuf);
 
-		int rc = recvmsg(l_ProcessControlFD, &msg, 0);
+		int rc = recvmsg(ProcessControlFD, &msg, 0);
 
 		if (rc <= 0) {
 			if (rc < 0 && (errno == EINTR || errno == EAGAIN))
@@ -282,7 +307,7 @@ static void ProcessHandler()
 
 		size_t count = 0;
 		while (count < length) {
-			rc = recv(l_ProcessControlFD, mbuf + count, length - count, 0);
+			rc = recv(ProcessControlFD, mbuf + count, length - count, 0);
 
 			if (rc <= 0) {
 				if (rc < 0 && (errno == EINTR || errno == EAGAIN))
@@ -320,7 +345,7 @@ static void ProcessHandler()
 
 		String jresponse = JsonEncode(response);
 
-		if (send(l_ProcessControlFD, jresponse.CStr(), jresponse.GetLength(), 0) < 0) {
+		if (send(ProcessControlFD, jresponse.CStr(), jresponse.GetLength(), 0) < 0) {
 			BOOST_THROW_EXCEPTION(posix_error()
 				<< boost::errinfo_api_function("send")
 				<< boost::errinfo_errno(errno));
@@ -330,13 +355,15 @@ static void ProcessHandler()
 	_exit(0);
 }
 
-static void StartSpawnProcessHelper()
+void SpawnProcessHelper::Start()
 {
-	if (l_ProcessControlFD != -1) {
-		(void)close(l_ProcessControlFD);
+	if (ProcessControlFD != -1) {
+		(void)close(ProcessControlFD);
+		ProcessControlFD = -1;
 
 		int status;
-		(void)waitpid(l_ProcessControlPID, &status, 0);
+		(void)waitpid(ProcessControlPID, &status, 0);
+		ProcessControlPID = -1;
 	}
 
 	int controlFDs[2];
@@ -349,28 +376,33 @@ static void StartSpawnProcessHelper()
 	pid_t pid = fork();
 
 	if (pid < 0) {
+		int error = errno;
+
+		(void)close(controlFDs[0]);
+		(void)close(controlFDs[1]);
+
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("fork")
-			<< boost::errinfo_errno(errno));
+			<< boost::errinfo_errno(error));
 	}
 
 	if (pid == 0) {
 		(void)close(controlFDs[1]);
 
-		l_ProcessControlFD = controlFDs[0];
+		ProcessControlFD = controlFDs[0];
 
-		ProcessHandler();
+		Run();
 
 		_exit(1);
 	}
 
 	(void)close(controlFDs[0]);
 
-	l_ProcessControlFD = controlFDs[1];
-	l_ProcessControlPID = pid;
+	ProcessControlFD = controlFDs[1];
+	ProcessControlPID = pid;
 }
 
-static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment, bool adjustPriority, int fds[3])
+inline pid_t SpawnProcessHelper::ProcessSpawn(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment, bool adjustPriority, int fds[3])
 {
 	Dictionary::Ptr request = new Dictionary({
 		{ "command", "spawn" },
@@ -382,7 +414,7 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 	String jrequest = JsonEncode(request);
 	size_t length = jrequest.GetLength();
 
-	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
+	boost::mutex::scoped_lock lock(ProcessControlMutex);
 
 	struct msghdr msg;
 	memset(&msg, 0, sizeof(msg));
@@ -408,14 +440,14 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 	msg.msg_controllen = cmsg->cmsg_len;
 
 	do {
-		while (sendmsg(l_ProcessControlFD, &msg, 0) < 0) {
-			StartSpawnProcessHelper();
+		while (sendmsg(ProcessControlFD, &msg, 0) < 0) {
+			Start();
 		}
-	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
+	} while (send(ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
 
 	char buf[4096];
 
-	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
+	ssize_t rc = recv(ProcessControlFD, buf, sizeof(buf), 0);
 
 	if (rc <= 0)
 		return -1;
@@ -430,7 +462,7 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 	return response->Get("rc");
 }
 
-static int ProcessKill(pid_t pid, int signum)
+inline int SpawnProcessHelper::ProcessKill(pid_t pid, int signum)
 {
 	Dictionary::Ptr request = new Dictionary({
 		{ "command", "kill" },
@@ -441,17 +473,17 @@ static int ProcessKill(pid_t pid, int signum)
 	String jrequest = JsonEncode(request);
 	size_t length = jrequest.GetLength();
 
-	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
+	boost::mutex::scoped_lock lock(ProcessControlMutex);
 
 	do {
-		while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0) {
-			StartSpawnProcessHelper();
+		while (send(ProcessControlFD, &length, sizeof(length), 0) < 0) {
+			Start();
 		}
-	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
+	} while (send(ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
 
 	char buf[4096];
 
-	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
+	ssize_t rc = recv(ProcessControlFD, buf, sizeof(buf), 0);
 
 	if (rc <= 0)
 		return -1;
@@ -462,7 +494,7 @@ static int ProcessKill(pid_t pid, int signum)
 	return response->Get("errno");
 }
 
-static int ProcessWaitPID(pid_t pid, int *status)
+inline int SpawnProcessHelper::ProcessWaitPID(pid_t pid, int *status)
 {
 	Dictionary::Ptr request = new Dictionary({
 		{ "command", "waitpid" },
@@ -472,17 +504,17 @@ static int ProcessWaitPID(pid_t pid, int *status)
 	String jrequest = JsonEncode(request);
 	size_t length = jrequest.GetLength();
 
-	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
+	boost::mutex::scoped_lock lock(ProcessControlMutex);
 
 	do {
-		while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0) {
-			StartSpawnProcessHelper();
+		while (send(ProcessControlFD, &length, sizeof(length), 0) < 0) {
+			Start();
 		}
-	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
+	} while (send(ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
 
 	char buf[4096];
 
-	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
+	ssize_t rc = recv(ProcessControlFD, buf, sizeof(buf), 0);
 
 	if (rc <= 0)
 		return -1;
@@ -496,8 +528,13 @@ static int ProcessWaitPID(pid_t pid, int *status)
 
 void Process::InitializeSpawnHelper()
 {
-	if (l_ProcessControlFD == -1)
-		StartSpawnProcessHelper();
+	auto cores (std::thread::hardware_concurrency());
+
+	if (cores < 4u) {
+		cores = 4u;
+	}
+
+	l_SpawnProcessHelpers = decltype(l_SpawnProcessHelpers)(cores);
 }
 #endif /* _WIN32 */
 
@@ -979,7 +1016,8 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	fds[1] = outfds[1];
 	fds[2] = outfds[1];
 
-	m_Process = ProcessSpawn(m_Arguments, m_ExtraEnvironment, m_AdjustPriority, fds);
+	m_ManagerIndex = l_NextHelperForSpawn.fetch_add(1) % l_SpawnProcessHelpers.size();
+	m_Process = l_SpawnProcessHelpers[m_ManagerIndex].ProcessSpawn(m_Arguments, m_ExtraEnvironment, m_AdjustPriority, fds);
 	m_PID = m_Process;
 
 	if (m_PID == -1) {
@@ -1036,7 +1074,7 @@ bool Process::DoEvents()
 #ifdef _WIN32
 			TerminateProcess(m_Process, 1);
 #else /* _WIN32 */
-			int error = ProcessKill(-m_Process, SIGKILL);
+			int error = l_SpawnProcessHelpers[m_ManagerIndex].ProcessKill(-m_Process, SIGKILL);
 			if (error) {
 				Log(LogWarning, "Process")
 					<< "Couldn't kill the process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
@@ -1090,7 +1128,7 @@ bool Process::DoEvents()
 	int status, exitcode;
 	if (could_not_kill || m_PID == -1) {
 		exitcode = 128;
-	} else if (ProcessWaitPID(m_Process, &status) != m_Process) {
+	} else if (l_SpawnProcessHelpers[m_ManagerIndex].ProcessWaitPID(m_Process, &status) != m_Process) {
 		exitcode = 128;
 
 		Log(LogWarning, "Process")

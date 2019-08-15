@@ -5,6 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
+#include <cstddef>
 #include <iosfwd>
 #include <deque>
 #include <vector>
@@ -89,6 +90,8 @@ private:
 	bool m_ReadFailed;
 	OVERLAPPED m_Overlapped;
 	char m_ReadBuffer[1024];
+#else /* _WIN32 */
+	size_t m_ManagerIndex;
 #endif /* _WIN32 */
 
 	std::ostringstream m_OutputStream;
