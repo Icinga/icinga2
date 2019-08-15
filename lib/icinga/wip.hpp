@@ -36,6 +36,9 @@ public:
 		struct {
 			Avg Prepare, FireCheck, IncreaseSlot;
 		} PluginCheckTask;
+		struct {
+			Avg ResolveMacros, Prepare, FireCheck;
+		} PluginUtility;
 	} Lantencies;
 };
 

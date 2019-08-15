@@ -18,6 +18,8 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int timeout,
 	const std::function<void(const Value& commandLine, const ProcessResult&)>& callback)
 {
+	Bench ResolveMacros;
+
 	Value raw_command = commandObj->GetCommandLine();
 	Dictionary::Ptr raw_arguments = commandObj->GetArguments();
 
@@ -43,6 +45,10 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 		return;
 	}
+
+	l_Wip.Lantencies.PluginUtility.ResolveMacros.Add(ResolveMacros.Stop() * MinSecFrac);
+
+	Bench Prepare;
 
 	Dictionary::Ptr envMacros = new Dictionary();
 
@@ -74,12 +80,18 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
+	l_Wip.Lantencies.PluginUtility.Prepare.Add(Prepare.Stop() * MinSecFrac);
+
+	Bench FireCheck;
+
 	Process::Ptr process = new Process(Process::PrepareCommand(command), envMacros);
 
 	process->SetTimeout(timeout);
 	process->SetAdjustPriority(true);
 
 	process->Run(std::bind(callback, command, _1));
+
+	l_Wip.Lantencies.PluginUtility.FireCheck.Add(FireCheck.Stop() * MinSecFrac);
 }
 
 ServiceState PluginUtility::ExitStatusToState(int exitStatus)
