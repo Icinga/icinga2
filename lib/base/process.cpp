@@ -414,8 +414,6 @@ inline pid_t SpawnProcessHelper::ProcessSpawn(const std::vector<String>& argumen
 	String jrequest = JsonEncode(request);
 	size_t length = jrequest.GetLength();
 
-	boost::mutex::scoped_lock lock(ProcessControlMutex);
-
 	struct msghdr msg;
 	memset(&msg, 0, sizeof(msg));
 
@@ -439,6 +437,8 @@ inline pid_t SpawnProcessHelper::ProcessSpawn(const std::vector<String>& argumen
 
 	msg.msg_controllen = cmsg->cmsg_len;
 
+	boost::mutex::scoped_lock lock(ProcessControlMutex);
+
 	do {
 		while (sendmsg(ProcessControlFD, &msg, 0) < 0) {
 			Start();
@@ -448,6 +448,8 @@ inline pid_t SpawnProcessHelper::ProcessSpawn(const std::vector<String>& argumen
 	char buf[4096];
 
 	ssize_t rc = recv(ProcessControlFD, buf, sizeof(buf), 0);
+
+	lock.unlock();
 
 	if (rc <= 0)
 		return -1;
@@ -485,6 +487,8 @@ inline int SpawnProcessHelper::ProcessKill(pid_t pid, int signum)
 
 	ssize_t rc = recv(ProcessControlFD, buf, sizeof(buf), 0);
 
+	lock.unlock();
+
 	if (rc <= 0)
 		return -1;
 
@@ -515,6 +519,8 @@ inline int SpawnProcessHelper::ProcessWaitPID(pid_t pid, int *status)
 	char buf[4096];
 
 	ssize_t rc = recv(ProcessControlFD, buf, sizeof(buf), 0);
+
+	lock.unlock();
 
 	if (rc <= 0)
 		return -1;
