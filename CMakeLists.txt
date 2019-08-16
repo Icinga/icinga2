@@ -180,6 +180,9 @@ include_directories(${JSON_INCLUDE})
 find_package(UTF8CPP)
 include_directories(${UTF8CPP_INCLUDE})
 
+# Boost.Fiber + Boost.ASIO
+include_directories(${PROJECT_SOURCE_DIR}/third-party)
+
 find_package(Editline)
 set(HAVE_EDITLINE "${EDITLINE_FOUND}")
 
