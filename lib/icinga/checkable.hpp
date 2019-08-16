@@ -3,6 +3,7 @@
 #ifndef CHECKABLE_H
 #define CHECKABLE_H
 
+#include "base/atomic.hpp"
 #include "base/timer.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkable-ti.hpp"
@@ -12,6 +13,7 @@
 #include "icinga/downtime.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
+#include <cstdint>
 
 namespace icinga
 {
@@ -130,6 +132,8 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnNextCheckUpdated;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
+
+	static Atomic<uint_fast64_t> CurrentConcurrentChecks;
 
 	/* Downtimes */
 	int GetDowntimeDepth() const final;
