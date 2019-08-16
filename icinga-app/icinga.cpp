@@ -17,6 +17,7 @@
 #include "base/context.hpp"
 #include "base/console.hpp"
 #include "base/process.hpp"
+#include "perl/languageperl.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -909,6 +910,19 @@ static VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 */
 int main(int argc, char **argv)
 {
+	LanguagePerl::Ptr perl = new LanguagePerl();
+
+	//Clone this here, temporarily
+	Configuration::LibDir = ICINGA_LIBDIR;
+
+	//This exits already.
+	perl->RunStandalone("/usr/local/sbin/check_snmp_int.pl", "-H localhost -C public -n en0");
+
+
+	Application::Exit(0);
+
+
+
 #ifndef _WIN32
 	String keepFDs = Utility::GetFromEnvironment("ICINGA2_KEEP_FDS");
 	if (keepFDs.IsEmpty()) {
