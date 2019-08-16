@@ -218,6 +218,18 @@ if(WIN32)
   list(APPEND base_DEPS ws2_32 dbghelp shlwapi msi)
 endif()
 
+# Perl
+# Note: Add this after everything else to prepend the header/lib lookup path
+include(FindPerlLibs)
+
+if (NOT MSVC)
+  if(PERLLIBS_FOUND)
+    message(STATUS "Found perl includes in '${PERL_INCLUDE_PATH}' and libs in '${PERL_LIBRARY}'")
+    list(APPEND base_DEPS ${PERL_LIBRARY})
+    include_directories(${PERL_INCLUDE_PATH})
+  endif()
+endif()
+
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
 
