@@ -3293,6 +3293,19 @@ mem_cache    | **Optional.** If set to true, plugin will count cache as free mem
 mem_warning  | **Required.** Specify the warning threshold as number interpreted as percent.
 mem_critical | **Required.** Specify the critical threshold as number interpreted as percent.
 
+#### sar-perf <a id="plugin-contrib-command-sar-perf"></a>
+
+The [check_sar_perf.py](https://github.com/dnsmichi/check-sar-perf)
+plugin collects performance metrics from Linux hosts using the `sar` binary available in the `sysstat` package.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name             | Description
+-----------------|-----------------------------------------------------------------------------------------------------------------------
+sar_perf_profile | **Required.** Define the run profile: `pagestat`, `cpu`, `memory_util`, `memory_stat`, `io_transfer`, `queueln_load`, `swap_util`, `swap_stat`, `task`, `kernel`, `disk <disk>`. Can be a string or an array of multiple profiles.
+sar_perf_disk    | **Optional.** Disk name for the 'disk' profile.
+
+
 #### running_kernel <a id="plugin-contrib-command-running_kernel"></a>
 
 The [check_running_kernel](https://packages.debian.org/stretch/nagios-plugins-contrib) plugin
