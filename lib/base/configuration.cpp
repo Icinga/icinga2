@@ -19,6 +19,7 @@ String Configuration::EventEngine;
 String Configuration::IncludeConfDir;
 String Configuration::InitRunDir;
 String Configuration::LogDir;
+String Configuration::LibDir;
 String Configuration::ModAttrPath;
 String Configuration::ObjectsPath;
 String Configuration::PidPath;
@@ -151,6 +152,16 @@ String Configuration::GetInitRunDir() const
 void Configuration::SetInitRunDir(const String& val, bool suppress_events, const Value& cookie)
 {
 	HandleUserWrite("InitRunDir", &Configuration::InitRunDir, val, m_ReadOnly);
+}
+
+String Configuration::GetLibDir() const
+{
+	return Configuration::LibDir;
+}
+
+void Configuration::SetLibDir(const String& val, bool suppress_events, const Value& cookie)
+{
+	HandleUserWrite("LibDir", &Configuration::LibDir, val, m_ReadOnly);
 }
 
 String Configuration::GetLogDir() const

@@ -218,6 +218,8 @@ static int Main()
 
 		Configuration::InitRunDir = ICINGA_INITRUNDIR;
 
+		Configuration::LibDir = ICINGA_LIBDIR;
+
 #ifdef _WIN32
 	}
 #endif /* _WIN32 */

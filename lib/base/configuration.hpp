@@ -49,6 +49,9 @@ public:
 	String GetInitRunDir() const override;
 	void SetInitRunDir(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
 
+	String GetLibDir() const override;
+	void SetLibDir(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
+
 	String GetLogDir() const override;
 	void SetLogDir(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
 
@@ -124,6 +127,7 @@ public:
 	static String IncludeConfDir;
 	static String InitRunDir;
 	static String LogDir;
+	static String LibDir;
 	static String ModAttrPath;
 	static String ObjectsPath;
 	static String PidPath;

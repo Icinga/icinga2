@@ -59,6 +59,11 @@ abstract class Configuration
 		set;
 	};
 
+	[config, no_storage, virtual] String LibDir {
+		get;
+		set;
+	};
+
 	[config, no_storage, virtual] String LogDir {
 		get;
 		set;
