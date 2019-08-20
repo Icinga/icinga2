@@ -402,8 +402,7 @@ if(NOT MSVC)
 
   message(STATUS "Target architecture - ${ARCH}")
 
-  # ARM settings
-  if("${ARCH}" STREQUAL "arm")
+  if("${ARCH}" STREQUAL "arm" OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     check_cxx_source_compiles( "include <atomic>; int main(){ std::atomic<uint_fast64_t> x; x.fetch_add(1); x.sub_add(1);  }" CXX_ATOMIC)
 
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -latomic")
