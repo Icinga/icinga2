@@ -20,6 +20,7 @@ option(ICINGA2_WITH_COMPAT "Build the compat module" ON)
 option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ON)
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
+option(ICINGA2_WITH_PERL "Build with embedded perl interpreter" ON)
 option(ICINGA2_WITH_TESTS "Run unit tests" ON)
 
 option (USE_SYSTEMD
@@ -219,14 +220,54 @@ if(WIN32)
 endif()
 
 # Perl
-# Note: Add this after everything else to prepend the header/lib lookup path
-include(FindPerlLibs)
+if(ICINGA2_WITH_PERL)
+  # Note: Add this after everything else to prepend the header/lib lookup path
+  # TODO: Figure out which dependencies are needed for building packages:
+  # - libperl-dev
+  # - ExtUtils-Embed
+  include(FindPerlLibs)
 
-if (NOT MSVC)
-  if(PERLLIBS_FOUND)
-    message(STATUS "Found perl includes in '${PERL_INCLUDE_PATH}' and libs in '${PERL_LIBRARY}'")
-    list(APPEND base_DEPS ${PERL_LIBRARY})
-    include_directories(${PERL_INCLUDE_PATH})
+  if (NOT MSVC)
+    if(PERLLIBS_FOUND)
+      message(STATUS "Found perl includes in '${PERL_INCLUDE_PATH}' and libs in '${PERL_LIBRARY}'")
+
+      # TODO: Figure out whether we want to move the Perl code into the icinga2 binary, or use a shim library like MySQL for dependencies
+      list(APPEND base_DEPS ${PERL_LIBRARY})
+      include_directories(${PERL_INCLUDE_PATH})
+
+      execute_process(
+        COMMAND ${PERL_EXECUTABLE} "-MExtUtils::Embed" -e ccopts
+        RESULT_VARIABLE RESULT
+        OUTPUT_VARIABLE PERL_CXX_FLAGS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+
+      if (RESULT)
+        message(ERROR "Failed to detect compiler options for Perl with '${PERL_EXECUTABLE} -MExtUtils::Embed -e ccopts': ${RESULT}")
+      else()
+        message(STATUS "Compiler options for Perl: ${PERL_CXX_FLAGS}")
+      endif()
+
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PERL_CXX_FLAGS}")
+
+      execute_process(
+        COMMAND ${PERL_EXECUTABLE} "-MExtUtils::Embed" -e ldopts
+        RESULT_VARIABLE RESULT
+        OUTPUT_VARIABLE PERL_LINKER_FLAGS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+
+      if (RESULT)
+        message(ERROR "Failed to detect linker options for Perl with '${PERL_EXECUTABLE} -MExtUtils::Embed -e ldopts': ${RESULT}")
+      else()
+        message(STATUS "Linker options for Perl: ${PERL_LINKER_FLAGS}")
+      endif()
+
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PERL_LINKER_FLAGS} ")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${PERL_LINKER_FLAGS} ")
+
+      set(HAVE_EMBEDDED_PERL TRUE)
+    endif()
   endif()
 endif()
 

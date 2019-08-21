@@ -53,6 +53,10 @@ if(ICINGA2_WITH_PERFDATA)
   list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:perfdata>)
 endif()
 
+if(ICINGA2_WITH_PERL)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:perl>)
+endif()
+
 add_executable(icinga-app
   $<TARGET_OBJECTS:icingaloader>
   ${base_OBJS}
