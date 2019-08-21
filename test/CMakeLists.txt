@@ -8,6 +8,7 @@ set(base_test_SOURCES
   base-base64.cpp
   base-convert.cpp
   base-dictionary.cpp
+  base-fibers.cpp
   base-fifo.cpp
   base-json.cpp
   base-match.cpp
@@ -67,6 +68,7 @@ add_boost_test(base
     base_dictionary/remove
     base_dictionary/clone
     base_dictionary/json
+    base_fibers/working
     base_fifo/construct
     base_fifo/io
     base_json/encode
