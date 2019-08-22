@@ -337,6 +337,28 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
 	return IsInTimeRange(&begin, &end, stride, reference);
 }
 
+static inline
+void ProcessTimeRaw(const String& in, tm *reference, tm *out)
+{
+	*out = *reference;
+
+	auto hd (in.Split(":"));
+
+	switch (hd.size()) {
+		case 2:
+			out->tm_sec = 0;
+			break;
+		case 3:
+			out->tm_sec = Convert::ToLong(hd[2]);
+			break;
+		default:
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + in));
+	}
+
+	out->tm_hour = Convert::ToLong(hd[0]);
+	out->tm_min = Convert::ToLong(hd[1]);
+}
+
 void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *reference, tm *begin, tm *end)
 {
 	std::vector<String> times = timerange.Split("-");
@@ -344,25 +366,8 @@ void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *referenc
 	if (times.size() != 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid timerange: " + timerange));
 
-	std::vector<String> hd1 = times[0].Split(":");
-
-	if (hd1.size() != 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + times[0]));
-
-	std::vector<String> hd2 = times[1].Split(":");
-
-	if (hd2.size() != 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + times[1]));
-
-	*begin = *reference;
-	begin->tm_sec = 0;
-	begin->tm_min = Convert::ToLong(hd1[1]);
-	begin->tm_hour = Convert::ToLong(hd1[0]);
-
-	*end = *reference;
-	end->tm_sec = 0;
-	end->tm_min = Convert::ToLong(hd2[1]);
-	end->tm_hour = Convert::ToLong(hd2[0]);
+	ProcessTimeRaw(times[0], reference, begin);
+	ProcessTimeRaw(times[1], reference, end);
 
 	if (begin->tm_hour * 3600 + begin->tm_min * 60 + begin->tm_sec >=
 		end->tm_hour * 3600 + end->tm_min * 60 + end->tm_sec)

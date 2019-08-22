@@ -199,6 +199,38 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK_EQUAL(end, expectedEnd);
 }
 
+struct DateTime
+{
+	struct {
+		int Year, Month, Day;
+	} Date;
+	struct {
+		int Hour, Minute, Second;
+	} Time;
+};
+
+static inline
+void AdvancedHelper(const char *timestamp, DateTime from, DateTime to)
+{
+	using boost::gregorian::date;
+	using boost::posix_time::ptime;
+	using boost::posix_time::ptime_from_tm;
+	using boost::posix_time::time_duration;
+
+	tm tm_beg, tm_end, tm_ref;
+
+	tm_ref.tm_year = from.Date.Year - 1900;
+	tm_ref.tm_mon = from.Date.Month - 1;
+	tm_ref.tm_mday = from.Date.Day;
+
+	// Run test
+	LegacyTimePeriod::ProcessTimeRangeRaw(timestamp, &tm_ref, &tm_beg, &tm_end);
+
+	// Compare times
+	BOOST_CHECK_EQUAL(ptime_from_tm(tm_beg), ptime(date(from.Date.Year, from.Date.Month, from.Date.Day), time_duration(from.Time.Hour, from.Time.Minute, from.Time.Second)));
+	BOOST_CHECK_EQUAL(ptime_from_tm(tm_end), ptime(date(to.Date.Year, to.Date.Month, to.Date.Day), time_duration(to.Time.Hour, to.Time.Minute, to.Time.Second)));
+}
+
 BOOST_AUTO_TEST_CASE(advanced)
 {
 	tm tm_beg, tm_end, tm_ref;
@@ -211,68 +243,26 @@ BOOST_AUTO_TEST_CASE(advanced)
 	//-----------------------------------------------------
 	// 2019-05-06 where Icinga celebrates 10 years #monitoringlove
 	// 2019-05-06 22:00:00 - 2019-05-07 06:00:00
-	timestamp = "22:00-06:00";
-	tm_ref.tm_year = 2019 - 1900;
-	tm_ref.tm_mon = 5 - 1;
-	tm_ref.tm_mday = 6;
-
-	expectedBegin = boost::posix_time::ptime(boost::gregorian::date(2019, 5, 6), boost::posix_time::time_duration(22, 0, 0));
-
-	expectedEnd = boost::posix_time::ptime(boost::gregorian::date(2019, 5, 7), boost::posix_time::time_duration(6, 0, 0));
-
-	// Run test
-	LegacyTimePeriod::ProcessTimeRangeRaw(timestamp, &tm_ref, &tm_beg, &tm_end);
-
-	// Compare times
-	begin = boost::posix_time::ptime_from_tm(tm_beg);
-	end = boost::posix_time::ptime_from_tm(tm_end);
-
-	BOOST_CHECK_EQUAL(begin, expectedBegin);
-	BOOST_CHECK_EQUAL(end, expectedEnd);
+	AdvancedHelper("22:00-06:00", {{2019, 5, 6}, {22, 0, 0}}, {{2019, 5, 7}, {6, 0, 0}});
+	AdvancedHelper("22:00:01-06:00", {{2019, 5, 6}, {22, 0, 1}}, {{2019, 5, 7}, {6, 0, 0}});
+	AdvancedHelper("22:00-06:00:02", {{2019, 5, 6}, {22, 0, 0}}, {{2019, 5, 7}, {6, 0, 2}});
+	AdvancedHelper("22:00:03-06:00:04", {{2019, 5, 6}, {22, 0, 3}}, {{2019, 5, 7}, {6, 0, 4}});
 
 	//-----------------------------------------------------
 	// 2019-05-06 Icinga is unleashed.
 	// 09:00:00 - 17:00:00
-	timestamp = "09:00-17:00";
-	tm_ref.tm_year = 2009 - 1900;
-	tm_ref.tm_mon = 5 - 1;
-	tm_ref.tm_mday = 6;
-
-	expectedBegin = boost::posix_time::ptime(boost::gregorian::date(2009, 5, 6), boost::posix_time::time_duration(9, 0, 0));
-
-	expectedEnd = boost::posix_time::ptime(boost::gregorian::date(2009, 5, 6), boost::posix_time::time_duration(17, 0, 0));
-
-	// Run test
-	LegacyTimePeriod::ProcessTimeRangeRaw(timestamp, &tm_ref, &tm_beg, &tm_end);
-
-	// Compare times
-	begin = boost::posix_time::ptime_from_tm(tm_beg);
-	end = boost::posix_time::ptime_from_tm(tm_end);
-
-	BOOST_CHECK_EQUAL(begin, expectedBegin);
-	BOOST_CHECK_EQUAL(end, expectedEnd);
+	AdvancedHelper("09:00-17:00", {{2009, 5, 6}, {9, 0, 0}}, {{2009, 5, 6}, {17, 0, 0}});
+	AdvancedHelper("09:00:01-17:00", {{2009, 5, 6}, {9, 0, 1}}, {{2009, 5, 6}, {17, 0, 0}});
+	AdvancedHelper("09:00-17:00:02", {{2009, 5, 6}, {9, 0, 0}}, {{2009, 5, 6}, {17, 0, 2}});
+	AdvancedHelper("09:00:03-17:00:04", {{2009, 5, 6}, {9, 0, 3}}, {{2009, 5, 6}, {17, 0, 4}});
 
 	//-----------------------------------------------------
 	// At our first Icinga Camp in SFO 2014 at GitHub HQ, we partied all night long with an overflow.
 	// 2014-09-24 09:00:00 - 2014-09-25 06:00:00
-	timestamp = "09:00-30:00";
-	tm_ref.tm_year = 2014 - 1900;
-	tm_ref.tm_mon = 9 - 1;
-	tm_ref.tm_mday = 24;
-
-	expectedBegin = boost::posix_time::ptime(boost::gregorian::date(2014, 9, 24), boost::posix_time::time_duration(9, 0, 0));
-
-	expectedEnd = boost::posix_time::ptime(boost::gregorian::date(2014, 9, 25), boost::posix_time::time_duration(6, 0, 0));
-
-	// Run test
-	LegacyTimePeriod::ProcessTimeRangeRaw(timestamp, &tm_ref, &tm_beg, &tm_end);
-
-	// Compare times
-	begin = boost::posix_time::ptime_from_tm(tm_beg);
-	end = boost::posix_time::ptime_from_tm(tm_end);
-
-	BOOST_CHECK_EQUAL(begin, expectedBegin);
-	BOOST_CHECK_EQUAL(end, expectedEnd);
+	AdvancedHelper("09:00-30:00", {{2014, 9, 24}, {9, 0, 0}}, {{2014, 9, 25}, {6, 0, 0}});
+	AdvancedHelper("09:00:01-30:00", {{2014, 9, 24}, {9, 0, 1}}, {{2014, 9, 25}, {6, 0, 0}});
+	AdvancedHelper("09:00-30:00:02", {{2014, 9, 24}, {9, 0, 0}}, {{2014, 9, 25}, {6, 0, 2}});
+	AdvancedHelper("09:00:03-30:00:04", {{2014, 9, 24}, {9, 0, 3}}, {{2014, 9, 25}, {6, 0, 4}});
 }
 
 BOOST_AUTO_TEST_SUITE_END()
