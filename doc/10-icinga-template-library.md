@@ -1485,6 +1485,21 @@ users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20
 users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
 
 
+### uptime <a id="plugin-check-command-uptime"></a>
+
+The [check_uptime](https://www.monitoring-plugins.org/doc/man/check_uptime.html) plugin
+checks the uptime of the system using /proc/uptime.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name            | Description
+----------------|--------------
+uptime_warning  | **Required.** Min. number of uptime to generate warning (-w 30m). Defaults to 30m.
+uptime_critical | **Required.** Min. number of uptime to generate critical alert (-c 15m). Defaults to 15m.
+uptime_for      | **Optional.** Show uptime in a pretty format (Running for x weeks, x days, ...). Defaults to false.
+uptime_since    | **Optional.** Show last boot in yyyy-mm-dd HH:MM:SS format (output from 'uptime -s'). Defaults to false.
+
+
 
 ## Windows Plugins for Icinga 2 <a id="windows-plugins"></a>
 
