@@ -200,6 +200,16 @@ void JsonRpcConnection::Disconnect()
 			Log(LogWarning, "JsonRpcConnection")
 				<< "API client disconnected for identity '" << m_Identity << "'";
 
+			{
+				CpuBoundWork removeClient (yc);
+
+				if (m_Endpoint) {
+					m_Endpoint->RemoveClient(this);
+				} else {
+					ApiListener::GetInstance()->RemoveAnonymousClient(this);
+				}
+			}
+
 			m_OutgoingMessagesQueued.Set();
 
 			m_WriterDone.Wait(yc);
@@ -221,15 +231,6 @@ void JsonRpcConnection::Disconnect()
 
 			m_CheckLivenessTimer.cancel();
 			m_HeartbeatTimer.cancel();
-
-			CpuBoundWork removeClient (yc);
-
-			if (m_Endpoint) {
-				m_Endpoint->RemoveClient(this);
-			} else {
-				auto listener (ApiListener::GetInstance());
-				listener->RemoveAnonymousClient(this);
-			}
 		}
 	});
 }
