@@ -268,64 +268,16 @@ static Dictionary::Ptr FetchData(const String& host, const String& port, const S
 		throw ex;
 	}
 
-	/* We need to read the header and body manually, since the header will always throw an error.
-	 * Details: Missing status string in header, https://github.com/mickem/nscp/issues/610
-	 * Inspiration: example_incremental_read from https://www.boost.org/doc/libs/1_66_0/libs/beast/example/doc/http_examples.hpp
-	 */
-	std::ostringstream msgbuf;
-
 	beast::flat_buffer buffer;
-	boost::system::error_code ec;
+	http::parser<false, http::string_body> p;
 
-	/* Create a parser which has a buffer body for reading the input.
-	 * Ensure to pass ec for handling errors ourselves, and having the buffer ready.
-	 */
-	http::parser<false, http::buffer_body> p;
-
-	http::read(*tlsStream, buffer, p, ec);
-
-	if (ec) {
-		/* Ignore any bad_status/bad_reason errors since NSCP doesn't set them. */
-		if (ec != http::error::bad_status && ec != http::error::bad_reason) {
-			String message = "Error reading HTTP response data: " + ec.message();
-			BOOST_THROW_EXCEPTION(ScriptError(message));
-		} else if (l_Debug) {
-			std::cout << "NSCP just sent a wrong status reason, we've ignored it. See https://github.com/Icinga/icinga2/pull/7142" << std::endl;
-		}
+	try {
+		http::read(*tlsStream, buffer, p);
+	} catch (const std::exception &ex) {
+		BOOST_THROW_EXCEPTION(ScriptError(String("Error reading HTTP response data: ") + ex.what()));
 	}
 
-	String rawResponse = beast::buffers_to_string(buffer.data());
-
-	if (l_Debug)
-		std::cout << "Raw data: " << rawResponse << std::endl;
-
-	/* At this stage we have the raw request. Since NSCP always returns HTTP/1.1 200 with missing OK for requests anyways,
-	 * we don't care about the header. Let's just extract the JSON body.
-	 */
-
-	std::vector<String> lines = rawResponse.Split("\n");
-
-	size_t i = 0;
-
-	for (i = 0; i < lines.size(); i++) {
-		String line = lines[i].Trim();
-
-		if (l_Debug)
-			std::cout << "Line: " << line << std::endl;
-
-		if (line == "") // Empty line means that body is reached.
-			break;
-	}
-
-	String body;
-	size_t bodyIdx = ++i;
-
-	// Avoid crashes with empty bodies.
-	if (bodyIdx < lines.size())
-		body = lines[bodyIdx];
-
-	// Strip any control characters
-	body.erase(boost::remove_if(body, ::iscntrl), body.End());
+	String body (std::move(p.get().body()));
 
 	if (l_Debug)
 		std::cout << "Received body from NSCP: '" << body << "'." << std::endl;
