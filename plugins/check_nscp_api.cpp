@@ -21,8 +21,11 @@
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/range/algorithm/remove_if.hpp>
+#include <boost/asio/buffer.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/beast.hpp>
+#include <cstddef>
+#include <cstring>
 #include <iostream>
 
 using namespace icinga;
@@ -206,6 +209,118 @@ static std::shared_ptr<AsioTlsStream> Connect(const String& host, const String& 
 	return std::move(stream);
 }
 
+static const char l_ReasonToInject[2] = {' ', 'X'};
+
+template<class MutableBufferSequence>
+static inline
+boost::asio::mutable_buffer GetFirstNonZeroBuffer(const MutableBufferSequence& mbs)
+{
+	namespace asio = boost::asio;
+
+	auto end (asio::buffer_sequence_end(mbs));
+
+	for (auto current (asio::buffer_sequence_begin(mbs)); current != end; ++current) {
+		asio::mutable_buffer buf (*current);
+
+		if (buf.size() > 0u) {
+			return std::move(buf);
+		}
+	}
+
+	return {};
+}
+
+/**
+ * Workaround for <https://github.com/mickem/nscp/issues/610>.
+ */
+template<class SyncReadStream>
+class HttpResponseReasonInjector
+{
+public:
+	inline HttpResponseReasonInjector(SyncReadStream& stream)
+		: m_Stream(stream), m_ReasonHasBeenInjected(false), m_StashedData(nullptr)
+	{
+	}
+
+	HttpResponseReasonInjector(const HttpResponseReasonInjector&) = delete;
+	HttpResponseReasonInjector(HttpResponseReasonInjector&&) = delete;
+	HttpResponseReasonInjector& operator=(const HttpResponseReasonInjector&) = delete;
+	HttpResponseReasonInjector& operator=(HttpResponseReasonInjector&&) = delete;
+
+	template<class MutableBufferSequence>
+	size_t read_some(const MutableBufferSequence& mbs)
+	{
+		boost::system::error_code ec;
+		size_t amount = read_some(mbs, ec);
+
+		if (ec) {
+			throw boost::system::system_error(ec);
+		}
+
+		return amount;
+	}
+
+	template<class MutableBufferSequence>
+	size_t read_some(const MutableBufferSequence& mbs, boost::system::error_code& ec)
+	{
+		auto mb (GetFirstNonZeroBuffer(mbs));
+
+		if (m_StashedData) {
+			size_t amount = 0;
+			auto end ((char*)mb.data() + mb.size());
+
+			for (auto current ((char*)mb.data()); current < end; ++current) {
+				*current = *m_StashedData;
+
+				++m_StashedData;
+				++amount;
+
+				if (m_StashedData == (char*)m_StashedDataBuf + (sizeof(m_StashedDataBuf) / sizeof(m_StashedDataBuf[0]))) {
+					m_StashedData = nullptr;
+					break;
+				}
+			}
+
+			return amount;
+		}
+
+		size_t amount = m_Stream.read_some(mb, ec);
+
+		if (!ec && !m_ReasonHasBeenInjected) {
+			auto end ((char*)mb.data() + amount);
+
+			for (auto current ((char*)mb.data()); current < end; ++current) {
+				if (*current == '\r') {
+					auto last (end - 1);
+
+					for (size_t i = sizeof(l_ReasonToInject) / sizeof(l_ReasonToInject[0]); i;) {
+						m_StashedDataBuf[--i] = *last;
+
+						if (last > current) {
+							memmove(current + 1, current, last - current);
+						}
+
+						*current = l_ReasonToInject[i];
+					}
+
+					m_ReasonHasBeenInjected = true;
+					m_StashedData = m_StashedDataBuf;
+
+					break;
+				}
+			}
+		}
+
+		return amount;
+	}
+
+private:
+	SyncReadStream& m_Stream;
+	bool m_ReasonHasBeenInjected;
+	char m_StashedDataBuf[sizeof(l_ReasonToInject) / sizeof(l_ReasonToInject[0])];
+	char* m_StashedData;
+};
+
 /**
  * Queries the given endpoint and host:port and retrieves data.
  *
@@ -272,7 +387,8 @@ static Dictionary::Ptr FetchData(const String& host, const String& port, const S
 	http::parser<false, http::string_body> p;
 
 	try {
-		http::read(*tlsStream, buffer, p);
+		HttpResponseReasonInjector<decltype(*tlsStream)> reasonInjector (*tlsStream);
+		http::read(reasonInjector, buffer, p);
 	} catch (const std::exception &ex) {
 		BOOST_THROW_EXCEPTION(ScriptError(String("Error reading HTTP response data: ") + ex.what()));
 	}
