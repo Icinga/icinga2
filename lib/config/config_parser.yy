@@ -196,7 +196,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %right T_FOLLOWS
 %right T_INCLUDE T_INCLUDE_RECURSIVE T_INCLUDE_ZONES T_OBJECT T_TEMPLATE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
 %right T_FUNCTION T_FOR
-%left T_SET T_SET_ADD T_SET_SUBTRACT T_SET_MULTIPLY T_SET_DIVIDE T_SET_MODULO T_SET_XOR T_SET_BINARY_AND T_SET_BINARY_OR
+%right T_SET T_SET_ADD T_SET_SUBTRACT T_SET_MULTIPLY T_SET_DIVIDE T_SET_MODULO T_SET_XOR T_SET_BINARY_AND T_SET_BINARY_OR
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
 %left T_RETURN T_BREAK T_CONTINUE
@@ -461,10 +461,6 @@ optional_var: /* empty */
 lterm: T_LIBRARY rterm
 	{
 		$$ = new LibraryExpression(std::unique_ptr<Expression>($2), @$);
-	}
-	| rterm combined_set_op rterm
-	{
-		$$ = new SetExpression(std::unique_ptr<Expression>($1), $2, std::unique_ptr<Expression>($3), @$);
 	}
 	| T_INCLUDE rterm
 	{
@@ -814,6 +810,10 @@ rterm_side_effect: rterm '(' rterm_items ')'
 	{
 		$$ = new FunctionCallExpression(std::unique_ptr<Expression>($1), std::move(*$3), @$);
 		delete $3;
+	}
+	| rterm combined_set_op rterm
+	{
+		$$ = new SetExpression(std::unique_ptr<Expression>($1), $2, std::unique_ptr<Expression>($3), @$);
 	}
 	| T_IF '(' rterm ')' rterm_scope else_if_branches
 	{
