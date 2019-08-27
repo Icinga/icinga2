@@ -240,7 +240,7 @@ endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
   if(CMAKE_SYSTEM_NAME MATCHES AIX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -g -lpthread")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lpthread")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -lpthread")
   elseif(CMAKE_SYSTEM_NAME MATCHES "kOpenBSD.*|OpenBSD.*")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread")
