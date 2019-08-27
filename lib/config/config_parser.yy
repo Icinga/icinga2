@@ -645,15 +645,17 @@ lterm: T_LIBRARY rterm
 		$$ = new SetConstExpression(*$2, std::unique_ptr<Expression>($4), @$);
 		delete $2;
 	}
-	| T_VAR rterm
+	| T_VAR identifier
 	{
-		std::unique_ptr<Expression> expr{$2};
+		std::unique_ptr<Expression> expr{new VariableExpression(std::move(*$2), context->GetImports(), @1)};
+		delete $2;
 		BindToScope(expr, ScopeLocal);
 		$$ = new SetExpression(std::move(expr), OpSetLiteral, MakeLiteral(), @$);
 	}
-	| T_VAR rterm combined_set_op rterm
+	| T_VAR identifier combined_set_op rterm
 	{
-		std::unique_ptr<Expression> expr{$2};
+		std::unique_ptr<Expression> expr{new VariableExpression(std::move(*$2), context->GetImports(), @1)};
+		delete $2;
 		BindToScope(expr, ScopeLocal);
 		$$ = new SetExpression(std::move(expr), $3, std::unique_ptr<Expression>($4), @$);
 	}
