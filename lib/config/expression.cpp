@@ -664,7 +664,7 @@ ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 
 	WarnOnImplicitlySetGlobalVar(m_Operand1, parent, m_Op, m_DebugInfo);
 
-	return Empty;
+	return operand2.GetValue();
 }
 
 void SetExpression::SetOverrideFrozen()
