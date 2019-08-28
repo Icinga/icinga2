@@ -288,7 +288,7 @@ void IdoPgsqlConnection::Reconnect()
 		Log(LogCritical, "IdoPgsqlConnection")
 			<< "Schema version '" << version << "' does not match the required version '"
 			<< IDO_COMPAT_SCHEMA_VERSION << "' (or newer)! Please check the upgrade documentation at "
-			<< "https://docs.icinga.com/icinga2/latest/doc/module/icinga2/chapter/upgrading-icinga-2#upgrading-postgresql-db";
+			<< "https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/#upgrading-postgresql-db";
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Schema version mismatch."));
 	}
