@@ -78,6 +78,13 @@ void HttpServerConnection::Disconnect()
 			Log(LogInformation, "HttpServerConnection")
 				<< "HTTP client disconnected (from " << m_PeerAddress << ")";
 
+			m_CheckLivenessTimer.cancel();
+
+			try {
+				m_Stream->lowest_layer().cancel();
+			} catch (...) {
+			}
+
 			try {
 				m_Stream->next_layer().async_shutdown(yc);
 			} catch (...) {
@@ -87,13 +94,6 @@ void HttpServerConnection::Disconnect()
 				m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both);
 			} catch (...) {
 			}
-
-			try {
-				m_Stream->lowest_layer().cancel();
-			} catch (...) {
-			}
-
-			m_CheckLivenessTimer.cancel();
 
 			auto listener (ApiListener::GetInstance());
 
