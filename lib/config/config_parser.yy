@@ -691,10 +691,10 @@ rterm_items_inner: rterm
 		$$ = new std::vector<std::unique_ptr<Expression> >();
 		$$->emplace_back($1);
 	}
-	| rterm_items_inner arraysep rterm
+	| rterm_items_inner ',' optional_newlines rterm
 	{
 		$$ = $1;
-		$$->emplace_back($3);
+		$$->emplace_back($4);
 	}
 	;
 
@@ -1230,9 +1230,6 @@ optional_newlines: /* empty */
 sep: ',' optional_newlines
 	| ';' optional_newlines
 	| newlines
-	;
-
-arraysep: ',' optional_newlines
 	;
 
 %%
