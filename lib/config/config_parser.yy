@@ -181,6 +181,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <expr> rterm_side_effect
 %type <expr> rterm_no_side_effect
 %type <expr> rterm_no_side_effect_no_dict
+%type <expr> rterm_no_side_effect_no_dict_assignable
 %type <expr> lterm
 %type <expr> object
 %type <expr> apply
@@ -813,7 +814,7 @@ rterm_side_effect: rterm '(' rterm_items ')'
 		$$ = new FunctionCallExpression(std::unique_ptr<Expression>($1), std::move(*$3), @$);
 		delete $3;
 	}
-	| rterm combined_set_op rterm
+	| rterm_no_side_effect_no_dict_assignable combined_set_op rterm
 	{
 		$$ = new SetExpression(std::unique_ptr<Expression>($1), $2, std::unique_ptr<Expression>($3), @$);
 	}
@@ -867,24 +868,6 @@ rterm_no_side_effect_no_dict: T_STRING
 	| T_NULL
 	{
 		$$ = MakeLiteralRaw();
-	}
-	| rterm '.' T_IDENTIFIER %dprec 2
-	{
-		$$ = new IndexerExpression(std::unique_ptr<Expression>($1), MakeLiteral(*$3), @$);
-		delete $3;
-	}
-	| rterm '[' rterm ']'
-	{
-		$$ = new IndexerExpression(std::unique_ptr<Expression>($1), std::unique_ptr<Expression>($3), @$);
-	}
-	| T_IDENTIFIER
-	{
-		$$ = new VariableExpression(*$1, context->GetImports(), @1);
-		delete $1;
-	}
-	| T_MULTIPLY rterm %prec DEREF_OP
-	{
-		$$ = new DerefExpression(std::unique_ptr<Expression>($2), @$);
 	}
 	| T_BINARY_AND rterm %prec REF_OP
 	{
@@ -1031,6 +1014,27 @@ rterm_no_side_effect_no_dict: T_STRING
 		aexpr->MakeInline();
 
 		$$ = new FunctionExpression("<anonymous>", {}, {}, std::move(aexpr), @$);
+	}
+	| rterm_no_side_effect_no_dict_assignable %dprec 2
+	;
+
+rterm_no_side_effect_no_dict_assignable: rterm '.' T_IDENTIFIER %dprec 2
+	{
+		$$ = new IndexerExpression(std::unique_ptr<Expression>($1), MakeLiteral(*$3), @$);
+		delete $3;
+	}
+	| rterm '[' rterm ']'
+	{
+		$$ = new IndexerExpression(std::unique_ptr<Expression>($1), std::unique_ptr<Expression>($3), @$);
+	}
+	| T_IDENTIFIER
+	{
+		$$ = new VariableExpression(*$1, context->GetImports(), @1);
+		delete $1;
+	}
+	| T_MULTIPLY rterm %prec DEREF_OP
+	{
+		$$ = new DerefExpression(std::unique_ptr<Expression>($2), @$);
 	}
 	;
 
