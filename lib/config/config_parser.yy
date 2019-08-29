@@ -863,12 +863,7 @@ rterm_no_side_effect_no_dict: rterm_no_side_effect_no_dict_assignable %dprec 2
 	| rterm_no_side_effect_no_dict_not_assignable
 	;
 
-rterm_no_side_effect_no_dict_not_assignable: T_STRING
-	{
-		$$ = MakeLiteralRaw(*$1);
-		delete $1;
-	}
-	| T_NUMBER
+rterm_no_side_effect_no_dict_not_assignable: T_NUMBER
 	{
 		$$ = MakeLiteralRaw($1);
 	}
@@ -1036,6 +1031,11 @@ rterm_no_side_effect_no_dict_assignable: rterm '.' T_IDENTIFIER %dprec 2
 	| rterm '[' rterm ']'
 	{
 		$$ = new IndexerExpression(std::unique_ptr<Expression>($1), std::unique_ptr<Expression>($3), @$);
+	}
+	| T_STRING
+	{
+		$$ = MakeLiteralRaw(*$1);
+		delete $1;
 	}
 	| T_IDENTIFIER
 	{
