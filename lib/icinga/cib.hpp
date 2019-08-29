@@ -30,6 +30,8 @@ struct ServiceStatistics {
 	double services_flapping;
 	double services_in_downtime;
 	double services_acknowledged;
+	double services_handled;
+	double services_problem;
 };
 
 struct HostStatistics {
@@ -40,6 +42,8 @@ struct HostStatistics {
 	double hosts_flapping;
 	double hosts_in_downtime;
 	double hosts_acknowledged;
+	double hosts_handled;
+	double hosts_problem;
 };
 
 /**
