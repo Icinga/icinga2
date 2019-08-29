@@ -172,6 +172,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <llist> lterm_items
 %type <llist> lterm_items_inner
 %type <expr> rterm
+%type <expr> rterm_not_assignable
 %type <expr> rterm_array
 %type <dexpr> rterm_dict
 %type <dexpr> rterm_scope_require_side_effect
@@ -182,6 +183,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <expr> rterm_no_side_effect
 %type <expr> rterm_no_side_effect_no_dict
 %type <expr> rterm_no_side_effect_no_dict_assignable
+%type <expr> rterm_no_side_effect_no_dict_not_assignable
 %type <expr> lterm
 %type <expr> object
 %type <expr> apply
@@ -809,6 +811,11 @@ else_if_branches: /* empty */
 	}
 	;
 
+rterm_not_assignable: rterm_side_effect
+	| rterm_dict
+	| rterm_no_side_effect_no_dict_not_assignable
+	;
+
 rterm_side_effect: rterm '(' rterm_items ')'
 	{
 		$$ = new FunctionCallExpression(std::unique_ptr<Expression>($1), std::move(*$3), @$);
@@ -852,7 +859,11 @@ rterm_side_effect: rterm '(' rterm_items ')'
 	}
 	;
 
-rterm_no_side_effect_no_dict: T_STRING
+rterm_no_side_effect_no_dict: rterm_no_side_effect_no_dict_assignable %dprec 2
+	| rterm_no_side_effect_no_dict_not_assignable
+	;
+
+rterm_no_side_effect_no_dict_not_assignable: T_STRING
 	{
 		$$ = MakeLiteralRaw(*$1);
 		delete $1;
@@ -956,7 +967,7 @@ rterm_no_side_effect_no_dict: T_STRING
 	{
 		context->m_OpenBraces++;
 	}
-	rterm ')'
+	rterm_not_assignable ')'
 	{
 		context->m_OpenBraces--;
 		$$ = $3;
@@ -1015,7 +1026,6 @@ rterm_no_side_effect_no_dict: T_STRING
 
 		$$ = new FunctionExpression("<anonymous>", {}, {}, std::move(aexpr), @$);
 	}
-	| rterm_no_side_effect_no_dict_assignable %dprec 2
 	;
 
 rterm_no_side_effect_no_dict_assignable: rterm '.' T_IDENTIFIER %dprec 2
@@ -1035,6 +1045,15 @@ rterm_no_side_effect_no_dict_assignable: rterm '.' T_IDENTIFIER %dprec 2
 	| T_MULTIPLY rterm %prec DEREF_OP
 	{
 		$$ = new DerefExpression(std::unique_ptr<Expression>($2), @$);
+	}
+	| '('
+	{
+		context->m_OpenBraces++;
+	}
+	rterm_no_side_effect_no_dict_assignable ')'
+	{
+		context->m_OpenBraces--;
+		$$ = $3;
 	}
 	;
 
