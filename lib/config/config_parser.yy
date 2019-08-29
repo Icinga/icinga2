@@ -273,7 +273,7 @@ std::unique_ptr<Expression> ConfigCompiler::Compile()
 		if (!litem.second.SideEffect && num != llist.size() - 1) {
 			yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
 		}
-		dlist.push_back(std::move(litem.first));
+		dlist.emplace_back(std::move(litem.first));
 		num++;
 	}
 
@@ -312,14 +312,12 @@ lterm_items: /* empty */
 lterm_items_inner: lterm %dprec 2
 	{
 		$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
-		EItemInfo info = { true, @1 };
-		$$->emplace_back(std::unique_ptr<Expression>($1), info);
+		$$->emplace_back(std::unique_ptr<Expression>($1), EItemInfo{true, @1});
 	}
 	| rterm_no_side_effect
 	{
 		$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
-		EItemInfo info = { false, @1 };
-		$$->emplace_back(std::unique_ptr<Expression>($1), info);
+		$$->emplace_back(std::unique_ptr<Expression>($1), EItemInfo{false, @1});
 	}
 	| lterm_items_inner sep lterm %dprec 1
 	{
@@ -329,8 +327,7 @@ lterm_items_inner: lterm %dprec 2
 			$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
 
 		if ($3) {
-			EItemInfo info = { true, @3 };
-			$$->emplace_back(std::unique_ptr<Expression>($3), info);
+			$$->emplace_back(std::unique_ptr<Expression>($3), EItemInfo{true, @3});
 		}
 	}
 	| lterm_items_inner sep rterm_no_side_effect %dprec 1
@@ -341,8 +338,7 @@ lterm_items_inner: lterm %dprec 2
 			$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
 
 		if ($3) {
-			EItemInfo info = { false, @3 };
-			$$->emplace_back(std::unique_ptr<Expression>($3), info);
+			$$->emplace_back(std::unique_ptr<Expression>($3), EItemInfo{false, @3});
 		}
 	}
 	;
@@ -428,7 +424,7 @@ identifier_items: /* empty */
 identifier_items_inner: identifier
 	{
 		$$ = new std::vector<String>();
-		$$->push_back(*$1);
+		$$->emplace_back(std::move(*$1));
 		delete $1;
 	}
 	| identifier_items_inner ',' identifier
@@ -438,7 +434,7 @@ identifier_items_inner: identifier
 		else
 			$$ = new std::vector<String>();
 
-		$$->push_back(*$3);
+		$$->emplace_back(std::move(*$3));
 		delete $3;
 	}
 	;
@@ -741,7 +737,7 @@ rterm_dict: '{'
 		for (auto& litem : *$3) {
 			if (!litem.second.SideEffect)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
-			dlist.push_back(std::move(litem.first));
+			dlist.emplace_back(std::move(litem.first));
 		}
 		delete $3;
 		$$ = new DictExpression(std::move(dlist), @$);
@@ -761,7 +757,7 @@ rterm_scope_require_side_effect: '{'
 		for (auto& litem : *$3) {
 			if (!litem.second.SideEffect)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
-			dlist.push_back(std::move(litem.first));
+			dlist.emplace_back(std::move(litem.first));
 		}
 		delete $3;
 		$$ = new DictExpression(std::move(dlist), @$);
@@ -783,7 +779,7 @@ rterm_scope: '{'
 		for (auto& litem : *$3) {
 			if (!litem.second.SideEffect && num != $3->size() - 1)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
-			dlist.push_back(std::move(litem.first));
+			dlist.emplace_back(std::move(litem.first));
 			num++;
 		}
 		delete $3;
@@ -805,7 +801,7 @@ else_if_branches: /* empty */
 	| else_if_branches else_if_branch
 	{
 		$$ = $1;
-		$$->push_back(std::move(*$2));
+		$$->emplace_back(std::move(*$2));
 		delete $2;
 	}
 	;
@@ -933,7 +929,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		EndFlowControlBlock(context);
 
 		std::vector<String> args;
-		args.push_back(*$1);
+		args.emplace_back(std::move(*$1));
 		delete $1;
 
 		$$ = new FunctionExpression("<anonymous>", args, {}, std::unique_ptr<Expression>($4), @$);
@@ -943,7 +939,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		ASSERT(!dynamic_cast<DictExpression *>($3));
 
 		std::vector<String> args;
-		args.push_back(*$1);
+		args.emplace_back(std::move(*$1));
 		delete $1;
 
 		$$ = new FunctionExpression("<anonymous>", args, {}, std::unique_ptr<Expression>($3), @$);
@@ -1021,7 +1017,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		for (auto& litem : *$3) {
 			if (!litem.second.SideEffect && num != $3->size() - 1)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
-			dlist.push_back(std::move(litem.first));
+			dlist.emplace_back(std::move(litem.first));
 			num++;
 		}
 		delete $3;
