@@ -76,6 +76,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 	CombinedSetOp csop;
 	std::vector<String> *slist;
 	std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> > *llist;
+	std::pair<std::unique_ptr<Expression>, EItemInfo> *llistitem;
 	std::vector<std::unique_ptr<Expression> > *elist;
 	std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression> > > *ebranchlist;
 	std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression> > *ebranch;
@@ -171,6 +172,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <llist> statements
 %type <llist> lterm_items
 %type <llist> lterm_items_inner
+%type <llistitem> lterm_item_inner
 %type <expr> rterm
 %type <expr> rterm_array
 %type <dexpr> rterm_dict
@@ -308,37 +310,33 @@ lterm_items: /* empty */
 	| lterm_items_inner sep
 	;
 
-lterm_items_inner: lterm %dprec 2
+lterm_items_inner: lterm_item_inner %dprec 2
 	{
 		$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
-		$$->emplace_back(std::unique_ptr<Expression>($1), EItemInfo{true, @1});
+		$$->emplace_back(std::move(*$1));
+		delete $1;
+	}
+	| lterm_items_inner sep lterm_item_inner %dprec 1
+	{
+		if ($1)
+			$$ = $1;
+		else
+			$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
+
+		if ($3) {
+			$$->emplace_back(std::move(*$3));
+			delete $3;
+		}
+	}
+	;
+
+lterm_item_inner: lterm
+	{
+		$$ = new std::pair<std::unique_ptr<Expression>, EItemInfo>($1, EItemInfo{true, @1});
 	}
 	| rterm_no_side_effect
 	{
-		$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
-		$$->emplace_back(std::unique_ptr<Expression>($1), EItemInfo{false, @1});
-	}
-	| lterm_items_inner sep lterm %dprec 1
-	{
-		if ($1)
-			$$ = $1;
-		else
-			$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
-
-		if ($3) {
-			$$->emplace_back(std::unique_ptr<Expression>($3), EItemInfo{true, @3});
-		}
-	}
-	| lterm_items_inner sep rterm_no_side_effect %dprec 1
-	{
-		if ($1)
-			$$ = $1;
-		else
-			$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
-
-		if ($3) {
-			$$->emplace_back(std::unique_ptr<Expression>($3), EItemInfo{false, @3});
-		}
+		$$ = new std::pair<std::unique_ptr<Expression>, EItemInfo>($1, EItemInfo{false, @1});
 	}
 	;
 
