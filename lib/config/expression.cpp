@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "config/expression.hpp"
+#include "config/commitcontext.hpp"
 #include "config/configitem.hpp"
 #include "config/configcompiler.hpp"
 #include "config/vmops.hpp"
@@ -1040,6 +1041,22 @@ ExpressionResult IncludeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 	}
 
 	return res;
+}
+
+ExpressionResult OnConfigCommittedExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	if (frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("on_config_committed is not allowed in sandbox mode.", m_DebugInfo));
+
+	auto cc (CommitContext::GetCurrent());
+
+	if (!cc || cc->HasStarted()) {
+		BOOST_THROW_EXCEPTION(ScriptError("on_config_committed is not allowed after the config has been committed.", m_DebugInfo));
+	}
+
+	cc->RegisterOnConfigCommitted(m_Expr);
+
+	return Empty;
 }
 
 ExpressionResult BreakpointExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const

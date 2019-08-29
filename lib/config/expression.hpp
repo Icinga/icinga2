@@ -948,6 +948,20 @@ private:
 	String m_Package;
 };
 
+class OnConfigCommittedExpression final : public DebuggableExpression
+{
+public:
+	OnConfigCommittedExpression(std::shared_ptr<Expression> expr, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Expr(std::move(expr))
+	{ }
+
+protected:
+	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+
+private:
+	std::shared_ptr<Expression> m_Expr;
+};
+
 class BreakpointExpression final : public DebuggableExpression
 {
 public:

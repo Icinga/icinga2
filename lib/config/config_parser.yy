@@ -140,6 +140,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_INCLUDE "include (T_INCLUDE)"
 %token T_INCLUDE_RECURSIVE "include_recursive (T_INCLUDE_RECURSIVE)"
 %token T_INCLUDE_ZONES "include_zones (T_INCLUDE_ZONES)"
+%token T_ON_CONFIG_COMMITTED "on_config_committed (T_ON_CONFIG_COMMITTED)"
 %token T_LIBRARY "library (T_LIBRARY)"
 %token T_APPLY "apply (T_APPLY)"
 %token T_TO "to (T_TO)"
@@ -195,6 +196,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 
 %right T_FOLLOWS
 %right T_INCLUDE T_INCLUDE_RECURSIVE T_INCLUDE_ZONES T_OBJECT T_TEMPLATE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
+%right T_ON_CONFIG_COMMITTED
 %right T_FUNCTION T_FOR
 %left T_SET T_SET_ADD T_SET_SUBTRACT T_SET_MULTIPLY T_SET_DIVIDE T_SET_MODULO T_SET_XOR T_SET_BINARY_AND T_SET_BINARY_OR
 %right '?' ':'
@@ -562,6 +564,10 @@ lterm: T_LIBRARY rterm
 			context->m_Ignore.top() = $3;
 
 		$$ = MakeLiteralRaw();
+	}
+	| T_ON_CONFIG_COMMITTED rterm
+	{
+		$$ = new OnConfigCommittedExpression(std::shared_ptr<Expression>($2), @$);
 	}
 	| T_RETURN optional_rterm
 	{

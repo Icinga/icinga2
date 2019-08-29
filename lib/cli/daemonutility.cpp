@@ -7,6 +7,7 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/scriptglobal.hpp"
+#include "config/commitcontext.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
@@ -240,6 +241,7 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 	std::vector<ConfigItem::Ptr>& newItems,
 	const String& objectsFile, const String& varsfile)
 {
+	CommitContext cc;
 	ActivationScope ascope;
 
 	if (!DaemonUtility::ValidateConfigFiles(configs, objectsFile)) {
@@ -254,7 +256,7 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 
 	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("DaemonUtility::LoadConfigFiles");
-	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
+	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems) && cc.RunOnConfigCommitted();
 
 	if (!result) {
 		ConfigCompilerContext::GetInstance()->CancelObjectsFile();
