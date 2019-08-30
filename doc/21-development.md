@@ -1267,10 +1267,13 @@ Proceed with the specific distribution examples below.
 #### CentOS 7 <a id="development-linux-dev-env-centos"></a>
 
 ```
-yum -y install gdb git bash-completion htop rpmdevtools \
- ccache cmake make gcc-c++ flex bison \
- openssl-devel boost-devel systemd-devel mysql-devel \
- postgresql-devel libedit-devel libstdc++-devel
+yum -y install gdb vim git bash-completion htop
+
+yum -y install rpmdevtools ccache \
+ cmake make gcc-c++ flex bison \
+ openssl-devel boost169-devel systemd-devel \
+ mysql-devel postgresql-devel libedit-devel \
+ libstdc++-devel
 
 groupadd icinga
 groupadd icingacmd
@@ -1280,14 +1283,46 @@ ln -s /bin/ccache /usr/local/bin/gcc
 ln -s /bin/ccache /usr/local/bin/g++
 
 git clone https://github.com/icinga/icinga2.git && cd icinga2
-
-mkdir debug release
-cd debug
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DICINGA2_PLUGINDIR=/usr/local/sbin
-cd ..
-make -j2 install -C debug
 ```
 
+The debug build binaries contain specific code which runs
+slower but allows for better debugging insights.
+
+For benchmarks, change `CMAKE_BUILD_TYPE` to `RelWithDebInfo` and
+build inside the `release` directory.
+
+First, off export some generics for Boost.
+
+```
+export I2_BOOST="-DBoost_NO_BOOST_CMAKE=TRUE -DBoost_NO_SYSTEM_PATHS=TRUE -DBOOST_LIBRARYDIR=/usr/lib64/boost169 -DBOOST_INCLUDEDIR=/usr/include/boost169 -DBoost_ADDITIONAL_VERSIONS='1.69;1.69.0'"
+```
+
+Second, add the prefix path to it.
+
+```
+export I2_GENERIC="$I2_BOOST -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2"
+```
+
+Third, define the two build types with their specific CMake variables.
+
+```
+export I2_DEBUG="-DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF $I2_GENERIC"
+export I2_RELEASE="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DICINGA2_WITH_TESTS=ON -DICINGA2_UNITY_BUILD=ON $I2_GENERIC"
+```
+
+Fourth, depending on your likings, you may add a bash alias for building,
+or invoke the commands inside:
+
+```
+alias i2_debug="cd /root/icinga2; mkdir -p debug; cd debug; cmake $I2_DEBUG ..; make -j2; sudo make -j2 install; cd .."
+alias i2_release="cd /root/icinga2; mkdir -p release; cd release; cmake $I2_RELEASE ..; make -j2; sudo make -j2 install; cd .."
+```
+
+This is taken from the [centos7-dev](https://github.com/Icinga/icinga-vagrant/tree/master/centos7-dev) Vagrant box.
+
+
+The source installation doesn't set proper permissions, this is
+handled in the package builds which are officially supported.
 
 ```
 chown -R icinga:icinga /usr/local/icinga2/var/
