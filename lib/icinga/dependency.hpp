@@ -35,6 +35,7 @@ public:
 	TimePeriod::Ptr GetPeriod() const;
 
 	bool IsAvailable(DependencyType dt) const;
+	bool IsAvailable(const Checkable::Ptr& parent, DependencyType dt) const;
 
 	void ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
 
@@ -60,6 +61,7 @@ private:
 		virtual ~ParentsTree() = default;
 
 		virtual void GetAllLeavesFlat(std::set<Checkable::Ptr>& out) const = 0;
+		virtual bool IsAvailable(DependencyType dt) const = 0;
 
 	protected:
 		ParentsTree() = default;
@@ -68,13 +70,16 @@ private:
 	class ParentsLeaf : public ParentsTree
 	{
 	public:
-		inline ParentsLeaf(Checkable::Ptr checkable) : m_Checkable(std::move(checkable))
+		inline ParentsLeaf(Dependency *dep, Checkable::Ptr checkable)
+			: m_Dep(dep), m_Checkable(std::move(checkable))
 		{
 		}
 
 		void GetAllLeavesFlat(std::set<Checkable::Ptr>& out) const override;
+		bool IsAvailable(DependencyType dt) const override;
 
 	private:
+		Dependency *m_Dep;
 		Checkable::Ptr m_Checkable;
 	};
 
@@ -87,7 +92,7 @@ private:
 
 		void GetAllLeavesFlat(std::set<Checkable::Ptr>& out) const override;
 
-	private:
+	protected:
 		std::vector<std::unique_ptr<ParentsTree>> m_SubTrees;
 	};
 
@@ -95,12 +100,16 @@ private:
 	{
 	public:
 		using ParentsBranch::ParentsBranch;
+
+		bool IsAvailable(DependencyType dt) const override;
 	};
 
 	class ParentsAny : public ParentsBranch
 	{
 	public:
 		using ParentsBranch::ParentsBranch;
+
+		bool IsAvailable(DependencyType dt) const override;
 	};
 
 	Checkable::Ptr m_Parent;

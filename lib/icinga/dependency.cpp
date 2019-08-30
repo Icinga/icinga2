@@ -191,7 +191,7 @@ std::unique_ptr<Dependency::ParentsTree> Dependency::RequireParents(const Value&
 			auto service (Service::GetByName(checkableName));
 
 			if (service) {
-				return std::unique_ptr<ParentsTree>(new ParentsLeaf(std::move(service)));
+				return std::unique_ptr<ParentsTree>(new ParentsLeaf(this, std::move(service)));
 			}
 		}
 
@@ -199,7 +199,7 @@ std::unique_ptr<Dependency::ParentsTree> Dependency::RequireParents(const Value&
 			auto host (Host::GetByName(checkableName));
 
 			if (host) {
-				return std::unique_ptr<ParentsTree>(new ParentsLeaf(std::move(host)));
+				return std::unique_ptr<ParentsTree>(new ParentsLeaf(this, std::move(host)));
 			}
 		}
 
@@ -227,9 +227,9 @@ std::unique_ptr<Dependency::ParentsTree> Dependency::RequireParents(const Value&
 					BlameBadParents(std::move(hostName) + "!" + std::move(serviceName));
 				}
 
-				return std::unique_ptr<ParentsTree>(new ParentsLeaf(std::move(service)));
+				return std::unique_ptr<ParentsTree>(new ParentsLeaf(this, std::move(service)));
 			} else {
-				return std::unique_ptr<ParentsTree>(new ParentsLeaf(std::move(host)));
+				return std::unique_ptr<ParentsTree>(new ParentsLeaf(this, std::move(host)));
 			}
 		} else {
 			std::vector<std::unique_ptr<ParentsTree>> subTrees;
@@ -302,23 +302,29 @@ void Dependency::OnAllConfigLoaded()
 
 	m_Child->AddDependency(this);
 
-	Host::Ptr parentHost = Host::GetByName(GetParentHostName());
-
-	if (parentHost) {
-		if (GetParentServiceName().IsEmpty())
-			m_Parent = parentHost;
-		else
-			m_Parent = parentHost->GetServiceByShortName(GetParentServiceName());
-	}
-
-	if (!m_Parent)
-		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
-
-	m_Parent->AddReverseDependency(this);
-
+	auto parentHostName (GetParentHostName());
+	auto parentServiceName (GetParentServiceName());
 	auto parents (GetParents());
 
-	if (!parents.IsEmpty()) {
+	if (!((!parentHostName.IsEmpty() || !parentServiceName.IsEmpty()) ^ !parents.IsEmpty())) {
+		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' must reference a parent host/service either via parent_host_name and parent_service_name or via parents, but not via both.", GetDebugInfo()));
+	}
+
+	if (parents.IsEmpty()) {
+		Host::Ptr parentHost = Host::GetByName(parentHostName);
+
+		if (parentHost) {
+			if (GetParentServiceName().IsEmpty())
+				m_Parent = parentHost;
+			else
+				m_Parent = parentHost->GetServiceByShortName(parentServiceName);
+		}
+
+		if (!m_Parent)
+			BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
+
+		m_Parent->AddReverseDependency(this);
+	} else {
 		SetParentsTree(RequireParents(parents));
 	}
 
@@ -330,14 +336,23 @@ void Dependency::Stop(bool runtimeRemoved)
 	ObjectImpl<Dependency>::Stop(runtimeRemoved);
 
 	GetChild()->RemoveDependency(this);
-	GetParent()->RemoveReverseDependency(this);
+
+	auto parent (GetParent());
+
+	if (parent) {
+		parent->RemoveReverseDependency(this);
+	}
+
 	SetParentsTree(nullptr);
 }
 
 bool Dependency::IsAvailable(DependencyType dt) const
 {
-	Checkable::Ptr parent = GetParent();
+	return m_ParentsTree ? m_ParentsTree->IsAvailable(dt) : IsAvailable(GetParent(), dt);
+}
 
+bool Dependency::IsAvailable(const Checkable::Ptr& parent, DependencyType dt) const
+{
 	Host::Ptr parentHost;
 	Service::Ptr parentService;
 	tie(parentHost, parentService) = GetHostService(parent);
@@ -489,4 +504,29 @@ void Dependency::ParentsBranch::GetAllLeavesFlat(std::set<Checkable::Ptr>& out) 
 	for (auto& subTree : m_SubTrees) {
 		subTree->GetAllLeavesFlat(out);
 	}
+}
+
+bool Dependency::ParentsLeaf::IsAvailable(DependencyType dt) const
+{
+	return m_Dep->IsAvailable(m_Checkable, dt);
+}
+
+bool Dependency::ParentsAll::IsAvailable(DependencyType dt) const
+{
+	for (auto& subTree : m_SubTrees) {
+		if (!subTree->IsAvailable(dt))
+			return false;
+	}
+
+	return true;
+}
+
+bool Dependency::ParentsAny::IsAvailable(DependencyType dt) const
+{
+	for (auto& subTree : m_SubTrees) {
+		if (subTree->IsAvailable(dt))
+			return true;
+	}
+
+	return false;
 }
