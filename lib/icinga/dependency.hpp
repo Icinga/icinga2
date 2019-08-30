@@ -5,6 +5,7 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/dependency-ti.hpp"
+#include <vector>
 
 namespace icinga
 {
@@ -38,6 +39,7 @@ public:
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
 protected:
+	void ValidateParents(const Lazy<Value>& lvalue, const ValidationUtils& utils) override;
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
 	void Stop(bool runtimeRemoved) override;
@@ -48,6 +50,11 @@ private:
 
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
+
+	void ValidateParentsRecursively(const Value& parents, std::vector<size_t>& currentBranch);
+	void BlameInvalidParents(const std::vector<size_t>& currentBranch);
+	void RequireParents(const Value& parents);
+	void BlameBadParents(String checkable);
 };
 
 }

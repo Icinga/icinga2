@@ -3,8 +3,11 @@
 #include "icinga/dependency.hpp"
 #include "icinga/dependency-ti.cpp"
 #include "icinga/service.hpp"
+#include "base/defer.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
+#include <set>
+#include <sstream>
 
 using namespace icinga;
 
@@ -47,6 +50,118 @@ Dictionary::Ptr DependencyNameComposer::ParseName(const String& name) const
 	return result;
 }
 
+void Dependency::BlameInvalidParents(const std::vector<size_t>& currentBranch)
+{
+	std::ostringstream oss;
+
+	oss << "Dependency#parents";
+
+	for (auto idx : currentBranch) {
+		oss << ".of[" << idx << ']';
+	}
+
+	oss << R"EOF( must be like one of "host_name", "host_name!service_name", { host = "host_name" }, { host = "host_name"; service = "service_name" }, { require = "any"; of = [ ... ] }.)EOF";
+
+	BOOST_THROW_EXCEPTION(ScriptError(oss.str(), GetDebugInfo()));
+}
+
+// We don't have to allocate these strings every time, once is enough.
+static const struct {
+	String Require = "require";
+	String Of = "of";
+	String Host = "host";
+	String Service = "service";
+
+	std::set<String> RequireOptions {"all", "any"};
+} l_ParentsStrings;
+
+void Dependency::ValidateParentsRecursively(const Value& parents, std::vector<size_t>& currentBranch)
+{
+	if (parents.IsString()) {
+		if (parents.Get<String>().IsEmpty()) {
+			BlameInvalidParents(currentBranch);
+		}
+	} else if (parents.IsObject()) {
+		auto dict (dynamic_pointer_cast<Dictionary>(parents.Get<Object::Ptr>()));
+
+		if (!dict) {
+			BlameInvalidParents(currentBranch);
+		}
+
+		Value require;
+		if (dict->Get(l_ParentsStrings.Require, &require)) {
+			Value of;
+			if (!dict->Get(l_ParentsStrings.Of, &of) || dict->GetLength() > 2) {
+				BlameInvalidParents(currentBranch);
+			}
+
+			if (!require.IsString() || !of.IsObject()) {
+				BlameInvalidParents(currentBranch);
+			}
+
+			if (l_ParentsStrings.RequireOptions.find(require.Get<String>()) == l_ParentsStrings.RequireOptions.end()) {
+				BlameInvalidParents(currentBranch);
+			}
+
+			auto array (dynamic_pointer_cast<Array>(of.Get<Object::Ptr>()));
+
+			if (!array) {
+				BlameInvalidParents(currentBranch);
+			}
+
+			ObjectLock arrayLock (array);
+			size_t idx = 0;
+
+			for (auto& val : array) {
+				currentBranch.emplace_back(idx);
+				Defer popBack ([&currentBranch](){ currentBranch.pop_back(); });
+
+				ValidateParentsRecursively(val, currentBranch);
+
+				++idx;
+			}
+		} else {
+			Value host;
+			if (dict->Get(l_ParentsStrings.Host, &host)) {
+				Value service;
+				if (dict->Get(l_ParentsStrings.Service, &service)) {
+					if (dict->GetLength() > 2) {
+						BlameInvalidParents(currentBranch);
+					}
+
+					if (!host.IsString() || host.Get<String>().IsEmpty()) {
+						BlameInvalidParents(currentBranch);
+					}
+				} else {
+					if (dict->GetLength() > 1) {
+						BlameInvalidParents(currentBranch);
+					}
+				}
+
+				if (!host.IsString() || host.Get<String>().IsEmpty()) {
+					BlameInvalidParents(currentBranch);
+				}
+			} else {
+				BlameInvalidParents(currentBranch);
+			}
+		}
+	} else {
+		BlameInvalidParents(currentBranch);
+	}
+}
+
+void Dependency::ValidateParents(const Lazy<Value>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<Dependency>::ValidateParents(lvalue, utils);
+
+	auto& parents (lvalue());
+
+	if (!parents.IsEmpty()) {
+		std::vector<size_t> currentBranch;
+		ValidateParentsRecursively(parents, currentBranch);
+	}
+}
+
 void Dependency::OnConfigLoaded()
 {
 	Value defaultFilter;
@@ -57,6 +172,50 @@ void Dependency::OnConfigLoaded()
 		defaultFilter = StateFilterOK | StateFilterWarning;
 
 	SetStateFilter(FilterArrayToInt(GetStates(), Notification::GetStateFilterMap(), defaultFilter));
+}
+
+void Dependency::BlameBadParents(String checkable)
+{
+	BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist: '" + std::move(checkable) + "'", GetDebugInfo()));
+}
+
+void Dependency::RequireParents(const Value& parents)
+{
+	if (parents.IsString()) {
+		auto checkableName (parents.Get<String>());
+
+		if (!(Service::GetByName(checkableName) || Host::GetByName(checkableName))) {
+			BlameBadParents(std::move(checkableName));
+		}
+	} else {
+		auto dict (static_pointer_cast<Dictionary>(parents.Get<Object::Ptr>()));
+
+		Value hostSpec;
+		if (dict->Get(l_ParentsStrings.Host, &hostSpec)) {
+			auto hostName (hostSpec.Get<String>());
+			auto host (Host::GetByName(hostName));
+
+			if (!host) {
+				BlameBadParents(std::move(hostName));
+			}
+
+			Value serviceSpec;
+			if (dict->Get(l_ParentsStrings.Service, &serviceSpec)) {
+				auto serviceName (serviceSpec.Get<String>());
+
+				if (!host->GetServiceByShortName(serviceName)) {
+					BlameBadParents(std::move(hostName) + "!" + std::move(serviceName));
+				}
+			}
+		} else {
+			auto of (static_pointer_cast<Array>(dict->Get(l_ParentsStrings.Of).Get<Object::Ptr>()));
+			ObjectLock ofLock (of);
+
+			for (auto& val : of) {
+				RequireParents(val);
+			}
+		}
+	}
 }
 
 void Dependency::OnAllConfigLoaded()
@@ -90,6 +249,12 @@ void Dependency::OnAllConfigLoaded()
 		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
 
 	m_Parent->AddReverseDependency(this);
+
+	auto parents (GetParents());
+
+	if (!parents.IsEmpty()) {
+		RequireParents(parents);
+	}
 }
 
 void Dependency::Stop(bool runtimeRemoved)
