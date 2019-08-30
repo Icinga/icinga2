@@ -916,20 +916,26 @@ the following line:
 > Packages >= 2.9 provide an option in the setup wizard to disable this.
 > Defaults to disabled.
 
-Validate the configuration on Windows open an administrator terminal
+Validate the configuration on Windows open an administrative Powershell
 and run the following command:
 
 ```
-C:\WINDOWS\system32>cd "C:\Program Files\ICINGA2\sbin"
-C:\Program Files\ICINGA2\sbin>icinga2.exe daemon -C
+C:\> cd C:\Program Files\ICINGA2\sbin
+
+C:\Program Files\ICINGA2\sbin> .\icinga2.exe daemon -C
 ```
 
 **Note**: You have to run this command in a shell with `administrator` privileges.
 
-Now you need to restart the Icinga 2 service. Run `services.msc` from the start menu
-and restart the `icinga2` service. Alternatively, you can use the `net {start,stop}` CLI commands.
+Now you need to restart the Icinga 2 service. Run `services.msc` from the start menu and restart the `icinga2` service.
+Alternatively open an administrative Powershell and run the following commands:
 
-![Icinga 2 Windows Service Start/Stop](images/distributed-monitoring/icinga2_windows_cmd_admin_net_start_stop.png)
+```
+C:\> Restart-Service icinga2
+
+C:\> Get-Service icinga2
+```
+
 
 Now that you've successfully installed a Windows agent, please proceed to
 the [detailed configuration modes](06-distributed-monitoring.md#distributed-monitoring-configuration-modes).
@@ -2679,7 +2685,7 @@ By default ICMP requests are disabled in the Windows firewall. You can
 change that by [adding a new rule](https://support.microsoft.com/en-us/kb/947709).
 
 ```
-C:\WINDOWS\system32>netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" protocol=icmpv4:8,any dir=in action=allow
+C:\> netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" protocol=icmpv4:8,any dir=in action=allow
 ```
 
 #### Icinga 2 <a id="distributed-monitoring-windows-firewall-icinga2"></a>
@@ -2688,7 +2694,7 @@ If your master/satellite nodes should actively connect to the Windows agent
 you'll also need to ensure that port `5665` is enabled.
 
 ```
-C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 5665 (Icinga 2)" dir=in action=allow protocol=TCP localport=5665
+C:\> netsh advfirewall firewall add rule name="Open port 5665 (Icinga 2)" dir=in action=allow protocol=TCP localport=5665
 ```
 
 #### NSClient++ API <a id="distributed-monitoring-windows-firewall-nsclient-api"></a>
@@ -2697,7 +2703,7 @@ If the [check_nscp_api](06-distributed-monitoring.md#distributed-monitoring-wind
 plugin is used to query NSClient++, you need to ensure that its port is enabled.
 
 ```
-C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 8443 (NSClient++ API)" dir=in action=allow protocol=TCP localport=8443
+C:\> netsh advfirewall firewall add rule name="Open port 8443 (NSClient++ API)" dir=in action=allow protocol=TCP localport=8443
 ```
 
 For security reasons, it is advised to enable the NSClient++ HTTP API for local
@@ -2708,14 +2714,6 @@ are not recommended with using the legacy HTTP API.
 
 The Icinga 2 package on Windows already provides several plugins.
 Detailed [documentation](10-icinga-template-library.md#windows-plugins) is available for all check command definitions.
-
-Add the following `include` statement on all your nodes (master, satellite, agent):
-
-```
-vim /etc/icinga2/icinga2.conf
-
-include <windows-plugins>
-```
 
 Based on the [master with agents](06-distributed-monitoring.md#distributed-monitoring-master-agents)
 scenario we'll now add a local disk check.
