@@ -5,6 +5,9 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/dependency-ti.hpp"
+#include <memory>
+#include <set>
+#include <utility>
 #include <vector>
 
 namespace icinga
@@ -35,6 +38,8 @@ public:
 
 	void ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
 
+	void SetParents(const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
+
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
@@ -45,15 +50,70 @@ protected:
 	void Stop(bool runtimeRemoved) override;
 
 private:
+	class ParentsTree
+	{
+	public:
+		ParentsTree(const ParentsTree&) = delete;
+		ParentsTree(ParentsTree&&) = delete;
+		ParentsTree& operator=(const ParentsTree&) = delete;
+		ParentsTree& operator=(ParentsTree&&) = delete;
+		virtual ~ParentsTree() = default;
+
+		virtual void GetAllLeavesFlat(std::set<Checkable::Ptr>& out) const = 0;
+
+	protected:
+		ParentsTree() = default;
+	};
+
+	class ParentsLeaf : public ParentsTree
+	{
+	public:
+		inline ParentsLeaf(Checkable::Ptr checkable) : m_Checkable(std::move(checkable))
+		{
+		}
+
+		void GetAllLeavesFlat(std::set<Checkable::Ptr>& out) const override;
+
+	private:
+		Checkable::Ptr m_Checkable;
+	};
+
+	class ParentsBranch : public ParentsTree
+	{
+	public:
+		inline ParentsBranch(std::vector<std::unique_ptr<ParentsTree>> subTrees) : m_SubTrees(std::move(subTrees))
+		{
+		}
+
+		void GetAllLeavesFlat(std::set<Checkable::Ptr>& out) const override;
+
+	private:
+		std::vector<std::unique_ptr<ParentsTree>> m_SubTrees;
+	};
+
+	class ParentsAll : public ParentsBranch
+	{
+	public:
+		using ParentsBranch::ParentsBranch;
+	};
+
+	class ParentsAny : public ParentsBranch
+	{
+	public:
+		using ParentsBranch::ParentsBranch;
+	};
+
 	Checkable::Ptr m_Parent;
 	Checkable::Ptr m_Child;
+	std::unique_ptr<ParentsTree> m_ParentsTree;
+	bool m_ParentsTreeValidated = false;
 
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
 
 	void ValidateParentsRecursively(const Value& parents, std::vector<size_t>& currentBranch);
 	void BlameInvalidParents(const std::vector<size_t>& currentBranch);
-	void RequireParents(const Value& parents);
+	std::unique_ptr<ParentsTree> RequireParents(const Value& parents);
 	void BlameBadParents(String checkable);
 };
 

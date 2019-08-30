@@ -77,7 +77,7 @@ class Dependency : CustomVarObject < DependencyNameComposer
 		}}}
 	};
 
-	[config] Value parents;
+	[config, virtual] Value parents;
 
 	[config, navigation] name(TimePeriod) period (PeriodRaw) {
 		navigate {{{

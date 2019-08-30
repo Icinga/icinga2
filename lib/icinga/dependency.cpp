@@ -179,14 +179,30 @@ void Dependency::BlameBadParents(String checkable)
 	BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist: '" + std::move(checkable) + "'", GetDebugInfo()));
 }
 
-void Dependency::RequireParents(const Value& parents)
+std::unique_ptr<Dependency::ParentsTree> Dependency::RequireParents(const Value& parents)
 {
 	if (parents.IsString()) {
 		auto checkableName (parents.Get<String>());
 
-		if (!(Service::GetByName(checkableName) || Host::GetByName(checkableName))) {
-			BlameBadParents(std::move(checkableName));
+		{
+			auto service (Service::GetByName(checkableName));
+
+			if (service) {
+				return std::unique_ptr<ParentsTree>(new ParentsLeaf(std::move(service)));
+			}
 		}
+
+		{
+			auto host (Host::GetByName(checkableName));
+
+			if (host) {
+				return std::unique_ptr<ParentsTree>(new ParentsLeaf(std::move(host)));
+			}
+		}
+
+		BlameBadParents(std::move(checkableName));
+
+		return nullptr;
 	} else {
 		auto dict (static_pointer_cast<Dictionary>(parents.Get<Object::Ptr>()));
 
@@ -202,17 +218,32 @@ void Dependency::RequireParents(const Value& parents)
 			Value serviceSpec;
 			if (dict->Get(l_ParentsStrings.Service, &serviceSpec)) {
 				auto serviceName (serviceSpec.Get<String>());
+				auto service (host->GetServiceByShortName(serviceName));
 
-				if (!host->GetServiceByShortName(serviceName)) {
+				if (!service) {
 					BlameBadParents(std::move(hostName) + "!" + std::move(serviceName));
 				}
+
+				return std::unique_ptr<ParentsTree>(new ParentsLeaf(std::move(service)));
+			} else {
+				return std::unique_ptr<ParentsTree>(new ParentsLeaf(std::move(host)));
 			}
 		} else {
-			auto of (static_pointer_cast<Array>(dict->Get(l_ParentsStrings.Of).Get<Object::Ptr>()));
-			ObjectLock ofLock (of);
+			std::vector<std::unique_ptr<ParentsTree>> subTrees;
 
-			for (auto& val : of) {
-				RequireParents(val);
+			{
+				auto of (static_pointer_cast<Array>(dict->Get(l_ParentsStrings.Of).Get<Object::Ptr>()));
+				ObjectLock ofLock (of);
+
+				for (auto& val : of) {
+					subTrees.emplace_back(RequireParents(val));
+				}
+			}
+
+			if (dict->Get(l_ParentsStrings.Require).Get<String>() == "any") {
+				return std::unique_ptr<ParentsTree>(new ParentsAny(std::move(subTrees)));
+			} else {
+				return std::unique_ptr<ParentsTree>(new ParentsAll(std::move(subTrees)));
 			}
 		}
 	}
@@ -253,8 +284,10 @@ void Dependency::OnAllConfigLoaded()
 	auto parents (GetParents());
 
 	if (!parents.IsEmpty()) {
-		RequireParents(parents);
+		m_ParentsTree = RequireParents(parents);
 	}
+
+	m_ParentsTreeValidated = true;
 }
 
 void Dependency::Stop(bool runtimeRemoved)
@@ -367,3 +400,57 @@ void Dependency::ValidateStates(const Lazy<Array::Ptr>& lvalue, const Validation
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "states" }, "State filter is invalid for service dependency."));
 }
 
+static void FreezeRecursively(const Value& value)
+{
+	if (value.IsObject()) {
+		auto obj (value.Get<Object::Ptr>());
+		auto dict (dynamic_pointer_cast<Dictionary>(obj));
+
+		if (dict) {
+			ObjectLock oLock (dict);
+
+			for (auto& kv : dict) {
+				FreezeRecursively(kv.second);
+			}
+
+			dict->Freeze();
+		} else {
+			auto array (dynamic_pointer_cast<Array>(obj));
+
+			if (array) {
+				ObjectLock oLock (array);
+
+				for (auto& val : array) {
+					FreezeRecursively(val);
+				}
+
+				array->Freeze();
+			}
+		}
+	}
+}
+
+void Dependency::SetParents(const Value& value, bool suppress_events, const Value& cookie)
+{
+	auto clone (value.Clone());
+
+	FreezeRecursively(clone);
+
+	if (m_ParentsTreeValidated) {
+		m_ParentsTree = value.IsEmpty() ? nullptr : RequireParents(clone);
+	}
+
+	ObjectImpl<Dependency>::SetParents(clone, suppress_events, cookie);
+}
+
+void Dependency::ParentsLeaf::GetAllLeavesFlat(std::set<Checkable::Ptr>& out) const
+{
+	out.emplace(m_Checkable);
+}
+
+void Dependency::ParentsBranch::GetAllLeavesFlat(std::set<Checkable::Ptr>& out) const
+{
+	for (auto& subTree : m_SubTrees) {
+		subTree->GetAllLeavesFlat(out);
+	}
+}
