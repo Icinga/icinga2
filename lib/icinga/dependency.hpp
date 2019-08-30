@@ -115,6 +115,7 @@ private:
 	void BlameInvalidParents(const std::vector<size_t>& currentBranch);
 	std::unique_ptr<ParentsTree> RequireParents(const Value& parents);
 	void BlameBadParents(String checkable);
+	void SetParentsTree(std::unique_ptr<ParentsTree> parentsTree);
 };
 
 }

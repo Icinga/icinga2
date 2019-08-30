@@ -6,8 +6,11 @@
 #include "base/defer.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
+#include <algorithm>
+#include <iterator>
 #include <set>
 #include <sstream>
+#include <vector>
 
 using namespace icinga;
 
@@ -249,6 +252,38 @@ std::unique_ptr<Dependency::ParentsTree> Dependency::RequireParents(const Value&
 	}
 }
 
+void Dependency::SetParentsTree(std::unique_ptr<ParentsTree> parentsTree)
+{
+	std::vector<Checkable::Ptr> added, removed;
+
+	{
+		std::set<Checkable::Ptr> old, neww;
+
+		if (m_ParentsTree) {
+			m_ParentsTree->GetAllLeavesFlat(old);
+		}
+
+		if (parentsTree) {
+			parentsTree->GetAllLeavesFlat(neww);
+		}
+
+		std::set_difference(neww.begin(), neww.end(), old.begin(), old.end(), std::inserter(added, added.begin()));
+		std::set_difference(old.begin(), old.end(), neww.begin(), neww.end(), std::inserter(removed, removed.begin()));
+	}
+
+	for (auto& checkable : added) {
+		checkable->AddReverseDependency(this);
+		DependencyGraph::AddDependency(this, checkable.get());
+	}
+
+	for (auto& checkable : removed) {
+		checkable->RemoveReverseDependency(this);
+		DependencyGraph::RemoveDependency(this, checkable.get());
+	}
+
+	m_ParentsTree = std::move(parentsTree);
+}
+
 void Dependency::OnAllConfigLoaded()
 {
 	ObjectImpl<Dependency>::OnAllConfigLoaded();
@@ -284,7 +319,7 @@ void Dependency::OnAllConfigLoaded()
 	auto parents (GetParents());
 
 	if (!parents.IsEmpty()) {
-		m_ParentsTree = RequireParents(parents);
+		SetParentsTree(RequireParents(parents));
 	}
 
 	m_ParentsTreeValidated = true;
@@ -296,6 +331,7 @@ void Dependency::Stop(bool runtimeRemoved)
 
 	GetChild()->RemoveDependency(this);
 	GetParent()->RemoveReverseDependency(this);
+	SetParentsTree(nullptr);
 }
 
 bool Dependency::IsAvailable(DependencyType dt) const
@@ -437,7 +473,7 @@ void Dependency::SetParents(const Value& value, bool suppress_events, const Valu
 	FreezeRecursively(clone);
 
 	if (m_ParentsTreeValidated) {
-		m_ParentsTree = value.IsEmpty() ? nullptr : RequireParents(clone);
+		SetParentsTree(value.IsEmpty() ? nullptr : RequireParents(clone));
 	}
 
 	ObjectImpl<Dependency>::SetParents(clone, suppress_events, cookie);
