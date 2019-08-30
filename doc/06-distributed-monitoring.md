@@ -750,21 +750,23 @@ the [configuration modes](06-distributed-monitoring.md#distributed-monitoring-co
 
 ### Agent Setup on Windows <a id="distributed-monitoring-setup-agent-windows"></a>
 
-#### Agent Setup on Windows: Installer <a id="distributed-monitoring-setup-agent-windows-installer"></a>
-
-Download the MSI-Installer package from [https://packages.icinga.com/windows/](https://packages.icinga.com/windows/).
+The supported Windows agent versions are listed [here](https://icinga.com/subscription/support-details/).
 
 Requirements:
 
-* Windows Vista/Server 2008 or higher
-* [Microsoft .NET Framework 4.6](https://www.microsoft.com/en-US/download/details.aspx?id=53344) or higher for the setup wizard
-* Versions older than Windows 10/Server 2016 require the [Universal C Runtime for Windows](https://support.microsoft.com/en-us/help/2999226/update-for-universal-c-runtime-in-windows)
+* [Microsoft .NET Framework 4.6](https://www.microsoft.com/en-US/download/details.aspx?id=53344) or higher. This is the default on Windows Server 2016 or later.
+* [Universal C Runtime for Windows](https://support.microsoft.com/en-us/help/2999226/update-for-universal-c-runtime-in-windows) for Windows Server 2012 and older.
 
-The installer package includes the [NSClient++](https://www.nsclient.org/) package
-so that Icinga 2 can use its built-in plugins. You can find more details in
-[this chapter](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
-The Windows package also installs native [monitoring plugin binaries](06-distributed-monitoring.md#distributed-monitoring-windows-plugins)
+#### Agent Setup on Windows: Installer <a id="distributed-monitoring-setup-agent-windows-installer"></a>
+
+Download the MSI-Installer package from [https://packages.icinga.com/windows/](https://packages.icinga.com/windows/).
+The preferred flavor is `x86_64` for modern Windows systems.
+
+The Windows package provides native [monitoring plugin binaries](06-distributed-monitoring.md#distributed-monitoring-windows-plugins)
 to get you started more easily.
+The installer package also includes the [NSClient++](https://www.nsclient.org/) package
+to allow using its built-in plugins. You can find more details in
+[this chapter](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
 
 > **Note**
 >
