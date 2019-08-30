@@ -405,6 +405,20 @@ Up/down in stacktrace:
 > down
 ```
 
+
+### Debug on Windows <a id="development-debug-windows"></a>
+
+
+Whenever the application crashes, the Windows error reporting (WER) can be [configured](https://docs.microsoft.com/en-gb/windows/win32/wer/collecting-user-mode-dumps)
+to create user-mode dumps.
+
+
+Tail the log file with Powershell:
+
+```
+Get-Content .\icinga2.log -tail 10 -wait
+```
+
 ## Test Icinga 2 <a id="development-tests"></a>
 
 ### Snapshot Packages (Nightly Builds) <a id="development-tests-snapshot-packages"></a>
