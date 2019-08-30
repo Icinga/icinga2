@@ -247,6 +247,12 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 		} else if (macro == "num_services_acknowledged") {
 			*result = ss.services_acknowledged;
 			return true;
+		} else if (macro == "num_services_handled") {
+			*result = ss.services_handled;
+			return true;
+		} else if (macro == "num_services_problem") {
+			*result = ss.services_problem;
+			return true;
 		}
 	}
 	else if (macro.Contains("num_hosts")) {
@@ -272,6 +278,12 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 			return true;
 		} else if (macro == "num_hosts_acknowledged") {
 			*result = hs.hosts_acknowledged;
+			return true;
+		} else if (macro == "num_hosts_handled") {
+			*result = hs.hosts_handled;
+			return true;
+		} else if (macro == "num_hosts_problem") {
+			*result = hs.hosts_problem;
 			return true;
 		}
 	}

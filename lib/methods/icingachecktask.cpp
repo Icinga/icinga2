@@ -99,6 +99,8 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("num_services_flapping", ss.services_flapping));
 	perfdata->Add(new PerfdataValue("num_services_in_downtime", ss.services_in_downtime));
 	perfdata->Add(new PerfdataValue("num_services_acknowledged", ss.services_acknowledged));
+	perfdata->Add(new PerfdataValue("num_services_handled", ss.services_handled));
+	perfdata->Add(new PerfdataValue("num_services_problem", ss.services_problem));
 
 	double uptime = Utility::GetTime() - Application::GetStartTime();
 	perfdata->Add(new PerfdataValue("uptime", uptime));
@@ -112,6 +114,8 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("num_hosts_flapping", hs.hosts_flapping));
 	perfdata->Add(new PerfdataValue("num_hosts_in_downtime", hs.hosts_in_downtime));
 	perfdata->Add(new PerfdataValue("num_hosts_acknowledged", hs.hosts_acknowledged));
+	perfdata->Add(new PerfdataValue("num_hosts_handled", hs.hosts_handled));
+	perfdata->Add(new PerfdataValue("num_hosts_problem", hs.hosts_problem));
 
 	std::vector<Endpoint::Ptr> endpoints = ConfigType::GetObjectsByType<Endpoint>();
 
