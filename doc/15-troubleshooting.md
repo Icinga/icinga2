@@ -108,6 +108,16 @@ You can also start `perfmon` and analyze specific performance counters.
 Keep notes which could be important for your monitoring, and add service
 checks later on.
 
+> **Tip**
+>
+> Use an administrative Powershell to gain more insights.
+
+```
+cd C:\ProgramData\icinga2\var\log\icinga2
+
+Get-Content .\icinga2.log -tail 10 -wait
+```
+
 ## Enable Debug Output <a id="troubleshooting-enable-debug-output"></a>
 
 ### Enable Debug Output on Linux/Unix <a id="troubleshooting-enable-debug-output-linux"></a>
@@ -121,6 +131,13 @@ Enable the `debuglog` feature:
 
 The debug log file can be found in `/var/log/icinga2/debug.log`.
 
+You can tail the log files with an administrative shell:
+
+```
+cd /var/log/icinga2
+tail -f debug.log
+```
+
 Alternatively you may run Icinga 2 in the foreground with debugging enabled. Specify the console
 log severity as an additional parameter argument to `-x`.
 
@@ -133,18 +150,29 @@ and `debug`.
 
 ### Enable Debug Output on Windows <a id="troubleshooting-enable-debug-output-windows"></a>
 
-Open a command prompt with administrative privileges and enable the debug log feature.
+Open a Powershell with administrative privileges and enable the debug log feature.
 
 ```
-C:> icinga2.exe feature enable debuglog
+C:\> cd C:\Program Files\ICINGA2\sbin
+
+C:\Program Files\ICINGA2\sbin> .\icinga2.exe feature enable debuglog
 ```
 
 Ensure that the Icinga 2 service already writes the main log into `C:\ProgramData\icinga2\var\log\icinga2`.
-Restart the Icinga 2 service and open the newly created `debug.log` file.
+Restart the Icinga 2 service in an administrative Powershell and open the newly created `debug.log` file.
 
 ```
-C:> net stop icinga2
-C:> net start icinga2
+C:\> Restart-Service icinga2
+
+C:\> Get-Service icinga2
+```
+
+You can tail the log files with an administrative Powershell:
+
+```
+C:\> cd C:\ProgramData\icinga2\var\log\icinga2
+
+C:\ProgramData\icinga2\var\log\icinga2> Get-Content .\debug.log -tail 10 -wait
 ```
 
 ## Configuration Troubleshooting <a id="troubleshooting-configuration"></a>
@@ -186,6 +214,14 @@ Object 'localhost!ssh' of type 'Service':
       % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
 
 [...]
+```
+
+On Windows, use an administrative Powershell:
+
+```
+C:\> cd C:\Program Files\ICINGA2\sbin
+
+C:\Program Files\ICINGA2\sbin> .\icinga2.exe object list
 ```
 
 You can also filter by name and type:
