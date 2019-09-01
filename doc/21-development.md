@@ -1750,21 +1750,41 @@ will automatically detect them for builds and packaging.
 
 #### Boost
 
+Icinga needs the development header and library files from the Boost library.
+
+##### Pre-built Binaries
+
+Prefer the pre-built package over self-compiling, if the newest version already exists.
+
+Download the [boost-binaries](https://sourceforge.net/projects/boost/files/boost-binaries/) for
+
+- msvc-14.1 is Visual Studio 2017
+- 64 for 64 bit builds
+
+```
+https://sourceforge.net/projects/boost/files/boost-binaries/1.71.0/boost_1_71_0-msvc-14.1-64.exe/download
+```
+
+Run the installer and leave the default installation path in `C:\local\boost_1_71_0`.
+
+
+##### Source & Compile
+
 In order to use the boost development header and library files you need to [download](http://www.boost.org/users/download/)
-Boost and then extract it to e.g. `C:\boost_1_69_0`.
+Boost and then extract it to e.g. `C:\local\boost_1_71_0`.
 
 > **Note**
 >
-> Just use `C:`, the zip file already contains the sub folder. Extraction takes a while,
+> Just use `C:\local`, the zip file already contains the sub folder. Extraction takes a while,
 > the archive contains more than 70k files.
 
 In order to integrate Boost into Visual Studio 2017, open the `Developer Command Prompt` from the start menu,
-and navigate to `C:\boost_1_69_0`.
+and navigate to `C:\local\boost_1_71_0`.
 
 Execute `bootstrap.bat` first.
 
 ```
-cd C:\boost_1_69_0
+cd C:\local\boost_1_71_0
 bootstrap.bat
 ```
 
@@ -1837,8 +1857,8 @@ You need to specify the previously installed component paths:
 
 Variable              | Value                                                                | Description
 ----------------------|----------------------------------------------------------------------|-------------------------------------------------------
-`BOOST_ROOT`          | `C:\boost_1_69_0`                                                    | Root path where you've extracted and compiled Boost.
-`BOOST_LIBRARYDIR`    | `C:\boost_1_69_0\stage`                                              | Path to the static compiled Boost libraries, directory must contain `lib`.
+`BOOST_ROOT`          | `C:\local\boost_1_71_0`                                                    | Root path where you've extracted and compiled Boost.
+`BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_71_0\lib64-msvc-14.1`, Source: `C:\local\boost_1_71_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
 `BISON_EXECUTABLE`    | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
 `FLEX_EXECUTABLE`     | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
 `ICINGA2_WITH_MYSQL`  | OFF                                                                  | Requires extra setup for MySQL if set to `ON`. Not supported for client setups.
@@ -1860,8 +1880,8 @@ cd %HOMEPATH%\source\repos
 $env:ICINGA2_BUILDPATH='debug'
 $env:CMAKE_BUILD_TYPE='Debug'
 $env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
-$env:BOOST_ROOT='C:\boost_1_69_0'
-$env:BOOST_LIBRARYDIR='C:\boost_1_69_0\stage'
+$env:BOOST_ROOT='C:\local\boost_1_71_0'
+$env:BOOST_LIBRARYDIR='C:\local\boost_1_71_0\lib64-msvc-14.1'
 
 .\tools\win32\configure.ps1
 .\tools\win32\build.ps1
@@ -1913,8 +1933,8 @@ cd %HOMEPATH%\source\repos
 $env:ICINGA2_BUILDPATH='debug'
 $env:CMAKE_BUILD_TYPE='Debug'
 $env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
-$env:BOOST_ROOT='C:\boost_1_69_0'
-$env:BOOST_LIBRARYDIR='C:\boost_1_69_0\stage'
+$env:BOOST_ROOT='C:\local\boost_1_71_0'
+$env:BOOST_LIBRARYDIR='C:\local\boost_1_71_0\lib64-msvc-14.1'
 
 .\tools\win32\configure.ps1
 .\tools\win32\build.ps1
