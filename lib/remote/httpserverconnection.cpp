@@ -144,6 +144,7 @@ bool EnsureValidHeaders(
 	boost::beast::flat_buffer& buf,
 	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	bool& shuttingDown,
 	boost::asio::yield_context& yc
 )
 {
@@ -153,6 +154,10 @@ bool EnsureValidHeaders(
 
 	try {
 		try {
+			if (shuttingDown) {
+				throw boost::system::system_error(l_OpAborted);
+			}
+
 			http::async_read_header(stream, buf, parser, yc);
 		} catch (const boost::system::system_error& ex) {
 			if (ex.code() == l_OpAborted) {
@@ -344,6 +349,7 @@ bool EnsureValidBody(
 	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	bool& shuttingDown,
 	boost::asio::yield_context& yc
 )
 {
@@ -387,6 +393,10 @@ bool EnsureValidBody(
 	}
 
 	try {
+		if (shuttingDown) {
+			throw boost::system::system_error(l_OpAborted);
+		}
+
 		http::async_read(stream, buf, parser, yc);
 	} catch (const boost::system::system_error& ex) {
 		if (ex.code() == l_OpAborted) {
@@ -495,7 +505,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			response.set(http::field::server, l_ServerHeader);
 
-			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, yc)) {
+			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, m_ShuttingDown, yc)) {
 				break;
 			}
 
@@ -540,7 +550,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
-			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, yc)) {
+			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, m_ShuttingDown, yc)) {
 				break;
 			}
 
