@@ -21,10 +21,12 @@
 #include <limits>
 #include <memory>
 #include <stdexcept>
+#include <boost/asio/error.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/thread/once.hpp>
 
@@ -134,6 +136,8 @@ bool HttpServerConnection::Disconnected()
 	return m_ShuttingDown;
 }
 
+static const boost::system::error_code l_OpAborted (boost::asio::error::operation_aborted);
+
 static inline
 bool EnsureValidHeaders(
 	AsioTlsStream& stream,
@@ -151,6 +155,10 @@ bool EnsureValidHeaders(
 		try {
 			http::async_read_header(stream, buf, parser, yc);
 		} catch (const boost::system::system_error& ex) {
+			if (ex.code() == l_OpAborted) {
+				throw;
+			}
+
 			/**
 			 * Unfortunately there's no way to tell an HTTP protocol error
 			 * from an error on a lower layer:
@@ -381,6 +389,10 @@ bool EnsureValidBody(
 	try {
 		http::async_read(stream, buf, parser, yc);
 	} catch (const boost::system::system_error& ex) {
+		if (ex.code() == l_OpAborted) {
+			throw;
+		}
+
 		/**
 		 * Unfortunately there's no way to tell an HTTP protocol error
 		 * from an error on a lower layer:
@@ -430,6 +442,14 @@ bool ProcessRequest(
 
 		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
 	} catch (const std::exception& ex) {
+		{
+			auto sysErr (dynamic_cast<const boost::system::system_error*>(&ex));
+
+			if (sysErr && sysErr->code() == l_OpAborted) {
+				throw;
+			}
+		}
+
 		if (hasStartedStreaming) {
 			return false;
 		}
