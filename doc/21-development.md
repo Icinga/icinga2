@@ -405,6 +405,20 @@ Up/down in stacktrace:
 > down
 ```
 
+
+### Debug on Windows <a id="development-debug-windows"></a>
+
+
+Whenever the application crashes, the Windows error reporting (WER) can be [configured](https://docs.microsoft.com/en-gb/windows/win32/wer/collecting-user-mode-dumps)
+to create user-mode dumps.
+
+
+Tail the log file with Powershell:
+
+```
+Get-Content .\icinga2.log -tail 10 -wait
+```
+
 ## Test Icinga 2 <a id="development-tests"></a>
 
 ### Snapshot Packages (Nightly Builds) <a id="development-tests-snapshot-packages"></a>
@@ -1244,19 +1258,24 @@ Create two build directories for different binary builds.
 mkdir -p release debug
 ```
 
-Proceed with the specific distribution examples below.
+Proceed with the specific distribution examples below. Keep in mind that these instructions
+are best effort and sometimes out-of-date. Git Master may contain updates.
 
 * [CentOS 7](21-development.md#development-linux-dev-env-centos)
-* [Debian 9](21-development.md#development-linux-dev-env-debian)
+* [Debian 10 Buster](21-development.md#development-linux-dev-env-debian)
+* [Ubuntu 18 Bionic](21-development.md#development-linux-dev-env-ubuntu)
 
 
 #### CentOS 7 <a id="development-linux-dev-env-centos"></a>
 
 ```
-yum -y install gdb git bash-completion htop rpmdevtools \
- ccache cmake make gcc-c++ flex bison \
- openssl-devel boost-devel systemd-devel mysql-devel \
- postgresql-devel libedit-devel libstdc++-devel
+yum -y install gdb vim git bash-completion htop
+
+yum -y install rpmdevtools ccache \
+ cmake make gcc-c++ flex bison \
+ openssl-devel boost169-devel systemd-devel \
+ mysql-devel postgresql-devel libedit-devel \
+ libstdc++-devel
 
 groupadd icinga
 groupadd icingacmd
@@ -1266,14 +1285,46 @@ ln -s /bin/ccache /usr/local/bin/gcc
 ln -s /bin/ccache /usr/local/bin/g++
 
 git clone https://github.com/icinga/icinga2.git && cd icinga2
-
-mkdir debug release
-cd debug
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DICINGA2_PLUGINDIR=/usr/local/sbin
-cd ..
-make -j2 install -C debug
 ```
 
+The debug build binaries contain specific code which runs
+slower but allows for better debugging insights.
+
+For benchmarks, change `CMAKE_BUILD_TYPE` to `RelWithDebInfo` and
+build inside the `release` directory.
+
+First, off export some generics for Boost.
+
+```
+export I2_BOOST="-DBoost_NO_BOOST_CMAKE=TRUE -DBoost_NO_SYSTEM_PATHS=TRUE -DBOOST_LIBRARYDIR=/usr/lib64/boost169 -DBOOST_INCLUDEDIR=/usr/include/boost169 -DBoost_ADDITIONAL_VERSIONS='1.69;1.69.0'"
+```
+
+Second, add the prefix path to it.
+
+```
+export I2_GENERIC="$I2_BOOST -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2"
+```
+
+Third, define the two build types with their specific CMake variables.
+
+```
+export I2_DEBUG="-DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF $I2_GENERIC"
+export I2_RELEASE="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DICINGA2_WITH_TESTS=ON -DICINGA2_UNITY_BUILD=ON $I2_GENERIC"
+```
+
+Fourth, depending on your likings, you may add a bash alias for building,
+or invoke the commands inside:
+
+```
+alias i2_debug="cd /root/icinga2; mkdir -p debug; cd debug; cmake $I2_DEBUG ..; make -j2; sudo make -j2 install; cd .."
+alias i2_release="cd /root/icinga2; mkdir -p release; cd release; cmake $I2_RELEASE ..; make -j2; sudo make -j2 install; cd .."
+```
+
+This is taken from the [centos7-dev](https://github.com/Icinga/icinga-vagrant/tree/master/centos7-dev) Vagrant box.
+
+
+The source installation doesn't set proper permissions, this is
+handled in the package builds which are officially supported.
 
 ```
 chown -R icinga:icinga /usr/local/icinga2/var/
@@ -1285,11 +1336,23 @@ vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
-#### Debian 9 <a id="development-linux-dev-env-debian"></a>
+#### Debian 10 <a id="development-linux-dev-env-debian"></a>
+
+Debian Buster doesn't need updated Boost packages from packages.icinga.com,
+the distribution already provides 1.66+. For older versions such as Stretch,
+include the release repository for packages.icinga.com as shown in the [setup instructions](02-installation.md#package-repositories-debian-ubuntu-raspbian).
 
 ```
-apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev libboost-all-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
+$ docker run -ti ubuntu:bionic bash
 
+apt-get update
+apt-get -y install apt-transport-https wget gnupg
+
+apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
+apt-get -y install libboost-all-dev
+```
+
+```
 ln -s /usr/bin/ccache /usr/local/bin/gcc
 ln -s /usr/bin/ccache /usr/local/bin/g++
 
@@ -1300,12 +1363,21 @@ useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga icinga
 git clone https://github.com/icinga/icinga2.git && cd icinga2
 
 mkdir debug release
+
+export I2_DEB="-DBoost_NO_BOOST_CMAKE=TRUE -DBoost_NO_SYSTEM_PATHS=TRUE -DBOOST_LIBRARYDIR=/usr/lib/x86_64-linux-gnu -DBOOST_INCLUDEDIR=/usr/include -DCMAKE_INSTALL_RPATH=/usr/lib/x86_64-linux-gnu"
+export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DICINGA2_PLUGINDIR=/usr/local/sbin"
+export I2_DEBUG="$I2_DEB $I2_GENERIC -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF"
+
 cd debug
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DICINGA2_PLUGINDIR=/usr/local/sbin
+cmake .. $I2_DEBUG
 cd ..
+
 make -j2 install -C debug
 ```
 
+
+The source installation doesn't set proper permissions, this is
+handled in the package builds which are officially supported.
 
 ```
 chown -R icinga:icinga /usr/local/icinga2/var/
@@ -1368,6 +1440,8 @@ cd ..
 make -j2 install -C debug
 ```
 
+The source installation doesn't set proper permissions, this is
+handled in the package builds which are officially supported.
 
 ```
 chown -R icinga:icinga /usr/local/icinga2/var/
@@ -1701,21 +1775,41 @@ will automatically detect them for builds and packaging.
 
 #### Boost
 
+Icinga needs the development header and library files from the Boost library.
+
+##### Pre-built Binaries
+
+Prefer the pre-built package over self-compiling, if the newest version already exists.
+
+Download the [boost-binaries](https://sourceforge.net/projects/boost/files/boost-binaries/) for
+
+- msvc-14.1 is Visual Studio 2017
+- 64 for 64 bit builds
+
+```
+https://sourceforge.net/projects/boost/files/boost-binaries/1.71.0/boost_1_71_0-msvc-14.1-64.exe/download
+```
+
+Run the installer and leave the default installation path in `C:\local\boost_1_71_0`.
+
+
+##### Source & Compile
+
 In order to use the boost development header and library files you need to [download](http://www.boost.org/users/download/)
-Boost and then extract it to e.g. `C:\boost_1_69_0`.
+Boost and then extract it to e.g. `C:\local\boost_1_71_0`.
 
 > **Note**
 >
-> Just use `C:`, the zip file already contains the sub folder. Extraction takes a while,
+> Just use `C:\local`, the zip file already contains the sub folder. Extraction takes a while,
 > the archive contains more than 70k files.
 
 In order to integrate Boost into Visual Studio 2017, open the `Developer Command Prompt` from the start menu,
-and navigate to `C:\boost_1_69_0`.
+and navigate to `C:\local\boost_1_71_0`.
 
 Execute `bootstrap.bat` first.
 
 ```
-cd C:\boost_1_69_0
+cd C:\local\boost_1_71_0
 bootstrap.bat
 ```
 
@@ -1788,8 +1882,8 @@ You need to specify the previously installed component paths:
 
 Variable              | Value                                                                | Description
 ----------------------|----------------------------------------------------------------------|-------------------------------------------------------
-`BOOST_ROOT`          | `C:\boost_1_69_0`                                                    | Root path where you've extracted and compiled Boost.
-`BOOST_LIBRARYDIR`    | `C:\boost_1_69_0\stage`                                              | Path to the static compiled Boost libraries, directory must contain `lib`.
+`BOOST_ROOT`          | `C:\local\boost_1_71_0`                                                    | Root path where you've extracted and compiled Boost.
+`BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_71_0\lib64-msvc-14.1`, Source: `C:\local\boost_1_71_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
 `BISON_EXECUTABLE`    | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
 `FLEX_EXECUTABLE`     | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
 `ICINGA2_WITH_MYSQL`  | OFF                                                                  | Requires extra setup for MySQL if set to `ON`. Not supported for client setups.
@@ -1811,8 +1905,8 @@ cd %HOMEPATH%\source\repos
 $env:ICINGA2_BUILDPATH='debug'
 $env:CMAKE_BUILD_TYPE='Debug'
 $env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
-$env:BOOST_ROOT='C:\boost_1_69_0'
-$env:BOOST_LIBRARYDIR='C:\boost_1_69_0\stage'
+$env:BOOST_ROOT='C:\local\boost_1_71_0'
+$env:BOOST_LIBRARYDIR='C:\local\boost_1_71_0\lib64-msvc-14.1'
 
 .\tools\win32\configure.ps1
 .\tools\win32\build.ps1
@@ -1864,8 +1958,8 @@ cd %HOMEPATH%\source\repos
 $env:ICINGA2_BUILDPATH='debug'
 $env:CMAKE_BUILD_TYPE='Debug'
 $env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
-$env:BOOST_ROOT='C:\boost_1_69_0'
-$env:BOOST_LIBRARYDIR='C:\boost_1_69_0\stage'
+$env:BOOST_ROOT='C:\local\boost_1_71_0'
+$env:BOOST_LIBRARYDIR='C:\local\boost_1_71_0\lib64-msvc-14.1'
 
 .\tools\win32\configure.ps1
 .\tools\win32\build.ps1
