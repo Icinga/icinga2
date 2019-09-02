@@ -1258,10 +1258,12 @@ Create two build directories for different binary builds.
 mkdir -p release debug
 ```
 
-Proceed with the specific distribution examples below.
+Proceed with the specific distribution examples below. Keep in mind that these instructions
+are best effort and sometimes out-of-date. Git Master may contain updates.
 
 * [CentOS 7](21-development.md#development-linux-dev-env-centos)
-* [Debian 9](21-development.md#development-linux-dev-env-debian)
+* [Debian 10 Buster](21-development.md#development-linux-dev-env-debian)
+* [Ubuntu 18 Bionic](21-development.md#development-linux-dev-env-ubuntu)
 
 
 #### CentOS 7 <a id="development-linux-dev-env-centos"></a>
@@ -1334,11 +1336,23 @@ vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
-#### Debian 9 <a id="development-linux-dev-env-debian"></a>
+#### Debian 10 <a id="development-linux-dev-env-debian"></a>
+
+Debian Buster doesn't need updated Boost packages from packages.icinga.com,
+the distribution already provides 1.66+. For older versions such as Stretch,
+include the release repository for packages.icinga.com as shown in the [setup instructions](02-installation.md#package-repositories-debian-ubuntu-raspbian).
 
 ```
-apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev libboost-all-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
+$ docker run -ti ubuntu:bionic bash
 
+apt-get update
+apt-get -y install apt-transport-https wget gnupg
+
+apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
+apt-get -y install libboost-all-dev
+```
+
+```
 ln -s /usr/bin/ccache /usr/local/bin/gcc
 ln -s /usr/bin/ccache /usr/local/bin/g++
 
@@ -1349,12 +1363,21 @@ useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga icinga
 git clone https://github.com/icinga/icinga2.git && cd icinga2
 
 mkdir debug release
+
+export I2_DEB="-DBoost_NO_BOOST_CMAKE=TRUE -DBoost_NO_SYSTEM_PATHS=TRUE -DBOOST_LIBRARYDIR=/usr/lib/x86_64-linux-gnu -DBOOST_INCLUDEDIR=/usr/include -DCMAKE_INSTALL_RPATH=/usr/lib/x86_64-linux-gnu"
+export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DICINGA2_PLUGINDIR=/usr/local/sbin"
+export I2_DEBUG="$I2_DEB $I2_GENERIC -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF"
+
 cd debug
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DICINGA2_PLUGINDIR=/usr/local/sbin
+cmake .. $I2_DEBUG
 cd ..
+
 make -j2 install -C debug
 ```
 
+
+The source installation doesn't set proper permissions, this is
+handled in the package builds which are officially supported.
 
 ```
 chown -R icinga:icinga /usr/local/icinga2/var/
@@ -1417,6 +1440,8 @@ cd ..
 make -j2 install -C debug
 ```
 
+The source installation doesn't set proper permissions, this is
+handled in the package builds which are officially supported.
 
 ```
 chown -R icinga:icinga /usr/local/icinga2/var/
