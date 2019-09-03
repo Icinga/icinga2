@@ -134,11 +134,16 @@ namespace icinga
 		std::shared_ptr<UnixConn> m_UnixConn;
 		Atomic<bool> m_Connecting, m_Connected, m_Started;
 
+		struct WriteQueueItem
+		{
+			std::shared_ptr<Query> FireAndForgetQuery;
+			std::shared_ptr<Queries> FireAndForgetQueries;
+			std::shared_ptr<std::pair<Query, std::promise<Reply>>> GetResultOfQuery;
+			std::shared_ptr<std::pair<Queries, std::promise<Replies>>> GetResultsOfQueries;
+		};
+
 		struct {
-			std::queue<Query> FireAndForgetQuery;
-			std::queue<Queries> FireAndForgetQueries;
-			std::queue<std::pair<Query, std::promise<Reply>>> GetResultOfQuery;
-			std::queue<std::pair<Queries, std::promise<Replies>>> GetResultsOfQueries;
+			std::queue<WriteQueueItem> Writes;
 			std::queue<std::promise<Reply>> ReplyPromises;
 			std::queue<std::promise<Replies>> RepliesPromises;
 			std::queue<FutureResponseAction> FutureResponseActions;
