@@ -20,6 +20,7 @@
 #include "base/utility.hpp"
 #include <limits>
 #include <memory>
+#include <regex>
 #include <stdexcept>
 #include <boost/asio/error.hpp>
 #include <boost/asio/io_service.hpp>
@@ -193,6 +194,45 @@ bool EnsureValidHeaders(
 		} else {
 			response.set(http::field::content_type, "text/html");
 			response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
+			response.set(http::field::content_length, response.body().size());
+		}
+
+		response.set(http::field::connection, "close");
+
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
+
+		return false;
+	}
+
+	return true;
+}
+
+static const std::regex l_SecurityScannerName (R"EOF(\b(?:Nessus|OpenVAS)\b)EOF");
+
+static inline
+bool LockOutSecurityScanners(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	auto agent (request[http::field::user_agent]);
+
+	if (std::regex_search(agent.begin(), agent.end(), l_SecurityScannerName)) {
+		response.result(http::status::forbidden);
+
+		if (request[http::field::accept] == "application/json") {
+			HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
+				{ "error", 403 },
+				{ "status", String("Forbidden: Security scans are not allowed") }
+			}));
+		} else {
+			response.set(http::field::content_type, "text/html");
+			response.body() = String("<h1>Forbidden</h1><p><pre>Security scans are not allowed</pre></p>");
 			response.set(http::field::content_length, response.body().size());
 		}
 
@@ -512,6 +552,10 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			m_Seen = Utility::GetTime();
 
 			auto& request (parser.get());
+
+			if (!LockOutSecurityScanners(*m_Stream, request, response, yc)) {
+				break;
+			}
 
 			{
 				auto method (http::string_to_verb(request["X-Http-Method-Override"]));
