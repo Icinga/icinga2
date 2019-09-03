@@ -1099,6 +1099,7 @@ Configuration Attributes:
   access\_control\_allow\_headers       | String                | **Deprecated.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
   access\_control\_allow\_methods       | String                | **Deprecated.** Used in response to a preflight request to indicate which HTTP methods can be used when making the actual request. Defaults to `GET, POST, PUT, DELETE`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods)
   environment                           | String                | **Optional.** Used as suffix in TLS SNI extension name; default from constant `ApiEnvironment`, which is empty.
+  allowed\_http\_origins		| Array			| **Optional.** Limit HTTP requests from specific IP ranges. Defaults to `[ "0.0.0.0/0", "::/0" ]` on Linux/Unix and `[ "127.0.0.0/8", "::1/128" ]` on Windows.
 
 The attributes `access_control_allow_credentials`, `access_control_allow_headers` and `access_control_allow_methods`
 are controlled by Icinga 2 and are not changeable by config any more.

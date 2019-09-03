@@ -298,6 +298,16 @@ It will also attempt to fix them, the following log entry is perfectly fine.
 
 If you still encounter problems, please follow [this troubleshooting entry](15-troubleshooting.md#troubleshooting-api-missing-runtime-objects).
 
+#### HTTP Origin <a id="upgrading-to-2-11-api-http-origin"></a>
+
+The [api](09-object-types.md#objecttype-apilistener) feature allows to specify the
+`allowed_http_origins` attribute as array of IP ranges as CIDR.
+
+Linux/Unix nodes allow all connections by default.
+
+Windows agents do not expose nor need the REST API by default and limit
+HTTP connection origins to localhost only.
+
 ### DB IDO MySQL Schema <a id="upgrading-to-2-11-db-ido"></a>
 
 The schema for MySQL contains an optional update which
