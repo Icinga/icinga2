@@ -682,11 +682,27 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
 
-		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, client);
-		AddHttpClient(aclient);
-		aclient->Start();
+		CpuBoundWork checkWhetherAllowed (yc);
 
-		willBeShutDown = true;
+		String address (client->lowest_layer().remote_endpoint().address().to_string());
+
+		auto allowed (GetAllowedHttpOrigins());
+		ObjectLock oLock (allowed);
+
+		for (auto& cidr : allowed) {
+			if (Utility::CidrMatch(cidr.Get<String>(), address)) {
+				HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, client);
+				AddHttpClient(aclient);
+				aclient->Start();
+
+				willBeShutDown = true;
+
+				return;
+			}
+		}
+
+		Log(LogWarning, "ApiListener")
+			<< "Ignoring HTTP connection from " << address << '.';
 	}
 }
 
