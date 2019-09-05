@@ -115,15 +115,27 @@ string(REGEX REPLACE "-[^\\.]*(.*)$" "\\1" ICINGA2_VERSION_SAFE "${ICINGA2_VERSI
 message(STATUS "ICINGA2_VERSION_SAFE=${ICINGA2_VERSION_SAFE}")
 
 if(WIN32)
-  set(Boost_USE_STATIC_LIBS ON)
-  # Disabled for linking issues for newer Boost versions, they link against Windows SDKs
-  #add_definitions(-DBOOST_ALL_NO_LIB)
+  # https://stackoverflow.com/questions/28887680/linking-boost-library-with-boost-use-static-lib-off-on-windows
+  set(Boost_NO_SYSTEM_PATHS true)
+  set(Boost_USE_STATIC_LIBS OFF CACHE BOOL "use static libraries from Boost")
+  set(Boost_USE_MULTITHREADED ON)
+
+  link_libraries(${Boost_LIBRARIES})
+
+  # disable autolinking in boost
+  add_definitions(-DBOOST_ALL_NO_LIB)
+  # force all boost libraries to dynamic, this additionally needed to the above.
+  add_definitions(-DBOOST_ALL_DYN_LINK)
+  # Fix Boost.uuid linking against bcrypt
+  add_definitions(-DBOOST_UUID_FORCE_AUTO_LINK)
 
   # Disable optimization for Boost::context
   # https://www.boost.org/doc/libs/1_69_0/libs/context/doc/html/context/overview.html
   # https://docs.microsoft.com/en-us/cpp/build/reference/gl-whole-program-optimization?view=vs-2017
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /GL- /EHs")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /GL- /EHs")
+
+  message(STATUS "Configuring compiler flags for Boost on Windows: ${CMAKE_CXX_FLAGS}")
 
   # detect if 32-bit target
   if(CMAKE_VS_PLATFORM_NAME STREQUAL "Win32")
@@ -477,6 +489,7 @@ set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
 include(InstallRequiredSystemLibraries)
 
 if(WIN32)
+  # NSCP Bundled
   if(CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
     set(NSCP_URL "https://github.com/mickem/nscp/releases/download/0.5.2.39/NSCP-0.5.2.39-x64.msi")
     set(NSCP_SHA256 "dfe93c293f30586b02510d8b7884e4e177b93a5fead8b5dc6de8103532e6e159")
@@ -496,6 +509,7 @@ if(WIN32)
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi DESTINATION ${CMAKE_INSTALL_SBINDIR})
 
+  # OpenSSL DLLs
   if (OPENSSL_VERSION_MINOR GREATER_EQUAL 1)
     if (CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
       list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1-x64.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1-x64.dll)
@@ -510,6 +524,18 @@ if(WIN32)
     PROGRAMS ${ICINGA2_OPENSSL_DLLS}
     DESTINATION ${CMAKE_INSTALL_SBINDIR}
   )
+
+  # Boost DLLs
+  file(GLOB ICINGA2_BOOST_DLLS "${BOOST_LIBRARYDIR}/*.dll")
+
+  message(STATUS "Collected Boost DLLs from ${BOOST_LIBRARYDIR} for Windows linking: ${ICINGA2_BOOST_DLLS}")
+
+  install(
+    PROGRAMS ${ICINGA2_BOOST_DLLS}
+    DESTINATION ${CMAKE_INSTALL_SBINDIR}
+  )
+      
+  
 endif()
 
 include(CPack)

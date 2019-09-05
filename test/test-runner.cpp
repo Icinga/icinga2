@@ -14,8 +14,3 @@ main(int argc, char **argv)
 	std::_Exit(boost::unit_test::unit_test_main(init_unit_test, argc, argv));
 	return EXIT_FAILURE;
 }
-
-#ifdef _WIN32
-#include <boost/test/impl/unit_test_main.ipp>
-#include <boost/test/impl/framework.ipp>
-#endif /* _WIN32 */
