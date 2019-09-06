@@ -78,20 +78,13 @@ void HttpServerConnection::Disconnect()
 			Log(LogInformation, "HttpServerConnection")
 				<< "HTTP client disconnected (from " << m_PeerAddress << ")";
 
-			try {
-				m_Stream->next_layer().async_shutdown(yc);
-			} catch (...) {
-			}
+			boost::system::error_code ec;
 
-			try {
-				m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both);
-			} catch (...) {
-			}
+			m_Stream->next_layer().async_shutdown(yc[ec]);
 
-			try {
-				m_Stream->lowest_layer().cancel();
-			} catch (...) {
-			}
+			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
+
+			m_Stream->lowest_layer().cancel(ec);
 
 			m_CheckLivenessTimer.cancel();
 
@@ -148,16 +141,18 @@ bool EnsureValidHeaders(
 	bool httpError = true;
 
 	try {
-		try {
-			http::async_read_header(stream, buf, parser, yc);
-		} catch (const boost::system::system_error& ex) {
+		boost::system::error_code ec;
+
+		http::async_read_header(stream, buf, parser, yc[ec]);
+
+		if (ec) {
 			/**
 			 * Unfortunately there's no way to tell an HTTP protocol error
 			 * from an error on a lower layer:
 			 *
 			 * <https://github.com/boostorg/beast/issues/643>
 			 */
-			throw std::invalid_argument(ex.what());
+			throw std::invalid_argument(ec.message());
 		}
 
 		httpError = false;
@@ -185,8 +180,10 @@ bool EnsureValidHeaders(
 
 		response.set(http::field::connection, "close");
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		boost::system::error_code ec;
+
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 
 		return false;
 	}
@@ -208,8 +205,10 @@ void HandleExpect100(
 
 		response.result(http::status::continue_);
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		boost::system::error_code ec;
+
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 	}
 }
 
@@ -252,8 +251,10 @@ bool HandleAccessControl(
 					response.set(http::field::content_length, response.body().size());
 					response.set(http::field::connection, "close");
 
-					http::async_write(stream, response, yc);
-					stream.async_flush(yc);
+					boost::system::error_code ec;
+
+					http::async_write(stream, response, yc[ec]);
+					stream.async_flush(yc[ec]);
 
 					return false;
 				}
@@ -281,8 +282,10 @@ bool EnsureAcceptHeader(
 		response.set(http::field::content_length, response.body().size());
 		response.set(http::field::connection, "close");
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		boost::system::error_code ec;
+
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 
 		return false;
 	}
@@ -320,8 +323,10 @@ bool EnsureAuthenticatedUser(
 			response.set(http::field::content_length, response.body().size());
 		}
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		boost::system::error_code ec;
+
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 
 		return false;
 	}
@@ -378,9 +383,11 @@ bool EnsureValidBody(
 		parser.body_limit(maxSize);
 	}
 
-	try {
-		http::async_read(stream, buf, parser, yc);
-	} catch (const boost::system::system_error& ex) {
+	boost::system::error_code ec;
+
+	http::async_read(stream, buf, parser, yc[ec]);
+
+	if (ec) {
 		/**
 		 * Unfortunately there's no way to tell an HTTP protocol error
 		 * from an error on a lower layer:
@@ -393,18 +400,18 @@ bool EnsureValidBody(
 		if (parser.get()[http::field::accept] == "application/json") {
 			HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
 				{ "error", 400 },
-				{ "status", String("Bad Request: ") + ex.what() }
+				{ "status", String("Bad Request: ") + ec.message() }
 			}));
 		} else {
 			response.set(http::field::content_type, "text/html");
-			response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
+			response.body() = String("<h1>Bad Request</h1><p><pre>") + ec.message() + "</pre></p>";
 			response.set(http::field::content_length, response.body().size());
 		}
 
 		response.set(http::field::connection, "close");
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 
 		return false;
 	}
@@ -438,8 +445,10 @@ bool ProcessRequest(
 
 		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		boost::system::error_code ec;
+
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 
 		return true;
 	}
@@ -448,8 +457,10 @@ bool ProcessRequest(
 		return false;
 	}
 
-	http::async_write(stream, response, yc);
-	stream.async_flush(yc);
+	boost::system::error_code ec;
+
+	http::async_write(stream, response, yc[ec]);
+	stream.async_flush(yc[ec]);
 
 	return true;
 }
