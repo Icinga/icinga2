@@ -146,43 +146,37 @@ bool EnsureValidHeaders(
 {
 	namespace http = boost::beast::http;
 
-	bool httpError = true;
+	bool httpError = false;
+	String errorMsg;
 
-	try {
-		boost::system::error_code ec;
+	boost::system::error_code ec;
 
-		http::async_read_header(stream, buf, parser, yc[ec]);
+	http::async_read_header(stream, buf, parser, yc[ec]);
 
-		if (ec) {
-			/**
-			 * Unfortunately there's no way to tell an HTTP protocol error
-			 * from an error on a lower layer:
-			 *
-			 * <https://github.com/boostorg/beast/issues/643>
-			 */
-			throw std::invalid_argument(ec.message());
-		}
+	if (ec) {
+		errorMsg = ec.message();
+		httpError = true;
+	}
 
-		httpError = false;
+	switch (parser.get().version()) {
+	case 10:
+	case 11:
+		break;
+	default:
+		errorMsg = "Unsupported HTTP version";
+	}
 
-		switch (parser.get().version()) {
-		case 10:
-		case 11:
-			break;
-		default:
-			throw std::invalid_argument("Unsupported HTTP version");
-		}
-	} catch (const std::invalid_argument& ex) {
+	if (!errorMsg.IsEmpty() || httpError) {
 		response.result(http::status::bad_request);
 
 		if (!httpError && parser.get()[http::field::accept] == "application/json") {
 			HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
 				{ "error", 400 },
-				{ "status", String("Bad Request: ") + ex.what() }
+				{ "status", String("Bad Request: ") + errorMsg }
 			}));
 		} else {
 			response.set(http::field::content_type, "text/html");
-			response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
+			response.body() = String("<h1>Bad Request</h1><p><pre>") + errorMsg + "</pre></p>";
 			response.set(http::field::content_length, response.body().size());
 		}
 
