@@ -419,6 +419,62 @@ Tail the log file with Powershell:
 Get-Content .\icinga2.log -tail 10 -wait
 ```
 
+
+#### Debug on Windows: Dependencies <a id="development-debug-windows-dependencies"></a>
+
+Similar to `ldd` or `nm` on Linux/Unix.
+
+Extract the dependent DLLs from a binary with Visual Studio's `dumpbin` tool
+in Powershell:
+
+```
+C:> &'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.22.27905\bin\Hostx64\x64\dumpbin.exe' /dependents .\debug\Bin\Debug\Debug\boosttest-test-base.exe
+DEBUG:    1+  >>>> &'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.22.27905\bin\Hostx64\x64\dumpbin.exe' /dependents .\debug\Bin\Debug\Debug\boosttest-test-base.exe
+Microsoft (R) COFF/PE Dumper Version 14.22.27905.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file .\debug\Bin\Debug\Debug\boosttest-test-base.exe
+
+File Type: EXECUTABLE IMAGE
+
+  Image has the following dependencies:
+
+    boost_coroutine-vc142-mt-gd-x64-1_71.dll
+    boost_date_time-vc142-mt-gd-x64-1_71.dll
+    boost_filesystem-vc142-mt-gd-x64-1_71.dll
+    boost_thread-vc142-mt-gd-x64-1_71.dll
+    boost_regex-vc142-mt-gd-x64-1_71.dll
+    libssl-1_1-x64.dll
+    libcrypto-1_1-x64.dll
+    WS2_32.dll
+    dbghelp.dll
+    SHLWAPI.dll
+    msi.dll
+    boost_unit_test_framework-vc142-mt-gd-x64-1_71.dll
+    KERNEL32.dll
+    SHELL32.dll
+    ADVAPI32.dll
+    MSVCP140D.dll
+    MSWSOCK.dll
+    bcrypt.dll
+    VCRUNTIME140D.dll
+    ucrtbased.dll
+
+  Summary
+
+        1000 .00cfg
+       68000 .data
+        B000 .idata
+      148000 .pdata
+      69C000 .rdata
+       25000 .reloc
+        1000 .rsrc
+      E7A000 .text
+        1000 .tls
+```
+
+
 ## Test Icinga 2 <a id="development-tests"></a>
 
 ### Snapshot Packages (Nightly Builds) <a id="development-tests-snapshot-packages"></a>
@@ -1632,6 +1688,8 @@ While it is recommended to use Docker or the Icinga Web 2 development VM pointin
 
 The required steps are described in [this script](https://github.com/dnsmichi/dotfiles/blob/master/icingaweb2.sh).
 
+
+
 ### Windows Dev Environment <a id="development-windows-dev-env"></a>
 
 The following sections explain how to setup the required build tools
@@ -1689,10 +1747,13 @@ vim $HOME/.gitconfig
 
 #### Visual Studio
 
-Thanks to Microsoft they’ll now provide their Professional Edition of Visual Studio 2017
+Thanks to Microsoft they’ll now provide their Professional Edition of Visual Studio
 as community version, free for use for open source projects such as Icinga.
 The installation requires ~9GB disk space. [Download](https://www.visualstudio.com/downloads/)
 the web installer and start the installation.
+
+Note: Both Visual Studio 2017 and 2019 are covered here. Older versions
+are not supported.
 
 You need a free Microsoft account to download and also store your preferences.
 
@@ -1701,7 +1762,7 @@ Install the following Workloads:
 * C++ Desktop Development (icinga2.exe)
 * .NET Desktop Development (Agent Setup Wizard in C#)
 
-In addition also choose these individual components on Visual Studio 2017:
+In addition also choose these individual components on Visual Studio:
 
 * .NET
     * .NET Framework 4.6 targeting pack
@@ -1724,7 +1785,7 @@ In addition also choose these individual components on Visual Studio 2017:
     * Graphics debugger and GPU profiler for DirectX (required by C++ profiling tools)
 * SDKs, libraries and frameworks
     * Graphics Tools Windows 8.1 SDK (required by C++ profiling tools)
-    * Windows 10 SDK **10.0.10240.0 - exactly this version**
+    * Windows 10 SDK
     * Windows 8.1 SDK
     * Windows Universal C Runtime
 
@@ -1759,10 +1820,8 @@ Chocolatey installs these tools into the hidden directory `C:\ProgramData\chocol
 
 #### OpenSSL
 
-Icinga 2 requires the OpenSSL library. [Download](http://slproweb.com/products/Win32OpenSSL.html)
-and install it into the default path.
-
-Install both, 32 and 64 bit variants.
+Icinga 2 requires the OpenSSL library. [Download](http://slproweb.com/products/Win32OpenSSL.html) the Win64 package
+and install it into `c:\local\OpenSSL-Win64`.
 
 Once asked for `Copy OpenSSLs DLLs to` select `The Windows system directory`. That way CMake/Visual Studio
 will automatically detect them for builds and packaging.
@@ -1777,17 +1836,22 @@ will automatically detect them for builds and packaging.
 
 Icinga needs the development header and library files from the Boost library.
 
+Visual Studio translates into the following compiler versions:
+
+- `msvc-14.1` = Visual Studio 2017
+- `msvc-14.2` = Visual Studio 2019
+
 ##### Pre-built Binaries
 
 Prefer the pre-built package over self-compiling, if the newest version already exists.
 
 Download the [boost-binaries](https://sourceforge.net/projects/boost/files/boost-binaries/) for
 
-- msvc-14.1 is Visual Studio 2017
+- msvc-14.2 is Visual Studio 2019
 - 64 for 64 bit builds
 
 ```
-https://sourceforge.net/projects/boost/files/boost-binaries/1.71.0/boost_1_71_0-msvc-14.1-64.exe/download
+https://sourceforge.net/projects/boost/files/boost-binaries/1.71.0/boost_1_71_0-msvc-14.2-64.exe/download
 ```
 
 Run the installer and leave the default installation path in `C:\local\boost_1_71_0`.
@@ -1819,7 +1883,7 @@ which isn't treated as exception safe by the VS compiler. Therefore set the
 additional compilation flag according to [this entry](https://lists.boost.org/Archives/boost/2015/08/224570.php).
 
 ```
-b2 --toolset=msvc-14.1 asmflags=\safeseh
+b2 --toolset=msvc-14.2 link=static threading=multi runtime-link=static address-model=64 asmflags=\safeseh
 ```
 
 ![Windows Boost Build in VS2017 Development Console](images/development/windows_boost_build_dev_cmd.png)
@@ -1868,7 +1932,11 @@ when asked.
 
 > **Note**
 >
-> In order to properly detect the Boost libraries, install the CMake 3.14+.
+> In order to properly detect the Boost libraries and VS 2019, install CMake 3.15.2+.
+>
+> **Tip**
+>
+> Cheatsheet: http://www.brianlheim.com/2018/04/09/cmake-cheat-sheet.html
 
 Once setup is completed, open a command prompt and navigate to
 
@@ -1878,7 +1946,12 @@ cd %HOMEPATH%\source\repos
 
 Build Icinga with specific CMake variables. This generates a new Visual Studio project file called `icinga2.sln`.
 
-You need to specify the previously installed component paths:
+Visual Studio translates into the following:
+
+- `msvc-14.1` = Visual Studio 2017
+- `msvc-14.2` = Visual Studio 2019
+
+You need to specify the previously installed component paths.
 
 Variable              | Value                                                                | Description
 ----------------------|----------------------------------------------------------------------|-------------------------------------------------------
@@ -1900,24 +1973,28 @@ Open a new Powershell and navigate into the cloned Git repository. Set
 specific environment variables and run the build scripts.
 
 ```
-cd %HOMEPATH%\source\repos
+cd %HOMEPATH%\source\repos\icinga2
 
-$env:ICINGA2_BUILDPATH='debug'
-$env:CMAKE_BUILD_TYPE='Debug'
-$env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
-$env:BOOST_ROOT='C:\local\boost_1_71_0'
-$env:BOOST_LIBRARYDIR='C:\local\boost_1_71_0\lib64-msvc-14.1'
-
-.\tools\win32\configure.ps1
+.\tools\win32\configure-dev.ps1
 .\tools\win32\build.ps1
 .\tools\win32\test.ps1
 ```
 
-> **Note**
->
-> You may need to modify `configure.ps1` and
-> add a changed CMake variable for the installation
-> prefix: `-DCMAKE_INSTALL_PREFIX="C:\Program Files\Icinga2-build"`.
+If you did not follow the above steps with Boost binaries
+and OpenSSL paths, or using VS 2017, you can still modify
+the environment variables.
+
+```
+$env:CMAKE_GENERATOR='Visual Studio 16 2019'
+$env:CMAKE_GENERATOR_PLATFORM='x64'
+
+$env:ICINGA2_INSTALLPATH = 'C:\Program Files\Icinga2-debug'
+$env:ICINGA2_BUILDPATH='debug'
+$env:CMAKE_BUILD_TYPE='Debug'
+$env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
+$env:BOOST_ROOT='C:\local\boost_1_71_0'
+$env:BOOST_LIBRARYDIR='C:\local\boost_1_71_0\lib64-msvc-14.2'
+```
 
 #### Icinga 2 in Visual Studio
 
@@ -1945,23 +2022,16 @@ icinga2.exe --version
 #### Release Package
 
 This is part of the build process script already.
-
-> **Note**
->
-> You may need to modify `configure.ps1` and
-> add a changed CMake variable for the installation
-> prefix: `-DCMAKE_INSTALL_PREFIX="C:\Program Files\Icinga2-build"`.
+You need to override the build type and pick a different
+build directory.
 
 ```
-cd %HOMEPATH%\source\repos
+cd %HOMEPATH%\source\repos\icinga2
 
-$env:ICINGA2_BUILDPATH='debug'
-$env:CMAKE_BUILD_TYPE='Debug'
-$env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
-$env:BOOST_ROOT='C:\local\boost_1_71_0'
-$env:BOOST_LIBRARYDIR='C:\local\boost_1_71_0\lib64-msvc-14.1'
+$env:ICINGA2_BUILDPATH='release'
+$env:CMAKE_BUILD_TYPE='RelWithDebInfo'
 
-.\tools\win32\configure.ps1
+.\tools\win32\configure-dev.ps1
 .\tools\win32\build.ps1
 .\tools\win32\test.ps1
 ```
