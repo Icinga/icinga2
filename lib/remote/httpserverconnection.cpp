@@ -475,6 +475,8 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			response.set(http::field::server, l_ServerHeader);
 
+			// Best practice is to always reset the buffer.
+			buf = {};
 			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, yc)) {
 				break;
 			}
@@ -520,6 +522,8 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
+			// Best practice is to always reset the buffer.
+			buf = {};
 			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, yc)) {
 				break;
 			}
