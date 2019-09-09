@@ -31,6 +31,7 @@
 #	include <Lmcons.h>
 #	include <Shellapi.h>
 #	include <tchar.h>
+#	include <boost/beast/module/core/time/Time.h>
 #endif /* _WIN32 */
 
 using namespace icinga;
@@ -175,6 +176,12 @@ static int Main()
 	Application::InstallExceptionHandlers();
 
 #ifdef _WIN32
+	/*
+	 * Workaround for Boost.Context / Boost.Coroutine
+	 * https://svn.boost.org/trac/boost/ticket/10657
+	 */
+	(void)beast::Time::currentTimeMillis();
+
 	bool builtinPaths = true;
 
 	/* Programm install location, C:/Program Files/Icinga2 */
