@@ -52,10 +52,10 @@ void JsonRpcConnection::Start()
 
 	JsonRpcConnection::Ptr keepAlive (this);
 
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { HandleIncomingMessages(yc); });
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { WriteOutgoingMessages(yc); });
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { HandleAndWriteHeartbeats(yc); });
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { HandleIncomingMessages(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { WriteOutgoingMessages(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { HandleAndWriteHeartbeats(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
 }
 
 void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
@@ -193,7 +193,7 @@ void JsonRpcConnection::Disconnect()
 
 	JsonRpcConnection::Ptr keepAlive (this);
 
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
 		if (!m_ShuttingDown) {
 			m_ShuttingDown = true;
 
