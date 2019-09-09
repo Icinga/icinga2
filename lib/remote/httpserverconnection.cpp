@@ -143,10 +143,14 @@ bool EnsureValidHeaders(
 	boost::beast::flat_buffer& buf,
 	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	bool& shuttingDown,
 	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
+
+	if (shuttingDown)
+		return false;
 
 	bool httpError = false;
 	String errorMsg;
@@ -348,6 +352,7 @@ bool EnsureValidBody(
 	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	bool& shuttingDown,
 	boost::asio::yield_context& yc
 )
 {
@@ -389,6 +394,9 @@ bool EnsureValidBody(
 
 		parser.body_limit(maxSize);
 	}
+
+	if (shuttingDown)
+		return false;
 
 	boost::system::error_code ec;
 
@@ -502,7 +510,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			// Best practice is to always reset the buffer.
 			buf = {};
-			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, yc)) {
+			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, m_ShuttingDown, yc)) {
 				break;
 			}
 
@@ -549,7 +557,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			// Best practice is to always reset the buffer.
 			buf = {};
-			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, yc)) {
+			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, m_ShuttingDown, yc)) {
 				break;
 			}
 
