@@ -363,7 +363,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 		return false;
 	}
 
-	auto& io (IoEngine::Get().GetIoService());
+	auto& io (IoEngine::Get().GetIoContext());
 	auto acceptor (std::make_shared<tcp::acceptor>(io));
 
 	try {
@@ -427,7 +427,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const std
 {
 	namespace asio = boost::asio;
 
-	auto& io (IoEngine::Get().GetIoService());
+	auto& io (IoEngine::Get().GetIoContext());
 
 	for (;;) {
 		try {
@@ -460,7 +460,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		return;
 	}
 
-	auto& io (IoEngine::Get().GetIoService());
+	auto& io (IoEngine::Get().GetIoContext());
 
 	asio::spawn(io, [this, endpoint, &io, sslContext](asio::yield_context yc) {
 		String host = endpoint->GetHost();
@@ -664,7 +664,7 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 
 			endpoint->AddClient(aclient);
 
-			asio::spawn(IoEngine::Get().GetIoService(), [this, aclient, endpoint, needSync](asio::yield_context yc) {
+			asio::spawn(IoEngine::Get().GetIoContext(), [this, aclient, endpoint, needSync](asio::yield_context yc) {
 				CpuBoundWork syncClient (yc);
 
 				SyncClient(aclient, endpoint, needSync);

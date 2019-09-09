@@ -11,8 +11,8 @@
 #include "base/workqueue.hpp"
 #include <memory>
 #include <vector>
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/io_service_strand.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
 
 namespace icinga
@@ -73,14 +73,14 @@ private:
 	double m_Timestamp;
 	double m_Seen;
 	double m_NextHeartbeat;
-	boost::asio::io_service::strand m_IoStrand;
+	boost::asio::io_context::strand m_IoStrand;
 	std::vector<String> m_OutgoingMessagesQueue;
 	AsioConditionVariable m_OutgoingMessagesQueued;
 	AsioConditionVariable m_WriterDone;
 	bool m_ShuttingDown;
 	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
 
-	JsonRpcConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role, boost::asio::io_service& io);
+	JsonRpcConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role, boost::asio::io_context& io);
 
 	void HandleIncomingMessages(boost::asio::yield_context yc);
 	void WriteOutgoingMessages(boost::asio::yield_context yc);

@@ -598,9 +598,9 @@ OptionalTlsStream ElasticsearchWriter::Connect()
 			throw;
 		}
 
-		stream.first = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoService(), *sslContext, GetHost());
+		stream.first = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
 	} else {
-		stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoService());
+		stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoContext());
 	}
 
 	try {
