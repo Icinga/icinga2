@@ -537,7 +537,7 @@ std::shared_ptr<AsioTlsStream> ConsoleCommand::Connect()
 	String host = l_Url->GetHost();
 	String port = l_Url->GetPort();
 
-	std::shared_ptr<AsioTlsStream> stream = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoService(), *sslContext, host);
+	std::shared_ptr<AsioTlsStream> stream = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoContext(), *sslContext, host);
 
 	try {
 		icinga::Connect(stream->lowest_layer(), host, port);

@@ -10,7 +10,7 @@
 #include <thread>
 #include <vector>
 #include <boost/asio/deadline_timer.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
 
 namespace icinga
@@ -75,7 +75,7 @@ public:
 
 	static IoEngine& Get();
 
-	boost::asio::io_service& GetIoService();
+	boost::asio::io_context& GetIoContext();
 
 private:
 	IoEngine();
@@ -84,8 +84,8 @@ private:
 
 	static LazyInit<std::unique_ptr<IoEngine>> m_Instance;
 
-	boost::asio::io_service m_IoService;
-	boost::asio::io_service::work m_KeepAlive;
+	boost::asio::io_context m_IoContext;
+	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
 	std::atomic_int_fast32_t m_CpuBoundSemaphore;
@@ -103,7 +103,7 @@ class TerminateIoThread : public std::exception
 class AsioConditionVariable
 {
 public:
-	AsioConditionVariable(boost::asio::io_service& io, bool init = false);
+	AsioConditionVariable(boost::asio::io_context& io, bool init = false);
 
 	void Set();
 	void Clear();

@@ -11,7 +11,7 @@
 #include <memory>
 #include <utility>
 #include <boost/asio/buffered_stream.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
@@ -21,7 +21,7 @@ namespace icinga
 
 struct UnbufferedAsioTlsStreamParams
 {
-	boost::asio::io_service& IoService;
+	boost::asio::io_context& IoContext;
 	boost::asio::ssl::context& SslContext;
 	const String& Hostname;
 };
@@ -33,7 +33,7 @@ class UnbufferedAsioTlsStream : public AsioTcpTlsStream
 public:
 	inline
 	UnbufferedAsioTlsStream(UnbufferedAsioTlsStreamParams& init)
-		: stream(init.IoService, init.SslContext), m_VerifyOK(true), m_Hostname(init.Hostname)
+		: stream(init.IoContext, init.SslContext), m_VerifyOK(true), m_Hostname(init.Hostname)
 	{
 	}
 
@@ -71,8 +71,8 @@ class AsioTlsStream : public boost::asio::buffered_stream<UnbufferedAsioTlsStrea
 {
 public:
 	inline
-	AsioTlsStream(boost::asio::io_service& ioService, boost::asio::ssl::context& sslContext, const String& hostname = String())
-		: AsioTlsStream(UnbufferedAsioTlsStreamParams{ioService, sslContext, hostname})
+	AsioTlsStream(boost::asio::io_context& ioContext, boost::asio::ssl::context& sslContext, const String& hostname = String())
+		: AsioTlsStream(UnbufferedAsioTlsStreamParams{ioContext, sslContext, hostname})
 	{
 	}
 

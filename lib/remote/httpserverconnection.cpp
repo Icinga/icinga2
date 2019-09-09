@@ -22,7 +22,7 @@
 #include <memory>
 #include <stdexcept>
 #include <boost/asio/error.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -35,11 +35,11 @@ using namespace icinga;
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream)
-	: HttpServerConnection(identity, authenticated, stream, IoEngine::Get().GetIoService())
+	: HttpServerConnection(identity, authenticated, stream, IoEngine::Get().GetIoContext())
 {
 }
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream, boost::asio::io_service& io)
+HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream, boost::asio::io_context& io)
 	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_HasStartedStreaming(false),
 	m_CheckLivenessTimer(io)
 {

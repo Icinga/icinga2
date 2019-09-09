@@ -7,8 +7,9 @@
 #include <exception>
 #include <memory>
 #include <thread>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/system/error_code.hpp>
 
@@ -78,12 +79,12 @@ IoEngine& IoEngine::Get()
 	return *m_Instance.Get();
 }
 
-boost::asio::io_service& IoEngine::GetIoService()
+boost::asio::io_context& IoEngine::GetIoContext()
 {
-	return m_IoService;
+	return m_IoContext;
 }
 
-IoEngine::IoEngine() : m_IoService(), m_KeepAlive(m_IoService), m_Threads(decltype(m_Threads)::size_type(std::thread::hardware_concurrency() * 2u)), m_AlreadyExpiredTimer(m_IoService)
+IoEngine::IoEngine() : m_IoContext(), m_KeepAlive(boost::asio::make_work_guard(m_IoContext)), m_Threads(decltype(m_Threads)::size_type(std::thread::hardware_concurrency() * 2u)), m_AlreadyExpiredTimer(m_IoContext)
 {
 	m_AlreadyExpiredTimer.expires_at(boost::posix_time::neg_infin);
 	m_CpuBoundSemaphore.store(std::thread::hardware_concurrency() * 3u / 2u);
@@ -96,7 +97,7 @@ IoEngine::IoEngine() : m_IoService(), m_KeepAlive(m_IoService), m_Threads(declty
 IoEngine::~IoEngine()
 {
 	for (auto& thread : m_Threads) {
-		m_IoService.post([]() {
+		boost::asio::post(m_IoContext, []() {
 			throw TerminateIoThread();
 		});
 	}
@@ -110,7 +111,7 @@ void IoEngine::RunEventLoop()
 {
 	for (;;) {
 		try {
-			m_IoService.run();
+			m_IoContext.run();
 
 			break;
 		} catch (const TerminateIoThread&) {
@@ -122,7 +123,7 @@ void IoEngine::RunEventLoop()
 	}
 }
 
-AsioConditionVariable::AsioConditionVariable(boost::asio::io_service& io, bool init)
+AsioConditionVariable::AsioConditionVariable(boost::asio::io_context& io, bool init)
 	: m_Timer(io)
 {
 	m_Timer.expires_at(init ? boost::posix_time::neg_infin : boost::posix_time::pos_infin);

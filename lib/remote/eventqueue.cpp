@@ -131,7 +131,7 @@ std::map<String, EventsInbox::Filter> EventsInbox::m_Filters ({{"", EventsInbox:
 EventsRouter EventsRouter::m_Instance;
 
 EventsInbox::EventsInbox(String filter, const String& filterSource)
-	: m_Timer(IoEngine::Get().GetIoService())
+	: m_Timer(IoEngine::Get().GetIoContext())
 {
 	std::unique_lock<std::mutex> lock (m_FiltersMutex);
 	m_Filter = m_Filters.find(filter);

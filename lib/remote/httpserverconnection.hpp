@@ -8,8 +8,8 @@
 #include "base/tlsstream.hpp"
 #include <memory>
 #include <boost/asio/deadline_timer.hpp>
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/io_service_strand.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
 
 namespace icinga
@@ -38,12 +38,12 @@ private:
 	std::shared_ptr<AsioTlsStream> m_Stream;
 	double m_Seen;
 	String m_PeerAddress;
-	boost::asio::io_service::strand m_IoStrand;
+	boost::asio::io_context::strand m_IoStrand;
 	bool m_ShuttingDown;
 	bool m_HasStartedStreaming;
 	boost::asio::deadline_timer m_CheckLivenessTimer;
 
-	HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream, boost::asio::io_service& io);
+	HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream, boost::asio::io_context& io);
 
 	void ProcessMessages(boost::asio::yield_context yc);
 	void CheckLiveness(boost::asio::yield_context yc);
