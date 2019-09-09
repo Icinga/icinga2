@@ -21,10 +21,12 @@
 #include <limits>
 #include <memory>
 #include <stdexcept>
+#include <boost/asio/error.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/thread/once.hpp>
 
@@ -154,16 +156,19 @@ bool EnsureValidHeaders(
 	http::async_read_header(stream, buf, parser, yc[ec]);
 
 	if (ec) {
+		if (ec == boost::asio::error::operation_aborted)
+			return false;
+
 		errorMsg = ec.message();
 		httpError = true;
-	}
-
-	switch (parser.get().version()) {
-	case 10:
-	case 11:
-		break;
-	default:
-		errorMsg = "Unsupported HTTP version";
+	} else {
+		switch (parser.get().version()) {
+		case 10:
+		case 11:
+			break;
+		default:
+			errorMsg = "Unsupported HTTP version";
+		}
 	}
 
 	if (!errorMsg.IsEmpty() || httpError) {
@@ -390,6 +395,9 @@ bool EnsureValidBody(
 	http::async_read(stream, buf, parser, yc[ec]);
 
 	if (ec) {
+		if (ec == boost::asio::error::operation_aborted)
+			return false;
+
 		/**
 		 * Unfortunately there's no way to tell an HTTP protocol error
 		 * from an error on a lower layer:
@@ -441,6 +449,12 @@ bool ProcessRequest(
 	} catch (const std::exception& ex) {
 		if (hasStartedStreaming) {
 			return false;
+		}
+
+		auto sysErr (dynamic_cast<const boost::system::system_error*>(&ex));
+
+		if (sysErr && sysErr->code() == boost::asio::error::operation_aborted) {
+			throw;
 		}
 
 		http::response<http::string_body> response;
