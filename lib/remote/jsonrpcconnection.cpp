@@ -214,20 +214,21 @@ void JsonRpcConnection::Disconnect()
 
 			m_WriterDone.Wait(yc);
 
-			try {
-				m_Stream->next_layer().async_shutdown(yc);
-			} catch (...) {
-			}
+			/*
+			 * Do not swallow exceptions in a coroutine.
+			 * https://github.com/Icinga/icinga2/issues/7351
+			 * We must not catch `detail::forced_unwind exception` as
+			 * this is used for unwinding the stack.
+			 *
+			 * Just use the error_code dummy here.
+			 */
+			boost::system::error_code ec;
 
-			try {
-				m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both);
-			} catch (...) {
-			}
+			m_Stream->next_layer().async_shutdown(yc[ec]);
 
-			try {
-				m_Stream->lowest_layer().cancel();
-			} catch (...) {
-			}
+			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
+
+			m_Stream->lowest_layer().cancel(ec);
 
 			m_CheckLivenessTimer.cancel();
 			m_HeartbeatTimer.cancel();
