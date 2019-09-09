@@ -478,8 +478,6 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 	namespace beast = boost::beast;
 	namespace http = beast::http;
 
-	Defer disconnect ([this]() { Disconnect(); });
-
 	try {
 		beast::flat_buffer buf;
 
@@ -563,6 +561,8 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				<< "Unhandled exception while processing HTTP request: " << ex.what();
 		}
 	}
+
+	Disconnect();
 }
 
 void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)

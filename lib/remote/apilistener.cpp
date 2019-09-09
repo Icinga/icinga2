@@ -553,7 +553,10 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 
 	Defer shutDownIfNeeded ([&sslConn, &willBeShutDown, &yc]() {
 		if (!willBeShutDown) {
-			sslConn.async_shutdown(yc);
+			// Ignore the error, but do not throw an exception being swallowed at all cost.
+			// https://github.com/Icinga/icinga2/issues/7351
+			boost::system::error_code ec;
+			sslConn.async_shutdown(yc[ec]);
 		}
 	});
 

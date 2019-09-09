@@ -60,8 +60,6 @@ void JsonRpcConnection::Start()
 
 void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 {
-	Defer disconnect ([this]() { Disconnect(); });
-
 	for (;;) {
 		String message;
 
@@ -97,12 +95,12 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 
 		l_TaskStats.InsertValue(Utility::GetTime(), 1);
 	}
+
+	Disconnect();
 }
 
 void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 {
-	Defer disconnect ([this]() { Disconnect(); });
-
 	Defer signalWriterDone ([this]() { m_WriterDone.Set(); });
 
 	do {
@@ -136,6 +134,8 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 			}
 		}
 	} while (!m_ShuttingDown);
+
+	Disconnect();
 }
 
 double JsonRpcConnection::GetTimestamp() const
