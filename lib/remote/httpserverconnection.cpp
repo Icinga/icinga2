@@ -21,10 +21,12 @@
 #include <limits>
 #include <memory>
 #include <stdexcept>
+#include <boost/asio/error.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/thread/once.hpp>
 
@@ -88,13 +90,13 @@ void HttpServerConnection::Disconnect()
 			 */
 			boost::system::error_code ec;
 
-			m_Stream->next_layer().async_shutdown(yc[ec]);
-
-			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
+			m_CheckLivenessTimer.cancel();
 
 			m_Stream->lowest_layer().cancel(ec);
 
-			m_CheckLivenessTimer.cancel();
+			m_Stream->next_layer().async_shutdown(yc[ec]);
+
+			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
 
 			auto listener (ApiListener::GetInstance());
 
@@ -141,10 +143,14 @@ bool EnsureValidHeaders(
 	boost::beast::flat_buffer& buf,
 	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	bool& shuttingDown,
 	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
+
+	if (shuttingDown)
+		return false;
 
 	bool httpError = false;
 	String errorMsg;
@@ -154,16 +160,19 @@ bool EnsureValidHeaders(
 	http::async_read_header(stream, buf, parser, yc[ec]);
 
 	if (ec) {
+		if (ec == boost::asio::error::operation_aborted)
+			return false;
+
 		errorMsg = ec.message();
 		httpError = true;
-	}
-
-	switch (parser.get().version()) {
-	case 10:
-	case 11:
-		break;
-	default:
-		errorMsg = "Unsupported HTTP version";
+	} else {
+		switch (parser.get().version()) {
+		case 10:
+		case 11:
+			break;
+		default:
+			errorMsg = "Unsupported HTTP version";
+		}
 	}
 
 	if (!errorMsg.IsEmpty() || httpError) {
@@ -343,6 +352,7 @@ bool EnsureValidBody(
 	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	bool& shuttingDown,
 	boost::asio::yield_context& yc
 )
 {
@@ -385,11 +395,17 @@ bool EnsureValidBody(
 		parser.body_limit(maxSize);
 	}
 
+	if (shuttingDown)
+		return false;
+
 	boost::system::error_code ec;
 
 	http::async_read(stream, buf, parser, yc[ec]);
 
 	if (ec) {
+		if (ec == boost::asio::error::operation_aborted)
+			return false;
+
 		/**
 		 * Unfortunately there's no way to tell an HTTP protocol error
 		 * from an error on a lower layer:
@@ -443,6 +459,12 @@ bool ProcessRequest(
 			return false;
 		}
 
+		auto sysErr (dynamic_cast<const boost::system::system_error*>(&ex));
+
+		if (sysErr && sysErr->code() == boost::asio::error::operation_aborted) {
+			throw;
+		}
+
 		http::response<http::string_body> response;
 
 		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
@@ -488,7 +510,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			// Best practice is to always reset the buffer.
 			buf = {};
-			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, yc)) {
+			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, m_ShuttingDown, yc)) {
 				break;
 			}
 
@@ -535,7 +557,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			// Best practice is to always reset the buffer.
 			buf = {};
-			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, yc)) {
+			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, m_ShuttingDown, yc)) {
 				break;
 			}
 

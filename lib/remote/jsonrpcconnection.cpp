@@ -224,14 +224,14 @@ void JsonRpcConnection::Disconnect()
 			 */
 			boost::system::error_code ec;
 
-			m_Stream->next_layer().async_shutdown(yc[ec]);
-
-			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
+			m_CheckLivenessTimer.cancel();
+			m_HeartbeatTimer.cancel();
 
 			m_Stream->lowest_layer().cancel(ec);
 
-			m_CheckLivenessTimer.cancel();
-			m_HeartbeatTimer.cancel();
+			m_Stream->next_layer().async_shutdown(yc[ec]);
+
+			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
 		}
 	});
 }
