@@ -1688,7 +1688,7 @@ notification users and groups are inherited from the service and if not set,
 from the host object. A default user is set too.
 
 ```
-apply Notification "mail-host-notification" to Service {
+apply Notification "mail-service-notification" to Service {
   [...]
 
   if (service.vars.notification.mail.users) {
