@@ -1706,7 +1706,7 @@ apply Notification "mail-service-notification" to Service {
     user_groups = host.vars.notification.mail.groups
   }
 
-  assign where host.vars.notification.mail && typeof(host.vars.notification.mail) == Dictionary
+  assign where ( host.vars.notification.mail && typeof(host.vars.notification.mail) == Dictionary ) || ( service.vars.notification.mail && typeof(service.vars.notification.mail) == Dictionary )
 }
 ```
 
