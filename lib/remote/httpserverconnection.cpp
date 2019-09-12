@@ -495,6 +495,11 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 	namespace http = beast::http;
 
 	try {
+		/* Do not reset the buffer in the state machine.
+		 * EnsureValidHeaders already reads from the stream into the buffer,
+		 * EnsureValidBody continues. ProcessRequest() actually handles the request
+		 * and needs the full buffer.
+		 */
 		beast::flat_buffer buf;
 
 		for (;;) {
@@ -508,8 +513,6 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			response.set(http::field::server, l_ServerHeader);
 
-			// Best practice is to always reset the buffer.
-			buf = {};
 			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, m_ShuttingDown, yc)) {
 				break;
 			}
@@ -555,8 +558,6 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
-			// Best practice is to always reset the buffer.
-			buf = {};
 			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, m_ShuttingDown, yc)) {
 				break;
 			}
