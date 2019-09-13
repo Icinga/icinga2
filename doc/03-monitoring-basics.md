@@ -1688,7 +1688,7 @@ notification users and groups are inherited from the service and if not set,
 from the host object. A default user is set too.
 
 ```
-apply Notification "mail-host-notification" to Service {
+apply Notification "mail-service-notification" to Service {
   [...]
 
   if (service.vars.notification.mail.users) {
@@ -1702,11 +1702,11 @@ apply Notification "mail-host-notification" to Service {
 
   if (service.vars.notification.mail.groups) {
     user_groups = service.vars.notification.mail.groups
-  } else (host.vars.notification.mail.groups) {
+  } else if (host.vars.notification.mail.groups) {
     user_groups = host.vars.notification.mail.groups
   }
 
-  assign where host.vars.notification.mail && typeof(host.vars.notification.mail) == Dictionary
+  assign where ( host.vars.notification.mail && typeof(host.vars.notification.mail) == Dictionary ) || ( service.vars.notification.mail && typeof(service.vars.notification.mail) == Dictionary )
 }
 ```
 
