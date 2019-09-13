@@ -64,7 +64,7 @@ add_executable(icinga-app
   ${icinga_app_SOURCES}
 )
 
-target_link_libraries(icinga-app ${base_DEPS})
+target_link_libraries(icinga-app PUBLIC ${base_DEPS} PRIVATE ${base_DEPS_PRIVATE})
 
 set_target_properties (
   icinga-app PROPERTIES
