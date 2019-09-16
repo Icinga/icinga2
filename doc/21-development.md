@@ -71,16 +71,15 @@ SLES/openSUSE      | `zypper install gdb`
 
 #### GDB Run <a id="development-debug-gdb-run"></a>
 
-Call GDB with the binary (`/usr/sbin/icinga2` is a wrapper script calling
-`/usr/lib64/icinga2/sbin/icinga2` since 2.4) and all arguments and run it in foreground.
+Since v2.11 we would attach to the umbrella process spawned with `/usr/lib/icinga2/sbin/icinga2`,
+therefore rather attach to a running process.
 
 ```
-gdb --args /usr/lib64/icinga2/sbin/icinga2 daemon -x debug
-```
+# Typically the order of PIDs is: 1) umbrella 2) spawn helper 3) main process
+pidof icinga2
 
-The exact path to the Icinga 2 binary differs on each distribution. On Ubuntu
-it is installed into `/usr/lib/x86_64-linux-gnu/icinga2/sbin/icinga2` on 64-bit systems
-for example.
+gdb -p $(pidof icinga2 | cut -d ' ' -f3)
+```
 
 > **Note**
 >
@@ -357,9 +356,14 @@ $ xcode-select --install
 ```
 
 In order to run Icinga 2 with LLDB you need to pass the binary as argument.
+Since v2.11 we would attach to the umbrella process, therefore rather
+attach to a running process.
 
 ```
-lldb -- /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+# Typically the order of PIDs is: 1) umbrella 2) spawn helper 3) main process
+pidof icinga2
+
+lldb -p $(pidof icinga2 | cut -d ' ' -f3)
 ```
 
 Breakpoint:
@@ -1390,7 +1394,7 @@ chown -R icinga:icinga /usr/local/icinga2/var/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
 #### Debian 10 <a id="development-linux-dev-env-debian"></a>
@@ -1443,7 +1447,7 @@ chown -R icinga:icinga /usr/local/icinga2/var/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
 
@@ -1507,7 +1511,7 @@ chown -R icinga:icinga /usr/local/icinga2/var/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
 ### macOS Dev Environment <a id="development-macos-dev-env"></a>
