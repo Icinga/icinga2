@@ -1,6 +1,27 @@
-# Icinga 2 Addons <a id="addons"></a>
+# Icinga 2 Addons and Integrations <a id="addons"></a>
 
-## Graphing <a id="addons-graphing"></a>
+For an uptodate overview of all integrations and modules,
+please visit [https://icinga.com/products/](https://icinga.com/products/).
+
+
+## Icinga Reporting <a id="addons-reporting"></a>
+
+The [Icinga Reporting Module](https://icinga.com/docs/reporting/latest/)
+is the framework and foundation we created to handle data collected
+by Icinga 2 and other data providers. By definition Icinga Reporting does not collect
+or calculate any data. The framework processes usable data from data providers such as
+Icinga’s IDO or Icinga Web 2 modules and makes them available in different formats.
+
+It can display the data directly within the Icinga web interface or export it to PDF,
+JSON or CSV format. With scheduled reports you can receive the prepared data periodically
+via email.
+
+![Icinga Reporting](images/addons/icinga_reporting.png)
+
+Follow along in this [hands-on blog post](https://icinga.com/2019/06/17/icinga-reporting-hands-on/).
+
+
+## Graphs and Metrics <a id="addons-graphs-metrics"></a>
 
 ### Graphite <a id="addons-graphing-graphite"></a>
 
@@ -95,6 +116,27 @@ installation, configuration and integration.
 
 ![Icinga Web 2 Maps](images/addons/icingaweb2_maps.png)
 
+### Business Process <a id="addons-business-process"></a>
+
+Create top-level views of your applications in a graphical editor.
+Rules express dependencies between existing hosts and services and
+let you alert on application level. Business processes are displayed
+in a tree or list overview and can be added to any dashboard.
+
+![Icinga Web 2 Business Process](images/addons/icingaweb2_businessprocess.png)
+
+Read more [here](https://icinga.com/products/icinga-business-process-modelling/).
+
+### Certificate Monitoring <a id="addons-visualization-certificate-monitoring"></a>
+
+Monitor your certificates in an efficient and comfortable way. Be aware of required
+actions and view all details at a glance.
+
+![Icinga Certificate Monitoring](images/addons/icinga_certificate_monitoring.png)
+
+Read more [here](https://icinga.com/products/icinga-certificate-monitoring/)
+and [here](https://icinga.com/2019/06/03/monitoring-automation-with-icinga-certificate-monitoring/).
+
 ### Dashing Dashboard <a id="addons-visualization-dashing-dashboard"></a>
 
 The [Icinga 2 dashboard](https://github.com/dnsmichi/dashing-icinga2) is built
@@ -107,40 +149,6 @@ host and service problem lists as Iframe.
 
 ![Dashing dashboard](images/addons/dashing_icinga2.png)
 
-### Business Process <a id="addons-business-process"></a>
-
-Create top-level views of your applications in a graphical editor.
-Rules express dependencies between existing hosts and services and
-let you alert on application level. Business processes are displayed
-in a tree or list overview and can be added to any dashboard.
-
-![Icinga Web 2 Business Process](images/addons/icingaweb2_businessprocess.png)
-
-### NagVis <a id="addons-visualization-nagvis"></a>
-
-By using the [DB IDO](14-features.md#db-ido) feature
-you can create your own network maps
-based on your monitoring configuration and status data using [NagVis](https://www.nagvis.org).
-
-The configuration in nagvis.ini.php should look like this for Livestatus for example:
-
-```
-[backend_live_1]
-backendtype="mklivestatus"
-socket="unix:/var/run/icinga2/cmd/livestatus"
-```
-
-If you are planning an integration into Icinga Web 2, look at [this module](https://github.com/Icinga/icingaweb2-module-nagvis).
-
-### Icinga Reporting <a id="addons-visualization-reporting"></a>
-
-By enabling the [DB IDO](14-features.md#db-ido) feature you can use the
-[Icinga Reporting package](https://icinga.com/docs/icinga1/latest/en/reporting.html).
-
-### Thruk <a id="addons-visualization-thruk"></a>
-
-[Thruk](https://www.thruk.org) is an alternative web interface which can be used with Icinga 2
-and the [Livestatus](14-features.md#setting-up-livestatus) feature.
 
 ## Log Monitoring <a id="log-monitoring"></a>
 
@@ -166,6 +174,10 @@ There's a variety of resources available, for example different notification scr
 * Ticket systems
 * etc.
 
+Blog posts and howtos:
+
+* [Environmental Monitoring and Alerting](https://icinga.com/2019/09/02/environmental-monitoring-and-alerting-via-text-message/)
+
 Additionally external services can be [integrated with Icinga 2](https://icinga.com/products/integrations/):
 
 * [Pagerduty](https://icinga.com/products/integrations/pagerduty/)
@@ -176,33 +188,13 @@ More information can be found on the [Icinga Website](https://icinga.com/).
 
 ## Configuration Management Tools <a id="configuration-tools"></a>
 
-If you require your favourite configuration tool to export the Icinga 2 configuration, please get in
-touch with their developers. The Icinga project does not provide a configuration web interface
-yet. Follow the [Icinga Blog](https://icinga.com/blog/) for updates on this topic.
+Checkout these specific integrations:
 
-If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc. -- we're happy
-to integrate them upstream, so please get in touch with the [Icinga team](https://icinga.com/community/).
+* [Ansible Roles](https://icinga.com/products/integrations/)
+* [Puppet Module](https://icinga.com/products/integrations/puppet/)
+* [Chef Cookbook](https://icinga.com/products/integrations/chef/)
 
-These tools are currently in development and require feedback and tests:
+If you're looking for different config management integrations -- we're happy
+to add them upstream, so please get in touch with the [Icinga team](https://icinga.com/community/).
 
-* [Ansible Roles](https://github.com/Icinga/icinga2-ansible)
-* [Puppet Module](https://github.com/Icinga/puppet-icinga2)
-* [Chef Cookbook](https://github.com/Icinga/chef-icinga2)
-
-## More Addon Integration Hints <a id="addon-integration-hints"></a>
-
-### PNP Action Url <a id="addons-graphing-pnp-action-url"></a>
-
-They work in a similar fashion for Icinga 2 and are used for 1.x web interfaces (Icinga Web 2 doesn't require
-the action url attribute in its own module).
-
-```
-template Host "pnp-hst" {
-  action_url = "/pnp4nagios/graph?host=$HOSTNAME$"
-}
-
-template Service "pnp-svc" {
-  action_url = "/pnp4nagios/graph?host=$HOSTNAME$&srv=$SERVICEDESC$"
-}
-```
 

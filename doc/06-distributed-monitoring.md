@@ -959,9 +959,9 @@ can start with additional integrations to manage and deploy your
 configuration:
 
 * [Icinga Director](https://icinga.com/docs/director/latest/) provides a web interface to manage configuration and also allows to sync imported resources (CMDB, PuppetDB, etc.)
-* [Ansible Roles](https://github.com/Icinga/icinga2-ansible)
-* [Puppet Module](https://github.com/Icinga/puppet-icinga2)
-* [Chef Cookbook](https://github.com/Icinga/chef-icinga2)
+* [Ansible Roles](https://icinga.com/products/integrations/)
+* [Puppet Module](https://icinga.com/products/integrations/puppet/)
+* [Chef Cookbook](https://icinga.com/products/integrations/chef/)
 
 More details can be found [here](13-addons.md#configuration-tools).
 
