@@ -225,7 +225,7 @@ expects the Graphite Carbon Cache to listen at `127.0.0.1` on TCP port `2003`.
 
 #### Graphite Schema <a id="graphite-carbon-cache-writer-schema"></a>
 
-The current naming schema is defined as follows. The [Icinga Web 2 Graphite module](https://github.com/icinga/icingaweb2-module-graphite)
+The current naming schema is defined as follows. The [Icinga Web 2 Graphite module](https://icinga.com/products/integrations/graphite/)
 depends on this schema.
 
 The default prefix for hosts and services is configured using
@@ -438,14 +438,14 @@ where the InfluxDB HTTP API or Telegraf as Proxy are running.
 
 ### Elastic Stack Integration <a id="elastic-stack-integration"></a>
 
-[Icingabeat](https://github.com/icinga/icingabeat) is an Elastic Beat that fetches data
+[Icingabeat](https://icinga.com/products/integrations/elastic/) is an Elastic Beat that fetches data
 from the Icinga 2 API and sends it either directly to [Elasticsearch](https://www.elastic.co/products/elasticsearch)
 or [Logstash](https://www.elastic.co/products/logstash).
 
 More integrations:
 
-* [Logstash output](https://github.com/Icinga/logstash-output-icinga) for the Icinga 2 API.
-* [Logstash Grok Pattern](https://github.com/Icinga/logstash-grok-pattern) for Icinga 2 logs.
+* [Logstash output](https://icinga.com/products/integrations/elastic/) for the Icinga 2 API.
+* [Logstash Grok Pattern](https://icinga.com/products/integrations/elastic/) for Icinga 2 logs.
 
 #### Elasticsearch Writer <a id="elasticsearch-writer"></a>
 
