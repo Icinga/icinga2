@@ -2,15 +2,17 @@
 
 ## What is Icinga 2?  <a id="what-is-icinga2"></a>
 
-[Icinga 2](https://icinga.com/products/icinga-2/) is a monitoring system which checks
+[Icinga](https://icinga.com/products/) is a monitoring system which checks
 the availability of your network resources, notifies users of outages, and generates
 performance data for reporting.
 
-Scalable and extensible, Icinga 2 can monitor large, complex environments across
+Scalable and extensible, Icinga can monitor large, complex environments across
 multiple locations.
 
-Icinga 2 as core requires [Icinga Web 2](https://icinga.com/products/icinga-web-2/)
-on top in your Icinga Stack.
+Icinga 2 is the monitoring server and requires [Icinga Web 2](https://icinga.com/products/)
+on top in your Icinga Stack. The [configuration](https://icinga.com/products/configuration/)
+can be easily managed with either the [Icinga Director](https://icinga.com/docs/director/latest/),
+config management tools or plain text within the [Icinga DSL](04-configuration.md#configuration).
 
 
 ![Icinga 2 Distributed Master and Satellites with Agents](images/distributed-monitoring/icinga2_distributed_monitoring_scenarios_master_satellites_agents.png)
@@ -25,7 +27,7 @@ on top in your Icinga Stack.
 * [Troubleshooting](15-troubleshooting.md#troubleshooting)
 * [Upgrading](16-upgrading-icinga-2.md#upgrading-icinga-2)
 
-Once Icinga Core and Web are running in your distributed environment,
+Once Icinga Server and Web are running in your distributed environment,
 make sure to check out the many [Icinga modules](https://icinga.com/docs/)
 for even better monitoring.
 
