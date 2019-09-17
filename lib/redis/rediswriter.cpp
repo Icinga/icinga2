@@ -46,7 +46,7 @@ RedisWriter::RedisWriter()
 
 	m_PrefixConfigObject = "icinga:config:";
 	m_PrefixConfigCheckSum = "icinga:checksum:";
-	m_PrefixStateObject = "icinga:state:object:";
+	m_PrefixStateObject = "icinga:config:state:";
 }
 
 /**
