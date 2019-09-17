@@ -43,6 +43,7 @@
 #include "base/convert.hpp"
 #include "base/array.hpp"
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 #include <iterator>
 #include <map>
 #include <set>
@@ -1024,7 +1025,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 	ObjectLock olock(objectAttrs);
 	for (const Dictionary::Pair& kv : objectAttrs) {
 		streamadd.emplace_back(kv.first);
-		streamadd.emplace_back(kv.second);
+		streamadd.emplace_back(Utility::ValidateUTF8(kv.second));
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(streamadd));
