@@ -13,7 +13,7 @@ First off you have to install Icinga 2. The preferred way of doing this
 is to use the official package repositories depending on which operating system
 and distribution you are running.
 
-Official repositories ([support matrix](https://icinga.com/support/details/)):
+Official repositories ([support matrix](https://icinga.com/subscription/support-details/)):
 
   Distribution            | Repository
   ------------------------|---------------------------
