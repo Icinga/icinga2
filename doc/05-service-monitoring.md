@@ -910,6 +910,8 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 * [kdc](10-icinga-template-library.md#plugin-contrib-command-kdc)
 * [rbl](10-icinga-template-library.md#plugin-contrib-command-rbl)
 
+* [Icinga Certificate Monitoring](https://icinga.com/products/icinga-certificate-monitoring/)
+
 ### Java Monitoring <a id="service-monitoring-java"></a>
 
 * [jmx4perl](10-icinga-template-library.md#plugin-contrib-command-jmx4perl)
@@ -934,6 +936,7 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 
 ### VMware Monitoring <a id="service-monitoring-virtualization-vmware"></a>
 
+* [Icinga Module for vSphere](https://icinga.com/products/icinga-module-for-vsphere/)
 * [esxi_hardware](10-icinga-template-library.md#plugin-contrib-command-esxi-hardware)
 * [VMware](10-icinga-template-library.md#plugin-contrib-vmware)
 
