@@ -154,13 +154,31 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 		ticket = params->Get("ticket");
 
-		/* Auto-signing is disabled by either a) no TicketSalt
-		 * or b) the client did not include a ticket in its request.
-		 */
-		if (salt.IsEmpty() || ticket.IsEmpty())
+		// Auto-signing is disabled: Client did not include a ticket in its request.
+		if (ticket.IsEmpty()) {
+			Log(LogNotice, "JsonRpcConnection")
+				<< "Certificate request for CN '" << cn
+				<< "': No ticket included, skipping auto-signing and waiting for on-demand signing approval.";
+
 			goto delayed_request;
+		}
+
+		// Auto-signing is disabled: no TicketSalt
+		if (salt.IsEmpty()) {
+			Log(LogNotice, "JsonRpcConnection")
+				<< "Certificate request for CN '" << cn
+				<< "': This instance is the signing master for the Icinga CA."
+				<< " The 'ticket_salt' attribute in the 'api' feature is not set."
+				<< " Not signing the request. Please check the docs.";
+
+			goto delayed_request;
+		}
 
 		String realTicket = PBKDF2_SHA1(cn, salt, 50000);
+
+		Log(LogDebug, "JsonRpcConnection")
+			<< "Certificate request for CN '" << cn << "': Comparing received ticket '"
+			<< ticket << "' with calculated ticket '" << realTicket << "'.";
 
 		if (ticket != realTicket) {
 			Log(LogWarning, "JsonRpcConnection")
