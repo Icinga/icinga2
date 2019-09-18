@@ -73,11 +73,12 @@ private:
 	std::vector<std::vector<intrusive_ptr<ConfigObject>>> ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize);
 	void DeleteKeys(const std::vector<String>& keys);
 	std::vector<String> GetTypeObjectKeys(const String& type);
-	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String> >& statements);
+	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
+			std::map<String, std::vector<String>>& publishes, bool runtimeUpdate);
 	void UpdateState(const Checkable::Ptr& checkable);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
-	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String> >& statements,
-			bool runtimeUpdate);
+	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
+			std::map<String, std::vector<String>>& publishes, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStatusUpdate(const ConfigObject::Ptr& object);
 	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
