@@ -32,7 +32,7 @@ config management tools or plain text within the [Icinga DSL](https://icinga.com
 
 ## Installation
 
-* [Installation](https://icinga.com/docs/icinga2/latest/doc/02-installation/)
+* [Installation](https://icinga.com/docs/icinga2/latest/doc/02-getting-started/)
 * [Monitoring Basics](https://icinga.com/docs/icinga2/latest/doc/03-monitoring-basics/)
 * [Configuration](https://icinga.com/docs/icinga2/latest/doc/04-configuration/)
 * [Distributed Monitoring](https://icinga.com/docs/icinga2/latest/doc/06-distributed-monitoring/)
