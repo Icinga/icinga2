@@ -21,8 +21,11 @@
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/range/algorithm/remove_if.hpp>
+#include <boost/asio/buffer.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/beast.hpp>
+#include <cstddef>
+#include <cstring>
 #include <iostream>
 
 using namespace icinga;
@@ -146,7 +149,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
 		{ "OK", 0 },
 		{ "WARNING", 1},
 		{ "CRITICAL", 2},
-		{ "UNKNWON", 3}
+		{ "UNKNOWN", 3}
 	};
 
 	String state = static_cast<String>(payload->Get("result")).ToUpper();
@@ -183,7 +186,7 @@ static std::shared_ptr<AsioTlsStream> Connect(const String& host, const String& 
 		throw;
 	}
 
-	std::shared_ptr<AsioTlsStream> stream = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoService(), *sslContext, host);
+	std::shared_ptr<AsioTlsStream> stream = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoContext(), *sslContext, host);
 
 	try {
 		icinga::Connect(stream->lowest_layer(), host, port);
@@ -205,6 +208,118 @@ static std::shared_ptr<AsioTlsStream> Connect(const String& host, const String& 
 
 	return std::move(stream);
 }
+
+static const char l_ReasonToInject[2] = {' ', 'X'};
+
+template<class MutableBufferSequence>
+static inline
+boost::asio::mutable_buffer GetFirstNonZeroBuffer(const MutableBufferSequence& mbs)
+{
+	namespace asio = boost::asio;
+
+	auto end (asio::buffer_sequence_end(mbs));
+
+	for (auto current (asio::buffer_sequence_begin(mbs)); current != end; ++current) {
+		asio::mutable_buffer buf (*current);
+
+		if (buf.size() > 0u) {
+			return std::move(buf);
+		}
+	}
+
+	return {};
+}
+
+/**
+ * Workaround for <https://github.com/mickem/nscp/issues/610>.
+ */
+template<class SyncReadStream>
+class HttpResponseReasonInjector
+{
+public:
+	inline HttpResponseReasonInjector(SyncReadStream& stream)
+		: m_Stream(stream), m_ReasonHasBeenInjected(false), m_StashedData(nullptr)
+	{
+	}
+
+	HttpResponseReasonInjector(const HttpResponseReasonInjector&) = delete;
+	HttpResponseReasonInjector(HttpResponseReasonInjector&&) = delete;
+	HttpResponseReasonInjector& operator=(const HttpResponseReasonInjector&) = delete;
+	HttpResponseReasonInjector& operator=(HttpResponseReasonInjector&&) = delete;
+
+	template<class MutableBufferSequence>
+	size_t read_some(const MutableBufferSequence& mbs)
+	{
+		boost::system::error_code ec;
+		size_t amount = read_some(mbs, ec);
+
+		if (ec) {
+			throw boost::system::system_error(ec);
+		}
+
+		return amount;
+	}
+
+	template<class MutableBufferSequence>
+	size_t read_some(const MutableBufferSequence& mbs, boost::system::error_code& ec)
+	{
+		auto mb (GetFirstNonZeroBuffer(mbs));
+
+		if (m_StashedData) {
+			size_t amount = 0;
+			auto end ((char*)mb.data() + mb.size());
+
+			for (auto current ((char*)mb.data()); current < end; ++current) {
+				*current = *m_StashedData;
+
+				++m_StashedData;
+				++amount;
+
+				if (m_StashedData == (char*)m_StashedDataBuf + (sizeof(m_StashedDataBuf) / sizeof(m_StashedDataBuf[0]))) {
+					m_StashedData = nullptr;
+					break;
+				}
+			}
+
+			return amount;
+		}
+
+		size_t amount = m_Stream.read_some(mb, ec);
+
+		if (!ec && !m_ReasonHasBeenInjected) {
+			auto end ((char*)mb.data() + amount);
+
+			for (auto current ((char*)mb.data()); current < end; ++current) {
+				if (*current == '\r') {
+					auto last (end - 1);
+
+					for (size_t i = sizeof(l_ReasonToInject) / sizeof(l_ReasonToInject[0]); i;) {
+						m_StashedDataBuf[--i] = *last;
+
+						if (last > current) {
+							memmove(current + 1, current, last - current);
+						}
+
+						*current = l_ReasonToInject[i];
+					}
+
+					m_ReasonHasBeenInjected = true;
+					m_StashedData = m_StashedDataBuf;
+
+					break;
+				}
+			}
+		}
+
+		return amount;
+	}
+
+private:
+	SyncReadStream& m_Stream;
+	bool m_ReasonHasBeenInjected;
+	char m_StashedDataBuf[sizeof(l_ReasonToInject) / sizeof(l_ReasonToInject[0])];
+	char* m_StashedData;
+};
 
 /**
  * Queries the given endpoint and host:port and retrieves data.
@@ -268,64 +383,17 @@ static Dictionary::Ptr FetchData(const String& host, const String& port, const S
 		throw ex;
 	}
 
-	/* We need to read the header and body manually, since the header will always throw an error.
-	 * Details: Missing status string in header, https://github.com/mickem/nscp/issues/610
-	 * Inspiration: example_incremental_read from https://www.boost.org/doc/libs/1_66_0/libs/beast/example/doc/http_examples.hpp
-	 */
-	std::ostringstream msgbuf;
-
 	beast::flat_buffer buffer;
-	boost::system::error_code ec;
+	http::parser<false, http::string_body> p;
 
-	/* Create a parser which has a buffer body for reading the input.
-	 * Ensure to pass ec for handling errors ourselves, and having the buffer ready.
-	 */
-	http::parser<false, http::buffer_body> p;
-
-	http::read(*tlsStream, buffer, p, ec);
-
-	if (ec) {
-		/* Ignore any bad_status/bad_reason errors since NSCP doesn't set them. */
-		if (ec != http::error::bad_status && ec != http::error::bad_reason) {
-			String message = "Error reading HTTP response data: " + ec.message();
-			BOOST_THROW_EXCEPTION(ScriptError(message));
-		} else if (l_Debug) {
-			std::cout << "NSCP just sent a wrong status reason, we've ignored it. See https://github.com/Icinga/icinga2/pull/7142" << std::endl;
-		}
+	try {
+		HttpResponseReasonInjector<decltype(*tlsStream)> reasonInjector (*tlsStream);
+		http::read(reasonInjector, buffer, p);
+	} catch (const std::exception &ex) {
+		BOOST_THROW_EXCEPTION(ScriptError(String("Error reading HTTP response data: ") + ex.what()));
 	}
 
-	String rawResponse = beast::buffers_to_string(buffer.data());
-
-	if (l_Debug)
-		std::cout << "Raw data: " << rawResponse << std::endl;
-
-	/* At this stage we have the raw request. Since NSCP always returns HTTP/1.1 200 with missing OK for requests anyways,
-	 * we don't care about the header. Let's just extract the JSON body.
-	 */
-
-	std::vector<String> lines = rawResponse.Split("\n");
-
-	size_t i = 0;
-
-	for (i = 0; i < lines.size(); i++) {
-		String line = lines[i].Trim();
-
-		if (l_Debug)
-			std::cout << "Line: " << line << std::endl;
-
-		if (line == "") // Empty line means that body is reached.
-			break;
-	}
-
-	String body;
-	size_t bodyIdx = ++i;
-
-	// Avoid crashes with empty bodies.
-	if (bodyIdx < lines.size())
-		body = lines[bodyIdx];
-
-	// Strip any control characters
-	body.erase(boost::remove_if(body, ::iscntrl), body.End());
+	String body (std::move(p.get().body()));
 
 	if (l_Debug)
 		std::cout << "Received body from NSCP: '" << body << "'." << std::endl;

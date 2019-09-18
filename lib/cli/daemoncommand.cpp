@@ -24,7 +24,9 @@
 #include <iostream>
 #include <fstream>
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <windows.h>
+#else /* _WIN32 */
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -193,19 +195,23 @@ static Atomic<bool> l_AllowedToWork (false);
  * Do the actual work (config loading, ...)
  *
  * @param configs Files to read config from
+ * @param closeConsoleLog Whether to close the console log after config loading
+ * @param stderrFile Where to log errors
  *
  * @return Exit code
  */
 static inline
-int RunWorker(const std::vector<std::string>& configs)
+int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = false, const String& stderrFile = String())
 {
 	Log(LogInformation, "cli", "Loading configuration file(s).");
 
 	{
 		std::vector<ConfigItem::Ptr> newItems;
 
-		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath))
+		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath)) {
+			Log(LogCritical, "cli", "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
 			return EXIT_FAILURE;
+		}
 
 #ifndef _WIN32
 		Log(LogNotice, "cli")
@@ -215,6 +221,11 @@ int RunWorker(const std::vector<std::string>& configs)
 
 		Log(LogNotice, "cli")
 			<< "Waiting for the umbrella process to let us doing the actual work";
+
+		if (closeConsoleLog) {
+			CloseStdIO(stderrFile);
+			Logger::DisableConsoleLog();
+		}
 
 		while (!l_AllowedToWork.load()) {
 			Utility::Sleep(0.2);
@@ -397,10 +408,12 @@ static void NotifyWatchdog()
  * Starts seemless worker process doing the actual work (config loading, ...)
  *
  * @param configs Files to read config from
+ * @param closeConsoleLog Whether to close the console log after config loading
+ * @param stderrFile Where to log errors
  *
  * @return The worker's PID on success, -1 on failure (if the worker couldn't load its config)
  */
-static pid_t StartUnixWorker(const std::vector<std::string>& configs)
+static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool closeConsoleLog = false, const String& stderrFile = String())
 {
 	Log(LogNotice, "cli")
 		<< "Spawning seemless worker process doing the actual work";
@@ -461,7 +474,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs)
 					_exit(EXIT_FAILURE);
 				}
 
-				_exit(RunWorker(configs));
+				_exit(RunWorker(configs, closeConsoleLog, stderrFile));
 			} catch (...) {
 				_exit(EXIT_FAILURE);
 			}
@@ -539,6 +552,10 @@ public:
  */
 int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
 {
+#ifdef _WIN32
+	SetConsoleOutputCP(65001);
+#endif /* _WIN32 */
+
 	Logger::EnableTimestamp();
 
 	Log(LogInformation, "cli")
@@ -562,8 +579,10 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 		std::vector<ConfigItem::Ptr> newItems;
 
-		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath))
+		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath)) {
+			Log(LogCritical, "cli", "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
 			return EXIT_FAILURE;
+		}
 
 		Log(LogInformation, "cli", "Finished validating the configuration file(s).");
 		return EXIT_SUCCESS;
@@ -604,7 +623,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	});
 #endif /* _WIN32 */
 
-	if (vm.count("daemonize") || vm.count("close-stdio")) {
+	if (vm.count("daemonize")) {
 		// After disabling the console log, any further errors will go to the configured log only.
 		// Let's try to make this clear and say good bye.
 		Log(LogInformation, "cli", "Closing console log.");
@@ -638,11 +657,26 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		(void)sigaction(SIGHUP, &sa, nullptr);
 	}
 
+	bool closeConsoleLog = !vm.count("daemonize") && vm.count("close-stdio");
+
+	String errorLog;
+	if (vm.count("errorlog"))
+		errorLog = vm["errorlog"].as<std::string>();
+
 	// The PID of the current seemless worker
-	pid_t currentWorker = StartUnixWorker(configs);
+	pid_t currentWorker = StartUnixWorker(configs, closeConsoleLog, errorLog);
 
 	if (currentWorker == -1) {
 		return EXIT_FAILURE;
+	}
+
+	if (closeConsoleLog) {
+		// After disabling the console log, any further errors will go to the configured log only.
+		// Let's try to make this clear and say good bye.
+		Log(LogInformation, "cli", "Closing console log.");
+
+		CloseStdIO(errorLog);
+		Logger::DisableConsoleLog();
 	}
 
 	// Immediately allow the first (non-reload) worker to continue working beyond config validation

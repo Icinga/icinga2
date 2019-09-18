@@ -65,7 +65,7 @@ bool InfoHandler::HandleRequest(
 			{ "user", user->GetName() },
 			{ "permissions", Array::FromVector(permInfo) },
 			{ "version", Application::GetAppVersion() },
-			{ "info", "More information about API requests is available in the documentation at https://docs.icinga.com/icinga2/latest." }
+			{ "info", "More information about API requests is available in the documentation at https://icinga.com/docs/icinga2/latest/" }
 		});
 
 		Dictionary::Ptr result = new Dictionary({
@@ -90,7 +90,7 @@ bool InfoHandler::HandleRequest(
 		} else
 			body += "Your user does not have any permissions.</p>";
 
-		body += R"(<p>More information about API requests is available in the <a href="https://docs.icinga.com/icinga2/latest" target="_blank">documentation</a>.</p></html>)";
+		body += R"(<p>More information about API requests is available in the <a href="https://icinga.com/docs/icinga2/latest/" target="_blank">documentation</a>.</p></html>)";
 		response.body() = body;
 		response.set(http::field::content_length, response.body().size());
 	}

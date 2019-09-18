@@ -9,8 +9,10 @@
 #include <memory>
 #include <thread>
 #include <vector>
+#include <stdexcept>
+#include <boost/exception/all.hpp>
 #include <boost/asio/deadline_timer.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
 
 namespace icinga
@@ -75,7 +77,83 @@ public:
 
 	static IoEngine& Get();
 
-	boost::asio::io_service& GetIoService();
+	boost::asio::io_context& GetIoContext();
+
+	/*
+	 * Custom exceptions thrown in a Boost.Coroutine may cause stack corruption.
+	 * Ensure that these are wrapped correctly.
+	 *
+	 * Inspired by https://github.com/niekbouman/commelec-api/blob/master/commelec-api/coroutine-exception.hpp
+	 * Source: http://boost.2283326.n4.nabble.com/coroutine-only-std-exceptions-are-caught-from-coroutines-td4683671.html
+	 */
+	static inline boost::exception_ptr convertExceptionPtr(std::exception_ptr ex) {
+		try {
+			throw boost::enable_current_exception(ex);
+		} catch (...) {
+			return boost::current_exception();
+		}
+	}
+
+	static inline void rethrowBoostExceptionPointer() {
+		std::exception_ptr sep;
+		sep = std::current_exception();
+		boost::exception_ptr bep = convertExceptionPtr(sep);
+		boost::rethrow_exception(bep);
+	}
+
+	static inline size_t GetCoroutineStackSize() {
+#ifdef _WIN32
+		// Increase the stack size for Windows coroutines to prevent exception corruption.
+		// Rationale: Low cost Windows agent only & https://github.com/Icinga/icinga2/issues/7431
+		return 8 * 1024 * 1024;
+#else /* _WIN32 */
+		return boost::coroutines::stack_allocator::traits_type::default_size(); // Default 64 KB
+#endif /* _WIN32 */
+	}
+
+	/* With dedicated strand in *Connection classes. */
+	template <typename Handler, typename Function>
+	static void SpawnCoroutine(Handler h, Function f) {
+
+		boost::asio::spawn(std::forward<Handler>(h),
+			[f](boost::asio::yield_context yc) {
+
+				try {
+					f(yc);
+				} catch (const boost::coroutines::detail::forced_unwind &) {
+					// Required for proper stack unwinding when coroutines are destroyed.
+					// https://github.com/boostorg/coroutine/issues/39
+					throw;
+				} catch (...) {
+					// Handle uncaught exceptions outside of the coroutine.
+					rethrowBoostExceptionPointer();
+				}
+			},
+			boost::coroutines::attributes(GetCoroutineStackSize()) // Set a pre-defined stack size.
+		);
+	}
+
+	/* Without strand in the IO executor's context. */
+	template <typename Function>
+	static void SpawnCoroutine(boost::asio::io_context& io, Function f) {
+
+		boost::asio::spawn(io,
+			[f](boost::asio::yield_context yc) {
+
+				try {
+					f(yc);
+				} catch (const boost::coroutines::detail::forced_unwind &) {
+					// Required for proper stack unwinding when coroutines are destroyed.
+					// https://github.com/boostorg/coroutine/issues/39
+					throw;
+				} catch (...) {
+					// Handle uncaught exceptions outside of the coroutine.
+					rethrowBoostExceptionPointer();
+				}
+			},
+			boost::coroutines::attributes(GetCoroutineStackSize()) // Set a pre-defined stack size.
+		);
+	}
 
 private:
 	IoEngine();
@@ -84,8 +162,8 @@ private:
 
 	static LazyInit<std::unique_ptr<IoEngine>> m_Instance;
 
-	boost::asio::io_service m_IoService;
-	boost::asio::io_service::work m_KeepAlive;
+	boost::asio::io_context m_IoContext;
+	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
 	std::atomic_int_fast32_t m_CpuBoundSemaphore;
@@ -103,7 +181,7 @@ class TerminateIoThread : public std::exception
 class AsioConditionVariable
 {
 public:
-	AsioConditionVariable(boost::asio::io_service& io, bool init = false);
+	AsioConditionVariable(boost::asio::io_context& io, bool init = false);
 
 	void Set();
 	void Clear();

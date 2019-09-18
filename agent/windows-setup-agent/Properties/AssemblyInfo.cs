@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Icinga GmbH")]
 [assembly: AssemblyProduct("Icinga 2")]
-[assembly: AssemblyCopyright("Copyright © 2014 Icinga GmbH")]
+[assembly: AssemblyCopyright("Copyright © 2019 Icinga GmbH")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

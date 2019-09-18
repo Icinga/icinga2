@@ -794,12 +794,29 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 	 *
 	 * **Keep this intact to stay compatible with older clients.**
 	 */
-	if (Utility::Match("*.conf", file))
+	String sanitizedContent = Utility::ValidateUTF8(content);
+
+	if (Utility::Match("*.conf", file)) {
 		update = config.UpdateV1;
-	else
+
+		// Configuration files should be automatically sanitized with UTF8.
+		update->Set(relativePath, sanitizedContent);
+	} else {
 		update = config.UpdateV2;
 
-	update->Set(relativePath, content);
+		/*
+		 * Ensure that only valid UTF8 content is being read for the cluster config sync.
+		 * Binary files are not supported when wrapped into JSON encoded messages.
+		 * Rationale: https://github.com/Icinga/icinga2/issues/7382
+		 */
+		if (content != sanitizedContent) {
+			Log(LogCritical, "ApiListener")
+				<< "Ignoring file '" << file << "' for cluster config sync: Does not contain valid UTF8. Binary files are not supported.";
+			return;
+		}
+
+		update->Set(relativePath, content);
+	}
 
 	/* Calculate a checksum for each file (and a global one later).
 	 *

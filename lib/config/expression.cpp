@@ -552,6 +552,58 @@ ExpressionResult GetScopeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 		VERIFY(!"Invalid scope.");
 }
 
+static inline
+void WarnOnImplicitlySetGlobalVar(const std::unique_ptr<Expression>& setLhs, const Value& setLhsParent, CombinedSetOp setOp, const DebugInfo& debug)
+{
+	auto var (dynamic_cast<VariableExpression*>(setLhs.get()));
+
+	if (var && setLhsParent.IsObject()) {
+		auto ns (dynamic_pointer_cast<Namespace>(setLhsParent.Get<Object::Ptr>()));
+
+		if (ns && ns == ScriptGlobal::GetGlobals()) {
+			const char *opStr = nullptr;
+
+			switch (setOp) {
+				case OpSetLiteral:
+					opStr = "=";
+					break;
+				case OpSetAdd:
+					opStr = "+=";
+					break;
+				case OpSetSubtract:
+					opStr = "-=";
+					break;
+				case OpSetMultiply:
+					opStr = "*=";
+					break;
+				case OpSetDivide:
+					opStr = "/=";
+					break;
+				case OpSetModulo:
+					opStr = "%=";
+					break;
+				case OpSetXor:
+					opStr = "^=";
+					break;
+				case OpSetBinaryAnd:
+					opStr = "&=";
+					break;
+				case OpSetBinaryOr:
+					opStr = "|=";
+					break;
+				default:
+					VERIFY(!"Invalid opcode.");
+			}
+
+			auto varName (var->GetVariable());
+
+			Log(LogWarning, "config")
+				<< "Global variable '" << varName << "' has been set implicitly via '" << varName << ' ' << opStr << " ...' " << debug << "."
+				" Please set it explicitly via 'globals." << varName << ' ' << opStr << " ...' instead.";
+		}
+	}
+}
+
 ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	if (frame.Sandboxed)
@@ -609,6 +661,8 @@ ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 		if (psdhint != dhint)
 			delete psdhint;
 	}
+
+	WarnOnImplicitlySetGlobalVar(m_Operand1, parent, m_Op, m_DebugInfo);
 
 	return Empty;
 }

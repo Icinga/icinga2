@@ -1688,7 +1688,7 @@ notification users and groups are inherited from the service and if not set,
 from the host object. A default user is set too.
 
 ```
-apply Notification "mail-host-notification" to Service {
+apply Notification "mail-service-notification" to Service {
   [...]
 
   if (service.vars.notification.mail.users) {
@@ -1702,11 +1702,11 @@ apply Notification "mail-host-notification" to Service {
 
   if (service.vars.notification.mail.groups) {
     user_groups = service.vars.notification.mail.groups
-  } else (host.vars.notification.mail.groups) {
+  } else if (host.vars.notification.mail.groups) {
     user_groups = host.vars.notification.mail.groups
   }
 
-  assign where host.vars.notification.mail && typeof(host.vars.notification.mail) == Dictionary
+  assign where ( host.vars.notification.mail && typeof(host.vars.notification.mail) == Dictionary ) || ( service.vars.notification.mail && typeof(service.vars.notification.mail) == Dictionary )
 }
 ```
 
@@ -2803,55 +2803,40 @@ will detect their reachability immediately when executing checks.
 
 ### Dependencies for Agent Checks <a id="dependencies-agent-checks"></a>
 
-Another classic example are agent based checks. You would define a health check
+Another good example are agent based checks. You would define a health check
 for the agent daemon responding to your requests, and make all other services
 querying that daemon depend on that health check.
 
-The following configuration defines two nrpe based service checks `nrpe-load`
-and `nrpe-disk` applied to the host `nrpe-server` [matched](18-library-reference.md#global-functions-match)
-by its name. The health check is defined as `nrpe-health` service.
+```
+apply Service "agent-health" {
+  check_command = "cluster-zone"
+
+  display_name = "cluster-health-" + host.name
+
+  /* This follows the convention that the agent zone name is the FQDN which is the same as the host object name. */
+  vars.cluster_zone = host.name
+
+  assign where host.vars.agent_endpoint
+}
+```
+
+Now, make all other agent based checks dependent on the OK state of the `agent-health`
+service.
 
 ```
-apply Service "nrpe-health" {
-  import "generic-service"
-  check_command = "nrpe"
-  assign where match("nrpe-*", host.name)
-}
+apply Dependency "agent-health-check" to Service {
+  parent_service_name = "agent-health"
 
-apply Service "nrpe-load" {
-  import "generic-service"
-  check_command = "nrpe"
-  vars.nrpe_command = "check_load"
-  assign where match("nrpe-*", host.name)
-}
-
-apply Service "nrpe-disk" {
-  import "generic-service"
-  check_command = "nrpe"
-  vars.nrpe_command = "check_disk"
-  assign where match("nrpe-*", host.name)
-}
-
-object Host "nrpe-server" {
-  import "generic-host"
-  address = "192.168.1.5"
-}
-
-apply Dependency "disable-nrpe-checks" to Service {
-  parent_service_name = "nrpe-health"
-
-  states = [ OK ]
-  disable_checks = true
+  states = [ OK ] // Fail if the parent service state switches to NOT-OK
   disable_notifications = true
-  assign where service.check_command == "nrpe"
-  ignore where service.name == "nrpe-health"
+
+  assign where host.vars.agent_endpoint // Automatically assigns all agent endpoint checks as child services on the matched host
+  ignore where service.name == "agent-health" // Avoid a self reference from child to parent
 }
+
 ```
 
-The `disable-nrpe-checks` dependency is applied to all services
-on the `nrpe-service` host using the `nrpe` check_command attribute
-but not the `nrpe-health` service itself.
-
+This is described in detail in [this chapter](06-distributed-monitoring.md#distributed-monitoring-health-checks).
 
 ### Event Commands <a id="event-commands"></a>
 

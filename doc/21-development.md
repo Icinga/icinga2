@@ -9,7 +9,7 @@ development, package builds and tests.
 * [Test Icinga 2](21-development.md#development-tests)
     * [Snapshot Packages (Nightly Builds)](21-development.md#development-tests-snapshot-packages)
 * [Develop Icinga 2](21-development.md#development-develop)
-    * [Preparations](21-development.md#development-develop-styleguide)
+    * [Preparations](21-development.md#development-develop-prepare)
     * [Design Patterns](21-development.md#development-develop-design-patterns)
     * [Build Tools](21-development.md#development-develop-builds-tools)
     * [Unit Tests](21-development.md#development-develop-tests)
@@ -22,6 +22,7 @@ development, package builds and tests.
     * [RPM](21-development.md#development-package-builds-rpms)
     * [DEB](21-development.md#development-package-builds-deb)
     * [Windows](21-development.md#development-package-builds-windows)
+* [Continuous Integration](21-development.md#development-ci)
 * [Advanced Tips](21-development.md#development-advanced)
 
 <!-- mkdocs requires 4 spaces indent for nested lists: https://github.com/Python-Markdown/markdown/issues/3 -->
@@ -70,16 +71,15 @@ SLES/openSUSE      | `zypper install gdb`
 
 #### GDB Run <a id="development-debug-gdb-run"></a>
 
-Call GDB with the binary (`/usr/sbin/icinga2` is a wrapper script calling
-`/usr/lib64/icinga2/sbin/icinga2` since 2.4) and all arguments and run it in foreground.
+Since v2.11 we would attach to the umbrella process spawned with `/usr/lib/icinga2/sbin/icinga2`,
+therefore rather attach to a running process.
 
 ```
-gdb --args /usr/lib64/icinga2/sbin/icinga2 daemon -x debug
-```
+# Typically the order of PIDs is: 1) umbrella 2) spawn helper 3) main process
+pidof icinga2
 
-The exact path to the Icinga 2 binary differs on each distribution. On Ubuntu
-it is installed into `/usr/lib/x86_64-linux-gnu/icinga2/sbin/icinga2` on 64-bit systems
-for example.
+gdb -p $(pidof icinga2 | cut -d ' ' -f3)
+```
 
 > **Note**
 >
@@ -356,9 +356,14 @@ $ xcode-select --install
 ```
 
 In order to run Icinga 2 with LLDB you need to pass the binary as argument.
+Since v2.11 we would attach to the umbrella process, therefore rather
+attach to a running process.
 
 ```
-lldb -- /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+# Typically the order of PIDs is: 1) umbrella 2) spawn helper 3) main process
+pidof icinga2
+
+lldb -p $(pidof icinga2 | cut -d ' ' -f3)
 ```
 
 Breakpoint:
@@ -404,6 +409,76 @@ Up/down in stacktrace:
 > up
 > down
 ```
+
+
+### Debug on Windows <a id="development-debug-windows"></a>
+
+
+Whenever the application crashes, the Windows error reporting (WER) can be [configured](https://docs.microsoft.com/en-gb/windows/win32/wer/collecting-user-mode-dumps)
+to create user-mode dumps.
+
+
+Tail the log file with Powershell:
+
+```
+Get-Content .\icinga2.log -tail 10 -wait
+```
+
+
+#### Debug on Windows: Dependencies <a id="development-debug-windows-dependencies"></a>
+
+Similar to `ldd` or `nm` on Linux/Unix.
+
+Extract the dependent DLLs from a binary with Visual Studio's `dumpbin` tool
+in Powershell:
+
+```
+C:> &'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.22.27905\bin\Hostx64\x64\dumpbin.exe' /dependents .\debug\Bin\Debug\Debug\boosttest-test-base.exe
+DEBUG:    1+  >>>> &'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.22.27905\bin\Hostx64\x64\dumpbin.exe' /dependents .\debug\Bin\Debug\Debug\boosttest-test-base.exe
+Microsoft (R) COFF/PE Dumper Version 14.22.27905.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file .\debug\Bin\Debug\Debug\boosttest-test-base.exe
+
+File Type: EXECUTABLE IMAGE
+
+  Image has the following dependencies:
+
+    boost_coroutine-vc142-mt-gd-x64-1_71.dll
+    boost_date_time-vc142-mt-gd-x64-1_71.dll
+    boost_filesystem-vc142-mt-gd-x64-1_71.dll
+    boost_thread-vc142-mt-gd-x64-1_71.dll
+    boost_regex-vc142-mt-gd-x64-1_71.dll
+    libssl-1_1-x64.dll
+    libcrypto-1_1-x64.dll
+    WS2_32.dll
+    dbghelp.dll
+    SHLWAPI.dll
+    msi.dll
+    boost_unit_test_framework-vc142-mt-gd-x64-1_71.dll
+    KERNEL32.dll
+    SHELL32.dll
+    ADVAPI32.dll
+    MSVCP140D.dll
+    MSWSOCK.dll
+    bcrypt.dll
+    VCRUNTIME140D.dll
+    ucrtbased.dll
+
+  Summary
+
+        1000 .00cfg
+       68000 .data
+        B000 .idata
+      148000 .pdata
+      69C000 .rdata
+       25000 .reloc
+        1000 .rsrc
+      E7A000 .text
+        1000 .tls
+```
+
 
 ## Test Icinga 2 <a id="development-tests"></a>
 
@@ -748,6 +823,9 @@ Depending on the file type, this must be a comment.
 ```
 
 #### Code Formatting <a id="development-develop-code-formatting"></a>
+
+**Tabs instead of spaces.** Inside Visual Studio, choose to keep tabs instead of
+spaces. Tabs should use 4 spaces indent by default, depending on your likings.
 
 We follow the clang format, with some exceptions.
 
@@ -1241,19 +1319,24 @@ Create two build directories for different binary builds.
 mkdir -p release debug
 ```
 
-Proceed with the specific distribution examples below.
+Proceed with the specific distribution examples below. Keep in mind that these instructions
+are best effort and sometimes out-of-date. Git Master may contain updates.
 
 * [CentOS 7](21-development.md#development-linux-dev-env-centos)
-* [Debian 9](21-development.md#development-linux-dev-env-debian)
+* [Debian 10 Buster](21-development.md#development-linux-dev-env-debian)
+* [Ubuntu 18 Bionic](21-development.md#development-linux-dev-env-ubuntu)
 
 
 #### CentOS 7 <a id="development-linux-dev-env-centos"></a>
 
 ```
-yum -y install gdb git bash-completion htop rpmdevtools \
- ccache cmake make gcc-c++ flex bison \
- openssl-devel boost-devel systemd-devel mysql-devel \
- postgresql-devel libedit-devel libstdc++-devel
+yum -y install gdb vim git bash-completion htop
+
+yum -y install rpmdevtools ccache \
+ cmake make gcc-c++ flex bison \
+ openssl-devel boost169-devel systemd-devel \
+ mysql-devel postgresql-devel libedit-devel \
+ libstdc++-devel
 
 groupadd icinga
 groupadd icingacmd
@@ -1263,14 +1346,46 @@ ln -s /bin/ccache /usr/local/bin/gcc
 ln -s /bin/ccache /usr/local/bin/g++
 
 git clone https://github.com/icinga/icinga2.git && cd icinga2
-
-mkdir debug release
-cd debug
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DICINGA2_PLUGINDIR=/usr/local/sbin
-cd ..
-make -j2 install -C debug
 ```
 
+The debug build binaries contain specific code which runs
+slower but allows for better debugging insights.
+
+For benchmarks, change `CMAKE_BUILD_TYPE` to `RelWithDebInfo` and
+build inside the `release` directory.
+
+First, off export some generics for Boost.
+
+```
+export I2_BOOST="-DBoost_NO_BOOST_CMAKE=TRUE -DBoost_NO_SYSTEM_PATHS=TRUE -DBOOST_LIBRARYDIR=/usr/lib64/boost169 -DBOOST_INCLUDEDIR=/usr/include/boost169 -DBoost_ADDITIONAL_VERSIONS='1.69;1.69.0'"
+```
+
+Second, add the prefix path to it.
+
+```
+export I2_GENERIC="$I2_BOOST -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2"
+```
+
+Third, define the two build types with their specific CMake variables.
+
+```
+export I2_DEBUG="-DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF $I2_GENERIC"
+export I2_RELEASE="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DICINGA2_WITH_TESTS=ON -DICINGA2_UNITY_BUILD=ON $I2_GENERIC"
+```
+
+Fourth, depending on your likings, you may add a bash alias for building,
+or invoke the commands inside:
+
+```
+alias i2_debug="cd /root/icinga2; mkdir -p debug; cd debug; cmake $I2_DEBUG ..; make -j2; sudo make -j2 install; cd .."
+alias i2_release="cd /root/icinga2; mkdir -p release; cd release; cmake $I2_RELEASE ..; make -j2; sudo make -j2 install; cd .."
+```
+
+This is taken from the [centos7-dev](https://github.com/Icinga/icinga-vagrant/tree/master/centos7-dev) Vagrant box.
+
+
+The source installation doesn't set proper permissions, this is
+handled in the package builds which are officially supported.
 
 ```
 chown -R icinga:icinga /usr/local/icinga2/var/
@@ -1279,14 +1394,26 @@ chown -R icinga:icinga /usr/local/icinga2/var/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
-#### Debian 9 <a id="development-linux-dev-env-debian"></a>
+#### Debian 10 <a id="development-linux-dev-env-debian"></a>
+
+Debian Buster doesn't need updated Boost packages from packages.icinga.com,
+the distribution already provides 1.66+. For older versions such as Stretch,
+include the release repository for packages.icinga.com as shown in the [setup instructions](02-installation.md#package-repositories-debian-ubuntu-raspbian).
 
 ```
-apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev libboost-all-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
+$ docker run -ti ubuntu:bionic bash
 
+apt-get update
+apt-get -y install apt-transport-https wget gnupg
+
+apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
+apt-get -y install libboost-all-dev
+```
+
+```
 ln -s /usr/bin/ccache /usr/local/bin/gcc
 ln -s /usr/bin/ccache /usr/local/bin/g++
 
@@ -1297,12 +1424,21 @@ useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga icinga
 git clone https://github.com/icinga/icinga2.git && cd icinga2
 
 mkdir debug release
+
+export I2_DEB="-DBoost_NO_BOOST_CMAKE=TRUE -DBoost_NO_SYSTEM_PATHS=TRUE -DBOOST_LIBRARYDIR=/usr/lib/x86_64-linux-gnu -DBOOST_INCLUDEDIR=/usr/include -DCMAKE_INSTALL_RPATH=/usr/lib/x86_64-linux-gnu"
+export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DICINGA2_PLUGINDIR=/usr/local/sbin"
+export I2_DEBUG="$I2_DEB $I2_GENERIC -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF"
+
 cd debug
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2 -DICINGA2_PLUGINDIR=/usr/local/sbin
+cmake .. $I2_DEBUG
 cd ..
+
 make -j2 install -C debug
 ```
 
+
+The source installation doesn't set proper permissions, this is
+handled in the package builds which are officially supported.
 
 ```
 chown -R icinga:icinga /usr/local/icinga2/var/
@@ -1311,7 +1447,7 @@ chown -R icinga:icinga /usr/local/icinga2/var/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
 
@@ -1365,6 +1501,8 @@ cd ..
 make -j2 install -C debug
 ```
 
+The source installation doesn't set proper permissions, this is
+handled in the package builds which are officially supported.
 
 ```
 chown -R icinga:icinga /usr/local/icinga2/var/
@@ -1373,7 +1511,7 @@ chown -R icinga:icinga /usr/local/icinga2/var/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-gdb --args /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
 ### macOS Dev Environment <a id="development-macos-dev-env"></a>
@@ -1397,7 +1535,7 @@ This requires at least v2.11.
 
 #### Requirements
 
-OpenSSL 1.0.x doesn't build anymore, so we're explicitly using 1.1.x here.
+Explicitly use OpenSSL 1.1.x, older versions are out of support.
 
 ```
 brew install ccache boost cmake bison flex openssl@1.1 mysql-connector-c++ postgresql libpq
@@ -1555,6 +1693,8 @@ While it is recommended to use Docker or the Icinga Web 2 development VM pointin
 
 The required steps are described in [this script](https://github.com/dnsmichi/dotfiles/blob/master/icingaweb2.sh).
 
+
+
 ### Windows Dev Environment <a id="development-windows-dev-env"></a>
 
 The following sections explain how to setup the required build tools
@@ -1568,51 +1708,118 @@ Open an administrative command prompt (Win key, type “cmd”, right-click and 
 @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))" && SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
 ```
 
-In case you are used to `vim`, start a new administrative Powershell and run `choco install -y vim`.
+#### Git, Posh and Vim
 
+In case you are used to `vim`, start a new administrative Powershell:
+
+```
+choco install -y vim
+```
+
+The same applies for Git integration in Powershell:
+
+```
+choco install -y poshgit
+```
+
+![Powershell Posh Git](images/development/windows_powershell_posh_git.png)
+
+In order to fix the colors for commands like `git status` or `git diff`,
+edit `$HOME/.gitconfig` in your Powershell and add the following lines:
+
+```
+vim $HOME/.gitconfig
+
+[color "status"]
+    changed = cyan bold
+    untracked = yellow bold
+    added = green bold
+    branch = cyan bold
+    unmerged = red bold
+
+[color "diff"]
+    frag = cyan
+    new = green bold
+    commit = yellow
+    old = red white
+
+[color "branch"]
+  current = yellow reverse
+  local = yellow
+  remote = green bold
+  remote = red bold
+```
 
 #### Visual Studio
 
-Thanks to Microsoft they’ll now provide their Professional Edition of Visual Studio 2017
+Thanks to Microsoft they’ll now provide their Professional Edition of Visual Studio
 as community version, free for use for open source projects such as Icinga.
 The installation requires ~9GB disk space. [Download](https://www.visualstudio.com/downloads/)
 the web installer and start the installation.
 
+Note: Both Visual Studio 2017 and 2019 are covered here. Older versions
+are not supported.
+
 You need a free Microsoft account to download and also store your preferences.
 
-Install the following Workloads:
+Install the following complete workloads:
 
-* C++ Desktop
-* .NET Desktop
+* C++ Desktop Development
+* .NET Desktop Development
 
-In addition also choose these individual components on Visual Studio 2017:
+In addition also choose these individual components on Visual Studio:
 
 * .NET
-    * .NET Framework 4.6 targeting pack
-    * .NET Framework 4.6.1 SDK
-    * .NET Framework 4.6.1 targeting pack
+    * .NET Framework 4.x targeting packs
+    * .NET Framework 4.x.y SDKs
 * Code tools
     * Git for Windows
-    * Static analysis tools
     * GitHub Extension for Visual Studio
+    * NuGet package manager
 * Compilers, build tools and runtimes
     * C# and Visual Basic Roslyn compilers
-    * C++/CLI Support
-    * VC++ 2017 v141 toolset (x86_64)
+    * C++ 2019 Redistributable Update
+    * C++ CMake tools for Windows
+    * C++/CLI Support for v142 build tools (14.22)
+    * MSBuild
+    * MSVC v142 - VS 2019 C++ x64/x86 build tools (v14.22)
 * Debugging and testing
+    * .NET profiling tools
     * C++ profiling tools
     * Just-in-Time debugger
 * Development activities
-    * Visual Studio C++ core features
+    * C# and Visual Basic
+    * C++ core features
+    * IntelliCode
+    * Live Share
 * Games and Graphics
     * Graphics debugger and GPU profiler for DirectX (required by C++ profiling tools)
 * SDKs, libraries and frameworks
-    * Graphics Tools Windows 8.1 SDK (required by C++ profiling tools)
-    * Windows 10 SDK **10.0.10240.0 - exactly this version**
-    * Windows 8.1 SDK
+    * Windows 10 SDK (10.0.18362.0 or later)
     * Windows Universal C Runtime
 
+![Visual Studio Installer](images/development/windows_visual_studio_installer_01.png)
+![Visual Studio Installer](images/development/windows_visual_studio_installer_02.png)
+![Visual Studio Installer](images/development/windows_visual_studio_installer_03.png)
+
 After a while, Visual Studio will be ready.
+
+##### Style Guide for Visual Studio
+
+Navigate into `Tools > Options > Text Editor` and repeat the following for
+
+- C++
+- C#
+
+Navigate into `Tabs` and set:
+
+- Indenting: Smart (default)
+- Tab size: 4
+- Indent size: 4
+- Keep tabs (instead of spaces)
+
+![Visual Studio Tabs](images/development/windows_visual_studio_tabs_c++.png)
+
 
 #### Flex and Bison
 
@@ -1626,10 +1833,8 @@ Chocolatey installs these tools into the hidden directory `C:\ProgramData\chocol
 
 #### OpenSSL
 
-Icinga 2 requires the OpenSSL library. [Download](http://slproweb.com/products/Win32OpenSSL.html)
-and install it into the default path.
-
-Install both, 32 and 64 bit variants.
+Icinga 2 requires the OpenSSL library. [Download](http://slproweb.com/products/Win32OpenSSL.html) the Win64 package
+and install it into `c:\local\OpenSSL-Win64`.
 
 Once asked for `Copy OpenSSLs DLLs to` select `The Windows system directory`. That way CMake/Visual Studio
 will automatically detect them for builds and packaging.
@@ -1642,21 +1847,46 @@ will automatically detect them for builds and packaging.
 
 #### Boost
 
+Icinga needs the development header and library files from the Boost library.
+
+Visual Studio translates into the following compiler versions:
+
+- `msvc-14.1` = Visual Studio 2017
+- `msvc-14.2` = Visual Studio 2019
+
+##### Pre-built Binaries
+
+Prefer the pre-built package over self-compiling, if the newest version already exists.
+
+Download the [boost-binaries](https://sourceforge.net/projects/boost/files/boost-binaries/) for
+
+- msvc-14.2 is Visual Studio 2019
+- 64 for 64 bit builds
+
+```
+https://sourceforge.net/projects/boost/files/boost-binaries/1.71.0/boost_1_71_0-msvc-14.2-64.exe/download
+```
+
+Run the installer and leave the default installation path in `C:\local\boost_1_71_0`.
+
+
+##### Source & Compile
+
 In order to use the boost development header and library files you need to [download](http://www.boost.org/users/download/)
-Boost and then extract it to e.g. `C:\boost_1_69_0`.
+Boost and then extract it to e.g. `C:\local\boost_1_71_0`.
 
 > **Note**
 >
-> Just use `C:`, the zip file already contains the sub folder. Extraction takes a while,
+> Just use `C:\local`, the zip file already contains the sub folder. Extraction takes a while,
 > the archive contains more than 70k files.
 
-In order to integrate Boost into Visual Studio 2017, open the `Developer Command Prompt` from the start menu,
-and navigate to `C:\boost_1_69_0`.
+In order to integrate Boost into Visual Studio, open the `Developer Command Prompt` from the start menu,
+and navigate to `C:\local\boost_1_71_0`.
 
 Execute `bootstrap.bat` first.
 
 ```
-cd C:\boost_1_69_0
+cd C:\local\boost_1_71_0
 bootstrap.bat
 ```
 
@@ -1666,10 +1896,10 @@ which isn't treated as exception safe by the VS compiler. Therefore set the
 additional compilation flag according to [this entry](https://lists.boost.org/Archives/boost/2015/08/224570.php).
 
 ```
-b2 --toolset=msvc-14.1 asmflags=\safeseh
+b2 --toolset=msvc-14.2 link=static threading=multi runtime-link=static address-model=64 asmflags=\safeseh
 ```
 
-![Windows Boost Build in VS2017 Development Console](images/development/windows_boost_build_dev_cmd.png)
+![Windows Boost Build in VS Development Console](images/development/windows_boost_build_dev_cmd.png)
 
 #### TortoiseGit
 
@@ -1715,7 +1945,11 @@ when asked.
 
 > **Note**
 >
-> In order to properly detect the Boost libraries, install the CMake 3.14+.
+> In order to properly detect the Boost libraries and VS 2019, install CMake 3.15.2+.
+>
+> **Tip**
+>
+> Cheatsheet: http://www.brianlheim.com/2018/04/09/cmake-cheat-sheet.html
 
 Once setup is completed, open a command prompt and navigate to
 
@@ -1725,12 +1959,17 @@ cd %HOMEPATH%\source\repos
 
 Build Icinga with specific CMake variables. This generates a new Visual Studio project file called `icinga2.sln`.
 
-You need to specify the previously installed component paths:
+Visual Studio translates into the following:
+
+- `msvc-14.1` = Visual Studio 2017
+- `msvc-14.2` = Visual Studio 2019
+
+You need to specify the previously installed component paths.
 
 Variable              | Value                                                                | Description
 ----------------------|----------------------------------------------------------------------|-------------------------------------------------------
-`BOOST_ROOT`          | `C:\boost_1_69_0`                                                    | Root path where you've extracted and compiled Boost.
-`BOOST_LIBRARYDIR`    | `C:\boost_1_69_0\stage`                                              | Path to the static compiled Boost libraries, directory must contain `lib`.
+`BOOST_ROOT`          | `C:\local\boost_1_71_0`                                                    | Root path where you've extracted and compiled Boost.
+`BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_71_0\lib64-msvc-14.1`, Source: `C:\local\boost_1_71_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
 `BISON_EXECUTABLE`    | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
 `FLEX_EXECUTABLE`     | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
 `ICINGA2_WITH_MYSQL`  | OFF                                                                  | Requires extra setup for MySQL if set to `ON`. Not supported for client setups.
@@ -1747,31 +1986,39 @@ Open a new Powershell and navigate into the cloned Git repository. Set
 specific environment variables and run the build scripts.
 
 ```
-cd %HOMEPATH%\source\repos
+cd %HOMEPATH%\source\repos\icinga2
 
-$env:ICINGA2_BUILDPATH='debug'
-$env:CMAKE_BUILD_TYPE='Debug'
-$env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
-$env:BOOST_ROOT='C:\boost_1_69_0'
-$env:BOOST_LIBRARYDIR='C:\boost_1_69_0\stage'
-
-.\tools\win32\configure.ps1
+.\tools\win32\configure-dev.ps1
 .\tools\win32\build.ps1
 .\tools\win32\test.ps1
 ```
 
-> **Note**
->
-> You may need to modify `configure.ps1` and
-> add a changed CMake variable for the installation
-> prefix: `-DCMAKE_INSTALL_PREFIX="C:\Program Files\Icinga2-build"`.
+The debug MSI package is located in the `debug` directory.
+
+If you did not follow the above steps with Boost binaries
+and OpenSSL paths, or using VS 2017, you can still modify
+the environment variables.
+
+```
+$env:CMAKE_GENERATOR='Visual Studio 16 2019'
+$env:CMAKE_GENERATOR_PLATFORM='x64'
+
+$env:ICINGA2_INSTALLPATH = 'C:\Program Files\Icinga2-debug'
+$env:ICINGA2_BUILDPATH='debug'
+$env:CMAKE_BUILD_TYPE='Debug'
+$env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
+$env:BOOST_ROOT='C:\local\boost_1_71_0'
+$env:BOOST_LIBRARYDIR='C:\local\boost_1_71_0\lib64-msvc-14.2'
+```
 
 #### Icinga 2 in Visual Studio
+
+This requires running the configure script once.
 
 Navigate to
 
 ```
-cd %HOMEPATH%\source\repos\icinga2
+cd %HOMEPATH%\source\repos\icinga2\debug
 ```
 
 Open `icinga2.sln`. Log into Visual Studio when asked.
@@ -1791,28 +2038,21 @@ icinga2.exe --version
 
 #### Release Package
 
-This is part of the build process script already.
-
-> **Note**
->
-> You may need to modify `configure.ps1` and
-> add a changed CMake variable for the installation
-> prefix: `-DCMAKE_INSTALL_PREFIX="C:\Program Files\Icinga2-build"`.
+This is part of the build process script. Override the build type and pick a different
+build directory.
 
 ```
-cd %HOMEPATH%\source\repos
+cd %HOMEPATH%\source\repos\icinga2
 
-$env:ICINGA2_BUILDPATH='debug'
-$env:CMAKE_BUILD_TYPE='Debug'
-$env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
-$env:BOOST_ROOT='C:\boost_1_69_0'
-$env:BOOST_LIBRARYDIR='C:\boost_1_69_0\stage'
+$env:ICINGA2_BUILDPATH='release'
+$env:CMAKE_BUILD_TYPE='RelWithDebInfo'
 
-.\tools\win32\configure.ps1
+.\tools\win32\configure-dev.ps1
 .\tools\win32\build.ps1
 .\tools\win32\test.ps1
 ```
 
+The release MSI package is located in the `release` directory.
 
 
 ### Embedded Dev Env: Pi <a id="development-embedded-dev-env"></a>
@@ -2134,6 +2374,7 @@ The following packages are required to build the SELinux policy module:
 The RedHat Developer Toolset is required for building Icinga 2 beforehand.
 This contains a modern version of flex and a C++ compiler which supports
 C++11 features.
+
 ```
 cat >/etc/yum.repos.d/devtools-2.repo <<REPO
 [testing-devtools-2-centos-\$releasever]
@@ -2186,7 +2427,7 @@ After building Icinga 2 yourself, your package build system should at least run 
 install requirements:
 
 * enable the `checker`, `notification` and `mainlog` feature by default
-* run 'icinga2 api setup' in order to enable the `api` feature and generate SSL certificates for the node
+* run 'icinga2 api setup' in order to enable the `api` feature and generate TLS certificates for the node
 
 ### Run Icinga 2 <a id="development-package-builds-run-icinga"></a>
 
@@ -2255,99 +2496,53 @@ sysconfdir.
 
 The Windows MSI packages are located at https://packages.icinga.com/windows/
 
-#### Requirements <a id="development-package-builds-windows-requirements"></a>
+The build infrastructure is based on GitLab CI and an Ansible provisioned
+Windows VM running in OpenStack.
 
-* 32 or 64-bit system
-* Visual Studio >= 14 2015
-* CMake >= 2.6
-* OpenSSL >= 1.0.1
-* Flex and Bison
+The runner uses the scripts located in `tools/win32` to configure, build
+and test the packages. Uploading them to the package repository is a
+separate step. For manual package creation, please refer to [this chapter](21-development.md#development-windows-dev-env).
 
-##### Visual Studio
-
-Download the community edition from [visualstudio.com](https://www.visualstudio.com/en/downloads/)
-
-Workloads to install:
-
-* C++ Desktop
-* .NET Desktop
-
-##### OpenSSL for Icinga
-
-Download custom OpenSSL builds from [openssl-windows GitHub project](https://github.com/Icinga/openssl-windows/releases).
-
-You need to install a binary dist version to 'C:\\Program Files\\OpenSSL'.
-
-The Powershell script `.\tools\win32\download-openssl.ps1` can be used for automated downloads.
-
-##### Chocolatey
-
-A simple package manager for Windows, please see [install instructions](https://chocolatey.org/install).
-
-##### Git
-
-Use Chocolatey, see [package details](https://chocolatey.org/packages/git).
-
-```
-choco install git
-```
-
-##### Flex / Bison
-
-Use Chocolatey, see [package details](https://chocolatey.org/packages/winflexbison3).
-
-```
-choco install winflexbison3
-```
-
-##### CMake
-
-Use Chocolatey, see [package details](https://chocolatey.org/packages/cmake)
-or download from: [cmake.org](https://cmake.org/download/)
-
-```
-choco install cmake
-```
-
-##### WIX
-
-Use Chocolatey, see [package details](https://chocolatey.org/packages/wixtoolset).
-
-```
-choco install wixtoolset
-```
-
-##### Boost
-
-Download third party Windows binaries from: [boost.org](http://www.boost.org/users/download/)
-
-For example: `https://dl.bintray.com/boostorg/release/1.65.1/binaries/boost_1_65_1-msvc-14.1-64.exe`
-
-*Warning:*
-* Must match your Visual Studio version!
-* CMake might not support the latest Boost version (we used CMake 3.10 and Boost 1_65_1)
-
-Run the installer exe.
+![Windows build pipeline in GitLab](images/development/windows_builds_gitlab_pipeline.png)
 
 
-#### Build Icinga 2
+## Continuous Integration <a id="development-ci"></a>
 
-Run with VC Native x64 Command Prompt:
+Icinga uses the integrated CI capabilities on GitHub in the development workflow.
+This ensures that incoming pull requests and branches are built on create/push events.
+Contributors and developers can immediately see whether builds fail or succeed and
+help the final reviews.
 
-```
-powershell .\tools\win32\configure.ps1
-powershell .\tools\win32\build.ps1
-powershell .\tools\win32\test.ps1
-```
+* For Linux, we are currently using Travis CI.
+* For Windows, AppVeyor has been integrated.
 
-See these scripts for details.
+Future plans involve making use of GitHub Actions.
 
-#### CI: AppVeyor
+In addition to our development platform on GitHub,
+we are using GitLab's CI platform to build binary packages for
+all supported operating systems and distributions.
+These CI pipelines provide even more detailed insights into
+specific platform failures and developers can react faster.
 
-We are building [Icinga 2 with AppVeyor](https://ci.appveyor.com/project/icinga/icinga2) for testing and CI integration.
+### CI: Travis CI
 
-Please check `appveyor.yml` for instructions.
+[Travis CI](https://travis-ci.org/Icinga/icinga2) provides Ubuntu as base
+distribution where Icinga is compiled from sources followed by running the
+unit tests and a config validation check.
 
+For details, please refer to the [.travis.yml](https://github.com/Icinga/icinga2/blob/master/.travis.yml)
+configuration file.
+
+### CI: AppVeyor
+
+[AppVeyor](https://ci.appveyor.com/project/icinga/icinga2) provides Windows
+as platform where Visual Studio and Boost libraries come pre-installed.
+
+Icinga is built using the Powershell scripts located in `tools/win32`.
+In addition to that, the unit tests are run.
+
+Please check the [appveyor.yml](https://github.com/Icinga/icinga2/blob/master/appveyor.yml) configuration
+file for details.
 
 
 ## Advanced Development Tips <a id="development-advanced"></a>

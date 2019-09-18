@@ -4,6 +4,7 @@
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
 #include "icinga/clusterevents.hpp"
+#include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
@@ -186,8 +187,6 @@ ServiceStatistics CIB::CalculateServiceStats()
 	for (const Service::Ptr& service : ConfigType::GetObjectsByType<Service>()) {
 		ObjectLock olock(service);
 
-		CheckResult::Ptr cr = service->GetLastCheckResult();
-
 		if (service->GetState() == ServiceOK)
 			ss.services_ok++;
 		if (service->GetState() == ServiceWarning)
@@ -197,8 +196,11 @@ ServiceStatistics CIB::CalculateServiceStats()
 		if (service->GetState() == ServiceUnknown)
 			ss.services_unknown++;
 
+		CheckResult::Ptr cr = service->GetLastCheckResult();
+
 		if (!cr)
 			ss.services_pending++;
+
 		if (!service->IsReachable())
 			ss.services_unreachable++;
 
@@ -208,6 +210,11 @@ ServiceStatistics CIB::CalculateServiceStats()
 			ss.services_in_downtime++;
 		if (service->IsAcknowledged())
 			ss.services_acknowledged++;
+
+		if (service->GetHandled())
+			ss.services_handled++;
+		if (service->GetProblem())
+			ss.services_problem++;
 	}
 
 	return ss;
@@ -237,6 +244,11 @@ HostStatistics CIB::CalculateHostStats()
 			hs.hosts_in_downtime++;
 		if (host->IsAcknowledged())
 			hs.hosts_acknowledged++;
+
+		if (host->GetHandled())
+			hs.hosts_handled++;
+		if (host->GetProblem())
+			hs.hosts_problem++;
 	}
 
 	return hs;
@@ -289,7 +301,10 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("active_service_checks_15min", GetActiveServiceChecksStatistics(60 * 15));
 	status->Set("passive_service_checks_15min", GetPassiveServiceChecksStatistics(60 * 15));
 
+	// Checker related stats
 	status->Set("remote_check_queue", ClusterEvents::GetCheckRequestQueueSize());
+	status->Set("current_pending_callbacks", Application::GetTP().GetPending());
+	status->Set("current_concurrent_checks", Checkable::CurrentConcurrentChecks.load());
 
 	CheckableCheckStatistics scs = CalculateServiceCheckStats();
 
@@ -311,6 +326,8 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("num_services_flapping", ss.services_flapping);
 	status->Set("num_services_in_downtime", ss.services_in_downtime);
 	status->Set("num_services_acknowledged", ss.services_acknowledged);
+	status->Set("num_services_handled", ss.services_handled);
+	status->Set("num_services_problem", ss.services_problem);
 
 	double uptime = Utility::GetTime() - Application::GetStartTime();
 	status->Set("uptime", uptime);
@@ -324,4 +341,6 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("num_hosts_flapping", hs.hosts_flapping);
 	status->Set("num_hosts_in_downtime", hs.hosts_in_downtime);
 	status->Set("num_hosts_acknowledged", hs.hosts_acknowledged);
+	status->Set("num_hosts_handled", hs.hosts_handled);
+	status->Set("num_hosts_problem", hs.hosts_problem);
 }

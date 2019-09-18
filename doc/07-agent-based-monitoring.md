@@ -1,19 +1,197 @@
-# Additional Agent-based Checks <a id="agent-based-checks-addon"></a>
+# Agent-based Checks <a id="agent-based-checks-addon"></a>
 
 If the remote services are not directly accessible through the network, a
 local agent installation exposing the results to check queries can
 become handy.
 
+Prior to installing and configuration an agent service, evaluate possible
+options based on these requirements:
+
+* Security (authentication, TLS certificates, secure connection handling, etc.)
+* Connection direction
+    * Master/satellite can execute commands directly or
+    * Agent sends back passive/external check results
+* Availability on specific OS types and versions
+    * Packages available
+* Configuration and initial setup
+* Updates and maintenance, compatibility
+
+Available agent types:
+
+* [Icinga Agent](07-agent-based-monitoring.md#agent-based-checks-icinga) on Linux/Unix and Windows
+* [SSH](07-agent-based-monitoring.md#agent-based-checks-ssh) on Linux/Unix
+* [SNMP](07-agent-based-monitoring.md#agent-based-checks-snmp) on Linux/Unix and hardware
+* [SNMP Traps](07-agent-based-monitoring.md#agent-based-checks-snmp-traps) as passive check results
+* [REST API](07-agent-based-monitoring.md#agent-based-checks-rest-api) for passive external check results
+* [NSClient++](07-agent-based-monitoring.md#agent-based-checks-nsclient) and [WMI](07-agent-based-monitoring.md#agent-based-checks-wmi) on Windows
+
+
+## Icinga Agent <a id="agent-based-checks-icinga"></a>
+
+For the most common setups on Linux/Unix and Windows, we recommend
+to setup the Icinga agent in a [distributed environment](06-distributed-monitoring.md#distributed-monitoring).
+
+![Icinga 2 Distributed Master with Agents](images/distributed-monitoring/icinga2_distributed_monitoring_scenarios_master_with_agents.png)
+
+Key benefits:
+
+* Directly integrated into the distributed monitoring stack of Icinga
+* Works on Linux/Unix and Windows
+* Secure communication with TLS
+* Connection can be established from both sides. Once connected, command execution and check results are exchanged.
+    * Master/satellite connects to agent
+    * Agent connects to parent satellite/master
+* Same configuration language and binaries
+* Troubleshooting docs and community best practices
+
+Follow the setup and configuration instructions [here](06-distributed-monitoring.md#distributed-monitoring-setup-agent-satellite).
+
+On Windows hosts, the Icinga agent can query a local NSClient++ service
+for additional checks in case there are no plugins available. The NSCP
+installer is bundled with Icinga and can be installed with the setup wizard.
+
+![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_01.png)
+
+## SSH <a id="agent-based-checks-ssh"></a>
+
+> **Tip**
+>
+> This is the recommended way for systems where the Icinga agent is not available
+> Be it specific hardware architectures, old systems or forbidden to install an additional software.
+
+This method uses the SSH service on the remote host to execute
+an arbitrary plugin command line. The output and exit code is
+returned and used by the core.
+
+The `check_by_ssh` plugin takes care of this. It is available in the
+[Monitoring Plugins package](02-installation.md#setting-up-check-plugins).
+For your convenience, the Icinga template library provides the [by_ssh](10-icinga-template-library.md#plugin-check-command-by-ssh)
+CheckCommand already.
+
+### SSH: Preparations <a id="agent-based-checks-ssh-preparations"></a>
+
+SSH key pair for the Icinga daemon user. In case the user has no shell, temporarily enable this.
+When asked for a passphrase, **do not set it** and press enter.
+
+```
+sudo su - icinga
+
+ssh-keygen -b 4096 -t rsa -C "icinga@$(hostname) user for check_by_ssh" -f $HOME/.ssh/id_rsa
+```
+
+On the remote agent, create the icinga user and generate a temporary password.
+
+```
+useradd -m icinga
+passwd icinga
+```
+
+Copy the public key from the Icinga server to the remote agent, e.g. with `ssh-copy-id`
+or manually into `/home/icinga/.ssh/authorized_keys`.
+This will ask for the password once.
+
+```
+sudo su - icinga
+
+ssh-copy-id -i $HOME/.ssh/id_rsa icinga@ssh-agent1.localdomain
+```
+
+After the SSH key is copied, test at the connection **at least once** and
+accept the host key verification. If you forget about this step, checks will
+become UNKNOWN later.
+
+```
+ssh -i $HOME/.ssh/id_rsa icinga@ssh-agent1.localdomain
+```
+
+After the SSH key login works, disable the previously enabled logins.
+
+* Remote agent user's password with `passwd -l icinga`
+* Local icinga user terminal
+
+Also, ensure that the permissions are correct for the `.ssh` directory
+as otherwise logins will fail.
+
+* `.ssh` directory: 700
+* `.ssh/id_rsa.pub` public key file: 644
+* `.ssh/id_rsa` private key file: 600
+
+
+### SSH: Configuration <a id="agent-based-checks-ssh-config"></a>
+
+First, create a host object which has SSH configured and enabled.
+Mark this e.g. with the custom variable `agent_type` to later
+use this for service apply rule matches. Best practice is to
+store that in a specific template, either in the static configuration
+or inside the Director.
+
+```
+template Host "ssh-agent" {
+  check_command = "hostalive"
+
+  vars.agent_type = "ssh"
+  vars.os_type = "linux"
+}
+
+object Host "ssh-agent1.localdomain" {
+  import "ssh-agent"
+
+  address = "192.168.56.115"
+}
+```
+
+Example for monitoring the remote users:
+
+```
+apply Service "users" {
+  check_command = "by_ssh"
+
+  vars.by_ssh_command = [ "/usr/lib/nagios/plugins/check_users" ]
+
+  // Follows the same principle as with command arguments, e.g. for ordering
+  vars.by_ssh_arguments = {
+    "-w" = {
+      value = "$users_wgreater$" // Can reference an existing custom variable defined on the host or service, evaluated at runtime
+    }
+    "-c" = {
+      value = "$users_cgreater$"
+    }
+  }
+
+  vars.users_wgreater = 3
+  vars.users_cgreater = 5
+
+  assign where host.vars.os_type == "linux" && host.vars.agent_type == "ssh"
+}
+```
+
+A more advanced example with better arguments is shown in [this blogpost](https://www.netways.de/blog/2016/03/21/check_by_ssh-mit-icinga-2/).
+
+
 ## SNMP <a id="agent-based-checks-snmp"></a>
 
-The SNMP daemon runs on the remote system and answers SNMP queries by plugin
-binaries. The [Monitoring Plugins package](02-installation.md#setting-up-check-plugins) ships
+The SNMP daemon runs on the remote system and answers SNMP queries by plugin scripts.
+The [Monitoring Plugins package](02-installation.md#setting-up-check-plugins) provides
 the `check_snmp` plugin binary, but there are plenty of [existing plugins](05-service-monitoring.md#service-monitoring-plugins)
 for specific use cases already around, for example monitoring Cisco routers.
 
-The following example uses the [SNMP ITL](10-icinga-template-library.md#plugin-check-command-snmp) `CheckCommand` and just
-overrides the `snmp_oid` custom variable. A service is created for all hosts which
+The following example uses the [SNMP ITL](10-icinga-template-library.md#plugin-check-command-snmp)
+CheckCommand and sets the `snmp_oid` custom variable. A service is created for all hosts which
 have the `snmp-community` custom variable.
+
+```
+template Host "snmp-agent" {
+  check_command = "hostalive"
+
+  vars.agent_type = "snmp"
+
+  vars.snmp_community = "public-icinga"
+}
+
+object Host "snmp-agent1.localdomain" {
+  import "snmp-agent"
+}
+```
 
 ```
 apply Service "uptime" {
@@ -23,177 +201,21 @@ apply Service "uptime" {
   vars.snmp_oid = "1.3.6.1.2.1.1.3.0"
   vars.snmp_miblist = "DISMAN-EVENT-MIB"
 
-  assign where host.vars.snmp_community != ""
+  assign where host.vars.agent_type == "snmp" && host.vars.snmp_community != ""
 }
 ```
-
-Additional SNMP plugins are available using the [Manubulon SNMP Plugins](10-icinga-template-library.md#snmp-manubulon-plugin-check-commands).
 
 If no `snmp_miblist` is specified, the plugin will default to `ALL`. As the number of available MIB files
 on the system increases so will the load generated by this plugin if no `MIB` is specified.
 As such, it is recommended to always specify at least one `MIB`.
 
-## SSH <a id="agent-based-checks-ssh"></a>
+Additional SNMP plugins are available using the [Manubulon SNMP Plugins](10-icinga-template-library.md#snmp-manubulon-plugin-check-commands).
 
-Calling a plugin using the SSH protocol to execute a plugin on the remote server fetching
-its return code and output. The `by_ssh` command object is part of the built-in templates and
-requires the `check_by_ssh` check plugin which is available in the [Monitoring Plugins package](02-installation.md#setting-up-check-plugins).
-
-```
-object CheckCommand "by_ssh_swap" {
-  import "by_ssh"
-
-  vars.by_ssh_command = "/usr/lib/nagios/plugins/check_swap -w $by_ssh_swap_warn$ -c $by_ssh_swap_crit$"
-  vars.by_ssh_swap_warn = "75%"
-  vars.by_ssh_swap_crit = "50%"
-}
-
-object Service "swap" {
-  import "generic-service"
-
-  host_name = "remote-ssh-host"
-
-  check_command = "by_ssh_swap"
-
-  vars.by_ssh_logname = "icinga"
-}
-```
-
-## NSClient++ <a id="agent-based-checks-nsclient"></a>
-
-[NSClient++](https://nsclient.org/) works on both Windows and Linux platforms and is well
-known for its magnificent Windows support. There are alternatives like the WMI interface,
-but using `NSClient++` will allow you to run local scripts similar to check plugins fetching
-the required output and performance counters.
-
-You can use the `check_nt` plugin from the Monitoring Plugins project to query NSClient++.
-Icinga 2 provides the [nscp check command](10-icinga-template-library.md#plugin-check-command-nscp) for this:
-
-Example:
-
-```
-object Service "disk" {
-  import "generic-service"
-
-  host_name = "remote-windows-host"
-
-  check_command = "nscp"
-
-  vars.nscp_variable = "USEDDISKSPACE"
-  vars.nscp_params = "c"
-  vars.nscp_warn = 70
-  vars.nscp_crit = 80
-}
-```
-
-For details on the `NSClient++` configuration please refer to the [official documentation](https://docs.nsclient.org/).
-
-## NSCA-NG <a id="agent-based-checks-nsca-ng"></a>
-
-[NSCA-ng](http://www.nsca-ng.org) provides a client-server pair that allows the
-remote sender to push check results into the Icinga 2 `ExternalCommandListener`
-feature.
-
-> **Note**
->
-> This addon works in a similar fashion like the Icinga 1.x distributed model. If you
-> are looking for a real distributed architecture with Icinga 2, scroll down.
-
-## NRPE <a id="agent-based-checks-nrpe"></a>
-
-[NRPE](https://docs.icinga.com/latest/en/nrpe.html) runs as daemon on the remote client including
-the required plugins and command definitions.
-Icinga 2 calls the `check_nrpe` plugin binary in order to query the configured command on the
-remote client.
-
-> **Note**
->
-> The NRPE protocol is considered insecure and has multiple flaws in its
-> design. Upstream is not willing to fix these issues.
->
-> In order to stay safe, please use the native [Icinga 2 client](06-distributed-monitoring.md#distributed-monitoring)
-> instead.
-
-The NRPE daemon uses its own configuration format in nrpe.cfg while `check_nrpe`
-can be embedded into the Icinga 2 `CheckCommand` configuration syntax.
-
-You can use the `check_nrpe` plugin from the NRPE project to query the NRPE daemon.
-Icinga 2 provides the [nrpe check command](10-icinga-template-library.md#plugin-check-command-nrpe) for this:
-
-Example:
-
-```
-object Service "users" {
-  import "generic-service"
-
-  host_name = "remote-nrpe-host"
-
-  check_command = "nrpe"
-  vars.nrpe_command = "check_users"
-}
-```
-
-nrpe.cfg:
-
-```
-command[check_users]=/usr/local/icinga/libexec/check_users -w 5 -c 10
-```
-
-If you are planning to pass arguments to NRPE using the `-a`
-command line parameter, make sure that your NRPE daemon has them
-supported and enabled.
-
-> **Note**
->
-> Enabling command arguments in NRPE is considered harmful
-> and exposes a security risk allowing attackers to execute
-> commands remotely. Details at [seclists.org](http://seclists.org/fulldisclosure/2014/Apr/240).
-
-The plugin check command `nrpe` provides the `nrpe_arguments` custom
-attribute which expects either a single value or an array of values.
-
-Example:
-
-```
-object Service "nrpe-disk-/" {
-  import "generic-service"
-
-  host_name = "remote-nrpe-host"
-
-  check_command = "nrpe"
-  vars.nrpe_command = "check_disk"
-  vars.nrpe_arguments = [ "20%", "10%", "/" ]
-}
-```
-
-Icinga 2 will execute the nrpe plugin like this:
-
-```
-/usr/lib/nagios/plugins/check_nrpe -H <remote-nrpe-host> -c 'check_disk' -a '20%' '10%' '/'
-```
-
-NRPE expects all additional arguments in an ordered fashion
-and interprets the first value as `$ARG1$` macro, the second
-value as `$ARG2$`, and so on.
-
-nrpe.cfg:
-
-```
-command[check_disk]=/usr/local/icinga/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$
-```
-
-Using the above example with `nrpe_arguments` the command
-executed by the NRPE daemon looks similar to that:
-
-```
-/usr/local/icinga/libexec/check_disk -w 20% -c 10% -p /
-```
-
-You can pass arguments in a similar manner to [NSClient++](07-agent-based-monitoring.md#agent-based-checks-nsclient)
-when using its NRPE supported check method.
+For network monitoring, community members advise to use [nwc_health](05-service-monitoring.md#service-monitoring-network)
+for example.
 
 
-## Passive Check Results and SNMP Traps <a id="agent-based-checks-snmp-traps"></a>
+## SNMP Traps and Passive Check Results <a id="agent-based-checks-snmp-traps"></a>
 
 SNMP Traps can be received and filtered by using [SNMPTT](http://snmptt.sourceforge.net/)
 and specific trap handlers passing the check results to Icinga 2.
@@ -227,6 +249,11 @@ EDESC
 applied to your _n_ hosts. The host address inferred by SNMPTT will be the
 correlating factor. You can have snmptt provide host names or ip addresses to
 match your Icinga convention.
+
+> **Note**
+>
+> Replace the deprecated command pipe EXEC statement with a curl call
+> to the REST API action [process-check-result](12-icinga2-api.md#icinga2-api-actions-process-check-result).
 
 Add an `EventCommand` configuration object for the passive service auto reset event.
 
@@ -311,6 +338,11 @@ if [ "$SERVICE_STATE_ID" -gt 0 ]; then
 fi
 ```
 
+> **Note**
+>
+> Replace the deprecated command pipe EXEC statement with a curl call
+> to the REST API action [process-check-result](12-icinga2-api.md#icinga2-api-actions-process-check-result).
+
 Finally create the `Service` and assign it:
 
 ```
@@ -361,6 +393,11 @@ EDESC
 2. The service name, state and text are extracted from the first three varbinds.
 This has the advantage of accommodating an unlimited set of use cases.
 
+> **Note**
+>
+> Replace the deprecated command pipe EXEC statement with a curl call
+> to the REST API action [process-check-result](12-icinga2-api.md#icinga2-api-actions-process-check-result).
+
 Create a `Service` for the specific use case associated to the host. If the host
 matches and the first varbind value is `Backup`, SNMPTT will submit the corresponding
 passive update with the state and text from the second and third varbind:
@@ -386,3 +423,65 @@ object Service "Backup" {
   vars.dummy_text       = "No passive check result received."
 }
 ```
+
+
+## Agents sending Check Results via REST API <a id="agent-based-checks-rest-api"></a>
+
+Whenever the remote agent cannot run the Icinga agent, or a backup script
+should just send its current state after finishing, you can use the [REST API](12-icinga2-api.md#icinga2-api)
+as secure transport and send [passive external check results](08-advanced-topics.md#external-check-results).
+
+Use the [process-check-result](12-icinga2-api.md#icinga2-api-actions-process-check-result) API action to send the external passive check result.
+You can either use `curl` or implement the HTTP requests in your preferred programming
+language. Examples for API clients are available in [this chapter](12-icinga2-api.md#icinga2-api-clients).
+
+Feeding check results from remote hosts requires the host/service
+objects configured on the master/satellite instance.
+
+## NSClient++ on Windows <a id="agent-based-checks-nsclient"></a>
+
+[NSClient++](https://nsclient.org/) works on both Windows and Linux platforms and is well
+known for its magnificent Windows support. There are alternatives like the WMI interface,
+but using `NSClient++` will allow you to run local scripts similar to check plugins fetching
+the required output and performance counters.
+
+> **Tip**
+>
+> Best practice is to use the Icinga agent as secure execution
+> bridge (`check_nt` and `check_nrpe` are considered insecure)
+> and query the NSClient++ service [locally](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
+
+You can use the `check_nt` plugin from the Monitoring Plugins project to query NSClient++.
+Icinga 2 provides the [nscp check command](10-icinga-template-library.md#plugin-check-command-nscp) for this:
+
+Example:
+
+```
+object Service "disk" {
+  import "generic-service"
+
+  host_name = "remote-windows-host"
+
+  check_command = "nscp"
+
+  vars.nscp_variable = "USEDDISKSPACE"
+  vars.nscp_params = "c"
+  vars.nscp_warn = 70
+  vars.nscp_crit = 80
+}
+```
+
+For details on the `NSClient++` configuration please refer to the [official documentation](https://docs.nsclient.org/).
+
+## WMI on Windows <a id="agent-based-checks-wmi"></a>
+
+The most popular plugin is [check_wmi_plus](http://edcint.co.nz/checkwmiplus/).
+
+> Check WMI Plus uses the Windows Management Interface (WMI) to check for common services (cpu, disk, sevices, eventlog…) on Windows machines. It requires the open source wmi client for Linux.
+
+Community examples:
+
+* [Icinga 2 check_wmi_plus example by 18pct](http://18pct.com/icinga2-check_wmi_plus-example/)
+* [Agent-less monitoring with WMI](https://www.devlink.de/linux/icinga2-nagios-agentless-monitoring-von-windows/)
+
+

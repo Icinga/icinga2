@@ -76,7 +76,7 @@ plugin scripts.
 ### icinga <a id="itl-icinga"></a>
 
 Check command for the built-in `icinga` check. This check returns performance
-data for the current Icinga instance and optionally allows for minimum version checks.
+data for the current Icinga instance, reports as warning if the last reload failed and optionally allows for minimum version checks.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
@@ -1483,6 +1483,21 @@ Name            | Description
 ----------------|--------------
 users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20.
 users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
+
+
+### uptime <a id="plugin-check-command-uptime"></a>
+
+The [check_uptime](https://www.monitoring-plugins.org/doc/man/check_uptime.html) plugin
+checks the uptime of the system using /proc/uptime.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name            | Description
+----------------|--------------
+uptime_warning  | **Required.** Min. number of uptime to generate warning (-w 30m). Defaults to 30m.
+uptime_critical | **Required.** Min. number of uptime to generate critical alert (-c 15m). Defaults to 15m.
+uptime_for      | **Optional.** Show uptime in a pretty format (Running for x weeks, x days, ...). Defaults to false.
+uptime_since    | **Optional.** Show last boot in yyyy-mm-dd HH:MM:SS format (output from 'uptime -s'). Defaults to false.
 
 
 
@@ -3145,6 +3160,7 @@ nwc_health_privpassword   	| **Optional.** The password for authPriv security le
 nwc_health_privprotocol		| **Optional.** The private protocol for SNMPv3 (des\|aes\|aes128\|3des\|3desde).
 nwc_health_contextengineid	| **Optional.** The context engine id for SNMPv3 (10 to 64 hex characters).
 nwc_health_contextname		| **Optional.** The context name for SNMPv3 (empty represents the default context).
+nwc_health_community2		| **Optional.** SNMP community which can be used to switch the context during runtime.
 nwc_health_name			| **Optional.** The name of an interface (ifDescr).
 nwc_health_drecksptkdb		| **Optional.** This parameter must be used instead of --name, because Devel::ptkdb is stealing the latter from the command line.
 nwc_health_alias		| **Optional.** The alias name of a 64bit-interface (ifAlias)
@@ -3154,6 +3170,7 @@ nwc_health_ifspeedout		| **Optional.** Override the ifspeed oid of an interface 
 nwc_health_ifspeed		| **Optional.** Override the ifspeed oid of an interface
 nwc_health_units		| **Optional.** One of %, B, KB, MB, GB, Bit, KBi, MBi, GBi. (used for e.g. mode interface-usage)
 nwc_health_name2		| **Optional.** The secondary name of a component.
+nwc_health_name3		| **Optional.** The tertiary name of a component.
 nwc_health_role			| **Optional.** The role of this device in a hsrp group (active/standby/listen).
 nwc_health_report		| **Optional.** Can be used to shorten the output. Possible values are: 'long' (default), 'short' (to shorten if available), or 'html' (to produce some html outputs if available)
 nwc_health_lookback		| **Optional.** The amount of time you want to look back when calculating average rates. Use it for mode interface-errors or interface-usage. Without --lookback the time between two runs of check_nwc_health is the base for calculations. If you want your checkresult to be based for example on the past hour, use --lookback 3600.
@@ -3290,6 +3307,19 @@ mem_free     | **Optional.** Tell the plugin to check for free memory in opposit
 mem_cache    | **Optional.** If set to true, plugin will count cache as free memory. Defaults to false.
 mem_warning  | **Required.** Specify the warning threshold as number interpreted as percent.
 mem_critical | **Required.** Specify the critical threshold as number interpreted as percent.
+
+#### sar-perf <a id="plugin-contrib-command-sar-perf"></a>
+
+The [check_sar_perf.py](https://github.com/dnsmichi/check-sar-perf)
+plugin collects performance metrics from Linux hosts using the `sar` binary available in the `sysstat` package.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name             | Description
+-----------------|-----------------------------------------------------------------------------------------------------------------------
+sar_perf_profile | **Required.** Define the run profile: `pagestat`, `cpu`, `memory_util`, `memory_stat`, `io_transfer`, `queueln_load`, `swap_util`, `swap_stat`, `task`, `kernel`, `disk <disk>`. Can be a string or an array of multiple profiles.
+sar_perf_disk    | **Optional.** Disk name for the 'disk' profile.
+
 
 #### running_kernel <a id="plugin-contrib-command-running_kernel"></a>
 

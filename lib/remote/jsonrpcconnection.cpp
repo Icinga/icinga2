@@ -16,7 +16,7 @@
 #include "base/tlsstream.hpp"
 #include <memory>
 #include <utility>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/system/system_error.hpp>
@@ -31,12 +31,12 @@ static RingBuffer l_TaskStats (15 * 60);
 
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 	const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role)
-	: JsonRpcConnection(identity, authenticated, stream, role, IoEngine::Get().GetIoService())
+	: JsonRpcConnection(identity, authenticated, stream, role, IoEngine::Get().GetIoContext())
 {
 }
 
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
-	const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role, boost::asio::io_service& io)
+	const std::shared_ptr<AsioTlsStream>& stream, ConnectionRole role, boost::asio::io_context& io)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role),
 	m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_NextHeartbeat(0), m_IoStrand(io),
 	m_OutgoingMessagesQueued(io), m_WriterDone(io), m_ShuttingDown(false),
@@ -52,16 +52,14 @@ void JsonRpcConnection::Start()
 
 	JsonRpcConnection::Ptr keepAlive (this);
 
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { HandleIncomingMessages(yc); });
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { WriteOutgoingMessages(yc); });
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { HandleAndWriteHeartbeats(yc); });
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { HandleIncomingMessages(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { WriteOutgoingMessages(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { HandleAndWriteHeartbeats(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
 }
 
 void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 {
-	Defer disconnect ([this]() { Disconnect(); });
-
 	for (;;) {
 		String message;
 
@@ -97,12 +95,12 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 
 		l_TaskStats.InsertValue(Utility::GetTime(), 1);
 	}
+
+	Disconnect();
 }
 
 void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 {
-	Defer disconnect ([this]() { Disconnect(); });
-
 	Defer signalWriterDone ([this]() { m_WriterDone.Set(); });
 
 	do {
@@ -136,6 +134,8 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 			}
 		}
 	} while (!m_ShuttingDown);
+
+	Disconnect();
 }
 
 double JsonRpcConnection::GetTimestamp() const
@@ -193,43 +193,45 @@ void JsonRpcConnection::Disconnect()
 
 	JsonRpcConnection::Ptr keepAlive (this);
 
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
 		if (!m_ShuttingDown) {
 			m_ShuttingDown = true;
 
 			Log(LogWarning, "JsonRpcConnection")
 				<< "API client disconnected for identity '" << m_Identity << "'";
 
+			{
+				CpuBoundWork removeClient (yc);
+
+				if (m_Endpoint) {
+					m_Endpoint->RemoveClient(this);
+				} else {
+					ApiListener::GetInstance()->RemoveAnonymousClient(this);
+				}
+			}
+
 			m_OutgoingMessagesQueued.Set();
 
 			m_WriterDone.Wait(yc);
 
-			try {
-				m_Stream->next_layer().async_shutdown(yc);
-			} catch (...) {
-			}
-
-			try {
-				m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both);
-			} catch (...) {
-			}
-
-			try {
-				m_Stream->lowest_layer().cancel();
-			} catch (...) {
-			}
+			/*
+			 * Do not swallow exceptions in a coroutine.
+			 * https://github.com/Icinga/icinga2/issues/7351
+			 * We must not catch `detail::forced_unwind exception` as
+			 * this is used for unwinding the stack.
+			 *
+			 * Just use the error_code dummy here.
+			 */
+			boost::system::error_code ec;
 
 			m_CheckLivenessTimer.cancel();
 			m_HeartbeatTimer.cancel();
 
-			CpuBoundWork removeClient (yc);
+			m_Stream->lowest_layer().cancel(ec);
 
-			if (m_Endpoint) {
-				m_Endpoint->RemoveClient(this);
-			} else {
-				auto listener (ApiListener::GetInstance());
-				listener->RemoveAnonymousClient(this);
-			}
+			m_Stream->next_layer().async_shutdown(yc[ec]);
+
+			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
 		}
 	});
 }
@@ -277,7 +279,7 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 	String method = vmethod;
 
 	Log(LogNotice, "JsonRpcConnection")
-		<< "Received '" << method << "' message from '" << m_Identity << "'";
+		<< "Received '" << method << "' message from identity '" << m_Identity << "'.";
 
 	Dictionary::Ptr resultMessage = new Dictionary();
 

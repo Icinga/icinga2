@@ -223,7 +223,7 @@ Log::~Log()
 			logger->ProcessLogEntry(entry);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
-		/* Always flush, don't depend on the timer. Enable this for development sprints. */
+		/* Always flush, don't depend on the timer. Enable this for development sprints on Linux/macOS only. Windows crashes. */
 		//logger->Flush();
 #endif /* I2_DEBUG */
 	}

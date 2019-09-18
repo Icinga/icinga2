@@ -298,10 +298,11 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 	if (!downtime)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create downtime object."));
 
-	Log(LogNotice, "Downtime")
+	Log(LogInformation, "Downtime")
 		<< "Added downtime '" << downtime->GetName()
 		<< "' between '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", startTime)
-		<< "' and '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) << "'.";
+		<< "' and '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) << "', author: '"
+		<< author << "', " << (fixed ? "fixed" : "flexible with " + Convert::ToString(duration) + "s duration");
 
 	return fullName;
 }
@@ -323,9 +324,6 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 
 	downtime->SetWasCancelled(cancelled);
 
-	Log(LogNotice, "Downtime")
-		<< "Removed downtime '" << downtime->GetName() << "' from object '" << downtime->GetCheckable()->GetName() << "'.";
-
 	Array::Ptr errors = new Array();
 
 	if (!ConfigObjectUtility::DeleteObject(downtime, false, errors, nullptr)) {
@@ -336,6 +334,21 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not remove downtime."));
 	}
+
+	String reason;
+
+	if (expired) {
+		reason = "expired at " + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", downtime->GetEndTime());
+	} else if (cancelled) {
+		reason = "cancelled by user";
+	} else {
+		reason = "<unknown>";
+	}
+
+	Log(LogInformation, "Downtime")
+		<< "Removed downtime '" << downtime->GetName() << "' from checkable '"
+		<< downtime->GetCheckable()->GetName() << "' (Reason: " << reason << ").";
+
 }
 
 bool Downtime::CanBeTriggered()
@@ -359,8 +372,10 @@ void Downtime::TriggerDowntime()
 	if (!CanBeTriggered())
 		return;
 
-	Log(LogNotice, "Downtime")
-		<< "Triggering downtime '" << GetName() << "'.";
+	Checkable::Ptr checkable = GetCheckable();
+
+	Log(LogInformation, "Downtime")
+		<< "Triggering downtime '" << GetName() << "' for checkable '" << checkable->GetName() << "'.";
 
 	if (GetTriggerTime() == 0)
 		SetTriggerTime(Utility::GetTime());

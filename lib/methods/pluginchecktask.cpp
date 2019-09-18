@@ -44,12 +44,15 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		resolvers, resolvedMacros, useResolvedMacros, timeout,
 		std::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2));
 
-	if (!resolvedMacros || useResolvedMacros)
+	if (!resolvedMacros || useResolvedMacros) {
+		Checkable::CurrentConcurrentChecks.fetch_add(1);
 		Checkable::IncreasePendingChecks();
+	}
 }
 
 void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr)
 {
+	Checkable::CurrentConcurrentChecks.fetch_sub(1);
 	Checkable::DecreasePendingChecks();
 
 	if (pr.ExitStatus > 3) {

@@ -187,9 +187,9 @@ OptionalTlsStream InfluxdbWriter::Connect()
 			throw;
 		}
 
-		stream.first = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoService(), *sslContext, GetHost());
+		stream.first = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
 	} else {
-		stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoService());
+		stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoContext());
 	}
 
 	try {
@@ -248,21 +248,26 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 
 	// Clone the template and perform an in-place macro expansion of measurement and tag values
 	Dictionary::Ptr tmpl_clean = service ? GetServiceTemplate() : GetHostTemplate();
-	Dictionary::Ptr tmpl = static_pointer_cast<Dictionary>(tmpl_clean->Clone());
+	Dictionary::Ptr tmpl = static_pointer_cast<Dictionary>(tmpl_clean->ShallowClone());
 	tmpl->Set("measurement", MacroProcessor::ResolveMacros(tmpl->Get("measurement"), resolvers, cr));
 
-	Dictionary::Ptr tags = tmpl->Get("tags");
-	if (tags) {
-		ObjectLock olock(tags);
-		for (const Dictionary::Pair& pair : tags) {
-			String missing_macro;
-			Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
+	Dictionary::Ptr tagsClean = tmpl->Get("tags");
+	if (tagsClean) {
+		Dictionary::Ptr tags = new Dictionary();
 
-			if (!missing_macro.IsEmpty())
-				continue;
+		{
+			ObjectLock olock(tagsClean);
+			for (const Dictionary::Pair& pair : tagsClean) {
+				String missing_macro;
+				Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
 
-			tags->Set(pair.first, value);
+				if (missing_macro.IsEmpty()) {
+					tags->Set(pair.first, value);
+				}
+			}
 		}
+
+		tmpl->Set("tags", tags);
 	}
 
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();

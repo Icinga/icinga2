@@ -46,6 +46,7 @@
 			this.colGlobalZoneName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.introduction1 = new System.Windows.Forms.Label();
 			this.groupBox3 = new System.Windows.Forms.GroupBox();
+			this.chkDisableConf = new System.Windows.Forms.CheckBox();
 			this.txtUser = new System.Windows.Forms.TextBox();
 			this.chkRunServiceAsThisUser = new System.Windows.Forms.CheckBox();
 			this.chkInstallNSCP = new System.Windows.Forms.CheckBox();
@@ -87,7 +88,7 @@
 			this.txtError = new System.Windows.Forms.TextBox();
 			this.lblError = new System.Windows.Forms.Label();
 			this.picBanner = new System.Windows.Forms.PictureBox();
-			this.chkDisableConf = new System.Windows.Forms.CheckBox();
+			this.linkLabelDocs = new System.Windows.Forms.LinkLabel();
 			this.tabFinish.SuspendLayout();
 			this.tabConfigure.SuspendLayout();
 			this.tabParameters.SuspendLayout();
@@ -141,7 +142,7 @@
 			this.tabFinish.Location = new System.Drawing.Point(4, 5);
 			this.tabFinish.Name = "tabFinish";
 			this.tabFinish.Padding = new System.Windows.Forms.Padding(3);
-			this.tabFinish.Size = new System.Drawing.Size(617, 471);
+			this.tabFinish.Size = new System.Drawing.Size(617, 495);
 			this.tabFinish.TabIndex = 5;
 			this.tabFinish.Text = "Finish";
 			this.tabFinish.UseVisualStyleBackColor = true;
@@ -151,7 +152,7 @@
 			this.lblSetupCompleted.AutoSize = true;
 			this.lblSetupCompleted.Location = new System.Drawing.Point(34, 35);
 			this.lblSetupCompleted.Name = "lblSetupCompleted";
-			this.lblSetupCompleted.Size = new System.Drawing.Size(259, 13);
+			this.lblSetupCompleted.Size = new System.Drawing.Size(252, 13);
 			this.lblSetupCompleted.TabIndex = 0;
 			this.lblSetupCompleted.Text = "The Icinga Windows agent was set up successfully.";
 			// 
@@ -162,7 +163,7 @@
 			this.tabConfigure.Location = new System.Drawing.Point(4, 5);
 			this.tabConfigure.Name = "tabConfigure";
 			this.tabConfigure.Padding = new System.Windows.Forms.Padding(3);
-			this.tabConfigure.Size = new System.Drawing.Size(617, 471);
+			this.tabConfigure.Size = new System.Drawing.Size(617, 495);
 			this.tabConfigure.TabIndex = 4;
 			this.tabConfigure.Text = "Configure Icinga 2";
 			this.tabConfigure.UseVisualStyleBackColor = true;
@@ -185,6 +186,7 @@
 			// 
 			// tabParameters
 			// 
+			this.tabParameters.Controls.Add(this.linkLabelDocs);
 			this.tabParameters.Controls.Add(this.groupBox4);
 			this.tabParameters.Controls.Add(this.introduction1);
 			this.tabParameters.Controls.Add(this.groupBox3);
@@ -270,7 +272,7 @@
 			this.introduction1.AutoSize = true;
 			this.introduction1.Location = new System.Drawing.Point(11, 3);
 			this.introduction1.Name = "introduction1";
-			this.introduction1.Size = new System.Drawing.Size(269, 13);
+			this.introduction1.Size = new System.Drawing.Size(262, 13);
 			this.introduction1.TabIndex = 6;
 			this.introduction1.Text = "Welcome to the Icinga Windows Agent Setup Wizard!";
 			// 
@@ -288,6 +290,18 @@
 			this.groupBox3.TabIndex = 5;
 			this.groupBox3.TabStop = false;
 			this.groupBox3.Text = "Advanced Options";
+			// 
+			// chkDisableConf
+			// 
+			this.chkDisableConf.AutoSize = true;
+			this.chkDisableConf.Checked = true;
+			this.chkDisableConf.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.chkDisableConf.Location = new System.Drawing.Point(9, 137);
+			this.chkDisableConf.Name = "chkDisableConf";
+			this.chkDisableConf.Size = new System.Drawing.Size(211, 17);
+			this.chkDisableConf.TabIndex = 9;
+			this.chkDisableConf.Text = "Disable including local \'conf.d\' directory";
+			this.chkDisableConf.UseVisualStyleBackColor = true;
 			// 
 			// txtUser
 			// 
@@ -341,9 +355,9 @@
 			// 
 			// txtTicket
 			// 
-			this.txtTicket.Location = new System.Drawing.Point(136, 56);
+			this.txtTicket.Location = new System.Drawing.Point(164, 56);
 			this.txtTicket.Name = "txtTicket";
-			this.txtTicket.Size = new System.Drawing.Size(378, 20);
+			this.txtTicket.Size = new System.Drawing.Size(350, 20);
 			this.txtTicket.TabIndex = 1;
 			// 
 			// lblTicket
@@ -351,15 +365,15 @@
 			this.lblTicket.AutoSize = true;
 			this.lblTicket.Location = new System.Drawing.Point(9, 59);
 			this.lblTicket.Name = "lblTicket";
-			this.lblTicket.Size = new System.Drawing.Size(117, 13);
+			this.lblTicket.Size = new System.Drawing.Size(149, 13);
 			this.lblTicket.TabIndex = 4;
-			this.lblTicket.Text = "Setup Ticket (optional):";
+			this.lblTicket.Text = "CSR Signing Ticket (optional):";
 			// 
 			// txtInstanceName
 			// 
-			this.txtInstanceName.Location = new System.Drawing.Point(136, 27);
+			this.txtInstanceName.Location = new System.Drawing.Point(164, 27);
 			this.txtInstanceName.Name = "txtInstanceName";
-			this.txtInstanceName.Size = new System.Drawing.Size(378, 20);
+			this.txtInstanceName.Size = new System.Drawing.Size(350, 20);
 			this.txtInstanceName.TabIndex = 0;
 			// 
 			// lblInstanceName
@@ -527,7 +541,7 @@
 			this.tabRetrieveCertificate.Location = new System.Drawing.Point(4, 5);
 			this.tabRetrieveCertificate.Name = "tabRetrieveCertificate";
 			this.tabRetrieveCertificate.Padding = new System.Windows.Forms.Padding(3);
-			this.tabRetrieveCertificate.Size = new System.Drawing.Size(617, 471);
+			this.tabRetrieveCertificate.Size = new System.Drawing.Size(617, 495);
 			this.tabRetrieveCertificate.TabIndex = 7;
 			this.tabRetrieveCertificate.Text = "Checking Certificate";
 			this.tabRetrieveCertificate.UseVisualStyleBackColor = true;
@@ -559,7 +573,7 @@
 			this.tabVerifyCertificate.Location = new System.Drawing.Point(4, 5);
 			this.tabVerifyCertificate.Name = "tabVerifyCertificate";
 			this.tabVerifyCertificate.Padding = new System.Windows.Forms.Padding(3);
-			this.tabVerifyCertificate.Size = new System.Drawing.Size(617, 471);
+			this.tabVerifyCertificate.Size = new System.Drawing.Size(617, 495);
 			this.tabVerifyCertificate.TabIndex = 6;
 			this.tabVerifyCertificate.Text = "Verify Certificate";
 			this.tabVerifyCertificate.UseVisualStyleBackColor = true;
@@ -659,7 +673,7 @@
 			this.tabError.Location = new System.Drawing.Point(4, 5);
 			this.tabError.Name = "tabError";
 			this.tabError.Padding = new System.Windows.Forms.Padding(3);
-			this.tabError.Size = new System.Drawing.Size(617, 471);
+			this.tabError.Size = new System.Drawing.Size(617, 495);
 			this.tabError.TabIndex = 8;
 			this.tabError.Text = "Error";
 			this.tabError.UseVisualStyleBackColor = true;
@@ -686,25 +700,25 @@
 			// 
 			// picBanner
 			// 
-			this.picBanner.Image = global::Icinga.Properties.Resources.icinga_banner;
+			this.picBanner.Image = ((System.Drawing.Image)(resources.GetObject("picBanner.Image")));
 			this.picBanner.Location = new System.Drawing.Point(0, 0);
 			this.picBanner.Name = "picBanner";
 			this.picBanner.Size = new System.Drawing.Size(625, 77);
 			this.picBanner.TabIndex = 1;
 			this.picBanner.TabStop = false;
 			// 
-			// chkDisableConf
+			// linkLabelDocs
 			// 
-			this.chkDisableConf.AutoSize = true;
-			this.chkDisableConf.Checked = true;
-			this.chkDisableConf.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.chkDisableConf.Location = new System.Drawing.Point(9, 137);
-			this.chkDisableConf.Name = "chkDisableConf";
-			this.chkDisableConf.Size = new System.Drawing.Size(138, 17);
-			this.chkDisableConf.TabIndex = 9;
-			this.chkDisableConf.Text = "Disable conf.d inclusion";
-			this.chkDisableConf.UseVisualStyleBackColor = true;
-			this.chkDisableConf.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+			this.linkLabelDocs.AutoSize = true;
+			this.linkLabelDocs.LinkColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(149)))), ((int)(((byte)(191)))));
+			this.linkLabelDocs.Location = new System.Drawing.Point(525, 3);
+			this.linkLabelDocs.Name = "linkLabelDocs";
+			this.linkLabelDocs.Size = new System.Drawing.Size(79, 13);
+			this.linkLabelDocs.TabIndex = 10;
+			this.linkLabelDocs.TabStop = true;
+			this.linkLabelDocs.Text = "Documentation";
+			this.linkLabelDocs.VisitedLinkColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(149)))), ((int)(((byte)(191)))));
+			this.linkLabelDocs.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelDocs_LinkClicked);
 			// 
 			// SetupWizard
 			// 
@@ -722,7 +736,8 @@
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.MaximizeBox = false;
 			this.Name = "SetupWizard";
-			this.Text = "Icinga 2 Setup Wizard";
+			this.Text = "Icinga Windows Agent Setup Wizard";
+			this.Load += new System.EventHandler(this.SetupWizard_Load);
 			this.tabFinish.ResumeLayout(false);
 			this.tabFinish.PerformLayout();
 			this.tabConfigure.ResumeLayout(false);
@@ -746,7 +761,7 @@
 			this.tabError.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picBanner)).EndInit();
 			this.ResumeLayout(false);
-			this.Load += new System.EventHandler(this.SetupWizard_Load);
+
 		}
 
 		#endregion
@@ -810,6 +825,7 @@
 		private System.Windows.Forms.ListView lvwGlobalZones;
 		private System.Windows.Forms.ColumnHeader colGlobalZoneName;
 		private System.Windows.Forms.CheckBox chkDisableConf;
+		private System.Windows.Forms.LinkLabel linkLabelDocs;
 	}
 }
 

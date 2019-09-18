@@ -75,7 +75,8 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("active_service_checks_15min", CIB::GetActiveServiceChecksStatistics(60 * 15)));
 	perfdata->Add(new PerfdataValue("passive_service_checks_15min", CIB::GetPassiveServiceChecksStatistics(60 * 15)));
 
-	perfdata->Add(new PerfdataValue("current_concurrent_checks", Checkable::GetPendingChecks()));
+	perfdata->Add(new PerfdataValue("current_pending_callbacks", Application::GetTP().GetPending()));
+	perfdata->Add(new PerfdataValue("current_concurrent_checks", Checkable::CurrentConcurrentChecks.load()));
 	perfdata->Add(new PerfdataValue("remote_check_queue", ClusterEvents::GetCheckRequestQueueSize()));
 
 	CheckableCheckStatistics scs = CIB::CalculateServiceCheckStats();
@@ -98,6 +99,8 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("num_services_flapping", ss.services_flapping));
 	perfdata->Add(new PerfdataValue("num_services_in_downtime", ss.services_in_downtime));
 	perfdata->Add(new PerfdataValue("num_services_acknowledged", ss.services_acknowledged));
+	perfdata->Add(new PerfdataValue("num_services_handled", ss.services_handled));
+	perfdata->Add(new PerfdataValue("num_services_problem", ss.services_problem));
 
 	double uptime = Utility::GetTime() - Application::GetStartTime();
 	perfdata->Add(new PerfdataValue("uptime", uptime));
@@ -111,6 +114,8 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("num_hosts_flapping", hs.hosts_flapping));
 	perfdata->Add(new PerfdataValue("num_hosts_in_downtime", hs.hosts_in_downtime));
 	perfdata->Add(new PerfdataValue("num_hosts_acknowledged", hs.hosts_acknowledged));
+	perfdata->Add(new PerfdataValue("num_hosts_handled", hs.hosts_handled));
+	perfdata->Add(new PerfdataValue("num_hosts_problem", hs.hosts_problem));
 
 	std::vector<Endpoint::Ptr> endpoints = ConfigType::GetObjectsByType<Endpoint>();
 
@@ -172,11 +177,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		}
 	}
 
-	/* Extract the version number of the running Icinga2 instance.
-	 * We assume that appVersion will allways be something like 'v2.10.1-8-gaebe6da' and we want to extract '2.10.1'.
-	 */
-	int endOfVersionNumber = appVersion.FindFirstOf("-") - 1;
-	String parsedAppVersion = appVersion.SubStr(1, endOfVersionNumber);
+	String parsedAppVersion = Utility::ParseVersion(appVersion);
 
 	/* Return an error if the version is less than specified (optional). */
 	if (missingIcingaMinVersion.IsEmpty() && !icingaMinVersion.IsEmpty() && Utility::CompareVersion(icingaMinVersion, parsedAppVersion) < 0) {

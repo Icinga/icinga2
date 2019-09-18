@@ -133,7 +133,7 @@ other than explicitly setting the allowed ciphers.
 The new default sets this to:
 
 ```
-ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:AES256-GCM-SHA384:AES128-GCM-SHA256
 ```
 
 You can override this setting in the [api](09-object-types.md#objecttype-apilistener)
@@ -167,6 +167,25 @@ This is a gentle reminder to upgrade the master and satellites first,
 prior to installing new clients/agents.
 
 Technical details are available in the [technical concepts](19-technical-concepts.md#technical-concepts-cluster-config-sync) chapter.
+
+Since the config sync change detection now uses checksums, this may fail
+with anything else than syncing configuration text files. Syncing binary
+files were never supported, but rumors say that some users do so.
+
+This is now prohibited and logged.
+
+```
+[2019-08-02 16:03:19 +0200] critical/ApiListener: Ignoring file '/etc/icinga2/zones.d/global-templates/forbidden.exe' for cluster config sync: Does not contain valid UTF8. Binary files are not supported.
+Context:
+	(0) Creating config update for file '/etc/icinga2/zones.d/global-templates/forbidden.exe'
+	(1) Activating object 'api' of type 'ApiListener'
+```
+
+Such binaries wrapped into JSON-RPC cluster messages may always cause changes
+and trigger reload loops. In order to prevent such harm in production,
+use infrastructure tools such as Foreman, Puppet, Ansible, etc. to install
+plugins on the masters, satellites and agents.
+
 
 #### HA-aware Features <a id="upgrading-to-2-11-cluster-ha-aware-features"></a>
 
@@ -278,6 +297,12 @@ It will also attempt to fix them, the following log entry is perfectly fine.
 ```
 
 If you still encounter problems, please follow [this troubleshooting entry](15-troubleshooting.md#troubleshooting-api-missing-runtime-objects).
+
+### DB IDO MySQL Schema <a id="upgrading-to-2-11-db-ido"></a>
+
+The schema for MySQL contains an optional update which
+drops unneeded indexes. You don't necessarily need to apply
+this update.
 
 ### Documentation <a id="upgrading-to-2-11-documentation"></a>
 

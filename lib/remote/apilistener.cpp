@@ -363,7 +363,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 		return false;
 	}
 
-	auto& io (IoEngine::Get().GetIoService());
+	auto& io (IoEngine::Get().GetIoContext());
 	auto acceptor (std::make_shared<tcp::acceptor>(io));
 
 	try {
@@ -416,7 +416,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	Log(LogInformation, "ApiListener")
 		<< "Started new listener on '[" << localEndpoint.address() << "]:" << localEndpoint.port() << "'";
 
-	asio::spawn(io, [this, acceptor, sslContext](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor, sslContext); });
+	IoEngine::SpawnCoroutine(io, [this, acceptor, sslContext](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor, sslContext); });
 
 	UpdateStatusFile(localEndpoint);
 
@@ -427,7 +427,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const std
 {
 	namespace asio = boost::asio;
 
-	auto& io (IoEngine::Get().GetIoService());
+	auto& io (IoEngine::Get().GetIoContext());
 
 	for (;;) {
 		try {
@@ -435,7 +435,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const std
 
 			server->async_accept(sslConn->lowest_layer(), yc);
 
-			asio::spawn(io, [this, sslConn](asio::yield_context yc) { NewClientHandler(yc, sslConn, String(), RoleServer); });
+			IoEngine::SpawnCoroutine(io, [this, sslConn](asio::yield_context yc) { NewClientHandler(yc, sslConn, String(), RoleServer); });
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ApiListener")
 				<< "Cannot accept new connection: " << ex.what();
@@ -460,9 +460,9 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		return;
 	}
 
-	auto& io (IoEngine::Get().GetIoService());
+	auto& io (IoEngine::Get().GetIoContext());
 
-	asio::spawn(io, [this, endpoint, &io, sslContext](asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(io, [this, endpoint, &io, sslContext](asio::yield_context yc) {
 		String host = endpoint->GetHost();
 		String port = endpoint->GetPort();
 
@@ -553,7 +553,10 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 
 	Defer shutDownIfNeeded ([&sslConn, &willBeShutDown, &yc]() {
 		if (!willBeShutDown) {
-			sslConn.async_shutdown(yc);
+			// Ignore the error, but do not throw an exception being swallowed at all cost.
+			// https://github.com/Icinga/icinga2/issues/7351
+			boost::system::error_code ec;
+			sslConn.async_shutdown(yc[ec]);
 		}
 	});
 
@@ -661,11 +664,12 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 
 			endpoint->AddClient(aclient);
 
-			asio::spawn(IoEngine::Get().GetIoService(), [this, aclient, endpoint, needSync](asio::yield_context yc) {
+			IoEngine::SpawnCoroutine(IoEngine::Get().GetIoContext(), [this, aclient, endpoint, needSync](asio::yield_context yc) {
 				CpuBoundWork syncClient (yc);
 
 				SyncClient(aclient, endpoint, needSync);
 			});
+
 		} else if (!AddAnonymousClient(aclient)) {
 			Log(LogNotice, "ApiListener")
 				<< "Ignoring anonymous JSON-RPC connection " << conninfo

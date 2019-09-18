@@ -187,7 +187,7 @@ void GraphiteWriter::ReconnectInternal()
 	Log(LogNotice, "GraphiteWriter")
 		<< "Reconnecting to Graphite on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
-	m_Stream = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoService());
+	m_Stream = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoContext());
 
 	try {
 		icinga::Connect(m_Stream->lowest_layer(), GetHost(), GetPort());

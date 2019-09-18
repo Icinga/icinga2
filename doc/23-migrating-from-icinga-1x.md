@@ -6,6 +6,33 @@ The Icinga 2 configuration format introduces plenty of behavioural changes. In
 order to ease migration from Icinga 1.x, this section provides hints and tips
 on your migration requirements.
 
+
+### Automated Config Migration <a id="automated-config-migration"></a>
+
+Depending on your previous setup, you may have already used different sources
+for generating the 1.x configuration files. If this is the case,
+we strongly recommend to use these sources in combination with
+the [Icinga Director](https://icinga.com/docs/director/latest/doc/01-Introduction/).
+
+This can be for example:
+
+* A CMDB or RDBMS which provides host details and facts
+* PuppetDB
+* CSV/XSL/JSON files
+* Cloud resources (AWS, etc.)
+
+In case you have been using Icinga Web 1.x or an addon requiring
+the underlying IDO database, you can use this as database resource
+to import the host details.
+
+Talks:
+
+* [This talk from OSMC 2016](https://www.youtube.com/watch?v=T6GBsfeXIZI) shares more insights (German).
+* [Automated Monitoring in heterogeneous environments](https://www.youtube.com/watch?v=bkUlS5rlHzM&list=PLeoxx10paaAn_xHJ5wBhnBJyW_d5G7-Bl&index=8)
+
+Continue reading more about [Import Sources](https://icinga.com/docs/director/latest/doc/70-Import-and-Sync/)
+for the Icinga Director.
+
 ### Manual Config Migration <a id="manual-config-migration"></a>
 
 For a long-term migration of your configuration you should consider re-creating
@@ -1553,6 +1580,6 @@ and configuration distribution problems Icinga 1.x distributed monitoring curren
 
 Icinga 2 implements a new built-in
 [distributed monitoring architecture](06-distributed-monitoring.md#distributed-monitoring-scenarios),
-including config and check distribution, IPv4/IPv6 support, SSL certificates and zone support for DMZ.
+including config and check distribution, IPv4/IPv6 support, TLS certificates and zone support for DMZ.
 High Availability and load balancing are also part of the Icinga 2 Cluster feature, next to local replay
 logs on connection loss ensuring that the event history is kept in sync.

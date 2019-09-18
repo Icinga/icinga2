@@ -376,7 +376,7 @@ object TimePeriod "prod-notification" {
 }
 ```
 
-## External Check Results <a id="external-check-results"></a>
+## External Passive Check Results <a id="external-check-results"></a>
 
 Hosts or services which do not actively execute a check plugin to receive
 the state and output are called "passive checks" or "external check results".
@@ -529,7 +529,7 @@ System		| Memory, Swap			| [mem](10-icinga-template-library.md#plugin-contrib-co
 System		| Hardware			| [hpasm](10-icinga-template-library.md#plugin-contrib-command-hpasm), [ipmi-sensor](10-icinga-template-library.md#plugin-contrib-command-ipmi-sensor)
 System		| Virtualization		| [VMware](10-icinga-template-library.md#plugin-contrib-vmware), [esxi_hardware](10-icinga-template-library.md#plugin-contrib-command-esxi-hardware)
 System		| Processes			| [procs](10-icinga-template-library.md#plugin-check-command-processes), [service-windows](10-icinga-template-library.md#windows-plugins) (Windows Client)
-System		| System Activity Reports	| [check_sar_perf](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_sar_perf.py)
+System		| System Activity Reports	| [sar-perf](10-icinga-template-library.md#plugin-contrib-command-sar-perf)
 System		| I/O				| [iostat](10-icinga-template-library.md#plugin-contrib-command-iostat)
 System		| Network interfaces		| [nwc_health](10-icinga-template-library.md#plugin-contrib-command-nwc_health), [interfaces](10-icinga-template-library.md#plugin-contrib-command-interfaces)
 System		| Users				| [users](10-icinga-template-library.md#plugin-check-command-users), [users-windows](10-icinga-template-library.md#windows-plugins) (Windows Client)
@@ -543,7 +543,7 @@ Database	| PostgreSQL			| [postgres](10-icinga-template-library.md#plugin-contri
 Database	| Housekeeping			| Check the database size and growth and analyse metrics to examine trends.
 Database	| DB IDO			| [ido](10-icinga-template-library.md#itl-icinga-ido) (more below)
 Webserver	| Apache2, Nginx, etc.		| [http](10-icinga-template-library.md#plugin-check-command-http), [apache-status](10-icinga-template-library.md#plugin-contrib-command-apache-status), [nginx_status](10-icinga-template-library.md#plugin-contrib-command-nginx_status)
-Webserver	| Certificates			| [http](10-icinga-template-library.md#plugin-check-command-http)
+Webserver	| Certificates			| [http](10-icinga-template-library.md#plugin-check-command-http), [Icinga certificate monitoring](https://icinga.com/products/icinga-certificate-monitoring/)
 Webserver	| Authorization			| [http](10-icinga-template-library.md#plugin-check-command-http)
 Notifications	| Mail (queue)			| [smtp](10-icinga-template-library.md#plugin-check-command-smtp), [mailq](10-icinga-template-library.md#plugin-check-command-mailq)
 Notifications	| SMS (GSM modem)		| [check_sms3_status](https://exchange.icinga.com/netways/check_sms3status)
@@ -578,7 +578,10 @@ apply Service "ido-mysql" {
 More specific database queries can be found in the [DB IDO](14-features.md#db-ido) chapter.
 
 Distributed setups should include specific [health checks](06-distributed-monitoring.md#distributed-monitoring-health-checks).
-You might also want to add additional checks for SSL certificate expiration.
+
+You might also want to add additional checks for TLS certificate expiration.
+This can be done using the [Icinga certificate monitoring](https://icinga.com/products/icinga-certificate-monitoring/) module.
+
 
 
 ## Advanced Configuration Hints <a id="advanced-configuration-hints"></a>

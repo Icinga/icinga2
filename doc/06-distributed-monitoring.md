@@ -360,6 +360,17 @@ Disadvantages:
 * Tickets need to be generated on the master and copied to client setup wizards.
 * No central signing management.
 
+#### CSR Auto-Signing: Preparation <a id="distributed-monitoring-setup-csr-auto-signing-preparation"></a>
+
+Prior to using this mode, ensure that the following steps are taken on
+the signing master:
+
+* The [master setup](06-distributed-monitoring.md#distributed-monitoring-setup-master) was run successfully. This includes:
+    * Generated a CA key pair
+    * Generated a private ticket salt stored in the `TicketSalt` constant, set as `ticket_salt` attribute inside the [api](09-object-types.md#objecttype-apilistener) feature.
+* Restart of the master instance.
+
+#### CSR Auto-Signing: On the master <a id="distributed-monitoring-setup-csr-auto-signing-master"></a>
 
 Setup wizards for agent/satellite nodes will ask you for this specific client ticket.
 
@@ -367,6 +378,7 @@ There are two possible ways to retrieve the ticket:
 
 * [CLI command](11-cli-commands.md#cli-command-pki) executed on the master node.
 * [REST API](12-icinga2-api.md#icinga2-api) request against the master node.
+
 
 Required information:
 
@@ -399,7 +411,7 @@ Retrieve the ticket on the master node `icinga2-master1.localdomain` with `curl`
  -X POST 'https://localhost:5665/v1/actions/generate-ticket' -d '{ "cn": "icinga2-agent1.localdomain" }'
 ```
 
-Store that ticket number for the agent/satellite setup below.
+Store that ticket number for the [agent/satellite setup](06-distributed-monitoring.md#distributed-monitoring-setup-agent-satellite) below.
 
 > **Note**
 >
@@ -407,6 +419,7 @@ Store that ticket number for the agent/satellite setup below.
 > Example: Retrieve the ticket on the Puppet master node and send the compiled catalog
 > to the authorized Puppet agent node which will invoke the
 > [automated setup steps](06-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup).
+
 
 ### On-Demand CSR Signing <a id="distributed-monitoring-setup-on-demand-csr-signing"></a>
 
@@ -428,6 +441,16 @@ Disadvantages:
 * Asynchronous step for automated deployments.
 * Needs client verification on the master.
 
+#### On-Demand CSR Signing: Preparation <a id="distributed-monitoring-setup-on-demand-csr-signing-preparation"></a>
+
+Prior to using this mode, ensure that the following steps are taken on
+the signing master:
+
+* The [master setup](06-distributed-monitoring.md#distributed-monitoring-setup-master) was run successfully. This includes:
+    * Generated a CA key pair
+* Restart of the master instance.
+
+#### On-Demand CSR Signing: On the master <a id="distributed-monitoring-setup-on-demand-csr-signing-master"></a>
 
 You can list pending certificate signing requests with the `ca list` CLI command.
 
@@ -727,26 +750,28 @@ the [configuration modes](06-distributed-monitoring.md#distributed-monitoring-co
 
 ### Agent Setup on Windows <a id="distributed-monitoring-setup-agent-windows"></a>
 
-Download the MSI-Installer package from [https://packages.icinga.com/windows/](https://packages.icinga.com/windows/).
+The supported Windows agent versions are listed [here](https://icinga.com/subscription/support-details/).
 
 Requirements:
 
-* Windows Vista/Server 2008 or higher
-* Versions older than Windows 10/Server 2016 require the [Universal C Runtime for Windows](https://support.microsoft.com/en-us/help/2999226/update-for-universal-c-runtime-in-windows)
-* [Microsoft .NET Framework 4.6] or higher (https://www.microsoft.com/en-US/download/details.aspx?id=53344) for the setup wizard
+* [Microsoft .NET Framework 4.6](https://www.microsoft.com/en-US/download/details.aspx?id=53344) or higher. This is the default on Windows Server 2016 or later.
+* [Universal C Runtime for Windows](https://support.microsoft.com/en-us/help/2999226/update-for-universal-c-runtime-in-windows) for Windows Server 2012 and older.
 
-The installer package includes the [NSClient++](https://www.nsclient.org/) package
-so that Icinga 2 can use its built-in plugins. You can find more details in
-[this chapter](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
-The Windows package also installs native [monitoring plugin binaries](06-distributed-monitoring.md#distributed-monitoring-windows-plugins)
+#### Agent Setup on Windows: Installer <a id="distributed-monitoring-setup-agent-windows-installer"></a>
+
+Download the MSI-Installer package from [https://packages.icinga.com/windows/](https://packages.icinga.com/windows/).
+The preferred flavor is `x86_64` for modern Windows systems.
+
+The Windows package provides native [monitoring plugin binaries](06-distributed-monitoring.md#distributed-monitoring-windows-plugins)
 to get you started more easily.
+The installer package also includes the [NSClient++](https://www.nsclient.org/) package
+to allow using its built-in plugins. You can find more details in
+[this chapter](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
 
 > **Note**
 >
 > Please note that Icinga 2 was designed to run as light-weight agent on Windows.
 > There is no support for satellite instances.
-
-#### Windows Agent Setup Start <a id="distributed-monitoring-setup-agent-windows-start"></a>
 
 Run the MSI-Installer package and follow the instructions shown in the screenshots.
 
@@ -756,12 +781,14 @@ Run the MSI-Installer package and follow the instructions shown in the screensho
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_installer_04.png)
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_installer_05.png)
 
-The graphical installer offers to run the Icinga 2 setup wizard after the installation. Select
-the check box to proceed.
+The graphical installer offers to run the [Icinga Agent setup wizard](06-distributed-monitoring.md#distributed-monitoring-setup-agent-windows-configuration-wizard)
+after the installation. Select the check box to proceed.
 
 > **Tip**
 >
-> You can also run the Icinga 2 setup wizard from the Start menu later.
+> You can also run the Icinga agent setup wizard from the Start menu later.
+
+#### Agent Setup on Windows: Configuration Wizard <a id="distributed-monitoring-setup-agent-windows-configuration-wizard"></a>
 
 On a fresh installation the setup wizard guides you through the initial configuration.
 It also provides a mechanism to send a certificate request to the [CSR signing master](distributed-monitoring-setup-sign-certificates-master).
@@ -793,13 +820,13 @@ When needed you can add an additional global zone (the zones `global-templates` 
 
 Optionally enable the following settings:
 
-  Parameter                         | Description
-  ----------------------------------|----------------------------------
-  Accept config                     | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
-  Accept commands                   | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
-  Run Icinga 2 service as this user | **Optional.** Specify a different Windows user. This defaults to `NT AUTHORITY\Network Service` and is required for more privileged service checks.
-  Install NSClient++                | **Optional.** The Windows installer bundles the NSClient++ installer for additional [plugin checks](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
-  Disable conf.d                    | **Optional.** Allows to disable the `include_recursive "conf.d"` directive except for the `api-users.conf` file in the `icinga2.conf` file. Defaults to `true`.
+  Parameter                                               | Description
+  --------------------------------------------------------|----------------------------------
+  Accept commands from master/satellite instance(s)       | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
+  Accept config updates from master/satellite instance(s) | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
+  Run Icinga 2 service as this user                       | **Optional.** Specify a different Windows user. This defaults to `NT AUTHORITY\Network Service` and is required for more privileged service checks.
+  Install/Update bundled NSClient++                       | **Optional.** The Windows installer bundles the NSClient++ installer for additional [plugin checks](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
+  Disable including local 'conf.d' directory              | **Optional.** Allows to disable the `include_recursive "conf.d"` directive except for the `api-users.conf` file in the `icinga2.conf` file. Defaults to `true`.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_03.png)
 
@@ -891,20 +918,26 @@ the following line:
 > Packages >= 2.9 provide an option in the setup wizard to disable this.
 > Defaults to disabled.
 
-Validate the configuration on Windows open an administrator terminal
+Validate the configuration on Windows open an administrative Powershell
 and run the following command:
 
 ```
-C:\WINDOWS\system32>cd "C:\Program Files\ICINGA2\sbin"
-C:\Program Files\ICINGA2\sbin>icinga2.exe daemon -C
+C:\> cd C:\Program Files\ICINGA2\sbin
+
+C:\Program Files\ICINGA2\sbin> .\icinga2.exe daemon -C
 ```
 
 **Note**: You have to run this command in a shell with `administrator` privileges.
 
-Now you need to restart the Icinga 2 service. Run `services.msc` from the start menu
-and restart the `icinga2` service. Alternatively, you can use the `net {start,stop}` CLI commands.
+Now you need to restart the Icinga 2 service. Run `services.msc` from the start menu and restart the `icinga2` service.
+Alternatively open an administrative Powershell and run the following commands:
 
-![Icinga 2 Windows Service Start/Stop](images/distributed-monitoring/icinga2_windows_cmd_admin_net_start_stop.png)
+```
+C:\> Restart-Service icinga2
+
+C:\> Get-Service icinga2
+```
+
 
 Now that you've successfully installed a Windows agent, please proceed to
 the [detailed configuration modes](06-distributed-monitoring.md#distributed-monitoring-configuration-modes).
@@ -926,9 +959,9 @@ can start with additional integrations to manage and deploy your
 configuration:
 
 * [Icinga Director](https://icinga.com/docs/director/latest/) provides a web interface to manage configuration and also allows to sync imported resources (CMDB, PuppetDB, etc.)
-* [Ansible Roles](https://github.com/Icinga/icinga2-ansible)
-* [Puppet Module](https://github.com/Icinga/puppet-icinga2)
-* [Chef Cookbook](https://github.com/Icinga/chef-icinga2)
+* [Ansible Roles](https://icinga.com/products/integrations/)
+* [Puppet Module](https://icinga.com/products/integrations/puppet/)
+* [Chef Cookbook](https://icinga.com/products/integrations/chef/)
 
 More details can be found [here](13-addons.md#configuration-tools).
 
@@ -1153,6 +1186,17 @@ Disadvantages:
 * Requires a config directory on the master node with the zone name underneath `/etc/icinga2/zones.d`.
 * Additional zone and endpoint configuration needed.
 * Replay log is replicated on reconnect after connection loss. This might increase the data transfer and create an overload on the connection.
+
+> **Note**
+>
+> This mode only supports **configuration text files** for Icinga. Do not abuse
+> this for syncing binaries, this is not supported and may harm your production
+> environment. The config sync uses checksums to detect changes, binaries may
+> trigger reload loops.
+>
+> This is a fair warning. If you want to deploy plugin binaries, create
+> packages for dependency management and use infrastructure lifecycle tools
+> such as Foreman, Puppet, Ansible, etc.
 
 To make sure that all involved nodes accept configuration and/or
 commands, you need to configure the `Zone` and `Endpoint` hierarchy
@@ -2643,7 +2687,7 @@ By default ICMP requests are disabled in the Windows firewall. You can
 change that by [adding a new rule](https://support.microsoft.com/en-us/kb/947709).
 
 ```
-C:\WINDOWS\system32>netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" protocol=icmpv4:8,any dir=in action=allow
+C:\> netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" protocol=icmpv4:8,any dir=in action=allow
 ```
 
 #### Icinga 2 <a id="distributed-monitoring-windows-firewall-icinga2"></a>
@@ -2652,7 +2696,7 @@ If your master/satellite nodes should actively connect to the Windows agent
 you'll also need to ensure that port `5665` is enabled.
 
 ```
-C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 5665 (Icinga 2)" dir=in action=allow protocol=TCP localport=5665
+C:\> netsh advfirewall firewall add rule name="Open port 5665 (Icinga 2)" dir=in action=allow protocol=TCP localport=5665
 ```
 
 #### NSClient++ API <a id="distributed-monitoring-windows-firewall-nsclient-api"></a>
@@ -2661,7 +2705,7 @@ If the [check_nscp_api](06-distributed-monitoring.md#distributed-monitoring-wind
 plugin is used to query NSClient++, you need to ensure that its port is enabled.
 
 ```
-C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 8443 (NSClient++ API)" dir=in action=allow protocol=TCP localport=8443
+C:\> netsh advfirewall firewall add rule name="Open port 8443 (NSClient++ API)" dir=in action=allow protocol=TCP localport=8443
 ```
 
 For security reasons, it is advised to enable the NSClient++ HTTP API for local
@@ -2672,14 +2716,6 @@ are not recommended with using the legacy HTTP API.
 
 The Icinga 2 package on Windows already provides several plugins.
 Detailed [documentation](10-icinga-template-library.md#windows-plugins) is available for all check command definitions.
-
-Add the following `include` statement on all your nodes (master, satellite, agent):
-
-```
-vim /etc/icinga2/icinga2.conf
-
-include <windows-plugins>
-```
 
 Based on the [master with agents](06-distributed-monitoring.md#distributed-monitoring-master-agents)
 scenario we'll now add a local disk check.

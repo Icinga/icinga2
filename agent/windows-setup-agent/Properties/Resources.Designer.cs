@@ -65,7 +65,7 @@ namespace Icinga.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap icinga_banner {
             get {
-                object obj = ResourceManager.GetObject("icinga-banner", resourceCulture);
+                object obj = ResourceManager.GetObject("icinga_banner", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

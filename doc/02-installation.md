@@ -13,7 +13,7 @@ First off you have to install Icinga 2. The preferred way of doing this
 is to use the official package repositories depending on which operating system
 and distribution you are running.
 
-Official repositories ([support matrix](https://icinga.com/support/details/)):
+Official repositories ([support matrix](https://icinga.com/subscription/support-details/)):
 
   Distribution            | Repository
   ------------------------|---------------------------
@@ -549,7 +549,7 @@ Test it:
 # vim /etc/icinga2/conf.d/templates.conf
 ```
 
-![Vim with syntax highlighting](images/getting-started/vim-syntax.png "Vim with Icinga 2 syntax highlighting")
+![Vim with syntax highlighting](images/installation/vim-syntax.png "Vim with Icinga 2 syntax highlighting")
 
 
 ### Configuration Syntax Highlighting using Nano <a id="configuration-syntax-highlighting-nano"></a>
@@ -593,7 +593,7 @@ Test it:
 $ nano /etc/icinga2/conf.d/templates.conf
 ```
 
-![Nano with syntax highlighting](images/getting-started/nano-syntax.png "Nano with Icinga 2 syntax highlighting")
+![Nano with syntax highlighting](images/installation/nano-syntax.png "Nano with Icinga 2 syntax highlighting")
 
 ## Setting up Icinga Web 2 <a id="setting-up-icingaweb2"></a>
 
@@ -704,7 +704,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icing
 quit
 ```
 
-![setting up the database on CentOS 7](images/getting-started/mariadb-centos7.png "Setting up the database on CentOS 7")
+![setting up the database on CentOS 7](images/installation/mariadb-centos7.png "Setting up the database on CentOS 7")
 
 After creating the database you can import the Icinga 2 IDO schema using the
 following command. Enter the root password into the prompt when asked.
@@ -876,7 +876,7 @@ export PGPASSWORD=icinga
 psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/pgsql.sql
 ```
 
-![importing the Icinga 2 IDO schema](images/getting-started/postgr-import-ido.png "Importing the Icinga 2 IDO schema on Debian Jessie")
+![importing the Icinga 2 IDO schema](images/installation/postgr-import-ido.png "Importing the Icinga 2 IDO schema on Debian Jessie")
 
 
 #### Enabling the IDO PostgreSQL module <a id="enabling-ido-postgresql"></a>

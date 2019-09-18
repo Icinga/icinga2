@@ -21,10 +21,12 @@
 #include <limits>
 #include <memory>
 #include <stdexcept>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/error.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/thread/once.hpp>
 
@@ -33,11 +35,11 @@ using namespace icinga;
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream)
-	: HttpServerConnection(identity, authenticated, stream, IoEngine::Get().GetIoService())
+	: HttpServerConnection(identity, authenticated, stream, IoEngine::Get().GetIoContext())
 {
 }
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream, boost::asio::io_service& io)
+HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const std::shared_ptr<AsioTlsStream>& stream, boost::asio::io_context& io)
 	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_HasStartedStreaming(false),
 	m_CheckLivenessTimer(io)
 {
@@ -61,8 +63,8 @@ void HttpServerConnection::Start()
 
 	HttpServerConnection::Ptr keepAlive (this);
 
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { ProcessMessages(yc); });
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { ProcessMessages(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
 }
 
 void HttpServerConnection::Disconnect()
@@ -71,29 +73,30 @@ void HttpServerConnection::Disconnect()
 
 	HttpServerConnection::Ptr keepAlive (this);
 
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
 		if (!m_ShuttingDown) {
 			m_ShuttingDown = true;
 
 			Log(LogInformation, "HttpServerConnection")
 				<< "HTTP client disconnected (from " << m_PeerAddress << ")";
 
-			try {
-				m_Stream->next_layer().async_shutdown(yc);
-			} catch (...) {
-			}
-
-			try {
-				m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both);
-			} catch (...) {
-			}
-
-			try {
-				m_Stream->lowest_layer().cancel();
-			} catch (...) {
-			}
+			/*
+			 * Do not swallow exceptions in a coroutine.
+			 * https://github.com/Icinga/icinga2/issues/7351
+			 * We must not catch `detail::forced_unwind exception` as
+			 * this is used for unwinding the stack.
+			 *
+			 * Just use the error_code dummy here.
+			 */
+			boost::system::error_code ec;
 
 			m_CheckLivenessTimer.cancel();
+
+			m_Stream->lowest_layer().cancel(ec);
+
+			m_Stream->next_layer().async_shutdown(yc[ec]);
+
+			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
 
 			auto listener (ApiListener::GetInstance());
 
@@ -114,7 +117,7 @@ void HttpServerConnection::StartStreaming()
 
 	HttpServerConnection::Ptr keepAlive (this);
 
-	asio::spawn(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
 		if (!m_ShuttingDown) {
 			char buf[128];
 			asio::mutable_buffer readBuf (buf, 128);
@@ -140,53 +143,58 @@ bool EnsureValidHeaders(
 	boost::beast::flat_buffer& buf,
 	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	bool& shuttingDown,
 	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
-	bool httpError = true;
+	if (shuttingDown)
+		return false;
 
-	try {
-		try {
-			http::async_read_header(stream, buf, parser, yc);
-		} catch (const boost::system::system_error& ex) {
-			/**
-			 * Unfortunately there's no way to tell an HTTP protocol error
-			 * from an error on a lower layer:
-			 *
-			 * <https://github.com/boostorg/beast/issues/643>
-			 */
-			throw std::invalid_argument(ex.what());
-		}
+	bool httpError = false;
+	String errorMsg;
 
-		httpError = false;
+	boost::system::error_code ec;
 
+	http::async_read_header(stream, buf, parser, yc[ec]);
+
+	if (ec) {
+		if (ec == boost::asio::error::operation_aborted)
+			return false;
+
+		errorMsg = ec.message();
+		httpError = true;
+	} else {
 		switch (parser.get().version()) {
 		case 10:
 		case 11:
 			break;
 		default:
-			throw std::invalid_argument("Unsupported HTTP version");
+			errorMsg = "Unsupported HTTP version";
 		}
-	} catch (const std::invalid_argument& ex) {
+	}
+
+	if (!errorMsg.IsEmpty() || httpError) {
 		response.result(http::status::bad_request);
 
 		if (!httpError && parser.get()[http::field::accept] == "application/json") {
 			HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
 				{ "error", 400 },
-				{ "status", String("Bad Request: ") + ex.what() }
+				{ "status", String("Bad Request: ") + errorMsg }
 			}));
 		} else {
 			response.set(http::field::content_type, "text/html");
-			response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
+			response.body() = String("<h1>Bad Request</h1><p><pre>") + errorMsg + "</pre></p>";
 			response.set(http::field::content_length, response.body().size());
 		}
 
 		response.set(http::field::connection, "close");
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		boost::system::error_code ec;
+
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 
 		return false;
 	}
@@ -208,8 +216,10 @@ void HandleExpect100(
 
 		response.result(http::status::continue_);
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		boost::system::error_code ec;
+
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 	}
 }
 
@@ -252,8 +262,10 @@ bool HandleAccessControl(
 					response.set(http::field::content_length, response.body().size());
 					response.set(http::field::connection, "close");
 
-					http::async_write(stream, response, yc);
-					stream.async_flush(yc);
+					boost::system::error_code ec;
+
+					http::async_write(stream, response, yc[ec]);
+					stream.async_flush(yc[ec]);
 
 					return false;
 				}
@@ -281,8 +293,10 @@ bool EnsureAcceptHeader(
 		response.set(http::field::content_length, response.body().size());
 		response.set(http::field::connection, "close");
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		boost::system::error_code ec;
+
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 
 		return false;
 	}
@@ -320,8 +334,10 @@ bool EnsureAuthenticatedUser(
 			response.set(http::field::content_length, response.body().size());
 		}
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		boost::system::error_code ec;
+
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 
 		return false;
 	}
@@ -336,6 +352,7 @@ bool EnsureValidBody(
 	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	bool& shuttingDown,
 	boost::asio::yield_context& yc
 )
 {
@@ -378,9 +395,17 @@ bool EnsureValidBody(
 		parser.body_limit(maxSize);
 	}
 
-	try {
-		http::async_read(stream, buf, parser, yc);
-	} catch (const boost::system::system_error& ex) {
+	if (shuttingDown)
+		return false;
+
+	boost::system::error_code ec;
+
+	http::async_read(stream, buf, parser, yc[ec]);
+
+	if (ec) {
+		if (ec == boost::asio::error::operation_aborted)
+			return false;
+
 		/**
 		 * Unfortunately there's no way to tell an HTTP protocol error
 		 * from an error on a lower layer:
@@ -393,18 +418,18 @@ bool EnsureValidBody(
 		if (parser.get()[http::field::accept] == "application/json") {
 			HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
 				{ "error", 400 },
-				{ "status", String("Bad Request: ") + ex.what() }
+				{ "status", String("Bad Request: ") + ec.message() }
 			}));
 		} else {
 			response.set(http::field::content_type, "text/html");
-			response.body() = String("<h1>Bad Request</h1><p><pre>") + ex.what() + "</pre></p>";
+			response.body() = String("<h1>Bad Request</h1><p><pre>") + ec.message() + "</pre></p>";
 			response.set(http::field::content_length, response.body().size());
 		}
 
 		response.set(http::field::connection, "close");
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 
 		return false;
 	}
@@ -434,12 +459,20 @@ bool ProcessRequest(
 			return false;
 		}
 
+		auto sysErr (dynamic_cast<const boost::system::system_error*>(&ex));
+
+		if (sysErr && sysErr->code() == boost::asio::error::operation_aborted) {
+			throw;
+		}
+
 		http::response<http::string_body> response;
 
 		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
 
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
+		boost::system::error_code ec;
+
+		http::async_write(stream, response, yc[ec]);
+		stream.async_flush(yc[ec]);
 
 		return true;
 	}
@@ -448,8 +481,10 @@ bool ProcessRequest(
 		return false;
 	}
 
-	http::async_write(stream, response, yc);
-	stream.async_flush(yc);
+	boost::system::error_code ec;
+
+	http::async_write(stream, response, yc[ec]);
+	stream.async_flush(yc[ec]);
 
 	return true;
 }
@@ -459,9 +494,12 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 	namespace beast = boost::beast;
 	namespace http = beast::http;
 
-	Defer disconnect ([this]() { Disconnect(); });
-
 	try {
+		/* Do not reset the buffer in the state machine.
+		 * EnsureValidHeaders already reads from the stream into the buffer,
+		 * EnsureValidBody continues. ProcessRequest() actually handles the request
+		 * and needs the full buffer.
+		 */
 		beast::flat_buffer buf;
 
 		for (;;) {
@@ -475,7 +513,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			response.set(http::field::server, l_ServerHeader);
 
-			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, yc)) {
+			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, m_ShuttingDown, yc)) {
 				break;
 			}
 
@@ -520,7 +558,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
-			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, yc)) {
+			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, m_ShuttingDown, yc)) {
 				break;
 			}
 
@@ -540,6 +578,8 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				<< "Unhandled exception while processing HTTP request: " << ex.what();
 		}
 	}
+
+	Disconnect();
 }
 
 void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)

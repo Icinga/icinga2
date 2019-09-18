@@ -148,7 +148,7 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 }
 
 bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& fullName,
-	const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation)
+	const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie)
 {
 	CreateStorage();
 
@@ -188,9 +188,38 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 
 		std::vector<ConfigItem::Ptr> newItems;
 
-		/* Disable logging for object creation, but do so ourselves later on. */
-		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems, true) || !ConfigItem::ActivateItems(upq, newItems, true, true)) {
+		/*
+		 * Disable logging for object creation, but do so ourselves later on.
+		 * Duplicate the error handling for better logging and debugging here.
+		 */
+		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems, true)) {
 			if (errors) {
+				Log(LogNotice, "ConfigObjectUtility")
+					<< "Failed to commit config item '" << fullName << "'. Aborting and emoving config path '" << path << "'.";
+
+				Utility::Remove(path);
+
+				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
+					errors->Add(DiagnosticInformation(ex, false));
+
+					if (diagnosticInformation)
+						diagnosticInformation->Add(DiagnosticInformation(ex));
+				}
+			}
+
+			return false;
+		}
+
+		/*
+		 * Activate the config object.
+		 * uq, items, runtimeCreated, silent, withModAttrs, cookie
+		 * IMPORTANT: Forward the cookie aka origin in order to prevent sync loops in the same zone!
+		 */
+		if (!ConfigItem::ActivateItems(upq, newItems, true, true, false, cookie)) {
+			if (errors) {
+				Log(LogNotice, "ConfigObjectUtility")
+					<< "Failed to activate config object '" << fullName << "'. Aborting and emoving config path '" << path << "'.";
+
 				Utility::Remove(path);
 
 				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
@@ -211,9 +240,17 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		if (type->GetName() != "Comment" && type->GetName() != "Downtime")
 			ApiListener::UpdateObjectAuthority();
 
+		// At this stage we should have a config object already. If not, it was ignored before.
+		auto *ctype = dynamic_cast<ConfigType *>(type.get());
+		ConfigObject::Ptr obj = ctype->GetObject(fullName);
 
-		Log(LogInformation, "ConfigObjectUtility")
-			<< "Created and activated object '" << fullName << "' of type '" << type->GetName() << "'.";
+		if (obj) {
+			Log(LogInformation, "ConfigObjectUtility")
+				<< "Created and activated object '" << fullName << "' of type '" << type->GetName() << "'.";
+		} else {
+			Log(LogNotice, "ConfigObjectUtility")
+				<< "Object '" << fullName << "' was not created but ignored due to errors.";
+		}
 
 	} catch (const std::exception& ex) {
 		Utility::Remove(path);
@@ -231,7 +268,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 }
 
 bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bool cascade,
-	const Array::Ptr& errors, const Array::Ptr& diagnosticInformation)
+	const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie)
 {
 	std::vector<Object::Ptr> parents = DependencyGraph::GetParents(object);
 
@@ -255,7 +292,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		if (!parentObj)
 			continue;
 
-		DeleteObjectHelper(parentObj, cascade, errors, diagnosticInformation);
+		DeleteObjectHelper(parentObj, cascade, errors, diagnosticInformation, cookie);
 	}
 
 	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, name);
@@ -263,8 +300,13 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 	try {
 		/* mark this object for cluster delete event */
 		object->SetExtension("ConfigObjectDeleted", true);
-		/* triggers signal for DB IDO and other interfaces */
-		object->Deactivate(true);
+
+		/*
+		 * Trigger deactivation signal for DB IDO and runtime object delections.
+		 * IMPORTANT: Specify the cookie aka origin in order to prevent sync loops
+		 * in the same zone!
+		 */
+		object->Deactivate(true, cookie);
 
 		if (item)
 			item->Unregister();
@@ -292,10 +334,14 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 
 	Utility::Remove(path);
 
+	Log(LogInformation, "ConfigObjectUtility")
+		<< "Deleted object '" << name << "' of type '" << type->GetName() << "'.";
+
 	return true;
 }
 
-bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation)
+bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors,
+	const Array::Ptr& diagnosticInformation, const Value& cookie)
 {
 	if (object->GetPackage() != "_api") {
 		if (errors)
@@ -304,5 +350,5 @@ bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cas
 		return false;
 	}
 
-	return DeleteObjectHelper(object, cascade, errors, diagnosticInformation);
+	return DeleteObjectHelper(object, cascade, errors, diagnosticInformation, cookie);
 }
