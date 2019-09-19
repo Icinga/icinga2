@@ -1,9 +1,67 @@
 # Icinga 2 CHANGELOG
 
-Please make sure to always read our [Upgrading](https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/)
-documentation before switching to a new version.
+**The latest release announcements are available on [https://icinga.com/blog/](https://icinga.com/blog/).**
 
-Released closed milestones can be found [here](https://github.com/Icinga/icinga2/milestones?state=closed).
+Please read the [upgrading](https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/)
+documentation before upgrading to a new release.
+
+Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
+
+## 2.11.0 (2019-09-19)
+
+[Issue and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.11.0)
+
+### Notes
+
+Upgrading docs: https://icinga.com/docs/icinga2/snapshot/doc/16-upgrading-icinga-2/
+
+Thanks to all contributors: [Obihoernchen](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AObihoernchen), [dasJ](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AdasJ), [sebastic](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Asebastic), [waja](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Awaja), [BarbUk](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3ABarbUk), [alanlitster](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aalanlitster), [mcktr](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Amcktr), [KAMI911](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AKAMI911), [peteeckel](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Apeteeckel), [breml](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Abreml), [episodeiv](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aepisodeiv), [Crited](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3ACrited), [robert-scheck](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Arobert-scheck), [west0rmann](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Awest0rmann), [Napsty](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3ANapsty), [Elias481](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AElias481), [uubk](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Auubk), [miso231](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Amiso231), [neubi4](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aneubi4), [atj](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aatj), [mvanduren-itisit](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Amvanduren-itisit), [jschanz](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Ajschanz), [MaBauMeBad](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AMaBauMeBad), [markleary](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Amarkleary), [leeclemens](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aleeclemens), [m4k5ym](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Am4k5ym)
+
+### Enhancements
+
+* Core
+  * Rewrite Network Stack (cluster, REST API) based on Boost Asio, Beast, Coroutines
+     * Technical concept: #7041
+     * Requires package updates: Boost >1.66 (either from packages.icinga.com, EPEL or backports). SLES11 & Ubuntu 14 are EOL.
+     * Require TLS 1.2 and harden default cipher list
+  * Improved Reload Handling (umbrella process, now 3 processes at runtime)
+    * Support running Icinga 2 in (Docker) containers natively in foreground
+  * Quality: Use Modern JSON for C++ library instead of YAJL (dead project)
+  * Quality: Improve handling of invalid UTF8 strings
+* API
+  * Fix crashes on Linux, Unix and Windows from Nessus scans #7431
+  * Locks and stalled waits are fixed with the core rewrite in #7071
+  * schedule-downtime action supports `all_services` for host downtimes
+  * Improve storage handling for runtime created objects in the `_api` package
+* Cluster
+  * HA aware features & improvements for failover handling #2941 #7062
+  * Improve cluster config sync with staging #6716
+  * Fixed that same downtime/comment objects would be synced again in a cluster loop #7198
+* Checks & Notifications
+  * Ensure that notifications during a restart are sent
+  * Immediately notify about a problem after leaving a downtime and still NOT-OK
+  * Improve reload handling and wait for features/metrics
+  * Store notification command results and sync them in HA enabled zones #6722
+* DSL/Configuration
+  * Add getenv() function
+  * Fix TimePeriod range support over midnight
+  * `concurrent_checks` in the Checker feature has no effect, use the global MaxConcurrentChecks constant instead
+* CLI
+  * Permissions: node wizard/setup, feature, api setup now run in the Icinga user context, not root
+  * `ca list` shows pending CSRs by default, `ca remove/restore` allow to delete signing requests
+* ITL
+  * Add new commands and missing attributes
+* Windows
+  * Update bundled NSClient++ to 0.5.2.39
+  * Refine agent setup wizard & update requirements to .NET 4.6
+* Documentation
+  * Service Monitoring: How to create plugins by example, check commands and a modern version of the supported plugin API with best practices
+  * Features: Better structure on metrics, and supported features
+  * Technical Concepts: TLS Network IO, Cluster Feature HA, Cluster Config Sync
+  * Development: Rewritten for better debugging and development experience for contributors including a style guide.  Add nightly build setup instructions.
+  * Packaging: INSTALL.md was integrated into the Development chapter, being available at https://icinga.com/docs too.
+
+
 
 
 ## 2.11.0 RC1 (2019-07-25)
