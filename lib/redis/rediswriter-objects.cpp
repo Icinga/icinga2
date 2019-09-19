@@ -781,8 +781,9 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 	CreateConfigUpdate(object, typeName, hMSets, publishes, runtimeUpdate);
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (checkable) {
-		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixStateObject + typeName,
-							  GetObjectIdentifier(checkable), JsonEncode(SerializeState(checkable))});
+		String objectKey = GetObjectIdentifier(object);
+		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixStateObject + typeName, objectKey, JsonEncode(SerializeState(checkable))});
+		publishes["icinga:config:update"].emplace_back("state:" + typeName + ":" + objectKey);
 	}
 
 	std::vector<std::vector<String> > transaction = {{"MULTI"}};
