@@ -309,6 +309,7 @@ std::vector<String> RedisWriter::GetTypeObjectKeys(const String& type)
 	if (type == "host" || type == "service" || type == "user") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":groupmember");
 		keys.emplace_back(m_PrefixConfigCheckSum + type + ":groupmember");
+		keys.emplace_back(m_PrefixStateObject + type);
 	} else if (type == "timeperiod") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":override:include");
 		keys.emplace_back(m_PrefixConfigCheckSum + type + ":override:include");
