@@ -1,19 +1,4 @@
-# Icinga 2
-# Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation
-# Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
 include(BoostTestTargets)
 
@@ -28,6 +13,7 @@ set(base_test_SOURCES
   base-match.cpp
   base-netstring.cpp
   base-object.cpp
+  base-object-packer.cpp
   base-serialize.cpp
   base-shellescape.cpp
   base-stacktrace.cpp
@@ -35,6 +21,7 @@ set(base_test_SOURCES
   base-string.cpp
   base-timer.cpp
   base-type.cpp
+  base-utility.cpp
   base-value.cpp
   config-ops.cpp
   icinga-checkresult.cpp
@@ -43,7 +30,6 @@ set(base_test_SOURCES
   icinga-notification.cpp
   icinga-perfdata.cpp
   remote-url.cpp
-  remote-user.cpp
   ${base_OBJS}
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>
@@ -73,6 +59,8 @@ add_boost_test(base
     base_convert/tostring
     base_convert/tobool
     base_dictionary/construct
+    base_dictionary/initializer1
+    base_dictionary/initializer2
     base_dictionary/get1
     base_dictionary/get2
     base_dictionary/foreach
@@ -81,7 +69,16 @@ add_boost_test(base
     base_dictionary/json
     base_fifo/construct
     base_fifo/io
+    base_json/encode
+    base_json/decode
     base_json/invalid1
+    base_object_packer/pack_null
+    base_object_packer/pack_false
+    base_object_packer/pack_true
+    base_object_packer/pack_number
+    base_object_packer/pack_string
+    base_object_packer/pack_array
+    base_object_packer/pack_object
     base_match/tolong
     base_netstring/netstring
     base_object/construct
@@ -111,6 +108,11 @@ add_boost_test(base
     base_type/assign
     base_type/byname
     base_type/instantiate
+    base_utility/parse_version
+    base_utility/compare_version
+    base_utility/comparepasswords_works
+    base_utility/comparepasswords_issafe
+    base_utility/validateutf8
     base_value/scalar
     base_value/convert
     base_value/format
@@ -124,10 +126,12 @@ add_boost_test(base
     icinga_checkresult/service_3attempts
     icinga_checkresult/host_flapping_notification
     icinga_checkresult/service_flapping_notification
+    icinga_notification/strings
     icinga_notification/state_filter
     icinga_notification/type_filter
     icinga_macros/simple
     icinga_legacytimeperiod/simple
+    icinga_legacytimeperiod/advanced
     icinga_perfdata/empty
     icinga_perfdata/simple
     icinga_perfdata/quotes
@@ -142,7 +146,6 @@ add_boost_test(base
     remote_url/get_and_set
     remote_url/format
     remote_url/illegal_legal_strings
-    api_user/password
 )
 
 if(ICINGA2_WITH_LIVESTATUS)

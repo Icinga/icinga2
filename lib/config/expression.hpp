@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
@@ -305,9 +288,7 @@ protected:
 class VariableExpression final : public DebuggableExpression
 {
 public:
-	VariableExpression(String variable, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Variable(std::move(variable))
-	{ }
+	VariableExpression(String variable, std::vector<std::shared_ptr<Expression> > imports, const DebugInfo& debugInfo = DebugInfo());
 
 	String GetVariable() const
 	{
@@ -320,8 +301,32 @@ protected:
 
 private:
 	String m_Variable;
+	std::vector<std::shared_ptr<Expression> > m_Imports;
 
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
+};
+
+class DerefExpression final : public UnaryExpression
+{
+public:
+	DerefExpression(std::unique_ptr<Expression> operand, const DebugInfo& debugInfo = DebugInfo())
+		: UnaryExpression(std::move(operand), debugInfo)
+	{ }
+
+protected:
+	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+	bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const override;
+};
+
+class RefExpression final : public UnaryExpression
+{
+public:
+	RefExpression(std::unique_ptr<Expression> operand, const DebugInfo& debugInfo = DebugInfo())
+		: UnaryExpression(std::move(operand), debugInfo)
+	{ }
+
+protected:
+	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
 class NegateExpression final : public UnaryExpression
@@ -614,6 +619,19 @@ private:
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
 
+class SetConstExpression final : public UnaryExpression
+{
+public:
+	SetConstExpression(const String& name, std::unique_ptr<Expression> operand, const DebugInfo& debugInfo = DebugInfo())
+		: UnaryExpression(std::move(operand), debugInfo), m_Name(name)
+	{ }
+
+protected:
+	String m_Name;
+
+	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+};
+
 class SetExpression final : public BinaryExpression
 {
 public:
@@ -621,11 +639,14 @@ public:
 		: BinaryExpression(std::move(operand1), std::move(operand2), debugInfo), m_Op(op)
 	{ }
 
+	void SetOverrideFrozen();
+
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	CombinedSetOp m_Op;
+	bool m_OverrideFrozen{false};
 
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
@@ -716,7 +737,11 @@ public:
 		: BinaryExpression(std::move(operand1), std::move(operand2), debugInfo)
 	{ }
 
+	void SetOverrideFrozen();
+
 protected:
+	bool m_OverrideFrozen{false};
+
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 	bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const override;
 
@@ -810,6 +835,20 @@ private:
 	std::shared_ptr<Expression> m_FTerm;
 	bool m_IgnoreOnError;
 	std::map<String, std::unique_ptr<Expression> > m_ClosedVars;
+	std::shared_ptr<Expression> m_Expression;
+};
+
+class NamespaceExpression final : public DebuggableExpression
+{
+public:
+	NamespaceExpression(std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Expression(std::move(expression))
+	{ }
+
+protected:
+	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+
+private:
 	std::shared_ptr<Expression> m_Expression;
 };
 
@@ -907,20 +946,6 @@ public:
 
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
-};
-
-class UsingExpression final : public DebuggableExpression
-{
-public:
-	UsingExpression(std::unique_ptr<Expression> name, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Name(std::move(name))
-	{ }
-
-protected:
-	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
-
-private:
-	std::unique_ptr<Expression> m_Name;
 };
 
 class TryExceptExpression final : public DebuggableExpression

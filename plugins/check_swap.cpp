@@ -1,27 +1,11 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "plugins/thresholds.hpp"
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <shlwapi.h>
-#include <winbase.h>
+#include <Psapi.h>
+#include <vector>
 
 #define VERSION 1.0
 
@@ -35,9 +19,28 @@ struct printInfoStruct
 	double aSwap;
 	double percentFree;
 	Bunit unit = BunitMB;
+	bool showUsed;
+};
+
+struct pageFileInfo
+{
+	SIZE_T totalSwap;
+	SIZE_T availableSpwap;
 };
 
 static bool l_Debug;
+
+BOOL EnumPageFilesProc(LPVOID pContext, PENUM_PAGE_FILE_INFORMATION pPageFileInfo, LPCWSTR lpFilename) {
+	std::vector<pageFileInfo>* pageFile = static_cast<std::vector<pageFileInfo>*>(pContext);
+	SYSTEM_INFO systemInfo;
+
+	GetSystemInfo(&systemInfo);
+
+	// pPageFileInfo output is in pages, we need to multiply it by the page size
+	pageFile->push_back({ pPageFileInfo->TotalSize * systemInfo.dwPageSize, (pPageFileInfo->TotalSize - pPageFileInfo->TotalInUse) * systemInfo.dwPageSize });
+
+	return TRUE;
+}
 
 static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
@@ -54,6 +57,7 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 		("warning,w", po::wvalue<std::wstring>(), "Warning threshold")
 		("critical,c", po::wvalue<std::wstring>(), "Critical threshold")
 		("unit,u", po::wvalue<std::wstring>(), "The unit to use for display (default MB)")
+		("show-used,U", "Show used swap instead of the free swap")
 		;
 
 	po::wcommand_line_parser parser(ac, av);
@@ -148,6 +152,12 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 		}
 	}
 
+	if (vm.count("show-used")) {
+		printInfo.showUsed = true;
+		printInfo.warn.legal = true;
+		printInfo.crit.legal = true;
+	}
+
 	return -1;
 }
 
@@ -158,46 +168,55 @@ static int printOutput(printInfoStruct& printInfo)
 
 	state state = OK;
 
-	if (printInfo.warn.rend(printInfo.aSwap, printInfo.tSwap))
+	std::wcout << L"SWAP ";
+
+	double currentValue;
+
+	if (!printInfo.showUsed)
+		currentValue = printInfo.aSwap;
+	else
+		currentValue = printInfo.tSwap - printInfo.aSwap;
+
+	if (printInfo.warn.rend(currentValue, printInfo.tSwap))
 		state = WARNING;
 
-	if (printInfo.crit.rend(printInfo.aSwap, printInfo.tSwap))
+	if (printInfo.crit.rend(currentValue, printInfo.tSwap))
 		state = CRITICAL;
 
-	switch (state) {
-	case OK:
-		std::wcout << L"SWAP OK - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
-			<< L";0;" << printInfo.tSwap << '\n';
-		break;
-	case WARNING:
-		std::wcout << L"SWAP WARNING - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
-			<< L";0;" << printInfo.tSwap << '\n';
-		break;
-	case CRITICAL:
-		std::wcout << L"SWAP CRITICAL - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
-			<< L";0;" << printInfo.tSwap << '\n';
-		break;
-	}
+	std::wcout << stateToString(state) << " - ";
+
+	if (!printInfo.showUsed)
+		std::wcout << printInfo.percentFree << L"% free ";
+	else
+		std::wcout << 100 - printInfo.percentFree << L"% used ";
+
+	std::wcout << "| 'swap'=" << currentValue << BunitStr(printInfo.unit) << L";"
+		<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
+		<< L";0;" << printInfo.tSwap << '\n';
 
 	return state;
 }
 
 static int check_swap(printInfoStruct& printInfo)
 {
-	MEMORYSTATUSEX MemBuf;
-	MemBuf.dwLength = sizeof(MemBuf);
+	// Needs explicit cast: http://msinilo.pl/blog2/post/p1348/
+	PENUM_PAGE_FILE_CALLBACKW pageFileCallback = (PENUM_PAGE_FILE_CALLBACKW)EnumPageFilesProc;
+	std::vector<pageFileInfo> pageFiles;
 
-	if (!GlobalMemoryStatusEx(&MemBuf)) {
+	if(!EnumPageFilesW(pageFileCallback, &pageFiles)) {
 		printErrorInfo();
 		return 3;
 	}
 
-	printInfo.tSwap = round(MemBuf.ullTotalPageFile / pow(1024.0, printInfo.unit));
-	printInfo.aSwap = round(MemBuf.ullAvailPageFile / pow(1024.0, printInfo.unit));
-	printInfo.percentFree = 100.0 * MemBuf.ullAvailPageFile / MemBuf.ullTotalPageFile;
+	for (int i = 0; i < pageFiles.size(); i++) {
+		printInfo.tSwap += round(pageFiles.at(i).totalSwap / pow(1024.0, printInfo.unit));
+		printInfo.aSwap += round(pageFiles.at(i).availableSpwap / pow(1024.0, printInfo.unit));
+	}
+
+	if (printInfo.aSwap > 0 && printInfo.tSwap > 0)
+		printInfo.percentFree = 100.0 * printInfo.aSwap / printInfo.tSwap;
+	else
+		printInfo.percentFree = 0;
 
 	return -1;
 }

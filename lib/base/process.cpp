@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/process.hpp"
 #include "base/exception.hpp"
@@ -164,8 +147,11 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		(void)close(fds[2]);
 
 #ifdef HAVE_NICE
-		if (adjustPriority)
-			nice(5);
+		if (adjustPriority) {
+			// Cheating the compiler on "warning: ignoring return value of 'int nice(int)', declared with attribute warn_unused_result [-Wunused-result]".
+			auto x (nice(5));
+			(void)x;
+		}
 #endif /* HAVE_NICE */
 
 		sigset_t mask;
@@ -413,12 +399,11 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 
 	msg.msg_controllen = cmsg->cmsg_len;
 
-send_message:
-	while (sendmsg(l_ProcessControlFD, &msg, 0) < 0)
-		StartSpawnProcessHelper();
-
-	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
-		goto send_message;
+	do {
+		while (sendmsg(l_ProcessControlFD, &msg, 0) < 0) {
+			StartSpawnProcessHelper();
+		}
+	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
 
 	char buf[4096];
 
@@ -450,12 +435,11 @@ static int ProcessKill(pid_t pid, int signum)
 
 	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
 
-send_message:
-	while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0)
-		StartSpawnProcessHelper();
-
-	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
-		goto send_message;
+	do {
+		while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0) {
+			StartSpawnProcessHelper();
+		}
+	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
 
 	char buf[4096];
 
@@ -482,12 +466,11 @@ static int ProcessWaitPID(pid_t pid, int *status)
 
 	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
 
-send_message:
-	while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0)
-		StartSpawnProcessHelper();
-
-	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
-		goto send_message;
+	do {
+		while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0) {
+			StartSpawnProcessHelper();
+		}
+	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
 
 	char buf[4096];
 

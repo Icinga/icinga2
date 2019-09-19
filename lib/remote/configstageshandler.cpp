@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/configstageshandler.hpp"
 #include "remote/configpackageutility.hpp"
@@ -28,32 +11,51 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/stages", ConfigStagesHandler);
 
-bool ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool ConfigStagesHandler::HandleRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	HttpServerConnection& server
+)
 {
-	if (request.RequestUrl->GetPath().size() > 5)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() > 5)
 		return false;
 
-	if (request.RequestMethod == "GET")
-		HandleGet(user, request, response, params);
-	else if (request.RequestMethod == "POST")
-		HandlePost(user, request, response, params);
-	else if (request.RequestMethod == "DELETE")
-		HandleDelete(user, request, response, params);
+	if (request.method() == http::verb::get)
+		HandleGet(user, request, url, response, params);
+	else if (request.method() == http::verb::post)
+		HandlePost(user, request, url, response, params);
+	else if (request.method() == http::verb::delete_)
+		HandleDelete(user, request, url, response, params);
 	else
 		return false;
 
 	return true;
 }
 
-void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+void ConfigStagesHandler::HandleGet(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
+	namespace http = boost::beast::http;
+
 	FilterUtility::CheckPermission(user, "config/query");
 
-	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("package", request.RequestUrl->GetPath()[3]);
+	if (url->GetPath().size() >= 4)
+		params->Set("package", url->GetPath()[3]);
 
-	if (request.RequestUrl->GetPath().size() >= 5)
-		params->Set("stage", request.RequestUrl->GetPath()[4]);
+	if (url->GetPath().size() >= 5)
+		params->Set("stage", url->GetPath()[4]);
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
@@ -81,16 +83,24 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 		{ "results", new Array(std::move(results)) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+void ConfigStagesHandler::HandlePost(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
+	namespace http = boost::beast::http;
+
 	FilterUtility::CheckPermission(user, "config/modify");
 
-	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("package", request.RequestUrl->GetPath()[3]);
+	if (url->GetPath().size() >= 4)
+		params->Set("package", url->GetPath()[3]);
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
@@ -110,7 +120,8 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 		if (!files)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'files' must be specified."));
 
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
+		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+
 		stageName = ConfigPackageUtility::CreateStage(packageName, files);
 
 		/* validate the config. on success, activate stage and reload */
@@ -140,19 +151,27 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 		{ "results", new Array({ result1 }) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+void ConfigStagesHandler::HandleDelete(
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params
+)
 {
+	namespace http = boost::beast::http;
+
 	FilterUtility::CheckPermission(user, "config/modify");
 
-	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("package", request.RequestUrl->GetPath()[3]);
+	if (url->GetPath().size() >= 4)
+		params->Set("package", url->GetPath()[3]);
 
-	if (request.RequestUrl->GetPath().size() >= 5)
-		params->Set("stage", request.RequestUrl->GetPath()[4]);
+	if (url->GetPath().size() >= 5)
+		params->Set("stage", url->GetPath()[4]);
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
@@ -182,7 +201,7 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 		{ "results", new Array({ result1 }) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 }
 

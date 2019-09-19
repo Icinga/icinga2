@@ -1,25 +1,10 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef CHECKABLE_H
 #define CHECKABLE_H
 
+#include "base/atomic.hpp"
+#include "base/timer.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkable-ti.hpp"
 #include "icinga/timeperiod.hpp"
@@ -28,6 +13,7 @@
 #include "icinga/downtime.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
+#include <cstdint>
 
 namespace icinga
 {
@@ -62,6 +48,7 @@ enum SeverityFlag
 {
 	SeverityFlagDowntime = 1,
 	SeverityFlagAcknowledgement = 2,
+	SeverityFlagHostDown = 4,
 	SeverityFlagUnhandled = 8,
 	SeverityFlagPending = 16,
 	SeverityFlagWarning = 32,
@@ -102,6 +89,8 @@ public:
 	void ClearAcknowledgement(const MessageOrigin::Ptr& origin = nullptr);
 
 	int GetSeverity() const override;
+	bool GetProblem() const override;
+	bool GetHandled() const override;
 
 	/* Checks */
 	intrusive_ptr<CheckCommand> GetCheckCommand() const;
@@ -113,7 +102,7 @@ public:
 	void UpdateNextCheck(const MessageOrigin::Ptr& origin = nullptr);
 
 	bool HasBeenChecked() const;
-	virtual bool IsStateOK(ServiceState state) = 0;
+	virtual bool IsStateOK(ServiceState state) const = 0;
 
 	double GetLastCheck() const final;
 
@@ -133,8 +122,8 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&,
 		const String&, const String&, const MessageOrigin::Ptr&)> OnNotificationsRequested;
 	static boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const User::Ptr&,
-		const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&,
-		const MessageOrigin::Ptr&)> OnNotificationSentToUser;
+		const NotificationType&, const CheckResult::Ptr&, const NotificationResult::Ptr&, const String&,
+		const String&, const String&, const MessageOrigin::Ptr&)> OnNotificationSentToUser;
 	static boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
 		const NotificationType&, const CheckResult::Ptr&, const String&,
 		const String&, const MessageOrigin::Ptr&)> OnNotificationSentToAllUsers;
@@ -143,6 +132,8 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnNextCheckUpdated;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
+
+	static Atomic<uint_fast64_t> CurrentConcurrentChecks;
 
 	/* Downtimes */
 	int GetDowntimeDepth() const final;
@@ -192,6 +183,7 @@ public:
 	std::vector<intrusive_ptr<Dependency> > GetReverseDependencies() const;
 
 	void ValidateCheckInterval(const Lazy<double>& lvalue, const ValidationUtils& value) final;
+	void ValidateRetryInterval(const Lazy<double>& lvalue, const ValidationUtils& value) final;
 	void ValidateMaxCheckAttempts(const Lazy<int>& lvalue, const ValidationUtils& value) final;
 
 	static void IncreasePendingChecks();
@@ -223,6 +215,8 @@ private:
 	static void NotifyDowntimeInternal(const Downtime::Ptr& downtime);
 
 	static void NotifyDowntimeEnd(const Downtime::Ptr& downtime);
+
+	static void FireSuppressedNotifications(const Timer * const&);
 
 	/* Comments */
 	std::set<Comment::Ptr> m_Comments;

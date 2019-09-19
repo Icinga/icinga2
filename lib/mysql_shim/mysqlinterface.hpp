@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef MYSQLINTERFACE_H
 #define MYSQLINTERFACE_H
@@ -52,7 +35,7 @@ struct MysqlInterface
 	virtual MYSQL *real_connect(MYSQL *mysql, const char *host, const char *user, const char *passwd,
 		const char *db, unsigned int port, const char *unix_socket, unsigned long clientflag) const = 0;
 	virtual unsigned long real_escape_string(MYSQL *mysql, char *to, const char *from, unsigned long length) const = 0;
-	virtual my_bool ssl_set(MYSQL *mysql, const char *key, const char *cert, const char *ca, const char *capath, const char *cipher) const = 0;
+	virtual bool ssl_set(MYSQL *mysql, const char *key, const char *cert, const char *ca, const char *capath, const char *cipher) const = 0;
 	virtual MYSQL_RES *store_result(MYSQL *mysql) const = 0;
 	virtual unsigned int thread_safe() const = 0;
 

@@ -1,24 +1,7 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef SCRIPTFUNCTION_H
-#define SCRIPTFUNCTION_H
+#ifndef FUNCTION_H
+#define FUNCTION_H
 
 #include "base/i2-base.hpp"
 #include "base/function-ti.hpp"
@@ -72,50 +55,35 @@ private:
 		bool side_effect_free, bool deprecated);
 };
 
-#define REGISTER_SCRIPTFUNCTION_NS(ns, name, callback, args) \
+/* Ensure that the priority is lower than the basic namespace initialization in scriptframe.cpp. */
+#define REGISTER_FUNCTION(ns, name, callback, args) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), false); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
+		Namespace::Ptr nsp = ScriptGlobal::Get(#ns); \
+		nsp->SetAttribute(#name, std::make_shared<ConstEmbeddedNamespaceValue>(sf)); \
 	}, 10)
 
-#define REGISTER_SCRIPTFUNCTION_NS_PREFIX(ns, name, callback, args) \
+#define REGISTER_SAFE_FUNCTION(ns, name, callback, args) \
+	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
+		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), true); \
+		Namespace::Ptr nsp = ScriptGlobal::Get(#ns); \
+		nsp->SetAttribute(#name, std::make_shared<ConstEmbeddedNamespaceValue>(sf)); \
+	}, 10)
+
+#define REGISTER_FUNCTION_NONCONST(ns, name, callback, args) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), false); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
-		Function::Ptr dsf = new icinga::Function("Deprecated#__" #name " (deprecated)", WrapFunction(callback), String(args).Split(":"), false, true); \
-		ScriptGlobal::Set("Deprecated.__" #name, dsf); \
+		Namespace::Ptr nsp = ScriptGlobal::Get(#ns); \
+		nsp->SetAttribute(#name, std::make_shared<EmbeddedNamespaceValue>(sf)); \
 	}, 10)
 
-#define REGISTER_SCRIPTFUNCTION_NS_DEPRECATED(ns, name, callback, args) \
-	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
-		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), false); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
-		Function::Ptr dsf = new icinga::Function("Deprecated#" #name " (deprecated)", WrapFunction(callback), String(args).Split(":"), false, true); \
-		ScriptGlobal::Set("Deprecated." #name, dsf); \
-	}, 10)
-
-#define REGISTER_SAFE_SCRIPTFUNCTION_NS(ns, name, callback, args) \
+#define REGISTER_SAFE_FUNCTION_NONCONST(ns, name, callback, args) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), true); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
-	}, 10)
-
-#define REGISTER_SAFE_SCRIPTFUNCTION_NS_PREFIX(ns, name, callback, args) \
-	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
-		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), true); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
-		Function::Ptr dsf = new icinga::Function("Deprecated#__" #name " (deprecated)", WrapFunction(callback), String(args).Split(":"), true, true); \
-		ScriptGlobal::Set("Deprecated.__" #name, dsf); \
-	}, 10)
-
-#define REGISTER_SAFE_SCRIPTFUNCTION_NS_DEPRECATED(ns, name, callback, args) \
-	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
-		Function::Ptr sf = new icinga::Function(#ns "#" #name, callback, String(args).Split(":"), true); \
-		ScriptGlobal::Set(#ns "." #name, sf); \
-		Function::Ptr dsf = new icinga::Function("Deprecated#" #name " (deprecated)", WrapFunction(callback), String(args).Split(":"), true, true); \
-		ScriptGlobal::Set("Deprecated." #name, dsf); \
+		Namespace::Ptr nsp = ScriptGlobal::Get(#ns); \
+		nsp->SetAttribute(#name, std::make_shared<EmbeddedNamespaceValue>(sf)); \
 	}, 10)
 
 }
 
-#endif /* SCRIPTFUNCTION_H */
+#endif /* FUNCTION_H */

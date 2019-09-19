@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/object.hpp"
 #include "base/value.hpp"
@@ -27,6 +10,7 @@
 #include "base/exception.hpp"
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/recursive_mutex.hpp>
+#include <thread>
 
 using namespace icinga;
 
@@ -39,11 +23,22 @@ static Timer::Ptr l_ObjectCountTimer;
 #endif /* I2_LEAK_DEBUG */
 
 /**
+ * Constructor for the Object class.
+ */
+Object::Object()
+{
+	m_References.store(0);
+
+#ifdef I2_DEBUG
+	m_LockOwner.store(decltype(m_LockOwner.load())());
+#endif /* I2_DEBUG */
+}
+
+/**
  * Destructor for the Object class.
  */
 Object::~Object()
 {
-	delete reinterpret_cast<boost::recursive_mutex *>(m_Mutex);
 }
 
 /**
@@ -62,15 +57,7 @@ String Object::ToString() const
  */
 bool Object::OwnsLock() const
 {
-#ifdef _WIN32
-	DWORD tid = InterlockedExchangeAdd(&m_LockOwner, 0);
-
-	return (tid == GetCurrentThreadId());
-#else /* _WIN32 */
-	pthread_t tid = __sync_fetch_and_add(&m_LockOwner, 0);
-
-	return (tid == pthread_self());
-#endif /* _WIN32 */
+	return m_LockOwner.load() == std::this_thread::get_id();
 }
 #endif /* I2_DEBUG */
 
@@ -138,7 +125,7 @@ Value Object::GetFieldByName(const String& field, bool sandboxed, const DebugInf
 	return GetField(fid);
 }
 
-void Object::SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo)
+void Object::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
 {
 	Type::Ptr type = GetReflectionType();
 
@@ -255,28 +242,18 @@ INITIALIZE_ONCE([]() {
 void icinga::intrusive_ptr_add_ref(Object *object)
 {
 #ifdef I2_LEAK_DEBUG
-	if (object->m_References == 0)
+	if (object->m_References.fetch_add(1) == 0u)
 		TypeAddObject(object);
+#else /* I2_LEAK_DEBUG */
+	object->m_References.fetch_add(1);
 #endif /* I2_LEAK_DEBUG */
-
-#ifdef _WIN32
-	InterlockedIncrement(&object->m_References);
-#else /* _WIN32 */
-	__sync_add_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
 }
 
 void icinga::intrusive_ptr_release(Object *object)
 {
-	uintptr_t refs;
+	auto previous (object->m_References.fetch_sub(1));
 
-#ifdef _WIN32
-	refs = InterlockedDecrement(&object->m_References);
-#else /* _WIN32 */
-	refs = __sync_sub_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
-
-	if (unlikely(refs == 0)) {
+	if (previous == 1u) {
 #ifdef I2_LEAK_DEBUG
 		TypeRemoveObject(object);
 #endif /* I2_LEAK_DEBUG */

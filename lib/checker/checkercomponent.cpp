@@ -1,27 +1,11 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "checker/checkercomponent.hpp"
 #include "checker/checkercomponent-ti.cpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/cib.hpp"
 #include "remote/apilistener.hpp"
+#include "base/configuration.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -84,17 +68,41 @@ void CheckerComponent::Start(bool runtimeCreated)
 
 void CheckerComponent::Stop(bool runtimeRemoved)
 {
-	Log(LogInformation, "CheckerComponent")
-		<< "'" << GetName() << "' stopped.";
-
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 		m_Stopped = true;
 		m_CV.notify_all();
 	}
 
+	double wait = 0.0;
+
+	while (Checkable::GetPendingChecks() > 0) {
+		Log(LogDebug, "CheckerComponent")
+			<< "Waiting for running checks (" << Checkable::GetPendingChecks()
+			<< ") to finish. Waited for " << wait << " seconds now.";
+
+		Utility::Sleep(0.1);
+		wait += 0.1;
+
+		/* Pick a timeout slightly shorther than the process reload timeout. */
+		double reloadTimeout = Application::GetReloadTimeout();
+		double waitMax = reloadTimeout - 30;
+		if (waitMax <= 0)
+			waitMax = 1;
+
+		if (wait > waitMax) {
+			Log(LogWarning, "CheckerComponent")
+				<< "Checks running too long for " << wait
+				<< " seconds, hard shutdown before reload timeout: " << reloadTimeout << ".";
+			break;
+		}
+	}
+
 	m_ResultTimer->Stop();
 	m_Thread.join();
+
+	Log(LogInformation, "CheckerComponent")
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<CheckerComponent>::Stop(runtimeRemoved);
 }
@@ -102,6 +110,7 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 void CheckerComponent::CheckThreadProc()
 {
 	Utility::SetThreadName("Check Scheduler");
+	IcingaApplication::Ptr icingaApp = IcingaApplication::GetInstance();
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -120,7 +129,13 @@ void CheckerComponent::CheckThreadProc()
 
 		double wait = csi.NextCheck - Utility::GetTime();
 
-		if (Checkable::GetPendingChecks() >= GetConcurrentChecks())
+//#ifdef I2_DEBUG
+//		Log(LogDebug, "CheckerComponent")
+//			<< "Pending checks " << Checkable::GetPendingChecks()
+//			<< " vs. max concurrent checks " << icingaApp->GetMaxConcurrentChecks() << ".";
+//#endif /* I2_DEBUG */
+
+		if (Checkable::GetPendingChecks() >= icingaApp->GetMaxConcurrentChecks())
 			wait = 0.5;
 
 		if (wait > 0) {
@@ -148,12 +163,12 @@ void CheckerComponent::CheckThreadProc()
 			Service::Ptr service;
 			tie(host, service) = GetHostService(checkable);
 
-			if (host && !service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableHostChecks())) {
+			if (host && !service && (!checkable->GetEnableActiveChecks() || !icingaApp->GetEnableHostChecks())) {
 				Log(LogNotice, "CheckerComponent")
 					<< "Skipping check for host '" << host->GetName() << "': active host checks are disabled";
 				check = false;
 			}
-			if (host && service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableServiceChecks())) {
+			if (host && service && (!checkable->GetEnableActiveChecks() || !icingaApp->GetEnableServiceChecks())) {
 				Log(LogNotice, "CheckerComponent")
 					<< "Skipping check for service '" << service->GetName() << "': active service checks are disabled";
 				check = false;
@@ -174,6 +189,9 @@ void CheckerComponent::CheckThreadProc()
 			m_IdleCheckables.insert(GetCheckableScheduleInfo(checkable));
 			lock.unlock();
 
+			Log(LogDebug, "CheckerComponent")
+				<< "Checks for checkable '" << checkable->GetName() << "' are disabled. Rescheduling check.";
+
 			checkable->UpdateNextCheck();
 
 			lock.lock();
@@ -181,7 +199,16 @@ void CheckerComponent::CheckThreadProc()
 			continue;
 		}
 
-		m_PendingCheckables.insert(GetCheckableScheduleInfo(checkable));
+
+		csi = GetCheckableScheduleInfo(checkable);
+
+		Log(LogDebug, "CheckerComponent")
+			<< "Scheduling info for checkable '" << checkable->GetName() << "' ("
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", checkable->GetNextCheck()) << "): Object '"
+			<< csi.Object->GetName() << "', Next Check: "
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", csi.NextCheck) << "(" << csi.NextCheck << ").";
+
+		m_PendingCheckables.insert(csi);
 
 		lock.unlock();
 
@@ -209,7 +236,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		CheckResult::Ptr cr = new CheckResult();
 		cr->SetState(ServiceUnknown);
 
-		String output = "Exception occured while checking '" + checkable->GetName() + "': " + DiagnosticInformation(ex);
+		String output = "Exception occurred while checking '" + checkable->GetName() + "': " + DiagnosticInformation(ex);
 		cr->SetOutput(output);
 
 		double now = Utility::GetTime();

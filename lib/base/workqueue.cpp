@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/workqueue.hpp"
 #include "base/utility.hpp"
@@ -24,6 +7,7 @@
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include <boost/thread/tss.hpp>
+#include <math.h>
 
 using namespace icinga;
 
@@ -185,13 +169,13 @@ std::vector<boost::exception_ptr> WorkQueue::GetExceptions() const
 	return m_Exceptions;
 }
 
-void WorkQueue::ReportExceptions(const String& facility) const
+void WorkQueue::ReportExceptions(const String& facility, bool verbose) const
 {
 	std::vector<boost::exception_ptr> exceptions = GetExceptions();
 
 	for (const auto& eptr : exceptions) {
 		Log(LogCritical, facility)
-			<< DiagnosticInformation(eptr);
+			<< DiagnosticInformation(eptr, verbose);
 	}
 
 	Log(LogCritical, facility)
@@ -221,7 +205,7 @@ void WorkQueue::StatusTimerHandler()
 
 	if (pending > GetTaskCount(5)) {
 		timeInfo = " empty in ";
-		if (timeToZero < 0)
+		if (timeToZero < 0 || std::isinf(timeToZero))
 			timeInfo += "infinite time, your task handler isn't able to keep up";
 		else
 			timeInfo += Utility::FormatDuration(timeToZero);

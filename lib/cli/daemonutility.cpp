@@ -1,30 +1,13 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/daemonutility.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
+#include "base/scriptglobal.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
-
 
 using namespace icinga;
 
@@ -48,6 +31,15 @@ static void IncludeZoneDirRecursive(const String& path, const String& package, b
 {
 	String zoneName = Utility::BaseName(path);
 
+	/* We don't have an activated zone object yet. We may forcefully guess from configitems
+	 * to not include this specific synced zones directory.
+	 */
+	if(!ConfigItem::GetByTypeAndName(Type::GetByName("Zone"), zoneName)) {
+		Log(LogWarning, "config")
+			<< "Ignoring directory '" << path << "' for unknown zone '" << zoneName << "'.";
+		return;
+	}
+
 	/* register this zone path for cluster config sync */
 	ConfigCompiler::RegisterZoneDir("_etc", path, zoneName);
 
@@ -64,6 +56,15 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 	 * We do not need to copy it for cluster config sync. */
 
 	String zoneName = Utility::BaseName(zonePath);
+
+	/* We don't have an activated zone object yet. We may forcefully guess from configitems
+	 * to not include this specific synced zones directory.
+	 */
+	if(!ConfigItem::GetByTypeAndName(Type::GetByName("Zone"), zoneName)) {
+		Log(LogWarning, "config")
+			<< "Ignoring directory '" << zonePath << "' for unknown zone '" << zoneName << "'.";
+		return;
+	}
 
 	/* Check whether this node already has an authoritative config version
 	 * from zones.d in etc or api package directory, or a local marker file)
@@ -99,6 +100,10 @@ static void IncludePackage(const String& packagePath, bool& success)
 bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs, const String& objectsFile)
 {
 	bool success;
+
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+	VERIFY(systemNS);
+
 	if (!objectsFile.IsEmpty())
 		ConfigCompilerContext::GetInstance()->OpenObjectsFile(objectsFile);
 
@@ -121,31 +126,48 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	 * unfortunately moving it there is somewhat non-trivial. */
 	success = true;
 
-	String zonesEtcDir = Application::GetZonesDir();
-	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
-		Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", std::ref(success)), GlobDirectory);
+	/* Only load zone directory if we're not in staging validation. */
+	if (!systemNS->Contains("ZonesStageVarDir")) {
+		String zonesEtcDir = Configuration::ZonesDir;
+		if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
+			Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", std::ref(success)), GlobDirectory);
 
-	if (!success)
-		return false;
+		if (!success)
+			return false;
+	}
 
 	/* Load package config files - they may contain additional zones which
 	 * are authoritative on this node and are checked in HasZoneConfigAuthority(). */
-	String packagesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/packages";
+	String packagesVarDir = Configuration::DataDir + "/api/packages";
 	if (Utility::PathExists(packagesVarDir))
 		Utility::Glob(packagesVarDir + "/*", std::bind(&IncludePackage, _1, std::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
 
-	/* Load cluster synchronized configuration files */
-	String zonesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
+	/* Load cluster synchronized configuration files. This can be overridden for staged sync validations. */
+	String zonesVarDir = Configuration::DataDir + "/api/zones";
+
+	/* Cluster config sync stage validation needs this. */
+	if (systemNS->Contains("ZonesStageVarDir")) {
+		zonesVarDir = systemNS->Get("ZonesStageVarDir");
+
+		Log(LogNotice, "DaemonUtility")
+			<< "Overriding zones var directory with '" << zonesVarDir << "' for cluster config sync staging.";
+	}
+
+
 	if (Utility::PathExists(zonesVarDir))
 		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", std::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
 
-	Type::Ptr appType = Type::GetByName(ScriptGlobal::Get("ApplicationType", &Empty));
+	/* This is initialized inside the IcingaApplication class. */
+	Value vAppType;
+	VERIFY(systemNS->Get("ApplicationType", &vAppType));
+
+	Type::Ptr appType = Type::GetByName(vAppType);
 
 	if (ConfigItem::GetItems(appType).empty()) {
 		ConfigItemBuilder builder;
@@ -170,7 +192,7 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 		return false;
 	}
 
-	WorkQueue upq(25000, Application::GetConcurrency());
+	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("DaemonUtility::LoadConfigFiles");
 	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
 

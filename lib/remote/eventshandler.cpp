@@ -1,44 +1,62 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/eventshandler.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
+#include "base/defer.hpp"
+#include "base/io-engine.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/write.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <map>
+#include <set>
 
 using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/events", EventsHandler);
 
-bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+const std::map<String, EventType> l_EventTypes ({
+	{"AcknowledgementCleared", EventType::AcknowledgementCleared},
+	{"AcknowledgementSet", EventType::AcknowledgementSet},
+	{"CheckResult", EventType::CheckResult},
+	{"CommentAdded", EventType::CommentAdded},
+	{"CommentRemoved", EventType::CommentRemoved},
+	{"DowntimeAdded", EventType::DowntimeAdded},
+	{"DowntimeRemoved", EventType::DowntimeRemoved},
+	{"DowntimeStarted", EventType::DowntimeStarted},
+	{"DowntimeTriggered", EventType::DowntimeTriggered},
+	{"Flapping", EventType::Flapping},
+	{"Notification", EventType::Notification},
+	{"StateChange", EventType::StateChange}
+});
+
+const String l_ApiQuery ("<API query>");
+
+bool EventsHandler::HandleRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	HttpServerConnection& server
+)
 {
-	if (request.RequestUrl->GetPath().size() != 2)
+	namespace asio = boost::asio;
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() != 2)
 		return false;
 
-	if (request.RequestMethod != "POST")
+	if (request.method() != http::verb::post)
 		return false;
 
-	if (request.ProtocolVersion == HttpVersion10) {
+	if (request.version() == 10) {
 		HttpUtility::SendJsonError(response, params, 400, "HTTP/1.0 not supported for event streams.");
 		return true;
 	}
@@ -64,52 +82,52 @@ bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 		return true;
 	}
 
-	String filter = HttpUtility::GetLastParameter(params, "filter");
+	std::set<EventType> eventTypes;
 
-	std::unique_ptr<Expression> ufilter;
+	{
+		ObjectLock olock(types);
+		for (const String& type : types) {
+			auto typeId (l_EventTypes.find(type));
 
-	if (!filter.IsEmpty())
-		ufilter = ConfigCompiler::CompileText("<API query>", filter);
-
-	/* create a new queue or update an existing one */
-	EventQueue::Ptr queue = EventQueue::GetByName(queueName);
-
-	if (!queue) {
-		queue = new EventQueue(queueName);
-		EventQueue::Register(queueName, queue);
+			if (typeId != l_EventTypes.end()) {
+				eventTypes.emplace(typeId->second);
+			}
+		}
 	}
 
-	queue->SetTypes(types->ToSet<String>());
-	queue->SetFilter(std::move(ufilter));
+	EventsSubscriber subscriber (std::move(eventTypes), HttpUtility::GetLastParameter(params, "filter"), l_ApiQuery);
 
-	queue->AddClient(&request);
+	server.StartStreaming();
 
-	response.SetStatus(200, "OK");
-	response.AddHeader("Content-Type", "application/json");
+	response.result(http::status::ok);
+	response.set(http::field::content_type, "application/json");
+
+	IoBoundWorkSlot dontLockTheIoThread (yc);
+
+	http::async_write(stream, response, yc);
+	stream.async_flush(yc);
+
+	asio::const_buffer newLine ("\n", 1);
 
 	for (;;) {
-		Dictionary::Ptr result = queue->WaitForEvent(&request);
+		auto event (subscriber.GetInbox()->Shift(yc));
 
-		if (!response.IsPeerConnected()) {
-			queue->RemoveClient(&request);
-			EventQueue::UnregisterIfUnused(queueName, queue);
+		if (event) {
+			CpuBoundWork buildingResponse (yc);
+
+			String body = JsonEncode(event);
+
+			boost::algorithm::replace_all(body, "\n", "");
+
+			asio::const_buffer payload (body.CStr(), body.GetLength());
+
+			buildingResponse.Done();
+
+			asio::async_write(stream, payload, yc);
+			asio::async_write(stream, newLine, yc);
+			stream.async_flush(yc);
+		} else if (server.Disconnected()) {
 			return true;
-		}
-
-		if (!result)
-			continue;
-
-		String body = JsonEncode(result);
-
-		boost::algorithm::replace_all(body, "\n", "");
-
-		try {
-			response.WriteBody(body.CStr(), body.GetLength());
-			response.WriteBody("\n", 1);
-		} catch (const std::exception&) {
-			queue->RemoveClient(&request);
-			EventQueue::UnregisterIfUnused(queueName, queue);
-			throw;
 		}
 	}
 }

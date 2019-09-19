@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/legacytimeperiod.hpp"
 #include "base/function.hpp"
@@ -28,7 +11,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, LegacyTimePeriod, &LegacyTimePeriod::ScriptFunc, "tp:begin:end");
+REGISTER_FUNCTION_NONCONST(Internal, LegacyTimePeriod, &LegacyTimePeriod::ScriptFunc, "tp:begin:end");
 
 bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *reference)
 {
@@ -42,7 +25,7 @@ bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *referen
 
 	int daynumber = (tsref - tsbegin) / (24 * 60 * 60);
 
-	if (stride > 1 && daynumber % stride == 0)
+	if (stride > 1 && daynumber % stride > 0)
 		return false;
 
 	return true;
@@ -130,6 +113,13 @@ int LegacyTimePeriod::MonthFromString(const String& monthdef)
 		return -1;
 }
 
+boost::gregorian::date LegacyTimePeriod::GetEndOfMonthDay(int year, int month)
+{
+	boost::gregorian::date d(boost::gregorian::greg_year(year), boost::gregorian::greg_month(month), 1);
+
+	return d.end_of_month();
+}
+
 void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end, tm *reference)
 {
 	/* Let mktime() figure out whether we're in DST or not. */
@@ -187,10 +177,17 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			begin->tm_min = 0;
 			begin->tm_sec = 0;
 
-			/* Negative days are relative to the next month. */
+			/* day -X: Negative days are relative to the next month. */
 			if (mday < 0) {
-				begin->tm_mday = mday * -1 - 1;
-				begin->tm_mon++;
+				boost::gregorian::date d(GetEndOfMonthDay(reference->tm_year + 1900, mon + 1)); //TODO: Refactor this mess into full Boost.DateTime
+
+				//Depending on the number, we need to substract specific days (counting starts at 0).
+				d = d - boost::gregorian::days(mday * -1 - 1);
+
+				*begin = boost::gregorian::to_tm(d);
+				begin->tm_hour = 0;
+				begin->tm_min = 0;
+				begin->tm_sec = 0;
 			}
 		}
 
@@ -202,10 +199,20 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			end->tm_min = 0;
 			end->tm_sec = 0;
 
-			/* Negative days are relative to the next month. */
+			/* day -X: Negative days are relative to the next month. */
 			if (mday < 0) {
-				end->tm_mday = mday * -1 - 1;
-				end->tm_mon++;
+				boost::gregorian::date d(GetEndOfMonthDay(reference->tm_year + 1900, mon + 1)); //TODO: Refactor this mess into full Boost.DateTime
+
+				//Depending on the number, we need to substract specific days (counting starts at 0).
+				d = d - boost::gregorian::days(mday * -1 - 1);
+
+				// End date is one day in the future, starting 00:00:00
+				d = d + boost::gregorian::days(1);
+
+				*end = boost::gregorian::to_tm(d);
+				end->tm_hour = 0;
+				end->tm_min = 0;
+				end->tm_sec = 0;
 			}
 		}
 
@@ -359,7 +366,7 @@ void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *referenc
 
 	if (begin->tm_hour * 3600 + begin->tm_min * 60 + begin->tm_sec >=
 		end->tm_hour * 3600 + end->tm_min * 60 + end->tm_sec)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Time period segment ends before it begins"));
+		end->tm_hour += 24;
 }
 
 Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *reference)
@@ -386,6 +393,56 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference
 
 		result->Add(segment);
 	}
+}
+
+Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const String& timeranges, tm *reference)
+{
+	tm begin, end, iter;
+	time_t tsend, tsiter, tsref;
+	int stride;
+
+	tsref = mktime(reference);
+
+	ParseTimeRange(daydef, &begin, &end, &stride, reference);
+
+	iter = begin;
+
+	tsend = mktime(&end);
+
+	do {
+		if (IsInTimeRange(&begin, &end, stride, &iter)) {
+			Array::Ptr segments = new Array();
+			ProcessTimeRanges(timeranges, &iter, segments);
+
+			Dictionary::Ptr bestSegment;
+			double bestEnd = 0.0;
+
+			ObjectLock olock(segments);
+			for (const Dictionary::Ptr& segment : segments) {
+				double begin = segment->Get("begin");
+				double end = segment->Get("end");
+
+				if (begin >= tsref || end < tsref)
+					continue;
+
+				if (!bestSegment || end > bestEnd) {
+					bestSegment = segment;
+					bestEnd = end;
+				}
+			}
+
+			if (bestSegment)
+				return bestSegment;
+		}
+
+		iter.tm_mday++;
+		iter.tm_hour = 0;
+		iter.tm_min = 0;
+		iter.tm_sec = 0;
+		tsiter = mktime(&iter);
+	} while (tsiter < tsend);
+
+	return nullptr;
 }
 
 Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const String& timeranges, tm *reference)

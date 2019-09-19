@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "livestatus/statustable.hpp"
 #include "livestatus/livestatuslistener.hpp"
@@ -84,7 +67,7 @@ void StatusTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "program_start", Column(&StatusTable::ProgramStartAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_command_check", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_log_rotation", Column(&Table::ZeroAccessor, objectAccessor));
-	table->AddColumn(prefix + "interval_length", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "interval_length", Column(&StatusTable::IntervalLengthAccessor, objectAccessor));
 	table->AddColumn(prefix + "num_hosts", Column(&StatusTable::NumHostsAccessor, objectAccessor));
 	table->AddColumn(prefix + "num_services", Column(&StatusTable::NumServicesAccessor, objectAccessor));
 	table->AddColumn(prefix + "program_version", Column(&StatusTable::ProgramVersionAccessor, objectAccessor));
@@ -202,6 +185,11 @@ Value StatusTable::ProcessPerformanceDataAccessor(const Value&)
 Value StatusTable::ProgramStartAccessor(const Value&)
 {
 	return static_cast<long>(Application::GetStartTime());
+}
+
+Value StatusTable::IntervalLengthAccessor(const Value&)
+{
+	return LIVESTATUS_INTERVAL_LENGTH;
 }
 
 Value StatusTable::NumHostsAccessor(const Value&)

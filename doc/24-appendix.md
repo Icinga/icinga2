@@ -188,7 +188,7 @@ New columns:
   {host,service}group | notes                   | TEXT     | NULL    | -
   {host,service}group | notes_url               | TEXT     | NULL    | -
   {host,service}group | action_url              | TEXT     | NULL    | -
-  customvariable*     | is_json			| integer  | 0	     | Defines whether `varvalue` is a json encoded string from custom attributes, or not
+  customvariable*     | is_json			| integer  | 0	     | Defines whether `varvalue` is a json encoded string from custom variables, or not
   servicestatus       | original_attributes     | TEXT     | NULL    | JSON encoded dictionary of original attributes if modified at runtime.
   hoststatus          | original_attributes     | TEXT     | NULL    | JSON encoded dictionary of original attributes if modified at runtime.
 
@@ -611,7 +611,7 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   host_                 | join      | Prefix for attributes from implicit join with hosts table.
 
 
-#### Livestatus Timeperiod Table Attributes <a id="schema-livestatus-timeperiod-table-attributes"></a>
+#### Livestatus Timeperiods Table Attributes <a id="schema-livestatus-timeperiods-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------

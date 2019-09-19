@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "plugins/thresholds.hpp"
 #include <boost/algorithm/string.hpp>
@@ -27,6 +10,13 @@ using namespace boost::algorithm;
 threshold::threshold()
 	: set(false)
 {}
+
+threshold::threshold(const double v, const double c, bool l , bool p ) {
+	lower = v;
+	upper = c;
+	legal = l;
+	perc = p;
+}
 
 threshold::threshold(const std::wstring& stri)
 {
@@ -126,6 +116,35 @@ std::wstring threshold::pString(const double max)
 	return s;
 }
 
+threshold threshold::toSeconds(const Tunit& fromUnit) {
+	if (!set)
+		return *this;
+
+	double lowerAbs = lower;
+	double upperAbs = upper;
+
+	switch (fromUnit) {
+	case TunitMS:
+		lowerAbs = lowerAbs / 1000;
+		upperAbs = upperAbs / 1000;
+		break;
+	case TunitS:
+		lowerAbs = lowerAbs ;
+		upperAbs = upperAbs ;
+		break;
+	case TunitM:
+		lowerAbs = lowerAbs * 60;
+		upperAbs = upperAbs * 60;
+		break;
+	case TunitH:
+		lowerAbs = lowerAbs * 60 * 60;
+		upperAbs = upperAbs * 60 * 60;
+		break;
+	}
+
+	return threshold(lowerAbs, upperAbs, legal, perc);
+}
+
 std::wstring removeZero(double val)
 {
 	std::wstring ret = boost::lexical_cast<std::wstring>(val);
@@ -223,7 +242,35 @@ void printErrorInfo(unsigned long err)
 	LPWSTR mBuf = NULL;
 	if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL))
-			std::wcout << "Failed to format error message, last error was: " << err << '\n';
-	else
+		std::wcout << "Failed to format error message, last error was: " << err << '\n';
+	else {
+		boost::trim_right(std::wstring(mBuf));
 		std::wcout << mBuf << std::endl;
+	}
+}
+
+std::wstring formatErrorInfo(unsigned long err) {
+	std::wostringstream out;
+	if (!err)
+		err = GetLastError();
+	LPWSTR mBuf = NULL;
+	if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL))
+		out << "Failed to format error message, last error was: " << err;
+	else {
+		std::wstring tempOut = std::wstring(mBuf);
+		boost::trim_right(tempOut);
+		out << tempOut;
+	}
+
+	return out.str();
+}
+
+std::wstring stateToString(const state& state) {
+	switch (state) {
+		case OK: return L"OK";
+		case WARNING: return L"WARNING";
+		case CRITICAL: return L"CRITICAL";
+		default: return L"UNKNOWN";
+	}
 }

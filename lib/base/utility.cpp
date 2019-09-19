@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/utility.hpp"
 #include "base/convert.hpp"
@@ -26,17 +9,26 @@
 #include "base/utility.hpp"
 #include "base/json.hpp"
 #include "base/objectlock.hpp"
+#include <cstdint>
 #include <mmatch.h>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/thread/tss.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/regex.hpp>
 #include <ios>
 #include <fstream>
 #include <iostream>
+#include <iterator>
+#include <stdlib.h>
 #include <future>
+#include <utf8.h>
+#include <vector>
 
 #ifdef __FreeBSD__
 #	include <pthread_np.h>
@@ -48,6 +40,7 @@
 
 #ifndef _WIN32
 #	include <sys/types.h>
+#	include <sys/utsname.h>
 #	include <pwd.h>
 #	include <grp.h>
 #	include <errno.h>
@@ -260,47 +253,7 @@ bool Utility::CidrMatch(const String& pattern, const String& ip)
  */
 String Utility::DirName(const String& path)
 {
-	char *dir;
-
-#ifdef _WIN32
-	String dupPath = path;
-
-	/* PathRemoveFileSpec doesn't properly handle forward slashes. */
-	for (char& ch : dupPath) {
-		if (ch == '/')
-			ch = '\\';
-	}
-
-	dir = strdup(dupPath.CStr());
-#else /* _WIN32 */
-	dir = strdup(path.CStr());
-#endif /* _WIN32 */
-
-	if (!dir)
-		BOOST_THROW_EXCEPTION(std::bad_alloc());
-
-	String result;
-
-#ifndef _WIN32
-	result = dirname(dir);
-#else /* _WIN32 */
-	if (dir[0] != 0 && !PathRemoveFileSpec(dir)) {
-		free(dir);
-
-		BOOST_THROW_EXCEPTION(win32_error()
-			<< boost::errinfo_api_function("PathRemoveFileSpec")
-			<< errinfo_win32_error(GetLastError()));
-	}
-
-	result = dir;
-
-	if (result.IsEmpty())
-		result = ".";
-#endif /* _WIN32 */
-
-	free(dir);
-
-	return result;
+	return boost::filesystem::path(path.Begin(), path.End()).parent_path().string();
 }
 
 /**
@@ -311,21 +264,7 @@ String Utility::DirName(const String& path)
  */
 String Utility::BaseName(const String& path)
 {
-	char *dir = strdup(path.CStr());
-	String result;
-
-	if (!dir)
-		BOOST_THROW_EXCEPTION(std::bad_alloc());
-
-#ifndef _WIN32
-	result = basename(dir);
-#else /* _WIN32 */
-	result = PathFindFileName(dir);
-#endif /* _WIN32 */
-
-	free(dir);
-
-	return result;
+	return boost::filesystem::path(path.Begin(), path.End()).filename().string();
 }
 
 /**
@@ -764,38 +703,18 @@ void Utility::MkDirP(const String& path, int mode)
 	}
 }
 
-void Utility::RemoveDirRecursive(const String& path)
+void Utility::Remove(const String& path)
 {
-	std::vector<String> paths;
-	Utility::GlobRecursive(path, "*", std::bind(&Utility::CollectPaths, _1, std::ref(paths)), GlobFile | GlobDirectory);
+	namespace fs = boost::filesystem;
 
-	/* This relies on the fact that GlobRecursive lists the parent directory
-	 * first before recursing into subdirectories.
-	 */
-	std::reverse(paths.begin(), paths.end());
-
-	for (const String& path : paths) {
-		if (remove(path.CStr()) < 0)
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("remove")
-				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(path));
-	}
-
-#ifndef _WIN32
-	if (rmdir(path.CStr()) < 0)
-#else /* _WIN32 */
-	if (_rmdir(path.CStr()) < 0)
-#endif /* _WIN32 */
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rmdir")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
+	(void)fs::remove(fs::path(path.Begin(), path.End()));
 }
 
-void Utility::CollectPaths(const String& path, std::vector<String>& paths)
+void Utility::RemoveDirRecursive(const String& path)
 {
-	paths.push_back(path);
+	namespace fs = boost::filesystem;
+
+	(void)fs::remove_all(fs::path(path.Begin(), path.End()));
 }
 
 /*
@@ -804,10 +723,20 @@ void Utility::CollectPaths(const String& path, std::vector<String>& paths)
  */
 void Utility::CopyFile(const String& source, const String& target)
 {
-	std::ifstream ifs(source.CStr(), std::ios::binary);
-	std::ofstream ofs(target.CStr(), std::ios::binary | std::ios::trunc);
+	namespace fs = boost::filesystem;
 
-	ofs << ifs.rdbuf();
+	fs::copy_file(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()), fs::copy_option::overwrite_if_exists);
+}
+
+/*
+ * Renames a source file to a target location.
+ * Caller must ensure that the target's base directory exists and is writable.
+ */
+void Utility::RenameFile(const String& source, const String& target)
+{
+	namespace fs = boost::filesystem;
+
+	fs::rename(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()));
 }
 
 /*
@@ -1244,6 +1173,26 @@ unsigned long Utility::SDBM(const String& str, size_t len)
 	return hash;
 }
 
+String Utility::ParseVersion(const String& v)
+{
+	/*
+	 * 2.11.0-0.rc1.1
+	 * v2.10.5
+	 * r2.10.3
+	 * v2.11.0-rc1-58-g7c1f716da
+	 */
+	boost::regex pattern("^[vr]?(2\\.\\d+\\.\\d+).*$");
+	boost::smatch result;
+
+	if (boost::regex_search(v.GetData(), result, pattern)) {
+		String res(result[1].first, result[1].second);
+		return res;
+	}
+
+	// Couldn't not extract anything, return unparsed version
+	return v;
+}
+
 int Utility::CompareVersion(const String& v1, const String& v2)
 {
 	std::vector<String> tokensv1 = v1.Split(".");
@@ -1350,13 +1299,11 @@ tm Utility::LocalTime(time_t ts)
 
 bool Utility::PathExists(const String& path)
 {
-#ifndef _WIN32
-	struct stat statbuf;
-	return (lstat(path.CStr(), &statbuf) >= 0);
-#else /* _WIN32 */
-	struct _stat statbuf;
-	return (_stat(path.CStr(), &statbuf) >= 0);
-#endif /* _WIN32 */
+	namespace fs = boost::filesystem;
+
+	boost::system::error_code ec;
+
+	return fs::exists(fs::path(path.Begin(), path.End()), ec) && !ec;
 }
 
 Value Utility::LoadJsonFile(const String& path)
@@ -1376,6 +1323,8 @@ Value Utility::LoadJsonFile(const String& path)
 
 void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 {
+	namespace fs = boost::filesystem;
+
 	std::fstream fp;
 	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", mode, fp);
 
@@ -1383,16 +1332,7 @@ void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 	fp << JsonEncode(value);
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(path.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempFilename));
-	}
+	RenameFile(tempFilename, path);
 }
 
 static void HexEncode(char ch, std::ostream& os)
@@ -1462,28 +1402,23 @@ String Utility::UnescapeString(const String& s)
 #ifndef _WIN32
 static String UnameHelper(char type)
 {
-	/* Unfortunately the uname() system call doesn't support some of the
-	* query types we're interested in - so we're using popen() instead. */
+	struct utsname name;
+	uname(&name);
 
-	char cmd[] = "uname -X 2>&1";
-	cmd[7] = type;
-
-	FILE *fp = popen(cmd, "r");
-
-	if (!fp)
-		return "Unknown";
-
-	char line[1024];
-	std::ostringstream msgbuf;
-
-	while (fgets(line, sizeof(line), fp))
-		msgbuf << line;
-
-	pclose(fp);
-
-	String result = msgbuf.str();
-
-	return result.Trim();
+	switch (type) {
+		case 'm':
+			return (char*)name.machine;
+		case 'n':
+			return (char*)name.nodename;
+		case 'r':
+			return (char*)name.release;
+		case 's':
+			return (char*)name.sysname;
+		case 'v':
+			return (char*)name.version;
+		default:
+			VERIFY(!"Invalid uname query.");
+	}
 }
 #endif /* _WIN32 */
 static bool ReleaseHelper(String *platformName, String *platformVersion)
@@ -1720,40 +1655,20 @@ String Utility::GetPlatformArchitecture()
 #endif /* _WIN32 */
 }
 
+const char l_Utf8Replacement[] = "\xEF\xBF\xBD";
+
 String Utility::ValidateUTF8(const String& input)
 {
-	String output;
-	size_t length = input.GetLength();
+	std::vector<char> output;
+	output.reserve(input.GetLength() * 3u);
 
-	for (size_t i = 0; i < length; i++) {
-		if ((input[i] & 0x80) == 0) {
-			output += input[i];
-			continue;
-		}
-
-		if ((input[i] & 0xE0) == 0xC0 && length > i + 1 &&
-			(input[i + 1] & 0xC0) == 0x80) {
-			output += input[i];
-			output += input[i + 1];
-			i++;
-			continue;
-		}
-
-		if ((input[i] & 0xF0) == 0xE0 && length > i + 2 &&
-			(input[i + 1] & 0xC0) == 0x80 && (input[i + 2] & 0xC0) == 0x80) {
-			output += input[i];
-			output += input[i + 1];
-			output += input[i + 2];
-			i += 2;
-			continue;
-		}
-
-		output += '\xEF';
-		output += '\xBF';
-		output += '\xBD';
+	try {
+		utf8::replace_invalid(input.Begin(), input.End(), std::back_inserter(output));
+	} catch (const utf8::not_enough_room&) {
+		output.insert(output.end(), (const char*)l_Utf8Replacement, (const char*)l_Utf8Replacement + 3);
 	}
 
-	return output;
+	return String(output.begin(), output.end());
 }
 
 String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
@@ -1936,16 +1851,53 @@ String Utility::GetIcingaDataPath()
 
 #endif /* _WIN32 */
 
+/**
+ * Retrieve the environment variable value by given key.
+ *
+ * @param env Environment variable name.
+ */
+
 String Utility::GetFromEnvironment(const String& env)
 {
-#ifndef _WIN32
 	const char *envValue = getenv(env.CStr());
+
 	if (envValue == NULL)
 		return String();
 	else
 		return String(envValue);
-#else /* _WIN32 */
-	// While getenv exists on Windows, we don't set them. Therefore there is no reason to read them.
-	return String();
-#endif /* _WIN32 */
+}
+
+/**
+ * Compare the password entered by a client with the actual password.
+ * The comparision is safe against timing attacks.
+ */
+bool Utility::ComparePasswords(const String& enteredPassword, const String& actualPassword)
+{
+	volatile const char * volatile enteredPasswordCStr = enteredPassword.CStr();
+	volatile size_t enteredPasswordLen = enteredPassword.GetLength();
+
+	volatile const char * volatile actualPasswordCStr = actualPassword.CStr();
+	volatile size_t actualPasswordLen = actualPassword.GetLength();
+
+	volatile uint_fast8_t result = enteredPasswordLen == actualPasswordLen;
+
+	if (result) {
+		auto cStr (actualPasswordCStr);
+		auto len (actualPasswordLen);
+
+		actualPasswordCStr = cStr;
+		actualPasswordLen = len;
+	} else {
+		auto cStr (enteredPasswordCStr);
+		auto len (enteredPasswordLen);
+
+		actualPasswordCStr = cStr;
+		actualPasswordLen = len;
+	}
+
+	for (volatile size_t i = 0; i < enteredPasswordLen; ++i) {
+		result &= uint_fast8_t(enteredPasswordCStr[i] == actualPasswordCStr[i]);
+	}
+
+	return result;
 }

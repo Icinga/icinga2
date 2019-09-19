@@ -3,7 +3,8 @@
 ## Required Information <a id="troubleshooting-information-required"></a>
 
 Please ensure to provide any detail which may help reproduce and understand your issue.
-Whether you ask on the community channels or you create an issue at [GitHub](https://github.com/Icinga), make sure
+Whether you ask on the [community channels](https://community.icinga.com) or you
+create an issue at [GitHub](https://github.com/Icinga), make sure
 that others can follow your explanations. If necessary, draw a picture and attach it for
 better illustration. This is especially helpful if you are troubleshooting a distributed
 setup.
@@ -18,12 +19,12 @@ findings and details please.
 	* `icinga2 --version`
 	* `icinga2 feature list`
 	* `icinga2 daemon -C`
-	* [Icinga Web 2](https://www.icinga.com/products/icinga-web-2/) version (screenshot from System - About)
-	* [Icinga Web 2 modules](https://www.icinga.com/products/icinga-web-2-modules/) e.g. the Icinga Director (optional)
+	* [Icinga Web 2](https://icinga.com/products/icinga-web-2/) version (screenshot from System - About)
+	* [Icinga Web 2 modules](https://icinga.com/products/icinga-web-2-modules/) e.g. the Icinga Director (optional)
 * Configuration insights:
 	* Provide complete configuration snippets explaining your problem in detail
-	* Your [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) file
-	* If you run multiple Icinga 2 instances, the [zones.conf](04-configuring-icinga-2.md#zones-conf) file (or `icinga2 object list --type Endpoint` and `icinga2 object list --type Zone`) from all affected nodes.
+	* Your [icinga2.conf](04-configuration.md#icinga2-conf) file
+	* If you run multiple Icinga 2 instances, the [zones.conf](04-configuration.md#zones-conf) file (or `icinga2 object list --type Endpoint` and `icinga2 object list --type Zone`) from all affected nodes.
 * Logs
 	* Relevant output from your main and [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) in `/var/log/icinga2`. Please add step-by-step explanations with timestamps if required.
 	* The newest Icinga 2 crash log if relevant, located in `/var/log/icinga2/crash`
@@ -44,7 +45,7 @@ is also key to identify bottlenecks and issues.
 * Analyze the system's performance and dentify bottlenecks and issues.
 * Collect details about all applications (e.g. Icinga 2, MySQL, Apache, Graphite, Elastic, etc.).
 * If data is exchanged via network (e.g. central MySQL cluster) ensure to monitor the bandwidth capabilities too.
-* Add graphs and screenshots to your issue description
+* Add graphs from Grafana or Graphite as screenshots to your issue description
 
 Install tools which help you to do so. Opinions differ, let us know if you have any additions here!
 
@@ -107,6 +108,16 @@ You can also start `perfmon` and analyze specific performance counters.
 Keep notes which could be important for your monitoring, and add service
 checks later on.
 
+> **Tip**
+>
+> Use an administrative Powershell to gain more insights.
+
+```
+cd C:\ProgramData\icinga2\var\log\icinga2
+
+Get-Content .\icinga2.log -tail 10 -wait
+```
+
 ## Enable Debug Output <a id="troubleshooting-enable-debug-output"></a>
 
 ### Enable Debug Output on Linux/Unix <a id="troubleshooting-enable-debug-output-linux"></a>
@@ -120,6 +131,13 @@ Enable the `debuglog` feature:
 
 The debug log file can be found in `/var/log/icinga2/debug.log`.
 
+You can tail the log files with an administrative shell:
+
+```
+cd /var/log/icinga2
+tail -f debug.log
+```
+
 Alternatively you may run Icinga 2 in the foreground with debugging enabled. Specify the console
 log severity as an additional parameter argument to `-x`.
 
@@ -132,18 +150,29 @@ and `debug`.
 
 ### Enable Debug Output on Windows <a id="troubleshooting-enable-debug-output-windows"></a>
 
-Open a command prompt with administrative privileges and enable the debug log feature.
+Open a Powershell with administrative privileges and enable the debug log feature.
 
 ```
-C:> icinga2.exe feature enable debuglog
+C:\> cd C:\Program Files\ICINGA2\sbin
+
+C:\Program Files\ICINGA2\sbin> .\icinga2.exe feature enable debuglog
 ```
 
 Ensure that the Icinga 2 service already writes the main log into `C:\ProgramData\icinga2\var\log\icinga2`.
-Restart the Icinga 2 service and open the newly created `debug.log` file.
+Restart the Icinga 2 service in an administrative Powershell and open the newly created `debug.log` file.
 
 ```
-C:> net stop icinga2
-C:> net start icinga2
+C:\> Restart-Service icinga2
+
+C:\> Get-Service icinga2
+```
+
+You can tail the log files with an administrative Powershell:
+
+```
+C:\> cd C:\ProgramData\icinga2\var\log\icinga2
+
+C:\ProgramData\icinga2\var\log\icinga2> Get-Content .\debug.log -tail 10 -wait
 ```
 
 ## Configuration Troubleshooting <a id="troubleshooting-configuration"></a>
@@ -185,6 +214,14 @@ Object 'localhost!ssh' of type 'Service':
       % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
 
 [...]
+```
+
+On Windows, use an administrative Powershell:
+
+```
+C:\> cd C:\Program Files\ICINGA2\sbin
+
+C:\Program Files\ICINGA2\sbin> .\icinga2.exe object list
 ```
 
 You can also filter by name and type:
@@ -237,9 +274,9 @@ include <itl>
 include <plugins>
 ```
 
-in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered configuration files and will be overridden
-on upgrade, so please send modifications as proposed patches upstream. The default include path is set to
-`LocalStateDir + "/share/icinga2/includes"`.
+in the [icinga2.conf](04-configuration.md#icinga2-conf) configuration file. These files are not considered
+configuration files and will be overridden on upgrade, so please send modifications as proposed patches upstream.
+The default include path is set to `/usr/share/icinga2/includes` with the constant `IncludeConfDir`.
 
 You should add your own command definitions to a new file in `conf.d/` called `commands.conf`
 or similar.
@@ -248,7 +285,7 @@ or similar.
 
 * Make sure that the line(s) are not [commented out](17-language-reference.md#comments) (starting with `//` or `#`, or
 encapsulated by `/* ... */`).
-* Is the configuration file included in [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf)?
+* Is the configuration file included in [icinga2.conf](04-configuration.md#icinga2-conf)?
 
 Run the [configuration validation](11-cli-commands.md#config-validation) and add `notice` as log severity.
 Search for the file which should be included i.e. using the `grep` CLI command.
@@ -274,7 +311,7 @@ did not properly escape the single dollar sign preventing its usage as [runtime 
 critical/config: Error: Validation failed for Object 'ping4' (Type: 'Service') at /etc/icinga2/zones.d/global-templates/windows.conf:24: Closing $ not found in macro format string 'top-syntax=${list}'.
 ```
 
-Correct the custom attribute value to
+Correct the custom variable value to
 
 ```
 "top-syntax=$${list}"
@@ -326,6 +363,9 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Over
 }
 ```
 
+Alternatively when using the Director, navigate into the Service Detail View
+in Icinga Web and pick `Inspect` to query the details.
+
 Example for using the `icinga2 console` CLI command evaluation functionality:
 
 ```
@@ -351,17 +391,34 @@ Example for searching the debug log:
 
 ### Checks are not executed <a id="checks-not-executed"></a>
 
+* First off, decide whether the checks are executed locally, or remote in a distributed setup.
+
+If the master does not receive check results from the satellite, move your analysis to the satellite
+and verify why the checks are not executed there.
+
 * Check the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) to see if the check command gets executed.
-* Verify that failed depedencies do not prevent command execution.
+* Verify that failed dependencies do not prevent command execution.
 * Make sure that the plugin is executable by the Icinga 2 user (run a manual test).
 * Make sure the [checker](11-cli-commands.md#enable-features) feature is enabled.
 * Use the Icinga 2 API [event streams](12-icinga2-api.md#icinga2-api-event-streams) to receive live check result streams.
 
-Examples:
+Test a plugin as icinga user.
 
 ```
 # sudo -u icinga /usr/lib/nagios/plugins/check_ping -4 -H 127.0.0.1 -c 5000,100% -w 3000,80%
+```
 
+> **Note**
+>
+> **Never test plugins as root, but the icinga daemon user.** The environment and permissions differ.
+>
+> Also, the daemon user **does not** spawn a terminal shell (Bash, etc.) so it won't read anything from .bashrc
+> and variants. The Icinga daemon only relies on sysconfig environment variables being set.
+
+
+Enable the checker feature.
+
+```
 # icinga2 feature enable checker
 The feature 'checker' is already enabled.
 ```
@@ -369,7 +426,8 @@ The feature 'checker' is already enabled.
 Fetch all check result events matching the `event.service` name `random`:
 
 ```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
+$ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST \
+ 'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
 ```
 
 
@@ -393,10 +451,10 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Over
     "results": [
         {
             "attrs": {
-                "__name": "icinga2-client1.localdomain!disk",
+                "__name": "icinga2-agent1.localdomain!disk",
                 "last_check_result": {
                     "active": true,
-                    "check_source": "icinga2-client1.localdomain",
+                    "check_source": "icinga2-agent1.localdomain",
 
   ...
 
@@ -404,20 +462,23 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Over
             },
             "joins": {},
             "meta": {},
-            "name": "icinga2-client1.localdomain!disk",
+            "name": "icinga2-agent1.localdomain!disk",
             "type": "Service"
         }
     ]
 }
 ```
 
-Example for using the `icinga2 console` CLI command evaluation functionality:
+Alternatively when using the Director, navigate into the Service Detail View
+in Icinga Web and pick `Inspect` to query the details.
+
+Example with the debug console:
 
 ```
 $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' \
---eval 'get_service("icinga2-client1.localdomain", "disk").last_check_result.check_source' | python -m json.tool
+--eval 'get_service("icinga2-agent1.localdomain", "disk").last_check_result.check_source' | python -m json.tool
 
-"icinga2-client1.localdomain"
+"icinga2-agent1.localdomain"
 ```
 
 
@@ -475,13 +536,13 @@ in mind when using a different package.
 
 This could happen with [clients as command endpoint execution](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
 
-If you have for example a client host `icinga2-client1.localdomain`
+If you have for example a client host `icinga2-agent1.localdomain`
 and a service `disk` check defined on the master, the warning and
 critical thresholds are sometimes to applied and unwanted notification
 alerts are raised.
 
 This happens because the client itself includes a host object with
-its `NodeName` and a basic set of checks in the [conf.d](04-configuring-icinga-2.md#conf-d)
+its `NodeName` and a basic set of checks in the [conf.d](04-configuration.md#conf-d)
 directory, i.e. `disk` with the default thresholds.
 
 Clients which have the `checker` feature enabled will attempt
@@ -494,11 +555,11 @@ master you will receive wrong check results from the client.
 Solution:
 
 * Disable the `checker` feature on clients: `icinga2 feature disable checker`.
-* Remove the inclusion of [conf.d](04-configuring-icinga-2.md#conf-d) as suggested in the [client setup docs](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
+* Remove the inclusion of [conf.d](04-configuration.md#conf-d) as suggested in the [client setup docs](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
 
 ### Check Fork Errors <a id="check-fork-errors"></a>
 
-Newer versions of Systemd on Linux limit spawned processes for
+Newer versions of systemd on Linux limit spawned processes for
 services.
 
 * v227 introduces the `TasksMax` setting to units which allows to specify the spawned process limit.
@@ -506,7 +567,7 @@ services.
 * v231 changes the default value to 15%
 
 This can cause problems with Icinga 2 in large environments with many
-commands executed in parallel starting with Systemd v228. Some distributions
+commands executed in parallel starting with systemd v228. Some distributions
 also may have changed the defaults.
 
 The error message could look like this:
@@ -534,41 +595,45 @@ An example is available inside the GitHub repository in [etc/initsystem](https:/
 External Resources:
 
 * [Fork limit for cgroups](https://lwn.net/Articles/663873/)
-* [Systemd changelog](https://github.com/systemd/systemd/blob/master/NEWS)
+* [systemd changelog](https://github.com/systemd/systemd/blob/master/NEWS)
 * [Icinga 2 upstream issue](https://github.com/Icinga/icinga2/issues/5611)
-* [Systemd upstream discussion](https://github.com/systemd/systemd/issues/3211)
+* [systemd upstream discussion](https://github.com/systemd/systemd/issues/3211)
 
 ### Systemd Watchdog <a id="check-systemd-watchdog"></a>
 
 Usually Icinga 2 is a mission critical part of infrastructure and should be
 online at all times. In case of a recoverable crash (e.g. OOM) you may want to
-restart Icinga 2 automatically. With Systemd it is as easy as overriding some
-settings of the Icinga 2 Systemd service by creating
+restart Icinga 2 automatically. With systemd it is as easy as overriding some
+settings of the Icinga 2 systemd service by creating
 `/etc/systemd/system/icinga2.service.d/override.conf` with the following
 content:
 
-    [Service]
-    Restart=always
-    RestartSec=1
-    StartLimitInterval=10
-    StartLimitBurst=3
+```
+[Service]
+Restart=always
+RestartSec=1
+StartLimitInterval=10
+StartLimitBurst=3
+```
 
 Using the watchdog can also help with monitoring Icinga 2, to activate and use it add the following to the override:
 
-    WatchdogSec=30s
+```
+WatchdogSec=30s
+```
 
-This way Systemd will kill Icinga 2 if does not notify for over 30 seconds, a timout of less than 10 seconds is not
+This way systemd will kill Icinga 2 if does not notify for over 30 seconds, a timout of less than 10 seconds is not
 recommended. When the watchdog is activated, `Restart=` can be set to `watchdog` to restart Icinga 2 in the case of a
 watchdog timeout.
 
 Run `systemctl daemon-reload && systemctl restart icinga2` to apply the changes.
-Now Systemd will always try to restart Icinga 2 (except if you run
+Now systemd will always try to restart Icinga 2 (except if you run
 `systemctl stop icinga2`). After three failures in ten seconds it will stop
 trying because you probably have a problem that requires manual intervention.
 
 ### Late Check Results <a id="late-check-results"></a>
 
-[Icinga Web 2](https://www.icinga.com/products/icinga-web-2/) provides
+[Icinga Web 2](https://icinga.com/products/icinga-web-2/) provides
 a dashboard overview for `overdue checks`.
 
 The REST API provides the [status](12-icinga2-api.md#icinga2-api-status) URL endpoint with some generic metrics
@@ -584,7 +649,7 @@ You can also calculate late check results via the REST API:
 * Compare the timestamp with the current time and add `check_interval` multiple times (change it to see which results are really late, like five times check_interval)
 
 You can use the [icinga2 console](11-cli-commands.md#cli-command-console) to connect to the instance, fetch all data
-and calculate the differences. More infos can be found in [this blogpost](https://www.icinga.com/2016/08/11/analyse-icinga-2-problems-using-the-console-api/).
+and calculate the differences. More infos can be found in [this blogpost](https://icinga.com/2016/08/11/analyse-icinga-2-problems-using-the-console-api/).
 
 ```
 # ICINGA2_API_USERNAME=root ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://localhost:5665/'
@@ -659,7 +724,7 @@ but you can adjust this by omitting the `len()` call inside the for loop.
 
 ## Notifications Troubleshooting <a id="troubleshooting-notifications"></a>
 
-### Notifications are not sent <a id="notifications-not-sent"></a>
+### Notifications are not sent <a id="troubleshooting-notifications-not-sent"></a>
 
 * Check the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) to see if a notification is triggered.
 * If yes, verify that all conditions are satisfied.
@@ -703,12 +768,102 @@ You can use the Icinga 2 API [event streams](12-icinga2-api.md#icinga2-api-event
 $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=debugnotifications&types=Notification'
 ```
 
+
+### Analyze Notification Result <a id="troubleshooting-notifications-result"></a>
+
+> **Note**
+>
+> This feature is available since v2.11 and requires all endpoints
+> being updated.
+
+Notifications inside a HA enabled zone are balanced between the endpoints,
+just like checks.
+
+Sometimes notifications may fail, and with looking into the (debug) logs
+for both masters, you cannot correlate this correctly.
+
+The `last_notification_result` runtime attribute is stored and synced for Notification
+objects and can be queried via REST API.
+
+Example for retrieving the notification object and result from all `disk` services using a
+[regex match](18-library-reference.md#global-functions-regex) on the name:
+
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/notifications' \
+-d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^disk" }, "attrs": [ "__name", "last_notification_result" ], "pretty": true }'
+{
+    "results": [
+
+        {
+            "attrs": {
+                "last_notification_result": {
+                    "active": true,
+                    "command": [
+                        "/etc/icinga2/scripts/mail-service-notification.sh",
+                        "-4",
+                        "",
+                        "-6",
+                        "",
+                        "-b",
+                        "",
+                        "-c",
+                        "",
+                        "-d",
+                        "2019-08-02 10:54:16 +0200",
+                        "-e",
+                        "disk",
+                        "-l",
+                        "icinga2-agent1.localdomain",
+                        "-n",
+                        "icinga2-agent1.localdomain",
+                        "-o",
+                        "DISK OK - free space: / 38108 MB (90.84% inode=100%);",
+                        "-r",
+                        "user@localdomain",
+                        "-s",
+                        "OK",
+                        "-t",
+                        "RECOVERY",
+                        "-u",
+                        "disk"
+                    ],
+                    "execution_end": 1564736056.186217,
+                    "execution_endpoint": "icinga2-master1.localdomain",
+                    "execution_start": 1564736056.132323,
+                    "exit_status": 0.0,
+                    "output": "",
+                    "type": "NotificationResult"
+                }
+            },
+            "joins": {},
+            "meta": {},
+            "name": "icinga2-agent1.localdomain!disk!mail-service-notification",
+            "type": "Notification"
+        }
+
+...
+
+    ]
+}
+```
+
+Example with the debug console:
+
+```
+$ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' --eval 'get_object(Notification, "icinga2-agent1.localdomain!disk!mail-service-notification").last_notification_result.execution_endpoint' | jq
+
+"icinga2-agent1.localdomain"
+```
+
+Whenever a notification command failed to execute, you can fetch the output as well. 
+
+
 ## Feature Troubleshooting <a id="troubleshooting-features"></a>
 
 ### Feature is not working <a id="feature-not-working"></a>
 
 * Make sure that the feature configuration is enabled by symlinking from `features-available/`
-to `features-enabled` and that the latter is included in [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf).
+to `features-enabled` and that the latter is included in [icinga2.conf](04-configuration.md#icinga2-conf).
 * Are the feature attributes set correctly according to the documentation?
 * Any errors on the logs?
 
@@ -743,7 +898,7 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE 'https://loc
 }
 ```
 
-## REST API Troubleshooting: No Objects Found <a id="troubleshooting-api-no-objects-found"></a>
+### REST API Troubleshooting: No Objects Found <a id="troubleshooting-api-no-objects-found"></a>
 
 Please note that the `404` status with no objects being found can also originate
 from missing or too strict object permissions for the authenticated user.
@@ -757,33 +912,137 @@ In order to analyse and fix the problem, please check the following:
 - use an administrative account with full permissions to check whether the objects are actually there.
 - verify the permissions on the affected ApiUser object and fix them.
 
+### Missing Runtime Objects (Hosts, Downtimes, etc.) <a id="troubleshooting-api-missing-runtime-objects"></a>
+
+Runtime objects consume the internal config packages shared with
+the REST API config packages. Each host, downtime, comment, service, etc. created
+via the REST API is stored in the `_api` package.
+
+This includes downtimes and comments, which where sometimes stored in the wrong
+directory path, because the active-stage file was empty/truncated/unreadable at
+this point.
+
+Wrong:
+
+```
+/var/lib/icinga2/api/packages/_api//conf.d/downtimes/1234-5678-9012-3456.conf
+```
+
+Correct:
+
+```
+/var/lib/icinga2/api/packages/_api/dbe0bef8-c72c-4cc9-9779-da7c4527c5b2/conf.d/downtimes/1234-5678-9012-3456.conf
+```
+
+At creation time, the object lives in memory but its storage is broken. Upon restart,
+it is missing and e.g. a missing downtime will re-enable unwanted notifications.
+
+`abcd-ef12-3456-7890` is the active stage name which wasn't correctly
+read by the Icinga daemon. This information is stored in `/var/lib/icinga2/api/packages/_api/active-stage`.
+
+2.11 now limits the direct active-stage file access (this is hidden from the user),
+and caches active stages for packages in-memory.
+
+It also tries to repair the broken package, and logs a new message:
+
+```
+systemctl restart icinga2
+
+tail -f /var/log/icinga2/icinga2.log
+
+[2019-05-10 12:27:15 +0200] information/ConfigObjectUtility: Repairing config package '_api' with stage 'dbe0bef8-c72c-4cc9-9779-da7c4527c5b2'.
+```
+
+If this does not happen, you can manually fix the broken config package, and mark a deployed stage as active
+again, carefully do the following steps with creating a backup before:
+
+Navigate into the API package prefix.
+
+```
+cd /var/lib/icinga2/api/packages
+```
+
+Change into the broken package directory and list all directories and files
+ordered by latest changes.
+
+```
+cd _api
+ls -lahtr
+
+drwx------  4 michi  wheel   128B Mar 27 14:39 ..
+-rw-r--r--  1 michi  wheel    25B Mar 27 14:39 include.conf
+-rw-r--r--  1 michi  wheel   405B Mar 27 14:39 active.conf
+drwx------  7 michi  wheel   224B Mar 27 15:01 dbe0bef8-c72c-4cc9-9779-da7c4527c5b2
+drwx------  5 michi  wheel   160B Apr 26 12:47 .
+```
+
+As you can see, the `active-stage` file is missing. When it is there, verify that its content
+is set to the stage directory as follows.
+
+If you have more than one stage directory here, pick the latest modified
+directory. Copy the directory name `abcd-ef12-3456-7890` and
+add it into a new file `active-stage`. This can be done like this:
+
+```
+echo "dbe0bef8-c72c-4cc9-9779-da7c4527c5b2" > active-stage
+```
+
+`active.conf` needs to have the correct active stage too, add it again
+like this. Note: This is deep down in the code, use with care!
+
+```
+sed -i 's/ActiveStages\["_api"\] = .*/ActiveStages\["_api"\] = "dbe0bef8-c72c-4cc9-9779-da7c4527c5b2"/g' /var/lib/icinga2/api/packages/_api/active.conf
+```
+
+Restart Icinga 2.
+
+```
+systemctl restart icinga2
+```
+
+
+> **Note**
+>
+> The internal `_api` config package structure may change in the future. Do not modify
+> things in there manually or with scripts unless guided here or asked by a developer.
+
 
 ## Certificate Troubleshooting <a id="troubleshooting-certificate"></a>
 
+Tools for analysing certificates and TLS connections:
+
+- `openssl` binary on Linux/Unix, `openssl.exe` on Windows ([download](https://slproweb.com/products/Win32OpenSSL.html))
+- `sslscan` tool, available [here](https://github.com/rbsec/sslscan) (Linux/Windows)
+
+Note: You can also execute sslscan on Windows using Powershell.
+
+
 ### Certificate Verification <a id="troubleshooting-certificate-verification"></a>
 
-If the TLS handshake fails when a client connects to the cluster or the REST API,
+Whenever the TLS handshake fails when a client connects to the cluster or the REST API,
 ensure to verify the used certificates.
 
 Print the CA and client certificate and ensure that the following attributes are set:
 
 * Version must be 3.
 * Serial number is a hex-encoded string.
-* Issuer should be your certificate authority (defaults to `Icinga CA` for all CLI commands).
-* Validity, meaning to say the certificate is not expired.
+* Issuer should be your certificate authority (defaults to `Icinga CA` for all certificates generated by CLI commands and automated signing requests).
+* Validity: The certificate must not be expired.
 * Subject with the common name (CN) matches the client endpoint name and its FQDN.
 * v3 extensions must set the basic constraint for `CA:TRUE` (ca.crt) or `CA:FALSE` (client certificate).
-* Subject Alternative Name is set to a proper DNS name (required for REST API and browsers).
+* Subject Alternative Name is set to the resolvable DNS name (required for REST API and browsers).
 
 
-```
-# cd /var/lib/icinga2/certs/
-```
-
-CA certificate:
+Navigate into the local certificate store:
 
 ```
-# openssl x509 -in ca.crt -text
+$ cd /var/lib/icinga2/certs/
+```
+
+Print the CA certificate:
+
+```
+$ openssl x509 -in ca.crt -text
 
 Certificate:
     Data:
@@ -808,10 +1067,10 @@ Certificate:
 ...
 ```
 
-Client public certificate:
+Print the client public certificate:
 
 ```
-# openssl x509 -in icinga2-client1.localdomain.crt -text
+$ openssl x509 -in icinga2-agent1.localdomain.crt -text
 
 Certificate:
     Data:
@@ -823,7 +1082,7 @@ Certificate:
         Validity
             Not Before: Aug 20 16:20:05 2016 GMT
             Not After : Aug 17 16:20:05 2031 GMT
-        Subject: CN=icinga2-client1.localdomain
+        Subject: CN=icinga2-agent1.localdomain
         Subject Public Key Info:
             Public Key Algorithm: rsaEncryption
                 Public-Key: (4096 bit)
@@ -834,7 +1093,7 @@ Certificate:
             X509v3 Basic Constraints: critical
                 CA:FALSE
             X509v3 Subject Alternative Name:
-                DNS:icinga2-client1.localdomain
+                DNS:icinga2-agent1.localdomain
     Signature Algorithm: sha256WithRSAEncryption
 ...
 ```
@@ -843,46 +1102,182 @@ Make sure to verify the client's certificate and its received `ca.crt` in `/var/
 both instances are signed by the **same CA**.
 
 ```
-# openssl verify -verbose -CAfile /var/lib/icinga2/certs/ca.crt /var/lib/icinga2/certs/icinga2-master1.localdomain.crt
-icinga2-master1.localdomain.crt: OK
+$ openssl verify -verbose -CAfile /var/lib/icinga2/certs/ca.crt /var/lib/icinga2/certs/icinga2-master1.localdomain.crt
 
-# openssl verify -verbose -CAfile /var/lib/icinga2/certs/ca.crt /var/lib/icinga2/certs/icinga2-client1.localdomain.crt
-icinga2-client1.localdomain.crt: OK
+icinga2-master1.localdomain.crt: OK
+```
+
+```
+$ openssl verify -verbose -CAfile /var/lib/icinga2/certs/ca.crt /var/lib/icinga2/certs/icinga2-agent1.localdomain.crt
+
+icinga2-agent1.localdomain.crt: OK
 ```
 
 Fetch the `ca.crt` file from the client node and compare it to your master's `ca.crt` file:
 
 ```
-# scp icinga2-client1:/var/lib/icinga2/certs/ca.crt test-client-ca.crt
-# diff -ur /var/lib/icinga2/certs/ca.crt test-client-ca.crt
+$ scp icinga2-agent1:/var/lib/icinga2/certs/ca.crt test-client-ca.crt
+$ diff -ur /var/lib/icinga2/certs/ca.crt test-client-ca.crt
 ```
 
-On SLES11 you'll need to use the `openssl1` command instead of `openssl`.
-
-<!--
 ### Certificate Signing <a id="troubleshooting-certificate-signing"></a>
--->
+
+Icinga offers two methods:
+
+* [CSR Auto-Signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing) which uses a client (an agent or a satellite) ticket generated on the master as trust identifier.
+* [On-Demand CSR Signing](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing) which allows to sign pending certificate requests on the master.
+
+Whenever a signed certificate is not received on the requesting clients, ensure to check the following:
+
+* The ticket was valid and the master's log shows nothing different (CSR Auto-Signing only)
+* If the agent/satellite is directly connected to the CA master, check whether the master actually has performance problems to process the request. If the connection is closed without certificate response, analyse the master's health. It is also advised to upgrade to v2.11 where network stack problems have been fixed.
+* If you're using a 3+ level cluster, check whether the satellite really forwarded the CSR signing request and the master processed it.
+
+Other common errors:
+
+* The generated ticket is invalid. The client receives this error message, as well as the master logs a warning message.
+* The [api](09-object-types.md#objecttype-apilistener) feature does not have the `ticket_salt` attribute set to the generated `TicketSalt` constant by the CLI wizards.
+
+In case you are using On-Demand CSR Signing, `icinga2 ca list` on the master only lists
+pending requests since v2.11. Add `--all` to also see signed requests. Keep in mind that
+old requests are purged after 1 week automatically.
 
 
-### Certificate Problems with OpenSSL 1.1.0 <a id="troubleshooting-certificate-openssl-1-1-0"></a>
+### TLS Handshake: Ciphers <a id="troubleshooting-certificate-handshake-ciphers"></a>
 
-Users have reported problems with SSL certificates inside a distributed monitoring setup when they
+Starting with v2.11, the default configured ciphers have been hardened to modern
+standards. This includes TLS v1.2 as minimum protocol version too.
 
-* updated their Icinga 2 package to 2.7.0 on Windows or
-* upgraded their distribution which included an update to OpenSSL 1.1.0.
+In case the TLS handshake fails with `no shared cipher`, first analyse whether both
+instances support the same ciphers.
 
-Example during startup on a Windows client:
+#### Client connects to Server <a id="troubleshooting-certificate-handshake-ciphers-client"></a>
+
+Connect using `openssl s_client` and try to reproduce the connection problem.
+
+> **Important**
+>
+> The endpoint with the server role **accepting** the connection picks the preferred
+> cipher. E.g. when a satellite connects to the master, the master chooses the cipher.
+>
+> Keep this in mind where to simulate the client role connecting to a server with
+> CLI tools such as `openssl s_client`.
+
+
+`openssl s_client` tells you about the supported and shared cipher suites
+on the remote server. `openssl ciphers` lists locally available ciphers.
 
 ```
-critical/SSL: Error loading and verifying locations in ca key file 'C:\ProgramData\icinga2\etc/icinga2/pki/ca.crt': 219029726, "error:0D0E20DE:asn1 encoding routines:c2i_ibuf:illegal zero content"
-critical/config: Error: Cannot make SSL context for cert path: 'C:\ProgramData\icinga2\etc/icinga2/pki/client.crt' key path: 'C:\ProgramData\icinga2\etc/icinga2/pki/client.key' ca path: 'C:\ProgramData\icinga2\etc/icinga2/pki/ca.crt'.
+$ openssl s_client -connect 192.168.33.5:5665
+...
+
+---
+SSL handshake has read 2899 bytes and written 786 bytes
+---
+New, TLSv1/SSLv3, Cipher is AES256-GCM-SHA384
+Server public key is 4096 bit
+Secure Renegotiation IS supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+SSL-Session:
+    Protocol  : TLSv1.2
+    Cipher    : AES256-GCM-SHA384
+
+...
 ```
 
-A technical analysis and solution for re-creating the public CA certificate is
-available in [this advisory](https://www.icinga.com/2017/08/30/advisory-for-ssl-problems-with-leading-zeros-on-openssl-1-1-0/).
+You can specifically use one cipher or a list with the `-cipher` parameter:
+
+```
+openssl s_client -connect 192.168.33.5:5665 -cipher 'ECDHE-RSA-AES256-GCM-SHA384'
+```
+
+In order to fully simulate a connecting client, provide the certificates too:
+
+```
+CERTPATH='/var/lib/icinga2/certs'
+HOSTNAME='icinga2.vagrant.demo.icinga.com'
+openssl s_client -connect 192.168.33.5:5665 -cert "${CERTPATH}/${HOSTNAME}.crt" -key "${CERTPATH}/${HOSTNAME}.key" -CAfile "${CERTPATH}/ca.crt" -cipher 'ECDHE-RSA-AES256-GCM-SHA384'
+```
+
+In case to need to change the default cipher list,
+set the [cipher_list](09-object-types.md#objecttype-apilistener) attribute
+in the `api` feature configuration accordingly.
+
+Beware of using insecure ciphers, this may become a
+security risk in your organisation.
+
+#### Server Accepts Client <a id="troubleshooting-certificate-handshake-ciphers-server"></a>
+
+If the master node does not actively connect to the satellite/agent node(s), but instead
+the child node actively connectsm, you can still simulate a TLS handshake.
+
+Use `openssl s_server` instead of `openssl s_client` on the master during the connection
+attempt.
+
+```
+$ openssl s_server -connect 192.168.56.101:5665
+```
+
+Since the server role chooses the preferred cipher suite in Icinga,
+you can test-drive the "agent connects to master" mode here, granted that
+the TCP connection is not blocked by the firewall.
 
 
-## Cluster and Clients Troubleshooting <a id="troubleshooting-cluster"></a>
+#### Cipher Scan Tools <a id="troubleshooting-certificate-handshake-ciphers-scantools"></a>
+
+You can also use different tools to test the available cipher suites, this is what SSL Labs, etc.
+provide for TLS enabled websites as well. [This post](https://superuser.com/questions/109213/how-do-i-list-the-ssl-tls-cipher-suites-a-particular-website-offers)
+highlights some tools and scripts such as [sslscan](https://github.com/rbsec/sslscan) or [testssl.sh](https://github.com/drwetter/testssl.sh/)
+
+Example for sslscan on macOS against a Debian 10 Buster instance
+running v2.11:
+
+```
+$ brew install sslscan
+
+$ sslscan 192.168.33.22:5665
+Version: 1.11.13-static
+OpenSSL 1.0.2f  28 Jan 2016
+
+Connected to 192.168.33.22
+
+Testing SSL server 192.168.33.22 on port 5665 using SNI name 192.168.33.22
+
+  TLS Fallback SCSV:
+Server supports TLS Fallback SCSV
+
+  TLS renegotiation:
+Session renegotiation not supported
+
+  TLS Compression:
+Compression disabled
+
+  Heartbleed:
+TLS 1.2 not vulnerable to heartbleed
+TLS 1.1 not vulnerable to heartbleed
+TLS 1.0 not vulnerable to heartbleed
+
+  Supported Server Cipher(s):
+Preferred TLSv1.2  256 bits  ECDHE-RSA-AES256-GCM-SHA384   Curve P-256 DHE 256
+Accepted  TLSv1.2  128 bits  ECDHE-RSA-AES128-GCM-SHA256   Curve P-256 DHE 256
+Accepted  TLSv1.2  256 bits  ECDHE-RSA-AES256-SHA384       Curve P-256 DHE 256
+Accepted  TLSv1.2  128 bits  ECDHE-RSA-AES128-SHA256       Curve P-256 DHE 256
+
+  SSL Certificate:
+Signature Algorithm: sha256WithRSAEncryption
+RSA Key Strength:    4096
+
+Subject:  icinga2-debian10.vagrant.demo.icinga.com
+Altnames: DNS:icinga2-debian10.vagrant.demo.icinga.com
+Issuer:   Icinga CA
+
+Not valid before: Jul 12 07:39:55 2019 GMT
+Not valid after:  Jul  8 07:39:55 2034 GMT
+```
+
+## Distributed Troubleshooting <a id="troubleshooting-cluster"></a>
 
 This applies to any Icinga 2 node in a [distributed monitoring setup](06-distributed-monitoring.md#distributed-monitoring-scenarios).
 
@@ -910,24 +1305,24 @@ works (default port is `5665`).
 
 # netstat -tulpen | grep icinga
 
-# nmap icinga2-client1.localdomain
+# nmap icinga2-agent1.localdomain
 ```
 
-### Cluster Troubleshooting SSL Errors <a id="troubleshooting-cluster-ssl-errors"></a>
+### Cluster Troubleshooting TLS Errors <a id="troubleshooting-cluster-tls-errors"></a>
 
-If the cluster communication fails with SSL error messages, make sure to check
+If the cluster communication fails with TLS/SSL error messages, make sure to check
 the following
 
-* File permissions on the SSL certificate files
+* File permissions on the TLS certificate files
 * Does the used CA match for all cluster endpoints?
   * Verify the `Issuer` being your trusted CA
   * Verify the `Subject` containing your endpoint's common name (CN)
   * Check the validity of the certificate itself
 
-Try to manually connect from `icinga2-client1.localdomain` to the master node `icinga2-master1.localdomain`:
+Try to manually connect from `icinga2-agent1.localdomain` to the master node `icinga2-master1.localdomain`:
 
 ```
-# openssl s_client -CAfile /var/lib/icinga2/certs/ca.crt -cert /var/lib/icinga2/certs/icinga2-client1.localdomain.crt -key /var/lib/icinga2/certs/icinga2-client1.localdomain.key -connect icinga2-master1.localdomain:5665
+$ openssl s_client -CAfile /var/lib/icinga2/certs/ca.crt -cert /var/lib/icinga2/certs/icinga2-agent1.localdomain.crt -key /var/lib/icinga2/certs/icinga2-agent1.localdomain.key -connect icinga2-master1.localdomain:5665
 
 CONNECTED(00000003)
 ---
@@ -939,21 +1334,22 @@ If the connection attempt fails or your CA does not match, [verify the certifica
 
 #### Cluster Troubleshooting Unauthenticated Clients <a id="troubleshooting-cluster-unauthenticated-clients"></a>
 
-Unauthenticated nodes are able to connect. This is required for client setups.
+Unauthenticated nodes are able to connect. This is required for agent/satellite setups.
 
 Master:
 
 ```
-[2015-07-13 18:29:25 +0200] information/ApiListener: New client connection for identity 'icinga2-client1.localdomain' (unauthenticated)
+[2015-07-13 18:29:25 +0200] information/ApiListener: New client connection for identity 'icinga2-agent1.localdomain' (unauthenticated)
 ```
 
-Client as command execution bridge:
+Agent as command execution bridge:
 
 ```
 [2015-07-13 18:29:26 +1000] notice/ClusterEvents: Discarding 'execute command' message from 'icinga2-master1.localdomain': Invalid endpoint origin (client not allowed).
 ```
 
-If these messages do not go away, make sure to [verify the master and client certificates](15-troubleshooting.md#troubleshooting-certificate-verification).
+If these messages do not go away, make sure to [verify the master and agent certificates](15-troubleshooting.md#troubleshooting-certificate-verification).
+
 
 ### Cluster Troubleshooting Message Errors <a id="troubleshooting-cluster-message-errors"></a>
 
@@ -967,21 +1363,25 @@ for later synchronisation, you should make sure to check why the network connect
 Ensure to setup [cluster health checks](06-distributed-monitoring.md#distributed-monitoring-health-checks)
 to monitor all endpoints and zones connectivity.
 
+
 ### Cluster Troubleshooting Command Endpoint Errors <a id="troubleshooting-cluster-command-endpoint-errors"></a>
 
-Command endpoints can be used [for clients](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
+Command endpoints can be used [for agents](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 as well as inside an [High-Availability cluster](06-distributed-monitoring.md#distributed-monitoring-scenarios).
 
-There is no cli command for manually executing the check, but you can verify
+There is no CLI command for manually executing the check, but you can verify
 the following (e.g. by invoking a forced check from the web interface):
 
-* `/var/log/icinga2/icinga2.log` contains connection and execution errors.
- * The ApiListener is not enabled to [accept commands](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
- * `CheckCommand` definition not found on the remote client.
- * Referenced check plugin not found on the remote client.
+* `/var/log/icinga2/icinga2.log` shows connection and execution errors.
+ * The ApiListener is not enabled to [accept commands](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint). This is visible as `UNKNOWN` check result output.
+ * `CheckCommand` definition not found on the remote client. This is visible as `UNKNWON` check result output.
+ * Referenced check plugin not found on the remote agent.
  * Runtime warnings and errors, e.g. unresolved runtime macros or configuration problems.
 * Specific error messages are also populated into `UNKNOWN` check results including a detailed error message in their output.
-* Verify the `check_source` object attribute. This is populated by the node executing the check.
+* Verify the [check source](15-troubleshooting.md#checks-check-source). This is populated by the node executing the check. You can see that in Icinga Web's detail view or by querying the REST API for this checkable object.
+
+Additional tasks:
+
 * More verbose logs are found inside the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output).
 
 * Use the Icinga 2 API [event streams](12-icinga2-api.md#icinga2-api-event-streams) to receive live check result streams.
@@ -996,16 +1396,93 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://local
 
 ### Cluster Troubleshooting Config Sync <a id="troubleshooting-cluster-config-sync"></a>
 
-If the cluster zones do not sync their configuration, make sure to check the following:
+In order to troubleshoot this, remember the key things with the config sync:
 
 * Within a config master zone, only one configuration master is allowed to have its config in `/etc/icinga2/zones.d`.
-** The master syncs the configuration to `/var/lib/icinga2/api/zones/` during startup and only syncs valid configuration to the other nodes.
-** The other nodes receive the configuration into `/var/lib/icinga2/api/zones/`.
-* The `icinga2.log` log file in `/var/log/icinga2` will indicate whether this ApiListener
-[accepts config](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync), or not.
+    * The config master copies the zone configuration from `/etc/icinga2/zones.d` to `/var/lib/icinga2/api/zones`. This storage is the same for all cluster endpoints, and the source for all config syncs.
+    * The config master puts the `.authoritative` marker on these zone files locally. This is to ensure that it doesn't receive config updates from other endpoints. If you have copied the content from `/var/lib/icinga2/api/zones` to another node, ensure to remove them.
+* During startup, the master validates the entire configuration and only syncs valid configuration to other zone endpoints.
 
-Verify the object's [version](09-object-types.md#object-types) attribute on all nodes to
-check whether the config update and reload was successful or not.
+Satellites/Agents < 2.11 store the received configuration directly in `/var/lib/icinga2/api/zones`, validating it and reloading the daemon.
+Satellites/Agents >= 2.11 put the received configuration into the staging directory `/var/lib/icinga2/api/zones-stage` first, and will only copy this to the production directory `/var/lib/icinga2/api/zones` once the validation was successful.
+
+The configuration sync logs the operations during startup with the `information` severity level. Received zone configuration is also logged.
+
+Typical errors are:
+
+* The api feature doesn't [accept config](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync). This is logged into `/var/lib/icinga2/icinga2.log`.
+* The received configuration zone is not configured in [zones.conf](04-configuration.md#zones-conf) and Icinga denies it. This is logged into `/var/lib/icinga2/icinga2.log`.
+* The satellite/agent has local configuration in `/etc/icinga2/zones.d` and thinks it is authoritive for this zone. It then denies the received update. Purge the content from `/etc/icinga2/zones.d`, `/var/lib/icinga2/api/zones/*` and restart Icinga to fix this.
+
+#### New configuration does not trigger a reload <a id="troubleshooting-cluster-config-sync-no-reload"></a>
+
+The debug/notice log dumps the calculated checksums for all files and the comparison. Analyse this to troubleshoot further.
+
+A complete sync for the `director-global` global zone can look like this:
+
+```
+[2019-08-01 09:20:25 +0200] notice/JsonRpcConnection: Received 'config::Update' message from 'icinga2-master1.localdomain'
+[2019-08-01 09:20:25 +0200] information/ApiListener: Applying config update from endpoint 'icinga2-master1.localdomain' of zone 'master'.
+[2019-08-01 09:20:25 +0200] notice/ApiListener: Creating config update for file '/var/lib/icinga2/api/zones/director-global/.checksums'.
+[2019-08-01 09:20:25 +0200] notice/ApiListener: Creating config update for file '/var/lib/icinga2/api/zones/director-global/.timestamp'.
+[2019-08-01 09:20:25 +0200] notice/ApiListener: Creating config update for file '/var/lib/icinga2/api/zones/director-global/director/001-director-basics.conf'.
+[2019-08-01 09:20:25 +0200] notice/ApiListener: Creating config update for file '/var/lib/icinga2/api/zones/director-global/director/host_templates.conf'.
+[2019-08-01 09:20:25 +0200] information/ApiListener: Received configuration for zone 'director-global' from endpoint 'icinga2-master1.localdomain'. Comparing the checksums.
+[2019-08-01 09:20:25 +0200] debug/ApiListener: Checking for config change between stage and production. Old (4): '{"/.checksums":"c4dd1237e36dcad9142f4d9a81324a7cae7d01543a672299
+b8c1bb08b629b7d1","/.timestamp":"f21c0e6551328812d9f5176e5e31f390de0d431d09800a85385630727b404d83","/director/001-director-basics.conf":"f86583eec81c9bf3a1823a761991fb53d640bd0dc
+6cd12bf8c5e6a275359970f","/director/host_templates.conf":"831e9b7e3ec1e33288e56a51e63c688da1d6316155349382a101f7fce6229ecc"}' vs. new (4): '{"/.checksums":"c4dd1237e36dcad9142f4d
+9a81324a7cae7d01543a672299b8c1bb08b629b7d1","/.timestamp":"f21c0e6551328812d9f5176e5e31f390de0d431d09800a85385630727b404d83","/director/001-director-basics.conf":"f86583eec81c9bf
+3a1823a761991fb53d640bd0dc6cd12bf8c5e6a275359970f","/director/host_templates.conf":"831e9b7e3ec1e33288e56a51e63c688da1d6316155349382a101f7fce6229ecc"}'.
+[2019-08-01 09:20:25 +0200] debug/ApiListener: Ignoring old internal file '/.checksums'.
+[2019-08-01 09:20:25 +0200] debug/ApiListener: Ignoring old internal file '/.timestamp'.
+[2019-08-01 09:20:25 +0200] debug/ApiListener: Checking /director/001-director-basics.conf for old checksum: f86583eec81c9bf3a1823a761991fb53d640bd0dc6cd12bf8c5e6a275359970f.
+[2019-08-01 09:20:25 +0200] debug/ApiListener: Checking /director/host_templates.conf for old checksum: 831e9b7e3ec1e33288e56a51e63c688da1d6316155349382a101f7fce6229ecc.
+[2019-08-01 09:20:25 +0200] debug/ApiListener: Ignoring new internal file '/.checksums'.
+[2019-08-01 09:20:25 +0200] debug/ApiListener: Ignoring new internal file '/.timestamp'.
+[2019-08-01 09:20:25 +0200] debug/ApiListener: Checking /director/001-director-basics.conf for new checksum: f86583eec81c9bf3a1823a761991fb53d640bd0dc6cd12bf8c5e6a275359970f.
+[2019-08-01 09:20:25 +0200] debug/ApiListener: Checking /director/host_templates.conf for new checksum: 831e9b7e3ec1e33288e56a51e63c688da1d6316155349382a101f7fce6229ecc.
+[2019-08-01 09:20:25 +0200] information/ApiListener: Stage: Updating received configuration file '/var/lib/icinga2/api/zones-stage/director-global//director/001-director-basics.c
+onf' for zone 'director-global'.
+[2019-08-01 09:20:25 +0200] information/ApiListener: Stage: Updating received configuration file '/var/lib/icinga2/api/zones-stage/director-global//director/host_templates.conf'
+for zone 'director-global'.
+[2019-08-01 09:20:25 +0200] information/ApiListener: Applying configuration file update for path '/var/lib/icinga2/api/zones-stage/director-global' (2209 Bytes).
+
+...
+
+[2019-08-01 09:20:25 +0200] information/ApiListener: Received configuration updates (4) from endpoint 'icinga2-master1.localdomain' are different to production, triggering validation and reload.
+[2019-08-01 09:20:25 +0200] notice/Process: Running command '/usr/lib/x86_64-linux-gnu/icinga2/sbin/icinga2' '--no-stack-rlimit' 'daemon' '--close-stdio' '-e' '/var/log/icinga2/e
+rror.log' '--validate' '--define' 'System.ZonesStageVarDir=/var/lib/icinga2/api/zones-stage/': PID 4532
+[2019-08-01 09:20:25 +0200] notice/Process: PID 4532 ('/usr/lib/x86_64-linux-gnu/icinga2/sbin/icinga2' '--no-stack-rlimit' 'daemon' '--close-stdio' '-e' '/var/log/icinga2/error.l
+og' '--validate' '--define' 'System.ZonesStageVarDir=/var/lib/icinga2/api/zones-stage/') terminated with exit code 0
+[2019-08-01 09:20:25 +0200] information/ApiListener: Config validation for stage '/var/lib/icinga2/api/zones-stage/' was OK, replacing into '/var/lib/icinga2/api/zones/' and trig
+gering reload.
+[2019-08-01 09:20:26 +0200] information/ApiListener: Copying file 'director-global//.checksums' from config sync staging to production zones directory.
+[2019-08-01 09:20:26 +0200] information/ApiListener: Copying file 'director-global//.timestamp' from config sync staging to production zones directory.
+[2019-08-01 09:20:26 +0200] information/ApiListener: Copying file 'director-global//director/001-director-basics.conf' from config sync staging to production zones directory.
+[2019-08-01 09:20:26 +0200] information/ApiListener: Copying file 'director-global//director/host_templates.conf' from config sync staging to production zones directory.
+
+...
+
+[2019-08-01 09:20:26 +0200] notice/Application: Got reload command, forwarding to umbrella process (PID 4236)
+```
+
+#### Syncing Binary Files is Denied <a id="troubleshooting-cluster-config-sync-binary-denied"></a>
+
+The config sync is built for syncing text configuration files, wrapped into JSON-RPC messages.
+Some users have started to use this as binary file sync instead of using tools built for this:
+rsync, git, Puppet, Ansible, etc.
+
+Starting with 2.11, this attempt is now prohibited and logged.
+
+```
+[2019-08-02 16:03:19 +0200] critical/ApiListener: Ignoring file '/etc/icinga2/zones.d/global-templates/forbidden.exe' for cluster config sync: Does not contain valid UTF8. Binary files are not supported.
+Context:
+	(0) Creating config update for file '/etc/icinga2/zones.d/global-templates/forbidden.exe'
+	(1) Activating object 'api' of type 'ApiListener'
+```
+
+In order to solve this problem, remove the mentioned files from `zones.d` and use an alternate way
+of syncing plugin binaries to your satellites and agents.
 
 
 ### Cluster Troubleshooting Overdue Check Results <a id="troubleshooting-cluster-check-results"></a>
@@ -1024,7 +1501,7 @@ certificate's CN, the master will deny all events.
 
 > **Tip**
 >
-> [Icinga Web 2](02-getting-started.md#setting-up-icingaweb2) provides a dashboard view
+> [Icinga Web 2](02-installation.md#setting-up-icingaweb2) provides a dashboard view
 > for overdue check results.
 
 Enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) on the master
@@ -1035,14 +1512,14 @@ If the client cannot authenticate, it's a more general [problem](15-troubleshoot
 The client's endpoint is not configured on nor trusted by the master node:
 
 ```
-Discarding 'check result' message from 'icinga2-client1.localdomain': Invalid endpoint origin (client not allowed).
+Discarding 'check result' message from 'icinga2-agent1.localdomain': Invalid endpoint origin (client not allowed).
 ```
 
 The check result message sent by the client does not belong to the zone the checkable object is
 in on the master:
 
 ```
-Discarding 'check result' message from 'icinga2-client1.localdomain': Unauthorized access.
+Discarding 'check result' message from 'icinga2-agent1.localdomain': Unauthorized access.
 ```
 
 
@@ -1058,3 +1535,93 @@ Check the following:
 * Check your [connection](15-troubleshooting.md#troubleshooting-cluster-connection-errors) in general.
 * Does the log replay work, e.g. are all events processed and the directory gets cleared up over time?
 * Decrease the `log_duration` attribute value for that specific [endpoint](09-object-types.md#objecttype-endpoint).
+
+The cluster health checks also measure the `slave_lag` metric. Use this data to correlate
+graphs with other events (e.g. disk I/O, network problems, etc).
+
+
+### Cluster Troubleshooting: Windows Agents <a id="troubleshooting-cluster-windows-agents"></a>
+
+
+#### Windows Service Exe Path <a id="troubleshooting-cluster-windows-agents-service-exe-path"></a>
+
+Icinga agents can be installed either as x86 or x64 package. If you enable features, or wonder why
+logs are not written, the first step is to analyse which path the Windows service `icinga2` is using.
+
+Start a new administrative Powershell and ensure that the `icinga2` service is running.
+
+```
+C:\Program Files\ICINGA2\sbin> net start icinga2
+```
+
+Use the `Get-WmiObject` function to extract the windows service and its path name.
+
+```
+C:\Program Files\ICINGA2\sbin> Get-WmiObject win32_service | ?{$_.Name -like '*icinga*'} | select Name, DisplayName, State, PathName
+
+Name    DisplayName State   PathName
+----    ----------- -----   --------
+icinga2 Icinga 2    Running "C:\Program Files\ICINGA2\sbin\icinga2.exe" --scm "daemon"
+```
+
+If you have used the `icinga2.exe` from a different path to enable e.g. the `debuglog` feature,
+navigate into `C:\Program Files\ICINGA2\sbin\` and use the correct exe to control the feature set.
+
+
+#### Windows Agents consuming 100% CPU <a id="troubleshooting-cluster-windows-agents-cpu"></a>
+
+> **Note**
+>
+> The network stack was rewritten in 2.11. This fixes several hanging connections and threads
+> on older Windows agents and master/satellite nodes. Prior to testing the below, plan an upgrade.
+
+Icinga 2 requires the `NodeName` [constant](17-language-reference.md#constants) in various places to run.
+This includes loading the TLS certificates, setting the proper check source,
+and so on.
+
+Typically the Windows setup wizard and also the CLI commands populate the [constants.conf](04-configuration.md#constants-conf)
+file with the auto-detected or user-provided FQDN/Common Name.
+
+If this constant is not set during startup, Icinga will try to resolve the
+FQDN, if that fails, fetch the hostname. If everything fails, it logs
+an error and sets this to `localhost`. This results in undefined behaviour
+if ignored by the admin.
+
+Querying the DNS when not reachable is CPU consuming, and may look like Icinga
+is doing lots of checks, etc. but actually really is just starting up.
+
+In order to fix this, edit the `constants.conf` file and populate
+the `NodeName` constant with the FQDN. Ensure this is the same value
+as the local endpoint object name.
+
+```
+const NodeName = "windows-agent1.domain.com"
+```
+
+
+
+#### Windows blocking Icinga 2 with ephemeral port range <a id="troubleshooting-cluster-windows-agents-ephemeral-port-range"></a>
+
+When you see a message like this in your Windows agent logs:
+
+```
+critical/TcpSocket: Invalid socket: 10055, "An operation on a socket could not be performed because the system lacked sufficient buffer space or because a queue was full."
+```
+
+Windows is blocking Icinga 2 and as such, no more TCP connection handling is possible.
+
+Depending on the version, patch level and installed applications, Windows is changing its
+range of [ephemeral ports](https://en.wikipedia.org/wiki/Ephemeral_port#Range).
+
+In order to solve this, raise the the `MaxUserPort` value in the registry.
+
+```
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+
+Value Name: MaxUserPort Value
+Type: DWORD
+Value data: 65534
+```
+
+More details in [this blogpost](https://www.netways.de/blog/2019/01/24/windows-blocking-icinga-2-with-ephemeral-port-range/)
+and this [MS help entry](https://support.microsoft.com/en-us/help/196271/when-you-try-to-connect-from-tcp-ports-greater-than-5000-you-receive-t).

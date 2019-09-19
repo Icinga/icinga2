@@ -1,16 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Net.NetworkInformation;
-using System.IO.Compression;
 using System.Diagnostics;
-using System.ServiceProcess;
 using System.Security.AccessControl;
 
 namespace Icinga
@@ -290,7 +285,7 @@ namespace Icinga
 			SetConfigureStatus(100, "Finished.");
 
 			// Override the completed text
-			lblSetupCompleted.Text = "The Icinga 2 Windows client was set up successfully.";
+			lblSetupCompleted.Text = "The Icinga Windows agent was set up successfully.";
 
 			// Add a note for the user for ticket-less signing
 			if (ticket.Length == 0) {
@@ -572,9 +567,17 @@ namespace Icinga
 			lvwGlobalZones.Items.Add(lvi2);
 		}
 
-		private void checkBox1_CheckedChanged(object sender, EventArgs e)
+		private void SetupWizard_Load(object sender, EventArgs e)
 		{
+			this.MinimumSize = this.Size;
+			this.MaximumSize = this.Size;
+		}
 
+		private void linkLabelDocs_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			linkLabelDocs.LinkVisited = true;
+
+			Process.Start("https://icinga.com/docs/icinga2/latest/");
 		}
 	}
 }

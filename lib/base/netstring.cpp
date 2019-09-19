@@ -1,25 +1,16 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/netstring.hpp"
 #include "base/debug.hpp"
+#include "base/tlsstream.hpp"
+#include <cstdint>
+#include <memory>
 #include <sstream>
+#include <utility>
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/read.hpp>
+#include <boost/asio/spawn.hpp>
+#include <boost/asio/write.hpp>
 
 using namespace icinga;
 
@@ -85,7 +76,7 @@ StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, Stri
 	/* read the whole message */
 	size_t data_length = len + 1;
 
-	if (maxMessageLength >= 0 && data_length > maxMessageLength) {
+	if (maxMessageLength >= 0 && data_length > (size_t)maxMessageLength) {
 		std::stringstream errorMessage;
 		errorMessage << "Max data length exceeded: " << (maxMessageLength / 1024) << " KB";
 
@@ -124,6 +115,210 @@ size_t NetString::WriteStringToStream(const Stream::Ptr& stream, const String& s
 
 	String msg = msgbuf.str();
 	stream->Write(msg.CStr(), msg.GetLength());
+	return msg.GetLength();
+}
+
+/**
+ * Reads data from a stream in netstring format.
+ *
+ * @param stream The stream to read from.
+ * @returns The String that has been read from the IOQueue.
+ * @exception invalid_argument The input stream is invalid.
+ * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
+ */
+String NetString::ReadStringFromStream(const std::shared_ptr<AsioTlsStream>& stream,
+	ssize_t maxMessageLength)
+{
+	namespace asio = boost::asio;
+
+	size_t len = 0;
+	bool leadingZero = false;
+
+	for (uint_fast8_t readBytes = 0;; ++readBytes) {
+		char byte = 0;
+
+		{
+			asio::mutable_buffer byteBuf (&byte, 1);
+			asio::read(*stream, byteBuf);
+		}
+
+		if (isdigit(byte)) {
+			if (readBytes == 9) {
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Length specifier must not exceed 9 characters"));
+			}
+
+			if (leadingZero) {
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (leading zero)"));
+			}
+
+			len = len * 10u + size_t(byte - '0');
+
+			if (!readBytes && byte == '0') {
+				leadingZero = true;
+			}
+		} else if (byte == ':') {
+			if (!readBytes) {
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (no length specifier)"));
+			}
+
+			break;
+		} else {
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing :)"));
+		}
+	}
+
+	if (maxMessageLength >= 0 && len > maxMessageLength) {
+		std::stringstream errorMessage;
+		errorMessage << "Max data length exceeded: " << (maxMessageLength / 1024) << " KB";
+
+		BOOST_THROW_EXCEPTION(std::invalid_argument(errorMessage.str()));
+	}
+
+	String payload;
+
+	if (len) {
+		payload.Append(len, 0);
+
+		asio::mutable_buffer payloadBuf (&*payload.Begin(), payload.GetLength());
+		asio::read(*stream, payloadBuf);
+	}
+
+	char trailer = 0;
+
+	{
+		asio::mutable_buffer trailerBuf (&trailer, 1);
+		asio::read(*stream, trailerBuf);
+	}
+
+	if (trailer != ',') {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing ,)"));
+	}
+
+	return std::move(payload);
+}
+
+/**
+ * Reads data from a stream in netstring format.
+ *
+ * @param stream The stream to read from.
+ * @returns The String that has been read from the IOQueue.
+ * @exception invalid_argument The input stream is invalid.
+ * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
+ */
+String NetString::ReadStringFromStream(const std::shared_ptr<AsioTlsStream>& stream,
+	boost::asio::yield_context yc, ssize_t maxMessageLength)
+{
+	namespace asio = boost::asio;
+
+	size_t len = 0;
+	bool leadingZero = false;
+
+	for (uint_fast8_t readBytes = 0;; ++readBytes) {
+		char byte = 0;
+
+		{
+			asio::mutable_buffer byteBuf (&byte, 1);
+			asio::async_read(*stream, byteBuf, yc);
+		}
+
+		if (isdigit(byte)) {
+			if (readBytes == 9) {
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Length specifier must not exceed 9 characters"));
+			}
+
+			if (leadingZero) {
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (leading zero)"));
+			}
+
+			len = len * 10u + size_t(byte - '0');
+
+			if (!readBytes && byte == '0') {
+				leadingZero = true;
+			}
+		} else if (byte == ':') {
+			if (!readBytes) {
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (no length specifier)"));
+			}
+
+			break;
+		} else {
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing :)"));
+		}
+	}
+
+	if (maxMessageLength >= 0 && len > maxMessageLength) {
+		std::stringstream errorMessage;
+		errorMessage << "Max data length exceeded: " << (maxMessageLength / 1024) << " KB";
+
+		BOOST_THROW_EXCEPTION(std::invalid_argument(errorMessage.str()));
+	}
+
+	String payload;
+
+	if (len) {
+		payload.Append(len, 0);
+
+		asio::mutable_buffer payloadBuf (&*payload.Begin(), payload.GetLength());
+		asio::async_read(*stream, payloadBuf, yc);
+	}
+
+	char trailer = 0;
+
+	{
+		asio::mutable_buffer trailerBuf (&trailer, 1);
+		asio::async_read(*stream, trailerBuf, yc);
+	}
+
+	if (trailer != ',') {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing ,)"));
+	}
+
+	return std::move(payload);
+}
+
+/**
+ * Writes data into a stream using the netstring format and returns bytes written.
+ *
+ * @param stream The stream.
+ * @param str The String that is to be written.
+ *
+ * @return The amount of bytes written.
+ */
+size_t NetString::WriteStringToStream(const std::shared_ptr<AsioTlsStream>& stream, const String& str)
+{
+	namespace asio = boost::asio;
+
+	std::ostringstream msgbuf;
+	WriteStringToStream(msgbuf, str);
+
+	String msg = msgbuf.str();
+	asio::const_buffer msgBuf (msg.CStr(), msg.GetLength());
+
+	asio::write(*stream, msgBuf);
+
+	return msg.GetLength();
+}
+
+/**
+ * Writes data into a stream using the netstring format and returns bytes written.
+ *
+ * @param stream The stream.
+ * @param str The String that is to be written.
+ *
+ * @return The amount of bytes written.
+ */
+size_t NetString::WriteStringToStream(const std::shared_ptr<AsioTlsStream>& stream, const String& str, boost::asio::yield_context yc)
+{
+	namespace asio = boost::asio;
+
+	std::ostringstream msgbuf;
+	WriteStringToStream(msgbuf, str);
+
+	String msg = msgbuf.str();
+	asio::const_buffer msgBuf (msg.CStr(), msg.GetLength());
+
+	asio::async_write(*stream, msgBuf, yc);
+
 	return msg.GetLength();
 }
 

@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
@@ -62,13 +45,14 @@ Value Array::Get(SizeType index) const
  *
  * @param index The index.
  * @param value The value.
+ * @param overrideFrozen Whether to allow modifying frozen arrays.
  */
-void Array::Set(SizeType index, const Value& value)
+void Array::Set(SizeType index, const Value& value, bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
+	if (m_Frozen && !overrideFrozen)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Value in array must not be modified."));
 
 	m_Data.at(index) = value;
 }
@@ -78,12 +62,13 @@ void Array::Set(SizeType index, const Value& value)
  *
  * @param index The index.
  * @param value The value.
+ * @param overrideFrozen Whether to allow modifying frozen arrays.
  */
-void Array::Set(SizeType index, Value&& value)
+void Array::Set(SizeType index, Value&& value, bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	m_Data.at(index).Swap(value);
@@ -93,12 +78,13 @@ void Array::Set(SizeType index, Value&& value)
  * Adds a value to the array.
  *
  * @param value The value.
+ * @param overrideFrozen Whether to allow modifying frozen arrays.
  */
-void Array::Add(Value value)
+void Array::Add(Value value, bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	m_Data.push_back(std::move(value));
@@ -162,14 +148,15 @@ bool Array::Contains(const Value& value) const
  *
  * @param index The index
  * @param value The value to add
+ * @param overrideFrozen Whether to allow modifying frozen arrays.
  */
-void Array::Insert(SizeType index, Value value)
+void Array::Insert(SizeType index, Value value, bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
 	ASSERT(index <= m_Data.size());
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	m_Data.insert(m_Data.begin() + index, std::move(value));
@@ -179,13 +166,17 @@ void Array::Insert(SizeType index, Value value)
  * Removes the specified index from the array.
  *
  * @param index The index.
+ * @param overrideFrozen Whether to allow modifying frozen arrays.
  */
-void Array::Remove(SizeType index)
+void Array::Remove(SizeType index, bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
+
+	if (index >= m_Data.size())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Index to remove must be within bounds."));
 
 	m_Data.erase(m_Data.begin() + index);
 }
@@ -194,42 +185,43 @@ void Array::Remove(SizeType index)
  * Removes the item specified by the iterator from the array.
  *
  * @param it The iterator.
+ * @param overrideFrozen Whether to allow modifying frozen arrays.
  */
-void Array::Remove(Array::Iterator it)
+void Array::Remove(Array::Iterator it, bool overrideFrozen)
 {
 	ASSERT(OwnsLock());
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	m_Data.erase(it);
 }
 
-void Array::Resize(SizeType newSize)
+void Array::Resize(SizeType newSize, bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	m_Data.resize(newSize);
 }
 
-void Array::Clear()
+void Array::Clear(bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	m_Data.clear();
 }
 
-void Array::Reserve(SizeType newSize)
+void Array::Reserve(SizeType newSize, bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	m_Data.reserve(newSize);
@@ -288,11 +280,11 @@ Array::Ptr Array::Reverse() const
 	return result;
 }
 
-void Array::Sort()
+void Array::Sort(bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen)
+	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Array must not be modified."));
 
 	std::sort(m_Data.begin(), m_Data.end());
@@ -303,6 +295,26 @@ String Array::ToString() const
 	std::ostringstream msgbuf;
 	ConfigWriter::EmitArray(msgbuf, 1, const_cast<Array *>(this));
 	return msgbuf.str();
+}
+
+Value Array::Join(const Value& separator) const
+{
+	Value result;
+	bool first = true;
+
+	ObjectLock olock(this);
+
+	for (const Value& item : m_Data) {
+		if (first) {
+			first = false;
+		} else {
+			result = result + separator;
+		}
+
+		result = result + item;
+	}
+
+	return result;
 }
 
 Array::Ptr Array::Unique() const
@@ -342,7 +354,7 @@ Value Array::GetFieldByName(const String& field, bool sandboxed, const DebugInfo
 	return Get(index);
 }
 
-void Array::SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo)
+void Array::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
 {
 	ObjectLock olock(this);
 
@@ -352,9 +364,9 @@ void Array::SetFieldByName(const String& field, const Value& value, const DebugI
 		BOOST_THROW_EXCEPTION(ScriptError("Array index '" + Convert::ToString(index) + "' is out of bounds.", debugInfo));
 
 	if (static_cast<size_t>(index) >= GetLength())
-		Resize(index + 1);
+		Resize(index + 1, overrideFrozen);
 
-	Set(index, value);
+	Set(index, value, overrideFrozen);
 }
 
 Array::Iterator icinga::begin(const Array::Ptr& x)

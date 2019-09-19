@@ -1,27 +1,11 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/httphandler.hpp"
 #include "remote/httputility.hpp"
 #include "base/singleton.hpp"
 #include "base/exception.hpp"
 #include <boost/algorithm/string/join.hpp>
+#include <boost/beast/http.hpp>
 
 using namespace icinga;
 
@@ -61,11 +45,20 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 	handlers->Add(handler);
 }
 
-void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+void HttpHandler::ProcessRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc,
+	HttpServerConnection& server
+)
 {
 	Dictionary::Ptr node = m_UrlTree;
 	std::vector<HttpHandler::Ptr> handlers;
-	const std::vector<String>& path = request.RequestUrl->GetPath();
+
+	Url::Ptr url = new Url(request.target().to_string());
+	auto& path (url->GetPath());
 
 	for (std::vector<String>::size_type i = 0; i <= path.size(); i++) {
 		Array::Ptr current_handlers = node->Get("handlers");
@@ -98,7 +91,7 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 	Dictionary::Ptr params;
 
 	try {
-		params = HttpUtility::FetchRequestParameters(request);
+		params = HttpUtility::FetchRequestParameters(url, request.body());
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid request body: " + DiagnosticInformation(ex, false));
 		return;
@@ -106,16 +99,15 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 
 	bool processed = false;
 	for (const HttpHandler::Ptr& handler : handlers) {
-		if (handler->HandleRequest(user, request, response, params)) {
+		if (handler->HandleRequest(stream, user, request, url, response, params, yc, server)) {
 			processed = true;
 			break;
 		}
 	}
 
 	if (!processed) {
-		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
-		HttpUtility::SendJsonError(response, params, 404, "The requested path '" + path +
-				"' could not be found or the request method is not valid for this path.");
+		HttpUtility::SendJsonError(response, params, 404, "The requested path '" + boost::algorithm::join(path, "/") +
+			"' could not be found or the request method is not valid for this path.");
 		return;
 	}
 }

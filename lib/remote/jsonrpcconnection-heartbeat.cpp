@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/jsonrpcconnection.hpp"
 #include "remote/messageorigin.hpp"
@@ -24,34 +7,42 @@
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
+#include <boost/asio/spawn.hpp>
+#include <boost/date_time/posix_time/posix_time_duration.hpp>
+#include <boost/system/system_error.hpp>
 
 using namespace icinga;
 
 REGISTER_APIFUNCTION(Heartbeat, event, &JsonRpcConnection::HeartbeatAPIHandler);
 
-void JsonRpcConnection::HeartbeatTimerHandler()
+void JsonRpcConnection::HandleAndWriteHeartbeats(boost::asio::yield_context yc)
 {
-	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
-		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
-			if (client->m_NextHeartbeat != 0 && client->m_NextHeartbeat < Utility::GetTime()) {
-				Log(LogWarning, "JsonRpcConnection")
-					<< "Client for endpoint '" << endpoint->GetName() << "' has requested "
-					<< "heartbeat message but hasn't responded in time. Closing connection.";
+	boost::system::error_code ec;
 
-				client->Disconnect();
-				continue;
-			}
+	for (;;) {
+		m_HeartbeatTimer.expires_from_now(boost::posix_time::seconds(10));
+		m_HeartbeatTimer.async_wait(yc[ec]);
 
-			Dictionary::Ptr request = new Dictionary({
-				{ "jsonrpc", "2.0" },
-				{ "method", "event::Heartbeat" },
-				{ "params", new Dictionary({
-					{ "timeout", 120 }
-				}) }
-			});
-
-			client->SendMessage(request);
+		if (m_ShuttingDown) {
+			break;
 		}
+
+		if (m_NextHeartbeat != 0 && m_NextHeartbeat < Utility::GetTime()) {
+			Log(LogWarning, "JsonRpcConnection")
+				<< "Client for endpoint '" << m_Endpoint->GetName() << "' has requested "
+				<< "heartbeat message but hasn't responded in time. Closing connection.";
+
+			Disconnect();
+			break;
+		}
+
+		SendMessageInternal(new Dictionary({
+			{ "jsonrpc", "2.0" },
+			{ "method", "event::Heartbeat" },
+			{ "params", new Dictionary({
+				{ "timeout", 120 }
+			}) }
+		}));
 	}
 }
 
@@ -61,7 +52,6 @@ Value JsonRpcConnection::HeartbeatAPIHandler(const MessageOrigin::Ptr& origin, c
 
 	if (!vtimeout.IsEmpty()) {
 		origin->FromClient->m_NextHeartbeat = Utility::GetTime() + vtimeout;
-		origin->FromClient->m_HeartbeatTimeout = vtimeout;
 	}
 
 	return Empty;

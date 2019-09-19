@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "plugins/thresholds.hpp"
 #include <boost/program_options.hpp>
@@ -60,8 +43,10 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			parser
 			.options(desc)
 			.style(
-			po::command_line_style::unix_style |
-			po::command_line_style::allow_long_disguise)
+			po::command_line_style::unix_style &
+			~po::command_line_style::allow_guessing |
+			po::command_line_style::allow_long_disguise
+			)
 			.run(),
 			vm);
 		vm.notify();
@@ -124,7 +109,7 @@ static int printOutput(const printInfoStruct& printInfo)
 	state state = OK;
 
 	if (!printInfo.ServiceState) {
-		std::wcout << L"SERVICE CRITICAL NOTFOUND | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE CRITICAL NOT FOUND | 'service'=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		return 3;
 	}
 
@@ -133,13 +118,13 @@ static int printOutput(const printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\" OK RUNNING | service=4;;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" OK RUNNING | 'service'=4;;;1;7" << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\" WARNING NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" WARNING NOT RUNNING | 'service'=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\" CRITICAL NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" CRITICAL NOT RUNNING | 'service'=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		break;
 	}
 
@@ -184,7 +169,7 @@ static std::wstring getServiceByDescription(const std::wstring& description)
 	EnumServicesStatus(hSCM, SERVICE_WIN32 | SERVICE_DRIVER, SERVICE_STATE_ALL, lpServices, pcbBytesNeeded,
 		&pcbBytesNeeded, &lpServicesReturned, &lpResumeHandle);
 
-	for (int index = 0; index < lpServicesReturned; index++) {
+	for (decltype(lpServicesReturned) index = 0; index < lpServicesReturned; index++) {
 		LPWSTR lpCurrent = lpServices[index].lpServiceName;
 
 		if (l_Debug) {

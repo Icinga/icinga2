@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/checkable.hpp"
 #include "icinga/service.hpp"
@@ -39,6 +22,8 @@ boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, St
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&)> Checkable::OnReachabilityChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&, const MessageOrigin::Ptr&)> Checkable::OnNotificationsRequested;
 boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnNextCheckUpdated;
+
+Atomic<uint_fast64_t> Checkable::CurrentConcurrentChecks (0);
 
 boost::mutex Checkable::m_StatsMutex;
 int Checkable::m_PendingChecks = 0;
@@ -79,9 +64,18 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 	if (interval > 1)
 		adj = fmod(now * 100 + GetSchedulingOffset(), interval * 100) / 100.0;
 
-	adj = std::min(0.5 + fmod(GetSchedulingOffset(), interval * 5) / 100.0, adj);
+	if (adj != 0.0)
+		adj = std::min(0.5 + fmod(GetSchedulingOffset(), interval * 5) / 100.0, adj);
 
-	SetNextCheck(now - adj + interval, false, origin);
+	double nextCheck = now - adj + interval;
+	double lastCheck = GetLastCheck();
+
+	Log(LogDebug, "Checkable")
+		<< "Update checkable '" << GetName() << "' with check interval '" << GetCheckInterval()
+		<< "' from last check time at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", (lastCheck < 0 ? 0 : lastCheck))
+		<< " (" << GetLastCheck() << ") to next check time at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", nextCheck) << " (" << nextCheck << ").";
+
+	SetNextCheck(nextCheck, false, origin);
 }
 
 bool Checkable::HasBeenChecked() const
@@ -161,9 +155,34 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	long old_attempt = GetCheckAttempt();
 	bool recovery = false;
 
-	/* Ignore check results older than the current one. */
-	if (old_cr && cr->GetExecutionStart() < old_cr->GetExecutionStart())
-		return;
+	/* When we have an check result already (not after fresh start),
+	 * prevent to accept old check results and allow overrides for
+	 * CRs happened in the future.
+	 */
+	if (old_cr) {
+		double currentCRTimestamp = old_cr->GetExecutionStart();
+		double newCRTimestamp = cr->GetExecutionStart();
+
+		/* Our current timestamp may be from the future (wrong server time adjusted again). Allow overrides here. */
+		if (currentCRTimestamp > now) {
+			/* our current CR is from the future, let the new CR override it. */
+			Log(LogDebug, "Checkable")
+				<< std::fixed << std::setprecision(6) << "Processing check result for checkable '" << GetName() << "' from "
+				<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newCRTimestamp) << " (" << newCRTimestamp
+				<< "). Overriding since ours is from the future at "
+				<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", currentCRTimestamp) << " (" << currentCRTimestamp << ").";
+		} else {
+			/* Current timestamp is from the past, but the new timestamp is even more in the past. Skip it. */
+			if (newCRTimestamp < currentCRTimestamp) {
+				Log(LogDebug, "Checkable")
+					<< std::fixed << std::setprecision(6) << "Skipping check result for checkable '" << GetName() << "' from "
+					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newCRTimestamp) << " (" << newCRTimestamp
+					<< "). It is in the past compared to ours at "
+					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", currentCRTimestamp) << " (" << currentCRTimestamp << ").";
+				return;
+			}
+		}
+	}
 
 	/* The ExecuteCheck function already sets the old state, but we need to do it again
 	 * in case this was a passive check result. */
@@ -239,6 +258,9 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	else
 		stateChange = (Host::CalculateState(old_state) != Host::CalculateState(new_state));
 
+	/* Store the current last state change for the next iteration. */
+	SetPreviousStateChange(GetLastStateChange());
+
 	if (stateChange) {
 		SetLastStateChange(now);
 
@@ -253,8 +275,13 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			if (parent.get() == this)
 				continue;
 
-			ObjectLock olock(parent);
-			parent->SetNextCheck(Utility::GetTime());
+			if (!parent->GetEnableActiveChecks())
+				continue;
+
+			if (parent->GetNextCheck() >= now + parent->GetRetryInterval()) {
+				ObjectLock olock(parent);
+				parent->SetNextCheck(now);
+			}
 		}
 	}
 
@@ -284,15 +311,14 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	bool in_downtime = IsInDowntime();
 
 	bool send_notification = false;
+	bool suppress_notification = !notification_reachable || in_downtime || IsAcknowledged();
 
-	if (notification_reachable && !in_downtime && !IsAcknowledged()) {
-		/* Send notifications whether when a hard state change occured. */
-		if (hardChange && !(old_stateType == StateTypeSoft && IsStateOK(new_state)))
-			send_notification = true;
-		/* Or if the checkable is volatile and in a HARD state. */
-		else if (is_volatile && GetStateType() == StateTypeHard)
-			send_notification = true;
-	}
+	/* Send notifications whether when a hard state change occurred. */
+	if (hardChange && !(old_stateType == StateTypeSoft && IsStateOK(new_state)))
+		send_notification = true;
+	/* Or if the checkable is volatile and in a HARD state. */
+	else if (is_volatile && GetStateType() == StateTypeHard)
+		send_notification = true;
 
 	if (IsStateOK(old_state) && old_stateType == StateTypeSoft)
 		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
@@ -380,21 +406,33 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		(is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state))))
 		ExecuteEventHandler();
 
+	int suppressed_types = 0;
+
 	/* Flapping start/end notifications */
-	if (!in_downtime && !was_flapping && is_flapping) {
+	if (!was_flapping && is_flapping) {
 		/* FlappingStart notifications happen on state changes, not in downtimes */
-		if (!IsPaused())
-			OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", nullptr);
+		if (!IsPaused()) {
+			if (in_downtime) {
+				suppressed_types |= NotificationFlappingStart;
+			} else {
+				OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", nullptr);
+			}
+		}
 
 		Log(LogNotice, "Checkable")
 			<< "Flapping Start: Checkable '" << GetName() << "' started flapping (Current flapping value "
 			<< GetFlappingCurrent() << "% > high threshold " << GetFlappingThresholdHigh() << "%).";
 
 		NotifyFlapping(origin);
-	} else if (!in_downtime && was_flapping && !is_flapping) {
+	} else if (was_flapping && !is_flapping) {
 		/* FlappingEnd notifications are independent from state changes, must not happen in downtine */
-		if (!IsPaused())
-			OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", nullptr);
+		if (!IsPaused()) {
+			if (in_downtime) {
+				suppressed_types |= NotificationFlappingEnd;
+			} else {
+				OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", nullptr);
+			}
+		}
 
 		Log(LogNotice, "Checkable")
 			<< "Flapping Stop: Checkable '" << GetName() << "' stopped flapping (Current flapping value "
@@ -404,8 +442,35 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	}
 
 	if (send_notification && !is_flapping) {
-		if (!IsPaused())
-			OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", nullptr);
+		if (!IsPaused()) {
+			if (suppress_notification) {
+				suppressed_types |= (recovery ? NotificationRecovery : NotificationProblem);
+			} else {
+				OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", nullptr);
+			}
+		}
+	}
+
+	if (suppressed_types) {
+		/* If some notifications were suppressed, but just because of e.g. a downtime,
+		 * stash them into a notification types bitmask for maybe re-sending later.
+		 */
+
+		ObjectLock olock (this);
+		int suppressed_types_before (GetSuppressedNotifications());
+		int suppressed_types_after (suppressed_types_before | suppressed_types);
+
+		for (int conflict : {NotificationProblem | NotificationRecovery, NotificationFlappingStart | NotificationFlappingEnd}) {
+			/* E.g. problem and recovery notifications neutralize each other. */
+
+			if ((suppressed_types_after & conflict) == conflict) {
+				suppressed_types_after &= ~conflict;
+			}
+		}
+
+		if (suppressed_types_after != suppressed_types_before) {
+			SetSuppressedNotifications(suppressed_types_after);
+		}
 	}
 }
 
@@ -430,6 +495,12 @@ void Checkable::ExecuteCheck()
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
+
+	/* This calls SetNextCheck() which updates the CheckerComponent's idle/pending
+	 * queues and ensures that checks are not fired multiple times. ProcessCheckResult()
+	 * is called too late. See #6421.
+	 */
+	UpdateNextCheck();
 
 	bool reachable = IsReachable();
 

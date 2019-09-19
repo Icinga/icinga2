@@ -1,26 +1,10 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/cib.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
 #include "icinga/clusterevents.hpp"
+#include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
@@ -203,8 +187,6 @@ ServiceStatistics CIB::CalculateServiceStats()
 	for (const Service::Ptr& service : ConfigType::GetObjectsByType<Service>()) {
 		ObjectLock olock(service);
 
-		CheckResult::Ptr cr = service->GetLastCheckResult();
-
 		if (service->GetState() == ServiceOK)
 			ss.services_ok++;
 		if (service->GetState() == ServiceWarning)
@@ -214,8 +196,11 @@ ServiceStatistics CIB::CalculateServiceStats()
 		if (service->GetState() == ServiceUnknown)
 			ss.services_unknown++;
 
+		CheckResult::Ptr cr = service->GetLastCheckResult();
+
 		if (!cr)
 			ss.services_pending++;
+
 		if (!service->IsReachable())
 			ss.services_unreachable++;
 
@@ -225,6 +210,11 @@ ServiceStatistics CIB::CalculateServiceStats()
 			ss.services_in_downtime++;
 		if (service->IsAcknowledged())
 			ss.services_acknowledged++;
+
+		if (service->GetHandled())
+			ss.services_handled++;
+		if (service->GetProblem())
+			ss.services_problem++;
 	}
 
 	return ss;
@@ -254,6 +244,11 @@ HostStatistics CIB::CalculateHostStats()
 			hs.hosts_in_downtime++;
 		if (host->IsAcknowledged())
 			hs.hosts_acknowledged++;
+
+		if (host->GetHandled())
+			hs.hosts_handled++;
+		if (host->GetProblem())
+			hs.hosts_problem++;
 	}
 
 	return hs;
@@ -268,13 +263,13 @@ std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats()
 	Dictionary::Ptr status = new Dictionary();
 	Array::Ptr perfdata = new Array();
 
-	Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
+	Namespace::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
 
 	if (statsFunctions) {
 		ObjectLock olock(statsFunctions);
 
-		for (const Dictionary::Pair& kv : statsFunctions)
-			static_cast<Function::Ptr>(kv.second)->Invoke({ status, perfdata });
+		for (const Namespace::Pair& kv : statsFunctions)
+			static_cast<Function::Ptr>(kv.second->Get())->Invoke({ status, perfdata });
 	}
 
 	return std::make_pair(status, perfdata);
@@ -306,7 +301,10 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("active_service_checks_15min", GetActiveServiceChecksStatistics(60 * 15));
 	status->Set("passive_service_checks_15min", GetPassiveServiceChecksStatistics(60 * 15));
 
+	// Checker related stats
 	status->Set("remote_check_queue", ClusterEvents::GetCheckRequestQueueSize());
+	status->Set("current_pending_callbacks", Application::GetTP().GetPending());
+	status->Set("current_concurrent_checks", Checkable::CurrentConcurrentChecks.load());
 
 	CheckableCheckStatistics scs = CalculateServiceCheckStats();
 
@@ -328,6 +326,8 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("num_services_flapping", ss.services_flapping);
 	status->Set("num_services_in_downtime", ss.services_in_downtime);
 	status->Set("num_services_acknowledged", ss.services_acknowledged);
+	status->Set("num_services_handled", ss.services_handled);
+	status->Set("num_services_problem", ss.services_problem);
 
 	double uptime = Utility::GetTime() - Application::GetStartTime();
 	status->Set("uptime", uptime);
@@ -341,4 +341,6 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("num_hosts_flapping", hs.hosts_flapping);
 	status->Set("num_hosts_in_downtime", hs.hosts_in_downtime);
 	status->Set("num_hosts_acknowledged", hs.hosts_acknowledged);
+	status->Set("num_hosts_handled", hs.hosts_handled);
+	status->Set("num_hosts_problem", hs.hosts_problem);
 }

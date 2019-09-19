@@ -2,7 +2,7 @@
 -- upgrade path for Icinga 2.8.1 (fix for fresh 2.8.0 installation only)
 --
 -- -----------------------------------------
--- Copyright (c) 2018 Icinga Development Team (https://www.icinga.com)
+-- Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 --
 -- Please check https://docs.icinga.com for upgrading information!
 -- -----------------------------------------

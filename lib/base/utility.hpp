@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef UTILITY_H
 #define UTILITY_H
@@ -69,6 +52,8 @@ public:
 	static String DirName(const String& path);
 	static String BaseName(const String& path);
 
+	static String GetEnv(const String& key);
+
 	static void NullDeleter(void *);
 
 	static double GetTime();
@@ -115,6 +100,7 @@ public:
 
 	static unsigned long SDBM(const String& str, size_t len = String::NPos);
 
+	static String ParseVersion(const String& v);
 	static int CompareVersion(const String& v1, const String& v2);
 
 	static int Random();
@@ -126,8 +112,10 @@ public:
 
 	static bool PathExists(const String& path);
 
+	static void Remove(const String& path);
 	static void RemoveDirRecursive(const String& path);
 	static void CopyFile(const String& source, const String& target);
+	static void RenameFile(const String& source, const String& target);
 
 	static Value LoadJsonFile(const String& path);
 	static void SaveJsonFile(const String& path, int mode, const Value& value);
@@ -149,6 +137,8 @@ public:
 
 	static String GetFromEnvironment(const String& env);
 
+	static bool ComparePasswords(const String& enteredPassword, const String& actualPassword);
+
 #ifdef I2_DEBUG
 	static void SetTime(double);
 	static void IncrementTime(double);
@@ -156,7 +146,6 @@ public:
 
 private:
 	Utility();
-	static void CollectPaths(const String& path, std::vector<String>& paths);
 
 #ifdef _WIN32
 	static int MksTemp (char *tmpl);

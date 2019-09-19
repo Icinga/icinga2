@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
@@ -56,7 +39,7 @@ void ApiListener::ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, con
 Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	Log(LogNotice, "ApiListener")
-		<< "Received update for object: " << JsonEncode(params);
+		<< "Received config update for object: " << JsonEncode(params);
 
 	/* check permissions */
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -69,26 +52,32 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
+	String identity = origin->FromClient->GetIdentity();
+
 	/* discard messages if the client is not configured on this node */
 	if (!endpoint) {
 		Log(LogNotice, "ApiListener")
-			<< "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+			<< "Discarding 'config update object' message from '" << identity << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
 
+	Zone::Ptr endpointZone = endpoint->GetZone();
+
 	/* discard messages if the sender is in a child zone */
-	if (!Zone::GetLocalZone()->IsChildOf(endpoint->GetZone())) {
+	if (!Zone::GetLocalZone()->IsChildOf(endpointZone)) {
 		Log(LogNotice, "ApiListener")
-			<< "Discarding 'config update object' message from '"
-			<< origin->FromClient->GetIdentity() << "' for object '"
-			<< objName << "' of type '" << objType << "'. Sender is in a child zone.";
+			<< "Discarding 'config update object' message"
+			<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName() << "')"
+			<< " for object '" << objName << "' of type '" << objType << "'. Sender is in a child zone.";
 		return Empty;
 	}
 
 	/* ignore messages if the endpoint does not accept config */
 	if (!listener->GetAcceptConfig()) {
 		Log(LogWarning, "ApiListener")
-			<< "Ignoring config update from '" << origin->FromClient->GetIdentity() << "' for object '" << objName << "' of type '" << objType << "'. '" << listener->GetName() << "' does not accept config.";
+			<< "Ignoring config update"
+			<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName() << "')"
+			<< " for object '" << objName << "' of type '" << objType << "'. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
 
@@ -99,6 +88,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	auto *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
 	if (!ctype) {
+		// This never happens with icinga cluster endpoints, only with development errors.
 		Log(LogCritical, "ApiListener")
 			<< "Config type '" << objType << "' does not exist.";
 		return Empty;
@@ -116,7 +106,11 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 		/* object does not exist, create it through the API */
 		Array::Ptr errors = new Array();
 
-		if (!ConfigObjectUtility::CreateObject(ptype, objName, config, errors, nullptr)) {
+		/*
+		 * Create the config object through our internal API.
+		 * IMPORTANT: Pass the origin to prevent cluster sync loops.
+		 */
+		if (!ConfigObjectUtility::CreateObject(ptype, objName, config, errors, nullptr, origin)) {
 			Log(LogCritical, "ApiListener")
 				<< "Could not create object '" << objName << "':";
 
@@ -143,7 +137,9 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	/* update object attributes if version was changed or if this is a new object */
 	if (newObject || objVersion <= object->GetVersion()) {
 		Log(LogNotice, "ApiListener")
-			<< "Discarding config update for object '" << object->GetName()
+			<< "Discarding config update"
+			<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName() << "')"
+			<< " for object '" << object->GetName()
 			<< "': Object version " << std::fixed << object->GetVersion()
 			<< " is more recent than the received version " << std::fixed << objVersion << ".";
 
@@ -151,7 +147,9 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	}
 
 	Log(LogNotice, "ApiListener")
-		<< "Processing config update for object '" << object->GetName()
+		<< "Processing config update"
+		<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName() << "')"
+		<< " for object '" << object->GetName()
 		<< "': Object version " << object->GetVersion()
 		<< " is older than the received version " << objVersion << ".";
 
@@ -199,7 +197,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	Log(LogNotice, "ApiListener")
-		<< "Received update for object: " << JsonEncode(params);
+		<< "Received config delete for object: " << JsonEncode(params);
 
 	/* check permissions */
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -207,55 +205,75 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 	if (!listener)
 		return Empty;
 
-	if (!listener->GetAcceptConfig()) {
-		Log(LogWarning, "ApiListener")
-			<< "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
-		return Empty;
-	}
+	String objType = params->Get("type");
+	String objName = params->Get("name");
 
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
+	String identity = origin->FromClient->GetIdentity();
+
 	if (!endpoint) {
 		Log(LogNotice, "ApiListener")
-			<< "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+			<< "Discarding 'config delete object' message from '" << identity << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
 
+	Zone::Ptr endpointZone = endpoint->GetZone();
+
 	/* discard messages if the sender is in a child zone */
-	if (!Zone::GetLocalZone()->IsChildOf(endpoint->GetZone())) {
+	if (!Zone::GetLocalZone()->IsChildOf(endpointZone)) {
+		Log(LogNotice, "ApiListener")
+			<< "Discarding 'config delete object' message"
+			<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName() << "')"
+			<< " for object '" << objName << "' of type '" << objType << "'. Sender is in a child zone.";
+		return Empty;
+	}
+
+	if (!listener->GetAcceptConfig()) {
 		Log(LogWarning, "ApiListener")
-			<< "Discarding 'config update object' message from '"
-			<< origin->FromClient->GetIdentity() << "'.";
+			<< "Ignoring config delete"
+			<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName() << "')"
+			<< " for object '" << objName << "' of type '" << objType << "'. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
 
 	/* delete the object */
-	Type::Ptr ptype = Type::GetByName(params->Get("type"));
+	Type::Ptr ptype = Type::GetByName(objType);
 	auto *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
 	if (!ctype) {
+		// This never happens with icinga cluster endpoints, only with development errors.
 		Log(LogCritical, "ApiListener")
-			<< "Config type '" << params->Get("type") << "' does not exist.";
+			<< "Config type '" << objType << "' does not exist.";
 		return Empty;
 	}
 
-	ConfigObject::Ptr object = ctype->GetObject(params->Get("name"));
+	ConfigObject::Ptr object = ctype->GetObject(objName);
 
 	if (!object) {
 		Log(LogNotice, "ApiListener")
-			<< "Could not delete non-existent object '" << params->Get("name") << "' with type '" << params->Get("type") << "'.";
+			<< "Could not delete non-existent object '" << objName << "' with type '" << params->Get("type") << "'.";
 		return Empty;
 	}
 
 	if (object->GetPackage() != "_api") {
 		Log(LogCritical, "ApiListener")
-			<< "Could not delete object '" << object->GetName() << "': Not created by the API.";
+			<< "Could not delete object '" << objName << "': Not created by the API.";
 		return Empty;
 	}
 
+	Log(LogNotice, "ApiListener")
+		<< "Processing config delete"
+		<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName() << "')"
+		<< " for object '" << object->GetName() << "'.";
+
 	Array::Ptr errors = new Array();
 
-	if (!ConfigObjectUtility::DeleteObject(object, true, errors, nullptr)) {
+	/*
+	 * Delete the config object through our internal API.
+	 * IMPORTANT: Pass the origin to prevent cluster sync loops.
+	 */
+	if (!ConfigObjectUtility::DeleteObject(object, true, errors, nullptr, origin)) {
 		Log(LogCritical, "ApiListener", "Could not delete object:");
 
 		ObjectLock olock(errors);
@@ -299,7 +317,15 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 	params->Set("version", object->GetVersion());
 
 	if (object->GetPackage() == "_api") {
-		String file = ConfigObjectUtility::GetObjectConfigPath(object->GetReflectionType(), object->GetName());
+		String file;
+
+		try {
+			file = ConfigObjectUtility::GetObjectConfigPath(object->GetReflectionType(), object->GetName());
+		} catch (const std::exception& ex) {
+			Log(LogNotice, "ApiListener")
+				<< "Cannot sync object '" << object->GetName() << "': " << ex.what();
+			return;
+		}
 
 		std::ifstream fp(file.CStr(), std::ifstream::binary);
 		if (!fp)
@@ -340,7 +366,7 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 #endif /* I2_DEBUG */
 
 	if (client)
-		JsonRpc::SendMessage(client->GetStream(), message);
+		client->SendMessage(message);
 	else {
 		Zone::Ptr target = static_pointer_cast<Zone>(object->GetZone());
 
@@ -390,7 +416,7 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 #endif /* I2_DEBUG */
 
 	if (client)
-		JsonRpc::SendMessage(client->GetStream(), message);
+		client->SendMessage(message);
 	else {
 		Zone::Ptr target = static_pointer_cast<Zone>(object->GetZone());
 

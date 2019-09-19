@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "plugins/thresholds.hpp"
 #include <boost/program_options.hpp>
@@ -33,11 +16,11 @@ namespace po = boost::program_options;
 
 struct printInfoStruct
 {
-	bool warn{false};
-	bool crit{false};
+	int warn{0};
+	int crit{0};
 	LONG numUpdates{0};
-	bool important{false};
-	bool reboot{false};
+	bool ignoreReboot{false};
+	int reboot{0};
 	bool careForCanRequest{false};
 };
 
@@ -55,9 +38,10 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 		("help,h", "Print help message and exit")
 		("version,V", "Print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("warning,w", "Warn if there are important updates available")
-		("critical,c", "Critical if there are important updates that require a reboot")
+		("warning,w", po::value<int>(), "Number of updates to trigger a warning.")
+		("critical,c", po::value<int>(), "Number of updates to trigger a critical.")
 		("possible-reboot", "Treat \"update may need reboot\" as \"update needs reboot\"")
+		("no-reboot-critical", "Do not automatically return critical if an update requiring reboot is present.")
 		;
 
 	po::wcommand_line_parser parser(ac, av);
@@ -87,36 +71,37 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			L"\nAfter some time, it will then output a string like this one:\n\n"
 			L"\tUPDATE WARNING 8 | updates=8;1;1;0\n\n"
 			L"\"UPDATE\" being the type of the check, \"WARNING\" the returned status\n"
-			L"and \"8\" is the number of important updates updates.\n"
+			L"and \"8\" is the number of important updates.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
-			L"if applicable, the maximal value. Performance data will only be displayed when\n"
-			L"you set at least one threshold\n\n"
+			L"if applicable, the maximal value.\n\n"
 			L"An update counts as important when it is part of the Security- or\n"
 			L"CriticalUpdates group.\n"
 			L"Consult the msdn on WSUS Classification GUIDs for more information.\n"
 			L"%s' exit codes denote the following:\n"
 			L" 0\tOK,\n\tNo Thresholds were broken or the programs check part was not executed\n"
 			L" 1\tWARNING,\n\tThe warning, but not the critical threshold was broken\n"
-			L" 2\tCRITICAL,\n\tThe critical threshold was broken\n"
+			L" 2\tCRITICAL,\n\tThe critical threshold was broken or an update required reboot.\n"
 			L" 3\tUNKNOWN, \n\tThe program experienced an internal or input error\n\n"
-			L"%s works different from other plugins in that you do not set thresholds\n"
-			L"but only activate them. Using \"-w\" triggers warning state if there are not\n"
-			L"installed and non-optional updates. \"-c\" triggers critical if there are\n"
-			L"non-optional updates that require a reboot.\n"
+			L"If a warning threshold is set but not a critical threshold, the critical\n"
+			L"threshold will be set to one greater than the set warning threshold.\n\n"
 			L"The \"possible-reboot\" option is not recommended since this true for nearly\n"
 			L"every update."
-			, progName, progName);
+			, progName);
 		std::cout << '\n';
 		return 0;
 	} if (vm.count("version")) {
 		std::cout << "Version: " << VERSION << '\n';
 		return 0;
 	}
-
-	printInfo.warn = vm.count("warning") > 0;
-	printInfo.crit = vm.count("critical") > 0;
+	if(vm.count("warning"))
+		printInfo.warn = vm["warning"].as<int>();
+	if (vm.count("critical"))
+		printInfo.crit = vm["critical"].as<int>();
+	else if (vm.count("warning"))
+		printInfo.crit = printInfo.warn + 1;
 	printInfo.careForCanRequest = vm.count("possible-reboot") > 0;
+	printInfo.ignoreReboot = vm.count("no-reboot-critical") > 0;
 
 	l_Debug = vm.count("debug") > 0;
 
@@ -131,10 +116,10 @@ static int printOutput(const printInfoStruct& printInfo)
 	state state = OK;
 	std::wstring output = L"UPDATE ";
 
-	if (printInfo.important)
+	if (printInfo.numUpdates >= printInfo.warn && printInfo.warn)
 		state = WARNING;
 
-	if (printInfo.reboot)
+	if ((printInfo.reboot && !printInfo.ignoreReboot) || (printInfo.numUpdates >= printInfo.crit && printInfo.crit))
 		state = CRITICAL;
 
 	switch (state) {
@@ -148,8 +133,13 @@ static int printOutput(const printInfoStruct& printInfo)
 		output.append(L"CRITICAL ");
 		break;
 	}
-
-	std::wcout << output << printInfo.numUpdates << L" | update=" << printInfo.numUpdates << L";"
+	output.append(std::to_wstring(printInfo.numUpdates));
+	if (printInfo.reboot) {
+		output.append(L"; ");
+		output.append(std::to_wstring(printInfo.reboot));
+		output.append(L" NEED REBOOT ");
+	}
+	std::wcout << output << L" | 'update'=" << printInfo.numUpdates << L";"
 		<< printInfo.warn << L";" << printInfo.crit << L";0;" << '\n';
 
 	return state;
@@ -214,15 +204,16 @@ static int check_update(printInfoStruct& printInfo)
 		pUpdate->get_InstallationBehavior(&pIbehav);
 		pIbehav->get_RebootBehavior(&updateReboot);
 		if (updateReboot == irbAlwaysRequiresReboot) {
-			printInfo.reboot = true;
+			printInfo.reboot++;
 			if (l_Debug)
 				std::wcout << L"It requires reboot" << '\n';
 			continue;
 		}
-		if (printInfo.careForCanRequest && updateReboot == irbCanRequestReboot)
+		if (printInfo.careForCanRequest && updateReboot == irbCanRequestReboot) {
 			if (l_Debug)
 				std::wcout << L"It requires reboot" << '\n';
-		printInfo.reboot = true;
+			printInfo.reboot++;
+		}
 	}
 
 	if (l_Debug)

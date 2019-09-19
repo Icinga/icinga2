@@ -1,27 +1,11 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/configfileshandler.hpp"
 #include "remote/configpackageutility.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <fstream>
 
@@ -29,12 +13,23 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/files", ConfigFilesHandler);
 
-bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool ConfigFilesHandler::HandleRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	HttpServerConnection& server
+)
 {
-	if (request.RequestMethod != "GET")
+	namespace http = boost::beast::http;
+
+	if (request.method() != http::verb::get)
 		return false;
 
-	const std::vector<String>& urlPath = request.RequestUrl->GetPath();
+	const std::vector<String>& urlPath = url->GetPath();
 
 	if (urlPath.size() >= 4)
 		params->Set("package", urlPath[3]);
@@ -47,7 +42,7 @@ bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		params->Set("path", boost::algorithm::join(tmpPath, "/"));
 	}
 
-	if (request.Headers->Get("accept") == "application/json") {
+	if (request[http::field::accept] == "application/json") {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid Accept header. Either remove the Accept header or set it to 'application/octet-stream'.");
 		return true;
 	}
@@ -86,9 +81,10 @@ bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		fp.exceptions(std::ifstream::badbit);
 
 		String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
-		response.SetStatus(200, "OK");
-		response.AddHeader("Content-Type", "application/octet-stream");
-		response.WriteBody(content.CStr(), content.GetLength());
+		response.result(http::status::ok);
+		response.set(http::field::content_type, "application/octet-stream");
+		response.body() = content;
+		response.set(http::field::content_length, response.body().size());
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 500, "Could not read file.",
 			DiagnosticInformation(ex));

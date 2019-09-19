@@ -36,15 +36,21 @@ FIND_PATH(MYSQL_INCLUDE_DIR mysql.h
   $ENV{MYSQL_DIR}/include
   /usr/include/mysql
   /usr/local/include/mysql
+  /usr/include/mariadb
+  /usr/local/include/mariadb
   /opt/mysql/mysql/include
   /opt/mysql/mysql/include/mysql
   /opt/mysql/include
+  /opt/mariadb/include/mysql
   /opt/local/include/mysql5
   /usr/local/mysql/include
   /usr/local/mysql/include/mysql
   ${_macports_include_dirs}
   $ENV{ProgramFiles}/MySQL/*/include
-  $ENV{SystemDrive}/MySQL/*/include)
+  $ENV{SystemDrive}/MySQL/*/include
+  $ENV{ProgramFiles}/MariaDB*/include/mysql
+  $ENV{SystemDrive}/MariaDB*/include/mysql
+)
 
 UNSET(_macports_include_dirs)
 

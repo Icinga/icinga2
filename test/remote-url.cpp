@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/array.hpp"
 #include "remote/url.hpp"
@@ -53,31 +36,50 @@ BOOST_AUTO_TEST_CASE(get_and_set)
 
 	BOOST_CHECK(url->Format(false, true) == "ftp://Horst:Seehofer@koenigreich.bayern:1918/path/to/m%C3%BCnchen");
 
-	std::map<String, std::vector<String> > m;
-	std::vector<String> v1 { "hip", "hip", "hurra" };
-	std::vector<String> v2 { "äü^ä+#ül-" };
-	std::vector<String> v3 { "1", "2" };
-	m.insert(std::make_pair("shout", v1));
-	m.insert(std::make_pair("sonderzeichen", v2));
-	url->SetQuery(m);
-	url->SetQueryElements("count", v3);
+	url->SetQuery({
+		{"shout", "hip"},
+		{"shout", "hip"},
+		{"shout", "hurra"},
+		{"sonderzeichen", "äü^ä+#ül-"}
+	});
 	url->AddQueryElement("count", "3");
 
-	std::map<String, std::vector<String> > mn = url->GetQuery();
-	BOOST_CHECK(mn["shout"][0] == v1[0]);
-	BOOST_CHECK(mn["sonderzeichen"][0] == v2[0]);
-	BOOST_CHECK(mn["count"][2] == "3");
+	auto mn (url->GetQuery());
+
+	BOOST_CHECK(mn.size() == 5);
+
+	BOOST_CHECK(mn[0].first == "shout");
+	BOOST_CHECK(mn[0].second == "hip");
+
+	BOOST_CHECK(mn[1].first == "shout");
+	BOOST_CHECK(mn[1].second == "hip");
+
+	BOOST_CHECK(mn[2].first == "shout");
+	BOOST_CHECK(mn[2].second == "hurra");
+
+	BOOST_CHECK(mn[3].first == "sonderzeichen");
+	BOOST_CHECK(mn[3].second == "äü^ä+#ül-");
+
+	BOOST_CHECK(mn[4].first == "count");
+	BOOST_CHECK(mn[4].second == "3");
 }
 
 BOOST_AUTO_TEST_CASE(parameters)
 {
-	Url::Ptr url = new Url("https://icinga.com/hya/?rain=karl&rair=robert&foo[]=bar");
+	Url::Ptr url = new Url("https://icinga.com/hya/?rair=robert&rain=karl&foo[]=bar");
 
-	BOOST_CHECK(url->GetQueryElement("rair") == "robert");
-	BOOST_CHECK(url->GetQueryElement("rain") == "karl");
-	std::vector<String> test = url->GetQueryElements("foo");
-	BOOST_CHECK(test.size() == 1);
-	BOOST_CHECK(test[0] == "bar");
+	auto query (url->GetQuery());
+
+	BOOST_CHECK(query.size() == 3);
+
+	BOOST_CHECK(query[0].first == "rair");
+	BOOST_CHECK(query[0].second == "robert");
+
+	BOOST_CHECK(query[1].first == "rain");
+	BOOST_CHECK(query[1].second == "karl");
+
+	BOOST_CHECK(query[2].first == "foo");
+	BOOST_CHECK(query[2].second == "bar");
 }
 
 BOOST_AUTO_TEST_CASE(format)

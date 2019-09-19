@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -120,11 +103,6 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			L"warn is VALUE is inside the range spanned by THR1 and THR2\n\n"
 			L"-w ![THR1-THR2]\n"
 			L"warn if VALUE is outside the range spanned by THR1 and THR2\n\n"
-			L"-w THRESHOLD%%\n"
-			L"if the plugin accepts percentage based thresholds those will be used.\n"
-			L"Does nothing if the plugin does not accept percentages, or only uses\n"
-			L"percentage thresholds. Ranges can be used with \"%%\", but both range values need\n"
-			L"to end with a percentage sign.\n\n"
 			L"All of these options work with the critical threshold \"-c\" too."
 			, progName);
 		std::cout << '\n';
@@ -190,7 +168,7 @@ static int printOutput(printInfoStruct& printInfo, const std::vector<nInterface>
 			continue;
 		} else {
 			boost::algorithm::replace_all(wsFriendlyName, "'", "''");
-			tss << L"\'" << wsFriendlyName << L"_in\'=" << it->BytesInSec << L"B \'" << wsFriendlyName << L"_out\'=" << it->BytesOutSec << L"B ";
+			tss << L"'" << wsFriendlyName << L"_in'=" << it->BytesInSec << L"B '" << wsFriendlyName << L"_out'=" << it->BytesOutSec << L"B ";
 		}
 	}
 
@@ -214,7 +192,8 @@ static int printOutput(printInfoStruct& printInfo, const std::vector<nInterface>
 	}
 
 	std::wcout << " " << tIn + tOut << L"B/s | "
-		<< L"network=" << tIn + tOut << L"B;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; "
+		<< L"'network'=" << tIn + tOut << L"B;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; "
+		<< L"'network_in'=" << tIn << L"B 'network_out'=" << tOut << L"B "
 		<< tss.str() << '\n';
 
 	return state;

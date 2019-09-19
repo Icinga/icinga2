@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
@@ -58,7 +41,7 @@ public:
 
 	Value Get(const String& key) const;
 	bool Get(const String& key, Value *result) const;
-	void Set(const String& key, Value value);
+	void Set(const String& key, Value value, bool overrideFrozen = false);
 	bool Contains(const String& key) const;
 
 	Iterator Begin();
@@ -66,11 +49,11 @@ public:
 
 	size_t GetLength() const;
 
-	void Remove(const String& key);
+	void Remove(const String& key, bool overrideFrozen = false);
 
-	void Remove(Iterator it);
+	void Remove(Iterator it, bool overrideFrozen = false);
 
-	void Clear();
+	void Clear(bool overrideFrozen = false);
 
 	void CopyTo(const Dictionary::Ptr& dest) const;
 	Dictionary::Ptr ShallowClone() const;
@@ -86,7 +69,7 @@ public:
 	void Freeze();
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
-	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
+	void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
 	bool HasOwnField(const String& field) const override;
 	bool GetOwnField(const String& field, Value *result) const override;
 

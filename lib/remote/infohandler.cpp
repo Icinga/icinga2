@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/infohandler.hpp"
 #include "remote/httputility.hpp"
@@ -25,24 +8,35 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/", InfoHandler);
 
-bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool InfoHandler::HandleRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	HttpServerConnection& server
+)
 {
-	if (request.RequestUrl->GetPath().size() > 2)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() > 2)
 		return false;
 
-	if (request.RequestMethod != "GET")
+	if (request.method() != http::verb::get)
 		return false;
 
-	if (request.RequestUrl->GetPath().empty()) {
-		response.SetStatus(302, "Found");
-		response.AddHeader("Location", "/v1");
+	if (url->GetPath().empty()) {
+		response.result(http::status::found);
+		response.set(http::field::location, "/v1");
 		return true;
 	}
 
-	if (request.RequestUrl->GetPath()[0] != "v1" || request.RequestUrl->GetPath().size() != 1)
+	if (url->GetPath()[0] != "v1" || url->GetPath().size() != 1)
 		return false;
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 
 	std::vector<String> permInfo;
 	Array::Ptr permissions = user->GetPermissions();
@@ -66,12 +60,12 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 		}
 	}
 
-	if (request.Headers->Get("accept") == "application/json") {
+	if (request[http::field::accept] == "application/json") {
 		Dictionary::Ptr result1 = new Dictionary({
 			{ "user", user->GetName() },
 			{ "permissions", Array::FromVector(permInfo) },
 			{ "version", Application::GetAppVersion() },
-			{ "info", "More information about API requests is available in the documentation at https://docs.icinga.com/icinga2/latest." }
+			{ "info", "More information about API requests is available in the documentation at https://icinga.com/docs/icinga2/latest/" }
 		});
 
 		Dictionary::Ptr result = new Dictionary({
@@ -80,7 +74,7 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 
 		HttpUtility::SendJsonBody(response, params, result);
 	} else {
-		response.AddHeader("Content-Type", "text/html");
+		response.set(http::field::content_type, "text/html");
 
 		String body = "<html><head><title>Icinga 2</title></head><h1>Hello from Icinga 2 (Version: " + Application::GetAppVersion() + ")!</h1>";
 		body += "<p>You are authenticated as <b>" + user->GetName() + "</b>. ";
@@ -96,8 +90,9 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 		} else
 			body += "Your user does not have any permissions.</p>";
 
-		body += R"(<p>More information about API requests is available in the <a href="https://docs.icinga.com/icinga2/latest" target="_blank">documentation</a>.</p></html>)";
-		response.WriteBody(body.CStr(), body.GetLength());
+		body += R"(<p>More information about API requests is available in the <a href="https://icinga.com/docs/icinga2/latest/" target="_blank">documentation</a>.</p></html>)";
+		response.body() = body;
+		response.set(http::field::content_length, response.body().size());
 	}
 
 	return true;

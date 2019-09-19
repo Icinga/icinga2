@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/jsonrpcconnection.hpp"
 #include "remote/apilistener.hpp"
@@ -30,6 +13,8 @@
 #include <boost/thread/once.hpp>
 #include <boost/regex.hpp>
 #include <fstream>
+#include <openssl/ssl.h>
+#include <openssl/x509.h>
 
 using namespace icinga;
 
@@ -47,10 +32,21 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	Dictionary::Ptr result = new Dictionary();
 
 	/* Use the presented client certificate if not provided. */
-	if (certText.IsEmpty())
-		cert = origin->FromClient->GetStream()->GetPeerCertificate();
-	else
+	if (certText.IsEmpty()) {
+		auto stream (origin->FromClient->GetStream());
+		cert = stream->next_layer().GetPeerCertificate();
+	} else {
 		cert = StringToCertificate(certText);
+	}
+
+	if (!cert) {
+		Log(LogWarning, "JsonRpcConnection") << "No certificate or CSR received";
+
+		result->Set("status_code", 1);
+		result->Set("error", "No certificate or CSR received.");
+
+		return result;
+	}
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	std::shared_ptr<X509> cacert = GetX509Certificate(listener->GetDefaultCaPath());
@@ -129,10 +125,16 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 				{ "method", "pki::UpdateCertificate" },
 				{ "params", result }
 			});
-			JsonRpc::SendMessage(client->GetStream(), message);
+			client->SendMessage(message);
 
 			return result;
 		}
+	} else if (Utility::PathExists(requestDir + "/" + certFingerprint + ".removed")) {
+		Log(LogInformation, "JsonRpcConnection")
+			<< "Certificate for CN " << cn << " has been removed. Ignoring signing request.";
+		result->Set("status_code", 1);
+		result->Set("error", "Ticket for CN " + cn + " declined by administrator.");
+		return result;
 	}
 
 	std::shared_ptr<X509> newcert;
@@ -152,13 +154,31 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 		ticket = params->Get("ticket");
 
-		/* Auto-signing is disabled by either a) no TicketSalt
-		 * or b) the client did not include a ticket in its request.
-		 */
-		if (salt.IsEmpty() || ticket.IsEmpty())
+		// Auto-signing is disabled: Client did not include a ticket in its request.
+		if (ticket.IsEmpty()) {
+			Log(LogNotice, "JsonRpcConnection")
+				<< "Certificate request for CN '" << cn
+				<< "': No ticket included, skipping auto-signing and waiting for on-demand signing approval.";
+
 			goto delayed_request;
+		}
+
+		// Auto-signing is disabled: no TicketSalt
+		if (salt.IsEmpty()) {
+			Log(LogNotice, "JsonRpcConnection")
+				<< "Certificate request for CN '" << cn
+				<< "': This instance is the signing master for the Icinga CA."
+				<< " The 'ticket_salt' attribute in the 'api' feature is not set."
+				<< " Not signing the request. Please check the docs.";
+
+			goto delayed_request;
+		}
 
 		String realTicket = PBKDF2_SHA1(cn, salt, 50000);
+
+		Log(LogDebug, "JsonRpcConnection")
+			<< "Certificate request for CN '" << cn << "': Comparing received ticket '"
+			<< ticket << "' with calculated ticket '" << realTicket << "'.";
 
 		if (ticket != realTicket) {
 			Log(LogWarning, "JsonRpcConnection")
@@ -200,7 +220,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		{ "method", "pki::UpdateCertificate" },
 		{ "params", result }
 	});
-	JsonRpc::SendMessage(client->GetStream(), message);
+	client->SendMessage(message);
 
 	return result;
 
@@ -263,7 +283,7 @@ void JsonRpcConnection::SendCertificateRequest(const JsonRpcConnection::Ptr& acl
 	 * or b) the local zone and all parents.
 	 */
 	if (aclient)
-		JsonRpc::SendMessage(aclient->GetStream(), message);
+		aclient->SendMessage(message);
 	else
 		listener->RelayMessage(origin, Zone::GetLocalZone(), message, false);
 }
@@ -338,16 +358,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	cafp << ca;
 	cafp.close();
 
-#ifdef _WIN32
-	_unlink(caPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempCaPath.CStr(), caPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempCaPath));
-	}
+	Utility::RenameFile(tempCaPath, caPath);
 
 	/* Update signed certificate. */
 	String certPath = listener->GetDefaultCertPath();
@@ -360,26 +371,12 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	certfp << cert;
 	certfp.close();
 
-#ifdef _WIN32
-	_unlink(certPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempCertPath.CStr(), certPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempCertPath));
-	}
+	Utility::RenameFile(tempCertPath, certPath);
 
 	/* Remove ticket for successful signing request. */
 	String ticketPath = ApiListener::GetCertsDir() + "/ticket";
 
-	if (unlink(ticketPath.CStr()) < 0 && errno != ENOENT) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("unlink")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(ticketPath));
-	}
+	Utility::Remove(ticketPath);
 
 	/* Update the certificates at runtime and reconnect all endpoints. */
 	Log(LogInformation, "JsonRpcConnection")

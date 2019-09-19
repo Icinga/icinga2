@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/nodesetupcommand.hpp"
 #include "cli/nodeutility.hpp"
@@ -88,7 +71,7 @@ std::vector<String> NodeSetupCommand::GetArgumentSuggestions(const String& argum
 
 ImpersonationLevel NodeSetupCommand::GetImpersonationLevel() const
 {
-	return ImpersonateRoot;
+	return ImpersonateIcinga;
 }
 
 /**
@@ -120,12 +103,6 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 
 	if (vm.count("trustedcert"))
 		Log(LogWarning, "cli", "Master for Node setup: Ignoring --trustedcert");
-
-	if (vm.count("accept-config"))
-		Log(LogWarning, "cli", "Master for Node setup: Ignoring --accept-config");
-
-	if (vm.count("accept-commands"))
-		Log(LogWarning, "cli", "Master for Node setup: Ignoring --accept-commands");
 
 	String cn = Utility::GetFQDN();
 
@@ -176,7 +153,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	if (vm.count("global_zones"))
 		setupGlobalZones = vm["global_zones"].as<std::vector<std::string> >();
 
-	for (int i = 0; i < setupGlobalZones.size(); i++) {
+	for (decltype(setupGlobalZones.size()) i = 0; i < setupGlobalZones.size(); i++) {
 		if (std::find(globalZones.begin(), globalZones.end(), setupGlobalZones[i]) != globalZones.end()) {
 			Log(LogCritical, "cli")
 				<< "The global zone '" << setupGlobalZones[i] << "' is already specified.";
@@ -212,31 +189,34 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 			fp << "  bind_port = " << tokens[1] << "\n";
 	}
 
+	fp << "\n";
+
+	if (vm.count("accept-config"))
+		fp << "  accept_config = true\n";
+	else
+		fp << "  accept_config = false\n";
+
+	if (vm.count("accept-commands"))
+		fp << "  accept_commands = true\n";
+	else
+		fp << "  accept_commands = false\n";
+
 	fp << "\n"
 		<< "  ticket_salt = TicketSalt\n"
 		<< "}\n";
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(apipath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempApiPath.CStr(), apipath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempApiPath));
-	}
+	Utility::RenameFile(tempApiPath, apipath);
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
-	if (cn != Utility::GetFQDN()) {
+	if (endpointName != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
-			<< "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
+			<< "CN/Endpoint name '" <<  endpointName << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 	}
 
-	NodeUtility::UpdateConstant("NodeName", cn);
-	NodeUtility::UpdateConstant("ZoneName", cn);
+	NodeUtility::UpdateConstant("NodeName", endpointName);
+	NodeUtility::UpdateConstant("ZoneName", zoneName);
 
 	String salt = RandomString(16);
 
@@ -262,7 +242,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 			NodeUtility::UpdateConfiguration("\"conf.d/api-users.conf\"", true, false);
 		} else {
 			Log(LogWarning, "cli")
-				<< "Included file dosen't exist " << apiUsersFilePath;
+				<< "Included file doesn't exist " << apiUsersFilePath;
 		}
 	}
 
@@ -353,8 +333,8 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	String certsDir = ApiListener::GetCertsDir();
 	Utility::MkDirP(certsDir, 0700);
 
-	String user = ScriptGlobal::Get("RunAsUser");
-	String group = ScriptGlobal::Get("RunAsGroup");
+	String user = Configuration::RunAsUser;
+	String group = Configuration::RunAsGroup;
 
 	if (!Utility::SetFileOwnership(certsDir, user, group)) {
 		Log(LogWarning, "cli")
@@ -410,7 +390,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	} else {
 		/* We cannot retrieve the parent certificate.
 		 * Tell the user to manually copy the ca.crt file
-		 * into LocalStateDir + "/lib/icinga2/certs"
+		 * into DataDir + "/certs"
 		 */
 		Log(LogWarning, "cli")
 			<< "\nNo connection to the parent node was specified.\n\n"
@@ -483,17 +463,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(apipath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempApiPath.CStr(), apipath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempApiPath));
-	}
-
+	Utility::RenameFile(tempApiPath, apipath);
 
 	/* Generate zones configuration. */
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
@@ -516,7 +486,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	if (vm.count("global_zones"))
 		setupGlobalZones = vm["global_zones"].as<std::vector<std::string> >();
 
-	for (int i = 0; i < setupGlobalZones.size(); i++) {
+	for (decltype(setupGlobalZones.size()) i = 0; i < setupGlobalZones.size(); i++) {
 		if (std::find(globalZones.begin(), globalZones.end(), setupGlobalZones[i]) != globalZones.end()) {
 			Log(LogCritical, "cli")
 				<< "The global zone '" << setupGlobalZones[i] << "' is already specified.";
@@ -530,13 +500,14 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	NodeUtility::GenerateNodeIcingaConfig(endpointName, zoneName, parentZoneName, vm["endpoint"].as<std::vector<std::string> >(), globalZones);
 
 	/* update constants.conf with NodeName = CN */
-	if (cn != Utility::GetFQDN()) {
+	if (endpointName != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
-			<< "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
+			<< "CN/Endpoint name '" << endpointName << "' does not match the default FQDN '"
+			<< Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
 	}
 
-	NodeUtility::UpdateConstant("NodeName", cn);
-	NodeUtility::UpdateConstant("ZoneName", vm["zone"].as<std::string>());
+	NodeUtility::UpdateConstant("NodeName", endpointName);
+	NodeUtility::UpdateConstant("ZoneName", zoneName);
 
 	if (!ticket.IsEmpty()) {
 		String ticketPath = ApiListener::GetCertsDir() + "/ticket";
@@ -554,16 +525,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 		fp.close();
 
-#ifdef _WIN32
-		_unlink(ticketPath.CStr());
-#endif /* _WIN32 */
-
-		if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("rename")
-				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(tempTicketPath));
-		}
+		Utility::RenameFile(tempTicketPath, ticketPath);
 	}
 
 	/* If no parent connection was made, the user must supply the ca.crt before restarting Icinga 2.*/

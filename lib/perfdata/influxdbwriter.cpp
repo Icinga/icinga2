@@ -1,31 +1,15 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "perfdata/influxdbwriter.hpp"
 #include "perfdata/influxdbwriter-ti.cpp"
 #include "remote/url.hpp"
-#include "remote/httprequest.hpp"
-#include "remote/httpresponse.hpp"
 #include "icinga/service.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/checkcommand.hpp"
+#include "base/application.hpp"
+#include "base/defer.hpp"
+#include "base/io-engine.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
@@ -41,9 +25,21 @@
 #include "base/tlsutility.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/asio/ssl/context.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/http/field.hpp>
+#include <boost/beast/http/message.hpp>
+#include <boost/beast/http/parser.hpp>
+#include <boost/beast/http/read.hpp>
+#include <boost/beast/http/status.hpp>
+#include <boost/beast/http/string_body.hpp>
+#include <boost/beast/http/verb.hpp>
+#include <boost/beast/http/write.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex.hpp>
 #include <boost/scoped_array.hpp>
+#include <memory>
+#include <string>
 #include <utility>
 
 using namespace icinga;
@@ -75,6 +71,15 @@ void InfluxdbWriter::OnConfigLoaded()
 	ObjectImpl<InfluxdbWriter>::OnConfigLoaded();
 
 	m_WorkQueue.SetName("InfluxdbWriter, " + GetName());
+
+	if (!GetEnableHa()) {
+		Log(LogDebug, "InfluxdbWriter")
+			<< "HA functionality disabled. Won't pause connection: " << GetName();
+
+		SetHAMode(HARunEverywhere);
+	} else {
+		SetHAMode(HARunOnce);
+	}
 }
 
 void InfluxdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
@@ -100,12 +105,12 @@ void InfluxdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& 
 	status->Set("influxdbwriter", new Dictionary(std::move(nodes)));
 }
 
-void InfluxdbWriter::Start(bool runtimeCreated)
+void InfluxdbWriter::Resume()
 {
-	ObjectImpl<InfluxdbWriter>::Start(runtimeCreated);
+	ObjectImpl<InfluxdbWriter>::Resume();
 
 	Log(LogInformation, "InfluxdbWriter")
-		<< "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
 	m_WorkQueue.SetExceptionCallback(std::bind(&InfluxdbWriter::ExceptionHandler, this, _1));
@@ -121,14 +126,31 @@ void InfluxdbWriter::Start(bool runtimeCreated)
 	Checkable::OnNewCheckResult.connect(std::bind(&InfluxdbWriter::CheckResultHandler, this, _1, _2));
 }
 
-void InfluxdbWriter::Stop(bool runtimeRemoved)
+/* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
+void InfluxdbWriter::Pause()
 {
-	Log(LogInformation, "InfluxdbWriter")
-		<< "'" << GetName() << "' stopped.";
+	/* Force a flush. */
+	Log(LogDebug, "InfluxdbWriter")
+		<< "Flushing pending data buffers.";
+
+	Flush();
+
+	/* Work on the missing tasks. TODO: Find a way to cache them on disk. */
+	Log(LogDebug, "InfluxdbWriter")
+		<< "Joining existing WQ tasks.";
 
 	m_WorkQueue.Join();
 
-	ObjectImpl<InfluxdbWriter>::Stop(runtimeRemoved);
+	/* Flush again after the WQ tasks have filled the data buffer. */
+	Log(LogDebug, "InfluxdbWriter")
+		<< "Flushing data buffers from WQ tasks.";
+
+	Flush();
+
+	Log(LogInformation, "InfluxdbWriter")
+		<< "'" << GetName() << "' paused.";
+
+	ObjectImpl<InfluxdbWriter>::Pause();
 }
 
 void InfluxdbWriter::AssertOnWorkQueue()
@@ -146,48 +168,58 @@ void InfluxdbWriter::ExceptionHandler(boost::exception_ptr exp)
 	//TODO: Close the connection, if we keep it open.
 }
 
-Stream::Ptr InfluxdbWriter::Connect()
+OptionalTlsStream InfluxdbWriter::Connect()
 {
-	TcpSocket::Ptr socket = new TcpSocket();
-
 	Log(LogNotice, "InfluxdbWriter")
 		<< "Reconnecting to InfluxDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
-	try {
-		socket->Connect(GetHost(), GetPort());
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "InfluxdbWriter")
-			<< "Can't connect to InfluxDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw ex;
-	}
+	OptionalTlsStream stream;
+	bool ssl = GetSslEnable();
 
-	if (GetSslEnable()) {
-		std::shared_ptr<SSL_CTX> sslContext;
+	if (ssl) {
+		std::shared_ptr<boost::asio::ssl::context> sslContext;
+
 		try {
-			sslContext = MakeSSLContext(GetSslCert(), GetSslKey(), GetSslCaCert());
+			sslContext = MakeAsioSslContext(GetSslCert(), GetSslKey(), GetSslCaCert());
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "InfluxdbWriter")
 				<< "Unable to create SSL context.";
-			throw ex;
+			throw;
 		}
 
-		TlsStream::Ptr tlsStream = new TlsStream(socket, GetHost(), RoleClient, sslContext);
+		stream.first = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
+	} else {
+		stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoContext());
+	}
+
+	try {
+		icinga::Connect(ssl ? stream.first->lowest_layer() : stream.second->lowest_layer(), GetHost(), GetPort());
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "InfluxdbWriter")
+			<< "Can't connect to InfluxDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
+		throw;
+	}
+
+	if (ssl) {
+		auto& tlsStream (stream.first->next_layer());
+
 		try {
-			tlsStream->Handshake();
+			tlsStream.handshake(tlsStream.client);
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "InfluxdbWriter")
 				<< "TLS handshake with host '" << GetHost() << "' failed.";
-			throw ex;
+			throw;
 		}
-
-		return tlsStream;
-	} else {
-		return new NetworkStream(socket);
 	}
+
+	return std::move(stream);
 }
 
 void InfluxdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&InfluxdbWriter::CheckResultHandlerWQ, this, checkable, cr), PriorityLow);
 }
 
@@ -216,24 +248,32 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 
 	// Clone the template and perform an in-place macro expansion of measurement and tag values
 	Dictionary::Ptr tmpl_clean = service ? GetServiceTemplate() : GetHostTemplate();
-	Dictionary::Ptr tmpl = static_pointer_cast<Dictionary>(tmpl_clean->Clone());
+	Dictionary::Ptr tmpl = static_pointer_cast<Dictionary>(tmpl_clean->ShallowClone());
 	tmpl->Set("measurement", MacroProcessor::ResolveMacros(tmpl->Get("measurement"), resolvers, cr));
 
-	Dictionary::Ptr tags = tmpl->Get("tags");
-	if (tags) {
-		ObjectLock olock(tags);
-		for (const Dictionary::Pair& pair : tags) {
-			String missing_macro;
-			Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
+	Dictionary::Ptr tagsClean = tmpl->Get("tags");
+	if (tagsClean) {
+		Dictionary::Ptr tags = new Dictionary();
 
-			if (!missing_macro.IsEmpty())
-				continue;
+		{
+			ObjectLock olock(tagsClean);
+			for (const Dictionary::Pair& pair : tagsClean) {
+				String missing_macro;
+				Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
 
-			tags->Set(pair.first, value);
+				if (missing_macro.IsEmpty()) {
+					tags->Set(pair.first, value);
+				}
+			}
 		}
+
+		tmpl->Set("tags", tags);
 	}
 
+	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
+
 	Array::Ptr perfdata = cr->GetPerformanceData();
+
 	if (perfdata) {
 		ObjectLock olock(perfdata);
 		for (const Value& val : perfdata) {
@@ -246,7 +286,9 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 					pdv = PerfdataValue::Parse(val);
 				} catch (const std::exception&) {
 					Log(LogWarning, "InfluxdbWriter")
-						<< "Ignoring invalid perfdata value: " << val;
+						<< "Ignoring invalid perfdata for checkable '"
+						<< checkable->GetName() << "' and command '"
+						<< checkCommand->GetName() << "' with value: " << val;
 					continue;
 				}
 			}
@@ -268,7 +310,7 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 				fields->Set("unit", pdv->GetUnit());
 			}
 
-			SendMetric(tmpl, pdv->GetLabel(), fields, ts);
+			SendMetric(checkable, tmpl, pdv->GetLabel(), fields, ts);
 		}
 	}
 
@@ -293,7 +335,7 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 		fields->Set("latency", cr->CalculateLatency());
 		fields->Set("execution_time", cr->CalculateExecutionTime());
 
-		SendMetric(tmpl, Empty, fields, ts);
+		SendMetric(checkable, tmpl, Empty, fields, ts);
 	}
 }
 
@@ -336,7 +378,8 @@ String InfluxdbWriter::EscapeValue(const Value& value)
 	return value;
 }
 
-void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label, const Dictionary::Ptr& fields, double ts)
+void InfluxdbWriter::SendMetric(const Checkable::Ptr& checkable, const Dictionary::Ptr& tmpl,
+	const String& label, const Dictionary::Ptr& fields, double ts)
 {
 	std::ostringstream msgbuf;
 	msgbuf << EscapeKeyOrTagValue(tmpl->Get("measurement"));
@@ -374,10 +417,8 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 
 	msgbuf << " " <<  static_cast<unsigned long>(ts);
 
-#ifdef I2_DEBUG
 	Log(LogDebug, "InfluxdbWriter")
-		<< "Add to metric list: '" << msgbuf.str() << "'.";
-#endif /* I2_DEBUG */
+		<< "Checkable '" << checkable->GetName() << "' adds to metric list:'" << msgbuf.str() << "'.";
 
 	// Buffer the data point
 	m_DataBuffer.emplace_back(msgbuf.str());
@@ -404,10 +445,6 @@ void InfluxdbWriter::FlushTimeoutWQ()
 {
 	AssertOnWorkQueue();
 
-	// Flush if there are any data available
-	if (m_DataBuffer.empty())
-		return;
-
 	Log(LogDebug, "InfluxdbWriter")
 		<< "Timer expired writing " << m_DataBuffer.size() << " data points";
 
@@ -416,13 +453,34 @@ void InfluxdbWriter::FlushTimeoutWQ()
 
 void InfluxdbWriter::Flush()
 {
+	namespace beast = boost::beast;
+	namespace http = beast::http;
+
+	/* Flush can be called from 1) Timeout 2) Threshold 3) on shutdown/reload. */
+	if (m_DataBuffer.empty())
+		return;
+
+	Log(LogDebug, "InfluxdbWriter")
+		<< "Flushing data buffer to InfluxDB.";
+
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
 
-	Stream::Ptr stream = Connect();
+	OptionalTlsStream stream;
 
-	if (!stream)
+	try {
+		stream = Connect();
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "InfluxDbWriter")
+			<< "Flush failed, cannot connect to InfluxDB: " << DiagnosticInformation(ex, false);
 		return;
+	}
+
+	Defer s ([&stream]() {
+		if (stream.first) {
+			stream.first->next_layer().shutdown();
+		}
+	});
 
 	Url::Ptr url = new Url();
 	url->SetScheme(GetSslEnable() ? "https" : "http");
@@ -440,59 +498,64 @@ void InfluxdbWriter::Flush()
 	if (!GetPassword().IsEmpty())
 		url->AddQueryElement("p", GetPassword());
 
-	HttpRequest req(stream);
-	req.RequestMethod = "POST";
-	req.RequestUrl = url;
+	http::request<http::string_body> request (http::verb::post, std::string(url->Format(true)), 10);
+
+	request.set(http::field::user_agent, "Icinga/" + Application::GetAppVersion());
+	request.set(http::field::host, url->GetHost() + ":" + url->GetPort());
+
+	request.body() = body;
+	request.set(http::field::content_length, request.body().size());
 
 	try {
-		req.WriteBody(body.CStr(), body.GetLength());
-		req.Finish();
+		if (stream.first) {
+			http::write(*stream.first, request);
+			stream.first->flush();
+		} else {
+			http::write(*stream.second, request);
+			stream.second->flush();
+		}
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "InfluxdbWriter")
 			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw ex;
+		throw;
 	}
 
-	HttpResponse resp(stream, req);
-	StreamReadContext context;
+	http::parser<false, http::string_body> parser;
+	beast::flat_buffer buf;
 
 	try {
-		while (resp.Parse(context, true) && !resp.Complete)
-			; /* Do nothing */
+		if (stream.first) {
+			http::read(*stream.first, buf, parser);
+		} else {
+			http::read(*stream.second, buf, parser);
+		}
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "InfluxdbWriter")
 			<< "Failed to parse HTTP response from host '" << GetHost() << "' port '" << GetPort() << "': " << DiagnosticInformation(ex);
-		throw ex;
+		throw;
 	}
 
-	if (!resp.Complete) {
-		Log(LogWarning, "InfluxdbWriter")
-			<< "Failed to read a complete HTTP response from the InfluxDB server.";
-		return;
-	}
+	auto& response (parser.get());
 
-	if (resp.StatusCode != 204) {
+	if (response.result() != http::status::no_content) {
 		Log(LogWarning, "InfluxdbWriter")
-			<< "Unexpected response code: " << resp.StatusCode;
+			<< "Unexpected response code: " << response.result();
 
-		String contentType = resp.Headers->Get("content-type");
+		auto& contentType (response[http::field::content_type]);
 		if (contentType != "application/json") {
 			Log(LogWarning, "InfluxdbWriter")
 				<< "Unexpected Content-Type: " << contentType;
 			return;
 		}
 
-		size_t responseSize = resp.GetBodySize();
-		boost::scoped_array<char> buffer(new char[responseSize + 1]);
-		resp.ReadBody(buffer.get(), responseSize);
-		buffer.get()[responseSize] = '\0';
-
 		Dictionary::Ptr jsonResponse;
+		auto& body (response.body());
+
 		try {
-			jsonResponse = JsonDecode(buffer.get());
+			jsonResponse = JsonDecode(body);
 		} catch (...) {
 			Log(LogWarning, "InfluxdbWriter")
-				<< "Unable to parse JSON response:\n" << buffer.get();
+				<< "Unable to parse JSON response:\n" << body;
 			return;
 		}
 
@@ -500,8 +563,6 @@ void InfluxdbWriter::Flush()
 
 		Log(LogCritical, "InfluxdbWriter")
 			<< "InfluxDB error message:\n" << error;
-
-		return;
 	}
 }
 

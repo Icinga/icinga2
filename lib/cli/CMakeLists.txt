@@ -1,26 +1,12 @@
-# Icinga 2
-# Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation
-# Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
 set(cli_SOURCES
   i2-cli.hpp
   apisetupcommand.cpp apisetupcommand.hpp
-  apiusercommand.cpp apiusercommand.hpp
   apisetuputility.cpp apisetuputility.hpp
   calistcommand.cpp calistcommand.hpp
+  caremovecommand.cpp caremovecommand.hpp
+  carestorecommand.cpp carestorecommand.hpp
   casigncommand.cpp casigncommand.hpp
   clicommand.cpp clicommand.hpp
   consolecommand.cpp consolecommand.hpp
@@ -43,7 +29,6 @@ set(cli_SOURCES
   pkisavecertcommand.cpp pkisavecertcommand.hpp
   pkisigncsrcommand.cpp pkisigncsrcommand.hpp
   pkiticketcommand.cpp pkiticketcommand.hpp
-  troubleshootcommand.cpp troubleshootcommand.hpp
   variablegetcommand.cpp variablegetcommand.hpp
   variablelistcommand.cpp variablelistcommand.hpp
   variableutility.cpp variableutility.hpp

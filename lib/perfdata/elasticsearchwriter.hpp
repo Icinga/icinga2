@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef ELASTICSEARCHWRITER_H
 #define ELASTICSEARCHWRITER_H
@@ -25,6 +8,7 @@
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
 #include "base/timer.hpp"
+#include "base/tlsstream.hpp"
 
 namespace icinga
 {
@@ -41,8 +25,8 @@ public:
 
 protected:
 	void OnConfigLoaded() override;
-	void Start(bool runtimeCreated) override;
-	void Stop(bool runtimeRemoved) override;
+	void Resume() override;
+	void Pause() override;
 
 private:
 	String m_EventPrefix;
@@ -64,9 +48,10 @@ private:
 		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
 		const CheckResult::Ptr& cr, const String& author, const String& text);
 
-	void Enqueue(const String& type, const Dictionary::Ptr& fields, double ts);
+	void Enqueue(const Checkable::Ptr& checkable, const String& type,
+		const Dictionary::Ptr& fields, double ts);
 
-	Stream::Ptr Connect();
+	OptionalTlsStream Connect();
 	void AssertOnWorkQueue();
 	void ExceptionHandler(boost::exception_ptr exp);
 	void FlushTimeout();

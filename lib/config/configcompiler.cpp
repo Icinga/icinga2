@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "config/configcompiler.hpp"
 #include "config/configitem.hpp"
@@ -340,7 +323,8 @@ bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
 	if (!empty) {
 		std::vector<String> paths;
 		paths.reserve(zoneDirs.size());
-for (const ZoneFragment& zf : zoneDirs) {
+
+		for (const ZoneFragment& zf : zoneDirs) {
 			paths.push_back(zf.Path);
 		}
 
@@ -361,3 +345,12 @@ bool ConfigCompiler::IsAbsolutePath(const String& path)
 #endif /* _WIN32 */
 }
 
+void ConfigCompiler::AddImport(const std::shared_ptr<Expression>& import)
+{
+	m_Imports.push_back(import);
+}
+
+std::vector<std::shared_ptr<Expression> > ConfigCompiler::GetImports() const
+{
+	return m_Imports;
+}

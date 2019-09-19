@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "db_ido/servicedbobject.hpp"
 #include "db_ido/servicegroupdbobject.hpp"
@@ -136,7 +119,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	fields->Set("normal_check_interval", service->GetCheckInterval() / 60.0);
 	fields->Set("retry_check_interval", service->GetRetryInterval() / 60.0);
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
-	fields->Set("is_reachable", service->IsReachable());
+	fields->Set("is_reachable", service->GetLastReachable());
 	fields->Set("original_attributes", JsonEncode(service->GetOriginalAttributes()));
 
 	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(service));
@@ -200,9 +183,6 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	DbObject::OnMultipleQueries(queries);
 
 	/* service dependencies */
-	Log(LogDebug, "ServiceDbObject")
-		<< "service dependencies for '" << service->GetName() << "'";
-
 	queries.clear();
 
 	DbQuery query2;
@@ -250,9 +230,6 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	DbObject::OnMultipleQueries(queries);
 
 	/* service contacts, contactgroups */
-	Log(LogDebug, "ServiceDbObject")
-		<< "service contacts: " << service->GetName();
-
 	queries.clear();
 
 	DbQuery query3;
@@ -265,9 +242,6 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	queries.emplace_back(std::move(query3));
 
 	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
-		Log(LogDebug, "ServiceDbObject")
-			<< "service contacts: " << user->GetName();
-
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contacts";
 		query_contact.Type = DbQueryInsert;
@@ -283,9 +257,6 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 
 	DbObject::OnMultipleQueries(queries);
 
-	Log(LogDebug, "ServiceDbObject")
-		<< "service contactgroups: " << service->GetName();
-
 	queries.clear();
 
 	DbQuery query4;
@@ -298,9 +269,6 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	queries.emplace_back(std::move(query4));
 
 	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
-		Log(LogDebug, "ServiceDbObject")
-			<< "service contactgroups: " << usergroup->GetName();
-
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contactgroups";
 		query_contact.Type = DbQueryInsert;

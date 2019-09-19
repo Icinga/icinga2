@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef PERFDATAWRITER_H
 #define PERFDATAWRITER_H
@@ -46,18 +29,21 @@ public:
 	void ValidateServiceFormatTemplate(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 protected:
-	void Start(bool runtimeCreated) override;
-	void Stop(bool runtimeRemoved) override;
+	void OnConfigLoaded() override;
+	void Resume() override;
+	void Pause() override;
 
 private:
+	Timer::Ptr m_RotationTimer;
+	std::ofstream m_ServiceOutputFile;
+	std::ofstream m_HostOutputFile;
+	boost::mutex m_StreamMutex;
+
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	static Value EscapeMacroMetric(const Value& value);
 
-	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler();
-
-	std::ofstream m_ServiceOutputFile;
-	std::ofstream m_HostOutputFile;
+	void RotateAllFiles();
 	void RotateFile(std::ofstream& output, const String& temp_path, const String& perfdata_path);
 };
 

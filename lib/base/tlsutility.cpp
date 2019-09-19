@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/tlsutility.hpp"
 #include "base/convert.hpp"
@@ -24,6 +7,7 @@
 #include "base/utility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
+#include <boost/asio/ssl/context.hpp>
 #include <fstream>
 
 namespace icinga
@@ -74,35 +58,42 @@ void InitializeOpenSSL()
 	l_SSLInitialized = true;
 }
 
-/**
- * Initializes an SSL context using the specified certificates.
- *
- * @param pubkey The public key.
- * @param privkey The matching private key.
- * @param cakey CA certificate chain file.
- * @returns An SSL context.
- */
-std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey)
+static void SetupSslContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& pubkey, const String& privkey, const String& cakey)
 {
-	char errbuf[120];
+	char errbuf[256];
 
-	InitializeOpenSSL();
+	// Enforce TLS v1.2 as minimum
+	context->set_options(
+		boost::asio::ssl::context::default_workarounds |
+		boost::asio::ssl::context::no_compression |
+		boost::asio::ssl::context::no_sslv2 |
+		boost::asio::ssl::context::no_sslv3 |
+		boost::asio::ssl::context::no_tlsv1 |
+		boost::asio::ssl::context::no_tlsv1_1
+	);
 
-	std::shared_ptr<SSL_CTX> sslContext = std::shared_ptr<SSL_CTX>(SSL_CTX_new(SSLv23_method()), SSL_CTX_free);
+	// Custom TLS flags
+	SSL_CTX *sslContext = context->native_handle();
 
-	long flags = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_CIPHER_SERVER_PREFERENCE;
+	long flags = SSL_CTX_get_options(sslContext);
 
-#ifdef SSL_OP_NO_COMPRESSION
-	flags |= SSL_OP_NO_COMPRESSION;
-#endif /* SSL_OP_NO_COMPRESSION */
+	flags |= SSL_OP_CIPHER_SERVER_PREFERENCE;
 
-	SSL_CTX_set_options(sslContext.get(), flags);
+	SSL_CTX_set_options(sslContext, flags);
 
-	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
-	SSL_CTX_set_session_id_context(sslContext.get(), (const unsigned char *)"Icinga 2", 8);
+	SSL_CTX_set_mode(sslContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+	SSL_CTX_set_session_id_context(sslContext, (const unsigned char *)"Icinga 2", 8);
+
+	// Explicitly load ECC ciphers, required on el7 - https://github.com/Icinga/icinga2/issues/7247
+	// SSL_CTX_set_ecdh_auto is deprecated and removed in OpenSSL 1.1.x - https://github.com/openssl/openssl/issues/1437
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#	ifdef SSL_CTX_set_ecdh_auto
+	SSL_CTX_set_ecdh_auto(sslContext, 1);
+#	endif /* SSL_CTX_set_ecdh_auto */
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
 
 	if (!pubkey.IsEmpty()) {
-		if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr())) {
+		if (!SSL_CTX_use_certificate_chain_file(sslContext, pubkey.CStr())) {
 			Log(LogCritical, "SSL")
 				<< "Error with public key file '" << pubkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 			BOOST_THROW_EXCEPTION(openssl_error()
@@ -113,7 +104,7 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 	}
 
 	if (!privkey.IsEmpty()) {
-		if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.CStr(), SSL_FILETYPE_PEM)) {
+		if (!SSL_CTX_use_PrivateKey_file(sslContext, privkey.CStr(), SSL_FILETYPE_PEM)) {
 			Log(LogCritical, "SSL")
 				<< "Error with private key file '" << privkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 			BOOST_THROW_EXCEPTION(openssl_error()
@@ -122,7 +113,7 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 				<< boost::errinfo_file_name(privkey));
 		}
 
-		if (!SSL_CTX_check_private_key(sslContext.get())) {
+		if (!SSL_CTX_check_private_key(sslContext)) {
 			Log(LogCritical, "SSL")
 				<< "Error checking private key '" << privkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 			BOOST_THROW_EXCEPTION(openssl_error()
@@ -132,7 +123,7 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 	}
 
 	if (!cakey.IsEmpty()) {
-		if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), nullptr)) {
+		if (!SSL_CTX_load_verify_locations(sslContext, cakey.CStr(), nullptr)) {
 			Log(LogCritical, "SSL")
 				<< "Error loading and verifying locations in ca key file '" << cakey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 			BOOST_THROW_EXCEPTION(openssl_error()
@@ -153,10 +144,29 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 				<< boost::errinfo_file_name(cakey));
 		}
 
-		SSL_CTX_set_client_CA_list(sslContext.get(), cert_names);
+		SSL_CTX_set_client_CA_list(sslContext, cert_names);
 	}
+}
 
-	return sslContext;
+/**
+ * Initializes an SSL context using the specified certificates.
+ *
+ * @param pubkey The public key.
+ * @param privkey The matching private key.
+ * @param cakey CA certificate chain file.
+ * @returns An SSL context.
+ */
+std::shared_ptr<boost::asio::ssl::context> MakeAsioSslContext(const String& pubkey, const String& privkey, const String& cakey)
+{
+	namespace ssl = boost::asio::ssl;
+
+	InitializeOpenSSL();
+
+	auto context (std::make_shared<ssl::context>(ssl::context::tlsv12));
+
+	SetupSslContext(context, pubkey, privkey, cakey);
+
+	return context;
 }
 
 /**
@@ -164,11 +174,11 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
  * @param context The ssl context.
  * @param cipherList The ciper list.
  **/
-void SetCipherListToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& cipherList)
+void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& cipherList)
 {
 	char errbuf[256];
 
-	if (SSL_CTX_set_cipher_list(context.get(), cipherList.CStr()) == 0) {
+	if (SSL_CTX_set_cipher_list(context->native_handle(), cipherList.CStr()) == 0) {
 		Log(LogCritical, "SSL")
 			<< "Cipher list '"
 			<< cipherList
@@ -180,6 +190,23 @@ void SetCipherListToSSLContext(const std::shared_ptr<SSL_CTX>& context, const St
 			<< boost::errinfo_api_function("SSL_CTX_set_cipher_list")
 			<< errinfo_openssl_error(ERR_peek_error()));
 	}
+
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	//With OpenSSL 1.1.0, there might not be any returned 0.
+	STACK_OF(SSL_CIPHER) *ciphers;
+	Array::Ptr cipherNames = new Array();
+
+	ciphers = SSL_CTX_get_ciphers(context->native_handle());
+	for (int i = 0; i < sk_SSL_CIPHER_num(ciphers); i++) {
+		const SSL_CIPHER *cipher = sk_SSL_CIPHER_value(ciphers, i);
+		String cipher_name = SSL_CIPHER_get_name(cipher);
+
+		cipherNames->Add(cipher_name);
+	}
+
+	Log(LogNotice, "TlsUtility")
+		<< "Available TLS cipher list: " << cipherNames->Join(" ");
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 }
 
 /**
@@ -188,26 +215,18 @@ void SetCipherListToSSLContext(const std::shared_ptr<SSL_CTX>& context, const St
  * @param context The ssl context.
  * @param tlsProtocolmin The minimum TLS protocol version.
  */
-void SetTlsProtocolminToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& tlsProtocolmin)
+void SetTlsProtocolminToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& tlsProtocolmin)
 {
-	long flags = SSL_CTX_get_options(context.get());
+	// tlsProtocolmin has no effect since we enforce TLS 1.2 since 2.11.
+	/*
+	std::shared_ptr<SSL_CTX> sslContext = std::shared_ptr<SSL_CTX>(context->native_handle());
 
-	flags |= SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
+	long flags = SSL_CTX_get_options(sslContext.get());
 
-#ifdef SSL_TXT_TLSV1_1
-	if (tlsProtocolmin == SSL_TXT_TLSV1_1)
-		flags |= SSL_OP_NO_TLSv1;
-	else
-#endif /* SSL_TXT_TLSV1_1 */
-#ifdef SSL_TXT_TLSV1_2
-	if (tlsProtocolmin == SSL_TXT_TLSV1_2)
-		flags |= SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
-	else
-#endif /* SSL_TXT_TLSV1_2 */
-	if (tlsProtocolmin != SSL_TXT_TLSV1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid TLS protocol version specified."));
+	flags |= ...;
 
-	SSL_CTX_set_options(context.get(), flags);
+	SSL_CTX_set_options(sslContext.get(), flags);
+	*/
 }
 
 /**
@@ -216,10 +235,10 @@ void SetTlsProtocolminToSSLContext(const std::shared_ptr<SSL_CTX>& context, cons
  * @param context The SSL context.
  * @param crlPath The path to the CRL file.
  */
-void AddCRLToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& crlPath)
+void AddCRLToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& crlPath)
 {
-	char errbuf[120];
-	X509_STORE *x509_store = SSL_CTX_get_cert_store(context.get());
+	char errbuf[256];
+	X509_STORE *x509_store = SSL_CTX_get_cert_store(context->native_handle());
 
 	X509_LOOKUP *lookup;
 	lookup = X509_STORE_add_lookup(x509_store, X509_LOOKUP_file());
@@ -249,7 +268,7 @@ void AddCRLToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& c
 
 static String GetX509NameCN(X509_NAME *name)
 {
-	char errbuf[120];
+	char errbuf[256];
 	char buffer[256];
 
 	int rc = X509_NAME_get_text_by_NID(name, NID_commonName, buffer, sizeof(buffer));
@@ -284,7 +303,7 @@ String GetCertificateCN(const std::shared_ptr<X509>& certificate)
  */
 std::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 {
-	char errbuf[120];
+	char errbuf[256];
 	X509 *cert;
 	BIO *fpcert = BIO_new(BIO_s_file());
 
@@ -322,11 +341,32 @@ std::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 
 int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile, bool ca)
 {
-	char errbuf[120];
+	char errbuf[256];
 
 	InitializeOpenSSL();
 
-	RSA *rsa = RSA_generate_key(4096, RSA_F4, nullptr, nullptr);
+	RSA *rsa = RSA_new();
+	BIGNUM *e = BN_new();
+
+	if (!rsa || !e) {
+		Log(LogCritical, "SSL")
+			<< "Error while creating RSA key: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("RSA_generate_key")
+			<< errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	BN_set_word(e, RSA_F4);
+
+	if (!RSA_generate_key_ex(rsa, 4096, e, nullptr)) {
+		Log(LogCritical, "SSL")
+			<< "Error while creating RSA key: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("RSA_generate_key")
+			<< errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	BN_free(e);
 
 	Log(LogInformation, "base")
 		<< "Writing private key to '" << keyfile << "'.";
@@ -535,7 +575,7 @@ std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME
 
 String GetIcingaCADir()
 {
-	return Application::GetLocalStateDir() + "/lib/icinga2/ca";
+	return Configuration::DataDir + "/ca";
 }
 
 std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
@@ -782,36 +822,6 @@ std::string to_string(const errinfo_openssl_error& e)
 
 	tmp << code << ", \"" << message << "\"";
 	return "[errinfo_openssl_error]" + tmp.str() + "\n";
-}
-
-bool ComparePassword(const String& hash, const String& password, const String& salt)
-{
-	String otherHash = PBKDF2_SHA256(password, salt, 1000);
-	VERIFY(otherHash.GetLength() == 64 && hash.GetLength() == 64);
-
-	const char *p1 = otherHash.CStr();
-	const char *p2 = hash.CStr();
-
-	/* By Novelocrat, https://stackoverflow.com/a/25374036 */
-	volatile char c = 0;
-
-	for (size_t i = 0; i < 64; ++i)
-		c |= p1[i] ^ p2[i];
-
-	return (c == 0);
-}
-
-/* Returns a String in the format $algorithm$salt$hash or returns an empty string in case of an error */
-String CreateHashedPasswordString(const String& password, const String& salt, int algorithm)
-{
-	// We currently only support SHA256
-	if (algorithm != 5)
-		return String();
-
-	if (salt.FindFirstOf('$') != String::NPos)
-		return String();
-
-	return String("$5$" + salt + "$" + PBKDF2_SHA256(password, salt, 1000));
 }
 
 }

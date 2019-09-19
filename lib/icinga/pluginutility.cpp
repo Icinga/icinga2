@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/pluginutility.hpp"
 #include "icinga/macroprocessor.hpp"
@@ -32,7 +15,7 @@ using namespace icinga;
 
 void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
 	const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int timeout,
 	const std::function<void(const Value& commandLine, const ProcessResult&)>& callback)
 {
 	Value raw_command = commandObj->GetCommandLine();
@@ -70,9 +53,16 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 		for (const Dictionary::Pair& kv : env) {
 			String name = kv.second;
 
+			String missingMacro;
 			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, cr,
-				nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
+				&missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
 				useResolvedMacros);
+
+#ifdef I2_DEBUG
+			if (!missingMacro.IsEmpty())
+				Log(LogDebug, "PluginUtility")
+					<< "Macro '" << name << "' is not defined.";
+#endif /* I2_DEBUG */
 
 			if (value.IsObjectType<Array>())
 				value = Utility::Join(value, ';');
@@ -86,11 +76,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 	Process::Ptr process = new Process(Process::PrepareCommand(command), envMacros);
 
-	if (checkable->GetCheckTimeout().IsEmpty())
-		process->SetTimeout(commandObj->GetTimeout());
-	else
-		process->SetTimeout(checkable->GetCheckTimeout());
-
+	process->SetTimeout(timeout);
 	process->SetAdjustPriority(true);
 
 	process->Run(std::bind(callback, command, _1));

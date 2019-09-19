@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/apiactions.hpp"
 #include "icinga/service.hpp"
@@ -258,7 +241,7 @@ Dictionary::Ptr ApiActions::RemoveAcknowledgement(const ConfigObject::Ptr& objec
 
 	if (!checkable)
 		return ApiActions::CreateResult(404,
-			"Cannot remove acknowlegement for non-existent checkable object "
+			"Cannot remove acknowledgement for non-existent checkable object "
 			+ object->GetName() + ".");
 
 	checkable->ClearAcknowledgement();
@@ -355,6 +338,19 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	double startTime = HttpUtility::GetLastParameter(params, "start_time");
 	double endTime = HttpUtility::GetLastParameter(params, "end_time");
 
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	DowntimeChildOptions childOptions = DowntimeNoChildren;
+	if (params->Contains("child_options")) {
+		try {
+			childOptions = Downtime::ChildOptionsFromValue(HttpUtility::GetLastParameter(params, "child_options"));
+		} catch (const std::exception&) {
+			return ApiActions::CreateResult(400, "Option 'child_options' provided an invalid value.");
+		}
+	}
+
 	String downtimeName = Downtime::AddDowntime(checkable, author, comment, startTime, endTime,
 		fixed, triggerName, duration);
 
@@ -365,39 +361,90 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		{ "legacy_id", downtime->GetLegacyId() }
 	});
 
-	/* Schedule downtime for all child objects. */
-	int childOptions = 0;
-	if (params->Contains("child_options"))
-		childOptions = HttpUtility::GetLastParameter(params, "child_options");
+	/* Schedule downtime for all services for the host type. */
+	bool allServices = false;
 
-	if (childOptions > 0) {
-		/* '1' schedules child downtimes triggered by the parent downtime.
-		 * '2' schedules non-triggered downtimes for all children.
+	if (params->Contains("all_services"))
+		allServices = HttpUtility::GetLastParameter(params, "all_services");
+
+	if (allServices && !service) {
+		ArrayData serviceDowntimes;
+
+		for (const Service::Ptr& hostService : host->GetServices()) {
+			Log(LogNotice, "ApiActions")
+				<< "Creating downtime for service " << hostService->GetName() << " on host " << host->GetName();
+
+			String serviceDowntimeName = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
+				fixed, triggerName, duration);
+
+			Downtime::Ptr serviceDowntime = Downtime::GetByName(serviceDowntimeName);
+
+			serviceDowntimes.push_back(new Dictionary({
+				{ "name", serviceDowntimeName },
+				{ "legacy_id", serviceDowntime->GetLegacyId() }
+			}));
+		}
+
+		additional->Set("service_downtimes", new Array(std::move(serviceDowntimes)));
+	}
+
+	/* Schedule downtime for all child objects. */
+	if (childOptions != DowntimeNoChildren) {
+		/* 'DowntimeTriggeredChildren' schedules child downtimes triggered by the parent downtime.
+		 * 'DowntimeNonTriggeredChildren' schedules non-triggered downtimes for all children.
 		 */
-		if (childOptions == 1)
+		if (childOptions == DowntimeTriggeredChildren)
 			triggerName = downtimeName;
 
-		Log(LogCritical, "ApiActions")
+		Log(LogNotice, "ApiActions")
 			<< "Processing child options " << childOptions << " for downtime " << downtimeName;
 
 		ArrayData childDowntimes;
 
 		for (const Checkable::Ptr& child : checkable->GetAllChildren()) {
-			Log(LogCritical, "ApiActions")
+			Log(LogNotice, "ApiActions")
 				<< "Scheduling downtime for child object " << child->GetName();
 
 			String childDowntimeName = Downtime::AddDowntime(child, author, comment, startTime, endTime,
 				fixed, triggerName, duration);
 
-			Log(LogCritical, "ApiActions")
+			Log(LogNotice, "ApiActions")
 				<< "Add child downtime '" << childDowntimeName << "'.";
 
 			Downtime::Ptr childDowntime = Downtime::GetByName(childDowntimeName);
 
-			childDowntimes.push_back(new Dictionary({
+			Dictionary::Ptr childAdditional = new Dictionary({
 				{ "name", childDowntimeName },
 				{ "legacy_id", childDowntime->GetLegacyId() }
-			}));
+			});
+
+			/* For a host, also schedule all service downtimes if requested. */
+			Host::Ptr childHost;
+			Service::Ptr childService;
+			tie(childHost, childService) = GetHostService(child);
+
+			if (allServices && !childService) {
+				ArrayData childServiceDowntimes;
+
+				for (const Service::Ptr& hostService : host->GetServices()) {
+					Log(LogNotice, "ApiActions")
+						<< "Creating downtime for service " << hostService->GetName() << " on child host " << host->GetName();
+
+					String serviceDowntimeName = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
+						fixed, triggerName, duration);
+
+					Downtime::Ptr serviceDowntime = Downtime::GetByName(serviceDowntimeName);
+
+					childServiceDowntimes.push_back(new Dictionary({
+						{ "name", serviceDowntimeName },
+						{ "legacy_id", serviceDowntime->GetLegacyId() }
+					}));
+				}
+
+				childAdditional->Set("service_downtimes", new Array(std::move(childServiceDowntimes)));
+			}
+
+			childDowntimes.push_back(childAdditional);
 		}
 
 		additional->Set("child_downtimes", new Array(std::move(childDowntimes)));

@@ -15,6 +15,13 @@
 # Description:       Icinga 2 is a monitoring and management system for hosts, services and networks.
 ### END INIT INFO
 
+# Get function from functions library
+if [ -f /etc/rc.d/init.d/functions ]; then
+	. /etc/rc.d/init.d/functions
+elif [ -f /etc/init.d/functions ]; then
+	. /etc/init.d/functions
+fi
+
 # load system specific defines
 SYSCONFIGFILE=@ICINGA2_SYSCONFIGFILE@
 if [ -f $SYSCONFIGFILE ]; then
@@ -29,10 +36,10 @@ fi
 : ${ICINGA2_GROUP:="@ICINGA2_GROUP@"}
 : ${ICINGA2_COMMAND_GROUP:="@ICINGA2_COMMAND_GROUP@"}
 : ${DAEMON:="@CMAKE_INSTALL_FULL_SBINDIR@/icinga2"}
-: ${ICINGA2_CONFIG_FILE:="@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/icinga2.conf"}
-: ${ICINGA2_ERROR_LOG:=@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/error.log}
-: ${ICINGA2_STARTUP_LOG:=@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/startup.log}
-: ${ICINGA2_PID_FILE:="@ICINGA2_RUNDIR@/icinga2/icinga2.pid"}
+: ${ICINGA2_CONFIG_FILE:="@ICINGA2_CONFIGDIR@/icinga2.conf"}
+: ${ICINGA2_ERROR_LOG:=@ICINGA2_LOGDIR@/error.log}
+: ${ICINGA2_STARTUP_LOG:=@ICINGA2_LOGDIR@/startup.log}
+: ${ICINGA2_PID_FILE:="@ICINGA2_INITRUNDIR@/icinga2.pid"}
 
 # Load extra environment variables
 if [ -f /etc/default/icinga2 ]; then
@@ -50,17 +57,10 @@ getent passwd $ICINGA2_USER >/dev/null 2>&1 || (echo "Icinga user '$ICINGA2_USER
 getent group $ICINGA2_GROUP >/dev/null 2>&1 || (echo "Icinga group '$ICINGA2_GROUP' does not exist. Exiting." && exit 6)
 getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || (echo "Icinga command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting." && exit 6)
 
-# Get function from functions library
-if [ -f /etc/rc.d/init.d/functions ]; then
-	. /etc/rc.d/init.d/functions
-elif [ -f /etc/init.d/functions ]; then
-	. /etc/init.d/functions
-fi
-
 # Start Icinga 2
 start() {
 	printf "Starting Icinga 2: "
-	@CMAKE_INSTALL_PREFIX@/lib/icinga2/prepare-dirs
+	@CMAKE_INSTALL_PREFIX@/lib/icinga2/prepare-dirs "$SYSCONFIGFILE"
 
 	if ! $DAEMON daemon -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG > $ICINGA2_STARTUP_LOG 2>&1; then
 		echo "Error starting Icinga. Check '$ICINGA2_STARTUP_LOG' for details."
@@ -90,7 +90,7 @@ stop() {
 		if ! icinga2 internal signal -s SIGCHLD -p $pid >/dev/null 2>&1; then
 				break
 			fi
-		
+
 			printf '.'
 			sleep 3
 		done
@@ -105,7 +105,7 @@ stop() {
 
 # Reload Icinga 2
 reload() {
-	exec @CMAKE_INSTALL_PREFIX@/lib/icinga2/safe-reload $SYSCONFIGFILE
+	exec @CMAKE_INSTALL_PREFIX@/lib/icinga2/safe-reload "$SYSCONFIGFILE"
 }
 
 # Check the Icinga 2 configuration
@@ -138,7 +138,7 @@ status() {
 
 	if [ ! -e $ICINGA2_PID_FILE ]; then
 		echo "Not running"
-		exit 7
+		exit 3
 	fi
 
 	pid=`cat $ICINGA2_PID_FILE`
@@ -146,7 +146,7 @@ status() {
 		echo "Running"
 	else
 		echo "Not running"
-		exit 7
+		exit 3
 	fi
 }
 
@@ -168,7 +168,8 @@ case "$1" in
 	start
   ;;
   condrestart)
-	status > /dev/null 2>&1 || exit 0
+	STATUS=$(status > /dev/null 2>&1)
+	if [ $? != 0 ]; then exit 0; fi
 	checkconfig restart fail
 	stop nofail
 	start

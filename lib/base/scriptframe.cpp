@@ -1,44 +1,48 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/scriptframe.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/namespace.hpp"
 #include "base/exception.hpp"
+#include "base/configuration.hpp"
 
 using namespace icinga;
 
 boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
-Array::Ptr ScriptFrame::m_Imports;
+
+static auto l_InternalNSBehavior = new ConstNamespaceBehavior();
+
+/* Ensure that this gets called with highest priority
+ * and wins against other static initializers in lib/icinga, etc.
+ * LTO-enabled builds will cause trouble otherwise, see GH #6575.
+ */
+INITIALIZE_ONCE_WITH_PRIORITY([]() {
+	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
+
+	auto systemNSBehavior = new ConstNamespaceBehavior();
+	systemNSBehavior->Freeze();
+	Namespace::Ptr systemNS = new Namespace(systemNSBehavior);
+	globalNS->SetAttribute("System", std::make_shared<ConstEmbeddedNamespaceValue>(systemNS));
+
+	systemNS->SetAttribute("Configuration", std::make_shared<EmbeddedNamespaceValue>(new Configuration()));
+
+	auto typesNSBehavior = new ConstNamespaceBehavior();
+	typesNSBehavior->Freeze();
+	Namespace::Ptr typesNS = new Namespace(typesNSBehavior);
+	globalNS->SetAttribute("Types", std::make_shared<ConstEmbeddedNamespaceValue>(typesNS));
+
+	auto statsNSBehavior = new ConstNamespaceBehavior();
+	statsNSBehavior->Freeze();
+	Namespace::Ptr statsNS = new Namespace(statsNSBehavior);
+	globalNS->SetAttribute("StatsFunctions", std::make_shared<ConstEmbeddedNamespaceValue>(statsNS));
+
+	Namespace::Ptr internalNS = new Namespace(l_InternalNSBehavior);
+	globalNS->SetAttribute("Internal", std::make_shared<ConstEmbeddedNamespaceValue>(internalNS));
+}, 1000);
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
-	Dictionary::Ptr systemNS = new Dictionary();
-	ScriptGlobal::Set("System", systemNS);
-	ScriptFrame::AddImport(systemNS);
-
-	Dictionary::Ptr typesNS = new Dictionary();
-	ScriptGlobal::Set("Types", typesNS);
-	ScriptFrame::AddImport(typesNS);
-
-	Dictionary::Ptr deprecatedNS = new Dictionary();
-	ScriptGlobal::Set("Deprecated", deprecatedNS);
-	ScriptFrame::AddImport(deprecatedNS);
-}, 50);
+	l_InternalNSBehavior->Freeze();
+}, 0);
 
 ScriptFrame::ScriptFrame(bool allocLocals)
 	: Locals(allocLocals ? new Dictionary() : nullptr), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)
@@ -69,6 +73,10 @@ ScriptFrame::~ScriptFrame()
 {
 	ScriptFrame *frame = PopFrame();
 	ASSERT(frame == this);
+
+#ifndef I2_DEBUG
+	(void)frame;
+#endif /* I2_DEBUG */
 }
 
 void ScriptFrame::IncreaseStackDepth()
@@ -120,23 +128,3 @@ void ScriptFrame::PushFrame(ScriptFrame *frame)
 
 	frames->push(frame);
 }
-
-Array::Ptr ScriptFrame::GetImports()
-{
-	return m_Imports;
-}
-
-void ScriptFrame::AddImport(const Object::Ptr& import)
-{
-	Array::Ptr imports;
-
-	if (!m_Imports)
-		imports = new Array();
-	else
-		imports = m_Imports->ShallowClone();
-
-	imports->Add(import);
-
-	m_Imports = imports;
-}
-

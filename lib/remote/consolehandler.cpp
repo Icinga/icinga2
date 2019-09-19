@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/consolehandler.hpp"
 #include "remote/httputility.hpp"
@@ -27,7 +10,9 @@
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
 #include "base/timer.hpp"
+#include "base/namespace.hpp"
 #include "base/initialize.hpp"
+#include "base/utility.hpp"
 #include <boost/thread/once.hpp>
 #include <set>
 
@@ -69,17 +54,28 @@ static void EnsureFrameCleanupTimer()
 	});
 }
 
-bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool ConsoleHandler::HandleRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	HttpServerConnection& server
+)
 {
-	if (request.RequestUrl->GetPath().size() != 3)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() != 3)
 		return false;
 
-	if (request.RequestMethod != "POST")
+	if (request.method() != http::verb::post)
 		return false;
 
 	QueryDescription qd;
 
-	String methodName = request.RequestUrl->GetPath()[2];
+	String methodName = url->GetPath()[2];
 
 	FilterUtility::CheckPermission(user, "console");
 
@@ -101,9 +97,12 @@ bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 	return true;
 }
 
-bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& response,
+bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
 {
+	namespace http = boost::beast::http;
+
 	Log(LogNotice, "Console")
 		<< "Executing expression: " << command;
 
@@ -167,15 +166,18 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 		{ "results", new Array({ resultInfo }) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }
 
-bool ConsoleHandler::AutocompleteScriptHelper(HttpRequest& request, HttpResponse& response,
+bool ConsoleHandler::AutocompleteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
 {
+	namespace http = boost::beast::http;
+
 	Log(LogInformation, "Console")
 		<< "Auto-completing expression: " << command;
 
@@ -203,7 +205,7 @@ bool ConsoleHandler::AutocompleteScriptHelper(HttpRequest& request, HttpResponse
 		{ "results", new Array({ result1 }) }
 	});
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
@@ -229,6 +231,15 @@ static void AddSuggestions(std::vector<String>& matches, const String& word, con
 
 		ObjectLock olock(dict);
 		for (const Dictionary::Pair& kv : dict) {
+			AddSuggestion(matches, word, prefix + kv.first);
+		}
+	}
+
+	if (value.IsObjectType<Namespace>()) {
+		Namespace::Ptr ns = value;
+
+		ObjectLock olock(ns);
+		for (const Namespace::Pair& kv : ns) {
 			AddSuggestion(matches, word, prefix + kv.first);
 		}
 	}
@@ -275,18 +286,17 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 
 	{
 		ObjectLock olock(ScriptGlobal::GetGlobals());
-		for (const Dictionary::Pair& kv : ScriptGlobal::GetGlobals()) {
+		for (const Namespace::Pair& kv : ScriptGlobal::GetGlobals()) {
 			AddSuggestion(matches, word, kv.first);
 		}
 	}
 
-	{
-		Array::Ptr imports = ScriptFrame::GetImports();
-		ObjectLock olock(imports);
-		for (const Value& import : imports) {
-			AddSuggestions(matches, word, "", false, import);
-		}
-	}
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+
+	AddSuggestions(matches, word, "", false, systemNS);
+	AddSuggestions(matches, word, "", true, systemNS->Get("Configuration"));
+	AddSuggestions(matches, word, "", false, ScriptGlobal::Get("Types"));
+	AddSuggestions(matches, word, "", false, ScriptGlobal::Get("Icinga"));
 
 	String::SizeType cperiod = word.RFind(".");
 

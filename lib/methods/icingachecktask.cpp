@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "methods/icingachecktask.hpp"
 #include "icinga/cib.hpp"
@@ -25,6 +8,7 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/clusterevents.hpp"
 #include "icinga/checkable.hpp"
+#include "remote/apilistener.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -34,7 +18,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
@@ -42,7 +26,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	CheckCommand::Ptr command = checkable->GetCheckCommand();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -52,7 +36,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
-	resolvers.emplace_back("command", commandObj);
+	resolvers.emplace_back("command", command);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String missingIcingaMinVersion;
@@ -91,7 +75,8 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("active_service_checks_15min", CIB::GetActiveServiceChecksStatistics(60 * 15)));
 	perfdata->Add(new PerfdataValue("passive_service_checks_15min", CIB::GetPassiveServiceChecksStatistics(60 * 15)));
 
-	perfdata->Add(new PerfdataValue("current_concurrent_checks", Checkable::GetPendingChecks()));
+	perfdata->Add(new PerfdataValue("current_pending_callbacks", Application::GetTP().GetPending()));
+	perfdata->Add(new PerfdataValue("current_concurrent_checks", Checkable::CurrentConcurrentChecks.load()));
 	perfdata->Add(new PerfdataValue("remote_check_queue", ClusterEvents::GetCheckRequestQueueSize()));
 
 	CheckableCheckStatistics scs = CIB::CalculateServiceCheckStats();
@@ -114,6 +99,8 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("num_services_flapping", ss.services_flapping));
 	perfdata->Add(new PerfdataValue("num_services_in_downtime", ss.services_in_downtime));
 	perfdata->Add(new PerfdataValue("num_services_acknowledged", ss.services_acknowledged));
+	perfdata->Add(new PerfdataValue("num_services_handled", ss.services_handled));
+	perfdata->Add(new PerfdataValue("num_services_problem", ss.services_problem));
 
 	double uptime = Utility::GetTime() - Application::GetStartTime();
 	perfdata->Add(new PerfdataValue("uptime", uptime));
@@ -127,6 +114,8 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("num_hosts_flapping", hs.hosts_flapping));
 	perfdata->Add(new PerfdataValue("num_hosts_in_downtime", hs.hosts_in_downtime));
 	perfdata->Add(new PerfdataValue("num_hosts_acknowledged", hs.hosts_acknowledged));
+	perfdata->Add(new PerfdataValue("num_hosts_handled", hs.hosts_handled));
+	perfdata->Add(new PerfdataValue("num_hosts_problem", hs.hosts_problem));
 
 	std::vector<Endpoint::Ptr> endpoints = ConfigType::GetObjectsByType<Endpoint>();
 
@@ -174,15 +163,30 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		cr->SetState(ServiceWarning);
 	}
 
-	/* Return an error if the version is less than specified (optional). */
-	String parsedAppVersion = appVersion.SubStr(1,5);
+	/* Indicate a warning when the last synced config caused a stage validation error. */
+	ApiListener::Ptr listener = ApiListener::GetInstance();
 
+	if (listener) {
+		Dictionary::Ptr validationResult = listener->GetLastFailedZonesStageValidation();
+
+		if (validationResult) {
+			output += "; Last zone sync stage validation failed at "
+				+ Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", validationResult->Get("ts"));
+
+			cr->SetState(ServiceWarning);
+		}
+	}
+
+	String parsedAppVersion = Utility::ParseVersion(appVersion);
+
+	/* Return an error if the version is less than specified (optional). */
 	if (missingIcingaMinVersion.IsEmpty() && !icingaMinVersion.IsEmpty() && Utility::CompareVersion(icingaMinVersion, parsedAppVersion) < 0) {
 		output += "; Minimum version " + icingaMinVersion + " is not installed.";
 		cr->SetState(ServiceCritical);
 	}
 
 	cr->SetOutput(output);
+	cr->SetCommand(command->GetName());
 
 	checkable->ProcessCheckResult(cr);
 }

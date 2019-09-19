@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "plugins/thresholds.hpp"
 #include <boost/program_options.hpp>
@@ -150,7 +133,11 @@ static int parseArguments(int ac, WCHAR ** av, po::variables_map& vm, printInfoS
 		}
 	}
 
-	printInfo.showUsed = vm.count("show-used") > 0;
+	if (vm.count("show-used")) {
+		printInfo.showUsed = true;
+		printInfo.warn.legal = true;
+		printInfo.crit.legal = true;
+	}
 
 	return -1;
 }
@@ -160,7 +147,7 @@ static int printOutput(printInfoStruct& printInfo)
 	if (l_Debug)
 		std::wcout << L"Constructing output string" << '\n';
 
-	state state;
+	state state = OK;
 
 	std::wcout << L"MEMORY ";
 
@@ -171,25 +158,22 @@ static int printOutput(printInfoStruct& printInfo)
 	else
 		currentValue = printInfo.tRam - printInfo.aRam;
 
-	if (printInfo.warn.rend(currentValue, printInfo.tRam)) {
+	if (printInfo.warn.rend(currentValue, printInfo.tRam))
 		state = WARNING;
-		std::wcout << L"WARNING";
-	} else if (printInfo.crit.rend(currentValue, printInfo.tRam)) {
+
+	if (printInfo.crit.rend(currentValue, printInfo.tRam))
 		state = CRITICAL;
-		std::wcout << L"CRITICAL";
-	} else {
-		state = OK;
-		std::wcout << L"OK";
-	}
+
+	std::wcout << stateToString(state);
 
 	if (!printInfo.showUsed)
 		std::wcout << " - " << printInfo.percentFree << L"% free";
 	else
 		std::wcout << " - " << 100 - printInfo.percentFree << L"% used";
 
-	std::wcout << "| memory=" << currentValue << BunitStr(printInfo.unit) << L";"
+	std::wcout << "| 'memory'=" << currentValue << BunitStr(printInfo.unit) << L";"
 		<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
-		<< L";0;" << printInfo.tRam;
+		<< L";0;" << printInfo.tRam << '\n';
 
 	return state;
 }

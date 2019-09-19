@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/configobjectutility.hpp"
 #include "remote/configpackageutility.hpp"
@@ -25,15 +8,23 @@
 #include "base/configwriter.hpp"
 #include "base/exception.hpp"
 #include "base/dependencygraph.hpp"
+#include "base/utility.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/system/error_code.hpp>
 #include <fstream>
 
 using namespace icinga;
 
 String ConfigObjectUtility::GetConfigDir()
 {
-	return ConfigPackageUtility::GetPackageDir() + "/_api/" +
-		ConfigPackageUtility::GetActiveStage("_api");
+	String prefix = ConfigPackageUtility::GetPackageDir() + "/_api/";
+	String activeStage = ConfigPackageUtility::GetActiveStage("_api");
+
+	if (activeStage.IsEmpty())
+		RepairPackage("_api");
+
+	return prefix + activeStage;
 }
 
 String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const String& fullName)
@@ -41,8 +32,67 @@ String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const Str
 	String typeDir = type->GetPluralName();
 	boost::algorithm::to_lower(typeDir);
 
-	return GetConfigDir() + "/conf.d/" + typeDir +
+	/* This may throw an exception the caller above must handle. */
+	String prefix = GetConfigDir();
+
+	return prefix + "/conf.d/" + typeDir +
 		"/" + EscapeName(fullName) + ".conf";
+}
+
+void ConfigObjectUtility::RepairPackage(const String& package)
+{
+	/* Try to fix the active stage, whenever we find a directory in there.
+	 * This automatically heals packages < 2.11 which remained broken.
+	 */
+	String dir = ConfigPackageUtility::GetPackageDir() + "/" + package + "/";
+
+	namespace fs = boost::filesystem;
+
+	/* Use iterators to workaround VS builds on Windows. */
+	fs::path path(dir.Begin(), dir.End());
+
+	fs::recursive_directory_iterator end;
+
+	String foundActiveStage;
+
+	for (fs::recursive_directory_iterator it(path); it != end; it++) {
+		boost::system::error_code ec;
+
+		const fs::path d = *it;
+		if (fs::is_directory(d, ec)) {
+			/* Extract the relative directory name. */
+			foundActiveStage = d.stem().string();
+
+			break; // Use the first found directory.
+		}
+	}
+
+	if (!foundActiveStage.IsEmpty()) {
+		Log(LogInformation, "ConfigObjectUtility")
+			<< "Repairing config package '" << package << "' with stage '" << foundActiveStage << "'.";
+
+		ConfigPackageUtility::ActivateStage(package, foundActiveStage);
+	} else {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot repair package '" + package + "', please check the troubleshooting docs."));
+	}
+}
+
+void ConfigObjectUtility::CreateStorage()
+{
+	boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+
+	/* For now, we only use _api as our creation target. */
+	String package = "_api";
+
+	if (!ConfigPackageUtility::PackageExists(package)) {
+		Log(LogNotice, "ConfigObjectUtility")
+			<< "Package " << package << " doesn't exist yet, creating it.";
+
+		ConfigPackageUtility::CreatePackage(package);
+
+		String stage = ConfigPackageUtility::CreateStage(package);
+		ConfigPackageUtility::ActivateStage(package, stage);
+	}
 }
 
 String ConfigObjectUtility::EscapeName(const String& name)
@@ -98,17 +148,9 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 }
 
 bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& fullName,
-	const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation)
+	const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie)
 {
-	{
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
-		if (!ConfigPackageUtility::PackageExists("_api")) {
-			ConfigPackageUtility::CreatePackage("_api");
-
-			String stage = ConfigPackageUtility::CreateStage("_api");
-			ConfigPackageUtility::ActivateStage("_api", stage);
-		}
-	}
+	CreateStorage();
 
 	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, fullName);
 
@@ -117,13 +159,16 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		return false;
 	}
 
-	String path = GetObjectConfigPath(type, fullName);
-	Utility::MkDirP(Utility::DirName(path), 0700);
+	String path;
 
-	if (Utility::PathExists(path)) {
-		errors->Add("Cannot create object '" + fullName + "'. Configuration file '" + path + "' already exists.");
+	try {
+		path = GetObjectConfigPath(type, fullName);
+	} catch (const std::exception& ex) {
+		errors->Add("Config package broken: " + DiagnosticInformation(ex, false));
 		return false;
 	}
+
+	Utility::MkDirP(Utility::DirName(path), 0700);
 
 	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
 	fp << config;
@@ -139,16 +184,20 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		expr.reset();
 
 		WorkQueue upq;
+		upq.SetName("ConfigObjectUtility::CreateObject");
+
 		std::vector<ConfigItem::Ptr> newItems;
 
-		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems) || !ConfigItem::ActivateItems(upq, newItems, true)) {
+		/*
+		 * Disable logging for object creation, but do so ourselves later on.
+		 * Duplicate the error handling for better logging and debugging here.
+		 */
+		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems, true)) {
 			if (errors) {
-				if (unlink(path.CStr()) < 0 && errno != ENOENT) {
-					BOOST_THROW_EXCEPTION(posix_error()
-						<< boost::errinfo_api_function("unlink")
-						<< boost::errinfo_errno(errno)
-						<< boost::errinfo_file_name(path));
-				}
+				Log(LogNotice, "ConfigObjectUtility")
+					<< "Failed to commit config item '" << fullName << "'. Aborting and emoving config path '" << path << "'.";
+
+				Utility::Remove(path);
 
 				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex, false));
@@ -161,14 +210,50 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 			return false;
 		}
 
-		ApiListener::UpdateObjectAuthority();
-	} catch (const std::exception& ex) {
-		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("unlink")
-				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(path));
+		/*
+		 * Activate the config object.
+		 * uq, items, runtimeCreated, silent, withModAttrs, cookie
+		 * IMPORTANT: Forward the cookie aka origin in order to prevent sync loops in the same zone!
+		 */
+		if (!ConfigItem::ActivateItems(upq, newItems, true, true, false, cookie)) {
+			if (errors) {
+				Log(LogNotice, "ConfigObjectUtility")
+					<< "Failed to activate config object '" << fullName << "'. Aborting and emoving config path '" << path << "'.";
+
+				Utility::Remove(path);
+
+				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
+					errors->Add(DiagnosticInformation(ex, false));
+
+					if (diagnosticInformation)
+						diagnosticInformation->Add(DiagnosticInformation(ex));
+				}
+			}
+
+			return false;
 		}
+
+		/* if (type != Comment::TypeInstance && type != Downtime::TypeInstance)
+		 * Does not work since this would require libicinga, which has a dependency on libremote
+		 * Would work if these libs were static.
+		 */
+		if (type->GetName() != "Comment" && type->GetName() != "Downtime")
+			ApiListener::UpdateObjectAuthority();
+
+		// At this stage we should have a config object already. If not, it was ignored before.
+		auto *ctype = dynamic_cast<ConfigType *>(type.get());
+		ConfigObject::Ptr obj = ctype->GetObject(fullName);
+
+		if (obj) {
+			Log(LogInformation, "ConfigObjectUtility")
+				<< "Created and activated object '" << fullName << "' of type '" << type->GetName() << "'.";
+		} else {
+			Log(LogNotice, "ConfigObjectUtility")
+				<< "Object '" << fullName << "' was not created but ignored due to errors.";
+		}
+
+	} catch (const std::exception& ex) {
+		Utility::Remove(path);
 
 		if (errors)
 			errors->Add(DiagnosticInformation(ex, false));
@@ -183,7 +268,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 }
 
 bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bool cascade,
-	const Array::Ptr& errors, const Array::Ptr& diagnosticInformation)
+	const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie)
 {
 	std::vector<Object::Ptr> parents = DependencyGraph::GetParents(object);
 
@@ -207,7 +292,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		if (!parentObj)
 			continue;
 
-		DeleteObjectHelper(parentObj, cascade, errors, diagnosticInformation);
+		DeleteObjectHelper(parentObj, cascade, errors, diagnosticInformation, cookie);
 	}
 
 	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, name);
@@ -215,8 +300,13 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 	try {
 		/* mark this object for cluster delete event */
 		object->SetExtension("ConfigObjectDeleted", true);
-		/* triggers signal for DB IDO and other interfaces */
-		object->Deactivate(true);
+
+		/*
+		 * Trigger deactivation signal for DB IDO and runtime object delections.
+		 * IMPORTANT: Specify the cookie aka origin in order to prevent sync loops
+		 * in the same zone!
+		 */
+		object->Deactivate(true, cookie);
 
 		if (item)
 			item->Unregister();
@@ -233,21 +323,25 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		return false;
 	}
 
-	String path = GetObjectConfigPath(object->GetReflectionType(), name);
+	String path;
 
-	if (Utility::PathExists(path)) {
-		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("unlink")
-				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(path));
-		}
+	try {
+		path = GetObjectConfigPath(object->GetReflectionType(), name);
+	} catch (const std::exception& ex) {
+		errors->Add("Config package broken: " + DiagnosticInformation(ex, false));
+		return false;
 	}
+
+	Utility::Remove(path);
+
+	Log(LogInformation, "ConfigObjectUtility")
+		<< "Deleted object '" << name << "' of type '" << type->GetName() << "'.";
 
 	return true;
 }
 
-bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation)
+bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors,
+	const Array::Ptr& diagnosticInformation, const Value& cookie)
 {
 	if (object->GetPackage() != "_api") {
 		if (errors)
@@ -256,5 +350,5 @@ bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cas
 		return false;
 	}
 
-	return DeleteObjectHelper(object, cascade, errors, diagnosticInformation);
+	return DeleteObjectHelper(object, cascade, errors, diagnosticInformation, cookie);
 }

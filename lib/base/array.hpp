@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef ARRAY_H
 #define ARRAY_H
@@ -55,9 +38,9 @@ public:
 	Array(std::initializer_list<Value> init);
 
 	Value Get(SizeType index) const;
-	void Set(SizeType index, const Value& value);
-	void Set(SizeType index, Value&& value);
-	void Add(Value value);
+	void Set(SizeType index, const Value& value, bool overrideFrozen = false);
+	void Set(SizeType index, Value&& value, bool overrideFrozen = false);
+	void Add(Value value, bool overrideFrozen = false);
 
 	Iterator Begin();
 	Iterator End();
@@ -65,14 +48,14 @@ public:
 	size_t GetLength() const;
 	bool Contains(const Value& value) const;
 
-	void Insert(SizeType index, Value value);
-	void Remove(SizeType index);
-	void Remove(Iterator it);
+	void Insert(SizeType index, Value value, bool overrideFrozen = false);
+	void Remove(SizeType index, bool overrideFrozen = false);
+	void Remove(Iterator it, bool overrideFrozen = false);
 
-	void Resize(SizeType newSize);
-	void Clear();
+	void Resize(SizeType newSize, bool overrideFrozen = false);
+	void Clear(bool overrideFrozen = false);
 
-	void Reserve(SizeType newSize);
+	void Reserve(SizeType newSize, bool overrideFrozen = false);
 
 	void CopyTo(const Array::Ptr& dest) const;
 	Array::Ptr ShallowClone() const;
@@ -108,15 +91,16 @@ public:
 
 	Array::Ptr Reverse() const;
 
-	void Sort();
+	void Sort(bool overrideFrozen = false);
 
 	String ToString() const override;
+	Value Join(const Value& separator) const;
 
 	Array::Ptr Unique() const;
 	void Freeze();
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
-	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
+	void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
 
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */

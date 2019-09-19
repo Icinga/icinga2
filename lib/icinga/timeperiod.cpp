@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/timeperiod.hpp"
 #include "icinga/timeperiod-ti.cpp"
@@ -142,12 +125,12 @@ void TimePeriod::RemoveSegment(double begin, double end)
 	for (const Dictionary::Ptr& segment : segments) {
 		/* Fully contained in the specified range? */
 		if (segment->Get("begin") >= begin && segment->Get("end") <= end)
+			// Don't add the old segment, because the segment is fully contained into our range
 			continue;
 
 		/* Not overlapping at all? */
 		if (segment->Get("end") < begin || segment->Get("begin") > end) {
 			newSegments->Add(segment);
-
 			continue;
 		}
 
@@ -162,6 +145,8 @@ void TimePeriod::RemoveSegment(double begin, double end)
 				{ "begin", end },
 				{ "end", segment->Get("end") }
 			}));
+			// Don't add the old segment, because we have now two new segments and a gap between
+			continue;
 		}
 
 		/* Adjust the begin/end timestamps so as to not overlap with the specified range. */
@@ -235,7 +220,10 @@ void TimePeriod::Merge(const TimePeriod::Ptr& timeperiod, bool include)
 
 void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 {
-	if (!clearExisting) {
+	if (clearExisting) {
+		ObjectLock olock(this);
+		SetSegments(new Array());
+	} else {
 		if (begin < GetValidEnd())
 			begin = GetValidEnd();
 
@@ -359,6 +347,8 @@ void TimePeriod::UpdateTimerHandler()
 
 void TimePeriod::Dump()
 {
+	ObjectLock olock(this);
+
 	Array::Ptr segments = GetSegments();
 
 	Log(LogDebug, "TimePeriod")

@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/checkable.hpp"
 #include "icinga/checkable-ti.cpp"
@@ -24,6 +7,8 @@
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
+#include "base/timer.hpp"
+#include <boost/thread/once.hpp>
 
 using namespace icinga;
 
@@ -32,6 +17,8 @@ INITIALIZE_ONCE(&Checkable::StaticInitialize);
 
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, bool, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
+
+static Timer::Ptr l_CheckablesFireSuppressedNotifications;
 
 void Checkable::StaticInitialize()
 {
@@ -57,14 +44,16 @@ void Checkable::OnAllConfigLoaded()
 	if (endpoint) {
 		Zone::Ptr checkableZone = static_pointer_cast<Zone>(GetZone());
 
-		if (!checkableZone)
-			checkableZone = Zone::GetLocalZone();
+		if (checkableZone) {
+			Zone::Ptr cmdZone = endpoint->GetZone();
 
-		Zone::Ptr cmdZone = endpoint->GetZone();
-
-		if (checkableZone && cmdZone != checkableZone && cmdZone->GetParent() != checkableZone) {
+			if (cmdZone != checkableZone && cmdZone->GetParent() != checkableZone) {
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "command_endpoint" },
+					"Command endpoint must be in zone '" + checkableZone->GetName() + "' or in a direct child zone thereof."));
+			}
+		} else {
 			BOOST_THROW_EXCEPTION(ValidationError(this, { "command_endpoint" },
-				"Command endpoint must be in zone '" + checkableZone->GetName() + "' or in a direct child zone thereof."));
+				"Command endpoint must not be set."));
 		}
 	}
 }
@@ -80,6 +69,15 @@ void Checkable::Start(bool runtimeCreated)
 	}
 
 	ObjectImpl<Checkable>::Start(runtimeCreated);
+
+	static boost::once_flag once = BOOST_ONCE_INIT;
+
+	boost::call_once(once, []() {
+		l_CheckablesFireSuppressedNotifications = new Timer();
+		l_CheckablesFireSuppressedNotifications->SetInterval(5);
+		l_CheckablesFireSuppressedNotifications->OnTimerExpired.connect(&Checkable::FireSuppressedNotifications);
+		l_CheckablesFireSuppressedNotifications->Start();
+	});
 }
 
 void Checkable::AddGroup(const String& name)
@@ -132,6 +130,9 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 	if (notify && !IsPaused())
 		OnNotificationsRequested(this, NotificationAcknowledgement, GetLastCheckResult(), author, comment, nullptr);
 
+	Log(LogInformation, "Checkable")
+		<< "Acknowledgement set for checkable '" << GetName() << "'.";
+
 	OnAcknowledgementSet(this, author, comment, type, notify, persistent, expiry, origin);
 }
 
@@ -139,6 +140,9 @@ void Checkable::ClearAcknowledgement(const MessageOrigin::Ptr& origin)
 {
 	SetAcknowledgementRaw(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
+
+	Log(LogInformation, "Checkable")
+		<< "Acknowledgement cleared for checkable '" << GetName() << "'.";
 
 	OnAcknowledgementCleared(this, origin);
 }
@@ -152,6 +156,16 @@ int Checkable::GetSeverity() const
 {
 	/* overridden in Host/Service class. */
 	return 0;
+}
+
+bool Checkable::GetProblem() const
+{
+	return !IsStateOK(GetStateRaw());
+}
+
+bool Checkable::GetHandled() const
+{
+	return GetProblem() && (IsInDowntime() || IsAcknowledged());
 }
 
 void Checkable::NotifyFixedDowntimeStart(const Downtime::Ptr& downtime)
@@ -196,6 +210,14 @@ void Checkable::ValidateCheckInterval(const Lazy<double>& lvalue, const Validati
 
 	if (lvalue() <= 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "check_interval" }, "Interval must be greater than 0."));
+}
+
+void Checkable::ValidateRetryInterval(const Lazy<double>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<Checkable>::ValidateRetryInterval(lvalue, utils);
+
+	if (lvalue() <= 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "retry_interval" }, "Interval must be greater than 0."));
 }
 
 void Checkable::ValidateMaxCheckAttempts(const Lazy<int>& lvalue, const ValidationUtils& utils)

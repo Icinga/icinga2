@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef _WIN32
 #include "base/sysloglogger.hpp"
@@ -35,26 +18,26 @@ std::map<String, int> SyslogLogger::m_FacilityMap;
 
 void SyslogLogger::StaticInitialize()
 {
-	ScriptGlobal::Set("FacilityAuth", "LOG_AUTH");
-	ScriptGlobal::Set("FacilityAuthPriv", "LOG_AUTHPRIV");
-	ScriptGlobal::Set("FacilityCron", "LOG_CRON");
-	ScriptGlobal::Set("FacilityDaemon", "LOG_DAEMON");
-	ScriptGlobal::Set("FacilityFtp", "LOG_FTP");
-	ScriptGlobal::Set("FacilityKern", "LOG_KERN");
-	ScriptGlobal::Set("FacilityLocal0", "LOG_LOCAL0");
-	ScriptGlobal::Set("FacilityLocal1", "LOG_LOCAL1");
-	ScriptGlobal::Set("FacilityLocal2", "LOG_LOCAL2");
-	ScriptGlobal::Set("FacilityLocal3", "LOG_LOCAL3");
-	ScriptGlobal::Set("FacilityLocal4", "LOG_LOCAL4");
-	ScriptGlobal::Set("FacilityLocal5", "LOG_LOCAL5");
-	ScriptGlobal::Set("FacilityLocal6", "LOG_LOCAL6");
-	ScriptGlobal::Set("FacilityLocal7", "LOG_LOCAL7");
-	ScriptGlobal::Set("FacilityLpr", "LOG_LPR");
-	ScriptGlobal::Set("FacilityMail", "LOG_MAIL");
-	ScriptGlobal::Set("FacilityNews", "LOG_NEWS");
-	ScriptGlobal::Set("FacilitySyslog", "LOG_SYSLOG");
-	ScriptGlobal::Set("FacilityUser", "LOG_USER");
-	ScriptGlobal::Set("FacilityUucp", "LOG_UUCP");
+	ScriptGlobal::Set("System.FacilityAuth", "LOG_AUTH", true);
+	ScriptGlobal::Set("System.FacilityAuthPriv", "LOG_AUTHPRIV", true);
+	ScriptGlobal::Set("System.FacilityCron", "LOG_CRON", true);
+	ScriptGlobal::Set("System.FacilityDaemon", "LOG_DAEMON", true);
+	ScriptGlobal::Set("System.FacilityFtp", "LOG_FTP", true);
+	ScriptGlobal::Set("System.FacilityKern", "LOG_KERN", true);
+	ScriptGlobal::Set("System.FacilityLocal0", "LOG_LOCAL0", true);
+	ScriptGlobal::Set("System.FacilityLocal1", "LOG_LOCAL1", true);
+	ScriptGlobal::Set("System.FacilityLocal2", "LOG_LOCAL2", true);
+	ScriptGlobal::Set("System.FacilityLocal3", "LOG_LOCAL3", true);
+	ScriptGlobal::Set("System.FacilityLocal4", "LOG_LOCAL4", true);
+	ScriptGlobal::Set("System.FacilityLocal5", "LOG_LOCAL5", true);
+	ScriptGlobal::Set("System.FacilityLocal6", "LOG_LOCAL6", true);
+	ScriptGlobal::Set("System.FacilityLocal7", "LOG_LOCAL7", true);
+	ScriptGlobal::Set("System.FacilityLpr", "LOG_LPR", true);
+	ScriptGlobal::Set("System.FacilityMail", "LOG_MAIL", true);
+	ScriptGlobal::Set("System.FacilityNews", "LOG_NEWS", true);
+	ScriptGlobal::Set("System.FacilitySyslog", "LOG_SYSLOG", true);
+	ScriptGlobal::Set("System.FacilityUser", "LOG_USER", true);
+	ScriptGlobal::Set("System.FacilityUucp", "LOG_UUCP", true);
 
 	m_FacilityMap["LOG_AUTH"] = LOG_AUTH;
 	m_FacilityMap["LOG_AUTHPRIV"] = LOG_AUTHPRIV;

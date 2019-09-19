@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/nodewizardcommand.hpp"
 #include "cli/nodeutility.hpp"
@@ -54,7 +37,7 @@ String NodeWizardCommand::GetShortDescription() const
 
 ImpersonationLevel NodeWizardCommand::GetImpersonationLevel() const
 {
-	return ImpersonateRoot;
+	return ImpersonateIcinga;
 }
 
 int NodeWizardCommand::GetMaxArguments() const
@@ -103,15 +86,15 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	 * 8. copy key information to /var/lib/icinga2/certs
 	 * 9. enable ApiListener feature
 	 * 10. generate zones.conf with endpoints and zone objects
-	 * 11. set NodeName = cn in constants.conf
+	 * 11. set NodeName = cn and ZoneName in constants.conf
 	 * 12. disable conf.d directory?
 	 * 13. reload icinga2, or tell the user to
 	 */
 
 	std::string answer;
-	/* master or satellite/client setup */
+	/* master or satellite/agent setup */
 	std::cout << ConsoleColorTag(Console_Bold)
-		<< "Please specify if this is a satellite/client setup "
+		<< "Please specify if this is an agent/satellite setup "
 		<< "('n' installs a master setup)" << ConsoleColorTag(Console_Normal)
 		<< " [Y/n]: ";
 	std::getline (std::cin, answer);
@@ -127,7 +110,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	if (choice.Contains("n"))
 		res = MasterSetup();
 	else
-		res = ClientSetup();
+		res = AgentSatelliteSetup();
 
 	if (res != 0)
 		return res;
@@ -144,13 +127,13 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	return 0;
 }
 
-int NodeWizardCommand::ClientSetup() const
+int NodeWizardCommand::AgentSatelliteSetup() const
 {
 	std::string answer;
 	String choice;
 	bool connectToParent = false;
 
-	std::cout << "Starting the Client/Satellite setup routine...\n\n";
+	std::cout << "Starting the Agent/Satellite setup routine...\n\n";
 
 	/* CN */
 	std::cout << ConsoleColorTag(Console_Bold)
@@ -272,8 +255,8 @@ wizard_endpoint_loop_start:
 	String certsDir = ApiListener::GetCertsDir();
 	Utility::MkDirP(certsDir, 0700);
 
-	String user = ScriptGlobal::Get("RunAsUser");
-	String group = ScriptGlobal::Get("RunAsGroup");
+	String user = Configuration::RunAsUser;
+	String group = Configuration::RunAsGroup;
 
 	if (!Utility::SetFileOwnership(certsDir, user, group)) {
 		Log(LogWarning, "cli")
@@ -392,7 +375,7 @@ wizard_ticket:
 	} else {
 		/* We cannot retrieve the parent certificate.
 		 * Tell the user to manually copy the ca.crt file
-		 * into LocalStateDir + "/lib/icinga2/certs"
+		 * into DataDir + "/certs"
 		 */
 
 		std::cout <<  ConsoleColorTag(Console_Bold)
@@ -456,7 +439,7 @@ wizard_ticket:
 		<< "Reconfiguring Icinga...\n"
 		<< ConsoleColorTag(Console_Normal);
 
-	/* disable the notifications feature on client nodes */
+	/* disable the notifications feature on agent/satellite nodes */
 	Log(LogInformation, "cli", "Disabling the Notification feature.");
 
 	FeatureUtility::DisableFeatures({ "notification" });
@@ -487,16 +470,7 @@ wizard_ticket:
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(apiConfPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempApiConfPath.CStr(), apiConfPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempApiConfPath));
-	}
+	Utility::RenameFile(tempApiConfPath, apiConfPath);
 
 	/* Zones configuration. */
 	Log(LogInformation, "cli", "Generating local zones.conf.");
@@ -570,14 +544,14 @@ wizard_global_zone_loop_start:
 	/* Generate node configuration. */
 	NodeUtility::GenerateNodeIcingaConfig(endpointName, zoneName, parentZoneName, endpoints, globalZones);
 
-	if (cn != Utility::GetFQDN()) {
+	if (endpointName != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
-			<< "CN '" << cn << "' does not match the default FQDN '"
+			<< "CN/Endpoint name '" << endpointName << "' does not match the default FQDN '"
 			<< Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 	}
 
-	NodeUtility::UpdateConstant("NodeName", cn);
-	NodeUtility::UpdateConstant("ZoneName", cn);
+	NodeUtility::UpdateConstant("NodeName", endpointName);
+	NodeUtility::UpdateConstant("ZoneName", zoneName);
 
 	if (!ticket.IsEmpty()) {
 		String ticketPath = ApiListener::GetCertsDir() + "/ticket";
@@ -595,16 +569,7 @@ wizard_global_zone_loop_start:
 
 		fp.close();
 
-#ifdef _WIN32
-		_unlink(ticketPath.CStr());
-#endif /* _WIN32 */
-
-		if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("rename")
-				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(tempTicketPath));
-		}
+		Utility::RenameFile(tempTicketPath, ticketPath);
 	}
 
 	/* If no parent connection was made, the user must supply the ca.crt before restarting Icinga 2.*/
@@ -638,7 +603,7 @@ wizard_global_zone_loop_start:
 				<< ConsoleColorTag(Console_Normal);
 		}
 
-		/* Satellite/Clients should not include the api-users.conf file.
+		/* Satellite/Agents should not include the api-users.conf file.
 		 * The configuration should instead be managed via config sync or automation tools.
 		 */
 	}
@@ -799,16 +764,7 @@ wizard_global_zone_loop_start:
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(apiConfPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempApiConfPath.CStr(), apiConfPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempApiConfPath));
-	}
+	Utility::RenameFile(tempApiConfPath, apiConfPath);
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
 	if (cn != Utility::GetFQDN()) {
@@ -821,8 +777,8 @@ wizard_global_zone_loop_start:
 
 	NodeUtility::CreateBackupFile(NodeUtility::GetConstantsConfPath());
 
-	NodeUtility::UpdateConstant("NodeName", cn);
-	NodeUtility::UpdateConstant("ZoneName", cn);
+	NodeUtility::UpdateConstant("NodeName", endpointName);
+	NodeUtility::UpdateConstant("ZoneName", zoneName);
 
 	String salt = RandomString(16);
 
@@ -850,7 +806,7 @@ wizard_global_zone_loop_start:
 		}
 
 		/* Include api-users.conf */
-		String apiUsersFilePath = Application::GetSysconfDir() + "/icinga2/conf.d/api-users.conf";
+		String apiUsersFilePath = Configuration::ConfigDir + "/conf.d/api-users.conf";
 
 		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
 			<< "Checking if the api-users.conf file exists...\n"

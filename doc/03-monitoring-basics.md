@@ -208,10 +208,10 @@ You can also import existing non-template objects.
 
 ### Multiple Templates <a id="object-inheritance-using-multiple-templates"></a>
 
-The following example uses [custom attributes](03-monitoring-basics.md#custom-attributes) which
+The following example uses [custom variables](03-monitoring-basics.md#custom-variables) which
 are provided in each template. The `web-server` template is used as the
 base template for any host providing web services. In addition to that it
-specifies the custom attribute `webserver_type`, e.g. `apache`. Since this
+specifies the custom variable `webserver_type`, e.g. `apache`. Since this
 template is also the base template, we import the `generic-host` template here.
 This provides the `check_command` attribute by default and we don't need
 to set it anywhere later on.
@@ -226,7 +226,7 @@ template Host "web-server" {
 ```
 
 The `wp-server` host template specifies a Wordpress instance and sets
-the `application_type` custom attribute. Please note the `+=` [operator](17-language-reference.md#dictionary-operators)
+the `application_type` custom variable. Please note the `+=` [operator](17-language-reference.md#dictionary-operators)
 which adds [dictionary](17-language-reference.md#dictionary) items,
 but does not override any previous `vars` attribute.
 
@@ -265,10 +265,22 @@ object Host "wp1.example.com" {
 }
 ```
 
-## Custom Attributes <a id="custom-attributes"></a>
+<!-- Keep this for compatibility -->
+<a id="custom-attributes"></a>
 
-In addition to built-in attributes you can define your own attributes
-inside the `vars` attribute:
+## Custom Variables <a id="custom-variables"></a>
+
+In addition to built-in object attributes you can define your own custom
+attributes inside the `vars` attribute.
+
+> **Tip**
+>
+> This is called `custom variables` throughout the documentation, backends and web interfaces.
+>
+> Older documentation versions referred to this as `custom attribute`.
+
+The following example specifies the key `ssh_port` as custom
+variable and assigns an integer value.
 
 ```
 object Host "localhost" {
@@ -295,17 +307,17 @@ or
   vars["ssh_port"] = 2222
 ```
 
-### Custom Attribute Values <a id="custom-attributes-values"></a>
+### Custom Variable Values <a id="custom-variables-values"></a>
 
-Valid values for custom attributes include:
+Valid values for custom variables include:
 
 * [Strings](17-language-reference.md#string-literals), [numbers](17-language-reference.md#numeric-literals) and [booleans](17-language-reference.md#boolean-literals)
 * [Arrays](17-language-reference.md#array) and [dictionaries](17-language-reference.md#dictionary)
-* [Functions](03-monitoring-basics.md#custom-attributes-functions)
+* [Functions](03-monitoring-basics.md#custom-variables-functions)
 
 You can also define nested values such as dictionaries in dictionaries.
 
-This example defines the custom attribute `disks` as dictionary.
+This example defines the custom variable `disks` as dictionary.
 The first key is set to `disk /` is itself set to a dictionary
 with one key-value pair.
 
@@ -338,7 +350,7 @@ Another example which is shown in the example configuration:
   }
 ```
 
-This defines the `notification` custom attribute as dictionary
+This defines the `notification` custom variable as dictionary
 with the key `mail`. Its value is a dictionary with the key `groups`
 which itself has an array as value. Note: This array is the exact
 same as the `user_groups` attribute for [notification apply rules](#03-monitoring-basics.md#using-apply-notifications)
@@ -354,11 +366,13 @@ expects.
   }
 ```
 
+<!-- Keep this for compatibility -->
+<a id="custom-attributes-functions"></a>
 
-### Functions as Custom Attributes <a id="custom-attributes-functions"></a>
+### Functions as Custom Variables <a id="custom-variables-functions"></a>
 
-Icinga 2 lets you specify [functions](17-language-reference.md#functions) for custom attributes.
-The special case here is that whenever Icinga 2 needs the value for such a custom attribute it runs
+Icinga 2 lets you specify [functions](17-language-reference.md#functions) for custom variables.
+The special case here is that whenever Icinga 2 needs the value for such a custom variable it runs
 the function and uses whatever value the function returns:
 
 ```
@@ -430,22 +444,25 @@ Accessing object attributes at runtime inside these functions is described in th
 
 ## Runtime Macros <a id="runtime-macros"></a>
 
-Macros can be used to access other objects' attributes at runtime. For example they
-are used in command definitions to figure out which IP address a check should be
-run against:
+Macros can be used to access other objects' attributes and [custom variables](03-monitoring-basics.md#custom-variables)
+at runtime. For example they are used in command definitions to figure out
+which IP address a check should be run against:
 
 ```
 object CheckCommand "my-ping" {
-  command = [ PluginDir + "/check_ping", "-H", "$ping_address$" ]
+  command = [ PluginDir + "/check_ping" ]
 
   arguments = {
+    "-H" = "$ping_address$"
     "-w" = "$ping_wrta$,$ping_wpl$%"
     "-c" = "$ping_crta$,$ping_cpl$%"
     "-p" = "$ping_packets$"
   }
 
+  // Resolve from a host attribute, or custom variable.
   vars.ping_address = "$address$"
 
+  // Default values
   vars.ping_wrta = 100
   vars.ping_wpl = 5
 
@@ -464,7 +481,7 @@ object Host "router" {
 In this example we are using the `$address$` macro to refer to the host's `address`
 attribute.
 
-We can also directly refer to custom attributes, e.g. by using `$ping_wrta$`. Icinga
+We can also directly refer to custom variables, e.g. by using `$ping_wrta$`. Icinga
 automatically tries to find the closest match for the attribute you specified. The
 exact rules for this are explained in the next section.
 
@@ -483,12 +500,12 @@ up macros and their respective values:
 2. Service object
 3. Host object
 4. Command object
-5. Global custom attributes in the `Vars` constant
+5. Global custom variables in the `Vars` constant
 
-This execution order allows you to define default values for custom attributes
+This execution order allows you to define default values for custom variables
 in your command objects.
 
-Here's how you can override the custom attribute `ping_packets` from the previous
+Here's how you can override the custom variable `ping_packets` from the previous
 example:
 
 ```
@@ -500,7 +517,7 @@ object Service "ping" {
 }
 ```
 
-If a custom attribute isn't defined anywhere, an empty value is used and a warning is
+If a custom variable isn't defined anywhere, an empty value is used and a warning is
 written to the Icinga 2 log.
 
 You can also directly refer to a specific attribute -- thereby ignoring these evaluation
@@ -510,14 +527,14 @@ rules -- by specifying the full attribute name:
 $service.vars.ping_wrta$
 ```
 
-This retrieves the value of the `ping_wrta` custom attribute for the service. This
-returns an empty value if the service does not have such a custom attribute no matter
+This retrieves the value of the `ping_wrta` custom variable for the service. This
+returns an empty value if the service does not have such a custom variable no matter
 whether another object such as the host has this attribute.
 
 
 ### Host Runtime Macros <a id="host-runtime-macros"></a>
 
-The following host custom attributes are available in all commands that are executed for
+The following host custom variables are available in all commands that are executed for
 hosts or services:
 
   Name                         | Description
@@ -583,7 +600,7 @@ attributes can be accessed too.
 
 ### Command Runtime Macros <a id="command-runtime-macros"></a>
 
-The following custom attributes are available in all commands:
+The following custom variables are available in all commands:
 
   Name                   | Description
   -----------------------|--------------
@@ -591,7 +608,7 @@ The following custom attributes are available in all commands:
 
 ### User Runtime Macros <a id="user-runtime-macros"></a>
 
-The following custom attributes are available in all commands that are executed for
+The following custom variables are available in all commands that are executed for
 users:
 
   Name                   | Description
@@ -661,7 +678,7 @@ attribute and reference an existing host attribute.
 ```
 object Service "ping4" {
   check_command = "ping4"
-  host_name = "icinga2-client1.localdomain"
+  host_name = "icinga2-agent1.localdomain"
 }
 ```
 
@@ -688,7 +705,7 @@ More explanations on assign where expressions can be found [here](03-monitoring-
 Before you start with apply rules keep the following in mind:
 
 * Define the best match.
-    * A set of unique [custom attributes](03-monitoring-basics.md#custom-attributes) for these hosts/services?
+    * A set of unique [custom variables](03-monitoring-basics.md#custom-variables) for these hosts/services?
     * Or [group](03-monitoring-basics.md#groups) memberships, e.g. a host being a member of a hostgroup which should have a service set?
     * A generic pattern [match](18-library-reference.md#global-functions-match) on the host/service name?
     * [Multiple expressions combined](03-monitoring-basics.md#using-apply-expressions) with `&&` or `||` [operators](17-language-reference.md#expression-operators)
@@ -710,12 +727,12 @@ objects in that scope (host and/or service objects).
 vars.application_type = host.vars.application_type
 ```
 
-[Custom attributes](03-monitoring-basics.md#custom-attributes) can also store
+[Custom variables](03-monitoring-basics.md#custom-variables) can also store
 nested dictionaries and arrays. That way you can use them for not only matching
 for their existence or values in apply expressions, but also assign
 ("inherit") their values into the generated objected from apply rules.
 
-Remember the examples shown for [custom attribute values](03-monitoring-basics.md#custom-attributes-values):
+Remember the examples shown for [custom variable values](03-monitoring-basics.md#custom-variables-values):
 
 ```
   vars.notification["mail"] = {
@@ -725,7 +742,7 @@ Remember the examples shown for [custom attribute values](03-monitoring-basics.m
 
 You can do two things here:
 
-* Check for the existence of the `notification` custom attribute and its nested dictionary key `mail`.
+* Check for the existence of the `notification` custom variable and its nested dictionary key `mail`.
 If this is boolean true, the notification object will be generated.
 * Assign the value of the `groups` key to the `user_groups` attribute.
 
@@ -742,9 +759,9 @@ apply Notification "mail-icingaadmin" to Host {
 
 A more advanced example is to use [apply rules with for loops on arrays or
 dictionaries](03-monitoring-basics.md#using-apply-for) provided by
-[custom atttributes](03-monitoring-basics.md#custom-attributes) or groups.
+[custom atttributes](03-monitoring-basics.md#custom-variables) or groups.
 
-Remember the examples shown for [custom attribute values](03-monitoring-basics.md#custom-attributes-values):
+Remember the examples shown for [custom variable values](03-monitoring-basics.md#custom-variables-values):
 
 ```
   vars.disks["disk /"] = {
@@ -801,7 +818,7 @@ Assign a service to a specific host in a host group [array](18-library-reference
 assign where "hostgroup-dev" in host.groups
 ```
 
-Assign an object when a custom attribute is [equal](17-language-reference.md#expression-operators) to a value:
+Assign an object when a custom variable is [equal](17-language-reference.md#expression-operators) to a value:
 
 ```
 assign where host.vars.application_type == "database"
@@ -827,8 +844,8 @@ Match the host name by using a [regular expression](18-library-reference.md#glob
 assign where regex("^webserver-[\\d+]", host.name)
 ```
 
-[Match](18-library-reference.md#global-functions-match) all `*mysql*` patterns in the host name and (`&&`) custom attribute `prod_mysql_db`
-matches the `db-*` pattern. All hosts with the custom attribute `test_server` set to `true`
+[Match](18-library-reference.md#global-functions-match) all `*mysql*` patterns in the host name and (`&&`) custom variable `prod_mysql_db`
+matches the `db-*` pattern. All hosts with the custom variable `test_server` set to `true`
 should be ignored, or any host name ending with `*internal` pattern.
 
 ```
@@ -843,11 +860,11 @@ object HostGroup "mysql-server" {
 
 Similar example for advanced notification apply rule filters: If the service
 attribute `notes` [matches](18-library-reference.md#global-functions-match) the `has gold support 24x7` string `AND` one of the
-two condition passes, either the `customer` host custom attribute is set to `customer-xy`
-`OR` the host custom attribute `always_notify` is set to `true`.
+two condition passes, either the `customer` host custom variable is set to `customer-xy`
+`OR` the host custom variable `always_notify` is set to `true`.
 
 The notification is ignored for services whose host name ends with `*internal`
-`OR` the `priority` custom attribute is [less than](17-language-reference.md#expression-operators) `2`.
+`OR` the `priority` custom variable is [less than](17-language-reference.md#expression-operators) `2`.
 
 ```
 template Notification "cust-xy-notification" {
@@ -867,11 +884,11 @@ More advanced examples are covered [here](08-advanced-topics.md#use-functions-as
 
 ### Apply Services to Hosts <a id="using-apply-services"></a>
 
-The sample configuration already includes a detailed example in [hosts.conf](04-configuring-icinga-2.md#hosts-conf)
-and [services.conf](04-configuring-icinga-2.md#services-conf) for this use case.
+The sample configuration already includes a detailed example in [hosts.conf](04-configuration.md#hosts-conf)
+and [services.conf](04-configuration.md#services-conf) for this use case.
 
 The example for `ssh` applies a service object to all hosts with the `address`
-attribute being defined and the custom attribute `os` set to the string `Linux` in `vars`.
+attribute being defined and the custom variable `os` set to the string `Linux` in `vars`.
 
 ```
 apply Service "ssh" {
@@ -902,17 +919,17 @@ apply Notification "mail-noc" to Service {
 ```
 
 In this example the `mail-noc` notification will be created as object for all services having the
-`notification.mail` custom attribute defined. The notification command is set to `mail-service-notification`
+`notification.mail` custom variable defined. The notification command is set to `mail-service-notification`
 and all members of the user group `noc` will get notified.
 
 It is also possible to generally apply a notification template and dynamically overwrite values from
-the template by checking for custom attributes. This can be achieved by using [conditional statements](17-language-reference.md#conditional-statements):
+the template by checking for custom variables. This can be achieved by using [conditional statements](17-language-reference.md#conditional-statements):
 
 ```
 apply Notification "host-mail-noc" to Host {
   import "mail-host-notification"
 
-  // replace interval inherited from `mail-host-notification` template with new notfication interval set by a host custom attribute
+  // replace interval inherited from `mail-host-notification` template with new notfication interval set by a host custom variable
   if (host.vars.notification_interval) {
     interval = host.vars.notification_interval
   }
@@ -922,7 +939,7 @@ apply Notification "host-mail-noc" to Host {
     period = host.vars.notification_period
   }
 
-  // Send SMS instead of email if the host's custom attribute `notification_type` is set to `sms`
+  // Send SMS instead of email if the host's custom variable `notification_type` is set to `sms`
   if (host.vars.notification_type == "sms") {
     command = "sms-host-notification"
   } else {
@@ -939,7 +956,7 @@ In the example above the notification template `mail-host-notification`
 contains all relevant notification settings.
 The apply rule is applied on all host objects where the `host.address` is defined.
 
-If the host object as a specific custom attributed set, its value is inherited
+If the host object has a specific custom variable set, its value is inherited
 into the local notification object scope, e.g. `host.vars.notification_interval`,
 `host.vars.notification_period` and `host.vars.notification_type`.
 This overwrites attributes already specified in the imported `mail-host-notification`
@@ -964,7 +981,7 @@ Detailed examples can be found in the [dependencies](03-monitoring-basics.md#dep
 
 ### Apply Recurring Downtimes to Hosts and Services <a id="using-apply-scheduledowntimes"></a>
 
-The sample configuration includes an example in [downtimes.conf](04-configuring-icinga-2.md#downtimes-conf).
+The sample configuration includes an example in [downtimes.conf](04-configuration.md#downtimes-conf).
 
 Detailed examples can be found in the [recurring downtimes](08-advanced-topics.md#recurring-downtimes) chapter.
 
@@ -975,8 +992,8 @@ Next to the standard way of using [apply rules](03-monitoring-basics.md#using-ap
 there is the requirement of applying objects based on a set (array or
 dictionary) using [apply for](17-language-reference.md#apply-for) expressions.
 
-The sample configuration already includes a detailed example in [hosts.conf](04-configuring-icinga-2.md#hosts-conf)
-and [services.conf](04-configuring-icinga-2.md#services-conf) for this use case.
+The sample configuration already includes a detailed example in [hosts.conf](04-configuration.md#hosts-conf)
+and [services.conf](04-configuration.md#services-conf) for this use case.
 
 Take the following example: A host provides the snmp oids for different service check
 types. This could look like the following example:
@@ -984,7 +1001,7 @@ types. This could look like the following example:
 ```
 object Host "router-v6" {
   check_command = "hostalive"
-  address6 = "::1"
+  address6 = "2001:db8:1234::42"
 
   vars.oids["if01"] = "1.1.1.1.1"
   vars.oids["temp"] = "1.1.1.1.2"
@@ -993,7 +1010,7 @@ object Host "router-v6" {
 ```
 
 The idea is to create service objects for `if01` and `temp` but not `bgp`.
-The oid value should also be used as service custom attribute `snmp_oid`.
+The oid value should also be used as service custom variable `snmp_oid`.
 This is the command argument required by the [snmp](10-icinga-template-library.md#plugin-check-command-snmp)
 check command.
 The service's `display_name` should be set to the identifier inside the dictionary,
@@ -1009,7 +1026,7 @@ apply Service for (identifier => oid in host.vars.oids) {
 }
 ```
 
-Icinga 2 evaluates the `apply for` rule for all objects with the custom attribute
+Icinga 2 evaluates the `apply for` rule for all objects with the custom variable
 `oids` set.
 It iterates over all dictionary items inside the `for` loop and evaluates the
 `assign/ignore where` expressions. You can access the loop variable
@@ -1026,13 +1043,15 @@ unwanted services. A different approach would be to match the `oid` value with a
 > **Note**
 >
 > You don't need an `assign where` expression which checks for the existence of the
-> `oids` custom attribute.
+> `oids` custom variable.
 
 This method saves you from creating multiple apply rules. It also moves
 the attribute specification logic from the service to the host.
 
+<!-- Keep this for compatibility -->
+<a id="using-apply-for-custom-attribute-override"></a>
 
-#### Apply For and Custom Attribute Override <a id="using-apply-for-custom-attribute-override"></a>
+#### Apply For and Custom Variable Override <a id="using-apply-for-custom-variable-override"></a>
 
 Imagine a different more advanced example: You are monitoring your network device (host)
 with many interfaces (services). The following requirements/problems apply:
@@ -1046,17 +1065,17 @@ dynamically generated.
 
 > **Tip**
 >
-> Define the SNMP community as global constant in your [constants.conf](04-configuring-icinga-2.md#constants-conf) file.
+> Define the SNMP community as global constant in your [constants.conf](04-configuration.md#constants-conf) file.
 
 ```
 const IftrafficSnmpCommunity = "public"
 ```
 
-Define the `interfaces` [custom attribute](03-monitoring-basics.md#custom-attributes)
+Define the `interfaces` [custom variable](03-monitoring-basics.md#custom-variables)
 on the `cisco-catalyst-6509-34` host object and add three example interfaces as dictionary keys.
 
 Specify additional attributes inside the nested dictionary
-as learned with [custom attribute values](03-monitoring-basics.md#custom-attributes-values):
+as learned with [custom variable values](03-monitoring-basics.md#custom-variables-values):
 
 ```
 object Host "cisco-catalyst-6509-34" {
@@ -1068,7 +1087,7 @@ object Host "cisco-catalyst-6509-34" {
    * and key name in service apply for later on
    */
   vars.interfaces["GigabitEthernet0/2"] = {
-     /* define all custom attributes with the
+     /* define all custom variables with the
       * same name required for command parameters/arguments
       * in service apply (look into your CheckCommand definition)
       */
@@ -1141,17 +1160,17 @@ interface_config = {
 ```
 
 Access the dictionary keys with the [indexer](17-language-reference.md#indexer) syntax
-and assign them to custom attributes used as command parameters for the `iftraffic`
+and assign them to custom variables used as command parameters for the `iftraffic`
 check command.
 
 ```
-  /* map the custom attributes as command arguments */
+  /* map the custom variables as command arguments */
   vars.iftraffic_units = interface_config.iftraffic_units
   vars.iftraffic_community = interface_config.iftraffic_community
 ```
 
 If you just want to inherit all attributes specified inside the `interface_config`
-dictionary, add it to the generated service custom attributes like this:
+dictionary, add it to the generated service custom variables like this:
 
 ```
   /* the above can be achieved in a shorter fashion if the names inside host.vars.interfaces
@@ -1161,7 +1180,7 @@ dictionary, add it to the generated service custom attributes like this:
   vars += interface_config
 ```
 
-If the user did not specify default values for required service custom attributes,
+If the user did not specify default values for required service custom variables,
 add them here. This also helps to avoid unwanted configuration validation errors or
 runtime failures. Please read more about conditional statements [here](17-language-reference.md#conditional-statements).
 
@@ -1211,7 +1230,7 @@ more object attributes which can be e.g. seen in external interfaces.
 > after successful [configuration validation](11-cli-commands.md#config-validation).
 
 Verify that the apply-for-rule successfully created the service objects with the
-inherited custom attributes:
+inherited custom variables:
 
 ```
 # icinga2 daemon -C
@@ -1292,7 +1311,7 @@ object Host "opennebula-host" {
 }
 ```
 
-`hosting` is a custom attribute with the Dictionary value type.
+`hosting` is a custom variable with the Dictionary value type.
 This is mandatory to iterate with the `key => value` notation
 in the below apply for rule.
 
@@ -1553,26 +1572,34 @@ send notifications to all group members.
 > Only users who have been notified of a problem before  (`Warning`, `Critical`, `Unknown`
 states for services, `Down` for hosts) will receive `Recovery` notifications.
 
+Icinga 2 v2.10 allows you to configure `Acknowledgement` and/or `Recovery`
+without a `Problem` notification. These notifications will be sent without
+any problem notifications beforehand, and can be used for e.g. ticket systems.
+
+```
+  types = [ Acknowledgement, Recovery ]
+```
+
 ### Notifications: Users from Host/Service <a id="alert-notifications-users-host-service"></a>
 
 A common pattern is to store the users and user groups
 on the host or service objects instead of the notification
 object itself.
 
-The sample configuration provided in [hosts.conf](04-configuring-icinga-2.md#hosts-conf) and [notifications.conf](notifications-conf)
+The sample configuration provided in [hosts.conf](04-configuration.md#hosts-conf) and [notifications.conf](notifications-conf)
 already provides an example for this question.
 
 > **Tip**
 >
 > Please make sure to read the [apply](03-monitoring-basics.md#using-apply) and
-> [custom attribute values](03-monitoring-basics.md#custom-attributes-values) chapter to
+> [custom variable values](03-monitoring-basics.md#custom-variables-values) chapter to
 > fully understand these examples.
 
 
-Specify the user and groups as nested custom attribute on the host object:
+Specify the user and groups as nested custom variable on the host object:
 
 ```
-object Host "icinga2-client1.localdomain" {
+object Host "icinga2-agent1.localdomain" {
   [...]
 
   vars.notification["mail"] = {
@@ -1589,7 +1616,7 @@ As you can see, there is the option to use two different notification
 apply rules here: One for `mail` and one for `sms`.
 
 This example assigns the `users` and `groups` nested keys from the `notification`
-custom attribute to the actual notification object attributes.
+custom variable to the actual notification object attributes.
 
 Since errors are hard to debug if host objects don't specify the required
 configuration attributes, you can add a safety condition which logs which
@@ -1661,7 +1688,7 @@ notification users and groups are inherited from the service and if not set,
 from the host object. A default user is set too.
 
 ```
-apply Notification "mail-host-notification" to Service {
+apply Notification "mail-service-notification" to Service {
   [...]
 
   if (service.vars.notification.mail.users) {
@@ -1675,11 +1702,11 @@ apply Notification "mail-host-notification" to Service {
 
   if (service.vars.notification.mail.groups) {
     user_groups = service.vars.notification.mail.groups
-  } else (host.vars.notification.mail.groups) {
+  } else if (host.vars.notification.mail.groups) {
     user_groups = host.vars.notification.mail.groups
   }
 
-  assign where host.vars.notification.mail && typeof(host.vars.notification.mail) == Dictionary
+  assign where ( host.vars.notification.mail && typeof(host.vars.notification.mail) == Dictionary ) || ( service.vars.notification.mail && typeof(service.vars.notification.mail) == Dictionary )
 }
 ```
 
@@ -1866,7 +1893,7 @@ using the `check_command` attribute.
 #### Integrate the Plugin with a CheckCommand Definition <a id="command-plugin-integration"></a>
 
 Unless you have done so already, download your check plugin and put it
-into the [PluginDir](04-configuring-icinga-2.md#constants-conf) directory. The following example uses the
+into the [PluginDir](04-configuration.md#constants-conf) directory. The following example uses the
 `check_mysql` plugin contained in the Monitoring Plugins package.
 
 The plugin path and all command arguments are made a list of
@@ -1896,7 +1923,7 @@ Please continue reading in the [plugins section](05-service-monitoring.md#servic
 
 #### Passing Check Command Parameters from Host or Service <a id="command-passing-parameters"></a>
 
-Check command parameters are defined as custom attributes which can be accessed as runtime macros
+Check command parameters are defined as custom variables which can be accessed as runtime macros
 by the executed check command.
 
 The check command parameters for ITL provided plugin check command definitions are documented
@@ -1905,11 +1932,11 @@ The check command parameters for ITL provided plugin check command definitions a
 
 In order to practice passing command parameters you should [integrate your own plugin](03-monitoring-basics.md#command-plugin-integration).
 
-The following example will use `check_mysql` provided by the [Monitoring Plugins installation](02-getting-started.md#setting-up-check-plugins).
+The following example will use `check_mysql` provided by the [Monitoring Plugins installation](02-installation.md#setting-up-check-plugins).
 
-Define the default check command custom attributes, for example `mysql_user` and `mysql_password`
+Define the default check command custom variables, for example `mysql_user` and `mysql_password`
 (freely definable naming schema) and optional their default threshold values. You can
-then use these custom attributes as runtime macros for [command arguments](03-monitoring-basics.md#command-arguments)
+then use these custom variables as runtime macros for [command arguments](03-monitoring-basics.md#command-arguments)
 on the command line.
 
 > **Tip**
@@ -1918,8 +1945,8 @@ on the command line.
 > readability. `mysql_user` helps understanding the context better than just
 > `user` as argument.
 
-The default custom attributes can be overridden by the custom attributes
-defined in the host or service using the check command `my-mysql`. The custom attributes
+The default custom variables can be overridden by the custom variables
+defined in the host or service using the check command `my-mysql`. The custom variables
 can also be inherited from a parent template using additive inheritance (`+=`).
 
 ```
@@ -1965,7 +1992,7 @@ The check command definition also sets `mysql_host` to the `$address$` default v
 this command parameter if for example your MySQL host is not running on the same server's ip address.
 
 Make sure pass all required command parameters, such as `mysql_user`, `mysql_password` and `mysql_database`.
-`MysqlUsername` and `MysqlPassword` are specified as [global constants](04-configuring-icinga-2.md#constants-conf)
+`MysqlUsername` and `MysqlPassword` are specified as [global constants](04-configuration.md#constants-conf)
 in this example.
 
 ```
@@ -1988,10 +2015,10 @@ apply Service "mysql-icinga-db-health" {
 ```
 
 
-Take a different example: The example host configuration in [hosts.conf](04-configuring-icinga-2.md#hosts-conf)
+Take a different example: The example host configuration in [hosts.conf](04-configuration.md#hosts-conf)
 also applies an `ssh` service check. Your host's ssh port is not the default `22`, but set to `2022`.
-You can pass the command parameter as custom attribute `ssh_port` directly inside the service apply rule
-inside [services.conf](04-configuring-icinga-2.md#services-conf):
+You can pass the command parameter as custom variable `ssh_port` directly inside the service apply rule
+inside [services.conf](04-configuration.md#services-conf):
 
 ```
 apply Service "ssh" {
@@ -2008,7 +2035,7 @@ If you prefer this being configured at the host instead of the service, modify t
 object instead. The runtime macro resolving order is described [here](03-monitoring-basics.md#macro-evaluation-order).
 
 ```
-object Host "icinga2-client1.localdomain {
+object Host "icinga2-agent1.localdomain {
 ...
   vars.ssh_port = 2022
 }
@@ -2018,10 +2045,10 @@ object Host "icinga2-client1.localdomain {
 
 The host `localhost` with the generated services from the `basic-partitions` dictionary (see
 [apply for](03-monitoring-basics.md#using-apply-for) for details) checks a basic set of disk partitions
-with modified custom attributes (warning thresholds at `10%`, critical thresholds at `5%`
+with modified custom variables (warning thresholds at `10%`, critical thresholds at `5%`
 free disk space).
 
-The custom attribute `disk_partition` can either hold a single string or an array of
+The custom variable `disk_partition` can either hold a single string or an array of
 string values for passing multiple partitions to the `check_disk` check plugin.
 
 ```
@@ -2047,121 +2074,360 @@ apply Service for (disk => config in host.vars.local_disks) {
 ```
 
 
-More details on using arrays in custom attributes can be found in
-[this chapter](03-monitoring-basics.md#custom-attributes).
+More details on using arrays in custom variables can be found in
+[this chapter](03-monitoring-basics.md#custom-variables).
 
 
 #### Command Arguments <a id="command-arguments"></a>
 
-By defining a check command line using the `command` attribute Icinga 2
-will resolve all macros in the static string or array. Sometimes it is
-required to extend the arguments list based on a met condition evaluated
-at command execution. Or making arguments optional -- only set if the
-macro value can be resolved by Icinga 2.
+Next to the short `command` array specified in the command object,
+it is advised to define plugin/script parameters in the `arguments`
+dictionary attribute.
+
+The value of the `--parameter` key itself is a dictionary with additional
+keys. They allow to create generic command objects and are also for documentation
+purposes, e.g. with the `description` field copying the plugin's help text in there.
+The Icinga Director uses this field to show the argument's purpose when selecting it.
 
 ```
-object CheckCommand "http" {
-  command = [ PluginDir + "/check_http" ]
+  arguments = {
+    "--parameter" = {
+      description = "..."
+      value = "..."
+    }
+  }
+```
+
+Each argument is optional by default and is omitted if
+the value is not set.
+
+Learn more about integrating plugins with CheckCommand
+objects in [this chapter](05-service-monitoring.md#service-monitoring-plugin-checkcommand).
+
+There are additional possibilities for creating a command only once,
+with different parameters and arguments, shown below.
+
+##### Command Arguments: Value <a id="command-arguments-value"></a>
+
+In order to find out about the command argument, call the plugin's help
+or consult the README.
+
+```
+./check_systemd.py --help
+
+...
+
+  -u UNIT, --unit UNIT  Name of the systemd unit that is beeing tested.
+```
+
+Whenever the long parameter name is available, prefer this over the short one.
+
+```
+  arguments = {
+    "--unit" = {
+
+    }
+  }
+```
+
+Define a unique `prefix` for the command's specific arguments. Best practice is to follow this schema:
+
+```
+<command name>_<parameter name>
+```
+
+Therefore use `systemd_` as prefix, and use the long plugin parameter name `unit` inside the [runtime macro](03-monitoring-basics.md#runtime-macros)
+syntax.
+
+```
+  arguments = {
+    "--unit" = {
+      value = "$systemd_unit$"
+    }
+  }
+```
+
+In order to specify a default value, specify
+a [custom variable](03-monitoring-basics.md#custom-variables) inside
+the CheckCommand object.
+
+```
+  vars.systemd_unit = "icinga2"
+```
+
+This value can be overridden from the host/service
+object as command parameters.
+
+
+##### Command Arguments: Description <a id="command-arguments-description"></a>
+
+Best practice, also inside the [ITL](10-icinga-template-library.md#icinga-template-library), is to always
+copy the command parameter help output into the `description`
+field of your check command.
+
+Learn more about integrating plugins with CheckCommand
+objects in [this chapter](05-service-monitoring.md#service-monitoring-plugin-checkcommand).
+
+With the [example above](03-monitoring-basics.md#command-arguments-value),
+inspect the parameter's help text.
+
+```
+./check_systemd.py --help
+
+...
+
+  -u UNIT, --unit UNIT  Name of the systemd unit that is beeing tested.
+```
+
+Copy this into the command arguments `description` entry.
+
+```
+  arguments = {
+    "--unit" = {
+      value = "$systemd_unit$"
+      description = "Name of the systemd unit that is beeing tested."
+    }
+  }
+```
+
+##### Command Arguments: Required <a id="command-arguments-required"></a>
+
+Specifies whether this command argument is required, or not. By
+default all arguments are optional.
+
+> **Tip**
+>
+> Good plugins provide optional parameters in square brackets, e.g. `[-w SECONDS]`.
+
+The `required` field can be toggled with a [boolean](17-language-reference.md#boolean-literals) value.
+
+```
+  arguments = {
+    "--host" = {
+      value = "..."
+      description = "..."
+      required = true
+    }
+  }
+```
+
+Whenever the check is executed and the argument is missing, Icinga
+logs an error. This allows to better debug configuration errors
+instead of sometimes unreadable plugin errors when parameters are
+missing.
+
+##### Command Arguments: Skip Key <a id="command-arguments-skip-key"></a>
+
+The `arguments` attribute requires a key, empty values are not allowed.
+To overcome this for parameters which don't need the name in front of
+the value, use the `skip_key` [boolean](17-language-reference.md#boolean-literals) toggle.
+
+```
+  command = [ PrefixDir + "/bin/icingacli", "businessprocess", "process", "check" ]
 
   arguments = {
-    "-H" = "$http_vhost$"
-    "-I" = "$http_address$"
-    "-u" = "$http_uri$"
-    "-p" = "$http_port$"
-    "-S" = {
-      set_if = "$http_ssl$"
+    "--process" = {
+      value = "$icingacli_businessprocess_process$"
+      description = "Business process to monitor"
+      skip_key = true
+      required = true
+      order = -1
     }
+  }
+```
+
+The service specifies the [custom variable](03-monitoring-basics.md#custom-variables) `icingacli_businessprocess_process`.
+
+```
+  vars.icingacli_businessprocess_process = "bp-shop-web"
+```
+
+This results in this command line without the `--process` parameter:
+
+```
+'/bin/icingacli' 'businessprocess' 'process' 'check' 'bp-shop-web'
+```
+
+You can use this method to put everything into the `arguments` attribute
+in a defined order and without keys. This avoids entries in the `command`
+attributes too.
+
+
+##### Command Arguments: Set If <a id="command-arguments-set-if"></a>
+
+This can be used for the following scenarios:
+
+**Parameters without value, e.g. `--sni`.**
+
+```
+  command = [ PluginDir + "/check_http"]
+
+  arguments = {
     "--sni" = {
       set_if = "$http_sni$"
     }
-    "-a" = {
-      value = "$http_auth_pair$"
-      description = "Username:password on sites with basic authentication"
-    }
-    "--no-body" = {
-      set_if = "$http_ignore_body$"
-    }
-    "-r" = "$http_expect_body_regex$"
-    "-w" = "$http_warn_time$"
-    "-c" = "$http_critical_time$"
-    "-e" = "$http_expect$"
   }
-
-  vars.http_address = "$address$"
-  vars.http_ssl = false
-  vars.http_sni = false
-}
 ```
 
-The example shows the `check_http` check command defining the most common
-arguments. Each of them is optional by default and is omitted if
-the value is not set. For example, if the service calling the check command
-does not have `vars.http_port` set, it won't get added to the command
-line.
+Whenever a host/service object sets the `http_sni` [custom variable](03-monitoring-basics.md#custom-variables)
+to `true`, the parameter is added to the command line.
 
-If the `vars.http_ssl` custom attribute is set in the service, host or command
-object definition, Icinga 2 will add the `-S` argument based on the `set_if`
-numeric value to the command line. String values are not supported.
+```
+'/usr/lib64/nagios/plugins/check_http' '--sni'
+```
 
-If the macro value cannot be resolved, Icinga 2 will not add the defined argument
-to the final command argument array. Empty strings for macro values won't omit
-the argument.
-
-That way you can use the `check_http` command definition for both, with and
-without SSL enabled checks saving you duplicated command definitions.
-
-Details on all available options can be found in the
-[CheckCommand object definition](09-object-types.md#objecttype-checkcommand).
-
-##### Command Arguments: set_if <a id="command-arguments-set-if"></a>
-
-The `set_if` attribute in command arguments can be used to only add
-this parameter if the runtime macro value is boolean `true`.
-
-Best practice is to define and pass only [boolean](17-language-reference.md#boolean-literals) values here.
 [Numeric](17-language-reference.md#numeric-literals) values are allowed too.
 
-Examples:
+**Parameters with value, but additionally controlled with an extra custom variable boolean flag.**
+
+The following example is taken from the [postgres]() CheckCommand. The host
+parameter should use a `value` but only whenever the `postgres_unixsocket`
+[custom variable](03-monitoring-basics.md#custom-variables) is set to false.
+
+Note: `set_if` is using a runtime lambda function because the value
+is evaluated at runtime. This is explained in [this chapter](08-advanced-topics.md#use-functions-object-config).
 
 ```
-vars.test_b = true
-vars.test_n = 3.0
+  command = [ PluginContribDir + "/check_postgres.pl" ]
 
-arguments = {
-  "-x" = {
-    set_if = "$test_b$"
+  arguments = {
+    "-H" = {
+      value = "$postgres_host$"
+      set_if = {{ macro("$postgres_unixsocket$") == false }}
+      description = "hostname(s) to connect to; defaults to none (Unix socket)"
   }
-  "-y" = {
-    set_if = "$test_n$"
+```
+
+An executed check for this host and services ...
+
+```
+object Host "postgresql-cluster" {
+  // ...
+
+  vars.postgres_host = "192.168.56.200"
+  vars.postgres_unixsocket = false
+}
+```
+
+... use the following command line:
+
+```
+'/usr/lib64/nagios/plugins/check_postgres.pl' '-H' '192.168.56.200'
+```
+
+Host/service objects which set `postgres_unixsocket` to `false` don't add the `-H` parameter
+and its value to the command line.
+
+References: [abbreviated lambda syntax](17-language-reference.md#nullary-lambdas), [macro](18-library-reference.md#scoped-functions-macro).
+
+##### Command Arguments: Order <a id="command-arguments-order"></a>
+
+Plugin may require parameters in a special order. One after the other,
+or e.g. one parameter always in the first position.
+
+```
+  arguments = {
+    "--first" = {
+      value = "..."
+      description = "..."
+      order = -5
+    }
+    "--second" = {
+      value = "..."
+      description = "..."
+      order = -4
+    }
+    "--last" = {
+      value = "..."
+      description = "..."
+      order = 99
+    }
+  }
+```
+
+Keep in mind that positional arguments need to be tested thoroughly.
+
+##### Command Arguments: Repeat Key <a id="command-arguments-repeat-key"></a>
+
+Parameters can use [Array](17-language-reference.md#array) as value type. Whenever Icinga encounters
+an array, it repeats the parameter key and each value element by default.
+
+```
+  command = [ NscpPath + "\\nscp.exe", "client" ]
+
+  arguments = {
+    "-a" = {
+      value = "$nscp_arguments$"
+      description = "..."
+      repeat_key = true
+    }
+  }
+```
+
+On a host/service object, specify the `nscp_arguments` [custom variable](03-monitoring-basics.md#custom-variables)
+as an array.
+
+```
+  vars.nscp_arguments = [ "exclude=sppsvc", "exclude=ShellHWDetection" ]
+```
+
+This translates into the following command line:
+
+```
+nscp.exe 'client' '-a' 'exclude=sppsvc' '-a' 'exclude=ShellHWDetection'
+```
+
+If the plugin requires you to pass the list without repeating the key,
+set `repeat_key = false` in the argument definition.
+
+```
+  command = [ NscpPath + "\\nscp.exe", "client" ]
+
+  arguments = {
+    "-a" = {
+      value = "$nscp_arguments$"
+      description = "..."
+      repeat_key = false
+    }
+  }
+```
+
+This translates into the following command line:
+
+```
+nscp.exe 'client' '-a' 'exclude=sppsvc' 'exclude=ShellHWDetection'
+```
+
+
+##### Command Arguments: Key <a id="command-arguments-key"></a>
+
+The `arguments` attribute requires unique keys. Sometimes, you'll
+need to override this in the resulting command line with same key
+names. Therefore you can specifically override the arguments key.
+
+```
+arguments = {
+  "--key1" = {
+    value = "..."
+    key = "-specialkey"
+  }
+  "--key2" = {
+    value = "..."
+    key = "-specialkey"
   }
 }
 ```
 
-If you accidentally used a [String](17-language-reference.md#string-literals) value, this could lead into
-an undefined behaviour.
-
-If you still want to work with String values and other variants, you can also
-use runtime evaluated functions for `set_if`.
+This results in the following command line:
 
 ```
-vars.test_s = "1.1.2.1"
-arguments = {
-  "-z" = {
-    set_if = {{
-      var str = macro("$test_s$")
-
-      return regex("^\d.\d.\d.\d$", str)
-    }}
-  }
+  '-specialkey' '...' '-specialkey' '...'
 ```
-
-References: [abbreviated lambda syntax](17-language-reference.md#nullary-lambdas), [macro](18-library-reference.md#scoped-functions-macro), [regex](18-library-reference.md#global-functions-regex).
-
 
 #### Environment Variables <a id="command-environment-variables"></a>
 
 The `env` command object attribute specifies a list of environment variables with values calculated
-from custom attributes which should be exported as environment variables prior to executing the command.
+from custom variables which should be exported as environment variables prior to executing the command.
 
 This is useful for example for hiding sensitive information on the command line output
 when passing credentials to database checks:
@@ -2195,7 +2461,7 @@ the database credentials in the user's environment.
 > **Note**
 >
 > If the CheckCommand also supports setting the parameter in the command line,
-> ensure to use a different name for the custom attribute. Otherwise Icinga 2
+> ensure to use a different name for the custom variable. Otherwise Icinga 2
 > adds the command line parameter.
 
 If a specific CheckCommand object provided with the [Icinga Template Library](10-icinga-template-library.md#icinga-template-library)
@@ -2213,13 +2479,13 @@ object CheckCommand "mysql_health_env" {
 }
 ```
 
-Specify the custom attributes `mysql_health_env_username` and `mysql_health_env_password`
+Specify the custom variables `mysql_health_env_username` and `mysql_health_env_password`
 in the service object then.
 
 > **Note**
 >
 > Keep in mind that the values are still visible with the [debug console](11-cli-commands.md#cli-command-console)
-> and the inspect mode in the [Icinga Director](https://www.icinga.com/docs/director/latest/).
+> and the inspect mode in the [Icinga Director](https://icinga.com/docs/director/latest/).
 
 You can also set global environment variables in the application's
 sysconfig configuration file, e.g. `HOME` or specific library paths
@@ -2265,54 +2531,13 @@ defaults can always be overwritten locally.
 >
 > This example requires the `mail` binary installed on the Icinga 2
 > master.
-
-#### Notification Commands in 2.7 <a id="notification-command-2-7"></a>
-
-Icinga 2 v2.7.0 introduced new notification scripts which support both
-environment variables and command line parameters.
-
-Therefore the `NotificationCommand` objects inside the [commands.conf](04-configuring-icinga-2.md#commands-conf)
-and `Notification` apply rules inside the [notifications.conf](04-configuring-icinga-2.md#notifications-conf)
-configuration files have been updated. Your configuration needs to be
-updated next to the notification scripts themselves.
-
-> **Note**
 >
-> Several parameters have been changed. Please review the notification
-> script parameters and configuration objects before updating your production
-> environment.
-
-The safest way is to incorporate the configuration updates from
-v2.7.0 inside the [commands.conf](04-configuring-icinga-2.md#commands-conf) and [notifications.conf](04-configuring-icinga-2.md#notifications-conf)
-configuration files.
-
-A quick-fix is shown below:
-
-```
-@@ -5,7 +5,8 @@ object NotificationCommand "mail-host-notification" {
-
-   env = {
-     NOTIFICATIONTYPE = "$notification.type$"
--    HOSTALIAS = "$host.display_name$"
-+    HOSTNAME = "$host.name$"
-+    HOSTDISPLAYNAME = "$host.display_name$"
-     HOSTADDRESS = "$address$"
-     HOSTSTATE = "$host.state$"
-     LONGDATETIME = "$icinga.long_date_time$"
-@@ -22,8 +23,9 @@ object NotificationCommand "mail-service-notification" {
-
-   env = {
-     NOTIFICATIONTYPE = "$notification.type$"
--    SERVICEDESC = "$service.name$"
--    HOSTALIAS = "$host.display_name$"
-+    SERVICENAME = "$service.name$"
-+    HOSTNAME = "$host.name$"
-+    HOSTDISPLAYNAME = "$host.display_name$"
-     HOSTADDRESS = "$address$"
-     SERVICESTATE = "$service.state$"
-     LONGDATETIME = "$icinga.long_date_time$"
-```
-
+> Depending on the distribution, you need a local mail transfer
+> agent (MTA) such as Postfix, Exim or Sendmail in order
+> to send emails.
+>
+> These tools virtually provide the `mail` binary executed
+> by the notification scripts below.
 
 #### mail-host-notification <a id="mail-host-notification"></a>
 
@@ -2383,7 +2608,7 @@ account but all parents are inherited.
 The `parent_host_name` and `parent_service_name` attributes are mandatory for
 service dependencies, `parent_host_name` is required for host dependencies.
 [Apply rules](03-monitoring-basics.md#using-apply) will allow you to
-[determine these attributes](03-monitoring-basics.md#dependencies-apply-custom-attributes) in a more
+[determine these attributes](03-monitoring-basics.md#dependencies-apply-custom-variables) in a more
 dynamic fashion if required.
 
 ```
@@ -2416,14 +2641,19 @@ states = [ OK, Critical, Unknown ]
 > If the parent service object changes into the `Warning` state, this
 > dependency will fail and render all child objects (hosts or services) unreachable.
 
-You can determine the child's reachability by querying the `is_reachable` attribute
-in for example [DB IDO](24-appendix.md#schema-db-ido-extensions).
+You can determine the child's reachability by querying the `last_reachable` attribute
+via the [REST API](12-icinga2-api.md#icinga2-api).
+
+> **Note**
+>
+> Reachability calculation depends on fresh and processed check results. If dependencies
+> disable checks for child objects, this won't work reliably.
 
 ### Implicit Dependencies for Services on Host <a id="dependencies-implicit-host-service"></a>
 
 Icinga 2 automatically adds an implicit dependency for services on their host. That way
 service notifications are suppressed when a host is `DOWN` or `UNREACHABLE`. This dependency
-does not overwrite other dependencies and implicitely sets `disable_notifications = true` and
+does not overwrite other dependencies and implicitly sets `disable_notifications = true` and
 `states = [ Up ]` for all service objects.
 
 Service checks are still executed. If you want to prevent them from happening, you can
@@ -2485,7 +2715,10 @@ apply Dependency "internet" to Service {
 }
 ```
 
-### Apply Dependencies based on Custom Attributes <a id="dependencies-apply-custom-attributes"></a>
+<!-- Keep this for compatibility -->
+<a id="dependencies-apply-custom-attríbutes"></a>
+
+### Apply Dependencies based on Custom Variables <a id="dependencies-apply-custom-variables"></a>
 
 You can use [apply rules](03-monitoring-basics.md#using-apply) to set parent or
 child attributes, e.g. `parent_host_name` to other objects'
@@ -2493,7 +2726,7 @@ attributes.
 
 A common example are virtual machines hosted on a master. The object
 name of that master is auto-generated from your CMDB or VMWare inventory
-into the host's custom attributes (or a generic template for your
+into the host's custom variables (or a generic template for your
 cloud).
 
 Define your master host object:
@@ -2515,7 +2748,7 @@ template Host "generic-vm" {
 ```
 
 Add a template for all hosts on your example.com cloud setting
-custom attribute `vm_parent` to `master.example.com`:
+custom variable `vm_parent` to `master.example.com`:
 
 ```
 template Host "generic-vm-example.com" {
@@ -2538,7 +2771,7 @@ object Host "www.example2.com" {
 
 Apply the host dependency to all child hosts importing the
 `generic-vm` template and set the `parent_host_name`
-to the previously defined custom attribute `host.vars.vm_parent`.
+to the previously defined custom variable `host.vars.vm_parent`.
 
 ```
 apply Dependency "vm-host-to-parent-master" to Host {
@@ -2570,55 +2803,40 @@ will detect their reachability immediately when executing checks.
 
 ### Dependencies for Agent Checks <a id="dependencies-agent-checks"></a>
 
-Another classic example are agent based checks. You would define a health check
+Another good example are agent based checks. You would define a health check
 for the agent daemon responding to your requests, and make all other services
 querying that daemon depend on that health check.
 
-The following configuration defines two nrpe based service checks `nrpe-load`
-and `nrpe-disk` applied to the host `nrpe-server` [matched](18-library-reference.md#global-functions-match)
-by its name. The health check is defined as `nrpe-health` service.
+```
+apply Service "agent-health" {
+  check_command = "cluster-zone"
+
+  display_name = "cluster-health-" + host.name
+
+  /* This follows the convention that the agent zone name is the FQDN which is the same as the host object name. */
+  vars.cluster_zone = host.name
+
+  assign where host.vars.agent_endpoint
+}
+```
+
+Now, make all other agent based checks dependent on the OK state of the `agent-health`
+service.
 
 ```
-apply Service "nrpe-health" {
-  import "generic-service"
-  check_command = "nrpe"
-  assign where match("nrpe-*", host.name)
-}
+apply Dependency "agent-health-check" to Service {
+  parent_service_name = "agent-health"
 
-apply Service "nrpe-load" {
-  import "generic-service"
-  check_command = "nrpe"
-  vars.nrpe_command = "check_load"
-  assign where match("nrpe-*", host.name)
-}
-
-apply Service "nrpe-disk" {
-  import "generic-service"
-  check_command = "nrpe"
-  vars.nrpe_command = "check_disk"
-  assign where match("nrpe-*", host.name)
-}
-
-object Host "nrpe-server" {
-  import "generic-host"
-  address = "192.168.1.5"
-}
-
-apply Dependency "disable-nrpe-checks" to Service {
-  parent_service_name = "nrpe-health"
-
-  states = [ OK ]
-  disable_checks = true
+  states = [ OK ] // Fail if the parent service state switches to NOT-OK
   disable_notifications = true
-  assign where service.check_command == "nrpe"
-  ignore where service.name == "nrpe-health"
+
+  assign where host.vars.agent_endpoint // Automatically assigns all agent endpoint checks as child services on the matched host
+  ignore where service.name == "agent-health" // Avoid a self reference from child to parent
 }
+
 ```
 
-The `disable-nrpe-checks` dependency is applied to all services
-on the `nrpe-service` host using the `nrpe` check_command attribute
-but not the `nrpe-health` service itself.
-
+This is described in detail in [this chapter](06-distributed-monitoring.md#distributed-monitoring-health-checks).
 
 ### Event Commands <a id="event-commands"></a>
 
@@ -2769,7 +2987,7 @@ The script only is executed if the service state is `CRITICAL`. Warning and Unkn
 are ignored as they indicate not an immediate failure.
 
 ```
-[root@icinga2-client1.localdomain /]# vim /usr/lib64/nagios/plugins/restart_service
+[root@icinga2-agent1.localdomain /]# vim /usr/lib64/nagios/plugins/restart_service
 
 #!/bin/bash
 
@@ -2800,7 +3018,7 @@ else
   fi
 fi
 
-[root@icinga2-client1.localdomain /]# chmod +x /usr/lib64/nagios/plugins/restart_service
+[root@icinga2-agent1.localdomain /]# chmod +x /usr/lib64/nagios/plugins/restart_service
 ```
 
 Add a service on the master node which is executed via command endpoint on the client.
@@ -2808,15 +3026,15 @@ Set the `event_command` attribute to `restart_service`, the name of the previous
 EventCommand object.
 
 ```
-[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client1.localdomain.conf
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-agent1.localdomain.conf
 
 object Service "Process httpd" {
   check_command = "procs"
   event_command = "restart_service"
   max_check_attempts = 4
 
-  host_name = "icinga2-client1.localdomain"
-  command_endpoint = "icinga2-client1.localdomain"
+  host_name = "icinga2-agent1.localdomain"
+  command_endpoint = "icinga2-agent1.localdomain"
 
   vars.procs_command = "httpd"
   vars.procs_warning = "1:10"
@@ -2824,17 +3042,17 @@ object Service "Process httpd" {
 }
 ```
 
-In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
+In order to test this configuration just stop the `httpd` on the remote host `icinga2-agent1.localdomain`.
 
 ```
-[root@icinga2-client1.localdomain /]# systemctl stop httpd
+[root@icinga2-agent1.localdomain /]# systemctl stop httpd
 ```
 
 You can enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and search for the
 executed command line.
 
 ```
-[root@icinga2-client1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep restart_service
+[root@icinga2-agent1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep restart_service
 ```
 
 #### Use Event Commands to Restart Service Daemon via Command Endpoint on Windows <a id="event-command-restart-service-daemon-command-endpoint-windows"></a>
@@ -2910,21 +3128,21 @@ Set the `event_command` attribute to `restart_service-windows`, the name of the 
 EventCommand object.
 
 ```
-[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client2.localdomain.conf
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-agent2.localdomain.conf
 
 object Service "Service httpd" {
   check_command = "service-windows"
   event_command = "restart_service-windows"
   max_check_attempts = 4
 
-  host_name = "icinga2-client2.localdomain"
-  command_endpoint = "icinga2-client2.localdomain"
+  host_name = "icinga2-agent2.localdomain"
+  command_endpoint = "icinga2-agent2.localdomain"
 
   vars.service_win_service = "httpd"
 }
 ```
 
-In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
+In order to test this configuration just stop the `httpd` on the remote host `icinga2-agent1.localdomain`.
 
 ```
 C:> net stop httpd
@@ -2985,7 +3203,7 @@ object EventCommand "event_by_ssh" {
 ```
 
 The actual event command only passes the `event_by_ssh_command` attribute.
-The `event_by_ssh_service` custom attribute takes care of passing the correct
+The `event_by_ssh_service` custom variable takes care of passing the correct
 daemon name, while `test $service.state_id$ -gt 0` makes sure that the daemon
 is only restarted when the service is not in an `OK` state.
 
@@ -3018,7 +3236,7 @@ apply Service "http" {
 }
 ```
 
-Specify the `httpd_name` custom attribute on the host to assign the
+Specify the `httpd_name` custom variable on the host to assign the
 service and set the event handler service.
 
 ```
@@ -3030,15 +3248,15 @@ object Host "remote-http-host" {
 }
 ```
 
-In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
+In order to test this configuration just stop the `httpd` on the remote host `icinga2-agent1.localdomain`.
 
 ```
-[root@icinga2-client1.localdomain /]# systemctl stop httpd
+[root@icinga2-agent1.localdomain /]# systemctl stop httpd
 ```
 
 You can enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and search for the
 executed command line.
 
 ```
-[root@icinga2-client1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep by_ssh
+[root@icinga2-agent1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep by_ssh
 ```

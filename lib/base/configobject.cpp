@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/configobject.hpp"
 #include "base/configobject-ti.cpp"
@@ -374,7 +357,7 @@ void ConfigObject::PreActivate()
 	SetActive(true, true);
 }
 
-void ConfigObject::Activate(bool runtimeCreated)
+void ConfigObject::Activate(bool runtimeCreated, const Value& cookie)
 {
 	CONTEXT("Activating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
 
@@ -389,7 +372,7 @@ void ConfigObject::Activate(bool runtimeCreated)
 			SetAuthority(true);
 	}
 
-	NotifyActive();
+	NotifyActive(cookie);
 }
 
 void ConfigObject::Stop(bool runtimeRemoved)
@@ -401,7 +384,7 @@ void ConfigObject::Stop(bool runtimeRemoved)
 	SetStopCalled(true);
 }
 
-void ConfigObject::Deactivate(bool runtimeRemoved)
+void ConfigObject::Deactivate(bool runtimeRemoved, const Value& cookie)
 {
 	CONTEXT("Deactivating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
 
@@ -420,7 +403,7 @@ void ConfigObject::Deactivate(bool runtimeRemoved)
 
 	ASSERT(GetStopCalled());
 
-	NotifyActive();
+	NotifyActive(cookie);
 }
 
 void ConfigObject::OnConfigLoaded()
@@ -522,16 +505,7 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(filename.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(tempFilename));
-	}
+	Utility::RenameFile(tempFilename, filename);
 }
 
 void ConfigObject::RestoreObject(const String& message, int attributeTypes)
@@ -571,7 +545,7 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	unsigned long restored = 0;
 
-	WorkQueue upq(25000, Application::GetConcurrency());
+	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("ConfigObject::RestoreObjects");
 
 	String message;
@@ -617,13 +591,25 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 
 void ConfigObject::StopObjects()
 {
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	std::vector<Type::Ptr> types = Type::GetAllTypes();
+
+	std::sort(types.begin(), types.end(), [](const Type::Ptr& a, const Type::Ptr& b) {
+		if (a->GetActivationPriority() > b->GetActivationPriority())
+			return true;
+		return false;
+	});
+
+	for (const Type::Ptr& type : types) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
 		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+#ifdef I2_DEBUG
+			Log(LogDebug, "ConfigObject")
+				<< "Deactivate() called for config object '" << object->GetName() << "' with type '" << type->GetName() << "'.";
+#endif /* I2_DEBUG */
 			object->Deactivate();
 		}
 	}

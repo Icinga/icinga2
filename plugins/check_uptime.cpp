@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "plugins/thresholds.hpp"
 #include <boost/program_options.hpp>
@@ -33,6 +16,7 @@ struct printInfoStruct
 	threshold warn;
 	threshold crit;
 	long long time;
+	long long timeInSeconds;
 	Tunit unit;
 };
 
@@ -159,26 +143,26 @@ static int printOutput(printInfoStruct& printInfo)
 
 	state state = OK;
 
-	if (printInfo.warn.rend(printInfo.time))
+	if (printInfo.warn.rend((double) printInfo.time))
 		state = WARNING;
-	if (printInfo.crit.rend(printInfo.time))
+	if (printInfo.crit.rend((double) printInfo.time))
 		state = CRITICAL;
 
 	switch (state) {
 	case OK:
-		std::wcout << L"UPTIME OK " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
-			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
-			<< printInfo.crit.pString() << L";0;" << '\n';
+		std::wcout << L"UPTIME OK " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.timeInSeconds
+			<< "s" << L";" << printInfo.warn.toSeconds(printInfo.unit).pString() << L";"
+			<< printInfo.crit.toSeconds(printInfo.unit).pString() << L";0;" << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"UPTIME WARNING " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
-			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
-			<< printInfo.crit.pString() << L";0;" << '\n';
+		std::wcout << L"UPTIME WARNING " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.timeInSeconds
+			<< "s" << L";" << printInfo.warn.toSeconds(printInfo.unit).pString() << L";"
+			<< printInfo.crit.toSeconds(printInfo.unit).pString() << L";0;" << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"UPTIME CRITICAL " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
-			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
-			<< printInfo.crit.pString() << L";0;" << '\n';
+		std::wcout << L"UPTIME CRITICAL " << printInfo.time << TunitStr(printInfo.unit) << L" | 'uptime'=" << printInfo.timeInSeconds
+			<< "s" << L";" << printInfo.warn.toSeconds(printInfo.unit).pString() << L";"
+			<< printInfo.crit.toSeconds(printInfo.unit).pString() << L";0;" << '\n';
 		break;
 	}
 
@@ -209,6 +193,9 @@ static void getUptime(printInfoStruct& printInfo)
 		printInfo.time = uptime.count();
 		break;
 	}
+
+	// For the Performance Data we need the time in seconds
+	printInfo.timeInSeconds = boost::chrono::duration_cast<boost::chrono::seconds>(uptime).count();
 }
 
 int wmain(int argc, WCHAR **argv)

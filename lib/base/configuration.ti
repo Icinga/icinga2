@@ -1,0 +1,164 @@
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+
+#include "base/configobject.hpp"
+
+library base;
+
+namespace icinga
+{
+
+abstract class Configuration
+{
+	[config, no_storage, virtual] String ApiBindHost {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ApiBindPort {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] bool AttachDebugger {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String CacheDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] int Concurrency {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ConfigDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String DataDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String EventEngine {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String IncludeConfDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String InitRunDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String LogDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ModAttrPath {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ObjectsPath {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String PidPath {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String PkgDataDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String PrefixDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ProgramData {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] int RLimitFiles {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] int RLimitProcesses {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] int RLimitStack {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String RunAsGroup {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String RunAsUser {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String SpoolDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String StatePath {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] double TlsHandshakeTimeout {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String VarsPath {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String ZonesDir {
+		get;
+		set;
+	};
+
+	/* deprecated */
+	[config, no_storage, virtual] String LocalStateDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String RunDir {
+		get;
+		set;
+	};
+
+	[config, no_storage, virtual] String SysconfDir {
+		get;
+		set;
+	};
+};
+
+}

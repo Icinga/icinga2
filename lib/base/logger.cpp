@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/logger.hpp"
 #include "base/logger-ti.cpp"
@@ -49,11 +32,11 @@ bool Logger::m_TimestampEnabled = true;
 LogSeverity Logger::m_ConsoleLogSeverity = LogInformation;
 
 INITIALIZE_ONCE([]() {
-	ScriptGlobal::Set("LogDebug", LogDebug);
-	ScriptGlobal::Set("LogNotice", LogNotice);
-	ScriptGlobal::Set("LogInformation", LogInformation);
-	ScriptGlobal::Set("LogWarning", LogWarning);
-	ScriptGlobal::Set("LogCritical", LogCritical);
+	ScriptGlobal::Set("System.LogDebug", LogDebug, true);
+	ScriptGlobal::Set("System.LogNotice", LogNotice, true);
+	ScriptGlobal::Set("System.LogInformation", LogInformation, true);
+	ScriptGlobal::Set("System.LogWarning", LogWarning, true);
+	ScriptGlobal::Set("System.LogCritical", LogCritical, true);
 });
 
 /**
@@ -238,10 +221,20 @@ Log::~Log()
 
 		if (entry.Severity >= logger->GetMinSeverity())
 			logger->ProcessLogEntry(entry);
+
+#ifdef I2_DEBUG /* I2_DEBUG */
+		/* Always flush, don't depend on the timer. Enable this for development sprints on Linux/macOS only. Windows crashes. */
+		//logger->Flush();
+#endif /* I2_DEBUG */
 	}
 
-	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity())
+	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity()) {
 		StreamLogger::ProcessLogEntry(std::cout, entry);
+
+		/* "Console" might be a pipe/socket (systemd, daemontools, docker, ...),
+		 * then cout will not flush lines automatically. */
+		std::cout << std::flush;
+	}
 }
 
 Log& Log::operator<<(const char *val)

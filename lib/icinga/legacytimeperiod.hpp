@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #ifndef LEGACYTIMEPERIOD_H
 #define LEGACYTIMEPERIOD_H
@@ -23,6 +6,7 @@
 #include "icinga/i2-icinga.hpp"
 #include "icinga/timeperiod.hpp"
 #include "base/dictionary.hpp"
+#include <boost/date_time/gregorian/gregorian.hpp>
 
 namespace icinga
 {
@@ -48,9 +32,12 @@ public:
 	static Dictionary::Ptr ProcessTimeRange(const String& timerange, tm *reference);
 	static void ProcessTimeRanges(const String& timeranges, tm *reference, const Array::Ptr& result);
 	static Dictionary::Ptr FindNextSegment(const String& daydef, const String& timeranges, tm *reference);
+	static Dictionary::Ptr FindRunningSegment(const String& daydef, const String& timeranges, tm *reference);
 
 private:
 	LegacyTimePeriod();
+
+	static boost::gregorian::date GetEndOfMonthDay(int year, int month);
 };
 
 }

@@ -1,6 +1,17 @@
 #!/bin/sh
 
-: ${ICINGA2_PID_FILE:="@ICINGA2_RUNDIR@/icinga2/icinga2.pid"}
+# Load sysconf on systems where the initsystem does not pass the environment
+if [ "$1" != "" ]; then
+	if [ -r "$1" ]; then
+		. "$1"
+	else
+		echo "Unable to read sysconf from '$1'. Exiting." && exit 6
+	fi
+fi
+
+# Set defaults, to overwrite see "@ICINGA2_SYSCONFIGFILE@"
+
+: ${ICINGA2_PID_FILE:="@ICINGA2_FULL_INITRUNDIR@/icinga2.pid"}
 : ${DAEMON:="@CMAKE_INSTALL_FULL_SBINDIR@/icinga2"}
 
 printf "Validating config files: "

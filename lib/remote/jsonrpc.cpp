@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/jsonrpc.hpp"
 #include "base/netstring.hpp"
@@ -23,11 +6,20 @@
 #include "base/console.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/convert.hpp"
+#include "base/tlsstream.hpp"
 #include <iostream>
+#include <memory>
+#include <utility>
+#include <boost/asio/spawn.hpp>
 
 using namespace icinga;
 
 #ifdef I2_DEBUG
+/**
+ * Determine whether the developer wants to see raw JSON messages.
+ *
+ * @return Internal.DebugJsonRpc boolean
+ */
 static bool GetDebugJsonRpcCached()
 {
 	static int debugJsonRpc = -1;
@@ -37,7 +29,7 @@ static bool GetDebugJsonRpcCached()
 
 	debugJsonRpc = false;
 
-	Dictionary::Ptr internal = ScriptGlobal::Get("Internal", &Empty);
+	Namespace::Ptr internal = ScriptGlobal::Get("Internal", &Empty);
 
 	if (!internal)
 		return false;
@@ -60,7 +52,7 @@ static bool GetDebugJsonRpcCached()
  *
  * @return The amount of bytes sent.
  */
-size_t JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
+size_t JsonRpc::SendMessage(const std::shared_ptr<AsioTlsStream>& stream, const Dictionary::Ptr& message)
 {
 	String json = JsonEncode(message);
 
@@ -72,24 +64,86 @@ size_t JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& me
 	return NetString::WriteStringToStream(stream, json);
 }
 
-StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait, ssize_t maxMessageLength)
+/**
+ * Sends a message to the connected peer and returns the bytes sent.
+ *
+ * @param message The message.
+ *
+ * @return The amount of bytes sent.
+ */
+size_t JsonRpc::SendMessage(const std::shared_ptr<AsioTlsStream>& stream, const Dictionary::Ptr& message, boost::asio::yield_context yc)
 {
-	String jsonString;
-	StreamReadStatus srs = NetString::ReadStringFromStream(stream, &jsonString, src, may_wait, maxMessageLength);
+	return JsonRpc::SendRawMessage(stream, JsonEncode(message), yc);
+}
 
-	if (srs != StatusNewItem)
-		return srs;
+ /**
+  * Sends a raw message to the connected peer.
+  *
+  * @param stream ASIO TLS Stream
+  * @param json message
+  * @param yc Yield context required for ASIO
+  *
+  * @return bytes sent
+  */
+size_t JsonRpc::SendRawMessage(const std::shared_ptr<AsioTlsStream>& stream, const String& json, boost::asio::yield_context yc)
+{
+#ifdef I2_DEBUG
+	if (GetDebugJsonRpcCached())
+		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << ">> " << json << ConsoleColorTag(Console_Normal) << "\n";
+#endif /* I2_DEBUG */
 
-	*message = jsonString;
+	return NetString::WriteStringToStream(stream, json, yc);
+}
+
+/**
+ * Reads a message from the connected peer.
+ *
+ * @param stream ASIO TLS Stream
+ * @param maxMessageLength maximum size of bytes read.
+ *
+ * @return A JSON string
+ */
+
+String JsonRpc::ReadMessage(const std::shared_ptr<AsioTlsStream>& stream, ssize_t maxMessageLength)
+{
+	String jsonString = NetString::ReadStringFromStream(stream, maxMessageLength);
 
 #ifdef I2_DEBUG
 	if (GetDebugJsonRpcCached())
 		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << "<< " << jsonString << ConsoleColorTag(Console_Normal) << "\n";
 #endif /* I2_DEBUG */
 
-	return StatusNewItem;
+	return std::move(jsonString);
 }
 
+/**
+ * Reads a message from the connected peer.
+ *
+ * @param stream ASIO TLS Stream
+ * @param yc Yield Context for ASIO
+ * @param maxMessageLength maximum size of bytes read.
+ *
+ * @return A JSON string
+ */
+String JsonRpc::ReadMessage(const std::shared_ptr<AsioTlsStream>& stream, boost::asio::yield_context yc, ssize_t maxMessageLength)
+{
+	String jsonString = NetString::ReadStringFromStream(stream, yc, maxMessageLength);
+
+#ifdef I2_DEBUG
+	if (GetDebugJsonRpcCached())
+		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << "<< " << jsonString << ConsoleColorTag(Console_Normal) << "\n";
+#endif /* I2_DEBUG */
+
+	return std::move(jsonString);
+}
+
+/**
+ * Decode message, enforce a Dictionary
+ *
+ * @param message JSON string
+ *
+ * @return Dictionary ptr
+ */
 Dictionary::Ptr JsonRpc::DecodeMessage(const String& message)
 {
 	Value value = JsonDecode(message);

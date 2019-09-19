@@ -1,19 +1,4 @@
-# Icinga 2
-# Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation
-# Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
 mkclass_target(checkable.ti checkable-ti.cpp checkable-ti.hpp)
 mkclass_target(checkcommand.ti checkcommand-ti.cpp checkcommand-ti.hpp)
@@ -28,6 +13,7 @@ mkclass_target(host.ti host-ti.cpp host-ti.hpp)
 mkclass_target(icingaapplication.ti icingaapplication-ti.cpp icingaapplication-ti.hpp)
 mkclass_target(customvarobject.ti customvarobject-ti.cpp customvarobject-ti.hpp)
 mkclass_target(notificationcommand.ti notificationcommand-ti.cpp notificationcommand-ti.hpp)
+mkclass_target(notificationresult.ti notificationresult-ti.cpp notificationresult-ti.hpp)
 mkclass_target(notification.ti notification-ti.cpp notification-ti.hpp)
 mkclass_target(scheduleddowntime.ti scheduleddowntime-ti.cpp scheduleddowntime-ti.hpp)
 mkclass_target(servicegroup.ti servicegroup-ti.cpp servicegroup-ti.hpp)
@@ -66,6 +52,7 @@ set(icinga_SOURCES
   macroresolver.hpp
   notification.cpp notification.hpp notification-ti.hpp notification-apply.cpp
   notificationcommand.cpp notificationcommand.hpp notificationcommand-ti.hpp
+  notificationresult.cpp notificationresult.hpp notificationresult-ti.hpp
   objectutils.cpp objectutils.hpp
   pluginutility.cpp pluginutility.hpp
   scheduleddowntime.cpp scheduleddowntime.hpp scheduleddowntime-ti.hpp scheduleddowntime-apply.cpp

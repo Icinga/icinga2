@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "plugins/thresholds.hpp"
 #include <boost/program_options.hpp>
@@ -297,7 +280,11 @@ bool QueryPerfData(printInfoStruct& pI)
 	if (FAILED(status))
 		goto die;
 
-	status = PdhAddCounter(hQuery, pI.wsFullPath.c_str(), NULL, &hCounter);
+	status = PdhAddEnglishCounter(hQuery, pI.wsFullPath.c_str(), NULL, &hCounter);
+
+	if (FAILED(status))
+		status = PdhAddCounter(hQuery, pI.wsFullPath.c_str(), NULL, &hCounter);
+
 	if (FAILED(status))
 		goto die;
 
@@ -330,7 +317,7 @@ bool QueryPerfData(printInfoStruct& pI)
 		pI.dValue = pDisplayValues[0].FmtValue.longValue;
 		break;
 	case (PDH_FMT_LARGE):
-		pI.dValue = pDisplayValues[0].FmtValue.largeValue;
+		pI.dValue = (double) pDisplayValues[0].FmtValue.largeValue;
 		break;
 	default:
 		pI.dValue = pDisplayValues[0].FmtValue.doubleValue;
@@ -352,26 +339,27 @@ static int printOutput(const po::variables_map& vm, printInfoStruct& pi)
 	std::wstringstream wssPerfData;
 
 	if (vm.count("perf-syntax"))
-		wssPerfData << "\"" << vm["perf-syntax"].as<std::wstring>() << "\"=";
+		wssPerfData << "'" << vm["perf-syntax"].as<std::wstring>() << "'=";
 	else
-		wssPerfData << "\"" << pi.wsFullPath << "\"=";
+		wssPerfData << "'" << pi.wsFullPath << "'=";
 
 	wssPerfData << pi.dValue << ';' << pi.tWarn.pString() << ';' << pi.tCrit.pString() << ";;";
 
 	if (pi.tCrit.rend(pi.dValue)) {
-		std::wcout << "PERFMON CRITICAL \"" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
-			<< "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
+		std::wcout << "PERFMON CRITICAL for '" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
+			<< "' = " << pi.dValue << " | " << wssPerfData.str() << "\n";
 		return 2;
 	}
 
 	if (pi.tWarn.rend(pi.dValue)) {
-		std::wcout << "PERFMON WARNING \"" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
-			<< "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
+		std::wcout << "PERFMON WARNING for '" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
+			<< "' = " << pi.dValue << " | " << wssPerfData.str() << "\n";
 		return 1;
 	}
 
-	std::wcout << "PERFMON OK \"" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
-		<< "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
+	std::wcout << "PERFMON OK for '" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
+		<< "' = " << pi.dValue << " | " << wssPerfData.str() << "\n";
+
 	return 0;
 }
 

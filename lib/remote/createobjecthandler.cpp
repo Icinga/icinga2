@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/createobjecthandler.hpp"
 #include "remote/configobjectutility.hpp"
@@ -31,15 +14,26 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/objects", CreateObjectHandler);
 
-bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
+bool CreateObjectHandler::HandleRequest(
+	AsioTlsStream& stream,
+	const ApiUser::Ptr& user,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	const Url::Ptr& url,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	const Dictionary::Ptr& params,
+	boost::asio::yield_context& yc,
+	HttpServerConnection& server
+)
 {
-	if (request.RequestUrl->GetPath().size() != 4)
+	namespace http = boost::beast::http;
+
+	if (url->GetPath().size() != 4)
 		return false;
 
-	if (request.RequestMethod != "PUT")
+	if (request.method() != http::verb::put)
 		return false;
 
-	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[2]);
+	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
 
 	if (!type) {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
@@ -48,7 +42,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	FilterUtility::CheckPermission(user, "objects/create/" + type->GetName());
 
-	String name = request.RequestUrl->GetPath()[3];
+	String name = url->GetPath()[3];
 	Array::Ptr templates = params->Get("templates");
 	Dictionary::Ptr attrs = params->Get("attrs");
 
@@ -116,7 +110,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		result1->Set("code", 500);
 		result1->Set("status", "Object could not be created.");
 
-		response.SetStatus(500, "Object could not be created");
+		response.result(http::status::internal_server_error);
 		HttpUtility::SendJsonBody(response, params, result);
 
 		return true;
@@ -130,7 +124,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		if (verbose)
 			result1->Set("diagnostic_information", diagnosticInformation);
 
-		response.SetStatus(500, "Object could not be created");
+		response.result(http::status::internal_server_error);
 		HttpUtility::SendJsonBody(response, params, result);
 
 		return true;
@@ -146,7 +140,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	else if (!obj && ignoreOnError)
 		result1->Set("status", "Object was not created but 'ignore_on_error' was set to true");
 
-	response.SetStatus(200, "OK");
+	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;

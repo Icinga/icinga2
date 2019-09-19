@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "methods/clusterzonechecktask.hpp"
 #include "icinga/checkcommand.hpp"
@@ -29,7 +12,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, ClusterZoneCheck, &ClusterZoneCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, ClusterZoneCheck, &ClusterZoneCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
@@ -46,8 +29,8 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 		return;
 	}
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-	Value raw_command = commandObj->GetCommandLine();
+	CheckCommand::Ptr command = checkable->GetCheckCommand();
+	Value raw_command = command->GetCommandLine();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -57,7 +40,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
-	resolvers.emplace_back("command", commandObj);
+	resolvers.emplace_back("command", command);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String zoneName = MacroProcessor::ResolveMacros("$cluster_zone$", resolvers, checkable->GetLastCheckResult(),
@@ -74,6 +57,8 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;
+
+	cr->SetCommand(command->GetName());
 
 	if (zoneName.IsEmpty()) {
 		cr->SetOutput("Macro 'cluster_zone' must be set.");
@@ -122,23 +107,23 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 		bytesReceivedPerSecond += endpoint->GetBytesReceivedPerSecond();
 	}
 
-	if (!connected) {
-		cr->SetState(ServiceCritical);
-		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(zoneLag));
-	} else {
+	if (connected) {
 		cr->SetState(ServiceOK);
 		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag));
-	}
 
-	/* Check whether the thresholds have been resolved and compare them */
-	if (missingLagCritical.IsEmpty() && zoneLag > lagCritical) {
+		/* Check whether the thresholds have been resolved and compare them */
+		if (missingLagCritical.IsEmpty() && zoneLag > lagCritical) {
+			cr->SetState(ServiceCritical);
+			cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
+				+ " greater than critical threshold: " + Utility::FormatDuration(lagCritical));
+		} else if (missingLagWarning.IsEmpty() && zoneLag > lagWarning) {
+			cr->SetState(ServiceWarning);
+			cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
+				+ " greater than warning threshold: " + Utility::FormatDuration(lagWarning));
+		}
+	} else {
 		cr->SetState(ServiceCritical);
-		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
-			+ " greater than critical threshold: " + Utility::FormatDuration(lagCritical));
-	} else if (missingLagWarning.IsEmpty() && zoneLag > lagWarning) {
-		cr->SetState(ServiceWarning);
-		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
-			+ " greater than warning threshold: " + Utility::FormatDuration(lagWarning));
+		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(zoneLag));
 	}
 
 	cr->SetPerformanceData(new Array({

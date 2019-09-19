@@ -12,7 +12,7 @@
 - [5. Package Builds](#package-builds)
   - [5.1. RPM Packages](#rpm-packages)
   - [5.2. DEB Packages](#deb-packages)
-- [6. Build Server](#build-server)
+- [6. Build Server](#build-infrastructure)
 - [7. Release Tests](#release-tests)
 - [8. GitHub Release](#github-release)
 - [9. Chocolatey](#chocolatey)
@@ -26,7 +26,7 @@
 Specify the release version.
 
 ```
-VERSION=2.8.3
+VERSION=2.11.0
 ```
 
 Add your signing key to your Git configuration file, if not already there.
@@ -60,7 +60,7 @@ git log --use-mailmap | grep '^Author:' | cut -f2- -d' ' | sort | uniq > AUTHORS
 
 ## Version <a id="version"></a>
 
-Update the version in the version file:
+Update the version:
 
 ```
 sed -i "s/Version: .*/Version: $VERSION/g" VERSION
@@ -68,28 +68,11 @@ sed -i "s/Version: .*/Version: $VERSION/g" VERSION
 
 ## Changelog <a id="changelog"></a>
 
-Update the [CHANGELOG.md](CHANGELOG.md) file.
+Choose the most important issues and summarize them in multiple groups/paragraphs. Provide links to the mentioned
+issues/PRs. At the start include a link to the milestone's closed issues.
 
-Export these environment variables:
-
-```
-export ICINGA_GITHUB_AUTH_USERNAME='user'
-export ICINGA_GITHUB_AUTH_TOKEN='token'
-export ICINGA_GITHUB_PROJECT='icinga/icinga2'
-```
-
-Run the script which updates the [CHANGELOG.md](CHANGELOG.md) file.
-
-```
-./changelog.py
-git diff
-```
 
 ## Git Tag  <a id="git-tag"></a>
-
-> **Major Releases**: Commit these changes to the `master` branch.
->
-> **Minor Releases**: Commit changes to the `support` branch.
 
 ```
 git commit -v -a -m "Release version $VERSION"
@@ -112,135 +95,147 @@ git push --tags
 
 ```
 git checkout master
-git checkout -b support/2.9
-git push -u origin support/2.9
+git push
+
+git checkout -b support/2.12
+git push -u origin support/2.12
 ```
 
-**For minor releases:** Push the support branch, cherry-pick the release commit
-into master and merge the support branch:
-
-```
-git push -u origin support/2.8
-git checkout master
-git cherry-pick support/2.8
-git merge --strategy=ours support/2.8
-git push origin master
-```
 
 ## Package Builds  <a id="package-builds"></a>
+
+```
+mkdir $HOME/dev/icinga/packaging
+cd $HOME/dev/icinga/packaging
+```
 
 ### RPM Packages  <a id="rpm-packages"></a>
 
 ```
-git clone git@github.com:icinga/rpm-icinga2.git && cd rpm-icinga2
+git clone git@git.icinga.com:icinga/rpm-icinga2.git && cd rpm-icinga2
 ```
 
-#### Branch Workflow
-
-**Major releases** are branched off `master`.
+### DEB Packages <a id="deb-packages"></a>
 
 ```
-git checkout master && git pull
+git clone git@git.icinga.com:packaging/deb-icinga2.git && cd deb-icinga2
 ```
 
-**Bugfix releases** are created in the `release` branch and later merged to master.
+#### Raspbian Packages
 
 ```
-git checkout release && git pull
+git clone git@git.icinga.com:icinga/raspbian-icinga2.git && cd raspbian-icinga2
 ```
 
-#### Release Commit
-
-Set the `Version`, `Revision` and `changelog` inside the spec file.
+### Windows Packages
 
 ```
-sed -i "s/Version: .*/Version: $VERSION/g" icinga2.spec
+git clone git@git.icinga.com:icinga/windows-icinga2.git && cd windows-icinga2
+```
+
+
+### Branch Workflow
+
+Checkout `master` and create a new branch.
+
+* For releases use x.x[.x] as branch name (e.g. 2.11 or 2.11.1)
+* For releases with revision use x.x.x-n (e.g. 2.11.0-2)
+
+
+### Switch Build Type
+
+Edit file `.gitlab-ci.yml` and comment variable `ICINGA_BUILD_TYPE` out.
+
+```yaml
+variables:
+  ...
+  #ICINGA_BUILD_TYPE: snapshot
+  ...
+```
+
+Commit the change.
+
+```
+git commit -av -m "Switch build type for $VERSION-1"
+
+#### RPM Release Preparations
+
+Set the `Version`, `revision` and `%changelog` inside the spec file:
+
+```
+sed -i "s/Version:.*/Version:        $VERSION/g" icinga2.spec
 
 vim icinga2.spec
 
 %changelog
-* Tue Apr 24 2018 Jean Flach <jean.flach@icinga.com> 2.8.3-1
-- Update to 2.8.3
+* Thu Sep 19 2019 Michael Friedrich <michael.friedrich@icinga.com> 2.11.0-1
+- Update to 2.11.0
 ```
 
-```
-git commit -av -m "Release 2.8.3-1"
-git push
-```
+#### DEB and Raspbian Release Preparations
 
-**Note for major releases**: Update release branch to latest.
-`git checkout release && git pull && git merge master && git push`
-
-**Note for minor releases**: Cherry-pick the release commit into master.
-`git checkout master && git pull && git cherry-pick release && git push`
-
-
-### DEB Packages  <a id="deb-packages"></a>
+Update file `debian/changelog` and add at the beginning:
 
 ```
-git clone git@github.com:icinga/deb-icinga2.git && cd deb-icinga2
-```
+icinga2 (2.11.0-1) icinga; urgency=medium
 
-#### Branch Workflow
+  * Release 2.11.0
 
-**Major releases** are branched off `master`.
-
-```
-git checkout master && git pull
-```
-
-**Bugfix releases** are created in the `release` branch and later merged to master.
-
-```
-git checkout release && git pull
-```
-
-#### Release Commit
-
-Set the `Version`, `Revision` and `changelog` inside the spec file.
-
-```
-./dch 2.8.3-1 "Update to 2.8.3"
-```
-
-```
-git commit -av -m "Release 2.8.3-1"
-git push
-```
-
-```
-git commit -av -m "Release 2.8.3-1"
-```
-
-**Note for major releases**: Update release branch to latest.
-`git checkout release && git pull && git merge master && git push`
-
-**Note for minor releases**: Cherry-pick the release commit into master.
-`git checkout master && git pull && git cherry-pick release && git push`
-
-
-#### DEB with dch on macOS
-
-```
-docker run -v `pwd`:/mnt/packaging -ti ubuntu:xenial bash
-
-apt-get update
-apt-get install git dev-tools vim
-cd /mnt/packaging
-
-git config --global user.name "Michael Friedrich"
-git config --global user.email "michael.friedrich@icinga.com"
-
-./dch 2.8.3-1 "Update to 2.8.3"
+ -- Michael Friedrich <michael.friedrich@icinga.com>  Thu, 19 Sep 2019 10:50:31 +0200
 ```
 
 
-## Build Server <a id="build-server"></a>
+### Release Commit
+
+Commit the changes and push the branch.
+
+```
+git commit -av -m "Release $VERSION-1"
+git push origin 2.11
+```
+
+GitLab will now build snapshot packages based on the tag `v2.11.0` of Icinga 2.
+
+### Package Tests
+
+In order to test the created packages you can download a job's artifacts:
+
+Visit [git.icinga.com](https://git.icinga.com/packaging/rpm-icinga2)
+and navigate to the respective pipeline under `CI / CD -> Pipelines`.
+
+There click on the job you want to download packages from.
+
+The job's output appears. On the right-hand sidebar you can browse its artifacts.
+
+Once there, navigate to `build/RPMS/noarch` where you'll find the packages.
+
+### Release Packages
+
+To build release packages and upload them to [packages.icinga.com](https://packages.icinga.com)
+tag the release commit and push it.
+
+```
+git tag -s 2.11.0-1
+git push origin 2.11.0-1
+```
+
+Now cherry pick the release commit to `master` so that the changes are transferred back to it.
+
+**Attention**: Only the release commit. *NOT* the one switching the build type!
+
+
+## Build Infrastructure <a id="build-infrastructure"></a>
+
+https://git.icinga.com/packaging/rpm-icinga2/pipelines
+https://git.icinga.com/packaging/deb-icinga2/pipelines
+https://git.icinga.com/packaging/windows-icinga2/pipelines
+https://git.icinga.com/packaging/raspbian-icinga2/pipelines
 
 * Verify package build changes for this version.
 * Test the snapshot packages for all distributions beforehand.
-* Build the newly created Git tag for Debian/RHEL/SuSE.
-* Build the newly created Git tag for Windows.
+
+Once the release repository tags are pushed, release builds
+are triggered and automatically published to packages.icinga.com
 
 ## Release Tests  <a id="release-tests"></a>
 
@@ -249,52 +244,127 @@ git config --global user.email "michael.friedrich@icinga.com"
 * Test the [setup wizard](https://packages.icinga.com/windows/) inside a Windows VM.
 * Start a new docker container and install/run icinga2.
 
-Example for CentOS7:
+### CentOS
 
 ```
 docker run -ti centos:latest bash
 
 yum -y install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
+yum -y install epel-release
 yum -y install icinga2
 icinga2 daemon -C
 ```
 
+### Ubuntu
+
+```
+docker run -ti ubuntu:bionic bash
+
+apt-get update
+apt-get -y install apt-transport-https wget gnupg
+
+wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+
+. /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
+ echo "deb https://packages.icinga.com/ubuntu icinga-${DIST} main" > \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+ echo "deb-src https://packages.icinga.com/ubuntu icinga-${DIST} main" >> \
+ /etc/apt/sources.list.d/${DIST}-icinga.list
+
+apt-get update
+
+apt-get -y install icinga2
+icinga2 daemon -C
+```
+
+
 ## GitHub Release  <a id="github-release"></a>
 
 Create a new release for the newly created Git tag: https://github.com/Icinga/icinga2/releases
+
+> Hint: Choose [tags](https://github.com/Icinga/icinga2/tags), pick one to edit and
+> make this a release. You can also create a draft release.
+
+The release body should contain a short changelog, with links
+into the roadmap, changelog and blogpost.
+
 
 ## Chocolatey  <a id="chocolatey"></a>
 
 Navigate to the git repository on your Windows box which
 already has chocolatey installed. Pull/checkout the release.
 
-Create the nupkg package:
+Create the nupkg package (or use the one generated on https://packages.icinga.com/windows):
 
 ```
 cpack
 ```
 
-Install the created icinga2 package locally:
+Fetch the API key from https://chocolatey.org/account and use the `choco push`
+command line.
 
 ```
-choco install icinga2 -version 2.8.3 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+choco apikey --key xxx --source https://push.chocolatey.org/
+
+choco push Icinga2-v2.11.0.nupkg --source https://push.chocolatey.org/
 ```
 
-Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 
 ## Post Release  <a id="post-release"></a>
 
 ### Online Documentation  <a id="online-documentation"></a>
 
-Ask @bobapple to update the documentation at docs.icinga.com.
+> Only required for major releases.
+
+Navigate to `puppet-customer/icinga.git` and do the following steps:
+
+#### Testing
+
+```
+git checkout testing && git pull
+vim files/var/www/docs/config/icinga2-latest.yml
+
+git commit -av -m "icinga-web: Update docs for Icinga 2"
+
+git push
+```
+
+SSH into the webserver and do a manual Puppet dry run with the testing environment.
+
+```
+puppet agent -t --environment testing --noop
+```
+
+Once succeeded, continue with production deployment.
+
+#### Production
+
+```
+git checkout master && git pull
+git merge testing
+git push
+```
+
+SSH into the webserver and do a manual Puppet run from the production environment (default).
+
+```
+puppet agent -t
+```
+
+#### Manual Generation
+
+SSH into the webserver or ask @bobapple.
+
+```
+cd /usr/local/icinga-docs-tools && ./build-docs.rb -c /var/www/docs/config/icinga2-latest.yml
+```
 
 ### Announcement  <a id="announcement"></a>
 
-* Create a new blog post on www.icinga.com/blog
-* Social media: [Twitter](https://twitter.com/icinga), [Facebook](https://www.facebook.com/icinga), [G+](https://plus.google.com/+icinga), [Xing](https://www.xing.com/communities/groups/icinga-da4b-1060043), [LinkedIn](https://www.linkedin.com/groups/Icinga-1921830/about)
-* Update IRC channel topic
+* Create a new blog post on [icinga.com/blog](https://icinga.com/blog) including a featured image
+* Create a release topic on [community.icinga.com](https://community.icinga.com)
+* Release email to net-tech & team
 
 ### Project Management  <a id="project-management"></a>
 
 * Add new minor version on [GitHub](https://github.com/Icinga/icinga2/milestones).
-* Close the released version on [GitHub](https://github.com/Icinga/icinga2/milestones).

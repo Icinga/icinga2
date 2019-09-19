@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/stream.hpp"
 #include <boost/algorithm/string/trim.hpp>
@@ -91,16 +74,6 @@ bool Stream::WaitForData(int timeout)
 	return IsDataAvailable() || IsEof();
 }
 
-void Stream::SetCorked(bool corked)
-{
-	m_Corked = corked;
-}
-
-bool Stream::IsCorked() const
-{
-	return m_Corked;
-}
-
 static void StreamDummyCallback()
 { }
 
@@ -129,31 +102,19 @@ StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context, bool
 		}
 	}
 
-	int count = 0;
-	size_t first_newline;
-
 	for (size_t i = 0; i < context.Size; i++) {
 		if (context.Buffer[i] == '\n') {
-			count++;
+			*line = String(context.Buffer, context.Buffer + i);
+			boost::algorithm::trim_right(*line);
 
-			if (count == 1)
-				first_newline = i;
-			else if (count > 1)
-				break;
+			context.DropData(i + 1u);
+
+			context.MustRead = !context.Size;
+			return StatusNewItem;
 		}
 	}
 
-	context.MustRead = (count <= 1);
-
-	if (count > 0) {
-		*line = String(context.Buffer, &(context.Buffer[first_newline]));
-		boost::algorithm::trim_right(*line);
-
-		context.DropData(first_newline + 1);
-
-		return StatusNewItem;
-	}
-
+	context.MustRead = true;
 	return StatusNeedData;
 }
 

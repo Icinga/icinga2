@@ -3,9 +3,9 @@ docs_dir: doc
 dev_addr: 0.0.0.0:8000
 pages:
   - 'About Icinga 2': '01-about.md'
-  - 'Getting Started': '02-getting-started.md'
+  - 'Installation': '02-installation.md'
   - 'Monitoring Basics': '03-monitoring-basics.md'
-  - 'Configuring Icinga 2': '04-configuring-icinga-2.md'
+  - 'Configuration': '04-configuration.md'
   - 'Service Monitoring': '05-service-monitoring.md'
   - 'Distributed Monitoring': '06-distributed-monitoring.md'
   - 'Agent Based Monitoring': '07-agent-based-monitoring.md'

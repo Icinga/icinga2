@@ -1,19 +1,4 @@
-# Icinga 2
-# Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation
-# Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
 mkclass_target(apilistener.ti apilistener-ti.cpp apilistener-ti.hpp)
 mkclass_target(apiuser.ti apiuser-ti.cpp apiuser-ti.hpp)
@@ -24,11 +9,10 @@ set(remote_SOURCES
   i2-remote.hpp
   actionshandler.cpp actionshandler.hpp
   apiaction.cpp apiaction.hpp
-  apiclient.cpp apiclient.hpp
   apifunction.cpp apifunction.hpp
   apilistener.cpp apilistener.hpp apilistener-ti.hpp apilistener-configsync.cpp apilistener-filesync.cpp
+  apilistener-authority.cpp
   apiuser.cpp apiuser.hpp apiuser-ti.hpp
-  authority.cpp
   configfileshandler.cpp configfileshandler.hpp
   configobjectutility.cpp configobjectutility.hpp
   configpackageshandler.cpp configpackageshandler.hpp
@@ -41,11 +25,7 @@ set(remote_SOURCES
   eventqueue.cpp eventqueue.hpp
   eventshandler.cpp eventshandler.hpp
   filterutility.cpp filterutility.hpp
-  httpchunkedencoding.cpp httpchunkedencoding.hpp
-  httpclientconnection.cpp httpclientconnection.hpp
   httphandler.cpp httphandler.hpp
-  httprequest.cpp httprequest.hpp
-  httpresponse.cpp httpresponse.hpp
   httpserverconnection.cpp httpserverconnection.hpp
   httputility.cpp httputility.hpp
   infohandler.cpp infohandler.hpp
@@ -76,10 +56,11 @@ set_target_properties (
   FOLDER Lib
 )
 
-#install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api\")")
-install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api/log\")")
-install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api/zones\")")
-install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/certs\")")
-install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/certificate-requests\")")
+#install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_DATADIR}/api\")")
+install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_DATADIR}/api/log\")")
+install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_DATADIR}/api/zones\")")
+install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_DATADIR}/api/zones-stage\")")
+install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_DATADIR}/certs\")")
+install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_DATADIR}/certificate-requests\")")
 
 

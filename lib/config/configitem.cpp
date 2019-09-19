@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "config/configitem.hpp"
 #include "config/configcompilercontext.hpp"
@@ -36,8 +19,12 @@
 #include "base/json.hpp"
 #include "base/exception.hpp"
 #include "base/function.hpp"
+#include "base/utility.hpp"
+#include <boost/algorithm/string/join.hpp>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
+#include <random>
 
 using namespace icinga;
 
@@ -47,7 +34,7 @@ ConfigItem::TypeMap ConfigItem::m_DefaultTemplates;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 ConfigItem::IgnoredItemList ConfigItem::m_IgnoredItems;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::RunWithActivationContext, "func");
+REGISTER_FUNCTION(Internal, run_with_activation_context, &ConfigItem::RunWithActivationContext, "func");
 
 /**
  * Constructor for the ConfigItem class.
@@ -289,6 +276,14 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		throw;
 	}
 
+	Value serializedObject;
+
+	try {
+		serializedObject = Serialize(dobj, FAConfig);
+	} catch (const CircularReferenceError& ex) {
+		BOOST_THROW_EXCEPTION(ValidationError(dobj, ex.GetPath(), "Circular references are not allowed"));
+	}
+
 	Dictionary::Ptr persistentItem = new Dictionary({
 		{ "type", type->GetName() },
 		{ "name", GetName() },
@@ -428,26 +423,25 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	if (items.empty())
 		return true;
 
+	// Shuffle all items to evenly distribute them over the threads of the workqueue. This increases perfomance
+	// noticably in environments with lots of objects and available threads.
+	std::shuffle(std::begin(items), std::end(items), std::default_random_engine {});
+
+#ifdef I2_DEBUG
+	Log(LogDebug, "configitem")
+		<< "Committing " << items.size() << " new items.";
+#endif /* I2_DEBUG */
+
 	for (const auto& ip : items)
 		newItems.push_back(ip.first);
 
-	upq.ParallelFor(items, [](const ItemPair& ip) {
-		ip.first->Commit(ip.second);
-	});
-
-	upq.Join();
-
-	if (upq.HasExceptions())
-		return false;
-
 	std::set<Type::Ptr> types;
+	std::set<Type::Ptr> completed_types;
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		if (ConfigObject::TypeInstance->IsAssignableFrom(type))
 			types.insert(type);
 	}
-
-	std::set<Type::Ptr> completed_types;
 
 	while (types.size() != completed_types.size()) {
 		for (const Type::Ptr& type : types) {
@@ -468,7 +462,60 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (unresolved_dep)
 				continue;
 
-			upq.ParallelFor(items, [&type](const ItemPair& ip) {
+			int committed_items = 0;
+			upq.ParallelFor(items, [&type, &committed_items](const ItemPair& ip) {
+				const ConfigItem::Ptr& item = ip.first;
+
+				if (item->m_Type != type)
+					return;
+
+				ip.first->Commit(ip.second);
+				committed_items++;
+			});
+
+			upq.Join();
+
+			completed_types.insert(type);
+
+#ifdef I2_DEBUG
+			if (committed_items > 0)
+				Log(LogDebug, "configitem")
+					<< "Committed " << committed_items << " items of type '" << type->GetName() << "'.";
+#endif /* I2_DEBUG */
+
+			if (upq.HasExceptions())
+				return false;
+		}
+	}
+
+#ifdef I2_DEBUG
+	Log(LogDebug, "configitem")
+		<< "Committed " << items.size() << " items.";
+#endif /* I2_DEBUG */
+
+	completed_types.clear();
+
+	while (types.size() != completed_types.size()) {
+		for (const Type::Ptr& type : types) {
+			if (completed_types.find(type) != completed_types.end())
+				continue;
+
+			bool unresolved_dep = false;
+
+			/* skip this type (for now) if there are unresolved load dependencies */
+			for (const String& loadDep : type->GetLoadDependencies()) {
+				Type::Ptr pLoadDep = Type::GetByName(loadDep);
+				if (types.find(pLoadDep) != types.end() && completed_types.find(pLoadDep) == completed_types.end()) {
+					unresolved_dep = true;
+					break;
+				}
+			}
+
+			if (unresolved_dep)
+				continue;
+
+			int notified_items = 0;
+			upq.ParallelFor(items, [&type, &notified_items](const ItemPair& ip) {
 				const ConfigItem::Ptr& item = ip.first;
 
 				if (!item->m_Object || item->m_Type != type)
@@ -476,6 +523,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 				try {
 					item->m_Object->OnAllConfigLoaded();
+					notified_items++;
 				} catch (const std::exception& ex) {
 					if (!item->m_IgnoreOnError)
 						throw;
@@ -496,11 +544,18 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 			upq.Join();
 
+#ifdef I2_DEBUG
+			if (notified_items > 0)
+				Log(LogDebug, "configitem")
+					<< "Sent OnAllConfigLoaded to " << notified_items << " items of type '" << type->GetName() << "'.";
+#endif /* I2_DEBUG */
+
 			if (upq.HasExceptions())
 				return false;
 
+			notified_items = 0;
 			for (const String& loadDep : type->GetLoadDependencies()) {
-				upq.ParallelFor(items, [loadDep, &type](const ItemPair& ip) {
+				upq.ParallelFor(items, [loadDep, &type, &notified_items](const ItemPair& ip) {
 					const ConfigItem::Ptr& item = ip.first;
 
 					if (!item->m_Object || item->m_Type->GetName() != loadDep)
@@ -508,14 +563,22 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 					ActivationScope ascope(item->m_ActivationContext);
 					item->m_Object->CreateChildObjects(type);
+					notified_items++;
 				});
 			}
 
 			upq.Join();
 
+#ifdef I2_DEBUG
+			if (notified_items > 0)
+				Log(LogDebug, "configitem")
+					<< "Sent CreateChildObjects to " << notified_items << " items of type '" << type->GetName() << "'.";
+#endif /* I2_DEBUG */
+
 			if (upq.HasExceptions())
 				return false;
 
+			// Make sure to activate any additionally generated items
 			if (!CommitNewItems(context, upq, newItems))
 				return false;
 		}
@@ -539,7 +602,7 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 		return false;
 	}
 
-	ApplyRule::CheckMatches();
+	ApplyRule::CheckMatches(silent);
 
 	if (!silent) {
 		/* log stats for external parsers */
@@ -561,15 +624,16 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	return true;
 }
 
-bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated, bool silent, bool withModAttrs)
+bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated,
+	bool silent, bool withModAttrs, const Value& cookie)
 {
 	static boost::mutex mtx;
 	boost::mutex::scoped_lock lock(mtx);
 
 	if (withModAttrs) {
 		/* restore modified attributes */
-		if (Utility::PathExists(Application::GetModAttrPath())) {
-			std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(Application::GetModAttrPath());
+		if (Utility::PathExists(Configuration::ModAttrPath)) {
+			std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(Configuration::ModAttrPath);
 
 			if (expression) {
 				try {
@@ -625,11 +689,11 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 #ifdef I2_DEBUG
 			Log(LogDebug, "ConfigItem")
 				<< "Activating object '" << object->GetName() << "' of type '"
-				<< objectType->GetName() << "' with priority '"
+				<< objectType->GetName() << "' with priority "
 				<< objectType->GetActivationPriority();
 #endif /* I2_DEBUG */
 
-			object->Activate(runtimeCreated);
+			object->Activate(runtimeCreated, cookie);
 		}
 	}
 
@@ -666,7 +730,7 @@ bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 
 	function->Invoke();
 
-	WorkQueue upq(25000, Application::GetConcurrency());
+	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("ConfigItem::RunWithActivationContext");
 
 	std::vector<ConfigItem::Ptr> newItems;

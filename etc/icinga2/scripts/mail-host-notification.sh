@@ -1,7 +1,6 @@
-#!/usr/bin/env bash
-#
-# Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)
-# Except of function urlencode which is Copyright (C) by Brian White (brian@aljex.com) used under MIT license 
+#!/bin/sh
+# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# Except of function urlencode which is Copyright (C) by Brian White (brian@aljex.com) used under MIT license
 
 PROG="`basename $0`"
 ICINGA2HOST="`hostname`"
@@ -51,11 +50,14 @@ Error() {
 }
 
 urlencode() {
-  local LANG=C i c e=''
-  for ((i=0;i<${#1};i++)); do
-    c=${1:$i:1}
-    [[ "$c" =~ [a-zA-Z0-9\.\~\_\-] ]] || printf -v c '%%%02X' "'$c"
-    e+="$c"
+  local LANG=C i=0 c e s="$1"
+
+  while [ $i -lt ${#1} ]; do
+    [ "$i" -eq 0 ] || s="${s#?}"
+    c=${s%"${s#?}"}
+    [ -z "${c#[[:alnum:].~_-]}" ] || c=$(printf '%%%02X' "'$c")
+    e="${e}${c}"
+    i=$((i + 1))
   done
   echo "$e"
 }
@@ -156,13 +158,15 @@ if [ -n "$MAILFROM" ] ; then
 
   ## Debian/Ubuntu use mailutils which requires `-a` to append the header
   if [ -f /etc/debian_version ]; then
-    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | $MAILBIN -a "From: $MAILFROM" -s "$ENCODED_SUBJECT" $USEREMAIL
+    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE"  | tr -d '\015'
+    | $MAILBIN -a "From: $MAILFROM" -s "$ENCODED_SUBJECT" $USEREMAIL
   ## Other distributions (RHEL/SUSE/etc.) prefer mailx which sets a sender address with `-r`
   else
-    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | $MAILBIN -r "$MAILFROM" -s "$ENCODED_SUBJECT" $USEREMAIL
+    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
+    | $MAILBIN -r "$MAILFROM" -s "$ENCODED_SUBJECT" $USEREMAIL
   fi
 
 else
-  /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" \
+  /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
   | $MAILBIN -s "$ENCODED_SUBJECT" $USEREMAIL
 fi

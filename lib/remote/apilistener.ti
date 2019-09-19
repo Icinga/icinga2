@@ -1,21 +1,4 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/i2-remote.hpp"
 #include "base/configobject.hpp"
@@ -35,19 +18,30 @@ class ApiListener : ConfigObject
 	[config, deprecated] String ca_path;
 	[config] String crl_path;
 	[config] String cipher_list {
-		default {{{ return "ALL:!LOW:!WEAK:!MEDIUM:!EXP:!NULL"; }}}
+		default {{{ return "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:AES256-GCM-SHA384:AES128-GCM-SHA256"; }}}
 	};
 	[config] String tls_protocolmin {
-		default {{{ return "TLSv1"; }}}
+		default {{{ return "TLSv1.2"; }}}
 	};
 
-	[config] String bind_host;
+	[config] String bind_host {
+		default {{{ return Configuration::ApiBindHost; }}}
+	};
 	[config] String bind_port {
-		default {{{ return "5665"; }}}
+		default {{{ return Configuration::ApiBindPort; }}}
 	};
 
 	[config] bool accept_config;
 	[config] bool accept_commands;
+	[config] int max_anonymous_clients {
+		default {{{ return -1; }}}
+	};
+
+	[config] double tls_handshake_timeout {
+		get;
+		set;
+		default {{{ return Configuration::TlsHandshakeTimeout; }}}
+	};
 
 	[config] String ticket_salt;
 
@@ -60,6 +54,8 @@ class ApiListener : ConfigObject
 	[state, no_user_modify] Timestamp log_message_timestamp;
 
 	[no_user_modify] String identity;
+
+	[state, no_user_modify] Dictionary::Ptr last_failed_zones_stage_validation;
 };
 
 }

@@ -1,30 +1,14 @@
-/******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "perfdata/elasticsearchwriter.hpp"
 #include "perfdata/elasticsearchwriter-ti.cpp"
 #include "remote/url.hpp"
-#include "remote/httprequest.hpp"
-#include "remote/httpresponse.hpp"
 #include "icinga/compatutility.hpp"
 #include "icinga/service.hpp"
 #include "icinga/checkcommand.hpp"
+#include "base/application.hpp"
+#include "base/defer.hpp"
+#include "base/io-engine.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/stream.hpp"
 #include "base/base64.hpp"
@@ -35,7 +19,19 @@
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
+#include <boost/asio/ssl/context.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/http/field.hpp>
+#include <boost/beast/http/message.hpp>
+#include <boost/beast/http/parser.hpp>
+#include <boost/beast/http/read.hpp>
+#include <boost/beast/http/status.hpp>
+#include <boost/beast/http/string_body.hpp>
+#include <boost/beast/http/verb.hpp>
+#include <boost/beast/http/write.hpp>
 #include <boost/scoped_array.hpp>
+#include <memory>
+#include <string>
 #include <utility>
 
 using namespace icinga;
@@ -49,6 +45,15 @@ void ElasticsearchWriter::OnConfigLoaded()
 	ObjectImpl<ElasticsearchWriter>::OnConfigLoaded();
 
 	m_WorkQueue.SetName("ElasticsearchWriter, " + GetName());
+
+	if (!GetEnableHa()) {
+		Log(LogDebug, "ElasticsearchWriter")
+			<< "HA functionality disabled. Won't pause connection: " << GetName();
+
+		SetHAMode(HARunEverywhere);
+	} else {
+		SetHAMode(HARunOnce);
+	}
 }
 
 void ElasticsearchWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
@@ -71,14 +76,14 @@ void ElasticsearchWriter::StatsFunc(const Dictionary::Ptr& status, const Array::
 	status->Set("elasticsearchwriter", new Dictionary(std::move(nodes)));
 }
 
-void ElasticsearchWriter::Start(bool runtimeCreated)
+void ElasticsearchWriter::Resume()
 {
-	ObjectImpl<ElasticsearchWriter>::Start(runtimeCreated);
+	ObjectImpl<ElasticsearchWriter>::Resume();
 
 	m_EventPrefix = "icinga2.event.";
 
 	Log(LogInformation, "ElasticsearchWriter")
-		<< "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' resumed.";
 
 	m_WorkQueue.SetExceptionCallback(std::bind(&ElasticsearchWriter::ExceptionHandler, this, _1));
 
@@ -95,14 +100,17 @@ void ElasticsearchWriter::Start(bool runtimeCreated)
 	Checkable::OnNotificationSentToAllUsers.connect(std::bind(&ElasticsearchWriter::NotificationSentToAllUsersHandler, this, _1, _2, _3, _4, _5, _6, _7));
 }
 
-void ElasticsearchWriter::Stop(bool runtimeRemoved)
+/* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
+void ElasticsearchWriter::Pause()
 {
-	Log(LogInformation, "ElasticsearchWriter")
-		<< "'" << GetName() << "' stopped.";
-
+	Flush();
 	m_WorkQueue.Join();
+	Flush();
 
-	ObjectImpl<ElasticsearchWriter>::Stop(runtimeRemoved);
+	Log(LogInformation, "ElasticsearchWriter")
+		<< "'" << GetName() << "' paused.";
+
+	ObjectImpl<ElasticsearchWriter>::Pause();
 }
 
 void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -131,6 +139,8 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 
 	Array::Ptr perfdata = cr->GetPerformanceData();
 
+	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
+
 	if (perfdata) {
 		ObjectLock olock(perfdata);
 		for (const Value& val : perfdata) {
@@ -143,8 +153,9 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 					pdv = PerfdataValue::Parse(val);
 				} catch (const std::exception&) {
 					Log(LogWarning, "ElasticsearchWriter")
-						<< "Ignoring invalid perfdata value: '" << val << "' for object '"
-						<< checkable->GetName() << "'.";
+						<< "Ignoring invalid perfdata for checkable '"
+						<< checkable->GetName() << "' and command '"
+						<< checkCommand->GetName() << "' with value: " << val;
 					continue;
 				}
 			}
@@ -176,6 +187,9 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 
 void ElasticsearchWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&ElasticsearchWriter::InternalCheckResultHandler, this, checkable, cr));
 }
 
@@ -225,11 +239,14 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 		ts = cr->GetExecutionEnd();
 	}
 
-	Enqueue("checkresult", fields, ts);
+	Enqueue(checkable, "checkresult", fields, ts);
 }
 
 void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&ElasticsearchWriter::StateChangeHandlerInternal, this, checkable, cr, type));
 }
 
@@ -272,13 +289,16 @@ void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& check
 		ts = cr->GetExecutionEnd();
 	}
 
-	Enqueue("statechange", fields, ts);
+	Enqueue(checkable, "statechange", fields, ts);
 }
 
 void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
 	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
 	const CheckResult::Ptr& cr, const String& author, const String& text)
 {
+	if (IsPaused())
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal, this,
 		notification, checkable, users, type, cr, author, text));
 }
@@ -298,7 +318,7 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	String notificationTypeString = Notification::NotificationTypeToString(type);
+	String notificationTypeString = Notification::NotificationTypeToStringCompat(type); //TODO: Change that to our own types.
 
 	Dictionary::Ptr fields = new Dictionary();
 
@@ -338,10 +358,11 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 		ts = cr->GetExecutionEnd();
 	}
 
-	Enqueue("notification", fields, ts);
+	Enqueue(checkable, "notification", fields, ts);
 }
 
-void ElasticsearchWriter::Enqueue(const String& type, const Dictionary::Ptr& fields, double ts)
+void ElasticsearchWriter::Enqueue(const Checkable::Ptr& checkable, const String& type,
+	const Dictionary::Ptr& fields, double ts)
 {
 	/* Atomically buffer the data point. */
 	boost::mutex::scoped_lock lock(m_DataBufferMutex);
@@ -360,7 +381,7 @@ void ElasticsearchWriter::Enqueue(const String& type, const Dictionary::Ptr& fie
 	String fieldsBody = JsonEncode(fields);
 
 	Log(LogDebug, "ElasticsearchWriter")
-		<< "Add to fields to message list: '" << fieldsBody << "'.";
+		<< "Checkable '" << checkable->GetName() << "' adds to metric list: '" << fieldsBody << "'.";
 
 	m_DataBuffer.emplace_back(indexBody + fieldsBody);
 
@@ -389,6 +410,10 @@ void ElasticsearchWriter::FlushTimeout()
 
 void ElasticsearchWriter::Flush()
 {
+	/* Flush can be called from 1) Timeout 2) Threshold 3) on shutdown/reload. */
+	if (m_DataBuffer.empty())
+		return;
+
 	/* Ensure you hold a lock against m_DataBuffer so that things
 	 * don't go missing after creating the body and clearing the buffer.
 	 */
@@ -405,6 +430,9 @@ void ElasticsearchWriter::Flush()
 
 void ElasticsearchWriter::SendRequest(const String& body)
 {
+	namespace beast = boost::beast;
+	namespace http = beast::http;
+
 	Url::Ptr url = new Url();
 
 	url->SetScheme(GetEnableTls() ? "https" : "http");
@@ -428,58 +456,84 @@ void ElasticsearchWriter::SendRequest(const String& body)
 
 	url->SetPath(path);
 
-	Stream::Ptr stream = Connect();
-	HttpRequest req(stream);
+	OptionalTlsStream stream;
+
+	try {
+		stream = Connect();
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "ElasticsearchWriter")
+			<< "Flush failed, cannot connect to Elasticsearch: " << DiagnosticInformation(ex, false);
+		return;
+	}
+
+	Defer s ([&stream]() {
+		if (stream.first) {
+			stream.first->next_layer().shutdown();
+		}
+	});
+
+	http::request<http::string_body> request (http::verb::post, std::string(url->Format(true)), 10);
+
+	request.set(http::field::user_agent, "Icinga/" + Application::GetAppVersion());
+	request.set(http::field::host, url->GetHost() + ":" + url->GetPort());
 
 	/* Specify required headers by Elasticsearch. */
-	req.AddHeader("Accept", "application/json");
-	req.AddHeader("Content-Type", "application/json");
+	request.set(http::field::accept, "application/json");
+
+	/* Use application/x-ndjson for bulk streams. While ES
+	 * is able to handle application/json, the newline separator
+	 * causes problems with Logstash (#6609).
+	 */
+	request.set(http::field::content_type, "application/x-ndjson");
 
 	/* Send authentication if configured. */
 	String username = GetUsername();
 	String password = GetPassword();
 
 	if (!username.IsEmpty() && !password.IsEmpty())
-		req.AddHeader("Authorization", "Basic " + Base64::Encode(username + ":" + password));
+		request.set(http::field::authorization, "Basic " + Base64::Encode(username + ":" + password));
 
-	req.RequestMethod = "POST";
-	req.RequestUrl = url;
+	request.body() = body;
+	request.set(http::field::content_length, request.body().size());
 
 	/* Don't log the request body to debug log, this is already done above. */
 	Log(LogDebug, "ElasticsearchWriter")
-		<< "Sending " << req.RequestMethod << " request" << ((!username.IsEmpty() && !password.IsEmpty()) ? " with basic auth" : "" )
+		<< "Sending " << request.method_string() << " request" << ((!username.IsEmpty() && !password.IsEmpty()) ? " with basic auth" : "" )
 		<< " to '" << url->Format() << "'.";
 
 	try {
-		req.WriteBody(body.CStr(), body.GetLength());
-		req.Finish();
-	} catch (const std::exception& ex) {
+		if (stream.first) {
+			http::write(*stream.first, request);
+			stream.first->flush();
+		} else {
+			http::write(*stream.second, request);
+			stream.second->flush();
+		}
+	} catch (const std::exception&) {
 		Log(LogWarning, "ElasticsearchWriter")
 			<< "Cannot write to HTTP API on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw ex;
+		throw;
 	}
 
-	HttpResponse resp(stream, req);
-	StreamReadContext context;
+	http::parser<false, http::string_body> parser;
+	beast::flat_buffer buf;
 
 	try {
-		resp.Parse(context, true);
-		while (resp.Parse(context, true) && !resp.Complete)
-			; /* Do nothing */
+		if (stream.first) {
+			http::read(*stream.first, buf, parser);
+		} else {
+			http::read(*stream.second, buf, parser);
+		}
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "ElasticsearchWriter")
 			<< "Failed to parse HTTP response from host '" << GetHost() << "' port '" << GetPort() << "': " << DiagnosticInformation(ex, false);
-		throw ex;
+		throw;
 	}
 
-	if (!resp.Complete) {
-		Log(LogWarning, "ElasticsearchWriter")
-			<< "Failed to read a complete HTTP response from the Elasticsearch server.";
-		return;
-	}
+	auto& response (parser.get());
 
-	if (resp.StatusCode > 299) {
-		if (resp.StatusCode == 401) {
+	if (response.result_int() > 299) {
+		if (response.result() == http::status::unauthorized) {
 			/* More verbose error logging with Elasticsearch is hidden behind a proxy. */
 			if (!username.IsEmpty() && !password.IsEmpty()) {
 				Log(LogCritical, "ElasticsearchWriter")
@@ -493,80 +547,83 @@ void ElasticsearchWriter::SendRequest(const String& body)
 			return;
 		}
 
-		Log(LogWarning, "ElasticsearchWriter")
-			<< "Unexpected response code " << resp.StatusCode;
+		std::ostringstream msgbuf;
+		msgbuf << "Unexpected response code " << response.result_int() << " from URL '" << url->Format() << "'";
 
-		String contentType = resp.Headers->Get("content-type");
+		auto& contentType (response[http::field::content_type]);
 
-		if (contentType != "application/json") {
-			Log(LogWarning, "ElasticsearchWriter")
-				<< "Unexpected Content-Type: " << contentType;
-			return;
+		if (contentType != "application/json" && contentType != "application/json; charset=utf-8") {
+			msgbuf << "; Unexpected Content-Type: '" << contentType << "'";
 		}
 
-		size_t responseSize = resp.GetBodySize();
-		boost::scoped_array<char> buffer(new char[responseSize + 1]);
-		resp.ReadBody(buffer.get(), responseSize);
-		buffer.get()[responseSize] = '\0';
+		auto& body (response.body());
+
+#ifdef I2_DEBUG
+		msgbuf << "; Response body: '" << body << "'";
+#endif /* I2_DEBUG */
 
 		Dictionary::Ptr jsonResponse;
+
 		try {
-			jsonResponse = JsonDecode(buffer.get());
+			jsonResponse = JsonDecode(body);
 		} catch (...) {
 			Log(LogWarning, "ElasticsearchWriter")
-				<< "Unable to parse JSON response:\n" << buffer.get();
+				<< "Unable to parse JSON response:\n" << body;
 			return;
 		}
 
 		String error = jsonResponse->Get("error");
 
 		Log(LogCritical, "ElasticsearchWriter")
-			<< "Elasticsearch error message:\n" << error;
-
-		return;
+			<< "Error: '" << error << "'. " << msgbuf.str();
 	}
 }
 
-Stream::Ptr ElasticsearchWriter::Connect()
+OptionalTlsStream ElasticsearchWriter::Connect()
 {
-	TcpSocket::Ptr socket = new TcpSocket();
-
 	Log(LogNotice, "ElasticsearchWriter")
 		<< "Connecting to Elasticsearch on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
-	try {
-		socket->Connect(GetHost(), GetPort());
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "ElasticsearchWriter")
-			<< "Can't connect to Elasticsearch on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw ex;
-	}
+	OptionalTlsStream stream;
+	bool tls = GetEnableTls();
 
-	if (GetEnableTls()) {
-		std::shared_ptr<SSL_CTX> sslContext;
+	if (tls) {
+		std::shared_ptr<boost::asio::ssl::context> sslContext;
 
 		try {
-			sslContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
-		} catch (const std::exception& ex) {
+			sslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		} catch (const std::exception&) {
 			Log(LogWarning, "ElasticsearchWriter")
 				<< "Unable to create SSL context.";
-			throw ex;
+			throw;
 		}
 
-		TlsStream::Ptr tlsStream = new TlsStream(socket, GetHost(), RoleClient, sslContext);
+		stream.first = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
+	} else {
+		stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoContext());
+	}
+
+	try {
+		icinga::Connect(tls ? stream.first->lowest_layer() : stream.second->lowest_layer(), GetHost(), GetPort());
+	} catch (const std::exception&) {
+		Log(LogWarning, "ElasticsearchWriter")
+			<< "Can't connect to Elasticsearch on host '" << GetHost() << "' port '" << GetPort() << "'.";
+		throw;
+	}
+
+	if (tls) {
+		auto& tlsStream (stream.first->next_layer());
 
 		try {
-			tlsStream->Handshake();
-		} catch (const std::exception& ex) {
+			tlsStream.handshake(tlsStream.client);
+		} catch (const std::exception&) {
 			Log(LogWarning, "ElasticsearchWriter")
 				<< "TLS handshake with host '" << GetHost() << "' on port " << GetPort() << " failed.";
-			throw ex;
+			throw;
 		}
-
-		return tlsStream;
-	} else {
-		return new NetworkStream(socket);
 	}
+
+	return std::move(stream);
 }
 
 void ElasticsearchWriter::AssertOnWorkQueue()
