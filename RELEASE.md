@@ -12,7 +12,7 @@
 - [5. Package Builds](#package-builds)
   - [5.1. RPM Packages](#rpm-packages)
   - [5.2. DEB Packages](#deb-packages)
-- [6. Build Server](#build-server)
+- [6. Build Server](#build-infrastructure)
 - [7. Release Tests](#release-tests)
 - [8. GitHub Release](#github-release)
 - [9. Chocolatey](#chocolatey)
@@ -26,7 +26,7 @@
 Specify the release version.
 
 ```
-VERSION=2.11.0-rc1
+VERSION=2.11.0
 ```
 
 Add your signing key to your Git configuration file, if not already there.
@@ -68,16 +68,11 @@ sed -i "s/Version: .*/Version: $VERSION/g" VERSION
 
 ## Changelog <a id="changelog"></a>
 
-Link to the milestone and closed=1 as filter.
+Choose the most important issues and summarize them in multiple groups/paragraphs. Provide links to the mentioned
+issues/PRs. At the start include a link to the milestone's closed issues.
 
-Manually update the best of collected from the
-milestone description.
 
 ## Git Tag  <a id="git-tag"></a>
-
-> **Major Releases**: Commit these changes to the `master` branch.
->
-> **Minor Releases**: Commit changes to the `support` branch.
 
 ```
 git commit -v -a -m "Release version $VERSION"
@@ -106,145 +101,141 @@ git checkout -b support/2.12
 git push -u origin support/2.12
 ```
 
-**For minor releases:** Push the support branch, cherry-pick the release commit
-into master and merge the support branch:
-
-```
-git push -u origin support/2.11
-git checkout master
-git cherry-pick support/2.11
-git merge --strategy=ours support/2.11
-git push origin master
-```
 
 ## Package Builds  <a id="package-builds"></a>
+
+```
+mkdir $HOME/dev/icinga/packaging
+cd $HOME/dev/icinga/packaging
+```
 
 ### RPM Packages  <a id="rpm-packages"></a>
 
 ```
-git clone git@github.com:icinga/rpm-icinga2.git && cd rpm-icinga2
+git clone git@git.icinga.com:icinga/rpm-icinga2.git && cd rpm-icinga2
 ```
 
-#### Branch Workflow
-
-**Major releases** are branched off `master`.
+### DEB Packages <a id="deb-packages"></a>
 
 ```
-git checkout master && git pull
+git clone git@git.icinga.com:packaging/deb-icinga2.git && cd deb-icinga2
 ```
 
-**Bugfix releases** are created in the `release` branch and later merged to master.
+#### Raspbian Packages
 
 ```
-git checkout release && git pull
+git clone git@git.icinga.com:icinga/raspbian-icinga2.git && cd raspbian-icinga2
 ```
 
-#### Release Commit
-
-Set the `Version`, `Revision` and `changelog` inside the spec file.
+### Windows Packages
 
 ```
-VERSION=2.11.0-rc1
+git clone git@git.icinga.com:icinga/windows-icinga2.git && cd windows-icinga2
+```
 
-sed -i "s/Version: .*/Version: $VERSION/g" icinga2.spec
+
+### Branch Workflow
+
+Checkout `master` and create a new branch.
+
+* For releases use x.x[.x] as branch name (e.g. 2.11 or 2.11.1)
+* For releases with revision use x.x.x-n (e.g. 2.11.0-2)
+
+
+### Switch Build Type
+
+Edit file `.gitlab-ci.yml` and comment variable `ICINGA_BUILD_TYPE` out.
+
+```yaml
+variables:
+  ...
+  #ICINGA_BUILD_TYPE: snapshot
+  ...
+```
+
+Commit the change.
+
+```
+git commit -av -m "Switch build type for $VERSION-1"
+
+#### RPM Release Preparations
+
+Set the `Version`, `revision` and `%changelog` inside the spec file:
+
+```
+sed -i "s/Version:.*/Version:        $VERSION/g" icinga2.spec
 
 vim icinga2.spec
 
 %changelog
-* Tue Mar 19 2019 Michael Friedrich <michael.friedrich@icinga.com> 2.10.4-1
-- Update to 2.10.4
+* Thu Sep 19 2019 Michael Friedrich <michael.friedrich@icinga.com> 2.11.0-1
+- Update to 2.11.0
 ```
 
-```
-git commit -av -m "Release $VERSION-1"
-git push
-```
+#### DEB and Raspbian Release Preparations
 
-**Note for major releases**: Update release branch to latest.
+Update file `debian/changelog` and add at the beginning:
 
 ```
-git checkout release && git pull && git merge master && git push
-```
+icinga2 (2.11.0-1) icinga; urgency=medium
 
-**Note for minor releases**: Cherry-pick the release commit into master.
+  * Release 2.11.0
 
-```
-git checkout master && git pull && git cherry-pick release && git push
+ -- Michael Friedrich <michael.friedrich@icinga.com>  Thu, 19 Sep 2019 10:50:31 +0200
 ```
 
 
-### DEB Packages  <a id="deb-packages"></a>
+### Release Commit
 
-```
-git clone git@github.com:icinga/deb-icinga2.git && cd deb-icinga2
-```
-
-#### Branch Workflow
-
-**Major releases** are branched off `master`.
-
-```
-git checkout master && git pull
-```
-
-**Bugfix releases** are created in the `release` branch and later merged to master.
-
-```
-git checkout release && git pull
-```
-
-#### Release Commit
-
-Set the `Version`, `Revision` and `changelog` by using the `dch` helper.
-
-```
-VERSION=2.10.4
-
-./dch $VERSION-1 "Update to $VERSION"
-```
+Commit the changes and push the branch.
 
 ```
 git commit -av -m "Release $VERSION-1"
-git push
+git push origin 2.11
 ```
 
+GitLab will now build snapshot packages based on the tag `v2.11.0` of Icinga 2.
 
-**Note for major releases**: Update release branch to latest.
+### Package Tests
+
+In order to test the created packages you can download a job's artifacts:
+
+Visit [git.icinga.com](https://git.icinga.com/packaging/rpm-icinga2)
+and navigate to the respective pipeline under `CI / CD -> Pipelines`.
+
+There click on the job you want to download packages from.
+
+The job's output appears. On the right-hand sidebar you can browse its artifacts.
+
+Once there, navigate to `build/RPMS/noarch` where you'll find the packages.
+
+### Release Packages
+
+To build release packages and upload them to [packages.icinga.com](https://packages.icinga.com)
+tag the release commit and push it.
 
 ```
-git checkout release && git pull && git merge master && git push
+git tag -s 2.11.0-1
+git push origin 2.11.0-1
 ```
 
-**Note for minor releases**: Cherry-pick the release commit into master.
+Now cherry pick the release commit to `master` so that the changes are transferred back to it.
 
-```
-git checkout master && git pull && git cherry-pick release && git push
-```
-
-#### DEB with dch on macOS
-
-```
-docker run -v `pwd`:/mnt/packaging -ti ubuntu:bionic bash
-
-apt-get update && apt-get install git ubuntu-dev-tools vim -y
-cd /mnt/packaging
-
-git config --global user.name "Michael Friedrich"
-git config --global user.email "michael.friedrich@icinga.com"
-
-VERSION=2.11.0-rc1
-
-./dch $VERSION-1 "Update to $VERSION"
-```
+**Attention**: Only the release commit. *NOT* the one switching the build type!
 
 
-## Build Server <a id="build-server"></a>
+## Build Infrastructure <a id="build-infrastructure"></a>
+
+https://git.icinga.com/packaging/rpm-icinga2/pipelines
+https://git.icinga.com/packaging/deb-icinga2/pipelines
+https://git.icinga.com/packaging/windows-icinga2/pipelines
+https://git.icinga.com/packaging/raspbian-icinga2/pipelines
 
 * Verify package build changes for this version.
 * Test the snapshot packages for all distributions beforehand.
-* Build the newly created Git tag for Debian/RHEL/SuSE.
-  * Wait until all jobs have passed and then publish them one by one with `allow_release`
-* Build the newly created Git tag for Windows: `refs/tags/v2.10.0` as source and `v2.10.0` as package name.
+
+Once the release repository tags are pushed, release builds
+are triggered and automatically published to packages.icinga.com
 
 ## Release Tests  <a id="release-tests"></a>
 
@@ -259,27 +250,33 @@ VERSION=2.11.0-rc1
 docker run -ti centos:latest bash
 
 yum -y install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
+yum -y install epel-release
 yum -y install icinga2
 icinga2 daemon -C
 ```
 
-### Debian
+### Ubuntu
 
 ```
-docker run -ti debian:stretch bash
+docker run -ti ubuntu:bionic bash
 
-apt-get update && apt-get install -y wget curl gnupg apt-transport-https
+apt-get update
+apt-get -y install apt-transport-https wget gnupg
 
-DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb https://packages.icinga.com/debian icinga-${DIST} main" > \
+wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+
+. /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
+ echo "deb https://packages.icinga.com/ubuntu icinga-${DIST} main" > \
  /etc/apt/sources.list.d/${DIST}-icinga.list
- echo "deb-src https://packages.icinga.com/debian icinga-${DIST} main" >> \
+ echo "deb-src https://packages.icinga.com/ubuntu icinga-${DIST} main" >> \
  /etc/apt/sources.list.d/${DIST}-icinga.list
 
-curl https://packages.icinga.com/icinga.key | apt-key add -
+apt-get update
+
 apt-get -y install icinga2
-icinga2 daemon
+icinga2 daemon -C
 ```
+
 
 ## GitHub Release  <a id="github-release"></a>
 
