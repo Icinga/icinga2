@@ -157,6 +157,7 @@ Commit the change.
 
 ```
 git commit -av -m "Switch build type for $VERSION-1"
+```
 
 #### RPM Release Preparations
 
