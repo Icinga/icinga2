@@ -1374,7 +1374,7 @@ the following (e.g. by invoking a forced check from the web interface):
 
 * `/var/log/icinga2/icinga2.log` shows connection and execution errors.
  * The ApiListener is not enabled to [accept commands](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint). This is visible as `UNKNOWN` check result output.
- * `CheckCommand` definition not found on the remote client. This is visible as `UNKNWON` check result output.
+ * `CheckCommand` definition not found on the remote client. This is visible as `UNKNOWN` check result output.
  * Referenced check plugin not found on the remote agent.
  * Runtime warnings and errors, e.g. unresolved runtime macros or configuration problems.
 * Specific error messages are also populated into `UNKNOWN` check results including a detailed error message in their output.
