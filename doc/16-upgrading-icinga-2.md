@@ -194,6 +194,30 @@ and trigger reload loops. In order to prevent such harm in production,
 use infrastructure tools such as Foreman, Puppet, Ansible, etc. to install
 plugins on the masters, satellites and agents.
 
+##### Config Sync: Zones in Zones <a id="upgrading-to-2-11-cluster-config-sync-zones-in-zones"></a>
+
+The cluster config sync works in the way that configuration
+put into `/etc/icinga2/zones.d` only is included when configured
+outside in `/etc/icinga2/zones.conf`.
+
+If you for example create a "Zone Inception" with defining the
+`satellite` zone in `zones.d/master`, the config compiler does not
+re-run and include this zone config recursively from `zones.d/satellite`.
+
+Since v2.11, the config compiler is only including directories where a
+zone has been configured. Otherwise it would include renamed old zones,
+broken zones, etc. and those long-lasting bugs have been now fixed.
+
+Please consult the [troubleshoot docs](15-troubleshooting.md#troubleshooting-cluster-config-zones-in-zones)
+for concrete examples and solutions.
+
+> **Note**
+>
+> With using the Director, its cluster zones and agent hosts, you are safe.
+>
+> Manage the master/satellite instances outside in zones.conf and import
+> them via kickstart wizard.
+
 
 #### HA-aware Features <a id="upgrading-to-2-11-cluster-ha-aware-features"></a>
 

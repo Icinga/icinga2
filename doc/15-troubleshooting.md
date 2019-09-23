@@ -1485,6 +1485,100 @@ In order to solve this problem, remove the mentioned files from `zones.d` and us
 of syncing plugin binaries to your satellites and agents.
 
 
+#### Zones in Zones doesn't work <a id="troubleshooting-cluster-config-zones-in-zones"></a>
+
+The cluster config sync works in the way that configuration
+put into `/etc/icinga2/zones.d` only is included when configured
+outside in `/etc/icinga2/zones.conf`.
+
+If you for example create a "Zone Inception" with defining the
+`satellite` zone in `zones.d/master`, the config compiler does not
+re-run and include this zone config recursively from `zones.d/satellite`.
+
+Since v2.11, the config compiler is only including directories where a
+zone has been configured. Otherwise it would include renamed old zones,
+broken zones, etc. and those long-lasting bugs have been now fixed.
+
+A more concrete example: Masters and Satellites still need to know the Zone hierarchy outside of zones.d synced configuration.
+
+**Doesn't work**
+
+```
+vim /etc/icinga2/zones.conf
+
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
+}
+```
+
+```
+vim /etc/icinga2/zones.d/master/satellite-zones.conf
+
+object Zone "satellite" {
+  endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite1.localdomain" ]
+}
+```
+
+```
+vim /etc/icinga2/zones.d/satellite/satellite-hosts.conf
+
+object Host "agent" { ... }
+```
+
+The `agent` host object will never reach the satellite, since the master does not have
+the `satellite` zone configured outside of zones.d.
+
+
+**Works**
+
+Each instance needs to know this, and know about the endpoints first:
+
+```
+vim /etc/icinga2/zones.conf
+
+object Endpoint "icinga2-master1.localdomain" { ... }
+object Endpoint "icinga2-master2.localdomain" { ... }
+
+object Endpoint "icinga2-satellite1.localdomain" { ... }
+object Endpoint "icinga2-satellite2.localdomain" { ... }
+```
+
+Then the zone hierarchy as trust and also config sync inclusion is required.
+
+```
+vim /etc/icinga2/zones.conf
+
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
+}
+
+object Zone "satellite" {
+  endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite1.localdomain" ]
+}
+```
+
+Once done, you can start deploying actual monitoring objects into the satellite zone.
+
+```
+vim /etc/icinga2/zones.d/satellite/satellite-hosts.conf
+
+object Host "agent" { ... }
+```
+
+That's also explained and described in the [documentation](06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-agents).
+
+The thing you can do: For `command_endpoint` agents like inside the Director:
+Host -> Agent -> yes, there is no config sync for this zone in place. Therefore
+it is valid to just sync their zones via the config sync.
+
+> **Summary**
+>
+> With using the Director, its cluster zones and agent hosts, you are safe.
+>
+> Manage the master/satellite instances outside in zones.conf and import
+> them via kickstart wizard.
+
+
 ### Cluster Troubleshooting Overdue Check Results <a id="troubleshooting-cluster-check-results"></a>
 
 If your master does not receive check results (or any other events) from the child zones
