@@ -29,14 +29,22 @@ The rewrite of our core network stack for cluster and REST API
 requires newer Boost versions, specifically >= 1.66. For technical
 details, please continue reading in [this issue](https://github.com/Icinga/icinga2/issues/7041).
 
-The package dependencies have been updated for RPM/DEB already.
-On platforms where EPEL or Backports cannot satisfy this dependency,
-we provide Boost as package on our [package repository](https://packages.icinga.com):
+Distribution         | Repository providing Boost Dependencies
+---------------------|-------------------------------------
+RHEL/CentOS 7        | [EPEL repository](02-installation.md#package-repositories-rhel-epel)
+RHEL/CentOS 6 x64    | [packages.icinga.com](https://packages.icinga.com)
+Fedora               | Fedora Upstream
+Debian 10 Buster     | Debian Upstream
+Debian 9 Stretch     | [Backports repository](02-installation.md#package-repositories-debian-backports) **New since 2.11**
+Debian 8 Jessie      | [packages.icinga.com](https://packages.icinga.com)
+Ubuntu 18 Bionic     | [packages.icinga.com](https://packages.icinga.com)
+Ubuntu 16 Xenial     | [packages.icinga.com](https://packages.icinga.com)
+SLES 15              | SUSE Upstream
+SLES 12              | [packages.icinga.com](https://packages.icinga.com) (replaces the SDK repository requirement)
 
-* SLES 12 (this replaces the SDK requirement)
-* CentOS 6 x64
-* Debian Jessie
-* Ubuntu Xenial/Bionic
+On platforms where EPEL or Backports cannot satisfy this dependency,
+we provide Boost as package on our [package repository](https://packages.icinga.com)
+for your convenience.
 
 After upgrade, you may remove the old Boost packages (1.53 or anything above)
 if you don't need them anymore.
@@ -144,6 +152,22 @@ please let us know with an issue on GitHub.
 
 ### Cluster <a id="upgrading-to-2-11-cluster"></a>
 
+#### Agent Hosts with Command Endpoint require a Zone <a id="upgrading-to-2-11-cluster-agent-hosts-command-endpoint-zone"></a>
+
+2.11 fixes bugs where agent host checks would never be scheduled on
+the master. One definite requirement is that the checkable host/service
+is put into a zone.
+
+By default, the Director puts the agent host in `zones.d/master`
+and you're good to go. If you manually manage the configuration,
+the config compiler now throws an error with `command_endpoint`
+being set but no `zone` defined.
+
+The most convenient way with e.g. managing the objects in `conf.d`
+is to move them into the `master` zone. Please continue in the
+[troubleshooting docs](#troubleshooting-cluster-command-endpoint-errors-agent-hosts-command-endpoint-zone)
+for further instructions.
+
 #### Config Sync <a id="upgrading-to-2-11-cluster-config-sync"></a>
 
 2.11 overhauls the cluster config sync in many ways. This includes the
@@ -185,6 +209,30 @@ Such binaries wrapped into JSON-RPC cluster messages may always cause changes
 and trigger reload loops. In order to prevent such harm in production,
 use infrastructure tools such as Foreman, Puppet, Ansible, etc. to install
 plugins on the masters, satellites and agents.
+
+##### Config Sync: Zones in Zones <a id="upgrading-to-2-11-cluster-config-sync-zones-in-zones"></a>
+
+The cluster config sync works in the way that configuration
+put into `/etc/icinga2/zones.d` only is included when configured
+outside in `/etc/icinga2/zones.conf`.
+
+If you for example create a "Zone Inception" with defining the
+`satellite` zone in `zones.d/master`, the config compiler does not
+re-run and include this zone config recursively from `zones.d/satellite`.
+
+Since v2.11, the config compiler is only including directories where a
+zone has been configured. Otherwise it would include renamed old zones,
+broken zones, etc. and those long-lasting bugs have been now fixed.
+
+Please consult the [troubleshoot docs](15-troubleshooting.md#troubleshooting-cluster-config-zones-in-zones)
+for concrete examples and solutions.
+
+> **Note**
+>
+> With using the Director, its cluster zones and agent hosts, you are safe.
+>
+> Manage the master/satellite instances outside in zones.conf and import
+> them via kickstart wizard.
 
 
 #### HA-aware Features <a id="upgrading-to-2-11-cluster-ha-aware-features"></a>
