@@ -560,7 +560,7 @@ void WarnOnImplicitlySetGlobalVar(const std::unique_ptr<Expression>& setLhs, con
 	if (var && setLhsParent.IsObject()) {
 		auto ns (dynamic_pointer_cast<Namespace>(setLhsParent.Get<Object::Ptr>()));
 
-		if (ns && ns == ScriptGlobal::GetGlobals()) {
+		if (ns && ns == ScriptGlobal::GetGlobals() && debug.Path.GetLength()) {
 			const char *opStr = nullptr;
 
 			switch (setOp) {
