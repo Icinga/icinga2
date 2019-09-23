@@ -98,11 +98,22 @@ void HttpHandler::ProcessRequest(
 	}
 
 	bool processed = false;
-	for (const HttpHandler::Ptr& handler : handlers) {
-		if (handler->HandleRequest(stream, user, request, url, response, params, yc, server)) {
-			processed = true;
-			break;
+
+	/*
+	 * HandleRequest may throw a permission exception.
+	 * DO NOT return a specific permission error. This
+	 * allows attackers to guess from words which objects
+	 * do exist.
+	 */
+	try {
+		for (const HttpHandler::Ptr& handler : handlers) {
+			if (handler->HandleRequest(stream, user, request, url, response, params, yc, server)) {
+				processed = true;
+				break;
+			}
 		}
+	} catch (const std::exception&) {
+		processed = false;
 	}
 
 	if (!processed) {
