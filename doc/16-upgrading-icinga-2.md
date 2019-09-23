@@ -29,14 +29,22 @@ The rewrite of our core network stack for cluster and REST API
 requires newer Boost versions, specifically >= 1.66. For technical
 details, please continue reading in [this issue](https://github.com/Icinga/icinga2/issues/7041).
 
-The package dependencies have been updated for RPM/DEB already.
-On platforms where EPEL or Backports cannot satisfy this dependency,
-we provide Boost as package on our [package repository](https://packages.icinga.com):
+Distribution         | Repository providing Boost Dependencies
+---------------------|-------------------------------------
+RHEL/CentOS 7        | [EPEL repository](02-installation.md#package-repositories-rhel-epel)
+RHEL/CentOS 6 x64    | [packages.icinga.com](https://packages.icinga.com)
+Fedora               | Fedora Upstream
+Debian 10 Buster     | Debian Upstream
+Debian 9 Stretch     | [Backports repository](02-installation.md#package-repositories-debian-backports) **New since 2.11**
+Debian 8 Jessie      | [packages.icinga.com](https://packages.icinga.com)
+Ubuntu 18 Bionic     | [packages.icinga.com](https://packages.icinga.com)
+Ubuntu 16 Xenial     | [packages.icinga.com](https://packages.icinga.com)
+SLES 15              | SUSE Upstream
+SLES 12              | [packages.icinga.com](https://packages.icinga.com) (replaces the SDK repository requirement)
 
-* SLES 12 (this replaces the SDK requirement)
-* CentOS 6 x64
-* Debian Jessie
-* Ubuntu Xenial/Bionic
+On platforms where EPEL or Backports cannot satisfy this dependency,
+we provide Boost as package on our [package repository](https://packages.icinga.com)
+for your convenience.
 
 After upgrade, you may remove the old Boost packages (1.53 or anything above)
 if you don't need them anymore.
