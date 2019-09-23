@@ -53,7 +53,7 @@ void Checkable::OnAllConfigLoaded()
 			}
 		} else {
 			BOOST_THROW_EXCEPTION(ValidationError(this, { "command_endpoint" },
-				"Command endpoint must not be set."));
+				"Checkable with command endpoint requires a zone. Please check the troubleshooting documentation."));
 		}
 	}
 }
