@@ -1,2 +1,11 @@
-This directory contains configuration files for cluster zones. If you're not
-running a cluster you can safely ignore this directory.
+This directory contains zone directories used for
+distributed monitoring with the cluster config sync.
+
+Use this for the following scenarios:
+
+- Master with Agents
+- HA Masters with Agents
+- Masters, Satellites and Agents
+
+Please check the documentation for more details:
+https://icinga.com/docs/icinga2/latest/doc/06-distributed-monitoring/
