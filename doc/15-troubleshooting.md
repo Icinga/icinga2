@@ -1393,6 +1393,56 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://local
 ```
 
 
+#### Agent Hosts with Command Endpoint require a Zone <a id="troubleshooting-cluster-command-endpoint-errors-agent-hosts-command-endpoint-zone"></a>
+
+2.11 fixes bugs where agent host checks would never be scheduled on
+the master. One requirement is that the checkable host/service
+is put into a zone.
+
+By default, the Director puts the agent host in `zones.d/master`
+and you're good to go. If you manually manage the configuration,
+the config compiler now throws an error with `command_endpoint`
+being set but no `zone` defined.
+
+In case you previously managed the configuration outside of `zones.d`,
+follow along with the following instructions.
+
+The most convenient way with e.g. managing the objects in `conf.d`
+is to move them into the `master` zone.
+
+First, verify the name of your endpoint's zone. The CLI wizards
+use `master` by default.
+
+```
+vim /etc/icinga2/zones.conf
+
+object Zone "master" {
+  ...
+}
+```
+
+Then create a new directory in `zones.d` called `master`, if not existing.
+
+```
+mkdir -p /etc/icinga2/zones.d/master
+```
+
+Now move the directory tree from `conf.d` into the `master` zone.
+
+```
+mv conf.d/* /etc/icinga2/zones.d/master/
+```
+
+Validate the configuration and reload Icinga.
+
+```
+icinga2 daemon -C
+systemctl restart icinga2
+```
+
+Another method is to specify the `zone` attribute manually, but since
+this may lead into other unwanted "not checked" scenarios, we don't
+recommend this for your production environment.
 
 ### Cluster Troubleshooting Config Sync <a id="troubleshooting-cluster-config-sync"></a>
 

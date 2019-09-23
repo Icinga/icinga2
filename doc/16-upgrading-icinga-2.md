@@ -152,6 +152,22 @@ please let us know with an issue on GitHub.
 
 ### Cluster <a id="upgrading-to-2-11-cluster"></a>
 
+#### Agent Hosts with Command Endpoint require a Zone <a id="upgrading-to-2-11-cluster-agent-hosts-command-endpoint-zone"></a>
+
+2.11 fixes bugs where agent host checks would never be scheduled on
+the master. One definite requirement is that the checkable host/service
+is put into a zone.
+
+By default, the Director puts the agent host in `zones.d/master`
+and you're good to go. If you manually manage the configuration,
+the config compiler now throws an error with `command_endpoint`
+being set but no `zone` defined.
+
+The most convenient way with e.g. managing the objects in `conf.d`
+is to move them into the `master` zone. Please continue in the
+[troubleshooting docs](#troubleshooting-cluster-command-endpoint-errors-agent-hosts-command-endpoint-zone)
+for further instructions.
+
 #### Config Sync <a id="upgrading-to-2-11-cluster-config-sync"></a>
 
 2.11 overhauls the cluster config sync in many ways. This includes the
