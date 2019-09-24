@@ -168,6 +168,19 @@ bool Checkable::GetHandled() const
 	return GetProblem() && (IsInDowntime() || IsAcknowledged());
 }
 
+Timestamp Checkable::GetNextUpdate() const
+{
+	auto cr (GetLastCheckResult());
+
+	if (cr) {
+		return GetNextCheck()
+			+ (GetProblem() && GetStateType() == StateTypeSoft ? GetRetryInterval() : GetCheckInterval())
+			+ 2 * (cr->GetExecutionEnd() - cr->GetScheduleStart());
+	} else {
+		return GetNextCheck() + GetCheckInterval();
+	}
+}
+
 void Checkable::NotifyFixedDowntimeStart(const Downtime::Ptr& downtime)
 {
 	if (!downtime->GetFixed())

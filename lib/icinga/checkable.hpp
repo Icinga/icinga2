@@ -91,6 +91,7 @@ public:
 	int GetSeverity() const override;
 	bool GetProblem() const override;
 	bool GetHandled() const override;
+	Timestamp GetNextUpdate() const override;
 
 	/* Checks */
 	intrusive_ptr<CheckCommand> GetCheckCommand() const;
