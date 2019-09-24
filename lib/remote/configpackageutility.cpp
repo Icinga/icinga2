@@ -171,7 +171,7 @@ void ConfigPackageUtility::ActivateStage(const String& packageName, const String
 	WritePackageConfig(packageName);
 }
 
-void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName, bool reload)
+void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName, bool activate, bool reload)
 {
 	String logFile = GetPackageDir() + "/" + packageName + "/" + stageName + "/startup.log";
 	std::ofstream fpLog(logFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
@@ -185,14 +185,16 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 
 	/* validation went fine, activate stage and reload */
 	if (pr.ExitStatus == 0) {
-		{
-			boost::mutex::scoped_lock lock(GetStaticPackageMutex());
+		if (activate) {
+			{
+				boost::mutex::scoped_lock lock(GetStaticPackageMutex());
 
-			ActivateStage(packageName, stageName);
+				ActivateStage(packageName, stageName);
+			}
+
+			if (reload)
+				Application::RequestRestart();
 		}
-
-		if (reload)
-			Application::RequestRestart();
 	} else {
 		Log(LogCritical, "ConfigPackageUtility")
 			<< "Config validation failed for package '"
@@ -200,7 +202,7 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 	}
 }
 
-void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, const String& stageName, bool reload)
+void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, const String& stageName, bool activate, bool reload)
 {
 	VERIFY(Application::GetArgC() >= 1);
 
@@ -226,7 +228,7 @@ void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, cons
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(Application::GetReloadTimeout());
-	process->Run(std::bind(&TryActivateStageCallback, _1, packageName, stageName, reload));
+	process->Run(std::bind(&TryActivateStageCallback, _1, packageName, stageName, activate, reload));
 }
 
 void ConfigPackageUtility::DeleteStage(const String& packageName, const String& stageName)

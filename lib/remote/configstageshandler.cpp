@@ -112,6 +112,11 @@ void ConfigStagesHandler::HandlePost(
 	if (params->Contains("reload"))
 		reload = HttpUtility::GetLastParameter(params, "reload");
 
+	bool activate = true;
+
+	if (params->Contains("activate"))
+		activate = HttpUtility::GetLastParameter(params, "activate");
+
 	Dictionary::Ptr files = params->Get("files");
 
 	String stageName;
@@ -120,12 +125,15 @@ void ConfigStagesHandler::HandlePost(
 		if (!files)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'files' must be specified."));
 
+		if (reload && !activate)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'reload' must be false when 'activate' is false."));
+
 		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
 
 		stageName = ConfigPackageUtility::CreateStage(packageName, files);
 
 		/* validate the config. on success, activate stage and reload */
-		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, reload);
+		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, activate, reload);
 	} catch (const std::exception& ex) {
 		return HttpUtility::SendJsonError(response, params, 500,
 			"Stage creation failed.",
