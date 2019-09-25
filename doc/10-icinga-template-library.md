@@ -1725,6 +1725,19 @@ Name             | Description
 users\_win\_warn | **Optional**. The warning threshold.
 users\_win\_crit | **Optional**. The critical threshold.
 
+### file-age-windows <a id="windows-plugins-file-age-windows"></a>
+
+Check command object for `check_file_age.cmd` command file and `check_file_age.cmd.ps1` plugin.
+
+Custom variables:
+
+Name             | Description
+:----------------|:------------
+file             | **Required**. File name and location
+warning          | **Required**. The warning threshold of file age in seconds.
+critical         | **Required**. The critical threshold of file age in seconds.
+
+All variables are required and all variables are positional. The variable order is: file warning critical.
 
 ## Plugin Check Commands for NSClient++ <a id="nscp-plugin-check-commands"></a>
 
