@@ -406,6 +406,7 @@ Runtime Attributes:
   severity                  | Number                | [Severity](19-technical-concepts.md#technical-concepts-checks-severity) calculated value.
   problem                   | Boolean               | Whether the host is considered in a problem state type (NOT-UP).
   handled                   | Boolean               | Whether the host problem is handled (downtime or acknowledgement).
+  next\_update              | Timestamp             | When the next check update is to be expected.
 
 
 
@@ -770,6 +771,7 @@ Runtime Attributes:
   severity                  | Number                | [Severity](19-technical-concepts.md#technical-concepts-checks-severity) calculated value.
   problem                   | Boolean               | Whether the service is considered in a problem state type (NOT-OK).
   handled                   | Boolean               | Whether the service problem is handled (downtime or acknowledgement).
+  next\_update              | Timestamp             | When the next check update is to be expected.
 
 
 ### ServiceGroup <a id="objecttype-servicegroup"></a>
