@@ -132,6 +132,9 @@ abstract class Checkable : CustomVarObject
 	[no_storage] bool handled {
 		get;
 	};
+	[no_storage] Timestamp next_update {
+		get;
+	};
 
 	[state] bool force_next_check;
 	[state] int acknowledgement (AcknowledgementRaw) {
