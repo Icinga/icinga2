@@ -1232,6 +1232,7 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 	attrs->Set("last_update", Utility::GetTime());
 	attrs->Set("last_state_change", checkable->GetLastStateChange());
 	attrs->Set("next_check", checkable->GetNextCheck());
+	attrs->Set("next_update", checkable->GetNextUpdate());
 
 	return attrs;
 }
