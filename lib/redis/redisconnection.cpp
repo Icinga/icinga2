@@ -40,7 +40,7 @@ using namespace icinga;
 namespace asio = boost::asio;
 
 RedisConnection::RedisConnection(const String host, const int port, const String path, const String password, const int db) :
-	RedisConnection(IoEngine::Get().GetIoService(), host, port, path, password, db)
+	RedisConnection(IoEngine::Get().GetIoContext(), host, port, path, password, db)
 {
 }
 
