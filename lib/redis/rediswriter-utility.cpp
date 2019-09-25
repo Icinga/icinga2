@@ -186,7 +186,7 @@ Dictionary::Ptr RedisWriter::SerializeVars(const CustomVarObject::Ptr& object)
 		res->Set(
 			SHA1(PackObject((Array::Ptr)new Array({env, kv.first, kv.second}))),
 			(Dictionary::Ptr)new Dictionary({
-				{"env_id", envChecksum},
+				{"environment_id", envChecksum},
 				{"name_checksum", SHA1(kv.first)},
 				{"name", kv.first},
 				{"value", JsonEncode(kv.second)},

@@ -374,7 +374,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 				String id = CalculateCheckSumArray(new Array({envId, kv.first, objectKey}));
 				typeCvs.emplace_back(id);
-				typeCvs.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"env_id", envId}, {"customvar_id", kv.first}})));
+				typeCvs.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", envId}, {"customvar_id", kv.first}})));
 
 				if (configUpdates) {
 					configUpdates->emplace_back(typeName + ":customvar:" + id);
@@ -393,7 +393,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 		if (!actionUrl.IsEmpty()) {
 			auto& actionUrls (hMSets[m_PrefixConfigObject + "action_url"]);
 			actionUrls.emplace_back(CalculateCheckSumArray(new Array({envId, actionUrl})));
-			actionUrls.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"action_url", actionUrl}})));
+			actionUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"action_url", actionUrl}})));
 
 			if (configUpdates) {
 				configUpdates->emplace_back("action_url:" + actionUrls.at(actionUrls.size() - 2u));
@@ -402,7 +402,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 		if (!notesUrl.IsEmpty()) {
 			auto& notesUrls (hMSets[m_PrefixConfigObject + "notes_url"]);
 			notesUrls.emplace_back(CalculateCheckSumArray(new Array({envId, notesUrl})));
-			notesUrls.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"notes_url", notesUrl}})));
+			notesUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"notes_url", notesUrl}})));
 
 			if (configUpdates) {
 				configUpdates->emplace_back("notes_url:" + notesUrls.at(notesUrls.size() - 2u));
@@ -411,7 +411,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 		if (!iconImage.IsEmpty()) {
 			auto& iconImages (hMSets[m_PrefixConfigObject + "icon_image"]);
 			iconImages.emplace_back(CalculateCheckSumArray(new Array({envId, iconImage})));
-			iconImages.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"icon_image", iconImage}})));
+			iconImages.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"icon_image", iconImage}})));
 
 			if (configUpdates) {
 				configUpdates->emplace_back("icon_image:" + iconImages.at(iconImages.size() - 2u));
@@ -445,7 +445,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 				String groupId = GetObjectIdentifier((*getGroup)(group));
 				String id = CalculateCheckSumArray(new Array({envId, groupId, objectKey}));
 				members.emplace_back(id);
-				members.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"env_id", envId}, {"group_id", groupId}})));
+				members.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", envId}, {"group_id", groupId}})));
 
 				if (configUpdates) {
 					configUpdates->emplace_back(typeName + ":groupmember:" + id);
@@ -479,7 +479,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 				String id = CalculateCheckSumArray(new Array({envId, rangeId, objectKey}));
 				typeRanges.emplace_back(id);
-				typeRanges.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"timeperiod_id", objectKey}, {"range_key", kv.first}, {"range_value", kv.second}})));
+				typeRanges.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"range_key", kv.first}, {"range_value", kv.second}})));
 
 				if (configUpdates) {
 					configUpdates->emplace_back(typeName + ":range:" + id);
@@ -511,7 +511,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 			String id = CalculateCheckSumArray(new Array({envId, includeId, objectKey}));
 			includs.emplace_back(id);
-			includs.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"timeperiod_id", objectKey}, {"include_id", includeId}})));
+			includs.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"include_id", includeId}})));
 
 			if (configUpdates) {
 				configUpdates->emplace_back(typeName + ":override:include:" + id);
@@ -543,7 +543,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 
 			String id = CalculateCheckSumArray(new Array({envId, excludeId, objectKey}));
 			excluds.emplace_back(id);
-			excluds.emplace_back(JsonEncode(new Dictionary({{"env_id", envId}, {"timeperiod_id", objectKey}, {"exclude_id", excludeId}})));
+			excluds.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"exclude_id", excludeId}})));
 
 			if (configUpdates) {
 				configUpdates->emplace_back(typeName + ":override:exclude:" + id);
@@ -571,7 +571,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 			String parentId = GetObjectIdentifier(parent);
 			String id = CalculateCheckSumArray(new Array({envId, parentId, objectKey}));
 			parnts.emplace_back(id);
-			parnts.emplace_back(JsonEncode(new Dictionary({{"zone_id", objectKey}, {"env_id", envId}, {"parent_id", parentId}})));
+			parnts.emplace_back(JsonEncode(new Dictionary({{"zone_id", objectKey}, {"environment_id", envId}, {"parent_id", parentId}})));
 
 			if (configUpdates) {
 				configUpdates->emplace_back(typeName + ":parent:" + id);
@@ -608,7 +608,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 				String groupId = GetObjectIdentifier((*getGroup)(group));
 				String id = CalculateCheckSumArray(new Array({envId, groupId, objectKey}));
 				members.emplace_back(id);
-				members.emplace_back(JsonEncode(new Dictionary({{"user_id", objectKey}, {"env_id", envId}, {"group_id", groupId}})));
+				members.emplace_back(JsonEncode(new Dictionary({{"user_id", objectKey}, {"environment_id", envId}, {"group_id", groupId}})));
 
 				if (configUpdates) {
 					configUpdates->emplace_back(typeName + ":groupmember:" + id);
@@ -642,7 +642,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 			String userId = GetObjectIdentifier(user);
 			String id = CalculateCheckSumArray(new Array({envId, userId, objectKey}));
 			usrs.emplace_back(id);
-			usrs.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"env_id", envId}, {"user_id", userId}})));
+			usrs.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"user_id", userId}})));
 
 			if (configUpdates) {
 				configUpdates->emplace_back(typeName + ":user:" + id);
@@ -663,7 +663,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 			String usergroupId = GetObjectIdentifier(usergroup);
 			String id = CalculateCheckSumArray(new Array({envId, usergroupId, objectKey}));
 			groups.emplace_back(id);
-			groups.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"env_id", envId}, {"usergroup_id", usergroupId}})));
+			groups.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"usergroup_id", usergroupId}})));
 
 			if (configUpdates) {
 				configUpdates->emplace_back(typeName + ":usergroup:" + id);
@@ -701,7 +701,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 				values->Set("value", JsonEncode(values->Get("value")));
 				values->Set("command_id", objectKey);
 				values->Set("argument_key", kv.first);
-				values->Set("env_id", envId);
+				values->Set("environment_id", envId);
 
 				String id = HashValue(objectKey + kv.first + envId);
 
@@ -740,7 +740,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 				values->Set("value", JsonEncode(values->Get("value")));
 				values->Set("command_id", objectKey);
 				values->Set("envvar_key", kv.first);
-				values->Set("env_id", envId);
+				values->Set("environment_id", envId);
 
 				String id = HashValue(objectKey + kv.first + envId);
 
@@ -819,7 +819,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checksums)
 {
 	attributes->Set("name_checksum", CalculateCheckSumString(object->GetName()));
-	attributes->Set("env_id", CalculateCheckSumString(GetEnvironment()));
+	attributes->Set("environment_id", CalculateCheckSumString(GetEnvironment()));
 	attributes->Set("name", object->GetName());
 
 	Zone::Ptr ObjectsZone = static_pointer_cast<Zone>(object->GetZone());
@@ -880,7 +880,7 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		TimePeriod::Ptr timePeriod = checkable->GetCheckPeriod();
 		if (timePeriod) {
-			attributes->Set("check_period_id", GetObjectIdentifier(timePeriod));
+			attributes->Set("check_timeperiod_id", GetObjectIdentifier(timePeriod));
 			attributes->Set("check_period", timePeriod->GetName());
 		}
 
@@ -931,7 +931,7 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		attributes->Set("types", user->GetTypes());
 
 		if (user->GetPeriod())
-			attributes->Set("period_id", GetObjectIdentifier(user->GetPeriod()));
+			attributes->Set("timeperiod_id", GetObjectIdentifier(user->GetPeriod()));
 
 		return true;
 	}
@@ -960,7 +960,7 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		TimePeriod::Ptr timeperiod = notification->GetPeriod();
 		if (timeperiod)
-			attributes->Set("period_id", GetObjectIdentifier(timeperiod));
+			attributes->Set("timeperiod_id", GetObjectIdentifier(timeperiod));
 
 		if (notification->GetTimes()) {
 			attributes->Set("times_begin", notification->GetTimes()->Get("begin"));
@@ -1152,7 +1152,7 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 	tie(host, service) = GetHostService(checkable);
 
 	attrs->Set("id", GetObjectIdentifier(checkable));;
-	attrs->Set("env_id", CalculateCheckSumString(GetEnvironment()));
+	attrs->Set("environment_id", CalculateCheckSumString(GetEnvironment()));
 	attrs->Set("state_type", checkable->GetStateType());
 
 	// TODO: last_hard/soft_state should be "previous".
