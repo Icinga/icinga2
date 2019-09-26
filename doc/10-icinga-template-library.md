@@ -1739,6 +1739,8 @@ critical         | **Required**. The critical threshold of file age in seconds.
 
 All variables are required and all variables are positional. The variable order is: file warning critical.
 
+The check_file_age.cmd and the check_file_age.cmd.ps1 files are available for [download](https://github.com/KAMI911/icinga2-basic/tree/master/plugins).
+
 ## Plugin Check Commands for NSClient++ <a id="nscp-plugin-check-commands"></a>
 
 There are two methods available for querying NSClient++:
