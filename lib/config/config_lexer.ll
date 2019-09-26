@@ -115,6 +115,10 @@ do {							\
 	BEGIN(HEREDOC);
 				}
 
+<HEREDOC><<EOF>>			{
+	BOOST_THROW_EXCEPTION(ScriptError("End-of-file while in string literal", DebugInfoRange(yyextra->m_LocationBegin, *yylloc)));
+				}
+
 <HEREDOC>\}\}\}			{
 	BEGIN(INITIAL);
 
