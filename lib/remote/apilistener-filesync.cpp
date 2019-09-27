@@ -33,6 +33,10 @@ REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
 void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file)
 {
+	// Avoid loading the authoritative marker for syncs at all cost.
+	if (Utility::BaseName(file) == ".authoritative")
+		return;
+
 	CONTEXT("Creating config update for file '" + file + "'");
 
 	Log(LogNotice, "ApiListener")
