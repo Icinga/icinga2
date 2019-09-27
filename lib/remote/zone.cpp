@@ -44,6 +44,16 @@ void Zone::OnAllConfigLoaded()
 		if (levels > 32)
 			BOOST_THROW_EXCEPTION(ScriptError("Infinite recursion detected while resolving zone graph. Check your zone hierarchy.", GetDebugInfo()));
 	}
+
+	{
+		auto zone (GetZone());
+
+		if (zone) {
+			Log(LogWarning, "config")
+				<< "Zone '" << GetName() << "' resides in zone '" << zone->GetName() << "' " << GetDebugInfo() << "."
+				" Please move it outside any zone.";
+		}
+	}
 }
 
 Zone::Ptr Zone::GetParent() const
