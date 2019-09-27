@@ -2576,8 +2576,10 @@ proxysql\_ignore\_hostgroup  | **Optional.** ProxySQL hostgroup(s) to ignore (on
 
 #### memcached <a id="plugin-contrib-command-memcached"></a>
 
-The [check_memcached](https://packages.debian.org/stretch/nagios-plugins-contrib) plugin
-is provided by the `nagios-plugin-contrib` package on Debian/Ubuntu.
+The [check_memcached](https://exchange.icinga.com/exchange/check_memcached) plugin
+checks the health of a running [memcached](https://memcached.org/) service.
+
+On Debian/Ubuntu, it is provided with the `nagios-plugin-contrib` package.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
