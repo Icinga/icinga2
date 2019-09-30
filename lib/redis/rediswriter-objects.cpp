@@ -881,7 +881,7 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		TimePeriod::Ptr timePeriod = checkable->GetCheckPeriod();
 		if (timePeriod) {
 			attributes->Set("check_timeperiod_id", GetObjectIdentifier(timePeriod));
-			attributes->Set("check_period", timePeriod->GetName());
+			attributes->Set("check_timeperiod", timePeriod->GetName());
 		}
 
 		EventCommand::Ptr eventCommand = checkable->GetEventCommand();
