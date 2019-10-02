@@ -87,6 +87,9 @@ private:
 		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
 	);
 
+	void SendStartedDowntime(const Downtime::Ptr& downtime);
+	void SendRemovedDowntime(const Downtime::Ptr& downtime);
+
 	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
 	Dictionary::Ptr SerializeState(const Checkable::Ptr& checkable);
 
@@ -115,7 +118,8 @@ private:
 	static void StateChangeHandler(const ConfigObject::Ptr& object);
 	static void StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
-	static void DowntimeChangedHandler(const Downtime::Ptr& downtime);
+	static void DowntimeStartedHandler(const Downtime::Ptr& downtime);
+	static void DowntimeRemovedHandler(const Downtime::Ptr& downtime);
 
 	static void NotificationSentToAllUsersHandler(
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
