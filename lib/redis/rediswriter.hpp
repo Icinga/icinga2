@@ -81,6 +81,12 @@ private:
 			std::map<String, std::vector<String>>& publishes, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStatusUpdate(const ConfigObject::Ptr& object);
+
+	void SendSentNotification(
+		const Notification::Ptr& notification, const Checkable::Ptr& checkable, size_t users,
+		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
+	);
+
 	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
 	Dictionary::Ptr SerializeState(const Checkable::Ptr& checkable);
 
@@ -109,6 +115,11 @@ private:
 	static void StateChangeHandler(const ConfigObject::Ptr& object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 	static void DowntimeChangedHandler(const Downtime::Ptr& downtime);
+
+	static void NotificationSentToAllUsersHandler(
+		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
+	);
 
 	void AssertOnWorkQueue();
 
