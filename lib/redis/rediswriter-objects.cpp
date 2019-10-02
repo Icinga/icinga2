@@ -104,6 +104,8 @@ void RedisWriter::ConfigStaticInitialize()
 
 	Comment::OnCommentAdded.connect(&RedisWriter::CommentAddedHandler);
 	Comment::OnCommentRemoved.connect(&RedisWriter::CommentRemovedHandler);
+
+	Checkable::OnFlappingChanged.connect(&RedisWriter::FlappingChangedHandler);
 }
 
 static std::pair<String, String> SplitOutput(String output)
@@ -1337,6 +1339,25 @@ void RedisWriter::SendRemovedComment(const Comment::Ptr& comment)
 	});
 }
 
+void RedisWriter::SendFlappingChanged(const Checkable::Ptr& checkable, const Value& value)
+{
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
+	auto service (dynamic_pointer_cast<Service>(checkable));
+
+	m_Rcon->FireAndForgetQuery({
+		"XADD", service ? "icinga:history:stream:service:flapping" : "icinga:history:stream:host:flapping", "*",
+		"id", Utility::NewUniqueID(),
+		"environment_id", SHA1(GetEnvironment()),
+		service ? "service_id" : "host_id", GetObjectIdentifier(checkable),
+		value.ToBool() ? "start_time" : "end_time", Convert::ToString(Utility::GetTime()),
+		"percent_state_change", Convert::ToString(checkable->GetFlappingCurrent()),
+		"flapping_threshold_low", Convert::ToString(checkable->GetFlappingThresholdLow()),
+		"flapping_threshold_high", Convert::ToString(checkable->GetFlappingThresholdHigh())
+	});
+}
+
 Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 {
 	Dictionary::Ptr attrs = new Dictionary();
@@ -1559,5 +1580,12 @@ void RedisWriter::CommentRemovedHandler(const Comment::Ptr& comment)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
 		rw->m_WorkQueue.Enqueue([rw, comment]() { rw->SendRemovedComment(comment); });
+	}
+}
+
+void RedisWriter::FlappingChangedHandler(const Checkable::Ptr& checkable, const Value& value)
+{
+	for (auto& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+		rw->m_WorkQueue.Enqueue([rw, checkable, value]() { rw->SendFlappingChanged(checkable, value); });
 	}
 }
