@@ -450,6 +450,10 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 						<< "Stage: Updating received configuration file '" << path << "' for zone '" << zoneName << "'.";
 				}
 
+				// Parent nodes < 2.11 always send this, avoid this bug and deny its receival prior to writing it on disk.
+				if (Utility::BaseName(path) == ".authoritative")
+					continue;
+
 				// Sync string content only.
 				String content = kv.second;
 
