@@ -70,8 +70,8 @@ INITIALIZE_ONCE(&RedisWriter::ConfigStaticInitialize);
 void RedisWriter::ConfigStaticInitialize()
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
-	Checkable::OnStateChange.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr&, StateType, const MessageOrigin::Ptr&) {
-		RedisWriter::StateChangeHandler(checkable);
+	Checkable::OnStateChange.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
+		RedisWriter::StateChangeHandler(checkable, cr, type);
 	});
 
 	/* triggered when acknowledged host/service goes back to ok and when the acknowledgement gets deleted */
@@ -101,6 +101,19 @@ void RedisWriter::ConfigStaticInitialize()
 	) {
 		RedisWriter::NotificationSentToAllUsersHandler(notification, checkable, users, type, cr, author, text);
 	});
+}
+
+static std::pair<String, String> SplitOutput(String output)
+{
+	String longOutput;
+	auto pos (output.Find("\n"));
+
+	if (pos != String::NPos) {
+		longOutput = output.SubStr(pos + 1u);
+		output.erase(output.Begin() + pos, output.End());
+	}
+
+	return {std::move(output), std::move(longOutput)};
 }
 
 void RedisWriter::UpdateAllConfigObjects()
@@ -1119,7 +1132,7 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 						   });
 }
 
-void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
+void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1149,6 +1162,26 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object)
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(streamadd));
+
+	auto output (SplitOutput(cr->GetOutput()));
+
+	m_Rcon->FireAndForgetQuery({
+		"XADD", service ? "icinga:history:stream:service:state" : "icinga:history:stream:host:state", "*",
+		"id", Utility::NewUniqueID(),
+		"environment_id", SHA1(GetEnvironment()),
+		service ? "service_id" : "host_id", GetObjectIdentifier(checkable),
+		"change_time", Convert::ToString(cr->GetExecutionEnd()),
+		"state_type", Convert::ToString(type),
+		"soft_state", Convert::ToString(cr->GetState()),
+		"hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
+		"attempt", Convert::ToString(checkable->GetCheckAttempt()),
+		// TODO: last_hard/soft_state should be "previous".
+		"last_soft_state", Convert::ToString(cr->GetState()),
+		"last_hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
+		"output", Utility::ValidateUTF8(std::move(output.first)),
+		"long_output", Utility::ValidateUTF8(std::move(output.second)),
+		"max_check_attempts", Convert::ToString(checkable->GetMaxCheckAttempts())
+	});
 }
 
 void RedisWriter::SendSentNotification(
@@ -1160,16 +1193,7 @@ void RedisWriter::SendSentNotification(
 		return;
 
 	auto service (dynamic_pointer_cast<Service>(checkable));
-	auto output (cr->GetOutput());
-	auto pos (output.Find("\n"));
-	String shortOutput, longOutput;
-
-	if (pos == String::NPos) {
-		shortOutput = std::move(output);
-	} else {
-		shortOutput = output.SubStr(0, pos);
-		longOutput = output.SubStr(pos + 1u);
-	}
+	auto output (SplitOutput(cr->GetOutput()));
 
 	m_Rcon->FireAndForgetQuery({
 		"XADD", service ? "icinga:history:stream:service:notification" : "icinga:history:stream:host:notification", "*",
@@ -1180,8 +1204,8 @@ void RedisWriter::SendSentNotification(
 		"type", Convert::ToString(type),
 		"send_time", Convert::ToString(Utility::GetTime()),
 		"state", Convert::ToString(cr->GetState()),
-		"output", Utility::ValidateUTF8(std::move(shortOutput)),
-		"long_output", Utility::ValidateUTF8(std::move(longOutput)),
+		"output", Utility::ValidateUTF8(std::move(output.first)),
+		"long_output", Utility::ValidateUTF8(std::move(output.second)),
 		"users_notified", Convert::ToString(users)
 	});
 }
@@ -1324,12 +1348,19 @@ RedisWriter::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
 	//m_Rcon->FireAndForgetQuery({"HSET", keyPrefix + typeName, GetObjectIdentifier(object), JsonEncode(attrs)});
 }
 
-void RedisWriter::StateChangeHandler(const ConfigObject::Ptr &object)
+void RedisWriter::StateChangeHandler(const ConfigObject::Ptr& object)
 {
-	Type::Ptr type = object->GetReflectionType();
+	auto checkable (dynamic_pointer_cast<Checkable>(object));
 
+	if (checkable) {
+		RedisWriter::StateChangeHandler(object, checkable->GetLastCheckResult(), checkable->GetStateType());
+	}
+}
+
+void RedisWriter::StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
+{
 	for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-		rw->m_WorkQueue.Enqueue([rw, object]() { rw->SendStatusUpdate(object); });
+		rw->m_WorkQueue.Enqueue([rw, object, cr, type]() { rw->SendStatusUpdate(object, cr, type); });
 	}
 }
 

@@ -80,7 +80,7 @@ private:
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
 			std::map<String, std::vector<String>>& publishes, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
-	void SendStatusUpdate(const ConfigObject::Ptr& object);
+	void SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 
 	void SendSentNotification(
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, size_t users,
@@ -113,6 +113,7 @@ private:
 	static bool PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checkSums);
 
 	static void StateChangeHandler(const ConfigObject::Ptr& object);
+	static void StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 	static void DowntimeChangedHandler(const Downtime::Ptr& downtime);
 
