@@ -89,6 +89,8 @@ private:
 
 	void SendStartedDowntime(const Downtime::Ptr& downtime);
 	void SendRemovedDowntime(const Downtime::Ptr& downtime);
+	void SendAddedComment(const Comment::Ptr& comment);
+	void SendRemovedComment(const Comment::Ptr& comment);
 
 	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
 	Dictionary::Ptr SerializeState(const Checkable::Ptr& checkable);
@@ -125,6 +127,9 @@ private:
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
 		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
 	);
+
+	static void CommentAddedHandler(const Comment::Ptr& comment);
+	static void CommentRemovedHandler(const Comment::Ptr& comment);
 
 	void AssertOnWorkQueue();
 

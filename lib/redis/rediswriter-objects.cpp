@@ -101,6 +101,9 @@ void RedisWriter::ConfigStaticInitialize()
 	) {
 		RedisWriter::NotificationSentToAllUsersHandler(notification, checkable, users, type, cr, author, text);
 	});
+
+	Comment::OnCommentAdded.connect(&RedisWriter::CommentAddedHandler);
+	Comment::OnCommentRemoved.connect(&RedisWriter::CommentRemovedHandler);
 }
 
 static std::pair<String, String> SplitOutput(String output)
@@ -1297,6 +1300,43 @@ void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
+void RedisWriter::SendAddedComment(const Comment::Ptr& comment)
+{
+	auto service (dynamic_pointer_cast<Service>(comment->GetCheckable()));
+
+	m_Rcon->FireAndForgetQuery({
+		"XADD", service ? "icinga:history:stream:service:comment" : "icinga:history:stream:host:comment", "*",
+		"comment_id", GetObjectIdentifier(comment),
+		"environment_id", SHA1(GetEnvironment()),
+		service ? "service_id" : "host_id", GetObjectIdentifier(comment->GetCheckable()),
+		"entry_time", Convert::ToString(comment->GetEntryTime()),
+		"author", Utility::ValidateUTF8(comment->GetAuthor()),
+		"comment", Utility::ValidateUTF8(comment->GetText()),
+		"entry_type", Convert::ToString(comment->GetEntryType()),
+		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
+		"expire_time", Convert::ToString(comment->GetExpireTime())
+	});
+}
+
+void RedisWriter::SendRemovedComment(const Comment::Ptr& comment)
+{
+	auto service (dynamic_pointer_cast<Service>(comment->GetCheckable()));
+
+	m_Rcon->FireAndForgetQuery({
+		"XADD", service ? "icinga:history:stream:service:comment" : "icinga:history:stream:host:comment", "*",
+		"comment_id", GetObjectIdentifier(comment),
+		"environment_id", SHA1(GetEnvironment()),
+		service ? "service_id" : "host_id", GetObjectIdentifier(comment->GetCheckable()),
+		"entry_time", Convert::ToString(comment->GetEntryTime()),
+		"author", Utility::ValidateUTF8(comment->GetAuthor()),
+		"comment", Utility::ValidateUTF8(comment->GetText()),
+		"entry_type", Convert::ToString(comment->GetEntryType()),
+		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
+		"expire_time", Convert::ToString(comment->GetExpireTime()),
+		"deletion_time", Convert::ToString(Utility::GetTime())
+	});
+}
+
 Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 {
 	Dictionary::Ptr attrs = new Dictionary();
@@ -1505,5 +1545,19 @@ void RedisWriter::NotificationSentToAllUsersHandler(
 				rw->SendSentNotification(notification, checkable, usersAmount, type, cr, authorAndText->first, authorAndText->second);
 			});
 		}
+	}
+}
+
+void RedisWriter::CommentAddedHandler(const Comment::Ptr& comment)
+{
+	for (auto& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+		rw->m_WorkQueue.Enqueue([rw, comment]() { rw->SendAddedComment(comment); });
+	}
+}
+
+void RedisWriter::CommentRemovedHandler(const Comment::Ptr& comment)
+{
+	for (auto& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+		rw->m_WorkQueue.Enqueue([rw, comment]() { rw->SendRemovedComment(comment); });
 	}
 }
