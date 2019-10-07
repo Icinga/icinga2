@@ -22,7 +22,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <iconUrl>https://raw.githubusercontent.com/Icinga/icinga2/master/icinga-app/icinga.ico</iconUrl>
     <dependencies>
-      <dependency id='dotnet4.7' />
+      <dependency id='netfx-4.6.2' />
     </dependencies>
   </metadata>
   <files>
