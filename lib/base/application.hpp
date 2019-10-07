@@ -104,6 +104,9 @@ public:
 	static double GetLastReloadFailed();
 	static void SetLastReloadFailed(double ts);
 
+	static bool GetReloadTimeoutOccurred();
+	static void SetReloadTimeoutOccurred(bool occurred);
+
 	static void DisplayInfoMessage(std::ostream& os, bool skipVersion = false);
 
 protected:
@@ -139,6 +142,7 @@ private:
 	static double m_MainTime;
 	static bool m_ScriptDebuggerEnabled;
 	static double m_LastReloadFailed;
+	static bool m_ReloadTimeoutOccurred;
 
 #ifdef _WIN32
 	static BOOL WINAPI CtrlHandler(DWORD type);

@@ -11,6 +11,7 @@
 #include "base/utility.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/json.hpp"
+#include "base/application.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread/once.hpp>
 #include <thread>
@@ -666,13 +667,28 @@ void Process::IOThreadProc(int tid)
 		timeout *= 1000;
 
 #ifdef _WIN32
-		DWORD rc = WaitForMultipleObjects(count, fhandles, FALSE, timeout == -1 ? INFINITE : static_cast<DWORD>(timeout));
+		DWORD rc;
 #else /* _WIN32 */
-		int rc = poll(pfds, count, timeout);
-
-		if (rc < 0)
-			continue;
+		int rc;
 #endif /* _WIN32 */
+		bool restartLoop = false;
+		do {
+#ifdef _WIN32
+			rc = WaitForMultipleObjects(count, fhandles, FALSE, static_cast<DWORD>(500));
+			break;
+#else /* _WIN32 */
+			rc = poll(pfds, count, 500);
+			if (rc < 0) {
+				restartLoop = true;
+				break;
+			} else if (rc > 0) {
+				break;
+			}
+#endif /* _WIN32 */
+		} while ((Utility::GetTime() - now) * 1000 < timeout && !Application::GetReloadTimeoutOccurred());
+
+		if (restartLoop)
+			continue;
 
 		now = Utility::GetTime();
 
@@ -715,9 +731,9 @@ void Process::IOThreadProc(int tid)
 				}
 
 #ifdef _WIN32
-				if (rc == WAIT_OBJECT_0 + i || is_timeout) {
+				if (rc == WAIT_OBJECT_0 + i || is_timeout || Application::GetReloadTimeoutOccurred()) {
 #else /* _WIN32 */
-				if (pfds[i].revents & (POLLIN | POLLHUP | POLLERR) || is_timeout) {
+				if (pfds[i].revents & (POLLIN | POLLHUP | POLLERR) || is_timeout || Application::GetReloadTimeoutOccurred()) {
 #endif /* _WIN32 */
 					if (!it->second->DoEvents()) {
 #ifdef _WIN32
@@ -1014,7 +1030,26 @@ bool Process::DoEvents()
 	bool could_not_kill = false;
 #endif /* _WIN32 */
 
-	if (m_Timeout != 0) {
+	if (Application::GetReloadTimeoutOccurred()) {
+		Log(LogWarning, "Process")
+			<< "Killing process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
+			<< ") because of an approaching reload timeout";
+
+		m_OutputStream << "<Reload timeout approaches.>";
+#ifdef _WIN32
+		TerminateProcess(m_Process, 1);
+#else /* _WIN32 */
+		int error = ProcessKill(-m_Process, SIGKILL);
+		if (error) {
+			Log(LogWarning, "Process")
+				<< "Couldn't kill the process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
+				<< "): [errno " << error << "] " << strerror(error);
+			could_not_kill = true;
+		}
+#endif /* _WIN32 */
+
+		is_timeout = true;
+	} else if (m_Timeout != 0) {
 		double timeout = m_Result.ExecutionStart + m_Timeout;
 
 		if (timeout < Utility::GetTime()) {

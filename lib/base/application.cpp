@@ -54,6 +54,7 @@ double Application::m_StartTime;
 double Application::m_MainTime;
 bool Application::m_ScriptDebuggerEnabled = false;
 double Application::m_LastReloadFailed;
+bool Application::m_ReloadTimeoutOccurred = false;
 
 /**
  * Constructor for the Application class.
@@ -1180,6 +1181,16 @@ double Application::GetLastReloadFailed()
 void Application::SetLastReloadFailed(double ts)
 {
 	m_LastReloadFailed = ts;
+}
+
+bool Application::GetReloadTimeoutOccurred()
+{
+	return m_ReloadTimeoutOccurred;
+}
+
+void Application::SetReloadTimeoutOccurred(bool occurred)
+{
+	m_ReloadTimeoutOccurred = occurred;
 }
 
 void Application::ValidateName(const Lazy<String>& lvalue, const ValidationUtils& utils)

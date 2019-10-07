@@ -93,7 +93,28 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 		if (wait > waitMax) {
 			Log(LogWarning, "CheckerComponent")
 				<< "Checks running too long for " << wait
-				<< " seconds, hard shutdown before reload timeout: " << reloadTimeout << ".";
+				<< " seconds, prepare for hard shutdown before reload timeout: " << reloadTimeout << ".";
+
+			Application::SetReloadTimeoutOccurred(true);
+			double shutdownWait = 0.0;
+			double shutdownWaitMax = 10.0;
+			while (Checkable::GetPendingChecks() > 0) {
+				Log(LogDebug, "CheckerComponent")
+						<< "Waiting until running checks (" << Checkable::GetPendingChecks()
+						<< ") got killed. Waited for " << shutdownWait << " seconds now.";
+
+				Utility::Sleep(0.1);
+				shutdownWait += 0.1;
+
+				if (shutdownWait > shutdownWaitMax) {
+					Log(LogWarning, "CheckerComponent")
+							<< "There are pending checks that were not killed within "
+							<< shutdownWait << " seconds, shutting down now.";
+
+					break;
+				}
+			}
+
 			break;
 		}
 	}

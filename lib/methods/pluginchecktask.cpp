@@ -55,6 +55,10 @@ void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, co
 	Checkable::CurrentConcurrentChecks.fetch_sub(1);
 	Checkable::DecreasePendingChecks();
 
+	if (Application::GetReloadTimeoutOccurred()) {
+		return;
+	}
+
 	if (pr.ExitStatus > 3) {
 		Process::Arguments parguments = Process::PrepareCommand(commandLine);
 		Log(LogWarning, "PluginCheckTask")
