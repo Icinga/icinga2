@@ -34,7 +34,7 @@ files then:
 
 * `/var/log/icinga2/icinga2.log` (requires `mainlog` enabled)
 * `/var/log/icinga2/debug.log` (requires `debuglog` enabled)
-* `/var/log/icinga2/erorr.log`
+* `/var/log/icinga2/error.log`
 
 By default, log files will be rotated daily.
 
