@@ -1185,7 +1185,9 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckR
 		"last_hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
 		"output", Utility::ValidateUTF8(std::move(output.first)),
 		"long_output", Utility::ValidateUTF8(std::move(output.second)),
-		"max_check_attempts", Convert::ToString(checkable->GetMaxCheckAttempts())
+		"max_check_attempts", Convert::ToString(checkable->GetMaxCheckAttempts()),
+		"event_id", Utility::NewUniqueID(),
+		"event_type", "state"
 	});
 }
 
@@ -1211,7 +1213,9 @@ void RedisWriter::SendSentNotification(
 		"state", Convert::ToString(cr->GetState()),
 		"output", Utility::ValidateUTF8(std::move(output.first)),
 		"long_output", Utility::ValidateUTF8(std::move(output.second)),
-		"users_notified", Convert::ToString(users)
+		"users_notified", Convert::ToString(users),
+		"event_id", Utility::NewUniqueID(),
+		"event_type", "notification"
 	});
 }
 
@@ -1235,7 +1239,9 @@ void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 		"was_started", "1",
 		"was_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
 		"is_in_effect", Convert::ToString((unsigned short)downtime->IsInEffect()),
-		"trigger_time", Convert::ToString(downtime->GetTriggerTime())
+		"trigger_time", Convert::ToString(downtime->GetTriggerTime()),
+		"event_id", Utility::NewUniqueID(),
+		"event_type", "downtime_start"
 	});
 
 	if (triggeredBy) {
@@ -1279,7 +1285,9 @@ void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"was_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
 		"is_in_effect", Convert::ToString((unsigned short)downtime->IsInEffect()),
 		"trigger_time", Convert::ToString(downtime->GetTriggerTime()),
-		"deletion_time", Convert::ToString(Utility::GetTime())
+		"deletion_time", Convert::ToString(Utility::GetTime()),
+		"event_id", Utility::NewUniqueID(),
+		"event_type", "downtime_end"
 	});
 
 	if (triggeredBy) {
@@ -1316,7 +1324,9 @@ void RedisWriter::SendAddedComment(const Comment::Ptr& comment)
 		"comment", Utility::ValidateUTF8(comment->GetText()),
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
-		"expire_time", Convert::ToString(comment->GetExpireTime())
+		"expire_time", Convert::ToString(comment->GetExpireTime()),
+		"event_id", Utility::NewUniqueID(),
+		"event_type", "comment_add"
 	});
 }
 
@@ -1335,7 +1345,9 @@ void RedisWriter::SendRemovedComment(const Comment::Ptr& comment)
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
 		"expire_time", Convert::ToString(comment->GetExpireTime()),
-		"deletion_time", Convert::ToString(Utility::GetTime())
+		"deletion_time", Convert::ToString(Utility::GetTime()),
+		"event_id", Utility::NewUniqueID(),
+		"event_type", "comment_remove"
 	});
 }
 
@@ -1354,7 +1366,9 @@ void RedisWriter::SendFlappingChanged(const Checkable::Ptr& checkable, const Val
 		value.ToBool() ? "start_time" : "end_time", Convert::ToString(Utility::GetTime()),
 		"percent_state_change", Convert::ToString(checkable->GetFlappingCurrent()),
 		"flapping_threshold_low", Convert::ToString(checkable->GetFlappingThresholdLow()),
-		"flapping_threshold_high", Convert::ToString(checkable->GetFlappingThresholdHigh())
+		"flapping_threshold_high", Convert::ToString(checkable->GetFlappingThresholdHigh()),
+		"event_id", Utility::NewUniqueID(),
+		"event_type", value.ToBool() ? "flapping_start" : "flapping_end"
 	});
 }
 
