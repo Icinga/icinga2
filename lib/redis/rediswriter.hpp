@@ -102,6 +102,7 @@ private:
 	/* utilities */
 	static String FormatCheckSumBinary(const String& str);
 	static String FormatCommandLine(const Value& commandLine);
+	static long long TimestampToMilliseconds(double timestamp);
 
 	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
 	static String GetEnvironment();

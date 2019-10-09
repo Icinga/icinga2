@@ -1007,9 +1007,9 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		attributes->Set("author", comment->GetAuthor());
 		attributes->Set("text", comment->GetText());
 		attributes->Set("entry_type", comment->GetEntryType());
-		attributes->Set("entry_time", comment->GetEntryTime());
+		attributes->Set("entry_time", comment->GetEntryTime() * 1000);
 		attributes->Set("is_persistent", comment->GetPersistent());
-		attributes->Set("expire_time", comment->GetExpireTime());
+		attributes->Set("expire_time", comment->GetExpireTime() * 1000);
 
 		Host::Ptr host;
 		Service::Ptr service;
@@ -1027,14 +1027,14 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		attributes->Set("author", downtime->GetAuthor());
 		attributes->Set("comment", downtime->GetComment());
-		attributes->Set("entry_time", downtime->GetEntryTime());
-		attributes->Set("scheduled_start_time", downtime->GetStartTime());
-		attributes->Set("scheduled_end_time", downtime->GetEndTime());
-		attributes->Set("duration", downtime->GetDuration());
+		attributes->Set("entry_time", downtime->GetEntryTime() * 1000);
+		attributes->Set("scheduled_start_time", downtime->GetStartTime() * 1000);
+		attributes->Set("scheduled_end_time", downtime->GetEndTime() * 1000);
+		attributes->Set("duration", downtime->GetDuration() * 1000);
 		attributes->Set("is_fixed", downtime->GetFixed());
 		attributes->Set("is_in_effect", downtime->IsInEffect());
 		if (downtime->IsInEffect())
-			attributes->Set("actual_start_time", downtime->GetTriggerTime());
+			attributes->Set("actual_start_time", downtime->GetTriggerTime() * 1000);
 
 		Host::Ptr host;
 		Service::Ptr service;
@@ -1175,7 +1175,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckR
 		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
 		service ? "service_id" : "host_id", GetObjectIdentifier(checkable),
-		"change_time", Convert::ToString(cr->GetExecutionEnd()),
+		"change_time", Convert::ToString(TimestampToMilliseconds(cr->GetExecutionEnd())),
 		"state_type", Convert::ToString(type),
 		"soft_state", Convert::ToString(cr->GetState()),
 		"hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
@@ -1209,7 +1209,7 @@ void RedisWriter::SendSentNotification(
 		service ? "service_id" : "host_id", GetObjectIdentifier(checkable),
 		"notification_id", GetObjectIdentifier(notification),
 		"type", Convert::ToString(type),
-		"send_time", Convert::ToString(Utility::GetTime()),
+		"send_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"state", Convert::ToString(cr->GetState()),
 		"output", Utility::ValidateUTF8(std::move(output.first)),
 		"long_output", Utility::ValidateUTF8(std::move(output.second)),
@@ -1229,17 +1229,17 @@ void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 		"downtime_id", GetObjectIdentifier(downtime),
 		"environment_id", SHA1(GetEnvironment()),
 		service ? "service_id" : "host_id", GetObjectIdentifier(downtime->GetCheckable()),
-		"entry_time", Convert::ToString(downtime->GetEntryTime()),
+		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
 		"is_fixed", Convert::ToString((unsigned short)downtime->GetFixed()),
 		"duration", Convert::ToString(downtime->GetDuration()),
-		"scheduled_start_time", Convert::ToString(downtime->GetStartTime()),
-		"scheduled_end_time", Convert::ToString(downtime->GetEndTime()),
+		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
+		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"was_started", "1",
 		"was_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
 		"is_in_effect", Convert::ToString((unsigned short)downtime->IsInEffect()),
-		"trigger_time", Convert::ToString(downtime->GetTriggerTime()),
+		"trigger_time", Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "downtime_start"
 	});
@@ -1251,14 +1251,14 @@ void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 
 	if (downtime->GetFixed()) {
 		xAdd.emplace_back("actual_start_time");
-		xAdd.emplace_back(Convert::ToString(downtime->GetStartTime()));
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())));
 		xAdd.emplace_back("actual_end_time");
-		xAdd.emplace_back(Convert::ToString(downtime->GetEndTime()));
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())));
 	} else {
 		xAdd.emplace_back("actual_start_time");
-		xAdd.emplace_back(Convert::ToString(downtime->GetTriggerTime()));
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())));
 		xAdd.emplace_back("actual_end_time");
-		xAdd.emplace_back(Convert::ToString(downtime->GetTriggerTime() + downtime->GetDuration()));
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + downtime->GetDuration())));
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
@@ -1274,18 +1274,18 @@ void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"downtime_id", GetObjectIdentifier(downtime),
 		"environment_id", SHA1(GetEnvironment()),
 		service ? "service_id" : "host_id", GetObjectIdentifier(downtime->GetCheckable()),
-		"entry_time", Convert::ToString(downtime->GetEntryTime()),
+		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
 		"is_fixed", Convert::ToString((unsigned short)downtime->GetFixed()),
 		"duration", Convert::ToString(downtime->GetDuration()),
-		"scheduled_start_time", Convert::ToString(downtime->GetStartTime()),
-		"scheduled_end_time", Convert::ToString(downtime->GetEndTime()),
+		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
+		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"was_started", "1",
 		"was_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
 		"is_in_effect", Convert::ToString((unsigned short)downtime->IsInEffect()),
-		"trigger_time", Convert::ToString(downtime->GetTriggerTime()),
-		"deletion_time", Convert::ToString(Utility::GetTime()),
+		"trigger_time", Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())),
+		"deletion_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "downtime_end"
 	});
@@ -1297,14 +1297,14 @@ void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 
 	if (downtime->GetFixed()) {
 		xAdd.emplace_back("actual_start_time");
-		xAdd.emplace_back(Convert::ToString(downtime->GetStartTime()));
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())));
 		xAdd.emplace_back("actual_end_time");
-		xAdd.emplace_back(Convert::ToString(downtime->GetEndTime()));
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())));
 	} else {
 		xAdd.emplace_back("actual_start_time");
-		xAdd.emplace_back(Convert::ToString(downtime->GetTriggerTime()));
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())));
 		xAdd.emplace_back("actual_end_time");
-		xAdd.emplace_back(Convert::ToString(downtime->GetTriggerTime() + downtime->GetDuration()));
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + downtime->GetDuration())));
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
@@ -1319,12 +1319,12 @@ void RedisWriter::SendAddedComment(const Comment::Ptr& comment)
 		"comment_id", GetObjectIdentifier(comment),
 		"environment_id", SHA1(GetEnvironment()),
 		service ? "service_id" : "host_id", GetObjectIdentifier(comment->GetCheckable()),
-		"entry_time", Convert::ToString(comment->GetEntryTime()),
+		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetAuthor()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
-		"expire_time", Convert::ToString(comment->GetExpireTime()),
+		"expire_time", Convert::ToString(TimestampToMilliseconds(comment->GetExpireTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "comment_add"
 	});
@@ -1339,13 +1339,13 @@ void RedisWriter::SendRemovedComment(const Comment::Ptr& comment)
 		"comment_id", GetObjectIdentifier(comment),
 		"environment_id", SHA1(GetEnvironment()),
 		service ? "service_id" : "host_id", GetObjectIdentifier(comment->GetCheckable()),
-		"entry_time", Convert::ToString(comment->GetEntryTime()),
+		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetAuthor()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
-		"expire_time", Convert::ToString(comment->GetExpireTime()),
-		"deletion_time", Convert::ToString(Utility::GetTime()),
+		"expire_time", Convert::ToString(TimestampToMilliseconds(comment->GetExpireTime())),
+		"deletion_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "comment_remove"
 	});
@@ -1363,7 +1363,7 @@ void RedisWriter::SendFlappingChanged(const Checkable::Ptr& checkable, const Val
 		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
 		service ? "service_id" : "host_id", GetObjectIdentifier(checkable),
-		value.ToBool() ? "start_time" : "end_time", Convert::ToString(Utility::GetTime()),
+		value.ToBool() ? "start_time" : "end_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"percent_state_change", Convert::ToString(checkable->GetFlappingCurrent()),
 		"flapping_threshold_low", Convert::ToString(checkable->GetFlappingThresholdLow()),
 		"flapping_threshold_high", Convert::ToString(checkable->GetFlappingThresholdHigh()),
@@ -1425,8 +1425,8 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 
 		if (!cr->GetCommand().IsEmpty())
 			attrs->Set("commandline", FormatCommandLine(cr->GetCommand()));
-		attrs->Set("execution_time", cr->CalculateExecutionTime());
-		attrs->Set("latency", cr->CalculateLatency());
+		attrs->Set("execution_time", TimestampToMilliseconds(cr->CalculateExecutionTime()));
+		attrs->Set("latency", TimestampToMilliseconds(cr->CalculateLatency()));
 	}
 
 	bool isProblem = !checkable->IsStateOK(checkable->GetStateRaw());
@@ -1455,14 +1455,14 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 	attrs->Set("in_downtime", checkable->IsInDowntime());
 
 	if (checkable->GetCheckTimeout().IsEmpty())
-		attrs->Set("check_timeout",checkable->GetCheckCommand()->GetTimeout());
+		attrs->Set("check_timeout",checkable->GetCheckCommand()->GetTimeout() * 1000);
 	else
-		attrs->Set("check_timeout", checkable->GetCheckTimeout());
+		attrs->Set("check_timeout", TimestampToMilliseconds(checkable->GetCheckTimeout()));
 
-	attrs->Set("last_update", Utility::GetTime());
-	attrs->Set("last_state_change", checkable->GetLastStateChange());
-	attrs->Set("next_check", checkable->GetNextCheck());
-	attrs->Set("next_update", checkable->GetNextUpdate());
+	attrs->Set("last_update", TimestampToMilliseconds(Utility::GetTime()));
+	attrs->Set("last_state_change", TimestampToMilliseconds(checkable->GetLastStateChange()));
+	attrs->Set("next_check", TimestampToMilliseconds(checkable->GetNextCheck()));
+	attrs->Set("next_update", TimestampToMilliseconds(checkable->GetNextUpdate()));
 
 	return attrs;
 }
@@ -1497,7 +1497,7 @@ RedisWriter::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
 	Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(object);
 	if (downtime) {
 		attrs->Set("in_effect", Serialize(downtime->IsInEffect()));
-		attrs->Set("trigger_time", Serialize(downtime->GetTriggerTime()));
+		attrs->Set("trigger_time", Serialize(TimestampToMilliseconds(downtime->GetTriggerTime())));
 	}
 
 

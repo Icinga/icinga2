@@ -277,3 +277,7 @@ String RedisWriter::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
 
 	return typeName;
 }
+
+long long RedisWriter::TimestampToMilliseconds(double timestamp) {
+	return static_cast<long long>(timestamp * 1000);
+}
