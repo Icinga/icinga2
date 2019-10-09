@@ -87,11 +87,13 @@ void RedisWriter::ConfigStaticInitialize()
 		RedisWriter::VersionChangedHandler(object);
 	});
 
+	/* fixed/flexible downtime add */
+	Downtime::OnDowntimeAdded.connect(&RedisWriter::DowntimeAddedHandler);
 	/* fixed downtime start */
 	Downtime::OnDowntimeStarted.connect(&RedisWriter::DowntimeStartedHandler);
 	/* flexible downtime start */
 	Downtime::OnDowntimeTriggered.connect(&RedisWriter::DowntimeStartedHandler);
-	/* fixed/flexible downtime end */
+	/* fixed/flexible downtime end or remove */
 	Downtime::OnDowntimeRemoved.connect(&RedisWriter::DowntimeRemovedHandler);
 
 	Checkable::OnNotificationSentToAllUsers.connect([](
@@ -1219,6 +1221,51 @@ void RedisWriter::SendSentNotification(
 	});
 }
 
+void RedisWriter::SendAddedDowntime(const Downtime::Ptr& downtime)
+{
+	auto service (dynamic_pointer_cast<Service>(downtime->GetCheckable()));
+	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
+
+	std::vector<String> xAdd ({
+		"XADD", service ? "icinga:history:stream:service:downtime" : "icinga:history:stream:host:downtime", "*",
+		"downtime_id", GetObjectIdentifier(downtime),
+		"environment_id", SHA1(GetEnvironment()),
+		service ? "service_id" : "host_id", GetObjectIdentifier(downtime->GetCheckable()),
+		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
+		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
+		"comment", Utility::ValidateUTF8(downtime->GetComment()),
+		"is_fixed", Convert::ToString((unsigned short)downtime->GetFixed()),
+		"duration", Convert::ToString(downtime->GetDuration()),
+		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
+		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
+		"was_started", "0",
+		"was_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
+		"is_in_effect", Convert::ToString((unsigned short)downtime->IsInEffect()),
+		"trigger_time", Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())),
+		"event_id", Utility::NewUniqueID(),
+		"event_type", "downtime_schedule"
+	});
+
+	if (triggeredBy) {
+		xAdd.emplace_back("triggered_by_id");
+		xAdd.emplace_back(GetObjectIdentifier(triggeredBy));
+	}
+
+	if (downtime->GetFixed()) {
+		xAdd.emplace_back("actual_start_time");
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())));
+		xAdd.emplace_back("actual_end_time");
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())));
+	} else {
+		xAdd.emplace_back("actual_start_time");
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())));
+		xAdd.emplace_back("actual_end_time");
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + downtime->GetDuration())));
+	}
+
+	m_Rcon->FireAndForgetQuery(std::move(xAdd));
+}
+
 void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 {
 	auto service (dynamic_pointer_cast<Service>(downtime->GetCheckable()));
@@ -1543,6 +1590,13 @@ void RedisWriter::VersionChangedHandler(const ConfigObject::Ptr& object)
 			if (rw)
 				rw->m_WorkQueue.Enqueue([rw, object]() { rw->SendConfigDelete(object); });
 		}
+	}
+}
+
+void RedisWriter::DowntimeAddedHandler(const Downtime::Ptr& downtime)
+{
+	for (auto& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+		rw->m_WorkQueue.Enqueue([rw, downtime]() { rw->SendAddedDowntime(downtime); });
 	}
 }
 
