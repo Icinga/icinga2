@@ -1009,9 +1009,9 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		attributes->Set("author", comment->GetAuthor());
 		attributes->Set("text", comment->GetText());
 		attributes->Set("entry_type", comment->GetEntryType());
-		attributes->Set("entry_time", comment->GetEntryTime() * 1000);
+		attributes->Set("entry_time", TimestampToMilliseconds(comment->GetEntryTime()));
 		attributes->Set("is_persistent", comment->GetPersistent());
-		attributes->Set("expire_time", comment->GetExpireTime() * 1000);
+		attributes->Set("expire_time", TimestampToMilliseconds(comment->GetExpireTime()));
 
 		Host::Ptr host;
 		Service::Ptr service;
@@ -1029,14 +1029,14 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 
 		attributes->Set("author", downtime->GetAuthor());
 		attributes->Set("comment", downtime->GetComment());
-		attributes->Set("entry_time", downtime->GetEntryTime() * 1000);
-		attributes->Set("scheduled_start_time", downtime->GetStartTime() * 1000);
-		attributes->Set("scheduled_end_time", downtime->GetEndTime() * 1000);
-		attributes->Set("duration", downtime->GetDuration() * 1000);
+		attributes->Set("entry_time", TimestampToMilliseconds(downtime->GetEntryTime()));
+		attributes->Set("scheduled_start_time", TimestampToMilliseconds(downtime->GetStartTime()));
+		attributes->Set("scheduled_end_time", TimestampToMilliseconds(downtime->GetEndTime()));
+		attributes->Set("duration", TimestampToMilliseconds(downtime->GetDuration()));
 		attributes->Set("is_fixed", downtime->GetFixed());
 		attributes->Set("is_in_effect", downtime->IsInEffect());
 		if (downtime->IsInEffect())
-			attributes->Set("actual_start_time", downtime->GetTriggerTime() * 1000);
+			attributes->Set("actual_start_time", TimestampToMilliseconds(downtime->GetTriggerTime()));
 
 		Host::Ptr host;
 		Service::Ptr service;
@@ -1502,7 +1502,7 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 	attrs->Set("in_downtime", checkable->IsInDowntime());
 
 	if (checkable->GetCheckTimeout().IsEmpty())
-		attrs->Set("check_timeout",checkable->GetCheckCommand()->GetTimeout() * 1000);
+		attrs->Set("check_timeout", TimestampToMilliseconds(checkable->GetCheckCommand()->GetTimeout()));
 	else
 		attrs->Set("check_timeout", TimestampToMilliseconds(checkable->GetCheckTimeout()));
 
