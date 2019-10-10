@@ -140,16 +140,7 @@ void RedisWriter::UpdateAllConfigObjects()
 			continue;
 
 		String lcType(type->GetName().ToLower());
-
-		if (lcType == "downtime") {
-			types.emplace_back(ctype, "hostdowntime");
-			types.emplace_back(ctype, "servicedowntime");
-		} else if (lcType == "comment") {
-			types.emplace_back(ctype, "hostcomment");
-			types.emplace_back(ctype, "servicecomment");
-		} else {
-			types.emplace_back(ctype, lcType);
-		}
+		types.emplace_back(ctype, lcType);
 	}
 
 	m_Rcon->FireAndForgetQuery({"EVAL", l_LuaResetDump, "1", "icinga:dump"});
@@ -1016,10 +1007,15 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		Host::Ptr host;
 		Service::Ptr service;
 		tie(host, service) = GetHostService(comment->GetCheckable());
-		if (service)
+		if (service) {
+			attributes->Set("object_type", "service");
 			attributes->Set("service_id", GetObjectIdentifier(service));
-		else
+			attributes->Set("host_id", "00000000000000000000000000000000");
+		} else {
+			attributes->Set("object_type", "host");
 			attributes->Set("host_id", GetObjectIdentifier(host));
+			attributes->Set("service_id", "00000000000000000000000000000000");
+		}
 
 		return true;
 	}
@@ -1043,9 +1039,14 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		tie(host, service) = GetHostService(downtime->GetCheckable());
 
 		if (service) {
+			attributes->Set("object_type", "service");
 			attributes->Set("service_id", GetObjectIdentifier(service));
-		} else
+			attributes->Set("host_id", "00000000000000000000000000000000");
+		} else {
+			attributes->Set("object_type", "host");
 			attributes->Set("host_id", GetObjectIdentifier(host));
+			attributes->Set("service_id", "00000000000000000000000000000000");
+		}
 
 		return true;
 	}
