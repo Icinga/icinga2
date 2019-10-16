@@ -1187,6 +1187,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckR
 		"last_hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
 		"output", Utility::ValidateUTF8(std::move(output.first)),
 		"long_output", Utility::ValidateUTF8(std::move(output.second)),
+		"check_source", cr->GetCheckSource(),
 		"max_check_attempts", Convert::ToString(checkable->GetMaxCheckAttempts()),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "state"
@@ -1596,6 +1597,7 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 			attrs->Set("commandline", FormatCommandLine(cr->GetCommand()));
 		attrs->Set("execution_time", TimestampToMilliseconds(cr->CalculateExecutionTime()));
 		attrs->Set("latency", TimestampToMilliseconds(cr->CalculateLatency()));
+		attrs->Set("check_source", cr->GetCheckSource());
 	}
 
 	bool isProblem = !checkable->IsStateOK(checkable->GetStateRaw());
