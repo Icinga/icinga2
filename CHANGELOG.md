@@ -7,6 +7,29 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.11.1 (2019-10-17)
+
+This release fixes a hidden long lasting bug unveiled with 2.11 and distributed setups.
+If you are affected by agents/satellites not accepting configuration
+anymore, or not reloading, please upgrade.
+
+### Bugfixes
+
+* Cluster Config Sync
+  * Never accept authoritative config markers from other instances #7552
+  * This affects setups where agent/satellites are newer than the config master, e.g. satellite/agent=2.11.0, master=2.10.
+* Configuration
+  * Error message for `command_endpoint` should hint that zone is not set #7514
+  * Global variable 'ActiveStageOverride' has been set implicitly via 'ActiveStageOverride ... #7521
+
+### Documentation
+
+* Docs: Add upgrading/troubleshooting details for repos, config sync, agents #7526
+  * Explain repository requirements for 2.11: https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/#added-boost-166
+  * `command_endpoint` objects require a zone: https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/#agent-hosts-with-command-endpoint-require-a-zone
+  * Zones declared in zones.d are not loaded anymore: https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/#config-sync-zones-in-zones
+
+
 ## 2.11.0 (2019-09-19)
 
 [Issue and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.11.0)
