@@ -227,14 +227,6 @@ broken zones, etc. and those long-lasting bugs have been now fixed.
 Please consult the [troubleshoot docs](15-troubleshooting.md#troubleshooting-cluster-config-zones-in-zones)
 for concrete examples and solutions.
 
-> **Note**
->
-> With using the Director, its cluster zones and agent hosts, you are safe.
->
-> Manage the master/satellite instances outside in zones.conf and import
-> them via kickstart wizard.
-
-
 #### HA-aware Features <a id="upgrading-to-2-11-cluster-ha-aware-features"></a>
 
 v2.11 introduces additional HA functionality similar to the DB IDO feature.
