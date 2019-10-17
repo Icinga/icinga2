@@ -1621,12 +1621,62 @@ The thing you can do: For `command_endpoint` agents like inside the Director:
 Host -> Agent -> yes, there is no config sync for this zone in place. Therefore
 it is valid to just sync their zones via the config sync.
 
-> **Summary**
->
-> With using the Director, its cluster zones and agent hosts, you are safe.
->
-> Manage the master/satellite instances outside in zones.conf and import
-> them via kickstart wizard.
+#### Director Changes
+
+The following restores the Zone/Endpoint objects as config objects outside of `zones.d`
+in your master/satellite's zones.conf with rendering them as external objects in the Director.
+
+[Example](06-distributed-monitoring.md#three-levels-with-masters-satellites-and-agents)
+for a 3 level setup with the masters and satellites knowing about the zone hierarchy
+outside defined in [zones.conf](#zones-conf):
+
+```
+object Endpoint "icinga-master1.localdomain" {
+  //define 'host' attribute to control the connection direction on each instance
+}
+
+object Endpoint "icinga-master2.localdomain" {
+  //...
+}
+
+object Endpoint "icinga-satellite1.localdomain" {
+  //...
+}
+
+object Endpoint "icinga-satellite2.localdomain" {
+  //...
+}
+
+//--------------
+// Zone hierarchy with endpoints, required for the trust relationship and that the cluster config sync knows which zone directory defined in zones.d needs to be synced to which endpoint.
+// That's no different to what is explained in the docs as basic zone trust hierarchy, and is intentionally managed outside in zones.conf there.
+
+object Zone "master" {
+  endpoints = [ "icinga-master1.localdomain", "icinga-master2.localdomain" ] 
+}
+
+object Zone "satellite" {
+  endpoints = [ "icinga-satellite1.localdomain", "icinga-satellite2.localdomain" ]
+  parent = "master" // trust
+}
+```
+
+Prepare the above configuration on all affected nodes, satellites are likely uptodate already. 
+Then continue with the steps below.
+
+> * backup your database, just to be on the safe side
+> * create all non-external Zone/Endpoint-Objects on all related Icinga Master/Satellite-Nodes (manually in your local zones.conf)
+> * while doing so please do NOT restart Icinga, no deployments
+> * change the type in the Director DB:
+> 
+> ```sql
+> UPDATE icinga_zone SET object_type = 'external_object' WHERE object_type = 'object';
+> UPDATE icinga_endpoint SET object_type = 'external_object' WHERE object_type = 'object';
+> ```
+> 
+> * render and deploy a new configuration in the Director. It will state that there are no changes. Ignore it, deploy anyways
+> 
+> That's it. All nodes should automatically restart, triggered by the deployed configuration via cluster protocol.
 
 
 ### Cluster Troubleshooting Overdue Check Results <a id="troubleshooting-cluster-check-results"></a>
