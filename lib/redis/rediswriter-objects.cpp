@@ -1028,7 +1028,7 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		attributes->Set("entry_time", TimestampToMilliseconds(downtime->GetEntryTime()));
 		attributes->Set("scheduled_start_time", TimestampToMilliseconds(downtime->GetStartTime()));
 		attributes->Set("scheduled_end_time", TimestampToMilliseconds(downtime->GetEndTime()));
-		attributes->Set("duration", TimestampToMilliseconds(downtime->GetDuration()));
+		attributes->Set("flexible_duration", TimestampToMilliseconds(downtime->GetDuration()));
 		attributes->Set("is_flexible", !downtime->GetFixed());
 		attributes->Set("is_in_effect", downtime->IsInEffect());
 		if (downtime->IsInEffect())
@@ -1239,7 +1239,7 @@ void RedisWriter::SendAddedDowntime(const Downtime::Ptr& downtime)
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
 		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
-		"duration", Convert::ToString(downtime->GetDuration()),
+		"flexible_duration", Convert::ToString(downtime->GetDuration()),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"was_started", "0",
@@ -1289,7 +1289,7 @@ void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
 		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
-		"duration", Convert::ToString(downtime->GetDuration()),
+		"flexible_duration", Convert::ToString(downtime->GetDuration()),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"was_started", "1",
@@ -1337,7 +1337,7 @@ void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
 		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
-		"duration", Convert::ToString(downtime->GetDuration()),
+		"flexible_duration", Convert::ToString(downtime->GetDuration()),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"was_started", "1",
