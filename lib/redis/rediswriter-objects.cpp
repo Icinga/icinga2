@@ -1171,20 +1171,20 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckR
 
 	m_Rcon->FireAndForgetQuery(std::move(streamadd));
 
-	auto output (SplitOutput(cr->GetOutput()));
+	auto output (SplitOutput(cr ? cr->GetOutput() : ""));
 
 	m_Rcon->FireAndForgetQuery({
 		"XADD", service ? "icinga:history:stream:service:state" : "icinga:history:stream:host:state", "*",
 		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
 		service ? "service_id" : "host_id", GetObjectIdentifier(checkable),
-		"change_time", Convert::ToString(TimestampToMilliseconds(cr->GetExecutionEnd())),
+		"change_time", Convert::ToString(TimestampToMilliseconds(cr ? cr->GetExecutionEnd() : Utility::GetTime())),
 		"state_type", Convert::ToString(type),
-		"soft_state", Convert::ToString(cr->GetState()),
+		"soft_state", Convert::ToString(cr ? cr->GetState() : 99),
 		"hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
 		"attempt", Convert::ToString(checkable->GetCheckAttempt()),
 		// TODO: last_hard/soft_state should be "previous".
-		"last_soft_state", Convert::ToString(cr->GetState()),
+		"last_soft_state", Convert::ToString(cr ? cr->GetState() : 99),
 		"last_hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
 		"output", Utility::ValidateUTF8(std::move(output.first)),
 		"long_output", Utility::ValidateUTF8(std::move(output.second)),
