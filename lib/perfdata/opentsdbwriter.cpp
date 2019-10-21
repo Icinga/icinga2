@@ -120,8 +120,7 @@ void OpenTsdbWriter::ReconnectTimerHandler()
 	 * We're using telnet as input method. Future PRs may change this into using the HTTP API.
 	 * http://opentsdb.net/docs/build/html/user_guide/writing/index.html#telnet
 	 */
-
-	m_Stream = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoContext());
+	m_Stream = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
 
 	try {
 		icinga::Connect(m_Stream->lowest_layer(), GetHost(), GetPort());

@@ -177,7 +177,7 @@ OptionalTlsStream InfluxdbWriter::Connect()
 	bool ssl = GetSslEnable();
 
 	if (ssl) {
-		std::shared_ptr<boost::asio::ssl::context> sslContext;
+		Shared<boost::asio::ssl::context>::Ptr sslContext;
 
 		try {
 			sslContext = MakeAsioSslContext(GetSslCert(), GetSslKey(), GetSslCaCert());
@@ -187,9 +187,10 @@ OptionalTlsStream InfluxdbWriter::Connect()
 			throw;
 		}
 
-		stream.first = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
+		stream.first = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
+
 	} else {
-		stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoContext());
+		stream.second = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
 	}
 
 	try {

@@ -58,7 +58,7 @@ void InitializeOpenSSL()
 	l_SSLInitialized = true;
 }
 
-static void SetupSslContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& pubkey, const String& privkey, const String& cakey)
+static void SetupSslContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& pubkey, const String& privkey, const String& cakey)
 {
 	char errbuf[256];
 
@@ -156,13 +156,13 @@ static void SetupSslContext(const std::shared_ptr<boost::asio::ssl::context>& co
  * @param cakey CA certificate chain file.
  * @returns An SSL context.
  */
-std::shared_ptr<boost::asio::ssl::context> MakeAsioSslContext(const String& pubkey, const String& privkey, const String& cakey)
+Shared<boost::asio::ssl::context>::Ptr MakeAsioSslContext(const String& pubkey, const String& privkey, const String& cakey)
 {
 	namespace ssl = boost::asio::ssl;
 
 	InitializeOpenSSL();
 
-	auto context (std::make_shared<ssl::context>(ssl::context::tlsv12));
+	auto context (Shared<ssl::context>::Make(ssl::context::tlsv12));
 
 	SetupSslContext(context, pubkey, privkey, cakey);
 
@@ -174,7 +174,7 @@ std::shared_ptr<boost::asio::ssl::context> MakeAsioSslContext(const String& pubk
  * @param context The ssl context.
  * @param cipherList The ciper list.
  **/
-void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& cipherList)
+void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& cipherList)
 {
 	char errbuf[256];
 
@@ -215,7 +215,7 @@ void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>&
  * @param context The ssl context.
  * @param tlsProtocolmin The minimum TLS protocol version.
  */
-void SetTlsProtocolminToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& tlsProtocolmin)
+void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& tlsProtocolmin)
 {
 	// tlsProtocolmin has no effect since we enforce TLS 1.2 since 2.11.
 	/*
@@ -235,7 +235,7 @@ void SetTlsProtocolminToSSLContext(const std::shared_ptr<boost::asio::ssl::conte
  * @param context The SSL context.
  * @param crlPath The path to the CRL file.
  */
-void AddCRLToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& crlPath)
+void AddCRLToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& crlPath)
 {
 	char errbuf[256];
 	X509_STORE *x509_store = SSL_CTX_get_cert_store(context->native_handle());

@@ -163,7 +163,7 @@ void GelfWriter::ReconnectInternal()
 	bool ssl = GetEnableTls();
 
 	if (ssl) {
-		std::shared_ptr<boost::asio::ssl::context> sslContext;
+		Shared<boost::asio::ssl::context>::Ptr sslContext;
 
 		try {
 			sslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
@@ -173,9 +173,10 @@ void GelfWriter::ReconnectInternal()
 			throw;
 		}
 
-		m_Stream.first = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
+		m_Stream.first = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
+
 	} else {
-		m_Stream.second = std::make_shared<AsioTcpStream>(IoEngine::Get().GetIoContext());
+		m_Stream.second = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
 	}
 
 	try {

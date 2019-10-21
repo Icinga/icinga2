@@ -10,6 +10,7 @@
 #include "remote/messageorigin.hpp"
 #include "base/configobject.hpp"
 #include "base/process.hpp"
+#include "base/shared.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "base/tcpsocket.hpp"
@@ -124,7 +125,7 @@ protected:
 	void ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
 
 private:
-	std::shared_ptr<boost::asio::ssl::context> m_SSLContext;
+	Shared<boost::asio::ssl::context>::Ptr m_SSLContext;
 
 	mutable boost::mutex m_AnonymousClientsLock;
 	mutable boost::mutex m_HttpClientsLock;
@@ -150,9 +151,9 @@ private:
 	bool AddListener(const String& node, const String& service);
 	void AddConnection(const Endpoint::Ptr& endpoint);
 
-	void NewClientHandler(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role);
-	void NewClientHandlerInternal(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role);
-	void ListenerCoroutineProc(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ip::tcp::acceptor>& server, const std::shared_ptr<boost::asio::ssl::context>& sslContext);
+	void NewClientHandler(boost::asio::yield_context yc, const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role);
+	void NewClientHandlerInternal(boost::asio::yield_context yc, const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role);
+	void ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server, const Shared<boost::asio::ssl::context>::Ptr& sslContext);
 
 	WorkQueue m_RelayQueue;
 	WorkQueue m_SyncQueue{0, 4};

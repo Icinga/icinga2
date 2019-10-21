@@ -42,7 +42,7 @@ namespace po = boost::program_options;
 
 static ScriptFrame *l_ScriptFrame;
 static Url::Ptr l_Url;
-static std::shared_ptr<AsioTlsStream> l_TlsStream;
+static Shared<AsioTlsStream>::Ptr l_TlsStream;
 static String l_Session;
 
 REGISTER_CLICOMMAND("console", ConsoleCommand);
@@ -522,9 +522,9 @@ incomplete:
  *
  * @returns AsioTlsStream pointer for future HTTP connections.
  */
-std::shared_ptr<AsioTlsStream> ConsoleCommand::Connect()
+Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 {
-	std::shared_ptr<boost::asio::ssl::context> sslContext;
+	Shared<boost::asio::ssl::context>::Ptr sslContext;
 
 	try {
 		sslContext = MakeAsioSslContext(Empty, Empty, Empty); //TODO: Add support for cert, key, ca parameters
@@ -537,7 +537,7 @@ std::shared_ptr<AsioTlsStream> ConsoleCommand::Connect()
 	String host = l_Url->GetHost();
 	String port = l_Url->GetPort();
 
-	std::shared_ptr<AsioTlsStream> stream = std::make_shared<AsioTlsStream>(IoEngine::Get().GetIoContext(), *sslContext, host);
+	Shared<AsioTlsStream>::Ptr stream = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, host);
 
 	try {
 		icinga::Connect(stream->lowest_layer(), host, port);
