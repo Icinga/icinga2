@@ -1029,7 +1029,7 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
 		attributes->Set("scheduled_start_time", TimestampToMilliseconds(downtime->GetStartTime()));
 		attributes->Set("scheduled_end_time", TimestampToMilliseconds(downtime->GetEndTime()));
 		attributes->Set("duration", TimestampToMilliseconds(downtime->GetDuration()));
-		attributes->Set("is_fixed", downtime->GetFixed());
+		attributes->Set("is_flexible", !downtime->GetFixed());
 		attributes->Set("is_in_effect", downtime->IsInEffect());
 		if (downtime->IsInEffect())
 			attributes->Set("actual_start_time", TimestampToMilliseconds(downtime->GetTriggerTime()));
@@ -1238,7 +1238,7 @@ void RedisWriter::SendAddedDowntime(const Downtime::Ptr& downtime)
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
-		"is_fixed", Convert::ToString((unsigned short)downtime->GetFixed()),
+		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
 		"duration", Convert::ToString(downtime->GetDuration()),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
@@ -1288,7 +1288,7 @@ void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
-		"is_fixed", Convert::ToString((unsigned short)downtime->GetFixed()),
+		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
 		"duration", Convert::ToString(downtime->GetDuration()),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
@@ -1336,7 +1336,7 @@ void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
-		"is_fixed", Convert::ToString((unsigned short)downtime->GetFixed()),
+		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
 		"duration", Convert::ToString(downtime->GetDuration()),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
