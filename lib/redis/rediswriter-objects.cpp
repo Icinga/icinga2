@@ -1275,6 +1275,8 @@ void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
+	SendConfigUpdate(downtime, true);
+
 	auto service (dynamic_pointer_cast<Service>(downtime->GetCheckable()));
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
 
