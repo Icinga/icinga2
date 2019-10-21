@@ -1224,6 +1224,9 @@ void RedisWriter::SendSentNotification(
 
 void RedisWriter::SendAddedDowntime(const Downtime::Ptr& downtime)
 {
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
 	auto service (dynamic_pointer_cast<Service>(downtime->GetCheckable()));
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
 
@@ -1269,6 +1272,9 @@ void RedisWriter::SendAddedDowntime(const Downtime::Ptr& downtime)
 
 void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 {
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
 	auto service (dynamic_pointer_cast<Service>(downtime->GetCheckable()));
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
 
@@ -1314,6 +1320,9 @@ void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 
 void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 {
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
 	auto service (dynamic_pointer_cast<Service>(downtime->GetCheckable()));
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
 
@@ -1360,6 +1369,9 @@ void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 
 void RedisWriter::SendAddedComment(const Comment::Ptr& comment)
 {
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
 	auto service (dynamic_pointer_cast<Service>(comment->GetCheckable()));
 
 	m_Rcon->FireAndForgetQuery({
@@ -1380,6 +1392,9 @@ void RedisWriter::SendAddedComment(const Comment::Ptr& comment)
 
 void RedisWriter::SendRemovedComment(const Comment::Ptr& comment)
 {
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
 	auto service (dynamic_pointer_cast<Service>(comment->GetCheckable()));
 
 	m_Rcon->FireAndForgetQuery({
