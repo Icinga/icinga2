@@ -47,8 +47,8 @@ REGISTER_FUNCTION(Internal, run_with_activation_context, &ConfigItem::RunWithAct
  * @param debuginfo Debug information.
  */
 ConfigItem::ConfigItem(Type::Ptr type, String name,
-	bool abstract, std::shared_ptr<Expression> exprl,
-	std::shared_ptr<Expression> filter, bool defaultTmpl, bool ignoreOnError,
+	bool abstract, Expression::Ptr exprl,
+	Expression::Ptr filter, bool defaultTmpl, bool ignoreOnError,
 	DebugInfo debuginfo, Dictionary::Ptr scope,
 	String zone, String package)
 	: m_Type(std::move(type)), m_Name(std::move(name)), m_Abstract(abstract),
@@ -124,7 +124,7 @@ ConfigObject::Ptr ConfigItem::GetObject() const
  *
  * @returns The expression list.
  */
-std::shared_ptr<Expression> ConfigItem::GetExpression() const
+Expression::Ptr ConfigItem::GetExpression() const
 {
 	return m_Expression;
 }
@@ -134,7 +134,7 @@ std::shared_ptr<Expression> ConfigItem::GetExpression() const
 *
 * @returns The filter expression.
 */
-std::shared_ptr<Expression> ConfigItem::GetFilter() const
+Expression::Ptr ConfigItem::GetFilter() const
 {
 	return m_Filter;
 }

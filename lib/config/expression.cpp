@@ -100,13 +100,13 @@ const DebugInfo& DebuggableExpression::GetDebugInfo() const
 	return m_DebugInfo;
 }
 
-VariableExpression::VariableExpression(String variable, std::vector<std::shared_ptr<Expression> > imports, const DebugInfo& debugInfo)
+VariableExpression::VariableExpression(String variable, std::vector<Expression::Ptr> imports, const DebugInfo& debugInfo)
 	: DebuggableExpression(debugInfo), m_Variable(std::move(variable)), m_Imports(std::move(imports))
 {
-	m_Imports.push_back(MakeIndexer(ScopeGlobal, "System"));
-	m_Imports.push_back(std::unique_ptr<Expression>(new IndexerExpression(MakeIndexer(ScopeGlobal, "System"), MakeLiteral("Configuration"))));
-	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Types"));
-	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Icinga"));
+	m_Imports.push_back(MakeIndexer(ScopeGlobal, "System").release());
+	m_Imports.push_back(new IndexerExpression(MakeIndexer(ScopeGlobal, "System"), MakeLiteral("Configuration")));
+	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Types").release());
+	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Icinga").release());
 }
 
 ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -689,7 +689,7 @@ ExpressionResult SetConstExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	CHECK_RESULT(operandres);
 	Value operand = operandres.GetValue();
 
-	globals->SetAttribute(m_Name, std::make_shared<ConstEmbeddedNamespaceValue>(operand));
+	globals->SetAttribute(m_Name, new ConstEmbeddedNamespaceValue(operand));
 
 	return Empty;
 }

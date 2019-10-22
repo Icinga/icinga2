@@ -5,6 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
+#include "base/shared-object.hpp"
 #include "base/value.hpp"
 #include "base/debuginfo.hpp"
 #include <map>
@@ -14,8 +15,10 @@
 namespace icinga
 {
 
-struct NamespaceValue
+struct NamespaceValue : public SharedObject
 {
+	DECLARE_PTR_TYPEDEFS(NamespaceValue);
+
 	virtual Value Get(const DebugInfo& debugInfo = DebugInfo()) const = 0;
 	virtual void Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo = DebugInfo()) = 0;
 };
@@ -66,9 +69,9 @@ class Namespace final : public Object
 public:
 	DECLARE_OBJECT(Namespace);
 
-	typedef std::map<String, std::shared_ptr<NamespaceValue> >::iterator Iterator;
+	typedef std::map<String, NamespaceValue::Ptr>::iterator Iterator;
 
-	typedef std::map<String, std::shared_ptr<NamespaceValue> >::value_type Pair;
+	typedef std::map<String, NamespaceValue::Ptr>::value_type Pair;
 
 	Namespace(NamespaceBehavior *behavior = new NamespaceBehavior);
 
@@ -78,8 +81,8 @@ public:
 	bool Contains(const String& field) const;
 	void Remove(const String& field, bool overrideFrozen = false);
 
-	std::shared_ptr<NamespaceValue> GetAttribute(const String& field) const;
-	void SetAttribute(const String& field, const std::shared_ptr<NamespaceValue>& nsVal);
+	NamespaceValue::Ptr GetAttribute(const String& field) const;
+	void SetAttribute(const String& field, const NamespaceValue::Ptr& nsVal);
 	void RemoveAttribute(const String& field);
 
 	Iterator Begin();
@@ -93,7 +96,7 @@ public:
 	static Object::Ptr GetPrototype();
 
 private:
-	std::map<String, std::shared_ptr<NamespaceValue> > m_Data;
+	std::map<String, NamespaceValue::Ptr> m_Data;
 	std::unique_ptr<NamespaceBehavior> m_Behavior;
 };
 

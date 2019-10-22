@@ -60,7 +60,7 @@ void IcingaApplication::StaticInitialize()
 	auto icingaNSBehavior = new ConstNamespaceBehavior();
 	icingaNSBehavior->Freeze();
 	Namespace::Ptr icingaNS = new Namespace(icingaNSBehavior);
-	globalNS->SetAttribute("Icinga", std::make_shared<ConstEmbeddedNamespaceValue>(icingaNS));
+	globalNS->SetAttribute("Icinga", new ConstEmbeddedNamespaceValue(icingaNS));
 }
 
 REGISTER_STATSFUNCTION(IcingaApplication, &IcingaApplication::StatsFunc);

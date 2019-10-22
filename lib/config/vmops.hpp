@@ -26,7 +26,7 @@ namespace icinga
 class VMOps
 {
 public:
-	static inline bool FindVarImportRef(ScriptFrame& frame, const std::vector<std::shared_ptr<Expression> >& imports, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
+	static inline bool FindVarImportRef(ScriptFrame& frame, const std::vector<Expression::Ptr>& imports, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
 	{
 		for (const auto& import : imports) {
 			ExpressionResult res = import->Evaluate(frame);
@@ -40,7 +40,7 @@ public:
 		return false;
 	}
 
-	static inline bool FindVarImport(ScriptFrame& frame, const std::vector<std::shared_ptr<Expression> >& imports, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
+	static inline bool FindVarImport(ScriptFrame& frame, const std::vector<Expression::Ptr>& imports, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
 	{
 		Value parent;
 
@@ -91,7 +91,7 @@ public:
 	}
 
 	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& argNames,
-		const std::map<String, std::unique_ptr<Expression> >& closedVars, const std::shared_ptr<Expression>& expression)
+		const std::map<String, std::unique_ptr<Expression> >& closedVars, const Expression::Ptr& expression)
 	{
 		auto evaluatedClosedVars = EvaluateClosedVars(frame, closedVars);
 
@@ -115,9 +115,9 @@ public:
 		return new Function(name, wrapper, argNames);
 	}
 
-	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const std::shared_ptr<Expression>& filter,
-		const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm, const std::map<String, std::unique_ptr<Expression> >& closedVars,
-		bool ignoreOnError, const std::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const Expression::Ptr& filter,
+		const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm, const std::map<String, std::unique_ptr<Expression> >& closedVars,
+		bool ignoreOnError, const Expression::Ptr& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ApplyRule::AddRule(type, target, name, expression, filter, package, fkvar,
 			fvvar, fterm, ignoreOnError, debugInfo, EvaluateClosedVars(frame, closedVars));
@@ -125,8 +125,8 @@ public:
 		return Empty;
 	}
 
-	static inline Value NewObject(ScriptFrame& frame, bool abstract, const Type::Ptr& type, const String& name, const std::shared_ptr<Expression>& filter,
-		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, const std::map<String, std::unique_ptr<Expression> >& closedVars, const std::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value NewObject(ScriptFrame& frame, bool abstract, const Type::Ptr& type, const String& name, const Expression::Ptr& filter,
+		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, const std::map<String, std::unique_ptr<Expression> >& closedVars, const Expression::Ptr& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ConfigItemBuilder item{debugInfo};
 

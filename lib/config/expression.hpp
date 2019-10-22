@@ -10,6 +10,7 @@
 #include "base/function.hpp"
 #include "base/exception.hpp"
 #include "base/scriptframe.hpp"
+#include "base/shared-object.hpp"
 #include "base/convert.hpp"
 #include <map>
 
@@ -178,9 +179,11 @@ private:
 /**
  * @ingroup config
  */
-class Expression
+class Expression : public SharedObject
 {
 public:
+	DECLARE_PTR_TYPEDEFS(Expression);
+
 	Expression() = default;
 	Expression(const Expression&) = delete;
 	virtual ~Expression();
@@ -203,7 +206,7 @@ std::unique_ptr<Expression> MakeIndexer(ScopeSpecifier scopeSpec, const String& 
 class OwnedExpression final : public Expression
 {
 public:
-	OwnedExpression(std::shared_ptr<Expression> expression)
+	OwnedExpression(Expression::Ptr expression)
 		: m_Expression(std::move(expression))
 	{ }
 
@@ -219,7 +222,7 @@ protected:
 	}
 
 private:
-	std::shared_ptr<Expression> m_Expression;
+	Expression::Ptr m_Expression;
 };
 
 class LiteralExpression final : public Expression
@@ -288,7 +291,7 @@ protected:
 class VariableExpression final : public DebuggableExpression
 {
 public:
-	VariableExpression(String variable, std::vector<std::shared_ptr<Expression> > imports, const DebugInfo& debugInfo = DebugInfo());
+	VariableExpression(String variable, std::vector<Expression::Ptr> imports, const DebugInfo& debugInfo = DebugInfo());
 
 	String GetVariable() const
 	{
@@ -301,7 +304,7 @@ protected:
 
 private:
 	String m_Variable;
-	std::vector<std::shared_ptr<Expression> > m_Imports;
+	std::vector<Expression::Ptr> m_Imports;
 
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
@@ -795,7 +798,7 @@ class FunctionExpression final : public DebuggableExpression
 public:
 	FunctionExpression(String name, std::vector<String> args,
 		std::map<String, std::unique_ptr<Expression> >&& closedVars, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Name(std::move(name)), m_Args(std::move(args)), m_ClosedVars(std::move(closedVars)), m_Expression(std::move(expression))
+		: DebuggableExpression(debugInfo), m_Name(std::move(name)), m_Args(std::move(args)), m_ClosedVars(std::move(closedVars)), m_Expression(expression.release())
 	{ }
 
 protected:
@@ -805,7 +808,7 @@ private:
 	String m_Name;
 	std::vector<String> m_Args;
 	std::map<String, std::unique_ptr<Expression> > m_ClosedVars;
-	std::shared_ptr<Expression> m_Expression;
+	Expression::Ptr m_Expression;
 };
 
 class ApplyExpression final : public DebuggableExpression
@@ -816,9 +819,9 @@ public:
 		std::unique_ptr<Expression> fterm, std::map<String, std::unique_ptr<Expression> >&& closedVars, bool ignoreOnError,
 		std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Type(std::move(type)), m_Target(std::move(target)),
-			m_Name(std::move(name)), m_Filter(std::move(filter)), m_Package(std::move(package)), m_FKVar(std::move(fkvar)), m_FVVar(std::move(fvvar)),
-			m_FTerm(std::move(fterm)), m_IgnoreOnError(ignoreOnError), m_ClosedVars(std::move(closedVars)),
-			m_Expression(std::move(expression))
+			m_Name(std::move(name)), m_Filter(filter.release()), m_Package(std::move(package)), m_FKVar(std::move(fkvar)), m_FVVar(std::move(fvvar)),
+			m_FTerm(fterm.release()), m_IgnoreOnError(ignoreOnError), m_ClosedVars(std::move(closedVars)),
+			m_Expression(expression.release())
 	{ }
 
 protected:
@@ -828,28 +831,28 @@ private:
 	String m_Type;
 	String m_Target;
 	std::unique_ptr<Expression> m_Name;
-	std::shared_ptr<Expression> m_Filter;
+	Expression::Ptr m_Filter;
 	String m_Package;
 	String m_FKVar;
 	String m_FVVar;
-	std::shared_ptr<Expression> m_FTerm;
+	Expression::Ptr m_FTerm;
 	bool m_IgnoreOnError;
 	std::map<String, std::unique_ptr<Expression> > m_ClosedVars;
-	std::shared_ptr<Expression> m_Expression;
+	Expression::Ptr m_Expression;
 };
 
 class NamespaceExpression final : public DebuggableExpression
 {
 public:
 	NamespaceExpression(std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Expression(std::move(expression))
+		: DebuggableExpression(debugInfo), m_Expression(expression.release())
 	{ }
 
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
-	std::shared_ptr<Expression> m_Expression;
+	Expression::Ptr m_Expression;
 };
 
 class ObjectExpression final : public DebuggableExpression
@@ -859,8 +862,8 @@ public:
 		String zone, String package, std::map<String, std::unique_ptr<Expression> >&& closedVars,
 		bool defaultTmpl, bool ignoreOnError, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Abstract(abstract), m_Type(std::move(type)),
-		m_Name(std::move(name)), m_Filter(std::move(filter)), m_Zone(std::move(zone)), m_Package(std::move(package)), m_DefaultTmpl(defaultTmpl),
-		m_IgnoreOnError(ignoreOnError), m_ClosedVars(std::move(closedVars)), m_Expression(std::move(expression))
+		m_Name(std::move(name)), m_Filter(filter.release()), m_Zone(std::move(zone)), m_Package(std::move(package)), m_DefaultTmpl(defaultTmpl),
+		m_IgnoreOnError(ignoreOnError), m_ClosedVars(std::move(closedVars)), m_Expression(expression.release())
 	{ }
 
 protected:
@@ -870,13 +873,13 @@ private:
 	bool m_Abstract;
 	std::unique_ptr<Expression> m_Type;
 	std::unique_ptr<Expression> m_Name;
-	std::shared_ptr<Expression> m_Filter;
+	Expression::Ptr m_Filter;
 	String m_Zone;
 	String m_Package;
 	bool m_DefaultTmpl;
 	bool m_IgnoreOnError;
 	std::map<String, std::unique_ptr<Expression> > m_ClosedVars;
-	std::shared_ptr<Expression> m_Expression;
+	Expression::Ptr m_Expression;
 };
 
 class ForExpression final : public DebuggableExpression

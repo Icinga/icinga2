@@ -65,7 +65,7 @@ void ScriptGlobal::Set(const String& name, const Value& value, bool overrideFroz
 
 void ScriptGlobal::SetConst(const String& name, const Value& value)
 {
-	GetGlobals()->SetAttribute(name, std::make_shared<ConstEmbeddedNamespaceValue>(value));
+	GetGlobals()->SetAttribute(name, new ConstEmbeddedNamespaceValue(value));
 }
 
 bool ScriptGlobal::Exists(const String& name)

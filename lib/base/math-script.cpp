@@ -181,5 +181,5 @@ INITIALIZE_ONCE([]() {
 	mathNSBehavior->Freeze();
 
 	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
-	systemNS->SetAttribute("Math", std::make_shared<ConstEmbeddedNamespaceValue>(mathNS));
+	systemNS->SetAttribute("Math", new ConstEmbeddedNamespaceValue(mathNS));
 });

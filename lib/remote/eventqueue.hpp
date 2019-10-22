@@ -94,7 +94,7 @@ public:
 	EventsInbox& operator=(EventsInbox&&) = delete;
 	~EventsInbox();
 
-	const std::shared_ptr<Expression>& GetFilter();
+	const Expression::Ptr& GetFilter();
 
 	void Push(Dictionary::Ptr event);
 	Dictionary::Ptr Shift(boost::asio::yield_context yc, double timeout = 5);
@@ -103,7 +103,7 @@ private:
 	struct Filter
 	{
 		std::size_t Refs;
-		std::shared_ptr<Expression> Expr;
+		Expression::Ptr Expr;
 	};
 
 	static std::mutex m_FiltersMutex;
@@ -135,14 +135,14 @@ private:
 class EventsFilter
 {
 public:
-	EventsFilter(std::map<std::shared_ptr<Expression>, std::set<EventsInbox::Ptr>> inboxes);
+	EventsFilter(std::map<Expression::Ptr, std::set<EventsInbox::Ptr>> inboxes);
 
 	operator bool();
 
 	void Push(Dictionary::Ptr event);
 
 private:
-	std::map<std::shared_ptr<Expression>, std::set<EventsInbox::Ptr>> m_Inboxes;
+	std::map<Expression::Ptr, std::set<EventsInbox::Ptr>> m_Inboxes;
 };
 
 class EventsRouter
@@ -165,7 +165,7 @@ private:
 	~EventsRouter() = default;
 
 	std::mutex m_Mutex;
-	std::map<EventType, std::map<std::shared_ptr<Expression>, std::set<EventsInbox::Ptr>>> m_Subscribers;
+	std::map<EventType, std::map<Expression::Ptr, std::set<EventsInbox::Ptr>>> m_Subscribers;
 };
 
 }

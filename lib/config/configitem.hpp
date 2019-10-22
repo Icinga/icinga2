@@ -24,8 +24,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(ConfigItem);
 
 	ConfigItem(Type::Ptr type, String name, bool abstract,
-		std::shared_ptr<Expression> exprl,
-		std::shared_ptr<Expression> filter,
+		Expression::Ptr exprl,
+		Expression::Ptr filter,
 		bool defaultTmpl, bool ignoreOnError, DebugInfo debuginfo,
 		Dictionary::Ptr scope, String zone,
 		String package);
@@ -38,8 +38,8 @@ public:
 
 	std::vector<ConfigItem::Ptr> GetParents() const;
 
-	std::shared_ptr<Expression> GetExpression() const;
-	std::shared_ptr<Expression> GetFilter() const;
+	Expression::Ptr GetExpression() const;
+	Expression::Ptr GetFilter() const;
 
 	void Register();
 	void Unregister();
@@ -68,8 +68,8 @@ private:
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether this is a template. */
 
-	std::shared_ptr<Expression> m_Expression;
-	std::shared_ptr<Expression> m_Filter;
+	Expression::Ptr m_Expression;
+	Expression::Ptr m_Filter;
 	bool m_DefaultTmpl;
 	bool m_IgnoreOnError;
 	DebugInfo m_DebugInfo; /**< Debug information. */

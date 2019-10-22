@@ -35,7 +35,7 @@ public:
 	void SetIgnoreOnError(bool ignoreOnError);
 
 	void AddExpression(Expression *expr);
-	void SetFilter(const std::shared_ptr<Expression>& filter);
+	void SetFilter(const Expression::Ptr& filter);
 
 	ConfigItem::Ptr Compile();
 
@@ -44,7 +44,7 @@ private:
 	String m_Name; /**< The name. */
 	bool m_Abstract{false}; /**< Whether the item is abstract. */
 	std::vector<std::unique_ptr<Expression> > m_Expressions; /**< Expressions for this item. */
-	std::shared_ptr<Expression> m_Filter; /**< Filter expression. */
+	Expression::Ptr m_Filter; /**< Filter expression. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */

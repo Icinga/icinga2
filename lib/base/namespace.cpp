@@ -75,7 +75,7 @@ void Namespace::RemoveAttribute(const String& field)
 	m_Data.erase(it);
 }
 
-std::shared_ptr<NamespaceValue> Namespace::GetAttribute(const String& key) const
+NamespaceValue::Ptr Namespace::GetAttribute(const String& key) const
 {
 	ObjectLock olock(this);
 
@@ -87,7 +87,7 @@ std::shared_ptr<NamespaceValue> Namespace::GetAttribute(const String& key) const
 	return it->second;
 }
 
-void Namespace::SetAttribute(const String& key, const std::shared_ptr<NamespaceValue>& nsVal)
+void Namespace::SetAttribute(const String& key, const NamespaceValue::Ptr& nsVal)
 {
 	ObjectLock olock(this);
 
@@ -162,7 +162,7 @@ void ConstEmbeddedNamespaceValue::Set(const Value& value, bool overrideFrozen, c
 
 void NamespaceBehavior::Register(const Namespace::Ptr& ns, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) const
 {
-	ns->SetAttribute(field, std::make_shared<EmbeddedNamespaceValue>(value));
+	ns->SetAttribute(field, new EmbeddedNamespaceValue(value));
 }
 
 void NamespaceBehavior::Remove(const Namespace::Ptr& ns, const String& field, bool overrideFrozen)
@@ -182,7 +182,7 @@ void ConstNamespaceBehavior::Register(const Namespace::Ptr& ns, const String& fi
 	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified.", debugInfo));
 
-	ns->SetAttribute(field, std::make_shared<ConstEmbeddedNamespaceValue>(value));
+	ns->SetAttribute(field, new ConstEmbeddedNamespaceValue(value));
 }
 
 void ConstNamespaceBehavior::Remove(const Namespace::Ptr& ns, const String& field, bool overrideFrozen)

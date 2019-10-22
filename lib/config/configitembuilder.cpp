@@ -48,7 +48,7 @@ void ConfigItemBuilder::AddExpression(Expression *expr)
 	m_Expressions.emplace_back(expr);
 }
 
-void ConfigItemBuilder::SetFilter(const std::shared_ptr<Expression>& filter)
+void ConfigItemBuilder::SetFilter(const Expression::Ptr& filter)
 {
 	m_Filter = filter;
 }
@@ -111,7 +111,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile()
 	dexpr->MakeInline();
 	exprs.emplace_back(dexpr);
 
-	std::shared_ptr<DictExpression> exprl = std::make_shared<DictExpression>(std::move(exprs), m_DebugInfo);
+	auto exprl = new DictExpression(std::move(exprs), m_DebugInfo);
 	exprl->MakeInline();
 
 	return new ConfigItem(m_Type, m_Name, m_Abstract, exprl, m_Filter,
