@@ -1173,11 +1173,10 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckR
 
 	auto output (SplitOutput(cr ? cr->GetOutput() : ""));
 
-	m_Rcon->FireAndForgetQuery({
-		"XADD", service ? "icinga:history:stream:service:state" : "icinga:history:stream:host:state", "*",
+	std::vector<String> xAdd ({
+		"XADD", "icinga:history:stream:state", "*",
 		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
-		service ? "service_id" : "host_id", GetObjectIdentifier(checkable),
 		"change_time", Convert::ToString(TimestampToMilliseconds(cr ? cr->GetExecutionEnd() : Utility::GetTime())),
 		"state_type", Convert::ToString(type),
 		"soft_state", Convert::ToString(cr ? cr->GetState() : 99),
@@ -1192,6 +1191,20 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckR
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "state"
 	});
+
+	if (service) {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("service");
+		xAdd.emplace_back("service_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	} else {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("host");
+		xAdd.emplace_back("host_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	}
+
+	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
 void RedisWriter::SendSentNotification(
@@ -1205,11 +1218,10 @@ void RedisWriter::SendSentNotification(
 	auto service (dynamic_pointer_cast<Service>(checkable));
 	auto output (SplitOutput(cr->GetOutput()));
 
-	m_Rcon->FireAndForgetQuery({
-		"XADD", service ? "icinga:history:stream:service:notification" : "icinga:history:stream:host:notification", "*",
+	std::vector<String> xAdd ({
+		"XADD", "icinga:history:stream:notification", "*",
 		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
-		service ? "service_id" : "host_id", GetObjectIdentifier(checkable),
 		"notification_id", GetObjectIdentifier(notification),
 		"type", Convert::ToString(type),
 		"send_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
@@ -1220,6 +1232,20 @@ void RedisWriter::SendSentNotification(
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "notification"
 	});
+
+	if (service) {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("service");
+		xAdd.emplace_back("service_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	} else {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("host");
+		xAdd.emplace_back("host_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	}
+
+	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
 void RedisWriter::SendAddedDowntime(const Downtime::Ptr& downtime)
@@ -1227,14 +1253,14 @@ void RedisWriter::SendAddedDowntime(const Downtime::Ptr& downtime)
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	auto service (dynamic_pointer_cast<Service>(downtime->GetCheckable()));
+	auto checkable (downtime->GetCheckable());
+	auto service (dynamic_pointer_cast<Service>(checkable));
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
 
 	std::vector<String> xAdd ({
-		"XADD", service ? "icinga:history:stream:service:downtime" : "icinga:history:stream:host:downtime", "*",
+		"XADD", "icinga:history:stream:downtime", "*",
 		"downtime_id", GetObjectIdentifier(downtime),
 		"environment_id", SHA1(GetEnvironment()),
-		service ? "service_id" : "host_id", GetObjectIdentifier(downtime->GetCheckable()),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
@@ -1249,6 +1275,18 @@ void RedisWriter::SendAddedDowntime(const Downtime::Ptr& downtime)
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "downtime_schedule"
 	});
+
+	if (service) {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("service");
+		xAdd.emplace_back("service_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	} else {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("host");
+		xAdd.emplace_back("host_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	}
 
 	if (triggeredBy) {
 		xAdd.emplace_back("triggered_by_id");
@@ -1277,14 +1315,14 @@ void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 
 	SendConfigUpdate(downtime, true);
 
-	auto service (dynamic_pointer_cast<Service>(downtime->GetCheckable()));
+	auto checkable (downtime->GetCheckable());
+	auto service (dynamic_pointer_cast<Service>(checkable));
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
 
 	std::vector<String> xAdd ({
-		"XADD", service ? "icinga:history:stream:service:downtime" : "icinga:history:stream:host:downtime", "*",
+		"XADD", "icinga:history:stream:downtime", "*",
 		"downtime_id", GetObjectIdentifier(downtime),
 		"environment_id", SHA1(GetEnvironment()),
-		service ? "service_id" : "host_id", GetObjectIdentifier(downtime->GetCheckable()),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
@@ -1299,6 +1337,18 @@ void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "downtime_start"
 	});
+
+	if (service) {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("service");
+		xAdd.emplace_back("service_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	} else {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("host");
+		xAdd.emplace_back("host_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	}
 
 	if (triggeredBy) {
 		xAdd.emplace_back("triggered_by_id");
@@ -1325,14 +1375,14 @@ void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	auto service (dynamic_pointer_cast<Service>(downtime->GetCheckable()));
+	auto checkable (downtime->GetCheckable());
+	auto service (dynamic_pointer_cast<Service>(checkable));
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
 
 	std::vector<String> xAdd ({
-		"XADD", service ? "icinga:history:stream:service:downtime" : "icinga:history:stream:host:downtime", "*",
+		"XADD", "icinga:history:stream:downtime", "*",
 		"downtime_id", GetObjectIdentifier(downtime),
 		"environment_id", SHA1(GetEnvironment()),
-		service ? "service_id" : "host_id", GetObjectIdentifier(downtime->GetCheckable()),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
@@ -1348,6 +1398,18 @@ void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "downtime_end"
 	});
+
+	if (service) {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("service");
+		xAdd.emplace_back("service_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	} else {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("host");
+		xAdd.emplace_back("host_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	}
 
 	if (triggeredBy) {
 		xAdd.emplace_back("triggered_by_id");
@@ -1374,13 +1436,13 @@ void RedisWriter::SendAddedComment(const Comment::Ptr& comment)
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	auto service (dynamic_pointer_cast<Service>(comment->GetCheckable()));
+	auto checkable (comment->GetCheckable());
+	auto service (dynamic_pointer_cast<Service>(checkable));
 
-	m_Rcon->FireAndForgetQuery({
-		"XADD", service ? "icinga:history:stream:service:comment" : "icinga:history:stream:host:comment", "*",
+	std::vector<String> xAdd ({
+		"XADD", "icinga:history:stream:comment", "*",
 		"comment_id", GetObjectIdentifier(comment),
 		"environment_id", SHA1(GetEnvironment()),
-		service ? "service_id" : "host_id", GetObjectIdentifier(comment->GetCheckable()),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetAuthor()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
@@ -1390,6 +1452,20 @@ void RedisWriter::SendAddedComment(const Comment::Ptr& comment)
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "comment_add"
 	});
+
+	if (service) {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("service");
+		xAdd.emplace_back("service_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	} else {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("host");
+		xAdd.emplace_back("host_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	}
+
+	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
 void RedisWriter::SendRemovedComment(const Comment::Ptr& comment)
@@ -1397,13 +1473,13 @@ void RedisWriter::SendRemovedComment(const Comment::Ptr& comment)
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	auto service (dynamic_pointer_cast<Service>(comment->GetCheckable()));
+	auto checkable (comment->GetCheckable());
+	auto service (dynamic_pointer_cast<Service>(checkable));
 
-	m_Rcon->FireAndForgetQuery({
-		"XADD", service ? "icinga:history:stream:service:comment" : "icinga:history:stream:host:comment", "*",
+	std::vector<String> xAdd ({
+		"XADD", "icinga:history:stream:comment", "*",
 		"comment_id", GetObjectIdentifier(comment),
 		"environment_id", SHA1(GetEnvironment()),
-		service ? "service_id" : "host_id", GetObjectIdentifier(comment->GetCheckable()),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetAuthor()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
@@ -1414,6 +1490,20 @@ void RedisWriter::SendRemovedComment(const Comment::Ptr& comment)
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "comment_remove"
 	});
+
+	if (service) {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("service");
+		xAdd.emplace_back("service_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	} else {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("host");
+		xAdd.emplace_back("host_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	}
+
+	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
 void RedisWriter::SendFlappingChanged(const Checkable::Ptr& checkable, const Value& value)
@@ -1423,11 +1513,10 @@ void RedisWriter::SendFlappingChanged(const Checkable::Ptr& checkable, const Val
 
 	auto service (dynamic_pointer_cast<Service>(checkable));
 
-	m_Rcon->FireAndForgetQuery({
-		"XADD", service ? "icinga:history:stream:service:flapping" : "icinga:history:stream:host:flapping", "*",
+	std::vector<String> xAdd ({
+		"XADD", "icinga:history:stream:flapping", "*",
 		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
-		service ? "service_id" : "host_id", GetObjectIdentifier(checkable),
 		"change_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"change_type", value.ToBool() ? "start" : "end",
 		"percent_state_change", Convert::ToString(checkable->GetFlappingCurrent()),
@@ -1436,6 +1525,20 @@ void RedisWriter::SendFlappingChanged(const Checkable::Ptr& checkable, const Val
 		"event_id", Utility::NewUniqueID(),
 		"event_type", value.ToBool() ? "flapping_start" : "flapping_end"
 	});
+
+	if (service) {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("service");
+		xAdd.emplace_back("service_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	} else {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("host");
+		xAdd.emplace_back("host_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	}
+
+	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
 Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
