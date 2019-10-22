@@ -294,11 +294,10 @@ script: statements
 	}
 	;
 
-statements: newlines lterm_items
+statements: optional_newlines lterm_items
 	{
 		$$ = $2;
 	}
-	| lterm_items
 	;
 
 lterm_items: /* empty */
@@ -683,8 +682,7 @@ rterm_items: /* empty */
 		$$ = new std::vector<std::unique_ptr<Expression> >();
 	}
 	| rterm_items_inner
-	| rterm_items_inner ','
-	| rterm_items_inner ',' newlines
+	| rterm_items_inner ',' optional_newlines
 	| rterm_items_inner newlines
 	;
 
@@ -693,10 +691,10 @@ rterm_items_inner: rterm
 		$$ = new std::vector<std::unique_ptr<Expression> >();
 		$$->emplace_back($1);
 	}
-	| rterm_items_inner arraysep rterm
+	| rterm_items_inner ',' optional_newlines rterm
 	{
 		$$ = $1;
-		$$->emplace_back($3);
+		$$->emplace_back($4);
 	}
 	;
 
@@ -704,21 +702,11 @@ rterm_array: '['
 	{
 		context->m_OpenBraces++;
 	}
-	newlines rterm_items ']'
+	optional_newlines rterm_items ']'
 	{
 		context->m_OpenBraces--;
 		$$ = new ArrayExpression(std::move(*$4), @$);
 		delete $4;
-	}
-	| '['
-	{
-		context->m_OpenBraces++;
-	}
-	rterm_items ']'
-	{
-		context->m_OpenBraces--;
-		$$ = new ArrayExpression(std::move(*$3), @$);
-		delete $3;
 	}
 	;
 
@@ -1234,16 +1222,14 @@ newlines: T_NEWLINE
 	| T_NEWLINE newlines
 	;
 
-/* required separator */
-sep: ',' newlines
-	| ','
-	| ';' newlines
-	| ';'
+optional_newlines: /* empty */
 	| newlines
 	;
 
-arraysep: ',' newlines
-	| ','
+/* required separator */
+sep: ',' optional_newlines
+	| ';' optional_newlines
+	| newlines
 	;
 
 %%
