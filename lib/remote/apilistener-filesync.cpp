@@ -229,6 +229,56 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	aclient->SendMessage(message);
 }
 
+static bool CompareTimestampsConfigChange(const Dictionary::Ptr& productionConfig, const Dictionary::Ptr& receivedConfig,
+	const String& stageConfigZoneDir)
+{
+	double productionTimestamp;
+	double receivedTimestamp;
+
+	// Missing production timestamp means that something really broke. Always trigger a config change then.
+	if (!productionConfig->Contains("/.timestamp"))
+		productionTimestamp = 0;
+	else
+		productionTimestamp = productionConfig->Get("/.timestamp");
+
+	// Missing received config timestamp means that something really broke. Always trigger a config change then.
+	if (!receivedConfig->Contains("/.timestamp"))
+		receivedTimestamp = Utility::GetTime() + 10;
+	else
+		receivedTimestamp = receivedConfig->Get("/.timestamp");
+
+	bool configChange;
+
+	// Skip update if our configuration files are more recent.
+	if (productionTimestamp >= receivedTimestamp) {
+
+		Log(LogInformation, "ApiListener")
+			<< "Our production configuration is more recent than the received configuration update."
+			<< " Ignoring configuration file update for path '" << stageConfigZoneDir << "'. Current timestamp '"
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", productionTimestamp) << "' ("
+			<< std::fixed << std::setprecision(6) << productionTimestamp
+			<< ") >= received timestamp '"
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", receivedTimestamp) << "' ("
+			<< receivedTimestamp << ").";
+
+		configChange = false;
+
+	} else {
+		configChange = true;
+	}
+
+	// Update the .timestamp file inside the staging directory.
+	String tsPath = stageConfigZoneDir + "/.timestamp";
+
+	if (!Utility::PathExists(tsPath)) {
+		std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
+		fp << std::fixed << receivedTimestamp;
+		fp.close();
+	}
+
+	return configChange;
+}
+
 /**
  * Registered handler when a new config::Update message is received.
  *
@@ -360,11 +410,13 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		if (checksums) {
 			Log(LogInformation, "ApiListener")
 				<< "Received configuration for zone '" << zoneName << "' from endpoint '"
-				<< fromEndpointName << "'. Comparing the checksums.";
+				<< fromEndpointName << "'. Comparing the timestamp and checksums.";
 
-			// TODO: Do this earlier in hello-handshakes?
-			if (CheckConfigChange(productionConfigInfo, newConfigInfo))
-				configChange = true;
+			if (CompareTimestampsConfigChange(productionConfig, newConfig, stageConfigZoneDir)) {
+
+				if (CheckConfigChange(productionConfigInfo, newConfigInfo))
+					configChange = true;
+			}
 
 		} else {
 			/* Fallback to timestamp handling when the parent endpoint didn't send checks.
@@ -377,33 +429,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 				<< "Received configuration update without checksums from parent endpoint "
 				<< fromEndpointName << ". This behaviour is deprecated. Please upgrade the parent endpoint to 2.11+";
 
-			double productionTimestamp;
-
-			if (!productionConfig->Contains("/.timestamp"))
-				productionTimestamp = 0;
-			else
-				productionTimestamp = productionConfig->Get("/.timestamp");
-
-			double newTimestamp;
-
-			if (!newConfig->Contains("/.timestamp"))
-				newTimestamp = Utility::GetTime();
-			else
-				newTimestamp = newConfig->Get("/.timestamp");
-
-			// Skip update if our configuration files are more recent.
-			if (productionTimestamp >= newTimestamp) {
-
-				Log(LogInformation, "ApiListener")
-					<< "Our configuration is more recent than the received configuration update."
-					<< " Ignoring configuration file update for path '" << stageConfigZoneDir << "'. Current timestamp '"
-					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", productionTimestamp) << "' ("
-					<< std::fixed << std::setprecision(6) << productionTimestamp
-					<< ") >= received timestamp '"
-					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
-					<< newTimestamp << ").";
-
-			} else {
+			if (CompareTimestampsConfigChange(productionConfig, newConfig, stageConfigZoneDir)) {
 				configChange = true;
 			}
 
@@ -419,14 +445,6 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 							configChange = true;
 					}
 				}
-			}
-
-			// Update the .timestamp file.
-			String tsPath = stageConfigZoneDir + "/.timestamp";
-			if (!Utility::PathExists(tsPath)) {
-				std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
-				fp << std::fixed << newTimestamp;
-				fp.close();
 			}
 		}
 
@@ -507,7 +525,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	} else {
 		Log(LogInformation, "ApiListener")
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
-			<< "' are equal to production, not triggering reload.";
+			<< "' do not qualify for production, not triggering reload.";
 	}
 
 	return Empty;
