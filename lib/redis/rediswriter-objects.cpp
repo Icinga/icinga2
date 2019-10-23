@@ -1205,6 +1205,13 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckR
 		xAdd.emplace_back(GetObjectIdentifier(checkable));
 	}
 
+	auto endpoint (Endpoint::GetLocalEndpoint());
+
+	if (endpoint) {
+		xAdd.emplace_back("endpoint_id");
+		xAdd.emplace_back(GetObjectIdentifier(endpoint));
+	}
+
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
@@ -1244,6 +1251,13 @@ void RedisWriter::SendSentNotification(
 		xAdd.emplace_back("host");
 		xAdd.emplace_back("host_id");
 		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	}
+
+	auto endpoint (Endpoint::GetLocalEndpoint());
+
+	if (endpoint) {
+		xAdd.emplace_back("endpoint_id");
+		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
@@ -1304,6 +1318,13 @@ void RedisWriter::SendAddedDowntime(const Downtime::Ptr& downtime)
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())));
 		xAdd.emplace_back("actual_end_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + downtime->GetDuration())));
+	}
+
+	auto endpoint (Endpoint::GetLocalEndpoint());
+
+	if (endpoint) {
+		xAdd.emplace_back("endpoint_id");
+		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
@@ -1368,6 +1389,13 @@ void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + downtime->GetDuration())));
 	}
 
+	auto endpoint (Endpoint::GetLocalEndpoint());
+
+	if (endpoint) {
+		xAdd.emplace_back("endpoint_id");
+		xAdd.emplace_back(GetObjectIdentifier(endpoint));
+	}
+
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
@@ -1429,6 +1457,13 @@ void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + downtime->GetDuration())));
 	}
 
+	auto endpoint (Endpoint::GetLocalEndpoint());
+
+	if (endpoint) {
+		xAdd.emplace_back("endpoint_id");
+		xAdd.emplace_back(GetObjectIdentifier(endpoint));
+	}
+
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
@@ -1464,6 +1499,13 @@ void RedisWriter::SendAddedComment(const Comment::Ptr& comment)
 		xAdd.emplace_back("host");
 		xAdd.emplace_back("host_id");
 		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	}
+
+	auto endpoint (Endpoint::GetLocalEndpoint());
+
+	if (endpoint) {
+		xAdd.emplace_back("endpoint_id");
+		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
@@ -1504,6 +1546,13 @@ void RedisWriter::SendRemovedComment(const Comment::Ptr& comment)
 		xAdd.emplace_back(GetObjectIdentifier(checkable));
 	}
 
+	auto endpoint (Endpoint::GetLocalEndpoint());
+
+	if (endpoint) {
+		xAdd.emplace_back("endpoint_id");
+		xAdd.emplace_back(GetObjectIdentifier(endpoint));
+	}
+
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
@@ -1537,6 +1586,13 @@ void RedisWriter::SendFlappingChanged(const Checkable::Ptr& checkable, const Val
 		xAdd.emplace_back("host");
 		xAdd.emplace_back("host_id");
 		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	}
+
+	auto endpoint (Endpoint::GetLocalEndpoint());
+
+	if (endpoint) {
+		xAdd.emplace_back("endpoint_id");
+		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
