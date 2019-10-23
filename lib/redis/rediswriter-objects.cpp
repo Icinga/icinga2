@@ -1237,7 +1237,6 @@ void RedisWriter::SendSentNotification(
 		return;
 
 	auto service (dynamic_pointer_cast<Service>(checkable));
-	auto output (SplitOutput(cr->GetOutput()));
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:notification", "*",
@@ -1248,8 +1247,8 @@ void RedisWriter::SendSentNotification(
 		"send_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"state", Convert::ToString(cr->GetState()),
 		"previous_hard_state", Convert::ToString(GetPreviousHardState(checkable, service)),
-		"output", Utility::ValidateUTF8(std::move(output.first)),
-		"long_output", Utility::ValidateUTF8(std::move(output.second)),
+		"author", Utility::ValidateUTF8(author),
+		"text", Utility::ValidateUTF8(text),
 		"users_notified", Convert::ToString(users),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "notification"
