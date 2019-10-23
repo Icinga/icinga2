@@ -27,6 +27,9 @@ class OpenTsdbWriter : ConfigObject
 	[config] Dictionary::Ptr service_template {
 		default {{{ return new Dictionary(); }}}
 	};
+	[config] bool enable_generic_metrics {
+		default {{{ return false; }}}
+	};
 
 	[no_user_modify] bool connected;
 	[no_user_modify] bool should_connect {
@@ -36,11 +39,13 @@ class OpenTsdbWriter : ConfigObject
 
 validator OpenTsdbWriter {
 	Dictionary host_template {
+		String metric;
 		Dictionary "tags" {
 			String "*";
 		};
 	};
 	Dictionary service_template {
+		String metric;
 		Dictionary "tags" {
 			String "*";
 		};

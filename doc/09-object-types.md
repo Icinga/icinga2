@@ -1703,8 +1703,9 @@ Configuration Attributes:
   host            	    | String                | **Optional.** OpenTSDB host address. Defaults to `127.0.0.1`.
   port            	    | Number                | **Optional.** OpenTSDB port. Defaults to `4242`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
-  host_template             | Dictionary                | **Optional.** Specify additional tags to be included with host metrics. This requires a sub-dictionary named `tags`. More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags). Defaults to an `empty Dictionary`.
-  service_template          | Dictionary                | **Optional.** Specify additional tags to be included with service metrics. This requires a sub-dictionary named `tags`. More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags). Defaults to an `empty Dictionary`.
+  enable_generic_metrics    | Boolean               | **Optional.** Re-use metric names to store different perfdata values for a particular check. Use tags to distinguish perfdata instead of metric name. Defaults to `false`.
+  host_template             | Dictionary                | **Optional.** Specify additional tags to be included with host metrics. This requires a sub-dictionary named `tags`. Also specify a naming prefix by setting `metric`. More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags) and [OpenTSDB Metric Prefix](14-features.md#opentsdb-metric-prefix). More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags). Defaults to an `empty Dictionary`.
+  service_template          | Dictionary                | **Optional.** Specify additional tags to be included with service metrics. This requires a sub-dictionary named `tags`. Also specify a naming prefix by setting `metric`. More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags) and [OpenTSDB Metric Prefix](14-features.md#opentsdb-metric-prefix). Defaults to an `empty Dictionary`.
 
 
 ### PerfdataWriter <a id="objecttype-perfdatawriter"></a>

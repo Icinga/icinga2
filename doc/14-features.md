@@ -594,20 +594,33 @@ You can enable the feature using
 By default the `OpenTsdbWriter` object expects the TSD to listen at
 `127.0.0.1` on port `4242`.
 
-The current naming schema is
+The current default naming schema is:
 
 ```
-icinga.host.<metricname>
-icinga.service.<servicename>.<metricname>
+icinga.host.<perfdata_metric_label>
+icinga.service.<servicename>.<perfdata_metric_label>
 ```
 
-for host and service checks. The tag host is always applied.
+for host and service checks. The tag `host` is always applied.
+
+Icinga also sends perfdata warning, critical, minimum and maximum threshold values to OpenTSDB.
+These are stored as new OpenTSDB metric names appended with `_warn`, `_crit`, `_min`, `_max`.
+Values are only stored when the corresponding threshold exists in Icinga's perfdata.
+
+Example:
+```
+icinga.service.<servicename>.<perfdata_metric_label>
+icinga.service.<servicename>.<perfdata_metric_label>._warn
+icinga.service.<servicename>.<perfdata_metric_label>._crit
+icinga.service.<servicename>.<perfdata_metric_label>._min
+icinga.service.<servicename>.<perfdata_metric_label>._max
+```
 
 To make sure Icinga 2 writes a valid metric into OpenTSDB some characters are replaced
 with `_` in the target name:
 
 ```
-\  (and space)
+\ :  (and space)
 ```
 
 The resulting name in OpenTSDB might look like:
@@ -651,6 +664,77 @@ with the following tags
 >
 > You might want to set the tsd.core.auto_create_metrics setting to `true`
 > in your opentsdb.conf configuration file.
+
+#### OpenTSDB Metric Prefix <a id="opentsdb-metric-prefix"></a>
+Functionality exists to modify the built in OpenTSDB metric names that the plugin
+writes to. By default this is `icinga.host` and `icinga.service.<servicename>`.
+
+These prefixes can be modified as necessary to any arbitary string. The prefix
+configuration also supports Icinga macros, so if you rather use `<checkcommand>` 
+or any other variable instead of `<servicename>` you may do so.
+
+To configure OpenTSDB metric name prefixes, create or modify the `host_template` and/or
+`service_template` blocks in the `opentsdb.conf` file, to add a `metric` definition.
+These modifications go hand in hand with the **OpenTSDB Custom Tag Support** detailed below,
+and more information around macro use can be found there.
+
+Additionally, using custom Metric Prefixes or your own macros in the prefix may be
+helpful if you are using the **OpenTSDB Generic Metric** functionality detailed below.
+
+An example configuration which includes prefix name modification:
+
+```
+object OpenTsdbWriter "opentsdb" {
+  host = "127.0.0.1"
+  port = 4242
+  host_template = {
+    metric = "icinga.myhost"
+    tags = {
+      location = "$host.vars.location$"
+      checkcommand = "$host.check_command$"
+    }
+  }
+  service_template = {
+    metric = "icinga.service.$service.check_command$"
+  }
+}
+```
+
+The above configuration will output the following naming schema:
+```
+icinga.myhost.<perfdata_metric_label>
+icinga.service.<check_command_name>.<perfdata_metric_label>
+```
+Note how `<perfdata_metric_label>` is always appended in the default naming schema mode.
+
+#### OpenTSDB Generic Metric Naming Schema <a id="opentsdb-generic-metrics"></a>
+
+An alternate naming schema (`Generic Metrics`) is available where OpenTSDB metric names are more generic
+and do not include the Icinga perfdata label in the metric name. Instead,
+perfdata labels are stored in a tag `label` which is stored along with each perfdata value.
+
+This ultimately reduces the number of unique OpenTSDB metric names which may make
+querying aggregate data easier. This also allows you to store all perfdata values for a
+particular check inside one OpenTSDB metric name for each check.
+
+This alternate naming schema can be enabled by setting the following in the OpenTSDBWriter config:
+`enable_generic_metrics = true`
+
+> **Tip**
+> Consider using `Generic Metrics` along with the **OpenTSDB Metric Prefix** naming options
+> described above
+
+An example of this naming schema when compared to the default is:
+
+```
+icinga.host
+icinga.service.<servicename>
+```
+
+> **Note**
+> Note how `<perfdata_metric_label>` does not appear in the OpenTSDB metric name
+> when using `Generic Metrics`. Instead, a new tag `label` appears on each value written
+> to OpenTSDB which contains the perfdata label.
 
 #### Custom Tags <a id="opentsdb-custom-tags"></a>
 
