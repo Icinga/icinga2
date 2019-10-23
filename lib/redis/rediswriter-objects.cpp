@@ -1140,6 +1140,18 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 						   });
 }
 
+static
+unsigned short GetPreviousHardState(const Checkable::Ptr& checkable, const Service::Ptr& service)
+{
+	auto phs (checkable->GetLastHardStatesRaw() % 100u);
+
+	if (service) {
+		return phs;
+	} else {
+		return phs == 99 ? phs : Host::CalculateState(ServiceState(phs));
+	}
+}
+
 void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
@@ -1185,6 +1197,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckR
 		// TODO: last_hard/soft_state should be "previous".
 		"last_soft_state", Convert::ToString(cr ? cr->GetState() : 99),
 		"last_hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
+		"previous_hard_state", Convert::ToString(GetPreviousHardState(checkable, service)),
 		"output", Utility::ValidateUTF8(std::move(output.first)),
 		"long_output", Utility::ValidateUTF8(std::move(output.second)),
 		"check_source", cr->GetCheckSource(),
@@ -1234,6 +1247,7 @@ void RedisWriter::SendSentNotification(
 		"type", Convert::ToString(type),
 		"send_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"state", Convert::ToString(cr->GetState()),
+		"previous_hard_state", Convert::ToString(GetPreviousHardState(checkable, service)),
 		"output", Utility::ValidateUTF8(std::move(output.first)),
 		"long_output", Utility::ValidateUTF8(std::move(output.second)),
 		"users_notified", Convert::ToString(users),
