@@ -10,6 +10,29 @@ follow the instructions for v2.7 too.
 
 ## Upgrading to v2.11 <a id="upgrading-to-2-11"></a>
 
+### Bugfixes for 2.11 <a id="upgrading-to-2-11-bugfixes"></a>
+
+2.11.1 on agents/satellites fixes a problem where 2.10.x as config master would send out an unwanted config marker file,
+thus rendering the agent to think it is autoritative for the config, and never accepting any new
+config files for the zone(s). **If your config master is 2.11.x already, you are not affected by this problem.**
+
+In order to fix this, upgrade to at least 2.11.1, and purge away the local config sync storage once, then restart.
+
+```
+yum install icinga2
+
+rm -rf /var/lib/icinga2/api/zones/*
+rm -rf /var/lib/icinga2/api/zones-stage/*
+
+systemctl restart icinga2
+```
+
+2.11.2 fixes a problem where the newly introduced config sync "check-change-then-reload" functionality
+could cause endless reload loops with agents. The most visible parts are failing command endpoint checks
+with "not connected" UNKNOWN state. **Only applies to HA enabled zones with 2 masters and/or 2 satellites.**
+
+In order to fix this, upgrade all agents/satellites to at least 2.11.2 and restart them.
+
 ### Packages <a id="upgrading-to-2-11-packages"></a>
 
 EOL distributions where no packages are available with this release:
