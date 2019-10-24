@@ -7,6 +7,17 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.11.2 (2019-10-24)
+
+2.11.2 fixes a problem where the newly introduced config sync "check-change-then-reload" functionality
+could cause endless reload loops with agents. The most visible parts are failing command endpoint checks
+with "not connected" UNKNOWN state. **Only applies to HA enabled zones with 2 masters and/or 2 satellites.**
+
+### Bugfixes
+
+* Cluster Config Sync
+  * Config sync checksum change detection may not work within high load HA clusters #7565
+
 ## 2.11.1 (2019-10-17)
 
 This release fixes a hidden long lasting bug unveiled with 2.11 and distributed setups.
