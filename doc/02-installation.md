@@ -147,25 +147,21 @@ CentOS 7/6:
 yum install epel-release
 ```
 
+If you are using RHEL 6 or 7 you need to additionally enable the `optional` repository before installing
+the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
+
 RHEL 7:
 
 ```
+subscription-manager repos --enable rhel-7-server-optional-rpms
 yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 ```
 
 RHEL 6:
 
 ```
-yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
-```
-
-If you are using RHEL 6 or 7 you need to additionally enable the `optional` repository before installing
-the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
-
-```
-subscription-manager repos --enable rhel-7-server-optional-rpms
-# or
 subscription-manager repos --enable rhel-6-server-optional-rpms
+yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
 ```
 
 #### SLES/OpenSUSE Repositories <a id="package-repositories-sles-opensuse"></a>
