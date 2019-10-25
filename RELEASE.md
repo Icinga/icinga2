@@ -215,10 +215,20 @@ Once there, navigate to `build/RPMS/noarch` where you'll find the packages.
 To build release packages and upload them to [packages.icinga.com](https://packages.icinga.com)
 tag the release commit and push it.
 
+RPM/DEB/Raspbian:
+
 ```
-git tag -s 2.11.0-1
-git push origin 2.11.0-1
+git tag -s $VERSION-1 -m "Release v$VERSION-1"
+git push origin $VERSION-1
 ```
+
+Windows:
+
+```
+git tag -s $VERSION -m "Release v$VERSION"
+git push origin $VERSION
+```
+
 
 Now cherry pick the release commit to `master` so that the changes are transferred back to it.
 
@@ -248,7 +258,7 @@ are triggered and automatically published to packages.icinga.com
 ### CentOS
 
 ```
-docker run -ti centos:latest bash
+docker run -ti centos:7 bash
 
 yum -y install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
 yum -y install epel-release
