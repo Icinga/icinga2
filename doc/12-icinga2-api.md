@@ -656,7 +656,8 @@ https://localhost:5665/v1/objects/services?all_joins=1
 > For performance reasons you should only request attributes which your application
 > requires.
 
-The following joins are available:
+Please note that the object type refers to the URL endpoint with `/v1/objects/<object type>`
+where the following joins are available:
 
   Object Type  | Object Relations (`joins` prefix name)
   -------------|------------------------------------------
