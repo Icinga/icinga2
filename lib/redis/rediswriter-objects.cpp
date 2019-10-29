@@ -1638,6 +1638,7 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 		attrs->Set("severity", host->GetSeverity());
 	}
 
+	attrs->Set("previous_hard_state", Convert::ToString(GetPreviousHardState(checkable, service)));
 	attrs->Set("check_attempt", checkable->GetCheckAttempt());
 
 	attrs->Set("is_active", checkable->IsActive());
