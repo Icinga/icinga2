@@ -54,7 +54,7 @@ if(ICINGA2_WITH_PERFDATA)
 endif()
 
 if(ICINGA2_WITH_REDIS)
-  add_subdirectory(redis)
+  add_subdirectory(icingadb)
 endif()
 
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}" PARENT_SCOPE)

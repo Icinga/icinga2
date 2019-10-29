@@ -54,7 +54,7 @@ if(ICINGA2_WITH_PERFDATA)
 endif()
 
 if(ICINGA2_WITH_REDIS)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:redis>)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:icingadb>)
 endif()
 
 add_executable(icinga-app

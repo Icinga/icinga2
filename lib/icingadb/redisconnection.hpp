@@ -55,7 +55,7 @@ namespace icinga
 /**
  * An Async Redis connection.
  *
- * @ingroup redis
+ * @ingroup icingadb
  */
 	class RedisConnection final : public Object
 	{

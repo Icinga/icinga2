@@ -15,29 +15,29 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(rediswriter.ti rediswriter-ti.cpp rediswriter-ti.hpp)
+mkclass_target(icingadb.ti icingadb-ti.cpp icingadb-ti.hpp)
 
-set(redis_SOURCES
-  rediswriter.cpp rediswriter-objects.cpp rediswriter-stats.cpp rediswriter-utility.cpp redisconnection.cpp rediswriter-ti.hpp
+set(icingadb_SOURCES
+  icingadb.cpp icingadb-objects.cpp icingadb-stats.cpp icingadb-utility.cpp redisconnection.cpp icingadb-ti.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(redis redis redis_SOURCES)
+    mkunity_target(icingadb icingadb icingadb_SOURCES)
 endif()
 
-add_library(redis OBJECT ${redis_SOURCES})
+add_library(icingadb OBJECT ${icingadb_SOURCES})
 
 include_directories(${icinga2_SOURCE_DIR}/third-party)
 
-add_dependencies(redis base config icinga remote)
+add_dependencies(icingadb base config icinga remote)
 
 set_target_properties (
-  redis PROPERTIES
+  icingadb PROPERTIES
   FOLDER Components
 )
 
 install_if_not_exists(
-  ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/redis.conf
+  ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/icingadb.conf
   ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available
 )
 

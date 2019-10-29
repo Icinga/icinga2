@@ -20,12 +20,12 @@
 #ifndef REDISWRITER_H
 #define REDISWRITER_H
 
-#include "redis/rediswriter-ti.hpp"
+#include "icingadb/icingadb-ti.hpp"
 #include "icinga/customvarobject.hpp"
 #include "remote/messageorigin.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include "redis/redisconnection.hpp"
+#include "icingadb/redisconnection.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/service.hpp"
 #include "icinga/downtime.hpp"
@@ -40,7 +40,7 @@ struct RedisSubscriptionInfo
 };
 
 /**
- * @ingroup redis
+ * @ingroup icingadb
  */
 class IcingaDB : public ObjectImpl<IcingaDB>
 {

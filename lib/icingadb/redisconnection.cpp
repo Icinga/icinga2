@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "redis/redisconnection.hpp"
+#include "icingadb/redisconnection.hpp"
 #include "base/array.hpp"
 #include "base/convert.hpp"
 #include "base/defer.hpp"
