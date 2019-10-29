@@ -35,14 +35,14 @@ using namespace icinga;
 //TODO Make configurable and figure out a sane default
 #define MAX_EVENTS_DEFAULT 5000
 
-REGISTER_TYPE(RedisWriter);
+REGISTER_TYPE(IcingaDB);
 
-RedisWriter::RedisWriter()
+IcingaDB::IcingaDB()
 : m_Rcon(nullptr)
 {
 	m_Rcon = nullptr;
 
-	m_WorkQueue.SetName("RedisWriter");
+	m_WorkQueue.SetName("IcingaDB");
 
 	m_PrefixConfigObject = "icinga:config:";
 	m_PrefixConfigCheckSum = "icinga:checksum:";
@@ -52,11 +52,11 @@ RedisWriter::RedisWriter()
 /**
  * Starts the component.
  */
-void RedisWriter::Start(bool runtimeCreated)
+void IcingaDB::Start(bool runtimeCreated)
 {
-	ObjectImpl<RedisWriter>::Start(runtimeCreated);
+	ObjectImpl<IcingaDB>::Start(runtimeCreated);
 
-	Log(LogInformation, "RedisWriter")
+	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' started.";
 
 	m_ConfigDumpInProgress = false;
@@ -83,27 +83,27 @@ void RedisWriter::Start(bool runtimeCreated)
 	m_StatsTimer->OnTimerExpired.connect([this](const Timer * const&) { PublishStatsTimerHandler(); });
 	m_StatsTimer->Start();
 
-	m_WorkQueue.SetName("RedisWriter");
+	m_WorkQueue.SetName("IcingaDB");
 
-	boost::thread thread(&RedisWriter::HandleEvents, this);
+	boost::thread thread(&IcingaDB::HandleEvents, this);
 	thread.detach();
 
 }
 
-void RedisWriter::ExceptionHandler(boost::exception_ptr exp)
+void IcingaDB::ExceptionHandler(boost::exception_ptr exp)
 {
-	Log(LogCritical, "RedisWriter", "Exception during redis query. Verify that Redis is operational.");
+	Log(LogCritical, "IcingaDB", "Exception during redis query. Verify that Redis is operational.");
 
-	Log(LogDebug, "RedisWriter")
+	Log(LogDebug, "IcingaDB")
 		<< "Exception during redis operation: " << DiagnosticInformation(exp);
 }
 
-void RedisWriter::ReconnectTimerHandler()
+void IcingaDB::ReconnectTimerHandler()
 {
 	m_WorkQueue.Enqueue([this]() { TryToReconnect(); });
 }
 
-void RedisWriter::TryToReconnect()
+void IcingaDB::TryToReconnect()
 {
 	AssertOnWorkQueue();
 
@@ -131,16 +131,16 @@ void RedisWriter::TryToReconnect()
 	m_ConfigDumpInProgress = false;
 }
 
-void RedisWriter::UpdateSubscriptionsTimerHandler()
+void IcingaDB::UpdateSubscriptionsTimerHandler()
 {
 	m_WorkQueue.Enqueue([this]() { UpdateSubscriptions(); });
 }
 
-void RedisWriter::UpdateSubscriptions()
+void IcingaDB::UpdateSubscriptions()
 {
 	AssertOnWorkQueue();
 
-	Log(LogInformation, "RedisWriter", "Updating Redis subscriptions");
+	Log(LogInformation, "IcingaDB", "Updating Redis subscriptions");
 
 	/* TODO:
 	 * Silently return in this case. Usually the RedisConnection checks for connectivity and logs in failure case.
@@ -168,8 +168,8 @@ void RedisWriter::UpdateSubscriptions()
 
 			RedisSubscriptionInfo rsi;
 
-			if (!RedisWriter::GetSubscriptionTypes(key, rsi)) {
-				Log(LogInformation, "RedisWriter")
+			if (!IcingaDB::GetSubscriptionTypes(key, rsi)) {
+				Log(LogInformation, "IcingaDB")
 					<< "Subscription \"" << key << "\" has no types listed.";
 			} else {
 				m_Subscriptions[key.SubStr(keyPrefix.GetLength())] = rsi;
@@ -177,11 +177,11 @@ void RedisWriter::UpdateSubscriptions()
 		}
 	} while (cursor != "0");
 
-	Log(LogInformation, "RedisWriter")
+	Log(LogInformation, "IcingaDB")
 		<< "Current Redis event subscriptions: " << m_Subscriptions.size();
 }
 
-bool RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
+bool IcingaDB::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 {
 	try {
 		Array::Ptr redisReply = m_Rcon->GetResultOfQuery({ "SMEMBERS", key });
@@ -197,11 +197,11 @@ bool RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 			}
 		}
 
-		Log(LogInformation, "RedisWriter")
+		Log(LogInformation, "IcingaDB")
 			<< "Subscriber Info - Key: " << key << " Value: " << Value(Array::FromSet(rsi.EventTypes));
 
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "RedisWriter")
+		Log(LogWarning, "IcingaDB")
 			<< "Invalid Redis subscriber info for subscriber '" << key << "': " << DiagnosticInformation(ex);
 
 		return false;
@@ -210,12 +210,12 @@ bool RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 	return true;
 }
 
-void RedisWriter::PublishStatsTimerHandler(void)
+void IcingaDB::PublishStatsTimerHandler(void)
 {
 	m_WorkQueue.Enqueue([this]() { PublishStats(); });
 }
 
-void RedisWriter::PublishStats()
+void IcingaDB::PublishStats()
 {
 	AssertOnWorkQueue();
 
@@ -229,7 +229,7 @@ void RedisWriter::PublishStats()
 	m_Rcon->FireAndForgetQuery({ "PUBLISH", "icinga:stats", jsonStats });
 }
 
-void RedisWriter::HandleEvents()
+void IcingaDB::HandleEvents()
 {
 	String queueName = Utility::NewUniqueID();
 	EventQueue::Ptr queue = new EventQueue(queueName);
@@ -265,7 +265,7 @@ void RedisWriter::HandleEvents()
 	EventQueue::UnregisterIfUnused(queueName, queue);
 }
 
-void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
+void IcingaDB::HandleEvent(const Dictionary::Ptr& event)
 {
 	AssertOnWorkQueue();
 
@@ -284,7 +284,7 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 		if (maxExists != 0) {
 			String redisReply = m_Rcon->GetResultOfQuery({ "GET", "icinga:subscription:" + name + ":limit"});
 
-			Log(LogInformation, "RedisWriter")
+			Log(LogInformation, "IcingaDB")
 				<< "Got limit " << redisReply << " for " << name;
 
 			maxEvents = Convert::ToLong(redisReply);
@@ -298,7 +298,7 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 	}
 }
 
-void RedisWriter::SendEvent(const Dictionary::Ptr& event)
+void IcingaDB::SendEvent(const Dictionary::Ptr& event)
 {
 	AssertOnWorkQueue();
 
@@ -347,7 +347,7 @@ void RedisWriter::SendEvent(const Dictionary::Ptr& event)
 
 	String body = JsonEncode(event);
 
-//	Log(LogInformation, "RedisWriter")
+//	Log(LogInformation, "IcingaDB")
 //		<< "Sending event \"" << body << "\"";
 
 	m_Rcon->FireAndForgetQueries({
@@ -355,15 +355,15 @@ void RedisWriter::SendEvent(const Dictionary::Ptr& event)
 		{ "PUBLISH", "icinga:event:" + event->Get("type"), body }});
 }
 
-void RedisWriter::Stop(bool runtimeRemoved)
+void IcingaDB::Stop(bool runtimeRemoved)
 {
-	Log(LogInformation, "RedisWriter")
+	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' stopped.";
 
-	ObjectImpl<RedisWriter>::Stop(runtimeRemoved);
+	ObjectImpl<IcingaDB>::Stop(runtimeRemoved);
 }
 
-void RedisWriter::AssertOnWorkQueue()
+void IcingaDB::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }

@@ -65,49 +65,49 @@ return id
 
 )EOF";
 
-INITIALIZE_ONCE(&RedisWriter::ConfigStaticInitialize);
+INITIALIZE_ONCE(&IcingaDB::ConfigStaticInitialize);
 
-void RedisWriter::ConfigStaticInitialize()
+void IcingaDB::ConfigStaticInitialize()
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
 	Checkable::OnStateChange.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
-		RedisWriter::StateChangeHandler(checkable, cr, type);
+		IcingaDB::StateChangeHandler(checkable, cr, type);
 	});
 
 	/* triggered when acknowledged host/service goes back to ok and when the acknowledgement gets deleted */
 	Checkable::OnAcknowledgementCleared.connect([](const Checkable::Ptr& checkable, const MessageOrigin::Ptr&) {
-		RedisWriter::StateChangeHandler(checkable);
+		IcingaDB::StateChangeHandler(checkable);
 	});
 
 	/* triggered on create, update and delete objects */
 	ConfigObject::OnActiveChanged.connect([](const ConfigObject::Ptr& object, const Value&) {
-		RedisWriter::VersionChangedHandler(object);
+		IcingaDB::VersionChangedHandler(object);
 	});
 	ConfigObject::OnVersionChanged.connect([](const ConfigObject::Ptr& object, const Value&) {
-		RedisWriter::VersionChangedHandler(object);
+		IcingaDB::VersionChangedHandler(object);
 	});
 
 	/* fixed/flexible downtime add */
-	Downtime::OnDowntimeAdded.connect(&RedisWriter::DowntimeAddedHandler);
+	Downtime::OnDowntimeAdded.connect(&IcingaDB::DowntimeAddedHandler);
 	/* fixed downtime start */
-	Downtime::OnDowntimeStarted.connect(&RedisWriter::DowntimeStartedHandler);
+	Downtime::OnDowntimeStarted.connect(&IcingaDB::DowntimeStartedHandler);
 	/* flexible downtime start */
-	Downtime::OnDowntimeTriggered.connect(&RedisWriter::DowntimeStartedHandler);
+	Downtime::OnDowntimeTriggered.connect(&IcingaDB::DowntimeStartedHandler);
 	/* fixed/flexible downtime end or remove */
-	Downtime::OnDowntimeRemoved.connect(&RedisWriter::DowntimeRemovedHandler);
+	Downtime::OnDowntimeRemoved.connect(&IcingaDB::DowntimeRemovedHandler);
 
 	Checkable::OnNotificationSentToAllUsers.connect([](
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
 		const NotificationType& type, const CheckResult::Ptr& cr, const String& author, const String& text,
 		const MessageOrigin::Ptr&
 	) {
-		RedisWriter::NotificationSentToAllUsersHandler(notification, checkable, users, type, cr, author, text);
+		IcingaDB::NotificationSentToAllUsersHandler(notification, checkable, users, type, cr, author, text);
 	});
 
-	Comment::OnCommentAdded.connect(&RedisWriter::CommentAddedHandler);
-	Comment::OnCommentRemoved.connect(&RedisWriter::CommentRemovedHandler);
+	Comment::OnCommentAdded.connect(&IcingaDB::CommentAddedHandler);
+	Comment::OnCommentRemoved.connect(&IcingaDB::CommentRemovedHandler);
 
-	Checkable::OnFlappingChanged.connect(&RedisWriter::FlappingChangedHandler);
+	Checkable::OnFlappingChanged.connect(&IcingaDB::FlappingChangedHandler);
 }
 
 static std::pair<String, String> SplitOutput(String output)
@@ -123,13 +123,13 @@ static std::pair<String, String> SplitOutput(String output)
 	return {std::move(output), std::move(longOutput)};
 }
 
-void RedisWriter::UpdateAllConfigObjects()
+void IcingaDB::UpdateAllConfigObjects()
 {
 	double startTime = Utility::GetTime();
 
 	// Use a Workqueue to pack objects in parallel
 	WorkQueue upq(25000, Configuration::Concurrency);
-	upq.SetName("RedisWriter:ConfigDump");
+	upq.SetName("IcingaDB:ConfigDump");
 
 	typedef std::pair<ConfigType *, String> TypePair;
 	std::vector<TypePair> types;
@@ -162,7 +162,7 @@ void RedisWriter::UpdateAllConfigObjects()
 		auto objectChunks (ChunkObjects(type.first->GetObjects(), 500));
 
 		WorkQueue upqObjectType(25000, Configuration::Concurrency);
-		upqObjectType.SetName("RedisWriter:ConfigDump:" + lcType);
+		upqObjectType.SetName("IcingaDB:ConfigDump:" + lcType);
 
 		upqObjectType.ParallelFor(objectChunks, [this, &type, &lcType](decltype(objectChunks)::const_reference chunk) {
 			std::map<String, std::vector<String>> hMSets, publishes;
@@ -250,7 +250,7 @@ void RedisWriter::UpdateAllConfigObjects()
 				m_Rcon->FireAndForgetQueries(std::move(transaction));
 			}
 
-			Log(LogNotice, "RedisWriter")
+			Log(LogNotice, "IcingaDB")
 					<< "Dumped " << bulkCounter << " objects of type " << type.second;
 		});
 
@@ -276,7 +276,7 @@ void RedisWriter::UpdateAllConfigObjects()
 					boost::rethrow_exception(exc);
 			}
 			} catch(const std::exception& e) {
-				Log(LogCritical, "RedisWriter")
+				Log(LogCritical, "IcingaDB")
 						<< "Exception during ConfigDump: " << e.what();
 			}
 		}
@@ -284,11 +284,11 @@ void RedisWriter::UpdateAllConfigObjects()
 
 	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", "*", "state", "done"});
 
-	Log(LogInformation, "RedisWriter")
+	Log(LogInformation, "IcingaDB")
 			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
 
-std::vector<std::vector<intrusive_ptr<ConfigObject>>> RedisWriter::ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize) {
+std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize) {
 	std::vector<std::vector<intrusive_ptr<ConfigObject>>> chunks;
 	auto offset (objects.begin());
 	auto end (objects.end());
@@ -308,7 +308,7 @@ std::vector<std::vector<intrusive_ptr<ConfigObject>>> RedisWriter::ChunkObjects(
 	return std::move(chunks);
 }
 
-void RedisWriter::DeleteKeys(const std::vector<String>& keys) {
+void IcingaDB::DeleteKeys(const std::vector<String>& keys) {
 	std::vector<String> query = {"DEL"};
 	for (auto& key : keys) {
 		query.emplace_back(key);
@@ -317,7 +317,7 @@ void RedisWriter::DeleteKeys(const std::vector<String>& keys) {
 	m_Rcon->FireAndForgetQuery(std::move(query));
 }
 
-std::vector<String> RedisWriter::GetTypeObjectKeys(const String& type)
+std::vector<String> IcingaDB::GetTypeObjectKeys(const String& type)
 {
 	std::vector<String> keys = {
 			m_PrefixConfigObject + type,
@@ -361,7 +361,7 @@ static ConfigObject::Ptr GetObjectByName(const String& name)
 	return ConfigObject::GetObject<ConfigType>(name);
 }
 
-void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
+void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 		std::map<String, std::vector<String>>& publishes, bool runtimeUpdate)
 {
 	String objectKey = GetObjectIdentifier(object);
@@ -780,7 +780,7 @@ void RedisWriter::InsertObjectDependencies(const ConfigObject::Ptr& object, cons
 	}
 }
 
-void RedisWriter::UpdateState(const Checkable::Ptr& checkable)
+void IcingaDB::UpdateState(const Checkable::Ptr& checkable)
 {
 	Dictionary::Ptr stateAttrs = SerializeState(checkable);
 
@@ -788,7 +788,7 @@ void RedisWriter::UpdateState(const Checkable::Ptr& checkable)
 }
 
 // Used to update a single object, used for runtime updates
-void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate)
+void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -836,7 +836,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtime
 
 // Takes object and collects IcingaDB relevant attributes and computes checksums. Returns whether the object is relevant
 // for IcingaDB.
-bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checksums)
+bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checksums)
 {
 	attributes->Set("name_checksum", CalculateCheckSumString(object->GetName()));
 	attributes->Set("environment_id", CalculateCheckSumString(GetEnvironment()));
@@ -1093,7 +1093,7 @@ bool RedisWriter::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr
  * icinga:config:object:downtime) need to be prepended. There is nothing to indicate success or failure.
  */
 void
-RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
+IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 								std::map<String, std::vector<String>>& publishes, bool runtimeUpdate)
 {
 	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
@@ -1128,7 +1128,7 @@ RedisWriter::CreateConfigUpdate(const ConfigObject::Ptr& object, const String ty
 	}
 }
 
-void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
+void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 {
 	String typeName = object->GetReflectionType()->GetName().ToLower();
 	String objectKey = GetObjectIdentifier(object);
@@ -1152,7 +1152,7 @@ unsigned short GetPreviousHardState(const Checkable::Ptr& checkable, const Servi
 	}
 }
 
-void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
+void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1228,7 +1228,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckR
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
-void RedisWriter::SendSentNotification(
+void IcingaDB::SendSentNotification(
 	const Notification::Ptr& notification, const Checkable::Ptr& checkable, size_t users,
 	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
 )
@@ -1276,7 +1276,7 @@ void RedisWriter::SendSentNotification(
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
-void RedisWriter::SendAddedDowntime(const Downtime::Ptr& downtime)
+void IcingaDB::SendAddedDowntime(const Downtime::Ptr& downtime)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1343,7 +1343,7 @@ void RedisWriter::SendAddedDowntime(const Downtime::Ptr& downtime)
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
-void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
+void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1412,7 +1412,7 @@ void RedisWriter::SendStartedDowntime(const Downtime::Ptr& downtime)
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
-void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
+void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1480,7 +1480,7 @@ void RedisWriter::SendRemovedDowntime(const Downtime::Ptr& downtime)
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
-void RedisWriter::SendAddedComment(const Comment::Ptr& comment)
+void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1524,7 +1524,7 @@ void RedisWriter::SendAddedComment(const Comment::Ptr& comment)
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
-void RedisWriter::SendRemovedComment(const Comment::Ptr& comment)
+void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1569,7 +1569,7 @@ void RedisWriter::SendRemovedComment(const Comment::Ptr& comment)
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
-void RedisWriter::SendFlappingChanged(const Checkable::Ptr& checkable, const Value& value)
+void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value& value)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1611,7 +1611,7 @@ void RedisWriter::SendFlappingChanged(const Checkable::Ptr& checkable, const Val
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
-Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
+Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 {
 	Dictionary::Ptr attrs = new Dictionary();
 
@@ -1709,7 +1709,7 @@ Dictionary::Ptr RedisWriter::SerializeState(const Checkable::Ptr& checkable)
 }
 
 std::vector<String>
-RedisWriter::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
+IcingaDB::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
 							   const String& typeNameOverride)
 {
 	Type::Ptr type = object->GetReflectionType();
@@ -1751,73 +1751,73 @@ RedisWriter::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
 	//m_Rcon->FireAndForgetQuery({"HSET", keyPrefix + typeName, GetObjectIdentifier(object), JsonEncode(attrs)});
 }
 
-void RedisWriter::StateChangeHandler(const ConfigObject::Ptr& object)
+void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object)
 {
 	auto checkable (dynamic_pointer_cast<Checkable>(object));
 
 	if (checkable) {
-		RedisWriter::StateChangeHandler(object, checkable->GetLastCheckResult(), checkable->GetStateType());
+		IcingaDB::StateChangeHandler(object, checkable->GetLastCheckResult(), checkable->GetStateType());
 	}
 }
 
-void RedisWriter::StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
+void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
-	for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->m_WorkQueue.Enqueue([rw, object, cr, type]() { rw->SendStatusUpdate(object, cr, type); });
 	}
 }
 
-void RedisWriter::VersionChangedHandler(const ConfigObject::Ptr& object)
+void IcingaDB::VersionChangedHandler(const ConfigObject::Ptr& object)
 {
 	Type::Ptr type = object->GetReflectionType();
 
 	if (object->IsActive()) {
 		// Create or update the object config
-		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+		for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 			if (rw)
 				rw->m_WorkQueue.Enqueue([rw, object]() { rw->SendConfigUpdate(object, true); });
 		}
 	} else if (!object->IsActive() &&
 			   object->GetExtension("ConfigObjectDeleted")) { // same as in apilistener-configsync.cpp
 		// Delete object config
-		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+		for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 			if (rw)
 				rw->m_WorkQueue.Enqueue([rw, object]() { rw->SendConfigDelete(object); });
 		}
 	}
 }
 
-void RedisWriter::DowntimeAddedHandler(const Downtime::Ptr& downtime)
+void IcingaDB::DowntimeAddedHandler(const Downtime::Ptr& downtime)
 {
-	for (auto& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->m_WorkQueue.Enqueue([rw, downtime]() { rw->SendAddedDowntime(downtime); });
 	}
 }
 
-void RedisWriter::DowntimeStartedHandler(const Downtime::Ptr& downtime)
+void IcingaDB::DowntimeStartedHandler(const Downtime::Ptr& downtime)
 {
 	StateChangeHandler(downtime->GetCheckable());
 
-	for (auto& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->m_WorkQueue.Enqueue([rw, downtime]() { rw->SendStartedDowntime(downtime); });
 	}
 }
 
-void RedisWriter::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
+void IcingaDB::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 {
 	StateChangeHandler(downtime->GetCheckable());
 
-	for (auto& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->m_WorkQueue.Enqueue([rw, downtime]() { rw->SendRemovedDowntime(downtime); });
 	}
 }
 
-void RedisWriter::NotificationSentToAllUsersHandler(
+void IcingaDB::NotificationSentToAllUsersHandler(
 	const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
 	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
 )
 {
-	auto rws (ConfigType::GetObjectsByType<RedisWriter>());
+	auto rws (ConfigType::GetObjectsByType<IcingaDB>());
 
 	if (!rws.empty()) {
 		auto usersAmount (users.size());
@@ -1831,23 +1831,23 @@ void RedisWriter::NotificationSentToAllUsersHandler(
 	}
 }
 
-void RedisWriter::CommentAddedHandler(const Comment::Ptr& comment)
+void IcingaDB::CommentAddedHandler(const Comment::Ptr& comment)
 {
-	for (auto& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->m_WorkQueue.Enqueue([rw, comment]() { rw->SendAddedComment(comment); });
 	}
 }
 
-void RedisWriter::CommentRemovedHandler(const Comment::Ptr& comment)
+void IcingaDB::CommentRemovedHandler(const Comment::Ptr& comment)
 {
-	for (auto& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->m_WorkQueue.Enqueue([rw, comment]() { rw->SendRemovedComment(comment); });
 	}
 }
 
-void RedisWriter::FlappingChangedHandler(const Checkable::Ptr& checkable, const Value& value)
+void IcingaDB::FlappingChangedHandler(const Checkable::Ptr& checkable, const Value& value)
 {
-	for (auto& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
+	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->m_WorkQueue.Enqueue([rw, checkable, value]() { rw->SendFlappingChanged(checkable, value); });
 	}
 }

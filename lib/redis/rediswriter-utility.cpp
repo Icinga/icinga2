@@ -41,7 +41,7 @@
 
 using namespace icinga;
 
-String RedisWriter::FormatCheckSumBinary(const String& str)
+String IcingaDB::FormatCheckSumBinary(const String& str)
 {
 	char output[20*2+1];
 	for (int i = 0; i < 20; i++)
@@ -50,7 +50,7 @@ String RedisWriter::FormatCheckSumBinary(const String& str)
 	return output;
 }
 
-String RedisWriter::FormatCommandLine(const Value& commandLine)
+String IcingaDB::FormatCommandLine(const Value& commandLine)
 {
 	String result;
 	if (commandLine.IsObjectType<Array>()) {
@@ -77,12 +77,12 @@ String RedisWriter::FormatCommandLine(const Value& commandLine)
 	return result;
 }
 
-String RedisWriter::GetEnvironment()
+String IcingaDB::GetEnvironment()
 {
 	return ConfigType::GetObjectsByType<IcingaApplication>()[0]->GetEnvironment();
 }
 
-String RedisWriter::GetObjectIdentifier(const ConfigObject::Ptr& object)
+String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
 {
 	Type::Ptr type = object->GetReflectionType();
 
@@ -92,12 +92,12 @@ String RedisWriter::GetObjectIdentifier(const ConfigObject::Ptr& object)
 		return HashValue((Array::Ptr)new Array({GetEnvironment(), object->GetName()}));
 }
 
-String RedisWriter::CalculateCheckSumString(const String& str)
+String IcingaDB::CalculateCheckSumString(const String& str)
 {
 	return SHA1(str);
 }
 
-String RedisWriter::CalculateCheckSumArray(const Array::Ptr& arr)
+String IcingaDB::CalculateCheckSumArray(const Array::Ptr& arr)
 {
 	/* Ensure that checksums happen in a defined order. */
 	Array::Ptr tmpArr = arr->ShallowClone();
@@ -107,7 +107,7 @@ String RedisWriter::CalculateCheckSumArray(const Array::Ptr& arr)
 	return SHA1(PackObject(tmpArr));
 }
 
-String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object, const std::set<String>& propertiesBlacklist)
+String IcingaDB::CalculateCheckSumProperties(const ConfigObject::Ptr& object, const std::set<String>& propertiesBlacklist)
 {
 	//TODO: consider precision of 6 for double values; use specific config fields for hashing?
 	return HashValue(object, propertiesBlacklist);
@@ -115,12 +115,12 @@ String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object,
 
 static const std::set<String> metadataWhitelist ({"package", "source_location", "templates"});
 
-String RedisWriter::CalculateCheckSumMetadata(const ConfigObject::Ptr& object)
+String IcingaDB::CalculateCheckSumMetadata(const ConfigObject::Ptr& object)
 {
 	return HashValue(object, metadataWhitelist, true);
 }
 
-String RedisWriter::CalculateCheckSumVars(const CustomVarObject::Ptr& object)
+String IcingaDB::CalculateCheckSumVars(const CustomVarObject::Ptr& object)
 {
 	Dictionary::Ptr vars = object->GetVars();
 
@@ -169,7 +169,7 @@ String RedisWriter::CalculateCheckSumVars(const CustomVarObject::Ptr& object)
  *
  * @return 			JSON-like data structure for Redis
  */
-Dictionary::Ptr RedisWriter::SerializeVars(const CustomVarObject::Ptr& object)
+Dictionary::Ptr IcingaDB::SerializeVars(const CustomVarObject::Ptr& object)
 {
 	Dictionary::Ptr vars = object->GetVars();
 
@@ -199,12 +199,12 @@ Dictionary::Ptr RedisWriter::SerializeVars(const CustomVarObject::Ptr& object)
 
 static const std::set<String> propertiesBlacklistEmpty;
 
-String RedisWriter::HashValue(const Value& value)
+String IcingaDB::HashValue(const Value& value)
 {
 	return HashValue(value, propertiesBlacklistEmpty);
 }
 
-String RedisWriter::HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist)
+String IcingaDB::HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist)
 {
 	Value temp;
 	bool mutabl;
@@ -252,11 +252,11 @@ String RedisWriter::HashValue(const Value& value, const std::set<String>& proper
 	return SHA1(PackObject(temp));
 }
 
-String RedisWriter::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
+String IcingaDB::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
 {
 	return obj->GetReflectionType()->GetName().ToLower();
 }
 
-long long RedisWriter::TimestampToMilliseconds(double timestamp) {
+long long IcingaDB::TimestampToMilliseconds(double timestamp) {
 	return static_cast<long long>(timestamp * 1000);
 }

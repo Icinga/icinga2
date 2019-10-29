@@ -42,13 +42,13 @@ struct RedisSubscriptionInfo
 /**
  * @ingroup redis
  */
-class RedisWriter : public ObjectImpl<RedisWriter>
+class IcingaDB : public ObjectImpl<IcingaDB>
 {
 public:
-	DECLARE_OBJECT(RedisWriter);
-	DECLARE_OBJECTNAME(RedisWriter);
+	DECLARE_OBJECT(IcingaDB);
+	DECLARE_OBJECTNAME(IcingaDB);
 
-	RedisWriter();
+	IcingaDB();
 
 	static void ConfigStaticInitialize();
 

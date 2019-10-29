@@ -26,7 +26,7 @@
 
 using namespace icinga;
 
-Dictionary::Ptr RedisWriter::GetStats()
+Dictionary::Ptr IcingaDB::GetStats()
 {
 	Dictionary::Ptr stats = new Dictionary();
 

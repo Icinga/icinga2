@@ -88,7 +88,7 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 void RedisConnection::FireAndForgetQuery(RedisConnection::Query query)
 {
 	{
-		Log msg (LogNotice, "RedisWriter", "Firing and forgetting query:");
+		Log msg (LogNotice, "IcingaDB", "Firing and forgetting query:");
 		LogQuery(query, msg);
 	}
 
@@ -103,7 +103,7 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query)
 void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries)
 {
 	for (auto& query : queries) {
-		Log msg (LogNotice, "RedisWriter", "Firing and forgetting query:");
+		Log msg (LogNotice, "IcingaDB", "Firing and forgetting query:");
 		LogQuery(query, msg);
 	}
 
@@ -118,7 +118,7 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries)
 RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query)
 {
 	{
-		Log msg (LogNotice, "RedisWriter", "Executing query:");
+		Log msg (LogNotice, "IcingaDB", "Executing query:");
 		LogQuery(query, msg);
 	}
 
@@ -139,7 +139,7 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries)
 {
 	for (auto& query : queries) {
-		Log msg (LogNotice, "RedisWriter", "Executing query:");
+		Log msg (LogNotice, "IcingaDB", "Executing query:");
 		LogQuery(query, msg);
 	}
 
@@ -161,7 +161,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 {
 	Defer notConnecting ([this]() { m_Connecting.store(m_Connected.load()); });
 
-	Log(LogInformation, "RedisWriter", "Trying to connect to Redis server (async)");
+	Log(LogInformation, "IcingaDB", "Trying to connect to Redis server (async)");
 
 	try {
 		if (m_Path.IsEmpty()) {
@@ -176,11 +176,11 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 		m_Connected.store(true);
 
-		Log(LogInformation, "RedisWriter", "Connected to Redis server");
+		Log(LogInformation, "IcingaDB", "Connected to Redis server");
 	} catch (const boost::coroutines::detail::forced_unwind&) {
 		throw;
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "RedisWriter")
+		Log(LogCritical, "IcingaDB")
 			<< "Cannot connect to " << m_Host << ":" << m_Port << ": " << ex.what();
 	}
 }
@@ -203,11 +203,11 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 					} catch (const boost::coroutines::detail::forced_unwind&) {
 						throw;
 					} catch (const std::exception& ex) {
-						Log(LogCritical, "RedisWriter")
+						Log(LogCritical, "IcingaDB")
 							<< "Error during receiving the response to a query which has been fired and forgotten: " << ex.what();
 						continue;
 					} catch (...) {
-						Log(LogCritical, "RedisWriter")
+						Log(LogCritical, "IcingaDB")
 							<< "Error during receiving the response to a query which has been fired and forgotten";
 						continue;
 					}
@@ -276,12 +276,12 @@ void RedisConnection::WriteLoop(asio::yield_context& yc)
 				} catch (const boost::coroutines::detail::forced_unwind&) {
 					throw;
 				} catch (const std::exception& ex) {
-					Log msg (LogCritical, "RedisWriter", "Error during sending query");
+					Log msg (LogCritical, "IcingaDB", "Error during sending query");
 					LogQuery(item, msg);
 					msg << " which has been fired and forgotten: " << ex.what();
 					continue;
 				} catch (...) {
-					Log msg (LogCritical, "RedisWriter", "Error during sending query");
+					Log msg (LogCritical, "IcingaDB", "Error during sending query");
 					LogQuery(item, msg);
 					msg << " which has been fired and forgotten";
 					continue;
@@ -308,12 +308,12 @@ void RedisConnection::WriteLoop(asio::yield_context& yc)
 				} catch (const boost::coroutines::detail::forced_unwind&) {
 					throw;
 				} catch (const std::exception& ex) {
-					Log msg (LogCritical, "RedisWriter", "Error during sending query");
+					Log msg (LogCritical, "IcingaDB", "Error during sending query");
 					LogQuery(item[i], msg);
 					msg << " which has been fired and forgotten: " << ex.what();
 					continue;
 				} catch (...) {
-					Log msg (LogCritical, "RedisWriter", "Error during sending query");
+					Log msg (LogCritical, "IcingaDB", "Error during sending query");
 					LogQuery(item[i], msg);
 					msg << " which has been fired and forgotten";
 					continue;
