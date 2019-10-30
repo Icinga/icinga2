@@ -1203,7 +1203,7 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 		"max_check_attempts", Convert::ToString(checkable->GetMaxCheckAttempts()),
 		"event_time", Convert::ToString(TimestampToMilliseconds(cr ? cr->GetExecutionEnd() : Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
-		"event_type", "state"
+		"event_type", "state_change"
 	});
 
 	if (service) {
