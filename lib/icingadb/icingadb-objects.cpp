@@ -1485,7 +1485,6 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
 		"expire_time", Convert::ToString(TimestampToMilliseconds(comment->GetExpireTime())),
-		"deletion_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "comment_remove"
 	});
@@ -1548,6 +1547,16 @@ void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value&
 	if (endpoint) {
 		xAdd.emplace_back("endpoint_id");
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
+	}
+	
+	if (comment->GetExpireTime() < Utility::GetTime()) {
+		xAdd.emplace_back("remove_time");
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(Utility::GetTime())));
+		xAdd.emplace_back("has_been_removed");
+		xAdd.emplace_back("1");
+	} else {
+		xAdd.emplace_back("has_been_removed");
+		xAdd.emplace_back("0");
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
