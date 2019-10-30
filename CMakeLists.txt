@@ -20,7 +20,7 @@ option(ICINGA2_WITH_COMPAT "Build the compat module" ON)
 option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ON)
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
-option(ICINGA2_WITH_REDIS "Build the redis module" ON)
+option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ON)
 option(ICINGA2_WITH_TESTS "Run unit tests" ON)
 
 option (USE_SYSTEMD

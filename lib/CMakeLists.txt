@@ -53,7 +53,7 @@ if(ICINGA2_WITH_PERFDATA)
   add_subdirectory(perfdata)
 endif()
 
-if(ICINGA2_WITH_REDIS)
+if(ICINGA2_WITH_ICINGADB)
   add_subdirectory(icingadb)
 endif()
 
