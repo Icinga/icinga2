@@ -467,7 +467,7 @@ lterm: T_LIBRARY rterm
 	}
 	| T_INCLUDE T_STRING_ANGLE
 	{
-		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), MakeLiteral(*$2), NULL, NULL, IncludeRegular, true, context->GetZone(), context->GetPackage(), @$);
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), MakeLiteral(std::move(*$2)), NULL, NULL, IncludeRegular, true, context->GetZone(), context->GetPackage(), @$);
 		delete $2;
 	}
 	| T_INCLUDE_RECURSIVE rterm
@@ -596,7 +596,7 @@ lterm: T_LIBRARY rterm
 	| T_USING rterm
 	{
 		Expression::Ptr expr{$2};
-		context->AddImport(expr);
+		context->AddImport(std::move(expr));
 		$$ = MakeLiteralRaw();
 	}
 	| apply
@@ -609,7 +609,7 @@ lterm: T_LIBRARY rterm
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new ForExpression(*$4, *$7, std::unique_ptr<Expression>($9), std::unique_ptr<Expression>($12), @$);
+		$$ = new ForExpression(std::move(*$4), std::move(*$7), std::unique_ptr<Expression>($9), std::unique_ptr<Expression>($12), @$);
 		delete $4;
 		delete $7;
 	}
@@ -621,7 +621,7 @@ lterm: T_LIBRARY rterm
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new ForExpression(*$4, "", std::unique_ptr<Expression>($6), std::unique_ptr<Expression>($9), @$);
+		$$ = new ForExpression(std::move(*$4), "", std::unique_ptr<Expression>($6), std::unique_ptr<Expression>($9), @$);
 		delete $4;
 	}
 	| T_FUNCTION identifier '(' identifier_items ')' use_specifier
@@ -632,16 +632,16 @@ lterm: T_LIBRARY rterm
 	{
 		EndFlowControlBlock(context);
 
-		std::unique_ptr<FunctionExpression> fexpr{new FunctionExpression(*$2, *$4, std::move(*$6), std::unique_ptr<Expression>($8), @$)};
+		std::unique_ptr<FunctionExpression> fexpr{new FunctionExpression(*$2, std::move(*$4), std::move(*$6), std::unique_ptr<Expression>($8), @$)};
 		delete $4;
 		delete $6;
 
-		$$ = new SetExpression(MakeIndexer(ScopeThis, *$2), OpSetLiteral, std::move(fexpr), @$);
+		$$ = new SetExpression(MakeIndexer(ScopeThis, std::move(*$2)), OpSetLiteral, std::move(fexpr), @$);
 		delete $2;
 	}
 	| T_CONST T_IDENTIFIER T_SET rterm
 	{
-		$$ = new SetConstExpression(*$2, std::unique_ptr<Expression>($4), @$);
+		$$ = new SetConstExpression(std::move(*$2), std::unique_ptr<Expression>($4), @$);
 		delete $2;
 	}
 	| T_VAR rterm
@@ -835,7 +835,7 @@ rterm_side_effect: rterm '(' rterm_items ')'
 
 rterm_no_side_effect_no_dict: T_STRING
 	{
-		$$ = MakeLiteralRaw(*$1);
+		$$ = MakeLiteralRaw(std::move(*$1));
 		delete $1;
 	}
 	| T_NUMBER
@@ -852,7 +852,7 @@ rterm_no_side_effect_no_dict: T_STRING
 	}
 	| rterm '.' T_IDENTIFIER %dprec 2
 	{
-		$$ = new IndexerExpression(std::unique_ptr<Expression>($1), MakeLiteral(*$3), @$);
+		$$ = new IndexerExpression(std::unique_ptr<Expression>($1), MakeLiteral(std::move(*$3)), @$);
 		delete $3;
 	}
 	| rterm '[' rterm ']'
@@ -861,7 +861,7 @@ rterm_no_side_effect_no_dict: T_STRING
 	}
 	| T_IDENTIFIER
 	{
-		$$ = new VariableExpression(*$1, context->GetImports(), @1);
+		$$ = new VariableExpression(std::move(*$1), context->GetImports(), @1);
 		delete $1;
 	}
 	| T_MULTIPLY rterm %prec DEREF_OP
@@ -920,7 +920,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		args.emplace_back(std::move(*$1));
 		delete $1;
 
-		$$ = new FunctionExpression("<anonymous>", args, {}, std::unique_ptr<Expression>($4), @$);
+		$$ = new FunctionExpression("<anonymous>", std::move(args), {}, std::unique_ptr<Expression>($4), @$);
 	}
 	| identifier T_FOLLOWS rterm %dprec 1
 	{
@@ -930,7 +930,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		args.emplace_back(std::move(*$1));
 		delete $1;
 
-		$$ = new FunctionExpression("<anonymous>", args, {}, std::unique_ptr<Expression>($3), @$);
+		$$ = new FunctionExpression("<anonymous>", std::move(args), {}, std::unique_ptr<Expression>($3), @$);
 	}
 	| '(' identifier_items ')' T_FOLLOWS
 	{
@@ -940,14 +940,14 @@ rterm_no_side_effect_no_dict: T_STRING
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new FunctionExpression("<anonymous>", *$2, {}, std::unique_ptr<Expression>($6), @$);
+		$$ = new FunctionExpression("<anonymous>", std::move(*$2), {}, std::unique_ptr<Expression>($6), @$);
 		delete $2;
 	}
 	| '(' identifier_items ')' T_FOLLOWS rterm %dprec 1
 	{
 		ASSERT(!dynamic_cast<DictExpression *>($5));
 
-		$$ = new FunctionExpression("<anonymous>", *$2, {}, std::unique_ptr<Expression>($5), @$);
+		$$ = new FunctionExpression("<anonymous>", std::move(*$2), {}, std::unique_ptr<Expression>($5), @$);
 		delete $2;
 	}
 	| rterm_array
@@ -988,7 +988,7 @@ rterm_no_side_effect_no_dict: T_STRING
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new FunctionExpression("<anonymous>", *$3, std::move(*$5), std::unique_ptr<Expression>($7), @$);
+		$$ = new FunctionExpression("<anonymous>", std::move(*$3), std::move(*$5), std::unique_ptr<Expression>($7), @$);
 		delete $3;
 		delete $5;
 	}
@@ -1074,25 +1074,26 @@ use_specifier: /* empty */
 use_specifier_items: use_specifier_item
 	{
 		$$ = new std::map<String, std::unique_ptr<Expression> >();
-		$$->insert(std::move(*$1));
+		$$->emplace(std::move(*$1));
 		delete $1;
 	}
 	| use_specifier_items ',' use_specifier_item
 	{
 		$$ = $1;
-		$$->insert(std::move(*$3));
+		$$->emplace(std::move(*$3));
 		delete $3;
 	}
 	;
 
 use_specifier_item: identifier
 	{
-		$$ = new std::pair<String, std::unique_ptr<Expression> >(*$1, std::unique_ptr<Expression>(new VariableExpression(*$1, context->GetImports(), @1)));
+		std::unique_ptr<Expression> var (new VariableExpression(*$1, context->GetImports(), @1));
+		$$ = new std::pair<String, std::unique_ptr<Expression> >(std::move(*$1), std::move(var));
 		delete $1;
 	}
 	| identifier T_SET rterm
 	{
-		$$ = new std::pair<String, std::unique_ptr<Expression> >(*$1, std::unique_ptr<Expression>($3));
+		$$ = new std::pair<String, std::unique_ptr<Expression> >(std::move(*$1), std::unique_ptr<Expression>($3));
 		delete $1;
 	}
 	;
@@ -1100,17 +1101,17 @@ use_specifier_item: identifier
 apply_for_specifier: /* empty */
 	| T_FOR '(' optional_var identifier T_FOLLOWS optional_var identifier T_IN rterm ')'
 	{
-		context->m_FKVar.top() = *$4;
+		context->m_FKVar.top() = std::move(*$4);
 		delete $4;
 
-		context->m_FVVar.top() = *$7;
+		context->m_FVVar.top() = std::move(*$7);
 		delete $7;
 
 		context->m_FTerm.top() = $9;
 	}
 	| T_FOR '(' optional_var identifier T_IN rterm ')'
 	{
-		context->m_FKVar.top() = *$4;
+		context->m_FKVar.top() = std::move(*$4);
 		delete $4;
 
 		context->m_FVVar.top() = "";
@@ -1147,9 +1148,9 @@ apply:
 
 		context->m_Apply.pop();
 
-		String type = *$3;
+		String type = std::move(*$3);
 		delete $3;
-		String target = *$6;
+		String target = std::move(*$6);
 		delete $6;
 
 		if (!ApplyRule::IsValidSourceType(type))
@@ -1204,16 +1205,16 @@ apply:
 		} else
 			filter.swap(assign);
 
-		String fkvar = context->m_FKVar.top();
+		String fkvar = std::move(context->m_FKVar.top());
 		context->m_FKVar.pop();
 
-		String fvvar = context->m_FVVar.top();
+		String fvvar = std::move(context->m_FVVar.top());
 		context->m_FVVar.pop();
 
 		std::unique_ptr<Expression> fterm{context->m_FTerm.top()};
 		context->m_FTerm.pop();
 
-		$$ = new ApplyExpression(type, target, std::unique_ptr<Expression>($4), std::move(filter), context->GetPackage(), fkvar, fvvar, std::move(fterm), std::move(*$7), $8, std::unique_ptr<Expression>($10), DebugInfoRange(@2, @8));
+		$$ = new ApplyExpression(std::move(type), std::move(target), std::unique_ptr<Expression>($4), std::move(filter), context->GetPackage(), std::move(fkvar), std::move(fvvar), std::move(fterm), std::move(*$7), $8, std::unique_ptr<Expression>($10), DebugInfoRange(@2, @8));
 		delete $7;
 	}
 	;
