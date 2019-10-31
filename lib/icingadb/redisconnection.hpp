@@ -73,11 +73,11 @@ namespace icinga
 
 		bool IsConnected();
 
-		void FireAndForgetQuery(Query query);
-		void FireAndForgetQueries(Queries queries);
+		void FireAndForgetQuery(Query query, bool highPrio = false);
+		void FireAndForgetQueries(Queries queries, bool highPrio = false);
 
-		Reply GetResultOfQuery(Query query);
-		Replies GetResultsOfQueries(Queries queries);
+		Reply GetResultOfQuery(Query query, bool highPrio = false);
+		Replies GetResultsOfQueries(Queries queries, bool highPrio = false);
 
 	private:
 		enum class ResponseAction : unsigned char
@@ -89,6 +89,14 @@ namespace icinga
 		{
 			size_t Amount;
 			ResponseAction Action;
+		};
+
+		struct WriteQueueItem
+		{
+			std::shared_ptr<Query> FireAndForgetQuery;
+			std::shared_ptr<Queries> FireAndForgetQueries;
+			std::shared_ptr<std::pair<Query, std::promise<Reply>>> GetResultOfQuery;
+			std::shared_ptr<std::pair<Queries, std::promise<Replies>>> GetResultsOfQueries;
 		};
 
 		typedef boost::asio::ip::tcp Tcp;
@@ -114,6 +122,7 @@ namespace icinga
 		void Connect(boost::asio::yield_context& yc);
 		void ReadLoop(boost::asio::yield_context& yc);
 		void WriteLoop(boost::asio::yield_context& yc);
+		void WriteItem(boost::asio::yield_context& yc, WriteQueueItem item);
 		Reply ReadOne(boost::asio::yield_context& yc);
 		void WriteOne(Query& query, boost::asio::yield_context& yc);
 
@@ -134,16 +143,8 @@ namespace icinga
 		std::shared_ptr<UnixConn> m_UnixConn;
 		Atomic<bool> m_Connecting, m_Connected, m_Started;
 
-		struct WriteQueueItem
-		{
-			std::shared_ptr<Query> FireAndForgetQuery;
-			std::shared_ptr<Queries> FireAndForgetQueries;
-			std::shared_ptr<std::pair<Query, std::promise<Reply>>> GetResultOfQuery;
-			std::shared_ptr<std::pair<Queries, std::promise<Replies>>> GetResultsOfQueries;
-		};
-
 		struct {
-			std::queue<WriteQueueItem> Writes;
+			std::queue<WriteQueueItem> Writes, HighPrioWrites;
 			std::queue<std::promise<Reply>> ReplyPromises;
 			std::queue<std::promise<Replies>> RepliesPromises;
 			std::queue<FutureResponseAction> FutureResponseActions;

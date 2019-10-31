@@ -85,7 +85,7 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 	}
 }
 
-void RedisConnection::FireAndForgetQuery(RedisConnection::Query query)
+void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, bool highPrio)
 {
 	{
 		Log msg (LogNotice, "IcingaDB", "Firing and forgetting query:");
@@ -94,13 +94,13 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query)
 
 	auto item (std::make_shared<decltype(WriteQueueItem().FireAndForgetQuery)::element_type>(std::move(query)));
 
-	asio::post(m_Strand, [this, item]() {
-		m_Queues.Writes.emplace(WriteQueueItem{item, nullptr, nullptr, nullptr});
+	asio::post(m_Strand, [this, item, highPrio]() {
+		(highPrio ? &m_Queues.HighPrioWrites : &m_Queues.Writes)->emplace(WriteQueueItem{item, nullptr, nullptr, nullptr});
 		m_QueuedWrites.Set();
 	});
 }
 
-void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries)
+void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, bool highPrio)
 {
 	for (auto& query : queries) {
 		Log msg (LogNotice, "IcingaDB", "Firing and forgetting query:");
@@ -109,13 +109,13 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries)
 
 	auto item (std::make_shared<decltype(WriteQueueItem().FireAndForgetQueries)::element_type>(std::move(queries)));
 
-	asio::post(m_Strand, [this, item]() {
-		m_Queues.Writes.emplace(WriteQueueItem{nullptr, item, nullptr, nullptr});
+	asio::post(m_Strand, [this, item, highPrio]() {
+		(highPrio ? &m_Queues.HighPrioWrites : &m_Queues.Writes)->emplace(WriteQueueItem{nullptr, item, nullptr, nullptr});
 		m_QueuedWrites.Set();
 	});
 }
 
-RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query)
+RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, bool highPrio)
 {
 	{
 		Log msg (LogNotice, "IcingaDB", "Executing query:");
@@ -126,8 +126,8 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 	auto future (promise.get_future());
 	auto item (std::make_shared<decltype(WriteQueueItem().GetResultOfQuery)::element_type>(std::move(query), std::move(promise)));
 
-	asio::post(m_Strand, [this, item]() {
-		m_Queues.Writes.emplace(WriteQueueItem{nullptr, nullptr, item, nullptr});
+	asio::post(m_Strand, [this, item, highPrio]() {
+		(highPrio ? &m_Queues.HighPrioWrites : &m_Queues.Writes)->emplace(WriteQueueItem{nullptr, nullptr, item, nullptr});
 		m_QueuedWrites.Set();
 	});
 
@@ -136,7 +136,7 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 	return future.get();
 }
 
-RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries)
+RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries, bool highPrio)
 {
 	for (auto& query : queries) {
 		Log msg (LogNotice, "IcingaDB", "Executing query:");
@@ -147,8 +147,8 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 	auto future (promise.get_future());
 	auto item (std::make_shared<decltype(WriteQueueItem().GetResultsOfQueries)::element_type>(std::move(queries), std::move(promise)));
 
-	asio::post(m_Strand, [this, item]() {
-		m_Queues.Writes.emplace(WriteQueueItem{nullptr, nullptr, nullptr, item});
+	asio::post(m_Strand, [this, item, highPrio]() {
+		(highPrio ? &m_Queues.HighPrioWrites : &m_Queues.Writes)->emplace(WriteQueueItem{nullptr, nullptr, nullptr, item});
 		m_QueuedWrites.Set();
 	});
 
@@ -264,115 +264,131 @@ void RedisConnection::WriteLoop(asio::yield_context& yc)
 	for (;;) {
 		m_QueuedWrites.Wait(yc);
 
-		while (!m_Queues.Writes.empty()) {
-			auto next (std::move(m_Queues.Writes.front()));
-			m_Queues.Writes.pop();
-
-			if (next.FireAndForgetQuery) {
-				auto& item (*next.FireAndForgetQuery);
-
-				try {
-					WriteOne(item, yc);
-				} catch (const boost::coroutines::detail::forced_unwind&) {
-					throw;
-				} catch (const std::exception& ex) {
-					Log msg (LogCritical, "IcingaDB", "Error during sending query");
-					LogQuery(item, msg);
-					msg << " which has been fired and forgotten: " << ex.what();
-					continue;
-				} catch (...) {
-					Log msg (LogCritical, "IcingaDB", "Error during sending query");
-					LogQuery(item, msg);
-					msg << " which has been fired and forgotten";
-					continue;
-				}
-
-				if (m_Queues.FutureResponseActions.empty() || m_Queues.FutureResponseActions.back().Action != ResponseAction::Ignore) {
-					m_Queues.FutureResponseActions.emplace(FutureResponseAction{1, ResponseAction::Ignore});
+		for (;;) {
+			if (m_Queues.HighPrioWrites.empty()) {
+				if (m_Queues.Writes.empty()) {
+					break;
 				} else {
-					++m_Queues.FutureResponseActions.back().Amount;
+					auto next (std::move(m_Queues.Writes.front()));
+					m_Queues.Writes.pop();
+
+					WriteItem(yc, std::move(next));
 				}
+			} else {
+				auto next (std::move(m_Queues.HighPrioWrites.front()));
+				m_Queues.HighPrioWrites.pop();
 
-				m_QueuedReads.Set();
-			}
-
-			if (next.FireAndForgetQueries) {
-				auto& item (*next.FireAndForgetQueries);
-				size_t i = 0;
-
-				try {
-					for (auto& query : item) {
-						WriteOne(query, yc);
-						++i;
-					}
-				} catch (const boost::coroutines::detail::forced_unwind&) {
-					throw;
-				} catch (const std::exception& ex) {
-					Log msg (LogCritical, "IcingaDB", "Error during sending query");
-					LogQuery(item[i], msg);
-					msg << " which has been fired and forgotten: " << ex.what();
-					continue;
-				} catch (...) {
-					Log msg (LogCritical, "IcingaDB", "Error during sending query");
-					LogQuery(item[i], msg);
-					msg << " which has been fired and forgotten";
-					continue;
-				}
-
-				if (m_Queues.FutureResponseActions.empty() || m_Queues.FutureResponseActions.back().Action != ResponseAction::Ignore) {
-					m_Queues.FutureResponseActions.emplace(FutureResponseAction{item.size(), ResponseAction::Ignore});
-				} else {
-					m_Queues.FutureResponseActions.back().Amount += item.size();
-				}
-
-				m_QueuedReads.Set();
-			}
-
-			if (next.GetResultOfQuery) {
-				auto& item (*next.GetResultOfQuery);
-
-				try {
-					WriteOne(item.first, yc);
-				} catch (const boost::coroutines::detail::forced_unwind&) {
-					throw;
-				} catch (...) {
-					item.second.set_exception(std::current_exception());
-					continue;
-				}
-
-				m_Queues.ReplyPromises.emplace(std::move(item.second));
-
-				if (m_Queues.FutureResponseActions.empty() || m_Queues.FutureResponseActions.back().Action != ResponseAction::Deliver) {
-					m_Queues.FutureResponseActions.emplace(FutureResponseAction{1, ResponseAction::Deliver});
-				} else {
-					++m_Queues.FutureResponseActions.back().Amount;
-				}
-
-				m_QueuedReads.Set();
-			}
-
-			if (next.GetResultsOfQueries) {
-				auto& item (*next.GetResultsOfQueries);
-
-				try {
-					for (auto& query : item.first) {
-						WriteOne(query, yc);
-					}
-				} catch (const boost::coroutines::detail::forced_unwind&) {
-					throw;
-				} catch (...) {
-					item.second.set_exception(std::current_exception());
-					continue;
-				}
-
-				m_Queues.RepliesPromises.emplace(std::move(item.second));
-				m_Queues.FutureResponseActions.emplace(FutureResponseAction{item.first.size(), ResponseAction::DeliverBulk});
-
-				m_QueuedReads.Set();
+				WriteItem(yc, std::move(next));
 			}
 		}
 
 		m_QueuedWrites.Clear();
+	}
+}
+
+void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection::WriteQueueItem next)
+{
+	if (next.FireAndForgetQuery) {
+		auto& item (*next.FireAndForgetQuery);
+
+		try {
+			WriteOne(item, yc);
+		} catch (const boost::coroutines::detail::forced_unwind&) {
+			throw;
+		} catch (const std::exception& ex) {
+			Log msg (LogCritical, "IcingaDB", "Error during sending query");
+			LogQuery(item, msg);
+			msg << " which has been fired and forgotten: " << ex.what();
+			return;
+		} catch (...) {
+			Log msg (LogCritical, "IcingaDB", "Error during sending query");
+			LogQuery(item, msg);
+			msg << " which has been fired and forgotten";
+			return;
+		}
+
+		if (m_Queues.FutureResponseActions.empty() || m_Queues.FutureResponseActions.back().Action != ResponseAction::Ignore) {
+			m_Queues.FutureResponseActions.emplace(FutureResponseAction{1, ResponseAction::Ignore});
+		} else {
+			++m_Queues.FutureResponseActions.back().Amount;
+		}
+
+		m_QueuedReads.Set();
+	}
+
+	if (next.FireAndForgetQueries) {
+		auto& item (*next.FireAndForgetQueries);
+		size_t i = 0;
+
+		try {
+			for (auto& query : item) {
+				WriteOne(query, yc);
+				++i;
+			}
+		} catch (const boost::coroutines::detail::forced_unwind&) {
+			throw;
+		} catch (const std::exception& ex) {
+			Log msg (LogCritical, "IcingaDB", "Error during sending query");
+			LogQuery(item[i], msg);
+			msg << " which has been fired and forgotten: " << ex.what();
+			return;
+		} catch (...) {
+			Log msg (LogCritical, "IcingaDB", "Error during sending query");
+			LogQuery(item[i], msg);
+			msg << " which has been fired and forgotten";
+			return;
+		}
+
+		if (m_Queues.FutureResponseActions.empty() || m_Queues.FutureResponseActions.back().Action != ResponseAction::Ignore) {
+			m_Queues.FutureResponseActions.emplace(FutureResponseAction{item.size(), ResponseAction::Ignore});
+		} else {
+			m_Queues.FutureResponseActions.back().Amount += item.size();
+		}
+
+		m_QueuedReads.Set();
+	}
+
+	if (next.GetResultOfQuery) {
+		auto& item (*next.GetResultOfQuery);
+
+		try {
+			WriteOne(item.first, yc);
+		} catch (const boost::coroutines::detail::forced_unwind&) {
+			throw;
+		} catch (...) {
+			item.second.set_exception(std::current_exception());
+			return;
+		}
+
+		m_Queues.ReplyPromises.emplace(std::move(item.second));
+
+		if (m_Queues.FutureResponseActions.empty() || m_Queues.FutureResponseActions.back().Action != ResponseAction::Deliver) {
+			m_Queues.FutureResponseActions.emplace(FutureResponseAction{1, ResponseAction::Deliver});
+		} else {
+			++m_Queues.FutureResponseActions.back().Amount;
+		}
+
+		m_QueuedReads.Set();
+	}
+
+	if (next.GetResultsOfQueries) {
+		auto& item (*next.GetResultsOfQueries);
+
+		try {
+			for (auto& query : item.first) {
+				WriteOne(query, yc);
+			}
+		} catch (const boost::coroutines::detail::forced_unwind&) {
+			throw;
+		} catch (...) {
+			item.second.set_exception(std::current_exception());
+			return;
+		}
+
+		m_Queues.RepliesPromises.emplace(std::move(item.second));
+		m_Queues.FutureResponseActions.emplace(FutureResponseAction{item.first.size(), ResponseAction::DeliverBulk});
+
+		m_QueuedReads.Set();
 	}
 }
 
