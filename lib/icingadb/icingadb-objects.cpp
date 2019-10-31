@@ -87,8 +87,6 @@ void IcingaDB::ConfigStaticInitialize()
 		IcingaDB::VersionChangedHandler(object);
 	});
 
-	/* fixed/flexible downtime add */
-	Downtime::OnDowntimeAdded.connect(&IcingaDB::DowntimeAddedHandler);
 	/* fixed downtime start */
 	Downtime::OnDowntimeStarted.connect(&IcingaDB::DowntimeStartedHandler);
 	/* flexible downtime start */
@@ -1031,8 +1029,10 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("flexible_duration", TimestampToMilliseconds(downtime->GetDuration()));
 		attributes->Set("is_flexible", !downtime->GetFixed());
 		attributes->Set("is_in_effect", downtime->IsInEffect());
-		if (downtime->IsInEffect())
-			attributes->Set("actual_start_time", TimestampToMilliseconds(downtime->GetTriggerTime()));
+		if (downtime->IsInEffect()) {
+			attributes->Set("start_time", TimestampToMilliseconds(downtime->GetTriggerTime()));
+			attributes->Set("end_time", TimestampToMilliseconds(downtime->GetFixed() ? downtime->GetEndTime() : (downtime->GetTriggerTime() + downtime->GetDuration())));
+		}
 
 		Host::Ptr host;
 		Service::Ptr service;
@@ -1046,6 +1046,11 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 			attributes->Set("object_type", "host");
 			attributes->Set("host_id", GetObjectIdentifier(host));
 			attributes->Set("service_id", "00000000000000000000000000000000");
+		}
+
+		auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
+		if (triggeredBy) {
+			attributes->Set("triggered_by_id", GetObjectIdentifier(triggeredBy));
 		}
 
 		return true;
@@ -1281,73 +1286,6 @@ void IcingaDB::SendSentNotification(
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
-void IcingaDB::SendAddedDowntime(const Downtime::Ptr& downtime)
-{
-	if (!m_Rcon || !m_Rcon->IsConnected())
-		return;
-
-	auto checkable (downtime->GetCheckable());
-	auto service (dynamic_pointer_cast<Service>(checkable));
-	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
-
-	std::vector<String> xAdd ({
-		"XADD", "icinga:history:stream:downtime", "*",
-		"downtime_id", GetObjectIdentifier(downtime),
-		"environment_id", SHA1(GetEnvironment()),
-		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
-		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
-		"comment", Utility::ValidateUTF8(downtime->GetComment()),
-		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
-		"flexible_duration", Convert::ToString(downtime->GetDuration()),
-		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
-		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
-		"was_started", "0",
-		"was_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
-		"is_in_effect", Convert::ToString((unsigned short)downtime->IsInEffect()),
-		"trigger_time", Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())),
-		"event_id", Utility::NewUniqueID(),
-		"event_type", "downtime_schedule"
-	});
-
-	if (service) {
-		xAdd.emplace_back("object_type");
-		xAdd.emplace_back("service");
-		xAdd.emplace_back("service_id");
-		xAdd.emplace_back(GetObjectIdentifier(checkable));
-	} else {
-		xAdd.emplace_back("object_type");
-		xAdd.emplace_back("host");
-		xAdd.emplace_back("host_id");
-		xAdd.emplace_back(GetObjectIdentifier(checkable));
-	}
-
-	if (triggeredBy) {
-		xAdd.emplace_back("triggered_by_id");
-		xAdd.emplace_back(GetObjectIdentifier(triggeredBy));
-	}
-
-	if (downtime->GetFixed()) {
-		xAdd.emplace_back("actual_start_time");
-		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())));
-		xAdd.emplace_back("actual_end_time");
-		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())));
-	} else {
-		xAdd.emplace_back("actual_start_time");
-		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())));
-		xAdd.emplace_back("actual_end_time");
-		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + downtime->GetDuration())));
-	}
-
-	auto endpoint (Endpoint::GetLocalEndpoint());
-
-	if (endpoint) {
-		xAdd.emplace_back("endpoint_id");
-		xAdd.emplace_back(GetObjectIdentifier(endpoint));
-	}
-
-	m_Rcon->FireAndForgetQuery(std::move(xAdd));
-}
-
 void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
@@ -1370,9 +1308,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 		"flexible_duration", Convert::ToString(downtime->GetDuration()),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
-		"was_started", "1",
-		"was_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
-		"is_in_effect", Convert::ToString((unsigned short)downtime->IsInEffect()),
+		"has_been_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
 		"trigger_time", Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "downtime_start"
@@ -1396,14 +1332,14 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 	}
 
 	if (downtime->GetFixed()) {
-		xAdd.emplace_back("actual_start_time");
+		xAdd.emplace_back("start_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())));
-		xAdd.emplace_back("actual_end_time");
+		xAdd.emplace_back("end_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())));
 	} else {
-		xAdd.emplace_back("actual_start_time");
+		xAdd.emplace_back("start_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())));
-		xAdd.emplace_back("actual_end_time");
+		xAdd.emplace_back("end_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + downtime->GetDuration())));
 	}
 
@@ -1426,6 +1362,10 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 	auto service (dynamic_pointer_cast<Service>(checkable));
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
 
+	// Downtime never got triggered (didn't send "downtime_start") so we don't want to send "downtime_end"
+	if (downtime->GetTriggerTime() == 0)
+		return;
+
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
 		"downtime_id", GetObjectIdentifier(downtime),
@@ -1437,11 +1377,9 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"flexible_duration", Convert::ToString(downtime->GetDuration()),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
-		"was_started", "1",
-		"was_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
-		"is_in_effect", Convert::ToString((unsigned short)downtime->IsInEffect()),
+		"has_been_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
 		"trigger_time", Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())),
-		"deletion_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
+		"cancel_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "downtime_end"
 	});
@@ -1464,14 +1402,14 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 	}
 
 	if (downtime->GetFixed()) {
-		xAdd.emplace_back("actual_start_time");
+		xAdd.emplace_back("start_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())));
-		xAdd.emplace_back("actual_end_time");
+		xAdd.emplace_back("end_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())));
 	} else {
-		xAdd.emplace_back("actual_start_time");
+		xAdd.emplace_back("start_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())));
-		xAdd.emplace_back("actual_end_time");
+		xAdd.emplace_back("end_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + downtime->GetDuration())));
 	}
 
@@ -1788,13 +1726,6 @@ void IcingaDB::VersionChangedHandler(const ConfigObject::Ptr& object)
 			if (rw)
 				rw->m_WorkQueue.Enqueue([rw, object]() { rw->SendConfigDelete(object); });
 		}
-	}
-}
-
-void IcingaDB::DowntimeAddedHandler(const Downtime::Ptr& downtime)
-{
-	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->m_WorkQueue.Enqueue([rw, downtime]() { rw->SendAddedDowntime(downtime); });
 	}
 }
 

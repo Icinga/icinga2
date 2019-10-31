@@ -87,7 +87,6 @@ private:
 		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
 	);
 
-	void SendAddedDowntime(const Downtime::Ptr& downtime);
 	void SendStartedDowntime(const Downtime::Ptr& downtime);
 	void SendRemovedDowntime(const Downtime::Ptr& downtime);
 	void SendAddedComment(const Comment::Ptr& comment);
@@ -123,7 +122,6 @@ private:
 	static void StateChangeHandler(const ConfigObject::Ptr& object);
 	static void StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
-	static void DowntimeAddedHandler(const Downtime::Ptr& downtime);
 	static void DowntimeStartedHandler(const Downtime::Ptr& downtime);
 	static void DowntimeRemovedHandler(const Downtime::Ptr& downtime);
 
