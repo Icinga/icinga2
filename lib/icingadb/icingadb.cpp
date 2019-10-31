@@ -226,7 +226,7 @@ void IcingaDB::PublishStats()
 	status->Set("config_dump_in_progress", m_ConfigDumpInProgress);
 	String jsonStats = JsonEncode(status);
 
-	m_Rcon->FireAndForgetQuery({ "PUBLISH", "icinga:stats", jsonStats });
+	m_Rcon->FireAndForgetQuery({ "PUBLISH", "icinga:stats", jsonStats }, true);
 }
 
 void IcingaDB::HandleEvents()
