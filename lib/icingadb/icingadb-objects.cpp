@@ -1238,6 +1238,11 @@ void IcingaDB::SendSentNotification(
 
 	auto service (dynamic_pointer_cast<Service>(checkable));
 
+	auto finalText = text;
+	if (finalText == "" && cr) {
+		finalText = cr->GetOutput();
+	}
+
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:notification", "*",
 		"id", Utility::NewUniqueID(),
@@ -1247,7 +1252,7 @@ void IcingaDB::SendSentNotification(
 		"state", Convert::ToString(cr->GetState()),
 		"previous_hard_state", Convert::ToString(GetPreviousHardState(checkable, service)),
 		"author", Utility::ValidateUTF8(author),
-		"text", Utility::ValidateUTF8(text),
+		"text", Utility::ValidateUTF8(finalText),
 		"users_notified", Convert::ToString(users),
 		"event_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
