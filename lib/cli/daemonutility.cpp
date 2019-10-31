@@ -8,6 +8,7 @@
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
+#include <set>
 
 using namespace icinga;
 
@@ -27,7 +28,7 @@ static bool ExecuteExpression(Expression *expression)
 	return true;
 }
 
-static void IncludeZoneDirRecursive(const String& path, const String& package, bool& success)
+static bool IncludeZoneDirRecursive(const String& path, const String& package, bool& success)
 {
 	String zoneName = Utility::BaseName(path);
 
@@ -35,9 +36,7 @@ static void IncludeZoneDirRecursive(const String& path, const String& package, b
 	 * to not include this specific synced zones directory.
 	 */
 	if(!ConfigItem::GetByTypeAndName(Type::GetByName("Zone"), zoneName)) {
-		Log(LogWarning, "config")
-			<< "Ignoring directory '" << path << "' for unknown zone '" << zoneName << "'.";
-		return;
+		return false;
 	}
 
 	/* register this zone path for cluster config sync */
@@ -48,9 +47,11 @@ static void IncludeZoneDirRecursive(const String& path, const String& package, b
 	DictExpression expr(std::move(expressions));
 	if (!ExecuteExpression(&expr))
 		success = false;
+
+	return true;
 }
 
-static void IncludeNonLocalZone(const String& zonePath, const String& package, bool& success)
+static bool IncludeNonLocalZone(const String& zonePath, const String& package, bool& success)
 {
 	/* Note: This include function must not call RegisterZoneDir().
 	 * We do not need to copy it for cluster config sync. */
@@ -61,9 +62,7 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 	 * to not include this specific synced zones directory.
 	 */
 	if(!ConfigItem::GetByTypeAndName(Type::GetByName("Zone"), zoneName)) {
-		Log(LogWarning, "config")
-			<< "Ignoring directory '" << zonePath << "' for unknown zone '" << zoneName << "'.";
-		return;
+		return false;
 	}
 
 	/* Check whether this node already has an authoritative config version
@@ -72,7 +71,7 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 	if (ConfigCompiler::HasZoneConfigAuthority(zoneName) || Utility::PathExists(zonePath + "/.authoritative")) {
 		Log(LogNotice, "config")
 			<< "Ignoring non local config include for zone '" << zoneName << "': We already have an authoritative copy included.";
-		return;
+		return true;
 	}
 
 	std::vector<std::unique_ptr<Expression> > expressions;
@@ -80,6 +79,8 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 	DictExpression expr(std::move(expressions));
 	if (!ExecuteExpression(&expr))
 		success = false;
+
+	return true;
 }
 
 static void IncludePackage(const String& packagePath, bool& success)
@@ -129,8 +130,29 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	/* Only load zone directory if we're not in staging validation. */
 	if (!systemNS->Contains("ZonesStageVarDir")) {
 		String zonesEtcDir = Configuration::ZonesDir;
-		if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
-			Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", std::ref(success)), GlobDirectory);
+		if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir)) {
+			std::set<String> zoneEtcDirs;
+			Utility::Glob(zonesEtcDir + "/*", [&zoneEtcDirs](const String& zoneEtcDir) { zoneEtcDirs.emplace(zoneEtcDir); }, GlobDirectory);
+
+			bool hasSuccess = true;
+
+			while (!zoneEtcDirs.empty() && hasSuccess) {
+				hasSuccess = false;
+
+				for (auto& zoneEtcDir : zoneEtcDirs) {
+					if (IncludeZoneDirRecursive(zoneEtcDir, "_etc", success)) {
+						zoneEtcDirs.erase(zoneEtcDir);
+						hasSuccess = true;
+						break;
+					}
+				}
+			}
+
+			for (auto& zoneEtcDir : zoneEtcDirs) {
+				Log(LogWarning, "config")
+					<< "Ignoring directory '" << zoneEtcDir << "' for unknown zone '" << Utility::BaseName(zoneEtcDir) << "'.";
+			}
+		}
 
 		if (!success)
 			return false;
@@ -157,8 +179,29 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	}
 
 
-	if (Utility::PathExists(zonesVarDir))
-		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", std::ref(success)), GlobDirectory);
+	if (Utility::PathExists(zonesVarDir)) {
+		std::set<String> zoneVarDirs;
+		Utility::Glob(zonesVarDir + "/*", [&zoneVarDirs](const String& zoneVarDir) { zoneVarDirs.emplace(zoneVarDir); }, GlobDirectory);
+
+		bool hasSuccess = true;
+
+		while (!zoneVarDirs.empty() && hasSuccess) {
+			hasSuccess = false;
+
+			for (auto& zoneVarDir : zoneVarDirs) {
+				if (IncludeNonLocalZone(zoneVarDir, "_cluster", success)) {
+					zoneVarDirs.erase(zoneVarDir);
+					hasSuccess = true;
+					break;
+				}
+			}
+		}
+
+		for (auto& zoneEtcDir : zoneVarDirs) {
+			Log(LogWarning, "config")
+				<< "Ignoring directory '" << zoneEtcDir << "' for unknown zone '" << Utility::BaseName(zoneEtcDir) << "'.";
+		}
+	}
 
 	if (!success)
 		return false;
