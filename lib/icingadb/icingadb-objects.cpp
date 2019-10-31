@@ -1000,6 +1000,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("entry_type", comment->GetEntryType());
 		attributes->Set("entry_time", TimestampToMilliseconds(comment->GetEntryTime()));
 		attributes->Set("is_persistent", comment->GetPersistent());
+		attributes->Set("is_sticky", comment->GetEntryType() == CommentAcknowledgement && comment->GetCheckable()->GetAcknowledgement() == AcknowledgementSticky);
 		attributes->Set("expire_time", TimestampToMilliseconds(comment->GetExpireTime()));
 
 		Host::Ptr host;
@@ -1440,6 +1441,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 		"comment", Utility::ValidateUTF8(comment->GetText()),
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
+		"is_sticky", Convert::ToString((unsigned short)(comment->GetEntryType() == CommentAcknowledgement && comment->GetCheckable()->GetAcknowledgement() == AcknowledgementSticky)),
 		"expire_time", Convert::ToString(TimestampToMilliseconds(comment->GetExpireTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "comment_add"
@@ -1484,6 +1486,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		"comment", Utility::ValidateUTF8(comment->GetText()),
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
+		"is_sticky", Convert::ToString((unsigned short)(comment->GetEntryType() == CommentAcknowledgement && comment->GetCheckable()->GetAcknowledgement() == AcknowledgementSticky)),
 		"expire_time", Convert::ToString(TimestampToMilliseconds(comment->GetExpireTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "comment_remove"
