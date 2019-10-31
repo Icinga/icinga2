@@ -1189,7 +1189,6 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 		"XADD", "icinga:history:stream:state", "*",
 		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
-		"change_time", Convert::ToString(TimestampToMilliseconds(cr ? cr->GetExecutionEnd() : Utility::GetTime())),
 		"state_type", Convert::ToString(type),
 		"soft_state", Convert::ToString(cr ? cr->GetState() : 99),
 		"hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
@@ -1202,6 +1201,7 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 		"long_output", Utility::ValidateUTF8(std::move(output.second)),
 		"check_source", cr->GetCheckSource(),
 		"max_check_attempts", Convert::ToString(checkable->GetMaxCheckAttempts()),
+		"event_time", Convert::ToString(TimestampToMilliseconds(cr ? cr->GetExecutionEnd() : Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "state"
 	});
@@ -1244,12 +1244,12 @@ void IcingaDB::SendSentNotification(
 		"environment_id", SHA1(GetEnvironment()),
 		"notification_id", GetObjectIdentifier(notification),
 		"type", Convert::ToString(type),
-		"send_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"state", Convert::ToString(cr->GetState()),
 		"previous_hard_state", Convert::ToString(GetPreviousHardState(checkable, service)),
 		"author", Utility::ValidateUTF8(author),
 		"text", Utility::ValidateUTF8(text),
 		"users_notified", Convert::ToString(users),
+		"event_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "notification"
 	});
@@ -1580,11 +1580,10 @@ void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value&
 		"XADD", "icinga:history:stream:flapping", "*",
 		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
-		"change_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
-		"change_type", value.ToBool() ? "start" : "end",
 		"percent_state_change", Convert::ToString(checkable->GetFlappingCurrent()),
 		"flapping_threshold_low", Convert::ToString(checkable->GetFlappingThresholdLow()),
 		"flapping_threshold_high", Convert::ToString(checkable->GetFlappingThresholdHigh()),
+		"event_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", value.ToBool() ? "flapping_start" : "flapping_end"
 	});
