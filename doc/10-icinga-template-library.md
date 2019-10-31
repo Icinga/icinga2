@@ -2069,6 +2069,7 @@ snmp_interface_kbits        | **Optional.** Make the warning and critical levels
 snmp_interface_megabytes    | **Optional.** Make the warning and critical levels in Mbps or MBps. **Depends** on snmp_interface_kbits set to true. Defaults to true.
 snmp_interface_64bit        | **Optional.** Use 64 bits counters instead of the standard counters when checking bandwidth & performance data for interface >= 1Gbps. Defaults to false.
 snmp_interface_errors       | **Optional.** Add error & discard to Perfparse output. Defaults to true.
+snmp_interface_extended_checks | **Optional.** Also check the error and discard input/output. Defaults to false.
 snmp_interface_noregexp     | **Optional.** Do not use regexp to match interface name in description OID. Defaults to false.
 snmp_interface_delta        | **Optional.** Delta time of perfcheck. Defaults to "300" (5 min).
 snmp_interface_warncrit_percent | **Optional.** Make the warning and critical levels in % of reported interface speed. If set, **snmp_interface_megabytes** needs to be set to false. Defaults to false.
