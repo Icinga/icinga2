@@ -1379,6 +1379,30 @@ Configuration Attributes:
   vars                      | Dictionary            | **Optional.** A dictionary containing custom variables that are available globally.
   environment               | String                | **Optional.** Specify the Icinga environment. This overrides the `Environment` constant specified in the configuration or on the CLI with `--define`. Defaults to empty.
 
+
+### IcingaDB <a id="objecttype-icingadb"></a>
+
+The IcingaDB object implements the [icingadb feauture](14-features.md#core-backends-icingadb).
+
+Example:
+
+```
+object IcingaDB "icingadb" {
+  //host = "127.0.0.1"
+  //port = 6379
+  //password = "xxx"
+}
+```
+
+Configuration Attributes:
+
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host                      | String                | **Optional.** Redis host for IcingaDB. Defaults to `127.0.0.1`.
+  port                      | Number                | **Optional.** Redis port for IcingaDB. Defaults to `6379`.
+  path                      | String                | **Optional.** Redix unix socket path. Can be used instead of `host` and `port` attributes.
+  password                  | String                | **Optional.** Redis auth password for IcingaDB.
+
 ### IdoMySqlConnection <a id="objecttype-idomysqlconnection"></a>
 
 IDO database adapter for MySQL.
