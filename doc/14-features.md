@@ -44,6 +44,30 @@ By default, log files will be rotated daily.
 
 The REST API is documented [here](12-icinga2-api.md#icinga2-api) as a core feature.
 
+### Icinga DB <a id="core-backends-icingadb"></a>
+
+Icinga DB provides a new core backend and aims to replace the IDO backend
+output. It consists of different components:
+
+* Icinga 2 provides the `icingadb` feature which stores monitoring data in a memory database
+* The [IcingaDB service](https://github.com/icinga/icingadb) collects and synchronizes monitoring data into its backend
+* Icinga Web reads monitoring data from the new IcingaDB backend
+
+Requirements:
+
+* Local Redis instance
+* MySQL/MariaDB server with `icingadb` database, user and schema imports
+* Icinga 2's `icingadb` feature enabled
+* IcingaDB service requires Redis and MySQL/MariaDB server
+* Icinga Web module
+
+> TODO: Detailed instructions.
+
+```
+icinga2 feature enable icingadb
+```
+
+
 ### IDO Database (DB IDO) <a id="db-ido"></a>
 
 The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
