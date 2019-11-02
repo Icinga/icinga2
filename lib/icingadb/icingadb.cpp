@@ -123,7 +123,7 @@ void IcingaDB::UpdateSubscriptions()
 {
 	AssertOnWorkQueue();
 
-	Log(LogInformation, "IcingaDB", "Updating Redis subscriptions");
+	Log(LogNotice, "IcingaDB", "Updating Redis subscriptions");
 
 	/* TODO:
 	 * Silently return in this case. Usually the RedisConnection checks for connectivity and logs in failure case.
@@ -160,7 +160,7 @@ void IcingaDB::UpdateSubscriptions()
 		}
 	} while (cursor != "0");
 
-	Log(LogInformation, "IcingaDB")
+	Log(LogNotice, "IcingaDB")
 		<< "Current Redis event subscriptions: " << m_Subscriptions.size();
 }
 
