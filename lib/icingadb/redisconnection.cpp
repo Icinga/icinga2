@@ -144,14 +144,18 @@ void RedisConnection::Connect(asio::yield_context& yc)
 {
 	Defer notConnecting ([this]() { m_Connecting.store(m_Connected.load()); });
 
-	Log(LogInformation, "IcingaDB", "Trying to connect to Redis server (async)");
-
 	try {
 		if (m_Path.IsEmpty()) {
+			Log(LogInformation, "IcingaDB")
+				<< "Trying to connect to Redis server (async) on host '" << m_Host << ":" << m_Port << "'";
+
 			decltype(m_TcpConn) conn (new TcpConn(m_Strand.context()));
 			icinga::Connect(conn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
 			m_TcpConn = std::move(conn);
 		} else {
+			Log(LogInformation, "IcingaDB")
+				<< "Trying to connect to Redis server (async) on unix socket path '" << m_Path << "'";
+
 			decltype(m_UnixConn) conn (new UnixConn(m_Strand.context()));
 			conn->next_layer().async_connect(Unix::endpoint(m_Path.CStr()), yc);
 			m_UnixConn = std::move(conn);
