@@ -22,7 +22,7 @@
 using namespace icinga;
 namespace asio = boost::asio;
 
-RedisConnection::RedisConnection(const String host, const int port, const String path, const String password, const int db) :
+RedisConnection::RedisConnection(const String& host, const int port, const String& path, const String& password, const int db) :
 	RedisConnection(IoEngine::Get().GetIoContext(), host, port, path, password, db)
 {
 }
@@ -192,12 +192,15 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 					} catch (const std::exception& ex) {
 						Log(LogCritical, "IcingaDB")
 							<< "Error during receiving the response to a query which has been fired and forgotten: " << ex.what();
+
 						continue;
 					} catch (...) {
 						Log(LogCritical, "IcingaDB")
 							<< "Error during receiving the response to a query which has been fired and forgotten";
+
 						continue;
 					}
+
 					break;
 				case ResponseAction::Deliver:
 					for (auto i (item.Amount); i; --i) {
@@ -212,11 +215,13 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 							throw;
 						} catch (...) {
 							promise.set_exception(std::current_exception());
+
 							continue;
 						}
 
 						promise.set_value(std::move(reply));
 					}
+
 					break;
 				case ResponseAction::DeliverBulk:
 					{
@@ -233,6 +238,7 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 								throw;
 							} catch (...) {
 								promise.set_exception(std::current_exception());
+
 								continue;
 							}
 						}
@@ -286,11 +292,13 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 			Log msg (LogCritical, "IcingaDB", "Error during sending query");
 			LogQuery(item, msg);
 			msg << " which has been fired and forgotten: " << ex.what();
+
 			return;
 		} catch (...) {
 			Log msg (LogCritical, "IcingaDB", "Error during sending query");
 			LogQuery(item, msg);
 			msg << " which has been fired and forgotten";
+
 			return;
 		}
 
@@ -318,11 +326,13 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 			Log msg (LogCritical, "IcingaDB", "Error during sending query");
 			LogQuery(item[i], msg);
 			msg << " which has been fired and forgotten: " << ex.what();
+
 			return;
 		} catch (...) {
 			Log msg (LogCritical, "IcingaDB", "Error during sending query");
 			LogQuery(item[i], msg);
 			msg << " which has been fired and forgotten";
+
 			return;
 		}
 
@@ -344,6 +354,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 			throw;
 		} catch (...) {
 			item.second.set_exception(std::current_exception());
+
 			return;
 		}
 
@@ -369,6 +380,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 			throw;
 		} catch (...) {
 			item.second.set_exception(std::current_exception());
+
 			return;
 		}
 

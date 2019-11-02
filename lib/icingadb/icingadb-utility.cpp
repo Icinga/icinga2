@@ -1,11 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icingadb/icingadb.hpp"
-#include "icinga/customvarobject.hpp"
-#include "icinga/checkcommand.hpp"
-#include "icinga/notificationcommand.hpp"
-#include "icinga/eventcommand.hpp"
-#include "icinga/host.hpp"
 #include "base/configtype.hpp"
 #include "base/object-packer.hpp"
 #include "base/logger.hpp"
@@ -17,11 +12,15 @@
 #include "base/scriptglobal.hpp"
 #include "base/convert.hpp"
 #include "base/json.hpp"
+#include "icinga/customvarobject.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/notificationcommand.hpp"
+#include "icinga/eventcommand.hpp"
+#include "icinga/host.hpp"
+#include <boost/algorithm/string.hpp>
 #include <map>
 #include <utility>
 #include <vector>
-#include <boost/algorithm/string.hpp>
-
 
 using namespace icinga;
 

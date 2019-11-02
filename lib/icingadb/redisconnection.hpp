@@ -3,6 +3,12 @@
 #ifndef REDISCONNECTION_H
 #define REDISCONNECTION_H
 
+#include "base/array.hpp"
+#include "base/atomic.hpp"
+#include "base/io-engine.hpp"
+#include "base/object.hpp"
+#include "base/string.hpp"
+#include "base/value.hpp"
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/buffered_stream.hpp>
@@ -26,12 +32,6 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
-#include "base/array.hpp"
-#include "base/atomic.hpp"
-#include "base/io-engine.hpp"
-#include "base/object.hpp"
-#include "base/string.hpp"
-#include "base/value.hpp"
 
 namespace icinga
 {
@@ -50,7 +50,8 @@ namespace icinga
 		typedef Value Reply;
 		typedef std::vector<Reply> Replies;
 
-		RedisConnection(const String host, const int port, const String path, const String password = "", const int db = 0);
+		RedisConnection(const String& host, const int port, const String& path,
+			const String& password = "", const int db = 0);
 
 		void Start();
 
@@ -221,6 +222,7 @@ RedisConnection::Reply RedisConnection::ReadOne(StreamPtr& stream, boost::asio::
 			m_Connected.store(false);
 			stream = nullptr;
 		}
+
 		throw;
 	}
 }
@@ -244,6 +246,7 @@ void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query,
 			m_Connected.store(false);
 			stream = nullptr;
 		}
+
 		throw;
 	}
 }
@@ -370,7 +373,9 @@ void RedisConnection::WriteRESP(AsyncWriteStream& stream, const Query& query, bo
 
 	for (auto& arg : query) {
 		asio::async_write(stream, asio::const_buffer("$", 1), yc);
+
 		WriteInt(stream, arg.GetLength(), yc);
+
 		asio::async_write(stream, asio::const_buffer("\r\n", 2), yc);
 		asio::async_write(stream, asio::const_buffer(arg.CStr(), arg.GetLength()), yc);
 		asio::async_write(stream, asio::const_buffer("\r\n", 2), yc);

@@ -7,21 +7,18 @@
 #include "base/json.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/host.hpp"
-
-#include <memory>
 #include <boost/algorithm/string.hpp>
+#include <memory>
 #include <utility>
-
 
 using namespace icinga;
 
-//TODO Make configurable and figure out a sane default
 #define MAX_EVENTS_DEFAULT 5000
 
 REGISTER_TYPE(IcingaDB);
 
 IcingaDB::IcingaDB()
-: m_Rcon(nullptr)
+	: m_Rcon(nullptr)
 {
 	m_Rcon = nullptr;
 
@@ -292,11 +289,13 @@ void IcingaDB::SendEvent(const Dictionary::Ptr& event)
 
 	if (type == "CheckResult") {
 		Checkable::Ptr checkable;
+
 		if (event->Contains("service")) {
 			checkable = Service::GetByNamePair(event->Get("host"), event->Get("service"));
 		} else {
 			checkable = Host::GetByName(event->Get("host"));
 		}
+
 		// Update State for icingaweb
 		m_WorkQueue.Enqueue([this, checkable]() { UpdateState(checkable); });
 	}
@@ -315,6 +314,7 @@ void IcingaDB::SendEvent(const Dictionary::Ptr& event)
 		if (type == "AcknowledgementSet") {
 			Timestamp entry = 0;
 			Comment::Ptr AckComment;
+
 			for (const Comment::Ptr& c : checkable->GetComments()) {
 				if (c->GetEntryType() == CommentAcknowledgement) {
 					if (c->GetEntryTime() > entry) {
@@ -324,14 +324,12 @@ void IcingaDB::SendEvent(const Dictionary::Ptr& event)
 					}
 				}
 			}
+
 			event->Set("comment_id", GetObjectIdentifier(AckComment));
 		}
 	}
 
 	String body = JsonEncode(event);
-
-//	Log(LogInformation, "IcingaDB")
-//		<< "Sending event \"" << body << "\"";
 
 	m_Rcon->FireAndForgetQueries({
 		{ "PUBLISH", "icinga:event:all", body },
