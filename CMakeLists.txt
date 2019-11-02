@@ -22,6 +22,13 @@ option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
 option(ICINGA2_WITH_TESTS "Run unit tests" ON)
 
+# IcingaDB only is supported on modern Linux/Unix master systems
+if(NOT WIN32)
+  option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ON)
+else()
+  option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" OFF)
+endif()
+
 option (USE_SYSTEMD
  "Configure icinga as native systemd service instead of a SysV initscript" OFF)
 
@@ -202,7 +209,6 @@ endif()
 if(HAVE_SYSTEMD)
   list(APPEND base_DEPS systemd)
 endif()
-
 
 if(EDITLINE_FOUND)
   list(APPEND base_DEPS ${EDITLINE_LIBRARIES})

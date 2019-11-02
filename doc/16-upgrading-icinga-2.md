@@ -188,7 +188,7 @@ being set but no `zone` defined.
 
 The most convenient way with e.g. managing the objects in `conf.d`
 is to move them into the `master` zone. Please continue in the
-[troubleshooting docs](#troubleshooting-cluster-command-endpoint-errors-agent-hosts-command-endpoint-zone)
+[troubleshooting docs](15-troubleshooting.md#troubleshooting-cluster-command-endpoint-errors-agent-hosts-command-endpoint-zone)
 for further instructions.
 
 #### Config Sync <a id="upgrading-to-2-11-cluster-config-sync"></a>

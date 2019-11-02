@@ -300,6 +300,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (hardChange || is_volatile) {
 		SetLastHardStateRaw(new_state);
 		SetLastHardStateChange(now);
+		SetLastHardStatesRaw(GetLastHardStatesRaw() / 100u + new_state * 100u);
 	}
 
 	if (!IsStateOK(new_state))

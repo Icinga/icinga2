@@ -1626,9 +1626,9 @@ it is valid to just sync their zones via the config sync.
 The following restores the Zone/Endpoint objects as config objects outside of `zones.d`
 in your master/satellite's zones.conf with rendering them as external objects in the Director.
 
-[Example](06-distributed-monitoring.md#three-levels-with-masters-satellites-and-agents)
+[Example](06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-agents)
 for a 3 level setup with the masters and satellites knowing about the zone hierarchy
-outside defined in [zones.conf](#zones-conf):
+outside defined in [zones.conf](04-configuration.md#zones-conf):
 
 ```
 object Endpoint "icinga-master1.localdomain" {

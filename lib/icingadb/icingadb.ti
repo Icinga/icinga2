@@ -1,0 +1,23 @@
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+
+#include "base/configobject.hpp"
+
+library icingadb;
+
+namespace icinga
+{
+
+class IcingaDB : ConfigObject
+{
+	[config] String host {
+		default {{{ return "127.0.0.1"; }}}
+	};
+	[config] int port {
+		default {{{ return 6379; }}}
+	};
+	[config] String path;
+	[config] String password;
+	[config] int db_index;
+};
+
+}
