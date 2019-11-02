@@ -33,6 +33,7 @@
 #include "base/array.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/convert.hpp"
+#include "base/json.hpp"
 #include <map>
 #include <utility>
 #include <vector>
