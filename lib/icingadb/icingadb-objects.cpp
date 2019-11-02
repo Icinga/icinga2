@@ -1494,6 +1494,16 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
+	if (comment->GetExpireTime() < Utility::GetTime()) {
+		xAdd.emplace_back("remove_time");
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(Utility::GetTime())));
+		xAdd.emplace_back("has_been_removed");
+		xAdd.emplace_back("1");
+	} else {
+		xAdd.emplace_back("has_been_removed");
+		xAdd.emplace_back("0");
+	}
+
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
 }
 
@@ -1533,16 +1543,6 @@ void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value&
 	if (endpoint) {
 		xAdd.emplace_back("endpoint_id");
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
-	}
-	
-	if (comment->GetExpireTime() < Utility::GetTime()) {
-		xAdd.emplace_back("remove_time");
-		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(Utility::GetTime())));
-		xAdd.emplace_back("has_been_removed");
-		xAdd.emplace_back("1");
-	} else {
-		xAdd.emplace_back("has_been_removed");
-		xAdd.emplace_back("0");
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
