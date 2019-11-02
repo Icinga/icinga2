@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef REDISWRITER_H
-#define REDISWRITER_H
+#ifndef ICINGADB_H
+#define ICINGADB_H
 
 #include "icingadb/icingadb-ti.hpp"
 #include "icinga/customvarobject.hpp"
@@ -138,4 +138,4 @@ private:
 };
 }
 
-#endif /* REDISWRITER_H */
+#endif /* ICINGADB_H */

@@ -2,7 +2,7 @@
 
 #include "base/configobject.hpp"
 
-library redis;
+library icingadb;
 
 namespace icinga
 {
