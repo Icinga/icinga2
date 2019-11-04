@@ -1129,10 +1129,10 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 						   });
 }
 
-static
-unsigned short GetPreviousHardState(const Checkable::Ptr& checkable, const Service::Ptr& service)
+static inline
+unsigned short GetPreviousState(const Checkable::Ptr& checkable, const Service::Ptr& service, StateType type)
 {
-	auto phs (checkable->GetLastHardStatesRaw() % 100u);
+	auto phs ((type == StateTypeHard ? checkable->GetLastHardStatesRaw() : checkable->GetLastSoftStatesRaw()) % 100u);
 
 	if (service) {
 		return phs;
@@ -1185,7 +1185,8 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 		// TODO: last_hard/soft_state should be "previous".
 		"last_soft_state", Convert::ToString(cr ? cr->GetState() : 99),
 		"last_hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
-		"previous_hard_state", Convert::ToString(GetPreviousHardState(checkable, service)),
+		"previous_soft_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeSoft)),
+		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
 		"output", Utility::ValidateUTF8(std::move(output.first)),
 		"long_output", Utility::ValidateUTF8(std::move(output.second)),
 		"check_source", cr->GetCheckSource(),
@@ -1239,7 +1240,7 @@ void IcingaDB::SendSentNotification(
 		"notification_id", GetObjectIdentifier(notification),
 		"type", Convert::ToString(type),
 		"state", Convert::ToString(cr->GetState()),
-		"previous_hard_state", Convert::ToString(GetPreviousHardState(checkable, service)),
+		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
 		"author", Utility::ValidateUTF8(author),
 		"text", Utility::ValidateUTF8(finalText),
 		"users_notified", Convert::ToString(users),
@@ -1574,7 +1575,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 		attrs->Set("severity", host->GetSeverity());
 	}
 
-	attrs->Set("previous_hard_state", GetPreviousHardState(checkable, service));
+	attrs->Set("previous_hard_state", GetPreviousState(checkable, service, StateTypeHard));
 	attrs->Set("check_attempt", checkable->GetCheckAttempt());
 
 	attrs->Set("is_active", checkable->IsActive());

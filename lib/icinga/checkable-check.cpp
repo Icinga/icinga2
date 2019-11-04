@@ -303,6 +303,10 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		SetLastHardStatesRaw(GetLastHardStatesRaw() / 100u + new_state * 100u);
 	}
 
+	if (stateChange) {
+		SetLastSoftStatesRaw(GetLastSoftStatesRaw() / 100u + new_state * 100u);
+	}
+
 	if (!IsStateOK(new_state))
 		TriggerDowntimes();
 
