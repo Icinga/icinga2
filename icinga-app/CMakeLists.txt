@@ -70,6 +70,12 @@ add_executable(icinga-app
 
 target_link_libraries(icinga-app ${base_DEPS})
 
+if(NOT WIN32)
+  add_dependencies(icinga-app procmgr)
+  target_link_directories(icinga-app PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/../libgo/procmgr")
+  target_link_libraries(icinga-app goprocmgr4c)
+endif()
+
 set_target_properties (
   icinga-app PROPERTIES
   FOLDER Bin

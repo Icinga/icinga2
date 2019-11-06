@@ -445,6 +445,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(third-party)
 add_subdirectory(tools)
+add_subdirectory(libgo)
 add_subdirectory(lib)
 add_subdirectory(icinga-app)
 add_subdirectory(etc)

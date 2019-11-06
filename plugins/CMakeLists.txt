@@ -7,6 +7,11 @@ add_executable(check_nscp_api
   $<TARGET_OBJECTS:remote>
 )
 target_link_libraries(check_nscp_api ${base_DEPS})
+if(NOT WIN32)
+  add_dependencies(check_nscp_api procmgr)
+  target_link_directories(check_nscp_api PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/../libgo/procmgr")
+  target_link_libraries(check_nscp_api goprocmgr4c)
+endif()
 set_target_properties (
   check_nscp_api PROPERTIES
   DEFINE_SYMBOL I2_PLUGINS_BUILD
