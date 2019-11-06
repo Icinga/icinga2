@@ -70,9 +70,7 @@ void IcingaDB::ConfigStaticInitialize()
 		IcingaDB::VersionChangedHandler(object);
 	});
 
-	/* fixed downtime start */
-	Downtime::OnDowntimeStarted.connect(&IcingaDB::DowntimeStartedHandler);
-	/* flexible downtime start */
+	/* downtime start */
 	Downtime::OnDowntimeTriggered.connect(&IcingaDB::DowntimeStartedHandler);
 	/* fixed/flexible downtime end or remove */
 	Downtime::OnDowntimeRemoved.connect(&IcingaDB::DowntimeRemovedHandler);
