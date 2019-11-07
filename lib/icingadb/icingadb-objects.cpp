@@ -7,6 +7,7 @@
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
+#include "base/shared.hpp"
 #include "base/tlsutility.hpp"
 #include "base/initialize.hpp"
 #include "base/convert.hpp"
@@ -1759,6 +1760,13 @@ void IcingaDB::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 	}
 }
 
+struct ATU
+{
+	String Author;
+	String Text;
+	std::set<User::Ptr> Users;
+};
+
 void IcingaDB::NotificationSentToAllUsersHandler(
 	const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
 	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
@@ -1767,11 +1775,11 @@ void IcingaDB::NotificationSentToAllUsersHandler(
 	auto rws (ConfigType::GetObjectsByType<IcingaDB>());
 
 	if (!rws.empty()) {
-		auto authorAndText (std::make_shared<std::pair<String, String>>(author, text));
+		auto atu (Shared<ATU>::Make(ATU{author, text, users}));
 
 		for (auto& rw : rws) {
-			rw->m_WorkQueue.Enqueue([rw, notification, checkable, users, type, cr, authorAndText]() {
-				rw->SendSentNotification(notification, checkable, users, type, cr, authorAndText->first, authorAndText->second);
+			rw->m_WorkQueue.Enqueue([rw, notification, checkable, atu, type, cr]() {
+				rw->SendSentNotification(notification, checkable, atu->Users, type, cr, atu->Author, atu->Text);
 			});
 		}
 	}
