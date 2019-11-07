@@ -2658,50 +2658,118 @@ go build icinga.go
 
 #### Example API Client in Powershell <a id="icinga2-api-clients-programmatic-examples-powershell"></a>
 
-Requires Windows 10+ with Powershell 5+.
+This example compares the given certificate with the certificate from icinga2 for a trusted connection.
+More info: https://stackoverflow.com/a/58494718/9397788
 
-Note: The workaround for self signed certificates is not considered
-best practice.
+Invoke-RestMethod with PUT is buggy with Powershell 3.0. So we need at least Powershell 4.0.
+https://stackoverflow.com/questions/18278977/powershell-v3-invoke-restmethod-headers
+
 
 ```
-# Workaround for self signed certificates
-# https://stackoverflow.com/questions/36456104/invoke-restmethod-ignore-self-signed-certs
-if (-not("dummy" -as [type])) {
-    add-type -TypeDefinition @"
-using System;
-using System.Net;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-
-public static class Dummy {
-    public static bool ReturnTrue(object sender,
-        X509Certificate certificate,
-        X509Chain chain,
-        SslPolicyErrors sslPolicyErrors) { return true; }
-
-    public static RemoteCertificateValidationCallback GetDelegate() {
-        return new RemoteCertificateValidationCallback(Dummy.ReturnTrue);
-    }
-}
-"@
-}
-
-[System.Net.ServicePointManager]::ServerCertificateValidationCallback = [dummy]::GetDelegate()
-
-$icingaApiHost = "localhost"
-$icingaApiUser = "root"
+$icingaApiHost     = "icinga.master.local"
+$IcingaApiPort     = 5665
+$icingaApiUser     = "root"
 $icingaApiPassword = "icinga"
 
-$requestUrl = "https://{0}:5665/v1/objects/services" -f $icingaApiHost
+$requestUrl = "https://{0}:{1}/v1/objects/services" -f $icingaApiHost,$IcingaApiPort
 
-$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $icingaApiUser, $icingaApiPassword)))
-$httpAuthInfo = "Basic $base64AuthInfo"
-$httpAcceptInfo = "application/json"
+
+# Put the certificate from your master (/etc/icinga2/pki/*.crt) here.
+# You will get it with "openssl s_client -connect <master>:5665" too.
+
+$cert64=@"
+	-----BEGIN CERTIFICATE-----
+	MIIE5TCCAs2gAwIBAgIBAjANBgkqhkiG9w0BAQsFADAUMRIwEAYDVQQDDAlJY2lu
+	Z2EgQ0EwHhcNMTYwNzA3MDYxOTM4WhcNMzEwNzA0MDYxOTM4WjAiMSAwHgYDVQQD
+	DBdpY2luZ2EuZXh0ZXJuMS56bXQuaW5mbzCCAiIwDQYJKoZIhvcNAQEBBQADggIP
+	ADCCAgoCggIBAJ2/ufxCb1m8PbUCxLkZqZNLxZ/vpulOcKmOGYm6VBWbOXQA50on
+	IewnMRUDGF9DHajLk1nyUu1TyKxGzBbja+06/kVd/8Muv0MUNF6iC1U3F3h0W9da
+	kk5rK1L+A534csHCFcG3dZkbdOMrh5hy4kMf9c2FEpviL54Fo4e+b3ZJFA6rv5D9
+	7LzaxfLcsMwXIZ/WRnxjjfnA+RenHeYLlNM8Uk3vqI6tBc1qpFzFeRWMbclFzSLN
+	5x+J6cuyFjVi+Vv8c6SU6W3ykw8Vvq1QQUixl9lwxqNJNsWWfGR8ycmFiv1ZYxiu
+	HpmuLslExZ2qxdGe/raMBEOGgVsUTDZNyTm/9TxgOa3m9cv3R0YIFUmfoBQ3d51S
+	wburJG2eC0ETpnt0TptwMdTfL+HYVWB71djg2Pb8R3vldnhFVpy9vyx3FyHoN7ZQ
+	h7+r6HK2jpwWo7/jK9ExpglVoV8vUbNYqXiA/lZGEkT3YLwTyUhqXKei3Xu2CGGR
+	UId6fAj6OWk9TLW+OaR9BcS74mpiTWNDlbEP+/LQnUhte8scX5cSqBzy4vpuG1G+
+	NGDbYcG4xn6Pc6qt/QddKU/pB/GbJv9SlHU8SjSt09oG9GtuXVjPoZX5msi3NmMy
+	DpAcab5Lx4MgOS/GwRLRI3IjZ3ZK+UkLvRgesSH5/JPUIgfTdr/Eg5dVAgMBAAGj
+	NDAyMAwGA1UdEwEB/wQCMAAwIgYDVR0RBBswGYIXaWNpbmdhLmV4dGVybjEuem10
+	LmluZm8wDQYJKoZIhvcNAQELBQADggIBAEpEJt35KZuvDzU/xrVaVC3ct6CHmXOh
+	DDj5PdwkYtO0vw9WE7aVc88Fs6uhW2BxFkLvm7TpJ6g05egtBozHYrhTEir/fPna
+	rVAD9wEQU6KuSayeToXlgWhKDRAAv1lrQwU4xAAdJP8faxQGc7nAwN/h0g14UTmU
+	LSkyJU4a+1SkEUOs2YCq9vChS3MowO+6I35e98dIA1swHLeQ/QJowspODQvi6pGX
+	VH8FaaqfGwhv+gMwDoAW9hB74VZXO8I3mueZUccPiJXlaojx5hpaHRNRvpdBPclA
+	HHLRQniEOkai2Wg2cft/wq6/fYLE/yv5ej15MNyt3Wjj41DEK5B/bvmN/chOrZlv
+	8rh3ek12ngVtXF+Jcmfsij8+hj/IOM6SeELtW+c0KRaPoVR7oR9o6ce/dyfiw6Hv
+	iQsAV6x//kytpRnUY3VAH4QTJzQ5bgz1Cwr6H+cWE2ca4MHCtPYaZnDiOv4b/Yz7
+	97Nrc7QPGewMl0hYeykpLP2hBJldw01NXhztuq1j38vYY38lKCN6v1INUujEUZg7
+	NwgfHUvJmGIE/fwLAvP7do8gf+1MGPEimsgvias5YtDtrEOz7K/oF3Qgk3sepwAz
+	XXlNLnJAY4p0d/sgCCFQnstQMM95X0Y6cfITzkz3HIUcNF2sbvVnn8xHi0TSH/8J
+	tPLHO1xOLz7N
+	-----END CERTIFICATE-----
+"@
+
+# register callback for comparing the certificate
+function set-SSLCertificate {
+    param(
+        $Cert
+    )
+
+    if (-not("validateCert" -as [type])) {
+        add-type -TypeDefinition @"
+            using System.Net.Security;
+            using System.Security.Cryptography.X509Certificates;
+
+            public static class ValidateCert {
+                static X509Certificate2 MyCert;
+
+                public static bool Validate(object sender,
+                    X509Certificate cert,
+                    X509Chain chain,
+                    SslPolicyErrors sslPolicyErrors) {
+                        if (MyCert.Equals(cert)) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                }
+
+                public static RemoteCertificateValidationCallback GetDelegate(X509Certificate2 Cert) {
+                    MyCert = Cert;
+                    return new RemoteCertificateValidationCallback(ValidateCert.Validate);
+                }
+            }
+"@
+    }
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [validateCert]::GetDelegate($Cert)
+}
+
+# convert base64 based certificate to X509 certificate
+function get-x509 {
+    param(
+        [string]
+            $Cert64
+    )
+
+    $CertBin=[System.Convert]::FromBase64String(($Cert64.Trim(" ") -replace "-.*-",""))
+
+    Write-Host ($Cert64.Trim(" ") -replace "-.*-","")
+
+    [System.Security.Cryptography.X509Certificates.X509Certificate2]$CertBin
+}
+
+# Allow TLS 1.2. Old powershell (.net) uses TLS 1.0 only. Icinga2 >2.10 needs TLS 1.2
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
+
+$SecPass = ConvertTo-SecureString $icingaApiPassword -AsPlainText -Force
+$Cred = New-Object System.Management.Automation.PSCredential($icingaApiUser, $SecPass)
+
+$Cert = get-x509 $Cert64
+set-SSLCertificate $Cert
 
 $httpHeaders = @{
-    "Authorization" = $httpAuthInfo
-    "Accept" = $httpAcceptInfo
     "X-HTTP-Method-Override" = "GET"
+    "accept"                 = "application/json"
 }
 
 $attrs =  @( "name", "state", "last_check_result" )
@@ -2714,7 +2782,7 @@ $data = @{
     "filter" = $filter
 }
 
-$result = Invoke-RestMethod -Headers $httpHeaders -Uri $requestUrl -Method "POST" -Body ($data|ConvertTo-Json)
+$result = Invoke-RestMethod -Uri $requestUrl -Method "POST" -Body (ConvertTo-Json -InputObject $data)  -Credential $Cred -ContentType "application/json" -Headers $httpHeaders
 
 foreach ($s in $result.results) {
     Write-Host "Service " $s.attrs.name " on Host " $s.joins.host.name "State " $s.attrs.state " Output: " $s.attrs.last_check_result.output
