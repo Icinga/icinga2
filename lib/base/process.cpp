@@ -13,6 +13,9 @@
 #include "base/scriptglobal.hpp"
 #include "base/json.hpp"
 #include <boost/algorithm/string/join.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/range.hpp>
 #include <boost/thread/once.hpp>
 #include <thread>
 #include <iostream>
@@ -22,6 +25,7 @@
 #	include <execvpe.h>
 #	include <poll.h>
 #	include <string.h>
+#	include <unistd.h>
 
 #	ifndef __APPLE__
 extern char **environ;
@@ -80,6 +84,61 @@ static LazyInit<std::vector<String>> l_OurEnv ([]() -> std::vector<String> {
 
 	return std::move(ourEnv);
 });
+
+#if (defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
+
+static inline
+void CloseFrom(int lowfd)
+{
+	closefrom(lowfd);
+}
+
+#elif (defined(__linux__) || defined(__APPLE__))
+
+#ifdef __linux__
+#define OURFDS "/proc/self/fd"
+#else /* __linux__ */
+#define OURFDS "/dev/fd"
+#endif /* __linux__ */
+
+static inline
+void CloseFrom(int lowfd)
+{
+	namespace fs = boost::filesystem;
+
+	for (auto& entry : boost::make_iterator_range(fs::directory_iterator(fs::path(OURFDS)), fs::directory_iterator())) {
+		auto& path (entry.path().native());
+		int fd;
+
+		try {
+			fd = boost::lexical_cast<int>(path);
+		} catch (...) {
+			continue;
+		}
+
+		if (fd >= lowfd) {
+			(void)close(fd);
+		}
+	}
+}
+
+#else /* (defined(__linux__) || defined(__APPLE__)) */
+
+static inline
+void CloseFrom(int lowfd)
+{
+	int maxfds = 65536;
+
+	rlimit rl;
+	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0 && rl.rlim_max != RLIM_INFINITY) {
+		maxfds = rl.rlim_max;
+	}
+
+	for (int i = lowfd; i < maxfds; ++i)
+		(void)close(i);
+}
+
+#endif /* (defined(__linux__) || defined(__APPLE__)) */
 
 static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment, bool adjustPriority, int fds[3])
 {
@@ -147,15 +206,9 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 	}
 #endif /* HAVE_NICE */
 
-	rlimit rl;
-	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
-		rlim_t maxfds = rl.rlim_max;
-
-		if (maxfds == RLIM_INFINITY)
-			maxfds = 65536;
-
-		for (rlim_t i = 3; i < maxfds; i++)
-			(void)close(i);
+	try {
+		CloseFrom(3);
+	} catch (...) {
 	}
 
 	sigset_t mask;
