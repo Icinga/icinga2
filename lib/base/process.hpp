@@ -69,10 +69,6 @@ public:
 
 	static String PrettyPrintArguments(const Arguments& arguments);
 
-#ifndef _WIN32
-	static void InitializeSpawnHelper();
-#endif /* _WIN32 */
-
 private:
 	Arguments m_Arguments;
 	Dictionary::Ptr m_ExtraEnvironment;

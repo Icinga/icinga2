@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/lazy-init.hpp"
 #include "base/process.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
@@ -15,6 +16,7 @@
 #include <boost/thread/once.hpp>
 #include <thread>
 #include <iostream>
+#include <utility>
 
 #ifndef _WIN32
 #	include <execvpe.h>
@@ -41,12 +43,8 @@ static HANDLE l_Events[IOTHREADS];
 static int l_EventFDs[IOTHREADS][2];
 static std::map<Process::ConsoleHandle, Process::ProcessHandle> l_FDs[IOTHREADS];
 
-static boost::mutex l_ProcessControlMutex;
-static int l_ProcessControlFD = -1;
-static pid_t l_ProcessControlPID;
 #endif /* _WIN32 */
 static boost::once_flag l_ProcessOnceFlag = BOOST_ONCE_INIT;
-static boost::once_flag l_SpawnHelperOnceFlag = BOOST_ONCE_INIT;
 
 Process::Process(Process::Arguments arguments, Dictionary::Ptr extraEnvironment)
 	: m_Arguments(std::move(arguments)), m_ExtraEnvironment(std::move(extraEnvironment)), m_Timeout(600), m_AdjustPriority(false)
@@ -67,170 +65,87 @@ Process::~Process()
 }
 
 #ifndef _WIN32
-static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& request)
+static LazyInit<std::vector<String>> l_OurEnv ([]() -> std::vector<String> {
+	std::vector<String> ourEnv;
+
+	for (int envc = 0;; ++envc) {
+		auto ev (environ[envc]);
+
+		if (!ev) {
+			break;
+		}
+
+		ourEnv.emplace_back(ev);
+	}
+
+	return std::move(ourEnv);
+});
+
+static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment, bool adjustPriority, int fds[3])
 {
-	struct cmsghdr *cmsg = CMSG_FIRSTHDR(msgh);
-
-	if (cmsg == nullptr || cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_len != CMSG_LEN(sizeof(int) * 3)) {
-		std::cerr << "Invalid 'spawn' request: FDs missing" << std::endl;
-		return Empty;
-	}
-
-	auto *fds = (int *)CMSG_DATA(cmsg);
-
-	Array::Ptr arguments = request->Get("arguments");
-	Dictionary::Ptr extraEnvironment = request->Get("extraEnvironment");
-	bool adjustPriority = request->Get("adjustPriority");
-
 	// build argv
-	auto **argv = new char *[arguments->GetLength() + 1];
+	std::vector<const char*> argv;
+	argv.reserve(arguments.size() + 1u);
 
-	for (unsigned int i = 0; i < arguments->GetLength(); i++) {
-		String arg = arguments->Get(i);
-		argv[i] = strdup(arg.CStr());
+	for (auto& arg : arguments) {
+		argv.emplace_back(arg.CStr());
 	}
 
-	argv[arguments->GetLength()] = nullptr;
+	argv.emplace_back(nullptr);
 
 	// build envp
-	int envc = 0;
-
-	/* count existing environment variables */
-	while (environ[envc])
-		envc++;
-
-	auto **envp = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 2];
-
-	for (int i = 0; i < envc; i++)
-		envp[i] = strdup(environ[i]);
+	std::vector<const char*> envp;
+	const auto& ourEnv (l_OurEnv.Get());
+	std::vector<String> extraEnv;
 
 	if (extraEnvironment) {
 		ObjectLock olock(extraEnvironment);
+		extraEnv.reserve(extraEnvironment->GetLength());
 
-		int index = envc;
-		for (const Dictionary::Pair& kv : extraEnvironment) {
-			String skv = kv.first + "=" + Convert::ToString(kv.second);
-			envp[index] = strdup(skv.CStr());
-			index++;
+		for (auto& kv : extraEnvironment) {
+			extraEnv.emplace_back(kv.first + "=" + Convert::ToString(kv.second));
 		}
 	}
 
-	envp[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0)] = strdup("LC_NUMERIC=C");
-	envp[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 1] = nullptr;
+	envp.reserve(ourEnv.size() + extraEnv.size() + 2u);
 
-	extraEnvironment.reset();
+	for (auto& ev : ourEnv) {
+		envp.emplace_back(ev.CStr());
+	}
 
+	for (auto& ev : extraEnv) {
+		envp.emplace_back(ev.CStr());
+	}
+
+	envp.emplace_back("LC_NUMERIC=C");
+	envp.emplace_back(nullptr);
+
+	errno = 0;
 	pid_t pid = fork();
 
-	int errorCode = 0;
+	if (pid) {
+		return pid;
+	}
 
-	if (pid < 0)
-		errorCode = errno;
+	// child process
 
-	if (pid == 0) {
-		// child process
-
-		(void)close(l_ProcessControlFD);
-
-		if (setsid() < 0) {
-			perror("setsid() failed");
-			_exit(128);
-		}
-
-		if (dup2(fds[0], STDIN_FILENO) < 0 || dup2(fds[1], STDOUT_FILENO) < 0 || dup2(fds[2], STDERR_FILENO) < 0) {
-			perror("dup2() failed");
-			_exit(128);
-		}
-
-		(void)close(fds[0]);
-		(void)close(fds[1]);
-		(void)close(fds[2]);
-
-#ifdef HAVE_NICE
-		if (adjustPriority) {
-			// Cheating the compiler on "warning: ignoring return value of 'int nice(int)', declared with attribute warn_unused_result [-Wunused-result]".
-			auto x (nice(5));
-			(void)x;
-		}
-#endif /* HAVE_NICE */
-
-		sigset_t mask;
-		sigemptyset(&mask);
-		sigprocmask(SIG_SETMASK, &mask, nullptr);
-
-		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
-			char errmsg[512];
-			strcpy(errmsg, "execvpe(");
-			strncat(errmsg, argv[0], sizeof(errmsg) - strlen(errmsg) - 1);
-			strncat(errmsg, ") failed", sizeof(errmsg) - strlen(errmsg) - 1);
-			errmsg[sizeof(errmsg) - 1] = '\0';
-			perror(errmsg);
-			_exit(128);
-		}
-
+	if (setsid() < 0) {
+		perror("setsid() failed");
 		_exit(128);
 	}
 
-	(void)close(fds[0]);
-	(void)close(fds[1]);
-	(void)close(fds[2]);
+	if (dup2(fds[0], STDIN_FILENO) < 0 || dup2(fds[1], STDOUT_FILENO) < 0 || dup2(fds[2], STDERR_FILENO) < 0) {
+		perror("dup2() failed");
+		_exit(128);
+	}
 
-	// free arguments
-	for (int i = 0; argv[i]; i++)
-		free(argv[i]);
-
-	delete[] argv;
-
-	// free environment
-	for (int i = 0; envp[i]; i++)
-		free(envp[i]);
-
-	delete[] envp;
-
-	Dictionary::Ptr response = new Dictionary({
-		{ "rc", pid },
-		{ "errno", errorCode }
-	});
-
-	return response;
-}
-
-static Value ProcessKillImpl(struct msghdr *msgh, const Dictionary::Ptr& request)
-{
-	pid_t pid = request->Get("pid");
-	int signum = request->Get("signum");
-
-	errno = 0;
-	kill(pid, signum);
-	int error = errno;
-
-	Dictionary::Ptr response = new Dictionary({
-		{ "errno", error }
-	});
-
-	return response;
-}
-
-static Value ProcessWaitPIDImpl(struct msghdr *msgh, const Dictionary::Ptr& request)
-{
-	pid_t pid = request->Get("pid");
-
-	int status;
-	int rc = waitpid(pid, &status, 0);
-
-	Dictionary::Ptr response = new Dictionary({
-		{ "status", status },
-		{ "rc", rc }
-	});
-
-	return response;
-}
-
-static void ProcessHandler()
-{
-	sigset_t mask;
-	sigfillset(&mask);
-	sigprocmask(SIG_SETMASK, &mask, nullptr);
+#ifdef HAVE_NICE
+	if (adjustPriority) {
+		// Cheating the compiler on "warning: ignoring return value of 'int nice(int)', declared with attribute warn_unused_result [-Wunused-result]".
+		auto x (nice(5));
+		(void)x;
+	}
+#endif /* HAVE_NICE */
 
 	rlimit rl;
 	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
@@ -240,256 +155,37 @@ static void ProcessHandler()
 			maxfds = 65536;
 
 		for (rlim_t i = 3; i < maxfds; i++)
-			if (i != static_cast<rlim_t>(l_ProcessControlFD))
-				(void)close(i);
+			(void)close(i);
 	}
 
-	for (;;) {
-		size_t length;
+	sigset_t mask;
+	sigemptyset(&mask);
+	sigprocmask(SIG_SETMASK, &mask, nullptr);
 
-		struct msghdr msg;
-		memset(&msg, 0, sizeof(msg));
-
-		struct iovec io;
-		io.iov_base = &length;
-		io.iov_len = sizeof(length);
-
-		msg.msg_iov = &io;
-		msg.msg_iovlen = 1;
-
-		char cbuf[4096];
-		msg.msg_control = cbuf;
-		msg.msg_controllen = sizeof(cbuf);
-
-		int rc = recvmsg(l_ProcessControlFD, &msg, 0);
-
-		if (rc <= 0) {
-			if (rc < 0 && (errno == EINTR || errno == EAGAIN))
-				continue;
-
-			break;
-		}
-
-		auto *mbuf = new char[length];
-
-		size_t count = 0;
-		while (count < length) {
-			rc = recv(l_ProcessControlFD, mbuf + count, length - count, 0);
-
-			if (rc <= 0) {
-				if (rc < 0 && (errno == EINTR || errno == EAGAIN))
-					continue;
-
-				delete [] mbuf;
-
-				_exit(0);
-			}
-
-			count += rc;
-
-			if (rc == 0)
-				break;
-		}
-
-		String jrequest = String(mbuf, mbuf + count);
-
-		delete [] mbuf;
-
-		Dictionary::Ptr request = JsonDecode(jrequest);
-
-		String command = request->Get("command");
-
-		Value response;
-
-		if (command == "spawn")
-			response = ProcessSpawnImpl(&msg, request);
-		else if (command == "waitpid")
-			response = ProcessWaitPIDImpl(&msg, request);
-		else if (command == "kill")
-			response = ProcessKillImpl(&msg, request);
-		else
-			response = Empty;
-
-		String jresponse = JsonEncode(response);
-
-		if (send(l_ProcessControlFD, jresponse.CStr(), jresponse.GetLength(), 0) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("send")
-				<< boost::errinfo_errno(errno));
-		}
+	if (icinga2_execvpe(argv[0], (char*const*)(void*)argv.data(), (char*const*)(void*)envp.data()) < 0) {
+		char errmsg[512];
+		strcpy(errmsg, "execvpe(");
+		strncat(errmsg, argv[0], sizeof(errmsg) - strlen(errmsg) - 1);
+		strncat(errmsg, ") failed", sizeof(errmsg) - strlen(errmsg) - 1);
+		errmsg[sizeof(errmsg) - 1] = '\0';
+		perror(errmsg);
 	}
 
-	_exit(0);
+	_exit(128);
 }
 
-static void StartSpawnProcessHelper()
+static inline
+int ProcessKill(pid_t pid, int signum)
 {
-	if (l_ProcessControlFD != -1) {
-		(void)close(l_ProcessControlFD);
-
-		int status;
-		(void)waitpid(l_ProcessControlPID, &status, 0);
-	}
-
-	int controlFDs[2];
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, controlFDs) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("socketpair")
-			<< boost::errinfo_errno(errno));
-	}
-
-	pid_t pid = fork();
-
-	if (pid < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("fork")
-			<< boost::errinfo_errno(errno));
-	}
-
-	if (pid == 0) {
-		(void)close(controlFDs[1]);
-
-		l_ProcessControlFD = controlFDs[0];
-
-		ProcessHandler();
-
-		_exit(1);
-	}
-
-	(void)close(controlFDs[0]);
-
-	l_ProcessControlFD = controlFDs[1];
-	l_ProcessControlPID = pid;
+	errno = 0;
+	kill(pid, signum);
+	return errno;
 }
 
-static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment, bool adjustPriority, int fds[3])
+static inline
+int ProcessWaitPID(pid_t pid, int *status)
 {
-	Dictionary::Ptr request = new Dictionary({
-		{ "command", "spawn" },
-		{ "arguments", Array::FromVector(arguments) },
-		{ "extraEnvironment", extraEnvironment },
-		{ "adjustPriority", adjustPriority }
-	});
-
-	String jrequest = JsonEncode(request);
-	size_t length = jrequest.GetLength();
-
-	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
-
-	struct msghdr msg;
-	memset(&msg, 0, sizeof(msg));
-
-	struct iovec io;
-	io.iov_base = &length;
-	io.iov_len = sizeof(length);
-
-	msg.msg_iov = &io;
-	msg.msg_iovlen = 1;
-
-	char cbuf[CMSG_SPACE(sizeof(int) * 3)];
-	msg.msg_control = cbuf;
-	msg.msg_controllen = sizeof(cbuf);
-
-	struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
-	cmsg->cmsg_level = SOL_SOCKET;
-	cmsg->cmsg_type = SCM_RIGHTS;
-	cmsg->cmsg_len = CMSG_LEN(sizeof(int) * 3);
-
-	memcpy(CMSG_DATA(cmsg), fds, sizeof(int) * 3);
-
-	msg.msg_controllen = cmsg->cmsg_len;
-
-	do {
-		while (sendmsg(l_ProcessControlFD, &msg, 0) < 0) {
-			StartSpawnProcessHelper();
-		}
-	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
-
-	char buf[4096];
-
-	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
-
-	if (rc <= 0)
-		return -1;
-
-	String jresponse = String(buf, buf + rc);
-
-	Dictionary::Ptr response = JsonDecode(jresponse);
-
-	if (response->Get("rc") == -1)
-		errno = response->Get("errno");
-
-	return response->Get("rc");
-}
-
-static int ProcessKill(pid_t pid, int signum)
-{
-	Dictionary::Ptr request = new Dictionary({
-		{ "command", "kill" },
-		{ "pid", pid },
-		{ "signum", signum }
-	});
-
-	String jrequest = JsonEncode(request);
-	size_t length = jrequest.GetLength();
-
-	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
-
-	do {
-		while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0) {
-			StartSpawnProcessHelper();
-		}
-	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
-
-	char buf[4096];
-
-	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
-
-	if (rc <= 0)
-		return -1;
-
-	String jresponse = String(buf, buf + rc);
-
-	Dictionary::Ptr response = JsonDecode(jresponse);
-	return response->Get("errno");
-}
-
-static int ProcessWaitPID(pid_t pid, int *status)
-{
-	Dictionary::Ptr request = new Dictionary({
-		{ "command", "waitpid" },
-		{ "pid", pid }
-	});
-
-	String jrequest = JsonEncode(request);
-	size_t length = jrequest.GetLength();
-
-	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
-
-	do {
-		while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0) {
-			StartSpawnProcessHelper();
-		}
-	} while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0);
-
-	char buf[4096];
-
-	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
-
-	if (rc <= 0)
-		return -1;
-
-	String jresponse = String(buf, buf + rc);
-
-	Dictionary::Ptr response = JsonDecode(jresponse);
-	*status = response->Get("status");
-	return response->Get("rc");
-}
-
-void Process::InitializeSpawnHelper()
-{
-	if (l_ProcessControlFD == -1)
-		StartSpawnProcessHelper();
+	return waitpid(pid, status, 0);
 }
 #endif /* _WIN32 */
 
@@ -777,11 +473,30 @@ static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
 }
 #endif /* _WIN32 */
 
+class UniqueFd
+{
+public:
+	inline
+	UniqueFd(int fd) : FD(fd)
+	{
+	}
+
+	UniqueFd(const UniqueFd&) = delete;
+	UniqueFd(UniqueFd&&) = delete;
+	UniqueFd& operator=(const UniqueFd&) = delete;
+	UniqueFd& operator=(UniqueFd&&) = delete;
+
+	inline
+	~UniqueFd()
+	{
+		(void)close(FD);
+	}
+
+	int FD;
+};
+
 void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 {
-#ifndef _WIN32
-	boost::call_once(l_SpawnHelperOnceFlag, &Process::InitializeSpawnHelper);
-#endif /* _WIN32 */
 	boost::call_once(l_ProcessOnceFlag, &Process::ThreadInitialize);
 
 	m_Result.ExecutionStart = Utility::GetTime();
@@ -964,6 +679,9 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	}
 #endif /* HAVE_PIPE2 */
 
+	UniqueFd ufd0 (outfds[0]);
+	UniqueFd ufd1 (outfds[1]);
+
 	int fds[3];
 	fds[0] = STDIN_FILENO;
 	fds[1] = outfds[1];
@@ -980,11 +698,10 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	Log(LogNotice, "Process")
 		<< "Running command " << PrettyPrintArguments(m_Arguments) << ": PID " << m_PID;
 
-	(void)close(outfds[1]);
-
 	Utility::SetNonBlocking(outfds[0]);
 
 	m_FD = outfds[0];
+	ufd0.FD = -1;
 #endif /* _WIN32 */
 
 	m_Callback = callback;

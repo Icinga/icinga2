@@ -639,8 +639,6 @@ static int Main()
 				}
 			}
 		}
-
-		Process::InitializeSpawnHelper();
 #endif /* _WIN32 */
 
 		std::vector<std::string> args;
