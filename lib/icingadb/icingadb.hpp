@@ -66,7 +66,7 @@ private:
 	void SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 
 	void SendSentNotification(
-		const Notification::Ptr& notification, const Checkable::Ptr& checkable, size_t users,
+		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
 		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
 	);
 

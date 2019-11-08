@@ -7,6 +7,7 @@
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
+#include "base/shared.hpp"
 #include "base/tlsutility.hpp"
 #include "base/initialize.hpp"
 #include "base/convert.hpp"
@@ -1219,7 +1220,7 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 }
 
 void IcingaDB::SendSentNotification(
-	const Notification::Ptr& notification, const Checkable::Ptr& checkable, size_t users,
+	const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
 	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
 )
 {
@@ -1233,9 +1234,12 @@ void IcingaDB::SendSentNotification(
 		finalText = cr->GetOutput();
 	}
 
+	auto usersAmount (users.size());
+	auto notificationHistoryId = Utility::NewUniqueID();
+
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:notification", "*",
-		"id", Utility::NewUniqueID(),
+		"id", notificationHistoryId,
 		"environment_id", SHA1(GetEnvironment()),
 		"notification_id", GetObjectIdentifier(notification),
 		"type", Convert::ToString(type),
@@ -1243,7 +1247,7 @@ void IcingaDB::SendSentNotification(
 		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
 		"author", Utility::ValidateUTF8(author),
 		"text", Utility::ValidateUTF8(finalText),
-		"users_notified", Convert::ToString(users),
+		"users_notified", Convert::ToString(usersAmount),
 		"event_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "notification"
@@ -1269,6 +1273,19 @@ void IcingaDB::SendSentNotification(
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
+
+	for (const User::Ptr& user : users) {
+		auto userId = GetObjectIdentifier(user);
+		std::vector<String> xAddUser ({
+			"XADD", "icinga:history:stream:usernotification", "*",
+			"id", Utility::NewUniqueID(),
+			"environment_id", SHA1(GetEnvironment()),
+			"notification_history_id", notificationHistoryId,
+			"user_id", GetObjectIdentifier(user),
+		});
+
+		m_Rcon->FireAndForgetQuery(std::move(xAddUser));
+	}
 }
 
 void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
@@ -1743,6 +1760,13 @@ void IcingaDB::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 	}
 }
 
+struct ATU
+{
+	String Author;
+	String Text;
+	std::set<User::Ptr> Users;
+};
+
 void IcingaDB::NotificationSentToAllUsersHandler(
 	const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
 	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
@@ -1751,12 +1775,11 @@ void IcingaDB::NotificationSentToAllUsersHandler(
 	auto rws (ConfigType::GetObjectsByType<IcingaDB>());
 
 	if (!rws.empty()) {
-		auto usersAmount (users.size());
-		auto authorAndText (std::make_shared<std::pair<String, String>>(author, text));
+		auto atu (Shared<ATU>::Make(ATU{author, text, users}));
 
 		for (auto& rw : rws) {
-			rw->m_WorkQueue.Enqueue([rw, notification, checkable, usersAmount, type, cr, authorAndText]() {
-				rw->SendSentNotification(notification, checkable, usersAmount, type, cr, authorAndText->first, authorAndText->second);
+			rw->m_WorkQueue.Enqueue([rw, notification, checkable, atu, type, cr]() {
+				rw->SendSentNotification(notification, checkable, atu->Users, type, cr, atu->Author, atu->Text);
 			});
 		}
 	}
