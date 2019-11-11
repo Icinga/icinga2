@@ -38,17 +38,17 @@ class Process final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Process);
 
+	typedef std::function<void (const ProcessResult&)> Callback;
+
 #ifdef _WIN32
 	typedef String Arguments;
 	typedef HANDLE ProcessHandle;
 	typedef HANDLE ConsoleHandle;
-#else /* _WIN32 */
-	typedef std::vector<String> Arguments;
-	typedef pid_t ProcessHandle;
-	typedef int ConsoleHandle;
-#endif /* _WIN32 */
 
 	static const std::deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
+#else /* _WIN32 */
+	typedef std::vector<String> Arguments;
+#endif /* _WIN32 */
 
 	Process(Arguments arguments, Dictionary::Ptr extraEnvironment = nullptr);
 	~Process() override;
@@ -56,20 +56,17 @@ public:
 	void SetTimeout(double timeout);
 	double GetTimeout() const;
 
-	void SetAdjustPriority(bool adjust);
-	bool GetAdjustPriority() const;
-
-	void Run(const std::function<void (const ProcessResult&)>& callback = std::function<void (const ProcessResult&)>());
-
-	pid_t GetPID() const;
+	void Run(Callback callback = Callback());
 
 	static Arguments PrepareCommand(const Value& command);
 
-	static void ThreadInitialize();
-
 	static String PrettyPrintArguments(const Arguments& arguments);
 
-#ifndef _WIN32
+#ifdef _WIN32
+	pid_t GetPID() const;
+
+	static void ThreadInitialize();
+#else /* _WIN32 */
 	static void InitializeSpawnHelper();
 #endif /* _WIN32 */
 
@@ -78,26 +75,25 @@ private:
 	Dictionary::Ptr m_ExtraEnvironment;
 
 	double m_Timeout;
-	bool m_AdjustPriority;
 
+#ifdef _WIN32
 	ProcessHandle m_Process;
 	pid_t m_PID;
 	ConsoleHandle m_FD;
 
-#ifdef _WIN32
 	bool m_ReadPending;
 	bool m_ReadFailed;
 	OVERLAPPED m_Overlapped;
 	char m_ReadBuffer[1024];
-#endif /* _WIN32 */
 
 	std::ostringstream m_OutputStream;
-	std::function<void (const ProcessResult&)> m_Callback;
+	Callback m_Callback;
 	ProcessResult m_Result;
 
 	static void IOThreadProc(int tid);
 	bool DoEvents();
 	int GetTID() const;
+#endif /* _WIN32 */
 };
 
 }
