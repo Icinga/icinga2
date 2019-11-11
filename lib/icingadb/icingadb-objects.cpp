@@ -1175,17 +1175,24 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 
 	auto output (SplitOutput(cr ? cr->GetOutput() : ""));
 
+	int hard_state;
+	if (!cr) {
+		hard_state = 99;
+	} else {
+		hard_state = service ? service->GetLastHardState() : host->GetLastHardState();
+	}
+
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:state", "*",
 		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
 		"state_type", Convert::ToString(type),
 		"soft_state", Convert::ToString(cr ? service ? cr->GetState() : Host::CalculateState(cr->GetState()) : 99),
-		"hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
+		"hard_state", Convert::ToString(hard_state),
 		"attempt", Convert::ToString(checkable->GetCheckAttempt()),
 		// TODO: last_hard/soft_state should be "previous".
 		"last_soft_state", Convert::ToString(cr ? service ? cr->GetState() : Host::CalculateState(cr->GetState()) : 99),
-		"last_hard_state", Convert::ToString(service ? service->GetLastHardState() : host->GetLastHardState()),
+		"last_hard_state", Convert::ToString(hard_state),
 		"previous_soft_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeSoft)),
 		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
 		"output", Utility::ValidateUTF8(std::move(output.first)),
@@ -1577,18 +1584,20 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 
 	attrs->Set("id", GetObjectIdentifier(checkable));;
 	attrs->Set("environment_id", CalculateCheckSumString(GetEnvironment()));
-	attrs->Set("state_type", checkable->GetStateType());
+	attrs->Set("state_type", checkable->HasBeenChecked() ? checkable->GetStateType() : StateTypeHard);
 
 	// TODO: last_hard/soft_state should be "previous".
 	if (service) {
-		attrs->Set("state", service->GetState());
-		attrs->Set("last_soft_state", service->GetState());
-		attrs->Set("last_hard_state", service->GetLastHardState());
+		auto state = service->HasBeenChecked() ? service->GetState() : 99;
+		attrs->Set("state", state);
+		attrs->Set("last_soft_state", state);
+		attrs->Set("last_hard_state", service->HasBeenChecked() ? service->GetLastHardState() : 99);
 		attrs->Set("severity", service->GetSeverity());
 	} else {
-		attrs->Set("state", host->GetState());
-		attrs->Set("last_soft_state", host->GetState());
-		attrs->Set("last_hard_state", host->GetLastHardState());
+		auto state = host->HasBeenChecked() ? host->GetState() : 99;
+		attrs->Set("state", state);
+		attrs->Set("last_soft_state", state);
+		attrs->Set("last_hard_state", host->HasBeenChecked() ? host->GetLastHardState() : 99);
 		attrs->Set("severity", host->GetSeverity());
 	}
 
@@ -1625,7 +1634,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 		attrs->Set("check_source", cr->GetCheckSource());
 	}
 
-	bool isProblem = !checkable->IsStateOK(checkable->GetStateRaw());
+	bool isProblem = checkable->HasBeenChecked() && !checkable->IsStateOK(checkable->GetStateRaw());
 	attrs->Set("is_problem", isProblem);
 	attrs->Set("is_handled", isProblem && (checkable->IsInDowntime() || checkable->IsAcknowledged()));
 	attrs->Set("is_reachable", checkable->IsReachable());
