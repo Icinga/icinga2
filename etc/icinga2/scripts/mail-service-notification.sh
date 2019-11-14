@@ -98,12 +98,32 @@ shift $((OPTIND - 1))
 
 ## Keep formatting in sync with mail-host-notification.sh
 for P in LONGDATETIME HOSTNAME HOSTDISPLAYNAME SERVICENAME SERVICEDISPLAYNAME SERVICEOUTPUT SERVICESTATE USEREMAIL NOTIFICATIONTYPE ; do
-        eval "PAR=\$${P}"
+  eval "PAR=\$${P}"
 
-        if [ ! "$PAR" ] ; then
-                Error "Required parameter '$P' is missing."
-        fi
+  if [ ! "$PAR" ] ; then
+    Error "Required parameter '$P' is missing."
+  fi
 done
+
+## Add line-breaks to very long service-outputs to avoid
+## mail servers rejecting the message because of hitting
+## a max. message line limit (RFC821 max. 1000b per line)
+##
+## but move on, if the strings seems to take care of its
+## own formating (containing \n or \r)
+if [ ! -z "${SERVICEOUTPUT}" ] \
+   && [ "${#SERVICEOUTPUT}" -ge 900 ] \
+   && ! [[ "${SERVICEOUTPUT}" =~ ($'\n'|$'\r') ]]; then
+   TMP_OUTPUT=''
+   STR_CNT=0
+   STR_STEPS=600
+   while [ $STR_CNT -lt ${#SERVICEOUTPUT} ]; do
+      TMP_OUTPUT+="${SERVICEOUTPUT:$STR_CNT:$STR_STEPS}\\n"
+      ((STR_CNT+=STR_STEPS)) || true
+   done
+   SERVICEOUTPUT="${TMP_OUTPUT}"
+   unset TMP_OUTPUT STR_CNT
+fi
 
 ## Build the message's subject
 SUBJECT="[$NOTIFICATIONTYPE] $SERVICEDISPLAYNAME on $HOSTDISPLAYNAME is $SERVICESTATE!"
