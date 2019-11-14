@@ -13,13 +13,10 @@
 #include <mmatch.h>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/thread/tss.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_generators.hpp>
 #include <boost/regex.hpp>
 #include <ios>
 #include <fstream>
@@ -370,16 +367,6 @@ void Utility::Sleep(double timeout)
 #else /* _WIN32 */
 	::Sleep(timeout * 1000);
 #endif /* _WIN32 */
-}
-
-/**
- * Generates a new unique ID.
- *
- * @returns The new unique ID.
- */
-String Utility::NewUniqueID()
-{
-	return boost::lexical_cast<std::string>(boost::uuids::random_generator()());
 }
 
 #ifdef _WIN32

@@ -7,7 +7,10 @@
 #include "base/string.hpp"
 #include "base/array.hpp"
 #include "base/threadpool.hpp"
+#include <boost/lexical_cast.hpp>
 #include <boost/thread/tss.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <typeinfo>
 #include <vector>
 
@@ -62,7 +65,16 @@ public:
 
 	static void Sleep(double timeout);
 
-	static String NewUniqueID();
+	/**
+	 * Generates a new unique ID.
+	 *
+	 * @returns The new unique ID.
+	 */
+	template<class S = String>
+	static S NewUniqueID()
+	{
+		return boost::lexical_cast<std::string>(boost::uuids::random_generator()());
+	}
 
 	static bool Glob(const String& pathSpec, const std::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
 	static bool GlobRecursive(const String& path, const String& pattern, const std::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
