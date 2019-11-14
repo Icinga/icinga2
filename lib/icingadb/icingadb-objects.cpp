@@ -1188,9 +1188,6 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 		"soft_state", Convert::ToString(cr ? service ? cr->GetState() : Host::CalculateState(cr->GetState()) : 99),
 		"hard_state", Convert::ToString(hard_state),
 		"attempt", Convert::ToString(checkable->GetCheckAttempt()),
-		// TODO: last_hard/soft_state should be "previous".
-		"last_soft_state", Convert::ToString(cr ? service ? cr->GetState() : Host::CalculateState(cr->GetState()) : 99),
-		"last_hard_state", Convert::ToString(hard_state),
 		"previous_soft_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeSoft)),
 		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
 		"output", Utility::ValidateUTF8(std::move(output.first)),
@@ -1588,14 +1585,12 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	if (service) {
 		auto state = service->HasBeenChecked() ? service->GetState() : 99;
 		attrs->Set("state", state);
-		attrs->Set("last_soft_state", state);
-		attrs->Set("last_hard_state", service->HasBeenChecked() ? service->GetLastHardState() : 99);
+		attrs->Set("hard_state", service->HasBeenChecked() ? service->GetLastHardState() : 99);
 		attrs->Set("severity", service->GetSeverity());
 	} else {
 		auto state = host->HasBeenChecked() ? host->GetState() : 99;
 		attrs->Set("state", state);
-		attrs->Set("last_soft_state", state);
-		attrs->Set("last_hard_state", host->HasBeenChecked() ? host->GetLastHardState() : 99);
+		attrs->Set("hard_state", host->HasBeenChecked() ? host->GetLastHardState() : 99);
 		attrs->Set("severity", host->GetSeverity());
 	}
 
