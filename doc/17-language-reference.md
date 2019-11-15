@@ -208,6 +208,7 @@ Operator | Precedence | Examples (Result)                             | Descript
 `&&`       | 13         | true && false (false), 3 && 7 (7), 0 && 7 (0) | Logical AND
 `=`        | 14         | a = 3                                         | Assignment
 `=>`       | 15         | x => x * x (function with arg x)              | Lambda, for loop
+`?`        | 16         | (2 * 3 > 5) ? 1 : 0 (1)                       | [Ternary operator](17-language-reference.md#conditional-statements-ternary)
 
 ### References <a id="references"></a>
 
@@ -977,6 +978,8 @@ function MakeHelloFunction(name) {
 
 ## Conditional Statements <a id="conditional-statements"></a>
 
+### Conditional Statements: if/else <a id="conditional-statements-if-else"></a>
+
 Sometimes it can be desirable to only evaluate statements when certain conditions are met. The if/else
 construct can be used to accomplish this.
 
@@ -1010,6 +1013,56 @@ a = if (true) {
 This example prints the log message "Taking the 'true' branch" and the `a` variable is set to 21 (7 * 3).
 
 The value of an if/else construct is null if the condition evaluates to false and no else branch is given.
+
+### Conditional Statements: Ternary Operator <a id="conditional-statements-ternary"></a>
+
+Instead of if/else condition chains, you can also use the ternary operator `?`
+with assignments. Values are separated with a colon `:` character.
+
+```
+cond ? cond_val_true : cond_val_false
+```
+
+Whether the first condition matches, the first value is returned, if not, the else and second
+branch value is returned.
+
+The following example evaluates a condition and either assigns `1` or `0`
+to the local variable.
+
+```
+<1> => var x = (2 * 3 > 5) ? 1 : 0
+null
+<2> => x
+1.000000
+<3> => var x = (2 * 3 > 7) ? 1 : 0
+null
+<4> => x
+0.000000
+```
+
+Additional examples with advanced condition chaining:
+
+```
+<1> => 1 ? 2 : 3 ? 4 : 5 ? 6 : 7
+2.000000
+<2> => 0 ? 2 : 3 ? 4 : 5 ? 6 : 7
+4.000000
+<3> => 0 ? 2 : 0 ? 4 : 5 ? 6 : 7
+6.000000
+<4> => 0 ? 2 : 0 ? 4 : 0 ? 6 : 7
+7.000000
+<5> => 1 + 0 ? 2 : 3 + 4
+2.000000
+<6> => 0 + 0 ? 2 : 3 + 4
+7.000000
+<7> => (()=>{ return 1 ? 2 : 3 })()
+2.000000
+<8> => var x = 1 ? 2 : 3
+null
+<9> => x
+2.000000
+```
+
 
 ## While Loops <a id="while-loops"></a>
 
