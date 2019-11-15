@@ -908,6 +908,58 @@ function get_objects(type);
 Returns an array of objects whose type matches the specified type. `type` must refer
 to a type object.
 
+### get_template <a id="objref-get_template"></a>
+
+Signature:
+
+```
+function get_template(type, name);
+```
+
+Returns the template with the specified type and name, or `null` if no such object exists. `type` must refer
+to a type object.
+
+> **Note**
+>
+> Only the name and debug info attributes are available for templates accessed in the DSL.
+> Object attributes are not available in this scope.
+
+You can use this functionality to check whether a template exists e.g. on a satellite endpoint
+and if not, import a different template.
+
+```
+object Host "icinga-agent47.localdomain" {
+  if (get_template(Host, "master-host-tmpl")) {
+    import "master-host-tmpl"
+  } else {
+    import "generic-host"
+  }
+}
+```
+
+### get_templates <a id="objref-get_templates"></a>
+
+Signature:
+
+```
+function get_templates(type);
+```
+
+Returns an array of templates whose type matches the specified type. `type` must refer
+to a type object.
+
+> **Note**
+>
+> Only the name and debug info attributes are available for templates accessed in the DSL.
+> Object attributes are not available in this scope.
+
+You can use this function to iterate over all available template names, similar to what
+the [templates API URL endpoint](12-icinga2-api.md#icinga2-api-config-templates) provides.
+
+```
+<1> => get_templates(Host).map(n => n.name)
+[ "ssh-agent" ]
+```
 
 ## Math object <a id="math-object"></a>
 
