@@ -73,6 +73,8 @@ void OpenTsdbWriter::Resume()
 	Log(LogInformation, "OpentsdbWriter")
 		<< "'" << GetName() << "' resumed.";
 
+	ReadConfigTemplate(m_ServiceConfigTemplate, m_HostConfigTemplate);
+
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&OpenTsdbWriter::ReconnectTimerHandler, this));
@@ -151,14 +153,80 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 	Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
 	Host::Ptr host;
+	Dictionary::Ptr config_tmpl;
+	Dictionary::Ptr config_tmpl_tags;
+	String config_tmpl_metric;
 
-	if (service)
+	if (service) {
 		host = service->GetHost();
-	else
+		config_tmpl = m_ServiceConfigTemplate;
+	}
+	else {
 		host = static_pointer_cast<Host>(checkable);
+		config_tmpl = m_HostConfigTemplate;
+	}
+
+	// Get the tags nested dictionary in the service/host template in the config
+	if (config_tmpl) {
+		config_tmpl_tags = config_tmpl->Get("tags");
+		config_tmpl_metric = config_tmpl->Get("metric");
+	}
 
 	String metric;
 	std::map<String, String> tags;
+
+	// Resolve macros in configuration template and build custom tag list
+	if (config_tmpl_tags || !config_tmpl_metric.IsEmpty()) {
+
+		// Configure config template macro resolver
+		MacroProcessor::ResolverList resolvers;
+		if (service)
+			resolvers.emplace_back("service", service);
+		resolvers.emplace_back("host", host);
+		resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+		
+		// Resolve macros for the service and host template config line
+		if (config_tmpl_tags) {
+			ObjectLock olock(config_tmpl_tags);
+			
+			for (const Dictionary::Pair& pair : config_tmpl_tags) {
+				
+				String missing_macro;
+				Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
+				
+				if (!missing_macro.IsEmpty()) {
+					Log(LogDebug, "OpenTsdbWriter")
+						<< "Unable to resolve macro:'" << missing_macro 
+						<< "' for this host or service.";
+					
+					continue;
+				}
+				
+				String tagname = Convert::ToString(pair.first);
+				tags[tagname] = EscapeTag(value);
+				
+			}
+		}
+		
+		// Resolve macros for the metric config line
+		if (!config_tmpl_metric.IsEmpty()) {
+			
+			String missing_macro;
+			Value value = MacroProcessor::ResolveMacros(config_tmpl_metric, resolvers, cr, &missing_macro);
+			
+			if (!missing_macro.IsEmpty()) {
+				Log(LogDebug, "OpenTsdbWriter")
+					<< "Unable to resolve macro:'" << missing_macro 
+					<< "' for this host or service.";
+				
+			}
+			else {
+			
+				config_tmpl_metric = Convert::ToString(value);
+			
+			}
+		}
+	}
 
 	String escaped_hostName = EscapeTag(host->GetName());
 	tags["host"] = escaped_hostName;
@@ -166,13 +234,23 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	double ts = cr->GetExecutionEnd();
 
 	if (service) {
-		String serviceName = service->GetShortName();
-		String escaped_serviceName = EscapeMetric(serviceName);
-		metric = "icinga.service." + escaped_serviceName;
 
+		if (!config_tmpl_metric.IsEmpty()) {
+			metric = config_tmpl_metric;
+		} else {
+			String serviceName = service->GetShortName();
+			String escaped_serviceName = EscapeMetric(serviceName);
+			metric = "icinga.service." + escaped_serviceName;
+		}
+		
 		SendMetric(checkable, metric + ".state", tags, service->GetState(), ts);
+
 	} else {
-		metric = "icinga.host";
+		if (!config_tmpl_metric.IsEmpty()) {
+			metric = config_tmpl_metric;
+		} else {
+			metric = "icinga.host";
+		}
 		SendMetric(checkable, metric + ".state", tags, host->GetState(), ts);
 	}
 
@@ -236,20 +314,32 @@ void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 				continue;
 			}
 		}
+		
+		String metric_name;
+		std::map<String, String> tags_new = tags;
 
-		String escaped_key = EscapeMetric(pdv->GetLabel());
-		boost::algorithm::replace_all(escaped_key, "::", ".");
+		// Do not break original functionality where perfdata labels form
+		// part of the metric name
+		if (!GetEnableGenericMetrics()) {
+			String escaped_key = EscapeMetric(pdv->GetLabel());
+			boost::algorithm::replace_all(escaped_key, "::", ".");
+			metric_name = metric + "." + escaped_key;
+		} else {
+			String escaped_key = EscapeTag(pdv->GetLabel());
+			metric_name = metric;
+			tags_new["label"] = escaped_key;
+		}
 
-		SendMetric(checkable, metric + "." + escaped_key, tags, pdv->GetValue(), ts);
+		SendMetric(checkable, metric_name, tags_new, pdv->GetValue(), ts);
 
 		if (pdv->GetCrit())
-			SendMetric(checkable, metric + "." + escaped_key + "_crit", tags, pdv->GetCrit(), ts);
+			SendMetric(checkable, metric_name + "_crit", tags_new, pdv->GetCrit(), ts);
 		if (pdv->GetWarn())
-			SendMetric(checkable, metric + "." + escaped_key + "_warn", tags, pdv->GetWarn(), ts);
+			SendMetric(checkable, metric_name + "_warn", tags_new, pdv->GetWarn(), ts);
 		if (pdv->GetMin())
-			SendMetric(checkable, metric + "." + escaped_key + "_min", tags, pdv->GetMin(), ts);
+			SendMetric(checkable, metric_name + "_min", tags_new, pdv->GetMin(), ts);
 		if (pdv->GetMax())
-			SendMetric(checkable, metric + "." + escaped_key + "_max", tags, pdv->GetMax(), ts);
+			SendMetric(checkable, metric_name + "_max", tags_new, pdv->GetMax(), ts);
 	}
 }
 
@@ -316,6 +406,7 @@ String OpenTsdbWriter::EscapeTag(const String& str)
 
 	boost::replace_all(result, " ", "_");
 	boost::replace_all(result, "\\", "_");
+	boost::replace_all(result, ":", "_");
 
 	return result;
 }
@@ -337,4 +428,87 @@ String OpenTsdbWriter::EscapeMetric(const String& str)
 	boost::replace_all(result, ":", "_");
 
 	return result;
+}
+
+/**
+* Saves the template dictionaries defined in the config file into running memory
+*
+* @param stemplate The dictionary to save the service configuration to
+* @param htemplate The dictionary to save the host configuration to
+*/
+void OpenTsdbWriter::ReadConfigTemplate(const Dictionary::Ptr& stemplate, 
+	const Dictionary::Ptr& htemplate)
+{
+
+	m_ServiceConfigTemplate = GetServiceTemplate();
+
+	if (!m_ServiceConfigTemplate) {
+		Log(LogDebug, "OpenTsdbWriter")
+			<< "Unable to locate service template configuration.";
+	} else if (m_ServiceConfigTemplate->GetLength() == 0) {
+		Log(LogDebug, "OpenTsdbWriter")
+			<< "The service template configuration is empty.";
+	}
+
+	m_HostConfigTemplate = GetHostTemplate();
+
+	if (!m_HostConfigTemplate) {
+		Log(LogDebug, "OpenTsdbWriter")
+			<< "Unable to locate host template configuration.";
+	} else if (m_HostConfigTemplate->GetLength() == 0) {
+		Log(LogDebug, "OpenTsdbWriter")
+			<< "The host template configuration is empty.";
+	}
+
+}
+
+
+/**
+* Validates the host_template configuration block in the configuration
+* file and checks for syntax errors.
+*
+* @param lvalue The host_template dictionary
+* @param utils Validation helper utilities
+*/
+void OpenTsdbWriter::ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<OpenTsdbWriter>::ValidateHostTemplate(lvalue, utils);
+
+	String metric = lvalue()->Get("metric");
+	if (!MacroProcessor::ValidateMacroString(metric))
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "host_template", "metric" }, "Closing $ not found in macro format string '" + metric + "'."));
+
+	Dictionary::Ptr tags = lvalue()->Get("tags");
+	if (tags) {
+		ObjectLock olock(tags);
+		for (const Dictionary::Pair& pair : tags) {
+			if (!MacroProcessor::ValidateMacroString(pair.second))
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
+		}
+	}
+}
+
+/**
+* Validates the service_template configuration block in the 
+* configuration file and checks for syntax errors.
+*
+* @param lvalue The service_template dictionary
+* @param utils Validation helper utilities
+*/
+void OpenTsdbWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<OpenTsdbWriter>::ValidateServiceTemplate(lvalue, utils);
+
+	String metric = lvalue()->Get("metric");
+	if (!MacroProcessor::ValidateMacroString(metric))
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "service_template", "metric" }, "Closing $ not found in macro format string '" + metric + "'."));
+
+	Dictionary::Ptr tags = lvalue()->Get("tags");
+	if (tags) {
+		ObjectLock olock(tags);
+		for (const Dictionary::Pair& pair : tags) {
+			if (!MacroProcessor::ValidateMacroString(pair.second))
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
+		}
+	}
 }
