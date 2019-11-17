@@ -351,14 +351,19 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		}
 	}
 
+	/* Generate a sequence ID, this can be used later to delete all downtimes created with this sequence. */
+	String sequenceID = Utility::NewUniqueID();
+
+	/* Main downtime. */
 	String downtimeName = Downtime::AddDowntime(checkable, author, comment, startTime, endTime,
-		fixed, triggerName, duration);
+		fixed, triggerName, duration, sequenceID);
 
 	Downtime::Ptr downtime = Downtime::GetByName(downtimeName);
 
 	Dictionary::Ptr additional = new Dictionary({
 		{ "name", downtimeName },
-		{ "legacy_id", downtime->GetLegacyId() }
+		{ "legacy_id", downtime->GetLegacyId() },
+		{ "sequence_id", sequenceID }
 	});
 
 	/* Schedule downtime for all services for the host type. */
@@ -375,13 +380,14 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 				<< "Creating downtime for service " << hostService->GetName() << " on host " << host->GetName();
 
 			String serviceDowntimeName = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
-				fixed, triggerName, duration);
+				fixed, triggerName, duration, sequenceID);
 
 			Downtime::Ptr serviceDowntime = Downtime::GetByName(serviceDowntimeName);
 
 			serviceDowntimes.push_back(new Dictionary({
 				{ "name", serviceDowntimeName },
-				{ "legacy_id", serviceDowntime->GetLegacyId() }
+				{ "legacy_id", serviceDowntime->GetLegacyId() },
+				{ "sequence_id", sequenceID }
 			}));
 		}
 
@@ -406,7 +412,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 				<< "Scheduling downtime for child object " << child->GetName();
 
 			String childDowntimeName = Downtime::AddDowntime(child, author, comment, startTime, endTime,
-				fixed, triggerName, duration);
+				fixed, triggerName, duration, sequenceID);
 
 			Log(LogNotice, "ApiActions")
 				<< "Add child downtime '" << childDowntimeName << "'.";
@@ -415,7 +421,8 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 
 			Dictionary::Ptr childAdditional = new Dictionary({
 				{ "name", childDowntimeName },
-				{ "legacy_id", childDowntime->GetLegacyId() }
+				{ "legacy_id", childDowntime->GetLegacyId() },
+				{ "sequence_id", sequenceID }
 			});
 
 			/* For a host, also schedule all service downtimes if requested. */
@@ -431,13 +438,14 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 						<< "Creating downtime for service " << hostService->GetName() << " on child host " << host->GetName();
 
 					String serviceDowntimeName = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
-						fixed, triggerName, duration);
+						fixed, triggerName, duration, sequenceID);
 
 					Downtime::Ptr serviceDowntime = Downtime::GetByName(serviceDowntimeName);
 
 					childServiceDowntimes.push_back(new Dictionary({
 						{ "name", serviceDowntimeName },
-						{ "legacy_id", serviceDowntime->GetLegacyId() }
+						{ "legacy_id", serviceDowntime->GetLegacyId() },
+						{ "sequence_id", sequenceID }
 					}));
 				}
 
@@ -457,6 +465,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
+	/* Host/Service downtime removal. */
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
 	if (checkable) {
@@ -469,6 +478,7 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(200, "Successfully removed all downtimes for object '" + checkable->GetName() + "'.");
 	}
 
+	/* Downtime name match removal. */
 	Downtime::Ptr downtime = static_pointer_cast<Downtime>(object);
 
 	if (!downtime)

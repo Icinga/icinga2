@@ -47,7 +47,7 @@ public:
 
 	static String AddDowntime(const intrusive_ptr<Checkable>& checkable, const String& author,
 		const String& comment, double startTime, double endTime, bool fixed,
-		const String& triggeredBy, double duration, const String& scheduledDowntime = String(),
+		const String& triggeredBy, double duration, const String& sequenceID = String(), const String& scheduledDowntime = String(),
 		const String& scheduledBy = String(), const String& id = String(),
 		const MessageOrigin::Ptr& origin = nullptr);
 
@@ -69,6 +69,8 @@ protected:
 
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;
+
+	static void RemoveDowntimeInternal(const String& id, bool cancelled, bool expired, const MessageOrigin::Ptr& origin = nullptr);
 
 	bool CanBeTriggered();
 
