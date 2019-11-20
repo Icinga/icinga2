@@ -829,7 +829,7 @@ what attributes are available with links to each object type.
   ---------------|------------------------------------------
   \$host...$     | Attributes available on a [Host object](09-object-types.md#objecttype-host)
   \$service...$  | Attributes available on a [Service object](09-object-types.md#objecttype-service)
-  \$icinga...$   | Attributes available on the [IcingaApplication object](09-object-types.md#icingaapplication)
+  \$icinga...$   | Attributes available on the [IcingaApplication object](09-object-types.md#objecttype-icingaapplication)
 
 > **Note**
 >
