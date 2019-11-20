@@ -10,6 +10,7 @@
 #include <shlobj.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <atlstr.h>
 
 static std::string GetIcingaInstallPath(void)
 {
@@ -210,7 +211,7 @@ static int UpgradeNSIS(void)
 	return 0;
 }
 
-static int InstallIcinga(void)
+static int InstallIcinga(std::string scmUser)
 {
 	std::string installDir = GetIcingaInstallPath();
 	std::string dataDir = GetIcingaDataPath();
@@ -246,7 +247,7 @@ static int InstallIcinga(void)
 	ExecuteCommand("icacls", "\"" + dataDir + "\" /grant *S-1-5-20:(oi)(ci)m");
 	ExecuteCommand("icacls", "\"" + dataDir + "\\etc\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
 
-	ExecuteIcingaCommand("--scm-install daemon");
+	ExecuteIcingaCommand("--scm-install --scm-user \"" + scmUser + "\" daemon");
 
 	return 0;
 }
@@ -267,12 +268,21 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	//AllocConsole();
 	int rc;
+	int argc;
+	std::string scmUser = "NT AUTHORITY\\NetworkService";
+	LPWSTR *argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
-	if (strcmp(lpCmdLine, "install") == 0) {
-		rc = InstallIcinga();
-	} else if (strcmp(lpCmdLine, "uninstall") == 0) {
+	for (int i = 0; i < argc; i++) {
+		if (!wcscmp(argv[i], L"--scm-user") && i + 1 < argc) {
+			scmUser = CW2A(argv[i + 1]);
+		}
+	}
+
+	if (wcscmp(argv[1], L"install") == 0) {
+		rc = InstallIcinga(scmUser);
+	} else if (wcscmp(argv[1], L"uninstall") == 0) {
 		rc = UninstallIcinga();
-	} else if (strcmp(lpCmdLine, "upgrade-nsis") == 0) {
+	} else if (wcscmp(argv[1], L"upgrade-nsis") == 0) {
 		rc = UpgradeNSIS();
 	} else {
 		MessageBox(nullptr, "This application should only be run by the MSI installer package.", "Icinga 2 Installer", MB_ICONWARNING);
