@@ -118,6 +118,12 @@ apt-get update
 
 #### RHEL/CentOS/Fedora Repositories <a id="package-repositories-rhel-centos-fedora"></a>
 
+RHEL/CentOS 8:
+
+```
+dnf install https://packages.icinga.com/epel/icinga-rpm-release-8-latest.noarch.rpm
+```
+
 RHEL/CentOS 7:
 
 ```
@@ -130,10 +136,10 @@ RHEL/CentOS 6 x64:
 yum install https://packages.icinga.com/epel/icinga-rpm-release-6-latest.noarch.rpm
 ```
 
-Fedora 29:
+Fedora 31:
 
 ```
-dnf install https://packages.icinga.com/fedora/icinga-rpm-release-29-latest.noarch.rpm
+dnf install https://packages.icinga.com/fedora/icinga-rpm-release-31-latest.noarch.rpm
 ```
 
 ##### RHEL/CentOS EPEL Repository <a id="package-repositories-rhel-epel"></a>
@@ -141,14 +147,34 @@ dnf install https://packages.icinga.com/fedora/icinga-rpm-release-29-latest.noar
 The packages for RHEL/CentOS depend on other packages which are distributed
 as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
 
+CentOS 8 additionally needs the PowerTools repository for EPEL:
+
+```
+dnf install 'dnf-command(config-manager)'
+dnf config-manager --set-enabled PowerTools
+
+dnf install epel-release
+```
+
 CentOS 7/6:
 
 ```
 yum install epel-release
 ```
 
-If you are using RHEL 6 or 7 you need to additionally enable the `optional` repository before installing
-the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
+If you are using RHEL you need to additionally enable the `optional` and `codeready-builder`
+repository before installing the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
+
+RHEL 8:
+
+```
+ARCH=$( /bin/arch )
+
+subscription-manager repos --enable rhel-8-server-optional-rpms
+subscription-manager repos --enable "codeready-builder-for-rhel-8-${ARCH}-rpms"
+
+dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+```
 
 RHEL 7:
 
@@ -189,8 +215,6 @@ zypper ref
 
 #### Alpine Linux Repositories <a id="package-repositories-alpine"></a>
 
-Alpine Linux:
-
 ```
 echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
 echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
@@ -214,7 +238,15 @@ Debian/Ubuntu:
 apt-get install icinga2
 ```
 
-RHEL/CentOS 7 and Fedora:
+RHEL/CentOS 8 and Fedora:
+
+```
+dnf install icinga2
+systemctl enable icinga2
+systemctl start icinga2
+```
+
+RHEL/CentOS 7:
 
 ```
 yum install icinga2
@@ -248,65 +280,6 @@ Alpine Linux:
 apk add icinga2
 ```
 
-### Enabled Features during Installation <a id="installation-enabled-features"></a>
-
-The default installation will enable three features required for a basic
-Icinga 2 installation:
-
-* `checker` for executing checks
-* `notification` for sending notifications
-* `mainlog` for writing the `icinga2.log` file
-
-You can verify that by calling `icinga2 feature list`
-[CLI command](11-cli-commands.md#cli-command-feature) to see which features are
-enabled and disabled.
-
-```
-# icinga2 feature list
-Disabled features: api command compatlog debuglog gelf graphite icingastatus ido-mysql ido-pgsql influxdb livestatus opentsdb perfdata statusdata syslog
-Enabled features: checker mainlog notification
-```
-
-### Installation Paths <a id="installation-paths"></a>
-
-By default Icinga 2 uses the following files and directories:
-
-  Path                                		| Description
-  ----------------------------------------------|------------------------------------
-  /etc/icinga2                        		| Contains Icinga 2 configuration files.
-  /usr/lib/systemd/system/icinga2.service 	| The Icinga 2 systemd service file on systems using systemd.
-  /etc/systemd/system/icinga2.service.d/limits.conf | On distributions with systemd >227, additional service limits are required.
-  /etc/init.d/icinga2                 		| The Icinga 2 init script on systems using SysVinit or OpenRC.
-  /usr/sbin/icinga2                   		| Shell wrapper for the Icinga 2 binary.
-  /usr/lib\*/icinga2				| Libraries and the Icinga 2 binary (use `find /usr -type f -name icinga2` to locate the binary path).
-  /usr/share/doc/icinga2              		| Documentation files that come with Icinga 2.
-  /usr/share/icinga2/include          		| The Icinga Template Library and plugin command configuration.
-  /var/lib/icinga2                    		| Icinga 2 state file, cluster log, master CA, node certificates and configuration files (cluster, api).
-  /var/run/icinga2                    		| PID file.
-  /var/run/icinga2/cmd                		| Command pipe and Livestatus socket.
-  /var/cache/icinga2                  		| status.dat/objects.cache, icinga2.debug files.
-  /var/spool/icinga2                  		| Used for performance data spool files.
-  /var/log/icinga2                    		| Log file location and compat/ directory for the CompatLogger feature.
-
-FreeBSD uses slightly different paths:
-
-By default Icinga 2 uses the following files and directories:
-
-  Path                                | Description
-  ------------------------------------|------------------------------------
-  /usr/local/etc/icinga2              | Contains Icinga 2 configuration files.
-  /usr/local/etc/rc.d/icinga2         | The Icinga 2 init script.
-  /usr/local/sbin/icinga2             | Shell wrapper for the Icinga 2 binary.
-  /usr/local/lib/icinga2              | Libraries and the Icinga 2 binary.
-  /usr/local/share/doc/icinga2        | Documentation files that come with Icinga 2.
-  /usr/local/share/icinga2/include    | The Icinga Template Library and plugin command configuration.
-  /var/lib/icinga2                    | Icinga 2 state file, cluster log, master CA, node certificates and configuration files (cluster, api).
-  /var/run/icinga2                    | PID file.
-  /var/run/icinga2/cmd                | Command pipe and Livestatus socket.
-  /var/cache/icinga2                  | status.dat/objects.cache, icinga2.debug files.
-  /var/spool/icinga2                  | Used for performance data spool files.
-  /var/log/icinga2                    | Log file location and compat/ directory for the CompatLogger feature.
-
 ## Setting up Check Plugins <a id="setting-up-check-plugins"></a>
 
 Without plugins Icinga 2 does not know how to check external services. The
@@ -322,61 +295,14 @@ popular operating systems/distributions:
 
 OS/Distribution        | Package Name       | Repository                | Installation Path
 -----------------------|--------------------|---------------------------|----------------------------
-RHEL/CentOS            | nagios-plugins-all | [EPEL](https://fedoraproject.org/wiki/EPEL) | /usr/lib/nagios/plugins or /usr/lib64/nagios/plugins
+RHEL/CentOS            | nagios-plugins-all | [EPEL](02-installation.md#package-repositories-rhel-epel) | /usr/lib64/nagios/plugins
 SLES/OpenSUSE          | monitoring-plugins | [server:monitoring](https://build.opensuse.org/project/repositories/server:monitoring) | /usr/lib/nagios/plugins
 Debian/Ubuntu          | monitoring-plugins | -                         | /usr/lib/nagios/plugins
 FreeBSD                | monitoring-plugins | -                         | /usr/local/libexec/nagios
 Alpine Linux           | monitoring-plugins | -                         | /usr/lib/monitoring-plugins
-macOS                  | monitoring-plugins | [MacPorts](https://www.macports.org), [Homebrew](https://brew.sh) | /opt/local/libexec or /usr/local/sbin
 
 The recommended way of installing these standard plugins is to use your
 distribution's package manager.
-
-Debian/Ubuntu:
-
-```
-apt-get install monitoring-plugins
-```
-
-RHEL/CentOS:
-
-```
-yum install nagios-plugins-all
-```
-
-The packages for RHEL/CentOS depend on other packages which are distributed
-as part of the [EPEL repository](02-installation.md#package-repositories-rhel-epel).
-
-Fedora:
-
-```
-dnf install nagios-plugins-all
-```
-
-SLES/openSUSE:
-
-```
-zypper install monitoring-plugins
-```
-
-The packages for SLES/OpenSUSE depend on other packages which are distributed
-as part of the [server:monitoring repository](https://build.opensuse.org/project/repositories/server:monitoring).
-Please make sure to enable this repository beforehand.
-
-FreeBSD:
-
-```
-pkg install monitoring-plugins
-```
-
-Alpine Linux:
-
-```
-apk add monitoring-plugins
-```
-
-Note: For Alpine you don't need to explicitly add the `monitoring-plugins` package since it is a dependency of
-`icinga2` and is pulled automatically.
 
 Depending on which directory your plugins are installed into you may need to
 update the global `PluginDir` constant in your [Icinga 2 configuration](04-configuration.md#constants-conf).
@@ -388,18 +314,73 @@ to determine where to find the plugin binaries.
 > Please refer to the [service monitoring](05-service-monitoring.md#service-monitoring-plugins) chapter for details about how to integrate
 > additional check plugins into your Icinga 2 setup.
 
+### Debian/Ubuntu <a id="setting-up-check-plugins-debian-ubuntu"></a>
+
+```
+apt-get install monitoring-plugins
+```
+
+### RHEL/CentOS/Fedora <a id="setting-up-check-plugins-rhel-centos-fedora"></a>
+
+The packages for RHEL/CentOS depend on other packages which are distributed
+as part of the [EPEL repository](02-installation.md#package-repositories-rhel-epel).
+
+RHEL/CentOS 8:
+
+```
+dnf install nagios-plugins-all
+```
+
+RHEL/CentOS 7/6:
+
+```
+yum install nagios-plugins-all
+```
+
+Fedora:
+
+```
+dnf install nagios-plugins-all
+```
+
+### SLES/openSUSE <a id="setting-up-check-plugins-sles-opensuse"></a>
+
+The packages for SLES/OpenSUSE depend on other packages which are distributed
+as part of the [server:monitoring repository](https://build.opensuse.org/project/repositories/server:monitoring).
+Please make sure to enable this repository beforehand.
+
+```
+zypper install monitoring-plugins
+```
+
+### FreeBSD <a id="setting-up-check-plugins-freebsd"></a>
+
+```
+pkg install monitoring-plugins
+```
+
+### Alpine Linux <a id="setting-up-check-plugins-alpine"></a>
+
+```
+apk add monitoring-plugins
+```
+
+Note: For Alpine you don't need to explicitly add the `monitoring-plugins` package since it is a dependency of
+`icinga2` and is pulled automatically.
+
 ## Running Icinga 2 <a id="running-icinga2"></a>
 
 ### Systemd Service <a id="systemd-service"></a>
 
-Some distributions (e.g. Fedora, openSUSE and RHEL/CentOS 7) use systemd. The
+The majority of supported distributions use systemd. The
 Icinga 2 packages automatically install the necessary systemd unit files.
 
 The Icinga 2 systemd service can be (re-)started, reloaded, stopped and also
 queried for its current status.
 
 ```
-# systemctl status icinga2
+systemctl status icinga2
+
 icinga2.service - Icinga host/service/network monitoring system
    Loaded: loaded (/usr/lib/systemd/system/icinga2.service; disabled)
    Active: active (running) since Mi 2014-07-23 13:39:38 CEST; 15s ago
@@ -433,14 +414,18 @@ The `systemctl` command supports the following actions:
 Examples:
 
 ```
-# systemctl enable icinga2
+systemctl enable icinga2
 
-# systemctl restart icinga2
+systemctl restart icinga2
 Job for icinga2.service failed. See 'systemctl status icinga2.service' and 'journalctl -xn' for details.
 ```
 
 If you're stuck with configuration errors, you can manually invoke the
 [configuration validation](11-cli-commands.md#config-validation).
+
+```
+icinga2 daemon -C
+```
 
 > **Tip**
 >
@@ -452,7 +437,8 @@ If you're stuck with configuration errors, you can manually invoke the
 Icinga 2's init script is installed in `/etc/init.d/icinga2` (`/usr/local/etc/rc.d/icinga2` on FreeBSD) by default:
 
 ```
-# /etc/init.d/icinga2
+/etc/init.d/icinga2
+
 Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
 ```
 
@@ -477,9 +463,9 @@ using the init script. Using Debian packages the user and group are set to
 On FreeBSD you need to enable icinga2 in your rc.conf
 
 ```
-# sysrc icinga2_enable=yes
+sysrc icinga2_enable=yes
 
-# service icinga2 restart
+service icinga2 restart
 ```
 
 ### SELinux <a id="running-icinga2-selinux"></a>
@@ -492,16 +478,16 @@ Icinga 2 provides its own SELinux policy. `icinga2-selinux` is a policy package
 for Red Hat Enterprise Linux 7 and derivatives. The package runs the targeted policy
 which confines Icinga 2 including enabled features and running commands.
 
+RHEL/CentOS 8 and Fedora:
+
+```
+dnf install icinga2-selinux
+```
+
 RHEL/CentOS 7:
 
 ```
 yum install icinga2-selinux
-```
-
-Fedora:
-
-```
-dnf install icinga2-selinux
 ```
 
 Read more about SELinux in [this chapter](22-selinux.md#selinux).
@@ -526,7 +512,13 @@ vim-addon-manager -w install icinga2
 Info: installing removed addon 'icinga2' to /var/lib/vim/addons
 ```
 
-RHEL/CentOS/Fedora:
+RHEL/CentOS 8 and Fedora:
+
+```
+dnf install vim-icinga2
+```
+
+RHEL/CentOS 7/6:
 
 ```
 yum install vim-icinga2
@@ -543,6 +535,7 @@ Alpine Linux:
 ```
 apk add icinga2-vim
 ```
+
 Ensure that syntax highlighting is enabled e.g. by editing the user's `vimrc`
 configuration file:
 
@@ -568,7 +561,13 @@ Debian/Ubuntu:
 
 **Note:** The syntax files are installed with the `icinga2-common` package already.
 
-RHEL/CentOS/Fedora:
+RHEL/CentOS 8 and Fedora:
+
+```
+dnf install nano-icinga2
+```
+
+RHEL/CentOS 7/6:
 
 ```
 yum install nano-icinga2
@@ -626,7 +625,7 @@ apt-get install mysql-server mysql-client
 mysql_secure_installation
 ```
 
-RHEL/CentOS 7 and Fedora:
+RHEL/CentOS and Fedora:
 
 ```
 yum install mariadb-server mariadb
@@ -764,7 +763,7 @@ Debian/Ubuntu:
 apt-get install postgresql
 ```
 
-RHEL/CentOS 7:
+RHEL/CentOS:
 
 ```
 yum install postgresql-server postgresql
@@ -926,13 +925,18 @@ The preferred way of installing Icinga Web 2 is to use Apache as webserver
 in combination with PHP-FPM. If you prefer Nginx, please refer to the Icinga Web 2
 documentation.
 
+> **Note**
+>
+> These instructions follow HTTP. In order to secure your webserver, please
+> use HTTPS and TLS certificates e.g. from [Let's Encrypt](https://letsencrypt.org/).
+
 Debian/Ubuntu:
 
 ```
 apt-get install apache2
 ```
 
-RHEL/CentOS 7, Fedora:
+RHEL/CentOS/Fedora:
 
 ```
 yum install httpd
@@ -1044,6 +1048,68 @@ in Icinga Web 2 >= 2.4.
 A number of additional features are available in the form of addons. A list of
 popular addons is available in the
 [Addons and Plugins](13-addons.md#addons) chapter.
+
+## Installation Overview <a id="installation-overview"></a>
+
+### Enabled Features during Installation <a id="installation-overview-enabled-features"></a>
+
+The default installation will enable three features required for a basic
+Icinga 2 installation:
+
+* `checker` for executing checks
+* `notification` for sending notifications
+* `mainlog` for writing the `icinga2.log` file
+
+You can verify that by calling `icinga2 feature list`
+[CLI command](11-cli-commands.md#cli-command-feature) to see which features are
+enabled and disabled.
+
+```
+# icinga2 feature list
+Disabled features: api command compatlog debuglog gelf graphite icingastatus ido-mysql ido-pgsql influxdb livestatus opentsdb perfdata statusdata syslog
+Enabled features: checker mainlog notification
+```
+
+### Installation Paths <a id="installation-overview-paths"></a>
+
+By default Icinga 2 uses the following files and directories:
+
+  Path                                		| Description
+  ----------------------------------------------|------------------------------------
+  /etc/icinga2                        		| Contains Icinga 2 configuration files.
+  /usr/lib/systemd/system/icinga2.service 	| The Icinga 2 systemd service file on systems using systemd.
+  /etc/systemd/system/icinga2.service.d/limits.conf | On distributions with systemd >227, additional service limits are required.
+  /etc/init.d/icinga2                 		| The Icinga 2 init script on systems using SysVinit or OpenRC.
+  /usr/sbin/icinga2                   		| Shell wrapper for the Icinga 2 binary.
+  /usr/lib\*/icinga2				| Libraries and the Icinga 2 binary (use `find /usr -type f -name icinga2` to locate the binary path).
+  /usr/share/doc/icinga2              		| Documentation files that come with Icinga 2.
+  /usr/share/icinga2/include          		| The Icinga Template Library and plugin command configuration.
+  /var/lib/icinga2                    		| Icinga 2 state file, cluster log, master CA, node certificates and configuration files (cluster, api).
+  /var/run/icinga2                    		| PID file.
+  /var/run/icinga2/cmd                		| Command pipe and Livestatus socket.
+  /var/cache/icinga2                  		| status.dat/objects.cache, icinga2.debug files.
+  /var/spool/icinga2                  		| Used for performance data spool files.
+  /var/log/icinga2                    		| Log file location and compat/ directory for the CompatLogger feature.
+
+FreeBSD uses slightly different paths:
+
+By default Icinga 2 uses the following files and directories:
+
+  Path                                | Description
+  ------------------------------------|------------------------------------
+  /usr/local/etc/icinga2              | Contains Icinga 2 configuration files.
+  /usr/local/etc/rc.d/icinga2         | The Icinga 2 init script.
+  /usr/local/sbin/icinga2             | Shell wrapper for the Icinga 2 binary.
+  /usr/local/lib/icinga2              | Libraries and the Icinga 2 binary.
+  /usr/local/share/doc/icinga2        | Documentation files that come with Icinga 2.
+  /usr/local/share/icinga2/include    | The Icinga Template Library and plugin command configuration.
+  /var/lib/icinga2                    | Icinga 2 state file, cluster log, master CA, node certificates and configuration files (cluster, api).
+  /var/run/icinga2                    | PID file.
+  /var/run/icinga2/cmd                | Command pipe and Livestatus socket.
+  /var/cache/icinga2                  | status.dat/objects.cache, icinga2.debug files.
+  /var/spool/icinga2                  | Used for performance data spool files.
+  /var/log/icinga2                    | Log file location and compat/ directory for the CompatLogger feature.
+
 
 ## Backup <a id="install-backup"></a>
 
