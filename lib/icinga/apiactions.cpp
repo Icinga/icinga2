@@ -280,12 +280,18 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
+	auto author (HttpUtility::GetLastParameter(params, "author"));
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
 	if (checkable) {
 		std::set<Comment::Ptr> comments = checkable->GetComments();
 
 		for (const Comment::Ptr& comment : comments) {
+			{
+				ObjectLock oLock (comment);
+				comment->SetRemovedBy(author);
+			}
+
 			Comment::RemoveComment(comment->GetName());
 		}
 
@@ -296,6 +302,11 @@ Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
 
 	if (!comment)
 		return ApiActions::CreateResult(404, "Cannot remove non-existent comment object.");
+
+	{
+		ObjectLock oLock (comment);
+		comment->SetRemovedBy(author);
+	}
 
 	String commentName = comment->GetName();
 

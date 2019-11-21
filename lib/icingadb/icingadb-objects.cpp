@@ -1485,7 +1485,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		"comment_id", GetObjectIdentifier(comment),
 		"environment_id", SHA1(GetEnvironment()),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
-		"author", Utility::ValidateUTF8(comment->GetAuthor()),
+		"author", Utility::ValidateUTF8(comment->GetRemovedBy()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
