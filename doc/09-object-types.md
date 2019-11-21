@@ -1389,7 +1389,7 @@ Example:
 ```
 object IcingaDB "icingadb" {
   //host = "127.0.0.1"
-  //port = 6379
+  //port = 6380
   //password = "xxx"
 }
 ```
@@ -1399,7 +1399,7 @@ Configuration Attributes:
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
   host                      | String                | **Optional.** Redis host for IcingaDB. Defaults to `127.0.0.1`.
-  port                      | Number                | **Optional.** Redis port for IcingaDB. Defaults to `6379`.
+  port                      | Number                | **Optional.** Redis port for IcingaDB. Defaults to `6380`.
   path                      | String                | **Optional.** Redix unix socket path. Can be used instead of `host` and `port` attributes.
   password                  | String                | **Optional.** Redis auth password for IcingaDB.
 
