@@ -245,7 +245,7 @@ Dictionary::Ptr ApiActions::RemoveAcknowledgement(const ConfigObject::Ptr& objec
 			+ object->GetName() + ".");
 
 	checkable->ClearAcknowledgement();
-	checkable->RemoveCommentsByType(CommentAcknowledgement);
+	checkable->RemoveCommentsByType(CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"));
 
 	return ApiActions::CreateResult(200, "Successfully removed acknowledgement for object '" + checkable->GetName() + "'.");
 }
