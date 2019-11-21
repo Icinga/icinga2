@@ -457,12 +457,18 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
+	auto author (HttpUtility::GetLastParameter(params, "author"));
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
 	if (checkable) {
 		std::set<Downtime::Ptr> downtimes = checkable->GetDowntimes();
 
 		for (const Downtime::Ptr& downtime : downtimes) {
+			{
+				ObjectLock oLock (downtime);
+				downtime->SetRemovedBy(author);
+			}
+
 			Downtime::RemoveDowntime(downtime->GetName(), true);
 		}
 
@@ -473,6 +479,11 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 
 	if (!downtime)
 		return ApiActions::CreateResult(404, "Cannot remove non-existent downtime object.");
+
+	{
+		ObjectLock oLock (downtime);
+		downtime->SetRemovedBy(author);
+	}
 
 	String downtimeName = downtime->GetName();
 

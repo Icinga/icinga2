@@ -1375,7 +1375,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"downtime_id", GetObjectIdentifier(downtime),
 		"environment_id", SHA1(GetEnvironment()),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
-		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
+		"author", Utility::ValidateUTF8(downtime->GetRemovedBy()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
 		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
 		"flexible_duration", Convert::ToString(downtime->GetDuration()),
