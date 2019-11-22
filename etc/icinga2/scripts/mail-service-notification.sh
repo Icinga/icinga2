@@ -171,7 +171,7 @@ $ICINGAWEB2URL/monitoring/service/show?host=$(urlencode "$HOSTNAME")&service=$(u
 fi
 
 ## Check whether verbose mode was enabled and log to syslog.
-if [ "$VERBOSE" == "true" ] ; then
+if [ "$VERBOSE" = "true" ] ; then
   logger "$PROG sends $SUBJECT => $USEREMAIL"
 fi
 
