@@ -970,7 +970,6 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("entry_time", TimestampToMilliseconds(comment->GetEntryTime()));
 		attributes->Set("is_persistent", comment->GetPersistent());
 		attributes->Set("is_sticky", comment->GetEntryType() == CommentAcknowledgement && comment->GetCheckable()->GetAcknowledgement() == AcknowledgementSticky);
-		attributes->Set("expire_time", TimestampToMilliseconds(comment->GetExpireTime()));
 
 		Host::Ptr host;
 		Service::Ptr service;
@@ -983,6 +982,12 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 			attributes->Set("object_type", "host");
 			attributes->Set("host_id", GetObjectIdentifier(host));
 			attributes->Set("service_id", "00000000000000000000000000000000");
+		}
+
+		auto expireTime (comment->GetExpireTime());
+
+		if (expireTime > 0) {
+			attributes->Set("expire_time", TimestampToMilliseconds(expireTime));
 		}
 
 		return true;
@@ -1453,7 +1458,6 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
 		"is_sticky", Convert::ToString((unsigned short)(comment->GetEntryType() == CommentAcknowledgement && comment->GetCheckable()->GetAcknowledgement() == AcknowledgementSticky)),
-		"expire_time", Convert::ToString(TimestampToMilliseconds(comment->GetExpireTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "comment_add"
 	});
@@ -1473,6 +1477,15 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 	if (endpoint) {
 		xAdd.emplace_back("endpoint_id");
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
+	}
+
+	{
+		auto expireTime (comment->GetExpireTime());
+
+		if (expireTime > 0) {
+			xAdd.emplace_back("expire_time");
+			xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(expireTime)));
+		}
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
@@ -1500,7 +1513,6 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
 		"is_sticky", Convert::ToString((unsigned short)(comment->GetEntryType() == CommentAcknowledgement && comment->GetCheckable()->GetAcknowledgement() == AcknowledgementSticky)),
-		"expire_time", Convert::ToString(TimestampToMilliseconds(comment->GetExpireTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "comment_remove"
 	});
@@ -1530,6 +1542,15 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 	} else {
 		xAdd.emplace_back("has_been_removed");
 		xAdd.emplace_back("0");
+	}
+
+	{
+		auto expireTime (comment->GetExpireTime());
+
+		if (expireTime > 0) {
+			xAdd.emplace_back("expire_time");
+			xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(expireTime)));
+		}
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd));
