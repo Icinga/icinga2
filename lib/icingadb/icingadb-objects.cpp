@@ -1192,12 +1192,16 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
 		"output", Utility::ValidateUTF8(std::move(output.first)),
 		"long_output", Utility::ValidateUTF8(std::move(output.second)),
-		"check_source", cr->GetCheckSource(),
 		"max_check_attempts", Convert::ToString(checkable->GetMaxCheckAttempts()),
 		"event_time", Convert::ToString(TimestampToMilliseconds(cr ? cr->GetExecutionEnd() : Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "state_change"
 	});
+
+	if (cr) {
+		xAdd.emplace_back("check_source");
+		xAdd.emplace_back(cr->GetCheckSource());
+	}
 
 	if (service) {
 		xAdd.emplace_back("object_type");
