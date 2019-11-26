@@ -1184,6 +1184,7 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 		"XADD", "icinga:history:stream:state", "*",
 		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
+		"host_id", GetObjectIdentifier(host),
 		"state_type", Convert::ToString(type),
 		"soft_state", Convert::ToString(cr ? service ? cr->GetState() : Host::CalculateState(cr->GetState()) : 99),
 		"hard_state", Convert::ToString(hard_state),
@@ -1211,8 +1212,6 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 	} else {
 		xAdd.emplace_back("object_type");
 		xAdd.emplace_back("host");
-		xAdd.emplace_back("host_id");
-		xAdd.emplace_back(GetObjectIdentifier(checkable));
 	}
 
 	auto endpoint (Endpoint::GetLocalEndpoint());
@@ -1233,7 +1232,9 @@ void IcingaDB::SendSentNotification(
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	auto service (dynamic_pointer_cast<Service>(checkable));
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
 	auto finalText = text;
 	if (finalText == "" && cr) {
@@ -1248,6 +1249,7 @@ void IcingaDB::SendSentNotification(
 		"id", notificationHistoryId,
 		"environment_id", SHA1(GetEnvironment()),
 		"notification_id", GetObjectIdentifier(notification),
+		"host_id", GetObjectIdentifier(host),
 		"type", Convert::ToString(type),
 		"state", Convert::ToString(service ? cr->GetState() : Host::CalculateState(cr->GetState())),
 		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
@@ -1267,8 +1269,6 @@ void IcingaDB::SendSentNotification(
 	} else {
 		xAdd.emplace_back("object_type");
 		xAdd.emplace_back("host");
-		xAdd.emplace_back("host_id");
-		xAdd.emplace_back(GetObjectIdentifier(checkable));
 	}
 
 	auto endpoint (Endpoint::GetLocalEndpoint());
@@ -1302,13 +1302,17 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 	SendConfigUpdate(downtime, true);
 
 	auto checkable (downtime->GetCheckable());
-	auto service (dynamic_pointer_cast<Service>(checkable));
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
 		"downtime_id", GetObjectIdentifier(downtime),
 		"environment_id", SHA1(GetEnvironment()),
+		"host_id", GetObjectIdentifier(host),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
@@ -1330,8 +1334,6 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 	} else {
 		xAdd.emplace_back("object_type");
 		xAdd.emplace_back("host");
-		xAdd.emplace_back("host_id");
-		xAdd.emplace_back(GetObjectIdentifier(checkable));
 	}
 
 	if (triggeredBy) {
@@ -1367,8 +1369,11 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		return;
 
 	auto checkable (downtime->GetCheckable());
-	auto service (dynamic_pointer_cast<Service>(checkable));
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
 	// Downtime never got triggered (didn't send "downtime_start") so we don't want to send "downtime_end"
 	if (downtime->GetTriggerTime() == 0)
@@ -1378,6 +1383,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"XADD", "icinga:history:stream:downtime", "*",
 		"downtime_id", GetObjectIdentifier(downtime),
 		"environment_id", SHA1(GetEnvironment()),
+		"host_id", GetObjectIdentifier(host),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetRemovedBy()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
@@ -1400,8 +1406,6 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 	} else {
 		xAdd.emplace_back("object_type");
 		xAdd.emplace_back("host");
-		xAdd.emplace_back("host_id");
-		xAdd.emplace_back(GetObjectIdentifier(checkable));
 	}
 
 	if (triggeredBy) {
@@ -1437,12 +1441,16 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 		return;
 
 	auto checkable (comment->GetCheckable());
-	auto service (dynamic_pointer_cast<Service>(checkable));
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:comment", "*",
 		"comment_id", GetObjectIdentifier(comment),
 		"environment_id", SHA1(GetEnvironment()),
+		"host_id", GetObjectIdentifier(host),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetAuthor()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
@@ -1462,8 +1470,6 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 	} else {
 		xAdd.emplace_back("object_type");
 		xAdd.emplace_back("host");
-		xAdd.emplace_back("host_id");
-		xAdd.emplace_back(GetObjectIdentifier(checkable));
 	}
 
 	auto endpoint (Endpoint::GetLocalEndpoint());
@@ -1482,12 +1488,16 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		return;
 
 	auto checkable (comment->GetCheckable());
-	auto service (dynamic_pointer_cast<Service>(checkable));
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:comment", "*",
 		"comment_id", GetObjectIdentifier(comment),
 		"environment_id", SHA1(GetEnvironment()),
+		"host_id", GetObjectIdentifier(host),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetRemovedBy()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
@@ -1507,8 +1517,6 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 	} else {
 		xAdd.emplace_back("object_type");
 		xAdd.emplace_back("host");
-		xAdd.emplace_back("host_id");
-		xAdd.emplace_back(GetObjectIdentifier(checkable));
 	}
 
 	auto endpoint (Endpoint::GetLocalEndpoint());
@@ -1536,12 +1544,15 @@ void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value&
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	auto service (dynamic_pointer_cast<Service>(checkable));
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:flapping", "*",
 		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
+		"host_id", GetObjectIdentifier(host),
 		"percent_state_change", Convert::ToString(checkable->GetFlappingCurrent()),
 		"flapping_threshold_low", Convert::ToString(checkable->GetFlappingThresholdLow()),
 		"flapping_threshold_high", Convert::ToString(checkable->GetFlappingThresholdHigh()),
@@ -1558,8 +1569,6 @@ void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value&
 	} else {
 		xAdd.emplace_back("object_type");
 		xAdd.emplace_back("host");
-		xAdd.emplace_back("host_id");
-		xAdd.emplace_back(GetObjectIdentifier(checkable));
 	}
 
 	auto endpoint (Endpoint::GetLocalEndpoint());
