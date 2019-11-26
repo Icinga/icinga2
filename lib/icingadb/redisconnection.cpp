@@ -9,9 +9,9 @@
 #include "base/objectlock.hpp"
 #include "base/string.hpp"
 #include "base/tcpsocket.hpp"
-#include <boost/asio/post.hpp>
-#include <boost/asio/spawn.hpp>
+#include <boost/asio.hpp>
 #include <boost/coroutine/exceptions.hpp>
+#include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/utility/string_view.hpp>
 #include <boost/variant/get.hpp>
 #include <exception>
@@ -144,32 +144,42 @@ void RedisConnection::Connect(asio::yield_context& yc)
 {
 	Defer notConnecting ([this]() { m_Connecting.store(m_Connected.load()); });
 
-	try {
-		if (m_Path.IsEmpty()) {
-			Log(LogInformation, "IcingaDB")
-				<< "Trying to connect to Redis server (async) on host '" << m_Host << ":" << m_Port << "'";
+	boost::asio::deadline_timer timer (m_Strand.context());
 
-			decltype(m_TcpConn) conn (new TcpConn(m_Strand.context()));
-			icinga::Connect(conn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
-			m_TcpConn = std::move(conn);
-		} else {
-			Log(LogInformation, "IcingaDB")
-				<< "Trying to connect to Redis server (async) on unix socket path '" << m_Path << "'";
+	for (;;) {
+		try {
+			if (m_Path.IsEmpty()) {
+				Log(LogInformation, "IcingaDB")
+					<< "Trying to connect to Redis server (async) on host '" << m_Host << ":" << m_Port << "'";
 
-			decltype(m_UnixConn) conn (new UnixConn(m_Strand.context()));
-			conn->next_layer().async_connect(Unix::endpoint(m_Path.CStr()), yc);
-			m_UnixConn = std::move(conn);
+				decltype(m_TcpConn) conn (new TcpConn(m_Strand.context()));
+				icinga::Connect(conn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
+				m_TcpConn = std::move(conn);
+			} else {
+				Log(LogInformation, "IcingaDB")
+					<< "Trying to connect to Redis server (async) on unix socket path '" << m_Path << "'";
+
+				decltype(m_UnixConn) conn (new UnixConn(m_Strand.context()));
+				conn->next_layer().async_connect(Unix::endpoint(m_Path.CStr()), yc);
+				m_UnixConn = std::move(conn);
+			}
+
+			m_Connected.store(true);
+
+			Log(LogInformation, "IcingaDB", "Connected to Redis server");
+
+			break;
+		} catch (const boost::coroutines::detail::forced_unwind&) {
+			throw;
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "IcingaDB")
+				<< "Cannot connect to " << m_Host << ":" << m_Port << ": " << ex.what();
 		}
 
-		m_Connected.store(true);
-
-		Log(LogInformation, "IcingaDB", "Connected to Redis server");
-	} catch (const boost::coroutines::detail::forced_unwind&) {
-		throw;
-	} catch (const std::exception& ex) {
-		Log(LogCritical, "IcingaDB")
-			<< "Cannot connect to " << m_Host << ":" << m_Port << ": " << ex.what();
+		timer.expires_from_now(boost::posix_time::seconds(5));
+		timer.async_wait(yc);
 	}
+
 }
 
 void RedisConnection::ReadLoop(asio::yield_context& yc)

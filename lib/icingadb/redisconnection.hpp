@@ -207,6 +207,8 @@ private:
 template<class StreamPtr>
 RedisConnection::Reply RedisConnection::ReadOne(StreamPtr& stream, boost::asio::yield_context& yc)
 {
+	namespace asio = boost::asio;
+
 	if (!stream) {
 		throw RedisDisconnected();
 	}
@@ -221,6 +223,12 @@ RedisConnection::Reply RedisConnection::ReadOne(StreamPtr& stream, boost::asio::
 		if (m_Connecting.exchange(false)) {
 			m_Connected.store(false);
 			stream = nullptr;
+
+			if (!m_Connecting.exchange(true)) {
+				Ptr keepAlive (this);
+
+				asio::spawn(m_Strand, [this, keepAlive](asio::yield_context yc) { Connect(yc); });
+			}
 		}
 
 		throw;
@@ -230,6 +238,8 @@ RedisConnection::Reply RedisConnection::ReadOne(StreamPtr& stream, boost::asio::
 template<class StreamPtr>
 void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query, boost::asio::yield_context& yc)
 {
+	namespace asio = boost::asio;
+
 	if (!stream) {
 		throw RedisDisconnected();
 	}
@@ -245,6 +255,12 @@ void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query,
 		if (m_Connecting.exchange(false)) {
 			m_Connected.store(false);
 			stream = nullptr;
+
+			if (!m_Connecting.exchange(true)) {
+				Ptr keepAlive (this);
+
+				asio::spawn(m_Strand, [this, keepAlive](asio::yield_context yc) { Connect(yc); });
+			}
 		}
 
 		throw;
