@@ -71,6 +71,8 @@ class Comment : ConfigObject < CommentNameComposer
 	[config] bool persistent;
 	[config] Timestamp expire_time;
 	[state] int legacy_id;
+
+	[no_user_view, no_user_modify] String removed_by;
 };
 
 }
