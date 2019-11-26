@@ -1254,7 +1254,7 @@ void IcingaDB::SendSentNotification(
 		"author", Utility::ValidateUTF8(author),
 		"text", Utility::ValidateUTF8(finalText),
 		"users_notified", Convert::ToString(usersAmount),
-		"event_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
+		"send_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "notification"
 	});
