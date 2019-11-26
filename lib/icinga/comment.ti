@@ -18,8 +18,6 @@ code {{{
 enum CommentType
 {
 	CommentUser = 1,
-	CommentDowntime = 2,
-	CommentFlapping = 3,
 	CommentAcknowledgement = 4
 };
 
