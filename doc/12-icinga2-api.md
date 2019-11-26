@@ -1204,7 +1204,11 @@ been removed the next notification will be sent again.
 
 Send a `POST` request to the URL endpoint `/v1/actions/remove-acknowledgement`.
 
-A [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
+  Parameter | Type   | Description
+  ----------|--------|--------------
+  author    | String | **Optional.** Name of the removal requestor.
+
+In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
 The example removes all service acknowledgements:
 
@@ -1272,7 +1276,11 @@ Icinga 2 when [adding a comment](12-icinga2-api.md#icinga2-api-actions-add-comme
 
 Send a `POST` request to the URL endpoint `/v1/actions/remove-comment`.
 
-A [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host`, `Service` and `Comment`.
+  Parameter | Type   | Description
+  ----------|--------|--------------
+  author    | String | **Optional.** Name of the removal requestor.
+
+In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host`, `Service` and `Comment`.
 
 Example for a simple filter using the `comment` URL parameter:
 
