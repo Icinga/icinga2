@@ -70,6 +70,8 @@ class Downtime : ConfigObject < DowntimeNameComposer
 	[state] bool was_cancelled;
 	[config] String config_owner;
 	[config] String authoritative_zone;
+
+	[no_user_view, no_user_modify] String removed_by;
 };
 
 }

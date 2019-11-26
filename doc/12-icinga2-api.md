@@ -1381,7 +1381,11 @@ Icinga 2 when [scheduling a downtime](12-icinga2-api.md#icinga2-api-actions-sche
 
 Send a `POST` request to the URL endpoint `/v1/actions/remove-downtime`.
 
-A [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host`, `Service` and `Downtime`.
+  Parameter | Type   | Description
+  ----------|--------|--------------
+  author    | String | **Optional.** Name of the removal requestor.
+
+In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host`, `Service` and `Downtime`.
 
 Example for a simple filter using the `downtime` URL parameter:
 
