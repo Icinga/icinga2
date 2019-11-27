@@ -66,6 +66,7 @@ private:
 	void SendAddedComment(const Comment::Ptr& comment);
 	void SendRemovedComment(const Comment::Ptr& comment);
 	void SendFlappingChanged(const Checkable::Ptr& checkable, const Value& value);
+	void SendNextUpdate(const Checkable::Ptr& checkable);
 
 	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
 	Dictionary::Ptr SerializeState(const Checkable::Ptr& checkable);
@@ -107,6 +108,7 @@ private:
 	static void CommentAddedHandler(const Comment::Ptr& comment);
 	static void CommentRemovedHandler(const Comment::Ptr& comment);
 	static void FlappingChangedHandler(const Checkable::Ptr& checkable, const Value& value);
+	static void NewCheckResultHandler(const Checkable::Ptr& checkable);
 
 	void AssertOnWorkQueue();
 
