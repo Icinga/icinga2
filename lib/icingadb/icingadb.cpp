@@ -15,6 +15,8 @@ using namespace icinga;
 
 #define MAX_EVENTS_DEFAULT 5000
 
+using Prio = RedisConnection::QueryPriority;
+
 REGISTER_TYPE(IcingaDB);
 
 IcingaDB::IcingaDB()
@@ -120,7 +122,7 @@ void IcingaDB::PublishStats()
 	status->Set("config_dump_in_progress", m_ConfigDumpInProgress);
 	String jsonStats = JsonEncode(status);
 
-	m_Rcon->FireAndForgetQuery({ "PUBLISH", "icinga:stats", jsonStats }, true);
+	m_Rcon->FireAndForgetQuery({ "PUBLISH", "icinga:stats", jsonStats }, Prio::Heartbeat);
 }
 
 void IcingaDB::HandleEvents()
