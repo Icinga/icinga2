@@ -90,19 +90,6 @@ void IcingaDB::ConfigStaticInitialize()
 	Checkable::OnFlappingChanged.connect(&IcingaDB::FlappingChangedHandler);
 }
 
-static std::pair<String, String> SplitOutput(String output)
-{
-	String longOutput;
-	auto pos (output.Find("\n"));
-
-	if (pos != String::NPos) {
-		longOutput = output.SubStr(pos + 1u);
-		output.erase(output.Begin() + pos, output.End());
-	}
-
-	return {std::move(output), std::move(longOutput)};
-}
-
 void IcingaDB::UpdateAllConfigObjects()
 {
 	double startTime = Utility::GetTime();
@@ -1171,8 +1158,6 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 
 	m_Rcon->FireAndForgetQuery(std::move(streamadd));
 
-	auto output (SplitOutput(cr ? cr->GetOutput() : ""));
-
 	int hard_state;
 	if (!cr) {
 		hard_state = 99;
@@ -1190,8 +1175,6 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 		"attempt", Convert::ToString(checkable->GetCheckAttempt()),
 		"previous_soft_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeSoft)),
 		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
-		"output", Utility::ValidateUTF8(std::move(output.first)),
-		"long_output", Utility::ValidateUTF8(std::move(output.second)),
 		"max_check_attempts", Convert::ToString(checkable->GetMaxCheckAttempts()),
 		"event_time", Convert::ToString(TimestampToMilliseconds(cr ? cr->GetExecutionEnd() : Utility::GetTime())),
 		"event_id", Utility::NewUniqueID(),
@@ -1199,6 +1182,19 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 	});
 
 	if (cr) {
+		auto output (cr->GetOutput());
+		auto pos (output.Find("\n"));
+
+		if (pos != String::NPos) {
+			auto longOutput (output.SubStr(pos + 1u));
+			output.erase(output.Begin() + pos, output.End());
+
+			xAdd.emplace_back("long_output");
+			xAdd.emplace_back(Utility::ValidateUTF8(std::move(longOutput)));
+		}
+
+		xAdd.emplace_back("output");
+		xAdd.emplace_back(Utility::ValidateUTF8(std::move(output)));
 		xAdd.emplace_back("check_source");
 		xAdd.emplace_back(cr->GetCheckSource());
 	}
