@@ -542,7 +542,7 @@ Value ClusterEvents::AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& orig
 	return Empty;
 }
 
-void ClusterEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin)
+void ClusterEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, const MessageOrigin::Ptr& origin)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -557,6 +557,7 @@ void ClusterEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkabl
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
+	params->Set("author", removedBy);
 
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
@@ -598,7 +599,7 @@ Value ClusterEvents::AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& 
 		return Empty;
 	}
 
-	checkable->ClearAcknowledgement(origin);
+	checkable->ClearAcknowledgement(params->Get("author"), origin);
 
 	return Empty;
 }

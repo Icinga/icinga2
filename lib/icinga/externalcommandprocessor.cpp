@@ -639,7 +639,7 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vecto
 
 	{
 		ObjectLock olock(service);
-		service->ClearAcknowledgement();
+		service->ClearAcknowledgement("");
 	}
 
 	service->RemoveCommentsByType(CommentAcknowledgement);
@@ -703,7 +703,7 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const std::vect
 
 	{
 		ObjectLock olock(host);
-		host->ClearAcknowledgement();
+		host->ClearAcknowledgement("");
 	}
 	host->RemoveCommentsByType(CommentAcknowledgement);
 }

@@ -244,8 +244,10 @@ Dictionary::Ptr ApiActions::RemoveAcknowledgement(const ConfigObject::Ptr& objec
 			"Cannot remove acknowledgement for non-existent checkable object "
 			+ object->GetName() + ".");
 
-	checkable->ClearAcknowledgement();
-	checkable->RemoveCommentsByType(CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"));
+	String removedBy (HttpUtility::GetLastParameter(params, "author"));
+
+	checkable->ClearAcknowledgement(removedBy);
+	checkable->RemoveCommentsByType(CommentAcknowledgement, removedBy);
 
 	return ApiActions::CreateResult(200, "Successfully removed acknowledgement for object '" + checkable->GetName() + "'.");
 }

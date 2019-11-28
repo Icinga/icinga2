@@ -16,7 +16,7 @@ REGISTER_TYPE_WITH_PROTOTYPE(Checkable, Checkable::GetPrototype());
 INITIALIZE_ONCE(&Checkable::StaticInitialize);
 
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, bool, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
-boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
+boost::signals2::signal<void (const Checkable::Ptr&, const String&, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
 
 static Timer::Ptr l_CheckablesFireSuppressedNotifications;
 
@@ -110,7 +110,7 @@ AcknowledgementType Checkable::GetAcknowledgement()
 
 		if (expiry != 0 && expiry < Utility::GetTime()) {
 			avalue = AcknowledgementNone;
-			ClearAcknowledgement();
+			ClearAcknowledgement("");
 		}
 	}
 
@@ -136,7 +136,7 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 	OnAcknowledgementSet(this, author, comment, type, notify, persistent, expiry, origin);
 }
 
-void Checkable::ClearAcknowledgement(const MessageOrigin::Ptr& origin)
+void Checkable::ClearAcknowledgement(const String& removedBy, const MessageOrigin::Ptr& origin)
 {
 	SetAcknowledgementRaw(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
@@ -144,7 +144,7 @@ void Checkable::ClearAcknowledgement(const MessageOrigin::Ptr& origin)
 	Log(LogInformation, "Checkable")
 		<< "Acknowledgement cleared for checkable '" << GetName() << "'.";
 
-	OnAcknowledgementCleared(this, origin);
+	OnAcknowledgementCleared(this, removedBy, origin);
 }
 
 Endpoint::Ptr Checkable::GetCommandEndpoint() const
