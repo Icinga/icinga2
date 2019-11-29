@@ -17,6 +17,7 @@
 #include "base/initialize.hpp"
 #include "base/statsfunction.hpp"
 #include "base/loader.hpp"
+#include "remote/endpoint.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -72,6 +73,7 @@ void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 	for (const IcingaApplication::Ptr& icingaapplication : ConfigType::GetObjectsByType<IcingaApplication>()) {
 		nodes.emplace_back(icingaapplication->GetName(), new Dictionary({
 			{ "node_name", icingaapplication->GetNodeName() },
+			{ "is_part_of_a_cluster", (bool)Endpoint::GetLocalEndpoint() },
 			{ "enable_notifications", icingaapplication->GetEnableNotifications() },
 			{ "enable_event_handlers", icingaapplication->GetEnableEventHandlers() },
 			{ "enable_flapping", icingaapplication->GetEnableFlapping() },
