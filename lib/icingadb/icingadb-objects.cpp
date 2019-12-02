@@ -290,28 +290,20 @@ std::vector<String> IcingaDB::GetTypeObjectKeys(const String& type)
 			m_PrefixConfigObject + type,
 			m_PrefixConfigCheckSum + type,
 			m_PrefixConfigObject + type + ":customvar",
-			m_PrefixConfigCheckSum + type + ":customvar",
 	};
 
 	if (type == "host" || type == "service" || type == "user") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":groupmember");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":groupmember");
 		keys.emplace_back(m_PrefixStateObject + type);
 	} else if (type == "timeperiod") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":override:include");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":override:include");
 		keys.emplace_back(m_PrefixConfigObject + type + ":override:exclude");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":override:exclude");
 		keys.emplace_back(m_PrefixConfigObject + type + ":range");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":range");
 	} else if (type == "zone") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":parent");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":parent");
 	} else if (type == "notification") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":user");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":user");
 		keys.emplace_back(m_PrefixConfigObject + type + ":usergroup");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":usergroup");
 	} else if (type == "checkcommand" || type == "notificationcommand" || type == "eventcommand") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":envvar");
 		keys.emplace_back(m_PrefixConfigCheckSum + type + ":envvar");
@@ -341,10 +333,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		if (vars) {
 			auto& typeCvs (hMSets[m_PrefixConfigObject + typeName + ":customvar"]);
 			auto& allCvs (hMSets[m_PrefixConfigObject + "customvar"]);
-			auto& cvChksms (hMSets[m_PrefixConfigCheckSum + typeName + ":customvar"]);
-
-			cvChksms.emplace_back(objectKey);
-			cvChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumVars(customVarObject)}})));
 
 			ObjectLock varsLock(vars);
 			Array::Ptr varsArray(new Array);
@@ -426,7 +414,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			groupIds->Reserve(groups->GetLength());
 
 			auto& members (hMSets[m_PrefixConfigObject + typeName + ":groupmember"]);
-			auto& memberChksms (hMSets[m_PrefixConfigCheckSum + typeName + ":groupmember"]);
 
 			for (auto& group : groups) {
 				String groupId = GetObjectIdentifier((*getGroup)(group));
@@ -440,9 +427,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 				groupIds->Add(groupId);
 			}
-
-			memberChksms.emplace_back(objectKey);
-			memberChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(groupIds)}})));
 		}
 
 		return;
@@ -456,7 +440,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			ObjectLock rangesLock(ranges);
 			Array::Ptr rangeIds(new Array);
 			auto& typeRanges (hMSets[m_PrefixConfigObject + typeName + ":range"]);
-			auto& rangeChksms (hMSets[m_PrefixConfigCheckSum + typeName + ":range"]);
 
 			rangeIds->Reserve(ranges->GetLength());
 
@@ -472,9 +455,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					configUpdates->emplace_back(typeName + ":range:" + id);
 				}
 			}
-
-			rangeChksms.emplace_back(objectKey);
-			rangeChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(rangeIds)}})));
 		}
 
 		Array::Ptr includes;
@@ -491,7 +471,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 
 		auto& includs (hMSets[m_PrefixConfigObject + typeName + ":override:include"]);
-		auto& includeChksms (hMSets[m_PrefixConfigCheckSum + typeName + ":override:include"]);
 		for (auto include : includes) {
 			String includeId = GetObjectIdentifier((*getInclude)(include.Get<String>()));
 			includeChecksums->Add(includeId);
@@ -504,9 +483,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				configUpdates->emplace_back(typeName + ":override:include:" + id);
 			}
 		}
-
-		includeChksms.emplace_back(objectKey);
-		includeChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(includes)}})));
 
 		Array::Ptr excludes;
 		ConfigObject::Ptr (*getExclude)(const String& name);
@@ -522,7 +498,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		excludeChecksums->Reserve(excludes->GetLength());
 
 		auto& excluds (hMSets[m_PrefixConfigObject + typeName + ":override:exclude"]);
-		auto& excludeChksms (hMSets[m_PrefixConfigCheckSum + typeName + ":override:exclude"]);
 
 		for (auto exclude : excludes) {
 			String excludeId = GetObjectIdentifier((*getExclude)(exclude.Get<String>()));
@@ -537,9 +512,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			}
 		}
 
-		excludeChksms.emplace_back(objectKey);
-		excludeChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(excludes)}})));
-
 		return;
 	}
 
@@ -552,7 +524,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		parents->Reserve(parentsRaw.size());
 
 		auto& parnts (hMSets[m_PrefixConfigObject + typeName + ":parent"]);
-		auto& parentChksms (hMSets[m_PrefixConfigCheckSum + typeName + ":parent"]);
 
 		for (auto& parent : parentsRaw) {
 			String parentId = GetObjectIdentifier(parent);
@@ -566,9 +537,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			parents->Add(GetObjectIdentifier(parent));
 		}
-
-		parentChksms.emplace_back(objectKey);
-		parentChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(zone->GetAllParents())}})));
 
 		return;
 	}
@@ -589,7 +557,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			groupIds->Reserve(groups->GetLength());
 
 			auto& members (hMSets[m_PrefixConfigObject + typeName + ":groupmember"]);
-			auto& memberChksms (hMSets[m_PrefixConfigCheckSum + typeName + ":groupmember"]);
 
 			for (auto& group : groups) {
 				String groupId = GetObjectIdentifier((*getGroup)(group));
@@ -603,9 +570,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 				groupIds->Add(groupId);
 			}
-
-			memberChksms.emplace_back(objectKey);
-			memberChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(groupIds)}})));
 		}
 
 		return;
@@ -623,7 +587,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		userIds->Reserve(users.size());
 
 		auto& usrs (hMSets[m_PrefixConfigObject + typeName + ":user"]);
-		auto& userChksms (hMSets[m_PrefixConfigCheckSum + typeName + ":user"]);
 
 		for (auto& user : users) {
 			String userId = GetObjectIdentifier(user);
@@ -638,13 +601,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			userIds->Add(userId);
 		}
 
-		userChksms.emplace_back(objectKey);
-		userChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(userIds)}})));
-
 		usergroupIds->Reserve(usergroups.size());
 
 		auto& groups (hMSets[m_PrefixConfigObject + typeName + ":usergroup"]);
-		auto& groupChksms (hMSets[m_PrefixConfigCheckSum + typeName + ":usergroup"]);
 
 		for (auto& usergroup : usergroups) {
 			String usergroupId = GetObjectIdentifier(usergroup);
@@ -658,9 +617,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			usergroupIds->Add(usergroupId);
 		}
-
-		groupChksms.emplace_back(objectKey);
-		groupChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", CalculateCheckSumArray(usergroupIds)}})));
 
 		return;
 	}
