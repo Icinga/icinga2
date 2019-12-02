@@ -306,6 +306,7 @@ std::vector<String> IcingaDB::GetTypeObjectKeys(const String& type)
 	} else if (type == "notification") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":user");
 		keys.emplace_back(m_PrefixConfigObject + type + ":usergroup");
+		keys.emplace_back(m_PrefixConfigObject + type + ":recipient");
 	} else if (type == "checkcommand" || type == "notificationcommand" || type == "eventcommand") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":envvar");
 		keys.emplace_back(m_PrefixConfigCheckSum + type + ":envvar");
@@ -581,6 +582,10 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		Notification::Ptr notification = static_pointer_cast<Notification>(object);
 
 		std::set<User::Ptr> users = notification->GetUsers();
+
+		std::set<User::Ptr> allUsers;
+		std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
+
 		Array::Ptr userIds = new Array();
 
 		auto usergroups(notification->GetUserGroups());
@@ -606,18 +611,37 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		usergroupIds->Reserve(usergroups.size());
 
 		auto& groups (hMSets[m_PrefixConfigObject + typeName + ":usergroup"]);
+		auto& notificationRecipients (hMSets[m_PrefixConfigObject + typeName + ":recipient"]);
 
 		for (auto& usergroup : usergroups) {
 			String usergroupId = GetObjectIdentifier(usergroup);
-			String id = CalculateCheckSumArray(new Array({envId, usergroupId, objectKey}));
+
+			auto groupMembers = usergroup->GetMembers();
+			std::copy(groupMembers.begin(), groupMembers.end(), std::inserter(allUsers, allUsers.begin()));
+
+			String id = CalculateCheckSumArray(new Array({envId, "usergroup", usergroupId, objectKey}));
 			groups.emplace_back(id);
 			groups.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"usergroup_id", usergroupId}})));
+
+			notificationRecipients.emplace_back(id);
+			notificationRecipients.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"usergroup_id", usergroupId}})));
 
 			if (configUpdates) {
 				configUpdates->emplace_back(typeName + ":usergroup:" + id);
 			}
 
 			usergroupIds->Add(usergroupId);
+		}
+
+		for (auto& user : allUsers) {
+			String userId = GetObjectIdentifier(user);
+			String id = CalculateCheckSumArray(new Array({envId, "user", userId, objectKey}));
+			notificationRecipients.emplace_back(id);
+			notificationRecipients.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"user_id", userId}})));
+
+			if (configUpdates) {
+				configUpdates->emplace_back(typeName + ":recipient:" + id);
+			}
 		}
 
 		return;
