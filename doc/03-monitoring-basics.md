@@ -83,7 +83,7 @@ Services can be in any one of the following states:
   ------------|--------------
   OK          | The service is working properly.
   WARNING     | The service is experiencing some problems but is still considered to be in working condition.
-  CRITICAL    | The service is in a critical state.
+  CRITICAL    | The check successfully determined that the service is in a critical state.
   UNKNOWN     | The check could not determine the service's state.
 
 ### Check Result State Mapping <a id="check-result-state-mapping"></a>
