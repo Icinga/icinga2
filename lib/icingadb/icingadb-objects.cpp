@@ -1438,7 +1438,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 
 void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!m_Rcon || !m_Rcon->IsConnected() || comment->GetEntryType() != CommentUser)
 		return;
 
 	auto checkable (comment->GetCheckable());
