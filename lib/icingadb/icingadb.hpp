@@ -17,11 +17,6 @@
 namespace icinga
 {
 
-struct RedisSubscriptionInfo
-{
-	std::set<String> EventTypes;
-};
-
 /**
  * @ingroup icingadb
  */
@@ -42,12 +37,8 @@ private:
 	void ReconnectTimerHandler();
 	void TryToReconnect();
 	void HandleEvents();
-	void HandleEvent(const Dictionary::Ptr& event);
 	void SendEvent(const Dictionary::Ptr& event);
 
-	void UpdateSubscriptionsTimerHandler();
-	void UpdateSubscriptions();
-	bool GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi);
 	void PublishStatsTimerHandler();
 	void PublishStats();
 
@@ -123,9 +114,7 @@ private:
 
 	Timer::Ptr m_StatsTimer;
 	Timer::Ptr m_ReconnectTimer;
-	Timer::Ptr m_SubscriptionTimer;
 	WorkQueue m_WorkQueue;
-	std::map<String, RedisSubscriptionInfo> m_Subscriptions;
 
 	String m_PrefixConfigObject;
 	String m_PrefixConfigCheckSum;
