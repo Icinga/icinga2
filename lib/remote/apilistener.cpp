@@ -356,9 +356,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 
 	ObjectLock olock(this);
 
-	auto sslContext (m_SSLContext);
-
-	if (!sslContext) {
+	if (!m_SSLContext) {
 		Log(LogCritical, "ApiListener", "SSL context is required for AddListener()");
 		return false;
 	}
@@ -453,16 +451,14 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	namespace asio = boost::asio;
 	using asio::ip::tcp;
 
-	auto sslContext (m_SSLContext);
-
-	if (!sslContext) {
+	if (!m_SSLContext) {
 		Log(LogCritical, "ApiListener", "SSL context is required for AddConnection()");
 		return;
 	}
 
 	auto& io (IoEngine::Get().GetIoContext());
 
-	IoEngine::SpawnCoroutine(io, [this, endpoint, &io, sslContext](asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(io, [this, endpoint, &io](asio::yield_context yc) {
 		String host = endpoint->GetHost();
 		String port = endpoint->GetPort();
 
@@ -470,7 +466,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 			<< "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 
 		try {
-			auto sslConn (Shared<AsioTlsStream>::Make(io, *sslContext, endpoint->GetName()));
+			auto sslConn (Shared<AsioTlsStream>::Make(io, *m_SSLContext, endpoint->GetName()));
 
 			Connect(sslConn->lowest_layer(), host, port, yc);
 
