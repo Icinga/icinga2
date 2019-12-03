@@ -160,7 +160,9 @@ int Checkable::GetSeverity() const
 
 bool Checkable::GetProblem() const
 {
-	return !IsStateOK(GetStateRaw());
+	auto cr (GetLastCheckResult());
+
+	return cr && !IsStateOK(cr->GetState());
 }
 
 bool Checkable::GetHandled() const
