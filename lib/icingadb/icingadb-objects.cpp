@@ -643,7 +643,15 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					values = new Dictionary({{"value", kv.second}});
 				}
 
-				values->Set("value", JsonEncode(values->Get("value")));
+				{
+					Value value;
+
+					// JsonEncode() the value if it's set.
+					if (values->Get("value", &value)) {
+						values->Set("value", JsonEncode(value));
+					}
+				}
+
 				values->Set("command_id", objectKey);
 				values->Set("argument_key", kv.first);
 				values->Set("environment_id", envId);
@@ -682,7 +690,15 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					values = new Dictionary({{"value", kv.second}});
 				}
 
-				values->Set("value", JsonEncode(values->Get("value")));
+				{
+					Value value;
+
+					// JsonEncode() the value if it's set.
+					if (values->Get("value", &value)) {
+						values->Set("value", JsonEncode(value));
+					}
+				}
+
 				values->Set("command_id", objectKey);
 				values->Set("envvar_key", kv.first);
 				values->Set("environment_id", envId);
