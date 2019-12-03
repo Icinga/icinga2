@@ -56,7 +56,8 @@ namespace icinga
 			Heartbeat,
 			Config,
 			State,
-			History
+			History,
+			CheckResult
 		};
 
 		RedisConnection(const String& host, const int port, const String& path,

@@ -90,6 +90,10 @@ void IcingaDB::ConfigStaticInitialize()
 	Comment::OnCommentRemoved.connect(&IcingaDB::CommentRemovedHandler);
 
 	Checkable::OnFlappingChanged.connect(&IcingaDB::FlappingChangedHandler);
+
+	Checkable::OnNewCheckResult.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr&, const MessageOrigin::Ptr&) {
+		IcingaDB::NewCheckResultHandler(checkable);
+	});
 }
 
 void IcingaDB::UpdateAllConfigObjects()
@@ -121,6 +125,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			m_PrefixConfigObject + "icon_image",
 	};
 	DeleteKeys(globalKeys, Prio::Config);
+	DeleteKeys({"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::CheckResult);
 
 	upq.ParallelFor(types, [this](const TypePair& type) {
 		String lcType = type.second;
@@ -137,6 +142,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			std::map<String, std::vector<String>> hMSets, publishes;
 			std::vector<String> states 							= {"HMSET", m_PrefixStateObject + lcType};
 			std::vector<std::vector<String> > transaction 		= {{"MULTI"}};
+			std::vector<String> hostZAdds = {"ZADD", "icinga:nextupdate:host"}, serviceZAdds = {"ZADD", "icinga:nextupdate:service"};
 
 			bool dumpState = (lcType == "host" || lcType == "service");
 
@@ -189,6 +195,23 @@ void IcingaDB::UpdateAllConfigObjects()
 						transaction = {{"MULTI"}};
 					}
 				}
+
+				auto checkable (dynamic_pointer_cast<Checkable>(object));
+
+				if (checkable) {
+					auto zAdds (dynamic_pointer_cast<Service>(checkable) ? &serviceZAdds : &hostZAdds);
+
+					zAdds->emplace_back(Convert::ToString(checkable->GetNextUpdate()));
+					zAdds->emplace_back(GetObjectIdentifier(checkable));
+
+					if (zAdds->size() >= 102u) {
+						std::vector<String> header (zAdds->begin(), zAdds->begin() + 2u);
+
+						m_Rcon->FireAndForgetQuery(std::move(*zAdds), Prio::CheckResult);
+
+						*zAdds = std::move(header);
+					}
+				}
 			}
 
 			for (auto& kv : hMSets) {
@@ -217,6 +240,12 @@ void IcingaDB::UpdateAllConfigObjects()
 			if (transaction.size() > 1) {
 				transaction.push_back({"EXEC"});
 				m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+			}
+
+			for (auto zAdds : {&hostZAdds, &serviceZAdds}) {
+				if (zAdds->size() > 2u) {
+					m_Rcon->FireAndForgetQuery(std::move(*zAdds), Prio::CheckResult);
+				}
 			}
 
 			Log(LogNotice, "IcingaDB")
@@ -773,6 +802,10 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 		transaction.push_back({"EXEC"});
 		m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
 	}
+
+	if (checkable) {
+		SendNextUpdate(checkable);
+	}
 }
 
 // Takes object and collects IcingaDB relevant attributes and computes checksums. Returns whether the object is relevant
@@ -1092,6 +1125,19 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 								   {"DEL",     m_PrefixStateObject + typeName + ":" + objectKey},
 								   {"PUBLISH", "icinga:config:delete", typeName + ":" + objectKey}
 						   }, Prio::Config);
+
+	auto checkable (dynamic_pointer_cast<Checkable>(object));
+
+	if (checkable) {
+		m_Rcon->FireAndForgetQuery(
+			{
+				"ZREM",
+				dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
+				GetObjectIdentifier(checkable)
+			},
+			Prio::CheckResult
+		);
+	}
 }
 
 static inline
@@ -1572,6 +1618,22 @@ void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value&
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
 
+void IcingaDB::SendNextUpdate(const Checkable::Ptr& checkable)
+{
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
+	m_Rcon->FireAndForgetQuery(
+		{
+			"ZADD",
+			dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
+			Convert::ToString(checkable->GetNextUpdate()),
+			GetObjectIdentifier(checkable)
+		},
+		Prio::CheckResult
+	);
+}
+
 Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 {
 	Dictionary::Ptr attrs = new Dictionary();
@@ -1809,5 +1871,12 @@ void IcingaDB::FlappingChangedHandler(const Checkable::Ptr& checkable, const Val
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->m_WorkQueue.Enqueue([rw, checkable, value]() { rw->SendFlappingChanged(checkable, value); });
+	}
+}
+
+void IcingaDB::NewCheckResultHandler(const Checkable::Ptr& checkable)
+{
+	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		rw->m_WorkQueue.Enqueue([rw, checkable]() { rw->SendNextUpdate(checkable); });
 	}
 }
