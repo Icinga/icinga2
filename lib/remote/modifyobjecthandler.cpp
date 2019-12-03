@@ -65,7 +65,8 @@ bool ModifyObjectHandler::HandleRequest(
 
 	if (attrsVal.GetReflectionType() != Dictionary::TypeInstance) {
 		HttpUtility::SendJsonError(response, params, 400,
-			"Invalid type for 'attrs' attribute specified. Dictionary type is required.");
+			"Invalid type for 'attrs' attribute specified. Dictionary type is required."
+			"Or is this a POST query and you missed adding a 'X-HTTP-Method-Override: GET' header?");
 		return true;
 	}
 
