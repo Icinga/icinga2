@@ -17,6 +17,25 @@ using namespace icinga;
 
 using Prio = RedisConnection::QueryPriority;
 
+static const char * const l_LuaPublishStats = R"EOF(
+
+local xa = {'XADD', KEYS[1], '*'}
+
+for i = 1, #ARGV do
+	table.insert(xa, ARGV[i])
+end
+
+local id = redis.call(unpack(xa))
+
+local xr = redis.call('XRANGE', KEYS[1], '-', '+')
+for i = 1, #xr - 1 do
+	redis.call('XDEL', KEYS[1], xr[i][1])
+end
+
+return id
+
+)EOF";
+
 REGISTER_TYPE(IcingaDB);
 
 IcingaDB::IcingaDB()
@@ -120,9 +139,18 @@ void IcingaDB::PublishStats()
 
 	Dictionary::Ptr status = GetStats();
 	status->Set("config_dump_in_progress", m_ConfigDumpInProgress);
-	String jsonStats = JsonEncode(status);
 
-	m_Rcon->FireAndForgetQuery({ "PUBLISH", "icinga:stats", jsonStats }, Prio::Heartbeat);
+	std::vector<String> eval ({"EVAL", l_LuaPublishStats, "1", "icinga:stats"});
+
+	{
+		ObjectLock statusLock (status);
+		for (auto& kv : status) {
+			eval.emplace_back(kv.first);
+			eval.emplace_back(JsonEncode(kv.second));
+		}
+	}
+
+	m_Rcon->FireAndForgetQuery(std::move(eval), Prio::Heartbeat);
 }
 
 void IcingaDB::HandleEvents()
