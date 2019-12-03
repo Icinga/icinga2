@@ -36,6 +36,8 @@
 
 using namespace icinga;
 
+using Prio = RedisConnection::QueryPriority;
+
 static const char * const l_LuaResetDump = R"EOF(
 
 local id = redis.call('XADD', KEYS[1], '*', 'type', '*', 'state', 'wip')
@@ -110,7 +112,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		types.emplace_back(ctype, lcType);
 	}
 
-	m_Rcon->FireAndForgetQuery({"EVAL", l_LuaResetDump, "1", "icinga:dump"});
+	m_Rcon->FireAndForgetQuery({"EVAL", l_LuaResetDump, "1", "icinga:dump"}, Prio::Config);
 
 	const std::vector<String> globalKeys = {
 			m_PrefixConfigObject + "customvar",
@@ -118,13 +120,13 @@ void IcingaDB::UpdateAllConfigObjects()
 			m_PrefixConfigObject + "notes_url",
 			m_PrefixConfigObject + "icon_image",
 	};
-	DeleteKeys(globalKeys);
+	DeleteKeys(globalKeys, Prio::Config);
 
 	upq.ParallelFor(types, [this](const TypePair& type) {
 		String lcType = type.second;
 
 		std::vector<String> keys = GetTypeObjectKeys(lcType);
-		DeleteKeys(keys);
+		DeleteKeys(keys, Prio::Config);
 
 		auto objectChunks (ChunkObjects(type.first->GetObjects(), 500));
 
@@ -183,7 +185,7 @@ void IcingaDB::UpdateAllConfigObjects()
 
 					if (transaction.size() > 1) {
 						transaction.push_back({"EXEC"});
-						m_Rcon->FireAndForgetQueries(std::move(transaction));
+						m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
 						transaction = {{"MULTI"}};
 					}
 				}
@@ -214,7 +216,7 @@ void IcingaDB::UpdateAllConfigObjects()
 
 			if (transaction.size() > 1) {
 				transaction.push_back({"EXEC"});
-				m_Rcon->FireAndForgetQueries(std::move(transaction));
+				m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
 			}
 
 			Log(LogNotice, "IcingaDB")
@@ -231,7 +233,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			}
 		}
 
-		m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", lcType, "state", "done"});
+		m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", lcType, "state", "done"}, Prio::Config);
 	});
 
 	upq.Join();
@@ -249,7 +251,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		}
 	}
 
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", "*", "state", "done"});
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", "*", "state", "done"}, Prio::Config);
 
 	Log(LogInformation, "IcingaDB")
 			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
@@ -275,13 +277,13 @@ std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std
 	return std::move(chunks);
 }
 
-void IcingaDB::DeleteKeys(const std::vector<String>& keys) {
+void IcingaDB::DeleteKeys(const std::vector<String>& keys, RedisConnection::QueryPriority priority) {
 	std::vector<String> query = {"DEL"};
 	for (auto& key : keys) {
 		query.emplace_back(key);
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(query));
+	m_Rcon->FireAndForgetQuery(std::move(query), priority);
 }
 
 std::vector<String> IcingaDB::GetTypeObjectKeys(const String& type)
@@ -707,7 +709,7 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable)
 {
 	Dictionary::Ptr stateAttrs = SerializeState(checkable);
 
-	m_Rcon->FireAndForgetQuery({"HSET", m_PrefixStateObject + GetLowerCaseTypeNameDB(checkable), GetObjectIdentifier(checkable), JsonEncode(stateAttrs)});
+	m_Rcon->FireAndForgetQuery({"HSET", m_PrefixStateObject + GetLowerCaseTypeNameDB(checkable), GetObjectIdentifier(checkable), JsonEncode(stateAttrs)}, Prio::State);
 }
 
 // Used to update a single object, used for runtime updates
@@ -725,7 +727,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (checkable) {
 		String objectKey = GetObjectIdentifier(object);
-		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixStateObject + typeName, objectKey, JsonEncode(SerializeState(checkable))});
+		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixStateObject + typeName, objectKey, JsonEncode(SerializeState(checkable))}, Prio::State);
 		publishes["icinga:config:update"].emplace_back("state:" + typeName + ":" + objectKey);
 	}
 
@@ -753,7 +755,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 
 	if (transaction.size() > 1) {
 		transaction.push_back({"EXEC"});
-		m_Rcon->FireAndForgetQueries(std::move(transaction));
+		m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
 	}
 }
 
@@ -1073,7 +1075,7 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 								   {"HDEL",    m_PrefixConfigObject + typeName, objectKey},
 								   {"DEL",     m_PrefixStateObject + typeName + ":" + objectKey},
 								   {"PUBLISH", "icinga:config:delete", typeName + ":" + objectKey}
-						   });
+						   }, Prio::Config);
 }
 
 static inline
@@ -1117,7 +1119,7 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 		streamadd.emplace_back(Utility::ValidateUTF8(kv.second));
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(streamadd));
+	m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::State);
 
 	int hard_state;
 	if (!cr) {
@@ -1178,7 +1180,7 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd));
+	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
 
 void IcingaDB::SendSentNotification(
@@ -1235,7 +1237,7 @@ void IcingaDB::SendSentNotification(
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd));
+	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 
 	for (const User::Ptr& user : users) {
 		auto userId = GetObjectIdentifier(user);
@@ -1247,7 +1249,7 @@ void IcingaDB::SendSentNotification(
 			"user_id", GetObjectIdentifier(user),
 		});
 
-		m_Rcon->FireAndForgetQuery(std::move(xAddUser));
+		m_Rcon->FireAndForgetQuery(std::move(xAddUser), Prio::History);
 	}
 }
 
@@ -1317,7 +1319,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd));
+	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
 
 void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
@@ -1389,7 +1391,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd));
+	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
 
 void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
@@ -1444,7 +1446,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 		}
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd));
+	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
 
 void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
@@ -1509,7 +1511,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		}
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd));
+	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
 
 void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value& value)
@@ -1551,7 +1553,7 @@ void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value&
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd));
+	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
 
 Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)

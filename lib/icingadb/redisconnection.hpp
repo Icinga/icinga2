@@ -27,6 +27,7 @@
 #include <cstdio>
 #include <cstring>
 #include <future>
+#include <map>
 #include <memory>
 #include <queue>
 #include <stdexcept>
@@ -50,6 +51,14 @@ namespace icinga
 		typedef Value Reply;
 		typedef std::vector<Reply> Replies;
 
+		enum class QueryPriority : unsigned char
+		{
+			Heartbeat,
+			Config,
+			State,
+			History
+		};
+
 		RedisConnection(const String& host, const int port, const String& path,
 			const String& password = "", const int db = 0);
 
@@ -57,11 +66,11 @@ namespace icinga
 
 		bool IsConnected();
 
-		void FireAndForgetQuery(Query query, bool highPrio = false);
-		void FireAndForgetQueries(Queries queries, bool highPrio = false);
+		void FireAndForgetQuery(Query query, QueryPriority priority);
+		void FireAndForgetQueries(Queries queries, QueryPriority priority);
 
-		Reply GetResultOfQuery(Query query, bool highPrio = false);
-		Replies GetResultsOfQueries(Queries queries, bool highPrio = false);
+		Reply GetResultOfQuery(Query query, QueryPriority priority);
+		Replies GetResultsOfQueries(Queries queries, QueryPriority priority);
 
 	private:
 		enum class ResponseAction : unsigned char
@@ -128,7 +137,7 @@ namespace icinga
 		Atomic<bool> m_Connecting, m_Connected, m_Started;
 
 		struct {
-			std::queue<WriteQueueItem> Writes, HighPrioWrites;
+			std::map<QueryPriority, std::queue<WriteQueueItem>> Writes;
 			std::queue<std::promise<Reply>> ReplyPromises;
 			std::queue<std::promise<Replies>> RepliesPromises;
 			std::queue<FutureResponseAction> FutureResponseActions;

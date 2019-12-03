@@ -68,7 +68,7 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 	}
 }
 
-void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, bool highPrio)
+void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority)
 {
 	{
 		Log msg (LogNotice, "IcingaDB", "Firing and forgetting query:");
@@ -77,13 +77,13 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, bool high
 
 	auto item (std::make_shared<decltype(WriteQueueItem().FireAndForgetQuery)::element_type>(std::move(query)));
 
-	asio::post(m_Strand, [this, item, highPrio]() {
-		(highPrio ? &m_Queues.HighPrioWrites : &m_Queues.Writes)->emplace(WriteQueueItem{item, nullptr, nullptr, nullptr});
+	asio::post(m_Strand, [this, item, priority]() {
+		m_Queues.Writes[priority].emplace(WriteQueueItem{item, nullptr, nullptr, nullptr});
 		m_QueuedWrites.Set();
 	});
 }
 
-void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, bool highPrio)
+void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority)
 {
 	for (auto& query : queries) {
 		Log msg (LogNotice, "IcingaDB", "Firing and forgetting query:");
@@ -92,13 +92,13 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, boo
 
 	auto item (std::make_shared<decltype(WriteQueueItem().FireAndForgetQueries)::element_type>(std::move(queries)));
 
-	asio::post(m_Strand, [this, item, highPrio]() {
-		(highPrio ? &m_Queues.HighPrioWrites : &m_Queues.Writes)->emplace(WriteQueueItem{nullptr, item, nullptr, nullptr});
+	asio::post(m_Strand, [this, item, priority]() {
+		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, item, nullptr, nullptr});
 		m_QueuedWrites.Set();
 	});
 }
 
-RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, bool highPrio)
+RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority)
 {
 	{
 		Log msg (LogNotice, "IcingaDB", "Executing query:");
@@ -109,8 +109,8 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 	auto future (promise.get_future());
 	auto item (std::make_shared<decltype(WriteQueueItem().GetResultOfQuery)::element_type>(std::move(query), std::move(promise)));
 
-	asio::post(m_Strand, [this, item, highPrio]() {
-		(highPrio ? &m_Queues.HighPrioWrites : &m_Queues.Writes)->emplace(WriteQueueItem{nullptr, nullptr, item, nullptr});
+	asio::post(m_Strand, [this, item, priority]() {
+		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, item, nullptr});
 		m_QueuedWrites.Set();
 	});
 
@@ -119,7 +119,7 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 	return future.get();
 }
 
-RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries, bool highPrio)
+RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority)
 {
 	for (auto& query : queries) {
 		Log msg (LogNotice, "IcingaDB", "Executing query:");
@@ -130,8 +130,8 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 	auto future (promise.get_future());
 	auto item (std::make_shared<decltype(WriteQueueItem().GetResultsOfQueries)::element_type>(std::move(queries), std::move(promise)));
 
-	asio::post(m_Strand, [this, item, highPrio]() {
-		(highPrio ? &m_Queues.HighPrioWrites : &m_Queues.Writes)->emplace(WriteQueueItem{nullptr, nullptr, nullptr, item});
+	asio::post(m_Strand, [this, item, priority]() {
+		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, item});
 		m_QueuedWrites.Set();
 	});
 
@@ -267,22 +267,18 @@ void RedisConnection::WriteLoop(asio::yield_context& yc)
 	for (;;) {
 		m_QueuedWrites.Wait(yc);
 
-		for (;;) {
-			if (m_Queues.HighPrioWrites.empty()) {
-				if (m_Queues.Writes.empty()) {
-					break;
-				} else {
-					auto next (std::move(m_Queues.Writes.front()));
-					m_Queues.Writes.pop();
-
-					WriteItem(yc, std::move(next));
-				}
-			} else {
-				auto next (std::move(m_Queues.HighPrioWrites.front()));
-				m_Queues.HighPrioWrites.pop();
-
-				WriteItem(yc, std::move(next));
+	WriteFirstOfHighestPrio:
+		for (auto& queue : m_Queues.Writes) {
+			if (queue.second.empty()) {
+				continue;
 			}
+
+			auto next (std::move(queue.second.front()));
+			queue.second.pop();
+
+			WriteItem(yc, std::move(next));
+
+			goto WriteFirstOfHighestPrio;
 		}
 
 		m_QueuedWrites.Clear();
