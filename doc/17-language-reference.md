@@ -865,6 +865,52 @@ For lambdas which take exactly one argument the braces around the arguments can 
 f = x => x * x
 ```
 
+### Lambda Expressions with Closures <a id="lambdas-closures"></a>
+
+Lambda expressions which take a given number of arguments may need additional
+variable values from the outer scope. When the lambda expression does not allow
+to change the interface, [closures](17-language-reference.md#closures) come into play.
+
+```
+var y
+
+f = ((x) use(y) => x == y)
+```
+
+Note that the braces around arguments are always required when using closures.
+
+A more concrete example:
+
+Within the DSL, you want to [filter](18-library-reference.md#array-filter) an array of HostGroup objects by their name.
+The filter function takes one argument being a function callback which either returns
+`true` or `false`. Matching items are collected into the result set.
+
+```
+get_objects(HostGroup).filter((hg) => hg.name == "linux-servers")
+```
+
+Instead of hardcoding the matching hostgroup name into the lambda scope, you want
+to control the value from the outside configuration values, e.g. in a custom variable
+or global constant.
+
+```
+var hg_filter_name = "linux-servers"
+
+get_objects(HostGroup).filter((hg) use(hg_filter_name) => hg.name == hg_filter_name)
+```
+
+You can also use this example vice versa and extract host object matching a specific
+host group name.
+
+```
+var hg_filter_name = "linux-servers"
+
+get_objects(Host).filter((h) use (hg_search_name) => hg_search_name in h.groups).map(h => h.name)
+```
+
+Note that this example makes use of the [map](18-library-reference.md#array-map) method for the Array type which
+extracts the host name attribute from the full object into a new array.
+
 ## Abbreviated Lambda Syntax <a id="nullary-lambdas"></a>
 
 Lambdas which take no arguments can also be written using the abbreviated lambda syntax.

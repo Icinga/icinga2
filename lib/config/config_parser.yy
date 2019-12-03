@@ -937,7 +937,7 @@ rterm_no_side_effect_no_dict: T_STRING
 
 		$$ = new FunctionExpression("<anonymous>", std::move(args), {}, std::unique_ptr<Expression>($3), @$);
 	}
-	| '(' identifier_items ')' T_FOLLOWS
+	| '(' identifier_items ')' use_specifier T_FOLLOWS
 	{
 		BeginFlowControlBlock(context, FlowControlReturn, false);
 	}
@@ -945,15 +945,17 @@ rterm_no_side_effect_no_dict: T_STRING
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new FunctionExpression("<anonymous>", std::move(*$2), {}, std::unique_ptr<Expression>($6), @$);
+		$$ = new FunctionExpression("<anonymous>", std::move(*$2), std::move(*$4), std::unique_ptr<Expression>($7), @$);
 		delete $2;
+		delete $4;
 	}
-	| '(' identifier_items ')' T_FOLLOWS rterm %dprec 1
+	| '(' identifier_items ')' use_specifier T_FOLLOWS rterm %dprec 1
 	{
-		ASSERT(!dynamic_cast<DictExpression *>($5));
+		ASSERT(!dynamic_cast<DictExpression *>($6));
 
-		$$ = new FunctionExpression("<anonymous>", std::move(*$2), {}, std::unique_ptr<Expression>($5), @$);
+		$$ = new FunctionExpression("<anonymous>", std::move(*$2), std::move(*$4), std::unique_ptr<Expression>($6), @$);
 		delete $2;
+		delete $4;
 	}
 	| rterm_array
 	| '('
