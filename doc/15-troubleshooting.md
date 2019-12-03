@@ -622,7 +622,7 @@ Using the watchdog can also help with monitoring Icinga 2, to activate and use i
 WatchdogSec=30s
 ```
 
-This way systemd will kill Icinga 2 if does not notify for over 30 seconds, a timout of less than 10 seconds is not
+This way systemd will kill Icinga 2 if it does not notify for over 30 seconds. A timeout of less than 10 seconds is not
 recommended. When the watchdog is activated, `Restart=` can be set to `watchdog` to restart Icinga 2 in the case of a
 watchdog timeout.
 
@@ -1549,7 +1549,7 @@ Since v2.11, the config compiler is only including directories where a
 zone has been configured. Otherwise it would include renamed old zones,
 broken zones, etc. and those long-lasting bugs have been now fixed.
 
-A more concrete example: Masters and Satellites still need to know the Zone hierarchy outside of zones.d synced configuration.
+A more concrete example: Masters and Satellites still need to know the Zone hierarchy outside of `zones.d` synced configuration.
 
 **Doesn't work**
 
@@ -1807,7 +1807,7 @@ Windows is blocking Icinga 2 and as such, no more TCP connection handling is pos
 Depending on the version, patch level and installed applications, Windows is changing its
 range of [ephemeral ports](https://en.wikipedia.org/wiki/Ephemeral_port#Range).
 
-In order to solve this, raise the the `MaxUserPort` value in the registry.
+In order to solve this, raise the `MaxUserPort` value in the registry.
 
 ```
 HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
