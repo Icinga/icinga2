@@ -29,8 +29,8 @@ public:
 
 	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 		const String& author, const String& comment, AcknowledgementType type,
-		bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin);
-	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, const MessageOrigin::Ptr& origin);
+		bool notify, bool persistent, double, double expiry, const MessageOrigin::Ptr& origin);
+	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, double, const MessageOrigin::Ptr& origin);
 
 	static void CommentAddedHandler(const Comment::Ptr& comment);
 	static void CommentRemovedHandler(const Comment::Ptr& comment);

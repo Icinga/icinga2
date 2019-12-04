@@ -473,7 +473,7 @@ Value ClusterEvents::ForceNextNotificationChangedAPIHandler(const MessageOrigin:
 
 void ClusterEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	const String& author, const String& comment, AcknowledgementType type,
-	bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin)
+	bool notify, bool persistent, double changeTime, double expiry, const MessageOrigin::Ptr& origin)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -494,6 +494,7 @@ void ClusterEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	params->Set("notify", notify);
 	params->Set("persistent", persistent);
 	params->Set("expiry", expiry);
+	params->Set("change_time", changeTime);
 
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
@@ -546,12 +547,12 @@ Value ClusterEvents::AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& orig
 
 	checkable->AcknowledgeProblem(params->Get("author"), params->Get("comment"),
 		static_cast<AcknowledgementType>(static_cast<int>(params->Get("acktype"))),
-		params->Get("notify"), params->Get("persistent"), params->Get("expiry"), origin);
+		params->Get("notify"), params->Get("persistent"), params->Get("change_time"), params->Get("expiry"), origin);
 
 	return Empty;
 }
 
-void ClusterEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, const MessageOrigin::Ptr& origin)
+void ClusterEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, double changeTime, const MessageOrigin::Ptr& origin)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -567,6 +568,7 @@ void ClusterEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkabl
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("author", removedBy);
+	params->Set("change_time", changeTime);
 
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
@@ -608,7 +610,7 @@ Value ClusterEvents::AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& 
 		return Empty;
 	}
 
-	checkable->ClearAcknowledgement(params->Get("author"), origin);
+	checkable->ClearAcknowledgement(params->Get("author"), params->Get("change_time"), origin);
 
 	return Empty;
 }

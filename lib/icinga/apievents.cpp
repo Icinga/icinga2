@@ -182,7 +182,7 @@ void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const Me
 
 void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	const String& author, const String& comment, AcknowledgementType type,
-	bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin)
+	bool notify, bool persistent, double, double expiry, const MessageOrigin::Ptr& origin)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("AcknowledgementSet");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::AcknowledgementSet));
@@ -221,7 +221,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	inboxes.Push(std::move(result));
 }
 
-void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, const MessageOrigin::Ptr& origin)
+void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, double, const MessageOrigin::Ptr& origin)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("AcknowledgementCleared");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::AcknowledgementCleared));
