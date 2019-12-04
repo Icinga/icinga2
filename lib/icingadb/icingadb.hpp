@@ -65,10 +65,10 @@ private:
 	void SendRemovedDowntime(const Downtime::Ptr& downtime);
 	void SendAddedComment(const Comment::Ptr& comment);
 	void SendRemovedComment(const Comment::Ptr& comment);
-	void SendFlappingChanged(const Checkable::Ptr& checkable, const Value& value);
+	void SendFlappingChange(const Checkable::Ptr& checkable, double changeTime, double flappingLastChange);
 	void SendNextUpdate(const Checkable::Ptr& checkable);
 	void SendAcknowledgementSet(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry);
-	void SendAcknowledgementCleared(const Checkable::Ptr& checkable, const String& removedBy, double changeTime);
+	void SendAcknowledgementCleared(const Checkable::Ptr& checkable, const String& removedBy, double changeTime, double ackLastChange);
 
 	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
 	Dictionary::Ptr SerializeState(const Checkable::Ptr& checkable);
@@ -104,7 +104,7 @@ private:
 
 	static void CommentAddedHandler(const Comment::Ptr& comment);
 	static void CommentRemovedHandler(const Comment::Ptr& comment);
-	static void FlappingChangedHandler(const Checkable::Ptr& checkable, const Value& value);
+	static void FlappingChangeHandler(const Checkable::Ptr& checkable, double changeTime);
 	static void NewCheckResultHandler(const Checkable::Ptr& checkable);
 	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry);
 	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, double changeTime);

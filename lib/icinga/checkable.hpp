@@ -114,6 +114,7 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType,
 		bool, bool, double, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, double, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
+	static boost::signals2::signal<void (const Checkable::Ptr&, double)> OnFlappingChange;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnNextCheckUpdated;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
 

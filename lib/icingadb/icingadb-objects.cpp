@@ -96,7 +96,7 @@ void IcingaDB::ConfigStaticInitialize()
 	Comment::OnCommentAdded.connect(&IcingaDB::CommentAddedHandler);
 	Comment::OnCommentRemoved.connect(&IcingaDB::CommentRemovedHandler);
 
-	Checkable::OnFlappingChanged.connect(&IcingaDB::FlappingChangedHandler);
+	Checkable::OnFlappingChange.connect(&IcingaDB::FlappingChangeHandler);
 
 	Checkable::OnNewCheckResult.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr&, const MessageOrigin::Ptr&) {
 		IcingaDB::NewCheckResultHandler(checkable);
@@ -1611,7 +1611,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
 
-void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value& value)
+void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double changeTime, double flappingLastChange)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1622,15 +1622,12 @@ void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value&
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:flapping", "*",
-		"id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
 		"host_id", GetObjectIdentifier(host),
 		"percent_state_change", Convert::ToString(checkable->GetFlappingCurrent()),
 		"flapping_threshold_low", Convert::ToString(checkable->GetFlappingThresholdLow()),
 		"flapping_threshold_high", Convert::ToString(checkable->GetFlappingThresholdHigh()),
-		"event_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
-		"event_id", Utility::NewUniqueID(),
-		"event_type", value.ToBool() ? "flapping_start" : "flapping_end"
+		"event_id", Utility::NewUniqueID()
 	});
 
 	if (service) {
@@ -1649,6 +1646,27 @@ void IcingaDB::SendFlappingChanged(const Checkable::Ptr& checkable, const Value&
 		xAdd.emplace_back("endpoint_id");
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
+
+	long long startTime;
+
+	if (checkable->IsFlapping()) {
+		startTime = TimestampToMilliseconds(changeTime);
+
+		xAdd.emplace_back("event_type");
+		xAdd.emplace_back("flapping_start");
+	} else {
+		startTime = TimestampToMilliseconds(flappingLastChange);
+
+		xAdd.emplace_back("event_type");
+		xAdd.emplace_back("flapping_end");
+		xAdd.emplace_back("end_time");
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(changeTime)));
+	}
+
+	xAdd.emplace_back("start_time");
+	xAdd.emplace_back(Convert::ToString(startTime));
+	xAdd.emplace_back("id");
+	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetReflectionType()->GetName(), checkable->GetName(), startTime})));
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
@@ -1680,10 +1698,9 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
-		"id", Utility::NewUniqueID(),
+		"event_id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
 		"host_id", GetObjectIdentifier(host),
-		"event_time", Convert::ToString(TimestampToMilliseconds(changeTime)),
 		"event_type", "ack_set",
 		"author", author,
 		"comment", comment,
@@ -1713,10 +1730,17 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(expiry)));
 	}
 
+	long long setTime = TimestampToMilliseconds(changeTime);
+
+	xAdd.emplace_back("set_time");
+	xAdd.emplace_back(Convert::ToString(setTime));
+	xAdd.emplace_back("id");
+	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetReflectionType()->GetName(), checkable->GetName(), setTime})));
+
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
 
-void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const String& removedBy, double changeTime)
+void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const String& removedBy, double changeTime, double ackLastChange)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1727,12 +1751,11 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
-		"id", Utility::NewUniqueID(),
+		"event_id", Utility::NewUniqueID(),
 		"environment_id", SHA1(GetEnvironment()),
 		"host_id", GetObjectIdentifier(host),
-		"event_time", Convert::ToString(TimestampToMilliseconds(changeTime)),
-		"event_type", "ack_clear",
-		"author", removedBy
+		"clear_time", Convert::ToString(TimestampToMilliseconds(changeTime)),
+		"event_type", "ack_clear"
 	});
 
 	if (service) {
@@ -1750,6 +1773,18 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 	if (endpoint) {
 		xAdd.emplace_back("endpoint_id");
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
+	}
+
+	long long setTime = TimestampToMilliseconds(ackLastChange);
+
+	xAdd.emplace_back("set_time");
+	xAdd.emplace_back(Convert::ToString(setTime));
+	xAdd.emplace_back("id");
+	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetReflectionType()->GetName(), checkable->GetName(), setTime})));
+
+	if (!removedBy.IsEmpty()) {
+		xAdd.emplace_back("cleared_by");
+		xAdd.emplace_back(removedBy);
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
@@ -1987,10 +2022,12 @@ void IcingaDB::CommentRemovedHandler(const Comment::Ptr& comment)
 	}
 }
 
-void IcingaDB::FlappingChangedHandler(const Checkable::Ptr& checkable, const Value& value)
+void IcingaDB::FlappingChangeHandler(const Checkable::Ptr& checkable, double changeTime)
 {
+	auto flappingLastChange (checkable->GetFlappingLastChange());
+
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->m_WorkQueue.Enqueue([rw, checkable, value]() { rw->SendFlappingChanged(checkable, value); });
+		rw->m_WorkQueue.Enqueue([rw, checkable, changeTime, flappingLastChange]() { rw->SendFlappingChange(checkable, changeTime, flappingLastChange); });
 	}
 }
 
@@ -2026,9 +2063,10 @@ void IcingaDB::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, co
 
 	if (!rws.empty()) {
 		auto rb (Shared<String>::Make(removedBy));
+		auto ackLastChange (checkable->GetAcknowledgementLastChange());
 
 		for (auto& rw : rws) {
-			rw->m_WorkQueue.Enqueue([rw, checkable, rb, changeTime]() { rw->SendAcknowledgementCleared(checkable, *rb, changeTime); });
+			rw->m_WorkQueue.Enqueue([rw, checkable, rb, changeTime, ackLastChange]() { rw->SendAcknowledgementCleared(checkable, *rb, changeTime, ackLastChange); });
 		}
 	}
 }

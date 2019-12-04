@@ -17,6 +17,7 @@ INITIALIZE_ONCE(&Checkable::StaticInitialize);
 
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, bool, double, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
+boost::signals2::signal<void (const Checkable::Ptr&, double)> Checkable::OnFlappingChange;
 
 static Timer::Ptr l_CheckablesFireSuppressedNotifications;
 
