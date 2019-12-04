@@ -13,6 +13,8 @@ using namespace icinga;
 
 REGISTER_TYPE(Service);
 
+boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, const MessageOrigin::Ptr&)> Service::OnHostProblemChanged;
+
 String ServiceNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
 	Service::Ptr service = dynamic_pointer_cast<Service>(context);

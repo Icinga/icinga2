@@ -44,6 +44,8 @@ public:
 
 	static void EvaluateApplyRules(const Host::Ptr& host);
 
+	static boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, const MessageOrigin::Ptr&)> OnHostProblemChanged;
+
 protected:
 	void OnAllConfigLoaded() override;
 	void CreateChildObjects(const Type::Ptr& childType) override;

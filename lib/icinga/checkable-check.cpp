@@ -248,7 +248,20 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	SetCheckAttempt(attempt);
 
 	ServiceState new_state = cr->GetState();
-	SetStateRaw(new_state);
+
+	if (service) {
+		SetStateRaw(new_state);
+	} else {
+		bool wasProblem = GetProblem();
+
+		SetStateRaw(new_state);
+
+		if (GetProblem() != wasProblem) {
+			for (auto& service : host->GetServices()) {
+				Service::OnHostProblemChanged(service, cr, origin);
+			}
+		}
+	}
 
 	bool stateChange;
 

@@ -94,6 +94,10 @@ void IcingaDB::ConfigStaticInitialize()
 	Checkable::OnNewCheckResult.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr&, const MessageOrigin::Ptr&) {
 		IcingaDB::NewCheckResultHandler(checkable);
 	});
+
+	Service::OnHostProblemChanged.connect([](const Service::Ptr& service, const CheckResult::Ptr&, const MessageOrigin::Ptr&) {
+		IcingaDB::StateChangeHandler(service);
+	});
 }
 
 void IcingaDB::UpdateAllConfigObjects()
@@ -1717,9 +1721,8 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 		attrs->Set("check_source", cr->GetCheckSource());
 	}
 
-	bool isProblem = checkable->HasBeenChecked() && !checkable->IsStateOK(checkable->GetStateRaw());
-	attrs->Set("is_problem", isProblem);
-	attrs->Set("is_handled", isProblem && (checkable->IsInDowntime() || checkable->IsAcknowledged()));
+	attrs->Set("is_problem", checkable->GetProblem());
+	attrs->Set("is_handled", checkable->GetHandled());
 	attrs->Set("is_reachable", checkable->IsReachable());
 	attrs->Set("is_flapping", checkable->IsFlapping());
 
