@@ -298,13 +298,13 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 			fields->Set("value", pdv->GetValue());
 
 			if (GetEnableSendThresholds()) {
-				if (pdv->GetCrit())
+				if (!pdv->GetCrit().IsEmpty())
 					fields->Set("crit", pdv->GetCrit());
-				if (pdv->GetWarn())
+				if (!pdv->GetWarn().IsEmpty())
 					fields->Set("warn", pdv->GetWarn());
-				if (pdv->GetMin())
+				if (!pdv->GetMin().IsEmpty())
 					fields->Set("min", pdv->GetMin());
-				if (pdv->GetMax())
+				if (!pdv->GetMax().IsEmpty())
 					fields->Set("max", pdv->GetMax());
 			}
 			if (!pdv->GetUnit().IsEmpty()) {

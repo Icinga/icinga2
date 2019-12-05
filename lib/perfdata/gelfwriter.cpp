@@ -328,13 +328,13 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 
 				fields->Set("_" + escaped_key, pdv->GetValue());
 
-				if (pdv->GetMin())
+				if (!pdv->GetMin().IsEmpty())
 					fields->Set("_" + escaped_key + "_min", pdv->GetMin());
-				if (pdv->GetMax())
+				if (!pdv->GetMax().IsEmpty())
 					fields->Set("_" + escaped_key + "_max", pdv->GetMax());
-				if (pdv->GetWarn())
+				if (!pdv->GetWarn().IsEmpty())
 					fields->Set("_" + escaped_key + "_warn", pdv->GetWarn());
-				if (pdv->GetCrit())
+				if (!pdv->GetCrit().IsEmpty())
 					fields->Set("_" + escaped_key + "_crit", pdv->GetCrit());
 
 				if (!pdv->GetUnit().IsEmpty())

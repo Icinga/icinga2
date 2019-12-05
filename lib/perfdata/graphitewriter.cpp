@@ -360,13 +360,13 @@ void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 		SendMetric(checkable, prefix, escapedKey + ".value", pdv->GetValue(), ts);
 
 		if (GetEnableSendThresholds()) {
-			if (pdv->GetCrit())
+			if (!pdv->GetCrit().IsEmpty())
 				SendMetric(checkable, prefix, escapedKey + ".crit", pdv->GetCrit(), ts);
-			if (pdv->GetWarn())
+			if (!pdv->GetWarn().IsEmpty())
 				SendMetric(checkable, prefix, escapedKey + ".warn", pdv->GetWarn(), ts);
-			if (pdv->GetMin())
+			if (!pdv->GetMin().IsEmpty())
 				SendMetric(checkable, prefix, escapedKey + ".min", pdv->GetMin(), ts);
-			if (pdv->GetMax())
+			if (!pdv->GetMax().IsEmpty())
 				SendMetric(checkable, prefix, escapedKey + ".max", pdv->GetMax(), ts);
 		}
 	}
