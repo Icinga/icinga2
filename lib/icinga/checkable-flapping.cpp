@@ -67,7 +67,7 @@ void Checkable::UpdateFlappingStatus(bool stateChange)
 	SetFlapping(flapping, true);
 
 	if (flapping != GetFlapping())
-		SetFlappingLastChange(Utility::GetTime());
+		SetFlappingLastChange(GetLastCheckResult()->GetExecutionEnd());
 }
 
 bool Checkable::IsFlapping() const
