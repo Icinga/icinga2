@@ -139,6 +139,7 @@ void IcingaDB::PublishStats()
 
 	Dictionary::Ptr status = GetStats();
 	status->Set("config_dump_in_progress", m_ConfigDumpInProgress);
+	status->Set("timestamp", TimestampToMilliseconds(Utility::GetTime()));
 
 	std::vector<String> eval ({"EVAL", l_LuaPublishStats, "1", "icinga:stats"});
 
