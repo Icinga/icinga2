@@ -974,11 +974,12 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 
 		tie(host, service) = GetHostService(notification->GetCheckable());
 
-		attributes->Set("host_id", GetObjectIdentifier(host));
 		attributes->Set("command_id", GetObjectIdentifier(notification->GetCommand()));
 
 		if (service)
 			attributes->Set("service_id", GetObjectIdentifier(service));
+		else
+			attributes->Set("host_id", GetObjectIdentifier(host));
 
 		TimePeriod::Ptr timeperiod = notification->GetPeriod();
 		if (timeperiod)
@@ -1012,11 +1013,9 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		if (service) {
 			attributes->Set("object_type", "service");
 			attributes->Set("service_id", GetObjectIdentifier(service));
-			attributes->Set("host_id", "00000000000000000000000000000000");
 		} else {
 			attributes->Set("object_type", "host");
 			attributes->Set("host_id", GetObjectIdentifier(host));
-			attributes->Set("service_id", "00000000000000000000000000000000");
 		}
 
 		auto expireTime (comment->GetExpireTime());
@@ -1051,11 +1050,9 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		if (service) {
 			attributes->Set("object_type", "service");
 			attributes->Set("service_id", GetObjectIdentifier(service));
-			attributes->Set("host_id", "00000000000000000000000000000000");
 		} else {
 			attributes->Set("object_type", "host");
 			attributes->Set("host_id", GetObjectIdentifier(host));
-			attributes->Set("service_id", "00000000000000000000000000000000");
 		}
 
 		auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
