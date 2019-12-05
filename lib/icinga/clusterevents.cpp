@@ -535,6 +535,15 @@ Value ClusterEvents::AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& orig
 		return Empty;
 	}
 
+	ObjectLock oLock (checkable);
+
+	if (checkable->IsAcknowledged()) {
+		Log(LogWarning, "ClusterEvents")
+			<< "Discarding 'acknowledgement set' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Checkable is already acknowledged.";
+		return Empty;
+	}
+
 	checkable->AcknowledgeProblem(params->Get("author"), params->Get("comment"),
 		static_cast<AcknowledgementType>(static_cast<int>(params->Get("acktype"))),
 		params->Get("notify"), params->Get("persistent"), params->Get("expiry"), origin);

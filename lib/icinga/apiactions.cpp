@@ -214,6 +214,8 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 	} else
 		timestamp = 0;
 
+	ObjectLock oLock (checkable);
+
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
@@ -224,6 +226,10 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 	} else {
 		if (service->GetState() == ServiceOK)
 			return ApiActions::CreateResult(409, "Service " + checkable->GetName() + " is OK.");
+	}
+
+	if (checkable->IsAcknowledged()) {
+		return ApiActions::CreateResult(409, (service ? "Service " : "Host ") + checkable->GetName() + " is already acknowledged.");
 	}
 
 	Comment::AddComment(checkable, CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"),
