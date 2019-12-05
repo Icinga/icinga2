@@ -67,6 +67,8 @@ private:
 	void SendRemovedComment(const Comment::Ptr& comment);
 	void SendFlappingChanged(const Checkable::Ptr& checkable, const Value& value);
 	void SendNextUpdate(const Checkable::Ptr& checkable);
+	void SendAcknowledgementSet(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double expiry);
+	void SendAcknowledgementCleared(const Checkable::Ptr& checkable, const String& removedBy);
 
 	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
 	Dictionary::Ptr SerializeState(const Checkable::Ptr& checkable);
@@ -109,6 +111,8 @@ private:
 	static void CommentRemovedHandler(const Comment::Ptr& comment);
 	static void FlappingChangedHandler(const Checkable::Ptr& checkable, const Value& value);
 	static void NewCheckResultHandler(const Checkable::Ptr& checkable);
+	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double expiry);
+	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy);
 
 	void AssertOnWorkQueue();
 

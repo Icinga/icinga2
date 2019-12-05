@@ -221,7 +221,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	inboxes.Push(std::move(result));
 }
 
-void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin)
+void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, const MessageOrigin::Ptr& origin)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("AcknowledgementCleared");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::AcknowledgementCleared));

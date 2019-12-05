@@ -42,7 +42,7 @@ public:
 		bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin);
 	static Value AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
-	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
+	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, const MessageOrigin::Ptr& origin);
 	static Value AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static Value ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);

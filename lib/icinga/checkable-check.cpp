@@ -280,7 +280,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		/* remove acknowledgements */
 		if (GetAcknowledgement() == AcknowledgementNormal ||
 			(GetAcknowledgement() == AcknowledgementSticky && IsStateOK(new_state))) {
-			ClearAcknowledgement();
+			ClearAcknowledgement("");
 		}
 
 		/* reschedule direct parents */

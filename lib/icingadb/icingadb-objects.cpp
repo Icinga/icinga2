@@ -60,8 +60,15 @@ void IcingaDB::ConfigStaticInitialize()
 		IcingaDB::StateChangeHandler(checkable, cr, type);
 	});
 
+	Checkable::OnAcknowledgementSet.connect([](const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool, bool persistent, double expiry, const MessageOrigin::Ptr&) {
+		AcknowledgementSetHandler(checkable, author, comment, type, persistent, expiry);
+	});
+	Checkable::OnAcknowledgementCleared.connect([](const Checkable::Ptr& checkable, const String& removedBy, const MessageOrigin::Ptr&) {
+		AcknowledgementClearedHandler(checkable, removedBy);
+	});
+
 	/* triggered when acknowledged host/service goes back to ok and when the acknowledgement gets deleted */
-	Checkable::OnAcknowledgementCleared.connect([](const Checkable::Ptr& checkable, const MessageOrigin::Ptr&) {
+	Checkable::OnAcknowledgementCleared.connect([](const Checkable::Ptr& checkable, const String&, const MessageOrigin::Ptr&) {
 		IcingaDB::StateChangeHandler(checkable);
 	});
 
@@ -1662,6 +1669,92 @@ void IcingaDB::SendNextUpdate(const Checkable::Ptr& checkable)
 	);
 }
 
+void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double expiry)
+{
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	std::vector<String> xAdd ({
+		"XADD", "icinga:history:stream:acknowledgement", "*",
+		"id", Utility::NewUniqueID(),
+		"environment_id", SHA1(GetEnvironment()),
+		"host_id", GetObjectIdentifier(host),
+		"event_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
+		"event_type", "ack_set",
+		"author", author,
+		"comment", comment,
+		"is_sticky", Convert::ToString((unsigned short)(type == AcknowledgementSticky)),
+		"is_persistent", Convert::ToString((unsigned short)persistent)
+	});
+
+	if (service) {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("service");
+		xAdd.emplace_back("service_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	} else {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("host");
+	}
+
+	auto endpoint (Endpoint::GetLocalEndpoint());
+
+	if (endpoint) {
+		xAdd.emplace_back("endpoint_id");
+		xAdd.emplace_back(GetObjectIdentifier(endpoint));
+	}
+
+	if (expiry > 0) {
+		xAdd.emplace_back("expire_time");
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(expiry)));
+	}
+
+	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+}
+
+void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const String& removedBy)
+{
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	std::vector<String> xAdd ({
+		"XADD", "icinga:history:stream:acknowledgement", "*",
+		"id", Utility::NewUniqueID(),
+		"environment_id", SHA1(GetEnvironment()),
+		"host_id", GetObjectIdentifier(host),
+		"event_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
+		"event_type", "ack_clear",
+		"author", removedBy
+	});
+
+	if (service) {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("service");
+		xAdd.emplace_back("service_id");
+		xAdd.emplace_back(GetObjectIdentifier(checkable));
+	} else {
+		xAdd.emplace_back("object_type");
+		xAdd.emplace_back("host");
+	}
+
+	auto endpoint (Endpoint::GetLocalEndpoint());
+
+	if (endpoint) {
+		xAdd.emplace_back("endpoint_id");
+		xAdd.emplace_back(GetObjectIdentifier(endpoint));
+	}
+
+	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+}
+
 Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 {
 	Dictionary::Ptr attrs = new Dictionary();
@@ -1905,5 +1998,37 @@ void IcingaDB::NewCheckResultHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->m_WorkQueue.Enqueue([rw, checkable]() { rw->SendNextUpdate(checkable); });
+	}
+}
+
+struct AuthorComment
+{
+	String Author;
+	String Comment;
+};
+
+void IcingaDB::AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double expiry)
+{
+	auto rws (ConfigType::GetObjectsByType<IcingaDB>());
+
+	if (!rws.empty()) {
+		auto ac (Shared<AuthorComment>::Make(AuthorComment{author, comment}));
+
+		for (auto& rw : rws) {
+			rw->m_WorkQueue.Enqueue([rw, checkable, ac, type, persistent, expiry]() { rw->SendAcknowledgementSet(checkable, ac->Author, ac->Comment, type, persistent, expiry); });
+		}
+	}
+}
+
+void IcingaDB::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy)
+{
+	auto rws (ConfigType::GetObjectsByType<IcingaDB>());
+
+	if (!rws.empty()) {
+		auto rb (Shared<String>::Make(removedBy));
+
+		for (auto& rw : rws) {
+			rw->m_WorkQueue.Enqueue([rw, checkable, rb]() { rw->SendAcknowledgementCleared(checkable, *rb); });
+		}
 	}
 }
