@@ -38,6 +38,15 @@ Dictionary::Ptr IcingaDB::GetStats()
 		}));
 	}
 
+	auto localEndpoint (Endpoint::GetLocalEndpoint());
+
+	if (localEndpoint) {
+		typedef Dictionary::Ptr DP;
+
+		DP(DP(DP(DP(stats->Get("IcingaApplication"))->Get("status"))->Get("icingaapplication"))->Get("app"))
+			->Set("endpoint_id", GetObjectIdentifier(localEndpoint));
+	}
+
 	return stats;
 }
 
