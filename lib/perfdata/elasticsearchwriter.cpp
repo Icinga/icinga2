@@ -170,13 +170,13 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 
 			fields->Set(perfdataPrefix + ".value", pdv->GetValue());
 
-			if (pdv->GetMin())
+			if (!pdv->GetMin().IsEmpty())
 				fields->Set(perfdataPrefix + ".min", pdv->GetMin());
-			if (pdv->GetMax())
+			if (!pdv->GetMax().IsEmpty())
 				fields->Set(perfdataPrefix + ".max", pdv->GetMax());
-			if (pdv->GetWarn())
+			if (!pdv->GetWarn().IsEmpty())
 				fields->Set(perfdataPrefix + ".warn", pdv->GetWarn());
-			if (pdv->GetCrit())
+			if (!pdv->GetCrit().IsEmpty())
 				fields->Set(perfdataPrefix + ".crit", pdv->GetCrit());
 
 			if (!pdv->GetUnit().IsEmpty())

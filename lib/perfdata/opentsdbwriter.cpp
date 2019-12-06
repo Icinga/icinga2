@@ -332,13 +332,13 @@ void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 
 		SendMetric(checkable, metric_name, tags_new, pdv->GetValue(), ts);
 
-		if (pdv->GetCrit())
+		if (!pdv->GetCrit().IsEmpty())
 			SendMetric(checkable, metric_name + "_crit", tags_new, pdv->GetCrit(), ts);
-		if (pdv->GetWarn())
+		if (!pdv->GetWarn().IsEmpty())
 			SendMetric(checkable, metric_name + "_warn", tags_new, pdv->GetWarn(), ts);
-		if (pdv->GetMin())
+		if (!pdv->GetMin().IsEmpty())
 			SendMetric(checkable, metric_name + "_min", tags_new, pdv->GetMin(), ts);
-		if (pdv->GetMax())
+		if (!pdv->GetMax().IsEmpty())
 			SendMetric(checkable, metric_name + "_max", tags_new, pdv->GetMax(), ts);
 	}
 }
