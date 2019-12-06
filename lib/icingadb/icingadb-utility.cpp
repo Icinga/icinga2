@@ -83,16 +83,6 @@ String IcingaDB::CalculateCheckSumProperties(const ConfigObject::Ptr& object, co
 
 static const std::set<String> metadataWhitelist ({"package", "source_location", "templates"});
 
-String IcingaDB::CalculateCheckSumVars(const CustomVarObject::Ptr& object)
-{
-	Dictionary::Ptr vars = object->GetVars();
-
-	if (!vars)
-		return HashValue(Empty);
-
-	return HashValue(vars);
-}
-
 /**
  * Prepare object's custom vars for being written to Redis
  *
