@@ -83,11 +83,6 @@ String IcingaDB::CalculateCheckSumProperties(const ConfigObject::Ptr& object, co
 
 static const std::set<String> metadataWhitelist ({"package", "source_location", "templates"});
 
-String IcingaDB::CalculateCheckSumMetadata(const ConfigObject::Ptr& object)
-{
-	return HashValue(object, metadataWhitelist, true);
-}
-
 String IcingaDB::CalculateCheckSumVars(const CustomVarObject::Ptr& object)
 {
 	Dictionary::Ptr vars = object->GetVars();

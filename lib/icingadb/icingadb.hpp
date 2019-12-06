@@ -84,7 +84,6 @@ private:
 	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
 	static String GetEnvironment();
 	static String CalculateCheckSumProperties(const ConfigObject::Ptr& object, const std::set<String>& propertiesBlacklist);
-	static String CalculateCheckSumMetadata(const ConfigObject::Ptr& object);
 	static String CalculateCheckSumVars(const CustomVarObject::Ptr& object);
 	static Dictionary::Ptr SerializeVars(const CustomVarObject::Ptr& object);
 
