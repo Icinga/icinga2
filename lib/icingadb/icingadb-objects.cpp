@@ -368,7 +368,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 {
 	String objectKey = GetObjectIdentifier(object);
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
-	String envId = CalculateCheckSumString(GetEnvironment());
+	String envId = SHA1(GetEnvironment());
 	auto* configUpdates (runtimeUpdate ? &publishes["icinga:config:update"] : nullptr);
 
 	if (customVarObject) {
@@ -847,8 +847,8 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 // for IcingaDB.
 bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checksums)
 {
-	attributes->Set("name_checksum", CalculateCheckSumString(object->GetName()));
-	attributes->Set("environment_id", CalculateCheckSumString(GetEnvironment()));
+	attributes->Set("name_checksum", SHA1(object->GetName()));
+	attributes->Set("environment_id", SHA1(GetEnvironment()));
 	attributes->Set("name", object->GetName());
 
 	Zone::Ptr ObjectsZone = static_pointer_cast<Zone>(object->GetZone());
@@ -923,11 +923,11 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		String notesUrl = checkable->GetNotesUrl();
 		String iconImage = checkable->GetIconImage();
 		if (!actionUrl.IsEmpty())
-			attributes->Set("action_url_id", HashValue(new Array({CalculateCheckSumString(GetEnvironment()), actionUrl})));
+			attributes->Set("action_url_id", HashValue(new Array({SHA1(GetEnvironment()), actionUrl})));
 		if (!notesUrl.IsEmpty())
-			attributes->Set("notes_url_id", HashValue(new Array({CalculateCheckSumString(GetEnvironment()), notesUrl})));
+			attributes->Set("notes_url_id", HashValue(new Array({SHA1(GetEnvironment()), notesUrl})));
 		if (!iconImage.IsEmpty())
-			attributes->Set("icon_image_id", HashValue(new Array({CalculateCheckSumString(GetEnvironment()), iconImage})));
+			attributes->Set("icon_image_id", HashValue(new Array({SHA1(GetEnvironment()), iconImage})));
 
 
 		Host::Ptr host;
@@ -1765,7 +1765,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	tie(host, service) = GetHostService(checkable);
 
 	attrs->Set("id", GetObjectIdentifier(checkable));;
-	attrs->Set("environment_id", CalculateCheckSumString(GetEnvironment()));
+	attrs->Set("environment_id", SHA1(GetEnvironment()));
 	attrs->Set("state_type", checkable->HasBeenChecked() ? checkable->GetStateType() : StateTypeHard);
 
 	// TODO: last_hard/soft_state should be "previous".
