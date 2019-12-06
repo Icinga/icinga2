@@ -75,12 +75,6 @@ String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
 		return HashValue((Array::Ptr)new Array({GetEnvironment(), object->GetName()}));
 }
 
-String IcingaDB::CalculateCheckSumProperties(const ConfigObject::Ptr& object, const std::set<String>& propertiesBlacklist)
-{
-	//TODO: consider precision of 6 for double values; use specific config fields for hashing?
-	return HashValue(object, propertiesBlacklist);
-}
-
 static const std::set<String> metadataWhitelist ({"package", "source_location", "templates"});
 
 /**
