@@ -81,6 +81,7 @@ private:
 	static String FormatCommandLine(const Value& commandLine);
 	static long long TimestampToMilliseconds(double timestamp);
 
+	static ArrayData GetObjectIdentifiersWithoutEnv(const ConfigObject::Ptr& object);
 	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
 	static String GetEnvironment();
 	static Dictionary::Ptr SerializeVars(const CustomVarObject::Ptr& object);

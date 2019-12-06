@@ -65,14 +65,34 @@ String IcingaDB::GetEnvironment()
 	return ConfigType::GetObjectsByType<IcingaApplication>()[0]->GetEnvironment();
 }
 
-String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
+ArrayData IcingaDB::GetObjectIdentifiersWithoutEnv(const ConfigObject::Ptr& object)
 {
 	Type::Ptr type = object->GetReflectionType();
 
 	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance)
-		return HashValue((Array::Ptr)new Array({GetEnvironment(), type->GetName(), object->GetName()}));
+		return {type->GetName(), object->GetName()};
 	else
-		return HashValue((Array::Ptr)new Array({GetEnvironment(), object->GetName()}));
+		return {object->GetName()};
+}
+
+template<class T>
+inline
+std::vector<T> Prepend(std::vector<T>&& haystack)
+{
+	return std::move(haystack);
+}
+
+template<class T, class Needle, class... Needles>
+inline
+std::vector<T> Prepend(Needles&&... needles, Needle&& needle, std::vector<T>&& haystack)
+{
+	haystack.emplace(haystack.begin(), std::forward<Needle>(needle));
+	return Prepend(std::forward<Needles>(needles)..., std::move(haystack));
+}
+
+String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
+{
+	return HashValue(new Array(Prepend(GetEnvironment(), GetObjectIdentifiersWithoutEnv(object))));
 }
 
 static const std::set<String> metadataWhitelist ({"package", "source_location", "templates"});
