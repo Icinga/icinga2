@@ -13,6 +13,7 @@
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
 #include <memory>
+#include <utility>
 
 namespace icinga
 {
@@ -113,6 +114,25 @@ private:
 	void AssertOnWorkQueue();
 
 	void ExceptionHandler(boost::exception_ptr exp);
+
+	template<class T>
+	static inline
+	std::vector<T> Prepend(std::vector<T>&& needle, std::vector<T>&& haystack)
+	{
+		for (auto& hay : haystack) {
+			needle.emplace_back(std::move(hay));
+		}
+
+		return std::move(needle);
+	}
+
+	template<class T, class Needle>
+	static inline
+	std::vector<T> Prepend(Needle&& needle, std::vector<T>&& haystack)
+	{
+		haystack.emplace(haystack.begin(), std::forward<Needle>(needle));
+		return std::move(haystack);
+	}
 
 	Timer::Ptr m_StatsTimer;
 	Timer::Ptr m_ReconnectTimer;

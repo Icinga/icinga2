@@ -75,21 +75,6 @@ ArrayData IcingaDB::GetObjectIdentifiersWithoutEnv(const ConfigObject::Ptr& obje
 		return {object->GetName()};
 }
 
-template<class T>
-inline
-std::vector<T> Prepend(std::vector<T>&& haystack)
-{
-	return std::move(haystack);
-}
-
-template<class T, class Needle, class... Needles>
-inline
-std::vector<T> Prepend(Needles&&... needles, Needle&& needle, std::vector<T>&& haystack)
-{
-	haystack.emplace(haystack.begin(), std::forward<Needle>(needle));
-	return Prepend(std::forward<Needles>(needles)..., std::move(haystack));
-}
-
 String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
 {
 	return HashValue(new Array(Prepend(GetEnvironment(), GetObjectIdentifiersWithoutEnv(object))));

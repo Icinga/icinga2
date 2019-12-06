@@ -368,7 +368,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 {
 	String objectKey = GetObjectIdentifier(object);
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
-	String envId = SHA1(GetEnvironment());
+	auto env (GetEnvironment());
+	String envId = SHA1(env);
 	auto* configUpdates (runtimeUpdate ? &publishes["icinga:config:update"] : nullptr);
 
 	if (customVarObject) {
@@ -390,7 +391,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					configUpdates->emplace_back("customvar:" + kv.first);
 				}
 
-				String id = HashValue(new Array({envId, kv.first, objectKey}));
+				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 				typeCvs.emplace_back(id);
 				typeCvs.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", envId}, {"customvar_id", kv.first}})));
 
@@ -410,7 +411,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		String iconImage = checkable->GetIconImage();
 		if (!actionUrl.IsEmpty()) {
 			auto& actionUrls (hMSets[m_PrefixConfigObject + "action_url"]);
-			actionUrls.emplace_back(HashValue(new Array({envId, actionUrl})));
+			actionUrls.emplace_back(HashValue(new Array({env, actionUrl})));
 			actionUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"action_url", actionUrl}})));
 
 			if (configUpdates) {
@@ -419,7 +420,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		}
 		if (!notesUrl.IsEmpty()) {
 			auto& notesUrls (hMSets[m_PrefixConfigObject + "notes_url"]);
-			notesUrls.emplace_back(HashValue(new Array({envId, notesUrl})));
+			notesUrls.emplace_back(HashValue(new Array({env, notesUrl})));
 			notesUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"notes_url", notesUrl}})));
 
 			if (configUpdates) {
@@ -428,7 +429,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		}
 		if (!iconImage.IsEmpty()) {
 			auto& iconImages (hMSets[m_PrefixConfigObject + "icon_image"]);
-			iconImages.emplace_back(HashValue(new Array({envId, iconImage})));
+			iconImages.emplace_back(HashValue(new Array({env, iconImage})));
 			iconImages.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"icon_image", iconImage}})));
 
 			if (configUpdates) {
@@ -459,8 +460,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto& members (hMSets[m_PrefixConfigObject + typeName + ":groupmember"]);
 
 			for (auto& group : groups) {
-				String groupId = GetObjectIdentifier((*getGroup)(group));
-				String id = HashValue(new Array({envId, groupId, objectKey}));
+				auto groupObj ((*getGroup)(group));
+				String groupId = GetObjectIdentifier(groupObj);
+				String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
 				members.emplace_back(id);
 				members.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", envId}, {"group_id", groupId}})));
 
@@ -487,10 +489,10 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			rangeIds->Reserve(ranges->GetLength());
 
 			for (auto& kv : ranges) {
-				String rangeId = HashValue(new Array({envId, kv.first, kv.second}));
+				String rangeId = HashValue(new Array({env, kv.first, kv.second}));
 				rangeIds->Add(rangeId);
 
-				String id = HashValue(new Array({envId, rangeId, objectKey}));
+				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, Prepend(kv.second, GetObjectIdentifiersWithoutEnv(object))))));
 				typeRanges.emplace_back(id);
 				typeRanges.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"range_key", kv.first}, {"range_value", kv.second}})));
 
@@ -515,10 +517,11 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 		auto& includs (hMSets[m_PrefixConfigObject + typeName + ":override:include"]);
 		for (auto include : includes) {
-			String includeId = GetObjectIdentifier((*getInclude)(include.Get<String>()));
+			auto includeTp ((*getInclude)(include.Get<String>()));
+			String includeId = GetObjectIdentifier(includeTp);
 			includeChecksums->Add(includeId);
 
-			String id = HashValue(new Array({envId, includeId, objectKey}));
+			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(includeTp), GetObjectIdentifiersWithoutEnv(object)))));
 			includs.emplace_back(id);
 			includs.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"include_id", includeId}})));
 
@@ -543,10 +546,11 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		auto& excluds (hMSets[m_PrefixConfigObject + typeName + ":override:exclude"]);
 
 		for (auto exclude : excludes) {
-			String excludeId = GetObjectIdentifier((*getExclude)(exclude.Get<String>()));
+			auto excludeTp ((*getExclude)(exclude.Get<String>()));
+			String excludeId = GetObjectIdentifier(excludeTp);
 			excludeChecksums->Add(excludeId);
 
-			String id = HashValue(new Array({envId, excludeId, objectKey}));
+			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(excludeTp), GetObjectIdentifiersWithoutEnv(object)))));
 			excluds.emplace_back(id);
 			excluds.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"exclude_id", excludeId}})));
 
@@ -569,10 +573,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		auto& parnts (hMSets[m_PrefixConfigObject + typeName + ":parent"]);
 
 		for (auto& parent : parentsRaw) {
-			String parentId = GetObjectIdentifier(parent);
-			String id = HashValue(new Array({envId, parentId, objectKey}));
+			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(parent), GetObjectIdentifiersWithoutEnv(object)))));
 			parnts.emplace_back(id);
-			parnts.emplace_back(JsonEncode(new Dictionary({{"zone_id", objectKey}, {"environment_id", envId}, {"parent_id", parentId}})));
+			parnts.emplace_back(JsonEncode(new Dictionary({{"zone_id", objectKey}, {"environment_id", envId}, {"parent_id", GetObjectIdentifier(parent)}})));
 
 			if (configUpdates) {
 				configUpdates->emplace_back(typeName + ":parent:" + id);
@@ -602,8 +605,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto& members (hMSets[m_PrefixConfigObject + typeName + ":groupmember"]);
 
 			for (auto& group : groups) {
-				String groupId = GetObjectIdentifier((*getGroup)(group));
-				String id = HashValue(new Array({envId, groupId, objectKey}));
+				auto groupObj ((*getGroup)(group));
+				String groupId = GetObjectIdentifier(groupObj);
+				String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
 				members.emplace_back(id);
 				members.emplace_back(JsonEncode(new Dictionary({{"user_id", objectKey}, {"environment_id", envId}, {"group_id", groupId}})));
 
@@ -637,7 +641,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 		for (auto& user : users) {
 			String userId = GetObjectIdentifier(user);
-			String id = HashValue(new Array({envId, userId, objectKey}));
+			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(user), GetObjectIdentifiersWithoutEnv(object)))));
 			usrs.emplace_back(id);
 			usrs.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"user_id", userId}})));
 
@@ -659,7 +663,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto groupMembers = usergroup->GetMembers();
 			std::copy(groupMembers.begin(), groupMembers.end(), std::inserter(allUsers, allUsers.begin()));
 
-			String id = HashValue(new Array({envId, "usergroup", usergroupId, objectKey}));
+			String id = HashValue(new Array(Prepend(env, Prepend("usergroup", Prepend(GetObjectIdentifiersWithoutEnv(usergroup), GetObjectIdentifiersWithoutEnv(object))))));
 			groups.emplace_back(id);
 			groups.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"usergroup_id", usergroupId}})));
 
@@ -675,7 +679,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 		for (auto& user : allUsers) {
 			String userId = GetObjectIdentifier(user);
-			String id = HashValue(new Array({envId, "user", userId, objectKey}));
+			String id = HashValue(new Array(Prepend(env, Prepend("user", Prepend(GetObjectIdentifiersWithoutEnv(user), GetObjectIdentifiersWithoutEnv(object))))));
 			notificationRecipients.emplace_back(id);
 			notificationRecipients.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"user_id", userId}})));
 
@@ -720,7 +724,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				values->Set("argument_key", kv.first);
 				values->Set("environment_id", envId);
 
-				String id = HashValue(objectKey + kv.first + envId);
+				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 
 				typeArgs.emplace_back(id);
 				typeArgs.emplace_back(JsonEncode(values));
@@ -767,7 +771,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				values->Set("envvar_key", kv.first);
 				values->Set("environment_id", envId);
 
-				String id = HashValue(objectKey + kv.first + envId);
+				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 
 				typeVars.emplace_back(id);
 				typeVars.emplace_back(JsonEncode(values));
@@ -923,11 +927,11 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		String notesUrl = checkable->GetNotesUrl();
 		String iconImage = checkable->GetIconImage();
 		if (!actionUrl.IsEmpty())
-			attributes->Set("action_url_id", HashValue(new Array({SHA1(GetEnvironment()), actionUrl})));
+			attributes->Set("action_url_id", HashValue(new Array({GetEnvironment(), actionUrl})));
 		if (!notesUrl.IsEmpty())
-			attributes->Set("notes_url_id", HashValue(new Array({SHA1(GetEnvironment()), notesUrl})));
+			attributes->Set("notes_url_id", HashValue(new Array({GetEnvironment(), notesUrl})));
 		if (!iconImage.IsEmpty())
-			attributes->Set("icon_image_id", HashValue(new Array({SHA1(GetEnvironment()), iconImage})));
+			attributes->Set("icon_image_id", HashValue(new Array({GetEnvironment(), iconImage})));
 
 
 		Host::Ptr host;
