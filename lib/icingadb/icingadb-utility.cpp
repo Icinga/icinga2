@@ -75,43 +75,7 @@ String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
 		return HashValue((Array::Ptr)new Array({GetEnvironment(), object->GetName()}));
 }
 
-String IcingaDB::CalculateCheckSumString(const String& str)
-{
-	return SHA1(str);
-}
-
-String IcingaDB::CalculateCheckSumArray(const Array::Ptr& arr)
-{
-	/* Ensure that checksums happen in a defined order. */
-	Array::Ptr tmpArr = arr->ShallowClone();
-
-	tmpArr->Sort();
-
-	return SHA1(PackObject(tmpArr));
-}
-
-String IcingaDB::CalculateCheckSumProperties(const ConfigObject::Ptr& object, const std::set<String>& propertiesBlacklist)
-{
-	//TODO: consider precision of 6 for double values; use specific config fields for hashing?
-	return HashValue(object, propertiesBlacklist);
-}
-
 static const std::set<String> metadataWhitelist ({"package", "source_location", "templates"});
-
-String IcingaDB::CalculateCheckSumMetadata(const ConfigObject::Ptr& object)
-{
-	return HashValue(object, metadataWhitelist, true);
-}
-
-String IcingaDB::CalculateCheckSumVars(const CustomVarObject::Ptr& object)
-{
-	Dictionary::Ptr vars = object->GetVars();
-
-	if (!vars)
-		return HashValue(Empty);
-
-	return HashValue(vars);
-}
 
 /**
  * Prepare object's custom vars for being written to Redis
