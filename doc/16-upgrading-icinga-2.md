@@ -8,6 +8,13 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.12 <a id="upgrading-to-2-12"></a>
+
+### Breaking changes <a id="upgrading-to-2-12-breaking-changes"></a>
+
+As of v2.12 our [API](12-icinga2-api.md) URL endpoint [`/v1/actions/acknowledge-problem`](12-icinga2-api.md#icinga2-api-actions-acknowledge-problem) refuses acknowledging an already acknowledged checkable by overwriting the acknowledgement.
+To replace an acknowledgement you have to remove the old one before adding the new one.
+
 ## Upgrading to v2.11 <a id="upgrading-to-2-11"></a>
 
 ### Bugfixes for 2.11 <a id="upgrading-to-2-11-bugfixes"></a>
