@@ -138,13 +138,27 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 
 void Checkable::ClearAcknowledgement(const String& removedBy, const MessageOrigin::Ptr& origin)
 {
+	ObjectLock oLock (this);
+
+	bool wasAcked;
+
+	if (GetAcknowledgementRaw() == AcknowledgementNone) {
+		wasAcked = false;
+	} else {
+		double expiry = GetAcknowledgementExpiry();
+
+		wasAcked = expiry == 0 || expiry >= Utility::GetTime();
+	}
+
 	SetAcknowledgementRaw(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
 
 	Log(LogInformation, "Checkable")
 		<< "Acknowledgement cleared for checkable '" << GetName() << "'.";
 
-	OnAcknowledgementCleared(this, removedBy, origin);
+	if (wasAcked) {
+		OnAcknowledgementCleared(this, removedBy, origin);
+	}
 }
 
 Endpoint::Ptr Checkable::GetCommandEndpoint() const

@@ -588,12 +588,17 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<S
 	bool persistent = (Convert::ToLong(arguments[4]) > 0 ? true : false);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+	ObjectLock oLock (service);
 
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot acknowledge service problem for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
 	if (service->GetState() == ServiceOK)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is OK."));
+
+	if (service->IsAcknowledged()) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is already acknowledged."));
+	}
 
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Setting acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
@@ -610,6 +615,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 	double timestamp = Convert::ToDouble(arguments[5]);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+	ObjectLock oLock (service);
 
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot acknowledge service problem with expire time for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
@@ -619,6 +625,10 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 
 	if (timestamp != 0 && timestamp <= Utility::GetTime())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Acknowledgement expire time must be in the future for service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+
+	if (service->IsAcknowledged()) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is already acknowledged."));
+	}
 
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Setting timed acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
@@ -652,6 +662,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 	bool persistent = (Convert::ToLong(arguments[3]) > 0 ? true : false);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
+	ObjectLock oLock (host);
 
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot acknowledge host problem for non-existent host '" + arguments[0] + "'"));
@@ -661,6 +672,10 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 
 	if (host->GetState() == HostUp)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
+
+	if (host->IsAcknowledged()) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[1] + "' is already acknowledged."));
+	}
 
 	Comment::AddComment(host, CommentAcknowledgement, arguments[4], arguments[5], persistent, 0);
 	host->AcknowledgeProblem(arguments[4], arguments[5], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent);
@@ -674,6 +689,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 	double timestamp = Convert::ToDouble(arguments[4]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
+	ObjectLock oLock (host);
 
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot acknowledge host problem with expire time for non-existent host '" + arguments[0] + "'"));
@@ -686,6 +702,10 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 
 	if (timestamp != 0 && timestamp <= Utility::GetTime())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Acknowledgement expire time must be in the future for host '" + arguments[0] + "'"));
+
+	if (host->IsAcknowledged()) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[1] + "' is already acknowledged."));
+	}
 
 	Comment::AddComment(host, CommentAcknowledgement, arguments[5], arguments[6], persistent, timestamp);
 	host->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent, timestamp);
