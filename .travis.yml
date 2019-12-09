@@ -18,6 +18,7 @@ addons:
       - libpq-dev
       - libmysqlclient-dev
       - libedit-dev
+      - libyajl-dev
 before_script:
   - arch=$(uname -m)
   - mkdir build

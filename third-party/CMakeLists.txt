@@ -2,6 +2,10 @@
 
 add_subdirectory(mmatch)
 
+if(NOT YAJL_FOUND)
+  add_subdirectory(yajl)
+endif()
+
 if(UNIX OR CYGWIN)
   add_subdirectory(execvpe)
 endif()

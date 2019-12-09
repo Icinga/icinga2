@@ -172,9 +172,15 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
 set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:base>)
 
-# JSON
-find_package(JSON)
-include_directories(${JSON_INCLUDE})
+find_package(YAJL)
+
+if(NOT YAJL_FOUND)
+  include_directories(${icinga2_BINARY_DIR}/third-party/yajl/include)
+  link_directories(${icinga2_BINARY_DIR}/third-party/yajl)
+  list(APPEND base_OBJS $<TARGET_OBJECTS:yajl>)
+else()
+  list(APPEND base_DEPS ${YAJL_LIBRARIES})
+endif()
 
 # UTF8CPP
 find_package(UTF8CPP)
