@@ -1438,7 +1438,8 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"environment_id", SHA1(GetEnvironment()),
 		"host_id", GetObjectIdentifier(host),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
-		"author", Utility::ValidateUTF8(downtime->GetRemovedBy()),
+		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
+		"cancelled_by", Utility::ValidateUTF8(downtime->GetRemovedBy()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
 		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
 		"flexible_duration", Convert::ToString(downtime->GetDuration()),
@@ -1560,7 +1561,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		"environment_id", SHA1(GetEnvironment()),
 		"host_id", GetObjectIdentifier(host),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
-		"author", Utility::ValidateUTF8(comment->GetRemovedBy()),
+		"author", Utility::ValidateUTF8(comment->GetAuthor()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
@@ -1591,6 +1592,8 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(Utility::GetTime())));
 		xAdd.emplace_back("has_been_removed");
 		xAdd.emplace_back("1");
+		xAdd.emplace_back("removed_by");
+		xAdd.emplace_back(Utility::ValidateUTF8(comment->GetRemovedBy()));
 	} else {
 		xAdd.emplace_back("has_been_removed");
 		xAdd.emplace_back("0");
