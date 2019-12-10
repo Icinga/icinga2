@@ -65,14 +65,19 @@ String IcingaDB::GetEnvironment()
 	return ConfigType::GetObjectsByType<IcingaApplication>()[0]->GetEnvironment();
 }
 
-String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
+ArrayData IcingaDB::GetObjectIdentifiersWithoutEnv(const ConfigObject::Ptr& object)
 {
 	Type::Ptr type = object->GetReflectionType();
 
 	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance)
-		return HashValue((Array::Ptr)new Array({GetEnvironment(), type->GetName(), object->GetName()}));
+		return {type->GetName(), object->GetName()};
 	else
-		return HashValue((Array::Ptr)new Array({GetEnvironment(), object->GetName()}));
+		return {object->GetName()};
+}
+
+String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
+{
+	return HashValue(new Array(Prepend(GetEnvironment(), GetObjectIdentifiersWithoutEnv(object))));
 }
 
 static const std::set<String> metadataWhitelist ({"package", "source_location", "templates"});
