@@ -49,7 +49,7 @@ void DbEvents::StaticInitialize()
 	/* History */
 	Comment::OnCommentAdded.connect(std::bind(&DbEvents::AddCommentHistory, _1));
 	Downtime::OnDowntimeAdded.connect(std::bind(&DbEvents::AddDowntimeHistory, _1));
-	Checkable::OnAcknowledgementSet.connect(std::bind(&DbEvents::AddAcknowledgementHistory, _1, _2, _3, _4, _5, _6));
+	Checkable::OnAcknowledgementSet.connect(std::bind(&DbEvents::AddAcknowledgementHistory, _1, _2, _3, _4, _5, _7));
 
 	Checkable::OnNotificationSentToAllUsers.connect(std::bind(&DbEvents::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
 

@@ -64,10 +64,16 @@ void Checkable::UpdateFlappingStatus(bool stateChange)
 	SetFlappingBuffer(stateChangeBuf.GetValue());
 	SetFlappingIndex(oldestIndex);
 	SetFlappingCurrent(flappingValue);
-	SetFlapping(flapping, true);
 
-	if (flapping != GetFlapping())
-		SetFlappingLastChange(Utility::GetTime());
+	if (flapping != GetFlapping()) {
+		SetFlapping(flapping, true);
+
+		double ee = GetLastCheckResult()->GetExecutionEnd();
+
+		OnFlappingChange(this, ee);
+
+		SetFlappingLastChange(ee);
+	}
 }
 
 bool Checkable::IsFlapping() const

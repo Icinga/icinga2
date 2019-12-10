@@ -68,8 +68,8 @@ public:
 
 	AcknowledgementType GetAcknowledgement();
 
-	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify = true, bool persistent = false, double expiry = 0, const MessageOrigin::Ptr& origin = nullptr);
-	void ClearAcknowledgement(const String& removedBy, const MessageOrigin::Ptr& origin = nullptr);
+	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify = true, bool persistent = false, double changeTime = Utility::GetTime(), double expiry = 0, const MessageOrigin::Ptr& origin = nullptr);
+	void ClearAcknowledgement(const String& removedBy, double changeTime = Utility::GetTime(), const MessageOrigin::Ptr& origin = nullptr);
 
 	int GetSeverity() const override;
 	bool GetProblem() const override;
@@ -112,8 +112,9 @@ public:
 		const NotificationType&, const CheckResult::Ptr&, const String&,
 		const String&, const MessageOrigin::Ptr&)> OnNotificationSentToAllUsers;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType,
-		bool, bool, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
+		bool, bool, double, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, double, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
+	static boost::signals2::signal<void (const Checkable::Ptr&, double)> OnFlappingChange;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnNextCheckUpdated;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
 

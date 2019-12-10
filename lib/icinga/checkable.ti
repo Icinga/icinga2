@@ -147,6 +147,7 @@ abstract class Checkable : CustomVarObject
 		default {{{ return AcknowledgementNone; }}}
 	};
 	[state] Timestamp acknowledgement_expiry;
+	[state] Timestamp acknowledgement_last_change;
 	[state] bool force_next_notification;
 	[no_storage] Timestamp last_check {
 		get;

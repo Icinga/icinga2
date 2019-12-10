@@ -15,8 +15,9 @@ using namespace icinga;
 REGISTER_TYPE_WITH_PROTOTYPE(Checkable, Checkable::GetPrototype());
 INITIALIZE_ONCE(&Checkable::StaticInitialize);
 
-boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, bool, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
-boost::signals2::signal<void (const Checkable::Ptr&, const String&, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
+boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, bool, double, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
+boost::signals2::signal<void (const Checkable::Ptr&, const String&, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
+boost::signals2::signal<void (const Checkable::Ptr&, double)> Checkable::OnFlappingChange;
 
 static Timer::Ptr l_CheckablesFireSuppressedNotifications;
 
@@ -122,7 +123,7 @@ bool Checkable::IsAcknowledged() const
 	return const_cast<Checkable *>(this)->GetAcknowledgement() != AcknowledgementNone;
 }
 
-void Checkable::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin)
+void Checkable::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify, bool persistent, double changeTime, double expiry, const MessageOrigin::Ptr& origin)
 {
 	SetAcknowledgementRaw(type);
 	SetAcknowledgementExpiry(expiry);
@@ -133,10 +134,12 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 	Log(LogInformation, "Checkable")
 		<< "Acknowledgement set for checkable '" << GetName() << "'.";
 
-	OnAcknowledgementSet(this, author, comment, type, notify, persistent, expiry, origin);
+	OnAcknowledgementSet(this, author, comment, type, notify, persistent, changeTime, expiry, origin);
+
+	SetAcknowledgementLastChange(changeTime);
 }
 
-void Checkable::ClearAcknowledgement(const String& removedBy, const MessageOrigin::Ptr& origin)
+void Checkable::ClearAcknowledgement(const String& removedBy, double changeTime, const MessageOrigin::Ptr& origin)
 {
 	ObjectLock oLock (this);
 
@@ -157,7 +160,9 @@ void Checkable::ClearAcknowledgement(const String& removedBy, const MessageOrigi
 		<< "Acknowledgement cleared for checkable '" << GetName() << "'.";
 
 	if (wasAcked) {
-		OnAcknowledgementCleared(this, removedBy, origin);
+		OnAcknowledgementCleared(this, removedBy, changeTime, origin);
+
+		SetAcknowledgementLastChange(changeTime);
 	}
 }
 
