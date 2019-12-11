@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/clusterevents.hpp"
+#include "icinga/commandutils.hpp"
 #include "icinga/service.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/endpoint.hpp"
@@ -34,6 +35,7 @@ REGISTER_APIFUNCTION(ExecuteCommand, event, &ClusterEvents::ExecuteCommandAPIHan
 REGISTER_APIFUNCTION(SendNotifications, event, &ClusterEvents::SendNotificationsAPIHandler);
 REGISTER_APIFUNCTION(NotificationSentUser, event, &ClusterEvents::NotificationSentUserAPIHandler);
 REGISTER_APIFUNCTION(NotificationSentToAllUsers, event, &ClusterEvents::NotificationSentToAllUsersAPIHandler);
+REGISTER_APIFUNCTION(ExecuteCommandWithMacros, event, &ClusterEvents::ExecuteCommandWithMacrosAPIHandler);
 
 void ClusterEvents::StaticInitialize()
 {
@@ -233,6 +235,71 @@ Value ClusterEvents::NextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin
 
 	return Empty;
 }
+
+
+Value ClusterEvents::ExecuteCommandWithMacrosAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params){
+    Endpoint::Ptr remote_endpoint = origin->FromClient->GetEndpoint();
+
+    if (!remote_endpoint) {
+        Log(LogNotice, "ClusterEvents")
+                << "Discarding 'execute command with macros' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+        return Empty;
+    }
+
+    if (!params->Contains("endpoint")) {
+        Log(LogNotice, "ClusterEvents")
+                << "Got no endpoint for 'execute command with macros' message.";
+        return Empty;
+    }
+
+    if (!params->Contains("command")) {
+        Log(LogNotice, "ClusterEvents")
+                << "No command for 'execute command with macros' message.";
+        return Empty;
+    }
+    CheckCommand::Ptr cmd = CheckCommand::GetByName(params->Get("command"));
+    if (!cmd) {
+        Log(LogNotice, "ClusterEvents")
+                << "No shutdown command definition for '" + params->Get("command") +"' found.";
+        return Empty;
+    }
+
+    String endpoint = params->Get("endpoint");
+    if(endpoint != Endpoint::GetLocalEndpoint()->GetName()) {
+        Log(LogNotice, "ClusterEvents")
+                << "Wrong destination fo 'execute command with macros' message as '" << endpoint << "', retransmitting.";
+        ApiListener::Ptr listener = ApiListener::GetInstance();
+
+        if (!listener) {
+            Log(LogNotice, "ClusterEvents" ) << "No ApiListener instance available. Can't relay Custom Command to host.";
+            return Empty;
+        }
+        Dictionary::Ptr message = new Dictionary();
+        message->Set("jsonrpc", "2.0");
+        message->Set("method", "event::ExecuteCommandWithMacros");
+        message->Set("params", params);
+
+        Endpoint::Ptr remote_endpoint = Endpoint::GetByName(endpoint);
+
+        CommandUtils::SendCommandMessageToEndpoints(remote_endpoint, listener, message);
+
+        return Empty;
+    }
+
+    Host::Ptr virtual_host = new Host();
+    Dictionary::Ptr attrs = new Dictionary();
+    attrs->Set("__name", "FakeCheckCommandHost");
+    attrs->Set("type", "Host");
+    Deserialize(virtual_host, attrs, false, FAConfig);
+
+    attrs->Set("check_command", cmd->GetName());
+    Deserialize(virtual_host, attrs, false, FAConfig);
+
+    CommandUtils::ExecuteCommandLocally(virtual_host, cmd, params);
+
+    return Empty;
+}
+
 
 void ClusterEvents::SuppressedNotificationsChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin)
 {

@@ -6,6 +6,7 @@
 #include "icinga/hostgroup.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/checkcommand.hpp"
+#include "icinga/commandutils.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "remote/apiaction.hpp"
@@ -31,6 +32,85 @@ REGISTER_APIACTION(remove_downtime, "Service;Host;Downtime", &ApiActions::Remove
 REGISTER_APIACTION(shutdown_process, "", &ApiActions::ShutdownProcess);
 REGISTER_APIACTION(restart_process, "", &ApiActions::RestartProcess);
 REGISTER_APIACTION(generate_ticket, "", &ApiActions::GenerateTicket);
+REGISTER_APIACTION(shutdown_host, "Host", &ApiActions::ShutdownHost)
+
+
+Dictionary::Ptr ApiActions::ShutdownHost(const ConfigObject::Ptr& object,
+                                            const Dictionary::Ptr& params)
+{
+    // Monitored Objects
+    Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
+    if (!checkable)
+        return ApiActions::CreateResult(404,
+                                        "Cannot perform shutdown for non-existent object.");
+
+    Host::Ptr host;
+    Service::Ptr service;
+    tie(host, service) = GetHostService(checkable);
+
+    if (service) {
+        return ApiActions::CreateResult(404, "Can shutdown only Host object.");
+    }
+
+    Checkable::Ptr custom_checkable;
+    custom_checkable = host->GetServiceByShortName("neteye-shutdown-manager-enabled");
+    if (! custom_checkable){
+        return ApiActions::CreateResult(404, "Checkable service not found.");
+    }
+
+    CheckCommand::Ptr cmd = custom_checkable->GetCheckCommand();
+    // Checks if command is registered or not
+    if(!cmd) {
+        return ApiActions::CreateResult(404, "CheckCommand for service '" +custom_checkable->GetName()+ "' service not found.");
+    }
+
+    // Parameters
+    if (!params->Contains("shutdown_command")) {
+        return ApiActions::CreateResult(404, "Parameter 'shutdown_command' is required.");
+    }
+
+    // commands can be executed locally or on an agent
+    Endpoint::Ptr endpoint = custom_checkable->GetCommandEndpoint();
+    bool local = !endpoint || endpoint == Endpoint::GetLocalEndpoint();
+    if(local) {
+        CommandUtils::ExecuteCommandLocally(custom_checkable, cmd, params);
+        return ApiActions::CreateResult(
+                200,
+                "Executed local command for host '"
+                + host->ToString()
+        );
+    }
+    else {
+        ApiListener::Ptr listener = ApiListener::GetInstance();
+
+        if (!listener){
+            return ApiActions::CreateResult(404, "No ApiListener instance available. Can't relay Custom Command to host.");
+        }
+
+        Dictionary::Ptr message = new Dictionary();
+        message->Set("jsonrpc", "2.0");
+        message->Set("method", "event::ExecuteCommandWithMacros");
+
+        Dictionary::Ptr newParams = new Dictionary();
+        newParams->Set("command_type", "check_command");
+        newParams->Set("command", custom_checkable->GetCheckCommand()->GetName());
+        newParams->Set("endpoint", endpoint->GetName());
+        newParams->Set("host", host->GetName());
+        for(String k : params->GetKeys()) {
+            newParams->Set(k, params->Get(k));
+        }
+        message->Set("params", newParams);
+
+        CommandUtils::SendCommandMessageToEndpoints(endpoint, listener, message);
+
+        return ApiActions::CreateResult(
+                200,
+                "Sent message to endpoints connected for host '"
+                + host->ToString() + "'."
+        );
+    }
+}
+
 
 Dictionary::Ptr ApiActions::CreateResult(int code, const String& status,
 	const Dictionary::Ptr& additional)

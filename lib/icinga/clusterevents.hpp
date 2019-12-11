@@ -46,6 +46,7 @@ public:
 	static Value AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static Value ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value ExecuteCommandWithMacrosAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static Dictionary::Ptr MakeCheckResultMessage(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
