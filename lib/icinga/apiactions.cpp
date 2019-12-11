@@ -53,7 +53,7 @@ Dictionary::Ptr ApiActions::ShutdownHost(const ConfigObject::Ptr& object,
     }
 
     Checkable::Ptr custom_checkable;
-    custom_checkable = host->GetServiceByShortName("neteye-shutdown-manager-enabled");
+    custom_checkable = host->GetServiceByShortName("shutdown-service");
     if (! custom_checkable){
         return ApiActions::CreateResult(404, "Checkable service not found.");
     }
