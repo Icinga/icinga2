@@ -84,6 +84,8 @@ void IcingaDB::Start(bool runtimeCreated)
 	boost::thread thread(&IcingaDB::HandleEvents, this);
 	thread.detach();
 
+	m_Rcon->SuppressQueryKind(Prio::CheckResult);
+	m_Rcon->SuppressQueryKind(Prio::State);
 }
 
 void IcingaDB::ExceptionHandler(boost::exception_ptr exp)

@@ -180,6 +180,29 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 }
 
 /**
+ * Mark kind as kind of queries not to actually send yet
+ *
+ * @param kind Query kind
+ */
+void RedisConnection::SuppressQueryKind(RedisConnection::QueryPriority kind)
+{
+	asio::post(m_Strand, [this, kind]() { m_SuppressedQueryKinds.emplace(kind); });
+}
+
+/**
+ * Unmark kind as kind of queries not to actually send yet
+ *
+ * @param kind Query kind
+ */
+void RedisConnection::UnsuppressQueryKind(RedisConnection::QueryPriority kind)
+{
+	asio::post(m_Strand, [this, kind]() {
+		m_SuppressedQueryKinds.erase(kind);
+		m_QueuedWrites.Set();
+	});
+}
+
+/**
  * Try to connect to Redis
  */
 void RedisConnection::Connect(asio::yield_context& yc)
@@ -317,7 +340,7 @@ void RedisConnection::WriteLoop(asio::yield_context& yc)
 
 	WriteFirstOfHighestPrio:
 		for (auto& queue : m_Queues.Writes) {
-			if (queue.second.empty()) {
+			if (m_SuppressedQueryKinds.find(queue.first) != m_SuppressedQueryKinds.end() || queue.second.empty()) {
 				continue;
 			}
 
