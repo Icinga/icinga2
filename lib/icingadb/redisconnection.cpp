@@ -53,6 +53,12 @@ bool RedisConnection::IsConnected() {
 	return m_Connected.load();
 }
 
+/**
+ * Append a Redis query to a log message
+ *
+ * @param query Redis query
+ * @param msg Log message
+ */
 static inline
 void LogQuery(RedisConnection::Query& query, Log& msg)
 {
@@ -68,6 +74,12 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 	}
 }
 
+/**
+ * Queue a Redis query for sending
+ *
+ * @param query Redis query
+ * @param priority The query's priority
+ */
 void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority)
 {
 	{
@@ -83,6 +95,12 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConn
 	});
 }
 
+/**
+ * Queue Redis queries for sending
+ *
+ * @param queries Redis queries
+ * @param priority The queries' priority
+ */
 void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority)
 {
 	for (auto& query : queries) {
@@ -98,6 +116,14 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Red
 	});
 }
 
+/**
+ * Queue a Redis query for sending, wait for the response and return (or throw) it
+ *
+ * @param query Redis query
+ * @param priority The query's priority
+ *
+ * @return The response
+ */
 RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority)
 {
 	{
@@ -119,6 +145,14 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 	return future.get();
 }
 
+/**
+ * Queue Redis queries for sending, wait for the responses and return (or throw) them
+ *
+ * @param queries Redis queries
+ * @param priority The queries' priority
+ *
+ * @return The responses
+ */
 RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority)
 {
 	for (auto& query : queries) {
@@ -140,6 +174,9 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 	return future.get();
 }
 
+/**
+ * Try to connect to Redis
+ */
 void RedisConnection::Connect(asio::yield_context& yc)
 {
 	Defer notConnecting ([this]() { m_Connecting.store(m_Connected.load()); });
@@ -182,6 +219,9 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 }
 
+/**
+ * Actually receive the responses to the Redis queries send by WriteItem() and handle them
+ */
 void RedisConnection::ReadLoop(asio::yield_context& yc)
 {
 	for (;;) {
@@ -262,6 +302,9 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 	}
 }
 
+/**
+ * Actually send the Redis queries queued by {FireAndForget,GetResultsOf}{Query,Queries}()
+ */
 void RedisConnection::WriteLoop(asio::yield_context& yc)
 {
 	for (;;) {
@@ -285,6 +328,11 @@ void RedisConnection::WriteLoop(asio::yield_context& yc)
 	}
 }
 
+/**
+ * Send next and schedule receiving the response
+ *
+ * @param next Redis queries
+ */
 void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection::WriteQueueItem next)
 {
 	if (next.FireAndForgetQuery) {
@@ -397,6 +445,11 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 	}
 }
 
+/**
+ * Receive the response to a Redis query
+ *
+ * @return The response
+ */
 RedisConnection::Reply RedisConnection::ReadOne(boost::asio::yield_context& yc)
 {
 	if (m_Path.IsEmpty()) {
@@ -406,6 +459,11 @@ RedisConnection::Reply RedisConnection::ReadOne(boost::asio::yield_context& yc)
 	}
 }
 
+/**
+ * Send query
+ *
+ * @param query Redis query
+ */
 void RedisConnection::WriteOne(RedisConnection::Query& query, asio::yield_context& yc)
 {
 	if (m_Path.IsEmpty()) {
