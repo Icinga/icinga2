@@ -15,6 +15,7 @@
 #include <boost/utility/string_view.hpp>
 #include <boost/variant/get.hpp>
 #include <exception>
+#include <future>
 #include <iterator>
 #include <memory>
 #include <utility>
@@ -75,7 +76,7 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConn
 		LogQuery(query, msg);
 	}
 
-	auto item (std::make_shared<decltype(WriteQueueItem().FireAndForgetQuery)::element_type>(std::move(query)));
+	auto item (Shared<Query>::Make(std::move(query)));
 
 	asio::post(m_Strand, [this, item, priority]() {
 		m_Queues.Writes[priority].emplace(WriteQueueItem{item, nullptr, nullptr, nullptr});
@@ -90,7 +91,7 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Red
 		LogQuery(query, msg);
 	}
 
-	auto item (std::make_shared<decltype(WriteQueueItem().FireAndForgetQueries)::element_type>(std::move(queries)));
+	auto item (Shared<Queries>::Make(std::move(queries)));
 
 	asio::post(m_Strand, [this, item, priority]() {
 		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, item, nullptr, nullptr});
@@ -107,7 +108,7 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 
 	std::promise<Reply> promise;
 	auto future (promise.get_future());
-	auto item (std::make_shared<decltype(WriteQueueItem().GetResultOfQuery)::element_type>(std::move(query), std::move(promise)));
+	auto item (Shared<std::pair<Query, std::promise<Reply>>>::Make(std::move(query), std::move(promise)));
 
 	asio::post(m_Strand, [this, item, priority]() {
 		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, item, nullptr});
@@ -128,7 +129,7 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 
 	std::promise<Replies> promise;
 	auto future (promise.get_future());
-	auto item (std::make_shared<decltype(WriteQueueItem().GetResultsOfQueries)::element_type>(std::move(queries), std::move(promise)));
+	auto item (Shared<std::pair<Queries, std::promise<Replies>>>::Make(std::move(queries), std::move(promise)));
 
 	asio::post(m_Strand, [this, item, priority]() {
 		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, item});
@@ -152,14 +153,14 @@ void RedisConnection::Connect(asio::yield_context& yc)
 				Log(LogInformation, "IcingaDB")
 					<< "Trying to connect to Redis server (async) on host '" << m_Host << ":" << m_Port << "'";
 
-				decltype(m_TcpConn) conn (new TcpConn(m_Strand.context()));
+				auto conn (Shared<TcpConn>::Make(m_Strand.context()));
 				icinga::Connect(conn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
 				m_TcpConn = std::move(conn);
 			} else {
 				Log(LogInformation, "IcingaDB")
 					<< "Trying to connect to Redis server (async) on unix socket path '" << m_Path << "'";
 
-				decltype(m_UnixConn) conn (new UnixConn(m_Strand.context()));
+				auto conn (Shared<UnixConn>::Make(m_Strand.context()));
 				conn->next_layer().async_connect(Unix::endpoint(m_Path.CStr()), yc);
 				m_UnixConn = std::move(conn);
 			}
