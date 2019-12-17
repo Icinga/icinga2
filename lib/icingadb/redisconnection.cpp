@@ -64,7 +64,11 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 			break;
 		}
 
-		msg << " '" << arg << '\'';
+		if (arg.GetLength() > 64) {
+			msg << " '" << arg.SubStr(0, 61) << "...'";
+		} else {
+			msg << " '" << arg << '\'';
+		}
 	}
 }
 
