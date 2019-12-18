@@ -148,6 +148,12 @@ add_boost_test(base
     remote_url/illegal_legal_strings
 )
 
+if(NOT WIN32)
+  add_dependencies(base procmgr)
+  target_link_directories(base PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/../libgo/procmgr")
+  target_link_libraries(base goprocmgr4c)
+endif()
+
 if(ICINGA2_WITH_LIVESTATUS)
   set(livestatus_test_SOURCES
     icingaapplication-fixture.cpp
@@ -170,6 +176,12 @@ if(ICINGA2_WITH_LIVESTATUS)
     LIBRARIES ${base_DEPS}
     TESTS livestatus/hosts livestatus/services
   )
+
+  if(NOT WIN32)
+    add_dependencies(livestatus procmgr)
+    target_link_directories(livestatus PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/../libgo/procmgr")
+    target_link_libraries(livestatus goprocmgr4c)
+  endif()
 endif()
 
 set(icinga_checkable_test_SOURCES
@@ -195,3 +207,9 @@ add_boost_test(icinga_checkable
         icinga_checkable_flapping/host_flapping_recover
         icinga_checkable_flapping/host_flapping_docs_example
 )
+
+if(NOT WIN32)
+  add_dependencies(icinga_checkable procmgr)
+  target_link_directories(icinga_checkable PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/../libgo/procmgr")
+  target_link_libraries(icinga_checkable goprocmgr4c)
+endif()
