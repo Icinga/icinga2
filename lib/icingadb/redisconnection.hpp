@@ -7,6 +7,7 @@
 #include "base/atomic.hpp"
 #include "base/io-engine.hpp"
 #include "base/object.hpp"
+#include "base/shared.hpp"
 #include "base/string.hpp"
 #include "base/value.hpp"
 #include <boost/asio/spawn.hpp>
@@ -109,10 +110,10 @@ namespace icinga
 		 */
 		struct WriteQueueItem
 		{
-			std::shared_ptr<Query> FireAndForgetQuery;
-			std::shared_ptr<Queries> FireAndForgetQueries;
-			std::shared_ptr<std::pair<Query, std::promise<Reply>>> GetResultOfQuery;
-			std::shared_ptr<std::pair<Queries, std::promise<Replies>>> GetResultsOfQueries;
+			Shared<Query>::Ptr FireAndForgetQuery;
+			Shared<Queries>::Ptr FireAndForgetQueries;
+			Shared<std::pair<Query, std::promise<Reply>>>::Ptr GetResultOfQuery;
+			Shared<std::pair<Queries, std::promise<Replies>>>::Ptr GetResultsOfQueries;
 		};
 
 		typedef boost::asio::ip::tcp Tcp;
@@ -155,8 +156,8 @@ namespace icinga
 		int m_DbIndex;
 
 		boost::asio::io_context::strand m_Strand;
-		std::shared_ptr<TcpConn> m_TcpConn;
-		std::shared_ptr<UnixConn> m_UnixConn;
+		Shared<TcpConn>::Ptr m_TcpConn;
+		Shared<UnixConn>::Ptr m_UnixConn;
 		Atomic<bool> m_Connecting, m_Connected, m_Started;
 
 		struct {
