@@ -36,13 +36,6 @@ RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int p
 
 void RedisConnection::Start()
 {
-	if (!m_Started.exchange(true)) {
-		Ptr keepAlive (this);
-
-		asio::spawn(m_Strand, [this, keepAlive](asio::yield_context yc) { ReadLoop(yc); });
-		asio::spawn(m_Strand, [this, keepAlive](asio::yield_context yc) { WriteLoop(yc); });
-	}
-
 	if (!m_Connecting.exchange(true)) {
 		Ptr keepAlive (this);
 
@@ -222,6 +215,12 @@ void RedisConnection::Connect(asio::yield_context& yc)
 		timer.async_wait(yc);
 	}
 
+	if (!m_Started.exchange(true)) {
+		Ptr keepAlive (this);
+
+		asio::spawn(m_Strand, [this, keepAlive](asio::yield_context yc) { ReadLoop(yc); });
+		asio::spawn(m_Strand, [this, keepAlive](asio::yield_context yc) { WriteLoop(yc); });
+	}
 }
 
 /**
