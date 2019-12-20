@@ -2,7 +2,7 @@
 
 #include "icingadb/icingadb.hpp"
 #include "icingadb/icingadb-ti.cpp"
-#include "icingadb/redisconnection.hpp"
+#include "base/redisconnection.hpp"
 #include "remote/eventqueue.hpp"
 #include "base/json.hpp"
 #include "icinga/checkable.hpp"

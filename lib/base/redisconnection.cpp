@@ -1,6 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icingadb/redisconnection.hpp"
+#include "base/redisconnection.hpp"
 #include "base/array.hpp"
 #include "base/convert.hpp"
 #include "base/defer.hpp"

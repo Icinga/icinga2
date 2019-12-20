@@ -3,7 +3,7 @@
 mkclass_target(icingadb.ti icingadb-ti.cpp icingadb-ti.hpp)
 
 set(icingadb_SOURCES
-  icingadb.cpp icingadb-objects.cpp icingadb-stats.cpp icingadb-utility.cpp redisconnection.cpp icingadb-ti.hpp
+  icingadb.cpp icingadb-objects.cpp icingadb-stats.cpp icingadb-utility.cpp icingadb-ti.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)
