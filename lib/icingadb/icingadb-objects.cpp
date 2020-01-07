@@ -373,7 +373,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
 	auto env (GetEnvironment());
 	String envId = SHA1(env);
-	auto* configUpdates (runtimeUpdate ? &publishes["icinga:config:update"] : nullptr);
 
 	if (customVarObject) {
 		auto vars(SerializeVars(customVarObject));
@@ -390,16 +389,16 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				allCvs.emplace_back(kv.first);
 				allCvs.emplace_back(JsonEncode(kv.second));
 
-				if (configUpdates) {
-					configUpdates->emplace_back("customvar:" + kv.first);
+				if (runtimeUpdate) {
+					publishes["icinga:config:update:customvar"].emplace_back(kv.first);
 				}
 
 				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 				typeCvs.emplace_back(id);
 				typeCvs.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", envId}, {"customvar_id", kv.first}})));
 
-				if (configUpdates) {
-					configUpdates->emplace_back(typeName + ":customvar:" + id);
+				if (runtimeUpdate) {
+					publishes["icinga:config:update:" + typeName + ":customvar"].emplace_back(id);
 				}
 			}
 		}
@@ -417,8 +416,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			actionUrls.emplace_back(HashValue(new Array({env, actionUrl})));
 			actionUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"action_url", actionUrl}})));
 
-			if (configUpdates) {
-				configUpdates->emplace_back("action_url:" + actionUrls.at(actionUrls.size() - 2u));
+			if (runtimeUpdate) {
+				publishes["icinga:config:update:action_url"].emplace_back(actionUrls.at(actionUrls.size() - 2u));
 			}
 		}
 		if (!notesUrl.IsEmpty()) {
@@ -426,8 +425,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			notesUrls.emplace_back(HashValue(new Array({env, notesUrl})));
 			notesUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"notes_url", notesUrl}})));
 
-			if (configUpdates) {
-				configUpdates->emplace_back("notes_url:" + notesUrls.at(notesUrls.size() - 2u));
+			if (runtimeUpdate) {
+				publishes["icinga:config:update:notes_url"].emplace_back(notesUrls.at(notesUrls.size() - 2u));
 			}
 		}
 		if (!iconImage.IsEmpty()) {
@@ -435,8 +434,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			iconImages.emplace_back(HashValue(new Array({env, iconImage})));
 			iconImages.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"icon_image", iconImage}})));
 
-			if (configUpdates) {
-				configUpdates->emplace_back("icon_image:" + iconImages.at(iconImages.size() - 2u));
+			if (runtimeUpdate) {
+				publishes["icinga:config:update:icon_image"].emplace_back(iconImages.at(iconImages.size() - 2u));
 			}
 		}
 
@@ -469,8 +468,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				members.emplace_back(id);
 				members.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", envId}, {"group_id", groupId}})));
 
-				if (configUpdates) {
-					configUpdates->emplace_back(typeName + ":groupmember:" + id);
+				if (runtimeUpdate) {
+					publishes["icinga:config:update:" + typeName + ":groupmember"].emplace_back(id);
 				}
 
 				groupIds->Add(groupId);
@@ -499,8 +498,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				typeRanges.emplace_back(id);
 				typeRanges.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"range_key", kv.first}, {"range_value", kv.second}})));
 
-				if (configUpdates) {
-					configUpdates->emplace_back(typeName + ":range:" + id);
+				if (runtimeUpdate) {
+					publishes["icinga:config:update:" + typeName + ":range"].emplace_back(id);
 				}
 			}
 		}
@@ -528,8 +527,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			includs.emplace_back(id);
 			includs.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"include_id", includeId}})));
 
-			if (configUpdates) {
-				configUpdates->emplace_back(typeName + ":override:include:" + id);
+			if (runtimeUpdate) {
+				publishes["icinga:config:update:" + typeName + ":override:include"].emplace_back(id);
 			}
 		}
 
@@ -557,8 +556,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			excluds.emplace_back(id);
 			excluds.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"exclude_id", excludeId}})));
 
-			if (configUpdates) {
-				configUpdates->emplace_back(typeName + ":override:exclude:" + id);
+			if (runtimeUpdate) {
+				publishes["icinga:config:update:" + typeName + ":override:exclude"].emplace_back(id);
 			}
 		}
 
@@ -580,8 +579,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			parnts.emplace_back(id);
 			parnts.emplace_back(JsonEncode(new Dictionary({{"zone_id", objectKey}, {"environment_id", envId}, {"parent_id", GetObjectIdentifier(parent)}})));
 
-			if (configUpdates) {
-				configUpdates->emplace_back(typeName + ":parent:" + id);
+			if (runtimeUpdate) {
+				publishes["icinga:config:update:" + typeName + ":parent"].emplace_back(id);
 			}
 
 			parents->Add(GetObjectIdentifier(parent));
@@ -614,8 +613,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				members.emplace_back(id);
 				members.emplace_back(JsonEncode(new Dictionary({{"user_id", objectKey}, {"environment_id", envId}, {"group_id", groupId}})));
 
-				if (configUpdates) {
-					configUpdates->emplace_back(typeName + ":groupmember:" + id);
+				if (runtimeUpdate) {
+					publishes["icinga:config:update:" + typeName + ":groupmember"].emplace_back(id);
 				}
 
 				groupIds->Add(groupId);
@@ -648,8 +647,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			usrs.emplace_back(id);
 			usrs.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"user_id", userId}})));
 
-			if (configUpdates) {
-				configUpdates->emplace_back(typeName + ":user:" + id);
+			if (runtimeUpdate) {
+				publishes["icinga:config:update:" + typeName + ":user"].emplace_back(id);
 			}
 
 			userIds->Add(userId);
@@ -673,8 +672,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			notificationRecipients.emplace_back(id);
 			notificationRecipients.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"usergroup_id", usergroupId}})));
 
-			if (configUpdates) {
-				configUpdates->emplace_back(typeName + ":usergroup:" + id);
+			if (runtimeUpdate) {
+				publishes["icinga:config:update:" + typeName + ":usergroup"].emplace_back(id);
 			}
 
 			usergroupIds->Add(usergroupId);
@@ -686,8 +685,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			notificationRecipients.emplace_back(id);
 			notificationRecipients.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"user_id", userId}})));
 
-			if (configUpdates) {
-				configUpdates->emplace_back(typeName + ":recipient:" + id);
+			if (runtimeUpdate) {
+				publishes["icinga:config:update:" + typeName + ":recipient"].emplace_back(id);
 			}
 		}
 
@@ -732,8 +731,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				typeArgs.emplace_back(id);
 				typeArgs.emplace_back(JsonEncode(values));
 
-				if (configUpdates) {
-					configUpdates->emplace_back(typeName + ":argument:" + id);
+				if (runtimeUpdate) {
+					publishes["icinga:config:update:" + typeName + ":argument"].emplace_back(id);
 				}
 
 				argChksms.emplace_back(id);
@@ -779,8 +778,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				typeVars.emplace_back(id);
 				typeVars.emplace_back(JsonEncode(values));
 
-				if (configUpdates) {
-					configUpdates->emplace_back(typeName + ":envvar:" + id);
+				if (runtimeUpdate) {
+					publishes["icinga:config:update:" + typeName + ":envvar"].emplace_back(id);
 				}
 
 				varChksms.emplace_back(id);
@@ -815,7 +814,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 	if (checkable) {
 		String objectKey = GetObjectIdentifier(object);
 		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixStateObject + typeName, objectKey, JsonEncode(SerializeState(checkable))}, Prio::State);
-		publishes["icinga:config:update"].emplace_back("state:" + typeName + ":" + objectKey);
+		publishes["icinga:config:update:state:" + typeName].emplace_back(objectKey);
 	}
 
 	std::vector<std::vector<String> > transaction = {{"MULTI"}};
@@ -1150,7 +1149,7 @@ IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeN
 
 	/* Send an update event to subscribers. */
 	if (runtimeUpdate) {
-		publishes["icinga:config:update"].emplace_back(typeName + ":" + objectKey);
+		publishes["icinga:config:update:" + typeName].emplace_back(objectKey);
 	}
 }
 
@@ -1162,7 +1161,7 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 	m_Rcon->FireAndForgetQueries({
 								   {"HDEL",    m_PrefixConfigObject + typeName, objectKey},
 								   {"DEL",     m_PrefixStateObject + typeName + ":" + objectKey},
-								   {"PUBLISH", "icinga:config:delete", typeName + ":" + objectKey}
+								   {"PUBLISH", "icinga:config:delete:" + typeName, objectKey}
 						   }, Prio::Config);
 
 	auto checkable (dynamic_pointer_cast<Checkable>(object));
