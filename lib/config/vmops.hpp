@@ -91,9 +91,15 @@ public:
 	}
 
 	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& argNames,
-		const std::map<String, std::unique_ptr<Expression> >& closedVars, const Expression::Ptr& expression)
+		const std::map<String, std::unique_ptr<Expression> >& closedVars,
+		const std::unique_ptr<Expression>& closedThis, const Expression::Ptr& expression)
 	{
 		auto evaluatedClosedVars = EvaluateClosedVars(frame, closedVars);
+		Value evaluatedClosedThis;
+
+		if (closedThis) {
+			evaluatedClosedThis = closedThis->Evaluate(frame);
+		}
 
 		auto wrapper = [argNames, evaluatedClosedVars, expression](const std::vector<Value>& arguments) -> Value {
 			if (arguments.size() < argNames.size())
@@ -112,7 +118,7 @@ public:
 			return expression->Evaluate(*frame);
 		};
 
-		return new Function(name, wrapper, argNames);
+		return new Function(name, wrapper, argNames, (bool)closedThis, std::move(evaluatedClosedThis));
 	}
 
 	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const Expression::Ptr& filter,

@@ -10,8 +10,9 @@ using namespace icinga;
 REGISTER_TYPE_WITH_PROTOTYPE(Function, Function::GetPrototype());
 
 Function::Function(const String& name, Callback function, const std::vector<String>& args,
+	bool hasClosedThis, Value closedThis,
 	bool side_effect_free, bool deprecated)
-	: m_Callback(std::move(function))
+	: m_Callback(std::move(function)), m_HasClosedThis(hasClosedThis), m_ClosedThis(std::move(closedThis))
 {
 	SetName(name, true);
 	SetSideEffectFree(side_effect_free, true);
@@ -21,6 +22,10 @@ Function::Function(const String& name, Callback function, const std::vector<Stri
 
 Value Function::Invoke(const std::vector<Value>& arguments)
 {
+	if (m_HasClosedThis) {
+		return InvokeThis(m_ClosedThis, arguments);
+	}
+
 	ScriptFrame frame(false);
 	return m_Callback(arguments);
 }
