@@ -324,14 +324,14 @@ static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 			break;
 		case SIGUSR2:
 			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
-				&& info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) {
+				&& (info->si_pid == 0 || info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) ) {
 				// The seemless worker currently being started by StartUnixWorker() successfully loaded its config
 				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::LoadedConfig);
 			}
 			break;
 		case SIGCHLD:
 			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
-				&& info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) {
+				&& (info->si_pid == 0 || info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) ) {
 				// The seemless worker currently being started by StartUnixWorker() failed
 				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Failed);
 			}
@@ -368,14 +368,14 @@ static void WorkerSignalHandler(int num, siginfo_t *info, void*)
 {
 	switch (num) {
 		case SIGUSR2:
-			if (info->si_pid == l_UmbrellaPid) {
+			if (info->si_pid == 0 || info->si_pid == l_UmbrellaPid) {
 				// The umbrella process allowed us to continue working beyond config validation
 				l_AllowedToWork.store(true);
 			}
 			break;
 		case SIGINT:
 		case SIGTERM:
-			if (info->si_pid == l_UmbrellaPid) {
+			if (info->si_pid == 0 || info->si_pid == l_UmbrellaPid) {
 				// The umbrella process requested our termination
 				Application::RequestShutdown();
 			}
