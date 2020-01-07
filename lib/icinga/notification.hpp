@@ -83,7 +83,7 @@ public:
 
 	Endpoint::Ptr GetCommandEndpoint() const;
 
-	void ProcessNotificationResult(const NotificationResult::Ptr& nr, const MessageOrigin::Ptr& origin = nullptr);
+	void ProcessNotificationResult(const NotificationResult::Ptr& nr, const MessageOrigin::Ptr& origin);
 
 	// Logging, etc.
 	static String NotificationTypeToString(NotificationType type);
