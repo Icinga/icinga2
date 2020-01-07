@@ -700,7 +700,7 @@ Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origi
 }
 
 void ClusterEvents::NotificationSentUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const User::Ptr& user,
-	NotificationType notificationType, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr, const String& author, const String& commentText, const String& command,
+	NotificationType notificationType, const CheckResult::Ptr& cr, const String& author, const String& commentText, const String& command,
 	const MessageOrigin::Ptr& origin)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -720,7 +720,6 @@ void ClusterEvents::NotificationSentUserHandler(const Notification::Ptr& notific
 	params->Set("user", user->GetName());
 	params->Set("type", notificationType);
 	params->Set("cr", Serialize(cr));
-	params->Set("nr", Serialize(nr));
 	params->Set("author", author);
 	params->Set("text", commentText);
 	params->Set("command", command);
@@ -782,14 +781,6 @@ Value ClusterEvents::NotificationSentUserAPIHandler(const MessageOrigin::Ptr& or
 		}
 	}
 
-	NotificationResult::Ptr nr;
-	if (params->Contains("nr")) {
-		nr = new NotificationResult();
-		Dictionary::Ptr vnr = params->Get("nr");
-
-		Deserialize(nr, vnr, true);
-	}
-
 	NotificationType type = static_cast<NotificationType>(static_cast<int>(params->Get("type")));
 	String author = params->Get("author");
 	String text = params->Get("text");
@@ -806,7 +797,7 @@ Value ClusterEvents::NotificationSentUserAPIHandler(const MessageOrigin::Ptr& or
 
 	String command = params->Get("command");
 
-	Checkable::OnNotificationSentToUser(notification, checkable, user, type, cr, nr, author, text, command, origin);
+	Checkable::OnNotificationSentToUser(notification, checkable, user, type, cr, author, text, command, origin);
 
 	return Empty;
 }

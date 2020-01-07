@@ -50,7 +50,7 @@ void CompatLogger::Start(bool runtimeCreated)
 		<< "This feature is DEPRECATED and will be removed in future releases. Check the roadmap at https://github.com/Icinga/icinga2/milestones";
 
 	Checkable::OnNewCheckResult.connect(std::bind(&CompatLogger::CheckResultHandler, this, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(std::bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8, _9));
+	Checkable::OnNotificationSentToUser.connect(std::bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
 	Downtime::OnDowntimeTriggered.connect(std::bind(&CompatLogger::TriggerDowntimeHandler, this, _1));
 	Downtime::OnDowntimeRemoved.connect(std::bind(&CompatLogger::RemoveDowntimeHandler, this, _1));
 	Checkable::OnEventCommandExecuted.connect(std::bind(&CompatLogger::EventCommandHandler, this, _1));
@@ -230,7 +230,7 @@ void CompatLogger::RemoveDowntimeHandler(const Downtime::Ptr& downtime)
  * @threadsafety Always.
  */
 void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
+	const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
 	const String& author, const String& comment_text, const String& command_name)
 {
 	Host::Ptr host;
