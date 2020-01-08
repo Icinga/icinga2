@@ -40,7 +40,7 @@ namespace icinga
 /**
  * An Async Redis connection.
  *
- * @ingroup icingadb
+ * @ingroup base
  */
 	class RedisConnection final : public Object
 	{
@@ -55,7 +55,7 @@ namespace icinga
 		/**
 		 * Redis query priorities, highest first.
 		 *
-		 * @ingroup icingadb
+		 * @ingroup base
 		 */
 		enum class QueryPriority : unsigned char
 		{
@@ -83,7 +83,7 @@ namespace icinga
 		/**
 		 * What to do with the responses to Redis queries.
 		 *
-		 * @ingroup icingadb
+		 * @ingroup base
 		 */
 		enum class ResponseAction : unsigned char
 		{
@@ -95,7 +95,7 @@ namespace icinga
 		/**
 		 * What to do with how many responses to Redis queries.
 		 *
-		 * @ingroup icingadb
+		 * @ingroup base
 		 */
 		struct FutureResponseAction
 		{
@@ -106,7 +106,7 @@ namespace icinga
 		/**
 		 * Something to be send to Redis.
 		 *
-		 * @ingroup icingadb
+		 * @ingroup base
 		 */
 		struct WriteQueueItem
 		{
@@ -178,7 +178,7 @@ namespace icinga
 /**
  * An error response from the Redis server.
  *
- * @ingroup icingadb
+ * @ingroup base
  */
 class RedisError final : public Object
 {
@@ -201,7 +201,7 @@ private:
 /**
  * Thrown if the connection to the Redis server has already been lost.
  *
- * @ingroup icingadb
+ * @ingroup base
  */
 class RedisDisconnected : public std::runtime_error
 {
@@ -214,7 +214,7 @@ public:
 /**
  * Thrown on malformed Redis server responses.
  *
- * @ingroup icingadb
+ * @ingroup base
  */
 class RedisProtocolError : public std::runtime_error
 {
@@ -227,7 +227,7 @@ protected:
 /**
  * Thrown on malformed types in Redis server responses.
  *
- * @ingroup icingadb
+ * @ingroup base
  */
 class BadRedisType : public RedisProtocolError
 {
@@ -248,7 +248,7 @@ private:
 /**
  * Thrown on malformed ints in Redis server responses.
  *
- * @ingroup icingadb
+ * @ingroup base
  */
 class BadRedisInt : public RedisProtocolError
 {

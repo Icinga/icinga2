@@ -4,7 +4,7 @@
 #define ICINGADB_H
 
 #include "icingadb/icingadb-ti.hpp"
-#include "icingadb/redisconnection.hpp"
+#include "base/redisconnection.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "icinga/customvarobject.hpp"

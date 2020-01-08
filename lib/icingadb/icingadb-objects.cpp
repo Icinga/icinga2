@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icingadb/icingadb.hpp"
-#include "icingadb/redisconnection.hpp"
+#include "base/redisconnection.hpp"
 #include "base/configtype.hpp"
 #include "base/configobject.hpp"
 #include "base/json.hpp"

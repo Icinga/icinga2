@@ -53,6 +53,7 @@ set(base_SOURCES
   perfdatavalue.cpp perfdatavalue.hpp perfdatavalue-ti.hpp
   primitivetype.cpp primitivetype.hpp
   process.cpp process.hpp
+  redisconnection.cpp redisconnection.hpp
   reference.cpp reference.hpp reference-script.cpp
   registry.hpp
   ringbuffer.cpp ringbuffer.hpp
