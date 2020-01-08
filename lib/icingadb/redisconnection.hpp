@@ -31,6 +31,7 @@
 #include <map>
 #include <memory>
 #include <queue>
+#include <set>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -78,6 +79,9 @@ namespace icinga
 
 		Reply GetResultOfQuery(Query query, QueryPriority priority);
 		Replies GetResultsOfQueries(Queries queries, QueryPriority priority);
+
+		void SuppressQueryKind(QueryPriority kind);
+		void UnsuppressQueryKind(QueryPriority kind);
 
 	private:
 		/**
@@ -170,6 +174,9 @@ namespace icinga
 			// Metadata about all of the above
 			std::queue<FutureResponseAction> FutureResponseActions;
 		} m_Queues;
+
+		// Kinds of queries not to actually send yet
+		std::set<QueryPriority> m_SuppressedQueryKinds;
 
 		// Indicate that there's something to send/receive
 		AsioConditionVariable m_QueuedWrites, m_QueuedReads;

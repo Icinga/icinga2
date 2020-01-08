@@ -4,6 +4,7 @@
 #include "icingadb/redisconnection.hpp"
 #include "base/configtype.hpp"
 #include "base/configobject.hpp"
+#include "base/defer.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
@@ -129,6 +130,14 @@ void IcingaDB::UpdateAllConfigObjects()
 		String lcType(type->GetName().ToLower());
 		types.emplace_back(ctype, lcType);
 	}
+
+	m_Rcon->SuppressQueryKind(Prio::CheckResult);
+	m_Rcon->SuppressQueryKind(Prio::State);
+
+	Defer unSuppress ([this]() {
+		m_Rcon->UnsuppressQueryKind(Prio::State);
+		m_Rcon->UnsuppressQueryKind(Prio::CheckResult);
+	});
 
 	m_Rcon->FireAndForgetQuery({"EVAL", l_LuaResetDump, "1", "icinga:dump"}, Prio::Config);
 
