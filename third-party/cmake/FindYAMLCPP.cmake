@@ -48,41 +48,8 @@ if(YAMLCPP_INCLUDE_DIRS AND YAMLCPP_LIBRARIES)
   set(YAMLCPP_HAS_TRACEF 0)
   set(YAMLCPP_HAS_TRACELOG 0)
 
-#  mania: I think I don't need this
-#  if(EXISTS "${JAEGER_INCLUDE_DIRS}/lttng/tracef.h")
-#    set(JAEGER_HAS_TRACEF TRUE)
-#  endif()
-
-#  mania: I think I don't need this
-#  if(EXISTS "${LTTNGUST_INCLUDE_DIRS}/lttng/tracelog.h")
-#    set(LTTNGUST_HAS_TRACELOG TRUE)
-#  endif()
-
-  # get version mania: we may need the version control later but for now we are OK.
-#  set(lttngust_version_file "${LTTNGUST_INCLUDE_DIRS}/lttng/ust-version.h")
-#  if(EXISTS "${lttngust_version_file}")
-#    file(STRINGS "${lttngust_version_file}" lttngust_version_major_string
-#         REGEX "^[\t ]*#define[\t ]+LTTNG_UST_MAJOR_VERSION[\t ]+[0-9]+[\t ]*$")
-#    file(STRINGS "${lttngust_version_file}" lttngust_version_minor_string
-#         REGEX "^[\t ]*#define[\t ]+LTTNG_UST_MINOR_VERSION[\t ]+[0-9]+[\t ]*$")
-#    file(STRINGS "${lttngust_version_file}" lttngust_version_patch_string
-#         REGEX "^[\t ]*#define[\t ]+LTTNG_UST_PATCHLEVEL_VERSION[\t ]+[0-9]+[\t ]*$")
-#    string(REGEX REPLACE ".*([0-9]+).*" "\\1"
-#           lttngust_v_major "${lttngust_version_major_string}")
-#    string(REGEX REPLACE ".*([0-9]+).*" "\\1"
-#           lttngust_v_minor "${lttngust_version_minor_string}")
-#    string(REGEX REPLACE ".*([0-9]+).*" "\\1"
-#           lttngust_v_patch "${lttngust_version_patch_string}")
     set(YAMLCPP_VERSION_STRING
         "0.0.0")
-#    unset(lttngust_version_major_string)
-#    unset(lttngust_version_minor_string)
-#    unset(lttngust_version_patch_string)
-#    unset(lttngust_v_major)
-#    unset(lttngust_v_minor)
-#    unset(lttngust_v_patch)
-#  endif()
-#  unset(lttngust_version_file)
 
   if(NOT TARGET YAMLCPP)
     add_library(YAMLCPP UNKNOWN IMPORTED)

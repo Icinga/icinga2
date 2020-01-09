@@ -69,6 +69,8 @@ add_executable(icinga-app
 )
 
 if (ICINGA2_WITH_JAEGER)
+  message(STATUS "Linking against ${COMPLETE_JAEGER_LIBRARIES}")
+
   target_link_libraries(icinga-app ${base_DEPS} ${COMPLETE_JAEGER_LIBRARIES})
 else()
   target_link_libraries(icinga-app ${base_DEPS})

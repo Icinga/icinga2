@@ -86,6 +86,11 @@ set(base_SOURCES
   workqueue.cpp workqueue.hpp
 )
 
+if(ICINGA2_WITH_JAEGER)
+  list(APPEND base_SOURCES jaegertracer.cpp jaegertracer.hpp)
+  message(STATUS "Building with Jaeger Tracing: ${base_SOURCES}")
+endif()
+
 set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/application-version.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)
 
 if(ICINGA2_UNITY_BUILD)

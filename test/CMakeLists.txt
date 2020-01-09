@@ -187,6 +187,19 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(icinga_checkable test icinga_checkable_test_SOURCES)
 endif()
 
+if (ICINGA2_WITH_JAEGER)
+  message(STATUS "Linking against ${COMPLETE_JAEGER_LIBRARIES}")
+
+add_boost_test(icinga_checkable
+  SOURCES test-runner.cpp ${icinga_checkable_test_SOURCES}
+  LIBRARIES ${base_DEPS} ${COMPLETE_JAEGER_LIBRARIES}
+  TESTS icinga_checkable_flapping/host_not_flapping
+        icinga_checkable_flapping/host_flapping
+        icinga_checkable_flapping/host_flapping_recover
+        icinga_checkable_flapping/host_flapping_docs_example
+)
+else()
+
 add_boost_test(icinga_checkable
   SOURCES test-runner.cpp ${icinga_checkable_test_SOURCES}
   LIBRARIES ${base_DEPS}
@@ -195,3 +208,5 @@ add_boost_test(icinga_checkable
         icinga_checkable_flapping/host_flapping_recover
         icinga_checkable_flapping/host_flapping_docs_example
 )
+
+endif()
