@@ -68,7 +68,11 @@ add_executable(icinga-app
   ${icinga_app_SOURCES}
 )
 
-target_link_libraries(icinga-app ${base_DEPS})
+if (ICINGA2_WITH_JAEGER)
+  target_link_libraries(icinga-app ${base_DEPS} ${COMPLETE_JAEGER_LIBRARIES})
+else()
+  target_link_libraries(icinga-app ${base_DEPS})
+endif()
 
 set_target_properties (
   icinga-app PROPERTIES
