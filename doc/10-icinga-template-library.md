@@ -2448,7 +2448,8 @@ oracle_health_ident              | **Optional.** If set to true, outputs instanc
 oracle_health_commit             | **Optional.** Set this to true to turn on autocommit for the dbd::oracle module. Defaults to false.
 oracle_health_noperfdata         | **Optional.** Set this to true if you want to disable perfdata. Defaults to false.
 oracle_health_timeout            | **Optional.** Plugin timeout. Defaults to 60s.
-oracle_health_report             | **Optional.** Select the plugin output format. Can be short or long. Default to long.
+oracle_health_report             | **Optional.** Select the plugin output format. Can be short or long. Defaults to long.
+oracle_health_notemp             | **Optional.** Set this to true to hide temporary and system tablespaces. Defaults to false.
 
 Environment Macros:
 
