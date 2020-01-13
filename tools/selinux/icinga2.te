@@ -1,4 +1,4 @@
-policy_module(icinga2, 0.2.0)
+policy_module(icinga2, 0.2.1)
 
 ########################################
 #
@@ -175,6 +175,8 @@ optional_policy(`
         mta_send_mail(nagios_notification_plugin_t)
 ')
 icinga2_dontaudit_leaks_fifo(system_mail_t)
+# direct smtp notification
+corenet_tcp_connect_smtp_port(nagios_notification_plugin_t)
 # hipsaint notification
 auth_read_passwd(nagios_notification_plugin_t)
 sysnet_read_config(nagios_notification_plugin_t)
