@@ -10,7 +10,6 @@
 #include "base/shared.hpp"
 #include "base/string.hpp"
 #include "base/value.hpp"
-#include <boost/asio/spawn.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/buffered_stream.hpp>
 #include <boost/asio/io_context.hpp>
@@ -304,7 +303,7 @@ RedisConnection::Reply RedisConnection::ReadOne(StreamPtr& stream, boost::asio::
 			if (!m_Connecting.exchange(true)) {
 				Ptr keepAlive (this);
 
-				asio::spawn(m_Strand, [this, keepAlive](asio::yield_context yc) { Connect(yc); });
+				IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { Connect(yc); });
 			}
 		}
 
@@ -342,7 +341,7 @@ void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query,
 			if (!m_Connecting.exchange(true)) {
 				Ptr keepAlive (this);
 
-				asio::spawn(m_Strand, [this, keepAlive](asio::yield_context yc) { Connect(yc); });
+				IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { Connect(yc); });
 			}
 		}
 
