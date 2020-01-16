@@ -414,14 +414,14 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	Log(LogInformation, "ApiListener")
 		<< "Started new listener on '[" << localEndpoint.address() << "]:" << localEndpoint.port() << "'";
 
-	IoEngine::SpawnCoroutine(io, [this, acceptor](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor, m_SSLContext); });
+	IoEngine::SpawnCoroutine(io, [this, acceptor](YieldContext yc) { ListenerCoroutineProc(yc, acceptor, m_SSLContext); });
 
 	UpdateStatusFile(localEndpoint);
 
 	return true;
 }
 
-void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server, const Shared<boost::asio::ssl::context>::Ptr& sslContext)
+void ApiListener::ListenerCoroutineProc(YieldContext yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server, const Shared<boost::asio::ssl::context>::Ptr& sslContext)
 {
 	namespace asio = boost::asio;
 
@@ -433,7 +433,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 
 			server->async_accept(sslConn->lowest_layer(), yc);
 
-			IoEngine::SpawnCoroutine(io, [this, sslConn](asio::yield_context yc) { NewClientHandler(yc, sslConn, String(), RoleServer); });
+			IoEngine::SpawnCoroutine(io, [this, sslConn](YieldContext yc) { NewClientHandler(yc, sslConn, String(), RoleServer); });
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ApiListener")
 				<< "Cannot accept new connection: " << ex.what();
@@ -458,7 +458,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 	auto& io (IoEngine::Get().GetIoContext());
 
-	IoEngine::SpawnCoroutine(io, [this, endpoint, &io](asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(io, [this, endpoint, &io](YieldContext yc) {
 		String host = endpoint->GetHost();
 		String port = endpoint->GetPort();
 
@@ -484,7 +484,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	});
 }
 
-void ApiListener::NewClientHandler(boost::asio::yield_context yc, const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role)
+void ApiListener::NewClientHandler(YieldContext yc, const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role)
 {
 	try {
 		NewClientHandlerInternal(yc, client, hostname, role);
@@ -502,7 +502,7 @@ void ApiListener::NewClientHandler(boost::asio::yield_context yc, const Shared<A
  *
  * @param client The new client.
  */
-void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role)
+void ApiListener::NewClientHandlerInternal(YieldContext yc, const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role)
 {
 	namespace asio = boost::asio;
 	namespace ssl = asio::ssl;
