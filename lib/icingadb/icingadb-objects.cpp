@@ -2056,6 +2056,7 @@ void IcingaDB::NewCheckResultHandler(const Checkable::Ptr& checkable)
 void IcingaDB::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		rw->m_WorkQueue.Enqueue([rw, checkable]() { rw->UpdateState(checkable); });
 		rw->m_WorkQueue.Enqueue([rw, checkable]() { rw->SendNextUpdate(checkable); });
 	}
 }
