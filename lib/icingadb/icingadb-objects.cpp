@@ -802,6 +802,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 void IcingaDB::UpdateState(const Checkable::Ptr& checkable)
 {
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
 	Dictionary::Ptr stateAttrs = SerializeState(checkable);
 
 	m_Rcon->FireAndForgetQuery({"HSET", m_PrefixStateObject + GetLowerCaseTypeNameDB(checkable), GetObjectIdentifier(checkable), JsonEncode(stateAttrs)}, Prio::State);
