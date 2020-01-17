@@ -187,6 +187,11 @@ include_directories(${JSON_INCLUDE})
 find_package(UTF8CPP)
 include_directories(${UTF8CPP_INCLUDE})
 
+# SPAWN - https://github.com/ceph/spawn
+set(SPAWN_BUILD_TESTS OFF CACHE INTERNAL "disable building of spawn unit tests")
+set(SPAWN_INSTALL OFF CACHE INTERNAL "disable installation of spawn headers")
+include_directories("third-party/spawn/include")
+
 find_package(Editline)
 set(HAVE_EDITLINE "${EDITLINE_FOUND}")
 

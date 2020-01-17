@@ -1,0 +1,3 @@
+[submodule "test/dependency/googletest"]
+	path = test/dependency/googletest
+	url = https://github.com/google/googletest.git

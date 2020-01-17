@@ -4,6 +4,7 @@
 #define IO_ENGINE_H
 
 #include "base/lazy-init.hpp"
+#include "base/yield-context.hpp"
 #include <atomic>
 #include <exception>
 #include <memory>
@@ -14,6 +15,8 @@
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/context/protected_fixedsize_stack.hpp>
+#include <spawn/spawn.hpp>
 
 namespace icinga
 {
@@ -114,12 +117,23 @@ public:
 #endif /* _WIN32 */
 	}
 
+	// New Stack Allocator: Use mmap/mprotect to allocate coroutine stacks
+	// Linux/Unix: 512 KB
+	// Windows: 8 MB
+	static boost::context::protected_fixedsize_stack MakeStackAllocator() {
+#ifdef _WIN32
+		return boost::context::protected_fixedsize_stack{8*1024*1024};
+#else /* _WIN32 */
+		return boost::context::protected_fixedsize_stack{512*1024};
+#endif /* _WIN32 */
+	}
+
 	/* With dedicated strand in *Connection classes. */
 	template <typename Handler, typename Function>
 	static void SpawnCoroutine(Handler h, Function f) {
 
-		boost::asio::spawn(std::forward<Handler>(h),
-			[f](boost::asio::yield_context yc) {
+		spawn::spawn(std::forward<Handler>(h),
+			[f](YieldContext yc) {
 
 				try {
 					f(yc);
@@ -132,7 +146,7 @@ public:
 					rethrowBoostExceptionPointer();
 				}
 			},
-			boost::coroutines::attributes(GetCoroutineStackSize()) // Set a pre-defined stack size.
+			MakeStackAllocator() // Set a pre-defined stack size.
 		);
 	}
 
@@ -140,8 +154,8 @@ public:
 	template <typename Function>
 	static void SpawnCoroutine(boost::asio::io_context& io, Function f) {
 
-		boost::asio::spawn(io,
-			[f](boost::asio::yield_context yc) {
+		spawn::spawn(io,
+			[f](YieldContext yc) {
 
 				try {
 					f(yc);
@@ -154,7 +168,7 @@ public:
 					rethrowBoostExceptionPointer();
 				}
 			},
-			boost::coroutines::attributes(GetCoroutineStackSize()) // Set a pre-defined stack size.
+			MakeStackAllocator() // Set a pre-defined stack size.
 		);
 	}
 
