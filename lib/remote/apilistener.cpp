@@ -1193,7 +1193,13 @@ void ApiListener::RotateLogFile()
 	// If the log is being rotated more than once per second,
 	// don't overwrite the previous one, but silently deny rotation.
 	if (!Utility::PathExists(newpath)) {
-		(void) rename(oldpath.CStr(), newpath.CStr());
+		try {
+			Utility::RenameFile(oldpath, newpath);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "ApiListener")
+				<< "Cannot rotate replay log file from '" << oldpath << "' to '"
+				<< newpath << "': " << ex.what();
+		}
 	}
 }
 
