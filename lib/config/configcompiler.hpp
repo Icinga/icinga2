@@ -141,6 +141,7 @@ public:
 	int m_OpenBraces;
 
 	String m_LexBuffer;
+	String m_LexHeredocEnd;
 	CompilerDebugInfo m_LocationBegin;
 
 	std::stack<bool> m_IgnoreNewlines;

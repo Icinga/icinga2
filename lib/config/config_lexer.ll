@@ -4,6 +4,7 @@
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
 #include "base/exception.hpp"
+#include <boost/algorithm/string/predicate.hpp>
 #include <utility>
 
 using namespace icinga;
@@ -38,6 +39,7 @@ do {							\
 %x C_COMMENT
 %x STRING
 %x HEREDOC
+%x CXX_HEREDOC
 
 %%
 \"				{
@@ -130,6 +132,43 @@ do {							\
 				}
 
 <HEREDOC>(.|\n)			{ yyextra->m_LexBuffer += yytext[0]; }
+
+R\"				{
+	yyextra->m_LexBuffer.Clear();
+	yyextra->m_LexHeredocEnd.Clear();
+
+	yyextra->m_LocationBegin = *yylloc;
+
+	BEGIN(CXX_HEREDOC);
+				}
+
+<CXX_HEREDOC><<EOF>>			{
+	BOOST_THROW_EXCEPTION(ScriptError("End-of-file while in string literal", DebugInfoRange(yyextra->m_LocationBegin, *yylloc)));
+				}
+
+<CXX_HEREDOC>(.|\n)			{
+	if (yyextra->m_LexHeredocEnd.IsEmpty()) {
+		if (yytext[0] == '(') {
+			yyextra->m_LexHeredocEnd = ")" + std::move(yyextra->m_LexBuffer) + "\"";
+			yyextra->m_LexBuffer.Clear();
+		} else {
+			yyextra->m_LexBuffer += yytext[0];
+		}
+	} else {
+		yyextra->m_LexBuffer += yytext[0];
+
+		if (boost::algorithm::ends_with(yyextra->m_LexBuffer, yyextra->m_LexHeredocEnd)) {
+			BEGIN(INITIAL);
+
+			yylloc->FirstLine = yyextra->m_LocationBegin.FirstLine;
+			yylloc->FirstColumn = yyextra->m_LocationBegin.FirstColumn;
+
+			yylval->text = new String(yyextra->m_LexBuffer.SubStr(0, yyextra->m_LexBuffer.GetLength() - yyextra->m_LexHeredocEnd.GetLength()));
+
+			return T_STRING;
+		}
+	}
+				}
 
 <INITIAL>{
 "/*"				BEGIN(C_COMMENT);
