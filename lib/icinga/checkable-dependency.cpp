@@ -72,15 +72,25 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 		}
 	}
 
-	for (const Dependency::Ptr& dep : GetDependencies()) {
+	auto deps = GetDependencies();
+
+	int countFailed = 0;
+
+	for (const Dependency::Ptr& dep : deps) {
 		if (!dep->IsAvailable(dt)) {
+			countFailed++;
+
 			if (failedDependency)
 				*failedDependency = dep;
-
-			return false;
 		}
 	}
 
+	if (countFailed == deps.size()) {
+		Log(LogDebug, "Checkable")
+			<< "All dependencies have failed for checkable '" << GetName() << "': Marking as unreachable.";
+
+		return false;
+	}
 	if (failedDependency)
 		*failedDependency = nullptr;
 
