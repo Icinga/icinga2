@@ -41,6 +41,7 @@ set(base_SOURCES
   generator-array.cpp generator-array.hpp
   generator-filter.cpp generator-filter.hpp
   generator-map.cpp generator-map.hpp
+  generator-range.cpp generator-map.hpp
   generator-unique.cpp generator-unique.hpp
   initialize.cpp initialize.hpp
   intrusive-ptr.hpp
