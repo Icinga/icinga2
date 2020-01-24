@@ -3,6 +3,8 @@
 #include "base/array.hpp"
 #include "base/function.hpp"
 #include "base/functionwrapper.hpp"
+#include "base/generator.hpp"
+#include "base/generator-array.hpp"
 #include "base/scriptframe.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
@@ -233,6 +235,15 @@ static void ArrayFreeze()
 	self->Freeze();
 }
 
+static Generator::Ptr ArrayIter()
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	REQUIRE_NOT_NULL(self);
+
+	return new GeneratorArray(self);
+}
+
 Object::Ptr Array::GetPrototype()
 {
 	static Dictionary::Ptr prototype = new Dictionary({
@@ -253,7 +264,8 @@ Object::Ptr Array::GetPrototype()
 		{ "any", new Function("Array#any", ArrayAny, { "func" }, true) },
 		{ "all", new Function("Array#all", ArrayAll, { "func" }, true) },
 		{ "unique", new Function("Array#unique", ArrayUnique, {}, true) },
-		{ "freeze", new Function("Array#freeze", ArrayFreeze, {}) }
+		{ "freeze", new Function("Array#freeze", ArrayFreeze, {}) },
+		{ "iter", new Function("Array#iter", ArrayIter, {}, true) }
 	});
 
 	return prototype;
