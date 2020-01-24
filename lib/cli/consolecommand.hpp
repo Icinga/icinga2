@@ -44,7 +44,7 @@ private:
 
 	static Shared<AsioTlsStream>::Ptr Connect();
 
-	static Value ExecuteScript(const String& session, const String& command, bool sandboxed);
+	static Value ExecuteScript(const String& session, const String& command, bool sandboxed, double& duration);
 	static Array::Ptr AutoCompleteScript(const String& session, const String& command, bool sandboxed);
 
 	static Dictionary::Ptr SendRequest();

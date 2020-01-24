@@ -5,6 +5,7 @@
 #include "config/configcompiler.hpp"
 #include "remote/consolehandler.hpp"
 #include "remote/url.hpp"
+#include "base/benchmark.hpp"
 #include "base/configwriter.hpp"
 #include "base/serializer.hpp"
 #include "base/json.hpp"
@@ -32,6 +33,7 @@
 #include <boost/beast/http/write.hpp>
 #include <iostream>
 #include <fstream>
+#include <utility>
 
 
 #ifdef HAVE_EDITLINE
@@ -419,6 +421,7 @@ incomplete:
 			lines[fileName] = command;
 
 			Value result;
+			double duration = 0.0;
 
 			/* Local debug console. */
 			if (connectAddr.IsEmpty()) {
@@ -429,13 +432,21 @@ incomplete:
 				if (!syntaxOnly || dynamic_cast<ThrowExpression *>(expr.get())) {
 					if (syntaxOnly)
 						std::cerr << "    => " << command << std::endl;
-					result = Serialize(expr->Evaluate(scriptFrame), 0);
+
+					Benchmark<> benchmark;
+					benchmark.Start();
+
+					auto ev (expr->Evaluate(scriptFrame));
+
+					duration = benchmark.Stop();
+
+					result = Serialize(std::move(ev), 0);
 				} else
 					result = true;
 			} else {
 				/* Remote debug console. */
 				try {
-					result = ExecuteScript(l_Session, command, scriptFrame.Sandboxed);
+					result = ExecuteScript(l_Session, command, scriptFrame.Sandboxed, duration);
 				} catch (const ScriptError&) {
 					/* Re-throw the exception for the outside try-catch block. */
 					boost::rethrow_exception(boost::current_exception());
@@ -456,6 +467,7 @@ incomplete:
 				std::cout << ConsoleColorTag(Console_ForegroundCyan);
 				ConfigWriter::EmitValue(std::cout, 1, result);
 				std::cout << ConsoleColorTag(Console_Normal) << "\n";
+				std::cout << duration << "s\n";
 			} else {
 				std::cout << JsonEncode(result) << "\n";
 				break;
@@ -640,7 +652,7 @@ Dictionary::Ptr ConsoleCommand::SendRequest()
  * @param sandboxed Whether to run this sandboxed.
  * @return Result value, also contains user errors.
  */
-Value ConsoleCommand::ExecuteScript(const String& session, const String& command, bool sandboxed)
+Value ConsoleCommand::ExecuteScript(const String& session, const String& command, bool sandboxed, double& duration)
 {
 	/* Extend the url parameters for the request. */
 	l_Url->SetPath({"v1", "console", "execute-script"});
@@ -662,6 +674,7 @@ Value ConsoleCommand::ExecuteScript(const String& session, const String& command
 
 		if (resultInfo->Get("code") >= 200 && resultInfo->Get("code") <= 299) {
 			result = resultInfo->Get("result");
+			duration = resultInfo->Get("duration");
 		} else {
 			String errorMessage = resultInfo->Get("status");
 
