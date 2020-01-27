@@ -194,6 +194,10 @@ void GraphiteWriter::ReconnectInternal()
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "GraphiteWriter")
 			<< "Can't connect to Graphite on host '" << GetHost() << "' port '" << GetPort() << ".'";
+
+		SetConnected(false);
+
+		throw;
 	}
 
 	SetConnected(true);

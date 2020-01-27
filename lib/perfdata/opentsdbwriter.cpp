@@ -115,8 +115,10 @@ void OpenTsdbWriter::ReconnectTimerHandler()
 	if (GetConnected())
 		return;
 
+	double startTime = Utility::GetTime();
+
 	Log(LogNotice, "OpenTsdbWriter")
-		<< "Reconnect to OpenTSDB TSD on host '" << GetHost() << "' port '" << GetPort() << "'.";
+		<< "Reconnecting to OpenTSDB TSD on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
 	/*
 	 * We're using telnet as input method. Future PRs may change this into using the HTTP API.
@@ -129,9 +131,16 @@ void OpenTsdbWriter::ReconnectTimerHandler()
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "OpenTsdbWriter")
 			<< "Can't connect to OpenTSDB on host '" << GetHost() << "' port '" << GetPort() << ".'";
+
+		SetConnected(false);
+
+		return;
 	}
 
 	SetConnected(true);
+
+	Log(LogInformation, "OpenTsdbWriter")
+		<< "Finished reconnecting to OpenTSDB in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 }
 
 /**
