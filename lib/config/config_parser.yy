@@ -151,6 +151,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_RETURN "return (T_RETURN)"
 %token T_BREAK "break (T_BREAK)"
 %token T_CONTINUE "continue (T_CONTINUE)"
+%token T_YIELD "yield (T_YIELD)"
 %token T_FOR "for (T_FOR)"
 %token T_IF "if (T_IF)"
 %token T_ELSE "else (T_ELSE)"
@@ -191,6 +192,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <cvlist> use_specifier
 %type <cvlist> use_specifier_items
 %type <cvitem> use_specifier_item
+%type <boolean> generator_specifier
 %type <num> object_declaration
 
 %right T_FOLLOWS
@@ -200,7 +202,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %right '?' ':'
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
-%left T_RETURN T_BREAK T_CONTINUE
+%left T_RETURN T_BREAK T_CONTINUE T_YIELD
 %left T_IDENTIFIER
 %left T_BINARY_OR
 %left T_XOR
@@ -357,7 +359,7 @@ object:
 	}
 	object_declaration rterm optional_rterm use_specifier default_specifier ignore_specifier
 	{
-		BeginFlowControlBlock(context, FlowControlReturn, false);
+		BeginFlowControlBlock(context, FlowControlReturnVoid | FlowControlReturnValue, false);
 	}
 	rterm_scope_require_side_effect
 	{
@@ -493,7 +495,7 @@ lterm: T_LIBRARY rterm
 	}
 	| T_ASSIGN T_WHERE
 	{
-		BeginFlowControlBlock(context, FlowControlReturn, false);
+		BeginFlowControlBlock(context, FlowControlReturnVoid | FlowControlReturnValue, false);
 	}
 	rterm_scope %dprec 2
 	{
@@ -529,7 +531,7 @@ lterm: T_LIBRARY rterm
 	}
 	| T_IGNORE T_WHERE
 	{
-		BeginFlowControlBlock(context, FlowControlReturn, false);
+		BeginFlowControlBlock(context, FlowControlReturnVoid | FlowControlReturnValue, false);
 	}
 	rterm_scope %dprec 2
 	{
@@ -563,10 +565,20 @@ lterm: T_LIBRARY rterm
 
 		$$ = MakeLiteralRaw();
 	}
-	| T_RETURN optional_rterm
+	| T_RETURN
 	{
-		UseFlowControl(context, FlowControlReturn, @$);
+		UseFlowControl(context, FlowControlReturnVoid, @$);
+		$$ = new ReturnExpression(std::unique_ptr<Expression>(MakeLiteralRaw()), @$);
+	}
+	| T_RETURN rterm
+	{
+		UseFlowControl(context, FlowControlReturnValue, @$);
 		$$ = new ReturnExpression(std::unique_ptr<Expression>($2), @$);
+	}
+	| T_YIELD rterm
+	{
+		UseFlowControl(context, FlowControlYield, @$);
+		$$ = new YieldExpression(std::unique_ptr<Expression>($2), @$);
 	}
 	| T_BREAK
 	{
@@ -584,7 +596,7 @@ lterm: T_LIBRARY rterm
 	}
 	| T_NAMESPACE rterm
 	{
-		BeginFlowControlBlock(context, FlowControlReturn, false);
+		BeginFlowControlBlock(context, FlowControlReturnVoid | FlowControlReturnValue, false);
 	}
 	rterm_scope_require_side_effect
 	{
@@ -625,20 +637,20 @@ lterm: T_LIBRARY rterm
 		$$ = new ForExpression(std::move(*$4), "", std::unique_ptr<Expression>($6), std::unique_ptr<Expression>($9), @$);
 		delete $4;
 	}
-	| T_FUNCTION identifier '(' identifier_items ')' use_specifier
+	| T_FUNCTION generator_specifier identifier '(' identifier_items ')' use_specifier
 	{
-		BeginFlowControlBlock(context, FlowControlReturn, false);
+		BeginFlowControlBlock(context, FlowControlReturnVoid | ($2 ? FlowControlYield : FlowControlReturnValue), false);
 	}
 	rterm_scope
 	{
 		EndFlowControlBlock(context);
 
-		std::unique_ptr<FunctionExpression> fexpr{new FunctionExpression(*$2, std::move(*$4), std::move(*$6), std::unique_ptr<Expression>($8), @$)};
-		delete $4;
-		delete $6;
+		std::unique_ptr<FunctionExpression> fexpr{new FunctionExpression(*$3, std::move(*$5), std::move(*$7), std::unique_ptr<Expression>($9), $2, @$)};
+		delete $5;
+		delete $7;
 
-		$$ = new SetExpression(MakeIndexer(ScopeThis, std::move(*$2)), OpSetLiteral, std::move(fexpr), @$);
-		delete $2;
+		$$ = new SetExpression(MakeIndexer(ScopeThis, std::move(*$3)), OpSetLiteral, std::move(fexpr), @$);
+		delete $3;
 	}
 	| T_CONST T_IDENTIFIER T_SET rterm
 	{
@@ -915,7 +927,7 @@ rterm_no_side_effect_no_dict: T_STRING
 	}
 	| identifier T_FOLLOWS
 	{
-		BeginFlowControlBlock(context, FlowControlReturn, false);
+		BeginFlowControlBlock(context, FlowControlReturnVoid | FlowControlReturnValue, false);
 	}
 	rterm_scope %dprec 2
 	{
@@ -925,7 +937,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		args.emplace_back(std::move(*$1));
 		delete $1;
 
-		$$ = new FunctionExpression("<anonymous>", std::move(args), {}, std::unique_ptr<Expression>($4), @$);
+		$$ = new FunctionExpression("<anonymous>", std::move(args), {}, std::unique_ptr<Expression>($4), false, @$);
 	}
 	| identifier T_FOLLOWS rterm %dprec 1
 	{
@@ -935,17 +947,17 @@ rterm_no_side_effect_no_dict: T_STRING
 		args.emplace_back(std::move(*$1));
 		delete $1;
 
-		$$ = new FunctionExpression("<anonymous>", std::move(args), {}, std::unique_ptr<Expression>($3), @$);
+		$$ = new FunctionExpression("<anonymous>", std::move(args), {}, std::unique_ptr<Expression>($3), false, @$);
 	}
 	| '(' identifier_items ')' use_specifier T_FOLLOWS
 	{
-		BeginFlowControlBlock(context, FlowControlReturn, false);
+		BeginFlowControlBlock(context, FlowControlReturnVoid | FlowControlReturnValue, false);
 	}
 	rterm_scope %dprec 2
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new FunctionExpression("<anonymous>", std::move(*$2), std::move(*$4), std::unique_ptr<Expression>($7), @$);
+		$$ = new FunctionExpression("<anonymous>", std::move(*$2), std::move(*$4), std::unique_ptr<Expression>($7), false, @$);
 		delete $2;
 		delete $4;
 	}
@@ -953,7 +965,7 @@ rterm_no_side_effect_no_dict: T_STRING
 	{
 		ASSERT(!dynamic_cast<DictExpression *>($6));
 
-		$$ = new FunctionExpression("<anonymous>", std::move(*$2), std::move(*$4), std::unique_ptr<Expression>($6), @$);
+		$$ = new FunctionExpression("<anonymous>", std::move(*$2), std::move(*$4), std::unique_ptr<Expression>($6), false, @$);
 		delete $2;
 		delete $4;
 	}
@@ -987,21 +999,21 @@ rterm_no_side_effect_no_dict: T_STRING
 	| rterm T_DIVIDE_OP rterm { MakeRBinaryOp<DivideExpression>(&$$, $1, $3, @1, @3); }
 	| rterm T_MODULO rterm { MakeRBinaryOp<ModuloExpression>(&$$, $1, $3, @1, @3); }
 	| rterm T_XOR rterm { MakeRBinaryOp<XorExpression>(&$$, $1, $3, @1, @3); }
-	| T_FUNCTION '(' identifier_items ')' use_specifier
+	| T_FUNCTION generator_specifier '(' identifier_items ')' use_specifier
 	{
-		BeginFlowControlBlock(context, FlowControlReturn, false);
+		BeginFlowControlBlock(context, FlowControlReturnVoid | ($2 ? FlowControlYield : FlowControlReturnValue), false);
 	}
 	rterm_scope
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new FunctionExpression("<anonymous>", std::move(*$3), std::move(*$5), std::unique_ptr<Expression>($7), @$);
-		delete $3;
-		delete $5;
+		$$ = new FunctionExpression("<anonymous>", std::move(*$4), std::move(*$6), std::unique_ptr<Expression>($8), $2, @$);
+		delete $4;
+		delete $6;
 	}
 	| T_NULLARY_LAMBDA_BEGIN
 	{
-		BeginFlowControlBlock(context, FlowControlReturn, false);
+		BeginFlowControlBlock(context, FlowControlReturnVoid | FlowControlReturnValue, false);
 	}
 	statements T_NULLARY_LAMBDA_END
 	{
@@ -1019,7 +1031,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		std::unique_ptr<DictExpression> aexpr{new DictExpression(std::move(dlist), @$)};
 		aexpr->MakeInline();
 
-		$$ = new FunctionExpression("<anonymous>", {}, {}, std::move(aexpr), @$);
+		$$ = new FunctionExpression("<anonymous>", {}, {}, std::move(aexpr), false, @$);
 	}
 	;
 
@@ -1105,6 +1117,16 @@ use_specifier_item: identifier
 	}
 	;
 
+generator_specifier: /* empty */
+	{
+		$$ = false;
+	}
+	| T_MULTIPLY
+	{
+		$$ = true;
+	}
+	;
+
 apply_for_specifier: /* empty */
 	| T_FOR '(' optional_var identifier T_FOLLOWS optional_var identifier T_IN rterm ')'
 	{
@@ -1147,7 +1169,7 @@ apply:
 	}
 	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier use_specifier ignore_specifier
 	{
-		BeginFlowControlBlock(context, FlowControlReturn, false);
+		BeginFlowControlBlock(context, FlowControlReturnVoid | FlowControlReturnValue, false);
 	}
 	rterm_scope_require_side_effect
 	{

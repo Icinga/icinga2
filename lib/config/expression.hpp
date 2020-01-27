@@ -734,6 +734,17 @@ protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
+class YieldExpression final : public UnaryExpression
+{
+public:
+	YieldExpression(std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
+		: UnaryExpression(std::move(expression), debugInfo)
+	{ }
+
+protected:
+	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+};
+
 class GetScopeExpression final : public Expression
 {
 public:
@@ -812,8 +823,9 @@ class FunctionExpression final : public DebuggableExpression
 {
 public:
 	FunctionExpression(String name, std::vector<String> args,
-		std::map<String, std::unique_ptr<Expression> >&& closedVars, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Name(std::move(name)), m_Args(std::move(args)), m_ClosedVars(std::move(closedVars)), m_Expression(expression.release())
+		std::map<String, std::unique_ptr<Expression> >&& closedVars, std::unique_ptr<Expression> expression, bool generator, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Name(std::move(name)), m_Args(std::move(args)),
+		m_ClosedVars(std::move(closedVars)), m_Expression(expression.release()), m_Generator(generator)
 	{ }
 
 protected:
@@ -824,6 +836,7 @@ private:
 	std::vector<String> m_Args;
 	std::map<String, std::unique_ptr<Expression> > m_ClosedVars;
 	Expression::Ptr m_Expression;
+	bool m_Generator;
 };
 
 class ApplyExpression final : public DebuggableExpression

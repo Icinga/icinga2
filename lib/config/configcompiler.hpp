@@ -50,9 +50,11 @@ struct EItemInfo
 
 enum FlowControlType
 {
-	FlowControlReturn = 1,
+	FlowControlReturnVoid = 1,
 	FlowControlContinue = 2,
-	FlowControlBreak = 4
+	FlowControlBreak = 4,
+	FlowControlReturnValue = 8,
+	FlowControlYield = 16
 };
 
 struct ZoneFragment
