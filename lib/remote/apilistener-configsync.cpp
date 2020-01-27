@@ -443,21 +443,51 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Log(LogInformation, "ApiListener")
 		<< "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
+	std::set<Type::Ptr> types;
+	std::set<Type::Ptr> completed_types;
+
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		auto *dtype = dynamic_cast<ConfigType *>(type.get());
+		if (ConfigObject::TypeInstance->IsAssignableFrom(type))
+			types.insert(type);
+	}
 
-		if (!dtype)
-			continue;
-
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
-			/* don't sync objects for non-matching parent-child zones */
-			if (!azone->CanAccessObject(object))
+	while (types.size() != completed_types.size()) {
+		for (const Type::Ptr& type : types) {
+			if (completed_types.find(type) != completed_types.end())
 				continue;
 
-			/* send the config object to the connected client */
-			UpdateConfigObject(object, nullptr, aclient);
+			bool unresolved_dep = false;
+
+			/* skip this type (for now) if there are unresolved load dependencies */
+			for (const String& loadDep : type->GetLoadDependencies()) {
+				Type::Ptr pLoadDep = Type::GetByName(loadDep);
+				if (types.find(pLoadDep) != types.end() && completed_types.find(pLoadDep) == completed_types.end()) {
+					unresolved_dep = true;
+					break;
+				}
+			}
+
+			if (unresolved_dep)
+				continue;
+
+			auto *dtype = dynamic_cast<ConfigType *>(type.get());
+			if (!dtype)
+				continue;
+
+			for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+				/* don't sync objects for non-matching parent-child zones */
+				if (!azone->CanAccessObject(object))
+					continue;
+
+				/* send the config object to the connected client */
+				UpdateConfigObject(object, nullptr, aclient);
+			}
+
+			completed_types.insert(type);
+
 		}
 	}
+
 
 	Log(LogInformation, "ApiListener")
 		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
