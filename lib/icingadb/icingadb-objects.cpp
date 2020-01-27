@@ -1896,7 +1896,10 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	else
 		attrs->Set("check_timeout", TimestampToMilliseconds(checkable->GetCheckTimeout()));
 
-	attrs->Set("last_update", TimestampToMilliseconds(Utility::GetTime()));
+	long long lastCheck = TimestampToMilliseconds(checkable->GetLastCheck());
+	if (lastCheck > 0)
+		attrs->Set("last_update", lastCheck);
+
 	attrs->Set("last_state_change", TimestampToMilliseconds(checkable->GetLastStateChange()));
 	attrs->Set("next_check", TimestampToMilliseconds(checkable->GetNextCheck()));
 	attrs->Set("next_update", TimestampToMilliseconds(checkable->GetNextUpdate()));
