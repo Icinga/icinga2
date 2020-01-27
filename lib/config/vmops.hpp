@@ -7,6 +7,7 @@
 #include "config/expression.hpp"
 #include "config/configitembuilder.hpp"
 #include "config/applyrule.hpp"
+#include "config/generator-function.hpp"
 #include "config/objectrule.hpp"
 #include "base/debuginfo.hpp"
 #include "base/array.hpp"
@@ -93,11 +94,11 @@ public:
 	}
 
 	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& argNames,
-		const std::map<String, std::unique_ptr<Expression> >& closedVars, const Expression::Ptr& expression)
+		const std::map<String, std::unique_ptr<Expression> >& closedVars, const Expression::Ptr& expression, bool generator)
 	{
 		auto evaluatedClosedVars = EvaluateClosedVars(frame, closedVars);
 
-		auto wrapper = [argNames, evaluatedClosedVars, expression](const std::vector<Value>& arguments) -> Value {
+		auto wrapper = [argNames, evaluatedClosedVars, expression, generator](const std::vector<Value>& arguments) -> Value {
 			if (arguments.size() < argNames.size())
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
 
@@ -111,7 +112,11 @@ public:
 			for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), argNames.size()); i++)
 				frame->Locals->Set(argNames[i], arguments[i]);
 
-			return expression->Evaluate(*frame);
+			if (generator) {
+				return new GeneratorFunction(expression);
+			} else {
+				return expression->Evaluate(*frame);
+			}
 		};
 
 		return new Function(name, wrapper, argNames);
