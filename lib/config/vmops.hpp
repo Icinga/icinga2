@@ -11,6 +11,7 @@
 #include "base/debuginfo.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
+#include "base/generator.hpp"
 #include "base/namespace.hpp"
 #include "base/function.hpp"
 #include "base/scriptglobal.hpp"
@@ -18,6 +19,7 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace icinga
@@ -184,6 +186,18 @@ public:
 
 			for (Array::SizeType i = 0; i < arr->GetLength(); i++) {
 				frame.Locals->Set(fkvar, arr->Get(i));
+				ExpressionResult res = expression->Evaluate(frame);
+				CHECK_RESULT_LOOP(res);
+			}
+		} else if (value.IsObjectType<Generator>()) {
+			if (!fvvar.IsEmpty())
+				BOOST_THROW_EXCEPTION(ScriptError("Cannot use dictionary iterator for generator.", debugInfo));
+
+			Generator::Ptr gen = value;
+			Value buf;
+
+			while (gen->GetNext(buf)) {
+				frame.Locals->Set(fkvar, std::move(buf));
 				ExpressionResult res = expression->Evaluate(frame);
 				CHECK_RESULT_LOOP(res);
 			}
