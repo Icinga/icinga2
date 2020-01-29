@@ -566,6 +566,28 @@ ICINGA2\_RLIMIT\_FILES     |**Read-write.** Defines the resource limit for `RLIM
 ICINGA2\_RLIMIT\_PROCESSES |**Read-write.** Defines the resource limit for `RLIMIT_NPROC` that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
 ICINGA2\_RLIMIT\_STACK     |**Read-write.** Defines the resource limit for `RLIMIT_STACK` that should be set at start-up. Value cannot be set lower than the default `256 * 1024`. 0 disables the setting. Set in Icinga 2 sysconfig.
 
+#### Debug Constants and Variables <a id="icinga-constants-debug"></a>
+
+These constants are only available in debug builds for developers and help with tracing messages and attaching to debuggers.
+
+Variable                   | Description
+---------------------------|-------------------
+Internal.DebugJsonRpc      | **Read-write.** Setting this to `1` prints the raw JSON-RPC message to STDOUT.
+Internal.DebugWorkerDelay  | **Read-write.** Delays the main worker process by X seconds after forked from the umbrella process. This helps with attaching LLDB which cannot follow child forks like GDB.
+
+Example:
+
+```
+$ icinga2 daemon -DInternal.DebugWorkerDelay=120
+Closed FD 6 which we inherited from our parent process.
+[2020-01-29 12:22:33 +0100] information/cli: Icinga application loader (version: v2.11.0-477-gfe8701d77; debug)
+[2020-01-29 12:22:33 +0100] information/RunWorker: DEBUG: Current PID: 85253. Sleeping for 120 seconds to allow lldb/gdb -p <PID> attachment.
+
+$ lldb -p 85253
+(lldb) b icinga::Checkable::ProcessCheckResult
+(lldb) c
+```
+
 
 ## Apply <a id="apply"></a>
 

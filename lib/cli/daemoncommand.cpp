@@ -191,6 +191,24 @@ pid_t l_UmbrellaPid = 0;
 static Atomic<bool> l_AllowedToWork (false);
 #endif /* _WIN32 */
 
+#ifdef I2_DEBUG
+/**
+ * Determine whether the developer wants to delay the worker process to attach a debugger to it.
+ *
+ * @return Internal.DebugWorkerDelay double
+ */
+static double GetDebugWorkerDelay()
+{
+	Namespace::Ptr internal = ScriptGlobal::Get("Internal", &Empty);
+
+	Value vdebug;
+	if (internal && internal->Get("DebugWorkerDelay", &vdebug))
+		return Convert::ToDouble(vdebug);
+
+	return 0.0;
+}
+#endif /* I2_DEBUG */
+
 /**
  * Do the actual work (config loading, ...)
  *
@@ -203,6 +221,18 @@ static Atomic<bool> l_AllowedToWork (false);
 static inline
 int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = false, const String& stderrFile = String())
 {
+
+#ifdef I2_DEBUG
+	double delay = GetDebugWorkerDelay();
+
+	if (delay > 0.0) {
+		Log(LogInformation, "RunWorker")
+			<< "DEBUG: Current PID: " << Utility::GetPid() << ". Sleeping for " << delay << " seconds to allow lldb/gdb -p <PID> attachment.";
+
+		Utility::Sleep(delay);
+	}
+#endif /* I2_DEBUG */
+
 	Log(LogInformation, "cli", "Loading configuration file(s).");
 
 	{
