@@ -14,7 +14,7 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/objects", ObjectQueryHandler);
 
 Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& object,
-	const String& attrPrefix, const Array::Ptr& attrs, bool isJoin, bool allAttrs)
+	const String& attrPrefix, const Array::Ptr& attrs, const Array::Ptr& blacklistAttrs, bool isJoin, bool allAttrs)
 {
 	Type::Ptr type = object->GetReflectionType();
 
@@ -78,6 +78,10 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 
 		/* hide internal navigation fields */
 		if (field.Attributes & FANavigation && !(field.Attributes & (FAConfig | FAState)))
+			continue;
+
+		/* Ignore user configured blacklisted attributes. Note: This is a heavy string comparison operation. */
+		if (blacklistAttrs && blacklistAttrs->Contains(field.Name))
 			continue;
 
 		Value sval = Serialize(val, FAConfig | FAState);
@@ -189,6 +193,8 @@ bool ObjectQueryHandler::HandleRequest(
 		joinAttrs.insert(field.Name);
 	}
 
+	Array::Ptr blacklistAttrs = user->GetBlacklistAttrs();
+
 	for (const ConfigObject::Ptr& obj : objs) {
 		DictionaryData result1{
 			{ "name", obj->GetName() },
@@ -228,7 +234,7 @@ bool ObjectQueryHandler::HandleRequest(
 		result1.emplace_back("meta", new Dictionary(std::move(metaAttrs)));
 
 		try {
-			result1.emplace_back("attrs", SerializeObjectAttrs(obj, String(), uattrs, false, false));
+			result1.emplace_back("attrs", SerializeObjectAttrs(obj, String(), uattrs, blacklistAttrs, false, false));
 		} catch (const ScriptError& ex) {
 			HttpUtility::SendJsonError(response, params, 400, ex.what());
 			return true;
@@ -260,7 +266,7 @@ bool ObjectQueryHandler::HandleRequest(
 			String prefix = field.NavigationName;
 
 			try {
-				joins.emplace_back(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, true, allJoins));
+				joins.emplace_back(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, blacklistAttrs, true, allJoins));
 			} catch (const ScriptError& ex) {
 				HttpUtility::SendJsonError(response, params, 400, ex.what());
 				return true;
