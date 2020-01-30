@@ -3,11 +3,11 @@
 #ifndef CONFIGITEM_H
 #define CONFIGITEM_H
 
-#include "config/i2-config.hpp"
-#include "config/expression.hpp"
-#include "config/activationcontext.hpp"
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
+#include "config/activationcontext.hpp"
+#include "config/expression.hpp"
+#include "config/i2-config.hpp"
 
 namespace icinga
 {

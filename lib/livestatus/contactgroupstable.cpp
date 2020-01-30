@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "livestatus/contactgroupstable.hpp"
-#include "icinga/usergroup.hpp"
 #include "base/configtype.hpp"
+#include "icinga/usergroup.hpp"
+#include "livestatus/contactgroupstable.hpp"
 
 using namespace icinga;
 

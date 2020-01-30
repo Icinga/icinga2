@@ -3,8 +3,8 @@
 #ifndef USERDBOBJECT_H
 #define USERDBOBJECT_H
 
-#include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
+#include "db_ido/dbobject.hpp"
 
 namespace icinga
 {

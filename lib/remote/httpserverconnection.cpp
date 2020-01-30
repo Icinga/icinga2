@@ -1,15 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/httpserverconnection.hpp"
-#include "remote/httphandler.hpp"
-#include "remote/httputility.hpp"
-#include "remote/apilistener.hpp"
-#include "remote/apifunction.hpp"
-#include "remote/jsonrpc.hpp"
 #include "base/application.hpp"
 #include "base/base64.hpp"
-#include "base/convert.hpp"
 #include "base/configtype.hpp"
+#include "base/convert.hpp"
 #include "base/defer.hpp"
 #include "base/exception.hpp"
 #include "base/io-engine.hpp"
@@ -18,9 +12,12 @@
 #include "base/timer.hpp"
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
-#include <limits>
-#include <memory>
-#include <stdexcept>
+#include "remote/apifunction.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/httphandler.hpp"
+#include "remote/httpserverconnection.hpp"
+#include "remote/httputility.hpp"
+#include "remote/jsonrpc.hpp"
 #include <boost/asio/error.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
@@ -29,6 +26,9 @@
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/thread/once.hpp>
+#include <limits>
+#include <memory>
+#include <stdexcept>
 
 using namespace icinga;
 

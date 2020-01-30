@@ -1,18 +1,18 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/consolehandler.hpp"
-#include "remote/httputility.hpp"
-#include "remote/filterutility.hpp"
-#include "config/configcompiler.hpp"
 #include "base/configtype.hpp"
 #include "base/configwriter.hpp"
-#include "base/scriptglobal.hpp"
+#include "base/initialize.hpp"
 #include "base/logger.hpp"
+#include "base/namespace.hpp"
+#include "base/scriptglobal.hpp"
 #include "base/serializer.hpp"
 #include "base/timer.hpp"
-#include "base/namespace.hpp"
-#include "base/initialize.hpp"
 #include "base/utility.hpp"
+#include "config/configcompiler.hpp"
+#include "remote/consolehandler.hpp"
+#include "remote/filterutility.hpp"
+#include "remote/httputility.hpp"
 #include <boost/thread/once.hpp>
 #include <set>
 

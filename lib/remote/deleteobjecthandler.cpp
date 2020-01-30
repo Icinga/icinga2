@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/deleteobjecthandler.hpp"
-#include "remote/configobjectutility.hpp"
-#include "remote/httputility.hpp"
-#include "remote/filterutility.hpp"
-#include "remote/apiaction.hpp"
-#include "config/configitem.hpp"
 #include "base/exception.hpp"
+#include "config/configitem.hpp"
+#include "remote/apiaction.hpp"
+#include "remote/configobjectutility.hpp"
+#include "remote/deleteobjecthandler.hpp"
+#include "remote/filterutility.hpp"
+#include "remote/httputility.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <set>
 

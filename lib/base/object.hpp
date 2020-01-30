@@ -3,10 +3,10 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include "base/i2-base.hpp"
 #include "base/debug.hpp"
-#include <boost/smart_ptr/intrusive_ptr.hpp>
+#include "base/i2-base.hpp"
 #include <atomic>
+#include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <mutex>

@@ -3,8 +3,8 @@
 #ifndef ENDPOINTDBOBJECT_H
 #define ENDPOINTDBOBJECT_H
 
-#include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
+#include "db_ido/dbobject.hpp"
 #include "remote/endpoint.hpp"
 
 namespace icinga

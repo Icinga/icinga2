@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/io-engine.hpp"
+#include "base/logger.hpp"
+#include "base/singleton.hpp"
+#include "base/utility.hpp"
 #include "config/configcompiler.hpp"
 #include "remote/eventqueue.hpp"
 #include "remote/filterutility.hpp"
-#include "base/io-engine.hpp"
-#include "base/singleton.hpp"
-#include "base/logger.hpp"
-#include "base/utility.hpp"
 #include <boost/asio/spawn.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>

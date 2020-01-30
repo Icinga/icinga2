@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/namespace.hpp"
-#include "base/objectlock.hpp"
 #include "base/debug.hpp"
-#include "base/primitivetype.hpp"
 #include "base/debuginfo.hpp"
 #include "base/exception.hpp"
+#include "base/namespace.hpp"
+#include "base/objectlock.hpp"
+#include "base/primitivetype.hpp"
 #include <sstream>
 
 using namespace icinga;

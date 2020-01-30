@@ -3,10 +3,10 @@
 #ifndef CONSOLECOMMAND_H
 #define CONSOLECOMMAND_H
 
-#include "cli/clicommand.hpp"
 #include "base/exception.hpp"
 #include "base/scriptframe.hpp"
 #include "base/tlsstream.hpp"
+#include "cli/clicommand.hpp"
 #include "remote/url.hpp"
 
 

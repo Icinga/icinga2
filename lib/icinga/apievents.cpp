@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/apievents.hpp"
-#include "icinga/service.hpp"
-#include "icinga/notificationcommand.hpp"
-#include "remote/eventqueue.hpp"
 #include "base/initialize.hpp"
-#include "base/serializer.hpp"
 #include "base/logger.hpp"
+#include "base/serializer.hpp"
+#include "icinga/apievents.hpp"
+#include "icinga/notificationcommand.hpp"
+#include "icinga/service.hpp"
+#include "remote/eventqueue.hpp"
 
 using namespace icinga;
 

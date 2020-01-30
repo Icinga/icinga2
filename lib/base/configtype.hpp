@@ -3,10 +3,10 @@
 #ifndef CONFIGTYPE_H
 #define CONFIGTYPE_H
 
+#include "base/dictionary.hpp"
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
 #include "base/type.hpp"
-#include "base/dictionary.hpp"
 #include <boost/thread/mutex.hpp>
 
 namespace icinga

@@ -3,9 +3,9 @@
 #ifndef ENDPOINT_H
 #define ENDPOINT_H
 
-#include "remote/i2-remote.hpp"
-#include "remote/endpoint-ti.hpp"
 #include "base/ringbuffer.hpp"
+#include "remote/endpoint-ti.hpp"
+#include "remote/i2-remote.hpp"
 #include <set>
 
 namespace icinga

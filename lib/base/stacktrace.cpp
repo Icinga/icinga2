@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/initialize.hpp"
 #include "base/stacktrace.hpp"
 #include "base/utility.hpp"
-#include "base/initialize.hpp"
 
 #ifdef HAVE_BACKTRACE_SYMBOLS
 #	include <execinfo.h>

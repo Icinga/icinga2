@@ -1,9 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/checkable.hpp"
+#include "icinga/customvarobject.hpp"
 #include "icinga/host.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "icinga/customvarobject.hpp"
 #impl_include "icinga/servicegroup.hpp"
 
 library icinga;

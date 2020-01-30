@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "livestatus/servicegroupstable.hpp"
-#include "icinga/servicegroup.hpp"
 #include "base/configtype.hpp"
+#include "icinga/servicegroup.hpp"
+#include "livestatus/servicegroupstable.hpp"
 
 using namespace icinga;
 

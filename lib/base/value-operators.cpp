@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/value.hpp"
 #include "base/array.hpp"
-#include "base/dictionary.hpp"
-#include "base/datetime.hpp"
 #include "base/convert.hpp"
-#include "base/utility.hpp"
+#include "base/datetime.hpp"
+#include "base/dictionary.hpp"
 #include "base/objectlock.hpp"
+#include "base/utility.hpp"
+#include "base/value.hpp"
 #include <boost/lexical_cast.hpp>
 
 using namespace icinga;

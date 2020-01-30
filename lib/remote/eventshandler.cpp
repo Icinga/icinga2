@@ -1,17 +1,17 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/eventshandler.hpp"
-#include "remote/httputility.hpp"
-#include "remote/filterutility.hpp"
-#include "config/configcompiler.hpp"
-#include "config/expression.hpp"
 #include "base/defer.hpp"
 #include "base/io-engine.hpp"
-#include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include "base/objectlock.hpp"
+#include "config/configcompiler.hpp"
+#include "config/expression.hpp"
+#include "remote/eventshandler.hpp"
+#include "remote/filterutility.hpp"
+#include "remote/httputility.hpp"
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/write.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <map>
 #include <set>
 

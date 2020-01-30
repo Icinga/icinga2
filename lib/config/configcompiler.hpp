@@ -3,12 +3,12 @@
 #ifndef CONFIGCOMPILER_H
 #define CONFIGCOMPILER_H
 
-#include "config/i2-config.hpp"
-#include "config/expression.hpp"
 #include "base/debuginfo.hpp"
-#include "base/registry.hpp"
 #include "base/initialize.hpp"
+#include "base/registry.hpp"
 #include "base/singleton.hpp"
+#include "config/expression.hpp"
+#include "config/i2-config.hpp"
 #include <future>
 #include <iostream>
 #include <stack>

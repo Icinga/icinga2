@@ -1,18 +1,18 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/application.hpp"
+#include "base/configtype.hpp"
+#include "base/convert.hpp"
+#include "base/function.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/cib.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/service.hpp"
 #include "methods/clusterchecktask.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/endpoint.hpp"
-#include "icinga/cib.hpp"
-#include "icinga/service.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "icinga/checkcommand.hpp"
-#include "base/application.hpp"
-#include "base/objectlock.hpp"
-#include "base/convert.hpp"
-#include "base/utility.hpp"
-#include "base/function.hpp"
-#include "base/configtype.hpp"
 #include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;

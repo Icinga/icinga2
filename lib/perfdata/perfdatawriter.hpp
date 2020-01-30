@@ -3,10 +3,10 @@
 #ifndef PERFDATAWRITER_H
 #define PERFDATAWRITER_H
 
-#include "perfdata/perfdatawriter-ti.hpp"
-#include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/timer.hpp"
+#include "icinga/service.hpp"
+#include "perfdata/perfdatawriter-ti.hpp"
 #include <fstream>
 
 namespace icinga

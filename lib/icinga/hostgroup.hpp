@@ -3,9 +3,9 @@
 #ifndef HOSTGROUP_H
 #define HOSTGROUP_H
 
-#include "icinga/i2-icinga.hpp"
-#include "icinga/hostgroup-ti.hpp"
 #include "icinga/host.hpp"
+#include "icinga/hostgroup-ti.hpp"
+#include "icinga/i2-icinga.hpp"
 
 namespace icinga
 {

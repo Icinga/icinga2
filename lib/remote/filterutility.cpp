@@ -1,14 +1,14 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/filterutility.hpp"
-#include "remote/httputility.hpp"
+#include "base/configtype.hpp"
+#include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/namespace.hpp"
+#include "base/utility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
-#include "base/namespace.hpp"
-#include "base/json.hpp"
-#include "base/configtype.hpp"
-#include "base/logger.hpp"
-#include "base/utility.hpp"
+#include "remote/filterutility.hpp"
+#include "remote/httputility.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 
 using namespace icinga;

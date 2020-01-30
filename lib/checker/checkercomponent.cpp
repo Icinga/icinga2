@@ -2,18 +2,18 @@
 
 #include "checker/checkercomponent.hpp"
 #include "checker/checkercomponent-ti.cpp"
-#include "icinga/icingaapplication.hpp"
-#include "icinga/cib.hpp"
-#include "remote/apilistener.hpp"
-#include "base/configuration.hpp"
 #include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
-#include "base/logger.hpp"
-#include "base/exception.hpp"
+#include "base/configuration.hpp"
 #include "base/convert.hpp"
+#include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/statsfunction.hpp"
+#include "base/utility.hpp"
+#include "icinga/cib.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "remote/apilistener.hpp"
 
 using namespace icinga;
 

@@ -3,9 +3,9 @@
 #ifndef SERVICEGROUPDBOBJECT_H
 #define SERVICEGROUPDBOBJECT_H
 
+#include "base/configobject.hpp"
 #include "db_ido/dbobject.hpp"
 #include "icinga/servicegroup.hpp"
-#include "base/configobject.hpp"
 
 namespace icinga
 {

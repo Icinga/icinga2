@@ -1,15 +1,15 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "livestatus/endpointstable.hpp"
+#include "base/configtype.hpp"
+#include "base/convert.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
 #include "icinga/host.hpp"
-#include "icinga/service.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "icinga/service.hpp"
+#include "livestatus/endpointstable.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/zone.hpp"
-#include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/convert.hpp"
-#include "base/utility.hpp"
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;

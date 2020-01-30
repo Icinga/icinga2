@@ -1,28 +1,28 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/application.hpp"
+#include "base/atomic.hpp"
+#include "base/context.hpp"
+#include "base/convert.hpp"
+#include "base/defer.hpp"
+#include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/scriptglobal.hpp"
+#include "base/timer.hpp"
+#include "base/utility.hpp"
 #include "cli/daemoncommand.hpp"
 #include "cli/daemonutility.hpp"
-#include "remote/apilistener.hpp"
-#include "remote/configobjectutility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
-#include "base/atomic.hpp"
-#include "base/defer.hpp"
-#include "base/logger.hpp"
-#include "base/application.hpp"
-#include "base/timer.hpp"
-#include "base/utility.hpp"
-#include "base/exception.hpp"
-#include "base/convert.hpp"
-#include "base/scriptglobal.hpp"
-#include "base/context.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/configobjectutility.hpp"
 #include "config.h"
+#include <boost/program_options.hpp>
 #include <cstdint>
 #include <cstring>
-#include <boost/program_options.hpp>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #ifdef _WIN32
 #include <windows.h>

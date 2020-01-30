@@ -3,17 +3,17 @@
 #ifndef EXCEPTION_H
 #define EXCEPTION_H
 
-#include "base/i2-base.hpp"
-#include "base/string.hpp"
-#include "base/stacktrace.hpp"
+#include "base/configobject.hpp"
 #include "base/context.hpp"
 #include "base/debuginfo.hpp"
 #include "base/dictionary.hpp"
-#include "base/configobject.hpp"
+#include "base/i2-base.hpp"
+#include "base/stacktrace.hpp"
+#include "base/string.hpp"
+#include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
-#include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception_ptr.hpp>
 
 #ifdef _WIN32

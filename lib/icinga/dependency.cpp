@@ -2,9 +2,9 @@
 
 #include "icinga/dependency.hpp"
 #include "icinga/dependency-ti.cpp"
-#include "icinga/service.hpp"
-#include "base/logger.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "icinga/service.hpp"
 
 using namespace icinga;
 

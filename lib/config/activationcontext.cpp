@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "config/activationcontext.hpp"
 #include "base/exception.hpp"
+#include "config/activationcontext.hpp"
 
 using namespace icinga;
 

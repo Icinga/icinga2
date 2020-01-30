@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/service.hpp"
-#include "remote/configobjectutility.hpp"
 #include "base/configtype.hpp"
+#include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
-#include "base/logger.hpp"
+#include "icinga/service.hpp"
+#include "remote/configobjectutility.hpp"
 
 using namespace icinga;
 

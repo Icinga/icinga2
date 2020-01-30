@@ -3,8 +3,8 @@
 #ifndef MINAGGREGATOR_H
 #define MINAGGREGATOR_H
 
-#include "livestatus/table.hpp"
 #include "livestatus/aggregator.hpp"
+#include "livestatus/table.hpp"
 #include <cfloat>
 
 namespace icinga

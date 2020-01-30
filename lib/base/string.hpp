@@ -6,8 +6,8 @@
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
 #include <boost/range/iterator.hpp>
-#include <string>
 #include <iosfwd>
+#include <string>
 
 namespace icinga {
 

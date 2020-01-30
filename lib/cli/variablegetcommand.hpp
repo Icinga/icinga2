@@ -3,8 +3,8 @@
 #ifndef VARIABLEGETCOMMAND_H
 #define VARIABLEGETCOMMAND_H
 
-#include "base/dictionary.hpp"
 #include "base/array.hpp"
+#include "base/dictionary.hpp"
 #include "cli/clicommand.hpp"
 #include <ostream>
 

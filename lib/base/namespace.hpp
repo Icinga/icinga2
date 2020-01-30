@@ -3,14 +3,14 @@
 #ifndef NAMESPACE_H
 #define NAMESPACE_H
 
+#include "base/debuginfo.hpp"
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
 #include "base/shared-object.hpp"
 #include "base/value.hpp"
-#include "base/debuginfo.hpp"
 #include <map>
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace icinga
 {

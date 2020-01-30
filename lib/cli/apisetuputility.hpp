@@ -3,12 +3,12 @@
 #ifndef APISETUPUTILITY_H
 #define APISETUPUTILITY_H
 
-#include "base/i2-base.hpp"
-#include "cli/i2-cli.hpp"
-#include "base/dictionary.hpp"
 #include "base/array.hpp"
-#include "base/value.hpp"
+#include "base/dictionary.hpp"
+#include "base/i2-base.hpp"
 #include "base/string.hpp"
+#include "base/value.hpp"
+#include "cli/i2-cli.hpp"
 #include <vector>
 
 namespace icinga

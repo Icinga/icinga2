@@ -3,10 +3,10 @@
 #ifndef NOTIFICATIONCOMPONENT_H
 #define NOTIFICATIONCOMPONENT_H
 
-#include "notification/notificationcomponent-ti.hpp"
-#include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/timer.hpp"
+#include "icinga/service.hpp"
+#include "notification/notificationcomponent-ti.hpp"
 
 namespace icinga
 {

@@ -4,10 +4,10 @@
 #define FEATUREUTILITY_H
 
 #include "base/i2-base.hpp"
-#include "cli/i2-cli.hpp"
 #include "base/string.hpp"
-#include <vector>
+#include "cli/i2-cli.hpp"
 #include <iostream>
+#include <vector>
 
 namespace icinga
 {

@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/objecttype.hpp"
 #include "base/initialize.hpp"
+#include "base/objecttype.hpp"
 #include <boost/throw_exception.hpp>
 
 using namespace icinga;

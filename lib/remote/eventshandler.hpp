@@ -3,8 +3,8 @@
 #ifndef EVENTSHANDLER_H
 #define EVENTSHANDLER_H
 
-#include "remote/httphandler.hpp"
 #include "remote/eventqueue.hpp"
+#include "remote/httphandler.hpp"
 
 namespace icinga
 {

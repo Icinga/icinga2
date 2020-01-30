@@ -3,8 +3,8 @@
 #ifndef CHECKRESULTREADER_H
 #define CHECKRESULTREADER_H
 
-#include "compat/checkresultreader-ti.hpp"
 #include "base/timer.hpp"
+#include "compat/checkresultreader-ti.hpp"
 #include <fstream>
 
 namespace icinga

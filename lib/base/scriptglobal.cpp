@@ -1,15 +1,15 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/convert.hpp"
+#include "base/exception.hpp"
+#include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/namespace.hpp"
+#include "base/netstring.hpp"
+#include "base/objectlock.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/singleton.hpp"
-#include "base/logger.hpp"
 #include "base/stdiostream.hpp"
-#include "base/netstring.hpp"
-#include "base/json.hpp"
-#include "base/convert.hpp"
-#include "base/objectlock.hpp"
-#include "base/exception.hpp"
-#include "base/namespace.hpp"
 #include "base/utility.hpp"
 #include <fstream>
 

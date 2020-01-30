@@ -3,9 +3,9 @@
 #ifndef SCRIPTFRAME_H
 #define SCRIPTFRAME_H
 
-#include "base/i2-base.hpp"
-#include "base/dictionary.hpp"
 #include "base/array.hpp"
+#include "base/dictionary.hpp"
+#include "base/i2-base.hpp"
 #include <boost/thread/tss.hpp>
 #include <stack>
 

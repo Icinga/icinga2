@@ -2,16 +2,16 @@
 
 #include "db_ido/dbconnection.hpp"
 #include "db_ido/dbconnection-ti.cpp"
-#include "db_ido/dbvalue.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "icinga/host.hpp"
-#include "icinga/service.hpp"
 #include "base/configtype.hpp"
 #include "base/convert.hpp"
+#include "base/exception.hpp"
+#include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
-#include "base/logger.hpp"
-#include "base/exception.hpp"
+#include "db_ido/dbvalue.hpp"
+#include "icinga/host.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/service.hpp"
 
 using namespace icinga;
 

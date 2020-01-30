@@ -3,9 +3,9 @@
 #ifndef APIACTIONS_H
 #define APIACTIONS_H
 
-#include "icinga/i2-icinga.hpp"
 #include "base/configobject.hpp"
 #include "base/dictionary.hpp"
+#include "icinga/i2-icinga.hpp"
 
 namespace icinga
 {

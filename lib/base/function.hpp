@@ -3,11 +3,11 @@
 #ifndef FUNCTION_H
 #define FUNCTION_H
 
-#include "base/i2-base.hpp"
 #include "base/function-ti.hpp"
-#include "base/value.hpp"
 #include "base/functionwrapper.hpp"
+#include "base/i2-base.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/value.hpp"
 #include <vector>
 
 namespace icinga

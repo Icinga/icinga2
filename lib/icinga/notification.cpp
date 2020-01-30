@@ -2,16 +2,16 @@
 
 #include "icinga/notification.hpp"
 #include "icinga/notification-ti.cpp"
-#include "icinga/notificationcommand.hpp"
-#include "icinga/service.hpp"
-#include "remote/apilistener.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
-#include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/utility.hpp"
+#include "icinga/notificationcommand.hpp"
+#include "icinga/service.hpp"
+#include "remote/apilistener.hpp"
 #include <algorithm>
 
 using namespace icinga;

@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/objectqueryhandler.hpp"
-#include "remote/httputility.hpp"
-#include "remote/filterutility.hpp"
-#include "base/serializer.hpp"
-#include "base/dependencygraph.hpp"
 #include "base/configtype.hpp"
+#include "base/dependencygraph.hpp"
+#include "base/serializer.hpp"
+#include "remote/filterutility.hpp"
+#include "remote/httputility.hpp"
+#include "remote/objectqueryhandler.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <set>
 

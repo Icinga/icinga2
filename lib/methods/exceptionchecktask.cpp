@@ -3,12 +3,12 @@
 #ifndef _WIN32
 #	include <stdlib.h>
 #endif /* _WIN32 */
-#include "methods/exceptionchecktask.hpp"
-#include "base/utility.hpp"
 #include "base/convert.hpp"
+#include "base/exception.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
-#include "base/exception.hpp"
+#include "base/utility.hpp"
+#include "methods/exceptionchecktask.hpp"
 
 using namespace icinga;
 

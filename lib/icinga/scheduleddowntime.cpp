@@ -2,16 +2,16 @@
 
 #include "icinga/scheduleddowntime.hpp"
 #include "icinga/scheduleddowntime-ti.cpp"
-#include "icinga/legacytimeperiod.hpp"
-#include "icinga/downtime.hpp"
-#include "icinga/service.hpp"
-#include "base/timer.hpp"
 #include "base/configtype.hpp"
-#include "base/utility.hpp"
-#include "base/objectlock.hpp"
 #include "base/convert.hpp"
-#include "base/logger.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/timer.hpp"
+#include "base/utility.hpp"
+#include "icinga/downtime.hpp"
+#include "icinga/legacytimeperiod.hpp"
+#include "icinga/service.hpp"
 #include <boost/thread/once.hpp>
 
 using namespace icinga;

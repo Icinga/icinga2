@@ -4,15 +4,15 @@
 #define WORKQUEUE_H
 
 #include "base/i2-base.hpp"
-#include "base/timer.hpp"
 #include "base/ringbuffer.hpp"
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <boost/exception_ptr.hpp>
-#include <queue>
-#include <deque>
+#include "base/timer.hpp"
 #include <atomic>
+#include <boost/exception_ptr.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
+#include <deque>
+#include <queue>
 
 namespace icinga
 {

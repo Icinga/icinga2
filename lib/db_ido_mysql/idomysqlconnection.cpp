@@ -2,17 +2,17 @@
 
 #include "db_ido_mysql/idomysqlconnection.hpp"
 #include "db_ido_mysql/idomysqlconnection-ti.cpp"
-#include "db_ido/dbtype.hpp"
-#include "db_ido/dbvalue.hpp"
-#include "base/logger.hpp"
-#include "base/objectlock.hpp"
-#include "base/convert.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
 #include "base/application.hpp"
 #include "base/configtype.hpp"
+#include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/statsfunction.hpp"
+#include "base/utility.hpp"
+#include "db_ido/dbtype.hpp"
+#include "db_ido/dbvalue.hpp"
 #include <utility>
 
 using namespace icinga;

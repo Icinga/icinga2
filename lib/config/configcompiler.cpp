@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "config/configcompiler.hpp"
-#include "config/configitem.hpp"
-#include "base/logger.hpp"
-#include "base/utility.hpp"
-#include "base/loader.hpp"
 #include "base/context.hpp"
 #include "base/exception.hpp"
+#include "base/loader.hpp"
+#include "base/logger.hpp"
+#include "base/utility.hpp"
+#include "config/configcompiler.hpp"
+#include "config/configitem.hpp"
 #include <fstream>
 
 using namespace icinga;

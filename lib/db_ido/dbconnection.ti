@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "db_ido/dbquery.hpp"
 #include "base/configobject.hpp"
+#include "db_ido/dbquery.hpp"
 
 library db_ido;
 

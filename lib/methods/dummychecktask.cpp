@@ -3,14 +3,14 @@
 #ifndef _WIN32
 #	include <stdlib.h>
 #endif /* _WIN32 */
-#include "methods/dummychecktask.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "icinga/pluginutility.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
 #include "base/convert.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
+#include "base/perfdatavalue.hpp"
+#include "base/utility.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/pluginutility.hpp"
+#include "methods/dummychecktask.hpp"
 
 using namespace icinga;
 

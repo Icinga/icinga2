@@ -1,6 +1,5 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icingadb/redisconnection.hpp"
 #include "base/array.hpp"
 #include "base/convert.hpp"
 #include "base/defer.hpp"
@@ -9,6 +8,7 @@
 #include "base/objectlock.hpp"
 #include "base/string.hpp"
 #include "base/tcpsocket.hpp"
+#include "icingadb/redisconnection.hpp"
 #include <boost/asio.hpp>
 #include <boost/coroutine/exceptions.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>

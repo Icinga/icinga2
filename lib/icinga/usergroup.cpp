@@ -2,13 +2,13 @@
 
 #include "icinga/usergroup.hpp"
 #include "icinga/usergroup-ti.cpp"
-#include "config/objectrule.hpp"
-#include "config/configitem.hpp"
 #include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
 #include "base/context.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
 #include "base/workqueue.hpp"
+#include "config/configitem.hpp"
+#include "config/objectrule.hpp"
 
 using namespace icinga;
 

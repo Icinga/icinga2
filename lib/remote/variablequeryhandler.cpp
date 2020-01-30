@@ -1,13 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/variablequeryhandler.hpp"
-#include "remote/httputility.hpp"
-#include "remote/filterutility.hpp"
 #include "base/configtype.hpp"
-#include "base/scriptglobal.hpp"
 #include "base/logger.hpp"
-#include "base/serializer.hpp"
 #include "base/namespace.hpp"
+#include "base/scriptglobal.hpp"
+#include "base/serializer.hpp"
+#include "remote/filterutility.hpp"
+#include "remote/httputility.hpp"
+#include "remote/variablequeryhandler.hpp"
 #include <set>
 
 using namespace icinga;

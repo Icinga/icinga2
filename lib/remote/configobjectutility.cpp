@@ -1,14 +1,14 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/configobjectutility.hpp"
-#include "remote/configpackageutility.hpp"
-#include "remote/apilistener.hpp"
+#include "base/configwriter.hpp"
+#include "base/dependencygraph.hpp"
+#include "base/exception.hpp"
+#include "base/utility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configitem.hpp"
-#include "base/configwriter.hpp"
-#include "base/exception.hpp"
-#include "base/dependencygraph.hpp"
-#include "base/utility.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/configobjectutility.hpp"
+#include "remote/configpackageutility.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>

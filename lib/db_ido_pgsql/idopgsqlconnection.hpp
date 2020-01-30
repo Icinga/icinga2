@@ -3,12 +3,12 @@
 #ifndef IDOPGSQLCONNECTION_H
 #define IDOPGSQLCONNECTION_H
 
-#include "db_ido_pgsql/idopgsqlconnection-ti.hpp"
-#include "pgsql_shim/pgsqlinterface.hpp"
 #include "base/array.hpp"
+#include "base/library.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include "base/library.hpp"
+#include "db_ido_pgsql/idopgsqlconnection-ti.hpp"
+#include "pgsql_shim/pgsqlinterface.hpp"
 
 namespace icinga
 {

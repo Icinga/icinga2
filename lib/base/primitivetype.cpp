@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/primitivetype.hpp"
 #include "base/dictionary.hpp"
+#include "base/primitivetype.hpp"
 
 using namespace icinga;
 

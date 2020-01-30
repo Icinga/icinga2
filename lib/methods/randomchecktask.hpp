@@ -3,8 +3,8 @@
 #ifndef RANDOMCHECKTASK_H
 #define RANDOMCHECKTASK_H
 
-#include "icinga/service.hpp"
 #include "base/dictionary.hpp"
+#include "icinga/service.hpp"
 
 namespace icinga
 {

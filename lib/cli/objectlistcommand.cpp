@@ -1,23 +1,23 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "cli/objectlistcommand.hpp"
-#include "cli/objectlistutility.hpp"
-#include "base/logger.hpp"
 #include "base/application.hpp"
-#include "base/convert.hpp"
 #include "base/configobject.hpp"
 #include "base/configtype.hpp"
-#include "base/json.hpp"
-#include "base/netstring.hpp"
-#include "base/stdiostream.hpp"
-#include "base/debug.hpp"
-#include "base/objectlock.hpp"
 #include "base/console.hpp"
+#include "base/convert.hpp"
+#include "base/debug.hpp"
+#include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/netstring.hpp"
+#include "base/objectlock.hpp"
+#include "base/stdiostream.hpp"
+#include "cli/objectlistcommand.hpp"
+#include "cli/objectlistutility.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 using namespace icinga;
 namespace po = boost::program_options;

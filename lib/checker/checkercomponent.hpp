@@ -3,16 +3,16 @@
 #ifndef CHECKERCOMPONENT_H
 #define CHECKERCOMPONENT_H
 
-#include "checker/checkercomponent-ti.hpp"
-#include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
+#include "checker/checkercomponent-ti.hpp"
+#include "icinga/service.hpp"
 #include <boost/multi_index/key_extractors.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/mutex.hpp>
 #include <thread>
 
 namespace icinga

@@ -3,9 +3,9 @@
 #ifndef OBJECTRULE_H
 #define OBJECTRULE_H
 
-#include "config/i2-config.hpp"
-#include "config/expression.hpp"
 #include "base/debuginfo.hpp"
+#include "config/expression.hpp"
+#include "config/i2-config.hpp"
 #include <set>
 
 namespace icinga

@@ -3,9 +3,9 @@
 #ifndef PLUGINEVENTTASK_H
 #define PLUGINEVENTTASK_H
 
-#include "methods/i2-methods.hpp"
-#include "icinga/service.hpp"
 #include "base/process.hpp"
+#include "icinga/service.hpp"
+#include "methods/i2-methods.hpp"
 
 namespace icinga
 {

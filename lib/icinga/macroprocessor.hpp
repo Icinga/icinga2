@@ -3,9 +3,9 @@
 #ifndef MACROPROCESSOR_H
 #define MACROPROCESSOR_H
 
-#include "icinga/i2-icinga.hpp"
-#include "icinga/checkable.hpp"
 #include "base/value.hpp"
+#include "icinga/checkable.hpp"
+#include "icinga/i2-icinga.hpp"
 #include <vector>
 
 namespace icinga

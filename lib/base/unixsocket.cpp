@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/unixsocket.hpp"
 #include "base/exception.hpp"
+#include "base/unixsocket.hpp"
 
 #ifndef _WIN32
 using namespace icinga;

@@ -3,12 +3,12 @@
 #ifndef SCRIPTUTILS_H
 #define SCRIPTUTILS_H
 
+#include "base/array.hpp"
+#include "base/configobject.hpp"
+#include "base/dictionary.hpp"
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include "base/array.hpp"
-#include "base/dictionary.hpp"
 #include "base/type.hpp"
-#include "base/configobject.hpp"
 
 namespace icinga
 {

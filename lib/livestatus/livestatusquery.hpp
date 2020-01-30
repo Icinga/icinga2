@@ -3,12 +3,12 @@
 #ifndef LIVESTATUSQUERY_H
 #define LIVESTATUSQUERY_H
 
-#include "livestatus/filter.hpp"
-#include "livestatus/aggregator.hpp"
-#include "base/object.hpp"
 #include "base/array.hpp"
-#include "base/stream.hpp"
+#include "base/object.hpp"
 #include "base/scriptframe.hpp"
+#include "base/stream.hpp"
+#include "livestatus/aggregator.hpp"
+#include "livestatus/filter.hpp"
 #include <deque>
 
 using namespace icinga;

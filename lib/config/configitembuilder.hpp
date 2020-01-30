@@ -3,10 +3,10 @@
 #ifndef CONFIGITEMBUILDER_H
 #define CONFIGITEMBUILDER_H
 
-#include "config/expression.hpp"
-#include "config/configitem.hpp"
 #include "base/debuginfo.hpp"
 #include "base/object.hpp"
+#include "config/configitem.hpp"
+#include "config/expression.hpp"
 
 namespace icinga
 {

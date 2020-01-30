@@ -2,12 +2,12 @@
 
 #include "icinga/downtime.hpp"
 #include "icinga/downtime-ti.cpp"
+#include "base/configtype.hpp"
+#include "base/timer.hpp"
+#include "base/utility.hpp"
 #include "icinga/host.hpp"
 #include "icinga/scheduleddowntime.hpp"
 #include "remote/configobjectutility.hpp"
-#include "base/configtype.hpp"
-#include "base/utility.hpp"
-#include "base/timer.hpp"
 #include <boost/thread/once.hpp>
 
 using namespace icinga;

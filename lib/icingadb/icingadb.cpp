@@ -2,11 +2,11 @@
 
 #include "icingadb/icingadb.hpp"
 #include "icingadb/icingadb-ti.cpp"
-#include "icingadb/redisconnection.hpp"
-#include "remote/eventqueue.hpp"
 #include "base/json.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/host.hpp"
+#include "icingadb/redisconnection.hpp"
+#include "remote/eventqueue.hpp"
 #include <boost/algorithm/string.hpp>
 #include <memory>
 #include <utility>

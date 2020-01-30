@@ -1,13 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/apilistener.hpp"
+#include "base/configtype.hpp"
+#include "base/convert.hpp"
+#include "base/json.hpp"
+#include "config/vmops.hpp"
 #include "remote/apifunction.hpp"
+#include "remote/apilistener.hpp"
 #include "remote/configobjectutility.hpp"
 #include "remote/jsonrpc.hpp"
-#include "base/configtype.hpp"
-#include "base/json.hpp"
-#include "base/convert.hpp"
-#include "config/vmops.hpp"
 #include <fstream>
 
 using namespace icinga;

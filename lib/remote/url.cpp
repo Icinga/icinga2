@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/array.hpp"
-#include "base/utility.hpp"
 #include "base/objectlock.hpp"
-#include "remote/url.hpp"
+#include "base/utility.hpp"
 #include "remote/url-characters.hpp"
+#include "remote/url.hpp"
 #include <boost/tokenizer.hpp>
 
 using namespace icinga;

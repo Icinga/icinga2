@@ -3,12 +3,12 @@
 #ifndef JSONRPC_H
 #define JSONRPC_H
 
-#include "base/stream.hpp"
 #include "base/dictionary.hpp"
+#include "base/stream.hpp"
 #include "base/tlsstream.hpp"
 #include "remote/i2-remote.hpp"
-#include <memory>
 #include <boost/asio/spawn.hpp>
+#include <memory>
 
 namespace icinga
 {

@@ -1,30 +1,30 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "config/configitem.hpp"
-#include "config/configcompilercontext.hpp"
-#include "config/applyrule.hpp"
-#include "config/objectrule.hpp"
-#include "config/configcompiler.hpp"
 #include "base/application.hpp"
 #include "base/configtype.hpp"
-#include "base/objectlock.hpp"
 #include "base/convert.hpp"
-#include "base/logger.hpp"
 #include "base/debug.hpp"
-#include "base/workqueue.hpp"
 #include "base/exception.hpp"
-#include "base/stdiostream.hpp"
-#include "base/netstring.hpp"
-#include "base/serializer.hpp"
-#include "base/json.hpp"
 #include "base/exception.hpp"
 #include "base/function.hpp"
+#include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/netstring.hpp"
+#include "base/objectlock.hpp"
+#include "base/serializer.hpp"
+#include "base/stdiostream.hpp"
 #include "base/utility.hpp"
-#include <boost/algorithm/string/join.hpp>
-#include <sstream>
-#include <fstream>
+#include "base/workqueue.hpp"
+#include "config/applyrule.hpp"
+#include "config/configcompiler.hpp"
+#include "config/configcompilercontext.hpp"
+#include "config/configitem.hpp"
+#include "config/objectrule.hpp"
 #include <algorithm>
+#include <boost/algorithm/string/join.hpp>
+#include <fstream>
 #include <random>
+#include <sstream>
 
 using namespace icinga;
 

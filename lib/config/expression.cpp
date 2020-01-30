@@ -1,20 +1,20 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "config/expression.hpp"
-#include "config/configitem.hpp"
-#include "config/configcompiler.hpp"
-#include "config/vmops.hpp"
 #include "base/array.hpp"
-#include "base/json.hpp"
-#include "base/object.hpp"
-#include "base/logger.hpp"
 #include "base/exception.hpp"
-#include "base/scriptglobal.hpp"
+#include "base/json.hpp"
 #include "base/loader.hpp"
-#include "base/reference.hpp"
+#include "base/logger.hpp"
 #include "base/namespace.hpp"
-#include <boost/exception_ptr.hpp>
+#include "base/object.hpp"
+#include "base/reference.hpp"
+#include "base/scriptglobal.hpp"
+#include "config/configcompiler.hpp"
+#include "config/configitem.hpp"
+#include "config/expression.hpp"
+#include "config/vmops.hpp"
 #include <boost/exception/errinfo_nested_exception.hpp>
+#include <boost/exception_ptr.hpp>
 
 using namespace icinga;
 

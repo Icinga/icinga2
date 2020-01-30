@@ -1,17 +1,17 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "methods/pluginnotificationtask.hpp"
+#include "base/convert.hpp"
+#include "base/function.hpp"
+#include "base/logger.hpp"
+#include "base/process.hpp"
+#include "base/utility.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/service.hpp"
-#include "icinga/macroprocessor.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "base/function.hpp"
-#include "base/logger.hpp"
-#include "base/utility.hpp"
-#include "base/process.hpp"
-#include "base/convert.hpp"
+#include "methods/pluginnotificationtask.hpp"
 
 using namespace icinga;
 

@@ -3,8 +3,8 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#include "base/i2-base.hpp"
 #include "base/configuration-ti.hpp"
+#include "base/i2-base.hpp"
 
 namespace icinga
 {

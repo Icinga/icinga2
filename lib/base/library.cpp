@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/application.hpp"
+#include "base/exception.hpp"
 #include "base/library.hpp"
 #include "base/loader.hpp"
 #include "base/logger.hpp"
-#include "base/exception.hpp"
-#include "base/application.hpp"
 
 using namespace icinga;
 

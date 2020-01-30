@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/jsonrpcconnection.hpp"
-#include "remote/messageorigin.hpp"
-#include "remote/apifunction.hpp"
-#include "base/initialize.hpp"
 #include "base/configtype.hpp"
+#include "base/initialize.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
+#include "remote/apifunction.hpp"
+#include "remote/jsonrpcconnection.hpp"
+#include "remote/messageorigin.hpp"
 #include <boost/asio/spawn.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/system/system_error.hpp>

@@ -2,24 +2,24 @@
 
 #include "base/configobject.hpp"
 #include "base/configobject-ti.cpp"
+#include "base/application.hpp"
 #include "base/configtype.hpp"
-#include "base/serializer.hpp"
-#include "base/netstring.hpp"
-#include "base/json.hpp"
-#include "base/stdiostream.hpp"
+#include "base/context.hpp"
 #include "base/debug.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/function.hpp"
 #include "base/initialize.hpp"
+#include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/netstring.hpp"
+#include "base/objectlock.hpp"
+#include "base/serializer.hpp"
+#include "base/stdiostream.hpp"
 #include "base/workqueue.hpp"
-#include "base/context.hpp"
-#include "base/application.hpp"
-#include <fstream>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
+#include <fstream>
 
 using namespace icinga;
 

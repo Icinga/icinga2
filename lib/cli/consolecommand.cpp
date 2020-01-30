@@ -1,21 +1,21 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/application.hpp"
+#include "base/configwriter.hpp"
+#include "base/console.hpp"
+#include "base/defer.hpp"
+#include "base/io-engine.hpp"
+#include "base/json.hpp"
+#include "base/networkstream.hpp"
+#include "base/objectlock.hpp"
+#include "base/serializer.hpp"
+#include "base/stream.hpp"
+#include "base/unixsocket.hpp"
+#include "base/utility.hpp"
 #include "cli/consolecommand.hpp"
 #include "config/configcompiler.hpp"
 #include "remote/consolehandler.hpp"
 #include "remote/url.hpp"
-#include "base/configwriter.hpp"
-#include "base/serializer.hpp"
-#include "base/json.hpp"
-#include "base/console.hpp"
-#include "base/application.hpp"
-#include "base/objectlock.hpp"
-#include "base/unixsocket.hpp"
-#include "base/utility.hpp"
-#include "base/networkstream.hpp"
-#include "base/defer.hpp"
-#include "base/io-engine.hpp"
-#include "base/stream.hpp"
 #include "base/tcpsocket.hpp" /* include global icinga::Connect */
 #include <base/base64.hpp>
 #include "base/exception.hpp"
@@ -29,8 +29,8 @@
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/http/verb.hpp>
 #include <boost/beast/http/write.hpp>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 
 #ifdef HAVE_EDITLINE

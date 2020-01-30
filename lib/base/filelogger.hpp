@@ -3,8 +3,8 @@
 #ifndef FILELOGGER_H
 #define FILELOGGER_H
 
-#include "base/i2-base.hpp"
 #include "base/filelogger-ti.hpp"
+#include "base/i2-base.hpp"
 
 namespace icinga
 {

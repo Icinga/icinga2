@@ -3,9 +3,9 @@
 #ifndef COMMENT_H
 #define COMMENT_H
 
-#include "icinga/i2-icinga.hpp"
-#include "icinga/comment-ti.hpp"
 #include "icinga/checkable-ti.hpp"
+#include "icinga/comment-ti.hpp"
+#include "icinga/i2-icinga.hpp"
 #include "remote/messageorigin.hpp"
 
 namespace icinga

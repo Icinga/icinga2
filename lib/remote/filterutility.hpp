@@ -3,11 +3,11 @@
 #ifndef FILTERUTILITY_H
 #define FILTERUTILITY_H
 
-#include "remote/i2-remote.hpp"
-#include "remote/apiuser.hpp"
-#include "config/expression.hpp"
-#include "base/dictionary.hpp"
 #include "base/configobject.hpp"
+#include "base/dictionary.hpp"
+#include "config/expression.hpp"
+#include "remote/apiuser.hpp"
+#include "remote/i2-remote.hpp"
 #include <set>
 
 namespace icinga

@@ -1,20 +1,20 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/compatutility.hpp"
 #include "compat/checkresultreader.hpp"
+#include "icinga/compatutility.hpp"
 #include "compat/checkresultreader-ti.cpp"
-#include "icinga/service.hpp"
-#include "icinga/pluginutility.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
-#include "base/convert.hpp"
 #include "base/application.hpp"
-#include "base/utility.hpp"
-#include "base/exception.hpp"
+#include "base/configtype.hpp"
 #include "base/context.hpp"
+#include "base/convert.hpp"
+#include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
 #include "base/statsfunction.hpp"
+#include "base/utility.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/pluginutility.hpp"
+#include "icinga/service.hpp"
 #include <fstream>
 
 using namespace icinga;

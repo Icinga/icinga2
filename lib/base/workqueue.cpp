@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/workqueue.hpp"
-#include "base/utility.hpp"
-#include "base/logger.hpp"
-#include "base/convert.hpp"
 #include "base/application.hpp"
+#include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/utility.hpp"
+#include "base/workqueue.hpp"
 #include <boost/thread/tss.hpp>
 #include <math.h>
 

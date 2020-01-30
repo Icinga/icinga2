@@ -3,11 +3,11 @@
 #ifndef OPENTSDBWRITER_H
 #define OPENTSDBWRITER_H
 
-#include "perfdata/opentsdbwriter-ti.hpp"
-#include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
+#include "icinga/service.hpp"
+#include "perfdata/opentsdbwriter-ti.hpp"
 #include <fstream>
 
 namespace icinga

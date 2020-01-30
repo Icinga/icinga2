@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/zone.hpp"
-#include "remote/apilistener.hpp"
 #include "base/configtype.hpp"
-#include "base/utility.hpp"
 #include "base/convert.hpp"
+#include "base/utility.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/zone.hpp"
 
 using namespace icinga;
 

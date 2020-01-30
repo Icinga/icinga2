@@ -1,9 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/object.hpp"
 #include "base/dictionary.hpp"
 #include "base/function.hpp"
 #include "base/functionwrapper.hpp"
+#include "base/object.hpp"
 #include "base/scriptframe.hpp"
 
 using namespace icinga;

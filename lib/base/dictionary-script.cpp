@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include "base/function.hpp"
 #include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
-#include "base/array.hpp"
 
 using namespace icinga;
 

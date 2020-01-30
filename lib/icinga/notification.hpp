@@ -3,16 +3,16 @@
 #ifndef NOTIFICATION_H
 #define NOTIFICATION_H
 
+#include "base/array.hpp"
+#include "icinga/checkable-ti.hpp"
+#include "icinga/checkresult.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/notification-ti.hpp"
-#include "icinga/checkable-ti.hpp"
+#include "icinga/timeperiod.hpp"
 #include "icinga/user.hpp"
 #include "icinga/usergroup.hpp"
-#include "icinga/timeperiod.hpp"
-#include "icinga/checkresult.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
-#include "base/array.hpp"
 
 namespace icinga
 {

@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/array.hpp"
+#include "base/exception.hpp"
 #include "base/function.hpp"
 #include "base/functionwrapper.hpp"
-#include "base/scriptframe.hpp"
 #include "base/objectlock.hpp"
-#include "base/exception.hpp"
+#include "base/scriptframe.hpp"
 
 using namespace icinga;
 

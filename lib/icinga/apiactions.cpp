@@ -1,19 +1,19 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/convert.hpp"
+#include "base/utility.hpp"
 #include "icinga/apiactions.hpp"
-#include "icinga/service.hpp"
-#include "icinga/servicegroup.hpp"
-#include "icinga/hostgroup.hpp"
-#include "icinga/pluginutility.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
+#include "icinga/hostgroup.hpp"
 #include "icinga/notificationcommand.hpp"
+#include "icinga/pluginutility.hpp"
+#include "icinga/service.hpp"
+#include "icinga/servicegroup.hpp"
 #include "remote/apiaction.hpp"
 #include "remote/apilistener.hpp"
-#include "remote/pkiutility.hpp"
 #include "remote/httputility.hpp"
-#include "base/utility.hpp"
-#include "base/convert.hpp"
+#include "remote/pkiutility.hpp"
 #include <fstream>
 
 using namespace icinga;

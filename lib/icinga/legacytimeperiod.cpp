@@ -1,13 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/legacytimeperiod.hpp"
-#include "base/function.hpp"
 #include "base/convert.hpp"
-#include "base/exception.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
 #include "base/debug.hpp"
+#include "base/exception.hpp"
+#include "base/function.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
 #include "base/utility.hpp"
+#include "icinga/legacytimeperiod.hpp"
 
 using namespace icinga;
 

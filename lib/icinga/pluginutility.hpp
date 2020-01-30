@@ -3,9 +3,9 @@
 #ifndef PLUGINUTILITY_H
 #define PLUGINUTILITY_H
 
-#include "icinga/i2-icinga.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/checkcommand.hpp"
+#include "icinga/i2-icinga.hpp"
 #include "icinga/macroprocessor.hpp"
 #include <vector>
 

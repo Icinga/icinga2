@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/configuration.hpp"
+#include "base/exception.hpp"
+#include "base/serializer.hpp"
 #include "icinga/clusterevents.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "remote/apilistener.hpp"
-#include "base/configuration.hpp"
-#include "base/serializer.hpp"
-#include "base/exception.hpp"
 #include <boost/thread/once.hpp>
 #include <thread>
 

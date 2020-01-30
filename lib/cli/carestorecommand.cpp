@@ -1,9 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "cli/carestorecommand.hpp"
-#include "base/logger.hpp"
 #include "base/application.hpp"
+#include "base/logger.hpp"
 #include "base/tlsutility.hpp"
+#include "cli/carestorecommand.hpp"
 #include "remote/apilistener.hpp"
 
 using namespace icinga;

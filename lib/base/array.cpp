@@ -1,13 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/array.hpp"
-#include "base/objectlock.hpp"
-#include "base/debug.hpp"
-#include "base/primitivetype.hpp"
-#include "base/dictionary.hpp"
 #include "base/configwriter.hpp"
 #include "base/convert.hpp"
+#include "base/debug.hpp"
+#include "base/dictionary.hpp"
 #include "base/exception.hpp"
+#include "base/objectlock.hpp"
+#include "base/primitivetype.hpp"
 
 using namespace icinga;
 

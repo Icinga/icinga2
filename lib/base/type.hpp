@@ -4,9 +4,9 @@
 #define TYPE_H
 
 #include "base/i2-base.hpp"
-#include "base/string.hpp"
-#include "base/object.hpp"
 #include "base/initialize.hpp"
+#include "base/object.hpp"
+#include "base/string.hpp"
 #include <vector>
 
 namespace icinga

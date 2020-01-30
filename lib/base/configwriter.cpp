@@ -2,10 +2,10 @@
 
 #include "base/configwriter.hpp"
 #include "base/exception.hpp"
-#include <boost/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <set>
+#include <boost/regex.hpp>
 #include <iterator>
+#include <set>
 
 using namespace icinga;
 

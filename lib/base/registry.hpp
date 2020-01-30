@@ -5,8 +5,8 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include <boost/thread/mutex.hpp>
 #include <boost/signals2.hpp>
+#include <boost/thread/mutex.hpp>
 #include <map>
 
 namespace icinga

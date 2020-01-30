@@ -3,8 +3,8 @@
 #ifndef COUNTAGGREGATOR_H
 #define COUNTAGGREGATOR_H
 
-#include "livestatus/table.hpp"
 #include "livestatus/aggregator.hpp"
+#include "livestatus/table.hpp"
 
 namespace icinga
 {

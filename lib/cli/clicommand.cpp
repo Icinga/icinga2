@@ -1,14 +1,14 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "cli/clicommand.hpp"
-#include "base/logger.hpp"
 #include "base/console.hpp"
-#include "base/type.hpp"
+#include "base/logger.hpp"
 #include "base/serializer.hpp"
+#include "base/type.hpp"
+#include "cli/clicommand.hpp"
+#include <algorithm>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/program_options.hpp>
-#include <algorithm>
 #include <iostream>
 
 using namespace icinga;

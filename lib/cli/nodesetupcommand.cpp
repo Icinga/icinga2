@@ -1,22 +1,22 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/application.hpp"
+#include "base/console.hpp"
+#include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/scriptglobal.hpp"
+#include "base/tlsutility.hpp"
+#include "cli/apisetuputility.hpp"
+#include "cli/featureutility.hpp"
 #include "cli/nodesetupcommand.hpp"
 #include "cli/nodeutility.hpp"
-#include "cli/featureutility.hpp"
-#include "cli/apisetuputility.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/pkiutility.hpp"
-#include "base/logger.hpp"
-#include "base/console.hpp"
-#include "base/application.hpp"
-#include "base/tlsutility.hpp"
-#include "base/scriptglobal.hpp"
-#include "base/exception.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <vector>
 
 using namespace icinga;

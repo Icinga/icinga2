@@ -3,8 +3,8 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
-#include "icinga/i2-icinga.hpp"
 #include "icinga/command-ti.hpp"
+#include "icinga/i2-icinga.hpp"
 #include "remote/messageorigin.hpp"
 
 namespace icinga

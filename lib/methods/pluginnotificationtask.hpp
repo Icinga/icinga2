@@ -3,10 +3,10 @@
 #ifndef PLUGINNOTIFICATIONTASK_H
 #define PLUGINNOTIFICATIONTASK_H
 
-#include "methods/i2-methods.hpp"
+#include "base/process.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/service.hpp"
-#include "base/process.hpp"
+#include "methods/i2-methods.hpp"
 
 namespace icinga
 {

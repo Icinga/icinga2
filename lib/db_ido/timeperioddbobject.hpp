@@ -3,8 +3,8 @@
 #ifndef TIMEPERIODDBOBJECT_H
 #define TIMEPERIODDBOBJECT_H
 
-#include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
+#include "db_ido/dbobject.hpp"
 
 namespace icinga
 {

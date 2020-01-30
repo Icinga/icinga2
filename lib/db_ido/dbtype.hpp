@@ -3,10 +3,10 @@
 #ifndef DBTYPE_H
 #define DBTYPE_H
 
-#include "db_ido/i2-db_ido.hpp"
 #include "base/object.hpp"
 #include "base/registry.hpp"
 #include "base/singleton.hpp"
+#include "db_ido/i2-db_ido.hpp"
 #include <set>
 
 namespace icinga

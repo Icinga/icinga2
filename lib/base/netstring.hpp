@@ -6,8 +6,8 @@
 #include "base/i2-base.hpp"
 #include "base/stream.hpp"
 #include "base/tlsstream.hpp"
-#include <memory>
 #include <boost/asio/spawn.hpp>
+#include <memory>
 
 namespace icinga
 {

@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "methods/nulleventtask.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
+#include "methods/nulleventtask.hpp"
 
 using namespace icinga;
 

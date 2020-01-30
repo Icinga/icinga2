@@ -1,16 +1,16 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/jsonrpc.hpp"
-#include "base/netstring.hpp"
-#include "base/json.hpp"
 #include "base/console.hpp"
-#include "base/scriptglobal.hpp"
 #include "base/convert.hpp"
+#include "base/json.hpp"
+#include "base/netstring.hpp"
+#include "base/scriptglobal.hpp"
 #include "base/tlsstream.hpp"
+#include "remote/jsonrpc.hpp"
+#include <boost/asio/spawn.hpp>
 #include <iostream>
 #include <memory>
 #include <utility>
-#include <boost/asio/spawn.hpp>
 
 using namespace icinga;
 

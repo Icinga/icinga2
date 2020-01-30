@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/dictionary.hpp"
+#include "base/primitivetype.hpp"
 #include "base/string.hpp"
 #include "base/value.hpp"
-#include "base/primitivetype.hpp"
-#include "base/dictionary.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
-#include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <ostream>
 
 using namespace icinga;

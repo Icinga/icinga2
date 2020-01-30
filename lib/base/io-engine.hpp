@@ -5,15 +5,15 @@
 
 #include "base/lazy-init.hpp"
 #include <atomic>
-#include <exception>
-#include <memory>
-#include <thread>
-#include <vector>
-#include <stdexcept>
-#include <boost/exception/all.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/exception/all.hpp>
+#include <exception>
+#include <memory>
+#include <stdexcept>
+#include <thread>
+#include <vector>
 
 namespace icinga
 {

@@ -2,9 +2,9 @@
 
 #include "icinga/command.hpp"
 #include "icinga/command-ti.cpp"
-#include "icinga/macroprocessor.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
+#include "icinga/macroprocessor.hpp"
 
 using namespace icinga;
 

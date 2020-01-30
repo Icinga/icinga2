@@ -1,16 +1,16 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/netstring.hpp"
 #include "base/debug.hpp"
+#include "base/netstring.hpp"
 #include "base/tlsstream.hpp"
-#include <cstdint>
-#include <memory>
-#include <sstream>
-#include <utility>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/write.hpp>
+#include <cstdint>
+#include <memory>
+#include <sstream>
+#include <utility>
 
 using namespace icinga;
 

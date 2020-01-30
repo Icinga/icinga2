@@ -2,31 +2,31 @@
 
 #include "perfdata/gelfwriter.hpp"
 #include "perfdata/gelfwriter-ti.cpp"
-#include "icinga/service.hpp"
-#include "icinga/notification.hpp"
-#include "icinga/checkcommand.hpp"
-#include "icinga/macroprocessor.hpp"
-#include "icinga/compatutility.hpp"
-#include "base/tcpsocket.hpp"
-#include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
 #include "base/application.hpp"
-#include "base/stream.hpp"
-#include "base/networkstream.hpp"
+#include "base/configtype.hpp"
 #include "base/context.hpp"
 #include "base/exception.hpp"
 #include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/networkstream.hpp"
+#include "base/objectlock.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/statsfunction.hpp"
+#include "base/stream.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/utility.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/compatutility.hpp"
+#include "icinga/macroprocessor.hpp"
+#include "icinga/notification.hpp"
+#include "icinga/service.hpp"
 #include <boost/algorithm/string/replace.hpp>
 #include <utility>
 #include "base/io-engine.hpp"
-#include <boost/asio/write.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/system/error_code.hpp>
 #include <boost/asio/error.hpp>
+#include <boost/asio/write.hpp>
+#include <boost/system/error_code.hpp>
 
 using namespace icinga;
 

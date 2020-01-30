@@ -3,9 +3,9 @@
 #ifndef OBJECTUTILS_H
 #define OBJECTUTILS_H
 
+#include "base/array.hpp"
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include "base/array.hpp"
 #include "icinga/service.hpp"
 
 namespace icinga

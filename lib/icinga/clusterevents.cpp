@@ -1,21 +1,21 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/clusterevents.hpp"
-#include "icinga/service.hpp"
-#include "remote/apilistener.hpp"
-#include "remote/endpoint.hpp"
-#include "remote/messageorigin.hpp"
-#include "remote/zone.hpp"
-#include "remote/apifunction.hpp"
-#include "remote/eventqueue.hpp"
 #include "base/application.hpp"
 #include "base/configtype.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
-#include "base/serializer.hpp"
 #include "base/json.hpp"
+#include "base/perfdatavalue.hpp"
+#include "base/serializer.hpp"
+#include "base/utility.hpp"
+#include "icinga/clusterevents.hpp"
+#include "icinga/service.hpp"
+#include "remote/apifunction.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/endpoint.hpp"
+#include "remote/eventqueue.hpp"
+#include "remote/messageorigin.hpp"
+#include "remote/zone.hpp"
 #include <fstream>
 
 using namespace icinga;

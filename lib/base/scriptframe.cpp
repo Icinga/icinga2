@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/configuration.hpp"
+#include "base/exception.hpp"
+#include "base/namespace.hpp"
 #include "base/scriptframe.hpp"
 #include "base/scriptglobal.hpp"
-#include "base/namespace.hpp"
-#include "base/exception.hpp"
-#include "base/configuration.hpp"
 
 using namespace icinga;
 

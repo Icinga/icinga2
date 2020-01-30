@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "config/configitembuilder.hpp"
 #include "base/configtype.hpp"
+#include "config/configitembuilder.hpp"
 #include <sstream>
 
 using namespace icinga;

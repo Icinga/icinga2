@@ -2,14 +2,14 @@
 
 #include "notification/notificationcomponent.hpp"
 #include "notification/notificationcomponent-ti.cpp"
-#include "icinga/service.hpp"
-#include "icinga/icingaapplication.hpp"
 #include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
-#include "base/utility.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
 #include "base/statsfunction.hpp"
+#include "base/utility.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/service.hpp"
 #include "remote/apilistener.hpp"
 
 using namespace icinga;

@@ -3,11 +3,11 @@
 #ifndef CONFIGFRAGMENT_H
 #define CONFIGFRAGMENT_H
 
-#include "config/configcompiler.hpp"
-#include "base/initialize.hpp"
+#include "base/application.hpp"
 #include "base/debug.hpp"
 #include "base/exception.hpp"
-#include "base/application.hpp"
+#include "base/initialize.hpp"
+#include "config/configcompiler.hpp"
 
 /* Ensure that the priority is lower than the basic namespace initialization in scriptframe.cpp. */
 #define REGISTER_CONFIG_FRAGMENT(name, fragment) \

@@ -1,15 +1,15 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/context.hpp"
+#include "base/convert.hpp"
+#include "base/dictionary.hpp"
+#include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/host.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/service.hpp"
-#include "base/dictionary.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
-#include "base/exception.hpp"
-#include "base/context.hpp"
-#include "base/convert.hpp"
 #include "remote/apilistener.hpp"
 
 using namespace icinga;

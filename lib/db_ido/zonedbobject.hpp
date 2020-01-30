@@ -3,8 +3,8 @@
 #ifndef ZONEDBOBJECT_H
 #define ZONEDBOBJECT_H
 
-#include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
+#include "db_ido/dbobject.hpp"
 #include "remote/zone.hpp"
 
 namespace icinga

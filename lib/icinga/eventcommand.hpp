@@ -3,8 +3,8 @@
 #ifndef EVENTCOMMAND_H
 #define EVENTCOMMAND_H
 
-#include "icinga/eventcommand-ti.hpp"
 #include "icinga/checkable.hpp"
+#include "icinga/eventcommand-ti.hpp"
 
 namespace icinga
 {

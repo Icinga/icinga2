@@ -3,10 +3,10 @@
 #ifndef SERIALIZER_H
 #define SERIALIZER_H
 
+#include "base/exception.hpp"
 #include "base/i2-base.hpp"
 #include "base/type.hpp"
 #include "base/value.hpp"
-#include "base/exception.hpp"
 
 namespace icinga
 {

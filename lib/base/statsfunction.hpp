@@ -3,8 +3,8 @@
 #ifndef STATSFUNCTION_H
 #define STATSFUNCTION_H
 
-#include "base/i2-base.hpp"
 #include "base/function.hpp"
+#include "base/i2-base.hpp"
 
 namespace icinga
 {

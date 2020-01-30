@@ -3,9 +3,9 @@
 #ifndef HOSTGROUPDBOBJECT_H
 #define HOSTGROUPDBOBJECT_H
 
+#include "base/configobject.hpp"
 #include "db_ido/dbobject.hpp"
 #include "icinga/hostgroup.hpp"
-#include "base/configobject.hpp"
 
 namespace icinga
 {

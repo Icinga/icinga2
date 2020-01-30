@@ -6,16 +6,16 @@
 #include "base/atomic.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
-#include <cstddef>
-#include <exception>
-#include <functional>
-#include <memory>
-#include <thread>
 #include <boost/asio/post.hpp>
 #include <boost/asio/thread_pool.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
+#include <cstddef>
 #include <cstdint>
+#include <exception>
+#include <functional>
+#include <memory>
+#include <thread>
 
 namespace icinga
 {

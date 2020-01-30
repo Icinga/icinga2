@@ -3,9 +3,9 @@
 #ifndef DAEMONUTILITY_H
 #define DAEMONUTILITY_H
 
+#include "base/string.hpp"
 #include "cli/i2-cli.hpp"
 #include "config/configitem.hpp"
-#include "base/string.hpp"
 #include <boost/program_options.hpp>
 
 namespace icinga

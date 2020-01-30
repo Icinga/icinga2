@@ -1,9 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/object-packer.hpp"
+#include "base/array.hpp"
 #include "base/debug.hpp"
 #include "base/dictionary.hpp"
-#include "base/array.hpp"
+#include "base/object-packer.hpp"
 #include "base/objectlock.hpp"
 #include "base/stringbuilder.hpp"
 #include <algorithm>

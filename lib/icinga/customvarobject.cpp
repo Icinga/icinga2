@@ -2,11 +2,11 @@
 
 #include "icinga/customvarobject.hpp"
 #include "icinga/customvarobject-ti.cpp"
-#include "icinga/macroprocessor.hpp"
-#include "base/logger.hpp"
-#include "base/function.hpp"
 #include "base/exception.hpp"
+#include "base/function.hpp"
+#include "base/logger.hpp"
 #include "base/objectlock.hpp"
+#include "icinga/macroprocessor.hpp"
 
 using namespace icinga;
 

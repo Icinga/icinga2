@@ -1,15 +1,15 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "db_ido/endpointdbobject.hpp"
+#include "base/configtype.hpp"
+#include "base/convert.hpp"
+#include "base/initialize.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
+#include "db_ido/endpointdbobject.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "base/objectlock.hpp"
-#include "base/initialize.hpp"
-#include "base/configtype.hpp"
-#include "base/utility.hpp"
-#include "base/convert.hpp"
-#include "base/logger.hpp"
 
 using namespace icinga;
 

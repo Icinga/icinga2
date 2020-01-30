@@ -2,18 +2,18 @@
 
 #include "perfdata/perfdatawriter.hpp"
 #include "perfdata/perfdatawriter-ti.cpp"
-#include "icinga/service.hpp"
-#include "icinga/macroprocessor.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
-#include "base/convert.hpp"
-#include "base/utility.hpp"
-#include "base/context.hpp"
-#include "base/exception.hpp"
 #include "base/application.hpp"
+#include "base/configtype.hpp"
+#include "base/context.hpp"
+#include "base/convert.hpp"
+#include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
 #include "base/statsfunction.hpp"
+#include "base/utility.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/macroprocessor.hpp"
+#include "icinga/service.hpp"
 
 using namespace icinga;
 

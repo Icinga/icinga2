@@ -3,9 +3,9 @@
 #ifndef SLEEPCHECKTASK_H
 #define SLEEPCHECKTASK_H
 
-#include "methods/i2-methods.hpp"
-#include "icinga/service.hpp"
 #include "base/dictionary.hpp"
+#include "icinga/service.hpp"
+#include "methods/i2-methods.hpp"
 
 namespace icinga
 {

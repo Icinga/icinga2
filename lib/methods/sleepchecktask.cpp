@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "methods/sleepchecktask.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "icinga/pluginutility.hpp"
-#include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
+#include "base/utility.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/pluginutility.hpp"
+#include "methods/sleepchecktask.hpp"
 
 using namespace icinga;
 

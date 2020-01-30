@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/console.hpp"
+#include "base/logger.hpp"
 #include "cli/apisetupcommand.hpp"
 #include "cli/apisetuputility.hpp"
 #include "cli/variableutility.hpp"
-#include "base/logger.hpp"
-#include "base/console.hpp"
 #include <iostream>
 
 using namespace icinga;

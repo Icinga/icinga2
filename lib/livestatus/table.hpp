@@ -3,10 +3,10 @@
 #ifndef TABLE_H
 #define TABLE_H
 
-#include "livestatus/column.hpp"
-#include "base/object.hpp"
-#include "base/dictionary.hpp"
 #include "base/array.hpp"
+#include "base/dictionary.hpp"
+#include "base/object.hpp"
+#include "livestatus/column.hpp"
 #include <vector>
 
 namespace icinga

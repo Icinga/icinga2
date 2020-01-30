@@ -4,8 +4,8 @@
 #define SERVICEGROUP_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/servicegroup-ti.hpp"
 #include "icinga/service.hpp"
+#include "icinga/servicegroup-ti.hpp"
 
 namespace icinga
 {

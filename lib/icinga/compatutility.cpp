@@ -1,17 +1,17 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/compatutility.hpp"
+#include "base/configtype.hpp"
+#include "base/convert.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
 #include "icinga/checkcommand.hpp"
+#include "icinga/compatutility.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/service.hpp"
-#include "base/utility.hpp"
-#include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/convert.hpp"
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
 

@@ -3,12 +3,12 @@
 #ifndef ELASTICSEARCHWRITER_H
 #define ELASTICSEARCHWRITER_H
 
-#include "perfdata/elasticsearchwriter-ti.hpp"
-#include "icinga/service.hpp"
 #include "base/configobject.hpp"
-#include "base/workqueue.hpp"
 #include "base/timer.hpp"
 #include "base/tlsstream.hpp"
+#include "base/workqueue.hpp"
+#include "icinga/service.hpp"
+#include "perfdata/elasticsearchwriter-ti.hpp"
 
 namespace icinga
 {
