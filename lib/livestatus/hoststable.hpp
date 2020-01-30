@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef HOSTSTABLE_H
-#define HOSTSTABLE_H
+#pragma once
 
 #include "livestatus/table.hpp"
 
@@ -129,5 +128,3 @@ protected:
 };
 
 }
-
-#endif /* HOSTSTABLE_H */

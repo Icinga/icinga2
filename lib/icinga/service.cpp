@@ -282,4 +282,3 @@ std::pair<Host::Ptr, Service::Ptr> icinga::GetHostService(const Checkable::Ptr& 
 	else
 		return std::make_pair(static_pointer_cast<Host>(checkable), nullptr);
 }
-

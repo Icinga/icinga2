@@ -64,4 +64,3 @@ int InternalSignalCommand::Run(const boost::program_options::variables_map& vm, 
 #endif /* _Win32 */
 	return 1;
 }
-

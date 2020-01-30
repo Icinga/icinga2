@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef VARIABLEGETCOMMAND_H
-#define VARIABLEGETCOMMAND_H
+#pragma once
 
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
@@ -30,5 +29,3 @@ public:
 };
 
 }
-
-#endif /* VARIABLEGETCOMMAND_H */

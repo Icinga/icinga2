@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONFIGWRITER_H
-#define CONFIGWRITER_H
+#pragma once
 
 #include "base/object.hpp"
 #include "base/array.hpp"
@@ -63,5 +62,3 @@ private:
 };
 
 }
-
-#endif /* CONFIGWRITER_H */

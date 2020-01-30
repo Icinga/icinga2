@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONFIGOBJECT_H
-#define CONFIGOBJECT_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/configobject-ti.hpp"
@@ -97,5 +96,3 @@ private:
 	}
 
 }
-
-#endif /* CONFIGOBJECT_H */

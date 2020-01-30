@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DBTYPE_H
-#define DBTYPE_H
+#pragma once
 
 #include "db_ido/i2-db_ido.hpp"
 #include "base/object.hpp"
@@ -86,5 +85,3 @@ intrusive_ptr<T> DbObjectFactory(const DbType::Ptr& type, const String& name1, c
 	})
 
 }
-
-#endif /* DBTYPE_H */

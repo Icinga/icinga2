@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef TEMPLATEQUERYHANDLER_H
-#define TEMPLATEQUERYHANDLER_H
+#pragma once
 
 #include "remote/httphandler.hpp"
 
@@ -26,5 +25,3 @@ public:
 };
 
 }
-
-#endif /* TEMPLATEQUERYHANDLER_H */

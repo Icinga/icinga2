@@ -2243,4 +2243,3 @@ std::map<String, ExternalCommandInfo>& ExternalCommandProcessor::GetCommands()
 	static std::map<String, ExternalCommandInfo> commands;
 	return commands;
 }
-

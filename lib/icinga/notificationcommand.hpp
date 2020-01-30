@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef NOTIFICATIONCOMMAND_H
-#define NOTIFICATIONCOMMAND_H
+#pragma once
 
 #include "icinga/notificationcommand-ti.hpp"
 #include "icinga/notification.hpp"
@@ -30,5 +29,3 @@ public:
 };
 
 }
-
-#endif /* NOTIFICATIONCOMMAND_H */

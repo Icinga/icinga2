@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef PLUGINCHECKTASK_H
-#define PLUGINCHECKTASK_H
+#pragma once
 
 #include "methods/i2-methods.hpp"
 #include "base/process.hpp"
@@ -29,5 +28,3 @@ private:
 };
 
 }
-
-#endif /* PLUGINCHECKTASK_H */

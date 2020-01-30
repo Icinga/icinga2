@@ -61,4 +61,3 @@ ObjectFactory PrimitiveType::GetFactory() const
 {
 	return m_Factory;
 }
-

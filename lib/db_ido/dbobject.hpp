@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DBOBJECT_H
-#define DBOBJECT_H
+#pragma once
 
 #include "db_ido/i2-db_ido.hpp"
 #include "db_ido/dbreference.hpp"
@@ -102,5 +101,3 @@ private:
 };
 
 }
-
-#endif /* DBOBJECT_H */

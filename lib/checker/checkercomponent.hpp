@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CHECKERCOMPONENT_H
-#define CHECKERCOMPONENT_H
+#pragma once
 
 #include "checker/checkercomponent-ti.hpp"
 #include "icinga/service.hpp"
@@ -95,5 +94,3 @@ private:
 };
 
 }
-
-#endif /* CHECKERCOMPONENT_H */

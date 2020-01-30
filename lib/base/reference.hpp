@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef REFERENCE_H
-#define REFERENCE_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/objectlock.hpp"
@@ -36,5 +35,3 @@ private:
 };
 
 }
-
-#endif /* REFERENCE_H */

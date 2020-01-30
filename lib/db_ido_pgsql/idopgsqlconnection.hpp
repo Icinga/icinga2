@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef IDOPGSQLCONNECTION_H
-#define IDOPGSQLCONNECTION_H
+#pragma once
 
 #include "db_ido_pgsql/idopgsqlconnection-ti.hpp"
 #include "pgsql_shim/pgsqlinterface.hpp"
@@ -95,5 +94,3 @@ private:
 };
 
 }
-
-#endif /* IDOPGSQLCONNECTION_H */

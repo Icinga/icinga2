@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef PERFDATAVALUE_H
-#define PERFDATAVALUE_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/perfdatavalue-ti.hpp"
@@ -34,5 +33,3 @@ private:
 };
 
 }
-
-#endif /* PERFDATA_VALUE */

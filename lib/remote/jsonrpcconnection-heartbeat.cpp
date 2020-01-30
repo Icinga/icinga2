@@ -56,4 +56,3 @@ Value JsonRpcConnection::HeartbeatAPIHandler(const MessageOrigin::Ptr& origin, c
 
 	return Empty;
 }
-

@@ -22,4 +22,3 @@ Object::Ptr Number::GetPrototype()
 
 	return prototype;
 }
-

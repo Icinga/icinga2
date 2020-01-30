@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef APIACTIONS_H
-#define APIACTIONS_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "base/configobject.hpp"
@@ -35,5 +34,3 @@ private:
 };
 
 }
-
-#endif /* APIACTIONS_H */

@@ -114,4 +114,3 @@ void ScriptGlobal::WriteToFile(const String& filename)
 
 	Utility::RenameFile(tempFilename, filename);
 }
-

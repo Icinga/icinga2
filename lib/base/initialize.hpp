@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef INITIALIZE_H
-#define INITIALIZE_H
+#pragma once
 
 #include "base/i2-base.hpp"
 
@@ -25,5 +24,3 @@ bool InitializeOnceHelper(void (*func)(), int priority = 0);
 		bool l_InitializeOnce(icinga::InitializeOnceHelper(func, priority));	\
 	} }
 }
-
-#endif /* INITIALIZE_H */

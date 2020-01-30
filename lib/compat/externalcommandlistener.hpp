@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef EXTERNALCOMMANDLISTENER_H
-#define EXTERNALCOMMANDLISTENER_H
+#pragma once
 
 #include "compat/externalcommandlistener-ti.hpp"
 #include "base/objectlock.hpp"
@@ -37,5 +36,3 @@ private:
 };
 
 }
-
-#endif /* EXTERNALCOMMANDLISTENER_H */

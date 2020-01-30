@@ -52,4 +52,3 @@ ApiUser::Ptr ApiUser::GetByAuthHeader(const String& auth_header)
 
 	return user;
 }
-

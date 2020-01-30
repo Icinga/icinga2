@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef OBJECTQUERYHANDLER_H
-#define OBJECTQUERYHANDLER_H
+#pragma once
 
 #include "remote/httphandler.hpp"
 
@@ -30,5 +29,3 @@ private:
 };
 
 }
-
-#endif /* OBJECTQUERYHANDLER_H */

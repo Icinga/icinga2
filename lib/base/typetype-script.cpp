@@ -32,4 +32,3 @@ Object::Ptr TypeType::GetPrototype()
 
 	return prototype;
 }
-

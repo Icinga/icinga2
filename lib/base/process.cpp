@@ -1135,4 +1135,3 @@ int Process::GetTID() const
 {
 	return (reinterpret_cast<uintptr_t>(this) / sizeof(void *)) % IOTHREADS;
 }
-

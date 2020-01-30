@@ -10,4 +10,3 @@ bool icinga::InitializeOnceHelper(void (*func)(), int priority)
 	Loader::AddDeferredInitializer(func, priority);
 	return true;
 }
-

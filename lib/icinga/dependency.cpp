@@ -200,4 +200,3 @@ void Dependency::ValidateStates(const Lazy<Array::Ptr>& lvalue, const Validation
 	if (!GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "states" }, "State filter is invalid for service dependency."));
 }
-

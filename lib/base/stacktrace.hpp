@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef STACKTRACE_H
-#define STACKTRACE_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include <iosfwd>
@@ -34,5 +33,3 @@ private:
 std::ostream& operator<<(std::ostream& stream, const StackTrace& trace);
 
 }
-
-#endif /* UTILITY_H */

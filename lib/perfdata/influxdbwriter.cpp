@@ -602,4 +602,3 @@ void InfluxdbWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue
 		}
 	}
 }
-

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DEBUGINFO_H
-#define DEBUGINFO_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
@@ -32,5 +31,3 @@ DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& end);
 void ShowCodeLocation(std::ostream& out, const DebugInfo& di, bool verbose = true);
 
 }
-
-#endif /* DEBUGINFO_H */

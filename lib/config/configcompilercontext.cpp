@@ -65,4 +65,3 @@ void ConfigCompilerContext::FinishObjectsFile()
 
 	Utility::RenameFile(m_ObjectsTempFile, m_ObjectsPath);
 }
-

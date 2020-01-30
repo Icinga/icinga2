@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef VALUE_H
-#define VALUE_H
+#pragma once
 
 #include "base/object.hpp"
 #include "base/string.hpp"
@@ -247,5 +246,3 @@ std::istream& operator>>(std::istream& stream, Value& value);
 }
 
 extern template class boost::variant<boost::blank, double, bool, icinga::String, icinga::Object::Ptr>;
-
-#endif /* VALUE_H */

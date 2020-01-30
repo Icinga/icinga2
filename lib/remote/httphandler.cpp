@@ -122,4 +122,3 @@ void HttpHandler::ProcessRequest(
 		return;
 	}
 }
-

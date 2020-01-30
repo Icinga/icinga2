@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef RANDOMCHECKTASK_H
-#define RANDOMCHECKTASK_H
+#pragma once
 
 #include "icinga/service.hpp"
 #include "base/dictionary.hpp"
@@ -25,5 +24,3 @@ private:
 };
 
 }
-
-#endif /* RANDOMCHECKTASK_H */

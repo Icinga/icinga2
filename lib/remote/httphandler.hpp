@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef HTTPHANDLER_H
-#define HTTPHANDLER_H
+#pragma once
 
 #include "remote/i2-remote.hpp"
 #include "remote/url.hpp"
@@ -70,5 +69,3 @@ public:
 	})
 
 }
-
-#endif /* HTTPHANDLER_H */

@@ -33,4 +33,3 @@ Object::Ptr ConfigObject::GetPrototype()
 
 	return prototype;
 }
-

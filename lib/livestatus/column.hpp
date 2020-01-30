@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef COLUMN_H
-#define COLUMN_H
+#pragma once
 
 #include "livestatus/i2-livestatus.hpp"
 #include "base/value.hpp"
@@ -33,5 +32,3 @@ private:
 };
 
 }
-
-#endif /* COLUMN_H */

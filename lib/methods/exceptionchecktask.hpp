@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef EXCEPTIONCHECKTASK_H
-#define EXCEPTIONCHECKTASK_H
+#pragma once
 
 #include "icinga/service.hpp"
 #include "base/dictionary.hpp"
@@ -25,5 +24,3 @@ private:
 };
 
 }
-
-#endif /* EXCEPTIONCHECKTASK_H */

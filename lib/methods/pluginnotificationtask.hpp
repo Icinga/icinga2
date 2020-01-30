@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef PLUGINNOTIFICATIONTASK_H
-#define PLUGINNOTIFICATIONTASK_H
+#pragma once
 
 #include "methods/i2-methods.hpp"
 #include "icinga/notification.hpp"
@@ -32,5 +31,3 @@ private:
 };
 
 }
-
-#endif /* PLUGINNOTIFICATIONTASK_H */

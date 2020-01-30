@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef NULLEVENTTASK_H
-#define NULLEVENTTASK_H
+#pragma once
 
 #include "methods/i2-methods.hpp"
 #include "icinga/service.hpp"
@@ -26,5 +25,3 @@ private:
 };
 
 }
-
-#endif /* NULLEVENTTASK_H */

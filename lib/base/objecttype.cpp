@@ -54,4 +54,3 @@ ObjectFactory ObjectType::GetFactory() const
 {
 	return DefaultObjectFactory<Object>;
 }
-

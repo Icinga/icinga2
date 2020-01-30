@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef IO_ENGINE_H
-#define IO_ENGINE_H
+#pragma once
 
 #include "base/lazy-init.hpp"
 #include <atomic>
@@ -195,5 +194,3 @@ private:
 };
 
 }
-
-#endif /* IO_ENGINE_H */

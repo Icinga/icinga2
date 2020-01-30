@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef APIUSER_H
-#define APIUSER_H
+#pragma once
 
 #include "remote/i2-remote.hpp"
 #include "remote/apiuser-ti.hpp"
@@ -23,5 +22,3 @@ public:
 };
 
 }
-
-#endif /* APIUSER_H */

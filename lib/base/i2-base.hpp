@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef I2BASE_H
-#define I2BASE_H
+#pragma once
 
 /**
  * @mainpage Icinga Documentation
@@ -77,5 +76,3 @@
 #include <functional>
 
 using namespace std::placeholders;
-
-#endif /* I2BASE_H */

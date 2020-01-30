@@ -25,4 +25,3 @@ Object::Ptr DateTime::GetPrototype()
 
 	return prototype;
 }
-

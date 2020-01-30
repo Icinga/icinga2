@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef NETWORKSTREAM_H
-#define NETWORKSTREAM_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/stream.hpp"
@@ -35,5 +34,3 @@ private:
 };
 
 }
-
-#endif /* NETWORKSTREAM_H */

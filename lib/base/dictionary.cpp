@@ -300,4 +300,3 @@ Dictionary::Iterator icinga::end(const Dictionary::Ptr& x)
 {
 	return x->End();
 }
-

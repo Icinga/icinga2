@@ -97,4 +97,3 @@ bool InfoHandler::HandleRequest(
 
 	return true;
 }
-

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef IDOCHECKTASK_H
-#define IDOCHECKTASK_H
+#pragma once
 
 #include "db_ido/dbconnection.hpp"
 #include "icinga/checkable.hpp"
@@ -25,5 +24,3 @@ private:
 };
 
 }
-
-#endif /* IDOCHECKTASK_H */

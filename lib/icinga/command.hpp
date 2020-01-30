@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef COMMAND_H
-#define COMMAND_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/command-ti.hpp"
@@ -26,5 +25,3 @@ public:
 };
 
 }
-
-#endif /* COMMAND_H */

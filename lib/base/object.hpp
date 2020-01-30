@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef OBJECT_H
-#define OBJECT_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
@@ -219,7 +218,5 @@ class ObjectImpl
 };
 
 }
-
-#endif /* OBJECT_H */
 
 #include "base/type.hpp"

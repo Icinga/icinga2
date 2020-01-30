@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef APIEVENTS_H
-#define APIEVENTS_H
+#pragma once
 
 #include "icinga/checkable.hpp"
 #include "icinga/host.hpp"
@@ -42,5 +41,3 @@ public:
 };
 
 }
-
-#endif /* APIEVENTS_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef COMPATUTILITY_H
-#define COMPATUTILITY_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/host.hpp"
@@ -52,5 +51,3 @@ private:
 };
 
 }
-
-#endif /* COMPATUTILITY_H */

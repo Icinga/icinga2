@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef COMMENTSTABLE_H
-#define COMMENTSTABLE_H
+#pragma once
 
 #include "livestatus/table.hpp"
 
@@ -45,5 +44,3 @@ private:
 };
 
 }
-
-#endif /* COMMENTSTABLE_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
@@ -123,5 +122,3 @@ struct errinfo_message_;
 typedef boost::error_info<struct errinfo_message_, std::string> errinfo_message;
 
 }
-
-#endif /* EXCEPTION_H */

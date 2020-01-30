@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONTEXT_H
-#define CONTEXT_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
@@ -46,5 +45,3 @@ private:
  * the compiler from optimizing it away. */
 #define CONTEXT(message) volatile icinga::ContextFrame currentContextFrame(message)
 }
-
-#endif /* CONTEXT_H */

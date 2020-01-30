@@ -115,4 +115,3 @@ bool VariableQueryHandler::HandleRequest(
 
 	return true;
 }
-

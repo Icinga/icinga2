@@ -95,4 +95,3 @@ void icinga::ShowCodeLocation(std::ostream& out, const DebugInfo& di, bool verbo
 		}
 	}
 }
-

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef PERFDATAWRITER_H
-#define PERFDATAWRITER_H
+#pragma once
 
 #include "perfdata/perfdatawriter-ti.hpp"
 #include "icinga/service.hpp"
@@ -48,5 +47,3 @@ private:
 };
 
 }
-
-#endif /* PERFDATAWRITER_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CLUSTERCHECKTASK_H
-#define CLUSTERCHECKTASK_H
+#pragma once
 
 #include "icinga/service.hpp"
 
@@ -25,5 +24,3 @@ private:
 };
 
 }
-
-#endif /* CLUSTERCHECKTASK_H */

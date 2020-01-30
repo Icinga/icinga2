@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef STRING_H
-#define STRING_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
@@ -194,5 +193,3 @@ struct range_const_iterator<icinga::String>
 };
 
 }
-
-#endif /* STRING_H */

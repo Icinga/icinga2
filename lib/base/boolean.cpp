@@ -6,4 +6,3 @@
 using namespace icinga;
 
 REGISTER_BUILTIN_TYPE(Boolean, Boolean::GetPrototype());
-

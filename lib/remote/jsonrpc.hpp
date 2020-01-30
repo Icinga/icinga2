@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef JSONRPC_H
-#define JSONRPC_H
+#pragma once
 
 #include "base/stream.hpp"
 #include "base/dictionary.hpp"
@@ -35,5 +34,3 @@ private:
 };
 
 }
-
-#endif /* JSONRPC_H */

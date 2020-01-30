@@ -49,4 +49,3 @@ Dictionary::Ptr IcingaDB::GetStats()
 
 	return stats;
 }
-
