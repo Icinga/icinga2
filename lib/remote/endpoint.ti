@@ -16,7 +16,7 @@ class Endpoint : ConfigObject
 		default {{{ return "5665"; }}}
 	};
 	[config] double log_duration {
-		default {{{ return 86400; }}}
+		default {{{ return 3600; }}}
 	};
 
 	[state] Timestamp local_log_position;

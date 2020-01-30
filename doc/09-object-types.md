@@ -259,17 +259,17 @@ name you specified. This means you can define more than one object with the same
 Endpoint objects are used to specify connection information for remote
 Icinga 2 instances. More details can be found in the [distributed monitoring chapter](06-distributed-monitoring.md#distributed-monitoring).
 
-Example:
+Example for a satellite:
 
 ```
-object Endpoint "icinga2-agent1.localdomain" {
-  host = "192.168.56.111"
+object Endpoint "icinga2-satellite1.localdomain" {
+  host = "192.168.56.105"
   port = 5665
-  log_duration = 1d
+  log_duration = 1h
 }
 ```
 
-Example (disable replay log):
+Example for an agent (disable the replay log):
 
 ```
 object Endpoint "icinga2-agent1.localdomain" {
@@ -285,7 +285,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host                      | String                | **Optional.** The hostname/IP address of the remote Icinga 2 instance.
   port                      | Number                | **Optional.** The service name/port of the remote Icinga 2 instance. Defaults to `5665`.
-  log\_duration             | Duration              | **Optional.** Duration for keeping replay logs on connection loss. Defaults to `1d` (86400 seconds). Attribute is specified in seconds. If log_duration is set to 0, replaying logs is disabled. You could also specify the value in human readable format like `10m` for 10 minutes or `1h` for one hour.
+  log\_duration             | Duration              | **Optional.** Duration for keeping replay logs on connection loss. Defaults to `1h` (3600 seconds). Attribute is specified in seconds. If log_duration is set to 0, storing and replaying logs is disabled. You could also specify the value in human readable format like `10m` for 10 minutes or `1h` for one hour.
 
 Endpoint objects cannot currently be created with the API.
 
