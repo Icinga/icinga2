@@ -2900,17 +2900,17 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                                | Description
 ------------------------------------|-----------------------------------------------------------------------------------------------------
-graphite_url                        | **Required.** Target url.
-graphite_metric                     | **Required.** Metric path string.
-graphite_shortname                  | **Optional.** Metric short name (used for performance data).
-graphite_duration                   | **Optional.** Length, in minute of data to parse (default: 5).
-graphite_function                   | **Optional.** Function applied to metrics for thresholds (default: average).
-graphite_warning                    | **Required.** Warning threshold.
+graphite_url                        | **Required.** Target url.
+graphite_metric                     | **Required.** Metric path string.
+graphite_shortname                  | **Optional.** Metric short name (used for performance data).
+graphite_duration                   | **Optional.** Length, in minute of data to parse (default: 5).
+graphite_function                   | **Optional.** Function applied to metrics for thresholds (default: average).
+graphite_warning                    | **Required.** Warning threshold.
 graphite_critical                   | **Required.** Critical threshold.
 graphite_units                      | **Optional.** Adds a text tag to the metric count in the plugin output. Useful to identify the metric units. Doesn't affect data queries.
 graphite_message                    | **Optional.** Text message to output (default: "metric count:").
 graphite_zero_on_error              | **Optional.** Return 0 on a graphite 500 error.
-graphite_link_graph                 | **Optional.** Add a link in the plugin output, showing a 24h graph for this metric in graphite.
+graphite_link_graph                 | **Optional.** Add a link in the plugin output, showing a 24h graph for this metric in graphite.
 
 ### Network Components <a id="plugin-contrib-network-components"></a>
 
@@ -5591,7 +5591,7 @@ uptime                  | How long the cache has been running (in seconds)
 ratio                   | The cache hit ratio expressed as a percentage of hits to hits + misses.  Default thresholds are 95 and 90.
 usage                   | Cache file usage as a percentage of the total cache space.
 
-#### haproxy <a id="plugin-contrib-command-haproxy"></a>
+#### haproxy_status <a id="plugin-contrib-command-haproxy"></a>
 
 The [check_haproxy](https://salsa.debian.org/nagios-team/pkg-nagios-plugins-contrib/blob/master/check_haproxy/check_haproxy) plugin,
 also available in the [monitoring-plugins-contrib](https://packages.debian.org/nagios-plugins-contrib) on debian,
@@ -5611,16 +5611,16 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                    | Description
 ------------------------|----------------------------------------------------------------------------------
-haproxy_username        | **Optional.** Username for HTTP Auth
-haproxy_password        | **Optional.** Password for HTTP Auth
-haproxy_url             | **Required.** URL of the HAProxy csv statistics page.
-haproxy_timeout         | **Optional.** Seconds before plugin times out (default: 10)
-haproxy_warning         | **Optional.** Warning request time threshold (in seconds)
-haproxy_critical        | **Optional.** Critical request time threshold (in seconds)
+haproxy\_status\_username        | **Optional.** Username for HTTP Auth
+haproxy\_status\_password        | **Optional.** Password for HTTP Auth
+haproxy\_status\_url             | **Required.** URL of the HAProxy csv statistics page.
+haproxy\_status\_timeout         | **Optional.** Seconds before plugin times out (default: 10)
+haproxy\_status\_warning         | **Optional.** Warning request time threshold (in seconds)
+haproxy\_status\_critical        | **Optional.** Critical request time threshold (in seconds)
 
-#### haproxy_status <a id="plugin-contrib-command-haproxy_status"></a>
+#### haproxy <a id="plugin-contrib-command-haproxy_status"></a>
 
-The [check_haproxy_status](https://github.com/jonathanio/monitoring-nagios-haproxy) plugin,
+The [check_haproxy](https://github.com/jonathanio/monitoring-nagios-haproxy) plugin,
 uses the `haproxy` statistics socket to monitor [haproxy](http://www.haproxy.org/) frontends/backends.
 
 This plugin need read/write access to the statistics socket with an operator level. You can configure it in the global section of haproxy to allow icinga user to use it:
@@ -5632,15 +5632,15 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                        | Description
 ----------------------------|----------------------------------------------------------------------------------
-haproxy\_status\_default    | **Optional.** Set/Override the defaults which will be applied to all checks (unless specifically set by --overrides).
-haproxy\_status\_frontends  | **Optional.** Enable checks for the frontends in HAProxy (that they're marked as OPEN and the session limits haven't been reached).
-haproxy\_status\_nofrontends| **Optional.** Disable checks for the frontends in HAProxy (that they're marked as OPEN and the session limits haven't been reached).
-haproxy\_status\_backends   | **Optional.** Enable checks for the backends in HAProxy (that they have the required quorum of servers, and that the session limits haven't been reached).
-haproxy\_status\_nobackends | **Optional.** Disable checks for the backends in HAProxy (that they have the required quorum of servers, and that the session limits haven't been reached).
-haproxy\_status\_servers    | **Optional.** Enable checks for the servers in HAProxy (that they haven't reached the limits for the sessions or for queues).
-haproxy\_status\_noservers  | **Optional.** Disable checks for the servers in HAProxy (that they haven't reached the limits for the sessions or for queues).
-haproxy\_status\_overrides  | **Optional.** Override the defaults for a particular frontend or backend, in the form {name}:{override}, where {override} is the same format as --defaults above.
-haproxy\_status\_socket     | **Required.** Path to the socket check_haproxy should connect to
+haproxy\_default    | **Optional.** Set/Override the defaults which will be applied to all checks (unless specifically set by --overrides).
+haproxy\_frontends  | **Optional.** Enable checks for the frontends in HAProxy (that they're marked as OPEN and the session limits haven't been reached).
+haproxy\_nofrontends| **Optional.** Disable checks for the frontends in HAProxy (that they're marked as OPEN and the session limits haven't been reached).
+haproxy\_backends   | **Optional.** Enable checks for the backends in HAProxy (that they have the required quorum of servers, and that the session limits haven't been reached).
+haproxy\_nobackends | **Optional.** Disable checks for the backends in HAProxy (that they have the required quorum of servers, and that the session limits haven't been reached).
+haproxy\_servers    | **Optional.** Enable checks for the servers in HAProxy (that they haven't reached the limits for the sessions or for queues).
+haproxy\_noservers  | **Optional.** Disable checks for the servers in HAProxy (that they haven't reached the limits for the sessions or for queues).
+haproxy\_overrides  | **Optional.** Override the defaults for a particular frontend or backend, in the form {name}:{override}, where {override} is the same format as --defaults above.
+haproxy\_socket     | **Required.** Path to the socket check_haproxy should connect to
 
 #### phpfpm_status <a id="plugin-contrib-command-phpfpm_status"></a>
 
