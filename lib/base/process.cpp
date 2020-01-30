@@ -244,6 +244,8 @@ static void ProcessHandler()
 				(void)close(i);
 	}
 
+	(void)chdir("/");
+
 	for (;;) {
 		size_t length;
 
