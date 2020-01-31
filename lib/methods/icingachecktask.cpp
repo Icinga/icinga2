@@ -102,7 +102,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("num_services_handled", ss.services_handled));
 	perfdata->Add(new PerfdataValue("num_services_problem", ss.services_problem));
 
-	double uptime = Utility::GetTime() - Application::GetStartTime();
+	double uptime = Application::GetUptime();
 	perfdata->Add(new PerfdataValue("uptime", uptime));
 
 	HostStatistics hs = CIB::CalculateHostStats();

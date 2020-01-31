@@ -329,7 +329,7 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("num_services_handled", ss.services_handled);
 	status->Set("num_services_problem", ss.services_problem);
 
-	double uptime = Utility::GetTime() - Application::GetStartTime();
+	double uptime = Application::GetUptime();
 	status->Set("uptime", uptime);
 
 	HostStatistics hs = CalculateHostStats();
