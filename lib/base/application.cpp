@@ -1162,6 +1162,11 @@ void Application::SetMainTime(double ts)
 	m_MainTime = ts;
 }
 
+double Application::GetUptime()
+{
+	return Utility::GetTime() - m_StartTime;
+}
+
 bool Application::GetScriptDebuggerEnabled()
 {
 	return m_ScriptDebuggerEnabled;
