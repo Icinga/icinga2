@@ -1,0 +1,122 @@
+name: C++
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+
+  test:
+    name: Test
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-16.04
+          - ubuntu-18.04
+        boost:
+          - 1.66.0
+          - 1.67.0
+          - 1.68.0
+          - 1.69.0
+          - 1.70.0
+          #- 1.71.0
+          #- 1.72.0
+        CMAKE_BUILD_TYPE:
+          - RelWithDebInfo
+          - Debug
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Deps packages
+        run: |
+          sudo apt-get update
+          DEBIAN_FRONTEND=noninteractive \
+            sudo apt-get install --no-install-{recommends,suggests} -y \
+            bison ccache flex libmysqlclient-dev libpq-dev
+      - name: update-ccache-symlinks
+        run: update-ccache-symlinks
+
+      - name: Restore/backup Boost
+        id: boost
+        uses: actions/cache@v1
+        with:
+          path: /tmp/boost
+          key: ${{ matrix.os }}-boost-${{ matrix.boost }}
+      - name: Download Boost
+        if: steps.boost.outputs.cache-hit != 'true'
+        run: |
+          set -exo pipefail
+          BOOST_UNDERSCORES="$(perl -pe 's/\./_/g' <<<'${{ matrix.boost }}')"
+          wget -O- https://dl.bintray.com/boostorg/release/${{ matrix.boost }}/source/boost_$BOOST_UNDERSCORES.tar.bz2 |tar -jx
+          mv boost_$BOOST_UNDERSCORES /tmp/boost
+      - name: Bootstrap Boost
+        if: steps.boost.outputs.cache-hit != 'true'
+        run: |
+          set -exo pipefail
+          cd /tmp/boost
+          ./bootstrap.sh
+      - name: Build Boost
+        run: |
+          set -exo pipefail
+          I2SRC="$(pwd)"
+          cd /tmp/boost
+          ./b2 $(grep -Fwe 'find_package(Boost' < "$I2SRC/CMakeLists.txt" |perl -pe 's/^.*?COMPONENTS //; s/ REQUIRED.*?$//; s/(\w+)/--with-$1/g')
+
+      - name: Restore/backup ccache
+        id: ccache
+        uses: actions/cache@v1
+        with:
+          path: /tmp/ccache
+          key: ${{ matrix.os }}-ccache-${{ matrix.CMAKE_BUILD_TYPE }}-boost-${{ matrix.boost }}
+
+      - name: cmake
+        run: |
+          set -exo pipefail
+          mkdir build
+          cd build
+          BOOST_ROOT=/tmp/boost \
+            cmake .. \
+            -DCMAKE_BUILD_TYPE=${{ matrix.CMAKE_BUILD_TYPE }} \
+            -DICINGA2_UNITY_BUILD=Off \
+            -DCMAKE_INSTALL_PREFIX=/tmp/icinga2 \
+            -DICINGA2_PLUGINDIR=/tmp/icinga2/sbin \
+            -DBoost_NO_BOOST_CMAKE=TRUE \
+            -DBoost_NO_SYSTEM_PATHS=TRUE \
+            -DCMAKE_INSTALL_RPATH=/tmp/boost/stage/lib \
+            -DICINGA2_USER=$(id -u -n) \
+            -DICINGA2_GROUP=$(id -g -n)
+
+      - name: make
+        run: |
+          set -exo pipefail
+          mkdir -p /tmp/ccache
+          cd build
+          PATH="/usr/lib/ccache:$PATH" \
+            CCACHE_DIR=/tmp/ccache \
+            make -j2
+      - name: make test
+        run: |
+          set -exo pipefail
+          cd build
+          make test
+      - name: make install
+        run: |
+          set -exo pipefail
+          cd build
+          make install
+
+      - name: icinga2 --version
+        run: |
+          set -exo pipefail
+          /tmp/icinga2/sbin/icinga2 --version
+      - name: icinga2 daemon -C
+        run: |
+          set -exo pipefail
+          /tmp/icinga2/sbin/icinga2 daemon -C
