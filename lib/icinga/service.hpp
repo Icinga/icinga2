@@ -3,10 +3,10 @@
 #ifndef SERVICE_H
 #define SERVICE_H
 
-#include "icinga/i2-icinga.hpp"
-#include "icinga/service-ti.hpp"
-#include "icinga/macroresolver.hpp"
 #include "icinga/host.hpp"
+#include "icinga/i2-icinga.hpp"
+#include "icinga/macroresolver.hpp"
+#include "icinga/service-ti.hpp"
 #include <tuple>
 
 using std::tie;

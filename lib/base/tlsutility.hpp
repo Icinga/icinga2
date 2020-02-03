@@ -7,16 +7,16 @@
 #include "base/object.hpp"
 #include "base/shared.hpp"
 #include "base/string.hpp"
-#include <openssl/ssl.h>
-#include <openssl/bio.h>
-#include <openssl/err.h>
-#include <openssl/comp.h>
-#include <openssl/sha.h>
-#include <openssl/x509v3.h>
-#include <openssl/evp.h>
-#include <openssl/rand.h>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/exception/info.hpp>
+#include <openssl/bio.h>
+#include <openssl/comp.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
+#include <openssl/sha.h>
+#include <openssl/ssl.h>
+#include <openssl/x509v3.h>
 
 namespace icinga
 {

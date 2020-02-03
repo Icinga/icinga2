@@ -1,13 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/configpackageutility.hpp"
-#include "remote/apilistener.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/configpackageutility.hpp"
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
-#include <algorithm>
 #include <fstream>
 
 using namespace icinga;

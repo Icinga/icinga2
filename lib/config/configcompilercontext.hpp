@@ -3,8 +3,8 @@
 #ifndef CONFIGCOMPILERCONTEXT_H
 #define CONFIGCOMPILERCONTEXT_H
 
-#include "config/i2-config.hpp"
 #include "base/dictionary.hpp"
+#include "config/i2-config.hpp"
 #include <boost/thread/mutex.hpp>
 #include <fstream>
 

@@ -3,11 +3,11 @@
 #ifndef CONFIGOBJECTUTILITY_H
 #define CONFIGOBJECTUTILITY_H
 
-#include "remote/i2-remote.hpp"
 #include "base/array.hpp"
 #include "base/configobject.hpp"
 #include "base/dictionary.hpp"
 #include "base/type.hpp"
+#include "remote/i2-remote.hpp"
 
 namespace icinga
 {

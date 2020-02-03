@@ -3,8 +3,8 @@
 #ifndef STDAGGREGATOR_H
 #define STDAGGREGATOR_H
 
-#include "livestatus/table.hpp"
 #include "livestatus/aggregator.hpp"
+#include "livestatus/table.hpp"
 
 namespace icinga
 {

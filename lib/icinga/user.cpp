@@ -2,11 +2,11 @@
 
 #include "icinga/user.hpp"
 #include "icinga/user-ti.cpp"
-#include "icinga/usergroup.hpp"
+#include "base/exception.hpp"
+#include "base/objectlock.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/usergroup.hpp"
-#include "base/objectlock.hpp"
-#include "base/exception.hpp"
+#include "icinga/usergroup.hpp"
 
 using namespace icinga;
 

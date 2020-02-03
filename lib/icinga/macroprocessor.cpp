@@ -1,16 +1,16 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/macroprocessor.hpp"
-#include "icinga/macroresolver.hpp"
-#include "icinga/customvarobject.hpp"
 #include "base/array.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
-#include "base/context.hpp"
 #include "base/configobject.hpp"
-#include "base/scriptframe.hpp"
+#include "base/context.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/scriptframe.hpp"
+#include "icinga/customvarobject.hpp"
+#include "icinga/macroprocessor.hpp"
+#include "icinga/macroresolver.hpp"
 #include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;

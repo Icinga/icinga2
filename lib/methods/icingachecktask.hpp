@@ -3,8 +3,8 @@
 #ifndef ICINGACHECKTASK_H
 #define ICINGACHECKTASK_H
 
-#include "methods/i2-methods.hpp"
 #include "icinga/service.hpp"
+#include "methods/i2-methods.hpp"
 
 namespace icinga
 {

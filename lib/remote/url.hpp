@@ -3,11 +3,11 @@
 #ifndef URL_H
 #define URL_H
 
-#include "remote/i2-remote.hpp"
+#include "base/array.hpp"
 #include "base/object.hpp"
 #include "base/string.hpp"
-#include "base/array.hpp"
 #include "base/value.hpp"
+#include "remote/i2-remote.hpp"
 #include <map>
 #include <utility>
 #include <vector>

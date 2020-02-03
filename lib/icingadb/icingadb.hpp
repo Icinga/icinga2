@@ -3,14 +3,14 @@
 #ifndef ICINGADB_H
 #define ICINGADB_H
 
-#include "icingadb/icingadb-ti.hpp"
-#include "icingadb/redisconnection.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include "icinga/customvarobject.hpp"
 #include "icinga/checkable.hpp"
-#include "icinga/service.hpp"
+#include "icinga/customvarobject.hpp"
 #include "icinga/downtime.hpp"
+#include "icinga/service.hpp"
+#include "icingadb/icingadb-ti.hpp"
+#include "icingadb/redisconnection.hpp"
 #include "remote/messageorigin.hpp"
 #include <memory>
 #include <utility>

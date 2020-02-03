@@ -3,8 +3,8 @@
 #ifndef CONSOLEHANDLER_H
 #define CONSOLEHANDLER_H
 
-#include "remote/httphandler.hpp"
 #include "base/scriptframe.hpp"
+#include "remote/httphandler.hpp"
 
 namespace icinga
 {

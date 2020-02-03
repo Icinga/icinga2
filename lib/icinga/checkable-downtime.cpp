@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/service.hpp"
 #include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
-#include "base/utility.hpp"
 #include "base/convert.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
+#include "icinga/service.hpp"
 
 using namespace icinga;
 

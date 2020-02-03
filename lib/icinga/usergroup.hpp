@@ -4,8 +4,8 @@
 #define USERGROUP_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/usergroup-ti.hpp"
 #include "icinga/user.hpp"
+#include "icinga/usergroup-ti.hpp"
 
 namespace icinga
 {

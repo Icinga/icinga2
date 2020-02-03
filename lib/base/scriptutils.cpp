@@ -1,22 +1,22 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/scriptutils.hpp"
-#include "base/function.hpp"
-#include "base/scriptframe.hpp"
-#include "base/exception.hpp"
-#include "base/utility.hpp"
+#include "base/application.hpp"
+#include "base/configtype.hpp"
 #include "base/convert.hpp"
+#include "base/dependencygraph.hpp"
+#include "base/exception.hpp"
+#include "base/function.hpp"
+#include "base/initialize.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
-#include "base/objectlock.hpp"
-#include "base/configtype.hpp"
-#include "base/application.hpp"
-#include "base/dependencygraph.hpp"
-#include "base/initialize.hpp"
 #include "base/namespace.hpp"
+#include "base/objectlock.hpp"
+#include "base/scriptframe.hpp"
+#include "base/scriptutils.hpp"
+#include "base/utility.hpp"
 #include "config/configitem.hpp"
-#include <boost/regex.hpp>
 #include <algorithm>
+#include <boost/regex.hpp>
 #include <set>
 #ifdef _WIN32
 #include <msi.h>

@@ -1,14 +1,14 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/pluginutility.hpp"
-#include "icinga/macroprocessor.hpp"
-#include "base/logger.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
 #include "base/convert.hpp"
-#include "base/process.hpp"
-#include "base/objectlock.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/perfdatavalue.hpp"
+#include "base/process.hpp"
+#include "base/utility.hpp"
+#include "icinga/macroprocessor.hpp"
+#include "icinga/pluginutility.hpp"
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace icinga;

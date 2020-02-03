@@ -3,12 +3,12 @@
 #ifndef DBOBJECT_H
 #define DBOBJECT_H
 
-#include "db_ido/i2-db_ido.hpp"
-#include "db_ido/dbreference.hpp"
-#include "db_ido/dbquery.hpp"
-#include "db_ido/dbtype.hpp"
-#include "icinga/customvarobject.hpp"
 #include "base/configobject.hpp"
+#include "db_ido/dbquery.hpp"
+#include "db_ido/dbreference.hpp"
+#include "db_ido/dbtype.hpp"
+#include "db_ido/i2-db_ido.hpp"
+#include "icinga/customvarobject.hpp"
 
 namespace icinga
 {

@@ -3,13 +3,13 @@
 #ifndef APIACTION_H
 #define APIACTION_H
 
-#include "remote/i2-remote.hpp"
+#include "base/configobject.hpp"
+#include "base/dictionary.hpp"
 #include "base/registry.hpp"
 #include "base/value.hpp"
-#include "base/dictionary.hpp"
-#include "base/configobject.hpp"
-#include <vector>
+#include "remote/i2-remote.hpp"
 #include <boost/algorithm/string/replace.hpp>
+#include <vector>
 
 namespace icinga
 {

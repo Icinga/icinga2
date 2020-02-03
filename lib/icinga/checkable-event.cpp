@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/context.hpp"
+#include "base/logger.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/service.hpp"
 #include "remote/apilistener.hpp"
-#include "base/logger.hpp"
-#include "base/context.hpp"
 
 using namespace icinga;
 

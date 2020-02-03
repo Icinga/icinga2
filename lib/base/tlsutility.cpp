@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/tlsutility.hpp"
-#include "base/convert.hpp"
-#include "base/logger.hpp"
-#include "base/context.hpp"
-#include "base/utility.hpp"
 #include "base/application.hpp"
+#include "base/context.hpp"
+#include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/tlsutility.hpp"
+#include "base/utility.hpp"
 #include <boost/asio/ssl/context.hpp>
 #include <fstream>
 

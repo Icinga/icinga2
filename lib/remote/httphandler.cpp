@@ -1,9 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/exception.hpp"
+#include "base/singleton.hpp"
 #include "remote/httphandler.hpp"
 #include "remote/httputility.hpp"
-#include "base/singleton.hpp"
-#include "base/exception.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/beast/http.hpp>
 

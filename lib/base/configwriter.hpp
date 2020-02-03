@@ -3,9 +3,9 @@
 #ifndef CONFIGWRITER_H
 #define CONFIGWRITER_H
 
-#include "base/object.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
+#include "base/object.hpp"
 #include <iosfwd>
 
 namespace icinga

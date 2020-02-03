@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "config/applyrule.hpp"
 #include "base/logger.hpp"
+#include "config/applyrule.hpp"
 #include <set>
 
 using namespace icinga;

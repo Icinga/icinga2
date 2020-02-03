@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/exception.hpp"
 #include "remote/configpackageshandler.hpp"
 #include "remote/configpackageutility.hpp"
-#include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
-#include "base/exception.hpp"
+#include "remote/httputility.hpp"
 
 using namespace icinga;
 

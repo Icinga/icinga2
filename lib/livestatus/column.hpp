@@ -3,8 +3,8 @@
 #ifndef COLUMN_H
 #define COLUMN_H
 
-#include "livestatus/i2-livestatus.hpp"
 #include "base/value.hpp"
+#include "livestatus/i2-livestatus.hpp"
 
 using namespace icinga;
 

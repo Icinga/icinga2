@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/configtype.hpp"
 #include "livestatus/zonestable.hpp"
 #include "remote/zone.hpp"
-#include "base/configtype.hpp"
 
 using namespace icinga;
 

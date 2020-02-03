@@ -1,13 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "cli/objectlistutility.hpp"
-#include "base/json.hpp"
-#include "base/utility.hpp"
 #include "base/console.hpp"
-#include "base/objectlock.hpp"
 #include "base/convert.hpp"
-#include <iostream>
+#include "base/json.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
+#include "cli/objectlistutility.hpp"
 #include <iomanip>
+#include <iostream>
 
 using namespace icinga;
 

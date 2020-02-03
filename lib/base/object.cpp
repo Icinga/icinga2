@@ -1,13 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/object.hpp"
-#include "base/value.hpp"
 #include "base/dictionary.hpp"
-#include "base/primitivetype.hpp"
-#include "base/utility.hpp"
-#include "base/timer.hpp"
-#include "base/logger.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/object.hpp"
+#include "base/primitivetype.hpp"
+#include "base/timer.hpp"
+#include "base/utility.hpp"
+#include "base/value.hpp"
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <thread>

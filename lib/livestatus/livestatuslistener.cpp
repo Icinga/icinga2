@@ -2,19 +2,19 @@
 
 #include "livestatus/livestatuslistener.hpp"
 #include "livestatus/livestatuslistener-ti.cpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
-#include "base/objectlock.hpp"
+#include "base/application.hpp"
 #include "base/configtype.hpp"
-#include "base/logger.hpp"
+#include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/function.hpp"
+#include "base/logger.hpp"
+#include "base/networkstream.hpp"
+#include "base/objectlock.hpp"
+#include "base/perfdatavalue.hpp"
+#include "base/statsfunction.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/unixsocket.hpp"
-#include "base/networkstream.hpp"
-#include "base/application.hpp"
-#include "base/function.hpp"
-#include "base/statsfunction.hpp"
-#include "base/convert.hpp"
+#include "base/utility.hpp"
 
 using namespace icinga;
 

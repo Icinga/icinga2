@@ -3,9 +3,9 @@
 #ifndef DBVALUE_H
 #define DBVALUE_H
 
-#include "db_ido/i2-db_ido.hpp"
 #include "base/object.hpp"
 #include "base/value.hpp"
+#include "db_ido/i2-db_ido.hpp"
 
 namespace icinga
 {

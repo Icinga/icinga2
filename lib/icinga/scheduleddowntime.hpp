@@ -3,9 +3,9 @@
 #ifndef SCHEDULEDDOWNTIME_H
 #define SCHEDULEDDOWNTIME_H
 
+#include "icinga/checkable.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/scheduleddowntime-ti.hpp"
-#include "icinga/checkable.hpp"
 #include <atomic>
 
 namespace icinga

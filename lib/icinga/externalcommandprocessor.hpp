@@ -3,9 +3,9 @@
 #ifndef EXTERNALCOMMANDPROCESSOR_H
 #define EXTERNALCOMMANDPROCESSOR_H
 
-#include "icinga/i2-icinga.hpp"
-#include "icinga/command.hpp"
 #include "base/string.hpp"
+#include "icinga/command.hpp"
+#include "icinga/i2-icinga.hpp"
 #include <boost/signals2.hpp>
 #include <vector>
 

@@ -1,22 +1,22 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icingadb/icingadb.hpp"
+#include "base/array.hpp"
 #include "base/configtype.hpp"
-#include "base/object-packer.hpp"
+#include "base/convert.hpp"
+#include "base/initialize.hpp"
+#include "base/json.hpp"
 #include "base/logger.hpp"
+#include "base/object-packer.hpp"
+#include "base/objectlock.hpp"
+#include "base/scriptglobal.hpp"
 #include "base/serializer.hpp"
 #include "base/tlsutility.hpp"
-#include "base/initialize.hpp"
-#include "base/objectlock.hpp"
-#include "base/array.hpp"
-#include "base/scriptglobal.hpp"
-#include "base/convert.hpp"
-#include "base/json.hpp"
-#include "icinga/customvarobject.hpp"
 #include "icinga/checkcommand.hpp"
-#include "icinga/notificationcommand.hpp"
+#include "icinga/customvarobject.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/host.hpp"
+#include "icinga/notificationcommand.hpp"
+#include "icingadb/icingadb.hpp"
 #include <boost/algorithm/string.hpp>
 #include <map>
 #include <utility>

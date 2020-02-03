@@ -2,8 +2,8 @@
 
 #include "remote/apiuser.hpp"
 #include "remote/apiuser-ti.cpp"
-#include "base/configtype.hpp"
 #include "base/base64.hpp"
+#include "base/configtype.hpp"
 #include "base/tlsutility.hpp"
 #include "base/utility.hpp"
 

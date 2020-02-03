@@ -1,20 +1,20 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "methods/icingachecktask.hpp"
-#include "icinga/cib.hpp"
-#include "icinga/service.hpp"
-#include "icinga/checkcommand.hpp"
-#include "icinga/macroprocessor.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "icinga/clusterevents.hpp"
-#include "icinga/checkable.hpp"
-#include "remote/apilistener.hpp"
 #include "base/application.hpp"
-#include "base/objectlock.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
-#include "base/function.hpp"
 #include "base/configtype.hpp"
+#include "base/function.hpp"
+#include "base/objectlock.hpp"
+#include "base/perfdatavalue.hpp"
+#include "base/utility.hpp"
+#include "icinga/checkable.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/cib.hpp"
+#include "icinga/clusterevents.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/macroprocessor.hpp"
+#include "icinga/service.hpp"
+#include "methods/icingachecktask.hpp"
+#include "remote/apilistener.hpp"
 
 using namespace icinga;
 

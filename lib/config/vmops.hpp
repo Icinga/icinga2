@@ -3,20 +3,20 @@
 #ifndef VMOPS_H
 #define VMOPS_H
 
-#include "config/i2-config.hpp"
-#include "config/expression.hpp"
-#include "config/configitembuilder.hpp"
-#include "config/applyrule.hpp"
-#include "config/objectrule.hpp"
-#include "base/debuginfo.hpp"
 #include "base/array.hpp"
-#include "base/dictionary.hpp"
-#include "base/namespace.hpp"
-#include "base/function.hpp"
-#include "base/scriptglobal.hpp"
-#include "base/exception.hpp"
 #include "base/convert.hpp"
+#include "base/debuginfo.hpp"
+#include "base/dictionary.hpp"
+#include "base/exception.hpp"
+#include "base/function.hpp"
+#include "base/namespace.hpp"
 #include "base/objectlock.hpp"
+#include "base/scriptglobal.hpp"
+#include "config/applyrule.hpp"
+#include "config/configitembuilder.hpp"
+#include "config/expression.hpp"
+#include "config/i2-config.hpp"
+#include "config/objectrule.hpp"
 #include <map>
 #include <vector>
 

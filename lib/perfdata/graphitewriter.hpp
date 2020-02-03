@@ -3,14 +3,14 @@
 #ifndef GRAPHITEWRITER_H
 #define GRAPHITEWRITER_H
 
-#include "perfdata/graphitewriter-ti.hpp"
-#include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include <fstream>
+#include "icinga/service.hpp"
+#include "perfdata/graphitewriter-ti.hpp"
 #include <boost/thread/mutex.hpp>
+#include <fstream>
 
 namespace icinga
 {

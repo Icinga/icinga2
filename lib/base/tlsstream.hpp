@@ -3,19 +3,19 @@
 #ifndef TLSSTREAM_H
 #define TLSSTREAM_H
 
+#include "base/fifo.hpp"
 #include "base/i2-base.hpp"
 #include "base/shared.hpp"
 #include "base/socket.hpp"
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
-#include "base/fifo.hpp"
-#include <memory>
-#include <utility>
 #include <boost/asio/buffered_stream.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
+#include <memory>
+#include <utility>
 
 namespace icinga
 {

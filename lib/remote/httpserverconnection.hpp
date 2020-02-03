@@ -3,14 +3,14 @@
 #ifndef HTTPSERVERCONNECTION_H
 #define HTTPSERVERCONNECTION_H
 
-#include "remote/apiuser.hpp"
 #include "base/string.hpp"
 #include "base/tlsstream.hpp"
-#include <memory>
+#include "remote/apiuser.hpp"
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
+#include <memory>
 
 namespace icinga
 {

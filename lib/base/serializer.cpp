@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/serializer.hpp"
-#include "base/type.hpp"
 #include "base/application.hpp"
-#include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/namespace.hpp"
+#include "base/objectlock.hpp"
+#include "base/serializer.hpp"
+#include "base/type.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <deque>
 

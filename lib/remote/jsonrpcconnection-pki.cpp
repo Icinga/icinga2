@@ -1,17 +1,17 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/jsonrpcconnection.hpp"
-#include "remote/apilistener.hpp"
-#include "remote/apifunction.hpp"
-#include "remote/jsonrpc.hpp"
 #include "base/configtype.hpp"
+#include "base/convert.hpp"
+#include "base/exception.hpp"
+#include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
-#include "base/logger.hpp"
-#include "base/exception.hpp"
-#include "base/convert.hpp"
-#include <boost/thread/once.hpp>
+#include "remote/apifunction.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/jsonrpc.hpp"
+#include "remote/jsonrpcconnection.hpp"
 #include <boost/regex.hpp>
+#include <boost/thread/once.hpp>
 #include <fstream>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>

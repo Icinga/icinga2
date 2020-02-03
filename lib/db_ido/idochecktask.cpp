@@ -1,17 +1,17 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/configtype.hpp"
+#include "base/convert.hpp"
+#include "base/function.hpp"
+#include "base/perfdatavalue.hpp"
+#include "base/utility.hpp"
 #include "db_ido/idochecktask.hpp"
-#include "icinga/host.hpp"
 #include "icinga/checkcommand.hpp"
+#include "icinga/host.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/zone.hpp"
-#include "base/function.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
-#include "base/configtype.hpp"
-#include "base/convert.hpp"
 
 using namespace icinga;
 

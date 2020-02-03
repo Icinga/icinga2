@@ -3,8 +3,8 @@
 #ifndef HISTORYTABLE_H
 #define HISTORYTABLE_H
 
-#include "livestatus/table.hpp"
 #include "base/dictionary.hpp"
+#include "livestatus/table.hpp"
 
 namespace icinga
 {

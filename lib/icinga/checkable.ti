@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/icingaapplication.hpp"
-#include "icinga/customvarobject.hpp"
 #include "base/array.hpp"
+#include "icinga/customvarobject.hpp"
+#include "icinga/icingaapplication.hpp"
 #impl_include "icinga/checkcommand.hpp"
 #impl_include "icinga/eventcommand.hpp"
 

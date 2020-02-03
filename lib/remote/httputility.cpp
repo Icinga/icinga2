@@ -1,13 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/httputility.hpp"
-#include "remote/url.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
+#include "remote/httputility.hpp"
+#include "remote/url.hpp"
+#include <boost/beast/http.hpp>
 #include <map>
 #include <string>
 #include <vector>
-#include <boost/beast/http.hpp>
 
 using namespace icinga;
 

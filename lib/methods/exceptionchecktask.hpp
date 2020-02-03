@@ -3,8 +3,8 @@
 #ifndef EXCEPTIONCHECKTASK_H
 #define EXCEPTIONCHECKTASK_H
 
-#include "icinga/service.hpp"
 #include "base/dictionary.hpp"
+#include "icinga/service.hpp"
 
 namespace icinga
 {

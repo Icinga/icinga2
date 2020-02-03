@@ -4,8 +4,8 @@
 #define PGSQLINTERFACE_H
 
 #include "pgsql_shim/pgsql_shim_export.h"
-#include <memory>
 #include <libpq-fe.h>
+#include <memory>
 
 namespace icinga
 {

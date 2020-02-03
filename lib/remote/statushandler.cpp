@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/statushandler.hpp"
-#include "remote/httputility.hpp"
-#include "remote/filterutility.hpp"
+#include "base/namespace.hpp"
 #include "base/serializer.hpp"
 #include "base/statsfunction.hpp"
-#include "base/namespace.hpp"
+#include "remote/filterutility.hpp"
+#include "remote/httputility.hpp"
+#include "remote/statushandler.hpp"
 
 using namespace icinga;
 

@@ -3,12 +3,12 @@
 #ifndef EXTERNALCOMMANDLISTENER_H
 #define EXTERNALCOMMANDLISTENER_H
 
-#include "compat/externalcommandlistener-ti.hpp"
 #include "base/objectlock.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
-#include <thread>
+#include "compat/externalcommandlistener-ti.hpp"
 #include <iostream>
+#include <thread>
 
 namespace icinga
 {

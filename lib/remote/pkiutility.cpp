@@ -1,24 +1,24 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/pkiutility.hpp"
-#include "remote/apilistener.hpp"
-#include "base/defer.hpp"
-#include "base/io-engine.hpp"
-#include "base/logger.hpp"
 #include "base/application.hpp"
-#include "base/tcpsocket.hpp"
-#include "base/tlsutility.hpp"
 #include "base/console.hpp"
-#include "base/tlsstream.hpp"
-#include "base/tcpsocket.hpp"
-#include "base/json.hpp"
-#include "base/utility.hpp"
+#include "base/defer.hpp"
 #include "base/exception.hpp"
+#include "base/io-engine.hpp"
+#include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/tlsstream.hpp"
+#include "base/tlsutility.hpp"
+#include "base/utility.hpp"
+#include "remote/apilistener.hpp"
 #include "remote/jsonrpc.hpp"
-#include <fstream>
-#include <iostream>
+#include "remote/pkiutility.hpp"
 #include <boost/asio/ssl/context.hpp>
 #include <boost/filesystem/path.hpp>
+#include <fstream>
+#include <iostream>
 
 using namespace icinga;
 

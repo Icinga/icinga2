@@ -4,8 +4,8 @@
 #include "base/perfdatavalue-ti.cpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
-#include "base/logger.hpp"
 #include "base/function.hpp"
+#include "base/logger.hpp"
 
 using namespace icinga;
 

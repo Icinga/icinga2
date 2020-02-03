@@ -3,12 +3,12 @@
 #ifndef GELFWRITER_H
 #define GELFWRITER_H
 
-#include "perfdata/gelfwriter-ti.hpp"
-#include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
+#include "icinga/service.hpp"
+#include "perfdata/gelfwriter-ti.hpp"
 #include <fstream>
 
 namespace icinga

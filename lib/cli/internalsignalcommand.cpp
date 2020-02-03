@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "cli/internalsignalcommand.hpp"
 #include "base/logger.hpp"
+#include "cli/internalsignalcommand.hpp"
 #include <signal.h>
 
 using namespace icinga;

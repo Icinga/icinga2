@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "db_ido/hostgroupdbobject.hpp"
+#include "base/configtype.hpp"
+#include "base/initialize.hpp"
+#include "base/objectlock.hpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
-#include "base/objectlock.hpp"
-#include "base/initialize.hpp"
-#include "base/configtype.hpp"
+#include "db_ido/hostgroupdbobject.hpp"
 
 using namespace icinga;
 

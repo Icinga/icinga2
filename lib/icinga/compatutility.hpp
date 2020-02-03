@@ -3,9 +3,9 @@
 #ifndef COMPATUTILITY_H
 #define COMPATUTILITY_H
 
-#include "icinga/i2-icinga.hpp"
-#include "icinga/host.hpp"
 #include "icinga/command.hpp"
+#include "icinga/host.hpp"
+#include "icinga/i2-icinga.hpp"
 
 namespace icinga
 {

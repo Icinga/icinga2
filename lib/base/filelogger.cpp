@@ -2,9 +2,9 @@
 
 #include "base/filelogger.hpp"
 #include "base/filelogger-ti.cpp"
+#include "base/application.hpp"
 #include "base/configtype.hpp"
 #include "base/statsfunction.hpp"
-#include "base/application.hpp"
 #include <fstream>
 
 using namespace icinga;

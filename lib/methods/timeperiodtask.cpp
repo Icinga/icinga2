@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "methods/timeperiodtask.hpp"
 #include "base/function.hpp"
+#include "methods/timeperiodtask.hpp"
 
 using namespace icinga;
 

@@ -3,8 +3,8 @@
 #ifndef BASE64_H
 #define BASE64_H
 
-#include "remote/i2-remote.hpp"
 #include "base/string.hpp"
+#include "remote/i2-remote.hpp"
 
 namespace icinga
 {

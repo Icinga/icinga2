@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/application.hpp"
+#include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/tlsutility.hpp"
 #include "cli/calistcommand.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/pkiutility.hpp"
-#include "base/logger.hpp"
-#include "base/application.hpp"
-#include "base/tlsutility.hpp"
-#include "base/json.hpp"
 #include <iostream>
 
 using namespace icinga;

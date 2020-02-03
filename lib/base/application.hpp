@@ -3,10 +3,10 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include "base/i2-base.hpp"
 #include "base/application-ti.hpp"
-#include "base/logger.hpp"
 #include "base/configuration.hpp"
+#include "base/i2-base.hpp"
+#include "base/logger.hpp"
 #include <iosfwd>
 
 namespace icinga

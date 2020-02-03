@@ -1,32 +1,32 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/utility.hpp"
-#include "base/convert.hpp"
 #include "base/application.hpp"
-#include "base/logger.hpp"
+#include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
 #include "base/socket.hpp"
 #include "base/utility.hpp"
-#include "base/json.hpp"
-#include "base/objectlock.hpp"
-#include <cstdint>
-#include <mmatch.h>
-#include <boost/filesystem/path.hpp>
+#include "base/utility.hpp"
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/thread/tss.hpp>
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-#include <boost/regex.hpp>
-#include <ios>
+#include <boost/uuid/uuid_io.hpp>
+#include <cstdint>
 #include <fstream>
+#include <future>
+#include <ios>
 #include <iostream>
 #include <iterator>
+#include <mmatch.h>
 #include <stdlib.h>
-#include <future>
 #include <utf8.h>
 #include <vector>
 

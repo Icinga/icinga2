@@ -3,20 +3,20 @@
 #ifndef EVENTQUEUE_H
 #define EVENTQUEUE_H
 
-#include "remote/httphandler.hpp"
 #include "base/object.hpp"
 #include "config/expression.hpp"
+#include "remote/httphandler.hpp"
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include <boost/thread/mutex.hpp>
 #include <cstddef>
 #include <cstdint>
-#include <mutex>
-#include <set>
-#include <map>
 #include <deque>
+#include <map>
+#include <mutex>
 #include <queue>
+#include <set>
 
 namespace icinga
 {

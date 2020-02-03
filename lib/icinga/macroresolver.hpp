@@ -3,10 +3,10 @@
 #ifndef MACRORESOLVER_H
 #define MACRORESOLVER_H
 
-#include "icinga/i2-icinga.hpp"
-#include "icinga/checkresult.hpp"
 #include "base/dictionary.hpp"
 #include "base/string.hpp"
+#include "icinga/checkresult.hpp"
+#include "icinga/i2-icinga.hpp"
 
 namespace icinga
 {

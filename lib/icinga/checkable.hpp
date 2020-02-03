@@ -5,12 +5,12 @@
 
 #include "base/atomic.hpp"
 #include "base/timer.hpp"
-#include "icinga/i2-icinga.hpp"
 #include "icinga/checkable-ti.hpp"
-#include "icinga/timeperiod.hpp"
-#include "icinga/notification.hpp"
 #include "icinga/comment.hpp"
 #include "icinga/downtime.hpp"
+#include "icinga/i2-icinga.hpp"
+#include "icinga/notification.hpp"
+#include "icinga/timeperiod.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include <cstdint>

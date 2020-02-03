@@ -1,22 +1,22 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/configtype.hpp"
+#include "base/convert.hpp"
+#include "base/initialize.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
 #include "db_ido/dbevents.hpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
-#include "base/convert.hpp"
-#include "base/objectlock.hpp"
-#include "base/initialize.hpp"
-#include "base/configtype.hpp"
-#include "base/utility.hpp"
-#include "base/logger.hpp"
-#include "remote/endpoint.hpp"
-#include "icinga/notification.hpp"
 #include "icinga/checkcommand.hpp"
+#include "icinga/compatutility.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/externalcommandprocessor.hpp"
-#include "icinga/compatutility.hpp"
-#include "icinga/pluginutility.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "icinga/notification.hpp"
+#include "icinga/pluginutility.hpp"
+#include "remote/endpoint.hpp"
 #include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;

@@ -2,10 +2,10 @@
 
 #include "remote/zone.hpp"
 #include "remote/zone-ti.cpp"
-#include "remote/jsonrpcconnection.hpp"
 #include "base/array.hpp"
-#include "base/objectlock.hpp"
 #include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "remote/jsonrpcconnection.hpp"
 
 using namespace icinga;
 

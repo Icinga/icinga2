@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/console.hpp"
+#include "base/convert.hpp"
+#include "base/logger.hpp"
 #include "cli/featurelistcommand.hpp"
 #include "cli/featureutility.hpp"
-#include "base/logger.hpp"
-#include "base/convert.hpp"
-#include "base/console.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <iostream>
 

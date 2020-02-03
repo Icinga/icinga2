@@ -7,8 +7,8 @@
 #include "base/objectlock.hpp"
 #include "base/value.hpp"
 #include <boost/range/iterator.hpp>
-#include <vector>
 #include <set>
+#include <vector>
 
 namespace icinga
 {

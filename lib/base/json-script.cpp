@@ -3,9 +3,9 @@
 #include "base/dictionary.hpp"
 #include "base/function.hpp"
 #include "base/functionwrapper.hpp"
-#include "base/scriptframe.hpp"
 #include "base/initialize.hpp"
 #include "base/json.hpp"
+#include "base/scriptframe.hpp"
 
 using namespace icinga;
 

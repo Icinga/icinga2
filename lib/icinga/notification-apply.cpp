@@ -1,15 +1,15 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/configtype.hpp"
+#include "base/context.hpp"
+#include "base/exception.hpp"
+#include "base/initialize.hpp"
+#include "base/logger.hpp"
+#include "base/workqueue.hpp"
+#include "config/applyrule.hpp"
+#include "config/configitembuilder.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/service.hpp"
-#include "config/configitembuilder.hpp"
-#include "config/applyrule.hpp"
-#include "base/initialize.hpp"
-#include "base/configtype.hpp"
-#include "base/logger.hpp"
-#include "base/context.hpp"
-#include "base/workqueue.hpp"
-#include "base/exception.hpp"
 
 using namespace icinga;
 

@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "livestatus/hostgroupstable.hpp"
-#include "icinga/hostgroup.hpp"
-#include "icinga/host.hpp"
-#include "icinga/service.hpp"
 #include "base/configtype.hpp"
+#include "icinga/host.hpp"
+#include "icinga/hostgroup.hpp"
+#include "icinga/service.hpp"
+#include "livestatus/hostgroupstable.hpp"
 
 using namespace icinga;
 

@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/stdiostream.hpp"
 #include "base/objectlock.hpp"
+#include "base/stdiostream.hpp"
 
 using namespace icinga;
 

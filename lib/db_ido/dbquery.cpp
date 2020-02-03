@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "db_ido/dbquery.hpp"
 #include "base/initialize.hpp"
 #include "base/scriptglobal.hpp"
+#include "db_ido/dbquery.hpp"
 
 using namespace icinga;
 

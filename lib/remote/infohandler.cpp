@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/infohandler.hpp"
-#include "remote/httputility.hpp"
 #include "base/application.hpp"
+#include "remote/httputility.hpp"
+#include "remote/infohandler.hpp"
 
 using namespace icinga;
 

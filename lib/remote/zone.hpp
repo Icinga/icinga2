@@ -3,9 +3,9 @@
 #ifndef ZONE_H
 #define ZONE_H
 
+#include "remote/endpoint.hpp"
 #include "remote/i2-remote.hpp"
 #include "remote/zone-ti.hpp"
-#include "remote/endpoint.hpp"
 
 namespace icinga
 {

@@ -5,8 +5,8 @@
 
 #include "base/i2-base.hpp"
 #include "base/logger-ti.hpp"
-#include <set>
 #include <iosfwd>
+#include <set>
 
 namespace icinga
 {

@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/typequeryhandler.hpp"
-#include "remote/httputility.hpp"
-#include "remote/filterutility.hpp"
 #include "base/configtype.hpp"
-#include "base/scriptglobal.hpp"
 #include "base/logger.hpp"
+#include "base/scriptglobal.hpp"
+#include "remote/filterutility.hpp"
+#include "remote/httputility.hpp"
+#include "remote/typequeryhandler.hpp"
 #include <set>
 
 using namespace icinga;

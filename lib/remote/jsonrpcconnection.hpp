@@ -3,17 +3,17 @@
 #ifndef JSONRPCCONNECTION_H
 #define JSONRPCCONNECTION_H
 
-#include "remote/i2-remote.hpp"
-#include "remote/endpoint.hpp"
 #include "base/io-engine.hpp"
-#include "base/tlsstream.hpp"
 #include "base/timer.hpp"
+#include "base/tlsstream.hpp"
 #include "base/workqueue.hpp"
-#include <memory>
-#include <vector>
+#include "remote/endpoint.hpp"
+#include "remote/i2-remote.hpp"
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
+#include <memory>
+#include <vector>
 
 namespace icinga
 {

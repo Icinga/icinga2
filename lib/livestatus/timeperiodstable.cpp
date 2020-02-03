@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "livestatus/timeperiodstable.hpp"
+#include "base/configtype.hpp"
+#include "base/convert.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/timeperiod.hpp"
-#include "base/configtype.hpp"
-#include "base/objectlock.hpp"
-#include "base/convert.hpp"
-#include "base/utility.hpp"
+#include "livestatus/timeperiodstable.hpp"
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;

@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/i2-remote.hpp"
-#include "base/configobject.hpp"
 #include "base/application.hpp"
+#include "base/configobject.hpp"
+#include "remote/i2-remote.hpp"
 
 library remote;
 

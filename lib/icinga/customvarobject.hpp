@@ -3,9 +3,9 @@
 #ifndef CUSTOMVAROBJECT_H
 #define CUSTOMVAROBJECT_H
 
-#include "icinga/i2-icinga.hpp"
-#include "icinga/customvarobject-ti.hpp"
 #include "base/configobject.hpp"
+#include "icinga/customvarobject-ti.hpp"
+#include "icinga/i2-icinga.hpp"
 #include "remote/messageorigin.hpp"
 
 namespace icinga

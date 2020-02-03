@@ -1,15 +1,15 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/socket.hpp"
-#include "base/objectlock.hpp"
-#include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
-#include <sstream>
-#include <iostream>
+#include "base/objectlock.hpp"
+#include "base/socket.hpp"
+#include "base/utility.hpp"
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
+#include <iostream>
 #include <socketpair.h>
+#include <sstream>
 
 #ifndef _WIN32
 #	include <poll.h>

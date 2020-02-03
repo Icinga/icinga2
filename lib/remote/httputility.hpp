@@ -3,8 +3,8 @@
 #ifndef HTTPUTILITY_H
 #define HTTPUTILITY_H
 
-#include "remote/url.hpp"
 #include "base/dictionary.hpp"
+#include "remote/url.hpp"
 #include <boost/beast/http.hpp>
 #include <string>
 

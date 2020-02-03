@@ -3,8 +3,8 @@
 #ifndef ACTIVATIONCONTEXT_H
 #define ACTIVATIONCONTEXT_H
 
-#include "config/i2-config.hpp"
 #include "base/object.hpp"
+#include "config/i2-config.hpp"
 #include <boost/thread/tss.hpp>
 #include <stack>
 

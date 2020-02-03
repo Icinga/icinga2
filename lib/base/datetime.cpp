@@ -2,8 +2,8 @@
 
 #include "base/datetime.hpp"
 #include "base/datetime-ti.cpp"
-#include "base/utility.hpp"
 #include "base/primitivetype.hpp"
+#include "base/utility.hpp"
 
 using namespace icinga;
 

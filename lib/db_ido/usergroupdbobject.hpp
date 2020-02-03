@@ -3,9 +3,9 @@
 #ifndef USERGROUPDBOBJECT_H
 #define USERGROUPDBOBJECT_H
 
+#include "base/configobject.hpp"
 #include "db_ido/dbobject.hpp"
 #include "icinga/usergroup.hpp"
-#include "base/configobject.hpp"
 
 namespace icinga
 {

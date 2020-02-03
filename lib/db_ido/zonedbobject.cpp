@@ -1,9 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "db_ido/zonedbobject.hpp"
+#include "base/logger.hpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
-#include "base/logger.hpp"
+#include "db_ido/zonedbobject.hpp"
 
 using namespace icinga;
 

@@ -3,13 +3,13 @@
 #ifndef INFLUXDBWRITER_H
 #define INFLUXDBWRITER_H
 
-#include "perfdata/influxdbwriter-ti.hpp"
-#include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
 #include "base/tlsstream.hpp"
 #include "base/workqueue.hpp"
+#include "icinga/service.hpp"
+#include "perfdata/influxdbwriter-ti.hpp"
 #include <fstream>
 
 namespace icinga

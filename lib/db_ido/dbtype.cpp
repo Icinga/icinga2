@@ -1,9 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "db_ido/dbtype.hpp"
-#include "db_ido/dbconnection.hpp"
-#include "base/objectlock.hpp"
 #include "base/debug.hpp"
+#include "base/objectlock.hpp"
+#include "db_ido/dbconnection.hpp"
+#include "db_ido/dbtype.hpp"
 #include <boost/thread/once.hpp>
 
 using namespace icinga;

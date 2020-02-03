@@ -2,13 +2,13 @@
 
 #include "icinga/timeperiod.hpp"
 #include "icinga/timeperiod-ti.cpp"
-#include "icinga/legacytimeperiod.hpp"
 #include "base/configtype.hpp"
-#include "base/objectlock.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
+#include "base/objectlock.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
+#include "icinga/legacytimeperiod.hpp"
 #include <boost/thread/once.hpp>
 
 using namespace icinga;

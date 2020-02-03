@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/configtype.hpp"
+#include "base/objectlock.hpp"
+#include "icinga/service.hpp"
 #include "livestatus/commentstable.hpp"
 #include "livestatus/hoststable.hpp"
 #include "livestatus/servicestable.hpp"
-#include "icinga/service.hpp"
-#include "base/configtype.hpp"
-#include "base/objectlock.hpp"
 
 using namespace icinga;
 

@@ -3,11 +3,11 @@
 #ifndef APIFUNCTION_H
 #define APIFUNCTION_H
 
-#include "remote/i2-remote.hpp"
-#include "remote/messageorigin.hpp"
+#include "base/dictionary.hpp"
 #include "base/registry.hpp"
 #include "base/value.hpp"
-#include "base/dictionary.hpp"
+#include "remote/i2-remote.hpp"
+#include "remote/messageorigin.hpp"
 #include <vector>
 
 namespace icinga

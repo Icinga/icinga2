@@ -3,9 +3,9 @@
 #ifndef DOWNTIME_H
 #define DOWNTIME_H
 
-#include "icinga/i2-icinga.hpp"
-#include "icinga/downtime-ti.hpp"
 #include "icinga/checkable-ti.hpp"
+#include "icinga/downtime-ti.hpp"
+#include "icinga/i2-icinga.hpp"
 #include "remote/messageorigin.hpp"
 
 namespace icinga

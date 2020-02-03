@@ -2,15 +2,15 @@
 
 #include "icinga/host.hpp"
 #include "icinga/host-ti.cpp"
-#include "icinga/service.hpp"
+#include "base/convert.hpp"
+#include "base/debug.hpp"
+#include "base/json.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
 #include "icinga/hostgroup.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/scheduleddowntime.hpp"
-#include "base/objectlock.hpp"
-#include "base/convert.hpp"
-#include "base/utility.hpp"
-#include "base/debug.hpp"
-#include "base/json.hpp"
+#include "icinga/service.hpp"
 
 using namespace icinga;
 

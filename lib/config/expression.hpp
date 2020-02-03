@@ -3,15 +3,15 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
-#include "config/i2-config.hpp"
-#include "base/debuginfo.hpp"
 #include "base/array.hpp"
+#include "base/convert.hpp"
+#include "base/debuginfo.hpp"
 #include "base/dictionary.hpp"
-#include "base/function.hpp"
 #include "base/exception.hpp"
+#include "base/function.hpp"
 #include "base/scriptframe.hpp"
 #include "base/shared-object.hpp"
-#include "base/convert.hpp"
+#include "config/i2-config.hpp"
 #include <map>
 
 namespace icinga

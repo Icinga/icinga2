@@ -1,9 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/tcpsocket.hpp"
-#include "base/logger.hpp"
-#include "base/utility.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/utility.hpp"
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <iostream>

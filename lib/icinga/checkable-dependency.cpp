@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/service.hpp"
-#include "icinga/dependency.hpp"
 #include "base/logger.hpp"
+#include "icinga/dependency.hpp"
+#include "icinga/service.hpp"
 
 using namespace icinga;
 

@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/logger.hpp"
 #include "cli/pkinewcertcommand.hpp"
 #include "remote/pkiutility.hpp"
-#include "base/logger.hpp"
 
 using namespace icinga;
 namespace po = boost::program_options;

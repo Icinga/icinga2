@@ -1,13 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "livestatus/contactstable.hpp"
-#include "icinga/user.hpp"
-#include "icinga/timeperiod.hpp"
-#include "icinga/compatutility.hpp"
 #include "base/configtype.hpp"
-#include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include "base/objectlock.hpp"
 #include "base/utility.hpp"
+#include "icinga/compatutility.hpp"
+#include "icinga/timeperiod.hpp"
+#include "icinga/user.hpp"
+#include "livestatus/contactstable.hpp"
 
 using namespace icinga;
 

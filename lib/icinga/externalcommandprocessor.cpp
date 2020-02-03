@@ -1,26 +1,26 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/externalcommandprocessor.hpp"
-#include "icinga/host.hpp"
-#include "icinga/service.hpp"
-#include "icinga/user.hpp"
-#include "icinga/hostgroup.hpp"
-#include "icinga/servicegroup.hpp"
-#include "icinga/pluginutility.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "icinga/checkcommand.hpp"
-#include "icinga/eventcommand.hpp"
-#include "icinga/notificationcommand.hpp"
-#include "icinga/compatutility.hpp"
-#include "remote/apifunction.hpp"
+#include "base/application.hpp"
 #include "base/convert.hpp"
+#include "base/exception.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
-#include "base/application.hpp"
 #include "base/utility.hpp"
-#include "base/exception.hpp"
-#include <fstream>
+#include "icinga/checkcommand.hpp"
+#include "icinga/compatutility.hpp"
+#include "icinga/eventcommand.hpp"
+#include "icinga/externalcommandprocessor.hpp"
+#include "icinga/host.hpp"
+#include "icinga/hostgroup.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/notificationcommand.hpp"
+#include "icinga/pluginutility.hpp"
+#include "icinga/service.hpp"
+#include "icinga/servicegroup.hpp"
+#include "icinga/user.hpp"
+#include "remote/apifunction.hpp"
 #include <boost/thread/once.hpp>
+#include <fstream>
 
 using namespace icinga;
 

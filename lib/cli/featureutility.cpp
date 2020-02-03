@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "cli/featureutility.hpp"
-#include "base/logger.hpp"
-#include "base/console.hpp"
 #include "base/application.hpp"
+#include "base/console.hpp"
+#include "base/logger.hpp"
 #include "base/utility.hpp"
+#include "cli/featureutility.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>

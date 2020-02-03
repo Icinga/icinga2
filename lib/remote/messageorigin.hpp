@@ -3,8 +3,8 @@
 #ifndef MESSAGEORIGIN_H
 #define MESSAGEORIGIN_H
 
-#include "remote/zone.hpp"
 #include "remote/jsonrpcconnection.hpp"
+#include "remote/zone.hpp"
 
 namespace icinga
 {

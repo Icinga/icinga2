@@ -1,9 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/type.hpp"
-#include "base/scriptglobal.hpp"
 #include "base/namespace.hpp"
 #include "base/objectlock.hpp"
+#include "base/scriptglobal.hpp"
+#include "base/type.hpp"
 
 using namespace icinga;
 

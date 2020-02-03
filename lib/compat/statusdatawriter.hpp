@@ -3,14 +3,14 @@
 #ifndef STATUSDATAWRITER_H
 #define STATUSDATAWRITER_H
 
+#include "base/timer.hpp"
+#include "base/utility.hpp"
 #include "compat/statusdatawriter-ti.hpp"
+#include "icinga/command.hpp"
+#include "icinga/compatutility.hpp"
 #include "icinga/customvarobject.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
-#include "icinga/command.hpp"
-#include "icinga/compatutility.hpp"
-#include "base/timer.hpp"
-#include "base/utility.hpp"
 #include <iostream>
 
 namespace icinga

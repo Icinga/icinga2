@@ -3,10 +3,10 @@
 #ifndef CIB_H
 #define CIB_H
 
-#include "icinga/i2-icinga.hpp"
-#include "base/ringbuffer.hpp"
-#include "base/dictionary.hpp"
 #include "base/array.hpp"
+#include "base/dictionary.hpp"
+#include "base/ringbuffer.hpp"
+#include "icinga/i2-icinga.hpp"
 
 namespace icinga
 {

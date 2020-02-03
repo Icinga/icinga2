@@ -4,14 +4,14 @@
 #include "base/io-engine.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/post.hpp>
+#include <boost/asio/spawn.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/system/error_code.hpp>
 #include <exception>
 #include <memory>
 #include <thread>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/spawn.hpp>
-#include <boost/asio/post.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
-#include <boost/system/error_code.hpp>
 
 using namespace icinga;
 

@@ -1,14 +1,14 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "methods/clusterzonechecktask.hpp"
+#include "base/function.hpp"
+#include "base/perfdatavalue.hpp"
+#include "base/utility.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
+#include "methods/clusterzonechecktask.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/zone.hpp"
-#include "base/function.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
 
 using namespace icinga;
 

@@ -3,11 +3,11 @@
 #ifndef DBQUERY_H
 #define DBQUERY_H
 
-#include "db_ido/i2-db_ido.hpp"
-#include "db_ido/dbvalue.hpp"
-#include "icinga/customvarobject.hpp"
-#include "base/dictionary.hpp"
 #include "base/configobject.hpp"
+#include "base/dictionary.hpp"
+#include "db_ido/dbvalue.hpp"
+#include "db_ido/i2-db_ido.hpp"
+#include "icinga/customvarobject.hpp"
 
 namespace icinga
 {

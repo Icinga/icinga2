@@ -1,14 +1,14 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "livestatus/statustable.hpp"
-#include "livestatus/livestatuslistener.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "icinga/cib.hpp"
-#include "icinga/host.hpp"
-#include "icinga/service.hpp"
+#include "base/application.hpp"
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
-#include "base/application.hpp"
+#include "icinga/cib.hpp"
+#include "icinga/host.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/service.hpp"
+#include "livestatus/livestatuslistener.hpp"
+#include "livestatus/statustable.hpp"
 
 using namespace icinga;
 

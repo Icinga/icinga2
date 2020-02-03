@@ -1,16 +1,16 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "methods/pluginchecktask.hpp"
-#include "icinga/pluginutility.hpp"
-#include "icinga/checkcommand.hpp"
-#include "icinga/macroprocessor.hpp"
-#include "icinga/icingaapplication.hpp"
 #include "base/configtype.hpp"
-#include "base/logger.hpp"
-#include "base/function.hpp"
-#include "base/utility.hpp"
-#include "base/process.hpp"
 #include "base/convert.hpp"
+#include "base/function.hpp"
+#include "base/logger.hpp"
+#include "base/process.hpp"
+#include "base/utility.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/macroprocessor.hpp"
+#include "icinga/pluginutility.hpp"
+#include "methods/pluginchecktask.hpp"
 
 using namespace icinga;
 

@@ -3,12 +3,12 @@
 #ifndef CLICOMMAND_H
 #define CLICOMMAND_H
 
-#include "cli/i2-cli.hpp"
-#include "base/value.hpp"
-#include "base/utility.hpp"
 #include "base/type.hpp"
-#include <vector>
+#include "base/utility.hpp"
+#include "base/value.hpp"
+#include "cli/i2-cli.hpp"
 #include <boost/program_options.hpp>
+#include <vector>
 
 namespace icinga
 {

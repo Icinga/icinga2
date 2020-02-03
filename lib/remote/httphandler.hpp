@@ -3,15 +3,15 @@
 #ifndef HTTPHANDLER_H
 #define HTTPHANDLER_H
 
-#include "remote/i2-remote.hpp"
-#include "remote/url.hpp"
-#include "remote/httpserverconnection.hpp"
-#include "remote/apiuser.hpp"
 #include "base/registry.hpp"
 #include "base/tlsstream.hpp"
-#include <vector>
+#include "remote/apiuser.hpp"
+#include "remote/httpserverconnection.hpp"
+#include "remote/i2-remote.hpp"
+#include "remote/url.hpp"
 #include <boost/asio/spawn.hpp>
 #include <boost/beast/http.hpp>
+#include <vector>
 
 namespace icinga
 {

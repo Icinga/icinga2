@@ -3,9 +3,9 @@
 #ifndef PLUGINCHECKTASK_H
 #define PLUGINCHECKTASK_H
 
-#include "methods/i2-methods.hpp"
 #include "base/process.hpp"
 #include "icinga/service.hpp"
+#include "methods/i2-methods.hpp"
 
 namespace icinga
 {

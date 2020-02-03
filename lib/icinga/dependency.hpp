@@ -3,8 +3,8 @@
 #ifndef DEPENDENCY_H
 #define DEPENDENCY_H
 
-#include "icinga/i2-icinga.hpp"
 #include "icinga/dependency-ti.hpp"
+#include "icinga/i2-icinga.hpp"
 
 namespace icinga
 {

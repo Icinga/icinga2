@@ -3,8 +3,8 @@
 #ifndef SERVICEDBOBJECT_H
 #define SERVICEDBOBJECT_H
 
-#include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
+#include "db_ido/dbobject.hpp"
 #include "icinga/service.hpp"
 
 namespace icinga

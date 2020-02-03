@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/apiaction.hpp"
 #include "base/singleton.hpp"
+#include "remote/apiaction.hpp"
 
 using namespace icinga;
 

@@ -2,12 +2,12 @@
 
 #include "icinga/checkable.hpp"
 #include "icinga/checkable-ti.cpp"
+#include "base/exception.hpp"
+#include "base/objectlock.hpp"
+#include "base/timer.hpp"
+#include "base/utility.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
-#include "base/objectlock.hpp"
-#include "base/utility.hpp"
-#include "base/exception.hpp"
-#include "base/timer.hpp"
 #include <boost/thread/once.hpp>
 
 using namespace icinga;

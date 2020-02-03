@@ -1,15 +1,15 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/application.hpp"
+#include "base/configtype.hpp"
+#include "base/objectlock.hpp"
+#include "base/perfdatavalue.hpp"
+#include "base/statsfunction.hpp"
+#include "base/utility.hpp"
 #include "icinga/cib.hpp"
+#include "icinga/clusterevents.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
-#include "icinga/clusterevents.hpp"
-#include "base/application.hpp"
-#include "base/objectlock.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
-#include "base/configtype.hpp"
-#include "base/statsfunction.hpp"
 
 using namespace icinga;
 

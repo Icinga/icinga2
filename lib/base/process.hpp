@@ -3,12 +3,12 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
-#include <iosfwd>
+#include "base/i2-base.hpp"
 #include <deque>
-#include <vector>
+#include <iosfwd>
 #include <sstream>
+#include <vector>
 
 namespace icinga
 {

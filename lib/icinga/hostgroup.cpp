@@ -2,13 +2,13 @@
 
 #include "icinga/hostgroup.hpp"
 #include "icinga/hostgroup-ti.cpp"
-#include "config/objectrule.hpp"
-#include "config/configitem.hpp"
 #include "base/configtype.hpp"
+#include "base/context.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
-#include "base/context.hpp"
 #include "base/workqueue.hpp"
+#include "config/configitem.hpp"
+#include "config/objectrule.hpp"
 
 using namespace icinga;
 

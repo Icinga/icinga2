@@ -1,16 +1,16 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "remote/apilistener.hpp"
-#include "remote/apifunction.hpp"
-#include "config/configcompiler.hpp"
-#include "base/tlsutility.hpp"
-#include "base/json.hpp"
-#include "base/configtype.hpp"
-#include "base/logger.hpp"
-#include "base/convert.hpp"
 #include "base/application.hpp"
+#include "base/configtype.hpp"
+#include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/tlsutility.hpp"
 #include "base/utility.hpp"
+#include "config/configcompiler.hpp"
+#include "remote/apifunction.hpp"
+#include "remote/apilistener.hpp"
 #include <fstream>
 #include <iomanip>
 

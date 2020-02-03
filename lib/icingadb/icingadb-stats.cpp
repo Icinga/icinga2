@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icingadb/icingadb.hpp"
+#include "base/convert.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
 #include "base/statsfunction.hpp"
-#include "base/convert.hpp"
+#include "icingadb/icingadb.hpp"
 
 using namespace icinga;
 

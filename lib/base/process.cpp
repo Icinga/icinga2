@@ -1,20 +1,20 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/process.hpp"
-#include "base/exception.hpp"
-#include "base/convert.hpp"
 #include "base/array.hpp"
-#include "base/objectlock.hpp"
-#include "base/utility.hpp"
+#include "base/convert.hpp"
+#include "base/exception.hpp"
 #include "base/initialize.hpp"
-#include "base/logger.hpp"
-#include "base/utility.hpp"
-#include "base/scriptglobal.hpp"
 #include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
+#include "base/process.hpp"
+#include "base/scriptglobal.hpp"
+#include "base/utility.hpp"
+#include "base/utility.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread/once.hpp>
-#include <thread>
 #include <iostream>
+#include <thread>
 
 #ifndef _WIN32
 #	include <execvpe.h>

@@ -4,9 +4,9 @@
 #define CLUSTEREVENTS_H
 
 #include "icinga/checkable.hpp"
-#include "icinga/host.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
+#include "icinga/host.hpp"
 #include "icinga/notificationcommand.hpp"
 
 namespace icinga

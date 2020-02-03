@@ -3,10 +3,10 @@
 #ifndef LIVESTATUSLISTENER_H
 #define LIVESTATUSLISTENER_H
 
+#include "base/socket.hpp"
 #include "livestatus/i2-livestatus.hpp"
 #include "livestatus/livestatuslistener-ti.hpp"
 #include "livestatus/livestatusquery.hpp"
-#include "base/socket.hpp"
 #include <thread>
 
 using namespace icinga;

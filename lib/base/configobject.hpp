@@ -3,11 +3,11 @@
 #ifndef CONFIGOBJECT_H
 #define CONFIGOBJECT_H
 
-#include "base/i2-base.hpp"
 #include "base/configobject-ti.hpp"
+#include "base/dictionary.hpp"
+#include "base/i2-base.hpp"
 #include "base/object.hpp"
 #include "base/type.hpp"
-#include "base/dictionary.hpp"
 #include <boost/signals2.hpp>
 
 namespace icinga

@@ -4,8 +4,8 @@
 #define OBJECTTYPE_H
 
 #include "base/i2-base.hpp"
-#include "base/type.hpp"
 #include "base/initialize.hpp"
+#include "base/type.hpp"
 
 namespace icinga
 {

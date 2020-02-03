@@ -1,9 +1,9 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "base/value.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include "base/type.hpp"
+#include "base/value.hpp"
 
 using namespace icinga;
 

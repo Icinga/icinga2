@@ -3,9 +3,9 @@
 #ifndef COMPATLOGGER_H
 #define COMPATLOGGER_H
 
+#include "base/timer.hpp"
 #include "compat/compatlogger-ti.hpp"
 #include "icinga/service.hpp"
-#include "base/timer.hpp"
 #include <fstream>
 
 namespace icinga

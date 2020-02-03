@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "livestatus/attributefilter.hpp"
-#include "base/convert.hpp"
 #include "base/array.hpp"
-#include "base/objectlock.hpp"
+#include "base/convert.hpp"
 #include "base/logger.hpp"
-#include <boost/regex.hpp>
+#include "base/objectlock.hpp"
+#include "livestatus/attributefilter.hpp"
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/regex.hpp>
 
 using namespace icinga;
 

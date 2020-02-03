@@ -3,8 +3,8 @@
 #ifndef CHECKRESULT_H
 #define CHECKRESULT_H
 
-#include "icinga/i2-icinga.hpp"
 #include "icinga/checkresult-ti.hpp"
+#include "icinga/i2-icinga.hpp"
 
 namespace icinga
 {

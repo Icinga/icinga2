@@ -3,8 +3,8 @@
 #ifndef APIUSER_H
 #define APIUSER_H
 
-#include "remote/i2-remote.hpp"
 #include "remote/apiuser-ti.hpp"
+#include "remote/i2-remote.hpp"
 
 namespace icinga
 {

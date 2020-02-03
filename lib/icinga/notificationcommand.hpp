@@ -3,8 +3,8 @@
 #ifndef NOTIFICATIONCOMMAND_H
 #define NOTIFICATIONCOMMAND_H
 
-#include "icinga/notificationcommand-ti.hpp"
 #include "icinga/notification.hpp"
+#include "icinga/notificationcommand-ti.hpp"
 
 namespace icinga
 {

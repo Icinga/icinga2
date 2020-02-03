@@ -3,13 +3,13 @@
 #ifndef _WIN32
 #	include <stdlib.h>
 #endif /* _WIN32 */
-#include "methods/randomchecktask.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "icinga/checkcommand.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
+#include "base/perfdatavalue.hpp"
+#include "base/utility.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "methods/randomchecktask.hpp"
 
 using namespace icinga;
 

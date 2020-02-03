@@ -5,9 +5,9 @@
 
 #include "base/object.hpp"
 #include "base/string.hpp"
-#include <boost/variant/variant.hpp>
-#include <boost/variant/get.hpp>
 #include <boost/throw_exception.hpp>
+#include <boost/variant/get.hpp>
+#include <boost/variant/variant.hpp>
 
 namespace icinga
 {

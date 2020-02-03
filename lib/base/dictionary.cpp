@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/configwriter.hpp"
+#include "base/debug.hpp"
 #include "base/dictionary.hpp"
 #include "base/objectlock.hpp"
-#include "base/debug.hpp"
 #include "base/primitivetype.hpp"
-#include "base/configwriter.hpp"
 #include <sstream>
 
 using namespace icinga;

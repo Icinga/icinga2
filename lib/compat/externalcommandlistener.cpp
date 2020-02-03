@@ -2,12 +2,12 @@
 
 #include "compat/externalcommandlistener.hpp"
 #include "compat/externalcommandlistener-ti.cpp"
-#include "icinga/externalcommandprocessor.hpp"
-#include "base/configtype.hpp"
-#include "base/logger.hpp"
-#include "base/exception.hpp"
 #include "base/application.hpp"
+#include "base/configtype.hpp"
+#include "base/exception.hpp"
+#include "base/logger.hpp"
 #include "base/statsfunction.hpp"
+#include "icinga/externalcommandprocessor.hpp"
 
 using namespace icinga;
 

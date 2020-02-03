@@ -3,12 +3,12 @@
 #include "base/logger.hpp"
 #include "base/logger-ti.cpp"
 #include "base/application.hpp"
-#include "base/streamlogger.hpp"
 #include "base/configtype.hpp"
-#include "base/utility.hpp"
-#include "base/objectlock.hpp"
 #include "base/context.hpp"
+#include "base/objectlock.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/streamlogger.hpp"
+#include "base/utility.hpp"
 #include <iostream>
 
 using namespace icinga;

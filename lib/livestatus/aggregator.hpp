@@ -3,9 +3,9 @@
 #ifndef AGGREGATOR_H
 #define AGGREGATOR_H
 
+#include "livestatus/filter.hpp"
 #include "livestatus/i2-livestatus.hpp"
 #include "livestatus/table.hpp"
-#include "livestatus/filter.hpp"
 
 namespace icinga
 {

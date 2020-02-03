@@ -1,8 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/utility.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "base/utility.hpp"
 
 using namespace icinga;
 

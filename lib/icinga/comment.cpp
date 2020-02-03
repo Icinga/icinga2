@@ -2,11 +2,11 @@
 
 #include "icinga/comment.hpp"
 #include "icinga/comment-ti.cpp"
-#include "icinga/host.hpp"
-#include "remote/configobjectutility.hpp"
-#include "base/utility.hpp"
 #include "base/configtype.hpp"
 #include "base/timer.hpp"
+#include "base/utility.hpp"
+#include "icinga/host.hpp"
+#include "remote/configobjectutility.hpp"
 #include <boost/thread/once.hpp>
 
 using namespace icinga;

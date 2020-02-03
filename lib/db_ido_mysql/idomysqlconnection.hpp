@@ -3,12 +3,12 @@
 #ifndef IDOMYSQLCONNECTION_H
 #define IDOMYSQLCONNECTION_H
 
-#include "db_ido_mysql/idomysqlconnection-ti.hpp"
-#include "mysql_shim/mysqlinterface.hpp"
 #include "base/array.hpp"
+#include "base/library.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include "base/library.hpp"
+#include "db_ido_mysql/idomysqlconnection-ti.hpp"
+#include "mysql_shim/mysqlinterface.hpp"
 
 namespace icinga
 {

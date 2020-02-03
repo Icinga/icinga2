@@ -1,12 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "cli/variableutility.hpp"
-#include "base/logger.hpp"
 #include "base/application.hpp"
-#include "base/utility.hpp"
-#include "base/stdiostream.hpp"
-#include "base/netstring.hpp"
 #include "base/json.hpp"
+#include "base/logger.hpp"
+#include "base/netstring.hpp"
+#include "base/stdiostream.hpp"
+#include "base/utility.hpp"
+#include "cli/variableutility.hpp"
 #include "remote/jsonrpc.hpp"
 #include <fstream>
 

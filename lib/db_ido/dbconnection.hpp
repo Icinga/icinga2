@@ -3,14 +3,14 @@
 #ifndef DBCONNECTION_H
 #define DBCONNECTION_H
 
-#include "db_ido/i2-db_ido.hpp"
+#include "base/ringbuffer.hpp"
+#include "base/timer.hpp"
 #include "db_ido/dbconnection-ti.hpp"
 #include "db_ido/dbobject.hpp"
 #include "db_ido/dbquery.hpp"
-#include "base/timer.hpp"
-#include "base/ringbuffer.hpp"
-#include <boost/thread/once.hpp>
+#include "db_ido/i2-db_ido.hpp"
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/once.hpp>
 
 #define IDO_CURRENT_SCHEMA_VERSION "1.14.3"
 #define IDO_COMPAT_SCHEMA_VERSION "1.14.3"

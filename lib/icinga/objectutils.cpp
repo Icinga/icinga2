@@ -1,13 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/objectutils.hpp"
-#include "icinga/host.hpp"
-#include "icinga/user.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
-#include "icinga/notificationcommand.hpp"
+#include "icinga/host.hpp"
 #include "icinga/hostgroup.hpp"
+#include "icinga/notificationcommand.hpp"
+#include "icinga/objectutils.hpp"
 #include "icinga/servicegroup.hpp"
+#include "icinga/user.hpp"
 #include "icinga/usergroup.hpp"
 
 using namespace icinga;

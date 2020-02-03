@@ -2,12 +2,12 @@
 
 #include "icinga/service.hpp"
 #include "icinga/service-ti.cpp"
-#include "icinga/servicegroup.hpp"
-#include "icinga/scheduleddowntime.hpp"
-#include "icinga/pluginutility.hpp"
-#include "base/objectlock.hpp"
 #include "base/convert.hpp"
+#include "base/objectlock.hpp"
 #include "base/utility.hpp"
+#include "icinga/pluginutility.hpp"
+#include "icinga/scheduleddowntime.hpp"
+#include "icinga/servicegroup.hpp"
 
 using namespace icinga;
 

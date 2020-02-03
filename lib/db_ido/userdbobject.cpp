@@ -1,14 +1,14 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "db_ido/userdbobject.hpp"
-#include "db_ido/usergroupdbobject.hpp"
+#include "base/convert.hpp"
+#include "base/logger.hpp"
+#include "base/objectlock.hpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
-#include "icinga/user.hpp"
+#include "db_ido/userdbobject.hpp"
+#include "db_ido/usergroupdbobject.hpp"
 #include "icinga/notification.hpp"
-#include "base/convert.hpp"
-#include "base/objectlock.hpp"
-#include "base/logger.hpp"
+#include "icinga/user.hpp"
 
 using namespace icinga;
 

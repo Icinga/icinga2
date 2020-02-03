@@ -3,9 +3,9 @@
 #ifndef LEGACYTIMEPERIOD_H
 #define LEGACYTIMEPERIOD_H
 
+#include "base/dictionary.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/timeperiod.hpp"
-#include "base/dictionary.hpp"
 #include <boost/date_time/gregorian/gregorian.hpp>
 
 namespace icinga

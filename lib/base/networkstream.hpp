@@ -4,8 +4,8 @@
 #define NETWORKSTREAM_H
 
 #include "base/i2-base.hpp"
-#include "base/stream.hpp"
 #include "base/socket.hpp"
+#include "base/stream.hpp"
 
 namespace icinga
 {
