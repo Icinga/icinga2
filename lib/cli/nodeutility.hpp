@@ -34,7 +34,7 @@ public:
 	/* node setup helpers */
 	static int GenerateNodeIcingaConfig(const String& endpointName, const String& zoneName,
 		const String& parentZoneName, const std::vector<std::string>& endpoints,
-		const std::vector<String>& globalZones);
+		double replayLogDuration, const std::vector<String>& globalZones);
 	static int GenerateNodeMasterIcingaConfig(const String& endpointName, const String& zoneName,
 		const std::vector<String>& globalZones);
 

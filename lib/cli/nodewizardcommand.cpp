@@ -6,6 +6,7 @@
 #include "cli/apisetuputility.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/pkiutility.hpp"
+#include "base/convert.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -433,6 +434,17 @@ wizard_ticket:
 
 	String acceptCommands = choice.Contains("y") ? "true" : "false";
 
+	std::cout << ConsoleColorTag(Console_Bold) << "\n"
+		<< "Replay log duration ('0' disables this for agents)?" << ConsoleColorTag(Console_Normal)
+		<< " [0]: ";
+	std::getline(std::cin, answer);
+	boost::algorithm::to_lower(answer);
+
+	double replayLogDuration = 0.0;
+
+	if (!answer.empty())
+		replayLogDuration = Convert::ToDouble(answer);
+
 	std::cout << "\n";
 
 	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
@@ -440,6 +452,15 @@ wizard_ticket:
 		<< ConsoleColorTag(Console_Normal);
 
 	/* disable the notifications feature on agent/satellite nodes */
+	String featuresAvailablePath = FeatureUtility::GetFeaturesAvailablePath();
+	String featuresEnabledPath = FeatureUtility::GetFeaturesEnabledPath();
+
+	if (!Utility::PathExists(featuresAvailablePath))
+		Utility::MkDirP(featuresAvailablePath, 0755);
+
+	if (!Utility::PathExists(featuresEnabledPath))
+		Utility::MkDirP(featuresEnabledPath, 0755);
+
 	Log(LogInformation, "cli", "Disabling the Notification feature.");
 
 	FeatureUtility::DisableFeatures({ "notification" });
@@ -542,7 +563,7 @@ wizard_global_zone_loop_start:
 		Log(LogInformation, "cli", "No additional global Zones have been specified");
 
 	/* Generate node configuration. */
-	NodeUtility::GenerateNodeIcingaConfig(endpointName, zoneName, parentZoneName, endpoints, globalZones);
+	NodeUtility::GenerateNodeIcingaConfig(endpointName, zoneName, parentZoneName, endpoints, replayLogDuration, globalZones);
 
 	if (endpointName != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")

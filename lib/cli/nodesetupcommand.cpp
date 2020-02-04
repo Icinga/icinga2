@@ -50,6 +50,7 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 		("accept-commands", "Accept commands from master")
 		("master", "Use setup for a master instance")
 		("global_zones", po::value<std::vector<std::string> >(), "The names of the additional global zones to 'global-templates' and 'director-global'.")
+		("replay-log-duration", po::value<double>(), "Duration in seconds. Defaults to '0' disabling this for agents.")
 		("disable-confd", "Disables the conf.d directory during the setup");
 
 	hiddenDesc.add_options()
@@ -416,6 +417,15 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	}
 
 	/* disable the notifications feature */
+	String featuresAvailablePath = FeatureUtility::GetFeaturesAvailablePath();
+	String featuresEnabledPath = FeatureUtility::GetFeaturesEnabledPath();
+
+	if (!Utility::PathExists(featuresAvailablePath))
+		Utility::MkDirP(featuresAvailablePath, 0755);
+
+	if (!Utility::PathExists(featuresEnabledPath))
+		Utility::MkDirP(featuresEnabledPath, 0755);
+
 	Log(LogInformation, "cli", "Disabling the Notification feature.");
 
 	FeatureUtility::DisableFeatures({ "notification" });
@@ -496,8 +506,13 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	globalZones.insert(globalZones.end(), setupGlobalZones.begin(), setupGlobalZones.end());
 
+	double replayLogDuration = 0.0;
+
+	if (vm.count("replay-log-duration"))
+		replayLogDuration = vm["replay-log-duration"].as<double>();
+
 	/* Generate node configuration. */
-	NodeUtility::GenerateNodeIcingaConfig(endpointName, zoneName, parentZoneName, vm["endpoint"].as<std::vector<std::string> >(), globalZones);
+	NodeUtility::GenerateNodeIcingaConfig(endpointName, zoneName, parentZoneName, vm["endpoint"].as<std::vector<std::string> >(), replayLogDuration, globalZones);
 
 	/* update constants.conf with NodeName = CN */
 	if (endpointName != Utility::GetFQDN()) {

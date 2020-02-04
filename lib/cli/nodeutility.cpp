@@ -40,7 +40,7 @@ String NodeUtility::GetZonesConfPath()
 
 int NodeUtility::GenerateNodeIcingaConfig(const String& endpointName, const String& zoneName,
 	const String& parentZoneName, const std::vector<std::string>& endpoints,
-	const std::vector<String>& globalZones)
+	double replayLogDuration, const std::vector<String>& globalZones)
 {
 	Array::Ptr config = new Array();
 
@@ -70,6 +70,8 @@ int NodeUtility::GenerateNodeIcingaConfig(const String& endpointName, const Stri
 		myParentEndpoint->Set("__name", myEndpointName);
 		myParentEndpoint->Set("__type", "Endpoint");
 
+		myParentEndpoint->Set("log_duration", replayLogDuration);
+
 		/* save endpoint in master zone */
 		myParentZoneMembers->Add(myEndpointName);
 
@@ -86,7 +88,8 @@ int NodeUtility::GenerateNodeIcingaConfig(const String& endpointName, const Stri
 	/* store the local generated node configuration */
 	config->Add(new Dictionary({
 		{ "__name", endpointName },
-		{ "__type", "Endpoint" }
+		{ "__type", "Endpoint" },
+		{ "log_duration", replayLogDuration }
 	}));
 
 	config->Add(new Dictionary({
