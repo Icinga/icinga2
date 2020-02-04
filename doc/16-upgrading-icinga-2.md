@@ -15,6 +15,15 @@ follow the instructions for v2.7 too.
 As of v2.12 our [API](12-icinga2-api.md) URL endpoint [`/v1/actions/acknowledge-problem`](12-icinga2-api.md#icinga2-api-actions-acknowledge-problem) refuses acknowledging an already acknowledged checkable by overwriting the acknowledgement.
 To replace an acknowledgement you have to remove the old one before adding the new one.
 
+### Cluster: Replay Log Default in CLI commands <a id="upgrading-to-2-12-replay-log-duration"></a>
+
+The CLI commands [node setup](06-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup-agent-satellite)
+and [node wizard](06-distributed-monitoring.md#distributed-monitoring-setup-agent-satellite) allow
+to specify the replay log duration. This defaults to `0` disabling it for agents
+which is the most common use case.
+
+Read more in [this chapter](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-command-endpoint-log-duration).
+
 ## Upgrading to v2.11 <a id="upgrading-to-2-11"></a>
 
 ### Bugfixes for 2.11 <a id="upgrading-to-2-11-bugfixes"></a>

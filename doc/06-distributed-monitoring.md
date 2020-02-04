@@ -642,6 +642,12 @@ Accept config from parent node? [y/N]: y
 Accept commands from parent node? [y/N]: y
 ```
 
+The next step asks you to specify the replay log duration. For a secondary master or satellite, use 3600 seconds or more. For agents, this is intentionally disabled as default `0` value.
+
+```
+Replay log duration ('0' disables this for agents)? [0]:
+```
+
 Next you can optionally specify the local and parent zone names. This will be reflected
 in the generated zone configuration file.
 
@@ -715,6 +721,7 @@ Here is an overview of all parameters in detail:
   API bind port       | **Optional.** Allows to specify the port the ApiListener is bound to. For advanced usage only (requires changing the default port 5665 everywhere).
   Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this defaults to `n`.
   Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this defaults to `n`.
+  Replay log duration | **Optional.** Allows the specify the replay log duration in seconds for the local and parent endpoints. For agent setups, this is intentionally disabled. For master/satellite setups, specify a value of 3600 (1h) or higher depending on the expected downtime windows.
   Local zone name     | **Optional.** Allows to specify the name for the local zone. This comes in handy when this instance is a satellite, not an agent. Defaults to the FQDN.
   Parent zone name    | **Optional.** Allows to specify the name for the parent zone. This is important if the agent has a satellite instance as parent, not the master. Defaults to `master`.
   Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`. Defaults to `n`.
@@ -727,7 +734,7 @@ The setup wizard will ensure that the following steps are taken:
 * Request a signed certificate i(optional with the provided ticket number) on the master node.
 * Allow to verify the parent node's certificate.
 * Store the signed agent/satellite certificate and ca.crt in `/var/lib/icinga2/certs`.
-* Update the `zones.conf` file with the new zone hierarchy.
+* Update the `zones.conf` file with the new zone hierarchy and `log_duration` for endpoint objects.
 * Update `/etc/icinga2/features-enabled/api.conf` (`accept_config`, `accept_commands`) and `constants.conf`.
 * Update `/etc/icinga2/icinga2.conf` and comment out `include_recursive "conf.d"`.
 
@@ -1397,13 +1404,19 @@ object Endpoint "icinga2-master1.localdomain" {
 }
 
 object Endpoint "icinga2-agent1.localdomain" {
-  host = "192.168.56.111" // The master actively tries to connect to the agent
-  log_duration = 0 // Disable the replay log for command endpoint agents
+  // The master actively tries to connect to the agent
+  host = "192.168.56.111"
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-agent2.localdomain" {
-  host = "192.168.56.112" // The master actively tries to connect to the agent
-  log_duration = 0 // Disable the replay log for command endpoint agents
+  // The master actively tries to connect to the agent
+  host = "192.168.56.112"
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 
 object Zone "master" {
@@ -1421,6 +1434,7 @@ object Zone "icinga2-agent2.localdomain" {
 
   parent = "master"
 }
+
 
 /* sync global commands */
 object Zone "global-templates" {
@@ -1444,6 +1458,9 @@ master. **Choose one [connection direction](06-distributed-monitoring.md#distrib
 
 object Endpoint "icinga2-master1.localdomain" {
   // Do not actively connect to the master by leaving out the 'host' attribute
+
+  // Disable the replay log on command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-agent1.localdomain" {
@@ -1464,15 +1481,20 @@ object Zone "icinga2-agent1.localdomain" {
 object Zone "global-templates" {
   global = true
 }
+
 object Zone "director-global" {
   global = true
 }
 ```
+
 ```
 [root@icinga2-agent2.localdomain /]# vim /etc/icinga2/zones.conf
 
 object Endpoint "icinga2-master1.localdomain" {
   // Do not actively connect to the master by leaving out the 'host' attribute
+
+  // Disable the replay log on command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-agent2.localdomain" {
@@ -1649,7 +1671,11 @@ object Endpoint "icinga2-master1.localdomain" {
 }
 
 object Endpoint "icinga2-master2.localdomain" {
-  host = "192.168.56.102" // Actively connect to the secondary master
+  // Actively connect to the secondary master
+  host = "192.168.56.102"
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Zone "master" {
@@ -1660,6 +1686,7 @@ object Zone "master" {
 object Zone "global-templates" {
   global = true
 }
+
 object Zone "director-global" {
   global = true
 }
@@ -1669,14 +1696,17 @@ The secondary master waits for connection attempts from the first master,
 and therefore does not try to connect to it again.
 
 ```
-[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
+[root@icinga2-master2.localdomain /]# vim /etc/icinga2/zones.conf
 
 object Endpoint "icinga2-master1.localdomain" {
-  // That's us
+  // The first master already connects to us, leave out the 'host' attribute
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Endpoint "icinga2-master2.localdomain" {
-  // The first master already connects to us
+  // That's us
 }
 
 object Zone "master" {
@@ -1687,6 +1717,7 @@ object Zone "master" {
 object Zone "global-templates" {
   global = true
 }
+
 object Zone "director-global" {
   global = true
 }
@@ -1707,10 +1738,16 @@ master nodes. **Choose one [connection direction](06-distributed-monitoring.md#d
 
 object Endpoint "icinga2-master1.localdomain" {
   // Do not actively connect to the master by leaving out the 'host' attribute
+
+  // Disable the replay log on command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-master2.localdomain" {
   // Do not actively connect to the master by leaving out the 'host' attribute
+
+  // Disable the replay log on command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-agent1.localdomain" {
@@ -1731,6 +1768,7 @@ object Zone "icinga2-agent1.localdomain" {
 object Zone "global-templates" {
   global = true
 }
+
 object Zone "director-global" {
   global = true
 }
@@ -1742,10 +1780,16 @@ object Zone "director-global" {
 
 object Endpoint "icinga2-master1.localdomain" {
   // Do not actively connect to the master by leaving out the 'host' attribute
+
+  // Disable the replay log on command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-master2.localdomain" {
   // Do not actively connect to the master by leaving out the 'host' attribute
+
+  // Disable the replay log on command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-agent2.localdomain" {
@@ -1766,6 +1810,7 @@ object Zone "icinga2-agent2.localdomain" {
 object Zone "global-templates" {
   global = true
 }
+
 object Zone "director-global" {
   global = true
 }
@@ -1807,13 +1852,19 @@ Then navigate into `/etc/icinga2/zones.d/master` and create a new file `agents.c
 // Endpoints
 
 object Endpoint "icinga2-agent1.localdomain" {
-  host = "192.168.56.111" // The master actively tries to connect to the agent
-  log_duration = 0 // Disable the replay log for command endpoint agents
+  // The master actively tries to connect to the agent
+  host = "192.168.56.111"
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-agent2.localdomain" {
-  host = "192.168.56.112" // The master actively tries to connect to the agent
-  log_duration = 0 // Disable the replay log for command endpoint agents
+  // The master actively tries to connect to the agent
+  host = "192.168.56.112"
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 
 //-----------------------------------------------
@@ -1843,12 +1894,14 @@ for host and endpoint objects.
 object Host "icinga2-agent1.localdomain" {
   check_command = "hostalive"
   address = "192.168.56.111"
+
   vars.agent_endpoint = name //follows the convention that host name == endpoint name
 }
 
 object Host "icinga2-agent2.localdomain" {
   check_command = "hostalive"
   address = "192.168.56.112"
+
   vars.agent_endpoint = name //follows the convention that host name == endpoint name
 }
 ```
@@ -2004,6 +2057,12 @@ Accept config from parent node? [y/N]: y
 Accept commands from parent node? [y/N]: y
 ```
 
+The next step asks you to specify the replay log duration. For a secondary master or satellite, use 3600 seconds or more. For agents, this is intentionally disabled as default `0` value.
+
+```
+Replay log duration ('0' disables this for agents)? [0]:
+```
+
 Next you can optionally specify the local and parent zone names. This will be reflected
 in the generated zone configuration file.
 
@@ -2054,15 +2113,27 @@ object Endpoint "icinga2-master1.localdomain" {
 }
 
 object Endpoint "icinga2-master2.localdomain" {
-  host = "192.168.56.102" // Actively connect to the second master.
+  // Actively connect to the second master.
+  host = "192.168.56.102"
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Endpoint "icinga2-satellite1.localdomain" {
-  host = "192.168.56.105" // Actively connect to the satellites.
+  // Actively connect to the satellites.
+  host = "192.168.56.105"
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Endpoint "icinga2-satellite2.localdomain" {
-  host = "192.168.56.106" // Actively connect to the satellites.
+  // Actively connect to the satellites.
+  host = "192.168.56.106"
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Zone "master" {
@@ -2079,6 +2150,9 @@ tries to connect, there is no need for a secondary attempt.
 
 object Endpoint "icinga2-master1.localdomain" {
   // First master already connects to us
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Endpoint "icinga2-master2.localdomain" {
@@ -2086,11 +2160,19 @@ object Endpoint "icinga2-master2.localdomain" {
 }
 
 object Endpoint "icinga2-satellite1.localdomain" {
-  host = "192.168.56.105" // Actively connect to the satellites.
+  // Actively connect to the satellites.
+  host = "192.168.56.105"
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Endpoint "icinga2-satellite2.localdomain" {
-  host = "192.168.56.106" // Actively connect to the satellites.
+  // Actively connect to the satellites.
+  host = "192.168.56.106"
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 ```
 
@@ -2124,10 +2206,16 @@ instances.
 
 object Endpoint "icinga2-master1.localdomain" {
   // This endpoint will connect to us
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Endpoint "icinga2-master2.localdomain" {
   // This endpoint will connect to us
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Endpoint "icinga2-satellite1.localdomain" {
@@ -2136,6 +2224,9 @@ object Endpoint "icinga2-satellite1.localdomain" {
 
 object Endpoint "icinga2-satellite2.localdomain" {
   host = "192.168.56.106" // Actively connect to the secondary satellite
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 ```
 
@@ -2148,14 +2239,23 @@ for `icinga2-satellite1.localdomain` on satellite2.
 
 object Endpoint "icinga2-master1.localdomain" {
   // This endpoint will connect to us
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Endpoint "icinga2-master2.localdomain" {
   // This endpoint will connect to us
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Endpoint "icinga2-satellite1.localdomain" {
   // First satellite already connects to us
+
+  // Keep events in the replay log for 1 hour, if the cluster connection drops
+  log_duration = 1h
 }
 
 object Endpoint "icinga2-satellite2.localdomain" {
@@ -2207,8 +2307,11 @@ The cluster config sync to the satellite invokes an automated reload causing the
 [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-agent1.localdomain.conf
 
 object Endpoint "icinga2-agent1.localdomain" {
-  host = "192.168.56.111" // The satellite actively tries to connect to the agent
-  log_duration = 0 // Disable the replay log for command endpoint agents
+  // The satellite actively tries to connect to the agent
+  host = "192.168.56.111"
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 
 object Zone "icinga2-agent1.localdomain" {
@@ -2220,8 +2323,11 @@ object Zone "icinga2-agent1.localdomain" {
 [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-agent2.localdomain.conf
 
 object Endpoint "icinga2-agent2.localdomain" {
-  host = "192.168.56.112" // The satellite actively tries to connect to the agent
-  log_duration = 0 // Disable the replay log for command endpoint agents
+  // The satellite actively tries to connect to the agent
+  host = "192.168.56.112"
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 
 object Zone "icinga2-agent2.localdomain" {
@@ -2253,10 +2359,16 @@ Example for `icinga2-agent1.localdomain`:
 
 object Endpoint "icinga2-satellite1.localdomain" {
   // Do not actively connect to the satellite by leaving out the 'host' attribute
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-satellite2.localdomain" {
   // Do not actively connect to the satellite by leaving out the 'host' attribute
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-agent1.localdomain" {
@@ -2290,10 +2402,16 @@ Example for `icinga2-agent2.localdomain`:
 
 object Endpoint "icinga2-satellite1.localdomain" {
   // Do not actively connect to the satellite by leaving out the 'host' attribute
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-satellite2.localdomain" {
   // Do not actively connect to the satellite by leaving out the 'host' attribute
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 
 object Endpoint "icinga2-agent2.localdomain" {
@@ -3079,8 +3197,11 @@ to the agent node `icinga2-agent1.localdomain`:
 //...
 
 object Endpoint "icinga2-agent1.localdomain" {
-  host = "192.168.56.111" // The master actively tries to connect to the agent
-  log_duration = 0 // Disable the replay log for command endpoint agents
+  // The master actively tries to connect to the agent
+  host = "192.168.56.111"
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 ```
 
@@ -3094,7 +3215,9 @@ connecting to the master node `icinga2-master1.localdomain`:
 
 object Endpoint "icinga2-master1.localdomain" {
   // Do not actively connect to the master by leaving out the 'host' attribute
-  log_duration = 0 // Disable the replay log for command endpoint agents
+
+  // Disable the replay log for command endpoint agents
+  log_duration = 0
 }
 ```
 
@@ -3127,14 +3250,19 @@ Configuration on the master node `icinga2-master1.localdomain`:
 [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
 
 //...
-
 object Endpoint "icinga2-agent1.localdomain" {
-  host = "192.168.56.111" // The master actively tries to connect to the agent
+  // The master actively tries to connect to the agent
+  host = "192.168.56.111"
+
+  // Disable the replay log for command endpoint agents
   log_duration = 0
 }
 
 object Endpoint "icinga2-agent2.localdomain" {
-  host = "192.168.56.112" // The master actively tries to connect to the agent
+  // The master actively tries to connect to the agent
+  host = "192.168.56.112"
+
+  // Disable the replay log for command endpoint agents
   log_duration = 0
 }
 ```
@@ -3148,11 +3276,15 @@ Configuration on the agent `icinga2-agent1.localdomain`:
 
 object Endpoint "icinga2-master1.localdomain" {
   // Do not actively connect to the master by leaving out the 'host' attribute
+
+  // Disable the replay log for command endpoint agents
   log_duration = 0
 }
 
 object Endpoint "icinga2-master2.localdomain" {
   // Do not actively connect to the master by leaving out the 'host' attribute
+
+  // Disable the replay log for command endpoint agents
   log_duration = 0
 }
 ```
@@ -3390,6 +3522,7 @@ Pass the following details to the `node setup` CLI command:
   Parent zone name    | **Optional.** Specify the parent's zone name.
   Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)).
   Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
+  Replay Log Duration | **Optional.** Specified with the `--replay-log-duration` parameter, value needs to be in seconds. Defaults to `0` disabling the replay log on agents. Available since 2.12+.
   Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`.
   Disable conf.d      | **Optional.** Specified with the `disable-confd` parameter. If provided, this disables the `include_recursive "conf.d"` directive in `icinga2.conf`. Available since v2.9+. Not set by default for compatibility reasons with Puppet, Ansible, Chef, etc.
 
