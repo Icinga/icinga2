@@ -49,8 +49,8 @@ protected:
 		return *this;
 	}
 
-	inline virtual
-	~SharedObject() = default;
+protected:
+	inline ~SharedObject() = default;
 
 private:
 	Atomic<uint_fast64_t> m_References;
