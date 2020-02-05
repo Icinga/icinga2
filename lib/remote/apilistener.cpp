@@ -646,8 +646,25 @@ void ApiListener::NewClientHandlerInternal(
 	} else {
 		{
 			boost::system::error_code ec;
+			decltype(client->async_fill(yc[ec])) filled;
 
-			if (client->async_fill(yc[ec]) == 0u) {
+			{
+				Timeout::Ptr firstByteTimeout (new Timeout(
+					strand->context(),
+					*strand,
+					boost::posix_time::seconds(10),
+					[strand, client](asio::yield_context yc) {
+						boost::system::error_code ec;
+						client->lowest_layer().cancel(ec);
+					}
+				));
+
+				filled = client->async_fill(yc[ec]);
+
+				firstByteTimeout->Cancel();
+			}
+
+			if (filled == 0u) {
 				if (identity.IsEmpty()) {
 					Log(LogInformation, "ApiListener")
 						<< "No data received on new API connection " << conninfo << ". "
