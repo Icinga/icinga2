@@ -17,6 +17,7 @@
 #include "base/tlsstream.hpp"
 #include "base/threadpool.hpp"
 #include <atomic>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
@@ -152,8 +153,14 @@ private:
 	bool AddListener(const String& node, const String& service);
 	void AddConnection(const Endpoint::Ptr& endpoint);
 
-	void NewClientHandler(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role);
-	void NewClientHandlerInternal(boost::asio::yield_context yc, const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role);
+	void NewClientHandler(
+		boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
+		const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role
+	);
+	void NewClientHandlerInternal(
+		boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
+		const std::shared_ptr<AsioTlsStream>& client, const String& hostname, ConnectionRole role
+	);
 	void ListenerCoroutineProc(boost::asio::yield_context yc, const std::shared_ptr<boost::asio::ip::tcp::acceptor>& server, const std::shared_ptr<boost::asio::ssl::context>& sslContext);
 
 	WorkQueue m_RelayQueue;
