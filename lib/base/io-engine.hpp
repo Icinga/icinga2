@@ -116,9 +116,9 @@ public:
 
 	/* With dedicated strand in *Connection classes. */
 	template <typename Handler, typename Function>
-	static void SpawnCoroutine(Handler h, Function f) {
+	static void SpawnCoroutine(Handler& h, Function f) {
 
-		boost::asio::spawn(std::forward<Handler>(h),
+		boost::asio::spawn(h,
 			[f](boost::asio::yield_context yc) {
 
 				try {
