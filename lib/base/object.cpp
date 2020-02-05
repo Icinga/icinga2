@@ -10,6 +10,9 @@
 #include "base/exception.hpp"
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/recursive_mutex.hpp>
+#include <cstdint>
+#include <map>
+#include <mutex>
 #include <thread>
 
 using namespace icinga;
@@ -249,6 +252,34 @@ void icinga::intrusive_ptr_add_ref(Object *object)
 #endif /* I2_LEAK_DEBUG */
 }
 
+static std::multimap<double, Object::Ptr> l_DeadObjects, l_DyingObjects;
+static std::recursive_mutex l_DeadObjectsMutex;
+static Timer::Ptr l_ReapObjectsTimer;
+static thread_local uint_fast32_t l_ReaperDepth = 0;
+
+static void ReapDeadObjects(const Timer * const&)
+{
+	l_ReaperDepth = 1;
+
+	{
+		std::unique_lock<std::recursive_mutex> lock (l_DeadObjectsMutex);
+
+		l_DeadObjects.erase(l_DeadObjects.begin(), l_DeadObjects.upper_bound(Utility::GetTime() - 60));
+
+		l_DeadObjects.insert(l_DyingObjects.begin(), l_DyingObjects.end());
+		l_DyingObjects.clear();
+	}
+
+	l_ReaperDepth = 0;
+}
+
+INITIALIZE_ONCE([]() {
+	l_ReapObjectsTimer = new Timer();
+	l_ReapObjectsTimer->SetInterval(10);
+	l_ReapObjectsTimer->OnTimerExpired.connect(&ReapDeadObjects);
+	l_ReapObjectsTimer->Start();
+});
+
 void icinga::intrusive_ptr_release(Object *object)
 {
 	auto previous (object->m_References.fetch_sub(1));
@@ -258,7 +289,20 @@ void icinga::intrusive_ptr_release(Object *object)
 		TypeRemoveObject(object);
 #endif /* I2_LEAK_DEBUG */
 
-		delete object;
+		if (l_ReaperDepth) {
+			if (l_ReaperDepth == 1u) {
+				++l_ReaperDepth;
+				delete object;
+				--l_ReaperDepth;
+			} else {
+				l_DyingObjects.emplace(Utility::GetTime(), object);
+			}
+		} else if (!l_ReapObjectsTimer) {
+			delete object;
+		} else {
+			std::unique_lock<std::recursive_mutex> lock (l_DeadObjectsMutex);
+			l_DeadObjects.emplace(Utility::GetTime(), object);
+		}
 	}
 }
 
