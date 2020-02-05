@@ -24,11 +24,14 @@
 #include "base/exception.hpp"
 #include "base/tcpsocket.hpp"
 #include <boost/asio/buffer.hpp>
+#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/system/error_code.hpp>
 #include <climits>
+#include <cstdint>
 #include <fstream>
 #include <memory>
 #include <openssl/ssl.h>
@@ -433,7 +436,9 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 
 			server->async_accept(sslConn->lowest_layer(), yc);
 
-			IoEngine::SpawnCoroutine(io, [this, sslConn](asio::yield_context yc) { NewClientHandler(yc, sslConn, String(), RoleServer); });
+			auto strand (Shared<asio::io_context::strand>::Make(io));
+
+			IoEngine::SpawnCoroutine(*strand, [this, strand, sslConn](asio::yield_context yc) { NewClientHandler(yc, strand, sslConn, String(), RoleServer); });
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ApiListener")
 				<< "Cannot accept new connection: " << ex.what();
@@ -457,8 +462,9 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	}
 
 	auto& io (IoEngine::Get().GetIoContext());
+	auto strand (Shared<asio::io_context::strand>::Make(io));
 
-	IoEngine::SpawnCoroutine(io, [this, endpoint, &io](asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(*strand, [this, strand, endpoint, &io](asio::yield_context yc) {
 		String host = endpoint->GetHost();
 		String port = endpoint->GetPort();
 
@@ -470,7 +476,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			Connect(sslConn->lowest_layer(), host, port, yc);
 
-			NewClientHandler(yc, sslConn, endpoint->GetName(), RoleClient);
+			NewClientHandler(yc, strand, sslConn, endpoint->GetName(), RoleClient);
 
 			endpoint->SetConnecting(false);
 			Log(LogInformation, "ApiListener")
@@ -484,10 +490,13 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	});
 }
 
-void ApiListener::NewClientHandler(boost::asio::yield_context yc, const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role)
+void ApiListener::NewClientHandler(
+	boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
+	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
+)
 {
 	try {
-		NewClientHandlerInternal(yc, client, hostname, role);
+		NewClientHandlerInternal(yc, strand, client, hostname, role);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
 			<< "Exception while handling new API client connection: " << DiagnosticInformation(ex, false);
@@ -502,7 +511,10 @@ void ApiListener::NewClientHandler(boost::asio::yield_context yc, const Shared<A
  *
  * @param client The new client.
  */
-void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role)
+void ApiListener::NewClientHandlerInternal(
+	boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
+	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
+)
 {
 	namespace asio = boost::asio;
 	namespace ssl = asio::ssl;
@@ -529,7 +541,34 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 
 	boost::system::error_code ec;
 
-	sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc[ec]);
+	{
+		struct DoneHandshake
+		{
+			bool Done = false;
+		};
+
+		auto doneHandshake (Shared<DoneHandshake>::Make());
+
+		IoEngine::SpawnCoroutine(*strand, [strand, client, doneHandshake](asio::yield_context yc) {
+			namespace sys = boost::system;
+
+			{
+				boost::asio::deadline_timer timer (strand->context());
+				timer.expires_from_now(boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)));
+
+				sys::error_code ec;
+				timer.async_wait(yc[ec]);
+			}
+
+			if (!doneHandshake->Done) {
+				sys::error_code ec;
+				client->lowest_layer().cancel(ec);
+			}
+		});
+
+		sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc[ec]);
+		doneHandshake->Done = true;
+	}
 
 	if (ec) {
 		// https://github.com/boostorg/beast/issues/915
