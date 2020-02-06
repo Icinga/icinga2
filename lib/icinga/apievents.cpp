@@ -245,12 +245,11 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, c
 
 	result->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	result->Set("state_type", checkable->GetStateType());
+	result->Set("acknowledgement_type", AcknowledgementNone);
 
 	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
-
-	result->Set("acknowledgement_type", AcknowledgementNone);
 
 	inboxes.Push(std::move(result));
 }
