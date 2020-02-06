@@ -156,7 +156,12 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	String appVersion = Application::GetAppVersion();
 
 	String output = "Icinga 2 has been running for " + Utility::FormatDuration(uptime) +
-		". Version: " + appVersion;
+		". Version: " + appVersion +
+		"; Platform: " + Utility::GetPlatformName() +
+		"; Platform version: " + Utility::GetPlatformVersion() +
+		"; Kernel: " + Utility::GetPlatformKernel() +
+		"; Kernel version: " + Utility::GetPlatformKernelVersion() +
+		"; Architecture: " + Utility::GetPlatformArchitecture();
 
 	/* Indicate a warning if the last reload failed. */
 	double lastReloadFailed = Application::GetLastReloadFailed();
