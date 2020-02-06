@@ -5,6 +5,7 @@
 #include "base/convert.hpp"
 #include "base/application.hpp"
 #include "base/defer.hpp"
+#include "base/lazy-init.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/socket.hpp"
@@ -1691,17 +1692,20 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 #endif /* _WIN32 */
 }
 
-String Utility::GetPlatformKernel()
-{
+static LazyInit<String> l_PlatformKernel ([]() -> String {
 #ifdef _WIN32
 	return "Windows";
 #else /* _WIN32 */
 	return UnameHelper('s');
 #endif /* _WIN32 */
+});
+
+String Utility::GetPlatformKernel()
+{
+	return l_PlatformKernel.Get();
 }
 
-String Utility::GetPlatformKernelVersion()
-{
+static LazyInit<String> l_PlatformKernelVersion ([]() -> String {
 #ifdef _WIN32
 	OSVERSIONINFO info;
 	info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
@@ -1714,26 +1718,38 @@ String Utility::GetPlatformKernelVersion()
 #else /* _WIN32 */
 	return UnameHelper('r');
 #endif /* _WIN32 */
+});
+
+String Utility::GetPlatformKernelVersion()
+{
+	return l_PlatformKernelVersion.Get();
 }
 
-String Utility::GetPlatformName()
-{
+static LazyInit<String> l_PlatformName ([]() -> String {
 	String platformName;
 	if (!ReleaseHelper(&platformName, nullptr))
 		return "Unknown";
 	return platformName;
+});
+
+String Utility::GetPlatformName()
+{
+	return l_PlatformName.Get();
 }
 
-String Utility::GetPlatformVersion()
-{
+static LazyInit<String> l_PlatformVersion ([]() -> String {
 	String platformVersion;
 	if (!ReleaseHelper(nullptr, &platformVersion))
 		return "Unknown";
 	return platformVersion;
+});
+
+String Utility::GetPlatformVersion()
+{
+	return l_PlatformVersion.Get();
 }
 
-String Utility::GetPlatformArchitecture()
-{
+static LazyInit<String> l_PlatformArchitecture ([]() -> String {
 #ifdef _WIN32
 	SYSTEM_INFO info;
 	GetNativeSystemInfo(&info);
@@ -1750,6 +1766,11 @@ String Utility::GetPlatformArchitecture()
 #else /* _WIN32 */
 	return UnameHelper('m');
 #endif /* _WIN32 */
+});
+
+String Utility::GetPlatformArchitecture()
+{
+	return l_PlatformArchitecture.Get();
 }
 
 const char l_Utf8Replacement[] = "\xEF\xBF\xBD";
