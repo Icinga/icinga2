@@ -71,9 +71,23 @@ SLES/openSUSE      | `zypper install gdb`
 
 #### GDB Run <a id="development-debug-gdb-run"></a>
 
-Since v2.11 we would attach to the umbrella process spawned with `/usr/lib/icinga2/sbin/icinga2`,
-therefore rather attach to a running process.
+Run the icinga2 binary `/usr/lib{,64}/icinga2/sbin/icinga2` with gdb, `/usr/bin/icinga2` is a shell wrapper.
 
+```
+gdb --args /usr/lib/icinga2/sbin/icinga2 daemon
+
+(gdb) set follow-fork-mode child
+```
+
+When gdb halts on SIGUSR2, press `c` to continue. This signal originates from the umbrella
+process and can safely be ignored.
+
+
+> **Note**
+>
+> Since v2.11 we would attach to the umbrella process spawned with `/usr/lib/icinga2/sbin/icinga2`,
+> therefore rather attach to a running process.
+>
 ```
 # Typically the order of PIDs is: 1) umbrella 2) spawn helper 3) main process
 pidof icinga2
@@ -365,6 +379,24 @@ pidof icinga2
 
 lldb -p $(pidof icinga2 | cut -d ' ' -f3)
 ```
+
+In case you'll need to attach to the main process immediately, you can delay
+the forked child process and attach to the printed PID.
+
+```
+$ icinga2 daemon -DInternal.DebugWorkerDelay=120
+Closed FD 6 which we inherited from our parent process.
+[2020-01-29 12:22:33 +0100] information/cli: Icinga application loader (version: v2.11.0-477-gfe8701d77; debug)
+[2020-01-29 12:22:33 +0100] information/RunWorker: DEBUG: Current PID: 85253. Sleeping for 120 seconds to allow lldb/gdb -p <PID> attachment.
+```
+
+```
+lldb -p 85253
+```
+
+When lldb halts on SIGUSR2, press `c` to continue. This signal originates from the umbrella
+process and can safely be ignored.
+
 
 Breakpoint:
 
