@@ -525,7 +525,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	} else {
 		Log(LogInformation, "ApiListener")
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
-			<< "' do not qualify for production, not triggering reload.";
+			<< "' are equal to production, skipping validation and reload.";
 	}
 
 	return Empty;

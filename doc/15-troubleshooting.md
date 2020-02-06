@@ -1516,6 +1516,13 @@ gering reload.
 [2019-08-01 09:20:26 +0200] notice/Application: Got reload command, forwarding to umbrella process (PID 4236)
 ```
 
+In case the received configuration updates are equal to what is running in production, a different message is logged and the validation/reload is skipped.
+
+```
+[2020-02-05 15:18:19 +0200] information/ApiListener: Received configuration updates (4) from endpoint 'icinga2-master1.localdomain' are equal to production, skipping validation and reload.
+```
+
+
 #### Syncing Binary Files is Denied <a id="troubleshooting-cluster-config-sync-binary-denied"></a>
 
 The config sync is built for syncing text configuration files, wrapped into JSON-RPC messages.
