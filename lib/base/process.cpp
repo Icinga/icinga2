@@ -1024,7 +1024,7 @@ bool Process::DoEvents()
 
 			m_OutputStream << "<Timeout exceeded.>";
 #ifdef _WIN32
-			TerminateProcess(m_Process, 1);
+			TerminateProcess(m_Process, 3);
 #else /* _WIN32 */
 			int error = ProcessKill(-m_Process, SIGKILL);
 			if (error) {
