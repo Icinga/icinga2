@@ -1237,7 +1237,7 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 	if (!cr) {
 		hard_state = 99;
 	} else {
-		hard_state = service ? service->GetLastHardState() : host->GetLastHardState();
+		hard_state = service ? Convert::ToLong(service->GetLastHardState()) : Convert::ToLong(host->GetLastHardState());
 	}
 
 	std::vector<String> xAdd ({
@@ -1246,7 +1246,7 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 		"environment_id", SHA1(GetEnvironment()),
 		"host_id", GetObjectIdentifier(host),
 		"state_type", Convert::ToString(type),
-		"soft_state", Convert::ToString(cr ? service ? cr->GetState() : Host::CalculateState(cr->GetState()) : 99),
+		"soft_state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : 99),
 		"hard_state", Convert::ToString(hard_state),
 		"attempt", Convert::ToString(checkable->GetCheckAttempt()),
 		"previous_soft_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeSoft)),
@@ -1322,7 +1322,7 @@ void IcingaDB::SendSentNotification(
 		"notification_id", GetObjectIdentifier(notification),
 		"host_id", GetObjectIdentifier(host),
 		"type", Convert::ToString(type),
-		"state", Convert::ToString(service ? cr->GetState() : Host::CalculateState(cr->GetState())),
+		"state", Convert::ToString(service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState()))),
 		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
 		"author", Utility::ValidateUTF8(author),
 		"text", Utility::ValidateUTF8(finalText),
