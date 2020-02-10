@@ -114,33 +114,10 @@ public:
 #endif /* _WIN32 */
 	}
 
-	/* With dedicated strand in *Connection classes. */
 	template <typename Handler, typename Function>
-	static void SpawnCoroutine(Handler h, Function f) {
+	static void SpawnCoroutine(Handler& h, Function f) {
 
-		boost::asio::spawn(std::forward<Handler>(h),
-			[f](boost::asio::yield_context yc) {
-
-				try {
-					f(yc);
-				} catch (const boost::coroutines::detail::forced_unwind &) {
-					// Required for proper stack unwinding when coroutines are destroyed.
-					// https://github.com/boostorg/coroutine/issues/39
-					throw;
-				} catch (...) {
-					// Handle uncaught exceptions outside of the coroutine.
-					rethrowBoostExceptionPointer();
-				}
-			},
-			boost::coroutines::attributes(GetCoroutineStackSize()) // Set a pre-defined stack size.
-		);
-	}
-
-	/* Without strand in the IO executor's context. */
-	template <typename Function>
-	static void SpawnCoroutine(boost::asio::io_context& io, Function f) {
-
-		boost::asio::spawn(io,
+		boost::asio::spawn(h,
 			[f](boost::asio::yield_context yc) {
 
 				try {
