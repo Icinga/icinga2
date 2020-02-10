@@ -9,6 +9,7 @@
 #include "base/registry.hpp"
 #include "base/initialize.hpp"
 #include "base/singleton.hpp"
+#include "base/string.hpp"
 #include <future>
 #include <iostream>
 #include <stack>
@@ -139,7 +140,7 @@ public:
 	bool m_Eof;
 	int m_OpenBraces;
 
-	std::ostringstream m_LexBuffer;
+	String m_LexBuffer;
 	CompilerDebugInfo m_LocationBegin;
 
 	std::stack<bool> m_IgnoreNewlines;

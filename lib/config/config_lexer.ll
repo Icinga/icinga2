@@ -4,6 +4,7 @@
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
 #include "base/exception.hpp"
+#include <utility>
 
 using namespace icinga;
 
@@ -40,8 +41,7 @@ do {							\
 
 %%
 \"				{
-	yyextra->m_LexBuffer.str("");
-	yyextra->m_LexBuffer.clear();
+	yyextra->m_LexBuffer.Clear();
 
 	yyextra->m_LocationBegin = *yylloc;
 
@@ -54,7 +54,7 @@ do {							\
 	yylloc->FirstLine = yyextra->m_LocationBegin.FirstLine;
 	yylloc->FirstColumn = yyextra->m_LocationBegin.FirstColumn;
 
-	yylval->text = new String(yyextra->m_LexBuffer.str());
+	yylval->text = new String(std::move(yyextra->m_LexBuffer));
 
 	return T_STRING;
 				}
@@ -74,7 +74,7 @@ do {							\
 		BOOST_THROW_EXCEPTION(ScriptError("Constant is out of bounds: " + String(yytext), *yylloc));
 	}
 
-	yyextra->m_LexBuffer << static_cast<char>(result);
+	yyextra->m_LexBuffer += static_cast<char>(result);
 				}
 
 <STRING>\\[0-9]+		{
@@ -83,14 +83,14 @@ do {							\
 	 */
 	BOOST_THROW_EXCEPTION(ScriptError("Bad escape sequence found: " + String(yytext), *yylloc));
 				}
-<STRING>\\n			{ yyextra->m_LexBuffer << "\n"; }
-<STRING>\\\\			{ yyextra->m_LexBuffer << "\\"; }
-<STRING>\\\"			{ yyextra->m_LexBuffer << "\""; }
-<STRING>\\t			{ yyextra->m_LexBuffer << "\t"; }
-<STRING>\\r			{ yyextra->m_LexBuffer << "\r"; }
-<STRING>\\b			{ yyextra->m_LexBuffer << "\b"; }
-<STRING>\\f			{ yyextra->m_LexBuffer << "\f"; }
-<STRING>\\\n			{ yyextra->m_LexBuffer << yytext[1]; }
+<STRING>\\n			{ yyextra->m_LexBuffer += '\n'; }
+<STRING>\\\\			{ yyextra->m_LexBuffer += '\\'; }
+<STRING>\\\"			{ yyextra->m_LexBuffer += '"'; }
+<STRING>\\t			{ yyextra->m_LexBuffer += '\t'; }
+<STRING>\\r			{ yyextra->m_LexBuffer += '\r'; }
+<STRING>\\b			{ yyextra->m_LexBuffer += '\b'; }
+<STRING>\\f			{ yyextra->m_LexBuffer += '\f'; }
+<STRING>\\\n			{ yyextra->m_LexBuffer += yytext[1]; }
 <STRING>\\.			{
 	BOOST_THROW_EXCEPTION(ScriptError("Bad escape sequence found: " + String(yytext), *yylloc));
 				}
@@ -99,7 +99,7 @@ do {							\
 	char *yptr = yytext;
 
 	while (*yptr)
-		yyextra->m_LexBuffer << *yptr++;
+		yyextra->m_LexBuffer += *yptr++;
 				}
 
 <STRING><<EOF>>			{
@@ -107,8 +107,7 @@ do {							\
 				}
 
 \{\{\{				{
-	yyextra->m_LexBuffer.str("");
-	yyextra->m_LexBuffer.clear();
+	yyextra->m_LexBuffer.Clear();
 
 	yyextra->m_LocationBegin = *yylloc;
 
@@ -125,12 +124,12 @@ do {							\
 	yylloc->FirstLine = yyextra->m_LocationBegin.FirstLine;
 	yylloc->FirstColumn = yyextra->m_LocationBegin.FirstColumn;
 
-	yylval->text = new String(yyextra->m_LexBuffer.str());
+	yylval->text = new String(std::move(yyextra->m_LexBuffer));
 
 	return T_STRING;
 				}
 
-<HEREDOC>(.|\n)			{ yyextra->m_LexBuffer << yytext[0]; }
+<HEREDOC>(.|\n)			{ yyextra->m_LexBuffer += yytext[0]; }
 
 <INITIAL>{
 "/*"				BEGIN(C_COMMENT);
