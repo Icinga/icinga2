@@ -57,6 +57,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
@@ -64,6 +65,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, true, NotificationProblem);
 
 	std::cout << "Second check result (ok)" << std::endl;
@@ -71,6 +73,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, true, NotificationRecovery);
 
 	std::cout << "Third check result (critical)" << std::endl;
@@ -78,6 +81,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, true, NotificationProblem);
 
 	std::cout << "Fourth check result (ok)" << std::endl;
@@ -85,6 +89,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, true, NotificationRecovery);
 
 	c.disconnect();
@@ -106,6 +111,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
@@ -113,6 +119,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, false);
 
 	std::cout << "Second check result (critical)" << std::endl;
@@ -120,6 +127,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, true, NotificationProblem);
 
 	std::cout << "Third check result (ok)" << std::endl;
@@ -127,6 +135,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, true, NotificationRecovery);
 
 	std::cout << "Fourth check result (critical)" << std::endl;
@@ -134,6 +143,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, false);
 
 	std::cout << "Fifth check result (ok)" << std::endl;
@@ -141,6 +151,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, false);
 
 	c.disconnect();
@@ -162,6 +173,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
@@ -169,6 +181,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, false);
 
 	std::cout << "Second check result (critical)" << std::endl;
@@ -176,6 +189,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(host->GetCheckAttempt() == 2);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, false);
 
 	std::cout << "Third check result (critical)" << std::endl;
@@ -183,6 +197,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, true, NotificationProblem);
 
 	std::cout << "Fourth check result (ok)" << std::endl;
@@ -190,6 +205,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, true, NotificationRecovery);
 
 	std::cout << "Fifth check result (critical)" << std::endl;
@@ -197,6 +213,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, false);
 
 	std::cout << "Sixth check result (ok)" << std::endl;
@@ -204,6 +221,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	BOOST_CHECK(host->IsReachable() == true);
 	CheckNotification(host, false);
 
 	c.disconnect();
@@ -225,6 +243,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
@@ -232,6 +251,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	BOOST_CHECK(service->GetState() == ServiceUnknown);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, true, NotificationProblem);
 
 	std::cout << "Second check result (ok)" << std::endl;
@@ -239,6 +259,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, true, NotificationRecovery);
 
 	std::cout << "Third check result (critical)" << std::endl;
@@ -246,6 +267,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, true, NotificationProblem);
 
 	std::cout << "Fourth check result (ok)" << std::endl;
@@ -253,6 +275,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, true, NotificationRecovery);
 
 	c.disconnect();
@@ -274,6 +297,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
@@ -281,6 +305,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	BOOST_CHECK(service->GetState() == ServiceUnknown);
 	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, false);
 
 	std::cout << "Second check result (critical)" << std::endl;
@@ -288,6 +313,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, true, NotificationProblem);
 
 	std::cout << "Third check result (ok)" << std::endl;
@@ -295,6 +321,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, true, NotificationRecovery);
 
 	std::cout << "Fourth check result (critical)" << std::endl;
@@ -302,6 +329,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, false);
 
 	std::cout << "Fifth check result (ok)" << std::endl;
@@ -309,6 +337,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, false);
 
 	c.disconnect();
@@ -330,6 +359,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
@@ -337,6 +367,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	BOOST_CHECK(service->GetState() == ServiceUnknown);
 	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, false);
 
 	std::cout << "Second check result (critical)" << std::endl;
@@ -344,6 +375,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(service->GetCheckAttempt() == 2);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, false);
 
 	std::cout << "Third check result (critical)" << std::endl;
@@ -351,6 +383,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, true, NotificationProblem);
 
 	std::cout << "Fourth check result (ok)" << std::endl;
@@ -358,6 +391,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, true, NotificationRecovery);
 
 	std::cout << "Fifth check result (critical)" << std::endl;
@@ -365,6 +399,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, false);
 
 	std::cout << "Sixth check result (ok)" << std::endl;
@@ -372,6 +407,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	BOOST_CHECK(service->IsReachable() == true);
 	CheckNotification(service, false);
 
 	c.disconnect();
