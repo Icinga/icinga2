@@ -37,6 +37,10 @@ public:
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
+	/* Note: Only use them for unit test mocks. Prefer OnConfigLoaded(). */
+	void SetParent(intrusive_ptr<Checkable> parent);
+	void SetChild(intrusive_ptr<Checkable> child);
+
 protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
