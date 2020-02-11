@@ -581,6 +581,12 @@ void Checkable::ExecuteCheck()
 			 * using the proper check interval once we've received a check result.
 			 */
 			SetNextCheck(Utility::GetTime() + GetCheckCommand()->GetTimeout() + 30);
+
+		/*
+		 * Let the user know that there was a problem with the check if
+		 * 1) The endpoint is not syncing (replay log, etc.)
+		 * 2) Outside of the cold startup window (5min)
+		 */
 		} else if (!endpoint->GetSyncing() && Application::GetInstance()->GetStartTime() < Utility::GetTime() - 300) {
 			/* fail to perform check on unconnected endpoint */
 			cr->SetState(ServiceUnknown);

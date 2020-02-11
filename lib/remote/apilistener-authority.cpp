@@ -40,10 +40,10 @@ void ApiListener::UpdateObjectAuthority()
 			endpoints.push_back(endpoint);
 		}
 
-		double mainTime = Application::GetMainTime();
+		double startTime = Application::GetStartTime();
 
 		/* 30 seconds cold startup, don't update any authority to give the secondary endpoint time to reconnect. */
-		if (num_total > 1 && endpoints.size() <= 1 && (mainTime == 0 || Utility::GetTime() - mainTime < 30))
+		if (num_total > 1 && endpoints.size() <= 1 && (startTime == 0 || Utility::GetTime() - startTime < 30))
 			return;
 
 		std::sort(endpoints.begin(), endpoints.end(),

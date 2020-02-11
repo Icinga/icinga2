@@ -166,8 +166,6 @@ static int Main()
 		argv += 3;
 	}
 
-	Application::SetStartTime(Utility::GetTime());
-
 	/* Set thread title. */
 	Utility::SetThreadName("Main Thread", false);
 
