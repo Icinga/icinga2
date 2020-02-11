@@ -14,6 +14,7 @@
 #include <memory>
 #include <queue>
 #include <thread>
+#include <unordered_map>
 #include <utility>
 
 namespace icinga
@@ -35,6 +36,12 @@ public:
 	class Hoster;
 	class Mutex;
 	class RecursiveMutex;
+
+	template<class T>
+	class Local;
+
+	template<class T>
+	friend class Local;
 
 	DECLARE_PTR_TYPEDEFS(UserspaceThread);
 
@@ -58,9 +65,11 @@ public:
 
 private:
 	static thread_local UserspaceThread* m_Me;
+	static thread_local std::unordered_map<void*, SharedObject::Ptr> m_KernelspaceThreadLocals;
 
 	boost::context::continuation* m_Parent;
 	boost::context::continuation m_Context;
+	std::unordered_map<void*, SharedObject::Ptr> m_Locals;
 
 	template<class F>
 	inline boost::context::continuation FunctionToContext(F&& f)
@@ -230,6 +239,60 @@ private:
 	std::atomic<UserspaceThread::ID> m_UserspaceOwner;
 	uint_fast32_t m_Depth;
 	UserspaceThread::Mutex m_Mutex;
+};
+
+/**
+ * A UserspaceThread-local variable.
+ *
+ * @ingroup base
+ */
+template<class T>
+class UserspaceThread::Local
+{
+public:
+	inline Local() = default;
+
+	Local(const Local&) = delete;
+	Local(Local&&) = delete;
+	Local& operator=(const Local&) = delete;
+	Local& operator=(Local&&) = delete;
+
+	inline T& operator*()
+	{
+		return Get();
+	}
+
+	inline T* operator->()
+	{
+		return &Get();
+	}
+
+private:
+	class Storage;
+
+	T& Get()
+	{
+		auto locals (UserspaceThread::m_Me == nullptr ? &UserspaceThread::m_KernelspaceThreadLocals : &UserspaceThread::m_Me->m_Locals);
+		auto& storage ((*locals)[this]);
+
+		if (!storage) {
+			storage = new Storage();
+		}
+
+		return static_cast<Storage*>(storage.get())->Var;
+	}
+};
+
+/**
+ * Storage for a UserspaceThread-local variable.
+ *
+ * @ingroup base
+ */
+template<class T>
+class UserspaceThread::Local<T>::Storage : public SharedObject
+{
+public:
+	T Var;
 };
 
 }

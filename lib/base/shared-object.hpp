@@ -26,6 +26,9 @@ class SharedObject
 	friend void intrusive_ptr_add_ref(SharedObject *object);
 	friend void intrusive_ptr_release(SharedObject *object);
 
+public:
+	DECLARE_PTR_TYPEDEFS(SharedObject);
+
 protected:
 	inline SharedObject() : m_References(0)
 	{

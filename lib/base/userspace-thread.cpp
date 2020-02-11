@@ -9,6 +9,7 @@
 using namespace icinga;
 
 thread_local UserspaceThread* UserspaceThread::m_Me = nullptr;
+thread_local std::unordered_map<void*, SharedObject::Ptr> UserspaceThread::m_KernelspaceThreadLocals;
 
 void UserspaceThread::Yield_()
 {
