@@ -8,16 +8,21 @@
 
 using namespace icinga;
 
-thread_local boost::context::continuation* UserspaceThread::m_Parent = nullptr;
+thread_local UserspaceThread* UserspaceThread::m_Me = nullptr;
 
 void UserspaceThread::Yield_()
 {
-	if (m_Parent != nullptr) {
-		auto& parent (*m_Parent);
+	if (m_Me != nullptr) {
+		auto me (m_Me);
 
-		m_Parent = nullptr;
-		parent = parent.resume();
-		m_Parent = &parent;
+		m_Me = nullptr;
+
+		{
+			auto& parent (*me->m_Parent);
+			parent = parent.resume();
+		}
+
+		m_Me = me;
 	}
 }
 

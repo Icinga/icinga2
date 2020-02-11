@@ -41,7 +41,7 @@ public:
 	static inline
 	ID GetID()
 	{
-		return m_Parent;
+		return m_Me;
 	}
 
 	static void Yield_();
@@ -57,8 +57,9 @@ public:
 	bool Resume();
 
 private:
-	static thread_local boost::context::continuation* m_Parent;
+	static thread_local UserspaceThread* m_Me;
 
+	boost::context::continuation* m_Parent;
 	boost::context::continuation m_Context;
 
 	template<class F>
@@ -66,8 +67,9 @@ private:
 	{
 		Ptr keepAlive (this);
 
-		return boost::context::callcc([keepAlive, f](boost::context::continuation&& parent) {
+		return boost::context::callcc([this, keepAlive, f](boost::context::continuation&& parent) {
 			m_Parent = &parent;
+			m_Me = this;
 			Yield_();
 
 			try {
@@ -86,7 +88,7 @@ private:
 				}
 			}
 
-			m_Parent = nullptr;
+			m_Me = nullptr;
 
 			return std::move(parent);
 		});
@@ -198,7 +200,8 @@ private:
 };
 
 template<class F>
-UserspaceThread::UserspaceThread(F&& f) : m_Context(FunctionToContext(std::move(f)))
+UserspaceThread::UserspaceThread(F&& f)
+	: m_Parent(nullptr), m_Context(FunctionToContext(std::move(f)))
 {
 	UserspaceThread::Queue::Default.Push(this);
 }
