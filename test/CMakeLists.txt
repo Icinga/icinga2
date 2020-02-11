@@ -25,6 +25,7 @@ set(base_test_SOURCES
   base-value.cpp
   config-ops.cpp
   icinga-checkresult.cpp
+  icinga-dependencies.cpp
   icinga-legacytimeperiod.cpp
   icinga-macros.cpp
   icinga-notification.cpp
@@ -126,6 +127,7 @@ add_boost_test(base
     icinga_checkresult/service_3attempts
     icinga_checkresult/host_flapping_notification
     icinga_checkresult/service_flapping_notification
+    icinga_dependencies/multi_parent
     icinga_notification/strings
     icinga_notification/state_filter
     icinga_notification/type_filter

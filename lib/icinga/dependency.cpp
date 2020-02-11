@@ -201,3 +201,13 @@ void Dependency::ValidateStates(const Lazy<Array::Ptr>& lvalue, const Validation
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "states" }, "State filter is invalid for service dependency."));
 }
 
+void Dependency::SetParent(intrusive_ptr<Checkable> parent)
+{
+	m_Parent = parent;
+}
+
+void Dependency::SetChild(intrusive_ptr<Checkable> child)
+{
+	m_Child = child;
+}
+
