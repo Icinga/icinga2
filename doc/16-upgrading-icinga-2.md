@@ -10,6 +10,26 @@ follow the instructions for v2.7 too.
 
 ## Upgrading to v2.12 <a id="upgrading-to-2-12"></a>
 
+### Behavior changes <a id="upgrading-to-2-12-behavior-changes"></a>
+
+The behavior of multi parent [dependencies](03-monitoring-basics.md#dependencies) was fixed to e.g. render hosts unreachable when both router uplinks are down.
+
+Previous behaviour:
+
+1) parentHost1 DOWN, parentHost2 UP => childHost **not reachable**
+2) parentHost1 DOWN, parentHost2 DOWN => childHost **not reachable**
+
+New behavior:
+
+1) parentHost1 DOWN, parentHost2 UP => childHost **reachable**
+2) parentHost1 DOWN, parentHost2 DOWN => childHost **not reachable**
+
+Please review your [Dependency](09-object-types.md#objecttype-dependency) configuration as 1) may lead to
+different results for
+
+- `last_reachable` via REST API query
+- Notifications not suppressed by faulty reachability calculation anymore
+
 ### Breaking changes <a id="upgrading-to-2-12-breaking-changes"></a>
 
 As of v2.12 our [API](12-icinga2-api.md) URL endpoint [`/v1/actions/acknowledge-problem`](12-icinga2-api.md#icinga2-api-actions-acknowledge-problem) refuses acknowledging an already acknowledged checkable by overwriting the acknowledgement.
