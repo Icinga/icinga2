@@ -3,6 +3,7 @@
 #ifndef USERSPACE_THREAD_H
 #define USERSPACE_THREAD_H
 
+#include "base/configuration.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include "base/object.hpp"
@@ -10,6 +11,8 @@
 #include <atomic>
 #include <boost/context/continuation.hpp>
 #include <cstdint>
+#include <memory>
+#include <queue>
 #include <thread>
 #include <utility>
 
@@ -28,6 +31,8 @@ public:
 
 	static constexpr ID None = nullptr;
 
+	class Queue;
+	class Hoster;
 	class Mutex;
 	class RecursiveMutex;
 
@@ -42,14 +47,14 @@ public:
 	static void Yield_();
 
 	template<class F>
-	inline UserspaceThread(F&& f) : m_Context(FunctionToContext(std::move(f)))
-	{
-	}
+	UserspaceThread(F&& f);
 
 	UserspaceThread(const UserspaceThread&) = delete;
 	UserspaceThread(UserspaceThread&&) = delete;
 	UserspaceThread& operator=(const UserspaceThread&) = delete;
 	UserspaceThread& operator=(UserspaceThread&&) = delete;
+
+	bool Resume();
 
 private:
 	static thread_local boost::context::continuation* m_Parent;
@@ -89,6 +94,54 @@ private:
 };
 
 /**
+ * Collection of kernelspace-threads hosting UserspaceThreads.
+ *
+ * @ingroup base
+ */
+class UserspaceThread::Hoster : public SharedObject
+{
+public:
+	inline Hoster(int ksThreads = Configuration::Concurrency);
+
+	Hoster(const Hoster&) = delete;
+	Hoster& operator=(const Hoster&) = delete;
+
+private:
+	class KernelspaceThread;
+
+	std::unique_ptr<KernelspaceThread[]> m_KSThreads;
+};
+
+/**
+ * A kernelspace-thread hosting UserspaceThreads.
+ *
+ * @ingroup base
+ */
+class UserspaceThread::Hoster::KernelspaceThread
+{
+public:
+	KernelspaceThread();
+
+	KernelspaceThread(const KernelspaceThread&) = delete;
+	KernelspaceThread(KernelspaceThread&&) = delete;
+	KernelspaceThread& operator=(const KernelspaceThread&) = delete;
+	KernelspaceThread& operator=(KernelspaceThread&&) = delete;
+
+	~KernelspaceThread();
+
+private:
+	void Run();
+
+	std::thread m_KSThread;
+	std::atomic<bool> m_ShuttingDown;
+};
+
+inline UserspaceThread::Hoster::Hoster(int ksThreads)
+{
+	m_KSThreads.reset(new KernelspaceThread[ksThreads]);
+}
+
+/**
  * Like std::mutex, but UserspaceThread-aware.
  *
  * @ingroup base
@@ -118,6 +171,37 @@ public:
 private:
 	std::atomic_flag m_Locked = ATOMIC_FLAG_INIT;
 };
+
+/**
+ * Collection of UserspaceThreads calling UserspaceThread::Yield_().
+ *
+ * @ingroup base
+ */
+class UserspaceThread::Queue
+{
+public:
+	static Queue Default;
+
+	inline Queue() = default;
+
+	Queue(const Queue&) = delete;
+	Queue(Queue&&) = delete;
+	Queue& operator=(const Queue&) = delete;
+	Queue& operator=(Queue&&) = delete;
+
+	void Push(UserspaceThread::Ptr thread);
+	UserspaceThread::Ptr Pop();
+
+private:
+	std::queue<UserspaceThread::Ptr> m_Items;
+	UserspaceThread::Mutex m_Mutex;
+};
+
+template<class F>
+UserspaceThread::UserspaceThread(F&& f) : m_Context(FunctionToContext(std::move(f)))
+{
+	UserspaceThread::Queue::Default.Push(this);
+}
 
 /**
  * Like std::recursive_mutex, but UserspaceThread-aware.

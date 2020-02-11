@@ -2,6 +2,7 @@
 
 #include "base/userspace-thread.hpp"
 #include <boost/context/continuation.hpp>
+#include <mutex>
 #include <thread>
 #include <utility>
 
@@ -17,6 +18,57 @@ void UserspaceThread::Yield_()
 		m_Parent = nullptr;
 		parent = parent.resume();
 		m_Parent = &parent;
+	}
+}
+
+bool UserspaceThread::Resume()
+{
+	m_Context = m_Context.resume();
+
+	return (bool)m_Context;
+}
+
+UserspaceThread::Queue UserspaceThread::Queue::Default;
+
+void UserspaceThread::Queue::Push(UserspaceThread::Ptr thread)
+{
+	std::unique_lock<decltype(m_Mutex)> lock (m_Mutex);
+	m_Items.emplace(std::move(thread));
+}
+
+UserspaceThread::Ptr UserspaceThread::Queue::Pop()
+{
+	std::unique_lock<decltype(m_Mutex)> lock (m_Mutex);
+
+	if (m_Items.empty()) {
+		return nullptr;
+	}
+
+	auto next (std::move(m_Items.front()));
+	m_Items.pop();
+	return std::move(next);
+}
+
+UserspaceThread::Hoster::KernelspaceThread::KernelspaceThread()
+{
+	m_ShuttingDown.store(false);
+	m_KSThread = std::thread([this]() { Run(); });
+}
+
+UserspaceThread::Hoster::KernelspaceThread::~KernelspaceThread()
+{
+	m_ShuttingDown.store(true);
+	m_KSThread.join();
+}
+
+void UserspaceThread::Hoster::KernelspaceThread::Run()
+{
+	while (!m_ShuttingDown.load()) {
+		auto next (UserspaceThread::Queue::Default.Pop());
+
+		if (next && next->Resume()) {
+			UserspaceThread::Queue::Default.Push(std::move(next));
+		}
 	}
 }
 
