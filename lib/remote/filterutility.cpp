@@ -10,6 +10,8 @@
 #include "base/logger.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
+#include <iterator>
+#include <vector>
 
 using namespace icinga;
 
@@ -124,6 +126,26 @@ static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissi
 	}
 }
 
+template<class Iter>
+static std::unique_ptr<Expression> MakeOrTree(Iter begin, Iter end)
+{
+	auto distance (std::distance(begin, end));
+
+	if (distance < 1u) {
+		return nullptr;
+	}
+
+	if (distance == 1u) {
+		return std::move(*begin);
+	}
+
+	auto split (begin + distance / 2u);
+
+	return std::unique_ptr<LogicalOrExpression>(new LogicalOrExpression(
+		MakeOrTree(std::move(begin), split), MakeOrTree(split, std::move(end))
+	));
+}
+
 void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter)
 {
 	if (permissionFilter)
@@ -137,36 +159,41 @@ void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& perm
 
 	Array::Ptr permissions = user->GetPermissions();
 	if (permissions) {
-		ObjectLock olock(permissions);
-		for (const Value& item : permissions) {
-			String permission;
-			Function::Ptr filter;
-			if (item.IsObjectType<Dictionary>()) {
-				Dictionary::Ptr dict = item;
-				permission = dict->Get("permission");
-				filter = dict->Get("filter");
-			} else
-				permission = item;
+		std::vector<std::unique_ptr<Expression>> orFilter;
 
-			permission = permission.ToLower();
+		if (*permissionFilter) {
+			orFilter.emplace_back(*permissionFilter);
+		}
 
-			if (!Utility::Match(permission, requiredPermission))
-				continue;
+		{
+			ObjectLock olock(permissions);
+			for (const Value& item : permissions) {
+				String permission;
+				Function::Ptr filter;
+				if (item.IsObjectType<Dictionary>()) {
+					Dictionary::Ptr dict = item;
+					permission = dict->Get("permission");
+					filter = dict->Get("filter");
+				} else
+					permission = item;
 
-			foundPermission = true;
+				permission = permission.ToLower();
 
-			if (filter && permissionFilter) {
-				std::vector<std::unique_ptr<Expression> > args;
-				args.emplace_back(new GetScopeExpression(ScopeThis));
-				std::unique_ptr<Expression> indexer{new IndexerExpression(std::unique_ptr<Expression>(MakeLiteral(filter)), std::unique_ptr<Expression>(MakeLiteral("call")))};
-				FunctionCallExpression *fexpr = new FunctionCallExpression(std::move(indexer), std::move(args));
+				if (!Utility::Match(permission, requiredPermission))
+					continue;
 
-				if (!*permissionFilter)
-					*permissionFilter = fexpr;
-				else
-					*permissionFilter = new LogicalOrExpression(std::unique_ptr<Expression>(*permissionFilter), std::unique_ptr<Expression>(fexpr));
+				foundPermission = true;
+
+				if (filter && permissionFilter) {
+					std::vector<std::unique_ptr<Expression> > args;
+					args.emplace_back(new GetScopeExpression(ScopeThis));
+					std::unique_ptr<Expression> indexer{new IndexerExpression(std::unique_ptr<Expression>(MakeLiteral(filter)), std::unique_ptr<Expression>(MakeLiteral("call")))};
+					orFilter.emplace_back(new FunctionCallExpression(std::move(indexer), std::move(args)));
+				}
 			}
 		}
+
+		*permissionFilter = MakeOrTree(orFilter.begin(), orFilter.end()).release();
 	}
 
 	if (!foundPermission) {
