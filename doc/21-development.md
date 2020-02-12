@@ -1404,7 +1404,7 @@ the distribution already provides 1.66+. For older versions such as Stretch,
 include the release repository for packages.icinga.com as shown in the [setup instructions](02-installation.md#package-repositories-debian-ubuntu-raspbian).
 
 ```
-$ docker run -ti ubuntu:bionic bash
+$ docker run -ti debian:buster bash
 
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
