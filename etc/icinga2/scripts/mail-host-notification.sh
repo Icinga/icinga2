@@ -63,7 +63,7 @@ urlencode() {
 }
 
 ## Main
-while getopts 4:6::b:c:d:f:hi:l:n:o:r:s:t:v: opt
+while getopts 4:6::b:c:d:f:h:i:l:n:o:r:s:t:v: opt
 do
   case "$opt" in
     4) HOSTADDRESS=$OPTARG ;;
