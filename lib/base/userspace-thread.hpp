@@ -17,6 +17,16 @@
 #include <unordered_map>
 #include <utility>
 
+#ifdef _WIN32
+
+#include <winsock2.h>
+
+#else /* _WIN32 */
+
+#include <sys/socket.h>
+
+#endif /* _WIN32 */
+
 namespace icinga
 {
 
@@ -43,6 +53,18 @@ public:
 	template<class T>
 	friend class Local;
 
+	template<class SRS>
+	class SyncReadStream;
+
+	template<class SRS>
+	friend class SyncReadStream;
+
+	template<class SWS>
+	class SyncWriteStream;
+
+	template<class SWS>
+	friend class SyncWriteStream;
+
 	DECLARE_PTR_TYPEDEFS(UserspaceThread);
 
 	static inline
@@ -64,6 +86,15 @@ public:
 	bool Resume();
 
 private:
+	typedef decltype(socket(0, 0, 0)) NativeSocket;
+
+	enum class SocketOp : uint_fast8_t
+	{
+		Read, Write
+	};
+
+	static void WaitForSocket(NativeSocket sock, SocketOp op);
+
 	static thread_local UserspaceThread* m_Me;
 	static thread_local std::unordered_map<void*, SharedObject::Ptr> m_KernelspaceThreadLocals;
 
@@ -293,6 +324,46 @@ class UserspaceThread::Local<T>::Storage : public SharedObject
 {
 public:
 	T Var;
+};
+
+/**
+ * Like SRS, but UserspaceThread-aware.
+ *
+ * @ingroup base
+ */
+template<class SRS>
+class UserspaceThread::SyncReadStream : public SRS
+{
+public:
+	using SRS::SRS;
+
+	template<class... Args>
+	auto read_some(Args&&... args) -> decltype(((SRS*)nullptr)->read_some(std::forward<Args>(args)...))
+	{
+		UserspaceThread::WaitForSocket(this->lowest_layer().native_handle(), UserspaceThread::SocketOp::Read);
+
+		return ((SRS*)this)->read_some(std::forward<Args>(args)...);
+	}
+};
+
+/**
+ * Like SWS, but UserspaceThread-aware.
+ *
+ * @ingroup base
+ */
+template<class SWS>
+class UserspaceThread::SyncWriteStream : public SWS
+{
+public:
+	using SWS::SWS;
+
+	template<class... Args>
+	auto write_some(Args&&... args) -> decltype(((SWS*)nullptr)->write_some(std::forward<Args>(args)...))
+	{
+		UserspaceThread::WaitForSocket(this->lowest_layer().native_handle(), UserspaceThread::SocketOp::Write);
+
+		return ((SWS*)this)->write_some(std::forward<Args>(args)...);
+	}
 };
 
 }
