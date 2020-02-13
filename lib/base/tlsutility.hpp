@@ -47,6 +47,7 @@ String SHA256(const String& s);
 String RandomString(int length);
 
 bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate);
+bool IsCa(const std::shared_ptr<X509>& cacert);
 
 class openssl_error : virtual public std::exception, virtual public boost::exception { };
 
