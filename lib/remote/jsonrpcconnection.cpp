@@ -60,6 +60,8 @@ void JsonRpcConnection::Start()
 
 void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 {
+	m_Stream->next_layer().SetSeen(&m_Seen);
+
 	for (;;) {
 		String message;
 
