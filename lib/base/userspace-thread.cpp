@@ -138,29 +138,6 @@ UserspaceThread::Ptr UserspaceThread::Queue::Pop()
 	return std::move(next);
 }
 
-UserspaceThread::Hoster::KernelspaceThread::KernelspaceThread()
-{
-	m_ShuttingDown.store(false);
-	m_KSThread = std::thread([this]() { Run(); });
-}
-
-UserspaceThread::Hoster::KernelspaceThread::~KernelspaceThread()
-{
-	m_ShuttingDown.store(true);
-	m_KSThread.join();
-}
-
-void UserspaceThread::Hoster::KernelspaceThread::Run()
-{
-	while (!m_ShuttingDown.load()) {
-		auto next (UserspaceThread::Queue::Default.Pop());
-
-		if (next && next->Resume()) {
-			UserspaceThread::Queue::Default.Push(std::move(next));
-		}
-	}
-}
-
 void UserspaceThread::Mutex::lock()
 {
 	while (!try_lock()) {
