@@ -109,6 +109,7 @@ private:
 	static Mutex m_ChangeKernelspaceThreads;
 	static Atomic<uint_fast32_t> m_KernelspaceThreads;
 	static Atomic<uint_fast32_t> m_WantLessKernelspaceThreads;
+	static Atomic<uint_fast64_t> m_UserspaceThreads;
 
 	static thread_local UserspaceThread* m_Me;
 	static thread_local std::unordered_map<void*, SharedObject::Ptr> m_KernelspaceThreadLocals;
@@ -123,6 +124,7 @@ private:
 		Ptr keepAlive (this);
 
 		return boost::context::callcc([this, keepAlive, f](boost::context::continuation&& parent) {
+			m_UserspaceThreads.fetch_add(1);
 			m_Parent = &parent;
 			m_Me = this;
 			Yield_();
@@ -144,6 +146,7 @@ private:
 			}
 
 			m_Me = nullptr;
+			m_UserspaceThreads.fetch_sub(1);
 
 			return std::move(parent);
 		});
@@ -266,7 +269,7 @@ void UserspaceThread::Host()
 {
 	m_KernelspaceThreads.fetch_add(1);
 
-	for (;;) {
+	while (m_UserspaceThreads.load()) {
 		if (!IsMainKernelspaceThread) {
 			auto wantLessKernelspaceThreads (m_WantLessKernelspaceThreads.exchange(0));
 

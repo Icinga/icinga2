@@ -27,6 +27,7 @@ using namespace icinga;
 UserspaceThread::Mutex UserspaceThread::m_ChangeKernelspaceThreads;
 Atomic<uint_fast32_t> UserspaceThread::m_KernelspaceThreads (0);
 Atomic<uint_fast32_t> UserspaceThread::m_WantLessKernelspaceThreads (0);
+Atomic<uint_fast64_t> UserspaceThread::m_UserspaceThreads (0);
 
 thread_local UserspaceThread* UserspaceThread::m_Me = nullptr;
 thread_local std::unordered_map<void*, SharedObject::Ptr> UserspaceThread::m_KernelspaceThreadLocals;
