@@ -74,6 +74,7 @@ public:
 	}
 
 	static void Yield_();
+	static void Main();
 
 	template<class F>
 	UserspaceThread(F&& f);
@@ -93,6 +94,7 @@ private:
 		Read, Write
 	};
 
+	static void Host();
 	static void WaitForSocket(NativeSocket sock, SocketOp op);
 
 	static thread_local UserspaceThread* m_Me;

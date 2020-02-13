@@ -41,11 +41,27 @@ void UserspaceThread::Yield_()
 	}
 }
 
+void UserspaceThread::Main()
+{
+	Host();
+}
+
 bool UserspaceThread::Resume()
 {
 	m_Context = m_Context.resume();
 
 	return (bool)m_Context;
+}
+
+void UserspaceThread::Host()
+{
+	for (;;) {
+		auto next (UserspaceThread::Queue::Default.Pop());
+
+		if (next && next->Resume()) {
+			UserspaceThread::Queue::Default.Push(std::move(next));
+		}
+	}
 }
 
 void UserspaceThread::WaitForSocket(UserspaceThread::NativeSocket sock, UserspaceThread::SocketOp op)
