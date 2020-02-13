@@ -44,10 +44,10 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 		("parent_zone", po::value<std::string>(), "The name of the parent zone")
 		("listen", po::value<std::string>(), "Listen on host,port")
 		("ticket", po::value<std::string>(), "Generated ticket number for this request (optional)")
-		("trustedcert", po::value<std::string>(), "Trusted master certificate file")
+		("trustedcert", po::value<std::string>(), "Trusted parent certificate file as connection verification (received via 'pki save-cert')")
 		("cn", po::value<std::string>(), "The certificate's common name")
-		("accept-config", "Accept config from master")
-		("accept-commands", "Accept commands from master")
+		("accept-config", "Accept config from parent node")
+		("accept-commands", "Accept commands from parent node")
 		("master", "Use setup for a master instance")
 		("global_zones", po::value<std::vector<std::string> >(), "The names of the additional global zones to 'global-templates' and 'director-global'.")
 		("disable-confd", "Disables the conf.d directory during the setup");
@@ -369,11 +369,21 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		if (!vm.count("trustedcert")) {
 			Log(LogCritical, "cli")
 				<< "Please pass the trusted cert retrieved from the parent node (master or satellite)\n"
-				<< "(Hint: 'icinga2 pki save-cert --host <masterhost> --port <5665> --key local.key --cert local.crt --trustedcert parent.crt').";
+				<< "(Hint: 'icinga2 pki save-cert --host <parenthost> --port <5665> --key local.key --cert local.crt --trustedcert trusted-parent.crt').";
 			return 1;
 		}
 
 		trustedParentCert = GetX509Certificate(vm["trustedcert"].as<std::string>());
+
+		try {
+			if (IsCa(trustedParentCert)) {
+				Log(LogCritical, "cli")
+					<< "The trusted parent certificate is NOT a client certificate. It seems you passed the 'ca.crt' CA certificate via '--trustedcert' parameter.";
+				return 1;
+			}
+		} catch (const std::exception&) {
+			/* Swallow the error and do not run the check on unsupported OpenSSL platforms. */
+		}
 
 		Log(LogInformation, "cli")
 			<< "Verifying trusted certificate file '" << vm["trustedcert"].as<std::string>() << "'.";
