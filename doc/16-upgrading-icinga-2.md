@@ -35,6 +35,9 @@ different results for
 As of v2.12 our [API](12-icinga2-api.md) URL endpoint [`/v1/actions/acknowledge-problem`](12-icinga2-api.md#icinga2-api-actions-acknowledge-problem) refuses acknowledging an already acknowledged checkable by overwriting the acknowledgement.
 To replace an acknowledgement you have to remove the old one before adding the new one.
 
+The deprecated parameters `--cert` and `--key` for the `pki save-cert` CLI command
+have been removed from the command and documentation.
+
 ## Upgrading to v2.11 <a id="upgrading-to-2-11"></a>
 
 ### Bugfixes for 2.11 <a id="upgrading-to-2-11-bugfixes"></a>
