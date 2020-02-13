@@ -1,9 +1,11 @@
 /* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
 
+#include "base/atomic.hpp"
 #include "base/exception.hpp"
 #include "base/socket.hpp"
 #include "base/userspace-thread.hpp"
 #include <boost/context/continuation.hpp>
+#include <cstdint>
 #include <mutex>
 #include <thread>
 #include <utility>
@@ -21,6 +23,10 @@
 #endif /* _WIN32 */
 
 using namespace icinga;
+
+UserspaceThread::Mutex UserspaceThread::m_ChangeKernelspaceThreads;
+Atomic<uint_fast32_t> UserspaceThread::m_KernelspaceThreads (0);
+Atomic<uint_fast32_t> UserspaceThread::m_WantLessKernelspaceThreads (0);
 
 thread_local UserspaceThread* UserspaceThread::m_Me = nullptr;
 thread_local std::unordered_map<void*, SharedObject::Ptr> UserspaceThread::m_KernelspaceThreadLocals;
@@ -41,11 +47,6 @@ void UserspaceThread::Yield_()
 	}
 }
 
-void UserspaceThread::Main()
-{
-	Host();
-}
-
 bool UserspaceThread::Resume()
 {
 	m_Context = m_Context.resume();
@@ -53,14 +54,24 @@ bool UserspaceThread::Resume()
 	return (bool)m_Context;
 }
 
-void UserspaceThread::Host()
+void UserspaceThread::ChangeKernelspaceThreads(uint_fast32_t want)
 {
-	for (;;) {
-		auto next (UserspaceThread::Queue::Default.Pop());
+	std::unique_lock<Mutex> lock (m_ChangeKernelspaceThreads);
 
-		if (next && next->Resume()) {
-			UserspaceThread::Queue::Default.Push(std::move(next));
+	auto kernelspaceThreads (m_KernelspaceThreads.load());
+
+	if (kernelspaceThreads < want) {
+		for (auto diff (want - kernelspaceThreads); diff; --diff) {
+			std::thread(&UserspaceThread::Host<false>).detach();
 		}
+	} else if (kernelspaceThreads > want) {
+		m_WantLessKernelspaceThreads.fetch_add(kernelspaceThreads - want);
+	} else {
+		return;
+	}
+
+	while (m_KernelspaceThreads.load() != want) {
+		Yield_();
 	}
 }
 

@@ -3,6 +3,7 @@
 #ifndef USERSPACE_THREAD_H
 #define USERSPACE_THREAD_H
 
+#include "base/atomic.hpp"
 #include "base/configuration.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
@@ -74,7 +75,12 @@ public:
 	}
 
 	static void Yield_();
-	static void Main();
+
+	static inline
+	void Main()
+	{
+		Host<true>();
+	}
 
 	template<class F>
 	UserspaceThread(F&& f);
@@ -94,8 +100,15 @@ private:
 		Read, Write
 	};
 
+	template<bool IsMainKernelspaceThread>
 	static void Host();
+
+	static void ChangeKernelspaceThreads(uint_fast32_t want);
 	static void WaitForSocket(NativeSocket sock, SocketOp op);
+
+	static Mutex m_ChangeKernelspaceThreads;
+	static Atomic<uint_fast32_t> m_KernelspaceThreads;
+	static Atomic<uint_fast32_t> m_WantLessKernelspaceThreads;
 
 	static thread_local UserspaceThread* m_Me;
 	static thread_local std::unordered_map<void*, SharedObject::Ptr> m_KernelspaceThreadLocals;
@@ -246,6 +259,31 @@ UserspaceThread::UserspaceThread(F&& f)
 	: m_Parent(nullptr), m_Context(FunctionToContext(std::move(f)))
 {
 	UserspaceThread::Queue::Default.Push(this);
+}
+
+template<bool IsMainKernelspaceThread>
+void UserspaceThread::Host()
+{
+	m_KernelspaceThreads.fetch_add(1);
+
+	for (;;) {
+		if (!IsMainKernelspaceThread) {
+			auto wantLessKernelspaceThreads (m_WantLessKernelspaceThreads.exchange(0));
+
+			if (wantLessKernelspaceThreads) {
+				m_WantLessKernelspaceThreads.fetch_add(wantLessKernelspaceThreads - 1u);
+				break;
+			}
+		}
+
+		auto next (UserspaceThread::Queue::Default.Pop());
+
+		if (next && next->Resume()) {
+			UserspaceThread::Queue::Default.Push(std::move(next));
+		}
+	}
+
+	m_KernelspaceThreads.fetch_sub(1);
 }
 
 /**
