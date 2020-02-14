@@ -7,6 +7,7 @@
 #include <boost/context/continuation.hpp>
 #include <cstdint>
 #include <mutex>
+#include <new>
 #include <thread>
 #include <utility>
 
@@ -139,8 +140,21 @@ UserspaceThread::Queue UserspaceThread::Queue::Default;
 
 void UserspaceThread::Queue::Push(UserspaceThread::Ptr thread)
 {
-	std::unique_lock<decltype(m_Mutex)> lock (m_Mutex);
-	m_Items.emplace(std::move(thread));
+	for (;;) {
+		std::unique_lock<decltype(m_Mutex)> lock (m_Mutex);
+
+		try {
+			m_Items.emplace(std::move(thread));
+		} catch (const std::bad_alloc&) {
+			lock.unlock();
+
+			if (thread->Resume()) {
+				continue;
+			}
+		}
+
+		break;
+	}
 }
 
 UserspaceThread::Ptr UserspaceThread::Queue::Pop()
