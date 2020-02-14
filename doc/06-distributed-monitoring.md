@@ -691,7 +691,7 @@ Now restart your Icinga 2 daemon to finish the installation!
 > Icinga 2 yet. The wizard asked you to manually copy the master's public
 > CA certificate file into `/var/lib/icinga2/certs/ca.crt`.
 >
-> You need to manually sign the CSR on the master node.
+> You need to [manually sign the CSR on the master node](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing-master).
 
 Restart Icinga 2 as requested.
 
@@ -3329,6 +3329,8 @@ In case you don't need anything in `conf.d`, use the following command line:
 
 #### Node Setup with Agents/Satellites <a id="distributed-monitoring-automation-cli-node-setup-agent-satellite"></a>
 
+##### Preparations
+
 Make sure that the `/var/lib/icinga2/certs` directory exists and is owned by the `icinga`
 user (or the user Icinga 2 is running as).
 
@@ -3353,29 +3355,49 @@ Example:
 --cert /var/lib/icinga2/certs/icinga2-agent1.localdomain.crt
 ```
 
-Request the master certificate from the master host (`icinga2-master1.localdomain`)
-and store it as `trusted-master.crt`. Review it and continue.
+##### Verify Parent Connection
+
+In order to verify the parent connection and avoid man-in-the-middle attacks,
+fetch the parent instance's certificate and verify that it matches the connection.
+The `trusted-parent.crt` file is a temporary file passed to `node setup` in the
+next step and does not need to be stored for later usage.
 
 Pass the following details to the `pki save-cert` CLI command:
 
   Parameter           | Description
   --------------------|--------------------
-  Client certificate files | **Required.** Pass the previously generated files using the `--key` and `--cert` parameters.
   Trusted parent certificate | **Required.** Store the parent's certificate file. Manually verify that you're trusting it.
   Parent host         | **Required.** FQDN or IP address of the parent host.
 
-Example:
+Request the master certificate from the master host (`icinga2-master1.localdomain`)
+and store it as `trusted-parent.crt`. Review it and continue.
 
 ```
-[root@icinga2-agent1.localdomain /]# icinga2 pki save-cert --key /var/lib/icinga2/certs/icinga2-agent1.localdomain.key \
---cert /var/lib/icinga2/certs/icinga2-agent1.localdomain.crt \
+[root@icinga2-agent1.localdomain /]# icinga2 pki save-cert \
 --trustedcert /var/lib/icinga2/certs/trusted-parent.crt \
 --host icinga2-master1.localdomain
+
+information/cli: Retrieving TLS certificate for 'icinga2-master1.localdomain:5665'.
+
+ Subject:     CN = icinga2-master1.localdomain
+ Issuer:      CN = icinga2-master1.localdomain
+ Valid From:  Feb  4 08:59:05 2020 GMT
+ Valid Until: Jan 31 08:59:05 2035 GMT
+ Fingerprint: B4 90 DE 46 81 DD 2E BF EE 9D D5 47 61 43 EF C6 6D 86 A6 CC
+
+***
+*** You have to ensure that this certificate actually matches the parent
+*** instance's certificate in order to avoid man-in-the-middle attacks.
+***
+
+information/pki: Writing certificate to file '/var/lib/icinga2/certs/trusted-parent.crt'.
 ```
 
-Continue with the additional node setup step. Specify a local endpoint and zone name (`icinga2-agent1.localdomain`)
+##### Node Setup
+
+Continue with the additional `node setup` step. Specify a local endpoint and zone name (`icinga2-agent1.localdomain`)
 and set the master host (`icinga2-master1.localdomain`) as parent zone configuration. Specify the path to
-the previously stored trusted master certificate.
+the previously stored trusted parent certificate (`trusted-parent.crt`).
 
 Pass the following details to the `node setup` CLI command:
 
@@ -3383,7 +3405,7 @@ Pass the following details to the `node setup` CLI command:
   --------------------|--------------------
   Common name (CN)    | **Optional.** Specified with the `--cn` parameter. By convention this should be the host's FQDN.
   Request ticket      | **Required.** Add the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
-  Trusted master certificate | **Required.** Add the previously fetched trusted master certificate (this step means that you've verified its origin).
+  Trusted parent certificate | **Required.** Trusted parent certificate file as connection verification (received via 'pki save-cert').
   Parent host         | **Optional.** FQDN or IP address of the parent host. This is where the command connects for CSR signing. If not specified, you need to manually copy the parent's public CA certificate file into `/var/lib/icinga2/certs/ca.crt` in order to start Icinga 2.
   Parent endpoint     | **Required.** Specify the parent's endpoint name.
   Local zone name    | **Required.** Specify the agent/satellite zone name.
@@ -3438,7 +3460,7 @@ certificate file in `/var/lib/icinga2/certs/ca.crt`. Once Icinga 2 is started, i
 a ticket signing request to the parent node. If you have provided a ticket, the master node
 signs the request and sends it back to the agent/satellite which performs a certificate update in-memory.
 
-In case you did not provide a ticket, you need to manually sign the CSR on the master node
+In case you did not provide a ticket, you need to [manually sign the CSR on the master node](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing-master)
 which holds the CA's key pair.
 
 
@@ -3451,15 +3473,6 @@ you can safely disable the `checker` feature. The `node setup` CLI command alrea
 [root@icinga2-agent1.localdomain /]# icinga2 feature disable checker
 ```
 
-Disable "conf.d" inclusion if this is a [top down](06-distributed-monitoring.md#distributed-monitoring-top-down)
-configured agent.
-
-```
-[root@icinga2-agent1.localdomain /]# sed -i 's/include_recursive "conf.d"/\/\/include_recursive "conf.d"/g' /etc/icinga2/icinga2.conf
-```
-
-**Note**: This is the default since v2.9.
-
 **Optional**: Add an ApiUser object configuration for remote troubleshooting.
 
 ```
@@ -3469,13 +3482,6 @@ object ApiUser "root" {
   permissions = ["*"]
 }
 EOF
-```
-
-In case you've previously disabled the "conf.d" directory only
-add the file file `conf.d/api-users.conf`:
-
-```
-[root@icinga2-agent1.localdomain /]# echo 'include "conf.d/api-users.conf"' >> /etc/icinga2/icinga2.conf
 ```
 
 Finally restart Icinga 2.

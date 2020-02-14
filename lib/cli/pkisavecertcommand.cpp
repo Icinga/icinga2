@@ -26,16 +26,14 @@ void PKISaveCertCommand::InitParameters(boost::program_options::options_descript
 	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-		("key", po::value<std::string>(), "Key file path (input), obsolete")
-		("cert", po::value<std::string>(), "Certificate file path (input), obsolete")
 		("trustedcert", po::value<std::string>(), "Trusted certificate file path (output)")
-		("host", po::value<std::string>(), "Icinga 2 host")
+		("host", po::value<std::string>(), "Parent Icinga instance to fetch the public TLS certificate from")
 		("port", po::value<std::string>()->default_value("5665"), "Icinga 2 port");
 }
 
 std::vector<String> PKISaveCertCommand::GetArgumentSuggestions(const String& argument, const String& word) const
 {
-	if (argument == "key" || argument == "cert" || argument == "trustedcert")
+	if (argument == "trustedcert")
 		return GetBashCompletionSuggestions("file", word);
 	else if (argument == "host")
 		return GetBashCompletionSuggestions("hostname", word);
@@ -66,7 +64,7 @@ int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, con
 	String port = vm["port"].as<std::string>();
 
 	Log(LogInformation, "cli")
-		<< "Retrieving X.509 certificate for '" << host << ":" << port << "'.";
+		<< "Retrieving TLS certificate for '" << host << ":" << port << "'.";
 
 	std::shared_ptr<X509> cert = PkiUtility::FetchCert(host, port);
 

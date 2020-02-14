@@ -809,6 +809,23 @@ bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::sh
 	return rc == 1;
 }
 
+bool IsCa(const std::shared_ptr<X509>& cacert)
+{
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	/* OpenSSL 1.1.x provides https://www.openssl.org/docs/man1.1.0/man3/X509_check_ca.html
+	 *
+	 * 0 if it is not CA certificate,
+	 * 1 if it is proper X509v3 CA certificate with basicConstraints extension CA:TRUE,
+	 * 3 if it is self-signed X509 v1 certificate
+	 * 4 if it is certificate with keyUsage extension with bit keyCertSign set, but without basicConstraints,
+	 * 5 if it has outdated Netscape Certificate Type extension telling that it is CA certificate.
+	 */
+	return (X509_check_ca(cacert.get()) == 1);
+#else /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+	BOOST_THROW_EXCEPTION(std::invalid_argument("Not supported on this platform, OpenSSL version too old."));
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+}
+
 std::string to_string(const errinfo_openssl_error& e)
 {
 	std::ostringstream tmp;
