@@ -4,6 +4,7 @@
 #include "base/exception.hpp"
 #include "base/socket.hpp"
 #include "base/userspace-thread.hpp"
+#include "base/ut-current.hpp"
 #include "base/ut-id.hpp"
 #include <boost/context/continuation.hpp>
 #include <cstdint>
@@ -32,24 +33,7 @@ Atomic<uint_fast32_t> UserspaceThread::m_KernelspaceThreads (0);
 Atomic<uint_fast32_t> UserspaceThread::m_WantLessKernelspaceThreads (0);
 Atomic<uint_fast64_t> UserspaceThread::m_UserspaceThreads (0);
 
-thread_local UserspaceThread* UserspaceThread::m_Me = nullptr;
 thread_local std::unordered_map<void*, SharedObject::Ptr> UserspaceThread::m_KernelspaceThreadLocals;
-
-void UserspaceThread::Yield_()
-{
-	if (m_Me != nullptr) {
-		auto me (m_Me);
-
-		m_Me = nullptr;
-
-		{
-			auto& parent (*me->m_Parent);
-			parent = parent.resume();
-		}
-
-		m_Me = me;
-	}
-}
 
 #ifndef _WIN32
 
@@ -92,7 +76,7 @@ void UserspaceThread::ChangeKernelspaceThreads(uint_fast32_t want)
 	}
 
 	while (m_KernelspaceThreads.load() != want) {
-		Yield_();
+		UT::Current::Yield_();
 	}
 }
 
@@ -133,7 +117,7 @@ void UserspaceThread::WaitForSocket(UserspaceThread::NativeSocket sock, Userspac
 			break;
 		}
 
-		Yield_();
+		UT::Current::Yield_();
 	}
 }
 
@@ -174,7 +158,7 @@ UserspaceThread::Ptr UserspaceThread::Queue::Pop()
 void UserspaceThread::Mutex::lock()
 {
 	while (!try_lock()) {
-		UserspaceThread::Yield_();
+		UT::Current::Yield_();
 	}
 }
 
@@ -186,7 +170,7 @@ UserspaceThread::RecursiveMutex::RecursiveMutex() : m_Depth(0)
 
 void UserspaceThread::RecursiveMutex::lock()
 {
-	auto ust (UserspaceThread::GetID());
+	auto ust (UT::Current::GetID());
 
 	if (ust == UT::None) {
 		auto me (std::this_thread::get_id());
@@ -211,7 +195,7 @@ void UserspaceThread::RecursiveMutex::lock()
 
 bool UserspaceThread::RecursiveMutex::try_lock()
 {
-	auto ust (UserspaceThread::GetID());
+	auto ust (UT::Current::GetID());
 
 	if (ust == UT::None) {
 		auto me (std::this_thread::get_id());
@@ -245,7 +229,7 @@ bool UserspaceThread::RecursiveMutex::try_lock()
 void UserspaceThread::RecursiveMutex::unlock()
 {
 	if (!--m_Depth) {
-		if (UserspaceThread::GetID() == UT::None) {
+		if (UT::Current::GetID() == UT::None) {
 			m_KernelspaceOwner.store(std::thread::id());
 		} else {
 			m_UserspaceOwner.store(UT::None);

@@ -8,6 +8,7 @@
 #include "base/logger.hpp"
 #include "base/object.hpp"
 #include "base/shared-object.hpp"
+#include "base/ut-current.hpp"
 #include "base/ut-id.hpp"
 #include <atomic>
 #include <boost/context/continuation.hpp>
@@ -64,14 +65,6 @@ public:
 	DECLARE_PTR_TYPEDEFS(UserspaceThread);
 
 	static inline
-	UT::ID GetID()
-	{
-		return m_Me;
-	}
-
-	static void Yield_();
-
-	static inline
 	void Main()
 	{
 		Host<true>();
@@ -90,6 +83,8 @@ public:
 	UserspaceThread& operator=(UserspaceThread&&) = delete;
 
 	bool Resume();
+
+	boost::context::continuation* m_Parent;
 
 private:
 	typedef decltype(socket(0, 0, 0)) NativeSocket;
@@ -110,10 +105,8 @@ private:
 	static Atomic<uint_fast32_t> m_WantLessKernelspaceThreads;
 	static Atomic<uint_fast64_t> m_UserspaceThreads;
 
-	static thread_local UserspaceThread* m_Me;
 	static thread_local std::unordered_map<void*, SharedObject::Ptr> m_KernelspaceThreadLocals;
 
-	boost::context::continuation* m_Parent;
 	boost::context::continuation m_Context;
 	std::unordered_map<void*, SharedObject::Ptr> m_Locals;
 
@@ -125,8 +118,8 @@ private:
 		return boost::context::callcc([this, keepAlive, f](boost::context::continuation&& parent) {
 			m_UserspaceThreads.fetch_add(1);
 			m_Parent = &parent;
-			m_Me = this;
-			Yield_();
+			UT::Current::m_Thread = this;
+			UT::Current::Yield_();
 
 			try {
 				f();
@@ -144,7 +137,7 @@ private:
 				}
 			}
 
-			m_Me = nullptr;
+			UT::Current::m_Thread = nullptr;
 			m_UserspaceThreads.fetch_sub(1);
 
 			return std::move(parent);
@@ -297,7 +290,7 @@ private:
 
 	T& Get()
 	{
-		auto locals (UserspaceThread::m_Me == nullptr ? &UserspaceThread::m_KernelspaceThreadLocals : &UserspaceThread::m_Me->m_Locals);
+		auto locals (UT::Current::m_Thread == nullptr ? &UserspaceThread::m_KernelspaceThreadLocals : &UT::Current::m_Thread->m_Locals);
 		auto& storage ((*locals)[this]);
 
 		if (!storage) {

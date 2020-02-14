@@ -80,7 +80,7 @@ set(base_SOURCES
   type.cpp type.hpp typetype-script.cpp
   unix.hpp
   unixsocket.cpp unixsocket.hpp
-  userspace-thread.cpp userspace-thread.hpp ut-id.hpp
+  userspace-thread.cpp userspace-thread.hpp ut-current.cpp ut-current.hpp ut-id.hpp
   utility.cpp utility.hpp
   value.cpp value.hpp value-operators.cpp
   win32.hpp
