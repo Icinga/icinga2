@@ -4,6 +4,7 @@
 #include "icinga/checkable-ti.cpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
+#include "config/configcompiler.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
@@ -44,10 +45,9 @@ void Checkable::OnAllConfigLoaded()
 
 	if (endpoint) {
 		Zone::Ptr checkableZone = static_pointer_cast<Zone>(GetZone());
+		Zone::Ptr cmdZone = endpoint->GetZone();
 
 		if (checkableZone) {
-			Zone::Ptr cmdZone = endpoint->GetZone();
-
 			if (cmdZone != checkableZone && cmdZone->GetParent() != checkableZone) {
 				BOOST_THROW_EXCEPTION(ValidationError(this, { "command_endpoint" },
 					"Command endpoint must be in zone '" + checkableZone->GetName() + "' or in a direct child zone thereof."));
@@ -57,10 +57,19 @@ void Checkable::OnAllConfigLoaded()
 				"Checkable with command endpoint requires a zone. Please check the troubleshooting documentation."));
 		}
 
-		/* If this is a command_endpoint, forcefully disable the 'log_duration' setting. */
-		if (endpoint->GetLogDuration() > 0) {
-			ObjectLock olock(endpoint);
-			endpoint->SetLogDuration(0);
+		/* If this is a command_endpoint AND the target zone doesn't have config objects
+		 * forcefully disable the 'log_duration' setting.
+		 */
+		bool hasConfigZone = ConfigCompiler::HasZoneConfigAuthority(cmdZone->GetName());
+
+		Log(LogCritical, "Checkable")
+			<< "Checking endpoint '" << endpoint->GetName() << "' in zone '" << cmdZone->GetName() << "'. Has config zone: " << hasConfigZone;
+
+		if (!hasConfigZone) {
+			if (endpoint->GetLogDuration() > 0) {
+				ObjectLock olock(endpoint);
+				endpoint->SetLogDuration(0);
+			}
 		}
 	}
 }
