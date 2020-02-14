@@ -23,6 +23,7 @@
 #else /* _WIN32 */
 
 #include <sys/socket.h>
+#include <unistd.h>
 
 #endif /* _WIN32 */
 
@@ -78,6 +79,10 @@ public:
 	{
 		Host<true>();
 	}
+
+#ifndef _WIN32
+	static decltype(fork()) Fork();
+#endif /* _WIN32 */
 
 	template<class F>
 	UserspaceThread(F&& f);

@@ -19,6 +19,7 @@
 
 #include <errno.h>
 #include <sys/select.h>
+#include <unistd.h>
 
 #endif /* _WIN32 */
 
@@ -47,6 +48,23 @@ void UserspaceThread::Yield_()
 		m_Me = me;
 	}
 }
+
+#ifndef _WIN32
+
+decltype(fork()) UserspaceThread::Fork()
+{
+	auto kernelspaceThreads (m_KernelspaceThreads.load());
+
+	ChangeKernelspaceThreads(1);
+
+	auto pid (fork());
+
+	ChangeKernelspaceThreads(kernelspaceThreads);
+
+	return pid;
+}
+
+#endif /* _WIN32 */
 
 bool UserspaceThread::Resume()
 {
