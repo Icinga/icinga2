@@ -376,7 +376,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		String trustedCert = vm["trustedcert"].as<std::string>();
 
 		try{
-			trustedParentCert = GetX509Certificate(trustedCert)
+			trustedParentCert = GetX509Certificate(trustedCert);
 		} catch (const std::exception&) {
 			Log(LogCritical, "cli")
 				<< "Can't read trusted cert at '" << trustedCert << "'.";
