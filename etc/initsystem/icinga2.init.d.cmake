@@ -56,6 +56,7 @@ fi
 getent passwd $ICINGA2_USER >/dev/null 2>&1 || (echo "Icinga user '$ICINGA2_USER' does not exist. Exiting." && exit 6)
 getent group $ICINGA2_GROUP >/dev/null 2>&1 || (echo "Icinga group '$ICINGA2_GROUP' does not exist. Exiting." && exit 6)
 getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || (echo "Icinga command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting." && exit 6)
+cd "$(getent passwd $ICINGA2_USER | awk -F ':' '{ print $6 }')"  || { echo "Failed to enter the home directory of user '$ICINGA2_USER'." && exit 6; }
 
 # Start Icinga 2
 start() {
