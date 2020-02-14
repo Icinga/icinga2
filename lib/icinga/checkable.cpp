@@ -56,6 +56,12 @@ void Checkable::OnAllConfigLoaded()
 			BOOST_THROW_EXCEPTION(ValidationError(this, { "command_endpoint" },
 				"Checkable with command endpoint requires a zone. Please check the troubleshooting documentation."));
 		}
+
+		/* If this is a command_endpoint, forcefully disable the 'log_duration' setting. */
+		if (endpoint->GetLogDuration() > 0) {
+			ObjectLock olock(endpoint);
+			endpoint->SetLogDuration(0);
+		}
 	}
 }
 
