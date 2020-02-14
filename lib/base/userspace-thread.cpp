@@ -4,6 +4,7 @@
 #include "base/exception.hpp"
 #include "base/socket.hpp"
 #include "base/userspace-thread.hpp"
+#include "base/ut-id.hpp"
 #include <boost/context/continuation.hpp>
 #include <cstdint>
 #include <mutex>
@@ -180,14 +181,14 @@ void UserspaceThread::Mutex::lock()
 UserspaceThread::RecursiveMutex::RecursiveMutex() : m_Depth(0)
 {
 	m_KernelspaceOwner.store(std::thread::id());
-	m_UserspaceOwner.store(UserspaceThread::None);
+	m_UserspaceOwner.store(UT::None);
 }
 
 void UserspaceThread::RecursiveMutex::lock()
 {
 	auto ust (UserspaceThread::GetID());
 
-	if (ust == UserspaceThread::None) {
+	if (ust == UT::None) {
 		auto me (std::this_thread::get_id());
 
 		if (m_KernelspaceOwner.load() == me) {
@@ -212,7 +213,7 @@ bool UserspaceThread::RecursiveMutex::try_lock()
 {
 	auto ust (UserspaceThread::GetID());
 
-	if (ust == UserspaceThread::None) {
+	if (ust == UT::None) {
 		auto me (std::this_thread::get_id());
 
 		if (m_KernelspaceOwner.load() == me) {
@@ -244,10 +245,10 @@ bool UserspaceThread::RecursiveMutex::try_lock()
 void UserspaceThread::RecursiveMutex::unlock()
 {
 	if (!--m_Depth) {
-		if (UserspaceThread::GetID() == UserspaceThread::None) {
+		if (UserspaceThread::GetID() == UT::None) {
 			m_KernelspaceOwner.store(std::thread::id());
 		} else {
-			m_UserspaceOwner.store(UserspaceThread::None);
+			m_UserspaceOwner.store(UT::None);
 		}
 
 		m_Mutex.unlock();

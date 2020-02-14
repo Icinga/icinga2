@@ -8,6 +8,7 @@
 #include "base/logger.hpp"
 #include "base/object.hpp"
 #include "base/shared-object.hpp"
+#include "base/ut-id.hpp"
 #include <atomic>
 #include <boost/context/continuation.hpp>
 #include <cstdint>
@@ -38,10 +39,6 @@ namespace icinga
 class UserspaceThread : public SharedObject
 {
 public:
-	typedef void* ID;
-
-	static constexpr ID None = nullptr;
-
 	class Queue;
 	class Mutex;
 	class RecursiveMutex;
@@ -67,7 +64,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(UserspaceThread);
 
 	static inline
-	ID GetID()
+	UT::ID GetID()
 	{
 		return m_Me;
 	}
@@ -264,7 +261,7 @@ public:
 
 private:
 	std::atomic<std::thread::id> m_KernelspaceOwner;
-	std::atomic<UserspaceThread::ID> m_UserspaceOwner;
+	std::atomic<UT::ID> m_UserspaceOwner;
 	uint_fast32_t m_Depth;
 	UserspaceThread::Mutex m_Mutex;
 };
