@@ -2,11 +2,17 @@
 
 #include "base/ut-thread.hpp"
 
-using namespace icinga;
+namespace icinga
+{
+namespace UT
+{
 
-bool UT::Thread::Resume()
+bool Thread::Resume()
 {
 	m_Context = m_Context.resume();
 
 	return (bool)m_Context;
+}
+
+}
 }

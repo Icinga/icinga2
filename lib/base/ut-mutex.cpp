@@ -6,22 +6,27 @@
 #include <thread>
 #include <utility>
 
-using namespace icinga;
+namespace icinga
+{
+namespace UT
+{
+namespace Aware
+{
 
-void UT::Aware::Mutex::lock()
+void Mutex::lock()
 {
 	while (!try_lock()) {
 		Current::Yield_();
 	}
 }
 
-UT::Aware::RecursiveMutex::RecursiveMutex() : m_Depth(0)
+RecursiveMutex::RecursiveMutex() : m_Depth(0)
 {
 	m_KernelspaceOwner.store(std::thread::id());
 	m_UserspaceOwner.store(None);
 }
 
-void UT::Aware::RecursiveMutex::lock()
+void RecursiveMutex::lock()
 {
 	auto ust (Current::GetID());
 
@@ -46,7 +51,7 @@ void UT::Aware::RecursiveMutex::lock()
 	}
 }
 
-bool UT::Aware::RecursiveMutex::try_lock()
+bool RecursiveMutex::try_lock()
 {
 	auto ust (Current::GetID());
 
@@ -79,7 +84,7 @@ bool UT::Aware::RecursiveMutex::try_lock()
 	return true;
 }
 
-void UT::Aware::RecursiveMutex::unlock()
+void RecursiveMutex::unlock()
 {
 	if (!--m_Depth) {
 		if (Current::GetID() == None) {
@@ -90,4 +95,8 @@ void UT::Aware::RecursiveMutex::unlock()
 
 		m_Mutex.unlock();
 	}
+}
+
+}
+}
 }

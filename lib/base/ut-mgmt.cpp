@@ -21,12 +21,7 @@ Atomic<uint_fast32_t> l_KernelspaceThreads (0);
 Atomic<uint_fast32_t> l_WantLessKernelspaceThreads (0);
 Atomic<uint_fast64_t> l_UserspaceThreads (0);
 
-}
-}
-
-using namespace icinga;
-
-void UT::ChangeKernelspaceThreads(uint_fast32_t want)
+void ChangeKernelspaceThreads(uint_fast32_t want)
 {
 	std::unique_lock<Aware::Mutex> lock (l_ChangeKernelspaceThreads);
 
@@ -34,7 +29,7 @@ void UT::ChangeKernelspaceThreads(uint_fast32_t want)
 
 	if (kernelspaceThreads < want) {
 		for (auto diff (want - kernelspaceThreads); diff; --diff) {
-			std::thread(&UT::Host<false>).detach();
+			std::thread(&Host<false>).detach();
 		}
 	} else if (kernelspaceThreads > want) {
 		l_WantLessKernelspaceThreads.fetch_add(kernelspaceThreads - want);
@@ -47,9 +42,9 @@ void UT::ChangeKernelspaceThreads(uint_fast32_t want)
 	}
 }
 
-UT::Queue UT::Queue::Default;
+Queue Queue::Default;
 
-void UT::Queue::Push(UT::Thread::Ptr thread)
+void Queue::Push(Thread::Ptr thread)
 {
 	for (;;) {
 		std::unique_lock<decltype(m_Mutex)> lock (m_Mutex, std::try_to_lock);
@@ -72,7 +67,7 @@ void UT::Queue::Push(UT::Thread::Ptr thread)
 	}
 }
 
-UT::Thread::Ptr UT::Queue::Pop()
+Thread::Ptr Queue::Pop()
 {
 	std::unique_lock<decltype(m_Mutex)> lock (m_Mutex);
 
@@ -86,7 +81,7 @@ UT::Thread::Ptr UT::Queue::Pop()
 }
 
 template<bool IsMainKernelspaceThread>
-void UT::Host()
+void Host()
 {
 	l_KernelspaceThreads.fetch_add(1);
 
@@ -110,5 +105,8 @@ void UT::Host()
 	l_KernelspaceThreads.fetch_sub(1);
 }
 
-template void UT::Host<false>();
-template void UT::Host<true>();
+template void Host<false>();
+template void Host<true>();
+
+}
+}

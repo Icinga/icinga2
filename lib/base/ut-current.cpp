@@ -3,11 +3,14 @@
 #include "base/ut-current.hpp"
 #include "base/ut-thread.hpp"
 
-using namespace icinga;
+namespace icinga
+{
+namespace UT
+{
 
-thread_local UT::Thread* UT::Current::m_Thread = nullptr;
+thread_local Thread* Current::m_Thread = nullptr;
 
-void UT::Current::Yield_()
+void Current::Yield_()
 {
 	if (m_Thread != nullptr) {
 		auto me (m_Thread);
@@ -21,4 +24,7 @@ void UT::Current::Yield_()
 
 		m_Thread = me;
 	}
+}
+
+}
 }

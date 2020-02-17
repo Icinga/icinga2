@@ -13,9 +13,12 @@
 #	include <sys/select.h>
 #endif /* _WIN32 */
 
-using namespace icinga;
+namespace icinga
+{
+namespace UT
+{
 
-void UT::WaitForSocket(UT::NativeSocket sock, UT::SocketOp op)
+void WaitForSocket(NativeSocket sock, SocketOp op)
 {
 	fd_set fds;
 	fd_set* reads = nullptr;
@@ -54,4 +57,7 @@ void UT::WaitForSocket(UT::NativeSocket sock, UT::SocketOp op)
 
 		Current::Yield_();
 	}
+}
+
+}
 }
