@@ -14,6 +14,7 @@
 #include "base/convert.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/process.hpp"
+#include "base/tlsutility.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
@@ -551,7 +552,8 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 
 	os << "\nBuild information:\n"
 		<< "  Compiler: " << systemNS->Get("BuildCompilerName") << " " << systemNS->Get("BuildCompilerVersion") << "\n"
-		<< "  Build host: " << systemNS->Get("BuildHostName") << "\n";
+		<< "  Build host: " << systemNS->Get("BuildHostName") << "\n"
+		<< "  OpenSSL version: " << GetOpenSSLVersion() << "\n";
 
 	os << "\nApplication information:\n"
 		<< "\nGeneral paths:\n"

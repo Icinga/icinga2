@@ -8,6 +8,8 @@
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include <boost/asio/ssl/context.hpp>
+#include <openssl/opensslv.h>
+#include <openssl/crypto.h>
 #include <fstream>
 
 namespace icinga
@@ -16,6 +18,15 @@ namespace icinga
 static bool l_SSLInitialized = false;
 static boost::mutex *l_Mutexes;
 static boost::mutex l_RandomMutex;
+
+String GetOpenSSLVersion()
+{
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	return OpenSSL_version(OPENSSL_VERSION);
+#else /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+	return SSLeay_version(SSLEAY_VERSION);
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+}
 
 #ifdef CRYPTO_LOCK
 static void OpenSSLLockingCallback(int mode, int type, const char *, int)
