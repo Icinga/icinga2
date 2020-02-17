@@ -4,6 +4,7 @@
 #include "base/convert.hpp"
 #include "base/logger.hpp"
 #include "base/context.hpp"
+#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
@@ -806,6 +807,14 @@ bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::sh
 	X509_STORE_CTX_free(csc);
 	X509_STORE_free(store);
 
+	if (rc == 0) {
+		int err = X509_STORE_CTX_get_error(csc);
+
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("X509_verify_cert")
+			<< errinfo_openssl_error(err));
+	}
+
 	return rc == 1;
 }
 
@@ -824,6 +833,53 @@ bool IsCa(const std::shared_ptr<X509>& cacert)
 #else /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 	BOOST_THROW_EXCEPTION(std::invalid_argument("Not supported on this platform, OpenSSL version too old."));
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+}
+
+int GetCertificateVersion(const std::shared_ptr<X509>& cert)
+{
+	return X509_get_version(cert.get()) + 1;
+}
+
+String GetSignatureAlgorithm(const std::shared_ptr<X509>& cert)
+{
+	int alg;
+	int sign_alg;
+	X509_PUBKEY *key;
+	X509_ALGOR *algor;
+
+	key = X509_get_X509_PUBKEY(cert.get());
+
+	X509_PUBKEY_get0_param(nullptr, nullptr, 0, &algor, key); //TODO: Error handling
+
+	alg = OBJ_obj2nid (algor->algorithm);
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	sign_alg = OBJ_obj2nid((cert.get())->sig_alg->algorithm);
+#else /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+	sign_alg = X509_get_signature_nid(cert.get());
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+
+	return Convert::ToString((sign_alg == NID_undef) ? "Unknown" : OBJ_nid2ln(sign_alg));
+}
+
+Array::Ptr GetSubjectAltNames(const std::shared_ptr<X509>& cert)
+{
+	GENERAL_NAMES* subjectAltNames = (GENERAL_NAMES*)X509_get_ext_d2i(cert.get(), NID_subject_alt_name, nullptr, nullptr);
+
+	Array::Ptr sans = new Array();
+
+	for (int i = 0; i < sk_GENERAL_NAME_num(subjectAltNames); i++) {
+		GENERAL_NAME* gen = sk_GENERAL_NAME_value(subjectAltNames, i);
+		if (gen->type == GEN_URI || gen->type == GEN_DNS || gen->type == GEN_EMAIL) {
+			ASN1_IA5STRING *asn1_str = gen->d.uniformResourceIdentifier;
+			String san = Convert::ToString(ASN1_STRING_data(asn1_str));
+			sans->Add(san);
+		}
+	}
+
+	GENERAL_NAMES_free(subjectAltNames);
+
+	return sans;
 }
 
 std::string to_string(const errinfo_openssl_error& e)
