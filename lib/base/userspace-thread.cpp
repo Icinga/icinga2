@@ -24,8 +24,6 @@ Atomic<uint_fast32_t> UserspaceThread::m_KernelspaceThreads (0);
 Atomic<uint_fast32_t> UserspaceThread::m_WantLessKernelspaceThreads (0);
 Atomic<uint_fast64_t> UserspaceThread::m_UserspaceThreads (0);
 
-thread_local std::unordered_map<void*, SharedObject::Ptr> UserspaceThread::m_KernelspaceThreadLocals;
-
 #ifndef _WIN32
 
 decltype(fork()) UserspaceThread::Fork()

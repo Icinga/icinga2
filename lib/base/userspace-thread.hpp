@@ -34,12 +34,6 @@ class UserspaceThread : public SharedObject
 public:
 	class Queue;
 
-	template<class T>
-	class Local;
-
-	template<class T>
-	friend class Local;
-
 	DECLARE_PTR_TYPEDEFS(UserspaceThread);
 
 	static inline
@@ -74,8 +68,6 @@ private:
 	static Atomic<uint_fast32_t> m_KernelspaceThreads;
 	static Atomic<uint_fast32_t> m_WantLessKernelspaceThreads;
 	static Atomic<uint_fast64_t> m_UserspaceThreads;
-
-	static thread_local std::unordered_map<void*, SharedObject::Ptr> m_KernelspaceThreadLocals;
 
 	boost::context::continuation m_Context;
 	std::unordered_map<void*, SharedObject::Ptr> m_Locals;
@@ -171,60 +163,6 @@ void UserspaceThread::Host()
 
 	m_KernelspaceThreads.fetch_sub(1);
 }
-
-/**
- * A UserspaceThread-local variable.
- *
- * @ingroup base
- */
-template<class T>
-class UserspaceThread::Local
-{
-public:
-	inline Local() = default;
-
-	Local(const Local&) = delete;
-	Local(Local&&) = delete;
-	Local& operator=(const Local&) = delete;
-	Local& operator=(Local&&) = delete;
-
-	inline T& operator*()
-	{
-		return Get();
-	}
-
-	inline T* operator->()
-	{
-		return &Get();
-	}
-
-private:
-	class Storage;
-
-	T& Get()
-	{
-		auto locals (UT::Current::m_Thread == nullptr ? &UserspaceThread::m_KernelspaceThreadLocals : &UT::Current::m_Thread->m_Locals);
-		auto& storage ((*locals)[this]);
-
-		if (!storage) {
-			storage = new Storage();
-		}
-
-		return static_cast<Storage*>(storage.get())->Var;
-	}
-};
-
-/**
- * Storage for a UserspaceThread-local variable.
- *
- * @ingroup base
- */
-template<class T>
-class UserspaceThread::Local<T>::Storage : public SharedObject
-{
-public:
-	T Var;
-};
 
 }
 
