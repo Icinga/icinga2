@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
 
 #include "cli/pkiverifycommand.hpp"
-#include "icinga/checkresult.hpp"
+#include "icinga/service.hpp"
 #include "remote/pkiutility.hpp"
 #include "base/tlsutility.hpp"
 #include "base/logger.hpp"

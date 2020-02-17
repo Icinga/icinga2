@@ -41,7 +41,7 @@ endif()
 
 add_library(cli OBJECT ${cli_SOURCES})
 
-add_dependencies(cli base config remote)
+add_dependencies(cli base config icinga remote)
 
 set_target_properties (
   cli PROPERTIES
