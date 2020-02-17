@@ -29,6 +29,7 @@ set(cli_SOURCES
   pkisavecertcommand.cpp pkisavecertcommand.hpp
   pkisigncsrcommand.cpp pkisigncsrcommand.hpp
   pkiticketcommand.cpp pkiticketcommand.hpp
+  pkiverifycommand.cpp pkiverifycommand.hpp
   variablegetcommand.cpp variablegetcommand.hpp
   variablelistcommand.cpp variablelistcommand.hpp
   variableutility.cpp variableutility.hpp
