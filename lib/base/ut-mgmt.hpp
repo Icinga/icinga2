@@ -5,7 +5,6 @@
 
 #include "base/atomic.hpp"
 #include "base/ut-mutex.hpp"
-#include "base/ut-thread.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <cstdint>
 #include <queue>
@@ -19,6 +18,8 @@ extern Aware::Mutex l_ChangeKernelspaceThreads;
 extern Atomic<uint_fast32_t> l_KernelspaceThreads;
 extern Atomic<uint_fast32_t> l_WantLessKernelspaceThreads;
 extern Atomic<uint_fast64_t> l_UserspaceThreads;
+
+class Thread;
 
 /**
  * Collection of UserspaceThreads calling UT::Current::Yield_().
