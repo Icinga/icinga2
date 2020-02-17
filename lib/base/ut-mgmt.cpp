@@ -57,7 +57,7 @@ void ChangeKernelspaceThreads(uint_fast32_t want)
 
 	if (kernelspaceThreads < want) {
 		for (auto diff (want - kernelspaceThreads); diff; --diff) {
-			std::thread(&Host<false>).detach();
+			std::thread(&UT::Host<false>).detach();
 		}
 	} else if (kernelspaceThreads > want) {
 		l_WantLessKernelspaceThreads.fetch_add(kernelspaceThreads - want);
