@@ -13,10 +13,6 @@
 #include <unordered_map>
 #include <utility>
 
-#ifndef _WIN32
-#	include <unistd.h>
-#endif /* _WIN32 */
-
 namespace icinga
 {
 
@@ -29,10 +25,6 @@ class UserspaceThread : public SharedObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(UserspaceThread);
-
-#ifndef _WIN32
-	static decltype(fork()) Fork();
-#endif /* _WIN32 */
 
 	template<class F>
 	UserspaceThread(F&& f)

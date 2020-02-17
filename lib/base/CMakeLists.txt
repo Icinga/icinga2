@@ -86,6 +86,7 @@ set(base_SOURCES
   ut-id.hpp
   ut-local.cpp ut-local.hpp
   ut-mgmt.cpp ut-mgmt.hpp
+  ut-misc.cpp ut-misc.hpp
   ut-mutex.cpp ut-mutex.hpp
   utility.cpp utility.hpp
   value.cpp value.hpp value-operators.cpp
