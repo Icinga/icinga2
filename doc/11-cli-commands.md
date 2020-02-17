@@ -38,6 +38,7 @@ Supported commands:
   * pki save-cert (saves another Icinga 2 instance's certificate)
   * pki sign-csr (signs a CSR)
   * pki ticket (generates a ticket)
+  * pki verify (verify TLS certificates: CN, signed by CA, is CA; Print certificate)
   * variable get (gets a variable)
   * variable list (lists all variables)
 
@@ -570,7 +571,7 @@ You will need them in the [distributed monitoring chapter](06-distributed-monito
 
 ```
 # icinga2 pki --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.12.0)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -582,6 +583,7 @@ Supported commands:
   * pki save-cert (saves another Icinga 2 instance's certificate)
   * pki sign-csr (signs a CSR)
   * pki ticket (generates a ticket)
+  * pki verify (verify TLS certificates: CN, signed by CA, is CA; Print certificate)
 
 Global options:
   -h [ --help ]             show this help message
