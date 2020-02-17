@@ -30,7 +30,7 @@ namespace Aware
 {
 
 /**
- * Like SRS, but UserspaceThread-aware.
+ * Like SRS, but UT::Thread-aware.
  *
  * @ingroup base
  */
@@ -50,7 +50,7 @@ public:
 };
 
 /**
- * Like SWS, but UserspaceThread-aware.
+ * Like SWS, but UT::Thread-aware.
  *
  * @ingroup base
  */

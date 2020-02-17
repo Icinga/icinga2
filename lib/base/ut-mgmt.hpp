@@ -4,8 +4,8 @@
 #define UT_MGMT_H
 
 #include "base/atomic.hpp"
-#include "base/userspace-thread.hpp"
 #include "base/ut-mutex.hpp"
+#include "base/ut-thread.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <cstdint>
 #include <queue>
@@ -37,11 +37,11 @@ public:
 	Queue& operator=(const Queue&) = delete;
 	Queue& operator=(Queue&&) = delete;
 
-	void Push(boost::intrusive_ptr<UserspaceThread> thread);
-	boost::intrusive_ptr<UserspaceThread> Pop();
+	void Push(boost::intrusive_ptr<Thread> thread);
+	boost::intrusive_ptr<Thread> Pop();
 
 private:
-	std::queue<boost::intrusive_ptr<UserspaceThread>> m_Items;
+	std::queue<boost::intrusive_ptr<Thread>> m_Items;
 	UT::Aware::Mutex m_Mutex;
 };
 

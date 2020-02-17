@@ -7,11 +7,10 @@
 
 namespace icinga
 {
-
-class UserspaceThread;
-
 namespace UT
 {
+
+class Thread;
 
 class Current
 {
@@ -24,7 +23,7 @@ public:
 
 	static void Yield_();
 
-	static thread_local UserspaceThread* m_Thread;
+	static thread_local Thread* m_Thread;
 
 private:
 	inline Current() = default;

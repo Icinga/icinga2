@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
 
 #include "base/atomic.hpp"
-#include "base/userspace-thread.hpp"
 #include "base/ut-current.hpp"
 #include "base/ut-mgmt.hpp"
 #include "base/ut-mutex.hpp"
+#include "base/ut-thread.hpp"
 #include <cstdint>
 #include <mutex>
 #include <new>
@@ -49,7 +49,7 @@ void UT::ChangeKernelspaceThreads(uint_fast32_t want)
 
 UT::Queue UT::Queue::Default;
 
-void UT::Queue::Push(UserspaceThread::Ptr thread)
+void UT::Queue::Push(UT::Thread::Ptr thread)
 {
 	for (;;) {
 		std::unique_lock<decltype(m_Mutex)> lock (m_Mutex, std::try_to_lock);
@@ -72,7 +72,7 @@ void UT::Queue::Push(UserspaceThread::Ptr thread)
 	}
 }
 
-UserspaceThread::Ptr UT::Queue::Pop()
+UT::Thread::Ptr UT::Queue::Pop()
 {
 	std::unique_lock<decltype(m_Mutex)> lock (m_Mutex);
 

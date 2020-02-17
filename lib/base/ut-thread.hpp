@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
 
-#ifndef USERSPACE_THREAD_H
-#define USERSPACE_THREAD_H
+#ifndef UT_THREAD_H
+#define UT_THREAD_H
 
 #include "base/exception.hpp"
 #include "base/logger.hpp"
@@ -15,28 +15,30 @@
 
 namespace icinga
 {
+namespace UT
+{
 
 /**
  * A lightweight thread.
  *
  * @ingroup base
  */
-class UserspaceThread : public SharedObject
+class Thread : public SharedObject
 {
 public:
-	DECLARE_PTR_TYPEDEFS(UserspaceThread);
+	DECLARE_PTR_TYPEDEFS(Thread);
 
 	template<class F>
-	UserspaceThread(F&& f)
+	Thread(F&& f)
 		: m_Parent(nullptr), m_Context(FunctionToContext(std::move(f)))
 	{
-		UT::Queue::Default.Push(this);
+		Queue::Default.Push(this);
 	}
 
-	UserspaceThread(const UserspaceThread&) = delete;
-	UserspaceThread(UserspaceThread&&) = delete;
-	UserspaceThread& operator=(const UserspaceThread&) = delete;
-	UserspaceThread& operator=(UserspaceThread&&) = delete;
+	Thread(const Thread&) = delete;
+	Thread(Thread&&) = delete;
+	Thread& operator=(const Thread&) = delete;
+	Thread& operator=(Thread&&) = delete;
 
 	bool Resume();
 
@@ -52,10 +54,10 @@ private:
 		Ptr keepAlive (this);
 
 		return boost::context::callcc([this, keepAlive, f](boost::context::continuation&& parent) {
-			UT::l_UserspaceThreads.fetch_add(1);
+			l_UserspaceThreads.fetch_add(1);
 			m_Parent = &parent;
-			UT::Current::m_Thread = this;
-			UT::Current::Yield_();
+			Current::m_Thread = this;
+			Current::Yield_();
 
 			try {
 				f();
@@ -73,8 +75,8 @@ private:
 				}
 			}
 
-			UT::Current::m_Thread = nullptr;
-			UT::l_UserspaceThreads.fetch_sub(1);
+			Current::m_Thread = nullptr;
+			l_UserspaceThreads.fetch_sub(1);
 
 			return std::move(parent);
 		});
@@ -82,5 +84,6 @@ private:
 };
 
 }
+}
 
-#endif /* USERSPACE_THREAD_H */
+#endif /* UT_THREAD_H */

@@ -15,7 +15,7 @@ namespace UT
 extern thread_local std::unordered_map<void*, SharedObject::Ptr> l_KernelspaceThreadLocals;
 
 /**
- * A UserspaceThread-local variable.
+ * A UT::Thread-local variable.
  *
  * @ingroup base
  */
@@ -57,7 +57,7 @@ private:
 };
 
 /**
- * Storage for a UserspaceThread-local variable.
+ * Storage for a UT::Thread-local variable.
  *
  * @ingroup base
  */

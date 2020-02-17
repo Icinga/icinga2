@@ -1,11 +1,11 @@
 /* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
 
-#include "base/userspace-thread.hpp"
 #include "base/ut-current.hpp"
+#include "base/ut-thread.hpp"
 
 using namespace icinga;
 
-thread_local UserspaceThread* UT::Current::m_Thread = nullptr;
+thread_local UT::Thread* UT::Current::m_Thread = nullptr;
 
 void UT::Current::Yield_()
 {

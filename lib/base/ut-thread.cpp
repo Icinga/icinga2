@@ -1,10 +1,10 @@
 /* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
 
-#include "base/userspace-thread.hpp"
+#include "base/ut-thread.hpp"
 
 using namespace icinga;
 
-bool UserspaceThread::Resume()
+bool UT::Thread::Resume()
 {
 	m_Context = m_Context.resume();
 

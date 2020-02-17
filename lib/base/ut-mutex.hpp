@@ -16,7 +16,7 @@ namespace Aware
 {
 
 /**
- * Like std::mutex, but UserspaceThread-aware.
+ * Like std::mutex, but UT::Thread-aware.
  *
  * @ingroup base
  */
@@ -47,7 +47,7 @@ private:
 };
 
 /**
- * Like std::recursive_mutex, but UserspaceThread-aware.
+ * Like std::recursive_mutex, but UT::Thread-aware.
  *
  * @ingroup base
  */
