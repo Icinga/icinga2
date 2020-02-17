@@ -76,16 +76,20 @@ UserspaceThread::Queue UserspaceThread::Queue::Default;
 void UserspaceThread::Queue::Push(UserspaceThread::Ptr thread)
 {
 	for (;;) {
-		std::unique_lock<decltype(m_Mutex)> lock (m_Mutex);
+		std::unique_lock<decltype(m_Mutex)> lock (m_Mutex, std::try_to_lock);
 
-		try {
-			m_Items.emplace(std::move(thread));
-		} catch (const std::bad_alloc&) {
-			lock.unlock();
+		if (lock) {
+			try {
+				m_Items.emplace(std::move(thread));
+			} catch (const std::bad_alloc&) {
+				lock.unlock();
 
-			if (thread->Resume()) {
-				continue;
+				if (thread->Resume()) {
+					continue;
+				}
 			}
+		} else if (thread->Resume()) {
+			continue;
 		}
 
 		break;
