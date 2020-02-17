@@ -21,6 +21,34 @@ Atomic<uint_fast32_t> l_KernelspaceThreads (0);
 Atomic<uint_fast32_t> l_WantLessKernelspaceThreads (0);
 Atomic<uint_fast64_t> l_UserspaceThreads (0);
 
+template<bool IsMainKernelspaceThread>
+void Host()
+{
+	l_KernelspaceThreads.fetch_add(1);
+
+	while (l_UserspaceThreads.load()) {
+		if (!IsMainKernelspaceThread) {
+			auto wantLessKernelspaceThreads (l_WantLessKernelspaceThreads.exchange(0));
+
+			if (wantLessKernelspaceThreads) {
+				l_WantLessKernelspaceThreads.fetch_add(wantLessKernelspaceThreads - 1u);
+				break;
+			}
+		}
+
+		auto next (Queue::Default.Pop());
+
+		if (next && next->Resume()) {
+			Queue::Default.Push(std::move(next));
+		}
+	}
+
+	l_KernelspaceThreads.fetch_sub(1);
+}
+
+template void Host<false>();
+template void Host<true>();
+
 void ChangeKernelspaceThreads(uint_fast32_t want)
 {
 	std::unique_lock<Aware::Mutex> lock (l_ChangeKernelspaceThreads);
@@ -79,34 +107,6 @@ Thread::Ptr Queue::Pop()
 	m_Items.pop();
 	return std::move(next);
 }
-
-template<bool IsMainKernelspaceThread>
-void Host()
-{
-	l_KernelspaceThreads.fetch_add(1);
-
-	while (l_UserspaceThreads.load()) {
-		if (!IsMainKernelspaceThread) {
-			auto wantLessKernelspaceThreads (l_WantLessKernelspaceThreads.exchange(0));
-
-			if (wantLessKernelspaceThreads) {
-				l_WantLessKernelspaceThreads.fetch_add(wantLessKernelspaceThreads - 1u);
-				break;
-			}
-		}
-
-		auto next (Queue::Default.Pop());
-
-		if (next && next->Resume()) {
-			Queue::Default.Push(std::move(next));
-		}
-	}
-
-	l_KernelspaceThreads.fetch_sub(1);
-}
-
-template void Host<false>();
-template void Host<true>();
 
 }
 }
