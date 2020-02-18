@@ -168,8 +168,7 @@ case "$1" in
 	start
   ;;
   condrestart)
-	STATUS=$(status > /dev/null 2>&1)
-	if [ $? != 0 ]; then exit 0; fi
+  status > /dev/null 2>&1 || exit 0
 	checkconfig restart fail
 	stop nofail
 	start
