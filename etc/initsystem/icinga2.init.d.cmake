@@ -83,7 +83,7 @@ stop() {
 		fi
 	fi
 
-	pid=`cat $ICINGA2_PID_FILE`
+  pid="$(cat "$ICINGA2_PID_FILE")"
 
 	if icinga2 internal signal -s SIGINT -p $pid >/dev/null 2>&1; then
 		for i in 1 2 3 4 5 6 7 8 9 10; do
@@ -141,7 +141,7 @@ status() {
 		exit 3
 	fi
 
-	pid=`cat $ICINGA2_PID_FILE`
+ pid="$(cat "$ICINGA2_PID_FILE")"
 	if icinga2 internal signal -s SIGCHLD -p $pid >/dev/null 2>&1; then
 		echo "Running"
 	else
