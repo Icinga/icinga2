@@ -3,6 +3,21 @@
 #include "base/configuration.hpp"
 #include "base/configuration-ti.cpp"
 #include "base/exception.hpp"
+#include <boost/algorithm/string.hpp>
+#include <boost/asio.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/system/system_error.hpp>
+#include <cstdint>
+#include <iostream>
+#include <set>
+#include <string>
+#include <vector>
+
+#ifdef __linux__
+#	include <fcntl.h>
+#	include <sys/errno.h>
+#endif /* __linux__ */
 
 using namespace icinga;
 
@@ -27,6 +42,69 @@ bool Configuration::AttachDebugger{false};
 String Configuration::CacheDir;
 int Configuration::Concurrency{1};
 bool Configuration::ConcurrencyWasModified{false};
+
+int Configuration::GetDefaultConcurrency()
+{
+#ifdef __linux__
+	{
+		using namespace boost::algorithm;
+		using namespace boost::asio;
+		using namespace boost::system;
+
+		int f = open("/sys/fs/cgroup/cpuset/cpuset.cpus", O_RDONLY);
+
+		if (f < 0) {
+			if (errno != ENOENT) {
+				throw system_error(error_code(errno, system_category()));
+			}
+		} else {
+			std::string rawCpus;
+
+			{
+				io_context io;
+				buffered_read_stream<posix::stream_descriptor> stream (io);
+
+				stream.next_layer() = posix::stream_descriptor(io, f);
+
+				try {
+					read(stream, dynamic_buffer(rawCpus));
+				} catch (const system_error& se) {
+					if (se.code() != error::make_error_code(error::eof)) {
+						throw;
+					}
+				}
+			}
+
+			rawCpus.erase(rawCpus.find_last_not_of('\n') + 1u);
+
+			std::vector<std::string> ranges;
+			boost::split(ranges, rawCpus, is_any_of(","));
+
+			std::set<uintmax_t> cpus;
+
+			for (auto& range : ranges) {
+				std::vector<std::string> rangeEnds;
+				boost::split(rangeEnds, range, is_any_of("-"));
+
+				if (rangeEnds.size() > 1u) {
+					auto to (boost::lexical_cast<uintmax_t>(rangeEnds.at(1)));
+
+					for (auto i (boost::lexical_cast<uintmax_t>(rangeEnds.at(0))); i <= to; ++i) {
+						cpus.emplace(i);
+					}
+				} else {
+					cpus.emplace(boost::lexical_cast<uintmax_t>(rangeEnds.at(0)));
+				}
+			}
+
+			return cpus.size();
+		}
+	}
+#endif /* __linux__ */
+
+	return std::thread::hardware_concurrency();
+}
+
 String Configuration::ConfigDir;
 String Configuration::DataDir;
 String Configuration::EventEngine;
