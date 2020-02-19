@@ -13,7 +13,6 @@ mkclass_target(host.ti host-ti.cpp host-ti.hpp)
 mkclass_target(icingaapplication.ti icingaapplication-ti.cpp icingaapplication-ti.hpp)
 mkclass_target(customvarobject.ti customvarobject-ti.cpp customvarobject-ti.hpp)
 mkclass_target(notificationcommand.ti notificationcommand-ti.cpp notificationcommand-ti.hpp)
-mkclass_target(notificationresult.ti notificationresult-ti.cpp notificationresult-ti.hpp)
 mkclass_target(notification.ti notification-ti.cpp notification-ti.hpp)
 mkclass_target(scheduleddowntime.ti scheduleddowntime-ti.cpp scheduleddowntime-ti.hpp)
 mkclass_target(servicegroup.ti servicegroup-ti.cpp servicegroup-ti.hpp)
@@ -52,7 +51,6 @@ set(icinga_SOURCES
   macroresolver.hpp
   notification.cpp notification.hpp notification-ti.hpp notification-apply.cpp
   notificationcommand.cpp notificationcommand.hpp notificationcommand-ti.hpp
-  notificationresult.cpp notificationresult.hpp notificationresult-ti.hpp
   objectutils.cpp objectutils.hpp
   pluginutility.cpp pluginutility.hpp
   scheduleddowntime.cpp scheduleddowntime.hpp scheduleddowntime-ti.hpp scheduleddowntime-apply.cpp
