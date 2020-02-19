@@ -15,12 +15,12 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION_NONCONST(Internal, PluginNotification, &PluginNotificationTask::ScriptFunc, "notification:user:cr:nr:itype:author:comment:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, PluginNotification, &PluginNotificationTask::ScriptFunc, "notification:user:cr:itype:author:comment:resolvedMacros:useResolvedMacros");
 
 void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
-	const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
-	int itype, const String& author, const String& comment,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
+	const String& author, const String& comment, const Dictionary::Ptr& resolvedMacros,
+	bool useResolvedMacros)
 {
 	REQUIRE_NOT_NULL(notification);
 	REQUIRE_NOT_NULL(user);
@@ -55,28 +55,16 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 
 	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
 		resolvedMacros, useResolvedMacros, timeout,
-		std::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, notification, nr, _1, _2));
+		std::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2));
 }
 
-void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable,
-	const Notification::Ptr& notification, const NotificationResult::Ptr& nr, const Value& commandLine, const ProcessResult& pr)
+void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& commandLine, const ProcessResult& pr)
 {
 	if (pr.ExitStatus != 0) {
 		Process::Arguments parguments = Process::PrepareCommand(commandLine);
 		Log(LogWarning, "PluginNotificationTask")
-			<< "Notification command for checkable '" << checkable->GetName()
-			<< "' and notification '" << notification->GetName() << "' (PID: " << pr.PID
+			<< "Notification command for object '" << checkable->GetName() << "' (PID: " << pr.PID
 			<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
 			<< pr.ExitStatus << ", output: " << pr.Output;
 	}
-
-	String output = pr.Output.Trim();
-
-	nr->SetCommand(commandLine);
-	nr->SetOutput(output);
-	nr->SetExitStatus(pr.ExitStatus);
-	nr->SetExecutionStart(pr.ExecutionStart);
-	nr->SetExecutionEnd(pr.ExecutionEnd);
-
-	notification->ProcessNotificationResult(nr);
 }
