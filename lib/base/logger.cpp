@@ -10,6 +10,7 @@
 #include "base/context.hpp"
 #include "base/scriptglobal.hpp"
 #include <iostream>
+#include <utility>
 
 using namespace icinga;
 
@@ -201,7 +202,13 @@ Log::~Log()
 	entry.Timestamp = Utility::GetTime();
 	entry.Severity = m_Severity;
 	entry.Facility = m_Facility;
-	entry.Message = m_Buffer.str();
+
+	{
+		auto msg (m_Buffer.str());
+		msg.erase(msg.find_last_not_of("\n") + 1u);
+
+		entry.Message = std::move(msg);
+	}
 
 	if (m_Severity >= LogWarning) {
 		ContextTrace context;
