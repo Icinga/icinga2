@@ -10,7 +10,6 @@
 #include "icinga/usergroup.hpp"
 #include "icinga/timeperiod.hpp"
 #include "icinga/checkresult.hpp"
-#include "icinga/notificationresult.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include "base/array.hpp"
@@ -83,8 +82,6 @@ public:
 
 	Endpoint::Ptr GetCommandEndpoint() const;
 
-	void ProcessNotificationResult(const NotificationResult::Ptr& nr, const MessageOrigin::Ptr& origin);
-
 	// Logging, etc.
 	static String NotificationTypeToString(NotificationType type);
 	// Compat, used for notifications, etc.
@@ -95,7 +92,6 @@ public:
 	static String NotificationHostStateToString(HostState state);
 
 	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnNextNotificationChanged;
-	static boost::signals2::signal<void (const Notification::Ptr&, const NotificationResult::Ptr&, const MessageOrigin::Ptr&)> OnNewNotificationResult;
 
 	void Validate(int types, const ValidationUtils& utils) override;
 
