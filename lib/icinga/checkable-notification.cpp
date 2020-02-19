@@ -18,8 +18,8 @@ boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, c
 	const NotificationType&, const CheckResult::Ptr&, const String&, const String&,
 	const MessageOrigin::Ptr&)> Checkable::OnNotificationSentToAllUsers;
 boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const User::Ptr&,
-	const NotificationType&, const CheckResult::Ptr&, const NotificationResult::Ptr&, const String&,
-	const String&, const String&, const MessageOrigin::Ptr&)> Checkable::OnNotificationSentToUser;
+	const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&,
+	const MessageOrigin::Ptr&)> Checkable::OnNotificationSentToUser;
 
 void Checkable::ResetNotificationNumbers()
 {
