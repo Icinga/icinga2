@@ -59,7 +59,15 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, const
 
 	/* Verify CN in certificate. */
 	if (!cn.IsEmpty() && !certFile.IsEmpty()) {
-		std::shared_ptr<X509> cert = GetX509Certificate(certFile);
+		std::shared_ptr<X509> cert;
+		try {
+			cert = GetX509Certificate(certFile);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "cli")
+				<< "Cannot read certificate file '" << certFile << "'. Please ensure that it exists and is readable.";
+
+			return ServiceCritical;
+		}
 
 		Log(LogInformation, "cli")
 			<< "Verifying common name (CN) '" << cn << " in certificate '" << certFile << "'.";
@@ -83,8 +91,25 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, const
 
 	/* Verify certificate. */
 	if (!certFile.IsEmpty() && !caCertFile.IsEmpty()) {
-		std::shared_ptr<X509> cert = GetX509Certificate(certFile);
-		std::shared_ptr<X509> cacert = GetX509Certificate(caCertFile);
+		std::shared_ptr<X509> cert;
+		try {
+			cert = GetX509Certificate(certFile);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "cli")
+				<< "Cannot read certificate file '" << certFile << "'. Please ensure that it exists and is readable.";
+
+			return ServiceCritical;
+		}
+
+		std::shared_ptr<X509> cacert;
+		try {
+			cacert = GetX509Certificate(caCertFile);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "cli")
+				<< "Cannot read CA certificate file '" << caCertFile << "'. Please ensure that it exists and is readable.";
+
+			return ServiceCritical;
+		}
 
 		Log(LogInformation, "cli")
 			<< "Verifying certificate '" << certFile << "'";
@@ -125,7 +150,15 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, const
 
 	/* Standalone CA checks. */
 	if (certFile.IsEmpty() && !caCertFile.IsEmpty()) {
-		std::shared_ptr<X509> cacert = GetX509Certificate(caCertFile);
+		std::shared_ptr<X509> cacert;
+		try {
+			cacert = GetX509Certificate(caCertFile);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "cli")
+				<< "Cannot read CA certificate file '" << caCertFile << "'. Please ensure that it exists and is readable.";
+
+			return ServiceCritical;
+		}
 
 		Log(LogInformation, "cli")
 			<< "Checking whether certificate '" << caCertFile << "' is a valid CA certificate.";
@@ -147,12 +180,35 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, const
 
 	/* Print certificate */
 	if (!certFile.IsEmpty()) {
-		std::shared_ptr<X509> cert = GetX509Certificate(certFile);
+		std::shared_ptr<X509> cert;
+		try {
+			cert = GetX509Certificate(certFile);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "cli")
+				<< "Cannot read certificate file '" << certFile << "'. Please ensure that it exists and is readable.";
+
+			return ServiceCritical;
+		}
 
 		Log(LogInformation, "cli")
 			<< "Printing certificate '" << certFile << "'";
 
 		std::cout << PkiUtility::GetCertificateInformation(cert) << "\n";
+
+		return ServiceOK;
+	}
+
+	/* Error handling. */
+	if (!cn.IsEmpty() && certFile.IsEmpty()) {
+		Log(LogCritical, "cli")
+			<< "The '--cn' parameter requires the '--cert' parameter.";
+
+		return ServiceCritical;
+	}
+
+	if (cn.IsEmpty() && certFile.IsEmpty() && caCertFile.IsEmpty()) {
+		Log(LogInformation, "cli")
+			<< "Please add the '--help' parameter to see all available options.";
 
 		return ServiceOK;
 	}
