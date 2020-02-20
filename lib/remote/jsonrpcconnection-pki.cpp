@@ -57,9 +57,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 	try {
 		signedByCA = VerifyCertificate(cacert, cert);
-	} catch (const std::exception& ex) {
-
-	}
+	} catch (const std::exception&) { } /* Swallow the exception on purpose, cacert will never be a non-CA certificate. */
 
 	Log(LogInformation, "JsonRpcConnection")
 		<< "Received certificate request for CN '" << cn << "'"
