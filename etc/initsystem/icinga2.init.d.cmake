@@ -83,21 +83,20 @@ stop() {
 		fi
 	fi
 
-  pid="$(cat "$ICINGA2_PID_FILE")"
+	pid="$(cat "$ICINGA2_PID_FILE")"
 
-  if "$DAEMON" internal signal -s SIGINT -p "$pid" >/dev/null 2>&1; then
+	if "$DAEMON" internal signal -s SIGINT -p "$pid" >/dev/null 2>&1; then
 		for _ in 1 2 3 4 5 6 7 8 9 10; do
-    if ! "$DAEMON" internal signal -s SIGCHLD -p "$pid" >/dev/null 2>&1; then
+			if ! "$DAEMON" internal signal -s SIGCHLD -p "$pid" >/dev/null 2>&1; then
 				break
 			fi
-
 			printf '.'
 			sleep 3
 		done
 	fi
 
-  if "$DAEMON" internal signal -s SIGCHLD -p "$pid" >/dev/null 2>&1; then
-    "$DAEMON" internal signal -s SIGKILL -p "$pid" >/dev/null 2>&1
+	if "$DAEMON" internal signal -s SIGCHLD -p "$pid" >/dev/null 2>&1; then
+		"$DAEMON" internal signal -s SIGKILL -p "$pid" >/dev/null 2>&1
 	fi
 
 	echo "Done"
@@ -141,8 +140,8 @@ status() {
 		exit 3
 	fi
 
-  pid="$(cat "$ICINGA2_PID_FILE")"
-  if "$DAEMON" internal signal -s SIGCHLD -p "$pid" >/dev/null 2>&1; then
+	pid="$(cat "$ICINGA2_PID_FILE")"
+		if "$DAEMON" internal signal -s SIGCHLD -p "$pid" >/dev/null 2>&1; then
 		echo "Running"
 	else
 		echo "Not running"
