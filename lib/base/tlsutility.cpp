@@ -872,7 +872,13 @@ Array::Ptr GetSubjectAltNames(const std::shared_ptr<X509>& cert)
 		GENERAL_NAME* gen = sk_GENERAL_NAME_value(subjectAltNames, i);
 		if (gen->type == GEN_URI || gen->type == GEN_DNS || gen->type == GEN_EMAIL) {
 			ASN1_IA5STRING *asn1_str = gen->d.uniformResourceIdentifier;
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 			String san = Convert::ToString(ASN1_STRING_data(asn1_str));
+#else /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+			String san = Convert::ToString(ASN1_STRING_get0_data(asn1_str));
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+
 			sans->Add(san);
 		}
 	}
