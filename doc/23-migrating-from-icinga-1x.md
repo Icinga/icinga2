@@ -1043,7 +1043,7 @@ In Icinga 2 notification commands are not directly associated with users.
 Instead the notification command is specified inside `Notification` objects next to
 user and user group relations.
 
-The `StatusDataWriter`, `IdoMySqlConnection` and `LivestatusListener` types will
+The `IdoMySqlConnection` and `LivestatusListener` types will
 provide the contact and contactgroups attributes for services for compatibility
 reasons. These values are calculated from all services, their notifications,
 and their users.
@@ -1281,7 +1281,7 @@ provided separately.
 There is no output length restriction as known from Icinga 1.x using an
 [8KB static buffer](https://docs.icinga.com/latest/en/pluginapi.html#outputlengthrestrictions).
 
-The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
+The `IdoMysqlConnection` and `LivestatusListener` types
 split the raw output into `output` (first line) and `long_output` (remaining
 lines) for compatibility reasons.
 
@@ -1471,7 +1471,7 @@ chapter.
 
 Dependencies can be applied to hosts or services using the [apply rules](17-language-reference.md#apply).
 
-The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
+The `IdoMysqlConnection` and `LivestatusListener` types
 support the Icinga 1.x schema with dependencies and parent attributes for
 compatibility reasons.
 
@@ -1548,9 +1548,6 @@ The format is **not** compatible with Icinga 1.x.
 Icinga 1.x supports syslog facilities and writes its own `icinga.log` log file
 and archives. These logs are used in Icinga 1.x to generate
 historical reports.
-
-Icinga 2 compat library provides the CompatLogger object which writes the icinga.log and archive
-in Icinga 1.x format in order to stay compatible with addons.
 
 The native Icinga 2 logging facilities are split into three configuration objects: SyslogLogger,
 FileLogger, StreamLogger. Each of them has their own severity and target configuration.

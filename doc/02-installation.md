@@ -1089,7 +1089,7 @@ By default Icinga 2 uses the following files and directories:
   /var/run/icinga2/cmd                		| Command pipe and Livestatus socket.
   /var/cache/icinga2                  		| status.dat/objects.cache, icinga2.debug files.
   /var/spool/icinga2                  		| Used for performance data spool files.
-  /var/log/icinga2                    		| Log file location and compat/ directory for the CompatLogger feature.
+  /var/log/icinga2                    		| Log file location.
 
 FreeBSD uses slightly different paths:
 
@@ -1108,7 +1108,7 @@ By default Icinga 2 uses the following files and directories:
   /var/run/icinga2/cmd                | Command pipe and Livestatus socket.
   /var/cache/icinga2                  | status.dat/objects.cache, icinga2.debug files.
   /var/spool/icinga2                  | Used for performance data spool files.
-  /var/log/icinga2                    | Log file location and compat/ directory for the CompatLogger feature.
+  /var/log/icinga2                    | Log file location.
 
 
 ## Backup <a id="install-backup"></a>

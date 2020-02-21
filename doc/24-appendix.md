@@ -624,7 +624,7 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
   time                  | int       | Time of log event (unix timestamp).
-  lineno                | int       | Line number in `CompatLogger` log file.
+  lineno                | int       | Line number in log file.
   class                 | int       | Log message class: 0=info, 1=state, 2=program, 3=notification, 4=passive, 5=command.
   message               | string    | Complete message line.
   type                  | string    | Text before the colon `:`.
@@ -648,7 +648,7 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
   time                  | int       | Time of log event (unix timestamp).
-  lineno                | int       | Line number in `CompatLogger` log file.
+  lineno                | int       | Line number in log file.
   from                  | int       | Start timestamp (unix timestamp).
   until                 | int       | End timestamp (unix timestamp).
   duration              | int       | until-from.

@@ -1144,56 +1144,6 @@ use [MaxConcurrentChecks](17-language-reference.md#icinga-constants-global-confi
 This also applies to an agent as command endpoint where the checker
 feature is disabled.
 
-### CheckResultReader <a id="objecttype-checkresultreader"></a>
-
-Reads Icinga 1.x check result files from a directory. This functionality is provided
-to help existing Icinga 1.x users and might be useful for migration scenarios.
-
-> **Note**
->
-> This feature is DEPRECATED and will be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Example:
-
-```
-object CheckResultReader "reader" {
-  spool_dir = "/data/check-results"
-}
-```
-
-Configuration Attributes:
-
-  Name                      | Type                  | Description
-  --------------------------|-----------------------|----------------------------------
-  spool\_dir                | String                | **Optional.** The directory which contains the check result files. Defaults to DataDir + "/spool/checkresults/".
-
-### CompatLogger <a id="objecttype-compatlogger"></a>
-
-Writes log files in a format that's compatible with Icinga 1.x.
-This configuration object is available as [compatlog feature](14-features.md#compat-logging).
-
-> **Note**
->
-> This feature is DEPRECATED and will be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Example:
-
-```
-object CompatLogger "compatlog" {
-  log_dir = "/var/log/icinga2/compat"
-  rotation_method = "DAILY"
-}
-```
-
-Configuration Attributes:
-
-  Name                      | Type                  | Description
-  --------------------------|-----------------------|----------------------------------
-  log\_dir                  | String                | **Optional.** Path to the compat log directory. Defaults to LogDir + "/compat".
-  rotation\_method          | String                | **Optional.** Specifies when to rotate log files. Can be one of "HOURLY", "DAILY", "WEEKLY" or "MONTHLY". Defaults to "HOURLY".
-
 
 ### ElasticsearchWriter <a id="objecttype-elasticsearchwriter"></a>
 
@@ -1244,30 +1194,6 @@ for an example.
 
 TLS for the HTTP proxy can be enabled with `enable_tls`. In addition to that
 you can specify the certificates with the `ca_path`, `cert_path` and `cert_key` attributes.
-
-### ExternalCommandListener <a id="objecttype-externalcommandlistener"></a>
-
-Implements the Icinga 1.x command pipe which can be used to send commands to Icinga.
-This configuration object is available as [command feature](14-features.md#external-commands).
-
-> **Note**
->
-> This feature is DEPRECATED and will be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Example:
-
-```
-object ExternalCommandListener "command" {
-    command_path = "/var/run/icinga2/cmd/icinga2.cmd"
-}
-```
-
-Configuration Attributes:
-
-  Name                      | Type                  | Description
-  --------------------------|-----------------------|----------------------------------
-  command\_path             | String                | **Optional.** Path to the command pipe. Defaults to RunDir + "/icinga2/cmd/icinga2.cmd".
 
 
 
@@ -1655,9 +1581,7 @@ or similar.
 
 ### LiveStatusListener <a id="objecttype-livestatuslistener"></a>
 
-Livestatus API interface available as TCP or UNIX socket. Historical table queries
-require the [CompatLogger](09-object-types.md#objecttype-compatlogger) feature enabled
-pointing to the log files using the `compat_log_path` configuration attribute.
+Livestatus API interface available as TCP or UNIX socket.
 This configuration object is available as [livestatus feature](14-features.md#setting-up-livestatus).
 
 Examples:
@@ -1683,7 +1607,7 @@ Configuration Attributes:
   bind\_host                | String                | **Optional.** Only valid when `socket_type` is set to `tcp`. Host address to listen on for connections. Defaults to `127.0.0.1`.
   bind\_port                | Number                | **Optional.** Only valid when `socket_type` is set to `tcp`. Port to listen on for connections. Defaults to `6558`.
   socket\_path              | String                | **Optional.** Only valid when `socket_type` is set to `unix`. Specifies the path to the UNIX socket file. Defaults to RunDir + "/icinga2/cmd/livestatus".
-  compat\_log\_path         | String                | **Optional.** Path to Icinga 1.x log files. Required for historical table queries. Requires `CompatLogger` feature enabled. Defaults to LogDir + "/compat"
+  compat\_log\_path         | String                | **Optional.** Path to Icinga 1.x log files. Required for historical table queries. Defaults to LogDir + "/compat"
 
 > **Note**
 >
@@ -1769,34 +1693,6 @@ Configuration Attributes:
 When rotating the performance data file the current UNIX timestamp is appended to the path specified
 in `host_perfdata_path` and `service_perfdata_path` to generate a unique filename.
 
-
-### StatusDataWriter <a id="objecttype-statusdatawriter"></a>
-
-Periodically writes status and configuration data files which are used by third-party tools.
-This configuration object is available as [statusdata feature](14-features.md#status-data).
-
-> **Note**
->
-> This feature is DEPRECATED and will be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Example:
-
-```
-object StatusDataWriter "status" {
-    status_path = "/var/cache/icinga2/status.dat"
-    objects_path = "/var/cache/icinga2/objects.cache"
-    update_interval = 30s
-}
-```
-
-Configuration Attributes:
-
-  Name                      | Type                  | Description
-  --------------------------|-----------------------|----------------------------------
-  status\_path              | String                | **Optional.** Path to the `status.dat` file. Defaults to CacheDir + "/status.dat".
-  objects\_path             | String                | **Optional.** Path to the `objects.cache` file. Defaults to CacheDir + "/objects.cache".
-  update\_interval          | Duration              | **Optional.** The interval in which the status files are updated. Defaults to `15s`.
 
 ### SyslogLogger <a id="objecttype-sysloglogger"></a>
 
