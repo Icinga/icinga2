@@ -25,10 +25,6 @@ if(ICINGA2_WITH_CHECKER)
   list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:checker>)
 endif()
 
-if(ICINGA2_WITH_COMPAT)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:compat>)
-endif()
-
 if(ICINGA2_WITH_MYSQL OR ICINGA2_WITH_PGSQL)
   list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:db_ido>)
 endif()

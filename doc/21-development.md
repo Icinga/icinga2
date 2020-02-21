@@ -2240,7 +2240,6 @@ Also see `CMakeLists.txt` for details.
 #### Features
 
 * `ICINGA2_WITH_CHECKER`: Determines whether the checker module is built; defaults to `ON`
-* `ICINGA2_WITH_COMPAT`: Determines whether the compat module is built; defaults to `ON`
 * `ICINGA2_WITH_LIVESTATUS`: Determines whether the Livestatus module is built; defaults to `ON`
 * `ICINGA2_WITH_NOTIFICATION`: Determines whether the notification module is built; defaults to `ON`
 * `ICINGA2_WITH_PERFDATA`: Determines whether the perfdata module is built; defaults to `ON`

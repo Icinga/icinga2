@@ -11,10 +11,6 @@ if(ICINGA2_WITH_CHECKER)
   add_subdirectory(checker)
 endif()
 
-if(ICINGA2_WITH_COMPAT)
-  add_subdirectory(compat)
-endif()
-
 if(ICINGA2_WITH_MYSQL OR ICINGA2_WITH_PGSQL)
   add_subdirectory(db_ido)
 endif()
