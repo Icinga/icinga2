@@ -54,7 +54,7 @@ syn match 		Lambda		"{{}}"
 " Object types
 syn keyword		icinga2ObjType		ApiListener ApiUser CheckCommand CheckerComponent
 syn keyword		icinga2ObjType		Comment Dependency Downtime ElasticsearchWriter
-syn keyword		icinga2ObjType		Endpoint EventCommand ExternalCommandListener
+syn keyword		icinga2ObjType		Endpoint EventCommand
 syn keyword		icinga2ObjType		FileLogger GelfWriter GraphiteWriter Host HostGroup
 syn keyword		icinga2ObjType		IcingaApplication IdoMysqlConnection IdoPgsqlConnection
 syn keyword		icinga2ObjType		InfluxdbWriter LivestatusListener Notification NotificationCommand
