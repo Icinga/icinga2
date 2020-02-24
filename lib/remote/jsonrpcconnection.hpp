@@ -10,7 +10,7 @@
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include <memory>
-#include <vector>
+#include <queue>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
@@ -74,7 +74,7 @@ private:
 	double m_Seen;
 	double m_NextHeartbeat;
 	boost::asio::io_context::strand m_IoStrand;
-	std::vector<String> m_OutgoingMessagesQueue;
+	std::queue<String> m_OutgoingMessagesQueue;
 	AsioConditionVariable m_OutgoingMessagesQueued;
 	AsioConditionVariable m_WriterDone;
 	bool m_ShuttingDown;

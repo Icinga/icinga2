@@ -108,30 +108,31 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 
 		auto queue (std::move(m_OutgoingMessagesQueue));
 
-		m_OutgoingMessagesQueue.clear();
+		m_OutgoingMessagesQueue = decltype(m_OutgoingMessagesQueue)();
 		m_OutgoingMessagesQueued.Clear();
 
-		if (!queue.empty()) {
-			try {
-				for (auto& message : queue) {
-					size_t bytesSent = JsonRpc::SendRawMessage(m_Stream, message, yc);
+		try {
+			while (!queue.empty()) {
+				auto message (std::move(queue.front()));
+				queue.pop();
 
-					if (m_Endpoint) {
-						m_Endpoint->AddMessageSent(bytesSent);
-					}
+				size_t bytesSent = JsonRpc::SendRawMessage(m_Stream, message, yc);
+
+				if (m_Endpoint) {
+					m_Endpoint->AddMessageSent(bytesSent);
 				}
-
-				m_Stream->async_flush(yc);
-			} catch (const std::exception& ex) {
-				if (!m_ShuttingDown) {
-					std::ostringstream info;
-					info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
-					Log(LogWarning, "JsonRpcConnection")
-						<< info.str() << "\n" << DiagnosticInformation(ex);
-				}
-
-				break;
 			}
+
+			m_Stream->async_flush(yc);
+		} catch (const std::exception& ex) {
+			if (!m_ShuttingDown) {
+				std::ostringstream info;
+				info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
+				Log(LogWarning, "JsonRpcConnection")
+					<< info.str() << "\n" << DiagnosticInformation(ex);
+			}
+
+			break;
 		}
 	} while (!m_ShuttingDown);
 
@@ -176,14 +177,14 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 void JsonRpcConnection::SendRawMessage(const String& message)
 {
 	m_IoStrand.post([this, message]() {
-		m_OutgoingMessagesQueue.emplace_back(message);
+		m_OutgoingMessagesQueue.emplace(message);
 		m_OutgoingMessagesQueued.Set();
 	});
 }
 
 void JsonRpcConnection::SendMessageInternal(const Dictionary::Ptr& message)
 {
-	m_OutgoingMessagesQueue.emplace_back(JsonEncode(message));
+	m_OutgoingMessagesQueue.emplace(JsonEncode(message));
 	m_OutgoingMessagesQueued.Set();
 }
 
