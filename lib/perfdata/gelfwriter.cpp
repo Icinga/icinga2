@@ -91,7 +91,7 @@ void GelfWriter::Resume()
 
 	/* Register event handlers. */
 	Checkable::OnNewCheckResult.connect(std::bind(&GelfWriter::CheckResultHandler, this, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(std::bind(&GelfWriter::NotificationToUserHandler, this, _1, _2, _3, _4, _5, _6, _7, _8, _9));
+	Checkable::OnNotificationSentToUser.connect(std::bind(&GelfWriter::NotificationToUserHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
 	Checkable::OnStateChange.connect(std::bind(&GelfWriter::StateChangeHandler, this, _1, _2, _3));
 }
 
@@ -346,18 +346,18 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 }
 
 void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	const User::Ptr& user, NotificationType notificationType, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
+	const User::Ptr& user, NotificationType notificationType, CheckResult::Ptr const& cr,
 	const String& author, const String& commentText, const String& commandName)
 {
 	if (IsPaused())
 		return;
 
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::NotificationToUserHandlerInternal, this,
-		notification, checkable, user, notificationType, cr, nr, author, commentText, commandName));
+		notification, checkable, user, notificationType, cr, author, commentText, commandName));
 }
 
 void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	const User::Ptr& user, NotificationType notificationType, const CheckResult::Ptr& cr, const NotificationResult::Ptr& nr,
+	const User::Ptr& user, NotificationType notificationType, CheckResult::Ptr const& cr,
 	const String& author, const String& commentText, const String& commandName)
 {
 	AssertOnWorkQueue();

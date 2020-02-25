@@ -23,7 +23,6 @@ std::map<String, int> Notification::m_StateFilterMap;
 std::map<String, int> Notification::m_TypeFilterMap;
 
 boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNextNotificationChanged;
-boost::signals2::signal<void (const Notification::Ptr&, const NotificationResult::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNewNotificationResult;
 
 String NotificationNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -509,14 +508,10 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 	String commandName = command->GetName();
 
 	try {
-		NotificationResult::Ptr nr = new NotificationResult();
-
-		nr->SetExecutionStart(Utility::GetTime());
-
-		command->Execute(this, user, cr, nr, type, author, text);
+		command->Execute(this, user, cr, type, author, text);
 
 		/* required by compatlogger */
-		Checkable::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, nr, author, text, command->GetName(), nullptr);
+		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, commandName, nullptr);
 
 		Log(LogInformation, "Notification")
 			<< "Completed sending '" << NotificationTypeToString(type)
@@ -530,36 +525,6 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 			<< "' and user '" << userName << "' using command '" << commandName << "': "
 			<< DiagnosticInformation(ex, false);
 	}
-}
-
-void Notification::ProcessNotificationResult(const NotificationResult::Ptr& nr, const MessageOrigin::Ptr& origin)
-{
-	if (!nr)
-		return;
-
-	double now = Utility::GetTime();
-
-	if (nr->GetExecutionStart() == 0)
-		nr->SetExecutionStart(now);
-
-	if (nr->GetExecutionEnd() == 0)
-		nr->SetExecutionEnd(now);
-
-	/* Determine the execution endpoint from a locally executed check. */
-	if (!origin || origin->IsLocal())
-		nr->SetExecutionEndpoint(IcingaApplication::GetInstance()->GetNodeName());
-
-	if (!IsActive())
-		return;
-
-	{
-		ObjectLock olock(this);
-
-		SetLastNotificationResult(nr);
-	}
-
-	/* Notify cluster, API and feature events. */
-	OnNewNotificationResult(this, nr, origin);
 }
 
 int icinga::ServiceStateToFilter(ServiceState state)
