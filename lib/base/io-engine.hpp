@@ -3,7 +3,9 @@
 #ifndef IO_ENGINE_H
 #define IO_ENGINE_H
 
+#include "base/exception.hpp"
 #include "base/lazy-init.hpp"
+#include "base/logger.hpp"
 #include <atomic>
 #include <exception>
 #include <memory>
@@ -79,28 +81,6 @@ public:
 
 	boost::asio::io_context& GetIoContext();
 
-	/*
-	 * Custom exceptions thrown in a Boost.Coroutine may cause stack corruption.
-	 * Ensure that these are wrapped correctly.
-	 *
-	 * Inspired by https://github.com/niekbouman/commelec-api/blob/master/commelec-api/coroutine-exception.hpp
-	 * Source: http://boost.2283326.n4.nabble.com/coroutine-only-std-exceptions-are-caught-from-coroutines-td4683671.html
-	 */
-	static inline boost::exception_ptr convertExceptionPtr(std::exception_ptr ex) {
-		try {
-			throw boost::enable_current_exception(ex);
-		} catch (...) {
-			return boost::current_exception();
-		}
-	}
-
-	static inline void rethrowBoostExceptionPointer() {
-		std::exception_ptr sep;
-		sep = std::current_exception();
-		boost::exception_ptr bep = convertExceptionPtr(sep);
-		boost::rethrow_exception(bep);
-	}
-
 	static inline size_t GetCoroutineStackSize() {
 #ifdef _WIN32
 		// Increase the stack size for Windows coroutines to prevent exception corruption.
@@ -126,9 +106,11 @@ public:
 					// Required for proper stack unwinding when coroutines are destroyed.
 					// https://github.com/boostorg/coroutine/issues/39
 					throw;
+				} catch (const std::exception& ex) {
+					Log(LogCritical, "IoEngine", "Exception in coroutine!");
+					Log(LogDebug, "IoEngine") << "Exception in coroutine: " << DiagnosticInformation(ex);
 				} catch (...) {
-					// Handle uncaught exceptions outside of the coroutine.
-					rethrowBoostExceptionPointer();
+					Log(LogCritical, "IoEngine", "Exception in coroutine!");
 				}
 			},
 			boost::coroutines::attributes(GetCoroutineStackSize()) // Set a pre-defined stack size.
