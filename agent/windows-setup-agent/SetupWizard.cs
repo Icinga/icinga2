@@ -162,7 +162,7 @@ namespace Icinga
 
 			_TrustedFile = Path.GetTempFileName();
 
-			processArguments = "pki save-cert --host \"" + host + "\" --port \"" + port + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\" --trustedcert \"" + _TrustedFile + "\"";
+			processArguments = "pki save-cert --host \"" + host + "\" --port \"" + port + "\" --trustedcert \"" + _TrustedFile + "\"";
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				processArguments,
 				out output)) {
