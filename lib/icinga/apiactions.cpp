@@ -31,6 +31,7 @@ REGISTER_APIACTION(remove_downtime, "Service;Host;Downtime", &ApiActions::Remove
 REGISTER_APIACTION(shutdown_process, "", &ApiActions::ShutdownProcess);
 REGISTER_APIACTION(restart_process, "", &ApiActions::RestartProcess);
 REGISTER_APIACTION(generate_ticket, "", &ApiActions::GenerateTicket);
+REGISTER_APIACTION(process_check_results, "", &ApiActions::ProcessCheckResults);
 
 Dictionary::Ptr ApiActions::CreateResult(int code, const String& status,
 	const Dictionary::Ptr& additional)
@@ -117,6 +118,13 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 
 	return ApiActions::CreateResult(200, "Successfully processed check result for object '" + checkable->GetName() + "'.");
 }
+//TODO Func by SD Start
+Dictionary::Ptr ApiActions::ProcessCheckResults(const ConfigObject::Ptr& object,
+                                               const Dictionary::Ptr& params)
+{
+    return ApiActions::CreateResult(200, "Successfully processed check result for object (new Func last return ).");
+}
+//TODO Func by SD End
 
 Dictionary::Ptr ApiActions::RescheduleCheck(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
