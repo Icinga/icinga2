@@ -13,6 +13,7 @@
 #include "base/tcpsocket.hpp"
 #include "base/json.hpp"
 #include "base/utility.hpp"
+#include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "remote/jsonrpc.hpp"
 #include <fstream>
@@ -321,27 +322,43 @@ String PkiUtility::GetCertificateInformation(const std::shared_ptr<X509>& cert) 
 	BIO *out = BIO_new(BIO_s_mem());
 	String pre;
 
-	pre = "\n Subject:     ";
+	pre = "\n Version:             " + Convert::ToString(GetCertificateVersion(cert));
+	BIO_write(out, pre.CStr(), pre.GetLength());
+
+	pre = "\n Subject:             ";
 	BIO_write(out, pre.CStr(), pre.GetLength());
 	X509_NAME_print_ex(out, X509_get_subject_name(cert.get()), 0, XN_FLAG_ONELINE & ~ASN1_STRFLGS_ESC_MSB);
 
-	pre = "\n Issuer:      ";
+	pre = "\n Issuer:              ";
 	BIO_write(out, pre.CStr(), pre.GetLength());
 	X509_NAME_print_ex(out, X509_get_issuer_name(cert.get()), 0, XN_FLAG_ONELINE & ~ASN1_STRFLGS_ESC_MSB);
 
-	pre = "\n Valid From:  ";
+	pre = "\n Valid From:          ";
 	BIO_write(out, pre.CStr(), pre.GetLength());
 	ASN1_TIME_print(out, X509_get_notBefore(cert.get()));
 
-	pre = "\n Valid Until: ";
+	pre = "\n Valid Until:         ";
 	BIO_write(out, pre.CStr(), pre.GetLength());
 	ASN1_TIME_print(out, X509_get_notAfter(cert.get()));
 
-	pre = "\n Fingerprint: ";
+	pre = "\n Serial:              ";
+	BIO_write(out, pre.CStr(), pre.GetLength());
+	ASN1_INTEGER *asn1_serial = X509_get_serialNumber(cert.get());
+	for (int i = 0; i < asn1_serial->length; i++) {
+		BIO_printf(out, "%02x%c", asn1_serial->data[i], ((i + 1 == asn1_serial->length) ? '\n' : ':'));
+	}
+
+	pre = "\n Signature Algorithm: " + GetSignatureAlgorithm(cert);
+	BIO_write(out, pre.CStr(), pre.GetLength());
+
+	pre = "\n Subject Alt Names:   " + GetSubjectAltNames(cert)->Join(" ");
+	BIO_write(out, pre.CStr(), pre.GetLength());
+
+	pre = "\n Fingerprint:         ";
 	BIO_write(out, pre.CStr(), pre.GetLength());
 	unsigned char md[EVP_MAX_MD_SIZE];
 	unsigned int diglen;
-	X509_digest(cert.get(), EVP_sha1(), md, &diglen);
+	X509_digest(cert.get(), EVP_sha256(), md, &diglen);
 
 	char *data;
 	long length = BIO_get_mem_data(out, &data);

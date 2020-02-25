@@ -10,6 +10,9 @@ follow the instructions for v2.7 too.
 
 ## Upgrading to v2.12 <a id="upgrading-to-2-12"></a>
 
+* CLI
+    * New `pki verify` CLI command for better [TLS certificate troubleshooting](15-troubleshooting.md#troubleshooting-certificate-verification)
+
 ### Behavior changes <a id="upgrading-to-2-12-behavior-changes"></a>
 
 The behavior of multi parent [dependencies](03-monitoring-basics.md#dependencies) was fixed to e.g. render hosts unreachable when both router uplinks are down.

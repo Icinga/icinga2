@@ -29,6 +29,7 @@ set(cli_SOURCES
   pkisavecertcommand.cpp pkisavecertcommand.hpp
   pkisigncsrcommand.cpp pkisigncsrcommand.hpp
   pkiticketcommand.cpp pkiticketcommand.hpp
+  pkiverifycommand.cpp pkiverifycommand.hpp
   variablegetcommand.cpp variablegetcommand.hpp
   variablelistcommand.cpp variablelistcommand.hpp
   variableutility.cpp variableutility.hpp
@@ -40,7 +41,7 @@ endif()
 
 add_library(cli OBJECT ${cli_SOURCES})
 
-add_dependencies(cli base config remote)
+add_dependencies(cli base config icinga remote)
 
 set_target_properties (
   cli PROPERTIES

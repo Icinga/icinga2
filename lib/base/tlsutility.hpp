@@ -6,12 +6,15 @@
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
 #include "base/shared.hpp"
+#include "base/array.hpp"
 #include "base/string.hpp"
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
 #include <openssl/comp.h>
 #include <openssl/sha.h>
+#include <openssl/pem.h>
+#include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -50,6 +53,9 @@ String RandomString(int length);
 
 bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate);
 bool IsCa(const std::shared_ptr<X509>& cacert);
+int GetCertificateVersion(const std::shared_ptr<X509>& cert);
+String GetSignatureAlgorithm(const std::shared_ptr<X509>& cert);
+Array::Ptr GetSubjectAltNames(const std::shared_ptr<X509>& cert);
 
 class openssl_error : virtual public std::exception, virtual public boost::exception { };
 
