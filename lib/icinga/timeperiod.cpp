@@ -249,43 +249,13 @@ void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 
 	Array::Ptr segments = GetUpdate()->Invoke({ this, begin, end });
 
-	{
-		ObjectLock olock(this);
-		RemoveSegment(begin, end);
+	ObjectLock olock(this);
+	RemoveSegment(begin, end);
 
-		if (segments) {
-			ObjectLock dlock(segments);
-			for (const Dictionary::Ptr& segment : segments) {
-				AddSegment(segment);
-			}
-		}
-	}
-
-	bool preferInclude = GetPreferIncludes();
-
-	/* First handle the non preferred timeranges */
-	Array::Ptr timeranges = preferInclude ? GetExcludes() : GetIncludes();
-
-	if (timeranges) {
-		ObjectLock olock(timeranges);
-		for (const String& name : timeranges) {
-			const TimePeriod::Ptr timeperiod = TimePeriod::GetByName(name);
-
-			if (timeperiod)
-				Merge(timeperiod, !preferInclude);
-		}
-	}
-
-	/* Preferred timeranges must be handled at the end */
-	timeranges = preferInclude ? GetIncludes() : GetExcludes();
-
-	if (timeranges) {
-		ObjectLock olock(timeranges);
-		for (const String& name : timeranges) {
-			const TimePeriod::Ptr timeperiod = TimePeriod::GetByName(name);
-
-			if (timeperiod)
-				Merge(timeperiod, preferInclude);
+	if (segments) {
+		ObjectLock dlock(segments);
+		for (const Dictionary::Ptr& segment : segments) {
+			AddSegment(segment);
 		}
 	}
 }
@@ -295,9 +265,44 @@ bool TimePeriod::GetIsInside() const
 	return IsInside(Utility::GetTime());
 }
 
+static bool IsInsideTimePeriods(double ts, Array::Ptr tps)
+{
+	if (tps) {
+		ObjectLock oLock (tps);
+
+		for (const String& name : tps) {
+			auto timeperiod (TimePeriod::GetByName(name));
+
+			if (timeperiod && timeperiod->IsInside(ts)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 bool TimePeriod::IsInside(double ts) const
 {
 	ObjectLock olock(this);
+
+	if (GetPreferIncludes()) {
+		if (IsInsideTimePeriods(ts, GetIncludes())) {
+			return true;
+		}
+
+		if (IsInsideTimePeriods(ts, GetExcludes())) {
+			return false;
+		}
+	} else {
+		if (IsInsideTimePeriods(ts, GetExcludes())) {
+			return false;
+		}
+
+		if (IsInsideTimePeriods(ts, GetIncludes())) {
+			return true;
+		}
+	}
 
 	if (GetValidBegin().IsEmpty() || ts < GetValidBegin() || GetValidEnd().IsEmpty() || ts > GetValidEnd())
 		return true; /* Assume that all invalid regions are "inside". */
