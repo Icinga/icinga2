@@ -28,5 +28,4 @@ validator ApiUser {
 		};
 	};
 };
-
 }
