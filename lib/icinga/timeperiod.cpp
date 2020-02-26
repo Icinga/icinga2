@@ -299,28 +299,6 @@ bool TimePeriod::IsInside(double ts) const
 	return false;
 }
 
-double TimePeriod::FindNextTransition(double begin)
-{
-	ObjectLock olock(this);
-
-	Array::Ptr segments = GetSegments();
-
-	double closestTransition = -1;
-
-	if (segments) {
-		ObjectLock dlock(segments);
-		for (const Dictionary::Ptr& segment : segments) {
-			if (segment->Get("begin") > begin && (segment->Get("begin") < closestTransition || closestTransition == -1))
-				closestTransition = segment->Get("begin");
-
-			if (segment->Get("end") > begin && (segment->Get("end") < closestTransition || closestTransition == -1))
-				closestTransition = segment->Get("end");
-		}
-	}
-
-	return closestTransition;
-}
-
 void TimePeriod::UpdateTimerHandler()
 {
 	double now = Utility::GetTime();
