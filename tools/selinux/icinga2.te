@@ -1,4 +1,4 @@
-policy_module(icinga2, 0.2.1)
+policy_module(icinga2, 0.2.2)
 
 ########################################
 #
@@ -93,11 +93,13 @@ corenet_port(icinga2_port_t)
 #
 # icinga2 local policy
 #
-allow icinga2_t self:capability { setgid setuid sys_resource };
+allow icinga2_t self:capability { setgid setuid sys_resource kill };
 allow icinga2_t self:process { setsched signal setrlimit };
 allow icinga2_t self:fifo_file rw_fifo_file_perms;
 allow icinga2_t self:unix_dgram_socket create_socket_perms;
 allow icinga2_t self:unix_stream_socket create_stream_socket_perms;
+
+allow icinga2_t icinga2_exec_t:file execute_no_trans;
 
 list_dirs_pattern(icinga2_t, icinga2_etc_t, icinga2_etc_t)
 read_files_pattern(icinga2_t, icinga2_etc_t, icinga2_etc_t)
