@@ -218,23 +218,6 @@ void TimePeriod::PurgeSegments(double end)
 	SetSegments(newSegments);
 }
 
-void TimePeriod::Merge(const TimePeriod::Ptr& timeperiod, bool include)
-{
-	Log(LogDebug, "TimePeriod")
-		<< "Merge TimePeriod '" << GetName() << "' with '" << timeperiod->GetName() << "' "
-		<< "Method: " << (include ? "include" : "exclude");
-
-	Array::Ptr segments = timeperiod->GetSegments();
-
-	if (segments) {
-		ObjectLock dlock(segments);
-		ObjectLock ilock(this);
-		for (const Dictionary::Ptr& segment : segments) {
-			include ? AddSegment(segment) : RemoveSegment(segment);
-		}
-	}
-}
-
 void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 {
 	if (clearExisting) {

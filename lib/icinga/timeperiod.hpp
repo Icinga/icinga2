@@ -54,8 +54,6 @@ private:
 	void RemoveSegment(const Dictionary::Ptr& segment);
 	void PurgeSegments(double end);
 
-	void Merge(const TimePeriod::Ptr& timeperiod, bool include = true);
-
 	void Dump();
 
 	static void UpdateTimerHandler();
