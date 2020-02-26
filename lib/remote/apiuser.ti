@@ -13,7 +13,7 @@ class ApiUser : ConfigObject
 	/* No show config */
 	[no_user_view, no_user_modify] String password;
 	[deprecated, config, no_user_view] String password_hash;
-    [no_user_view, no_user_modify] String hashed_password;
+	[no_user_view, no_user_modify] String hashed_password;
 	[config] String client_cn (ClientCN);
 	[config] array(Value) permissions;
 };
