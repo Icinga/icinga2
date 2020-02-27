@@ -203,12 +203,14 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	 * this ensures that the CA we have in /var/lib/icinga2/ca matches the one
 	 * we're using for cluster connections (there's no point in sending a client
 	 * a certificate it wouldn't be able to use to connect to us anyway) */
-	if (!signedByCA) {
-		Log(LogWarning, "JsonRpcConnection")
-			<< "The CA in '" << listener->GetDefaultCaPath() << "' does not match the CA which Icinga uses "
-			<< "for its own cluster connections. This is most likely a configuration problem.";
-		goto delayed_request;
-	}
+	try {
+		if (!VerifyCertificate(cacert, newcert)) {
+			Log(LogWarning, "JsonRpcConnection")
+				<< "The CA in '" << listener->GetDefaultCaPath() << "' does not match the CA which Icinga uses "
+				<< "for its own cluster connections. This is most likely a configuration problem.";
+			goto delayed_request;
+		}
+	} catch (const std::exception&) { } /* Swallow the exception on purpose, cacert will never be a non-CA certificate. */
 
 	/* Send the signed certificate update. */
 	Log(LogInformation, "JsonRpcConnection")
