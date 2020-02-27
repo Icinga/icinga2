@@ -47,9 +47,18 @@ ApiUser::Ptr ApiUser::GetByAuthHeader(const String& auth_header)
 	 */
 	if (!user || password.IsEmpty())
 		return nullptr;
-	else if (user && !Utility::ComparePasswords(password, user->GetPassword()))
-		return nullptr;
-
+	else if (user) {
+        String hashedPassword = user->GetHashedPassword();
+        if (hashedPassword.IsEmpty()) {
+            if (Utility::ComparePasswords(password, user->GetPassword())) {
+                return nullptr;
+            }
+        } else {
+            if (strcmp(hashedPassword.CStr(), crypt(password.CStr(), hashedPassword.CStr())) == 0) {
+                return nullptr;
+            }
+        }
+    }
 	return user;
 }
 
