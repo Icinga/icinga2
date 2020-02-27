@@ -47,6 +47,7 @@ sepolicy manpage -p . -d icinga2_t
 # Fixing the file context on /usr/sbin/icinga2
 /sbin/restorecon -F -R -v /usr/sbin/icinga2
 /sbin/restorecon -F -R -v /usr/lib64/icinga2/sbin/icinga2
+/sbin/restorecon -F -R -v /usr/lib/icinga2/safe-reload
 # Fixing the file context on /etc/rc\.d/init\.d/icinga2
 #/sbin/restorecon -F -R -v /etc/rc\.d/init\.d/icinga2
 # Fixing the file context on /usr/lib/systemd/system/icinga2.*

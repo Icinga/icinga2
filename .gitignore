@@ -19,3 +19,6 @@ cmake-build-debug
 /Testing/
 /install/
 /vendor/
+tools/selinux/icinga2.pp
+tools/selinux/icinga2_selinux.8
+tools/selinux/tmp
