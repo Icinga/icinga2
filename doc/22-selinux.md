@@ -259,7 +259,7 @@ staff_u:staff_r:staff_t:s0-s0:c0.c1023
 $ sudo vi /etc/icinga2/icinga2.conf
 "/etc/icinga2/icinga2.conf" [Permission Denied]
 $ sudo cat /var/log/icinga2/icinga2.log
-cat: /var/log/icinga2/icinga2.log: Keine Berechtigung
+cat: /var/log/icinga2/icinga2.log: Permission denied
 $ sudo systemctl reload icinga2.service
 Failed to get D-Bus connection: No connection to service manager.
 ```
