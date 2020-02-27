@@ -60,7 +60,7 @@ func (sr *spawnRequest) ReadFrom(r io.Reader) (n int64, err error) {
 		for _, rba := range rbas.from {
 			buf := make([]byte, int(rba.length))
 
-			m, e := r.Read(buf)
+			m, e := completeReader{r}.Read(buf)
 			n += int64(m)
 
 			if e != nil {
@@ -123,7 +123,7 @@ type rawSpawnRequest struct {
 var _ io.ReaderFrom = (*rawSpawnRequest)(nil)
 
 func (sr *rawSpawnRequest) ReadFrom(r io.Reader) (n int64, err error) {
-	m, e := r.Read((*(*[unsafe.Sizeof(*sr)]byte)(unsafe.Pointer(sr)))[:])
+	m, e := completeReader{r}.Read((*(*[unsafe.Sizeof(*sr)]byte)(unsafe.Pointer(sr)))[:])
 	runtime.KeepAlive(sr)
 
 	return int64(m), e
@@ -154,7 +154,7 @@ type rawBytesArray32 struct {
 var _ io.ReaderFrom = (*rawBytesArray32)(nil)
 
 func (ba *rawBytesArray32) ReadFrom(r io.Reader) (n int64, err error) {
-	m, e := r.Read((*(*[unsafe.Sizeof(*ba)]byte)(unsafe.Pointer(ba)))[:])
+	m, e := completeReader{r}.Read((*(*[unsafe.Sizeof(*ba)]byte)(unsafe.Pointer(ba)))[:])
 	runtime.KeepAlive(ba)
 
 	return int64(m), e
