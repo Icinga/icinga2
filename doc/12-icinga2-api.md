@@ -2320,6 +2320,7 @@ Name												| Language	| Description
 [ruby-icinga2](https://github.com/bodsch/ruby-icinga2)                                          | Ruby          | Ruby library
 [python-icinga2_api](https://github.com/KevinHonka/Icinga2_Python_API)                          | Python        | Python library
 [python-icinga2-api](https://github.com/fmnisme/python-icinga2api)				| Python	| Python bindings for Icinga 2 interaction
+[python-icinga2-api-continued](https://github.com/joni1993/icinga2apic)                         | Python        | Python bindings for Icinga 2 interaction forked and continued from fmnisme's python binding
 [go-icinga2](https://github.com/xert/go-icinga2)						| Golang	| Golang functions and type definitions
 [go-icinga2-api](https://github.com/lrsmith/go-icinga2-api/)					| Golang	| Golang implementation used inside the Terraform provider
 [go-icinga2-client](https://github.com/Nexinto/go-icinga2-client)     | Golang  | Golang implementation for the Rancher integration.
@@ -2339,6 +2340,7 @@ Name												| Language	| Description
 [BitBar for OSX](https://getbitbar.com/plugins/Dev/Icinga2/icinga2.24m.py)			| Python	| macOS tray app for highlighting the host/service status
 [Icinga 2 Multistatus](https://chrome.google.com/webstore/detail/icinga-multi-status/khabbhcojgkibdeipanmiphceeoiijal/related)	| - 	| Chrome Extension
 [Naglite4](https://github.com/wftech/icinga2-naglite4)						| Python	| Naglite3 rewrite using the Icinga 2 REST API.
+[icinga-telegram-bot](https://github.com/joni1993/icinga-telegram-bot)				| Python	| Telegram Bot using the Icinga 2 REST API 
 
 ### Manage Objects <a id="icinga2-api-clients-management"></a>
 
