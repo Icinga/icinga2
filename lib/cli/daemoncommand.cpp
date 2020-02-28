@@ -44,6 +44,24 @@ static po::variables_map g_AppParams;
 
 REGISTER_CLICOMMAND("daemon", DaemonCommand);
 
+#ifdef HAVE_SYSTEMD
+
+static void NotifyStatus(const char* status)
+{
+	auto notification (String("STATUS=") + status);
+	(void)sd_notify(0, notification.CStr());
+}
+
+#else /* HAVE_SYSTEMD */
+
+template<class... Args>
+static inline
+void NotifyStatus(Args&&...)
+{
+}
+
+#endif /* HAVE_SYSTEMD */
+
 /*
  * Daemonize().  On error, this function logs by itself and exits (i.e. does not return).
  *
@@ -234,12 +252,14 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 #endif /* I2_DEBUG */
 
 	Log(LogInformation, "cli", "Loading configuration file(s).");
+	NotifyStatus("Loading configuration file(s)...");
 
 	{
 		std::vector<ConfigItem::Ptr> newItems;
 
 		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath)) {
 			Log(LogCritical, "cli", "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
+			NotifyStatus("Config validation failed.");
 			return EXIT_FAILURE;
 		}
 
@@ -251,6 +271,8 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 
 		Log(LogNotice, "cli")
 			<< "Waiting for the umbrella process to let us doing the actual work";
+
+		NotifyStatus("Waiting for the umbrella process to let us doing the actual work...");
 
 		if (closeConsoleLog) {
 			CloseStdIO(stderrFile);
@@ -265,21 +287,31 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 			<< "The umbrella process let us continuing";
 #endif /* _WIN32 */
 
+		NotifyStatus("Restoring the previous program state...");
+
 		/* restore the previous program state */
 		try {
 			ConfigObject::RestoreObjects(Configuration::StatePath);
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "cli")
 				<< "Failed to restore state file: " << DiagnosticInformation(ex);
+
+			NotifyStatus("Failed to restore state file.");
+
 			return EXIT_FAILURE;
 		}
 
 		WorkQueue upq(25000, Configuration::Concurrency);
 		upq.SetName("DaemonCommand::Run");
 
+		NotifyStatus("Activating config objects...");
+
 		// activate config only after daemonization: it starts threads and that is not compatible with fork()
 		if (!ConfigItem::ActivateItems(upq, newItems, false, false, true)) {
 			Log(LogCritical, "cli", "Error activating configuration.");
+
+			NotifyStatus("Error activating configuration.");
+
 			return EXIT_FAILURE;
 		}
 	}
@@ -297,6 +329,8 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 	}
 
 	ApiListener::UpdateObjectAuthority();
+
+	NotifyStatus("Activated all objects.");
 
 	return Application::GetInstance()->Run();
 }
@@ -761,6 +795,8 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 				Log(LogInformation, "Application")
 					<< "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
 
+				NotifyStatus("Shutting down old instance...");
+
 				(void)kill(currentWorker, SIGTERM);
 
 				{
@@ -778,6 +814,8 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 				// Old instance shut down, allow the new one to continue working beyond config validation
 				(void)kill(nextWorker, SIGUSR2);
+
+				NotifyStatus("Shut down old instance.");
 
 				currentWorker = nextWorker;
 			}
