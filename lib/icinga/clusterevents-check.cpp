@@ -124,6 +124,14 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 	attrs->Set("__name", params->Get("host"));
 	attrs->Set("type", "Host");
 
+	/*
+	 * Override the check timeout if the parent caller provided the value. Compatible with older versions not
+	 * passing this inside the cluster message.
+	 * This happens with host/service command_endpoint agents and the 'check_timeout' attribute being specified.
+	 */
+	if (params->Contains("check_timeout"))
+		attrs->Set("check_timeout", params->Get("check_timeout"));
+
 	Deserialize(host, attrs, false, FAConfig);
 
 	if (params->Contains("service"))

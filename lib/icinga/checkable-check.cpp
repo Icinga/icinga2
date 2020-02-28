@@ -569,6 +569,13 @@ void Checkable::ExecuteCheck()
 			if (service)
 				params->Set("service", service->GetShortName());
 
+			/*
+			 * If the host/service object specifies the 'check_timeout' attribute,
+			 * forward this to the remote endpoint to limit the command execution time.
+			 */
+			if (!GetCheckTimeout().IsEmpty())
+				params->Set("check_timeout", GetCheckTimeout());
+
 			params->Set("macros", macros);
 
 			ApiListener::Ptr listener = ApiListener::GetInstance();
