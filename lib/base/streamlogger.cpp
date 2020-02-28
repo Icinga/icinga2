@@ -78,6 +78,8 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
 	if (Logger::IsTimestampEnabled())
 		stream << "[" << timestamp << "] ";
 
+	stream << "[PID " << Utility::GetPid() << "] ";
+
 	int color;
 
 	switch (entry.Severity) {
