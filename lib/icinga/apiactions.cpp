@@ -15,6 +15,9 @@
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include <fstream>
+#include "base/serializer.hpp"
+#include "base/json.hpp"
+#include "base/type.hpp"
 
 using namespace icinga;
 
@@ -122,7 +125,113 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 Dictionary::Ptr ApiActions::ProcessCheckResults(const ConfigObject::Ptr& object,
                                                const Dictionary::Ptr& params)
 {
-    return ApiActions::CreateResult(200, "Successfully processed check result for object (new Func last return ).");
+    if (params->Contains("check_results")) {
+
+        Array::Ptr checkResults = params->Get("check_results");
+        int checkResultsLength = checkResults->GetLength();
+
+        {
+            ObjectLock olock(checkResults);
+            for (const Value& item : checkResults) {
+
+                if (item.IsObjectType<Dictionary>()) {
+
+                    Dictionary::Ptr data = item;
+                    static int loop = 1;
+                    CheckResult::Ptr cr = new CheckResult();
+                    String name;
+
+                    if (data->Contains("name")) {
+                        name = data->Get("name");
+                        Log(LogCritical, "ApiAction") << "TEST :" << loop << " name " << data->Get("name") << "name 147=> " << name;
+                    } //TODO: error handling
+
+                    Host::Ptr host = Host::GetByName(name);
+                    Service::Ptr service = Service::GetByName(name);
+                    // read check_results data
+                    if (data->Contains("exit_status")) {
+
+                        Log(LogCritical, "ApiAction") << "TEST :" << loop << " status " << data->Get("exit_status") << "name 155=> " << name;
+                        int exitStatus = data->Get("exit_status");
+                        ServiceState state = PluginUtility::ExitStatusToState(exitStatus);
+                       // cr->SetExitStatus(exitStatus);
+
+                        if (host) {
+                            Log(LogCritical, "ApiActions") << "line : 161 >> HOST FOUND in loop " << loop  << " exitstatus: " << exitStatus << " state : " << state;
+                            if (exitStatus == 0)
+                                state = ServiceOK;
+                            else if (exitStatus == 1)
+                                state = ServiceCritical;
+                            else{
+                                //TODO: Error handling
+                            }
+                            Log(LogCritical, "ApiActions") << "line : 168 >> HOST" << loop  << " exitstatus: " << exitStatus << " state : " << state;
+                        }
+
+                        if (service) {
+                            state = PluginUtility::ExitStatusToState(exitStatus);
+                            Log(LogCritical, "ApiActions") << "line : 173 >> SERVICE FOUND in loop " << loop;
+                        }
+                        cr->SetExitStatus(exitStatus);
+                        cr->SetState(state);
+                    }
+
+                    if (data->Contains("plugin_output")) {
+
+                        Log(LogCritical, "ApiAction") << "TEST :" << loop << " output: " << data->Get("plugin_output");
+                        cr->SetOutput(data->Get("plugin_output"));
+                    }
+                    if (data->Contains("execution_start"))
+                        //Log(LogCritical, "ApiAction") << "TEST :" << loop << " execution_start: " << data->Get("execution_start");
+                        cr->SetExecutionStart(data->Get("execution_start"));
+
+                    if (data->Contains("execution_end"))
+                        //Log(LogCritical, "ApiAction") << "TEST :" << loop << " execution_end: " << data->Get("execution_end");
+                        cr->SetExecutionEnd(data->Get("execution_end"));
+
+                    if (data->Contains("check_source"))
+                        //Log(LogCritical, "ApiAction") << "TEST :" << loop << " check_source: " << data->Get("check_source");
+                        cr->SetCheckSource(data->Get("check_source"));
+
+                    if (data->Contains("check_command"))
+                        //Log(LogCritical, "ApiAction") << "TEST :" << loop << " check_command: " << data->Get("check_command");
+                       cr->SetCommand(data->Get("check_command"));
+
+                    if (data->Contains("ttl"))
+                        // Log(LogCritical, "ApiAction") << "TEST :" << loop << " ttl: " << data->Get("ttl");
+                        cr->SetTtl(data->Get("ttl"));
+
+                    if (data->Contains("performance_data")) {
+                        Value perfData = data->Get("performance_data");
+                        Log(LogCritical, "ApiAction") << "TEST :" << loop << " performance_data: " << data->Get("performance_data");
+                        /* Allow to pass a performance data string from Icinga Web 2 next to the new Array notation. */
+                        if (perfData.IsString())
+                            cr->SetPerformanceData(PluginUtility::SplitPerfdata(perfData));
+                        else
+                            cr->SetPerformanceData(perfData);
+                    }
+                    /* Mark this check result as passive. */
+                    cr->SetActive(false);
+
+                    // Process final check result
+                    if (host) {
+                        host->ProcessCheckResult(cr);
+                        Log(LogCritical, "ApiActions") << "HOST FOUND in loop " << loop;
+                    } else if (service) {
+                        service->ProcessCheckResult(cr);
+                        Log(LogCritical, "ApiActions") << "SERVICE FOUND in loop " << loop;
+                    } else {
+                        Log(LogCritical, "ApiActions") << "IN ELSE, NO SERVICE OR HOST";//TODO: error handling
+                    }
+
+                    Log(LogCritical, "ApiActions", JsonEncode(Serialize(cr), true));
+                    loop++;
+                }   //TODO exeption
+            }
+        }
+        return ApiActions::CreateResult(200, "Array length: '" + Convert::ToString(checkResultsLength)+ "'.");
+    } //TODO Exeption
+    return ApiActions::CreateResult(200, "check result not found");
 }
 //TODO Func by SD End
 
