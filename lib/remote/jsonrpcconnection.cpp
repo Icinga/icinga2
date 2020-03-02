@@ -170,12 +170,16 @@ ConnectionRole JsonRpcConnection::GetRole() const
 
 void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 {
-	m_IoStrand.post([this, message]() { SendMessageInternal(message); });
+	Ptr keepAlive (this);
+
+	m_IoStrand.post([this, keepAlive, message]() { SendMessageInternal(message); });
 }
 
 void JsonRpcConnection::SendRawMessage(const String& message)
 {
-	m_IoStrand.post([this, message]() {
+	Ptr keepAlive (this);
+
+	m_IoStrand.post([this, keepAlive, message]() {
 		m_OutgoingMessagesQueue.emplace_back(message);
 		m_OutgoingMessagesQueued.Set();
 	});
