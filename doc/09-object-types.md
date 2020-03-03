@@ -741,37 +741,38 @@ to evenly distribute all checks over a certain period of time, i.e. to avoid loa
 
 Runtime Attributes:
 
-  Name                      | Type                  | Description
-  --------------------------|-----------------------|----------------------------------
-  next\_check               | Timestamp             | When the next check occurs (as a UNIX timestamp).
-  last\_check               | Timestamp             | When the last check occurred (as a UNIX timestamp).
-  check\_attempt            | Number                | The current check attempt number.
-  state\_type               | Number                | The current state type (0 = SOFT, 1 = HARD).
-  last\_state\_type         | Number                | The previous state type (0 = SOFT, 1 = HARD).
-  last\_reachable           | Boolean               | Whether the service was reachable when the last check occurred.
-  last\_check\_result       | CheckResult           | The current [check result](08-advanced-topics.md#advanced-value-types-checkresult).
-  last\_state\_change       | Timestamp             | When the last state change occurred (as a UNIX timestamp).
-  last\_hard\_state\_change | Timestamp             | When the last hard state change occurred (as a UNIX timestamp).
-  last\_in\_downtime        | Boolean               | Whether the service was in a downtime when the last check occurred.
-  acknowledgement           | Number                | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
-  acknowledgement\_expiry   | Timestamp             | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
-  downtime\_depth           | Number                | Whether the service has one or more active downtimes.
-  flapping\_last\_change    | Timestamp             | When the last flapping change occurred (as a UNIX timestamp).
-  flapping\_current         | Number                | Current flapping value in percent (see flapping\_thresholds)
-  flapping                  | Boolean               | Whether the service is flapping between states.
-  state                     | Number                | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
-  last\_state               | Number                | The previous state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
-  last\_hard\_state         | Number                | The last hard state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
-  last\_state\_ok           | Timestamp             | When the last OK state occurred (as a UNIX timestamp).
-  last\_state\_warning      | Timestamp             | When the last WARNING state occurred (as a UNIX timestamp).
-  last\_state\_critical     | Timestamp             | When the last CRITICAL state occurred (as a UNIX timestamp).
-  last\_state\_unknown      | Timestamp             | When the last UNKNOWN state occurred (as a UNIX timestamp).
-  last\_state\_unreachable  | Timestamp             | When the service was unreachable the last time (as a UNIX timestamp).
-  previous\_state\_change   | Timestamp             | Previous timestamp of `last_state_change` before processing a new check result.
-  severity                  | Number                | [Severity](19-technical-concepts.md#technical-concepts-checks-severity) calculated value.
-  problem                   | Boolean               | Whether the service is considered in a problem state type (NOT-OK).
-  handled                   | Boolean               | Whether the service problem is handled (downtime or acknowledgement).
-  next\_update              | Timestamp             | When the next check update is to be expected.
+  Name                          | Type              | Description
+  ------------------------------|-------------------|----------------------------------
+  next\_check                   | Timestamp         | When the next check occurs (as a UNIX timestamp).
+  last\_check                   | Timestamp         | When the last check occurred (as a UNIX timestamp).
+  check\_attempt                | Number            | The current check attempt number.
+  state\_type                   | Number            | The current state type (0 = SOFT, 1 = HARD).
+  last\_state\_type             | Number            | The previous state type (0 = SOFT, 1 = HARD).
+  last\_reachable               | Boolean           | Whether the service was reachable when the last check occurred.
+  last\_check\_result           | CheckResult       | The current [check result](08-advanced-topics.md#advanced-value-types-checkresult).
+  last\_state\_change           | Timestamp         | When the last state change occurred (as a UNIX timestamp).
+  last\_hard\_state\_change     | Timestamp         | When the last hard state change occurred (as a UNIX timestamp).
+  last\_in\_downtime            | Boolean           | Whether the service was in a downtime when the last check occurred.
+  acknowledgement               | Number            | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
+  acknowledgement\_expiry       | Timestamp         | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
+  acknowledgement\_last\_change | Timestamp         | When the acknowledgement has been set/cleared
+  downtime\_depth               | Number            | Whether the service has one or more active downtimes.
+  flapping\_last\_change        | Timestamp         | When the last flapping change occurred (as a UNIX timestamp).
+  flapping\_current             | Number            | Current flapping value in percent (see flapping\_thresholds)
+  flapping                      | Boolean           | Whether the service is flapping between states.
+  state                         | Number            | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  last\_state                   | Number            | The previous state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  last\_hard\_state             | Number            | The last hard state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  last\_state\_ok               | Timestamp         | When the last OK state occurred (as a UNIX timestamp).
+  last\_state\_warning          | Timestamp         | When the last WARNING state occurred (as a UNIX timestamp).
+  last\_state\_critical         | Timestamp         | When the last CRITICAL state occurred (as a UNIX timestamp).
+  last\_state\_unknown          | Timestamp         | When the last UNKNOWN state occurred (as a UNIX timestamp).
+  last\_state\_unreachable      | Timestamp         | When the service was unreachable the last time (as a UNIX timestamp).
+  previous\_state\_change       | Timestamp         | Previous timestamp of `last_state_change` before processing a new check result.
+  severity                      | Number            | [Severity](19-technical-concepts.md#technical-concepts-checks-severity) calculated value.
+  problem                       | Boolean           | Whether the service is considered in a problem state type (NOT-OK).
+  handled                       | Boolean           | Whether the service problem is handled (downtime or acknowledgement).
+  next\_update                  | Timestamp         | When the next check update is to be expected.
 
 
 ### ServiceGroup <a id="objecttype-servicegroup"></a>
