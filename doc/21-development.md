@@ -1732,6 +1732,8 @@ The required steps are described in [this script](https://github.com/dnsmichi/do
 The following sections explain how to setup the required build tools
 and how to run and debug the code.
 
+[![How to build Icinga 2 on Windows 10](images/development/windows_dev_howto_youtube.png)](https://www.youtube.com/watch?v=FHwET_PLFa4)
+
 #### Chocolatey
 
 Open an administrative command prompt (Win key, type “cmd”, right-click and “run as administrator”) and paste the following instructions:
