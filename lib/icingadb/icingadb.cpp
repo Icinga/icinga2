@@ -81,9 +81,6 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetName("IcingaDB");
 
-	boost::thread thread(&IcingaDB::HandleEvents, this);
-	thread.detach();
-
 	m_Rcon->SuppressQueryKind(Prio::CheckResult);
 	m_Rcon->SuppressQueryKind(Prio::State);
 }
@@ -154,32 +151,6 @@ void IcingaDB::PublishStats()
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(eval), Prio::Heartbeat);
-}
-
-void IcingaDB::HandleEvents()
-{
-	String queueName = Utility::NewUniqueID();
-	EventQueue::Ptr queue = new EventQueue(queueName);
-	EventQueue::Register(queueName, queue);
-
-	std::set<String> types;
-	types.insert("CheckResult");
-	types.insert("AcknowledgementSet");
-	types.insert("AcknowledgementCleared");
-
-	queue->SetTypes(types);
-
-	queue->AddClient(this);
-
-	for (;;) {
-		Dictionary::Ptr event = queue->WaitForEvent(this);
-
-		if (!event)
-			continue;
-	}
-
-	queue->RemoveClient(this);
-	EventQueue::UnregisterIfUnused(queueName, queue);
 }
 
 void IcingaDB::Stop(bool runtimeRemoved)
