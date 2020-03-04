@@ -193,19 +193,6 @@ void IcingaDB::SendEvent(const Dictionary::Ptr& event)
 
 	String type = event->Get("type");
 
-	if (type == "CheckResult") {
-		Checkable::Ptr checkable;
-
-		if (event->Contains("service")) {
-			checkable = Service::GetByNamePair(event->Get("host"), event->Get("service"));
-		} else {
-			checkable = Host::GetByName(event->Get("host"));
-		}
-
-		// Update State for icingaweb
-		m_WorkQueue.Enqueue([this, checkable]() { UpdateState(checkable); });
-	}
-
 	if (type.Contains("Acknowledgement")) {
 		Checkable::Ptr checkable;
 
