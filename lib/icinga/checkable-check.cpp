@@ -248,20 +248,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	SetCheckAttempt(attempt);
 
 	ServiceState new_state = cr->GetState();
-
-	if (service) {
-		SetStateRaw(new_state);
-	} else {
-		bool wasProblem = GetProblem();
-
-		SetStateRaw(new_state);
-
-		if (GetProblem() != wasProblem) {
-			for (auto& service : host->GetServices()) {
-				Service::OnHostProblemChanged(service, cr, origin);
-			}
-		}
-	}
+	SetStateRaw(new_state);
 
 	bool stateChange;
 
@@ -362,7 +349,20 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	cr->SetVarsAfter(vars_after);
 
 	olock.Lock();
-	SetLastCheckResult(cr);
+
+	if (service) {
+		SetLastCheckResult(cr);
+	} else {
+		bool wasProblem = GetProblem();
+
+		SetLastCheckResult(cr);
+
+		if (GetProblem() != wasProblem) {
+			for (auto& service : host->GetServices()) {
+				Service::OnHostProblemChanged(service, cr, origin);
+			}
+		}
+	}
 
 	bool was_flapping = IsFlapping();
 
