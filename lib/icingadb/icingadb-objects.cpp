@@ -68,6 +68,9 @@ void IcingaDB::ConfigStaticInitialize()
 		AcknowledgementClearedHandler(checkable, removedBy, changeTime);
 	});
 
+	Checkable::OnAcknowledgementSet.connect([](const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool, bool persistent, double changeTime, double expiry, const MessageOrigin::Ptr&) {
+		IcingaDB::StateChangeHandler(checkable);
+	});
 	/* triggered when acknowledged host/service goes back to ok and when the acknowledgement gets deleted */
 	Checkable::OnAcknowledgementCleared.connect([](const Checkable::Ptr& checkable, const String&, double, const MessageOrigin::Ptr&) {
 		IcingaDB::StateChangeHandler(checkable);

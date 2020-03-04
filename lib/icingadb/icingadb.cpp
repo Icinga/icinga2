@@ -203,23 +203,6 @@ void IcingaDB::SendEvent(const Dictionary::Ptr& event)
 			checkable = Host::GetByName(event->Get("host"));
 			event->Set("host_id", GetObjectIdentifier(checkable));
 		}
-
-		if (type == "AcknowledgementSet") {
-			Timestamp entry = 0;
-			Comment::Ptr AckComment;
-
-			for (const Comment::Ptr& c : checkable->GetComments()) {
-				if (c->GetEntryType() == CommentAcknowledgement) {
-					if (c->GetEntryTime() > entry) {
-						entry = c->GetEntryTime();
-						AckComment = c;
-						StateChangeHandler(checkable);
-					}
-				}
-			}
-
-			event->Set("comment_id", GetObjectIdentifier(AckComment));
-		}
 	}
 }
 
