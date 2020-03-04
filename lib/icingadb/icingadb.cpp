@@ -176,34 +176,10 @@ void IcingaDB::HandleEvents()
 
 		if (!event)
 			continue;
-
-		m_WorkQueue.Enqueue([this, event]() { SendEvent(event); });
 	}
 
 	queue->RemoveClient(this);
 	EventQueue::UnregisterIfUnused(queueName, queue);
-}
-
-void IcingaDB::SendEvent(const Dictionary::Ptr& event)
-{
-	AssertOnWorkQueue();
-
-	if (!m_Rcon || !m_Rcon->IsConnected())
-		return;
-
-	String type = event->Get("type");
-
-	if (type.Contains("Acknowledgement")) {
-		Checkable::Ptr checkable;
-
-		if (event->Contains("service")) {
-			checkable = Service::GetByNamePair(event->Get("host"), event->Get("service"));
-			event->Set("service_id", GetObjectIdentifier(checkable));
-		} else {
-			checkable = Host::GetByName(event->Get("host"));
-			event->Set("host_id", GetObjectIdentifier(checkable));
-		}
-	}
 }
 
 void IcingaDB::Stop(bool runtimeRemoved)

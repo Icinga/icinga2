@@ -38,7 +38,6 @@ private:
 	void ReconnectTimerHandler();
 	void TryToReconnect();
 	void HandleEvents();
-	void SendEvent(const Dictionary::Ptr& event);
 
 	void PublishStatsTimerHandler();
 	void PublishStats();
