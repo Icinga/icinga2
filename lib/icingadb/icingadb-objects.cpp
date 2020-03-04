@@ -1667,7 +1667,7 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 
 	long long startTime;
 
-	if (checkable->IsFlapping()) {
+	if (checkable->GetFlapping()) {
 		startTime = TimestampToMilliseconds(changeTime);
 
 		xAdd.emplace_back("event_type");
@@ -1870,7 +1870,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	attrs->Set("is_problem", checkable->GetProblem());
 	attrs->Set("is_handled", checkable->GetHandled());
 	attrs->Set("is_reachable", checkable->IsReachable());
-	attrs->Set("is_flapping", checkable->IsFlapping());
+	attrs->Set("is_flapping", checkable->GetFlapping());
 
 	attrs->Set("is_acknowledged", checkable->IsAcknowledged());
 	if (checkable->IsAcknowledged()) {
