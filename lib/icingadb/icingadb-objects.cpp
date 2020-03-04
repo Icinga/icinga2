@@ -1962,7 +1962,7 @@ void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object)
 void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->m_WorkQueue.Enqueue([rw, object, cr, type]() { rw->SendStatusUpdate(object, cr, type); });
+		rw->SendStatusUpdate(object, cr, type);
 	}
 }
 
@@ -1974,14 +1974,14 @@ void IcingaDB::VersionChangedHandler(const ConfigObject::Ptr& object)
 		// Create or update the object config
 		for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 			if (rw)
-				rw->m_WorkQueue.Enqueue([rw, object]() { rw->SendConfigUpdate(object, true); });
+				rw->SendConfigUpdate(object, true);
 		}
 	} else if (!object->IsActive() &&
 			   object->GetExtension("ConfigObjectDeleted")) { // same as in apilistener-configsync.cpp
 		// Delete object config
 		for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 			if (rw)
-				rw->m_WorkQueue.Enqueue([rw, object]() { rw->SendConfigDelete(object); });
+				rw->SendConfigDelete(object);
 		}
 	}
 }
@@ -1991,7 +1991,7 @@ void IcingaDB::DowntimeStartedHandler(const Downtime::Ptr& downtime)
 	StateChangeHandler(downtime->GetCheckable());
 
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->m_WorkQueue.Enqueue([rw, downtime]() { rw->SendStartedDowntime(downtime); });
+		rw->SendStartedDowntime(downtime);
 	}
 }
 
@@ -2000,16 +2000,9 @@ void IcingaDB::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 	StateChangeHandler(downtime->GetCheckable());
 
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->m_WorkQueue.Enqueue([rw, downtime]() { rw->SendRemovedDowntime(downtime); });
+		rw->SendRemovedDowntime(downtime);
 	}
 }
-
-struct ATU
-{
-	String Author;
-	String Text;
-	std::set<User::Ptr> Users;
-};
 
 void IcingaDB::NotificationSentToAllUsersHandler(
 	const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
@@ -2019,12 +2012,8 @@ void IcingaDB::NotificationSentToAllUsersHandler(
 	auto rws (ConfigType::GetObjectsByType<IcingaDB>());
 
 	if (!rws.empty()) {
-		auto atu (Shared<ATU>::Make(ATU{author, text, users}));
-
 		for (auto& rw : rws) {
-			rw->m_WorkQueue.Enqueue([rw, notification, checkable, atu, type, cr]() {
-				rw->SendSentNotification(notification, checkable, atu->Users, type, cr, atu->Author, atu->Text);
-			});
+			rw->SendSentNotification(notification, checkable, users, type, cr, author, text);
 		}
 	}
 }
@@ -2032,14 +2021,14 @@ void IcingaDB::NotificationSentToAllUsersHandler(
 void IcingaDB::CommentAddedHandler(const Comment::Ptr& comment)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->m_WorkQueue.Enqueue([rw, comment]() { rw->SendAddedComment(comment); });
+		rw->SendAddedComment(comment);
 	}
 }
 
 void IcingaDB::CommentRemovedHandler(const Comment::Ptr& comment)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->m_WorkQueue.Enqueue([rw, comment]() { rw->SendRemovedComment(comment); });
+		rw->SendRemovedComment(comment);
 	}
 }
 
@@ -2048,40 +2037,32 @@ void IcingaDB::FlappingChangeHandler(const Checkable::Ptr& checkable, double cha
 	auto flappingLastChange (checkable->GetFlappingLastChange());
 
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->m_WorkQueue.Enqueue([rw, checkable, changeTime, flappingLastChange]() { rw->SendFlappingChange(checkable, changeTime, flappingLastChange); });
+		rw->SendFlappingChange(checkable, changeTime, flappingLastChange);
 	}
 }
 
 void IcingaDB::NewCheckResultHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->m_WorkQueue.Enqueue([rw, checkable]() { rw->SendNextUpdate(checkable); });
+		rw->SendNextUpdate(checkable);
 	}
 }
 
 void IcingaDB::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->m_WorkQueue.Enqueue([rw, checkable]() { rw->UpdateState(checkable); });
-		rw->m_WorkQueue.Enqueue([rw, checkable]() { rw->SendNextUpdate(checkable); });
+		rw->UpdateState(checkable);
+		rw->SendNextUpdate(checkable);
 	}
 }
-
-struct AuthorComment
-{
-	String Author;
-	String Comment;
-};
 
 void IcingaDB::AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry)
 {
 	auto rws (ConfigType::GetObjectsByType<IcingaDB>());
 
 	if (!rws.empty()) {
-		auto ac (Shared<AuthorComment>::Make(AuthorComment{author, comment}));
-
 		for (auto& rw : rws) {
-			rw->m_WorkQueue.Enqueue([rw, checkable, ac, type, persistent, changeTime, expiry]() { rw->SendAcknowledgementSet(checkable, ac->Author, ac->Comment, type, persistent, changeTime, expiry); });
+			rw->SendAcknowledgementSet(checkable, author, comment, type, persistent, changeTime, expiry);
 		}
 	}
 }
@@ -2095,7 +2076,7 @@ void IcingaDB::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, co
 		auto ackLastChange (checkable->GetAcknowledgementLastChange());
 
 		for (auto& rw : rws) {
-			rw->m_WorkQueue.Enqueue([rw, checkable, rb, changeTime, ackLastChange]() { rw->SendAcknowledgementCleared(checkable, *rb, changeTime, ackLastChange); });
+			rw->SendAcknowledgementCleared(checkable, *rb, changeTime, ackLastChange);
 		}
 	}
 }
