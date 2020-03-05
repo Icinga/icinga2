@@ -1397,6 +1397,40 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
+#### event::SetLastCheckStarted <a id="technical-concepts-json-rpc-messages-event-setlastcheckstarted"></a>
+
+> Location: `clusterevents.cpp`
+
+##### Message Body
+
+Key       | Value
+----------|---------
+jsonrpc   | 2.0
+method    | event::SetLastCheckStarted
+params    | Dictionary
+
+##### Params
+
+Key                  | Type      | Description
+---------------------|-----------|------------------
+host                 | String    | Host name
+service              | String    | Service name
+last\_check\_started | Timestamp | Last check's start time as UNIX timestamp.
+
+##### Functions
+
+Event Sender: `Checkable::OnLastCheckStartedChanged`
+Event Receiver: `LastCheckStartedChangedAPIHandler`
+
+##### Permissions
+
+The receiver will not process messages from not configured endpoints.
+
+Message updates will be dropped when:
+
+* Checkable does not exist.
+* Origin endpoint's zone is not allowed to access this checkable.
+
 #### event::SuppressedNotifications <a id="technical-concepts-json-rpc-messages-event-setsupressednotifications"></a>
 
 > Location: `clusterevents.cpp`
