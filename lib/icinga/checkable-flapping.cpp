@@ -70,7 +70,9 @@ void Checkable::UpdateFlappingStatus(bool stateChange)
 
 		double ee = GetLastCheckResult()->GetExecutionEnd();
 
-		OnFlappingChange(this, ee);
+		if (GetEnableFlapping() && IcingaApplication::GetInstance()->GetEnableFlapping()) {
+			OnFlappingChange(this, ee);
+		}
 
 		SetFlappingLastChange(ee);
 	}
