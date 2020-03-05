@@ -68,6 +68,9 @@ void IcingaDB::ConfigStaticInitialize()
 		AcknowledgementClearedHandler(checkable, removedBy, changeTime);
 	});
 
+	Checkable::OnAcknowledgementSet.connect([](const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool, bool persistent, double changeTime, double expiry, const MessageOrigin::Ptr&) {
+		IcingaDB::StateChangeHandler(checkable);
+	});
 	/* triggered when acknowledged host/service goes back to ok and when the acknowledgement gets deleted */
 	Checkable::OnAcknowledgementCleared.connect([](const Checkable::Ptr& checkable, const String&, double, const MessageOrigin::Ptr&) {
 		IcingaDB::StateChangeHandler(checkable);
@@ -102,6 +105,7 @@ void IcingaDB::ConfigStaticInitialize()
 	Checkable::OnNewCheckResult.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr&, const MessageOrigin::Ptr&) {
 		IcingaDB::NewCheckResultHandler(checkable);
 	});
+
 	Checkable::OnNextCheckChanged.connect([](const Checkable::Ptr& checkable, const Value&) {
 		IcingaDB::NextCheckChangedHandler(checkable);
 	});
@@ -2044,6 +2048,7 @@ void IcingaDB::FlappingChangeHandler(const Checkable::Ptr& checkable, double cha
 void IcingaDB::NewCheckResultHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		rw->UpdateState(checkable);
 		rw->SendNextUpdate(checkable);
 	}
 }

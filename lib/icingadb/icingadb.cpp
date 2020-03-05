@@ -81,9 +81,6 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetName("IcingaDB");
 
-	boost::thread thread(&IcingaDB::HandleEvents, this);
-	thread.detach();
-
 	m_Rcon->SuppressQueryKind(Prio::CheckResult);
 	m_Rcon->SuppressQueryKind(Prio::State);
 }
@@ -154,86 +151,6 @@ void IcingaDB::PublishStats()
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(eval), Prio::Heartbeat);
-}
-
-void IcingaDB::HandleEvents()
-{
-	String queueName = Utility::NewUniqueID();
-	EventQueue::Ptr queue = new EventQueue(queueName);
-	EventQueue::Register(queueName, queue);
-
-	std::set<String> types;
-	types.insert("CheckResult");
-	types.insert("AcknowledgementSet");
-	types.insert("AcknowledgementCleared");
-
-	queue->SetTypes(types);
-
-	queue->AddClient(this);
-
-	for (;;) {
-		Dictionary::Ptr event = queue->WaitForEvent(this);
-
-		if (!event)
-			continue;
-
-		m_WorkQueue.Enqueue([this, event]() { SendEvent(event); });
-	}
-
-	queue->RemoveClient(this);
-	EventQueue::UnregisterIfUnused(queueName, queue);
-}
-
-void IcingaDB::SendEvent(const Dictionary::Ptr& event)
-{
-	AssertOnWorkQueue();
-
-	if (!m_Rcon || !m_Rcon->IsConnected())
-		return;
-
-	String type = event->Get("type");
-
-	if (type == "CheckResult") {
-		Checkable::Ptr checkable;
-
-		if (event->Contains("service")) {
-			checkable = Service::GetByNamePair(event->Get("host"), event->Get("service"));
-		} else {
-			checkable = Host::GetByName(event->Get("host"));
-		}
-
-		// Update State for icingaweb
-		m_WorkQueue.Enqueue([this, checkable]() { UpdateState(checkable); });
-	}
-
-	if (type.Contains("Acknowledgement")) {
-		Checkable::Ptr checkable;
-
-		if (event->Contains("service")) {
-			checkable = Service::GetByNamePair(event->Get("host"), event->Get("service"));
-			event->Set("service_id", GetObjectIdentifier(checkable));
-		} else {
-			checkable = Host::GetByName(event->Get("host"));
-			event->Set("host_id", GetObjectIdentifier(checkable));
-		}
-
-		if (type == "AcknowledgementSet") {
-			Timestamp entry = 0;
-			Comment::Ptr AckComment;
-
-			for (const Comment::Ptr& c : checkable->GetComments()) {
-				if (c->GetEntryType() == CommentAcknowledgement) {
-					if (c->GetEntryTime() > entry) {
-						entry = c->GetEntryTime();
-						AckComment = c;
-						StateChangeHandler(checkable);
-					}
-				}
-			}
-
-			event->Set("comment_id", GetObjectIdentifier(AckComment));
-		}
-	}
 }
 
 void IcingaDB::Stop(bool runtimeRemoved)
