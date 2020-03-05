@@ -90,6 +90,8 @@ abstract class Checkable : CustomVarObject
 	[config] String icon_image_alt;
 
 	[state] Timestamp next_check;
+	[state, no_user_view, no_user_modify] Timestamp last_check_started;
+
 	[state] int check_attempt {
 		default {{{ return 1; }}}
 	};
