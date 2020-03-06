@@ -1689,6 +1689,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	double workQueueItemRate = JsonRpcConnection::GetWorkQueueRate();
 	double syncQueueItemRate = m_SyncQueue.GetTaskCount(60) / 60.0;
 	double relayQueueItemRate = m_RelayQueue.GetTaskCount(60) / 60.0;
+	auto queuedMessages (JsonRpcConnection::GetQueuedMessages());
 
 	Dictionary::Ptr status = new Dictionary({
 		{ "identity", GetIdentity() },
@@ -1706,7 +1707,8 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 			{ "relay_queue_items", relayQueueItems },
 			{ "work_queue_item_rate", workQueueItemRate },
 			{ "sync_queue_item_rate", syncQueueItemRate },
-			{ "relay_queue_item_rate", relayQueueItemRate }
+			{ "relay_queue_item_rate", relayQueueItemRate },
+			{ "queued_items", queuedMessages }
 		}) },
 
 		{ "http", new Dictionary({
@@ -1727,6 +1729,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	perfdata->Set("num_json_rpc_work_queue_item_rate", workQueueItemRate);
 	perfdata->Set("num_json_rpc_sync_queue_item_rate", syncQueueItemRate);
 	perfdata->Set("num_json_rpc_relay_queue_item_rate", relayQueueItemRate);
+	perfdata->Set("num_json_rpc_queued_items", queuedMessages);
 
 	return std::make_pair(status, perfdata);
 }
