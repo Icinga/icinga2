@@ -52,7 +52,6 @@ static bool l_InExceptionHandler = false;
 int Application::m_ArgC;
 char **Application::m_ArgV;
 double Application::m_StartTime;
-double Application::m_MainTime;
 bool Application::m_ScriptDebuggerEnabled = false;
 double Application::m_LastReloadFailed;
 
@@ -967,7 +966,7 @@ int Application::Run()
 	}
 #endif /* _WIN32 */
 
-	SetMainTime(Utility::GetTime());
+	SetStartTime(Utility::GetTime());
 
 	return Main();
 }
@@ -1154,14 +1153,9 @@ void Application::SetStartTime(double ts)
 	m_StartTime = ts;
 }
 
-double Application::GetMainTime()
+double Application::GetUptime()
 {
-	return m_MainTime;
-}
-
-void Application::SetMainTime(double ts)
-{
-	m_MainTime = ts;
+	return Utility::GetTime() - m_StartTime;
 }
 
 bool Application::GetScriptDebuggerEnabled()

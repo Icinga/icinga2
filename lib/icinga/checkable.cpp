@@ -194,6 +194,7 @@ Timestamp Checkable::GetNextUpdate() const
 	auto cr (GetLastCheckResult());
 	double interval, latency;
 
+	// TODO: Document this behavior.
 	if (cr) {
 		interval = GetEnableActiveChecks() && GetProblem() && GetStateType() == StateTypeSoft ? GetRetryInterval() : GetCheckInterval();
 		latency = cr->GetExecutionEnd() - cr->GetScheduleStart();
@@ -202,7 +203,7 @@ Timestamp Checkable::GetNextUpdate() const
 		latency = 0.0;
 	}
 
-	return (GetEnableActiveChecks() ? GetNextCheck() : (cr ? cr->GetExecutionEnd() : Application::GetMainTime()) + interval) + interval + 2 * latency;
+	return (GetEnableActiveChecks() ? GetNextCheck() : (cr ? cr->GetExecutionEnd() : Application::GetStartTime()) + interval) + interval + 2 * latency;
 }
 
 void Checkable::NotifyFixedDowntimeStart(const Downtime::Ptr& downtime)

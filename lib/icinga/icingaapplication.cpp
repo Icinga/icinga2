@@ -206,7 +206,7 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 		*result = Utility::FormatDateTime("%H:%M:%S %z", now);
 		return true;
 	} else if (macro == "uptime") {
-		*result = Utility::FormatDuration(Utility::GetTime() - Application::GetStartTime());
+		*result = Utility::FormatDuration(Application::GetUptime());
 		return true;
 	}
 
