@@ -7,6 +7,16 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.11.3 (2020-03-02)
+
+The 2.11.3 release fixes a critical crash in our JSON-RPC connections. This mainly affects large HA
+enabled environments.
+
+### Bugfixes
+
+* Cluster
+  * JSON-RPC Crashes with 2.11 #7532
+
 ## 2.11.2 (2019-10-24)
 
 2.11.2 fixes a problem where the newly introduced config sync "check-change-then-reload" functionality
