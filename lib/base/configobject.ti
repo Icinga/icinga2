@@ -59,10 +59,10 @@ abstract class ConfigObject : ConfigObjectBase < ConfigType
 	[config, no_user_modify] String __name (Name);
 	[config, no_user_modify] String "name" (ShortName) {
 		get {{{
-			if (m_ShortName.IsEmpty())
+			if (m_ShortName.m_Value.IsEmpty())
 				return GetName();
 			else
-				return m_ShortName;
+				return m_ShortName.m_Value;
 		}}}
 	};
 	[config, no_user_modify] name(Zone) zone (ZoneName);

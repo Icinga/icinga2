@@ -11,10 +11,10 @@ class UserGroup : CustomVarObject
 {
 	[config] String display_name {
 		get {{{
-			if (m_DisplayName.IsEmpty())
+			if (m_DisplayName.m_Value.IsEmpty())
 				return GetName();
 			else
-				return m_DisplayName;
+				return m_DisplayName.m_Value;
 		}}}
 	};
 
