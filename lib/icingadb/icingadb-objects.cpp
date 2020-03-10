@@ -1644,7 +1644,6 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 		"XADD", "icinga:history:stream:flapping", "*",
 		"environment_id", SHA1(GetEnvironment()),
 		"host_id", GetObjectIdentifier(host),
-		"percent_state_change", Convert::ToString(checkable->GetFlappingCurrent()),
 		"flapping_threshold_low", Convert::ToString(checkable->GetFlappingThresholdLow()),
 		"flapping_threshold_high", Convert::ToString(checkable->GetFlappingThresholdHigh()),
 		"event_id", Utility::NewUniqueID()
@@ -1674,6 +1673,8 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 
 		xAdd.emplace_back("event_type");
 		xAdd.emplace_back("flapping_start");
+		xAdd.emplace_back("percent_state_change_start");
+		xAdd.emplace_back(Convert::ToString(checkable->GetFlappingCurrent()));
 	} else {
 		startTime = TimestampToMilliseconds(flappingLastChange);
 
@@ -1681,6 +1682,8 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 		xAdd.emplace_back("flapping_end");
 		xAdd.emplace_back("end_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(changeTime)));
+		xAdd.emplace_back("percent_state_change_end");
+		xAdd.emplace_back(Convert::ToString(checkable->GetFlappingCurrent()));
 	}
 
 	xAdd.emplace_back("start_time");
