@@ -5,13 +5,11 @@
 #include "base/configtype.hpp"
 #include "base/base64.hpp"
 #include "base/tlsutility.hpp"
-#include "base/utility.hpp"
+#include "base/utility.hpp
 
 using namespace icinga;
 
 REGISTER_TYPE(ApiUser);
-
-char *crypt(const char *key, const char *salt);
 
 ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
 {
