@@ -115,13 +115,12 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 			try {
 				for (auto& message : queue) {
 					size_t bytesSent = JsonRpc::SendRawMessage(m_Stream, message, yc);
+					m_Stream->async_flush(yc);
 
 					if (m_Endpoint) {
 						m_Endpoint->AddMessageSent(bytesSent);
 					}
 				}
-
-				m_Stream->async_flush(yc);
 			} catch (const std::exception& ex) {
 				if (!m_ShuttingDown) {
 					std::ostringstream info;
