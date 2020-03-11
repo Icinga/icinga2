@@ -6,7 +6,6 @@
 #include "base/base64.hpp"
 #include "base/tlsutility.hpp"
 #include "base/utility.hpp"
-#include <unistd.h>
 
 using namespace icinga;
 
