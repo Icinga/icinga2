@@ -5,7 +5,8 @@
 #include "base/configtype.hpp"
 #include "base/base64.hpp"
 #include "base/tlsutility.hpp"
-#include "base/utility.hpp
+#include "base/utility.hpp"
+#include <crypt.h>
 
 using namespace icinga;
 
