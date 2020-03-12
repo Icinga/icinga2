@@ -55,7 +55,7 @@ Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files:
 
 ```
 git checkout master
-git log --use-mailmap | grep '^Author:' | cut -f2- -d' ' | sort | uniq > AUTHORS
+git log --use-mailmap | grep '^Author:' | cut -f2- -d' ' | sort -f | uniq > AUTHORS
 ```
 
 ## Version <a id="version"></a>
