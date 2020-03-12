@@ -51,7 +51,21 @@ master branch which should be part of this release.
 
 ### Authors <a id="authors"></a>
 
-Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files:
+Update the [.mailmap](.mailmap) file:
+
+```
+(
+	git log '--format=%an <%ae>' v2.11.0 |sort -fu;
+	git log '--format=%an <%ae>' master |sort -fu
+) |sort -f |uniq -u >>.mailmap
+
+sort -fuo .mailmap .mailmap
+```
+
+Show the additional authors with `git diff`
+and deduplicate actual people manually with a text editor.
+
+Update the [AUTHORS](AUTHORS) file:
 
 ```
 git checkout master
