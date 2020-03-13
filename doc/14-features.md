@@ -61,12 +61,7 @@ Requirements:
 * IcingaDB service requires Redis and MySQL/MariaDB server
 * Icinga Web module
 
-> TODO: Detailed instructions.
-
-```
-icinga2 feature enable icingadb
-```
-
+Consult the [Icinga DB section](02-installation.md#configuring-icinga-db) in the installation chapter for setup instructions.
 
 ### IDO Database (DB IDO) <a id="db-ido"></a>
 
