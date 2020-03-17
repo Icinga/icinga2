@@ -138,9 +138,8 @@ std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relative
 	std::vector<std::unique_ptr<Expression> > expressions;
 
 	if (!Utility::Glob(includePath, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
-		std::ostringstream msgbuf;
-		msgbuf << "Include file '" + path + "' does not exist";
-		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debuginfo));
+		Log(LogWarning, "config")
+			<< "Include file '" << path << "' requested " << debuginfo << " does not exist.";
 	}
 
 	std::unique_ptr<DictExpression> expr{new DictExpression(std::move(expressions))};
@@ -157,7 +156,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relative
  * @param debuginfo Debug information.
  */
 std::unique_ptr<Expression> ConfigCompiler::HandleIncludeRecursive(const String& relativeBase, const String& path,
-	const String& pattern, const String& zone, const String& package, const DebugInfo&)
+	const String& pattern, const String& zone, const String& package, const DebugInfo& debuginfo)
 {
 	String ppath;
 
@@ -167,7 +166,12 @@ std::unique_ptr<Expression> ConfigCompiler::HandleIncludeRecursive(const String&
 		ppath = relativeBase + "/" + path;
 
 	std::vector<std::unique_ptr<Expression> > expressions;
-	Utility::GlobRecursive(ppath, pattern, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile);
+	Utility::GlobRecursive(ppath, pattern, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile, [&path, &debuginfo](const std::exception& ex) {
+		Log(LogWarning, "config")
+			<< "Couldn't include directory '" << path << "' requested " << debuginfo << ": " << ex.what();
+
+		return true;
+	});
 
 	std::unique_ptr<DictExpression> dict{new DictExpression(std::move(expressions))};
 	dict->MakeInline();
