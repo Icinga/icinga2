@@ -138,9 +138,8 @@ std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relative
 	std::vector<std::unique_ptr<Expression> > expressions;
 
 	if (!Utility::Glob(includePath, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
-		std::ostringstream msgbuf;
-		msgbuf << "Include file '" + path + "' does not exist";
-		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debuginfo));
+		Log(LogWarning, "config")
+			<< "Include file '" << path << "' requested " << debuginfo << " does not exist.";
 	}
 
 	std::unique_ptr<DictExpression> expr{new DictExpression(std::move(expressions))};
