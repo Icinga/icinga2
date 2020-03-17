@@ -546,8 +546,10 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
  * @param pattern The pattern.
  * @param callback The callback which is invoked for each matching file.
  * @param type The file type (a combination of GlobFile and GlobDirectory)
+ * @param onError If an actual function (!!onError) called on error, if returns true, that error is being suppressed.
  */
-bool Utility::GlobRecursive(const String& path, const String& pattern, const std::function<void (const String&)>& callback, int type)
+bool Utility::GlobRecursive(const String& path, const String& pattern, const std::function<void (const String&)>& callback,
+	int type, const std::function<bool(const std::exception&)>& onError)
 {
 	std::vector<String> files, dirs, alldirs;
 
@@ -565,10 +567,18 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 		if (errorCode == ERROR_FILE_NOT_FOUND)
 			return false;
 
-		BOOST_THROW_EXCEPTION(win32_error()
-			<< boost::errinfo_api_function("FindFirstFile")
-			<< errinfo_win32_error(errorCode)
-			<< boost::errinfo_file_name(pathSpec));
+		try {
+			BOOST_THROW_EXCEPTION(win32_error()
+				<< boost::errinfo_api_function("FindFirstFile")
+				<< errinfo_win32_error(errorCode)
+				<< boost::errinfo_file_name(pathSpec));
+		} catch (const std::exception& ex) {
+			if (onError && onError(ex)) {
+				return false;
+			}
+
+			throw;
+		}
 	}
 
 	do {
@@ -600,11 +610,20 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 
 	dirp = opendir(path.CStr());
 
-	if (!dirp)
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("opendir")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
+	if (!dirp) {
+		try {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("opendir")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(path));
+		} catch (const std::exception& ex) {
+			if (onError && onError(ex)) {
+				return false;
+			}
+
+			throw;
+		}
+	}
 
 	while (dirp) {
 		dirent *pent;
@@ -662,7 +681,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 
 	std::sort(alldirs.begin(), alldirs.end());
 	for (const String& cpath : alldirs) {
-		GlobRecursive(cpath, pattern, callback, type);
+		GlobRecursive(cpath, pattern, callback, type, onError);
 	}
 
 	return true;

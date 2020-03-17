@@ -65,7 +65,8 @@ public:
 	static String NewUniqueID();
 
 	static bool Glob(const String& pathSpec, const std::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
-	static bool GlobRecursive(const String& path, const String& pattern, const std::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
+	static bool GlobRecursive(const String& path, const String& pattern, const std::function<void (const String&)>& callback,
+		int type = GlobFile | GlobDirectory, const std::function<bool(const std::exception&)>& onError = {});
 	static void MkDir(const String& path, int mode);
 	static void MkDirP(const String& path, int mode);
 	static bool SetFileOwnership(const String& file, const String& user, const String& group);
