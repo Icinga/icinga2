@@ -34,6 +34,8 @@ bool ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkabl
 	builder.SetScope(frame.Locals->ShallowClone());
 	builder.SetIgnoreOnError(rule.GetIgnoreOnError());
 
+	builder.AddExpression(new ImportDefaultTemplatesExpression());
+
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
@@ -51,8 +53,6 @@ bool ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkabl
 	builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "package"), OpSetLiteral, MakeLiteral(rule.GetPackage()), di));
 
 	builder.AddExpression(new OwnedExpression(rule.GetExpression()));
-
-	builder.AddExpression(new ImportDefaultTemplatesExpression());
 
 	ConfigItem::Ptr downtimeItem = builder.Compile();
 	downtimeItem->Register();

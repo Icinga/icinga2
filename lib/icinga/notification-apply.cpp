@@ -35,6 +35,8 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 	builder.SetScope(frame.Locals->ShallowClone());
 	builder.SetIgnoreOnError(rule.GetIgnoreOnError());
 
+	builder.AddExpression(new ImportDefaultTemplatesExpression());
+
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
@@ -52,8 +54,6 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 	builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "package"), OpSetLiteral, MakeLiteral(rule.GetPackage()), di));
 
 	builder.AddExpression(new OwnedExpression(rule.GetExpression()));
-
-	builder.AddExpression(new ImportDefaultTemplatesExpression());
 
 	ConfigItem::Ptr notificationItem = builder.Compile();
 	notificationItem->Register();
