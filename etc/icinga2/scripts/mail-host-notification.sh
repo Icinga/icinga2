@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 # Except of function urlencode which is Copyright (C) by Brian White (brian@aljex.com) used under MIT license
 
