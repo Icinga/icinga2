@@ -2798,6 +2798,38 @@ Name                            | Description
 smart_attributes_config_path    | **Required.** Path to the smart attributes config file (e.g. check_smartdb.json).
 smart_attributes_device         | **Required.** Device name (e.g. /dev/sda) to monitor.
 
+#### fiberchannel-brocade <a id="plugin-contrib-command-fiberchannel-brocade"></a>
+
+The [check_snmp_brocade](https://exchange.nagios.org/directory/Plugins/Hardware/Network-Gear/Brocade/check_snmp_brocade--2D-monitor-Brocade-fibre-channel-switches/details) plugin
+monitors the hardware health of Brocade Fiber Channel Switches via SNMP.
+
+The plugin runs remote SNMP queries.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                                  | Description
+--------------------------------------|-----------------------------------------------------------------------
+fiberchannel_brocade_hostname         | **Required.** Hostname or IP-address of the server (SNMP mode only)
+fiberchannel_brocade_community        | **Optional.** SNMP community of the switch (SNMP v1/2 only)
+fiberchannel_brocade_snmpversion      | **Optional.** The SNMP protocol to use (default: 2c, other possibilities: 1,3)
+fiberchannel_brocade_seclevel         | **Optional.** The SNMP security level to use (default: noAuthNoPriv, othet possibilities: authNoPriv,authPriv)
+fiberchannel_brocade_port             | **Optional.** The SNMP port to use (default: 161)
+fiberchannel_brocade_context          | **Optional.** SNMPv3 context name
+fiberchannel_brocade_fc_port          | **Optional.** Port number as shown in the output of `switchshow`. Can't combine with --systeminfo parameter
+fiberchannel_brocade_systeminfo       | **Optional.** Get global data like boot date, overall status, reachability
+fiberchannel_brocade_sensor           | **Optional.** Additional to --systeminfo. Status of powersupply, fans and temp sensors
+fiberchannel_brocade_global           | **Optional.** Global data like boot date, overall status
+fiberchannel_brocade_perfdata         | **Optional.** Print performance data of the selected FC port specified via -P parameter
+fiberchannel_brocade_secname          | **Optional.** The SNMPv3 securityName for the USM security model
+fiberchannel_brocade_authpassword     | **Optional.** The authentication password for SNMPv3
+fiberchannel_brocade_authprotocol     | **Optional.** The authentication protocol for SNMPv3 (md5|sha)
+fiberchannel_brocade_privpassword     | **Optional.** The password for SNMPv3 authPriv security level
+fiberchannel_brocade_privprotocol     | **Optional.** The private protocol for SNMPv3 (des|aes)
+fiberchannel_brocade_sfptemp          | **Optional.** Checks the temperature of all SFPs
+fiberchannel_brocade_sfptemp_warning  | **Optional.** This is the warning offset the critical temperature as delivered by the system. Default is 10 Celsius. Must be used with --sfptemp parameter
+fiberchannel_brocade_sfptemp_critical | **Optional.** Maximum temperature for SFPs. If not set it will be taken from your switch
+fiberchannel_brocade_allports         | **Optional.** Default is only to show ports which are too hot. With this flag all ports will be shown. Must be used with --sfptemp
+fiberchannel_brocade_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML <br> for the GUI instead of be aware that your messing connections (email, SMS...) must use a filter to file out the <br>. A sed oneliner will do the job.
 
 ### IcingaCLI <a id="plugin-contrib-icingacli"></a>
 
