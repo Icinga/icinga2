@@ -13,6 +13,7 @@
 #include "base/utility.hpp"
 #include <fstream>
 #include <iomanip>
+#include <thread>
 
 using namespace icinga;
 
@@ -310,6 +311,12 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		return Empty;
 	}
 
+	std::thread([origin, params]() { HandleConfigUpdate(origin, params); }).detach();
+	return Empty;
+}
+
+void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
 	/* Only one transaction is allowed, concurrent message handlers need to wait.
 	 * This affects two parent endpoints sending the config in the same moment.
 	 */
@@ -527,8 +534,6 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
 			<< "' are equal to production, skipping validation and reload.";
 	}
-
-	return Empty;
 }
 
 /**
