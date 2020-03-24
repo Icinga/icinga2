@@ -1076,7 +1076,7 @@ rc-service icinga2 restart
 
 ### Installing Icinga Web 2 <a id="installing-icingaweb2"></a>
 
-Please consult the [Icinga Web 2 documentation](https://icinga.com/docs/icingaweb2/latest/doc/)
+Please consult the [Icinga Web 2 documentation](https://icinga.com/docs/icingaweb2/latest/)
 for further instructions on how to install Icinga Web 2.
 
 If you decided on using Icinga DB, consult the [Icinga DB Web documentation](https://icinga.com/docs/icingadb/latest/icingadb-web/doc/01-About/) on how to connect Icinga Web 2 with Icinga DB.
