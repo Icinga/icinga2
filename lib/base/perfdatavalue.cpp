@@ -47,6 +47,10 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 
 	size_t pos = valueStr.FindFirstNotOf("+-0123456789.e");
 
+	if (pos != String::NPos && valueStr[pos] == ',') {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid performance data value: " + perfdata));
+	}
+
 	double value = Convert::ToDouble(valueStr.SubStr(0, pos));
 
 	std::vector<String> tokens = valueStr.Split(";");
@@ -90,7 +94,10 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 		counter = true;
 		unit = "";
 	} else if (unit != "") {
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid performance data unit: " + unit));
+		Log(LogDebug, "PerfdataValue")
+			<< "Invalid performance data unit: " << unit;
+
+		unit = "";
 	}
 
 	warn = ParseWarnCritMinMaxToken(tokens, 1, "warning");
