@@ -43,6 +43,9 @@ add_library(cli OBJECT ${cli_SOURCES})
 
 add_dependencies(cli base config icinga remote)
 
+include_directories(${icinga2_SOURCE_DIR}/third-party/crypt_blowfish)
+link_directories(${icinga2_BINARY_DIR}/third-party/crypt_blowfish)
+
 set_target_properties (
   cli PROPERTIES
   FOLDER Lib
