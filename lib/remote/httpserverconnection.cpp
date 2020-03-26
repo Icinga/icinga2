@@ -20,17 +20,44 @@
 #include "base/utility.hpp"
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <boost/asio/error.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/key_extractors.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
+
+namespace mi = boost::multi_index;
+
+struct LockedOutIP
+{
+	decltype(((AsioTlsStream*)nullptr)->lowest_layer().remote_endpoint().address()) Address;
+	double Until;
+};
+
+static struct {
+	std::mutex Mutex;
+
+	boost::multi_index_container<LockedOutIP, mi::indexed_by<
+		mi::ordered_unique<mi::member<LockedOutIP, decltype(((LockedOutIP*)nullptr)->Address), &LockedOutIP::Address>>,
+		mi::ordered_unique<mi::member<LockedOutIP, double, &LockedOutIP::Until>>
+	>> Index;
+} l_LockedOutIPs;
+
+static void CleanUpLockedOutIPs()
+{
+	auto& idx (boost::get<1>(l_LockedOutIPs.Index));
+	idx.erase(idx.begin(), idx.upper_bound(Utility::GetTime()));
+}
 
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
@@ -203,6 +230,54 @@ bool EnsureValidHeaders(
 }
 
 static inline
+bool EnsureNotLockedOut(
+	AsioTlsStream& stream,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
+	boost::beast::http::response<boost::beast::http::string_body>& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	auto address (stream.lowest_layer().remote_endpoint().address());
+
+	{
+		CpuBoundWork ensureNotLockedOut (yc);
+		std::unique_lock<std::mutex> lock (l_LockedOutIPs.Mutex);
+
+		CleanUpLockedOutIPs();
+
+		auto& idx (boost::get<0>(l_LockedOutIPs.Index));
+		auto pos (idx.find(address));
+
+		if (pos == idx.end()) {
+			return true;
+		}
+	}
+
+	response.result(http::status::forbidden);
+	response.set(http::field::connection, "close");
+
+	if (request[http::field::accept] == "application/json") {
+		HttpUtility::SendJsonBody(response, nullptr, new Dictionary({
+			{ "error", 403 },
+			{ "status", "Your IP address [" + String(address.to_string()) + "] has been temporarily locked out." }
+		}));
+	} else {
+		response.set(http::field::content_type, "text/html");
+		response.body() = "<h1>Your IP address [" + address.to_string() + "] has been temporarily locked out.</h1>";
+		response.set(http::field::content_length, response.body().size());
+	}
+
+	boost::system::error_code ec;
+
+	http::async_write(stream, response, yc[ec]);
+	stream.async_flush(yc[ec]);
+
+	return false;
+}
+
+static inline
 void HandleExpect100(
 	AsioTlsStream& stream,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -316,8 +391,20 @@ bool EnsureAuthenticatedUser(
 	namespace http = boost::beast::http;
 
 	if (!authenticatedUser) {
-		Log(LogWarning, "HttpServerConnection")
-			<< "Unauthorized request: " << request.method_string() << ' ' << request.target();
+		{
+			auto address (stream.lowest_layer().remote_endpoint().address());
+
+			Log(LogWarning, "HttpServerConnection")
+				<< "Unauthorized request: " << request.method_string() << ' ' << request.target()
+				<< ". Locking out [" << address << "] for 10s.";
+
+			CpuBoundWork lockingOutIp (yc);
+			std::unique_lock<std::mutex> lock (l_LockedOutIPs.Mutex);
+
+			CleanUpLockedOutIPs();
+
+			l_LockedOutIPs.Index.emplace(LockedOutIP{std::move(address), Utility::GetTime() + 10});
+		}
 
 		response.result(http::status::unauthorized);
 		response.set(http::field::www_authenticate, "Basic realm=\"Icinga 2\"");
@@ -527,6 +614,10 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				if (method != http::verb::unknown) {
 					request.method(method);
 				}
+			}
+
+			if (!EnsureNotLockedOut(*m_Stream, request, response, yc)) {
+				break;
 			}
 
 			HandleExpect100(*m_Stream, request, yc);
