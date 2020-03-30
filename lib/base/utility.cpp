@@ -18,6 +18,7 @@
 #include <boost/thread/tss.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/locale.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/regex.hpp>
@@ -26,6 +27,7 @@
 #include <iostream>
 #include <iterator>
 #include <stdlib.h>
+#include <sstream>
 #include <future>
 #include <utf8.h>
 #include <vector>
@@ -937,31 +939,14 @@ String Utility::FormatDuration(double duration)
 
 String Utility::FormatDateTime(const char *format, double ts)
 {
-	char timestamp[128];
-	auto tempts = (time_t)ts; /* We don't handle sub-second timestamps here just yet. */
-	tm tmthen;
+	namespace lc = boost::locale;
 
-#ifdef _MSC_VER
-	tm *temp = localtime(&tempts);
+	std::ostringstream oss;
 
-	if (!temp) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("localtime")
-			<< boost::errinfo_errno(errno));
-	}
+	oss.exceptions(oss.badbit | oss.failbit);
+	oss << lc::as::ftime(format) << lc::date_time(ts);
 
-	tmthen = *temp;
-#else /* _MSC_VER */
-	if (!localtime_r(&tempts, &tmthen)) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("localtime_r")
-			<< boost::errinfo_errno(errno));
-	}
-#endif /* _MSC_VER */
-
-	strftime(timestamp, sizeof(timestamp), format, &tmthen);
-
-	return timestamp;
+	return oss.str();
 }
 
 String Utility::FormatErrorNumber(int code) {
