@@ -40,6 +40,7 @@ set(base_SOURCES
   lazy-init.hpp
   library.cpp library.hpp
   loader.cpp loader.hpp
+  locale.cpp locale.hpp
   logger.cpp logger.hpp logger-ti.hpp
   math-script.cpp
   netstring.cpp netstring.hpp

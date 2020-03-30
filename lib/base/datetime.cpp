@@ -2,10 +2,14 @@
 
 #include "base/datetime.hpp"
 #include "base/datetime-ti.cpp"
+#include "base/locale.hpp"
 #include "base/utility.hpp"
 #include "base/primitivetype.hpp"
+#include <boost/locale.hpp>
 
 using namespace icinga;
+
+namespace lc = boost::locale;
 
 REGISTER_TYPE_WITH_PROTOTYPE(DateTime, DateTime::GetPrototype());
 
@@ -18,24 +22,23 @@ DateTime::DateTime(const std::vector<Value>& args)
 	if (args.empty())
 		m_Value = Utility::GetTime();
 	else if (args.size() == 3 || args.size() == 6) {
-		struct tm tms;
-		tms.tm_year = args[0] - 1900;
-		tms.tm_mon = args[1] - 1;
-		tms.tm_mday = args[2];
+		LocaleDateTime dt;
+
+		dt.set(lc::period::year(), args[0]);
+		dt.set(lc::period::month(), args[1] - 1);
+		dt.set(lc::period::day(), args[2]);
 
 		if (args.size() == 6) {
-			tms.tm_hour = args[3];
-			tms.tm_min = args[4];
-			tms.tm_sec = args[5];
+			dt.set(lc::period::hour(), args[3]);
+			dt.set(lc::period::minute(), args[4]);
+			dt.set(lc::period::second(), args[5]);
 		} else {
-			tms.tm_hour = 0;
-			tms.tm_min = 0;
-			tms.tm_sec = 0;
+			dt.set(lc::period::hour(), 0);
+			dt.set(lc::period::minute(), 0);
+			dt.set(lc::period::second(), 0);
 		}
 
-		tms.tm_isdst = -1;
-
-		m_Value = mktime(&tms);
+		m_Value = dt.time();
 	} else if (args.size() == 1)
 		m_Value = args[0];
 	else
