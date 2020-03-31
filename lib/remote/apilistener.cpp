@@ -275,7 +275,7 @@ void ApiListener::Start(bool runtimeCreated)
 
 	/* Keep this in relative sync with the cold startup in UpdateObjectAuthority() and the reconnect interval above.
 	 * Previous: 60s reconnect, 30s OA, 60s cold startup.
-	 * Now: 10s reconnect, 10s OA, 30s cold startup. 
+	 * Now: 10s reconnect, 10s OA, 30s cold startup.
 	 */
 	m_AuthorityTimer = new Timer();
 	m_AuthorityTimer->OnTimerExpired.connect(std::bind(&ApiListener::UpdateObjectAuthority));
@@ -386,9 +386,9 @@ bool ApiListener::AddListener(const String& node, const String& service)
 
 					const int optTrue = 1;
 					setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
-#ifndef _WIN32
+#ifdef SO_REUSEPORT
 					setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue));
-#endif /* _WIN32 */
+#endif /* SO_REUSEPORT */
 				}
 
 				acceptor->bind(current->endpoint());
