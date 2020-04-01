@@ -7,6 +7,7 @@
 #include "icinga/service.hpp"
 #include "base/timer.hpp"
 #include "base/configtype.hpp"
+#include "base/locale.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -105,7 +106,7 @@ Checkable::Ptr ScheduledDowntime::GetCheckable() const
 std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 {
 	time_t refts = Utility::GetTime();
-	tm reference = Utility::LocalTime(refts);
+	LocaleDateTime reference (refts);
 
 	Log(LogDebug, "ScheduledDowntime")
 	    << "Finding running scheduled downtime segment for time " << refts
@@ -166,7 +167,7 @@ std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 std::pair<double, double> ScheduledDowntime::FindNextSegment()
 {
 	time_t refts = Utility::GetTime();
-	tm reference = Utility::LocalTime(refts);
+	LocaleDateTime reference (refts);
 
 	Log(LogDebug, "ScheduledDowntime")
 		<< "Finding next scheduled downtime segment for time " << refts;
@@ -293,13 +294,13 @@ void ScheduledDowntime::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, cons
 
 	/* create a fake time environment to validate the definitions */
 	time_t refts = Utility::GetTime();
-	tm reference = Utility::LocalTime(refts);
+	LocaleDateTime reference (refts);
 	Array::Ptr segments = new Array();
 
 	ObjectLock olock(lvalue());
 	for (const Dictionary::Pair& kv : lvalue()) {
 		try {
-			tm begin_tm, end_tm;
+			LocaleDateTime begin_tm, end_tm;
 			int stride;
 			LegacyTimePeriod::ParseTimeRange(kv.first, &begin_tm, &end_tm, &stride, &reference);
 		} catch (const std::exception& ex) {

@@ -4,6 +4,7 @@
 #include "icinga/timeperiod-ti.cpp"
 #include "icinga/legacytimeperiod.hpp"
 #include "base/configtype.hpp"
+#include "base/locale.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
@@ -377,13 +378,13 @@ void TimePeriod::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const Valid
 
 	/* create a fake time environment to validate the definitions */
 	time_t refts = Utility::GetTime();
-	tm reference = Utility::LocalTime(refts);
+	LocaleDateTime reference (refts);
 	Array::Ptr segments = new Array();
 
 	ObjectLock olock(lvalue());
 	for (const Dictionary::Pair& kv : lvalue()) {
 		try {
-			tm begin_tm, end_tm;
+			LocaleDateTime begin_tm, end_tm;
 			int stride;
 			LegacyTimePeriod::ParseTimeRange(kv.first, &begin_tm, &end_tm, &stride, &reference);
 		} catch (const std::exception& ex) {

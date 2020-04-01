@@ -4,21 +4,25 @@
 #include "base/function.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/locale.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/debug.hpp"
 #include "base/utility.hpp"
+#include <boost/locale.hpp>
 
 using namespace icinga;
 
+namespace lc = boost::locale;
+
 REGISTER_FUNCTION_NONCONST(Internal, LegacyTimePeriod, &LegacyTimePeriod::ScriptFunc, "tp:begin:end");
 
-bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *reference)
+bool LegacyTimePeriod::IsInTimeRange(LocaleDateTime *begin, LocaleDateTime *end, int stride, LocaleDateTime *reference)
 {
 	time_t tsbegin, tsend, tsref;
-	tsbegin = mktime(begin);
-	tsend = mktime(end);
-	tsref = mktime(reference);
+	tsbegin = begin->time();
+	tsend = end->time();
+	tsref = reference->time();
 
 	if (tsref < tsbegin || tsref > tsend)
 		return false;
@@ -31,7 +35,7 @@ bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *referen
 	return true;
 }
 
-void LegacyTimePeriod::FindNthWeekday(int wday, int n, tm *reference)
+void LegacyTimePeriod::FindNthWeekday(int wday, int n, LocaleDateTime *reference)
 {
 	int dir, seen = 0;
 
@@ -42,24 +46,22 @@ void LegacyTimePeriod::FindNthWeekday(int wday, int n, tm *reference)
 		dir = -1;
 
 		/* Negative days are relative to the next month. */
-		reference->tm_mon++;
+		*reference += lc::period::month(1);
 	}
 
 	ASSERT(n > 0);
 
-	reference->tm_mday = 1;
+	reference->set(lc::period::day(), 1);
 
 	for (;;) {
-		mktime(reference);
-
-		if (reference->tm_wday == wday) {
+		if (reference->get(lc::period::day_of_week()) == wday) {
 			seen++;
 
 			if (seen == n)
 				return;
 		}
 
-		reference->tm_mday += dir;
+		*reference += lc::period::day(dir);
 	}
 }
 
@@ -120,11 +122,8 @@ boost::gregorian::date LegacyTimePeriod::GetEndOfMonthDay(int year, int month)
 	return d.end_of_month();
 }
 
-void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end, tm *reference)
+void LegacyTimePeriod::ParseTimeSpec(const String& timespec, LocaleDateTime *begin, LocaleDateTime *end, LocaleDateTime *reference)
 {
-	/* Let mktime() figure out whether we're in DST or not. */
-	reference->tm_isdst = -1;
-
 	/* YYYY-MM-DD */
 	if (timespec.GetLength() == 10 && timespec[4] == '-' && timespec[7] == '-') {
 		int year = Convert::ToLong(timespec.SubStr(0, 4));
@@ -138,22 +137,26 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 
 		if (begin) {
 			*begin = *reference;
-			begin->tm_year = year - 1900;
-			begin->tm_mon = month - 1;
-			begin->tm_mday = day;
-			begin->tm_hour = 0;
-			begin->tm_min = 0;
-			begin->tm_sec = 0;
+
+			begin->set(lc::period::year(), year);
+			begin->set(lc::period::month(), month - 1);
+			begin->set(lc::period::day(), day);
+			begin->set(lc::period::hour(), 0);
+			begin->set(lc::period::minute(), 0);
+			begin->set(lc::period::second(), 0);
 		}
 
 		if (end) {
 			*end = *reference;
-			end->tm_year = year - 1900;
-			end->tm_mon = month - 1;
-			end->tm_mday = day;
-			end->tm_hour = 24;
-			end->tm_min = 0;
-			end->tm_sec = 0;
+
+			end->set(lc::period::year(), year);
+			end->set(lc::period::month(), month - 1);
+			end->set(lc::period::day(), day);
+			end->set(lc::period::hour(), 0);
+			end->set(lc::period::minute(), 0);
+			end->set(lc::period::second(), 0);
+
+			*end += lc::period::day(1);
 		}
 
 		return;
@@ -165,55 +168,46 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 
 	if (tokens.size() > 1 && (tokens[0] == "day" || (mon = MonthFromString(tokens[0])) != -1)) {
 		if (mon == -1)
-			mon = reference->tm_mon;
+			mon = reference->get(lc::period::month());
 
 		int mday = Convert::ToLong(tokens[1]);
 
 		if (begin) {
 			*begin = *reference;
-			begin->tm_mon = mon;
-			begin->tm_mday = mday;
-			begin->tm_hour = 0;
-			begin->tm_min = 0;
-			begin->tm_sec = 0;
+
+			begin->set(lc::period::month(), mon);
+			begin->set(lc::period::hour(), 0);
+			begin->set(lc::period::minute(), 0);
+			begin->set(lc::period::second(), 0);
 
 			/* day -X: Negative days are relative to the next month. */
 			if (mday < 0) {
-				boost::gregorian::date d(GetEndOfMonthDay(reference->tm_year + 1900, mon + 1)); //TODO: Refactor this mess into full Boost.DateTime
-
-				//Depending on the number, we need to substract specific days (counting starts at 0).
-				d = d - boost::gregorian::days(mday * -1 - 1);
-
-				*begin = boost::gregorian::to_tm(d);
-				begin->tm_hour = 0;
-				begin->tm_min = 0;
-				begin->tm_sec = 0;
+				begin->set(lc::period::day(), 1);
+				*begin += lc::period::month(1);
+				*begin -= lc::period::day(-mday);
+			} else {
+				begin->set(lc::period::day(), mday);
 			}
 		}
 
 		if (end) {
 			*end = *reference;
-			end->tm_mon = mon;
-			end->tm_mday = mday;
-			end->tm_hour = 24;
-			end->tm_min = 0;
-			end->tm_sec = 0;
+
+			end->set(lc::period::month(), mon);
+			end->set(lc::period::hour(), 0);
+			end->set(lc::period::minute(), 0);
+			end->set(lc::period::second(), 0);
 
 			/* day -X: Negative days are relative to the next month. */
 			if (mday < 0) {
-				boost::gregorian::date d(GetEndOfMonthDay(reference->tm_year + 1900, mon + 1)); //TODO: Refactor this mess into full Boost.DateTime
-
-				//Depending on the number, we need to substract specific days (counting starts at 0).
-				d = d - boost::gregorian::days(mday * -1 - 1);
-
-				// End date is one day in the future, starting 00:00:00
-				d = d + boost::gregorian::days(1);
-
-				*end = boost::gregorian::to_tm(d);
-				end->tm_hour = 0;
-				end->tm_min = 0;
-				end->tm_sec = 0;
+				end->set(lc::period::day(), 1);
+				*end += lc::period::month(1);
+				*end -= lc::period::day(-mday);
+			} else {
+				end->set(lc::period::day(), mday);
 			}
+
+			*end += lc::period::day(1);
 		}
 
 		return;
@@ -222,7 +216,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 	int wday;
 
 	if (tokens.size() >= 1 && (wday = WeekdayFromString(tokens[0])) != -1) {
-		tm myref = *reference;
+		LocaleDateTime myref = *reference;
 
 		if (tokens.size() > 2) {
 			mon = MonthFromString(tokens[2]);
@@ -230,7 +224,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			if (mon == -1)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid month in time specification: " + timespec));
 
-			myref.tm_mon = mon;
+			myref.set(lc::period::month(), mon);
 		}
 
 		int n = 0;
@@ -244,11 +238,11 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			if (tokens.size() > 1)
 				FindNthWeekday(wday, n, begin);
 			else
-				begin->tm_mday += (7 - begin->tm_wday + wday) % 7;
+				*begin += lc::period::day((7 - begin->get(lc::period::day_of_week()) + wday) % 7);
 
-			begin->tm_hour = 0;
-			begin->tm_min = 0;
-			begin->tm_sec = 0;
+			begin->set(lc::period::hour(), 0);
+			begin->set(lc::period::minute(), 0);
+			begin->set(lc::period::second(), 0);
 		}
 
 		if (end) {
@@ -257,12 +251,12 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			if (tokens.size() > 1)
 				FindNthWeekday(wday, n, end);
 			else
-				end->tm_mday += (7 - end->tm_wday + wday) % 7;
+				*end += lc::period::day((7 - end->get(lc::period::day_of_week()) + wday) % 7);
 
-			end->tm_hour = 0;
-			end->tm_min = 0;
-			end->tm_sec = 0;
-			end->tm_mday++;
+			end->set(lc::period::hour(), 0);
+			end->set(lc::period::minute(), 0);
+			end->set(lc::period::second(), 0);
+			*end += lc::period::day(1);
 		}
 
 		return;
@@ -271,7 +265,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 	BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + timespec));
 }
 
-void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *end, int *stride, tm *reference)
+void LegacyTimePeriod::ParseTimeRange(const String& timerange, LocaleDateTime *begin, LocaleDateTime *end, int *stride, LocaleDateTime *reference)
 {
 	String def = timerange;
 
@@ -323,22 +317,22 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 	}
 }
 
-bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
+bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, LocaleDateTime *reference)
 {
-	tm begin, end;
+	LocaleDateTime begin, end;
 	int stride;
 
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
 	Log(LogDebug, "LegacyTimePeriod")
-		<< "ParseTimeRange: '" << daydef << "' => " << mktime(&begin)
-		<< " -> " << mktime(&end) << ", stride: " << stride;
+		<< "ParseTimeRange: '" << daydef << "' => " << begin.time()
+		<< " -> " << end.time() << ", stride: " << stride;
 
 	return IsInTimeRange(&begin, &end, stride, reference);
 }
 
 static inline
-void ProcessTimeRaw(const String& in, tm *reference, tm *out)
+void ProcessTimeRaw(const String& in, LocaleDateTime *reference, LocaleDateTime *out)
 {
 	*out = *reference;
 
@@ -346,20 +340,20 @@ void ProcessTimeRaw(const String& in, tm *reference, tm *out)
 
 	switch (hd.size()) {
 		case 2:
-			out->tm_sec = 0;
+			out->set(lc::period::second(), 0);
 			break;
 		case 3:
-			out->tm_sec = Convert::ToLong(hd[2]);
+			out->set(lc::period::second(), Convert::ToLong(hd[2]));
 			break;
 		default:
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + in));
 	}
 
-	out->tm_hour = Convert::ToLong(hd[0]);
-	out->tm_min = Convert::ToLong(hd[1]);
+	out->set(lc::period::hour(), Convert::ToLong(hd[0]));
+	out->set(lc::period::minute(), Convert::ToLong(hd[1]));
 }
 
-void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *reference, tm *begin, tm *end)
+void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, LocaleDateTime *reference, LocaleDateTime *begin, LocaleDateTime *end)
 {
 	std::vector<String> times = timerange.Split("-");
 
@@ -369,24 +363,23 @@ void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *referenc
 	ProcessTimeRaw(times[0], reference, begin);
 	ProcessTimeRaw(times[1], reference, end);
 
-	if (begin->tm_hour * 3600 + begin->tm_min * 60 + begin->tm_sec >=
-		end->tm_hour * 3600 + end->tm_min * 60 + end->tm_sec)
-		end->tm_hour += 24;
+	if (*begin >= *end)
+		*end += lc::period::day(1);
 }
 
-Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *reference)
+Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, LocaleDateTime *reference)
 {
-	tm begin, end;
+	LocaleDateTime begin, end;
 
 	ProcessTimeRangeRaw(timestamp, reference, &begin, &end);
 
 	return new Dictionary({
-		{ "begin", (long)mktime(&begin) },
-		{ "end", (long)mktime(&end) }
+		{ "begin", begin.time() },
+		{ "end", end.time() }
 	});
 }
 
-void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference, const Array::Ptr& result)
+void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, LocaleDateTime *reference, const Array::Ptr& result)
 {
 	std::vector<String> ranges = timeranges.Split(",");
 
@@ -400,19 +393,19 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference
 	}
 }
 
-Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const String& timeranges, tm *reference)
+Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const String& timeranges, LocaleDateTime *reference)
 {
-	tm begin, end, iter;
+	LocaleDateTime begin, end, iter;
 	time_t tsend, tsiter, tsref;
 	int stride;
 
-	tsref = mktime(reference);
+	tsref = reference->time();
 
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
 	iter = begin;
 
-	tsend = mktime(&end);
+	tsend = end.time();
 
 	do {
 		if (IsInTimeRange(&begin, &end, stride, &iter)) {
@@ -440,19 +433,19 @@ Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const
 				return bestSegment;
 		}
 
-		iter.tm_mday++;
-		iter.tm_hour = 0;
-		iter.tm_min = 0;
-		iter.tm_sec = 0;
-		tsiter = mktime(&iter);
+		iter += lc::period::day(1);
+		iter.set(lc::period::hour(), 0);
+		iter.set(lc::period::minute(), 0);
+		iter.set(lc::period::second(), 0);
+		tsiter = iter.time();
 	} while (tsiter < tsend);
 
 	return nullptr;
 }
 
-Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const String& timeranges, tm *reference)
+Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const String& timeranges, LocaleDateTime *reference)
 {
-	tm begin, end, iter, ref;
+	LocaleDateTime begin, end, iter, ref;
 	time_t tsend, tsiter, tsref;
 	int stride;
 
@@ -461,16 +454,16 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 			ref = *reference;
 		} else {
 			ref = end;
-			ref.tm_mday++;
+			ref += lc::period::day(1);
 		}
 
-		tsref = mktime(&ref);
+		tsref = ref.time();
 
 		ParseTimeRange(daydef, &begin, &end, &stride, &ref);
 
 		iter = begin;
 
-		tsend = mktime(&end);
+		tsend = end.time();
 
 		do {
 			if (IsInTimeRange(&begin, &end, stride, &iter)) {
@@ -497,11 +490,11 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 					return bestSegment;
 			}
 
-			iter.tm_mday++;
-			iter.tm_hour = 0;
-			iter.tm_min = 0;
-			iter.tm_sec = 0;
-			tsiter = mktime(&iter);
+			iter += lc::period::day(1);
+			iter.set(lc::period::hour(), 0);
+			iter.set(lc::period::minute(), 0);
+			iter.set(lc::period::second(), 0);
+			tsiter = iter.time();
 		} while (tsiter < tsend);
 	}
 
@@ -517,7 +510,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 	if (ranges) {
 		for (int i = 0; i <= (end - begin) / (24 * 60 * 60); i++) {
 			time_t refts = begin + i * 24 * 60 * 60;
-			tm reference = Utility::LocalTime(refts);
+			LocaleDateTime reference (refts);
 
 #ifdef I2_DEBUG
 			Log(LogDebug, "LegacyTimePeriod")

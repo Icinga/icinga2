@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/locale.hpp"
 #include "base/utility.hpp"
 #include "icinga/legacytimeperiod.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -7,9 +8,13 @@
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/gregorian/conversion.hpp>
 #include <boost/date_time/date.hpp>
+#include <boost/locale.hpp>
 #include <BoostTestTargetConfig.h>
+#include <utility>
 
 using namespace icinga;
+
+namespace lc = boost::locale;
 
 BOOST_AUTO_TEST_SUITE(icinga_legacytimeperiod);
 
@@ -47,49 +52,58 @@ struct GlobalTimezoneFixture
 
 BOOST_GLOBAL_FIXTURE(GlobalTimezoneFixture);
 
+struct DateTime
+{
+	struct {
+		int Year, Month, Day;
+	} Date;
+	struct {
+		int Hour, Minute, Second;
+	} Time;
+
+	operator LocaleDateTime() const;
+};
+
+DateTime::operator LocaleDateTime() const
+{
+	LocaleDateTime dt;
+
+	dt.set(lc::period::year(), Date.Year);
+	dt.set(lc::period::day(), 1);
+	dt.set(lc::period::month(), Date.Month - 1);
+	dt.set(lc::period::day(), Date.Day);
+	dt.set(lc::period::hour(), Time.Hour);
+	dt.set(lc::period::minute(), Time.Minute);
+	dt.set(lc::period::second(), Time.Second);
+
+	return std::move(dt);
+}
+
 BOOST_AUTO_TEST_CASE(simple)
 {
-	tm tm_beg, tm_end, tm_ref;
+	LocaleDateTime tm_beg, tm_end, tm_ref;
 	String timestamp;
-	boost::posix_time::ptime begin;
-	boost::posix_time::ptime end;
-	boost::posix_time::ptime expectedBegin;
-	boost::posix_time::ptime expectedEnd;
 
 	//-----------------------------------------------------
 	// check parsing of "YYYY-MM-DD" specs
 	timestamp = "2016-01-01";
 
-	expectedBegin = boost::posix_time::ptime(boost::gregorian::date(2016, 1, 1), boost::posix_time::time_duration(0, 0, 0));
-
-	expectedEnd = boost::posix_time::ptime(boost::gregorian::date(2016, 1, 2), boost::posix_time::time_duration(0, 0, 0));
-
 	// Run test
 	LegacyTimePeriod::ParseTimeSpec(timestamp, &tm_beg, &tm_end, &tm_ref);
 
 	// Compare times
-	begin = boost::posix_time::ptime_from_tm(tm_beg);
-	end = boost::posix_time::ptime_from_tm(tm_end);
-
-	BOOST_CHECK_EQUAL(begin, expectedBegin);
-	BOOST_CHECK_EQUAL(end, expectedEnd);
+	BOOST_CHECK_EQUAL(tm_beg, LocaleDateTime(DateTime{{2016, 1, 1}, {0, 0, 0}}));
+	BOOST_CHECK_EQUAL(tm_end, LocaleDateTime(DateTime{{2016, 1, 2}, {0, 0, 0}}));
 
 	//-----------------------------------------------------
 	timestamp = "2015-12-31";
 
-	expectedBegin = boost::posix_time::ptime(boost::gregorian::date(2015, 12, 31), boost::posix_time::time_duration(0, 0, 0));
-
-	expectedEnd = boost::posix_time::ptime(boost::gregorian::date(2016, 1, 1), boost::posix_time::time_duration(0, 0, 0));
-
 	// Run test
 	LegacyTimePeriod::ParseTimeSpec(timestamp, &tm_beg, &tm_end, &tm_ref);
 
 	// Compare times
-	begin = boost::posix_time::ptime_from_tm(tm_beg);
-	end = boost::posix_time::ptime_from_tm(tm_end);
-
-	BOOST_CHECK_EQUAL(begin, expectedBegin);
-	BOOST_CHECK_EQUAL(end, expectedEnd);
+	BOOST_CHECK_EQUAL(tm_beg, LocaleDateTime(DateTime{{2015, 12, 31}, {0, 0, 0}}));
+	BOOST_CHECK_EQUAL(tm_end, LocaleDateTime(DateTime{{2016, 1, 1}, {0, 0, 0}}));
 
 	//-----------------------------------------------------
 	// Break things forcefully
@@ -102,138 +116,93 @@ BOOST_AUTO_TEST_CASE(simple)
 	//-----------------------------------------------------
 	// check parsing of "day X" and "day -X" specs
 	timestamp = "day 2";
-	tm_ref.tm_year = 2016 - 1900;
-	tm_ref.tm_mon = 2 - 1;
-
-	expectedBegin = boost::posix_time::ptime(boost::gregorian::date(2016, 2, 2), boost::posix_time::time_duration(0, 0, 0));
-
-	expectedEnd = boost::posix_time::ptime(boost::gregorian::date(2016, 2, 3), boost::posix_time::time_duration(0, 0, 0));
+	tm_ref.set(lc::period::year(), 2016);
+	tm_ref.set(lc::period::month(), 2 - 1);
 
 	// Run Tests
 	LegacyTimePeriod::ParseTimeSpec(timestamp, &tm_beg, &tm_end, &tm_ref);
 
 	// Compare times
-	begin = boost::posix_time::ptime_from_tm(tm_beg);
-	end = boost::posix_time::ptime_from_tm(tm_end);
-
-	BOOST_CHECK_EQUAL(begin, expectedBegin);
-	BOOST_CHECK_EQUAL(end, expectedEnd);
+	BOOST_CHECK_EQUAL(tm_beg, LocaleDateTime(DateTime{{2016, 2, 2}, {0, 0, 0}}));
+	BOOST_CHECK_EQUAL(tm_end, LocaleDateTime(DateTime{{2016, 2, 3}, {0, 0, 0}}));
 
 	//-----------------------------------------------------
 	timestamp = "day 31";
-	tm_ref.tm_year = 2018 - 1900;
-	tm_ref.tm_mon = 12 - 1;
-
-	expectedBegin = boost::posix_time::ptime(boost::gregorian::date(2018, 12, 31), boost::posix_time::time_duration(0, 0, 0));
-
-	expectedEnd = boost::posix_time::ptime(boost::gregorian::date(2019, 1, 1), boost::posix_time::time_duration(0, 0, 0));
+	tm_ref.set(lc::period::year(), 2018);
+	tm_ref.set(lc::period::month(), 12 - 1);
 
 	// Run Tests
 	LegacyTimePeriod::ParseTimeSpec(timestamp, &tm_beg, &tm_end, &tm_ref);
 
 	// Compare times
-	begin = boost::posix_time::ptime_from_tm(tm_beg);
-	end = boost::posix_time::ptime_from_tm(tm_end);
-
-	BOOST_CHECK_EQUAL(begin, expectedBegin);
-	BOOST_CHECK_EQUAL(end, expectedEnd);
+	BOOST_CHECK_EQUAL(tm_beg, LocaleDateTime(DateTime{{2018, 12, 31}, {0, 0, 0}}));
+	BOOST_CHECK_EQUAL(tm_end, LocaleDateTime(DateTime{{2019, 1, 1}, {0, 0, 0}}));
 
 	//-----------------------------------------------------
 	// Last day of the month
 	timestamp = "day -1";
-	tm_ref.tm_year = 2012 - 1900;
-	tm_ref.tm_mon = 7 - 1;
-
-	expectedBegin = boost::posix_time::ptime(boost::gregorian::date(2012, 7, 31), boost::posix_time::time_duration(0, 0, 0));
-
-	expectedEnd = boost::posix_time::ptime(boost::gregorian::date(2012, 8, 1), boost::posix_time::time_duration(0, 0, 0));
+	tm_ref.set(lc::period::year(), 2012);
+	tm_ref.set(lc::period::month(), 7 - 1);
 
 	// Run Tests
 	LegacyTimePeriod::ParseTimeSpec(timestamp, &tm_beg, &tm_end, &tm_ref);
 
 	// Compare times
-	begin = boost::posix_time::ptime_from_tm(tm_beg);
-	end = boost::posix_time::ptime_from_tm(tm_end);
-
-	BOOST_CHECK_EQUAL(begin, expectedBegin);
-	BOOST_CHECK_EQUAL(end, expectedEnd);
+	BOOST_CHECK_EQUAL(tm_beg, LocaleDateTime(DateTime{{2012, 7, 31}, {0, 0, 0}}));
+	BOOST_CHECK_EQUAL(tm_end, LocaleDateTime(DateTime{{2012, 8, 1}, {0, 0, 0}}));
 
 	//-----------------------------------------------------
 	// Third last day of the month
 	timestamp = "day -3";
-	tm_ref.tm_year = 2019 - 1900;
-	tm_ref.tm_mon = 7 - 1;
-
-	expectedBegin = boost::posix_time::ptime(boost::gregorian::date(2019, 7, 29), boost::posix_time::time_duration(0, 0, 0));
-
-	expectedEnd = boost::posix_time::ptime(boost::gregorian::date(2019, 7, 30), boost::posix_time::time_duration(0, 0, 0));
+	tm_ref.set(lc::period::year(), 2019);
+	tm_ref.set(lc::period::month(), 7 - 1);
 
 	// Run Tests
 	LegacyTimePeriod::ParseTimeSpec(timestamp, &tm_beg, &tm_end, &tm_ref);
 
 	// Compare times
-	begin = boost::posix_time::ptime_from_tm(tm_beg);
-	end = boost::posix_time::ptime_from_tm(tm_end);
-
-	BOOST_CHECK_EQUAL(begin, expectedBegin);
-	BOOST_CHECK_EQUAL(end, expectedEnd);
+	BOOST_CHECK_EQUAL(tm_beg, LocaleDateTime(DateTime{{2019, 7, 29}, {0, 0, 0}}));
+	BOOST_CHECK_EQUAL(tm_end, LocaleDateTime(DateTime{{2019, 7, 30}, {0, 0, 0}}));
 
 	//-----------------------------------------------------
 	// Leap year with the last day of the month
 	timestamp = "day -1";
-	tm_ref.tm_year = 2016 - 1900; // leap year
-	tm_ref.tm_mon = 2 - 1;
-
-	expectedBegin = boost::posix_time::ptime(boost::gregorian::date(2016, 2, 29), boost::posix_time::time_duration(0, 0, 0));
-
-	expectedEnd = boost::posix_time::ptime(boost::gregorian::date(2016, 3, 1), boost::posix_time::time_duration(0, 0, 0));
+	tm_ref.set(lc::period::year(), 2016); // leap year
+	tm_ref.set(lc::period::month(), 2 - 1);
 
 	// Run Tests
 	LegacyTimePeriod::ParseTimeSpec("day -1", &tm_beg, &tm_end, &tm_ref);
 
 	// Compare times
-	begin = boost::posix_time::ptime_from_tm(tm_beg);
-	end = boost::posix_time::ptime_from_tm(tm_end);
-
-	BOOST_CHECK_EQUAL(begin, expectedBegin);
-	BOOST_CHECK_EQUAL(end, expectedEnd);
+	BOOST_CHECK_EQUAL(tm_beg, LocaleDateTime(DateTime{{2016, 2, 29}, {0, 0, 0}}));
+	BOOST_CHECK_EQUAL(tm_end, LocaleDateTime(DateTime{{2016, 3, 1}, {0, 0, 0}}));
 }
-
-struct DateTime
-{
-	struct {
-		int Year, Month, Day;
-	} Date;
-	struct {
-		int Hour, Minute, Second;
-	} Time;
-};
 
 static inline
 void AdvancedHelper(const char *timestamp, DateTime from, DateTime to)
 {
 	using boost::gregorian::date;
 	using boost::posix_time::ptime;
-	using boost::posix_time::ptime_from_tm;
+	using boost::posix_time::from_time_t;
 	using boost::posix_time::time_duration;
 
-	tm tm_beg, tm_end, tm_ref;
+	LocaleDateTime tm_beg, tm_end, tm_ref;
 
-	tm_ref.tm_year = from.Date.Year - 1900;
-	tm_ref.tm_mon = from.Date.Month - 1;
-	tm_ref.tm_mday = from.Date.Day;
+	tm_ref.set(lc::period::year(), from.Date.Year);
+	tm_ref.set(lc::period::month(), from.Date.Month - 1);
+	tm_ref.set(lc::period::day(), from.Date.Day);
 
 	// Run test
 	LegacyTimePeriod::ProcessTimeRangeRaw(timestamp, &tm_ref, &tm_beg, &tm_end);
 
 	// Compare times
-	BOOST_CHECK_EQUAL(ptime_from_tm(tm_beg), ptime(date(from.Date.Year, from.Date.Month, from.Date.Day), time_duration(from.Time.Hour, from.Time.Minute, from.Time.Second)));
-	BOOST_CHECK_EQUAL(ptime_from_tm(tm_end), ptime(date(to.Date.Year, to.Date.Month, to.Date.Day), time_duration(to.Time.Hour, to.Time.Minute, to.Time.Second)));
+	BOOST_CHECK_EQUAL(tm_beg, LocaleDateTime(from));
+	BOOST_CHECK_EQUAL(tm_end, LocaleDateTime(to));
 }
 
 BOOST_AUTO_TEST_CASE(advanced)
 {
-	tm tm_beg, tm_end, tm_ref;
+	LocaleDateTime tm_beg, tm_end, tm_ref;
 	String timestamp;
 	boost::posix_time::ptime begin;
 	boost::posix_time::ptime end;
