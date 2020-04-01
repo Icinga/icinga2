@@ -1470,6 +1470,11 @@ Cleanup Items:
   servicechecks\_age              | Duration              | **Optional.** Max age for servicechecks table rows (start\_time). Defaults to 0 (never).
   systemcommands\_age             | Duration              | **Optional.** Max age for systemcommands table rows (start\_time). Defaults to 0 (never).
 
+> **Supported units**
+>
+> Supported suffixes include ms (milliseconds), s (seconds), m (minutes), h (hours) and d (days).
+> Check the [language-reference](17-language-reference.md#numeric-literals-)
+
 Data Categories:
 
   Name                 | Description            | Required by
@@ -1563,6 +1568,12 @@ Cleanup Items:
   statehistory\_age               | Duration              | **Optional.** Max age for statehistory table rows (state\_time). Defaults to 0 (never).
   servicechecks\_age              | Duration              | **Optional.** Max age for servicechecks table rows (start\_time). Defaults to 0 (never).
   systemcommands\_age             | Duration              | **Optional.** Max age for systemcommands table rows (start\_time). Defaults to 0 (never).
+
+> **Supported units**
+>
+> Supported suffixes include ms (milliseconds), s (seconds), m (minutes), h (hours) and d (days).
+> Check the [language-reference](17-language-reference.md#numeric-literals-)
+
 
 Data Categories:
 
