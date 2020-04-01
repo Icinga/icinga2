@@ -53,7 +53,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 	String cn = GetCertificateCN(cert);
 
-	bool signedByCA;
+	bool signedByCA = false;
 
 	try {
 		signedByCA = VerifyCertificate(cacert, cert);
