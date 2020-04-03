@@ -6,11 +6,210 @@
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include "base/function.hpp"
+#include <boost/algorithm/string.hpp>
+#include <cmath>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 using namespace icinga;
 
 REGISTER_TYPE(PerfdataValue);
 REGISTER_FUNCTION(System, parse_performance_data, PerfdataValue::Parse, "perfdata");
+
+struct UoM
+{
+	double Factor;
+	const char* Out;
+};
+
+typedef std::unordered_map<std::string /* in */, UoM> UoMs;
+typedef std::unordered_multimap<std::string /* in */, UoM> DupUoMs;
+
+static const UoMs l_CsUoMs (([]() -> UoMs {
+	DupUoMs uoms ({
+		// Misc:
+		{ "", { 1, "" } },
+		{ "%", { 1, "percent" } },
+		{ "c", { 1, "" } },
+		{ "C", { 1, "degrees-celsius" } }
+	});
+
+	{
+		// Data (rate):
+
+		struct { const char* Char; int Power; } prefixes[] = {
+			{ "k", 1 }, { "K", 1 },
+			{ "m", 2 }, { "M", 2 },
+			{ "g", 3 }, { "G", 3 },
+			{ "t", 4 }, { "T", 4 },
+			{ "p", 5 }, { "P", 5 },
+			{ "e", 6 }, { "E", 6 },
+			{ "z", 7 }, { "Z", 7 },
+			{ "y", 8 }, { "Y", 8 }
+		};
+
+		struct { const char* Char; double Factor; } siIecs[] = {
+			{ "", 1000 },
+			{ "i", 1024 }, { "I", 1024 }
+		};
+
+		struct { const char *In, *Out; } bases[] = {
+			{ "b", "bits" },
+			{ "B", "bytes" }
+		};
+
+		for (auto base : bases) {
+			uoms.emplace(base.In, UoM{1, base.Out});
+		}
+
+		for (auto prefix : prefixes) {
+			for (auto siIec : siIecs) {
+				auto factor (pow(siIec.Factor, prefix.Power));
+
+				for (auto base : bases) {
+					uoms.emplace(
+						std::string(prefix.Char) + siIec.Char + base.In,
+						UoM{factor, base.Out}
+					);
+				}
+			}
+		}
+	}
+
+	{
+		// Energy:
+
+		struct { const char* Char; int Power; } prefixes[] = {
+			{ "n", -3 }, { "N", -3 },
+			{ "u", -2 }, { "U", -2 },
+			{ "m", -1 },
+			{ "", 0 },
+			{ "k", 1 }, { "K", 1 },
+			{ "M", 2 },
+			{ "g", 3 }, { "G", 3 },
+			{ "t", 4 }, { "T", 4 },
+			{ "p", 5 }, { "P", 5 },
+			{ "e", 6 }, { "E", 6 },
+			{ "z", 7 }, { "Z", 7 },
+			{ "y", 8 }, { "Y", 8 }
+		};
+
+		{
+			struct { const char* Ins[2]; const char* Out; } bases[] = {
+				{ { "a", "A" }, "amperes" },
+				{ { "o", "O" }, "ohms" },
+				{ { "v", "V" }, "volts" },
+				{ { "w", "W" }, "watts" }
+			};
+
+			for (auto prefix : prefixes) {
+				auto factor (pow(1000.0, prefix.Power));
+
+				for (auto base : bases) {
+					for (auto b : base.Ins) {
+						uoms.emplace(std::string(prefix.Char) + b, UoM{factor, base.Out});
+					}
+				}
+			}
+		}
+
+		struct { const char* Char; double Factor; } suffixes[] = {
+			{ "s", 1 }, { "S", 1 },
+			{ "m", 60 }, { "M", 60 },
+			{ "h", 60 * 60 }, { "H", 60 * 60 }
+		};
+
+		struct { const char* Ins[2]; double Factor; const char* Out; } bases[] = {
+			{ { "a", "A" }, 1, "ampere-seconds" },
+			{ { "w", "W" }, 60 * 60, "watt-hours" }
+		};
+
+		for (auto prefix : prefixes) {
+			auto factor (pow(1000.0, prefix.Power));
+
+			for (auto suffix : suffixes) {
+				auto timeFactor (factor * suffix.Factor);
+
+				for (auto& base : bases) {
+					auto baseFactor (timeFactor / base.Factor);
+
+					for (auto b : base.Ins) {
+						uoms.emplace(
+							std::string(prefix.Char) + b + suffix.Char,
+							UoM{baseFactor, base.Out}
+						);
+					}
+				}
+			}
+		}
+	}
+
+	UoMs uniqUoms;
+
+	for (auto& uom : uoms) {
+		if (!uniqUoms.emplace(uom).second) {
+			throw std::logic_error("Duplicate case-sensitive UoM detected: " + uom.first);
+		}
+	}
+
+	return std::move(uniqUoms);
+})());
+
+static const UoMs l_CiUoMs (([]() -> UoMs {
+	DupUoMs uoms ({
+		// Time:
+		{ "ns", { 1.0 / 1000 / 1000 / 1000, "seconds" } },
+		{ "us", { 1.0 / 1000 / 1000, "seconds" } },
+		{ "ms", { 1.0 / 1000, "seconds" } },
+		{ "s", { 1, "seconds" } },
+		{ "m", { 60, "seconds" } },
+		{ "h", { 60 * 60, "seconds" } },
+		{ "d", { 60 * 60 * 24, "seconds" } },
+
+		// Mass:
+		{ "ng", { 1.0 / 1000 / 1000 / 1000, "grams" } },
+		{ "ug", { 1.0 / 1000 / 1000, "grams" } },
+		{ "mg", { 1.0 / 1000, "grams" } },
+		{ "g", { 1, "grams" } },
+		{ "kg", { 1000, "grams" } },
+		{ "t", { 1000 * 1000, "grams" } },
+
+		// Volume:
+		{ "ml", { 1.0 / 1000, "liters" } },
+		{ "l", { 1, "liters" } },
+		{ "hl", { 100, "liters" } },
+
+		// Misc:
+		{ "packets", { 1, "packets" } },
+		{ "lm", { 1, "lumens" } },
+		{ "dbm", { 1, "decibel-milliwatts" } },
+		{ "f", { 1, "degrees-fahrenheit" } },
+		{ "k", { 1, "degrees-kelvin" } }
+	});
+
+	UoMs uniqUoms;
+
+	for (auto& uom : uoms) {
+		if (!uniqUoms.emplace(uom).second) {
+			throw std::logic_error("Duplicate case-insensitive UoM detected: " + uom.first);
+		}
+	}
+
+	for (auto& uom : l_CsUoMs) {
+		auto input (uom.first);
+		boost::algorithm::to_lower(input);
+
+		auto pos (uoms.find(input));
+
+		if (pos != uoms.end()) {
+			throw std::logic_error("Duplicate case-sensitive/case-insensitive UoM detected: " + pos->first);
+		}
+	}
+
+	return std::move(uniqUoms);
+})());
 
 PerfdataValue::PerfdataValue(const String& label, double value, bool counter,
 	const String& unit, const Value& warn, const Value& crit, const Value& min,
@@ -62,42 +261,33 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 	if (pos != String::NPos)
 		unit = valueStr.SubStr(pos, tokens[0].GetLength() - pos);
 
-	unit = unit.ToLower();
+	double base;
 
-	double base = 1.0;
+	{
+		auto uom (l_CsUoMs.find(unit.GetData()));
 
-	if (unit == "us") {
-		base /= 1000.0 * 1000.0;
-		unit = "seconds";
-	} else if (unit == "ms") {
-		base /= 1000.0;
-		unit = "seconds";
-	} else if (unit == "s") {
-		unit = "seconds";
-	} else if (unit == "tb") {
-		base *= 1024.0 * 1024.0 * 1024.0 * 1024.0;
-		unit = "bytes";
-	} else if (unit == "gb") {
-		base *= 1024.0 * 1024.0 * 1024.0;
-		unit = "bytes";
-	} else if (unit == "mb") {
-		base *= 1024.0 * 1024.0;
-		unit = "bytes";
-	} else if (unit == "kb") {
-		base *= 1024.0;
-		unit = "bytes";
-	} else if (unit == "b") {
-		unit = "bytes";
-	} else if (unit == "%") {
-		unit = "percent";
-	} else if (unit == "c") {
+		if (uom == l_CsUoMs.end()) {
+			auto ciUnit (unit.ToLower());
+			auto uom (l_CiUoMs.find(ciUnit.GetData()));
+
+			if (uom == l_CiUoMs.end()) {
+				Log(LogDebug, "PerfdataValue")
+					<< "Invalid performance data unit: " << unit;
+
+				unit = "";
+				base = 1.0;
+			} else {
+				unit = uom->second.Out;
+				base = uom->second.Factor;
+			}
+		} else {
+			unit = uom->second.Out;
+			base = uom->second.Factor;
+		}
+	}
+
+	if (unit == "c") {
 		counter = true;
-		unit = "";
-	} else if (unit != "") {
-		Log(LogDebug, "PerfdataValue")
-			<< "Invalid performance data unit: " << unit;
-
-		unit = "";
 	}
 
 	warn = ParseWarnCritMinMaxToken(tokens, 1, "warning");
@@ -122,6 +312,26 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 	return new PerfdataValue(label, value, counter, unit, warn, crit, min, max);
 }
 
+static const std::unordered_map<std::string, const char*> l_FormatUoMs ({
+	{ "ampere-seconds", "As" },
+	{ "amperes", "A" },
+	{ "bits", "b" },
+	{ "bytes", "B" },
+	{ "decibel-milliwatts", "dBm" },
+	{ "degrees-celsius", "C" },
+	{ "degrees-fahrenheit", "F" },
+	{ "degrees-kelvin", "K" },
+	{ "grams", "g" },
+	{ "liters", "l" },
+	{ "lumens", "lm" },
+	{ "ohms", "O" },
+	{ "percent", "%" },
+	{ "seconds", "s" },
+	{ "volts", "V" },
+	{ "watt-hours", "Wh" },
+	{ "watts", "W" }
+});
+
 String PerfdataValue::Format() const
 {
 	std::ostringstream result;
@@ -135,14 +345,16 @@ String PerfdataValue::Format() const
 
 	String unit;
 
-	if (GetCounter())
+	if (GetCounter()) {
 		unit = "c";
-	else if (GetUnit() == "seconds")
-		unit = "s";
-	else if (GetUnit() == "percent")
-		unit = "%";
-	else if (GetUnit() == "bytes")
-		unit = "B";
+	} else {
+		auto myUnit (GetUnit());
+		auto uom (l_FormatUoMs.find(myUnit.GetData()));
+
+		if (uom != l_FormatUoMs.end()) {
+			unit = uom->second;
+		}
+	}
 
 	result << unit;
 

@@ -79,6 +79,188 @@ BOOST_AUTO_TEST_CASE(uom)
 
 	str = pv->Format();
 	BOOST_CHECK(str == "test=1s");
+
+	pv = PerfdataValue::Parse("test=1kAm");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 60 * 1000);
+	BOOST_CHECK(pv->GetUnit() == "ampere-seconds");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=60000As");
+
+	pv = PerfdataValue::Parse("test=1MA");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1000 * 1000);
+	BOOST_CHECK(pv->GetUnit() == "amperes");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1000000A");
+
+	pv = PerfdataValue::Parse("test=1gib");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1024 * 1024 * 1024);
+	BOOST_CHECK(pv->GetUnit() == "bits");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1073741824b");
+
+	pv = PerfdataValue::Parse("test=1dBm");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1);
+	BOOST_CHECK(pv->GetUnit() == "decibel-milliwatts");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1dBm");
+
+	pv = PerfdataValue::Parse("test=1C");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1);
+	BOOST_CHECK(pv->GetUnit() == "degrees-celsius");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1C");
+
+	pv = PerfdataValue::Parse("test=1F");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1);
+	BOOST_CHECK(pv->GetUnit() == "degrees-fahrenheit");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1F");
+
+	pv = PerfdataValue::Parse("test=1K");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1);
+	BOOST_CHECK(pv->GetUnit() == "degrees-kelvin");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1K");
+
+	pv = PerfdataValue::Parse("test=1t");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1000 * 1000);
+	BOOST_CHECK(pv->GetUnit() == "grams");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1000000g");
+
+	pv = PerfdataValue::Parse("test=1hl");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 100);
+	BOOST_CHECK(pv->GetUnit() == "liters");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=100l");
+
+	pv = PerfdataValue::Parse("test=1lm");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1);
+	BOOST_CHECK(pv->GetUnit() == "lumens");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1lm");
+
+	pv = PerfdataValue::Parse("test=1TO");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1000.0 * 1000 * 1000 * 1000);
+	BOOST_CHECK(pv->GetUnit() == "ohms");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1000000000000O");
+
+	pv = PerfdataValue::Parse("test=1PV");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1000.0 * 1000 * 1000 * 1000 * 1000);
+	BOOST_CHECK(pv->GetUnit() == "volts");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1000000000000000V");
+
+	pv = PerfdataValue::Parse("test=1EWh");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1000.0 * 1000 * 1000 * 1000 * 1000 * 1000);
+	BOOST_CHECK(pv->GetUnit() == "watt-hours");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1000000000000000000Wh");
+
+	pv = PerfdataValue::Parse("test=1000mW");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1);
+	BOOST_CHECK(pv->GetUnit() == "watts");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = pv->Format();
+	BOOST_CHECK(str == "test=1W");
 }
 
 BOOST_AUTO_TEST_CASE(warncritminmax)
