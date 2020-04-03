@@ -72,6 +72,9 @@ class Downtime : ConfigObject < DowntimeNameComposer
 	[config] String authoritative_zone;
 
 	[no_user_view, no_user_modify] String removed_by;
+	[no_user_view, no_user_modify] bool can_be_triggered {
+		default {{{ return false; }}}
+	};
 };
 
 }

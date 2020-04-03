@@ -298,6 +298,8 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 	if (!downtime)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create downtime object."));
 
+	downtime->SetCanBeTriggered(true);
+
 	Log(LogInformation, "Downtime")
 		<< "Added downtime '" << downtime->GetName()
 		<< "' between '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", startTime)
@@ -423,13 +425,14 @@ void Downtime::DowntimesStartTimerHandler()
 	/* Start fixed downtimes. Flexible downtimes will be triggered on-demand. */
 	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		if (downtime->IsActive() &&
-			downtime->CanBeTriggered() &&
+			(downtime->CanBeTriggered() || downtime->GetCanBeTriggered()) &&
 			downtime->GetFixed()) {
 			/* Send notifications. */
 			OnDowntimeStarted(downtime);
 
 			/* Trigger fixed downtime immediately. */
 			downtime->TriggerDowntime();
+			downtime->SetCanBeTriggered(false);
 		}
 	}
 }
