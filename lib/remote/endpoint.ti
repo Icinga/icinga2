@@ -21,6 +21,9 @@ class Endpoint : ConfigObject
 
 	[state] Timestamp local_log_position;
 	[state] Timestamp remote_log_position;
+	[state] "unsigned long" icinga_version {
+		default {{{ return 0; }}}
+	};
 
 	[no_user_modify] bool connecting;
 	[no_user_modify] bool syncing;
