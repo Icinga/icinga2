@@ -492,116 +492,6 @@ yum install icinga2-selinux
 
 Read more about SELinux in [this chapter](22-selinux.md#selinux).
 
-## Configuration Syntax Highlighting <a id="configuration-syntax-highlighting"></a>
-
-Icinga 2 provides configuration examples for syntax highlighting using the `vim` and `nano` editors.
-The RHEL and SUSE package `icinga2-common` installs these files into `/usr/share/doc/icinga2-common-[x.x.x]/syntax`
-(where `[x.x.x]` is the version number, e.g. `2.4.3` or `2.4.4`). Sources provide these files in `tools/syntax`.
-On Debian systems the `icinga2-common` package provides only the Nano configuration file (`/usr/share/nano/icinga2.nanorc`);
-to obtain the Vim configuration, please install the extra package `vim-icinga2`. The files are located in `/usr/share/vim/addons`.
-
-### Configuration Syntax Highlighting using Vim <a id="configuration-syntax-highlighting-vim"></a>
-
-Install the package `vim-icinga2` with your distribution's package manager.
-
-Debian/Ubuntu:
-
-```
-apt-get install vim-icinga2 vim-addon-manager
-vim-addon-manager -w install icinga2
-Info: installing removed addon 'icinga2' to /var/lib/vim/addons
-```
-
-RHEL/CentOS 8 and Fedora:
-
-```
-dnf install vim-icinga2
-```
-
-RHEL/CentOS 7/6:
-
-```
-yum install vim-icinga2
-```
-
-SLES/openSUSE:
-
-```
-zypper install vim-icinga2
-```
-
-Alpine Linux:
-
-```
-apk add icinga2-vim
-```
-
-Ensure that syntax highlighting is enabled e.g. by editing the user's `vimrc`
-configuration file:
-
-```
-# vim ~/.vimrc
-syntax on
-```
-
-Test it:
-
-```
-# vim /etc/icinga2/conf.d/templates.conf
-```
-
-![Vim with syntax highlighting](images/installation/vim-syntax.png "Vim with Icinga 2 syntax highlighting")
-
-
-### Configuration Syntax Highlighting using Nano <a id="configuration-syntax-highlighting-nano"></a>
-
-Install the package `nano-icinga2` with your distribution's package manager.
-
-Debian/Ubuntu:
-
-**Note:** The syntax files are installed with the `icinga2-common` package already.
-
-RHEL/CentOS 8 and Fedora:
-
-```
-dnf install nano-icinga2
-```
-
-RHEL/CentOS 7/6:
-
-```
-yum install nano-icinga2
-```
-
-SLES/openSUSE:
-
-```
-zypper install nano-icinga2
-```
-
-Copy the `/etc/nanorc` sample file to your home directory.
-
-```
-$ cp /etc/nanorc ~/.nanorc
-```
-
-Include the `icinga2.nanorc` file.
-
-```
-$ vim ~/.nanorc
-
-## Icinga 2
-include "/usr/share/nano/icinga2.nanorc"
-```
-
-Test it:
-
-```
-$ nano /etc/icinga2/conf.d/templates.conf
-```
-
-![Nano with syntax highlighting](images/installation/nano-syntax.png "Nano with Icinga 2 syntax highlighting")
-
 ## Setting up Icinga Web 2 <a id="setting-up-icingaweb2"></a>
 
 Icinga 2 can be used with Icinga Web 2 and a variety of modules.
@@ -1086,6 +976,115 @@ If you decided on using Icinga DB, consult the [Icinga DB Web documentation](htt
 A number of additional features are available in the form of addons. A list of
 popular addons is available in the
 [Addons and Plugins](13-addons.md#addons) chapter.
+
+## Configuration Syntax Highlighting <a id="configuration-syntax-highlighting"></a>
+
+Icinga 2 provides configuration examples for syntax highlighting using the `vim` and `nano` editors.
+The RHEL and SUSE package `icinga2-common` installs these files into `/usr/share/doc/icinga2-common-[x.x.x]/syntax`
+(where `[x.x.x]` is the version number, e.g. `2.4.3` or `2.4.4`). Sources provide these files in `tools/syntax`.
+On Debian systems the `icinga2-common` package provides only the Nano configuration file (`/usr/share/nano/icinga2.nanorc`);
+to obtain the Vim configuration, please install the extra package `vim-icinga2`. The files are located in `/usr/share/vim/addons`.
+
+### Configuration Syntax Highlighting using Vim <a id="configuration-syntax-highlighting-vim"></a>
+
+Install the package `vim-icinga2` with your distribution's package manager.
+
+Debian/Ubuntu:
+
+```
+apt-get install vim-icinga2 vim-addon-manager
+vim-addon-manager -w install icinga2
+Info: installing removed addon 'icinga2' to /var/lib/vim/addons
+```
+
+RHEL/CentOS 8 and Fedora:
+
+```
+dnf install vim-icinga2
+```
+
+RHEL/CentOS 7/6:
+
+```
+yum install vim-icinga2
+```
+
+SLES/openSUSE:
+
+```
+zypper install vim-icinga2
+```
+
+Alpine Linux:
+
+```
+apk add icinga2-vim
+```
+
+Ensure that syntax highlighting is enabled e.g. by editing the user's `vimrc`
+configuration file:
+
+```
+# vim ~/.vimrc
+syntax on
+```
+
+Test it:
+
+```
+# vim /etc/icinga2/conf.d/templates.conf
+```
+
+![Vim with syntax highlighting](images/installation/vim-syntax.png "Vim with Icinga 2 syntax highlighting")
+
+### Configuration Syntax Highlighting using Nano <a id="configuration-syntax-highlighting-nano"></a>
+
+Install the package `nano-icinga2` with your distribution's package manager.
+
+Debian/Ubuntu:
+
+**Note:** The syntax files are installed with the `icinga2-common` package already.
+
+RHEL/CentOS 8 and Fedora:
+
+```
+dnf install nano-icinga2
+```
+
+RHEL/CentOS 7/6:
+
+```
+yum install nano-icinga2
+```
+
+SLES/openSUSE:
+
+```
+zypper install nano-icinga2
+```
+
+Copy the `/etc/nanorc` sample file to your home directory.
+
+```
+$ cp /etc/nanorc ~/.nanorc
+```
+
+Include the `icinga2.nanorc` file.
+
+```
+$ vim ~/.nanorc
+
+## Icinga 2
+include "/usr/share/nano/icinga2.nanorc"
+```
+
+Test it:
+
+```
+$ nano /etc/icinga2/conf.d/templates.conf
+```
+
+![Nano with syntax highlighting](images/installation/nano-syntax.png "Nano with Icinga 2 syntax highlighting")
 
 ## Installation Overview <a id="installation-overview"></a>
 
