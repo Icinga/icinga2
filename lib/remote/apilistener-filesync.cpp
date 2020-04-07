@@ -10,9 +10,11 @@
 #include "base/convert.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
+#include "base/shared.hpp"
 #include "base/utility.hpp"
 #include <fstream>
 #include <iomanip>
+#include <thread>
 
 using namespace icinga;
 
@@ -310,10 +312,16 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		return Empty;
 	}
 
+	std::thread([origin, params]() { HandleConfigUpdate(origin, params); }).detach();
+	return Empty;
+}
+
+void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
 	/* Only one transaction is allowed, concurrent message handlers need to wait.
 	 * This affects two parent endpoints sending the config in the same moment.
 	 */
-	boost::mutex::scoped_lock lock(m_ConfigSyncStageLock);
+	auto lock (Shared<boost::mutex::scoped_lock>::Make(m_ConfigSyncStageLock));
 
 	String apiZonesStageDir = GetApiZonesStageDir();
 	String fromEndpointName = origin->FromClient->GetEndpoint()->GetName();
@@ -521,14 +529,12 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		Log(LogInformation, "ApiListener")
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
 			<< "' are different to production, triggering validation and reload.";
-		AsyncTryActivateZonesStage(relativePaths);
+		AsyncTryActivateZonesStage(relativePaths, lock);
 	} else {
 		Log(LogInformation, "ApiListener")
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
 			<< "' are equal to production, skipping validation and reload.";
 	}
-
-	return Empty;
 }
 
 /**
@@ -612,7 +618,7 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
  *
  * @param relativePaths Required for later file operations in the callback. Provides the zone name plus path in a list.
  */
-void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relativePaths)
+void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relativePaths, const Shared<boost::mutex::scoped_lock>::Ptr& lock)
 {
 	VERIFY(Application::GetArgC() >= 1);
 
@@ -638,7 +644,10 @@ void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relative
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(Application::GetReloadTimeout());
-	process->Run(std::bind(&TryActivateZonesStageCallback, _1, relativePaths));
+
+	process->Run([relativePaths, lock](const ProcessResult& pr) {
+		TryActivateZonesStageCallback(pr, relativePaths);
+	});
 }
 
 /**

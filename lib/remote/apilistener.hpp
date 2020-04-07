@@ -85,6 +85,7 @@ public:
 
 	/* filesync */
 	static Value ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static void HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	/* configsync */
 	static void ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, const Value& cookie);
@@ -199,7 +200,7 @@ private:
 
 	static void TryActivateZonesStageCallback(const ProcessResult& pr,
 		const std::vector<String>& relativePaths);
-	static void AsyncTryActivateZonesStage(const std::vector<String>& relativePaths);
+	static void AsyncTryActivateZonesStage(const std::vector<String>& relativePaths, const Shared<boost::mutex::scoped_lock>::Ptr& lock);
 
 	static String GetChecksum(const String& content);
 	static bool CheckConfigChange(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig);
