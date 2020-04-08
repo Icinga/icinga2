@@ -55,6 +55,7 @@ public:
 			if (ptr == nullptr) {
 				ptr = new T(m_Initializer());
 				m_Underlying.store(ptr, std::memory_order_release);
+				m_Initializer = decltype(m_Initializer)();
 			}
 		}
 
