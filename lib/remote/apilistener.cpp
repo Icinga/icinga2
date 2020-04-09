@@ -1238,8 +1238,18 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObj
 
 	targetEndpoints.erase(GetLocalEndpoint());
 
+	auto now (Utility::GetTime());
+
 	for (auto& endpoint : targetEndpoints) {
 		if (ts > endpoint->GetLocalLogPosition()) {
+			{
+				auto logDuration (endpoint->GetLogDuration());
+
+				if (logDuration >= 0u) {
+					endpoint->GetReplayLog().Cleanup(now - logDuration);
+				}
+			}
+
 			endpoint->GetReplayLog().Log(ts, JsonEncode(message));
 		}
 	}
