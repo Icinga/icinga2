@@ -1670,6 +1670,45 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 			return;
 		}
 	}
+
+	Log(LogNotice, "ApiListener")
+		<< "Replaying log.";
+
+	count = 0;
+
+	for (auto& message : endpoint->GetReplayLog()) {
+		try  {
+			client->SendRawMessage(message.second);
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ApiListener")
+				<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+
+			Log(LogDebug, "ApiListener")
+				<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
+
+			break;
+		}
+
+		++count;
+
+		if (message.first > logpos_ts + 10) {
+			logpos_ts = message.first;
+
+			client->SendMessage(new Dictionary({
+				{ "jsonrpc", "2.0" },
+				{ "method", "log::SetLogPosition" },
+				{ "params", new Dictionary({
+					{ "log_position", logpos_ts }
+				}) }
+			}));
+		}
+	}
+
+	Log(count > 0u ? LogInformation : LogNotice, "ApiListener")
+		<< "Replayed " << count << " messages.";
+
+	ObjectLock olock2(endpoint);
+	endpoint->SetSyncing(false);
 }
 
 void ApiListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
