@@ -46,6 +46,7 @@ public:
 	bool GetConnected() const override;
 
 	static Endpoint::Ptr GetLocalEndpoint();
+	static void ConfigStaticInitialize();
 
 	ReplayLog& GetReplayLog() { return m_ReplayLog.Get(); }
 
