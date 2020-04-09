@@ -18,6 +18,15 @@ REGISTER_TYPE(Endpoint);
 boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnConnected;
 boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnDisconnected;
 
+INITIALIZE_ONCE(&Endpoint::ConfigStaticInitialize);
+
+void Endpoint::ConfigStaticInitialize()
+{
+	OnLocalLogPositionChanged.connect([](const Endpoint::Ptr& ep, const Value&) {
+		ep->GetReplayLog().Cleanup(ep->GetLocalLogPosition());
+	});
+}
+
 void Endpoint::OnAllConfigLoaded()
 {
 	ObjectImpl<Endpoint>::OnAllConfigLoaded();

@@ -45,6 +45,7 @@ public:
 	bool GetConnected() const override;
 
 	static Endpoint::Ptr GetLocalEndpoint();
+	static void ConfigStaticInitialize();
 
 	inline ReplayLog& GetReplayLog()
 	{
