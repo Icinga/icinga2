@@ -212,19 +212,6 @@ zypper ar https://packages.icinga.com/openSUSE/ICINGA-release.repo
 zypper ref
 ```
 
-#### Alpine Linux Repositories <a id="package-repositories-alpine"></a>
-
-```
-echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
-echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
-apk update
-```
-
-The example provided assumes that you are running Alpine edge, which is the -dev branch and is a rolling release.
-If you are using a stable version please "pin" the edge repository on the latest Icinga 2 package version.
-In order to correctly manage your repository, please follow
-[these instructions](https://wiki.alpinelinux.org/wiki/Alpine_Linux_package_management)
-
 ### Installing Icinga 2 <a id="installing-icinga2"></a>
 
 You can install Icinga 2 by using your distribution's package manager
