@@ -3,6 +3,11 @@
 This tutorial is a step-by-step introduction to installing a basic Icinga Stack ([Icinga 2](02-installation.md#setting-up-icinga2), [Icinga DB](02-installation.md#setting-up-icingadb) and [Icinga Web 2](02-installation.md#setting-up-icingaweb2)).
 It assumes that you are familiar with the operating system you're using to install Icinga 2.
 
+> **WARNING**
+>
+> You are about to install a pre release version of Icinga.
+> If that's not your intension, please use the [latest stable release](https://icinga.com/docs/icinga2/latest/doc/02-installation/).
+
 In case you are upgrading an existing setup, please ensure to
 follow the [upgrade documentation](16-upgrading-icinga-2.md#upgrading-icinga-2).
 
@@ -46,6 +51,10 @@ available. Please contact your distribution packagers.
 You need to add the Icinga repository to your package management configuration.
 The following commands must be executed with `root` permissions unless noted otherwise.
 
+> **Note**
+>
+> In this case we will add the Icinga testing repository to be able to install release canditate (pre release) versions
+
 #### Debian/Ubuntu/Raspbian Repositories <a id="package-repositories-debian-ubuntu-raspbian"></a>
 
 Debian:
@@ -57,10 +66,10 @@ apt-get -y install apt-transport-https wget gnupg
 wget -O - https://packages.icinga.com/icinga.key | apt-key add -
 
 DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb https://packages.icinga.com/debian icinga-${DIST} main" > \
- /etc/apt/sources.list.d/${DIST}-icinga.list
- echo "deb-src https://packages.icinga.com/debian icinga-${DIST} main" >> \
- /etc/apt/sources.list.d/${DIST}-icinga.list
+ echo "deb http://packages.icinga.com/debian icinga-${DIST}-testing main" > \
+ /etc/apt/sources.list.d/${DIST}-icinga-testing.list
+ echo "deb-src http://packages.icinga.com/debian icinga-${DIST}-testing main" >> \
+ /etc/apt/sources.list.d/${DIST}-icinga-testing.list
 
 apt-get update
 ```
@@ -74,10 +83,10 @@ apt-get -y install apt-transport-https wget gnupg
 wget -O - https://packages.icinga.com/icinga.key | apt-key add -
 
 . /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
- echo "deb https://packages.icinga.com/ubuntu icinga-${DIST} main" > \
- /etc/apt/sources.list.d/${DIST}-icinga.list
- echo "deb-src https://packages.icinga.com/ubuntu icinga-${DIST} main" >> \
- /etc/apt/sources.list.d/${DIST}-icinga.list
+ echo "deb http://packages.icinga.com/ubuntu icinga-${DIST}-testing main" > \
+ /etc/apt/sources.list.d/${DIST}-icinga-testing.list
+ echo "deb-src http://packages.icinga.com/ubuntu icinga-${DIST}-testing main" >> \
+ /etc/apt/sources.list.d/${DIST}-icinga-testing.list
 
 apt-get update
 ```
@@ -91,10 +100,10 @@ apt-get -y install apt-transport-https wget gnupg
 wget -O - https://packages.icinga.com/icinga.key | apt-key add -
 
 DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb https://packages.icinga.com/raspbian icinga-${DIST} main" > \
- /etc/apt/sources.list.d/icinga.list
- echo "deb-src https://packages.icinga.com/raspbian icinga-${DIST} main" >> \
- /etc/apt/sources.list.d/icinga.list
+ echo "deb http://packages.icinga.com/raspbian icinga-${DIST}-testing main" > \
+ /etc/apt/sources.list.d/icinga-testing.list
+ echo "deb-src http://packages.icinga.com/raspbian icinga-${DIST}-testing main" >> \
+ /etc/apt/sources.list.d/icinga-testing.list
 
 apt-get update
 ```
@@ -117,28 +126,20 @@ apt-get update
 
 #### RHEL/CentOS/Fedora Repositories <a id="package-repositories-rhel-centos-fedora"></a>
 
-RHEL/CentOS 8:
+RHEL/CentOS (6, 7, 8):
 
 ```
-dnf install https://packages.icinga.com/epel/icinga-rpm-release-8-latest.noarch.rpm
-```
+rpm --import https://packages.icinga.com/icinga.key
 
-RHEL/CentOS 7:
-
-```
-yum install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
-```
-
-RHEL/CentOS 6 x64:
-
-```
-yum install https://packages.icinga.com/epel/icinga-rpm-release-6-latest.noarch.rpm
+wget https://packages.icinga.com/epel/ICINGA-testing.repo -O /etc/yum.repos.d/ICINGA-testing.repo
 ```
 
 Fedora 31:
 
 ```
-dnf install https://packages.icinga.com/fedora/icinga-rpm-release-31-latest.noarch.rpm
+rpm --import https://packages.icinga.com/icinga.key
+
+wget https://packages.icinga.com/fedora/ICINGA-testing.repo -O /etc/yum.repos.d/ICINGA-testing.repo
 ```
 
 ##### RHEL/CentOS EPEL Repository <a id="package-repositories-rhel-epel"></a>
@@ -199,7 +200,7 @@ SLES 15/12:
 ```
 rpm --import https://packages.icinga.com/icinga.key
 
-zypper ar https://packages.icinga.com/SUSE/ICINGA-release.repo
+zypper ar https://packages.icinga.com/SUSE/ICINGA-testing.repo
 zypper ref
 ```
 
@@ -208,7 +209,7 @@ openSUSE:
 ```
 rpm --import https://packages.icinga.com/icinga.key
 
-zypper ar https://packages.icinga.com/openSUSE/ICINGA-release.repo
+zypper ar https://packages.icinga.com/openSUSE/ICINGA-testing.repo
 zypper ref
 ```
 
