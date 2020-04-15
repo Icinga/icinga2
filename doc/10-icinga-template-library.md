@@ -209,6 +209,7 @@ apt_critical            | **Optional.** If the full package information of any o
 apt_timeout             | **Optional.** Seconds before plugin times out (default: 10).
 apt_only_critical       | **Optional.** Only warn about critical upgrades.
 apt_list                | **Optional.** List packages available for upgrade.
+apt_packages_warning    | **Optional.** Minimum number of packages available for upgrade to return WARNING status. Default is 1 package.
 
 
 ### breeze <a id="plugin-check-command-breeze"></a>
