@@ -1,6 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/atomic.hpp"
 #include "base/goprocmgr.hpp"
+#include "base/configuration.hpp"
 #include "base/process.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
@@ -217,7 +219,8 @@ private:
 	}
 };
 
-static std::unique_ptr<ProcMgr> l_ProcMgr;
+static std::vector<ProcMgr> l_ProcMgrs;
+static Atomic<decltype(l_ProcMgrs)::size_type> l_ProcMgr (0);
 
 #endif /* _WIN32 */
 
@@ -621,8 +624,8 @@ int Process::GetTID() const
 
 void Process::InitializeSpawnHelper()
 {
-	if (!l_ProcMgr) {
-		l_ProcMgr.reset(new ProcMgr());
+	if (l_ProcMgrs.empty()) {
+		l_ProcMgrs = decltype(l_ProcMgrs)(Configuration::Concurrency);
 	}
 }
 
@@ -644,7 +647,9 @@ void Process::Run(Process::Callback callback)
 
 		extraEnvironment.emplace_back("LC_NUMERIC=C");
 
-		l_ProcMgr->Spawn(m_Arguments, std::move(extraEnvironment), m_Timeout, std::move(callback));
+		l_ProcMgrs.at(l_ProcMgr.fetch_add(1) % l_ProcMgrs.size()).Spawn(
+			m_Arguments, std::move(extraEnvironment), m_Timeout, std::move(callback)
+		);
 	}
 
 	Log(LogNotice, "Process")
