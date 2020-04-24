@@ -1669,14 +1669,14 @@ The secondary master waits for connection attempts from the first master,
 and therefore does not try to connect to it again.
 
 ```
-[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
+[root@icinga2-master2.localdomain /]# vim /etc/icinga2/zones.conf
 
 object Endpoint "icinga2-master1.localdomain" {
-  // That's us
+  // The first master already connects to us
 }
 
 object Endpoint "icinga2-master2.localdomain" {
-  // The first master already connects to us
+  // That's us
 }
 
 object Zone "master" {
