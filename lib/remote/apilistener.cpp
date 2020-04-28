@@ -661,19 +661,11 @@ void ApiListener::NewClientHandlerInternal(
 	}
 
 	ClientType ctype;
+	bool gzip = false;
 
 	if (role == RoleClient) {
-		JsonRpc::SendMessage(client, new Dictionary({
-			{ "jsonrpc", "2.0" },
-			{ "method", "icinga::Hello" },
-			{ "params", new Dictionary({
-				{ "version", (double)l_AppVersionInt }
-			}) }
-		}), yc);
-
-		client->async_flush(yc);
-
 		ctype = ClientJsonRpc;
+		gzip = endpoint && endpoint->GetIcingaVersion() >= 21300;
 	} else {
 		{
 			boost::system::error_code ec;
@@ -701,17 +693,10 @@ void ApiListener::NewClientHandlerInternal(
 		}
 
 		if (firstByte >= '0' && firstByte <= '9') {
-			JsonRpc::SendMessage(client, new Dictionary({
-				{ "jsonrpc", "2.0" },
-				{ "method", "icinga::Hello" },
-				{ "params", new Dictionary({
-					{ "version", (double)l_AppVersionInt }
-				}) }
-			}), yc);
-
-			client->async_flush(yc);
-
 			ctype = ClientJsonRpc;
+		} else if (firstByte == 0x1F) {
+			ctype = ClientJsonRpc;
+			gzip = true;
 		} else {
 			ctype = ClientHttp;
 		}
@@ -720,7 +705,15 @@ void ApiListener::NewClientHandlerInternal(
 	if (ctype == ClientJsonRpc) {
 		Log(LogNotice, "ApiListener", "New JSON-RPC client");
 
-		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, client, role);
+		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, client, role, gzip);
+
+		aclient->SendMessage(new Dictionary({
+			{ "jsonrpc", "2.0" },
+			{ "method", "icinga::Hello" },
+			{ "params", new Dictionary({
+				{ "version", (double)l_AppVersionInt }
+			}) }
+		}));
 
 		if (endpoint) {
 			bool needSync = !endpoint->GetConnected();

@@ -30,14 +30,14 @@ REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 static RingBuffer l_TaskStats (15 * 60);
 
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
-	const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role)
-	: JsonRpcConnection(identity, authenticated, stream, role, IoEngine::Get().GetIoContext())
+	const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, bool gzip)
+	: JsonRpcConnection(identity, authenticated, stream, role, gzip, IoEngine::Get().GetIoContext())
 {
 }
 
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
-	const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io)
-	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role),
+	const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, bool gzip, boost::asio::io_context& io)
+	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role), m_Gzip(gzip),
 	m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_NextHeartbeat(0), m_IoStrand(io),
 	m_OutgoingMessagesQueued(io), m_WriterDone(io), m_ShuttingDown(false),
 	m_CheckLivenessTimer(io), m_HeartbeatTimer(io)
@@ -60,11 +60,15 @@ void JsonRpcConnection::Start()
 
 void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 {
+	GunzipStream<AsyncSharedStream<AsioTlsStream>> decompressor (m_Stream.get());
+
 	for (;;) {
 		String message;
 
 		try {
-			message = JsonRpc::ReadMessage(*m_Stream, yc, m_Endpoint ? -1 : 1024 * 1024);
+			message = m_Gzip
+				? JsonRpc::ReadMessage(decompressor, yc, m_Endpoint ? -1 : 1024 * 1024)
+				: JsonRpc::ReadMessage(*m_Stream, yc, m_Endpoint ? -1 : 1024 * 1024);
 		} catch (const std::exception& ex) {
 			if (!m_ShuttingDown) {
 				Log(LogNotice, "JsonRpcConnection")
@@ -102,6 +106,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 {
 	Defer signalWriterDone ([this]() { m_WriterDone.Set(); });
+	GzipStream<AsyncSharedStream<AsioTlsStream>> compressor (m_Stream.get());
 
 	do {
 		m_OutgoingMessagesQueued.Wait(yc);
@@ -114,7 +119,9 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 		if (!queue.empty()) {
 			try {
 				for (auto& message : queue) {
-					size_t bytesSent = JsonRpc::SendRawMessage(*m_Stream, message, yc);
+					size_t bytesSent = m_Gzip
+						? JsonRpc::SendRawMessage(compressor, message, yc)
+						: JsonRpc::SendRawMessage(*m_Stream, message, yc);
 
 					if (m_Endpoint) {
 						m_Endpoint->AddMessageSent(bytesSent);

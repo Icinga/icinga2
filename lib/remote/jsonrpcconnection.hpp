@@ -42,7 +42,7 @@ class JsonRpcConnection final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(JsonRpcConnection);
 
-	JsonRpcConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role);
+	JsonRpcConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, bool gzip = false);
 
 	void Start();
 
@@ -70,6 +70,7 @@ private:
 	Endpoint::Ptr m_Endpoint;
 	Shared<AsioTlsStream>::Ptr m_Stream;
 	ConnectionRole m_Role;
+	bool m_Gzip;
 	double m_Timestamp;
 	double m_Seen;
 	double m_NextHeartbeat;
@@ -80,7 +81,7 @@ private:
 	bool m_ShuttingDown;
 	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
 
-	JsonRpcConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io);
+	JsonRpcConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, bool gzip, boost::asio::io_context& io);
 
 	void HandleIncomingMessages(boost::asio::yield_context yc);
 	void WriteOutgoingMessages(boost::asio::yield_context yc);
