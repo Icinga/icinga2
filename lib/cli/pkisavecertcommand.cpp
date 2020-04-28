@@ -29,6 +29,10 @@ void PKISaveCertCommand::InitParameters(boost::program_options::options_descript
 		("trustedcert", po::value<std::string>(), "Trusted certificate file path (output)")
 		("host", po::value<std::string>(), "Parent Icinga instance to fetch the public TLS certificate from")
 		("port", po::value<std::string>()->default_value("5665"), "Icinga 2 port");
+
+	hiddenDesc.add_options()
+		("key", po::value<std::string>())
+		("cert", po::value<std::string>());
 }
 
 std::vector<String> PKISaveCertCommand::GetArgumentSuggestions(const String& argument, const String& word) const
