@@ -20,7 +20,7 @@ using namespace icinga;
  *
  * @return Internal.DebugJsonRpc boolean
  */
-static bool GetDebugJsonRpcCached()
+bool JsonRpc::GetDebugJsonRpcCached()
 {
 	static int debugJsonRpc = -1;
 
@@ -73,26 +73,7 @@ size_t JsonRpc::SendMessage(const Shared<AsioTlsStream>::Ptr& stream, const Dict
  */
 size_t JsonRpc::SendMessage(const Shared<AsioTlsStream>::Ptr& stream, const Dictionary::Ptr& message, boost::asio::yield_context yc)
 {
-	return JsonRpc::SendRawMessage(stream, JsonEncode(message), yc);
-}
-
- /**
-  * Sends a raw message to the connected peer.
-  *
-  * @param stream ASIO TLS Stream
-  * @param json message
-  * @param yc Yield context required for ASIO
-  *
-  * @return bytes sent
-  */
-size_t JsonRpc::SendRawMessage(const Shared<AsioTlsStream>::Ptr& stream, const String& json, boost::asio::yield_context yc)
-{
-#ifdef I2_DEBUG
-	if (GetDebugJsonRpcCached())
-		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << ">> " << json << ConsoleColorTag(Console_Normal) << "\n";
-#endif /* I2_DEBUG */
-
-	return NetString::WriteStringToStream(stream, json, yc);
+	return JsonRpc::SendRawMessage(*stream, JsonEncode(message), yc);
 }
 
 /**
@@ -107,27 +88,6 @@ size_t JsonRpc::SendRawMessage(const Shared<AsioTlsStream>::Ptr& stream, const S
 String JsonRpc::ReadMessage(const Shared<AsioTlsStream>::Ptr& stream, ssize_t maxMessageLength)
 {
 	String jsonString = NetString::ReadStringFromStream(stream, maxMessageLength);
-
-#ifdef I2_DEBUG
-	if (GetDebugJsonRpcCached())
-		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << "<< " << jsonString << ConsoleColorTag(Console_Normal) << "\n";
-#endif /* I2_DEBUG */
-
-	return std::move(jsonString);
-}
-
-/**
- * Reads a message from the connected peer.
- *
- * @param stream ASIO TLS Stream
- * @param yc Yield Context for ASIO
- * @param maxMessageLength maximum size of bytes read.
- *
- * @return A JSON string
- */
-String JsonRpc::ReadMessage(const Shared<AsioTlsStream>::Ptr& stream, boost::asio::yield_context yc, ssize_t maxMessageLength)
-{
-	String jsonString = NetString::ReadStringFromStream(stream, yc, maxMessageLength);
 
 #ifdef I2_DEBUG
 	if (GetDebugJsonRpcCached())

@@ -64,7 +64,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 		String message;
 
 		try {
-			message = JsonRpc::ReadMessage(m_Stream, yc, m_Endpoint ? -1 : 1024 * 1024);
+			message = JsonRpc::ReadMessage(*m_Stream, yc, m_Endpoint ? -1 : 1024 * 1024);
 		} catch (const std::exception& ex) {
 			if (!m_ShuttingDown) {
 				Log(LogNotice, "JsonRpcConnection")
@@ -114,7 +114,7 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 		if (!queue.empty()) {
 			try {
 				for (auto& message : queue) {
-					size_t bytesSent = JsonRpc::SendRawMessage(m_Stream, message, yc);
+					size_t bytesSent = JsonRpc::SendRawMessage(*m_Stream, message, yc);
 
 					if (m_Endpoint) {
 						m_Endpoint->AddMessageSent(bytesSent);
