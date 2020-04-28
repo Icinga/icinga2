@@ -88,6 +88,32 @@ private:
 typedef boost::asio::buffered_stream<boost::asio::ip::tcp::socket> AsioTcpStream;
 typedef std::pair<Shared<AsioTlsStream>::Ptr, Shared<AsioTcpStream>::Ptr> OptionalTlsStream;
 
+template<class Stream>
+class AsyncSharedStream : public Shared<Stream>::Ptr
+{
+public:
+	using Shared<Stream>::Ptr::Ptr;
+
+	typedef typename Stream::executor_type executor_type;
+
+	auto get_executor() -> decltype((*(typename Shared<Stream>::Ptr*)this)->get_executor())
+	{
+		return (*(typename Shared<Stream>::Ptr*)this)->get_executor();
+	}
+
+	template<class... Args>
+	auto async_read_some(Args&&... args) -> decltype((*(typename Shared<Stream>::Ptr*)this)->async_read_some(std::forward<Args>(args)...))
+	{
+		return (*(typename Shared<Stream>::Ptr*)this)->async_read_some(std::forward<Args>(args)...);
+	}
+
+	template<class... Args>
+	auto async_write_some(Args&&... args) -> decltype((*(typename Shared<Stream>::Ptr*)this)->async_write_some(std::forward<Args>(args)...))
+	{
+		return (*(typename Shared<Stream>::Ptr*)this)->async_write_some(std::forward<Args>(args)...);
+	}
+};
+
 }
 
 #endif /* TLSSTREAM_H */
