@@ -402,7 +402,6 @@ static void CollectRequestHandler(const Dictionary::Ptr& requests, const String&
 
 	std::shared_ptr<X509> certRequest = StringToCertificate(certRequestText);
 
-/* XXX (requires OpenSSL >= 1.0.0)
 	time_t now;
 	time(&now);
 	ASN1_TIME *tm = ASN1_TIME_adj(nullptr, now, 0, 0);
@@ -410,7 +409,7 @@ static void CollectRequestHandler(const Dictionary::Ptr& requests, const String&
 	int day, sec;
 	ASN1_TIME_diff(&day, &sec, tm, X509_get_notBefore(certRequest.get()));
 
-	result->Set("timestamp",  static_cast<double>(now) + day * 24 * 60 * 60 + sec); */
+	result->Set("ts",  static_cast<double>(now) + day * 24 * 60 * 60 + sec);
 
 	BIO *out = BIO_new(BIO_s_mem());
 	ASN1_TIME_print(out, X509_get_notBefore(certRequest.get()));
