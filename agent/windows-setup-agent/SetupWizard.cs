@@ -238,14 +238,12 @@ namespace Icinga
 
 			string serviceUser = txtUser.Text.Trim();
 
-			DirectoryInfo di = new DirectoryInfo(Program.Icinga2InstallDir);
-			DirectorySecurity ds = di.GetAccessControl();
 			FileSystemAccessRule rule = new FileSystemAccessRule(serviceUser,
 				FileSystemRights.Modify,
 				InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow);
 			try {
-				ds.AddAccessRule(rule);
-				di.SetAccessControl(ds);
+				AddAccessRuleToDir(rule, Program.Icinga2InstallDir);
+				AddAccessRuleToDir(rule, Program.Icinga2DataDir);
 			} catch (System.Security.Principal.IdentityNotMappedException) {
 				ShowErrorText("Could not set ACLs for user \"" + serviceUser + "\". Identitiy is not mapped.\n");
 				return;
@@ -283,6 +281,14 @@ namespace Icinga
 			}
 
 			FinishConfigure();
+		}
+
+		private void AddAccessRuleToDir(FileSystemAccessRule rule, string dir)
+		{
+			DirectoryInfo di = new DirectoryInfo(dir);
+			DirectorySecurity ds = di.GetAccessControl();
+			ds.AddAccessRule(rule);
+			di.SetAccessControl(ds);
 		}
 
 		private void FinishConfigure()
