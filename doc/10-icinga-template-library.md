@@ -2159,6 +2159,7 @@ snmp_interface_ifalias      | **Optional.** Switch from IF-MIB::ifDescr to IF-MI
 snmp_interface_weathermap   | **Optional.** Output data for ["weathermap" lines](http://docs.nagvis.org/1.9/en_US/lines_weathermap_style.html) in NagVis. **Depends** on `snmp_interface_perf` set to true. Defaults to `false`. **Note**: Available in `check_snmp_int.pl v2.1.0`.
 snmp_perf                   | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout                | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
+snmp_interface_admin        | **Optional.** Use administrative status instead of operational. Defaults to false.
 
 ### snmp-process <a id="plugin-check-command-snmp-process"></a>
 
