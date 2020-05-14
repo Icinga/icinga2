@@ -242,8 +242,8 @@ namespace Icinga
 				FileSystemRights.Modify,
 				InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow);
 			try {
-				AddAccessRuleToDir(rule, Program.Icinga2InstallDir);
-				AddAccessRuleToDir(rule, Program.Icinga2DataDir);
+				AddAccessRuleToFSTree(rule, Program.Icinga2InstallDir);
+				AddAccessRuleToFSTree(rule, Program.Icinga2DataDir);
 			} catch (System.Security.Principal.IdentityNotMappedException) {
 				ShowErrorText("Could not set ACLs for user \"" + serviceUser + "\". Identitiy is not mapped.\n");
 				return;
@@ -283,12 +283,33 @@ namespace Icinga
 			FinishConfigure();
 		}
 
+		private void AddAccessRuleToFile(FileSystemAccessRule rule, string file)
+		{
+			FileInfo fi = new FileInfo(file);
+			FileSecurity fs = fi.GetAccessControl();
+			fs.AddAccessRule(rule);
+			fi.SetAccessControl(fs);
+		}
+
 		private void AddAccessRuleToDir(FileSystemAccessRule rule, string dir)
 		{
 			DirectoryInfo di = new DirectoryInfo(dir);
 			DirectorySecurity ds = di.GetAccessControl();
 			ds.AddAccessRule(rule);
 			di.SetAccessControl(ds);
+		}
+
+		private void AddAccessRuleToFSTree(FileSystemAccessRule rule, string root)
+		{
+			AddAccessRuleToDir(rule, root);
+
+			foreach (string path in Directory.EnumerateDirectories(root, "*", SearchOption.AllDirectories)) {
+				AddAccessRuleToDir(rule, path);
+			}
+
+			foreach (string path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)) {
+				AddAccessRuleToFile(rule, path);
+			}
 		}
 
 		private void FinishConfigure()
