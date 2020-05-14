@@ -109,7 +109,7 @@ std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 		if (!text.IsEmpty())
 			text += "\n";
 
-		if (delim != String::NPos) {
+		if (delim != String::NPos && line.FindFirstOf("=", delim) != String::NPos) {
 			text += line.SubStr(0, delim);
 
 			if (!perfdata.IsEmpty())
