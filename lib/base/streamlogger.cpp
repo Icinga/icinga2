@@ -41,6 +41,8 @@ void StreamLogger::FlushLogTimerHandler()
 
 void StreamLogger::Flush()
 {
+	ObjectLock oLock (this);
+
 	if (m_Stream)
 		m_Stream->flush();
 }
