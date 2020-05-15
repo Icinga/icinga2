@@ -12,6 +12,12 @@ class FileLogger : StreamLogger
 	activation_priority -100;
 
 	[config, required] String path;
+	[config] int max_size {
+		default {{{ return -1; }}}
+	};
+	[config] int keep_rotations {
+		default {{{ return 7; }}}
+	};
 };
 
 }

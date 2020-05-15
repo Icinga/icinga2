@@ -30,7 +30,7 @@ public:
 
 protected:
 	void ProcessLogEntry(const LogEntry& entry) final;
-	void Flush() final;
+	void Flush() override;
 
 private:
 	static boost::mutex m_Mutex;
