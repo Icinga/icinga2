@@ -126,13 +126,11 @@ void IcingaDB::TryToReconnect()
 
 void IcingaDB::PublishStatsTimerHandler(void)
 {
-	m_WorkQueue.Enqueue([this]() { PublishStats(); });
+	PublishStats();
 }
 
 void IcingaDB::PublishStats()
 {
-	AssertOnWorkQueue();
-
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
