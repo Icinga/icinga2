@@ -13,7 +13,10 @@ class FileLogger : StreamLogger
 
 	[config, required] String path;
 	[config] int max_size {
-		default {{{ return -1; }}}
+		default {{{
+			// Fits gzipped into a 5MB email attachment.
+			return 100 * 1024 * 1024;
+		}}}
 	};
 	[config] int keep_rotations {
 		default {{{ return 7; }}}
