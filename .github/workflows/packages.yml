@@ -1,0 +1,141 @@
+name: Packages
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+  deb:
+    name: .deb
+
+    strategy:
+      matrix:
+        distro:
+          - debian/buster
+          - debian/stretch
+          - debian/jessie
+          - ubuntu/focal
+          - ubuntu/bionic
+          - ubuntu/xenial
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v1
+
+      - name: deb-icinga2
+        run: |
+          set -exo pipefail
+          git clone https://git.icinga.com/packaging/deb-icinga2.git
+          chmod o+w deb-icinga2
+
+      - name: Source
+        run: |
+          set -exo pipefail
+          git checkout -B master
+          docker run --rm \
+            -v "$(pwd)/deb-icinga2:/deb-icinga2" \
+            -v "$(pwd)/.git:/icinga2.git:ro" \
+            -w /deb-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            -e UPSTREAM_GIT_URL=file:///icinga2.git \
+            registry.icinga.com/build-docker/${{ matrix.distro }} \
+            icinga-build-deb-source
+
+      - name: Restore/backup ccache
+        id: ccache
+        uses: actions/cache@v1
+        with:
+          path: deb-icinga2/ccache
+          key: '${{ matrix.distro }}-ccache'
+
+      - name: Binary
+        run: |
+          set -exo pipefail
+          if [ -e deb-icinga2/ccache ]; then
+            chmod -R o+w deb-icinga2/ccache
+          fi
+          docker run --rm \
+            -v "$(pwd)/deb-icinga2:/deb-icinga2" \
+            -w /deb-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            registry.icinga.com/build-docker/${{ matrix.distro }} \
+            icinga-build-deb-binary
+
+      - name: Test
+        run: |
+          set -exo pipefail
+          docker run --rm \
+            -v "$(pwd)/deb-icinga2:/deb-icinga2" \
+            -w /deb-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            registry.icinga.com/build-docker/${{ matrix.distro }} \
+            icinga-build-test
+  rpm:
+    name: .rpm
+
+    strategy:
+      matrix:
+        distro:
+          - centos/8
+          - centos/7
+          - centos/6
+          - fedora/32
+          - fedora/31
+          - fedora/30
+          - fedora/29
+          - opensuse/15.1
+          - opensuse/15.0
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v1
+
+      - name: rpm-icinga2
+        run: |
+          set -exo pipefail
+          git clone https://git.icinga.com/packaging/rpm-icinga2.git
+          chmod o+w rpm-icinga2
+
+      - name: Restore/backup ccache
+        id: ccache
+        uses: actions/cache@v1
+        with:
+          path: rpm-icinga2/ccache
+          key: '${{ matrix.distro }}-ccache'
+
+      - name: Binary
+        run: |
+          set -exo pipefail
+          git checkout -B master
+          if [ -e rpm-icinga2/ccache ]; then
+            chmod -R o+w rpm-icinga2/ccache
+          fi
+          docker run --rm \
+            -v "$(pwd)/rpm-icinga2:/rpm-icinga2" \
+            -v "$(pwd)/.git:/icinga2.git:ro" \
+            -w /rpm-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            -e UPSTREAM_GIT_URL=file:///icinga2.git \
+            registry.icinga.com/build-docker/${{ matrix.distro }} \
+            icinga-build-package
+
+      - name: Test
+        run: |
+          set -exo pipefail
+          docker run --rm \
+            -v "$(pwd)/rpm-icinga2:/rpm-icinga2" \
+            -w /rpm-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            registry.icinga.com/build-docker/${{ matrix.distro }} \
+            icinga-build-test
