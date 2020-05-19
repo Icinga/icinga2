@@ -143,15 +143,7 @@ void Checkable::ClearAcknowledgement(const String& removedBy, double changeTime,
 {
 	ObjectLock oLock (this);
 
-	bool wasAcked;
-
-	if (GetAcknowledgementRaw() == AcknowledgementNone) {
-		wasAcked = false;
-	} else {
-		double expiry = GetAcknowledgementExpiry();
-
-		wasAcked = expiry == 0 || expiry >= Utility::GetTime();
-	}
+	bool wasAcked = GetAcknowledgementRaw() != AcknowledgementNone;
 
 	SetAcknowledgementRaw(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
