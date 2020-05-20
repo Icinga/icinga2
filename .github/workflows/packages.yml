@@ -15,16 +15,22 @@ jobs:
         distro:
           - name: debian
             codename: buster
+            has32bit: true
           - name: debian
             codename: stretch
+            has32bit: true
           - name: debian
             codename: jessie
+            has32bit: true
           - name: ubuntu
             codename: focal
+            has32bit: false
           - name: ubuntu
             codename: bionic
+            has32bit: true
           - name: ubuntu
             codename: xenial
+            has32bit: true
 
     runs-on: ubuntu-latest
 
@@ -59,7 +65,7 @@ jobs:
           path: deb-icinga2/ccache
           key: '${{ matrix.distro.name }}/${{ matrix.distro.codename }}-ccache'
 
-      - name: Binary
+      - name: Binary x64
         run: |
           set -exo pipefail
           if [ -e deb-icinga2/ccache ]; then
@@ -73,7 +79,19 @@ jobs:
             registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.codename }} \
             icinga-build-deb-binary
 
-      - name: Test
+      - name: Binary x86
+        if: matrix.distro.has32bit
+        run: |
+          set -exo pipefail
+          docker run --rm \
+            -v "$(pwd)/deb-icinga2:/deb-icinga2" \
+            -w /deb-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.codename }}:x86 \
+            icinga-build-deb-binary
+
+      - name: Test x64
         run: |
           set -exo pipefail
           docker run --rm \
@@ -82,6 +100,18 @@ jobs:
             -e ICINGA_BUILD_PROJECT=icinga2 \
             -e ICINGA_BUILD_TYPE=snapshot \
             registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.codename }} \
+            icinga-build-test
+
+      - name: Test x86
+        if: matrix.distro.has32bit
+        run: |
+          set -exo pipefail
+          docker run --rm \
+            -v "$(pwd)/deb-icinga2:/deb-icinga2" \
+            -w /deb-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.codename }}:x86 \
             icinga-build-test
 
       - name: Artifacts
