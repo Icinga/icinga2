@@ -139,6 +139,14 @@ jobs:
             release: 30
           - name: fedora
             release: 29
+          - name: sles
+            release: '15.1'
+          - name: sles
+            release: '15.0'
+          - name: sles
+            release: '12.5'
+          - name: sles
+            release: '12.4'
           - name: opensuse
             release: '15.1'
           - name: opensuse
@@ -147,16 +155,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Vars
+        id: vars
+        env:
+          GITLAB_REGISTRY_RO_TOKEN: '${{ secrets.GITLAB_REGISTRY_RO_TOKEN }}'
+        run: |
+          if [ '${{ matrix.distro.name }}' = sles ]; then
+            if [ "$(tr -d '\n' <<<"$GITLAB_REGISTRY_RO_TOKEN" |wc -c)" -eq 0 ]; then
+              echo '::set-output name=CAN_BUILD::false'
+              echo '::set-output name=NEED_LOGIN::false'
+            else
+              echo '::set-output name=CAN_BUILD::true'
+              echo '::set-output name=NEED_LOGIN::true'
+            fi
+          else
+            echo '::set-output name=CAN_BUILD::true'
+            echo '::set-output name=NEED_LOGIN::false'
+          fi
+
       - name: Checkout HEAD
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         uses: actions/checkout@v1
 
+      - name: Login
+        if: "steps.vars.outputs.NEED_LOGIN == 'true'"
+        env:
+          GITLAB_REGISTRY_RO_TOKEN: '${{ secrets.GITLAB_REGISTRY_RO_TOKEN }}'
+        run: |
+          docker login registry.icinga.com -u build-docker/sles --password-stdin <<<"$GITLAB_REGISTRY_RO_TOKEN"
+
       - name: rpm-icinga2
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         run: |
           set -exo pipefail
           git clone https://git.icinga.com/packaging/rpm-icinga2.git
           chmod o+w rpm-icinga2
 
       - name: Restore/backup ccache
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         id: ccache
         uses: actions/cache@v1
         with:
@@ -164,6 +200,7 @@ jobs:
           key: '${{ matrix.distro.name }}/${{ matrix.distro.release }}-ccache'
 
       - name: Binary
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         run: |
           set -exo pipefail
           git checkout -B master
@@ -181,6 +218,7 @@ jobs:
             icinga-build-package
 
       - name: Test
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         run: |
           set -exo pipefail
           docker run --rm \
@@ -192,6 +230,7 @@ jobs:
             icinga-build-test
 
       - name: Artifacts
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         uses: actions/upload-artifact@v1
         with:
           name: '${{ matrix.distro.name }}-${{ matrix.distro.release }}-packages'
