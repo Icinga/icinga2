@@ -161,7 +161,7 @@ jobs:
           GITLAB_REGISTRY_RO_TOKEN: '${{ secrets.GITLAB_REGISTRY_RO_TOKEN }}'
         run: |
           if [ '${{ matrix.distro.name }}' = sles ]; then
-            if [ "$(wc -c <<<"$GITLAB_REGISTRY_RO_TOKEN")" -eq 0 ]; then
+            if [ "$(tr -d '\n' <<<"$GITLAB_REGISTRY_RO_TOKEN" |wc -c)" -eq 0 ]; then
               echo '::set-output name=CAN_BUILD::false'
               echo '::set-output name=NEED_LOGIN::false'
             else
