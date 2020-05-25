@@ -17,7 +17,7 @@ if (-not ($env:PATH -contains $env:CMAKE_PATH)) {
   $env:PATH = $env:CMAKE_PATH + ';' + $env:PATH
 }
 if (-not (Test-Path env:CMAKE_GENERATOR)) {
-  $env:CMAKE_GENERATOR = 'Visual Studio 15 2017 Win64'
+  $env:CMAKE_GENERATOR = 'Visual Studio 16 2019 Win64'
 }
 if (-not (Test-Path env:OPENSSL_ROOT_DIR)) {
   $env:OPENSSL_ROOT_DIR = 'c:\local\OpenSSL_1_1_1b-Win64'
