@@ -174,25 +174,25 @@ jobs:
           fi
 
       - name: Checkout HEAD
-        if: steps.vars.outputs.CAN_BUILD
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         uses: actions/checkout@v1
 
       - name: Login
-        if: steps.vars.outputs.NEED_LOGIN
+        if: "steps.vars.outputs.NEED_LOGIN == 'true'"
         env:
           GITLAB_REGISTRY_RO_TOKEN: '${{ secrets.GITLAB_REGISTRY_RO_TOKEN }}'
         run: |
           docker login registry.icinga.com -u build-docker/sles --password-stdin <<<"$GITLAB_REGISTRY_RO_TOKEN"
 
       - name: rpm-icinga2
-        if: steps.vars.outputs.CAN_BUILD
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         run: |
           set -exo pipefail
           git clone https://git.icinga.com/packaging/rpm-icinga2.git
           chmod o+w rpm-icinga2
 
       - name: Restore/backup ccache
-        if: steps.vars.outputs.CAN_BUILD
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         id: ccache
         uses: actions/cache@v1
         with:
@@ -200,7 +200,7 @@ jobs:
           key: '${{ matrix.distro.name }}/${{ matrix.distro.release }}-ccache'
 
       - name: Binary
-        if: steps.vars.outputs.CAN_BUILD
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         run: |
           set -exo pipefail
           git checkout -B master
@@ -218,7 +218,7 @@ jobs:
             icinga-build-package
 
       - name: Test
-        if: steps.vars.outputs.CAN_BUILD
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         run: |
           set -exo pipefail
           docker run --rm \
@@ -230,7 +230,7 @@ jobs:
             icinga-build-test
 
       - name: Artifacts
-        if: steps.vars.outputs.CAN_BUILD
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
         uses: actions/upload-artifact@v1
         with:
           name: '${{ matrix.distro.name }}-${{ matrix.distro.release }}-packages'
