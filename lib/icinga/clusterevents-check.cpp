@@ -92,6 +92,11 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		return;
 	}
 
+	if (params->Contains("source")) {
+		Log(LogCritical, "ApiListener", "Not implemented.");
+		return;
+	}
+
 	if (!listener->GetAcceptCommands()) {
 		Log(LogWarning, "ApiListener")
 				<< "Ignoring command. '" << listener->GetName() << "' does not accept commands.";
