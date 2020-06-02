@@ -61,6 +61,7 @@ public:
 		NotificationType notificationType, const CheckResult::Ptr& cr, const String& author, const String& commentText, const MessageOrigin::Ptr& origin);
 	static Value NotificationSentToAllUsersAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	static Value ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static int GetCheckRequestQueueSize();
 	static void LogRemoteCheckQueueInformation();

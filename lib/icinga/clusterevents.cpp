@@ -35,6 +35,7 @@ REGISTER_APIFUNCTION(SendNotifications, event, &ClusterEvents::SendNotifications
 REGISTER_APIFUNCTION(NotificationSentUser, event, &ClusterEvents::NotificationSentUserAPIHandler);
 REGISTER_APIFUNCTION(NotificationSentToAllUsers, event, &ClusterEvents::NotificationSentToAllUsersAPIHandler);
 REGISTER_APIFUNCTION(ExecutedCommand, event, &ClusterEvents::ExecutedCommandAPIHandler);
+REGISTER_APIFUNCTION(UpdateExecutions, event, &ClusterEvents::UpdateExecutionsAPIHandler);
 
 void ClusterEvents::StaticInitialize()
 {
@@ -930,6 +931,11 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 }
 
 Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	return "Not implemented";
+}
+
+Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	return "Not implemented";
 }
