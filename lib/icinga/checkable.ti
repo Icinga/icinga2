@@ -164,6 +164,7 @@ abstract class Checkable : CustomVarObject
 		}}}
 	};
 
+	[state, no_user_modify] Dictionary::Ptr executions;
 	[state, no_user_view, no_user_modify] Dictionary::Ptr pending_executions;
 };
 
