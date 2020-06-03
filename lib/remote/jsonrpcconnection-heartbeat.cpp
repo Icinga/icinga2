@@ -28,9 +28,17 @@ void JsonRpcConnection::HandleAndWriteHeartbeats(boost::asio::yield_context yc)
 		}
 
 		if (m_NextHeartbeat != 0 && m_NextHeartbeat < Utility::GetTime()) {
-			Log(LogWarning, "JsonRpcConnection")
-				<< "Client for endpoint '" << m_Endpoint->GetName() << "' has requested "
-				<< "heartbeat message but hasn't responded in time. Closing connection.";
+			{
+				Log logMsg (LogWarning, "JsonRpcConnection");
+
+				if (m_Endpoint) {
+					logMsg << "Client for endpoint '" << m_Endpoint->GetName() << "'";
+				} else {
+					logMsg << "Anonymous client";
+				}
+
+				logMsg << " has requested heartbeat message but hasn't responded in time. Closing connection.";
+			}
 
 			Disconnect();
 			break;
