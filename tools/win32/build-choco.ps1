@@ -5,7 +5,7 @@ if(-not (Test-Path "$($env:ProgramData)\chocolatey\choco.exe")) {
 }
 
 if (-not (Test-Path env:ICINGA2_BUILDPATH)) {
-  $env:ICINGA2_BUILDPATH = '.\debug'
+  $env:ICINGA2_BUILDPATH = '.\build'
 }
 
 if(-not (Test-Path "$($env:ICINGA2_BUILDPATH)\choco\chocolateyInstall.ps1.template")) {
