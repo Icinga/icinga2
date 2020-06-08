@@ -10,6 +10,8 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/verify_context.hpp>
 #include <boost/asio/ssl/verify_mode.hpp>
+#include <boost/iostreams/char_traits.hpp>
+#include <ios>
 #include <iostream>
 #include <openssl/ssl.h>
 #include <openssl/tls1.h>
@@ -64,4 +66,22 @@ void UnbufferedAsioTlsStream::BeforeHandshake(handshake_type type)
 		SSL_set_tlsext_host_name(native_handle(), serverName.CStr());
 	}
 #endif /* SSL_CTRL_SET_TLSEXT_HOSTNAME */
+}
+
+std::streamsize OneCharOrBlockSource::read(char *buf, std::streamsize bufSize)
+{
+	namespace ios = boost::iostreams;
+	using ct = ios::char_traits<char>;
+
+	if (bufSize < 1u) {
+		return ios::WOULD_BLOCK;
+	}
+
+	if (ct::is_good(m_Char)) {
+		*buf = ct::to_char_type(m_Char);
+		m_Char = ios::WOULD_BLOCK;
+		return 1u;
+	} else {
+		return m_Char;
+	}
 }
