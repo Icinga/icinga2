@@ -231,7 +231,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 		}
 
 		/* SOFT state change, increase attempt counter. */
-		if (old_stateType == StateTypeSoft && !IsStateOK(old_state)) {
+		if (old_stateType == StateTypeSoft && old_cr && !IsStateOK(old_state)) {
 			SetStateType(StateTypeSoft);
 			attempt = old_attempt + 1;
 		}
@@ -257,11 +257,15 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 
 	bool stateChange;
 
-	/* Exception on state change calculation for hosts. */
-	if (checkableType == CheckableService)
-		stateChange = (old_state != new_state);
-	else
-		stateChange = (Host::CalculateState(old_state) != Host::CalculateState(new_state));
+	if (old_cr) {
+		/* Exception on state change calculation for hosts. */
+		if (checkableType == CheckableService)
+			stateChange = (old_state != new_state);
+		else
+			stateChange = (Host::CalculateState(old_state) != Host::CalculateState(new_state));
+	} else {
+		stateChange = true;
+	}
 
 	/* Store the current last state change for the next iteration. */
 	SetPreviousStateChange(GetLastStateChange());
@@ -281,9 +285,9 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	if (GetAcknowledgement() == AcknowledgementNone)
 		remove_acknowledgement_comments = true;
 
-	bool hardChange = (GetStateType() == StateTypeHard && old_stateType == StateTypeSoft);
+	bool hardChange = (GetStateType() == StateTypeHard && old_stateType == StateTypeSoft && old_cr);
 
-	if (stateChange && old_stateType == StateTypeHard && GetStateType() == StateTypeHard)
+	if (stateChange && (old_stateType == StateTypeHard || !old_cr) && GetStateType() == StateTypeHard)
 		hardChange = true;
 
 	bool is_volatile = GetVolatile();
