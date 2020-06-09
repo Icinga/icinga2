@@ -95,8 +95,7 @@ public:
 	static double GetStartTime();
 	static void SetStartTime(double ts);
 
-	static double GetMainTime();
-	static void SetMainTime(double ts);
+	static double GetUptime();
 
 	static bool GetScriptDebuggerEnabled();
 	static void SetScriptDebuggerEnabled(bool enabled);

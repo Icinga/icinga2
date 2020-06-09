@@ -25,7 +25,7 @@ void RandomCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		return;
 
 	double now = Utility::GetTime();
-	double uptime = now - Application::GetStartTime();
+	double uptime = Application::GetUptime();
 
 	String output = "Hello from " + IcingaApplication::GetInstance()->GetNodeName()
 		+ ". Icinga 2 has been running for " + Utility::FormatDuration(uptime)
