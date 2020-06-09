@@ -83,6 +83,7 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 		std::sort(arr->Begin(), arr->End());
 	} else {
 		Function::Ptr function = args[0];
+		REQUIRE_NOT_NULL(function);
 
 		if (vframe->Sandboxed && !function->IsSideEffectFree())
 			BOOST_THROW_EXCEPTION(ScriptError("Sort function must be side-effect free."));
@@ -123,6 +124,7 @@ static Array::Ptr ArrayMap(const Function::Ptr& function)
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
+	REQUIRE_NOT_NULL(function);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Map function must be side-effect free."));
@@ -142,6 +144,7 @@ static Value ArrayReduce(const Function::Ptr& function)
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
+	REQUIRE_NOT_NULL(function);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Reduce function must be side-effect free."));
@@ -164,6 +167,7 @@ static Array::Ptr ArrayFilter(const Function::Ptr& function)
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
+	REQUIRE_NOT_NULL(function);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
@@ -184,6 +188,7 @@ static bool ArrayAny(const Function::Ptr& function)
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
+	REQUIRE_NOT_NULL(function);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
@@ -202,6 +207,7 @@ static bool ArrayAll(const Function::Ptr& function)
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
+	REQUIRE_NOT_NULL(function);
 
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
