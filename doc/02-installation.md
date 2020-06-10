@@ -1,7 +1,6 @@
 # Installation <a id="installation"></a>
 
-This tutorial is a step-by-step introduction to installing [Icinga 2](02-installation.md#setting-up-icinga2)
-and [Icinga Web 2](02-installation.md#setting-up-icingaweb2).
+This tutorial is a step-by-step introduction to installing a basic Icinga Stack ([Icinga 2](02-installation.md#setting-up-icinga2), [Icinga DB](02-installation.md#setting-up-icingadb) and [Icinga Web 2](02-installation.md#setting-up-icingaweb2)).
 It assumes that you are familiar with the operating system you're using to install Icinga 2.
 
 In case you are upgrading an existing setup, please ensure to
@@ -492,6 +491,99 @@ yum install icinga2-selinux
 
 Read more about SELinux in [this chapter](22-selinux.md#selinux).
 
+## Setting up Icinga DB <a id="setting-up-icingadb"></a>
+
+Icinga DB is a data backend that holds all your monitoring data for your Icinga Web 2 to display.
+
+First, make sure to setup the Icinga DB daemon itself and its database backends (Redis and MySQL) by following the [installation instructions](https://icinga.com/docs/icingadb/latest/doc/02-Installation/).
+
+### Enabling the Icinga DB feature <a id="enabling-icinga-db"></a>
+
+Icinga 2 provides a configuration file that is installed in
+`/etc/icinga2/features-available/icingadb.conf`. You can update
+the Redis credentials in this file.
+
+All available attributes are explained in the
+[Icinga DB object](09-object-types.md#objecttype-icingadb)
+chapter.
+
+You can enable the `icingadb` feature configuration file using
+`icinga2 feature enable`:
+
+```
+# icinga2 feature enable icingadb
+Module 'icingadb' was enabled.
+Make sure to restart Icinga 2 for these changes to take effect.
+```
+
+Restart Icinga 2.
+
+```
+systemctl restart icinga2
+```
+
+Alpine Linux:
+
+```
+rc-service icinga2 restart
+```
+
+## Setting up Icinga Web 2 <a id="setting-up-icingaweb2"></a>
+
+Icinga 2 can be used with Icinga Web 2 and a variety of modules.
+This chapter explains how to set up Icinga Web 2.
+
+### Setting Up Icinga 2 REST API <a id="setting-up-rest-api"></a>
+
+Icinga Web 2 and other web interfaces require the [REST API](12-icinga2-api.md#icinga2-api-setup)
+to send actions (reschedule check, etc.) and query object details.
+
+You can run the CLI command `icinga2 api setup` to enable the
+`api` [feature](11-cli-commands.md#enable-features) and set up
+certificates as well as a new API user `root` with an auto-generated password in the
+`/etc/icinga2/conf.d/api-users.conf` configuration file:
+
+```
+icinga2 api setup
+```
+
+Edit the `api-users.conf` file and add a new ApiUser object. Specify the [permissions](12-icinga2-api.md#icinga2-api-permissions)
+attribute with minimal permissions required by Icinga Web 2.
+
+```
+vim /etc/icinga2/conf.d/api-users.conf
+
+object ApiUser "icingaweb2" {
+  password = "Wijsn8Z9eRs5E25d"
+  permissions = [ "status/query", "actions/*", "objects/modify/*", "objects/query/*" ]
+}
+```
+
+Restart Icinga 2 to activate the configuration.
+
+```
+systemctl restart icinga2
+```
+
+Alpine Linux:
+
+```
+rc-service icinga2 restart
+```
+
+### Installing Icinga Web 2 <a id="installing-icingaweb2"></a>
+
+Please consult the [Icinga Web 2 documentation](https://icinga.com/docs/icingaweb2/latest/)
+for further instructions on how to install Icinga Web 2.
+
+Consult the [Icinga DB Web documentation](https://icinga.com/docs/icingadb/latest/icingadb-web/doc/01-About/) on how to connect Icinga Web 2 with Icinga DB.
+
+## Addons <a id="install-addons"></a>
+
+A number of additional features are available in the form of addons. A list of
+popular addons is available in the
+[Addons and Plugins](13-addons.md#addons) chapter.
+
 ## Configuration Syntax Highlighting <a id="configuration-syntax-highlighting"></a>
 
 Icinga 2 provides configuration examples for syntax highlighting using the `vim` and `nano` editors.
@@ -552,7 +644,6 @@ Test it:
 
 ![Vim with syntax highlighting](images/installation/vim-syntax.png "Vim with Icinga 2 syntax highlighting")
 
-
 ### Configuration Syntax Highlighting using Nano <a id="configuration-syntax-highlighting-nano"></a>
 
 Install the package `nano-icinga2` with your distribution's package manager.
@@ -601,491 +692,6 @@ $ nano /etc/icinga2/conf.d/templates.conf
 ```
 
 ![Nano with syntax highlighting](images/installation/nano-syntax.png "Nano with Icinga 2 syntax highlighting")
-
-## Setting up Icinga Web 2 <a id="setting-up-icingaweb2"></a>
-
-Icinga 2 can be used with Icinga Web 2 and a variety of modules.
-This chapter explains how to set up Icinga Web 2.
-
-Either Icinga DB or the DB IDO (Database Icinga Data Output) feature for Icinga 2 takes care of
-exporting all configuration and status information into a database.
-
-Please choose whether to install [Icinga DB](02-installation.md#configuring-icinga-db) (MySQL only)
-or DB IDO ([MySQL](02-installation.md#configuring-db-ido-mysql) or
-[PostgreSQL](02-installation.md#configuring-db-ido-postgresql)). 
-It's recommended to use the newer Icinga DB feature, if you don't need PostgreSQL.
-
-### Configuring Icinga DB <a id="configuring-icinga-db"></a>
-
-First, make sure to setup Icinga DB itself and its database backends (Redis and MySQL) by following the [installation instructions](https://icinga.com/docs/icingadb/latest/doc/02-Installation/).
-
-#### Enabling the Icinga DB feature <a id="enabling-icinga-db"></a>
-
-Icinga 2 provides a configuration file that is installed in
-`/etc/icinga2/features-available/icingadb.conf`. You can update
-the Redis credentials in this file.
-
-All available attributes are explained in the
-[IcingaDB object](09-object-types.md#objecttype-icingadb)
-chapter.
-
-You can enable the `icingadb` feature configuration file using
-`icinga2 feature enable`:
-
-```
-# icinga2 feature enable icingadb
-Module 'icingadb' was enabled.
-Make sure to restart Icinga 2 for these changes to take effect.
-```
-
-Restart Icinga 2.
-
-```
-systemctl restart icinga2
-```
-
-Alpine Linux:
-
-```
-rc-service icinga2 restart
-```
-
-Continue with the [webserver setup](02-installation.md#icinga2-user-interface-webserver).
-
-### Configuring DB IDO MySQL <a id="configuring-db-ido-mysql"></a>
-
-#### Installing MySQL database server <a id="installing-database-mysql-server"></a>
-
-Debian/Ubuntu:
-
-```
-apt-get install mysql-server mysql-client
-
-mysql_secure_installation
-```
-
-RHEL/CentOS and Fedora:
-
-```
-yum install mariadb-server mariadb
-systemctl enable mariadb
-systemctl start mariadb
-mysql_secure_installation
-```
-
-SUSE:
-
-```
-zypper install mysql mysql-client
-chkconfig mysqld on
-service mysqld start
-```
-
-FreeBSD:
-
-```
-pkg install mysql56-server
-sysrc mysql_enable=yes
-service mysql-server restart
-mysql_secure_installation
-```
-
-Alpine Linux:
-
-```
-apk add mariadb
-rc-service mariadb setup
-rc-update add mariadb default
-rc-service mariadb start
-```
-
-#### Installing the IDO modules for MySQL <a id="installing-database-mysql-modules"></a>
-
-The next step is to install the `icinga2-ido-mysql` package using your
-distribution's package manager.
-
-Debian/Ubuntu:
-
-```
-apt-get install icinga2-ido-mysql
-```
-
-RHEL/CentOS:
-
-```
-yum install icinga2-ido-mysql
-```
-
-SUSE:
-
-```
-zypper install icinga2-ido-mysql
-```
-
-FreeBSD:
-
-On FreeBSD the IDO modules for MySQL are included with the icinga2 package
-and located at `/usr/local/share/icinga2-ido-mysql/schema/mysql.sql`.
-
-Alpine Linux:
-
-On Alpine Linux the IDO modules for MySQL are included with the `icinga2` package
-and located at `/usr/share/icinga2-ido-mysql/schema/mysql.sql`.
-
-> **Note**
->
-> The Debian/Ubuntu packages provide a database configuration wizard by
-> default. You can skip the automated setup and install/upgrade the
-> database manually if you prefer.
-
-#### Setting up the MySQL database <a id="setting-up-mysql-db"></a>
-
-Set up a MySQL database for Icinga 2:
-
-```
-# mysql -u root -p
-
-CREATE DATABASE icinga;
-GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
-quit
-```
-
-![setting up the database on CentOS 7](images/installation/mariadb-centos7.png "Setting up the database on CentOS 7")
-
-After creating the database you can import the Icinga 2 IDO schema using the
-following command. Enter the root password into the prompt when asked.
-
-```
-mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/mysql.sql
-```
-
-#### Enabling the IDO MySQL module <a id="enabling-ido-mysql"></a>
-
-The package provides a new configuration file that is installed in
-`/etc/icinga2/features-available/ido-mysql.conf`. You can update
-the database credentials in this file.
-
-All available attributes are explained in the
-[IdoMysqlConnection object](09-object-types.md#objecttype-idomysqlconnection)
-chapter.
-
-You can enable the `ido-mysql` feature configuration file using
-`icinga2 feature enable`:
-
-```
-# icinga2 feature enable ido-mysql
-Module 'ido-mysql' was enabled.
-Make sure to restart Icinga 2 for these changes to take effect.
-```
-
-Restart Icinga 2.
-
-```
-systemctl restart icinga2
-```
-
-Alpine Linux:
-
-```
-rc-service icinga2 restart
-```
-
-Continue with the [webserver setup](02-installation.md#icinga2-user-interface-webserver).
-
-### Configuring DB IDO PostgreSQL <a id="configuring-db-ido-postgresql"></a>
-
-#### Installing PostgreSQL database server <a id="installing-database-postgresql-server"></a>
-
-Debian/Ubuntu:
-
-```
-apt-get install postgresql
-```
-
-RHEL/CentOS:
-
-```
-yum install postgresql-server postgresql
-postgresql-setup initdb
-systemctl enable postgresql
-systemctl start postgresql
-```
-
-SUSE:
-
-```
-zypper install postgresql postgresql-server
-chkconfig postgresql on
-service postgresql initdb
-service postgresql start
-```
-
-FreeBSD:
-
-```
-pkg install postgresql93-server
-sysrc postgresql_enable=yes
-service postgresql initdb
-service postgresql start
-```
-
-Alpine Linux:
-
-```
-apk add postgresql
-rc-update add postgresql default
-rc-service postgresql setup
-rc-service postgresql start
-```
-
-#### Installing the IDO modules for PostgreSQL <a id="installing-database-postgresql-modules"></a>
-
-The next step is to install the `icinga2-ido-pgsql` package using your
-distribution's package manager.
-
-Debian/Ubuntu:
-
-```
-apt-get install icinga2-ido-pgsql
-```
-
-RHEL/CentOS:
-
-```
-yum install icinga2-ido-pgsql
-```
-
-SUSE:
-
-```
-zypper install icinga2-ido-pgsql
-```
-
-FreeBSD:
-
-On FreeBSD the IDO modules for PostgreSQL are included with the icinga2 package
-and located at `/usr/local/share/icinga2-ido-pgsql/schema/pgsql.sql`.
-
-Alpine Linux:
-
-On Alpine Linux the IDO modules for PostgreSQL are included with the `icinga2` package
-and located at `/usr/share/icinga2-ido-pgsql/schema/pgsql.sql`.
-
-> **Note**
->
-> Upstream Debian packages provide a database configuration wizard by default.
-> You can skip the automated setup and install/upgrade the database manually
-> if you prefer that.
-
-#### Setting up the PostgreSQL database
-
-Set up a PostgreSQL database for Icinga 2:
-
-```
-cd /tmp
-sudo -u postgres psql -c "CREATE ROLE icinga WITH LOGIN PASSWORD 'icinga'"
-sudo -u postgres createdb -O icinga -E UTF8 icinga
-```
-
-> **Note**
->
-> It is assumed here that your locale is set to utf-8, you may run into problems otherwise.
-
-Locate your `pg_hba.conf` configuration file (Debian: `/etc/postgresql/*/main/pg_hba.conf`,
-RHEL/SUSE: `/var/lib/pgsql/data/pg_hba.conf`), add the icinga user with `md5`
-as authentication method and restart the postgresql server.
-
-```
-# icinga
-local   icinga      icinga                            md5
-host    icinga      icinga      127.0.0.1/32          md5
-host    icinga      icinga      ::1/128               md5
-
-# "local" is for Unix domain socket connections only
-local   all         all                               ident
-# IPv4 local connections:
-host    all         all         127.0.0.1/32          ident
-# IPv6 local connections:
-host    all         all         ::1/128               ident
-```
-
-```
-systemctl restart postgresql
-```
-
-
-After creating the database and permissions you need to import the IDO database
-schema using the following command:
-
-```
-export PGPASSWORD=icinga
-psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/pgsql.sql
-```
-
-![importing the Icinga 2 IDO schema](images/installation/postgr-import-ido.png "Importing the Icinga 2 IDO schema on Debian Jessie")
-
-
-#### Enabling the IDO PostgreSQL module <a id="enabling-ido-postgresql"></a>
-
-The package provides a new configuration file that is installed in
-`/etc/icinga2/features-available/ido-pgsql.conf`. You can update
-the database credentials in this file.
-
-All available attributes are explained in the
-[IdoPgsqlConnection object](09-object-types.md#objecttype-idopgsqlconnection)
-chapter.
-
-You can enable the `ido-pgsql` feature configuration file using
-`icinga2 feature enable`:
-
-```
-# icinga2 feature enable ido-pgsql
-Module 'ido-pgsql' was enabled.
-Make sure to restart Icinga 2 for these changes to take effect.
-```
-
-Restart Icinga 2.
-
-```
-systemctl restart icinga2
-```
-
-Alpine Linux:
-
-```
-rc-service icinga2 restart
-```
-
-Continue with the [webserver setup](02-installation.md#icinga2-user-interface-webserver).
-
-### Webserver <a id="icinga2-user-interface-webserver"></a>
-
-The preferred way of installing Icinga Web 2 is to use Apache as webserver
-in combination with PHP-FPM. If you prefer Nginx, please refer to the Icinga Web 2
-documentation.
-
-> **Note**
->
-> These instructions follow HTTP. In order to secure your webserver, please
-> use HTTPS and TLS certificates e.g. from [Let's Encrypt](https://letsencrypt.org/).
-
-Debian/Ubuntu:
-
-```
-apt-get install apache2
-```
-
-RHEL/CentOS/Fedora:
-
-```
-yum install httpd
-systemctl enable httpd
-systemctl start httpd
-```
-
-SUSE:
-
-```
-zypper install apache2
-chkconfig apache2 on
-service apache2 start
-```
-
-FreeBSD (Nginx, but you could also use the `apache24` package):
-
-```
-pkg install nginx php56-gettext php56-ldap php56-openssl php56-mysql php56-pdo_mysql php56-pgsql php56-pdo_pgsql php56-sockets php56-gd pecl-imagick pecl-intl
-sysrc php_fpm_enable=yes
-sysrc nginx_enable=yes
-sed -i '' "s/listen\ =\ 127.0.0.1:9000/listen\ =\ \/var\/run\/php5-fpm.sock/" /usr/local/etc/php-fpm.conf
-sed -i '' "s/;listen.owner/listen.owner/" /usr/local/etc/php-fpm.conf
-sed -i '' "s/;listen.group/listen.group/" /usr/local/etc/php-fpm.conf
-sed -i '' "s/;listen.mode/listen.mode/" /usr/local/etc/php-fpm.conf
-service php-fpm start
-service nginx start
-```
-
-Alpine Linux:
-
-```
-apk add apache2 php7-apache2
-sed -i -e "s/^#LoadModule rewrite_module/LoadModule rewrite_module/" /etc/apache2/httpd.conf
-rc-update add apache2 default
-rc-service apache2 start
-```
-
-### Firewall Rules <a id="icinga2-user-interface-firewall-rules"></a>
-
-Enable port 80 (http). Best practice is to only enable port 443 (https) and use TLS certificates.
-
-firewall-cmd:
-
-```
-firewall-cmd --add-service=http
-firewall-cmd --permanent --add-service=http
-```
-
-iptables:
-
-```
-iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
-service iptables save
-```
-
-FreeBSD:
-Please consult the [FreeBSD Handbook](https://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/firewalls.html) how to configure one of FreeBSD's firewalls.
-
-
-### Setting Up Icinga 2 REST API <a id="setting-up-rest-api"></a>
-
-Icinga Web 2 and other web interfaces require the [REST API](12-icinga2-api.md#icinga2-api-setup)
-to send actions (reschedule check, etc.) and query object details.
-
-You can run the CLI command `icinga2 api setup` to enable the
-`api` [feature](11-cli-commands.md#enable-features) and set up
-certificates as well as a new API user `root` with an auto-generated password in the
-`/etc/icinga2/conf.d/api-users.conf` configuration file:
-
-```
-icinga2 api setup
-```
-
-Edit the `api-users.conf` file and add a new ApiUser object. Specify the [permissions](12-icinga2-api.md#icinga2-api-permissions)
-attribute with minimal permissions required by Icinga Web 2.
-
-```
-vim /etc/icinga2/conf.d/api-users.conf
-
-object ApiUser "icingaweb2" {
-  password = "Wijsn8Z9eRs5E25d"
-  permissions = [ "status/query", "actions/*", "objects/modify/*", "objects/query/*" ]
-}
-```
-
-Restart Icinga 2 to activate the configuration.
-
-```
-systemctl restart icinga2
-```
-
-Alpine Linux:
-
-```
-rc-service icinga2 restart
-```
-
-### Installing Icinga Web 2 <a id="installing-icingaweb2"></a>
-
-Please consult the [Icinga Web 2 documentation](https://icinga.com/docs/icingaweb2/latest/)
-for further instructions on how to install Icinga Web 2.
-
-If you decided on using Icinga DB, consult the [Icinga DB Web documentation](https://icinga.com/docs/icingadb/latest/icingadb-web/doc/01-About/) on how to connect Icinga Web 2 with Icinga DB.
-
-## Addons <a id="install-addons"></a>
-
-A number of additional features are available in the form of addons. A list of
-popular addons is available in the
-[Addons and Plugins](13-addons.md#addons) chapter.
 
 ## Installation Overview <a id="installation-overview"></a>
 
