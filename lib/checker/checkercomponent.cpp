@@ -74,7 +74,13 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 		m_CV.notify_all();
 	}
 
+	/* Pick a timeout slightly shorther than the process reload timeout. */
+	double reloadTimeout = Application::GetReloadTimeout();
+	double waitMax = reloadTimeout - 30;
 	double wait = 0.0;
+
+	if (waitMax <= 0)
+		waitMax = 1;
 
 	while (Checkable::GetPendingChecks() > 0) {
 		Log(LogDebug, "CheckerComponent")
@@ -83,12 +89,6 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 
 		Utility::Sleep(0.1);
 		wait += 0.1;
-
-		/* Pick a timeout slightly shorther than the process reload timeout. */
-		double reloadTimeout = Application::GetReloadTimeout();
-		double waitMax = reloadTimeout - 30;
-		if (waitMax <= 0)
-			waitMax = 1;
 
 		if (wait > waitMax) {
 			Log(LogWarning, "CheckerComponent")
