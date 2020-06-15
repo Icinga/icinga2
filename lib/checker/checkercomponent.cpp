@@ -14,6 +14,7 @@
 #include "base/exception.hpp"
 #include "base/convert.hpp"
 #include "base/statsfunction.hpp"
+#include <cmath>
 
 using namespace icinga;
 
@@ -83,12 +84,25 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 		waitMax = 1;
 
 	while (Checkable::GetPendingChecks() > 0) {
-		Log(LogDebug, "CheckerComponent")
-			<< "Waiting for running checks (" << Checkable::GetPendingChecks()
-			<< ") to finish. Waited for " << wait << " of " << waitMax << " seconds now.";
+		{
+			auto sev (LogDebug);
 
-		Utility::Sleep(0.1);
-		wait += 0.1;
+			if (wait > 0) {
+				if (fmod(wait, 5) == 0) {
+					sev = LogInformation;
+				} else if (fmod(wait, 1) == 0) {
+					sev = LogNotice;
+				}
+			}
+
+			Log(sev, "CheckerComponent")
+				<< "Waiting for running checks (" << Checkable::GetPendingChecks()
+				<< ") to finish. Waited for " << wait << " of " << waitMax << " seconds now.";
+		}
+
+		// 0.1 is not exactly representable, but the above fmod() shall get exact values
+		Utility::Sleep(0.125);
+		wait += 0.125;
 
 		if (wait > waitMax) {
 			Log(LogWarning, "CheckerComponent")
