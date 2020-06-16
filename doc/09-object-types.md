@@ -1661,6 +1661,11 @@ require the [CompatLogger](09-object-types.md#objecttype-compatlogger) feature e
 pointing to the log files using the `compat_log_path` configuration attribute.
 This configuration object is available as [livestatus feature](14-features.md#setting-up-livestatus).
 
+> **Note**
+>
+> This feature is DEPRECATED and will be removed in future releases.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+
 Examples:
 
 ```
