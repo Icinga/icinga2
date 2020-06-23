@@ -94,7 +94,7 @@ bool ActionsHandler::HandleRequest(
 	int statusCode = 500;
 
 	for (const Dictionary::Ptr& res : results) {
-		if (res->Contains("code") && res->Get("code") == 200) {
+		if (res->Contains("code") && res->Get("code") >= 200 && res->Get("code") <= 299) {
 			statusCode = 200;
 			break;
 		}
