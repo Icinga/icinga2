@@ -621,8 +621,6 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
             command = "$event_command$";
         } else if (command_type == "NotificationCommand") {
             command = "$notification_command$";
-        } else {
-            return ApiActions::CreateResult(404, "Can't infer 'command' from command_type '" + command_type + "'");
         }
     } else {
         command = HttpUtility::GetLastParameter(params, "command");
