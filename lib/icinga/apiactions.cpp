@@ -555,179 +555,179 @@ Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&,
 Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
-    Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
-    if (! checkable)
-        return ApiActions::CreateResult(404, "Can't schedule a command execution for non-existent object.");
+	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
+	if (! checkable)
+		return ApiActions::CreateResult(404, "Can't schedule a command execution for non-existent object.");
 
-    ObjectLock oLock (checkable);
+	ObjectLock oLock (checkable);
 
-    Host::Ptr host;
-    Service::Ptr service;
-    tie(host, service) = GetHostService(checkable);
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
-    String endpoint = "$command_endpoint$";
-    if (params->Contains("endpoint"))
-        endpoint = params->Get("endpoint");
+	String endpoint = "$command_endpoint$";
+	if (params->Contains("endpoint"))
+		endpoint = params->Get("endpoint");
 
-    /* Resolve endpoint macro */
-    MacroProcessor::ResolverList resolvers;
-    if (service)
-        resolvers.emplace_back("service", service);
-    resolvers.emplace_back("host", host);
-    resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+	/* Resolve endpoint macro */
+	MacroProcessor::ResolverList resolvers;
+	if (service)
+		resolvers.emplace_back("service", service);
+	resolvers.emplace_back("host", host);
+	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
-    Dictionary::Ptr resolvedMacros;
-    bool useResolvedMacros;
+	Dictionary::Ptr resolvedMacros;
+	bool useResolvedMacros;
 
-    if (params->Contains("macros")) {
-        resolvedMacros = HttpUtility::GetLastParameter(params, "macros");
-        useResolvedMacros = true;
-    } else {
-        resolvedMacros = new Dictionary();
-        useResolvedMacros = false;
-    }
+	if (params->Contains("macros")) {
+		resolvedMacros = HttpUtility::GetLastParameter(params, "macros");
+		useResolvedMacros = true;
+	} else {
+		resolvedMacros = new Dictionary();
+		useResolvedMacros = false;
+	}
 
-    String resolved_endpoint = MacroProcessor::ResolveMacros(
-        endpoint, resolvers, checkable->GetLastCheckResult(),
-        nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
-        useResolvedMacros
-    );
+	String resolved_endpoint = MacroProcessor::ResolveMacros(
+		endpoint, resolvers, checkable->GetLastCheckResult(),
+		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
+		useResolvedMacros
+	);
 
-    /* Check if resolved_endpoint is not empty */
-    if (resolved_endpoint.IsEmpty())
-        return ApiActions::CreateResult(400, "Endpoint must not be empty.");
+	/* Check if resolved_endpoint is not empty */
+	if (resolved_endpoint.IsEmpty())
+		return ApiActions::CreateResult(400, "Endpoint must not be empty.");
 
-    /* Check if endpoint exists */
-    if (!Endpoint::GetByName(resolved_endpoint))
-        return ApiActions::CreateResult(404, "Can't find a valid endpoint for '" + resolved_endpoint + "'.");
+	/* Check if endpoint exists */
+	if (!Endpoint::GetByName(resolved_endpoint))
+		return ApiActions::CreateResult(404, "Can't find a valid endpoint for '" + resolved_endpoint + "'.");
 
-    /* Get command_type */
-    String command_type = "EventCommand";
-    if (params->Contains("command_type"))
-        command_type = HttpUtility::GetLastParameter(params, "command_type");
+	/* Get command_type */
+	String command_type = "EventCommand";
+	if (params->Contains("command_type"))
+		command_type = HttpUtility::GetLastParameter(params, "command_type");
 
-    /* Validate command_type */
-    if (command_type != "EventCommand" && command_type != "CheckCommand" && command_type != "NotificationCommand")
-        return ApiActions::CreateResult(400, "Invalid command_type '" + command_type + "'.");
+	/* Validate command_type */
+	if (command_type != "EventCommand" && command_type != "CheckCommand" && command_type != "NotificationCommand")
+		return ApiActions::CreateResult(400, "Invalid command_type '" + command_type + "'.");
 
-    /* Get command */
-    String command;
-    if (!params->Contains("command")) {
-        if (command_type == "CheckCommand" ) {
-            command = "$check_command$";
-        } else if (command_type == "EventCommand") {
-            command = "$event_command$";
-        } else if (command_type == "NotificationCommand") {
-            command = "$notification_command$";
-        }
-    } else {
-        command = HttpUtility::GetLastParameter(params, "command");
-    }
+	/* Get command */
+	String command;
+	if (!params->Contains("command")) {
+		if (command_type == "CheckCommand" ) {
+			command = "$check_command$";
+		} else if (command_type == "EventCommand") {
+			command = "$event_command$";
+		} else if (command_type == "NotificationCommand") {
+			command = "$notification_command$";
+		}
+	} else {
+		command = HttpUtility::GetLastParameter(params, "command");
+	}
 
-    /* Resolve command macro */
-    String resolved_command = MacroProcessor::ResolveMacros(
-        command, resolvers, checkable->GetLastCheckResult(),
-        nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
-        useResolvedMacros
-    );
+	/* Resolve command macro */
+	String resolved_command = MacroProcessor::ResolveMacros(
+		command, resolvers, checkable->GetLastCheckResult(),
+		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
+		useResolvedMacros
+	);
 
-    /* Check if resolved_command is not empty */
-    if (resolved_command.IsEmpty())
-        return ApiActions::CreateResult(400, "Command must not be empty.");
+	/* Check if resolved_command is not empty */
+	if (resolved_command.IsEmpty())
+		return ApiActions::CreateResult(400, "Command must not be empty.");
 
-    /* Check if resolved_command exists and it is of type command_type */
-    if (command_type == "CheckCommand") {
-        if (!CheckCommand::GetByName(resolved_command))
-            return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
-    } else if (command_type == "EventCommand") {
-        if (!EventCommand::GetByName(resolved_command))
-            return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
-    } else if (command_type == "NotificationCommand") {
-        if (!EventCommand::GetByName(resolved_command))
-            return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
-    } else
-        return ApiActions::CreateResult(400, "Invalid command_type '" + command_type + "'.");
+	/* Check if resolved_command exists and it is of type command_type */
+	if (command_type == "CheckCommand") {
+		if (!CheckCommand::GetByName(resolved_command))
+			return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
+	} else if (command_type == "EventCommand") {
+		if (!EventCommand::GetByName(resolved_command))
+			return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
+	} else if (command_type == "NotificationCommand") {
+		if (!EventCommand::GetByName(resolved_command))
+			return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
+	} else
+		return ApiActions::CreateResult(400, "Invalid command_type '" + command_type + "'.");
 
-    /* Get TTL param */
-    double ttl = 0; /* FIXME default value? */
-    if (params->Contains("ttl"))
-        ttl = HttpUtility::GetLastParameter(params, "ttl");
+	/* Get TTL param */
+	double ttl = 0; /* FIXME default value? */
+	if (params->Contains("ttl"))
+		ttl = HttpUtility::GetLastParameter(params, "ttl");
 
-    if (ttl <= 0)
-        return ApiActions::CreateResult(400, "ttl must be greater than 0");
+	if (ttl <= 0)
+		return ApiActions::CreateResult(400, "ttl must be greater than 0");
 
-    /* Get wait param */
-    bool wait = false;
-    if (params->Contains("wait"))
-        wait = HttpUtility::GetLastParameter(params, "wait");
+	/* Get wait param */
+	bool wait = false;
+	if (params->Contains("wait"))
+		wait = HttpUtility::GetLastParameter(params, "wait");
 
-    /* This generates a UUID */
-    String uuid = Utility::NewUniqueID();
+	/* This generates a UUID */
+	String uuid = Utility::NewUniqueID();
 
-    /* Create the deadline */
-    double deadline = Utility::GetTime() + ttl;
+	/* Create the deadline */
+	double deadline = Utility::GetTime() + ttl;
 
-    /* Update executions */
-    Dictionary::Ptr pending_execution = new Dictionary();
-    pending_execution->Set("pending", true);
-    pending_execution->Set("deadline", deadline);
-    Dictionary::Ptr executions = checkable->GetExecutions();
-    if (!executions)
-        executions = new Dictionary();
-    executions->Set(uuid, pending_execution);
-    checkable->SetExecutions(executions);
+	/* Update executions */
+	Dictionary::Ptr pending_execution = new Dictionary();
+	pending_execution->Set("pending", true);
+	pending_execution->Set("deadline", deadline);
+	Dictionary::Ptr executions = checkable->GetExecutions();
+	if (!executions)
+		executions = new Dictionary();
+	executions->Set(uuid, pending_execution);
+	checkable->SetExecutions(executions);
 
-    /* Broadcast the update */
-    ApiListener::Ptr listener = ApiListener::GetInstance();
-    if (!listener)
-        return ApiActions::CreateResult(404, "No ApiListener instance available.");
+	/* Broadcast the update */
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	if (!listener)
+		return ApiActions::CreateResult(404, "No ApiListener instance available.");
 
-    Dictionary::Ptr updateParams = new Dictionary();
-    updateParams->Set("host", host->GetName());
-    if (service)
-        updateParams->Set("service", service->GetShortName());
-    updateParams->Set("executions", executions);
+	Dictionary::Ptr updateParams = new Dictionary();
+	updateParams->Set("host", host->GetName());
+	if (service)
+		updateParams->Set("service", service->GetShortName());
+	updateParams->Set("executions", executions);
 
-    Dictionary::Ptr updateMessage = new Dictionary();
-    updateMessage->Set("jsonrpc", "2.0");
-    updateMessage->Set("method", "event::UpdateExecutions");
-    updateMessage->Set("params", updateParams);
+	Dictionary::Ptr updateMessage = new Dictionary();
+	updateMessage->Set("jsonrpc", "2.0");
+	updateMessage->Set("method", "event::UpdateExecutions");
+	updateMessage->Set("params", updateParams);
 
-    /* FIXME origin? */
-    MessageOrigin::Ptr origin = new MessageOrigin();
-    listener->RelayMessage(origin, checkable, updateMessage, true);
+	/* FIXME origin? */
+	MessageOrigin::Ptr origin = new MessageOrigin();
+	listener->RelayMessage(origin, checkable, updateMessage, true);
 
-    /* Execute command */
-    Dictionary::Ptr execMessage = new Dictionary();
-    execMessage->Set("jsonrpc", "2.0");
-    execMessage->Set("method", "event::ExecuteCommand");
+	/* Execute command */
+	Dictionary::Ptr execMessage = new Dictionary();
+	execMessage->Set("jsonrpc", "2.0");
+	execMessage->Set("method", "event::ExecuteCommand");
 
-    /* TODO set the right params */
-    Dictionary::Ptr execParams = new Dictionary();
-    execMessage->Set("params", execParams);
-    execParams->Set("command_type", command_type);
-    execParams->Set("command", resolved_command);
-    execParams->Set("host", host->GetName());
-    if (service)
-        execParams->Set("service", service->GetShortName());
+	/* TODO set the right params */
+	Dictionary::Ptr execParams = new Dictionary();
+	execMessage->Set("params", execParams);
+	execParams->Set("command_type", command_type);
+	execParams->Set("command", resolved_command);
+	execParams->Set("host", host->GetName());
+	if (service)
+		execParams->Set("service", service->GetShortName());
 
-    /*
-     * FIXME?
-     * If the host/service object specifies the 'check_timeout' attribute,
-     * forward this to the remote endpoint to limit the command execution time.
-     */
-    if (!checkable->GetCheckTimeout().IsEmpty())
-        execParams->Set("check_timeout", checkable->GetCheckTimeout());
+	/*
+	 * FIXME?
+	 * If the host/service object specifies the 'check_timeout' attribute,
+	 * forward this to the remote endpoint to limit the command execution time.
+	 */
+	if (!checkable->GetCheckTimeout().IsEmpty())
+		execParams->Set("check_timeout", checkable->GetCheckTimeout());
 
-    execParams->Set("macros", resolvedMacros);
-    execParams->Set("source", uuid);
-    execParams->Set("deadline", deadline);
+	execParams->Set("macros", resolvedMacros);
+	execParams->Set("source", uuid);
+	execParams->Set("deadline", deadline);
 
-    listener->SyncSendMessage(Endpoint::GetByName(resolved_endpoint), execMessage);
+	listener->SyncSendMessage(Endpoint::GetByName(resolved_endpoint), execMessage);
 
-    /* TODO handle the wait */
+	/* TODO handle the wait */
 
-    Dictionary::Ptr result = new Dictionary();
-    result->Set(checkable->GetName(), uuid);
+	Dictionary::Ptr result = new Dictionary();
+	result->Set(checkable->GetName(), uuid);
 	return ApiActions::CreateResult(202, "Accepted", result);
 }
