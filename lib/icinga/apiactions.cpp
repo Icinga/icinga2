@@ -587,13 +587,11 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
         useResolvedMacros = false;
     }
 
-    String resolved_endpoint = MacroProcessor::ResolveMacros(endpoint,
-                                                             resolvers,
-                                                             checkable->GetLastCheckResult(),
-                                                             nullptr,
-                                                             MacroProcessor::EscapeCallback(),
-                                                             resolvedMacros,
-                                                             useResolvedMacros);
+    String resolved_endpoint = MacroProcessor::ResolveMacros(
+        endpoint, resolvers, checkable->GetLastCheckResult(),
+        nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
+        useResolvedMacros
+    );
 
     /* Check if resolved_endpoint is not empty */
     if (resolved_endpoint.IsEmpty())
@@ -627,13 +625,11 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
     }
 
     /* Resolve command macro */
-    String resolved_command = MacroProcessor::ResolveMacros(command,
-                                                             resolvers,
-                                                             checkable->GetLastCheckResult(),
-                                                             nullptr,
-                                                             MacroProcessor::EscapeCallback(),
-                                                             resolvedMacros,
-                                                             useResolvedMacros);
+    String resolved_command = MacroProcessor::ResolveMacros(
+        command, resolvers, checkable->GetLastCheckResult(),
+        nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
+        useResolvedMacros
+    );
 
     /* Check if resolved_command is not empty */
     if (resolved_command.IsEmpty())
@@ -735,4 +731,3 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
     result->Set(checkable->GetName(), uuid);
 	return ApiActions::CreateResult(202, "Accepted", result);
 }
-
