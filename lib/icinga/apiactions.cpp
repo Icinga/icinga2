@@ -579,6 +579,10 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	Dictionary::Ptr resolvedMacros;
 	bool useResolvedMacros;
 
+	if (params->Contains("macros") && !params->Get("macros").IsObjectType<Dictionary>()) {
+		return ApiActions::CreateResult(400, "macros must be a dictionary");
+	}
+
 	if (params->Contains("macros")) {
 		resolvedMacros = HttpUtility::GetLastParameter(params, "macros");
 		useResolvedMacros = true;
@@ -592,10 +596,6 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
 		useResolvedMacros
 	);
-
-	/* Check if resolved_endpoint is not empty */
-	if (resolved_endpoint.IsEmpty())
-		return ApiActions::CreateResult(400, "Endpoint must not be empty.");
 
 	/* Check if endpoint exists */
 	if (!Endpoint::GetByName(resolved_endpoint))
@@ -645,21 +645,15 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	} else if (command_type == "NotificationCommand") {
 		if (!EventCommand::GetByName(resolved_command))
 			return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
-	} else
-		return ApiActions::CreateResult(400, "Invalid command_type '" + command_type + "'.");
+	}
 
 	/* Get TTL param */
-	double ttl = 0; /* FIXME default value? */
-	if (params->Contains("ttl"))
-		ttl = HttpUtility::GetLastParameter(params, "ttl");
+	if (!params->Contains("ttl"))
+		return ApiActions::CreateResult(400, "ttl is required");
 
+	double ttl = HttpUtility::GetLastParameter(params, "ttl");
 	if (ttl <= 0)
 		return ApiActions::CreateResult(400, "ttl must be greater than 0");
-
-	/* Get wait param */
-	bool wait = false;
-	if (params->Contains("wait"))
-		wait = HttpUtility::GetLastParameter(params, "wait");
 
 	/* This generates a UUID */
 	String uuid = Utility::NewUniqueID();
@@ -724,8 +718,6 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	execParams->Set("deadline", deadline);
 
 	listener->SyncSendMessage(Endpoint::GetByName(resolved_endpoint), execMessage);
-
-	/* TODO handle the wait */
 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set(checkable->GetName(), uuid);
