@@ -539,32 +539,23 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	if (params->Contains("endpoint"))
 		endpoint = params->Get("endpoint");
 
-	/* Resolve endpoint macro */
 	MacroProcessor::ResolverList resolvers;
+	if (params->Contains("macros")) {
+		if (params->Get("macros").IsObjectType<Dictionary>())
+			resolvers.emplace_back("override",HttpUtility::GetLastParameter(params, "macros"));
+		else
+			return ApiActions::CreateResult(400, "macros must be a dictionary");
+	}
+
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
-	Dictionary::Ptr resolvedMacros;
-	bool useResolvedMacros;
-
-	if (params->Contains("macros") && !params->Get("macros").IsObjectType<Dictionary>()) {
-		return ApiActions::CreateResult(400, "macros must be a dictionary");
-	}
-
-	if (params->Contains("macros")) {
-		resolvedMacros = HttpUtility::GetLastParameter(params, "macros");
-		useResolvedMacros = true;
-	} else {
-		resolvedMacros = new Dictionary();
-		useResolvedMacros = false;
-	}
-
 	String resolved_endpoint = MacroProcessor::ResolveMacros(
 		endpoint, resolvers, checkable->GetLastCheckResult(),
-		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
-		useResolvedMacros
+		nullptr, MacroProcessor::EscapeCallback(), nullptr,
+		false
 	);
 
 	/* Check if endpoint exists */
@@ -596,9 +587,8 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	/* Resolve command macro */
 	String resolved_command = MacroProcessor::ResolveMacros(
-		command, resolvers, checkable->GetLastCheckResult(),
-		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
-		useResolvedMacros
+		command, resolvers, checkable->GetLastCheckResult(), nullptr,
+		MacroProcessor::EscapeCallback(), nullptr, false
 	);
 
 	/* Check if resolved_command is not empty */
@@ -641,53 +631,56 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	executions->Set(uuid, pending_execution);
 	checkable->SetExecutions(executions);
 
-	/* Broadcast the update */
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-	if (!listener)
-		return ApiActions::CreateResult(404, "No ApiListener instance available.");
+	Endpoint::Ptr endpointPtr = Endpoint::GetByName(resolved_endpoint);
+	bool local = !endpointPtr || endpointPtr == Endpoint::GetLocalEndpoint();
+	if (local) {
+		/* TODO  */
+	} else {
+		/* Broadcast the update */
+		ApiListener::Ptr listener = ApiListener::GetInstance();
+		if (!listener)
+			return ApiActions::CreateResult(404, "No ApiListener instance available.");
 
-	Dictionary::Ptr updateParams = new Dictionary();
-	updateParams->Set("host", host->GetName());
-	if (service)
-		updateParams->Set("service", service->GetShortName());
-	updateParams->Set("executions", executions);
+		Dictionary::Ptr updateParams = new Dictionary();
+		updateParams->Set("host", host->GetName());
+		if (service)
+			updateParams->Set("service", service->GetShortName());
+		updateParams->Set("executions", executions);
 
-	Dictionary::Ptr updateMessage = new Dictionary();
-	updateMessage->Set("jsonrpc", "2.0");
-	updateMessage->Set("method", "event::UpdateExecutions");
-	updateMessage->Set("params", updateParams);
+		Dictionary::Ptr updateMessage = new Dictionary();
+		updateMessage->Set("jsonrpc", "2.0");
+		updateMessage->Set("method", "event::UpdateExecutions");
+		updateMessage->Set("params", updateParams);
 
-	/* FIXME origin? */
-	MessageOrigin::Ptr origin = new MessageOrigin();
-	listener->RelayMessage(origin, checkable, updateMessage, true);
+		MessageOrigin::Ptr origin = new MessageOrigin();
+		listener->SyncSendMessage(endpointPtr, updateMessage);
 
-	/* Execute command */
-	Dictionary::Ptr execMessage = new Dictionary();
-	execMessage->Set("jsonrpc", "2.0");
-	execMessage->Set("method", "event::ExecuteCommand");
+		/* Execute command */
+		Dictionary::Ptr execMessage = new Dictionary();
+		execMessage->Set("jsonrpc", "2.0");
+		execMessage->Set("method", "event::ExecuteCommand");
 
-	/* TODO set the right params */
-	Dictionary::Ptr execParams = new Dictionary();
-	execMessage->Set("params", execParams);
-	execParams->Set("command_type", command_type);
-	execParams->Set("command", resolved_command);
-	execParams->Set("host", host->GetName());
-	if (service)
-		execParams->Set("service", service->GetShortName());
+		/* TODO set the right params */
+		Dictionary::Ptr execParams = new Dictionary();
+		execMessage->Set("params", execParams);
+		execParams->Set("command_type", command_type);
+		execParams->Set("command", resolved_command);
+		execParams->Set("host", host->GetName());
+		if (service)
+			execParams->Set("service", service->GetShortName());
 
-	/*
-	 * FIXME?
-	 * If the host/service object specifies the 'check_timeout' attribute,
-	 * forward this to the remote endpoint to limit the command execution time.
-	 */
-	if (!checkable->GetCheckTimeout().IsEmpty())
-		execParams->Set("check_timeout", checkable->GetCheckTimeout());
+		/*
+		 * If the host/service object specifies the 'check_timeout' attribute,
+		 * forward this to the remote endpoint to limit the command execution time.
+		 */
+		if (!checkable->GetCheckTimeout().IsEmpty())
+			execParams->Set("check_timeout", checkable->GetCheckTimeout());
 
-	execParams->Set("macros", resolvedMacros);
-	execParams->Set("source", uuid);
-	execParams->Set("deadline", deadline);
+		execParams->Set("source", uuid);
+		execParams->Set("deadline", deadline);
 
-	listener->SyncSendMessage(Endpoint::GetByName(resolved_endpoint), execMessage);
+		listener->SyncSendMessage(endpointPtr, execMessage);
+	}
 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set(checkable->GetName(), uuid);
