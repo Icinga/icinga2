@@ -558,7 +558,8 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	);
 
 	/* Check if endpoint exists */
-	if (!Endpoint::GetByName(resolved_endpoint))
+	Endpoint::Ptr endpointPtr = Endpoint::GetByName(resolved_endpoint);
+	if (!endpointPtr)
 		return ApiActions::CreateResult(404, "Can't find a valid endpoint for '" + resolved_endpoint + "'.");
 
 	/* Get command_type */
@@ -630,8 +631,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	executions->Set(uuid, pending_execution);
 	checkable->SetExecutions(executions);
 
-	Endpoint::Ptr endpointPtr = Endpoint::GetByName(resolved_endpoint);
-	bool local = !endpointPtr || endpointPtr == Endpoint::GetLocalEndpoint();
+	bool local = endpointPtr == Endpoint::GetLocalEndpoint();
 	if (local) {
 		/* TODO  */
 	} else {
