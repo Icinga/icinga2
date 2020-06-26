@@ -574,7 +574,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		if (params->Get("macros").IsObjectType<Dictionary>())
 			resolvers.emplace_back("override",HttpUtility::GetLastParameter(params, "macros"));
 		else
-			return ApiActions::CreateResult(400, "macros must be a dictionary");
+			return ApiActions::CreateResult(400, "Parameter macros must be a dictionary.");
 	}
 
 	if (service)
@@ -638,11 +638,11 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	/* Get TTL param */
 	if (!params->Contains("ttl"))
-		return ApiActions::CreateResult(400, "ttl is required");
+		return ApiActions::CreateResult(400, "Parameter ttl is required.");
 
 	double ttl = HttpUtility::GetLastParameter(params, "ttl");
 	if (ttl <= 0)
-		return ApiActions::CreateResult(400, "ttl must be greater than 0");
+		return ApiActions::CreateResult(400, "Parameter ttl must be greater than 0.");
 
 	/* This generates a UUID */
 	String uuid = Utility::NewUniqueID();
