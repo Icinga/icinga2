@@ -554,8 +554,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	String resolved_endpoint = MacroProcessor::ResolveMacros(
 		endpoint, resolvers, checkable->GetLastCheckResult(),
-		nullptr, MacroProcessor::EscapeCallback(), nullptr,
-		false
+		nullptr, MacroProcessor::EscapeCallback(), nullptr, false
 	);
 
 	/* Check if endpoint exists */
