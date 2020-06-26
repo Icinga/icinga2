@@ -1503,6 +1503,13 @@ uptime_since    | **Optional.** Show last boot in yyyy-mm-dd HH:MM:SS format (ou
 
 ## Windows Plugins for Icinga 2 <a id="windows-plugins"></a>
 
+> **Note**
+>
+> These plugins are DEPRECATED in favor of our
+> [PowerShell Plugins](https://github.com/Icinga/icinga-powershell-plugins)
+> and will be removed in a future release.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+
 To allow a basic monitoring of Windows clients Icinga 2 comes with a set of Windows only plugins. While trying to mirror the functionalities of their linux cousins from the monitoring-plugins package, the differences between Windows and Linux are too big to be able use the same CheckCommands for both systems.
 
 A check-commands-windows.conf comes with Icinga 2, it assumes that the Windows Plugins are installed in the PluginDir set in your constants.conf. To enable them the following include directive is needed in you icinga2.conf:
