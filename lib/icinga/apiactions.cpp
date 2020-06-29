@@ -682,7 +682,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		updateMessage->Set("params", updateParams);
 
 		MessageOrigin::Ptr origin = new MessageOrigin();
-		listener->SyncSendMessage(endpointPtr, updateMessage);
+		listener->RelayMessage(origin, checkable, updateMessage, true);
 
 		/* Execute command */
 		Dictionary::Ptr execMessage = new Dictionary();
@@ -708,7 +708,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		execParams->Set("source", uuid);
 		execParams->Set("deadline", deadline);
 
-		listener->SyncSendMessage(endpointPtr, execMessage);
+		listener->RelayMessage(origin, checkable, execMessage, true);
 	}
 
 	Dictionary::Ptr result = new Dictionary();
