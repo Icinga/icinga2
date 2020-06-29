@@ -633,7 +633,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		if (!EventCommand::GetByName(resolved_command))
 			return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
 	} else if (command_type == "NotificationCommand") {
-		if (!EventCommand::GetByName(resolved_command))
+		if (!NotificationCommand::GetByName(resolved_command))
 			return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
 	}
 
