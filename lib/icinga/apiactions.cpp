@@ -659,6 +659,25 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	executions->Set(uuid, pending_execution);
 	checkable->SetExecutions(executions);
 
+	/* Broadcast the update */
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	if (!listener)
+		return ApiActions::CreateResult(404, "No ApiListener instance available.");
+
+	Dictionary::Ptr updateParams = new Dictionary();
+	updateParams->Set("host", host->GetName());
+	if (service)
+		updateParams->Set("service", service->GetShortName());
+	updateParams->Set("executions", executions);
+
+	Dictionary::Ptr updateMessage = new Dictionary();
+	updateMessage->Set("jsonrpc", "2.0");
+	updateMessage->Set("method", "event::UpdateExecutions");
+	updateMessage->Set("params", updateParams);
+
+	MessageOrigin::Ptr origin = new MessageOrigin();
+	listener->RelayMessage(origin, checkable, updateMessage, true);
+
 	/* Create execution parameters */
 	Dictionary::Ptr execParams = new Dictionary();
 	execParams->Set("command_type", command_type);
@@ -677,30 +696,11 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	execParams->Set("source", uuid);
 	execParams->Set("deadline", deadline);
 
+	/* Execute command */
 	bool local = endpointPtr == Endpoint::GetLocalEndpoint();
 	if (local) {
-		MessageOrigin::Ptr origin = new MessageOrigin();
 		ClusterEvents::ExecuteCommandAPIHandler(origin, execParams);
 	} else {
-		/* Broadcast the update */
-		ApiListener::Ptr listener = ApiListener::GetInstance();
-		if (!listener)
-			return ApiActions::CreateResult(404, "No ApiListener instance available.");
-
-		Dictionary::Ptr updateParams = new Dictionary();
-		updateParams->Set("host", host->GetName());
-		if (service)
-			updateParams->Set("service", service->GetShortName());
-		updateParams->Set("executions", executions);
-
-		Dictionary::Ptr updateMessage = new Dictionary();
-		updateMessage->Set("jsonrpc", "2.0");
-		updateMessage->Set("method", "event::UpdateExecutions");
-		updateMessage->Set("params", updateParams);
-
-		listener->SyncSendMessage(endpointPtr, updateMessage);
-
-		/* Execute command */
 		Dictionary::Ptr execMessage = new Dictionary();
 		execMessage->Set("jsonrpc", "2.0");
 		execMessage->Set("method", "event::ExecuteCommand");
