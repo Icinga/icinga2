@@ -572,8 +572,9 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	MacroProcessor::ResolverList resolvers;
 	if (params->Contains("macros")) {
-		if (params->Get("macros").IsObjectType<Dictionary>())
-			resolvers.emplace_back("override",HttpUtility::GetLastParameter(params, "macros"));
+		Value macros = HttpUtility::GetLastParameter(params, "macros");
+		if (macros.IsObjectType<Dictionary>())
+			resolvers.emplace_back("override", macros);
 		else
 			return ApiActions::CreateResult(400, "Parameter macros must be a dictionary.");
 	}
