@@ -538,7 +538,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	String endpoint = "$command_endpoint$";
 	if (params->Contains("endpoint"))
-		endpoint = params->Get("endpoint");
+		endpoint = HttpUtility::GetLastParameter(params, "endpoint");
 
 	MacroProcessor::ResolverList resolvers;
 	if (params->Contains("macros")) {
