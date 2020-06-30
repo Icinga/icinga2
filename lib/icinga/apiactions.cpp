@@ -8,6 +8,7 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
+#include "icinga/clusterevents.hpp"
 #include "remote/apiaction.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/pkiutility.hpp"
@@ -631,9 +632,28 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	executions->Set(uuid, pending_execution);
 	checkable->SetExecutions(executions);
 
+	/* Create execution parameters */
+	Dictionary::Ptr execParams = new Dictionary();
+	execParams->Set("command_type", command_type);
+	execParams->Set("command", resolved_command);
+	execParams->Set("host", host->GetName());
+	if (service)
+		execParams->Set("service", service->GetShortName());
+
+	/*
+	 * If the host/service object specifies the 'check_timeout' attribute,
+	 * forward this to the remote endpoint to limit the command execution time.
+	 */
+	if (!checkable->GetCheckTimeout().IsEmpty())
+		execParams->Set("check_timeout", checkable->GetCheckTimeout());
+
+	execParams->Set("source", uuid);
+	execParams->Set("deadline", deadline);
+
 	bool local = endpointPtr == Endpoint::GetLocalEndpoint();
 	if (local) {
-		/* TODO  */
+		MessageOrigin::Ptr origin = new MessageOrigin();
+		ClusterEvents::ExecuteCommandAPIHandler(origin, execParams);
 	} else {
 		/* Broadcast the update */
 		ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -651,34 +671,15 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		updateMessage->Set("method", "event::UpdateExecutions");
 		updateMessage->Set("params", updateParams);
 
-		MessageOrigin::Ptr origin = new MessageOrigin();
-		listener->RelayMessage(origin, checkable, updateMessage, true);
+		listener->SyncSendMessage(endpointPtr, updateMessage);
 
 		/* Execute command */
 		Dictionary::Ptr execMessage = new Dictionary();
 		execMessage->Set("jsonrpc", "2.0");
 		execMessage->Set("method", "event::ExecuteCommand");
-
-		/* TODO set the right params */
-		Dictionary::Ptr execParams = new Dictionary();
 		execMessage->Set("params", execParams);
-		execParams->Set("command_type", command_type);
-		execParams->Set("command", resolved_command);
-		execParams->Set("host", host->GetName());
-		if (service)
-			execParams->Set("service", service->GetShortName());
 
-		/*
-		 * If the host/service object specifies the 'check_timeout' attribute,
-		 * forward this to the remote endpoint to limit the command execution time.
-		 */
-		if (!checkable->GetCheckTimeout().IsEmpty())
-			execParams->Set("check_timeout", checkable->GetCheckTimeout());
-
-		execParams->Set("source", uuid);
-		execParams->Set("deadline", deadline);
-
-		listener->RelayMessage(origin, checkable, execMessage, true);
+		listener->SyncSendMessage(endpointPtr, execMessage);
 	}
 
 	Dictionary::Ptr result = new Dictionary();
