@@ -593,10 +593,6 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		MacroProcessor::EscapeCallback(), nullptr, false
 	);
 
-	/* Check if resolved_command is not empty */
-	if (resolved_command.IsEmpty())
-		return ApiActions::CreateResult(400, "Command must not be empty.");
-
 	/* Check if resolved_command exists and it is of type command_type */
 	if (command_type == "CheckCommand") {
 		if (!CheckCommand::GetByName(resolved_command))
