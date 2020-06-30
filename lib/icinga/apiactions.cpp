@@ -526,8 +526,8 @@ Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&,
 Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
-	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
-	if (! checkable)
+	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
+	if (!checkable)
 		return ApiActions::CreateResult(404, "Can't schedule a command execution for non-existent object.");
 
 	ObjectLock oLock (checkable);
