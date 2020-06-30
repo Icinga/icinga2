@@ -77,7 +77,12 @@ void ClusterEvents::EnqueueCheck(const MessageOrigin::Ptr& origin, const Diction
 
 void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params) {
 
-	Endpoint::Ptr sourceEndpoint = origin->FromClient->GetEndpoint();
+	Endpoint::Ptr sourceEndpoint;
+	if (origin->FromClient) {
+		sourceEndpoint = origin->FromClient->GetEndpoint();
+	} else if (origin->IsLocal()){
+		sourceEndpoint = Endpoint::GetLocalEndpoint();
+	}
 
 	if (!sourceEndpoint || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone))) {
 		Log(LogNotice, "ClusterEvents")
