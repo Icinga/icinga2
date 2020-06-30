@@ -528,7 +528,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 {
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (!checkable)
-		return ApiActions::CreateResult(404, "Can't schedule a command execution for non-existent object.");
+		return ApiActions::CreateResult(404, "Can't start a command execution for a non-existent object.");
 
 	ObjectLock oLock (checkable);
 
@@ -600,13 +600,13 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	/* Check if resolved_command exists and it is of type command_type */
 	if (command_type == "CheckCommand") {
 		if (!CheckCommand::GetByName(resolved_command))
-			return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
+			return ApiActions::CreateResult(400, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 	} else if (command_type == "EventCommand") {
 		if (!EventCommand::GetByName(resolved_command))
-			return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
+			return ApiActions::CreateResult(400, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 	} else if (command_type == "NotificationCommand") {
 		if (!NotificationCommand::GetByName(resolved_command))
-			return ApiActions::CreateResult(400, "Command '" + resolved_command + "' is not of type '" + command_type + "'.");
+			return ApiActions::CreateResult(400, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 	}
 
 	/* Get TTL param */
