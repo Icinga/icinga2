@@ -556,9 +556,30 @@ Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&,
 Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	if (!listener)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
+
+	/* Get command_type */
+	String command_type = "EventCommand";
+	if (params->Contains("command_type"))
+		command_type = HttpUtility::GetLastParameter(params, "command_type");
+
+	/* Validate command_type */
+	if (command_type != "EventCommand" && command_type != "CheckCommand" && command_type != "NotificationCommand")
+		return ApiActions::CreateResult(400, "Invalid command_type '" + command_type + "'.");
+
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (!checkable)
 		return ApiActions::CreateResult(404, "Can't start a command execution for a non-existent object.");
+
+	/* Get TTL param */
+	if (!params->Contains("ttl"))
+		return ApiActions::CreateResult(400, "Parameter ttl is required.");
+
+	double ttl = HttpUtility::GetLastParameter(params, "ttl");
+	if (ttl <= 0)
+		return ApiActions::CreateResult(400, "Parameter ttl must be greater than 0.");
 
 	ObjectLock oLock (checkable);
 
@@ -571,10 +592,13 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		endpoint = HttpUtility::GetLastParameter(params, "endpoint");
 
 	MacroProcessor::ResolverList resolvers;
+	Dictionary::Ptr macros;
 	if (params->Contains("macros")) {
-		Value macros = HttpUtility::GetLastParameter(params, "macros");
-		if (macros.IsObjectType<Dictionary>())
-			resolvers.emplace_back("override", macros);
+		Value vmacros = HttpUtility::GetLastParameter(params, "macros");
+		if (vmacros.IsObjectType<Dictionary>()) {
+			resolvers.emplace_back("override", vmacros);
+			macros = vmacros;
+		}
 		else
 			return ApiActions::CreateResult(400, "Parameter macros must be a dictionary.");
 	}
@@ -593,15 +617,6 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	Endpoint::Ptr endpointPtr = Endpoint::GetByName(resolved_endpoint);
 	if (!endpointPtr)
 		return ApiActions::CreateResult(404, "Can't find a valid endpoint for '" + resolved_endpoint + "'.");
-
-	/* Get command_type */
-	String command_type = "EventCommand";
-	if (params->Contains("command_type"))
-		command_type = HttpUtility::GetLastParameter(params, "command_type");
-
-	/* Validate command_type */
-	if (command_type != "EventCommand" && command_type != "CheckCommand" && command_type != "NotificationCommand")
-		return ApiActions::CreateResult(400, "Invalid command_type '" + command_type + "'.");
 
 	/* Get command */
 	String command;
@@ -635,14 +650,6 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 	}
 
-	/* Get TTL param */
-	if (!params->Contains("ttl"))
-		return ApiActions::CreateResult(400, "Parameter ttl is required.");
-
-	double ttl = HttpUtility::GetLastParameter(params, "ttl");
-	if (ttl <= 0)
-		return ApiActions::CreateResult(400, "Parameter ttl must be greater than 0.");
-
 	/* This generates a UUID */
 	String uuid = Utility::NewUniqueID();
 
@@ -660,15 +667,13 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	checkable->SetExecutions(executions);
 
 	/* Broadcast the update */
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-	if (!listener)
-		return ApiActions::CreateResult(404, "No ApiListener instance available.");
-
+	Dictionary::Ptr executionsToBroadcast = new Dictionary();
+	executionsToBroadcast->Set(uuid, pending_execution);
 	Dictionary::Ptr updateParams = new Dictionary();
 	updateParams->Set("host", host->GetName());
 	if (service)
 		updateParams->Set("service", service->GetShortName());
-	updateParams->Set("executions", executions);
+	updateParams->Set("executions", executionsToBroadcast);
 
 	Dictionary::Ptr updateMessage = new Dictionary();
 	updateMessage->Set("jsonrpc", "2.0");
@@ -695,6 +700,8 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	execParams->Set("source", uuid);
 	execParams->Set("deadline", deadline);
+	if (macros)
+		execParams->Set("macros", macros);
 
 	/* Execute command */
 	bool local = endpointPtr == Endpoint::GetLocalEndpoint();
