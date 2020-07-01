@@ -596,13 +596,13 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	/* Check if resolved_command exists and it is of type command_type */
 	if (command_type == "CheckCommand") {
 		if (!CheckCommand::GetByName(resolved_command))
-			return ApiActions::CreateResult(400, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
+			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 	} else if (command_type == "EventCommand") {
 		if (!EventCommand::GetByName(resolved_command))
-			return ApiActions::CreateResult(400, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
+			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 	} else if (command_type == "NotificationCommand") {
 		if (!NotificationCommand::GetByName(resolved_command))
-			return ApiActions::CreateResult(400, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
+			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 	}
 
 	/* Get TTL param */
