@@ -1722,7 +1722,7 @@ Example for the `CheckResult` type with the `exit_code` set to `2`:
 ```
 &types=CheckResult&filter=event.check_result.exit_status==2
 
--d '{ "types": "CheckResult", "filter": "event.check_result.exit_status==2" }'
+-d '{ "types": [ "CheckResult" ], "filter": "event.check_result.exit_status==2" }'
 ```
 
 Example for the `CheckResult` type with the service [matching](18-library-reference.md#global-functions-match)
@@ -1731,7 +1731,7 @@ the string pattern "random\*":
 ```
 &types=CheckResult&filter=match%28%22random*%22,event.service%29
 
--d { "types": "CheckResult", "filter": "match(\"random*\", event.service)" }
+-d { "types": [ "CheckResult" ], "filter": "match(\"random*\", event.service)" }
 ```
 
 ### Event Stream Response <a id="icinga2-api-event-streams-response"></a>
@@ -1744,7 +1744,7 @@ Example:
 ```
 $ curl -k -s -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/events' \
- -d '{ "queue": "myqueue", "types": "CheckResult", "filter": "event.check_result.exit_status==2" }'
+ -d '{ "queue": "myqueue", "types": [ "CheckResult" ], "filter": "event.check_result.exit_status==2" }'
 
 {"check_result":{ ... },"host":"example.localdomain","service":"ping4","timestamp":1445421319.7226390839,"type":"CheckResult"}
 {"check_result":{ ... },"host":"example.localdomain","service":"ping4","timestamp":1445421324.7226390839,"type":"CheckResult"}
