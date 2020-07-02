@@ -562,12 +562,10 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		endpoint = HttpUtility::GetLastParameter(params, "endpoint");
 
 	MacroProcessor::ResolverList resolvers;
-	Dictionary::Ptr macros;
 	if (params->Contains("macros")) {
-		Value vmacros = HttpUtility::GetLastParameter(params, "macros");
-		if (vmacros.IsObjectType<Dictionary>()) {
-			resolvers.emplace_back("override", vmacros);
-			macros = vmacros;
+		Value macros = HttpUtility::GetLastParameter(params, "macros");
+		if (macros.IsObjectType<Dictionary>()) {
+			resolvers.emplace_back("override", macros);
 		}
 		else
 			return ApiActions::CreateResult(400, "Parameter macros must be a dictionary.");
@@ -653,6 +651,25 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	MessageOrigin::Ptr origin = new MessageOrigin();
 	listener->RelayMessage(origin, checkable, updateMessage, true);
 
+	double scheduled_start = checkable->GetNextCheck();
+	double before_check = Utility::GetTime();
+
+	CheckResult::Ptr cr = new CheckResult();
+	cr->SetScheduleStart(scheduled_start);
+	cr->SetExecutionStart(before_check);
+
+	Dictionary::Ptr execMacros = new Dictionary();
+	if (command_type == "CheckCommand") {
+		CheckCommand::Ptr cmd = CheckCommand::GetByName(resolved_command);
+		cmd->Execute(checkable, cr, execMacros, false);
+	} else if (command_type == "EventCommand") {
+		EventCommand::Ptr cmd = EventCommand::GetByName(resolved_command);
+		cmd->Execute(checkable, execMacros, false);
+	} else if (command_type == "NotificationCommand") {
+		/* TODO */
+		return ApiActions::CreateResult(501, "Not implementd.");
+	}
+
 	/* Create execution parameters */
 	Dictionary::Ptr execParams = new Dictionary();
 	execParams->Set("command_type", command_type);
@@ -670,8 +687,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	execParams->Set("source", uuid);
 	execParams->Set("deadline", deadline);
-	if (macros)
-		execParams->Set("macros", macros);
+	execParams->Set("macros", execMacros);
 
 	/* Execute command */
 	bool local = endpointPtr == Endpoint::GetLocalEndpoint();
