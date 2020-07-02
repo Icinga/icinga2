@@ -606,16 +606,69 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		MacroProcessor::EscapeCallback(), nullptr, false
 	);
 
+	double scheduled_start = checkable->GetNextCheck();
+	double before_check = Utility::GetTime();
+
+	CheckResult::Ptr cr = new CheckResult();
+	cr->SetScheduleStart(scheduled_start);
+	cr->SetExecutionStart(before_check);
+
 	/* Check if resolved_command exists and it is of type command_type */
+	Dictionary::Ptr execMacros = new Dictionary();
 	if (command_type == "CheckCommand") {
-		if (!CheckCommand::GetByName(resolved_command))
+		CheckCommand::Ptr cmd = CheckCommand::GetByName(resolved_command);
+		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
+		else
+			cmd->Execute(checkable, cr, execMacros, false);
 	} else if (command_type == "EventCommand") {
-		if (!EventCommand::GetByName(resolved_command))
+		EventCommand::Ptr cmd = EventCommand::GetByName(resolved_command);
+		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
+		else
+			cmd->Execute(checkable, execMacros, false);
 	} else if (command_type == "NotificationCommand") {
-		if (!NotificationCommand::GetByName(resolved_command))
+		NotificationCommand::Ptr cmd = NotificationCommand::GetByName(resolved_command);
+		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
+		else {
+			/* Get user */
+			String user_string = "";
+			if (params->Contains("user"))
+				user_string = HttpUtility::GetLastParameter(params, "user");
+
+			/* Resolve user macro */
+			String resolved_user = MacroProcessor::ResolveMacros(
+					user_string, resolvers, checkable->GetLastCheckResult(), nullptr,
+					MacroProcessor::EscapeCallback(), nullptr, false
+			);
+
+			User::Ptr user = User::GetByName(resolved_user);
+			if (!user)
+				return ApiActions::CreateResult(404, "Can't find a valid user for '" + resolved_user + "'.");
+
+			/* Get notification */
+			String notification_string = "";
+			if (params->Contains("notification"))
+				notification_string = HttpUtility::GetLastParameter(params, "notification");
+
+			/* Resolve notification macro */
+			String resolved_notification = MacroProcessor::ResolveMacros(
+					notification_string, resolvers, checkable->GetLastCheckResult(), nullptr,
+					MacroProcessor::EscapeCallback(), nullptr, false
+			);
+
+			Notification::Ptr notification = Notification::GetByName(resolved_notification);
+			if (!user)
+				return ApiActions::CreateResult(404, "Can't find a valid notification for '" + resolved_notification + "'.");
+
+			/* Get author */
+			String author = "";
+			if (params->Contains("author"))
+				author = HttpUtility::GetLastParameter(params, "author");
+
+			cmd->Execute(notification, user, cr, NotificationType::NotificationCustom, author, "", execMacros, false);
+		}
 	}
 
 	/* This generates a UUID */
@@ -650,25 +703,6 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	MessageOrigin::Ptr origin = new MessageOrigin();
 	listener->RelayMessage(origin, checkable, updateMessage, true);
-
-	double scheduled_start = checkable->GetNextCheck();
-	double before_check = Utility::GetTime();
-
-	CheckResult::Ptr cr = new CheckResult();
-	cr->SetScheduleStart(scheduled_start);
-	cr->SetExecutionStart(before_check);
-
-	Dictionary::Ptr execMacros = new Dictionary();
-	if (command_type == "CheckCommand") {
-		CheckCommand::Ptr cmd = CheckCommand::GetByName(resolved_command);
-		cmd->Execute(checkable, cr, execMacros, false);
-	} else if (command_type == "EventCommand") {
-		EventCommand::Ptr cmd = EventCommand::GetByName(resolved_command);
-		cmd->Execute(checkable, execMacros, false);
-	} else if (command_type == "NotificationCommand") {
-		/* TODO */
-		return ApiActions::CreateResult(501, "Not implementd.");
-	}
 
 	/* Create execution parameters */
 	Dictionary::Ptr execParams = new Dictionary();
