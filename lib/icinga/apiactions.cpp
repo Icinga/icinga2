@@ -606,12 +606,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		MacroProcessor::EscapeCallback(), nullptr, false
 	);
 
-	double scheduled_start = checkable->GetNextCheck();
-	double before_check = Utility::GetTime();
-
-	CheckResult::Ptr cr = new CheckResult();
-	cr->SetScheduleStart(scheduled_start);
-	cr->SetExecutionStart(before_check);
+	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
 	/* Check if resolved_command exists and it is of type command_type */
 	Dictionary::Ptr execMacros = new Dictionary();
