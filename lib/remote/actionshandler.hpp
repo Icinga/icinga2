@@ -5,8 +5,6 @@
 
 #include "remote/httphandler.hpp"
 
-extern thread_local icinga::ApiUser::Ptr authenticatedApiUser;
-
 namespace icinga
 {
 
@@ -14,6 +12,8 @@ class ActionsHandler final : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ActionsHandler);
+
+	static thread_local ApiUser::Ptr authenticatedApiUser;
 
 	bool HandleRequest(
 		AsioTlsStream& stream,
