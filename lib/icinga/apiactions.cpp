@@ -659,11 +659,11 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 				return ApiActions::CreateResult(404, "Can't find a valid notification for '" + resolved_notification + "'.");
 
 			/* Get author */
-			if (!ActionsHandler::authenticatedApiUser)
+			if (!ActionsHandler::AuthenticatedApiUser)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Can't find API user."));
 
 			cmd->Execute(notification, user, cr, NotificationType::NotificationCustom,
-				ActionsHandler::authenticatedApiUser->GetName(), "", execMacros, false);
+				ActionsHandler::AuthenticatedApiUser->GetName(), "", execMacros, false);
 		}
 	}
 
