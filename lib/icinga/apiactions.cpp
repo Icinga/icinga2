@@ -669,8 +669,8 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 			/* Resolve user macro */
 			String resolved_user = MacroProcessor::ResolveMacros(
-					user_string, resolvers, checkable->GetLastCheckResult(), nullptr,
-					MacroProcessor::EscapeCallback(), nullptr, false
+				user_string, resolvers, checkable->GetLastCheckResult(), nullptr,
+				MacroProcessor::EscapeCallback(), nullptr, false
 			);
 
 			User::Ptr user = User::GetByName(resolved_user);
@@ -684,8 +684,8 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 			/* Resolve notification macro */
 			String resolved_notification = MacroProcessor::ResolveMacros(
-					notification_string, resolvers, checkable->GetLastCheckResult(), nullptr,
-					MacroProcessor::EscapeCallback(), nullptr, false
+				notification_string, resolvers, checkable->GetLastCheckResult(), nullptr,
+				MacroProcessor::EscapeCallback(), nullptr, false
 			);
 
 			Notification::Ptr notification = Notification::GetByName(resolved_notification);
