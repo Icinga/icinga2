@@ -15,6 +15,7 @@
 #include "remote/httputility.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
+#include "base/defer.hpp"
 #include "remote/actionshandler.hpp"
 #include <fstream>
 
@@ -611,6 +612,12 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	/* Check if resolved_command exists and it is of type command_type */
 	Dictionary::Ptr execMacros = new Dictionary();
+
+	MacroResolver::overrideMacros = execMacros;
+	Defer o ([]() {
+		MacroResolver::overrideMacros = nullptr;
+	});
+
 	if (command_type == "CheckCommand") {
 		CheckCommand::Ptr cmd = CheckCommand::GetByName(resolved_command);
 		if (!cmd)
