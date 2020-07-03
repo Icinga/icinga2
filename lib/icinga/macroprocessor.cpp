@@ -15,7 +15,7 @@
 
 using namespace icinga;
 
-thread_local Dictionary::Ptr MacroResolver::overrideMacros;
+thread_local Dictionary::Ptr MacroResolver::OverrideMacros;
 
 Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolvers,
 	const CheckResult::Ptr& cr, String *missingMacro,

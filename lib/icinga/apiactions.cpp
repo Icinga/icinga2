@@ -613,9 +613,9 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	/* Check if resolved_command exists and it is of type command_type */
 	Dictionary::Ptr execMacros = new Dictionary();
 
-	MacroResolver::overrideMacros = execMacros;
+	MacroResolver::OverrideMacros = execMacros;
 	Defer o ([]() {
-		MacroResolver::overrideMacros = nullptr;
+		MacroResolver::OverrideMacros = nullptr;
 	});
 
 	if (command_type == "CheckCommand") {
