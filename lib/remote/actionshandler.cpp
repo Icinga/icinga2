@@ -11,7 +11,7 @@
 
 using namespace icinga;
 
-thread_local ApiUser::Ptr ActionsHandler::authenticatedApiUser;
+thread_local ApiUser::Ptr ActionsHandler::AuthenticatedApiUser;
 
 REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
@@ -74,9 +74,9 @@ bool ActionsHandler::HandleRequest(
 
 	bool verbose = false;
 
-	ActionsHandler::authenticatedApiUser = user;
-	Defer a ([&]() {
-		ActionsHandler::authenticatedApiUser = nullptr;
+	ActionsHandler::AuthenticatedApiUser = user;
+	Defer a ([]() {
+		ActionsHandler::AuthenticatedApiUser = nullptr;
 	});
 
 	if (params)
