@@ -15,6 +15,7 @@
 #include "remote/httputility.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
+#include "remote/actionshandler.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -658,9 +659,10 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 				return ApiActions::CreateResult(404, "Can't find a valid notification for '" + resolved_notification + "'.");
 
 			/* Get author */
-			String author = "";
-			if (params->Contains("author"))
-				author = HttpUtility::GetLastParameter(params, "author");
+			if (!authenticatedApiUser)
+				return ApiActions::CreateResult(401, "Can't find API user");
+
+			String author = authenticatedApiUser->GetName();
 
 			cmd->Execute(notification, user, cr, NotificationType::NotificationCustom, author, "", execMacros, false);
 		}

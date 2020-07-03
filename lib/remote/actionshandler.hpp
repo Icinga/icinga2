@@ -5,6 +5,8 @@
 
 #include "remote/httphandler.hpp"
 
+extern thread_local icinga::ApiUser::Ptr authenticatedApiUser;
+
 namespace icinga
 {
 

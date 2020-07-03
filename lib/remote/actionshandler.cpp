@@ -4,11 +4,14 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
+#include "base/defer.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include <set>
 
 using namespace icinga;
+
+thread_local ApiUser::Ptr authenticatedApiUser;
 
 REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
@@ -70,6 +73,11 @@ bool ActionsHandler::HandleRequest(
 		<< "Running action " << actionName;
 
 	bool verbose = false;
+
+	authenticatedApiUser = user;
+	Defer a ([&]() {
+		authenticatedApiUser = nullptr;
+	});
 
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
