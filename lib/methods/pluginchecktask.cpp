@@ -29,6 +29,9 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+	if (MacroResolver::overrideMacros)
+		resolvers.emplace_back("override", MacroResolver::overrideMacros);
+
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
