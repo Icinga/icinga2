@@ -770,6 +770,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	}
 
 	Dictionary::Ptr result = new Dictionary();
-	result->Set(checkable->GetName(), uuid);
+	result->Set("checkable", checkable->GetName());
+	result->Set("execution", uuid);
 	return ApiActions::CreateResult(202, "Accepted", result);
 }
