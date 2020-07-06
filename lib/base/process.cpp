@@ -100,23 +100,30 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		envc++;
 
 	auto **envp = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 2];
+	const char* lcnumeric = "LC_NUMERIC=";
+	int j = 0;
 
-	for (int i = 0; i < envc; i++)
-		envp[i] = strdup(environ[i]);
+	for (int i = 0; i < envc; i++) {
+		if (strncmp(environ[i], lcnumeric, strlen(lcnumeric)) == 0) {
+			continue;
+		}
+
+		envp[j] = strdup(environ[i]);
+		++j;
+	}
 
 	if (extraEnvironment) {
 		ObjectLock olock(extraEnvironment);
 
-		int index = envc;
 		for (const Dictionary::Pair& kv : extraEnvironment) {
 			String skv = kv.first + "=" + Convert::ToString(kv.second);
-			envp[index] = strdup(skv.CStr());
-			index++;
+			envp[j] = strdup(skv.CStr());
+			j++;
 		}
 	}
 
-	envp[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0)] = strdup("LC_NUMERIC=C");
-	envp[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 1] = nullptr;
+	envp[j] = strdup("LC_NUMERIC=C");
+	envp[j + 1] = nullptr;
 
 	extraEnvironment.reset();
 
