@@ -982,6 +982,8 @@ Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin
 	}
 
 	Dictionary::Ptr executions = checkable->GetExecutions();
+	if (!executions)
+		executions = new Dictionary();
 	Dictionary::Ptr newExecutions = params->Get("executions");
 	newExecutions->CopyTo(executions);
 	checkable->SetExecutions(executions);
