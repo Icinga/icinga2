@@ -84,6 +84,7 @@ private:
 
 	void Disconnect();
 	void Reconnect();
+	void ImportSchema();
 
 	void AssertOnWorkQueue();
 

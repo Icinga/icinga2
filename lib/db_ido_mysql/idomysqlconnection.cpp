@@ -11,12 +11,22 @@
 #include "base/perfdatavalue.hpp"
 #include "base/application.hpp"
 #include "base/configtype.hpp"
+#include "base/configuration.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include "base/defer.hpp"
+#include <boost/regex.hpp>
+#include <fstream>
+#include <iterator>
+#include <string>
 #include <utility>
+#include <vector>
 
 using namespace icinga;
+
+static const boost::regex l_SchemaComment ("^--.*?$\\n?");
+static const boost::regex l_SchemaSep (";$");
+static const boost::regex l_SchemaWS ("(?:\\A\\s+|\\s+\\z)");
 
 REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnection, &IdoMysqlConnection::StatsFunc);
@@ -292,6 +302,8 @@ void IdoMysqlConnection::Reconnect()
 
 	DiscardRows(result);
 
+	ImportSchema();
+
 	String dbVersionName = "idoutils";
 	result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name='" + Escape(dbVersionName) + "'");
 
@@ -469,6 +481,64 @@ void IdoMysqlConnection::Reconnect()
 	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::ClearTablesBySession, this), PriorityNormal);
 
 	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityNormal);
+}
+
+void IdoMysqlConnection::ImportSchema()
+{
+	Log(LogNotice, "IdoMysqlConnection") << "Checking for the '" << GetName() << "' schema.";
+
+	IdoMysqlResult result = Query("SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='" + Escape(GetDatabase()) + "' AND TABLE_NAME='" + Escape(GetTablePrefix()) + "dbversion'");
+
+	Dictionary::Ptr row = FetchRow(result);
+	DiscardRows(result);
+
+	if (!row) {
+		Log(LogInformation, "IdoMysqlConnection") << "Importing the schema into '" << GetName() << "'.";
+
+		auto schemaFile (Configuration::PkgDataDir + "-ido-mysql/schema/mysql.sql");
+
+		if (Utility::PathExists(schemaFile)) {
+			namespace rc = boost::regex_constants;
+
+			std::ifstream ifs;
+			ifs.exceptions(ifs.badbit | ifs.failbit);
+
+			ifs.open(schemaFile.CStr());
+			ifs.exceptions(ifs.badbit);
+
+			std::string schema (std::istreambuf_iterator<char>(ifs), (std::istreambuf_iterator<char>()));
+
+			{
+				std::string noComments;
+
+				boost::regex_replace(
+					std::back_insert_iterator<std::string>(noComments), schema.begin(),
+					schema.end(), l_SchemaComment, "", rc::match_default | rc::format_literal
+				);
+
+				schema = std::move(noComments);
+			}
+
+			std::vector<std::string> ddls;
+
+			boost::regex_split(std::back_insert_iterator<decltype(ddls)>(ddls), schema, l_SchemaSep);
+
+			for (auto& ddl : ddls) {
+				std::string nws;
+
+				boost::regex_replace(
+					std::back_insert_iterator<std::string>(nws), ddl.begin(),
+					ddl.end(), l_SchemaWS, "", rc::match_default | rc::format_literal
+				);
+
+				if (!nws.empty()) {
+					Query(std::move(nws));
+				}
+			}
+		} else {
+			Log(LogWarning, "IdoMysqlConnection", "Schema file '" << schemaFile << "' missing.");
+		}
+	}
 }
 
 void IdoMysqlConnection::FinishConnect(double startTime)
