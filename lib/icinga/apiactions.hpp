@@ -34,7 +34,7 @@ public:
 
 private:
 	static Dictionary::Ptr CreateResult(int code, const String& status, const Dictionary::Ptr& additional = nullptr);
-	static Value GetSingleObjectByNameUsingPermissions(String type, String value, ApiUser::Ptr user);
+	static Value GetSingleObjectByNameUsingPermissions(const String& type, const String& value, const ApiUser::Ptr& user);
 };
 
 }
