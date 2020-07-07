@@ -11,6 +11,7 @@
 #include "icinga/clusterevents.hpp"
 #include "remote/apiaction.hpp"
 #include "remote/apilistener.hpp"
+#include "remote/filterutility.hpp"
 #include "remote/pkiutility.hpp"
 #include "remote/httputility.hpp"
 #include "base/utility.hpp"
@@ -525,6 +526,30 @@ Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&,
 		+ cn + "'.", additional);
 }
 
+Value ApiActions::GetSingleObjectByNameUsingPermissions(String type, String value, ApiUser::Ptr user)
+{
+	Dictionary::Ptr queryParams = new Dictionary();
+	queryParams->Set("type", type);
+	queryParams->Set(type.ToLower(), value);
+
+	QueryDescription qd;
+	qd.Types.insert(type);
+	qd.Permission = "objects/query/" + type;
+
+	std::vector<Value> objs;
+	try {
+		objs = FilterUtility::GetFilterTargets(qd, queryParams, ActionsHandler::AuthenticatedApiUser);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiActions") << DiagnosticInformation(ex);
+		return nullptr;
+	}
+
+	if (objs.empty())
+		return nullptr;
+
+	return objs.at(0);
+};
+
 Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
@@ -583,8 +608,11 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		nullptr, MacroProcessor::EscapeCallback(), nullptr, false
 	);
 
-	/* Check if endpoint exists */
-	Endpoint::Ptr endpointPtr = Endpoint::GetByName(resolved_endpoint);
+	if (!ActionsHandler::AuthenticatedApiUser)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Can't find API user."));
+
+	/* Get endpoint */
+	Endpoint::Ptr endpointPtr = ApiActions::GetSingleObjectByNameUsingPermissions(Endpoint::GetTypeName(), resolved_endpoint, ActionsHandler::AuthenticatedApiUser);
 	if (!endpointPtr)
 		return ApiActions::CreateResult(404, "Can't find a valid endpoint for '" + resolved_endpoint + "'.");
 
@@ -619,19 +647,19 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	});
 
 	if (command_type == "CheckCommand") {
-		CheckCommand::Ptr cmd = CheckCommand::GetByName(resolved_command);
+		CheckCommand::Ptr cmd = ApiActions::GetSingleObjectByNameUsingPermissions(CheckCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 		else
 			cmd->Execute(checkable, cr, execMacros, false);
 	} else if (command_type == "EventCommand") {
-		EventCommand::Ptr cmd = EventCommand::GetByName(resolved_command);
+		EventCommand::Ptr cmd = ApiActions::GetSingleObjectByNameUsingPermissions(EventCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 		else
 			cmd->Execute(checkable, execMacros, false);
 	} else if (command_type == "NotificationCommand") {
-		NotificationCommand::Ptr cmd = NotificationCommand::GetByName(resolved_command);
+		NotificationCommand::Ptr cmd = ApiActions::GetSingleObjectByNameUsingPermissions(NotificationCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 		else {
@@ -646,7 +674,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 				MacroProcessor::EscapeCallback(), nullptr, false
 			);
 
-			User::Ptr user = User::GetByName(resolved_user);
+			User::Ptr user = ApiActions::GetSingleObjectByNameUsingPermissions(User::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 			if (!user)
 				return ApiActions::CreateResult(404, "Can't find a valid user for '" + resolved_user + "'.");
 
@@ -661,13 +689,9 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 				MacroProcessor::EscapeCallback(), nullptr, false
 			);
 
-			Notification::Ptr notification = Notification::GetByName(resolved_notification);
-			if (!user)
+			Notification::Ptr notification = ApiActions::GetSingleObjectByNameUsingPermissions(Notification::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
+			if (!notification)
 				return ApiActions::CreateResult(404, "Can't find a valid notification for '" + resolved_notification + "'.");
-
-			/* Get author */
-			if (!ActionsHandler::AuthenticatedApiUser)
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Can't find API user."));
 
 			cmd->Execute(notification, user, cr, NotificationType::NotificationCustom,
 				ActionsHandler::AuthenticatedApiUser->GetName(), "", execMacros, false);
