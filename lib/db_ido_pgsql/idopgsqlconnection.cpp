@@ -11,13 +11,23 @@
 #include "base/perfdatavalue.hpp"
 #include "base/application.hpp"
 #include "base/configtype.hpp"
+#include "base/configuration.hpp"
 #include "base/exception.hpp"
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include "base/defer.hpp"
+#include <boost/regex.hpp>
+#include <fstream>
+#include <iterator>
+#include <string>
 #include <utility>
+#include <vector>
 
 using namespace icinga;
+
+static const boost::regex l_SchemaComment ("^--.*?$\\n?");
+static const boost::regex l_SchemaSep (";$");
+static const boost::regex l_SchemaWS ("(?:\\A\\s+|\\s+\\z)");
 
 REGISTER_TYPE(IdoPgsqlConnection);
 
@@ -261,6 +271,8 @@ void IdoPgsqlConnection::Reconnect()
 
 	IdoPgsqlResult result;
 
+	ImportSchema();
+
 	String dbVersionName = "idoutils";
 	IncreasePendingQueries(1);
 	result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name=E'" + Escape(dbVersionName) + "'");
@@ -434,6 +446,61 @@ void IdoPgsqlConnection::Reconnect()
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::ClearTablesBySession, this), PriorityNormal);
 
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::FinishConnect, this, startTime), PriorityNormal);
+}
+
+void IdoPgsqlConnection::ImportSchema()
+{
+	Log(LogNotice, "IdoPgsqlConnection") << "Checking for the '" << GetName() << "' schema.";
+
+	IdoPgsqlResult result = Query("SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_CATALOG=E'" + Escape(GetDatabase()) + "' AND TABLE_NAME=E'" + Escape(GetTablePrefix()) + "dbversion'");
+
+	if (!FetchRow(result, 0)) {
+		Log(LogInformation, "IdoPgsqlConnection") << "Importing the schema into '" << GetName() << "'.";
+
+		auto schemaFile (Configuration::PkgDataDir + "-ido-pgsql/schema/pgsql.sql");
+
+		if (Utility::PathExists(schemaFile)) {
+			namespace rc = boost::regex_constants;
+
+			std::ifstream ifs;
+			ifs.exceptions(ifs.badbit | ifs.failbit);
+
+			ifs.open(schemaFile.CStr());
+			ifs.exceptions(ifs.badbit);
+
+			std::string schema (std::istreambuf_iterator<char>(ifs), (std::istreambuf_iterator<char>()));
+
+			{
+				std::string noComments;
+
+				boost::regex_replace(
+					std::back_insert_iterator<std::string>(noComments), schema.begin(),
+					schema.end(), l_SchemaComment, "", rc::match_default | rc::format_literal
+				);
+
+				schema = std::move(noComments);
+			}
+
+			std::vector<std::string> ddls;
+
+			boost::regex_split(std::back_insert_iterator<decltype(ddls)>(ddls), schema, l_SchemaSep);
+
+			for (auto& ddl : ddls) {
+				std::string nws;
+
+				boost::regex_replace(
+					std::back_insert_iterator<std::string>(nws), ddl.begin(),
+					ddl.end(), l_SchemaWS, "", rc::match_default | rc::format_literal
+				);
+
+				if (!nws.empty()) {
+					Query(std::move(nws));
+				}
+			}
+		} else {
+			Log(LogWarning, "IdoPgsqlConnection", "Schema file '" << schemaFile << "' missing.");
+		}
+	}
 }
 
 void IdoPgsqlConnection::FinishConnect(double startTime)

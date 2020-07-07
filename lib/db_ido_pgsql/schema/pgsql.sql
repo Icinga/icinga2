@@ -17,7 +17,7 @@ $$ LANGUAGE sql;
 
 DROP FUNCTION IF EXISTS unix_timestamp(timestamp WITH TIME ZONE);
 CREATE OR REPLACE FUNCTION unix_timestamp(timestamp) RETURNS bigint AS '
-  SELECT CAST(EXTRACT(EPOCH FROM $1) AS bigint) AS result;
+  SELECT CAST(EXTRACT(EPOCH FROM $1) AS bigint) AS result;--
 ' LANGUAGE sql;
 
 
@@ -31,13 +31,13 @@ BEGIN
         THEN
                 UPDATE icinga_dbversion
                 SET version=version_i, modify_time=NOW()
-		WHERE name='idoutils';
+		WHERE name='idoutils';--
         ELSE
-                INSERT INTO icinga_dbversion (dbversion_id, name, version, create_time, modify_time) VALUES ('1', 'idoutils', version_i, NOW(), NOW());
-        END IF;
+                INSERT INTO icinga_dbversion (dbversion_id, name, version, create_time, modify_time) VALUES ('1', 'idoutils', version_i, NOW(), NOW());--
+        END IF;--
 
-        RETURN;
-END;
+        RETURN;--
+END;--
 $$ LANGUAGE plpgsql;
 -- HINT: su - postgres; createlang plpgsql icinga;
 
