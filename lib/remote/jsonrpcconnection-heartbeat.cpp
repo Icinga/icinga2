@@ -39,9 +39,7 @@ void JsonRpcConnection::HandleAndWriteHeartbeats(boost::asio::yield_context yc)
 		SendMessageInternal(new Dictionary({
 			{ "jsonrpc", "2.0" },
 			{ "method", "event::Heartbeat" },
-			{ "params", new Dictionary({
-				{ "timeout", 120 }
-			}) }
+			{ "params", new Dictionary() }
 		}));
 	}
 }
