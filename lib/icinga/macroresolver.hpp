@@ -21,6 +21,8 @@ class MacroResolver
 public:
 	DECLARE_PTR_TYPEDEFS(MacroResolver);
 
+	static thread_local Dictionary::Ptr OverrideMacros;
+
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const = 0;
 };
 

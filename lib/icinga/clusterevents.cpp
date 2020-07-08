@@ -949,5 +949,44 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 
 Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	return "Not implemented";
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+	if (!endpoint) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'update executions API handler' message from '" << origin->FromClient->GetIdentity()
+			<< "': Invalid endpoint origin (client not allowed).";
+
+		return Empty;
+	}
+
+	Host::Ptr host = Host::GetByName(params->Get("host"));
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	ObjectLock oLock (checkable);
+
+	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		return Empty;
+	}
+
+	Dictionary::Ptr executions = checkable->GetExecutions();
+	if (!executions)
+		executions = new Dictionary();
+	Dictionary::Ptr newExecutions = params->Get("executions");
+	newExecutions->CopyTo(executions);
+	checkable->SetExecutions(executions);
+
+	return Empty;
 }
