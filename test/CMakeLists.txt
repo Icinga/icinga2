@@ -96,6 +96,7 @@ set(base_test_SOURCES
   base-array.cpp
   base-atomic.cpp
   base-base64.cpp
+  base-benchmark.cpp
   base-convert.cpp
   base-dictionary.cpp
   base-fifo.cpp
