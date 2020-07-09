@@ -4,6 +4,7 @@
 #define ATOMIC_H
 
 #include <atomic>
+#include <chrono>
 #include <mutex>
 #include <type_traits>
 #include <utility>
@@ -32,6 +33,43 @@ public:
 	inline Atomic(T desired) : std::atomic<T>(desired)
 	{
 	}
+};
+
+/**
+ * Accumulates time durations atomically.
+ *
+ * @ingroup base
+ */
+class AtomicDuration
+{
+public:
+	using Clock = std::chrono::steady_clock;
+
+	/**
+	 * Adds the elapsedTime to this instance.
+	 *
+	 * May be called multiple times to accumulate time.
+	 *
+	 * @param elapsedTime The distance between two time points
+	 *
+	 * @return This instance for method chaining
+	 */
+	AtomicDuration& operator+=(const Clock::duration& elapsedTime) noexcept
+	{
+		m_Sum.fetch_add(elapsedTime.count(), std::memory_order_relaxed);
+		return *this;
+	}
+
+	/**
+	 * @return The total accumulated time in seconds
+	 */
+	operator double() const noexcept
+	{
+		return std::chrono::duration<double>(Clock::duration(m_Sum.load(std::memory_order_relaxed))).count();
+	}
+
+private:
+	Atomic<Clock::duration::rep> m_Sum {0};
 };
 
 /**
