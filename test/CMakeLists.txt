@@ -59,6 +59,7 @@ set(base_test_SOURCES
   icingaapplication-fixture.cpp
   base-array.cpp
   base-base64.cpp
+  base-benchmark.cpp
   base-convert.cpp
   base-dictionary.cpp
   base-fifo.cpp
@@ -113,6 +114,9 @@ add_boost_test(base
     base_array/clone
     base_array/json
     base_base64/base64
+    base_benchmark/zero
+    base_benchmark/one
+    base_benchmark/two
     base_convert/tolong
     base_convert/todouble
     base_convert/tostring
