@@ -4,6 +4,7 @@
 #define ATOMIC_H
 
 #include <atomic>
+#include <chrono>
 #include <mutex>
 #include <type_traits>
 #include <utility>
@@ -39,6 +40,31 @@ public:
 	{
 		this->store(desired, order);
 	}
+};
+
+/**
+ * Accumulates time durations atomically.
+ *
+ * @ingroup base
+ */
+class AtomicDuration
+{
+public:
+	using Clock = std::chrono::steady_clock;
+
+	AtomicDuration& operator+=(const Clock::duration&) noexcept;
+
+	/**
+	 * @return The total accumulated time in seconds
+	 */
+	template<class T>
+	operator T() const noexcept
+	{
+		return std::chrono::duration<T>(Clock::duration(m_Sum.load(std::memory_order_relaxed))).count();
+	}
+
+private:
+	Atomic<Clock::duration::rep> m_Sum {0};
 };
 
 /**

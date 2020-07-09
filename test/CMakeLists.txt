@@ -5,6 +5,7 @@ include(BoostTestTargets)
 set(base_test_SOURCES
   icingaapplication-fixture.cpp
   base-array.cpp
+  base-atomic.cpp
   base-base64.cpp
   base-convert.cpp
   base-dictionary.cpp
@@ -60,6 +61,9 @@ add_boost_test(base
     base_array/foreach
     base_array/clone
     base_array/json
+    base_atomic/duration_none
+    base_atomic/duration_one
+    base_atomic/duration_two
     base_base64/base64
     base_convert/tolong
     base_convert/todouble
