@@ -932,6 +932,92 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 
 Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	if (!listener)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
+
+	Endpoint::Ptr endpoint;
+	if (origin->FromClient) {
+		endpoint = origin->FromClient->GetEndpoint();
+	} else if (origin->IsLocal()){
+		endpoint = Endpoint::GetLocalEndpoint();
+	}
+
+	if (!endpoint) {
+		Log(LogNotice, "ClusterEvents")
+				<< "Discarding 'update executions API handler' message from '" << origin->FromClient->GetIdentity()
+				<< "': Invalid endpoint origin (client not allowed).";
+
+		return Empty;
+	}
+
+	Host::Ptr host = Host::GetByName(params->Get("host"));
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	ObjectLock oLock (checkable);
+
+	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ClusterEvents")
+				<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+				<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		return Empty;
+	}
+
+	if (!params->Contains("execution")) {
+		Log(LogNotice, "ClusterEvents")
+				<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+				<< "' from '" << origin->FromClient->GetIdentity() << "': Execution UUID not found.";
+		return Empty;
+	}
+	String uuid = params->Get("execution");
+
+	Dictionary::Ptr executions = checkable->GetExecutions();
+	if (!executions) {
+		Log(LogNotice, "ClusterEvents")
+				<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+				<< "' from '" << origin->FromClient->GetIdentity() << "': No executions available.";
+		return Empty;
+	}
+
+	Dictionary::Ptr execution = executions->Get(uuid);
+	if (!execution) {
+		Log(LogNotice, "ClusterEvents")
+				<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+				<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' not found.";
+		return Empty;
+	}
+
+	execution->Set("pending", false);
+
+	/* TODO update execution with the command result */
+
+	/* Broadcast the update */
+	Dictionary::Ptr executionsToBroadcast = new Dictionary();
+	executionsToBroadcast->Set(uuid, execution);
+	Dictionary::Ptr updateParams = new Dictionary();
+	updateParams->Set("host", host->GetName());
+	if (params->Contains("service"))
+		updateParams->Set("service", params->Get("service"));
+	updateParams->Set("executions", executionsToBroadcast);
+
+	Dictionary::Ptr updateMessage = new Dictionary();
+	updateMessage->Set("jsonrpc", "2.0");
+	updateMessage->Set("method", "event::UpdateExecutions");
+	updateMessage->Set("params", updateParams);
+
+	listener->RelayMessage(origin, checkable, updateMessage, true);
+
 	return "Not implemented";
 }
 
