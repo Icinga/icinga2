@@ -99,6 +99,9 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 	if (params->Contains("source")) {
 		Log(LogCritical, "ApiListener", "Not implemented.");
+
+		String uuid = params->Get("source");
+
 		return;
 	}
 
