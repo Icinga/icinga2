@@ -43,9 +43,16 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (!checkable->GetCheckTimeout().IsEmpty())
 		timeout = checkable->GetCheckTimeout();
 
-	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
-		resolvers, resolvedMacros, useResolvedMacros, timeout,
-		std::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2));
+
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
+			resolvers, resolvedMacros, useResolvedMacros, timeout,
+			std::bind(Checkable::ExecuteCommandProcessFinishedHandler, checkable, cr, _1, _2));
+	} else {
+		PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
+			resolvers, resolvedMacros, useResolvedMacros, timeout,
+			std::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2));
+	}
 
 	if (!resolvedMacros || useResolvedMacros) {
 		Checkable::CurrentConcurrentChecks.fetch_add(1);

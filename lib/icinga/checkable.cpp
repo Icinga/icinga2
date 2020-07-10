@@ -19,6 +19,7 @@ boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String
 boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
 
 static Timer::Ptr l_CheckablesFireSuppressedNotifications;
+thread_local std::function<void(const Checkable::Ptr&, const CheckResult::Ptr&, const Value& /* commandLine */, const ProcessResult&)> Checkable::ExecuteCommandProcessFinishedHandler;
 
 void Checkable::StaticInitialize()
 {
