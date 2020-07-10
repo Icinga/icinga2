@@ -588,12 +588,12 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
 
 	/* Get command_type */
-	String command_type = "EventCommand";
+	String command_type = "event_command";
 	if (params->Contains("command_type"))
 		command_type = HttpUtility::GetLastParameter(params, "command_type");
 
 	/* Validate command_type */
-	if (command_type != "EventCommand" && command_type != "CheckCommand" && command_type != "NotificationCommand")
+	if (command_type != "event_command" && command_type != "check_command" && command_type != "notification_command")
 		return ApiActions::CreateResult(400, "Invalid command_type '" + command_type + "'.");
 
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
@@ -649,11 +649,11 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	/* Get command */
 	String command;
 	if (!params->Contains("command")) {
-		if (command_type == "CheckCommand" ) {
+		if (command_type == "check_command" ) {
 			command = "$check_command$";
-		} else if (command_type == "EventCommand") {
+		} else if (command_type == "event_command") {
 			command = "$event_command$";
-		} else if (command_type == "NotificationCommand") {
+		} else if (command_type == "notification_command") {
 			command = "$notification_command$";
 		}
 	} else {
@@ -676,19 +676,19 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		MacroResolver::OverrideMacros = nullptr;
 	});
 
-	if (command_type == "CheckCommand") {
+	if (command_type == "check_command") {
 		CheckCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(CheckCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 		else
 			cmd->Execute(checkable, cr, execMacros, false);
-	} else if (command_type == "EventCommand") {
+	} else if (command_type == "event_command") {
 		EventCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(EventCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 		else
 			cmd->Execute(checkable, execMacros, false);
-	} else if (command_type == "NotificationCommand") {
+	} else if (command_type == "notification_command") {
 		NotificationCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(NotificationCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
