@@ -6,6 +6,7 @@
 #include "base/configuration.hpp"
 #include "base/serializer.hpp"
 #include "base/exception.hpp"
+#include "methods/executeactiontask.hpp"
 #include <boost/thread/once.hpp>
 #include <thread>
 
@@ -97,12 +98,38 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		return;
 	}
 
+	Checkable::Ptr checkable = nullptr;
 	if (params->Contains("source")) {
-		Log(LogCritical, "ApiListener", "Not implemented.");
-
 		String uuid = params->Get("source");
 
-		return;
+		Host::Ptr host = Host::GetByName(params->Get("host"));
+		if (!host) {
+			Log(LogCritical, "ApiListener", "Host not found.");
+			return;
+		}
+
+		if (params->Contains("service"))
+			checkable = host->GetServiceByShortName(params->Get("service"));
+		else
+			checkable = host;
+
+		if (!checkable) {
+			Log(LogCritical, "ApiListener", "Checkable not found.");
+			return;
+		}
+
+		ObjectLock oLock (checkable);
+
+		if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
+			Log(LogNotice, "ApiListener")
+					<< "Discarding 'ExecuteCheckFromQueue' event for checkable '" << checkable->GetName()
+					<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+			return;
+		}
+
+		Checkable::ExecuteCommandProcessFinishedHandler = ExecuteActionTask::ProcessFinishedHandler;
+	} else {
+		Checkable::ExecuteCommandProcessFinishedHandler = nullptr;
 	}
 
 	if (!listener->GetAcceptCommands()) {
@@ -182,7 +209,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 	if (command_type == "check_command") {
 		try {
-			host->ExecuteRemoteCheck(macros);
+			host->ExecuteRemoteCheck(macros, checkable);
 		} catch (const std::exception& ex) {
 			CheckResult::Ptr cr = new CheckResult();
 			cr->SetState(ServiceUnknown);

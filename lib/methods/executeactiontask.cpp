@@ -54,7 +54,7 @@ void ExecuteActionTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, 
 
 	executedParams->Set("check_result", cr);
 
-	/* FIXME command endpoint was overwrite by macro? */
+	/* FIXME command endpoint overwritten by macro? */
 	Endpoint::Ptr commandEndpoint = checkable->GetCommandEndpoint();
 	bool local = !commandEndpoint || commandEndpoint == Endpoint::GetLocalEndpoint();
 	if (local) {
