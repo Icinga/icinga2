@@ -261,14 +261,6 @@ void IdoPgsqlConnection::Reconnect()
 
 	IdoPgsqlResult result;
 
-	/* explicitely require legacy mode for string escaping in PostgreSQL >= 9.1
-	 * changing standard_conforming_strings to on by default
-	 */
-	if (m_Pgsql->serverVersion(m_Connection) >= 90100) {
-		IncreasePendingQueries(1);
-		result = Query("SET standard_conforming_strings TO off");
-	}
-
 	String dbVersionName = "idoutils";
 	IncreasePendingQueries(1);
 	result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name=E'" + Escape(dbVersionName) + "'");
