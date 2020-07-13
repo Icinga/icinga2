@@ -126,6 +126,15 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			return;
 		}
 
+		/* Check deadline */
+		double deadline = params->Get("deadline");
+		if (Utility::GetTime() > deadline) {
+			Log(LogNotice, "ApiListener")
+				<< "Discarding 'ExecuteCheckFromQueue' event for checkable '" << checkable->GetName()
+				<< "' from '" << origin->FromClient->GetIdentity() << "': Deadline has expired.";
+			return;
+		}
+
 		Checkable::ExecuteCommandProcessFinishedHandler = [listener, sourceEndpoint, origin, params] (const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr) -> void {
 			Checkable::CurrentConcurrentChecks.fetch_sub(1);
 			Checkable::DecreasePendingChecks();
