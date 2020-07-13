@@ -97,7 +97,6 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		return;
 	}
 
-	Checkable::Ptr checkable = nullptr;
 	if (params->Contains("source")) {
 		String uuid = params->Get("source");
 
@@ -107,6 +106,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			return;
 		}
 
+		Checkable::Ptr checkable;
 		if (params->Contains("service"))
 			checkable = host->GetServiceByShortName(params->Get("service"));
 		else
@@ -246,7 +246,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 	if (command_type == "check_command") {
 		try {
-			host->ExecuteRemoteCheck(macros, checkable);
+			host->ExecuteRemoteCheck(macros);
 		} catch (const std::exception& ex) {
 			CheckResult::Ptr cr = new CheckResult();
 			cr->SetState(ServiceUnknown);

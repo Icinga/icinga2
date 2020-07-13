@@ -97,7 +97,7 @@ public:
 
 	static void UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type);
 
-	void ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros = nullptr, const Checkable::Ptr& checkbale = nullptr);
+	void ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros = nullptr);
 	void ExecuteCheck();
 	void ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin = nullptr);
 
