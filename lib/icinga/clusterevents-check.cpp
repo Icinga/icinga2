@@ -135,7 +135,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			return;
 		}
 
-		Checkable::ExecuteCommandProcessFinishedHandler = [listener, sourceEndpoint, origin, params] (const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr) -> void {
+		Checkable::ExecuteCommandProcessFinishedHandler = [checkable, listener, sourceEndpoint, origin, params] (const Value& commandLine, const ProcessResult& pr) {
 			Checkable::CurrentConcurrentChecks.fetch_sub(1);
 			Checkable::DecreasePendingChecks();
 
@@ -150,6 +150,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			String output = pr.Output.Trim();
 
 			std::pair<String, String> co = PluginUtility::ParseCheckOutput(output);
+			CheckResult::Ptr cr = new CheckResult();
 			cr->SetCommand(commandLine);
 			cr->SetOutput(co.first);
 			cr->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
@@ -174,10 +175,8 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				listener->SyncSendMessage(sourceEndpoint, executedMessage);
 			}
 		};
-	} else {
-		Checkable::ExecuteCommandProcessFinishedHandler = nullptr;
 	}
-
+	
 	if (!listener->GetAcceptCommands()) {
 		Log(LogWarning, "ApiListener")
 				<< "Ignoring command. '" << listener->GetName() << "' does not accept commands.";
