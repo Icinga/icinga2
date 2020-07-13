@@ -17,7 +17,6 @@ set(methods_SOURCES
   randomchecktask.cpp randomchecktask.hpp
   timeperiodtask.cpp timeperiodtask.hpp
   sleepchecktask.cpp sleepchecktask.hpp
-  executeactiontask.cpp exceptionchecktask.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)
