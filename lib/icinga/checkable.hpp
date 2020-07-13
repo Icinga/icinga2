@@ -57,7 +57,7 @@ public:
 	DECLARE_OBJECTNAME(Checkable);
 
 	static void StaticInitialize();
-	static thread_local std::function<void(const Checkable::Ptr&, const CheckResult::Ptr&, const Value& /* commandLine */, const ProcessResult&)> ExecuteCommandProcessFinishedHandler;
+	static thread_local std::function<void(const Value& commandLine, const ProcessResult&)> ExecuteCommandProcessFinishedHandler;
 
 	Checkable();
 
