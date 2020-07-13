@@ -102,7 +102,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 		Host::Ptr host = Host::GetByName(params->Get("host"));
 		if (!host) {
-			Log(LogCritical, "ApiListener", "Host not found.");
+			Log(LogCritical, "ApiListener") << "Host '" << params->Get("host") << "' not found.";
 			return;
 		}
 
@@ -113,7 +113,8 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			checkable = host;
 
 		if (!checkable) {
-			Log(LogCritical, "ApiListener", "Checkable not found.");
+			Log(LogCritical, "ApiListener") << "Checkable '" << params->Get("host")
+				<< " " << params->Get("service") << "' not found.";
 			return;
 		}
 
@@ -176,7 +177,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			}
 		};
 	}
-	
+
 	if (!listener->GetAcceptCommands()) {
 		Log(LogWarning, "ApiListener")
 				<< "Ignoring command. '" << listener->GetName() << "' does not accept commands.";
