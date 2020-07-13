@@ -97,6 +97,14 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		return;
 	}
 
+	bool executeCommandProcessFinishedHandlerToBeReset = false;
+	Defer resetExecuteCommandProcessFinishedHandler ([&executeCommandProcessFinishedHandlerToBeReset]() {
+		if (executeCommandProcessFinishedHandlerToBeReset) {
+			Checkable::ExecuteCommandProcessFinishedHandler = nullptr;
+			executeCommandProcessFinishedHandlerToBeReset = false;
+		}
+	});
+
 	if (params->Contains("source")) {
 		String uuid = params->Get("source");
 
@@ -176,6 +184,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				listener->SyncSendMessage(sourceEndpoint, executedMessage);
 			}
 		};
+		executeCommandProcessFinishedHandlerToBeReset = true;
 	}
 
 	if (!listener->GetAcceptCommands()) {
