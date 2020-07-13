@@ -990,14 +990,6 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 		return Empty;
 	}
 
-	if (!params->Contains("check_result")) {
-		Log(LogNotice, "ClusterEvents")
-				<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
-				<< "' from '" << origin->FromClient->GetIdentity() << "': No check result available.";
-		return Empty;
-	}
-	CheckResult::Ptr cr = params->Get("check_result");
-
 	Dictionary::Ptr execution = executions->Get(uuid);
 	if (!execution) {
 		Log(LogNotice, "ClusterEvents")
@@ -1006,8 +998,15 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 		return Empty;
 	}
 
+	if (!params->Contains("check_result")) {
+		Log(LogNotice, "ClusterEvents")
+				<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+				<< "' from '" << origin->FromClient->GetIdentity() << "': No check result available.";
+		return Empty;
+	}
+
+	execution->Set("check_result", params->Get("check_result"));
 	execution->Set("pending", false);
-	execution->Set("check_result", cr);
 
 	/* Broadcast the update */
 	Dictionary::Ptr executionsToBroadcast = new Dictionary();

@@ -6,7 +6,6 @@
 #include "base/configuration.hpp"
 #include "base/serializer.hpp"
 #include "base/exception.hpp"
-#include "methods/executeactiontask.hpp"
 #include <boost/thread/once.hpp>
 #include <thread>
 
@@ -122,12 +121,50 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 		if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
 			Log(LogNotice, "ApiListener")
-					<< "Discarding 'ExecuteCheckFromQueue' event for checkable '" << checkable->GetName()
-					<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+				<< "Discarding 'ExecuteCheckFromQueue' event for checkable '" << checkable->GetName()
+				<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 			return;
 		}
 
-		Checkable::ExecuteCommandProcessFinishedHandler = ExecuteActionTask::ProcessFinishedHandler;
+		Checkable::ExecuteCommandProcessFinishedHandler = [listener, sourceEndpoint, origin, params] (const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr) -> void {
+			Checkable::CurrentConcurrentChecks.fetch_sub(1);
+			Checkable::DecreasePendingChecks();
+
+			if (pr.ExitStatus > 3) {
+				Process::Arguments parguments = Process::PrepareCommand(commandLine);
+				Log(LogWarning, "ApiListener")
+					<< "Check command for object '" << checkable->GetName() << "' (PID: " << pr.PID
+					<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
+					<< pr.ExitStatus << ", output: " << pr.Output;
+			}
+
+			String output = pr.Output.Trim();
+
+			std::pair<String, String> co = PluginUtility::ParseCheckOutput(output);
+			cr->SetCommand(commandLine);
+			cr->SetOutput(co.first);
+			cr->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
+			cr->SetState(PluginUtility::ExitStatusToState(pr.ExitStatus));
+			cr->SetExitStatus(pr.ExitStatus);
+			cr->SetExecutionStart(pr.ExecutionStart);
+			cr->SetExecutionEnd(pr.ExecutionEnd);
+
+			Dictionary::Ptr executedParams = new Dictionary();
+			params->CopyTo(executedParams);
+			executedParams->Set("execution", params->Get("source"));
+			executedParams->Set("check_result", Serialize(cr));
+
+			if (origin->IsLocal()) {
+				ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
+			} else {
+				Dictionary::Ptr executedMessage = new Dictionary();
+				executedMessage->Set("jsonrpc", "2.0");
+				executedMessage->Set("method", "event::ExecutedCommand");
+				executedMessage->Set("params", executedParams);
+
+				listener->SyncSendMessage(sourceEndpoint, executedMessage);
+			}
+		};
 	} else {
 		Checkable::ExecuteCommandProcessFinishedHandler = nullptr;
 	}
