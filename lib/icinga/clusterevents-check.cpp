@@ -122,7 +122,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 		if (!checkable) {
 			Log(LogCritical, "ApiListener") << "Checkable '" << params->Get("host")
-				<< " " << params->Get("service") << "' not found.";
+				<< "!" << params->Get("service") << "' not found.";
 			return;
 		}
 
