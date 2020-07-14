@@ -563,7 +563,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		command_type = HttpUtility::GetLastParameter(params, "command_type");
 
 	/* Validate command_type */
-	if (command_type != "event_command" && command_type != "check_command" && command_type != "notification_command")
+	if (command_type != "event_command" && command_type != "check_command" && command_type != "NotificationCommand")
 		return ApiActions::CreateResult(400, "Invalid command_type '" + command_type + "'.");
 
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
@@ -623,7 +623,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 			command = "$check_command$";
 		} else if (command_type == "event_command") {
 			command = "$event_command$";
-		} else if (command_type == "notification_command") {
+		} else if (command_type == "NotificationCommand") {
 			command = "$notification_command$";
 		}
 	} else {
@@ -658,7 +658,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 		else
 			cmd->Execute(checkable, execMacros, false);
-	} else if (command_type == "notification_command") {
+	} else if (command_type == "NotificationCommand") {
 		NotificationCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(NotificationCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
