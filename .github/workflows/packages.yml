@@ -63,7 +63,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deb-icinga2/ccache
-          key: '${{ matrix.distro.name }}/${{ matrix.distro.codename }}-ccache'
+          key: |-
+            ${{ matrix.distro.name }}/${{ matrix.distro.codename }}-ccache-${{ hashFiles('deb-icinga2/ccache') }}
 
       - name: Binary x64
         run: |
@@ -197,7 +198,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: rpm-icinga2/ccache
-          key: '${{ matrix.distro.name }}/${{ matrix.distro.release }}-ccache'
+          key: |-
+            ${{ matrix.distro.name }}/${{ matrix.distro.release }}-ccache-${{ hashFiles('rpm-icinga2/ccache') }}
 
       - name: Binary
         if: "steps.vars.outputs.CAN_BUILD == 'true'"
@@ -266,7 +268,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: raspbian-icinga2/ccache
-          key: 'raspbian/${{ matrix.codename }}-ccache'
+          key: |-
+            raspbian/${{ matrix.codename }}-ccache-${{ hashFiles('raspbian-icinga2/ccache') }}
 
       - name: Binary
         run: |
