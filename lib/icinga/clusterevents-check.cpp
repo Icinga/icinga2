@@ -93,16 +93,12 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
 	if (!listener) {
-		Log(LogCritical, "ApiListener", "No instance available.");
+		Log(LogCritical, "ApiListener") << "No instance available.";
 		return;
 	}
 
-	bool executeCommandProcessFinishedHandlerToBeReset = false;
-	Defer resetExecuteCommandProcessFinishedHandler ([&executeCommandProcessFinishedHandlerToBeReset]() {
-		if (executeCommandProcessFinishedHandlerToBeReset) {
-			Checkable::ExecuteCommandProcessFinishedHandler = nullptr;
-			executeCommandProcessFinishedHandlerToBeReset = false;
-		}
+	Defer resetExecuteCommandProcessFinishedHandler ([]() {
+		Checkable::ExecuteCommandProcessFinishedHandler = nullptr;
 	});
 
 	if (params->Contains("source")) {
@@ -184,7 +180,6 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				listener->SyncSendMessage(sourceEndpoint, executedMessage);
 			}
 		};
-		executeCommandProcessFinishedHandlerToBeReset = true;
 	}
 
 	if (!listener->GetAcceptCommands()) {
