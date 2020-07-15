@@ -165,8 +165,10 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			cr->SetExecutionEnd(pr.ExecutionEnd);
 
 			Dictionary::Ptr executedParams = new Dictionary();
-			params->CopyTo(executedParams);
 			executedParams->Set("execution", params->Get("source"));
+			executedParams->Set("host", params->Get("host"));
+			if (params->Contains("service"))
+				executedParams->Set("service", params->Get("service"));
 			executedParams->Set("check_result", Serialize(cr));
 
 			if (origin->IsLocal()) {
