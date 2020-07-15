@@ -104,24 +104,30 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 	if (params->Contains("source")) {
 		String uuid = params->Get("source");
 
-		Host::Ptr host = Host::GetByName(params->Get("host"));
-		if (!host) {
-			Log(LogCritical, "ApiListener") << "Host '" << params->Get("host") << "' not found.";
-			return;
-		}
+		Host::Ptr host = new Host();
+		Dictionary::Ptr attrs = new Dictionary();
 
-		Checkable::Ptr checkable;
+		attrs->Set("__name", params->Get("host"));
+		attrs->Set("type", "Host");
+
+		/*
+		 * Override the check timeout if the parent caller provided the value. Compatible with older versions not
+		 * passing this inside the cluster message.
+		 * This happens with host/service command_endpoint agents and the 'check_timeout' attribute being specified.
+		 */
+		if (params->Contains("check_timeout"))
+			attrs->Set("check_timeout", params->Get("check_timeout"));
+
+		Deserialize(host, attrs, false, FAConfig);
+
 		if (params->Contains("service"))
-			checkable = host->GetServiceByShortName(params->Get("service"));
-		else
-			checkable = host;
+			host->SetExtension("agent_service_name", params->Get("service"));
 
-		if (!checkable) {
-			Log(LogCritical, "ApiListener") << "Checkable '" << params->Get("host")
-				<< "!" << params->Get("service") << "' not found.";
-			return;
-		}
+		attrs->Set(params->Get("command_type"), params->Get("command"));
+		attrs->Set("command_endpoint", sourceEndpoint->GetName());
 
+		Deserialize(host, attrs, false, FAConfig);
+		Checkable::Ptr checkable = host;
 		ObjectLock oLock (checkable);
 
 		if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
