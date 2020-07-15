@@ -998,14 +998,21 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 		return Empty;
 	}
 
-	if (!params->Contains("check_result")) {
-		Log(LogNotice, "ClusterEvents")
-				<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
-				<< "' from '" << origin->FromClient->GetIdentity() << "': No check result available.";
-		return Empty;
-	}
+	if (params->Contains("error"))
+		execution->Set("error", params->Get("error"));
 
-	execution->Set("check_result", params->Get("check_result"));
+	if (params->Contains("exit"))
+		execution->Set("exit", params->Get("exit"));
+
+	if (params->Contains("output"))
+		execution->Set("output", params->Get("output"));
+
+	if (params->Contains("start"))
+		execution->Set("start", params->Get("start"));
+
+	if (params->Contains("end"))
+		execution->Set("end", params->Get("end"));
+
 	execution->Set("pending", false);
 
 	/* Broadcast the update */

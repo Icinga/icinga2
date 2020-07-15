@@ -158,24 +158,15 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 					<< pr.ExitStatus << ", output: " << pr.Output;
 			}
 
-			String output = pr.Output.Trim();
-
-			std::pair<String, String> co = PluginUtility::ParseCheckOutput(output);
-			CheckResult::Ptr cr = new CheckResult();
-			cr->SetCommand(commandLine);
-			cr->SetOutput(co.first);
-			cr->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
-			cr->SetState(PluginUtility::ExitStatusToState(pr.ExitStatus));
-			cr->SetExitStatus(pr.ExitStatus);
-			cr->SetExecutionStart(pr.ExecutionStart);
-			cr->SetExecutionEnd(pr.ExecutionEnd);
-
 			Dictionary::Ptr executedParams = new Dictionary();
 			executedParams->Set("execution", params->Get("source"));
 			executedParams->Set("host", params->Get("host"));
 			if (params->Contains("service"))
 				executedParams->Set("service", params->Get("service"));
-			executedParams->Set("check_result", Serialize(cr));
+			executedParams->Set("exit", pr.ExitStatus);
+			executedParams->Set("output", pr.Output);
+			executedParams->Set("start", pr.ExecutionStart);
+			executedParams->Set("end", pr.ExecutionEnd);
 
 			if (origin->IsLocal()) {
 				ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
@@ -216,7 +207,10 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			executedParams->Set("host", params->Get("host"));
 			if (params->Contains("service"))
 				executedParams->Set("service", params->Get("service"));
-			executedParams->Set("check_result", Serialize(cr));
+			double now = Utility::GetTime();
+			executedParams->Set("error", cr->GetOutput());
+			executedParams->Set("start", now);
+			executedParams->Set("end", now);
 
 			if (origin->IsLocal()) {
 				ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
