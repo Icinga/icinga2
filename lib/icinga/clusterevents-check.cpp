@@ -203,8 +203,29 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		CheckResult::Ptr cr = new CheckResult();
 		cr->SetState(ServiceUnknown);
 		cr->SetOutput("Endpoint '" + Endpoint::GetLocalEndpoint()->GetName() + "' does not accept commands.");
-		Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
-		listener->SyncSendMessage(sourceEndpoint, message);
+
+		if (params->Contains("source")) {
+			Dictionary::Ptr executedParams = new Dictionary();
+			executedParams->Set("execution", params->Get("source"));
+			executedParams->Set("host", params->Get("host"));
+			if (params->Contains("service"))
+				executedParams->Set("service", params->Get("service"));
+			executedParams->Set("check_result", Serialize(cr));
+
+			if (origin->IsLocal()) {
+				ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
+			} else {
+				Dictionary::Ptr executedMessage = new Dictionary();
+				executedMessage->Set("jsonrpc", "2.0");
+				executedMessage->Set("method", "event::ExecutedCommand");
+				executedMessage->Set("params", executedParams);
+
+				listener->SyncSendMessage(sourceEndpoint, executedMessage);
+			}
+		} else {
+			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
+			listener->SyncSendMessage(sourceEndpoint, message);
+		}
 
 		return;
 	}
