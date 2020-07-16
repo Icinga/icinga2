@@ -8,6 +8,7 @@
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include <boost/lexical_cast.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -27,6 +28,11 @@ Value::operator double() const
 		return 0;
 
 	try {
+		const auto *svalue = boost::get<Shared<String>::Ptr>(&m_Value);
+
+		if (svalue)
+			return boost::lexical_cast<double>(**svalue);
+
 		return boost::lexical_cast<double>(m_Value);
 	} catch (const std::exception&) {
 		std::ostringstream msgbuf;
@@ -50,7 +56,7 @@ Value::operator String() const
 			else
 				return "false";
 		case ValueString:
-			return boost::get<String>(m_Value);
+			return *boost::get<Shared<String>::Ptr>(m_Value);
 		case ValueObject:
 			object = boost::get<Object::Ptr>(m_Value).get();
 			return object->ToString();
@@ -73,7 +79,7 @@ std::istream& icinga::operator>>(std::istream& stream, Value& value)
 {
 	String tstr;
 	stream >> tstr;
-	value = tstr;
+	value = std::move(tstr);
 	return stream;
 }
 
@@ -551,7 +557,7 @@ Value icinga::operator>>(int lhs, const Value& rhs)
 bool icinga::operator<(const Value& lhs, const Value& rhs)
 {
 	if (lhs.IsString() && rhs.IsString())
-		return static_cast<String>(lhs) < static_cast<String>(rhs);
+		return lhs.Get<String>() < rhs.Get<String>();
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) < static_cast<double>(rhs);
 	else if ((lhs.IsObjectType<DateTime>() || lhs.IsEmpty()) && (rhs.IsObjectType<DateTime>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
@@ -604,7 +610,7 @@ bool icinga::operator<(int lhs, const Value& rhs)
 bool icinga::operator>(const Value& lhs, const Value& rhs)
 {
 	if (lhs.IsString() && rhs.IsString())
-		return static_cast<String>(lhs) > static_cast<String>(rhs);
+		return lhs.Get<String>() > rhs.Get<String>();
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) > static_cast<double>(rhs);
 	else if ((lhs.IsObjectType<DateTime>() || lhs.IsEmpty()) && (rhs.IsObjectType<DateTime>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
@@ -657,7 +663,7 @@ bool icinga::operator>(int lhs, const Value& rhs)
 bool icinga::operator<=(const Value& lhs, const Value& rhs)
 {
 	if (lhs.IsString() && rhs.IsString())
-		return static_cast<String>(lhs) <= static_cast<String>(rhs);
+		return lhs.Get<String>() <= rhs.Get<String>();
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) <= static_cast<double>(rhs);
 	else if ((lhs.IsObjectType<DateTime>() || lhs.IsEmpty()) && (rhs.IsObjectType<DateTime>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
@@ -689,7 +695,7 @@ bool icinga::operator<=(int lhs, const Value& rhs)
 bool icinga::operator>=(const Value& lhs, const Value& rhs)
 {
 	if (lhs.IsString() && rhs.IsString())
-		return static_cast<String>(lhs) >= static_cast<String>(rhs);
+		return lhs.Get<String>() >= rhs.Get<String>();
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) >= static_cast<double>(rhs);
 	else if ((lhs.IsObjectType<DateTime>() || lhs.IsEmpty()) && (rhs.IsObjectType<DateTime>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))

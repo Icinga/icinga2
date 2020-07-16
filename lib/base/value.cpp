@@ -4,13 +4,13 @@
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include "base/type.hpp"
+#include <utility>
 
 using namespace icinga;
 
 template class boost::variant<boost::blank, double, bool, String, Object::Ptr>;
 template const double& Value::Get<double>() const;
 template const bool& Value::Get<bool>() const;
-template const String& Value::Get<String>() const;
 template const Object::Ptr& Value::Get<Object::Ptr>() const;
 
 Value icinga::Empty;
@@ -51,15 +51,15 @@ Value::Value(bool value)
 { }
 
 Value::Value(const String& value)
-	: m_Value(value)
+	: m_Value(Shared<String>::Make(value))
 { }
 
 Value::Value(String&& value)
-	: m_Value(value)
+	: m_Value(Shared<String>::Make(std::move(value)))
 { }
 
 Value::Value(const char *value)
-	: m_Value(String(value))
+	: m_Value(Shared<String>::Make(value))
 { }
 
 Value::Value(const Value& other)
@@ -109,7 +109,7 @@ Value& Value::operator=(Value&& other)
  */
 bool Value::IsEmpty() const
 {
-	return (GetType() == ValueEmpty || (IsString() && boost::get<String>(m_Value).IsEmpty()));
+	return (GetType() == ValueEmpty || (IsString() && boost::get<Shared<String>::Ptr>(m_Value)->IsEmpty()));
 }
 
 /**
@@ -187,7 +187,7 @@ bool Value::ToBool() const
 			return boost::get<bool>(m_Value);
 
 		case ValueString:
-			return !boost::get<String>(m_Value).IsEmpty();
+			return !boost::get<Shared<String>::Ptr>(m_Value)->IsEmpty();
 
 		case ValueObject:
 			if (IsObjectType<Dictionary>()) {

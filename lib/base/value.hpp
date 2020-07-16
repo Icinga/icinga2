@@ -4,10 +4,12 @@
 #define VALUE_H
 
 #include "base/object.hpp"
+#include "base/shared.hpp"
 #include "base/string.hpp"
 #include <boost/variant/variant.hpp>
 #include <boost/variant/get.hpp>
 #include <boost/throw_exception.hpp>
+#include <type_traits>
 
 namespace icinga
 {
@@ -59,6 +61,7 @@ public:
 		: Value(static_pointer_cast<Object>(value))
 	{
 		static_assert(!std::is_same<T, Object>::value, "T must not be Object");
+		static_assert(!std::is_same<T, Shared<String>>::value, "T must not be Shared<String>");
 	}
 
 	bool ToBool() const;
@@ -90,6 +93,8 @@ public:
 	template<typename T>
 	operator intrusive_ptr<T>() const
 	{
+		static_assert(!std::is_same<T, Shared<String>>::value, "T must not be Shared<String>");
+
 		if (IsEmpty() && !IsString())
 			return intrusive_ptr<T>();
 
@@ -134,19 +139,24 @@ public:
 
 	Value Clone() const;
 
-	template<typename T>
+	template<class T, typename std::enable_if<!(std::is_same<T, Shared<String>::Ptr>::value || std::is_same<T, Shared<String>>::value || std::is_same<T, String>::value), int>::type = 0>
 	const T& Get() const
 	{
 		return boost::get<T>(m_Value);
 	}
 
+	template<class T, typename std::enable_if<std::is_same<T, String>::value, int>::type = 0>
+	const T& Get() const
+	{
+		return *boost::get<Shared<String>::Ptr>(m_Value);
+	}
+
 private:
-	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
+	boost::variant<boost::blank, double, bool, Shared<String>::Ptr, Object::Ptr> m_Value;
 };
 
 extern template const double& Value::Get<double>() const;
 extern template const bool& Value::Get<bool>() const;
-extern template const String& Value::Get<String>() const;
 extern template const Object::Ptr& Value::Get<Object::Ptr>() const;
 
 extern Value Empty;
