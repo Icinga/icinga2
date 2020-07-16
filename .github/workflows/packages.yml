@@ -19,9 +19,6 @@ jobs:
           - name: debian
             codename: stretch
             has32bit: true
-          - name: debian
-            codename: jessie
-            has32bit: true
           - name: ubuntu
             codename: focal
             has32bit: false
