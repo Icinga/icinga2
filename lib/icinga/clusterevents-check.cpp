@@ -130,13 +130,6 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		Checkable::Ptr checkable = host;
 		ObjectLock oLock (checkable);
 
-		if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
-			Log(LogNotice, "ApiListener")
-				<< "Discarding 'ExecuteCheckFromQueue' event for checkable '" << checkable->GetName()
-				<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
-			return;
-		}
-
 		/* Check deadline */
 		double deadline = params->Get("deadline");
 		if (Utility::GetTime() > deadline) {
