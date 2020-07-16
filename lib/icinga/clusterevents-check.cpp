@@ -140,13 +140,15 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		}
 
 		Checkable::ExecuteCommandProcessFinishedHandler = [checkable, listener, sourceEndpoint, origin, params] (const Value& commandLine, const ProcessResult& pr) {
-			Checkable::CurrentConcurrentChecks.fetch_sub(1);
-			Checkable::DecreasePendingChecks();
+			if (params->Get("command_type") == "check_command") {
+				Checkable::CurrentConcurrentChecks.fetch_sub(1);
+				Checkable::DecreasePendingChecks();
+			}
 
 			if (pr.ExitStatus > 3) {
 				Process::Arguments parguments = Process::PrepareCommand(commandLine);
 				Log(LogWarning, "ApiListener")
-					<< "Check command for object '" << checkable->GetName() << "' (PID: " << pr.PID
+					<< "Command for object '" << checkable->GetName() << "' (PID: " << pr.PID
 					<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
 					<< pr.ExitStatus << ", output: " << pr.Output;
 			}
