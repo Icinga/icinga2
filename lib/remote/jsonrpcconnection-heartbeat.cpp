@@ -27,41 +27,16 @@ void JsonRpcConnection::HandleAndWriteHeartbeats(boost::asio::yield_context yc)
 			break;
 		}
 
-		if (m_NextHeartbeat != 0 && m_NextHeartbeat < Utility::GetTime()) {
-			{
-				Log logMsg (LogWarning, "JsonRpcConnection");
-
-				if (m_Endpoint) {
-					logMsg << "Client for endpoint '" << m_Endpoint->GetName() << "'";
-				} else {
-					logMsg << "Anonymous client";
-				}
-
-				logMsg << " has requested heartbeat message but hasn't responded in time. Closing connection.";
-			}
-
-			Disconnect();
-			break;
-		}
-
 		SendMessageInternal(new Dictionary({
 			{ "jsonrpc", "2.0" },
 			{ "method", "event::Heartbeat" },
-			{ "params", new Dictionary({
-				{ "timeout", 120 }
-			}) }
+			{ "params", new Dictionary() }
 		}));
 	}
 }
 
 Value JsonRpcConnection::HeartbeatAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	Value vtimeout = params->Get("timeout");
-
-	if (!vtimeout.IsEmpty()) {
-		origin->FromClient->m_NextHeartbeat = Utility::GetTime() + vtimeout;
-	}
-
 	return Empty;
 }
 
