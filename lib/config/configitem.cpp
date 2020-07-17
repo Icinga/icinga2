@@ -6,6 +6,8 @@
 #include "config/objectrule.hpp"
 #include "config/configcompiler.hpp"
 #include "base/application.hpp"
+#include "base/atomic.hpp"
+#include "base/benchmark.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -462,7 +464,12 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (unresolved_dep)
 				continue;
 
-			int committed_items = 0;
+			Atomic<int> committed_items (0);
+			BenchmarkSummary sum;
+			BenchmarkStopWatch sw;
+
+			sw.Start();
+
 			upq.ParallelFor(items, [&type, &committed_items](const ItemPair& ip) {
 				const ConfigItem::Ptr& item = ip.first;
 
@@ -470,18 +477,18 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 					return;
 
 				ip.first->Commit(ip.second);
-				committed_items++;
+				committed_items.fetch_add(1);
 			});
 
 			upq.Join();
+			sw.Stop(sum);
 
 			completed_types.insert(type);
 
-#ifdef I2_DEBUG
-			if (committed_items > 0)
-				Log(LogDebug, "configitem")
-					<< "Committed " << committed_items << " items of type '" << type->GetName() << "'.";
-#endif /* I2_DEBUG */
+			if (committed_items.load() > 0)
+				Log(LogNotice, "configitem")
+					<< "Committed " << committed_items.load() << " items of type "
+					<< type->GetName() << " in " << sum.GetSeconds() << "s.";
 
 			if (upq.HasExceptions())
 				return false;
@@ -514,46 +521,60 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (unresolved_dep)
 				continue;
 
-			int notified_items = 0;
-			upq.ParallelFor(items, [&type, &notified_items](const ItemPair& ip) {
-				const ConfigItem::Ptr& item = ip.first;
+			Atomic<int> notified_items (0);
 
-				if (!item->m_Object || item->m_Type != type)
-					return;
+			{
+				BenchmarkSummary sum;
+				BenchmarkStopWatch sw;
 
-				try {
-					item->m_Object->OnAllConfigLoaded();
-					notified_items++;
-				} catch (const std::exception& ex) {
-					if (!item->m_IgnoreOnError)
-						throw;
+				sw.Start();
 
-					Log(LogNotice, "ConfigObject")
-						<< "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
+				upq.ParallelFor(items, [&type, &notified_items](const ItemPair& ip) {
+					const ConfigItem::Ptr& item = ip.first;
 
-					item->Unregister();
+					if (!item->m_Object || item->m_Type != type)
+						return;
 
-					{
-						boost::mutex::scoped_lock lock(item->m_Mutex);
-						item->m_IgnoredItems.push_back(item->m_DebugInfo.Path);
+					try {
+						item->m_Object->OnAllConfigLoaded();
+						notified_items.fetch_add(1);
+					} catch (const std::exception& ex) {
+						if (!item->m_IgnoreOnError)
+							throw;
+
+						Log(LogNotice, "ConfigObject")
+							<< "Ignoring config object '" << item->m_Name << "' of type '"
+							<< item->m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
+
+						item->Unregister();
+
+						{
+							boost::mutex::scoped_lock lock(item->m_Mutex);
+							item->m_IgnoredItems.push_back(item->m_DebugInfo.Path);
+						}
 					}
-				}
-			});
+				});
 
-			completed_types.insert(type);
+				completed_types.insert(type);
 
-			upq.Join();
+				upq.Join();
+				sw.Stop(sum);
 
-#ifdef I2_DEBUG
-			if (notified_items > 0)
-				Log(LogDebug, "configitem")
-					<< "Sent OnAllConfigLoaded to " << notified_items << " items of type '" << type->GetName() << "'.";
-#endif /* I2_DEBUG */
+				if (notified_items.load() > 0)
+					Log(LogNotice, "configitem")
+						<< "Sent OnAllConfigLoaded to " << notified_items.load() << " items of type "
+						<< type->GetName() << " in " << sum.GetSeconds() << "s.";
+			}
 
 			if (upq.HasExceptions())
 				return false;
 
-			notified_items = 0;
+			notified_items.store(0);
+			BenchmarkSummary sum;
+			BenchmarkStopWatch sw;
+
+			sw.Start();
+
 			for (const String& loadDep : type->GetLoadDependencies()) {
 				upq.ParallelFor(items, [loadDep, &type, &notified_items](const ItemPair& ip) {
 					const ConfigItem::Ptr& item = ip.first;
@@ -563,17 +584,17 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 					ActivationScope ascope(item->m_ActivationContext);
 					item->m_Object->CreateChildObjects(type);
-					notified_items++;
+					notified_items.fetch_add(1);
 				});
 			}
 
 			upq.Join();
+			sw.Stop(sum);
 
-#ifdef I2_DEBUG
-			if (notified_items > 0)
-				Log(LogDebug, "configitem")
-					<< "Sent CreateChildObjects to " << notified_items << " items of type '" << type->GetName() << "'.";
-#endif /* I2_DEBUG */
+			if (notified_items.load() > 0)
+				Log(LogNotice, "configitem")
+					<< "Sent CreateChildObjects to " << notified_items.load() << " items of type "
+					<< type->GetName() << " in " << sum.GetSeconds() << "s.";
 
 			if (upq.HasExceptions())
 				return false;
