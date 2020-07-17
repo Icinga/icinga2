@@ -10,6 +10,7 @@
 #include "remote/messageorigin.hpp"
 #include "base/configobject.hpp"
 #include "base/process.hpp"
+#include "base/shared.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "base/tcpsocket.hpp"
