@@ -9,6 +9,8 @@ namespace icinga
 
 class ServiceGroup : CustomVarObject
 {
+	load_after Service;
+
 	[config] String display_name {
 		get {{{
 			String displayName = m_DisplayName.load();
