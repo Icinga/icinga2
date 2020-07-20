@@ -110,7 +110,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 		/* Check deadline */
 		double deadline = params->Get("deadline");
-		if (Utility::GetTime() > deadline) {\
+		if (Utility::GetTime() > deadline) {
 			Log(LogNotice, "ApiListener")
 				<< "Discarding 'ExecuteCheckFromQueue' event for checkable '" << checkableName
 				<< "' from '" << origin->FromClient->GetIdentity() << "': Deadline has expired.";
