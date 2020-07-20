@@ -180,21 +180,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		Log(LogWarning, "ApiListener")
 				<< "Ignoring command. '" << listener->GetName() << "' does not accept commands.";
 
-		Host::Ptr host = new Host();
-		Dictionary::Ptr attrs = new Dictionary();
-
-		attrs->Set("__name", params->Get("host"));
-		attrs->Set("type", "Host");
-		attrs->Set("enable_active_checks", false);
-
-		Deserialize(host, attrs, false, FAConfig);
-
-		if (params->Contains("service"))
-			host->SetExtension("agent_service_name", params->Get("service"));
-
-		CheckResult::Ptr cr = new CheckResult();
-		cr->SetState(ServiceUnknown);
-		cr->SetOutput("Endpoint '" + Endpoint::GetLocalEndpoint()->GetName() + "' does not accept commands.");
+		String output = "Endpoint '" + Endpoint::GetLocalEndpoint()->GetName() + "' does not accept commands.";
 
 		if (params->Contains("source")) {
 			Dictionary::Ptr executedParams = new Dictionary();
@@ -203,7 +189,8 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			if (params->Contains("service"))
 				executedParams->Set("service", params->Get("service"));
 			double now = Utility::GetTime();
-			executedParams->Set("error", cr->GetOutput());
+			executedParams->Set("exit", 126);
+			executedParams->Set("output", output);
 			executedParams->Set("start", now);
 			executedParams->Set("end", now);
 
@@ -218,6 +205,22 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				listener->SyncSendMessage(sourceEndpoint, executedMessage);
 			}
 		} else {
+			Host::Ptr host = new Host();
+			Dictionary::Ptr attrs = new Dictionary();
+
+			attrs->Set("__name", params->Get("host"));
+			attrs->Set("type", "Host");
+			attrs->Set("enable_active_checks", false);
+
+			Deserialize(host, attrs, false, FAConfig);
+
+			if (params->Contains("service"))
+				host->SetExtension("agent_service_name", params->Get("service"));
+
+			CheckResult::Ptr cr = new CheckResult();
+			cr->SetState(ServiceUnknown);
+			cr->SetOutput(output);
+
 			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
 			listener->SyncSendMessage(sourceEndpoint, message);
 		}
