@@ -26,12 +26,25 @@ void NullCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResul
 
 	String output = "Hello from ";
 	output += IcingaApplication::GetInstance()->GetNodeName();
+	ServiceState state = ServiceOK;
 
-	cr->SetOutput(output);
-	cr->SetPerformanceData(new Array({
-		new PerfdataValue("time", Convert::ToDouble(Utility::GetTime()))
-	}));
-	cr->SetState(ServiceOK);
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		double now = Utility::GetTime();
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = output;
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = state;
 
-	checkable->ProcessCheckResult(cr);
+		Checkable::ExecuteCommandProcessFinishedHandler("", pr);
+	} else {
+		cr->SetOutput(output);
+		cr->SetPerformanceData(new Array({
+			new PerfdataValue("time", Convert::ToDouble(Utility::GetTime()))
+		}));
+		cr->SetState(state);
+
+		checkable->ProcessCheckResult(cr);
+	}
 }
