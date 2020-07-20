@@ -104,42 +104,20 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 	if (params->Contains("source")) {
 		String uuid = params->Get("source");
 
-		Host::Ptr host = new Host();
-		Dictionary::Ptr attrs = new Dictionary();
-
-		attrs->Set("__name", params->Get("host"));
-		attrs->Set("type", "Host");
-
-		/*
-		 * Override the check timeout if the parent caller provided the value. Compatible with older versions not
-		 * passing this inside the cluster message.
-		 * This happens with host/service command_endpoint agents and the 'check_timeout' attribute being specified.
-		 */
-		if (params->Contains("check_timeout"))
-			attrs->Set("check_timeout", params->Get("check_timeout"));
-
-		Deserialize(host, attrs, false, FAConfig);
-
+		String checkableName = params->Get("host");
 		if (params->Contains("service"))
-			host->SetExtension("agent_service_name", params->Get("service"));
-
-		attrs->Set(params->Get("command_type"), params->Get("command"));
-		attrs->Set("command_endpoint", sourceEndpoint->GetName());
-
-		Deserialize(host, attrs, false, FAConfig);
-		Checkable::Ptr checkable = host;
-		ObjectLock oLock (checkable);
+			checkableName += "!" + params->Get("service");
 
 		/* Check deadline */
 		double deadline = params->Get("deadline");
-		if (Utility::GetTime() > deadline) {
+		if (Utility::GetTime() > deadline) {\
 			Log(LogNotice, "ApiListener")
-				<< "Discarding 'ExecuteCheckFromQueue' event for checkable '" << checkable->GetName()
+				<< "Discarding 'ExecuteCheckFromQueue' event for checkable '" << checkableName
 				<< "' from '" << origin->FromClient->GetIdentity() << "': Deadline has expired.";
 			return;
 		}
 
-		Checkable::ExecuteCommandProcessFinishedHandler = [checkable, listener, sourceEndpoint, origin, params] (const Value& commandLine, const ProcessResult& pr) {
+		Checkable::ExecuteCommandProcessFinishedHandler = [checkableName, listener, sourceEndpoint, origin, params] (const Value& commandLine, const ProcessResult& pr) {
 			if (params->Get("command_type") == "check_command") {
 				Checkable::CurrentConcurrentChecks.fetch_sub(1);
 				Checkable::DecreasePendingChecks();
@@ -148,7 +126,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			if (pr.ExitStatus > 3) {
 				Process::Arguments parguments = Process::PrepareCommand(commandLine);
 				Log(LogWarning, "ApiListener")
-					<< "Command for object '" << checkable->GetName() << "' (PID: " << pr.PID
+					<< "Command for object '" << checkableName << "' (PID: " << pr.PID
 					<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
 					<< pr.ExitStatus << ", output: " << pr.Output;
 			}
