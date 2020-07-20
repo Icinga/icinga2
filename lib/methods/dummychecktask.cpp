@@ -48,14 +48,26 @@ void DummyCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 	std::pair<String, String> co = PluginUtility::ParseCheckOutput(dummyText);
 
 	double now = Utility::GetTime();
+	String commandName = command->GetName();
 
-	cr->SetOutput(co.first);
-	cr->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
-	cr->SetState(PluginUtility::ExitStatusToState(dummyState));
-	cr->SetExitStatus(dummyState);
-	cr->SetExecutionStart(now);
-	cr->SetExecutionEnd(now);
-	cr->SetCommand(command->GetName());
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = co.first;
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = dummyState;
 
-	checkable->ProcessCheckResult(cr);
+		Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
+	} else {
+		cr->SetOutput(co.first);
+		cr->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
+		cr->SetState(PluginUtility::ExitStatusToState(dummyState));
+		cr->SetExitStatus(dummyState);
+		cr->SetExecutionStart(now);
+		cr->SetExecutionEnd(now);
+		cr->SetCommand(commandName);
+
+		checkable->ProcessCheckResult(cr);
+	}
 }

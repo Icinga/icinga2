@@ -148,7 +148,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond));
 
 	cr->SetPerformanceData(perfdata);
-	cr->SetState(ServiceOK);
+	ServiceState state = ServiceOK;
 
 	String appVersion = Application::GetAppVersion();
 
@@ -160,7 +160,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	if (lastReloadFailed > 0) {
 		output += "; Last reload attempt failed at " + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", lastReloadFailed);
-		cr->SetState(ServiceWarning);
+		state =ServiceWarning;
 	}
 
 	/* Indicate a warning when the last synced config caused a stage validation error. */
@@ -173,7 +173,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 			output += "; Last zone sync stage validation failed at "
 				+ Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", validationResult->Get("ts"));
 
-			cr->SetState(ServiceWarning);
+			state = ServiceWarning;
 		}
 	}
 
@@ -182,11 +182,25 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	/* Return an error if the version is less than specified (optional). */
 	if (missingIcingaMinVersion.IsEmpty() && !icingaMinVersion.IsEmpty() && Utility::CompareVersion(icingaMinVersion, parsedAppVersion) < 0) {
 		output += "; Minimum version " + icingaMinVersion + " is not installed.";
-		cr->SetState(ServiceCritical);
+		state = ServiceCritical;
 	}
 
-	cr->SetOutput(output);
-	cr->SetCommand(command->GetName());
+	String commandName = command->GetName();
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		double now = Utility::GetTime();
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = output;
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = state;
 
-	checkable->ProcessCheckResult(cr);
+		Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
+	} else {
+		cr->SetState(state);
+		cr->SetOutput(output);
+		cr->SetCommand(commandName);
+
+		checkable->ProcessCheckResult(cr);
+	}
 }

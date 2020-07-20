@@ -42,13 +42,24 @@ void SleepCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
     String output = "Slept for " + Convert::ToString(sleepTime) + " seconds.";
 
     double now = Utility::GetTime();
+	CheckCommand::Ptr command = checkable->GetCheckCommand();
+	String commandName = command->GetName();
 
-    cr->SetOutput(output);
-    cr->SetExecutionStart(now);
-    cr->SetExecutionEnd(now);
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = output;
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = 0;
 
-    CheckCommand::Ptr command = checkable->GetCheckCommand();
-    cr->SetCommand(command->GetName());
+		Checkable::ExecuteCommandProcessFinishedHandler("", pr);
+	} else {
+		cr->SetOutput(output);
+		cr->SetExecutionStart(now);
+		cr->SetExecutionEnd(now);
+		cr->SetCommand(commandName);
 
-    checkable->ProcessCheckResult(cr);
+		checkable->ProcessCheckResult(cr);
+	}
 }
