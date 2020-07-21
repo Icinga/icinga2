@@ -12,6 +12,18 @@ Array::Ptr TimePeriodTask::EmptyTimePeriodUpdate(const TimePeriod::Ptr& tp, doub
 {
 	REQUIRE_NOT_NULL(tp);
 
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		double now = Utility::GetTime();
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = "";
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = 0;
+
+		Checkable::ExecuteCommandProcessFinishedHandler("", pr);
+	}
+
 	Array::Ptr segments = new Array();
 	return segments;
 }
@@ -29,6 +41,18 @@ Array::Ptr TimePeriodTask::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr& tp
 				{ "end", (t + 1) * 60 }
 			}));
 		}
+	}
+
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		double now = Utility::GetTime();
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = "";
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = 0;
+
+		Checkable::ExecuteCommandProcessFinishedHandler("", pr);
 	}
 
 	return new Array(std::move(segments));
