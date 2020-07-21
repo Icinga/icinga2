@@ -223,11 +223,42 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 	if (command_type == "check_command") {
 		if (!CheckCommand::GetByName(command)) {
-			CheckResult::Ptr cr = new CheckResult();
-			cr->SetState(ServiceUnknown);
-			cr->SetOutput("Check command '" + command + "' does not exist.");
-			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
-			listener->SyncSendMessage(sourceEndpoint, message);
+			ServiceState state = ServiceUnknown;
+			String output = "Check command '" + command + "' does not exist.";
+			double now = Utility::GetTime();
+			
+			if (params->Contains("source")) {
+				Dictionary::Ptr executedParams = new Dictionary();
+				executedParams->Set("execution", params->Get("source"));
+				executedParams->Set("host", params->Get("host"));
+				if (params->Contains("service"))
+					executedParams->Set("service", params->Get("service"));
+				executedParams->Set("exit", state);
+				executedParams->Set("output", output);
+				executedParams->Set("start", now);
+				executedParams->Set("end", now);
+
+				if (origin->IsLocal()) {
+					ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
+				} else {
+					Dictionary::Ptr executedMessage = new Dictionary();
+					executedMessage->Set("jsonrpc", "2.0");
+					executedMessage->Set("method", "event::ExecutedCommand");
+					executedMessage->Set("params", executedParams);
+
+					listener->SyncSendMessage(sourceEndpoint, executedMessage);
+				}
+			} else {
+				CheckResult::Ptr cr = new CheckResult();
+				cr->SetState(state);
+				cr->SetOutput(output);
+				cr->SetScheduleStart(now);
+				cr->SetScheduleEnd(now);
+				cr->SetExecutionStart(now);
+				cr->SetExecutionEnd(now);
+				Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
+				listener->SyncSendMessage(sourceEndpoint, message);
+			}
 			return;
 		}
 	} else if (command_type == "event_command") {
@@ -257,20 +288,43 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		try {
 			host->ExecuteRemoteCheck(macros);
 		} catch (const std::exception& ex) {
-			CheckResult::Ptr cr = new CheckResult();
-			cr->SetState(ServiceUnknown);
-
 			String output = "Exception occurred while checking '" + host->GetName() + "': " + DiagnosticInformation(ex);
-			cr->SetOutput(output);
-
+			ServiceState state = ServiceUnknown;
 			double now = Utility::GetTime();
-			cr->SetScheduleStart(now);
-			cr->SetScheduleEnd(now);
-			cr->SetExecutionStart(now);
-			cr->SetExecutionEnd(now);
 
-			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
-			listener->SyncSendMessage(sourceEndpoint, message);
+			if (params->Contains("source")) {
+				Dictionary::Ptr executedParams = new Dictionary();
+				executedParams->Set("execution", params->Get("source"));
+				executedParams->Set("host", params->Get("host"));
+				if (params->Contains("service"))
+					executedParams->Set("service", params->Get("service"));
+				executedParams->Set("exit", state);
+				executedParams->Set("output", output);
+				executedParams->Set("start", now);
+				executedParams->Set("end", now);
+
+				if (origin->IsLocal()) {
+					ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
+				} else {
+					Dictionary::Ptr executedMessage = new Dictionary();
+					executedMessage->Set("jsonrpc", "2.0");
+					executedMessage->Set("method", "event::ExecutedCommand");
+					executedMessage->Set("params", executedParams);
+
+					listener->SyncSendMessage(sourceEndpoint, executedMessage);
+				}
+			} else {
+				CheckResult::Ptr cr = new CheckResult();
+				cr->SetState(state);
+				cr->SetOutput(output);
+				cr->SetScheduleStart(now);
+				cr->SetScheduleEnd(now);
+				cr->SetExecutionStart(now);
+				cr->SetExecutionEnd(now);
+
+				Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
+				listener->SyncSendMessage(sourceEndpoint, message);
+			}
 
 			Log(LogCritical, "checker", output);
 		}
@@ -307,17 +361,41 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				+ "' and user '" + user->GetName() + "' using command '" + command + "': "
 				+ DiagnosticInformation(ex, false);
 			double now = Utility::GetTime();
+			ServiceState state = ServiceUnknown;
 
-			CheckResult::Ptr cr = new CheckResult();
-			cr->SetState(ServiceUnknown);
-			cr->SetOutput(output);
-			cr->SetScheduleStart(now);
-			cr->SetScheduleEnd(now);
-			cr->SetExecutionStart(now);
-			cr->SetExecutionEnd(now);
+			if (params->Contains("source")) {
+				Dictionary::Ptr executedParams = new Dictionary();
+				executedParams->Set("execution", params->Get("source"));
+				executedParams->Set("host", params->Get("host"));
+				if (params->Contains("service"))
+					executedParams->Set("service", params->Get("service"));
+				executedParams->Set("exit", state);
+				executedParams->Set("output", output);
+				executedParams->Set("start", now);
+				executedParams->Set("end", now);
 
-			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
-			listener->SyncSendMessage(sourceEndpoint, message);
+				if (origin->IsLocal()) {
+					ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
+				} else {
+					Dictionary::Ptr executedMessage = new Dictionary();
+					executedMessage->Set("jsonrpc", "2.0");
+					executedMessage->Set("method", "event::ExecutedCommand");
+					executedMessage->Set("params", executedParams);
+
+					listener->SyncSendMessage(sourceEndpoint, executedMessage);
+				}
+			} else {
+				CheckResult::Ptr cr = new CheckResult();
+				cr->SetState(state);
+				cr->SetOutput(output);
+				cr->SetScheduleStart(now);
+				cr->SetScheduleEnd(now);
+				cr->SetExecutionStart(now);
+				cr->SetExecutionEnd(now);
+
+				Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
+				listener->SyncSendMessage(sourceEndpoint, message);
+			}
 
 			Log(LogCritical, "checker", output);
 		}
