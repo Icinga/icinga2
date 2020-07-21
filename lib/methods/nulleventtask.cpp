@@ -11,4 +11,16 @@ REGISTER_FUNCTION_NONCONST(Internal, NullEvent, &NullEventTask::ScriptFunc, "che
 void NullEventTask::ScriptFunc(const Checkable::Ptr& checkable, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	REQUIRE_NOT_NULL(checkable);
+
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		double now = Utility::GetTime();
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = "";
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = 0;
+
+		Checkable::ExecuteCommandProcessFinishedHandler("", pr);
+	}
 }
