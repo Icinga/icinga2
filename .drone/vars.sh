@@ -1,0 +1,11 @@
+export ICINGA_BUILD_PROJECT=icinga2
+export ICINGA_BUILD_TYPE=snapshot
+export UPSTREAM_GIT_URL="$DRONE_REMOTE_URL"
+
+if [ -n "$DRONE_BRANCH" ]; then
+	export ICINGA_BUILD_UPSTREAM_BRANCH="$DRONE_BRANCH"
+fi
+
+if [ -n "$DRONE_TAG" ]; then
+	export ICINGA_BUILD_UPSTREAM_BRANCH="$DRONE_TAG"
+fi
