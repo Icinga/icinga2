@@ -154,7 +154,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		};
 	}
 
-	if (!listener->GetAcceptCommands()) {
+	if (!listener->GetAcceptCommands() && !origin->IsLocal()) {
 		Log(LogWarning, "ApiListener")
 				<< "Ignoring command. '" << listener->GetName() << "' does not accept commands.";
 
@@ -172,16 +172,12 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			executedParams->Set("start", now);
 			executedParams->Set("end", now);
 
-			if (origin->IsLocal()) {
-				ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
-			} else {
-				Dictionary::Ptr executedMessage = new Dictionary();
-				executedMessage->Set("jsonrpc", "2.0");
-				executedMessage->Set("method", "event::ExecutedCommand");
-				executedMessage->Set("params", executedParams);
+			Dictionary::Ptr executedMessage = new Dictionary();
+			executedMessage->Set("jsonrpc", "2.0");
+			executedMessage->Set("method", "event::ExecutedCommand");
+			executedMessage->Set("params", executedParams);
 
-				listener->SyncSendMessage(sourceEndpoint, executedMessage);
-			}
+			listener->SyncSendMessage(sourceEndpoint, executedMessage);
 		} else {
 			Host::Ptr host = new Host();
 			Dictionary::Ptr attrs = new Dictionary();
