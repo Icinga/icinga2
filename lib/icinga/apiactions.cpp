@@ -676,6 +676,9 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		MacroResolver::OverrideMacros = nullptr;
 	});
 
+	/* Create execution parameters */
+	Dictionary::Ptr execParams = new Dictionary();
+
 	if (command_type == "CheckCommand") {
 		CheckCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(CheckCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 		if (!cmd)
@@ -707,6 +710,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 			User::Ptr user = GetSingleObjectByNameUsingPermissions(User::GetTypeName(), resolved_user, ActionsHandler::AuthenticatedApiUser);
 			if (!user)
 				return ApiActions::CreateResult(404, "Can't find a valid user for '" + resolved_user + "'.");
+			execParams->Set("user", user->GetName());
 
 			/* Get notification */
 			String notification_string = "";
@@ -722,6 +726,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 			Notification::Ptr notification = GetSingleObjectByNameUsingPermissions(Notification::GetTypeName(), resolved_notification, ActionsHandler::AuthenticatedApiUser);
 			if (!notification)
 				return ApiActions::CreateResult(404, "Can't find a valid notification for '" + resolved_notification + "'.");
+			execParams->Set("notification", notification->GetName());
 
 			cmd->Execute(notification, user, cr, NotificationType::NotificationCustom,
 				ActionsHandler::AuthenticatedApiUser->GetName(), "", execMacros, false);
@@ -761,8 +766,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	MessageOrigin::Ptr origin = new MessageOrigin();
 	listener->RelayMessage(origin, checkable, updateMessage, true);
 
-	/* Create execution parameters */
-	Dictionary::Ptr execParams = new Dictionary();
+	/* Populate execution parameters */
 	if (command_type == "CheckCommand")
 		execParams->Set("command_type", "check_command");
 	else if (command_type == "EventCommand")
