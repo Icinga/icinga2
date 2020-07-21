@@ -233,11 +233,16 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 	} else if (command_type == "event_command") {
 		if (!EventCommand::GetByName(command)) {
 			Log(LogWarning, "ClusterEvents")
-					<< "Event command '" << command << "' does not exist.";
+				<< "Event command '" << command << "' does not exist.";
 			return;
 		}
-	} else
-		return;
+	} else if (command_type == "notification_command") {
+		if (!NotificationCommand::GetByName(command)) {
+			Log(LogWarning, "ClusterEvents")
+				<< "Notification command '" << command << "' does not exist.";
+			return;
+		}
+	}
 
 	attrs->Set(command_type, params->Get("command"));
 	attrs->Set("command_endpoint", sourceEndpoint->GetName());
@@ -271,6 +276,51 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		}
 	} else if (command_type == "event_command") {
 		host->ExecuteEventHandler(macros, true);
+	} else if (command_type == "notification_command") {
+		/* Get user */
+		User::Ptr user = new User();
+		Dictionary::Ptr attrs = new Dictionary();
+		attrs->Set("__name", params->Get("user"));
+		attrs->Set("type", User::GetTypeName());
+
+		Deserialize(user, attrs, false, FAConfig);
+
+		/* Get notification */
+		Notification::Ptr notification = new Notification();
+		attrs->Clear();
+		attrs->Set("__name", params->Get("notification"));
+		attrs->Set("type", Notification::GetTypeName());
+		attrs->Set("command", command);
+
+		Deserialize(notification, attrs, false, FAConfig);
+
+		try {
+			CheckResult::Ptr cr = new CheckResult();
+			String author = macros->Get("notification_author");
+			NotificationCommand::Ptr notificationCommand = NotificationCommand::GetByName(command);
+
+			notificationCommand->Execute(notification, user, cr, NotificationType::NotificationCustom,
+				author, "");
+		} catch (const std::exception& ex) {
+			String output = "Exception occurred during notification '" + notification->GetName()
+				+ "' for checkable '" + notification->GetCheckable()->GetName()
+				+ "' and user '" + user->GetName() + "' using command '" + command + "': "
+				+ DiagnosticInformation(ex, false);
+			double now = Utility::GetTime();
+
+			CheckResult::Ptr cr = new CheckResult();
+			cr->SetState(ServiceUnknown);
+			cr->SetOutput(output);
+			cr->SetScheduleStart(now);
+			cr->SetScheduleEnd(now);
+			cr->SetExecutionStart(now);
+			cr->SetExecutionEnd(now);
+
+			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
+			listener->SyncSendMessage(sourceEndpoint, message);
+
+			Log(LogCritical, "checker", output);
+		}
 	}
 }
 
