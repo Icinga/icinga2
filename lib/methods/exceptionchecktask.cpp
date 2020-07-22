@@ -32,7 +32,7 @@ void ExceptionCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Check
 		pr.Output = scriptError.what();
 		pr.ExecutionStart = now;
 		pr.ExecutionEnd = now;
-		pr.ExitStatus = 0;
+		pr.ExitStatus = 3;
 
 		Checkable::ExecuteCommandProcessFinishedHandler("", pr);
 	} else {

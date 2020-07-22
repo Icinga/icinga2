@@ -49,7 +49,7 @@ void SleepCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 		ProcessResult pr;
 		pr.PID = -1;
 		pr.Output = output;
-		pr.ExecutionStart = now;
+		pr.ExecutionStart = now - sleepTime;
 		pr.ExecutionEnd = now;
 		pr.ExitStatus = 0;
 
