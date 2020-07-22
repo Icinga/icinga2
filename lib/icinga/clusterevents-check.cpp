@@ -225,61 +225,49 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 	String command = params->Get("command");
 	String command_type = params->Get("command_type");
 
-	if (command_type == "check_command") {
-		if (!CheckCommand::GetByName(command)) {
-			ServiceState state = ServiceUnknown;
-			String output = "Check command '" + command + "' does not exist.";
-			double now = Utility::GetTime();
-			
-			if (params->Contains("source")) {
-				Dictionary::Ptr executedParams = new Dictionary();
-				executedParams->Set("execution", params->Get("source"));
-				executedParams->Set("host", params->Get("host"));
-				if (params->Contains("service"))
-					executedParams->Set("service", params->Get("service"));
-				executedParams->Set("exit", state);
-				executedParams->Set("output", output);
-				executedParams->Set("start", now);
-				executedParams->Set("end", now);
+	if (command_type == "check_command" && !CheckCommand::GetByName(command) ||
+		command_type == "event_command" && !EventCommand::GetByName(command) ||
+		command_type == "notification_command" && !NotificationCommand::GetByName(command)) {
+		ServiceState state = ServiceUnknown;
+		String output = command_type + " '" + command + "' does not exist.";
+		double now = Utility::GetTime();
 
-				if (origin->IsLocal()) {
-					ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
-				} else {
-					Dictionary::Ptr executedMessage = new Dictionary();
-					executedMessage->Set("jsonrpc", "2.0");
-					executedMessage->Set("method", "event::ExecutedCommand");
-					executedMessage->Set("params", executedParams);
+		if (params->Contains("source")) {
+			Dictionary::Ptr executedParams = new Dictionary();
+			executedParams->Set("execution", params->Get("source"));
+			executedParams->Set("host", params->Get("host"));
+			if (params->Contains("service"))
+				executedParams->Set("service", params->Get("service"));
+			executedParams->Set("exit", state);
+			executedParams->Set("output", output);
+			executedParams->Set("start", now);
+			executedParams->Set("end", now);
 
-					listener->SyncSendMessage(sourceEndpoint, executedMessage);
-				}
+			if (origin->IsLocal()) {
+				ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
 			} else {
-				CheckResult::Ptr cr = new CheckResult();
-				cr->SetState(state);
-				cr->SetOutput(output);
-				cr->SetScheduleStart(now);
-				cr->SetScheduleEnd(now);
-				cr->SetExecutionStart(now);
-				cr->SetExecutionEnd(now);
-				Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
-				listener->SyncSendMessage(sourceEndpoint, message);
+				Dictionary::Ptr executedMessage = new Dictionary();
+				executedMessage->Set("jsonrpc", "2.0");
+				executedMessage->Set("method", "event::ExecutedCommand");
+				executedMessage->Set("params", executedParams);
+
+				listener->SyncSendMessage(sourceEndpoint, executedMessage);
 			}
-			return;
+		} else {
+			CheckResult::Ptr cr = new CheckResult();
+			cr->SetState(state);
+			cr->SetOutput(output);
+			cr->SetScheduleStart(now);
+			cr->SetScheduleEnd(now);
+			cr->SetExecutionStart(now);
+			cr->SetExecutionEnd(now);
+			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
+			listener->SyncSendMessage(sourceEndpoint, message);
 		}
-	} else if (command_type == "event_command") {
-		if (!EventCommand::GetByName(command)) {
-			Log(LogWarning, "ClusterEvents")
-				<< "Event command '" << command << "' does not exist.";
-			return;
-		}
-	} else if (command_type == "notification_command") {
-		if (!NotificationCommand::GetByName(command)) {
-			Log(LogWarning, "ClusterEvents")
-				<< "Notification command '" << command << "' does not exist.";
-			return;
-		}
+		return;
 	}
 
-	attrs->Set(command_type, params->Get("command"));
+	attrs->Set(command_type, command);
 	attrs->Set("command_endpoint", sourceEndpoint->GetName());
 
 	Deserialize(host, attrs, false, FAConfig);
