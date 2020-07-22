@@ -53,7 +53,7 @@ void DummyCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
 		ProcessResult pr;
 		pr.PID = -1;
-		pr.Output = co.first;
+		pr.Output = dummyText;
 		pr.ExecutionStart = now;
 		pr.ExecutionEnd = now;
 		pr.ExitStatus = dummyState;
