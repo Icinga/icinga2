@@ -322,29 +322,15 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			notificationCommand->Execute(notification, user, cr, NotificationType::NotificationCustom,
 				author, "");
 		} catch (const std::exception& ex) {
-			String output = "Exception occurred during notification '" + notification->GetName()
-				+ "' for checkable '" + notification->GetCheckable()->GetName()
-				+ "' and user '" + user->GetName() + "' using command '" + command + "': "
-				+ DiagnosticInformation(ex, false);
-			double now = Utility::GetTime();
-			ServiceState state = ServiceUnknown;
-
 			if (params->Contains("source")) {
+				String output = "Exception occurred during notification '" + notification->GetName()
+								+ "' for checkable '" + notification->GetCheckable()->GetName()
+								+ "' and user '" + user->GetName() + "' using command '" + command + "': "
+								+ DiagnosticInformation(ex, false);
+				double now = Utility::GetTime();
+				ServiceState state = ServiceUnknown;
 				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
-			} else {
-				CheckResult::Ptr cr = new CheckResult();
-				cr->SetState(state);
-				cr->SetOutput(output);
-				cr->SetScheduleStart(now);
-				cr->SetScheduleEnd(now);
-				cr->SetExecutionStart(now);
-				cr->SetExecutionEnd(now);
-
-				Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
-				listener->SyncSendMessage(sourceEndpoint, message);
 			}
-
-			Log(LogCritical, "checker", output);
 		}
 	}
 }
