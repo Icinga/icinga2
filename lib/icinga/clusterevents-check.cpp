@@ -287,7 +287,18 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			Log(LogCritical, "checker", output);
 		}
 	} else if (command_type == "event_command") {
-		host->ExecuteEventHandler(macros, true);
+		try {
+			host->ExecuteEventHandler(macros, true);
+		} catch (const std::exception& ex) {
+			if (params->Contains("source")) {
+				String output = "Exception occurred while executing event command '" + command + "' for '" +
+					host->GetName() + "': " + DiagnosticInformation(ex);
+
+				double now = Utility::GetTime();
+				ServiceState state = ServiceUnknown;
+				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+			}
+		}
 	} else if (command_type == "notification_command") {
 		/* Get user */
 		User::Ptr user = new User();
