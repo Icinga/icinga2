@@ -294,6 +294,8 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 				double now = Utility::GetTime();
 				SendEventExecuteCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
+			} else {
+				throw ex;
 			}
 		}
 	} else if (command_type == "notification_command") {
