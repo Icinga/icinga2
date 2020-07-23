@@ -75,6 +75,31 @@ void ClusterEvents::EnqueueCheck(const MessageOrigin::Ptr& origin, const Diction
 	}
 }
 
+static void sendEventExecuteCommand(const Dictionary::Ptr& params, const long& exit, const String& output,
+									const double& start, const double& end, const ApiListener::Ptr& listener, const MessageOrigin::Ptr& origin,
+									const Endpoint::Ptr& sourceEndpoint) {
+	Dictionary::Ptr executedParams = new Dictionary();
+	executedParams->Set("execution", params->Get("source"));
+	executedParams->Set("host", params->Get("host"));
+	if (params->Contains("service"))
+		executedParams->Set("service", params->Get("service"));
+	executedParams->Set("exit", exit);
+	executedParams->Set("output", output);
+	executedParams->Set("start", start);
+	executedParams->Set("end", end);
+
+	if (origin->IsLocal()) {
+		ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
+	} else {
+		Dictionary::Ptr executedMessage = new Dictionary();
+		executedMessage->Set("jsonrpc", "2.0");
+		executedMessage->Set("method", "event::ExecutedCommand");
+		executedMessage->Set("params", executedParams);
+
+		listener->SyncSendMessage(sourceEndpoint, executedMessage);
+	}
+}
+
 void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params) {
 
 	Endpoint::Ptr sourceEndpoint;
@@ -131,26 +156,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 					<< pr.ExitStatus << ", output: " << pr.Output;
 			}
 
-			Dictionary::Ptr executedParams = new Dictionary();
-			executedParams->Set("execution", params->Get("source"));
-			executedParams->Set("host", params->Get("host"));
-			if (params->Contains("service"))
-				executedParams->Set("service", params->Get("service"));
-			executedParams->Set("exit", pr.ExitStatus);
-			executedParams->Set("output", pr.Output);
-			executedParams->Set("start", pr.ExecutionStart);
-			executedParams->Set("end", pr.ExecutionEnd);
-
-			if (origin->IsLocal()) {
-				ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
-			} else {
-				Dictionary::Ptr executedMessage = new Dictionary();
-				executedMessage->Set("jsonrpc", "2.0");
-				executedMessage->Set("method", "event::ExecutedCommand");
-				executedMessage->Set("params", executedParams);
-
-				listener->SyncSendMessage(sourceEndpoint, executedMessage);
-			}
+			sendEventExecuteCommand(params, pr.ExitStatus, pr.Output, pr.ExecutionStart, pr.ExecutionEnd, listener, origin, sourceEndpoint);
 		};
 	}
 
@@ -161,23 +167,8 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		String output = "Endpoint '" + Endpoint::GetLocalEndpoint()->GetName() + "' does not accept commands.";
 
 		if (params->Contains("source")) {
-			Dictionary::Ptr executedParams = new Dictionary();
-			executedParams->Set("execution", params->Get("source"));
-			executedParams->Set("host", params->Get("host"));
-			if (params->Contains("service"))
-				executedParams->Set("service", params->Get("service"));
 			double now = Utility::GetTime();
-			executedParams->Set("exit", 126);
-			executedParams->Set("output", output);
-			executedParams->Set("start", now);
-			executedParams->Set("end", now);
-
-			Dictionary::Ptr executedMessage = new Dictionary();
-			executedMessage->Set("jsonrpc", "2.0");
-			executedMessage->Set("method", "event::ExecutedCommand");
-			executedMessage->Set("params", executedParams);
-
-			listener->SyncSendMessage(sourceEndpoint, executedMessage);
+			sendEventExecuteCommand(params, 126, output, now, now, listener, origin, sourceEndpoint);
 		} else {
 			Host::Ptr host = new Host();
 			Dictionary::Ptr attrs = new Dictionary();
@@ -224,34 +215,11 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			double now = Utility::GetTime();
 			
 			if (params->Contains("source")) {
-				Dictionary::Ptr executedParams = new Dictionary();
-				executedParams->Set("execution", params->Get("source"));
-				executedParams->Set("host", params->Get("host"));
-				if (params->Contains("service"))
-					executedParams->Set("service", params->Get("service"));
-				executedParams->Set("exit", state);
-				executedParams->Set("output", output);
-				executedParams->Set("start", now);
-				executedParams->Set("end", now);
-
-				if (origin->IsLocal()) {
-					ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
-				} else {
-					Dictionary::Ptr executedMessage = new Dictionary();
-					executedMessage->Set("jsonrpc", "2.0");
-					executedMessage->Set("method", "event::ExecutedCommand");
-					executedMessage->Set("params", executedParams);
-
-					listener->SyncSendMessage(sourceEndpoint, executedMessage);
-				}
+				sendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			} else {
 				CheckResult::Ptr cr = new CheckResult();
 				cr->SetState(state);
 				cr->SetOutput(output);
-				cr->SetScheduleStart(now);
-				cr->SetScheduleEnd(now);
-				cr->SetExecutionStart(now);
-				cr->SetExecutionEnd(now);
 				Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
 				listener->SyncSendMessage(sourceEndpoint, message);
 			}
@@ -265,27 +233,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			if (params->Contains("source")) {
 				double now = Utility::GetTime();
 				ServiceState state = ServiceUnknown;
-
-				Dictionary::Ptr executedParams = new Dictionary();
-				executedParams->Set("execution", params->Get("source"));
-				executedParams->Set("host", params->Get("host"));
-				if (params->Contains("service"))
-					executedParams->Set("service", params->Get("service"));
-				executedParams->Set("exit", state);
-				executedParams->Set("output", output);
-				executedParams->Set("start", now);
-				executedParams->Set("end", now);
-
-				if (origin->IsLocal()) {
-					ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
-				} else {
-					Dictionary::Ptr executedMessage = new Dictionary();
-					executedMessage->Set("jsonrpc", "2.0");
-					executedMessage->Set("method", "event::ExecutedCommand");
-					executedMessage->Set("params", executedParams);
-
-					listener->SyncSendMessage(sourceEndpoint, executedMessage);
-				}
+				sendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			}
 			return;
 		}
@@ -297,27 +245,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			if (params->Contains("source")) {
 				double now = Utility::GetTime();
 				ServiceState state = ServiceUnknown;
-
-				Dictionary::Ptr executedParams = new Dictionary();
-				executedParams->Set("execution", params->Get("source"));
-				executedParams->Set("host", params->Get("host"));
-				if (params->Contains("service"))
-					executedParams->Set("service", params->Get("service"));
-				executedParams->Set("exit", state);
-				executedParams->Set("output", output);
-				executedParams->Set("start", now);
-				executedParams->Set("end", now);
-
-				if (origin->IsLocal()) {
-					ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
-				} else {
-					Dictionary::Ptr executedMessage = new Dictionary();
-					executedMessage->Set("jsonrpc", "2.0");
-					executedMessage->Set("method", "event::ExecutedCommand");
-					executedMessage->Set("params", executedParams);
-
-					listener->SyncSendMessage(sourceEndpoint, executedMessage);
-				}
+				sendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			}
 			return;
 		}
@@ -341,26 +269,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			double now = Utility::GetTime();
 
 			if (params->Contains("source")) {
-				Dictionary::Ptr executedParams = new Dictionary();
-				executedParams->Set("execution", params->Get("source"));
-				executedParams->Set("host", params->Get("host"));
-				if (params->Contains("service"))
-					executedParams->Set("service", params->Get("service"));
-				executedParams->Set("exit", state);
-				executedParams->Set("output", output);
-				executedParams->Set("start", now);
-				executedParams->Set("end", now);
-
-				if (origin->IsLocal()) {
-					ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
-				} else {
-					Dictionary::Ptr executedMessage = new Dictionary();
-					executedMessage->Set("jsonrpc", "2.0");
-					executedMessage->Set("method", "event::ExecutedCommand");
-					executedMessage->Set("params", executedParams);
-
-					listener->SyncSendMessage(sourceEndpoint, executedMessage);
-				}
+				sendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			} else {
 				CheckResult::Ptr cr = new CheckResult();
 				cr->SetState(state);
@@ -412,26 +321,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			ServiceState state = ServiceUnknown;
 
 			if (params->Contains("source")) {
-				Dictionary::Ptr executedParams = new Dictionary();
-				executedParams->Set("execution", params->Get("source"));
-				executedParams->Set("host", params->Get("host"));
-				if (params->Contains("service"))
-					executedParams->Set("service", params->Get("service"));
-				executedParams->Set("exit", state);
-				executedParams->Set("output", output);
-				executedParams->Set("start", now);
-				executedParams->Set("end", now);
-
-				if (origin->IsLocal()) {
-					ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
-				} else {
-					Dictionary::Ptr executedMessage = new Dictionary();
-					executedMessage->Set("jsonrpc", "2.0");
-					executedMessage->Set("method", "event::ExecutedCommand");
-					executedMessage->Set("params", executedParams);
-
-					listener->SyncSendMessage(sourceEndpoint, executedMessage);
-				}
+				sendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			} else {
 				CheckResult::Ptr cr = new CheckResult();
 				cr->SetState(state);
