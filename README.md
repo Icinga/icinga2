@@ -3,8 +3,6 @@
 
 # Icinga 2
 
-![Icinga Logo](https://icinga.com/wp-content/uploads/2014/06/icinga_logo.png)
-
 #### Table of Contents
 
 1. [About][About]
