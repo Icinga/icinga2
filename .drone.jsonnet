@@ -86,6 +86,8 @@ local RPM(distro, release) = Build(
   (if distro == "sles" then "ignore" else "")
 );
 
+local RasPi(codename) = Build("raspbian " + codename, "raspbian/" + codename, "raspi");
+
 Deb("debian", "buster") +
 Deb("debian", "stretch") +
 Deb("ubuntu", "focal", false) +
@@ -105,4 +107,5 @@ Deb("ubuntu", "xenial") +
   RPM("sles", "12.4"),
   RPM("opensuse", "15.1"),
   RPM("opensuse", "15.0"),
+  RasPi("buster"),
 ]
