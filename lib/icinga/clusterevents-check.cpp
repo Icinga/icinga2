@@ -75,15 +75,15 @@ void ClusterEvents::EnqueueCheck(const MessageOrigin::Ptr& origin, const Diction
 	}
 }
 
-static void sendEventExecuteCommand(const Dictionary::Ptr& params, const long& exit, const String& output,
-									const double& start, const double& end, const ApiListener::Ptr& listener, const MessageOrigin::Ptr& origin,
-									const Endpoint::Ptr& sourceEndpoint) {
+static void SendEventExecuteCommand(const Dictionary::Ptr& params, long exitStatus, const String& output,
+	double start, double end, const ApiListener::Ptr& listener, const MessageOrigin::Ptr& origin,
+	const Endpoint::Ptr& sourceEndpoint) {
 	Dictionary::Ptr executedParams = new Dictionary();
 	executedParams->Set("execution", params->Get("source"));
 	executedParams->Set("host", params->Get("host"));
 	if (params->Contains("service"))
 		executedParams->Set("service", params->Get("service"));
-	executedParams->Set("exit", exit);
+	executedParams->Set("exit", exitStatus);
 	executedParams->Set("output", output);
 	executedParams->Set("start", start);
 	executedParams->Set("end", end);
@@ -156,7 +156,8 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 					<< pr.ExitStatus << ", output: " << pr.Output;
 			}
 
-			sendEventExecuteCommand(params, pr.ExitStatus, pr.Output, pr.ExecutionStart, pr.ExecutionEnd, listener, origin, sourceEndpoint);
+			SendEventExecuteCommand(params, pr.ExitStatus, pr.Output, pr.ExecutionStart, pr.ExecutionEnd, listener,
+									origin, sourceEndpoint);
 		};
 	}
 
@@ -168,7 +169,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 		if (params->Contains("source")) {
 			double now = Utility::GetTime();
-			sendEventExecuteCommand(params, 126, output, now, now, listener, origin, sourceEndpoint);
+			SendEventExecuteCommand(params, 126, output, now, now, listener, origin, sourceEndpoint);
 		} else {
 			Host::Ptr host = new Host();
 			Dictionary::Ptr attrs = new Dictionary();
@@ -223,7 +224,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			double now = Utility::GetTime();
 			
 			if (params->Contains("source")) {
-				sendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			} else {
 				CheckResult::Ptr cr = new CheckResult();
 				cr->SetState(state);
@@ -241,7 +242,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			if (params->Contains("source")) {
 				double now = Utility::GetTime();
 				ServiceState state = ServiceUnknown;
-				sendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			}
 			return;
 		}
@@ -253,7 +254,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			if (params->Contains("source")) {
 				double now = Utility::GetTime();
 				ServiceState state = ServiceUnknown;
-				sendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			}
 			return;
 		}
@@ -277,7 +278,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			double now = Utility::GetTime();
 
 			if (params->Contains("source")) {
-				sendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			} else {
 				CheckResult::Ptr cr = new CheckResult();
 				cr->SetState(state);
@@ -329,7 +330,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			ServiceState state = ServiceUnknown;
 
 			if (params->Contains("source")) {
-				sendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			} else {
 				CheckResult::Ptr cr = new CheckResult();
 				cr->SetState(state);
