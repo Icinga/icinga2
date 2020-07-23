@@ -241,8 +241,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 			if (params->Contains("source")) {
 				double now = Utility::GetTime();
-				ServiceState state = ServiceUnknown;
-				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecuteCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
 			}
 			return;
 		}
@@ -253,8 +252,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 			if (params->Contains("source")) {
 				double now = Utility::GetTime();
-				ServiceState state = ServiceUnknown;
-				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecuteCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
 			}
 			return;
 		}
@@ -303,8 +301,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 					host->GetName() + "': " + DiagnosticInformation(ex);
 
 				double now = Utility::GetTime();
-				ServiceState state = ServiceUnknown;
-				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecuteCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
 			}
 		}
 	} else if (command_type == "notification_command") {
@@ -339,8 +336,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 								+ "' and user '" + user->GetName() + "' using command '" + command + "': "
 								+ DiagnosticInformation(ex, false);
 				double now = Utility::GetTime();
-				ServiceState state = ServiceUnknown;
-				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecuteCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
 			}
 		}
 	}
