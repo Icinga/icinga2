@@ -50,6 +50,7 @@ local Build(name, imageSuffix, script, failure = "") =
           }
         },
         image: "registry.icinga.com/build-docker/" + imageSuffix,
+        pull: "always",
         commands: [
           ".drone/" + script + ".sh"
         ]
