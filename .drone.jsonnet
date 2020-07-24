@@ -1,6 +1,7 @@
 local cacheStep = {
   failure: "ignore",
-  image: "plugins/s3-cache"
+  image: "plugins/s3-cache",
+  pull: "always"
 };
 
 local cacheBaseEnv = {
