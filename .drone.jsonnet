@@ -88,13 +88,16 @@ local RPM(distro, release) = Build(
 
 local RasPi(codename) = Build("raspbian " + codename, "raspbian/" + codename, "raspi");
 
+/*
 Deb("debian", "buster") +
 Deb("debian", "stretch") +
 Deb("ubuntu", "focal", false) +
 Deb("ubuntu", "bionic") +
 Deb("ubuntu", "xenial") +
+*/
 [
   RPM("centos", "8"),
+/*
   RPM("centos", "7"),
   RPM("centos", "6"),
   RPM("fedora", "32"),
@@ -108,4 +111,5 @@ Deb("ubuntu", "xenial") +
   RPM("opensuse", "15.1"),
   RPM("opensuse", "15.0"),
   RasPi("buster"),
+*/
 ]
