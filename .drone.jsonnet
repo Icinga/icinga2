@@ -111,5 +111,7 @@ Deb("ubuntu", "xenial") +
   RPM("sles", "12.4"),
   RPM("opensuse", "15.1"),
   RPM("opensuse", "15.0"),
+  /*
   RasPi("buster"),
+  */
 ]
