@@ -1,7 +1,10 @@
-local cacheStep = {
-  failure: "ignore",
-  image: "plugins/s3-cache",
+local pull = {
   pull: "always"
+};
+
+local cacheStep = pull + {
+  failure: "ignore",
+  image: "plugins/s3-cache"
 };
 
 local cacheBaseEnv = {
@@ -42,7 +45,7 @@ local Build(name, imageSuffix, script, failure = "") =
           PLUGIN_RESTORE: "true"
         }
       },
-      {
+      pull + {
         name: "build",
         resources: {
           limits: {
@@ -51,7 +54,6 @@ local Build(name, imageSuffix, script, failure = "") =
           }
         },
         image: "registry.icinga.com/build-docker/" + imageSuffix,
-        pull: "always",
         commands: [
           ".drone/" + script + ".sh"
         ]
