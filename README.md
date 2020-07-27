@@ -3,7 +3,6 @@
 
 # Icinga 2
 
-
 #### Table of Contents
 
 1. [About][About]
