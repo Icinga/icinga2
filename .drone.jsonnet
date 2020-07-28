@@ -8,6 +8,7 @@ local restricted = {
 
 local cacheStep = pull + {
   "when": restricted,
+  failure: "ignore",
   image: "plugins/s3-cache"
 };
 
