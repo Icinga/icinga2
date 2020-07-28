@@ -3,9 +3,7 @@ local pull = {
 };
 
 local restricted = {
-  "repo": [
-    "Icinga/icinga2"
-  ]
+  "repo": ["Icinga/icinga2"]
 };
 
 local cacheStep = pull + {
