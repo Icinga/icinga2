@@ -2,12 +2,7 @@ local pull = {
   pull: "always"
 };
 
-local restricted = {
-  "repo": ["Icinga/icinga2"]
-};
-
 local cacheStep = pull + {
-  "when": restricted,
   failure: "ignore",
   image: "plugins/s3-cache"
 };
@@ -24,7 +19,7 @@ local cacheBaseEnv = {
   PLUGIN_ROOT: "cache"
 };
 
-local Build(name, imageSuffix, script, privateImg = false) =
+local Build(name, imageSuffix, script, failure = "") =
   local cachePath = "icinga2/" + imageSuffix;
   local cacheEnv = cacheBaseEnv + {
     PLUGIN_PATH: cachePath
@@ -42,6 +37,7 @@ local Build(name, imageSuffix, script, privateImg = false) =
     image_pull_secrets: [
       "gitlab-docker-registry-credentials"
     ],
+    failure: failure,
     steps: [
       cacheStep + {
         name: "restore cache",
@@ -50,7 +46,6 @@ local Build(name, imageSuffix, script, privateImg = false) =
         }
       },
       pull + {
-        "when": (if privateImg then restricted else {}),
         name: "build",
         resources: {
           limits: {
