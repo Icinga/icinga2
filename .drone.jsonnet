@@ -9,11 +9,13 @@ local restricted = {
 };
 
 local refs = {
+  /*
   ref: [
     "refs/heads/master",
     "refs/heads/support/**",
     "refs/pull/**"
   ]
+  */
 };
 
 local cacheStep = pull + {
