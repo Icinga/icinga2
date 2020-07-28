@@ -3,21 +3,13 @@ local pull = {
 };
 
 local restricted = {
-  repo: [
+  "repo": [
     "Icinga/icinga2"
   ]
 };
 
-local refs = {
-  ref: [
-    "refs/heads/master",
-    "refs/heads/support/**",
-    "refs/pull/**"
-  ]
-};
-
 local cacheStep = pull + {
-  when: restricted + refs,
+  "when": restricted,
   image: "plugins/s3-cache"
 };
 
@@ -59,7 +51,7 @@ local Build(name, imageSuffix, script, privateImg = false) =
         }
       },
       pull + {
-        when: (if privateImg then restricted else {}) + refs,
+        "when": (if privateImg then restricted else {}),
         name: "build",
         resources: {
           limits: {
