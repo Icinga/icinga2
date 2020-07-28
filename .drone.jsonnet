@@ -91,7 +91,7 @@ local RPM(distro, release) = Build(
   distro + " " + release,
   distro + "/" + release,
   "rpm",
-  distro == "sles"
+  (distro == "sles")
 );
 
 local RasPi(codename) = Build("raspbian " + codename, "raspbian/" + codename, "raspi");
