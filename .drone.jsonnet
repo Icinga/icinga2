@@ -1,8 +1,15 @@
-local pull = {
-  pull: "always"
+local step = {
+  pull: "always",
+  when: {
+    ref: [
+      "refs/heads/master",
+      "refs/heads/support/**",
+      "refs/pull/**"
+    ]
+  }
 };
 
-local cacheStep = pull + {
+local cacheStep = step + {
   failure: "ignore",
   image: "plugins/s3-cache"
 };
@@ -45,7 +52,7 @@ local Build(name, imageSuffix, script, failure = "") =
           PLUGIN_RESTORE: "true"
         }
       },
-      pull + {
+      step + {
         name: "build",
         resources: {
           limits: {
