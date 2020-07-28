@@ -4,7 +4,7 @@ local pull = {
 
 local restricted = {
   repo: [
-    "Icinga/icinga2"
+    "Icinga/icinga42"
   ]
 };
 
