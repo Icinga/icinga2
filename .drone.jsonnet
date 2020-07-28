@@ -3,11 +3,9 @@ local pull = {
 };
 
 local restricted = {
-  repo: {
-    include: [
-      "Icinga/icinga2"
-    ]
-  }
+  repo: [
+    "Icinga/icinga2"
+  ]
 };
 
 local refs = {
