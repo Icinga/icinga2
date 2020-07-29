@@ -111,7 +111,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 	if (!sourceEndpoint || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone))) {
 		Log(LogNotice, "ClusterEvents")
-				<< "Discarding 'execute command' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+			<< "Discarding 'execute command' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return;
 	}
 
@@ -163,7 +163,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 	if (!listener->GetAcceptCommands() && !origin->IsLocal()) {
 		Log(LogWarning, "ApiListener")
-				<< "Ignoring command. '" << listener->GetName() << "' does not accept commands.";
+			<< "Ignoring command. '" << listener->GetName() << "' does not accept commands.";
 
 		String output = "Endpoint '" + Endpoint::GetLocalEndpoint()->GetName() + "' does not accept commands.";
 
