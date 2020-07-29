@@ -9,16 +9,52 @@
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
 #include "base/fifo.hpp"
+#include "base/utility.hpp"
+#include <atomic>
 #include <memory>
 #include <utility>
 #include <boost/asio/buffered_stream.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
 
 namespace icinga
 {
+
+template<class ARS>
+class SeenStream : public ARS
+{
+public:
+	template<class... Args>
+	SeenStream(Args&&... args) : ARS(std::forward<Args>(args)...)
+	{
+		m_Seen.store(nullptr);
+	}
+
+	template<class... Args>
+	auto async_read_some(Args&&... args) -> decltype(((ARS*)nullptr)->async_read_some(std::forward<Args>(args)...))
+	{
+		{
+			auto seen (m_Seen.load());
+
+			if (seen) {
+				*seen = Utility::GetTime();
+			}
+		}
+
+		return ((ARS*)this)->async_read_some(std::forward<Args>(args)...);
+	}
+
+	inline void SetSeen(double* seen)
+	{
+		m_Seen.store(seen);
+	}
+
+private:
+	std::atomic<double*> m_Seen;
+};
 
 struct UnbufferedAsioTlsStreamParams
 {
@@ -27,14 +63,14 @@ struct UnbufferedAsioTlsStreamParams
 	const String& Hostname;
 };
 
-typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> AsioTcpTlsStream;
+typedef SeenStream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>> AsioTcpTlsStream;
 
 class UnbufferedAsioTlsStream : public AsioTcpTlsStream
 {
 public:
 	inline
 	UnbufferedAsioTlsStream(UnbufferedAsioTlsStreamParams& init)
-		: stream(init.IoContext, init.SslContext), m_VerifyOK(true), m_Hostname(init.Hostname)
+		: AsioTcpTlsStream(init.IoContext, init.SslContext), m_VerifyOK(true), m_Hostname(init.Hostname)
 	{
 	}
 
