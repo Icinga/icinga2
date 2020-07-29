@@ -946,7 +946,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	if (!listener)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
+		return Empty;
 
 	Endpoint::Ptr endpoint;
 	if (origin->FromClient) {
