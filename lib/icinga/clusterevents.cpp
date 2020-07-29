@@ -24,6 +24,7 @@ INITIALIZE_ONCE(&ClusterEvents::StaticInitialize);
 
 REGISTER_APIFUNCTION(CheckResult, event, &ClusterEvents::CheckResultAPIHandler);
 REGISTER_APIFUNCTION(SetNextCheck, event, &ClusterEvents::NextCheckChangedAPIHandler);
+REGISTER_APIFUNCTION(SetLastCheckStarted, event, &ClusterEvents::LastCheckStartedChangedAPIHandler);
 REGISTER_APIFUNCTION(SetSuppressedNotifications, event, &ClusterEvents::SuppressedNotificationsChangedAPIHandler);
 REGISTER_APIFUNCTION(SetNextNotification, event, &ClusterEvents::NextNotificationChangedAPIHandler);
 REGISTER_APIFUNCTION(SetForceNextCheck, event, &ClusterEvents::ForceNextCheckChangedAPIHandler);
@@ -39,6 +40,7 @@ void ClusterEvents::StaticInitialize()
 {
 	Checkable::OnNewCheckResult.connect(&ClusterEvents::CheckResultHandler);
 	Checkable::OnNextCheckChanged.connect(&ClusterEvents::NextCheckChangedHandler);
+	Checkable::OnLastCheckStartedChanged.connect(&ClusterEvents::LastCheckStartedChangedHandler);
 	Checkable::OnSuppressedNotificationsChanged.connect(&ClusterEvents::SuppressedNotificationsChangedHandler);
 	Notification::OnNextNotificationChanged.connect(&ClusterEvents::NextNotificationChangedHandler);
 	Checkable::OnForceNextCheckChanged.connect(&ClusterEvents::ForceNextCheckChangedHandler);
@@ -230,6 +232,68 @@ Value ClusterEvents::NextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin
 		return Empty;
 
 	checkable->SetNextCheck(params->Get("next_check"), false, origin);
+
+	return Empty;
+}
+
+void ClusterEvents::LastCheckStartedChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = new Dictionary();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("last_check_started", checkable->GetLastCheckStarted());
+
+	Dictionary::Ptr message = new Dictionary();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetLastCheckStarted");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, checkable, message, true);
+}
+
+Value ClusterEvents::LastCheckStartedChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'last_check_started changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	Host::Ptr host = Host::GetByName(params->Get("host"));
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'last_check_started changed' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		return Empty;
+	}
+
+	checkable->SetLastCheckStarted(params->Get("last_check_started"), false, origin);
 
 	return Empty;
 }

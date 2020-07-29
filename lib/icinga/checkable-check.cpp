@@ -514,6 +514,8 @@ void Checkable::ExecuteCheck()
 	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
 
+	SetLastCheckStarted(Utility::GetTime());
+
 	/* This calls SetNextCheck() which updates the CheckerComponent's idle/pending
 	 * queues and ensures that checks are not fired multiple times. ProcessCheckResult()
 	 * is called too late. See #6421.
