@@ -957,8 +957,8 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 
 	if (!endpoint) {
 		Log(LogNotice, "ClusterEvents")
-				<< "Discarding 'update executions API handler' message from '" << origin->FromClient->GetIdentity()
-				<< "': Invalid endpoint origin (client not allowed).";
+			<< "Discarding 'update executions API handler' message from '" << origin->FromClient->GetIdentity()
+			<< "': Invalid endpoint origin (client not allowed).";
 
 		return Empty;
 	}
@@ -981,15 +981,15 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
 		Log(LogNotice, "ClusterEvents")
-				<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
-				<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
 	if (!params->Contains("execution")) {
 		Log(LogNotice, "ClusterEvents")
-				<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
-				<< "' from '" << origin->FromClient->GetIdentity() << "': Execution UUID not found.";
+			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution UUID not found.";
 		return Empty;
 	}
 	String uuid = params->Get("execution");
@@ -997,16 +997,16 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	Dictionary::Ptr executions = checkable->GetExecutions();
 	if (!executions) {
 		Log(LogNotice, "ClusterEvents")
-				<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
-				<< "' from '" << origin->FromClient->GetIdentity() << "': No executions available.";
+			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': No executions available.";
 		return Empty;
 	}
 
 	Dictionary::Ptr execution = executions->Get(uuid);
 	if (!execution) {
 		Log(LogNotice, "ClusterEvents")
-				<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
-				<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' not found.";
+			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' not found.";
 		return Empty;
 	}
 
