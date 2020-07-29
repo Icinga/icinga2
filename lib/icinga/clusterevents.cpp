@@ -1013,7 +1013,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	if (params->Contains("end"))
 		execution->Set("end", params->Get("end"));
 
-	execution->Set("pending", false);
+	execution->Remove("pending");
 
 	/* Broadcast the update */
 	Dictionary::Ptr executionsToBroadcast = new Dictionary();
