@@ -234,6 +234,39 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			Log(LogNotice, "Notification")
 				<< "Not sending " << (reminder ? "reminder " : "") << "notifications for notification object '" << notificationName
 				<< "': not in timeperiod '" << tp->GetName() << "'";
+
+			if (!reminder) {
+				switch (type) {
+					case NotificationProblem:
+					case NotificationRecovery:
+					case NotificationFlappingStart:
+					case NotificationFlappingEnd:
+						{
+							/* If a non-reminder notification was suppressed, but just because of its time period,
+							 * stash it into a notification types bitmask for maybe re-sending later.
+							 */
+
+							ObjectLock olock (this);
+							int suppressedTypesBefore (GetSuppressedNotifications());
+							int suppressedTypesAfter (suppressedTypesBefore | type);
+
+							for (int conflict : {NotificationProblem | NotificationRecovery, NotificationFlappingStart | NotificationFlappingEnd}) {
+								/* E.g. problem and recovery notifications neutralize each other. */
+
+								if ((suppressedTypesAfter & conflict) == conflict) {
+									suppressedTypesAfter &= ~conflict;
+								}
+							}
+
+							if (suppressedTypesAfter != suppressedTypesBefore) {
+								SetSuppressedNotifications(suppressedTypesAfter);
+							}
+						}
+					default:
+						; // Cheating the compiler on "5 enumeration values not handled in switch"
+				}
+			}
+
 			return;
 		}
 

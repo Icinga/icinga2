@@ -147,25 +147,7 @@ static void FireSuppressedNotifications(Checkable* checkable)
 
 	for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
 		if (suppressed_types & type) {
-			bool still_applies;
-			auto cr (checkable->GetLastCheckResult());
-
-			switch (type) {
-				case NotificationProblem:
-					still_applies = cr && !checkable->IsStateOK(cr->GetState()) && checkable->GetStateType() == StateTypeHard;
-					break;
-				case NotificationRecovery:
-					still_applies = cr && checkable->IsStateOK(cr->GetState());
-					break;
-				case NotificationFlappingStart:
-					still_applies = checkable->IsFlapping();
-					break;
-				case NotificationFlappingEnd:
-					still_applies = !checkable->IsFlapping();
-					break;
-				default:
-					break;
-			}
+			bool still_applies = checkable->NotificationReasonApplies(type);
 
 			if (still_applies) {
 				bool still_suppressed;
@@ -185,28 +167,8 @@ static void FireSuppressedNotifications(Checkable* checkable)
 						break;
 				}
 
-				if (!still_suppressed && checkable->GetEnableActiveChecks()) {
-					/* If e.g. the downtime just ended, but the service is still not ok, we would re-send the stashed problem notification.
-					 * But if the next check result recovers the service soon, we would send a recovery notification soon after the problem one.
-					 * This is not desired, especially for lots of services at once.
-					 * Because of that if there's likely to be a check result soon,
-					 * we delay the re-sending of the stashed notification until the next check.
-					 * That check either doesn't change anything and we finally re-send the stashed problem notification
-					 * or recovers the service and we drop the stashed notification. */
-
-					/* One minute unless the check interval is too short so the next check will always run during the next minute. */
-					auto threshold (checkable->GetCheckInterval() - 10);
-
-					if (threshold > 60)
-						threshold = 60;
-					else if (threshold < 0)
-						threshold = 0;
-
-					still_suppressed = checkable->GetNextCheck() <= Utility::GetTime() + threshold;
-				}
-
-				if (!still_suppressed) {
-					Checkable::OnNotificationsRequested(checkable, type, cr, "", "", nullptr);
+				if (!still_suppressed && !checkable->IsLikelyToBeCheckedSoon()) {
+					Checkable::OnNotificationsRequested(checkable, type, checkable->GetLastCheckResult(), "", "", nullptr);
 
 					subtract |= type;
 				}
@@ -240,4 +202,63 @@ void Checkable::FireSuppressedNotifications(const Timer * const&)
 	for (auto& service : ConfigType::GetObjectsByType<Service>()) {
 		::FireSuppressedNotifications(service.get());
 	}
+}
+
+/**
+ * Returns whether sending a notification of type type right now would represent *this' current state correctly.
+ *
+ * @param type The type of notification to send (or not to send).
+ *
+ * @return Whether to send the notification.
+ */
+bool Checkable::NotificationReasonApplies(NotificationType type)
+{
+	switch (type) {
+		case NotificationProblem:
+			{
+				auto cr (GetLastCheckResult());
+				return cr && !IsStateOK(cr->GetState()) && GetStateType() == StateTypeHard;
+			}
+		case NotificationRecovery:
+			{
+				auto cr (GetLastCheckResult());
+				return cr && IsStateOK(cr->GetState());
+			}
+		case NotificationFlappingStart:
+			return IsFlapping();
+		case NotificationFlappingEnd:
+			return !IsFlapping();
+		default:
+			VERIFY(!"Checkable#NotificationReasonStillApplies(): given type not implemented");
+			return false;
+	}
+}
+
+/**
+ * E.g. we're going to re-send a stashed problem notification as *this is still not ok.
+ * But if the next check result recovers *this soon, we would send a recovery notification soon after the problem one.
+ * This is not desired, especially for lots of checkables at once.
+ * Because of that if there's likely to be a check result soon,
+ * we delay the re-sending of the stashed notification until the next check.
+ * That check either doesn't change anything and we finally re-send the stashed problem notification
+ * or recovers *this and we drop the stashed notification.
+ *
+ * @return Whether *this is likely to be checked soon
+ */
+bool Checkable::IsLikelyToBeCheckedSoon()
+{
+	if (!GetEnableActiveChecks()) {
+		return false;
+	}
+
+	// One minute unless the check interval is too short so the next check will always run during the next minute.
+	auto threshold (GetCheckInterval() - 10);
+
+	if (threshold > 60) {
+		threshold = 60;
+	} else if (threshold < 0) {
+		threshold = 0;
+	}
+
+	return GetNextCheck() <= Utility::GetTime() + threshold;
 }
