@@ -998,9 +998,6 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 		return Empty;
 	}
 
-	if (params->Contains("error"))
-		execution->Set("error", params->Get("error"));
-
 	if (params->Contains("exit"))
 		execution->Set("exit", params->Get("exit"));
 
