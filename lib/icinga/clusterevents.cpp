@@ -977,7 +977,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	if (!params->Contains("execution")) {
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
-			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution UUID not found.";
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution UUID missing.";
 		return Empty;
 	}
 	String uuid = params->Get("execution");
@@ -986,7 +986,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	if (!executions) {
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
-			<< "' from '" << origin->FromClient->GetIdentity() << "': No executions available.";
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' missing.";
 		return Empty;
 	}
 
@@ -994,7 +994,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	if (!execution) {
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
-			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' not found.";
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' missing.";
 		return Empty;
 	}
 
