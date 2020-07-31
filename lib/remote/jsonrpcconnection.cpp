@@ -327,10 +327,7 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 		return Empty;
 
 	if (log_position > endpoint->GetLocalLogPosition())
-	{
-		log(LogWarning, "SetLocalLogPosition") << endpoint->GetName() << ": " << log_position;
 		endpoint->SetLocalLogPosition(log_position);
-	}
 
 	return Empty;
 }

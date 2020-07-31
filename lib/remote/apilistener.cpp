@@ -1145,10 +1145,7 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 		double ts = message->Get("ts");
 
 		for (const Endpoint::Ptr& skippedEndpoint : skippedEndpoints)
-		{
-			log(LogWarning, "SetLocalLogPosition") << skippedEndpoint->GetName() << ": " << ts;
 			skippedEndpoint->SetLocalLogPosition(ts);
-		}
 	}
 
 	return !log_needed || log_done;
