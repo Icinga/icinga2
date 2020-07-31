@@ -21,7 +21,11 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	REQUIRE_NOT_NULL(cr);
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
-	CheckCommand::Ptr command = checkable->GetCheckCommand();
+	CheckCommand::Ptr command;
+	if (CheckCommand::ExecuteOverride)
+		command = CheckCommand::ExecuteOverride;
+	else
+		command = checkable->GetCheckCommand();
 	String commandName = command->GetName();
 
 	if (!listener) {
