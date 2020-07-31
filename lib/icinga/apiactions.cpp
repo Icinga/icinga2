@@ -619,8 +619,9 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		endpoint = HttpUtility::GetLastParameter(params, "endpoint");
 
 	MacroProcessor::ResolverList resolvers;
+	Value macros;
 	if (params->Contains("macros")) {
-		Value macros = HttpUtility::GetLastParameter(params, "macros");
+		macros = HttpUtility::GetLastParameter(params, "macros");
 		if (macros.IsObjectType<Dictionary>()) {
 			resolvers.emplace_back("override", macros);
 		}
@@ -673,7 +674,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	/* Check if resolved_command exists and it is of type command_type */
 	Dictionary::Ptr execMacros = new Dictionary();
 
-	MacroResolver::OverrideMacros = execMacros;
+	MacroResolver::OverrideMacros = macros;
 	Defer o ([]() {
 		MacroResolver::OverrideMacros = nullptr;
 	});
