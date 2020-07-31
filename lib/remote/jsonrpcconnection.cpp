@@ -328,7 +328,7 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 
 	if (log_position > endpoint->GetLocalLogPosition())
 	{
-		log(LogWarning, "SetLocalLogPosition") << endpoint->GetName() << ": " << log_position;
+		log(LogWarning, "LOLCAT") << "SetLocalLogPosition " << skippedEndpoint->GetName() << ": " << Utility::FormatDateTime("%F %T", log_position);
 		endpoint->SetLocalLogPosition(log_position);
 	}
 

@@ -1146,7 +1146,7 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 
 		for (const Endpoint::Ptr& skippedEndpoint : skippedEndpoints)
 		{
-			log(LogWarning, "SetLocalLogPosition") << skippedEndpoint->GetName() << ": " << ts;
+			log(LogWarning, "LOLCAT") << "SetLocalLogPosition " << skippedEndpoint->GetName() << ": " << Utility::FormatDateTime("%F %T", ts);
 			skippedEndpoint->SetLocalLogPosition(ts);
 		}
 	}
@@ -1351,7 +1351,8 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 				if (pmessage->Get("timestamp") <= peer_ts)
 				{
-					Log(LogWarning, "LOLCAT") << "too old (" << (peer_ts - pmessage->Get("timestamp")) << "): " << pmessage->Get("message");
+					if (String(pmessage->Get("message")).Contains("ckResult"))
+						Log(LogWarning, "LOLCAT") << "too old (" << Utility::FormatDateTime("%F %T", pmessage->Get("timestamp")) << " <= " << Utility::FormatDateTime("%F %T", peer_ts) << "): " << pmessage->Get("message");
 					continue;
 				}
 
