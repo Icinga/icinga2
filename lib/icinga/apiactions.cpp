@@ -637,6 +637,8 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	);
 
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
+	if (!cr)
+		cr = new CheckResult();
 
 	/* Check if resolved_command exists and it is of type command_type */
 	Dictionary::Ptr execMacros = new Dictionary();
