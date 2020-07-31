@@ -1412,8 +1412,6 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					break;
 				}
 
-				peer_ts = pmessage->Get("timestamp");
-
 				if (file.first > logpos_ts + 10) {
 					logpos_ts = file.first;
 
