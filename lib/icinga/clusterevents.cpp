@@ -1038,7 +1038,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	updateMessage->Set("method", "event::UpdateExecutions");
 	updateMessage->Set("params", updateParams);
 
-	listener->RelayMessage(origin, checkable, updateMessage, true);
+	listener->RelayMessage(nullptr, checkable, updateMessage, true);
 
 	return Empty;
 }
