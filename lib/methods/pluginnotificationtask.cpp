@@ -42,6 +42,9 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+	if (MacroResolver::OverrideMacros)
+		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
+
 	resolvers.emplace_back("user", user);
 	resolvers.emplace_back("notification", notificationExtra);
 	resolvers.emplace_back("notification", notification);
