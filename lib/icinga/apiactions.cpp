@@ -656,14 +656,24 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		CheckCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(CheckCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
-		else
+		else {
+			CheckCommand::ExecuteOverride = cmd;
+			Defer resetCheckCommandOverride([]() {
+				CheckCommand::ExecuteOverride = nullptr;
+			});
 			cmd->Execute(checkable, cr, execMacros, false);
+		}
 	} else if (command_type == "EventCommand") {
 		EventCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(EventCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
-		else
+		else {
+			EventCommand::ExecuteOverride = cmd;
+			Defer resetCheckCommandOverride([]() {
+				EventCommand::ExecuteOverride = nullptr;
+			});
 			cmd->Execute(checkable, execMacros, false);
+		}
 	} else if (command_type == "NotificationCommand") {
 		NotificationCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(NotificationCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
 		if (!cmd)
@@ -700,6 +710,11 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 			if (!notification)
 				return ApiActions::CreateResult(404, "Can't find a valid notification for '" + resolved_notification + "'.");
 			execParams->Set("notification", notification->GetName());
+
+			NotificationCommand::ExecuteOverride = cmd;
+			Defer resetCheckCommandOverride([]() {
+				NotificationCommand::ExecuteOverride = nullptr;
+			});
 
 			cmd->Execute(notification, user, cr, NotificationType::NotificationCustom,
 				ActionsHandler::AuthenticatedApiUser->GetName(), "", execMacros, false);

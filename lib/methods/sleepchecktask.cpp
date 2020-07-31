@@ -18,7 +18,11 @@ void SleepCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
     REQUIRE_NOT_NULL(checkable);
     REQUIRE_NOT_NULL(cr);
 
-    CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	CheckCommand::Ptr commandObj;
+	if (CheckCommand::ExecuteOverride)
+		commandObj = CheckCommand::ExecuteOverride;
+	else
+		commandObj = checkable->GetCheckCommand();
 
     Host::Ptr host;
     Service::Ptr service;

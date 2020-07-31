@@ -7,6 +7,8 @@ using namespace icinga;
 
 REGISTER_TYPE(EventCommand);
 
+thread_local EventCommand::Ptr EventCommand::ExecuteOverride;
+
 void EventCommand::Execute(const Checkable::Ptr& checkable,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {

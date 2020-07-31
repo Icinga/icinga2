@@ -26,7 +26,11 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
 
-	CheckCommand::Ptr command = checkable->GetCheckCommand();
+	CheckCommand::Ptr command;
+	if (CheckCommand::ExecuteOverride)
+		command = CheckCommand::ExecuteOverride;
+	else
+		command = checkable->GetCheckCommand();
 
 	Host::Ptr host;
 	Service::Ptr service;
