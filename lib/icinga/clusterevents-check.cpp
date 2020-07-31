@@ -88,9 +88,9 @@ static void SendEventExecuteCommand(const Dictionary::Ptr& params, long exitStat
 	executedParams->Set("start", start);
 	executedParams->Set("end", end);
 
-	ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
-
-	if (!origin->IsLocal()) {
+	if (origin->IsLocal()) {
+		ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
+	} else {
 		Dictionary::Ptr executedMessage = new Dictionary();
 		executedMessage->Set("jsonrpc", "2.0");
 		executedMessage->Set("method", "event::ExecutedCommand");
