@@ -1347,7 +1347,10 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 				}
 
 				if (pmessage->Get("timestamp") <= peer_ts)
+				{
+					Log(LogWarning, "LOLCAT") << "too old (" << (peer_ts - pmessage->Get("timestamp")) << "): " << pmessage->Get("message");
 					continue;
+				}
 
 				Dictionary::Ptr secname = pmessage->Get("secobj");
 
