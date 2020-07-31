@@ -1146,7 +1146,7 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 
 		for (const Endpoint::Ptr& skippedEndpoint : skippedEndpoints)
 		{
-			log(LogWarning, "LOLCAT") << "SetLocalLogPosition " << skippedEndpoint->GetName() << ": " << Utility::FormatDateTime("%F %T", ts);
+			Log(LogWarning, "LOLCAT") << "SetLocalLogPosition " << skippedEndpoint->GetName() << ": " << Utility::FormatDateTime("%F %T", ts);
 			skippedEndpoint->SetLocalLogPosition(ts);
 		}
 	}
