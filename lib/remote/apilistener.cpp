@@ -1381,7 +1381,6 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					break;
 				}
 
-				Log(LogWarning, "LOLCAT") << "peer_ts = " << Utility::FormatDateTime("%F %T", pmessage->Get("timestamp"));
 				peer_ts = pmessage->Get("timestamp");
 
 				if (file.first > logpos_ts + 10) {
