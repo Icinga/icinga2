@@ -7,6 +7,122 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.12.0 (2020-08-05)
+
+[Issue and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.12.0)
+
+### Notes
+
+Upgrading docs: https://icinga.com/docs/icinga2/snapshot/doc/16-upgrading-icinga-2/#upgrading-to-v212
+
+Thanks to all contributors:
+[Ant1x](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AAnt1x+milestone%3A2.12.0),
+[azthec](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aazthec+milestone%3A2.12.0),
+[baurmatt](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Abaurmatt+milestone%3A2.12.0),
+[bootc](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Abootc+milestone%3A2.12.0),
+[Foxeronie](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AFoxeronie+milestone%3A2.12.0),
+[ggzengel](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aggzengel+milestone%3A2.12.0),
+[islander](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aislander+milestone%3A2.12.0),
+[joni1993](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Ajoni1993+milestone%3A2.12.0),
+[KAMI911](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AKAMI911+milestone%3A2.12.0),
+[mcktr](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Amcktr+milestone%3A2.12.0),
+[MichalMMac](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AMichalMMac+milestone%3A2.12.0),
+[sebastic](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Asebastic+milestone%3A2.12.0),
+[sthen](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Asthen+milestone%3A2.12.0),
+[unki](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aunki+milestone%3A2.12.0),
+[vigiroux](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Avigiroux+milestone%3A2.12.0),
+[wopfel](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Awopfel+milestone%3A2.12.0)
+
+### Breaking changes
+
+* Deprecate Windows plugins in favor of our
+  [PowerShell plugins](https://github.com/Icinga/icinga-powershell-plugins) #8071
+* Deprecate Livestatus #8051
+* Refuse acknowledging an already acknowledged checkable #7695
+* Config lexer: complain on EOF in heredocs, i.e. `{{{abc<EOF>` #7541
+
+### Enhancements
+
+* Core
+  * Implement new database backend: Icinga DB #7571
+  * Re-send notifications previously suppressed by their time periods #7816
+* API
+  * Host/Service: Add `acknowledgement_last_change` and `next_update` attributes #7881 #7534
+  * Improve error message for POST queries #7681
+  * /v1/actions/remove-comment: let users specify themselves #7646
+  * /v1/actions/remove-downtime: let users specify themselves #7645
+  * /v1/config/stages: Add 'activate' parameter #7535
+* CLI
+  * Add `pki verify` command for better TLS certificate troubleshooting #7843
+  * Add OpenSSL version to 'Build' section in --version #7833
+  * Improve experience with 'Node Setup for Agents/Satellite' #7835
+* DSL
+  * Add `get_template()` and `get_templates()` #7632
+  * `MacroProcessor::ResolveArguments()`: skip null argument values #7567
+  * Fix crash due to dependency apply rule with `ignore_on_error` and non-existing parent #7538
+  * Introduce ternary operator (`x ? y : z`) #7442
+  * LegacyTimePeriod: support specifying seconds #7439
+  * Add support for Lambda Closures (`() use(x) => x and () use(x) => { return x }`) #7417
+* ITL
+  * Add notemp parameter to oracle health #7748
+  * Add extended checks options to snmp-interface command template #7602
+  * Add file age check for Windows command definition #7540
+* Docs
+  * Development: Update debugging instructions #7867
+  * Add new API clients #7859
+  * Clarify CRITICAL vs. UNKNOWN #7665
+  * Explicitly explain how to disable freshness checks #7664
+  * Update installation for RHEL/CentOS 8 and SLES 15 #7640
+  * Add Powershell example to validate the certificate #7603
+* Misc
+  * Don't send `event::Heartbeat` to unauthenticated peers #7747
+  * OpenTsdbWriter: Add custom tag support #7357
+
+### Bugfixes
+
+* Core
+  * Fix JSON-RPC crashes #7532 #7737
+  * Fix zone definitions in zones #7546
+  * Fix deadlock during start on OpenBSD #7739
+  * Consider PENDING not a problem #7685
+  * Fix zombie processes after reload #7606
+  * Don't wait for checks to finish during reload #7894
+* Cluster
+  * Fix segfault during heartbeat timeout with clients not yet signed #7970
+  * Make the config update process mutually exclusive (Prevents file system race conditions) #7936
+  * Fix `check_timeout` not being forwarded to agent command endpoints #7861
+  * Config sync: Use a more friendly message when configs are equal and don't need a reload #7811
+  * Fix open connections when agent waits for CA approval #7686
+  * Consider a JsonRpcConnection alive on a single byte of TLS payload, not only on a whole message #7836
+  * Send JsonRpcConnection heartbeat every 20s instead of 10s #8102
+  * Use JsonRpcConnection heartbeat only to update connection liveness (m\_Seen) #8142
+  * Fix TLS context not being updated on signed certificate messages on agents #7654
+* API
+  * Close connections w/o successful TLS handshakes after 10s #7809
+  * Handle permission exceptions soon enough, returning 404 #7528
+* SELinux
+  * Fix safe-reload #7858
+  * Allow direct SMTP notifications #7749
+* Windows
+  * Terminate check processes with UNKNOWN state on timeout #7788
+  * Ensure that log replay files are properly renamed #7767
+* Metrics
+  * Graphite/OpenTSDB: Ensure that reconnect failure is detected #7765
+  * Always send 0 as value for thresholds #7696
+* Scripts
+  * Fix notification scripts to stay compatible with Dash #7706
+  * Fix bash line continuation in mail-host-notification.sh #7701
+  * Fix notification scripts string comparison #7647
+  * Service and host mail-notifications: Add line-breaks to very long output #6822
+  * Set correct UTF-8 email subject header (RFC1342) #6369
+* Misc
+  * DSL: Fix segfault due to passing null as custom function to `Array#{sort,map,reduce,filter,any,all}()` #8053
+  * CLI: `pki save-cert`: allow to specify --key and --cert for backwards compatibility #7995
+  * Catch exception when trusted cert is not readable during node setup on agent/satellite #7838
+  * CheckCommand ssl: Fix wrong parameter `-N` #7741
+  * Code quality fixes
+  * Small documentation fixes
+
 ## 2.12.0 RC1 (2020-03-13)
 
 [Issue and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.12.0)
