@@ -25,11 +25,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	REQUIRE_NOT_NULL(notification);
 	REQUIRE_NOT_NULL(user);
 
-	NotificationCommand::Ptr commandObj;
-	if (NotificationCommand::ExecuteOverride)
-		commandObj = NotificationCommand::ExecuteOverride;
-	else
-		commandObj = notification->GetCommand();
+	NotificationCommand::Ptr commandObj = NotificationCommand::ExecuteOverride ? NotificationCommand::ExecuteOverride : notification->GetCommand();
 
 	auto type = static_cast<NotificationType>(itype);
 
