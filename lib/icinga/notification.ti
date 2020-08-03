@@ -86,6 +86,10 @@ class Notification : CustomVarObject < NotificationNameComposer
 	[state] int notification_number;
 	[state] Timestamp last_problem_notification;
 
+	[state, no_user_view, no_user_modify] int suppressed_notifications {
+		default {{{ return 0; }}}
+	};
+
 	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
 		navigate {{{
 			return Endpoint::GetByName(GetCommandEndpointRaw());

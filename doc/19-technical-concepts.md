@@ -1465,6 +1465,39 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
+#### event::SetSuppressedNotificationTypes <a id="technical-concepts-json-rpc-messages-event-setsuppressednotificationtypes"></a>
+
+> Location: `clusterevents.cpp`
+
+##### Message Body
+
+Key       | Value
+----------|---------
+jsonrpc   | 2.0
+method    | event::SetSuppressedNotificationTypes
+params    | Dictionary
+
+##### Params
+
+Key         		 | Type   | Description
+-------------------------|--------|------------------
+notification             | String | Notification name
+supressed\_notifications | Number | Bitmask for suppressed notifications.
+
+##### Functions
+
+Event Sender: `Notification::OnSuppressedNotificationsChanged`
+Event Receiver: `SuppressedNotificationTypesChangedAPIHandler`
+
+##### Permissions
+
+The receiver will not process messages from not configured endpoints.
+
+Message updates will be dropped when:
+
+* Notification does not exist.
+* Origin endpoint's zone is not allowed to access this notification.
+
 
 #### event::SetNextNotification <a id="technical-concepts-json-rpc-messages-event-setnextnotification"></a>
 

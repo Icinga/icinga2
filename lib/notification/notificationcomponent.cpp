@@ -56,6 +56,69 @@ void NotificationComponent::Stop(bool runtimeRemoved)
 	ObjectImpl<NotificationComponent>::Stop(runtimeRemoved);
 }
 
+static inline
+void SubtractSuppressedNotificationTypes(const Notification::Ptr& notification, int types)
+{
+	ObjectLock olock (notification);
+
+	int suppressedTypesBefore (notification->GetSuppressedNotifications());
+	int suppressedTypesAfter (suppressedTypesBefore & ~types);
+
+	if (suppressedTypesAfter != suppressedTypesBefore) {
+		notification->SetSuppressedNotifications(suppressedTypesAfter);
+	}
+}
+
+static inline
+void FireSuppressedNotifications(const Notification::Ptr& notification)
+{
+	int suppressedTypes (notification->GetSuppressedNotifications());
+	if (!suppressedTypes)
+		return;
+
+	int subtract = 0;
+	auto checkable (notification->GetCheckable());
+
+	for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
+		if ((suppressedTypes & type) && !checkable->NotificationReasonApplies(type)) {
+			subtract |= type;
+			suppressedTypes &= ~type;
+		}
+	}
+
+	if (suppressedTypes) {
+		auto tp (notification->GetPeriod());
+
+		if ((!tp || tp->IsInside(Utility::GetTime())) && !checkable->IsLikelyToBeCheckedSoon()) {
+			for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
+				if (!(suppressedTypes & type))
+					continue;
+
+				auto notificationName (notification->GetName());
+
+				Log(LogNotice, "NotificationComponent")
+					<< "Attempting to re-send previously suppressed notification '" << notificationName << "'.";
+
+				subtract |= type;
+				SubtractSuppressedNotificationTypes(notification, subtract);
+				subtract = 0;
+
+				try {
+					notification->BeginExecuteNotification(type, checkable->GetLastCheckResult(), false, false);
+				} catch (const std::exception& ex) {
+					Log(LogWarning, "NotificationComponent")
+						<< "Exception occurred during notification for object '"
+						<< notificationName << "': " << DiagnosticInformation(ex, false);
+				}
+			}
+		}
+	}
+
+	if (subtract) {
+		SubtractSuppressedNotificationTypes(notification, subtract);
+	}
+}
+
 /**
  * Periodically sends notifications.
  *
@@ -104,37 +167,41 @@ void NotificationComponent::NotificationTimerHandler()
 		bool reachable = checkable->IsReachable(DependencyNotification);
 
 		if (reachable) {
-			Array::Ptr unstashedNotifications = new Array();
-
 			{
-				auto stashedNotifications (notification->GetStashedNotifications());
-				ObjectLock olock(stashedNotifications);
+				Array::Ptr unstashedNotifications = new Array();
 
-				stashedNotifications->CopyTo(unstashedNotifications);
-				stashedNotifications->Clear();
-			}
+				{
+					auto stashedNotifications (notification->GetStashedNotifications());
+					ObjectLock olock(stashedNotifications);
 
-			ObjectLock olock(unstashedNotifications);
+					stashedNotifications->CopyTo(unstashedNotifications);
+					stashedNotifications->Clear();
+				}
 
-			for (Dictionary::Ptr unstashedNotification : unstashedNotifications) {
-				try {
-					Log(LogNotice, "NotificationComponent")
-						<< "Attempting to send stashed notification '" << notificationName << "'.";
+				ObjectLock olock(unstashedNotifications);
 
-					notification->BeginExecuteNotification(
-						(NotificationType)(int)unstashedNotification->Get("type"),
-						(CheckResult::Ptr)unstashedNotification->Get("cr"),
-						(bool)unstashedNotification->Get("force"),
-						(bool)unstashedNotification->Get("reminder"),
-						(String)unstashedNotification->Get("author"),
-						(String)unstashedNotification->Get("text")
-					);
-				} catch (const std::exception& ex) {
-					Log(LogWarning, "NotificationComponent")
-						<< "Exception occurred during notification for object '"
-						<< notificationName << "': " << DiagnosticInformation(ex, false);
+				for (Dictionary::Ptr unstashedNotification : unstashedNotifications) {
+					try {
+						Log(LogNotice, "NotificationComponent")
+							<< "Attempting to send stashed notification '" << notificationName << "'.";
+
+						notification->BeginExecuteNotification(
+							(NotificationType)(int)unstashedNotification->Get("type"),
+							(CheckResult::Ptr)unstashedNotification->Get("cr"),
+							(bool)unstashedNotification->Get("force"),
+							(bool)unstashedNotification->Get("reminder"),
+							(String)unstashedNotification->Get("author"),
+							(String)unstashedNotification->Get("text")
+						);
+					} catch (const std::exception& ex) {
+						Log(LogWarning, "NotificationComponent")
+							<< "Exception occurred during notification for object '"
+							<< notificationName << "': " << DiagnosticInformation(ex, false);
+					}
 				}
 			}
+
+			FireSuppressedNotifications(notification);
 		}
 
 		if (notification->GetInterval() <= 0 && notification->GetNoMoreNotifications()) {
