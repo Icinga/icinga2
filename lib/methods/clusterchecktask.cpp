@@ -28,11 +28,7 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
-	CheckCommand::Ptr command;
-	if (CheckCommand::ExecuteOverride)
-		command = CheckCommand::ExecuteOverride;
-	else
-		command = checkable->GetCheckCommand();
+	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
 	String commandName = command->GetName();
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();

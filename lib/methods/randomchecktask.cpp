@@ -31,11 +31,7 @@ void RandomCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		+ ". Icinga 2 has been running for " + Utility::FormatDuration(uptime)
 		+ ". Version: " + Application::GetAppVersion();
 
-	CheckCommand::Ptr command;
-	if (CheckCommand::ExecuteOverride)
-		command = CheckCommand::ExecuteOverride;
-	else
-		command = checkable->GetCheckCommand();
+	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
 	String commandName = command->GetName();
 	ServiceState state = static_cast<ServiceState>(Utility::Random() % 4);
 

@@ -21,11 +21,7 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
 {
 	REQUIRE_NOT_NULL(checkable);
 
-	EventCommand::Ptr commandObj;
-	if (EventCommand::ExecuteOverride)
-		commandObj = EventCommand::ExecuteOverride;
-	else
-		commandObj = checkable->GetEventCommand();
+	EventCommand::Ptr commandObj = EventCommand::ExecuteOverride ? EventCommand::ExecuteOverride : checkable->GetEventCommand();
 
 	Host::Ptr host;
 	Service::Ptr service;
