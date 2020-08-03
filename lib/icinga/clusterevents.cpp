@@ -619,7 +619,29 @@ Value ClusterEvents::AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& 
 
 Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	EnqueueCheck(origin, params);
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	if (!listener)
+		return Empty;
+
+	Endpoint::Ptr execEndpoint = Endpoint::GetByName(params->Get("endpoint"));
+	if (execEndpoint != Endpoint::GetLocalEndpoint()) {
+
+		Zone::Ptr endpointZone = execEndpoint->GetZone();
+		Zone::Ptr localZone = Zone::GetLocalZone();
+
+		if (!endpointZone->IsChildOf(localZone)) {
+			return Empty;
+		}
+
+		Dictionary::Ptr execMessage = new Dictionary();
+		execMessage->Set("jsonrpc", "2.0");
+		execMessage->Set("method", "event::ExecuteCommand");
+		execMessage->Set("params", params);
+
+		listener->RelayMessage(origin, endpointZone, execMessage, true);
+	} else {
+		EnqueueCheck(origin, params);
+	}
 
 	return Empty;
 }
@@ -1083,6 +1105,22 @@ Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin
 	Dictionary::Ptr newExecutions = params->Get("executions");
 	newExecutions->CopyTo(executions);
 	checkable->SetExecutions(executions);
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	if (!listener)
+		return Empty;
+
+	Dictionary::Ptr updateMessage = new Dictionary();
+	updateMessage->Set("jsonrpc", "2.0");
+	updateMessage->Set("method", "event::UpdateExecutions");
+	updateMessage->Set("params", params);
+
+	Zone::Ptr localZone = Zone::GetLocalZone();
+	Zone::Ptr parentZone = localZone->GetParent();
+
+	if (localZone != parentZone) {
+		listener->RelayMessage(origin, parentZone, updateMessage, true);
+	}
 
 	return Empty;
 }

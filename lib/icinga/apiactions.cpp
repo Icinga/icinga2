@@ -806,6 +806,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	execParams->Set("source", uuid);
 	execParams->Set("deadline", deadline);
 	execParams->Set("macros", execMacros);
+	execParams->Set("endpoint", resolved_endpoint);
 
 	/* Execute command */
 	bool local = endpointPtr == Endpoint::GetLocalEndpoint();
@@ -817,7 +818,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		execMessage->Set("method", "event::ExecuteCommand");
 		execMessage->Set("params", execParams);
 
-		listener->SyncSendMessage(endpointPtr, execMessage);
+		listener->RelayMessage(origin, checkable, execMessage, true);
 	}
 
 	Dictionary::Ptr result = new Dictionary();
