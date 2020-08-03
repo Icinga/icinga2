@@ -16,10 +16,11 @@
 - [7. Release Tests](#release-tests)
 - [8. GitHub Release](#github-release)
 - [9. Chocolatey](#chocolatey)
-- [10. Post Release](#post-release)
-  - [10.1. Online Documentation](#online-documentation)
-  - [10.2. Announcement](#announcement)
-  - [10.3. Project Management](#project-management)
+- [10. Docker](#docker)
+- [11. Post Release](#post-release)
+  - [11.1. Online Documentation](#online-documentation)
+  - [11.2. Announcement](#announcement)
+  - [11.3. Project Management](#project-management)
 
 ## Preparations <a id="preparations"></a>
 
@@ -318,6 +319,31 @@ command line.
 choco apikey --key xxx --source https://push.chocolatey.org/
 
 choco push Icinga2-v2.11.0.nupkg --source https://push.chocolatey.org/
+```
+
+
+## Docker  <a id="docker"></a>
+
+> Only for final versions (not for RCs).
+
+Once the release has been published on GitHub, wait for its
+[GitHub actions](https://github.com/Icinga/icinga2/actions) to complete.
+
+```bash
+VERSION=2.12.1
+
+TAGS=(2.12)
+#TAGS=(2.12 2 latest)
+
+docker pull icinga/icinga2:$VERSION
+
+for t in "${TAGS[@]}"; do
+  docker tag icinga/icinga2:$VERSION icinga/icinga2:$t
+done
+
+for t in "${TAGS[@]}"; do
+  docker push icinga/icinga2:$t
+done
 ```
 
 
