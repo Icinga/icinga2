@@ -1115,12 +1115,7 @@ Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin
 	updateMessage->Set("method", "event::UpdateExecutions");
 	updateMessage->Set("params", params);
 
-	Zone::Ptr localZone = Zone::GetLocalZone();
-	Zone::Ptr parentZone = localZone->GetParent();
-
-	if (localZone != parentZone) {
-		listener->RelayMessage(origin, parentZone, updateMessage, true);
-	}
+	listener->RelayMessage(origin, Zone::GetLocalZone(), updateMessage, true);
 
 	return Empty;
 }
