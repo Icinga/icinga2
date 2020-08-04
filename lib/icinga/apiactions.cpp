@@ -788,7 +788,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		execMessage->Set("method", "event::ExecuteCommand");
 		execMessage->Set("params", execParams);
 
-		listener->RelayMessage(origin, checkable, execMessage, true);
+		listener->RelayMessage(origin, endpointPtr->GetZone(), execMessage, true);
 	}
 
 	Dictionary::Ptr result = new Dictionary();
