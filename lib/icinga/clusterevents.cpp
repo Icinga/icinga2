@@ -621,6 +621,44 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 			return Empty;
 		}
 
+		/* Check if the child endpoints have Icinga version >= 2.13 */
+		for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
+			/* Fetch immediate child zone members */
+			if (zone->GetParent() == localZone && zone->CanAccessObject(endpointZone)) {
+				std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
+
+				for (const Endpoint::Ptr& childEndpoint : endpoints) {
+					if (childEndpoint->GetIcingaVersion() < 21300) {
+						/* Update execution */
+						double now = Utility::GetTime();
+						Dictionary::Ptr execution = new Dictionary();
+						execution->Set("exit", 2);
+						execution->Set("output", "Endpoint '" + childEndpoint->GetName() + "' has version < 2.13.");
+						execution->Set("start", now);
+						execution->Set("end", now);
+
+						Dictionary::Ptr executionsToBroadcast = new Dictionary();
+						executionsToBroadcast->Set(params->Get("source"), execution);
+
+						Dictionary::Ptr updateParams = new Dictionary();
+						updateParams->Set("host", params->Get("host"));
+						if (params->Contains("service"))
+							updateParams->Set("service", params->Get("service"));
+						updateParams->Set("executions", executionsToBroadcast);
+
+						Dictionary::Ptr updateMessage = new Dictionary();
+						updateMessage->Set("jsonrpc", "2.0");
+						updateMessage->Set("method", "event::UpdateExecutions");
+						updateMessage->Set("params", executionsToBroadcast);
+
+						listener->RelayMessage(nullptr, nullptr, updateMessage, true);
+
+						return Empty;
+					}
+				}
+			}
+		}
+
 		Dictionary::Ptr execMessage = new Dictionary();
 		execMessage->Set("jsonrpc", "2.0");
 		execMessage->Set("method", "event::ExecuteCommand");

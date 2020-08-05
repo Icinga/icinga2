@@ -787,12 +787,26 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		Zone::Ptr localZone = Zone::GetLocalZone();
 		for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
 			/* Fetch immediate child zone members */
-			if (zone->GetParent() == localZone) {
+			if (zone->GetParent() == localZone && zone->CanAccessObject(endpointPtr->GetZone())) {
 				std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
 
 				for (const Endpoint::Ptr& childEndpoint : endpoints) {
 					if (childEndpoint->GetIcingaVersion() < 21300) {
-						return ApiActions::CreateResult(400, "Endpoint '" + childEndpoint->GetName() + "' has version < 2.13.");
+						/* Update execution */
+						double now = Utility::GetTime();
+						pending_execution->Set("exit", 2);
+						pending_execution->Set("output", "Endpoint '" + childEndpoint->GetName() + "' has version < 2.13.");
+						pending_execution->Set("start", now);
+						pending_execution->Set("end", now);
+						pending_execution->Remove("pending");
+
+						checkable->SetExecutions(executions);
+						listener->RelayMessage(origin, checkable, updateMessage, true);
+
+						Dictionary::Ptr result = new Dictionary();
+						result->Set("checkable", checkable->GetName());
+						result->Set("execution", uuid);
+						return ApiActions::CreateResult(202, "Accepted", result);
 					}
 				}
 			}
