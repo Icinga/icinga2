@@ -813,6 +813,21 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	if (local) {
 		ClusterEvents::ExecuteCommandAPIHandler(origin, execParams);
 	} else {
+		/* Check if the child endpoints have Icinga version >= 2.13 */
+		Zone::Ptr localZone = Zone::GetLocalZone();
+		for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
+			/* Fetch immediate child zone members */
+			if (zone->GetParent() == localZone) {
+				std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
+
+				for (const Endpoint::Ptr& childEndpoint : endpoints) {
+					if (childEndpoint->GetIcingaVersion() < 21300) {
+						return ApiActions::CreateResult(400, "Endpoint '" + childEndpoint->GetName() + "' has version < 2.13.");
+					}
+				}
+			}
+		}
+
 		Dictionary::Ptr execMessage = new Dictionary();
 		execMessage->Set("jsonrpc", "2.0");
 		execMessage->Set("method", "event::ExecuteCommand");
