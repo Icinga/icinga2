@@ -824,13 +824,12 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 					if (childEndpoint->GetIcingaVersion() < 21300) {
 						/* Update execution */
 						double now = Utility::GetTime();
-						pending_execution->Set("exit", 2);
+						pending_execution->Set("exit", 126);
 						pending_execution->Set("output", "Endpoint '" + childEndpoint->GetName() + "' has version < 2.13.");
 						pending_execution->Set("start", now);
 						pending_execution->Set("end", now);
 						pending_execution->Remove("pending");
 
-						checkable->SetExecutions(executions);
 						listener->RelayMessage(origin, checkable, updateMessage, true);
 
 						Dictionary::Ptr result = new Dictionary();
