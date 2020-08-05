@@ -654,17 +654,12 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 							executedParams->Set("start", now);
 							executedParams->Set("end", now);
 
-							if (origin->IsLocal()) {
-								ClusterEvents::ExecutedCommandAPIHandler(origin, executedParams);
-							} else {
-								Dictionary::Ptr executedMessage = new Dictionary();
-								executedMessage->Set("jsonrpc", "2.0");
-								executedMessage->Set("method", "event::ExecutedCommand");
-								executedMessage->Set("params", executedParams);
+							Dictionary::Ptr executedMessage = new Dictionary();
+							executedMessage->Set("jsonrpc", "2.0");
+							executedMessage->Set("method", "event::ExecutedCommand");
+							executedMessage->Set("params", executedParams);
 
-								listener->RelayMessage(nullptr, nullptr, executedMessage, true);
-							}
-
+							listener->RelayMessage(nullptr, nullptr, executedMessage, true);
 							return Empty;
 						}
 					}
