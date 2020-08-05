@@ -33,10 +33,10 @@ class Service : Checkable < ServiceNameComposer
 
 	[config] String display_name {
 		get {{{
-			if (m_DisplayName.IsEmpty())
+			if (m_DisplayName.m_Value.IsEmpty())
 				return GetShortName();
 			else
-				return m_DisplayName;
+				return m_DisplayName.m_Value;
 		}}}
 	};
 	[config, required] name(Host) host_name;
