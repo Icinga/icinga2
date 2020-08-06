@@ -678,7 +678,9 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 
 	if (withModAttrs) {
 		/* restore modified attributes */
-		if (Utility::PathExists(Configuration::ModAttrPath)) {
+		if (Utility::PathExists(Configuration::ModAttrPath) &&
+			!Dictionary::Ptr(Namespace::Ptr(ScriptGlobal::Get("Internal"))->Get("modified_attributes"))->GetLength()
+		) {
 			std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(Configuration::ModAttrPath);
 
 			if (expression) {
