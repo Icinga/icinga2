@@ -592,10 +592,27 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	return true;
 }
 
-bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent)
+bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems,
+	bool silent, bool withModAttrs)
 {
 	if (!silent)
 		Log(LogInformation, "ConfigItem", "Committing config item(s).");
+
+	if (withModAttrs) {
+		/* restore modified attributes */
+		if (Utility::PathExists(Configuration::ModAttrPath)) {
+			std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(Configuration::ModAttrPath);
+
+			if (expression) {
+				try {
+					ScriptFrame frame(true);
+					expression->Evaluate(frame);
+				} catch (const std::exception& ex) {
+					Log(LogCritical, "config", DiagnosticInformation(ex));
+				}
+			}
+		}
+	}
 
 	if (!CommitNewItems(context, upq, newItems)) {
 		upq.ReportExceptions("config");
