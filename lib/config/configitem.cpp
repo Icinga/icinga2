@@ -191,6 +191,20 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		m_Scope->CopyTo(frame.Locals);
 	try {
 		m_Expression->Evaluate(frame, &debugHints);
+
+		Dictionary::Ptr allMods (Namespace::Ptr(ScriptGlobal::Get("Internal"))->Get("modified_attributes"));
+		Dictionary::Ptr typeMods (allMods->Get(type->GetName()));
+
+		if (typeMods) {
+			Function::Ptr objMods (typeMods->Get(m_Name));
+
+			if (objMods) {
+				objMods->Invoke({dobj});
+
+				ObjectLock oLock(typeMods);
+				typeMods->Remove(m_Name);
+			}
+		}
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
