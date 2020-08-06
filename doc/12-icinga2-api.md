@@ -1744,7 +1744,7 @@ Example:
 ```
 $ curl -k -s -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/events' \
- -d '{ "queue": "myqueue", "types": "CheckResult", "filter": "event.check_result.exit_status==2" }'
+ -d '{ "queue": "myqueue", "types": ["CheckResult"], "filter": "event.check_result.exit_status==2" }'
 
 {"check_result":{ ... },"host":"example.localdomain","service":"ping4","timestamp":1445421319.7226390839,"type":"CheckResult"}
 {"check_result":{ ... },"host":"example.localdomain","service":"ping4","timestamp":1445421324.7226390839,"type":"CheckResult"}
