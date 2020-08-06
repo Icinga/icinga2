@@ -16,9 +16,7 @@ environment:
   BISON_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe'
   FLEX_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe'
 
-branches:
-  only:
-    - master
+branches: {}
 
 cache:
 - build -> appveyor.yml
