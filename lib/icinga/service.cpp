@@ -137,9 +137,13 @@ int Service::GetSeverity() const
 
 		Host::Ptr host = GetHost();
 
+		olock.Unlock();
+
 		ObjectLock hlock (host);
 		bool hostDown = host->GetState() != HostUp || !host->IsReachable();
 		hlock.Unlock();
+
+		olock.Lock();
 
 		if (hostDown) {
 			severity += 1024;
