@@ -136,8 +136,12 @@ int Service::GetSeverity() const
 		}
 
 		Host::Ptr host = GetHost();
+
 		ObjectLock hlock (host);
-		if (host->GetState() != HostUp || !host->IsReachable()) {
+		bool hostDown = host->GetState() != HostUp || !host->IsReachable();
+		hlock.Unlock();
+
+		if (hostDown) {
 			severity += 1024;
 		} else {
 			if (IsAcknowledged())
@@ -147,7 +151,6 @@ int Service::GetSeverity() const
 			else
 				severity += 2048;
 		}
-		hlock.Unlock();
 	}
 
 	olock.Unlock();
