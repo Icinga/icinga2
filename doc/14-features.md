@@ -486,7 +486,7 @@ Enable the feature and restart Icinga 2.
 # icinga2 feature enable elasticsearch
 ```
 
-The default configuration expects an Elasticsearch instance running on `localhost` on port `9200
+The default configuration expects an Elasticsearch instance running on `localhost` on port `9200`
  and writes to an index called `icinga2`.
 
 More configuration details can be found [here](09-object-types.md#objecttype-elasticsearchwriter).
