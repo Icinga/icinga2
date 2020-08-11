@@ -359,7 +359,9 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 		if (GetProblem() != wasProblem) {
 			for (auto& service : host->GetServices()) {
+				olock.Unlock();
 				Service::OnHostProblemChanged(service, cr, origin);
+				olock.Lock();
 			}
 		}
 	}
