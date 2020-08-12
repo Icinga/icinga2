@@ -144,23 +144,9 @@ dnf install https://packages.icinga.com/fedora/icinga-rpm-release-31-latest.noar
 
 ##### RHEL/CentOS EPEL Repository <a id="package-repositories-rhel-epel"></a>
 
+
 The packages for RHEL/CentOS depend on other packages which are distributed
 as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
-
-CentOS 8 additionally needs the PowerTools repository for EPEL:
-
-```
-dnf install 'dnf-command(config-manager)'
-dnf config-manager --set-enabled PowerTools
-
-dnf install epel-release
-```
-
-CentOS 7/6:
-
-```
-yum install epel-release
-```
 
 If you are using RHEL you need to additionally enable the `optional` and `codeready-builder`
 repository before installing the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
@@ -188,6 +174,22 @@ RHEL 6:
 ```
 subscription-manager repos --enable rhel-6-server-optional-rpms
 yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+```
+
+
+CentOS 8 additionally needs the PowerTools repository for EPEL:
+
+```
+dnf install 'dnf-command(config-manager)'
+dnf config-manager --set-enabled PowerTools
+
+dnf install epel-release
+```
+
+CentOS 7/6:
+
+```
+yum install epel-release
 ```
 
 #### SLES/OpenSUSE Repositories <a id="package-repositories-sles-opensuse"></a>
