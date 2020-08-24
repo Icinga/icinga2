@@ -1750,11 +1750,12 @@ command\_type  | String        | `check_command` or `event_command`.
 command        | String        | CheckCommand or EventCommand name.
 check\_timeout | Number        | Check timeout of the checkable object, if specified as `check_timeout` attribute.
 macros         | Dictionary    | Command arguments as key/value pairs for remote execution.
+endpoint       | String        | The endpoint execute the command on.
 
 
 ##### Functions
 
-**Event Sender:** This gets constructed directly in `Checkable::ExecuteCheck()` or `Checkable::ExecuteEventHandler()` when a remote command endpoint is configured.
+**Event Sender:** This gets constructed directly in `Checkable::ExecuteCheck()`, `Checkable::ExecuteEventHandler()` or `ApiActions::ExecuteCommand()` when a remote command endpoint is configured.
 
 * `Get{CheckCommand,EventCommand}()->Execute()` simulates an execution and extracts all command arguments into the `macro` dictionary (inside lib/methods tasks).
 * When the endpoint is connected, the message is constructed and sent directly.
@@ -1764,6 +1765,7 @@ macros         | Dictionary    | Command arguments as key/value pairs for remote
 
 Special handling, calls `ClusterEvents::EnqueueCheck()` for command endpoint checks.
 This function enqueues check tasks into a queue which is controlled in `RemoteCheckThreadProc()`.
+If the `endpoint` parameter is specified and is not equal to the local endpoint then the message is forwarded to the correct endpoint zone. 
 
 ##### Permissions
 
@@ -1784,6 +1786,78 @@ Returns UNKNOWN as check result to the sender
 The returned messages are synced directly to the sender's endpoint, no cluster broadcast.
 
 > **Note**: EventCommand errors are just logged on the remote endpoint.
+
+### event::UpdateExecutions <a id="technical-concepts-json-rpc-messages-event-updateexecutions"></a>
+
+> Location: `clusterevents.cpp`
+
+##### Message Body
+
+Key       | Value
+----------|---------
+jsonrpc   | 2.0
+method    | event::ExecuteCommand
+params    | Dictionary
+
+##### Params
+
+Key            | Type          | Description
+---------------|---------------|------------------
+host           | String        | Host name.
+service        | String        | Service name.
+execution      | Dictionary    | Executions to be updated 
+
+##### Functions
+
+**Event Sender:** `ClusterEvents::ExecutedCommandAPIHandler`, `ClusterEvents::UpdateExecutionsAPIHandler`, `ApiActions::ExecuteCommand`
+**Event Receiver:** `ClusterEvents::UpdateExecutionsAPIHandler` 
+
+##### Permissions
+
+The receiver will not process messages from not configured endpoints.
+
+Message updates will be dropped when:
+
+* Checkable does not exist.
+* Origin endpoint's zone is not allowed to access this checkable.
+
+### event::ExecutedCommand <a id="technical-concepts-json-rpc-messages-event-executedcommand"></a>
+
+> Location: `clusterevents.cpp`
+
+##### Message Body
+
+Key       | Value
+----------|---------
+jsonrpc   | 2.0
+method    | event::ExecuteCommand
+params    | Dictionary
+
+##### Params
+
+Key            | Type          | Description
+---------------|---------------|------------------
+host           | String        | Host name.
+service        | String        | Service name.
+execution      | String        | The execution ID executed.
+exitStatus     | Number        | The command exit status. 
+output         | String        | The command output.
+start          | Number        | The unix timestamp at the start of the command execution
+end            | Number        | The unix timestamp at the end of the command execution
+
+##### Functions
+
+**Event Sender:** `ClusterEvents::ExecuteCheckFromQueue`, `ClusterEvents::ExecuteCommandAPIHandler`
+**Event Receiver:** `ClusterEvents::ExecutedCommandAPIHandler` 
+
+##### Permissions
+
+The receiver will not process messages from not configured endpoints.
+
+Message updates will be dropped when:
+
+* Checkable does not exist.
+* Origin endpoint's zone is not allowed to access this checkable.
 
 #### config::Update <a id="technical-concepts-json-rpc-messages-config-update"></a>
 
