@@ -1537,7 +1537,7 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' \
 
 ### execute-command
 
-This API can e used to execute a particular check/notification/event-command on a particular
+This API can be used to execute a particular check/notification/event-command on a particular
 endpoint in the context of a particular checkable.
 
 Send a `POST` request to the URL endpoint `/v1/actions/execute-command`.
