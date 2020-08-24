@@ -4,10 +4,11 @@
 #include "base/configuration-ti.cpp"
 #include "base/exception.hpp"
 #include <boost/algorithm/string.hpp>
-#include <boost/asio.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/system/error_code.hpp>
-#include <boost/system/system_error.hpp>
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <set>
@@ -43,40 +44,46 @@ String Configuration::CacheDir;
 int Configuration::Concurrency{1};
 bool Configuration::ConcurrencyWasModified{false};
 
+#ifdef __linux__
+static std::string ReadSysLine(const char *file)
+{
+	namespace io = boost::iostreams;
+
+	std::string content;
+	io::stream<io::file_descriptor> stream;
+	int f = open(file, O_RDONLY);
+
+	if (f < 0) {
+		if (errno == ENOENT) {
+			return "";
+		}
+
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("open")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(file));
+	}
+
+	stream.exceptions(decltype(stream)::failbit | decltype(stream)::badbit);
+	stream.open(io::file_descriptor(f, boost::iostreams::close_handle));
+	stream.set_auto_close(true);
+
+	std::getline(stream, content);
+	return content;
+}
+#endif /* __linux__ */
+
 int Configuration::GetDefaultConcurrency()
 {
+	using namespace boost::algorithm;
+
+	auto concurrency (std::thread::hardware_concurrency());
+
 #ifdef __linux__
 	{
-		using namespace boost::algorithm;
-		using namespace boost::asio;
-		using namespace boost::system;
+		auto rawCpus (ReadSysLine("/sys/fs/cgroup/cpuset/cpuset.cpus"));
 
-		int f = open("/sys/fs/cgroup/cpuset/cpuset.cpus", O_RDONLY);
-
-		if (f < 0) {
-			if (errno != ENOENT) {
-				throw system_error(error_code(errno, system_category()));
-			}
-		} else {
-			std::string rawCpus;
-
-			{
-				io_context io;
-				buffered_read_stream<posix::stream_descriptor> stream (io);
-
-				stream.next_layer() = posix::stream_descriptor(io, f);
-
-				try {
-					read(stream, dynamic_buffer(rawCpus));
-				} catch (const system_error& se) {
-					if (se.code() != error::make_error_code(error::eof)) {
-						throw;
-					}
-				}
-			}
-
-			rawCpus.erase(rawCpus.find_last_not_of('\n') + 1u);
-
+		if (rawCpus.length()) {
 			std::vector<std::string> ranges;
 			boost::split(ranges, rawCpus, is_any_of(","));
 
@@ -97,12 +104,24 @@ int Configuration::GetDefaultConcurrency()
 				}
 			}
 
-			return cpus.size();
+			concurrency = cpus.size();
+		}
+	}
+
+	{
+		auto cfsQuotaUs (ReadSysLine("/sys/fs/cgroup/cpu/cpu.cfs_quota_us"));
+
+		if (cfsQuotaUs.length()) {
+			auto quota (boost::lexical_cast<intmax_t>(cfsQuotaUs));
+
+			if (quota > 0) {
+				concurrency = std::min(std::max((decltype(concurrency))std::round(quota / 100000.0), 1u), concurrency);
+			}
 		}
 	}
 #endif /* __linux__ */
 
-	return std::thread::hardware_concurrency();
+	return concurrency;
 }
 
 String Configuration::ConfigDir;
