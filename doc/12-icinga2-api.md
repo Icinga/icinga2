@@ -1522,6 +1522,41 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' \
 }
 ```
 
+### execute-command
+
+This API can e used to execute a particular check/notification/event-command on a particular
+endpoint in the context of a particular checkable.
+
+Send a `POST` request to the URL endpoint `/v1/actions/execute-command`.
+
+  Parameter     | Type       | Description
+  --------------|------------|--------------
+  ttl           | Number     | **Required.** The time to live of the execution expressed in seconds.
+  command_type  | String     | **Optional.** The command type: `CheckCommand` or `EventCommand` or `NotificationCommand`. Default: `EventCommand`
+  command       | String     | **Optional.** The command to execute. Its type must the same as `command_type`. It can be a macro string. Default: depending on the `command_type` it can be `$check_command$`, `$event_command$` or `$notification_command$`   
+  endpoint      | String     | **Optional.** The endpoint execute the command on. It can be a macro string. Default: `$command_endpoint`. 
+  macros        | Dictionary | **Optional**. A serialized object used to resolve the macro strings. Default: `{}` 
+  user          | String     | **Optional.** The user used for the notification command. 
+  notification  | String     | **Optional.** The notification used for the notification command.
+  
+  Example:
+  
+  ```
+  $ curl -k -s -u root:icinga -H 'Accept: application/json' \
+   -X POST 'https://localhost:5665/v1/actions/execute-command' \
+   -d '{"type":"Service", "service": "agent!custom_service", "ttl":"15", "macros": { "command_endpoint":"master", "ls_dir":"/tmp/foo" }, "command": "custom_command", "command_type": "CheckCommand" }'
+  {
+      "results": [
+          {
+              "checkable": "agent!custom_service",
+              "code": 202.0,
+              "execution": "3541d906-9afe-4c0e-ae6d-f549ee9bb3e7",
+              "status": "Accepted"
+          }
+      ]
+  }
+  ```
+
 ## Event Streams <a id="icinga2-api-event-streams"></a>
 
 Event streams can be used to receive check results, downtimes, comments,
