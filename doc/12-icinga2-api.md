@@ -1534,7 +1534,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/execute-command`.
   ttl           | Number     | **Required.** The time to live of the execution expressed in seconds.
   command_type  | String     | **Optional.** The command type: `CheckCommand` or `EventCommand` or `NotificationCommand`. Default: `EventCommand`
   command       | String     | **Optional.** The command to execute. Its type must the same as `command_type`. It can be a macro string. Default: depending on the `command_type` it can be `$check_command$`, `$event_command$` or `$notification_command$`   
-  endpoint      | String     | **Optional.** The endpoint execute the command on. It can be a macro string. Default: `$command_endpoint`. 
+  endpoint      | String     | **Optional.** The endpoint to execute the command on. It can be a macro string. Default: `$command_endpoint`.
   macros        | Dictionary | **Optional**. A serialized object used to resolve the macro strings. Default: `{}` 
   user          | String     | **Optional.** The user used for the notification command. 
   notification  | String     | **Optional.** The notification used for the notification command.

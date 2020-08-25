@@ -1750,7 +1750,7 @@ command\_type  | String        | `check_command` or `event_command`.
 command        | String        | CheckCommand or EventCommand name.
 check\_timeout | Number        | Check timeout of the checkable object, if specified as `check_timeout` attribute.
 macros         | Dictionary    | Command arguments as key/value pairs for remote execution.
-endpoint       | String        | The endpoint execute the command on.
+endpoint       | String        | The endpoint to execute the command on.
 
 
 ##### Functions
