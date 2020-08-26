@@ -1751,6 +1751,8 @@ command        | String        | CheckCommand or EventCommand name.
 check\_timeout | Number        | Check timeout of the checkable object, if specified as `check_timeout` attribute.
 macros         | Dictionary    | Command arguments as key/value pairs for remote execution.
 endpoint       | String        | The endpoint to execute the command on.
+deadline       | Number        | A Unix timestamp indicating the execution deadline
+source         | String        | The execution UUID
 
 
 ##### Functions
@@ -1796,7 +1798,7 @@ The returned messages are synced directly to the sender's endpoint, no cluster b
 Key       | Value
 ----------|---------
 jsonrpc   | 2.0
-method    | event::ExecuteCommand
+method    | event::UpdateExecutions
 params    | Dictionary
 
 ##### Params
@@ -1805,7 +1807,7 @@ Key            | Type          | Description
 ---------------|---------------|------------------
 host           | String        | Host name.
 service        | String        | Service name.
-execution      | Dictionary    | Executions to be updated 
+executions     | Dictionary    | Executions to be updated
 
 ##### Functions
 
@@ -1830,7 +1832,7 @@ Message updates will be dropped when:
 Key       | Value
 ----------|---------
 jsonrpc   | 2.0
-method    | event::ExecuteCommand
+method    | event::ExecutedCommand
 params    | Dictionary
 
 ##### Params
