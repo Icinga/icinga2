@@ -220,6 +220,7 @@ private:
 	static void NotifyDowntimeEnd(const Downtime::Ptr& downtime);
 
 	static void FireSuppressedNotifications(const Timer * const&);
+	static void CleanDeadlinedExecutions(const Timer * const&);
 
 	/* Comments */
 	std::set<Comment::Ptr> m_Comments;
