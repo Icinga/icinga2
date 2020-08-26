@@ -56,9 +56,9 @@ void HttpUtility::SendJsonBody(boost::beast::http::response<boost::beast::http::
 {
 	namespace http = boost::beast::http;
 
-	response.set(http::field::content_type, "application/json");
+	HttpUtility::Set(response, http::field::content_type, "application/json");
 	response.body() = JsonEncode(val, params && GetLastParameter(params, "pretty"));
-	response.set(http::field::content_length, response.body().size());
+	HttpUtility::Set(response, http::field::content_length, response.body().size());
 }
 
 void HttpUtility::SendJsonError(boost::beast::http::response<boost::beast::http::string_body>& response,

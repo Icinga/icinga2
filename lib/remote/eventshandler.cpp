@@ -100,7 +100,7 @@ bool EventsHandler::HandleRequest(
 	server.StartStreaming();
 
 	response.result(http::status::ok);
-	response.set(http::field::content_type, "application/json");
+	HttpUtility::Set(response, http::field::content_type, "application/json");
 
 	IoBoundWorkSlot dontLockTheIoThread (yc);
 
