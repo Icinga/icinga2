@@ -20,6 +20,7 @@ boost::signals2::signal<void (const Checkable::Ptr&, const String&, double, cons
 boost::signals2::signal<void (const Checkable::Ptr&, double)> Checkable::OnFlappingChange;
 
 static Timer::Ptr l_CheckablesFireSuppressedNotifications;
+static Timer::Ptr l_CleanDeadlinedExecutions;
 
 void Checkable::StaticInitialize()
 {
@@ -78,6 +79,11 @@ void Checkable::Start(bool runtimeCreated)
 		l_CheckablesFireSuppressedNotifications->SetInterval(5);
 		l_CheckablesFireSuppressedNotifications->OnTimerExpired.connect(&Checkable::FireSuppressedNotifications);
 		l_CheckablesFireSuppressedNotifications->Start();
+
+		l_CleanDeadlinedExecutions = new Timer();
+		l_CleanDeadlinedExecutions->SetInterval(300);
+		l_CleanDeadlinedExecutions->OnTimerExpired.connect(&Checkable::CleanDeadlinedExecutions);
+		l_CleanDeadlinedExecutions->Start();
 	});
 }
 
@@ -256,4 +262,35 @@ void Checkable::ValidateMaxCheckAttempts(const Lazy<int>& lvalue, const Validati
 
 	if (lvalue() <= 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "max_check_attempts" }, "Value must be greater than 0."));
+}
+
+void Checkable::CleanDeadlinedExecutions(const Timer * const&)
+{
+	double now = Utility::GetTime();
+	Dictionary::Ptr executions;
+	Dictionary::Ptr execution;
+
+	for (auto& host : ConfigType::GetObjectsByType<Host>()) {
+		executions = host->GetExecutions();
+		if (executions) {
+			for (const String& key : executions->GetKeys()) {
+				execution = executions->Get(key);
+				if (execution->Contains("deadline") && now > execution->Get("deadline")) {
+					executions->Remove(key);
+				}
+			}
+		}
+	}
+
+	for (auto& service : ConfigType::GetObjectsByType<Service>()) {
+		executions = service->GetExecutions();
+		if (executions) {
+			for (const String& key : executions->GetKeys()) {
+				execution = executions->Get(key);
+				if (execution->Contains("deadline") && now > execution->Get("deadline")) {
+					executions->Remove(key);
+				}
+			}
+		}
+	}
 }
