@@ -468,7 +468,7 @@ field_accessor: T_FIELD_ACCESSOR_TYPE T_STRING
 	}
 	| T_FIELD_ACCESSOR_TYPE ';'
 	{
-		$$ = new FieldAccessor(static_cast<FieldAccessorType>($1), "", true);
+		$$ = new FieldAccessor(static_cast<FieldAccessorType>($1), $1 == FTTrack ? " " : "", true);
 	}
 	;
 
