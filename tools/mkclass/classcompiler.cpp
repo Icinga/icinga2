@@ -866,7 +866,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 			needs_tracking = true;
 
-			m_Header << "\t" << "void Track" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " oldValue, " << field.Type.GetArgumentType() << " newValue);" << std::endl;
+			m_Header << "\t" << "virtual void Track" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " oldValue, " << field.Type.GetArgumentType() << " newValue);" << std::endl;
 
 			m_Impl << "void ObjectImpl<" << klass.Name << ">::Track" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " oldValue, " << field.Type.GetArgumentType() << " newValue)" << std::endl
 				<< "{" << std::endl;
