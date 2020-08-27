@@ -24,23 +24,14 @@ class Dependency : CustomVarObject < DependencyNameComposer
 	load_after Service;
 
 	[config, required, navigation(child_host)] name(Host) child_host_name {
+		track;
 		navigate {{{
 			return Host::GetByName(GetChildHostName());
 		}}}
 	};
 
 	[config, navigation(child_service)] String child_service_name {
-		track {{{
-			if (!oldValue.IsEmpty()) {
-				Service::Ptr service = Service::GetByNamePair(GetParentHostName(), oldValue);
-				DependencyGraph::RemoveDependency(this, service.get());
-			}
-
-			if (!newValue.IsEmpty()) {
-				Service::Ptr service = Service::GetByNamePair(GetParentHostName(), newValue);
-				DependencyGraph::AddDependency(this, service.get());
-			}
-		}}}
+		track;
 		navigate {{{
 			if (GetChildServiceName().IsEmpty())
 				return nullptr;
@@ -51,23 +42,14 @@ class Dependency : CustomVarObject < DependencyNameComposer
 	};
 
 	[config, required, navigation(parent_host)] name(Host) parent_host_name {
+		track;
 		navigate {{{
 			return Host::GetByName(GetParentHostName());
 		}}}
 	};
 
 	[config, navigation(parent_service)] String parent_service_name {
-		track {{{
-			if (!oldValue.IsEmpty()) {
-				Service::Ptr service = Service::GetByNamePair(GetParentHostName(), oldValue);
-				DependencyGraph::RemoveDependency(this, service.get());
-			}
-
-			if (!newValue.IsEmpty()) {
-				Service::Ptr service = Service::GetByNamePair(GetParentHostName(), newValue);
-				DependencyGraph::AddDependency(this, service.get());
-			}
-		}}}
+		track;
 		navigate {{{
 			if (GetParentServiceName().IsEmpty())
 				return nullptr;

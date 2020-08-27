@@ -34,6 +34,15 @@ void Checkable::StaticInitialize()
 	Downtime::OnDowntimeRemoved.connect(std::bind(&Checkable::NotifyDowntimeEnd, _1));
 }
 
+Checkable::Ptr Checkable::GetByNamePair(const String& hostName, const String& serviceName)
+{
+	if (serviceName.IsEmpty()) {
+		return Host::GetByName(hostName);
+	}
+
+	return Service::GetByNamePair(hostName, serviceName);
+}
+
 Checkable::Checkable()
 {
 	SetSchedulingOffset(Utility::Random());

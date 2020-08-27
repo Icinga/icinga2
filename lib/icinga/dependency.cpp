@@ -99,6 +99,46 @@ void Dependency::Stop(bool runtimeRemoved)
 	GetParent()->RemoveReverseDependency(this);
 }
 
+void Dependency::TrackParentHostName(const String& oldValue, const String& newValue)
+{
+	auto service (GetParentServiceName());
+	OnRelationshipChange(oldValue, service, newValue, service);
+}
+
+void Dependency::TrackChildHostName(const String& oldValue, const String& newValue)
+{
+	auto service (GetChildServiceName());
+	OnRelationshipChange(oldValue, service, newValue, service);
+}
+
+void Dependency::TrackParentServiceName(const String& oldValue, const String& newValue)
+{
+	auto host (GetParentHostName());
+	OnRelationshipChange(host, oldValue, host, newValue);
+}
+
+void Dependency::TrackChildServiceName(const String& oldValue, const String& newValue)
+{
+	auto host (GetChildHostName());
+	OnRelationshipChange(host, oldValue, host, newValue);
+}
+
+void Dependency::OnRelationshipChange(const String& oldHost, const String& oldService, const String& newHost, const String& newService)
+{
+	auto old (Checkable::GetByNamePair(oldHost, oldService));
+	auto nEw (Checkable::GetByNamePair(newHost, newService));
+
+	if (nEw != old) {
+		if (old) {
+			DependencyGraph::RemoveDependency(this, old.get());
+		}
+
+		if (nEw) {
+			DependencyGraph::AddDependency(this, nEw.get());
+		}
+	}
+}
+
 bool Dependency::IsAvailable(DependencyType dt) const
 {
 	Checkable::Ptr parent = GetParent();

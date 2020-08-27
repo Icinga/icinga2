@@ -46,9 +46,16 @@ protected:
 	void OnAllConfigLoaded() override;
 	void Stop(bool runtimeRemoved) override;
 
+	void TrackParentHostName(const String& oldValue, const String& newValue) override;
+	void TrackChildHostName(const String& oldValue, const String& newValue) override;
+	void TrackParentServiceName(const String& oldValue, const String& newValue) override;
+	void TrackChildServiceName(const String& oldValue, const String& newValue) override;
+
 private:
 	Checkable::Ptr m_Parent;
 	Checkable::Ptr m_Child;
+
+	void OnRelationshipChange(const String& oldHost, const String& oldService, const String& newHost, const String& newService);
 
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
