@@ -1,0 +1,18 @@
+name: issue2milestone
+
+on:
+  issues:
+    types:
+      - closed
+
+jobs:
+  issue2milestone:
+    name: issue2milestone
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: issue2milestone
+        uses: Icinga/issue2milestone@master
+        with:
+          issue: '${{ github.event.issue.number }}'
+          token: '${{ secrets.GITHUB_TOKEN }}'
