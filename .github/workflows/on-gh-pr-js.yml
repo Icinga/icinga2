@@ -1,0 +1,87 @@
+name: on-gh-pr.js
+
+on:
+  pull_request:
+    types:
+      - opened
+
+jobs:
+  onghprjs:
+    name: on-gh-pr.js
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: on-gh-pr.js
+        uses: Icinga/on-gh-pr.js@master
+        with:
+          pr: '${{ github.event.pull_request.number }}'
+          token: '${{ secrets.GITHUB_TOKEN }}'
+          script: |
+            var base = "/repos/" + repo.owner + "/" + repo.name;
+            var issue = base + "/issues/" + pr.number;
+            var pull = GitHub.api("GET", base + "/pulls/" + pr.number, {}, "");
+            if (pull.status != 200) {
+              throw "HTTP " + pull.status;
+            }
+            var body = JSON.parse(pull.body);
+            //
+            if (body.base.ref == "master") {
+              var milestones = GitHub.api("GET", base + "/milestones", {}, "");
+              if (milestones.status != 200) {
+                throw "HTTP " + milestones.status;
+              }
+              milestones = JSON.parse(milestones.body);
+              //
+              var latest = null;
+              var latestNr = null;
+              //
+              for (var i = 0; i < milestones.length; ++i) {
+                var match = /^(\d+)\.(\d+).0$/.exec(milestones[i].title);
+                if (match !== null) {
+                  var current = Number(match[1]) * 100 + Number(match[2]);
+                  if (latest === null || current > latest) {
+                    latest = current;
+                    latestNr = milestones[i].number;
+                  }
+                }
+              }
+              //
+              if (latestNr !== null) {
+                var pull = GitHub.api("PATCH", issue, {}, JSON.stringify({"milestone": latestNr}));
+                if (pull.status != 200) {
+                  throw "HTTP " + pull.status;
+                }
+              }
+            } else {
+              var match = /^support\/(\d+\.\d+)$/.exec(body.base.ref);
+              if (match !== null) {
+                var version = match[1];
+                //
+                var milestones = GitHub.api("GET", base + "/milestones", {}, "");
+                if (milestones.status != 200) {
+                  throw "HTTP " + milestones.status;
+                }
+                milestones = JSON.parse(milestones.body);
+                //
+                var latest = null;
+                var latestNr = null;
+                //
+                for (var i = 0; i < milestones.length; ++i) {
+                  var match = /^(\d+\.\d+).(\d+)$/.exec(milestones[i].title);
+                  if (match !== null && match[1] == version) {
+                    var current = Number(match[2]);
+                    if (latest === null || current > latest) {
+                      latest = current;
+                      latestNr = milestones[i].number;
+                    }
+                  }
+                }
+                //
+                if (latestNr !== null) {
+                  var pull = GitHub.api("PATCH", issue, {}, JSON.stringify({"milestone": latestNr}));
+                  if (pull.status != 200) {
+                    throw "HTTP " + pull.status;
+                  }
+                }
+              }
+            }
