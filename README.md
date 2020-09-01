@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/Icinga/icinga2.svg?branch=master)](https://travis-ci.org/Icinga/icinga2)
 [![Github Tag](https://img.shields.io/github/tag/Icinga/icinga2.svg)](https://github.com/Icinga/icinga2)
 
+
 # Icinga 2
 
 ![Icinga Logo](https://icinga.com/wp-content/uploads/2014/06/icinga_logo.png)
