@@ -193,7 +193,7 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 
 		Encode(stateMachine, value);
 
-		return stateMachine.GetResult();
+		return stateMachine.GetResult() + "\n";
 	} else {
 		JsonEncoder<false> stateMachine;
 
