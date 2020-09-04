@@ -427,7 +427,7 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 	}
 }
 
-/* Initial sync on connect for new endpoints */
+/* Initial sync on connect for new endpoints < v2.13 */
 void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient)
 {
 	Endpoint::Ptr endpoint = aclient->GetEndpoint();
@@ -456,4 +456,60 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 
 	Log(LogInformation, "ApiListener")
 		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
+}
+
+/* Initial sync on connect for new endpoints >= v2.13 */
+void ApiListener::DeclareRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient)
+{
+	Endpoint::Ptr endpoint = aclient->GetEndpoint();
+	ASSERT(endpoint);
+
+	Zone::Ptr azone = endpoint->GetZone();
+
+	Log(LogInformation, "ApiListener")
+		<< "Informing endpoint '" << endpoint->GetName() << "' about runtime objects.";
+
+	Dictionary::Ptr versions = new Dictionary();
+
+	for (auto& type : Type::GetAllTypes()) {
+		auto ctype (dynamic_cast<ConfigType*>(type.get()));
+
+		if (!ctype) {
+			continue;
+		}
+
+		for (auto& object : ctype->GetObjects()) {
+			if (object->GetPackage() != "_api" && object->GetVersion() == 0) {
+				continue;
+			}
+
+			/* don't sync objects for non-matching parent-child zones */
+			if (!azone->CanAccessObject(object)) {
+				continue;
+			}
+
+			auto type (object->GetReflectionType()->GetName());
+			Dictionary::Ptr perType = versions->Get(type);
+
+			if (!perType) {
+				perType = new Dictionary();
+				versions->Set(type, perType);
+			}
+
+			perType->Set(object->GetName(), object->GetVersion());
+		}
+	}
+
+	if (versions->GetLength()) {
+		aclient->SendMessage(new Dictionary({
+			{ "jsonrpc", "2.0" },
+			{ "method", "config::HaveObjects" },
+			{ "params", new Dictionary({
+				{ "versions", versions }
+			}) }
+		}));
+	}
+
+	Log(LogInformation, "ApiListener")
+		<< "Finished informing endpoint '" << endpoint->GetName() << "' about runtime objects.";
 }

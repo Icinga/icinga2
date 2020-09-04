@@ -214,6 +214,7 @@ private:
 	void DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 		const JsonRpcConnection::Ptr& client = nullptr);
 	void SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient);
+	void DeclareRuntimeConfigObjects(const JsonRpcConnection::Ptr& client);
 
 	void SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint, bool needSync);
 

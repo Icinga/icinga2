@@ -787,6 +787,8 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		Log(LogInformation, "ApiListener")
 			<< "Sending config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
+		bool negotiate = endpoint->GetVersion() >= 21300;
+
 		/* sync zone file config */
 		SendConfigUpdate(aclient);
 
@@ -794,7 +796,11 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			<< "Finished sending config file updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		/* sync runtime config */
-		SendRuntimeConfigObjects(aclient);
+		if (negotiate) {
+			DeclareRuntimeConfigObjects(aclient);
+		} else {
+			SendRuntimeConfigObjects(aclient);
+		}
 
 		Log(LogInformation, "ApiListener")
 			<< "Finished sending runtime config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
