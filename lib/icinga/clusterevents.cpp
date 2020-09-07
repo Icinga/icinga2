@@ -619,6 +619,63 @@ Value ClusterEvents::AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& 
 
 Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	if (!listener)
+		return Empty;
+
+	if (params->Contains("endpoint")) {
+		Endpoint::Ptr execEndpoint = Endpoint::GetByName(params->Get("endpoint"));
+		if (execEndpoint != Endpoint::GetLocalEndpoint()) {
+
+			Zone::Ptr endpointZone = execEndpoint->GetZone();
+			Zone::Ptr localZone = Zone::GetLocalZone();
+
+			if (!endpointZone->IsChildOf(localZone)) {
+				return Empty;
+			}
+
+			/* Check if the child endpoints have Icinga version >= 2.13 */
+			for (const Zone::Ptr &zone : ConfigType::GetObjectsByType<Zone>()) {
+				/* Fetch immediate child zone members */
+				if (zone->GetParent() == localZone && zone->CanAccessObject(endpointZone)) {
+					std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
+
+					for (const Endpoint::Ptr &childEndpoint : endpoints) {
+						if (childEndpoint->GetIcingaVersion() < 21300) {
+							double now = Utility::GetTime();
+							Dictionary::Ptr executedParams = new Dictionary();
+							executedParams->Set("execution", params->Get("source"));
+							executedParams->Set("host", params->Get("host"));
+							if (params->Contains("service"))
+								executedParams->Set("service", params->Get("service"));
+							executedParams->Set("exit", 126);
+							executedParams->Set("output",
+								"Endpoint '" + childEndpoint->GetName() + "' has version < 2.13.");
+							executedParams->Set("start", now);
+							executedParams->Set("end", now);
+
+							Dictionary::Ptr executedMessage = new Dictionary();
+							executedMessage->Set("jsonrpc", "2.0");
+							executedMessage->Set("method", "event::ExecutedCommand");
+							executedMessage->Set("params", executedParams);
+
+							listener->RelayMessage(nullptr, nullptr, executedMessage, true);
+							return Empty;
+						}
+					}
+				}
+			}
+
+			Dictionary::Ptr execMessage = new Dictionary();
+			execMessage->Set("jsonrpc", "2.0");
+			execMessage->Set("method", "event::ExecuteCommand");
+			execMessage->Set("params", params);
+
+			listener->RelayMessage(origin, endpointZone, execMessage, true);
+			return Empty;
+		}
+	}
+
 	EnqueueCheck(origin, params);
 
 	return Empty;
@@ -944,7 +1001,103 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 
 Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	return "Not implemented";
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	if (!listener)
+		return Empty;
+
+	Endpoint::Ptr endpoint;
+	if (origin->FromClient) {
+		endpoint = origin->FromClient->GetEndpoint();
+	} else if (origin->IsLocal()){
+		endpoint = Endpoint::GetLocalEndpoint();
+	}
+
+	if (!endpoint) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'update executions API handler' message from '" << origin->FromClient->GetIdentity()
+			<< "': Invalid endpoint origin (client not allowed).";
+
+		return Empty;
+	}
+
+	Host::Ptr host = Host::GetByName(params->Get("host"));
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	ObjectLock oLock (checkable);
+
+	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		return Empty;
+	}
+
+	if (!params->Contains("execution")) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution UUID missing.";
+		return Empty;
+	}
+	String uuid = params->Get("execution");
+
+	Dictionary::Ptr executions = checkable->GetExecutions();
+	if (!executions) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' missing.";
+		return Empty;
+	}
+
+	Dictionary::Ptr execution = executions->Get(uuid);
+	if (!execution) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' missing.";
+		return Empty;
+	}
+
+	if (params->Contains("exit"))
+		execution->Set("exit", params->Get("exit"));
+
+	if (params->Contains("output"))
+		execution->Set("output", params->Get("output"));
+
+	if (params->Contains("start"))
+		execution->Set("start", params->Get("start"));
+
+	if (params->Contains("end"))
+		execution->Set("end", params->Get("end"));
+
+	execution->Remove("pending");
+
+	/* Broadcast the update */
+	Dictionary::Ptr executionsToBroadcast = new Dictionary();
+	executionsToBroadcast->Set(uuid, execution);
+	Dictionary::Ptr updateParams = new Dictionary();
+	updateParams->Set("host", host->GetName());
+	if (params->Contains("service"))
+		updateParams->Set("service", params->Get("service"));
+	updateParams->Set("executions", executionsToBroadcast);
+
+	Dictionary::Ptr updateMessage = new Dictionary();
+	updateMessage->Set("jsonrpc", "2.0");
+	updateMessage->Set("method", "event::UpdateExecutions");
+	updateMessage->Set("params", updateParams);
+
+	listener->RelayMessage(nullptr, checkable, updateMessage, true);
+
+	return Empty;
 }
 
 Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
@@ -987,6 +1140,17 @@ Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin
 	Dictionary::Ptr newExecutions = params->Get("executions");
 	newExecutions->CopyTo(executions);
 	checkable->SetExecutions(executions);
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	if (!listener)
+		return Empty;
+
+	Dictionary::Ptr updateMessage = new Dictionary();
+	updateMessage->Set("jsonrpc", "2.0");
+	updateMessage->Set("method", "event::UpdateExecutions");
+	updateMessage->Set("params", params);
+
+	listener->RelayMessage(origin, Zone::GetLocalZone(), updateMessage, true);
 
 	return Empty;
 }

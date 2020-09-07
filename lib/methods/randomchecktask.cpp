@@ -31,22 +31,35 @@ void RandomCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		+ ". Icinga 2 has been running for " + Utility::FormatDuration(uptime)
 		+ ". Version: " + Application::GetAppVersion();
 
-	cr->SetOutput(output);
+	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
+	String commandName = command->GetName();
+	ServiceState state = static_cast<ServiceState>(Utility::Random() % 4);
 
-	double random = Utility::Random() % 1000;
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		double now = Utility::GetTime();
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = output;
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = state;
 
-	cr->SetPerformanceData(new Array({
-		new PerfdataValue("time", now),
-		new PerfdataValue("value", random),
-		new PerfdataValue("value_1m", random * 0.9),
-		new PerfdataValue("value_5m", random * 0.8),
-		new PerfdataValue("uptime", uptime),
-	}));
+		Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
+	} else {
+		cr->SetOutput(output);
 
-	cr->SetState(static_cast<ServiceState>(Utility::Random() % 4));
+		double random = Utility::Random() % 1000;
+		cr->SetPerformanceData(new Array({
+			new PerfdataValue("time", now),
+			new PerfdataValue("value", random),
+			new PerfdataValue("value_1m", random * 0.9),
+			new PerfdataValue("value_5m", random * 0.8),
+			new PerfdataValue("uptime", uptime),
+		}));
 
-	CheckCommand::Ptr command = checkable->GetCheckCommand();
-	cr->SetCommand(command->GetName());
+		cr->SetState(state);
+		cr->SetCommand(commandName);
 
-	checkable->ProcessCheckResult(cr);
+		checkable->ProcessCheckResult(cr);
+	}
 }

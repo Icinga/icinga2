@@ -20,6 +20,8 @@ public:
 	DECLARE_OBJECT(EventCommand);
 	DECLARE_OBJECTNAME(EventCommand);
 
+	static thread_local EventCommand::Ptr ExecuteOverride;
+
 	virtual void Execute(const Checkable::Ptr& checkable,
 		const Dictionary::Ptr& resolvedMacros = nullptr,
 		bool useResolvedMacros = false);

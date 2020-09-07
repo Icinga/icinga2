@@ -20,6 +20,7 @@ boost::signals2::signal<void (const Checkable::Ptr&, const String&, double, cons
 boost::signals2::signal<void (const Checkable::Ptr&, double)> Checkable::OnFlappingChange;
 
 static Timer::Ptr l_CheckablesFireSuppressedNotifications;
+thread_local std::function<void(const Value& commandLine, const ProcessResult&)> Checkable::ExecuteCommandProcessFinishedHandler;
 
 void Checkable::StaticInitialize()
 {

@@ -20,7 +20,8 @@ REGISTER_FUNCTION_NONCONST(Internal, IdoCheck, &IdoCheckTask::ScriptFunc, "check
 void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	ServiceState state;
+	CheckCommand::Ptr commandObj = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
 	Value raw_command = commandObj->GetCommandLine();
 
 	Host::Ptr host;
@@ -28,6 +29,9 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+	if (MacroResolver::OverrideMacros)
+		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
+
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
@@ -61,25 +65,70 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		return;
 
 	if (idoType.IsEmpty()) {
-		cr->SetOutput("Attribute 'ido_type' must be set.");
-		cr->SetState(ServiceUnknown);
-		checkable->ProcessCheckResult(cr);
+		String output = "Attribute 'ido_type' must be set.";
+		state = ServiceUnknown;
+
+		if (Checkable::ExecuteCommandProcessFinishedHandler) {
+			double now = Utility::GetTime();
+			ProcessResult pr;
+			pr.PID = -1;
+			pr.Output = output;
+			pr.ExecutionStart = now;
+			pr.ExecutionEnd = now;
+			pr.ExitStatus = state;
+
+			Checkable::ExecuteCommandProcessFinishedHandler(commandObj->GetName(), pr);
+		} else {
+			cr->SetState(state);
+			cr->SetOutput(output);
+			checkable->ProcessCheckResult(cr);
+		}
 		return;
 	}
 
 	if (idoName.IsEmpty()) {
-		cr->SetOutput("Attribute 'ido_name' must be set.");
-		cr->SetState(ServiceUnknown);
-		checkable->ProcessCheckResult(cr);
+		String output = "Attribute 'ido_name' must be set.";
+		state = ServiceUnknown;
+
+		if (Checkable::ExecuteCommandProcessFinishedHandler) {
+			double now = Utility::GetTime();
+			ProcessResult pr;
+			pr.PID = -1;
+			pr.Output = output;
+			pr.ExecutionStart = now;
+			pr.ExecutionEnd = now;
+			pr.ExitStatus = state;
+
+			Checkable::ExecuteCommandProcessFinishedHandler(commandObj->GetName(), pr);
+		} else {
+			cr->SetState(state);
+			cr->SetOutput(output);
+			checkable->ProcessCheckResult(cr);
+		}
 		return;
 	}
 
 	Type::Ptr type = Type::GetByName(idoType);
 
 	if (!type || !DbConnection::TypeInstance->IsAssignableFrom(type)) {
-		cr->SetOutput("DB IDO type '" + idoType + "' is invalid.");
-		cr->SetState(ServiceUnknown);
-		checkable->ProcessCheckResult(cr);
+		String output = "DB IDO type '" + idoType + "' is invalid.";
+		state = ServiceUnknown;
+
+		if (Checkable::ExecuteCommandProcessFinishedHandler) {
+			double now = Utility::GetTime();
+			ProcessResult pr;
+			pr.PID = -1;
+			pr.Output = output;
+			pr.ExecutionStart = now;
+			pr.ExecutionEnd = now;
+			pr.ExitStatus = state;
+
+			Checkable::ExecuteCommandProcessFinishedHandler(commandObj->GetName(), pr);
+		} else {
+			cr->SetState(state);
+			cr->SetOutput(output);
+			checkable->ProcessCheckResult(cr);
+		}
 		return;
 	}
 
@@ -89,34 +138,78 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	DbConnection::Ptr conn = static_pointer_cast<DbConnection>(dtype->GetObject(idoName));
 
 	if (!conn) {
-		cr->SetOutput("DB IDO connection '" + idoName + "' does not exist.");
-		cr->SetState(ServiceUnknown);
-		checkable->ProcessCheckResult(cr);
+		String output = "DB IDO connection '" + idoName + "' does not exist.";
+		state = ServiceUnknown;
+
+		if (Checkable::ExecuteCommandProcessFinishedHandler) {
+			double now = Utility::GetTime();
+			ProcessResult pr;
+			pr.PID = -1;
+			pr.Output = output;
+			pr.ExecutionStart = now;
+			pr.ExecutionEnd = now;
+			pr.ExitStatus = state;
+
+			Checkable::ExecuteCommandProcessFinishedHandler(commandObj->GetName(), pr);
+		} else {
+			cr->SetState(state);
+			cr->SetOutput(output);
+			checkable->ProcessCheckResult(cr);
+		}
 		return;
 	}
 
 	double qps = conn->GetQueryCount(60) / 60.0;
 
 	if (conn->IsPaused()) {
-		cr->SetOutput("DB IDO connection is temporarily disabled on this cluster instance.");
-		cr->SetState(ServiceOK);
-		checkable->ProcessCheckResult(cr);
+		String output = "DB IDO connection is temporarily disabled on this cluster instance.";
+		state = ServiceOK;
+
+		if (Checkable::ExecuteCommandProcessFinishedHandler) {
+			double now = Utility::GetTime();
+			ProcessResult pr;
+			pr.PID = -1;
+			pr.Output = output;
+			pr.ExecutionStart = now;
+			pr.ExecutionEnd = now;
+			pr.ExitStatus = state;
+
+			Checkable::ExecuteCommandProcessFinishedHandler(commandObj->GetName(), pr);
+		} else {
+			cr->SetState(state);
+			cr->SetOutput(output);
+			checkable->ProcessCheckResult(cr);
+		}
 		return;
 	}
 
 	double pendingQueries = conn->GetPendingQueryCount();
 
 	if (!conn->GetConnected()) {
+		String output;
 		if (conn->GetShouldConnect()) {
-			cr->SetOutput("Could not connect to the database server.");
-			cr->SetState(ServiceCritical);
+			output ="Could not connect to the database server.";
+			state = ServiceCritical;
 		} else {
-			cr->SetOutput("Not currently enabled: Another cluster instance is responsible for the IDO database.");
-			cr->SetState(ServiceOK);
+			output = "Not currently enabled: Another cluster instance is responsible for the IDO database.";
+			state = ServiceOK;
 		}
 
-		checkable->ProcessCheckResult(cr);
+		if (Checkable::ExecuteCommandProcessFinishedHandler) {
+			double now = Utility::GetTime();
+			ProcessResult pr;
+			pr.PID = -1;
+			pr.Output = output;
+			pr.ExecutionStart = now;
+			pr.ExecutionEnd = now;
+			pr.ExitStatus = state;
 
+			Checkable::ExecuteCommandProcessFinishedHandler(commandObj->GetName(), pr);
+		} else {
+			cr->SetState(state);
+			cr->SetOutput(output);
+			checkable->ProcessCheckResult(cr);
+		}
 		return;
 	}
 
@@ -130,13 +223,13 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		    << " Queries per second: " << std::fixed << std::setprecision(3) << qps
 		    << " Pending queries: " << std::fixed << std::setprecision(3) << pendingQueries << ".";
 
-		cr->SetState(ServiceWarning);
+		state = ServiceWarning;
 	} else {
 		msgbuf << "Connected to the database server (Schema version: '" << schema_version << "')."
 		    << " Queries per second: " << std::fixed << std::setprecision(3) << qps
 		    << " Pending queries: " << std::fixed << std::setprecision(3) << pendingQueries << ".";
 
-		cr->SetState(ServiceOK);
+		state = ServiceOK;
 	}
 
 	if (conn->GetEnableHa()) {
@@ -149,34 +242,49 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	if (missingQueriesCritical.IsEmpty() && qps < queriesCritical) {
 		msgbuf << " " << qps << " queries/s lower than critical threshold (" << queriesCritical << " queries/s).";
 
-		cr->SetState(ServiceCritical);
+		state= ServiceCritical;
 	} else if (missingQueriesWarning.IsEmpty() && qps < queriesWarning) {
 		msgbuf << " " << qps << " queries/s lower than warning threshold (" << queriesWarning << " queries/s).";
 
-		cr->SetState(ServiceWarning);
+		state = ServiceWarning;
 	}
 
 	if (missingPendingQueriesCritical.IsEmpty() && pendingQueries > pendingQueriesCritical) {
 		msgbuf << " " << pendingQueries << " pending queries greater than critical threshold ("
 		    << pendingQueriesCritical << " queries).";
 
-		cr->SetState(ServiceCritical);
+		state = ServiceCritical;
 	} else if (missingPendingQueriesWarning.IsEmpty() && pendingQueries > pendingQueriesWarning) {
 		msgbuf << " " << pendingQueries << " pending queries greater than warning threshold ("
 		    << pendingQueriesWarning << " queries).";
 
-		cr->SetState(ServiceWarning);
+		state = ServiceWarning;
 	}
 
-	cr->SetOutput(msgbuf.str());
+	String output = msgbuf.str();
 
-	cr->SetPerformanceData(new Array({
-		{ new PerfdataValue("queries", qps, false, "", queriesWarning, queriesCritical) },
-		{ new PerfdataValue("queries_1min", conn->GetQueryCount(60)) },
-		{ new PerfdataValue("queries_5mins", conn->GetQueryCount(5 * 60)) },
-		{ new PerfdataValue("queries_15mins", conn->GetQueryCount(15 * 60)) },
-		{ new PerfdataValue("pending_queries", pendingQueries, false, "", pendingQueriesWarning, pendingQueriesCritical) }
-	}));
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		double now = Utility::GetTime();
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = output;
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = state;
 
-	checkable->ProcessCheckResult(cr);
+		Checkable::ExecuteCommandProcessFinishedHandler(commandObj->GetName(), pr);
+	} else {
+		cr->SetState(state);
+		cr->SetOutput(output);
+
+		cr->SetPerformanceData(new Array({
+			{ new PerfdataValue("queries", qps, false, "", queriesWarning, queriesCritical) },
+			{ new PerfdataValue("queries_1min", conn->GetQueryCount(60)) },
+			{ new PerfdataValue("queries_5mins", conn->GetQueryCount(5 * 60)) },
+			{ new PerfdataValue("queries_15mins", conn->GetQueryCount(15 * 60)) },
+			{ new PerfdataValue("pending_queries", pendingQueries, false, "", pendingQueriesWarning, pendingQueriesCritical) }
+		}));
+
+		checkable->ProcessCheckResult(cr);
+	}
 }
