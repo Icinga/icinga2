@@ -13,6 +13,7 @@
 #include "base/exception.hpp"
 #include "base/shared.hpp"
 #include "base/utility.hpp"
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <thread>
@@ -61,10 +62,13 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 
 	String zoneName = zone->GetName();
 	Dictionary::Ptr contents = new Dictionary();
+	double ts = 0;
 
 	// Load registered zone paths, e.g. '_etc', '_api' and user packages.
 	for (const ZoneFragment& zf : ConfigCompiler::GetZoneDirs(zoneName)) {
 		ConfigDirInformation newConfigPart = LoadConfigDir(zf.Path, contents);
+
+		Utility::GlobRecursive(zf.Path, "*", [&ts](const String& path) { ts = std::max(ts, Utility::GetModTime(path)); }, GlobFile | GlobDirectory);
 
 		// Config files '*.conf'.
 		{
@@ -87,6 +91,11 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 				newConfigInfo.Checksums->Set(path, GetChecksum(kv.second));
 			}
 		}
+	}
+
+	if (ts == 0) {
+		// Syncing an empty zone every time hurts less than not syncing it at all.
+		ts = Utility::GetTime();
 	}
 
 	size_t sumUpdates = newConfigInfo.UpdateV1->GetLength() + newConfigInfo.UpdateV2->GetLength();
@@ -144,7 +153,7 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 	if (!Utility::PathExists(tsPath)) {
 		std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
 
-		fp << std::fixed << Utility::GetTime();
+		fp << std::fixed << ts;
 		fp.close();
 	}
 
