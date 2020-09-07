@@ -1306,6 +1306,26 @@ bool Utility::PathExists(const String& path)
 	return fs::exists(fs::path(path.Begin(), path.End()), ec) && !ec;
 }
 
+double Utility::GetModTime(const String& path)
+{
+#ifndef _WIN32
+	struct stat statbuf;
+
+	if (stat(path.CStr(), &statbuf) < 0) {
+#else /* _WIN32 */
+	struct _stat statbuf;
+
+	if (_stat(path.CStr(), &statbuf) < 0) {
+#endif /* _WIN32 */
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("stat")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
+	}
+
+	return statbuf.st_mtime;
+}
+
 Value Utility::LoadJsonFile(const String& path)
 {
 	std::ifstream fp;
