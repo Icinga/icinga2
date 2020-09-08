@@ -197,8 +197,8 @@ private:
 
 	static Dictionary::Ptr MergeConfigUpdate(const ConfigDirInformation& config);
 
-	static ConfigDirInformation LoadConfigDir(const String& dir);
-	static void ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file);
+	static ConfigDirInformation LoadConfigDir(const String& dir, const Dictionary::Ptr& contents = nullptr);
+	static void ConfigGlobHandler(ConfigDirInformation& config, const Dictionary::Ptr& contents, const String& path, const String& file);
 
 	static void TryActivateZonesStageCallback(const ProcessResult& pr,
 		const std::vector<String>& relativePaths);

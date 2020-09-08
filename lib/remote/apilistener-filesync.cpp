@@ -3,6 +3,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "config/configcompiler.hpp"
+#include "base/object-packer.hpp"
 #include "base/tlsutility.hpp"
 #include "base/json.hpp"
 #include "base/configtype.hpp"
@@ -59,10 +60,11 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 	newConfigInfo.Checksums = new Dictionary();
 
 	String zoneName = zone->GetName();
+	Dictionary::Ptr contents = new Dictionary();
 
 	// Load registered zone paths, e.g. '_etc', '_api' and user packages.
 	for (const ZoneFragment& zf : ConfigCompiler::GetZoneDirs(zoneName)) {
-		ConfigDirInformation newConfigPart = LoadConfigDir(zf.Path);
+		ConfigDirInformation newConfigPart = LoadConfigDir(zf.Path, contents);
 
 		// Config files '*.conf'.
 		{
@@ -163,6 +165,19 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 
 	fp << std::fixed << JsonEncode(newConfigInfo.Checksums);
 	fp.close();
+
+	// Checksum.
+	String checksumPath = productionZonesDir + "/.checksum";
+
+	if (Utility::PathExists(checksumPath))
+		Utility::Remove(checksumPath);
+
+	{
+		std::ofstream fp(checksumPath.CStr(), std::ofstream::out | std::ostream::trunc);
+
+		fp << GetChecksum(PackObject(contents));
+		fp.close();
+	}
 
 	Log(LogNotice, "ApiListener")
 		<< "Updated meta data for cluster config sync. Checksum: '" << checksumsPath
@@ -781,14 +796,15 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
  * @param dir Path to the config directory.
  * @returns ConfigDirInformation structure.
  */
-ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
+ConfigDirInformation ApiListener::LoadConfigDir(const String& dir, const Dictionary::Ptr& contents)
 {
 	ConfigDirInformation config;
 	config.UpdateV1 = new Dictionary();
 	config.UpdateV2 = new Dictionary();
 	config.Checksums = new Dictionary();
 
-	Utility::GlobRecursive(dir, "*", std::bind(&ApiListener::ConfigGlobHandler, std::ref(config), dir, _1), GlobFile);
+	Utility::GlobRecursive(dir, "*", std::bind(&ApiListener::ConfigGlobHandler, std::ref(config), std::ref(contents), dir, _1), GlobFile);
+
 	return config;
 }
 
@@ -800,7 +816,7 @@ ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
  * @param path File path.
  * @param file Full file name.
  */
-void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file)
+void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const Dictionary::Ptr& contents, const String& path, const String& file)
 {
 	// Avoid loading the authoritative marker for syncs at all cost.
 	if (Utility::BaseName(file) == ".authoritative")
@@ -854,6 +870,10 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 	 * IMPORTANT: Ignore the .authoritative file above, this must not be synced.
 	 * */
 	config.Checksums->Set(relativePath, GetChecksum(content));
+
+	if (contents) {
+		contents->Set(relativePath, content);
+	}
 }
 
 /**
