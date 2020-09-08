@@ -91,6 +91,7 @@ public:
 	static void ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, const Value& cookie);
 	static Value ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	static Value ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value ConfigHaveObjectsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	/* API config packages */
 	void SetActivePackageStage(const String& package, const String& stage);
