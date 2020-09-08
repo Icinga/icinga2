@@ -22,6 +22,7 @@
 using namespace icinga;
 
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
+REGISTER_APIFUNCTION(HaveZones, config, &ApiListener::ConfigHaveZonesHandler);
 
 boost::mutex ApiListener::m_ConfigSyncStageLock;
 
@@ -453,6 +454,99 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	}
 
 	std::thread([origin, params]() { HandleConfigUpdate(origin, params); }).detach();
+	return Empty;
+}
+
+Value ApiListener::ConfigHaveZonesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	auto endpoint (origin->FromClient->GetEndpoint());
+
+	// Verify permissions and trust relationship.
+	if (!endpoint || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone))) {
+		return Empty;
+	}
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener) {
+		Log(LogCritical, "ApiListener", "No instance available.");
+		return Empty;
+	}
+
+	if (!listener->GetAcceptConfig()) {
+		Log(LogWarning, "ApiListener")
+			<< "Ignoring information about zones. '" << listener->GetName() << "' does not accept config.";
+		return Empty;
+	}
+
+	auto fromEndpointName (origin->FromClient->GetEndpoint()->GetName());
+	auto fromZoneName (GetFromZoneName(origin->FromZone));
+
+	Log(LogInformation, "ApiListener")
+		<< "Checking information about zones from endpoint '" << fromEndpointName
+		<< "' of zone '" << fromZoneName << "'.";
+
+	Dictionary::Ptr zones = params->Get("zones");
+	Array::Ptr want = new Array();
+	ObjectLock oLock (zones);
+
+	for (auto& kv : zones) {
+		if (!Zone::GetByName(kv.first)) {
+			Log(LogWarning, "ApiListener")
+				<< "Ignoring information about unknown zone '" << kv.first
+				<< "' from endpoint '" << fromEndpointName << "'.";
+			continue;
+		}
+
+		// Ignore files declarations where we have an authoritive copy in etc/zones.d, packages, etc.
+		if (ConfigCompiler::HasZoneConfigAuthority(kv.first)) {
+			Log(LogInformation, "ApiListener")
+				<< "Ignoring information about zone '" << kv.first << "' from endpoint '" << fromEndpointName
+				<< "' because we have an authoritative version of the zone's config.";
+			continue;
+		}
+
+		{
+			auto local (AssembleZoneDeclaration(kv.first));
+			Dictionary::Ptr remote = kv.second;
+
+			if (local && (local->Get("checksum") == remote->Get("checksum") || local->Get("timestamp") >= remote->Get("timestamp"))) {
+				Log(LogInformation, "ApiListener")
+					<< "Ignoring information about zone '" << kv.first
+					<< "' from endpoint '" << fromEndpointName << "' because we're up-to-date.";
+				continue;
+			}
+		}
+
+		Log(LogInformation, "ApiListener")
+			<< "Requesting actual zone '" << kv.first << "' from endpoint '" << fromEndpointName
+			<< "' because compared to it we're not up-to-date.";
+
+		want->Add(kv.first);
+	}
+
+	JsonRpcConnection::Ptr client;
+
+	for (auto& conn : endpoint->GetClients()) {
+		client = conn;
+		break;
+	}
+
+	if (!client) {
+		Log(LogNotice, "ApiListener")
+			<< "Compared to '" << fromEndpointName
+			<< "' not everything is up-to-date, but we're not connected.";
+		return Empty;
+	}
+
+	client->SendMessage(new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::WantZones" },
+		{ "params", new Dictionary({
+			{ "zones", want }
+		}) }
+	}));
+
 	return Empty;
 }
 

@@ -85,6 +85,7 @@ public:
 
 	/* filesync */
 	static Value ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value ConfigHaveZonesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	static void HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	/* configsync */
