@@ -25,6 +25,7 @@ REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 REGISTER_APIFUNCTION(HaveZones, config, &ApiListener::ConfigHaveZonesHandler);
 REGISTER_APIFUNCTION(WantZones, config, &ApiListener::ConfigWantZonesHandler);
 REGISTER_APIFUNCTION(HaveFiles, config, &ApiListener::ConfigHaveFilesHandler);
+REGISTER_APIFUNCTION(WantFiles, config, &ApiListener::ConfigWantFilesHandler);
 
 boost::mutex ApiListener::m_ConfigSyncStageLock;
 
@@ -668,6 +669,119 @@ Value ApiListener::ConfigHaveFilesHandler(const MessageOrigin::Ptr& origin, cons
 		{ "method", "config::WantFiles" },
 		{ "params", new Dictionary({
 			{ "files", want }
+		}) }
+	}));
+
+	return Empty;
+}
+
+Value ApiListener::ConfigWantFilesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Log(LogNotice, "ApiListener")
+		<< "Received request for files in zones: " << JsonEncode(params);
+
+	/* check permissions */
+	auto listener (ApiListener::GetInstance());
+
+	if (!listener) {
+		return Empty;
+	}
+
+	auto endpoint (origin->FromClient->GetEndpoint());
+	auto identity (origin->FromClient->GetIdentity());
+	auto clientZone (endpoint->GetZone());
+
+	/* discard messages if the client is not configured on this node */
+	if (!endpoint) {
+		Log(LogNotice, "ApiListener")
+			<< "Discarding 'config want files' message from '" << identity
+			<< "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	auto zone (endpoint->GetZone());
+	Dictionary::Ptr files (params->Get("files"));
+	auto zonesDir (GetApiZonesDir());
+	Dictionary::Ptr configUpdateV1 = new Dictionary();
+	Dictionary::Ptr configUpdateV2 = new Dictionary();
+	Dictionary::Ptr configUpdateChecksums = new Dictionary(); // new since 2.11
+	ObjectLock oLock (files);
+
+	for (auto& kv : files) {
+		auto zone (Zone::GetByName(kv.first));
+
+		if (!zone) {
+			Log(LogWarning, "ApiListener")
+				<< "No such zone '" << kv.first << "' in zones files request from '" << identity << "'.";
+			continue;
+		}
+
+		if (!zone->IsChildOf(clientZone) && !zone->IsGlobal()) {
+			Log(LogWarning, "ApiListener")
+				<< "Unauthorized access to zone '" << kv.first << "' in zones files request from '" << identity << "'.";
+			continue;
+		}
+
+		String zoneDir = zonesDir + kv.first;
+
+		if (!Utility::PathExists(zoneDir)) {
+			Log(LogWarning, "ApiListener")
+				<< "No local config for zone '" << kv.first << "' for zones files request from '" << identity << "'.";
+			continue;
+		}
+
+		Log(LogInformation, "ApiListener")
+			<< "Syncing requested configuration files for " << (zone->IsGlobal() ? "global " : "")
+			<< "zone '" << kv.first << "' to endpoint '" << endpoint->GetName() << "'.";
+
+		auto config (LoadConfigDir(zoneDir));
+
+		{
+			auto wantPerZone (((Array::Ptr)kv.second)->ToSet<String>());
+
+			for (auto& files : { config.UpdateV1, config.UpdateV2 }) {
+				ObjectLock oLock (files);
+
+				for (auto& kv : files) {
+					if (!Utility::Match("/.*", kv.first) && wantPerZone.find(kv.first) == wantPerZone.end()) {
+						// Not requested? Not included!
+						files->Set(kv.first, Empty);
+					}
+				}
+			}
+		}
+
+		configUpdateV1->Set(kv.first, config.UpdateV1);
+		configUpdateV2->Set(kv.first, config.UpdateV2);
+		configUpdateChecksums->Set(kv.first, config.Checksums); // new since 2.11
+	}
+
+	if (!(configUpdateV1->GetLength() + configUpdateV2->GetLength())) {
+		Log(LogNotice, "ApiListener")
+			<< "Not syncing any configuration files to endpoint '" << identity << "'.";
+		return Empty;
+	}
+
+	JsonRpcConnection::Ptr client;
+
+	for (auto& conn : endpoint->GetClients()) {
+		client = conn;
+		break;
+	}
+
+	if (!client) {
+		Log(LogNotice, "ApiListener")
+			<< "Not syncing any configuration files to endpoint '" << identity << "' as we're not connected.";
+		return Empty;
+	}
+
+	client->SendMessage(new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::Update" },
+		{ "params", new Dictionary({
+			{ "update", configUpdateV1 },
+			{ "update_v2", configUpdateV2 },	// Since 2.4.2.
+			{ "checksums", configUpdateChecksums } 	// Since 2.11.0.
 		}) }
 	}));
 
