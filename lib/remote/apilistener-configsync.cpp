@@ -15,6 +15,7 @@ using namespace icinga;
 REGISTER_APIFUNCTION(UpdateObject, config, &ApiListener::ConfigUpdateObjectAPIHandler);
 REGISTER_APIFUNCTION(DeleteObject, config, &ApiListener::ConfigDeleteObjectAPIHandler);
 REGISTER_APIFUNCTION(HaveObjects, config, &ApiListener::ConfigHaveObjectsAPIHandler);
+REGISTER_APIFUNCTION(WantObjects, config, &ApiListener::ConfigWantObjectsAPIHandler);
 
 INITIALIZE_ONCE([]() {
 	ConfigObject::OnActiveChanged.connect(&ApiListener::ConfigUpdateObjectHandler);
@@ -318,6 +319,71 @@ Value ApiListener::ConfigHaveObjectsAPIHandler(const MessageOrigin::Ptr& origin,
 			{ "objects", want }
 		}) }
 	}));
+
+	return Empty;
+}
+
+Value ApiListener::ConfigWantObjectsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Log(LogNotice, "ApiListener")
+		<< "Received request for runtime objects: " << JsonEncode(params);
+
+	/* check permissions */
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return Empty;
+
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+	String identity = origin->FromClient->GetIdentity();
+
+	/* discard messages if the client is not configured on this node */
+	if (!endpoint) {
+		Log(LogNotice, "ApiListener")
+			<< "Discarding 'config want objects' message from '" << identity << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	auto zone (endpoint->GetZone());
+	Dictionary::Ptr objects (params->Get("objects"));
+	ObjectLock oLock (objects);
+
+	for (auto& kv : objects) {
+		auto type (Type::GetByName(kv.first));
+
+		if (!type) {
+			Log(LogWarning, "ApiListener")
+				<< "Bad object type in runtime objects request from '"
+				<< identity << "': '" << kv.first << "'";
+			continue;
+		}
+
+		auto ctype (dynamic_cast<ConfigType*>(type.get()));
+
+		if (!ctype) {
+			Log(LogWarning, "ApiListener")
+				<< "Bad object type in runtime objects request from '"
+				<< identity << "': '" << kv.first << "'";
+			continue;
+		}
+
+		Array::Ptr perType (kv.second);
+		ObjectLock oLock (perType);
+
+		for (auto& name : perType) {
+			auto object (ctype->GetObject(name));
+
+			if (!object) {
+				Log(LogWarning, "ApiListener")
+					<< "No such " << kv.first << " in runtime objects request from '"
+					<< identity << "': '" << name << "'";
+				continue;
+			}
+
+			// UpdateConfigObject() checks access by itself
+			listener->UpdateConfigObject(object, nullptr, origin->FromClient);
+		}
+	}
 
 	return Empty;
 }
