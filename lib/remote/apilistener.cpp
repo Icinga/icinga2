@@ -790,7 +790,11 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		bool negotiate = endpoint->GetVersion() >= 21300;
 
 		/* sync zone file config */
-		SendConfigUpdate(aclient);
+		if (negotiate) {
+			DeclareConfigUpdate(aclient);
+		} else {
+			SendConfigUpdate(aclient);
+		}
 
 		Log(LogInformation, "ApiListener")
 			<< "Finished sending config file updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";

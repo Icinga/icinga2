@@ -194,6 +194,7 @@ private:
 	void SyncLocalZoneDir(const Zone::Ptr& zone) const;
 
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
+	void DeclareConfigUpdate(const JsonRpcConnection::Ptr& aclient);
 
 	static Dictionary::Ptr MergeConfigUpdate(const ConfigDirInformation& config);
 

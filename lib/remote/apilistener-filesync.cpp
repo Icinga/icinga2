@@ -17,6 +17,7 @@
 #include <fstream>
 #include <iomanip>
 #include <thread>
+#include <utility>
 
 using namespace icinga;
 
@@ -253,6 +254,121 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	});
 
 	aclient->SendMessage(message);
+}
+
+static Dictionary::Ptr AssembleZoneDeclaration(const String& zoneName)
+{
+	auto base (ApiListener::GetApiZonesDir() + zoneName + "/");
+	Dictionary::Ptr declaration = new Dictionary();
+
+	{
+		auto file (base + ".timestamp");
+		std::ifstream fp (file.CStr(), std::ifstream::binary);
+
+		if (!fp) {
+			return nullptr;
+		}
+
+		double ts;
+
+		try {
+			ts = Convert::ToDouble(String(std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>()));
+		} catch (const std::exception&) {
+			return nullptr;
+		}
+
+		declaration->Set("timestamp", ts);
+	}
+
+	{
+		auto file (base + ".checksum");
+		std::ifstream fp (file.CStr(), std::ifstream::binary);
+
+		if (!fp) {
+			return nullptr;
+		}
+
+		String content;
+
+		try {
+			content = String(std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>());
+		} catch (const std::exception&) {
+			return nullptr;
+		}
+
+		declaration->Set("checksum", content);
+	}
+
+	return std::move(declaration);
+}
+
+/**
+ * Entrypoint for sending a file based config declaration to a cluster client.
+ * This includes security checks for zone relations.
+ * Loads the zone config files where this client belongs to
+ * and sends the 'config::HasZones' JSON-RPC message.
+ *
+ * @param aclient Connected JSON-RPC client.
+ */
+void ApiListener::DeclareConfigUpdate(const JsonRpcConnection::Ptr& client)
+{
+	Endpoint::Ptr endpoint = client->GetEndpoint();
+	ASSERT(endpoint);
+
+	Zone::Ptr clientZone = endpoint->GetZone();
+
+	// Don't send config declarations to parent zones
+	if (!clientZone->IsChildOf(Zone::GetLocalZone())) {
+		return;
+	}
+
+	Dictionary::Ptr declaration = new Dictionary();
+	String zonesDir = GetApiZonesDir();
+
+	for (auto& zone : ConfigType::GetObjectsByType<Zone>()) {
+		String zoneName = zone->GetName();
+		String zoneDir = zonesDir + zoneName;
+
+		// Only declare child and global zones.
+		if (!zone->IsChildOf(clientZone) && !zone->IsGlobal()) {
+			continue;
+		}
+
+		// Zone was configured, but there's no configuration directory.
+		if (!Utility::PathExists(zoneDir)) {
+			continue;
+		}
+
+		auto perZone (AssembleZoneDeclaration(zoneName));
+
+		if (!perZone) {
+			// We likely just were upgraded to v2.13 and our non-authoritive config
+			// hasn't been synced from the config master, yet.
+
+			Log(LogNotice, "ApiListener")
+				<< "Not informing endpoint '" << endpoint->GetName() << "' about "
+				<< (zone->IsGlobal() ? "global " : "") << "zone '" << zoneName
+				<< "' to due to yet missing/bad .timestamp/.checksum file in '" << zoneDir << "'.";
+
+			continue;
+		}
+
+		Log(LogInformation, "ApiListener")
+			<< "Informing endpoint '" << endpoint->GetName() << "' about "
+			<< (zone->IsGlobal() ? "global " : "") << "zone '" << zoneName << "'.";
+
+		declaration->Set(zoneName, perZone);
+	}
+
+	if (declaration->GetLength()) {
+		client->SendMessage(new Dictionary({
+			{ "jsonrpc", "2.0" },
+			{ "method", "config::HaveZones" },
+			{ "params", new Dictionary({
+				{ "zones", declaration }
+			}) }
+		}));
+	}
 }
 
 static bool CompareTimestampsConfigChange(const Dictionary::Ptr& productionConfig, const Dictionary::Ptr& receivedConfig,
