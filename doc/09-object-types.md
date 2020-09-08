@@ -205,6 +205,7 @@ Configuration Attributes:
   ignore\_soft\_states      | Boolean               | **Optional.** Whether to ignore soft states for the reachability calculation. Defaults to true.
   period                    | Object name           | **Optional.** Time period object during which this dependency is enabled.
   states    	            | Array                 | **Optional.** A list of state filters when this dependency should be OK. Defaults to [ OK, Warning ] for services and [ Up ] for hosts.
+  redundancy\_group         | String                | **Optional.** Puts the dependency into a group of mutually redundant ones. See discussion below.
 
 Available state filters:
 
@@ -216,6 +217,16 @@ Unknown
 Up
 Down
 ```
+
+Redundancy groups:
+
+Sometimes, you want a dependencies to accumulate (e.g., the parent considered reachable only if no dependency is violated), sometimes you want them to be regarded as redundant (e.g., the parent considered unreachable only if no dependency is fulfilled) or even a mixture of both. Think of a host connected to both a network and a storage switch vs. a host connected to redundant routers or a service like SSH depeding on both LDAP and DNS to function, while operating redundant LDAP servers as well as redundant DNS resolvers.
+
+Behaviour prior to 2.12.0 was to regard all dependecies as cumulative; 2.12.0 made all dependencies regareded redundant.
+This may lead to unrelated services inadvertantly regarded to be redundant to each other.
+
+Specifying a `redundancy_group` causes a dependency to be regarded as redundant only inside that redundancy group.
+Dependencies lacking a `redundancy_group` attribute are regarded as essential for the parent.
 
 When using [apply rules](03-monitoring-basics.md#using-apply) for dependencies, you can leave out certain attributes which will be
 automatically determined by Icinga 2.

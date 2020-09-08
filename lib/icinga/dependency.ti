@@ -77,6 +77,8 @@ class Dependency : CustomVarObject < DependencyNameComposer
 		}}}
 	};
 
+	[config] String redundancy_group;
+
 	[config, navigation] name(TimePeriod) period (PeriodRaw) {
 		navigate {{{
 			return TimePeriod::GetByName(GetPeriodRaw());
