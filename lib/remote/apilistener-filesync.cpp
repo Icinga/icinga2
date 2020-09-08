@@ -23,6 +23,7 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 REGISTER_APIFUNCTION(HaveZones, config, &ApiListener::ConfigHaveZonesHandler);
+REGISTER_APIFUNCTION(WantZones, config, &ApiListener::ConfigWantZonesHandler);
 
 boost::mutex ApiListener::m_ConfigSyncStageLock;
 
@@ -544,6 +545,101 @@ Value ApiListener::ConfigHaveZonesHandler(const MessageOrigin::Ptr& origin, cons
 		{ "method", "config::WantZones" },
 		{ "params", new Dictionary({
 			{ "zones", want }
+		}) }
+	}));
+
+	return Empty;
+}
+
+Value ApiListener::ConfigWantZonesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Log(LogNotice, "ApiListener")
+		<< "Received request for zones: " << JsonEncode(params);
+
+	/* check permissions */
+	auto listener (ApiListener::GetInstance());
+
+	if (!listener) {
+		return Empty;
+	}
+
+	auto endpoint (origin->FromClient->GetEndpoint());
+	auto identity (origin->FromClient->GetIdentity());
+	auto clientZone (endpoint->GetZone());
+
+	/* discard messages if the client is not configured on this node */
+	if (!endpoint) {
+		Log(LogNotice, "ApiListener")
+			<< "Discarding 'config want zones' message from '" << identity
+			<< "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	auto zone (endpoint->GetZone());
+	Array::Ptr zones (params->Get("zones"));
+	auto zonesDir (GetApiZonesDir());
+	Dictionary::Ptr haveFiles = new Dictionary();
+	ObjectLock oLock (zones);
+
+	for (auto& zoneName : zones) {
+		auto zone (Zone::GetByName(zoneName));
+
+		if (!zone) {
+			Log(LogWarning, "ApiListener")
+				<< "No such zone '" << zoneName << "' in zones request from '" << identity << "'.";
+			continue;
+		}
+
+		if (!zone->IsChildOf(clientZone) && !zone->IsGlobal()) {
+			Log(LogWarning, "ApiListener")
+				<< "Unauthorized access to zone '" << zoneName << "' in zones request from '" << identity << "'.";
+			continue;
+		}
+
+		String checksumsPath = zonesDir + zoneName + "/.checksums";
+		std::ifstream fp (checksumsPath.CStr(), std::ifstream::binary);
+
+		if (!fp) {
+			Log(LogWarning, "ApiListener")
+				<< "No local .checksums for zone '" << zoneName << "' for zones request from '" << identity << "'.";
+			continue;
+		}
+
+		Log(LogNotice, "ApiListener")
+			<< "Informing '" << identity << "' about files in zone '" << zoneName << "'.";
+
+		haveFiles->Set(zoneName, JsonDecode(String(
+			std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>()
+		)));
+	}
+
+	if (!haveFiles->GetLength()) {
+		Log(LogNotice, "ApiListener")
+			<< "Not informing '" << identity << "' about files in any zone.";
+		return Empty;
+	}
+
+	JsonRpcConnection::Ptr client;
+
+	for (auto& conn : endpoint->GetClients()) {
+		client = conn;
+		break;
+	}
+
+	if (!client) {
+		Log(LogNotice, "ApiListener")
+			<< "Not informing '" << identity << "' about files in any zone as we're not connected.";
+		return Empty;
+	}
+
+	Log(LogInformation, "ApiListener")
+		<< "Informing '" << identity << "' about files in " << haveFiles->GetLength() << " zone(s).";
+
+	client->SendMessage(new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::HaveFiles" },
+		{ "params", new Dictionary({
+			{ "checksums", haveFiles }
 		}) }
 	}));
 
