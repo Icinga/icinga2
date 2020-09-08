@@ -87,6 +87,7 @@ public:
 	static Value ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	static Value ConfigHaveZonesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	static Value ConfigWantZonesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value ConfigHaveFilesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	static void HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	/* configsync */

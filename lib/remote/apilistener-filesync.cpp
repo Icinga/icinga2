@@ -24,6 +24,7 @@ using namespace icinga;
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 REGISTER_APIFUNCTION(HaveZones, config, &ApiListener::ConfigHaveZonesHandler);
 REGISTER_APIFUNCTION(WantZones, config, &ApiListener::ConfigWantZonesHandler);
+REGISTER_APIFUNCTION(HaveFiles, config, &ApiListener::ConfigHaveFilesHandler);
 
 boost::mutex ApiListener::m_ConfigSyncStageLock;
 
@@ -545,6 +546,128 @@ Value ApiListener::ConfigHaveZonesHandler(const MessageOrigin::Ptr& origin, cons
 		{ "method", "config::WantZones" },
 		{ "params", new Dictionary({
 			{ "zones", want }
+		}) }
+	}));
+
+	return Empty;
+}
+
+Value ApiListener::ConfigHaveFilesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	auto endpoint (origin->FromClient->GetEndpoint());
+
+	// Verify permissions and trust relationship.
+	if (!endpoint || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone))) {
+		return Empty;
+	}
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener) {
+		Log(LogCritical, "ApiListener", "No instance available.");
+		return Empty;
+	}
+
+	if (!listener->GetAcceptConfig()) {
+		Log(LogWarning, "ApiListener")
+			<< "Ignoring information about files in zones. '" << listener->GetName() << "' does not accept config.";
+		return Empty;
+	}
+
+	auto fromEndpointName (origin->FromClient->GetEndpoint()->GetName());
+	auto fromZoneName (GetFromZoneName(origin->FromZone));
+
+	Log(LogInformation, "ApiListener")
+		<< "Checking information about files in zones from endpoint '" << fromEndpointName
+		<< "' of zone '" << fromZoneName << "'.";
+
+	Dictionary::Ptr checksums = params->Get("checksums");
+	auto zonesDir (GetApiZonesDir());
+	Dictionary::Ptr want = new Dictionary();
+	ObjectLock oLock (checksums);
+
+	for (auto& kv : checksums) {
+		if (!Zone::GetByName(kv.first)) {
+			Log(LogWarning, "ApiListener")
+				<< "Ignoring information about files in unknown zone '" << kv.first
+				<< "' from endpoint '" << fromEndpointName << "'.";
+			continue;
+		}
+
+		// Ignore files declarations where we have an authoritive copy in etc/zones.d, packages, etc.
+		if (ConfigCompiler::HasZoneConfigAuthority(kv.first)) {
+			Log(LogInformation, "ApiListener")
+				<< "Ignoring information about files in zone '" << kv.first << "' from endpoint '"
+				<< fromEndpointName << "' because we have an authoritative version of the zone's config.";
+			continue;
+		}
+
+		String checksumsPath = zonesDir + kv.first + "/.checksums";
+		Dictionary::Ptr checksums;
+		std::ifstream fp (checksumsPath.CStr(), std::ifstream::binary);
+
+		if (fp) {
+			checksums = JsonDecode(String(
+				std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>()
+			));
+		} else {
+			checksums = new Dictionary();
+		}
+
+		Dictionary::Ptr havePerZone = kv.second;
+		Array::Ptr wantPerZone = new Array();
+		ObjectLock oLock (havePerZone);
+
+		for (auto& kv : havePerZone) {
+			if (kv.second != checksums->Get(kv.first)) {
+				wantPerZone->Add(kv.first);
+			}
+
+			checksums->Remove(kv.first);
+		}
+
+		Log(LogNotice, "ApiListener")
+			<< "Compared to the information from endpoint '" << fromEndpointName
+			<< "' about files in zone '" << kv.first << "' there are " << wantPerZone->GetLength()
+			<< " file(s) to fetch the content(s) of and " << checksums->GetLength() << " file(s) to remove.";
+
+		if (!wantPerZone->GetLength() && !checksums->GetLength()) {
+			continue;
+		}
+
+		want->Set(kv.first, wantPerZone);
+	}
+
+	if (!want->GetLength()) {
+		Log(LogNotice, "ApiListener")
+			<< "Compared to the information about files in zones from endpoint '"
+			<< fromEndpointName << "' everything is up-to-date.";
+		return Empty;
+	}
+
+	JsonRpcConnection::Ptr client;
+
+	for (auto& conn : endpoint->GetClients()) {
+		client = conn;
+		break;
+	}
+
+	if (!client) {
+		Log(LogNotice, "ApiListener")
+			<< "Compared to the information about files in zones from endpoint '"
+			<< fromEndpointName << "' not everything is up-to-date, but we're not connected.";
+		return Empty;
+	}
+
+	Log(LogInformation, "ApiListener")
+		<< "Compared to the information about files in zones from endpoint '" << fromEndpointName
+		<< "' not everything is up-to-date. Requesting files of " << want->GetLength() << " zone(s).";
+
+	client->SendMessage(new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::WantFiles" },
+		{ "params", new Dictionary({
+			{ "files", want }
 		}) }
 	}));
 
