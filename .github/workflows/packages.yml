@@ -116,12 +116,6 @@ jobs:
             -e ICINGA_BUILD_TYPE=snapshot \
             registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.codename }}:x86 \
             icinga-build-test
-
-      - name: Artifacts
-        uses: actions/upload-artifact@v1
-        with:
-          name: '${{ matrix.distro.name }}-${{ matrix.distro.codename }}-packages'
-          path: deb-icinga2/build
   rpm:
     name: .rpm
 
@@ -220,13 +214,6 @@ jobs:
             -e ICINGA_BUILD_TYPE=snapshot \
             registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.release }} \
             icinga-build-test
-
-      - name: Artifacts
-        if: "steps.vars.outputs.CAN_BUILD == 'true'"
-        uses: actions/upload-artifact@v1
-        with:
-          name: '${{ matrix.distro.name }}-${{ matrix.distro.release }}-packages'
-          path: rpm-icinga2/build
   raspbian:
     name: Raspbian
 
@@ -298,9 +285,3 @@ jobs:
 #            -e ICINGA_BUILD_DEB_DEFAULT_ARCH=armhf \
 #            registry.icinga.com/build-docker/raspbian/${{ matrix.codename }} \
 #            icinga-build-test
-
-      - name: Artifacts
-        uses: actions/upload-artifact@v1
-        with:
-          name: 'raspbian-${{ matrix.codename }}-packages'
-          path: raspbian-icinga2/build
