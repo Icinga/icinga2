@@ -56,20 +56,9 @@ jobs:
             registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.codename }} \
             icinga-build-deb-source
 
-      - name: Restore/backup ccache
-        id: ccache
-        uses: actions/cache@v1
-        with:
-          path: deb-icinga2/ccache
-          key: |-
-            ${{ matrix.distro.name }}/${{ matrix.distro.codename }}-ccache-${{ hashFiles('deb-icinga2/ccache') }}
-
       - name: Binary x64
         run: |
           set -exo pipefail
-          if [ -e deb-icinga2/ccache ]; then
-            chmod -R o+w deb-icinga2/ccache
-          fi
           docker run --rm \
             -v "$(pwd)/deb-icinga2:/deb-icinga2" \
             -w /deb-icinga2 \
@@ -190,23 +179,11 @@ jobs:
           git clone https://git.icinga.com/packaging/rpm-icinga2.git
           chmod o+w rpm-icinga2
 
-      - name: Restore/backup ccache
-        if: "steps.vars.outputs.CAN_BUILD == 'true'"
-        id: ccache
-        uses: actions/cache@v1
-        with:
-          path: rpm-icinga2/ccache
-          key: |-
-            ${{ matrix.distro.name }}/${{ matrix.distro.release }}-ccache-${{ hashFiles('rpm-icinga2/ccache') }}
-
       - name: Binary
         if: "steps.vars.outputs.CAN_BUILD == 'true'"
         run: |
           set -exo pipefail
           git checkout -B master
-          if [ -e rpm-icinga2/ccache ]; then
-            chmod -R o+w rpm-icinga2/ccache
-          fi
           docker run --rm \
             -v "$(pwd)/rpm-icinga2:/rpm-icinga2" \
             -v "$(pwd)/.git:/icinga2.git:ro" \
@@ -261,21 +238,10 @@ jobs:
           git clone https://git.icinga.com/packaging/raspbian-icinga2.git
           chmod o+w raspbian-icinga2
 
-      - name: Restore/backup ccache
-        id: ccache
-        uses: actions/cache@v1
-        with:
-          path: raspbian-icinga2/ccache
-          key: |-
-            raspbian/${{ matrix.codename }}-ccache-${{ hashFiles('raspbian-icinga2/ccache') }}
-
       - name: Binary
         run: |
           set -exo pipefail
           git checkout -B master
-          if [ -e raspbian-icinga2/ccache ]; then
-            chmod -R o+w raspbian-icinga2/ccache
-          fi
           docker run --rm \
             -v "$(pwd)/raspbian-icinga2:/raspbian-icinga2" \
             -v "$(pwd)/.git:/icinga2.git:ro" \
