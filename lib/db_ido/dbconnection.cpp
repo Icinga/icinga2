@@ -76,6 +76,11 @@ void DbConnection::Resume()
 	m_CleanUpTimer->SetInterval(60);
 	m_CleanUpTimer->OnTimerExpired.connect(std::bind(&DbConnection::CleanUpHandler, this));
 	m_CleanUpTimer->Start();
+
+	m_LogStatsTimer = new Timer();
+	m_LogStatsTimer->SetInterval(10);
+	m_LogStatsTimer->OnTimerExpired.connect([this](const Timer * const&) { LogStatsHandler(); });
+	m_LogStatsTimer->Start();
 }
 
 void DbConnection::Pause()
@@ -234,6 +239,36 @@ void DbConnection::CleanUpHandler()
 			<< " old: " << now - max_age;
 	}
 
+}
+
+void DbConnection::LogStatsHandler()
+{
+	auto pending = m_PendingQueries.load();
+
+	if (pending == 0u) {
+		return;
+	}
+
+	auto now = Utility::GetTime();
+	auto input = m_InputQueries.CalculateRate(now, 60);
+	auto output = m_OutputQueries.CalculateRate(now, 60);
+	String timeInfo;
+
+	{
+		auto rate = output - input;
+
+		if (pending > rate * 5) {
+			timeInfo = " empty in ";
+			if (rate <= 0)
+				timeInfo += "infinite time, your task handler isn't able to keep up";
+			else
+				timeInfo += Utility::FormatDuration(pending / rate);
+		}
+	}
+
+	Log(LogInformation, GetReflectionType()->GetName())
+		<< "Pending queries: " << pending << " (Input: " << input
+		<< "/s; Output: " << output << "/s)" << timeInfo;
 }
 
 void DbConnection::CleanUpExecuteQuery(const String&, const String&, double)
@@ -506,4 +541,19 @@ void DbConnection::SetIDCacheValid(bool valid)
 int DbConnection::GetSessionToken()
 {
 	return Application::GetStartTime();
+}
+
+void DbConnection::IncreasePendingQueries(int count)
+{
+	m_PendingQueries.fetch_add(count);
+	m_InputQueries.InsertValue(Utility::GetTime(), count);
+}
+
+void DbConnection::DecreasePendingQueries(int count, bool increaseOutputRate)
+{
+	m_PendingQueries.fetch_sub(count);
+
+	if (increaseOutputRate) {
+		m_OutputQueries.InsertValue(Utility::GetTime(), count);
+	}
 }

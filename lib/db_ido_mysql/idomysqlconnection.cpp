@@ -13,6 +13,7 @@
 #include "base/configtype.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
+#include "base/defer.hpp"
 #include <utility>
 
 using namespace icinga;
@@ -174,6 +175,8 @@ void IdoMysqlConnection::InternalNewTransaction()
 
 	if (!GetConnected())
 		return;
+
+	IncreasePendingQueries(2);
 
 	AsyncQuery("COMMIT");
 	AsyncQuery("BEGIN");
@@ -521,14 +524,31 @@ void IdoMysqlConnection::FinishAsyncQueries()
 {
 	std::vector<IdoAsyncQuery> queries;
 	m_AsyncQueries.swap(queries);
+	DecreasePendingQueries(queries.size());
 
 	std::vector<IdoAsyncQuery>::size_type offset = 0;
+
+	// This will be executed if there is a problem with executing the queries,
+	// at which point this function throws an exception and the queries should
+	// not be listed as still pending in the queue.
+	Defer decreaseQueries ([this, &offset, &queries]() {
+		auto lostQueries = queries.size() - offset;
+
+		if (lostQueries > 0) {
+			//DecreasePendingQueries(lostQueries, false);
+		}
+	});
 
 	while (offset < queries.size()) {
 		std::ostringstream querybuf;
 
 		std::vector<IdoAsyncQuery>::size_type count = 0;
 		size_t num_bytes = 0;
+
+		Defer decreaseQueries ([this, &offset, &count]() {
+			offset += count;
+			//DecreasePendingQueries(count);
+		});
 
 		for (std::vector<IdoAsyncQuery>::size_type i = offset; i < queries.size(); i++) {
 			const IdoAsyncQuery& aq = queries[i];
@@ -608,14 +628,15 @@ void IdoMysqlConnection::FinishAsyncQueries()
 				);
 			}
 		}
-
-		offset += count;
 	}
 }
 
 IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 {
 	AssertOnWorkQueue();
+
+	IncreasePendingQueries(1);
+	Defer decreaseQueries ([this]() { DecreasePendingQueries(1); });
 
 	/* finish all async queries to maintain the right order for queries */
 	FinishAsyncQueries();
@@ -770,6 +791,7 @@ void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 		SetObjectID(dbobj, GetLastInsertID());
 	} else {
 		qbuf << "UPDATE " + GetTablePrefix() + "objects SET is_active = 1 WHERE object_id = " << static_cast<long>(dbref);
+		IncreasePendingQueries(1);
 		AsyncQuery(qbuf.str());
 	}
 }
@@ -804,6 +826,7 @@ void IdoMysqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)
 
 	std::ostringstream qbuf;
 	qbuf << "UPDATE " + GetTablePrefix() + "objects SET is_active = 0 WHERE object_id = " << static_cast<long>(dbref);
+	IncreasePendingQueries(1);
 	AsyncQuery(qbuf.str());
 
 	/* Note that we're _NOT_ clearing the db refs via SetReference/SetConfigUpdate/SetStatusUpdate
@@ -893,6 +916,7 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 		<< "Scheduling execute query task, type " << query.Type << ", table '" << query.Table << "'.";
 #endif /* I2_DEBUG */
 
+	IncreasePendingQueries(1);
 	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority, true);
 }
 
@@ -909,6 +933,7 @@ void IdoMysqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& quer
 		<< "Scheduling multiple execute query task, type " << queries[0].Type << ", table '" << queries[0].Table << "'.";
 #endif /* I2_DEBUG */
 
+	IncreasePendingQueries(queries.size());
 	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteMultipleQueries, this, queries), queries[0].Priority, true);
 }
 
@@ -948,11 +973,16 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 {
 	AssertOnWorkQueue();
 
-	if (IsPaused())
+	if (IsPaused()) {
+		DecreasePendingQueries(queries.size(), false);
 		return;
+	}
 
-	if (!GetConnected())
+	if (!GetConnected()) {
+		DecreasePendingQueries(queries.size(), false);
 		return;
+	}
+
 
 	for (const DbQuery& query : queries) {
 		ASSERT(query.Type == DbQueryNewTransaction || query.Category != DbCatInvalid);
@@ -979,23 +1009,32 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 {
 	AssertOnWorkQueue();
 
-	if (IsPaused())
+	if (IsPaused()) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
-	if (!GetConnected())
+	if (!GetConnected()) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
 	if (query.Type == DbQueryNewTransaction) {
+		DecreasePendingQueries(1);
 		InternalNewTransaction();
 		return;
 	}
 
 	/* check whether we're allowed to execute the query first */
-	if (GetCategoryFilter() != DbCatEverything && (query.Category & GetCategoryFilter()) == 0)
+	if (GetCategoryFilter() != DbCatEverything && (query.Category & GetCategoryFilter()) == 0) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
-	if (query.Object && query.Object->GetObject()->GetExtension("agent_check").ToBool())
+	if (query.Object && query.Object->GetObject()->GetExtension("agent_check").ToBool()) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
 	/* check if there are missing object/insert ids and re-enqueue the query */
 	if (!CanExecuteQuery(query)) {
@@ -1066,6 +1105,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 	if ((type & DbQueryInsert) && (type & DbQueryDelete)) {
 		std::ostringstream qdel;
 		qdel << "DELETE FROM " << GetTablePrefix() << query.Table << where.str();
+		IncreasePendingQueries(1);
 		AsyncQuery(qdel.str());
 
 		type = DbQueryInsert;
@@ -1150,6 +1190,7 @@ void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool
 			<< "Rescheduling DELETE/INSERT query: Upsert UPDATE did not affect rows, type " << type << ", table '" << query.Table << "'.";
 #endif /* I2_DEBUG */
 
+		IncreasePendingQueries(1);
 		m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, DbQueryDelete | DbQueryInsert), query.Priority);
 
 		return;
@@ -1178,6 +1219,7 @@ void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& 
 			<< time_column << "'. max_age is set to '" << max_age << "'.";
 #endif /* I2_DEBUG */
 
+	IncreasePendingQueries(1);
 	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), PriorityLow, true);
 }
 
@@ -1185,11 +1227,15 @@ void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 {
 	AssertOnWorkQueue();
 
-	if (IsPaused())
+	if (IsPaused()) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
-	if (!GetConnected())
+	if (!GetConnected()) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
 	AsyncQuery("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
 		Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
