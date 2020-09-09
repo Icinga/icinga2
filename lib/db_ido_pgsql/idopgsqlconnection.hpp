@@ -48,7 +48,7 @@ protected:
 private:
 	DbReference m_InstanceID;
 
-	WorkQueue m_QueryQueue{1000000};
+	WorkQueue m_QueryQueue{1000000, 1, LogNotice};
 
 	Library m_Library;
 	std::unique_ptr<PgsqlInterface, PgsqlInterfaceDeleter> m_Pgsql;
