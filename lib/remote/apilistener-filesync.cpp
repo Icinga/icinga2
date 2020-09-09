@@ -972,6 +972,34 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 		if (checksums)
 			newConfigInfo.Checksums = checksums->Get(kv.first);
 
+		for (auto& dict : { newConfigInfo.UpdateV1, newConfigInfo.UpdateV2 }) {
+			ObjectLock oLock (dict);
+
+			for (auto& kv : dict) {
+				if (kv.second.GetType() == ValueEmpty) { // Partial update. New since v2.13.
+					auto file (productionConfigZoneDir + kv.first);
+
+					Log(LogDebug, "ApiListener")
+						<< "Loading local file due to partial config update from endpoint '"
+						<< fromEndpointName << "' for zone '" << zoneName << "': '" << file << "'";
+
+					std::ifstream fp (file.CStr(), std::ifstream::binary);
+
+					if (!fp) {
+						Log(LogWarning, "ApiListener")
+							<< "No such local file in config update from endpoint '" << fromEndpointName
+							<< "' for zone '" << zoneName << "': '" << file << "'";
+						continue;
+					}
+
+					// Should be kept in sync with ConfigGlobHandler().
+					dict->Set(kv.first, Utility::ValidateUTF8(String(
+						std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>()
+					)));
+				}
+			}
+		}
+
 		// Load the current production config details.
 		ConfigDirInformation productionConfigInfo = LoadConfigDir(productionConfigZoneDir);
 
