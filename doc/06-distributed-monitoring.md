@@ -605,6 +605,13 @@ The setup wizard fetches the parent node's certificate and ask
 you to verify this information. This is to prevent MITM attacks or
 any kind of untrusted parent relationship.
 
+You can verify the fingerprint by running the following command on the node to connect to:
+
+```bash
+openssl x509 -noout -fingerprint -sha256 -in \
+ "/var/lib/icinga2/certs/$(hostname --fqdn).crt"
+```
+
 Note: The certificate is not fetched if you have chosen not to connect
 to the parent node.
 
