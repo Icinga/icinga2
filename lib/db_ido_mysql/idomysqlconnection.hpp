@@ -54,7 +54,7 @@ protected:
 private:
 	DbReference m_InstanceID;
 
-	WorkQueue m_QueryQueue{10000000};
+	WorkQueue m_QueryQueue{10000000, 1, LogNotice};
 
 	Library m_Library;
 	std::unique_ptr<MysqlInterface, MysqlInterfaceDeleter> m_Mysql;
