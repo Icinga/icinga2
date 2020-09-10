@@ -762,6 +762,27 @@ Value ApiListener::ConfigWantFilesHandler(const MessageOrigin::Ptr& origin, cons
 		return Empty;
 	}
 
+	for (auto& zone : ConfigType::GetObjectsByType<Zone>()) {
+		auto zoneName (zone->GetName());
+
+		if (!zone->IsChildOf(clientZone) && !zone->IsGlobal()) {
+			continue;
+		}
+
+		if (!Utility::PathExists(zonesDir + zoneName)) {
+			continue;
+		}
+
+		if (configUpdateV1->Contains(zoneName)) {
+			continue;
+		}
+
+		// Not requested? Not included!
+		configUpdateV1->Set(zoneName, Empty);
+		configUpdateV2->Set(zoneName, Empty);
+		configUpdateChecksums->Set(zoneName, Empty);
+	}
+
 	JsonRpcConnection::Ptr client;
 
 	for (auto& conn : endpoint->GetClients()) {
@@ -960,48 +981,53 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 		Utility::MkDirP(productionConfigZoneDir, 0700);
 		Utility::MkDirP(stageConfigZoneDir, 0700);
 
+		// Load the current production config details.
+		ConfigDirInformation productionConfigInfo = LoadConfigDir(productionConfigZoneDir);
+
 		// Merge the config information.
 		ConfigDirInformation newConfigInfo;
-		newConfigInfo.UpdateV1 = kv.second;
 
-		// Load metadata.
-		if (updateV2)
-			newConfigInfo.UpdateV2 = updateV2->Get(kv.first);
+		if (kv.second.GetType() == ValueEmpty) {
+			newConfigInfo = productionConfigInfo;
+		} else {
+			newConfigInfo.UpdateV1 = kv.second;
 
-		// Load checksums. New since 2.11.
-		if (checksums)
-			newConfigInfo.Checksums = checksums->Get(kv.first);
+			// Load metadata.
+			if (updateV2)
+				newConfigInfo.UpdateV2 = updateV2->Get(kv.first);
 
-		for (auto& dict : { newConfigInfo.UpdateV1, newConfigInfo.UpdateV2 }) {
-			ObjectLock oLock (dict);
+			// Load checksums. New since 2.11.
+			if (checksums)
+				newConfigInfo.Checksums = checksums->Get(kv.first);
 
-			for (auto& kv : dict) {
-				if (kv.second.GetType() == ValueEmpty) { // Partial update. New since v2.13.
-					auto file (productionConfigZoneDir + kv.first);
+			for (auto& dict : { newConfigInfo.UpdateV1, newConfigInfo.UpdateV2 }) {
+				ObjectLock oLock (dict);
 
-					Log(LogDebug, "ApiListener")
-						<< "Loading local file due to partial config update from endpoint '"
-						<< fromEndpointName << "' for zone '" << zoneName << "': '" << file << "'";
+				for (auto& kv : dict) {
+					if (kv.second.GetType() == ValueEmpty) { // Partial update. New since v2.13.
+						auto file (productionConfigZoneDir + kv.first);
 
-					std::ifstream fp (file.CStr(), std::ifstream::binary);
+						Log(LogDebug, "ApiListener")
+							<< "Loading local file due to partial config update from endpoint '"
+							<< fromEndpointName << "' for zone '" << zoneName << "': '" << file << "'";
 
-					if (!fp) {
-						Log(LogWarning, "ApiListener")
-							<< "No such local file in config update from endpoint '" << fromEndpointName
-							<< "' for zone '" << zoneName << "': '" << file << "'";
-						continue;
+						std::ifstream fp (file.CStr(), std::ifstream::binary);
+
+						if (!fp) {
+							Log(LogWarning, "ApiListener")
+								<< "No such local file in config update from endpoint '" << fromEndpointName
+								<< "' for zone '" << zoneName << "': '" << file << "'";
+							continue;
+						}
+
+						// Should be kept in sync with ConfigGlobHandler().
+						dict->Set(kv.first, Utility::ValidateUTF8(String(
+							std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>()
+						)));
 					}
-
-					// Should be kept in sync with ConfigGlobHandler().
-					dict->Set(kv.first, Utility::ValidateUTF8(String(
-						std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>()
-					)));
 				}
 			}
 		}
-
-		// Load the current production config details.
-		ConfigDirInformation productionConfigInfo = LoadConfigDir(productionConfigZoneDir);
 
 		// Merge updateV1 and updateV2
 		Dictionary::Ptr productionConfig = MergeConfigUpdate(productionConfigInfo);
