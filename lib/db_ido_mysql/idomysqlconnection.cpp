@@ -513,7 +513,6 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<voi
 	 */
 	aq.Callback = callback;
 	m_AsyncQueries.emplace_back(std::move(aq));
-	DecreasePendingQueries(1);
 
 	if (m_AsyncQueries.size() > 25000) {
 		FinishAsyncQueries();
@@ -525,6 +524,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 {
 	std::vector<IdoAsyncQuery> queries;
 	m_AsyncQueries.swap(queries);
+	DecreasePendingQueries(queries.size());
 
 	std::vector<IdoAsyncQuery>::size_type offset = 0;
 
@@ -973,11 +973,16 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 {
 	AssertOnWorkQueue();
 
-	if (IsPaused())
+	if (IsPaused()) {
+		DecreasePendingQueries(queries.size(), false);
 		return;
+	}
 
-	if (!GetConnected())
+	if (!GetConnected()) {
+		DecreasePendingQueries(queries.size(), false);
 		return;
+	}
+
 
 	for (const DbQuery& query : queries) {
 		ASSERT(query.Type == DbQueryNewTransaction || query.Category != DbCatInvalid);
@@ -1004,23 +1009,32 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 {
 	AssertOnWorkQueue();
 
-	if (IsPaused())
+	if (IsPaused()) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
-	if (!GetConnected())
+	if (!GetConnected()) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
 	if (query.Type == DbQueryNewTransaction) {
+		DecreasePendingQueries(1);
 		InternalNewTransaction();
 		return;
 	}
 
 	/* check whether we're allowed to execute the query first */
-	if (GetCategoryFilter() != DbCatEverything && (query.Category & GetCategoryFilter()) == 0)
+	if (GetCategoryFilter() != DbCatEverything && (query.Category & GetCategoryFilter()) == 0) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
-	if (query.Object && query.Object->GetObject()->GetExtension("agent_check").ToBool())
+	if (query.Object && query.Object->GetObject()->GetExtension("agent_check").ToBool()) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
 	/* check if there are missing object/insert ids and re-enqueue the query */
 	if (!CanExecuteQuery(query)) {
@@ -1213,11 +1227,15 @@ void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 {
 	AssertOnWorkQueue();
 
-	if (IsPaused())
+	if (IsPaused()) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
-	if (!GetConnected())
+	if (!GetConnected()) {
+		DecreasePendingQueries(1, false);
 		return;
+	}
 
 	AsyncQuery("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
 		Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
