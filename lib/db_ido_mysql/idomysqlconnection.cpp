@@ -513,6 +513,7 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<voi
 	 */
 	aq.Callback = callback;
 	m_AsyncQueries.emplace_back(std::move(aq));
+	DecreasePendingQueries(1);
 
 	if (m_AsyncQueries.size() > 25000) {
 		FinishAsyncQueries();
@@ -534,7 +535,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 		auto lostQueries = queries.size() - offset;
 
 		if (lostQueries > 0) {
-			DecreasePendingQueries(lostQueries, false);
+			//DecreasePendingQueries(lostQueries, false);
 		}
 	});
 
@@ -546,7 +547,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 
 		Defer decreaseQueries ([this, &offset, &count]() {
 			offset += count;
-			DecreasePendingQueries(count);
+			//DecreasePendingQueries(count);
 		});
 
 		for (std::vector<IdoAsyncQuery>::size_type i = offset; i < queries.size(); i++) {
