@@ -257,7 +257,7 @@ void DbConnection::LogStatsHandler()
 	{
 		auto rate = output - input;
 
-		if (pending < rate * 5) {
+		if (pending > rate * 5) {
 			timeInfo = " empty in ";
 			if (rate <= 0)
 				timeInfo += "infinite time, your task handler isn't able to keep up";
