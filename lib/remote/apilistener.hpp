@@ -85,12 +85,18 @@ public:
 
 	/* filesync */
 	static Value ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value ConfigHaveZonesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value ConfigWantZonesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value ConfigHaveFilesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value ConfigWantFilesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	static void HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	/* configsync */
 	static void ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, const Value& cookie);
 	static Value ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	static Value ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value ConfigHaveObjectsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value ConfigWantObjectsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	/* API config packages */
 	void SetActivePackageStage(const String& package, const String& stage);
@@ -192,11 +198,12 @@ private:
 	void SyncLocalZoneDir(const Zone::Ptr& zone) const;
 
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
+	void DeclareConfigUpdate(const JsonRpcConnection::Ptr& aclient);
 
 	static Dictionary::Ptr MergeConfigUpdate(const ConfigDirInformation& config);
 
-	static ConfigDirInformation LoadConfigDir(const String& dir);
-	static void ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file);
+	static ConfigDirInformation LoadConfigDir(const String& dir, const Dictionary::Ptr& contents = nullptr);
+	static void ConfigGlobHandler(ConfigDirInformation& config, const Dictionary::Ptr& contents, const String& path, const String& file);
 
 	static void TryActivateZonesStageCallback(const ProcessResult& pr,
 		const std::vector<String>& relativePaths);
@@ -214,6 +221,7 @@ private:
 	void DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 		const JsonRpcConnection::Ptr& client = nullptr);
 	void SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient);
+	void DeclareRuntimeConfigObjects(const JsonRpcConnection::Ptr& client);
 
 	void SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint, bool needSync);
 

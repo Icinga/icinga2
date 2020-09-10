@@ -3,6 +3,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "config/configcompiler.hpp"
+#include "base/object-packer.hpp"
 #include "base/tlsutility.hpp"
 #include "base/json.hpp"
 #include "base/configtype.hpp"
@@ -12,13 +13,19 @@
 #include "base/exception.hpp"
 #include "base/shared.hpp"
 #include "base/utility.hpp"
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <thread>
+#include <utility>
 
 using namespace icinga;
 
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
+REGISTER_APIFUNCTION(HaveZones, config, &ApiListener::ConfigHaveZonesHandler);
+REGISTER_APIFUNCTION(WantZones, config, &ApiListener::ConfigWantZonesHandler);
+REGISTER_APIFUNCTION(HaveFiles, config, &ApiListener::ConfigHaveFilesHandler);
+REGISTER_APIFUNCTION(WantFiles, config, &ApiListener::ConfigWantFilesHandler);
 
 boost::mutex ApiListener::m_ConfigSyncStageLock;
 
@@ -59,10 +66,14 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 	newConfigInfo.Checksums = new Dictionary();
 
 	String zoneName = zone->GetName();
+	Dictionary::Ptr contents = new Dictionary();
+	double ts = 0;
 
 	// Load registered zone paths, e.g. '_etc', '_api' and user packages.
 	for (const ZoneFragment& zf : ConfigCompiler::GetZoneDirs(zoneName)) {
-		ConfigDirInformation newConfigPart = LoadConfigDir(zf.Path);
+		ConfigDirInformation newConfigPart = LoadConfigDir(zf.Path, contents);
+
+		Utility::GlobRecursive(zf.Path, "*", [&ts](const String& path) { ts = std::max(ts, Utility::GetModTime(path)); }, GlobFile | GlobDirectory);
 
 		// Config files '*.conf'.
 		{
@@ -85,6 +96,11 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 				newConfigInfo.Checksums->Set(path, GetChecksum(kv.second));
 			}
 		}
+	}
+
+	if (ts == 0) {
+		// Syncing an empty zone every time hurts less than not syncing it at all.
+		ts = Utility::GetTime();
 	}
 
 	size_t sumUpdates = newConfigInfo.UpdateV1->GetLength() + newConfigInfo.UpdateV2->GetLength();
@@ -142,7 +158,7 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 	if (!Utility::PathExists(tsPath)) {
 		std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
 
-		fp << std::fixed << Utility::GetTime();
+		fp << std::fixed << ts;
 		fp.close();
 	}
 
@@ -163,6 +179,19 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 
 	fp << std::fixed << JsonEncode(newConfigInfo.Checksums);
 	fp.close();
+
+	// Checksum.
+	String checksumPath = productionZonesDir + "/.checksum";
+
+	if (Utility::PathExists(checksumPath))
+		Utility::Remove(checksumPath);
+
+	{
+		std::ofstream fp(checksumPath.CStr(), std::ofstream::out | std::ostream::trunc);
+
+		fp << GetChecksum(PackObject(contents));
+		fp.close();
+	}
 
 	Log(LogNotice, "ApiListener")
 		<< "Updated meta data for cluster config sync. Checksum: '" << checksumsPath
@@ -229,6 +258,121 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	});
 
 	aclient->SendMessage(message);
+}
+
+static Dictionary::Ptr AssembleZoneDeclaration(const String& zoneName)
+{
+	auto base (ApiListener::GetApiZonesDir() + zoneName + "/");
+	Dictionary::Ptr declaration = new Dictionary();
+
+	{
+		auto file (base + ".timestamp");
+		std::ifstream fp (file.CStr(), std::ifstream::binary);
+
+		if (!fp) {
+			return nullptr;
+		}
+
+		double ts;
+
+		try {
+			ts = Convert::ToDouble(String(std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>()));
+		} catch (const std::exception&) {
+			return nullptr;
+		}
+
+		declaration->Set("timestamp", ts);
+	}
+
+	{
+		auto file (base + ".checksum");
+		std::ifstream fp (file.CStr(), std::ifstream::binary);
+
+		if (!fp) {
+			return nullptr;
+		}
+
+		String content;
+
+		try {
+			content = String(std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>());
+		} catch (const std::exception&) {
+			return nullptr;
+		}
+
+		declaration->Set("checksum", content);
+	}
+
+	return std::move(declaration);
+}
+
+/**
+ * Entrypoint for sending a file based config declaration to a cluster client.
+ * This includes security checks for zone relations.
+ * Loads the zone config files where this client belongs to
+ * and sends the 'config::HasZones' JSON-RPC message.
+ *
+ * @param aclient Connected JSON-RPC client.
+ */
+void ApiListener::DeclareConfigUpdate(const JsonRpcConnection::Ptr& client)
+{
+	Endpoint::Ptr endpoint = client->GetEndpoint();
+	ASSERT(endpoint);
+
+	Zone::Ptr clientZone = endpoint->GetZone();
+
+	// Don't send config declarations to parent zones
+	if (!clientZone->IsChildOf(Zone::GetLocalZone())) {
+		return;
+	}
+
+	Dictionary::Ptr declaration = new Dictionary();
+	String zonesDir = GetApiZonesDir();
+
+	for (auto& zone : ConfigType::GetObjectsByType<Zone>()) {
+		String zoneName = zone->GetName();
+		String zoneDir = zonesDir + zoneName;
+
+		// Only declare child and global zones.
+		if (!zone->IsChildOf(clientZone) && !zone->IsGlobal()) {
+			continue;
+		}
+
+		// Zone was configured, but there's no configuration directory.
+		if (!Utility::PathExists(zoneDir)) {
+			continue;
+		}
+
+		auto perZone (AssembleZoneDeclaration(zoneName));
+
+		if (!perZone) {
+			// We likely just were upgraded to v2.13 and our non-authoritive config
+			// hasn't been synced from the config master, yet.
+
+			Log(LogNotice, "ApiListener")
+				<< "Not informing endpoint '" << endpoint->GetName() << "' about "
+				<< (zone->IsGlobal() ? "global " : "") << "zone '" << zoneName
+				<< "' to due to yet missing/bad .timestamp/.checksum file in '" << zoneDir << "'.";
+
+			continue;
+		}
+
+		Log(LogInformation, "ApiListener")
+			<< "Informing endpoint '" << endpoint->GetName() << "' about "
+			<< (zone->IsGlobal() ? "global " : "") << "zone '" << zoneName << "'.";
+
+		declaration->Set(zoneName, perZone);
+	}
+
+	if (declaration->GetLength()) {
+		client->SendMessage(new Dictionary({
+			{ "jsonrpc", "2.0" },
+			{ "method", "config::HaveZones" },
+			{ "params", new Dictionary({
+				{ "zones", declaration }
+			}) }
+		}));
+	}
 }
 
 static bool CompareTimestampsConfigChange(const Dictionary::Ptr& productionConfig, const Dictionary::Ptr& receivedConfig,
@@ -316,6 +460,450 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	return Empty;
 }
 
+Value ApiListener::ConfigHaveZonesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	auto endpoint (origin->FromClient->GetEndpoint());
+
+	// Verify permissions and trust relationship.
+	if (!endpoint || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone))) {
+		return Empty;
+	}
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener) {
+		Log(LogCritical, "ApiListener", "No instance available.");
+		return Empty;
+	}
+
+	if (!listener->GetAcceptConfig()) {
+		Log(LogWarning, "ApiListener")
+			<< "Ignoring information about zones. '" << listener->GetName() << "' does not accept config.";
+		return Empty;
+	}
+
+	auto fromEndpointName (origin->FromClient->GetEndpoint()->GetName());
+	auto fromZoneName (GetFromZoneName(origin->FromZone));
+
+	Log(LogInformation, "ApiListener")
+		<< "Checking information about zones from endpoint '" << fromEndpointName
+		<< "' of zone '" << fromZoneName << "'.";
+
+	Dictionary::Ptr zones = params->Get("zones");
+	Array::Ptr want = new Array();
+	ObjectLock oLock (zones);
+
+	for (auto& kv : zones) {
+		if (!Zone::GetByName(kv.first)) {
+			Log(LogWarning, "ApiListener")
+				<< "Ignoring information about unknown zone '" << kv.first
+				<< "' from endpoint '" << fromEndpointName << "'.";
+			continue;
+		}
+
+		// Ignore files declarations where we have an authoritive copy in etc/zones.d, packages, etc.
+		if (ConfigCompiler::HasZoneConfigAuthority(kv.first)) {
+			Log(LogInformation, "ApiListener")
+				<< "Ignoring information about zone '" << kv.first << "' from endpoint '" << fromEndpointName
+				<< "' because we have an authoritative version of the zone's config.";
+			continue;
+		}
+
+		{
+			auto local (AssembleZoneDeclaration(kv.first));
+			Dictionary::Ptr remote = kv.second;
+
+			if (local && (local->Get("checksum") == remote->Get("checksum") || local->Get("timestamp") >= remote->Get("timestamp"))) {
+				Log(LogInformation, "ApiListener")
+					<< "Ignoring information about zone '" << kv.first
+					<< "' from endpoint '" << fromEndpointName << "' because we're up-to-date.";
+				continue;
+			}
+		}
+
+		Log(LogInformation, "ApiListener")
+			<< "Requesting actual zone '" << kv.first << "' from endpoint '" << fromEndpointName
+			<< "' because compared to it we're not up-to-date.";
+
+		want->Add(kv.first);
+	}
+
+	JsonRpcConnection::Ptr client;
+
+	for (auto& conn : endpoint->GetClients()) {
+		client = conn;
+		break;
+	}
+
+	if (!client) {
+		Log(LogNotice, "ApiListener")
+			<< "Compared to '" << fromEndpointName
+			<< "' not everything is up-to-date, but we're not connected.";
+		return Empty;
+	}
+
+	client->SendMessage(new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::WantZones" },
+		{ "params", new Dictionary({
+			{ "zones", want }
+		}) }
+	}));
+
+	return Empty;
+}
+
+Value ApiListener::ConfigHaveFilesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	auto endpoint (origin->FromClient->GetEndpoint());
+
+	// Verify permissions and trust relationship.
+	if (!endpoint || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone))) {
+		return Empty;
+	}
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener) {
+		Log(LogCritical, "ApiListener", "No instance available.");
+		return Empty;
+	}
+
+	if (!listener->GetAcceptConfig()) {
+		Log(LogWarning, "ApiListener")
+			<< "Ignoring information about files in zones. '" << listener->GetName() << "' does not accept config.";
+		return Empty;
+	}
+
+	auto fromEndpointName (origin->FromClient->GetEndpoint()->GetName());
+	auto fromZoneName (GetFromZoneName(origin->FromZone));
+
+	Log(LogInformation, "ApiListener")
+		<< "Checking information about files in zones from endpoint '" << fromEndpointName
+		<< "' of zone '" << fromZoneName << "'.";
+
+	Dictionary::Ptr checksums = params->Get("checksums");
+	auto zonesDir (GetApiZonesDir());
+	Dictionary::Ptr want = new Dictionary();
+	ObjectLock oLock (checksums);
+
+	for (auto& kv : checksums) {
+		if (!Zone::GetByName(kv.first)) {
+			Log(LogWarning, "ApiListener")
+				<< "Ignoring information about files in unknown zone '" << kv.first
+				<< "' from endpoint '" << fromEndpointName << "'.";
+			continue;
+		}
+
+		// Ignore files declarations where we have an authoritive copy in etc/zones.d, packages, etc.
+		if (ConfigCompiler::HasZoneConfigAuthority(kv.first)) {
+			Log(LogInformation, "ApiListener")
+				<< "Ignoring information about files in zone '" << kv.first << "' from endpoint '"
+				<< fromEndpointName << "' because we have an authoritative version of the zone's config.";
+			continue;
+		}
+
+		String checksumsPath = zonesDir + kv.first + "/.checksums";
+		Dictionary::Ptr checksums;
+		std::ifstream fp (checksumsPath.CStr(), std::ifstream::binary);
+
+		if (fp) {
+			checksums = JsonDecode(String(
+				std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>()
+			));
+		} else {
+			checksums = new Dictionary();
+		}
+
+		Dictionary::Ptr havePerZone = kv.second;
+		Array::Ptr wantPerZone = new Array();
+		ObjectLock oLock (havePerZone);
+
+		for (auto& kv : havePerZone) {
+			if (kv.second != checksums->Get(kv.first)) {
+				wantPerZone->Add(kv.first);
+			}
+
+			checksums->Remove(kv.first);
+		}
+
+		Log(LogNotice, "ApiListener")
+			<< "Compared to the information from endpoint '" << fromEndpointName
+			<< "' about files in zone '" << kv.first << "' there are " << wantPerZone->GetLength()
+			<< " file(s) to fetch the content(s) of and " << checksums->GetLength() << " file(s) to remove.";
+
+		if (!wantPerZone->GetLength() && !checksums->GetLength()) {
+			continue;
+		}
+
+		want->Set(kv.first, wantPerZone);
+	}
+
+	if (!want->GetLength()) {
+		Log(LogNotice, "ApiListener")
+			<< "Compared to the information about files in zones from endpoint '"
+			<< fromEndpointName << "' everything is up-to-date.";
+		return Empty;
+	}
+
+	JsonRpcConnection::Ptr client;
+
+	for (auto& conn : endpoint->GetClients()) {
+		client = conn;
+		break;
+	}
+
+	if (!client) {
+		Log(LogNotice, "ApiListener")
+			<< "Compared to the information about files in zones from endpoint '"
+			<< fromEndpointName << "' not everything is up-to-date, but we're not connected.";
+		return Empty;
+	}
+
+	Log(LogInformation, "ApiListener")
+		<< "Compared to the information about files in zones from endpoint '" << fromEndpointName
+		<< "' not everything is up-to-date. Requesting files of " << want->GetLength() << " zone(s).";
+
+	client->SendMessage(new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::WantFiles" },
+		{ "params", new Dictionary({
+			{ "files", want }
+		}) }
+	}));
+
+	return Empty;
+}
+
+Value ApiListener::ConfigWantFilesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Log(LogNotice, "ApiListener")
+		<< "Received request for files in zones: " << JsonEncode(params);
+
+	/* check permissions */
+	auto listener (ApiListener::GetInstance());
+
+	if (!listener) {
+		return Empty;
+	}
+
+	auto endpoint (origin->FromClient->GetEndpoint());
+	auto identity (origin->FromClient->GetIdentity());
+	auto clientZone (endpoint->GetZone());
+
+	/* discard messages if the client is not configured on this node */
+	if (!endpoint) {
+		Log(LogNotice, "ApiListener")
+			<< "Discarding 'config want files' message from '" << identity
+			<< "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	auto zone (endpoint->GetZone());
+	Dictionary::Ptr files (params->Get("files"));
+	auto zonesDir (GetApiZonesDir());
+	Dictionary::Ptr configUpdateV1 = new Dictionary();
+	Dictionary::Ptr configUpdateV2 = new Dictionary();
+	Dictionary::Ptr configUpdateChecksums = new Dictionary(); // new since 2.11
+	ObjectLock oLock (files);
+
+	for (auto& kv : files) {
+		auto zone (Zone::GetByName(kv.first));
+
+		if (!zone) {
+			Log(LogWarning, "ApiListener")
+				<< "No such zone '" << kv.first << "' in zones files request from '" << identity << "'.";
+			continue;
+		}
+
+		if (!zone->IsChildOf(clientZone) && !zone->IsGlobal()) {
+			Log(LogWarning, "ApiListener")
+				<< "Unauthorized access to zone '" << kv.first << "' in zones files request from '" << identity << "'.";
+			continue;
+		}
+
+		String zoneDir = zonesDir + kv.first;
+
+		if (!Utility::PathExists(zoneDir)) {
+			Log(LogWarning, "ApiListener")
+				<< "No local config for zone '" << kv.first << "' for zones files request from '" << identity << "'.";
+			continue;
+		}
+
+		Log(LogInformation, "ApiListener")
+			<< "Syncing requested configuration files for " << (zone->IsGlobal() ? "global " : "")
+			<< "zone '" << kv.first << "' to endpoint '" << endpoint->GetName() << "'.";
+
+		auto config (LoadConfigDir(zoneDir));
+
+		{
+			auto wantPerZone (((Array::Ptr)kv.second)->ToSet<String>());
+
+			for (auto& files : { config.UpdateV1, config.UpdateV2 }) {
+				ObjectLock oLock (files);
+
+				for (auto& kv : files) {
+					if (!Utility::Match("/.*", kv.first) && wantPerZone.find(kv.first) == wantPerZone.end()) {
+						// Not requested? Not included!
+						files->Set(kv.first, Empty);
+					}
+				}
+			}
+		}
+
+		configUpdateV1->Set(kv.first, config.UpdateV1);
+		configUpdateV2->Set(kv.first, config.UpdateV2);
+		configUpdateChecksums->Set(kv.first, config.Checksums); // new since 2.11
+	}
+
+	if (!(configUpdateV1->GetLength() + configUpdateV2->GetLength())) {
+		Log(LogNotice, "ApiListener")
+			<< "Not syncing any configuration files to endpoint '" << identity << "'.";
+		return Empty;
+	}
+
+	for (auto& zone : ConfigType::GetObjectsByType<Zone>()) {
+		auto zoneName (zone->GetName());
+
+		if (!zone->IsChildOf(clientZone) && !zone->IsGlobal()) {
+			continue;
+		}
+
+		if (!Utility::PathExists(zonesDir + zoneName)) {
+			continue;
+		}
+
+		if (configUpdateV1->Contains(zoneName)) {
+			continue;
+		}
+
+		// Not requested? Not included!
+		configUpdateV1->Set(zoneName, Empty);
+		configUpdateV2->Set(zoneName, Empty);
+		configUpdateChecksums->Set(zoneName, Empty);
+	}
+
+	JsonRpcConnection::Ptr client;
+
+	for (auto& conn : endpoint->GetClients()) {
+		client = conn;
+		break;
+	}
+
+	if (!client) {
+		Log(LogNotice, "ApiListener")
+			<< "Not syncing any configuration files to endpoint '" << identity << "' as we're not connected.";
+		return Empty;
+	}
+
+	client->SendMessage(new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::Update" },
+		{ "params", new Dictionary({
+			{ "update", configUpdateV1 },
+			{ "update_v2", configUpdateV2 },	// Since 2.4.2.
+			{ "checksums", configUpdateChecksums } 	// Since 2.11.0.
+		}) }
+	}));
+
+	return Empty;
+}
+
+Value ApiListener::ConfigWantZonesHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Log(LogNotice, "ApiListener")
+		<< "Received request for zones: " << JsonEncode(params);
+
+	/* check permissions */
+	auto listener (ApiListener::GetInstance());
+
+	if (!listener) {
+		return Empty;
+	}
+
+	auto endpoint (origin->FromClient->GetEndpoint());
+	auto identity (origin->FromClient->GetIdentity());
+	auto clientZone (endpoint->GetZone());
+
+	/* discard messages if the client is not configured on this node */
+	if (!endpoint) {
+		Log(LogNotice, "ApiListener")
+			<< "Discarding 'config want zones' message from '" << identity
+			<< "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	auto zone (endpoint->GetZone());
+	Array::Ptr zones (params->Get("zones"));
+	auto zonesDir (GetApiZonesDir());
+	Dictionary::Ptr haveFiles = new Dictionary();
+	ObjectLock oLock (zones);
+
+	for (auto& zoneName : zones) {
+		auto zone (Zone::GetByName(zoneName));
+
+		if (!zone) {
+			Log(LogWarning, "ApiListener")
+				<< "No such zone '" << zoneName << "' in zones request from '" << identity << "'.";
+			continue;
+		}
+
+		if (!zone->IsChildOf(clientZone) && !zone->IsGlobal()) {
+			Log(LogWarning, "ApiListener")
+				<< "Unauthorized access to zone '" << zoneName << "' in zones request from '" << identity << "'.";
+			continue;
+		}
+
+		String checksumsPath = zonesDir + zoneName + "/.checksums";
+		std::ifstream fp (checksumsPath.CStr(), std::ifstream::binary);
+
+		if (!fp) {
+			Log(LogWarning, "ApiListener")
+				<< "No local .checksums for zone '" << zoneName << "' for zones request from '" << identity << "'.";
+			continue;
+		}
+
+		Log(LogNotice, "ApiListener")
+			<< "Informing '" << identity << "' about files in zone '" << zoneName << "'.";
+
+		haveFiles->Set(zoneName, JsonDecode(String(
+			std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>()
+		)));
+	}
+
+	if (!haveFiles->GetLength()) {
+		Log(LogNotice, "ApiListener")
+			<< "Not informing '" << identity << "' about files in any zone.";
+		return Empty;
+	}
+
+	JsonRpcConnection::Ptr client;
+
+	for (auto& conn : endpoint->GetClients()) {
+		client = conn;
+		break;
+	}
+
+	if (!client) {
+		Log(LogNotice, "ApiListener")
+			<< "Not informing '" << identity << "' about files in any zone as we're not connected.";
+		return Empty;
+	}
+
+	Log(LogInformation, "ApiListener")
+		<< "Informing '" << identity << "' about files in " << haveFiles->GetLength() << " zone(s).";
+
+	client->SendMessage(new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::HaveFiles" },
+		{ "params", new Dictionary({
+			{ "checksums", haveFiles }
+		}) }
+	}));
+
+	return Empty;
+}
+
 void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	/* Only one transaction is allowed, concurrent message handlers need to wait.
@@ -393,20 +981,53 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 		Utility::MkDirP(productionConfigZoneDir, 0700);
 		Utility::MkDirP(stageConfigZoneDir, 0700);
 
-		// Merge the config information.
-		ConfigDirInformation newConfigInfo;
-		newConfigInfo.UpdateV1 = kv.second;
-
-		// Load metadata.
-		if (updateV2)
-			newConfigInfo.UpdateV2 = updateV2->Get(kv.first);
-
-		// Load checksums. New since 2.11.
-		if (checksums)
-			newConfigInfo.Checksums = checksums->Get(kv.first);
-
 		// Load the current production config details.
 		ConfigDirInformation productionConfigInfo = LoadConfigDir(productionConfigZoneDir);
+
+		// Merge the config information.
+		ConfigDirInformation newConfigInfo;
+
+		if (kv.second.GetType() == ValueEmpty) {
+			newConfigInfo = productionConfigInfo;
+		} else {
+			newConfigInfo.UpdateV1 = kv.second;
+
+			// Load metadata.
+			if (updateV2)
+				newConfigInfo.UpdateV2 = updateV2->Get(kv.first);
+
+			// Load checksums. New since 2.11.
+			if (checksums)
+				newConfigInfo.Checksums = checksums->Get(kv.first);
+
+			for (auto& dict : { newConfigInfo.UpdateV1, newConfigInfo.UpdateV2 }) {
+				ObjectLock oLock (dict);
+
+				for (auto& kv : dict) {
+					if (kv.second.GetType() == ValueEmpty) { // Partial update. New since v2.13.
+						auto file (productionConfigZoneDir + kv.first);
+
+						Log(LogDebug, "ApiListener")
+							<< "Loading local file due to partial config update from endpoint '"
+							<< fromEndpointName << "' for zone '" << zoneName << "': '" << file << "'";
+
+						std::ifstream fp (file.CStr(), std::ifstream::binary);
+
+						if (!fp) {
+							Log(LogWarning, "ApiListener")
+								<< "No such local file in config update from endpoint '" << fromEndpointName
+								<< "' for zone '" << zoneName << "': '" << file << "'";
+							continue;
+						}
+
+						// Should be kept in sync with ConfigGlobHandler().
+						dict->Set(kv.first, Utility::ValidateUTF8(String(
+							std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>()
+						)));
+					}
+				}
+			}
+		}
 
 		// Merge updateV1 and updateV2
 		Dictionary::Ptr productionConfig = MergeConfigUpdate(productionConfigInfo);
@@ -781,14 +1402,15 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
  * @param dir Path to the config directory.
  * @returns ConfigDirInformation structure.
  */
-ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
+ConfigDirInformation ApiListener::LoadConfigDir(const String& dir, const Dictionary::Ptr& contents)
 {
 	ConfigDirInformation config;
 	config.UpdateV1 = new Dictionary();
 	config.UpdateV2 = new Dictionary();
 	config.Checksums = new Dictionary();
 
-	Utility::GlobRecursive(dir, "*", std::bind(&ApiListener::ConfigGlobHandler, std::ref(config), dir, _1), GlobFile);
+	Utility::GlobRecursive(dir, "*", std::bind(&ApiListener::ConfigGlobHandler, std::ref(config), std::ref(contents), dir, _1), GlobFile);
+
 	return config;
 }
 
@@ -800,7 +1422,7 @@ ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
  * @param path File path.
  * @param file Full file name.
  */
-void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file)
+void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const Dictionary::Ptr& contents, const String& path, const String& file)
 {
 	// Avoid loading the authoritative marker for syncs at all cost.
 	if (Utility::BaseName(file) == ".authoritative")
@@ -854,6 +1476,10 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 	 * IMPORTANT: Ignore the .authoritative file above, this must not be synced.
 	 * */
 	config.Checksums->Set(relativePath, GetChecksum(content));
+
+	if (contents) {
+		contents->Set(relativePath, content);
+	}
 }
 
 /**

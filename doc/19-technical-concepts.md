@@ -1286,7 +1286,9 @@ params    | Dictionary
 
 ##### Params
 
-Currently empty.
+Key                  | Type        | Description
+---------------------|-------------|------------------
+version              | Number      | Icinga 2 version, e.g. 21300 for v2.13.0.
 
 ##### Functions
 

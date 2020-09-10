@@ -111,6 +111,7 @@ public:
 	static tm LocalTime(time_t ts);
 
 	static bool PathExists(const String& path);
+	static double GetModTime(const String& path);
 
 	static void Remove(const String& path);
 	static void RemoveDirRecursive(const String& path);

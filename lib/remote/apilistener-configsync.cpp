@@ -14,6 +14,8 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(UpdateObject, config, &ApiListener::ConfigUpdateObjectAPIHandler);
 REGISTER_APIFUNCTION(DeleteObject, config, &ApiListener::ConfigDeleteObjectAPIHandler);
+REGISTER_APIFUNCTION(HaveObjects, config, &ApiListener::ConfigHaveObjectsAPIHandler);
+REGISTER_APIFUNCTION(WantObjects, config, &ApiListener::ConfigWantObjectsAPIHandler);
 
 INITIALIZE_ONCE([]() {
 	ConfigObject::OnActiveChanged.connect(&ApiListener::ConfigUpdateObjectHandler);
@@ -190,6 +192,198 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	/* keep the object version in sync with the sender */
 	object->SetVersion(objVersion, false, origin);
+
+	return Empty;
+}
+
+Value ApiListener::ConfigHaveObjectsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Log(LogNotice, "ApiListener")
+		<< "Received information about runtime objects: " << JsonEncode(params);
+
+	/* check permissions */
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return Empty;
+
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+	String identity = origin->FromClient->GetIdentity();
+
+	/* discard messages if the client is not configured on this node */
+	if (!endpoint) {
+		Log(LogNotice, "ApiListener")
+			<< "Discarding 'config have objects' message from '" << identity << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	Zone::Ptr endpointZone = endpoint->GetZone();
+
+	/* discard messages if the sender is in a child zone */
+	if (!Zone::GetLocalZone()->IsChildOf(endpointZone)) {
+		Log(LogNotice, "ApiListener")
+			<< "Discarding 'config have objects' message"
+			<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName()
+			<< "'). Sender is in a child zone.";
+		return Empty;
+	}
+
+	/* ignore messages if the endpoint does not accept config */
+	if (!listener->GetAcceptConfig()) {
+		Log(LogWarning, "ApiListener")
+			<< "Ignoring information about runtime objects"
+			<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName()
+			<< "'). '" << listener->GetName() << "' does not accept config.";
+		return Empty;
+	}
+
+	Dictionary::Ptr versions (params->Get("versions"));
+	Dictionary::Ptr want = new Dictionary();
+	ObjectLock oLock (versions);
+
+	for (auto& kv : versions) {
+		auto type (Type::GetByName(kv.first));
+
+		if (!type) {
+			Log(LogWarning, "ApiListener")
+				<< "Bad object type in information about runtime objects from '"
+				<< identity << "': '" << kv.first << "'";
+			continue;
+		}
+
+		auto ctype (dynamic_cast<ConfigType*>(type.get()));
+
+		if (!ctype) {
+			Log(LogWarning, "ApiListener")
+				<< "Bad object type in information about runtime objects from '"
+				<< identity << "': '" << kv.first << "'";
+			continue;
+		}
+
+		Dictionary::Ptr perType (kv.second);
+		ObjectLock oLock (perType);
+
+		for (auto& kv : perType) {
+			auto object (ctype->GetObject(kv.first));
+
+			if (object && object->GetVersion() >= (double)kv.second) {
+				Log(LogNotice, "ApiListener")
+					<< "Compared to the information about runtime objects from '" << identity << "' the "
+					<< type->GetName() << " '" << object->GetName() << "' is up-to-date.";
+				continue;
+			}
+
+			Log(LogNotice, "ApiListener")
+				<< "Compared to the information about runtime objects from '" << identity << "' the " << type->GetName()
+				<< " '" << kv.first << "' is " << (object ? "outdated" : "missing") << ".";
+
+			Array::Ptr perType = want->Get(type->GetName());
+
+			if (!perType) {
+				perType = new Array();
+				want->Set(type->GetName(), perType);
+			}
+
+			perType->Add(kv.first);
+		}
+	}
+
+	if (!want->GetLength()) {
+		Log(LogNotice, "ApiListener")
+			<< "Compared to the information about runtime objects from '" << identity << "' everything is up-to-date.";
+		return Empty;
+	}
+
+	JsonRpcConnection::Ptr client;
+
+	for (auto& conn : endpoint->GetClients()) {
+		client = conn;
+		break;
+	}
+
+	if (!client) {
+		Log(LogNotice, "ApiListener")
+			<< "Compared to the information about runtime objects from '" << identity
+			<< "' not everything is up-to-date, but '" << identity << "' is not connected.";
+		return Empty;
+	}
+
+	Log(LogInformation, "ApiListener")
+		<< "Compared to the information about runtime objects from '" << identity
+		<< "' not everything is up-to-date. Requesting updates.";
+
+	client->SendMessage(new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::WantObjects" },
+		{ "params", new Dictionary({
+			{ "objects", want }
+		}) }
+	}));
+
+	return Empty;
+}
+
+Value ApiListener::ConfigWantObjectsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Log(LogNotice, "ApiListener")
+		<< "Received request for runtime objects: " << JsonEncode(params);
+
+	/* check permissions */
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return Empty;
+
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+	String identity = origin->FromClient->GetIdentity();
+
+	/* discard messages if the client is not configured on this node */
+	if (!endpoint) {
+		Log(LogNotice, "ApiListener")
+			<< "Discarding 'config want objects' message from '" << identity << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	auto zone (endpoint->GetZone());
+	Dictionary::Ptr objects (params->Get("objects"));
+	ObjectLock oLock (objects);
+
+	for (auto& kv : objects) {
+		auto type (Type::GetByName(kv.first));
+
+		if (!type) {
+			Log(LogWarning, "ApiListener")
+				<< "Bad object type in runtime objects request from '"
+				<< identity << "': '" << kv.first << "'";
+			continue;
+		}
+
+		auto ctype (dynamic_cast<ConfigType*>(type.get()));
+
+		if (!ctype) {
+			Log(LogWarning, "ApiListener")
+				<< "Bad object type in runtime objects request from '"
+				<< identity << "': '" << kv.first << "'";
+			continue;
+		}
+
+		Array::Ptr perType (kv.second);
+		ObjectLock oLock (perType);
+
+		for (auto& name : perType) {
+			auto object (ctype->GetObject(name));
+
+			if (!object) {
+				Log(LogWarning, "ApiListener")
+					<< "No such " << kv.first << " in runtime objects request from '"
+					<< identity << "': '" << name << "'";
+				continue;
+			}
+
+			// UpdateConfigObject() checks access by itself
+			listener->UpdateConfigObject(object, nullptr, origin->FromClient);
+		}
+	}
 
 	return Empty;
 }
@@ -427,7 +621,7 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 	}
 }
 
-/* Initial sync on connect for new endpoints */
+/* Initial sync on connect for new endpoints < v2.13 */
 void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient)
 {
 	Endpoint::Ptr endpoint = aclient->GetEndpoint();
@@ -456,4 +650,60 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 
 	Log(LogInformation, "ApiListener")
 		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
+}
+
+/* Initial sync on connect for new endpoints >= v2.13 */
+void ApiListener::DeclareRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient)
+{
+	Endpoint::Ptr endpoint = aclient->GetEndpoint();
+	ASSERT(endpoint);
+
+	Zone::Ptr azone = endpoint->GetZone();
+
+	Log(LogInformation, "ApiListener")
+		<< "Informing endpoint '" << endpoint->GetName() << "' about runtime objects.";
+
+	Dictionary::Ptr versions = new Dictionary();
+
+	for (auto& type : Type::GetAllTypes()) {
+		auto ctype (dynamic_cast<ConfigType*>(type.get()));
+
+		if (!ctype) {
+			continue;
+		}
+
+		for (auto& object : ctype->GetObjects()) {
+			if (object->GetPackage() != "_api" && object->GetVersion() == 0) {
+				continue;
+			}
+
+			/* don't sync objects for non-matching parent-child zones */
+			if (!azone->CanAccessObject(object)) {
+				continue;
+			}
+
+			auto type (object->GetReflectionType()->GetName());
+			Dictionary::Ptr perType = versions->Get(type);
+
+			if (!perType) {
+				perType = new Dictionary();
+				versions->Set(type, perType);
+			}
+
+			perType->Set(object->GetName(), object->GetVersion());
+		}
+	}
+
+	if (versions->GetLength()) {
+		aclient->SendMessage(new Dictionary({
+			{ "jsonrpc", "2.0" },
+			{ "method", "config::HaveObjects" },
+			{ "params", new Dictionary({
+				{ "versions", versions }
+			}) }
+		}));
+	}
+
+	Log(LogInformation, "ApiListener")
+		<< "Finished informing endpoint '" << endpoint->GetName() << "' about runtime objects.";
 }
