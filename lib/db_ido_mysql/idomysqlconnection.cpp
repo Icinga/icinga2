@@ -627,8 +627,6 @@ void IdoMysqlConnection::FinishAsyncQueries()
 				);
 			}
 		}
-
-		offset += count;
 	}
 }
 
