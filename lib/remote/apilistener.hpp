@@ -85,7 +85,7 @@ public:
 
 	/* filesync */
 	static Value ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-	static void HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	void HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	/* configsync */
 	static void ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, const Value& cookie);
