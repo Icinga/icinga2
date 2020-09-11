@@ -534,6 +534,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 		Log(LogInformation, "ApiListener")
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
 			<< "' do not qualify for production, not triggering reload.";
+		listener->ClearLastFailedZonesStageValidation();
 	}
 }
 
