@@ -312,7 +312,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		return Empty;
 	}
 
-	std::thread([origin, params]() { HandleConfigUpdate(origin, params); }).detach();
+	std::thread([origin, params, listener]() { listener->HandleConfigUpdate(origin, params); }).detach();
 	return Empty;
 }
 
@@ -534,7 +534,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 		Log(LogInformation, "ApiListener")
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
 			<< "' do not qualify for production, not triggering reload.";
-		listener->ClearLastFailedZonesStageValidation();
+		ClearLastFailedZonesStageValidation();
 	}
 }
 
