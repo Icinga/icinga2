@@ -116,6 +116,7 @@ jobs:
     name: .rpm
 
     strategy:
+      fail-fast: false
       matrix:
         distro:
           - name: centos
@@ -226,6 +227,7 @@ jobs:
     name: Raspbian
 
     strategy:
+      fail-fast: false
       matrix:
         codename:
           - buster
