@@ -14,7 +14,7 @@ using namespace icinga;
 std::atomic<int> WorkQueue::m_NextID(1);
 boost::thread_specific_ptr<WorkQueue *> l_ThreadWorkQueue;
 
-WorkQueue::WorkQueue(size_t maxItems, int threadCount)
+WorkQueue::WorkQueue(size_t maxItems, int threadCount, LogSeverity statsLogLevel)
 	: m_ID(m_NextID++), m_ThreadCount(threadCount), m_MaxItems(maxItems),
 	m_TaskStats(15 * 60)
 {
@@ -25,6 +25,8 @@ WorkQueue::WorkQueue(size_t maxItems, int threadCount)
 	m_StatusTimer->SetInterval(10);
 	m_StatusTimer->OnTimerExpired.connect(std::bind(&WorkQueue::StatusTimerHandler, this));
 	m_StatusTimer->Start();
+
+	m_StatsLogLevel = statsLogLevel;
 }
 
 WorkQueue::~WorkQueue()
@@ -216,7 +218,7 @@ void WorkQueue::StatusTimerHandler()
 
 	/* Log if there are pending items, or 5 minute timeout is reached. */
 	if (pending > 0 || m_StatusTimerTimeout < now) {
-		Log(LogInformation, "WorkQueue")
+		Log(m_StatsLogLevel, "WorkQueue")
 			<< "#" << m_ID << " (" << m_Name << ") "
 			<< "items: " << pending << ", "
 			<< "rate: " << std::setw(2) << GetTaskCount(60) / 60.0 << "/s "
