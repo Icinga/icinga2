@@ -345,10 +345,19 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 		reason = "<unknown>";
 	}
 
-	Log(LogInformation, "Downtime")
-		<< "Removed downtime '" << downtime->GetName() << "' from checkable '"
-		<< downtime->GetCheckable()->GetName() << "' (Reason: " << reason << ").";
+	Log msg (LogInformation, "Downtime");
 
+	msg << "Removed downtime '" << downtime->GetName() << "' from checkable";
+
+	{
+		auto checkable (downtime->GetCheckable());
+
+		if (checkable) {
+			msg << " '" << checkable->GetName() << "'";
+		}
+	}
+
+	msg << " (Reason: " << reason << ").";
 }
 
 bool Downtime::CanBeTriggered()
