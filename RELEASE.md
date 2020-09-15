@@ -5,7 +5,6 @@
 - [1. Preparations](#preparations)
   - [1.1. Issues](#issues)
   - [1.2. Backport Commits](#backport-commits)
-  - [1.3. Authors](#authors)
 - [2. Version](#version)
 - [3. Changelog](#changelog)
 - [4. Git Tag](#git-tag)
@@ -50,14 +49,6 @@ Check issues at https://github.com/Icinga/icinga2
 For minor versions you need to manually backports any and all commits from the
 master branch which should be part of this release.
 
-### Authors <a id="authors"></a>
-
-Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files:
-
-```
-git checkout master
-git log --use-mailmap | grep '^Author:' | cut -f2- -d' ' | sort -f | uniq > AUTHORS
-```
 
 ## Version <a id="version"></a>
 
