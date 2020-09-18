@@ -1585,25 +1585,29 @@ Example for all downtime events:
 
 #### <a id="icinga2-api-event-streams-type-checkresult"></a> Event Stream Type: CheckResult
 
-  Name 		| Type          | Description
-  --------------|---------------|--------------------------
-  type 	        | String        | Event type `CheckResult`.
-  timestamp     | Timestamp     | Unix timestamp when the event happened.
-  host	        | String        | [Host](09-object-types.md#objecttype-host) name.
-  service       | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host check result.
-  check\_result	| CheckResult   | Serialized [CheckResult](08-advanced-topics.md#advanced-value-types-checkresult) value type.
+  Name             | Type          | Description
+  -----------------|---------------|--------------------------
+  type             | String        | Event type `CheckResult`.
+  timestamp        | Timestamp     | Unix timestamp when the event happened.
+  host             | String        | [Host](09-object-types.md#objecttype-host) name.
+  service          | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host check result.
+  check\_result    | CheckResult   | Serialized [CheckResult](08-advanced-topics.md#advanced-value-types-checkresult) value type.
+  downtime\_depth  | Number        | Amount of active downtimes on the checkable.
+  acknowledgement  | Boolean       | Whether the object is acknowledged.
 
 #### <a id="icinga2-api-event-streams-type-statechange"></a> Event Stream Type: StateChange
 
-  Name 		| Type          | Description
-  --------------|---------------|--------------------------
-  type 	        | String        | Event type `StateChange`.
-  timestamp     | Timestamp     | Unix timestamp when the event happened.
-  host	        | String        | [Host](09-object-types.md#objecttype-host) name.
-  service       | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host state change.
-  state	        | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state.
-  state\_type   | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state type.
-  check\_result	| CheckResult   | Serialized [CheckResult](08-advanced-topics.md#advanced-value-types-checkresult) value type.
+  Name             | Type          | Description
+  -----------------|---------------|--------------------------
+  type             | String        | Event type `StateChange`.
+  timestamp        | Timestamp     | Unix timestamp when the event happened.
+  host             | String        | [Host](09-object-types.md#objecttype-host) name.
+  service          | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host state change.
+  state            | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state.
+  state\_type      | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state type.
+  check\_result    | CheckResult   | Serialized [CheckResult](08-advanced-topics.md#advanced-value-types-checkresult) value type.
+  downtime\_depth  | Number        | Amount of active downtimes on the checkable.
+  acknowledgement  | Boolean       | Whether the object is acknowledged.
 
 #### <a id="icinga2-api-event-streams-type-notification"></a> Event Stream Type: Notification
 
