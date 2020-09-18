@@ -524,7 +524,6 @@ void IdoMysqlConnection::FinishAsyncQueries()
 {
 	std::vector<IdoAsyncQuery> queries;
 	m_AsyncQueries.swap(queries);
-	DecreasePendingQueries(queries.size());
 
 	std::vector<IdoAsyncQuery>::size_type offset = 0;
 
@@ -535,7 +534,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 		auto lostQueries = queries.size() - offset;
 
 		if (lostQueries > 0) {
-			//DecreasePendingQueries(lostQueries, false);
+			DecreasePendingQueries(lostQueries);
 		}
 	});
 
@@ -547,7 +546,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 
 		Defer decreaseQueries ([this, &offset, &count]() {
 			offset += count;
-			//DecreasePendingQueries(count);
+			DecreasePendingQueries(count);
 		});
 
 		for (std::vector<IdoAsyncQuery>::size_type i = offset; i < queries.size(); i++) {
@@ -974,12 +973,12 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 	AssertOnWorkQueue();
 
 	if (IsPaused()) {
-		DecreasePendingQueries(queries.size(), false);
+        DecreasePendingQueries(queries.size());
 		return;
 	}
 
 	if (!GetConnected()) {
-		DecreasePendingQueries(queries.size(), false);
+        DecreasePendingQueries(queries.size());
 		return;
 	}
 
@@ -1010,12 +1009,12 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 	AssertOnWorkQueue();
 
 	if (IsPaused()) {
-		DecreasePendingQueries(1, false);
+        DecreasePendingQueries(1);
 		return;
 	}
 
 	if (!GetConnected()) {
-		DecreasePendingQueries(1, false);
+        DecreasePendingQueries(1);
 		return;
 	}
 
@@ -1027,12 +1026,12 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 	/* check whether we're allowed to execute the query first */
 	if (GetCategoryFilter() != DbCatEverything && (query.Category & GetCategoryFilter()) == 0) {
-		DecreasePendingQueries(1, false);
+        DecreasePendingQueries(1);
 		return;
 	}
 
 	if (query.Object && query.Object->GetObject()->GetExtension("agent_check").ToBool()) {
-		DecreasePendingQueries(1, false);
+        DecreasePendingQueries(1);
 		return;
 	}
 
@@ -1228,12 +1227,12 @@ void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 	AssertOnWorkQueue();
 
 	if (IsPaused()) {
-		DecreasePendingQueries(1, false);
+        DecreasePendingQueries(1);
 		return;
 	}
 
 	if (!GetConnected()) {
-		DecreasePendingQueries(1, false);
+        DecreasePendingQueries(1);
 		return;
 	}
 

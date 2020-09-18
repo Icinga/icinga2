@@ -139,7 +139,6 @@ void IdoPgsqlConnection::Disconnect()
 		return;
 
 	IncreasePendingQueries(1);
-   // Log(LogInformation, "Henrik") << "+1 A";
 	Query("COMMIT");
 
 	m_Pgsql->finish(m_Connection);
@@ -170,7 +169,6 @@ void IdoPgsqlConnection::InternalNewTransaction()
 		return;
 
 	IncreasePendingQueries(2);
-   // Log(LogInformation, "Henrik") << "+2 B";
     Query("COMMIT");
 	Query("BEGIN");
 }
@@ -197,7 +195,6 @@ void IdoPgsqlConnection::Reconnect()
 		/* Check if we're really still connected */
 		try {
 		    IncreasePendingQueries(1);
-      //      Log(LogInformation, "Henrik") << "+1 C";
             Query("SELECT 1");
 			return;
 		} catch (const std::exception&) {
@@ -268,13 +265,11 @@ void IdoPgsqlConnection::Reconnect()
 	 * changing standard_conforming_strings to on by default
 	 */
 	if (m_Pgsql->serverVersion(m_Connection) >= 90100) {
-      //  Log(LogInformation, "Henrik") << "+1 D";
         IncreasePendingQueries(1);
         result = Query("SET standard_conforming_strings TO off");
     }
 
 	String dbVersionName = "idoutils";
-   // Log(LogInformation, "Henrik") << "+1 E";
     IncreasePendingQueries(1);
     result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name=E'" + Escape(dbVersionName) + "'");
 
@@ -307,13 +302,11 @@ void IdoPgsqlConnection::Reconnect()
 
 	String instanceName = GetInstanceName();
 
-  //  Log(LogInformation, "Henrik") << "+1 F";
     IncreasePendingQueries(1);
 	result = Query("SELECT instance_id FROM " + GetTablePrefix() + "instances WHERE instance_name = E'" + Escape(instanceName) + "'");
 	row = FetchRow(result, 0);
 
 	if (!row) {
-  //      Log(LogInformation, "Henrik") << "+1 G";
         IncreasePendingQueries(1);
 		Query("INSERT INTO " + GetTablePrefix() + "instances (instance_name, instance_description) VALUES (E'" + Escape(instanceName) + "', E'" + Escape(GetInstanceDescription()) + "')");
 		m_InstanceID = GetSequenceValue(GetTablePrefix() + "instances", "instance_id");
@@ -326,7 +319,6 @@ void IdoPgsqlConnection::Reconnect()
 	/* we have an endpoint in a cluster setup, so decide if we can proceed here */
 	if (my_endpoint && GetHAMode() == HARunOnce) {
 		/* get the current endpoint writing to programstatus table */
-    //    Log(LogInformation, "Henrik") << "+1 H";
         IncreasePendingQueries(1);
 		result = Query("SELECT UNIX_TIMESTAMP(status_update_time) AS status_update_time, endpoint_name FROM " +
 			GetTablePrefix() + "programstatus WHERE instance_id = " + Convert::ToString(m_InstanceID));
@@ -390,7 +382,6 @@ void IdoPgsqlConnection::Reconnect()
 		<< "PGSQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')"
 		<< (!sslMode.IsEmpty() ? ", sslmode='" + sslMode + "'" : "");
 
-  //  Log(LogInformation, "Henrik") << "+1 I";
     IncreasePendingQueries(1);
 	Query("BEGIN");
 
@@ -398,7 +389,6 @@ void IdoPgsqlConnection::Reconnect()
 	UpdateProgramStatus();
 
 	/* record connection */
-  //  Log(LogInformation, "Henrik") << "+1 J";
     IncreasePendingQueries(1);
 	Query("INSERT INTO " + GetTablePrefix() + "conninfo " +
 		"(instance_id, connect_time, last_checkin_time, agent_name, agent_version, connect_type, data_start_time) VALUES ("
@@ -410,7 +400,6 @@ void IdoPgsqlConnection::Reconnect()
 
 	std::ostringstream q1buf;
 	q1buf << "SELECT object_id, objecttype_id, name1, name2, is_active FROM " + GetTablePrefix() + "objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
-  //  Log(LogInformation, "Henrik") << "+1 K";
     IncreasePendingQueries(1);
 	result = Query(q1buf.str());
 
@@ -466,7 +455,6 @@ void IdoPgsqlConnection::FinishConnect(double startTime)
 		<< "Finished reconnecting to '" << GetName() << "' database '" << GetDatabase() << "' in "
 		<< std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 
-  //  Log(LogInformation, "Henrik") << "+2 L";
     IncreasePendingQueries(2);
 	Query("COMMIT");
 	Query("BEGIN");
@@ -481,7 +469,6 @@ void IdoPgsqlConnection::ClearTablesBySession()
 
 void IdoPgsqlConnection::ClearTableBySession(const String& table)
 {
-  //  Log(LogInformation, "Henrik") << "+1 M";
     IncreasePendingQueries(1);
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
 		Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
@@ -542,7 +529,6 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 {
 	AssertOnWorkQueue();
 
-  //  Log(LogInformation, "Henrik") << "+1 N";
     IncreasePendingQueries(1);
 	IdoPgsqlResult result = Query("SELECT CURRVAL(pg_get_serial_sequence(E'" + Escape(table) + "', E'" + Escape(column) + "')) AS id");
 
@@ -633,13 +619,11 @@ void IdoPgsqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 				<< "E'" << Escape(dbobj->GetName1()) << "', 1)";
 		}
 
-    //    Log(LogInformation, "Henrik") << "+1 O";
         IncreasePendingQueries(1);
 		Query(qbuf.str());
 		SetObjectID(dbobj, GetSequenceValue(GetTablePrefix() + "objects", "object_id"));
 	} else {
 		qbuf << "UPDATE " + GetTablePrefix() + "objects SET is_active = 1 WHERE object_id = " << static_cast<long>(dbref);
-     //   Log(LogInformation, "Henrik") << "+1 P";
         IncreasePendingQueries(1);
         Query(qbuf.str());
 	}
@@ -667,7 +651,6 @@ void IdoPgsqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)
 
 	std::ostringstream qbuf;
 	qbuf << "UPDATE " + GetTablePrefix() + "objects SET is_active = 0 WHERE object_id = " << static_cast<long>(dbref);
- //   Log(LogInformation, "Henrik") << "+1 Q";
     IncreasePendingQueries(1);
 	Query(qbuf.str());
 
@@ -753,7 +736,6 @@ void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 
 	ASSERT(query.Category != DbCatInvalid);
 
-   // Log(LogInformation, "Henrik") << "+1 R";
     IncreasePendingQueries(1);
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, -1), query.Priority, true);
 }
@@ -766,7 +748,6 @@ void IdoPgsqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& quer
 	if (queries.empty())
 		return;
 
-  //  Log(LogInformation, "Henrik") << "+" << queries.size() << " S";
     IncreasePendingQueries(queries.size());
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalExecuteMultipleQueries, this, queries), queries[0].Priority, true);
 }
@@ -917,7 +898,6 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 	if ((type & DbQueryInsert) && (type & DbQueryDelete)) {
 		std::ostringstream qdel;
 		qdel << "DELETE FROM " << GetTablePrefix() << query.Table << where.str();
-  //      Log(LogInformation, "Henrik") << "+1 T";
         IncreasePendingQueries(1);
 		Query(qdel.str());
 
@@ -983,8 +963,6 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 	if (type != DbQueryInsert)
 		qbuf << where.str();
 
-  //  Log(LogInformation, "Henrik") << "+1 U"; THIS HERE SEEMS SUPER IMPORTANT
-   // IncreasePendingQueries(1);
 	Query(qbuf.str());
 
 	if (upsert && GetAffectedRows() == 0) {
@@ -1032,7 +1010,6 @@ void IdoPgsqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 		return;
 	}
 
-    //Log(LogInformation, "Henrik") << "+1 V";
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
 		Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
 		" < TO_TIMESTAMP(" + Convert::ToString(static_cast<long>(max_age)) + ") AT TIME ZONE 'UTC'");
@@ -1041,7 +1018,6 @@ void IdoPgsqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 void IdoPgsqlConnection::FillIDCache(const DbType::Ptr& type)
 {
 	String query = "SELECT " + type->GetIDColumn() + " AS object_id, " + type->GetTable() + "_id, config_hash FROM " + GetTablePrefix() + type->GetTable() + "s";
-  //  Log(LogInformation, "Henrik") << "+1 W";
     IncreasePendingQueries(1);
 	IdoPgsqlResult result = Query(query);
 
