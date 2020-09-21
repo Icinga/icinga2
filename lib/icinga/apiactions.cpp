@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/apiactions.hpp"
+#include "icinga/checkable.hpp"
 #include "icinga/service.hpp"
 #include "icinga/servicegroup.hpp"
 #include "icinga/hostgroup.hpp"
@@ -57,6 +58,9 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 
 	if (!checkable->GetEnablePassiveChecks())
 		return ApiActions::CreateResult(403, "Passive checks are disabled for object '" + checkable->GetName() + "'.");
+
+	if (!checkable->IsReachable(DependencyCheckExecution))
+		return ApiActions::CreateResult(200, "Ignoring passive check result for unreachable object '" + checkable->GetName() + "'.");
 
 	Host::Ptr host;
 	Service::Ptr service;
