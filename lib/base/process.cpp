@@ -508,7 +508,7 @@ int Spawner::ProcessWaitPID(pid_t pid, int *status)
 void Process::InitializeSpawnHelper()
 {
 	if (!l_ProcessControl.Spawners) {
-		auto len (std::max(1, Configuration::Concurrency));
+		auto len (std::max(1, Configuration::Concurrency) * 2u);
 
 		l_ProcessControl.Spawners = new Spawner[len];
 		l_ProcessControl.Len = len;
