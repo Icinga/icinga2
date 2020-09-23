@@ -11,6 +11,7 @@
 #include "base/defer.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
+#include "base/process.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
@@ -501,6 +502,14 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 				} catch (const std::exception& ex) {
 					Log(LogCritical, "cli")
 						<< "Failed to re-initialize thread pool after forking (child): " << DiagnosticInformation(ex);
+					_exit(EXIT_FAILURE);
+				}
+
+				try {
+					Process::InitializeSpawnHelper();
+				} catch (const std::exception& ex) {
+					Log(LogCritical, "cli")
+						<< "Failed to initialize process spawn helper after forking (child): " << DiagnosticInformation(ex);
 					_exit(EXIT_FAILURE);
 				}
 
