@@ -509,6 +509,7 @@ void Process::InitializeSpawnHelper()
 {
 	if (!l_ProcessControl.Spawners) {
 		auto len (std::max(1, Configuration::Concurrency));
+		len *= 2u;
 
 		l_ProcessControl.Spawners = new Spawner[len];
 		l_ProcessControl.Len = len;
