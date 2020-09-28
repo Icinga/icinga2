@@ -118,8 +118,8 @@ private:
 	RingBuffer m_QueryStats{15 * 60};
 	bool m_ActiveChangedHandler{false};
 
-	RingBuffer m_InputQueries{10};
-	RingBuffer m_OutputQueries{10};
+	RingBuffer m_InputQueries{60};
+	RingBuffer m_OutputQueries{60};
 	Atomic<uint_fast64_t> m_PendingQueries{0};
 };
 

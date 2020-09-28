@@ -250,13 +250,13 @@ void DbConnection::LogStatsHandler()
 	}
 
 	auto now = Utility::GetTime();
-	auto output = round(m_OutputQueries.CalculateRate(now, 10));
+	auto output = round(m_OutputQueries.CalculateRate(now, 60));
 
 	if (pending < output * 2) {
 		return;
 	}
 
-	auto input = round(m_InputQueries.CalculateRate(now, 10));
+	auto input = round(m_InputQueries.CalculateRate(now, 60));
 
 	String timeInfo = " empty in ";
 
