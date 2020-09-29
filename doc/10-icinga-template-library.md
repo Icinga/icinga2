@@ -575,6 +575,7 @@ http_ssl_force_tlsv1_2_or_higher | **Optional.** Whether to force TLSv1.2 or hig
 http_ssl_force_sslv2_or_higher   | **Optional.** Whether to force SSLv2 or higher.
 http_ssl_force_sslv3_or_higher   | **Optional.** Whether to force SSLv3 or higher.
 http_sni                         | **Optional.** Whether to use SNI. Defaults to false.
+http_verify_host                 | **Optional.** Verify SSL certificate is for the hostname.
 http_auth_pair                   | **Optional.** Add 'username:password' authorization pair.
 http_proxy_auth_pair             | **Optional.** Add 'username:password' authorization pair for proxy.
 http_ignore_body                 | **Optional.** Don't download the body, just the headers.
