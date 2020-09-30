@@ -7,6 +7,7 @@
 #include "icinga/checkable.hpp"
 #include "base/value.hpp"
 #include <vector>
+#include <utility>
 
 namespace icinga
 {
@@ -19,8 +20,21 @@ namespace icinga
 class MacroProcessor
 {
 public:
+	struct ResolverSpec
+	{
+		String Name;
+		Object::Ptr Obj;
+
+		// Whether to resolve not only e.g. $host.address$, but also just $address$
+		bool ResolveShortMacros;
+
+		inline ResolverSpec(String name, Object::Ptr obj, bool resolveShortMacros = true)
+			: Name(std::move(name)), Obj(std::move(obj)), ResolveShortMacros(resolveShortMacros)
+		{
+		}
+	};
+
 	typedef std::function<Value (const Value&)> EscapeCallback;
-	typedef std::pair<String, Object::Ptr> ResolverSpec;
 	typedef std::vector<ResolverSpec> ResolverList;
 
 	static Value ResolveMacros(const Value& str, const ResolverList& resolvers,

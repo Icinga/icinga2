@@ -89,11 +89,14 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 	}
 
 	for (const ResolverSpec& resolver : resolvers) {
-		if (!objName.IsEmpty() && objName != resolver.first)
+		if (!objName.IsEmpty() && objName != resolver.Name)
 			continue;
 
 		if (objName.IsEmpty()) {
-			CustomVarObject::Ptr dobj = dynamic_pointer_cast<CustomVarObject>(resolver.second);
+			if (!resolver.ResolveShortMacros)
+				continue;
+
+			CustomVarObject::Ptr dobj = dynamic_pointer_cast<CustomVarObject>(resolver.Obj);
 
 			if (dobj) {
 				Dictionary::Ptr vars = dobj->GetVars();
@@ -106,12 +109,12 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 			}
 		}
 
-		auto *mresolver = dynamic_cast<MacroResolver *>(resolver.second.get());
+		auto *mresolver = dynamic_cast<MacroResolver *>(resolver.Obj.get());
 
 		if (mresolver && mresolver->ResolveMacro(boost::algorithm::join(tokens, "."), cr, result))
 			return true;
 
-		Value ref = resolver.second;
+		Value ref = resolver.Obj;
 		bool valid = true;
 
 		for (const String& token : tokens) {
@@ -172,7 +175,7 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 	Dictionary::Ptr resolvers_this = new Dictionary();
 
 	for (const ResolverSpec& resolver : resolvers) {
-		resolvers_this->Set(resolver.first, resolver.second);
+		resolvers_this->Set(resolver.Name, resolver.Obj);
 	}
 
 	auto internalResolveMacrosShim = [resolvers, cr, resolvedMacros, useResolvedMacros, recursionLevel](const std::vector<Value>& args) {
