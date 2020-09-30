@@ -41,6 +41,7 @@ set(icinga_SOURCES
   customvarobject.cpp customvarobject.hpp customvarobject-ti.hpp
   dependency.cpp dependency.hpp dependency-ti.hpp dependency-apply.cpp
   downtime.cpp downtime.hpp downtime-ti.hpp
+  envresolver.cpp envresolver.hpp
   eventcommand.cpp eventcommand.hpp eventcommand-ti.hpp
   externalcommandprocessor.cpp externalcommandprocessor.hpp
   host.cpp host.hpp host-ti.hpp
