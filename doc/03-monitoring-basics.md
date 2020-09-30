@@ -2656,6 +2656,9 @@ service notifications are suppressed when a host is `DOWN` or `UNREACHABLE`. Thi
 does not overwrite other dependencies and implicitly sets `disable_notifications = true` and
 `states = [ Up ]` for all service objects.
 
+You may fine-tune this depedency with the `recovery_time` attribute to express how long after
+a host recovery a service may be expected to be operational again.
+
 Service checks are still executed. If you want to prevent them from happening, you can
 apply the following dependency to all services setting their host as `parent_host_name`
 and disabling the checks. `assign where true` matches on all `Service` objects.

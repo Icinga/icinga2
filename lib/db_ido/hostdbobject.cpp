@@ -58,6 +58,7 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 		{ "passive_checks_enabled", host->GetEnablePassiveChecks() },
 		{ "active_checks_enabled", host->GetEnableActiveChecks() },
 		{ "notifications_enabled", host->GetEnableNotifications() },
+		{ "recovery_time", host->GetRecoveryTime() / 60.0 },
 		{ "notes", host->GetNotes() },
 		{ "notes_url", host->GetNotesUrl() },
 		{ "action_url", host->GetActionUrl() },
@@ -108,6 +109,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	fields->Set("last_time_down", DbValue::FromTimestamp(host->GetLastStateDown()));
 	fields->Set("last_time_unreachable", DbValue::FromTimestamp(host->GetLastStateUnreachable()));
 	fields->Set("state_type", host->GetStateType());
+	fields->Set("recovery_time", host->GetRecoveryTime() / 60.0);
 	fields->Set("notifications_enabled", host->GetEnableNotifications());
 	fields->Set("problem_has_been_acknowledged", host->GetAcknowledgement() != AcknowledgementNone);
 	fields->Set("acknowledgement_type", host->GetAcknowledgement());

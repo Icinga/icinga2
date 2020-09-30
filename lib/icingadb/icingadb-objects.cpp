@@ -918,6 +918,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("flapping_threshold_high", checkable->GetFlappingThresholdHigh());
 		attributes->Set("perfdata_enabled", checkable->GetEnablePerfdata());
 		attributes->Set("is_volatile", checkable->GetVolatile());
+		attributes->Set("recovery_time", checkable->GetRecoveryTime());
 		attributes->Set("notes", checkable->GetNotes());
 		attributes->Set("icon_image_alt", checkable->GetIconImageAlt());
 
