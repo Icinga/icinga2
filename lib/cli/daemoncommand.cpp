@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/daemoncommand.hpp"
+#include "cli/daemoncontrol.hpp"
 #include "cli/daemonutility.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/configobjectutility.hpp"
@@ -342,6 +343,10 @@ static Atomic<bool> l_RequestedReload (false);
 // Whether someone requested to re-open logs (and we didn't handle that request, yet)
 static Atomic<bool> l_RequestedReopenLogs (false);
 
+#ifndef _WIN32
+static DaemonControl::Ptr l_DaemonControl;
+#endif /* _WIN32 */
+
 /**
  * Umbrella process' signal handlers
  */
@@ -450,6 +455,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 
 	try {
 		Application::UninitializeBase();
+		l_DaemonControl->BeforeFork();
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli")
 			<< "Failed to stop thread pool before forking, unexpected error: " << DiagnosticInformation(ex);
@@ -497,6 +503,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 				(void)sigprocmask(SIG_UNBLOCK, &l_UnixWorkerSignals, nullptr);
 
 				try {
+					l_DaemonControl->AfterFork(false);
 					Application::InitializeBase();
 				} catch (const std::exception& ex) {
 					Log(LogCritical, "cli")
@@ -512,6 +519,15 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 		default:
 			l_CurrentlyStartingUnixWorkerPid.store(pid);
 			(void)sigprocmask(SIG_UNBLOCK, &l_UnixWorkerSignals, nullptr);
+
+			try {
+				l_DaemonControl->AfterFork(true);
+				Application::InitializeBase();
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "cli")
+					<< "Failed to re-initialize thread pool after forking (parent): " << DiagnosticInformation(ex);
+				exit(EXIT_FAILURE);
+			}
 
 			Log(LogNotice, "cli")
 				<< "Spawned worker process (PID " << pid << "), waiting for it to load its config";
@@ -549,14 +565,6 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 			// Reset flags for the next time
 			l_CurrentlyStartingUnixWorkerPid.store(-1);
 			l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Pending);
-
-			try {
-				Application::InitializeBase();
-			} catch (const std::exception& ex) {
-				Log(LogCritical, "cli")
-					<< "Failed to re-initialize thread pool after forking (parent): " << DiagnosticInformation(ex);
-				exit(EXIT_FAILURE);
-			}
 	}
 
 	return pid;
@@ -671,6 +679,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 #else /* _WIN32 */
 	l_UmbrellaPid = getpid();
 	Application::SetUmbrellaProcess(l_UmbrellaPid);
+	l_DaemonControl = new DaemonControl();
 
 	{
 		struct sigaction sa;
@@ -712,6 +721,16 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	// Immediately allow the first (non-reload) worker to continue working beyond config validation
 	(void)kill(currentWorker, SIGUSR2);
 
+	try {
+		l_DaemonControl->Start();
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+			<< "Failed to initialize daemon control API (*nix socket): " << DiagnosticInformation(ex);
+		return EXIT_FAILURE;
+	}
+
+	Defer stopDaemonControl ([]() { l_DaemonControl->Stop(); });
+
 #ifdef HAVE_SYSTEMD
 	sd_notify(0, "READY=1");
 #endif /* HAVE_SYSTEMD */
@@ -745,47 +764,59 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 			}
 		}
 
-		if (l_RequestedReload.exchange(false)) {
-			Log(LogInformation, "Application")
-				<< "Got reload command: Starting new instance.";
+		{
+			auto reloadRequests (l_DaemonControl->PopPendingReloadResultHandlers());
 
-#ifdef HAVE_SYSTEMD
-			sd_notify(0, "RELOADING=1");
-#endif /* HAVE_SYSTEMD */
-
-			pid_t nextWorker = StartUnixWorker(configs);
-
-			if (nextWorker == -1) {
-				Log(LogCritical, "Application", "Found error in config: reloading aborted");
-			} else {
+			if (!reloadRequests.empty() || l_RequestedReload.exchange(false)) {
 				Log(LogInformation, "Application")
-					<< "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
+					<< "Got reload command: Starting new instance.";
 
-				(void)kill(currentWorker, SIGTERM);
-
-				{
-					double start = Utility::GetTime();
-
-					while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
 #ifdef HAVE_SYSTEMD
-						NotifyWatchdog();
+				sd_notify(0, "RELOADING=1");
 #endif /* HAVE_SYSTEMD */
+
+				pid_t nextWorker = StartUnixWorker(configs);
+
+				if (nextWorker == -1) {
+					Log(LogCritical, "Application", "Found error in config: reloading aborted");
+
+					for (auto& handler : reloadRequests) {
+						handler(false);
+					}
+				} else {
+					Log(LogInformation, "Application")
+						<< "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
+
+					(void)kill(currentWorker, SIGTERM);
+
+					{
+						double start = Utility::GetTime();
+
+						while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
+#ifdef HAVE_SYSTEMD
+							NotifyWatchdog();
+#endif /* HAVE_SYSTEMD */
+						}
+
+						Log(LogNotice, "cli")
+							<< "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
 					}
 
-					Log(LogNotice, "cli")
-						<< "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
+					// Old instance shut down, allow the new one to continue working beyond config validation
+					(void)kill(nextWorker, SIGUSR2);
+
+					currentWorker = nextWorker;
+
+					for (auto& handler : reloadRequests) {
+						handler(true);
+					}
 				}
 
-				// Old instance shut down, allow the new one to continue working beyond config validation
-				(void)kill(nextWorker, SIGUSR2);
-
-				currentWorker = nextWorker;
-			}
-
 #ifdef HAVE_SYSTEMD
-			sd_notify(0, "READY=1");
+				sd_notify(0, "READY=1");
 #endif /* HAVE_SYSTEMD */
 
+			}
 		}
 
 		if (l_RequestedReopenLogs.exchange(false)) {
