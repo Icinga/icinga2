@@ -11,6 +11,7 @@
 #include "base/configobject.hpp"
 #include "base/process.hpp"
 #include "base/shared.hpp"
+#include "base/spinlock.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "base/tcpsocket.hpp"
@@ -20,6 +21,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <mutex>
 #include <set>
 
 namespace icinga
@@ -179,7 +181,7 @@ private:
 	void RemoveStatusFile();
 
 	/* filesync */
-	static boost::mutex m_ConfigSyncStageLock;
+	static SpinLock m_ConfigSyncStageLock;
 
 	void SyncLocalZoneDirs() const;
 	void SyncLocalZoneDir(const Zone::Ptr& zone) const;
@@ -193,7 +195,7 @@ private:
 
 	static void TryActivateZonesStageCallback(const ProcessResult& pr,
 		const std::vector<String>& relativePaths);
-	static void AsyncTryActivateZonesStage(const std::vector<String>& relativePaths, const Shared<boost::mutex::scoped_lock>::Ptr& lock);
+	static void AsyncTryActivateZonesStage(const std::vector<String>& relativePaths, const Shared<std::unique_lock<SpinLock>>::Ptr& lock);
 
 	static String GetChecksum(const String& content);
 	static bool CheckConfigChange(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig);

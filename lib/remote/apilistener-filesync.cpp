@@ -20,7 +20,7 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
-boost::mutex ApiListener::m_ConfigSyncStageLock;
+SpinLock ApiListener::m_ConfigSyncStageLock;
 
 /**
  * Entrypoint for updating all authoritative configs from /etc/zones.d, packages, etc.
@@ -321,7 +321,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 	/* Only one transaction is allowed, concurrent message handlers need to wait.
 	 * This affects two parent endpoints sending the config in the same moment.
 	 */
-	auto lock (Shared<boost::mutex::scoped_lock>::Make(m_ConfigSyncStageLock));
+	auto lock (Shared<std::unique_lock<SpinLock>>::Make(m_ConfigSyncStageLock));
 
 	String apiZonesStageDir = GetApiZonesStageDir();
 	String fromEndpointName = origin->FromClient->GetEndpoint()->GetName();
@@ -618,7 +618,7 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
  *
  * @param relativePaths Required for later file operations in the callback. Provides the zone name plus path in a list.
  */
-void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relativePaths, const Shared<boost::mutex::scoped_lock>::Ptr& lock)
+void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relativePaths, const Shared<std::unique_lock<SpinLock>>::Ptr& lock)
 {
 	VERIFY(Application::GetArgC() >= 1);
 
