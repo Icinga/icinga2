@@ -35,6 +35,7 @@ public:
 
 	void ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 	void ValidateChildOptions(const Lazy<Value>& lvalue, const ValidationUtils& utils) override;
+	String HashDowntimeOptions();
 
 protected:
 	void OnAllConfigLoaded() override;
