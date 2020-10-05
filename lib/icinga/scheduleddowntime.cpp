@@ -6,14 +6,18 @@
 #include "icinga/downtime.hpp"
 #include "icinga/service.hpp"
 #include "base/timer.hpp"
+#include "base/tlsutility.hpp"
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
+#include "base/object-packer.hpp"
+#include "base/serializer.hpp"
 #include "base/convert.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include <boost/thread/once.hpp>
 #include <cstdint>
+#include <set>
 
 using namespace icinga;
 
@@ -332,6 +336,22 @@ void ScheduledDowntime::ValidateChildOptions(const Lazy<Value>& lvalue, const Va
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "child_options" }, "Invalid child_options specified"));
 	}
+}
+
+static const std::set<String> l_SDDowntimeOptions ({
+	"author", "child_options", "comment", "duration", "fixed", "ranges", "vars"
+});
+
+String ScheduledDowntime::HashDowntimeOptions()
+{
+	Dictionary::Ptr allOpts = Serialize(this, FAConfig);
+	Dictionary::Ptr opts = new Dictionary();
+
+	for (auto& opt : l_SDDowntimeOptions) {
+		opts->Set(opt, allOpts->Get(opt));
+	}
+
+	return SHA256(PackObject(opts));
 }
 
 bool ScheduledDowntime::AllConfigIsLoaded()
