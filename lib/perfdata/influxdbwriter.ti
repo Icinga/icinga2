@@ -38,6 +38,7 @@ class InfluxdbWriter : ConfigObject
 	[config] String ssl_key{
 		default {{{ return ""; }}}
 	};
+	[config, no_user_view] Dictionary::Ptr basic_auth;
 	[config, required] Dictionary::Ptr host_template {
 		default {{{
 			return new Dictionary({
@@ -90,6 +91,12 @@ validator InfluxdbWriter {
 		Dictionary "tags" {
 			String "*";
 		};
+	};
+	Dictionary basic_auth {
+		required username;
+		String username;
+		required password;
+		String password;
 	};
 };
 

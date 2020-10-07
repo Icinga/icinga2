@@ -1607,6 +1607,13 @@ object InfluxdbWriter "influxdb" {
   host = "127.0.0.1"
   port = 8086
   database = "icinga2"
+  username = "icinga2"
+  password = "icinga2"
+
+  basic_auth = {
+     username = "icinga"
+     password = "icinga"
+  }
 
   flush_threshold = 1024
   flush_interval = 10s
@@ -1636,6 +1643,7 @@ Configuration Attributes:
   database                  | String                | **Required.** InfluxDB database name. Defaults to `icinga2`.
   username                  | String                | **Optional.** InfluxDB user name. Defaults to `none`.
   password                  | String                | **Optional.** InfluxDB user password.  Defaults to `none`.
+  basic\_auth               | Dictionary            | **Optional.** Username and password for HTTP basic authentication.
   ssl\_enable               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
   ssl\_ca\_cert             | String                | **Optional.** Path to CA certificate to validate the remote host.
   ssl\_cert                 | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification.
