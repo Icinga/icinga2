@@ -77,6 +77,8 @@ void DbConnection::Resume()
 	m_CleanUpTimer->OnTimerExpired.connect(std::bind(&DbConnection::CleanUpHandler, this));
 	m_CleanUpTimer->Start();
 
+	m_LogStatsTimeout = 0;
+
 	m_LogStatsTimer = new Timer();
 	m_LogStatsTimer->SetInterval(10);
 	m_LogStatsTimer->OnTimerExpired.connect([this](const Timer * const&) { LogStatsHandler(); });
@@ -245,22 +247,27 @@ void DbConnection::LogStatsHandler()
 {
 	auto pending = m_PendingQueries.load();
 
-	if (pending == 0u) {
+	auto now = Utility::GetTime();
+	bool timeoutReached = m_LogStatsTimeout < now;
+
+	if (pending == 0u && !timeoutReached) {
 		return;
 	}
 
-	auto now = Utility::GetTime();
 	auto output = round(m_OutputQueries.CalculateRate(now, 10));
 
-	if (pending < output * 2) {
+	if (pending < output * 2 && !timeoutReached) {
 		return;
 	}
 
 	auto input = round(m_InputQueries.CalculateRate(now, 10));
 
-	String timeInfo = " empty in ";
+	String timeInfo = "";
 
-	{
+	// If we run into our logging timeout, we don't want to display our calculations
+	// because it should already be basically empty for over 5 minutes.
+	if (!timeoutReached) {
+		timeInfo = " empty in ";
 		auto rate = output - input;
 
 		if (rate <= 0)
@@ -272,6 +279,11 @@ void DbConnection::LogStatsHandler()
 	Log(LogInformation, GetReflectionType()->GetName())
 		<< "Pending queries: " << pending << " (Input: " << input
 		<< "/s; Output: " << output << "/s)" << timeInfo;
+
+	/* Reschedule next log entry in 5 minutes. */
+	if (timeoutReached) {
+		m_LogStatsTimeout = now + 60 * 5;
+	}
 }
 
 void DbConnection::CleanUpExecuteQuery(const String&, const String&, double)
