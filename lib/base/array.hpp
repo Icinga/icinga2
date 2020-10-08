@@ -79,6 +79,13 @@ public:
 	}
 
 	template<typename T>
+	std::vector<T> ToVector()
+	{
+		ObjectLock olock(this);
+		return std::vector<T>(Begin(), End());
+	}
+
+	template<typename T>
 	static Array::Ptr FromSet(const std::set<T>& v)
 	{
 		Array::Ptr result = new Array();
