@@ -245,6 +245,9 @@ void DbConnection::CleanUpHandler()
 
 void DbConnection::LogStatsHandler()
 {
+	if (!GetConnected())
+		return;
+
 	auto pending = m_PendingQueries.load();
 
 	auto now = Utility::GetTime();
