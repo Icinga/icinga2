@@ -262,23 +262,9 @@ void DbConnection::LogStatsHandler()
 
 	auto input = round(m_InputQueries.CalculateRate(now, 10));
 
-	String timeInfo = "";
-
-	// If we run into our logging timeout, we don't want to display our calculations
-	// because it should already be basically empty for over 5 minutes.
-	if (!timeoutReached) {
-		timeInfo = " empty in ";
-		auto rate = output - input;
-
-		if (rate <= 0)
-			timeInfo += "infinite time, your task handler isn't able to keep up";
-		else
-			timeInfo += Utility::FormatDuration(pending / rate);
-	}
-
 	Log(LogInformation, GetReflectionType()->GetName())
 		<< "Pending queries: " << pending << " (Input: " << input
-		<< "/s; Output: " << output << "/s)" << timeInfo;
+		<< "/s; Output: " << output << "/s)";
 
 	/* Reschedule next log entry in 5 minutes. */
 	if (timeoutReached) {
