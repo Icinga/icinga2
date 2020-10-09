@@ -259,7 +259,7 @@ void DbConnection::LogStatsHandler()
 
 	auto output = round(m_OutputQueries.CalculateRate(now, 10));
 
-	if (pending < output * 2 && !timeoutReached) {
+	if (pending < output * 5 && !timeoutReached) {
 		return;
 	}
 
