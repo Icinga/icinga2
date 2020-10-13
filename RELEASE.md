@@ -178,6 +178,16 @@ icinga2 (2.11.0-1) icinga; urgency=medium
 ```
 
 
+#### Windows Release Preparations
+
+Update the file `.gitlab-ci.yml`:
+
+```
+sed -i "s/^  UPSTREAM_GIT_BRANCH: .*/  UPSTREAM_GIT_BRANCH: v$VERSION/g" .gitlab-ci.yml
+sed -i "s/^  ICINGA_FORCE_VERSION: .*/  ICINGA_FORCE_VERSION: v$VERSION/g" .gitlab-ci.yml
+```
+
+
 ### Release Commit
 
 Commit the changes and push the branch.
