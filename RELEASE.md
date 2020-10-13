@@ -80,7 +80,7 @@ git tag -s -m "Version $VERSION" v$VERSION
 Push the tag:
 
 ```
-git push --tags
+git push origin v$VERSION
 ```
 
 **For major releases:** Create a new `support` branch:
