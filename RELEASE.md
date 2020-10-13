@@ -104,7 +104,7 @@ cd $HOME/dev/icinga/packaging
 ### RPM Packages  <a id="rpm-packages"></a>
 
 ```
-git clone git@git.icinga.com:icinga/rpm-icinga2.git && cd rpm-icinga2
+git clone git@git.icinga.com:packaging/rpm-icinga2.git && cd rpm-icinga2
 ```
 
 ### DEB Packages <a id="deb-packages"></a>
@@ -116,13 +116,13 @@ git clone git@git.icinga.com:packaging/deb-icinga2.git && cd deb-icinga2
 #### Raspbian Packages
 
 ```
-git clone git@git.icinga.com:icinga/raspbian-icinga2.git && cd raspbian-icinga2
+git clone git@git.icinga.com:packaging/raspbian-icinga2.git && cd raspbian-icinga2
 ```
 
 ### Windows Packages
 
 ```
-git clone git@git.icinga.com:icinga/windows-icinga2.git && cd windows-icinga2
+git clone git@git.icinga.com:packaging/windows-icinga2.git && cd windows-icinga2
 ```
 
 
