@@ -108,6 +108,8 @@ private:
 	Timer::Ptr m_CleanUpTimer;
 	Timer::Ptr m_LogStatsTimer;
 
+	double m_LogStatsTimeout;
+
 	void CleanUpHandler();
 	void LogStatsHandler();
 
