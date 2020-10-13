@@ -234,9 +234,8 @@ void DbObject::SendVarsConfigUpdateHeavy()
 
 			DbQuery query3;
 			query3.Table = "customvariables";
-			query3.Type = DbQueryInsert | DbQueryUpdate;
+			query3.Type = DbQueryInsert;
 			query3.Category = DbCatConfig;
-
 			query3.Fields = new Dictionary({
 				{ "varname", kv.first },
 				{ "varvalue", value },
@@ -245,13 +244,6 @@ void DbObject::SendVarsConfigUpdateHeavy()
 				{ "object_id", obj },
 				{ "instance_id", 0 } /* DbConnection class fills in real ID */
 			});
-
-			query3.WhereCriteria = new Dictionary({
-				{ "object_id", obj },
-				{ "config_type", 1 },
-				{ "varname", kv.first }
-			});
-
 			queries.emplace_back(std::move(query3));
 		}
 	}
