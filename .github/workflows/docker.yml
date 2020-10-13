@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - 'support/*'
   release:
     types:
       - published
