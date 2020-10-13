@@ -150,7 +150,7 @@ void DbConnection::UpdateProgramStatus()
 	DbQuery query1;
 	query1.Table = "programstatus";
 	query1.IdColumn = "programstatus_id";
-	query1.Type = DbQueryInsert | DbQueryUpdate;
+	query1.Type = DbQueryInsert | DbQueryDelete;
 	query1.Category = DbCatProgramStatus;
 
 	query1.Fields = new Dictionary({
@@ -177,7 +177,7 @@ void DbConnection::UpdateProgramStatus()
 		{ "instance_id", 0 }  /* DbConnection class fills in real ID */
 	});
 
-	query1.Priority = PriorityHigh;
+	query1.Priority = PriorityImmediate;
 	queries.emplace_back(std::move(query1));
 
 	DbQuery query2;
@@ -484,7 +484,7 @@ void DbConnection::UpdateAllObjects()
 			continue;
 
 		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
-			UpdateObject(object);
+			m_QueryQueue.Enqueue([this, object](){ UpdateObject(object); }, PriorityHigh);
 		}
 	}
 }
