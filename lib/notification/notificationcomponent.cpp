@@ -165,6 +165,10 @@ void NotificationComponent::NotificationTimerHandler()
 			if ((service && service->GetState() == ServiceOK) || (!service && host->GetState() == HostUp))
 				continue;
 
+			/* Don't send reminder notifications before initial ones. */
+			if (checkable->GetSuppressedNotifications() & NotificationProblem)
+				continue;
+
 			/* Skip in runtime filters. */
 			if (!reachable || checkable->IsInDowntime() || checkable->IsAcknowledged() || checkable->IsFlapping())
 				continue;
