@@ -150,8 +150,12 @@ String UserDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 
 	Array::Ptr groups = user->GetGroups();
 
-	if (groups)
+	if (groups) {
+		groups = groups->ShallowClone();
+		ObjectLock oLock (groups);
+		std::sort(groups->Begin(), groups->End());
 		hashData += DbObject::HashValue(groups);
+	}
 
 	return SHA256(hashData);
 }

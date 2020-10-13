@@ -308,8 +308,12 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 
 	Array::Ptr groups = service->GetGroups();
 
-	if (groups)
+	if (groups) {
+		groups = groups->ShallowClone();
+		ObjectLock oLock (groups);
+		std::sort(groups->Begin(), groups->End());
 		hashData += DbObject::HashValue(groups);
+	}
 
 	ArrayData dependencies;
 
