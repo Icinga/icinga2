@@ -7,6 +7,31 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.11.6 (2020-10-13)
+
+Version 2.11.6 fixes several crashes, prevents unnecessary notifications
+and addresses several bugs in IDO and API.
+
+### Bugfixes
+
+* Crashes
+  * Fix crashes during config update #8337 #8308
+  * Fix crash while removing a downtime #8226
+  * Ensure the daemon doesn't get killed by logrotate #8227
+* IDO
+  * Prevent unnecessary IDO updates #8316 #8305
+  * Commit IDO MySQL transactions earlier #8298
+  * Make sure to insert IDO program status #8291
+  * Improve IDO queue stats logging #8270 #8325
+* API
+  * Ensure API connections are closed properly #8292
+  * Fix open connections when agent waits for CA approval #8230
+  * Close connections without successful TLS handshakes within 10s #8224
+* Misc
+  * Prevent unnecessary notifications #8300
+  * Fix Windows .exe version #8235
+  * Reset Icinga check warning after successful config update #8225
+
 ## 2.11.5 (2020-08-05)
 
 Version 2.11.5 fixes file system race conditions
