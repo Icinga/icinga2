@@ -933,9 +933,15 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 
 	DisplayInfoMessage(ofs);
 
-	ofs << "Stacktrace:\n"
-		<< boost::stacktrace::stacktrace()
-		<< "\n";
+	std::ios::fmtflags savedflags(ofs.flags());
+	ofs << std::showbase << std::hex
+		<< "\nSEH exception:\n"
+		<< "  Code: "    << exi->ExceptionRecord->ExceptionCode    << "\n"
+		<< "  Address: " << exi->ExceptionRecord->ExceptionAddress << "\n"
+		<< "  Flags: "   << exi->ExceptionRecord->ExceptionFlags   << "\n";
+	ofs.flags(savedflags);
+
+	ofs << "\nStacktrace:\n" << boost::stacktrace::stacktrace() << "\n";
 
 	DisplayBugMessage(ofs);
 
