@@ -312,7 +312,16 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		return Empty;
 	}
 
-	std::thread([origin, params, listener]() { listener->HandleConfigUpdate(origin, params); }).detach();
+	std::thread([origin, params, listener]() {
+		try {
+			listener->HandleConfigUpdate(origin, params);
+		} catch (const std::exception& ex) {
+			auto msg ("Exception during config sync: " + DiagnosticInformation(ex));
+
+			Log(LogCritical, "ApiListener") << msg;
+			listener->UpdateLastFailedZonesStageValidation(msg);
+		}
+	}).detach();
 	return Empty;
 }
 
