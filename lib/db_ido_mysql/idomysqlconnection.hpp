@@ -9,6 +9,7 @@
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "base/library.hpp"
+#include <cstdint>
 
 namespace icinga
 {
@@ -62,6 +63,7 @@ private:
 	unsigned int m_MaxPacketSize;
 
 	std::vector<IdoAsyncQuery> m_AsyncQueries;
+	uint_fast32_t m_UncommittedAsyncQueries = 0;
 
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_TxTimer;

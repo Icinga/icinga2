@@ -513,11 +513,6 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<voi
 	 */
 	aq.Callback = callback;
 	m_AsyncQueries.emplace_back(std::move(aq));
-
-	if (m_AsyncQueries.size() > 25000) {
-		FinishAsyncQueries();
-		InternalNewTransaction();
-	}
 }
 
 void IdoMysqlConnection::FinishAsyncQueries()
@@ -547,6 +542,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 		Defer decreaseQueries ([this, &offset, &count]() {
 			offset += count;
 			DecreasePendingQueries(count);
+			m_UncommittedAsyncQueries += count;
 		});
 
 		for (std::vector<IdoAsyncQuery>::size_type i = offset; i < queries.size(); i++) {
@@ -627,6 +623,13 @@ void IdoMysqlConnection::FinishAsyncQueries()
 				);
 			}
 		}
+	}
+
+	if (m_UncommittedAsyncQueries > 25000) {
+		m_UncommittedAsyncQueries = 0;
+
+		Query("COMMIT");
+		Query("BEGIN");
 	}
 }
 
