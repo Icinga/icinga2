@@ -342,7 +342,9 @@ void Application::RunEventLoop()
 	ConfigObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
 
-	UninitializeBase();
+#ifdef I2_DEBUG
+	UninitializeBase(); // Inspired from Exit()
+#endif /* I2_DEBUG */
 }
 
 bool Application::IsShuttingDown()
