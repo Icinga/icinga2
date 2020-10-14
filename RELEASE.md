@@ -15,12 +15,11 @@
 - [6. Build Server](#build-infrastructure)
 - [7. Release Tests](#release-tests)
 - [8. GitHub Release](#github-release)
-- [9. Chocolatey](#chocolatey)
-- [10. Docker](#docker)
-- [11. Post Release](#post-release)
-  - [11.1. Online Documentation](#online-documentation)
-  - [11.2. Announcement](#announcement)
-  - [11.3. Project Management](#project-management)
+- [9. Docker](#docker)
+- [10. Post Release](#post-release)
+  - [10.1. Online Documentation](#online-documentation)
+  - [10.2. Announcement](#announcement)
+  - [10.3. Project Management](#project-management)
 
 ## Preparations <a id="preparations"></a>
 
@@ -299,27 +298,6 @@ Create a new release for the newly created Git tag: https://github.com/Icinga/ic
 
 The release body should contain a short changelog, with links
 into the roadmap, changelog and blogpost.
-
-
-## Chocolatey  <a id="chocolatey"></a>
-
-Navigate to the git repository on your Windows box which
-already has chocolatey installed. Pull/checkout the release.
-
-Create the nupkg package (or use the one generated on https://packages.icinga.com/windows):
-
-```
-cpack
-```
-
-Fetch the API key from https://chocolatey.org/account and use the `choco push`
-command line.
-
-```
-choco apikey --key xxx --source https://push.chocolatey.org/
-
-choco push Icinga2-v2.11.0.nupkg --source https://push.chocolatey.org/
-```
 
 
 ## Docker  <a id="docker"></a>
