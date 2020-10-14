@@ -18,6 +18,7 @@
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
+#include <boost/stacktrace.hpp>
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -932,9 +933,9 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 		<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
 		<< "\n";
 
-	StackTrace trace(exi);
-	ofs << "Stacktrace:" << "\n";
-	trace.Print(ofs, 1);
+	ofs << "Stacktrace:\n"
+		<< boost::stacktrace::stacktrace()
+		<< "\n";
 
 	DisplayBugMessage(ofs);
 
