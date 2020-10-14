@@ -931,11 +931,11 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 	Log(LogCritical, "Application")
 		<< "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'";
 
-	DisplayInfoMessage(ofs);
-
 	ofs << "Caught unhandled SEH exception." << "\n"
 		<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
 		<< "\n";
+
+	DisplayInfoMessage(ofs);
 
 	ofs << "Stacktrace:\n"
 		<< boost::stacktrace::stacktrace()
