@@ -475,7 +475,7 @@ void IdoMysqlConnection::FinishConnect(double startTime)
 {
 	AssertOnWorkQueue();
 
-	if (!GetConnected())
+	if (!GetConnected() || IsPaused())
 		return;
 
 	FinishAsyncQueries();
