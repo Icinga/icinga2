@@ -20,12 +20,13 @@ It also addresses several bugs regarding IDO, API, notifications and checks.
   * Ensure the daemon doesn't get killed by logrotate #8170
   * Fix hangup during shutdown #8211
   * Fix a deadlock in Icinga DB #8168
+  * Clean up zombie processes during reload #8376
   * Reduce check latency #8276
 * IDO
   * Prevent unnecessary IDO updates #8327 #8320
   * Commit IDO MySQL transactions earlier #8349
   * Make sure to insert IDO program status #8330
-  * Improve IDO queue stats logging #8271 #8328
+  * Improve IDO queue stats logging #8271 #8328 #8379
 * Misc
   * Ensure API connections are closed properly #8293
   * Prevent unnecessary notifications #8299
