@@ -245,7 +245,7 @@ void DbConnection::CleanUpHandler()
 
 void DbConnection::LogStatsHandler()
 {
-	if (!GetConnected())
+	if (!GetConnected() || IsPaused())
 		return;
 
 	auto pending = m_PendingQueries.load();
