@@ -397,6 +397,10 @@ static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 static void WorkerSignalHandler(int num, siginfo_t *info, void*)
 {
 	switch (num) {
+		case SIGUSR1:
+			// Catches SIGUSR1 as long as the actual handler (logrotate)
+			// has not been installed not to let SIGUSR1 terminate the process
+			break;
 		case SIGUSR2:
 			if (info->si_pid == 0 || info->si_pid == l_UmbrellaPid) {
 				// The umbrella process allowed us to continue working beyond config validation
@@ -489,6 +493,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 					sa.sa_sigaction = &WorkerSignalHandler;
 					sa.sa_flags = SA_RESTART | SA_SIGINFO;
 
+					(void)sigaction(SIGUSR1, &sa, nullptr);
 					(void)sigaction(SIGUSR2, &sa, nullptr);
 					(void)sigaction(SIGINT, &sa, nullptr);
 					(void)sigaction(SIGTERM, &sa, nullptr);
