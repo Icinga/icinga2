@@ -781,6 +781,17 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 						<< "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
 				}
 
+				for (int info;;) {
+					auto pid (waitpid(-1, &info, WNOHANG));
+
+					if (pid < 1) {
+						break;
+					}
+
+					Log(LogNotice, "cli")
+						<< "Reaped child process " << pid << ".";
+				}
+
 				// Old instance shut down, allow the new one to continue working beyond config validation
 				(void)kill(nextWorker, SIGUSR2);
 
