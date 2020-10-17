@@ -2,6 +2,8 @@
 
 #include "base/scriptutils.hpp"
 #include "base/function.hpp"
+#include "base/generator.hpp"
+#include "base/generator-range.hpp"
 #include "base/scriptframe.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
@@ -32,6 +34,7 @@ REGISTER_SAFE_FUNCTION(System, union, &ScriptUtils::Union, "");
 REGISTER_SAFE_FUNCTION(System, intersection, &ScriptUtils::Intersection, "");
 REGISTER_FUNCTION(System, log, &ScriptUtils::Log, "severity:facility:value");
 REGISTER_FUNCTION(System, range, &ScriptUtils::Range, "start:end:increment");
+REGISTER_FUNCTION(System, xrange, &ScriptUtils::XRange, "start:end:increment");
 REGISTER_FUNCTION(System, exit, &Application::Exit, "status");
 REGISTER_SAFE_FUNCTION(System, typeof, &ScriptUtils::TypeOf, "value");
 REGISTER_SAFE_FUNCTION(System, keys, &ScriptUtils::Keys, "value");
@@ -378,6 +381,33 @@ Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)
 		result.push_back(i);
 
 	return new Array(std::move(result));
+}
+
+Generator::Ptr ScriptUtils::XRange(const std::vector<Value>& arguments)
+{
+	double start, end, increment;
+
+	switch (arguments.size()) {
+		case 1:
+			start = 0;
+			end = arguments[0];
+			increment = 1;
+			break;
+		case 2:
+			start = arguments[0];
+			end = arguments[1];
+			increment = 1;
+			break;
+		case 3:
+			start = arguments[0];
+			end = arguments[1];
+			increment = arguments[2];
+			break;
+		default:
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid number of arguments for xrange()"));
+	}
+
+	return new GeneratorRange(start, end, increment);
 }
 
 Type::Ptr ScriptUtils::TypeOf(const Value& value)
