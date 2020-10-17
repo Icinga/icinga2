@@ -5,6 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/logger-ti.hpp"
+#include <boost/thread/mutex.hpp>
 #include <set>
 #include <iosfwd>
 

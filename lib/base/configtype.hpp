@@ -7,7 +7,8 @@
 #include "base/object.hpp"
 #include "base/type.hpp"
 #include "base/dictionary.hpp"
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
+#include <unordered_map>
 
 namespace icinga
 {
@@ -48,10 +49,10 @@ for (const auto& object : objects) {
 	int GetObjectCount() const;
 
 private:
-	typedef std::map<String, intrusive_ptr<ConfigObject> > ObjectMap;
+	typedef std::unordered_map<String, intrusive_ptr<ConfigObject> > ObjectMap;
 	typedef std::vector<intrusive_ptr<ConfigObject> > ObjectVector;
 
-	mutable boost::mutex m_Mutex;
+	mutable boost::shared_mutex m_Mutex;
 	ObjectMap m_ObjectMap;
 	ObjectVector m_ObjectVector;
 

@@ -195,4 +195,18 @@ struct range_const_iterator<icinga::String>
 
 }
 
+namespace std
+{
+
+template<>
+struct hash<::icinga::String>
+{
+	decltype(hash<string>{}(string())) operator()(const ::icinga::String& s) const noexcept
+	{
+		return hash<string>{}(s.GetData());
+	}
+};
+
+}
+
 #endif /* STRING_H */
