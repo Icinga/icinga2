@@ -22,6 +22,9 @@
 #include <boost/algorithm/string/split.hpp>
 #include <thread>
 
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+
 #ifndef _WIN32
 #	include <sys/types.h>
 #	include <pwd.h>
@@ -145,6 +148,8 @@ static void HandleLegacyDefines()
 
 static int Main()
 {
+    fmt::print("Hello, {}!", "NETWAYS");
+
 	int argc = Application::GetArgC();
 	char **argv = Application::GetArgV();
 
