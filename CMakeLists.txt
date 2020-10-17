@@ -29,6 +29,20 @@ else()
   option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" OFF)
 endif()
 
+option(ICINGA2_WITH_JAEGER "Use Jaeger tracing" OFF)
+
+if(ICINGA2_WITH_JAEGER)
+  add_definitions(-DWITH_JAEGER=1)
+  find_package(JAEGER REQUIRED)
+  find_package(YAMLCPP REQUIRED)
+  find_package(OPENTRACE REQUIRED)
+  set(COMPLETE_JAEGER_LIBRARIES ${JAEGER_LIBRARIES} ${YAMLCPP_LIBRARIES} ${OPENTRACE_LIBRARIES})
+  include_directories(SYSTEM ${JAEGER_INCLUDE_DIRS} ${YAMLCPP_INCLUDE_DIRS} ${OPENTRACE_INCLUDE_DIRS})
+
+  set(HAVE_JAEGER ${ICINGA2_WITH_JAEGER})
+endif()
+
+
 option (USE_SYSTEMD
  "Configure icinga as native systemd service instead of a SysV initscript" OFF)
 
@@ -178,7 +192,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
-set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
+set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${COMPLETE_JAEGER_LIBRARIES})
 set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:base>)
 
 # JSON

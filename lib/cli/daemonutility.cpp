@@ -10,6 +10,10 @@
 #include "config/configitembuilder.hpp"
 #include <set>
 
+#ifdef ICINGA2_WITH_JAEGER
+#	include "base/jaegertracer.hpp"
+#endif /* ICINGA2_WITH_JAEGER */
+
 using namespace icinga;
 
 static bool ExecuteExpression(Expression *expression)
@@ -230,14 +234,30 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 {
 	ActivationScope ascope;
 
+#ifdef ICINGA2_WITH_JAEGER
+	JaegerTracer jt;
+	jt.SetupTracer("ICINGA2_CONFIG_COMPILER");
+
+	jspan parentSpan = jt.TracedFunction("load_config_files_begins");
+#endif /* ICINGA2_WITH_JAEGER */
+
+
 	if (!DaemonUtility::ValidateConfigFiles(configs, objectsFile)) {
 		ConfigCompilerContext::GetInstance()->CancelObjectsFile();
 		return false;
 	}
 
+#ifdef ICINGA2_WITH_JAEGER
+	jt.TracedSubRoutine(parentSpan, "validate_config_files_ends");
+#endif /* ICINGA2_WITH_JAEGER */
+
 	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("DaemonUtility::LoadConfigFiles");
 	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
+
+#ifdef ICINGA2_WITH_JAEGER
+	jt.TracedSubRoutine(parentSpan, "commit_items_ends");
+#endif /* ICINGA2_WITH_JAEGER */
 
 	if (!result) {
 		ConfigCompilerContext::GetInstance()->CancelObjectsFile();
@@ -252,6 +272,14 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 		Log(LogCritical, "cli", "Could not write vars file: " + DiagnosticInformation(ex, false));
 		Application::Exit(1);
 	}
+
+#ifdef ICINGA2_WITH_JAEGER
+	jt.TracedSubRoutine(parentSpan, "load_config_files_ends");
+	parentSpan->Finish();
+
+	// Flush spans 
+	jt.Close();
+#endif /* ICINGA2_WITH_JAEGER */
 
 	return true;
 }

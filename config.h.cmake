@@ -11,6 +11,8 @@
 #cmakedefine HAVE_EDITLINE
 #cmakedefine HAVE_SYSTEMD
 
+#cmakedefine ICINGA2_WITH_JAEGER
+
 #cmakedefine ICINGA2_UNITY_BUILD
 
 #define ICINGA_CONFIGDIR "${ICINGA2_FULL_CONFIGDIR}"
