@@ -29,8 +29,6 @@ void Host::OnAllConfigLoaded()
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Host '" + GetName() + "' cannot be put into global zone '" + zone->GetName() + "'."));
 	}
 
-	HostGroup::EvaluateObjectRules(this);
-
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {
@@ -49,6 +47,9 @@ void Host::OnAllConfigLoaded()
 
 void Host::CreateChildObjects(const Type::Ptr& childType)
 {
+	if (childType == HostGroup::TypeInstance)
+		HostGroup::EvaluateObjectRules(this);
+
 	if (childType == ScheduledDowntime::TypeInstance)
 		ScheduledDowntime::EvaluateApplyRules(this);
 
