@@ -26,7 +26,7 @@ public:
 
 private:
 	static Dictionary::Ptr SerializeObjectAttrs(const Object::Ptr& object, const String& attrPrefix,
-		const Array::Ptr& attrs, bool isJoin, bool allAttrs);
+		const Array::Ptr& attrs, const Array::Ptr& blacklistAttrs, bool isJoin, bool allAttrs);
 };
 
 }
