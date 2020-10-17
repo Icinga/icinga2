@@ -111,7 +111,9 @@ protected:
 
 	void RunEventLoop();
 
+#ifdef _WIN32
 	pid_t StartReloadProcess();
+#endif /* _WIN32 */
 
 	virtual void OnShutdown();
 

@@ -7,6 +7,9 @@ add_executable(check_nscp_api
   $<TARGET_OBJECTS:remote>
 )
 target_link_libraries(check_nscp_api ${base_DEPS})
+if(NOT WIN32)
+  add_dependencies(check_nscp_api procmgr)
+endif()
 set_target_properties (
   check_nscp_api PROPERTIES
   DEFINE_SYMBOL I2_PLUGINS_BUILD

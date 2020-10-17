@@ -70,6 +70,10 @@ add_executable(icinga-app
 
 target_link_libraries(icinga-app ${base_DEPS})
 
+if(NOT WIN32)
+  add_dependencies(icinga-app procmgr)
+endif()
+
 set_target_properties (
   icinga-app PROPERTIES
   FOLDER Bin

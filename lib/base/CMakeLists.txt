@@ -34,6 +34,7 @@ set(base_SOURCES
   fifo.cpp fifo.hpp
   filelogger.cpp filelogger.hpp filelogger-ti.hpp
   function.cpp function.hpp function-ti.hpp function-script.cpp functionwrapper.hpp
+  goprocmgr.hpp
   initialize.cpp initialize.hpp
   io-engine.cpp io-engine.hpp
   json.cpp json.hpp json-script.cpp

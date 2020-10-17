@@ -77,7 +77,6 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	Process::Ptr process = new Process(Process::PrepareCommand(command), envMacros);
 
 	process->SetTimeout(timeout);
-	process->SetAdjustPriority(true);
 
 	process->Run(std::bind(callback, command, _1));
 }

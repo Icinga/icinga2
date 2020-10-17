@@ -382,6 +382,7 @@ static void ReloadProcessCallback(const ProcessResult& pr)
 	t.detach();
 }
 
+#ifdef _WIN32
 pid_t Application::StartReloadProcess()
 {
 	// prepare arguments
@@ -415,6 +416,7 @@ pid_t Application::StartReloadProcess()
 
 	return process->GetPID();
 }
+#endif /* _WIN32 */
 
 /**
  * Signals the application to shut down during the next
