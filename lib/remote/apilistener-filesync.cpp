@@ -314,7 +314,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 	std::thread([origin, params, listener]() {
 		try {
-			HandleConfigUpdate(origin, params);
+			listener->HandleConfigUpdate(origin, params);
 		} catch (const std::exception& ex) {
 			auto msg ("Exception during config sync: " + DiagnosticInformation(ex));
 
@@ -543,6 +543,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 		Log(LogInformation, "ApiListener")
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
 			<< "' are equal to production, skipping validation and reload.";
+		ClearLastFailedZonesStageValidation();
 	}
 }
 
