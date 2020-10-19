@@ -6,10 +6,12 @@
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
+#include "base/shared-object.hpp"
 #include <atomic>
 #include <exception>
 #include <memory>
 #include <thread>
+#include <utility>
 #include <vector>
 #include <stdexcept>
 #include <boost/exception/all.hpp>
@@ -151,6 +153,56 @@ public:
 
 private:
 	boost::asio::deadline_timer m_Timer;
+};
+
+/**
+ * I/O timeout emulator
+ *
+ * @ingroup base
+ */
+class Timeout : public SharedObject
+{
+public:
+	DECLARE_PTR_TYPEDEFS(Timeout);
+
+	template<class Executor, class TimeoutFromNow, class OnTimeout>
+	Timeout(boost::asio::io_context& io, Executor& executor, TimeoutFromNow timeoutFromNow, OnTimeout onTimeout)
+		: m_Timer(io)
+	{
+		Ptr keepAlive (this);
+
+		m_Cancelled.store(false);
+		m_Timer.expires_from_now(std::move(timeoutFromNow));
+
+		IoEngine::SpawnCoroutine(executor, [this, keepAlive, onTimeout](boost::asio::yield_context yc) {
+			if (m_Cancelled.load()) {
+				return;
+			}
+
+			{
+				boost::system::error_code ec;
+
+				m_Timer.async_wait(yc[ec]);
+
+				if (ec) {
+					return;
+				}
+			}
+
+			if (m_Cancelled.load()) {
+				return;
+			}
+
+			auto f (onTimeout);
+			f(std::move(yc));
+		});
+	}
+
+	void Cancel();
+
+private:
+	boost::asio::deadline_timer m_Timer;
+	std::atomic<bool> m_Cancelled;
 };
 
 }
