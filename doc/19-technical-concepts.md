@@ -1288,6 +1288,7 @@ params    | Dictionary
 
 Key                  | Type        | Description
 ---------------------|-------------|------------------
+capabilities         | Number      | Bitmask, see `lib/remote/apilistener.hpp`.
 version              | Number      | Icinga 2 version, e.g. 21300 for v2.13.0.
 
 ##### Functions
