@@ -821,11 +821,11 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 				std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
 
 				for (const Endpoint::Ptr& childEndpoint : endpoints) {
-					if (childEndpoint->GetIcingaVersion() < 21300) {
+					if (!(childEndpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand)) {
 						/* Update execution */
 						double now = Utility::GetTime();
 						pending_execution->Set("exit", 126);
-						pending_execution->Set("output", "Endpoint '" + childEndpoint->GetName() + "' has version < 2.13.");
+						pending_execution->Set("output", "Endpoint '" + childEndpoint->GetName() + "' doesn't support executing arbitrary commands.");
 						pending_execution->Set("start", now);
 						pending_execution->Set("end", now);
 						pending_execution->Remove("pending");

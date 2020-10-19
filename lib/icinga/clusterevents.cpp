@@ -641,7 +641,7 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 					std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
 
 					for (const Endpoint::Ptr &childEndpoint : endpoints) {
-						if (childEndpoint->GetIcingaVersion() < 21300) {
+						if (!(childEndpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand)) {
 							double now = Utility::GetTime();
 							Dictionary::Ptr executedParams = new Dictionary();
 							executedParams->Set("execution", params->Get("source"));
@@ -650,7 +650,7 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 								executedParams->Set("service", params->Get("service"));
 							executedParams->Set("exit", 126);
 							executedParams->Set("output",
-								"Endpoint '" + childEndpoint->GetName() + "' has version < 2.13.");
+								"Endpoint '" + childEndpoint->GetName() + "' doesn't support executing arbitrary commands.");
 							executedParams->Set("start", now);
 							executedParams->Set("end", now);
 

@@ -522,6 +522,8 @@ static const auto l_AppVersionInt (([]() -> unsigned long {
 		+ boost::lexical_cast<unsigned long>(match[3].str());
 })());
 
+static const auto l_MyCapabilities (ApiCapabilities::ExecuteArbitraryCommand);
+
 /**
  * Processes a new client connection.
  *
@@ -667,7 +669,8 @@ void ApiListener::NewClientHandlerInternal(
 			{ "jsonrpc", "2.0" },
 			{ "method", "icinga::Hello" },
 			{ "params", new Dictionary({
-				{ "version", (double)l_AppVersionInt }
+				{ "version", (double)l_AppVersionInt },
+				{ "capabilities", (double)l_MyCapabilities }
 			}) }
 		}), yc);
 
@@ -705,7 +708,8 @@ void ApiListener::NewClientHandlerInternal(
 				{ "jsonrpc", "2.0" },
 				{ "method", "icinga::Hello" },
 				{ "params", new Dictionary({
-					{ "version", (double)l_AppVersionInt }
+					{ "version", (double)l_AppVersionInt },
+					{ "capabilities", (double)l_MyCapabilities }
 				}) }
 			}), yc);
 
@@ -1643,6 +1647,7 @@ Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dicti
 
 			if (endpoint) {
 				endpoint->SetIcingaVersion((double)params->Get("version"));
+				endpoint->SetCapabilities((double)params->Get("capabilities"));
 			}
 		}
 	}
