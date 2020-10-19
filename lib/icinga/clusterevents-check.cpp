@@ -4,6 +4,7 @@
 #include "icinga/icingaapplication.hpp"
 #include "remote/apilistener.hpp"
 #include "base/configuration.hpp"
+#include "base/defer.hpp"
 #include "base/serializer.hpp"
 #include "base/exception.hpp"
 #include <boost/thread/once.hpp>
