@@ -65,7 +65,6 @@ set(base_SOURCES
   singleton.hpp
   socket.cpp socket.hpp
   spinlock.cpp spinlock.hpp
-  stacktrace.cpp stacktrace.hpp
   statsfunction.hpp
   stdiostream.cpp stdiostream.hpp
   stream.cpp stream.hpp

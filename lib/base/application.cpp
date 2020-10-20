@@ -2,7 +2,6 @@
 
 #include "base/application.hpp"
 #include "base/application-ti.cpp"
-#include "base/stacktrace.hpp"
 #include "base/timer.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
@@ -761,9 +760,7 @@ void Application::SigAbrtHandler(int)
 
 		DisplayInfoMessage(ofs);
 
-		StackTrace trace;
-		ofs << "Stacktrace:" << "\n";
-		trace.Print(ofs, 1);
+		ofs << "\nStacktrace:\n" << boost::stacktrace::stacktrace() << "\n";
 
 		DisplayBugMessage(ofs);
 
