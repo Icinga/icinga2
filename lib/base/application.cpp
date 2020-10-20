@@ -873,8 +873,19 @@ void Application::ExceptionHandler()
 				<< "\n"
 				<< "Additional information is available in '" << fname << "'" << "\n";
 
+			/* On platforms where HAVE_CXXABI_H is defined, we prefer to print the stack trace that was saved
+			 * when the last exception was thrown. Everywhere else, we do not have this information so we
+			 * collect a stack trace here, which might lack some information, for example when an exception
+			 * is rethrown, but this is still better than nothing.
+			 */
+			boost::stacktrace::stacktrace *stack = nullptr;
+#ifndef HAVE_CXXABI_H
+			boost::stacktrace::stacktrace local_stack;
+			stack = &local_stack;
+#endif /* HAVE_CXXABI_H */
+
 			ofs << "\n"
-				<< DiagnosticInformation(ex)
+				<< DiagnosticInformation(ex, true, stack)
 				<< "\n";
 		}
 
