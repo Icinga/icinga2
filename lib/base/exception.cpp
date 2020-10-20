@@ -14,7 +14,7 @@
 
 using namespace icinga;
 
-static boost::thread_specific_ptr<StackTrace> l_LastExceptionStack;
+static boost::thread_specific_ptr<boost::stacktrace::stacktrace> l_LastExceptionStack;
 static boost::thread_specific_ptr<ContextTrace> l_LastExceptionContext;
 
 #ifdef HAVE_CXXABI_H
@@ -113,7 +113,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 
 	if (!uex) {
 #endif /* NO_CAST_EXCEPTION */
-		StackTrace stack;
+		boost::stacktrace::stacktrace stack;
 		SetLastExceptionStack(stack);
 
 #ifndef NO_CAST_EXCEPTION
@@ -134,14 +134,14 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 }
 #endif /* HAVE_CXXABI_H */
 
-StackTrace *icinga::GetLastExceptionStack()
+boost::stacktrace::stacktrace *icinga::GetLastExceptionStack()
 {
 	return l_LastExceptionStack.get();
 }
 
-void icinga::SetLastExceptionStack(const StackTrace& trace)
+void icinga::SetLastExceptionStack(const boost::stacktrace::stacktrace& trace)
 {
-	l_LastExceptionStack.reset(new StackTrace(trace));
+	l_LastExceptionStack.reset(new boost::stacktrace::stacktrace(trace));
 }
 
 ContextTrace *icinga::GetLastExceptionContext()
@@ -154,7 +154,7 @@ void icinga::SetLastExceptionContext(const ContextTrace& context)
 	l_LastExceptionContext.reset(new ContextTrace(context));
 }
 
-String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, StackTrace *stack, ContextTrace *context)
+String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, boost::stacktrace::stacktrace *stack, ContextTrace *context)
 {
 	std::ostringstream result;
 
@@ -216,7 +216,7 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 	const auto *pex = dynamic_cast<const posix_error *>(&ex);
 
 	if (!uex && !pex && verbose) {
-		const StackTrace *st = boost::get_error_info<StackTraceErrorInfo>(ex);
+		const boost::stacktrace::stacktrace *st = boost::get_error_info<StackTraceErrorInfo>(ex);
 
 		if (st) {
 			result << *st;
@@ -251,8 +251,8 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 
 String icinga::DiagnosticInformation(const boost::exception_ptr& eptr, bool verbose)
 {
-	StackTrace *pt = GetLastExceptionStack();
-	StackTrace stack;
+	boost::stacktrace::stacktrace *pt = GetLastExceptionStack();
+	boost::stacktrace::stacktrace stack;
 
 	ContextTrace *pc = GetLastExceptionContext();
 	ContextTrace context;
