@@ -16,7 +16,6 @@ set(base_test_SOURCES
   base-object-packer.cpp
   base-serialize.cpp
   base-shellescape.cpp
-  base-stacktrace.cpp
   base-stream.cpp
   base-string.cpp
   base-timer.cpp
@@ -90,7 +89,6 @@ add_boost_test(base
     base_serialize/object
     base_shellescape/escape_basic
     base_shellescape/escape_quoted
-    base_stacktrace/stacktrace
     base_stream/readline_stdio
     base_string/construct
     base_string/equal

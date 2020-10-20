@@ -5,7 +5,6 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include "base/stacktrace.hpp"
 #include "base/context.hpp"
 #include "base/debuginfo.hpp"
 #include "base/dictionary.hpp"
@@ -15,6 +14,7 @@
 #include <boost/exception/errinfo_file_name.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception_ptr.hpp>
+#include <boost/stacktrace.hpp>
 
 #ifdef _WIN32
 #	include <boost/algorithm/string/trim.hpp>
@@ -76,15 +76,16 @@ private:
 	Dictionary::Ptr m_DebugHint;
 };
 
-StackTrace *GetLastExceptionStack();
-void SetLastExceptionStack(const StackTrace& trace);
+boost::stacktrace::stacktrace *GetLastExceptionStack();
+void SetLastExceptionStack(const boost::stacktrace::stacktrace& trace);
 
 ContextTrace *GetLastExceptionContext();
 void SetLastExceptionContext(const ContextTrace& context);
 
 void RethrowUncaughtException();
 
-typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
+struct errinfo_stacktrace_;
+typedef boost::error_info<struct errinfo_stacktrace_, boost::stacktrace::stacktrace> StackTraceErrorInfo;
 
 std::string to_string(const StackTraceErrorInfo&);
 
@@ -92,7 +93,8 @@ typedef boost::error_info<ContextTrace, ContextTrace> ContextTraceErrorInfo;
 
 std::string to_string(const ContextTraceErrorInfo& e);
 
-String DiagnosticInformation(const std::exception& ex, bool verbose = true, StackTrace *stack = nullptr, ContextTrace *context = nullptr);
+String DiagnosticInformation(const std::exception& ex, bool verbose = true,
+	boost::stacktrace::stacktrace *stack = nullptr, ContextTrace *context = nullptr);
 String DiagnosticInformation(const boost::exception_ptr& eptr, bool verbose = true);
 
 class posix_error : virtual public std::exception, virtual public boost::exception {
