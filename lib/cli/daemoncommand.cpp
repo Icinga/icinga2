@@ -210,6 +210,20 @@ static double GetDebugWorkerDelay()
 }
 #endif /* I2_DEBUG */
 
+void throw_test_exception() {
+	if (!Utility::GetFromEnvironment("DEBUG_ABORT").IsEmpty()) {
+		abort();
+	}
+	if (!Utility::GetFromEnvironment("DEBUG_THROW_CXX").IsEmpty()) {
+		throw std::runtime_error("test exception");
+	}
+#ifdef _WIN32
+	if (!Utility::GetFromEnvironment("DEBUG_THROW_SEH").IsEmpty()) {
+		RaiseException(42, 0, 0, nullptr);
+	}
+#endif
+}
+
 /**
  * Do the actual work (config loading, ...)
  *
@@ -284,6 +298,8 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 			return EXIT_FAILURE;
 		}
 	}
+
+	throw_test_exception();
 
 	/* Create the internal API object storage. Do this here too with setups without API. */
 	ConfigObjectUtility::CreateStorage();
@@ -520,6 +536,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 
 				_exit(RunWorker(configs, closeConsoleLog, stderrFile));
 			} catch (...) {
+				throw;
 				_exit(EXIT_FAILURE);
 			}
 
