@@ -101,6 +101,13 @@ void icinga::RethrowUncaughtException()
 extern "C"
 void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 {
+	/* This function overrides an internal function of libstdc++ that is called when a C++ exception is thrown in order
+	 * to capture as much information as possible at that time and then call the original implementation. This
+	 * information includes:
+	 *  - stack trace (for later use in DiagnosticInformation)
+	 *  - context trace (for later use in DiagnosticInformation)
+	 */
+
 	auto *tinfo = static_cast<std::type_info *>(pvtinfo);
 
 	typedef void (*cxa_throw_fn)(void *, std::type_info *, void (*)(void *)) __attribute__((noreturn));
@@ -112,6 +119,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 	l_LastExceptionDest.reset(new DestCallback(dest));
 #endif /* !defined(__GLIBCXX__) && !defined(_WIN32) */
 
+	// resolve symbol to original implementation of __cxa_throw for the call at the end of this function
 	if (real_cxa_throw == nullptr)
 		real_cxa_throw = (cxa_throw_fn)dlsym(RTLD_NEXT, "__cxa_throw");
 
@@ -121,10 +129,12 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 
 	if (!uex) {
 #endif /* NO_CAST_EXCEPTION */
+		// save the current stack trace in a thread-local variable
 		boost::stacktrace::stacktrace stack;
 		SetLastExceptionStack(stack);
 
 #ifndef NO_CAST_EXCEPTION
+		// save the current stack trace in the boost exception error info if the exception is a boost::exception
 		if (ex && !boost::get_error_info<StackTraceErrorInfo>(*ex))
 			*ex << StackTraceErrorInfo(stack);
 	}
@@ -134,6 +144,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 	SetLastExceptionContext(context);
 
 #ifndef NO_CAST_EXCEPTION
+	// save the current context trace in the boost exception error info if the exception is a boost::exception
 	if (ex && !boost::get_error_info<ContextTraceErrorInfo>(*ex))
 		*ex << ContextTraceErrorInfo(context);
 #endif /* NO_CAST_EXCEPTION */
