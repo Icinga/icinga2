@@ -223,34 +223,37 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, boo
 	const auto *pex = dynamic_cast<const posix_error *>(&ex);
 
 	if (!uex && !pex && verbose) {
+		// Print the first of the following stack traces (if any exists)
+		//   1. stack trace from boost exception error information
 		const boost::stacktrace::stacktrace *st = boost::get_error_info<StackTraceErrorInfo>(ex);
+		//   2. stack trace explicitly passed as a parameter
+		if (!st) {
+			st = stack;
+		}
+		//   3. stack trace saved when the last exception was thrown
+		if (!st) {
+			st = GetLastExceptionStack();
+		}
 
-		if (st) {
-			result << *st;
-		} else {
-			result << std::endl;
-
-			if (!stack)
-				stack = GetLastExceptionStack();
-
-			if (stack)
-				result << *stack;
-
+		if (st && !st->empty()) {
+			result << "\nStacktrace:\n" << *st;
 		}
 	}
 
+	// Print the first of the following context traces (if any exists)
+	//   1. context trace from boost exception error information
 	const ContextTrace *ct = boost::get_error_info<ContextTraceErrorInfo>(ex);
+	//   2. context trace explicitly passed as a parameter
+	if (!ct) {
+		ct = context;
+	}
+	//   3. context trace saved when the last exception was thrown
+	if (!ct) {
+		ct = GetLastExceptionContext();
+	}
 
-	if (ct) {
-		result << *ct;
-	} else {
-		result << std::endl;
-
-		if (!context)
-			context = GetLastExceptionContext();
-
-		if (context)
-			result << *context;
+	if (ct && ct->GetLength() > 0) {
+		result << "\nContext:\n" << *ct;
 	}
 
 	return result.str();
