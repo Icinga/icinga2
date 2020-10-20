@@ -32,6 +32,14 @@ public:
 
 
 #if defined(__GLIBCXX__) || defined(_LIBCPPABI_VERSION)
+/**
+ * Attempts to cast an exception to a destination type
+ *
+ * @param obj Exception to be casted
+ * @param src Type information of obj
+ * @param dst Information of which type to cast to
+ * @return Pointer to the exception if the cast is possible, nullptr otherwise
+ */
 inline void *cast_exception(void *obj, const std::type_info *src, const std::type_info *dst)
 {
 #ifdef __GLIBCXX__
