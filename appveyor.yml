@@ -1,16 +1,17 @@
 ---
 version: 2.11.0.dev.{build}
 
-os: Visual Studio 2017
+os: Visual Studio 2019
 platform: x64
 
 environment:
   BITS: 64
   CMAKE_BUILD_TYPE: Debug
-  CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
+  CMAKE_GENERATOR: "Visual Studio 16 2019"
+  CMAKE_GENERATOR_PLATFORM: x64
   # https://www.appveyor.com/docs/windows-images-software/#boost
-  BOOST_ROOT: 'C:\Libraries\boost_1_67_0'
-  BOOST_LIBRARYDIR: 'C:\Libraries\boost_1_67_0\lib64-msvc-14.1'
+  BOOST_ROOT: 'C:\Libraries\boost_1_71_0'
+  BOOST_LIBRARYDIR: 'C:\Libraries\boost_1_71_0\lib64-msvc-14.2'
   # https://www.appveyor.com/docs/windows-images-software/#tools
   OPENSSL_ROOT_DIR: 'C:\OpenSSL-v111-Win64'
   BISON_BINARY: 'C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe'
