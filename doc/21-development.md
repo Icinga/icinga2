@@ -1119,6 +1119,7 @@ General:
 - [function_types](https://www.boost.org/doc/libs/1_66_0/libs/function_types/doc/html/index.html) (header only)
 - [circular_buffer](https://www.boost.org/doc/libs/1_66_0/doc/html/circular_buffer.html) (header only)
 - [math](https://www.boost.org/doc/libs/1_66_0/libs/math/doc/html/index.html) (header only)
+- [stacktrace](https://www.boost.org/doc/libs/1_66_0/doc/html/stacktrace.html) (header only)
 
 Events and Runtime:
 
