@@ -378,6 +378,12 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   endif()
 endif()
 
+if(MSVC)
+  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "19.20")
+    message(FATAL_ERROR "Your version of MSVC (${CMAKE_CXX_COMPILER_VERSION}) is too old for building Icinga 2 (MSVC >= 19.20 from Visual Studio 2019 is required).")
+  endif()
+endif()
+
 if(NOT MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
