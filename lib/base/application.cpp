@@ -758,9 +758,8 @@ void Application::SigAbrtHandler(int)
 		Log(LogCritical, "Application")
 			<< "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'" << "\n";
 
-		ofs << "Caught SIGABRT." << "\n"
-			<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
-			<< "\n";
+		ofs << "Caught SIGABRT.\n"
+			<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n\n";
 
 		DisplayInfoMessage(ofs);
 
@@ -867,9 +866,8 @@ void Application::ExceptionHandler()
 		std::ofstream ofs;
 		ofs.open(fname.CStr());
 
-		ofs << "Caught unhandled exception." << "\n"
-			<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
-			<< "\n";
+		ofs << "Caught unhandled exception.\n"
+			<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n\n";
 
 		DisplayInfoMessage(ofs);
 
@@ -943,9 +941,8 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 	Log(LogCritical, "Application")
 		<< "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'";
 
-	ofs << "Caught unhandled SEH exception." << "\n"
-		<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
-		<< "\n";
+	ofs << "Caught unhandled SEH exception.\n"
+		<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n\n";
 
 	DisplayInfoMessage(ofs);
 
