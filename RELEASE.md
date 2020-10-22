@@ -127,27 +127,27 @@ git clone git@git.icinga.com:packaging/windows-icinga2.git && cd windows-icinga2
 
 ### Branch Workflow
 
-Checkout `master` and create a new branch.
-
-* For releases use x.x[.x] as branch name (e.g. 2.11 or 2.11.1)
-* For releases with revision use x.x.x-n (e.g. 2.11.0-2)
+For each support branch in this repo (e.g. support/2.12), there exists a corresponding branch in the packaging repos
+(e.g. 2.12). Each package revision is a tagged commit on these branches. When doing a major release, create the new
+branch, otherweise switch to the existing one.
 
 
 ### Switch Build Type
 
-Edit file `.gitlab-ci.yml` and comment variable `ICINGA_BUILD_TYPE` out.
+Ensure that `ICINGA_BUILD_TYPE` is set to `release` in `.gitlab-ci.yml`. This should only be necessary after creating a
+new branch.
 
 ```yaml
 variables:
   ...
-  #ICINGA_BUILD_TYPE: snapshot
+  ICINGA_BUILD_TYPE: release
   ...
 ```
 
 Commit the change.
 
 ```
-git commit -av -m "Switch build type for $VERSION-1"
+git commit -av -m "Switch build type for 2.13"
 ```
 
 #### RPM Release Preparations
