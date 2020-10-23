@@ -2,6 +2,7 @@
 
 #include "base/application.hpp"
 #include "base/application-ti.cpp"
+#include "base/stacktrace.hpp"
 #include "base/timer.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
@@ -759,7 +760,7 @@ void Application::SigAbrtHandler(int)
 
 		DisplayInfoMessage(ofs);
 
-		ofs << "\nStacktrace:\n" << boost::stacktrace::stacktrace() << "\n";
+		ofs << "\nStacktrace:\n" << StackTraceFormatter(boost::stacktrace::stacktrace()) << "\n";
 
 		DisplayBugMessage(ofs);
 
@@ -950,7 +951,7 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 		<< "  Flags: "   << exi->ExceptionRecord->ExceptionFlags   << "\n";
 	ofs.flags(savedflags);
 
-	ofs << "\nStacktrace:\n" << boost::stacktrace::stacktrace() << "\n";
+	ofs << "\nStacktrace:\n" << StackTraceFormatter(boost::stacktrace::stacktrace()) << "\n";
 
 	DisplayBugMessage(ofs);
 
