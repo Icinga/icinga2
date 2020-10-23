@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/exception.hpp"
+#include "base/stacktrace.hpp"
 #include <boost/thread/tss.hpp>
 #include <utility>
 
@@ -248,7 +249,7 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, boo
 		}
 
 		if (st && !st->empty()) {
-			result << "\nStacktrace:\n" << *st;
+			result << "\nStacktrace:\n" << StackTraceFormatter(*st);
 		}
 	}
 
