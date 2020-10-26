@@ -696,6 +696,13 @@ void ApiListener::NewClientHandlerInternal(
 	if (ctype == ClientJsonRpc) {
 		Log(LogNotice, "ApiListener", "New JSON-RPC client");
 
+		if (endpoint && endpoint->GetConnected()) {
+			Log(LogNotice, "ApiListener")
+				<< "Ignoring JSON-RPC connection " << conninfo
+				<< ". We're already connected to Endpoint '" << endpoint->GetName() << "'.";
+			return;
+		}
+
 		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, client, role);
 
 		if (endpoint) {
