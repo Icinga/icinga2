@@ -1961,9 +1961,11 @@ CMake uses CPack and NSIS to create the setup executable including all binaries 
 in addition to setup dialogues and configuration. Therefore we’ll need to install [NSIS](http://nsis.sourceforge.net/Download)
 first.
 
-We also need to install the Windows Installer XML (WIX) toolset.
+We also need to install the Windows Installer XML (WIX) toolset. This has .NET 3.5 as a dependency which might need a
+reboot of the system which is not handled properly by Chocolatey. Therefore install it first and reboot when asked.
 
 ```
+Enable-WindowsOptionalFeature -FeatureName "NetFx3" -Online
 choco install -y wixtoolset
 ```
 
