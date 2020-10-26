@@ -7,7 +7,7 @@
 #include <shlwapi.h>
 #include <tlhelp32.h>
 
-#define VERSION 1.0
+#define VERSION 1.1
 
 namespace po = boost::program_options;
 
@@ -15,7 +15,39 @@ struct printInfoStruct
 {
 	threshold warn;
 	threshold crit;
+	std::wstring command;
 	std::wstring user;
+};
+
+struct ProcSnapshotResources {
+	HANDLE hProcessSnap{ nullptr }, hProcess{ nullptr };
+	PROCESSENTRY32 pe32{};
+
+	~ProcSnapshotResources()
+	{
+		if (hProcess)
+			CloseHandle(hProcess);
+		if (hProcessSnap)
+			CloseHandle(hProcessSnap);
+	}
+};
+
+struct ProcTokenResources {
+	HANDLE hToken{ nullptr };
+	PTOKEN_USER pSIDTokenUser{ nullptr };
+	SID_NAME_USE sidNameUse{ SidTypeUnknown };
+	LPWSTR AcctName{ nullptr }, DomainName{ nullptr };
+	DWORD dwReturnLength{ 1 }, dwAcctName{ 1 }, dwDomainName{ 1 };
+
+	~ProcTokenResources()
+	{
+		delete[] reinterpret_cast<LPWSTR>(AcctName);
+		delete[] reinterpret_cast<LPWSTR>(DomainName);
+		if (pSIDTokenUser)
+			delete[] reinterpret_cast<PTOKEN_USER>(pSIDTokenUser);
+		if (hToken)
+			CloseHandle(hToken);
+	}
 };
 
 static bool l_Debug;
@@ -32,6 +64,7 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 		("help,h", "Print help message and exit")
 		("version,V", "Print version and exit")
 		("debug,d", "Verbose/Debug output")
+		("command,C", po::wvalue<std::wstring>(), "Only scan for matches of COMMAND (without path)")
 		("user,u", po::wvalue<std::wstring>(), "Count only processes of user")
 		("warning,w", po::wvalue<std::wstring>(), "Warning threshold")
 		("critical,c", po::wvalue<std::wstring>(), "Critical threshold")
@@ -69,7 +102,8 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
 			L"if applicable, the maximal value. Performance data will only be displayed when\n"
 			L"you set at least one threshold\n\n"
-			L"For \"-user\" option keep in mind you need root to see other users processes\n\n"
+			L"For \"-command\" and \"-user\" options keep in mind you need root to see other\n"
+			L"users processes.\n\n"
 			L"%s' exit codes denote the following:\n"
 			L" 0\tOK,\n\tNo Thresholds were broken or the programs check part was not executed\n"
 			L" 1\tWARNING,\n\tThe warning, but not the critical threshold was broken\n"
@@ -118,6 +152,9 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 		}
 	}
 
+	if (vm.count("command"))
+		printInfo.command = vm["command"].as<std::wstring>();
+
 	if (vm.count("user"))
 		printInfo.user = vm["user"].as<std::wstring>();
 
@@ -163,148 +200,141 @@ static int printOutput(const int numProcs, printInfoStruct& printInfo)
 	return state;
 }
 
-static int countProcs()
+static bool matchProcessImageName(HANDLE hProcess, const std::wstring& command)
 {
-	if (l_Debug)
-		std::wcout << L"Counting all processes" << '\n';
+	WCHAR wpath[MAX_PATH];
+	DWORD dwFileSize = MAX_PATH;
+
+	if (QueryFullProcessImageName(hProcess, 0, wpath, &dwFileSize)) {
+		const WCHAR* w_command = command.c_str();
+		const WCHAR* w_processImage = PathFindFileName(wpath);
+
+		if (l_Debug)
+			std::wcout << L"Comparing process image " << wpath << L" (" << w_processImage << L") to " << command << '\n';
+
+		if (w_processImage != nullptr && wcsstr(w_processImage, w_command) != nullptr)
+			return true;
+	}
+	return false;
+}
+
+static bool matchProcessUser(HANDLE hProcess, const std::wstring& user)
+{
+	ProcTokenResources my{};
+	const WCHAR* wuser = user.c_str();
+
+	//get ProcessToken
+	if (!OpenProcessToken(hProcess, TOKEN_QUERY, &my.hToken)) {
+		//Won't count pid 0 (system idle) and 4/8 (Sytem)
+		if (l_Debug)
+			std::wcout << L"OpenProcessToken failed" << '\n';
+		return false;
+	}
+
+	//Get dwReturnLength in first call
+	if (!GetTokenInformation(my.hToken, TokenUser, nullptr, 0, &my.dwReturnLength)
+		&& GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+		return false;
+
+	my.pSIDTokenUser = reinterpret_cast<PTOKEN_USER>(new BYTE[my.dwReturnLength]);
+	memset(my.pSIDTokenUser, 0, my.dwReturnLength);
 
 	if (l_Debug)
-		std::wcout << L"Creating snapshot" << '\n';
+		std::wcout << L"Received token, saving information" << '\n';
 
-	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (hProcessSnap == INVALID_HANDLE_VALUE)
-		return -1;
-
-	PROCESSENTRY32 pe32;
-	pe32.dwSize = sizeof(PROCESSENTRY32);
+	//write Info in pSIDTokenUser
+	if (!GetTokenInformation(my.hToken, TokenUser, my.pSIDTokenUser, my.dwReturnLength, &my.dwReturnLength))
+		return false;
 
 	if (l_Debug)
-		std::wcout << L"Grabbing first proccess" << '\n';
+		std::wcout << L"Looking up SID" << '\n';
 
-	if (!Process32First(hProcessSnap, &pe32)) {
-		CloseHandle(hProcessSnap);
-		return -1;
+	//get dwAcctName and dwDomainName size
+	if (!LookupAccountSid(NULL, my.pSIDTokenUser->User.Sid, my.AcctName,
+		(LPDWORD)&my.dwAcctName, my.DomainName, (LPDWORD)&my.dwDomainName, &my.sidNameUse)
+		&& GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+		return false;
+
+	my.AcctName = reinterpret_cast<LPWSTR>(new WCHAR[my.dwAcctName]);
+	my.DomainName = reinterpret_cast<LPWSTR>(new WCHAR[my.dwDomainName]);
+
+	if (!LookupAccountSid(nullptr, my.pSIDTokenUser->User.Sid, my.AcctName,
+		(LPDWORD)&my.dwAcctName, my.DomainName, (LPDWORD)&my.dwDomainName, &my.sidNameUse))
+		return false;
+
+	if (l_Debug)
+		std::wcout << L"Comparing " << my.AcctName << L" to " << wuser << '\n';
+
+	if (wcscmp(my.AcctName, wuser))
+		return false;
+
+	return true;
+}
+
+static int countProcs(const std::wstring& command, const std::wstring& user)
+{
+	ProcSnapshotResources my{};
+	int numProcs = 0;
+	const bool evaluateDetails = !command.empty() || !user.empty();
+
+	if (l_Debug) {
+		std::wcout << L"Counting all processes";
+		if (!command.empty()) {
+			std::wcout << L" with name " << command;
+		}
+		if (!user.empty()) {
+			std::wcout << L" of user " << user;
+		}
+		std::wcout << '\n';
 	}
 
 	if (l_Debug)
-		std::wcout << L"Counting processes..." << '\n';
-
-	int numProcs = 0;
-
-	do {
-		++numProcs;
-	} while (Process32Next(hProcessSnap, &pe32));
-
-	if (l_Debug)
-		std::wcout << L"Found " << numProcs << L" processes. Cleaning up udn returning" << '\n';
-
-	CloseHandle(hProcessSnap);
-
-	return numProcs;
-}
-
-static int countProcs(const std::wstring& user)
-{
-	if (l_Debug)
-		std::wcout << L"Counting all processes of user" << user << '\n';
-
-	const WCHAR *wuser = user.c_str();
-	int numProcs = 0;
-
-	HANDLE hProcessSnap, hProcess = NULL, hToken = NULL;
-	PROCESSENTRY32 pe32;
-	DWORD dwReturnLength, dwAcctName, dwDomainName;
-	PTOKEN_USER pSIDTokenUser = NULL;
-	SID_NAME_USE sidNameUse;
-	LPWSTR AcctName, DomainName;
-
-	if (l_Debug)
 		std::wcout << L"Creating snapshot" << '\n';
 
-	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (hProcessSnap == INVALID_HANDLE_VALUE)
-		goto die;
+	my.hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (my.hProcessSnap == INVALID_HANDLE_VALUE)
+		return 0;
 
-	pe32.dwSize = sizeof(PROCESSENTRY32);
+	my.pe32.dwSize = sizeof(PROCESSENTRY32);
 
 	if (l_Debug)
 		std::wcout << L"Grabbing first proccess" << '\n';
 
-	if (!Process32First(hProcessSnap, &pe32))
-		goto die;
+	if (!Process32First(my.hProcessSnap, &my.pe32))
+		return 0;
 
 	if (l_Debug)
 		std::wcout << L"Counting processes..." << '\n';
 
 	do {
-		if (l_Debug)
-			std::wcout << L"Getting process token" << '\n';
-
-		//get ProcessToken
-		hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pe32.th32ProcessID);
-		if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken))
-			//Won't count pid 0 (system idle) and 4/8 (Sytem)
-			continue;
-
-		//Get dwReturnLength in first call
-		dwReturnLength = 1;
-		if (!GetTokenInformation(hToken, TokenUser, NULL, 0, &dwReturnLength)
-			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-			continue;
-
-		pSIDTokenUser = reinterpret_cast<PTOKEN_USER>(new BYTE[dwReturnLength]);
-		memset(pSIDTokenUser, 0, dwReturnLength);
-
-		if (l_Debug)
-			std::wcout << L"Received token, saving information" << '\n';
-
-		//write Info in pSIDTokenUser
-		if (!GetTokenInformation(hToken, TokenUser, pSIDTokenUser, dwReturnLength, &dwReturnLength))
-			continue;
-
-		AcctName = NULL;
-		DomainName = NULL;
-		dwAcctName = 1;
-		dwDomainName = 1;
-
-		if (l_Debug)
-			std::wcout << L"Looking up SID" << '\n';
-
-		//get dwAcctName and dwDomainName size
-		if (!LookupAccountSid(NULL, pSIDTokenUser->User.Sid, AcctName,
-			(LPDWORD)&dwAcctName, DomainName, (LPDWORD)&dwDomainName, &sidNameUse)
-			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-			continue;
-
-		AcctName = reinterpret_cast<LPWSTR>(new WCHAR[dwAcctName]);
-		DomainName = reinterpret_cast<LPWSTR>(new WCHAR[dwDomainName]);
-
-		if (!LookupAccountSid(NULL, pSIDTokenUser->User.Sid, AcctName,
-			(LPDWORD)&dwAcctName, DomainName, (LPDWORD)&dwDomainName, &sidNameUse))
-			continue;
-
-		if (l_Debug)
-			std::wcout << L"Comparing " << AcctName << L" to " << wuser << '\n';
-		if (!wcscmp(AcctName, wuser)) {
-			++numProcs;
+		bool processMatches = true;
+		if (evaluateDetails) {
 			if (l_Debug)
-				std::wcout << L"Is process of " << wuser << L" (" << numProcs << L")" << '\n';
+				std::wcout << L"Query process information" << '\n';
+
+			my.hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, my.pe32.th32ProcessID);
+			if (!command.empty() && !matchProcessImageName(my.hProcess, command)) {
+				processMatches = false;
+			} else {
+				if (l_Debug)
+					std::wcout << L"  Is command " << command << '\n';
+			}
+
+			if (!user.empty() && !matchProcessUser(my.hProcess, user)) {
+				processMatches = false;
+			} else {
+				if (l_Debug)
+					std::wcout << L"  Is process of " << user << '\n';
+			}
+
+			if (processMatches) {
+				++numProcs;
+				if (l_Debug)
+					std::wcout << L"  (" << numProcs << L")" << '\n';
+			}
 		}
+	} while (Process32Next(my.hProcessSnap, &my.pe32));
 
-		delete[] reinterpret_cast<LPWSTR>(AcctName);
-		delete[] reinterpret_cast<LPWSTR>(DomainName);
-
-	} while (Process32Next(hProcessSnap, &pe32));
-
-die:
-	if (hProcessSnap)
-		CloseHandle(hProcessSnap);
-	if (hProcess)
-		CloseHandle(hProcess);
-	if (hToken)
-		CloseHandle(hToken);
-	if (pSIDTokenUser)
-		delete[] reinterpret_cast<PTOKEN_USER>(pSIDTokenUser);
 	return numProcs;
 }
 
@@ -318,8 +348,5 @@ int wmain(int argc, WCHAR **argv)
 	if (r != -1)
 		return r;
 
-	if (!printInfo.user.empty())
-		return printOutput(countProcs(printInfo.user), printInfo);
-
-	return printOutput(countProcs(), printInfo);
+	return printOutput(countProcs(printInfo.command, printInfo.user), printInfo);
 }

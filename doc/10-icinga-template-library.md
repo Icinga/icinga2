@@ -1643,11 +1643,12 @@ When using `procs_win_user` this plugins needs administrative privileges to acce
 
 Custom variables:
 
-Name             | Description
-:----------------|:------------
-procs\_win\_warn | **Optional**. The warning threshold.
-procs\_win\_crit | **Optional**. The critical threshold.
-procs\_win\_user | **Optional**. Count this users processes.
+Name                | Description
+:-------------------|:------------
+procs\_win\_warn    | **Optional**. The warning threshold.
+procs\_win\_crit    | **Optional**. The critical threshold.
+procs\_win\_command | **Optional**. Only scan for matches of COMMAND (without path).
+procs\_win\_user    | **Optional**. Count this users processes.
 
 
 ### service-windows <a id="windows-plugins-service-windows"></a>
