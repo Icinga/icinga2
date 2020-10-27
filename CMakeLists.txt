@@ -203,10 +203,6 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
 )
 
-if(HAVE_LIBEXECINFO)
-  list(APPEND base_DEPS execinfo)
-endif()
-
 if(UNIX OR CYGWIN)
   list(APPEND base_OBJS $<TARGET_OBJECTS:execvpe>)
 endif()
@@ -365,6 +361,7 @@ check_include_file_cxx(cxxabi.h HAVE_CXXABI_H)
 
 if(HAVE_LIBEXECINFO)
   set(HAVE_BACKTRACE_SYMBOLS TRUE)
+  list(APPEND base_DEPS execinfo)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
