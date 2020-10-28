@@ -14,6 +14,13 @@ using namespace icinga;
 
 std::ostream &icinga::operator<<(std::ostream &os, const StackTraceFormatter &f)
 {
+	/* In most cases, this operator<< just relies on the operator<< for the `boost::stacktrace::stacktrace` wrapped in
+	 * the `StackTraceFormatter`. But as this operator turned out to not work properly on some platforms, there is a
+	 * fallback implementation that can be enabled using the `-DICINGA2_STACKTRACE_USE_BACKTRACE_SYMBOLS` flag at
+	 * compile time. This will then switch to `backtrace_symbols()` from `<execinfo.h>` instead of the implementation
+	 * provided by Boost.
+	 */
+
 	const boost::stacktrace::stacktrace &stack = f.m_Stack;
 
 #ifdef ICINGA2_STACKTRACE_USE_BACKTRACE_SYMBOLS
