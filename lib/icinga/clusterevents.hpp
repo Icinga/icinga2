@@ -26,8 +26,14 @@ public:
 	static void NextCheckChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
 	static Value NextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
+	static void LastCheckStartedChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
+	static Value LastCheckStartedChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+
 	static void SuppressedNotificationsChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
 	static Value SuppressedNotificationsChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+
+	static void SuppressedNotificationTypesChangedHandler(const Notification::Ptr& notification, const MessageOrigin::Ptr& origin);
+	static Value SuppressedNotificationTypesChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static void NextNotificationChangedHandler(const Notification::Ptr& notification, const MessageOrigin::Ptr& origin);
 	static Value NextNotificationChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);

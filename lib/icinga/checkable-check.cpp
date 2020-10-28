@@ -358,9 +358,12 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		SetLastCheckResult(cr);
 
 		if (GetProblem() != wasProblem) {
-			for (auto& service : host->GetServices()) {
+			auto services = host->GetServices();
+			olock.Unlock();
+			for (auto& service : services) {
 				Service::OnHostProblemChanged(service, cr, origin);
 			}
+			olock.Lock();
 		}
 	}
 
@@ -513,6 +516,8 @@ void Checkable::ExecuteCheck()
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
+
+	SetLastCheckStarted(Utility::GetTime());
 
 	/* This calls SetNextCheck() which updates the CheckerComponent's idle/pending
 	 * queues and ensures that checks are not fired multiple times. ProcessCheckResult()

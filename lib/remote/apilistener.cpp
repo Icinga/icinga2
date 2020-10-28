@@ -560,32 +560,19 @@ void ApiListener::NewClientHandlerInternal(
 	boost::system::error_code ec;
 
 	{
-		struct DoneHandshake
-		{
-			bool Done = false;
-		};
-
-		auto doneHandshake (Shared<DoneHandshake>::Make());
-
-		IoEngine::SpawnCoroutine(*strand, [strand, client, doneHandshake](asio::yield_context yc) {
-			namespace sys = boost::system;
-
-			{
-				boost::asio::deadline_timer timer (strand->context());
-				timer.expires_from_now(boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)));
-
-				sys::error_code ec;
-				timer.async_wait(yc[ec]);
-			}
-
-			if (!doneHandshake->Done) {
-				sys::error_code ec;
+		Timeout::Ptr handshakeTimeout (new Timeout(
+			strand->context(),
+			*strand,
+			boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)),
+			[strand, client](asio::yield_context yc) {
+				boost::system::error_code ec;
 				client->lowest_layer().cancel(ec);
 			}
-		});
+		));
 
 		sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc[ec]);
-		doneHandshake->Done = true;
+
+		handshakeTimeout->Cancel();
 	}
 
 	if (ec) {

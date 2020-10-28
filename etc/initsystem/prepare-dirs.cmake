@@ -26,12 +26,10 @@ getent group $ICINGA2_GROUP >/dev/null 2>&1 || (echo "Icinga group '$ICINGA2_GRO
 getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || (echo "Icinga command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting." && exit 6)
 
 if [ ! -e "$ICINGA2_INIT_RUN_DIR" ]; then
-	mkdir "$ICINGA2_INIT_RUN_DIR"
-	mkdir "$ICINGA2_INIT_RUN_DIR"/cmd
+	mkdir -m 755 "$ICINGA2_INIT_RUN_DIR"
+	mkdir -m 2750 "$ICINGA2_INIT_RUN_DIR"/cmd
 fi
 
-chmod 755 "$ICINGA2_INIT_RUN_DIR"
-chmod 2750 "$ICINGA2_INIT_RUN_DIR"/cmd
 chown -R $ICINGA2_USER:$ICINGA2_COMMAND_GROUP "$ICINGA2_INIT_RUN_DIR"
 
 test -e "$ICINGA2_LOG_DIR" || install -m 750 -o $ICINGA2_USER -g $ICINGA2_COMMAND_GROUP -d "$ICINGA2_LOG_DIR"

@@ -66,6 +66,14 @@ void Checkable::Start(bool runtimeCreated)
 {
 	double now = Utility::GetTime();
 
+	{
+		auto cr (GetLastCheckResult());
+
+		if (GetLastCheckStarted() > (cr ? cr->GetExecutionEnd() : 0.0)) {
+			SetNextCheck(GetLastCheckStarted());
+		}
+	}
+
 	if (GetNextCheck() < now + 60) {
 		double delta = std::min(GetCheckInterval(), 60.0);
 		delta *= (double)std::rand() / RAND_MAX;

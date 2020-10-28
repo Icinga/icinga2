@@ -92,6 +92,11 @@ protected:
 
 	static int GetSessionToken();
 
+	void IncreasePendingQueries(int count);
+	void DecreasePendingQueries(int count);
+
+	WorkQueue m_QueryQueue{10000000, 1, LogNotice};
+
 private:
 	bool m_IDCacheValid{false};
 	std::map<std::pair<DbType::Ptr, DbReference>, String> m_ConfigHashes;
@@ -101,8 +106,12 @@ private:
 	std::set<DbObject::Ptr> m_ConfigUpdates;
 	std::set<DbObject::Ptr> m_StatusUpdates;
 	Timer::Ptr m_CleanUpTimer;
+	Timer::Ptr m_LogStatsTimer;
+
+	double m_LogStatsTimeout;
 
 	void CleanUpHandler();
+	void LogStatsHandler();
 
 	static Timer::Ptr m_ProgramStatusTimer;
 	static boost::once_flag m_OnceFlag;
@@ -112,6 +121,10 @@ private:
 	mutable boost::mutex m_StatsMutex;
 	RingBuffer m_QueryStats{15 * 60};
 	bool m_ActiveChangedHandler{false};
+
+	RingBuffer m_InputQueries{10};
+	RingBuffer m_OutputQueries{10};
+	Atomic<uint_fast64_t> m_PendingQueries{0};
 };
 
 struct database_error : virtual std::exception, virtual boost::exception { };

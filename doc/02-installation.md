@@ -607,50 +607,16 @@ $ nano /etc/icinga2/conf.d/templates.conf
 Icinga 2 can be used with Icinga Web 2 and a variety of modules.
 This chapter explains how to set up Icinga Web 2.
 
-Either Icinga DB or the DB IDO (Database Icinga Data Output) feature for Icinga 2 takes care of
+The DB IDO (Database Icinga Data Output) feature for Icinga 2 takes care of
 exporting all configuration and status information into a database.
 
-Please choose whether to install [Icinga DB](02-installation.md#configuring-icinga-db) (MySQL only)
-or DB IDO ([MySQL](02-installation.md#configuring-db-ido-mysql) or
-[PostgreSQL](02-installation.md#configuring-db-ido-postgresql)). 
-It's recommended to use the newer Icinga DB feature, if you don't need PostgreSQL.
-
-### Configuring Icinga DB <a id="configuring-icinga-db"></a>
-
-First, make sure to setup Icinga DB itself and its database backends (Redis and MySQL) by following the [installation instructions](https://icinga.com/docs/icingadb/latest/doc/02-Installation/).
-
-#### Enabling the Icinga DB feature <a id="enabling-icinga-db"></a>
-
-Icinga 2 provides a configuration file that is installed in
-`/etc/icinga2/features-available/icingadb.conf`. You can update
-the Redis credentials in this file.
-
-All available attributes are explained in the
-[IcingaDB object](09-object-types.md#objecttype-icingadb)
-chapter.
-
-You can enable the `icingadb` feature configuration file using
-`icinga2 feature enable`:
-
-```
-# icinga2 feature enable icingadb
-Module 'icingadb' was enabled.
-Make sure to restart Icinga 2 for these changes to take effect.
-```
-
-Restart Icinga 2.
-
-```
-systemctl restart icinga2
-```
-
-Alpine Linux:
-
-```
-rc-service icinga2 restart
-```
-
-Continue with the [webserver setup](02-installation.md#icinga2-user-interface-webserver).
+> **Note**
+>
+> We're currently working on a new data backend called Icinga DB.
+> If you want to try the latest release candidate skip to 
+> the [Icinga DB Chapter](02-installation.md#icingadb).
+> Please keep in mind, that this version is not ready for use in
+> production and currently only supports MySQL.
 
 ### Configuring DB IDO MySQL <a id="configuring-db-ido-mysql"></a>
 
@@ -1168,3 +1134,49 @@ PostgreSQL:
 
 * [Documentation](https://www.postgresql.org/docs/9.3/static/backup.html)
 
+## Icinga DB <a id="icingadb"></a>
+
+Icinga DB is a new data backend currently in development.
+It's purpose is to synchronise data between Icinga 2 (Redis) and Icinga Web 2 (MySQL), some day replacing the IDO. 
+Don't worry, we won't drop support on the IDO any time soon.
+
+> **Note**
+> Icinga DB is not ready to be used in production  
+> and should only be used for testing purposes.
+
+### Configuring Icinga DB <a id="configuring-icinga-db"></a>
+
+First, make sure to setup Icinga DB itself and its database backends (Redis and MySQL) by following the [installation instructions](https://icinga.com/docs/icingadb/latest/doc/02-Installation/).
+
+#### Enabling the Icinga DB feature <a id="enabling-icinga-db"></a>
+
+Icinga 2 provides a configuration file that is installed in
+`/etc/icinga2/features-available/icingadb.conf`. You can update
+the Redis credentials in this file.
+
+All available attributes are explained in the
+[IcingaDB object](09-object-types.md#objecttype-icingadb)
+chapter.
+
+You can enable the `icingadb` feature configuration file using
+`icinga2 feature enable`:
+
+```
+# icinga2 feature enable icingadb
+Module 'icingadb' was enabled.
+Make sure to restart Icinga 2 for these changes to take effect.
+```
+
+Restart Icinga 2.
+
+```
+systemctl restart icinga2
+```
+
+Alpine Linux:
+
+```
+rc-service icinga2 restart
+```
+
+Continue with the [webserver setup](02-installation.md#icinga2-user-interface-webserver).

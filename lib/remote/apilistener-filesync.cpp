@@ -20,7 +20,7 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
-boost::mutex ApiListener::m_ConfigSyncStageLock;
+SpinLock ApiListener::m_ConfigSyncStageLock;
 
 /**
  * Entrypoint for updating all authoritative configs from /etc/zones.d, packages, etc.
@@ -312,7 +312,16 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		return Empty;
 	}
 
-	std::thread([origin, params]() { HandleConfigUpdate(origin, params); }).detach();
+	std::thread([origin, params, listener]() {
+		try {
+			listener->HandleConfigUpdate(origin, params);
+		} catch (const std::exception& ex) {
+			auto msg ("Exception during config sync: " + DiagnosticInformation(ex));
+
+			Log(LogCritical, "ApiListener") << msg;
+			listener->UpdateLastFailedZonesStageValidation(msg);
+		}
+	}).detach();
 	return Empty;
 }
 
@@ -321,7 +330,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 	/* Only one transaction is allowed, concurrent message handlers need to wait.
 	 * This affects two parent endpoints sending the config in the same moment.
 	 */
-	auto lock (Shared<boost::mutex::scoped_lock>::Make(m_ConfigSyncStageLock));
+	auto lock (Shared<std::unique_lock<SpinLock>>::Make(m_ConfigSyncStageLock));
 
 	String apiZonesStageDir = GetApiZonesStageDir();
 	String fromEndpointName = origin->FromClient->GetEndpoint()->GetName();
@@ -534,6 +543,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 		Log(LogInformation, "ApiListener")
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
 			<< "' are equal to production, skipping validation and reload.";
+		ClearLastFailedZonesStageValidation();
 	}
 }
 
@@ -618,7 +628,7 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
  *
  * @param relativePaths Required for later file operations in the callback. Provides the zone name plus path in a list.
  */
-void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relativePaths, const Shared<boost::mutex::scoped_lock>::Ptr& lock)
+void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relativePaths, const Shared<std::unique_lock<SpinLock>>::Ptr& lock)
 {
 	VERIFY(Application::GetArgC() >= 1);
 

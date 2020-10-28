@@ -356,8 +356,12 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 
 	Array::Ptr groups = host->GetGroups();
 
-	if (groups)
+	if (groups) {
+		groups = groups->ShallowClone();
+		ObjectLock oLock (groups);
+		std::sort(groups->Begin(), groups->End());
 		hashData += DbObject::HashValue(groups);
+	}
 
 	ArrayData parents;
 

@@ -5,7 +5,6 @@
 - [1. Preparations](#preparations)
   - [1.1. Issues](#issues)
   - [1.2. Backport Commits](#backport-commits)
-  - [1.3. Authors](#authors)
 - [2. Version](#version)
 - [3. Changelog](#changelog)
 - [4. Git Tag](#git-tag)
@@ -15,7 +14,7 @@
 - [6. Build Server](#build-infrastructure)
 - [7. Release Tests](#release-tests)
 - [8. GitHub Release](#github-release)
-- [9. Chocolatey](#chocolatey)
+- [9. Docker](#docker)
 - [10. Post Release](#post-release)
   - [10.1. Online Documentation](#online-documentation)
   - [10.2. Announcement](#announcement)
@@ -49,14 +48,6 @@ Check issues at https://github.com/Icinga/icinga2
 For minor versions you need to manually backports any and all commits from the
 master branch which should be part of this release.
 
-### Authors <a id="authors"></a>
-
-Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files:
-
-```
-git checkout master
-git log --use-mailmap | grep '^Author:' | cut -f2- -d' ' | sort -f | uniq > AUTHORS
-```
 
 ## Version <a id="version"></a>
 
@@ -88,7 +79,7 @@ git tag -s -m "Version $VERSION" v$VERSION
 Push the tag:
 
 ```
-git push --tags
+git push origin v$VERSION
 ```
 
 **For major releases:** Create a new `support` branch:
@@ -112,7 +103,7 @@ cd $HOME/dev/icinga/packaging
 ### RPM Packages  <a id="rpm-packages"></a>
 
 ```
-git clone git@git.icinga.com:icinga/rpm-icinga2.git && cd rpm-icinga2
+git clone git@git.icinga.com:packaging/rpm-icinga2.git && cd rpm-icinga2
 ```
 
 ### DEB Packages <a id="deb-packages"></a>
@@ -124,39 +115,39 @@ git clone git@git.icinga.com:packaging/deb-icinga2.git && cd deb-icinga2
 #### Raspbian Packages
 
 ```
-git clone git@git.icinga.com:icinga/raspbian-icinga2.git && cd raspbian-icinga2
+git clone git@git.icinga.com:packaging/raspbian-icinga2.git && cd raspbian-icinga2
 ```
 
 ### Windows Packages
 
 ```
-git clone git@git.icinga.com:icinga/windows-icinga2.git && cd windows-icinga2
+git clone git@git.icinga.com:packaging/windows-icinga2.git && cd windows-icinga2
 ```
 
 
 ### Branch Workflow
 
-Checkout `master` and create a new branch.
-
-* For releases use x.x[.x] as branch name (e.g. 2.11 or 2.11.1)
-* For releases with revision use x.x.x-n (e.g. 2.11.0-2)
+For each support branch in this repo (e.g. support/2.12), there exists a corresponding branch in the packaging repos
+(e.g. 2.12). Each package revision is a tagged commit on these branches. When doing a major release, create the new
+branch, otherweise switch to the existing one.
 
 
 ### Switch Build Type
 
-Edit file `.gitlab-ci.yml` and comment variable `ICINGA_BUILD_TYPE` out.
+Ensure that `ICINGA_BUILD_TYPE` is set to `release` in `.gitlab-ci.yml`. This should only be necessary after creating a
+new branch.
 
 ```yaml
 variables:
   ...
-  #ICINGA_BUILD_TYPE: snapshot
+  ICINGA_BUILD_TYPE: release
   ...
 ```
 
 Commit the change.
 
 ```
-git commit -av -m "Switch build type for $VERSION-1"
+git commit -av -m "Switch build type for 2.13"
 ```
 
 #### RPM Release Preparations
@@ -183,6 +174,16 @@ icinga2 (2.11.0-1) icinga; urgency=medium
   * Release 2.11.0
 
  -- Michael Friedrich <michael.friedrich@icinga.com>  Thu, 19 Sep 2019 10:50:31 +0200
+```
+
+
+#### Windows Release Preparations
+
+Update the file `.gitlab-ci.yml`:
+
+```
+sed -i "s/^  UPSTREAM_GIT_BRANCH: .*/  UPSTREAM_GIT_BRANCH: v$VERSION/g" .gitlab-ci.yml
+sed -i "s/^  ICINGA_FORCE_VERSION: .*/  ICINGA_FORCE_VERSION: v$VERSION/g" .gitlab-ci.yml
 ```
 
 
@@ -300,24 +301,28 @@ The release body should contain a short changelog, with links
 into the roadmap, changelog and blogpost.
 
 
-## Chocolatey  <a id="chocolatey"></a>
+## Docker  <a id="docker"></a>
 
-Navigate to the git repository on your Windows box which
-already has chocolatey installed. Pull/checkout the release.
+> Only for final versions (not for RCs).
 
-Create the nupkg package (or use the one generated on https://packages.icinga.com/windows):
+Once the release has been published on GitHub, wait for its
+[GitHub actions](https://github.com/Icinga/icinga2/actions) to complete.
 
-```
-cpack
-```
+```bash
+VERSION=2.12.1
 
-Fetch the API key from https://chocolatey.org/account and use the `choco push`
-command line.
+TAGS=(2.12)
+#TAGS=(2.12 2 latest)
 
-```
-choco apikey --key xxx --source https://push.chocolatey.org/
+docker pull icinga/icinga2:$VERSION
 
-choco push Icinga2-v2.11.0.nupkg --source https://push.chocolatey.org/
+for t in "${TAGS[@]}"; do
+  docker tag icinga/icinga2:$VERSION icinga/icinga2:$t
+done
+
+for t in "${TAGS[@]}"; do
+  docker push icinga/icinga2:$t
+done
 ```
 
 

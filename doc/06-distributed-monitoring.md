@@ -791,7 +791,7 @@ after the installation. Select the check box to proceed.
 #### Agent Setup on Windows: Configuration Wizard <a id="distributed-monitoring-setup-agent-windows-configuration-wizard"></a>
 
 On a fresh installation the setup wizard guides you through the initial configuration.
-It also provides a mechanism to send a certificate request to the [CSR signing master](distributed-monitoring-setup-sign-certificates-master).
+It also provides a mechanism to send a certificate request to the [CSR signing master](06-distributed-monitoring.md#distributed-monitoring-setup-sign-certificates-master).
 
 The following configuration details are required:
 

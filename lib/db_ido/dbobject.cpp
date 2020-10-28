@@ -111,7 +111,6 @@ void DbObject::SendConfigUpdateHeavy(const Dictionary::Ptr& configFields)
 {
 	/* update custom var config and status */
 	SendVarsConfigUpdateHeavy();
-	SendVarsStatusUpdate();
 
 	/* config attributes */
 	if (!configFields)
@@ -245,6 +244,22 @@ void DbObject::SendVarsConfigUpdateHeavy()
 				{ "instance_id", 0 } /* DbConnection class fills in real ID */
 			});
 			queries.emplace_back(std::move(query3));
+
+			DbQuery query4;
+			query4.Table = "customvariablestatus";
+			query4.Type = DbQueryInsert;
+			query4.Category = DbCatState;
+
+			query4.Fields = new Dictionary({
+				{ "varname", kv.first },
+				{ "varvalue", value },
+				{ "is_json", is_json },
+				{ "status_update_time", DbValue::FromTimestamp(Utility::GetTime()) },
+				{ "object_id", obj },
+				{ "instance_id", 0 } /* DbConnection class fills in real ID */
+			});
+
+			queries.emplace_back(std::move(query4));
 		}
 	}
 

@@ -513,8 +513,6 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 				continue;
 			}
 
-			arg.SkipValue = arg.SkipValue || arg.AValue.GetType() == ValueEmpty;
-
 			args.emplace_back(std::move(arg));
 		}
 

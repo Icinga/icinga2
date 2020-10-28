@@ -1789,8 +1789,7 @@ as community version, free for use for open source projects such as Icinga.
 The installation requires ~9GB disk space. [Download](https://www.visualstudio.com/downloads/)
 the web installer and start the installation.
 
-Note: Both Visual Studio 2017 and 2019 are covered here. Older versions
-are not supported.
+Note: Only Visual Studio 2019 is covered here. Older versions are not supported.
 
 You need a free Microsoft account to download and also store your preferences.
 
@@ -1883,7 +1882,6 @@ Icinga needs the development header and library files from the Boost library.
 
 Visual Studio translates into the following compiler versions:
 
-- `msvc-14.1` = Visual Studio 2017
 - `msvc-14.2` = Visual Studio 2019
 
 ##### Pre-built Binaries
@@ -1963,9 +1961,11 @@ CMake uses CPack and NSIS to create the setup executable including all binaries 
 in addition to setup dialogues and configuration. Therefore we’ll need to install [NSIS](http://nsis.sourceforge.net/Download)
 first.
 
-We also need to install the Windows Installer XML (WIX) toolset.
+We also need to install the Windows Installer XML (WIX) toolset. This has .NET 3.5 as a dependency which might need a
+reboot of the system which is not handled properly by Chocolatey. Therefore install it first and reboot when asked.
 
 ```
+Enable-WindowsOptionalFeature -FeatureName "NetFx3" -Online
 choco install -y wixtoolset
 ```
 
@@ -1993,7 +1993,6 @@ Build Icinga with specific CMake variables. This generates a new Visual Studio p
 
 Visual Studio translates into the following:
 
-- `msvc-14.1` = Visual Studio 2017
 - `msvc-14.2` = Visual Studio 2019
 
 You need to specify the previously installed component paths.
@@ -2001,7 +2000,7 @@ You need to specify the previously installed component paths.
 Variable              | Value                                                                | Description
 ----------------------|----------------------------------------------------------------------|-------------------------------------------------------
 `BOOST_ROOT`          | `C:\local\boost_1_71_0`                                                    | Root path where you've extracted and compiled Boost.
-`BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_71_0\lib64-msvc-14.1`, Source: `C:\local\boost_1_71_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
+`BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_71_0\lib64-msvc-14.2`, Source: `C:\local\boost_1_71_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
 `BISON_EXECUTABLE`    | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
 `FLEX_EXECUTABLE`     | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
 `ICINGA2_WITH_MYSQL`  | OFF                                                                  | Requires extra setup for MySQL if set to `ON`. Not supported for client setups.
@@ -2027,9 +2026,8 @@ cd %HOMEPATH%\source\repos\icinga2
 
 The debug MSI package is located in the `debug` directory.
 
-If you did not follow the above steps with Boost binaries
-and OpenSSL paths, or using VS 2017, you can still modify
-the environment variables.
+If you did not follow the above steps with Boost binaries and OpenSSL
+paths, you can still modify the environment variables.
 
 ```
 $env:CMAKE_GENERATOR='Visual Studio 16 2019'

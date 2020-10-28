@@ -76,6 +76,13 @@ void DbConnection::Resume()
 	m_CleanUpTimer->SetInterval(60);
 	m_CleanUpTimer->OnTimerExpired.connect(std::bind(&DbConnection::CleanUpHandler, this));
 	m_CleanUpTimer->Start();
+
+	m_LogStatsTimeout = 0;
+
+	m_LogStatsTimer = new Timer();
+	m_LogStatsTimer->SetInterval(10);
+	m_LogStatsTimer->OnTimerExpired.connect([this](const Timer * const&) { LogStatsHandler(); });
+	m_LogStatsTimer->Start();
 }
 
 void DbConnection::Pause()
@@ -145,7 +152,7 @@ void DbConnection::UpdateProgramStatus()
 	DbQuery query1;
 	query1.Table = "programstatus";
 	query1.IdColumn = "programstatus_id";
-	query1.Type = DbQueryInsert | DbQueryUpdate;
+	query1.Type = DbQueryInsert | DbQueryDelete;
 	query1.Category = DbCatProgramStatus;
 
 	query1.Fields = new Dictionary({
@@ -172,7 +179,7 @@ void DbConnection::UpdateProgramStatus()
 		{ "instance_id", 0 }  /* DbConnection class fills in real ID */
 	});
 
-	query1.Priority = PriorityHigh;
+	query1.Priority = PriorityImmediate;
 	queries.emplace_back(std::move(query1));
 
 	DbQuery query2;
@@ -234,6 +241,38 @@ void DbConnection::CleanUpHandler()
 			<< " old: " << now - max_age;
 	}
 
+}
+
+void DbConnection::LogStatsHandler()
+{
+	if (!GetConnected() || IsPaused())
+		return;
+
+	auto pending = m_PendingQueries.load();
+
+	auto now = Utility::GetTime();
+	bool timeoutReached = m_LogStatsTimeout < now;
+
+	if (pending == 0u && !timeoutReached) {
+		return;
+	}
+
+	auto output = round(m_OutputQueries.CalculateRate(now, 10));
+
+	if (pending < output * 5 && !timeoutReached) {
+		return;
+	}
+
+	auto input = round(m_InputQueries.CalculateRate(now, 10));
+
+	Log(LogInformation, GetReflectionType()->GetName())
+		<< "Pending queries: " << pending << " (Input: " << input
+		<< "/s; Output: " << output << "/s)";
+
+	/* Reschedule next log entry in 5 minutes. */
+	if (timeoutReached) {
+		m_LogStatsTimeout = now + 60 * 5;
+	}
 }
 
 void DbConnection::CleanUpExecuteQuery(const String&, const String&, double)
@@ -446,7 +485,7 @@ void DbConnection::UpdateAllObjects()
 			continue;
 
 		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
-			UpdateObject(object);
+			m_QueryQueue.Enqueue([this, object](){ UpdateObject(object); }, PriorityHigh);
 		}
 	}
 }
@@ -506,4 +545,16 @@ void DbConnection::SetIDCacheValid(bool valid)
 int DbConnection::GetSessionToken()
 {
 	return Application::GetStartTime();
+}
+
+void DbConnection::IncreasePendingQueries(int count)
+{
+	m_PendingQueries.fetch_add(count);
+	m_InputQueries.InsertValue(Utility::GetTime(), count);
+}
+
+void DbConnection::DecreasePendingQueries(int count)
+{
+	m_PendingQueries.fetch_sub(count);
+	m_OutputQueries.InsertValue(Utility::GetTime(), count);
 }

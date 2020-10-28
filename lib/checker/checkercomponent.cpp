@@ -74,30 +74,6 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 		m_CV.notify_all();
 	}
 
-	double wait = 0.0;
-
-	while (Checkable::GetPendingChecks() > 0) {
-		Log(LogDebug, "CheckerComponent")
-			<< "Waiting for running checks (" << Checkable::GetPendingChecks()
-			<< ") to finish. Waited for " << wait << " seconds now.";
-
-		Utility::Sleep(0.1);
-		wait += 0.1;
-
-		/* Pick a timeout slightly shorther than the process reload timeout. */
-		double reloadTimeout = Application::GetReloadTimeout();
-		double waitMax = reloadTimeout - 30;
-		if (waitMax <= 0)
-			waitMax = 1;
-
-		if (wait > waitMax) {
-			Log(LogWarning, "CheckerComponent")
-				<< "Checks running too long for " << wait
-				<< " seconds, hard shutdown before reload timeout: " << reloadTimeout << ".";
-			break;
-		}
-	}
-
 	m_ResultTimer->Stop();
 	m_Thread.join();
 
