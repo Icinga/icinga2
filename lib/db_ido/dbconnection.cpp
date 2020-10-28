@@ -518,6 +518,16 @@ void DbConnection::ValidateCategories(const Lazy<Array::Ptr>& lvalue, const Vali
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "categories" }, "categories filter is invalid."));
 }
 
+uint_fast64_t DbConnection::GetPendingQueries()
+{
+	return m_PendingQueries.load();
+}
+
+double DbConnection::CalculateOutputRate(int seconds)
+{
+	return m_OutputQueries.CalculateRate(Utility::GetTime(), seconds);
+}
+
 void DbConnection::IncreaseQueryCount()
 {
 	double now = Utility::GetTime();

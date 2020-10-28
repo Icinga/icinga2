@@ -95,7 +95,7 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		return;
 	}
 
-	double qps = conn->GetQueryCount(60) / 60.0;
+	double qps = conn->CalculateOutputRate(60);
 
 	if (conn->IsPaused()) {
 		cr->SetOutput("DB IDO connection is temporarily disabled on this cluster instance.");
@@ -104,7 +104,7 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		return;
 	}
 
-	double pendingQueries = conn->GetPendingQueryCount();
+	double pendingQueries = conn->GetPendingQueries();
 
 	if (!conn->GetConnected()) {
 		if (conn->GetShouldConnect()) {
@@ -172,9 +172,9 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 
 	cr->SetPerformanceData(new Array({
 		{ new PerfdataValue("queries", qps, false, "", queriesWarning, queriesCritical) },
-		{ new PerfdataValue("queries_1min", conn->GetQueryCount(60)) },
-		{ new PerfdataValue("queries_5mins", conn->GetQueryCount(5 * 60)) },
-		{ new PerfdataValue("queries_15mins", conn->GetQueryCount(15 * 60)) },
+		{ new PerfdataValue("queries_1min", conn->CalculateOutputRate(60) * 60) },
+		{ new PerfdataValue("queries_5mins", conn->CalculateOutputRate(5 * 60) * 5 * 60) },
+		{ new PerfdataValue("queries_15mins", conn->CalculateOutputRate(15 * 60) * 15 * 60) },
 		{ new PerfdataValue("pending_queries", pendingQueries, false, "", pendingQueriesWarning, pendingQueriesCritical) }
 	}));
 
