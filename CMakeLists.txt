@@ -358,9 +358,13 @@ if(HAVE_LIBEXECINFO)
   list(APPEND base_DEPS execinfo)
 endif()
 
+if(NOT WIN32)
+  # boost::stacktrace uses _Unwind_Backtrace which is only exposed if _GNU_SOURCE is defined on most systems
+  add_definitions(-D_GNU_SOURCE)
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
   set(ICINGA2_STACKTRACE_USE_BACKTRACE_SYMBOLS TRUE)
-  add_definitions(-D_GNU_SOURCE)
 endif()
 
 if(ICINGA2_STACKTRACE_USE_BACKTRACE_SYMBOLS AND NOT HAVE_BACKTRACE_SYMBOLS)
