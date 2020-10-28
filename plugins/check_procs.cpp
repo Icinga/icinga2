@@ -259,7 +259,7 @@ static int countProcs(const std::wstring& user)
 			std::wcout << L"Received token, saving information" << '\n';
 
 		//write Info in pSIDTokenUser
-		if (!GetTokenInformation(hToken, TokenUser, pSIDTokenUser, dwReturnLength, NULL))
+		if (!GetTokenInformation(hToken, TokenUser, pSIDTokenUser, dwReturnLength, &dwReturnLength))
 			continue;
 
 		AcctName = NULL;
