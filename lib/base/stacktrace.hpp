@@ -8,6 +8,12 @@
 namespace icinga
 {
 
+/**
+ * Formatter for `boost::stacktrace::stacktrace` objects
+ *
+ * This class wraps `boost::stacktrace::stacktrace` objects and provides an operator<<
+ * for printing them to an `std::ostream` in a custom format.
+ */
 class StackTraceFormatter {
 public:
 	StackTraceFormatter(const boost::stacktrace::stacktrace &stack) : m_Stack(stack) {}
