@@ -1462,7 +1462,7 @@ Cleanup Items:
   eventhandlers\_age              | Duration              | **Optional.** Max age for eventhandlers table rows (start\_time). Defaults to 0 (never).
   externalcommands\_age           | Duration              | **Optional.** Max age for externalcommands table rows (entry\_time). Defaults to 0 (never).
   flappinghistory\_age            | Duration              | **Optional.** Max age for flappinghistory table rows (event\_time). Defaults to 0 (never).
-  hostchecks\_age                 | Duration              | **Optional.** Max age for hostalives table rows (start\_time). Defaults to 0 (never).
+  hostchecks\_age                 | Duration              | **Optional.** Max age for hostchecks table rows (start\_time). Defaults to 0 (never).
   logentries\_age                 | Duration              | **Optional.** Max age for logentries table rows (logentry\_time). Defaults to 0 (never).
   notifications\_age              | Duration              | **Optional.** Max age for notifications table rows (start\_time). Defaults to 0 (never).
   processevents\_age              | Duration              | **Optional.** Max age for processevents table rows (event\_time). Defaults to 0 (never).
@@ -1556,7 +1556,7 @@ Cleanup Items:
   eventhandlers\_age              | Duration              | **Optional.** Max age for eventhandlers table rows (start\_time). Defaults to 0 (never).
   externalcommands\_age           | Duration              | **Optional.** Max age for externalcommands table rows (entry\_time). Defaults to 0 (never).
   flappinghistory\_age            | Duration              | **Optional.** Max age for flappinghistory table rows (event\_time). Defaults to 0 (never).
-  hostchecks\_age                 | Duration              | **Optional.** Max age for hostalives table rows (start\_time). Defaults to 0 (never).
+  hostchecks\_age                 | Duration              | **Optional.** Max age for hostchecks table rows (start\_time). Defaults to 0 (never).
   logentries\_age                 | Duration              | **Optional.** Max age for logentries table rows (logentry\_time). Defaults to 0 (never).
   notifications\_age              | Duration              | **Optional.** Max age for notifications table rows (start\_time). Defaults to 0 (never).
   processevents\_age              | Duration              | **Optional.** Max age for processevents table rows (event\_time). Defaults to 0 (never).
