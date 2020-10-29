@@ -376,7 +376,7 @@ void OpenTsdbWriter::SendMetric(const Checkable::Ptr& checkable, const String& m
 	 * put <metric> <timestamp> <value> <tagk1=tagv1[ tagk2=tagv2 ...tagkN=tagvN]>
 	 * "tags" must include at least one tag, we use "host=HOSTNAME"
 	 */
-	msgbuf << "put " << metric << " " << static_cast<long>(ts) << " " << Convert::ToString(value) << " " << tags_string;
+	msgbuf << "put " << metric << " " << static_cast<long>(ts) << " " << Convert::ToString(value) << tags_string;
 
 	Log(LogDebug, "OpenTsdbWriter")
 		<< "Checkable '" << checkable->GetName() << "' adds to metric list: '" << msgbuf.str() << "'.";
