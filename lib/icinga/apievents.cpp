@@ -56,6 +56,9 @@ void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckR
 
 	result->Set("check_result", Serialize(cr));
 
+	result->Set("downtime_depth", checkable->GetDowntimeDepth());
+	result->Set("acknowledgement", checkable->IsAcknowledged());
+
 	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
@@ -88,6 +91,9 @@ void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckR
 	result->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	result->Set("state_type", checkable->GetStateType());
 	result->Set("check_result", Serialize(cr));
+
+	result->Set("downtime_depth", checkable->GetDowntimeDepth());
+	result->Set("acknowledgement", checkable->IsAcknowledged());
 
 	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
