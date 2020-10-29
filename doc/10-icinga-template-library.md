@@ -3311,7 +3311,8 @@ fail2ban_path           | **Optional.** Specify the path to the tw_cli binary, d
 fail2ban_warning        | **Optional.** Specify a warning threshold, default is 1
 fail2ban_critical       | **Optional.** Specify a critical threshold, default is 2
 fail2ban_socket         | **Optional.** Specify a socket path, default is unset
-fail2ban_perfdata       | **Optional.** If set to true, activate the perfdata output, default value for the plugin is set to true.
+fail2ban_perfdata       | **Optional.** If set to true, activate the perfdata output, default value for the plugin is set to true
+fail2ban_jail           | **Optional.** Specify the name of the specific jail to monitor; omitted by default, i.e. all jails are being monitored.
 
 ### Operating System <a id="plugin-contrib-operating-system"></a>
 
