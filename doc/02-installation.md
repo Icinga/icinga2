@@ -625,7 +625,7 @@ exporting all configuration and status information into a database.
 Debian/Ubuntu:
 
 ```
-apt-get install mysql-server mysql-client
+apt-get install mariadb-server mariadb-client
 
 mysql_secure_installation
 ```
