@@ -1640,8 +1640,8 @@ Configuration Attributes:
   ssl\_ca\_cert             | String                | **Optional.** Path to CA certificate to validate the remote host.
   ssl\_cert                 | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification.
   ssl\_key                  | String                | **Optional.** Path to host key to accompany the ssl\_cert.
-  host\_template            | String                | **Required.** Host template to define the InfluxDB line protocol.
-  service\_template         | String                | **Required.** Service template to define the influxDB line protocol.
+  host\_template            | Dictionary            | **Required.** Host template to define the InfluxDB line protocol.
+  service\_template         | Dictionary            | **Required.** Service template to define the influxDB line protocol.
   enable\_send\_thresholds  | Boolean               | **Optional.** Whether to send warn, crit, min & max tagged data.
   enable\_send\_metadata    | Boolean               | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
   flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to InfluxDB. Defaults to `10s`.
