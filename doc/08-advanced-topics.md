@@ -261,7 +261,7 @@ If you want to specify a notification period across midnight,
 you can define it the following way:
 
 ```
-object Timeperiod "across-midnight" {
+object TimePeriod "across-midnight" {
   display_name = "Nightly Notification"
   ranges = {
     "saturday" = "22:00-24:00"
@@ -275,7 +275,7 @@ the first day as start with an overlapping range into
 the next day:
 
 ```
-object Timeperiod "do-not-disturb" {
+object TimePeriod "do-not-disturb" {
   display_name = "Weekend DND"
   ranges = {
     "saturday" = "22:00-06:00"
@@ -290,7 +290,7 @@ days, weeks or months. This can be useful when taking components offline
 for a distinct period of time.
 
 ```
-object Timeperiod "standby" {
+object TimePeriod "standby" {
   display_name = "Standby"
   ranges = {
     "2016-09-30 - 2016-10-30" = "00:00-24:00"

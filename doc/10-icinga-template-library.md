@@ -62,7 +62,7 @@ By default this template is automatically imported into all [EventCommand](09-ob
 
 ### legacy-timeperiod <a id="itl-legacy-timeperiod"></a>
 
-Timeperiod template for [Timeperiod objects](09-object-types.md#objecttype-timeperiod).
+Timeperiod template for [TimePeriod objects](09-object-types.md#objecttype-timeperiod).
 
 The `legacy-timeperiod` timeperiod does not support any vars.
 
