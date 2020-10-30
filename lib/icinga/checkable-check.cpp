@@ -209,7 +209,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			recovery = true;
 
 		ResetNotificationNumbers();
-		SaveLastState(ServiceOK, Utility::GetTime());
+		SaveLastState(ServiceOK, cr->GetExecutionEnd());
 
 		/* update reachability for child objects in OK state */
 		if (!children.empty())
@@ -234,7 +234,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		}
 
 		if (!IsStateOK(cr->GetState())) {
-			SaveLastState(cr->GetState(), Utility::GetTime());
+			SaveLastState(cr->GetState(), cr->GetExecutionEnd());
 		}
 
 		/* update reachability for child objects in NOT-OK state */
@@ -243,7 +243,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	}
 
 	if (!reachable)
-		SetLastStateUnreachable(Utility::GetTime());
+		SetLastStateUnreachable(cr->GetExecutionEnd());
 
 	SetCheckAttempt(attempt);
 
@@ -262,7 +262,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	SetPreviousStateChange(GetLastStateChange());
 
 	if (stateChange) {
-		SetLastStateChange(now);
+		SetLastStateChange(cr->GetExecutionEnd());
 
 		/* remove acknowledgements */
 		if (GetAcknowledgement() == AcknowledgementNormal ||
@@ -299,7 +299,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	if (hardChange || is_volatile) {
 		SetLastHardStateRaw(new_state);
-		SetLastHardStateChange(now);
+		SetLastHardStateChange(cr->GetExecutionEnd());
 		SetLastHardStatesRaw(GetLastHardStatesRaw() / 100u + new_state * 100u);
 	}
 
