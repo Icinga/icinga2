@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/logger.hpp"
 #include "remote/httphandler.hpp"
 #include "remote/httputility.hpp"
 #include "base/singleton.hpp"
@@ -112,7 +113,10 @@ void HttpHandler::ProcessRequest(
 				break;
 			}
 		}
-	} catch (const std::exception&) {
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "HttpServerConnection")
+			<< "Error while processing HTTP request: " << ex.what();
+
 		processed = false;
 	}
 
