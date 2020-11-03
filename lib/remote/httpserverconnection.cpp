@@ -257,7 +257,7 @@ bool HandleAccessControl(
 				if (request.method() == http::verb::options && !request[http::field::access_control_request_method].empty()) {
 					response.result(http::status::ok);
 					response.set(http::field::access_control_allow_methods, "GET, POST, PUT, DELETE");
-					response.set(http::field::access_control_allow_headers, "Authorization, X-HTTP-Method-Override");
+					response.set(http::field::access_control_allow_headers, "Authorization, Content-Type, X-HTTP-Method-Override");
 					response.body() = "Preflight OK";
 					response.set(http::field::content_length, response.body().size());
 					response.set(http::field::connection, "close");
