@@ -428,7 +428,7 @@ evaluated for all objects of type `Host` and a new service with name "load"
 is created for each matching host. [Expression operators](17-language-reference.md#expression-operators)
 may be used in `assign where` conditions.
 
-Multiple `assign where` condition can be combined with `AND` using the `&&` operator
+Multiple `assign where` conditions can be combined with `AND` using the `&&` operator
 as shown in the `ssh` example:
 
 ```
