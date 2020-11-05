@@ -673,7 +673,7 @@ void ApiListener::NewClientHandlerInternal(boost::asio::yield_context yc, const 
 		} else if (!AddAnonymousClient(aclient)) {
 			Log(LogNotice, "ApiListener")
 				<< "Ignoring anonymous JSON-RPC connection " << conninfo
-				<< ". Max connections (" << GetMaxAnonymousClients() << ") exceeded.";
+				<< ". Max connections exceeded.";
 
 			aclient = nullptr;
 		}
@@ -1526,8 +1526,12 @@ double ApiListener::CalculateZoneLag(const Endpoint::Ptr& endpoint)
 bool ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
 	boost::mutex::scoped_lock lock(m_AnonymousClientsLock);
+	auto mac (GetMaxAnonymousClients());
 
-	if (GetMaxAnonymousClients() >= 0 && (long)m_AnonymousClients.size() + 1 > (long)GetMaxAnonymousClients())
+	if (mac < 0)
+		mac = ConfigType::GetObjectsByType<Endpoint>().size() * 2u;
+
+	if ((long)m_AnonymousClients.size() + 1 > (long)mac)
 		return false;
 
 	m_AnonymousClients.insert(aclient);
