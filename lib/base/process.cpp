@@ -413,8 +413,23 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 		return -1;
 
 	String jresponse = String(buf, buf + rc);
+	Dictionary::Ptr response;
 
-	Dictionary::Ptr response = JsonDecode(jresponse);
+	try {
+		response = JsonDecode(jresponse);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "Process")
+			<< "Got bad JSON response from process spawner: " << ex.what() << "; JSON: " << JsonEncode(jresponse);
+
+		errno = EIO;
+		return -1;
+	} catch (...) {
+		Log(LogWarning, "Process")
+			<< "Got bad JSON response from process spawner: " << JsonEncode(jresponse);
+
+		errno = EIO;
+		return -1;
+	}
 
 	if (response->Get("rc") == -1)
 		errno = response->Get("errno");
@@ -449,8 +464,22 @@ static int ProcessKill(pid_t pid, int signum)
 		return -1;
 
 	String jresponse = String(buf, buf + rc);
+	Dictionary::Ptr response;
 
-	Dictionary::Ptr response = JsonDecode(jresponse);
+	try {
+		response = JsonDecode(jresponse);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "Process")
+			<< "Got bad JSON response from process spawner: " << ex.what() << "; JSON: " << JsonEncode(jresponse);
+
+		return EIO;
+	} catch (...) {
+		Log(LogWarning, "Process")
+			<< "Got bad JSON response from process spawner: " << JsonEncode(jresponse);
+
+		return EIO;
+	}
+
 	return response->Get("errno");
 }
 
@@ -480,8 +509,22 @@ static int ProcessWaitPID(pid_t pid, int *status)
 		return -1;
 
 	String jresponse = String(buf, buf + rc);
+	Dictionary::Ptr response;
 
-	Dictionary::Ptr response = JsonDecode(jresponse);
+	try {
+		response = JsonDecode(jresponse);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "Process")
+			<< "Got bad JSON response from process spawner: " << ex.what() << "; JSON: " << JsonEncode(jresponse);
+
+		return -1;
+	} catch (...) {
+		Log(LogWarning, "Process")
+			<< "Got bad JSON response from process spawner: " << JsonEncode(jresponse);
+
+		return -1;
+	}
+
 	*status = response->Get("status");
 	return response->Get("rc");
 }
