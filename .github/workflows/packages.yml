@@ -21,6 +21,9 @@ jobs:
             codename: stretch
             has32bit: true
           - name: ubuntu
+            codename: groovy
+            has32bit: false
+          - name: ubuntu
             codename: focal
             has32bit: false
           - name: ubuntu
