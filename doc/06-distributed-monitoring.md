@@ -1913,6 +1913,12 @@ endpoint from the satellite zones.
 > It can get complicated, so grab a pen and paper and bring your thoughts to life.
 > Play around with a test setup before using it in a production environment!
 
+There are various reasons why you might want to have satellites in your environment. The following list explains the more common ones.
+
+* Monitor remote locations. Besides reducing connections and traffic between different locations this setup also helps when the network connection to the remote network is lost. Satellites will keep checking and collecting data on their own and will send their check results when the connection is restored.
+* Reduce connections between security zones. Satellites in a different zone (e.g. DMZ) than your masters will help reduce connections through firewalls.
+* Offload resource hungry checks to other hosts. In very big setups running lots of plugins on your masters or satellites might have a significant impact on the performance during times of high load. You can introduce another level of satellites just to run these plugins and send their results to the upstream hosts.
+
 Best practice is to run the database backend on a dedicated server/cluster and
 only expose a virtual IP address to Icinga and the IDO feature. By default, only one
 endpoint will actively write to the backend then. Typical setups for MySQL clusters
