@@ -724,7 +724,7 @@ The setup wizard will ensure that the following steps are taken:
 
 * Enable the `api` feature.
 * Create a certificate signing request (CSR) for the local node.
-* Request a signed certificate i(optional with the provided ticket number) on the master node.
+* Request a signed certificate (optional with the provided ticket number) on the master node.
 * Allow to verify the parent node's certificate.
 * Store the signed agent/satellite certificate and ca.crt in `/var/lib/icinga2/certs`.
 * Update the `zones.conf` file with the new zone hierarchy.
