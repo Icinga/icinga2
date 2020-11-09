@@ -195,7 +195,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems, true)) {
 			if (errors) {
 				Log(LogNotice, "ConfigObjectUtility")
-					<< "Failed to commit config item '" << fullName << "'. Aborting and emoving config path '" << path << "'.";
+					<< "Failed to commit config item '" << fullName << "'. Aborting and removing config path '" << path << "'.";
 
 				Utility::Remove(path);
 
@@ -218,7 +218,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		if (!ConfigItem::ActivateItems(upq, newItems, true, true, false, cookie)) {
 			if (errors) {
 				Log(LogNotice, "ConfigObjectUtility")
-					<< "Failed to activate config object '" << fullName << "'. Aborting and emoving config path '" << path << "'.";
+					<< "Failed to activate config object '" << fullName << "'. Aborting and removing config path '" << path << "'.";
 
 				Utility::Remove(path);
 
