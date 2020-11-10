@@ -17,11 +17,15 @@
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include "base/threadpool.hpp"
+#include <array>
 #include <atomic>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/key_extractors.hpp>
 #include <mutex>
 #include <set>
 
@@ -77,7 +81,6 @@ public:
 
 	bool AddAnonymousClient(const JsonRpcConnection::Ptr& aclient);
 	void RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient);
-	std::set<JsonRpcConnection::Ptr> GetAnonymousClients() const;
 
 	void AddHttpClient(const HttpServerConnection::Ptr& aclient);
 	void RemoveHttpClient(const HttpServerConnection::Ptr& aclient);
@@ -129,12 +132,27 @@ protected:
 	void ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
 
 private:
+	typedef std::array<unsigned char, /*SHA*/256 / 8/* bits/byte*/> AnonymousClientFingerprint;
+
+	struct AnonymousClient
+	{
+		JsonRpcConnection::Ptr Connection;
+		AnonymousClientFingerprint Fingerprint;
+	};
+
 	Shared<boost::asio::ssl::context>::Ptr m_SSLContext;
 
 	mutable boost::mutex m_AnonymousClientsLock;
 	mutable boost::mutex m_HttpClientsLock;
-	std::set<JsonRpcConnection::Ptr> m_AnonymousClients;
 	std::set<HttpServerConnection::Ptr> m_HttpClients;
+
+	boost::multi_index_container<
+		AnonymousClient,
+		boost::multi_index::indexed_by<
+			boost::multi_index::ordered_unique<boost::multi_index::member<AnonymousClient, JsonRpcConnection::Ptr, &AnonymousClient::Connection>>,
+			boost::multi_index::ordered_non_unique<boost::multi_index::member<AnonymousClient, AnonymousClientFingerprint, &AnonymousClient::Fingerprint>>
+		>
+	> m_AnonymousClients;
 
 	Timer::Ptr m_Timer;
 	Timer::Ptr m_ReconnectTimer;

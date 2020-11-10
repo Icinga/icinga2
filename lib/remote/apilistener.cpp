@@ -23,6 +23,7 @@
 #include "base/statsfunction.hpp"
 #include "base/exception.hpp"
 #include "base/tcpsocket.hpp"
+#include <algorithm>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -32,8 +33,10 @@
 #include <boost/system/error_code.hpp>
 #include <climits>
 #include <cstdint>
+#include <cstring>
 #include <fstream>
 #include <memory>
+#include <openssl/evp.h>
 #include <openssl/ssl.h>
 #include <openssl/tls1.h>
 #include <openssl/x509.h>
@@ -224,8 +227,10 @@ void ApiListener::UpdateSSLContext()
 		}
 	}
 
-	for (const JsonRpcConnection::Ptr& client : m_AnonymousClients) {
-		client->Disconnect();
+	boost::mutex::scoped_lock lock (m_AnonymousClientsLock);
+
+	for (auto& client : m_AnonymousClients) {
+		client.Connection->Disconnect();
 	}
 }
 
@@ -695,7 +700,7 @@ void ApiListener::NewClientHandlerInternal(
 		} else if (!AddAnonymousClient(aclient)) {
 			Log(LogNotice, "ApiListener")
 				<< "Ignoring anonymous JSON-RPC connection " << conninfo
-				<< ". Max connections (" << GetMaxAnonymousClients() << ") exceeded.";
+				<< ". Max connections (per certificate: 1; total: " << GetMaxAnonymousClients() << ") exceeded.";
 
 			aclient = nullptr;
 		}
@@ -1491,7 +1496,13 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	}
 
 	/* connection stats */
-	size_t jsonRpcAnonymousClients = GetAnonymousClients().size();
+	size_t jsonRpcAnonymousClients;
+
+	{
+		boost::mutex::scoped_lock lock (m_AnonymousClientsLock);
+		jsonRpcAnonymousClients = m_AnonymousClients.size();
+	}
+
 	size_t httpClients = GetHttpClients().size();
 	size_t syncQueueItems = m_SyncQueue.GetLength();
 	size_t relayQueueItems = m_RelayQueue.GetLength();
@@ -1558,20 +1569,45 @@ bool ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 	if (GetMaxAnonymousClients() >= 0 && (long)m_AnonymousClients.size() + 1 > (long)GetMaxAnonymousClients())
 		return false;
 
-	m_AnonymousClients.insert(aclient);
+	AnonymousClient ac;
+
+	{
+		AnonymousClientFingerprint zeroPrint;
+
+		zeroPrint.fill(0);
+		ac.Fingerprint = zeroPrint;
+
+		{
+			auto cert (aclient->GetStream()->next_layer().GetPeerCertificate());
+
+			if (cert) {
+				unsigned int n;
+				unsigned char digest[EVP_MAX_MD_SIZE];
+
+				if (X509_digest(cert.get(), EVP_sha256(), digest, &n)) {
+					(void)memcpy(ac.Fingerprint.data(), (unsigned char*)digest, std::min(n, (unsigned int)ac.Fingerprint.size()));
+				}
+			}
+		}
+
+		if (ac.Fingerprint != zeroPrint) {
+			auto& idx (boost::get<1>(m_AnonymousClients));
+
+			if (idx.find(ac.Fingerprint) != idx.end()) {
+				return false;
+			}
+		}
+	}
+
+	ac.Connection = aclient;
+	m_AnonymousClients.emplace(std::move(ac));
 	return true;
 }
 
 void ApiListener::RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
 	boost::mutex::scoped_lock lock(m_AnonymousClientsLock);
-	m_AnonymousClients.erase(aclient);
-}
-
-std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients() const
-{
-	boost::mutex::scoped_lock lock(m_AnonymousClientsLock);
-	return m_AnonymousClients;
+	boost::get<0>(m_AnonymousClients).erase(aclient);
 }
 
 void ApiListener::AddHttpClient(const HttpServerConnection::Ptr& aclient)
