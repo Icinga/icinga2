@@ -16,6 +16,14 @@ $MsvcVersion = '14.2'
 $BoostVersion = @(1, 71, 0)
 $OpensslVersion = '1_1_1h'
 
+switch ($Env:BITS) {
+	32 { }
+	64 { }
+	default {
+		$Env:BITS = 64
+	}
+}
+
 
 function Install-Exe {
 	param (
@@ -47,13 +55,17 @@ function Install-Exe {
 }
 
 
-Invoke-Expression (New-Object Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')
+try {
+	Get-Command choco
+} catch {
+	Invoke-Expression (New-Object Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')
 
-$RegEnv = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
-$ChocoPath = ";$(Join-Path $Env:AllUsersProfile chocolatey\bin)"
+	$RegEnv = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
+	$ChocoPath = ";$(Join-Path $Env:AllUsersProfile chocolatey\bin)"
 
-Set-ItemProperty -Path $RegEnv -Name Path -Value ((Get-ItemProperty -Path $RegEnv -Name Path).Path + $ChocoPath)
-$Env:Path += $ChocoPath
+	Set-ItemProperty -Path $RegEnv -Name Path -Value ((Get-ItemProperty -Path $RegEnv -Name Path).Path + $ChocoPath)
+	$Env:Path += $ChocoPath
+}
 
 
 choco install -y "visualstudio${VsVersion}community"
@@ -72,6 +84,6 @@ choco install -y windows-sdk-8.1
 choco install -y wixtoolset
 
 
-Install-Exe -Url "https://packages.icinga.com/windows/dependencies/boost_$($BoostVersion -join '_')-msvc-${MsvcVersion}-64.exe" -Dir "C:\local\boost_$($BoostVersion -join '_')-Win64"
+Install-Exe -Url "https://packages.icinga.com/windows/dependencies/boost_$($BoostVersion -join '_')-msvc-${MsvcVersion}-${Env:BITS}.exe" -Dir "C:\local\boost_$($BoostVersion -join '_')-Win${Env:BITS}"
 
-Install-Exe -Url "https://packages.icinga.com/windows/dependencies/Win64OpenSSL-${OpensslVersion}.exe" -Dir "C:\local\OpenSSL_${OpensslVersion}-Win64"
+Install-Exe -Url "https://packages.icinga.com/windows/dependencies/Win${Env:BITS}OpenSSL-${OpensslVersion}.exe" -Dir "C:\local\OpenSSL_${OpensslVersion}-Win${Env:BITS}"
