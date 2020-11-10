@@ -13,6 +13,7 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include <boost/thread/once.hpp>
+#include <cstdint>
 
 using namespace icinga;
 
@@ -165,56 +166,64 @@ std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 
 std::pair<double, double> ScheduledDowntime::FindNextSegment()
 {
-	time_t refts = Utility::GetTime();
-	tm reference = Utility::LocalTime(refts);
-
-	Log(LogDebug, "ScheduledDowntime")
-		<< "Finding next scheduled downtime segment for time " << refts;
-
 	Dictionary::Ptr ranges = GetRanges();
 
 	if (!ranges)
 		return std::make_pair(0, 0);
 
 	Array::Ptr segments = new Array();
-
 	Dictionary::Ptr bestSegment;
 	double bestBegin = 0.0, bestEnd = 0.0;
 	double now = Utility::GetTime();
-
+	tm reference = Utility::LocalTime(now);
 	ObjectLock olock(ranges);
 
-	/* Find the segment starting earliest */
-	for (const Dictionary::Pair& kv : ranges) {
+	/* Our next segment finder is limited to reference's month,
+	 * so e.g. downtimes for the first day of a month would not be scheduled until that day w/o this workaround:
+	 * Advance reference by one day up to 32 times until we've found the next segment.
+	 */
+	for (uint_fast8_t i = 0; i < 32u; ++i) {
 		Log(LogDebug, "ScheduledDowntime")
-			<< "Evaluating segment: " << kv.first << ": " << kv.second;
+			<< "Finding next scheduled downtime segment for time "
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", mktime(&reference));
 
-		Dictionary::Ptr segment = LegacyTimePeriod::FindNextSegment(kv.first, kv.second, &reference);
+		/* Find the segment starting earliest */
+		for (const Dictionary::Pair& kv : ranges) {
+			Log(LogDebug, "ScheduledDowntime")
+				<< "Evaluating segment: " << kv.first << ": " << kv.second;
 
-		if (!segment)
-			continue;
+			Dictionary::Ptr segment = LegacyTimePeriod::FindNextSegment(kv.first, kv.second, &reference);
 
-		double begin = segment->Get("begin");
-		double end = segment->Get("end");
+			if (!segment)
+				continue;
 
-		Log(LogDebug, "ScheduledDowntime")
-			<< "Considering segment: " << Utility::FormatDateTime("%c", begin) << " -> " << Utility::FormatDateTime("%c", end);
+			double begin = segment->Get("begin");
+			double end = segment->Get("end");
 
-		if (begin < now) {
-			Log(LogDebug, "ScheduledDowntime") << "already running.";
-			continue;
+			Log(LogDebug, "ScheduledDowntime")
+				<< "Considering segment: " << Utility::FormatDateTime("%c", begin) << " -> " << Utility::FormatDateTime("%c", end);
+
+			if (begin < now) {
+				Log(LogDebug, "ScheduledDowntime") << "already running.";
+				continue;
+			}
+
+			if (!bestSegment || begin < bestBegin) {
+				Log(LogDebug, "ScheduledDowntime") << "(best match yet)";
+				bestSegment = segment;
+				bestBegin = begin;
+				bestEnd = end;
+			}
 		}
 
-		if (!bestSegment || begin < bestBegin) {
-			Log(LogDebug, "ScheduledDowntime") << "(best match yet)";
-			bestSegment = segment;
-			bestBegin = begin;
-			bestEnd = end;
-		}
+		if (bestSegment)
+			return std::make_pair(bestBegin, bestEnd);
+
+		++reference.tm_mday;
+		reference.tm_hour = 0;
+		reference.tm_min = 0;
+		reference.tm_sec = 0;
 	}
-
-	if (bestSegment)
-		return std::make_pair(bestBegin, bestEnd);
 
 	return std::make_pair(0, 0);
 }
