@@ -63,6 +63,12 @@ Requirements:
 
 Consult the [Icinga DB section](02-installation.md#configuring-icinga-db) in the installation chapter for setup instructions.
 
+We will deprecate the IDO and shift towards the Icinga DB as main backend,
+but we will not drop the IDO for now.
+We know that it takes time until the Icinga DB is adopted
+(maybe even up to one to two years)
+and we won’t drop the IDO until it is comfortable to do so.
+
 ### IDO Database (DB IDO) <a id="db-ido"></a>
 
 The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
