@@ -369,7 +369,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	bool was_flapping = IsFlapping();
 
-	UpdateFlappingStatus(old_state != cr->GetState());
+	UpdateFlappingStatus(cr->GetState());
 
 	bool is_flapping = IsFlapping();
 

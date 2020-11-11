@@ -359,6 +359,7 @@ Configuration Attributes:
   event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the host's state changes or the host is in a `SOFT` state.
   flapping\_threshold\_high | Number                | **Optional.** Flapping upper bound in percent for a host to be considered flapping. Default `30.0`
   flapping\_threshold\_low  | Number                | **Optional.** Flapping lower bound in percent for a host to be considered  not flapping. Default `25.0`
+  flapping\_ignore\_states  | Array                 | **Optional.** A list of states that should be ignored during flapping calculation. By default no state is ignored.
   volatile                  | Boolean               | **Optional.** Treat all state changes as HARD changes. See [here](08-advanced-topics.md#volatile-services-hosts) for details. Defaults to `false`.
   zone                      | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
   command\_endpoint         | Object name           | **Optional.** The endpoint where commands are executed on.
@@ -721,6 +722,7 @@ Configuration Attributes:
   enable\_flapping          | Boolean               | **Optional.** Whether flap detection is enabled. Defaults to `false`.
   flapping\_threshold\_high | Number                | **Optional.** Flapping upper bound in percent for a service to be considered flapping. `30.0`
   flapping\_threshold\_low  | Number                | **Optional.** Flapping lower bound in percent for a service to be considered  not flapping. `25.0`
+  flapping\_ignore\_states  | Array                 | **Optional.** A list of states that should be ignored during flapping calculation. By default no state is ignored.
   enable\_perfdata          | Boolean               | **Optional.** Whether performance data processing is enabled. Defaults to `true`.
   event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the service's state changes or the service is in a `SOFT` state.
   volatile                  | Boolean               | **Optional.** Treat all state changes as HARD changes. See [here](08-advanced-topics.md#volatile-services-hosts) for details. Defaults to `false`.

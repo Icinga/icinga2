@@ -36,10 +36,21 @@ private:
 	T m_Data{0};
 };
 
-void Checkable::UpdateFlappingStatus(bool stateChange)
+void Checkable::UpdateFlappingStatus(ServiceState newState)
 {
 	Bitset<unsigned long> stateChangeBuf = GetFlappingBuffer();
 	int oldestIndex = GetFlappingIndex();
+
+	ServiceState lastState = GetFlappingLastState();
+	bool stateChange = false;
+
+	int stateFilter = GetFlappingIgnoreStatesFilter();
+
+	/* Only count as state change if no state filter is set or the new state isn't filtered out */
+	if (stateFilter == -1 || !(ServiceStateToFlappingFilter(newState) & stateFilter)) {
+		stateChange = newState != lastState;
+		SetFlappingLastState(newState);
+	}
 
 	stateChangeBuf.Modify(oldestIndex, stateChange);
 	oldestIndex = (oldestIndex + 1) % 20;
@@ -84,4 +95,20 @@ bool Checkable::IsFlapping() const
 		return false;
 	else
 		return GetFlapping();
+}
+
+int Checkable::ServiceStateToFlappingFilter(ServiceState state)
+{
+	switch (state) {
+		case ServiceOK:
+			return StateFilterOK;
+		case ServiceWarning:
+			return StateFilterWarning;
+		case ServiceCritical:
+			return StateFilterCritical;
+		case ServiceUnknown:
+			return StateFilterUnknown;
+		default:
+			VERIFY(!"Invalid state type.");
+	}
 }
