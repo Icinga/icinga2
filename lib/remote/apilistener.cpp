@@ -856,13 +856,21 @@ void ApiListener::ApiTimerHandler()
 	}
 
 	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
-		if (!endpoint->GetConnected())
+		Log(LogCritical, "LOG-POSITION")
+				<< "Checking endpoint '" << endpoint->GetName() << "'";
+		if (!endpoint->GetConnected()) {
+			Log(LogCritical, "LOG-POSITION")
+					<< "Endpoint '" << endpoint->GetName() << "' is not connected";
 			continue;
+		}
 
 		double ts = endpoint->GetRemoteLogPosition();
 
-		if (ts == 0)
+		if (ts == 0) {
+			Log(LogCritical, "LOG-POSITION")
+					<< "LocalLogPosition is 0 for endpoint '" << endpoint->GetName() << "'";
 			continue;
+		}
 
 		Dictionary::Ptr lmessage = new Dictionary({
 			{ "jsonrpc", "2.0" },

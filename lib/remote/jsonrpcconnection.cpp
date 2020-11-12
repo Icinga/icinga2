@@ -265,6 +265,8 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 		if (ts < m_Endpoint->GetRemoteLogPosition())
 			return;
 
+		Log(LogCritical, "LOG-POSITION")
+				<< "SetRemoteLogPosition to '" << ts << "' for endpoint '" << m_Endpoint->GetName() << "'";
 		m_Endpoint->SetRemoteLogPosition(ts);
 	}
 
@@ -342,7 +344,7 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 		endpoint->SetLocalLogPosition(log_position);
 
 	Log(LogCritical, "LOG-POSITION")
-			<< "Got SetLogPosition with timestamp '" << log_position << "' from endpoint '" << endpoint->GetName() << "'";
+			<< "Got SetLocalLogPosition with timestamp '" << log_position << "' from endpoint '" << endpoint->GetName() << "'";
 
 	return Empty;
 }
