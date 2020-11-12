@@ -14,7 +14,7 @@ namespace icinga
 {
 
 /**
- * An API function.
+ * A function available over the internal cluster API.
  *
  * @ingroup base
  */

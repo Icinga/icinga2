@@ -15,7 +15,7 @@ namespace icinga
 {
 
 /**
- * An API action.
+ * An action available over the external HTTP API.
  *
  * @ingroup remote
  */
