@@ -840,6 +840,8 @@ void ApiListener::ApiTimerHandler()
 				continue;
 
 			if (ts > endpoint->GetLocalLogPosition()) {
+				Log(LogCritical, "DEBUG-REPLAYLOG")
+					<< "Keeping replay log '" << ts << "' because of endpoint '" << endpoint->GetName() << "' with log position '" << endpoint->GetLocalLogPosition() << "'";
 				need = true;
 				break;
 			}
