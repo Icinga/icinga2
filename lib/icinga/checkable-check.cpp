@@ -538,6 +538,9 @@ void Checkable::ExecuteCheck()
 			message->Set("jsonrpc", "2.0");
 			message->Set("method", "event::ExecuteCommand");
 
+			double ts = Utility::GetTime();
+			message->Set("ts", ts);
+
 			Host::Ptr host;
 			Service::Ptr service;
 			tie(host, service) = GetHostService(this);
