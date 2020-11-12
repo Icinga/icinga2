@@ -423,7 +423,7 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 		if (!target)
 			target = Zone::GetLocalZone();
 
-		RelayMessage(origin, target, message, false);
+		RelayMessage(origin, target, message, true);
 	}
 }
 
