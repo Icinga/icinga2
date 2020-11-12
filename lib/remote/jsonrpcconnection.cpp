@@ -258,7 +258,8 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 {
 	Dictionary::Ptr message = JsonRpc::DecodeMessage(jsonString);
 
-	Log(LogCritical, "MESSAGE-HANDLER")
+	if (m_Endpoint)
+		Log(LogCritical, "MESSAGE-HANDLER")
 			<< "Got message from endpoint '" << m_Endpoint->GetName() << "': " << jsonString;
 
 	if (m_Endpoint && message->Contains("ts")) {
