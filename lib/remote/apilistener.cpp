@@ -881,6 +881,8 @@ void ApiListener::ApiTimerHandler()
 
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
 			if (client->GetTimestamp() == maxTs) {
+				Log(LogCritical, "LOG-POSITION")
+					<< "Sending SetLogPosition with timestamp '" << ts << "' to endpoint '" << client->GetEndpoint()->GetName() << "'";
 				client->SendMessage(lmessage);
 			} else {
 				client->Disconnect();

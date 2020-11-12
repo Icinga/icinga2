@@ -341,6 +341,9 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 	if (log_position > endpoint->GetLocalLogPosition())
 		endpoint->SetLocalLogPosition(log_position);
 
+	Log(LogCritical, "LOG-POSITION")
+			<< "Got SetLogPosition with timestamp '" << log_position << "' from endpoint '" << endpoint->GetName() << "'";
+
 	return Empty;
 }
 
