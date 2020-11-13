@@ -36,7 +36,8 @@ BOOST_AUTO_TEST_CASE(encode)
     "string": "LF\nTAB\tAUml\u00e4Ill\ufffd",
     "true": true,
     "uint": 23.0
-})EOF");
+}
+)EOF");
 
 	BOOST_CHECK(JsonEncode(input, true) == output);
 
@@ -59,7 +60,8 @@ BOOST_AUTO_TEST_CASE(decode)
     "string": "LF\nTAB\tAUmlIll",
     "true": true,
     "uint": 23.0
-})EOF");
+}
+)EOF");
 
 	boost::algorithm::replace_all(input, "AUml", "AUml\xC3\xA4");
 	boost::algorithm::replace_all(input, "Ill", "Ill\xC3");
