@@ -204,7 +204,7 @@ Value StatusTable::NumServicesAccessor(const Value&)
 
 Value StatusTable::ProgramVersionAccessor(const Value&)
 {
-	return Application::GetAppVersion();
+	return Application::GetAppVersion() + "-icinga2";
 }
 
 Value StatusTable::LivestatusVersionAccessor(const Value&)
