@@ -538,7 +538,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 		Log(LogInformation, "ApiListener")
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
 			<< "' are different to production, triggering validation and reload.";
-		AsyncTryActivateZonesStage(relativePaths, lock);
+		AsyncTryActivateZonesStage(relativePaths);
 	} else {
 		Log(LogInformation, "ApiListener")
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
@@ -628,7 +628,7 @@ void ApiListener::TryActivateZonesStageCallback(const ProcessResult& pr,
  *
  * @param relativePaths Required for later file operations in the callback. Provides the zone name plus path in a list.
  */
-void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relativePaths, const Shared<std::unique_lock<SpinLock>>::Ptr& lock)
+void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relativePaths)
 {
 	VERIFY(Application::GetArgC() >= 1);
 
@@ -655,9 +655,9 @@ void ApiListener::AsyncTryActivateZonesStage(const std::vector<String>& relative
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(Application::GetReloadTimeout());
 
-	process->Run([relativePaths, lock](const ProcessResult& pr) {
-		TryActivateZonesStageCallback(pr, relativePaths);
-	});
+	process->Run();
+	const ProcessResult& pr = process->WaitForResult();
+	TryActivateZonesStageCallback(pr, relativePaths);
 }
 
 /**
