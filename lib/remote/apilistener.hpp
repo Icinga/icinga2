@@ -202,7 +202,7 @@ private:
 
 	static void TryActivateZonesStageCallback(const ProcessResult& pr,
 		const std::vector<String>& relativePaths);
-	static void AsyncTryActivateZonesStage(const std::vector<String>& relativePaths, const Shared<std::unique_lock<SpinLock>>::Ptr& lock);
+	static void AsyncTryActivateZonesStage(const std::vector<String>& relativePaths);
 
 	static String GetChecksum(const String& content);
 	static bool CheckConfigChange(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig);
