@@ -11,7 +11,6 @@
 #include "base/configobject.hpp"
 #include "base/process.hpp"
 #include "base/shared.hpp"
-#include "base/spinlock.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "base/tcpsocket.hpp"
@@ -188,7 +187,7 @@ private:
 	void RemoveStatusFile();
 
 	/* filesync */
-	static SpinLock m_ConfigSyncStageLock;
+	static std::mutex m_ConfigSyncStageLock;
 
 	void SyncLocalZoneDirs() const;
 	void SyncLocalZoneDir(const Zone::Ptr& zone) const;

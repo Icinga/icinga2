@@ -20,7 +20,7 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
-SpinLock ApiListener::m_ConfigSyncStageLock;
+std::mutex ApiListener::m_ConfigSyncStageLock;
 
 /**
  * Entrypoint for updating all authoritative configs from /etc/zones.d, packages, etc.
@@ -330,7 +330,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 	/* Only one transaction is allowed, concurrent message handlers need to wait.
 	 * This affects two parent endpoints sending the config in the same moment.
 	 */
-	auto lock (Shared<std::unique_lock<SpinLock>>::Make(m_ConfigSyncStageLock));
+	std::lock_guard<std::mutex> lock(m_ConfigSyncStageLock);
 
 	String apiZonesStageDir = GetApiZonesStageDir();
 	String fromEndpointName = origin->FromClient->GetEndpoint()->GetName();
