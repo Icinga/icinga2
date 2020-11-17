@@ -199,9 +199,7 @@ private:
 	static ConfigDirInformation LoadConfigDir(const String& dir);
 	static void ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file);
 
-	static void TryActivateZonesStageCallback(const ProcessResult& pr,
-		const std::vector<String>& relativePaths);
-	static void AsyncTryActivateZonesStage(const std::vector<String>& relativePaths);
+	static void TryActivateZonesStage(const std::vector<String>& relativePaths);
 
 	static String GetChecksum(const String& content);
 	static bool CheckConfigChange(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig);
