@@ -45,7 +45,7 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 
 	String valueStr = perfdata.SubStr(eqp + 1, spq - eqp - 1);
 
-	size_t pos = valueStr.FindFirstNotOf("+-0123456789.e");
+	size_t pos = valueStr.FindFirstNotOf("+-0123456789.eE");
 
 	double value = Convert::ToDouble(valueStr.SubStr(0, pos));
 
@@ -160,7 +160,7 @@ String PerfdataValue::Format() const
 
 Value PerfdataValue::ParseWarnCritMinMaxToken(const std::vector<String>& tokens, std::vector<String>::size_type index, const String& description)
 {
-	if (tokens.size() > index && tokens[index] != "U" && tokens[index] != "" && tokens[index].FindFirstNotOf("+-0123456789.e") == String::NPos)
+	if (tokens.size() > index && tokens[index] != "U" && tokens[index] != "" && tokens[index].FindFirstNotOf("+-0123456789.eE") == String::NPos)
 		return Convert::ToDouble(tokens[index]);
 	else {
 		if (tokens.size() > index && tokens[index] != "")
