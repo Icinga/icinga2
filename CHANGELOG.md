@@ -7,6 +7,22 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.12.2 (2020-12-01)
+
+Version 2.12.2 fixes several issues to improve the reliability of the cluster functionality.
+
+### Bugfixes
+
+* Fix a connection leak with misconfigured agents #8483
+* Properly sync changes of config objects in global zones done via the API #8474 #8470
+* Prevent other clients from being disconnected when replaying the cluster log takes very long #8496
+* Avoid duplicate connections between endpoints #8465
+* Ignore incoming config object updates for unknown zones #8461
+
+### Enhancements
+
+* Include HTTP status codes in log #8467
+
 ## 2.12.1 (2020-10-15)
 
 Version 2.12.1 fixes several crashes, deadlocks and excessive check latencies.
