@@ -29,6 +29,7 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+
 	if (MacroResolver::OverrideMacros)
 		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
 

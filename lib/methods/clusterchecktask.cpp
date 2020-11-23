@@ -34,6 +34,7 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	if (!listener) {
 		String output = "No API listener is configured for this instance.";
+
 		if (Checkable::ExecuteCommandProcessFinishedHandler) {
 			double now = Utility::GetTime();
 			ProcessResult pr;
@@ -48,6 +49,7 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 			cr->SetState(ServiceUnknown);
 			checkable->ProcessCheckResult(cr);
 		}
+
 		return;
 	}
 

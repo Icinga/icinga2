@@ -28,6 +28,7 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+
 	if (MacroResolver::OverrideMacros)
 		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
 
@@ -38,13 +39,14 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	int timeout = commandObj->GetTimeout();
-
 	std::function<void(const Value& commandLine, const ProcessResult&)> callback;
+
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
 		callback = Checkable::ExecuteCommandProcessFinishedHandler;
 	} else {
 		callback = std::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2);
 	}
+
 	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
 		resolvers, resolvedMacros, useResolvedMacros, timeout, callback);
 }

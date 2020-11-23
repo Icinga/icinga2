@@ -567,6 +567,7 @@ Value ApiActions::GetSingleObjectByNameUsingPermissions(const String& type, cons
 	qd.Permission = "objects/query/" + type;
 
 	std::vector<Value> objs;
+
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, queryParams, user);
 	} catch (const std::exception& ex) {
@@ -580,15 +581,16 @@ Value ApiActions::GetSingleObjectByNameUsingPermissions(const String& type, cons
 	return objs.at(0);
 };
 
-Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
+
 	if (!listener)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
 
 	/* Get command_type */
 	String command_type = "EventCommand";
+
 	if (params->Contains("command_type"))
 		command_type = HttpUtility::GetLastParameter(params, "command_type");
 
@@ -597,6 +599,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(400, "Invalid command_type '" + command_type + "'.");
 
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
+
 	if (!checkable)
 		return ApiActions::CreateResult(404, "Can't start a command execution for a non-existent object.");
 
@@ -605,6 +608,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(400, "Parameter ttl is required.");
 
 	double ttl = HttpUtility::GetLastParameter(params, "ttl");
+
 	if (ttl <= 0)
 		return ApiActions::CreateResult(400, "Parameter ttl must be greater than 0.");
 
@@ -615,22 +619,25 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	tie(host, service) = GetHostService(checkable);
 
 	String endpoint = "$command_endpoint$";
+
 	if (params->Contains("endpoint"))
 		endpoint = HttpUtility::GetLastParameter(params, "endpoint");
 
 	MacroProcessor::ResolverList resolvers;
 	Value macros;
+
 	if (params->Contains("macros")) {
 		macros = HttpUtility::GetLastParameter(params, "macros");
 		if (macros.IsObjectType<Dictionary>()) {
 			resolvers.emplace_back("override", macros);
-		}
-		else
+		} else {
 			return ApiActions::CreateResult(400, "Parameter macros must be a dictionary.");
+		}
 	}
 
 	if (service)
 		resolvers.emplace_back("service", service);
+
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
@@ -644,11 +651,13 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	/* Get endpoint */
 	Endpoint::Ptr endpointPtr = GetSingleObjectByNameUsingPermissions(Endpoint::GetTypeName(), resolved_endpoint, ActionsHandler::AuthenticatedApiUser);
+
 	if (!endpointPtr)
 		return ApiActions::CreateResult(404, "Can't find a valid endpoint for '" + resolved_endpoint + "'.");
 
 	/* Get command */
 	String command;
+
 	if (!params->Contains("command")) {
 		if (command_type == "CheckCommand" ) {
 			command = "$check_command$";
@@ -668,6 +677,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	);
 
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
+
 	if (!cr)
 		cr = new CheckResult();
 
@@ -684,6 +694,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	if (command_type == "CheckCommand") {
 		CheckCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(CheckCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
+
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 		else {
@@ -695,6 +706,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		}
 	} else if (command_type == "EventCommand") {
 		EventCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(EventCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
+
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 		else {
@@ -706,11 +718,13 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		}
 	} else if (command_type == "NotificationCommand") {
 		NotificationCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(NotificationCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
+
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 		else {
 			/* Get user */
 			String user_string = "";
+
 			if (params->Contains("user"))
 				user_string = HttpUtility::GetLastParameter(params, "user");
 
@@ -721,12 +735,15 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 			);
 
 			User::Ptr user = GetSingleObjectByNameUsingPermissions(User::GetTypeName(), resolved_user, ActionsHandler::AuthenticatedApiUser);
+
 			if (!user)
 				return ApiActions::CreateResult(404, "Can't find a valid user for '" + resolved_user + "'.");
+
 			execParams->Set("user", user->GetName());
 
 			/* Get notification */
 			String notification_string = "";
+
 			if (params->Contains("notification"))
 				notification_string = HttpUtility::GetLastParameter(params, "notification");
 
@@ -737,8 +754,10 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 			);
 
 			Notification::Ptr notification = GetSingleObjectByNameUsingPermissions(Notification::GetTypeName(), resolved_notification, ActionsHandler::AuthenticatedApiUser);
+
 			if (!notification)
 				return ApiActions::CreateResult(404, "Can't find a valid notification for '" + resolved_notification + "'.");
+
 			execParams->Set("notification", notification->GetName());
 
 			NotificationCommand::ExecuteOverride = cmd;
@@ -762,8 +781,10 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	pending_execution->Set("pending", true);
 	pending_execution->Set("deadline", deadline);
 	Dictionary::Ptr executions = checkable->GetExecutions();
+
 	if (!executions)
 		executions = new Dictionary();
+
 	executions->Set(uuid, pending_execution);
 	checkable->SetExecutions(executions);
 
@@ -772,8 +793,10 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 	executionsToBroadcast->Set(uuid, pending_execution);
 	Dictionary::Ptr updateParams = new Dictionary();
 	updateParams->Set("host", host->GetName());
+
 	if (service)
 		updateParams->Set("service", service->GetShortName());
+
 	updateParams->Set("executions", executionsToBroadcast);
 
 	Dictionary::Ptr updateMessage = new Dictionary();
@@ -791,8 +814,10 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 		execParams->Set("command_type", "event_command");
 	else if (command_type == "NotificationCommand")
 		execParams->Set("command_type", "notification_command");
+
 	execParams->Set("command", resolved_command);
 	execParams->Set("host", host->GetName());
+
 	if (service)
 		execParams->Set("service", service->GetShortName());
 
@@ -810,6 +835,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object,
 
 	/* Execute command */
 	bool local = endpointPtr == Endpoint::GetLocalEndpoint();
+
 	if (local) {
 		ClusterEvents::ExecuteCommandAPIHandler(origin, execParams);
 	} else {

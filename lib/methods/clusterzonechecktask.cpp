@@ -44,6 +44,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 			cr->SetState(state);
 			checkable->ProcessCheckResult(cr);
 		}
+
 		return;
 	}
 
@@ -54,6 +55,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+
 	if (MacroResolver::OverrideMacros)
 		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
 
@@ -98,6 +100,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 			cr->SetState(state);
 			checkable->ProcessCheckResult(cr);
 		}
+
 		return;
 	}
 
@@ -159,6 +162,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 
 	ServiceState state;
 	String output;
+
 	if (connected) {
 		state = ServiceOK;
 		output = "Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag);

@@ -33,6 +33,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+
 	if (MacroResolver::OverrideMacros)
 		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
 
@@ -189,6 +190,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	}
 
 	String commandName = command->GetName();
+
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
 		double now = Utility::GetTime();
 		ProcessResult pr;

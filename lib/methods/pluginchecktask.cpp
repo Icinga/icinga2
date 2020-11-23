@@ -29,6 +29,7 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+
 	if (MacroResolver::OverrideMacros)
 		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
 
@@ -43,13 +44,14 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (!checkable->GetCheckTimeout().IsEmpty())
 		timeout = checkable->GetCheckTimeout();
 
-
 	std::function<void(const Value& commandLine, const ProcessResult&)> callback;
+
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
 		callback = Checkable::ExecuteCommandProcessFinishedHandler;
 	} else {
 		callback = std::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2);
 	}
+
 	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
 		resolvers, resolvedMacros, useResolvedMacros, timeout, callback);
 

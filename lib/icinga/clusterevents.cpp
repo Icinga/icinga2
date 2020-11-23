@@ -732,13 +732,14 @@ Value ClusterEvents::AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& 
 Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
+
 	if (!listener)
 		return Empty;
 
 	if (params->Contains("endpoint")) {
 		Endpoint::Ptr execEndpoint = Endpoint::GetByName(params->Get("endpoint"));
-		if (execEndpoint != Endpoint::GetLocalEndpoint()) {
 
+		if (execEndpoint != Endpoint::GetLocalEndpoint()) {
 			Zone::Ptr endpointZone = execEndpoint->GetZone();
 			Zone::Ptr localZone = Zone::GetLocalZone();
 
@@ -758,8 +759,10 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 							Dictionary::Ptr executedParams = new Dictionary();
 							executedParams->Set("execution", params->Get("source"));
 							executedParams->Set("host", params->Get("host"));
+
 							if (params->Contains("service"))
 								executedParams->Set("service", params->Get("service"));
+
 							executedParams->Set("exit", 126);
 							executedParams->Set("output",
 								"Endpoint '" + childEndpoint->GetName() + "' doesn't support executing arbitrary commands.");
@@ -1114,13 +1117,15 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
+
 	if (!listener)
 		return Empty;
 
 	Endpoint::Ptr endpoint;
+
 	if (origin->FromClient) {
 		endpoint = origin->FromClient->GetEndpoint();
-	} else if (origin->IsLocal()){
+	} else if (origin->IsLocal()) {
 		endpoint = Endpoint::GetLocalEndpoint();
 	}
 
@@ -1133,6 +1138,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	}
 
 	Host::Ptr host = Host::GetByName(params->Get("host"));
+
 	if (!host)
 		return Empty;
 
@@ -1161,9 +1167,11 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution UUID missing.";
 		return Empty;
 	}
+
 	String uuid = params->Get("execution");
 
 	Dictionary::Ptr executions = checkable->GetExecutions();
+
 	if (!executions) {
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
@@ -1172,6 +1180,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	}
 
 	Dictionary::Ptr execution = executions->Get(uuid);
+
 	if (!execution) {
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
@@ -1198,8 +1207,10 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	executionsToBroadcast->Set(uuid, execution);
 	Dictionary::Ptr updateParams = new Dictionary();
 	updateParams->Set("host", host->GetName());
+
 	if (params->Contains("service"))
 		updateParams->Set("service", params->Get("service"));
+
 	updateParams->Set("executions", executionsToBroadcast);
 
 	Dictionary::Ptr updateMessage = new Dictionary();
@@ -1215,6 +1226,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
 	if (!endpoint) {
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'update executions API handler' message from '" << origin->FromClient->GetIdentity()
@@ -1224,6 +1236,7 @@ Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin
 	}
 
 	Host::Ptr host = Host::GetByName(params->Get("host"));
+
 	if (!host)
 		return Empty;
 
@@ -1247,13 +1260,16 @@ Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin
 	}
 
 	Dictionary::Ptr executions = checkable->GetExecutions();
+
 	if (!executions)
 		executions = new Dictionary();
+
 	Dictionary::Ptr newExecutions = params->Get("executions");
 	newExecutions->CopyTo(executions);
 	checkable->SetExecutions(executions);
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
+
 	if (!listener)
 		return Empty;
 

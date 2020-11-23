@@ -42,6 +42,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+
 	if (MacroResolver::OverrideMacros)
 		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
 
@@ -55,13 +56,14 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	int timeout = commandObj->GetTimeout();
-
 	std::function<void(const Value& commandLine, const ProcessResult&)> callback;
+
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
 		callback = Checkable::ExecuteCommandProcessFinishedHandler;
 	} else {
 		callback = std::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2);
 	}
+
 	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
 		resolvedMacros, useResolvedMacros, timeout, callback);
 }

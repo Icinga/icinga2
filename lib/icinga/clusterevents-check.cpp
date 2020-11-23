@@ -78,12 +78,15 @@ void ClusterEvents::EnqueueCheck(const MessageOrigin::Ptr& origin, const Diction
 
 static void SendEventExecuteCommand(const Dictionary::Ptr& params, long exitStatus, const String& output,
 	double start, double end, const ApiListener::Ptr& listener, const MessageOrigin::Ptr& origin,
-	const Endpoint::Ptr& sourceEndpoint) {
+	const Endpoint::Ptr& sourceEndpoint)
+{
 	Dictionary::Ptr executedParams = new Dictionary();
 	executedParams->Set("execution", params->Get("source"));
 	executedParams->Set("host", params->Get("host"));
+
 	if (params->Contains("service"))
 		executedParams->Set("service", params->Get("service"));
+
 	executedParams->Set("exit", exitStatus);
 	executedParams->Set("output", output);
 	executedParams->Set("start", start);
@@ -104,6 +107,7 @@ static void SendEventExecuteCommand(const Dictionary::Ptr& params, long exitStat
 void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params) {
 
 	Endpoint::Ptr sourceEndpoint;
+
 	if (origin->FromClient) {
 		sourceEndpoint = origin->FromClient->GetEndpoint();
 	} else if (origin->IsLocal()){
@@ -131,11 +135,13 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		String uuid = params->Get("source");
 
 		String checkableName = params->Get("host");
+
 		if (params->Contains("service"))
 			checkableName += "!" + params->Get("service");
 
 		/* Check deadline */
 		double deadline = params->Get("deadline");
+
 		if (Utility::GetTime() > deadline) {
 			Log(LogNotice, "ApiListener")
 				<< "Discarding 'ExecuteCheckFromQueue' event for checkable '" << checkableName
@@ -233,6 +239,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
 				listener->SyncSendMessage(sourceEndpoint, message);
 			}
+
 			return;
 		}
 	} else if (command_type == "event_command") {
@@ -244,6 +251,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				double now = Utility::GetTime();
 				SendEventExecuteCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
 			}
+
 			return;
 		}
 	} else if (command_type == "notification_command") {
@@ -255,6 +263,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				double now = Utility::GetTime();
 				SendEventExecuteCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
 			}
+
 			return;
 		}
 	}
