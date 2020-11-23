@@ -1538,7 +1538,11 @@ $ curl -k -s -u root:icinga -H 'Accept: application/json' \
 ### execute-command <a id="icinga2-api-actions-execute-command"></a>
 
 Executes a particular check/notification/event-command on a particular
-endpoint in the context of a particular checkable.
+endpoint in the context of a particular checkable. Example use cases:
+
+* Test a check command without actually triggering notifications
+* Reboot a node via an event command
+* Test a notification command without actually reproducing the notification reason
 
 Send a `POST` request to the URL endpoint `/v1/actions/execute-command`.
 
@@ -1548,30 +1552,32 @@ Send a `POST` request to the URL endpoint `/v1/actions/execute-command`.
   command_type  | String     | **Optional.** The command type: `CheckCommand` or `EventCommand` or `NotificationCommand`. Default: `EventCommand`
   command       | String     | **Optional.** The command to execute. Its type must the same as `command_type`. It can be a macro string. Default: depending on the `command_type` it's either `$check_command$`, `$event_command$` or `$notification_command$`   
   endpoint      | String     | **Optional.** The endpoint to execute the command on. It can be a macro string. Default: `$command_endpoint$`.
-  macros        | Dictionary | **Optional**. Macro overrides. Default: `{}` 
+  macros        | Dictionary | **Optional.** Macro overrides. Default: `{}`
   user          | String     | **Optional.** The user used for the notification command. 
   notification  | String     | **Optional.** The notification used for the notification command.
   
-  Example:
+Example:
   
-  ```
-  $ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
-   -X POST 'https://localhost:5665/v1/actions/execute-command' \
-   -d '{"type": "Service", "service": "agent!custom_service", "ttl": 15, "macros": { "command_endpoint": "master", "ls_dir": "/tmp/foo" }, "command": "custom_command", "command_type": "CheckCommand" }'
+```
+$ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X POST 'https://localhost:5665/v1/actions/execute-command' \
+ -d '{"type": "Service", "service": "agent!custom_service", "ttl": 15, "macros": { "command_endpoint": "master", "ls_dir": "/tmp/foo" }, "command": "custom_command", "command_type": "CheckCommand" }'
 ```
 
 ```
-  {
-      "results": [
-          {
-              "checkable": "agent!custom_service",
-              "code": 202.0,
-              "execution": "3541d906-9afe-4c0e-ae6d-f549ee9bb3e7",
-              "status": "Accepted"
-          }
-      ]
-  }
-  ```
+{
+    "results": [
+        {
+            "checkable": "agent!custom_service",
+            "code": 202.0,
+            "execution": "3541d906-9afe-4c0e-ae6d-f549ee9bb3e7",
+            "status": "Accepted"
+        }
+    ]
+}
+```
+
+You may poll the state of the execution by [querying](#icinga2-api-config-objects-query) the checkable's attribute `executions`.
 
 ## Event Streams <a id="icinga2-api-event-streams"></a>
 
