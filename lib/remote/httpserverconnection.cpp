@@ -539,12 +539,16 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				authenticatedUser = ApiUser::GetByAuthHeader(request[http::field::authorization].to_string());
 			}
 
-			Log(LogInformation, "HttpServerConnection")
-				<< "Request: " << request.method_string() << ' ' << request.target()
+			Log logMsg (LogInformation, "HttpServerConnection");
+
+			logMsg << "Request: " << request.method_string() << ' ' << request.target()
 				<< " (from " << m_PeerAddress
 				<< "), user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>")
-				<< ", agent: " << request[http::field::user_agent] << ")."; //operator[] - Returns the value for a field, or "" if it does not exist.
+				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
 
+			Defer addRespCode ([&response, &logMsg]() {
+				logMsg << ", status: " << response.result() << ").";
+			});
 
 			if (!HandleAccessControl(*m_Stream, request, response, yc)) {
 				break;
