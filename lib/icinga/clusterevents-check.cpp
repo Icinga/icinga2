@@ -76,7 +76,7 @@ void ClusterEvents::EnqueueCheck(const MessageOrigin::Ptr& origin, const Diction
 	}
 }
 
-static void SendEventExecuteCommand(const Dictionary::Ptr& params, long exitStatus, const String& output,
+static void SendEventExecutedCommand(const Dictionary::Ptr& params, long exitStatus, const String& output,
 	double start, double end, const ApiListener::Ptr& listener, const MessageOrigin::Ptr& origin,
 	const Endpoint::Ptr& sourceEndpoint)
 {
@@ -163,7 +163,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 					<< pr.ExitStatus << ", output: " << pr.Output;
 			}
 
-			SendEventExecuteCommand(params, pr.ExitStatus, pr.Output, pr.ExecutionStart, pr.ExecutionEnd, listener,
+			SendEventExecutedCommand(params, pr.ExitStatus, pr.Output, pr.ExecutionStart, pr.ExecutionEnd, listener,
 									origin, sourceEndpoint);
 		};
 	}
@@ -176,7 +176,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 		if (params->Contains("source")) {
 			double now = Utility::GetTime();
-			SendEventExecuteCommand(params, 126, output, now, now, listener, origin, sourceEndpoint);
+			SendEventExecutedCommand(params, 126, output, now, now, listener, origin, sourceEndpoint);
 		} else {
 			Host::Ptr host = new Host();
 			Dictionary::Ptr attrs = new Dictionary();
@@ -231,7 +231,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			double now = Utility::GetTime();
 			
 			if (params->Contains("source")) {
-				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecutedCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			} else {
 				CheckResult::Ptr cr = new CheckResult();
 				cr->SetState(state);
@@ -249,7 +249,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 			if (params->Contains("source")) {
 				double now = Utility::GetTime();
-				SendEventExecuteCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecutedCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
 			}
 
 			return;
@@ -261,7 +261,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 			if (params->Contains("source")) {
 				double now = Utility::GetTime();
-				SendEventExecuteCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecutedCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
 			}
 
 			return;
@@ -286,7 +286,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			double now = Utility::GetTime();
 
 			if (params->Contains("source")) {
-				SendEventExecuteCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecutedCommand(params, state, output, now, now, listener, origin, sourceEndpoint);
 			} else {
 				CheckResult::Ptr cr = new CheckResult();
 				cr->SetState(state);
@@ -311,7 +311,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 					host->GetName() + "': " + DiagnosticInformation(ex);
 
 				double now = Utility::GetTime();
-				SendEventExecuteCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecutedCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
 			} else {
 				throw;
 			}
@@ -347,7 +347,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				+ "' and user '" + user->GetName() + "' using command '" + command + "': "
 				+ DiagnosticInformation(ex, false);
 			double now = Utility::GetTime();
-			SendEventExecuteCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
+			SendEventExecutedCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
 		}
 	}
 }

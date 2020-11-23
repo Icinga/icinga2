@@ -711,7 +711,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
 		else {
 			EventCommand::ExecuteOverride = cmd;
-			Defer resetCheckCommandOverride([]() {
+			Defer resetEventCommandOverride ([]() {
 				EventCommand::ExecuteOverride = nullptr;
 			});
 			cmd->Execute(checkable, execMacros, false);
@@ -761,7 +761,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 			execParams->Set("notification", notification->GetName());
 
 			NotificationCommand::ExecuteOverride = cmd;
-			Defer resetCheckCommandOverride([]() {
+			Defer resetNotificationCommandOverride ([]() {
 				NotificationCommand::ExecuteOverride = nullptr;
 			});
 
