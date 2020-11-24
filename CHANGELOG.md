@@ -18,6 +18,7 @@ Version 2.12.2 fixes several issues to improve the reliability of the cluster fu
 * Prevent other clients from being disconnected when replaying the cluster log takes very long #8496
 * Avoid duplicate connections between endpoints #8465
 * Ignore incoming config object updates for unknown zones #8461
+* Check timestamps before removing files in config sync #8495
 
 ### Enhancements
 
