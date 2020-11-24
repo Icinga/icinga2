@@ -348,20 +348,43 @@ void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 {
 	boost::system::error_code ec;
 
-	for (;;) {
-		m_CheckLivenessTimer.expires_from_now(boost::posix_time::seconds(30));
+	if (!m_Authenticated) {
+		/* Anonymous connections are normally only used for requesting a certificate and are closed after this request
+		 * is received. However, the request is only sent if the child has successfully verified the certificate of its
+		 * parent so that it is an authenticated connection from its perspective. In case this verification fails, both
+		 * ends view it as an anonymous connection and never actually use it but attempt a reconnect after 10 seconds
+		 * leaking the connection. Therefore close it after a timeout.
+		 */
+
+		m_CheckLivenessTimer.expires_from_now(boost::posix_time::seconds(10));
 		m_CheckLivenessTimer.async_wait(yc[ec]);
 
 		if (m_ShuttingDown) {
-			break;
+			return;
 		}
 
-		if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
-			Log(LogInformation, "JsonRpcConnection")
-				<<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
+		auto remote (m_Stream->lowest_layer().remote_endpoint());
 
-			Disconnect();
-			break;
+		Log(LogInformation, "JsonRpcConnection")
+			<< "Closing anonymous connection [" << remote.address() << "]:" << remote.port() << " after 10 seconds.";
+
+		Disconnect();
+	} else {
+		for (;;) {
+			m_CheckLivenessTimer.expires_from_now(boost::posix_time::seconds(30));
+			m_CheckLivenessTimer.async_wait(yc[ec]);
+
+			if (m_ShuttingDown) {
+				break;
+			}
+
+			if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
+				Log(LogInformation, "JsonRpcConnection")
+					<<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
+
+				Disconnect();
+				break;
+			}
 		}
 	}
 }
