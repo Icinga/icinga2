@@ -54,7 +54,7 @@ master branch which should be part of this release.
 Update the version:
 
 ```
-sed -i "s/Version: .*/Version: $VERSION/g" VERSION
+perl -pi -e "s/Version: .*/Version: $VERSION/g" VERSION
 ```
 
 ## Changelog <a id="changelog"></a>
@@ -155,7 +155,7 @@ git commit -av -m "Switch build type for 2.13"
 Set the `Version`, `revision` and `%changelog` inside the spec file:
 
 ```
-sed -i "s/Version:.*/Version:        $VERSION/g" icinga2.spec
+perl -pi -e "s/Version:.*/Version:        $VERSION/g" icinga2.spec
 
 vim icinga2.spec
 
@@ -182,8 +182,8 @@ icinga2 (2.11.0-1) icinga; urgency=medium
 Update the file `.gitlab-ci.yml`:
 
 ```
-sed -i "s/^  UPSTREAM_GIT_BRANCH: .*/  UPSTREAM_GIT_BRANCH: v$VERSION/g" .gitlab-ci.yml
-sed -i "s/^  ICINGA_FORCE_VERSION: .*/  ICINGA_FORCE_VERSION: v$VERSION/g" .gitlab-ci.yml
+perl -pi -e "s/^  UPSTREAM_GIT_BRANCH: .*/  UPSTREAM_GIT_BRANCH: v$VERSION/g" .gitlab-ci.yml
+perl -pi -e "s/^  ICINGA_FORCE_VERSION: .*/  ICINGA_FORCE_VERSION: v$VERSION/g" .gitlab-ci.yml
 ```
 
 
