@@ -691,12 +691,9 @@ void ApiListener::NewClientHandlerInternal(
 		if (endpoint) {
 			endpoint->AddClient(aclient);
 
-			IoEngine::SpawnCoroutine(IoEngine::Get().GetIoContext(), [this, aclient, endpoint](asio::yield_context yc) {
-				CpuBoundWork syncClient (yc);
-
+			Utility::QueueAsyncCallback([this, aclient, endpoint]() {
 				SyncClient(aclient, endpoint, true);
 			});
-
 		} else if (!AddAnonymousClient(aclient)) {
 			Log(LogNotice, "ApiListener")
 				<< "Ignoring anonymous JSON-RPC connection " << conninfo
