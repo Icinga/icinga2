@@ -975,7 +975,7 @@ The more programmatic approach for `set_if` could look like this:
           if (typeof(srv_vars.compellent) == Dictionary) {
             return srv_vars.compellent.contains("disks")
           } else {
-            log(LogInformationen, "checkcommand set_if", "custom variable compellent_checks is not a dictionary, ignoring it.")
+            log(LogInformation, "checkcommand set_if", "custom variable compellent_checks is not a dictionary, ignoring it.")
             return false
           }
         } else {
