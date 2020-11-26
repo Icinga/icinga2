@@ -123,4 +123,53 @@ BOOST_AUTO_TEST_CASE(multi)
 	BOOST_CHECK(pd->Get(1) == "test::b=4");
 }
 
+BOOST_AUTO_TEST_CASE(scientificnotation)
+{
+	PerfdataValue::Ptr pdv = PerfdataValue::Parse("test=1.1e+1");
+	BOOST_CHECK(pdv->GetLabel() == "test");
+	BOOST_CHECK(pdv->GetValue() == 11);
+
+	String str = pdv->Format();
+	BOOST_CHECK(str == "test=11");
+
+	pdv = PerfdataValue::Parse("test=1.1e1");
+	BOOST_CHECK(pdv->GetLabel() == "test");
+	BOOST_CHECK(pdv->GetValue() == 11);
+
+	str = pdv->Format();
+	BOOST_CHECK(str == "test=11");
+
+	pdv = PerfdataValue::Parse("test=1.1e-1");
+	BOOST_CHECK(pdv->GetLabel() == "test");
+	BOOST_CHECK(pdv->GetValue() == 0.11);
+
+	str = pdv->Format();
+	BOOST_CHECK(str == "test=0.110000");
+
+	pdv = PerfdataValue::Parse("test=1.1E1");
+	BOOST_CHECK(pdv->GetLabel() == "test");
+	BOOST_CHECK(pdv->GetValue() == 11);
+
+	str = pdv->Format();
+	BOOST_CHECK(str == "test=11");
+
+	pdv = PerfdataValue::Parse("test=1.1E-1");
+	BOOST_CHECK(pdv->GetLabel() == "test");
+	BOOST_CHECK(pdv->GetValue() == 0.11);
+
+	str = pdv->Format();
+	BOOST_CHECK(str == "test=0.110000");
+
+	pdv = PerfdataValue::Parse("test=1.1E-1;1.2e+1;1.3E-1;1.4e-2;1.5E2");
+	BOOST_CHECK(pdv->GetLabel() == "test");
+	BOOST_CHECK(pdv->GetValue() == 0.11);
+	BOOST_CHECK(pdv->GetWarn() == 12);
+	BOOST_CHECK(pdv->GetCrit() == 0.13);
+	BOOST_CHECK(pdv->GetMin() == 0.014);
+	BOOST_CHECK(pdv->GetMax() == 150);
+
+	str = pdv->Format();
+	BOOST_CHECK(str == "test=0.110000;12;0.130000;0.014000;150");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -143,6 +143,7 @@ add_boost_test(base
     icinga_perfdata/ignore_invalid_warn_crit_min_max
     icinga_perfdata/invalid
     icinga_perfdata/multi
+    icinga_perfdata/scientificnotation
     remote_url/id_and_path
     remote_url/parameters
     remote_url/get_and_set
