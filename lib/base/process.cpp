@@ -49,7 +49,8 @@ static boost::once_flag l_ProcessOnceFlag = BOOST_ONCE_INIT;
 static boost::once_flag l_SpawnHelperOnceFlag = BOOST_ONCE_INIT;
 
 Process::Process(Process::Arguments arguments, Dictionary::Ptr extraEnvironment)
-	: m_Arguments(std::move(arguments)), m_ExtraEnvironment(std::move(extraEnvironment)), m_Timeout(600), m_AdjustPriority(false)
+	: m_Arguments(std::move(arguments)), m_ExtraEnvironment(std::move(extraEnvironment)),
+	  m_Timeout(600), m_AdjustPriority(false), m_ResultAvailable(false)
 #ifdef _WIN32
 	, m_ReadPending(false), m_ReadFailed(false), m_Overlapped()
 #endif /* _WIN32 */
@@ -1007,6 +1008,12 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 #endif /* _WIN32 */
 }
 
+const ProcessResult& Process::WaitForResult() {
+	std::unique_lock<std::mutex> lock(m_ResultMutex);
+	m_ResultCondition.wait(lock, [this]{ return m_ResultAvailable; });
+	return m_Result;
+}
+
 bool Process::DoEvents()
 {
 	bool is_timeout = false;
@@ -1114,10 +1121,15 @@ bool Process::DoEvents()
 	}
 #endif /* _WIN32 */
 
-	m_Result.PID = m_PID;
-	m_Result.ExecutionEnd = Utility::GetTime();
-	m_Result.ExitStatus = exitcode;
-	m_Result.Output = output;
+	{
+		std::lock_guard<std::mutex> lock(m_ResultMutex);
+		m_Result.PID = m_PID;
+		m_Result.ExecutionEnd = Utility::GetTime();
+		m_Result.ExitStatus = exitcode;
+		m_Result.Output = output;
+		m_ResultAvailable = true;
+	}
+	m_ResultCondition.notify_all();
 
 	if (m_Callback)
 		Utility::QueueAsyncCallback(std::bind(m_Callback, m_Result));
