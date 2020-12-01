@@ -146,8 +146,6 @@ jobs:
             release: '12.4'
           - name: opensuse
             release: '15.1'
-          - name: opensuse
-            release: '15.0'
 
     runs-on: ubuntu-latest
 
