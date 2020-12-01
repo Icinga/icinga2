@@ -75,7 +75,7 @@ EOL distributions where no packages are available with this release:
 * RHEL/CentOS 6 x86
 
 Raspbian Packages are available inside the `icinga-buster` repository
-on [https://packages.icinga.com](http://packages.icinga.com/raspbian/).
+on [https://packages.icinga.com](https://packages.icinga.com/raspbian/).
 Please note that Stretch is not supported suffering from compiler
 regressions. Upgrade to Raspbian Buster is highly recommended.
 

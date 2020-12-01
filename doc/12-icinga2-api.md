@@ -2339,7 +2339,7 @@ Name												| Language	| Description
 [InfluxDB Telegraf Input](https://github.com/influxdata/telegraf/blob/master/plugins/inputs/icinga2/README.md) | Golang	| [Telegraf](https://github.com/influxdata/telegraf) is an agent written in Go for collecting, processing, aggregating, and writing metrics.
 [Icinga Slack Bot](https://github.com/bb-Ricardo/icinga-slack-bot)				| Python	| It can be used to interact with Icinga2 from your Slack client. It uses the Icinga2 API to get Host/Service status details. Simple status filters can be used to narrow down the returned status list.
 [Icinga 2 Slack Bot](https://github.com/mlabouardy/icinga2-slack-bot) 				| Golang | Query host/service details from a [Slack](https://slack.com/) channel
-[icinga2bot](https://github.com/reikoNeko/icinga2bot)						| Python	| [Errbot](http://errbot.io/en/latest/user_guide/setup.html) plugin to fetch status and event stream information and forward to XMPP, IRC, etc.
+[icinga2bot](https://github.com/reikoNeko/icinga2bot)						| Python	| [Errbot](https://errbot.io/en/latest/user_guide/setup.html) plugin to fetch status and event stream information and forward to XMPP, IRC, etc.
 [IcingaBusyLightAgent](https://github.com/stdevel/IcingaBusylightAgent) 			| C#		| Notification Agent in Systray
 [BitBar for OSX](https://getbitbar.com/plugins/Dev/Icinga2/icinga2.24m.py)			| Python	| macOS tray app for highlighting the host/service status
 [Icinga 2 Multistatus](https://chrome.google.com/webstore/detail/icinga-multi-status/khabbhcojgkibdeipanmiphceeoiijal/related)	| - 	| Chrome Extension
@@ -2355,7 +2355,7 @@ Name												| Language	| Description
 [Kube Icinga](https://github.com/gyselroth/kube-icinga)			                        | Typescript    | Monitor Kubernetes services / resources using icinga2 (including autodiscovery support)
 [Logstash output for Icinga](https://www.icinga.com/products/integrations/elastic/)             | Ruby          | Forward check results and create objects from log events
 [Foreman Smart Proxy Monitoring](https://github.com/theforeman/smart_proxy_monitoring)		| Ruby		| Smart Proxy extension for Foreman creating and deleting hosts and services in Icinga 2
-[Rancher integration](https://github.com/Nexinto/rancher-icinga)         		        | Golang        | Registers [Rancher](http://rancher.com/rancher/) resources in Icinga 2 for monitoring.
+[Rancher integration](https://github.com/Nexinto/rancher-icinga)         		        | Golang        | Registers [Rancher](https://rancher.com) resources in Icinga 2 for monitoring.
 [AWS/EC2](https://github.com/Icinga/icinga2-api-examples/tree/master/aws-ec2)			| Ruby		| Example script for creating and deleting AWS instances in Icinga 2
 [Ansible Host Module](https://docs.ansible.com/ansible/latest/modules/icinga2_host_module.html) | Python 	| In progress, [Ansible Feature](https://docs.ansible.com/ansible/latest/modules/icinga2_feature_module.html#icinga2-feature-module) is also there.
 [gocinga](https://gitlab.com/sambadevi/gocinga)							| Golang	| CLI Tool for Icinga, written in go
@@ -2390,7 +2390,7 @@ Name												| Language	| Description
 ------------------------------------------------------------------------------------------------|---------------|--------------------------------------------------------
 Browser plugins											| -		| [Postman for Chrome](https://www.getpostman.com), [RESTED for Firefox](https://addons.mozilla.org/en-US/firefox/addon/rested/)
 [Postman](https://www.getpostman.com/)                                                          | -             | App instead of browser plugin
-[Cocoa Rest Client](http://mmattozzi.github.io/cocoa-rest-client/)                              | -             | macOS app
+[Cocoa Rest Client](https://mmattozzi.github.io/cocoa-rest-client/)                              | -             | macOS app
 [Paw for MacOS](https://paw.cloud)								| (exported)	| Paw is a full-featured HTTP client that lets you test and describe the APIs you build or consume. It has a beautiful native macOS interface to compose requests, inspect server responses, generate client code and export API definitions.
 
 

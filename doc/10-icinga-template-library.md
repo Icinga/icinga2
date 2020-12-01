@@ -2339,7 +2339,7 @@ db2_health_env_db2_version    | **Optional.** Specifies the DB2 version as envir
 #### mssql_health <a id="plugin-contrib-command-mssql_health"></a>
 
 The [check_mssql_health](https://labs.consol.de/nagios/check_mssql_health/index.html) plugin
-uses the `DBD::Sybase` Perl library based on [FreeTDS](http://www.freetds.org/) to monitor a
+uses the `DBD::Sybase` Perl library based on [FreeTDS](https://www.freetds.org/) to monitor a
 [MS SQL](https://www.microsoft.com/en-us/sql-server/) server.
 
 The Git repository is located on [GitHub](https://github.com/lausser/check_mssql_health).
@@ -3294,7 +3294,7 @@ lsyncd_critical         | **Optional.** Critical if more then N delays (default:
 #### fail2ban <a id="plugin-contrib-command-fail2ban"></a>
 
 The [check_fail2ban](https://github.com/fail2ban/fail2ban/tree/master/files/nagios) plugin
-uses the `fail2ban-client` binary to monitor [fail2ban](http://www.fail2ban.org) jails.
+uses the `fail2ban-client` binary to monitor [fail2ban](https://www.fail2ban.org) jails.
 
 The plugin requires `sudo` permissions.
 You can add a sudoers file to allow your monitoring user to use the plugin, i.e. edit /etc/sudoers.d/icinga and add:
@@ -5589,11 +5589,11 @@ ssl_cert_ignore_ocsp          | **Optional.** Do not check revocation with OCSP.
 
 #### jmx4perl <a id="plugin-contrib-command-jmx4perl"></a>
 
-The [check_jmx4perl](http://search.cpan.org/~roland/jmx4perl/scripts/check_jmx4perl) plugin
+The [check_jmx4perl](https://metacpan.org/pod/distribution/jmx4perl/scripts/check_jmx4perl) plugin
 uses the HTTP API exposed by the [Jolokia](https://jolokia.org)
 web application and queries Java message beans on an application server. It is
 part of the `JMX::Jmx4Perl` Perl module which includes detailed
-[documentation](http://search.cpan.org/~roland/jmx4perl/scripts/check_jmx4perl).
+[documentation](https://metacpan.org/pod/distribution/jmx4perl/scripts/check_jmx4perl).
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
@@ -5764,7 +5764,7 @@ usage                   | Cache file usage as a percentage of the total cache sp
 
 The [check_haproxy](https://salsa.debian.org/nagios-team/pkg-nagios-plugins-contrib/blob/master/check_haproxy/check_haproxy) plugin,
 also available in the [monitoring-plugins-contrib](https://packages.debian.org/nagios-plugins-contrib) on debian,
-uses the `haproxy` csv statistics page to monitor [haproxy](http://www.haproxy.org/) response time. The plugin outputa performance data for backends sessions and statistics response time.
+uses the `haproxy` csv statistics page to monitor [haproxy](https://www.haproxy.org/) response time. The plugin outputa performance data for backends sessions and statistics response time.
 
 This plugin need to access the csv statistics page. You can configure it in haproxy by adding a new frontend:
 ```
@@ -5790,7 +5790,7 @@ haproxy_critical        | **Optional.** Critical request time threshold (in seco
 #### haproxy_status <a id="plugin-contrib-command-haproxy_status"></a>
 
 The [check_haproxy_status](https://github.com/jonathanio/monitoring-nagios-haproxy) plugin,
-uses the `haproxy` statistics socket to monitor [haproxy](http://www.haproxy.org/) frontends/backends.
+uses the `haproxy` statistics socket to monitor [haproxy](https://www.haproxy.org/) frontends/backends.
 
 This plugin need read/write access to the statistics socket with an operator level. You can configure it in the global section of haproxy to allow icinga user to use it:
 ```
@@ -5813,7 +5813,7 @@ haproxy\_status\_socket     | **Required.** Path to the socket check_haproxy sho
 
 #### phpfpm_status <a id="plugin-contrib-command-phpfpm_status"></a>
 
-The [check_phpfpm_status](http://github.com/regilero/check_phpfpm_status) plugin,
+The [check_phpfpm_status](https://github.com/regilero/check_phpfpm_status) plugin,
 uses the `php-fpm` status page to monitor php-fpm.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):

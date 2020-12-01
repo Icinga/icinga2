@@ -871,7 +871,7 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 
 ### Windows Monitoring <a id="service-monitoring-windows"></a>
 
-* [check_wmi_plus](http://www.edcint.co.nz/checkwmiplus/)
+* [check_wmi_plus](https://edcint.co.nz/checkwmiplus/)
 * [NSClient++](https://www.nsclient.org) (in combination with the Icinga 2 client and either [check_nscp_api](10-icinga-template-library.md#nscp-check-api) or [nscp-local](10-icinga-template-library.md#nscp-plugin-check-commands) check commands)
 * [Icinga 2 Windows Plugins](10-icinga-template-library.md#windows-plugins) (disk, load, memory, network, performance counters, ping, procs, service, swap, updates, uptime, users
 * vbs and Powershell scripts
@@ -943,7 +943,7 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 **Tip**: If you are encountering timeouts using the VMware Perl SDK,
 check [this blog entry](https://www.claudiokuenzler.com/blog/650/slow-vmware-perl-sdk-soap-request-error-libwww-version).
 Ubuntu 16.04 LTS can have troubles with random entropy in Perl asked [here](https://monitoring-portal.org/t/check-vmware-api-slow-when-run-multiple-times/2868).
-In that case, [haveged](http://issihosts.com/haveged/) may help.
+In that case, [haveged](https://issihosts.com/haveged/) may help.
 
 ### SAP Monitoring <a id="service-monitoring-sap"></a>
 

@@ -271,7 +271,7 @@ edit it online on GitHub.
 vim doc/2-getting-started.md
 ```
 
-In order to review and test changes, you can install the [mkdocs](http://www.mkdocs.org) Python library.
+In order to review and test changes, you can install the [mkdocs](https://www.mkdocs.org) Python library.
 
 ```
 pip install mkdocs

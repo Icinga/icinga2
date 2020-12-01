@@ -1219,7 +1219,7 @@ more object attributes which can be e.g. seen in external interfaces.
   /* Calculate some additional object attributes after populating the `vars` dictionary */
   notes = "Interface check for " + interface_name + " (units: '" + interface_config.iftraffic_units + "') in VLAN '" + vars.vlan + "' with ' QoS '" + vars.qos + "'"
   notes_url = "https://foreman.company.com/hosts/" + host.name
-  action_url = "http://snmp.checker.company.com/" + host.name + "/if-" + interface_name
+  action_url = "https://snmp.checker.company.com/" + host.name + "/if-" + interface_name
 }
 ```
 
@@ -1331,7 +1331,7 @@ apply Service for (customer => config in host.vars.hosting) {
   notes = "Support contract: " + vars.support_contract + " for Customer " + vars.customer_name + " (" + vars.customer_id + ")."
 
   notes_url = "https://foreman.company.com/hosts/" + host.name
-  action_url = "http://snmp.checker.company.com/" + host.name + "/" + vars.customer_id
+  action_url = "https://snmp.checker.company.com/" + host.name + "/" + vars.customer_id
 }
 ```
 

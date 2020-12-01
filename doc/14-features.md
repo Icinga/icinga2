@@ -556,11 +556,11 @@ or Logstash for additional filtering.
 
 #### GELF Writer <a id="gelfwriter"></a>
 
-The `Graylog Extended Log Format` (short: [GELF](http://docs.graylog.org/en/latest/pages/gelf.html))
+The `Graylog Extended Log Format` (short: [GELF](https://docs.graylog.org/en/latest/pages/gelf.html))
 can be used to send application logs directly to a TCP socket.
 
 While it has been specified by the [Graylog](https://www.graylog.org) project as their
-[input resource standard](http://docs.graylog.org/en/latest/pages/sending_data.html), other tools such as
+[input resource standard](https://docs.graylog.org/en/latest/pages/sending_data.html), other tools such as
 [Logstash](https://www.elastic.co/products/logstash) also support `GELF` as
 [input type](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-gelf.html).
 
@@ -1113,7 +1113,7 @@ object configuration.
 > a unix socket.
 
 There also is a Perl module available in CPAN for accessing the Livestatus socket
-programmatically: [Monitoring::Livestatus](http://search.cpan.org/~nierlein/Monitoring-Livestatus-0.74/)
+programmatically: [Monitoring::Livestatus](https://metacpan.org/release/NIERLEIN/Monitoring-Livestatus-0.74)
 
 
 Example using the unix socket:
