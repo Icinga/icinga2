@@ -142,8 +142,6 @@ jobs:
             release: '15.0'
           - name: sles
             release: '12.5'
-          - name: sles
-            release: '12.4'
           - name: opensuse
             release: '15.1'
           - name: opensuse
