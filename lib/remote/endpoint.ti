@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/configobject.hpp"
+#include <cstdint>
 
 library remote;
 
@@ -21,6 +22,12 @@ class Endpoint : ConfigObject
 
 	[state] Timestamp local_log_position;
 	[state] Timestamp remote_log_position;
+	[state] "unsigned long" icinga_version {
+		default {{{ return 0; }}}
+	};
+	[state] uint_fast64_t capabilities {
+		default {{{ return 0; }}}
+	};
 
 	[no_user_modify] bool connecting;
 	[no_user_modify] bool syncing;

@@ -28,46 +28,72 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
-	CheckCommand::Ptr command = checkable->GetCheckCommand();
-	cr->SetCommand(command->GetName());
+	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
+	String commandName = command->GetName();
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
-
 	if (!listener) {
-		cr->SetOutput("No API listener is configured for this instance.");
-		cr->SetState(ServiceUnknown);
-		checkable->ProcessCheckResult(cr);
+		String output = "No API listener is configured for this instance.";
+
+		if (Checkable::ExecuteCommandProcessFinishedHandler) {
+			double now = Utility::GetTime();
+			ProcessResult pr;
+			pr.PID = -1;
+			pr.ExecutionStart = now;
+			pr.ExecutionEnd = now;
+			pr.ExitStatus = 126;
+			pr.Output = output;
+			Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
+		} else {
+			cr->SetOutput(output);
+			cr->SetState(ServiceUnknown);
+			checkable->ProcessCheckResult(cr);
+		}
+
 		return;
 	}
 
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats = listener->GetStatus();
-
 	Dictionary::Ptr status = stats.first;
-
-	/* use feature stats perfdata */
-	std::pair<Dictionary::Ptr, Array::Ptr> feature_stats = CIB::GetFeatureStats();
-	cr->SetPerformanceData(feature_stats.second);
-
 	int numConnEndpoints = status->Get("num_conn_endpoints");
 	int numNotConnEndpoints = status->Get("num_not_conn_endpoints");
 
+	ServiceState state;
 	String output = "Icinga 2 Cluster";
 
 	if (numNotConnEndpoints > 0) {
 		output += " Problem: " + Convert::ToString(numNotConnEndpoints) + " endpoints are not connected.";
 		output += "\n(" + FormatArray(status->Get("not_conn_endpoints")) + ")";
 
-		cr->SetState(ServiceCritical);
+		state = ServiceCritical;
 	} else {
 		output += " OK: " + Convert::ToString(numConnEndpoints) + " endpoints are connected.";
 		output += "\n(" + FormatArray(status->Get("conn_endpoints")) + ")";
 
-		cr->SetState(ServiceOK);
+		state = ServiceOK;
 	}
 
-	cr->SetOutput(output);
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		double now = Utility::GetTime();
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = output;
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = state;
 
-	checkable->ProcessCheckResult(cr);
+		Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
+	} else {
+		/* use feature stats perfdata */
+		std::pair<Dictionary::Ptr, Array::Ptr> feature_stats = CIB::GetFeatureStats();
+		cr->SetPerformanceData(feature_stats.second);
+
+		cr->SetCommand(commandName);
+		cr->SetState(state);
+		cr->SetOutput(output);
+
+		checkable->ProcessCheckResult(cr);
+	}
 }
 
 String ClusterCheckTask::FormatArray(const Array::Ptr& arr)

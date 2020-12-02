@@ -22,13 +22,17 @@ void DummyCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
 
-	CheckCommand::Ptr command = checkable->GetCheckCommand();
+	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
 
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+
+	if (MacroResolver::OverrideMacros)
+		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
+
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
@@ -48,14 +52,26 @@ void DummyCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 	std::pair<String, String> co = PluginUtility::ParseCheckOutput(dummyText);
 
 	double now = Utility::GetTime();
+	String commandName = command->GetName();
 
-	cr->SetOutput(co.first);
-	cr->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
-	cr->SetState(PluginUtility::ExitStatusToState(dummyState));
-	cr->SetExitStatus(dummyState);
-	cr->SetExecutionStart(now);
-	cr->SetExecutionEnd(now);
-	cr->SetCommand(command->GetName());
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = dummyText;
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = dummyState;
 
-	checkable->ProcessCheckResult(cr);
+		Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
+	} else {
+		cr->SetOutput(co.first);
+		cr->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
+		cr->SetState(PluginUtility::ExitStatusToState(dummyState));
+		cr->SetExitStatus(dummyState);
+		cr->SetExecutionStart(now);
+		cr->SetExecutionEnd(now);
+		cr->SetCommand(commandName);
+
+		checkable->ProcessCheckResult(cr);
+	}
 }

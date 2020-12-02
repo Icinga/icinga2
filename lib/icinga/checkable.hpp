@@ -5,6 +5,7 @@
 
 #include "base/atomic.hpp"
 #include "base/timer.hpp"
+#include "base/process.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkable-ti.hpp"
 #include "icinga/timeperiod.hpp"
@@ -14,6 +15,7 @@
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include <cstdint>
+#include <functional>
 
 namespace icinga
 {
@@ -55,6 +57,7 @@ public:
 	DECLARE_OBJECTNAME(Checkable);
 
 	static void StaticInitialize();
+	static thread_local std::function<void(const Value& commandLine, const ProcessResult&)> ExecuteCommandProcessFinishedHandler;
 
 	Checkable();
 
@@ -205,6 +208,7 @@ private:
 	static void NotifyDowntimeEnd(const Downtime::Ptr& downtime);
 
 	static void FireSuppressedNotifications(const Timer * const&);
+	static void CleanDeadlinedExecutions(const Timer * const&);
 
 	/* Comments */
 	std::set<Comment::Ptr> m_Comments;

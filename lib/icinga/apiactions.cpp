@@ -8,12 +8,16 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
+#include "icinga/clusterevents.hpp"
 #include "remote/apiaction.hpp"
 #include "remote/apilistener.hpp"
+#include "remote/filterutility.hpp"
 #include "remote/pkiutility.hpp"
 #include "remote/httputility.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
+#include "base/defer.hpp"
+#include "remote/actionshandler.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -31,6 +35,7 @@ REGISTER_APIACTION(remove_downtime, "Service;Host;Downtime", &ApiActions::Remove
 REGISTER_APIACTION(shutdown_process, "", &ApiActions::ShutdownProcess);
 REGISTER_APIACTION(restart_process, "", &ApiActions::RestartProcess);
 REGISTER_APIACTION(generate_ticket, "", &ApiActions::GenerateTicket);
+REGISTER_APIACTION(execute_command, "Service;Host", &ApiActions::ExecuteCommand);
 
 Dictionary::Ptr ApiActions::CreateResult(int code, const String& status,
 	const Dictionary::Ptr& additional)
@@ -549,4 +554,329 @@ Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&,
 
 	return ApiActions::CreateResult(200, "Generated PKI ticket '" + ticket + "' for common name '"
 		+ cn + "'.", additional);
+}
+
+Value ApiActions::GetSingleObjectByNameUsingPermissions(const String& type, const String& objectName, const ApiUser::Ptr& user)
+{
+	Dictionary::Ptr queryParams = new Dictionary();
+	queryParams->Set("type", type);
+	queryParams->Set(type.ToLower(), objectName);
+
+	QueryDescription qd;
+	qd.Types.insert(type);
+	qd.Permission = "objects/query/" + type;
+
+	std::vector<Value> objs;
+
+	try {
+		objs = FilterUtility::GetFilterTargets(qd, queryParams, user);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "ApiActions") << DiagnosticInformation(ex);
+		return nullptr;
+	}
+
+	if (objs.empty())
+		return nullptr;
+
+	return objs.at(0);
+};
+
+Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("No ApiListener instance configured."));
+
+	/* Get command_type */
+	String command_type = "EventCommand";
+
+	if (params->Contains("command_type"))
+		command_type = HttpUtility::GetLastParameter(params, "command_type");
+
+	/* Validate command_type */
+	if (command_type != "EventCommand" && command_type != "CheckCommand" && command_type != "NotificationCommand")
+		return ApiActions::CreateResult(400, "Invalid command_type '" + command_type + "'.");
+
+	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
+
+	if (!checkable)
+		return ApiActions::CreateResult(404, "Can't start a command execution for a non-existent object.");
+
+	/* Get TTL param */
+	if (!params->Contains("ttl"))
+		return ApiActions::CreateResult(400, "Parameter ttl is required.");
+
+	double ttl = HttpUtility::GetLastParameter(params, "ttl");
+
+	if (ttl <= 0)
+		return ApiActions::CreateResult(400, "Parameter ttl must be greater than 0.");
+
+	ObjectLock oLock (checkable);
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	String endpoint = "$command_endpoint$";
+
+	if (params->Contains("endpoint"))
+		endpoint = HttpUtility::GetLastParameter(params, "endpoint");
+
+	MacroProcessor::ResolverList resolvers;
+	Value macros;
+
+	if (params->Contains("macros")) {
+		macros = HttpUtility::GetLastParameter(params, "macros");
+		if (macros.IsObjectType<Dictionary>()) {
+			resolvers.emplace_back("override", macros);
+		} else {
+			return ApiActions::CreateResult(400, "Parameter macros must be a dictionary.");
+		}
+	}
+
+	if (service)
+		resolvers.emplace_back("service", service);
+
+	resolvers.emplace_back("host", host);
+	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+
+	String resolved_endpoint = MacroProcessor::ResolveMacros(
+		endpoint, resolvers, checkable->GetLastCheckResult(),
+		nullptr, MacroProcessor::EscapeCallback(), nullptr, false
+	);
+
+	if (!ActionsHandler::AuthenticatedApiUser)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Can't find API user."));
+
+	/* Get endpoint */
+	Endpoint::Ptr endpointPtr = GetSingleObjectByNameUsingPermissions(Endpoint::GetTypeName(), resolved_endpoint, ActionsHandler::AuthenticatedApiUser);
+
+	if (!endpointPtr)
+		return ApiActions::CreateResult(404, "Can't find a valid endpoint for '" + resolved_endpoint + "'.");
+
+	/* Get command */
+	String command;
+
+	if (!params->Contains("command")) {
+		if (command_type == "CheckCommand" ) {
+			command = "$check_command$";
+		} else if (command_type == "EventCommand") {
+			command = "$event_command$";
+		} else if (command_type == "NotificationCommand") {
+			command = "$notification_command$";
+		}
+	} else {
+		command = HttpUtility::GetLastParameter(params, "command");
+	}
+
+	/* Resolve command macro */
+	String resolved_command = MacroProcessor::ResolveMacros(
+		command, resolvers, checkable->GetLastCheckResult(), nullptr,
+		MacroProcessor::EscapeCallback(), nullptr, false
+	);
+
+	CheckResult::Ptr cr = checkable->GetLastCheckResult();
+
+	if (!cr)
+		cr = new CheckResult();
+
+	/* Check if resolved_command exists and it is of type command_type */
+	Dictionary::Ptr execMacros = new Dictionary();
+
+	MacroResolver::OverrideMacros = macros;
+	Defer o ([]() {
+		MacroResolver::OverrideMacros = nullptr;
+	});
+
+	/* Create execution parameters */
+	Dictionary::Ptr execParams = new Dictionary();
+
+	if (command_type == "CheckCommand") {
+		CheckCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(CheckCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
+
+		if (!cmd)
+			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
+		else {
+			CheckCommand::ExecuteOverride = cmd;
+			Defer resetCheckCommandOverride([]() {
+				CheckCommand::ExecuteOverride = nullptr;
+			});
+			cmd->Execute(checkable, cr, execMacros, false);
+		}
+	} else if (command_type == "EventCommand") {
+		EventCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(EventCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
+
+		if (!cmd)
+			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
+		else {
+			EventCommand::ExecuteOverride = cmd;
+			Defer resetEventCommandOverride ([]() {
+				EventCommand::ExecuteOverride = nullptr;
+			});
+			cmd->Execute(checkable, execMacros, false);
+		}
+	} else if (command_type == "NotificationCommand") {
+		NotificationCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(NotificationCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
+
+		if (!cmd)
+			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
+		else {
+			/* Get user */
+			String user_string = "";
+
+			if (params->Contains("user"))
+				user_string = HttpUtility::GetLastParameter(params, "user");
+
+			/* Resolve user macro */
+			String resolved_user = MacroProcessor::ResolveMacros(
+				user_string, resolvers, checkable->GetLastCheckResult(), nullptr,
+				MacroProcessor::EscapeCallback(), nullptr, false
+			);
+
+			User::Ptr user = GetSingleObjectByNameUsingPermissions(User::GetTypeName(), resolved_user, ActionsHandler::AuthenticatedApiUser);
+
+			if (!user)
+				return ApiActions::CreateResult(404, "Can't find a valid user for '" + resolved_user + "'.");
+
+			execParams->Set("user", user->GetName());
+
+			/* Get notification */
+			String notification_string = "";
+
+			if (params->Contains("notification"))
+				notification_string = HttpUtility::GetLastParameter(params, "notification");
+
+			/* Resolve notification macro */
+			String resolved_notification = MacroProcessor::ResolveMacros(
+				notification_string, resolvers, checkable->GetLastCheckResult(), nullptr,
+				MacroProcessor::EscapeCallback(), nullptr, false
+			);
+
+			Notification::Ptr notification = GetSingleObjectByNameUsingPermissions(Notification::GetTypeName(), resolved_notification, ActionsHandler::AuthenticatedApiUser);
+
+			if (!notification)
+				return ApiActions::CreateResult(404, "Can't find a valid notification for '" + resolved_notification + "'.");
+
+			execParams->Set("notification", notification->GetName());
+
+			NotificationCommand::ExecuteOverride = cmd;
+			Defer resetNotificationCommandOverride ([]() {
+				NotificationCommand::ExecuteOverride = nullptr;
+			});
+
+			cmd->Execute(notification, user, cr, NotificationType::NotificationCustom,
+				ActionsHandler::AuthenticatedApiUser->GetName(), "", execMacros, false);
+		}
+	}
+
+	/* This generates a UUID */
+	String uuid = Utility::NewUniqueID();
+
+	/* Create the deadline */
+	double deadline = Utility::GetTime() + ttl;
+
+	/* Update executions */
+	Dictionary::Ptr pending_execution = new Dictionary();
+	pending_execution->Set("pending", true);
+	pending_execution->Set("deadline", deadline);
+	Dictionary::Ptr executions = checkable->GetExecutions();
+
+	if (!executions)
+		executions = new Dictionary();
+
+	executions->Set(uuid, pending_execution);
+	checkable->SetExecutions(executions);
+
+	/* Broadcast the update */
+	Dictionary::Ptr executionsToBroadcast = new Dictionary();
+	executionsToBroadcast->Set(uuid, pending_execution);
+	Dictionary::Ptr updateParams = new Dictionary();
+	updateParams->Set("host", host->GetName());
+
+	if (service)
+		updateParams->Set("service", service->GetShortName());
+
+	updateParams->Set("executions", executionsToBroadcast);
+
+	Dictionary::Ptr updateMessage = new Dictionary();
+	updateMessage->Set("jsonrpc", "2.0");
+	updateMessage->Set("method", "event::UpdateExecutions");
+	updateMessage->Set("params", updateParams);
+
+	MessageOrigin::Ptr origin = new MessageOrigin();
+	listener->RelayMessage(origin, checkable, updateMessage, true);
+
+	/* Populate execution parameters */
+	if (command_type == "CheckCommand")
+		execParams->Set("command_type", "check_command");
+	else if (command_type == "EventCommand")
+		execParams->Set("command_type", "event_command");
+	else if (command_type == "NotificationCommand")
+		execParams->Set("command_type", "notification_command");
+
+	execParams->Set("command", resolved_command);
+	execParams->Set("host", host->GetName());
+
+	if (service)
+		execParams->Set("service", service->GetShortName());
+
+	/*
+	 * If the host/service object specifies the 'check_timeout' attribute,
+	 * forward this to the remote endpoint to limit the command execution time.
+	 */
+	if (!checkable->GetCheckTimeout().IsEmpty())
+		execParams->Set("check_timeout", checkable->GetCheckTimeout());
+
+	execParams->Set("source", uuid);
+	execParams->Set("deadline", deadline);
+	execParams->Set("macros", execMacros);
+	execParams->Set("endpoint", resolved_endpoint);
+
+	/* Execute command */
+	bool local = endpointPtr == Endpoint::GetLocalEndpoint();
+
+	if (local) {
+		ClusterEvents::ExecuteCommandAPIHandler(origin, execParams);
+	} else {
+		/* Check if the child endpoints have Icinga version >= 2.13 */
+		Zone::Ptr localZone = Zone::GetLocalZone();
+		for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
+			/* Fetch immediate child zone members */
+			if (zone->GetParent() == localZone && zone->CanAccessObject(endpointPtr->GetZone())) {
+				std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
+
+				for (const Endpoint::Ptr& childEndpoint : endpoints) {
+					if (!(childEndpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand)) {
+						/* Update execution */
+						double now = Utility::GetTime();
+						pending_execution->Set("exit", 126);
+						pending_execution->Set("output", "Endpoint '" + childEndpoint->GetName() + "' doesn't support executing arbitrary commands.");
+						pending_execution->Set("start", now);
+						pending_execution->Set("end", now);
+						pending_execution->Remove("pending");
+
+						listener->RelayMessage(origin, checkable, updateMessage, true);
+
+						Dictionary::Ptr result = new Dictionary();
+						result->Set("checkable", checkable->GetName());
+						result->Set("execution", uuid);
+						return ApiActions::CreateResult(202, "Accepted", result);
+					}
+				}
+			}
+		}
+
+		Dictionary::Ptr execMessage = new Dictionary();
+		execMessage->Set("jsonrpc", "2.0");
+		execMessage->Set("method", "event::ExecuteCommand");
+		execMessage->Set("params", execParams);
+
+		listener->RelayMessage(origin, endpointPtr->GetZone(), execMessage, true);
+	}
+
+	Dictionary::Ptr result = new Dictionary();
+	result->Set("checkable", checkable->GetName());
+	result->Set("execution", uuid);
+	return ApiActions::CreateResult(202, "Accepted", result);
 }

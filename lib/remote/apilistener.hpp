@@ -21,6 +21,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <cstdint>
 #include <mutex>
 #include <set>
 
@@ -37,6 +38,35 @@ struct ConfigDirInformation
 	Dictionary::Ptr UpdateV1;
 	Dictionary::Ptr UpdateV2;
 	Dictionary::Ptr Checksums;
+};
+
+/**
+ * If the version reported by icinga::Hello is not enough to tell whether
+ * the peer has a specific capability, add the latter to this bitmask.
+ *
+ * Note that due to the capability exchange via JSON-RPC and the state storage via JSON
+ * the bitmask numbers are stored in IEEE 754 64-bit floats.
+ * The latter have 53 digit bits which limit the bitmask.
+ * Not to run out of bits:
+ *
+ * Once all Icinga versions which don't have a specific capability are completely EOL,
+ * remove the respective capability checks and assume the peer has the capability.
+ * Once all Icinga versions which still check for the capability are completely EOL,
+ * remove the respective bit from icinga::Hello.
+ * Once all Icinga versions which still have the respective bit in icinga::Hello
+ * are completely EOL, remove the bit here.
+ * Once all Icinga versions which still have the respective bit here
+ * are completely EOL, feel free to re-use the bit.
+ *
+ * completely EOL = not supported, even if an important customer of us used it and
+ * not expected to appear in a multi-level cluster, e.g. a 4 level cluster with
+ * v2.11 -> v2.10 -> v2.9 -> v2.8 - v2.7 isn't here
+ *
+ * @ingroup remote
+ */
+enum class ApiCapabilities : uint_fast64_t
+{
+	ExecuteArbitraryCommand = 1u
 };
 
 /**

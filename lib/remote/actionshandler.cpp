@@ -4,11 +4,14 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
+#include "base/defer.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include <set>
 
 using namespace icinga;
+
+thread_local ApiUser::Ptr ActionsHandler::AuthenticatedApiUser;
 
 REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
@@ -71,6 +74,11 @@ bool ActionsHandler::HandleRequest(
 
 	bool verbose = false;
 
+	ActionsHandler::AuthenticatedApiUser = user;
+	Defer a ([]() {
+		ActionsHandler::AuthenticatedApiUser = nullptr;
+	});
+
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
@@ -94,7 +102,7 @@ bool ActionsHandler::HandleRequest(
 	int statusCode = 500;
 
 	for (const Dictionary::Ptr& res : results) {
-		if (res->Contains("code") && res->Get("code") == 200) {
+		if (res->Contains("code") && res->Get("code") >= 200 && res->Get("code") <= 299) {
 			statusCode = 200;
 			break;
 		}

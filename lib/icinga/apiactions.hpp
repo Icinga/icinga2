@@ -6,6 +6,7 @@
 #include "icinga/i2-icinga.hpp"
 #include "base/configobject.hpp"
 #include "base/dictionary.hpp"
+#include "remote/apiuser.hpp"
 
 namespace icinga
 {
@@ -29,9 +30,11 @@ public:
 	static Dictionary::Ptr ShutdownProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr RestartProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr GenerateTicket(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr ExecuteCommand(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 
 private:
 	static Dictionary::Ptr CreateResult(int code, const String& status, const Dictionary::Ptr& additional = nullptr);
+	static Value GetSingleObjectByNameUsingPermissions(const String& type, const String& value, const ApiUser::Ptr& user);
 };
 
 }

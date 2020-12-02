@@ -18,13 +18,17 @@ void SleepCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
     REQUIRE_NOT_NULL(checkable);
     REQUIRE_NOT_NULL(cr);
 
-    CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	CheckCommand::Ptr commandObj = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
 
     Host::Ptr host;
     Service::Ptr service;
     tie(host, service) = GetHostService(checkable);
 
-    MacroProcessor::ResolverList resolvers;
+	MacroProcessor::ResolverList resolvers;
+
+	if (MacroResolver::OverrideMacros)
+		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
+
     if (service)
         resolvers.emplace_back("service", service);
     resolvers.emplace_back("host", host);
@@ -42,13 +46,24 @@ void SleepCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
     String output = "Slept for " + Convert::ToString(sleepTime) + " seconds.";
 
     double now = Utility::GetTime();
+	CheckCommand::Ptr command = checkable->GetCheckCommand();
+	String commandName = command->GetName();
 
-    cr->SetOutput(output);
-    cr->SetExecutionStart(now);
-    cr->SetExecutionEnd(now);
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = output;
+		pr.ExecutionStart = now - sleepTime;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = 0;
 
-    CheckCommand::Ptr command = checkable->GetCheckCommand();
-    cr->SetCommand(command->GetName());
+		Checkable::ExecuteCommandProcessFinishedHandler("", pr);
+	} else {
+		cr->SetOutput(output);
+		cr->SetExecutionStart(now);
+		cr->SetExecutionEnd(now);
+		cr->SetCommand(commandName);
 
-    checkable->ProcessCheckResult(cr);
+		checkable->ProcessCheckResult(cr);
+	}
 }

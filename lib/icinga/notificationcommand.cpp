@@ -7,6 +7,8 @@ using namespace icinga;
 
 REGISTER_TYPE(NotificationCommand);
 
+thread_local NotificationCommand::Ptr NotificationCommand::ExecuteOverride;
+
 Dictionary::Ptr NotificationCommand::Execute(const Notification::Ptr& notification,
 	const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationType& type,
 	const String& author, const String& comment, const Dictionary::Ptr& resolvedMacros,

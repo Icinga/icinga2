@@ -21,15 +21,33 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	REQUIRE_NOT_NULL(cr);
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
+	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
+	String commandName = command->GetName();
 
 	if (!listener) {
-		cr->SetOutput("No API listener is configured for this instance.");
-		cr->SetState(ServiceUnknown);
-		checkable->ProcessCheckResult(cr);
+		String output = "No API listener is configured for this instance.";
+		ServiceState state = ServiceUnknown;
+
+		if (Checkable::ExecuteCommandProcessFinishedHandler) {
+			double now = Utility::GetTime();
+			ProcessResult pr;
+			pr.PID = -1;
+			pr.Output = output;
+			pr.ExecutionStart = now;
+			pr.ExecutionEnd = now;
+			pr.ExitStatus = state;
+
+			Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
+		} else {
+			cr->SetCommand(commandName);
+			cr->SetOutput(output);
+			cr->SetState(state);
+			checkable->ProcessCheckResult(cr);
+		}
+
 		return;
 	}
 
-	CheckCommand::Ptr command = checkable->GetCheckCommand();
 	Value raw_command = command->GetCommandLine();
 
 	Host::Ptr host;
@@ -37,6 +55,10 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+
+	if (MacroResolver::OverrideMacros)
+		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
+
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
@@ -58,21 +80,52 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
-	cr->SetCommand(command->GetName());
-
 	if (zoneName.IsEmpty()) {
-		cr->SetOutput("Macro 'cluster_zone' must be set.");
-		cr->SetState(ServiceUnknown);
-		checkable->ProcessCheckResult(cr);
+		String output = "Macro 'cluster_zone' must be set.";
+		ServiceState state = ServiceUnknown;
+
+		if (Checkable::ExecuteCommandProcessFinishedHandler) {
+			double now = Utility::GetTime();
+			ProcessResult pr;
+			pr.PID = -1;
+			pr.Output = output;
+			pr.ExecutionStart = now;
+			pr.ExecutionEnd = now;
+			pr.ExitStatus = state;
+
+			Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
+		} else {
+			cr->SetCommand(commandName);
+			cr->SetOutput(output);
+			cr->SetState(state);
+			checkable->ProcessCheckResult(cr);
+		}
+
 		return;
 	}
 
 	Zone::Ptr zone = Zone::GetByName(zoneName);
 
 	if (!zone) {
-		cr->SetOutput("Zone '" + zoneName + "' does not exist.");
-		cr->SetState(ServiceUnknown);
-		checkable->ProcessCheckResult(cr);
+		String output = "Zone '" + zoneName + "' does not exist.";
+		ServiceState state = ServiceUnknown;
+
+		if (Checkable::ExecuteCommandProcessFinishedHandler) {
+			double now = Utility::GetTime();
+			ProcessResult pr;
+			pr.PID = -1;
+			pr.Output = output;
+			pr.ExecutionStart = now;
+			pr.ExecutionEnd = now;
+			pr.ExitStatus = state;
+
+			Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
+		} else {
+			cr->SetCommand(commandName);
+			cr->SetOutput(output);
+			cr->SetState(state);
+			checkable->ProcessCheckResult(cr);
+		}
 		return;
 	}
 
@@ -107,34 +160,52 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 		bytesReceivedPerSecond += endpoint->GetBytesReceivedPerSecond();
 	}
 
+	ServiceState state;
+	String output;
+
 	if (connected) {
-		cr->SetState(ServiceOK);
-		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag));
+		state = ServiceOK;
+		output = "Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag);
 
 		/* Check whether the thresholds have been resolved and compare them */
 		if (missingLagCritical.IsEmpty() && zoneLag > lagCritical) {
-			cr->SetState(ServiceCritical);
-			cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
-				+ " greater than critical threshold: " + Utility::FormatDuration(lagCritical));
+			state = ServiceCritical;
+			output = "Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
+				+ " greater than critical threshold: " + Utility::FormatDuration(lagCritical);
 		} else if (missingLagWarning.IsEmpty() && zoneLag > lagWarning) {
-			cr->SetState(ServiceWarning);
-			cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
-				+ " greater than warning threshold: " + Utility::FormatDuration(lagWarning));
+			state = ServiceWarning;
+			output = "Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
+				+ " greater than warning threshold: " + Utility::FormatDuration(lagWarning);
 		}
 	} else {
-		cr->SetState(ServiceCritical);
-		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(zoneLag));
+		state = ServiceCritical;
+		output = "Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(zoneLag);
 	}
 
-	cr->SetPerformanceData(new Array({
-		new PerfdataValue("slave_lag", zoneLag, false, "s", lagWarning, lagCritical),
-		new PerfdataValue("last_messages_sent", lastMessageSent),
-		new PerfdataValue("last_messages_received", lastMessageReceived),
-		new PerfdataValue("sum_messages_sent_per_second", messagesSentPerSecond),
-		new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond),
-		new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond),
-		new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond)
-	}));
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		double now = Utility::GetTime();
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = output;
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = state;
 
-	checkable->ProcessCheckResult(cr);
+		Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
+	} else {
+		cr->SetCommand(commandName);
+		cr->SetState(state);
+		cr->SetOutput(output);
+		cr->SetPerformanceData(new Array({
+			new PerfdataValue("slave_lag", zoneLag, false, "s", lagWarning, lagCritical),
+			new PerfdataValue("last_messages_sent", lastMessageSent),
+			new PerfdataValue("last_messages_received", lastMessageReceived),
+			new PerfdataValue("sum_messages_sent_per_second", messagesSentPerSecond),
+			new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond),
+			new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond),
+			new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond)
+		}));
+
+		checkable->ProcessCheckResult(cr);
+	}
 }

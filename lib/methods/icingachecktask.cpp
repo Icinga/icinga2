@@ -26,13 +26,17 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
 
-	CheckCommand::Ptr command = checkable->GetCheckCommand();
+	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
 
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+
+	if (MacroResolver::OverrideMacros)
+		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
+
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
@@ -148,7 +152,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond));
 
 	cr->SetPerformanceData(perfdata);
-	cr->SetState(ServiceOK);
+	ServiceState state = ServiceOK;
 
 	String appVersion = Application::GetAppVersion();
 
@@ -160,7 +164,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	if (lastReloadFailed > 0) {
 		output += "; Last reload attempt failed at " + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", lastReloadFailed);
-		cr->SetState(ServiceWarning);
+		state =ServiceWarning;
 	}
 
 	/* Indicate a warning when the last synced config caused a stage validation error. */
@@ -173,7 +177,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 			output += "; Last zone sync stage validation failed at "
 				+ Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", validationResult->Get("ts"));
 
-			cr->SetState(ServiceWarning);
+			state = ServiceWarning;
 		}
 	}
 
@@ -182,11 +186,26 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	/* Return an error if the version is less than specified (optional). */
 	if (missingIcingaMinVersion.IsEmpty() && !icingaMinVersion.IsEmpty() && Utility::CompareVersion(icingaMinVersion, parsedAppVersion) < 0) {
 		output += "; Minimum version " + icingaMinVersion + " is not installed.";
-		cr->SetState(ServiceCritical);
+		state = ServiceCritical;
 	}
 
-	cr->SetOutput(output);
-	cr->SetCommand(command->GetName());
+	String commandName = command->GetName();
 
-	checkable->ProcessCheckResult(cr);
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		double now = Utility::GetTime();
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = output;
+		pr.ExecutionStart = now;
+		pr.ExecutionEnd = now;
+		pr.ExitStatus = state;
+
+		Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
+	} else {
+		cr->SetState(state);
+		cr->SetOutput(output);
+		cr->SetCommand(commandName);
+
+		checkable->ProcessCheckResult(cr);
+	}
 }
