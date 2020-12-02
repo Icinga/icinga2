@@ -2906,6 +2906,8 @@ ipmi_sensor_id                   | **Optional.** Include sensor matching ipmi_se
 ipmi_protocol_lan_version        | **Optional.** Change the protocol LAN version. Defaults to "LAN_2_0".
 ipmi_number_of_active_fans       | **Optional.** Number of fans that should be active. Otherwise a WARNING state is returned.
 ipmi_show_fru                    | **Optional.** Print the product serial number if it is available in the IPMI FRU data.
+ipmi_show_assettag               | **Optional.** Print the assettag if it is available in the IPMI FRU data. (--fru is mandatory)
+ipmi_show_board                  | **Optional.** Print additional motherboard informations if it is available in the IPMI FRU data. (--fru is mandatory)
 ipmi_no_sel_checking             | **Optional.** Turn off system event log checking via ipmi-sel.
 ipmi_no_thresholds               | **Optional.** Turn off performance data thresholds from output-sensor-thresholds.
 ipmi_verbose                     | **Optional.** Be Verbose multi line output, also with additional details for warnings.
