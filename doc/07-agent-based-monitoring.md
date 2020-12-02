@@ -475,13 +475,13 @@ For details on the `NSClient++` configuration please refer to the [official docu
 
 ## WMI on Windows <a id="agent-based-checks-wmi"></a>
 
-The most popular plugin is [check_wmi_plus](http://edcint.co.nz/checkwmiplus/).
+The most popular plugin is [check_wmi_plus](https://edcint.co.nz/checkwmiplus/).
 
 > Check WMI Plus uses the Windows Management Interface (WMI) to check for common services (cpu, disk, sevices, eventlog…) on Windows machines. It requires the open source wmi client for Linux.
 
 Community examples:
 
-* [Icinga 2 check_wmi_plus example by 18pct](http://18pct.com/icinga2-check_wmi_plus-example/)
+* [Icinga 2 check_wmi_plus example by 18pct](https://18pct.com/icinga2-check_wmi_plus-example/)
 * [Agent-less monitoring with WMI](https://www.devlink.de/linux/icinga2-nagios-agentless-monitoring-von-windows/)
 
 
