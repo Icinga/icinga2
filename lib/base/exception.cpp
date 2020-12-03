@@ -2,6 +2,7 @@
 
 #include "base/exception.hpp"
 #include <boost/thread/tss.hpp>
+#include <utility>
 
 #ifdef _WIN32
 #	include "base/utility.hpp"
@@ -424,4 +425,20 @@ std::string icinga::to_string(const ContextTraceErrorInfo& e)
 	std::ostringstream msgbuf;
 	msgbuf << "[Context] = " << e.value();
 	return msgbuf.str();
+}
+
+invalid_downtime_removal_error::invalid_downtime_removal_error(String message)
+	: m_Message(std::move(message))
+{ }
+
+invalid_downtime_removal_error::invalid_downtime_removal_error(const char *message)
+	: m_Message(message)
+{ }
+
+invalid_downtime_removal_error::~invalid_downtime_removal_error() noexcept
+{ }
+
+const char *invalid_downtime_removal_error::what() const noexcept
+{
+	return m_Message.CStr();
 }

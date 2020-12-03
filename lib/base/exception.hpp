@@ -122,6 +122,19 @@ std::string to_string(const errinfo_getaddrinfo_error& e);
 struct errinfo_message_;
 typedef boost::error_info<struct errinfo_message_, std::string> errinfo_message;
 
+class invalid_downtime_removal_error : virtual public std::exception, virtual public boost::exception {
+public:
+	explicit invalid_downtime_removal_error(String message);
+	explicit invalid_downtime_removal_error(const char* message);
+
+	~invalid_downtime_removal_error() noexcept override;
+
+	const char *what() const noexcept final;
+
+private:
+	String m_Message;
+};
+
 }
 
 #endif /* EXCEPTION_H */
