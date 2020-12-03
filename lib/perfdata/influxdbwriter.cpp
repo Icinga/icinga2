@@ -19,6 +19,7 @@
 #include "base/perfdatavalue.hpp"
 #include "base/stream.hpp"
 #include "base/json.hpp"
+#include "base/base64.hpp"
 #include "base/networkstream.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
@@ -503,6 +504,17 @@ void InfluxdbWriter::Flush()
 
 	request.set(http::field::user_agent, "Icinga/" + Application::GetAppVersion());
 	request.set(http::field::host, url->GetHost() + ":" + url->GetPort());
+
+	{
+		Dictionary::Ptr basicAuth = GetBasicAuth();
+
+		if (basicAuth) {
+			request.set(
+				http::field::authorization,
+				"Basic " + Base64::Encode(basicAuth->Get("username") + ":" + basicAuth->Get("password"))
+			);
+		}
+	}
 
 	request.body() = body;
 	request.set(http::field::content_length, request.body().size());
