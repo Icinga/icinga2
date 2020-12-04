@@ -3300,10 +3300,10 @@ be passed (defaults to the FQDN).
 
   Parameter           | Description
   --------------------|--------------------
-  Common name (CN)    | **Optional.** Specified with the `--cn` parameter. By convention this should be the host's FQDN. Defaults to the FQDN.
-  Zone name           | **Optional.** Specified with the `--zone` parameter. Defaults to `master`.
-  Listen on           | **Optional.** Specified with the `--listen` parameter. Syntax is `host,port`.
-  Disable conf.d      | **Optional.** Specified with the `disable-confd` parameter. If provided, this disables the `include_recursive "conf.d"` directive and adds the `api-users.conf` file inclusion to `icinga2.conf`. Available since v2.9+. Not set by default for compatibility reasons with Puppet, Ansible, Chef, etc.
+  `--cn`              | **Optional.** Common name (CN). By convention this should be the host's FQDN. Defaults to the FQDN.
+  `--zone`            | **Optional.** Zone name. Defaults to `master`.
+  `--listen`          | **Optional.** Address to listen on. Syntax is `host,port`.
+  `--disable-confd`   | **Optional.** If provided, this disables the `include_recursive "conf.d"` directive and adds the `api-users.conf` file inclusion to `icinga2.conf`. Available since v2.9+. Not set by default for compatibility reasons with Puppet, Ansible, Chef, etc.
 
 Example:
 
@@ -3344,8 +3344,8 @@ Pass the following details to the `pki new-cert` CLI command:
 
   Parameter           | Description
   --------------------|--------------------
-  Common name (CN)    | **Required.** By convention this should be the host's FQDN.
-  Client certificate files   | **Required.** These generated files will be put into the specified location (--key and --file). By convention this should be using `/var/lib/icinga2/certs` as directory.
+  `--cn`              | **Required.** Common name (CN). By convention this should be the host's FQDN.
+  `--key`, `--file`   | **Required.** Client certificate files. These generated files will be put into the specified location. By convention this should be using `/var/lib/icinga2/certs` as directory.
 
 Example:
 
@@ -3366,8 +3366,8 @@ Pass the following details to the `pki save-cert` CLI command:
 
   Parameter           | Description
   --------------------|--------------------
-  Trusted parent certificate | **Required.** Store the parent's certificate file. Manually verify that you're trusting it.
-  Parent host         | **Required.** FQDN or IP address of the parent host.
+  `--trustedcert`     | **Required.** Store the parent's certificate file. Manually verify that you're trusting it.
+  `--host`            | **Required.** FQDN or IP address of the parent host.
 
 Request the master certificate from the master host (`icinga2-master1.localdomain`)
 and store it as `trusted-parent.crt`. Review it and continue.
@@ -3403,17 +3403,17 @@ Pass the following details to the `node setup` CLI command:
 
   Parameter           | Description
   --------------------|--------------------
-  Common name (CN)    | **Optional.** Specified with the `--cn` parameter. By convention this should be the host's FQDN.
-  Request ticket      | **Required.** Add the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
-  Trusted parent certificate | **Required.** Trusted parent certificate file as connection verification (received via 'pki save-cert').
-  Parent host         | **Optional.** FQDN or IP address of the parent host. This is where the command connects for CSR signing. If not specified, you need to manually copy the parent's public CA certificate file into `/var/lib/icinga2/certs/ca.crt` in order to start Icinga 2.
-  Parent endpoint     | **Required.** Specify the parent's endpoint name.
-  Local zone name    | **Required.** Specify the agent/satellite zone name.
-  Parent zone name    | **Optional.** Specify the parent's zone name.
-  Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)).
-  Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
-  Global zones        | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`.
-  Disable conf.d      | **Optional.** Specified with the `disable-confd` parameter. If provided, this disables the `include_recursive "conf.d"` directive in `icinga2.conf`. Available since v2.9+. Not set by default for compatibility reasons with Puppet, Ansible, Chef, etc.
+  `--cn`              | **Optional.** Common name (CN). By convention this should be the host's FQDN.
+  `--ticket`          | **Required.** Request ticket. Add the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
+  `--trustedcert`     | **Required.** Trusted parent certificate file as connection verification (received via 'pki save-cert').
+  `--parent_host`     | **Optional.** FQDN or IP address of the parent host. This is where the command connects for CSR signing. If not specified, you need to manually copy the parent's public CA certificate file into `/var/lib/icinga2/certs/ca.crt` in order to start Icinga 2.
+  `--endpoint`        | **Required.** Specifies the parent's endpoint name.
+  `--zone`            | **Required.** Specifies the agent/satellite zone name.
+  `--parent_zone`     | **Optional.** Specifies the parent's zone name.
+  `--accept-config`   | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)).
+  `--accept-commands` | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
+  `--global_zones`    | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`.
+  `--disable-confd`   | **Optional.** If provided, this disables the `include_recursive "conf.d"` directive in `icinga2.conf`. Available since v2.9+. Not set by default for compatibility reasons with Puppet, Ansible, Chef, etc.
 
 > **Note**
 >
