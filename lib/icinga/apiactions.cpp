@@ -274,9 +274,15 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 	if (!params->Contains("author") || !params->Contains("comment"))
 		return ApiActions::CreateResult(400, "Comments require author and comment.");
 
+	double timestamp = 0.0;
+
+	if (params->Contains("expiry")) {
+		timestamp = HttpUtility::GetLastParameter(params, "expiry");
+	}
+
 	String commentName = Comment::AddComment(checkable, CommentUser,
 		HttpUtility::GetLastParameter(params, "author"),
-		HttpUtility::GetLastParameter(params, "comment"), false, 0);
+		HttpUtility::GetLastParameter(params, "comment"), false, timestamp);
 
 	Comment::Ptr comment = Comment::GetByName(commentName);
 
