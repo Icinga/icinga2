@@ -100,12 +100,31 @@ bool ActionsHandler::HandleRequest(
 	}
 
 	int statusCode = 500;
+	std::set<int> okStatusCodes, nonOkStatusCodes;
 
 	for (const Dictionary::Ptr& res : results) {
-		if (res->Contains("code") && res->Get("code") >= 200 && res->Get("code") <= 299) {
-			statusCode = 200;
-			break;
+		if (!res->Contains("code")) {
+			continue;
 		}
+
+		auto code = res->Get("code");
+
+		if (code >= 200 && code <= 299) {
+			okStatusCodes.insert(code);
+		} else {
+			nonOkStatusCodes.insert(code);
+		}
+	}
+
+	size_t okSize = okStatusCodes.size();
+	size_t nonOkSize = nonOkStatusCodes.size();
+
+	if (okSize == 1u && nonOkSize == 0u) {
+		statusCode = *okStatusCodes.begin();
+	} else if (nonOkSize == 1u) {
+		statusCode = *nonOkStatusCodes.begin();
+	} else if (okSize >= 2u && nonOkSize == 0u) {
+		statusCode = 200;
 	}
 
 	response.result(statusCode);
