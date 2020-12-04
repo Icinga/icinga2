@@ -8,7 +8,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Configuration);
 
-String Configuration::ApiBindHost;
+String Configuration::ApiBindHost{"::"};
 String Configuration::ApiBindPort{"5665"};
 bool Configuration::AttachDebugger{false};
 String Configuration::CacheDir;
