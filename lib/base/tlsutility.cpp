@@ -242,15 +242,26 @@ void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr&
 }
 
 /**
- * Loads a CRL and appends its certificates to the specified SSL context.
+ * Loads a CRL and appends its certificates to the specified Boost SSL context.
  *
  * @param context The SSL context.
  * @param crlPath The path to the CRL file.
  */
 void AddCRLToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& crlPath)
 {
-	char errbuf[256];
 	X509_STORE *x509_store = SSL_CTX_get_cert_store(context->native_handle());
+	AddCRLToSSLContext(x509_store, crlPath);
+}
+
+/**
+ * Loads a CRL and appends its certificates to the specified OpenSSL X509 store.
+ *
+ * @param context The SSL context.
+ * @param crlPath The path to the CRL file.
+ */
+void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath)
+{
+	char errbuf[256];
 
 	X509_LOOKUP *lookup;
 	lookup = X509_STORE_add_lookup(x509_store, X509_LOOKUP_file());
@@ -801,7 +812,7 @@ String RandomString(int length)
 	return result;
 }
 
-bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate)
+bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile)
 {
 	X509_STORE *store = X509_STORE_new();
 
@@ -809,6 +820,10 @@ bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::sh
 		return false;
 
 	X509_STORE_add_cert(store, caCertificate.get());
+
+	if (!crlFile.IsEmpty()) {
+		AddCRLToSSLContext(store, crlFile);
+	}
 
 	X509_STORE_CTX *csc = X509_STORE_CTX_new();
 	X509_STORE_CTX_init(csc, store, certificate.get(), nullptr);
