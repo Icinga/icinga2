@@ -126,7 +126,7 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, const
 		bool signedByCA;
 
 		try {
-			signedByCA = VerifyCertificate(cacert, cert);
+			signedByCA = VerifyCertificate(cacert, cert, String());
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "cli")
 				<< "CRITICAL: Certificate with CN '" << certCN << "' is NOT signed by CA: " << DiagnosticInformation(ex, false);
