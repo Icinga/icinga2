@@ -5766,7 +5766,7 @@ usage                   | Cache file usage as a percentage of the total cache sp
 
 The [check_haproxy](https://salsa.debian.org/nagios-team/pkg-nagios-plugins-contrib/blob/master/check_haproxy/check_haproxy) plugin,
 also available in the [monitoring-plugins-contrib](https://packages.debian.org/nagios-plugins-contrib) on debian,
-uses the `haproxy` csv statistics page to monitor [haproxy](https://www.haproxy.org/) response time. The plugin outputa performance data for backends sessions and statistics response time.
+uses the `haproxy` csv statistics page to monitor [haproxy](https://www.haproxy.org/) response time. The plugin output performance data for backends sessions and statistics response time.
 
 This plugin need to access the csv statistics page. You can configure it in haproxy by adding a new frontend:
 ```
