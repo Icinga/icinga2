@@ -518,7 +518,7 @@ std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME
 
 	String id = Utility::NewUniqueID();
 
-	char errbuf[120];
+	char errbuf[256];
 	SHA_CTX context;
 	unsigned char digest[SHA_DIGEST_LENGTH];
 
@@ -592,7 +592,7 @@ String GetIcingaCADir()
 
 std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 {
-	char errbuf[120];
+	char errbuf[256];
 
 	String cadir = GetIcingaCADir();
 
@@ -692,7 +692,7 @@ String PBKDF2_SHA256(const String& password, const String& salt, int iterations)
 
 String SHA1(const String& s, bool binary)
 {
-	char errbuf[120];
+	char errbuf[256];
 	SHA_CTX context;
 	unsigned char digest[SHA_DIGEST_LENGTH];
 
@@ -732,7 +732,7 @@ String SHA1(const String& s, bool binary)
 
 String SHA256(const String& s)
 {
-	char errbuf[120];
+	char errbuf[256];
 	SHA256_CTX context;
 	unsigned char digest[SHA256_DIGEST_LENGTH];
 
@@ -779,7 +779,7 @@ String RandomString(int length)
 	if (!RAND_bytes(bytes, length)) {
 		delete [] bytes;
 
-		char errbuf[120];
+		char errbuf[256];
 
 		Log(LogCritical, "SSL")
 			<< "Error for RAND_bytes: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
