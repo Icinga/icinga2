@@ -62,8 +62,9 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 	X509_REQ *req = PEM_read_bio_X509_REQ(csrbio, nullptr, nullptr, nullptr);
 
 	if (!req) {
+		ERR_error_string_n(ERR_peek_error(), errbuf, sizeof errbuf);
 		Log(LogCritical, "SSL")
-			<< "Could not read X509 certificate request from '" << csrfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			<< "Could not read X509 certificate request from '" << csrfile << "': " << ERR_peek_error() << ", \"" << errbuf << "\"";
 		return 1;
 	}
 
