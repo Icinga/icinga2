@@ -53,13 +53,13 @@ by trying to run it on the console using whichever user Icinga 2 is running as:
 
 RHEL/CentOS/Fedora
 
-```
+```bash
 sudo -u icinga /usr/lib64/nagios/plugins/check_mysql_health --help
 ```
 
 Debian/Ubuntu
 
-```
+```bash
 sudo -u nagios /usr/lib/nagios/plugins/check_mysql_health --help
 ```
 
@@ -123,7 +123,7 @@ and reference this in the created CheckCommand objects.
 Create a common directory e.g. `/opt/monitoring/plugins`
 and install the plugin there.
 
-```
+```bash
 mkdir -p /opt/monitoring/plugins
 cp check_snmp_int.pl /opt/monitoring/plugins
 chmod +x /opt/monitoring/plugins/check_snmp_int.pl
@@ -155,7 +155,7 @@ with the required parameters first.
 
 Example for database size checks with [check_mysql_health](10-icinga-template-library.md#plugin-contrib-command-mysql_health).
 
-```
+```bash
 /usr/lib64/nagios/plugins/check_mysql_health --hostname '127.0.0.1' --username root --password icingar0xx --mode sql --name 'select sum(data_length + index_length) / 1024 / 1024 from information_schema.tables where table_schema = '\''icinga'\'';' '--name2' 'db_size' --units 'MB' --warning 4096 --critical 8192
 ```
 
@@ -520,7 +520,7 @@ add them to the argument parser.
 
 Example for Python:
 
-```
+```python
 import argparse
 import signal
 import sys
@@ -538,7 +538,7 @@ Users might call plugins only with the critical threshold parameter,
 leaving out the warning parameter. Keep this in mind when evaluating
 the thresholds, always check if the parameters have been defined before.
 
-```
+```python
     if args.critical:
         if ptc_value > args.critical:
             print("CRITICAL - ...")
@@ -693,7 +693,7 @@ and provide a clear message followed by the Unknown state.
 
 Example in Python taken from [check_tinkerforge](https://github.com/NETWAYS/check_tinkerforge/blob/master/check_tinkerforge.py):
 
-```
+```python
 import argparse
 import signal
 import sys
@@ -721,7 +721,7 @@ too old or new versions on the community support channels.
 
 Example in Python taken from [check_tinkerforge](https://github.com/NETWAYS/check_tinkerforge/blob/master/check_tinkerforge.py):
 
-```
+```python
 import argparse
 import signal
 import sys
@@ -745,7 +745,7 @@ the plugin.
 
 Example in Python taken from [check_tinkerforge](https://github.com/NETWAYS/check_tinkerforge/blob/master/check_tinkerforge.py):
 
-```
+```python
 import argparse
 import signal
 import sys

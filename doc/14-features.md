@@ -198,7 +198,7 @@ mariadb> OPTIMIZE TABLE icinga_statehistory;
 If you want to optimize all tables in a specified database, there is a script called `mysqlcheck`.
 This also allows to repair broken tables in the case of emergency.
 
-```
+```bash
 mysqlcheck --optimize icinga
 ```
 
@@ -241,8 +241,8 @@ TCP port, defaulting to `2003`.
 
 You can enable the feature using
 
-```
-# icinga2 feature enable graphite
+```bash
+icinga2 feature enable graphite
 ```
 
 By default the [GraphiteWriter](09-object-types.md#objecttype-graphitewriter) feature
@@ -372,8 +372,8 @@ defined InfluxDB HTTP API.
 
 You can enable the feature using
 
-```
-# icinga2 feature enable influxdb
+```bash
+icinga2 feature enable influxdb
 ```
 
 By default the [InfluxdbWriter](09-object-types.md#objecttype-influxdbwriter) feature
@@ -488,8 +488,8 @@ The check results include parsed performance data metrics if enabled.
 
 Enable the feature and restart Icinga 2.
 
-```
-# icinga2 feature enable elasticsearch
+```bash
+icinga2 feature enable elasticsearch
 ```
 
 The default configuration expects an Elasticsearch instance running on `localhost` on port `9200`
@@ -572,8 +572,8 @@ While it has been specified by the [Graylog](https://www.graylog.org) project as
 
 You can enable the feature using
 
-```
-# icinga2 feature enable gelf
+```bash
+icinga2 feature enable gelf
 ```
 
 By default the `GelfWriter` object expects the GELF receiver to listen at `127.0.0.1` on TCP port `12201`.
@@ -612,8 +612,8 @@ write them to the defined TSDB TCP socket.
 
 You can enable the feature using
 
-```
-# icinga2 feature enable opentsdb
+```bash
+icinga2 feature enable opentsdb
 ```
 
 By default the `OpenTsdbWriter` object expects the TSD to listen at
@@ -888,8 +888,8 @@ service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOS
 The default templates are already provided with the Icinga 2 feature configuration
 which can be enabled using
 
-```
-# icinga2 feature enable perfdata
+```bash
+icinga2 feature enable perfdata
 ```
 
 By default all performance data files are rotated in a 15 seconds interval into
@@ -936,8 +936,8 @@ interval to its `objects.cache` and `status.dat` files. Icinga 2 provides
 the `StatusDataWriter` object which dumps all configuration objects and
 status updates in a regular interval.
 
-```
-# icinga2 feature enable statusdata
+```bash
+icinga2 feature enable statusdata
 ```
 
 If you are not using any web interface or addon which uses these files,
@@ -961,8 +961,8 @@ for answering queries to historical tables.
 
 The `CompatLogger` object can be enabled with
 
-```
-# icinga2 feature enable compatlog
+```bash
+icinga2 feature enable compatlog
 ```
 
 By default, the Icinga 1.x log file called `icinga.log` is located
@@ -988,8 +988,8 @@ through the web interface).
 In order to enable the `ExternalCommandListener` configuration use the
 following command and restart Icinga 2 afterwards:
 
-```
-# icinga2 feature enable command
+```bash
+icinga2 feature enable command
 ```
 
 Icinga 2 creates the command pipe file as `/var/run/icinga2/cmd/icinga2.cmd`
@@ -1067,14 +1067,14 @@ in the [Livestatus Schema](24-appendix.md#schema-livestatus) section.
 
 You can enable Livestatus using icinga2 feature enable:
 
-```
-# icinga2 feature enable livestatus
+```bash
+icinga2 feature enable livestatus
 ```
 
 After that you will have to restart Icinga 2:
 
-```
-# systemctl restart icinga2
+```bash
+systemctl restart icinga2
 ```
 
 By default the Livestatus socket is available in `/var/run/icinga2/cmd/livestatus`.
@@ -1082,8 +1082,8 @@ By default the Livestatus socket is available in `/var/run/icinga2/cmd/livestatu
 In order for queries and commands to work you will need to add your query user
 (e.g. your web server) to the `icingacmd` group:
 
-```
-# usermod -a -G icingacmd www-data
+```bash
+usermod -a -G icingacmd www-data
 ```
 
 The Debian packages use `nagios` as the user and group name. Make sure to change `icingacmd` to
@@ -1096,8 +1096,8 @@ In order to use the historical tables provided by the livestatus feature (for ex
 are expected to be in `/var/log/icinga2/compat`. A different path can be set using the
 `compat_log_path` configuration attribute.
 
-```
-# icinga2 feature enable compatlog
+```bash
+icinga2 feature enable compatlog
 ```
 
 #### Livestatus Sockets <a id="livestatus-sockets"></a>
@@ -1143,8 +1143,8 @@ EOF
 
 A list of available external commands and their parameters can be found [here](24-appendix.md#external-commands-list-detail)
 
-```
-$ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
+```bash
+echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
 ```
 
 #### Livestatus Filters <a id="livestatus-filters"></a>

@@ -2244,7 +2244,7 @@ The service specifies the [custom variable](03-monitoring-basics.md#custom-varia
 
 This results in this command line without the `--process` parameter:
 
-```
+```bash
 '/bin/icingacli' 'businessprocess' 'process' 'check' 'bp-shop-web'
 ```
 
@@ -2272,7 +2272,7 @@ This can be used for the following scenarios:
 Whenever a host/service object sets the `http_sni` [custom variable](03-monitoring-basics.md#custom-variables)
 to `true`, the parameter is added to the command line.
 
-```
+```bash
 '/usr/lib64/nagios/plugins/check_http' '--sni'
 ```
 
@@ -2311,7 +2311,7 @@ object Host "postgresql-cluster" {
 
 ... use the following command line:
 
-```
+```bash
 '/usr/lib64/nagios/plugins/check_postgres.pl' '-H' '192.168.56.200'
 ```
 
@@ -2454,7 +2454,7 @@ object CheckCommand "mysql" {
 The executed command line visible with `ps` or `top` looks like this and hides
 the database credentials in the user's environment.
 
-```
+```bash
 /usr/lib/nagios/plugins/check_mysql -H 192.168.56.101 -d icinga
 ```
 
@@ -2912,14 +2912,14 @@ object Service "businessprocess" {
 
 In order to test this scenario you can run:
 
-```
+```bash
 nc -l 8080
 ```
 
 This allows to catch the web request. You can also enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output)
 and search for the event command execution log message.
 
-```
+```bash
 tail -f /var/log/icinga2/debug.log | grep EventCommand
 ```
 

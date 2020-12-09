@@ -3,8 +3,8 @@
 You can run the Icinga 2 daemon with the `-X` (`--script-debugger`)
 parameter to enable the script debugger:
 
-```
-# icinga2 daemon -X
+```bash
+icinga2 daemon -X
 ```
 
 When an exception occurs or the [debugger](17-language-reference.md#breakpoints)
@@ -13,8 +13,8 @@ allows the user to debug the script.
 
 You can also attach the script debugger to the [configuration validation](11-cli-commands.md#config-validation):
 
-```
-# icinga2 daemon -C -X
+```bash
+icinga2 daemon -C -X
 ```
 
 Here is a list of common errors which can be diagnosed with the script debugger:
@@ -135,8 +135,8 @@ The following example tries filter for all host objects where the custom variabl
 `host.vars.os != ""`. Another idea is to use the [contains](18-library-reference.md#dictionary-contains) method on the custom
 attribute dictionary like this: `host.vars.contains("os")`.
 
-```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' \
+```bash
+curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' \
  -X POST 'https://localhost:5665/v1/objects/services' \
  -d '{ "filter": "host.vars.contains(\"os\")", "attrs": [ "__name" ], "joins": [ "host.name", "host.vars" ], "pretty": true }'
 ```
@@ -170,8 +170,8 @@ In order to stay safe, add more checks to the API filter:
 
 Example:
 
-```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' \
+```bash
+curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' \
  -X POST 'https://localhost:5665/v1/objects/services' \
  -d '{ "filter": "host.vars && typeof(host.vars) == Dictionary && host.vars.contains(\"os\")", "attrs": [ "__name" ], "joins": [ "host.name", "host.vars" ], "pretty": true }'
 ```

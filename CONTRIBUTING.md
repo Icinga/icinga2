@@ -43,20 +43,20 @@ Please continue reading in the following sections for a step by step guide.
 [Fork the project](https://help.github.com/articles/fork-a-repo/) to your GitHub account
 and clone the repository:
 
-```
+```bash
 git clone git@github.com:dnsmichi/icinga2.git
 cd icinga2
 ```
 
 Add a new remote `upstream` with this repository as value.
 
-```
+```bash
 git remote add upstream https://github.com/icinga/icinga2.git
 ```
 
 You can pull updates to your fork's master branch:
 
-```
+```bash
 git fetch --all
 git pull upstream HEAD
 ```
@@ -71,7 +71,7 @@ Generally a branch name should include a topic such as `bugfix` or `feature` fol
 by a description and an issue number if applicable. Branches should have only changes
 relevant to a specific issue.
 
-```
+```bash
 git checkout -b bugfix/service-template-typo-1234
 git checkout -b feature/config-handling-1235
 ```
@@ -116,7 +116,7 @@ Don't worry, you can squash those changes into a single commit later on.
 Once you've commited your changes, please update your local master
 branch and rebase your bugfix/feature branch against it before submitting a PR.
 
-```
+```bash
 git checkout master
 git pull upstream HEAD
 
@@ -128,12 +128,14 @@ Once you've resolved any conflicts, push the branch to your remote repository.
 It might be necessary to force push after rebasing - use with care!
 
 New branch:
-```
+
+```bash
 git push --set-upstream origin bugfix/notifications
 ```
 
 Existing branch:
-```
+
+```bash
 git push -f origin bugfix/notifications
 ```
 
@@ -162,7 +164,7 @@ developers might ask you to rebase your PR.
 
 First off, fetch and pull `upstream` master.
 
-```
+```bash
 git checkout master
 git fetch --all
 git pull upstream HEAD
@@ -170,7 +172,7 @@ git pull upstream HEAD
 
 Then change to your working branch and start rebasing it against master:
 
-```
+```bash
 git checkout bugfix/notifications
 git rebase master
 ```
@@ -187,21 +189,21 @@ Edit the file and search for `>>>`. Fix, build, test and save as needed.
 
 Add the modified file(s) and continue rebasing.
 
-```
+```bash
 git add path/to/conflict.cpp
 git rebase --continue
 ```
 
 Once succeeded ensure to push your changed history remotely.
 
-```
+```bash
 git push -f origin bugfix/notifications
 ```
 
 
 If you fear to break things, do the rebase in a backup branch first and later replace your current branch.
 
-```
+```bash
 git checkout bugfix/notifications
 git checkout -b bugfix/notifications-rebase
 
@@ -225,7 +227,7 @@ Say you want to squash the last 3 commits in your branch into a single one.
 
 Start an interactive (`-i`)  rebase from current HEAD minus three commits (`HEAD~3`).
 
-```
+```bash
 git rebase -i HEAD~3
 ```
 
@@ -239,7 +241,7 @@ squash b37fd5377 Doc updates
 
 Save and let rebase to its job. Then force push the changes to the remote origin.
 
-```
+```bash
 git push -f origin bugfix/notifications
 ```
 
@@ -267,19 +269,19 @@ The documentation is written in GitHub flavored [Markdown](https://guides.github
 It is located in the `doc/` directory and can be edited with your preferred editor. You can also
 edit it online on GitHub.
 
-```
+```bash
 vim doc/2-getting-started.md
 ```
 
 In order to review and test changes, you can install the [mkdocs](https://www.mkdocs.org) Python library.
 
-```
+```bash
 pip install mkdocs
 ```
 
 This allows you to start a local mkdocs viewer instance on http://localhost:8000
 
-```
+```bash
 mkdocs serve
 ```
 
@@ -288,7 +290,7 @@ Changes on the chapter layout can be done inside the `mkdocs.yml` file in the ma
 There also is a script to ensure that relative URLs to other sections are updated. This script
 also checks for broken URLs.
 
-```
+```bash
 ./doc/update-links.py doc/*.md
 ```
 
@@ -335,7 +337,7 @@ Your patch should consist of 2 parts:
 
 Create a new fix or feature branch and start your work.
 
-```
+```bash
 git checkout -b feature/itl-check-printer
 ```
 
@@ -344,14 +346,14 @@ git checkout -b feature/itl-check-printer
 There already exists a defined structure for contributed plugins. Navigate to `itl/plugins-contrib.d`
 and verify where your command definitions fits into.
 
-```
+```bash
 cd itl/plugins-contrib.d/
 ls
 ```
 
 If you want to add or modify an existing Monitoring Plugin please use `itl/command-plugins.conf` instead.
 
-```
+```bash
 vim itl/command-plugins-conf
 ```
 
@@ -359,7 +361,7 @@ vim itl/command-plugins-conf
 
 Just edit it, and add your CheckCommand definition.
 
-```
+```bash
 vim operating-system.conf
 ```
 
@@ -369,8 +371,8 @@ Proceed to the documentation.
 
 Create a new file with .conf suffix.
 
-```
-	$ vim printer.conf
+```bash
+vim printer.conf
 ```
 
 Add the file to `itl/CMakeLists.txt` in the FILES line in **alpha-numeric order**.
@@ -385,7 +387,7 @@ vim CMakeLists.txt
 
 Add the newly created file to your git commit.
 
-```
+```bash
 git add printer.conf
 ```
 
@@ -396,7 +398,7 @@ Do not commit it yet but finish with the documentation.
 Edit the documentation file in the `doc/` directory. More details on documentation
 updates can be found [here](CONTRIBUTING.md#contributing-documentation).
 
-```
+```bash
 vim doc/10-icinga-template-library.md
 ```
 
@@ -424,9 +426,10 @@ Explain its purpose and possible enhancements/shortcomings.
 
 refs #existingticketnumberifany
 ```
+
 Push the branch to the remote origin and create a [pull request](https://help.github.com/articles/using-pull-requests/).
 
-```
+```bash
 git push --set-upstream origin feature/itl-check-printer
 hub pull-request
 ```
@@ -464,14 +467,14 @@ At the bottom it says "Add more commits by pushing to the bugfix/persistent-comm
 
 First off, add the remote repository as additional origin and fetch its content:
 
-```
+```bash
 git remote add theflyingcorpse https://github.com/TheFlyingCorpse/icinga2
 git fetch --all
 ```
 
 Checkout the mentioned remote branch into a local branch (Note: `theflyingcorpse` is the name of the remote):
 
-```
+```bash
 git checkout theflyingcorpse/bugfix/persistent-comments-are-not-persistent -b bugfix/persistent-comments-are-not-persistent
 ```
 
@@ -480,12 +483,12 @@ Rebase, amend, squash or add your own commits on top.
 Once you are satisfied, push the changes to the remote `theflyingcorpse` and its branch `bugfix/persistent-comments-are-not-persistent`.
 The syntax here is `git push <remote> <localbranch>:<remotebranch>`.
 
-```
+```bash
 git push theflyingcorpse bugfix/persistent-comments-are-not-persistent:bugfix/persistent-comments-are-not-persistent
 ```
 
 In case you've changed the commit history (rebase, amend, squash), you'll need to force push. Be careful, this can't be reverted!
 
-```
+```bash
 git push -f theflyingcorpse bugfix/persistent-comments-are-not-persistent:bugfix/persistent-comments-are-not-persistent
 ```

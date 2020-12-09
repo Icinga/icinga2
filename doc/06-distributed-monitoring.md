@@ -148,7 +148,7 @@ and `accept_config` can be configured here.
 
 In order to use the `api` feature you need to enable it and restart Icinga 2.
 
-```
+```bash
 icinga2 feature enable api
 ```
 
@@ -3012,8 +3012,8 @@ have the `checker` feature enabled.
 
 Example:
 
-```
-# icinga2 feature enable checker
+```bash
+icinga2 feature enable checker
 ```
 
 All nodes in the same zone load-balance the check execution. If one instance shuts down,
@@ -3026,8 +3026,8 @@ have the `notification` feature enabled.
 
 Example:
 
-```
-# icinga2 feature enable notification
+```bash
+icinga2 feature enable notification
 ```
 
 Notifications are load-balanced amongst all nodes in a zone. By default this functionality
@@ -3043,8 +3043,8 @@ have the DB IDO feature enabled.
 
 Example DB IDO MySQL:
 
-```
-# icinga2 feature enable ido-mysql
+```bash
+icinga2 feature enable ido-mysql
 ```
 
 By default the DB IDO feature only runs on one node. All other nodes in the same zone disable

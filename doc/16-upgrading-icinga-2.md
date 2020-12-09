@@ -51,7 +51,7 @@ config files for the zone(s). **If your config master is 2.11.x already, you are
 
 In order to fix this, upgrade to at least 2.11.1, and purge away the local config sync storage once, then restart.
 
-```
+```bash
 yum install icinga2
 
 rm -rf /var/lib/icinga2/api/zones/*
@@ -872,10 +872,10 @@ $ ls /usr/share/icinga2-ido-mysql/schema/upgrade/
 There are two new upgrade files called `2.5.0.sql`, `2.6.0.sql` and `2.8.0.sql`
 which must be applied incrementally to your IDO database.
 
-```
-# mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/2.5.0.sql
-# mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/2.6.0.sql
-# mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/2.8.0.sql
+```bash
+mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/2.5.0.sql
+mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/2.6.0.sql
+mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/2.8.0.sql
 ```
 
 ## Upgrading the PostgreSQL database <a id="upgrading-postgresql-db"></a>
@@ -908,9 +908,9 @@ $ ls /usr/share/icinga2-ido-pgsql/schema/upgrade/
 There are two new upgrade files called `2.5.0.sql`, `2.6.0.sql` and `2.8.0.sql`
 which must be applied incrementally to your IDO database.
 
-```
-# export PGPASSWORD=icinga
-# psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/2.5.0.sql
-# psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/2.6.0.sql
-# psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/2.8.0.sql
+```bash
+export PGPASSWORD=icinga
+psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/2.5.0.sql
+psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/2.6.0.sql
+psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/2.8.0.sql
 ```
