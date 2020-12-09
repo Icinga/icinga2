@@ -62,8 +62,6 @@ class openssl_error : virtual public std::exception, virtual public boost::excep
 struct errinfo_openssl_error_;
 typedef boost::error_info<struct errinfo_openssl_error_, unsigned long> errinfo_openssl_error;
 
-std::string to_string(const errinfo_openssl_error& e);
-
 }
 
 #endif /* TLSUTILITY_H */
