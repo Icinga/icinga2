@@ -37,8 +37,8 @@ You can change the configured mode by editing `/etc/selinux/config` and the curr
 
 Simply add the `icinga2-selinux` package to your installation.
 
-```
-# yum install icinga2-selinux
+```bash
+yum install icinga2-selinux
 ```
 
 Ensure that the `icinga2` process is running in its own `icinga2_t` domain after installing the policy package:
@@ -55,23 +55,23 @@ This section describes the installation to support development and testing. It a
 
 As a prerequisite install the `git`, `selinux-policy-devel` and `audit` packages. Enable and start the audit daemon afterwards:
 
-```
-# yum install git selinux-policy-devel audit
-# systemctl enable auditd.service
-# systemctl start auditd.service
+```bash
+yum install git selinux-policy-devel audit
+systemctl enable auditd.service
+systemctl start auditd.service
 ```
 
 After that clone the icinga2 git repository:
 
-```
-# git clone https://github.com/icinga/icinga2
+```bash
+git clone https://github.com/icinga/icinga2
 ```
 
 To create and install the policy package run the installation script which also labels the resources. (The script assumes Icinga 2 was started once after system startup, the labeling of the port will only happen once and fail later on.)
 
-```
-# cd tools/selinux/
-# ./icinga.sh
+```bash
+cd tools/selinux/
+./icinga.sh
 ```
 
 After that restart Icinga 2 and verify it running in its own domain `icinga2_t`.
@@ -144,13 +144,13 @@ Make sure to report the bugs in the policy afterwards.
 
 Download and install a plugin, for example check_mysql_health.
 
-```
-# wget https://labs.consol.de/download/shinken-nagios-plugins/check_mysql_health-2.1.9.2.tar.gz
-# tar xvzf check_mysql_health-2.1.9.2.tar.gz
-# cd check_mysql_health-2.1.9.2/
-# ./configure --libexecdir /usr/lib64/nagios/plugins
-# make
-# make install
+```bash
+wget https://labs.consol.de/download/shinken-nagios-plugins/check_mysql_health-2.1.9.2.tar.gz
+tar xvzf check_mysql_health-2.1.9.2.tar.gz
+cd check_mysql_health-2.1.9.2/
+./configure --libexecdir /usr/lib64/nagios/plugins
+make
+make install
 ```
 
 It is labeled `nagios_unconfined_plugins_exec_t` by default, so it runs without restrictions.
@@ -195,9 +195,9 @@ object GraphiteWriter "graphite" {
 
 Before you restart the icinga2 service allow it to connect to all ports by enabling the boolean `icinga2_can_connect_all` (now and permanent).
 
-```
-# setsebool icinga2_can_connect_all true
-# setsebool -P icinga2_can_connect_all true
+```bash
+setsebool icinga2_can_connect_all true
+setsebool -P icinga2_can_connect_all true
 ```
 
 If you restart the daemon now it will successfully connect to graphite.
@@ -233,15 +233,15 @@ this user. This is completly optional!
 
 Start by adding the Icinga 2 administrator role `icinga2adm_r` to the administrative SELinux user `staff_u`.
 
-```
-# semanage user -m -R "staff_r sysadm_r system_r unconfined_r icinga2adm_r" staff_u
+```bash
+semanage user -m -R "staff_r sysadm_r system_r unconfined_r icinga2adm_r" staff_u
 ```
 
 Confine your user login and create a sudo rule.
 
-```
-# semanage login -a dirk -s staff_u
-# echo "dirk ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/dirk
+```bash
+semanage login -a dirk -s staff_u
+echo "dirk ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/dirk
 ```
 
 Login to the system using ssh and verify your id.
@@ -278,8 +278,8 @@ $ sudo -r icinga2adm_r -t icinga2adm_t systemctl reload icinga2.service
 
 Now the commands will work, but you have always to remember to add the arguments, so change the sudo rule to set it by default.
 
-```
-# echo "dirk ALL=(ALL) ROLE=icinga2adm_r TYPE=icinga2adm_t NOPASSWD: ALL" > /etc/sudoers.d/dirk
+```bash
+echo "dirk ALL=(ALL) ROLE=icinga2adm_r TYPE=icinga2adm_t NOPASSWD: ALL" > /etc/sudoers.d/dirk
 ```
 
 Now try the commands again without providing the role and type and they will work, but if you try to read apache logs or restart apache for example it will still fail.

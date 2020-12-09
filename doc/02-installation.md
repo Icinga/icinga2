@@ -51,7 +51,7 @@ The following commands must be executed with `root` permissions unless noted oth
 
 Debian:
 
-```
+```bash
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
 
@@ -68,7 +68,7 @@ apt-get update
 
 Ubuntu:
 
-```
+```bash
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
 
@@ -85,7 +85,7 @@ apt-get update
 
 Raspbian Buster:
 
-```
+```bash
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
 
@@ -108,7 +108,7 @@ apt-get update
 
 Debian Stretch:
 
-```
+```bash
 DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
  echo "deb https://deb.debian.org/debian ${DIST}-backports main" > \
  /etc/apt/sources.list.d/${DIST}-backports.list
@@ -120,25 +120,25 @@ apt-get update
 
 RHEL/CentOS 8:
 
-```
+```bash
 dnf install https://packages.icinga.com/epel/icinga-rpm-release-8-latest.noarch.rpm
 ```
 
 RHEL/CentOS 7:
 
-```
+```bash
 yum install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
 ```
 
 RHEL/CentOS 6 x64:
 
-```
+```bash
 yum install https://packages.icinga.com/epel/icinga-rpm-release-6-latest.noarch.rpm
 ```
 
 Fedora 31:
 
-```
+```bash
 dnf install https://packages.icinga.com/fedora/icinga-rpm-release-31-latest.noarch.rpm
 ```
 
@@ -149,7 +149,7 @@ as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
 
 CentOS 8 additionally needs the PowerTools repository for EPEL:
 
-```
+```bash
 dnf install 'dnf-command(config-manager)'
 dnf config-manager --set-enabled PowerTools
 
@@ -158,7 +158,7 @@ dnf install epel-release
 
 CentOS 7/6:
 
-```
+```bash
 yum install epel-release
 ```
 
@@ -167,7 +167,7 @@ repository before installing the [EPEL rpm package](https://fedoraproject.org/wi
 
 RHEL 8:
 
-```
+```bash
 ARCH=$( /bin/arch )
 
 subscription-manager repos --enable rhel-8-server-optional-rpms
@@ -178,14 +178,14 @@ dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.r
 
 RHEL 7:
 
-```
+```bash
 subscription-manager repos --enable rhel-7-server-optional-rpms
 yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 ```
 
 RHEL 6:
 
-```
+```bash
 subscription-manager repos --enable rhel-6-server-optional-rpms
 yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
 ```
@@ -197,7 +197,7 @@ since v2.11.
 
 SLES 15/12:
 
-```
+```bash
 rpm --import https://packages.icinga.com/icinga.key
 
 zypper ar https://packages.icinga.com/SUSE/ICINGA-release.repo
@@ -206,7 +206,7 @@ zypper ref
 
 openSUSE:
 
-```
+```bash
 rpm --import https://packages.icinga.com/icinga.key
 
 zypper ar https://packages.icinga.com/openSUSE/ICINGA-release.repo
@@ -215,7 +215,7 @@ zypper ref
 
 #### Alpine Linux Repositories <a id="package-repositories-alpine"></a>
 
-```
+```bash
 echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
 echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
 apk update
@@ -234,13 +234,13 @@ with `root` permissions unless noted otherwise.
 
 Debian/Ubuntu:
 
-```
+```bash
 apt-get install icinga2
 ```
 
 RHEL/CentOS 8 and Fedora:
 
-```
+```bash
 dnf install icinga2
 systemctl enable icinga2
 systemctl start icinga2
@@ -248,7 +248,7 @@ systemctl start icinga2
 
 RHEL/CentOS 7:
 
-```
+```bash
 yum install icinga2
 systemctl enable icinga2
 systemctl start icinga2
@@ -256,7 +256,7 @@ systemctl start icinga2
 
 RHEL/CentOS 6:
 
-```
+```bash
 yum install icinga2
 chkconfig icinga2 on
 service icinga2 start
@@ -264,19 +264,19 @@ service icinga2 start
 
 SLES/openSUSE:
 
-```
+```bash
 zypper install icinga2
 ```
 
 FreeBSD:
 
-```
+```bash
 pkg install icinga2
 ```
 
 Alpine Linux:
 
-```
+```bash
 apk add icinga2
 ```
 
@@ -316,7 +316,7 @@ to determine where to find the plugin binaries.
 
 ### Debian/Ubuntu <a id="setting-up-check-plugins-debian-ubuntu"></a>
 
-```
+```bash
 apt-get install monitoring-plugins
 ```
 
@@ -327,19 +327,19 @@ as part of the [EPEL repository](02-installation.md#package-repositories-rhel-ep
 
 RHEL/CentOS 8:
 
-```
+```bash
 dnf install nagios-plugins-all
 ```
 
 RHEL/CentOS 7/6:
 
-```
+```bash
 yum install nagios-plugins-all
 ```
 
 Fedora:
 
-```
+```bash
 dnf install nagios-plugins-all
 ```
 
@@ -349,19 +349,19 @@ The packages for SLES/OpenSUSE depend on other packages which are distributed
 as part of the [server:monitoring repository](https://build.opensuse.org/project/repositories/server:monitoring).
 Please make sure to enable this repository beforehand.
 
-```
+```bash
 zypper install monitoring-plugins
 ```
 
 ### FreeBSD <a id="setting-up-check-plugins-freebsd"></a>
 
-```
+```bash
 pkg install monitoring-plugins
 ```
 
 ### Alpine Linux <a id="setting-up-check-plugins-alpine"></a>
 
-```
+```bash
 apk add monitoring-plugins
 ```
 
@@ -423,7 +423,7 @@ Job for icinga2.service failed. See 'systemctl status icinga2.service' and 'jour
 If you're stuck with configuration errors, you can manually invoke the
 [configuration validation](11-cli-commands.md#config-validation).
 
-```
+```bash
 icinga2 daemon -C
 ```
 
@@ -462,7 +462,7 @@ using the init script. Using Debian packages the user and group are set to
 
 On FreeBSD you need to enable icinga2 in your rc.conf
 
-```
+```bash
 sysrc icinga2_enable=yes
 
 service icinga2 restart
@@ -480,13 +480,13 @@ which confines Icinga 2 including enabled features and running commands.
 
 RHEL/CentOS 8 and Fedora:
 
-```
+```bash
 dnf install icinga2-selinux
 ```
 
 RHEL/CentOS 7:
 
-```
+```bash
 yum install icinga2-selinux
 ```
 
@@ -514,25 +514,25 @@ Info: installing removed addon 'icinga2' to /var/lib/vim/addons
 
 RHEL/CentOS 8 and Fedora:
 
-```
+```bash
 dnf install vim-icinga2
 ```
 
 RHEL/CentOS 7/6:
 
-```
+```bash
 yum install vim-icinga2
 ```
 
 SLES/openSUSE:
 
-```
+```bash
 zypper install vim-icinga2
 ```
 
 Alpine Linux:
 
-```
+```bash
 apk add icinga2-vim
 ```
 
@@ -546,8 +546,8 @@ syntax on
 
 Test it:
 
-```
-# vim /etc/icinga2/conf.d/templates.conf
+```bash
+vim /etc/icinga2/conf.d/templates.conf
 ```
 
 ![Vim with syntax highlighting](images/installation/vim-syntax.png "Vim with Icinga 2 syntax highlighting")
@@ -563,26 +563,26 @@ Debian/Ubuntu:
 
 RHEL/CentOS 8 and Fedora:
 
-```
+```bash
 dnf install nano-icinga2
 ```
 
 RHEL/CentOS 7/6:
 
-```
+```bash
 yum install nano-icinga2
 ```
 
 SLES/openSUSE:
 
-```
+```bash
 zypper install nano-icinga2
 ```
 
 Copy the `/etc/nanorc` sample file to your home directory.
 
-```
-$ cp /etc/nanorc ~/.nanorc
+```bash
+cp /etc/nanorc ~/.nanorc
 ```
 
 Include the `icinga2.nanorc` file.
@@ -596,8 +596,8 @@ include "/usr/share/nano/icinga2.nanorc"
 
 Test it:
 
-```
-$ nano /etc/icinga2/conf.d/templates.conf
+```bash
+nano /etc/icinga2/conf.d/templates.conf
 ```
 
 ![Nano with syntax highlighting](images/installation/nano-syntax.png "Nano with Icinga 2 syntax highlighting")
@@ -624,7 +624,7 @@ exporting all configuration and status information into a database.
 
 Debian/Ubuntu:
 
-```
+```bash
 apt-get install mariadb-server mariadb-client
 
 mysql_secure_installation
@@ -632,7 +632,7 @@ mysql_secure_installation
 
 RHEL/CentOS and Fedora:
 
-```
+```bash
 yum install mariadb-server mariadb
 systemctl enable mariadb
 systemctl start mariadb
@@ -641,7 +641,7 @@ mysql_secure_installation
 
 SUSE:
 
-```
+```bash
 zypper install mysql mysql-client
 chkconfig mysqld on
 service mysqld start
@@ -649,7 +649,7 @@ service mysqld start
 
 FreeBSD:
 
-```
+```bash
 pkg install mysql56-server
 sysrc mysql_enable=yes
 service mysql-server restart
@@ -658,7 +658,7 @@ mysql_secure_installation
 
 Alpine Linux:
 
-```
+```bash
 apk add mariadb
 rc-service mariadb setup
 rc-update add mariadb default
@@ -672,19 +672,19 @@ distribution's package manager.
 
 Debian/Ubuntu:
 
-```
+```bash
 apt-get install icinga2-ido-mysql
 ```
 
 RHEL/CentOS:
 
-```
+```bash
 yum install icinga2-ido-mysql
 ```
 
 SUSE:
 
-```
+```bash
 zypper install icinga2-ido-mysql
 ```
 
@@ -721,7 +721,7 @@ quit
 After creating the database you can import the Icinga 2 IDO schema using the
 following command. Enter the root password into the prompt when asked.
 
-```
+```bash
 mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/mysql.sql
 ```
 
@@ -746,13 +746,13 @@ Make sure to restart Icinga 2 for these changes to take effect.
 
 Restart Icinga 2.
 
-```
+```bash
 systemctl restart icinga2
 ```
 
 Alpine Linux:
 
-```
+```bash
 rc-service icinga2 restart
 ```
 
@@ -764,13 +764,13 @@ Continue with the [webserver setup](02-installation.md#icinga2-user-interface-we
 
 Debian/Ubuntu:
 
-```
+```bash
 apt-get install postgresql
 ```
 
 RHEL/CentOS:
 
-```
+```bash
 yum install postgresql-server postgresql
 postgresql-setup initdb
 systemctl enable postgresql
@@ -779,7 +779,7 @@ systemctl start postgresql
 
 SUSE:
 
-```
+```bash
 zypper install postgresql postgresql-server
 chkconfig postgresql on
 service postgresql initdb
@@ -788,7 +788,7 @@ service postgresql start
 
 FreeBSD:
 
-```
+```bash
 pkg install postgresql93-server
 sysrc postgresql_enable=yes
 service postgresql initdb
@@ -797,7 +797,7 @@ service postgresql start
 
 Alpine Linux:
 
-```
+```bash
 apk add postgresql
 rc-update add postgresql default
 rc-service postgresql setup
@@ -811,19 +811,19 @@ distribution's package manager.
 
 Debian/Ubuntu:
 
-```
+```bash
 apt-get install icinga2-ido-pgsql
 ```
 
 RHEL/CentOS:
 
-```
+```bash
 yum install icinga2-ido-pgsql
 ```
 
 SUSE:
 
-```
+```bash
 zypper install icinga2-ido-pgsql
 ```
 
@@ -847,7 +847,7 @@ and located at `/usr/share/icinga2-ido-pgsql/schema/pgsql.sql`.
 
 Set up a PostgreSQL database for Icinga 2:
 
-```
+```bash
 cd /tmp
 sudo -u postgres psql -c "CREATE ROLE icinga WITH LOGIN PASSWORD 'icinga'"
 sudo -u postgres createdb -O icinga -E UTF8 icinga
@@ -875,7 +875,7 @@ host    all         all         127.0.0.1/32          ident
 host    all         all         ::1/128               ident
 ```
 
-```
+```bash
 systemctl restart postgresql
 ```
 
@@ -883,7 +883,7 @@ systemctl restart postgresql
 After creating the database and permissions you need to import the IDO database
 schema using the following command:
 
-```
+```bash
 export PGPASSWORD=icinga
 psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/pgsql.sql
 ```
@@ -912,13 +912,13 @@ Make sure to restart Icinga 2 for these changes to take effect.
 
 Restart Icinga 2.
 
-```
+```bash
 systemctl restart icinga2
 ```
 
 Alpine Linux:
 
-```
+```bash
 rc-service icinga2 restart
 ```
 
@@ -937,13 +937,13 @@ documentation.
 
 Debian/Ubuntu:
 
-```
+```bash
 apt-get install apache2
 ```
 
 RHEL/CentOS/Fedora:
 
-```
+```bash
 yum install httpd
 systemctl enable httpd
 systemctl start httpd
@@ -951,7 +951,7 @@ systemctl start httpd
 
 SUSE:
 
-```
+```bash
 zypper install apache2
 chkconfig apache2 on
 service apache2 start
@@ -959,7 +959,7 @@ service apache2 start
 
 FreeBSD (Nginx, but you could also use the `apache24` package):
 
-```
+```bash
 pkg install nginx php56-gettext php56-ldap php56-openssl php56-mysql php56-pdo_mysql php56-pgsql php56-pdo_pgsql php56-sockets php56-gd pecl-imagick pecl-intl
 sysrc php_fpm_enable=yes
 sysrc nginx_enable=yes
@@ -973,7 +973,7 @@ service nginx start
 
 Alpine Linux:
 
-```
+```bash
 apk add apache2 php7-apache2
 sed -i -e "s/^#LoadModule rewrite_module/LoadModule rewrite_module/" /etc/apache2/httpd.conf
 rc-update add apache2 default
@@ -986,14 +986,14 @@ Enable port 80 (http). Best practice is to only enable port 443 (https) and use 
 
 firewall-cmd:
 
-```
+```bash
 firewall-cmd --add-service=http
 firewall-cmd --permanent --add-service=http
 ```
 
 iptables:
 
-```
+```bash
 iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
 service iptables save
 ```
@@ -1012,7 +1012,7 @@ You can run the CLI command `icinga2 api setup` to enable the
 certificates as well as a new API user `root` with an auto-generated password in the
 `/etc/icinga2/conf.d/api-users.conf` configuration file:
 
-```
+```bash
 icinga2 api setup
 ```
 
@@ -1030,13 +1030,13 @@ object ApiUser "icingaweb2" {
 
 Restart Icinga 2 to activate the configuration.
 
-```
+```bash
 systemctl restart icinga2
 ```
 
 Alpine Linux:
 
-```
+```bash
 rc-service icinga2 restart
 ```
 
@@ -1169,13 +1169,13 @@ Make sure to restart Icinga 2 for these changes to take effect.
 
 Restart Icinga 2.
 
-```
+```bash
 systemctl restart icinga2
 ```
 
 Alpine Linux:
 
-```
+```bash
 rc-service icinga2 restart
 ```
 

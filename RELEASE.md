@@ -24,7 +24,7 @@
 
 Specify the release version.
 
-```
+```bash
 VERSION=2.11.0
 ```
 
@@ -53,7 +53,7 @@ master branch which should be part of this release.
 
 Update the version:
 
-```
+```bash
 perl -pi -e "s/Version: .*/Version: $VERSION/g" VERSION
 ```
 
@@ -65,26 +65,26 @@ issues/PRs. At the start include a link to the milestone's closed issues.
 
 ## Git Tag  <a id="git-tag"></a>
 
-```
+```bash
 git commit -v -a -m "Release version $VERSION"
 ```
 
 Create a signed tag (tags/v<VERSION>) on the `master` branch (for major
 releases) or the `support` branch (for minor releases).
 
-```
+```bash
 git tag -s -m "Version $VERSION" v$VERSION
 ```
 
 Push the tag:
 
-```
+```bash
 git push origin v$VERSION
 ```
 
 **For major releases:** Create a new `support` branch:
 
-```
+```bash
 git checkout master
 git push
 
@@ -95,32 +95,32 @@ git push -u origin support/2.12
 
 ## Package Builds  <a id="package-builds"></a>
 
-```
+```bash
 mkdir $HOME/dev/icinga/packaging
 cd $HOME/dev/icinga/packaging
 ```
 
 ### RPM Packages  <a id="rpm-packages"></a>
 
-```
+```bash
 git clone git@git.icinga.com:packaging/rpm-icinga2.git && cd rpm-icinga2
 ```
 
 ### DEB Packages <a id="deb-packages"></a>
 
-```
+```bash
 git clone git@git.icinga.com:packaging/deb-icinga2.git && cd deb-icinga2
 ```
 
 #### Raspbian Packages
 
-```
+```bash
 git clone git@git.icinga.com:packaging/raspbian-icinga2.git && cd raspbian-icinga2
 ```
 
 ### Windows Packages
 
-```
+```bash
 git clone git@git.icinga.com:packaging/windows-icinga2.git && cd windows-icinga2
 ```
 
@@ -146,7 +146,7 @@ variables:
 
 Commit the change.
 
-```
+```bash
 git commit -av -m "Switch build type for 2.13"
 ```
 
@@ -191,7 +191,7 @@ perl -pi -e "s/^  ICINGA_FORCE_VERSION: .*/  ICINGA_FORCE_VERSION: v$VERSION/g" 
 
 Commit the changes and push the branch.
 
-```
+```bash
 git commit -av -m "Release $VERSION-1"
 git push origin 2.11
 ```
@@ -218,14 +218,14 @@ tag the release commit and push it.
 
 RPM/DEB/Raspbian:
 
-```
+```bash
 git tag -s $VERSION-1 -m "Release v$VERSION-1"
 git push origin $VERSION-1
 ```
 
 Windows:
 
-```
+```bash
 git tag -s $VERSION -m "Release v$VERSION"
 git push origin $VERSION
 ```
@@ -258,7 +258,7 @@ are triggered and automatically published to packages.icinga.com
 
 ### CentOS
 
-```
+```bash
 docker run -ti centos:7 bash
 
 yum -y install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
@@ -269,7 +269,7 @@ icinga2 daemon -C
 
 ### Ubuntu
 
-```
+```bash
 docker run -ti ubuntu:bionic bash
 
 apt-get update
@@ -336,7 +336,7 @@ Navigate to `puppet-customer/icinga.git` and do the following steps:
 
 #### Testing
 
-```
+```bash
 git checkout testing && git pull
 vim files/var/www/docs/config/icinga2-latest.yml
 
@@ -347,7 +347,7 @@ git push
 
 SSH into the webserver and do a manual Puppet dry run with the testing environment.
 
-```
+```bash
 puppet agent -t --environment testing --noop
 ```
 
@@ -355,7 +355,7 @@ Once succeeded, continue with production deployment.
 
 #### Production
 
-```
+```bash
 git checkout master && git pull
 git merge testing
 git push
@@ -363,7 +363,7 @@ git push
 
 SSH into the webserver and do a manual Puppet run from the production environment (default).
 
-```
+```bash
 puppet agent -t
 ```
 
@@ -371,7 +371,7 @@ puppet agent -t
 
 SSH into the webserver or ask @bobapple.
 
-```
+```bash
 cd /usr/local/icinga-docs-tools && ./build-docs.rb -c /var/www/docs/config/icinga2-latest.yml
 ```
 

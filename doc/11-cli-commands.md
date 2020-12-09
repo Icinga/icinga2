@@ -75,28 +75,28 @@ You need to install the `bash-completion` package if not already installed.
 
 RHEL/CentOS/Fedora:
 
-```
-# yum install bash-completion
+```bash
+yum install bash-completion
 ```
 
 SUSE:
 
-```
-# zypper install bash-completion
+```bash
+zypper install bash-completion
 ```
 
 Debian/Ubuntu:
 
-```
-# apt-get install bash-completion
+```bash
+apt-get install bash-completion
 ```
 
 Ensure that the `bash-completion.d` directory is added to your shell
 environment. You can manually source the icinga2 bash-completion file
 into your current session and test it:
 
-```
-# source /etc/bash-completion.d/icinga2
+```bash
+source /etc/bash-completion.d/icinga2
 ```
 
 
@@ -305,8 +305,8 @@ On operating systems without the `libedit` library installed there is no
 support for line-editing or a command history. However you can
 use the `rlwrap` program if you require those features:
 
-```
-$ rlwrap icinga2 console
+```bash
+rlwrap icinga2 console
 ```
 
 The debug console can be used to connect to a running Icinga 2 instance using
@@ -725,8 +725,8 @@ Every time you have changed your configuration you should first tell Icinga 2
 to [validate](11-cli-commands.md#config-validation). If there are no validation errors, you can
 safely reload the Icinga 2 daemon.
 
-```
-# systemctl reload icinga2
+```bash
+systemctl reload icinga2
 ```
 
 The `reload` action will send the `SIGHUP` signal to the Icinga 2 daemon

@@ -73,7 +73,7 @@ CheckCommand already.
 SSH key pair for the Icinga daemon user. In case the user has no shell, temporarily enable this.
 When asked for a passphrase, **do not set it** and press enter.
 
-```
+```bash
 sudo su - icinga
 
 ssh-keygen -b 4096 -t rsa -C "icinga@$(hostname) user for check_by_ssh" -f $HOME/.ssh/id_rsa
@@ -81,7 +81,7 @@ ssh-keygen -b 4096 -t rsa -C "icinga@$(hostname) user for check_by_ssh" -f $HOME
 
 On the remote agent, create the icinga user and generate a temporary password.
 
-```
+```bash
 useradd -m icinga
 passwd icinga
 ```
@@ -90,7 +90,7 @@ Copy the public key from the Icinga server to the remote agent, e.g. with `ssh-c
 or manually into `/home/icinga/.ssh/authorized_keys`.
 This will ask for the password once.
 
-```
+```bash
 sudo su - icinga
 
 ssh-copy-id -i $HOME/.ssh/id_rsa icinga@ssh-agent1.localdomain
@@ -100,7 +100,7 @@ After the SSH key is copied, test at the connection **at least once** and
 accept the host key verification. If you forget about this step, checks will
 become UNKNOWN later.
 
-```
+```bash
 ssh -i $HOME/.ssh/id_rsa icinga@ssh-agent1.localdomain
 ```
 
@@ -273,7 +273,7 @@ Create the `coldstart_reset_event.sh` shell script to pass the expanded variable
 data in. The `$service.state_id$` is important in order to prevent an endless loop
 of event firing after the service has been reset.
 
-```
+```bash
 #!/bin/bash
 
 SERVICE_STATE_ID=""

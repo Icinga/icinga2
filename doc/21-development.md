@@ -88,7 +88,7 @@ process and can safely be ignored.
 > Since v2.11 we would attach to the umbrella process spawned with `/usr/lib/icinga2/sbin/icinga2`,
 > therefore rather attach to a running process.
 >
-```
+```bash
 # Typically the order of PIDs is: 1) umbrella 2) spawn helper 3) main process
 pidof icinga2
 
@@ -169,7 +169,7 @@ process and store it into a new file (e.g. for debugging dead locks).
 Icinga 2 runs with 2 processes: main and command executor, therefore generate two backtrace logs
 and add them to the GitHub issue.
 
-```
+```bash
 for pid in $(pidof icinga2); do gdb -p $pid -batch -ex "thread apply all bt full" -ex "detach" -ex "q" > gdb_bt_${pid}_`date +%s`.log; done
 ```
 
@@ -177,7 +177,7 @@ for pid in $(pidof icinga2); do gdb -p $pid -batch -ex "thread apply all bt full
 
 Instead of a full backtrace, you sometimes just need a list of running threads.
 
-```
+```bash
 for pid in $(pidof icinga2); do gdb -p $pid -batch -ex "info threads" -ex "detach" -ex "q" > gdb_threads_${pid}_`date +%s`.log; done
 ```
 
@@ -317,13 +317,13 @@ Max core file size        unlimited            unlimited            bytes
 The Icinga 2 daemon runs with the SUID bit set. Therefore you need
 to explicitly enable core dumps for SUID on Linux.
 
-```
+```bash
 sysctl -w fs.suid_dumpable=2
 ```
 
 Adjust the coredump kernel format and file location on Linux:
 
-```
+```bash
 sysctl -w kernel.core_pattern=/var/lib/cores/core.%e.%p
 
 install -m 1777 -d /var/lib/cores
@@ -331,7 +331,7 @@ install -m 1777 -d /var/lib/cores
 
 MacOS:
 
-```
+```bash
 sysctl -w kern.corefile=/cores/core.%P
 
 chmod 777 /cores
@@ -365,15 +365,15 @@ gdb /usr/lib64/icinga2/sbin/icinga2 core.icinga2.<PID>
 
 LLDB is available on macOS with the Xcode command line tools.
 
-```
-$ xcode-select --install
+```bash
+xcode-select --install
 ```
 
 In order to run Icinga 2 with LLDB you need to pass the binary as argument.
 Since v2.11 we would attach to the umbrella process, therefore rather
 attach to a running process.
 
-```
+```bash
 # Typically the order of PIDs is: 1) umbrella 2) spawn helper 3) main process
 pidof icinga2
 
@@ -390,7 +390,7 @@ Closed FD 6 which we inherited from our parent process.
 [2020-01-29 12:22:33 +0100] information/RunWorker: DEBUG: Current PID: 85253. Sleeping for 120 seconds to allow lldb/gdb -p <PID> attachment.
 ```
 
-```
+```bash
 lldb -p 85253
 ```
 
@@ -544,7 +544,7 @@ on GitHub and mention that you're testing the snapshot packages.
 In addition to that, the `icinga-rpm-release` package already provides the `icinga-snapshot-builds`
 repository but it is disabled by default.
 
-```
+```bash
 yum -y install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
 yum -y install epel-release
 yum makecache
@@ -558,7 +558,7 @@ yum install --enablerepo=icinga-snapshot-builds icinga2
 It is advised to configure both Icinga repositories, stable and snapshot and selectively
 choose the repository with the `-t` flag on `apt-get install`.
 
-```
+```bash
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
 
@@ -581,7 +581,7 @@ apt-get update
 
 On Debian Stretch, you'll also need to add Debian Backports.
 
-```
+```bash
 DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
  echo "deb https://deb.debian.org/debian ${DIST}-backports main" > \
  /etc/apt/sources.list.d/${DIST}-backports.list
@@ -591,14 +591,14 @@ apt-get update
 
 Then install the snapshot packages.
 
-```
+```bash
 DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
 apt-get install -t icinga-${DIST}-snapshots icinga2
 ```
 
 #### Ubuntu <a id="development-tests-snapshot-packages-ubuntu"></a>
 
-```
+```bash
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
 
@@ -621,7 +621,7 @@ apt-get update
 
 Then install the snapshot packages.
 
-```
+```bash
 . /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
 apt-get install -t icinga-${DIST}-snapshots icinga2
 ```
@@ -630,7 +630,7 @@ apt-get install -t icinga-${DIST}-snapshots icinga2
 
 The required Boost packages are provided with the stable release repository.
 
-```
+```bash
 rpm --import https://packages.icinga.com/icinga.key
 
 zypper ar https://packages.icinga.com/SUSE/ICINGA-release.repo
@@ -642,7 +642,7 @@ zypper ref
 
 Selectively install the snapshot packages using the `-r` parameter.
 
-```
+```bash
 zypper in -r icinga-snapshot-builds icinga2
 ```
 
@@ -652,14 +652,14 @@ zypper in -r icinga-snapshot-builds icinga2
 Build the binaries and run the tests.
 
 
-```
+```bash
 make -j4 -C debug
 make test -C debug
 ```
 
 Run a specific boost test:
 
-```
+```bash
 debug/Bin/Debug/boosttest-test-base --run_test=remote_url
 ```
 
@@ -848,9 +848,11 @@ current year as this implies yearly updates we don't want.
 
 Depending on the file type, this must be a comment.
 
-```
+```cpp
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+```
 
+```bash
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 ```
 
@@ -863,7 +865,7 @@ We follow the clang format, with some exceptions.
 
 - Curly braces for functions and classes always start at a new line.
 
-```
+```cpp
 String ConfigObjectUtility::EscapeName(const String& name)
 {
 //...
@@ -878,7 +880,7 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 
 - Too long lines break at a parameter, the new line needs a tab indent.
 
-```
+```cpp
 	static String CreateObjectConfig(const Type::Ptr& type, const String& fullName,
 		bool ignoreOnError, const Array::Ptr& templates, const Dictionary::Ptr& attrs);
 ```
@@ -886,7 +888,7 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 - Conditions require curly braces if it is not a single if with just one line.
 
 
-```
+```cpp
 	if (s == "OK") {
 		//...
 	} else {
@@ -917,7 +919,7 @@ use that information as a summary and link over to it on purpose.
 - Single line comments may use `//` or `/* ... */`
 - Multi line comments must use this format:
 
-```
+```cpp
 /* Ensure to check for XY
  * This relies on the fact that ABC has been set before.
  */
@@ -937,7 +939,7 @@ The `return` value should describe the value type and additional details.
 
 Example:
 
-```
+```cpp
 /**
  * Reads a message from the connected peer.
  *
@@ -983,7 +985,7 @@ Always use an empty line after the header include parts.
 
 The icinga namespace is used globally, as otherwise we would need to write `icinga::Utility::FormatDateTime()`.
 
-```
+```cpp
 using namespace icinga;
 ```
 
@@ -991,7 +993,7 @@ Other namespaces must be declared in the scope they are used. Typically
 this is inside the function where `boost::asio` and variants would
 complicate the code.
 
-```
+```cpp
 	namespace ssl = boost::asio::ssl;
 
 	auto context (std::make_shared<ssl::context>(ssl::context::sslv23));
@@ -1003,7 +1005,7 @@ Ensure to pass values and pointers as const reference. By default, all
 values will be copied into the function scope, and we want to avoid this
 wherever possible.
 
-```
+```cpp
 std::vector<EventQueue::Ptr> EventQueue::GetQueuesForType(const String& type)
 ```
 
@@ -1034,7 +1036,7 @@ optimizes this anyways.
 
 Wrong:
 
-```
+```cpp
 	int res = s == "OK" ? 0 : s == "WARNING" ? 1;
 
 	return res;
@@ -1042,7 +1044,7 @@ Wrong:
 
 Better:
 
-```
+```cpp
 	int res = 3;
 
 	if (s == "OK") {
@@ -1055,7 +1057,7 @@ Better:
 Even better: Create a lookup map instead of if branches. The complexity
 is reduced to O(log(n)).
 
-```
+```cpp
 	std::map<String, unsigned int> stateMap = {
 		{ "OK", 1 },
 		{ "WARNING", 2 }
@@ -1083,7 +1085,7 @@ Icinga objects can be locked with the `ObjectLock` class.
 
 Object locks and guards must be limited to the scope where they are needed. Otherwise we could create dead locks.
 
-```
+```cpp
 	{
 		ObjectLock olock(frame.Locals);
 		for (const Dictionary::Pair& kv : frame.Locals) {
@@ -1112,7 +1114,7 @@ which are made available in the DSL too.
 - Always use `String` instead of `std::string`. If you need a C-string, use the `CStr()` method.
 - Avoid casts and rather use the `Convert` class methods.
 
-```
+```cpp
 	double s = static_cast<double>(v); //Wrong
 
 	double s = Convert::ToDouble(v);   //Correct, ToDouble also provides overloads with different value types
@@ -1243,7 +1245,7 @@ they are allowed:
 Typedefs allow developers to use shorter names for specific types,
 classes and structs.
 
-```
+```cpp
 	typedef std::map<String, std::shared_ptr<NamespaceValue> >::iterator Iterator;
 ```
 
@@ -1258,7 +1260,7 @@ is required.
 
 The following example iterates over a map returned from `GetTypes()`.
 
-```
+```cpp
 	for (const auto& kv : GetTypes()) {
 		result.insert(kv.second);
 	}
@@ -1267,7 +1269,7 @@ The following example iterates over a map returned from `GetTypes()`.
 The long example would require us to define a map iterator, and a slightly
 different algorithm.
 
-```
+```cpp
 	typedef std::map<String, DbType::Ptr> TypeMap;
 	typedef std::map<String, DbType::Ptr>::const_iterator TypeMapIterator;
 
@@ -1281,7 +1283,7 @@ different algorithm.
 We could also use a pair here, but requiring to know
 the specific types of the map keys and values.
 
-```
+```cpp
 	typedef std::pair<String, DbType::Ptr> kv_pair;
 
 	for (const kv_pair& kv : GetTypes()) {
@@ -1347,7 +1349,7 @@ Create two build directories for different binary builds.
 * `debug` contains the debug build binaries. They contain more debug information and run tremendously slower than release builds from packages. Don't use them for benchmarks.
 * `release` contains the release build binaries, as you would install them on a live system. This helps comparing specific scenarios for race conditions and more.
 
-```
+```bash
 mkdir -p release debug
 ```
 
@@ -1361,7 +1363,7 @@ are best effort and sometimes out-of-date. Git Master may contain updates.
 
 #### CentOS 7 <a id="development-linux-dev-env-centos"></a>
 
-```
+```bash
 yum -y install gdb vim git bash-completion htop
 
 yum -y install rpmdevtools ccache \
@@ -1388,19 +1390,19 @@ build inside the `release` directory.
 
 First, off export some generics for Boost.
 
-```
+```bash
 export I2_BOOST="-DBoost_NO_BOOST_CMAKE=TRUE -DBoost_NO_SYSTEM_PATHS=TRUE -DBOOST_LIBRARYDIR=/usr/lib64/boost169 -DBOOST_INCLUDEDIR=/usr/include/boost169 -DBoost_ADDITIONAL_VERSIONS='1.69;1.69.0'"
 ```
 
 Second, add the prefix path to it.
 
-```
+```bash
 export I2_GENERIC="$I2_BOOST -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2"
 ```
 
 Third, define the two build types with their specific CMake variables.
 
-```
+```bash
 export I2_DEBUG="-DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF $I2_GENERIC"
 export I2_RELEASE="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DICINGA2_WITH_TESTS=ON -DICINGA2_UNITY_BUILD=ON $I2_GENERIC"
 ```
@@ -1408,7 +1410,7 @@ export I2_RELEASE="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DICINGA2_WITH_TESTS=ON -DI
 Fourth, depending on your likings, you may add a bash alias for building,
 or invoke the commands inside:
 
-```
+```bash
 alias i2_debug="cd /root/icinga2; mkdir -p debug; cd debug; cmake $I2_DEBUG ..; make -j2; sudo make -j2 install; cd .."
 alias i2_release="cd /root/icinga2; mkdir -p release; cd release; cmake $I2_RELEASE ..; make -j2; sudo make -j2 install; cd .."
 ```
@@ -1419,7 +1421,7 @@ This is taken from the [centos7-dev](https://github.com/Icinga/icinga-vagrant/tr
 The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
-```
+```bash
 chown -R icinga:icinga /usr/local/icinga2/var/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
@@ -1435,8 +1437,8 @@ Debian Buster doesn't need updated Boost packages from packages.icinga.com,
 the distribution already provides 1.66+. For older versions such as Stretch,
 include the release repository for packages.icinga.com as shown in the [setup instructions](02-installation.md#package-repositories-debian-ubuntu-raspbian).
 
-```
-$ docker run -ti debian:buster bash
+```bash
+docker run -ti debian:buster bash
 
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
@@ -1445,7 +1447,7 @@ apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev biso
 apt-get -y install libboost-all-dev
 ```
 
-```
+```bash
 ln -s /usr/bin/ccache /usr/local/bin/gcc
 ln -s /usr/bin/ccache /usr/local/bin/g++
 
@@ -1472,7 +1474,7 @@ make -j2 install -C debug
 The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
-```
+```bash
 chown -R icinga:icinga /usr/local/icinga2/var/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
@@ -1487,8 +1489,8 @@ vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
 Requires Boost packages from packages.icinga.com.
 
-```
-$ docker run -ti ubuntu:bionic bash
+```bash
+docker run -ti ubuntu:bionic bash
 
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
@@ -1504,7 +1506,7 @@ wget -O - https://packages.icinga.com/icinga.key | apt-key add -
 apt-get update
 ```
 
-```
+```bash
 apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
 
 apt-get install -y libboost1.67-icinga-all-dev
@@ -1529,14 +1531,14 @@ cmake .. $I2_DEBUG
 cd ..
 ```
 
-```
+```bash
 make -j2 install -C debug
 ```
 
 The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
-```
+```bash
 chown -R icinga:icinga /usr/local/icinga2/var/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
@@ -1569,13 +1571,13 @@ This requires at least v2.11.
 
 Explicitly use OpenSSL 1.1.x, older versions are out of support.
 
-```
+```bash
 brew install ccache boost cmake bison flex openssl@1.1 mysql-connector-c++ postgresql libpq
 ```
 
 ##### ccache
 
-```
+```bash
 sudo mkdir /opt/ccache
 
 sudo ln -s `which ccache` /opt/ccache/clang
@@ -1596,7 +1598,7 @@ typically run slower than release builds and must not be used for performance be
 
 The preferred installation prefix is `/usr/local/icinga/icinga2`. This allows to put e.g. Icinga Web 2 into the `/usr/local/icinga` directory as well.
 
-```
+```bash
 mkdir -p release debug
 
 export I2_USER=$(id -u -n)
@@ -1616,7 +1618,7 @@ make -j4 install -C debug
 In order to run Icinga without any path prefix, and also use Bash completion it is advised to source additional
 things into the local dev environment.
 
-```
+```bash
 export PATH=/usr/local/icinga/icinga2/sbin/:$PATH
 
 test -f /usr/local/icinga/icinga2/etc/bash_completion.d/icinga2 && source /usr/local/icinga/icinga2/etc/bash_completion.d/icinga2
@@ -1626,7 +1628,7 @@ test -f /usr/local/icinga/icinga2/etc/bash_completion.d/icinga2 && source /usr/l
 
 This is derived from [dnsmichi's flavour](https://github.com/dnsmichi/dotfiles) and not generally best practice.
 
-```
+```bash
 vim $HOME/.bash_profile
 
 export I2_USER=$(id -u -n)
@@ -1650,7 +1652,7 @@ source $HOME/.bash_profile
 
 `make install` doesn't set all required permissions, override this.
 
-```
+```bash
 chown -R $I2_USER:$I2_GROUP /usr/local/icinga/icinga2
 ```
 
@@ -1658,7 +1660,7 @@ chown -R $I2_USER:$I2_GROUP /usr/local/icinga/icinga2
 
 Start Icinga in foreground.
 
-```
+```bash
 icinga2 daemon
 ```
 
@@ -1666,23 +1668,26 @@ Reloads triggered with HUP or cluster syncs just put the process into background
 
 #### Plugins
 
-```
+```bash
 brew install monitoring-plugins
 
 sudo vim /usr/local/icinga/icinga2/etc/icinga2/constants.conf
+```
+
+```
 const PluginDir = "/usr/local/sbin"
 ```
 
 #### Backends: Redis
 
-```
+```bash
 brew install redis
 brew services start redis
 ```
 
 #### Databases: MariaDB
 
-```
+```bash
 brew install mariadb
 mkdir -p /usr/local/etc/my.cnf.d
 brew services start mariadb
@@ -1702,7 +1707,7 @@ ln -s /Users/michi/.my.cnf $HOME/.my.cnf
 exit
 ```
 
-```
+```bash
 mysql -e 'create database icinga;'
 mysql -e "grant all on icinga.* to 'icinga'@'localhost' identified by 'icinga';"
 mysql icinga < $HOME/dev/icinga/icinga2/lib/db_ido_mysql/schema/mysql.sql
@@ -1710,7 +1715,7 @@ mysql icinga < $HOME/dev/icinga/icinga2/lib/db_ido_mysql/schema/mysql.sql
 
 #### API
 
-```
+```bash
 icinga2 api setup
 cd /usr/local/icinga/icinga2/var/lib/icinga2/certs
 HOST_NAME=mbpmif.int.netways.de
@@ -2131,7 +2136,7 @@ The following examples source from armhf on Raspberry Pi.
 
 #### ccache
 
-```
+```bash
 apt install -y ccache
 
 /usr/sbin/update-ccache-symlinks
@@ -2145,13 +2150,14 @@ source ~/.bashrc && echo $PATH
 
 Copy the icinga2 source code into `$HOME/icinga2`. Clone the `deb-icinga2` repository into `debian/`.
 
-```
+```bash
 git clone https://github.com/Icinga/icinga2 $HOME/icinga2
 git clone https://github.com/Icinga/deb-icinga2 $HOME/icinga2/debian
 ```
 
 Then build a Debian package and install it like normal.
-```
+
+```bash
 dpkg-buildpackage -uc -us
 ```
 
@@ -2219,26 +2225,26 @@ external command pipe and livestatus features require a dedicated command group
 `icingacmd`. You can choose your own user/group names and pass them to CMake
 using the `ICINGA2_USER`, `ICINGA2_GROUP` and `ICINGA2_COMMAND_GROUP` variables.
 
-```
-# groupadd icinga
-# groupadd icingacmd
-# useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga icinga
+```bash
+groupadd icinga
+groupadd icingacmd
+useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga icinga
 ```
 
 On Alpine (which uses ash busybox) you can run:
 
-```
-# addgroup -S icinga
-# addgroup -S icingacmd
-# adduser -S -D -H -h /var/spool/icinga2 -s /sbin/nologin -G icinga -g icinga icinga
-# adduser icinga icingacmd
+```bash
+addgroup -S icinga
+addgroup -S icingacmd
+adduser -S -D -H -h /var/spool/icinga2 -s /sbin/nologin -G icinga -g icinga icinga
+adduser icinga icingacmd
 ```
 
 Add the web server user to the icingacmd group in order to grant it write
 permissions to the external command pipe and livestatus socket:
 
-```
-# usermod -a -G icingacmd www-data
+```bash
+usermod -a -G icingacmd www-data
 ```
 
 Make sure to replace "www-data" with the name of the user your web server
@@ -2249,18 +2255,18 @@ is running as.
 Once you have installed all the necessary build requirements you can build
 Icinga 2 using the following commands:
 
-```
-$ mkdir release && cd release
-$ cmake ..
-$ cd ..
-$ make -C release
-$ make install -C release
+```bash
+mkdir release && cd release
+cmake ..
+cd ..
+make -C release
+make install -C release
 ```
 
 You can specify an alternative installation prefix using `-DCMAKE_INSTALL_PREFIX`:
 
-```
-$ cmake .. -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
+```bash
+cmake .. -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
 ```
 
 ### CMake Variables <a id="development-package-builds-cmake-variables"></a>
@@ -2351,7 +2357,7 @@ can be used to disable the usage of `git describe`.
 
 Setup your build environment:
 
-```
+```bash
 yum -y install rpmdevtools
 ```
 
@@ -2359,7 +2365,7 @@ yum -y install rpmdevtools
 
 SLES:
 
-```
+```bash
 zypper addrepo http://download.opensuse.org/repositories/devel:tools/SLE_12_SP4/devel:tools.repo
 zypper refresh
 zypper install rpmdevtools spectool
@@ -2367,7 +2373,7 @@ zypper install rpmdevtools spectool
 
 OpenSuSE:
 
-```
+```bash
 zypper addrepo http://download.opensuse.org/repositories/devel:tools/openSUSE_Leap_15.0/devel:tools.repo
 zypper refresh
 zypper install rpmdevtools spectool
@@ -2377,14 +2383,14 @@ zypper install rpmdevtools spectool
 
 Prepare the rpmbuild directory tree:
 
-```
+```bash
 cd $HOME
 rpmdev-setuptree
 ```
 
 Snapshot builds:
 
-```
+```bash
 curl https://raw.githubusercontent.com/Icinga/rpm-icinga2/master/icinga2.spec -o $HOME/rpmbuild/SPECS/icinga2.spec
 ```
 
@@ -2396,7 +2402,7 @@ curl https://raw.githubusercontent.com/Icinga/rpm-icinga2/master/icinga2.spec -o
 Copy the tarball to `rpmbuild/SOURCES` e.g. by using the `spectool` binary
 provided with `rpmdevtools`:
 
-```
+```bash
 cd $HOME/rpmbuild/SOURCES
 spectool -g ../SPECS/icinga2.spec
 
@@ -2405,7 +2411,7 @@ cd $HOME/rpmbuild
 
 Install the build dependencies. Example for CentOS 7:
 
-```
+```bash
 yum -y install libedit-devel ncurses-devel gcc-c++ libstdc++-devel openssl-devel \
 cmake flex bison boost-devel systemd mysql-devel postgresql-devel httpd \
 selinux-policy-devel checkpolicy selinux-policy selinux-policy-doc
@@ -2415,13 +2421,13 @@ Note: If you are using Amazon Linux, systemd is not required.
 
 A shorter way is available using the `yum-builddep` command on RHEL based systems:
 
-```
+```bash
 yum-builddep SPECS/icinga2.spec
 ```
 
 Build the RPM:
 
-```
+```bash
 rpmbuild -ba SPECS/icinga2.spec
 ```
 
@@ -2441,7 +2447,7 @@ The RedHat Developer Toolset is required for building Icinga 2 beforehand.
 This contains a modern version of flex and a C++ compiler which supports
 C++11 features.
 
-```
+```bash
 cat >/etc/yum.repos.d/devtools-2.repo <<REPO
 [testing-devtools-2-centos-\$releasever]
 name=testing 2 devtools for CentOS $releasever
@@ -2455,7 +2461,8 @@ should be used for building.
 
 As an alternative, you can use newer Boost packages provided on
 [packages.icinga.com](https://packages.icinga.com/epel).
-```
+
+```bash
 cat >$HOME/.rpmmacros <<MACROS
 %build_icinga_org 1
 MACROS
@@ -2472,7 +2479,7 @@ Setup your build environment on Debian/Ubuntu, copy the 'debian' directory from
 the Debian packaging Git repository (https://github.com/Icinga/deb-icinga2)
 into your source tree and run the following command:
 
-```
+```bash
 dpkg-buildpackage -uc -us
 ```
 
@@ -2543,7 +2550,7 @@ Note: the openrc's init.d is not shipped by default.
 A working init.d with openrc can be found here: (https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd). If you have customized some path, edit the file and adjust it according with your setup.
 Those few steps can be followed:
 
-```
+```bash
 wget https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd
 mv icinga2.initd /etc/init.d/icinga2
 chmod +x /etc/init.d/icinga2
@@ -2618,8 +2625,8 @@ file for details.
 Install the `boost`, `python` and `icinga2` pretty printers. Absolute paths are required,
 so please make sure to update the installation paths accordingly (`pwd`).
 
-```
-$ mkdir -p ~/.gdb_printers && cd ~/.gdb_printers
+```bash
+mkdir -p ~/.gdb_printers && cd ~/.gdb_printers
 ```
 
 Boost Pretty Printers compatible with Python 3:
@@ -2633,16 +2640,16 @@ $ pwd
 
 Python Pretty Printers:
 
-```
-$ cd ~/.gdb_printers
-$ svn co svn://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/python
+```bash
+cd ~/.gdb_printers
+svn co svn://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/python
 ```
 
 Icinga 2 Pretty Printers:
 
-```
-$ mkdir -p ~/.gdb_printers/icinga2 && cd ~/.gdb_printers/icinga2
-$ wget https://raw.githubusercontent.com/Icinga/icinga2/master/tools/debug/gdb/icingadbg.py
+```bash
+mkdir -p ~/.gdb_printers/icinga2 && cd ~/.gdb_printers/icinga2
+wget https://raw.githubusercontent.com/Icinga/icinga2/master/tools/debug/gdb/icingadbg.py
 ```
 
 Now you'll need to modify/setup your `~/.gdbinit` configuration file.

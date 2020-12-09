@@ -54,7 +54,7 @@ Install tools which help you to do so. Opinions differ, let us know if you have 
 [htop](https://hisham.hm/htop/) is a better replacement for `top` and helps to analyze processes
 interactively.
 
-```
+```bash
 yum install htop
 apt-get install htop
 ```
@@ -68,32 +68,33 @@ Attach it when posting a question to the community channels.
 The [sysstat](https://github.com/sysstat/sysstat) package provides a number of tools to
 analyze the performance on Linux. On FreeBSD you could use `systat` for example.
 
-```
+```bash
 yum install sysstat
 apt-get install sysstat
 ```
 
 Example for `vmstat` (summary of memory, processes, etc.):
 
-```
-// summary
+```bash
+# summary
 vmstat -s
-// print timestamps, format in MB, stats every 1 second, 5 times
+# print timestamps, format in MB, stats every 1 second, 5 times
 vmstat -t -S M 1 5
 ```
 
 Example for `iostat`:
 
-```
+```bash
 watch -n 1 iostat
 ```
 
 Example for `sar`:
-```
-sar //cpu
-sar -r //ram
-sar -q //load avg
-sar -b //I/O
+
+```bash
+sar # cpu
+sar -r # ram
+sar -q # load avg
+sar -b # I/O
 ```
 
 `sysstat` also provides the `iostat` binary. On FreeBSD you could use `systat` for example.
@@ -124,16 +125,16 @@ Get-Content .\icinga2.log -tail 10 -wait
 
 Enable the `debuglog` feature:
 
-```
-# icinga2 feature enable debuglog
-# service icinga2 restart
+```bash
+icinga2 feature enable debuglog
+service icinga2 restart
 ```
 
 The debug log file can be found in `/var/log/icinga2/debug.log`.
 
 You can tail the log files with an administrative shell:
 
-```
+```bash
 cd /var/log/icinga2
 tail -f debug.log
 ```
@@ -141,8 +142,8 @@ tail -f debug.log
 Alternatively you may run Icinga 2 in the foreground with debugging enabled. Specify the console
 log severity as an additional parameter argument to `-x`.
 
-```
-# /usr/sbin/icinga2 daemon -x notice
+```bash
+/usr/sbin/icinga2 daemon -x notice
 ```
 
 The [log severity](09-object-types.md#objecttype-filelogger) can be one of `critical`, `warning`, `information`, `notice`
@@ -290,8 +291,8 @@ encapsulated by `/* ... */`).
 Run the [configuration validation](11-cli-commands.md#config-validation) and add `notice` as log severity.
 Search for the file which should be included i.e. using the `grep` CLI command.
 
-```
-# icinga2 daemon -C -x notice | grep command
+```bash
+icinga2 daemon -C -x notice | grep command
 ```
 
 ### Configuration attributes are inherited from <a id="configuration-attribute-inheritance"></a>
@@ -382,10 +383,10 @@ $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:
 
 Example for searching the debug log:
 
-```
-# icinga2 feature enable debuglog
-# systemctl restart icinga2
-# tail -f /var/log/icinga2/debug.log | grep "notice/Process"
+```bash
+icinga2 feature enable debuglog
+systemctl restart icinga2
+tail -f /var/log/icinga2/debug.log | grep "notice/Process"
 ```
 
 
@@ -404,8 +405,8 @@ and verify why the checks are not executed there.
 
 Test a plugin as icinga user.
 
-```
-# sudo -u icinga /usr/lib/nagios/plugins/check_ping -4 -H 127.0.0.1 -c 5000,100% -w 3000,80%
+```bash
+sudo -u icinga /usr/lib/nagios/plugins/check_ping -4 -H 127.0.0.1 -c 5000,100% -w 3000,80%
 ```
 
 > **Note**
@@ -425,8 +426,8 @@ The feature 'checker' is already enabled.
 
 Fetch all check result events matching the `event.service` name `random`:
 
-```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST \
+```bash
+curl -k -s -u root:icinga -H 'Accept: application/json' -X POST \
  'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
 ```
 
@@ -579,7 +580,7 @@ The error message could look like this:
 In order to solve the problem, increase the value for `DefaultTasksMax`
 or set it to `infinity`.
 
-```
+```bash
 mkdir /etc/systemd/system/icinga2.service.d
 cat >/etc/systemd/system/icinga2.service.d/limits.conf <<EOF
 [Service]
@@ -639,8 +640,8 @@ a dashboard overview for `overdue checks`.
 The REST API provides the [status](12-icinga2-api.md#icinga2-api-status) URL endpoint with some generic metrics
 on Icinga and its features.
 
-```
-# curl -k -s -u root:icinga 'https://localhost:5665/v1/status?pretty=1' | less
+```bash
+curl -k -s -u root:icinga 'https://localhost:5665/v1/status?pretty=1' | less
 ```
 
 You can also calculate late check results via the REST API:
@@ -755,17 +756,17 @@ Examples:
 The feature 'notification' is already enabled.
 ```
 
-```
-# icinga2 feature enable debuglog
-# systemctl restart icinga2
+```bash
+icinga2 feature enable debuglog
+systemctl restart icinga2
 
-# grep Notification /var/log/icinga2/debug.log > /root/analyze_notification_problem.log
+grep Notification /var/log/icinga2/debug.log > /root/analyze_notification_problem.log
 ```
 
 You can use the Icinga 2 API [event streams](12-icinga2-api.md#icinga2-api-event-streams) to receive live notification streams:
 
-```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=debugnotifications&types=Notification'
+```bash
+curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=debugnotifications&types=Notification'
 ```
 
 
@@ -869,19 +870,19 @@ to `features-enabled` and that the latter is included in [icinga2.conf](04-confi
 
 Look up the [object type](09-object-types.md#object-types) for the required feature and verify it is enabled:
 
-```
-# icinga2 object list --type <feature object type>
+```bash
+icinga2 object list --type <feature object type>
 ```
 
 Example for the `graphite` feature:
 
-```
-# icinga2 object list --type GraphiteWriter
+```bash
+icinga2 object list --type GraphiteWriter
 ```
 
 Look into the log and check whether the feature logs anything specific for this matter.
 
-```
+```bash
 grep GraphiteWriter /var/log/icinga2/icinga2.log
 ```
 
@@ -958,7 +959,7 @@ again, carefully do the following steps with creating a backup before:
 
 Navigate into the API package prefix.
 
-```
+```bash
 cd /var/lib/icinga2/api/packages
 ```
 
@@ -983,20 +984,20 @@ If you have more than one stage directory here, pick the latest modified
 directory. Copy the directory name `abcd-ef12-3456-7890` and
 add it into a new file `active-stage`. This can be done like this:
 
-```
+```bash
 echo "dbe0bef8-c72c-4cc9-9779-da7c4527c5b2" > active-stage
 ```
 
 `active.conf` needs to have the correct active stage too, add it again
 like this. Note: This is deep down in the code, use with care!
 
-```
+```bash
 sed -i 's/ActiveStages\["_api"\] = .*/ActiveStages\["_api"\] = "dbe0bef8-c72c-4cc9-9779-da7c4527c5b2"/g' /var/lib/icinga2/api/packages/_api/active.conf
 ```
 
 Restart Icinga 2.
 
-```
+```bash
 systemctl restart icinga2
 ```
 
@@ -1034,8 +1035,8 @@ Print the CA and client certificate and ensure that the following attributes are
 
 Navigate into the local certificate store:
 
-```
-$ cd /var/lib/icinga2/certs/
+```bash
+cd /var/lib/icinga2/certs/
 ```
 
 Make sure to verify the agents' certificate and its stored `ca.crt` in `/var/lib/icinga2/certs` and ensure that
@@ -1274,13 +1275,13 @@ SSL-Session:
 
 You can specifically use one cipher or a list with the `-cipher` parameter:
 
-```
+```bash
 openssl s_client -connect 192.168.33.5:5665 -cipher 'ECDHE-RSA-AES256-GCM-SHA384'
 ```
 
 In order to fully simulate a connecting client, provide the certificates too:
 
-```
+```bash
 CERTPATH='/var/lib/icinga2/certs'
 HOSTNAME='icinga2.vagrant.demo.icinga.com'
 openssl s_client -connect 192.168.33.5:5665 -cert "${CERTPATH}/${HOSTNAME}.crt" -key "${CERTPATH}/${HOSTNAME}.key" -CAfile "${CERTPATH}/ca.crt" -cipher 'ECDHE-RSA-AES256-GCM-SHA384'
@@ -1301,8 +1302,8 @@ the child node actively connectsm, you can still simulate a TLS handshake.
 Use `openssl s_server` instead of `openssl s_client` on the master during the connection
 attempt.
 
-```
-$ openssl s_server -connect 192.168.56.101:5665
+```bash
+openssl s_server -connect 192.168.56.101:5665
 ```
 
 Since the server role chooses the preferred cipher suite in Icinga,
@@ -1385,12 +1386,12 @@ General connection errors could be one of the following problems:
 Use tools like `netstat`, `tcpdump`, `nmap`, etc. to make sure that the cluster communication
 works (default port is `5665`).
 
-```
-# tcpdump -n port 5665 -i any
+```bash
+tcpdump -n port 5665 -i any
 
-# netstat -tulpen | grep icinga
+netstat -tulpen | grep icinga
 
-# nmap icinga2-agent1.localdomain
+nmap icinga2-agent1.localdomain
 ```
 
 ### Cluster Troubleshooting TLS Errors <a id="troubleshooting-cluster-tls-errors"></a>
@@ -1473,8 +1474,8 @@ Additional tasks:
 
 Fetch all check result events matching the `event.service` name `remote-client`:
 
-```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=debugcommandendpoint&types=CheckResult&filter=match%28%22remote-client*%22,event.service%29'
+```bash
+curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=debugcommandendpoint&types=CheckResult&filter=match%28%22remote-client*%22,event.service%29'
 ```
 
 
@@ -1508,19 +1509,19 @@ object Zone "master" {
 
 Then create a new directory in `zones.d` called `master`, if not existing.
 
-```
+```bash
 mkdir -p /etc/icinga2/zones.d/master
 ```
 
 Now move the directory tree from `conf.d` into the `master` zone.
 
-```
+```bash
 mv conf.d/* /etc/icinga2/zones.d/master/
 ```
 
 Validate the configuration and reload Icinga.
 
-```
+```bash
 icinga2 daemon -C
 systemctl restart icinga2
 ```

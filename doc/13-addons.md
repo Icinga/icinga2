@@ -40,8 +40,8 @@ You need to install Graphite first, then proceed with configuring it in Icinga 2
 Use the [GraphiteWriter](14-features.md#graphite-carbon-cache-writer) feature
 for sending real-time metrics from Icinga 2 to Graphite.
 
-```
-# icinga2 feature enable graphite
+```bash
+icinga2 feature enable graphite
 ```
 
 A popular alternative frontend for Graphite is for example [Grafana](https://grafana.org).
@@ -59,8 +59,8 @@ It’s written in Go and has no external dependencies.
 Use the [InfluxdbWriter](14-features.md#influxdb-writer) feature
 for sending real-time metrics from Icinga 2 to InfluxDB.
 
-```
-# icinga2 feature enable influxdb
+```bash
+icinga2 feature enable influxdb
 ```
 
 A popular frontend for InfluxDB is for example [Grafana](https://grafana.org).
@@ -86,13 +86,13 @@ data files which Icinga 2 generates.
 
 Enable performance data writer in icinga 2
 
-```
-# icinga2 feature enable perfdata
+```bash
+icinga2 feature enable perfdata
 ```
 
 Configure npcd to use the performance data created by Icinga 2:
 
-```
+```bash
 vim /etc/pnp4nagios/npcd.cfg
 ```
 

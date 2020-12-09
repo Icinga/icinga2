@@ -422,7 +422,7 @@ is a list with multiple indexes with the keys for scheduling info and the object
 Each check command execution logs the start and end time where
 Icinga 2 (and the end user) is able to calculate the plugin execution time from it.
 
-```
+```cpp
 GetExecutionEnd() - GetExecutionStart()
 ```
 
@@ -438,7 +438,7 @@ and computed from inside the check result.
 
 The difference between the two deltas is called `check latency`.
 
-```
+```cpp
 (GetScheduleEnd() - GetScheduleStart()) - CalculateExecutionTime()
 ```
 
@@ -454,7 +454,7 @@ The higher the severity number is, the more important the problem is.
 
 Flags:
 
-```
+```cpp
 /**
  * Severity Flags
  *
@@ -476,7 +476,7 @@ enum SeverityFlag
 
 Host:
 
-```
+```cpp
 	/* OK/Warning = Up, Critical/Unknown = Down */
 	if (!HasBeenChecked())
 		severity |= SeverityFlagPending;
@@ -496,7 +496,7 @@ Host:
 
 Service:
 
-```
+```cpp
 	if (!HasBeenChecked())
 		severity |= SeverityFlagPending;
 	else if (state == ServiceWarning)
@@ -702,7 +702,7 @@ This index is used to lookup the corresponding endpoint in the connected endpoin
 including the local endpoint. Whether the local endpoint is equal to the selected endpoint,
 or not, this sets the authority to `true` or `false`.
 
-```
+```cpp
 authority = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()] == my_endpoint;
 ```
 
@@ -1106,7 +1106,7 @@ RelayMessageOne() takes care of the routing. This involves fetching the targetZo
 
 With passing the `origin` the following condition prevents sending a message back to sender:
 
-```
+```cpp
 if (origin && origin->FromClient && targetEndpoint == origin->FromClient->GetEndpoint()) {
 ```
 
