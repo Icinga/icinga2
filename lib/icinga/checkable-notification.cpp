@@ -10,6 +10,7 @@
 #include "base/exception.hpp"
 #include "base/context.hpp"
 #include "base/convert.hpp"
+#include "base/lazy-init.hpp"
 #include "remote/apilistener.hpp"
 
 using namespace icinga;
@@ -145,35 +146,58 @@ static void FireSuppressedNotifications(Checkable* checkable)
 
 	int subtract = 0;
 
-	for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
-		if (suppressed_types & type) {
-			bool still_applies = checkable->NotificationReasonApplies(type);
+	{
+		LazyInit<bool> wasLastParentRecoveryRecent ([&checkable]() {
+			auto cr (checkable->GetLastCheckResult());
 
-			if (still_applies) {
-				bool still_suppressed;
+			if (!cr) {
+				return true;
+			}
 
-				switch (type) {
-					case NotificationProblem:
-						/* Fall through. */
-					case NotificationRecovery:
-						still_suppressed = !checkable->IsReachable(DependencyNotification) || checkable->IsInDowntime() || checkable->IsAcknowledged();
-						break;
-					case NotificationFlappingStart:
-						/* Fall through. */
-					case NotificationFlappingEnd:
-						still_suppressed = checkable->IsInDowntime();
-						break;
-					default:
-						break;
+			auto threshold (cr->GetExecutionStart());
+
+			for (auto& dep : checkable->GetDependencies()) {
+				auto parent (dep->GetParent());
+				ObjectLock oLock (parent);
+
+				if (!parent->GetProblem() && parent->GetLastStateChange() >= threshold) {
+					return true;
 				}
+			}
 
-				if (!still_suppressed && !checkable->IsLikelyToBeCheckedSoon()) {
-					Checkable::OnNotificationsRequested(checkable, type, checkable->GetLastCheckResult(), "", "", nullptr);
+			return false;
+		});
 
+		for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
+			if (suppressed_types & type) {
+				bool still_applies = checkable->NotificationReasonApplies(type);
+
+				if (still_applies) {
+					bool still_suppressed;
+
+					switch (type) {
+						case NotificationProblem:
+							/* Fall through. */
+						case NotificationRecovery:
+							still_suppressed = !checkable->IsReachable(DependencyNotification) || checkable->IsInDowntime() || checkable->IsAcknowledged();
+							break;
+						case NotificationFlappingStart:
+							/* Fall through. */
+						case NotificationFlappingEnd:
+							still_suppressed = checkable->IsInDowntime();
+							break;
+						default:
+							break;
+					}
+
+					if (!still_suppressed && !checkable->IsLikelyToBeCheckedSoon() && !wasLastParentRecoveryRecent.Get()) {
+						Checkable::OnNotificationsRequested(checkable, type, checkable->GetLastCheckResult(), "", "", nullptr);
+
+						subtract |= type;
+					}
+				} else {
 					subtract |= type;
 				}
-			} else {
-				subtract |= type;
 			}
 		}
 	}
