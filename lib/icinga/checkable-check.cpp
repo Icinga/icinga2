@@ -242,6 +242,20 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			OnReachabilityChanged(this, cr, children, origin);
 	}
 
+	if (recovery) {
+		for (auto& child : children) {
+			if (child->GetProblem() && child->GetEnableActiveChecks()) {
+				auto nextCheck (now + Utility::Random() % 60);
+
+				ObjectLock oLock (child);
+
+				if (nextCheck < child->GetNextCheck()) {
+					child->SetNextCheck(nextCheck);
+				}
+			}
+		}
+	}
+
 	if (!reachable)
 		SetLastStateUnreachable(Utility::GetTime());
 
