@@ -95,7 +95,7 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConn
 	auto item (Shared<Query>::Make(std::move(query)));
 
 	asio::post(m_Strand, [this, item, priority]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{item, nullptr, nullptr, nullptr});
+		m_Queues.Writes.emplace(WriteQueueItem{priority, m_Queues.NextWriteOrder++, item, nullptr, nullptr, nullptr});
 		m_QueuedWrites.Set();
 	});
 }
@@ -116,7 +116,7 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Red
 	auto item (Shared<Queries>::Make(std::move(queries)));
 
 	asio::post(m_Strand, [this, item, priority]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, item, nullptr, nullptr});
+		m_Queues.Writes.emplace(WriteQueueItem{priority, m_Queues.NextWriteOrder++, nullptr, item, nullptr, nullptr});
 		m_QueuedWrites.Set();
 	});
 }
@@ -141,7 +141,7 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 	auto item (Shared<std::pair<Query, std::promise<Reply>>>::Make(std::move(query), std::move(promise)));
 
 	asio::post(m_Strand, [this, item, priority]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, item, nullptr});
+		m_Queues.Writes.emplace(WriteQueueItem{priority, m_Queues.NextWriteOrder++, nullptr, nullptr, item, nullptr});
 		m_QueuedWrites.Set();
 	});
 
@@ -170,7 +170,7 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 	auto item (Shared<std::pair<Queries, std::promise<Replies>>>::Make(std::move(queries), std::move(promise)));
 
 	asio::post(m_Strand, [this, item, priority]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, item});
+		m_Queues.Writes.emplace(WriteQueueItem{priority, m_Queues.NextWriteOrder++, nullptr, nullptr, nullptr, item});
 		m_QueuedWrites.Set();
 	});
 
@@ -338,21 +338,18 @@ void RedisConnection::WriteLoop(asio::yield_context& yc)
 	for (;;) {
 		m_QueuedWrites.Wait(yc);
 
-	WriteFirstOfHighestPrio:
-		for (auto& queue : m_Queues.Writes) {
-			if (m_SuppressedQueryKinds.find(queue.first) != m_SuppressedQueryKinds.end() || queue.second.empty()) {
-				continue;
-			}
-
-			auto next (std::move(queue.second.front()));
-			queue.second.pop();
+		while (!m_Queues.Writes.empty() && m_SuppressedQueryKinds.find(m_Queues.Writes.top().Priority) == m_SuppressedQueryKinds.end()) {
+			auto next (m_Queues.Writes.top());
+			m_Queues.Writes.pop();
 
 			WriteItem(yc, std::move(next));
-
-			goto WriteFirstOfHighestPrio;
 		}
 
 		m_QueuedWrites.Clear();
+
+		if (m_Queues.Writes.empty()) {
+			m_Queues.NextWriteOrder = 0;
+		}
 	}
 }
 
@@ -499,4 +496,19 @@ void RedisConnection::WriteOne(RedisConnection::Query& query, asio::yield_contex
 	} else {
 		WriteOne(m_UnixConn, query, yc);
 	}
+}
+
+/**
+ * Priority Queue '<' operator overloading with our own logic
+ * to sort the priority order of the Redis query.
+ *
+ * @param other New WriteQueueItem object
+ */
+bool RedisConnection::WriteQueueItem::operator<(const RedisConnection::WriteQueueItem& other) const
+{
+	if (Priority == other.Priority) {
+		return Order > other.Order;
+	}
+
+	return Priority > other.Priority;
 }
