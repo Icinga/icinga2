@@ -1216,7 +1216,7 @@ a notification for them:
 ```bash
 curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/actions/acknowledge-problem' \
- -d '{ "type": "Service", "filter": "service.state==2&service.state_type=1", "author": "icingaadmin", "comment": "Global outage. Working on it.", "notify": true, "pretty": true }'
+ -d '{ "type": "Service", "filter": "service.state==2 && service.state_type==1", "author": "icingaadmin", "comment": "Global outage. Working on it.", "notify": true, "pretty": true }'
 ```
 
 ```json
