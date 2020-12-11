@@ -132,28 +132,16 @@ jobs:
             release: 8
           - name: centos
             release: 7
-          - name: centos
-            release: 6
           - name: fedora
             release: 32
           - name: fedora
             release: 31
-          - name: fedora
-            release: 30
-          - name: fedora
-            release: 29
           - name: sles
             release: '15.1'
-          - name: sles
-            release: '15.0'
           - name: sles
             release: '12.5'
-          - name: sles
-            release: '12.4'
           - name: opensuse
             release: '15.1'
-          - name: opensuse
-            release: '15.0'
 
     runs-on: ubuntu-latest
 
