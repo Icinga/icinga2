@@ -7,6 +7,7 @@
 #include "base/logger-ti.hpp"
 #include <set>
 #include <iosfwd>
+#include <vector>
 
 namespace icinga
 {
@@ -36,6 +37,8 @@ struct LogEntry {
 	String Facility; /**< The facility this log entry belongs to. */
 	String Message; /**< The log entry's message. */
 };
+
+extern thread_local std::vector<LogEntry>* l_LogConsole;
 
 /**
  * A log provider.
@@ -97,6 +100,7 @@ public:
 
 	Log(LogSeverity severity, String facility, const String& message);
 	Log(LogSeverity severity, String facility);
+	Log(LogEntry entry);
 
 	~Log();
 
@@ -110,6 +114,7 @@ public:
 	Log& operator<<(const char *val);
 
 private:
+	double m_Timestamp;
 	LogSeverity m_Severity;
 	String m_Facility;
 	std::ostringstream m_Buffer;

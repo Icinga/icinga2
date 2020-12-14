@@ -10,6 +10,7 @@
 #include "base/context.hpp"
 #include "base/scriptglobal.hpp"
 #include <iostream>
+#include <utility>
 
 using namespace icinga;
 
@@ -38,6 +39,8 @@ INITIALIZE_ONCE([]() {
 	ScriptGlobal::Set("System.LogWarning", LogWarning, true);
 	ScriptGlobal::Set("System.LogCritical", LogCritical, true);
 });
+
+thread_local std::vector<LogEntry>* icinga::l_LogConsole = nullptr;
 
 /**
  * Constructor for the Logger class.
@@ -183,14 +186,20 @@ void Logger::ValidateSeverity(const Lazy<String>& lvalue, const ValidationUtils&
 }
 
 Log::Log(LogSeverity severity, String facility, const String& message)
-	: m_Severity(severity), m_Facility(std::move(facility))
+	: m_Timestamp(Utility::GetTime()), m_Severity(severity), m_Facility(std::move(facility))
 {
 	m_Buffer << message;
 }
 
 Log::Log(LogSeverity severity, String facility)
-	: m_Severity(severity), m_Facility(std::move(facility))
+	: m_Timestamp(Utility::GetTime()), m_Severity(severity), m_Facility(std::move(facility))
 { }
+
+Log::Log(LogEntry entry)
+	: m_Timestamp(entry.Timestamp), m_Severity(entry.Severity), m_Facility(std::move(entry.Facility))
+{
+	m_Buffer << std::move(entry.Message);
+}
 
 /**
  * Writes the message to the application's log.
@@ -198,7 +207,7 @@ Log::Log(LogSeverity severity, String facility)
 Log::~Log()
 {
 	LogEntry entry;
-	entry.Timestamp = Utility::GetTime();
+	entry.Timestamp = m_Timestamp;
 	entry.Severity = m_Severity;
 	entry.Facility = m_Facility;
 	entry.Message = m_Buffer.str();
@@ -213,28 +222,33 @@ Log::~Log()
 		}
 	}
 
-	for (const Logger::Ptr& logger : Logger::GetLoggers()) {
-		ObjectLock llock(logger);
+	if (l_LogConsole == nullptr) {
+		for (const Logger::Ptr& logger : Logger::GetLoggers()) {
+			ObjectLock llock(logger);
 
-		if (!logger->IsActive())
-			continue;
+			if (!logger->IsActive())
+				continue;
 
-		if (entry.Severity >= logger->GetMinSeverity())
-			logger->ProcessLogEntry(entry);
+			if (entry.Severity >= logger->GetMinSeverity())
+				logger->ProcessLogEntry(entry);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
-		/* Always flush, don't depend on the timer. Enable this for development sprints on Linux/macOS only. Windows crashes. */
-		//logger->Flush();
+			/* Always flush, don't depend on the timer. Enable this for development sprints on Linux/macOS only. Windows crashes. */
+			//logger->Flush();
 #endif /* I2_DEBUG */
+		}
+
+		if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity()) {
+			StreamLogger::ProcessLogEntry(std::cout, entry);
+
+			/* "Console" might be a pipe/socket (systemd, daemontools, docker, ...),
+			 * then cout will not flush lines automatically. */
+			std::cout << std::flush;
+		}
+	} else {
+		l_LogConsole->emplace_back(std::move(entry));
 	}
 
-	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity()) {
-		StreamLogger::ProcessLogEntry(std::cout, entry);
-
-		/* "Console" might be a pipe/socket (systemd, daemontools, docker, ...),
-		 * then cout will not flush lines automatically. */
-		std::cout << std::flush;
-	}
 }
 
 Log& Log::operator<<(const char *val)

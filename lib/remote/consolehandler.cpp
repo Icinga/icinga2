@@ -15,6 +15,7 @@
 #include "base/utility.hpp"
 #include <boost/thread/once.hpp>
 #include <set>
+#include <utility>
 
 using namespace icinga;
 
@@ -124,6 +125,9 @@ bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::request<boost::beas
 	Value exprResult;
 
 	try {
+		std::vector<LogEntry> logConsole;
+		l_LogConsole = &logConsole;
+
 		expr = ConfigCompiler::CompileText(fileName, command);
 
 		ScriptFrame frame(true);
@@ -133,10 +137,25 @@ bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::request<boost::beas
 
 		exprResult = expr->Evaluate(frame);
 
+		l_LogConsole = nullptr;
+
+		Array::Ptr logs (new Array());
+		logs->Reserve(logConsole.size());
+
+		for (auto& entry : logConsole) {
+			logs->Add(new Dictionary({
+				{ "timestamp", entry.Timestamp },
+				{ "severity", entry.Severity },
+				{ "facility", std::move(entry.Facility) },
+				{ "message", std::move(entry.Message) }
+			}));
+		}
+
 		resultInfo = new Dictionary({
 			{ "code", 200 },
 			{ "status", "Executed successfully." },
-			{ "result", Serialize(exprResult, 0) }
+			{ "result", Serialize(exprResult, 0) },
+			{ "logs", std::move(logs) }
 		});
 	} catch (const ScriptError& ex) {
 		DebugInfo di = ex.GetDebugInfo();
