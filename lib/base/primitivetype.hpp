@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef PRIMITIVETYPE_H
-#define PRIMITIVETYPE_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/type.hpp"
@@ -58,5 +57,3 @@ private:
 	REGISTER_PRIMITIVE_TYPE_FACTORY(type, base, prototype, nullptr)
 
 }
-
-#endif /* PRIMITIVETYPE_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef SOCKET_H
-#define SOCKET_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
@@ -62,5 +61,3 @@ private:
 class socket_error : virtual public std::exception, virtual public boost::exception { };
 
 }
-
-#endif /* SOCKET_H */

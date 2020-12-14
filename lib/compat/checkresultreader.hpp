@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CHECKRESULTREADER_H
-#define CHECKRESULTREADER_H
+#pragma once
 
 #include "compat/checkresultreader-ti.hpp"
 #include "base/timer.hpp"
@@ -34,5 +33,3 @@ private:
 };
 
 }
-
-#endif /* CHECKRESULTREADER_H */

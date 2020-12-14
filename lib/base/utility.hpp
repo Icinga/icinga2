@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef UTILITY_H
-#define UTILITY_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
@@ -158,5 +157,3 @@ private:
 };
 
 }
-
-#endif /* UTILITY_H */

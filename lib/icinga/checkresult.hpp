@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CHECKRESULT_H
-#define CHECKRESULT_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkresult-ti.hpp"
@@ -24,5 +23,3 @@ public:
 };
 
 }
-
-#endif /* CHECKRESULT_H */

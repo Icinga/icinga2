@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef I2ICINGA_H
-#define I2ICINGA_H
+#pragma once
 
 /**
  * @defgroup icinga Icinga library
@@ -11,5 +10,3 @@
  */
 
 #include "base/i2-base.hpp"
-
-#endif /* I2ICINGA_H */

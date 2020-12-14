@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ZONE_H
-#define ZONE_H
+#pragma once
 
 #include "remote/i2-remote.hpp"
 #include "remote/zone-ti.hpp"
@@ -42,5 +41,3 @@ private:
 };
 
 }
-
-#endif /* ZONE_H */

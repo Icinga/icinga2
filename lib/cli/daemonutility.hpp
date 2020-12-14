@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DAEMONUTILITY_H
-#define DAEMONUTILITY_H
+#pragma once
 
 #include "cli/i2-cli.hpp"
 #include "config/configitem.hpp"
@@ -23,5 +22,3 @@ public:
 };
 
 }
-
-#endif /* DAEMONULITIY_H */

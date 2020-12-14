@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ENDPOINTDBOBJECT_H
-#define ENDPOINTDBOBJECT_H
+#pragma once
 
 #include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
@@ -33,5 +32,3 @@ private:
 };
 
 }
-
-#endif /* ENDPOINTDBOBJECT_H */

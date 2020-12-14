@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef EVENTCOMMAND_H
-#define EVENTCOMMAND_H
+#pragma once
 
 #include "icinga/eventcommand-ti.hpp"
 #include "icinga/checkable.hpp"
@@ -28,5 +27,3 @@ public:
 };
 
 }
-
-#endif /* EVENTCOMMAND_H */

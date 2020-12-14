@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef FEATUREENABLECOMMAND_H
-#define FEATUREENABLECOMMAND_H
+#pragma once
 
 #include "cli/clicommand.hpp"
 
@@ -28,5 +27,3 @@ public:
 };
 
 }
-
-#endif /* FEATUREENABLECOMMAND_H */

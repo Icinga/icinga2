@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef TLSSTREAM_H
-#define TLSSTREAM_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/shared.hpp"
@@ -125,5 +124,3 @@ typedef boost::asio::buffered_stream<boost::asio::ip::tcp::socket> AsioTcpStream
 typedef std::pair<Shared<AsioTlsStream>::Ptr, Shared<AsioTcpStream>::Ptr> OptionalTlsStream;
 
 }
-
-#endif /* TLSSTREAM_H */

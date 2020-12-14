@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef PKINEWCACOMMAND_H
-#define PKINEWCACOMMAND_H
+#pragma once
 
 #include "cli/clicommand.hpp"
 
@@ -25,5 +24,3 @@ public:
 };
 
 }
-
-#endif /* PKINEWCACOMMAND_H */

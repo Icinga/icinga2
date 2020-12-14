@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef SERVICEDBOBJECT_H
-#define SERVICEDBOBJECT_H
+#pragma once
 
 #include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
@@ -37,5 +36,3 @@ private:
 };
 
 }
-
-#endif /* SERVICEDBOBJECT_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef PKIUTILITY_H
-#define PKIUTILITY_H
+#pragma once
 
 #include "remote/i2-remote.hpp"
 #include "base/exception.hpp"
@@ -37,5 +36,3 @@ private:
 };
 
 }
-
-#endif /* PKIUTILITY_H */

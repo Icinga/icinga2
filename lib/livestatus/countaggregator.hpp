@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef COUNTAGGREGATOR_H
-#define COUNTAGGREGATOR_H
+#pragma once
 
 #include "livestatus/table.hpp"
 #include "livestatus/aggregator.hpp"
@@ -33,5 +32,3 @@ private:
 };
 
 }
-
-#endif /* COUNTAGGREGATOR_H */

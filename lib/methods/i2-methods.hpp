@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef I2METHODS_H
-#define I2METHODS_H
+#pragma once
 
 /**
  * @defgroup methods Icinga methods
@@ -11,5 +10,3 @@
  */
 
 #include "base/i2-base.hpp"
-
-#endif /* I2METHODS_H */

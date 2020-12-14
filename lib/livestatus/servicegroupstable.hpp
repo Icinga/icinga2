@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef SERVICEGROUPSTABLE_H
-#define SERVICEGROUPSTABLE_H
+#pragma once
 
 #include "livestatus/table.hpp"
 
@@ -50,5 +49,3 @@ protected:
 };
 
 }
-
-#endif /* SERVICEGROUPSTABLE_H */

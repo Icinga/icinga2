@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CIB_H
-#define CIB_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "base/ringbuffer.hpp"
@@ -87,5 +86,3 @@ private:
 };
 
 }
-
-#endif /* CIB_H */

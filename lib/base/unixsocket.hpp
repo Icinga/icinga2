@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef UNIXSOCKET_H
-#define UNIXSOCKET_H
+#pragma once
 
 #include "base/socket.hpp"
 
@@ -28,5 +27,3 @@ public:
 
 }
 #endif /* _WIN32 */
-
-#endif /* UNIXSOCKET_H */

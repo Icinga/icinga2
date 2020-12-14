@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef OBJECTTYPE_H
-#define OBJECTTYPE_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/type.hpp"
@@ -25,5 +24,3 @@ protected:
 };
 
 }
-
-#endif /* OBJECTTYPE_H */

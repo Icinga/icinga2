@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DATETIME_H
-#define DATETIME_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/datetime-ti.hpp"
@@ -36,5 +35,3 @@ private:
 };
 
 }
-
-#endif /* DATETIME_H */

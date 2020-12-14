@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef HISTORYTABLE_H
-#define HISTORYTABLE_H
+#pragma once
 
 #include "livestatus/table.hpp"
 #include "base/dictionary.hpp"
@@ -20,5 +19,3 @@ public:
 };
 
 }
-
-#endif /* HISTORYTABLE_H */

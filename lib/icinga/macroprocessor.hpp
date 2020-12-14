@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef MACROPROCESSOR_H
-#define MACROPROCESSOR_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkable.hpp"
@@ -57,5 +56,3 @@ private:
 };
 
 }
-
-#endif /* MACROPROCESSOR_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef LIVESTATUSLOGUTILITY_H
-#define LIVESTATUSLOGUTILITY_H
+#pragma once
 
 #include "livestatus/historytable.hpp"
 
@@ -56,5 +55,3 @@ private:
 };
 
 }
-
-#endif /* LIVESTATUSLOGUTILITY_H */

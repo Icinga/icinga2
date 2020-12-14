@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef LOGTABLE_H
-#define LOGTABLE_H
+#pragma once
 
 #include "livestatus/historytable.hpp"
 #include <boost/thread/mutex.hpp>
@@ -62,5 +61,3 @@ private:
 };
 
 }
-
-#endif /* LOGTABLE_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef TABLE_H
-#define TABLE_H
+#pragma once
 
 #include "livestatus/column.hpp"
 #include "base/object.hpp"
@@ -67,7 +66,5 @@ private:
 };
 
 }
-
-#endif /* TABLE_H */
 
 #include "livestatus/filter.hpp"

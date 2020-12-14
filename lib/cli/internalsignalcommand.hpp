@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef INTERNALSIGNALCOMMAND_H
-#define INTERNALSIGNALCOMMAND_H
+#pragma once
 
 #include "cli/clicommand.hpp"
 
@@ -29,5 +28,3 @@ public:
 };
 
 }
-
-#endif /* INTERNALSIGNALCOMMAND_H */

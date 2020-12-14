@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef RINGBUFFER_H
-#define RINGBUFFER_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
@@ -41,5 +40,3 @@ private:
 };
 
 }
-
-#endif /* RINGBUFFER_H */

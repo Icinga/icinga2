@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef PLUGINUTILITY_H
-#define PLUGINUTILITY_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkable.hpp"
@@ -38,5 +37,3 @@ private:
 };
 
 }
-
-#endif /* PLUGINUTILITY_H */

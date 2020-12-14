@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef SCRIPTGLOBAL_H
-#define SCRIPTGLOBAL_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/namespace.hpp"
@@ -31,5 +30,3 @@ private:
 };
 
 }
-
-#endif /* SCRIPTGLOBAL_H */

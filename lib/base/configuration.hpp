@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/configuration-ti.hpp"
@@ -152,5 +151,3 @@ private:
 };
 
 }
-
-#endif /* CONFIGURATION_H */

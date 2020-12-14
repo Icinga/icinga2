@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef TIMEPERIOD_H
-#define TIMEPERIOD_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/timeperiod-ti.hpp"
@@ -46,5 +45,3 @@ private:
 };
 
 }
-
-#endif /* TIMEPERIOD_H */

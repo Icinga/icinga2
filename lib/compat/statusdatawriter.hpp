@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef STATUSDATAWRITER_H
-#define STATUSDATAWRITER_H
+#pragma once
 
 #include "compat/statusdatawriter-ti.hpp"
 #include "icinga/customvarobject.hpp"
@@ -85,5 +84,3 @@ private:
 };
 
 }
-
-#endif /* STATUSDATAWRITER_H */

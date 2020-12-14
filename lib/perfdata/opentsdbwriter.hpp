@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef OPENTSDBWRITER_H
-#define OPENTSDBWRITER_H
+#pragma once
 
 #include "perfdata/opentsdbwriter-ti.hpp"
 #include "icinga/service.hpp"
@@ -57,5 +56,3 @@ private:
 };
 
 }
-
-#endif /* OPENTSDBWRITER_H */

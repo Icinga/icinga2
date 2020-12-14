@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2019 Icinga GmbH | GPLv2+ */
 
-#ifndef ATOMIC_H
-#define ATOMIC_H
+#pragma once
 
 #include <atomic>
 #include <type_traits>
@@ -115,5 +114,3 @@ struct EventuallyAtomic
 };
 
 }
-
-#endif /* ATOMIC_H */

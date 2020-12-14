@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef BASE64_H
-#define BASE64_H
+#pragma once
 
 #include "remote/i2-remote.hpp"
 #include "base/string.hpp"
@@ -21,5 +20,3 @@ struct Base64
 };
 
 }
-
-#endif /* BASE64_H */
