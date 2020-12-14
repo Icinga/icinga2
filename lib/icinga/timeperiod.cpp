@@ -201,23 +201,6 @@ void TimePeriod::PurgeSegments(double end)
 	SetSegments(newSegments);
 }
 
-void TimePeriod::Merge(const TimePeriod::Ptr& timeperiod, bool include)
-{
-	Log(LogDebug, "TimePeriod")
-		<< "Merge TimePeriod '" << GetName() << "' with '" << timeperiod->GetName() << "' "
-		<< "Method: " << (include ? "include" : "exclude");
-
-	Array::Ptr segments = timeperiod->GetSegments();
-
-	if (segments) {
-		ObjectLock dlock(segments);
-		ObjectLock ilock(this);
-		for (const Dictionary::Ptr& segment : segments) {
-			include ? AddSegment(segment) : RemoveSegment(segment);
-		}
-	}
-}
-
 void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 {
 	if (clearExisting) {
@@ -233,43 +216,13 @@ void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 
 	Array::Ptr segments = GetUpdate()->Invoke({ this, begin, end });
 
-	{
-		ObjectLock olock(this);
-		RemoveSegment(begin, end);
+	ObjectLock olock(this);
+	RemoveSegment(begin, end);
 
-		if (segments) {
-			ObjectLock dlock(segments);
-			for (const Dictionary::Ptr& segment : segments) {
-				AddSegment(segment);
-			}
-		}
-	}
-
-	bool preferInclude = GetPreferIncludes();
-
-	/* First handle the non preferred timeranges */
-	Array::Ptr timeranges = preferInclude ? GetExcludes() : GetIncludes();
-
-	if (timeranges) {
-		ObjectLock olock(timeranges);
-		for (const String& name : timeranges) {
-			const TimePeriod::Ptr timeperiod = TimePeriod::GetByName(name);
-
-			if (timeperiod)
-				Merge(timeperiod, !preferInclude);
-		}
-	}
-
-	/* Preferred timeranges must be handled at the end */
-	timeranges = preferInclude ? GetIncludes() : GetExcludes();
-
-	if (timeranges) {
-		ObjectLock olock(timeranges);
-		for (const String& name : timeranges) {
-			const TimePeriod::Ptr timeperiod = TimePeriod::GetByName(name);
-
-			if (timeperiod)
-				Merge(timeperiod, preferInclude);
+	if (segments) {
+		ObjectLock dlock(segments);
+		for (const Dictionary::Ptr& segment : segments) {
+			AddSegment(segment);
 		}
 	}
 }
@@ -279,9 +232,44 @@ bool TimePeriod::GetIsInside() const
 	return IsInside(Utility::GetTime());
 }
 
+static bool IsInsideTimePeriods(double ts, Array::Ptr tps)
+{
+	if (tps) {
+		ObjectLock oLock (tps);
+
+		for (const String& name : tps) {
+			auto timeperiod (TimePeriod::GetByName(name));
+
+			if (timeperiod && timeperiod->IsInside(ts)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 bool TimePeriod::IsInside(double ts) const
 {
 	ObjectLock olock(this);
+
+	if (GetPreferIncludes()) {
+		if (IsInsideTimePeriods(ts, GetIncludes())) {
+			return true;
+		}
+
+		if (IsInsideTimePeriods(ts, GetExcludes())) {
+			return false;
+		}
+	} else {
+		if (IsInsideTimePeriods(ts, GetExcludes())) {
+			return false;
+		}
+
+		if (IsInsideTimePeriods(ts, GetIncludes())) {
+			return true;
+		}
+	}
 
 	if (GetValidBegin().IsEmpty() || ts < GetValidBegin() || GetValidEnd().IsEmpty() || ts > GetValidEnd())
 		return true; /* Assume that all invalid regions are "inside". */
@@ -297,28 +285,6 @@ bool TimePeriod::IsInside(double ts) const
 	}
 
 	return false;
-}
-
-double TimePeriod::FindNextTransition(double begin)
-{
-	ObjectLock olock(this);
-
-	Array::Ptr segments = GetSegments();
-
-	double closestTransition = -1;
-
-	if (segments) {
-		ObjectLock dlock(segments);
-		for (const Dictionary::Ptr& segment : segments) {
-			if (segment->Get("begin") > begin && (segment->Get("begin") < closestTransition || closestTransition == -1))
-				closestTransition = segment->Get("begin");
-
-			if (segment->Get("end") > begin && (segment->Get("end") < closestTransition || closestTransition == -1))
-				closestTransition = segment->Get("end");
-		}
-	}
-
-	return closestTransition;
 }
 
 void TimePeriod::UpdateTimerHandler()

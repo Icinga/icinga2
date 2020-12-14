@@ -27,7 +27,6 @@ public:
 	bool GetIsInside() const override;
 
 	bool IsInside(double ts) const;
-	double FindNextTransition(double begin);
 
 	void ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
@@ -37,8 +36,6 @@ private:
 	void RemoveSegment(double begin, double end);
 	void RemoveSegment(const Dictionary::Ptr& segment);
 	void PurgeSegments(double end);
-
-	void Merge(const TimePeriod::Ptr& timeperiod, bool include = true);
 
 	void Dump();
 
