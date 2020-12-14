@@ -551,7 +551,15 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 	String message;
 	StreamReadContext src;
 	for (;;) {
-		StreamReadStatus srs = NetString::ReadStringFromStream(sfp, &message, src);
+		StreamReadStatus srs;
+
+		try {
+			srs = NetString::ReadStringFromStream(sfp, &message, src);
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ConfigObject")
+				<< "Failed to restore the complete state file: " << DiagnosticInformation(ex);
+			break;
+		}
 
 		if (srs == StatusEof)
 			break;
