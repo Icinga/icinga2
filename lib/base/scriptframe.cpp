@@ -37,6 +37,7 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	globalNS->SetAttribute("StatsFunctions", new ConstEmbeddedNamespaceValue(statsNS));
 
 	Namespace::Ptr internalNS = new Namespace(l_InternalNSBehavior);
+	internalNS->SetAttribute("modified_attributes", new ConstEmbeddedNamespaceValue(new Dictionary()));
 	globalNS->SetAttribute("Internal", new ConstEmbeddedNamespaceValue(internalNS));
 }, 1000);
 
