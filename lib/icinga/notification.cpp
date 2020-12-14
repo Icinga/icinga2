@@ -287,6 +287,12 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 				 */
 				SetNextNotification(checkable->GetLastHardStateChange() + timesBegin + 1.0);
 
+				/*
+				 * We need to set no more notifications to false, in case
+				 * some notifications were sent previously
+				 */
+				SetNoMoreNotifications(false);
+
 				return;
 			}
 
