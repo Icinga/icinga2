@@ -91,7 +91,7 @@ void FireSuppressedNotifications(const Notification::Ptr& notification)
 
 		if ((!tp || tp->IsInside(Utility::GetTime())) && !checkable->IsLikelyToBeCheckedSoon()) {
 			for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
-				if (!(suppressedTypes & type))
+				if (!(suppressedTypes & type) || checkable->NotificationReasonSuppressed(type))
 					continue;
 
 				auto notificationName (notification->GetName());
