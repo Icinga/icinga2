@@ -73,8 +73,11 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		time_t forceRenewalEnd = 1483228800; /* January 1st, 2017 */
 		time_t renewalStart = now + 30 * 24 * 60 * 60;
 
-		if (X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1) {
+		int days, sec;
+		ASN1_TIME_diff(&days, &sec, X509_get_notBefore(cert.get()), X509_get_notAfter(cert.get()));
 
+		if (X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1
+			&& days <= 397) {
 			Log(LogInformation, "JsonRpcConnection")
 				<< "The certificate for CN '" << cn << "' is valid and uptodate. Skipping automated renewal.";
 			result->Set("status_code", 1);
