@@ -17,6 +17,7 @@ set(base_SOURCES
   array.cpp array.hpp array-script.cpp
   atomic.hpp
   base64.cpp base64.hpp
+  benchmark.cpp benchmark.hpp
   boolean.cpp boolean.hpp boolean-script.cpp
   configobject.cpp configobject.hpp configobject-ti.hpp configobject-script.cpp
   configtype.cpp configtype.hpp
