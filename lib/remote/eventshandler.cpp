@@ -5,6 +5,7 @@
 #include "remote/filterutility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
+#include "base/accesslogger.hpp"
 #include "base/defer.hpp"
 #include "base/io-engine.hpp"
 #include "base/objectlock.hpp"
@@ -101,6 +102,8 @@ bool EventsHandler::HandleRequest(
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
+
+	LogAccess(stream, request, user ? user->GetName() : "", response);
 
 	IoBoundWorkSlot dontLockTheIoThread (yc);
 

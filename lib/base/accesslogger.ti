@@ -1,0 +1,20 @@
+/* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
+
+#include "base/filelogger.hpp"
+
+library base;
+
+namespace icinga
+{
+
+class AccessLogger : FileLogger
+{
+	activation_priority -99;
+
+	[config] String format {
+		default {{{ return R"EOF($remote.address$ - $remote.user$ [$time.%d/%b/%Y:%T %z$] "$request.method$ $request.uri$ HTTP/$request.protocol$" $response.status$ $response.size$
+)EOF"; }}}
+	};
+};
+
+}
