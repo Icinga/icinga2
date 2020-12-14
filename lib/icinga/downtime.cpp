@@ -197,8 +197,33 @@ bool Downtime::HasValidConfigOwner() const
 		return true;
 	}
 
-	String configOwner = GetConfigOwner();
-	return configOwner.IsEmpty() || Zone::GetByName(GetAuthoritativeZone()) != Zone::GetLocalZone() || GetObject<ScheduledDowntime>(configOwner);
+	if (Zone::GetByName(GetAuthoritativeZone()) != Zone::GetLocalZone()) {
+		return true;
+	}
+
+	ScheduledDowntime::Ptr owner;
+
+	{
+		auto configOwner (GetConfigOwner());
+
+		if (configOwner.IsEmpty()) {
+			return true;
+		}
+
+		owner = GetObject<ScheduledDowntime>(configOwner);
+
+		if (!owner) {
+			return false;
+		}
+	}
+
+	auto configOwnerHash (GetConfigOwnerHash());
+
+	if (configOwnerHash.IsEmpty()) {
+		return true;
+	}
+
+	return configOwnerHash == owner->HashDowntimeOptions();
 }
 
 int Downtime::GetNextDowntimeID()
