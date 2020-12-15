@@ -24,11 +24,11 @@ void InitializeOpenSSL();
 
 String GetOpenSSLVersion();
 
-Shared<boost::asio::ssl::context>::Ptr MakeAsioSslContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
-void AddCRLToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& crlPath);
+std::shared_ptr<boost::asio::ssl::context> MakeAsioSslContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
+void AddCRLToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& crlPath);
 void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath);
-void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& cipherList);
-void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& tlsProtocolmin);
+void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& cipherList);
+void SetTlsProtocolminToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& tlsProtocolmin);
 
 String GetCertificateCN(const std::shared_ptr<X509>& certificate);
 std::shared_ptr<X509> GetX509Certificate(const String& pemfile);
