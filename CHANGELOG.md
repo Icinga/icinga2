@@ -7,6 +7,21 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.11.8 (2020-12-15)
+
+Version 2.11.8 mainly focuses on resolving issues with high load on Windows regarding the config sync
+and not being able to disable/enable Icinga 2 features over the API.
+
+### Bugfixes
+
+* Improve config sync locking - resolves high load issues on Windows #8510
+* Fix runtime config updates being ignored for objects without zone #8550
+* Use proper buffer size for OpenSSL error messages #8543
+
+### Enhancements
+
+* On checkable recovery: re-check children that have a problem #8560 
+
 ## 2.11.7 (2020-12-01)
 
 Version 2.11.7 fixes several issues to improve the reliability of the cluster functionality.
