@@ -3405,6 +3405,25 @@ iostat\_ctps   | **Required.** Critical threshold for tps (default: 200).
 iostat\_cread  | **Required.** Critical threshold for KB/s reads (default: 200).
 iostat\_cwrite | **Required.** Critical threshold for KB/s writes (default: 200).
 
+#### systemd <a id="plugin-contrib-command-systemd"></a>
+
+The [check_systemd.py](https://github.com/Josef-Friedrich/check_systemd) plugin
+will report a degraded system to your monitoring solution. It requires only the [nagiosplugin](https://nagiosplugin.readthedocs.io/en/stable) library.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                            | Description
+--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------
+systemd\_unit                   | **Optional.** Name of the systemd unit that is being tested.
+systemd\_exclude\_unit          | **Optional.** Exclude a systemd unit from the checks. This option can be applied multiple times. Also supports regular expressions.
+systemd\_no\_startup\_time      | **Optional.** Don’t check the startup time. Using this option the options `systemd_warning` and `systemd_critical` have no effect. (Default: `false`)
+systemd\_warning                | **Optional.** Startup time in seconds to result in a warning status. (Default: `60s`)
+systemd\_critical               | **Optional.** Startup time in seconds to result in a critical status. (Default: `120s`)
+systemd\_dead\_timers           | **Optional.** Detect dead / inactive timers. (Default: `false`)
+systemd\_dead\_timers\_warning  | **Optional.** Time ago in seconds for dead / inactive timers to trigger a warning state (by default 6 days).
+systemd\_dead\_timers\_critical | **Optional.** Time ago in seconds for dead / inactive timers to trigger a critical state (by default 7 days).
+systemd\_verbose\_level         | **Optional.** Increase verbosity level (Accepted values: `1`, `2` or `3`). (Defaults to none)
+
 #### yum <a id="plugin-contrib-command-yum"></a>
 
 The [check_yum](https://github.com/calestyo/check_yum) plugin checks the YUM package
