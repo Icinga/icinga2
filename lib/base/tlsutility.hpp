@@ -30,6 +30,7 @@ String GetOpenSSLVersion();
 
 Shared<boost::asio::ssl::context>::Ptr MakeAsioSslContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
 void AddCRLToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& crlPath);
+void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath);
 void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& cipherList);
 void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& tlsProtocolmin);
 
@@ -51,7 +52,7 @@ String SHA1(const String& s, bool binary = false);
 String SHA256(const String& s);
 String RandomString(int length);
 
-bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate);
+bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate, const String& crlFile);
 bool IsCa(const std::shared_ptr<X509>& cacert);
 int GetCertificateVersion(const std::shared_ptr<X509>& cert);
 String GetSignatureAlgorithm(const std::shared_ptr<X509>& cert);

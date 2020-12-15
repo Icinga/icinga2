@@ -28,12 +28,13 @@ void PKIVerifyCommand::InitParameters(boost::program_options::options_descriptio
 	visibleDesc.add_options()
 		("cn", po::value<std::string>(), "Common Name (optional). Use with '--cert' to check the CN in the certificate.")
 		("cert", po::value<std::string>(), "Certificate file path (optional). Standalone: print certificate. With '--cacert': Verify against CA.")
-		("cacert", po::value<std::string>(), "CA certificate file path (optional). If passed standalone, verifies whether this is a CA certificate");
+		("cacert", po::value<std::string>(), "CA certificate file path (optional). If passed standalone, verifies whether this is a CA certificate")
+		("crl", po::value<std::string>(), "CRL file path (optional). Check the certificate against this revocation list when verifying against CA.");
 }
 
 std::vector<String> PKIVerifyCommand::GetArgumentSuggestions(const String& argument, const String& word) const
 {
-	if (argument == "cert" || argument == "cacert")
+	if (argument == "cert" || argument == "cacert" || argument == "crl")
 		return GetBashCompletionSuggestions("file", word);
 	else
 		return CLICommand::GetArgumentSuggestions(argument, word);
@@ -46,7 +47,7 @@ std::vector<String> PKIVerifyCommand::GetArgumentSuggestions(const String& argum
  */
 int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String cn, certFile, caCertFile;
+	String cn, certFile, caCertFile, crlFile;
 
 	if (vm.count("cn"))
 		cn = vm["cn"].as<std::string>();
@@ -56,6 +57,9 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, const
 
 	if (vm.count("cacert"))
 		caCertFile = vm["cacert"].as<std::string>();
+
+	if (vm.count("crl"))
+		crlFile = vm["crl"].as<std::string>();
 
 	/* Verify CN in certificate. */
 	if (!cn.IsEmpty() && !certFile.IsEmpty()) {
@@ -126,10 +130,15 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, const
 		bool signedByCA;
 
 		try {
-			signedByCA = VerifyCertificate(cacert, cert);
+			signedByCA = VerifyCertificate(cacert, cert, crlFile);
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "cli")
-				<< "CRITICAL: Certificate with CN '" << certCN << "' is NOT signed by CA: " << DiagnosticInformation(ex, false);
+			Log logmsg (LogCritical, "cli");
+			logmsg << "CRITICAL: Certificate with CN '" << certCN << "' is NOT signed by CA: ";
+			if (const unsigned long *openssl_code = boost::get_error_info<errinfo_openssl_error>(ex)) {
+				logmsg << X509_verify_cert_error_string(*openssl_code) << " (code " << *openssl_code << ")";
+			} else {
+				logmsg << DiagnosticInformation(ex, false);
+			}
 
 			return ServiceCritical;
 		}
