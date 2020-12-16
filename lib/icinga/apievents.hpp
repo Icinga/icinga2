@@ -3,6 +3,7 @@
 #ifndef APIEVENTS_H
 #define APIEVENTS_H
 
+#include "remote/eventqueue.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/host.hpp"
 
@@ -39,6 +40,10 @@ public:
 	static void DowntimeRemovedHandler(const Downtime::Ptr& downtime);
 	static void DowntimeStartedHandler(const Downtime::Ptr& downtime);
 	static void DowntimeTriggeredHandler(const Downtime::Ptr& downtime);
+
+	static void OnActiveChangedHandler(const ConfigObject::Ptr& object, const Value&);
+	static void OnVersionChangedHandler(const ConfigObject::Ptr& object, const Value&);
+	static void SendObjectChangeEvent(const ConfigObject::Ptr& object, const EventType& eventType, const String& eventQueue);
 };
 
 }
