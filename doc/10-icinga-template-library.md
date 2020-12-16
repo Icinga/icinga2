@@ -2199,6 +2199,7 @@ snmp_process_name          | **Optional.** Name of the process (regexp). No trai
 snmp_perf                  | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout               | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 snmp_process_use_params    | **Optional.** Add process parameters to process name for regexp matching. Example: "named.*-t /var/named/chroot" will only select named process with this parameter. Defaults to false.
+snmp_process_use_fullpath  | **Optional.** Use full path name instead of process name to select processes. Example: "/opt/app1/app1bin" will only select named process with this full path. Defaults to false.
 snmp_process_mem_usage     | **Optional.** Define to check memory usage for the process. Defaults to false.
 snmp_process_mem_threshold | **Optional.** Defines the warning and critical thresholds in Mb when snmp_process_mem_usage set to true. Example "512,1024". Defaults to "0,0".
 snmp_process_cpu_usage     | **Optional.** Define to check CPU usage for the process. Defaults to false.
