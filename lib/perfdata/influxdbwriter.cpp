@@ -517,7 +517,7 @@ void InfluxdbWriter::Flush()
 	}
 
 	request.body() = body;
-	request.set(http::field::content_length, request.body().size());
+	request.content_length(request.body().size());
 
 	try {
 		if (stream.first) {
