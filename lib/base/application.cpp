@@ -29,6 +29,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else /* _WIN32 */
+#include <sys/mman.h>
 #include <signal.h>
 #endif /* _WIN32 */
 
@@ -53,7 +54,26 @@ int Application::m_ArgC;
 char **Application::m_ArgV;
 double Application::m_StartTime;
 bool Application::m_ScriptDebuggerEnabled = false;
-double Application::m_LastReloadFailed;
+
+#ifdef _WIN32
+double Application::m_LastReloadFailed = 0;
+#else /* _WIN32 */
+std::atomic<double>* Application::m_LastReloadFailed = ([]() -> std::atomic<double>* {
+	auto memory (mmap(
+		nullptr, sizeof(std::atomic<double>),
+		PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0
+	));
+	if (memory == MAP_FAILED) {
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("mmap")
+			<< boost::errinfo_errno(errno));
+	}
+
+	auto lrf ((std::atomic<double>*)memory);
+	lrf->store(0);
+	return lrf;
+})();
+#endif /* _WIN32 */
 
 /**
  * Constructor for the Application class.
@@ -1172,12 +1192,20 @@ void Application::SetScriptDebuggerEnabled(bool enabled)
 
 double Application::GetLastReloadFailed()
 {
+#ifdef _WIN32
 	return m_LastReloadFailed;
+#else /* _WIN32 */
+	return m_LastReloadFailed->load();
+#endif /* _WIN32 */
 }
 
 void Application::SetLastReloadFailed(double ts)
 {
+#ifdef _WIN32
 	m_LastReloadFailed = ts;
+#else /* _WIN32 */
+	m_LastReloadFailed->store(ts);
+#endif /* _WIN32 */
 }
 
 void Application::ValidateName(const Lazy<String>& lvalue, const ValidationUtils& utils)

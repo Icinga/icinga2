@@ -7,6 +7,7 @@
 #include "base/application-ti.hpp"
 #include "base/logger.hpp"
 #include "base/configuration.hpp"
+#include <atomic>
 #include <iosfwd>
 
 namespace icinga
@@ -137,7 +138,11 @@ private:
 	static double m_StartTime;
 	static double m_MainTime;
 	static bool m_ScriptDebuggerEnabled;
+#ifdef _WIN32
 	static double m_LastReloadFailed;
+#else /* _WIN32 */
+	static std::atomic<double> *m_LastReloadFailed;
+#endif /* _WIN32 */
 
 #ifdef _WIN32
 	static BOOL WINAPI CtrlHandler(DWORD type);

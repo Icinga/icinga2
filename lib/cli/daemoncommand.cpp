@@ -771,10 +771,12 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 			if (nextWorker == -1) {
 				Log(LogCritical, "Application", "Found error in config: reloading aborted");
+				Application::SetLastReloadFailed(Utility::GetTime());
 			} else {
 				Log(LogInformation, "Application")
 					<< "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
 
+				Application::SetLastReloadFailed(0);
 				(void)kill(currentWorker, SIGTERM);
 
 				{
