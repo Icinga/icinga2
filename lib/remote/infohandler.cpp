@@ -92,7 +92,7 @@ bool InfoHandler::HandleRequest(
 
 		body += R"(<p>More information about API requests is available in the <a href="https://icinga.com/docs/icinga2/latest/" target="_blank">documentation</a>.</p></html>)";
 		response.body() = body;
-		response.set(http::field::content_length, response.body().size());
+		response.content_length(response.body().size());
 	}
 
 	return true;
