@@ -304,7 +304,7 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 
 #ifndef _WIN32
 /**
- * The possible states of a seemless worker being started by StartUnixWorker().
+ * The possible states of a seamless worker being started by StartUnixWorker().
  */
 enum class UnixWorkerState : uint_fast8_t
 {
@@ -328,10 +328,10 @@ static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 	return s;
 })();
 
-// The PID of the seemless worker currently being started by StartUnixWorker()
+// The PID of the seamless worker currently being started by StartUnixWorker()
 static Atomic<pid_t> l_CurrentlyStartingUnixWorkerPid (-1);
 
-// The state of the seemless worker currently being started by StartUnixWorker()
+// The state of the seamless worker currently being started by StartUnixWorker()
 static Atomic<UnixWorkerState> l_CurrentlyStartingUnixWorkerState (UnixWorkerState::Pending);
 
 // The last temination signal we received
@@ -356,14 +356,14 @@ static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 		case SIGUSR2:
 			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
 				&& (info->si_pid == 0 || info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) ) {
-				// The seemless worker currently being started by StartUnixWorker() successfully loaded its config
+				// The seamless worker currently being started by StartUnixWorker() successfully loaded its config
 				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::LoadedConfig);
 			}
 			break;
 		case SIGCHLD:
 			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
 				&& (info->si_pid == 0 || info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) ) {
-				// The seemless worker currently being started by StartUnixWorker() failed
+				// The seamless worker currently being started by StartUnixWorker() failed
 				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Failed);
 			}
 			break;
@@ -393,7 +393,7 @@ static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 }
 
 /**
- * Seemless worker's signal handlers
+ * Seamless worker's signal handlers
  */
 static void WorkerSignalHandler(int num, siginfo_t *info, void*)
 {
@@ -440,7 +440,7 @@ static void NotifyWatchdog()
 #endif /* HAVE_SYSTEMD */
 
 /**
- * Starts seemless worker process doing the actual work (config loading, ...)
+ * Starts seamless worker process doing the actual work (config loading, ...)
  *
  * @param configs Files to read config from
  * @param closeConsoleLog Whether to close the console log after config loading
@@ -451,7 +451,7 @@ static void NotifyWatchdog()
 static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool closeConsoleLog = false, const String& stderrFile = String())
 {
 	Log(LogNotice, "cli")
-		<< "Spawning seemless worker process doing the actual work";
+		<< "Spawning seamless worker process doing the actual work";
 
 	try {
 		Application::UninitializeBase();
@@ -707,7 +707,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	if (vm.count("errorlog"))
 		errorLog = vm["errorlog"].as<std::string>();
 
-	// The PID of the current seemless worker
+	// The PID of the current seamless worker
 	pid_t currentWorker = StartUnixWorker(configs, closeConsoleLog, errorLog);
 
 	if (currentWorker == -1) {
@@ -730,7 +730,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	sd_notify(0, "READY=1");
 #endif /* HAVE_SYSTEMD */
 
-	// Whether we already forwarded a termination signal to the seemless worker
+	// Whether we already forwarded a termination signal to the seamless worker
 	bool requestedTermination = false;
 
 	// Whether we already notified systemd about our termination
@@ -745,7 +745,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 			int termSig = l_TermSignal.load();
 			if (termSig != -1) {
 				Log(LogNotice, "cli")
-					<< "Got signal " << termSig << ", forwarding to seemless worker (PID " << currentWorker << ")";
+					<< "Got signal " << termSig << ", forwarding to seamless worker (PID " << currentWorker << ")";
 
 				(void)kill(currentWorker, termSig);
 				requestedTermination = true;
@@ -815,7 +815,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 		if (l_RequestedReopenLogs.exchange(false)) {
 			Log(LogNotice, "cli")
-				<< "Got signal " << SIGUSR1 << ", forwarding to seemless worker (PID " << currentWorker << ")";
+				<< "Got signal " << SIGUSR1 << ", forwarding to seamless worker (PID " << currentWorker << ")";
 
 			(void)kill(currentWorker, SIGUSR1);
 		}
@@ -824,7 +824,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 			int status;
 			if (waitpid(currentWorker, &status, WNOHANG) > 0) {
 				Log(LogNotice, "cli")
-					<< "Seemless worker (PID " << currentWorker << ") stopped, stopping as well";
+					<< "Seamless worker (PID " << currentWorker << ") stopped, stopping as well";
 
 #ifdef HAVE_SYSTEMD
 				if (!notifiedTermination) {
@@ -833,7 +833,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 				}
 #endif /* HAVE_SYSTEMD */
 
-				// If killed by signal, forward it via the exit code (to be as seemless as possible)
+				// If killed by signal, forward it via the exit code (to be as seamless as possible)
 				return WIFSIGNALED(status) ? 128 + WTERMSIG(status) : WEXITSTATUS(status);
 			}
 		}

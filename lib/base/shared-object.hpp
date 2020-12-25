@@ -16,7 +16,7 @@ inline void intrusive_ptr_add_ref(SharedObject *object);
 inline void intrusive_ptr_release(SharedObject *object);
 
 /**
- * Seemless and polymorphistic base for any class to create shared pointers of.
+ * Seamless and polymorphistic base for any class to create shared pointers of.
  * Saves a memory allocation compared to std::shared_ptr.
  *
  * @ingroup base

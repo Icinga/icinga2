@@ -29,7 +29,7 @@ inline void intrusive_ptr_release(Shared<T> *object)
 }
 
 /**
- * Seemless wrapper for any class to create shared pointers of.
+ * Seamless wrapper for any class to create shared pointers of.
  * Saves a memory allocation compared to std::shared_ptr.
  *
  * @ingroup base
