@@ -163,37 +163,37 @@ status() {
 
 ### main logic ###
 case "$1" in
-  start)
-	checkconfig start fail
-	start
-  ;;
-  stop)
-	stop
+	start)
+		checkconfig start fail
+		start
 	;;
-  status)
-	status
-  ;;
-  restart)
-	checkconfig restart fail
-	stop nofail
-	start
-  ;;
-  condrestart)
-	STATUS=$(status > /dev/null 2>&1)
-	if [ $? != 0 ]; then exit 0; fi
-	checkconfig restart fail
-	stop nofail
-	start
-  ;;
-  reload)
-	reload
-  ;;
-  checkconfig)
-	checkconfig
-  ;;
-  *)
-	echo "Usage: $0 {start|stop|restart|reload|checkconfig|status}"
-	exit 3
+	stop)
+		stop
+	;;
+	status)
+		status
+	;;
+	restart)
+		checkconfig restart fail
+		stop nofail
+		start
+	;;
+	condrestart)
+		STATUS=$(status > /dev/null 2>&1)
+		if [ $? != 0 ]; then exit 0; fi
+		checkconfig restart fail
+		stop nofail
+		start
+	;;
+	reload)
+		reload
+	;;
+	checkconfig)
+		checkconfig
+	;;
+	*)
+		echo "Usage: $0 {start|stop|restart|reload|checkconfig|status}"
+		exit 3
 esac
 
 exit 0
