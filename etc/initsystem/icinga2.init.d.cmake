@@ -53,9 +53,20 @@ if [ ! -e $ICINGA2_CONFIG_FILE ]; then
 	exit 6
 fi
 
-getent passwd $ICINGA2_USER >/dev/null 2>&1 || (echo "Icinga user '$ICINGA2_USER' does not exist. Exiting." && exit 6)
-getent group $ICINGA2_GROUP >/dev/null 2>&1 || (echo "Icinga group '$ICINGA2_GROUP' does not exist. Exiting." && exit 6)
-getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || (echo "Icinga command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting." && exit 6)
+if ! getent passwd "$ICINGA2_USER" >/dev/null 2>&1; then
+	echo "Icinga user '$ICINGA2_USER' does not exist. Exiting."
+	exit 6
+fi
+
+if ! getent group "$ICINGA2_GROUP" >/dev/null 2>&1; then
+	echo "Icinga group '$ICINGA2_GROUP' does not exist. Exiting."
+	exit 6
+fi
+
+if ! getent group "$ICINGA2_COMMAND_GROUP" >/dev/null 2>&1; then
+	echo "Icinga command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting."
+	exit 6
+fi
 
 # Start Icinga 2
 start() {
