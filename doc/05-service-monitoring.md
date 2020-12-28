@@ -953,7 +953,7 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 ### Log Monitoring <a id="service-monitoring-log"></a>
 
 * [check_logfiles](https://labs.consol.de/nagios/check_logfiles/)
-* [check_logstash](https://github.com/widhalmt/check_logstash)
+* [check_logstash](https://github.com/NETWAYS/check_logstash)
 * [check_graylog2_stream](https://github.com/Graylog2/check-graylog2-stream)
 
 ### Virtualization Monitoring <a id="service-monitoring-virtualization"></a>
