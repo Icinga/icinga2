@@ -206,7 +206,7 @@ int Downtime::GetNextDowntimeID()
 	return l_NextDowntimeID;
 }
 
-String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& author,
+Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& author,
 	const String& comment, double startTime, double endTime, bool fixed,
 	const String& triggeredBy, double duration,
 	const String& scheduledDowntime, const String& scheduledBy,
@@ -302,7 +302,7 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 		<< "' and '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) << "', author: '"
 		<< author << "', " << (fixed ? "fixed" : "flexible with " + Convert::ToString(duration) + "s duration");
 
-	return fullName;
+	return downtime;
 }
 
 void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, const MessageOrigin::Ptr& origin)
