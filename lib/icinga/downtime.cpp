@@ -75,12 +75,10 @@ void Downtime::OnAllConfigLoaded()
 {
 	ObjectImpl<Downtime>::OnAllConfigLoaded();
 
-	Host::Ptr host = Host::GetByName(GetHostName());
-
 	if (GetServiceName().IsEmpty())
-		m_Checkable = host;
+		m_Checkable = Host::GetByName(GetHostName());
 	else
-		m_Checkable = host->GetServiceByShortName(GetServiceName());
+		m_Checkable = Service::GetByNamePair(GetHostName(), GetServiceName());
 
 	if (!m_Checkable)
 		BOOST_THROW_EXCEPTION(ScriptError("Downtime '" + GetName() + "' references a host/service which doesn't exist.", GetDebugInfo()));
