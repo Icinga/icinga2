@@ -10,6 +10,7 @@
 #include "base/atomic.hpp"
 #include "base/defer.hpp"
 #include "base/logger.hpp"
+#include "base/streamlogger.hpp"
 #include "base/application.hpp"
 #include "base/process.hpp"
 #include "base/timer.hpp"
@@ -24,6 +25,7 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -234,6 +236,13 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 	}
 #endif /* I2_DEBUG */
 
+	std::ostringstream oss;
+	StreamLogger::Ptr sl = new StreamLogger();
+
+	sl->BindStream(&oss, false);
+	sl->Start(true);
+	sl->SetActive(true);
+
 	Log(LogInformation, "cli", "Loading configuration file(s).");
 
 	{
@@ -241,8 +250,17 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 
 		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath)) {
 			Log(LogCritical, "cli", "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
+
+			sl->Stop(true);
+			sl = nullptr;
+			Application::SetLastReloadFailed(Utility::GetTime(), oss.str());
+
 			return EXIT_FAILURE;
 		}
+
+		sl->Stop(true);
+		sl = nullptr;
+		oss = decltype(oss)();
 
 #ifndef _WIN32
 		Log(LogNotice, "cli")
@@ -472,7 +490,18 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 		case -1:
 			Log(LogCritical, "cli")
 				<< "fork() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			exit(EXIT_FAILURE);
+
+			try {
+				Application::InitializeBase();
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "cli")
+					<< "Failed to re-initialize thread pool after forking (parent): " << DiagnosticInformation(ex);
+				exit(EXIT_FAILURE);
+			}
+
+			(void)sigprocmask(SIG_UNBLOCK, &l_UnixWorkerSignals, nullptr);
+			Application::SetLastReloadFailed(Utility::GetTime(), "fork() failed");
+			return -1;
 
 		case 0:
 			try {
@@ -507,6 +536,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 				} catch (const std::exception& ex) {
 					Log(LogCritical, "cli")
 						<< "Failed to re-initialize thread pool after forking (child): " << DiagnosticInformation(ex);
+					Application::SetLastReloadFailed(Utility::GetTime(), "Failed to re-initialize thread pool after forking (child)");
 					_exit(EXIT_FAILURE);
 				}
 
@@ -520,6 +550,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 
 				_exit(RunWorker(configs, closeConsoleLog, stderrFile));
 			} catch (...) {
+				Application::SetLastReloadFailed(Utility::GetTime(), "");
 				_exit(EXIT_FAILURE);
 			}
 
@@ -775,6 +806,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 				Log(LogInformation, "Application")
 					<< "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
 
+				Application::SetLastReloadFailed(0, "");
 				(void)kill(currentWorker, SIGTERM);
 
 				{

@@ -137,6 +137,8 @@ public:
 
 	static bool ComparePasswords(const String& enteredPassword, const String& actualPassword);
 
+	static void FilterPerfdata(const Array::Ptr& perfdata, const Value& filter);
+
 #ifdef I2_DEBUG
 	static void SetTime(double);
 	static void IncrementTime(double);

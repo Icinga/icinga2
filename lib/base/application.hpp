@@ -7,7 +7,10 @@
 #include "base/application-ti.hpp"
 #include "base/logger.hpp"
 #include "base/configuration.hpp"
+#include <atomic>
 #include <iosfwd>
+#include <mutex>
+#include <utility>
 
 namespace icinga
 {
@@ -100,8 +103,8 @@ public:
 	static bool GetScriptDebuggerEnabled();
 	static void SetScriptDebuggerEnabled(bool enabled);
 
-	static double GetLastReloadFailed();
-	static void SetLastReloadFailed(double ts);
+	static std::pair<double, String> GetLastReloadFailed();
+	static void SetLastReloadFailed(double ts, const String& reason);
 
 	static void DisplayInfoMessage(std::ostream& os, bool skipVersion = false);
 
@@ -137,7 +140,25 @@ private:
 	static double m_StartTime;
 	static double m_MainTime;
 	static bool m_ScriptDebuggerEnabled;
-	static double m_LastReloadFailed;
+
+#ifdef _WIN32
+	struct LastFailedReload
+	{
+		double When = 0;
+		String Why;
+	};
+
+	static LastFailedReload m_LastReloadFailed;
+	static std::mutex m_LastReloadFailedMutex;
+#else /* _WIN32 */
+	struct LastFailedReload
+	{
+		std::atomic<double> When;
+		volatile char Why[4096];
+	};
+
+	static LastFailedReload *m_LastReloadFailed;
+#endif /* _WIN32 */
 
 #ifdef _WIN32
 	static BOOL WINAPI CtrlHandler(DWORD type);

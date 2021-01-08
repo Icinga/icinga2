@@ -76,7 +76,6 @@ public:
 
 	void ValidateSeverity(const Lazy<String>& lvalue, const ValidationUtils& utils) final;
 
-protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
 

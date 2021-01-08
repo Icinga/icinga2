@@ -6,6 +6,7 @@
 #include "icinga/cib.hpp"
 #include "icinga/service.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "icinga/checkcommand.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
@@ -25,10 +26,28 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
 
+	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	MacroProcessor::ResolverList resolvers;
+	if (MacroResolver::OverrideMacros)
+		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
+
+	if (service)
+		resolvers.emplace_back("service", service);
+	resolvers.emplace_back("host", host);
+	resolvers.emplace_back("command", command);
+	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+
+	auto perfdataFilter (MacroProcessor::ResolveMacros("$cluster_perfdata$", resolvers, checkable->GetLastCheckResult(),
+		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros));
+
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
-	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
 	String commandName = command->GetName();
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -86,7 +105,9 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 	} else {
 		/* use feature stats perfdata */
 		std::pair<Dictionary::Ptr, Array::Ptr> feature_stats = CIB::GetFeatureStats();
-		cr->SetPerformanceData(feature_stats.second);
+		auto& perfdata (feature_stats.second);
+		Utility::FilterPerfdata(perfdata, perfdataFilter);
+		cr->SetPerformanceData(perfdata);
 
 		cr->SetCommand(commandName);
 		cr->SetState(state);
