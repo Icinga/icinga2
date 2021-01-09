@@ -393,7 +393,8 @@ Name                 | Description
 dns_lookup           | **Optional.** The hostname or IP to query the DNS for. Defaults to "$host_name$".
 dns_server           | **Optional.** The DNS server to query. Defaults to the server configured in the OS.
 dns_query_type       | **Optional.** The DNS record query type where TYPE =(A, AAAA, SRV, TXT, MX, ANY). The default query type is 'A' (IPv4 host entry). **Only supported by the Nagios plugins version of check\_dns, not by the monitoring plugins one.**
-dns_expected_answers | **Optional.** The answer(s) to look for. A hostname must end with a dot. Multiple answers must be defined as array.
+dns_expected_answers | **Optional.** The answer(s) to look for. A hostname must end with a dot. Format depends on the monitoring-plugins version: In version 2.2 and before, a single string with the values alphabetically ordered and joined by commas. In version 2.3 and later, multiple answers must be defined as array.
+dns_all_expected     | **Optional.** Denotes whether to require all values passed in `dns_expected_answers` to pass, or at least one. Only supported in newer versions of monitoring-plugins (2.3 and later), and is needed in such versions to replicate behaviour of previous versions of the plugins.
 dns_authoritative    | **Optional.** Expect the server to send an authoritative answer.
 dns_accept_cname     | **Optional.** Accept cname responses as a valid result to a query.
 dns_wtime            | **Optional.** Return warning if elapsed time exceeds value.
