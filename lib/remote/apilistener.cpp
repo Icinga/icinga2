@@ -1643,6 +1643,11 @@ std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients() const
 	return m_HttpClients;
 }
 
+static void LogAppVersion(unsigned long version, Log& log)
+{
+	log << version / 100u << "." << version % 100u << ".x";
+}
+
 Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	if (origin) {
@@ -1652,8 +1657,33 @@ Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dicti
 			auto endpoint (client->GetEndpoint());
 
 			if (endpoint) {
-				endpoint->SetIcingaVersion((double)params->Get("version"));
+				unsigned long nodeVersion = params->Get("version");
+
+				endpoint->SetIcingaVersion(nodeVersion);
 				endpoint->SetCapabilities((double)params->Get("capabilities"));
+
+				if (nodeVersion == 0u) {
+					nodeVersion = 21200;
+				}
+
+				if (endpoint->GetZone()->GetParent() == Zone::GetLocalZone()) {
+					switch (l_AppVersionInt / 100 - nodeVersion / 100) {
+						case 0:
+						case 1:
+							break;
+						default:
+							Log log (LogWarning, "ApiListener");
+							log << "Unexpected Icinga version of endpoint '" << endpoint->GetName() << "': ";
+
+							LogAppVersion(nodeVersion / 100u, log);
+							log << " Expected one of: ";
+
+							LogAppVersion(l_AppVersionInt / 100u, log);
+							log << ", ";
+
+							LogAppVersion((l_AppVersionInt / 100u - 1u), log);
+					}
+				}
 			}
 		}
 	}
