@@ -2938,7 +2938,7 @@ This category includes all plugins for log management, for example [Logstash](ht
 
 #### logstash <a id="plugins-contrib-command-logstash"></a>
 
-The [logstash](https://github.com/widhalmt/check_logstash) plugin connects to
+The [logstash](https://github.com/NETWAYS/check_logstash) plugin connects to
 the Node API of Logstash. This plugin requires at least Logstash version 5.0.x.
 
 The Node API is not activated by default. You have to configure your Logstash
