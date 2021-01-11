@@ -468,6 +468,12 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 	Log(LogInformation, "ConfigObject")
 		<< "Dumping program state to file '" << filename << "'";
 
+	try {
+		Utility::Glob(filename + ".*", &Utility::Remove, GlobFile);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "ConfigObject") << DiagnosticInformation(ex);
+	}
+
 	std::fstream fp;
 	String tempFilename = Utility::CreateTempFile(filename + ".XXXXXX", 0600, fp);
 	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);

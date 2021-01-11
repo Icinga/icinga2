@@ -7,6 +7,7 @@
 #include "config/configcompiler.hpp"
 #include "base/configwriter.hpp"
 #include "base/configtype.hpp"
+#include "base/exception.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -162,6 +163,12 @@ void IcingaApplication::DumpProgramState()
 void IcingaApplication::DumpModifiedAttributes()
 {
 	String path = Configuration::ModAttrPath;
+
+	try {
+		Utility::Glob(path + ".*", &Utility::Remove, GlobFile);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "IcingaApplication") << DiagnosticInformation(ex);
+	}
 
 	std::fstream fp;
 	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", 0644, fp);
