@@ -690,7 +690,8 @@ object Service "uptime" {
 
   check_command = "snmp"
 
-  vars.snmp_community = "public"
+  vars.snmp_comm
+  y = "public"
   vars.snmp_oid = "DISMAN-EVENT-MIB::sysUpTimeInstance"
 
   check_interval = 60s
@@ -1572,7 +1573,7 @@ Cleanup Items:
 > **Supported units**
 >
 > Supported suffixes include ms (milliseconds), s (seconds), m (minutes), h (hours) and d (days).
-> Check the [language-reference](17-language-reference.md#numeric-literals-)
+> Check the [language reference](17-language-reference.md#numeric-literals-)
 
 
 Data Categories:
