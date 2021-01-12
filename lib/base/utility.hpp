@@ -8,6 +8,7 @@
 #include "base/array.hpp"
 #include "base/threadpool.hpp"
 #include <boost/thread/tss.hpp>
+#include <functional>
 #include <typeinfo>
 #include <vector>
 
@@ -80,6 +81,8 @@ public:
 #ifndef _WIN32
 	static void SetNonBlocking(int fd, bool nb = true);
 	static void SetCloExec(int fd, bool cloexec = true);
+
+	static void CloseAllFDs(const std::vector<int>& except, std::function<void(int)> onClose = nullptr);
 #endif /* _WIN32 */
 
 	static void SetNonBlockingSocket(SOCKET s, bool nb = true);

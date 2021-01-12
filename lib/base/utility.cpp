@@ -9,10 +9,10 @@
 #include "base/utility.hpp"
 #include "base/json.hpp"
 #include "base/objectlock.hpp"
+#include <algorithm>
 #include <cstdint>
 #include <mmatch.h>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/thread/tss.hpp>
@@ -27,6 +27,7 @@
 #include <iterator>
 #include <stdlib.h>
 #include <future>
+#include <set>
 #include <utf8.h>
 #include <vector>
 
@@ -44,6 +45,7 @@
 #	include <pwd.h>
 #	include <grp.h>
 #	include <errno.h>
+#	include <unistd.h>
 #endif /* _WIN32 */
 
 #ifdef _WIN32
@@ -832,6 +834,61 @@ void Utility::SetCloExec(int fd, bool cloexec)
 			<< boost::errinfo_api_function("fcntl")
 			<< boost::errinfo_errno(errno));
 	}
+}
+
+void Utility::CloseAllFDs(const std::vector<int>& except, std::function<void(int)> onClose)
+{
+#if defined(__linux__) || defined(__APPLE__)
+	namespace fs = boost::filesystem;
+
+	std::set<int> fds;
+
+#ifdef __linux__
+	const char *dir = "/proc/self/fd";
+#endif /* __linux__ */
+#ifdef __APPLE__
+	const char *dir = "/dev/fd";
+#endif /* __APPLE__ */
+
+	for (fs::directory_iterator current {fs::path(dir)}, end; current != end; ++current) {
+		auto entry (current->path().filename());
+		int fd;
+
+		try {
+			fd = boost::lexical_cast<int>(entry.c_str());
+		} catch (...) {
+			continue;
+		}
+
+		fds.emplace(fd);
+	}
+
+	for (auto fd : except) {
+		fds.erase(fd);
+	}
+
+	for (auto fd : fds) {
+		if (close(fd) >= 0 && onClose) {
+			onClose(fd);
+		}
+	}
+#else /* __linux__ || __APPLE__ */
+	rlimit rl;
+
+	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
+		rlim_t maxfds = rl.rlim_max;
+
+		if (maxfds == RLIM_INFINITY) {
+			maxfds = 65536;
+		}
+
+		for (int fd = 0; fd < maxfds; ++fd) {
+			if (std::find(except.begin(), except.end(), fd) == except.end() && close(fd) >= 0 && onClose) {
+				onClose(fd);
+			}
+		}
+	}
+#endif /* __linux__ || __APPLE__ */
 }
 #endif /* _WIN32 */
 
