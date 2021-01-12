@@ -31,7 +31,10 @@ const std::map<String, EventType> l_EventTypes ({
 	{"DowntimeTriggered", EventType::DowntimeTriggered},
 	{"Flapping", EventType::Flapping},
 	{"Notification", EventType::Notification},
-	{"StateChange", EventType::StateChange}
+	{"StateChange", EventType::StateChange},
+	{"ObjectCreated", EventType::ObjectCreated},
+	{"ObjectDeleted", EventType::ObjectDeleted},
+	{"ObjectModified", EventType::ObjectModified}
 });
 
 const String l_ApiQuery ("<API query>");

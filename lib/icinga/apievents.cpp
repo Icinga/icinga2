@@ -3,7 +3,6 @@
 #include "icinga/apievents.hpp"
 #include "icinga/service.hpp"
 #include "icinga/notificationcommand.hpp"
-#include "remote/eventqueue.hpp"
 #include "base/initialize.hpp"
 #include "base/serializer.hpp"
 #include "base/logger.hpp"
@@ -30,6 +29,9 @@ void ApiEvents::StaticInitialize()
 	Downtime::OnDowntimeRemoved.connect(&ApiEvents::DowntimeRemovedHandler);
 	Downtime::OnDowntimeStarted.connect(&ApiEvents::DowntimeStartedHandler);
 	Downtime::OnDowntimeTriggered.connect(&ApiEvents::DowntimeTriggeredHandler);
+
+	ConfigObject::OnActiveChanged.connect(&ApiEvents::OnActiveChangedHandler);
+	ConfigObject::OnVersionChanged.connect(&ApiEvents::OnVersionChangedHandler);
 }
 
 void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin)
@@ -389,6 +391,43 @@ void ApiEvents::DowntimeTriggeredHandler(const Downtime::Ptr& downtime)
 		{ "type", "DowntimeTriggered" },
 		{ "timestamp", Utility::GetTime() },
 		{ "downtime", Serialize(downtime, FAConfig | FAState) }
+	});
+
+	for (const EventQueue::Ptr& queue : queues) {
+		queue->ProcessEvent(result);
+	}
+
+	inboxes.Push(std::move(result));
+}
+
+void ApiEvents::OnActiveChangedHandler(const ConfigObject::Ptr& object, const Value&)
+{
+	if (object->IsActive()) {
+		ApiEvents::SendObjectChangeEvent(object, EventType::ObjectCreated, "ObjectCreated");
+	} else if (!object->IsActive() && !object->GetExtension("ConfigObjectDeleted").IsEmpty()) {
+		ApiEvents::SendObjectChangeEvent(object, EventType::ObjectDeleted, "ObjectDeleted");
+	}
+}
+
+void ApiEvents::OnVersionChangedHandler(const ConfigObject::Ptr& object, const Value&)
+{
+	ApiEvents::SendObjectChangeEvent(object, EventType::ObjectModified, "ObjectModified");
+}
+
+void ApiEvents::SendObjectChangeEvent(const ConfigObject::Ptr& object, const EventType& eventType, const String& eventQueue) {
+	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType(eventQueue);
+	auto inboxes (EventsRouter::GetInstance().GetInboxes(eventType));
+
+	if (queues.empty() && !inboxes)
+		return;
+
+	Log(LogDebug, "ApiEvents") << "Processing event type '" + eventQueue + "'.";
+
+	Dictionary::Ptr result = new Dictionary ({
+		{"type", eventQueue},
+		{"timestamp", Utility::GetTime()},
+		{"object_type", object->GetReflectionType()->GetName()},
+		{"object_name", object->GetName()},
 	});
 
 	for (const EventQueue::Ptr& queue : queues) {

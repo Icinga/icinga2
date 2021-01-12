@@ -81,7 +81,10 @@ enum class EventType : uint_fast8_t
 	DowntimeTriggered,
 	Flapping,
 	Notification,
-	StateChange
+	StateChange,
+	ObjectCreated,
+	ObjectDeleted,
+	ObjectModified
 };
 
 class EventsInbox : public Object
