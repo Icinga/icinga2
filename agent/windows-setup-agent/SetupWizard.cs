@@ -41,7 +41,7 @@ namespace Icinga
 				if (props.DomainName != "")
 					fqdn += "." + props.DomainName;
 
-				return fqdn;
+				return fqdn.ToLower();
 			}
 		}
 
