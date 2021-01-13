@@ -240,17 +240,7 @@ static void ProcessHandler()
 	sigfillset(&mask);
 	sigprocmask(SIG_SETMASK, &mask, nullptr);
 
-	rlimit rl;
-	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
-		rlim_t maxfds = rl.rlim_max;
-
-		if (maxfds == RLIM_INFINITY)
-			maxfds = 65536;
-
-		for (rlim_t i = 3; i < maxfds; i++)
-			if (i != static_cast<rlim_t>(l_ProcessControlFD))
-				(void)close(i);
-	}
+	Utility::CloseAllFDs({0, 1, 2, l_ProcessControlFD});
 
 	for (;;) {
 		size_t length;
