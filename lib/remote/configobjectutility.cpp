@@ -217,7 +217,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		 * uq, items, runtimeCreated, silent, withModAttrs, cookie
 		 * IMPORTANT: Forward the cookie aka origin in order to prevent sync loops in the same zone!
 		 */
-		if (!ConfigItem::ActivateItems(upq, newItems, true, true, false, cookie)) {
+		if (!ConfigItem::ActivateItems(newItems, true, true, false, cookie)) {
 			if (errors) {
 				Log(LogNotice, "ConfigObjectUtility")
 					<< "Failed to activate config object '" << fullName << "'. Aborting and removing config path '" << path << "'.";

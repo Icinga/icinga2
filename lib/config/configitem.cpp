@@ -624,7 +624,7 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	return true;
 }
 
-bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated,
+bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated,
 	bool silent, bool withModAttrs, const Value& cookie)
 {
 	static boost::mutex mtx;
@@ -697,13 +697,6 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 		}
 	}
 
-	upq.Join();
-
-	if (upq.HasExceptions()) {
-		upq.ReportExceptions("ConfigItem");
-		return false;
-	}
-
 #ifdef I2_DEBUG
 	for (const ConfigItem::Ptr& item : newItems) {
 		ConfigObject::Ptr object = item->m_Object;
@@ -738,7 +731,7 @@ bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 	if (!CommitItems(scope.GetContext(), upq, newItems, true))
 		return false;
 
-	if (!ActivateItems(upq, newItems, false, true))
+	if (!ActivateItems(newItems, false, true))
 		return false;
 
 	return true;
