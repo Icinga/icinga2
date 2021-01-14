@@ -1310,6 +1310,13 @@ bool Utility::PathExists(const String& path)
 	return fs::exists(fs::path(path.Begin(), path.End()), ec) && !ec;
 }
 
+time_t Utility::GetFileCreationTime(const String& path)
+{
+	namespace fs = boost::filesystem;
+
+	return fs::last_write_time(boost::lexical_cast<fs::path>(path));
+}
+
 Value Utility::LoadJsonFile(const String& path)
 {
 	std::ifstream fp;

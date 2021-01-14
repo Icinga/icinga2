@@ -109,6 +109,7 @@ public:
 	static tm LocalTime(time_t ts);
 
 	static bool PathExists(const String& path);
+	static time_t GetFileCreationTime(const String& path);
 
 	static void Remove(const String& path);
 	static void RemoveDirRecursive(const String& path);
