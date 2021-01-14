@@ -376,6 +376,19 @@ object TimePeriod "prod-notification" {
 }
 ```
 
+### Time zone handling <a id="timeperiods-timezones"></a>
+
+Icinga 2 takes the OS' time zone including DST changes into account.
+
+Times inside DST changes are interpreted as before the DST changes.
+I.e. for the time zone Europe/Berlin:
+
+* On 2020-10-25 03:00 CEST the time jumps back to 02:00 CET.
+  For Icinga 02:30 means 02:30 CEST.
+* On 2021-02-28 02:00 CET the time jumps forward to 03:00 CEST.
+  For Icinga (the actually not existing) 02:30 refers to CET
+  and effectively means 03:30 CEST.
+
 ## External Passive Check Results <a id="external-check-results"></a>
 
 Hosts or services which do not actively execute a check plugin to receive
