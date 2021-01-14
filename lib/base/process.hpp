@@ -82,6 +82,10 @@ private:
 	Dictionary::Ptr m_ExtraEnvironment;
 
 	double m_Timeout;
+#ifndef _WIN32
+	bool m_SentSigterm;
+#endif /* _WIN32 */
+
 	bool m_AdjustPriority;
 
 	ProcessHandle m_Process;
@@ -105,6 +109,7 @@ private:
 	static void IOThreadProc(int tid);
 	bool DoEvents();
 	int GetTID() const;
+	double GetNextTimeout() const;
 };
 
 }
