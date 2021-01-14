@@ -446,7 +446,7 @@ static void NotifyWatchdog()
  * @param closeConsoleLog Whether to close the console log after config loading
  * @param stderrFile Where to log errors
  *
- * @return The worker's PID on success, -1 on failure (if the worker couldn't load its config)
+ * @return The worker's PID on success, -1 on fork(2) failure, -2 if the worker couldn't load its config
  */
 static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool closeConsoleLog = false, const String& stderrFile = String())
 {
@@ -472,7 +472,17 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 		case -1:
 			Log(LogCritical, "cli")
 				<< "fork() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			exit(EXIT_FAILURE);
+
+			try {
+				Application::InitializeBase();
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "cli")
+					<< "Failed to re-initialize thread pool after forking (parent): " << DiagnosticInformation(ex);
+				exit(EXIT_FAILURE);
+			}
+
+			(void)sigprocmask(SIG_UNBLOCK, &l_UnixWorkerSignals, nullptr);
+			return -1;
 
 		case 0:
 			try {
@@ -550,7 +560,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 							NotifyWatchdog();
 #endif /* HAVE_SYSTEMD */
 						}
-						pid = -1;
+						pid = -2;
 						break;
 					default:
 						Utility::Sleep(0.2);
@@ -710,7 +720,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	// The PID of the current seamless worker
 	pid_t currentWorker = StartUnixWorker(configs, closeConsoleLog, errorLog);
 
-	if (currentWorker == -1) {
+	if (currentWorker < 0) {
 		return EXIT_FAILURE;
 	}
 
@@ -769,31 +779,35 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 			pid_t nextWorker = StartUnixWorker(configs);
 
-			if (nextWorker == -1) {
-				Log(LogCritical, "Application", "Found error in config: reloading aborted");
-			} else {
-				Log(LogInformation, "Application")
-					<< "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
+			switch (nextWorker) {
+				case -1:
+					break;
+				case -2:
+					Log(LogCritical, "Application", "Found error in config: reloading aborted");
+					break;
+				default:
+					Log(LogInformation, "Application")
+						<< "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
 
-				(void)kill(currentWorker, SIGTERM);
+					(void)kill(currentWorker, SIGTERM);
 
-				{
-					double start = Utility::GetTime();
+					{
+						double start = Utility::GetTime();
 
-					while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
-#ifdef HAVE_SYSTEMD
-						NotifyWatchdog();
-#endif /* HAVE_SYSTEMD */
+						while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
+	#ifdef HAVE_SYSTEMD
+							NotifyWatchdog();
+	#endif /* HAVE_SYSTEMD */
+						}
+
+						Log(LogNotice, "cli")
+							<< "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
 					}
 
-					Log(LogNotice, "cli")
-						<< "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
-				}
+					// Old instance shut down, allow the new one to continue working beyond config validation
+					(void)kill(nextWorker, SIGUSR2);
 
-				// Old instance shut down, allow the new one to continue working beyond config validation
-				(void)kill(nextWorker, SIGUSR2);
-
-				currentWorker = nextWorker;
+					currentWorker = nextWorker;
 			}
 
 #ifdef HAVE_SYSTEMD
