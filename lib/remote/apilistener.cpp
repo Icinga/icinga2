@@ -432,11 +432,31 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 
 	auto& io (IoEngine::Get().GetIoContext());
 
+	time_t lastModified = -1;
+	const String crlPath = GetCrlPath();
+
+	if (!crlPath.IsEmpty()) {
+		lastModified = Utility::GetFileCreationTime(crlPath);
+	}
+
 	for (;;) {
 		try {
-			auto sslConn (Shared<AsioTlsStream>::Make(io, *sslContext));
+			asio::ip::tcp::socket socket (io);
 
-			server->async_accept(sslConn->lowest_layer(), yc);
+			server->async_accept(socket.lowest_layer(), yc);
+
+			if (!crlPath.IsEmpty()) {
+				time_t currentCreationTime = Utility::GetFileCreationTime(crlPath);
+
+				if (lastModified != currentCreationTime) {
+					UpdateSSLContext();
+
+					lastModified = currentCreationTime;
+				}
+			}
+
+			auto sslConn (Shared<AsioTlsStream>::Make(io, *sslContext));
+			sslConn->lowest_layer() = std::move(socket);
 
 			auto strand (Shared<asio::io_context::strand>::Make(io));
 
