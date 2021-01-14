@@ -667,6 +667,8 @@ name you specified. This means you can define more than one object
 with the same (short) name as long as one of the `host_name` and
 `service_name` attributes has a different value.
 
+See also [time zone handling](08-advanced-topics.md#timeperiods-timezones).
+
 
 ### Service <a id="objecttype-service"></a>
 
@@ -859,6 +861,8 @@ Runtime Attributes:
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
   is\_inside                | Boolean               | Whether we're currently inside this timeperiod.
+
+See also [time zone handling](08-advanced-topics.md#timeperiods-timezones).
 
 
 ### User <a id="objecttype-user"></a>
