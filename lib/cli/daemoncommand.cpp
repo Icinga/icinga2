@@ -275,11 +275,8 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 			return EXIT_FAILURE;
 		}
 
-		WorkQueue upq(25000, Configuration::Concurrency);
-		upq.SetName("DaemonCommand::Run");
-
 		// activate config only after daemonization: it starts threads and that is not compatible with fork()
-		if (!ConfigItem::ActivateItems(upq, newItems, false, false, true)) {
+		if (!ConfigItem::ActivateItems(newItems, false, false, true)) {
 			Log(LogCritical, "cli", "Error activating configuration.");
 			return EXIT_FAILURE;
 		}
