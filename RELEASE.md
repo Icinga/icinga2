@@ -54,7 +54,7 @@ master branch which should be part of this release.
 Update the version:
 
 ```bash
-perl -pi -e "s/Version: .*/Version: $VERSION/g" VERSION
+perl -pi -e "s/Version: .*/Version: $VERSION/g" ICINGA2_VERSION
 ```
 
 ## Changelog <a id="changelog"></a>
