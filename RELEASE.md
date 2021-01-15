@@ -64,7 +64,7 @@ git log --use-mailmap | grep '^Author:' | cut -f2- -d' ' | sort -f | uniq > AUTH
 Update the version:
 
 ```
-sed -i "s/Version: .*/Version: $VERSION/g" VERSION
+sed -i "s/Version: .*/Version: $VERSION/g" ICINGA2_VERSION
 ```
 
 ## Changelog <a id="changelog"></a>
