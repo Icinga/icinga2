@@ -49,19 +49,28 @@ void CompatLogger::Start(bool runtimeCreated)
 	Log(LogWarning, "CompatLogger")
 		<< "This feature is DEPRECATED and will be removed in future releases. Check the roadmap at https://github.com/Icinga/icinga2/milestones";
 
-	Checkable::OnNewCheckResult.connect(std::bind(&CompatLogger::CheckResultHandler, this, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(std::bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
-	Downtime::OnDowntimeTriggered.connect(std::bind(&CompatLogger::TriggerDowntimeHandler, this, _1));
-	Downtime::OnDowntimeRemoved.connect(std::bind(&CompatLogger::RemoveDowntimeHandler, this, _1));
-	Checkable::OnEventCommandExecuted.connect(std::bind(&CompatLogger::EventCommandHandler, this, _1));
+	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+		CheckResultHandler(checkable, cr);
+	});
+	Checkable::OnNotificationSentToUser.connect([this](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+		const User::Ptr& user, const NotificationType& type, const CheckResult::Ptr& cr, const String& author,
+		const String& commentText, const String& commandName, const MessageOrigin::Ptr&) {
+		NotificationSentHandler(notification, checkable, user, type, cr, author, commentText, commandName);
+	});
 
-	Checkable::OnFlappingChanged.connect(std::bind(&CompatLogger::FlappingChangedHandler, this, _1));
-	Checkable::OnEnableFlappingChanged.connect(std::bind(&CompatLogger::EnableFlappingChangedHandler, this, _1));
+	Downtime::OnDowntimeTriggered.connect([this](const Downtime::Ptr& downtime) { TriggerDowntimeHandler(downtime); });
+	Downtime::OnDowntimeRemoved.connect([this](const Downtime::Ptr& downtime) { RemoveDowntimeHandler(downtime); });
+	Checkable::OnEventCommandExecuted.connect([this](const Checkable::Ptr& checkable) { EventCommandHandler(checkable); });
 
-	ExternalCommandProcessor::OnNewExternalCommand.connect(std::bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
+	Checkable::OnFlappingChanged.connect([this](const Checkable::Ptr& checkable, const Value&) { FlappingChangedHandler(checkable); });
+	Checkable::OnEnableFlappingChanged.connect([this](const Checkable::Ptr& checkable, const Value&) { EnableFlappingChangedHandler(checkable); });
+
+	ExternalCommandProcessor::OnNewExternalCommand.connect([this](double, const String& command, const std::vector<String>& arguments) {
+		ExternalCommandHandler(command, arguments);
+	});
 
 	m_RotationTimer = new Timer();
-	m_RotationTimer->OnTimerExpired.connect(std::bind(&CompatLogger::RotationTimerHandler, this));
+	m_RotationTimer->OnTimerExpired.connect([this](const Timer * const&) { RotationTimerHandler(); });
 	m_RotationTimer->Start();
 
 	ReopenFile(false);

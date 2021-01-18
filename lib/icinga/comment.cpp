@@ -82,7 +82,7 @@ void Comment::Start(bool runtimeCreated)
 	boost::call_once(once, [this]() {
 		l_CommentsExpireTimer = new Timer();
 		l_CommentsExpireTimer->SetInterval(60);
-		l_CommentsExpireTimer->OnTimerExpired.connect(std::bind(&Comment::CommentsExpireTimerHandler));
+		l_CommentsExpireTimer->OnTimerExpired.connect([](const Timer * const&) { CommentsExpireTimerHandler(); });
 		l_CommentsExpireTimer->Start();
 	});
 

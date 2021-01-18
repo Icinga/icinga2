@@ -74,16 +74,13 @@ bool Stream::WaitForData(int timeout)
 	return IsDataAvailable() || IsEof();
 }
 
-static void StreamDummyCallback()
-{ }
-
 void Stream::Close()
 {
 	OnDataAvailable.disconnect_all_slots();
 
 	/* Force signals2 to remove the slots, see https://stackoverflow.com/questions/2049291/force-deletion-of-slot-in-boostsignals2
 	 * for details. */
-	OnDataAvailable.connect(std::bind(&StreamDummyCallback));
+	OnDataAvailable.connect([](const Stream::Ptr&) {  });
 }
 
 StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context, bool may_wait)

@@ -56,7 +56,7 @@ void ClusterEvents::EnqueueCheck(const MessageOrigin::Ptr& origin, const Diction
 	boost::call_once(once, []() {
 		m_LogTimer = new Timer();
 		m_LogTimer->SetInterval(10);
-		m_LogTimer->OnTimerExpired.connect(std::bind(ClusterEvents::LogRemoteCheckQueueInformation));
+		m_LogTimer->OnTimerExpired.connect([](const Timer * const&) { LogRemoteCheckQueueInformation(); });
 		m_LogTimer->Start();
 	});
 
@@ -67,7 +67,7 @@ void ClusterEvents::EnqueueCheck(const MessageOrigin::Ptr& origin, const Diction
 		return;
 	}
 
-	m_CheckRequestQueue.push_back(std::bind(ClusterEvents::ExecuteCheckFromQueue, origin, params));
+	m_CheckRequestQueue.emplace_back([origin, params]() { ExecuteCheckFromQueue(origin, params); });
 
 	if (!m_CheckSchedulerRunning) {
 		std::thread t(ClusterEvents::RemoteCheckThreadProc);

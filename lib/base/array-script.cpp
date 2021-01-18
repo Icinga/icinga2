@@ -65,11 +65,6 @@ static void ArrayClear()
 	self->Clear();
 }
 
-static bool ArraySortCmp(const Function::Ptr& cmp, const Value& a, const Value& b)
-{
-	return cmp->Invoke({ a, b });
-}
-
 static Array::Ptr ArraySort(const std::vector<Value>& args)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
@@ -89,7 +84,10 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 			BOOST_THROW_EXCEPTION(ScriptError("Sort function must be side-effect free."));
 
 		ObjectLock olock(arr);
-		std::sort(arr->Begin(), arr->End(), std::bind(ArraySortCmp, args[0], _1, _2));
+		std::sort(arr->Begin(), arr->End(), [&args](const Value& a, const Value& b) -> bool {
+			Function::Ptr cmp = args[0];
+			return cmp->Invoke({ a, b });
+		});
 	}
 
 	return arr;

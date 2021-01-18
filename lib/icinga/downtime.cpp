@@ -95,12 +95,12 @@ void Downtime::Start(bool runtimeCreated)
 	boost::call_once(once, [this]() {
 		l_DowntimesStartTimer = new Timer();
 		l_DowntimesStartTimer->SetInterval(5);
-		l_DowntimesStartTimer->OnTimerExpired.connect(std::bind(&Downtime::DowntimesStartTimerHandler));
+		l_DowntimesStartTimer->OnTimerExpired.connect([](const Timer * const&){ DowntimesStartTimerHandler(); });
 		l_DowntimesStartTimer->Start();
 
 		l_DowntimesExpireTimer = new Timer();
 		l_DowntimesExpireTimer->SetInterval(60);
-		l_DowntimesExpireTimer->OnTimerExpired.connect(std::bind(&Downtime::DowntimesExpireTimerHandler));
+		l_DowntimesExpireTimer->OnTimerExpired.connect([](const Timer * const&) { DowntimesExpireTimerHandler(); });
 		l_DowntimesExpireTimer->Start();
 	});
 

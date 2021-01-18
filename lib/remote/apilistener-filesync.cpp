@@ -793,7 +793,7 @@ ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
 	config.UpdateV2 = new Dictionary();
 	config.Checksums = new Dictionary();
 
-	Utility::GlobRecursive(dir, "*", std::bind(&ApiListener::ConfigGlobHandler, std::ref(config), dir, _1), GlobFile);
+	Utility::GlobRecursive(dir, "*", [&config, dir](const String& file) { ConfigGlobHandler(config, dir, file); }, GlobFile);
 	return config;
 }
 

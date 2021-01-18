@@ -49,7 +49,7 @@ void CheckResultReader::Start(bool runtimeCreated)
 
 #ifndef _WIN32
 	m_ReadTimer = new Timer();
-	m_ReadTimer->OnTimerExpired.connect(std::bind(&CheckResultReader::ReadTimerHandler, this));
+	m_ReadTimer->OnTimerExpired.connect([this](const Timer * const&) { ReadTimerHandler(); });
 	m_ReadTimer->SetInterval(5);
 	m_ReadTimer->Start();
 #endif /* _WIN32 */
@@ -73,7 +73,7 @@ void CheckResultReader::ReadTimerHandler() const
 {
 	CONTEXT("Processing check result files in '" + GetSpoolDir() + "'");
 
-	Utility::Glob(GetSpoolDir() + "/c??????.ok", std::bind(&CheckResultReader::ProcessCheckResultFile, this, _1), GlobFile);
+	Utility::Glob(GetSpoolDir() + "/c??????.ok", [this](const String& path) { ProcessCheckResultFile(path); }, GlobFile);
 }
 
 void CheckResultReader::ProcessCheckResultFile(const String& path) const

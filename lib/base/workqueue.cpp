@@ -23,7 +23,7 @@ WorkQueue::WorkQueue(size_t maxItems, int threadCount, LogSeverity statsLogLevel
 
 	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(10);
-	m_StatusTimer->OnTimerExpired.connect(std::bind(&WorkQueue::StatusTimerHandler, this));
+	m_StatusTimer->OnTimerExpired.connect([this](const Timer * const&) { StatusTimerHandler(); });
 	m_StatusTimer->Start();
 }
 
@@ -60,7 +60,7 @@ void WorkQueue::EnqueueUnlocked(boost::mutex::scoped_lock& lock, std::function<v
 			<< "Spawning WorkQueue threads for '" << m_Name << "'";
 
 		for (int i = 0; i < m_ThreadCount; i++) {
-			m_Threads.create_thread(std::bind(&WorkQueue::WorkerThreadProc, this));
+			m_Threads.create_thread([this]() { WorkerThreadProc(); });
 		}
 
 		m_Spawned = true;

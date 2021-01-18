@@ -39,12 +39,14 @@ void NotificationComponent::Start(bool runtimeCreated)
 	Log(LogInformation, "NotificationComponent")
 		<< "'" << GetName() << "' started.";
 
-	Checkable::OnNotificationsRequested.connect(std::bind(&NotificationComponent::SendNotificationsHandler, this, _1,
-		_2, _3, _4, _5));
+	Checkable::OnNotificationsRequested.connect([this](const Checkable::Ptr& checkable, NotificationType type, const CheckResult::Ptr& cr,
+		const String& author, const String& text, const MessageOrigin::Ptr&) {
+		SendNotificationsHandler(checkable, type, cr, author, text);
+	});
 
 	m_NotificationTimer = new Timer();
 	m_NotificationTimer->SetInterval(5);
-	m_NotificationTimer->OnTimerExpired.connect(std::bind(&NotificationComponent::NotificationTimerHandler, this));
+	m_NotificationTimer->OnTimerExpired.connect([this](const Timer * const&) { NotificationTimerHandler(); });
 	m_NotificationTimer->Start();
 }
 

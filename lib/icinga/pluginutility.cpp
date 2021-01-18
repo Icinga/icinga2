@@ -79,7 +79,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	process->SetTimeout(timeout);
 	process->SetAdjustPriority(true);
 
-	process->Run(std::bind(callback, command, _1));
+	process->Run([callback, command](const ProcessResult& pr) { callback(command, pr); });
 }
 
 ServiceState PluginUtility::ExitStatusToState(int exitStatus)

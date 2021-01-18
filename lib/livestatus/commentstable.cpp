@@ -30,8 +30,12 @@ void CommentsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "expire_time", Column(&CommentsTable::ExpireTimeAccessor, objectAccessor));
 
 	/* order is important - host w/o services must not be empty */
-	ServicesTable::AddColumns(table, "service_", std::bind(&CommentsTable::ServiceAccessor, _1, objectAccessor));
-	HostsTable::AddColumns(table, "host_", std::bind(&CommentsTable::HostAccessor, _1, objectAccessor));
+	ServicesTable::AddColumns(table, "service_", [objectAccessor](const Value& row, LivestatusGroupByType, const Object::Ptr&) -> Value {
+		return ServiceAccessor(row, objectAccessor);
+	});
+	HostsTable::AddColumns(table, "host_", [objectAccessor](const Value& row, LivestatusGroupByType, const Object::Ptr&) -> Value {
+		return HostAccessor(row, objectAccessor);
+	});
 }
 
 String CommentsTable::GetName() const

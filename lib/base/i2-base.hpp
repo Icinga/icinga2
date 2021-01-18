@@ -76,6 +76,4 @@
 
 #include <functional>
 
-using namespace std::placeholders;
-
 #endif /* I2BASE_H */

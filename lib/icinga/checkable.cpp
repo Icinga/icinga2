@@ -27,11 +27,11 @@ thread_local std::function<void(const Value& commandLine, const ProcessResult&)>
 void Checkable::StaticInitialize()
 {
 	/* fixed downtime start */
-	Downtime::OnDowntimeStarted.connect(std::bind(&Checkable::NotifyFixedDowntimeStart, _1));
+	Downtime::OnDowntimeStarted.connect([](const Downtime::Ptr& downtime) { Checkable::NotifyFixedDowntimeStart(downtime); });
 	/* flexible downtime start */
-	Downtime::OnDowntimeTriggered.connect(std::bind(&Checkable::NotifyFlexibleDowntimeStart, _1));
+	Downtime::OnDowntimeTriggered.connect([](const Downtime::Ptr& downtime) { Checkable::NotifyFlexibleDowntimeStart(downtime); });
 	/* fixed/flexible downtime end */
-	Downtime::OnDowntimeRemoved.connect(std::bind(&Checkable::NotifyDowntimeEnd, _1));
+	Downtime::OnDowntimeRemoved.connect([](const Downtime::Ptr& downtime) { Checkable::NotifyDowntimeEnd(downtime); });
 }
 
 Checkable::Checkable()

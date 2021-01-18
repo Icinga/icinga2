@@ -35,11 +35,11 @@ DbObject::DbObject(intrusive_ptr<DbType> type, String name1, String name2)
 void DbObject::StaticInitialize()
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
-	ConfigObject::OnStateChanged.connect(std::bind(&DbObject::StateChangedHandler, _1));
-	CustomVarObject::OnVarsChanged.connect(std::bind(&DbObject::VarsChangedHandler, _1));
+	ConfigObject::OnStateChanged.connect([](const ConfigObject::Ptr& object) { StateChangedHandler(object); });
+	CustomVarObject::OnVarsChanged.connect([](const CustomVarObject::Ptr& customVar, const Value&) { VarsChangedHandler(customVar); });
 
 	/* triggered on create, update and delete objects */
-	ConfigObject::OnVersionChanged.connect(std::bind(&DbObject::VersionChangedHandler, _1));
+	ConfigObject::OnVersionChanged.connect([](const ConfigObject::Ptr& object, const Value&) { VersionChangedHandler(object); });
 }
 
 void DbObject::SetObject(const ConfigObject::Ptr& object)

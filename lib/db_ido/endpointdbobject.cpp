@@ -19,8 +19,8 @@ INITIALIZE_ONCE(&EndpointDbObject::StaticInitialize);
 
 void EndpointDbObject::StaticInitialize()
 {
-	Endpoint::OnConnected.connect(std::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
-	Endpoint::OnDisconnected.connect(std::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
+	Endpoint::OnConnected.connect([](const Endpoint::Ptr& endpoint, const JsonRpcConnection::Ptr&) { EndpointDbObject::UpdateConnectedStatus(endpoint); });
+	Endpoint::OnDisconnected.connect([](const Endpoint::Ptr& endpoint, const JsonRpcConnection::Ptr&) { EndpointDbObject::UpdateConnectedStatus(endpoint); });
 }
 
 EndpointDbObject::EndpointDbObject(const DbType::Ptr& type, const String& name1, const String& name2)

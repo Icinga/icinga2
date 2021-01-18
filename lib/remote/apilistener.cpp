@@ -264,13 +264,13 @@ void ApiListener::Start(bool runtimeCreated)
 	}
 
 	m_Timer = new Timer();
-	m_Timer->OnTimerExpired.connect(std::bind(&ApiListener::ApiTimerHandler, this));
+	m_Timer->OnTimerExpired.connect([this](const Timer * const&) { ApiTimerHandler(); });
 	m_Timer->SetInterval(5);
 	m_Timer->Start();
 	m_Timer->Reschedule(0);
 
 	m_ReconnectTimer = new Timer();
-	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&ApiListener::ApiReconnectTimerHandler, this));
+	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ApiReconnectTimerHandler(); });
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
@@ -280,18 +280,18 @@ void ApiListener::Start(bool runtimeCreated)
 	 * Now: 10s reconnect, 10s OA, 30s cold startup.
 	 */
 	m_AuthorityTimer = new Timer();
-	m_AuthorityTimer->OnTimerExpired.connect(std::bind(&ApiListener::UpdateObjectAuthority));
+	m_AuthorityTimer->OnTimerExpired.connect([](const Timer * const&) { UpdateObjectAuthority(); });
 	m_AuthorityTimer->SetInterval(10);
 	m_AuthorityTimer->Start();
 
 	m_CleanupCertificateRequestsTimer = new Timer();
-	m_CleanupCertificateRequestsTimer->OnTimerExpired.connect(std::bind(&ApiListener::CleanupCertificateRequestsTimerHandler, this));
+	m_CleanupCertificateRequestsTimer->OnTimerExpired.connect([this](const Timer * const&) { CleanupCertificateRequestsTimerHandler(); });
 	m_CleanupCertificateRequestsTimer->SetInterval(3600);
 	m_CleanupCertificateRequestsTimer->Start();
 	m_CleanupCertificateRequestsTimer->Reschedule(0);
 
 	m_ApiPackageIntegrityTimer = new Timer();
-	m_ApiPackageIntegrityTimer->OnTimerExpired.connect(std::bind(&ApiListener::CheckApiPackageIntegrity, this));
+	m_ApiPackageIntegrityTimer->OnTimerExpired.connect([this](const Timer * const&) { CheckApiPackageIntegrity(); });
 	m_ApiPackageIntegrityTimer->SetInterval(300);
 	m_ApiPackageIntegrityTimer->Start();
 
@@ -789,8 +789,11 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 
 			JsonRpcConnection::SendCertificateRequest(aclient, nullptr, String());
 
-			if (Utility::PathExists(ApiListener::GetCertificateRequestsDir()))
-				Utility::Glob(ApiListener::GetCertificateRequestsDir() + "/*.json", std::bind(&JsonRpcConnection::SendCertificateRequest, aclient, nullptr, _1), GlobFile);
+			if (Utility::PathExists(ApiListener::GetCertificateRequestsDir())) {
+				Utility::Glob(ApiListener::GetCertificateRequestsDir() + "/*.json", [aclient](const String& newPath) {
+					JsonRpcConnection::SendCertificateRequest(aclient, nullptr, newPath);
+				}, GlobFile);
+			}
 		}
 
 		/* Make sure that the config updates are synced
@@ -850,7 +853,7 @@ void ApiListener::ApiTimerHandler()
 	double now = Utility::GetTime();
 
 	std::vector<int> files;
-	Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
+	Utility::Glob(GetApiDir() + "log/*", [&files](const String& file) { LogGlobHandler(files, file); }, GlobFile);
 	std::sort(files.begin(), files.end());
 
 	for (int ts : files) {
@@ -1017,7 +1020,9 @@ void ApiListener::CleanupCertificateRequestsTimerHandler()
 	if (Utility::PathExists(requestsDir)) {
 		/* remove certificate requests that are older than a week */
 		double expiryTime = Utility::GetTime() - 7 * 24 * 60 * 60;
-		Utility::Glob(requestsDir + "/*.json", std::bind(&CleanupCertificateRequest, _1, expiryTime), GlobFile);
+		Utility::Glob(requestsDir + "/*.json", [expiryTime](const String& path) {
+			CleanupCertificateRequest(path, expiryTime);
+		}, GlobFile);
 	}
 }
 
@@ -1027,7 +1032,7 @@ void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin,
 	if (!IsActive())
 		return;
 
-	m_RelayQueue.Enqueue(std::bind(&ApiListener::SyncRelayMessage, this, origin, secobj, message, log), PriorityNormal, true);
+	m_RelayQueue.Enqueue([this, origin, secobj, message, log]() { SyncRelayMessage(origin, secobj, message, log); }, PriorityNormal, true);
 }
 
 void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObject::Ptr& secobj)
@@ -1361,7 +1366,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		count = 0;
 
 		std::vector<int> files;
-		Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
+		Utility::Glob(GetApiDir() + "log/*", [&files](const String& file) { LogGlobHandler(files, file); }, GlobFile);
 		std::sort(files.begin(), files.end());
 
 		std::vector<std::pair<int, String>> allFiles;

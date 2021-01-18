@@ -153,7 +153,9 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 		/* _1 = row, _2 = groupByType, _3 = groupByObject */
 		Log(LogDebug, "Livestatus")
 			<< "Processing hosts group by hostgroup table.";
-		HostGroupsTable::AddColumns(table, "hostgroup_", std::bind(&HostsTable::HostGroupAccessor, _1, _2, _3));
+		HostGroupsTable::AddColumns(table, "hostgroup_", [](const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject) -> Value {
+			return HostGroupAccessor(row, groupByType, groupByObject);
+		});
 	}
 }
 

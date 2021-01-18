@@ -85,19 +85,28 @@ void ElasticsearchWriter::Resume()
 	Log(LogInformation, "ElasticsearchWriter")
 		<< "'" << GetName() << "' resumed.";
 
-	m_WorkQueue.SetExceptionCallback(std::bind(&ElasticsearchWriter::ExceptionHandler, this, _1));
+	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Setup timer for periodically flushing m_DataBuffer */
 	m_FlushTimer = new Timer();
 	m_FlushTimer->SetInterval(GetFlushInterval());
-	m_FlushTimer->OnTimerExpired.connect(std::bind(&ElasticsearchWriter::FlushTimeout, this));
+	m_FlushTimer->OnTimerExpired.connect([this](const Timer * const&) { FlushTimeout(); });
 	m_FlushTimer->Start();
 	m_FlushTimer->Reschedule(0);
 
 	/* Register for new metrics. */
-	Checkable::OnNewCheckResult.connect(std::bind(&ElasticsearchWriter::CheckResultHandler, this, _1, _2));
-	Checkable::OnStateChange.connect(std::bind(&ElasticsearchWriter::StateChangeHandler, this, _1, _2, _3));
-	Checkable::OnNotificationSentToAllUsers.connect(std::bind(&ElasticsearchWriter::NotificationSentToAllUsersHandler, this, _1, _2, _3, _4, _5, _6, _7));
+	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+		CheckResultHandler(checkable, cr);
+	});
+	Checkable::OnStateChange.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type,
+		const MessageOrigin::Ptr&) {
+		StateChangeHandler(checkable, cr, type);
+	});
+	Checkable::OnNotificationSentToAllUsers.connect([this](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+		const std::set<User::Ptr>& users, const NotificationType& type, const CheckResult::Ptr& cr, const String& author,
+		const String& text, const MessageOrigin::Ptr&) {
+		NotificationSentToAllUsersHandler(notification, checkable, users, type, cr, author, text);
+	});
 }
 
 /* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
@@ -190,7 +199,7 @@ void ElasticsearchWriter::CheckResultHandler(const Checkable::Ptr& checkable, co
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue(std::bind(&ElasticsearchWriter::InternalCheckResultHandler, this, checkable, cr));
+	m_WorkQueue.Enqueue([this, checkable, cr]() { InternalCheckResultHandler(checkable, cr); });
 }
 
 void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -247,7 +256,7 @@ void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, co
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue(std::bind(&ElasticsearchWriter::StateChangeHandlerInternal, this, checkable, cr, type));
+	m_WorkQueue.Enqueue([this, checkable, cr, type]() { StateChangeHandlerInternal(checkable, cr, type); });
 }
 
 void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
@@ -299,8 +308,9 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Notification::
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue(std::bind(&ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal, this,
-		notification, checkable, users, type, cr, author, text));
+	m_WorkQueue.Enqueue([this, notification, checkable, users, type, cr, author, text]() {
+		NotificationSentToAllUsersHandlerInternal(notification, checkable, users, type, cr, author, text);
+	});
 }
 
 void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notification::Ptr& notification,

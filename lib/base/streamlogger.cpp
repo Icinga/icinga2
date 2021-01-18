@@ -60,7 +60,7 @@ void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)
 	if (!m_FlushLogTimer) {
 		m_FlushLogTimer = new Timer();
 		m_FlushLogTimer->SetInterval(1);
-		m_FlushLogTimer->OnTimerExpired.connect(std::bind(&StreamLogger::FlushLogTimerHandler, this));
+		m_FlushLogTimer->OnTimerExpired.connect([this](const Timer * const&) { FlushLogTimerHandler(); });
 		m_FlushLogTimer->Start();
 	}
 }

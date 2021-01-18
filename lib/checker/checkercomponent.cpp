@@ -44,10 +44,16 @@ void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 
 void CheckerComponent::OnConfigLoaded()
 {
-	ConfigObject::OnActiveChanged.connect(std::bind(&CheckerComponent::ObjectHandler, this, _1));
-	ConfigObject::OnPausedChanged.connect(std::bind(&CheckerComponent::ObjectHandler, this, _1));
+	ConfigObject::OnActiveChanged.connect([this](const ConfigObject::Ptr& object, const Value&) {
+		ObjectHandler(object);
+	});
+	ConfigObject::OnPausedChanged.connect([this](const ConfigObject::Ptr& object, const Value&) {
+		ObjectHandler(object);
+	});
 
-	Checkable::OnNextCheckChanged.connect(std::bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
+	Checkable::OnNextCheckChanged.connect([this](const Checkable::Ptr& checkable, const Value&) {
+		NextCheckChangedHandler(checkable);
+	});
 }
 
 void CheckerComponent::Start(bool runtimeCreated)
@@ -58,11 +64,11 @@ void CheckerComponent::Start(bool runtimeCreated)
 		<< "'" << GetName() << "' started.";
 
 
-	m_Thread = std::thread(std::bind(&CheckerComponent::CheckThreadProc, this));
+	m_Thread = std::thread([this]() { CheckThreadProc(); });
 
 	m_ResultTimer = new Timer();
 	m_ResultTimer->SetInterval(5);
-	m_ResultTimer->OnTimerExpired.connect(std::bind(&CheckerComponent::ResultTimerHandler, this));
+	m_ResultTimer->OnTimerExpired.connect([this](const Timer * const&) { ResultTimerHandler(); });
 	m_ResultTimer->Start();
 }
 
@@ -198,7 +204,13 @@ void CheckerComponent::CheckThreadProc()
 
 		Checkable::IncreasePendingChecks();
 
-		Utility::QueueAsyncCallback(std::bind(&CheckerComponent::ExecuteCheckHelper, CheckerComponent::Ptr(this), checkable));
+		/*
+		 * Explicitly use CheckerComponent::Ptr to keep the reference counted while the
+		 * callback is active and making it crash safe
+		 */
+		CheckerComponent::Ptr checkComponent(this);
+
+		Utility::QueueAsyncCallback([this, checkComponent, checkable]() { ExecuteCheckHelper(checkable); });
 
 		lock.lock();
 	}

@@ -378,7 +378,7 @@ static void ReloadProcessCallback(const ProcessResult& pr)
 {
 	l_Restarting = false;
 
-	std::thread t(std::bind(&ReloadProcessCallbackInternal, pr));
+	std::thread t([pr]() { ReloadProcessCallbackInternal(pr); });
 	t.detach();
 }
 
