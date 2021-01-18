@@ -1324,7 +1324,7 @@ void IcingaDB::SendSentNotification(
 		"notification_id", GetObjectIdentifier(notification),
 		"host_id", GetObjectIdentifier(host),
 		"type", Convert::ToString(type),
-		"state", Convert::ToString(service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState()))),
+		"state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : 99),
 		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
 		"author", Utility::ValidateUTF8(author),
 		"text", Utility::ValidateUTF8(finalText),
