@@ -82,6 +82,8 @@ namespace icinga
 		void SuppressQueryKind(QueryPriority kind);
 		void UnsuppressQueryKind(QueryPriority kind);
 
+		void SetConnectedCallback(std::function<void(boost::asio::yield_context& yc)> callback);
+
 	private:
 		/**
 		 * What to do with the responses to Redis queries.
@@ -179,6 +181,8 @@ namespace icinga
 
 		// Indicate that there's something to send/receive
 		AsioConditionVariable m_QueuedWrites, m_QueuedReads;
+
+		std::function<void(boost::asio::yield_context& yc)> m_ConnectedCallback;
 	};
 
 /**
