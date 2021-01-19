@@ -79,6 +79,8 @@ namespace icinga
 		Reply GetResultOfQuery(Query query, QueryPriority priority);
 		Replies GetResultsOfQueries(Queries queries, QueryPriority priority);
 
+		void EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback, QueryPriority priority);
+
 		void SuppressQueryKind(QueryPriority kind);
 		void UnsuppressQueryKind(QueryPriority kind);
 
@@ -117,6 +119,7 @@ namespace icinga
 			Shared<Queries>::Ptr FireAndForgetQueries;
 			Shared<std::pair<Query, std::promise<Reply>>>::Ptr GetResultOfQuery;
 			Shared<std::pair<Queries, std::promise<Replies>>>::Ptr GetResultsOfQueries;
+			std::function<void(boost::asio::yield_context&)> Callback;
 		};
 
 		typedef boost::asio::ip::tcp Tcp;
