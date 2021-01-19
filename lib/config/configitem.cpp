@@ -697,17 +697,6 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 		}
 	}
 
-#ifdef I2_DEBUG
-	for (const ConfigItem::Ptr& item : newItems) {
-		ConfigObject::Ptr object = item->m_Object;
-
-		if (!object)
-			continue;
-
-		ASSERT(object && object->IsActive());
-	}
-#endif /* I2_DEBUG */
-
 	if (!silent)
 		Log(LogInformation, "ConfigItem", "Activated all objects.");
 
