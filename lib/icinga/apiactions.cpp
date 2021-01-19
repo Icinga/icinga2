@@ -381,10 +381,9 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		}
 	}
 
-	String downtimeName = Downtime::AddDowntime(checkable, author, comment, startTime, endTime,
+	Downtime::Ptr downtime = Downtime::AddDowntime(checkable, author, comment, startTime, endTime,
 		fixed, triggerName, duration);
-
-	Downtime::Ptr downtime = Downtime::GetByName(downtimeName);
+	String downtimeName = downtime->GetName();
 
 	Dictionary::Ptr additional = new Dictionary({
 		{ "name", downtimeName },
@@ -404,10 +403,9 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 			Log(LogNotice, "ApiActions")
 				<< "Creating downtime for service " << hostService->GetName() << " on host " << host->GetName();
 
-			String serviceDowntimeName = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
+			Downtime::Ptr serviceDowntime = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
 				fixed, triggerName, duration);
-
-			Downtime::Ptr serviceDowntime = Downtime::GetByName(serviceDowntimeName);
+			String serviceDowntimeName = serviceDowntime->GetName();
 
 			serviceDowntimes.push_back(new Dictionary({
 				{ "name", serviceDowntimeName },
@@ -435,13 +433,12 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 			Log(LogNotice, "ApiActions")
 				<< "Scheduling downtime for child object " << child->GetName();
 
-			String childDowntimeName = Downtime::AddDowntime(child, author, comment, startTime, endTime,
+			Downtime::Ptr childDowntime = Downtime::AddDowntime(child, author, comment, startTime, endTime,
 				fixed, triggerName, duration);
+			String childDowntimeName = childDowntime->GetName();
 
 			Log(LogNotice, "ApiActions")
 				<< "Add child downtime '" << childDowntimeName << "'.";
-
-			Downtime::Ptr childDowntime = Downtime::GetByName(childDowntimeName);
 
 			Dictionary::Ptr childAdditional = new Dictionary({
 				{ "name", childDowntimeName },
@@ -460,10 +457,9 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 					Log(LogNotice, "ApiActions")
 						<< "Creating downtime for service " << hostService->GetName() << " on child host " << host->GetName();
 
-					String serviceDowntimeName = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
+					Downtime::Ptr serviceDowntime = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
 						fixed, triggerName, duration);
-
-					Downtime::Ptr serviceDowntime = Downtime::GetByName(serviceDowntimeName);
+					String serviceDowntimeName = serviceDowntime->GetName();
 
 					childServiceDowntimes.push_back(new Dictionary({
 						{ "name", serviceDowntimeName },
