@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icinga/externalcommandprocessor.hpp"
+#include "icinga/checkable.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
 #include "icinga/user.hpp"
@@ -283,6 +284,12 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 	if (!host->GetEnablePassiveChecks())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
 
+	if (!host->IsReachable(DependencyCheckExecution)) {
+		Log(LogNotice, "ExternalCommandProcessor")
+			<< "Ignoring passive check result for unreachable host '" << arguments[0] << "'";
+		return;
+	}
+
 	int exitStatus = Convert::ToDouble(arguments[1]);
 	CheckResult::Ptr result = new CheckResult();
 	std::pair<String, String> co = PluginUtility::ParseCheckOutput(arguments[2]);
@@ -323,6 +330,12 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 
 	if (!service->GetEnablePassiveChecks())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
+
+	if (!service->IsReachable(DependencyCheckExecution)) {
+		Log(LogNotice, "ExternalCommandProcessor")
+			<< "Ignoring passive check result for unreachable service '" << arguments[1] << "'";
+		return;
+	}
 
 	int exitStatus = Convert::ToDouble(arguments[2]);
 	CheckResult::Ptr result = new CheckResult();
