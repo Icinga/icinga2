@@ -113,10 +113,14 @@ namespace icinga
 		 */
 		struct WriteQueueItem
 		{
+			QueryPriority Priority;
+			uint_fast64_t Order;
 			Shared<Query>::Ptr FireAndForgetQuery;
 			Shared<Queries>::Ptr FireAndForgetQueries;
 			Shared<std::pair<Query, std::promise<Reply>>>::Ptr GetResultOfQuery;
 			Shared<std::pair<Queries, std::promise<Replies>>>::Ptr GetResultsOfQueries;
+
+			bool operator<(const WriteQueueItem& other) const;
 		};
 
 		typedef boost::asio::ip::tcp Tcp;
@@ -165,7 +169,9 @@ namespace icinga
 
 		struct {
 			// Items to be send to Redis
-			std::map<QueryPriority, std::queue<WriteQueueItem>> Writes;
+			std::priority_queue<WriteQueueItem> Writes;
+			// Next item's order in the Writes queue
+			uint_fast64_t NextWriteOrder = 0;
 			// Requestors, each waiting for a single response
 			std::queue<std::promise<Reply>> ReplyPromises;
 			// Requestors, each waiting for multiple responses at once
