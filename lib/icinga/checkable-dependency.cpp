@@ -74,25 +74,43 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 
 	auto deps = GetDependencies();
 
-	int countDeps = deps.size();
-	int countFailed = 0;
+	std::unordered_map<std::string, Dependency::Ptr> violated; // key: redundancy group, value: nullptr if satisfied, violating dependency otherwise
 
 	for (const Dependency::Ptr& dep : deps) {
-		if (!dep->IsAvailable(dt)) {
-			countFailed++;
+		std::string redundancy_group = dep->GetRedundancyGroup();
 
-			if (failedDependency)
-				*failedDependency = dep;
+		if (!dep->IsAvailable(dt)) {
+			if (redundancy_group.empty()) {
+				Log(LogDebug, "Checkable")
+					<< "Non-redundant dependency '" << dep->GetName() << "' failed for checkable '" << GetName() << "': Marking as unreachable.";
+
+				if (failedDependency)
+					*failedDependency = dep;
+
+				return false;
+			}
+
+			// tentatively mark this dependency group as failed unless it is already marked;
+			//  so it either passed before (don't overwrite) or already failed (so don't care)
+			if (violated.find(redundancy_group) == violated.end())
+				violated.insert(std::make_pair(redundancy_group, dep));
+		} else if (!redundancy_group.empty()) {
+			// definitely mark this dependency group as passed
+			violated.insert(std::make_pair(redundancy_group, nullptr));
 		}
 	}
 
-	/* If there are dependencies, and all of them failed, mark as unreachable. */
-	if (countDeps > 0 && countFailed == countDeps) {
+	auto violator = std::find_if(violated.begin(), violated.end(), [](const std::pair<std::string, Dependency::Ptr>&v) { return v.second != nullptr; });
+	if (violator != violated.end()) {
 		Log(LogDebug, "Checkable")
-			<< "All dependencies have failed for checkable '" << GetName() << "': Marking as unreachable.";
+			<< "All dependencies in redundancy group '" << violator->first << "' have failed for checkable '" << GetName() << "': Marking as unreachable.";
+
+		if (failedDependency)
+			*failedDependency = violator->second;
 
 		return false;
 	}
+
 	if (failedDependency)
 		*failedDependency = nullptr;
 
