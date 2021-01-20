@@ -179,6 +179,14 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 	return future.get();
 }
 
+void RedisConnection::EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback, RedisConnection::QueryPriority priority)
+{
+	asio::post(m_Strand, [this, callback, priority]() {
+		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, nullptr, callback});
+		m_QueuedWrites.Set();
+	});
+}
+
 /**
  * Mark kind as kind of queries not to actually send yet
  *
@@ -470,6 +478,10 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 		m_Queues.FutureResponseActions.emplace(FutureResponseAction{item.first.size(), ResponseAction::DeliverBulk});
 
 		m_QueuedReads.Set();
+	}
+
+	if (next.Callback) {
+		next.Callback(yc);
 	}
 }
 

@@ -309,6 +309,11 @@ void IcingaDB::UpdateAllConfigObjects()
 
 	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", "*", "state", "done"}, Prio::Config);
 
+	// enqueue a callback that will notify us once all previous queries were executed and wait for this event
+	std::promise<void> p;
+	m_Rcon->EnqueueCallback([&p](boost::asio::yield_context& yc) { p.set_value(); }, Prio::Config);
+	p.get_future().wait();
+
 	Log(LogInformation, "IcingaDB")
 			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
