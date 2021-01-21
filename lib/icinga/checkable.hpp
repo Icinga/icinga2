@@ -41,6 +41,17 @@ enum CheckableType
 	CheckableService
 };
 
+/**
+ * @ingroup icinga
+ */
+enum FlappingStateFilter
+{
+	FlappingStateFilterOk = 1,
+	FlappingStateFilterWarning = 2,
+	FlappingStateFilterCritical = 4,
+	FlappingStateFilterUnknown = 8,
+};
+
 class CheckCommand;
 class EventCommand;
 class Dependency;
@@ -186,6 +197,7 @@ public:
 
 protected:
 	void Start(bool runtimeCreated) override;
+	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
 
 private:
@@ -226,7 +238,10 @@ private:
 	void GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level = 0) const;
 
 	/* Flapping */
-	void UpdateFlappingStatus(bool stateChange);
+	static const std::map<String, int> m_FlappingStateFilterMap;
+
+	void UpdateFlappingStatus(ServiceState newState);
+	static int ServiceStateToFlappingFilter(ServiceState state);
 };
 
 }

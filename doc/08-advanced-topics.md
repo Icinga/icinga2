@@ -481,6 +481,8 @@ when a [host](09-object-types.md#objecttype-host) or [service](09-object-types.m
 The default thresholds are 30% for high and 25% for low. If the computed flapping value exceeds the high threshold a
 host or service is considered flapping until it drops below the low flapping threshold.
 
+The attribute `flapping_ignore_states` allows to ignore state changes to specified states during the flapping calculation.
+
 `FlappingStart` and `FlappingEnd` notifications will be sent out accordingly, if configured. See the chapter on
 [notifications](alert-notifications) for details
 
