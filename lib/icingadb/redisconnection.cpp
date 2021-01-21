@@ -241,6 +241,10 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 			Log(LogInformation, "IcingaDB", "Connected to Redis server");
 
+			if (m_ConnectedCallback) {
+				m_ConnectedCallback(yc);
+			}
+
 			break;
 		} catch (const boost::coroutines::detail::forced_unwind&) {
 			throw;
@@ -511,4 +515,15 @@ void RedisConnection::WriteOne(RedisConnection::Query& query, asio::yield_contex
 	} else {
 		WriteOne(m_UnixConn, query, yc);
 	}
+}
+
+/**
+ * Specify a callback that is run each time a connection is successfully established
+ *
+ * The callback is executed from a Boost.Asio coroutine and should therefore not perform blocking operations.
+ *
+ * @param callback Callback to execute
+ */
+void RedisConnection::SetConnectedCallback(std::function<void(asio::yield_context& yc)> callback) {
+	m_ConnectedCallback = std::move(callback);
 }

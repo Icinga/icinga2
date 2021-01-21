@@ -63,16 +63,13 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_ConfigDumpInProgress = false;
 	m_ConfigDumpDone = false;
 
-	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex());
-	m_Rcon->Start();
-
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
-	m_ReconnectTimer = new Timer();
-	m_ReconnectTimer->SetInterval(15);
-	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ReconnectTimerHandler(); });
-	m_ReconnectTimer->Start();
-	m_ReconnectTimer->Reschedule(0);
+	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex());
+	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context& yc) {
+		m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
+	});
+	m_Rcon->Start();
 
 	m_StatsTimer = new Timer();
 	m_StatsTimer->SetInterval(1);
@@ -93,22 +90,9 @@ void IcingaDB::ExceptionHandler(boost::exception_ptr exp)
 		<< "Exception during redis operation: " << DiagnosticInformation(exp);
 }
 
-void IcingaDB::ReconnectTimerHandler()
-{
-	m_WorkQueue.Enqueue([this]() { TryToReconnect(); });
-}
-
-void IcingaDB::TryToReconnect()
+void IcingaDB::OnConnectedHandler()
 {
 	AssertOnWorkQueue();
-
-	if (m_ConfigDumpDone)
-		return;
-	else
-		m_Rcon->Start();
-
-	if (!m_Rcon || !m_Rcon->IsConnected())
-		return;
 
 	if (m_ConfigDumpInProgress || m_ConfigDumpDone)
 		return;

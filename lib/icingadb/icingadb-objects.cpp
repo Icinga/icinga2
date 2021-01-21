@@ -117,6 +117,7 @@ void IcingaDB::ConfigStaticInitialize()
 
 void IcingaDB::UpdateAllConfigObjects()
 {
+	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
 	double startTime = Utility::GetTime();
 
 	// Use a Workqueue to pack objects in parallel

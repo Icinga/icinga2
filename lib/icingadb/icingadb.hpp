@@ -35,8 +35,7 @@ public:
 	virtual void Stop(bool runtimeRemoved) override;
 
 private:
-	void ReconnectTimerHandler();
-	void TryToReconnect();
+	void OnConnectedHandler();
 
 	void PublishStatsTimerHandler();
 	void PublishStats();
@@ -134,7 +133,6 @@ private:
 	}
 
 	Timer::Ptr m_StatsTimer;
-	Timer::Ptr m_ReconnectTimer;
 	WorkQueue m_WorkQueue;
 
 	String m_PrefixConfigObject;
