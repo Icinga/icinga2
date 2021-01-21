@@ -50,10 +50,13 @@ static boost::once_flag l_SpawnHelperOnceFlag = BOOST_ONCE_INIT;
 
 Process::Process(Process::Arguments arguments, Dictionary::Ptr extraEnvironment)
 	: m_Arguments(std::move(arguments)), m_ExtraEnvironment(std::move(extraEnvironment)),
-	  m_Timeout(600), m_AdjustPriority(false), m_ResultAvailable(false)
+	  m_Timeout(600)
 #ifdef _WIN32
 	, m_ReadPending(false), m_ReadFailed(false), m_Overlapped()
+#else /* _WIN32 */
+	, m_SentSigterm(false)
 #endif /* _WIN32 */
+	, m_AdjustPriority(false), m_ResultAvailable(false)
 {
 #ifdef _WIN32
 	m_Overlapped.hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
@@ -648,7 +651,7 @@ void Process::IOThreadProc(int tid)
 #endif /* _WIN32 */
 
 				if (process->m_Timeout != 0) {
-					double delta = process->m_Timeout - (now - process->m_Result.ExecutionStart);
+					double delta = process->GetNextTimeout() - (now - process->m_Result.ExecutionStart);
 
 					if (timeout == -1 || delta < timeout)
 						timeout = delta;
@@ -706,7 +709,7 @@ void Process::IOThreadProc(int tid)
 				bool is_timeout = false;
 
 				if (it->second->m_Timeout != 0) {
-					double timeout = it->second->m_Result.ExecutionStart + it->second->m_Timeout;
+					double timeout = it->second->m_Result.ExecutionStart + it->second->GetNextTimeout();
 
 					if (timeout < now)
 						is_timeout = true;
@@ -1019,15 +1022,42 @@ bool Process::DoEvents()
 #endif /* _WIN32 */
 
 	if (m_Timeout != 0) {
-		double timeout = m_Result.ExecutionStart + m_Timeout;
+		auto now (Utility::GetTime());
 
-		if (timeout < Utility::GetTime()) {
+#ifndef _WIN32
+		{
+			auto timeout (GetNextTimeout());
+			auto deadline (m_Result.ExecutionStart + timeout);
+
+			if (deadline < now && !m_SentSigterm) {
+				Log(LogWarning, "Process")
+					<< "Terminating process " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
+					<< ") after timeout of " << timeout << " seconds";
+
+				m_OutputStream << "<Timeout exceeded.>";
+
+				int error = ProcessKill(m_Process, SIGTERM);
+				if (error) {
+					Log(LogWarning, "Process")
+						<< "Couldn't terminate the process " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
+						<< "): [errno " << error << "] " << strerror(error);
+				}
+
+				m_SentSigterm = true;
+			}
+		}
+#endif /* _WIN32 */
+
+		auto timeout (GetNextTimeout());
+		auto deadline (m_Result.ExecutionStart + timeout);
+
+		if (deadline < now) {
 			Log(LogWarning, "Process")
 				<< "Killing process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
-				<< ") after timeout of " << m_Timeout << " seconds";
+				<< ") after timeout of " << timeout << " seconds";
 
-			m_OutputStream << "<Timeout exceeded.>";
 #ifdef _WIN32
+			m_OutputStream << "<Timeout exceeded.>";
 			TerminateProcess(m_Process, 3);
 #else /* _WIN32 */
 			int error = ProcessKill(-m_Process, SIGKILL);
@@ -1145,3 +1175,11 @@ int Process::GetTID() const
 	return (reinterpret_cast<uintptr_t>(this) / sizeof(void *)) % IOTHREADS;
 }
 
+double Process::GetNextTimeout() const
+{
+#ifdef _WIN32
+	return m_Timeout;
+#else /* _WIN32 */
+	return m_SentSigterm ? m_Timeout * 1.1 : m_Timeout;
+#endif /* _WIN32 */
+}
