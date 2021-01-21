@@ -73,6 +73,8 @@ abstract class Checkable : CustomVarObject
 		default {{{ return true; }}}
 	};
 
+	[config] double recovery_time;
+
 	[config, deprecated] double flapping_threshold;
 
 	[config] double flapping_threshold_low {

@@ -59,6 +59,7 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 		{ "passive_checks_enabled", service->GetEnablePassiveChecks() },
 		{ "active_checks_enabled", service->GetEnableActiveChecks() },
 		{ "notifications_enabled", service->GetEnableNotifications() },
+		{ "recovery_time", service->GetRecoveryTime() / 60.0 },
 		{ "notes", service->GetNotes() },
 		{ "notes_url", service->GetNotesUrl() },
 		{ "action_url", service->GetActionUrl() },
@@ -105,6 +106,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	fields->Set("last_time_critical", DbValue::FromTimestamp(service->GetLastStateCritical()));
 	fields->Set("last_time_unknown", DbValue::FromTimestamp(service->GetLastStateUnknown()));
 	fields->Set("state_type", service->GetStateType());
+	fields->Set("recovery_time", service->GetRecoveryTime() / 60.0);
 	fields->Set("notifications_enabled", service->GetEnableNotifications());
 	fields->Set("problem_has_been_acknowledged", service->GetAcknowledgement() != AcknowledgementNone);
 	fields->Set("acknowledgement_type", service->GetAcknowledgement());

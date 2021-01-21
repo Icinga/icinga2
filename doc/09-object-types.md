@@ -359,6 +359,7 @@ Configuration Attributes:
   event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the host's state changes or the host is in a `SOFT` state.
   flapping\_threshold\_high | Number                | **Optional.** Flapping upper bound in percent for a host to be considered flapping. Default `30.0`
   flapping\_threshold\_low  | Number                | **Optional.** Flapping lower bound in percent for a host to be considered  not flapping. Default `25.0`
+  recovery\_time            | Duration              | **Optional.** How long after host recovery services are expected to be operational again. Can be overridden on a per-service basis.
   volatile                  | Boolean               | **Optional.** Treat all state changes as HARD changes. See [here](08-advanced-topics.md#volatile-services-hosts) for details. Defaults to `false`.
   zone                      | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
   command\_endpoint         | Object name           | **Optional.** The endpoint where commands are executed on.
@@ -370,6 +371,9 @@ Configuration Attributes:
 
 The actual check interval might deviate slightly from the configured values due to the fact that Icinga tries
 to evenly distribute all checks over a certain period of time, i.e. to avoid load spikes.
+
+The `recovery_time` attribute affects how long the implicit dependency of a service on its host is regarded as still violated although the host has returned to an `UP` state.
+For a server, this usually amounts to the time between kernel start (e.g. host responding to pings) and multi-user operation (e.g. daemon processes up and running).
 
 > **Best Practice**
 >
@@ -725,6 +729,7 @@ Configuration Attributes:
   flapping\_threshold\_low  | Number                | **Optional.** Flapping lower bound in percent for a service to be considered  not flapping. `25.0`
   enable\_perfdata          | Boolean               | **Optional.** Whether performance data processing is enabled. Defaults to `true`.
   event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the service's state changes or the service is in a `SOFT` state.
+  recovery\_time            | Duration              | **Optional.** How long after host recovery this service is expected to be operational again. Overrides the host attribute of the same name.
   volatile                  | Boolean               | **Optional.** Treat all state changes as HARD changes. See [here](08-advanced-topics.md#volatile-services-hosts) for details. Defaults to `false`.
   zone                      | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
   name                      | String                | **Required.** The service name. Must be unique on a per-host basis. For advanced usage in [apply rules](03-monitoring-basics.md#using-apply) only.
@@ -740,6 +745,9 @@ you can define more than one object with the same (short) name as long as the `h
 
 The actual check interval might deviate slightly from the configured values due to the fact that Icinga tries
 to evenly distribute all checks over a certain period of time, i.e. to avoid load spikes.
+
+The `recovery_time` attribute overrides the value in the host object affecting how long the implicit dependency of a service on its host is regarded as still violated although the host has returned to an `UP` state, which, for a server, usually is the interval from kernel start to multi-user mode.
+For the `ping` and `ping6` services, it may be set to zero, while for services needing longer to be fully operational even after multi-user mode (e.g. databases with a longer start-up time), it may be set higher that the host's `recovery_time`.
 
 Runtime Attributes:
 

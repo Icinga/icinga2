@@ -63,8 +63,12 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 	const auto *service = dynamic_cast<const Service *>(this);
 	if (service && (dt == DependencyState || dt == DependencyNotification)) {
 		Host::Ptr host = service->GetHost();
+		double recovery_time = service->GetRecoveryTime();
+		if (recovery_time == 0.0 && host)
+			recovery_time = host->GetRecoveryTime();
+		double now = Utility::GetTime();
 
-		if (host && host->GetState() != HostUp && host->GetStateType() == StateTypeHard) {
+		if (host && ((host->GetState() != HostUp && host->GetStateType() == StateTypeHard) || (host->GetState() == HostUp && now - host->GetLastStateChange() < recovery_time))) {
 			if (failedDependency)
 				*failedDependency = nullptr;
 
