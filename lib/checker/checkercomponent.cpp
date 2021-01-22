@@ -129,10 +129,41 @@ void CheckerComponent::CheckThreadProc()
 		bool check = true;
 
 		if (!forced) {
-			if (!checkable->IsReachable(DependencyCheckExecution)) {
-				Log(LogNotice, "CheckerComponent")
-					<< "Skipping check for object '" << checkable->GetName() << "': Dependency failed.";
-				check = false;
+			{
+				bool recursionError = false;
+
+				if (!checkable->IsReachable(DependencyCheckExecution, nullptr, &recursionError)) {
+					if (recursionError) {
+						lock.unlock();
+
+						CheckResult::Ptr cr = new CheckResult();
+						cr->SetState(ServiceUnknown);
+
+						cr->SetOutput(
+							"Too many nested dependencies (>256) for checkable '"
+								+ checkable->GetName() + "': Dependency failed."
+						);
+
+						{
+							double now = Utility::GetTime();
+
+							cr->SetScheduleStart(now);
+							cr->SetScheduleEnd(now);
+							cr->SetExecutionStart(now);
+							cr->SetExecutionEnd(now);
+						}
+
+						checkable->ProcessCheckResult(cr);
+
+						lock.lock();
+					} else {
+						Log(LogNotice, "CheckerComponent")
+							<< "Skipping check for object '"
+							<< checkable->GetName() << "': Dependency failed.";
+					}
+
+					check = false;
+				}
 			}
 
 			Host::Ptr host;
