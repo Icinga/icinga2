@@ -9,8 +9,7 @@
 #include <deque>
 #include <vector>
 #include <sstream>
-#include <mutex>
-#include <condition_variable>
+#include <future>
 
 namespace icinga
 {
@@ -102,9 +101,8 @@ private:
 	std::ostringstream m_OutputStream;
 	std::function<void (const ProcessResult&)> m_Callback;
 	ProcessResult m_Result;
-	bool m_ResultAvailable;
-	std::mutex m_ResultMutex;
-	std::condition_variable m_ResultCondition;
+	std::promise<const ProcessResult&> m_ResultPromise;
+	std::shared_future<const ProcessResult&> m_ResultFuture;
 
 	static void IOThreadProc(int tid);
 	bool DoEvents();

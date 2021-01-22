@@ -56,7 +56,7 @@ Process::Process(Process::Arguments arguments, Dictionary::Ptr extraEnvironment)
 #else /* _WIN32 */
 	, m_SentSigterm(false)
 #endif /* _WIN32 */
-	, m_AdjustPriority(false), m_ResultAvailable(false)
+	, m_AdjustPriority(false), m_ResultPromise(), m_ResultFuture(m_ResultPromise.get_future())
 {
 #ifdef _WIN32
 	m_Overlapped.hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
@@ -1009,9 +1009,9 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 }
 
 const ProcessResult& Process::WaitForResult() {
-	std::unique_lock<std::mutex> lock(m_ResultMutex);
-	m_ResultCondition.wait(lock, [this]{ return m_ResultAvailable; });
-	return m_Result;
+	// copy shared future as only one thread may wait on each instance
+	std::shared_future<const ProcessResult&> future = m_ResultFuture;
+	return future.get();
 }
 
 bool Process::DoEvents()
@@ -1148,15 +1148,11 @@ bool Process::DoEvents()
 	}
 #endif /* _WIN32 */
 
-	{
-		std::lock_guard<std::mutex> lock(m_ResultMutex);
-		m_Result.PID = m_PID;
-		m_Result.ExecutionEnd = Utility::GetTime();
-		m_Result.ExitStatus = exitcode;
-		m_Result.Output = output;
-		m_ResultAvailable = true;
-	}
-	m_ResultCondition.notify_all();
+	m_Result.PID = m_PID;
+	m_Result.ExecutionEnd = Utility::GetTime();
+	m_Result.ExitStatus = exitcode;
+	m_Result.Output = output;
+	m_ResultPromise.set_value(m_Result);
 
 	if (m_Callback)
 		Utility::QueueAsyncCallback(std::bind(m_Callback, m_Result));
