@@ -35,9 +35,14 @@ public:
 	void ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 	void ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
+	int GetQueryCount(RingBuffer::SizeType span);
+	size_t GetPendingQueries();
+
 protected:
 	WorkQueue m_WorkQueue{10000000, 1};
 	std::vector<String> m_DataBuffer;
+
+	RingBuffer m_QueryStats{15 * 60};
 
 	void OnConfigLoaded() override;
 	void Resume() override;
