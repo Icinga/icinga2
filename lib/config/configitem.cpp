@@ -28,6 +28,7 @@
 
 using namespace icinga;
 
+thread_local std::function<void(ConfigItem*)> ConfigItem::m_OverrideRegistry;
 boost::mutex ConfigItem::m_Mutex;
 ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::TypeMap ConfigItem::m_DefaultTemplates;
@@ -258,52 +259,56 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		throw;
 	}
 
-	try {
-		dobj->OnConfigLoaded();
-	} catch (const std::exception& ex) {
-		if (m_IgnoreOnError) {
-			Log(LogNotice, "ConfigObject")
-				<< "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
+	if (!m_OverrideRegistry) {
+		try {
+			dobj->OnConfigLoaded();
+		} catch (const std::exception& ex) {
+			if (m_IgnoreOnError) {
+				Log(LogNotice, "ConfigObject")
+					<< "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
-			{
-				boost::mutex::scoped_lock lock(m_Mutex);
-				m_IgnoredItems.push_back(m_DebugInfo.Path);
+				{
+					boost::mutex::scoped_lock lock(m_Mutex);
+					m_IgnoredItems.push_back(m_DebugInfo.Path);
+				}
+
+				return nullptr;
 			}
 
-			return nullptr;
+			throw;
+		}
+	}
+
+	if (!m_OverrideRegistry) {
+		Value serializedObject;
+
+		try {
+			serializedObject = Serialize(dobj, FAConfig);
+		} catch (const CircularReferenceError& ex) {
+			BOOST_THROW_EXCEPTION(ValidationError(dobj, ex.GetPath(), "Circular references are not allowed"));
 		}
 
-		throw;
+		Dictionary::Ptr persistentItem = new Dictionary({
+			{ "type", type->GetName() },
+			{ "name", GetName() },
+			{ "properties", Serialize(dobj, FAConfig) },
+			{ "debug_hints", dhint },
+			{ "debug_info", new Array({
+				m_DebugInfo.Path,
+				m_DebugInfo.FirstLine,
+				m_DebugInfo.FirstColumn,
+				m_DebugInfo.LastLine,
+				m_DebugInfo.LastColumn,
+			}) }
+		});
+
+		dhint.reset();
+
+		ConfigCompilerContext::GetInstance()->WriteObject(persistentItem);
+		persistentItem.reset();
+
+		dobj->Register();
 	}
-
-	Value serializedObject;
-
-	try {
-		serializedObject = Serialize(dobj, FAConfig);
-	} catch (const CircularReferenceError& ex) {
-		BOOST_THROW_EXCEPTION(ValidationError(dobj, ex.GetPath(), "Circular references are not allowed"));
-	}
-
-	Dictionary::Ptr persistentItem = new Dictionary({
-		{ "type", type->GetName() },
-		{ "name", GetName() },
-		{ "properties", Serialize(dobj, FAConfig) },
-		{ "debug_hints", dhint },
-		{ "debug_info", new Array({
-			m_DebugInfo.Path,
-			m_DebugInfo.FirstLine,
-			m_DebugInfo.FirstColumn,
-			m_DebugInfo.LastLine,
-			m_DebugInfo.LastColumn,
-		}) }
-	});
-
-	dhint.reset();
-
-	ConfigCompilerContext::GetInstance()->WriteObject(persistentItem);
-	persistentItem.reset();
-
-	dobj->Register();
 
 	m_Object = dobj;
 
@@ -315,6 +320,11 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
  */
 void ConfigItem::Register()
 {
+	if (m_OverrideRegistry) {
+		m_OverrideRegistry(this);
+		return;
+	}
+
 	m_ActivationContext = ActivationContext::GetCurrentContext();
 
 	boost::mutex::scoped_lock lock(m_Mutex);
@@ -348,6 +358,10 @@ void ConfigItem::Register()
  */
 void ConfigItem::Unregister()
 {
+	if (m_OverrideRegistry) {
+		return;
+	}
+
 	if (m_Object) {
 		m_Object->Unregister();
 		m_Object.reset();
