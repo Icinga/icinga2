@@ -8,6 +8,7 @@
 #include "base/context.hpp"
 #include "base/exception.hpp"
 #include <fstream>
+#include <future>
 
 using namespace icinga;
 
@@ -104,6 +105,41 @@ void ConfigCompiler::CollectIncludes(std::vector<std::unique_ptr<Expression> >& 
 	}
 }
 
+void CompileIncludes(std::vector<std::unique_ptr<Expression>>& expressions,
+	const std::vector<String>& files, const String& zone, const String& package)
+{
+	typedef std::vector<std::promise<std::unique_ptr<Expression>>> Promises;
+
+	Promises promises (Promises::size_type(files.size()));
+	auto promise (promises.data());
+
+	for (auto& file : files) {
+		Utility::QueueAsyncCallback([&file, &zone, &package, promise]() {
+			std::unique_ptr<Expression> expression;
+
+			try {
+				expression = ConfigCompiler::CompileFile(file, zone, package);
+			} catch (const std::exception& ex) {
+				Log(LogWarning, "ConfigCompiler")
+					<< "Cannot compile file '"
+					<< file << "': " << DiagnosticInformation(ex);
+			}
+
+			promise->set_value(std::move(expression));
+		});
+
+		++promise;
+	}
+
+	for (auto& promise : promises) {
+		auto expression (promise.get_future().get());
+
+		if (expression) {
+			expressions.emplace_back(std::move(expression));
+		}
+	}
+}
+
 /**
  * Handles an include directive.
  *
@@ -137,10 +173,16 @@ std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relative
 
 	std::vector<std::unique_ptr<Expression> > expressions;
 
-	if (!Utility::Glob(includePath, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
-		std::ostringstream msgbuf;
-		msgbuf << "Include file '" + path + "' does not exist";
-		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debuginfo));
+	{
+		std::vector<String> includes;
+
+		if (!Utility::Glob(includePath, [&includes](const String& include) { includes.emplace_back(include); }, GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
+			std::ostringstream msgbuf;
+			msgbuf << "Include file '" + path + "' does not exist";
+			BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debuginfo));
+		}
+
+		CompileIncludes(expressions, includes, zone, package);
 	}
 
 	std::unique_ptr<DictExpression> expr{new DictExpression(std::move(expressions))};
@@ -167,7 +209,12 @@ std::unique_ptr<Expression> ConfigCompiler::HandleIncludeRecursive(const String&
 		ppath = relativeBase + "/" + path;
 
 	std::vector<std::unique_ptr<Expression> > expressions;
-	Utility::GlobRecursive(ppath, pattern, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile);
+
+	{
+		std::vector<String> includes;
+		Utility::GlobRecursive(ppath, pattern, [&includes](const String& include) { includes.emplace_back(include); }, GlobFile);
+		CompileIncludes(expressions, includes, zone, package);
+	}
 
 	std::unique_ptr<DictExpression> dict{new DictExpression(std::move(expressions))};
 	dict->MakeInline();
@@ -187,7 +234,9 @@ void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String&
 
 	RegisterZoneDir(tag, ppath, zoneName);
 
-	Utility::GlobRecursive(ppath, pattern, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
+	std::vector<String> includes;
+	Utility::GlobRecursive(ppath, pattern, [&includes](const String& include) { includes.emplace_back(include); }, GlobFile);
+	CompileIncludes(expressions, includes, zoneName, package);
 }
 
 /**
