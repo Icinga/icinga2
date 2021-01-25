@@ -118,14 +118,16 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (cr->GetExecutionEnd() == 0)
 		cr->SetExecutionEnd(now);
 
-	if (!origin || origin->IsLocal())
-		cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
-
 	Endpoint::Ptr command_endpoint = GetCommandEndpoint();
 
-	/* override check source if command_endpoint was defined */
-	if (command_endpoint && !GetExtension("agent_check"))
-		cr->SetCheckSource(command_endpoint->GetName());
+	if (cr->GetCheckSource().IsEmpty()) {
+		if ((!origin || origin->IsLocal()))
+			cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
+
+		/* override check source if command_endpoint was defined */
+		if (command_endpoint && !GetExtension("agent_check"))
+			cr->SetCheckSource(command_endpoint->GetName());
+	}
 
 	/* agent checks go through the api */
 	if (command_endpoint && GetExtension("agent_check")) {
