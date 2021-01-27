@@ -242,11 +242,11 @@ bool Checkable::NotificationReasonApplies(NotificationType type)
 }
 
 /**
- * Returns whether *this not allows sending a notification of type type right now.
+ * Checks if notifications of a given type should be suppressed for this Checkable at the moment.
  *
- * @param type The type of notification to send (or not to send).
+ * @param type The notification type for which to query the suppression status.
  *
- * @return Whether not to send the notification.
+ * @return true if no notification of this type should be sent.
  */
 bool Checkable::NotificationReasonSuppressed(NotificationType type)
 {
