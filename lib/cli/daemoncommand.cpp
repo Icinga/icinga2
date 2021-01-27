@@ -688,7 +688,11 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	}
 
 #ifdef _WIN32
-	return RunWorker(configs);
+	try {
+		return RunWorker(configs);
+	} catch (...) {
+		return EXIT_FAILURE;
+	}
 #else /* _WIN32 */
 	l_UmbrellaPid = getpid();
 	Application::SetUmbrellaProcess(l_UmbrellaPid);
