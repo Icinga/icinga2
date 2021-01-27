@@ -165,7 +165,7 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	if (missingQueriesCritical.IsEmpty() && qps < queriesCritical) {
 		msgbuf << " " << qps << " queries/s lower than critical threshold (" << queriesCritical << " queries/s).";
 
-		state= ServiceCritical;
+		state = ServiceCritical;
 	} else if (missingQueriesWarning.IsEmpty() && qps < queriesWarning) {
 		msgbuf << " " << qps << " queries/s lower than warning threshold (" << queriesWarning << " queries/s).";
 
@@ -181,7 +181,9 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		msgbuf << " " << pendingQueries << " pending queries greater than warning threshold ("
 		    << pendingQueriesWarning << " queries).";
 
-		state = ServiceWarning;
+		if (state == ServiceOK) {
+			state = ServiceWarning;
+		}
 	}
 
 	cr->SetPerformanceData(new Array({
