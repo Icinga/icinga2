@@ -4,6 +4,12 @@
 #include <chrono>
 #include <BoostTestTargetConfig.h>
 
+#ifdef _WIN32
+# include <windows.h>
+# include <shellapi.h>
+# include <atlstr.h>
+#endif /* _WIN32 */
+
 using namespace icinga;
 
 BOOST_AUTO_TEST_SUITE(base_utility)
@@ -73,6 +79,35 @@ BOOST_AUTO_TEST_CASE(validateutf8)
 	BOOST_CHECK(Utility::ValidateUTF8("a") == "a");
 	BOOST_CHECK(Utility::ValidateUTF8("\xC3") == "\xEF\xBF\xBD");
 	BOOST_CHECK(Utility::ValidateUTF8("\xC3\xA4") == "\xC3\xA4");
+}
+
+BOOST_AUTO_TEST_CASE(EscapeCreateProcessArg)
+{
+#ifdef _WIN32
+	std::vector<std::string> testdata = {
+		R"(foobar)",
+		R"(foo bar)",
+		R"(foo"bar)",
+		R"("foo bar")",
+		R"(" \" \\" \\\" \\\\")",
+		R"( !"#$$%&'()*+,-./09:;<=>?@AZ[\]^_`az{|}~ " \" \\" \\\" \\\\")",
+		"'foo\nbar'",
+	};
+
+	for (const auto& t : testdata) {
+		// Prepend some fake exec name as the first argument is handled differently.
+		std::string escaped = "some.exe " + Utility::EscapeCreateProcessArg(t);
+		int argc;
+		std::shared_ptr<LPWSTR> argv(CommandLineToArgvW(CA2W(escaped.c_str()), &argc), LocalFree);
+		BOOST_CHECK_MESSAGE(argv != nullptr, "CommandLineToArgvW() should not return nullptr for " << t);
+		BOOST_CHECK_MESSAGE(argc == 2, "CommandLineToArgvW() should find 2 arguments for " << t);
+		if (argc >= 2) {
+			std::string unescaped = CW2A(argv.get()[1]);
+			BOOST_CHECK_MESSAGE(unescaped == t,
+				"CommandLineToArgvW() should return original value for " << t << " (got: " << unescaped << ")");
+		}
+	}
+#endif /* _WIN32 */
 }
 
 BOOST_AUTO_TEST_SUITE_END()
