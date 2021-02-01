@@ -1148,7 +1148,7 @@ String Utility::EscapeCreateProcessArg(const String& arg)
 			result.Append(numBackslashes * 2, '\\');
 			break;
 		} else if (*it == '"') {
-			result.Append(numBackslashes * 2, '\\');
+			result.Append(numBackslashes * 2 + 1, '\\');
 			result.Append(1, *it);
 		} else {
 			result.Append(numBackslashes, '\\');
