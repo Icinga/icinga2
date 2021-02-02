@@ -126,7 +126,7 @@ private:
 	void *m_Scanner;
 
 	static std::vector<String> m_IncludeSearchDirs;
-	static boost::mutex m_ZoneDirsMutex;
+	static std::mutex m_ZoneDirsMutex;
 	static std::map<String, std::vector<ZoneFragment> > m_ZoneDirs;
 
 	void InitializeScanner();

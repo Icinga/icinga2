@@ -33,7 +33,7 @@ using namespace icinga;
 
 #define IOTHREADS 4
 
-static boost::mutex l_ProcessMutex[IOTHREADS];
+static std::mutex l_ProcessMutex[IOTHREADS];
 static std::map<Process::ProcessHandle, Process::Ptr> l_Processes[IOTHREADS];
 #ifdef _WIN32
 static HANDLE l_Events[IOTHREADS];
@@ -41,7 +41,7 @@ static HANDLE l_Events[IOTHREADS];
 static int l_EventFDs[IOTHREADS][2];
 static std::map<Process::ConsoleHandle, Process::ProcessHandle> l_FDs[IOTHREADS];
 
-static boost::mutex l_ProcessControlMutex;
+static std::mutex l_ProcessControlMutex;
 static int l_ProcessControlFD = -1;
 static pid_t l_ProcessControlPID;
 #endif /* _WIN32 */
@@ -372,7 +372,7 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 	String jrequest = JsonEncode(request);
 	size_t length = jrequest.GetLength();
 
-	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
+	std::unique_lock<std::mutex> lock(l_ProcessControlMutex);
 
 	struct msghdr msg;
 	memset(&msg, 0, sizeof(msg));
@@ -431,7 +431,7 @@ static int ProcessKill(pid_t pid, int signum)
 	String jrequest = JsonEncode(request);
 	size_t length = jrequest.GetLength();
 
-	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
+	std::unique_lock<std::mutex> lock(l_ProcessControlMutex);
 
 	do {
 		while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0) {
@@ -462,7 +462,7 @@ static int ProcessWaitPID(pid_t pid, int *status)
 	String jrequest = JsonEncode(request);
 	size_t length = jrequest.GetLength();
 
-	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
+	std::unique_lock<std::mutex> lock(l_ProcessControlMutex);
 
 	do {
 		while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0) {
@@ -606,7 +606,7 @@ void Process::IOThreadProc(int tid)
 		now = Utility::GetTime();
 
 		{
-			boost::mutex::scoped_lock lock(l_ProcessMutex[tid]);
+			std::unique_lock<std::mutex> lock(l_ProcessMutex[tid]);
 
 			count = 1 + l_Processes[tid].size();
 #ifdef _WIN32
@@ -675,7 +675,7 @@ void Process::IOThreadProc(int tid)
 		now = Utility::GetTime();
 
 		{
-			boost::mutex::scoped_lock lock(l_ProcessMutex[tid]);
+			std::unique_lock<std::mutex> lock(l_ProcessMutex[tid]);
 
 #ifdef _WIN32
 			if (rc == WAIT_OBJECT_0)
@@ -990,7 +990,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	int tid = GetTID();
 
 	{
-		boost::mutex::scoped_lock lock(l_ProcessMutex[tid]);
+		std::unique_lock<std::mutex> lock(l_ProcessMutex[tid]);
 		l_Processes[tid][m_Process] = this;
 #ifndef _WIN32
 		l_FDs[tid][m_FD] = m_Process;

@@ -37,7 +37,7 @@ private:
 	Timer::Ptr m_RotationTimer;
 	std::ofstream m_ServiceOutputFile;
 	std::ofstream m_HostOutputFile;
-	boost::mutex m_StreamMutex;
+	std::mutex m_StreamMutex;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	static Value EscapeMacroMetric(const Value& value);

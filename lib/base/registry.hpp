@@ -5,9 +5,9 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include <boost/thread/mutex.hpp>
 #include <boost/signals2.hpp>
 #include <map>
+#include <mutex>
 
 namespace icinga
 {
@@ -25,7 +25,7 @@ public:
 
 	void RegisterIfNew(const String& name, const T& item)
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		std::unique_lock<std::mutex> lock(m_Mutex);
 
 		if (m_Items.find(name) != m_Items.end())
 			return;
@@ -35,7 +35,7 @@ public:
 
 	void Register(const String& name, const T& item)
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		std::unique_lock<std::mutex> lock(m_Mutex);
 
 		RegisterInternal(name, item, lock);
 	}
@@ -45,7 +45,7 @@ public:
 		size_t erased;
 
 		{
-			boost::mutex::scoped_lock lock(m_Mutex);
+			std::unique_lock<std::mutex> lock(m_Mutex);
 			erased = m_Items.erase(name);
 		}
 
@@ -58,7 +58,7 @@ public:
 		typename Registry<U, T>::ItemMap items;
 
 		{
-			boost::mutex::scoped_lock lock(m_Mutex);
+			std::unique_lock<std::mutex> lock(m_Mutex);
 			items = m_Items;
 		}
 
@@ -67,14 +67,14 @@ public:
 		}
 
 		{
-			boost::mutex::scoped_lock lock(m_Mutex);
+			std::unique_lock<std::mutex> lock(m_Mutex);
 			m_Items.clear();
 		}
 	}
 
 	T GetItem(const String& name) const
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		std::unique_lock<std::mutex> lock(m_Mutex);
 
 		auto it = m_Items.find(name);
 
@@ -86,7 +86,7 @@ public:
 
 	ItemMap GetItems() const
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		std::unique_lock<std::mutex> lock(m_Mutex);
 
 		return m_Items; /* Makes a copy of the map. */
 	}
@@ -95,10 +95,10 @@ public:
 	boost::signals2::signal<void (const String&)> OnUnregistered;
 
 private:
-	mutable boost::mutex m_Mutex;
+	mutable std::mutex m_Mutex;
 	typename Registry<U, T>::ItemMap m_Items;
 
-	void RegisterInternal(const String& name, const T& item, boost::mutex::scoped_lock& lock)
+	void RegisterInternal(const String& name, const T& item, std::unique_lock<std::mutex>& lock)
 	{
 		bool old_item = false;
 

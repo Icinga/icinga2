@@ -80,7 +80,7 @@ private:
 
 	ConfigObject::Ptr m_Object;
 
-	static boost::mutex m_Mutex;
+	static std::mutex m_Mutex;
 
 	typedef std::map<String, ConfigItem::Ptr> ItemMap;
 	typedef std::map<Type::Ptr, ItemMap> TypeMap;

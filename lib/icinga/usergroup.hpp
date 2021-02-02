@@ -32,7 +32,7 @@ public:
 	static void EvaluateObjectRules(const User::Ptr& user);
 
 private:
-	mutable boost::mutex m_UserGroupMutex;
+	mutable std::mutex m_UserGroupMutex;
 	std::set<User::Ptr> m_Members;
 
 	static bool EvaluateObjectRule(const User::Ptr& user, const intrusive_ptr<ConfigItem>& group);

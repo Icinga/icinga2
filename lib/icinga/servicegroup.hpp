@@ -32,7 +32,7 @@ public:
 	static void EvaluateObjectRules(const Service::Ptr& service);
 
 private:
-	mutable boost::mutex m_ServiceGroupMutex;
+	mutable std::mutex m_ServiceGroupMutex;
 	std::set<Service::Ptr> m_Members;
 
 	static bool EvaluateObjectRule(const Service::Ptr& service, const intrusive_ptr<ConfigItem>& group);

@@ -159,7 +159,7 @@ private:
 	static void RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs = 0, size_t maxArgs = UINT_MAX);
 	static void RegisterCommands();
 
-	static boost::mutex& GetMutex();
+	static std::mutex& GetMutex();
 	static std::map<String, ExternalCommandInfo>& GetCommands();
 
 };

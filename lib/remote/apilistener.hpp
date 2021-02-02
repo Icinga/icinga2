@@ -160,8 +160,8 @@ protected:
 private:
 	Shared<boost::asio::ssl::context>::Ptr m_SSLContext;
 
-	mutable boost::mutex m_AnonymousClientsLock;
-	mutable boost::mutex m_HttpClientsLock;
+	mutable std::mutex m_AnonymousClientsLock;
+	mutable std::mutex m_HttpClientsLock;
 	std::set<JsonRpcConnection::Ptr> m_AnonymousClients;
 	std::set<HttpServerConnection::Ptr> m_HttpClients;
 
@@ -197,7 +197,7 @@ private:
 	WorkQueue m_RelayQueue;
 	WorkQueue m_SyncQueue{0, 4};
 
-	boost::mutex m_LogLock;
+	std::mutex m_LogLock;
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount{0};
 
@@ -247,7 +247,7 @@ private:
 	void SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint, bool needSync);
 
 	/* API Config Packages */
-	mutable boost::mutex m_ActivePackageStagesLock;
+	mutable std::mutex m_ActivePackageStagesLock;
 	std::map<String, String> m_ActivePackageStages;
 
 	void UpdateActivePackageStagesCache();

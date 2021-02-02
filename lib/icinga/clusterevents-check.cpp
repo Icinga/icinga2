@@ -12,7 +12,7 @@
 
 using namespace icinga;
 
-boost::mutex ClusterEvents::m_Mutex;
+std::mutex ClusterEvents::m_Mutex;
 std::deque<std::function<void ()>> ClusterEvents::m_CheckRequestQueue;
 bool ClusterEvents::m_CheckSchedulerRunning;
 int ClusterEvents::m_ChecksExecutedDuringInterval;
@@ -25,7 +25,7 @@ void ClusterEvents::RemoteCheckThreadProc()
 
 	int maxConcurrentChecks = IcingaApplication::GetInstance()->GetMaxConcurrentChecks();
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	for(;;) {
 		if (m_CheckRequestQueue.empty())
@@ -60,7 +60,7 @@ void ClusterEvents::EnqueueCheck(const MessageOrigin::Ptr& origin, const Diction
 		m_LogTimer->Start();
 	});
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	if (m_CheckRequestQueue.size() >= 25000) {
 		m_ChecksDroppedDuringInterval++;

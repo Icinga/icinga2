@@ -5,8 +5,8 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
-#include <boost/thread/mutex.hpp>
 #include <map>
+#include <mutex>
 
 namespace icinga {
 
@@ -25,7 +25,7 @@ public:
 private:
 	DependencyGraph();
 
-	static boost::mutex m_Mutex;
+	static std::mutex m_Mutex;
 	static std::map<Object *, std::map<Object *, int> > m_Dependencies;
 };
 

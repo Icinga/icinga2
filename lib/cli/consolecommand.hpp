@@ -8,6 +8,7 @@
 #include "base/scriptframe.hpp"
 #include "base/tlsstream.hpp"
 #include "remote/url.hpp"
+#include <condition_variable>
 
 
 namespace icinga
@@ -37,8 +38,8 @@ public:
 		bool syntaxOnly = false);
 
 private:
-	mutable boost::mutex m_Mutex;
-	mutable boost::condition_variable m_CV;
+	mutable std::mutex m_Mutex;
+	mutable std::condition_variable m_CV;
 
 	static Shared<AsioTlsStream>::Ptr Connect();
 

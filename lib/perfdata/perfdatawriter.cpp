@@ -118,7 +118,7 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
 
 		{
-			boost::mutex::scoped_lock lock(m_StreamMutex);
+			std::unique_lock<std::mutex> lock(m_StreamMutex);
 
 			if (!m_ServiceOutputFile.good())
 				return;
@@ -129,7 +129,7 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		String line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
 
 		{
-			boost::mutex::scoped_lock lock(m_StreamMutex);
+			std::unique_lock<std::mutex> lock(m_StreamMutex);
 
 			if (!m_HostOutputFile.good())
 				return;
@@ -144,7 +144,7 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 	Log(LogDebug, "PerfdataWriter")
 		<< "Rotating perfdata files.";
 
-	boost::mutex::scoped_lock lock(m_StreamMutex);
+	std::unique_lock<std::mutex> lock(m_StreamMutex);
 
 	if (output.good()) {
 		output.close();

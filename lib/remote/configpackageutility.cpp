@@ -187,7 +187,7 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 	if (pr.ExitStatus == 0) {
 		if (activate) {
 			{
-				boost::mutex::scoped_lock lock(GetStaticPackageMutex());
+				std::unique_lock<std::mutex> lock(GetStaticPackageMutex());
 
 				ActivateStage(packageName, stageName);
 			}
@@ -254,7 +254,7 @@ std::vector<String> ConfigPackageUtility::GetStages(const String& packageName)
 String ConfigPackageUtility::GetActiveStageFromFile(const String& packageName)
 {
 	/* Lock the transaction, reading this only happens on startup or when something really is broken. */
-	boost::mutex::scoped_lock lock(GetStaticActiveStageMutex());
+	std::unique_lock<std::mutex> lock(GetStaticActiveStageMutex());
 
 	String path = GetPackageDir() + "/" + packageName + "/active-stage";
 
@@ -274,7 +274,7 @@ String ConfigPackageUtility::GetActiveStageFromFile(const String& packageName)
 
 void ConfigPackageUtility::SetActiveStageToFile(const String& packageName, const String& stageName)
 {
-	boost::mutex::scoped_lock lock(GetStaticActiveStageMutex());
+	std::unique_lock<std::mutex> lock(GetStaticActiveStageMutex());
 
 	String activeStagePath = GetPackageDir() + "/" + packageName + "/active-stage";
 
@@ -384,14 +384,14 @@ bool ConfigPackageUtility::ValidateName(const String& name)
 	return (!boost::regex_search(name.GetData(), what, expr));
 }
 
-boost::mutex& ConfigPackageUtility::GetStaticPackageMutex()
+std::mutex& ConfigPackageUtility::GetStaticPackageMutex()
 {
-	static boost::mutex mutex;
+	static std::mutex mutex;
 	return mutex;
 }
 
-boost::mutex& ConfigPackageUtility::GetStaticActiveStageMutex()
+std::mutex& ConfigPackageUtility::GetStaticActiveStageMutex()
 {
-	static boost::mutex mutex;
+	static std::mutex mutex;
 	return mutex;
 }

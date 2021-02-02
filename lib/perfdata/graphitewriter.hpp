@@ -10,7 +10,7 @@
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include <fstream>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 namespace icinga
 {
@@ -38,7 +38,7 @@ protected:
 
 private:
 	Shared<AsioTcpStream>::Ptr m_Stream;
-	boost::mutex m_StreamMutex;
+	std::mutex m_StreamMutex;
 	WorkQueue m_WorkQueue{10000000, 1};
 
 	Timer::Ptr m_ReconnectTimer;

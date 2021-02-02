@@ -33,7 +33,7 @@ protected:
 	void Flush() final;
 
 private:
-	static boost::mutex m_Mutex;
+	static std::mutex m_Mutex;
 	std::ostream *m_Stream{nullptr};
 	bool m_OwnsStream{false};
 

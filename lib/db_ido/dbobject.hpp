@@ -96,7 +96,7 @@ private:
 	static void VarsChangedHandler(const CustomVarObject::Ptr& object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 
-	static boost::mutex& GetStaticMutex();
+	static std::mutex& GetStaticMutex();
 
 	friend class DbType;
 };

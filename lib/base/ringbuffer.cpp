@@ -13,13 +13,13 @@ RingBuffer::RingBuffer(RingBuffer::SizeType slots)
 
 RingBuffer::SizeType RingBuffer::GetLength() const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 	return m_Slots.size();
 }
 
 void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	InsertValueUnlocked(tv, num);
 }
@@ -55,7 +55,7 @@ void RingBuffer::InsertValueUnlocked(RingBuffer::SizeType tv, int num)
 
 int RingBuffer::UpdateAndGetValues(RingBuffer::SizeType tv, RingBuffer::SizeType span)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	return UpdateAndGetValuesUnlocked(tv, span);
 }
@@ -84,7 +84,7 @@ int RingBuffer::UpdateAndGetValuesUnlocked(RingBuffer::SizeType tv, RingBuffer::
 
 double RingBuffer::CalculateRate(RingBuffer::SizeType tv, RingBuffer::SizeType span)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	int sum = UpdateAndGetValuesUnlocked(tv, span);
 	return sum / static_cast<double>(std::min(span, m_InsertedValues));

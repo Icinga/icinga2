@@ -73,7 +73,7 @@ public:
 	static void LogRemoteCheckQueueInformation();
 
 private:
-	static boost::mutex m_Mutex;
+	static std::mutex m_Mutex;
 	static std::deque<std::function<void ()>> m_CheckRequestQueue;
 	static bool m_CheckSchedulerRunning;
 	static int m_ChecksExecutedDuringInterval;

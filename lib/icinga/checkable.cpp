@@ -99,7 +99,7 @@ void Checkable::Start(bool runtimeCreated)
 
 void Checkable::AddGroup(const String& name)
 {
-	boost::mutex::scoped_lock lock(m_CheckableMutex);
+	std::unique_lock<std::mutex> lock(m_CheckableMutex);
 
 	Array::Ptr groups;
 	auto *host = dynamic_cast<Host *>(this);

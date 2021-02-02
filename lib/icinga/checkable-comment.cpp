@@ -38,18 +38,18 @@ void Checkable::RemoveCommentsByType(int type, const String& removedBy)
 
 std::set<Comment::Ptr> Checkable::GetComments() const
 {
-	boost::mutex::scoped_lock lock(m_CommentMutex);
+	std::unique_lock<std::mutex> lock(m_CommentMutex);
 	return m_Comments;
 }
 
 void Checkable::RegisterComment(const Comment::Ptr& comment)
 {
-	boost::mutex::scoped_lock lock(m_CommentMutex);
+	std::unique_lock<std::mutex> lock(m_CommentMutex);
 	m_Comments.insert(comment);
 }
 
 void Checkable::UnregisterComment(const Comment::Ptr& comment)
 {
-	boost::mutex::scoped_lock lock(m_CommentMutex);
+	std::unique_lock<std::mutex> lock(m_CommentMutex);
 	m_Comments.erase(comment);
 }

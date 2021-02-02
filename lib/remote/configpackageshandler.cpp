@@ -63,7 +63,7 @@ void ConfigPackagesHandler::HandleGet(
 	ArrayData results;
 
 	{
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+		std::unique_lock<std::mutex> lock(ConfigPackageUtility::GetStaticPackageMutex());
 
 		for (const String& package : packages) {
 			String activeStage;
@@ -111,7 +111,7 @@ void ConfigPackagesHandler::HandlePost(
 	}
 
 	try {
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+		std::unique_lock<std::mutex> lock(ConfigPackageUtility::GetStaticPackageMutex());
 
 		ConfigPackageUtility::CreatePackage(packageName);
 	} catch (const std::exception& ex) {

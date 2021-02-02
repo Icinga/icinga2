@@ -8,8 +8,7 @@
 #include "config/expression.hpp"
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
+#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
@@ -48,8 +47,8 @@ public:
 private:
 	String m_Name;
 
-	mutable boost::mutex m_Mutex;
-	boost::condition_variable m_CV;
+	mutable std::mutex m_Mutex;
+	std::condition_variable m_CV;
 
 	std::set<String> m_Types;
 	std::unique_ptr<Expression> m_Filter;

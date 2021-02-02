@@ -25,9 +25,9 @@ boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnNextCheckUpda
 
 Atomic<uint_fast64_t> Checkable::CurrentConcurrentChecks (0);
 
-boost::mutex Checkable::m_StatsMutex;
+std::mutex Checkable::m_StatsMutex;
 int Checkable::m_PendingChecks = 0;
-boost::condition_variable Checkable::m_PendingChecksCV;
+std::condition_variable Checkable::m_PendingChecksCV;
 
 CheckCommand::Ptr Checkable::GetCheckCommand() const
 {
@@ -659,26 +659,26 @@ void Checkable::UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type)
 
 void Checkable::IncreasePendingChecks()
 {
-	boost::mutex::scoped_lock lock(m_StatsMutex);
+	std::unique_lock<std::mutex> lock(m_StatsMutex);
 	m_PendingChecks++;
 }
 
 void Checkable::DecreasePendingChecks()
 {
-	boost::mutex::scoped_lock lock(m_StatsMutex);
+	std::unique_lock<std::mutex> lock(m_StatsMutex);
 	m_PendingChecks--;
 	m_PendingChecksCV.notify_one();
 }
 
 int Checkable::GetPendingChecks()
 {
-	boost::mutex::scoped_lock lock(m_StatsMutex);
+	std::unique_lock<std::mutex> lock(m_StatsMutex);
 	return m_PendingChecks;
 }
 
 void Checkable::AquirePendingCheckSlot(int maxPendingChecks)
 {
-	boost::mutex::scoped_lock lock(m_StatsMutex);
+	std::unique_lock<std::mutex> lock(m_StatsMutex);
 	while (m_PendingChecks >= maxPendingChecks)
 		m_PendingChecksCV.wait(lock);
 

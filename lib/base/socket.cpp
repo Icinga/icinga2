@@ -145,7 +145,7 @@ std::pair<String, String> Socket::GetDetailsFromSockaddr(sockaddr *address, sock
  */
 std::pair<String, String> Socket::GetClientAddressDetails()
 {
-	boost::mutex::scoped_lock lock(m_SocketMutex);
+	std::unique_lock<std::mutex> lock(m_SocketMutex);
 
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);
@@ -195,7 +195,7 @@ String Socket::GetClientAddress()
  */
 std::pair<String, String> Socket::GetPeerAddressDetails()
 {
-	boost::mutex::scoped_lock lock(m_SocketMutex);
+	std::unique_lock<std::mutex> lock(m_SocketMutex);
 
 	sockaddr_storage sin;
 	socklen_t len = sizeof(sin);

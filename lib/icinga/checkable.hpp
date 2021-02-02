@@ -14,6 +14,7 @@
 #include "icinga/downtime.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
+#include <condition_variable>
 #include <cstdint>
 #include <functional>
 
@@ -189,17 +190,17 @@ protected:
 	void OnAllConfigLoaded() override;
 
 private:
-	mutable boost::mutex m_CheckableMutex;
+	mutable std::mutex m_CheckableMutex;
 	bool m_CheckRunning{false};
 	long m_SchedulingOffset;
 
-	static boost::mutex m_StatsMutex;
+	static std::mutex m_StatsMutex;
 	static int m_PendingChecks;
-	static boost::condition_variable m_PendingChecksCV;
+	static std::condition_variable m_PendingChecksCV;
 
 	/* Downtimes */
 	std::set<Downtime::Ptr> m_Downtimes;
-	mutable boost::mutex m_DowntimeMutex;
+	mutable std::mutex m_DowntimeMutex;
 
 	static void NotifyFixedDowntimeStart(const Downtime::Ptr& downtime);
 	static void NotifyFlexibleDowntimeStart(const Downtime::Ptr& downtime);
@@ -212,14 +213,14 @@ private:
 
 	/* Comments */
 	std::set<Comment::Ptr> m_Comments;
-	mutable boost::mutex m_CommentMutex;
+	mutable std::mutex m_CommentMutex;
 
 	/* Notifications */
 	std::set<Notification::Ptr> m_Notifications;
-	mutable boost::mutex m_NotificationMutex;
+	mutable std::mutex m_NotificationMutex;
 
 	/* Dependencies */
-	mutable boost::mutex m_DependencyMutex;
+	mutable std::mutex m_DependencyMutex;
 	std::set<intrusive_ptr<Dependency> > m_Dependencies;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 

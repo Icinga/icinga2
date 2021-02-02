@@ -11,6 +11,7 @@
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/system/error_code.hpp>
+#include <chrono>
 #include <utility>
 
 using namespace icinga;
@@ -21,7 +22,7 @@ EventQueue::EventQueue(String name)
 
 bool EventQueue::CanProcessEvent(const String& type) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	return m_Types.find(type) != m_Types.end();
 }
@@ -41,7 +42,7 @@ void EventQueue::ProcessEvent(const Dictionary::Ptr& event)
 		return;
 	}
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	typedef std::pair<void *const, std::deque<Dictionary::Ptr> > kv_pair;
 	for (kv_pair& kv : m_Events) {
@@ -53,7 +54,7 @@ void EventQueue::ProcessEvent(const Dictionary::Ptr& event)
 
 void EventQueue::AddClient(void *client)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	auto result = m_Events.insert(std::make_pair(client, std::deque<Dictionary::Ptr>()));
 	ASSERT(result.second);
@@ -65,14 +66,14 @@ void EventQueue::AddClient(void *client)
 
 void EventQueue::RemoveClient(void *client)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	m_Events.erase(client);
 }
 
 void EventQueue::UnregisterIfUnused(const String& name, const EventQueue::Ptr& queue)
 {
-	boost::mutex::scoped_lock lock(queue->m_Mutex);
+	std::unique_lock<std::mutex> lock(queue->m_Mutex);
 
 	if (queue->m_Events.empty())
 		Unregister(name);
@@ -80,19 +81,19 @@ void EventQueue::UnregisterIfUnused(const String& name, const EventQueue::Ptr& q
 
 void EventQueue::SetTypes(const std::set<String>& types)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 	m_Types = types;
 }
 
 void EventQueue::SetFilter(std::unique_ptr<Expression> filter)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 	m_Filter.swap(filter);
 }
 
 Dictionary::Ptr EventQueue::WaitForEvent(void *client, double timeout)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	for (;;) {
 		auto it = m_Events.find(client);
@@ -104,7 +105,7 @@ Dictionary::Ptr EventQueue::WaitForEvent(void *client, double timeout)
 			return result;
 		}
 
-		if (!m_CV.timed_wait(lock, boost::posix_time::milliseconds(long(timeout * 1000))))
+		if (m_CV.wait_for(lock, std::chrono::duration<double>(timeout)) == std::cv_status::timeout)
 			return nullptr;
 	}
 }

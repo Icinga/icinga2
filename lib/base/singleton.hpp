@@ -4,7 +4,6 @@
 #define SINGLETON_H
 
 #include "base/i2-base.hpp"
-#include <boost/thread/mutex.hpp>
 
 namespace icinga
 {
