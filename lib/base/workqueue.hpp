@@ -8,9 +8,9 @@
 #include "base/ringbuffer.hpp"
 #include "base/logger.hpp"
 #include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
 #include <boost/exception_ptr.hpp>
+#include <condition_variable>
+#include <mutex>
 #include <queue>
 #include <deque>
 #include <atomic>
@@ -59,8 +59,8 @@ public:
 	void SetName(const String& name);
 	String GetName() const;
 
-	boost::mutex::scoped_lock AcquireLock();
-	void EnqueueUnlocked(boost::mutex::scoped_lock& lock, TaskFunction&& function, WorkQueuePriority priority = PriorityNormal);
+	std::unique_lock<std::mutex> AcquireLock();
+	void EnqueueUnlocked(std::unique_lock<std::mutex>& lock, TaskFunction&& function, WorkQueuePriority priority = PriorityNormal);
 	void Enqueue(TaskFunction&& function, WorkQueuePriority priority = PriorityNormal,
 		bool allowInterleaved = false);
 	void Join(bool stop = false);
@@ -116,10 +116,10 @@ private:
 	int m_ThreadCount;
 	bool m_Spawned{false};
 
-	mutable boost::mutex m_Mutex;
-	boost::condition_variable m_CVEmpty;
-	boost::condition_variable m_CVFull;
-	boost::condition_variable m_CVStarved;
+	mutable std::mutex m_Mutex;
+	std::condition_variable m_CVEmpty;
+	std::condition_variable m_CVFull;
+	std::condition_variable m_CVStarved;
 	boost::thread_group m_Threads;
 	size_t m_MaxItems;
 	bool m_Stopped{false};

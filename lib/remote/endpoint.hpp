@@ -53,7 +53,7 @@ protected:
 	void OnAllConfigLoaded() override;
 
 private:
-	mutable boost::mutex m_ClientsLock;
+	mutable std::mutex m_ClientsLock;
 	std::set<intrusive_ptr<JsonRpcConnection> > m_Clients;
 	intrusive_ptr<Zone> m_Zone;
 

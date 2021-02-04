@@ -113,19 +113,19 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 
 std::set<Notification::Ptr> Checkable::GetNotifications() const
 {
-	boost::mutex::scoped_lock lock(m_NotificationMutex);
+	std::unique_lock<std::mutex> lock(m_NotificationMutex);
 	return m_Notifications;
 }
 
 void Checkable::RegisterNotification(const Notification::Ptr& notification)
 {
-	boost::mutex::scoped_lock lock(m_NotificationMutex);
+	std::unique_lock<std::mutex> lock(m_NotificationMutex);
 	m_Notifications.insert(notification);
 }
 
 void Checkable::UnregisterNotification(const Notification::Ptr& notification)
 {
-	boost::mutex::scoped_lock lock(m_NotificationMutex);
+	std::unique_lock<std::mutex> lock(m_NotificationMutex);
 	m_Notifications.erase(notification);
 }
 

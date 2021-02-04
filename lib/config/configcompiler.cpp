@@ -12,7 +12,7 @@
 using namespace icinga;
 
 std::vector<String> ConfigCompiler::m_IncludeSearchDirs;
-boost::mutex ConfigCompiler::m_ZoneDirsMutex;
+std::mutex ConfigCompiler::m_ZoneDirsMutex;
 std::map<String, std::vector<ZoneFragment> > ConfigCompiler::m_ZoneDirs;
 
 /**
@@ -296,7 +296,7 @@ void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 
 std::vector<ZoneFragment> ConfigCompiler::GetZoneDirs(const String& zone)
 {
-	boost::mutex::scoped_lock lock(m_ZoneDirsMutex);
+	std::unique_lock<std::mutex> lock(m_ZoneDirsMutex);
 	auto it = m_ZoneDirs.find(zone);
 	if (it == m_ZoneDirs.end())
 		return std::vector<ZoneFragment>();
@@ -310,7 +310,7 @@ void ConfigCompiler::RegisterZoneDir(const String& tag, const String& ppath, con
 	zf.Tag = tag;
 	zf.Path = ppath;
 
-	boost::mutex::scoped_lock lock(m_ZoneDirsMutex);
+	std::unique_lock<std::mutex> lock(m_ZoneDirsMutex);
 	m_ZoneDirs[zoneName].push_back(zf);
 }
 

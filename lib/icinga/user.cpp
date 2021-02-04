@@ -62,7 +62,7 @@ void User::Stop(bool runtimeRemoved)
 
 void User::AddGroup(const String& name)
 {
-	boost::mutex::scoped_lock lock(m_UserMutex);
+	std::unique_lock<std::mutex> lock(m_UserMutex);
 
 	Array::Ptr groups = GetGroups();
 

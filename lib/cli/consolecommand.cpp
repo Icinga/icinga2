@@ -117,8 +117,8 @@ extern "C" void dbg_eval_with_object(Object *object, const char *text)
 
 void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)
 {
-	static boost::mutex mutex;
-	boost::mutex::scoped_lock lock(mutex);
+	static std::mutex mutex;
+	std::unique_lock<std::mutex> lock(mutex);
 
 	if (!Application::GetScriptDebuggerEnabled())
 		return;

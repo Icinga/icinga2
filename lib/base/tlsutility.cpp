@@ -17,8 +17,8 @@ namespace icinga
 {
 
 static bool l_SSLInitialized = false;
-static boost::mutex *l_Mutexes;
-static boost::mutex l_RandomMutex;
+static std::mutex *l_Mutexes;
+static std::mutex l_RandomMutex;
 
 String GetOpenSSLVersion()
 {
@@ -62,7 +62,7 @@ void InitializeOpenSSL()
 	SSL_COMP_get_compression_methods();
 
 #ifdef CRYPTO_LOCK
-	l_Mutexes = new boost::mutex[CRYPTO_num_locks()];
+	l_Mutexes = new std::mutex[CRYPTO_num_locks()];
 	CRYPTO_set_locking_callback(&OpenSSLLockingCallback);
 	CRYPTO_set_id_callback(&OpenSSLIDCallback);
 #endif /* CRYPTO_LOCK */
@@ -816,7 +816,7 @@ String RandomString(int length)
 	/* Ensure that password generation is atomic. RAND_bytes is not thread-safe
 	 * in OpenSSL < 1.1.0.
 	 */
-	boost::mutex::scoped_lock lock(l_RandomMutex);
+	std::unique_lock<std::mutex> lock(l_RandomMutex);
 
 	if (!RAND_bytes(bytes, length)) {
 		delete [] bytes;

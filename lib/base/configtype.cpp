@@ -11,7 +11,7 @@ ConfigType::~ConfigType()
 
 ConfigObject::Ptr ConfigType::GetObject(const String& name) const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	auto nt = m_ObjectMap.find(name);
 
@@ -26,7 +26,7 @@ void ConfigType::RegisterObject(const ConfigObject::Ptr& object)
 	String name = object->GetName();
 
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		std::unique_lock<std::mutex> lock(m_Mutex);
 
 		auto it = m_ObjectMap.find(name);
 
@@ -51,7 +51,7 @@ void ConfigType::UnregisterObject(const ConfigObject::Ptr& object)
 	String name = object->GetName();
 
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		std::unique_lock<std::mutex> lock(m_Mutex);
 
 		m_ObjectMap.erase(name);
 		m_ObjectVector.erase(std::remove(m_ObjectVector.begin(), m_ObjectVector.end(), object), m_ObjectVector.end());
@@ -60,7 +60,7 @@ void ConfigType::UnregisterObject(const ConfigObject::Ptr& object)
 
 std::vector<ConfigObject::Ptr> ConfigType::GetObjects() const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 	return m_ObjectVector;
 }
 
@@ -71,6 +71,6 @@ std::vector<ConfigObject::Ptr> ConfigType::GetObjectsHelper(Type *type)
 
 int ConfigType::GetObjectCount() const
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 	return m_ObjectVector.size();
 }

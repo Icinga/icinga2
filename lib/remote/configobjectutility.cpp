@@ -86,7 +86,7 @@ void ConfigObjectUtility::RepairPackage(const String& package)
 
 void ConfigObjectUtility::CreateStorage()
 {
-	boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+	std::unique_lock<std::mutex> lock(ConfigPackageUtility::GetStaticPackageMutex());
 
 	/* For now, we only use _api as our creation target. */
 	String package = "_api";

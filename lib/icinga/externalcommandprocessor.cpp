@@ -68,7 +68,7 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 	});
 
 	{
-		boost::mutex::scoped_lock lock(GetMutex());
+		std::unique_lock<std::mutex> lock(GetMutex());
 
 		auto it = GetCommands().find(command);
 
@@ -107,7 +107,7 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs, size_t maxArgs)
 {
-	boost::mutex::scoped_lock lock(GetMutex());
+	std::unique_lock<std::mutex> lock(GetMutex());
 	ExternalCommandInfo eci;
 	eci.Callback = callback;
 	eci.MinArgs = minArgs;
@@ -2267,9 +2267,9 @@ void ExternalCommandProcessor::DisableServicegroupSvcNotifications(double, const
 	}
 }
 
-boost::mutex& ExternalCommandProcessor::GetMutex()
+std::mutex& ExternalCommandProcessor::GetMutex()
 {
-	static boost::mutex mtx;
+	static std::mutex mtx;
 	return mtx;
 }
 

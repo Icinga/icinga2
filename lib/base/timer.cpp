@@ -5,11 +5,12 @@
 #include "base/debug.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
 #include <thread>
 
 using namespace icinga;
@@ -51,8 +52,8 @@ typedef boost::multi_index_container<
 	>
 > TimerSet;
 
-static boost::mutex l_TimerMutex;
-static boost::condition_variable l_TimerCV;
+static std::mutex l_TimerMutex;
+static std::condition_variable l_TimerCV;
 static std::thread l_TimerThread;
 static bool l_StopTimerThread;
 static TimerSet l_Timers;
@@ -70,7 +71,7 @@ Timer::~Timer()
 
 void Timer::Initialize()
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::unique_lock<std::mutex> lock(l_TimerMutex);
 
 	if (l_AliveTimers > 0) {
 		InitializeThread();
@@ -79,7 +80,7 @@ void Timer::Initialize()
 
 void Timer::Uninitialize()
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::unique_lock<std::mutex> lock(l_TimerMutex);
 
 	if (l_AliveTimers > 0) {
 		UninitializeThread();
@@ -130,7 +131,7 @@ void Timer::Call()
  */
 void Timer::SetInterval(double interval)
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::unique_lock<std::mutex> lock(l_TimerMutex);
 	m_Interval = interval;
 }
 
@@ -141,7 +142,7 @@ void Timer::SetInterval(double interval)
  */
 double Timer::GetInterval() const
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::unique_lock<std::mutex> lock(l_TimerMutex);
 	return m_Interval;
 }
 
@@ -151,7 +152,7 @@ double Timer::GetInterval() const
 void Timer::Start()
 {
 	{
-		boost::mutex::scoped_lock lock(l_TimerMutex);
+		std::unique_lock<std::mutex> lock(l_TimerMutex);
 		m_Started = true;
 
 		if (++l_AliveTimers == 1) {
@@ -170,7 +171,7 @@ void Timer::Stop(bool wait)
 	if (l_StopTimerThread)
 		return;
 
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::unique_lock<std::mutex> lock(l_TimerMutex);
 
 	if (m_Started && --l_AliveTimers == 0) {
 		UninitializeThread();
@@ -200,7 +201,7 @@ void Timer::Reschedule(double next)
  */
 void Timer::InternalReschedule(bool completed, double next)
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::unique_lock<std::mutex> lock(l_TimerMutex);
 
 	if (completed)
 		m_Running = false;
@@ -232,7 +233,7 @@ void Timer::InternalReschedule(bool completed, double next)
  */
 double Timer::GetNext() const
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::unique_lock<std::mutex> lock(l_TimerMutex);
 	return m_Next;
 }
 
@@ -244,7 +245,7 @@ double Timer::GetNext() const
  */
 void Timer::AdjustTimers(double adjustment)
 {
-	boost::mutex::scoped_lock lock(l_TimerMutex);
+	std::unique_lock<std::mutex> lock(l_TimerMutex);
 
 	double now = Utility::GetTime();
 
@@ -275,12 +276,14 @@ void Timer::AdjustTimers(double adjustment)
  */
 void Timer::TimerThreadProc()
 {
+	namespace ch = std::chrono;
+
 	Log(LogDebug, "Timer", "TimerThreadProc started.");
 
 	Utility::SetThreadName("Timer Thread");
 
 	for (;;) {
-		boost::mutex::scoped_lock lock(l_TimerMutex);
+		std::unique_lock<std::mutex> lock(l_TimerMutex);
 
 		typedef boost::multi_index::nth_index<TimerSet, 1>::type NextTimerView;
 		NextTimerView& idx = boost::get<1>(l_Timers);
@@ -295,11 +298,11 @@ void Timer::TimerThreadProc()
 		auto it = idx.begin();
 		Timer *timer = *it;
 
-		double wait = timer->m_Next - Utility::GetTime();
+		ch::time_point<ch::system_clock, ch::duration<double>> next (ch::duration<double>(timer->m_Next));
 
-		if (wait > 0.01) {
+		if (next - ch::system_clock::now() > ch::duration<double>(0.01)) {
 			/* Wait for the next timer. */
-			l_TimerCV.timed_wait(lock, boost::posix_time::milliseconds(long(wait * 1000)));
+			l_TimerCV.wait_until(lock, next);
 
 			continue;
 		}

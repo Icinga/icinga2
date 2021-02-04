@@ -84,7 +84,7 @@ void Host::Stop(bool runtimeRemoved)
 
 std::vector<Service::Ptr> Host::GetServices() const
 {
-	boost::mutex::scoped_lock lock(m_ServicesMutex);
+	std::unique_lock<std::mutex> lock(m_ServicesMutex);
 
 	std::vector<Service::Ptr> services;
 	services.reserve(m_Services.size());
@@ -98,14 +98,14 @@ std::vector<Service::Ptr> Host::GetServices() const
 
 void Host::AddService(const Service::Ptr& service)
 {
-	boost::mutex::scoped_lock lock(m_ServicesMutex);
+	std::unique_lock<std::mutex> lock(m_ServicesMutex);
 
 	m_Services[service->GetShortName()] = service;
 }
 
 void Host::RemoveService(const Service::Ptr& service)
 {
-	boost::mutex::scoped_lock lock(m_ServicesMutex);
+	std::unique_lock<std::mutex> lock(m_ServicesMutex);
 
 	m_Services.erase(service->GetShortName());
 }
@@ -119,7 +119,7 @@ Service::Ptr Host::GetServiceByShortName(const Value& name)
 {
 	if (name.IsScalar()) {
 		{
-			boost::mutex::scoped_lock lock(m_ServicesMutex);
+			std::unique_lock<std::mutex> lock(m_ServicesMutex);
 
 			auto it = m_Services.find(name);
 

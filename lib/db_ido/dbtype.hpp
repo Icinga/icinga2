@@ -51,7 +51,7 @@ private:
 	String m_IDColumn;
 	ObjectFactory m_ObjectFactory;
 
-	static boost::mutex& GetStaticMutex();
+	static std::mutex& GetStaticMutex();
 	static TypeMap& GetTypes();
 
 	ObjectMap m_Objects;

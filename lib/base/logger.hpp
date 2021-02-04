@@ -6,7 +6,7 @@
 #include "base/i2-base.hpp"
 #include "base/logger-ti.hpp"
 #include <set>
-#include <iosfwd>
+#include <sstream>
 
 namespace icinga
 {
@@ -81,7 +81,7 @@ protected:
 	void Stop(bool runtimeRemoved) override;
 
 private:
-	static boost::mutex m_Mutex;
+	static std::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
 	static bool m_ConsoleLogEnabled;
 	static bool m_TimestampEnabled;

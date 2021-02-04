@@ -61,7 +61,7 @@ void ServiceGroup::EvaluateObjectRules(const Service::Ptr& service)
 
 std::set<Service::Ptr> ServiceGroup::GetMembers() const
 {
-	boost::mutex::scoped_lock lock(m_ServiceGroupMutex);
+	std::unique_lock<std::mutex> lock(m_ServiceGroupMutex);
 	return m_Members;
 }
 
@@ -69,13 +69,13 @@ void ServiceGroup::AddMember(const Service::Ptr& service)
 {
 	service->AddGroup(GetName());
 
-	boost::mutex::scoped_lock lock(m_ServiceGroupMutex);
+	std::unique_lock<std::mutex> lock(m_ServiceGroupMutex);
 	m_Members.insert(service);
 }
 
 void ServiceGroup::RemoveMember(const Service::Ptr& service)
 {
-	boost::mutex::scoped_lock lock(m_ServiceGroupMutex);
+	std::unique_lock<std::mutex> lock(m_ServiceGroupMutex);
 	m_Members.erase(service);
 }
 

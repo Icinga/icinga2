@@ -398,7 +398,7 @@ void GraphiteWriter::SendMetric(const Checkable::Ptr& checkable, const String& p
 	// do not send \n to debug log
 	msgbuf << "\n";
 
-	boost::mutex::scoped_lock lock(m_StreamMutex);
+	std::unique_lock<std::mutex> lock(m_StreamMutex);
 
 	if (!GetConnected())
 		return;

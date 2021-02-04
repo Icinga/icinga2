@@ -4,18 +4,18 @@
 
 using namespace icinga;
 
-boost::mutex DependencyGraph::m_Mutex;
+std::mutex DependencyGraph::m_Mutex;
 std::map<Object *, std::map<Object *, int> > DependencyGraph::m_Dependencies;
 
 void DependencyGraph::AddDependency(Object *parent, Object *child)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 	m_Dependencies[child][parent]++;
 }
 
 void DependencyGraph::RemoveDependency(Object *parent, Object *child)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	auto& refs = m_Dependencies[child];
 	auto it = refs.find(parent);
@@ -36,7 +36,7 @@ std::vector<Object::Ptr> DependencyGraph::GetParents(const Object::Ptr& child)
 {
 	std::vector<Object::Ptr> objects;
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 	auto it = m_Dependencies.find(child.get());
 
 	if (it != m_Dependencies.end()) {

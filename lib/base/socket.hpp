@@ -5,7 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 namespace icinga
 {
@@ -50,7 +50,7 @@ protected:
 
 	int GetError() const;
 
-	mutable boost::mutex m_SocketMutex;
+	mutable std::mutex m_SocketMutex;
 
 private:
 	SOCKET m_FD{INVALID_SOCKET}; /**< The socket descriptor. */

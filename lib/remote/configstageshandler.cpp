@@ -128,7 +128,7 @@ void ConfigStagesHandler::HandlePost(
 		if (reload && !activate)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'reload' must be false when 'activate' is false."));
 
-		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
+		std::unique_lock<std::mutex> lock(ConfigPackageUtility::GetStaticPackageMutex());
 
 		stageName = ConfigPackageUtility::CreateStage(packageName, files);
 
