@@ -32,12 +32,12 @@ class Dependency : CustomVarObject < DependencyNameComposer
 	[config, navigation(child_service)] String child_service_name {
 		track {{{
 			if (!oldValue.IsEmpty()) {
-				Service::Ptr service = Service::GetByNamePair(GetParentHostName(), oldValue);
+				Service::Ptr service = Service::GetByNamePair(GetChildHostName(), oldValue);
 				DependencyGraph::RemoveDependency(this, service.get());
 			}
 
 			if (!newValue.IsEmpty()) {
-				Service::Ptr service = Service::GetByNamePair(GetParentHostName(), newValue);
+				Service::Ptr service = Service::GetByNamePair(GetChildHostName(), newValue);
 				DependencyGraph::AddDependency(this, service.get());
 			}
 		}}}
