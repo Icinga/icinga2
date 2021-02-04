@@ -129,6 +129,8 @@ jobs:
           - name: fedora
             release: 32
           - name: sles
+            release: '15.2'
+          - name: sles
             release: '12.5'
 
     runs-on: ubuntu-latest
