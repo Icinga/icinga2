@@ -666,6 +666,7 @@ The `hostalive` check command is part of the
 ```
 template Notification "mail-host-notification" {
   command = "mail-host-notification"
+  // command = "ssmtp-host-notification"
 
   states = [ Up, Down ]
   types = [ Problem, Acknowledgement, Recovery, Custom,
@@ -677,6 +678,7 @@ template Notification "mail-host-notification" {
 
 template Notification "mail-service-notification" {
   command = "mail-service-notification"
+  // command = "ssmtp-service-notification"
 
   states = [ OK, Warning, Critical, Unknown ]
   types = [ Problem, Acknowledgement, Recovery, Custom,
