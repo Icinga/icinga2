@@ -648,6 +648,8 @@ void IdoPgsqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)
 
 	/* Note that we're _NOT_ clearing the db refs via SetReference/SetConfigUpdate/SetStatusUpdate
 	 * because the object is still in the database. */
+
+	SetObjectActive(dbobj, false);
 }
 
 bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& value, Value *result)
