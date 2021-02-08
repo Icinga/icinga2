@@ -739,6 +739,11 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 	if (params->Contains("endpoint")) {
 		Endpoint::Ptr execEndpoint = Endpoint::GetByName(params->Get("endpoint"));
 
+		if (!execEndpoint) {
+			Log(LogWarning, "ClusterEvents") << "Endpoint " << params->Get("endpoint") << " does not exist";
+			return Empty;
+		}
+
 		if (execEndpoint != Endpoint::GetLocalEndpoint()) {
 			Zone::Ptr endpointZone = execEndpoint->GetZone();
 			Zone::Ptr localZone = Zone::GetLocalZone();
@@ -1154,13 +1159,6 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 
 	ObjectLock oLock (checkable);
 
-	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
-		Log(LogNotice, "ClusterEvents")
-			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
-			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
-		return Empty;
-	}
-
 	if (!params->Contains("execution")) {
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
@@ -1185,6 +1183,22 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' missing.";
+		return Empty;
+	}
+
+	Endpoint::Ptr command_endpoint = Endpoint::GetByName(execution->Get("endpoint"));
+	if (!command_endpoint) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'update executions API handler' message from '" << origin->FromClient->GetIdentity()
+			<< "': Command endpoint does not exists.";
+
+		return Empty;
+	}
+
+	if (origin->FromZone && !origin->FromZone->CanAccessObject(command_endpoint->GetZone())) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
@@ -1278,7 +1292,7 @@ Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin
 	updateMessage->Set("method", "event::UpdateExecutions");
 	updateMessage->Set("params", params);
 
-	listener->RelayMessage(origin, Zone::GetLocalZone(), updateMessage, true);
+	listener->RelayMessage(origin, checkable, updateMessage, true);
 
 	return Empty;
 }
