@@ -13,6 +13,7 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include <boost/thread/once.hpp>
+#include <set>
 
 using namespace icinga;
 
@@ -228,28 +229,22 @@ void ScheduledDowntime::CreateNextDowntime()
 		return;
 	}
 
-	double minEnd = 0;
+	std::set<double> ends;
 
 	for (const Downtime::Ptr& downtime : GetCheckable()->GetDowntimes()) {
-		double end = downtime->GetEndTime();
-		if (end > minEnd)
-			minEnd = end;
-
-		if (downtime->GetScheduledBy() != GetName() ||
-			downtime->GetStartTime() < Utility::GetTime())
+		if (downtime->GetScheduledBy() != GetName())
 			continue;
 
-		/* We've found a downtime that is owned by us and that hasn't started yet - we're done. */
-		return;
+		ends.emplace(downtime->GetEndTime());
 	}
 
 	Log(LogDebug, "ScheduledDowntime")
 		<< "Creating new Downtime for ScheduledDowntime \"" << GetName() << "\"";
 
-	std::pair<double, double> segment = FindRunningSegment(minEnd);
-	if (segment.first == 0 && segment.second == 0) {
+	std::pair<double, double> segment = FindRunningSegment();
+	if (segment.first == 0 && segment.second == 0 || ends.find(segment.second) != ends.end()) {
 		segment = FindNextSegment();
-		if (segment.first == 0 && segment.second == 0)
+		if (segment.first == 0 && segment.second == 0 || ends.find(segment.second) != ends.end())
 			return;
 	}
 
