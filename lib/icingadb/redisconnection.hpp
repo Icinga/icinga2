@@ -7,11 +7,13 @@
 #include "base/atomic.hpp"
 #include "base/io-engine.hpp"
 #include "base/object.hpp"
+#include "base/ringbuffer.hpp"
 #include "base/shared.hpp"
 #include "base/string.hpp"
 #include "base/value.hpp"
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/buffered_stream.hpp>
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -146,6 +148,7 @@ namespace icinga
 		void Connect(boost::asio::yield_context& yc);
 		void ReadLoop(boost::asio::yield_context& yc);
 		void WriteLoop(boost::asio::yield_context& yc);
+		void LogStats(boost::asio::yield_context& yc);
 		void WriteItem(boost::asio::yield_context& yc, WriteQueueItem item);
 		Reply ReadOne(boost::asio::yield_context& yc);
 		void WriteOne(Query& query, boost::asio::yield_context& yc);
@@ -155,6 +158,9 @@ namespace icinga
 
 		template<class StreamPtr>
 		void WriteOne(StreamPtr& stream, Query& query, boost::asio::yield_context& yc);
+
+		void IncreasePendingQueries(int count);
+		void DecreasePendingQueries(int count);
 
 		String m_Path;
 		String m_Host;
@@ -185,6 +191,12 @@ namespace icinga
 		AsioConditionVariable m_QueuedWrites, m_QueuedReads;
 
 		std::function<void(boost::asio::yield_context& yc)> m_ConnectedCallback;
+
+		// Stats
+		RingBuffer m_InputQueries{10};
+		RingBuffer m_OutputQueries{10};
+		int m_PendingQueries{0};
+		boost::asio::deadline_timer m_LogStatsTimer;
 	};
 
 /**
