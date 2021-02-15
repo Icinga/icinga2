@@ -129,8 +129,6 @@ jobs:
           - name: fedora
             release: 32
           - name: sles
-            release: '15.1'
-          - name: sles
             release: '12.5'
           - name: opensuse
             release: '15.1'
