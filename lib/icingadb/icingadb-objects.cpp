@@ -161,10 +161,37 @@ void IcingaDB::UpdateAllConfigObjects()
 		std::vector<String> keys = GetTypeObjectKeys(lcType);
 		DeleteKeys(keys, Prio::Config);
 
-		auto objectChunks (ChunkObjects(type.first->GetObjects(), 500));
-
 		WorkQueue upqObjectType(25000, Configuration::Concurrency);
 		upqObjectType.SetName("IcingaDB:ConfigDump:" + lcType);
+
+		std::map<String, String> redisCheckSums;
+
+		upqObjectType.Enqueue([this, &redisCheckSums]() {
+			String cursor = "0";
+
+			do {
+				Array::Ptr res = m_Rcon->GetResultOfQuery({
+					"HSCAN", m_PrefixConfigCheckSum + lcType, cursor, "COUNT", "1000"
+				}, Prio::Config);
+
+				Array::Ptr kvs = res->Get(1);
+				Value* key = nullptr;
+				ObjectLock oLock (kvs);
+
+				for (auto& kv : kvs) {
+					if (key) {
+						redisCheckSums.emplace(std::move(*key), std::move(kv));
+						key = nullptr;
+					} else {
+						key = &kv;
+					}
+				}
+
+				cursor = res->Get(0);
+			} while (cursor != "0");
+		});
+
+		auto objectChunks (ChunkObjects(type.first->GetObjects(), 500));
 
 		upqObjectType.ParallelFor(objectChunks, [this, &type, &lcType](decltype(objectChunks)::const_reference chunk) {
 			std::map<String, std::vector<String>> hMSets, publishes;
@@ -351,8 +378,8 @@ void IcingaDB::DeleteKeys(const std::vector<String>& keys, RedisConnection::Quer
 std::vector<String> IcingaDB::GetTypeObjectKeys(const String& type)
 {
 	std::vector<String> keys = {
-			m_PrefixConfigObject + type,
-			m_PrefixConfigCheckSum + type,
+			//m_PrefixConfigObject + type,
+			//m_PrefixConfigCheckSum + type,
 			m_PrefixConfigObject + type + ":customvar",
 	};
 
