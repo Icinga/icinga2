@@ -155,6 +155,13 @@ void IcingaDB::UpdateAllConfigObjects()
 	DeleteKeys(globalKeys, Prio::Config);
 	DeleteKeys({"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::CheckResult);
 
+	Defer resetDumpedGlobals ([this]() {
+		m_DumpedGlobals.CustomVar.Reset();
+		m_DumpedGlobals.ActionUrl.Reset();
+		m_DumpedGlobals.NotesUrl.Reset();
+		m_DumpedGlobals.IconImage.Reset();
+	});
+
 	upq.ParallelFor(types, [this](const TypePair& type) {
 		String lcType = type.second;
 
@@ -405,8 +412,10 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			varsArray->Reserve(vars->GetLength());
 
 			for (auto& kv : vars) {
-				allCvs.emplace_back(kv.first);
-				allCvs.emplace_back(JsonEncode(kv.second));
+				if (runtimeUpdate || m_DumpedGlobals.CustomVar.IsNew(kv.first)) {
+					allCvs.emplace_back(kv.first);
+					allCvs.emplace_back(JsonEncode(kv.second));
+				}
 
 				if (runtimeUpdate) {
 					publishes["icinga:config:update:customvar"].emplace_back(kv.first);
@@ -432,8 +441,13 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		String iconImage = checkable->GetIconImage();
 		if (!actionUrl.IsEmpty()) {
 			auto& actionUrls (hMSets[m_PrefixConfigObject + "action_url"]);
-			actionUrls.emplace_back(HashValue(new Array({env, actionUrl})));
-			actionUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"action_url", actionUrl}})));
+
+			auto id (HashValue(new Array({env, actionUrl})));
+
+			if (runtimeUpdate || m_DumpedGlobals.ActionUrl.IsNew(id)) {
+				actionUrls.emplace_back(std::move(id));
+				actionUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"action_url", actionUrl}})));
+			}
 
 			if (runtimeUpdate) {
 				publishes["icinga:config:update:action_url"].emplace_back(actionUrls.at(actionUrls.size() - 2u));
@@ -441,8 +455,13 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		}
 		if (!notesUrl.IsEmpty()) {
 			auto& notesUrls (hMSets[m_PrefixConfigObject + "notes_url"]);
-			notesUrls.emplace_back(HashValue(new Array({env, notesUrl})));
-			notesUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"notes_url", notesUrl}})));
+
+			auto id (HashValue(new Array({env, notesUrl})));
+
+			if (runtimeUpdate || m_DumpedGlobals.NotesUrl.IsNew(id)) {
+				notesUrls.emplace_back(std::move(id));
+				notesUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"notes_url", notesUrl}})));
+			}
 
 			if (runtimeUpdate) {
 				publishes["icinga:config:update:notes_url"].emplace_back(notesUrls.at(notesUrls.size() - 2u));
@@ -450,8 +469,13 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		}
 		if (!iconImage.IsEmpty()) {
 			auto& iconImages (hMSets[m_PrefixConfigObject + "icon_image"]);
-			iconImages.emplace_back(HashValue(new Array({env, iconImage})));
-			iconImages.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"icon_image", iconImage}})));
+
+			auto id (HashValue(new Array({env, iconImage})));
+
+			if (runtimeUpdate || m_DumpedGlobals.IconImage.IsNew(id)) {
+				iconImages.emplace_back(std::move(id));
+				iconImages.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"icon_image", iconImage}})));
+			}
 
 			if (runtimeUpdate) {
 				publishes["icinga:config:update:icon_image"].emplace_back(iconImages.at(iconImages.size() - 2u));

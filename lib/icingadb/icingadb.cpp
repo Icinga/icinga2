@@ -147,3 +147,15 @@ void IcingaDB::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
+
+void IcingaDB::DumpedGlobals::Reset()
+{
+	std::lock_guard<std::mutex> l (m_Mutex);
+	m_Ids.clear();
+}
+
+bool IcingaDB::DumpedGlobals::IsNew(const String& id)
+{
+	std::lock_guard<std::mutex> l (m_Mutex);
+	return m_Ids.emplace(id).second;
+}
