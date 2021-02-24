@@ -367,7 +367,11 @@ void IcingaDB::UpdateAllConfigObjects()
 						key = &kv;
 					}
 				}
+
+				hMSet.clear();
 			}
+
+			source.second.clear();
 		}
 
 		ourContentRaw.clear();
