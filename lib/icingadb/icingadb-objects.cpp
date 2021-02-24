@@ -197,9 +197,11 @@ void IcingaDB::UpdateAllConfigObjects()
 
 		std::map<String, std::vector<std::vector<String>>> ourContentRaw;
 		std::mutex ourContentMutex;
+		String configCheckSum = m_PrefixConfigCheckSum + lcType;
+		String configObject = m_PrefixConfigObject + lcType;
 
-		ourContentRaw[m_PrefixConfigCheckSum + lcType];
-		ourContentRaw[m_PrefixConfigObject + lcType];
+		ourContentRaw[configCheckSum];
+		ourContentRaw[configObject];
 
 		upqObjectType.ParallelFor(objectChunks, [&](decltype(objectChunks)::const_reference chunk) {
 			std::map<String, std::vector<String>> hMSets, publishes;
@@ -376,7 +378,10 @@ void IcingaDB::UpdateAllConfigObjects()
 
 		ourContentRaw.clear();
 
-		auto& ourCheckSums (ourContent[m_PrefixConfigCheckSum + lcType]);
+		auto& ourCheckSums (ourContent[configCheckSum]);
+		auto& ourObjects (ourContent[configObject]);
+		std::vector<String> setChecksum, setObject, delChecksum, delObject;
+
 		auto redisCurrent (redisCheckSums.begin());
 		auto redisEnd (redisCheckSums.end());
 		auto ourCurrent (ourCheckSums.begin());
@@ -385,7 +390,29 @@ void IcingaDB::UpdateAllConfigObjects()
 		for (;;) {
 			if (redisCurrent == redisEnd) {
 				for (; ourCurrent != ourEnd; ++ourCurrent) {
-					// TODO: insert
+					setChecksum.emplace_back(ourCurrent->first);
+					setChecksum.emplace_back(ourCurrent->second);
+					setObject.emplace_back(ourCurrent->first);
+					setObject.emplace_back(ourObjects[ourCurrent->first]);
+
+					if (setChecksum.size() == 100u) {
+						setChecksum.insert(setChecksum.begin(), configCheckSum);
+						setChecksum.insert(setChecksum.begin(), "HMSET");
+						setObject.insert(setObject.begin(), configObject);
+						setObject.insert(setObject.begin(), "HMSET");
+
+						std::vector<std::vector<String>> transaction;
+
+						transaction.emplace_back(std::vector<String>{"MULTI"});
+						transaction.emplace_back(std::move(setChecksum));
+						transaction.emplace_back(std::move(setObject));
+						transaction.emplace_back(std::vector<String>{"EXEC"});
+
+						setChecksum.clear();
+						setObject.clear();
+
+						m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+					}
 				}
 
 				break;
@@ -393,32 +420,154 @@ void IcingaDB::UpdateAllConfigObjects()
 
 			if (ourCurrent == ourEnd) {
 				for (; redisCurrent != redisEnd; ++redisCurrent) {
-					// TODO: delete
+					delChecksum.emplace_back(redisCurrent->first);
+					delObject.emplace_back(redisCurrent->first);
+
+					if (delChecksum.size() == 100u) {
+						delChecksum.insert(delChecksum.begin(), configCheckSum);
+						delChecksum.insert(delChecksum.begin(), "HDEL");
+						delObject.insert(delObject.begin(), configObject);
+						delObject.insert(delObject.begin(), "HDEL");
+
+						std::vector<std::vector<String>> transaction;
+
+						transaction.emplace_back(std::vector<String>{"MULTI"});
+						transaction.emplace_back(std::move(delChecksum));
+						transaction.emplace_back(std::move(delObject));
+						transaction.emplace_back(std::vector<String>{"EXEC"});
+
+						delChecksum.clear();
+						delObject.clear();
+
+						m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+					}
 				}
 
 				break;
 			}
 
 			if (redisCurrent->first < ourCurrent->first) {
-				// TODO: delete
+				delChecksum.emplace_back(redisCurrent->first);
+				delObject.emplace_back(redisCurrent->first);
+
+				if (delChecksum.size() == 100u) {
+					delChecksum.insert(delChecksum.begin(), configCheckSum);
+					delChecksum.insert(delChecksum.begin(), "HDEL");
+					delObject.insert(delObject.begin(), configObject);
+					delObject.insert(delObject.begin(), "HDEL");
+
+					std::vector<std::vector<String>> transaction;
+
+					transaction.emplace_back(std::vector<String>{"MULTI"});
+					transaction.emplace_back(std::move(delChecksum));
+					transaction.emplace_back(std::move(delObject));
+					transaction.emplace_back(std::vector<String>{"EXEC"});
+
+					delChecksum.clear();
+					delObject.clear();
+
+					m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+				}
 
 				++redisCurrent;
 				continue;
 			}
 
 			if (redisCurrent->first > ourCurrent->first) {
-				// TODO: insert
+				setChecksum.emplace_back(ourCurrent->first);
+				setChecksum.emplace_back(ourCurrent->second);
+				setObject.emplace_back(ourCurrent->first);
+				setObject.emplace_back(ourObjects[ourCurrent->first]);
+
+				if (setChecksum.size() == 100u) {
+					setChecksum.insert(setChecksum.begin(), configCheckSum);
+					setChecksum.insert(setChecksum.begin(), "HMSET");
+					setObject.insert(setObject.begin(), configObject);
+					setObject.insert(setObject.begin(), "HMSET");
+
+					std::vector<std::vector<String>> transaction;
+
+					transaction.emplace_back(std::vector<String>{"MULTI"});
+					transaction.emplace_back(std::move(setChecksum));
+					transaction.emplace_back(std::move(setObject));
+					transaction.emplace_back(std::vector<String>{"EXEC"});
+
+					setChecksum.clear();
+					setObject.clear();
+
+					m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+				}
 
 				++ourCurrent;
 				continue;
 			}
 
 			if (redisCurrent->second != ourCurrent->second) {
-				// TODO: insert
+				setChecksum.emplace_back(ourCurrent->first);
+				setChecksum.emplace_back(ourCurrent->second);
+				setObject.emplace_back(ourCurrent->first);
+				setObject.emplace_back(ourObjects[ourCurrent->first]);
+
+				if (setChecksum.size() == 100u) {
+					setChecksum.insert(setChecksum.begin(), configCheckSum);
+					setChecksum.insert(setChecksum.begin(), "HMSET");
+					setObject.insert(setObject.begin(), configObject);
+					setObject.insert(setObject.begin(), "HMSET");
+
+					std::vector<std::vector<String>> transaction;
+
+					transaction.emplace_back(std::vector<String>{"MULTI"});
+					transaction.emplace_back(std::move(setChecksum));
+					transaction.emplace_back(std::move(setObject));
+					transaction.emplace_back(std::vector<String>{"EXEC"});
+
+					setChecksum.clear();
+					setObject.clear();
+
+					m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+				}
 			}
 
 			++redisCurrent;
 			++ourCurrent;
+		}
+
+		if (delChecksum.size()) {
+			delChecksum.insert(delChecksum.begin(), configCheckSum);
+			delChecksum.insert(delChecksum.begin(), "HDEL");
+			delObject.insert(delObject.begin(), configObject);
+			delObject.insert(delObject.begin(), "HDEL");
+
+			std::vector<std::vector<String>> transaction;
+
+			transaction.emplace_back(std::vector<String>{"MULTI"});
+			transaction.emplace_back(std::move(delChecksum));
+			transaction.emplace_back(std::move(delObject));
+			transaction.emplace_back(std::vector<String>{"EXEC"});
+
+			delChecksum.clear();
+			delObject.clear();
+
+			m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+		}
+
+		if (setChecksum.size()) {
+			setChecksum.insert(setChecksum.begin(), configCheckSum);
+			setChecksum.insert(setChecksum.begin(), "HMSET");
+			setObject.insert(setObject.begin(), configObject);
+			setObject.insert(setObject.begin(), "HMSET");
+
+			std::vector<std::vector<String>> transaction;
+
+			transaction.emplace_back(std::vector<String>{"MULTI"});
+			transaction.emplace_back(std::move(setChecksum));
+			transaction.emplace_back(std::move(setObject));
+			transaction.emplace_back(std::vector<String>{"EXEC"});
+
+			setChecksum.clear();
+			setObject.clear();
+
+			m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
 		}
 
 		m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", lcType, "state", "done"}, Prio::Config);
