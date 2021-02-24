@@ -376,6 +376,51 @@ void IcingaDB::UpdateAllConfigObjects()
 
 		ourContentRaw.clear();
 
+		auto& ourCheckSums (ourContent[m_PrefixConfigCheckSum + lcType]);
+		auto redisCurrent (redisCheckSums.begin());
+		auto redisEnd (redisCheckSums.end());
+		auto ourCurrent (ourCheckSums.begin());
+		auto ourEnd (ourCheckSums.end());
+
+		for (;;) {
+			if (redisCurrent == redisEnd) {
+				for (; ourCurrent != ourEnd; ++ourCurrent) {
+					// TODO: insert
+				}
+
+				break;
+			}
+
+			if (ourCurrent == ourEnd) {
+				for (; redisCurrent != redisEnd; ++redisCurrent) {
+					// TODO: delete
+				}
+
+				break;
+			}
+
+			if (redisCurrent->first < ourCurrent->first) {
+				// TODO: delete
+
+				++redisCurrent;
+				continue;
+			}
+
+			if (redisCurrent->first > ourCurrent->first) {
+				// TODO: insert
+
+				++ourCurrent;
+				continue;
+			}
+
+			if (redisCurrent->second != ourCurrent->second) {
+				// TODO: insert
+			}
+
+			++redisCurrent;
+			++ourCurrent;
+		}
+
 		m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", lcType, "state", "done"}, Prio::Config);
 	});
 
