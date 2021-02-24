@@ -32,6 +32,7 @@
 #include <iterator>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <utility>
 
@@ -194,7 +195,13 @@ void IcingaDB::UpdateAllConfigObjects()
 
 		auto objectChunks (ChunkObjects(type.first->GetObjects(), 500));
 
-		upqObjectType.ParallelFor(objectChunks, [this, &type, &lcType](decltype(objectChunks)::const_reference chunk) {
+		std::map<String, std::vector<std::vector<String>>> ourContentRaw;
+		std::mutex ourContentMutex;
+
+		ourContentRaw[m_PrefixConfigCheckSum + lcType];
+		ourContentRaw[m_PrefixConfigObject + lcType];
+
+		upqObjectType.ParallelFor(objectChunks, [&](decltype(objectChunks)::const_reference chunk) {
 			std::map<String, std::vector<String>> hMSets, publishes;
 			std::vector<String> states 							= {"HMSET", m_PrefixStateObject + lcType};
 			std::vector<std::vector<String> > transaction 		= {{"MULTI"}};
@@ -217,6 +224,19 @@ void IcingaDB::UpdateAllConfigObjects()
 
 				bulkCounter++;
 				if (!(bulkCounter % 100)) {
+					{
+						std::lock_guard<std::mutex> l (ourContentMutex);
+
+						for (auto& kv : ourContentRaw) {
+							auto pos (hMSets.find(kv.first));
+
+							if (pos != hMSets.end()) {
+								kv.second.emplace_back(std::move(pos->second));
+								hMSets.erase(pos);
+							}
+						}
+					}
+
 					for (auto& kv : hMSets) {
 						if (!kv.second.empty()) {
 							kv.second.insert(kv.second.begin(), {"HMSET", kv.first});
@@ -270,6 +290,19 @@ void IcingaDB::UpdateAllConfigObjects()
 				}
 			}
 
+			{
+				std::lock_guard<std::mutex> l (ourContentMutex);
+
+				for (auto& kv : ourContentRaw) {
+					auto pos (hMSets.find(kv.first));
+
+					if (pos != hMSets.end()) {
+						kv.second.emplace_back(std::move(pos->second));
+						hMSets.erase(pos);
+					}
+				}
+			}
+
 			for (auto& kv : hMSets) {
 				if (!kv.second.empty()) {
 					kv.second.insert(kv.second.begin(), {"HMSET", kv.first});
@@ -317,6 +350,27 @@ void IcingaDB::UpdateAllConfigObjects()
 				}
 			}
 		}
+
+		std::map<String, std::map<String, String>> ourContent;
+
+		for (auto& source : ourContentRaw) {
+			auto& dest (ourContent[source.first]);
+
+			for (auto& hMSet : source.second) {
+				String* key = nullptr;
+
+				for (auto& kv : hMSet) {
+					if (key) {
+						dest.emplace(std::move(*key), std::move(kv));
+						key = nullptr;
+					} else {
+						key = &kv;
+					}
+				}
+			}
+		}
+
+		ourContentRaw.clear();
 
 		m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", lcType, "state", "done"}, Prio::Config);
 	});
