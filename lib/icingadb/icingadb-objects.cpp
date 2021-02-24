@@ -166,12 +166,13 @@ void IcingaDB::UpdateAllConfigObjects()
 
 		std::map<String, String> redisCheckSums;
 
-		upqObjectType.Enqueue([this, &redisCheckSums]() {
+		upqObjectType.Enqueue([this, &lcType, &redisCheckSums]() {
+			String target = m_PrefixConfigCheckSum + lcType;
 			String cursor = "0";
 
 			do {
 				Array::Ptr res = m_Rcon->GetResultOfQuery({
-					"HSCAN", m_PrefixConfigCheckSum + lcType, cursor, "COUNT", "1000"
+					"HSCAN", target, cursor, "COUNT", "1000"
 				}, Prio::Config);
 
 				Array::Ptr kvs = res->Get(1);
