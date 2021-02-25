@@ -347,26 +347,29 @@ void IcingaDB::UpdateAllConfigObjects()
 		std::map<String, std::map<String, String>> ourContent;
 
 		for (auto& source : ourContentRaw) {
-			auto& dest (ourContent[source.first]);
+			upqObjectType.Enqueue([&]() {
+				auto& dest (ourContent[source.first]);
 
-			for (auto& hMSet : source.second) {
-				String* key = nullptr;
+				for (auto& hMSet : source.second) {
+					String* key = nullptr;
 
-				for (auto& kv : hMSet) {
-					if (key) {
-						dest.emplace(std::move(*key), std::move(kv));
-						key = nullptr;
-					} else {
-						key = &kv;
+					for (auto& kv : hMSet) {
+						if (key) {
+							dest.emplace(std::move(*key), std::move(kv));
+							key = nullptr;
+						} else {
+							key = &kv;
+						}
 					}
+
+					hMSet.clear();
 				}
 
-				hMSet.clear();
-			}
-
-			source.second.clear();
+				source.second.clear();
+			});
 		}
 
+		upqObjectType.Join();
 		ourContentRaw.clear();
 
 		auto& ourCheckSums (ourContent[configCheckSum]);
