@@ -551,8 +551,6 @@ void IcingaDB::DeleteKeys(const std::vector<String>& keys, RedisConnection::Quer
 std::vector<String> IcingaDB::GetTypeObjectKeys(const String& type)
 {
 	std::vector<String> keys = {
-			//m_PrefixConfigObject + type,
-			//m_PrefixConfigCheckSum + type,
 			m_PrefixConfigObject + type + ":customvar",
 	};
 
