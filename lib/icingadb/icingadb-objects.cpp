@@ -1219,27 +1219,17 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 	if (!checkable)
 		return;
 
+	UpdateState(checkable); // TODO: this might now be done twice, check if it's safe to omit here
+	m_Rcon->FireAndForgetQuery({
+		"PUBLISH",
+		"icinga:config:update:state:" + GetLowerCaseTypeNameDB(checkable),
+		GetObjectIdentifier(checkable),
+	}, Prio::State);
+
 	Host::Ptr host;
 	Service::Ptr service;
 
 	tie(host, service) = GetHostService(checkable);
-
-	String streamname;
-	if (service)
-		streamname = "icinga:state:stream:service";
-	else
-		streamname = "icinga:state:stream:host";
-
-	Dictionary::Ptr objectAttrs = SerializeState(checkable);
-
-	std::vector<String> streamadd({"XADD", streamname, "*"});
-	ObjectLock olock(objectAttrs);
-	for (const Dictionary::Pair& kv : objectAttrs) {
-		streamadd.emplace_back(kv.first);
-		streamadd.emplace_back(Utility::ValidateUTF8(kv.second));
-	}
-
-	m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::State);
 
 	int hard_state;
 	if (!cr) {
