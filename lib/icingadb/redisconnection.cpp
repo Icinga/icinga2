@@ -226,6 +226,10 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					<< "Trying to connect to Redis server (async) on host '" << m_Host << ":" << m_Port << "'";
 
 				auto conn (Shared<TcpConn>::Make(m_Strand.context()));
+
+				const int optTrue = 1;
+				setsockopt(conn->lowest_layer().native_handle(), IPPROTO_TCP, TCP_NODELAY, &optTrue, sizeof(optTrue));
+
 				icinga::Connect(conn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
 				m_TcpConn = std::move(conn);
 			} else {
