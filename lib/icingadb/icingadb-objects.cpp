@@ -209,6 +209,19 @@ void IcingaDB::UpdateAllConfigObjects()
 			std::vector<std::vector<String> > transaction 		= {{"MULTI"}};
 			std::vector<String> hostZAdds = {"ZADD", "icinga:nextupdate:host"}, serviceZAdds = {"ZADD", "icinga:nextupdate:service"};
 
+			auto skimObjects ([&]() {
+				std::lock_guard<std::mutex> l (ourContentMutex);
+
+				for (auto& kv : ourContentRaw) {
+					auto pos (hMSets.find(kv.first));
+
+					if (pos != hMSets.end()) {
+						kv.second.emplace_back(std::move(pos->second));
+						hMSets.erase(pos);
+					}
+				}
+			});
+
 			bool dumpState = (lcType == "host" || lcType == "service");
 
 			size_t bulkCounter = 0;
@@ -226,18 +239,7 @@ void IcingaDB::UpdateAllConfigObjects()
 
 				bulkCounter++;
 				if (!(bulkCounter % 100)) {
-					{
-						std::lock_guard<std::mutex> l (ourContentMutex);
-
-						for (auto& kv : ourContentRaw) {
-							auto pos (hMSets.find(kv.first));
-
-							if (pos != hMSets.end()) {
-								kv.second.emplace_back(std::move(pos->second));
-								hMSets.erase(pos);
-							}
-						}
-					}
+					skimObjects();
 
 					for (auto& kv : hMSets) {
 						if (!kv.second.empty()) {
@@ -292,18 +294,7 @@ void IcingaDB::UpdateAllConfigObjects()
 				}
 			}
 
-			{
-				std::lock_guard<std::mutex> l (ourContentMutex);
-
-				for (auto& kv : ourContentRaw) {
-					auto pos (hMSets.find(kv.first));
-
-					if (pos != hMSets.end()) {
-						kv.second.emplace_back(std::move(pos->second));
-						hMSets.erase(pos);
-					}
-				}
-			}
+			skimObjects();
 
 			for (auto& kv : hMSets) {
 				if (!kv.second.empty()) {
