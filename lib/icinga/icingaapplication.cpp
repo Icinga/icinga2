@@ -170,7 +170,7 @@ void IcingaApplication::DumpModifiedAttributes()
 	String path = Configuration::ModAttrPath;
 
 	try {
-		Utility::Glob(path + ".tmp.*", &Utility::Remove, GlobFile);
+		Utility::Glob(path + ".tmp.*", &Utility::RemoveIfOld, GlobFile);
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "IcingaApplication") << DiagnosticInformation(ex);
 	}

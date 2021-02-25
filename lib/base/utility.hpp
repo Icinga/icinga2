@@ -119,6 +119,7 @@ public:
 
 	static void Remove(const String& path);
 	static void RemoveDirRecursive(const String& path);
+	static void RemoveIfOld(const String& path);
 	static void CopyFile(const String& source, const String& target);
 	static void RenameFile(const String& source, const String& target);
 
