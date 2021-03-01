@@ -23,6 +23,9 @@ using namespace icinga;
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
 #pragma clang optimize off
+#ifdef _MSVC_VER
+#pragma optimize("", off)
+#endif /* _MSVC_VER */
 
 BOOST_AUTO_TEST_SUITE(base_stacktrace)
 
@@ -44,6 +47,14 @@ void stack_test_func_b()
 [[gnu::noinline]]
 void stack_test_func_a()
 {
+	boost::stacktrace::stacktrace stack;
+	std::ostringstream obuf;
+	obuf << StackTraceFormatter(stack);
+	std::string result = obuf.str();
+	BOOST_CHECK_MESSAGE(!result.empty(), "stack trace must not be empty");
+	size_t pos_a = result.find("stack_test_func_a");
+	BOOST_CHECK_MESSAGE(pos_a != std::string::npos, "'stack_test_func_a' not found\n\n" << result);
+
 	stack_test_func_b();
 }
 
@@ -56,3 +67,6 @@ BOOST_AUTO_TEST_SUITE_END()
 
 #pragma GCC pop_options
 #pragma clang optimize on
+#ifdef _MSVC_VER
+#pragma optimize("", on)
+#endif /* _MSVC_VER */
