@@ -127,7 +127,23 @@ void IcingaDB::UpdateAllConfigObjects()
 	typedef std::pair<ConfigType *, String> TypePair;
 	std::vector<TypePair> types;
 
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	for (const Type::Ptr& type : {
+		CheckCommand::TypeInstance,
+		Comment::TypeInstance,
+		Downtime::TypeInstance,
+		Endpoint::TypeInstance,
+		EventCommand::TypeInstance,
+		Host::TypeInstance,
+		HostGroup::TypeInstance,
+		Notification::TypeInstance,
+		NotificationCommand::TypeInstance,
+		Service::TypeInstance,
+		ServiceGroup::TypeInstance,
+		TimePeriod::TypeInstance,
+		User::TypeInstance,
+		UserGroup::TypeInstance,
+		Zone::TypeInstance
+	}) {
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
 		if (!ctype)
 			continue;
