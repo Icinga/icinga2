@@ -13,6 +13,8 @@
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
 #include <memory>
+#include <mutex>
+#include <set>
 #include <utility>
 
 namespace icinga
@@ -35,6 +37,17 @@ public:
 	virtual void Stop(bool runtimeRemoved) override;
 
 private:
+	class DumpedGlobals
+	{
+	public:
+		void Reset();
+		bool IsNew(const String& id);
+
+	private:
+		std::set<String> m_Ids;
+		std::mutex m_Mutex;
+	};
+
 	void OnConnectedHandler();
 
 	void PublishStatsTimerHandler();
@@ -143,6 +156,10 @@ private:
 	bool m_ConfigDumpDone;
 
 	RedisConnection::Ptr m_Rcon;
+
+	struct {
+		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage;
+	} m_DumpedGlobals;
 };
 }
 
