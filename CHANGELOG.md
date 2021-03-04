@@ -227,6 +227,19 @@ Thanks to all contributors:
   * Code quality fixes
   * Small documentation fixes
 
+## 2.11.5 (2020-08-05)
+
+Version 2.11.5 fixes file system race conditions
+in the config update process occurring in large HA environments
+and improves the cluster connection liveness mechanisms.
+
+### Bugfixes
+
+* Make the config update process mutually exclusive (Prevents file system race conditions) #8093
+* Consider a JsonRpcConnection alive on a single byte of TLS payload, not only on a whole message #8094
+* Send JsonRpcConnection heartbeat every 20s instead of 10s #8103
+* Use JsonRpcConnection heartbeat only to update connection liveness (m\_Seen) #8097
+
 ## 2.11.4 (2020-06-18)
 
 Version 2.11.4 fixes a crash during a heartbeat timeout with clients not yet signed. It also resolves
