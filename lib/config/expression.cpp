@@ -912,6 +912,9 @@ ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	if (frame.Sandboxed)
 		BOOST_THROW_EXCEPTION(ScriptError("Apply rules are not allowed in sandbox mode.", m_DebugInfo));
 
+	if (ConfigItem::RunsInCommitContext())
+		BOOST_THROW_EXCEPTION(ScriptError("Nested objects are not allowed", m_DebugInfo));
+
 	ExpressionResult nameres = m_Name->Evaluate(frame);
 	CHECK_RESULT(nameres);
 
@@ -934,6 +937,9 @@ ExpressionResult ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 {
 	if (frame.Sandboxed)
 		BOOST_THROW_EXCEPTION(ScriptError("Object definitions are not allowed in sandbox mode.", m_DebugInfo));
+
+	if (ConfigItem::RunsInCommitContext())
+		BOOST_THROW_EXCEPTION(ScriptError("Nested objects are not allowed", m_DebugInfo));
 
 	ExpressionResult typeres = m_Type->Evaluate(frame, dhint);
 	CHECK_RESULT(typeres);

@@ -7,6 +7,7 @@
 #include "config/configcompiler.hpp"
 #include "base/application.hpp"
 #include "base/configtype.hpp"
+#include "base/defer.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/logger.hpp"
@@ -31,6 +32,8 @@
 using namespace icinga;
 
 std::mutex ConfigItem::m_Mutex;
+thread_local bool ConfigItem::m_CommitInProgress = false;
+
 ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::TypeMap ConfigItem::m_DefaultTemplates;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
@@ -190,6 +193,9 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	if (m_Scope)
 		m_Scope->CopyTo(frame.Locals);
 	try {
+		m_CommitInProgress = true;
+		Defer resetCommitInProgress ([this]() { m_CommitInProgress = false; });
+
 		m_Expression->Evaluate(frame, &debugHints);
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
