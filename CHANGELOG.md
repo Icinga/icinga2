@@ -390,6 +390,16 @@ Thanks to all contributors: [BarbUk](https://github.com/Icinga/icinga2/pulls?q=i
 
 
 
+## 2.10.7 (2019-10-17)
+
+[Issue and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.10.7)
+
+### Bugfixes
+
+* Cluster config master must not load/sync its marker to other instances #7544
+  * This affects scenarios where the satellite/agent is newer than the master, e.g. master=2.10.x satellite=2.11.0
+
+
 ## 2.10.6 (2019-07-30)
 
 [Issue and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.10.6)
