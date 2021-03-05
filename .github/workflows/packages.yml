@@ -134,6 +134,8 @@ jobs:
             release: '15.2'
           - name: sles
             release: '12.5'
+          - name: opensuse
+            release: '15.2'
 
     runs-on: ubuntu-latest
 
