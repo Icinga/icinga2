@@ -57,7 +57,7 @@ private:
 	void UpdateAllConfigObjects();
 	std::vector<std::vector<intrusive_ptr<ConfigObject>>> ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize);
 	void DeleteKeys(const std::vector<String>& keys, RedisConnection::QueryPriority priority);
-	std::vector<String> GetTypeObjectKeys(const String& type);
+	std::vector<String> GetTypeOverwriteKeys(const String& type);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 			std::map<String, std::vector<String>>& publishes, bool runtimeUpdate);
 	void UpdateState(const Checkable::Ptr& checkable);
