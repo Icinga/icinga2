@@ -7,6 +7,33 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.12.1 (2020-10-15)
+
+Version 2.12.1 fixes several crashes, deadlocks and excessive check latencies.
+It also addresses several bugs regarding IDO, API, notifications and checks.
+
+### Bugfixes
+
+* Core
+  * Fix crashes during config update #8348 #8345
+  * Fix crash while removing a downtime #8228
+  * Ensure the daemon doesn't get killed by logrotate #8170
+  * Fix hangup during shutdown #8211
+  * Fix a deadlock in Icinga DB #8168
+  * Clean up zombie processes during reload #8376
+  * Reduce check latency #8276
+* IDO
+  * Prevent unnecessary IDO updates #8327 #8320
+  * Commit IDO MySQL transactions earlier #8349
+  * Make sure to insert IDO program status #8330
+  * Improve IDO queue stats logging #8271 #8328 #8379
+* Misc
+  * Ensure API connections are closed properly #8293
+  * Prevent unnecessary notifications #8299
+  * Don't skip null values of command arguments #8174
+  * Fix Windows .exe version #8234
+  * Reset Icinga check warning after successful config update #8189
+
 ## 2.12.0 (2020-08-05)
 
 [Issue and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.12.0)
