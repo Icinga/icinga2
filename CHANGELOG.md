@@ -7,6 +7,37 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.12.3 (2020-12-15)
+
+Version 2.12.3 resolves a security vulnerability with revoked certificates being
+renewed automatically ignoring the CRL.
+
+This version also resolves issues with high load on Windows regarding the config sync
+and not being able to disable/enable Icinga 2 features over the API.
+
+### Security
+
+* Fix that revoked certificates due for renewal will automatically be renewed ignoring the CRL (CVE-2020-29663)
+
+When a CRL is specified in the ApiListener configuration, Icinga 2 only used it
+when connections were established so far, but not when a certificate is requested.
+This allows a node to automatically renew a revoked certificate if it meets the
+other conditions for auto renewal (issued before 2017 or expires in less than 30 days).
+
+Because Icinga 2 currently (v2.12.3 and earlier) uses a validity duration of 15 years,
+this only affects setups with external certificate signing and revoked certificates
+that expire in less then 30 days.
+
+### Bugfixes
+
+* Improve config sync locking - resolves high load issues on Windows #8511
+* Fix runtime config updates being ignored for objects without zone #8549
+* Use proper buffer size for OpenSSL error messages #8542
+
+### Enhancements
+
+* On checkable recovery: re-check children that have a problem #8506
+
 ## 2.12.2 (2020-12-01)
 
 Version 2.12.2 fixes several issues to improve the reliability of the cluster functionality.
