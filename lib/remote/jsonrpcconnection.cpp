@@ -68,11 +68,9 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 		try {
 			message = JsonRpc::ReadMessage(m_Stream, yc, m_Endpoint ? -1 : 1024 * 1024);
 		} catch (const std::exception& ex) {
-			if (!m_ShuttingDown) {
-				Log(LogNotice, "JsonRpcConnection")
-					<< "Error while reading JSON-RPC message for identity '" << m_Identity
-					<< "': " << DiagnosticInformation(ex);
-			}
+			Log(m_ShuttingDown ? LogDebug : LogNotice, "JsonRpcConnection")
+				<< "Error while reading JSON-RPC message for identity '" << m_Identity
+				<< "': " << DiagnosticInformation(ex);
 
 			break;
 		}
@@ -84,11 +82,9 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 
 			MessageHandler(message);
 		} catch (const std::exception& ex) {
-			if (!m_ShuttingDown) {
-				Log(LogWarning, "JsonRpcConnection")
-					<< "Error while processing JSON-RPC message for identity '" << m_Identity
-					<< "': " << DiagnosticInformation(ex);
-			}
+			Log(m_ShuttingDown ? LogDebug : LogWarning, "JsonRpcConnection")
+				<< "Error while processing JSON-RPC message for identity '" << m_Identity
+				<< "': " << DiagnosticInformation(ex);
 
 			break;
 		}
@@ -125,12 +121,9 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 
 				m_Stream->async_flush(yc);
 			} catch (const std::exception& ex) {
-				if (!m_ShuttingDown) {
-					std::ostringstream info;
-					info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
-					Log(LogWarning, "JsonRpcConnection")
-						<< info.str() << "\n" << DiagnosticInformation(ex);
-				}
+				Log(m_ShuttingDown ? LogDebug : LogWarning, "JsonRpcConnection")
+					<< "Error while sending JSON-RPC message for identity '"
+					<< m_Identity << "'\n" << DiagnosticInformation(ex);
 
 				break;
 			}
