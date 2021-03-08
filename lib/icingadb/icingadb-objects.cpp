@@ -367,9 +367,9 @@ void IcingaDB::UpdateAllConfigObjects()
 		std::map<String, std::map<String, String>> ourContent;
 
 		for (auto& source : ourContentRaw) {
-			upqObjectType.Enqueue([&]() {
-				auto& dest (ourContent[source.first]);
+			auto& dest (ourContent[source.first]);
 
+			upqObjectType.Enqueue([&]() {
 				for (auto& hMSet : source.second) {
 					for (decltype(hMSet.size()) i = 0, stop = hMSet.size() - 1u; i < stop; i += 2u) {
 						dest.emplace(std::move(hMSet[i]), std::move(hMSet[i + 1u]));
