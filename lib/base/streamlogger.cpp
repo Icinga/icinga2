@@ -71,7 +71,7 @@ void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)
  * @param stream The output stream.
  * @param entry The log entry.
  */
-void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
+void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry, bool flush)
 {
 	String timestamp = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", entry.Timestamp);
 
@@ -106,6 +106,12 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
 	stream << Logger::SeverityToString(entry.Severity);
 	stream << ConsoleColorTag(Console_Normal);
 	stream << "/" << entry.Facility << ": " << entry.Message << "\n";
+
+	if (flush) {
+		/* "Console" might be a pipe/socket (systemd, daemontools, docker, ...),
+		 * then cout will not flush lines automatically. */
+		stream << std::flush;
+	}
 }
 
 /**

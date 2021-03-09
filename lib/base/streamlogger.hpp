@@ -26,7 +26,7 @@ public:
 
 	void BindStream(std::ostream *stream, bool ownsStream);
 
-	static void ProcessLogEntry(std::ostream& stream, const LogEntry& entry);
+	static void ProcessLogEntry(std::ostream& stream, const LogEntry& entry, bool flush = false);
 
 protected:
 	void ProcessLogEntry(const LogEntry& entry) final;
