@@ -762,9 +762,13 @@ String SHA1(const String& s, bool binary)
 	if (binary)
 		return String(reinterpret_cast<const char*>(digest), reinterpret_cast<const char *>(digest + SHA_DIGEST_LENGTH));
 
+	static const char hexdigits[] = "0123456789abcdef";
 	char output[SHA_DIGEST_LENGTH*2+1];
-	for (int i = 0; i < 20; i++)
-		sprintf(output + 2 * i, "%02x", digest[i]);
+	for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
+		output[2*i] = hexdigits[digest[i] >> 4];
+		output[2*i + 1] = hexdigits[digest[i] & 0xf];
+	}
+	output[2*SHA_DIGEST_LENGTH] = 0;
 
 	return output;
 }
