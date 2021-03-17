@@ -493,19 +493,16 @@ void RedisConnection::WriteRESP(AsyncWriteStream& stream, const Query& query, bo
 {
 	namespace asio = boost::asio;
 
-	asio::async_write(stream, asio::const_buffer("*", 1), yc);
-	WriteInt(stream, query.size(), yc);
-	asio::async_write(stream, asio::const_buffer("\r\n", 2), yc);
+	asio::streambuf writeBuffer;
+	std::ostream msg(&writeBuffer);
+
+	msg << "*" << query.size() << "\r\n";
 
 	for (auto& arg : query) {
-		asio::async_write(stream, asio::const_buffer("$", 1), yc);
-
-		WriteInt(stream, arg.GetLength(), yc);
-
-		asio::async_write(stream, asio::const_buffer("\r\n", 2), yc);
-		asio::async_write(stream, asio::const_buffer(arg.CStr(), arg.GetLength()), yc);
-		asio::async_write(stream, asio::const_buffer("\r\n", 2), yc);
+		msg << "$" << arg.GetLength() << "\r\n" << arg.CStr() << "\r\n";
 	}
+
+	asio::async_write(stream, writeBuffer, yc);
 }
 
 /**
