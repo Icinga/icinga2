@@ -210,6 +210,14 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 					
 					continue;
 				}
+
+				if (value.IsEmpty()) {
+					Log(LogDebug, "OpenTsdbWriter")
+						<< "Resolved macro '" << missing_macro
+						<< "' for this host or service to '', skipping.";
+
+					continue;
+				}
 				
 				String tagname = Convert::ToString(pair.first);
 				tags[tagname] = EscapeTag(value);
