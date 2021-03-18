@@ -178,6 +178,7 @@ function			return T_FUNCTION;
 return				return T_RETURN;
 break				return T_BREAK;
 continue			return T_CONTINUE;
+yield			return T_YIELD;
 for				return T_FOR;
 if				return T_IF;
 else				return T_ELSE;
