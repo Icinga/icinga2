@@ -114,17 +114,19 @@ void InfluxdbWriter::Resume()
 		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
-	m_WorkQueue.SetExceptionCallback(std::bind(&InfluxdbWriter::ExceptionHandler, this, _1));
+	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Setup timer for periodically flushing m_DataBuffer */
 	m_FlushTimer = new Timer();
 	m_FlushTimer->SetInterval(GetFlushInterval());
-	m_FlushTimer->OnTimerExpired.connect(std::bind(&InfluxdbWriter::FlushTimeout, this));
+	m_FlushTimer->OnTimerExpired.connect([this](const Timer * const&) { FlushTimeout(); });
 	m_FlushTimer->Start();
 	m_FlushTimer->Reschedule(0);
 
 	/* Register for new metrics. */
-	Checkable::OnNewCheckResult.connect(std::bind(&InfluxdbWriter::CheckResultHandler, this, _1, _2));
+	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+		CheckResultHandler(checkable, cr);
+	});
 }
 
 /* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
@@ -222,7 +224,7 @@ void InfluxdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue(std::bind(&InfluxdbWriter::CheckResultHandlerWQ, this, checkable, cr), PriorityLow);
+	m_WorkQueue.Enqueue([this, checkable, cr]() { CheckResultHandlerWQ(checkable, cr); }, PriorityLow);
 }
 
 void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -440,7 +442,7 @@ void InfluxdbWriter::SendMetric(const Checkable::Ptr& checkable, const Dictionar
 
 void InfluxdbWriter::FlushTimeout()
 {
-	m_WorkQueue.Enqueue(boost::bind(&InfluxdbWriter::FlushTimeoutWQ, this), PriorityHigh);
+	m_WorkQueue.Enqueue([this]() { FlushTimeoutWQ(); }, PriorityHigh);
 }
 
 void InfluxdbWriter::FlushTimeoutWQ()

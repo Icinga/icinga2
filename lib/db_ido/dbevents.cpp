@@ -18,6 +18,7 @@
 #include "icinga/pluginutility.hpp"
 #include "icinga/icingaapplication.hpp"
 #include <boost/algorithm/string/join.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -26,49 +27,94 @@ INITIALIZE_ONCE(&DbEvents::StaticInitialize);
 void DbEvents::StaticInitialize()
 {
 	/* Status */
-	Comment::OnCommentAdded.connect(std::bind(&DbEvents::AddComment, _1));
-	Comment::OnCommentRemoved.connect(std::bind(&DbEvents::RemoveComment, _1));
-	Downtime::OnDowntimeAdded.connect(std::bind(&DbEvents::AddDowntime, _1));
-	Downtime::OnDowntimeRemoved.connect(std::bind(&DbEvents::RemoveDowntime, _1));
-	Downtime::OnDowntimeTriggered.connect(std::bind(&DbEvents::TriggerDowntime, _1));
-	Checkable::OnAcknowledgementSet.connect(std::bind(&DbEvents::AddAcknowledgement, _1, _4));
-	Checkable::OnAcknowledgementCleared.connect(std::bind(&DbEvents::RemoveAcknowledgement, _1));
+	Comment::OnCommentAdded.connect([](const Comment::Ptr& comment) { DbEvents::AddComment(comment); });
+	Comment::OnCommentRemoved.connect([](const Comment::Ptr& comment) { DbEvents::RemoveComment(comment); });
+	Downtime::OnDowntimeAdded.connect([](const Downtime::Ptr& downtime) { DbEvents::AddDowntime(downtime); });
+	Downtime::OnDowntimeRemoved.connect([](const Downtime::Ptr& downtime) { DbEvents::RemoveDowntime(downtime); });
+	Downtime::OnDowntimeTriggered.connect([](const Downtime::Ptr& downtime) { DbEvents::TriggerDowntime(downtime); });
+	Checkable::OnAcknowledgementSet.connect([](const Checkable::Ptr& checkable, const String&, const String&,
+		AcknowledgementType type, bool, bool, double, double, const MessageOrigin::Ptr&) {
+		DbEvents::AddAcknowledgement(checkable, type);
+	});
+	Checkable::OnAcknowledgementCleared.connect([](const Checkable::Ptr& checkable, const String&, double, const MessageOrigin::Ptr&) {
+		DbEvents::RemoveAcknowledgement(checkable);
+	});
 
-	Checkable::OnNextCheckUpdated.connect(std::bind(&DbEvents::NextCheckUpdatedHandler, _1));
-	Checkable::OnFlappingChanged.connect(std::bind(&DbEvents::FlappingChangedHandler, _1));
-	Checkable::OnNotificationSentToAllUsers.connect(std::bind(&DbEvents::LastNotificationChangedHandler, _1, _2));
+	Checkable::OnNextCheckUpdated.connect([](const Checkable::Ptr& checkable) { NextCheckUpdatedHandler(checkable); });
+	Checkable::OnFlappingChanged.connect([](const Checkable::Ptr& checkable, const Value&) { FlappingChangedHandler(checkable); });
+	Checkable::OnNotificationSentToAllUsers.connect([](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+		const std::set<User::Ptr>&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&,
+		const MessageOrigin::Ptr&) {
+		DbEvents::LastNotificationChangedHandler(notification, checkable);
+	});
 
-	Checkable::OnEnableActiveChecksChanged.connect(std::bind(&DbEvents::EnableActiveChecksChangedHandler, _1));
-	Checkable::OnEnablePassiveChecksChanged.connect(std::bind(&DbEvents::EnablePassiveChecksChangedHandler, _1));
-	Checkable::OnEnableNotificationsChanged.connect(std::bind(&DbEvents::EnableNotificationsChangedHandler, _1));
-	Checkable::OnEnablePerfdataChanged.connect(std::bind(&DbEvents::EnablePerfdataChangedHandler, _1));
-	Checkable::OnEnableFlappingChanged.connect(std::bind(&DbEvents::EnableFlappingChangedHandler, _1));
+	Checkable::OnEnableActiveChecksChanged.connect([](const Checkable::Ptr& checkable, const Value&) {
+		DbEvents::EnableActiveChecksChangedHandler(checkable);
+	});
+	Checkable::OnEnablePassiveChecksChanged.connect([](const Checkable::Ptr& checkable, const Value&) {
+		DbEvents::EnablePassiveChecksChangedHandler(checkable);
+	});
+	Checkable::OnEnableNotificationsChanged.connect([](const Checkable::Ptr& checkable, const Value&) {
+		DbEvents::EnableNotificationsChangedHandler(checkable);
+	});
+	Checkable::OnEnablePerfdataChanged.connect([](const Checkable::Ptr& checkable, const Value&) {
+		DbEvents::EnablePerfdataChangedHandler(checkable);
+	});
+	Checkable::OnEnableFlappingChanged.connect([](const Checkable::Ptr& checkable, const Value&) {
+		DbEvents::EnableFlappingChangedHandler(checkable);
+	});
 
-	Checkable::OnReachabilityChanged.connect(std::bind(&DbEvents::ReachabilityChangedHandler, _1, _2, _3));
+	Checkable::OnReachabilityChanged.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
+			std::set<Checkable::Ptr> children, const MessageOrigin::Ptr&) {
+		DbEvents::ReachabilityChangedHandler(checkable, cr, std::move(children));
+	});
 
 	/* History */
-	Comment::OnCommentAdded.connect(std::bind(&DbEvents::AddCommentHistory, _1));
-	Downtime::OnDowntimeAdded.connect(std::bind(&DbEvents::AddDowntimeHistory, _1));
-	Checkable::OnAcknowledgementSet.connect(std::bind(&DbEvents::AddAcknowledgementHistory, _1, _2, _3, _4, _5, _7));
+	Comment::OnCommentAdded.connect([](const Comment::Ptr& comment) { AddCommentHistory(comment); });
+	Downtime::OnDowntimeAdded.connect([](const Downtime::Ptr& downtime) { AddDowntimeHistory(downtime); });
+	Checkable::OnAcknowledgementSet.connect([](const Checkable::Ptr& checkable, const String& author, const String& comment,
+		AcknowledgementType type, bool notify, bool, double expiry, double, const MessageOrigin::Ptr&) {
+		DbEvents::AddAcknowledgementHistory(checkable, author, comment, type, notify, expiry);
+	});
 
-	Checkable::OnNotificationSentToAllUsers.connect(std::bind(&DbEvents::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
+	Checkable::OnNotificationSentToAllUsers.connect([](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+		const std::set<User::Ptr>& users, const NotificationType& type, const CheckResult::Ptr& cr, const String& author,
+		const String& text, const MessageOrigin::Ptr&) {
+		DbEvents::AddNotificationHistory(notification, checkable, users, type, cr, author, text);
+	});
 
-	Checkable::OnStateChange.connect(std::bind(&DbEvents::AddStateChangeHistory, _1, _2, _3));
+	Checkable::OnStateChange.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
+		DbEvents::AddStateChangeHistory(checkable, cr, type);
+	});
 
-	Checkable::OnNewCheckResult.connect(std::bind(&DbEvents::AddCheckResultLogHistory, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(std::bind(&DbEvents::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7));
-	Checkable::OnFlappingChanged.connect(std::bind(&DbEvents::AddFlappingChangedLogHistory, _1));
-	Checkable::OnEnableFlappingChanged.connect(std::bind(&DbEvents::AddEnableFlappingChangedLogHistory, _1));
-	Downtime::OnDowntimeTriggered.connect(std::bind(&DbEvents::AddTriggerDowntimeLogHistory, _1));
-	Downtime::OnDowntimeRemoved.connect(std::bind(&DbEvents::AddRemoveDowntimeLogHistory, _1));
+	Checkable::OnNewCheckResult.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+		DbEvents::AddCheckResultLogHistory(checkable, cr);
+	});
+	Checkable::OnNotificationSentToUser.connect([](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+		const User::Ptr& users, const NotificationType& type, const CheckResult::Ptr& cr, const String& author, const String& text,
+		const String&, const MessageOrigin::Ptr&) {
+		DbEvents::AddNotificationSentLogHistory(notification, checkable, users, type, cr, author, text);
+	});
+	Checkable::OnFlappingChanged.connect([](const Checkable::Ptr& checkable, const Value&) {
+		DbEvents::AddFlappingChangedLogHistory(checkable);
+	});
+	Checkable::OnEnableFlappingChanged.connect([](const Checkable::Ptr& checkable, const Value&) {
+		DbEvents::AddEnableFlappingChangedLogHistory(checkable);
+	});
+	Downtime::OnDowntimeTriggered.connect([](const Downtime::Ptr& downtime) { DbEvents::AddTriggerDowntimeLogHistory(downtime); });
+	Downtime::OnDowntimeRemoved.connect([](const Downtime::Ptr& downtime) { DbEvents::AddRemoveDowntimeLogHistory(downtime); });
 
-	Checkable::OnFlappingChanged.connect(std::bind(&DbEvents::AddFlappingChangedHistory, _1));
-	Checkable::OnEnableFlappingChanged.connect(std::bind(&DbEvents::AddEnableFlappingChangedHistory, _1));
-	Checkable::OnNewCheckResult.connect(std::bind(&DbEvents::AddCheckableCheckHistory, _1, _2));
+	Checkable::OnFlappingChanged.connect([](const Checkable::Ptr& checkable, const Value&) { DbEvents::AddFlappingChangedHistory(checkable); });
+	Checkable::OnEnableFlappingChanged.connect([](const Checkable::Ptr& checkable, const Value&) { DbEvents::AddEnableFlappingChangedHistory(checkable); });
+	Checkable::OnNewCheckResult.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+		DbEvents::AddCheckableCheckHistory(checkable, cr);
+	});
 
-	Checkable::OnEventCommandExecuted.connect(std::bind(&DbEvents::AddEventHandlerHistory, _1));
+	Checkable::OnEventCommandExecuted.connect([](const Checkable::Ptr& checkable) { DbEvents::AddEventHandlerHistory(checkable); });
 
-	ExternalCommandProcessor::OnNewExternalCommand.connect(std::bind(&DbEvents::AddExternalCommandHistory, _1, _2, _3));
+	ExternalCommandProcessor::OnNewExternalCommand.connect([](double time, const String& command, const std::vector<String>& arguments) {
+		DbEvents::AddExternalCommandHistory(time, command, arguments);
+	});
 }
 
 /* check events */

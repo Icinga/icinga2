@@ -136,8 +136,9 @@ std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relative
 	}
 
 	std::vector<std::unique_ptr<Expression> > expressions;
+	auto funcCallback = [&expressions, zone, package](const String& file) { CollectIncludes(expressions, file, zone, package); };
 
-	if (!Utility::Glob(includePath, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
+	if (!Utility::Glob(includePath, funcCallback, GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
 		std::ostringstream msgbuf;
 		msgbuf << "Include file '" + path + "' does not exist";
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debuginfo));
@@ -167,7 +168,9 @@ std::unique_ptr<Expression> ConfigCompiler::HandleIncludeRecursive(const String&
 		ppath = relativeBase + "/" + path;
 
 	std::vector<std::unique_ptr<Expression> > expressions;
-	Utility::GlobRecursive(ppath, pattern, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile);
+	Utility::GlobRecursive(ppath, pattern, [&expressions, zone, package](const String& file) {
+		CollectIncludes(expressions, file, zone, package);
+	}, GlobFile);
 
 	std::unique_ptr<DictExpression> dict{new DictExpression(std::move(expressions))};
 	dict->MakeInline();
@@ -187,7 +190,9 @@ void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String&
 
 	RegisterZoneDir(tag, ppath, zoneName);
 
-	Utility::GlobRecursive(ppath, pattern, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
+	Utility::GlobRecursive(ppath, pattern, [&expressions, zoneName, package](const String& file) {
+		CollectIncludes(expressions, file, zoneName, package);
+	}, GlobFile);
 }
 
 /**
@@ -213,7 +218,10 @@ std::unique_ptr<Expression> ConfigCompiler::HandleIncludeZones(const String& rel
 	}
 
 	std::vector<std::unique_ptr<Expression> > expressions;
-	Utility::Glob(ppath + "/*", std::bind(&ConfigCompiler::HandleIncludeZone, newRelativeBase, tag, _1, pattern, package, std::ref(expressions)), GlobDirectory);
+	Utility::Glob(ppath + "/*", [newRelativeBase, tag, pattern, package, &expressions](const String& path) {
+		HandleIncludeZone(newRelativeBase, tag, path, pattern, package, expressions);
+	}, GlobDirectory);
+
 	return std::unique_ptr<Expression>(new DictExpression(std::move(expressions)));
 }
 

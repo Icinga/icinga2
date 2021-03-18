@@ -48,7 +48,7 @@ static void EnsureFrameCleanupTimer()
 
 	boost::call_once(once, []() {
 		l_FrameCleanupTimer = new Timer();
-		l_FrameCleanupTimer->OnTimerExpired.connect(std::bind(ScriptFrameCleanupHandler));
+		l_FrameCleanupTimer->OnTimerExpired.connect([](const Timer * const&) { ScriptFrameCleanupHandler(); });
 		l_FrameCleanupTimer->SetInterval(30);
 		l_FrameCleanupTimer->Start();
 	});

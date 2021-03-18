@@ -11,8 +11,6 @@
 #include <boost/function_types/function_arity.hpp>
 #include <vector>
 
-using namespace std::placeholders;
-
 namespace icinga
 {
 
@@ -39,7 +37,7 @@ inline std::function<Value (const std::vector<Value>&)> WrapFunction(void (*func
 template<typename Return>
 std::function<Value (const std::vector<Value>&)> WrapFunction(Return (*function)(const std::vector<Value>&))
 {
-	return std::bind(function, _1);
+	return [function](const std::vector<Value>& values) -> Value { return function(values); };
 }
 
 template <std::size_t... Indices>

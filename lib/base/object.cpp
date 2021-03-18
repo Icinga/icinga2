@@ -234,7 +234,7 @@ static void TypeInfoTimerHandler()
 INITIALIZE_ONCE([]() {
 	l_ObjectCountTimer = new Timer();
 	l_ObjectCountTimer->SetInterval(10);
-	l_ObjectCountTimer->OnTimerExpired.connect(std::bind(TypeInfoTimerHandler));
+	l_ObjectCountTimer->OnTimerExpired.connect([](const Timer * const&) { TypeInfoTimerHandler(); });
 	l_ObjectCountTimer->Start();
 });
 #endif /* I2_LEAK_DEBUG */

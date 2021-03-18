@@ -87,7 +87,6 @@ private:
 
 	void AssertOnWorkQueue();
 
-	void TxTimerHandler();
 	void ReconnectTimerHandler();
 
 	bool CanExecuteQuery(const DbQuery& query);

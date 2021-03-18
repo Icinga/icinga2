@@ -445,7 +445,7 @@ Dictionary::Ptr PkiUtility::GetCertificateRequests(bool removed)
 		ext = "removed";
 
 	if (Utility::PathExists(requestDir))
-		Utility::Glob(requestDir + "/*." + ext, std::bind(&CollectRequestHandler, requests, _1), GlobFile);
+		Utility::Glob(requestDir + "/*." + ext, [requests](const String& requestFile) { CollectRequestHandler(requests, requestFile); }, GlobFile);
 
 	return requests;
 }

@@ -53,10 +53,12 @@ void PerfdataWriter::Resume()
 	Log(LogInformation, "PerfdataWriter")
 		<< "'" << GetName() << "' resumed.";
 
-	Checkable::OnNewCheckResult.connect(std::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
+	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+		CheckResultHandler(checkable, cr);
+	});
 
 	m_RotationTimer = new Timer();
-	m_RotationTimer->OnTimerExpired.connect(std::bind(&PerfdataWriter::RotationTimerHandler, this));
+	m_RotationTimer->OnTimerExpired.connect([this](const Timer * const&) { RotationTimerHandler(); });
 	m_RotationTimer->SetInterval(GetRotationInterval());
 	m_RotationTimer->Start();
 

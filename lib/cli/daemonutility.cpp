@@ -43,7 +43,10 @@ static bool IncludeZoneDirRecursive(const String& path, const String& package, b
 	ConfigCompiler::RegisterZoneDir("_etc", path, zoneName);
 
 	std::vector<std::unique_ptr<Expression> > expressions;
-	Utility::GlobRecursive(path, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
+	Utility::GlobRecursive(path, "*.conf", [&expressions, zoneName, package](const String& file) {
+		ConfigCompiler::CollectIncludes(expressions, file, zoneName, package);
+	}, GlobFile);
+
 	DictExpression expr(std::move(expressions));
 	if (!ExecuteExpression(&expr))
 		success = false;
@@ -75,7 +78,10 @@ static bool IncludeNonLocalZone(const String& zonePath, const String& package, b
 	}
 
 	std::vector<std::unique_ptr<Expression> > expressions;
-	Utility::GlobRecursive(zonePath, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
+	Utility::GlobRecursive(zonePath, "*.conf", [&expressions, zoneName, package](const String& file) {
+		ConfigCompiler::CollectIncludes(expressions, file, zoneName, package);
+	}, GlobFile);
+
 	DictExpression expr(std::move(expressions));
 	if (!ExecuteExpression(&expr))
 		success = false;
@@ -162,7 +168,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	 * are authoritative on this node and are checked in HasZoneConfigAuthority(). */
 	String packagesVarDir = Configuration::DataDir + "/api/packages";
 	if (Utility::PathExists(packagesVarDir))
-		Utility::Glob(packagesVarDir + "/*", std::bind(&IncludePackage, _1, std::ref(success)), GlobDirectory);
+		Utility::Glob(packagesVarDir + "/*", [&success](const String& packagePath) { IncludePackage(packagePath, success); }, GlobDirectory);
 
 	if (!success)
 		return false;

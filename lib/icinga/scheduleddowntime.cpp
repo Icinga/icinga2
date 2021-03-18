@@ -76,12 +76,12 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 	boost::call_once(once, [this]() {
 		l_Timer = new Timer();
 		l_Timer->SetInterval(60);
-		l_Timer->OnTimerExpired.connect(std::bind(&ScheduledDowntime::TimerProc));
+		l_Timer->OnTimerExpired.connect([](const Timer * const&) { TimerProc(); });
 		l_Timer->Start();
 	});
 
 	if (!IsPaused())
-		Utility::QueueAsyncCallback(std::bind(&ScheduledDowntime::CreateNextDowntime, this));
+		Utility::QueueAsyncCallback([this]() { CreateNextDowntime(); });
 }
 
 void ScheduledDowntime::TimerProc()

@@ -44,7 +44,7 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
 		callback = Checkable::ExecuteCommandProcessFinishedHandler;
 	} else {
-		callback = std::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2);
+		callback = [checkable](const Value& commandLine, const ProcessResult& pr) { ProcessFinishedHandler(checkable, commandLine, pr); };
 	}
 
 	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),

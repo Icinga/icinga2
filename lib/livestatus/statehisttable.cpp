@@ -220,8 +220,12 @@ void StateHistTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "duration_unmonitored", Column(&StateHistTable::DurationUnmonitoredAccessor, objectAccessor));
 	table->AddColumn(prefix + "duration_part_unmonitored", Column(&StateHistTable::DurationPartUnmonitoredAccessor, objectAccessor));
 
-	HostsTable::AddColumns(table, "current_host_", std::bind(&StateHistTable::HostAccessor, _1, objectAccessor));
-	ServicesTable::AddColumns(table, "current_service_", std::bind(&StateHistTable::ServiceAccessor, _1, objectAccessor));
+	HostsTable::AddColumns(table, "current_host_", [objectAccessor](const Value& row, LivestatusGroupByType, const Object::Ptr&) -> Value {
+		return HostAccessor(row, objectAccessor);
+	});
+	ServicesTable::AddColumns(table, "current_service_", [objectAccessor](const Value& row, LivestatusGroupByType, const Object::Ptr&) -> Value {
+		return ServiceAccessor(row, objectAccessor);
+	});
 }
 
 String StateHistTable::GetName() const

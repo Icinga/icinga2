@@ -80,19 +80,28 @@ void GelfWriter::Resume()
 		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
-	m_WorkQueue.SetExceptionCallback(std::bind(&GelfWriter::ExceptionHandler, this, _1));
+	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Timer for reconnecting */
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
-	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&GelfWriter::ReconnectTimerHandler, this));
+	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ReconnectTimerHandler(); });
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
 	/* Register event handlers. */
-	Checkable::OnNewCheckResult.connect(std::bind(&GelfWriter::CheckResultHandler, this, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(std::bind(&GelfWriter::NotificationToUserHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
-	Checkable::OnStateChange.connect(std::bind(&GelfWriter::StateChangeHandler, this, _1, _2, _3));
+	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+		CheckResultHandler(checkable, cr);
+	});
+	Checkable::OnNotificationSentToUser.connect([this](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+		const User::Ptr& user, const NotificationType& type, const CheckResult::Ptr& cr, const String& author,
+		const String& commentText, const String& commandName, const MessageOrigin::Ptr&) {
+		NotificationToUserHandler(notification, checkable, user, type, cr, author, commentText, commandName);
+	});
+	Checkable::OnStateChange.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type,
+		const MessageOrigin::Ptr&) {
+		StateChangeHandler(checkable, cr, type);
+	});
 }
 
 /* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
@@ -207,7 +216,7 @@ void GelfWriter::ReconnectInternal()
 
 void GelfWriter::ReconnectTimerHandler()
 {
-	m_WorkQueue.Enqueue(std::bind(&GelfWriter::Reconnect, this), PriorityNormal);
+	m_WorkQueue.Enqueue([this]() { Reconnect(); }, PriorityNormal);
 }
 
 void GelfWriter::Disconnect()
@@ -245,7 +254,7 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue(std::bind(&GelfWriter::CheckResultHandlerInternal, this, checkable, cr));
+	m_WorkQueue.Enqueue([this, checkable, cr]() { CheckResultHandlerInternal(checkable, cr); });
 }
 
 void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -353,8 +362,9 @@ void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue(std::bind(&GelfWriter::NotificationToUserHandlerInternal, this,
-		notification, checkable, user, notificationType, cr, author, commentText, commandName));
+	m_WorkQueue.Enqueue([this, notification, checkable, user, notificationType, cr, author, commentText, commandName]() {
+		NotificationToUserHandlerInternal(notification, checkable, user, notificationType, cr, author, commentText, commandName);
+	});
 }
 
 void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
@@ -420,7 +430,7 @@ void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const Check
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue(std::bind(&GelfWriter::StateChangeHandlerInternal, this, checkable, cr, type));
+	m_WorkQueue.Enqueue([this, checkable, cr, type]() { StateChangeHandlerInternal(checkable, cr, type); });
 }
 
 void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)

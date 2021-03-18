@@ -48,7 +48,6 @@ public:
 	static std::mutex& GetStaticActiveStageMutex();
 
 private:
-	static void CollectDirNames(const String& path, std::vector<String>& dirs);
 	static void CollectPaths(const String& path, std::vector<std::pair<String, bool> >& paths);
 
 	static void WritePackageConfig(const String& packageName);

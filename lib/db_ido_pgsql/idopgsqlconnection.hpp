@@ -73,7 +73,6 @@ private:
 
 	void AssertOnWorkQueue();
 
-	void TxTimerHandler();
 	void ReconnectTimerHandler();
 
 	void StatsLoggerTimerHandler();

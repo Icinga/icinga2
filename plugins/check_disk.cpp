@@ -10,8 +10,6 @@
 #include <shlwapi.h>
 #include <math.h>
 
-using namespace std::placeholders;
-
 #define VERSION 1.1
 
 namespace po = boost::program_options;

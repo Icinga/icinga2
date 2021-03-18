@@ -77,19 +77,19 @@ void IdoPgsqlConnection::Resume()
 
 	SetConnected(false);
 
-	m_QueryQueue.SetExceptionCallback(std::bind(&IdoPgsqlConnection::ExceptionHandler, this, _1));
+	m_QueryQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Immediately try to connect on Resume() without timer. */
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Reconnect, this), PriorityImmediate);
+	m_QueryQueue.Enqueue([this]() { Reconnect(); }, PriorityImmediate);
 
 	m_TxTimer = new Timer();
 	m_TxTimer->SetInterval(1);
-	m_TxTimer->OnTimerExpired.connect(std::bind(&IdoPgsqlConnection::TxTimerHandler, this));
+	m_TxTimer->OnTimerExpired.connect([this](const Timer * const&) { NewTransaction(); });
 	m_TxTimer->Start();
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
-	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&IdoPgsqlConnection::ReconnectTimerHandler, this));
+	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ReconnectTimerHandler(); });
 	m_ReconnectTimer->Start();
 
 	/* Start with queries after connect. */
@@ -104,7 +104,7 @@ void IdoPgsqlConnection::Pause()
 
 	m_ReconnectTimer.reset();
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Disconnect, this), PriorityLow);
+	m_QueryQueue.Enqueue([this]() { Disconnect(); }, PriorityLow);
 
 	/* Work on remaining tasks but never delete the threads, for HA resuming later. */
 	m_QueryQueue.Join();
@@ -148,17 +148,12 @@ void IdoPgsqlConnection::Disconnect()
 		<< "Disconnected from '" << GetName() << "' database '" << GetDatabase() << "'.";
 }
 
-void IdoPgsqlConnection::TxTimerHandler()
-{
-	NewTransaction();
-}
-
 void IdoPgsqlConnection::NewTransaction()
 {
 	if (IsPaused())
 		return;
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalNewTransaction, this), PriorityNormal, true);
+	m_QueryQueue.Enqueue([this]() { InternalNewTransaction(); }, PriorityNormal, true);
 }
 
 void IdoPgsqlConnection::InternalNewTransaction()
@@ -176,7 +171,7 @@ void IdoPgsqlConnection::InternalNewTransaction()
 void IdoPgsqlConnection::ReconnectTimerHandler()
 {
 	/* Only allow Reconnect events with high priority. */
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Reconnect, this), PriorityHigh);
+	m_QueryQueue.Enqueue([this]() { Reconnect(); }, PriorityHigh);
 }
 
 void IdoPgsqlConnection::Reconnect()
@@ -431,9 +426,9 @@ void IdoPgsqlConnection::Reconnect()
 
 	UpdateAllObjects();
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::ClearTablesBySession, this), PriorityNormal);
+	m_QueryQueue.Enqueue([this]() { ClearTablesBySession(); }, PriorityNormal);
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::FinishConnect, this, startTime), PriorityNormal);
+	m_QueryQueue.Enqueue([this, startTime]() { FinishConnect(startTime); }, PriorityNormal);
 }
 
 void IdoPgsqlConnection::FinishConnect(double startTime)
@@ -514,7 +509,7 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 		);
 	}
 
-	return IdoPgsqlResult(result, std::bind(&PgsqlInterface::clear, std::cref(m_Pgsql), _1));
+	return IdoPgsqlResult(result, [this](PGresult* result) { m_Pgsql->clear(result); });
 }
 
 DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const String& column)
@@ -587,7 +582,7 @@ void IdoPgsqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 	if (IsPaused())
 		return;
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalActivateObject, this, dbobj), PriorityNormal);
+	m_QueryQueue.Enqueue([this, dbobj]() { InternalActivateObject(dbobj); }, PriorityNormal);
 }
 
 void IdoPgsqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
@@ -626,7 +621,7 @@ void IdoPgsqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 	if (IsPaused())
 		return;
 
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalDeactivateObject, this, dbobj), PriorityNormal);
+	m_QueryQueue.Enqueue([this, dbobj]() { InternalDeactivateObject(dbobj); }, PriorityNormal);
 }
 
 void IdoPgsqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)
@@ -729,7 +724,7 @@ void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 	ASSERT(query.Category != DbCatInvalid);
 
 	IncreasePendingQueries(1);
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, -1), query.Priority, true);
+	m_QueryQueue.Enqueue([this, query]() { InternalExecuteQuery(query, -1); }, query.Priority, true);
 }
 
 void IdoPgsqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& queries)
@@ -741,7 +736,7 @@ void IdoPgsqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& quer
 		return;
 
 	IncreasePendingQueries(queries.size());
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalExecuteMultipleQueries, this, queries), queries[0].Priority, true);
+	m_QueryQueue.Enqueue([this, queries]() { InternalExecuteMultipleQueries(queries); }, queries[0].Priority, true);
 }
 
 bool IdoPgsqlConnection::CanExecuteQuery(const DbQuery& query)
@@ -794,7 +789,7 @@ void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 		ASSERT(query.Type == DbQueryNewTransaction || query.Category != DbCatInvalid);
 
 		if (!CanExecuteQuery(query)) {
-			m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalExecuteMultipleQueries, this, queries), query.Priority);
+			m_QueryQueue.Enqueue([this, queries]() { InternalExecuteMultipleQueries(queries); }, query.Priority);
 			return;
 		}
 	}
@@ -837,7 +832,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 	/* check if there are missing object/insert ids and re-enqueue the query */
 	if (!CanExecuteQuery(query)) {
-		m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, typeOverride), query.Priority);
+		m_QueryQueue.Enqueue([this, query, typeOverride]() { InternalExecuteQuery(query, typeOverride); }, query.Priority);
 		return;
 	}
 
@@ -853,7 +848,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 		for (const Dictionary::Pair& kv : query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
-				m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
+				m_QueryQueue.Enqueue([this, query]() { InternalExecuteQuery(query, -1); }, query.Priority);
 				return;
 			}
 
@@ -925,7 +920,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 				continue;
 
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
-				m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
+				m_QueryQueue.Enqueue([this, query]() { InternalExecuteQuery(query, -1); }, query.Priority);
 				return;
 			}
 
@@ -990,7 +985,7 @@ void IdoPgsqlConnection::CleanUpExecuteQuery(const String& table, const String& 
 		return;
 
 	IncreasePendingQueries(1);
-	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), PriorityLow, true);
+	m_QueryQueue.Enqueue([this, table, time_column, max_age]() { InternalCleanUpExecuteQuery(table, time_column, max_age); }, PriorityLow, true);
 }
 
 void IdoPgsqlConnection::InternalCleanUpExecuteQuery(const String& table, const String& time_column, double max_age)

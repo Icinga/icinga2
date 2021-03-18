@@ -61,7 +61,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
 		callback = Checkable::ExecuteCommandProcessFinishedHandler;
 	} else {
-		callback = std::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2);
+		callback = [checkable](const Value& commandline, const ProcessResult& pr) { ProcessFinishedHandler(checkable, commandline, pr); };
 	}
 
 	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
