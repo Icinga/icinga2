@@ -31,12 +31,24 @@
 using namespace icinga;
 
 REGISTER_TYPE(GelfWriter);
+INITIALIZE_ONCE(&GelfWriter::StaticInitialize);
 
 REGISTER_STATSFUNCTION(GelfWriter, &GelfWriter::StatsFunc);
+
+std::map<String, int> GelfWriter::m_TypeFilterMap;
+
+void GelfWriter::StaticInitialize()
+{
+	m_TypeFilterMap["CheckResult"] = GelfWriterEventTypeCheckResult;
+	m_TypeFilterMap["StateChange"] = GelfWriterEventTypeStateChange;
+	m_TypeFilterMap["Notification"] = GelfWriterEventTypeNotification;
+}
 
 void GelfWriter::OnConfigLoaded()
 {
 	ObjectImpl<GelfWriter>::OnConfigLoaded();
+
+	SetTypeFilter(FilterArrayToInt(GetTypes(), GetTypeFilterMap(), ~0));
 
 	m_WorkQueue.SetName("GelfWriter, " + GetName());
 
@@ -245,6 +257,9 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 	if (IsPaused())
 		return;
 
+	if (!(GelfWriterEventTypeCheckResult & GetTypeFilter()))
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::CheckResultHandlerInternal, this, checkable, cr));
 }
 
@@ -353,6 +368,9 @@ void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification
 	if (IsPaused())
 		return;
 
+	if (!(GelfWriterEventTypeNotification & GetTypeFilter()))
+		return;
+
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::NotificationToUserHandlerInternal, this,
 		notification, checkable, user, notificationType, cr, author, commentText, commandName));
 }
@@ -418,6 +436,9 @@ void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& noti
 void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
 {
 	if (IsPaused())
+		return;
+
+	if (!(GelfWriterEventTypeStateChange & GetTypeFilter()))
 		return;
 
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::StateChangeHandlerInternal, this, checkable, cr, type));
@@ -510,4 +531,19 @@ void GelfWriter::SendLogMessage(const Checkable::Ptr& checkable, const String& g
 
 		throw ex;
 	}
+}
+
+void GelfWriter::ValidateTypes(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<GelfWriter>::ValidateTypes(lvalue, utils);
+
+	int filter = FilterArrayToInt(lvalue(), GetTypeFilterMap(), 0);
+
+	if (filter == -1 || (filter & ~(GelfWriterEventTypeCheckResult | GelfWriterEventTypeStateChange | GelfWriterEventTypeNotification)) != 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "types" }, "Type filter is invalid."));
+}
+
+const std::map<String, int>& GelfWriter::GetTypeFilterMap()
+{
+	return m_TypeFilterMap;
 }
