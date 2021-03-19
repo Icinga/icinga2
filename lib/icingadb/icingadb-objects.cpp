@@ -584,7 +584,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 	String objectKey = GetObjectIdentifier(object);
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
 	auto env (GetEnvironment());
-	String envId = SHA1(env);
 
 	if (customVarObject) {
 		auto vars(SerializeVars(customVarObject));
@@ -609,7 +608,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 				typeCvs.emplace_back(id);
-				typeCvs.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", envId}, {"customvar_id", kv.first}})));
+				typeCvs.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", m_EnvironmentId}, {"customvar_id", kv.first}})));
 
 				if (runtimeUpdate) {
 					publishes["icinga:config:update:" + typeName + ":customvar"].emplace_back(id);
@@ -632,7 +631,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			if (runtimeUpdate || m_DumpedGlobals.ActionUrl.IsNew(id)) {
 				actionUrls.emplace_back(std::move(id));
-				actionUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"action_url", actionUrl}})));
+				actionUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"action_url", actionUrl}})));
 			}
 
 			if (runtimeUpdate) {
@@ -646,7 +645,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			if (runtimeUpdate || m_DumpedGlobals.NotesUrl.IsNew(id)) {
 				notesUrls.emplace_back(std::move(id));
-				notesUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"notes_url", notesUrl}})));
+				notesUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"notes_url", notesUrl}})));
 			}
 
 			if (runtimeUpdate) {
@@ -660,7 +659,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			if (runtimeUpdate || m_DumpedGlobals.IconImage.IsNew(id)) {
 				iconImages.emplace_back(std::move(id));
-				iconImages.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"icon_image", iconImage}})));
+				iconImages.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"icon_image", iconImage}})));
 			}
 
 			if (runtimeUpdate) {
@@ -695,7 +694,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				String groupId = GetObjectIdentifier(groupObj);
 				String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
 				members.emplace_back(id);
-				members.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", envId}, {"group_id", groupId}})));
+				members.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", m_EnvironmentId}, {"group_id", groupId}})));
 
 				if (runtimeUpdate) {
 					publishes["icinga:config:update:" + typeName + ":groupmember"].emplace_back(id);
@@ -725,7 +724,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, Prepend(kv.second, GetObjectIdentifiersWithoutEnv(object))))));
 				typeRanges.emplace_back(id);
-				typeRanges.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"range_key", kv.first}, {"range_value", kv.second}})));
+				typeRanges.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"range_key", kv.first}, {"range_value", kv.second}})));
 
 				if (runtimeUpdate) {
 					publishes["icinga:config:update:" + typeName + ":range"].emplace_back(id);
@@ -754,7 +753,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(includeTp), GetObjectIdentifiersWithoutEnv(object)))));
 			includs.emplace_back(id);
-			includs.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"include_id", includeId}})));
+			includs.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"include_id", includeId}})));
 
 			if (runtimeUpdate) {
 				publishes["icinga:config:update:" + typeName + ":override:include"].emplace_back(id);
@@ -783,7 +782,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(excludeTp), GetObjectIdentifiersWithoutEnv(object)))));
 			excluds.emplace_back(id);
-			excluds.emplace_back(JsonEncode(new Dictionary({{"environment_id", envId}, {"timeperiod_id", objectKey}, {"exclude_id", excludeId}})));
+			excluds.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"exclude_id", excludeId}})));
 
 			if (runtimeUpdate) {
 				publishes["icinga:config:update:" + typeName + ":override:exclude"].emplace_back(id);
@@ -806,7 +805,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		for (auto& parent : parentsRaw) {
 			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(parent), GetObjectIdentifiersWithoutEnv(object)))));
 			parnts.emplace_back(id);
-			parnts.emplace_back(JsonEncode(new Dictionary({{"zone_id", objectKey}, {"environment_id", envId}, {"parent_id", GetObjectIdentifier(parent)}})));
+			parnts.emplace_back(JsonEncode(new Dictionary({{"zone_id", objectKey}, {"environment_id", m_EnvironmentId}, {"parent_id", GetObjectIdentifier(parent)}})));
 
 			if (runtimeUpdate) {
 				publishes["icinga:config:update:" + typeName + ":parent"].emplace_back(id);
@@ -840,7 +839,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				String groupId = GetObjectIdentifier(groupObj);
 				String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
 				members.emplace_back(id);
-				members.emplace_back(JsonEncode(new Dictionary({{"user_id", objectKey}, {"environment_id", envId}, {"group_id", groupId}})));
+				members.emplace_back(JsonEncode(new Dictionary({{"user_id", objectKey}, {"environment_id", m_EnvironmentId}, {"group_id", groupId}})));
 
 				if (runtimeUpdate) {
 					publishes["icinga:config:update:" + typeName + ":groupmember"].emplace_back(id);
@@ -874,7 +873,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			String userId = GetObjectIdentifier(user);
 			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(user), GetObjectIdentifiersWithoutEnv(object)))));
 			usrs.emplace_back(id);
-			usrs.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"user_id", userId}})));
+			usrs.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"user_id", userId}})));
 
 			if (runtimeUpdate) {
 				publishes["icinga:config:update:" + typeName + ":user"].emplace_back(id);
@@ -896,10 +895,10 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			String id = HashValue(new Array(Prepend(env, Prepend("usergroup", Prepend(GetObjectIdentifiersWithoutEnv(usergroup), GetObjectIdentifiersWithoutEnv(object))))));
 			groups.emplace_back(id);
-			groups.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"usergroup_id", usergroupId}})));
+			groups.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"usergroup_id", usergroupId}})));
 
 			notificationRecipients.emplace_back(id);
-			notificationRecipients.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"usergroup_id", usergroupId}})));
+			notificationRecipients.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"usergroup_id", usergroupId}})));
 
 			if (runtimeUpdate) {
 				publishes["icinga:config:update:" + typeName + ":usergroup"].emplace_back(id);
@@ -912,7 +911,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			String userId = GetObjectIdentifier(user);
 			String id = HashValue(new Array(Prepend(env, Prepend("user", Prepend(GetObjectIdentifiersWithoutEnv(user), GetObjectIdentifiersWithoutEnv(object))))));
 			notificationRecipients.emplace_back(id);
-			notificationRecipients.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", envId}, {"user_id", userId}})));
+			notificationRecipients.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"user_id", userId}})));
 
 			if (runtimeUpdate) {
 				publishes["icinga:config:update:" + typeName + ":recipient"].emplace_back(id);
@@ -953,7 +952,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 				values->Set("command_id", objectKey);
 				values->Set("argument_key", kv.first);
-				values->Set("environment_id", envId);
+				values->Set("environment_id", m_EnvironmentId);
 
 				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 
@@ -1000,7 +999,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 				values->Set("command_id", objectKey);
 				values->Set("envvar_key", kv.first);
-				values->Set("environment_id", envId);
+				values->Set("environment_id", m_EnvironmentId);
 
 				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 
@@ -1086,7 +1085,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checksums)
 {
 	attributes->Set("name_checksum", SHA1(object->GetName()));
-	attributes->Set("environment_id", SHA1(GetEnvironment()));
+	attributes->Set("environment_id", m_EnvironmentId);
 	attributes->Set("name", object->GetName());
 
 	Zone::Ptr ObjectsZone = static_pointer_cast<Zone>(object->GetZone());
@@ -1461,7 +1460,7 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:state", "*",
 		"id", Utility::NewUniqueID(),
-		"environment_id", SHA1(GetEnvironment()),
+		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"state_type", Convert::ToString(type),
 		"soft_state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : 99),
@@ -1536,7 +1535,7 @@ void IcingaDB::SendSentNotification(
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:notification", "*",
 		"id", notificationHistoryId,
-		"environment_id", SHA1(GetEnvironment()),
+		"environment_id", m_EnvironmentId,
 		"notification_id", GetObjectIdentifier(notification),
 		"host_id", GetObjectIdentifier(host),
 		"type", Convert::ToString(type),
@@ -1574,7 +1573,7 @@ void IcingaDB::SendSentNotification(
 		std::vector<String> xAddUser ({
 			"XADD", "icinga:history:stream:usernotification", "*",
 			"id", Utility::NewUniqueID(),
-			"environment_id", SHA1(GetEnvironment()),
+			"environment_id", m_EnvironmentId,
 			"notification_history_id", notificationHistoryId,
 			"user_id", GetObjectIdentifier(user),
 		});
@@ -1600,7 +1599,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
 		"downtime_id", GetObjectIdentifier(downtime),
-		"environment_id", SHA1(GetEnvironment()),
+		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
@@ -1671,7 +1670,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
 		"downtime_id", GetObjectIdentifier(downtime),
-		"environment_id", SHA1(GetEnvironment()),
+		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEntryTime())),
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
@@ -1739,7 +1738,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:comment", "*",
 		"comment_id", GetObjectIdentifier(comment),
-		"environment_id", SHA1(GetEnvironment()),
+		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetAuthor()),
@@ -1794,7 +1793,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:comment", "*",
 		"comment_id", GetObjectIdentifier(comment),
-		"environment_id", SHA1(GetEnvironment()),
+		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetAuthor()),
@@ -1858,7 +1857,7 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:flapping", "*",
-		"environment_id", SHA1(GetEnvironment()),
+		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"flapping_threshold_low", Convert::ToString(checkable->GetFlappingThresholdLow()),
 		"flapping_threshold_high", Convert::ToString(checkable->GetFlappingThresholdHigh()),
@@ -1938,7 +1937,7 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
 		"event_id", Utility::NewUniqueID(),
-		"environment_id", SHA1(GetEnvironment()),
+		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"event_type", "ack_set",
 		"author", author,
@@ -1991,7 +1990,7 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
 		"event_id", Utility::NewUniqueID(),
-		"environment_id", SHA1(GetEnvironment()),
+		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"clear_time", Convert::ToString(TimestampToMilliseconds(changeTime)),
 		"event_type", "ack_clear"
@@ -2039,7 +2038,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	tie(host, service) = GetHostService(checkable);
 
 	attrs->Set("id", GetObjectIdentifier(checkable));;
-	attrs->Set("environment_id", SHA1(GetEnvironment()));
+	attrs->Set("environment_id", m_EnvironmentId);
 	attrs->Set("state_type", checkable->HasBeenChecked() ? checkable->GetStateType() : StateTypeHard);
 
 	// TODO: last_hard/soft_state should be "previous".

@@ -36,6 +36,9 @@ return id
 
 )EOF";
 
+String IcingaDB::m_EnvironmentId;
+boost::once_flag IcingaDB::m_EnvironmentIdOnce = BOOST_ONCE_INIT;
+
 REGISTER_TYPE(IcingaDB);
 
 IcingaDB::IcingaDB()
@@ -56,6 +59,10 @@ IcingaDB::IcingaDB()
 void IcingaDB::Start(bool runtimeCreated)
 {
 	ObjectImpl<IcingaDB>::Start(runtimeCreated);
+
+	boost::call_once([]() {
+		m_EnvironmentId = SHA1(GetEnvironment());
+	}, m_EnvironmentIdOnce);
 
 	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' started.";
