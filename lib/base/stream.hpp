@@ -5,9 +5,12 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
 #include <boost/signals2.hpp>
 #include <condition_variable>
 #include <mutex>
+#include <ostream>
 
 namespace icinga
 {
@@ -126,6 +129,25 @@ private:
 
 	std::mutex m_Mutex;
 	std::condition_variable m_CV;
+};
+
+/**
+ * A std::ostringstream with directly accessible storage.
+ *
+ * @ingroup base
+ */
+template<class T>
+class BackInsertStream : private boost::iostreams::stream_buffer<boost::iostreams::back_insert_device<T>>, public std::ostream
+{
+public:
+	BackInsertStream(T& storage) : boost::iostreams::stream_buffer<boost::iostreams::back_insert_device<T>>(storage), std::ostream(this)
+	{
+	}
+
+	BackInsertStream(const BackInsertStream&) = delete;
+	BackInsertStream(BackInsertStream&&) = delete;
+	BackInsertStream& operator=(const BackInsertStream&) = delete;
+	BackInsertStream& operator=(BackInsertStream&&) = delete;
 };
 
 }
