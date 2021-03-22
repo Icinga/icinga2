@@ -5,12 +5,11 @@
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
-#include "base/stringbuilder.hpp"
 #include <algorithm>
 #include <climits>
 #include <cstdint>
+#include <string>
 #include <utility>
-#include <vector>
 
 using namespace icinga;
 
@@ -30,7 +29,7 @@ static const EndiannessDetector l_EndiannessDetector;
 // Assumption: The compiler will optimize (away) if/else statements using this.
 #define MACHINE_LITTLE_ENDIAN (l_EndiannessDetector.buf[0])
 
-static void PackAny(const Value& value, StringBuilder& builder);
+static void PackAny(const Value& value, std::string& builder);
 
 /**
  * std::swap() seems not to work
@@ -73,7 +72,7 @@ static inline char UIntToByte(unsigned i)
 /**
  * Append the given int as big-endian 64-bit unsigned int
  */
-static inline void PackUInt64BE(uint_least64_t i, StringBuilder& builder)
+static inline void PackUInt64BE(uint_least64_t i, std::string& builder)
 {
 	char buf[8] = {
 		UIntToByte(i >> 56u),
@@ -86,7 +85,7 @@ static inline void PackUInt64BE(uint_least64_t i, StringBuilder& builder)
 		UIntToByte(i & 255u)
 	};
 
-	builder.Append((char*)buf, (char*)buf + 8);
+	builder.append((char*)buf, 8);
 }
 
 union Double2BytesConverter
@@ -110,7 +109,7 @@ union Double2BytesConverter
 /**
  * Append the given double as big-endian IEEE 754 binary64
  */
-static inline void PackFloat64BE(double f, StringBuilder& builder)
+static inline void PackFloat64BE(double f, std::string& builder)
 {
 	Double2BytesConverter converter;
 
@@ -123,26 +122,26 @@ static inline void PackFloat64BE(double f, StringBuilder& builder)
 		SwapBytes(converter.buf[3], converter.buf[4]);
 	}
 
-	builder.Append((char*)converter.buf, (char*)converter.buf + 8);
+	builder.append((char*)converter.buf, 8);
 }
 
 /**
  * Append the given string's length (BE uint64) and the string itself
  */
-static inline void PackString(const String& string, StringBuilder& builder)
+static inline void PackString(const String& string, std::string& builder)
 {
 	PackUInt64BE(string.GetLength(), builder);
-	builder.Append(string);
+	builder += string.GetData();
 }
 
 /**
  * Append the given array
  */
-static inline void PackArray(const Array::Ptr& arr, StringBuilder& builder)
+static inline void PackArray(const Array::Ptr& arr, std::string& builder)
 {
 	ObjectLock olock(arr);
 
-	builder.Append('\5');
+	builder += '\5';
 	PackUInt64BE(arr->GetLength(), builder);
 
 	for (const Value& value : arr) {
@@ -153,11 +152,11 @@ static inline void PackArray(const Array::Ptr& arr, StringBuilder& builder)
 /**
  * Append the given dictionary
  */
-static inline void PackDictionary(const Dictionary::Ptr& dict, StringBuilder& builder)
+static inline void PackDictionary(const Dictionary::Ptr& dict, std::string& builder)
 {
 	ObjectLock olock(dict);
 
-	builder.Append('\6');
+	builder += '\6';
 	PackUInt64BE(dict->GetLength(), builder);
 
 	for (const Dictionary::Pair& kv : dict) {
@@ -169,25 +168,25 @@ static inline void PackDictionary(const Dictionary::Ptr& dict, StringBuilder& bu
 /**
  * Append any JSON-encodable value
  */
-static void PackAny(const Value& value, StringBuilder& builder)
+static void PackAny(const Value& value, std::string& builder)
 {
 	switch (value.GetType()) {
 		case ValueString:
-			builder.Append('\4');
+			builder += '\4';
 			PackString(value.Get<String>(), builder);
 			break;
 
 		case ValueNumber:
-			builder.Append('\3');
+			builder += '\3';
 			PackFloat64BE(value.Get<double>(), builder);
 			break;
 
 		case ValueBoolean:
-			builder.Append(value.ToBool() ? '\2' : '\1');
+			builder += (value.ToBool() ? '\2' : '\1');
 			break;
 
 		case ValueEmpty:
-			builder.Append('\0');
+			builder += '\0';
 			break;
 
 		case ValueObject:
@@ -207,7 +206,7 @@ static void PackAny(const Value& value, StringBuilder& builder)
 				}
 			}
 
-			builder.Append('\0');
+			builder += '\0';
 			break;
 
 		default:
@@ -240,8 +239,8 @@ static void PackAny(const Value& value, StringBuilder& builder)
  */
 String icinga::PackObject(const Value& value)
 {
-	StringBuilder builder;
+	std::string builder;
 	PackAny(value, builder);
 
-	return builder.ToString();
+	return std::move(builder);
 }
