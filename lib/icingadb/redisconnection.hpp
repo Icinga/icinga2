@@ -8,6 +8,7 @@
 #include "base/io-engine.hpp"
 #include "base/object.hpp"
 #include "base/shared.hpp"
+#include "base/stream.hpp"
 #include "base/string.hpp"
 #include "base/value.hpp"
 #include <boost/asio/buffer.hpp>
@@ -138,9 +139,6 @@ namespace icinga
 
 		template<class AsyncWriteStream>
 		static void WriteRESP(AsyncWriteStream& stream, const Query& query, boost::asio::yield_context& yc);
-
-		template<class AsyncWriteStream>
-		static void WriteInt(AsyncWriteStream& stream, intmax_t i, boost::asio::yield_context& yc);
 
 		RedisConnection(boost::asio::io_context& io, String host, int port, String path, String password, int db);
 
@@ -493,36 +491,22 @@ void RedisConnection::WriteRESP(AsyncWriteStream& stream, const Query& query, bo
 {
 	namespace asio = boost::asio;
 
-	asio::async_write(stream, asio::const_buffer("*", 1), yc);
-	WriteInt(stream, query.size(), yc);
-	asio::async_write(stream, asio::const_buffer("\r\n", 2), yc);
+	std::vector<char> buf;
 
-	for (auto& arg : query) {
-		asio::async_write(stream, asio::const_buffer("$", 1), yc);
+	{
+		BackInsertStream<decltype(buf)> bufs (buf);
 
-		WriteInt(stream, arg.GetLength(), yc);
+		bufs << "*" << query.size() << "\r\n";
 
-		asio::async_write(stream, asio::const_buffer("\r\n", 2), yc);
-		asio::async_write(stream, asio::const_buffer(arg.CStr(), arg.GetLength()), yc);
-		asio::async_write(stream, asio::const_buffer("\r\n", 2), yc);
+		for (auto& arg : query) {
+			bufs << "$" << arg.GetLength() << "\r\n";
+			bufs << arg.GetData() << "\r\n";
+		}
+
+		bufs.flush();
 	}
-}
 
-/**
- * Write a Redis protocol int to stream
- *
- * @param stream Redis server connection
- * @param i Redis protocol int
- */
-template<class AsyncWriteStream>
-void RedisConnection::WriteInt(AsyncWriteStream& stream, intmax_t i, boost::asio::yield_context& yc)
-{
-	namespace asio = boost::asio;
-
-	char buf[21] = {};
-	sprintf(buf, "%jd", i);
-
-	asio::async_write(stream, asio::const_buffer(buf, strlen(buf)), yc);
+	asio::async_write(stream, asio::const_buffer(buf.data(), buf.size()), yc);
 }
 
 }
