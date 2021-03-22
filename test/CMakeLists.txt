@@ -20,6 +20,7 @@ set(base_test_SOURCES
   base-stream.cpp
   base-string.cpp
   base-timer.cpp
+  base-tlsutility.cpp
   base-type.cpp
   base-utility.cpp
   base-value.cpp
@@ -105,6 +106,7 @@ add_boost_test(base
     base_timer/interval
     base_timer/invoke
     base_timer/scope
+    base_tlsutility/sha1
     base_type/gettype
     base_type/assign
     base_type/byname
