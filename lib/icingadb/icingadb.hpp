@@ -16,6 +16,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <unordered_map>
 #include <utility>
 
 namespace icinga
@@ -57,7 +58,7 @@ private:
 	/* config & status dump */
 	void UpdateAllConfigObjects();
 	std::vector<std::vector<intrusive_ptr<ConfigObject>>> ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize);
-	void DeleteKeys(const std::vector<String>& keys, RedisConnection::QueryPriority priority);
+	void DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys, RedisConnection::QueryPriority priority);
 	std::vector<String> GetTypeOverwriteKeys(const String& type);
 	std::vector<String> GetTypeDumpSignalKeys(const Type::Ptr& type);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
@@ -150,6 +151,8 @@ private:
 		return std::move(haystack);
 	}
 
+	static std::vector<Type::Ptr> GetTypes();
+
 	Timer::Ptr m_StatsTimer;
 	WorkQueue m_WorkQueue;
 
@@ -160,6 +163,7 @@ private:
 	bool m_ConfigDumpDone;
 
 	RedisConnection::Ptr m_Rcon;
+	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
 
 	struct {
 		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage;
