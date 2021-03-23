@@ -365,7 +365,25 @@ inline
 void JsonEncoder<prettyPrint>::NumberFloat(double value)
 {
 	BeforeItem();
-	AppendJson(value);
+
+	// Make sure 0.0 is serialized as 0, so e.g. Icinga DB can parse it as int.
+	if (value < 0) {
+		long long i = value;
+
+		if (i == value) {
+			AppendJson(i);
+		} else {
+			AppendJson(value);
+		}
+	} else {
+		unsigned long long i = value;
+
+		if (i == value) {
+			AppendJson(i);
+		} else {
+			AppendJson(value);
+		}
+	}
 }
 
 template<bool prettyPrint>

@@ -31,11 +31,11 @@ BOOST_AUTO_TEST_CASE(encode)
     ],
     "false": false,
     "float": -1.25,
-    "int": -42.0,
+    "int": -42,
     "null": null,
     "string": "LF\nTAB\tAUml\u00e4Ill\ufffd",
     "true": true,
-    "uint": 23.0
+    "uint": 23
 }
 )EOF");
 
@@ -55,11 +55,11 @@ BOOST_AUTO_TEST_CASE(decode)
     ],
     "false": false,
     "float": -1.25,
-    "int": -42.0,
+    "int": -42,
     "null": null,
     "string": "LF\nTAB\tAUmlIll",
     "true": true,
-    "uint": 23.0
+    "uint": 23
 }
 )EOF");
 
