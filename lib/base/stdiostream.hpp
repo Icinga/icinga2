@@ -6,6 +6,7 @@
 #include "base/i2-base.hpp"
 #include "base/stream.hpp"
 #include <iosfwd>
+#include <iostream>
 
 namespace icinga {
 
