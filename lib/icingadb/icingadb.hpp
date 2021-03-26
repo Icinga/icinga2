@@ -12,6 +12,7 @@
 #include "icinga/service.hpp"
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
+#include <boost/thread/once.hpp>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -160,6 +161,9 @@ private:
 	struct {
 		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage;
 	} m_DumpedGlobals;
+
+	static String m_EnvironmentId;
+	static boost::once_flag m_EnvironmentIdOnce;
 };
 }
 
