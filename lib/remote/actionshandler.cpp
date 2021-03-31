@@ -67,12 +67,12 @@ bool ActionsHandler::HandleRequest(
 	ArrayData results;
 
 	{
-		Log msg(LogNotice, "ApiActionHandler");
+		Log msg (LogInformation, "ApiActionHandler");
 		msg << "Running action " << actionName << " on " << objs.size() << " objects:";
 		int limit = 10; // arbitrary limit to not blow up logs for filters matching many objects
 		for (const ConfigObject::Ptr& obj : objs) {
 			if (limit-- > 0) {
-				msg << " '" << obj.GetName() << "'";
+				msg << " '" << obj->GetName() << "'";
 			} else {
 				msg << " ...";
 				break;
@@ -85,10 +85,30 @@ bool ActionsHandler::HandleRequest(
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
+	int limit = 10;
+
 	for (const ConfigObject::Ptr& obj : objs) {
 		try {
-			results.emplace_back(action->Invoke(obj, params));
+			Value result = action->Invoke(obj, params);
+			if (result.IsObjectType<Dictionary>()) {
+				Dictionary::Ptr dict = result;
+				if (dict->Contains("code") && dict->Get("code") != 200) {
+					if (limit-- > 0) {
+						Log msg(LogInformation, "ApiActionHandler");
+						msg << "Action " << actionName << " for '" << obj->GetName() << "' returned " << dict->Get("code");
+						if (dict->Contains("status")) {
+							msg << ": " << dict->Get("status");
+						}
+					}
+				}
+			}
+			results.emplace_back(result);
 		} catch (const std::exception& ex) {
+			if (limit-- > 0) {
+				Log(LogInformation, "ApiActionHandler") << "Action " << actionName << " for '" << obj->GetName()
+					<< "' failed: " << DiagnosticInformation(ex, false);
+			}
+
 			Dictionary::Ptr fail = new Dictionary({
 				{ "code", 500 },
 				{ "status", "Action execution failed: '" + DiagnosticInformation(ex, false) + "'." }
