@@ -66,8 +66,19 @@ bool ActionsHandler::HandleRequest(
 
 	ArrayData results;
 
-	Log(LogNotice, "ApiActionHandler")
-		<< "Running action " << actionName;
+	{
+		Log msg(LogNotice, "ApiActionHandler");
+		msg << "Running action " << actionName << " on " << objs.size() << " objects:";
+		int limit = 10; // arbitrary limit to not blow up logs for filters matching many objects
+		for (const ConfigObject::Ptr& obj : objs) {
+			if (limit-- > 0) {
+				msg << " '" << obj.GetName() << "'";
+			} else {
+				msg << " ...";
+				break;
+			}
+		}
+	}
 
 	bool verbose = false;
 
