@@ -24,6 +24,8 @@ public:
 	static void StaticInitialize();
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
+	static void WriteToWindowsEventLog(const LogEntry& entry);
+
 protected:
 	void ProcessLogEntry(const LogEntry& entry) override;
 	void Flush() override;

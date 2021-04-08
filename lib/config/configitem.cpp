@@ -675,6 +675,14 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 		return false;
 	});
 
+	/* Find the last logger type to be activated. */
+	Type::Ptr lastLoggerType = nullptr;
+	for (const Type::Ptr& type : types) {
+		if (Logger::TypeInstance->IsAssignableFrom(type)) {
+			lastLoggerType = type;
+		}
+	}
+
 	for (const Type::Ptr& type : types) {
 		for (const ConfigItem::Ptr& item : newItems) {
 			if (!item->m_Object)
@@ -694,6 +702,12 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 #endif /* I2_DEBUG */
 
 			object->Activate(runtimeCreated, cookie);
+		}
+
+		// TODO: find a better name for silent
+		if (!silent && type == lastLoggerType) {
+			/* Disable early logging configuration once the last logger type was activated. */
+			Logger::DisableEarlyLogging();
 		}
 	}
 
