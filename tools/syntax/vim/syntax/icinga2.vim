@@ -60,7 +60,7 @@ syn keyword		icinga2ObjType		IcingaApplication IdoMysqlConnection IdoPgsqlConnec
 syn keyword		icinga2ObjType		InfluxdbWriter LivestatusListener Notification NotificationCommand
 syn keyword		icinga2ObjType		NotificationComponent OpenTsdbWriter PerfdataWriter
 syn keyword		icinga2ObjType		ScheduledDowntime Service ServiceGroup SyslogLogger
-syn keyword		icinga2ObjType		TimePeriod User UserGroup Zone
+syn keyword		icinga2ObjType		TimePeriod User UserGroup WindowsEventLogLogger Zone
 
 " Object/Template marker (simplified)
 syn match		icinga2ObjDef		"\(object\|template\)[ \t]\+.*"

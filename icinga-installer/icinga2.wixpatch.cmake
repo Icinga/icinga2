@@ -20,6 +20,20 @@
       <Custom Action="XtraUninstall" Before="RemoveExistingProducts">$CM_CP_sbin.icinga2_installer.exe=2 AND NOT SUPPRESS_XTRA</Custom>
     </InstallExecuteSequence>
 
+    <!--
+      Write the path to eventprovider.dll to the registry so that the Event Viewer is able to find
+      the message definitions and properly displays our log messages.
+
+      See also: https://docs.microsoft.com/en-us/windows/win32/eventlog/reporting-an-event
+    -->
+    <FeatureRef Id="ProductFeature" IgnoreParent="yes">
+      <Component Id="EventProviderRegistryEntry" Guid="*" Directory="INSTALL_ROOT">
+        <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\Icinga 2" Action="createAndRemoveOnUninstall">
+          <RegistryValue Name="EventMessageFile" Type="string" Value="[#CM_FP_sbin.eventprovider.dll]" />
+        </RegistryKey>
+      </Component>
+    </FeatureRef>
+
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Run Icinga 2 setup wizard" />
 
     <Property Id="WixShellExecTarget" Value="[#CM_FP_sbin.Icinga2SetupAgent.exe]" />

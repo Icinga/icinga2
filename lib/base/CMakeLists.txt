@@ -85,6 +85,33 @@ set(base_SOURCES
   workqueue.cpp workqueue.hpp
 )
 
+if(WIN32)
+  mkclass_target(windowseventloglogger.ti windowseventloglogger-ti.cpp windowseventloglogger-ti.hpp)
+  list(APPEND base_SOURCES windowseventloglogger.cpp windowseventloglogger.hpp windowseventloglogger-ti.hpp)
+
+  # Generate a DLL containing message definitions for the Windows Event Viewer.
+  # See also: https://docs.microsoft.com/en-us/windows/win32/eventlog/reporting-an-event
+  add_custom_command(
+    OUTPUT windowseventloglogger-provider.rc windowseventloglogger-provider.h
+    COMMAND mc ARGS -U ${CMAKE_CURRENT_SOURCE_DIR}/windowseventloglogger-provider.mc
+    DEPENDS windowseventloglogger-provider.mc
+  )
+
+  list(APPEND base_SOURCES windowseventloglogger-provider.h)
+
+  add_custom_command(
+    OUTPUT windowseventloglogger-provider.res
+    COMMAND rc ARGS windowseventloglogger-provider.rc
+    DEPENDS windowseventloglogger-provider.rc
+  )
+
+  add_library(eventprovider MODULE windowseventloglogger-provider.res windowseventloglogger-provider.rc)
+  set_target_properties(eventprovider PROPERTIES LINKER_LANGUAGE CXX)
+  target_link_libraries(eventprovider PRIVATE -noentry)
+
+  install(TARGETS eventprovider LIBRARY DESTINATION ${CMAKE_INSTALL_SBINDIR})
+endif()
+
 set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/application-version.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)
 
 if(ICINGA2_UNITY_BUILD)

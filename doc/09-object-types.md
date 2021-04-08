@@ -1864,4 +1864,21 @@ Facility Constants:
   FacilityUucp         | LOG\_UUCP     | The UUCP system.
 
 
+### WindowsEventLogLogger <a id="objecttype-windowseventloglogger"></a>
 
+Specifies Icinga 2 logging to the Windows Event Log.
+This configuration object is available as `windowseventlog` [logging feature](14-features.md#logging).
+
+Example:
+
+```
+object WindowsEventLogLogger "windowseventlog" {
+  severity = "warning"
+}
+```
+
+Configuration Attributes:
+
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  severity                  | String                | **Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "warning".

@@ -39,6 +39,8 @@ install_if_not_exists(icinga2/features-available/debuglog.conf ${ICINGA2_CONFIGD
 install_if_not_exists(icinga2/features-available/mainlog.conf ${ICINGA2_CONFIGDIR}/features-available)
 if(NOT WIN32)
   install_if_not_exists(icinga2/features-available/syslog.conf ${ICINGA2_CONFIGDIR}/features-available)
+else()
+  install_if_not_exists(icinga2/features-available/windowseventlog.conf ${ICINGA2_CONFIGDIR}/features-available)
 endif()
 install_if_not_exists(icinga2/scripts/mail-host-notification.sh ${ICINGA2_CONFIGDIR}/scripts)
 install_if_not_exists(icinga2/scripts/mail-service-notification.sh ${ICINGA2_CONFIGDIR}/scripts)
