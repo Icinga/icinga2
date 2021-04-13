@@ -1606,37 +1606,48 @@ Runtime Attributes:
 Writes check result metrics and performance data to a defined InfluxDB host.
 This configuration object is available as [influxdb feature](14-features.md#influxdb-writer).
 
+InfluxDB 1.x and 2.x are supported. Version 2.x is assumed if `organization` and `bucket` are set and `database` is
+ignored in this case. The available authentication methods differ between both versions, see below in the documentation
+for all attributes.
+
 Example:
 
 ```
 object InfluxdbWriter "influxdb" {
   host = "127.0.0.1"
   port = 8086
-  database = "icinga2"
-  username = "icinga2"
-  password = "icinga2"
 
-  basic_auth = {
-     username = "icinga"
-     password = "icinga"
-  }
+  //// For InfluxDB 2.x
+  organization = "ff17d05718ff4cc6"
+  bucket = "73849a38862eae5f"
+  auth_token = "AAA[...]=="
 
-  flush_threshold = 1024
-  flush_interval = 10s
+  //// For InfluxDB 1.x
+  //database = "icinga2"
+  //username = "icinga2"
+  //password = "icinga2"
+  //basic_auth = {
+  //   username = "icinga"
+  //   password = "icinga"
+  //}
 
-  host_template = {
-    measurement = "$host.check_command$"
-    tags = {
-      hostname = "$host.name$"
-    }
-  }
-  service_template = {
-    measurement = "$service.check_command$"
-    tags = {
-      hostname = "$host.name$"
-      service = "$service.name$"
-    }
-  }
+  //flush_threshold = 1024
+  //flush_interval = 10s
+  //
+  //host_template = {
+  //  measurement = "$host.check_command$"
+  //  tags = {
+  //    hostname = "$host.name$"
+  //  }
+  //}
+  //
+  //service_template = {
+  //  measurement = "$service.check_command$"
+  //  tags = {
+  //    hostname = "$host.name$"
+  //    service = "$service.name$"
+  //  }
+  //}
 }
 ```
 
@@ -1646,16 +1657,19 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host                      | String                | **Required.** InfluxDB host address. Defaults to `127.0.0.1`.
   port                      | Number                | **Required.** InfluxDB HTTP port. Defaults to `8086`.
-  database                  | String                | **Required.** InfluxDB database name. Defaults to `icinga2`.
-  username                  | String                | **Optional.** InfluxDB user name. Defaults to `none`.
-  password                  | String                | **Optional.** InfluxDB user password.  Defaults to `none`.
-  basic\_auth               | Dictionary            | **Optional.** Username and password for HTTP basic authentication.
+  organization              | String                | **Optional.** InfluxDB organization. Only supported with InfluxDB 2.x.
+  bucket                    | String                | **Optional.** InfluxDB bucket. Only supported with InfluxDB 2.x.
+  auth_token                | String                | **Optional.** InfluxDB authentication token. Only supported with InfluxDB 2.x.
+  database                  | String                | **Optional.** InfluxDB database name. Only supported with InfluxDB 1.x. Defaults to `icinga2`.
+  username                  | String                | **Optional.** InfluxDB user name. Only supported with InfluxDB 1.x.
+  password                  | String                | **Optional.** InfluxDB user password. Only supported with InfluxDB 1.x.
+  basic\_auth               | Dictionary            | **Optional.** Username and password for HTTP basic authentication. Only supported with InfluxDB 1.x.
   ssl\_enable               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
   ssl\_ca\_cert             | String                | **Optional.** Path to CA certificate to validate the remote host.
   ssl\_cert                 | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification.
   ssl\_key                  | String                | **Optional.** Path to host key to accompany the ssl\_cert.
-  host\_template            | Dictionary            | **Required.** Host template to define the InfluxDB line protocol.
-  service\_template         | Dictionary            | **Required.** Service template to define the influxDB line protocol.
+  host\_template            | Dictionary            | **Optional.** Host template to define the InfluxDB line protocol.
+  service\_template         | Dictionary            | **Optional.** Service template to define the influxDB line protocol.
   enable\_send\_thresholds  | Boolean               | **Optional.** Whether to send warn, crit, min & max tagged data.
   enable\_send\_metadata    | Boolean               | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
   flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to InfluxDB. Defaults to `10s`.

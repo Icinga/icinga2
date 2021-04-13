@@ -491,11 +491,16 @@ void InfluxdbWriter::Flush()
 	url->SetHost(GetHost());
 	url->SetPort(GetPort());
 
-	std::vector<String> path;
-	path.emplace_back("write");
-	url->SetPath(path);
-
-	url->AddQueryElement("db", GetDatabase());
+	if (!GetOrganization().IsEmpty() && !GetBucket().IsEmpty()) {
+		// InfluxDB API v2
+		url->SetPath({"api", "v2", "write"});
+		url->AddQueryElement("org", GetOrganization());
+		url->AddQueryElement("bucket", GetBucket());
+	} else {
+		// InfluxDB API v1
+		url->SetPath({"write"});
+		url->AddQueryElement("db", GetDatabase());
+	}
 	url->AddQueryElement("precision", "s");
 	if (!GetUsername().IsEmpty())
 		url->AddQueryElement("u", GetUsername());
@@ -516,6 +521,10 @@ void InfluxdbWriter::Flush()
 				"Basic " + Base64::Encode(basicAuth->Get("username") + ":" + basicAuth->Get("password"))
 			);
 		}
+	}
+
+	if (!GetAuthToken().IsEmpty()) {
+		request.set(http::field::authorization, "Token " + GetAuthToken());
 	}
 
 	request.body() = body;
@@ -578,6 +587,39 @@ void InfluxdbWriter::Flush()
 
 		Log(LogCritical, "InfluxdbWriter")
 			<< "InfluxDB error message:\n" << error;
+	}
+}
+
+void InfluxdbWriter::Validate(int types, const ValidationUtils& utils)
+{
+	ObjectImpl<InfluxdbWriter>::Validate(types, utils);
+
+	if (!(types & FAConfig))
+		return;
+
+	if (GetOrganization().IsEmpty() != GetBucket().IsEmpty()) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, {},
+			"Validation failed: Either both organization and bucket must be set (for InfluxDB 2.x) or unset (for InfluxDB 1.x)."));
+	}
+
+	if (!GetAuthToken().IsEmpty() && GetBasicAuth() != nullptr) {
+		// both methods require to set the Authorization HTTP header and thus are incompatible
+		BOOST_THROW_EXCEPTION(ValidationError(this, {},
+			"Validation failed: Only one of auth_token and basic_auth may be set."));
+	}
+
+	if (!GetOrganization().IsEmpty()) {
+		// InfluxDB API v2
+		if (!GetUsername().IsEmpty() || !GetPassword().IsEmpty()) {
+			BOOST_THROW_EXCEPTION(ValidationError(this, {},
+				"Validation failed: InfluxDB 2.x does not support username and password, use auth_token instead."));
+		}
+	} else {
+		// InfluxDB API v1
+		if (!GetAuthToken().IsEmpty()) {
+			BOOST_THROW_EXCEPTION(ValidationError(this, {},
+				"Validation failed: InfluxDB 1.x does not support auth_token, use username and password or basic_auth instead."));
+		}
 	}
 }
 

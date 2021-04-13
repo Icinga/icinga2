@@ -17,9 +17,12 @@ class InfluxdbWriter : ConfigObject
 	[config, required] String port {
 		default {{{ return "8086"; }}}
 	};
-	[config, required] String database {
+	[config] String database {
 		default {{{ return "icinga2"; }}}
 	};
+	[config] String organization;
+	[config] String bucket;
+	[config] String auth_token;
 	[config] String username {
 		default {{{ return ""; }}}
 	};
