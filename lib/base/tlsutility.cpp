@@ -179,7 +179,7 @@ Shared<boost::asio::ssl::context>::Ptr MakeAsioSslContext(const String& pubkey, 
 
 	InitializeOpenSSL();
 
-	auto context (Shared<ssl::context>::Make(ssl::context::tlsv12));
+	auto context (Shared<ssl::context>::Make(ssl::context::tls));
 
 	SetupSslContext(context, pubkey, privkey, cakey);
 
@@ -228,6 +228,28 @@ void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& con
 }
 
 /**
+ * Resolves a string describing a TLS protocol version to the value of a TLS*_VERSION macro of OpenSSL.
+ *
+ * Throws an exception if the version is unknown or not supported.
+ *
+ * @param version String of a TLS version, for example "TLSv1.2".
+ * @return The value of the corresponding TLS*_VERSION macro.
+ */
+int ResolveTlsProtocolVersion(const std::string& version) {
+	if (version == "TLSv1.2") {
+		return TLS1_2_VERSION;
+	} else if (version == "TLSv1.3") {
+#if OPENSSL_VERSION_NUMBER >= 0x10101000L
+		return TLS1_3_VERSION;
+#else /* OPENSSL_VERSION_NUMBER >= 0x10101000L */
+		throw std::runtime_error("'" + version + "' is only supported with OpenSSL 1.1.1 or newer");
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10101000L */
+	} else {
+		throw std::runtime_error("Unknown TLS protocol version '" + version + "'");
+	}
+}
+
+/**
  * Set the minimum TLS protocol version to the specified SSL context.
  *
  * @param context The ssl context.
@@ -235,16 +257,24 @@ void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& con
  */
 void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& tlsProtocolmin)
 {
-	// tlsProtocolmin has no effect since we enforce TLS 1.2 since 2.11.
-	/*
-	std::shared_ptr<SSL_CTX> sslContext = std::shared_ptr<SSL_CTX>(context->native_handle());
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	int ret = SSL_CTX_set_min_proto_version(context->native_handle(), ResolveTlsProtocolVersion(tlsProtocolmin));
 
-	long flags = SSL_CTX_get_options(sslContext.get());
+	if (ret != 1) {
+		char errbuf[256];
 
-	flags |= ...;
-
-	SSL_CTX_set_options(sslContext.get(), flags);
-	*/
+		ERR_error_string_n(ERR_peek_error(), errbuf, sizeof errbuf);
+		Log(LogCritical, "SSL")
+			<< "Error setting minimum TLS protocol version: " << ERR_peek_error() << ", \"" << errbuf << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("SSL_CTX_set_min_proto_version")
+			<< errinfo_openssl_error(ERR_peek_error()));
+	}
+#else /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+	// This should never happen. On this OpenSSL version, ResolveTlsProtocolVersion() should either return TLS 1.2
+	// or throw an exception, as that's the only TLS version supported by both Icinga and ancient OpenSSL.
+	VERIFY(ResolveTlsProtocolVersion(tlsProtocolmin) == TLS1_2_VERSION);
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 }
 
 /**
