@@ -369,7 +369,7 @@ where Carbon Cache/Relay is running as receiver.
 ### InfluxDB Writer <a id="influxdb-writer"></a>
 
 Once there are new metrics available, Icinga 2 will directly write them to the
-defined InfluxDB HTTP API.
+defined InfluxDB v1 HTTP API.
 
 You can enable the feature using
 

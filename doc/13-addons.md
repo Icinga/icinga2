@@ -57,7 +57,7 @@ Integration in Icinga Web 2 is possible by installing the official [graphite mod
 It’s written in Go and has no external dependencies.
 
 Use the [InfluxdbWriter](14-features.md#influxdb-writer) feature
-for sending real-time metrics from Icinga 2 to InfluxDB.
+for sending real-time metrics from Icinga 2 to InfluxDB v1.
 
 ```bash
 icinga2 feature enable influxdb

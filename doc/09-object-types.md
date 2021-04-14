@@ -1604,7 +1604,7 @@ Runtime Attributes:
 
 ### InfluxdbWriter <a id="objecttype-influxdbwriter"></a>
 
-Writes check result metrics and performance data to a defined InfluxDB host.
+Writes check result metrics and performance data to a defined InfluxDB v1 host.
 This configuration object is available as [influxdb feature](14-features.md#influxdb-writer).
 
 Example:

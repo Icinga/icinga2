@@ -1,0 +1,85 @@
+/* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
+
+#include "base/configobject.hpp"
+
+library perfdata;
+
+namespace icinga
+{
+
+abstract class InfluxdbCommonWriter : ConfigObject
+{
+	[config, required] String host {
+		default {{{ return "127.0.0.1"; }}}
+	};
+	[config, required] String port {
+		default {{{ return "8086"; }}}
+	};
+	[config] bool ssl_enable {
+		default {{{ return false; }}}
+	};
+	[config] String ssl_ca_cert {
+		default {{{ return ""; }}}
+	};
+	[config] String ssl_cert {
+		default {{{ return ""; }}}
+	};
+	[config] String ssl_key{
+		default {{{ return ""; }}}
+	};
+	[config, required] Dictionary::Ptr host_template {
+		default {{{
+			return new Dictionary({
+				{ "measurement", "$host.check_command$" },
+				{ "tags", new Dictionary({
+					{ "hostname", "$host.name$" }
+				}) }
+			});
+		}}}
+	};
+	[config, required] Dictionary::Ptr service_template {
+		default {{{
+			return new Dictionary({
+				{ "measurement", "$service.check_command$" },
+				{ "tags", new Dictionary({
+					{ "hostname", "$host.name$" },
+					{ "service", "$service.name$" }
+				}) }
+			});
+		}}}
+	};
+	[config] bool enable_send_thresholds {
+		default {{{ return false; }}}
+	};
+	[config] bool enable_send_metadata {
+		default {{{ return false; }}}
+	};
+	[config] int flush_interval {
+		default {{{ return 10; }}}
+	};
+	[config] int flush_threshold {
+		default {{{ return 1024; }}}
+	};
+	[config] bool enable_ha {
+		default {{{ return false; }}}
+	};
+};
+
+validator InfluxdbCommonWriter {
+	Dictionary host_template {
+		required measurement;
+		String measurement;
+		Dictionary "tags" {
+			String "*";
+		};
+	};
+	Dictionary service_template {
+		required measurement;
+		String measurement;
+		Dictionary "tags" {
+			String "*";
+		};
+	};
+};
+
+}

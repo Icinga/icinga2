@@ -2,6 +2,7 @@
 
 mkclass_target(gelfwriter.ti gelfwriter-ti.cpp gelfwriter-ti.hpp)
 mkclass_target(graphitewriter.ti graphitewriter-ti.cpp graphitewriter-ti.hpp)
+mkclass_target(influxdbcommonwriter.ti influxdbcommonwriter-ti.cpp influxdbcommonwriter-ti.hpp)
 mkclass_target(influxdbwriter.ti influxdbwriter-ti.cpp influxdbwriter-ti.hpp)
 mkclass_target(elasticsearchwriter.ti elasticsearchwriter-ti.cpp elasticsearchwriter-ti.hpp)
 mkclass_target(opentsdbwriter.ti opentsdbwriter-ti.cpp opentsdbwriter-ti.hpp)
@@ -11,6 +12,7 @@ set(perfdata_SOURCES
   elasticsearchwriter.cpp elasticsearchwriter.hpp elasticsearchwriter-ti.hpp
   gelfwriter.cpp gelfwriter.hpp gelfwriter-ti.hpp
   graphitewriter.cpp graphitewriter.hpp graphitewriter-ti.hpp
+  influxdbcommonwriter.cpp influxdbcommonwriter.hpp influxdbcommonwriter-ti.hpp
   influxdbwriter.cpp influxdbwriter.hpp influxdbwriter-ti.hpp
   opentsdbwriter.cpp opentsdbwriter.hpp opentsdbwriter-ti.hpp
   perfdatawriter.cpp perfdatawriter.hpp perfdatawriter-ti.hpp
