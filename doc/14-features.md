@@ -369,7 +369,7 @@ where Carbon Cache/Relay is running as receiver.
 ### InfluxDB Writer <a id="influxdb-writer"></a>
 
 Once there are new metrics available, Icinga 2 will directly write them to the
-defined InfluxDB v1 HTTP API.
+defined InfluxDB v1/v2 HTTP API.
 
 You can enable the feature using
 
@@ -377,10 +377,17 @@ You can enable the feature using
 icinga2 feature enable influxdb
 ```
 
-By default the [InfluxdbWriter](09-object-types.md#objecttype-influxdbwriter) feature
-expects the InfluxDB daemon to listen at `127.0.0.1` on port `8086`.
+or
 
-Measurement names and tags are fully configurable by the end user. The InfluxdbWriter
+```bash
+icinga2 feature enable influxdb2
+```
+
+By default the
+[InfluxdbWriter](09-object-types.md#objecttype-influxdbwriter)/[Influxdb2Writer](09-object-types.md#objecttype-influxdb2writer)
+features expect the InfluxDB daemon to listen at `127.0.0.1` on port `8086`.
+
+Measurement names and tags are fully configurable by the end user. The Influxdb(2)Writer
 object will automatically add a `metric` tag to each data point. This correlates to the
 perfdata label. Fields (value, warn, crit, min, max, unit) are created from data if available
 and the configuration allows it.  If a value associated with a tag is not able to be
@@ -391,12 +398,13 @@ escape characters when followed by a space or comma, but cannot be escaped thems
 As a result all trailling slashes in these fields are replaced with an underscore.  This
 predominantly affects Windows paths e.g. `C:\` becomes `C:_`.
 
-The database is assumed to exist so this object will make no attempt to create it currently.
+The database/bucket is assumed to exist so this object will make no attempt to create it currently.
 
 If [SELinux](22-selinux.md#selinux) is enabled, it will not allow access for Icinga 2 to InfluxDB until the [boolean](22-selinux.md#selinux-policy-booleans)
 `icinga2_can_connect_all` is set to true as InfluxDB is not providing its own policy.
 
-More configuration details can be found [here](09-object-types.md#objecttype-influxdbwriter).
+More configuration details can be found [here for v1](09-object-types.md#objecttype-influxdbwriter)
+and [here for v2](09-object-types.md#objecttype-influxdb2writer).
 
 #### Instance Tagging <a id="influxdb-writer-instance-tags"></a>
 

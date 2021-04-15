@@ -3001,7 +3001,7 @@ By default, the following features provide advanced HA functionality:
 * [Elasticsearch](09-object-types.md#objecttype-elasticsearchwriter)
 * [Gelf](09-object-types.md#objecttype-gelfwriter)
 * [Graphite](09-object-types.md#objecttype-graphitewriter)
-* [InfluxDB](09-object-types.md#objecttype-influxdbwriter)
+* [InfluxDB](09-object-types.md#objecttype-influxdb2writer) (v1 and v2)
 * [OpenTsdb](09-object-types.md#objecttype-opentsdbwriter)
 * [Perfdata](09-object-types.md#objecttype-perfdatawriter) (for PNP)
 
