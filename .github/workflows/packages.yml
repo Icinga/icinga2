@@ -36,6 +36,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Cancel previous jobs for the same PR
+        uses: styfle/cancel-workflow-action@89f242ee29e10c53a841bfe71cc0ce7b2f065abc
+        with:
+          workflow_id: docker.yml,packages.yml
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout HEAD
         uses: actions/checkout@v1
 
@@ -140,6 +146,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Cancel previous jobs for the same PR
+        uses: styfle/cancel-workflow-action@89f242ee29e10c53a841bfe71cc0ce7b2f065abc
+        with:
+          workflow_id: docker.yml,packages.yml
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Vars
         id: vars
         env:
@@ -226,6 +238,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Cancel previous jobs for the same PR
+        uses: styfle/cancel-workflow-action@89f242ee29e10c53a841bfe71cc0ce7b2f065abc
+        with:
+          workflow_id: docker.yml,packages.yml
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout HEAD
         uses: actions/checkout@v1
 
