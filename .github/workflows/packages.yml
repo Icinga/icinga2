@@ -29,9 +29,6 @@ jobs:
           - name: ubuntu
             codename: bionic
             has32bit: true
-          - name: ubuntu
-            codename: xenial
-            has32bit: true
 
     runs-on: ubuntu-latest
 
