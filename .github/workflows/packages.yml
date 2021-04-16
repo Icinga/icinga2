@@ -16,6 +16,9 @@ jobs:
       matrix:
         distro:
           - name: debian
+            codename: bullseye
+            has32bit: true
+          - name: debian
             codename: buster
             has32bit: true
           - name: debian
