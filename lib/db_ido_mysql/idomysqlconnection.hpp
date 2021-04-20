@@ -51,6 +51,7 @@ protected:
 	void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) override;
 	void FillIDCache(const DbType::Ptr& type) override;
 	void NewTransaction() override;
+	void Disconnect() override;
 
 private:
 	DbReference m_InstanceID;
@@ -82,7 +83,6 @@ private:
 	void InternalActivateObject(const DbObject::Ptr& dbobj);
 	void InternalDeactivateObject(const DbObject::Ptr& dbobj);
 
-	void Disconnect();
 	void Reconnect();
 
 	void AssertOnWorkQueue();
