@@ -112,6 +112,9 @@ void DbConnection::Pause()
 
 	NewTransaction();
 
+	/* Work on remaining tasks but never delete the threads, for HA resuming later. */
+	m_QueryQueue.Join();
+
 	ConfigObject::Pause();
 }
 

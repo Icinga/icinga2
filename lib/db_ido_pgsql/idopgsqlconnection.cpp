@@ -106,9 +106,6 @@ void IdoPgsqlConnection::Pause()
 
 	m_QueryQueue.Enqueue([this]() { Disconnect(); }, PriorityLow);
 
-	/* Work on remaining tasks but never delete the threads, for HA resuming later. */
-	m_QueryQueue.Join();
-
 	Log(LogInformation, "IdoPgsqlConnection")
 		<< "'" << GetName() << "' paused.";
 }
