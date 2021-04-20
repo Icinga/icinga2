@@ -103,7 +103,9 @@ void DbConnection::Pause()
 
 	query1.Fields = new Dictionary({
 		{ "instance_id", 0 }, /* DbConnection class fills in real ID */
-		{ "program_end_time", DbValue::FromTimestamp(Utility::GetTime()) }
+		{ "program_end_time", DbValue::FromTimestamp(Utility::GetTime()) },
+		{ "is_currently_running", 0 },
+		{ "process_id", Empty }
 	});
 
 	query1.Priority = PriorityHigh;
