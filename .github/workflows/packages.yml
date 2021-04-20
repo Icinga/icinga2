@@ -127,6 +127,8 @@ jobs:
           - name: centos
             release: 7
           - name: fedora
+            release: 34
+          - name: fedora
             release: 33
           - name: fedora
             release: 32
