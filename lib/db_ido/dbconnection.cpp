@@ -87,8 +87,6 @@ void DbConnection::Resume()
 
 void DbConnection::Pause()
 {
-	ConfigObject::Pause();
-
 	Log(LogInformation, "DbConnection")
 		<< "Pausing IDO connection: " << GetName();
 
@@ -113,6 +111,8 @@ void DbConnection::Pause()
 	ExecuteQuery(query1);
 
 	NewTransaction();
+
+	ConfigObject::Pause();
 }
 
 void DbConnection::InitializeDbTimer()
