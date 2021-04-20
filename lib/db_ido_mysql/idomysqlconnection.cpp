@@ -837,7 +837,9 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 	Value rawvalue = DbValue::ExtractValue(value);
 
-	if (rawvalue.IsObjectType<ConfigObject>()) {
+	if (rawvalue.GetType() == ValueEmpty) {
+		*result = "NULL";
+	} else if (rawvalue.IsObjectType<ConfigObject>()) {
 		DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(rawvalue);
 
 		if (!dbobjcol) {
@@ -949,9 +951,6 @@ bool IdoMysqlConnection::CanExecuteQuery(const DbQuery& query)
 
 		for (const Dictionary::Pair& kv : query.Fields) {
 			Value value;
-
-			if (kv.second.IsEmpty() && !kv.second.IsString())
-				continue;
 
 			if (!FieldToEscapedString(kv.first, kv.second, &value))
 				return false;
@@ -1128,9 +1127,6 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 		bool first = true;
 		for (const Dictionary::Pair& kv : query.Fields) {
 			Value value;
-
-			if (kv.second.IsEmpty() && !kv.second.IsString())
-				continue;
 
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
 
