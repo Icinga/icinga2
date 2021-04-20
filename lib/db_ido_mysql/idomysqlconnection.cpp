@@ -105,8 +105,6 @@ void IdoMysqlConnection::Pause()
 		<< "Rescheduling disconnect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue([this]() { Disconnect(); }, PriorityLow);
-
 	Log(LogInformation, "IdoMysqlConnection")
 		<< "'" << GetName() << "' paused.";
 

@@ -104,8 +104,6 @@ void IdoPgsqlConnection::Pause()
 
 	m_ReconnectTimer.reset();
 
-	m_QueryQueue.Enqueue([this]() { Disconnect(); }, PriorityLow);
-
 	Log(LogInformation, "IdoPgsqlConnection")
 		<< "'" << GetName() << "' paused.";
 }

@@ -112,6 +112,8 @@ void DbConnection::Pause()
 
 	NewTransaction();
 
+	m_QueryQueue.Enqueue([this]() { Disconnect(); }, PriorityLow);
+
 	/* Work on remaining tasks but never delete the threads, for HA resuming later. */
 	m_QueryQueue.Join();
 
