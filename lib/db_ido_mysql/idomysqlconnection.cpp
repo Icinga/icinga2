@@ -147,7 +147,7 @@ void IdoMysqlConnection::Disconnect()
 
 void IdoMysqlConnection::NewTransaction()
 {
-	if (IsPaused())
+	if (IsPaused() && GetPauseCalled())
 		return;
 
 #ifdef I2_DEBUG /* I2_DEBUG */
@@ -898,7 +898,7 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
-	if (IsPaused())
+	if (IsPaused() && GetPauseCalled())
 		return;
 
 	ASSERT(query.Category != DbCatInvalid);
@@ -1001,7 +1001,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 {
 	AssertOnWorkQueue();
 
-	if (IsPaused()) {
+	if (IsPaused() && GetPauseCalled()) {
 		DecreasePendingQueries(1);
 		return;
 	}

@@ -713,7 +713,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 {
-	if (IsPaused())
+	if (IsPaused() && GetPauseCalled())
 		return;
 
 	ASSERT(query.Category != DbCatInvalid);
@@ -798,7 +798,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 {
 	AssertOnWorkQueue();
 
-	if (IsPaused()) {
+	if (IsPaused() && GetPauseCalled()) {
 		DecreasePendingQueries(1);
 		return;
 	}
