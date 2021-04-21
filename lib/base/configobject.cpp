@@ -649,7 +649,7 @@ void ConfigObject::StopObjects()
 	}
 }
 
-void ConfigObject::DumpModifiedAttributes(const std::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback)
+void ConfigObject::DumpModifiedAttributes(const std::function<void(const ConfigObject::Ptr&, const String&, const Value&, const Value&)>& callback)
 {
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
@@ -703,7 +703,7 @@ void ConfigObject::DumpModifiedAttributes(const std::function<void(const ConfigO
 				} else
 					modifiedValue = currentValue;
 
-				callback(object, key, modifiedValue);
+				callback(object, key, kv.second, modifiedValue);
 			}
 		}
 	}

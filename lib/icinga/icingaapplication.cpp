@@ -175,7 +175,7 @@ void IcingaApplication::DumpModifiedAttributes()
 	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 
 	ConfigObject::Ptr previousObject;
-	ConfigObject::DumpModifiedAttributes([&fp, &previousObject](const ConfigObject::Ptr& object, const String& attr, const Value& value) {
+	ConfigObject::DumpModifiedAttributes([&fp, &previousObject](const ConfigObject::Ptr& object, const String& attr, const Value&, const Value& value) {
 		PersistModAttrHelper(fp, previousObject, object, attr, value);
 	});
 

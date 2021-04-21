@@ -76,7 +76,7 @@ public:
 	static void RestoreObjects(const String& filename, int attributeTypes = FAState);
 	static void StopObjects();
 
-	static void DumpModifiedAttributes(const std::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback);
+	static void DumpModifiedAttributes(const std::function<void(const ConfigObject::Ptr&, const String&, const Value&, const Value&)>& callback);
 
 	static Object::Ptr GetPrototype();
 
