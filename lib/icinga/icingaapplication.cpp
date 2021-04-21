@@ -121,7 +121,7 @@ void IcingaApplication::OnShutdown()
 	DumpProgramState();
 }
 
-static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousObject, const ConfigObject::Ptr& object, const String& attr, const Value& value)
+static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousObject, const ConfigObject::Ptr& object, const String& attr, const Value& original, const Value& modified)
 {
 	if (object != previousObject) {
 		if (previousObject) {
@@ -145,7 +145,7 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 
 	Array::Ptr args2 = new Array({
 		attr,
-		value
+		modified
 	});
 	ConfigWriter::EmitFunctionCall(fp, "modify_attribute", args2);
 
@@ -175,8 +175,8 @@ void IcingaApplication::DumpModifiedAttributes()
 	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 
 	ConfigObject::Ptr previousObject;
-	ConfigObject::DumpModifiedAttributes([&fp, &previousObject](const ConfigObject::Ptr& object, const String& attr, const Value&, const Value& value) {
-		PersistModAttrHelper(fp, previousObject, object, attr, value);
+	ConfigObject::DumpModifiedAttributes([&fp, &previousObject](const ConfigObject::Ptr& object, const String& attr, const Value& original, const Value& modified) {
+		PersistModAttrHelper(fp, previousObject, object, attr, original, modified);
 	});
 
 	if (previousObject) {
