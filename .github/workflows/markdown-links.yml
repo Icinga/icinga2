@@ -8,3 +8,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        config-file: tools/markdown-link-check.json
+        use-quiet-mode: yes
