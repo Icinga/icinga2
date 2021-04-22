@@ -87,6 +87,34 @@ public:
 	}
 };
 
+bool ConfigObject::GetAttribute(const String& attr, Value *result)
+{
+	std::vector<String> tokens = attr.Split(".");
+	auto current (tokens.begin());
+	auto end (tokens.end());
+	Object::Ptr subTree (this);
+	Value branch;
+
+	for (;;) {
+		if (!subTree->GetOwnField(*current, &branch)) {
+			return false;
+		}
+
+		if (++current == end) {
+			break;
+		}
+
+		if (!branch.IsObject()) {
+			return false;
+		}
+
+		subTree = branch.Get<Object::Ptr>();
+	}
+
+	*result = std::move(branch);
+	return true;
+}
+
 void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool updateVersion)
 {
 	Dictionary::Ptr original_attributes = GetOriginalAttributes();

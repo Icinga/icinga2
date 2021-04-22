@@ -36,6 +36,7 @@ public:
 
 	ConfigObject::Ptr GetZone() const;
 
+	bool GetAttribute(const String& attr, Value *result);
 	void ModifyAttribute(const String& attr, const Value& value, bool updateVersion = true);
 	void RestoreAttribute(const String& attr, bool updateVersion = true);
 	bool IsAttributeModified(const String& attr) const;
