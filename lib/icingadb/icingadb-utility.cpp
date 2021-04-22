@@ -212,3 +212,19 @@ String IcingaDB::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
 long long IcingaDB::TimestampToMilliseconds(double timestamp) {
 	return static_cast<long long>(timestamp * 1000);
 }
+
+String IcingaDB::IcingaToStreamValue(const Value& value)
+{
+	switch (value.GetType()) {
+		case ValueNumber:
+			return Convert::ToString(value);
+		case ValueBoolean:
+			return Convert::ToString((unsigned short)value);
+		case ValueString:
+			return Utility::ValidateUTF8(value);
+		case ValueEmpty:
+			return Convert::ToString(value);
+		default:
+			return JsonEncode(value);
+	}
+}

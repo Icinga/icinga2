@@ -224,8 +224,9 @@ void IcingaDB::UpdateAllConfigObjects()
 		std::mutex ourContentMutex;
 
 		upqObjectType.ParallelFor(objectChunks, [&](decltype(objectChunks)::const_reference chunk) {
-			std::map<String, std::vector<String>> hMSets, publishes;
+			std::map<String, std::vector<String>> hMSets;
 			std::vector<String> states 							= {"HMSET", m_PrefixStateObject + lcType};
+			std::vector<Dictionary::Ptr> runtimeUpdates;
 			std::vector<std::vector<String> > transaction 		= {{"MULTI"}};
 			std::vector<String> hostZAdds = {"ZADD", "icinga:nextupdate:host"}, serviceZAdds = {"ZADD", "icinga:nextupdate:service"};
 
@@ -249,7 +250,7 @@ void IcingaDB::UpdateAllConfigObjects()
 				if (lcType != GetLowerCaseTypeNameDB(object))
 					continue;
 
-				CreateConfigUpdate(object, lcType, hMSets, publishes, false);
+				CreateConfigUpdate(object, lcType, hMSets, runtimeUpdates, false);
 
 				// Write out inital state for checkables
 				if (dumpState) {
@@ -273,21 +274,7 @@ void IcingaDB::UpdateAllConfigObjects()
 						states = {"HMSET", m_PrefixStateObject + lcType};
 					}
 
-					for (auto& kv : publishes) {
-						for (auto& message : kv.second) {
-							std::vector<String> publish;
-
-							publish.reserve(3);
-							publish.emplace_back("PUBLISH");
-							publish.emplace_back(kv.first);
-							publish.emplace_back(std::move(message));
-
-							transaction.emplace_back(std::move(publish));
-						}
-					}
-
 					hMSets = decltype(hMSets)();
-					publishes = decltype(publishes)();
 
 					if (transaction.size() > 1) {
 						transaction.push_back({"EXEC"});
@@ -325,19 +312,6 @@ void IcingaDB::UpdateAllConfigObjects()
 
 			if (states.size() > 2)
 				transaction.emplace_back(std::move(states));
-
-			for (auto& kv : publishes) {
-				for (auto& message : kv.second) {
-					std::vector<String> publish;
-
-					publish.reserve(3);
-					publish.emplace_back("PUBLISH");
-					publish.emplace_back(kv.first);
-					publish.emplace_back(std::move(message));
-
-					transaction.emplace_back(std::move(publish));
-				}
-			}
 
 			if (transaction.size() > 1) {
 				transaction.push_back({"EXEC"});
@@ -579,7 +553,7 @@ static ConfigObject::Ptr GetObjectByName(const String& name)
 }
 
 void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
-		std::map<String, std::vector<String>>& publishes, bool runtimeUpdate)
+		std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate)
 {
 	String objectKey = GetObjectIdentifier(object);
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
@@ -600,18 +574,21 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				if (runtimeUpdate || m_DumpedGlobals.CustomVar.IsNew(kv.first)) {
 					allCvs.emplace_back(kv.first);
 					allCvs.emplace_back(JsonEncode(kv.second));
-				}
 
-				if (runtimeUpdate) {
-					publishes["icinga:config:update:customvar"].emplace_back(kv.first);
+					if (runtimeUpdate) {
+						Dictionary::Ptr data = kv.second;
+						AddObjectDataToRuntimeUpdates(runtimeUpdates, kv.first, m_PrefixConfigObject + "customvar", data);
+					}
 				}
 
 				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 				typeCvs.emplace_back(id);
-				typeCvs.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", m_EnvironmentId}, {"customvar_id", kv.first}})));
+
+				Dictionary::Ptr	data = new Dictionary({{"object_id", objectKey}, {"environment_id", m_EnvironmentId}, {"customvar_id", kv.first}});
+				typeCvs.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					publishes["icinga:config:update:" + typeName + ":customvar"].emplace_back(id);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":customvar", data);
 				}
 			}
 		}
@@ -631,11 +608,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			if (runtimeUpdate || m_DumpedGlobals.ActionUrl.IsNew(id)) {
 				actionUrls.emplace_back(std::move(id));
-				actionUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"action_url", actionUrl}})));
-			}
+				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"action_url", actionUrl}});
+				actionUrls.emplace_back(JsonEncode(data));
 
-			if (runtimeUpdate) {
-				publishes["icinga:config:update:action_url"].emplace_back(actionUrls.at(actionUrls.size() - 2u));
+				if (runtimeUpdate) {
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, actionUrls.at(actionUrls.size() - 2u), m_PrefixConfigObject + "action_url", data);
+				}
 			}
 		}
 		if (!notesUrl.IsEmpty()) {
@@ -645,11 +623,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			if (runtimeUpdate || m_DumpedGlobals.NotesUrl.IsNew(id)) {
 				notesUrls.emplace_back(std::move(id));
-				notesUrls.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"notes_url", notesUrl}})));
-			}
+				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"notes_url", notesUrl}});
+				notesUrls.emplace_back(JsonEncode(data));
 
-			if (runtimeUpdate) {
-				publishes["icinga:config:update:notes_url"].emplace_back(notesUrls.at(notesUrls.size() - 2u));
+				if (runtimeUpdate) {
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, notesUrls.at(notesUrls.size() - 2u), m_PrefixConfigObject + "notes_url", data);
+				}
 			}
 		}
 		if (!iconImage.IsEmpty()) {
@@ -659,11 +638,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			if (runtimeUpdate || m_DumpedGlobals.IconImage.IsNew(id)) {
 				iconImages.emplace_back(std::move(id));
-				iconImages.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"icon_image", iconImage}})));
-			}
+				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"icon_image", iconImage}});
+				iconImages.emplace_back(JsonEncode(data));
 
-			if (runtimeUpdate) {
-				publishes["icinga:config:update:icon_image"].emplace_back(iconImages.at(iconImages.size() - 2u));
+				if (runtimeUpdate) {
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, iconImages.at(iconImages.size() - 2u), m_PrefixConfigObject + "icon_image", data);
+				}
 			}
 		}
 
@@ -694,10 +674,11 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				String groupId = GetObjectIdentifier(groupObj);
 				String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
 				members.emplace_back(id);
-				members.emplace_back(JsonEncode(new Dictionary({{"object_id", objectKey}, {"environment_id", m_EnvironmentId}, {"group_id", groupId}})));
+				Dictionary::Ptr data = new Dictionary({{"object_id", objectKey}, {"environment_id", m_EnvironmentId}, {"group_id", groupId}});
+				members.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					publishes["icinga:config:update:" + typeName + ":groupmember"].emplace_back(id);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":groupmember", data);
 				}
 
 				groupIds->Add(groupId);
@@ -724,10 +705,11 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, Prepend(kv.second, GetObjectIdentifiersWithoutEnv(object))))));
 				typeRanges.emplace_back(id);
-				typeRanges.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"range_key", kv.first}, {"range_value", kv.second}})));
+				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"range_key", kv.first}, {"range_value", kv.second}});
+				typeRanges.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					publishes["icinga:config:update:" + typeName + ":range"].emplace_back(id);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":range", data);
 				}
 			}
 		}
@@ -753,10 +735,11 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(includeTp), GetObjectIdentifiersWithoutEnv(object)))));
 			includs.emplace_back(id);
-			includs.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"include_id", includeId}})));
+			Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"include_id", includeId}});
+			includs.emplace_back(JsonEncode(data));
 
 			if (runtimeUpdate) {
-				publishes["icinga:config:update:" + typeName + ":override:include"].emplace_back(id);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":override:include", data);
 			}
 		}
 
@@ -782,10 +765,11 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(excludeTp), GetObjectIdentifiersWithoutEnv(object)))));
 			excluds.emplace_back(id);
-			excluds.emplace_back(JsonEncode(new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"exclude_id", excludeId}})));
+			Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"exclude_id", excludeId}});
+			excluds.emplace_back(JsonEncode(data));
 
 			if (runtimeUpdate) {
-				publishes["icinga:config:update:" + typeName + ":override:exclude"].emplace_back(id);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":override:exclude", data);
 			}
 		}
 
@@ -805,10 +789,11 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		for (auto& parent : parentsRaw) {
 			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(parent), GetObjectIdentifiersWithoutEnv(object)))));
 			parnts.emplace_back(id);
-			parnts.emplace_back(JsonEncode(new Dictionary({{"zone_id", objectKey}, {"environment_id", m_EnvironmentId}, {"parent_id", GetObjectIdentifier(parent)}})));
+			Dictionary::Ptr data = new Dictionary({{"zone_id", objectKey}, {"environment_id", m_EnvironmentId}, {"parent_id", GetObjectIdentifier(parent)}});
+			parnts.emplace_back(JsonEncode(data));
 
 			if (runtimeUpdate) {
-				publishes["icinga:config:update:" + typeName + ":parent"].emplace_back(id);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":parent", data);
 			}
 
 			parents->Add(GetObjectIdentifier(parent));
@@ -839,10 +824,11 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				String groupId = GetObjectIdentifier(groupObj);
 				String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
 				members.emplace_back(id);
-				members.emplace_back(JsonEncode(new Dictionary({{"user_id", objectKey}, {"environment_id", m_EnvironmentId}, {"group_id", groupId}})));
+				Dictionary::Ptr data = new Dictionary({{"user_id", objectKey}, {"environment_id", m_EnvironmentId}, {"group_id", groupId}});
+				members.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					publishes["icinga:config:update:" + typeName + ":groupmember"].emplace_back(id);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":groupmember", data);
 				}
 
 				groupIds->Add(groupId);
@@ -873,10 +859,11 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			String userId = GetObjectIdentifier(user);
 			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(user), GetObjectIdentifiersWithoutEnv(object)))));
 			usrs.emplace_back(id);
-			usrs.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"user_id", userId}})));
+			Dictionary::Ptr data = new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"user_id", userId}});
+			usrs.emplace_back(JsonEncode(data));
 
 			if (runtimeUpdate) {
-				publishes["icinga:config:update:" + typeName + ":user"].emplace_back(id);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":user", data);
 			}
 
 			userIds->Add(userId);
@@ -895,13 +882,16 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			String id = HashValue(new Array(Prepend(env, Prepend("usergroup", Prepend(GetObjectIdentifiersWithoutEnv(usergroup), GetObjectIdentifiersWithoutEnv(object))))));
 			groups.emplace_back(id);
-			groups.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"usergroup_id", usergroupId}})));
+			Dictionary::Ptr groupData = new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"usergroup_id", usergroupId}});
+			groups.emplace_back(JsonEncode(groupData));
 
 			notificationRecipients.emplace_back(id);
-			notificationRecipients.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"usergroup_id", usergroupId}})));
+			Dictionary::Ptr notificationRecipientData = new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"usergroup_id", usergroupId}});
+			notificationRecipients.emplace_back(JsonEncode(notificationRecipientData));
 
 			if (runtimeUpdate) {
-				publishes["icinga:config:update:" + typeName + ":usergroup"].emplace_back(id);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":usergroup", groupData);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":recipient", notificationRecipientData);
 			}
 
 			usergroupIds->Add(usergroupId);
@@ -911,10 +901,11 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			String userId = GetObjectIdentifier(user);
 			String id = HashValue(new Array(Prepend(env, Prepend("user", Prepend(GetObjectIdentifiersWithoutEnv(user), GetObjectIdentifiersWithoutEnv(object))))));
 			notificationRecipients.emplace_back(id);
-			notificationRecipients.emplace_back(JsonEncode(new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"user_id", userId}})));
+			Dictionary::Ptr data = new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"user_id", userId}});
+			notificationRecipients.emplace_back(JsonEncode(data));
 
 			if (runtimeUpdate) {
-				publishes["icinga:config:update:" + typeName + ":recipient"].emplace_back(id);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":recipient", data);
 			}
 		}
 
@@ -959,12 +950,14 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				typeArgs.emplace_back(id);
 				typeArgs.emplace_back(JsonEncode(values));
 
-				if (runtimeUpdate) {
-					publishes["icinga:config:update:" + typeName + ":argument"].emplace_back(id);
-				}
-
 				argChksms.emplace_back(id);
-				argChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(kv.second)}})));
+				String checksum = HashValue(kv.second);
+				argChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", checksum}})));
+
+				if (runtimeUpdate) {
+					values->Set("checksum", checksum);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":argument", values);
+				}
 			}
 		}
 
@@ -1006,12 +999,14 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				typeVars.emplace_back(id);
 				typeVars.emplace_back(JsonEncode(values));
 
-				if (runtimeUpdate) {
-					publishes["icinga:config:update:" + typeName + ":envvar"].emplace_back(id);
-				}
-
 				varChksms.emplace_back(id);
-				varChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(kv.second)}})));
+				String checksum = HashValue(kv.second);
+				varChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", checksum}})));
+
+				if (runtimeUpdate) {
+					values->Set("checksum", checksum);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":envvar", values);
+				}
 			}
 		}
 
@@ -1037,10 +1032,11 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 
 	String typeName = GetLowerCaseTypeNameDB(object);
 
-	std::map<String, std::vector<String>> hMSets, publishes;
+	std::map<String, std::vector<String>> hMSets;
 	std::vector<String> states 							= {"HMSET", m_PrefixStateObject + typeName};
+	std::vector<Dictionary::Ptr> runtimeUpdates;
 
-	CreateConfigUpdate(object, typeName, hMSets, publishes, runtimeUpdate);
+	CreateConfigUpdate(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (checkable) {
 		String objectKey = GetObjectIdentifier(object);
@@ -1057,17 +1053,19 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 		}
 	}
 
-	for (auto& kv : publishes) {
-		for (auto& message : kv.second) {
-			std::vector<String> publish;
+	for (auto& objectAttributes : runtimeUpdates) {
+		std::vector<String> xAdd({"XADD", "icinga:runtime:upsert", "MAXLEN", "~", "1000000", "*"});
+		ObjectLock olock(objectAttributes);
 
-			publish.reserve(3);
-			publish.emplace_back("PUBLISH");
-			publish.emplace_back(kv.first);
-			publish.emplace_back(std::move(message));
-
-			transaction.emplace_back(std::move(publish));
+		for (const Dictionary::Pair& kv : objectAttributes) {
+			String value = IcingaToStreamValue(kv.second);
+			if (!value.IsEmpty()) {
+				xAdd.emplace_back(kv.first);
+				xAdd.emplace_back(value);
+			}
 		}
+
+		transaction.emplace_back(std::move(xAdd));
 	}
 
 	if (transaction.size() > 1) {
@@ -1078,6 +1076,14 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 	if (checkable) {
 		SendNextUpdate(checkable);
 	}
+}
+
+void IcingaDB::AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates, const String& objectKey,
+		const String& redisKey, Dictionary::Ptr& data)
+{
+	data->Set("id", objectKey);
+	data->Set("redis_key", redisKey);
+	runtimeUpdates.emplace_back(data);
 }
 
 // Takes object and collects IcingaDB relevant attributes and computes checksums. Returns whether the object is relevant
@@ -1348,7 +1354,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
  */
 void
 IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
-								std::map<String, std::vector<String>>& publishes, bool runtimeUpdate)
+								std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate)
 {
 	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
 	if (!runtimeUpdate && m_ConfigDumpInProgress)
@@ -1364,7 +1370,7 @@ IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeN
 	if (!PrepareObject(object, attr, chksm))
 		return;
 
-	InsertObjectDependencies(object, typeName, hMSets, publishes, runtimeUpdate);
+	InsertObjectDependencies(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);
 
 	String objectKey = GetObjectIdentifier(object);
 	auto& attrs (hMSets[m_PrefixConfigObject + typeName]);
@@ -1373,12 +1379,14 @@ IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeN
 	attrs.emplace_back(objectKey);
 	attrs.emplace_back(JsonEncode(attr));
 
+	String checksum = HashValue(attr);
 	chksms.emplace_back(objectKey);
-	chksms.emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(attr)}})));
+	chksms.emplace_back(JsonEncode(new Dictionary({{"checksum", checksum}})));
 
 	/* Send an update event to subscribers. */
 	if (runtimeUpdate) {
-		publishes["icinga:config:update:" + typeName].emplace_back(objectKey);
+		attr->Set("checksum", checksum);
+		AddObjectDataToRuntimeUpdates(runtimeUpdates, objectKey, m_PrefixConfigObject + typeName, attr);
 	}
 }
 
@@ -1388,9 +1396,11 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 	String objectKey = GetObjectIdentifier(object);
 
 	m_Rcon->FireAndForgetQueries({
-								   {"HDEL",    m_PrefixConfigObject + typeName, objectKey},
-								   {"DEL",     m_PrefixStateObject + typeName + ":" + objectKey},
-								   {"PUBLISH", "icinga:config:delete:" + typeName, objectKey}
+								   {"HDEL", m_PrefixConfigObject + typeName, objectKey},
+								   {
+								   		"XADD", "icinga:runtime:delete", "MAXLEN", "~", "1000000", "*",
+										"redis_key", m_PrefixConfigObject + typeName, "id", objectKey
+								   }
 						   }, Prio::Config);
 
 	auto checkable (dynamic_pointer_cast<Checkable>(object));
