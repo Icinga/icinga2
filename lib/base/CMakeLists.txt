@@ -59,7 +59,7 @@ set(base_SOURCES
   scriptframe.cpp scriptframe.hpp
   scriptglobal.cpp scriptglobal.hpp
   scriptutils.cpp scriptutils.hpp
-  serializer.cpp serializer.hpp
+  serializer.cpp serializer.hpp serializer-script.cpp
   shared.hpp
   shared-object.hpp
   singleton.hpp
