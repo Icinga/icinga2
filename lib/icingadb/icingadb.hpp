@@ -155,7 +155,6 @@ private:
 
 	String m_PrefixConfigObject;
 	String m_PrefixConfigCheckSum;
-	String m_PrefixStateObject;
 
 	bool m_ConfigDumpInProgress;
 	bool m_ConfigDumpDone;

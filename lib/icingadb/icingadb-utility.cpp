@@ -217,7 +217,7 @@ String IcingaDB::IcingaToStreamValue(const Value& value)
 {
 	switch (value.GetType()) {
 		case ValueBoolean:
-			return Convert::ToString((unsigned short)value);
+			return Convert::ToString(int(value));
 		case ValueString:
 			return Utility::ValidateUTF8(value);
 		case ValueNumber:
