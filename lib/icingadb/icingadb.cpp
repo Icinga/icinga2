@@ -50,7 +50,6 @@ IcingaDB::IcingaDB()
 
 	m_PrefixConfigObject = "icinga:";
 	m_PrefixConfigCheckSum = "icinga:checksum:";
-	m_PrefixStateObject = "icinga:config:state:";
 }
 
 /**
