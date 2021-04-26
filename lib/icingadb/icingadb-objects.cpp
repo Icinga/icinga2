@@ -1088,13 +1088,19 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 	attributes->Set("environment_id", m_EnvironmentId);
 	attributes->Set("name", object->GetName());
 
-	Zone::Ptr ObjectsZone = static_pointer_cast<Zone>(object->GetZone());
+	Zone::Ptr ObjectsZone;
+	Type::Ptr type = object->GetReflectionType();
+
+	if (type == Endpoint::TypeInstance) {
+		ObjectsZone = static_cast<Endpoint*>(object.get())->GetZone();
+	} else {
+		ObjectsZone = static_pointer_cast<Zone>(object->GetZone());
+	}
+
 	if (ObjectsZone) {
 		attributes->Set("zone_id", GetObjectIdentifier(ObjectsZone));
 		attributes->Set("zone", ObjectsZone->GetName());
 	}
-
-	Type::Ptr type = object->GetReflectionType();
 
 	if (type == Endpoint::TypeInstance) {
 		return true;
