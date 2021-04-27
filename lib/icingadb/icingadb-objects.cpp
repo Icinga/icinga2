@@ -534,7 +534,7 @@ std::vector<String> IcingaDB::GetTypeOverwriteKeys(const String& type)
 	};
 
 	if (type == "host" || type == "service" || type == "user") {
-		keys.emplace_back(m_PrefixConfigObject + type + ":groupmember");
+		keys.emplace_back(m_PrefixConfigObject + type + "group:member");
 		keys.emplace_back(m_PrefixConfigObject + type + ":state");
 	} else if (type == "timeperiod") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":override:include");
@@ -566,10 +566,10 @@ std::vector<String> IcingaDB::GetTypeDumpSignalKeys(const Type::Ptr& type)
 	}
 
 	if (type == Host::TypeInstance || type == Service::TypeInstance) {
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":groupmember");
+		keys.emplace_back(m_PrefixConfigObject + lcType + "group:member");
 		keys.emplace_back(m_PrefixConfigObject + lcType + ":state");
 	} else if (type == User::TypeInstance) {
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":groupmember");
+		keys.emplace_back(m_PrefixConfigObject + lcType + "group:member");
 	} else if (type == TimePeriod::TypeInstance) {
 		keys.emplace_back(m_PrefixConfigObject + lcType + ":override:include");
 		keys.emplace_back(m_PrefixConfigObject + lcType + ":override:exclude");
@@ -708,7 +708,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			groupIds->Reserve(groups->GetLength());
 
-			auto& members (hMSets[m_PrefixConfigObject + typeName + ":groupmember"]);
+			auto& members (hMSets[m_PrefixConfigObject + typeName + "group:member"]);
 
 			for (auto& group : groups) {
 				auto groupObj ((*getGroup)(group));
@@ -719,7 +719,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				members.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":groupmember", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + "group:member", data);
 				}
 
 				groupIds->Add(groupId);
@@ -858,7 +858,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			groupIds->Reserve(groups->GetLength());
 
-			auto& members (hMSets[m_PrefixConfigObject + typeName + ":groupmember"]);
+			auto& members (hMSets[m_PrefixConfigObject + typeName + "group:member"]);
 
 			for (auto& group : groups) {
 				auto groupObj ((*getGroup)(group));
@@ -869,7 +869,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				members.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":groupmember", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + "group:member", data);
 				}
 
 				groupIds->Add(groupId);
