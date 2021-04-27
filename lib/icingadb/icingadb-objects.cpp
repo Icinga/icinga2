@@ -42,7 +42,7 @@ using Prio = RedisConnection::QueryPriority;
 
 static const char * const l_LuaResetDump = R"EOF(
 
-local id = redis.call('XADD', KEYS[1], '*', 'type', '*', 'state', 'wip')
+local id = redis.call('XADD', KEYS[1], '*', 'key', '*', 'state', 'wip')
 
 local xr = redis.call('XRANGE', KEYS[1], '-', '+')
 for i = 1, #xr - 1 do
@@ -125,10 +125,7 @@ void IcingaDB::UpdateAllConfigObjects()
 	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("IcingaDB:ConfigDump");
 
-	typedef std::pair<ConfigType *, String> TypePair;
-	std::vector<TypePair> types;
-
-	for (const Type::Ptr& type : {
+	std::vector<Type::Ptr> types = {
 		CheckCommand::TypeInstance,
 		Comment::TypeInstance,
 		Downtime::TypeInstance,
@@ -144,14 +141,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		User::TypeInstance,
 		UserGroup::TypeInstance,
 		Zone::TypeInstance
-	}) {
-		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
-		if (!ctype)
-			continue;
-
-		String lcType(type->GetName().ToLower());
-		types.emplace_back(ctype, lcType);
-	}
+	};
 
 	m_Rcon->SuppressQueryKind(Prio::CheckResult);
 	m_Rcon->SuppressQueryKind(Prio::State);
@@ -179,8 +169,11 @@ void IcingaDB::UpdateAllConfigObjects()
 		m_DumpedGlobals.IconImage.Reset();
 	});
 
-	upq.ParallelFor(types, [this](const TypePair& type) {
-		String lcType = type.second;
+	upq.ParallelFor(types, [this](const Type::Ptr& type) {
+		String lcType = type->GetName().ToLower();
+		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
+		if (!ctype)
+			return;
 
 		std::vector<String> keys = GetTypeOverwriteKeys(lcType);
 		DeleteKeys(keys, Prio::Config);
@@ -216,7 +209,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			} while (cursor != "0");
 		});
 
-		auto objectChunks (ChunkObjects(type.first->GetObjects(), 500));
+		auto objectChunks (ChunkObjects(ctype->GetObjects(), 500));
 		String configObject = m_PrefixConfigObject + lcType;
 
 		// Skimmed away attributes and checksums HMSETs' keys and values by Redis key.
@@ -351,7 +344,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			}
 
 			Log(LogNotice, "IcingaDB")
-					<< "Dumped " << bulkCounter << " objects of type " << type.second;
+					<< "Dumped " << bulkCounter << " objects of type " << lcType;
 		});
 
 		upqObjectType.Join();
@@ -485,7 +478,9 @@ void IcingaDB::UpdateAllConfigObjects()
 			flushSets();
 		}
 
-		m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", lcType, "state", "done"}, Prio::Config);
+		for (auto& key : GetTypeDumpSignalKeys(type)) {
+			m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"}, Prio::Config);
+		}
 	});
 
 	upq.Join();
@@ -503,7 +498,11 @@ void IcingaDB::UpdateAllConfigObjects()
 		}
 	}
 
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "type", "*", "state", "done"}, Prio::Config);
+	for (auto& key : globalKeys) {
+		m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"}, Prio::Config);
+	}
+
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", "*", "state", "done"}, Prio::Config);
 
 	// enqueue a callback that will notify us once all previous queries were executed and wait for this event
 	std::promise<void> p;
@@ -567,6 +566,38 @@ std::vector<String> IcingaDB::GetTypeOverwriteKeys(const String& type)
 		keys.emplace_back(m_PrefixConfigCheckSum + type + ":envvar");
 		keys.emplace_back(m_PrefixConfigObject + type + ":argument");
 		keys.emplace_back(m_PrefixConfigCheckSum + type + ":argument");
+	}
+
+	return std::move(keys);
+}
+
+std::vector<String> IcingaDB::GetTypeDumpSignalKeys(const Type::Ptr& type)
+{
+	String lcType = type->GetName().ToLower();
+	std::vector<String> keys = {m_PrefixConfigObject + lcType};
+
+	if (CustomVarObject::TypeInstance->IsAssignableFrom(type)) {
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":customvar");
+	}
+
+	if (type == Host::TypeInstance || type == Service::TypeInstance) {
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":groupmember");
+		keys.emplace_back(m_PrefixStateObject + lcType);
+	} else if (type == User::TypeInstance) {
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":groupmember");
+	} else if (type == TimePeriod::TypeInstance) {
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":override:include");
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":override:exclude");
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":range");
+	} else if (type == Zone::TypeInstance) {
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":parent");
+	} else if (type == Notification::TypeInstance) {
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":user");
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":usergroup");
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":recipient");
+	} else if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":envvar");
+		keys.emplace_back(m_PrefixConfigObject + lcType + ":argument");
 	}
 
 	return std::move(keys);
