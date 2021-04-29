@@ -160,10 +160,6 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 		Log(LogWarning, "cli")
 			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
 	}
-	if (!Utility::SetFileOwnership(filename, user, group)) {
-		Log(LogWarning, "cli")
-			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
-	}
 
 	std::fstream fp;
 	String tempFilename = Utility::CreateTempFile(filename + ".XXXXXX", 0644, fp);
