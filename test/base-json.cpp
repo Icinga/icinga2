@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/dictionary.hpp"
+#include "base/function.hpp"
 #include "base/namespace.hpp"
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
@@ -18,6 +19,7 @@ BOOST_AUTO_TEST_CASE(encode)
 		{ "array", new Array({ new Namespace() }) },
 		{ "false", false },
 		{ "float", -1.25 },
+		{ "fx", new Function("<test>", []() {}) },
 		{ "int", -42 },
 		{ "null", Value() },
 		{ "string", "LF\nTAB\tAUml\xC3\xA4Ill\xC3" },
@@ -31,6 +33,7 @@ BOOST_AUTO_TEST_CASE(encode)
     ],
     "false": false,
     "float": -1.25,
+    "fx": "Object of type 'Function'",
     "int": -42,
     "null": null,
     "string": "LF\nTAB\tAUml\u00e4Ill\ufffd",
@@ -42,6 +45,7 @@ BOOST_AUTO_TEST_CASE(encode)
 	BOOST_CHECK(JsonEncode(input, true) == output);
 
 	boost::algorithm::replace_all(output, " ", "");
+	boost::algorithm::replace_all(output, "Objectoftype'Function'", "Object of type 'Function'");
 	boost::algorithm::replace_all(output, "\n", "");
 
 	BOOST_CHECK(JsonEncode(input, false) == output);

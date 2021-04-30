@@ -166,16 +166,18 @@ void Encode(JsonEncoder<prettyPrint>& stateMachine, const Value& value)
 					}
 				}
 
-				Array::Ptr arr = dynamic_pointer_cast<Array>(obj);
-				if (arr) {
-					EncodeArray(stateMachine, arr);
-					break;
+				{
+					Array::Ptr arr = dynamic_pointer_cast<Array>(obj);
+					if (arr) {
+						EncodeArray(stateMachine, arr);
+						break;
+					}
 				}
+
+				// obj is most likely a function => "Object of type 'Function'"
+				Encode(stateMachine, obj->ToString());
+				break;
 			}
-
-			stateMachine.Null();
-
-			break;
 
 		case ValueEmpty:
 			stateMachine.Null();
