@@ -48,9 +48,8 @@ IcingaDB::IcingaDB()
 
 	m_WorkQueue.SetName("IcingaDB");
 
-	m_PrefixConfigObject = "icinga:config:";
+	m_PrefixConfigObject = "icinga:";
 	m_PrefixConfigCheckSum = "icinga:checksum:";
-	m_PrefixStateObject = "icinga:config:state:";
 }
 
 /**
