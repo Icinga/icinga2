@@ -650,39 +650,44 @@ Icinga sets `LC_NUMERIC=C` to enforce this locale on plugin execution.
 'rta'=12.445000ms 'pl'=0%
 ```
 
-Icinga interprets the plugins' UoMs as follows:
+The UoMs are written as-is into the [core backends](14-features.md#core-backends)
+(Icinga DB, IDO, API). I.e. 12.445000ms remain 12.445000ms.
 
-* If the UoM is "c", the value is a continuous counter (e.g. interface traffic counters).
-* Otherwise if the UoM is listed in the table below (case-insensitive if possible),
-  Icinga normalizes the value (and warn, crit, min, max) to the respective common base.
-  That common base is also used by the metric writers (if any).
-
-Common base        | UoMs
--------------------|---------------------------------------
-bytes              | B, KB, MB, ..., YB, KiB, MiB, ..., YiB
-bits               | b, kb, mb, ..., yb, kib, mib, ..., yib
-packets            | packets
-seconds            | ns, us, ms, s, m, h, d
-percent            | %
-amperes            | nA, uA, mA, A, kA, MA, GA, ..., YA
-ohms               | nO, uO, mO, O, kO, MO, GO, ..., YO
-volts              | nV, uV, mV, V, kV, MV, GV, ..., YV
-watts              | nW, uW, mW, W, kW, MW, GW, ..., YW
-ampere-seconds     | nAs, uAs, mAs, As, kAs, MAs, GAs, ..., YAs, all of these also for Am and Ah
-watt-hours         | nWh, uWh, mWh, Wh, kWh, MWh, GWh, ..., YWh, all of these also for Wm and Ws
-lumens             | lm
-decibel-milliwatts | dBm
-grams              | ng, ug, mg, g, kg, t
-degrees-celsius    | C
-degrees-fahrenheit | F
-degrees-kelvin     | K
-liters             | ml, l, hl
+In contrast, the [metric backends](14-features.md#metrics)
+(Graphite, InfluxDB, etc.) get perfdata (including warn, crit, min, max)
+normalized by Icinga. E.g. 12.445000ms become 0.012445 seconds.
 
 Some plugins change the UoM for different sizing, e.g. returning the disk usage in MB and later GB
 for the same performance data label. This is to ensure that graphs always look the same.
 
-* Otherwise the UoM is discarted (as if none was given).
+What metric backends get... | ... from which perfdata UoMs (case-insensitive if possible)
+----------------------------|---------------------------------------
+bytes (B)                   | B, KB, MB, ..., YB, KiB, MiB, ..., YiB
+bits (b)                    | b, kb, mb, ..., yb, kib, mib, ..., yib
+packets                     | packets
+seconds (s)                 | ns, us, ms, s, m, h, d
+percent                     | %
+amperes (A)                 | nA, uA, mA, A, kA, MA, GA, ..., YA
+ohms (O)                    | nO, uO, mO, O, kO, MO, GO, ..., YO
+volts (V)                   | nV, uV, mV, V, kV, MV, GV, ..., YV
+watts (W)                   | nW, uW, mW, W, kW, MW, GW, ..., YW
+ampere seconds (As)         | nAs, uAs, mAs, As, kAs, MAs, GAs, ..., YAs
+ampere seconds              | nAm, uAm, mAm, Am (ampere minutes), kAm, MAm, GAm, ..., YAm
+ampere seconds              | nAh, uAh, mAh, Ah (ampere hours), kAh, MAh, GAh, ..., YAh
+watt hours                  | nWs, uWs, mWs, Ws (watt seconds), kWs, MWs, GWs, ..., YWs
+watt hours                  | nWm, uWm, mWm, Wm (watt minutes), kWm, MWm, GWm, ..., YWm
+watt hours (Wh)             | nWh, uWh, mWh, Wh, kWh, MWh, GWh, ..., YWh
+lumens                      | lm
+decibel-milliwatts          | dBm
+grams (g)                   | ng, ug, mg, g, kg, t
+degrees Celsius             | C
+degrees Fahrenheit          | F
+degrees Kelvin              | K
+liters (l)                  | ml, l, hl
 
+The UoM "c" represents a continuous counter (e.g. interface traffic counters).
+
+Unknown UoMs are discarted (as if none was given).
 A value without any UoM may be an integer or floating point number
 for any type (processes, users, etc.).
 
