@@ -143,6 +143,7 @@ add_boost_test(base
     icinga_perfdata/simple
     icinga_perfdata/quotes
     icinga_perfdata/multiple
+    icinga_perfdata/normalize
     icinga_perfdata/uom
     icinga_perfdata/warncritminmax
     icinga_perfdata/ignore_invalid_warn_crit_min_max

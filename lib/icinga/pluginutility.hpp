@@ -31,7 +31,7 @@ public:
 	static std::pair<String, String> ParseCheckOutput(const String& output);
 
 	static Array::Ptr SplitPerfdata(const String& perfdata);
-	static String FormatPerfdata(const Array::Ptr& perfdata);
+	static String FormatPerfdata(const Array::Ptr& perfdata, bool normalize = false);
 
 private:
 	PluginUtility();
