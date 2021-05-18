@@ -598,6 +598,15 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate)
 {
 	String objectKey = GetObjectIdentifier(object);
+	String objectKeyName;
+
+	Type::Ptr type = object->GetReflectionType();
+	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
+		objectKeyName = "command_id";
+	} else {
+		objectKeyName = typeName + "_id";
+	}
+
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
 	auto env (GetEnvironment());
 
@@ -625,7 +634,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 				typeCvs.emplace_back(id);
 
-				Dictionary::Ptr	data = new Dictionary({{"object_id", objectKey}, {"environment_id", m_EnvironmentId}, {"customvar_id", kv.first}});
+				Dictionary::Ptr	data = new Dictionary({{objectKeyName, objectKey}, {"environment_id", m_EnvironmentId}, {"customvar_id", kv.first}});
 				typeCvs.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
@@ -635,7 +644,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		}
 	}
 
-	Type::Ptr type = object->GetReflectionType();
 	if (type == Host::TypeInstance || type == Service::TypeInstance) {
 		Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
@@ -715,7 +723,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				String groupId = GetObjectIdentifier(groupObj);
 				String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
 				members.emplace_back(id);
-				Dictionary::Ptr data = new Dictionary({{"object_id", objectKey}, {"environment_id", m_EnvironmentId}, {"group_id", groupId}});
+				Dictionary::Ptr data = new Dictionary({{objectKeyName, objectKey}, {"environment_id", m_EnvironmentId}, {typeName + "group_id", groupId}});
 				members.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
@@ -865,7 +873,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				String groupId = GetObjectIdentifier(groupObj);
 				String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
 				members.emplace_back(id);
-				Dictionary::Ptr data = new Dictionary({{"user_id", objectKey}, {"environment_id", m_EnvironmentId}, {"group_id", groupId}});
+				Dictionary::Ptr data = new Dictionary({{"user_id", objectKey}, {"environment_id", m_EnvironmentId}, {"usergroup_id", groupId}});
 				members.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
@@ -2113,24 +2121,25 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	String id = GetObjectIdentifier(checkable);
 
 	/*
-	 * As there is a 1:1 relationship between host and host state, the host ID ('object_id')
+	 * As there is a 1:1 relationship between host and host state, the host ID ('host_id')
 	 * is also used as the host state ID ('id'). These are duplicated to 1) avoid having
 	 * special handling for this in Icinga DB and 2) to have both a primary key and a foreign key
-	 * in the SQL database in the end. In the database 'object_id' ends up as foreign key 'host_state.host_id'
+	 * in the SQL database in the end. In the database 'host_id' ends up as foreign key 'host_state.host_id'
 	 * referring to 'host.id' while 'id' ends up as the primary key 'host_state.id'. This also applies for service.
 	 */
 	attrs->Set("id", id);
-	attrs->Set("object_id", id);
 	attrs->Set("environment_id", m_EnvironmentId);
 	attrs->Set("state_type", checkable->HasBeenChecked() ? checkable->GetStateType() : StateTypeHard);
 
 	// TODO: last_hard/soft_state should be "previous".
 	if (service) {
+		attrs->Set("service_id", id);
 		auto state = service->HasBeenChecked() ? service->GetState() : 99;
 		attrs->Set("state", state);
 		attrs->Set("hard_state", service->HasBeenChecked() ? service->GetLastHardState() : 99);
 		attrs->Set("severity", service->GetSeverity());
 	} else {
+		attrs->Set("host_id", id);
 		auto state = host->HasBeenChecked() ? host->GetState() : 99;
 		attrs->Set("state", state);
 		attrs->Set("hard_state", host->HasBeenChecked() ? host->GetLastHardState() : 99);
