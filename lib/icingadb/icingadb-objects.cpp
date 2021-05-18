@@ -155,9 +155,9 @@ void IcingaDB::UpdateAllConfigObjects()
 
 	const std::vector<String> globalKeys = {
 			m_PrefixConfigObject + "customvar",
-			m_PrefixConfigObject + "action_url",
-			m_PrefixConfigObject + "notes_url",
-			m_PrefixConfigObject + "icon_image",
+			m_PrefixConfigObject + "action:url",
+			m_PrefixConfigObject + "notes:url",
+			m_PrefixConfigObject + "icon:image",
 	};
 	DeleteKeys(globalKeys, Prio::Config);
 	DeleteKeys({"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::CheckResult);
@@ -643,7 +643,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		String notesUrl = checkable->GetNotesUrl();
 		String iconImage = checkable->GetIconImage();
 		if (!actionUrl.IsEmpty()) {
-			auto& actionUrls (hMSets[m_PrefixConfigObject + "action_url"]);
+			auto& actionUrls (hMSets[m_PrefixConfigObject + "action:url"]);
 
 			auto id (HashValue(new Array({env, actionUrl})));
 
@@ -653,12 +653,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				actionUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, actionUrls.at(actionUrls.size() - 2u), m_PrefixConfigObject + "action_url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, actionUrls.at(actionUrls.size() - 2u), m_PrefixConfigObject + "action:url", data);
 				}
 			}
 		}
 		if (!notesUrl.IsEmpty()) {
-			auto& notesUrls (hMSets[m_PrefixConfigObject + "notes_url"]);
+			auto& notesUrls (hMSets[m_PrefixConfigObject + "notes:url"]);
 
 			auto id (HashValue(new Array({env, notesUrl})));
 
@@ -668,12 +668,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				notesUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, notesUrls.at(notesUrls.size() - 2u), m_PrefixConfigObject + "notes_url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, notesUrls.at(notesUrls.size() - 2u), m_PrefixConfigObject + "notes:url", data);
 				}
 			}
 		}
 		if (!iconImage.IsEmpty()) {
-			auto& iconImages (hMSets[m_PrefixConfigObject + "icon_image"]);
+			auto& iconImages (hMSets[m_PrefixConfigObject + "icon:image"]);
 
 			auto id (HashValue(new Array({env, iconImage})));
 
@@ -683,7 +683,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				iconImages.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, iconImages.at(iconImages.size() - 2u), m_PrefixConfigObject + "icon_image", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, iconImages.at(iconImages.size() - 2u), m_PrefixConfigObject + "icon:image", data);
 				}
 			}
 		}
