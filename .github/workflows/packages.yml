@@ -130,8 +130,6 @@ jobs:
             release: 34
           - name: fedora
             release: 33
-          - name: fedora
-            release: 32
           - name: sles
             release: '15.2'
           - name: sles
