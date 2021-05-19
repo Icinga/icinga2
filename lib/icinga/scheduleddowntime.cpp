@@ -240,9 +240,14 @@ void ScheduledDowntime::CreateNextDowntime()
 	}
 
 	double minEnd = 0;
+	auto downtimeOptionsHash (HashDowntimeOptions());
 
 	for (const Downtime::Ptr& downtime : GetCheckable()->GetDowntimes()) {
 		if (downtime->GetScheduledBy() != GetName())
+			continue;
+
+		auto configOwnerHash (downtime->GetConfigOwnerHash());
+		if (!configOwnerHash.IsEmpty() && configOwnerHash != downtimeOptionsHash)
 			continue;
 
 		double end = downtime->GetEndTime();
