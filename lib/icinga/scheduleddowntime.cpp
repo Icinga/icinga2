@@ -238,12 +238,14 @@ void ScheduledDowntime::CreateNextDowntime()
 	double minEnd = 0;
 
 	for (const Downtime::Ptr& downtime : GetCheckable()->GetDowntimes()) {
+		if (downtime->GetScheduledBy() != GetName())
+			continue;
+
 		double end = downtime->GetEndTime();
 		if (end > minEnd)
 			minEnd = end;
 
-		if (downtime->GetScheduledBy() != GetName() ||
-			downtime->GetStartTime() < Utility::GetTime())
+		if (downtime->GetStartTime() < Utility::GetTime())
 			continue;
 
 		/* We've found a downtime that is owned by us and that hasn't started yet - we're done. */
