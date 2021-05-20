@@ -160,8 +160,7 @@ void IdoMysqlConnection::NewTransaction()
 		<< "Scheduling new transaction and finishing async queries.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue([this]() { InternalNewTransaction(); }, PriorityNormal);
-	m_QueryQueue.Enqueue([this]() { FinishAsyncQueries(); }, PriorityNormal);
+	m_QueryQueue.Enqueue([this]() { InternalNewTransaction(); }, PriorityHigh);
 }
 
 void IdoMysqlConnection::InternalNewTransaction()
@@ -175,6 +174,8 @@ void IdoMysqlConnection::InternalNewTransaction()
 
 	AsyncQuery("COMMIT");
 	AsyncQuery("BEGIN");
+
+	FinishAsyncQueries();
 }
 
 void IdoMysqlConnection::ReconnectTimerHandler()
