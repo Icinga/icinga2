@@ -4,6 +4,7 @@
 #define TLSUTILITY_H
 
 #include "base/i2-base.hpp"
+#include "base/array.hpp"
 #include "base/object.hpp"
 #include "base/string.hpp"
 #include <openssl/ssl.h>
