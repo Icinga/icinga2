@@ -22,6 +22,9 @@ jobs:
             codename: stretch
             has32bit: true
           - name: ubuntu
+            codename: hirsute
+            has32bit: false
+          - name: ubuntu
             codename: groovy
             has32bit: false
           - name: ubuntu
@@ -29,9 +32,6 @@ jobs:
             has32bit: false
           - name: ubuntu
             codename: bionic
-            has32bit: true
-          - name: ubuntu
-            codename: xenial
             has32bit: true
 
     runs-on: ubuntu-latest
@@ -128,15 +128,15 @@ jobs:
           - name: centos
             release: 7
           - name: fedora
-            release: 32
+            release: 34
           - name: fedora
-            release: 31
+            release: 33
           - name: sles
-            release: '15.1'
+            release: '15.2'
           - name: sles
             release: '12.5'
           - name: opensuse
-            release: '15.1'
+            release: '15.2'
 
     runs-on: ubuntu-latest
 
