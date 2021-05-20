@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - 'support/*'
   pull_request: {}
 
 jobs:
