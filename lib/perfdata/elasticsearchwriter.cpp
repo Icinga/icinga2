@@ -494,7 +494,7 @@ void ElasticsearchWriter::SendRequest(const String& body)
 		request.set(http::field::authorization, "Basic " + Base64::Encode(username + ":" + password));
 
 	request.body() = body;
-	request.set(http::field::content_length, request.body().size());
+	request.content_length(request.body().size());
 
 	/* Don't log the request body to debug log, this is already done above. */
 	Log(LogDebug, "ElasticsearchWriter")
