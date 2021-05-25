@@ -302,6 +302,23 @@ Thanks to all contributors:
   * Code quality fixes
   * Small documentation fixes
 
+## 2.11.7 (2020-12-01)
+
+Version 2.11.7 fixes several issues to improve the reliability of the cluster functionality.
+
+### Bugfixes
+
+* Fix a connection leak with misconfigured agents #8482
+* Properly sync changes of config objects in global zones done via the API #8473 #8457
+* Prevent other clients from being disconnected when replaying the cluster log takes very long #8475
+* Avoid duplicate connections between endpoints #8399
+* Ignore incoming config object updates for unknown zones #8459
+* Check timestamps before removing files in config sync #8486
+
+### Enhancements
+
+* Include HTTP status codes in log #8454
+
 ## 2.11.6 (2020-10-15)
 
 Version 2.11.6 fixes several crashes, prevents unnecessary notifications
