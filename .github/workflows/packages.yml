@@ -45,6 +45,9 @@ jobs:
           set -exo pipefail
           git clone https://git.icinga.com/packaging/deb-icinga2.git
           chmod o+w deb-icinga2
+          if [[ "$GITHUB_BASE_REF" =~ ^support/(.+)$ ]] || [[ "$GITHUB_REF" =~ ^refs/heads/support/(.+)$ ]]; then
+            git -C deb-icinga2 checkout "${BASH_REMATCH[1]}"
+          fi
 
       - name: Source
         run: |
@@ -176,6 +179,9 @@ jobs:
           set -exo pipefail
           git clone https://git.icinga.com/packaging/rpm-icinga2.git
           chmod o+w rpm-icinga2
+          if [[ "$GITHUB_BASE_REF" =~ ^support/(.+)$ ]] || [[ "$GITHUB_REF" =~ ^refs/heads/support/(.+)$ ]]; then
+            git -C rpm-icinga2 checkout "${BASH_REMATCH[1]}"
+          fi
 
       - name: Restore/backup ccache
         if: "steps.vars.outputs.CAN_BUILD == 'true'"
@@ -241,6 +247,9 @@ jobs:
           set -exo pipefail
           git clone https://git.icinga.com/packaging/raspbian-icinga2.git
           chmod o+w raspbian-icinga2
+          if [[ "$GITHUB_BASE_REF" =~ ^support/(.+)$ ]] || [[ "$GITHUB_REF" =~ ^refs/heads/support/(.+)$ ]]; then
+            git -C raspbian-icinga2 checkout "${BASH_REMATCH[1]}"
+          fi
 
       - name: Restore/backup ccache
         id: ccache
