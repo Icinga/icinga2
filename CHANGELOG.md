@@ -302,6 +302,22 @@ Thanks to all contributors:
   * Code quality fixes
   * Small documentation fixes
 
+## 2.11.4 (2020-06-18)
+
+Version 2.11.4 fixes a crash during a heartbeat timeout with clients not yet signed. It also resolves
+an issue with endpoints not reconnecting after a reload/deploy, which caused a lot of UNKNOWN states.
+
+### Bugfixes
+
+* Cluster
+  * Fix segfault during heartbeat timeout with clients not yet signed #7997
+  * Fix endpoints not reconnecting after reload (UNKNOWN hosts/services after reload) #8043
+* Setup
+  * Fix exception on trusted cert not readable during node setup #8044
+  * prepare-dirs: Only set permissions during directory creation #8046
+* DSL
+  * Fix segfault on missing compare function in Array functions (sort, map, reduce, filter, any, all) #8054
+
 ## 2.11.3 (2020-03-02)
 
 The 2.11.3 release fixes a critical crash in our JSON-RPC connections. This mainly affects large HA
