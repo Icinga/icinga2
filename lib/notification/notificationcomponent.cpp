@@ -235,7 +235,7 @@ void NotificationComponent::NotificationTimerHandler()
 				continue;
 
 			/* Don't send reminder notifications before initial ones. */
-			if (checkable->GetSuppressedNotifications() & NotificationProblem)
+			if (checkable->GetSuppressedNotifications() & NotificationProblem || notification->GetSuppressedNotifications() & NotificationProblem)
 				continue;
 
 			/* Skip in runtime filters. */
