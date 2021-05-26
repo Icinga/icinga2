@@ -45,7 +45,7 @@ public:
 
 	static int GetNextDowntimeID();
 
-	static String AddDowntime(const intrusive_ptr<Checkable>& checkable, const String& author,
+	static Ptr AddDowntime(const intrusive_ptr<Checkable>& checkable, const String& author,
 		const String& comment, double startTime, double endTime, bool fixed,
 		const String& triggeredBy, double duration, const String& scheduledDowntime = String(),
 		const String& scheduledBy = String(), const String& id = String(),
