@@ -398,7 +398,11 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			<< "Sending " << (reminder ? "reminder " : "") << "'" << NotificationTypeToString(type) << "' notification '"
 			<< notificationName << "' for user '" << userName << "'";
 
-		Utility::QueueAsyncCallback(std::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
+		// Explicitly use Notification::Ptr to keep the reference counted while the callback is active
+		Notification::Ptr notification (this);
+		Utility::QueueAsyncCallback([notification, type, user, cr, force, author, text]() {
+			notification->ExecuteNotificationHelper(type, user, cr, force, author, text);
+		});
 
 		/* collect all notified users */
 		allNotifiedUsers.insert(user);
