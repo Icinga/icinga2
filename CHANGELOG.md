@@ -7,6 +7,27 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.12.4 (2021-05-27)
+
+Version 2.12.4 is a maintenance release that fixes some crashes, improves error handling
+and adds compatibility for systems coming with newer Boost versions.
+
+### Bugfixes
+
+* Fix a crash when notification objects are deleted using the API #8782
+* Fix crashes that might occur during downtime scheduling if host or downtime objects are deleted using the API #8785
+* Fix an issue where notifications may incorrectly be skipped after a downtime ends #8775
+* Don't send reminder notification if the notification is still suppressed by a time period #8808
+* Fix an issue where attempting to create a duplicate object using the API
+  might result in the original object being deleted #8787
+* IDO: prioritize program status updates #8809
+* Improve exceptions handling, including a fix for an uncaught exception on Windows #8777
+* Retry file rename operations on Windows to avoid intermittent locking issues #8771
+
+### Enhancements
+
+* Support Boost 1.74 (Ubuntu 21.04, Fedora 34) #8792
+
 ## 2.12.3 (2020-12-15)
 
 Version 2.12.3 resolves a security vulnerability with revoked certificates being
