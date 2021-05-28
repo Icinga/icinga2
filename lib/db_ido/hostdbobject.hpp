@@ -24,7 +24,7 @@ public:
 	Dictionary::Ptr GetConfigFields() const override;
 	Dictionary::Ptr GetStatusFields() const override;
 
-	void OnConfigUpdateHeavy() override;
+	void OnConfigUpdateHeavy(std::vector<DbQuery>& queries) override;
 	void OnConfigUpdateLight() override;
 
 	String CalculateConfigHash(const Dictionary::Ptr& configFields) const override;

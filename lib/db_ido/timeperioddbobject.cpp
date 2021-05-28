@@ -31,7 +31,7 @@ Dictionary::Ptr TimePeriodDbObject::GetStatusFields() const
 	return Empty;
 }
 
-void TimePeriodDbObject::OnConfigUpdateHeavy()
+void TimePeriodDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>&)
 {
 	TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(GetObject());
 
