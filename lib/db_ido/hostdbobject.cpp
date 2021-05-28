@@ -142,14 +142,12 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	return fields;
 }
 
-void HostDbObject::OnConfigUpdateHeavy()
+void HostDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 {
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
 	/* groups */
 	Array::Ptr groups = host->GetGroups();
-
-	std::vector<DbQuery> queries;
 
 	DbQuery query1;
 	query1.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
@@ -157,7 +155,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 	query1.Category = DbCatConfig;
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("host_object_id", host);
-	queries.emplace_back(std::move(query1));
+	deferred.emplace_back(std::move(query1));
 
 	if (groups) {
 		ObjectLock olock(groups);
@@ -178,13 +176,11 @@ void HostDbObject::OnConfigUpdateHeavy()
 				{ "hostgroup_id", DbValue::FromObjectInsertID(group) },
 				{ "host_object_id", host }
 			});
-			queries.emplace_back(std::move(query2));
+			deferred.emplace_back(std::move(query2));
 		}
 	}
 
-	DbObject::OnMultipleQueries(queries);
-
-	queries.clear();
+	std::vector<DbQuery> queries;
 
 	DbQuery query2;
 	query2.Table = GetType()->GetTable() + "_parenthosts";

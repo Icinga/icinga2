@@ -119,6 +119,7 @@ void DbObject::SendConfigUpdateHeavy(const Dictionary::Ptr& configFields)
 
 	ASSERT(configFields->Contains("config_hash"));
 
+	std::vector<DbQuery> queries;
 	ConfigObject::Ptr object = GetObject();
 
 	DbQuery query;
@@ -134,11 +135,12 @@ void DbObject::SendConfigUpdateHeavy(const Dictionary::Ptr& configFields)
 	});
 	query.Object = this;
 	query.ConfigUpdate = true;
-	OnQuery(query);
+	queries.emplace_back(std::move(query));
 
 	m_LastConfigUpdate = Utility::GetTime();
 
-	OnConfigUpdateHeavy();
+	OnConfigUpdateHeavy(queries);
+	OnMultipleQueries(queries);
 }
 
 void DbObject::SendConfigUpdateLight()
@@ -331,7 +333,7 @@ double DbObject::GetLastStatusUpdate() const
 	return m_LastStatusUpdate;
 }
 
-void DbObject::OnConfigUpdateHeavy()
+void DbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& queries)
 {
 	/* Default handler does nothing. */
 }
