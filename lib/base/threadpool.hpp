@@ -4,6 +4,7 @@
 #define THREADPOOL_H
 
 #include "base/atomic.hpp"
+#include "base/configuration.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include <cstddef>
@@ -36,7 +37,7 @@ class ThreadPool
 public:
 	typedef std::function<void ()> WorkFunction;
 
-	ThreadPool(size_t threads = std::thread::hardware_concurrency() * 2u);
+	ThreadPool(size_t threads = Configuration::Concurrency * 2u);
 	~ThreadPool();
 
 	void Start();

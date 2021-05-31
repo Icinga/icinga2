@@ -3,6 +3,24 @@
 #include "base/configuration.hpp"
 #include "base/configuration-ti.cpp"
 #include "base/exception.hpp"
+#include <boost/algorithm/string.hpp>
+#include <boost/asio.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/system/system_error.hpp>
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <iostream>
+#include <set>
+#include <string>
+#include <vector>
+#include <utility>
+
+#ifdef __linux__
+#	include <fcntl.h>
+#	include <sys/errno.h>
+#endif /* __linux__ */
 
 using namespace icinga;
 
@@ -12,7 +30,95 @@ String Configuration::ApiBindHost{"::"};
 String Configuration::ApiBindPort{"5665"};
 bool Configuration::AttachDebugger{false};
 String Configuration::CacheDir;
-int Configuration::Concurrency{static_cast<int>(std::thread::hardware_concurrency())};
+
+#ifdef __linux__
+static std::string ReadSysLine(const char *file)
+{
+	using namespace boost::asio;
+	using namespace boost::system;
+
+	int f = open(file, O_RDONLY);
+
+	if (f < 0) {
+		if (errno == ENOENT) {
+			return "";
+		}
+
+		throw system_error(error_code(errno, system_category()));
+	}
+
+	std::string content;
+
+	{
+		io_context io;
+		buffered_read_stream<posix::stream_descriptor> stream (io);
+
+		stream.next_layer() = posix::stream_descriptor(io, f);
+
+		try {
+			read(stream, dynamic_buffer(content));
+		} catch (const system_error& se) {
+			if (se.code() != error::make_error_code(error::eof)) {
+				throw;
+			}
+		}
+	}
+
+	content.erase(content.find_last_not_of('\n') + 1u);
+	return std::move(content);
+}
+#endif /* __linux__ */
+
+int Configuration::Concurrency{([]() -> int {
+	using namespace boost::algorithm;
+
+	auto concurrency (std::thread::hardware_concurrency());
+
+#ifdef __linux__
+	{
+		auto rawCpus (ReadSysLine("/sys/fs/cgroup/cpuset/cpuset.cpus"));
+
+		if (rawCpus.length()) {
+			std::vector<std::string> ranges;
+			boost::split(ranges, rawCpus, is_any_of(","));
+
+			std::set<uintmax_t> cpus;
+
+			for (auto& range : ranges) {
+				std::vector<std::string> rangeEnds;
+				boost::split(rangeEnds, range, is_any_of("-"));
+
+				if (rangeEnds.size() > 1u) {
+					auto to (boost::lexical_cast<uintmax_t>(rangeEnds.at(1)));
+
+					for (auto i (boost::lexical_cast<uintmax_t>(rangeEnds.at(0))); i <= to; ++i) {
+						cpus.emplace(i);
+					}
+				} else {
+					cpus.emplace(boost::lexical_cast<uintmax_t>(rangeEnds.at(0)));
+				}
+			}
+
+			concurrency = cpus.size();
+		}
+	}
+
+	{
+		auto cfsQuotaUs (ReadSysLine("/sys/fs/cgroup/cpu/cpu.cfs_quota_us"));
+
+		if (cfsQuotaUs.length()) {
+			auto quota (boost::lexical_cast<intmax_t>(cfsQuotaUs));
+
+			if (quota > 0) {
+				concurrency = std::min(std::max((decltype(concurrency))std::round(quota / 100000.0), 1u), concurrency);
+			}
+		}
+	}
+#endif /* __linux__ */
+
+	return concurrency;
+})()};
+
 String Configuration::ConfigDir;
 String Configuration::DataDir;
 String Configuration::EventEngine;
