@@ -13,6 +13,8 @@ class Endpoint : ConfigObject
 	load_after Zone;
 
 	[config] String host;
+	[config] array(String) fallback_hosts;
+
 	[config, required] String port {
 		default {{{ return "5665"; }}}
 	};

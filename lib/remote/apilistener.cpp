@@ -487,28 +487,37 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	auto strand (Shared<asio::io_context::strand>::Make(io));
 
 	IoEngine::SpawnCoroutine(*strand, [this, strand, endpoint, &io](asio::yield_context yc) {
-		String host = endpoint->GetHost();
+		auto hosts (endpoint->GetFallbackHosts()->ToVector<String>());
+		hosts.emplace(hosts.begin(), endpoint->GetHost());
+
 		String port = endpoint->GetPort();
 
-		Log(LogInformation, "ApiListener")
-			<< "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
-
-		try {
-			auto sslConn (Shared<AsioTlsStream>::Make(io, *m_SSLContext, endpoint->GetName()));
-
-			Connect(sslConn->lowest_layer(), host, port, yc);
-
-			NewClientHandler(yc, strand, sslConn, endpoint->GetName(), RoleClient);
-
-			endpoint->SetConnecting(false);
+		for (auto& host : hosts) {
 			Log(LogInformation, "ApiListener")
-				<< "Finished reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
-		} catch (const std::exception& ex) {
-			endpoint->SetConnecting(false);
+				<< "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 
-			Log(LogCritical, "ApiListener")
-				<< "Cannot connect to host '" << host << "' on port '" << port << "': " << ex.what();
+			try {
+				auto sslConn (Shared<AsioTlsStream>::Make(io, *m_SSLContext, endpoint->GetName()));
+
+				Connect(sslConn->lowest_layer(), host, port, yc);
+
+				NewClientHandler(yc, strand, sslConn, endpoint->GetName(), RoleClient);
+
+				endpoint->SetConnecting(false);
+				Log(LogInformation, "ApiListener")
+					<< "Finished reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
+				return;
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "ApiListener")
+					<< "Cannot connect to host '" << host << "' on port '" << port << "': " << ex.what();
+			}
+
+			if (endpoint->GetConnected()) {
+				break;
+			}
 		}
+
+		endpoint->SetConnecting(false);
 	});
 }
 
