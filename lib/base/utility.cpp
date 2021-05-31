@@ -2021,3 +2021,27 @@ bool Utility::ComparePasswords(const String& enteredPassword, const String& actu
 
 	return result;
 }
+
+String Utility::RealPath(const String& path)
+{
+	namespace fs = boost::filesystem;
+
+	fs::path current (path.Begin(), path.End());
+
+	for (int i = 0; i < 40; ++i) {
+		boost::system::error_code ec;
+		auto next (fs::read_symlink(current, ec));
+
+		if (ec) {
+			break;
+		}
+
+		if (!next.is_absolute()) {
+			next = current.parent_path() / next;
+		}
+
+		current = next;
+	}
+
+	return current.c_str();
+}

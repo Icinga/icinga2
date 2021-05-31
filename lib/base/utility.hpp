@@ -146,6 +146,8 @@ public:
 	static void IncrementTime(double);
 #endif /* I2_DEBUG */
 
+	static String RealPath(const String& path);
+
 private:
 	Utility();
 

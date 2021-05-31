@@ -156,13 +156,13 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 
 void IcingaApplication::DumpProgramState()
 {
-	ConfigObject::DumpObjects(Configuration::StatePath);
+	ConfigObject::DumpObjects(Utility::RealPath(Configuration::StatePath));
 	DumpModifiedAttributes();
 }
 
 void IcingaApplication::DumpModifiedAttributes()
 {
-	String path = Configuration::ModAttrPath;
+	String path = Utility::RealPath(Configuration::ModAttrPath);
 
 	try {
 		Utility::Glob(path + ".tmp.*", &Utility::Remove, GlobFile);
