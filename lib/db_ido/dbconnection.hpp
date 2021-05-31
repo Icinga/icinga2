@@ -60,6 +60,9 @@ public:
 	void ValidateFailoverTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) final;
 	void ValidateCategories(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) final;
 
+	uint_fast64_t GetPendingQueries();
+	double CalculateOutputRate(int seconds);
+
 protected:
 	void OnConfigLoaded() override;
 	void Start(bool runtimeCreated) override;
