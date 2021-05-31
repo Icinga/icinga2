@@ -31,6 +31,9 @@ public:
 	void ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 	void ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
+	int GetQueryCount(RingBuffer::SizeType span);
+	int GetPendingQueries();
+
 protected:
 	void OnConfigLoaded() override;
 	void Resume() override;
@@ -40,6 +43,8 @@ private:
 	WorkQueue m_WorkQueue{10000000, 1};
 	Timer::Ptr m_FlushTimer;
 	std::vector<String> m_DataBuffer;
+
+	RingBuffer m_QueryStats{15 * 60};
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void CheckResultHandlerWQ(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);

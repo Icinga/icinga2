@@ -165,6 +165,8 @@ void InfluxdbWriter::ExceptionHandler(boost::exception_ptr exp)
 {
 	Log(LogCritical, "InfluxdbWriter", "Exception during InfluxDB operation: Verify that your backend is operational!");
 
+	SetLastErrorMessage("Exception during InfluxDB operation: " + DiagnosticInformation(exp, false));
+
 	Log(LogDebug, "InfluxdbWriter")
 		<< "Exception during InfluxDB operation: " << DiagnosticInformation(std::move(exp));
 
@@ -467,6 +469,8 @@ void InfluxdbWriter::Flush()
 	Log(LogDebug, "InfluxdbWriter")
 		<< "Flushing data buffer to InfluxDB.";
 
+	int size = m_DataBuffer.size();
+
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
 
@@ -475,10 +479,17 @@ void InfluxdbWriter::Flush()
 	try {
 		stream = Connect();
 	} catch (const std::exception& ex) {
+		auto message = DiagnosticInformation(ex, false);
+
+		SetLastErrorMessage("Cannot connect to InfluxDB: " + message);
+
 		Log(LogWarning, "InfluxDbWriter")
-			<< "Flush failed, cannot connect to InfluxDB: " << DiagnosticInformation(ex, false);
+			<< "Flush failed, cannot connect to InfluxDB: " << message;
 		return;
 	}
+
+	SetLastErrorMessage("");
+	m_QueryStats.InsertValue(Utility::GetTime(), size);
 
 	Defer s ([&stream]() {
 		if (stream.first) {
@@ -532,7 +543,8 @@ void InfluxdbWriter::Flush()
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "InfluxdbWriter")
 			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw;
+
+		throw ex;
 	}
 
 	http::parser<false, http::string_body> parser;
@@ -547,7 +559,7 @@ void InfluxdbWriter::Flush()
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "InfluxdbWriter")
 			<< "Failed to parse HTTP response from host '" << GetHost() << "' port '" << GetPort() << "': " << DiagnosticInformation(ex);
-		throw;
+		throw ex;
 	}
 
 	auto& response (parser.get());
@@ -560,6 +572,9 @@ void InfluxdbWriter::Flush()
 		if (contentType != "application/json") {
 			Log(LogWarning, "InfluxdbWriter")
 				<< "Unexpected Content-Type: " << contentType;
+
+			SetLastErrorMessage("Unexpected Content-Type: " + static_cast<std::string>(contentType));
+
 			return;
 		}
 
@@ -571,10 +586,15 @@ void InfluxdbWriter::Flush()
 		} catch (...) {
 			Log(LogWarning, "InfluxdbWriter")
 				<< "Unable to parse JSON response:\n" << body;
+
+			SetLastErrorMessage("Unable to parse JSON response: " + body);
+
 			return;
 		}
 
 		String error = jsonResponse->Get("error");
+
+		SetLastErrorMessage("InfluxDB error message: " + error);
 
 		Log(LogCritical, "InfluxdbWriter")
 			<< "InfluxDB error message:\n" << error;
@@ -617,3 +637,12 @@ void InfluxdbWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue
 	}
 }
 
+int InfluxdbWriter::GetQueryCount(RingBuffer::SizeType span)
+{
+	return m_QueryStats.UpdateAndGetValues(Utility::GetTime(), span);
+}
+
+int InfluxdbWriter::GetPendingQueries()
+{
+	return m_DataBuffer.size();
+}

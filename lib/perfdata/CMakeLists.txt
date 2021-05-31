@@ -7,11 +7,14 @@ mkclass_target(elasticsearchwriter.ti elasticsearchwriter-ti.cpp elasticsearchwr
 mkclass_target(opentsdbwriter.ti opentsdbwriter-ti.cpp opentsdbwriter-ti.hpp)
 mkclass_target(perfdatawriter.ti perfdatawriter-ti.cpp perfdatawriter-ti.hpp)
 
+mkembedconfig_target(influxdb-itl.conf influxdb-itl.cpp)
+
 set(perfdata_SOURCES
   elasticsearchwriter.cpp elasticsearchwriter.hpp elasticsearchwriter-ti.hpp
   gelfwriter.cpp gelfwriter.hpp gelfwriter-ti.hpp
   graphitewriter.cpp graphitewriter.hpp graphitewriter-ti.hpp
   influxdbwriter.cpp influxdbwriter.hpp influxdbwriter-ti.hpp
+  influxdbchecktask.cpp influxdbchecktask.hpp influxdb-itl.cpp
   opentsdbwriter.cpp opentsdbwriter.hpp opentsdbwriter-ti.hpp
   perfdatawriter.cpp perfdatawriter.hpp perfdatawriter-ti.hpp
 )

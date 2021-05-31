@@ -75,6 +75,8 @@ class InfluxdbWriter : ConfigObject
 	[config] bool enable_ha {
 		default {{{ return false; }}}
 	};
+
+	[state, no_user_view, no_user_modify] String last_error_message;
 };
 
 validator InfluxdbWriter {
