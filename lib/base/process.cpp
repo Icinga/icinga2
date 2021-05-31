@@ -165,6 +165,10 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		}
 #endif /* HAVE_NICE */
 
+		for (int sig = 1; sig <= 31; ++sig) {
+			signal(sig, SIG_DFL);
+		}
+
 		sigset_t mask;
 		sigemptyset(&mask);
 		sigprocmask(SIG_SETMASK, &mask, nullptr);
