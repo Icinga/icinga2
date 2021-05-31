@@ -19,8 +19,19 @@ namespace icinga
 class MacroProcessor
 {
 public:
+	struct ResolverSpec
+	{
+		String Name;
+		Object::Ptr Obj;
+		bool Fallback;
+
+		inline ResolverSpec(String name, Object::Ptr obj, bool fallback = true)
+			: Name(name), Obj(obj), Fallback(fallback)
+		{
+		}
+	};
+
 	typedef std::function<Value (const Value&)> EscapeCallback;
-	typedef std::pair<String, Object::Ptr> ResolverSpec;
 	typedef std::vector<ResolverSpec> ResolverList;
 
 	static Value ResolveMacros(const Value& str, const ResolverList& resolvers,

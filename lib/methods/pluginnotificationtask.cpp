@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "methods/pluginnotificationtask.hpp"
+#include "icinga/envresolver.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/pluginutility.hpp"
@@ -54,6 +55,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", commandObj);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+	resolvers.emplace_back("env", new EnvResolver(), false);
 
 	int timeout = commandObj->GetTimeout();
 	std::function<void(const Value& commandLine, const ProcessResult&)> callback;

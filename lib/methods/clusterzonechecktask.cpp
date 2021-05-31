@@ -2,6 +2,7 @@
 
 #include "methods/clusterzonechecktask.hpp"
 #include "icinga/checkcommand.hpp"
+#include "icinga/envresolver.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/endpoint.hpp"
@@ -64,6 +65,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", command);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+	resolvers.emplace_back("env", new EnvResolver(), false);
 
 	String zoneName = MacroProcessor::ResolveMacros("$cluster_zone$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);

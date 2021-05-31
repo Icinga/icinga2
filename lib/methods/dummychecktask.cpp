@@ -4,6 +4,7 @@
 #	include <stdlib.h>
 #endif /* _WIN32 */
 #include "methods/dummychecktask.hpp"
+#include "icinga/envresolver.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/pluginutility.hpp"
 #include "base/utility.hpp"
@@ -38,6 +39,7 @@ void DummyCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", command);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+	resolvers.emplace_back("env", new EnvResolver(), false);
 
 	int dummyState = MacroProcessor::ResolveMacros("$dummy_state$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);

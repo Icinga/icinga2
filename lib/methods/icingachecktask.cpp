@@ -2,6 +2,7 @@
 
 #include "methods/icingachecktask.hpp"
 #include "icinga/cib.hpp"
+#include "icinga/envresolver.hpp"
 #include "icinga/service.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
@@ -42,6 +43,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", command);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+	resolvers.emplace_back("env", new EnvResolver(), false);
 
 	String missingIcingaMinVersion;
 
