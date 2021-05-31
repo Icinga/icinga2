@@ -914,7 +914,7 @@ ExpressionResult ImportDefaultTemplatesExpression::DoEvaluate(ScriptFrame& frame
 
 ExpressionResult FunctionExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::NewFunction(frame, m_Name, m_Args, m_ClosedVars, m_Expression);
+	return VMOps::NewFunction(frame, m_Name, m_Args, m_ClosedVars, m_ClosedThis, m_Expression);
 }
 
 ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
