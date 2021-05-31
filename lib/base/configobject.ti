@@ -72,6 +72,7 @@ abstract class ConfigObject : ConfigObjectBase < ConfigType
 		get;
 	};
 	[get_protected, no_user_modify] bool active;
+	[config] String authority_group;
 	[get_protected, no_user_modify] bool paused {
 		default {{{ return true; }}}
 	};
