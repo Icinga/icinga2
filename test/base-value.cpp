@@ -46,7 +46,8 @@ BOOST_AUTO_TEST_CASE(format)
 	std::istringstream ibuf("3");
 	ibuf >> v;
 
-	BOOST_CHECK(v != 3);
+	BOOST_CHECK_MESSAGE(v.IsString(), "type of v should be String (is " << v.GetTypeName() << ")");
+	BOOST_CHECK_MESSAGE(v == "3", "v should be '3' (is '" << v << "')");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
