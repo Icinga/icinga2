@@ -27,7 +27,7 @@ public:
 	static void CreateStorage();
 
 	static String CreateObjectConfig(const Type::Ptr& type, const String& fullName,
-		bool ignoreOnError, const Array::Ptr& templates, const Dictionary::Ptr& attrs);
+		const Array::Ptr& templates, const Dictionary::Ptr& attrs);
 
 	static bool CreateObject(const Type::Ptr& type, const String& fullName,
 		const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie = Empty);

@@ -108,7 +108,7 @@ String ConfigObjectUtility::EscapeName(const String& name)
 }
 
 String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const String& fullName,
-	bool ignoreOnError, const Array::Ptr& templates, const Dictionary::Ptr& attrs)
+	const Array::Ptr& templates, const Dictionary::Ptr& attrs)
 {
 	auto *nc = dynamic_cast<NameComposer *>(type.get());
 	Dictionary::Ptr nameParts;
@@ -148,7 +148,7 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 	allAttrs->Set("version", Utility::GetTime());
 
 	std::ostringstream config;
-	ConfigWriter::EmitConfigItem(config, type->GetName(), name, false, ignoreOnError, templates, allAttrs);
+	ConfigWriter::EmitConfigItem(config, type->GetName(), name, false, templates, allAttrs);
 	ConfigWriter::EmitRaw(config, "\n");
 
 	return config.str();

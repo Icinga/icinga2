@@ -269,7 +269,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 	if (!zone.IsEmpty())
 		attrs->Set("zone", zone);
 
-	String config = ConfigObjectUtility::CreateObjectConfig(Downtime::TypeInstance, fullName, true, nullptr, attrs);
+	String config = ConfigObjectUtility::CreateObjectConfig(Downtime::TypeInstance, fullName, nullptr, attrs);
 
 	Array::Ptr errors = new Array();
 

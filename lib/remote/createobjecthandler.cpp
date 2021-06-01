@@ -98,7 +98,7 @@ bool CreateObjectHandler::HandleRequest(
 	 * We can't use SendJsonError() here.
 	 */
 	try {
-		config = ConfigObjectUtility::CreateObjectConfig(type, name, ignoreOnError, templates, attrs);
+		config = ConfigObjectUtility::CreateObjectConfig(type, name, templates, attrs);
 	} catch (const std::exception& ex) {
 		errors->Add(DiagnosticInformation(ex, false));
 		diagnosticInformation->Add(DiagnosticInformation(ex));

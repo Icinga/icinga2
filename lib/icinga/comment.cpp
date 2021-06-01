@@ -161,7 +161,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 	if (!zone.IsEmpty())
 		attrs->Set("zone", zone);
 
-	String config = ConfigObjectUtility::CreateObjectConfig(Comment::TypeInstance, fullName, true, nullptr, attrs);
+	String config = ConfigObjectUtility::CreateObjectConfig(Comment::TypeInstance, fullName, nullptr, attrs);
 
 	Array::Ptr errors = new Array();
 

@@ -51,7 +51,7 @@ public:
 
 	static void EmitIdentifier(std::ostream& fp, const String& identifier, bool inAssignment);
 	static void EmitConfigItem(std::ostream& fp, const String& type, const String& name, bool isTemplate,
-		bool ignoreOnError, const Array::Ptr& imports, const Dictionary::Ptr& attrs);
+		const Array::Ptr& imports, const Dictionary::Ptr& attrs);
 
 	static void EmitComment(std::ostream& fp, const String& text);
 	static void EmitFunctionCall(std::ostream& fp, const String& name, const Array::Ptr& arguments);

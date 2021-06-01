@@ -156,7 +156,7 @@ void ConfigWriter::EmitIdentifier(std::ostream& fp, const String& identifier, bo
 }
 
 void ConfigWriter::EmitConfigItem(std::ostream& fp, const String& type, const String& name, bool isTemplate,
-	bool ignoreOnError, const Array::Ptr& imports, const Dictionary::Ptr& attrs)
+	const Array::Ptr& imports, const Dictionary::Ptr& attrs)
 {
 	if (isTemplate)
 		fp << "template ";
@@ -166,9 +166,6 @@ void ConfigWriter::EmitConfigItem(std::ostream& fp, const String& type, const St
 	EmitIdentifier(fp, type, false);
 	fp << " ";
 	EmitString(fp, name);
-
-	if (ignoreOnError)
-		fp << " ignore_on_error";
 
 	fp << " ";
 	EmitScope(fp, 1, attrs, imports, true);
