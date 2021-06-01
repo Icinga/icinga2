@@ -116,7 +116,7 @@ bool CreateObjectHandler::HandleRequest(
 		return true;
 	}
 
-	if (!ConfigObjectUtility::CreateObject(type, name, config, errors, diagnosticInformation)) {
+	if (!ConfigObjectUtility::CreateObject(type, name, config, errors, diagnosticInformation) && !ignoreOnError) {
 		result1->Set("errors", errors);
 		result1->Set("code", 500);
 		result1->Set("status", "Object could not be created.");
