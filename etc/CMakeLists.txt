@@ -56,7 +56,7 @@ if(NOT WIN32)
 
   install(FILES bash_completion.d/icinga2 DESTINATION ${BASHCOMPLETION_DIR})
 else()
-  install_if_not_exists(icinga2/features-enabled/mainlog.conf ${ICINGA2_CONFIGDIR}/features-enabled)
+  install_if_not_exists(icinga2/features-enabled/windowseventlog.conf ${ICINGA2_CONFIGDIR}/features-enabled)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "(Linux|Solaris|SunOS)")
