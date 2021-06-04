@@ -302,6 +302,26 @@ Thanks to all contributors:
   * Code quality fixes
   * Small documentation fixes
 
+## 2.11.9 (2021-05-27)
+
+Version 2.11.9 is a maintenance release that fixes some crashes, improves error handling
+and adds compatibility for systems coming with newer Boost versions.
+
+### Bugfixes
+
+* Fix a crash when notification objects are deleted using the API #8780
+* Fix crashes that might occur during downtime scheduling if host or downtime objects are deleted using the API #8784
+* Fix an issue where notifications may incorrectly be skipped after a downtime ends #8772
+* Fix an issue where attempting to create a duplicate object using the API
+  might result in the original object being deleted #8788
+* IDO: prioritize program status updates #8810
+* Improve exceptions handling, including a fix for an uncaught exception on Windows #8776
+* Retry file rename operations on Windows to avoid intermittent locking issues #8770
+
+### Enhancements
+
+* Support Boost 1.74 (Ubuntu 21.04, Fedora 34) #8793 #8802
+
 ## 2.11.8 (2020-12-15)
 
 Version 2.11.8 resolves a security vulnerability with revoked certificates being
