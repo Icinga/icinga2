@@ -40,19 +40,6 @@ using namespace icinga;
 
 using Prio = RedisConnection::QueryPriority;
 
-static const char * const l_LuaResetDump = R"EOF(
-
-local id = redis.call('XADD', KEYS[1], '*', 'key', '*', 'state', 'wip')
-
-local xr = redis.call('XRANGE', KEYS[1], '-', '+')
-for i = 1, #xr - 1 do
-	redis.call('XDEL', KEYS[1], xr[i][1])
-end
-
-return id
-
-)EOF";
-
 INITIALIZE_ONCE(&IcingaDB::ConfigStaticInitialize);
 
 void IcingaDB::ConfigStaticInitialize()
@@ -151,7 +138,8 @@ void IcingaDB::UpdateAllConfigObjects()
 		m_Rcon->UnsuppressQueryKind(Prio::CheckResult);
 	});
 
-	m_Rcon->FireAndForgetQuery({"EVAL", l_LuaResetDump, "1", "icinga:dump"}, Prio::Config);
+	// Add a new type=* state=wip entry to the stream and remove all previous entries (MAXLEN 1).
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"}, Prio::Config);
 
 	const std::vector<String> globalKeys = {
 			m_PrefixConfigObject + "customvar",

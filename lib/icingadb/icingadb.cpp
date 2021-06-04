@@ -17,25 +17,6 @@ using namespace icinga;
 
 using Prio = RedisConnection::QueryPriority;
 
-static const char * const l_LuaPublishStats = R"EOF(
-
-local xa = {'XADD', KEYS[1], '*'}
-
-for i = 1, #ARGV do
-	table.insert(xa, ARGV[i])
-end
-
-local id = redis.call(unpack(xa))
-
-local xr = redis.call('XRANGE', KEYS[1], '-', '+')
-for i = 1, #xr - 1 do
-	redis.call('XDEL', KEYS[1], xr[i][1])
-end
-
-return id
-
-)EOF";
-
 String IcingaDB::m_EnvironmentId;
 boost::once_flag IcingaDB::m_EnvironmentIdOnce = BOOST_ONCE_INIT;
 
@@ -128,17 +109,17 @@ void IcingaDB::PublishStats()
 	status->Set("config_dump_in_progress", m_ConfigDumpInProgress);
 	status->Set("timestamp", TimestampToMilliseconds(Utility::GetTime()));
 
-	std::vector<String> eval ({"EVAL", l_LuaPublishStats, "1", "icinga:stats"});
+	std::vector<String> query {"XADD", "icinga:stats", "MAXLEN", "1", "*"};
 
 	{
 		ObjectLock statusLock (status);
 		for (auto& kv : status) {
-			eval.emplace_back(kv.first);
-			eval.emplace_back(JsonEncode(kv.second));
+			query.emplace_back(kv.first);
+			query.emplace_back(JsonEncode(kv.second));
 		}
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(eval), Prio::Heartbeat);
+	m_Rcon->FireAndForgetQuery(std::move(query), Prio::Heartbeat);
 }
 
 void IcingaDB::Stop(bool runtimeRemoved)
