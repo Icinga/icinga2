@@ -1033,7 +1033,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
 
   Parameter          | Type                           | Description
   ------------------ | --------------                 | --------------
-  exit\_status       | Number                         | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL.
+  exit\_status       | Number                         | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=UP, 1=DOWN.
   plugin\_output     | String                         | **Required.** One or more lines of the plugin main output. Does **not** contain the performance data.
   performance\_data  | Array<code>&#124;</code>String | **Optional.** The performance data as array of strings. The raw performance data string can be used too.
   check\_command     | Array<code>&#124;</code>String | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument. Alternativly a single string can be used.
