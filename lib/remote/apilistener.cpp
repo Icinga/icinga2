@@ -530,7 +530,7 @@ void ApiListener::NewClientHandler(
 
 static const auto l_AppVersionInt (([]() -> unsigned long {
 	auto appVersion (Application::GetAppVersion());
-	boost::regex rgx (R"EOF(^v?(\d+)\.(\d+)\.(\d+))EOF");
+	boost::regex rgx (R"EOF(^[rv]?(\d+)\.(\d+)\.(\d+))EOF");
 	boost::smatch match;
 
 	if (!boost::regex_search(appVersion.GetData(), match, rgx)) {
