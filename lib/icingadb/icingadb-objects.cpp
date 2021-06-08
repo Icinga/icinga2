@@ -289,7 +289,7 @@ void IcingaDB::UpdateAllConfigObjects()
 
 				auto checkable (dynamic_pointer_cast<Checkable>(object));
 
-				if (checkable) {
+				if (checkable && checkable->GetEnableActiveChecks()) {
 					auto zAdds (dynamic_pointer_cast<Service>(checkable) ? &serviceZAdds : &hostZAdds);
 
 					zAdds->emplace_back(Convert::ToString(checkable->GetNextUpdate()));
@@ -1995,15 +1995,26 @@ void IcingaDB::SendNextUpdate(const Checkable::Ptr& checkable)
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	m_Rcon->FireAndForgetQuery(
-		{
-			"ZADD",
-			dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
-			Convert::ToString(checkable->GetNextUpdate()),
-			GetObjectIdentifier(checkable)
-		},
-		Prio::CheckResult
-	);
+	if (checkable->GetEnableActiveChecks()) {
+		m_Rcon->FireAndForgetQuery(
+			{
+				"ZADD",
+				dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
+				Convert::ToString(checkable->GetNextUpdate()),
+				GetObjectIdentifier(checkable)
+			},
+			Prio::CheckResult
+		);
+	} else {
+		m_Rcon->FireAndForgetQuery(
+			{
+				"ZREM",
+				dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
+				GetObjectIdentifier(checkable)
+			},
+			Prio::CheckResult
+		);
+	}
 }
 
 void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry)
