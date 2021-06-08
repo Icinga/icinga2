@@ -243,23 +243,28 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 		spq = perfdata.GetLength();
 
 	String valueStr = perfdata.SubStr(eqp + 1, spq - eqp - 1);
+	std::vector<String> tokens = valueStr.Split(";");
 
-	size_t pos = valueStr.FindFirstNotOf("+-0123456789.eE");
-
-	if (pos != String::NPos && valueStr[pos] == ',') {
+	if (valueStr.FindFirstOf(',') != String::NPos || tokens.empty()) {
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid performance data value: " + perfdata));
 	}
 
-	double value = Convert::ToDouble(valueStr.SubStr(0, pos));
+	// Find the position where to split value and unit. Possible values of tokens[0] include:
+	// "1000", "1.0", "1.", "-.1", "+1", "1e10", "1GB", "1e10GB", "1e10EB", "1E10EB", "1.5GB", "1.GB", "+1.E-1EW"
+	// Consider everything up to and including the last digit or decimal point as part of the value.
+	size_t pos = tokens[0].FindLastOf("0123456789.");
+	if (pos != String::NPos) {
+		pos++;
+	}
 
-	std::vector<String> tokens = valueStr.Split(";");
+	double value = Convert::ToDouble(tokens[0].SubStr(0, pos));
 
 	bool counter = false;
 	String unit;
 	Value warn, crit, min, max;
 
 	if (pos != String::NPos)
-		unit = valueStr.SubStr(pos, tokens[0].GetLength() - pos);
+		unit = tokens[0].SubStr(pos, String::NPos);
 
 	double base;
 

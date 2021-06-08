@@ -296,6 +296,13 @@ BOOST_AUTO_TEST_CASE(invalid)
 {
 	BOOST_CHECK_THROW(PerfdataValue::Parse("123456"), boost::exception);
 	BOOST_CHECK_THROW(PerfdataValue::Parse("test=1,23456"), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=123_456"), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test="), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=123,456;1;1;1;1"), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=1;123,456;1;1;1"), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=1;1;123,456;1;1"), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=1;1;1;123,456;1"), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=1;1;1;1;123,456"), boost::exception);
 }
 
 BOOST_AUTO_TEST_CASE(multi)
@@ -352,6 +359,25 @@ BOOST_AUTO_TEST_CASE(scientificnotation)
 
 	str = pdv->Format();
 	BOOST_CHECK(str == "test=0.110000;12;0.130000;0.014000;150");
+}
+
+BOOST_AUTO_TEST_CASE(parse_edgecases)
+{
+	// Trailing decimal point
+	PerfdataValue::Ptr pv = PerfdataValue::Parse("test=23.");
+	BOOST_CHECK(pv);
+	BOOST_CHECK(pv->GetValue() == 23.0);
+
+	// Leading decimal point
+	pv = PerfdataValue::Parse("test=.42");
+	BOOST_CHECK(pv);
+	BOOST_CHECK(pv->GetValue() == 0.42);
+
+	// E both as exponent and unit prefix
+	pv = PerfdataValue::Parse("test=+1.5E-15EB");
+	BOOST_CHECK(pv);
+	BOOST_CHECK(pv->GetValue() == 1.5e3);
+	BOOST_CHECK(pv->GetUnit() == "bytes");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
