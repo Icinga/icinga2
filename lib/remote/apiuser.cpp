@@ -45,11 +45,19 @@ ApiUser::Ptr ApiUser::GetByAuthHeader(const String& auth_header)
 	 * 2) given password is empty
 	 * 2) configured password does not match.
 	 */
-	if (!user || password.IsEmpty())
-		return nullptr;
-	else if (user && !Utility::ComparePasswords(password, user->GetPassword()))
-		return nullptr;
 
-	return user;
+	if (!user) {
+		return nullptr;
+	}
+
+	auto hash (user->GetHashedPassword());
+
+	if (hash.IsEmpty()) {
+		auto plain (user->GetPassword());
+
+		return !plain.IsEmpty() && Utility::ComparePasswords(password, plain) ? user : nullptr;
+	} else {
+		return Utility::CompareBCryptPasswords(password, hash) ? user : nullptr;
+	}
 }
 

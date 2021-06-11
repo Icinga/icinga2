@@ -7,3 +7,4 @@ if(UNIX OR CYGWIN)
 endif()
 
 add_subdirectory(socketpair)
+add_subdirectory(crypt_blowfish)
