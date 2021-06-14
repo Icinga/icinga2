@@ -26,6 +26,7 @@ using namespace icinga;
 REGISTER_TYPE_WITH_PROTOTYPE(ConfigObject, ConfigObject::GetPrototype());
 
 boost::signals2::signal<void (const ConfigObject::Ptr&)> ConfigObject::OnStateChanged;
+boost::signals2::signal<void ()> ConfigObject::AfterAllConfigLoaded;
 
 bool ConfigObject::IsActive() const
 {

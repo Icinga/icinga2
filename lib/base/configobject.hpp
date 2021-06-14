@@ -26,6 +26,7 @@ public:
 	DECLARE_OBJECT(ConfigObject);
 
 	static boost::signals2::signal<void (const ConfigObject::Ptr&)> OnStateChanged;
+	static boost::signals2::signal<void ()> AfterAllConfigLoaded;
 
 	bool IsActive() const;
 	bool IsPaused() const;

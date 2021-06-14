@@ -3,8 +3,12 @@
 #include "icinga/dependency.hpp"
 #include "icinga/dependency-ti.cpp"
 #include "icinga/service.hpp"
+#include "base/configobject.hpp"
+#include "base/initialize.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
+#include <map>
+#include <sstream>
 
 using namespace icinga;
 
@@ -211,3 +215,81 @@ void Dependency::SetChild(intrusive_ptr<Checkable> child)
 	m_Child = child;
 }
 
+struct DependencyCycleNode
+{
+	bool Visited = false;
+	bool OnStack = false;
+};
+
+struct DependencyCycleGraph
+{
+	std::map<Checkable::Ptr, DependencyCycleNode> Nodes;
+	std::vector<ConfigObject::Ptr> Stack;
+};
+
+static void AssertNoDependencyCycle(const Checkable::Ptr& checkable, DependencyCycleGraph& graph);
+
+static void AssertNoParentDependencyCycle(const Checkable::Ptr& parent, DependencyCycleGraph& graph)
+{
+	if (graph.Nodes[parent].OnStack) {
+		std::ostringstream oss;
+		oss << "Dependency cycle: ";
+
+		for (auto& node : graph.Stack) {
+			oss << node->GetReflectionType()->GetName() << " '" << node->GetName() << "' -> ";
+		}
+
+		oss << parent->GetReflectionType()->GetName() << " '" << parent->GetName() << "'";
+		BOOST_THROW_EXCEPTION(ScriptError(oss.str()));
+	}
+
+	AssertNoDependencyCycle(parent, graph);
+}
+
+static void AssertNoDependencyCycle(const Checkable::Ptr& checkable, DependencyCycleGraph& graph)
+{
+	auto& node (graph.Nodes[checkable]);
+
+	if (!node.Visited) {
+		node.Visited = true;
+		node.OnStack = true;
+		graph.Stack.emplace_back(checkable);
+
+		for (auto& dep : checkable->GetDependencies()) {
+			graph.Stack.emplace_back(dep);
+			AssertNoParentDependencyCycle(dep->GetParent(), graph);
+			graph.Stack.erase(graph.Stack.begin() + graph.Stack.size() - 1u);
+		}
+
+		{
+			auto service (dynamic_pointer_cast<Service>(checkable));
+
+			if (service) {
+				AssertNoParentDependencyCycle(service->GetHost(), graph);
+			}
+		}
+
+		graph.Stack.erase(graph.Stack.begin() + graph.Stack.size() - 1u);
+		node.OnStack = false;
+	}
+}
+
+static void AssertNoDependencyCycles()
+{
+	DependencyCycleGraph graph;
+
+	for (auto& host : ConfigType::GetObjectsByType<Host>()) {
+		AssertNoDependencyCycle(host, graph);
+	}
+
+	for (auto& service : ConfigType::GetObjectsByType<Service>()) {
+		AssertNoDependencyCycle(service, graph);
+	}
+}
+
+static void DependencyStaticInitialize()
+{
+	ConfigObject::AfterAllConfigLoaded.connect(&AssertNoDependencyCycles);
+}
+
+INITIALIZE_ONCE(&DependencyStaticInitialize);
