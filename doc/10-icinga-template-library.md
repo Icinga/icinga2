@@ -3534,6 +3534,7 @@ esxi_hardware_host      | **Required.** Specifies the host to monitor. Defaults 
 esxi_hardware_user      | **Required.** Specifies the user for polling. Must be a local user of the root group on the system. Can also be provided as a file path file:/path/to/.passwdfile, then first string of file is used.
 esxi_hardware_pass      | **Required.** Password of the user. Can also be provided as a file path file:/path/to/.passwdfile, then second string of file is used.
 esxi_hardware_port      | **Optional.** Specifies the CIM port to connect to. Defaults to 5989.
+esxi_hardware_sslproto  | **Optional.** Specifies the SSL/TLS protocol to use. Defaults to local openssl config.
 esxi_hardware_vendor    | **Optional.** Defines the vendor of the server: "auto", "dell", "hp", "ibm", "intel", "unknown" (default).
 esxi_hardware_html      | **Optional.** Add web-links to hardware manuals for Dell servers (use your country extension). Only useful with **esxi_hardware_vendor** = dell.
 esxi_hardware_ignore    | **Optional.** Comma separated list of CIM elements to ignore.
