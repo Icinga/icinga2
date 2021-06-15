@@ -5610,6 +5610,7 @@ ssl_cert_disable_ssl_versions | **Optional.** Disable specific SSL versions out 
 ssl_cert_cipher               | **Optional.** Cipher selection: force {ecdsa,rsa} authentication.
 ssl_cert_ignore_expiration    | **Optional.** Ignore expiration date.
 ssl_cert_ignore_ocsp          | **Optional.** Do not check revocation with OCSP.
+ssl_cert_ignore_sct           | **Optional.** Do not check for signed certificate timestamps.
 
 
 #### jmx4perl <a id="plugin-contrib-command-jmx4perl"></a>
