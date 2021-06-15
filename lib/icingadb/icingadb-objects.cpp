@@ -192,7 +192,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		std::map<String, String> redisCheckSums;
 		String configCheckSum = m_PrefixConfigCheckSum + lcType;
 
-		upqObjectType.Enqueue([&]() {
+		upqObjectType.Enqueue([&rcon, &configCheckSum, &redisCheckSums]() {
 			String cursor = "0";
 
 			do {
