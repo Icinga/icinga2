@@ -3,6 +3,7 @@
 #include "base/convert.hpp"
 #include "base/datetime.hpp"
 #include <boost/lexical_cast.hpp>
+#include <iomanip>
 
 using namespace icinga;
 
@@ -21,10 +22,10 @@ String Convert::ToString(double val)
 	double integral;
 	double fractional = std::modf(val, &integral);
 
-	if (fractional == 0)
-		return Convert::ToString(static_cast<long long>(val));
-
 	std::ostringstream msgbuf;
+	if (fractional == 0) {
+		msgbuf << std::setprecision(0);
+	}
 	msgbuf << std::fixed << val;
 	return msgbuf.str();
 }

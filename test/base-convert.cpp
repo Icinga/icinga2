@@ -33,12 +33,14 @@ BOOST_AUTO_TEST_CASE(tostring)
 	BOOST_CHECK(Convert::ToString(7) == "7");
 	BOOST_CHECK(Convert::ToString(7.5) == "7.500000");
 	BOOST_CHECK(Convert::ToString("hello") == "hello");
+	BOOST_CHECK(Convert::ToString(18446744073709551616.0) == "18446744073709551616"); // pow(2, 64)
 
 	String str = "hello";
 	BOOST_CHECK(Convert::ToString(str) == "hello");
 
 	BOOST_CHECK(Convert::ToString(Value(7)) == "7");
 	BOOST_CHECK(Convert::ToString(Value(7.5)) == "7.500000");
+	BOOST_CHECK(Convert::ToString(Value(18446744073709551616.0)) == "18446744073709551616"); // pow(2, 64)
 	BOOST_CHECK(Convert::ToString(Value("hello")) == "hello");
 	BOOST_CHECK(Convert::ToString(Value("hello hello")) == "hello hello");
 }
