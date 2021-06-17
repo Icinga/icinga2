@@ -380,7 +380,7 @@ null
 Signature:
 
 ```
-function match(pattern, text, mode)
+function match(pattern, value, mode)
 ```
 
 Returns true if the wildcard (`?*`) `pattern` matches the `value`, false otherwise.
