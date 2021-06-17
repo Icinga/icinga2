@@ -35,15 +35,17 @@ String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const Str
 	boost::algorithm::to_lower(typeDir);
 
 	/* This may throw an exception the caller above must handle. */
-	String prefix = GetConfigDir();
+	String prefix = GetConfigDir() + "/conf.d/" + type->GetPluralName().ToLower() + "/";
 
-	auto old (prefix + "/conf.d/" + typeDir + "/" + EscapeName(fullName) + ".conf");
+	String escapedName = EscapeName(fullName);
 
-	if (fullName.GetLength() <= 80u + 3u /* "..." */ + 40u /* hex SHA1 */ || Utility::PathExists(old)) {
+	String old = prefix + escapedName + ".conf";
+	if (Utility::PathExists(old)) {
 		return std::move(old);
 	}
 
-	return prefix + "/conf.d/" + typeDir + "/" + fullName.SubStr(0, 80) + "..." + SHA1(fullName) + ".conf";
+	/* Maximum length 80 bytes object name + 3 bytes "..." + 40 bytes SHA1 (hex-encoded) */
+	return prefix + Utility::TruncateUsingHash<80+3+40>(escapedName) + ".conf";
 }
 
 void ConfigObjectUtility::RepairPackage(const String& package)
