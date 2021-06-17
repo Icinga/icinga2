@@ -39,9 +39,21 @@ String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const Str
 
 	String escapedName = EscapeName(fullName);
 
-	String old = prefix + escapedName + ".conf";
-	if (Utility::PathExists(old)) {
-		return std::move(old);
+	String longPath = prefix + escapedName + ".conf";
+
+	/*
+	 * The long path may cause trouble due to exceeding the allowed filename length of the filesystem. Therefore, the
+	 * preferred solution would be to use the truncated and hashed version as returned at the end of this function.
+	 * However, for compatibility reasons, we have to keep the old long version in some cases. Notably, this could lead
+	 * to the creation of objects that can't be synced to child nodes if they are running an older version. Thus, for
+	 * now, the fix is only enabled for comments and downtimes, as these are the object types for which the issue is
+	 * most likely triggered but can't be worked around easily (you'd have to rename the host and/or service in order to
+	 * be able to schedule a downtime or add an acknowledgement, which is not feasible) and the impact of not syncing
+	 * these objects through the whole cluster is limited. For other object types, we currently prefer to fail the
+	 * creation early so that configuration inconsistencies throughout the cluster are avoided.
+	 */
+	if ((type->GetName() != "Comment" && type->GetName() != "Downtime") || Utility::PathExists(longPath)) {
+		return std::move(longPath);
 	}
 
 	/* Maximum length 80 bytes object name + 3 bytes "..." + 40 bytes SHA1 (hex-encoded) */
