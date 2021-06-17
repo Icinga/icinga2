@@ -75,4 +75,59 @@ BOOST_AUTO_TEST_CASE(validateutf8)
 	BOOST_CHECK(Utility::ValidateUTF8("\xC3\xA4") == "\xC3\xA4");
 }
 
+BOOST_AUTO_TEST_CASE(EscapeCreateProcessArg)
+{
+#ifdef _WIN32
+	using convert = std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>, wchar_t>;
+
+	std::vector<std::string> testdata = {
+		R"(foobar)",
+		R"(foo bar)",
+		R"(foo"bar)",
+		R"("foo bar")",
+		R"(" \" \\" \\\" \\\\")",
+		R"( !"#$$%&'()*+,-./09:;<=>?@AZ[\]^_`az{|}~ " \" \\" \\\" \\\\")",
+		"'foo\nbar'",
+	};
+
+	for (const auto& t : testdata) {
+		// Prepend some fake exec name as the first argument is handled differently.
+		std::string escaped = "some.exe " + Utility::EscapeCreateProcessArg(t);
+		int argc;
+		std::shared_ptr<LPWSTR> argv(CommandLineToArgvW(convert{}.from_bytes(escaped.c_str()).data(), &argc), LocalFree);
+		BOOST_CHECK_MESSAGE(argv != nullptr, "CommandLineToArgvW() should not return nullptr for " << t);
+		BOOST_CHECK_MESSAGE(argc == 2, "CommandLineToArgvW() should find 2 arguments for " << t);
+		if (argc >= 2) {
+			std::string unescaped = convert{}.to_bytes(argv.get()[1]);
+			BOOST_CHECK_MESSAGE(unescaped == t,
+				"CommandLineToArgvW() should return original value for " << t << " (got: " << unescaped << ")");
+		}
+	}
+#endif /* _WIN32 */
+}
+
+BOOST_AUTO_TEST_CASE(TruncateUsingHash)
+{
+	/*
+	 * Note: be careful when changing the output of TruncateUsingHash as it is used to derive file names that should not
+	 * change between versions or would need special handling if they do (/var/lib/icinga2/api/packages/_api).
+	 */
+
+	/* minimum allowed value for maxLength template parameter */
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<44>(std::string(64, 'a')),
+		"a...0098ba824b5c16427bd7a1122a5a442a25ec644d");
+
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<80>(std::string(100, 'a')),
+		std::string(37, 'a') + "...7f9000257a4918d7072655ea468540cdcbd42e0c");
+
+	/* short enough values should not be truncated */
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<80>(""), "");
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<80>(std::string(60, 'a')), std::string(60, 'a'));
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<80>(std::string(79, 'a')), std::string(79, 'a'));
+
+	/* inputs of maxLength are hashed to avoid collisions */
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<80>(std::string(80, 'a')),
+		std::string(37, 'a') + "...86f33652fcffd7fa1443e246dd34fe5d00e25ffd");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
