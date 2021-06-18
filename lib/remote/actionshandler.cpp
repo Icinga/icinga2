@@ -62,6 +62,12 @@ bool ActionsHandler::HandleRequest(
 				DiagnosticInformation(ex));
 			return true;
 		}
+
+		if (objs.empty()) {
+			HttpUtility::SendJsonError(response, params, 404,
+				"No objects found.");
+			return true;
+		}
 	} else {
 		FilterUtility::CheckPermission(user, permission);
 		objs.emplace_back(nullptr);
