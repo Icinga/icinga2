@@ -14,7 +14,7 @@ function ThrowOnNativeFailure {
 $VsVersion = 2019
 $MsvcVersion = '14.2'
 $BoostVersion = @(1, 71, 0)
-$OpensslVersion = '1_1_1h'
+$OpensslVersion = @(1, 1, '1h')
 
 switch ($Env:BITS) {
 	32 { }
@@ -84,6 +84,6 @@ choco install -y windows-sdk-8.1
 choco install -y wixtoolset
 
 
-Install-Exe -Url "https://packages.icinga.com/windows/dependencies/boost_$($BoostVersion -join '_')-msvc-${MsvcVersion}-${Env:BITS}.exe" -Dir "C:\local\boost_$($BoostVersion -join '_')-Win${Env:BITS}"
+Install-Exe -Url "https://build-deps.icinga.com/v1/boost$($BoostVersion -join '.')msvc${MsvcVersion}x${Env:BITS}.exe" -Dir "C:\local\boost_$($BoostVersion -join '_')-Win${Env:BITS}"
 
-Install-Exe -Url "https://packages.icinga.com/windows/dependencies/Win${Env:BITS}OpenSSL-${OpensslVersion}.exe" -Dir "C:\local\OpenSSL_${OpensslVersion}-Win${Env:BITS}"
+Install-Exe -Url "https://build-deps.icinga.com/v1/openssl$($OpensslVersion -join '.')x${Env:BITS}.exe" -Dir "C:\local\OpenSSL_$($OpensslVersion -join '_')-Win${Env:BITS}"
