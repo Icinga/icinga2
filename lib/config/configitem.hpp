@@ -54,7 +54,7 @@ public:
 
 	static bool CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent = false);
 	static bool ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated = false,
-		bool silent = false, bool withModAttrs = false, const Value& cookie = Empty);
+		bool mainConfigActivation = false, bool withModAttrs = false, const Value& cookie = Empty);
 
 	static bool RunWithActivationContext(const Function::Ptr& function);
 
