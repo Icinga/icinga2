@@ -5,6 +5,7 @@
 - [1. Preparations](#preparations)
   - [1.1. Issues](#issues)
   - [1.2. Backport Commits](#backport-commits)
+  - [1.3. Windows Dependencies](#windows-dependencies)
 - [2. Version](#version)
 - [3. Changelog](#changelog)
 - [4. Git Tag](#git-tag)
@@ -47,6 +48,18 @@ Check issues at https://github.com/Icinga/icinga2
 
 For minor versions you need to manually backports any and all commits from the
 master branch which should be part of this release.
+
+### Windows Dependencies <a id="windows-dependencies"></a>
+
+In contrast to Linux, the Windows dependencies (at least Boost and OpenSSL)
+are neither updated independently of Icinga itself by instance administrators,
+nor their latest versions available for the OS are fetched at package build time.
+
+To ensure the upcoming Icinga release ships the latest (i.e. most secure) dependencies on Windows:
+
+1. Update their versions in [doc/win-dev.ps1](doc/win-dev.ps1) if any new ones are available
+2. Let the GitHub actions verify the new versions (step one affects our GitHub actions)
+3. Update also https://git.icinga.com/infra/ansible-windows-build and https://git.icinga.com/packaging/windows-icinga2
 
 
 ## Version <a id="version"></a>
