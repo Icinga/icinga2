@@ -1158,7 +1158,7 @@ to help existing Icinga 1.x users and might be useful for migration scenarios.
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in future releases.
+> This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 Example:
@@ -1182,7 +1182,7 @@ This configuration object is available as [compatlog feature](14-features.md#com
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in future releases.
+> This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 Example:
@@ -1259,7 +1259,7 @@ This configuration object is available as [command feature](14-features.md#exter
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in future releases.
+> This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 Example:
@@ -1677,7 +1677,7 @@ This configuration object is available as [livestatus feature](14-features.md#se
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in future releases.
+> This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 Examples:
@@ -1797,7 +1797,7 @@ This configuration object is available as [statusdata feature](14-features.md#st
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in future releases.
+> This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 Example:

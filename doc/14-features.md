@@ -928,7 +928,7 @@ is running on.
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in future releases.
+> This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 Icinga 1.x writes object configuration data and status data in a cyclic
@@ -947,7 +947,7 @@ you can safely disable this feature.
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in future releases.
+> This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 The Icinga 1.x log format is considered being the `Compat Log`
@@ -978,7 +978,7 @@ in `/var/log/icinga2/compat`. Rotated log files are moved into
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in future releases.
+> This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 Icinga 2 provides an external command pipe for processing commands
@@ -1018,7 +1018,7 @@ on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in future releases.
+> This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 Icinga 1.x writes its check result files to a temporary spool directory
@@ -1044,7 +1044,7 @@ object CheckResultReader "reader" {
 
 > **Note**
 >
-> This feature is DEPRECATED and will be removed in future releases.
+> This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 The [MK Livestatus](https://mathias-kettner.de/checkmk_livestatus.html) project
