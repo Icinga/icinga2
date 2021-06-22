@@ -21,16 +21,17 @@ class ConfigObjectUtility
 {
 
 public:
-	static String GetConfigDir();
-	static String GetObjectConfigPath(const Type::Ptr& type, const String& fullName);
+	static String GetConfigDir(const String &package = "_api");
+	static String GetObjectConfigPath(const Type::Ptr& type, const String& fullName, const String &package = "_api");
 	static void RepairPackage(const String& package);
-	static void CreateStorage();
+	static void CreateStorage(const String& package = "_api");
 
 	static String CreateObjectConfig(const Type::Ptr& type, const String& fullName,
 		bool ignoreOnError, const Array::Ptr& templates, const Dictionary::Ptr& attrs);
 
 	static bool CreateObject(const Type::Ptr& type, const String& fullName,
-		const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie = Empty);
+		const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie = Empty,
+		const String& package = "_api");
 
 	static bool DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors,
 		const Array::Ptr& diagnosticInformation, const Value& cookie = Empty);
