@@ -8,6 +8,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
+#include <cctype>
 #include <fstream>
 
 using namespace icinga;
@@ -375,9 +376,9 @@ bool ConfigPackageUtility::ValidateName(const String& name)
 	if (ContainsDotDot(name))
 		return false;
 
-	boost::regex expr("^[^a-zA-Z0-9_\\-]*$", boost::regex::icase);
-	boost::smatch what;
-	return (!boost::regex_search(name.GetData(), what, expr));
+	return std::all_of(name.Begin(), name.End(), [](char c) {
+		return std::isalnum(c, std::locale::classic()) || c == '_' || c == '-';
+	});
 }
 
 std::mutex& ConfigPackageUtility::GetStaticPackageMutex()
