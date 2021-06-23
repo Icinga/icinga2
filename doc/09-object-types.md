@@ -1873,7 +1873,7 @@ Example:
 
 ```
 object WindowsEventLogLogger "windowseventlog" {
-  severity = "warning"
+  severity = "information"
 }
 ```
 
@@ -1881,4 +1881,4 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  severity                  | String                | **Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "warning".
+  severity                  | String                | **Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "information".

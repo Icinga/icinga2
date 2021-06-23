@@ -16,7 +16,7 @@ Feature         | Description
 debuglog        | Debug log (path: `/var/log/icinga2/debug.log`, severity: `debug` or higher)
 mainlog         | Main log (path: `/var/log/icinga2/icinga2.log`, severity: `information` or higher)
 syslog          | Syslog (severity: `warning` or higher)
-windowseventlog | Windows Event Log (severity: `warning` or higher)
+windowseventlog | Windows Event Log (severity: `information` or higher)
 
 By default file the `mainlog` feature is enabled. When running Icinga 2
 on a terminal log messages with severity `information` or higher are
