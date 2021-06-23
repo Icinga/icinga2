@@ -1364,6 +1364,11 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 			attributes->Set("triggered_by_id", GetObjectIdentifier(triggeredBy));
 		}
 
+		auto scheduledBy (downtime->GetScheduledBy());
+		if (!scheduledBy.IsEmpty()) {
+			attributes->Set("scheduled_by", scheduledBy);
+		}
+
 		return true;
 	}
 
