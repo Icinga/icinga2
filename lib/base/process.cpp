@@ -105,10 +105,15 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 
 	auto **envp = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 2];
 	const char* lcnumeric = "LC_NUMERIC=";
+	const char* notifySocket = "NOTIFY_SOCKET=";
 	int j = 0;
 
 	for (int i = 0; i < envc; i++) {
 		if (strncmp(environ[i], lcnumeric, strlen(lcnumeric)) == 0) {
+			continue;
+		}
+
+		if (strncmp(environ[i], notifySocket, strlen(notifySocket)) == 0) {
 			continue;
 		}
 
