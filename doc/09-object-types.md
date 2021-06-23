@@ -1835,7 +1835,7 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  severity                  | String                | **Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "warning".
+  severity                  | String                | **Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "information".
   facility                  | String                | **Optional.** Defines the facility to use for syslog entries. This can be a facility constant like `FacilityDaemon`. Defaults to `FacilityUser`.
 
 Facility Constants:
