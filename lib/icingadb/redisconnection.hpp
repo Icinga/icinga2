@@ -63,7 +63,8 @@ namespace icinga
 			Config,
 			State,
 			History,
-			CheckResult
+			CheckResult,
+			SyncConnection = 255
 		};
 
 		RedisConnection(const String& host, const int port, const String& path,
@@ -80,6 +81,7 @@ namespace icinga
 		Replies GetResultsOfQueries(Queries queries, QueryPriority priority);
 
 		void EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback, QueryPriority priority);
+		void Sync();
 
 		void SuppressQueryKind(QueryPriority kind);
 		void UnsuppressQueryKind(QueryPriority kind);

@@ -58,6 +58,16 @@ void IcingaDB::Start(bool runtimeCreated)
 	});
 	m_Rcon->Start();
 
+	for (const Type::Ptr& type : GetTypes()) {
+		auto ctype (dynamic_cast<ConfigType*>(type.get()));
+		if (!ctype)
+			continue;
+
+		RedisConnection::Ptr rCon (new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex()));
+		rCon->Start();
+		m_Rcons[ctype] = std::move(rCon);
+	}
+
 	m_StatsTimer = new Timer();
 	m_StatsTimer->SetInterval(1);
 	m_StatsTimer->OnTimerExpired.connect([this](const Timer * const&) { PublishStatsTimerHandler(); });

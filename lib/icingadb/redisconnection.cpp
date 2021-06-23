@@ -188,6 +188,17 @@ void RedisConnection::EnqueueCallback(const std::function<void(boost::asio::yiel
 }
 
 /**
+ * Puts a no-op command with a result at the end of the queue and wait for the result,
+ * i.e. for everything enqueued to be processed by the server.
+ *
+ * @ingroup icingadb
+ */
+void RedisConnection::Sync()
+{
+	GetResultOfQuery({"PING"}, RedisConnection::QueryPriority::SyncConnection);
+}
+
+/**
  * Mark kind as kind of queries not to actually send yet
  *
  * @param kind Query kind
