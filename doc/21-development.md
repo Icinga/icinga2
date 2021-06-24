@@ -1742,8 +1742,8 @@ and how to run and debug the code.
 If you're going to setup a dev environment on a fresh Windows machine
 and don't care for the details,
 
-1. ensure there are 35 GB free space on C:
-2. run the following in an administrative Powershell:
+1. Ensure there are 35 GB free space on C:
+2. Run the following in an administrative Powershell:
   1. `Enable-WindowsOptionalFeature -FeatureName "NetFx3" -Online`
      (reboot when asked!)
   2. `powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-Expression (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/Icinga/icinga2/master/doc/win-dev.ps1')"`
