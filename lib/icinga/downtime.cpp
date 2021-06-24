@@ -127,6 +127,14 @@ void Downtime::Start(bool runtimeCreated)
 			<< " Triggering downtime now.";
 		TriggerDowntime();
 	}
+
+	if (GetFixed() && CanBeTriggered()) {
+		/* Send notifications. */
+		OnDowntimeStarted(this);
+
+		/* Trigger fixed downtime immediately. */
+		TriggerDowntime();
+	}
 }
 
 void Downtime::Stop(bool runtimeRemoved)
