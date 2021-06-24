@@ -276,7 +276,7 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 		}
 
 		// activate config only after daemonization: it starts threads and that is not compatible with fork()
-		if (!ConfigItem::ActivateItems(newItems, false, false, true)) {
+		if (!ConfigItem::ActivateItems(newItems, false, true, true)) {
 			Log(LogCritical, "cli", "Error activating configuration.");
 			return EXIT_FAILURE;
 		}

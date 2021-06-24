@@ -624,8 +624,18 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	return true;
 }
 
+/**
+ * ActivateItems activates new config items.
+ *
+ * @param newItems Vector of items to be activated
+ * @param runtimeCreated Whether the objects were created by a runtime object
+ * @param mainConfigActivation Whether this is the call for activating the main configuration during startup
+ * @param withModAttrs Whether this call shall read the modified attributes file
+ * @param cookie Cookie for preventing message loops
+ * @return Whether the config activation was successful (in case of errors, exceptions are thrown)
+ */
 bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated,
-	bool silent, bool withModAttrs, const Value& cookie)
+	bool mainConfigActivation, bool withModAttrs, const Value& cookie)
 {
 	static std::mutex mtx;
 	std::unique_lock<std::mutex> lock(mtx);
@@ -663,7 +673,7 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 		object->PreActivate();
 	}
 
-	if (!silent)
+	if (mainConfigActivation)
 		Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
 
 	/* Activate objects in priority order. */
@@ -674,6 +684,14 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 			return true;
 		return false;
 	});
+
+	/* Find the last logger type to be activated. */
+	Type::Ptr lastLoggerType = nullptr;
+	for (const Type::Ptr& type : types) {
+		if (Logger::TypeInstance->IsAssignableFrom(type)) {
+			lastLoggerType = type;
+		}
+	}
 
 	for (const Type::Ptr& type : types) {
 		for (const ConfigItem::Ptr& item : newItems) {
@@ -695,9 +713,14 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 
 			object->Activate(runtimeCreated, cookie);
 		}
+
+		if (mainConfigActivation && type == lastLoggerType) {
+			/* Disable early logging configuration once the last logger type was activated. */
+			Logger::DisableEarlyLogging();
+		}
 	}
 
-	if (!silent)
+	if (mainConfigActivation)
 		Log(LogInformation, "ConfigItem", "Activated all objects.");
 
 	return true;
@@ -720,7 +743,7 @@ bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 	if (!CommitItems(scope.GetContext(), upq, newItems, true))
 		return false;
 
-	if (!ActivateItems(newItems, false, true))
+	if (!ActivateItems(newItems, false, false))
 		return false;
 
 	return true;

@@ -213,10 +213,11 @@ static int UpgradeNSIS(void)
 static int InstallIcinga(void)
 {
 	std::string installDir = GetIcingaInstallPath();
+	std::string skelDir = installDir + "\\share\\skel";
 	std::string dataDir = GetIcingaDataPath();
 
 	if (!PathExists(dataDir)) {
-		std::string sourceDir = installDir + "\\share\\skel" + std::string(1, '\0');
+		std::string sourceDir = skelDir + std::string(1, '\0');
 		std::string destinationDir = dataDir + std::string(1, '\0');
 
 		SHFILEOPSTRUCT fop;
@@ -242,6 +243,32 @@ static int InstallIcinga(void)
 		MkDirP(dataDir + "/var/spool/icinga2/perfdata");
 		MkDirP(dataDir + "/var/spool/icinga2/tmp");
 	}
+
+	// Upgrade from versions older than 2.13 by making the windowseventlog feature available,
+	// enable it by default and disable the old mainlog feature.
+	if (!PathExists(dataDir + "/etc/icinga2/features-available/windowseventlog.conf")) {
+		// Disable the old mainlog feature as it is replaced by windowseventlog by default.
+		std::string mainlogEnabledFile = dataDir + "/etc/icinga2/features-enabled/mainlog.conf";
+		if (PathExists(mainlogEnabledFile)) {
+			if (DeleteFileA(mainlogEnabledFile.c_str()) == 0) {
+				throw std::runtime_error("deleting '" + mainlogEnabledFile + "' failed");
+			}
+		}
+
+		// Install the new windowseventlog feature. As features-available/windowseventlog.conf is used as a marker file,
+		// copy it as the last step, so that this is run again should the upgrade be interrupted.
+		for (const std::string& d : {"features-enabled", "features-available"}) {
+			std::string sourceFile = skelDir + "/etc/icinga2/" + d + "/windowseventlog.conf";
+			std::string destinationFile = dataDir + "/etc/icinga2/" + d + "/windowseventlog.conf";
+
+			if (CopyFileA(sourceFile.c_str(), destinationFile.c_str(), false) == 0) {
+				throw std::runtime_error("copying '" + sourceFile + "' to '" + destinationFile + "' failed");
+			}
+		}
+	}
+
+	// TODO: In Icinga 2.14, rename features-available/mainlog.conf to mainlog.conf.deprecated
+	//       so that it's no longer listed as an available feature.
 
 	ExecuteCommand("icacls", "\"" + dataDir + "\" /grant *S-1-5-20:(oi)(ci)m");
 	ExecuteCommand("icacls", "\"" + dataDir + "\\etc\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
