@@ -3278,6 +3278,147 @@ printer_health_oids		| **Optional.** A list of oids which are downloaded and wri
 printer_health_offline		| **Optional.** The maximum number of seconds since the last update of cache file before it is considered too old.
 printer_health_multiline	| **Optional.** Multiline output
 
+#### Thola <a id="plugin-contrib-command-thola"></a>
+
+The [Thola](https://thola.io) plugin
+is a tool for monitoring network devices, that mainly uses SNMP.
+
+To run these commands you need a server that is running the Thola API.
+If you don't know how to do this, you can have a look at the plugin's
+[documentation](https://docs.thola.io). Also, you have to
+put the Thola-client binary into the `PluginContribDir`.
+
+##### thola-cpu-load <a id="plugin-contrib-command-thola-cpu-load"></a>
+
+Checks the CPU load of a network device.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                           | Description
+-------------------------------|--------------------------------------------------------
+thola_api_address              | **Required.** Address of the Thola API to connect to
+thola_device_address           | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise.
+thola_device_snmp_community    | **Optional.** SNMP community of the device
+thola_device_snmp_protocol     | **Optional.** SNMP version to use
+thola_cpu_load_critical        | **Optional.** Critical threshold for the CPU load in %
+thola_cpu_load_warning         | **Optional.** Warning threshold for the CPU load in %
+
+##### thola-interface-metrics <a id="plugin-contrib-command-thola-interface-metrics"></a>
+
+Checks the interface metrics of a network device.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                            | Description
+--------------------------------|-----------------------------------------------------
+thola_api_address               | **Required.** Address of the Thola API to connect to
+thola_device_address            | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community     | **Optional.** SNMP community of the device
+
+##### thola-hardware-health <a id="plugin-contrib-command-thola-hardware-health"></a>
+
+Checks the hardware health of a network device.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                          | Description
+------------------------------|-----------------------------------------------------
+thola_api_address             | **Required.** Address of the Thola API to connect to
+thola_device_address          | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community   | **Optional.** SNMP community of the device
+
+##### thola-identify <a id="plugin-contrib-command-thola-identify"></a>
+
+Checks if a device can be identified by the given properties.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                               | Description
+-----------------------------------|--------------------------------------------------------------------------------
+thola_api_address                  | **Required.** Address of the Thola API to connect to
+thola_device_address               | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community        | **Optional.** SNMP community of the device
+thola_identify_model               | **Optional.** Model that is compared to the actual model of the device
+thola_identify_os_version          | **Optional.** OS-version that is compared to the actual OS-version of the device
+thola_identify_vendor              | **Optional.** Vendor that is compared to the actual vendor of the device
+thola_identify_serial_number       | **Optional.** Serial number that is compared to the actual serial number of the device
+thola_identify_discover_retries    | **Optional.** The number of discover retries before aborting
+thola_identify_discover_timeouts   | **Optional.** The number of discover timeouts before aborting
+
+> **Note**:
+>
+> One of the variables `thola_identify_model`, `thola_identify_os_version`, 
+> `thola_identify_vendor` or `thola_identify_serial_number` must be set
+
+##### thola-memory-usage <a id="plugin-contrib-command-thola-memory-usage"></a>
+
+Checks the memory usage of a device.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                           | Description
+-------------------------------|-----------------------------------------------------
+thola_api_address              | **Required.** Address of the Thola API to connect to
+thola_device_address           | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community    | **Optional.** SNMP community of the device
+thola_memory_usage_critical    | **Optional.** Critical threshold for the memory usage in %
+thola_memory_usage_warning     | **Optional.** Warning threshold for the memory usage in %
+
+##### thola-sbc <a id="plugin-contrib-command-thola-sbc"></a>
+
+Checks special metrics from sbc network devices.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                                     | Description
+-----------------------------------------|-----------------------------------------------------------
+thola_api_address                        | **Required.** Address of the Thola API to connect to
+thola_device_address                     | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community              | **Optional.** SNMP community of the device
+thola_sbc_system_health_score_critical   | **Optional.** Critical threshold for the health score in %
+thola_sbc_system_health_score_warning    | **Optional.** Warning threshold for the health score in %
+
+##### thola-thola-server <a id="plugin-contrib-command-thola-thola-server"></a>
+
+Checks if a Thola API is running on a given server.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                | Description
+--------------------|-----------------------------------------------------
+thola_api_address   | **Required.** Address of the Thola API to connect to
+
+##### thola-ups <a id="plugin-contrib-command-thola-ups"></a>
+
+Checks whether a UPS device has its main voltage applied.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                                        | Description
+--------------------------------------------|-----------------------------------------------------------------
+thola_api_address                           | **Required.** Address of the Thola API to connect to
+thola_device_address                        | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community                 | **Optional.** SNMP community of the device
+thola_ups_batt_current_critical_max         | **Optional.** High critical threshold for the battery current in Volt
+thola_ups_batt_current_critical_min         | **Optional.** Low critical threshold for the battery current in Volt
+thola_ups_batt_current_warning_max          | **Optional.** High warning threshold for the battery current in Volt
+thola_ups_batt_current_warning_min          | **Optional.** Low warning threshold for the battery current in Volt
+thola_ups_batt_temperature_critical_max     | **Optional.** High critical threshold for the battery temperature in degree celsius
+thola_ups_batt_temperature_critical_min     | **Optional.** Low critical threshold for the battery temperature in degree celsius
+thola_ups_batt_temperature_warning_max      | **Optional.** High warning threshold for the battery temperature in degree celsius
+thola_ups_batt_temperature_warning_min      | **Optional.** Low warning threshold for the battery temperature in degree celsius
+thola_ups_current_load_critical_max         | **Optional.** High critical threshold for the current load in percent
+thola_ups_current_load_critical_min         | **Optional.** Low critical threshold for the current load in percent
+thola_ups_current_load_warning_max          | **Optional.** High warning threshold for the current load in percent
+thola_ups_current_load_warning_min          | **Optional.** Low warning threshold for the current load in percent
+thola_ups_rectifier_current_critical_max    | **Optional.** High critical threshold for the current rectifier in Volt
+thola_ups_rectifier_current_critical_min    | **Optional.** Low critical threshold for the current rectifier in Volt
+thola_ups_rectifier_current_warning_max     | **Optional.** High warning threshold for the current rectifier in Volt
+thola_ups_rectifier_current_warning_min     | **Optional.** Low warning threshold for the current rectifier in Volt
+thola_ups_system_voltage_critical_max       | **Optional.** High critical threshold for the system voltage in Volt
+thola_ups_system_voltage_critical_min       | **Optional.** Low critical threshold for the system voltage in Volt
+thola_ups_system_voltage_warning_max        | **Optional.** High warning threshold for the system voltage in Volt
+thola_ups_system_voltage_warning_min        | **Optional.** Low warning threshold for the system voltage in Volt
 
 ### Network Services <a id="plugin-contrib-network-services"></a>
 
