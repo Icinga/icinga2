@@ -1410,6 +1410,12 @@ tm Utility::LocalTime(time_t ts)
 #endif /* _MSC_VER */
 }
 
+time_t Utility::MkTime(tm *timeptr)
+{
+	timeptr->tm_isdst = -1;
+	return mktime(timeptr);
+}
+
 bool Utility::PathExists(const String& path)
 {
 	namespace fs = boost::filesystem;

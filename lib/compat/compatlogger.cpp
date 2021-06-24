@@ -576,7 +576,7 @@ void CompatLogger::ScheduleNextRotation()
 		tmthen.tm_hour = 0;
 	}
 
-	time_t ts = mktime(&tmthen);
+	time_t ts = Utility::MkTime(&tmthen);
 
 	Log(LogNotice, "CompatLogger")
 		<< "Rescheduling rotation timer for compat log '"
