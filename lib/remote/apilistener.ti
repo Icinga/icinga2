@@ -37,10 +37,14 @@ class ApiListener : ConfigObject
 		default {{{ return -1; }}}
 	};
 
-	[config] double tls_handshake_timeout {
+	[config, deprecated] double tls_handshake_timeout {
 		get;
 		set;
 		default {{{ return Configuration::TlsHandshakeTimeout; }}}
+	};
+
+	[config] double connect_timeout {
+		default {{{ return 15.0; }}}
 	};
 
 	[config] String ticket_salt;
