@@ -87,8 +87,15 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 void ScheduledDowntime::TimerProc()
 {
 	for (const ScheduledDowntime::Ptr& sd : ConfigType::GetObjectsByType<ScheduledDowntime>()) {
-		if (sd->IsActive() && !sd->IsPaused())
-			sd->CreateNextDowntime();
+		if (sd->IsActive() && !sd->IsPaused()) {
+			try {
+				sd->CreateNextDowntime();
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "ScheduledDowntime")
+					<< "Exception occurred during creation of next downtime for scheduled downtime '"
+					<< sd->GetName() << "': " << DiagnosticInformation(ex, false);
+			}
+		}
 	}
 }
 
