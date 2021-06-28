@@ -25,7 +25,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	REQUIRE_NOT_NULL(notification);
 	REQUIRE_NOT_NULL(user);
 
-	NotificationCommand::Ptr commandObj = notification->GetCommand();
+	NotificationCommand::Ptr commandObj = NotificationCommand::ExecuteOverride ? NotificationCommand::ExecuteOverride : notification->GetCommand();
 
 	auto type = static_cast<NotificationType>(itype);
 
@@ -42,6 +42,9 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+	if (MacroResolver::OverrideMacros)
+		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
+
 	resolvers.emplace_back("user", user);
 	resolvers.emplace_back("notification", notificationExtra);
 	resolvers.emplace_back("notification", notification);
@@ -53,9 +56,14 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 
 	int timeout = commandObj->GetTimeout();
 
+	std::function<void(const Value& commandLine, const ProcessResult&)> callback;
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		callback = Checkable::ExecuteCommandProcessFinishedHandler;
+	} else {
+		callback = std::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2);
+	}
 	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
-		resolvedMacros, useResolvedMacros, timeout,
-		std::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2));
+		resolvedMacros, useResolvedMacros, timeout, callback);
 }
 
 void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& commandLine, const ProcessResult& pr)

@@ -20,6 +20,8 @@ public:
 	DECLARE_OBJECT(CheckCommand);
 	DECLARE_OBJECTNAME(CheckCommand);
 
+	static thread_local CheckCommand::Ptr ExecuteOverride;
+
 	virtual void Execute(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 		const Dictionary::Ptr& resolvedMacros = nullptr,
 		bool useResolvedMacros = false);

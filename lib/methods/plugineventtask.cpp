@@ -21,13 +21,16 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
 {
 	REQUIRE_NOT_NULL(checkable);
 
-	EventCommand::Ptr commandObj = checkable->GetEventCommand();
+	EventCommand::Ptr commandObj = EventCommand::ExecuteOverride ? EventCommand::ExecuteOverride : checkable->GetEventCommand();
 
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+	if (MacroResolver::OverrideMacros)
+		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
+
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
@@ -36,9 +39,14 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
 
 	int timeout = commandObj->GetTimeout();
 
+	std::function<void(const Value& commandLine, const ProcessResult&)> callback;
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		callback = Checkable::ExecuteCommandProcessFinishedHandler;
+	} else {
+		callback = std::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2);
+	}
 	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
-		resolvers, resolvedMacros, useResolvedMacros, timeout,
-		std::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2));
+		resolvers, resolvedMacros, useResolvedMacros, timeout, callback);
 }
 
 void PluginEventTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& commandLine, const ProcessResult& pr)

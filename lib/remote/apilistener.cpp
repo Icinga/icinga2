@@ -29,6 +29,8 @@
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 #include <boost/system/error_code.hpp>
 #include <climits>
 #include <cstdint>
@@ -510,6 +512,22 @@ void ApiListener::NewClientHandler(
 	}
 }
 
+static const auto l_AppVersionInt (([]() -> unsigned long {
+	auto appVersion (Application::GetAppVersion());
+	boost::regex rgx (R"EOF(^v?(\d+)\.(\d+)\.(\d+))EOF");
+	boost::smatch match;
+
+	if (!boost::regex_search(appVersion.GetData(), match, rgx)) {
+		return 0;
+	}
+
+	return 100u * 100u * boost::lexical_cast<unsigned long>(match[1].str())
+		+ 100u * boost::lexical_cast<unsigned long>(match[2].str())
+		+ boost::lexical_cast<unsigned long>(match[3].str());
+})());
+
+static const auto l_MyCapabilities (ApiCapabilities::ExecuteArbitraryCommand);
+
 /**
  * Processes a new client connection.
  *
@@ -654,7 +672,10 @@ void ApiListener::NewClientHandlerInternal(
 		JsonRpc::SendMessage(client, new Dictionary({
 			{ "jsonrpc", "2.0" },
 			{ "method", "icinga::Hello" },
-			{ "params", new Dictionary() }
+			{ "params", new Dictionary({
+				{ "version", (double)l_AppVersionInt },
+				{ "capabilities", (double)l_MyCapabilities }
+			}) }
 		}), yc);
 
 		client->async_flush(yc);
@@ -687,6 +708,17 @@ void ApiListener::NewClientHandlerInternal(
 		}
 
 		if (firstByte >= '0' && firstByte <= '9') {
+			JsonRpc::SendMessage(client, new Dictionary({
+				{ "jsonrpc", "2.0" },
+				{ "method", "icinga::Hello" },
+				{ "params", new Dictionary({
+					{ "version", (double)l_AppVersionInt },
+					{ "capabilities", (double)l_MyCapabilities }
+				}) }
+			}), yc);
+
+			client->async_flush(yc);
+
 			ctype = ClientJsonRpc;
 		} else {
 			ctype = ClientHttp;
@@ -1624,6 +1656,19 @@ std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients() const
 
 Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
+	if (origin) {
+		auto client (origin->FromClient);
+
+		if (client) {
+			auto endpoint (client->GetEndpoint());
+
+			if (endpoint) {
+				endpoint->SetIcingaVersion((double)params->Get("version"));
+				endpoint->SetCapabilities((double)params->Get("capabilities"));
+			}
+		}
+	}
+
 	return Empty;
 }
 

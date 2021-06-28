@@ -22,13 +22,16 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	CheckCommand::Ptr commandObj = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
 
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+	if (MacroResolver::OverrideMacros)
+		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
+
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
@@ -40,9 +43,15 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (!checkable->GetCheckTimeout().IsEmpty())
 		timeout = checkable->GetCheckTimeout();
 
+
+	std::function<void(const Value& commandLine, const ProcessResult&)> callback;
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		callback = Checkable::ExecuteCommandProcessFinishedHandler;
+	} else {
+		callback = std::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2);
+	}
 	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
-		resolvers, resolvedMacros, useResolvedMacros, timeout,
-		std::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2));
+		resolvers, resolvedMacros, useResolvedMacros, timeout, callback);
 
 	if (!resolvedMacros || useResolvedMacros) {
 		Checkable::CurrentConcurrentChecks.fetch_add(1);
