@@ -736,6 +736,31 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 	if (!listener)
 		return Empty;
 
+	if (!origin->IsLocal()) {
+		Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+		/* Discard messages from anonymous clients */
+		if (!endpoint) {
+			Log(LogNotice, "ClusterEvents") << "Discarding 'execute command' message from '"
+				<< origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+			return Empty;
+		}
+
+		Zone::Ptr originZone = endpoint->GetZone();
+
+		Zone::Ptr localZone = Zone::GetLocalZone();
+		bool fromLocalZone = originZone == localZone;
+
+		Zone::Ptr parentZone = localZone->GetParent();
+		bool fromParentZone = parentZone && originZone == parentZone;
+
+		if (!fromLocalZone && !fromParentZone) {
+			Log(LogNotice, "ClusterEvents") << "Discarding 'execute command' message from '"
+				<< origin->FromClient->GetIdentity() << "': Unauthorized access.";
+			return Empty;
+		}
+	}
+
 	if (params->Contains("endpoint")) {
 		Endpoint::Ptr execEndpoint = Endpoint::GetByName(params->Get("endpoint"));
 
