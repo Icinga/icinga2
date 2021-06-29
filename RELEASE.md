@@ -5,6 +5,7 @@
 - [1. Preparations](#preparations)
   - [1.1. Issues](#issues)
   - [1.2. Backport Commits](#backport-commits)
+  - [1.3. Windows Dependencies](#windows-dependencies)
 - [2. Version](#version)
 - [3. Changelog](#changelog)
 - [4. Git Tag](#git-tag)
@@ -47,6 +48,58 @@ Check issues at https://github.com/Icinga/icinga2
 
 For minor versions you need to manually backports any and all commits from the
 master branch which should be part of this release.
+
+### Windows Dependencies <a id="windows-dependencies"></a>
+
+In contrast to Linux, the bundled Windows dependencies
+(at least Boost and OpenSSL) aren't updated automatically.
+(Neither by Icinga administrators, nor at package build time.)
+
+To ensure the upcoming Icinga release ships the latest (i.e. most secure) dependencies on Windows:
+
+#### Update packages.icinga.com
+
+Add the latest Boost and OpenSSL versions to
+https://packages.icinga.com/windows/dependencies/ like this:
+
+```
+localhost:~$ ssh icinga-aptly.icinga.netways.de
+icinga-aptly:~$ sudo -i
+icinga-aptly:~# cd /var/www/html/aptly/public/windows/dependencies
+icinga-aptly:dependencies# wget https://master.dl.sourceforge.net/project/boost/boost-binaries/1.76.0/boost_1_76_0-msvc-14.2-64.exe
+icinga-aptly:dependencies# wget https://master.dl.sourceforge.net/project/boost/boost-binaries/1.76.0/boost_1_76_0-msvc-14.2-32.exe
+icinga-aptly:dependencies# wget https://slproweb.com/download/Win64OpenSSL-1_1_1k.exe
+icinga-aptly:dependencies# wget https://slproweb.com/download/Win32OpenSSL-1_1_1k.exe
+```
+
+#### Ensure Compatibility
+
+Preferably on a fresh Windows VM (not to accidentally build Icinga
+with old dependency versions) setup a dev environment using the new dependency versions:
+
+1. Download [doc/win-dev.ps1](doc/win-dev.ps1)
+2. Edit your local copy, adjust the dependency versions
+3. Ensure there are 35 GB free space on C:
+4. Run the following in an administrative Powershell:
+   1. `Enable-WindowsOptionalFeature -FeatureName "NetFx3" -Online`
+      (reboot when asked!)
+   2. `powershell -NoProfile -ExecutionPolicy Bypass -File "${Env:USERPROFILE}\Downloads\win-dev.ps1"`
+      (will take some time)
+
+Actually clone and build Icinga using the new dependency versions as described
+[here](https://github.com/Icinga/icinga2/blob/master/doc/21-development.md#tldr).
+Fix incompatibilities if any.
+
+#### Update Build Server, CI/CD and Documentation
+
+* https://git.icinga.com/infra/ansible-windows-build
+  (don't forget to provision!)
+* https://git.icinga.com/packaging/windows-icinga2
+* [doc/21-development.md](doc/21-development.md)
+* [doc/win-dev.ps1](doc/win-dev.ps1)
+  (also affects CI/CD)
+* [tools/win32/configure.ps1](tools/win32/configure.ps1)
+* [tools/win32/configure-dev.ps1](tools/win32/configure-dev.ps1)
 
 
 ## Version <a id="version"></a>
