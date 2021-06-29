@@ -1,38 +1,31 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+/* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
 
 #ifndef STACKTRACE_H
 #define STACKTRACE_H
 
-#include "base/i2-base.hpp"
-#include <iosfwd>
+#include <boost/stacktrace.hpp>
 
 namespace icinga
 {
 
 /**
- * A stacktrace.
+ * Formatter for `boost::stacktrace::stacktrace` objects
  *
- * @ingroup base
+ * This class wraps `boost::stacktrace::stacktrace` objects and provides an operator<<
+ * for printing them to an `std::ostream` in a custom format.
  */
-class StackTrace
-{
+class StackTraceFormatter {
 public:
-	StackTrace();
-#ifdef _WIN32
-	explicit StackTrace(PEXCEPTION_POINTERS exi);
-#endif /* _WIN32 */
-
-	void Print(std::ostream& fp, int ignoreFrames = 0) const;
-
-	static void StaticInitialize();
+	StackTraceFormatter(const boost::stacktrace::stacktrace &stack) : m_Stack(stack) {}
 
 private:
-	void *m_Frames[64];
-	int m_Count;
+	const boost::stacktrace::stacktrace &m_Stack;
+
+	friend std::ostream &operator<<(std::ostream &os, const StackTraceFormatter &f);
 };
 
-std::ostream& operator<<(std::ostream& stream, const StackTrace& trace);
+std::ostream& operator<<(std::ostream& os, const StackTraceFormatter &f);
 
 }
 
-#endif /* UTILITY_H */
+#endif /* STACKTRACE_H */
