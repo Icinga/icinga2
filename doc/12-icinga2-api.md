@@ -1580,7 +1580,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/generate-ticket`.
 
   Parameter     | Type      | Description
   --------------|-----------|--------------
-  cn            | String    | **Required.** The host's common name for which the ticket should be geenerated.
+  cn            | String    | **Required.** The host's common name for which the ticket should be generated.
 
 Example:
 
