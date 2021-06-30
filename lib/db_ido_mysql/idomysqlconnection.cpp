@@ -21,6 +21,11 @@ using namespace icinga;
 REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnection, &IdoMysqlConnection::StatsFunc);
 
+const char * IdoMysqlConnection::GetLatestSchemaVersion() const noexcept
+{
+	return "1.14.3";
+}
+
 void IdoMysqlConnection::OnConfigLoaded()
 {
 	ObjectImpl<IdoMysqlConnection>::OnConfigLoaded();

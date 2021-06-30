@@ -23,6 +23,11 @@ REGISTER_TYPE(IdoPgsqlConnection);
 
 REGISTER_STATSFUNCTION(IdoPgsqlConnection, &IdoPgsqlConnection::StatsFunc);
 
+const char * IdoPgsqlConnection::GetLatestSchemaVersion() const noexcept
+{
+	return "1.14.3";
+}
+
 IdoPgsqlConnection::IdoPgsqlConnection()
 {
 	m_QueryQueue.SetName("IdoPgsqlConnection, " + GetName());
