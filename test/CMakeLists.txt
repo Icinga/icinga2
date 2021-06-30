@@ -139,6 +139,7 @@ add_boost_test(base
     icinga_macros/simple
     icinga_legacytimeperiod/simple
     icinga_legacytimeperiod/advanced
+    icinga_legacytimeperiod/dst
     icinga_perfdata/empty
     icinga_perfdata/simple
     icinga_perfdata/quotes
