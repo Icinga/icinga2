@@ -101,6 +101,14 @@ Fix incompatibilities if any.
 * [tools/win32/configure.ps1](tools/win32/configure.ps1)
 * [tools/win32/configure-dev.ps1](tools/win32/configure-dev.ps1)
 
+#### Re-provision Build Server
+
+Even if there aren't any new releases of dependencies with versions
+hardcoded in the repos and files listed above (Boost, OpenSSL).
+There may be new build versions of other dependencies (VS, MSVC).
+Our GitHub actions (tests) use the latest ones automatically,
+but the GitLab runner (release packages) doesn't.
+
 
 ## Version <a id="version"></a>
 
