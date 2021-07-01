@@ -53,7 +53,7 @@ String SHA1(const String& s, bool binary = false);
 String SHA256(const String& s);
 String RandomString(int length);
 
-bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate, const String& crlFile);
+bool VerifyCertificate(const String& caFile, const std::shared_ptr<X509>& certificate, const String& crlFile);
 bool IsCa(const std::shared_ptr<X509>& cacert);
 int GetCertificateVersion(const std::shared_ptr<X509>& cert);
 String GetSignatureAlgorithm(const std::shared_ptr<X509>& cert);
