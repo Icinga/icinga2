@@ -281,9 +281,14 @@ apk add icinga2
 
 ## Setting up Check Plugins <a id="setting-up-check-plugins"></a>
 
-Without plugins Icinga 2 does not know how to check external services. The
-[Monitoring Plugins Project](https://www.monitoring-plugins.org/) provides
-an extensive set of plugins which can be used with Icinga 2 to check whether
+Icinga itself comes without check plugins, and without plugins Icinga 2 does not know how to check
+external services. Fortunately, there are a number of extensive third-party check plugin collections
+out there, of which we propose the following two.
+
+### The classic: monitoring-plugins.org
+
+The [Monitoring Plugins Project](https://www.monitoring-plugins.org/) provides
+more than fifty standard plugins which can be used with Icinga 2 to check whether
 services are working properly.
 
 These plugins are required to make the [example configuration](04-configuration.md#configuring-icinga2-overview)
@@ -313,13 +318,13 @@ to determine where to find the plugin binaries.
 > Please refer to the [service monitoring](05-service-monitoring.md#service-monitoring-plugins) chapter for details about how to integrate
 > additional check plugins into your Icinga 2 setup.
 
-### Debian/Ubuntu <a id="setting-up-check-plugins-debian-ubuntu"></a>
+#### Debian/Ubuntu <a id="setting-up-check-plugins-debian-ubuntu"></a>
 
 ```bash
 apt-get install monitoring-plugins
 ```
 
-### RHEL/CentOS/Fedora <a id="setting-up-check-plugins-rhel-centos-fedora"></a>
+#### RHEL/CentOS/Fedora <a id="setting-up-check-plugins-rhel-centos-fedora"></a>
 
 The packages for RHEL/CentOS depend on other packages which are distributed
 as part of the [EPEL repository](02-installation.md#package-repositories-rhel-epel).
@@ -342,7 +347,7 @@ Fedora:
 dnf install nagios-plugins-all
 ```
 
-### SLES/openSUSE <a id="setting-up-check-plugins-sles-opensuse"></a>
+#### SLES/openSUSE <a id="setting-up-check-plugins-sles-opensuse"></a>
 
 The packages for SLES/OpenSUSE depend on other packages which are distributed
 as part of the [server:monitoring repository](https://build.opensuse.org/project/repositories/server:monitoring).
@@ -352,13 +357,13 @@ Please make sure to enable this repository beforehand.
 zypper install monitoring-plugins
 ```
 
-### FreeBSD <a id="setting-up-check-plugins-freebsd"></a>
+#### FreeBSD <a id="setting-up-check-plugins-freebsd"></a>
 
 ```bash
 pkg install monitoring-plugins
 ```
 
-### Alpine Linux <a id="setting-up-check-plugins-alpine"></a>
+#### Alpine Linux <a id="setting-up-check-plugins-alpine"></a>
 
 ```bash
 apk add monitoring-plugins
@@ -366,6 +371,29 @@ apk add monitoring-plugins
 
 Note: For Alpine you don't need to explicitly add the `monitoring-plugins` package since it is a dependency of
 `icinga2` and is pulled automatically.
+
+
+### Monitoring Plugins Collection by Linuxfabrik
+
+This Enterprise Class Check Plugin Collection offers a package of more than a hundred Python-based, Nagios-compatible check plugins for Icinga and other monitoring applications. Each plugin is a stand-alone command line tool that provides a specific type of verification.
+
+These monitoring check plugins
+
+* are only written in Python
+* ensure easy access to the source code
+* are fast, reliable and use as few system resources as possible
+* uniformly and consistently report the same metrics briefly and precisely (for example "used"), both on Linux and on Windows
+* use out of the box some sort of automatic detection using useful default settings
+* trigger WARNs and CRITs only where absolutely necessary
+* provide additional information for troubleshooting where possible
+* avoid dependencies on additional system libraries where possible
+
+All check plugins are tested on CentOS 7+ (Minimal), Fedora 30+, Ubuntu Server 16+ and (some of them on) Microsoft Windows.
+
+Further information on the appearance and behavior of the plugins can be found on the [GitLab server of the Linuxfabrik](https://git.linuxfabrik.ch/linuxfabrik/monitoring-plugins).
+
+![Linuxfabrik Monitoring Plugins Collection in action on an Icinga server](https://git.linuxfabrik.ch/linuxfabrik/monitoring-plugins/-/raw/master/linuxfabrik-monitoring-check-plugins.png "Linuxfabrik Monitoring Plugins Collection in action on an Icinga server")
+
 
 ## Running Icinga 2 <a id="running-icinga2"></a>
 
