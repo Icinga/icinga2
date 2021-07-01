@@ -1,11 +1,18 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/exception.hpp"
 #include "base/filelogger.hpp"
 #include "base/filelogger-ti.cpp"
 #include "base/configtype.hpp"
+#include "base/convert.hpp"
 #include "base/statsfunction.hpp"
 #include "base/application.hpp"
+#include "base/utility.hpp"
+#include <boost/filesystem.hpp>
+#include <boost/system/error_code.hpp>
+#include <errno.h>
 #include <fstream>
+#include <sys/stat.h>
 
 using namespace icinga;
 
@@ -38,6 +45,75 @@ void FileLogger::Start(bool runtimeCreated)
 	Log(LogInformation, "FileLogger")
 		<< "'" << GetName() << "' started.";
 }
+
+#ifdef _WIN32
+#	define stat _stat
+#endif /* _WIN32 */
+
+void FileLogger::Flush()
+{
+	namespace fs = boost::filesystem;
+	namespace sys = boost::system;
+
+	StreamLogger::Flush();
+
+	auto maxSize (GetMaxSize());
+
+	if (maxSize > -1) {
+		struct stat st;
+		auto path (GetPath());
+
+		if (stat(path.CStr(), &st)) {
+			if (errno == ENOENT) {
+				return;
+			}
+
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("stat")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(path));
+		}
+
+		if (st.st_size >= maxSize) {
+			auto keepRotations (GetKeepRotations());
+			ObjectLock oLock (this);
+
+			BindStream(nullptr, false);
+
+			if (keepRotations > 0) {
+				Utility::Remove(path + "." + Convert::ToString(keepRotations));
+
+				for (auto i (keepRotations); i > 1;) {
+					auto to (path + "." + Convert::ToString(i));
+
+					try {
+						Utility::RenameFile(path + "." + Convert::ToString(--i), to);
+					} catch (const fs::filesystem_error& ex) {
+						if (ex.code() != sys::error_code(ENOENT, sys::system_category())) {
+							throw;
+						}
+					}
+				}
+
+				try {
+					Utility::RenameFile(path, path + ".1");
+				} catch (const fs::filesystem_error& ex) {
+					if (ex.code() != sys::error_code(ENOENT, sys::system_category())) {
+						throw;
+					}
+				}
+			} else {
+				Utility::Remove(path);
+			}
+
+			ReopenLogFile();
+		}
+	}
+}
+
+#ifdef _WIN32
+#	undef stat
+#endif /* _WIN32 */
 
 void FileLogger::ReopenLogFile()
 {

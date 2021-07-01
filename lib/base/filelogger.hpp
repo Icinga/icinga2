@@ -23,6 +23,7 @@ public:
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	void Start(bool runtimeCreated) override;
+	void Flush() override;
 
 private:
 	void ReopenLogFile();

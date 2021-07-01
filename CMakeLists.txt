@@ -68,7 +68,6 @@ set_full_dir(ICINGA2_FULL_INITRUNDIR "${ICINGA2_INITRUNDIR}")
 set_full_dir(ICINGA2_FULL_PKGDATADIR "${ICINGA2_PKGDATADIR}")
 set_full_dir(ICINGA2_FULL_INCLUDEDIR "${ICINGA2_INCLUDEDIR}")
 
-set(LOGROTATE_DIR "${CMAKE_INSTALL_SYSCONFDIR}/logrotate.d" CACHE STRING "Location of logrotate configs, e.g. /etc/logrotate.d")
 set(BASHCOMPLETION_DIR "${CMAKE_INSTALL_SYSCONFDIR}/bash_completion.d" CACHE STRING "Location of bash_completion files, e.g. /etc/bash_completion.d")
 
 if(NOT WIN32)
