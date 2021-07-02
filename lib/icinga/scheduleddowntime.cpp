@@ -98,6 +98,15 @@ void ScheduledDowntime::TimerProc()
 				Log(LogCritical, "ScheduledDowntime")
 					<< "Exception occurred during creation of next downtime for scheduled downtime '"
 					<< sd->GetName() << "': " << DiagnosticInformation(ex, false);
+				continue;
+			}
+
+			try {
+				sd->RemoveObsoleteDowntimes();
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "ScheduledDowntime")
+					<< "Exception occurred during removal of obsolete downtime for scheduled downtime '"
+					<< sd->GetName() << "': " << DiagnosticInformation(ex, false);
 			}
 		}
 	}
@@ -297,6 +306,24 @@ void ScheduledDowntime::CreateNextDowntime()
 
 			Log(LogNotice, "ScheduledDowntime")
 				<< "Add child downtime '" << childDowntime->GetName() << "'.";
+		}
+	}
+}
+
+void ScheduledDowntime::RemoveObsoleteDowntimes()
+{
+	auto name (GetName());
+	auto downtimeOptionsHash (HashDowntimeOptions());
+
+	// Just to be sure start and removal don't happen at the same time
+	auto threshold (Utility::GetTime() + 5 * 60);
+
+	for (const Downtime::Ptr& downtime : GetCheckable()->GetDowntimes()) {
+		if (downtime->GetScheduledBy() == name && downtime->GetStartTime() > threshold) {
+			auto configOwnerHash (downtime->GetConfigOwnerHash());
+
+			if (!configOwnerHash.IsEmpty() && configOwnerHash != downtimeOptionsHash)
+				Downtime::RemoveDowntime(downtime->GetName(), false, true);
 		}
 	}
 }
