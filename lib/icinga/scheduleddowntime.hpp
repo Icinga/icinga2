@@ -47,6 +47,7 @@ private:
 	std::pair<double, double> FindRunningSegment(double minEnd = 0);
 	std::pair<double, double> FindNextSegment();
 	void CreateNextDowntime();
+	void RemoveObsoleteDowntimes();
 
 	static std::atomic<bool> m_AllConfigLoaded;
 
