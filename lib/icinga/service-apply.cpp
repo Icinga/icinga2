@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "icinga/apply-utility.hpp"
 #include "icinga/service.hpp"
 #include "config/configitembuilder.hpp"
 #include "config/applyrule.hpp"
@@ -38,10 +39,13 @@ bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 
 	builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "name"), OpSetLiteral, MakeLiteral(name), di));
 
-	String zone = host->GetZoneName();
+	{
+		auto expr (ApplyUtility::MakeCommonZone(host->GetZoneName(), rule.GetZone(), di));
 
-	if (!zone.IsEmpty())
-		builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "zone"), OpSetLiteral, MakeLiteral(zone), di));
+		if (expr) {
+			builder.AddExpression(expr.release());
+		}
+	}
 
 	builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "package"), OpSetLiteral, MakeLiteral(rule.GetPackage()), di));
 

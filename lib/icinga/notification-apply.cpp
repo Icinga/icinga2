@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "icinga/apply-utility.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/service.hpp"
 #include "config/configitembuilder.hpp"
@@ -44,10 +45,13 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 	if (service)
 		builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), di));
 
-	String zone = checkable->GetZoneName();
+	{
+		auto expr (ApplyUtility::MakeCommonZone(checkable->GetZoneName(), rule.GetZone(), di));
 
-	if (!zone.IsEmpty())
-		builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "zone"), OpSetLiteral, MakeLiteral(zone), di));
+		if (expr) {
+			builder.AddExpression(expr.release());
+		}
+	}
 
 	builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "package"), OpSetLiteral, MakeLiteral(rule.GetPackage()), di));
 
