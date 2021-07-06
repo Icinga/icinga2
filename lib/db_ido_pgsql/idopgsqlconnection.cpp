@@ -104,11 +104,6 @@ void IdoPgsqlConnection::Pause()
 
 	m_ReconnectTimer.reset();
 
-	m_QueryQueue.Enqueue([this]() { Disconnect(); }, PriorityLow);
-
-	/* Work on remaining tasks but never delete the threads, for HA resuming later. */
-	m_QueryQueue.Join();
-
 	Log(LogInformation, "IdoPgsqlConnection")
 		<< "'" << GetName() << "' paused.";
 }
@@ -659,7 +654,9 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 	Value rawvalue = DbValue::ExtractValue(value);
 
-	if (rawvalue.IsObjectType<ConfigObject>()) {
+	if (rawvalue.GetType() == ValueEmpty) {
+		*result = "NULL";
+	} else if (rawvalue.IsObjectType<ConfigObject>()) {
 		DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(rawvalue);
 
 		if (!dbobjcol) {
@@ -720,7 +717,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 {
-	if (IsPaused())
+	if (IsPaused() && GetPauseCalled())
 		return;
 
 	ASSERT(query.Category != DbCatInvalid);
@@ -762,9 +759,6 @@ bool IdoPgsqlConnection::CanExecuteQuery(const DbQuery& query)
 		for (const Dictionary::Pair& kv : query.Fields) {
 			Value value;
 
-			if (kv.second.IsEmpty() && !kv.second.IsString())
-				continue;
-
 			if (!FieldToEscapedString(kv.first, kv.second, &value))
 				return false;
 		}
@@ -805,7 +799,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 {
 	AssertOnWorkQueue();
 
-	if (IsPaused()) {
+	if (IsPaused() && GetPauseCalled()) {
 		DecreasePendingQueries(1);
 		return;
 	}
@@ -918,9 +912,6 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 		Value value;
 		bool first = true;
 		for (const Dictionary::Pair& kv : query.Fields) {
-			if (kv.second.IsEmpty() && !kv.second.IsString())
-				continue;
-
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
 				m_QueryQueue.Enqueue([this, query]() { InternalExecuteQuery(query, -1); }, query.Priority);
 				return;

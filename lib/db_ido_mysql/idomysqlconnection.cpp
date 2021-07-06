@@ -105,11 +105,6 @@ void IdoMysqlConnection::Pause()
 		<< "Rescheduling disconnect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue([this]() { Disconnect(); }, PriorityLow);
-
-	/* Work on remaining tasks but never delete the threads, for HA resuming later. */
-	m_QueryQueue.Join();
-
 	Log(LogInformation, "IdoMysqlConnection")
 		<< "'" << GetName() << "' paused.";
 
@@ -152,7 +147,7 @@ void IdoMysqlConnection::Disconnect()
 
 void IdoMysqlConnection::NewTransaction()
 {
-	if (IsPaused())
+	if (IsPaused() && GetPauseCalled())
 		return;
 
 #ifdef I2_DEBUG /* I2_DEBUG */
@@ -845,7 +840,9 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 	Value rawvalue = DbValue::ExtractValue(value);
 
-	if (rawvalue.IsObjectType<ConfigObject>()) {
+	if (rawvalue.GetType() == ValueEmpty) {
+		*result = "NULL";
+	} else if (rawvalue.IsObjectType<ConfigObject>()) {
 		DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(rawvalue);
 
 		if (!dbobjcol) {
@@ -906,7 +903,7 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
-	if (IsPaused())
+	if (IsPaused() && GetPauseCalled())
 		return;
 
 	ASSERT(query.Category != DbCatInvalid);
@@ -958,9 +955,6 @@ bool IdoMysqlConnection::CanExecuteQuery(const DbQuery& query)
 		for (const Dictionary::Pair& kv : query.Fields) {
 			Value value;
 
-			if (kv.second.IsEmpty() && !kv.second.IsString())
-				continue;
-
 			if (!FieldToEscapedString(kv.first, kv.second, &value))
 				return false;
 		}
@@ -1009,7 +1003,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 {
 	AssertOnWorkQueue();
 
-	if (IsPaused()) {
+	if (IsPaused() && GetPauseCalled()) {
 		DecreasePendingQueries(1);
 		return;
 	}
@@ -1136,9 +1130,6 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 		bool first = true;
 		for (const Dictionary::Pair& kv : query.Fields) {
 			Value value;
-
-			if (kv.second.IsEmpty() && !kv.second.IsString())
-				continue;
 
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
 
