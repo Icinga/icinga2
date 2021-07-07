@@ -2193,6 +2193,10 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 		if (!perfData.IsEmpty())
 			attrs->Set("performance_data", perfData);
 
+		String normedPerfData = PluginUtility::FormatPerfdata(cr->GetPerformanceData(), true);
+		if (!normedPerfData.IsEmpty())
+			attrs->Set("normalized_performance_data", normedPerfData);
+
 		if (!cr->GetCommand().IsEmpty())
 			attrs->Set("commandline", FormatCommandLine(cr->GetCommand()));
 		attrs->Set("execution_time", TimestampToMilliseconds(fmax(0.0, cr->CalculateExecutionTime())));

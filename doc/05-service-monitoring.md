@@ -651,7 +651,7 @@ Icinga sets `LC_NUMERIC=C` to enforce this locale on plugin execution.
 ```
 
 The UoMs are written as-is into the [core backends](14-features.md#core-backends)
-(Icinga DB, IDO, API). I.e. 12.445000ms remain 12.445000ms.
+(IDO, API). I.e. 12.445000ms remain 12.445000ms.
 
 In contrast, the [metric backends](14-features.md#metrics)
 (Graphite, InfluxDB, etc.) get perfdata (including warn, crit, min, max)
@@ -659,6 +659,8 @@ normalized by Icinga. E.g. 12.445000ms become 0.012445 seconds.
 
 Some plugins change the UoM for different sizing, e.g. returning the disk usage in MB and later GB
 for the same performance data label. This is to ensure that graphs always look the same.
+
+[Icinga DB](14-features.md#core-backends-icingadb) gets both the as-is and the normalized perfdata.
 
 What metric backends get... | ... from which perfdata UoMs (case-insensitive if possible)
 ----------------------------|---------------------------------------

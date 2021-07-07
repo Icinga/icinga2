@@ -176,7 +176,7 @@ Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)
 	return new Array(std::move(result));
 }
 
-String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata)
+String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata, bool normalize)
 {
 	if (!perfdata)
 		return "";
@@ -192,10 +192,25 @@ String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata)
 		else
 			first = false;
 
-		if (pdv.IsObjectType<PerfdataValue>())
+		if (pdv.IsObjectType<PerfdataValue>()) {
 			result << static_cast<PerfdataValue::Ptr>(pdv)->Format();
-		else
+		} else if (normalize) {
+			PerfdataValue::Ptr normalized;
+
+			try {
+				normalized = PerfdataValue::Parse(pdv);
+			} catch (const std::invalid_argument& ex) {
+				Log(LogDebug, "PerfdataValue") << ex.what();
+			}
+
+			if (normalized) {
+				result << normalized->Format();
+			} else {
+				result << pdv;
+			}
+		} else {
 			result << pdv;
+		}
 	}
 
 	return result.str();
