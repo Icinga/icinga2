@@ -75,4 +75,28 @@ BOOST_AUTO_TEST_CASE(validateutf8)
 	BOOST_CHECK(Utility::ValidateUTF8("\xC3\xA4") == "\xC3\xA4");
 }
 
+BOOST_AUTO_TEST_CASE(TruncateUsingHash)
+{
+	/*
+	 * Note: be careful when changing the output of TruncateUsingHash as it is used to derive file names that should not
+	 * change between versions or would need special handling if they do (/var/lib/icinga2/api/packages/_api).
+	 */
+
+	/* minimum allowed value for maxLength template parameter */
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<44>(std::string(64, 'a')),
+		"a...0098ba824b5c16427bd7a1122a5a442a25ec644d");
+
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<80>(std::string(100, 'a')),
+		std::string(37, 'a') + "...7f9000257a4918d7072655ea468540cdcbd42e0c");
+
+	/* short enough values should not be truncated */
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<80>(""), "");
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<80>(std::string(60, 'a')), std::string(60, 'a'));
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<80>(std::string(79, 'a')), std::string(79, 'a'));
+
+	/* inputs of maxLength are hashed to avoid collisions */
+	BOOST_CHECK_EQUAL(Utility::TruncateUsingHash<80>(std::string(80, 'a')),
+		std::string(37, 'a') + "...86f33652fcffd7fa1443e246dd34fe5d00e25ffd");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
