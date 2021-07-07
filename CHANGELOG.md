@@ -7,6 +7,30 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.12.5 (2021-07-08)
+
+Version 2.12.5 updates OpenSSL shipped with the Windows package
+and adds a configurable timeout for full connection handshake.
+
+This version also resolves several issues with Downtimes.
+
+### Security
+
+* Update OpenSSL shipped with the Windows package from 1.1.1h to 1.1.1k #8885
+
+### Bugfixes
+
+* Don't send Downtime end notification if Downtime hasn't started #8877
+* Don't let a failed Downtime creation block the others #8863
+* Support Downtimes and Comments for checkables with long names #8864
+* Trigger fixed downtimes immediately if the current time matches
+  (instead of waiting for the timer) #8889
+
+### Enhancements
+
+* Replace existing Downtimes on ScheduledDowntime change #8879
+* Add configurable timeout for full connection handshake #8866
+
 ## 2.12.4 (2021-05-27)
 
 Version 2.12.4 is a maintenance release that fixes some crashes, improves error handling
