@@ -43,6 +43,10 @@ class ApiListener : ConfigObject
 		default {{{ return Configuration::TlsHandshakeTimeout; }}}
 	};
 
+	[config] double connect_timeout {
+		default {{{ return 15.0; }}}
+	};
+
 	[config] String ticket_salt;
 
 	[config] Array::Ptr access_control_allow_origin;
