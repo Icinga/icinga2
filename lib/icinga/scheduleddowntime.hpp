@@ -35,6 +35,7 @@ public:
 
 	void ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 	void ValidateChildOptions(const Lazy<Value>& lvalue, const ValidationUtils& utils) override;
+	String HashDowntimeOptions();
 
 protected:
 	void OnAllConfigLoaded() override;
@@ -46,6 +47,7 @@ private:
 	std::pair<double, double> FindRunningSegment(double minEnd = 0);
 	std::pair<double, double> FindNextSegment();
 	void CreateNextDowntime();
+	void RemoveObsoleteDowntimes();
 
 	static std::atomic<bool> m_AllConfigLoaded;
 
