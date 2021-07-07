@@ -238,6 +238,12 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 		if (localZone) {
 			attrs->Set("authoritative_zone", localZone->GetName());
 		}
+
+		auto sd (ScheduledDowntime::GetByName(scheduledDowntime));
+
+		if (sd) {
+			attrs->Set("config_owner_hash", sd->HashDowntimeOptions());
+		}
 	}
 
 	Host::Ptr host;
