@@ -19,17 +19,24 @@ if (-not ($env:PATH -contains $env:CMAKE_PATH)) {
 if (-not (Test-Path env:CMAKE_GENERATOR)) {
   $env:CMAKE_GENERATOR = 'Visual Studio 16 2019'
 }
+if (-not (Test-Path env:BITS)) {
+  $env:BITS = 64
+}
 if (-not (Test-Path env:CMAKE_GENERATOR_PLATFORM)) {
-  $env:CMAKE_GENERATOR_PLATFORM = 'x64'
+  if ($env:BITS -eq 32) {
+    $env:CMAKE_GENERATOR_PLATFORM = 'Win32'
+  } else {
+    $env:CMAKE_GENERATOR_PLATFORM = 'x64'
+  }
 }
 if (-not (Test-Path env:OPENSSL_ROOT_DIR)) {
-  $env:OPENSSL_ROOT_DIR = 'c:\local\OpenSSL_1_1_1h-Win64'
+  $env:OPENSSL_ROOT_DIR = "c:\local\OpenSSL_1_1_1h-Win${env:BITS}"
 }
 if (-not (Test-Path env:BOOST_ROOT)) {
-  $env:BOOST_ROOT = 'c:\local\boost_1_71_0-Win64'
+  $env:BOOST_ROOT = "c:\local\boost_1_71_0-Win${env:BITS}"
 }
 if (-not (Test-Path env:BOOST_LIBRARYDIR)) {
-  $env:BOOST_LIBRARYDIR = 'c:\local\boost_1_71_0-Win64\lib64-msvc-14.2'
+  $env:BOOST_LIBRARYDIR = "c:\local\boost_1_71_0-Win${env:BITS}\lib${env:BITS}-msvc-14.2"
 }
 if (-not (Test-Path env:FLEX_BINARY)) {
   $env:FLEX_BINARY = 'C:\ProgramData\chocolatey\bin\win_flex.exe'
