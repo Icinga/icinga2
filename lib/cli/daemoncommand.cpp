@@ -497,6 +497,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 				_exit(RunWorker(configs, closeConsoleLog, stderrFile));
 			} catch (const std::exception& ex) {
 				Log(LogCritical, "cli") << "Exception in main process: " << DiagnosticInformation(ex);
+				throw;
 				_exit(EXIT_FAILURE);
 			} catch (...) {
 				throw;
