@@ -18,6 +18,7 @@
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
+#include <boost/stacktrace.hpp>
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -32,6 +33,14 @@
 #endif /* _WIN32 */
 
 using namespace icinga;
+
+#ifdef _WIN32
+/* MSVC throws unhandled C++ exceptions as SEH exceptions with this specific error code.
+ * There seems to be no system header that actually defines this constant.
+ * See also https://devblogs.microsoft.com/oldnewthing/20160915-00/?p=94316
+ */
+#define EXCEPTION_CODE_CXX_EXCEPTION 0xe06d7363
+#endif /* _WIN32 */
 
 REGISTER_TYPE(Application);
 
@@ -53,6 +62,10 @@ char **Application::m_ArgV;
 double Application::m_StartTime;
 bool Application::m_ScriptDebuggerEnabled = false;
 double Application::m_LastReloadFailed;
+
+#ifdef _WIN32
+static LPTOP_LEVEL_EXCEPTION_FILTER l_DefaultUnhandledExceptionFilter = nullptr;
+#endif /* _WIN32 */
 
 /**
  * Constructor for the Application class.
@@ -742,11 +755,12 @@ void Application::SigAbrtHandler(int)
 		Log(LogCritical, "Application")
 			<< "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'" << "\n";
 
+		ofs << "Caught SIGABRT.\n"
+			<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n\n";
+
 		DisplayInfoMessage(ofs);
 
-		StackTrace trace;
-		ofs << "Stacktrace:" << "\n";
-		trace.Print(ofs, 1);
+		ofs << "\nStacktrace:\n" << StackTraceFormatter(boost::stacktrace::stacktrace()) << "\n";
 
 		DisplayBugMessage(ofs);
 
@@ -849,9 +863,8 @@ void Application::ExceptionHandler()
 		std::ofstream ofs;
 		ofs.open(fname.CStr());
 
-		ofs << "Caught unhandled exception." << "\n"
-			<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
-			<< "\n";
+		ofs << "Caught unhandled exception.\n"
+			<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n\n";
 
 		DisplayInfoMessage(ofs);
 
@@ -863,8 +876,19 @@ void Application::ExceptionHandler()
 				<< "\n"
 				<< "Additional information is available in '" << fname << "'" << "\n";
 
+			/* On platforms where HAVE_CXXABI_H is defined, we prefer to print the stack trace that was saved
+			 * when the last exception was thrown. Everywhere else, we do not have this information so we
+			 * collect a stack trace here, which might lack some information, for example when an exception
+			 * is rethrown, but this is still better than nothing.
+			 */
+			boost::stacktrace::stacktrace *stack = nullptr;
+#ifndef HAVE_CXXABI_H
+			boost::stacktrace::stacktrace local_stack;
+			stack = &local_stack;
+#endif /* HAVE_CXXABI_H */
+
 			ofs << "\n"
-				<< DiagnosticInformation(ex)
+				<< DiagnosticInformation(ex, true, stack)
 				<< "\n";
 		}
 
@@ -881,6 +905,15 @@ void Application::ExceptionHandler()
 #ifdef _WIN32
 LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 {
+	/* If an unhandled C++ exception occurs with both a termination handler (std::set_terminate()) and an unhandled
+	 * SEH filter (SetUnhandledExceptionFilter()) set, the latter one is called. However, our termination handler is
+	 * better suited for dealing with C++ exceptions. In this case, the SEH exception will have a specific code and
+	 * we can just call the default filter function which will take care of calling the termination handler.
+	 */
+	if (exi->ExceptionRecord->ExceptionCode == EXCEPTION_CODE_CXX_EXCEPTION) {
+		return l_DefaultUnhandledExceptionFilter(exi);
+	}
+
 	if (l_InExceptionHandler)
 		return EXCEPTION_CONTINUE_SEARCH;
 
@@ -905,15 +938,20 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 	Log(LogCritical, "Application")
 		<< "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'";
 
+	ofs << "Caught unhandled SEH exception.\n"
+		<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n\n";
+
 	DisplayInfoMessage(ofs);
 
-	ofs << "Caught unhandled SEH exception." << "\n"
-		<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
-		<< "\n";
+	std::ios::fmtflags savedflags(ofs.flags());
+	ofs << std::showbase << std::hex
+		<< "\nSEH exception:\n"
+		<< "  Code: "    << exi->ExceptionRecord->ExceptionCode    << "\n"
+		<< "  Address: " << exi->ExceptionRecord->ExceptionAddress << "\n"
+		<< "  Flags: "   << exi->ExceptionRecord->ExceptionFlags   << "\n";
+	ofs.flags(savedflags);
 
-	StackTrace trace(exi);
-	ofs << "Stacktrace:" << "\n";
-	trace.Print(ofs, 1);
+	ofs << "\nStacktrace:\n" << StackTraceFormatter(boost::stacktrace::stacktrace()) << "\n";
 
 	DisplayBugMessage(ofs);
 
@@ -934,7 +972,7 @@ void Application::InstallExceptionHandlers()
 	sa.sa_handler = &Application::SigAbrtHandler;
 	sigaction(SIGABRT, &sa, nullptr);
 #else /* _WIN32 */
-	SetUnhandledExceptionFilter(&Application::SEHUnhandledExceptionFilter);
+	l_DefaultUnhandledExceptionFilter = SetUnhandledExceptionFilter(&Application::SEHUnhandledExceptionFilter);
 #endif /* _WIN32 */
 }
 

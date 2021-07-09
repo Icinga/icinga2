@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/exception.hpp"
+#include "base/stacktrace.hpp"
 #include <boost/thread/tss.hpp>
 
 #ifdef _WIN32
@@ -13,7 +14,7 @@
 
 using namespace icinga;
 
-static boost::thread_specific_ptr<StackTrace> l_LastExceptionStack;
+static boost::thread_specific_ptr<boost::stacktrace::stacktrace> l_LastExceptionStack;
 static boost::thread_specific_ptr<ContextTrace> l_LastExceptionContext;
 
 #ifdef HAVE_CXXABI_H
@@ -32,6 +33,14 @@ public:
 
 
 #if defined(__GLIBCXX__) || defined(_LIBCPPABI_VERSION)
+/**
+ * Attempts to cast an exception to a destination type
+ *
+ * @param obj Exception to be casted
+ * @param src Type information of obj
+ * @param dst Information of which type to cast to
+ * @return Pointer to the exception if the cast is possible, nullptr otherwise
+ */
 inline void *cast_exception(void *obj, const std::type_info *src, const std::type_info *dst)
 {
 #ifdef __GLIBCXX__
@@ -92,6 +101,13 @@ void icinga::RethrowUncaughtException()
 extern "C"
 void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 {
+	/* This function overrides an internal function of libstdc++ that is called when a C++ exception is thrown in order
+	 * to capture as much information as possible at that time and then call the original implementation. This
+	 * information includes:
+	 *  - stack trace (for later use in DiagnosticInformation)
+	 *  - context trace (for later use in DiagnosticInformation)
+	 */
+
 	auto *tinfo = static_cast<std::type_info *>(pvtinfo);
 
 	typedef void (*cxa_throw_fn)(void *, std::type_info *, void (*)(void *)) __attribute__((noreturn));
@@ -103,6 +119,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 	l_LastExceptionDest.reset(new DestCallback(dest));
 #endif /* !defined(__GLIBCXX__) && !defined(_WIN32) */
 
+	// resolve symbol to original implementation of __cxa_throw for the call at the end of this function
 	if (real_cxa_throw == nullptr)
 		real_cxa_throw = (cxa_throw_fn)dlsym(RTLD_NEXT, "__cxa_throw");
 
@@ -112,10 +129,12 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 
 	if (!uex) {
 #endif /* NO_CAST_EXCEPTION */
-		StackTrace stack;
+		// save the current stack trace in a thread-local variable
+		boost::stacktrace::stacktrace stack;
 		SetLastExceptionStack(stack);
 
 #ifndef NO_CAST_EXCEPTION
+		// save the current stack trace in the boost exception error info if the exception is a boost::exception
 		if (ex && !boost::get_error_info<StackTraceErrorInfo>(*ex))
 			*ex << StackTraceErrorInfo(stack);
 	}
@@ -125,6 +144,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 	SetLastExceptionContext(context);
 
 #ifndef NO_CAST_EXCEPTION
+	// save the current context trace in the boost exception error info if the exception is a boost::exception
 	if (ex && !boost::get_error_info<ContextTraceErrorInfo>(*ex))
 		*ex << ContextTraceErrorInfo(context);
 #endif /* NO_CAST_EXCEPTION */
@@ -133,14 +153,14 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 }
 #endif /* HAVE_CXXABI_H */
 
-StackTrace *icinga::GetLastExceptionStack()
+boost::stacktrace::stacktrace *icinga::GetLastExceptionStack()
 {
 	return l_LastExceptionStack.get();
 }
 
-void icinga::SetLastExceptionStack(const StackTrace& trace)
+void icinga::SetLastExceptionStack(const boost::stacktrace::stacktrace& trace)
 {
-	l_LastExceptionStack.reset(new StackTrace(trace));
+	l_LastExceptionStack.reset(new boost::stacktrace::stacktrace(trace));
 }
 
 ContextTrace *icinga::GetLastExceptionContext()
@@ -153,7 +173,7 @@ void icinga::SetLastExceptionContext(const ContextTrace& context)
 	l_LastExceptionContext.reset(new ContextTrace(context));
 }
 
-String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, StackTrace *stack, ContextTrace *context)
+String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, boost::stacktrace::stacktrace *stack, ContextTrace *context)
 {
 	std::ostringstream result;
 
@@ -215,34 +235,37 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 	const auto *pex = dynamic_cast<const posix_error *>(&ex);
 
 	if (!uex && !pex && verbose) {
-		const StackTrace *st = boost::get_error_info<StackTraceErrorInfo>(ex);
+		// Print the first of the following stack traces (if any exists)
+		//   1. stack trace from boost exception error information
+		const boost::stacktrace::stacktrace *st = boost::get_error_info<StackTraceErrorInfo>(ex);
+		//   2. stack trace explicitly passed as a parameter
+		if (!st) {
+			st = stack;
+		}
+		//   3. stack trace saved when the last exception was thrown
+		if (!st) {
+			st = GetLastExceptionStack();
+		}
 
-		if (st) {
-			result << *st;
-		} else {
-			result << std::endl;
-
-			if (!stack)
-				stack = GetLastExceptionStack();
-
-			if (stack)
-				result << *stack;
-
+		if (st && !st->empty()) {
+			result << "\nStacktrace:\n" << StackTraceFormatter(*st);
 		}
 	}
 
+	// Print the first of the following context traces (if any exists)
+	//   1. context trace from boost exception error information
 	const ContextTrace *ct = boost::get_error_info<ContextTraceErrorInfo>(ex);
+	//   2. context trace explicitly passed as a parameter
+	if (!ct) {
+		ct = context;
+	}
+	//   3. context trace saved when the last exception was thrown
+	if (!ct) {
+		ct = GetLastExceptionContext();
+	}
 
-	if (ct) {
-		result << *ct;
-	} else {
-		result << std::endl;
-
-		if (!context)
-			context = GetLastExceptionContext();
-
-		if (context)
-			result << *context;
+	if (ct && ct->GetLength() > 0) {
+		result << "\nContext:\n" << *ct;
 	}
 
 	return result.str();
@@ -250,8 +273,8 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 
 String icinga::DiagnosticInformation(const boost::exception_ptr& eptr, bool verbose)
 {
-	StackTrace *pt = GetLastExceptionStack();
-	StackTrace stack;
+	boost::stacktrace::stacktrace *pt = GetLastExceptionStack();
+	boost::stacktrace::stacktrace stack;
 
 	ContextTrace *pc = GetLastExceptionContext();
 	ContextTrace context;
