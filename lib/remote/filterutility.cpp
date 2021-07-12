@@ -117,10 +117,15 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissionFilter,
 	ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const String& variableName, const Object::Ptr& target)
 {
-	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName)) {
-		if (FilterUtility::EvaluateFilter(frame, ufilter, target, variableName)) {
-			result.emplace_back(std::move(target));
+	try {
+		if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName)) {
+			if (FilterUtility::EvaluateFilter(frame, ufilter, target, variableName)) {
+				result.emplace_back(std::move(target));
+			}
 		}
+	} catch (const ScriptError& ex) {
+		Log(LogWarning, "FilterUtility")
+			<< ex.what();
 	}
 }
 
