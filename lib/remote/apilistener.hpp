@@ -89,6 +89,9 @@ public:
 	static String GetCaDir();
 	static String GetCertificateRequestsDir();
 
+	static Shared<boost::asio::ssl::context>::Ptr MakeSSLContext(String certPath, String keyPath,
+		String caPath, String crlPath, String cipherList, String protocolmin);
+
 	void UpdateSSLContext();
 
 	static ApiListener::Ptr GetInstance();
