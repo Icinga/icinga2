@@ -90,7 +90,7 @@ public:
 	static String GetCertificateRequestsDir();
 
 	static Shared<boost::asio::ssl::context>::Ptr MakeSSLContext(String certPath, String keyPath,
-		String caPath, String crlPath, String cipherList, String protocolmin);
+		String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di);
 
 	void UpdateSSLContext();
 

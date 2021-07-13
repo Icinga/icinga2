@@ -52,7 +52,6 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
-	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex());
 	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context& yc) {
 		m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
 	});
@@ -63,9 +62,7 @@ void IcingaDB::Start(bool runtimeCreated)
 		if (!ctype)
 			continue;
 
-		RedisConnection::Ptr rCon (new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex()));
-		rCon->Start();
-		m_Rcons[ctype] = std::move(rCon);
+		m_Rcons.at(ctype)->Start();
 	}
 
 	m_StatsTimer = new Timer();
@@ -138,6 +135,40 @@ void IcingaDB::Stop(bool runtimeRemoved)
 		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<IcingaDB>::Stop(runtimeRemoved);
+}
+
+void IcingaDB::ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<IcingaDB>::ValidateTlsProtocolmin(lvalue, utils);
+
+	try {
+		ResolveTlsProtocolVersion(lvalue());
+	} catch (const std::exception& ex) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_protocolmin" }, ex.what()));
+	}
+}
+
+void IcingaDB::OnAllConfigLoaded()
+{
+	ObjectImpl<IcingaDB>::OnAllConfigLoaded();
+
+	if (GetUseTls() && GetCertPath().IsEmpty() != GetKeyPath().IsEmpty()) {
+		BOOST_THROW_EXCEPTION(ScriptError("IcingaDB '" + GetName() + "' must specify either both a client certificate (cert_path) and its private key (key_path) or none of them.", GetDebugInfo()));
+	}
+
+	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
+		GetUseTls(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
+		GetTlsProtocolmin(), GetCipherList(), GetDebugInfo());
+
+	for (const Type::Ptr& type : GetTypes()) {
+		auto ctype (dynamic_cast<ConfigType*>(type.get()));
+		if (!ctype)
+			continue;
+
+		m_Rcons[ctype] = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
+			GetUseTls(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
+			GetTlsProtocolmin(), GetCipherList(), GetDebugInfo());
+	}
 }
 
 void IcingaDB::AssertOnWorkQueue()

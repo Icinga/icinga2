@@ -38,6 +38,11 @@ public:
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
+protected:
+	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
+
+	void OnAllConfigLoaded() override;
+
 private:
 	class DumpedGlobals
 	{
