@@ -23,6 +23,16 @@ REGISTER_TYPE(IdoPgsqlConnection);
 
 REGISTER_STATSFUNCTION(IdoPgsqlConnection, &IdoPgsqlConnection::StatsFunc);
 
+const char * IdoPgsqlConnection::GetLatestSchemaVersion() const noexcept
+{
+	return "1.14.3";
+}
+
+const char * IdoPgsqlConnection::GetCompatSchemaVersion() const noexcept
+{
+	return "1.14.3";
+}
+
 IdoPgsqlConnection::IdoPgsqlConnection()
 {
 	m_QueryQueue.SetName("IdoPgsqlConnection, " + GetName());
@@ -270,13 +280,13 @@ void IdoPgsqlConnection::Reconnect()
 
 	SetSchemaVersion(version);
 
-	if (Utility::CompareVersion(IDO_COMPAT_SCHEMA_VERSION, version) < 0) {
+	if (Utility::CompareVersion(GetCompatSchemaVersion(), version) < 0) {
 		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoPgsqlConnection")
 			<< "Schema version '" << version << "' does not match the required version '"
-			<< IDO_COMPAT_SCHEMA_VERSION << "' (or newer)! Please check the upgrade documentation at "
+			<< GetCompatSchemaVersion() << "' (or newer)! Please check the upgrade documentation at "
 			<< "https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/#upgrading-postgresql-db";
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Schema version mismatch."));

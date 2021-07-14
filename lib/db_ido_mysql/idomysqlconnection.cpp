@@ -21,6 +21,16 @@ using namespace icinga;
 REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnection, &IdoMysqlConnection::StatsFunc);
 
+const char * IdoMysqlConnection::GetLatestSchemaVersion() const noexcept
+{
+	return "1.15.0";
+}
+
+const char * IdoMysqlConnection::GetCompatSchemaVersion() const noexcept
+{
+	return "1.14.3";
+}
+
 void IdoMysqlConnection::OnConfigLoaded()
 {
 	ObjectImpl<IdoMysqlConnection>::OnConfigLoaded();
@@ -303,13 +313,13 @@ void IdoMysqlConnection::Reconnect()
 
 	SetSchemaVersion(version);
 
-	if (Utility::CompareVersion(IDO_COMPAT_SCHEMA_VERSION, version) < 0) {
+	if (Utility::CompareVersion(GetCompatSchemaVersion(), version) < 0) {
 		m_Mysql->close(&m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoMysqlConnection")
 			<< "Schema version '" << version << "' does not match the required version '"
-			<< IDO_COMPAT_SCHEMA_VERSION << "' (or newer)! Please check the upgrade documentation at "
+			<< GetCompatSchemaVersion() << "' (or newer)! Please check the upgrade documentation at "
 			<< "https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/#upgrading-mysql-db";
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Schema version mismatch."));

@@ -12,9 +12,6 @@
 #include <boost/thread/once.hpp>
 #include <mutex>
 
-#define IDO_CURRENT_SCHEMA_VERSION "1.14.3"
-#define IDO_COMPAT_SCHEMA_VERSION "1.14.3"
-
 namespace icinga
 {
 
@@ -29,6 +26,9 @@ public:
 	DECLARE_OBJECT(DbConnection);
 
 	static void InitializeDbTimer();
+
+	virtual const char * GetLatestSchemaVersion() const noexcept = 0;
+	virtual const char * GetCompatSchemaVersion() const noexcept = 0;
 
 	void SetConfigHash(const DbObject::Ptr& dbobj, const String& hash);
 	void SetConfigHash(const DbType::Ptr& type, const DbReference& objid, const String& hash);

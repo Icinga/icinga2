@@ -37,6 +37,9 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
+	const char * GetLatestSchemaVersion() const noexcept override;
+	const char * GetCompatSchemaVersion() const noexcept override;
+
 	int GetPendingQueryCount() const override;
 
 protected:
