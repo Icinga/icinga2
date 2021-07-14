@@ -179,46 +179,52 @@ void ApiListener::OnConfigLoaded()
 	UpdateSSLContext();
 }
 
-void ApiListener::UpdateSSLContext()
+Shared<boost::asio::ssl::context>::Ptr ApiListener::MakeSSLContext(String certPath, String keyPath,
+	String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di)
 {
 	namespace ssl = boost::asio::ssl;
 
 	Shared<ssl::context>::Ptr context;
 
 	try {
-		context = MakeAsioSslContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath());
+		context = MakeAsioSslContext(certPath, keyPath, caPath);
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
-			+ GetDefaultCertPath() + "' key path: '" + GetDefaultKeyPath() + "' ca path: '" + GetDefaultCaPath() + "'.", GetDebugInfo()));
+			+ certPath + "' key path: '" + keyPath + "' ca path: '" + caPath + "'.", di));
 	}
 
-	if (!GetCrlPath().IsEmpty()) {
+	if (!crlPath.IsEmpty()) {
 		try {
-			AddCRLToSSLContext(context, GetCrlPath());
+			AddCRLToSSLContext(context, crlPath);
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot add certificate revocation list to SSL context for crl path: '"
-				+ GetCrlPath() + "'.", GetDebugInfo()));
+				+ crlPath + "'.", di));
 		}
 	}
 
-	if (!GetCipherList().IsEmpty()) {
+	if (!cipherList.IsEmpty()) {
 		try {
-			SetCipherListToSSLContext(context, GetCipherList());
+			SetCipherListToSSLContext(context, cipherList);
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set cipher list to SSL context for cipher list: '"
-				+ GetCipherList() + "'.", GetDebugInfo()));
+				+ cipherList + "'.", di));
 		}
 	}
 
-	if (!GetTlsProtocolmin().IsEmpty()){
+	if (!protocolmin.IsEmpty()){
 		try {
-			SetTlsProtocolminToSSLContext(context, GetTlsProtocolmin());
+			SetTlsProtocolminToSSLContext(context, protocolmin);
 		} catch (const std::exception&) {
-			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + GetTlsProtocolmin() + "'.", GetDebugInfo()));
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + protocolmin + "'.", di));
 		}
 	}
 
-	m_SSLContext = context;
+	return std::move(context);
+}
+
+void ApiListener::UpdateSSLContext()
+{
+	m_SSLContext = MakeSSLContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath(), GetCrlPath(), GetCipherList(), GetTlsProtocolmin(), GetDebugInfo());
 
 	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
