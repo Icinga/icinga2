@@ -148,6 +148,15 @@ void IcingaDB::ValidateTlsProtocolmin(const Lazy<String>& lvalue, const Validati
 	}
 }
 
+void IcingaDB::ValidateConnectTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<IcingaDB>::ValidateConnectTimeout(lvalue, utils);
+
+	if (lvalue() <= 0) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "connect_timeout" }, "Value must be greater than 0."));
+	}
+}
+
 void IcingaDB::OnAllConfigLoaded()
 {
 	ObjectImpl<IcingaDB>::OnAllConfigLoaded();
@@ -158,7 +167,7 @@ void IcingaDB::OnAllConfigLoaded()
 
 	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
 		GetUseTls(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
-		GetTlsProtocolmin(), GetCipherList(), GetDebugInfo());
+		GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo());
 
 	for (const Type::Ptr& type : GetTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));
@@ -167,7 +176,7 @@ void IcingaDB::OnAllConfigLoaded()
 
 		m_Rcons[ctype] = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
 			GetUseTls(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
-			GetTlsProtocolmin(), GetCipherList(), GetDebugInfo());
+			GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo());
 	}
 }
 
