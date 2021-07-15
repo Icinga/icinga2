@@ -18,7 +18,7 @@ class IcingaDB : ConfigObject
 		default {{{ return 6380; }}}
 	};
 	[config] String path;
-	[config] String password;
+	[config, no_user_view, no_user_modify] String password;
 	[config] int db_index;
 };
 
