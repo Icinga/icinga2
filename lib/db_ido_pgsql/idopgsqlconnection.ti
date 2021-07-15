@@ -20,7 +20,7 @@ class IdoPgsqlConnection : DbConnection
 	[config] String user {
 		default {{{ return "icinga"; }}}
 	};
-	[config] String password {
+	[config, no_user_view, no_user_modify] String password {
 		default {{{ return "icinga"; }}}
 	};
 	[config] String database {
