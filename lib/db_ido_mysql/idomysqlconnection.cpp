@@ -23,7 +23,7 @@ REGISTER_STATSFUNCTION(IdoMysqlConnection, &IdoMysqlConnection::StatsFunc);
 
 const char * IdoMysqlConnection::GetLatestSchemaVersion() const noexcept
 {
-	return "1.15.0";
+	return "1.15.1";
 }
 
 const char * IdoMysqlConnection::GetCompatSchemaVersion() const noexcept
