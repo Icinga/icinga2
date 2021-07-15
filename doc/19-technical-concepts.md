@@ -462,14 +462,13 @@ Flags:
  */
 enum SeverityFlag
 {
-	SeverityFlagDowntime = 1,
-	SeverityFlagAcknowledgement = 2,
-	SeverityFlagHostDown = 4,
-	SeverityFlagUnhandled = 8,
 	SeverityFlagPending = 16,
 	SeverityFlagWarning = 32,
 	SeverityFlagUnknown = 64,
 	SeverityFlagCritical = 128,
+	SeverityFlagDowntime = 256,
+	SeverityFlagAcknowledgement = 512,
+	SeverityFlagHostDown = 1024
 };
 ```
 
