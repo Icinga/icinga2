@@ -70,7 +70,7 @@ namespace icinga
 		};
 
 		RedisConnection(const String& host, const int port, const String& path,
-			const String& password = "", const int db = 0);
+			const String& password = "", const int db = 0, const Ptr& parent = nullptr);
 
 		void Start();
 
@@ -143,7 +143,8 @@ namespace icinga
 		template<class AsyncWriteStream>
 		static void WriteRESP(AsyncWriteStream& stream, const Query& query, boost::asio::yield_context& yc);
 
-		RedisConnection(boost::asio::io_context& io, String host, int port, String path, String password, int db);
+		RedisConnection(boost::asio::io_context& io, String host, int port, String path,
+			String password, int db, const Ptr& parent);
 
 		void Connect(boost::asio::yield_context& yc);
 		void ReadLoop(boost::asio::yield_context& yc);
@@ -197,6 +198,7 @@ namespace icinga
 		RingBuffer m_OutputQueries{10};
 		int m_PendingQueries{0};
 		boost::asio::deadline_timer m_LogStatsTimer;
+		Ptr m_Parent;
 	};
 
 /**

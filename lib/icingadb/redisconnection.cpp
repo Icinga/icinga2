@@ -24,15 +24,17 @@
 using namespace icinga;
 namespace asio = boost::asio;
 
-RedisConnection::RedisConnection(const String& host, const int port, const String& path, const String& password, const int db) :
-	RedisConnection(IoEngine::Get().GetIoContext(), host, port, path, password, db)
+RedisConnection::RedisConnection(const String& host, const int port, const String& path,
+	const String& password, const int db, const RedisConnection::Ptr& parent) :
+	RedisConnection(IoEngine::Get().GetIoContext(), host, port, path, password, db, parent)
 {
 }
 
-RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int port, String path, String password, int db)
+RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int port, String path,
+	String password, int db, const RedisConnection::Ptr& parent)
 	: m_Host(std::move(host)), m_Port(port), m_Path(std::move(path)), m_Password(std::move(password)), m_DbIndex(db),
 	  m_Connecting(false), m_Connected(false), m_Started(false), m_Strand(io),
-	  m_QueuedWrites(io), m_QueuedReads(io), m_LogStatsTimer(io)
+	  m_QueuedWrites(io), m_QueuedReads(io), m_LogStatsTimer(io), m_Parent(parent)
 {
 }
 
@@ -43,7 +45,10 @@ void RedisConnection::Start()
 
 		IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { ReadLoop(yc); });
 		IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { WriteLoop(yc); });
-		IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { LogStats(yc); });
+
+		if (!m_Parent) {
+			IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { LogStats(yc); });
+		}
 	}
 
 	if (!m_Connecting.exchange(true)) {
@@ -588,12 +593,28 @@ void RedisConnection::SetConnectedCallback(std::function<void(asio::yield_contex
 
 void RedisConnection::IncreasePendingQueries(int count)
 {
-	m_PendingQueries += count;
-	m_InputQueries.InsertValue(Utility::GetTime(), count);
+	if (m_Parent) {
+		auto parent (m_Parent);
+
+		asio::post(parent->m_Strand, [parent, count]() {
+			parent->IncreasePendingQueries(count);
+		});
+	} else {
+		m_PendingQueries += count;
+		m_InputQueries.InsertValue(Utility::GetTime(), count);
+	}
 }
 
 void RedisConnection::DecreasePendingQueries(int count)
 {
-	m_PendingQueries -= count;
-	m_OutputQueries.InsertValue(Utility::GetTime(), count);
+	if (m_Parent) {
+		auto parent (m_Parent);
+
+		asio::post(parent->m_Strand, [parent, count]() {
+			parent->DecreasePendingQueries(count);
+		});
+	} else {
+		m_PendingQueries -= count;
+		m_OutputQueries.InsertValue(Utility::GetTime(), count);
+	}
 }

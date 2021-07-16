@@ -63,7 +63,7 @@ void IcingaDB::Start(bool runtimeCreated)
 		if (!ctype)
 			continue;
 
-		RedisConnection::Ptr rCon (new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex()));
+		RedisConnection::Ptr rCon (new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(), m_Rcon));
 		rCon->Start();
 		m_Rcons[ctype] = std::move(rCon);
 	}
