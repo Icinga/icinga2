@@ -151,7 +151,7 @@ CentOS 8 additionally needs the PowerTools repository for EPEL:
 
 ```bash
 dnf install 'dnf-command(config-manager)'
-dnf config-manager --set-enabled PowerTools
+dnf config-manager --set-enabled powertools
 
 dnf install epel-release
 ```
