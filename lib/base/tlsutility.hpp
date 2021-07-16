@@ -4,6 +4,7 @@
 #define TLSUTILITY_H
 
 #include "base/i2-base.hpp"
+#include "base/debuginfo.hpp"
 #include "base/object.hpp"
 #include "base/shared.hpp"
 #include "base/array.hpp"
@@ -34,6 +35,9 @@ void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath);
 void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& cipherList);
 void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& tlsProtocolmin);
 int ResolveTlsProtocolVersion(const std::string& version);
+
+Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String keyPath,
+	String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di);
 
 String GetCertificateCN(const std::shared_ptr<X509>& certificate);
 std::shared_ptr<X509> GetX509Certificate(const String& pemfile);

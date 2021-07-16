@@ -258,6 +258,49 @@ int ResolveTlsProtocolVersion(const std::string& version) {
 	}
 }
 
+Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String keyPath,
+	String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di)
+{
+	namespace ssl = boost::asio::ssl;
+
+	Shared<ssl::context>::Ptr context;
+
+	try {
+		context = MakeAsioSslContext(certPath, keyPath, caPath);
+	} catch (const std::exception&) {
+		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
+			+ certPath + "' key path: '" + keyPath + "' ca path: '" + caPath + "'.", di));
+	}
+
+	if (!crlPath.IsEmpty()) {
+		try {
+			AddCRLToSSLContext(context, crlPath);
+		} catch (const std::exception&) {
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot add certificate revocation list to SSL context for crl path: '"
+				+ crlPath + "'.", di));
+		}
+	}
+
+	if (!cipherList.IsEmpty()) {
+		try {
+			SetCipherListToSSLContext(context, cipherList);
+		} catch (const std::exception&) {
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set cipher list to SSL context for cipher list: '"
+				+ cipherList + "'.", di));
+		}
+	}
+
+	if (!protocolmin.IsEmpty()){
+		try {
+			SetTlsProtocolminToSSLContext(context, protocolmin);
+		} catch (const std::exception&) {
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + protocolmin + "'.", di));
+		}
+	}
+
+	return std::move(context);
+}
+
 /**
  * Set the minimum TLS protocol version to the specified SSL context.
  *
