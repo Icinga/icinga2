@@ -200,7 +200,6 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 
 Name                    | Description
 ------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-apt_extra_opts          | **Optional.** Read options from an ini file.
 apt_upgrade             | **Optional.** [Default] Perform an upgrade. If an optional OPTS argument is provided, apt-get will be run with these command line options instead of the default.
 apt_dist_upgrade        | **Optional.** Perform a dist-upgrade instead of normal upgrade. Like with -U OPTS can be provided to override the default options.
 apt_include             | **Optional.** Include only packages matching REGEXP. Can be specified multiple times the values will be combined together.
@@ -209,6 +208,7 @@ apt_critical            | **Optional.** If the full package information of any o
 apt_timeout             | **Optional.** Seconds before plugin times out (default: 10).
 apt_only_critical       | **Optional.** Only warn about critical upgrades.
 apt_list                | **Optional.** List packages available for upgrade.
+apt_extra_opts          | **Optional.** Read extra plugin options from an ini file.
 
 
 ### breeze <a id="plugin-check-command-breeze"></a>
@@ -249,6 +249,7 @@ by_ssh_options     | **Optional.** Call ssh with '-o OPTION' (multiple options m
 by_ssh_ipv4        | **Optional.** Use IPv4 connection. Defaults to false.
 by_ssh_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
 by_ssh_skip_stderr | **Optional.** Ignore all or (if specified) first n lines on STDERR.
+by_ssh_extra_opts  | **Optional.** Read extra plugin options from an ini file.
 
 
 ### clamd <a id="plugin-check-command-clamd"></a>
@@ -280,6 +281,7 @@ clamd_ctime          | **Optional.** Response time to result in critical status 
 clamd_timeout        | **Optional.** Seconds before connection times out. Defaults to 10.
 clamd_ipv4           | **Optional.** Use IPv4 connection. Defaults to false.
 clamd_ipv6           | **Optional.** Use IPv6 connection. Defaults to false.
+clamd_extra_opts     | **Optional.** Read extra plugin options from an ini file.
 
 
 ### dhcp <a id="plugin-check-command-dhcp"></a>
@@ -297,6 +299,7 @@ dhcp_timeout    | **Optional.** The timeout in seconds.
 dhcp_interface  | **Optional.** The interface to use.
 dhcp_mac        | **Optional.** The MAC address to use in the DHCP request.
 dhcp_unicast    | **Optional.** Whether to use unicast requests. Defaults to false.
+dhcp_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### dig <a id="plugin-check-command-dig"></a>
@@ -320,6 +323,7 @@ dig_critical         | **Optional.** Response time to result in critical status 
 dig_timeout          | **Optional.** Seconds before connection times out (default: 10).
 dig_ipv4             | **Optional.** Force dig to only use IPv4 query transport. Defaults to false.
 dig_ipv6             | **Optional.** Force dig to only use IPv6 query transport. Defaults to false.
+dig_extra_opts       | **Optional.** Read extra plugin options from an ini file.
 
 
 ### disk <a id="plugin-check-command-disk"></a>
@@ -359,6 +363,7 @@ disk\_timeout             | **Optional.** Seconds before connection times out (d
 disk\_units               | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
 disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "configfs", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fdescfs", "overlay", "nsfs", "squashfs".
 disk\_include\_type       | **Optional.** Check only filesystems of indicated type. Multiple regular expression strings must be defined as array.
+disk\_extra\_opts       | **Optional.** Read extra plugin options from an ini file.
 
 ### disk_smb <a id="plugin-check-command-disk-smb"></a>
 
@@ -400,6 +405,7 @@ dns_accept_cname     | **Optional.** Accept cname responses as a valid result to
 dns_wtime            | **Optional.** Return warning if elapsed time exceeds value.
 dns_ctime            | **Optional.** Return critical if elapsed time exceeds value.
 dns_timeout          | **Optional.** Seconds before connection times out. Defaults to 10.
+dns_extra_opts       | **Optional.** Read extra plugin options from an ini file.
 
 
 
@@ -456,6 +462,7 @@ fping_bytes	| **Optional.** The size of ICMP packet.
 fping_target_timeout | **Optional.** The target timeout in milli-seconds.
 fping_source_ip | **Optional.** The name or ip address of the source ip.
 fping_source_interface | **Optional.** The source interface name.
+fping_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### fping6 <a id="plugin-check-command-fping6"></a>
@@ -481,6 +488,7 @@ fping_bytes	| **Optional.** The size of ICMP packet.
 fping_target_timeout | **Optional.** The target timeout in milli-seconds.
 fping_source_ip | **Optional.** The name or ip address of the source ip.
 fping_source_interface | **Optional.** The source interface name.
+fping_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### ftp <a id="plugin-check-command-ftp"></a>
@@ -512,6 +520,7 @@ ftp_ctime          | **Optional.** Response time to result in critical status (s
 ftp_timeout        | **Optional.** Seconds before connection times out. Defaults to 10.
 ftp_ipv4           | **Optional.** Use IPv4 connection. Defaults to false.
 ftp_ipv6           | **Optional.** Use IPv6 connection. Defaults to false.
+ftp_extra_opts     | **Optional.** Read extra plugin options from an ini file.
 
 
 ### game <a id="plugin-check-command-game"></a>
@@ -535,6 +544,7 @@ game_mapfield      | **Optional.** Field number in raw qstat output that contain
 game_pingfield     | **Optional.** Field number in raw qstat output that contains ping time.
 game_gametime      | **Optional.** Field number in raw qstat output that contains game time.
 game_hostname      | **Optional.** Name of the host running the game.
+game_extra_opts    | **Optional.** Read extra plugin options from an ini file.
 
 
 ### hostalive <a id="plugin-check-command-hostalive"></a>
@@ -554,6 +564,7 @@ ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defa
 ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 100.
 ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
 ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+ping_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### hostalive4 <a id="plugin-check-command-hostalive4"></a>
@@ -572,6 +583,7 @@ ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defa
 ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 100.
 ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
 ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+ping_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### hostalive6 <a id="plugin-check-command-hostalive6"></a>
@@ -590,6 +602,7 @@ ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defa
 ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 100.
 ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
 ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+ping_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### hpjd <a id="plugin-check-command-hpjd"></a>
@@ -605,6 +618,7 @@ Name            | Description
 hpjd_address    | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 hpjd_port       | **Optional.** The host's SNMP port. Defaults to 161.
 hpjd_community  | **Optional.** The SNMP community. Defaults  to "public".
+hpjd_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### http <a id="plugin-check-command-http"></a>
@@ -665,6 +679,7 @@ http_ipv4                        | **Optional.** Use IPv4 connection. Defaults t
 http_ipv6                        | **Optional.** Use IPv6 connection. Defaults to false.
 http_link                        | **Optional.** Wrap output in HTML link. Defaults to false.
 http_verbose                     | **Optional.** Show details for command-line debugging. Defaults to false.
+http_extra_opts                  | **Optional.** Read extra plugin options from an ini file.
 
 
 ### icmp <a id="plugin-check-command-icmp"></a>
@@ -692,6 +707,7 @@ icmp_hosts_alive | **Optional.** The number of hosts which have to be alive for 
 icmp_data_bytes | **Optional.** Payload size for each ICMP request. Defaults to 8.
 icmp_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 10 (seconds).
 icmp_ttl        | **Optional.** The TTL on outgoing packets.
+icmp_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### imap <a id="plugin-check-command-imap"></a>
@@ -722,6 +738,7 @@ imap_critical         | **Optional.** Response time to result in critical status
 imap_timeout          | **Optional.** Seconds before connection times out (default: 10).
 imap_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
 imap_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
+imap_extra_opts       | **Optional.** Read extra plugin options from an ini file.
 
 
 ### ldap <a id="plugin-check-command-ldap"></a>
@@ -752,6 +769,7 @@ ldap_warning_entries	| **Optional.** Number of found entries to result in warnin
 ldap_critical_entries	| **Optional.** Number of found entries to result in critical status.
 ldap_timeout		| **Optional.** Seconds before connection times out (default: 10).
 ldap_verbose		| **Optional.** Show details for command-line debugging (disabled by default)
+ldap_extra_opts   | **Optional.** Read extra plugin options from an ini file.
 
 ### load <a id="plugin-check-command-load"></a>
 
@@ -769,6 +787,7 @@ load_cload1     | **Optional.** The 1-minute critical threshold. Defaults to 10.
 load_cload5     | **Optional.** The 5-minute critical threshold. Defaults to 6.
 load_cload15    | **Optional.** The 15-minute critical threshold. Defaults to 4.
 load_percpu     | **Optional.** Divide the load averages by the number of CPUs (when possible). Defaults to false.
+load_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 ### mailq <a id="plugin-check-command-mailq"></a>
 
@@ -814,6 +833,7 @@ mysql_cert		| **Optional.** Path to SSL certificate.
 mysql_key		| **Optional.** Path to private SSL key.
 mysql_cadir		| **Optional.** Path to CA directory.
 mysql_ciphers		| **Optional.** List of valid SSL ciphers.
+mysql_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### mysql_query <a id="plugin-check-command-mysql-query"></a>
@@ -839,6 +859,7 @@ mysql_query_password    | **Optional.** Use the indicated password to authentica
 mysql_query_execute     | **Required.** SQL Query to run on the MySQL Server.
 mysql_query_warning     | **Optional.** Exit with WARNING status if query is outside of the range (format: start:end).
 mysql_query_critical    | **Optional.** Exit with CRITICAL status if query is outside of the range.
+mysql_query_extra_opts  | **Optional.** Read extra plugin options from an ini file.
 
 
 ### negate <a id="plugin-check-command-negate"></a>
@@ -929,6 +950,7 @@ ntp_timeoffset  | **Optional.** Expected offset of the ntp server relative to lo
 ntp_timeout     | **Optional.** Seconds before connection times out (default: 10).
 ntp_ipv4        | **Optional.** Use IPv4 connection. Defaults to false.
 ntp_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
+ntp_extra_opts  | **Optional.** Read extra plugin options from an ini file.
 
 
 ### ntp_peer <a id="plugin-check-command-ntp-peer"></a>
@@ -956,6 +978,7 @@ ntp_csource     | **Optional.** Critical threshold for number of usable time sou
 ntp_timeout     | **Optional.** Seconds before connection times out (default: 10).
 ntp_ipv4        | **Optional.** Use IPv4 connection. Defaults to false.
 ntp_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
+ntp_extra_opts  | **Optional.** Read extra plugin options from an ini file.
 
 
 ### pgsql <a id="plugin-check-command-pgsql"></a>
@@ -982,6 +1005,7 @@ pgsql_timeout		| **Optional.** Seconds before connection times out (default: 10)
 pgsql_query		| **Optional.** SQL query to run. Only first column in first row will be read.
 pgsql_query_warning	| **Optional.** SQL query value to result in warning status (double).
 pgsql_query_critical	| **Optional.** SQL query value to result in critical status (double).
+pgsql_extra_opts  | **Optional.** Read extra plugin options from an ini file.
 
 ### ping <a id="plugin-check-command-ping"></a>
 
@@ -1003,6 +1027,7 @@ ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defa
 ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
 ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
 ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+ping_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### ping4 <a id="plugin-check-command-ping4"></a>
@@ -1025,6 +1050,7 @@ ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defa
 ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
 ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
 ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+ping_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 ### ping6 <a id="plugin-check-command-ping6"></a>
 
@@ -1046,6 +1072,7 @@ ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defa
 ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
 ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
 ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+ping_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### pop <a id="plugin-check-command-pop"></a>
@@ -1076,6 +1103,7 @@ pop_critical         | **Optional.** Response time to result in critical status 
 pop_timeout          | **Optional.** Seconds before connection times out (default: 10).
 pop_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
 pop_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
+pop_extra_opts       | **Optional.** Read extra plugin options from an ini file.
 
 
 ### procs <a id="plugin-check-command-processes"></a>
@@ -1104,6 +1132,7 @@ procs_argument       | **Optional.** Only scan for processes with args that cont
 procs_argument_regex | **Optional.** Only scan for processes with args that contain the regex STRING.
 procs_command        | **Optional.** Only scan for exact matches of COMMAND (without path).
 procs_nokthreads     | **Optional.** Only scan for non kernel threads. Defaults to false.
+procs_extra_opts     | **Optional.** Read extra plugin options from an ini file.
 
 
 ### radius <a id="plugin-check-command-radius"></a>
@@ -1133,6 +1162,7 @@ radius_nas_address | **Optional.** The NAS IP address.
 radius_expect      | **Optional.** The response string to expect from the server.
 radius_retries     | **Optional.** The number of times to retry a failed connection.
 radius_timeout     | **Optional.** The number of seconds before connection times out (default: 10).
+radius_extra_opts  | **Optional.** Read extra plugin options from an ini file.
 
 ### rpc <a id="plugin-check-command-rpc"></a>
 
@@ -1179,6 +1209,7 @@ simap_critical         | **Optional.** Response time to result in critical statu
 simap_timeout          | **Optional.** Seconds before connection times out (default: 10).
 simap_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
 simap_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
+simap_extra_opts       | **Optional.** Read extra plugin options from an ini file.
 
 ### smart <a id="plugin-check-command-smart"></a>
 
@@ -1189,6 +1220,7 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 
 Name            | Description
 ----------------|--------------
+smart_extra_opts | **Optional.** Read extra plugin options from an ini file.
 smart_device    | **Required.** The name of a local hard drive to monitor.
 
 
@@ -1219,6 +1251,7 @@ smtp_critical         | **Optional.** Response time to result in critical status
 smtp_timeout          | **Optional.** Seconds before connection times out (default: 10).
 smtp_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
 smtp_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
+smtp_extra_opts       | **Optional.** Read extra plugin options from an ini file.
 
 
 ### snmp <a id="plugin-check-command-snmp"></a>
@@ -1254,6 +1287,7 @@ snmp_timeout        | **Optional.** The command timeout in seconds. Defaults to 
 snmp_offset         | **Optional.** Add/subtract the specified OFFSET to numeric sensor data.
 snmp_output_delimiter | **Optional.** Separates output on multiple OID requests.
 snmp_perf_oids      | **Optional.** Label performance data with OIDs instead of --label's.
+snmp_extra_opts     | **Optional.** Read extra plugin options from an ini file.
 
 ### snmpv3 <a id="plugin-check-command-snmpv3"></a>
 
@@ -1285,6 +1319,7 @@ snmpv3_units         | **Optional.** Units label(s) for output value (e.g., 'sec
 snmpv3_rate_multiplier | **Optional.** Converts rate per second. For example, set to 60 to convert to per minute.
 snmpv3_rate          | **Optional.** Boolean. Enable rate calculation.
 snmpv3_timeout       | **Optional.** The command timeout in seconds. Defaults to 10 seconds.
+snmpv3_extra_opts    | **Optional.** Read extra plugin options from an ini file.
 
 ### snmp-uptime <a id="plugin-check-command-snmp-uptime"></a>
 
@@ -1296,6 +1331,7 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 Name            | Description
 ----------------|--------------
 snmp_address    | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+snmp_extra_opts | **Optional.** Read extra plugin options from an ini file.
 snmp_oid        | **Optional.** The SNMP OID. Defaults to "1.3.6.1.2.1.1.3.0".
 snmp_community  | **Optional.** The SNMP community. Defaults to "public".
 
@@ -1328,6 +1364,7 @@ spop_critical         | **Optional.** Response time to result in critical status
 spop_timeout          | **Optional.** Seconds before connection times out (default: 10).
 spop_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
 spop_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
+spop_extra_opts       | **Optional.** Read extra plugin options from an ini file.
 
 
 ### ssh <a id="plugin-check-command-ssh"></a>
@@ -1344,6 +1381,7 @@ ssh_port        | **Optional.** The port that should be checked. Defaults to 22.
 ssh_timeout     | **Optional.** Seconds before connection times out. Defaults to 10.
 ssh_ipv4        | **Optional.** Use IPv4 connection. Defaults to false.
 ssh_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
+ssh_extra_opts  | **Optional.** Read extra plugin options from an ini file.
 
 
 ### ssl <a id="plugin-check-command-ssl"></a>
@@ -1361,6 +1399,7 @@ ssl_timeout                   | **Optional.** Timeout in seconds for the connect
 ssl_cert_valid_days_warn      | **Optional.** Warning threshold for days before the certificate will expire. When used, the default for ssl_cert_valid_days_critical is 0.
 ssl_cert_valid_days_critical  | **Optional.** Critical threshold for days before the certificate will expire. When used, ssl_cert_valid_days_warn must also be set.
 ssl_sni                       | **Optional.** The `server_name` that is send to select the SSL certificate to check. Important if SNI is used.
+ssl_extra_opts                | **Optional.** Read extra plugin options from an ini file.
 
 
 ### ssmtp <a id="plugin-check-command-ssmtp"></a>
@@ -1391,6 +1430,7 @@ ssmtp_critical         | **Optional.** Response time to result in critical statu
 ssmtp_timeout          | **Optional.** Seconds before connection times out (default: 10).
 ssmtp_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
 ssmtp_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
+ssmtp_extra_opts       | **Optional.** Read extra plugin options from an ini file.
 
 
 ### swap <a id="plugin-check-command-swap"></a>
@@ -1407,6 +1447,7 @@ swap_cfree      | **Optional.** The free swap space critical threshold in % (ena
 swap_integer    | **Optional.** Specifies whether the thresholds are passed as number or percent value. Defaults to false (percent values).
 swap_allswaps   | **Optional.** Conduct comparisons for all swap partitions, one by one. Defaults to false.
 swap_noswap     | **Optional.** Resulting state when there is no swap regardless of thresholds. Possible values are "ok", "warning", "critical", "unknown". Defaults to "critical".
+swap_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### tcp <a id="plugin-check-command-tcp"></a>
@@ -1438,6 +1479,7 @@ tcp_ctime       | **Optional.** Response time to result in critical status (seco
 tcp_timeout     | **Optional.** Seconds before connection times out. Defaults to 10.
 tcp_ipv4        | **Optional.** Use IPv4 connection. Defaults to false.
 tcp_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
+tcp_extra_opts  | **Optional.** Read extra plugin options from an ini file.
 
 
 ### udp <a id="plugin-check-command-udp"></a>
@@ -1456,6 +1498,7 @@ udp_expect      | **Required.** The payload to expect in the response datagram.
 udp_quit        | **Optional.** The payload to send to 'close' the session.
 udp_ipv4        | **Optional.** Use IPv4 connection. Defaults to false.
 udp_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
+udp_extra_opts  | **Optional.** Read extra plugin options from an ini file.
 
 
 ### ups <a id="plugin-check-command-ups"></a>
@@ -1476,6 +1519,7 @@ ups_warning     | **Optional.** The warning threshold for the selected variable.
 ups_critical    | **Optional.** The critical threshold for the selected variable.
 ups_celsius     | **Optional.** Display the temperature in degrees Celsius instead of Fahrenheit. Defaults to `false`.
 ups_timeout     | **Optional.** The number of seconds before the connection times out. Defaults to 10.
+ups_extra_opts  | **Optional.** Read extra plugin options from an ini file.
 
 
 ### users <a id="plugin-check-command-users"></a>
@@ -1490,6 +1534,7 @@ Name            | Description
 ----------------|--------------
 users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20.
 users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
+users_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### uptime <a id="plugin-check-command-uptime"></a>
