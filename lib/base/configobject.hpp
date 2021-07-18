@@ -36,6 +36,7 @@ public:
 
 	ConfigObject::Ptr GetZone() const;
 
+	bool GetAttribute(const String& attr, Value *result);
 	void ModifyAttribute(const String& attr, const Value& value, bool updateVersion = true);
 	void RestoreAttribute(const String& attr, bool updateVersion = true);
 	bool IsAttributeModified(const String& attr) const;
@@ -75,7 +76,7 @@ public:
 	static void RestoreObjects(const String& filename, int attributeTypes = FAState);
 	static void StopObjects();
 
-	static void DumpModifiedAttributes(const std::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback);
+	static void DumpModifiedAttributes(const std::function<void(const ConfigObject::Ptr&, const String&, const Value&, const Value&)>& callback);
 
 	static Object::Ptr GetPrototype();
 

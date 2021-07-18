@@ -18,6 +18,8 @@
 #include "base/initialize.hpp"
 #include "base/statsfunction.hpp"
 #include "base/loader.hpp"
+#include "base/json.hpp"
+#include "base/serializer.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -121,7 +123,7 @@ void IcingaApplication::OnShutdown()
 	DumpProgramState();
 }
 
-static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousObject, const ConfigObject::Ptr& object, const String& attr, const Value& value)
+static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousObject, const ConfigObject::Ptr& object, const String& attr, const Value& original, const Value& modified)
 {
 	if (object != previousObject) {
 		if (previousObject) {
@@ -138,18 +140,22 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 		});
 		ConfigWriter::EmitFunctionCall(fp, "get_object", args1);
 
-		ConfigWriter::EmitRaw(fp, "\nif (obj) {\n");
+		ConfigWriter::EmitRaw(fp, "\nif (obj) {\n\tvar result\n");
 	}
 
-	ConfigWriter::EmitRaw(fp, "\tobj.");
+	ConfigWriter::EmitRaw(fp, "\tif (obj.get_attribute(");
+	ConfigWriter::EmitString(fp, attr);
+	ConfigWriter::EmitRaw(fp, ", &result) && Json.encode(Internal.serialize(result, 2 /* FAConfig */)) == ");
+	ConfigWriter::EmitString(fp, JsonEncode(Serialize(original, FAConfig)));
+	ConfigWriter::EmitRaw(fp, ") {\n\t\tobj.");
 
 	Array::Ptr args2 = new Array({
 		attr,
-		value
+		modified
 	});
 	ConfigWriter::EmitFunctionCall(fp, "modify_attribute", args2);
 
-	ConfigWriter::EmitRaw(fp, "\n");
+	ConfigWriter::EmitRaw(fp, "\n\t}\n");
 
 	previousObject = object;
 }
@@ -175,8 +181,8 @@ void IcingaApplication::DumpModifiedAttributes()
 	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 
 	ConfigObject::Ptr previousObject;
-	ConfigObject::DumpModifiedAttributes([&fp, &previousObject](const ConfigObject::Ptr& object, const String& attr, const Value& value) {
-		PersistModAttrHelper(fp, previousObject, object, attr, value);
+	ConfigObject::DumpModifiedAttributes([&fp, &previousObject](const ConfigObject::Ptr& object, const String& attr, const Value& original, const Value& modified) {
+		PersistModAttrHelper(fp, previousObject, object, attr, original, modified);
 	});
 
 	if (previousObject) {
