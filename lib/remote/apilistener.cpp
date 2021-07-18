@@ -660,7 +660,7 @@ void ApiListener::NewClientHandlerInternal(
 			identity = GetCertificateCN(cert);
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener")
-				<< "Cannot get certificate common name from cert path: '" << GetDefaultCertPath() << "'.";
+				<< "Cannot get certificate common name from peer cert.";
 			return;
 		}
 
