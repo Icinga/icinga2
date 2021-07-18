@@ -47,6 +47,7 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 		{ "check_timeperiod_object_id", service->GetCheckPeriod() },
 		{ "check_interval", service->GetCheckInterval() / 60.0 },
 		{ "retry_interval", service->GetRetryInterval() / 60.0 },
+		{ "passive_interval", service->GetPassiveInterval() / 60.0 },
 		{ "max_check_attempts", service->GetMaxCheckAttempts() },
 		{ "is_volatile", service->GetVolatile() },
 		{ "flap_detection_enabled", service->GetEnableFlapping() },
@@ -118,6 +119,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	fields->Set("process_performance_data", service->GetEnablePerfdata());
 	fields->Set("normal_check_interval", service->GetCheckInterval() / 60.0);
 	fields->Set("retry_check_interval", service->GetRetryInterval() / 60.0);
+	fields->Set("passive_check_interval", service->GetPassiveInterval() / 60.0);
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
 	fields->Set("is_reachable", service->GetLastReachable());
 	fields->Set("original_attributes", JsonEncode(service->GetOriginalAttributes()));

@@ -350,6 +350,7 @@ Configuration Attributes:
   check\_timeout            | Duration              | **Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
   check\_interval           | Duration              | **Optional.** The check interval (in seconds). This interval is used for checks when the host is in a `HARD` state. Defaults to `5m`.
   retry\_interval           | Duration              | **Optional.** The retry interval (in seconds). This interval is used for checks when the host is in a `SOFT` state. Defaults to `1m`. Note: This does not affect the scheduling [after a passive check result](08-advanced-topics.md#check-result-freshness).
+  passive\_interval         | Duration              | **Optional.** The interval (in seconds). This value is **not** used for [freshness checks](08-advanced-topics.md#check-result-freshness), but as a guidance to, e.g., supress notifications if a new result is expected soon. If set, also acts as a hint that passive checks are actually in use for this service.
   enable\_notifications     | Boolean               | **Optional.** Whether notifications are enabled. Defaults to true.
   enable\_active\_checks    | Boolean               | **Optional.** Whether active checks are enabled. Defaults to true.
   enable\_passive\_checks   | Boolean               | **Optional.** Whether passive checks are enabled. Defaults to true.
@@ -717,6 +718,7 @@ Configuration Attributes:
   check\_timeout            | Duration              | **Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
   check\_interval           | Duration              | **Optional.** The check interval (in seconds). This interval is used for checks when the service is in a `HARD` state. Defaults to `5m`.
   retry\_interval           | Duration              | **Optional.** The retry interval (in seconds). This interval is used for checks when the service is in a `SOFT` state. Defaults to `1m`. Note: This does not affect the scheduling [after a passive check result](08-advanced-topics.md#check-result-freshness).
+  passive\_interval         | Duration              | **Optional.** The interval (in seconds). This value is **not** used for [freshness checks](08-advanced-topics.md#check-result-freshness), but as a guidance to, e.g., supress notifications if a new result is expected soon. If set, also acts as a hint that passive checks are actually in use for this service.
   enable\_notifications     | Boolean               | **Optional.** Whether notifications are enabled. Defaults to `true`.
   enable\_active\_checks    | Boolean               | **Optional.** Whether active checks are enabled. Defaults to `true`.
   enable\_passive\_checks   | Boolean               | **Optional.** Whether passive checks are enabled. Defaults to `true`.
