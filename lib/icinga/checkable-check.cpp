@@ -119,9 +119,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		cr->SetExecutionEnd(now);
 
 	if (!origin || origin->IsLocal())
-		cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
-
-	if (!origin || origin->IsLocal())
 		cr->SetSchedulingSource(IcingaApplication::GetInstance()->GetNodeName());
 
 	Endpoint::Ptr command_endpoint = GetCommandEndpoint();

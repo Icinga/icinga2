@@ -1180,6 +1180,7 @@ to represent its internal state. The following types are exposed via the [API](1
   output                    | String                | The check output.
   performance\_data         | Array                 | Array of [performance data values](08-advanced-topics.md#advanced-value-types-perfdatavalue).
   check\_source             | String                | Name of the node executing the check.
+  scheduling\_source        | String                | Name of the node scheduling the check.
   state                     | Number                | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
   command                   | Value                 | Array of command with shell-escaped arguments or command line string.
   execution\_start          | Timestamp             | Check execution start time (as a UNIX timestamp).
