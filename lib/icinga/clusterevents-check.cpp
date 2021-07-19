@@ -316,7 +316,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				throw;
 			}
 		}
-	} else if (command_type == "notification_command" && params->Contains("source")) {
+	} else if (command_type == "notification_command") {
 		/* Get user */
 		User::Ptr user = new User();
 		Dictionary::Ptr attrs = new Dictionary();
@@ -340,14 +340,18 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			NotificationCommand::Ptr notificationCommand = NotificationCommand::GetByName(command);
 
 			notificationCommand->Execute(notification, user, cr, NotificationType::NotificationCustom,
-				author, "");
+				author, "", macros, true);
 		} catch (const std::exception& ex) {
-			String output = "Exception occurred during notification '" + notification->GetName()
-				+ "' for checkable '" + notification->GetCheckable()->GetName()
-				+ "' and user '" + user->GetName() + "' using command '" + command + "': "
-				+ DiagnosticInformation(ex, false);
-			double now = Utility::GetTime();
-			SendEventExecutedCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
+			if (params->Contains("source")) {
+				String output = "Exception occurred during notification '" + notification->GetName()
+					+ "' for checkable '" + notification->GetCheckable()->GetName()
+					+ "' and user '" + user->GetName() + "' using command '" + command + "': "
+					+ DiagnosticInformation(ex, false);
+				double now = Utility::GetTime();
+				SendEventExecutedCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
+			} else {
+				throw;
+			}
 		}
 	}
 }

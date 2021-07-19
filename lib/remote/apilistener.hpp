@@ -66,7 +66,8 @@ struct ConfigDirInformation
  */
 enum class ApiCapabilities : uint_fast64_t
 {
-	ExecuteArbitraryCommand = 1u
+	ExecuteArbitraryCommand = 1u,
+	ExecuteNotificationCommand = 2u
 };
 
 /**
