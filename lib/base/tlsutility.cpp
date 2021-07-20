@@ -70,7 +70,7 @@ void InitializeOpenSSL()
 	l_SSLInitialized = true;
 }
 
-static void SetupSslContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& pubkey, const String& privkey, const String& cakey)
+static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& pubkey, const String& privkey, const String& cakey)
 {
 	char errbuf[256];
 
@@ -181,7 +181,7 @@ Shared<boost::asio::ssl::context>::Ptr MakeAsioSslContext(const String& pubkey, 
 
 	auto context (Shared<ssl::context>::Make(ssl::context::tls));
 
-	SetupSslContext(context, pubkey, privkey, cakey);
+	InitSslContext(context, pubkey, privkey, cakey);
 
 	return context;
 }
