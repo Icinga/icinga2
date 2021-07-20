@@ -9,6 +9,7 @@
 #include "base/objectlock.hpp"
 #include "base/string.hpp"
 #include "base/tcpsocket.hpp"
+#include "base/utility.hpp"
 #include <boost/asio.hpp>
 #include <boost/coroutine/exceptions.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
@@ -23,14 +24,17 @@
 using namespace icinga;
 namespace asio = boost::asio;
 
-RedisConnection::RedisConnection(const String& host, const int port, const String& path, const String& password, const int db) :
-	RedisConnection(IoEngine::Get().GetIoContext(), host, port, path, password, db)
+RedisConnection::RedisConnection(const String& host, const int port, const String& path,
+	const String& password, const int db, const RedisConnection::Ptr& parent) :
+	RedisConnection(IoEngine::Get().GetIoContext(), host, port, path, password, db, parent)
 {
 }
 
-RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int port, String path, String password, int db)
+RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int port, String path,
+	String password, int db, const RedisConnection::Ptr& parent)
 	: m_Host(std::move(host)), m_Port(port), m_Path(std::move(path)), m_Password(std::move(password)), m_DbIndex(db),
-	  m_Connecting(false), m_Connected(false), m_Started(false), m_Strand(io), m_QueuedWrites(io), m_QueuedReads(io)
+	  m_Connecting(false), m_Connected(false), m_Started(false), m_Strand(io),
+	  m_QueuedWrites(io), m_QueuedReads(io), m_LogStatsTimer(io), m_Parent(parent)
 {
 }
 
@@ -41,6 +45,10 @@ void RedisConnection::Start()
 
 		IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { ReadLoop(yc); });
 		IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { WriteLoop(yc); });
+
+		if (!m_Parent) {
+			IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { LogStats(yc); });
+		}
 	}
 
 	if (!m_Connecting.exchange(true)) {
@@ -97,6 +105,7 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConn
 	asio::post(m_Strand, [this, item, priority]() {
 		m_Queues.Writes[priority].emplace(WriteQueueItem{item, nullptr, nullptr, nullptr});
 		m_QueuedWrites.Set();
+		IncreasePendingQueries(1);
 	});
 }
 
@@ -118,6 +127,7 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Red
 	asio::post(m_Strand, [this, item, priority]() {
 		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, item, nullptr, nullptr});
 		m_QueuedWrites.Set();
+		IncreasePendingQueries(item->size());
 	});
 }
 
@@ -143,6 +153,7 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 	asio::post(m_Strand, [this, item, priority]() {
 		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, item, nullptr});
 		m_QueuedWrites.Set();
+		IncreasePendingQueries(1);
 	});
 
 	item = nullptr;
@@ -172,6 +183,7 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 	asio::post(m_Strand, [this, item, priority]() {
 		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, item});
 		m_QueuedWrites.Set();
+		IncreasePendingQueries(item->first.size());
 	});
 
 	item = nullptr;
@@ -380,6 +392,41 @@ void RedisConnection::WriteLoop(asio::yield_context& yc)
 }
 
 /**
+ * Periodically log current query performance
+ */
+void RedisConnection::LogStats(asio::yield_context& yc)
+{
+	double lastMessage = 0;
+
+	m_LogStatsTimer.expires_from_now(boost::posix_time::seconds(10));
+
+	for (;;) {
+		m_LogStatsTimer.async_wait(yc);
+		m_LogStatsTimer.expires_from_now(boost::posix_time::seconds(10));
+
+		if (!IsConnected())
+			continue;
+
+		auto now (Utility::GetTime());
+		bool timeoutReached = now - lastMessage >= 5 * 60;
+
+		if (m_PendingQueries < 1 && !timeoutReached)
+			continue;
+
+		auto output (round(m_OutputQueries.CalculateRate(now, 10)));
+
+		if (m_PendingQueries < output * 5 && !timeoutReached)
+			continue;
+
+		Log(LogInformation, "IcingaDB")
+			<< "Pending queries: " << m_PendingQueries << " (Input: "
+			<< round(m_InputQueries.CalculateRate(now, 10)) << "/s; Output: " << output << "/s)";
+
+		lastMessage = now;
+	}
+}
+
+/**
  * Send next and schedule receiving the response
  *
  * @param next Redis queries
@@ -388,6 +435,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 {
 	if (next.FireAndForgetQuery) {
 		auto& item (*next.FireAndForgetQuery);
+		DecreasePendingQueries(1);
 
 		try {
 			WriteOne(item, yc);
@@ -419,6 +467,8 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 	if (next.FireAndForgetQueries) {
 		auto& item (*next.FireAndForgetQueries);
 		size_t i = 0;
+
+		DecreasePendingQueries(item.size());
 
 		try {
 			for (auto& query : item) {
@@ -452,6 +502,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 
 	if (next.GetResultOfQuery) {
 		auto& item (*next.GetResultOfQuery);
+		DecreasePendingQueries(1);
 
 		try {
 			WriteOne(item.first, yc);
@@ -476,6 +527,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 
 	if (next.GetResultsOfQueries) {
 		auto& item (*next.GetResultsOfQueries);
+		DecreasePendingQueries(item.first.size());
 
 		try {
 			for (auto& query : item.first) {
@@ -537,4 +589,32 @@ void RedisConnection::WriteOne(RedisConnection::Query& query, asio::yield_contex
  */
 void RedisConnection::SetConnectedCallback(std::function<void(asio::yield_context& yc)> callback) {
 	m_ConnectedCallback = std::move(callback);
+}
+
+void RedisConnection::IncreasePendingQueries(int count)
+{
+	if (m_Parent) {
+		auto parent (m_Parent);
+
+		asio::post(parent->m_Strand, [parent, count]() {
+			parent->IncreasePendingQueries(count);
+		});
+	} else {
+		m_PendingQueries += count;
+		m_InputQueries.InsertValue(Utility::GetTime(), count);
+	}
+}
+
+void RedisConnection::DecreasePendingQueries(int count)
+{
+	if (m_Parent) {
+		auto parent (m_Parent);
+
+		asio::post(parent->m_Strand, [parent, count]() {
+			parent->DecreasePendingQueries(count);
+		});
+	} else {
+		m_PendingQueries -= count;
+		m_OutputQueries.InsertValue(Utility::GetTime(), count);
+	}
 }
