@@ -13,12 +13,23 @@ using namespace icinga;
 
 REGISTER_FUNCTION_NONCONST(Internal, LegacyTimePeriod, &LegacyTimePeriod::ScriptFunc, "tp:begin:end");
 
-bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *reference)
+/**
+ * Returns the same as mktime() but does not modify its argument and takes a const pointer.
+ *
+ * @param t struct tm to convert to time_t
+ * @return time_t representing the timestamp given by t
+ */
+static time_t mktime_const(const tm *t) {
+	tm copy = *t;
+	return mktime(&copy);
+}
+
+bool LegacyTimePeriod::IsInTimeRange(const tm *begin, const tm *end, int stride, const tm *reference)
 {
 	time_t tsbegin, tsend, tsref;
-	tsbegin = mktime(begin);
-	tsend = mktime(end);
-	tsref = mktime(reference);
+	tsbegin = mktime_const(begin);
+	tsend = mktime_const(end);
+	tsref = mktime_const(reference);
 
 	if (tsref < tsbegin || tsref > tsend)
 		return false;
@@ -31,8 +42,22 @@ bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *referen
 	return true;
 }
 
+/**
+ * Update all day-related fields of reference (tm_year, tm_mon, tm_mday, tm_wday, tm_yday) to reference the n-th
+ * occurrence of a weekday (given by wday) in the month represented by the original value of reference.
+ *
+ * If n is negative, counting is done from the end of the month, so for example with wday=1 and n=-1, the result will be
+ * the last Monday in the month given by reference.
+ *
+ * @param wday Weekday (0 = Sunday, 1 = Monday, ..., 6 = Saturday, like tm_wday)
+ * @param n Search the n-th weekday (given by wday) in the month given by reference
+ * @param reference Input for the current month and output for the given day of that moth
+ */
 void LegacyTimePeriod::FindNthWeekday(int wday, int n, tm *reference)
 {
+	// Work on a copy to only update specific fields of reference (as documented).
+	tm t = *reference;
+
 	int dir, seen = 0;
 
 	if (n > 0) {
@@ -42,25 +67,38 @@ void LegacyTimePeriod::FindNthWeekday(int wday, int n, tm *reference)
 		dir = -1;
 
 		/* Negative days are relative to the next month. */
-		reference->tm_mon++;
+		t.tm_mon++;
 	}
 
 	ASSERT(n > 0);
 
-	reference->tm_mday = 1;
+	t.tm_mday = 1;
 
 	for (;;) {
-		mktime(reference);
+		// Always operate on 00:00:00 with automatic DST detection, otherwise days could
+		// be skipped or counted twice if +-24 hours is not on the next or previous day.
+		t.tm_hour = 0;
+		t.tm_min = 0;
+		t.tm_sec = 0;
+		t.tm_isdst = -1;
 
-		if (reference->tm_wday == wday) {
+		mktime(&t);
+
+		if (t.tm_wday == wday) {
 			seen++;
 
 			if (seen == n)
-				return;
+				break;
 		}
 
-		reference->tm_mday += dir;
+		t.tm_mday += dir;
 	}
+
+	reference->tm_year = t.tm_year;
+	reference->tm_mon  = t.tm_mon;
+	reference->tm_mday = t.tm_mday;
+	reference->tm_wday = t.tm_wday;
+	reference->tm_yday = t.tm_yday;
 }
 
 int LegacyTimePeriod::WeekdayFromString(const String& daydef)
@@ -120,11 +158,17 @@ boost::gregorian::date LegacyTimePeriod::GetEndOfMonthDay(int year, int month)
 	return d.end_of_month();
 }
 
-void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end, tm *reference)
+/**
+ * Finds the first day on or after the day given by reference and writes the beginning and end time of that day to
+ * the output parameters begin and end.
+ *
+ * @param timespec Day to find, for example "2021-10-20", "sunday", ...
+ * @param begin if != nullptr, set to 00:00:00 on that day
+ * @param end if != nullptr, set to 24:00:00 on that day (i.e. 00:00:00 of the next day)
+ * @param reference Time to begin the search at
+ */
+void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end, const tm *reference)
 {
-	/* Let mktime() figure out whether we're in DST or not. */
-	reference->tm_isdst = -1;
-
 	/* YYYY-MM-DD */
 	if (timespec.GetLength() == 10 && timespec[4] == '-' && timespec[7] == '-') {
 		int year = Convert::ToLong(timespec.SubStr(0, 4));
@@ -144,6 +188,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			begin->tm_hour = 0;
 			begin->tm_min = 0;
 			begin->tm_sec = 0;
+			begin->tm_isdst = -1;
 		}
 
 		if (end) {
@@ -154,6 +199,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			end->tm_hour = 24;
 			end->tm_min = 0;
 			end->tm_sec = 0;
+			end->tm_isdst = -1;
 		}
 
 		return;
@@ -176,6 +222,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			begin->tm_hour = 0;
 			begin->tm_min = 0;
 			begin->tm_sec = 0;
+			begin->tm_isdst = -1;
 
 			/* day -X: Negative days are relative to the next month. */
 			if (mday < 0) {
@@ -198,6 +245,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			end->tm_hour = 24;
 			end->tm_min = 0;
 			end->tm_sec = 0;
+			end->tm_isdst = -1;
 
 			/* day -X: Negative days are relative to the next month. */
 			if (mday < 0) {
@@ -223,6 +271,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 
 	if (tokens.size() >= 1 && (wday = WeekdayFromString(tokens[0])) != -1) {
 		tm myref = *reference;
+		myref.tm_isdst = -1;
 
 		if (tokens.size() > 2) {
 			mon = MonthFromString(tokens[2]);
@@ -271,7 +320,22 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 	BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + timespec));
 }
 
-void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *end, int *stride, tm *reference)
+/**
+ * Parse a range of days.
+ *
+ * The input can have the following formats:
+ *   begin
+ *   begin - end
+ *   begin / stride
+ *   begin - end / stride
+ *
+ * @param timerange Text representation of a day range or a single day, for example "2021-10-20", "monday - friday", ...
+ * @param begin Output parameter set to 00:00:00 of the first day of the range
+ * @param end Output parameter set to 24:00:00 of the last day of the range (i.e. 00:00:00 of the day after)
+ * @param stride Output parameter for the stride (for every n-th day)
+ * @param reference Expand the range relative to this timestamp
+ */
+void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *end, int *stride, const tm *reference)
 {
 	String def = timerange;
 
@@ -323,7 +387,7 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 	}
 }
 
-bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
+bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, const tm *reference)
 {
 	tm begin, end;
 	int stride;
@@ -337,7 +401,7 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
 	return IsInTimeRange(&begin, &end, stride, reference);
 }
 
-void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *reference, tm *begin, tm *end)
+void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, const tm *reference, tm *begin, tm *end)
 {
 	std::vector<String> times = timerange.Split("-");
 
@@ -369,7 +433,7 @@ void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *referenc
 		end->tm_hour += 24;
 }
 
-Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *reference)
+Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, const tm *reference)
 {
 	tm begin, end;
 
@@ -381,7 +445,14 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *
 	});
 }
 
-void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference, const Array::Ptr& result)
+/**
+ * Takes a list of timeranges end expands them to concrete timestamp based on a reference time.
+ *
+ * @param timeranges String of comma separated time ranges, for example "10:00-12:00", "12:15:30-12:23:43,16:00-18:00"
+ * @param reference Starting point for searching the segments
+ * @param result For each range, a dict with keys "begin" and "end" is added
+ */
+void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, const tm *reference, const Array::Ptr& result)
 {
 	std::vector<String> ranges = timeranges.Split(",");
 
@@ -395,13 +466,13 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference
 	}
 }
 
-Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const String& timeranges, tm *reference)
+Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const String& timeranges, const tm *reference)
 {
 	tm begin, end, iter;
 	time_t tsend, tsiter, tsref;
 	int stride;
 
-	tsref = mktime(reference);
+	tsref = mktime_const(reference);
 
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
@@ -445,7 +516,7 @@ Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const
 	return nullptr;
 }
 
-Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const String& timeranges, tm *reference)
+Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const String& timeranges, const tm *reference)
 {
 	tm begin, end, iter, ref;
 	time_t tsend, tsiter, tsref;
