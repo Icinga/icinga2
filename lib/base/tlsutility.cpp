@@ -137,7 +137,16 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
 		}
 	}
 
-	if (!cakey.IsEmpty()) {
+	if (cakey.IsEmpty()) {
+		if (!SSL_CTX_set_default_verify_paths(sslContext)) {
+			ERR_error_string_n(ERR_peek_error(), errbuf, sizeof errbuf);
+			Log(LogCritical, "SSL")
+				<< "Error loading system's root CAs: " << ERR_peek_error() << ", \"" << errbuf << "\"";
+			BOOST_THROW_EXCEPTION(openssl_error()
+				<< boost::errinfo_api_function("SSL_CTX_set_default_verify_paths")
+				<< errinfo_openssl_error(ERR_peek_error());
+		}
+	} else {
 		if (!SSL_CTX_load_verify_locations(sslContext, cakey.CStr(), nullptr)) {
 			ERR_error_string_n(ERR_peek_error(), errbuf, sizeof errbuf);
 			Log(LogCritical, "SSL")
