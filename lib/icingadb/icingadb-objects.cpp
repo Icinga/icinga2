@@ -1532,7 +1532,7 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 	objectAttrs->Set("runtime_type", "upsert");
 	objectAttrs->Set("checksum", HashValue(objectAttrs));
 
-	std::vector<String> streamadd({"XADD", "icinga:runtime", "MAXLEN", "~", "1000000", "*"});
+	std::vector<String> streamadd({"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*"});
 	ObjectLock olock(objectAttrs);
 	for (const Dictionary::Pair& kv : objectAttrs) {
 		streamadd.emplace_back(kv.first);
