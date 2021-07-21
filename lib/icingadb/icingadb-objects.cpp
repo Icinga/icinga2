@@ -1262,6 +1262,20 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 			attributes->Set("address6", host->GetAddress6());
 		}
 
+		{
+			Comment::Ptr lastComment;
+
+			for (auto& comment : checkable->GetComments()) {
+				if (!lastComment || comment->GetEntryTime() > lastComment->GetEntryTime()) {
+					lastComment = comment;
+				}
+			}
+
+			if (lastComment) {
+				attributes->Set("last_comment_id", GetObjectIdentifier(lastComment));
+			}
+		}
+
 		return true;
 	}
 
@@ -1868,6 +1882,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	SendConfigUpdate(checkable, true);
 }
 
 void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
@@ -1935,6 +1950,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	SendConfigUpdate(checkable, true);
 }
 
 void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double changeTime, double flappingLastChange)
