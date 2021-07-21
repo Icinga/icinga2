@@ -245,7 +245,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 	for (;;) {
 		try {
 			if (m_Path.IsEmpty()) {
-				Log(LogInformation, "IcingaDB")
+				Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
 					<< "Trying to connect to Redis server (async) on host '" << m_Host << ":" << m_Port << "'";
 
 				auto conn (Shared<TcpConn>::Make(m_Strand.context()));
@@ -262,7 +262,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 			m_Connected.store(true);
 
-			Log(LogInformation, "IcingaDB", "Connected to Redis server");
+			Log(m_Parent ? LogNotice : LogInformation, "IcingaDB", "Connected to Redis server");
 
 			if (m_ConnectedCallback) {
 				m_ConnectedCallback(yc);
