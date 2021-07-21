@@ -1604,8 +1604,9 @@ Runtime Attributes:
 
 ### InfluxdbWriter <a id="objecttype-influxdbwriter"></a>
 
-Writes check result metrics and performance data to a defined InfluxDB host.
+Writes check result metrics and performance data to a defined InfluxDB v1 host.
 This configuration object is available as [influxdb feature](14-features.md#influxdb-writer).
+For InfluxDB v2 support see the [Influxdb2Writer](#objecttype-influxdb2writer) below.
 
 Example:
 
@@ -1651,6 +1652,68 @@ Configuration Attributes:
   username                  | String                | **Optional.** InfluxDB user name. Defaults to `none`.
   password                  | String                | **Optional.** InfluxDB user password.  Defaults to `none`.
   basic\_auth               | Dictionary            | **Optional.** Username and password for HTTP basic authentication.
+  ssl\_enable               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
+  ssl\_ca\_cert             | String                | **Optional.** Path to CA certificate to validate the remote host.
+  ssl\_cert                 | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification.
+  ssl\_key                  | String                | **Optional.** Path to host key to accompany the ssl\_cert.
+  host\_template            | Dictionary            | **Required.** Host template to define the InfluxDB line protocol.
+  service\_template         | Dictionary            | **Required.** Service template to define the influxDB line protocol.
+  enable\_send\_thresholds  | Boolean               | **Optional.** Whether to send warn, crit, min & max tagged data.
+  enable\_send\_metadata    | Boolean               | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
+  flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to InfluxDB. Defaults to `10s`.
+  flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
+
+Note: If `flush_threshold` is set too low, this will always force the feature to flush all data
+to InfluxDB. Experiment with the setting, if you are processing more than 1024 metrics per second
+or similar.
+
+
+
+### Influxdb2Writer <a id="objecttype-influxdb2writer"></a>
+
+Writes check result metrics and performance data to a defined InfluxDB v2 host.
+This configuration object is available as [influxdb feature](14-features.md#influxdb-writer).
+For InfluxDB v1 support see the [InfluxdbWriter](#objecttype-influxdbwriter) above.
+
+Example:
+
+```
+object Influxdb2Writer "influxdb2" {
+  host = "127.0.0.1"
+  port = 8086
+  organization = "monitoring"
+  bucket = "icinga2"
+  auth_token = "ABCDEvwxyz0189-_"
+
+  flush_threshold = 1024
+  flush_interval = 10s
+
+  host_template = {
+    measurement = "$host.check_command$"
+    tags = {
+      hostname = "$host.name$"
+    }
+  }
+  service_template = {
+    measurement = "$service.check_command$"
+    tags = {
+      hostname = "$host.name$"
+      service = "$service.name$"
+    }
+  }
+}
+```
+
+Configuration Attributes:
+
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host                      | String                | **Required.** InfluxDB host address. Defaults to `127.0.0.1`.
+  port                      | Number                | **Required.** InfluxDB HTTP port. Defaults to `8086`.
+  organization              | String                | **Required.** InfluxDB organization name.
+  bucket                    | String                | **Required.** InfluxDB bucket name.
+  auth\_token               | String                | **Required.** InfluxDB authentication token.
   ssl\_enable               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
   ssl\_ca\_cert             | String                | **Optional.** Path to CA certificate to validate the remote host.
   ssl\_cert                 | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification.

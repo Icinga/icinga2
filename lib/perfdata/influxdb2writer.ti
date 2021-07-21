@@ -1,0 +1,19 @@
+/* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
+
+#include "perfdata/influxdbcommonwriter.hpp"
+
+library perfdata;
+
+namespace icinga
+{
+
+class Influxdb2Writer : InfluxdbCommonWriter
+{
+	activation_priority 100;
+
+	[config, required] String organization;
+	[config, required] String bucket;
+	[config, required, no_user_view] String auth_token;
+};
+
+}
