@@ -60,7 +60,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		logmsg << "Received certificate request for CN '" << cn << "'";
 
 		try {
-			signedByCA = VerifyCertificate(cacert, cert, listener->GetCrlPath());
+			signedByCA = VerifyCertificate(listener->GetDefaultCaPath(), cert, listener->GetCrlPath());
 			if (!signedByCA) {
 				logmsg << " not";
 			}
@@ -216,7 +216,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	 * we're using for cluster connections (there's no point in sending a client
 	 * a certificate it wouldn't be able to use to connect to us anyway) */
 	try {
-		if (!VerifyCertificate(cacert, newcert, listener->GetCrlPath())) {
+		if (!VerifyCertificate(listener->GetDefaultCaPath(), newcert, listener->GetCrlPath())) {
 			Log(LogWarning, "JsonRpcConnection")
 				<< "The CA in '" << listener->GetDefaultCaPath() << "' does not match the CA which Icinga uses "
 				<< "for its own cluster connections. This is most likely a configuration problem.";
