@@ -62,8 +62,8 @@ namespace icinga
 		enum class QueryPriority : unsigned char
 		{
 			Heartbeat,
-			Config,
 			State,
+			Config,
 			History,
 			CheckResult,
 			SyncConnection = 255
