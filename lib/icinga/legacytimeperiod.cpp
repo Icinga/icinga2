@@ -16,9 +16,9 @@ REGISTER_FUNCTION_NONCONST(Internal, LegacyTimePeriod, &LegacyTimePeriod::Script
 bool LegacyTimePeriod::IsInTimeRange(tm *begin, tm *end, int stride, tm *reference)
 {
 	time_t tsbegin, tsend, tsref;
-	tsbegin = mktime(begin);
-	tsend = mktime(end);
-	tsref = mktime(reference);
+	tsbegin = Utility::MkTime(begin);
+	tsend = Utility::MkTime(end);
+	tsref = Utility::MkTime(reference);
 
 	if (tsref < tsbegin || tsref > tsend)
 		return false;
@@ -50,7 +50,7 @@ void LegacyTimePeriod::FindNthWeekday(int wday, int n, tm *reference)
 	reference->tm_mday = 1;
 
 	for (;;) {
-		mktime(reference);
+		Utility::MkTime(reference);
 
 		if (reference->tm_wday == wday) {
 			seen++;
@@ -331,8 +331,8 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
 	Log(LogDebug, "LegacyTimePeriod")
-		<< "ParseTimeRange: '" << daydef << "' => " << mktime(&begin)
-		<< " -> " << mktime(&end) << ", stride: " << stride;
+		<< "ParseTimeRange: '" << daydef << "' => " << Utility::MkTime(&begin)
+		<< " -> " << Utility::MkTime(&end) << ", stride: " << stride;
 
 	return IsInTimeRange(&begin, &end, stride, reference);
 }
@@ -381,8 +381,8 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *
 	ProcessTimeRangeRaw(timestamp, reference, &begin, &end);
 
 	return new Dictionary({
-		{ "begin", (long)mktime(&begin) },
-		{ "end", (long)mktime(&end) }
+		{ "begin", (long)Utility::MkTime(&begin) },
+		{ "end", (long)Utility::MkTime(&end) }
 	});
 }
 
@@ -406,13 +406,13 @@ Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const
 	time_t tsend, tsiter, tsref;
 	int stride;
 
-	tsref = mktime(reference);
+	tsref = Utility::MkTime(reference);
 
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
 	iter = begin;
 
-	tsend = mktime(&end);
+	tsend = Utility::MkTime(&end);
 
 	do {
 		if (IsInTimeRange(&begin, &end, stride, &iter)) {
@@ -444,7 +444,7 @@ Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const
 		iter.tm_hour = 0;
 		iter.tm_min = 0;
 		iter.tm_sec = 0;
-		tsiter = mktime(&iter);
+		tsiter = Utility::MkTime(&iter);
 	} while (tsiter < tsend);
 
 	return nullptr;
@@ -464,13 +464,13 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 			ref.tm_mday++;
 		}
 
-		tsref = mktime(&ref);
+		tsref = Utility::MkTime(&ref);
 
 		ParseTimeRange(daydef, &begin, &end, &stride, &ref);
 
 		iter = begin;
 
-		tsend = mktime(&end);
+		tsend = Utility::MkTime(&end);
 
 		do {
 			if (IsInTimeRange(&begin, &end, stride, &iter)) {
@@ -501,7 +501,7 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 			iter.tm_hour = 0;
 			iter.tm_min = 0;
 			iter.tm_sec = 0;
-			tsiter = mktime(&iter);
+			tsiter = Utility::MkTime(&iter);
 		} while (tsiter < tsend);
 	}
 

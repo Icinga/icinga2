@@ -112,6 +112,7 @@ public:
 	static String GetFQDN();
 
 	static tm LocalTime(time_t ts);
+	static time_t MkTime(tm *timeptr);
 
 	static bool PathExists(const String& path);
 	static time_t GetFileCreationTime(const String& path);
