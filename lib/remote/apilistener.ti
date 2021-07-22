@@ -3,6 +3,7 @@
 #include "remote/i2-remote.hpp"
 #include "base/configobject.hpp"
 #include "base/application.hpp"
+#include "base/tlsutility.hpp"
 
 library remote;
 
@@ -18,10 +19,10 @@ class ApiListener : ConfigObject
 	[config, deprecated] String ca_path;
 	[config] String crl_path;
 	[config] String cipher_list {
-		default {{{ return "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:AES256-GCM-SHA384:AES128-GCM-SHA256"; }}}
+		default {{{ return DEFAULT_TLS_CIPHERS; }}}
 	};
 	[config] String tls_protocolmin {
-		default {{{ return "TLSv1.2"; }}}
+		default {{{ return DEFAULT_TLS_PROTOCOLMIN; }}}
 	};
 
 	[config] String bind_host {

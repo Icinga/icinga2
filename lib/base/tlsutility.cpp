@@ -70,7 +70,7 @@ void InitializeOpenSSL()
 	l_SSLInitialized = true;
 }
 
-static void SetupSslContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& pubkey, const String& privkey, const String& cakey)
+static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& pubkey, const String& privkey, const String& cakey)
 {
 	char errbuf[256];
 
@@ -137,7 +137,16 @@ static void SetupSslContext(const Shared<boost::asio::ssl::context>::Ptr& contex
 		}
 	}
 
-	if (!cakey.IsEmpty()) {
+	if (cakey.IsEmpty()) {
+		if (!SSL_CTX_set_default_verify_paths(sslContext)) {
+			ERR_error_string_n(ERR_peek_error(), errbuf, sizeof errbuf);
+			Log(LogCritical, "SSL")
+				<< "Error loading system's root CAs: " << ERR_peek_error() << ", \"" << errbuf << "\"";
+			BOOST_THROW_EXCEPTION(openssl_error()
+				<< boost::errinfo_api_function("SSL_CTX_set_default_verify_paths")
+				<< errinfo_openssl_error(ERR_peek_error()));
+		}
+	} else {
 		if (!SSL_CTX_load_verify_locations(sslContext, cakey.CStr(), nullptr)) {
 			ERR_error_string_n(ERR_peek_error(), errbuf, sizeof errbuf);
 			Log(LogCritical, "SSL")
@@ -181,7 +190,7 @@ Shared<boost::asio::ssl::context>::Ptr MakeAsioSslContext(const String& pubkey, 
 
 	auto context (Shared<ssl::context>::Make(ssl::context::tls));
 
-	SetupSslContext(context, pubkey, privkey, cakey);
+	InitSslContext(context, pubkey, privkey, cakey);
 
 	return context;
 }
@@ -247,6 +256,49 @@ int ResolveTlsProtocolVersion(const std::string& version) {
 	} else {
 		throw std::runtime_error("Unknown TLS protocol version '" + version + "'");
 	}
+}
+
+Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String keyPath,
+	String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di)
+{
+	namespace ssl = boost::asio::ssl;
+
+	Shared<ssl::context>::Ptr context;
+
+	try {
+		context = MakeAsioSslContext(certPath, keyPath, caPath);
+	} catch (const std::exception&) {
+		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
+			+ certPath + "' key path: '" + keyPath + "' ca path: '" + caPath + "'.", di));
+	}
+
+	if (!crlPath.IsEmpty()) {
+		try {
+			AddCRLToSSLContext(context, crlPath);
+		} catch (const std::exception&) {
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot add certificate revocation list to SSL context for crl path: '"
+				+ crlPath + "'.", di));
+		}
+	}
+
+	if (!cipherList.IsEmpty()) {
+		try {
+			SetCipherListToSSLContext(context, cipherList);
+		} catch (const std::exception&) {
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set cipher list to SSL context for cipher list: '"
+				+ cipherList + "'.", di));
+		}
+	}
+
+	if (!protocolmin.IsEmpty()){
+		try {
+			SetTlsProtocolminToSSLContext(context, protocolmin);
+		} catch (const std::exception&) {
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + protocolmin + "'.", di));
+		}
+	}
+
+	return std::move(context);
 }
 
 /**

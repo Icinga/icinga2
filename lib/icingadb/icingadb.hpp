@@ -35,8 +35,12 @@ public:
 
 	static void ConfigStaticInitialize();
 
+	void Validate(int types, const ValidationUtils& utils) override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
+
+protected:
+	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	class DumpedGlobals
