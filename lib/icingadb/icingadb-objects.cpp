@@ -1475,6 +1475,7 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 
 	m_Rcon->FireAndForgetQueries({
 		{"HDEL", m_PrefixConfigObject + typeName, objectKey},
+		{"HDEL", m_PrefixConfigCheckSum + typeName, objectKey},
 		{
 			"XADD", "icinga:runtime", "MAXLEN", "~", "1000000", "*",
 			"redis_key", m_PrefixConfigObject + typeName, "id", objectKey, "runtime_type", "delete"
