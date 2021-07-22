@@ -114,6 +114,11 @@ void Downtime::Start(bool runtimeCreated)
 
 	checkable->RegisterDowntime(this);
 
+	Downtime::Ptr parentDowntime = GetByName(GetParentDowntime());
+
+	if (parentDowntime)
+		parentDowntime->RegisterChildDowntime(this);
+
 	if (runtimeCreated)
 		OnDowntimeAdded(this);
 
@@ -140,6 +145,11 @@ void Downtime::Start(bool runtimeCreated)
 void Downtime::Stop(bool runtimeRemoved)
 {
 	GetCheckable()->UnregisterDowntime(this);
+
+	Downtime::Ptr parentDowntime = GetByName(GetParentDowntime());
+
+	if (parentDowntime)
+		parentDowntime->UnregisterChildDowntime(this);
 
 	if (runtimeRemoved)
 		OnDowntimeRemoved(this);
@@ -217,7 +227,7 @@ int Downtime::GetNextDowntimeID()
 Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& author,
 	const String& comment, double startTime, double endTime, bool fixed,
 	const String& triggeredBy, double duration,
-	const String& scheduledDowntime, const String& scheduledBy,
+	const String& scheduledDowntime, const String& scheduledBy, const String& parentDowntime,
 	const String& id, const MessageOrigin::Ptr& origin)
 {
 	String fullName;
@@ -237,6 +247,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 	attrs->Set("duration", duration);
 	attrs->Set("triggered_by", triggeredBy);
 	attrs->Set("scheduled_by", scheduledBy);
+	attrs->Set("parent_downtime", parentDowntime);
 	attrs->Set("config_owner", scheduledDowntime);
 	attrs->Set("entry_time", Utility::GetTime());
 
@@ -319,7 +330,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 	return downtime;
 }
 
-void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, const MessageOrigin::Ptr& origin)
+void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cancelled, bool expired, const MessageOrigin::Ptr& origin)
 {
 	Downtime::Ptr downtime = Downtime::GetByName(id);
 
@@ -331,6 +342,12 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 	if (!config_owner.IsEmpty() && !expired) {
 		BOOST_THROW_EXCEPTION(invalid_downtime_removal_error("Cannot remove downtime '" + downtime->GetName() +
 			"'. It is owned by scheduled downtime object '" + config_owner + "'"));
+	}
+
+	if (includeChildren) {
+		for (const Downtime::Ptr& childDowntime : downtime->GetChildDowntimes()) {
+			Downtime::RemoveDowntime(childDowntime->GetName(), true, true);
+		}
 	}
 
 	downtime->SetWasCancelled(cancelled);
@@ -369,6 +386,24 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 	}
 
 	msg << " (Reason: " << reason << ").";
+}
+
+void Downtime::RegisterChildDowntime(const Downtime::Ptr& downtime)
+{
+	std::unique_lock<std::mutex> lock(m_ChildDowntimeMutex);
+	m_ChildDowntimes.insert(downtime);
+}
+
+void Downtime::UnregisterChildDowntime(const Downtime::Ptr& downtime)
+{
+	std::unique_lock<std::mutex> lock(m_ChildDowntimeMutex);
+	m_ChildDowntimes.erase(downtime);
+}
+
+std::set<Downtime::Ptr> Downtime::GetChildDowntimes() const
+{
+	std::unique_lock<std::mutex> lock(m_ChildDowntimeMutex);
+	return m_ChildDowntimes;
 }
 
 bool Downtime::CanBeTriggered()
@@ -456,7 +491,7 @@ void Downtime::DowntimesExpireTimerHandler()
 	for (const Downtime::Ptr& downtime : downtimes) {
 		/* Only remove downtimes which are activated after daemon start. */
 		if (downtime->IsActive() && (downtime->IsExpired() || !downtime->HasValidConfigOwner()))
-			RemoveDowntime(downtime->GetName(), false, true);
+			RemoveDowntime(downtime->GetName(), false, false, true);
 	}
 }
 

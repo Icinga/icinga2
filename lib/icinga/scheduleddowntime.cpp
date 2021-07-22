@@ -302,7 +302,7 @@ void ScheduledDowntime::CreateNextDowntime()
 				<< "Scheduling downtime for child object " << child->GetName();
 
 			Downtime::Ptr childDowntime = Downtime::AddDowntime(child, GetAuthor(), GetComment(),
-				segment.first, segment.second, GetFixed(), triggerName, GetDuration(), GetName(), GetName());
+				segment.first, segment.second, GetFixed(), triggerName, GetDuration(), GetName(), GetName(), downtimeName);
 
 			Log(LogNotice, "ScheduledDowntime")
 				<< "Add child downtime '" << childDowntime->GetName() << "'.";

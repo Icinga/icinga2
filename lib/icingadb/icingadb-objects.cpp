@@ -1386,6 +1386,11 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 			attributes->Set("scheduled_by", scheduledBy);
 		}
 
+		auto parentDowntime (Downtime::GetByName(downtime->GetParentDowntime()));
+		if (parentDowntime) {
+			attributes->Set("parent_downtime_id", GetObjectIdentifier(parentDowntime));
+		}
+
 		return true;
 	}
 
@@ -1739,6 +1744,13 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
+	auto parentDowntime (Downtime::GetByName(downtime->GetParentDowntime()));
+
+	if (parentDowntime) {
+		xAdd.emplace_back("parent_downtime_id");
+		xAdd.emplace_back(GetObjectIdentifier(parentDowntime));
+	}
+
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
 
@@ -1810,6 +1822,13 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 	if (endpoint) {
 		xAdd.emplace_back("endpoint_id");
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
+	}
+
+	auto parentDowntime (Downtime::GetByName(downtime->GetParentDowntime()));
+
+	if (parentDowntime) {
+		xAdd.emplace_back("parent_downtime_id");
+		xAdd.emplace_back(GetObjectIdentifier(parentDowntime));
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
