@@ -799,6 +799,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 	Dictionary::Ptr pending_execution = new Dictionary();
 	pending_execution->Set("pending", true);
 	pending_execution->Set("deadline", deadline);
+	pending_execution->Set("endpoint", resolved_endpoint);
 	Dictionary::Ptr executions = checkable->GetExecutions();
 
 	if (!executions)
