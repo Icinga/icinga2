@@ -5728,6 +5728,7 @@ Name                      | Description
 --------------------------|--------------
 ssl_cert_address              | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 ssl_cert_port                 | **Optional.** TCP port number (default: 443).
+ssl_cert_proxy                | **Optional.** Proxy server to use for connecting to the host. Sets http_proxy and the s_client -proxy option.
 ssl_cert_file                 | **Optional.** Local file path. Works only if `ssl_cert_address` is set to "localhost".
 ssl_cert_warn                 | **Optional.** Minimum number of days a certificate has to be valid.
 ssl_cert_critical             | **Optional.** Minimum number of days a certificate has to be valid to issue a critical status.
