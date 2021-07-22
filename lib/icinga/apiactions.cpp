@@ -409,7 +409,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 				<< "Creating downtime for service " << hostService->GetName() << " on host " << host->GetName();
 
 			Downtime::Ptr serviceDowntime = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
-				fixed, triggerName, duration);
+				fixed, triggerName, duration, String(), String(), downtimeName);
 			String serviceDowntimeName = serviceDowntime->GetName();
 
 			serviceDowntimes.push_back(new Dictionary({
@@ -501,7 +501,7 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 			}
 
 			try {
-				Downtime::RemoveDowntime(downtime->GetName(), true);
+				Downtime::RemoveDowntime(downtime->GetName(), true, true);
 			} catch (const invalid_downtime_removal_error& error) {
 				Log(LogWarning, "ApiActions") << error.what();
 
@@ -524,8 +524,7 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 
 	try {
 		String downtimeName = downtime->GetName();
-
-		Downtime::RemoveDowntime(downtimeName, true);
+		Downtime::RemoveDowntime(downtimeName, true, true);
 
 		return ApiActions::CreateResult(200, "Successfully removed downtime '" + downtimeName + "'.");
 	} catch (const invalid_downtime_removal_error& error) {

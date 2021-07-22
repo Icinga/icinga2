@@ -48,10 +48,14 @@ public:
 	static Ptr AddDowntime(const intrusive_ptr<Checkable>& checkable, const String& author,
 		const String& comment, double startTime, double endTime, bool fixed,
 		const String& triggeredBy, double duration, const String& scheduledDowntime = String(),
-		const String& scheduledBy = String(), const String& id = String(),
+		const String& scheduledBy = String(), const String& parentDowntime = String(), const String& id = String(),
 		const MessageOrigin::Ptr& origin = nullptr);
 
-	static void RemoveDowntime(const String& id, bool cancelled, bool expired = false, const MessageOrigin::Ptr& origin = nullptr);
+	static void RemoveDowntime(const String& id, bool includeChildren, bool cancelled, bool expired = false, const MessageOrigin::Ptr& origin = nullptr);
+
+	void RegisterChildDowntime(const Downtime::Ptr& downtime);
+	void UnregisterChildDowntime(const Downtime::Ptr& downtime);
+	std::set<Downtime::Ptr> GetChildDowntimes() const;
 
 	void TriggerDowntime();
 
@@ -69,6 +73,9 @@ protected:
 
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;
+
+	std::set<Downtime::Ptr> m_ChildDowntimes;
+	mutable std::mutex m_ChildDowntimeMutex;
 
 	bool CanBeTriggered();
 
