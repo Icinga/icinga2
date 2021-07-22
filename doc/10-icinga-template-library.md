@@ -2486,26 +2486,27 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 
 Name                             | Description
 ---------------------------------|------------------------------------------------------------------------------------------------------------------------------
-postgres_host        | **Optional.** Specifies the database hostname or address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set. If "postgres_unixsocket" is set to true, falls back to unix socket.
-postgres_port        | **Optional.** Specifies the database port. Defaults to 5432.
-postgres_dbname      | **Optional.** Specifies the database name to connect to. Defaults to "postgres" or "template1".
-postgres_dbuser      | **Optional.** The username for the database connection. Defaults to "postgres".
-postgres_dbpass      | **Optional.** The password for the database connection. You can use a .pgpass file instead.
-postgres_dbservice   | **Optional.** Specifies the service name to use inside of pg_service.conf.
-postgres_warning     | **Optional.** Specifies the warning threshold, range depends on the action.
-postgres_critical    | **Optional.** Specifies the critical threshold, range depends on the action.
-postgres_include     | **Optional.** Specifies name(s) items to specifically include (e.g. tables), depends on the action.
-postgres_exclude     | **Optional.** Specifies name(s) items to specifically exclude (e.g. tables), depends on the action.
-postgres_includeuser | **Optional.** Include objects owned by certain users.
-postgres_excludeuser | **Optional.** Exclude objects owned by certain users.
-postgres_standby     | **Optional.** Assume that the server is in continuous WAL recovery mode if set to true. Defaults to false.
-postgres_production  | **Optional.** Assume that the server is in production mode if set to true. Defaults to false.
-postgres_action      | **Required.** Determines the test executed.
-postgres_unixsocket  | **Optional.** If "postgres_unixsocket" is set to true, the unix socket is used instead of an address. Defaults to false.
-postgres_query       | **Optional.** Query for "custom_query" action.
-postgres_valtype     | **Optional.** Value type of query result for "custom_query".
-postgres_reverse     | **Optional.** If "postgres_reverse" is set, warning and critical values are reversed for "custom_query" action.
-postgres_tempdir     | **Optional.** Specify directory for temporary files. The default directory is dependent on the OS. More details [here](https://perldoc.perl.org/File/Spec.html).
+postgres_host          | **Optional.** Specifies the database hostname or address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set. If "postgres_unixsocket" is set to true, falls back to unix socket.
+postgres_port          | **Optional.** Specifies the database port. Defaults to 5432.
+postgres_dbname        | **Optional.** Specifies the database name to connect to. Defaults to "postgres" or "template1".
+postgres_dbuser        | **Optional.** The username for the database connection. Defaults to "postgres".
+postgres_dbpass        | **Optional.** The password for the database connection. You can use a .pgpass file instead.
+postgres_dbservice     | **Optional.** Specifies the service name to use inside of pg_service.conf.
+postgres_warning       | **Optional.** Specifies the warning threshold, range depends on the action.
+postgres_critical      | **Optional.** Specifies the critical threshold, range depends on the action.
+postgres_include       | **Optional.** Specifies name(s) items to specifically include (e.g. tables), depends on the action.
+postgres_exclude       | **Optional.** Specifies name(s) items to specifically exclude (e.g. tables), depends on the action.
+postgres_includeuser   | **Optional.** Include objects owned by certain users.
+postgres_excludeuser   | **Optional.** Exclude objects owned by certain users.
+postgres_standby       | **Optional.** Assume that the server is in continuous WAL recovery mode if set to true. Defaults to false.
+postgres_production    | **Optional.** Assume that the server is in production mode if set to true. Defaults to false.
+postgres_action        | **Required.** Determines the test executed.
+postgres_unixsocket    | **Optional.** If "postgres_unixsocket" is set to true, the unix socket is used instead of an address. Defaults to false.
+postgres_query         | **Optional.** Query for "custom_query" action.
+postgres_valtype       | **Optional.** Value type of query result for "custom_query".
+postgres_reverse       | **Optional.** If "postgres_reverse" is set, warning and critical values are reversed for "custom_query" action.
+postgres_tempdir       | **Optional.** Specify directory for temporary files. The default directory is dependent on the OS. More details [here](https://perldoc.perl.org/File/Spec.html).
+postgres_pgcontroldata | **Optional.** Full path to the pg_controldata command line utility, e.g. "/usr/pgsql-12/bin/pg_controldata".
 
 #### mongodb <a id="plugin-contrib-command-mongodb"></a>
 
