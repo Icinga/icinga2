@@ -33,6 +33,18 @@ IcingaDB::IcingaDB()
 	m_PrefixConfigCheckSum = "icinga:checksum:";
 }
 
+void IcingaDB::Validate(int types, const ValidationUtils& utils)
+{
+	ObjectImpl<IcingaDB>::Validate(types, utils);
+
+	if (!(types & FAConfig))
+		return;
+
+	if (GetEnableTls() && GetCertPath().IsEmpty() != GetKeyPath().IsEmpty()) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(), "Validation failed: Either both a client certificate (cert_path) and its private key (key_path) or none of them must be given."));
+	}
+}
+
 /**
  * Starts the component.
  */
@@ -52,7 +64,9 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
-	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex());
+	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
+		GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
+		GetTlsProtocolmin(), GetCipherList(), GetDebugInfo());
 	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context& yc) {
 		m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
 	});
@@ -63,7 +77,9 @@ void IcingaDB::Start(bool runtimeCreated)
 		if (!ctype)
 			continue;
 
-		RedisConnection::Ptr rCon (new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(), m_Rcon));
+		RedisConnection::Ptr rCon (new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
+			GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
+			GetTlsProtocolmin(), GetCipherList(), GetDebugInfo(), m_Rcon));
 		rCon->Start();
 		m_Rcons[ctype] = std::move(rCon);
 	}
@@ -138,6 +154,17 @@ void IcingaDB::Stop(bool runtimeRemoved)
 		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<IcingaDB>::Stop(runtimeRemoved);
+}
+
+void IcingaDB::ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<IcingaDB>::ValidateTlsProtocolmin(lvalue, utils);
+
+	try {
+		ResolveTlsProtocolVersion(lvalue());
+	} catch (const std::exception& ex) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_protocolmin" }, ex.what()));
+	}
 }
 
 void IcingaDB::AssertOnWorkQueue()
