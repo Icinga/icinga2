@@ -2506,6 +2506,9 @@ postgres_query       | **Optional.** Query for "custom_query" action.
 postgres_valtype     | **Optional.** Value type of query result for "custom_query".
 postgres_reverse     | **Optional.** If "postgres_reverse" is set, warning and critical values are reversed for "custom_query" action.
 postgres_tempdir     | **Optional.** Specify directory for temporary files. The default directory is dependent on the OS. More details [here](https://perldoc.perl.org/File/Spec.html).
+postgres_datadir     | **Optional.** Specifies the database directory (PGDATA). This information is required for some actions, such as "bloat", "locks" and "prepared_txns".
+postgres_language    | **Optional.** Specifies the language for messages issued by the plugin. The default language depends on the system configuration.
+postgres_perflimit   | **Optional.** Specifies the maximum number of performance data values returned by the plugin. The default is to return all performance data.
 
 #### mongodb <a id="plugin-contrib-command-mongodb"></a>
 
