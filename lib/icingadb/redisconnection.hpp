@@ -62,8 +62,9 @@ namespace icinga
 		enum class QueryPriority : unsigned char
 		{
 			Heartbeat,
-			Config,
-			State,
+			RuntimeStateStream, // runtime state updates, doesn't affect initially synced states
+			Config, // includes initially synced states
+			RuntimeStateSync, // updates initially synced states at runtime, in parallel to config dump, therefore must be < Config
 			History,
 			CheckResult,
 			SyncConnection = 255
