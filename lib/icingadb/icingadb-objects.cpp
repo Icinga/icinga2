@@ -1490,7 +1490,10 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 			GetObjectIdentifier(checkable)
 		}, Prio::CheckResult);
 
-		m_Rcon->FireAndForgetQuery({"HDEL", m_PrefixConfigObject + typeName + ":state", objectKey}, Prio::RuntimeStateSync);
+		m_Rcon->FireAndForgetQueries({
+			{"HDEL", m_PrefixConfigObject + typeName + ":state", objectKey},
+			{"HDEL", m_PrefixConfigCheckSum + typeName + ":state", objectKey}
+		}, Prio::RuntimeStateSync);
 	}
 }
 
