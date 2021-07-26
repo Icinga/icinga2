@@ -76,7 +76,7 @@ namespace icinga
 
 		RedisConnection(const String& host, int port, const String& path, const String& password, int db,
 			bool useTls, bool insecure, const String& certPath, const String& keyPath, const String& caPath, const String& crlPath,
-			const String& tlsProtocolmin, const String& cipherList, DebugInfo di, const Ptr& parent = nullptr);
+			const String& tlsProtocolmin, const String& cipherList, double connectTimeout, DebugInfo di, const Ptr& parent = nullptr);
 
 		void UpdateTLSContext();
 
@@ -157,7 +157,7 @@ namespace icinga
 
 		RedisConnection(boost::asio::io_context& io, String host, int port, String path, String password,
 			int db, bool useTls, bool insecure, String certPath, String keyPath, String caPath, String crlPath,
-			String tlsProtocolmin, String cipherList, DebugInfo di, const Ptr& parent);
+			String tlsProtocolmin, String cipherList, double connectTimeout, DebugInfo di, const Ptr& parent);
 
 		void Connect(boost::asio::yield_context& yc);
 		void ReadLoop(boost::asio::yield_context& yc);
@@ -179,6 +179,9 @@ namespace icinga
 		template<class StreamPtr>
 		void Handshake(StreamPtr& stream, boost::asio::yield_context& yc);
 
+		template<class StreamPtr>
+		Timeout::Ptr MakeTimeout(StreamPtr& stream);
+
 		String m_Path;
 		String m_Host;
 		int m_Port;
@@ -192,6 +195,7 @@ namespace icinga
 		String m_CrlPath;
 		String m_TlsProtocolmin;
 		String m_CipherList;
+		double m_ConnectTimeout;
 		DebugInfo m_DebugInfo;
 
 		boost::asio::io_context::strand m_Strand;
@@ -452,6 +456,27 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 			}
 		}
 	}
+}
+
+/**
+ * Creates a Timeout which cancels stream's I/O after m_ConnectTimeout
+ *
+ * @param stream Redis server connection
+ */
+template<class StreamPtr>
+Timeout::Ptr RedisConnection::MakeTimeout(StreamPtr& stream)
+{
+	Ptr keepAlive (this);
+
+	return new Timeout(
+		m_Strand.context(),
+		m_Strand,
+		boost::posix_time::microseconds(intmax_t(m_ConnectTimeout * 1000000)),
+		[keepAlive, stream](boost::asio::yield_context yc) {
+			boost::system::error_code ec;
+			stream->lowest_layer().cancel(ec);
+		}
+	);
 }
 
 /**

@@ -40,6 +40,10 @@ class IcingaDB : ConfigObject
 	[config] String tls_protocolmin {
 		default {{{ return DEFAULT_TLS_PROTOCOLMIN; }}}
 	};
+
+	[config] double connect_timeout {
+		default {{{ return DEFAULT_CONNECT_TIMEOUT; }}}
+	};
 };
 
 }
