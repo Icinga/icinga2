@@ -1,0 +1,89 @@
+name: Raspbian
+
+on:
+  push:
+    branches:
+      - master
+      - 'support/*'
+  pull_request: {}
+
+jobs:
+  raspbian:
+    name: Raspbian
+
+    strategy:
+      fail-fast: false
+      matrix:
+        codename:
+          - buster
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cancel previous jobs for the same PR
+        if: "github.event_name == 'pull_request'"
+        uses: styfle/cancel-workflow-action@89f242ee29e10c53a841bfe71cc0ce7b2f065abc
+        with:
+          workflow_id: deb.yml,docker.yml,raspbian.yml,rpm.yml,windows.yml
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout HEAD
+        uses: actions/checkout@v1
+
+      - name: qemu-user-static
+        run: |
+          set -exo pipefail
+          sudo apt-get update
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y qemu-user-static
+
+      - name: raspbian-icinga2
+        run: |
+          set -exo pipefail
+          git clone https://git.icinga.com/packaging/raspbian-icinga2.git
+          chmod o+w raspbian-icinga2
+
+      - name: Restore/backup ccache
+        id: ccache
+        uses: actions/cache@v1
+        with:
+          path: raspbian-icinga2/ccache
+          key: |-
+            raspbian/${{ matrix.codename }}-ccache-${{ hashFiles('raspbian-icinga2/ccache') }}
+
+      - name: Binary
+        run: |
+          set -exo pipefail
+          git checkout -B master
+          if [ -e raspbian-icinga2/ccache ]; then
+            chmod -R o+w raspbian-icinga2/ccache
+          fi
+          docker run --rm \
+            -v "$(pwd)/raspbian-icinga2:/raspbian-icinga2" \
+            -v "$(pwd)/.git:/icinga2.git:ro" \
+            -w /raspbian-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            -e UPSTREAM_GIT_URL=file:///icinga2.git \
+            -e ICINGA_BUILD_DEB_DEFAULT_ARCH=armhf \
+            registry.icinga.com/build-docker/raspbian/${{ matrix.codename }} \
+            icinga-build-package
+
+# Setting up icinga2-bin (2.12.0+rc1.25.g5d1c82a3d.20200526.0754+buster-0) ...
+# enabling default icinga2 features
+# qemu:handle_cpu_signal received signal outside vCPU context @ pc=0x6015c75c
+# qemu:handle_cpu_signal received signal outside vCPU context @ pc=0x6015c75c
+# qemu:handle_cpu_signal received signal outside vCPU context @ pc=0x600016ea
+# dpkg: error processing package icinga2-bin (--configure):
+#  installed icinga2-bin package post-installation script subprocess returned error exit status 127
+#
+#      - name: Test
+#        run: |
+#          set -exo pipefail
+#          docker run --rm \
+#            -v "$(pwd)/raspbian-icinga2:/raspbian-icinga2" \
+#            -w /raspbian-icinga2 \
+#            -e ICINGA_BUILD_PROJECT=icinga2 \
+#            -e ICINGA_BUILD_TYPE=snapshot \
+#            -e ICINGA_BUILD_DEB_DEFAULT_ARCH=armhf \
+#            registry.icinga.com/build-docker/raspbian/${{ matrix.codename }} \
+#            icinga-build-test
