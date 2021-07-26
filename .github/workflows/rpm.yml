@@ -1,0 +1,116 @@
+name: .rpm
+
+on:
+  push:
+    branches:
+      - master
+      - 'support/*'
+  pull_request: {}
+
+jobs:
+  rpm:
+    name: .rpm
+
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - name: centos
+            release: 8
+          - name: centos
+            release: 7
+          - name: fedora
+            release: 34
+          - name: fedora
+            release: 33
+          - name: sles
+            release: '15.2'
+          - name: sles
+            release: '12.5'
+          - name: opensuse
+            release: '15.2'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cancel previous jobs for the same PR
+        if: "github.event_name == 'pull_request'"
+        uses: styfle/cancel-workflow-action@89f242ee29e10c53a841bfe71cc0ce7b2f065abc
+        with:
+          workflow_id: deb.yml,docker.yml,raspbian.yml,rpm.yml,windows.yml
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Vars
+        id: vars
+        env:
+          GITLAB_REGISTRY_RO_TOKEN: '${{ secrets.GITLAB_REGISTRY_RO_TOKEN }}'
+        run: |
+          if [ '${{ matrix.distro.name }}' = sles ]; then
+            if [ "$(tr -d '\n' <<<"$GITLAB_REGISTRY_RO_TOKEN" |wc -c)" -eq 0 ]; then
+              echo '::set-output name=CAN_BUILD::false'
+              echo '::set-output name=NEED_LOGIN::false'
+            else
+              echo '::set-output name=CAN_BUILD::true'
+              echo '::set-output name=NEED_LOGIN::true'
+            fi
+          else
+            echo '::set-output name=CAN_BUILD::true'
+            echo '::set-output name=NEED_LOGIN::false'
+          fi
+
+      - name: Checkout HEAD
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
+        uses: actions/checkout@v1
+
+      - name: Login
+        if: "steps.vars.outputs.NEED_LOGIN == 'true'"
+        env:
+          GITLAB_REGISTRY_RO_TOKEN: '${{ secrets.GITLAB_REGISTRY_RO_TOKEN }}'
+        run: |
+          docker login registry.icinga.com -u build-docker/sles --password-stdin <<<"$GITLAB_REGISTRY_RO_TOKEN"
+
+      - name: rpm-icinga2
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
+        run: |
+          set -exo pipefail
+          git clone https://git.icinga.com/packaging/rpm-icinga2.git
+          chmod o+w rpm-icinga2
+
+      - name: Restore/backup ccache
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
+        id: ccache
+        uses: actions/cache@v1
+        with:
+          path: rpm-icinga2/ccache
+          key: |-
+            ${{ matrix.distro.name }}/${{ matrix.distro.release }}-ccache-${{ hashFiles('rpm-icinga2/ccache') }}
+
+      - name: Binary
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
+        run: |
+          set -exo pipefail
+          git checkout -B master
+          if [ -e rpm-icinga2/ccache ]; then
+            chmod -R o+w rpm-icinga2/ccache
+          fi
+          docker run --rm \
+            -v "$(pwd)/rpm-icinga2:/rpm-icinga2" \
+            -v "$(pwd)/.git:/icinga2.git:ro" \
+            -w /rpm-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            -e UPSTREAM_GIT_URL=file:///icinga2.git \
+            registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.release }} \
+            icinga-build-package
+
+      - name: Test
+        if: "steps.vars.outputs.CAN_BUILD == 'true'"
+        run: |
+          set -exo pipefail
+          docker run --rm \
+            -v "$(pwd)/rpm-icinga2:/rpm-icinga2" \
+            -w /rpm-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.release }} \
+            icinga-build-test
