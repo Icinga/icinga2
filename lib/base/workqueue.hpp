@@ -68,17 +68,24 @@ public:
 	template<typename VectorType, typename FuncType>
 	void ParallelFor(const VectorType& items, const FuncType& func)
 	{
+		ParallelFor(items, true, func);
+	}
+
+	template<typename VectorType, typename FuncType>
+	void ParallelFor(const VectorType& items, bool preChunk, const FuncType& func)
+	{
 		using SizeType = decltype(items.size());
 
 		SizeType totalCount = items.size();
+		SizeType chunks = preChunk ? m_ThreadCount : totalCount;
 
 		auto lock = AcquireLock();
 
 		SizeType offset = 0;
 
-		for (int i = 0; i < m_ThreadCount; i++) {
-			SizeType count = totalCount / static_cast<SizeType>(m_ThreadCount);
-			if (static_cast<SizeType>(i) < totalCount % static_cast<SizeType>(m_ThreadCount))
+		for (SizeType i = 0; i < chunks; i++) {
+			SizeType count = totalCount / chunks;
+			if (i < totalCount % chunks)
 				count++;
 
 			EnqueueUnlocked(lock, [&items, func, offset, count, this]() {
