@@ -4,6 +4,7 @@
 #define TLSUTILITY_H
 
 #include "base/i2-base.hpp"
+#include "base/debuginfo.hpp"
 #include "base/object.hpp"
 #include "base/shared.hpp"
 #include "base/array.hpp"
@@ -24,6 +25,10 @@
 namespace icinga
 {
 
+const char * const DEFAULT_TLS_CIPHERS = "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:AES256-GCM-SHA384:AES128-GCM-SHA256";
+
+const char * const DEFAULT_TLS_PROTOCOLMIN = "TLSv1.2";
+
 void InitializeOpenSSL();
 
 String GetOpenSSLVersion();
@@ -34,6 +39,9 @@ void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath);
 void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& cipherList);
 void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& tlsProtocolmin);
 int ResolveTlsProtocolVersion(const std::string& version);
+
+Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String keyPath,
+	String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di);
 
 String GetCertificateCN(const std::shared_ptr<X509>& certificate);
 std::shared_ptr<X509> GetX509Certificate(const String& pemfile);
