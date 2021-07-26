@@ -1484,14 +1484,13 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 	auto checkable (dynamic_pointer_cast<Checkable>(object));
 
 	if (checkable) {
-		m_Rcon->FireAndForgetQueries({
-			{
-				"ZREM",
-				dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
-				GetObjectIdentifier(checkable)
-			},
-			{"HDEL", m_PrefixConfigObject + typeName + ":state", objectKey},
+		m_Rcon->FireAndForgetQuery({
+			"ZREM",
+			dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
+			GetObjectIdentifier(checkable)
 		}, Prio::CheckResult);
+
+		m_Rcon->FireAndForgetQuery({"HDEL", m_PrefixConfigObject + typeName + ":state", objectKey}, Prio::RuntimeStateSync);
 	}
 }
 
