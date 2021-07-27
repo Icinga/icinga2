@@ -1,0 +1,128 @@
+name: .deb
+
+on:
+  push:
+    branches:
+      - master
+      - 'support/*'
+  pull_request: {}
+
+jobs:
+  deb:
+    name: .deb
+
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - name: debian
+            codename: bullseye
+            has32bit: true
+          - name: debian
+            codename: buster
+            has32bit: true
+          - name: debian
+            codename: stretch
+            has32bit: true
+          - name: ubuntu
+            codename: hirsute
+            has32bit: false
+          - name: ubuntu
+            codename: groovy
+            has32bit: false
+          - name: ubuntu
+            codename: focal
+            has32bit: false
+          - name: ubuntu
+            codename: bionic
+            has32bit: true
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cancel previous jobs for the same PR
+        if: "github.event_name == 'pull_request'"
+        uses: styfle/cancel-workflow-action@89f242ee29e10c53a841bfe71cc0ce7b2f065abc
+        with:
+          workflow_id: deb.yml,docker.yml,raspbian.yml,rpm.yml,windows.yml
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout HEAD
+        uses: actions/checkout@v1
+
+      - name: deb-icinga2
+        run: |
+          set -exo pipefail
+          git clone https://git.icinga.com/packaging/deb-icinga2.git
+          chmod o+w deb-icinga2
+
+      - name: Source
+        run: |
+          set -exo pipefail
+          git checkout -B master
+          docker run --rm \
+            -v "$(pwd)/deb-icinga2:/deb-icinga2" \
+            -v "$(pwd)/.git:/icinga2.git:ro" \
+            -w /deb-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            -e UPSTREAM_GIT_URL=file:///icinga2.git \
+            registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.codename }} \
+            icinga-build-deb-source
+
+      - name: Restore/backup ccache
+        id: ccache
+        uses: actions/cache@v1
+        with:
+          path: deb-icinga2/ccache
+          key: |-
+            ${{ matrix.distro.name }}/${{ matrix.distro.codename }}-ccache-${{ hashFiles('deb-icinga2/ccache') }}
+
+      - name: Binary x64
+        run: |
+          set -exo pipefail
+          if [ -e deb-icinga2/ccache ]; then
+            chmod -R o+w deb-icinga2/ccache
+          fi
+          docker run --rm \
+            -v "$(pwd)/deb-icinga2:/deb-icinga2" \
+            -w /deb-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.codename }} \
+            icinga-build-deb-binary
+
+      - name: Binary x86
+        if: matrix.distro.has32bit
+        run: |
+          set -exo pipefail
+          docker run --rm \
+            -v "$(pwd)/deb-icinga2:/deb-icinga2" \
+            -w /deb-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.codename }}:x86 \
+            icinga-build-deb-binary
+
+      - name: Test x64
+        run: |
+          set -exo pipefail
+          docker run --rm \
+            -v "$(pwd)/deb-icinga2:/deb-icinga2" \
+            -w /deb-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.codename }} \
+            icinga-build-test
+
+      - name: Test x86
+        if: matrix.distro.has32bit
+        run: |
+          set -exo pipefail
+          docker run --rm \
+            -v "$(pwd)/deb-icinga2:/deb-icinga2" \
+            -w /deb-icinga2 \
+            -e ICINGA_BUILD_PROJECT=icinga2 \
+            -e ICINGA_BUILD_TYPE=snapshot \
+            registry.icinga.com/build-docker/${{ matrix.distro.name }}/${{ matrix.distro.codename }}:x86 \
+            icinga-build-test
