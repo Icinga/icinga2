@@ -163,7 +163,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		m_DumpedGlobals.IconImage.Reset();
 	});
 
-	upq.ParallelFor(types, [this](const Type::Ptr& type) {
+	upq.ParallelFor(types, false, [this](const Type::Ptr& type) {
 		String lcType = type->GetName().ToLower();
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
 		if (!ctype)
