@@ -67,8 +67,18 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
 		GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
 		GetTlsProtocolmin(), GetCipherList(), GetDebugInfo());
-	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context& yc) {
+
+	auto connectedCallback ([this](boost::asio::yield_context& yc) {
 		m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
+	});
+
+	m_Rcon->SetConnectedCallback([this, connectedCallback](boost::asio::yield_context& yc) {
+		for (auto& kv : m_Rcons) {
+			kv.second->Start();
+		}
+
+		m_Rcon->SetConnectedCallback(connectedCallback);
+		connectedCallback(yc);
 	});
 	m_Rcon->Start();
 
@@ -77,11 +87,9 @@ void IcingaDB::Start(bool runtimeCreated)
 		if (!ctype)
 			continue;
 
-		RedisConnection::Ptr rCon (new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
+		m_Rcons[ctype] = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
 			GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
-			GetTlsProtocolmin(), GetCipherList(), GetDebugInfo(), m_Rcon));
-		rCon->Start();
-		m_Rcons[ctype] = std::move(rCon);
+			GetTlsProtocolmin(), GetCipherList(), GetDebugInfo(), m_Rcon);
 	}
 
 	m_StatsTimer = new Timer();
