@@ -136,10 +136,10 @@ void IcingaDB::UpdateAllConfigObjects()
 	std::vector<Type::Ptr> types = GetTypes();
 
 	m_Rcon->SuppressQueryKind(Prio::CheckResult);
-	m_Rcon->SuppressQueryKind(Prio::State);
+	m_Rcon->SuppressQueryKind(Prio::RuntimeStateSync);
 
 	Defer unSuppress ([this]() {
-		m_Rcon->UnsuppressQueryKind(Prio::State);
+		m_Rcon->UnsuppressQueryKind(Prio::RuntimeStateSync);
 		m_Rcon->UnsuppressQueryKind(Prio::CheckResult);
 	});
 
@@ -1078,8 +1078,8 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable)
 
 	Dictionary::Ptr stateAttrs = SerializeState(checkable);
 
-	m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigObject + objectType + ":state", objectKey, JsonEncode(stateAttrs)}, Prio::State);
-	m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigCheckSum + objectType + ":state", objectKey, JsonEncode(new Dictionary({{"checksum", HashValue(stateAttrs)}}))}, Prio::State);
+	m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigObject + objectType + ":state", objectKey, JsonEncode(stateAttrs)}, Prio::RuntimeStateSync);
+	m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigCheckSum + objectType + ":state", objectKey, JsonEncode(new Dictionary({{"checksum", HashValue(stateAttrs)}}))}, Prio::RuntimeStateSync);
 
 }
 
@@ -1101,8 +1101,8 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 		Dictionary::Ptr state = SerializeState(checkable);
 		String checksum = HashValue(state);
 
-		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigObject + typeName + ":state", objectKey, JsonEncode(state)}, Prio::State);
-		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigCheckSum + typeName + ":state", objectKey, JsonEncode(new Dictionary({{"checksum", checksum}}))}, Prio::State);
+		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigObject + typeName + ":state", objectKey, JsonEncode(state)}, Prio::RuntimeStateSync);
+		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigCheckSum + typeName + ":state", objectKey, JsonEncode(new Dictionary({{"checksum", checksum}}))}, Prio::RuntimeStateSync);
 
 		if (runtimeUpdate) {
 			state->Set("checksum", checksum);
@@ -1538,14 +1538,14 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 	objectAttrs->Set("runtime_type", "upsert");
 	objectAttrs->Set("checksum", HashValue(objectAttrs));
 
-	std::vector<String> streamadd({"XADD", "icinga:runtime", "MAXLEN", "~", "1000000", "*"});
+	std::vector<String> streamadd({"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*"});
 	ObjectLock olock(objectAttrs);
 	for (const Dictionary::Pair& kv : objectAttrs) {
 		streamadd.emplace_back(kv.first);
 		streamadd.emplace_back(IcingaToStreamValue(kv.second));
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::State);
+	m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream);
 
 	int hard_state;
 	if (!cr) {
