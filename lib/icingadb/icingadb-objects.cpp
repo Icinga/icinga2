@@ -153,7 +153,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			m_PrefixConfigObject + "icon:image",
 	};
 	DeleteKeys(m_Rcon, globalKeys, Prio::Config);
-	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::CheckResult);
+	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
 	m_Rcon->Sync();
 
 	Defer resetDumpedGlobals ([this]() {
