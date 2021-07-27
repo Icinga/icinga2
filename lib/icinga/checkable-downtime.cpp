@@ -12,7 +12,7 @@ using namespace icinga;
 void Checkable::RemoveAllDowntimes()
 {
 	for (const Downtime::Ptr& downtime : GetDowntimes()) {
-		Downtime::RemoveDowntime(downtime->GetName(), true, true);
+		Downtime::RemoveDowntime(downtime->GetName(), true, true, true);
 	}
 }
 

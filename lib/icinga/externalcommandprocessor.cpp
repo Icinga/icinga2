@@ -986,7 +986,7 @@ void ExternalCommandProcessor::DelSvcDowntime(double, const std::vector<String>&
 	String rid = Downtime::GetDowntimeIDFromLegacyID(id);
 
 	try {
-		Downtime::RemoveDowntime(rid, true);
+		Downtime::RemoveDowntime(rid, false, true);
 
 		Log(LogNotice, "ExternalCommandProcessor")
 			<< "Removed downtime ID " << arguments[0];
@@ -1094,7 +1094,7 @@ void ExternalCommandProcessor::DelHostDowntime(double, const std::vector<String>
 	String rid = Downtime::GetDowntimeIDFromLegacyID(id);
 
 	try {
-		Downtime::RemoveDowntime(rid, true);
+		Downtime::RemoveDowntime(rid, false, true);
 
 		Log(LogNotice, "ExternalCommandProcessor")
 			<< "Removed downtime ID " << arguments[0];
@@ -1129,7 +1129,7 @@ void ExternalCommandProcessor::DelDowntimeByHostName(double, const std::vector<S
 	for (const Downtime::Ptr& downtime : host->GetDowntimes()) {
 		try {
 			String downtimeName = downtime->GetName();
-			Downtime::RemoveDowntime(downtimeName, true);
+			Downtime::RemoveDowntime(downtimeName, false, true);
 
 			Log(LogNotice, "ExternalCommandProcessor")
 				<< "Removed downtime '" << downtimeName << "'.";
@@ -1151,7 +1151,7 @@ void ExternalCommandProcessor::DelDowntimeByHostName(double, const std::vector<S
 
 			try {
 				String downtimeName = downtime->GetName();
-				Downtime::RemoveDowntime(downtimeName, true);
+				Downtime::RemoveDowntime(downtimeName, false, true);
 
 				Log(LogNotice, "ExternalCommandProcessor")
 					<< "Removed downtime '" << downtimeName << "'.";
