@@ -28,6 +28,8 @@
 using namespace icinga;
 namespace asio = boost::asio;
 
+boost::regex RedisConnection::m_ErrAuth ("\\AERR AUTH ");
+
 RedisConnection::RedisConnection(const String& host, int port, const String& path, const String& password, int db,
 	bool useTls, bool insecure, const String& certPath, const String& keyPath, const String& caPath, const String& crlPath,
 	const String& tlsProtocolmin, const String& cipherList, DebugInfo di, const RedisConnection::Ptr& parent)
@@ -296,6 +298,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 						}
 					}
 
+					Handshake(conn, yc);
 					m_TlsConn = std::move(conn);
 				} else {
 					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
@@ -303,6 +306,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 					auto conn (Shared<TcpConn>::Make(m_Strand.context()));
 					icinga::Connect(conn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
+					Handshake(conn, yc);
 					m_TcpConn = std::move(conn);
 				}
 			} else {
@@ -311,6 +315,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 				auto conn (Shared<UnixConn>::Make(m_Strand.context()));
 				conn->next_layer().async_connect(Unix::endpoint(m_Path.CStr()), yc);
+				Handshake(conn, yc);
 				m_UnixConn = std::move(conn);
 			}
 

@@ -5,6 +5,7 @@
 
 #include "base/array.hpp"
 #include "base/atomic.hpp"
+#include "base/convert.hpp"
 #include "base/io-engine.hpp"
 #include "base/object.hpp"
 #include "base/ringbuffer.hpp"
@@ -25,6 +26,7 @@
 #include <boost/asio/streambuf.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 #include <boost/utility/string_view.hpp>
 #include <cstddef>
 #include <cstdint>
@@ -150,6 +152,8 @@ namespace icinga
 		template<class AsyncWriteStream>
 		static void WriteRESP(AsyncWriteStream& stream, const Query& query, boost::asio::yield_context& yc);
 
+		static boost::regex m_ErrAuth;
+
 		RedisConnection(boost::asio::io_context& io, String host, int port, String path, String password,
 			int db, bool useTls, bool insecure, String certPath, String keyPath, String caPath, String crlPath,
 			String tlsProtocolmin, String cipherList, DebugInfo di, const Ptr& parent);
@@ -170,6 +174,9 @@ namespace icinga
 
 		void IncreasePendingQueries(int count);
 		void DecreasePendingQueries(int count);
+
+		template<class StreamPtr>
+		void Handshake(StreamPtr& stream, boost::asio::yield_context& yc);
 
 		String m_Path;
 		String m_Host;
@@ -384,6 +391,65 @@ void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query,
 		}
 
 		throw;
+	}
+}
+
+/**
+ * Initialize a Redis stream
+ *
+ * @param stream Redis server connection
+ * @param query Redis query
+ */
+template<class StreamPtr>
+void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
+{
+	if (m_Password.IsEmpty() && !m_DbIndex) {
+		// Trigger NOAUTH
+		WriteRESP(*strm, {"PING"}, yc);
+	} else {
+		if (!m_Password.IsEmpty()) {
+			WriteRESP(*strm, {"AUTH", m_Password}, yc);
+		}
+
+		if (m_DbIndex) {
+			WriteRESP(*strm, {"SELECT", Convert::ToString(m_DbIndex)}, yc);
+		}
+	}
+
+	strm->async_flush(yc);
+
+	if (m_Password.IsEmpty() && !m_DbIndex) {
+		Reply pong (ReadRESP(*strm, yc));
+
+		if (pong.IsObjectType<RedisError>()) {
+			// Likely NOAUTH
+			BOOST_THROW_EXCEPTION(std::runtime_error(RedisError::Ptr(pong)->GetMessage()));
+		}
+	} else {
+		if (!m_Password.IsEmpty()) {
+			Reply auth (ReadRESP(*strm, yc));
+
+			if (auth.IsObjectType<RedisError>()) {
+				auto& authErr (RedisError::Ptr(auth)->GetMessage().GetData());
+				boost::smatch what;
+
+				if (boost::regex_search(authErr, what, m_ErrAuth)) {
+					Log(LogWarning, "IcingaDB") << authErr;
+				} else {
+					// Likely WRONGPASS
+					BOOST_THROW_EXCEPTION(std::runtime_error(authErr));
+				}
+			}
+		}
+
+		if (m_DbIndex) {
+			Reply select (ReadRESP(*strm, yc));
+
+			if (select.IsObjectType<RedisError>()) {
+				// Likely NOAUTH or ERR DB
+				BOOST_THROW_EXCEPTION(std::runtime_error(RedisError::Ptr(select)->GetMessage()));
+			}
+		}
 	}
 }
 
