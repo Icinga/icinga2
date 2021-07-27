@@ -1133,8 +1133,14 @@ bool Process::DoEvents()
 	} else if (WIFEXITED(status)) {
 		exitcode = WEXITSTATUS(status);
 
-		Log(LogNotice, "Process")
-			<< "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
+		Log msg(LogNotice, "Process");
+		msg << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
+			<< ") terminated with exit code " << exitcode;
+
+		if (m_SentSigterm) {
+			exitcode = 128;
+			msg << " after sending SIGTERM";
+		}
 	} else if (WIFSIGNALED(status)) {
 		int signum = WTERMSIG(status);
 		const char *zsigname = strsignal(signum);
