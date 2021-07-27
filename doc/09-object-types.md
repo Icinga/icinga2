@@ -690,8 +690,7 @@ object Service "uptime" {
 
   check_command = "snmp"
 
-  vars.snmp_comm
-  y = "public"
+  vars.snmp_community = "public"
   vars.snmp_oid = "DISMAN-EVENT-MIB::sysUpTimeInstance"
 
   check_interval = 60s
