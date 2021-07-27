@@ -50,6 +50,8 @@ void IcingaDB::Validate(int types, const ValidationUtils& utils)
  */
 void IcingaDB::Start(bool runtimeCreated)
 {
+	using yield_context = boost::asio::yield_context;
+
 	ObjectImpl<IcingaDB>::Start(runtimeCreated);
 
 	boost::call_once([]() {
@@ -68,17 +70,22 @@ void IcingaDB::Start(bool runtimeCreated)
 		GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
 		GetTlsProtocolmin(), GetCipherList(), GetDebugInfo());
 
-	auto connectedCallback ([this](boost::asio::yield_context& yc) {
-		m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
-	});
+	m_Rcon->SetConnectedCallback([this](yield_context& yc) {
+		m_Rcon->SetConnectedCallback({});
+		m_RconsPending.store(m_Rcons.size());
 
-	m_Rcon->SetConnectedCallback([this, connectedCallback](boost::asio::yield_context& yc) {
 		for (auto& kv : m_Rcons) {
-			kv.second->Start();
-		}
+			auto rCon (kv.second);
 
-		m_Rcon->SetConnectedCallback(connectedCallback);
-		connectedCallback(yc);
+			rCon->SetConnectedCallback([this, rCon](yield_context& yc) {
+				rCon->SetConnectedCallback({});
+
+				if (m_RconsPending.fetch_sub(1) == 1u) {
+					m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
+				}
+			});
+			rCon->Start();
+		}
 	});
 	m_Rcon->Start();
 
