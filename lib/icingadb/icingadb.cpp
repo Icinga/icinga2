@@ -73,22 +73,31 @@ void IcingaDB::Start(bool runtimeCreated)
 		if (!ctype)
 			continue;
 
-		m_Rcons[ctype] = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
+		RedisConnection::Ptr con = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
 			GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
 			GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo(), m_Rcon);
+
+		con->SetConnectedCallback([this, con](boost::asio::yield_context& yc) {
+			con->SetConnectedCallback(nullptr);
+
+			size_t pending = --m_PendingRcons;
+			Log(LogDebug, "IcingaDB") << pending << " pending child connections remaining";
+			if (pending == 0) {
+				m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
+			}
+		});
+
+		m_Rcons[ctype] = std::move(con);
 	}
 
-	auto connectedCallback ([this](boost::asio::yield_context& yc) {
-		m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
-	});
+	m_PendingRcons = m_Rcons.size();
 
-	m_Rcon->SetConnectedCallback([this, connectedCallback](boost::asio::yield_context& yc) {
+	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context& yc) {
+		m_Rcon->SetConnectedCallback(nullptr);
+
 		for (auto& kv : m_Rcons) {
 			kv.second->Start();
 		}
-
-		m_Rcon->SetConnectedCallback(connectedCallback);
-		connectedCallback(yc);
 	});
 	m_Rcon->Start();
 

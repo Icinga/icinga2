@@ -13,6 +13,7 @@
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
 #include <boost/thread/once.hpp>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -169,6 +170,7 @@ private:
 
 	RedisConnection::Ptr m_Rcon;
 	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
+	std::atomic_size_t m_PendingRcons;
 
 	struct {
 		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage;
