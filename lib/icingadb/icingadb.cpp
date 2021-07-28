@@ -68,6 +68,16 @@ void IcingaDB::Start(bool runtimeCreated)
 		GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
 		GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo());
 
+	for (const Type::Ptr& type : GetTypes()) {
+		auto ctype (dynamic_cast<ConfigType*>(type.get()));
+		if (!ctype)
+			continue;
+
+		m_Rcons[ctype] = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
+			GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
+			GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo(), m_Rcon);
+	}
+
 	auto connectedCallback ([this](boost::asio::yield_context& yc) {
 		m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
 	});
@@ -81,16 +91,6 @@ void IcingaDB::Start(bool runtimeCreated)
 		connectedCallback(yc);
 	});
 	m_Rcon->Start();
-
-	for (const Type::Ptr& type : GetTypes()) {
-		auto ctype (dynamic_cast<ConfigType*>(type.get()));
-		if (!ctype)
-			continue;
-
-		m_Rcons[ctype] = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
-			GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
-			GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo(), m_Rcon);
-	}
 
 	m_StatsTimer = new Timer();
 	m_StatsTimer->SetInterval(1);
