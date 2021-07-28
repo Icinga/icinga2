@@ -331,8 +331,10 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 			Log(m_Parent ? LogNotice : LogInformation, "IcingaDB", "Connected to Redis server");
 
-			if (m_ConnectedCallback) {
-				m_ConnectedCallback(yc);
+			// Operate on a copy so that the callback can set a new callback without destroying itself while running.
+			auto callback (m_ConnectedCallback);
+			if (callback) {
+				callback(yc);
 			}
 
 			break;
