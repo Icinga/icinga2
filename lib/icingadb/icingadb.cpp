@@ -66,7 +66,7 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
 		GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
-		GetTlsProtocolmin(), GetCipherList(), GetDebugInfo());
+		GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo());
 
 	auto connectedCallback ([this](boost::asio::yield_context& yc) {
 		m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
@@ -89,7 +89,7 @@ void IcingaDB::Start(bool runtimeCreated)
 
 		m_Rcons[ctype] = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
 			GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
-			GetTlsProtocolmin(), GetCipherList(), GetDebugInfo(), m_Rcon);
+			GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo(), m_Rcon);
 	}
 
 	m_StatsTimer = new Timer();
@@ -172,6 +172,15 @@ void IcingaDB::ValidateTlsProtocolmin(const Lazy<String>& lvalue, const Validati
 		ResolveTlsProtocolVersion(lvalue());
 	} catch (const std::exception& ex) {
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_protocolmin" }, ex.what()));
+	}
+}
+
+void IcingaDB::ValidateConnectTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<IcingaDB>::ValidateConnectTimeout(lvalue, utils);
+
+	if (lvalue() <= 0) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "connect_timeout" }, "Value must be greater than 0."));
 	}
 }
 
