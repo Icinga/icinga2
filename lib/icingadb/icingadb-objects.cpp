@@ -1513,7 +1513,32 @@ unsigned short GetPreviousState(const Checkable::Ptr& checkable, const Service::
 	}
 }
 
-void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
+void IcingaDB::SendStatusUpdate(const Checkable::Ptr& checkable)
+{
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	Dictionary::Ptr objectAttrs = SerializeState(checkable);
+	std::vector<String> streamadd({"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*"});
+	ObjectLock olock(objectAttrs);
+
+	tie(host, service) = GetHostService(checkable);
+
+	objectAttrs->Set("redis_key", service ? "icinga:service:state" : "icinga:host:state");
+	objectAttrs->Set("runtime_type", "upsert");
+	objectAttrs->Set("checksum", HashValue(objectAttrs));
+
+	for (const Dictionary::Pair& kv : objectAttrs) {
+		streamadd.emplace_back(kv.first);
+		streamadd.emplace_back(IcingaToStreamValue(kv.second));
+	}
+
+	m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream);
+}
+
+void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1527,25 +1552,7 @@ void IcingaDB::SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResu
 
 	tie(host, service) = GetHostService(checkable);
 
-	String redisKey;
-	if (service)
-		redisKey = "icinga:service:state";
-	else
-		redisKey = "icinga:host:state";
-
-	Dictionary::Ptr objectAttrs = SerializeState(checkable);
-	objectAttrs->Set("redis_key", redisKey);
-	objectAttrs->Set("runtime_type", "upsert");
-	objectAttrs->Set("checksum", HashValue(objectAttrs));
-
-	std::vector<String> streamadd({"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*"});
-	ObjectLock olock(objectAttrs);
-	for (const Dictionary::Pair& kv : objectAttrs) {
-		streamadd.emplace_back(kv.first);
-		streamadd.emplace_back(IcingaToStreamValue(kv.second));
-	}
-
-	m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream);
+	SendStatusUpdate(checkable);
 
 	int hard_state;
 	if (!cr) {
@@ -2319,7 +2326,7 @@ void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object)
 void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->SendStatusUpdate(object, cr, type);
+		rw->SendStateChange(object, cr, type);
 	}
 }
 

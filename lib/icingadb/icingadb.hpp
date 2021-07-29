@@ -72,7 +72,8 @@ private:
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
-	void SendStatusUpdate(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
+	void SendStatusUpdate(const Checkable::Ptr& checkable);
+	void SendStateChange(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates, const String& objectKey,
 			const String& redisKey, const Dictionary::Ptr& data);
 
