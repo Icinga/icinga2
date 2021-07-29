@@ -1276,10 +1276,11 @@ Adds a `comment` from an `author` to services or hosts.
 
 Send a `POST` request to the URL endpoint `/v1/actions/add-comment`.
 
-  Parameter | Type   | Description
-  ----------|--------|--------------
-  author    | string | **Required.** Name of the author, may be empty.
-  comment   | string | **Required.** Comment text, may be empty.
+  Parameter | Type      | Description
+  ----------|-----------|--------------
+  author    | string    | **Required.** Name of the author, may be empty.
+  comment   | string    | **Required.** Comment text, may be empty.
+  expiry    | Timestamp | **Optional.** Comment expiry time.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
