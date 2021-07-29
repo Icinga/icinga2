@@ -656,7 +656,7 @@ http_method                      | **Optional.** Set http method (for example: H
 http_maxage                      | **Optional.** Warn if document is more than seconds old.
 http_contenttype                 | **Optional.** Specify Content-Type header when POSTing.
 http_useragent                   | **Optional.** String to be sent in http header as User Agent.
-http_header                      | **Optional.** Any other tags to be sent in http header. Can be an array if multiple headers should be passed to `check_http'.
+http_header                      | **Optional.** Any other tags to be sent in http header. Can be an array if multiple headers should be passed to `check_http`.
 http_extendedperfdata            | **Optional.** Print additional perfdata. Defaults to false.
 http_onredirect                  | **Optional.** How to handle redirect pages. Possible values: "ok" (default), "warning", "critical", "follow", "sticky" (like follow but stick to address), "stickyport" (like sticky but also to port)
 http_pagesize                    | **Optional.** Minimum page size required:Maximum page size required.
