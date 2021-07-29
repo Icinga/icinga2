@@ -1528,9 +1528,9 @@ void IcingaDB::SendStatusUpdate(const Checkable::Ptr& checkable)
 
 	tie(host, service) = GetHostService(checkable);
 
+	objectAttrs->Set("checksum", HashValue(objectAttrs));
 	objectAttrs->Set("redis_key", service ? "icinga:service:state" : "icinga:host:state");
 	objectAttrs->Set("runtime_type", "upsert");
-	objectAttrs->Set("checksum", HashValue(objectAttrs));
 
 	for (const Dictionary::Pair& kv : objectAttrs) {
 		streamadd.emplace_back(kv.first);
