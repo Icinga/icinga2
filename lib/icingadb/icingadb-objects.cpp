@@ -1895,6 +1895,8 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	UpdateState(checkable);
+	SendStatusUpdate(checkable);
 }
 
 void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
@@ -1962,6 +1964,8 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	UpdateState(checkable);
+	SendStatusUpdate(checkable);
 }
 
 void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double changeTime, double flappingLastChange)
@@ -2250,6 +2254,14 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 		}
 		if (AckComment != nullptr) {
 			attrs->Set("acknowledgement_comment_id", GetObjectIdentifier(AckComment));
+		}
+	}
+
+	{
+		auto lastComment (checkable->GetLastComment());
+
+		if (lastComment) {
+			attrs->Set("last_comment_id", GetObjectIdentifier(lastComment));
 		}
 	}
 
