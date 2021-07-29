@@ -152,6 +152,7 @@ public:
 	void RemoveCommentsByType(int type, const String& removedBy = String());
 
 	std::set<Comment::Ptr> GetComments() const;
+	Comment::Ptr GetLastComment() const;
 	void RegisterComment(const Comment::Ptr& comment);
 	void UnregisterComment(const Comment::Ptr& comment);
 
