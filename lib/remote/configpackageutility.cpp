@@ -370,7 +370,7 @@ bool ConfigPackageUtility::ContainsDotDot(const String& path)
 
 bool ConfigPackageUtility::ValidatePackageName(const String& packageName)
 {
-	return ValidateFreshName(packageName);
+	return ValidateFreshName(packageName) || PackageExists(packageName);
 }
 
 bool ConfigPackageUtility::ValidateFreshName(const String& name)
