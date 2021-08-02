@@ -173,7 +173,7 @@ git clone git@git.icinga.com:packaging/rpm-icinga2.git && cd rpm-icinga2
 git clone git@git.icinga.com:packaging/deb-icinga2.git && cd deb-icinga2
 ```
 
-#### Raspbian Packages
+### Raspbian Packages
 
 ```bash
 git clone git@git.icinga.com:packaging/raspbian-icinga2.git && cd raspbian-icinga2
