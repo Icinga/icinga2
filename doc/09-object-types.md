@@ -1473,7 +1473,7 @@ Cleanup Items:
 > **Supported units**
 >
 > Supported suffixes include ms (milliseconds), s (seconds), m (minutes), h (hours) and d (days).
-> Check the [language reference](17-language-reference.md#numeric-literals-).
+> Check the [language reference](17-language-reference.md#duration-literals).
 
 Data Categories:
 
@@ -1572,7 +1572,7 @@ Cleanup Items:
 > **Supported units**
 >
 > Supported suffixes include ms (milliseconds), s (seconds), m (minutes), h (hours) and d (days).
-> Check the [language reference](17-language-reference.md#numeric-literals-).
+> Check the [language reference](17-language-reference.md#duration-literals).
 
 Data Categories:
 
