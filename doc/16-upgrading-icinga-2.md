@@ -8,6 +8,39 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.13 <a id="upgrading-to-2-13"></a>
+
+### DB IDO Schema Update <a id="upgrading-to-2-13-db-ido"></a>
+
+There is an optional schema update on MySQL which increases the max length of object names from 128 to 255 characters.
+
+Please proceed here for the [MySQL upgrading docs](16-upgrading-icinga-2.md#upgrading-mysql-db).
+
+### Behavior changes <a id="upgrading-to-2-13-behavior-changes"></a>
+
+#### Deletion of child downtimes on services
+
+Service downtimes created while using the `all_services` flag on the [schedule-downtime](12-icinga2-api.md#schedule-downtime) API action
+will now automatically be deleted when deleting the hosts downtime.
+
+#### Windows Event Log
+
+Icinga 2.13 now supports logging to the Windows Event Log. Icinga will now also log messages from the early
+startup phase to the Windows Event Log. These were previously missing from the log file and you could only
+see them by manually starting Icinga in the foreground.
+
+This feature is now enabled and replaces the existing mainlog feature logging to a file. When upgrading, the installer
+will enable the windowseventlog feature and disable the mainlog feature. Logging to a file is still possible.
+If you don't want this configuration migration on upgrade, you can opt-out by installing
+the `%ProgramData%\icinga2\etc\icinga2\features-available\windowseventlog.conf` file before upgrading to Icinga 2.13.
+
+#### Broken API package name validation
+
+This version has replaced a broken regex in the API package validation code which results in package names
+now being validated correctly. Package names should now only consist of alphanumeric characters, dashes and underscores.
+
+This change only applies to newly created packages to support already existing ones.
+
 ## Upgrading to v2.12 <a id="upgrading-to-2-12"></a>
 
 * CLI

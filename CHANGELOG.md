@@ -7,6 +7,128 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.0 (2021-08-03)
+
+[Issues and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.13.0)
+
+### Notes
+
+Upgrading docs: https://icinga.com/docs/icinga2/snapshot/doc/16-upgrading-icinga-2/#upgrading-to-v213
+
+Thanks to all contributors:
+[andygrunwald](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aandygrunwald+milestone%3A2.13.0),
+[BausPhi](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3ABausPhi+milestone%3A2.13.0),
+[bebehei](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Abebehei+milestone%3A2.13.0),
+[Bobobo-bo-Bo-bobo](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3ABobobo-bo-Bo-bobo+milestone%3A2.13.0),
+[efuss](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aefuss+milestone%3A2.13.0),
+[froehl](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Afroehl+milestone%3A2.13.0),
+[iustin](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aiustin+milestone%3A2.13.0),
+[JochenFriedrich](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AJochenFriedrich+milestone%3A2.13.0),
+[leeclemens](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Aleeclemens+milestone%3A2.13.0),
+[log1-c](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Alog1-c+milestone%3A2.13.0),
+[lyknode](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Alyknode+milestone%3A2.13.0),
+[m41kc0d3](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Am41kc0d3+milestone%3A2.13.0),
+[MarcusCaepio](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AMarcusCaepio+milestone%3A2.13.0),
+[mathiasaerts](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Amathiasaerts+milestone%3A2.13.0),
+[mcktr](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Amcktr+milestone%3A2.13.0),
+[MEschenbacher](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AMEschenbacher+milestone%3A2.13.0),
+[Napsty](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3ANapsty+milestone%3A2.13.0),
+[netson](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Anetson+milestone%3A2.13.0),
+[pdolinic](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Apdolinic+milestone%3A2.13.0),
+[Ragnra](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3ARagnra+milestone%3A2.13.0),
+[RincewindsHat](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3ARincewindsHat+milestone%3A2.13.0),
+[sbraz](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Asbraz+milestone%3A2.13.0),
+[sni](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Asni+milestone%3A2.13.0),
+[sysadt](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Asysadt+milestone%3A2.13.0),
+[XnS](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3AXnS+milestone%3A2.13.0),
+[yayayayaka](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+author%3Ayayayayaka+milestone%3A2.13.0)
+
+### Enhancements
+
+* Core
+  * PerfdataValue: Add units of measurement #7871
+  * Flapping: Allow to ignore states in flapping detection #8600
+* Cluster
+  * Display log message if two nodes run on incompatible versions #8088
+* API
+  * /v1/actions/remove-downtime: Also remove child downtimes #8913
+  * Add API endpoint: /v1/actions/execute-command #8040
+  * /v1/actions/add-comment: Add param expiry #8035
+  * API-Event StateChange & CheckResult: Add acknowledgement and downtime_depth #7736
+  * Implement new API events ObjectCreated, ObjectDeleted and ObjectModified #8083
+  * Implement scheduling_endpoint attribute to checkable #6326
+* Windows
+  * Add support for Windows Event Log and write early log messages to it #8710
+* IDO
+  * MySQL: support larger host and service names #8425
+* ITL
+  * Add -S parameter for esxi_hardware ITL #8814
+  * Add CheckCommands for Thola #8683
+  * Add option ignore-sct for ssl_cert to ITL #8625
+  * Improve check_dns command when used with monitoring-plugins 2.3 #8589
+  * Add parameter -f to snmp-process #8569
+  * Add systemd CheckCommand #8568
+  * Add new options for ipmi-sensor #8498
+  * check_snmp_int: support -a #8003
+  * check_fail2ban: Add parameter fail2ban_jail to monitor a specific jail only #7960
+  * check_nrpe: Add parameters needed for PKI usage #7907
+* Metrics
+  * Support InfluxDB 2.0 #8719
+  * Add support for InfluxDB basic auth #8314
+* Docs
+  * Add info about ongoing support for IDO #8446
+  * Improve instructions on how to setup a Windows dev env #8400
+  * Improve instructions for installing wixtoolset on Windows #8397
+  * Add section about usage of satellites #8458
+  * Document command for verifying the parent node's certificate #8221
+  * Clarify TimePeriod/ScheduledDowntime time zone handling #8001
+* Misc
+  * Support TLS 1.3 #8718
+  * Livestatus: append app name to program_version #7931
+  * sd_notify() systemd about what we're doing right now #7874
+
+### Bugfixes
+
+* Core
+  * Fix state not being UNKNOWN after process timeout #8937
+  * Set a default severity for loggers #8846
+  * Fix integer overflow when converting large unsigned integers to string #8742
+  * StartUnixWorker(): don't exit() on fork() failure #8427
+  * Fix perf data parser not recognizing scientific notation #8492
+  * Close FDs based on /proc/self/fd #8442
+  * Fix check source getting overwritten on passive check result #8158
+  * Clean up temp files #8157
+  * Improve perf data parser to allow for special output (e.g. ASCII tables) #8008
+  * On check timeout first send SIGTERM #7918
+* Cluster
+  * Drop passive check results for unreachable hosts/services #8267
+  * Fix state timestamps set by the same check result differing across nodes #8101
+* API
+  * Do not override status codes that are not 200 #8532
+  * Update the SSL context after accepting incoming connections #8515
+  * Allow to create API User with password #8321
+  * Send Content-Type as API response header too #8108
+  * Display a correct status when removing a downtime #8104
+  * Display log message if a permission error occurs #8087
+  * Replace broken package name validation regex #8825 #8946
+* Windows
+  * Fix Windows command escape for \" #7092
+* Notifications/Downtimes
+  * Fix no re-notification for non OK state changes with time delay #8562
+  * TimePeriod/ScheduledDowntime: Improve DST handling #8921
+  * Don't send notifications while suppressed by checkable #8513
+  * Fix a crash while removing a downtime from a disappeared checkable #8229
+* IDO
+  * Update program status on stop #8730
+  * Also mark objects inactive in memory on object deactivation #8626
+  * IdoCheckTask: Don't override checkable critical with warn state #8613
+  * PostgreSQL: Do not set standard_conforming_strings to off #8123
+* ITL
+  * check_http: Fix assignment of check_adress blocking check by hostname #8109
+  * check_mysql: Don't set -H if -s is given #8020
+* Metrics
+  * OpenTSDB-Writer: Remove incorrect space causing missing tag error #8245
+
 ## 2.12.5 (2021-07-15)
 
 Version 2.12.5 fixes two security vulnerabilities that may lead to privilege
