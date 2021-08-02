@@ -65,7 +65,8 @@ std::vector<String> ConfigPackageUtility::GetPackages()
 
 bool ConfigPackageUtility::PackageExists(const String& name)
 {
-	return Utility::PathExists(GetPackageDir() + "/" + name);
+	auto packages (GetPackages());
+	return std::find(packages.begin(), packages.end(), name) != packages.end();
 }
 
 String ConfigPackageUtility::CreateStage(const String& packageName, const Dictionary::Ptr& files)
@@ -367,7 +368,12 @@ bool ConfigPackageUtility::ContainsDotDot(const String& path)
 	return false;
 }
 
-bool ConfigPackageUtility::ValidateName(const String& name)
+bool ConfigPackageUtility::ValidatePackageName(const String& packageName)
+{
+	return ValidateFreshName(packageName) || PackageExists(packageName);
+}
+
+bool ConfigPackageUtility::ValidateFreshName(const String& name)
 {
 	if (name.IsEmpty())
 		return false;

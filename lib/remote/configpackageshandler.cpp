@@ -105,7 +105,7 @@ void ConfigPackagesHandler::HandlePost(
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
-	if (!ConfigPackageUtility::ValidateName(packageName)) {
+	if (!ConfigPackageUtility::ValidatePackageName(packageName)) {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
 		return;
 	}
@@ -151,7 +151,7 @@ void ConfigPackagesHandler::HandleDelete(
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
-	if (!ConfigPackageUtility::ValidateName(packageName)) {
+	if (!ConfigPackageUtility::ValidatePackageName(packageName)) {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
 		return;
 	}
