@@ -65,7 +65,8 @@ std::vector<String> ConfigPackageUtility::GetPackages()
 
 bool ConfigPackageUtility::PackageExists(const String& name)
 {
-	return Utility::PathExists(GetPackageDir() + "/" + name);
+	auto packages (GetPackages());
+	return std::find(packages.begin(), packages.end(), name) != packages.end();
 }
 
 String ConfigPackageUtility::CreateStage(const String& packageName, const Dictionary::Ptr& files)
