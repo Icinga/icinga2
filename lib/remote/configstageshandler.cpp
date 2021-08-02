@@ -60,10 +60,10 @@ void ConfigStagesHandler::HandleGet(
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
-	if (!ConfigPackageUtility::ValidateName(packageName))
+	if (!ConfigPackageUtility::ValidatePackageName(packageName))
 		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
 
-	if (!ConfigPackageUtility::ValidateName(stageName))
+	if (!ConfigPackageUtility::ValidateStageName(stageName))
 		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name '" + stageName + "'.");
 
 	ArrayData results;
@@ -104,7 +104,7 @@ void ConfigStagesHandler::HandlePost(
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
-	if (!ConfigPackageUtility::ValidateName(packageName))
+	if (!ConfigPackageUtility::ValidatePackageName(packageName))
 		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
 
 	bool reload = true;
@@ -184,10 +184,10 @@ void ConfigStagesHandler::HandleDelete(
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
-	if (!ConfigPackageUtility::ValidateName(packageName))
+	if (!ConfigPackageUtility::ValidatePackageName(packageName))
 		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
 
-	if (!ConfigPackageUtility::ValidateName(stageName))
+	if (!ConfigPackageUtility::ValidateStageName(stageName))
 		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name '" + stageName + "'.");
 
 	try {

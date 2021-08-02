@@ -52,12 +52,12 @@ bool ConfigFilesHandler::HandleRequest(
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
-	if (!ConfigPackageUtility::ValidateName(packageName)) {
+	if (!ConfigPackageUtility::ValidatePackageName(packageName)) {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
 		return true;
 	}
 
-	if (!ConfigPackageUtility::ValidateName(stageName)) {
+	if (!ConfigPackageUtility::ValidateStageName(stageName)) {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid stage name.");
 		return true;
 	}

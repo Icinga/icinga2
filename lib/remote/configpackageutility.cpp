@@ -367,7 +367,12 @@ bool ConfigPackageUtility::ContainsDotDot(const String& path)
 	return false;
 }
 
-bool ConfigPackageUtility::ValidateName(const String& name)
+bool ConfigPackageUtility::ValidatePackageName(const String& packageName)
+{
+	return ValidateFreshName(packageName);
+}
+
+bool ConfigPackageUtility::ValidateFreshName(const String& name)
 {
 	if (name.IsEmpty())
 		return false;
