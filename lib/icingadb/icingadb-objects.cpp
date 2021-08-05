@@ -533,6 +533,7 @@ std::vector<String> IcingaDB::GetTypeOverwriteKeys(const String& type)
 	if (type == "host" || type == "service" || type == "user") {
 		keys.emplace_back(m_PrefixConfigObject + type + "group:member");
 		keys.emplace_back(m_PrefixConfigObject + type + ":state");
+		keys.emplace_back(m_PrefixConfigCheckSum + type + ":state");
 	} else if (type == "timeperiod") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":override:include");
 		keys.emplace_back(m_PrefixConfigObject + type + ":override:exclude");
