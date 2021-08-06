@@ -8,7 +8,20 @@ using namespace icinga;
 
 REGISTER_TYPE(Configuration);
 
-String Configuration::ApiBindHost{"::"};
+String Configuration::ApiBindHost = []() {
+#ifndef _WIN32
+	// Automatically fall back to an IPv4 default if socket() tells us that IPv6 is not supported.
+	int fd = socket(AF_INET6, SOCK_STREAM, 0);
+	if (fd < 0 && errno == EAFNOSUPPORT) {
+		return "0.0.0.0";
+	} else if (fd >= 0) {
+		close(fd);
+	}
+#endif /* _WIN32 */
+
+	return "::";
+}();
+
 String Configuration::ApiBindPort{"5665"};
 bool Configuration::AttachDebugger{false};
 String Configuration::CacheDir;
