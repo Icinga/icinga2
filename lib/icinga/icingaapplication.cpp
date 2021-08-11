@@ -18,6 +18,8 @@
 #include "base/initialize.hpp"
 #include "base/statsfunction.hpp"
 #include "base/loader.hpp"
+#include "base/json.hpp"
+#include "base/serializer.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -138,10 +140,29 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 		});
 		ConfigWriter::EmitFunctionCall(fp, "get_object", args1);
 
-		ConfigWriter::EmitRaw(fp, "\nif (obj) {\n");
+		ConfigWriter::EmitRaw(fp, "\nif (obj) {\n\tvar result\n");
 	}
 
-	ConfigWriter::EmitRaw(fp, "\tobj.");
+	ConfigWriter::EmitRaw(fp, "\tif (");
+
+	if (original.GetType() == ValueEmpty) {
+		ConfigWriter::EmitRaw(fp, "!obj.get_attribute(");
+		ConfigWriter::EmitString(fp, attr);
+		ConfigWriter::EmitRaw(fp, ", &result) || Json.encode(Internal.serialize(result, ");
+		ConfigWriter::EmitNumber(fp, FAConfig);
+		ConfigWriter::EmitRaw(fp, ")) == ");
+		ConfigWriter::EmitString(fp, "null");
+	} else {
+		ConfigWriter::EmitRaw(fp, "obj.get_attribute(");
+		ConfigWriter::EmitString(fp, attr);
+		ConfigWriter::EmitRaw(fp, ", &result) && Json.encode(Internal.serialize(result, ");
+		ConfigWriter::EmitNumber(fp, FAConfig);
+		ConfigWriter::EmitRaw(fp, ")) == Json.encode(");
+		ConfigWriter::EmitValue(fp, 1, Serialize(original, FAConfig));
+		ConfigWriter::EmitRaw(fp, ")");
+	}
+
+	ConfigWriter::EmitRaw(fp, ") {\n\t\tobj.");
 
 	Array::Ptr args2 = new Array({
 		attr,
@@ -149,7 +170,7 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 	});
 	ConfigWriter::EmitFunctionCall(fp, "modify_attribute", args2);
 
-	ConfigWriter::EmitRaw(fp, "\n");
+	ConfigWriter::EmitRaw(fp, "\n\t}\n");
 
 	previousObject = object;
 }
