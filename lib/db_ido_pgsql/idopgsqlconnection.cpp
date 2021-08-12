@@ -263,7 +263,7 @@ void IdoPgsqlConnection::Reconnect()
 
 	String dbVersionName = "idoutils";
 	IncreasePendingQueries(1);
-	result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name=E'" + Escape(dbVersionName) + "'");
+	result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name='" + Escape(dbVersionName) + "'");
 
 	Dictionary::Ptr row = FetchRow(result, 0);
 
@@ -295,12 +295,12 @@ void IdoPgsqlConnection::Reconnect()
 	String instanceName = GetInstanceName();
 
 	IncreasePendingQueries(1);
-	result = Query("SELECT instance_id FROM " + GetTablePrefix() + "instances WHERE instance_name = E'" + Escape(instanceName) + "'");
+	result = Query("SELECT instance_id FROM " + GetTablePrefix() + "instances WHERE instance_name = '" + Escape(instanceName) + "'");
 	row = FetchRow(result, 0);
 
 	if (!row) {
 		IncreasePendingQueries(1);
-		Query("INSERT INTO " + GetTablePrefix() + "instances (instance_name, instance_description) VALUES (E'" + Escape(instanceName) + "', E'" + Escape(GetInstanceDescription()) + "')");
+		Query("INSERT INTO " + GetTablePrefix() + "instances (instance_name, instance_description) VALUES ('" + Escape(instanceName) + "', '" + Escape(GetInstanceDescription()) + "')");
 		m_InstanceID = GetSequenceValue(GetTablePrefix() + "instances", "instance_id");
 	} else {
 		m_InstanceID = DbReference(row->Get("instance_id"));
@@ -384,8 +384,8 @@ void IdoPgsqlConnection::Reconnect()
 	IncreasePendingQueries(1);
 	Query("INSERT INTO " + GetTablePrefix() + "conninfo " +
 		"(instance_id, connect_time, last_checkin_time, agent_name, agent_version, connect_type, data_start_time) VALUES ("
-		+ Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), E'icinga2 db_ido_pgsql', E'" + Escape(Application::GetAppVersion())
-		+ "', E'" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
+		+ Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), 'icinga2 db_ido_pgsql', '" + Escape(Application::GetAppVersion())
+		+ "', '" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
 
 	/* clear config tables for the initial config dump */
 	PrepareDatabase();
@@ -522,7 +522,7 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 	AssertOnWorkQueue();
 
 	IncreasePendingQueries(1);
-	IdoPgsqlResult result = Query("SELECT CURRVAL(pg_get_serial_sequence(E'" + Escape(table) + "', E'" + Escape(column) + "')) AS id");
+	IdoPgsqlResult result = Query("SELECT CURRVAL(pg_get_serial_sequence('" + Escape(table) + "', '" + Escape(column) + "')) AS id");
 
 	Dictionary::Ptr row = FetchRow(result, 0);
 
@@ -604,11 +604,11 @@ void IdoPgsqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 		if (!dbobj->GetName2().IsEmpty()) {
 			qbuf << "INSERT INTO " + GetTablePrefix() + "objects (instance_id, objecttype_id, name1, name2, is_active) VALUES ("
 				<< static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
-				<< "E'" << Escape(dbobj->GetName1()) << "', E'" << Escape(dbobj->GetName2()) << "', 1)";
+				<< "'" << Escape(dbobj->GetName1()) << "', '" << Escape(dbobj->GetName2()) << "', 1)";
 		} else {
 			qbuf << "INSERT INTO " + GetTablePrefix() + "objects (instance_id, objecttype_id, name1, is_active) VALUES ("
 				<< static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
-				<< "E'" << Escape(dbobj->GetName1()) << "', 1)";
+				<< "'" << Escape(dbobj->GetName1()) << "', 1)";
 		}
 
 		IncreasePendingQueries(1);
@@ -719,7 +719,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 		else
 			fvalue = rawvalue;
 
-		*result = "E'" + Escape(fvalue) + "'";
+		*result = "'" + Escape(fvalue) + "'";
 	}
 
 	return true;
