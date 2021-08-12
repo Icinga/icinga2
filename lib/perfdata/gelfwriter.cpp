@@ -135,10 +135,8 @@ void GelfWriter::AssertOnWorkQueue()
 
 void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
 {
-	Log(LogCritical, "GelfWriter", "Exception during Graylog Gelf operation: Verify that your backend is operational!");
-
-	Log(LogDebug, "GelfWriter")
-		<< "Exception during Graylog Gelf operation: " << DiagnosticInformation(std::move(exp));
+	Log(LogCritical, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, false);
+	Log(LogDebug, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, true);
 
 	DisconnectInternal();
 }
