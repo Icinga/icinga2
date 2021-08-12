@@ -632,6 +632,18 @@ OptionalTlsStream ElasticsearchWriter::Connect()
 				<< "TLS handshake with host '" << GetHost() << "' on port " << GetPort() << " failed.";
 			throw;
 		}
+
+		if (!GetInsecureNoverify()) {
+			if (!tlsStream.GetPeerCertificate()) {
+				BOOST_THROW_EXCEPTION(std::runtime_error("Elasticsearch didn't present any TLS certificate."));
+			}
+
+			if (!tlsStream.IsVerifyOK()) {
+				BOOST_THROW_EXCEPTION(std::runtime_error(
+					"TLS certificate validation failed: " + std::string(tlsStream.GetVerifyError())
+				));
+			}
+		}
 	}
 
 	return std::move(stream);
