@@ -10,6 +10,8 @@ if [ "$1" != "" ]; then
 	fi
 fi
 
+shift
+
 # Set defaults, to overwrite see "@ICINGA2_SYSCONFIGFILE@"
 
 : "${ICINGA2_PID_FILE:="@ICINGA2_FULL_INITRUNDIR@/icinga2.pid"}"
@@ -25,7 +27,7 @@ if type selinuxenabled >/dev/null 2>&1; then
 	fi
 fi
 
-if ! "$DAEMON" daemon --validate --color > "$OUTPUTFILE"; then
+if ! "$DAEMON" daemon --validate --color "$@" > "$OUTPUTFILE"; then
 	echo "Failed"
 
 	cat "$OUTPUTFILE"
