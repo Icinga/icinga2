@@ -206,6 +206,18 @@ void GelfWriter::ReconnectInternal()
 				<< "TLS handshake with host '" << GetHost() << " failed.'";
 			throw;
 		}
+
+		if (!GetInsecureNoverify()) {
+			if (!tlsStream.GetPeerCertificate()) {
+				BOOST_THROW_EXCEPTION(std::runtime_error("Graylog Gelf didn't present any TLS certificate."));
+			}
+
+			if (!tlsStream.IsVerifyOK()) {
+				BOOST_THROW_EXCEPTION(std::runtime_error(
+					"TLS certificate validation failed: " + std::string(tlsStream.GetVerifyError())
+				));
+			}
+		}
 	}
 
 	SetConnected(true);
