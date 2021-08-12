@@ -1674,6 +1674,7 @@ Configuration Attributes:
   password                  | String                | **Optional.** InfluxDB user password.  Defaults to `none`.
   basic\_auth               | Dictionary            | **Optional.** Username and password for HTTP basic authentication.
   ssl\_enable               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
+  ssl\_insecure\_noverify   | Boolean               | **Optional.** Disable TLS peer verification.
   ssl\_ca\_cert             | String                | **Optional.** Path to CA certificate to validate the remote host.
   ssl\_cert                 | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification.
   ssl\_key                  | String                | **Optional.** Path to host key to accompany the ssl\_cert.
@@ -1736,6 +1737,7 @@ Configuration Attributes:
   bucket                    | String                | **Required.** InfluxDB bucket name.
   auth\_token               | String                | **Required.** InfluxDB authentication token.
   ssl\_enable               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
+  ssl\_insecure\_noverify   | Boolean               | **Optional.** Disable TLS peer verification.
   ssl\_ca\_cert             | String                | **Optional.** Path to CA certificate to validate the remote host.
   ssl\_cert                 | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification.
   ssl\_key                  | String                | **Optional.** Path to host key to accompany the ssl\_cert.
