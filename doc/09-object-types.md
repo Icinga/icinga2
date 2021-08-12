@@ -1317,6 +1317,7 @@ Configuration Attributes:
   enable\_send\_perfdata    | Boolean               | **Optional.** Enable performance data for 'CHECK RESULT' events.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
   enable\_tls               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
+  insecure\_noverify        | Boolean               | **Optional.** Disable TLS peer verification.
   ca\_path                  | String                | **Optional.** Path to CA certificate to validate the remote host. Requires `enable_tls` set to `true`.
   cert\_path                | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification. Requires `enable_tls` set to `true`.
   key\_path                 | String                | **Optional.** Path to host key to accompany the cert\_path. Requires `enable_tls` set to `true`.
