@@ -274,13 +274,6 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					auto connectTimeout (MakeTimeout(conn));
 					Defer cancelTimeout ([&connectTimeout]() { connectTimeout->Cancel(); });
 
-					if (!m_Insecure) {
-						auto native (tlsConn.native_handle());
-
-						X509_VERIFY_PARAM_set1_host(SSL_get0_param(native), m_Host.CStr(), 0);
-						SSL_set_verify(native, SSL_VERIFY_PEER, NULL);
-					}
-
 					icinga::Connect(conn->lowest_layer(), m_Host, Convert::ToString(m_Port), yc);
 					tlsConn.async_handshake(tlsConn.client, yc);
 
