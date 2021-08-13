@@ -37,6 +37,10 @@ void UnbufferedAsioTlsStream::BeforeHandshake(handshake_type type)
 {
 	namespace ssl = boost::asio::ssl;
 
+	if (!m_Hostname.IsEmpty()) {
+		X509_VERIFY_PARAM_set1_host(SSL_get0_param(native_handle()), m_Hostname.CStr(), m_Hostname.GetLength());
+	}
+
 	set_verify_mode(ssl::verify_peer | ssl::verify_client_once);
 
 	set_verify_callback([this](bool preverified, ssl::verify_context& ctx) {
