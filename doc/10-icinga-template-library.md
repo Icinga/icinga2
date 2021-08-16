@@ -363,7 +363,7 @@ disk\_timeout             | **Optional.** Seconds before connection times out (d
 disk\_units               | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
 disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "configfs", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fdescfs", "overlay", "nsfs", "squashfs".
 disk\_include\_type       | **Optional.** Check only filesystems of indicated type. Multiple regular expression strings must be defined as array.
-disk\_extra\_opts       | **Optional.** Read extra plugin options from an ini file.
+disk\_extra\_opts         | **Optional.** Read extra plugin options from an ini file.
 
 ### disk_smb <a id="plugin-check-command-disk-smb"></a>
 
@@ -768,7 +768,7 @@ ldap_warning_entries	| **Optional.** Number of found entries to result in warnin
 ldap_critical_entries	| **Optional.** Number of found entries to result in critical status.
 ldap_timeout		| **Optional.** Seconds before connection times out (default: 10).
 ldap_verbose		| **Optional.** Show details for command-line debugging (disabled by default)
-ldap_extra_opts   | **Optional.** Read extra plugin options from an ini file.
+ldap_extra_opts 	| **Optional.** Read extra plugin options from an ini file.
 
 ### load <a id="plugin-check-command-load"></a>
 
@@ -832,7 +832,7 @@ mysql_cert		| **Optional.** Path to SSL certificate.
 mysql_key		| **Optional.** Path to private SSL key.
 mysql_cadir		| **Optional.** Path to CA directory.
 mysql_ciphers		| **Optional.** List of valid SSL ciphers.
-mysql_extra_opts | **Optional.** Read extra plugin options from an ini file.
+mysql_extra_opts	| **Optional.** Read extra plugin options from an ini file.
 
 
 ### mysql_query <a id="plugin-check-command-mysql-query"></a>
@@ -998,7 +998,7 @@ pgsql_timeout		| **Optional.** Seconds before connection times out (default: 10)
 pgsql_query		| **Optional.** SQL query to run. Only first column in first row will be read.
 pgsql_query_warning	| **Optional.** SQL query value to result in warning status (double).
 pgsql_query_critical	| **Optional.** SQL query value to result in critical status (double).
-pgsql_extra_opts  | **Optional.** Read extra plugin options from an ini file.
+pgsql_extra_opts	| **Optional.** Read extra plugin options from an ini file.
 
 ### ping <a id="plugin-check-command-ping"></a>
 
@@ -1211,10 +1211,10 @@ checks a local hard drive with the (Linux specific) SMART interface. Requires in
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name            | Description
-----------------|--------------
+Name             | Description
+-----------------|--------------
+smart_device     | **Required.** The name of a local hard drive to monitor.
 smart_extra_opts | **Optional.** Read extra plugin options from an ini file.
-smart_device    | **Required.** The name of a local hard drive to monitor.
 
 
 ### smtp <a id="plugin-check-command-smtp"></a>
@@ -1324,9 +1324,9 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 Name            | Description
 ----------------|--------------
 snmp_address    | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-snmp_extra_opts | **Optional.** Read extra plugin options from an ini file.
 snmp_oid        | **Optional.** The SNMP OID. Defaults to "1.3.6.1.2.1.1.3.0".
 snmp_community  | **Optional.** The SNMP community. Defaults to "public".
+snmp_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### spop <a id="plugin-check-command-spop"></a>
@@ -1523,10 +1523,10 @@ error if the number exceeds the thresholds specified.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name            | Description
-----------------|--------------
-users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20.
-users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
+Name             | Description
+-----------------|--------------
+users_wgreater   | **Optional.** The user count warning threshold. Defaults to 20.
+users_cgreater   | **Optional.** The user count critical threshold. Defaults to 50.
 users_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
