@@ -1613,6 +1613,7 @@ Configuration Attributes:
   username                  | String                | **Optional.** InfluxDB user name. Defaults to `none`.
   password                  | String                | **Optional.** InfluxDB user password.  Defaults to `none`.
   ssl\_enable               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
+  ssl\_insecure\_noverify   | Boolean               | **Optional.** Disable TLS peer verification.
   ssl\_ca\_cert             | String                | **Optional.** Path to CA certificate to validate the remote host.
   ssl\_cert                 | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification.
   ssl\_key                  | String                | **Optional.** Path to host key to accompany the ssl\_cert.
