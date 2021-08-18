@@ -503,7 +503,7 @@ void IdoMysqlConnection::ClearTableBySession(const String& table)
 		Convert::ToString(GetSessionToken()));
 }
 
-void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<void (const IdoMysqlResult&)>& callback)
+void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<void (const IdoMysqlResult&)>& callback, bool runAlone)
 {
 	AssertOnWorkQueue();
 
@@ -513,6 +513,7 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<voi
 	 * See https://github.com/Icinga/icinga2/issues/4603 for details.
 	 */
 	aq.Callback = callback;
+	aq.RunAlone = runAlone;
 	m_AsyncQueries.emplace_back(std::move(aq));
 }
 
@@ -1182,7 +1183,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 	if (type != DbQueryInsert)
 		qbuf << where.str();
 
-	AsyncQuery(qbuf.str(), [this, query, type, upsert](const IdoMysqlResult&) { FinishExecuteQuery(query, type, upsert); });
+	AsyncQuery(qbuf.str(), [this, query, type, upsert](const IdoMysqlResult&) { FinishExecuteQuery(query, type, upsert); }, query.RunAlone);
 }
 
 void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool upsert)
