@@ -22,6 +22,7 @@ struct IdoAsyncQuery
 {
 	String Query;
 	IdoAsyncCallback Callback;
+	bool RunAlone = false;
 };
 
 /**

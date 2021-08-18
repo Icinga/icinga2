@@ -552,7 +552,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 			size_t size_query = aq.Query.GetLength() + 1;
 
 			if (count > 0) {
-				if (num_bytes + size_query > m_MaxPacketSize - 512)
+				if (aq.RunAlone || num_bytes + size_query > m_MaxPacketSize - 512)
 					break;
 
 				querybuf << ";";
@@ -566,6 +566,9 @@ void IdoMysqlConnection::FinishAsyncQueries()
 
 			querybuf << aq.Query;
 			num_bytes += size_query;
+
+			if (aq.RunAlone)
+				break;
 		}
 
 		String query = querybuf.str();
