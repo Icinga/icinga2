@@ -1052,6 +1052,19 @@ Thanks to all contributors:
 * Metrics
   * OpenTSDB-Writer: Remove incorrect space causing missing tag error #8245
 
+# 2.12.6 (2021-08-19)
+
+The main focus of these versions is a security vulnerability in the TLS certificate verification of our metrics writers ElasticsearchWriter, GelfWriter and InfluxdbWriter.
+
+### Security
+
+* Add TLS server certificate validation to ElasticsearchWriter, GelfWriter and InfluxdbWriter
+
+Depending on your setup, manual intervention beyond installing the new versions
+may be required, so please read the more detailed information in the
+[release blog post](https://icinga.com/blog/2021/08/19/icinga-2-13-1-security-release//)
+carefully
+
 ## 2.12.5 (2021-07-15)
 
 Version 2.12.5 fixes two security vulnerabilities that may lead to privilege
