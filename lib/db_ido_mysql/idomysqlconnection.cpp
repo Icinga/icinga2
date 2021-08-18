@@ -1184,6 +1184,10 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 		qbuf << where.str();
 
 	AsyncQuery(qbuf.str(), [this, query, type, upsert](const IdoMysqlResult&) { FinishExecuteQuery(query, type, upsert); }, query.RunAlone);
+
+	if (query.RunAlone) {
+		FinishAsyncQueries();
+	}
 }
 
 void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool upsert)
