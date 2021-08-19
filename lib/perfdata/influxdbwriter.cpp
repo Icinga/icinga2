@@ -210,6 +210,18 @@ OptionalTlsStream InfluxdbWriter::Connect()
 				<< "TLS handshake with host '" << GetHost() << "' failed.";
 			throw;
 		}
+
+		if (!GetSslInsecureNoverify()) {
+			if (!tlsStream.GetPeerCertificate()) {
+				BOOST_THROW_EXCEPTION(std::runtime_error("InfluxDB didn't present any TLS certificate."));
+			}
+
+			if (!tlsStream.IsVerifyOK()) {
+				BOOST_THROW_EXCEPTION(std::runtime_error(
+					"TLS certificate validation failed: " + std::string(tlsStream.GetVerifyError())
+				));
+			}
+		}
 	}
 
 	return std::move(stream);
