@@ -18,6 +18,9 @@ abstract class InfluxdbCommonWriter : ConfigObject
 	[config] bool ssl_enable {
 		default {{{ return false; }}}
 	};
+	[config] bool ssl_insecure_noverify {
+		default {{{ return false; }}}
+	};
 	[config] String ssl_ca_cert {
 		default {{{ return ""; }}}
 	};
