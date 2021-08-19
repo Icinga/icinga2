@@ -7,6 +7,15 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.1 (2021-08-19)
+
+Version 2.13.1 fixes two issues indroduced with the 2.13.0 release.
+
+### Bugfixes
+
+* IDO PgSQL: Fix a string quoting regression introduced in 2.13.0 #8958
+* ApiListener: Automatically fall back to IPv4 in default configuration on systems without IPv6 support #8961
+
 ## 2.13.0 (2021-08-03)
 
 [Issues and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.13.0)
