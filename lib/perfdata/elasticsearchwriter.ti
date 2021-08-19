@@ -29,6 +29,9 @@ class ElasticsearchWriter : ConfigObject
 	[config] bool enable_tls {
 		default {{{ return false; }}}
 	};
+	[config] bool insecure_noverify {
+		default {{{ return false; }}}
+	};
 	[config] String ca_path;
 	[config] String cert_path;
 	[config] String key_path;

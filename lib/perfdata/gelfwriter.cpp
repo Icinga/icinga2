@@ -126,10 +126,8 @@ void GelfWriter::AssertOnWorkQueue()
 
 void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
 {
-	Log(LogCritical, "GelfWriter", "Exception during Graylog Gelf operation: Verify that your backend is operational!");
-
-	Log(LogDebug, "GelfWriter")
-		<< "Exception during Graylog Gelf operation: " << DiagnosticInformation(std::move(exp));
+	Log(LogCritical, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, false);
+	Log(LogDebug, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, true);
 
 	DisconnectInternal();
 }
@@ -196,6 +194,18 @@ void GelfWriter::ReconnectInternal()
 			Log(LogWarning, "GelfWriter")
 				<< "TLS handshake with host '" << GetHost() << " failed.'";
 			throw;
+		}
+
+		if (!GetInsecureNoverify()) {
+			if (!tlsStream.GetPeerCertificate()) {
+				BOOST_THROW_EXCEPTION(std::runtime_error("Graylog Gelf didn't present any TLS certificate."));
+			}
+
+			if (!tlsStream.IsVerifyOK()) {
+				BOOST_THROW_EXCEPTION(std::runtime_error(
+					"TLS certificate validation failed: " + std::string(tlsStream.GetVerifyError())
+				));
+			}
 		}
 	}
 
