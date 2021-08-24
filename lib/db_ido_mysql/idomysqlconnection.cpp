@@ -896,8 +896,10 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 	} else if (DbValue::IsObjectInsertID(value)) {
 		auto id = static_cast<long>(rawvalue);
 
-		if (id <= 0)
-			return false;
+		if (id <= 0) {
+			*result = "NULL";
+			return true;
+		}
 
 		*result = id;
 		return true;
