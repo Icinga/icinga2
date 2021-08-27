@@ -18,24 +18,24 @@
 
 using namespace icinga;
 
-String ConfigObjectUtility::GetConfigDir()
+String ConfigObjectUtility::GetConfigDir(const String& package)
 {
-	String prefix = ConfigPackageUtility::GetPackageDir() + "/_api/";
-	String activeStage = ConfigPackageUtility::GetActiveStage("_api");
+	String prefix = ConfigPackageUtility::GetPackageDir() + "/" + package + "/";
+	String activeStage = ConfigPackageUtility::GetActiveStage(package);
 
 	if (activeStage.IsEmpty())
-		RepairPackage("_api");
+		RepairPackage(package);
 
 	return prefix + activeStage;
 }
 
-String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const String& fullName)
+String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const String& fullName, const String& package)
 {
 	String typeDir = type->GetPluralName();
 	boost::algorithm::to_lower(typeDir);
 
 	/* This may throw an exception the caller above must handle. */
-	String prefix = GetConfigDir() + "/conf.d/" + type->GetPluralName().ToLower() + "/";
+	String prefix = GetConfigDir(package) + "/conf.d/" + type->GetPluralName().ToLower() + "/";
 
 	String escapedName = EscapeName(fullName);
 
@@ -98,12 +98,9 @@ void ConfigObjectUtility::RepairPackage(const String& package)
 	}
 }
 
-void ConfigObjectUtility::CreateStorage()
+void ConfigObjectUtility::CreateStorage(const String& package)
 {
 	std::unique_lock<std::mutex> lock(ConfigPackageUtility::GetStaticPackageMutex());
-
-	/* For now, we only use _api as our creation target. */
-	String package = "_api";
 
 	if (!ConfigPackageUtility::PackageExists(package)) {
 		Log(LogNotice, "ConfigObjectUtility")
@@ -169,9 +166,10 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 }
 
 bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& fullName,
-	const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie)
+	const String& config, const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie,
+	const String& package)
 {
-	CreateStorage();
+	CreateStorage(package);
 
 	{
 		auto configType (dynamic_cast<ConfigType*>(type.get()));
@@ -185,7 +183,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	String path;
 
 	try {
-		path = GetObjectConfigPath(type, fullName);
+		path = GetObjectConfigPath(type, fullName, package);
 	} catch (const std::exception& ex) {
 		errors->Add("Config package broken: " + DiagnosticInformation(ex, false));
 		return false;
@@ -197,7 +195,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	fp << config;
 	fp.close();
 
-	std::unique_ptr<Expression> expr = ConfigCompiler::CompileFile(path, String(), "_api");
+	std::unique_ptr<Expression> expr = ConfigCompiler::CompileFile(path, String(), package);
 
 	try {
 		ActivationScope ascope;
@@ -349,12 +347,17 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 	String path;
 
 	try {
-		path = GetObjectConfigPath(object->GetReflectionType(), name);
+		path = GetObjectConfigPath(object->GetReflectionType(), name, object->GetPackage());
 	} catch (const std::exception& ex) {
 		errors->Add("Config package broken: " + DiagnosticInformation(ex, false));
 		return false;
 	}
 
+	/*
+	 * This is currently not throwing any error if the config file doesn't exist.
+	 * This can happen if it is called for an object that was not created by the API.
+	 * https://github.com/Icinga/icinga2/issues/8639
+	 */
 	Utility::Remove(path);
 
 	Log(LogInformation, "ConfigObjectUtility")
@@ -366,12 +369,5 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors,
 	const Array::Ptr& diagnosticInformation, const Value& cookie)
 {
-	if (object->GetPackage() != "_api") {
-		if (errors)
-			errors->Add("Object cannot be deleted because it was not created using the API.");
-
-		return false;
-	}
-
 	return DeleteObjectHelper(object, cascade, errors, diagnosticInformation, cookie);
 }

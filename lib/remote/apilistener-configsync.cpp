@@ -110,6 +110,10 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	bool newObject = false;
 
+	String package = "_api";
+	if (params->Contains("package"))
+		package = params->Get("package");
+
 	if (!object && !config.IsEmpty()) {
 		newObject = true;
 
@@ -120,7 +124,8 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 		 * Create the config object through our internal API.
 		 * IMPORTANT: Pass the origin to prevent cluster sync loops.
 		 */
-		if (!ConfigObjectUtility::CreateObject(ptype, objName, config, errors, nullptr, origin)) {
+		if (!ConfigObjectUtility::CreateObject(ptype, objName, config, errors, nullptr, origin,
+			package)) {
 			Log(LogCritical, "ApiListener")
 				<< "Could not create object '" << objName << "':";
 
@@ -266,12 +271,6 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 		return Empty;
 	}
 
-	if (object->GetPackage() != "_api") {
-		Log(LogCritical, "ApiListener")
-			<< "Could not delete object '" << objName << "': Not created by the API.";
-		return Empty;
-	}
-
 	Log(LogNotice, "ApiListener")
 		<< "Processing config delete"
 		<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName() << "')"
@@ -311,9 +310,6 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 		}
 	}
 
-	if (object->GetPackage() != "_api" && object->GetVersion() == 0)
-		return;
-
 	Dictionary::Ptr params = new Dictionary();
 
 	Dictionary::Ptr message = new Dictionary({
@@ -325,29 +321,32 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 	params->Set("name", object->GetName());
 	params->Set("type", object->GetReflectionType()->GetName());
 	params->Set("version", object->GetVersion());
+	params->Set("package", object->GetPackage());
 
 	String zoneName = object->GetZoneName();
 
 	if (!zoneName.IsEmpty())
 		params->Set("zone", zoneName);
 
-	if (object->GetPackage() == "_api") {
+	/* Skip all packages that cannot be used via the API (all packages starting with "_" except for "_api") */
+	if (object->GetPackage() == "_api" ||
+		(object->GetPackage().GetLength() > 0 && object->GetPackage().GetData().at(0) != '_')) {
 		String file;
 
 		try {
-			file = ConfigObjectUtility::GetObjectConfigPath(object->GetReflectionType(), object->GetName());
-		} catch (const std::exception& ex) {
+			file = ConfigObjectUtility::GetObjectConfigPath(object->GetReflectionType(), object->GetName(),
+				object->GetPackage());
+		} catch (const std::exception &ex) {
 			Log(LogNotice, "ApiListener")
 				<< "Cannot sync object '" << object->GetName() << "': " << ex.what();
 			return;
 		}
 
 		std::ifstream fp(file.CStr(), std::ifstream::binary);
-		if (!fp)
-			return;
-
-		String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
-		params->Set("config", content);
+		if (fp) {
+			String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
+			params->Set("config", content);
+		}
 	}
 
 	Dictionary::Ptr original_attributes = object->GetOriginalAttributes();
@@ -396,9 +395,6 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 	const JsonRpcConnection::Ptr& client)
 {
-	if (object->GetPackage() != "_api")
-		return;
-
 	/* only send objects to zones which have access to the object */
 	if (client) {
 		Zone::Ptr target_zone = client->GetEndpoint()->GetZone();

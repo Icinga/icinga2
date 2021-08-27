@@ -65,6 +65,16 @@ bool DeleteObjectHandler::HandleRequest(
 
 	bool cascade = HttpUtility::GetLastParameter(params, "cascade");
 	bool verbose = HttpUtility::GetLastParameter(params, "verbose");
+	String package = HttpUtility::GetLastParameter(params, "package");
+
+	if (package == Empty) {
+		package = "_api";
+	} else {
+		if (!ConfigPackageUtility::ValidatePackageName(package) || package.GetData().at(0) == '_') {
+			HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + package + "'.");
+			return true;
+		}
+	}
 
 	ArrayData results;
 
@@ -76,7 +86,12 @@ bool DeleteObjectHandler::HandleRequest(
 		Array::Ptr errors = new Array();
 		Array::Ptr diagnosticInformation = new Array();
 
-		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors, diagnosticInformation)) {
+		if (params->Contains("package") && obj->GetPackage() != package) {
+			code = 500;
+			status = "Object could not be deleted because it was create in package '" + obj->GetPackage() +
+				"' and not in package: '" + package + "'.";
+			success = false;
+		} else if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors, diagnosticInformation)) {
 			code = 500;
 			status = "Object could not be deleted.";
 			success = false;

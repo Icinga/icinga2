@@ -77,6 +77,16 @@ bool ModifyObjectHandler::HandleRequest(
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
+	String package = "_api";
+	if (params->Contains("package")) {
+		package = HttpUtility::GetLastParameter(params, "package");
+
+		if (!ConfigPackageUtility::ValidatePackageName(package) || package.GetData().at(0) == '_') {
+			HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + package + "'.");
+			return true;
+		}
+	}
+
 	ArrayData results;
 
 	for (const ConfigObject::Ptr& obj : objs) {
@@ -87,23 +97,29 @@ bool ModifyObjectHandler::HandleRequest(
 
 		String key;
 
-		try {
-			if (attrs) {
-				ObjectLock olock(attrs);
-				for (const Dictionary::Pair& kv : attrs) {
-					key = kv.first;
-					obj->ModifyAttribute(kv.first, kv.second);
-				}
-			}
-
-			result1->Set("code", 200);
-			result1->Set("status", "Attributes updated.");
-		} catch (const std::exception& ex) {
+		if (params->Contains("package") && obj->GetPackage() != package) {
 			result1->Set("code", 500);
-			result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex, false));
+			result1->Set("status", "Object cannot be modified because it was create in package '" +
+				obj->GetPackage() + "' and not in package: '" + package + "'.");
+		} else {
+			try {
+				if (attrs) {
+					ObjectLock olock(attrs);
+					for (const Dictionary::Pair &kv : attrs) {
+						key = kv.first;
+						obj->ModifyAttribute(kv.first, kv.second);
+					}
+				}
 
-			if (verbose)
-				result1->Set("diagnostic_information", DiagnosticInformation(ex));
+				result1->Set("code", 200);
+				result1->Set("status", "Attributes updated.");
+			} catch (const std::exception &ex) {
+				result1->Set("code", 500);
+				result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex, false));
+
+				if (verbose)
+					result1->Set("diagnostic_information", DiagnosticInformation(ex));
+			}
 		}
 
 		results.push_back(std::move(result1));
