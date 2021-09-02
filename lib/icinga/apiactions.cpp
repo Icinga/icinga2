@@ -458,12 +458,12 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 			if (allServices && !childService) {
 				ArrayData childServiceDowntimes;
 
-				for (const Service::Ptr& hostService : host->GetServices()) {
+				for (const Service::Ptr& childService : childHost->GetServices()) {
 					Log(LogNotice, "ApiActions")
-						<< "Creating downtime for service " << hostService->GetName() << " on child host " << host->GetName();
+						<< "Creating downtime for service " << childService->GetName() << " on child host " << childHost->GetName();
 
-					Downtime::Ptr serviceDowntime = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
-						fixed, triggerName, duration);
+					Downtime::Ptr serviceDowntime = Downtime::AddDowntime(childService, author, comment, startTime, endTime,
+						fixed, triggerName, duration, String(), String(), childDowntimeName);
 					String serviceDowntimeName = serviceDowntime->GetName();
 
 					childServiceDowntimes.push_back(new Dictionary({
