@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icingadb/icingadb.hpp"
+#include "base/application.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
@@ -38,13 +39,14 @@ Dictionary::Ptr IcingaDB::GetStats()
 		}));
 	}
 
+	typedef Dictionary::Ptr DP;
+	DP app = DP(DP(DP(stats->Get("IcingaApplication"))->Get("status"))->Get("icingaapplication"))->Get("app");
+
+	app->Set("program_start", TimestampToMilliseconds(Application::GetStartTime()));
+
 	auto localEndpoint (Endpoint::GetLocalEndpoint());
-
 	if (localEndpoint) {
-		typedef Dictionary::Ptr DP;
-
-		DP(DP(DP(DP(stats->Get("IcingaApplication"))->Get("status"))->Get("icingaapplication"))->Get("app"))
-			->Set("endpoint_id", GetObjectIdentifier(localEndpoint));
+		app->Set("endpoint_id", GetObjectIdentifier(localEndpoint));
 	}
 
 	return stats;
