@@ -6,6 +6,7 @@ mkclass_target(configuration.ti configuration-ti.cpp configuration-ti.hpp)
 mkclass_target(datetime.ti datetime-ti.cpp datetime-ti.hpp)
 mkclass_target(filelogger.ti filelogger-ti.cpp filelogger-ti.hpp)
 mkclass_target(function.ti function-ti.cpp function-ti.hpp)
+mkclass_target(journaldlogger.ti journaldlogger-ti.cpp journaldlogger-ti.hpp)
 mkclass_target(logger.ti logger-ti.cpp logger-ti.hpp)
 mkclass_target(perfdatavalue.ti perfdatavalue-ti.cpp perfdatavalue-ti.hpp)
 mkclass_target(streamlogger.ti streamlogger-ti.cpp streamlogger-ti.hpp)
@@ -36,6 +37,7 @@ set(base_SOURCES
   function.cpp function.hpp function-ti.hpp function-script.cpp functionwrapper.hpp
   initialize.cpp initialize.hpp
   io-engine.cpp io-engine.hpp
+  journaldlogger.cpp journaldlogger.hpp journaldlogger-ti.hpp
   json.cpp json.hpp json-script.cpp
   lazy-init.hpp
   library.cpp library.hpp
@@ -123,6 +125,7 @@ if(HAVE_SYSTEMD)
     NAMES systemd/sd-daemon.h
     HINTS ${SYSTEMD_ROOT_DIR})
   include_directories(${SYSTEMD_INCLUDE_DIR})
+  add_definitions(-DSD_JOURNAL_SUPPRESS_LOCATION)
 endif()
 
 add_library(base OBJECT ${base_SOURCES})

@@ -1,0 +1,21 @@
+/* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
+
+#include "base/logger.hpp"
+
+library base;
+
+namespace icinga
+{
+
+class JournaldLogger : Logger
+{
+	activation_priority -100;
+
+	[config] String facility {
+		default {{{ return "LOG_USER"; }}}
+	};
+
+	[config] String identifier;
+};
+
+}
