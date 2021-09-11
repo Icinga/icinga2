@@ -1754,6 +1754,33 @@ to InfluxDB. Experiment with the setting, if you are processing more than 1024 m
 or similar.
 
 
+### JournaldLogger <a id="objecttype-journaldlogger"></a>
+
+Specifies Icinga 2 logging to the systemd journal using its native interface.
+This configuration object is available as `journald` [logging feature](14-features.md#logging).
+
+Resulting journal records have fields as described in
+[journal fields](https://www.freedesktop.org/software/systemd/man/systemd.journal-fields.html),
+and an additional custom field `ICINGA2_FACILITY` with the detailed message origin (e.g. "ApiListener").
+
+Example:
+
+```
+object JournaldLogger "journald" {
+  severity = "warning"
+}
+```
+
+Configuration Attributes:
+
+Name                      | Type                  | Description
+--------------------------|-----------------------|----------------------------------
+severity                  | String                | **Optional.** The minimum syslog compatible severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "information".
+facility                  | String                | **Optional.** Defines the syslog compatible facility to use for journal entries. This can be a facility constant like `FacilityDaemon`. Defaults to `FacilityUser`.
+identifier                | String                | **Optional.** Defines the syslog compatible identifier (also known as "tag") to use for journal entries. If not given, systemd's default behavior is used and usually results in "icinga2".
+
+Facility Constants are the same as for [SyslogLogger](09-object-types.md#objecttype-sysloglogger).
+
 
 ### LiveStatusListener <a id="objecttype-livestatuslistener"></a>
 
