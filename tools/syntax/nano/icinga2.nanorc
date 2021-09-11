@@ -10,7 +10,7 @@ icolor brightgreen 		"object[ \t]+(timeperiod|scheduleddowntime|dependency|perfd
 icolor brightgreen 		"object[ \t]+(graphitewriter|idomysqlconnection|idomysqlconnection)"
 icolor brightgreen 		"object[ \t]+(livestatuslistener|statusdatawriter|externalcommandlistener)"
 icolor brightgreen 		"object[ \t]+(compatlogger|checkresultreader|checkcomponent|notificationcomponent)"
-icolor brightgreen 		"object[ \t]+(filelogger|sysloglogger|apilistener|endpoint|zone)"
+icolor brightgreen 		"object[ \t]+(filelogger|sysloglogger|journaldlogger|apilistener|endpoint|zone)"
 
 ## apply def
 icolor brightgreen 		"apply[ \t]+(Service|Dependency|Notification|ScheduledDowntime)"
