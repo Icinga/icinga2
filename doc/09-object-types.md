@@ -223,10 +223,14 @@ Redundancy groups:
 Sometimes, you want a dependencies to accumulate (e.g., the parent considered reachable only if no dependency is violated), sometimes you want them to be regarded as redundant (e.g., the parent considered unreachable only if no dependency is fulfilled) or even a mixture of both. Think of a host connected to both a network and a storage switch vs. a host connected to redundant routers or a service like SSH depeding on both LDAP and DNS to function, while operating redundant LDAP servers as well as redundant DNS resolvers.
 
 Behaviour prior to 2.12.0 was to regard all dependecies as cumulative; 2.12.0 made all dependencies regareded redundant.
-This may lead to unrelated services inadvertantly regarded to be redundant to each other.
+This may lead to unrelated dependencies inadvertantly regarded to be redundant to each other.
 
 Specifying a `redundancy_group` causes a dependency to be regarded as redundant only inside that redundancy group.
 Dependencies lacking a `redundancy_group` attribute are regarded as essential for the parent.
+
+More formally, Icinga's dependencies for a given object form an AND-over-OR structure, or a formula in conjunctive normal form.
+Reachability of a checkable object holds if all of its Redundancy Groups are satisfied, and each group is satisfied iff any dependency within has a reachable parent.
+Dependencies not labeled with a group can be thought of as a singleton group.
 
 When using [apply rules](03-monitoring-basics.md#using-apply) for dependencies, you can leave out certain attributes which will be
 automatically determined by Icinga 2.
