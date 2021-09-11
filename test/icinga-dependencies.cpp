@@ -67,22 +67,44 @@ BOOST_AUTO_TEST_CASE(multi_parent)
         childHost->AddDependency(dep2);
         parentHost2->AddReverseDependency(dep2);
 
+	/* Test the reachability with both parents up */
+
+	parentHost1->SetStateRaw(ServiceOK);       // parent Host 1 UP
+	parentHost2->SetStateRaw(ServiceOK);       // parent Host 2 UP
+	BOOST_CHECK(childHost->IsReachable() == true);
+
 
 	/* Test the reachability from this point.
 	 * parentHost1 is DOWN, parentHost2 is UP.
-	 * Expected result: childHost is reachable.
+	 * Expected result: childHost is unreachable,
+	 * as dependencies are not grouped.
 	 */
 	parentHost1->SetStateRaw(ServiceCritical); // parent Host 1 DOWN
 	parentHost2->SetStateRaw(ServiceOK);       // parent Host 2 UP
-
-	BOOST_CHECK(childHost->IsReachable() == true);
+	BOOST_CHECK(childHost->IsReachable() == false);
 
 	/* parentHost1 is DOWN, parentHost2 is DOWN.
-	 * Expected result: childHost is unreachable.
+	 * Expected result: childHost is unreachable,
+	 * as all dependencies have failed.
 	 */
 	parentHost1->SetStateRaw(ServiceCritical); // parent Host 1 DOWN
 	parentHost2->SetStateRaw(ServiceCritical); // parent Host 2 DOWN
+	BOOST_CHECK(childHost->IsReachable() == false);
 
+	/* Test dependency groups by patching deps to share a group */
+	dep1->SetRedundancyGroup("group");
+	dep2->SetRedundancyGroup("group");
+
+	parentHost1->SetStateRaw(ServiceOK);       // parent Host 1 UP
+	parentHost2->SetStateRaw(ServiceOK);       // parent Host 2 UP
+	BOOST_CHECK(childHost->IsReachable() == true);
+
+	parentHost1->SetStateRaw(ServiceCritical); // parent Host 1 DOWN
+	parentHost2->SetStateRaw(ServiceOK);       // parent Host 2 UP
+	BOOST_CHECK(childHost->IsReachable() == true);
+
+	parentHost1->SetStateRaw(ServiceCritical); // parent Host 1 DOWN
+	parentHost2->SetStateRaw(ServiceCritical); // parent Host 2 DOWN
 	BOOST_CHECK(childHost->IsReachable() == false);
 }
 
