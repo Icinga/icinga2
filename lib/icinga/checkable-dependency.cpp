@@ -3,6 +3,7 @@
 #include "icinga/service.hpp"
 #include "icinga/dependency.hpp"
 #include "base/logger.hpp"
+#include <unordered_map>
 
 using namespace icinga;
 
@@ -74,7 +75,27 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 
 	auto deps = GetDependencies();
 
-	std::unordered_map<std::string, Dependency::Ptr> violated; // key: redundancy group, value: nullptr if satisfied, violating dependency otherwise
+        /*
+	 * Reachability of a Checkable holds if all of its Redundancy Groups
+	 * are satisfied, and each group is satisfied iff any dependency within
+	 * is reachable.  Dependencies not labeled with a group can be thought
+	 * of as a singleton group.  In summary, Redundancy Groups give
+	 * reachability an AND-over-OR, or conjunctive normal form, structure.
+	 *
+	 * When iterating dependencies, an ungrouped unreachable dependency is
+	 * enough to fail reachability.  For grouped dependencies, we store a
+	 * map, keyed on group name, with three states:
+	 *
+	 *   - no value present: no dependency in this group has been probed
+	 *
+	 *   - value is nullptr: a dependency in this group is reachable
+	 *
+	 *   - value is a dependency: this group member is unreachable
+	 *
+	 * When reporting unreachability, we pick arbitrarily from the
+	 * collection of failed groups.
+	 */
+	std::unordered_map<std::string, Dependency::Ptr> violated;
 
 	for (const Dependency::Ptr& dep : deps) {
 		std::string redundancy_group = dep->GetRedundancyGroup();
@@ -92,10 +113,12 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 
 			// tentatively mark this dependency group as failed unless it is already marked;
 			//  so it either passed before (don't overwrite) or already failed (so don't care)
-			if (violated.find(redundancy_group) == violated.end())
-				violated.insert(std::make_pair(redundancy_group, dep));
+			// Note that std::unordered_map's ::insert is defined to leave existing entries in place
+			violated.insert(std::make_pair(redundancy_group, dep));
 		} else if (!redundancy_group.empty()) {
-			// definitely mark this dependency group as passed
+			// definitely mark this dependency group as passed, clobbering any existing violator
+			// When we get to C++17, these can be merged into an insert_or_assign().
+			violated.erase(redundancy_group);
 			violated.insert(std::make_pair(redundancy_group, nullptr));
 		}
 	}
