@@ -114,7 +114,10 @@ if(WIN32)
   install(TARGETS eventprovider LIBRARY DESTINATION ${CMAKE_INSTALL_SBINDIR})
 endif()
 
-set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/application-version.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)
+set_property(
+  SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/application-version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/journaldlogger.cpp
+  PROPERTY EXCLUDE_UNITY_BUILD TRUE
+)
 
 if(ICINGA2_UNITY_BUILD)
   mkunity_target(base base base_SOURCES)
@@ -125,7 +128,11 @@ if(HAVE_SYSTEMD)
     NAMES systemd/sd-daemon.h
     HINTS ${SYSTEMD_ROOT_DIR})
   include_directories(${SYSTEMD_INCLUDE_DIR})
-  add_definitions(-DSD_JOURNAL_SUPPRESS_LOCATION)
+  set_property(
+    SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/journaldlogger.cpp
+    APPEND PROPERTY COMPILE_DEFINITIONS
+    SD_JOURNAL_SUPPRESS_LOCATION
+  )
 endif()
 
 add_library(base OBJECT ${base_SOURCES})
