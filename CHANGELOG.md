@@ -7,6 +7,26 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.1 (2021-08-19)
+
+The main focus of this version is a security vulnerability in the TLS certificate verification of our metrics writers ElasticsearchWriter, GelfWriter, InfluxdbWriter and Influxdb2Writer.
+
+Version 2.13.1 also fixes two issues indroduced with the 2.13.0 release.
+
+### Security
+
+* Add TLS server certificate validation to ElasticsearchWriter, GelfWriter, InfluxdbWriter and Influxdb2Writer ([GHSA-cxfm-8j5v-5qr2](https://github.com/Icinga/icinga2/security/advisories/GHSA-cxfm-8j5v-5qr2))
+
+Depending on your setup, manual intervention beyond installing the new versions
+may be required, so please read the more detailed information in the
+[release blog post](https://icinga.com/blog/2021/08/19/icinga-2-13-1-security-release//)
+carefully
+
+### Bugfixes
+
+* IDO PgSQL: Fix a string quoting regression introduced in 2.13.0 #8958
+* ApiListener: Automatically fall back to IPv4 in default configuration on systems without IPv6 support #8961
+
 ## 2.13.0 (2021-08-03)
 
 [Issues and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.13.0)
