@@ -867,7 +867,7 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 * [running_kernel](10-icinga-template-library.md#plugin-contrib-command-running_kernel)
 * package management: [apt](10-icinga-template-library.md#plugin-check-command-apt), [yum](10-icinga-template-library.md#plugin-contrib-command-yum), etc.
 * [ssh](10-icinga-template-library.md#plugin-check-command-ssh)
-* performance: [iostat](10-icinga-template-library.md#plugin-contrib-command-iostat), [check_sar_perf](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_sar_perf.py)
+* performance: [iostat](10-icinga-template-library.md#plugin-contrib-command-iostat), [check_sar_perf](https://github.com/NETWAYS/check-sar-perf)
 
 ### Windows Monitoring <a id="service-monitoring-windows"></a>
 
