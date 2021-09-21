@@ -12,7 +12,6 @@
 #include "icinga/service.hpp"
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
-#include <boost/thread/once.hpp>
 #include <atomic>
 #include <memory>
 #include <mutex>
@@ -108,7 +107,6 @@ private:
 	static ArrayData GetObjectIdentifiersWithoutEnv(const ConfigObject::Ptr& object);
 	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
 	static String CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime = 0, NotificationType nt = NotificationType(0));
-	static String GetEnvironment();
 	static Dictionary::Ptr SerializeVars(const CustomVarObject::Ptr& object);
 	static const char* GetNotificationTypeByEnum(NotificationType type);
 
@@ -180,7 +178,7 @@ private:
 	} m_DumpedGlobals;
 
 	static String m_EnvironmentId;
-	static boost::once_flag m_EnvironmentIdOnce;
+	static std::once_flag m_EnvironmentIdOnce;
 };
 }
 

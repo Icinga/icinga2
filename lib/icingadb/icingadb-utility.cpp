@@ -60,11 +60,6 @@ String IcingaDB::FormatCommandLine(const Value& commandLine)
 	return result;
 }
 
-String IcingaDB::GetEnvironment()
-{
-	return ConfigType::GetObjectsByType<IcingaApplication>()[0]->GetEnvironment();
-}
-
 ArrayData IcingaDB::GetObjectIdentifiersWithoutEnv(const ConfigObject::Ptr& object)
 {
 	Type::Ptr type = object->GetReflectionType();
@@ -77,7 +72,7 @@ ArrayData IcingaDB::GetObjectIdentifiersWithoutEnv(const ConfigObject::Ptr& obje
 
 String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
 {
-	return HashValue(new Array(Prepend(GetEnvironment(), GetObjectIdentifiersWithoutEnv(object))));
+	return HashValue(new Array(Prepend(m_EnvironmentId, GetObjectIdentifiersWithoutEnv(object))));
 }
 
 /**
@@ -88,7 +83,7 @@ String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
 String IcingaDB::CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime, NotificationType nt)
 {
 	Array::Ptr rawId = new Array(GetObjectIdentifiersWithoutEnv(object));
-	rawId->Insert(0, GetEnvironment());
+	rawId->Insert(0, m_EnvironmentId);
 	rawId->Insert(1, eventType);
 
 	if (nt) {
@@ -118,7 +113,7 @@ static const std::set<String> metadataWhitelist ({"package", "source_location", 
  *
  * return {
  *   SHA1(PackObject([
- *     Environment,
+ *     EnvironmentId,
  *     "disks",
  *     {
  *       "disk": {},
@@ -127,7 +122,7 @@ static const std::set<String> metadataWhitelist ({"package", "source_location", 
  *       }
  *     }
  *   ])): {
- *     "envId": SHA1(Environment),
+ *     "environment_id": EnvironmentId,
  *     "name_checksum": SHA1("disks"),
  *     "name": "disks",
  *     "value": {
@@ -151,16 +146,14 @@ Dictionary::Ptr IcingaDB::SerializeVars(const CustomVarObject::Ptr& object)
 		return nullptr;
 
 	Dictionary::Ptr res = new Dictionary();
-	auto env (GetEnvironment());
-	auto envChecksum (SHA1(env));
 
 	ObjectLock olock(vars);
 
 	for (auto& kv : vars) {
 		res->Set(
-			SHA1(PackObject((Array::Ptr)new Array({env, kv.first, kv.second}))),
+			SHA1(PackObject((Array::Ptr)new Array({m_EnvironmentId, kv.first, kv.second}))),
 			(Dictionary::Ptr)new Dictionary({
-				{"environment_id", envChecksum},
+				{"environment_id", m_EnvironmentId},
 				{"name_checksum", SHA1(kv.first)},
 				{"name", kv.first},
 				{"value", JsonEncode(kv.second)},
