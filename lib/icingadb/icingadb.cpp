@@ -3,11 +3,16 @@
 #include "icingadb/icingadb.hpp"
 #include "icingadb/icingadb-ti.cpp"
 #include "icingadb/redisconnection.hpp"
+#include "remote/apilistener.hpp"
 #include "remote/eventqueue.hpp"
+#include "base/configuration.hpp"
 #include "base/json.hpp"
+#include "base/tlsutility.hpp"
+#include "base/utility.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/host.hpp"
 #include <boost/algorithm/string.hpp>
+#include <fstream>
 #include <memory>
 #include <utility>
 
@@ -18,7 +23,7 @@ using namespace icinga;
 using Prio = RedisConnection::QueryPriority;
 
 String IcingaDB::m_EnvironmentId;
-boost::once_flag IcingaDB::m_EnvironmentIdOnce = BOOST_ONCE_INIT;
+std::once_flag IcingaDB::m_EnvironmentIdOnce;
 
 REGISTER_TYPE(IcingaDB);
 
@@ -52,9 +57,39 @@ void IcingaDB::Start(bool runtimeCreated)
 {
 	ObjectImpl<IcingaDB>::Start(runtimeCreated);
 
-	boost::call_once([]() {
-		m_EnvironmentId = SHA1(GetEnvironment());
-	}, m_EnvironmentIdOnce);
+	std::call_once(m_EnvironmentIdOnce, []() {
+		String path = Configuration::DataDir + "/icingadb.env";
+
+		if (Utility::PathExists(path)) {
+			m_EnvironmentId = Utility::LoadJsonFile(path);
+
+			if (m_EnvironmentId.GetLength() != 2*SHA_DIGEST_LENGTH) {
+				throw std::runtime_error("Wrong length of stored Icinga DB environment");
+			}
+
+			for (unsigned char c : m_EnvironmentId) {
+				if (!std::isxdigit(c)) {
+					throw std::runtime_error("Stored Icinga DB environment is not a hex string");
+				}
+			}
+		} else {
+			std::shared_ptr<X509> cert = GetX509Certificate(ApiListener::GetDefaultCaPath());
+
+			unsigned int n;
+			unsigned char digest[EVP_MAX_MD_SIZE];
+			if (X509_pubkey_digest(cert.get(), EVP_sha1(), digest, &n) != 1) {
+				BOOST_THROW_EXCEPTION(openssl_error()
+					<< boost::errinfo_api_function("X509_pubkey_digest")
+					<< errinfo_openssl_error(ERR_peek_error()));
+			}
+
+			m_EnvironmentId = BinaryToHex(digest, n);
+
+			Utility::SaveJsonFile(path, 0600, m_EnvironmentId);
+		}
+
+		m_EnvironmentId = m_EnvironmentId.ToLower();
+	});
 
 	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' started.";
