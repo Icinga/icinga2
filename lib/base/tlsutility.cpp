@@ -844,15 +844,7 @@ String SHA1(const String& s, bool binary)
 	if (binary)
 		return String(reinterpret_cast<const char*>(digest), reinterpret_cast<const char *>(digest + SHA_DIGEST_LENGTH));
 
-	static const char hexdigits[] = "0123456789abcdef";
-	char output[SHA_DIGEST_LENGTH*2+1];
-	for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
-		output[2*i] = hexdigits[digest[i] >> 4];
-		output[2*i + 1] = hexdigits[digest[i] & 0xf];
-	}
-	output[2*SHA_DIGEST_LENGTH] = 0;
-
-	return output;
+	return BinaryToHex(digest, SHA_DIGEST_LENGTH);
 }
 
 String SHA256(const String& s)
@@ -928,6 +920,18 @@ String RandomString(int length)
 	delete [] output;
 
 	return result;
+}
+
+String BinaryToHex(const unsigned char* data, size_t length) {
+	static const char hexdigits[] = "0123456789abcdef";
+
+	String output(2*length, 0);
+	for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
+		output[2 * i] = hexdigits[data[i] >> 4];
+		output[2 * i + 1] = hexdigits[data[i] & 0xf];
+	}
+
+	return output;
 }
 
 bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile)
