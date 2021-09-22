@@ -1596,6 +1596,8 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 		xAdd.emplace_back(Utility::ValidateUTF8(std::move(output)));
 		xAdd.emplace_back("check_source");
 		xAdd.emplace_back(cr->GetCheckSource());
+		xAdd.emplace_back("scheduling_source");
+		xAdd.emplace_back(cr->GetSchedulingSource());
 	}
 
 	if (service) {
@@ -2235,6 +2237,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 		attrs->Set("execution_time", TimestampToMilliseconds(fmax(0.0, cr->CalculateExecutionTime())));
 		attrs->Set("latency", TimestampToMilliseconds(cr->CalculateLatency()));
 		attrs->Set("check_source", cr->GetCheckSource());
+		attrs->Set("scheduling_source", cr->GetSchedulingSource());
 	}
 
 	attrs->Set("is_problem", checkable->GetProblem());
