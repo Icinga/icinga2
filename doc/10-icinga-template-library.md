@@ -887,6 +887,7 @@ nrpe_key	| **Optional.** The client key file to use for PKI. Defaults to none.
 nrpe_ssl_version	| **Optional.** The SSL/TLS version to use. Defaults to TLSv1+.
 nrpe_cipher_list	| **Optional.** The list of SSL ciphers to use. Default depends on check_nrpe version.
 nrpe_dh_opt	| **Optional.** Anonymous Diffie Hellman use: 0 = deny, 1 = allow, 2 = force. Default depends on check_nrpe version.
+nrpe_no_logging	| **Optional.** Disable logging of check_nrpe to syslog facilities (requires check_nrpe >= 4.0).
 
 
 ### nscp <a id="plugin-check-command-nscp"></a>
