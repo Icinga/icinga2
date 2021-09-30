@@ -44,17 +44,22 @@ INITIALIZE_ONCE(&IcingaDB::ConfigStaticInitialize);
 
 std::vector<Type::Ptr> IcingaDB::GetTypes()
 {
+	// The initial config sync will queue the types in the following order.
 	return {
-		CheckCommand::TypeInstance,
-		Comment::TypeInstance,
+		// Sync them first to get their states ASAP.
+		Host::TypeInstance,
+		Service::TypeInstance,
+
+		// Then sync them for similar reasons.
 		Downtime::TypeInstance,
+		Comment::TypeInstance,
+
+		CheckCommand::TypeInstance,
 		Endpoint::TypeInstance,
 		EventCommand::TypeInstance,
-		Host::TypeInstance,
 		HostGroup::TypeInstance,
 		Notification::TypeInstance,
 		NotificationCommand::TypeInstance,
-		Service::TypeInstance,
 		ServiceGroup::TypeInstance,
 		TimePeriod::TypeInstance,
 		User::TypeInstance,
