@@ -11,6 +11,23 @@ namespace icinga
 {
 
 /**
+ * Helper class to handle syslog facility strings and numbers.
+ *
+ * @ingroup base
+ */
+class SyslogHelper final
+{
+public:
+    static void StaticInitialize();
+    static bool ValidateFacility(const String& facility);
+    static int SeverityToNumber(LogSeverity severity);
+    static int FacilityToNumber(const String& facility);
+
+private:
+    static std::map<String, int> m_FacilityMap;
+};
+
+/**
  * A logger that logs to syslog.
  *
  * @ingroup base
@@ -21,14 +38,12 @@ public:
 	DECLARE_OBJECT(SyslogLogger);
 	DECLARE_OBJECTNAME(SyslogLogger);
 
-	static void StaticInitialize();
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	void OnConfigLoaded() override;
 	void ValidateFacility(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 protected:
-	static std::map<String, int> m_FacilityMap;
 	int m_Facility;
 
 	void ProcessLogEntry(const LogEntry& entry) override;

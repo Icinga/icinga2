@@ -14,6 +14,7 @@ and `icinga2 feature disable` commands to configure loggers:
 Feature         | Description
 ----------------|------------
 debuglog        | Debug log (path: `/var/log/icinga2/debug.log`, severity: `debug` or higher)
+journald        | Systemd Journal (severity: `warning` or higher)
 mainlog         | Main log (path: `/var/log/icinga2/icinga2.log`, severity: `information` or higher)
 syslog          | Syslog (severity: `warning` or higher)
 windowseventlog | Windows Event Log (severity: `information` or higher)
