@@ -121,7 +121,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 		<< ConsoleColorTag(Console_Normal);
 
 	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundRed)
-		<< "Now restart your Icinga 2 daemon to finish the installation!\n"
+		<< "Now reload your Icinga 2 daemon to finish the installation!\n"
 		<< ConsoleColorTag(Console_Normal);
 
 	return 0;
