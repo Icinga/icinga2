@@ -3490,7 +3490,7 @@ mem_critical | **Required.** Specify the critical threshold as number interprete
 
 #### sar-perf <a id="plugin-contrib-command-sar-perf"></a>
 
-The [check_sar_perf.py](https://github.com/dnsmichi/check-sar-perf)
+The [check_sar_perf.py](https://github.com/NETWAYS/check-sar-perf)
 plugin collects performance metrics from Linux hosts using the `sar` binary available in the `sysstat` package.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
