@@ -1817,8 +1817,14 @@ Sometimes the problem in question should not be announced when the notification 
 (the object reaching the `HARD` state), but after a certain period. In Icinga 2
 you can use the `times` dictionary and set `begin = 15m` as key and value if you want to
 postpone the notification window for 15 minutes. Leave out the `end` key -- if not set,
-Icinga 2 will not check against any end time for this notification. Make sure to
-specify a relatively low notification `interval` to get notified soon enough again.
+Icinga 2 will not check against any end time for this notification.
+
+> **Note**
+>
+> Setting the `end` key to `0` will stop sending notifications immediately
+> when a problem occurs, effectively disabling the notification.
+
+Make sure to specify a relatively low notification `interval` to get notified soon enough again.
 
 ```
 apply Notification "mail" to Service {
