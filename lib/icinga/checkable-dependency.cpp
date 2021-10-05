@@ -3,6 +3,7 @@
 #include "icinga/service.hpp"
 #include "icinga/dependency.hpp"
 #include "base/logger.hpp"
+#include <unordered_map>
 
 using namespace icinga;
 
