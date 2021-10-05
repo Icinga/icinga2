@@ -93,10 +93,13 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 
 			// tentatively mark this dependency group as failed unless it is already marked;
 			//  so it either passed before (don't overwrite) or already failed (so don't care)
-			if (violated.find(redundancy_group) == violated.end())
-				violated.insert(std::make_pair(redundancy_group, dep));
+			// note that std::unordered_map::insert() will not overwrite an existing entry
+			violated.insert(std::make_pair(redundancy_group, dep));
 		} else if (!redundancy_group.empty()) {
 			// definitely mark this dependency group as passed
+			// as std::unordered_map::insert() will not overwrite an existing entry, erase it first
+			// in C++17, one could use std::unorderer_map::insert_or_assign() instead
+			violated.erase(redundancy_group);
 			violated.insert(std::make_pair(redundancy_group, nullptr));
 		}
 	}
