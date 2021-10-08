@@ -70,6 +70,7 @@ add_boost_test(base
     base_dictionary/remove
     base_dictionary/clone
     base_dictionary/json
+    base_dictionary/keys_ordered
     base_fifo/construct
     base_fifo/io
     base_json/encode
