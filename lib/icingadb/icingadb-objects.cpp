@@ -537,8 +537,6 @@ std::vector<String> IcingaDB::GetTypeOverwriteKeys(const String& type)
 		keys.emplace_back(m_PrefixConfigObject + type + ":override:include");
 		keys.emplace_back(m_PrefixConfigObject + type + ":override:exclude");
 		keys.emplace_back(m_PrefixConfigObject + type + ":range");
-	} else if (type == "zone") {
-		keys.emplace_back(m_PrefixConfigObject + type + ":parent");
 	} else if (type == "notification") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":user");
 		keys.emplace_back(m_PrefixConfigObject + type + ":usergroup");
@@ -571,8 +569,6 @@ std::vector<String> IcingaDB::GetTypeDumpSignalKeys(const Type::Ptr& type)
 		keys.emplace_back(m_PrefixConfigObject + lcType + ":override:include");
 		keys.emplace_back(m_PrefixConfigObject + lcType + ":override:exclude");
 		keys.emplace_back(m_PrefixConfigObject + lcType + ":range");
-	} else if (type == Zone::TypeInstance) {
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":parent");
 	} else if (type == Notification::TypeInstance) {
 		keys.emplace_back(m_PrefixConfigObject + lcType + ":user");
 		keys.emplace_back(m_PrefixConfigObject + lcType + ":usergroup");
@@ -817,32 +813,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			if (runtimeUpdate) {
 				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":override:exclude", data);
 			}
-		}
-
-		return;
-	}
-
-	if (type == Zone::TypeInstance) {
-		Zone::Ptr zone = static_pointer_cast<Zone>(object);
-
-		Array::Ptr parents(new Array);
-		auto parentsRaw (zone->GetAllParentsRaw());
-
-		parents->Reserve(parentsRaw.size());
-
-		auto& parnts (hMSets[m_PrefixConfigObject + typeName + ":parent"]);
-
-		for (auto& parent : parentsRaw) {
-			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(parent), GetObjectIdentifiersWithoutEnv(object)))));
-			parnts.emplace_back(id);
-			Dictionary::Ptr data = new Dictionary({{"zone_id", objectKey}, {"environment_id", m_EnvironmentId}, {"parent_id", GetObjectIdentifier(parent)}});
-			parnts.emplace_back(JsonEncode(data));
-
-			if (runtimeUpdate) {
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":parent", data);
-			}
-
-			parents->Add(GetObjectIdentifier(parent));
 		}
 
 		return;
