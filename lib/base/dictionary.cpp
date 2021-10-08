@@ -235,10 +235,10 @@ Object::Ptr Dictionary::Clone() const
 }
 
 /**
- * Returns an array containing all keys
+ * Returns an ordered vector containing all keys
  * which are currently set in this directory.
  *
- * @returns an array of key names
+ * @returns an ordered vector of key names
  */
 std::vector<String> Dictionary::GetKeys() const
 {
