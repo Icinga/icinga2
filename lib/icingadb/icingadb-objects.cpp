@@ -1603,7 +1603,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 
 void IcingaDB::SendSentNotification(
 	const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
-	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
+	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text, double sendTime
 )
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
@@ -1620,10 +1620,15 @@ void IcingaDB::SendSentNotification(
 
 	auto usersAmount (users.size());
 	auto notificationHistoryId = Utility::NewUniqueID();
+	auto sendTs (TimestampToMilliseconds(sendTime));
+
+	Array::Ptr rawId = new Array(Prepend(GetEnvironment(), GetObjectIdentifiersWithoutEnv(notification)));
+	rawId->Add(GetNotificationTypeByEnum(type));
+	rawId->Add(sendTs);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:notification", "*",
-		"id", notificationHistoryId,
+		"id", HashValue(rawId),
 		"environment_id", m_EnvironmentId,
 		"notification_id", GetObjectIdentifier(notification),
 		"host_id", GetObjectIdentifier(host),
@@ -1633,7 +1638,7 @@ void IcingaDB::SendSentNotification(
 		"author", Utility::ValidateUTF8(author),
 		"text", Utility::ValidateUTF8(finalText),
 		"users_notified", Convert::ToString(usersAmount),
-		"send_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
+		"send_time", Convert::ToString(sendTs),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "notification"
 	});
@@ -2382,10 +2387,11 @@ void IcingaDB::NotificationSentToAllUsersHandler(
 )
 {
 	auto rws (ConfigType::GetObjectsByType<IcingaDB>());
+	auto sendTime (notification->GetLastNotification());
 
 	if (!rws.empty()) {
 		for (auto& rw : rws) {
-			rw->SendSentNotification(notification, checkable, users, type, cr, author, text);
+			rw->SendSentNotification(notification, checkable, users, type, cr, author, text, sendTime);
 		}
 	}
 }

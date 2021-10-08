@@ -149,6 +149,32 @@ Dictionary::Ptr IcingaDB::SerializeVars(const CustomVarObject::Ptr& object)
 	return res;
 }
 
+const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
+{
+	switch (type) {
+		case NotificationDowntimeStart:
+			return "downtime_start";
+		case NotificationDowntimeEnd:
+			return "downtime_end";
+		case NotificationDowntimeRemoved:
+			return "downtime_removed";
+		case NotificationCustom:
+			return "custom";
+		case NotificationAcknowledgement:
+			return "acknowledgement";
+		case NotificationProblem:
+			return "problem";
+		case NotificationRecovery:
+			return "recovery";
+		case NotificationFlappingStart:
+			return "flapping_start";
+		case NotificationFlappingEnd:
+			return "flapping_end";
+	}
+
+	VERIFY(!"Invalid notification type.");
+}
+
 static const std::set<String> propertiesBlacklistEmpty;
 
 String IcingaDB::HashValue(const Value& value)
