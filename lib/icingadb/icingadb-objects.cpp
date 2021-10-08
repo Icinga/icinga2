@@ -1522,6 +1522,9 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 	if (!checkable)
 		return;
 
+	if (!cr)
+		return;
+
 	Host::Ptr host;
 	Service::Ptr service;
 
@@ -1536,9 +1539,14 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 		hard_state = service ? Convert::ToLong(service->GetLastHardState()) : Convert::ToLong(host->GetLastHardState());
 	}
 
+	auto eventTime (TimestampToMilliseconds(cr->GetExecutionEnd()));
+
+	Array::Ptr rawId = new Array(Prepend(GetEnvironment(), GetObjectIdentifiersWithoutEnv(object)));
+	rawId->Add(eventTime);
+
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:state", "*",
-		"id", Utility::NewUniqueID(),
+		"id", HashValue(rawId),
 		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"state_type", Convert::ToString(type),
@@ -1548,7 +1556,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 		"previous_soft_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeSoft)),
 		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
 		"max_check_attempts", Convert::ToString(checkable->GetMaxCheckAttempts()),
-		"event_time", Convert::ToString(TimestampToMilliseconds(cr ? cr->GetExecutionEnd() : Utility::GetTime())),
+		"event_time", Convert::ToString(eventTime),
 		"event_id", Utility::NewUniqueID(),
 		"event_type", "state_change"
 	});
