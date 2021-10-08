@@ -76,6 +76,24 @@ void UserGroup::RemoveMember(const User::Ptr& user)
 	m_Members.erase(user);
 }
 
+std::set<Notification::Ptr> UserGroup::GetNotifications() const
+{
+	std::unique_lock<std::mutex> lock(m_UserGroupMutex);
+	return m_Notifications;
+}
+
+void UserGroup::AddNotification(const Notification::Ptr& notification)
+{
+	std::unique_lock<std::mutex> lock(m_UserGroupMutex);
+	m_Notifications.insert(notification);
+}
+
+void UserGroup::RemoveNotification(const Notification::Ptr& notification)
+{
+	std::unique_lock<std::mutex> lock(m_UserGroupMutex);
+	m_Notifications.erase(notification);
+}
+
 bool UserGroup::ResolveGroupMembership(const User::Ptr& user, bool add, int rstack) {
 
 	if (add && rstack > 20) {

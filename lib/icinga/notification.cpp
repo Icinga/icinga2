@@ -133,6 +133,9 @@ void Notification::Start(bool runtimeCreated)
 	if (ApiListener::IsHACluster() && GetNextNotification() < Utility::GetTime() + 60)
 		SetNextNotification(Utility::GetTime() + 60, true);
 
+	for (const UserGroup::Ptr& group : GetUserGroups())
+		group->AddNotification(this);
+
 	ObjectImpl<Notification>::Start(runtimeCreated);
 }
 
@@ -144,6 +147,9 @@ void Notification::Stop(bool runtimeRemoved)
 
 	if (obj)
 		obj->UnregisterNotification(this);
+
+	for (const UserGroup::Ptr& group : GetUserGroups())
+		group->RemoveNotification(this);
 }
 
 Checkable::Ptr Notification::GetCheckable() const
