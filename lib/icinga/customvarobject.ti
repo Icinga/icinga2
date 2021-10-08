@@ -9,7 +9,7 @@ namespace icinga
 
 abstract class CustomVarObject : ConfigObject
 {
-	[config] Dictionary::Ptr vars;
+	[config, signal_with_old_value] Dictionary::Ptr vars;
 };
 
 }
