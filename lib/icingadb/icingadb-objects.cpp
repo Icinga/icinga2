@@ -2011,7 +2011,7 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 	xAdd.emplace_back("start_time");
 	xAdd.emplace_back(Convert::ToString(startTime));
 	xAdd.emplace_back("id");
-	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetReflectionType()->GetName(), checkable->GetName(), startTime})));
+	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetName(), startTime})));
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
@@ -2091,7 +2091,7 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 	xAdd.emplace_back("set_time");
 	xAdd.emplace_back(Convert::ToString(setTime));
 	xAdd.emplace_back("id");
-	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetReflectionType()->GetName(), checkable->GetName(), setTime})));
+	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetName(), setTime})));
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
@@ -2136,7 +2136,7 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 	xAdd.emplace_back("set_time");
 	xAdd.emplace_back(Convert::ToString(setTime));
 	xAdd.emplace_back("id");
-	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetReflectionType()->GetName(), checkable->GetName(), setTime})));
+	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetName(), setTime})));
 
 	if (!removedBy.IsEmpty()) {
 		xAdd.emplace_back("cleared_by");
