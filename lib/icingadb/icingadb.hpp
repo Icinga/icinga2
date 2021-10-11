@@ -107,6 +107,7 @@ private:
 
 	static ArrayData GetObjectIdentifiersWithoutEnv(const ConfigObject::Ptr& object);
 	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
+	static String CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime = 0, NotificationType nt = NotificationType(0));
 	static String GetEnvironment();
 	static Dictionary::Ptr SerializeVars(const CustomVarObject::Ptr& object);
 	static const char* GetNotificationTypeByEnum(NotificationType type);

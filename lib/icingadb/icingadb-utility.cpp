@@ -80,6 +80,28 @@ String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
 	return HashValue(new Array(Prepend(GetEnvironment(), GetObjectIdentifiersWithoutEnv(object))));
 }
 
+/**
+ * Calculates a deterministic history event ID like SHA1(env, eventType, x...[, nt][, eventTime])
+ *
+ * Where SHA1(env, x...) = GetObjectIdentifier(object)
+ */
+String IcingaDB::CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime, NotificationType nt)
+{
+	Array::Ptr rawId = new Array(GetObjectIdentifiersWithoutEnv(object));
+	rawId->Insert(0, GetEnvironment());
+	rawId->Insert(1, eventType);
+
+	if (nt) {
+		rawId->Add(GetNotificationTypeByEnum(nt));
+	}
+
+	if (eventTime) {
+		rawId->Add(TimestampToMilliseconds(eventTime));
+	}
+
+	return HashValue(std::move(rawId));
+}
+
 static const std::set<String> metadataWhitelist ({"package", "source_location", "templates"});
 
 /**

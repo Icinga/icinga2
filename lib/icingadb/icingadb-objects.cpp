@@ -1539,10 +1539,11 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 		hard_state = service ? Convert::ToLong(service->GetLastHardState()) : Convert::ToLong(host->GetLastHardState());
 	}
 
-	auto eventTime (TimestampToMilliseconds(cr->GetExecutionEnd()));
+	auto eventTime (cr->GetExecutionEnd());
+	auto eventTs (TimestampToMilliseconds(eventTime));
 
 	Array::Ptr rawId = new Array(Prepend(GetEnvironment(), GetObjectIdentifiersWithoutEnv(object)));
-	rawId->Add(eventTime);
+	rawId->Add(eventTs);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:state", "*",
@@ -1556,8 +1557,8 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 		"previous_soft_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeSoft)),
 		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
 		"max_check_attempts", Convert::ToString(checkable->GetMaxCheckAttempts()),
-		"event_time", Convert::ToString(eventTime),
-		"event_id", Utility::NewUniqueID(),
+		"event_time", Convert::ToString(eventTs),
+		"event_id", CalcEventID("state_change", object, eventTime),
 		"event_type", "state_change"
 	});
 
@@ -1619,16 +1620,17 @@ void IcingaDB::SendSentNotification(
 	}
 
 	auto usersAmount (users.size());
-	auto notificationHistoryId = Utility::NewUniqueID();
 	auto sendTs (TimestampToMilliseconds(sendTime));
 
 	Array::Ptr rawId = new Array(Prepend(GetEnvironment(), GetObjectIdentifiersWithoutEnv(notification)));
 	rawId->Add(GetNotificationTypeByEnum(type));
 	rawId->Add(sendTs);
 
+	auto notificationHistoryId (HashValue(rawId));
+
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:notification", "*",
-		"id", HashValue(rawId),
+		"id", notificationHistoryId,
 		"environment_id", m_EnvironmentId,
 		"notification_id", GetObjectIdentifier(notification),
 		"host_id", GetObjectIdentifier(host),
@@ -1639,7 +1641,7 @@ void IcingaDB::SendSentNotification(
 		"text", Utility::ValidateUTF8(finalText),
 		"users_notified", Convert::ToString(usersAmount),
 		"send_time", Convert::ToString(sendTs),
-		"event_id", Utility::NewUniqueID(),
+		"event_id", CalcEventID("notification", notification, sendTime, type),
 		"event_type", "notification"
 	});
 
@@ -1700,7 +1702,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"has_been_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
 		"trigger_time", Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())),
-		"event_id", Utility::NewUniqueID(),
+		"event_id", CalcEventID("downtime_start", downtime),
 		"event_type", "downtime_start"
 	});
 
@@ -1787,7 +1789,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"has_been_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
 		"trigger_time", Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())),
 		"cancel_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
-		"event_id", Utility::NewUniqueID(),
+		"event_id", CalcEventID("downtime_end", downtime),
 		"event_type", "downtime_end"
 	});
 
@@ -1864,7 +1866,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
 		"is_sticky", Convert::ToString((unsigned short)(comment->GetEntryType() == CommentAcknowledgement && comment->GetCheckable()->GetAcknowledgement() == AcknowledgementSticky)),
-		"event_id", Utility::NewUniqueID(),
+		"event_id", CalcEventID("comment_add", comment),
 		"event_type", "comment_add"
 	});
 
@@ -1921,7 +1923,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
 		"is_sticky", Convert::ToString((unsigned short)(comment->GetEntryType() == CommentAcknowledgement && comment->GetCheckable()->GetAcknowledgement() == AcknowledgementSticky)),
-		"event_id", Utility::NewUniqueID(),
+		"event_id", CalcEventID("comment_remove", comment),
 		"event_type", "comment_remove"
 	});
 
@@ -1982,8 +1984,7 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"flapping_threshold_low", Convert::ToString(checkable->GetFlappingThresholdLow()),
-		"flapping_threshold_high", Convert::ToString(checkable->GetFlappingThresholdHigh()),
-		"event_id", Utility::NewUniqueID()
+		"flapping_threshold_high", Convert::ToString(checkable->GetFlappingThresholdHigh())
 	});
 
 	if (service) {
@@ -2025,6 +2026,8 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 
 	xAdd.emplace_back("start_time");
 	xAdd.emplace_back(Convert::ToString(startTime));
+	xAdd.emplace_back("event_id");
+	xAdd.emplace_back(CalcEventID(checkable->IsFlapping() ? "flapping_start" : "flapping_end", checkable, startTime));
 	xAdd.emplace_back("id");
 	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetName(), startTime})));
 
@@ -2069,7 +2072,6 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
-		"event_id", Utility::NewUniqueID(),
 		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"event_type", "ack_set",
@@ -2105,6 +2107,8 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 
 	xAdd.emplace_back("set_time");
 	xAdd.emplace_back(Convert::ToString(setTime));
+	xAdd.emplace_back("event_id");
+	xAdd.emplace_back(CalcEventID("ack_set", checkable, setTime));
 	xAdd.emplace_back("id");
 	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetName(), setTime})));
 
@@ -2122,7 +2126,6 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
-		"event_id", Utility::NewUniqueID(),
 		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"clear_time", Convert::ToString(TimestampToMilliseconds(changeTime)),
@@ -2150,6 +2153,8 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 
 	xAdd.emplace_back("set_time");
 	xAdd.emplace_back(Convert::ToString(setTime));
+	xAdd.emplace_back("event_id");
+	xAdd.emplace_back(CalcEventID("ack_clear", checkable, setTime));
 	xAdd.emplace_back("id");
 	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetName(), setTime})));
 
