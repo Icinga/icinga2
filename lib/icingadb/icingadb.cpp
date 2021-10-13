@@ -186,6 +186,7 @@ void IcingaDB::PublishStats()
 	Dictionary::Ptr status = GetStats();
 	status->Set("config_dump_in_progress", m_ConfigDumpInProgress);
 	status->Set("timestamp", TimestampToMilliseconds(Utility::GetTime()));
+	status->Set("icingadb_environment", m_EnvironmentId);
 
 	std::vector<String> query {"XADD", "icinga:stats", "MAXLEN", "1", "*"};
 
