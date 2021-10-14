@@ -240,6 +240,10 @@ void IcingaDB::DumpedGlobals::Reset()
 	m_Ids.clear();
 }
 
+String IcingaDB::GetEnvironmentId() const {
+	return m_EnvironmentId;
+}
+
 bool IcingaDB::DumpedGlobals::IsNew(const String& id)
 {
 	std::lock_guard<std::mutex> l (m_Mutex);
