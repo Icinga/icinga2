@@ -460,7 +460,7 @@ void InfluxdbCommonWriter::Flush()
 	try {
 		stream = Connect();
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "InfluxDbWriter")
+		Log(LogWarning, GetReflectionType()->GetName())
 			<< "Flush failed, cannot connect to InfluxDB: " << DiagnosticInformation(ex, false);
 		return;
 	}
