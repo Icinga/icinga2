@@ -700,9 +700,9 @@ Name            | Description
 ----------------|--------------
 icmp_address    | **Optional.** The host's address. This can either be a single address or an array of addresses. Defaults to "$address$".
 icmp_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
-icmp_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 5.
+icmp_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 10.
 icmp_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
-icmp_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
+icmp_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 30.
 icmp_source     | **Optional.** The source IP address to send packets from.
 icmp_packets    | **Optional.** The number of packets to send. Defaults to 5.
 icmp_packet_interval | **Optional** The maximum packet interval. Defaults to 80 (milliseconds).
