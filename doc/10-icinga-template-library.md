@@ -5758,6 +5758,7 @@ ssl_cert_cipher               | **Optional.** Cipher selection: force {ecdsa,rsa
 ssl_cert_ignore_expiration    | **Optional.** Ignore expiration date.
 ssl_cert_ignore_ocsp          | **Optional.** Do not check revocation with OCSP.
 ssl_cert_ignore_sct           | **Optional.** Do not check for signed certificate timestamps.
+ssl_cert_ignore_tls_renegotiation  | **Optional.** Do not check for renegotiation.
 
 
 #### jmx4perl <a id="plugin-contrib-command-jmx4perl"></a>
