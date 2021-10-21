@@ -310,8 +310,10 @@ void IcingaDB::UpdateAllConfigObjects()
 				}
 			}
 
-			if (states.size() > 2)
+			if (states.size() > 2) {
 				transaction.emplace_back(std::move(states));
+				transaction.emplace_back(std::move(statesChksms));
+			}
 
 			if (transaction.size() > 1) {
 				transaction.push_back({"EXEC"});
