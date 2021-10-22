@@ -75,12 +75,10 @@ void Downtime::OnAllConfigLoaded()
 {
 	ObjectImpl<Downtime>::OnAllConfigLoaded();
 
-	Host::Ptr host = Host::GetByName(GetHostName());
-
 	if (GetServiceName().IsEmpty())
-		m_Checkable = host;
+		m_Checkable = Host::GetByName(GetHostName());
 	else
-		m_Checkable = host->GetServiceByShortName(GetServiceName());
+		m_Checkable = Service::GetByNamePair(GetHostName(), GetServiceName());
 
 	if (!m_Checkable)
 		BOOST_THROW_EXCEPTION(ScriptError("Downtime '" + GetName() + "' references a host/service which doesn't exist.", GetDebugInfo()));
@@ -208,7 +206,7 @@ int Downtime::GetNextDowntimeID()
 	return l_NextDowntimeID;
 }
 
-String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& author,
+Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& author,
 	const String& comment, double startTime, double endTime, bool fixed,
 	const String& triggeredBy, double duration,
 	const String& scheduledDowntime, const String& scheduledBy,
@@ -304,7 +302,7 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 		<< "' and '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) << "', author: '"
 		<< author << "', " << (fixed ? "fixed" : "flexible with " + Convert::ToString(duration) + "s duration");
 
-	return fullName;
+	return downtime;
 }
 
 void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, const MessageOrigin::Ptr& origin)

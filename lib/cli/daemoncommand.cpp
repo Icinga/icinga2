@@ -479,6 +479,9 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 				}
 
 				_exit(RunWorker(configs, closeConsoleLog, stderrFile));
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "cli") << "Exception in main process: " << DiagnosticInformation(ex);
+				_exit(EXIT_FAILURE);
 			} catch (...) {
 				_exit(EXIT_FAILURE);
 			}
@@ -641,7 +644,14 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	}
 
 #ifdef _WIN32
-	return RunWorker(configs);
+	try {
+		return RunWorker(configs);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")	<< "Exception in main process: " << DiagnosticInformation(ex);
+		return EXIT_FAILURE;
+	} catch (...) {
+		return EXIT_FAILURE;
+	}
 #else /* _WIN32 */
 	l_UmbrellaPid = getpid();
 	Application::SetUmbrellaProcess(l_UmbrellaPid);

@@ -152,11 +152,13 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 {
 	CreateStorage();
 
-	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, fullName);
+	{
+		auto configType (dynamic_cast<ConfigType*>(type.get()));
 
-	if (item) {
-		errors->Add("Object '" + fullName + "' already exists.");
-		return false;
+		if (configType && configType->GetObject(fullName)) {
+			errors->Add("Object '" + fullName + "' already exists.");
+			return false;
+		}
 	}
 
 	String path;

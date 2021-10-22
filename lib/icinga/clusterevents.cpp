@@ -258,7 +258,7 @@ void ClusterEvents::SuppressedNotificationsChangedHandler(const Checkable::Ptr& 
 	message->Set("method", "event::SetSuppressedNotifications");
 	message->Set("params", params);
 
-	listener->RelayMessage(origin, checkable, message, true);
+	listener->RelayMessage(origin, nullptr, message, true);
 }
 
 Value ClusterEvents::SuppressedNotificationsChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
@@ -286,7 +286,7 @@ Value ClusterEvents::SuppressedNotificationsChangedAPIHandler(const MessageOrigi
 	if (!checkable)
 		return Empty;
 
-	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
+	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'suppressed notifications changed' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";

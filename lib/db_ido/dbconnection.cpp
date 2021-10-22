@@ -150,12 +150,17 @@ void DbConnection::UpdateProgramStatus()
 	std::vector<DbQuery> queries;
 
 	DbQuery query1;
-	query1.Table = "programstatus";
-	query1.IdColumn = "programstatus_id";
-	query1.Type = DbQueryInsert | DbQueryDelete;
-	query1.Category = DbCatProgramStatus;
+	query1.Type = DbQueryNewTransaction;
+	query1.Priority = PriorityImmediate;
+	queries.emplace_back(std::move(query1));
 
-	query1.Fields = new Dictionary({
+	DbQuery query2;
+	query2.Table = "programstatus";
+	query2.IdColumn = "programstatus_id";
+	query2.Type = DbQueryInsert | DbQueryDelete;
+	query2.Category = DbCatProgramStatus;
+
+	query2.Fields = new Dictionary({
 		{ "instance_id", 0 }, /* DbConnection class fills in real ID */
 		{ "program_version", Application::GetAppVersion() },
 		{ "status_update_time", DbValue::FromTimestamp(Utility::GetTime()) },
@@ -175,27 +180,26 @@ void DbConnection::UpdateProgramStatus()
 		{ "process_performance_data", (icingaApplication->GetEnablePerfdata() ? 1 : 0) }
 	});
 
-	query1.WhereCriteria = new Dictionary({
+	query2.WhereCriteria = new Dictionary({
 		{ "instance_id", 0 }  /* DbConnection class fills in real ID */
 	});
 
-	query1.Priority = PriorityImmediate;
-	queries.emplace_back(std::move(query1));
-
-	DbQuery query2;
-	query2.Type = DbQueryNewTransaction;
 	queries.emplace_back(std::move(query2));
+
+	DbQuery query3;
+	query3.Type = DbQueryNewTransaction;
+	queries.emplace_back(std::move(query3));
 
 	DbObject::OnMultipleQueries(queries);
 
-	DbQuery query3;
-	query3.Table = "runtimevariables";
-	query3.Type = DbQueryDelete;
-	query3.Category = DbCatProgramStatus;
-	query3.WhereCriteria = new Dictionary({
+	DbQuery query4;
+	query4.Table = "runtimevariables";
+	query4.Type = DbQueryDelete;
+	query4.Category = DbCatProgramStatus;
+	query4.WhereCriteria = new Dictionary({
 		{ "instance_id", 0 } /* DbConnection class fills in real ID */
 	});
-	DbObject::OnQuery(query3);
+	DbObject::OnQuery(query4);
 
 	InsertRuntimeVariable("total_services", ConfigType::Get<Service>()->GetObjectCount());
 	InsertRuntimeVariable("total_scheduled_services", ConfigType::Get<Service>()->GetObjectCount());

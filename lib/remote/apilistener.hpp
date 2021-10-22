@@ -11,7 +11,6 @@
 #include "base/configobject.hpp"
 #include "base/process.hpp"
 #include "base/shared.hpp"
-#include "base/spinlock.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "base/tcpsocket.hpp"
@@ -218,7 +217,7 @@ private:
 	void RemoveStatusFile();
 
 	/* filesync */
-	static SpinLock m_ConfigSyncStageLock;
+	static std::mutex m_ConfigSyncStageLock;
 
 	void SyncLocalZoneDirs() const;
 	void SyncLocalZoneDir(const Zone::Ptr& zone) const;
@@ -230,9 +229,7 @@ private:
 	static ConfigDirInformation LoadConfigDir(const String& dir);
 	static void ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file);
 
-	static void TryActivateZonesStageCallback(const ProcessResult& pr,
-		const std::vector<String>& relativePaths);
-	static void AsyncTryActivateZonesStage(const std::vector<String>& relativePaths, const Shared<std::unique_lock<SpinLock>>::Ptr& lock);
+	static void TryActivateZonesStage(const std::vector<String>& relativePaths);
 
 	static String GetChecksum(const String& content);
 	static bool CheckConfigChange(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig);

@@ -1400,7 +1400,7 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
-#### event::SuppressedNotifications <a id="technical-concepts-json-rpc-messages-event-setsupressednotifications"></a>
+#### event::SetSuppressedNotifications <a id="technical-concepts-json-rpc-messages-event-setsupressednotifications"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1409,7 +1409,7 @@ Message updates will be dropped when:
 Key       | Value
 ----------|---------
 jsonrpc   | 2.0
-method    | event::SuppressedNotifications
+method    | event::SetSuppressedNotifications
 params    | Dictionary
 
 ##### Params
@@ -1425,6 +1425,8 @@ supressed\_notifications | Number 	 | Bitmask for suppressed notifications.
 Event Sender: `Checkable::OnSuppressedNotificationsChanged`
 Event Receiver: `SuppressedNotificationsChangedAPIHandler`
 
+Used to sync the notification state of a host or service object within the same HA zone.
+
 ##### Permissions
 
 The receiver will not process messages from not configured endpoints.
@@ -1432,7 +1434,7 @@ The receiver will not process messages from not configured endpoints.
 Message updates will be dropped when:
 
 * Checkable does not exist.
-* Origin endpoint's zone is not allowed to access this checkable.
+* Origin endpoint is not within the local zone.
 
 
 #### event::SetNextNotification <a id="technical-concepts-json-rpc-messages-event-setnextnotification"></a>
@@ -1638,6 +1640,9 @@ text      | String        | Notification text
 Event Sender: `Checkable::OnNotificationsRequested`
 Event Receiver: `SendNotificationsAPIHandler`
 
+Signals that notifications have to be sent within the same HA zone. This is relevant if the checkable and its
+notifications are active on different endpoints.
+
 ##### Permissions
 
 The receiver will not process messages from not configured endpoints.
@@ -1645,7 +1650,7 @@ The receiver will not process messages from not configured endpoints.
 Message updates will be dropped when:
 
 * Checkable does not exist.
-* Origin endpoint's zone the same as the receiver. This binds notification messages to the HA zone.
+* Origin endpoint is not within the local zone.
 
 #### event::NotificationSentUser <a id="technical-concepts-json-rpc-messages-event-notificationsentuser"></a>
 

@@ -186,7 +186,7 @@ bool EnsureValidHeaders(
 		} else {
 			response.set(http::field::content_type, "text/html");
 			response.body() = String("<h1>Bad Request</h1><p><pre>") + errorMsg + "</pre></p>";
-			response.set(http::field::content_length, response.body().size());
+			response.content_length(response.body().size());
 		}
 
 		response.set(http::field::connection, "close");
@@ -259,7 +259,7 @@ bool HandleAccessControl(
 					response.set(http::field::access_control_allow_methods, "GET, POST, PUT, DELETE");
 					response.set(http::field::access_control_allow_headers, "Authorization, X-HTTP-Method-Override");
 					response.body() = "Preflight OK";
-					response.set(http::field::content_length, response.body().size());
+					response.content_length(response.body().size());
 					response.set(http::field::connection, "close");
 
 					boost::system::error_code ec;
@@ -290,7 +290,7 @@ bool EnsureAcceptHeader(
 		response.result(http::status::bad_request);
 		response.set(http::field::content_type, "text/html");
 		response.body() = "<h1>Accept header is missing or not set to 'application/json'.</h1>";
-		response.set(http::field::content_length, response.body().size());
+		response.content_length(response.body().size());
 		response.set(http::field::connection, "close");
 
 		boost::system::error_code ec;
@@ -331,7 +331,7 @@ bool EnsureAuthenticatedUser(
 		} else {
 			response.set(http::field::content_type, "text/html");
 			response.body() = "<h1>Unauthorized. Please check your user credentials.</h1>";
-			response.set(http::field::content_length, response.body().size());
+			response.content_length(response.body().size());
 		}
 
 		boost::system::error_code ec;
@@ -423,7 +423,7 @@ bool EnsureValidBody(
 		} else {
 			response.set(http::field::content_type, "text/html");
 			response.body() = String("<h1>Bad Request</h1><p><pre>") + ec.message() + "</pre></p>";
-			response.set(http::field::content_length, response.body().size());
+			response.content_length(response.body().size());
 		}
 
 		response.set(http::field::connection, "close");

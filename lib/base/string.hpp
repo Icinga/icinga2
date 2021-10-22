@@ -6,6 +6,7 @@
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
 #include <boost/range/iterator.hpp>
+#include <boost/utility/string_view.hpp>
 #include <string>
 #include <iosfwd>
 
@@ -71,6 +72,7 @@ public:
 	bool operator<(const String& rhs) const;
 
 	operator const std::string&() const;
+	operator boost::string_view() const;
 
 	const char *CStr() const;
 

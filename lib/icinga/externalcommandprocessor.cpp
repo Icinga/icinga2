@@ -1029,7 +1029,7 @@ void ExternalCommandProcessor::ScheduleAndPropagateTriggeredHostDowntime(double,
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Creating downtime for host " << host->GetName();
 
-	String parentDowntime = Downtime::AddDowntime(host, arguments[6], arguments[7],
+	Downtime::Ptr parentDowntime = Downtime::AddDowntime(host, arguments[6], arguments[7],
 		Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
 
@@ -1045,7 +1045,7 @@ void ExternalCommandProcessor::ScheduleAndPropagateTriggeredHostDowntime(double,
 
 		(void) Downtime::AddDowntime(child, arguments[6], arguments[7],
 			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-			Convert::ToBool(is_fixed), parentDowntime, Convert::ToDouble(arguments[5]));
+			Convert::ToBool(is_fixed), parentDowntime->GetName(), Convert::ToDouble(arguments[5]));
 	}
 }
 

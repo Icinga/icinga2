@@ -22,8 +22,11 @@ namespace icinga
 
 void InitializeOpenSSL();
 
+String GetOpenSSLVersion();
+
 std::shared_ptr<boost::asio::ssl::context> MakeAsioSslContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
 void AddCRLToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& crlPath);
+void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath);
 void SetCipherListToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& cipherList);
 void SetTlsProtocolminToSSLContext(const std::shared_ptr<boost::asio::ssl::context>& context, const String& tlsProtocolmin);
 
@@ -45,14 +48,12 @@ String SHA1(const String& s, bool binary = false);
 String SHA256(const String& s);
 String RandomString(int length);
 
-bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate);
+bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate, const String& crlFile);
 
 class openssl_error : virtual public std::exception, virtual public boost::exception { };
 
 struct errinfo_openssl_error_;
 typedef boost::error_info<struct errinfo_openssl_error_, unsigned long> errinfo_openssl_error;
-
-std::string to_string(const errinfo_openssl_error& e);
 
 }
 

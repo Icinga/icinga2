@@ -74,7 +74,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	String objZone = params->Get("zone");
 
-	if (!Zone::GetByName(objZone)) {
+	if (!objZone.IsEmpty() && !Zone::GetByName(objZone)) {
 		Log(LogNotice, "ApiListener")
 			<< "Discarding 'config update object' message"
 			<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName() << "')"
@@ -325,7 +325,11 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 	params->Set("name", object->GetName());
 	params->Set("type", object->GetReflectionType()->GetName());
 	params->Set("version", object->GetVersion());
-	params->Set("zone", object->GetZoneName());
+
+	String zoneName = object->GetZoneName();
+
+	if (!zoneName.IsEmpty())
+		params->Set("zone", zoneName);
 
 	if (object->GetPackage() == "_api") {
 		String file;

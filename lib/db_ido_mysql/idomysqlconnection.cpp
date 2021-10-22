@@ -165,8 +165,7 @@ void IdoMysqlConnection::NewTransaction()
 		<< "Scheduling new transaction and finishing async queries.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalNewTransaction, this), PriorityNormal);
-	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishAsyncQueries, this), PriorityNormal);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalNewTransaction, this), PriorityHigh);
 }
 
 void IdoMysqlConnection::InternalNewTransaction()
@@ -180,6 +179,8 @@ void IdoMysqlConnection::InternalNewTransaction()
 
 	AsyncQuery("COMMIT");
 	AsyncQuery("BEGIN");
+
+	FinishAsyncQueries();
 }
 
 void IdoMysqlConnection::ReconnectTimerHandler()

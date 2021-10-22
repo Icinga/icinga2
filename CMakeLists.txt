@@ -165,6 +165,9 @@ add_definitions(-DBOOST_COROUTINES_NO_DEPRECATION_WARNING)
 
 add_definitions(-DBOOST_FILESYSTEM_NO_DEPRECATED)
 
+# Required for Boost v1.74+
+add_definitions(-DBOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
+
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 

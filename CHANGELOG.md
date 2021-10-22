@@ -7,6 +7,57 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.11.9 (2021-05-27)
+
+Version 2.11.9 is a maintenance release that fixes some crashes, improves error handling
+and adds compatibility for systems coming with newer Boost versions.
+
+### Bugfixes
+
+* Fix a crash when notification objects are deleted using the API #8780
+* Fix crashes that might occur during downtime scheduling if host or downtime objects are deleted using the API #8784
+* Fix an issue where notifications may incorrectly be skipped after a downtime ends #8772
+* Fix an issue where attempting to create a duplicate object using the API
+  might result in the original object being deleted #8788
+* IDO: prioritize program status updates #8810
+* Improve exceptions handling, including a fix for an uncaught exception on Windows #8776
+* Retry file rename operations on Windows to avoid intermittent locking issues #8770
+
+### Enhancements
+
+* Support Boost 1.74 (Ubuntu 21.04, Fedora 34) #8793 #8802
+
+## 2.11.8 (2020-12-15)
+
+Version 2.11.8 resolves a security vulnerability with revoked certificates being
+renewed automatically ignoring the CRL.
+
+This version also resolves issues with high load on Windows regarding the config sync
+and not being able to disable/enable Icinga 2 features over the API.
+
+### Security
+
+* Fix that revoked certificates due for renewal will automatically be renewed ignoring the CRL (CVE-2020-29663)
+
+When a CRL is specified in the ApiListener configuration, Icinga 2 only used it
+when connections were established so far, but not when a certificate is requested.
+This allows a node to automatically renew a revoked certificate if it meets the
+other conditions for auto renewal (issued before 2017 or expires in less than 30 days).
+
+Because Icinga 2 currently (v2.12.3 and earlier) uses a validity duration of 15 years,
+this only affects setups with external certificate signing and revoked certificates
+that expire in less then 30 days.
+
+### Bugfixes
+
+* Improve config sync locking - resolves high load issues on Windows #8510
+* Fix runtime config updates being ignored for objects without zone #8550
+* Use proper buffer size for OpenSSL error messages #8543
+
+### Enhancements
+
+* On checkable recovery: re-check children that have a problem #8560 
+
 ## 2.11.7 (2020-12-01)
 
 Version 2.11.7 fixes several issues to improve the reliability of the cluster functionality.
@@ -239,6 +290,25 @@ Thanks to all contributors: [BarbUk](https://github.com/Icinga/icinga2/pulls?q=i
   * Packaging: INSTALL.md was integrated into the Development chapter available at https://icinga.com/docs too.
 
 
+
+
+## 2.10.7 (2019-10-17)
+
+[Issue and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.10.7)
+
+### Bugfixes
+
+* Cluster config master must not load/sync its marker to other instances #7544
+  * This affects scenarios where the satellite/agent is newer than the master, e.g. master=2.10.x satellite=2.11.0
+
+
+## 2.10.6 (2019-07-30)
+
+[Issue and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.10.6)
+
+### Bugfixes
+
+* Fix el7 not loading ECDHE cipher suites #7247
 
 
 ## 2.10.5 (2019-05-23)
@@ -600,6 +670,16 @@ Documentation updates:
 * [#6440](https://github.com/icinga/icinga2/issues/6440) (code-quality, PR): Fix typo
 * [#6410](https://github.com/icinga/icinga2/issues/6410) (code-quality, PR): Remove unused code
 * [#4959](https://github.com/icinga/icinga2/issues/4959) (Installation, Windows): Windows Agent Wizard Window resizes with screen, hiding buttons
+
+## 2.9.3 (2019-07-30)
+
+[Issue and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=milestone%3A2.9.3)
+
+### Bugfixes
+
+* Fix el7 not loading ECDHE cipher suites #7247
+* Fix checkresults from the future breaking checks #6797 ref/NC/595861
+* DB IDO: Don't enqueue queries when the feature is paused (HA) #5876
 
 ## 2.9.2 (2018-09-26)
 

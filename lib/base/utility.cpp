@@ -725,7 +725,11 @@ void Utility::CopyFile(const String& source, const String& target)
 {
 	namespace fs = boost::filesystem;
 
+#if BOOST_VERSION >= 107400
+	fs::copy_file(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()), fs::copy_options::overwrite_existing);
+#else /* BOOST_VERSION */
 	fs::copy_file(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()), fs::copy_option::overwrite_if_exists);
+#endif /* BOOST_VERSION */
 }
 
 /*
@@ -736,7 +740,59 @@ void Utility::RenameFile(const String& source, const String& target)
 {
 	namespace fs = boost::filesystem;
 
-	fs::rename(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()));
+	fs::path sourcePath(source.Begin(), source.End()), targetPath(target.Begin(), target.End());
+
+#ifndef _WIN32
+	fs::rename(sourcePath, targetPath);
+#else /* _WIN32 */
+	/*
+	 * Renaming files can be tricky on Windows, especially if your application is built around POSIX filesystem
+	 * semantics. For example, the quite common pattern of replacing a file by writing a new version to a temporary
+	 * location and then moving it to the final location can fail if the destination file already exists and any
+	 * process has an open file handle to it.
+	 *
+	 * We try to handle this situation as best as we can by retrying the rename operation a few times hoping the other
+	 * process closes its file handle in the meantime. This is similar to what for example Go does internally in some
+	 * situations (https://golang.org/pkg/cmd/go/internal/robustio/#Rename):
+	 *
+	 *    robustio.Rename is like os.Rename, but on Windows retries errors that may occur if the file is concurrently
+	 *    read or overwritten. (See https://golang.org/issue/31247 and https://golang.org/issue/32188)
+	 */
+
+	double sleep = 0.1;
+	int last_error = ERROR_SUCCESS;
+
+	for (int retries = 0, remaining = 15;; retries++, remaining--) {
+		try {
+			fs::rename(sourcePath, targetPath);
+
+			if (retries > 0) {
+				Log(LogWarning, "Utility") << "Renaming '" << source << "' to '" << target
+					<< "' succeeded after " << retries << " retries";
+			}
+
+			break;
+		} catch (const fs::filesystem_error& ex) {
+			int error = ex.code().value();
+			bool ephemeral = error == ERROR_ACCESS_DENIED ||
+				error == ERROR_FILE_NOT_FOUND ||
+				error == ERROR_SHARING_VIOLATION;
+
+			if (remaining <= 0 || !ephemeral) {
+				throw; // giving up
+			}
+
+			if (error != last_error) {
+				Log(LogWarning, "Utility") << "Renaming '" << source << "' to '" << target << "' failed: "
+					<< ex.code().message() << " (trying up to " << remaining << " more times)";
+				last_error = error;
+			}
+
+			Utility::Sleep(sleep);
+			sleep *= 1.3;
+		}
+	}
+#endif /* _WIN32 */
 }
 
 /*
