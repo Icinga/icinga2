@@ -106,7 +106,6 @@ private:
 	static long long TimestampToMilliseconds(double timestamp);
 	static String IcingaToStreamValue(const Value& value);
 
-	static ArrayData GetObjectIdentifiersWithoutEnv(const ConfigObject::Ptr& object);
 	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
 	static String CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime = 0, NotificationType nt = NotificationType(0));
 	static Dictionary::Ptr SerializeVars(const CustomVarObject::Ptr& object);
@@ -140,25 +139,6 @@ private:
 	void AssertOnWorkQueue();
 
 	void ExceptionHandler(boost::exception_ptr exp);
-
-	template<class T>
-	static inline
-	std::vector<T> Prepend(std::vector<T>&& needle, std::vector<T>&& haystack)
-	{
-		for (auto& hay : haystack) {
-			needle.emplace_back(std::move(hay));
-		}
-
-		return std::move(needle);
-	}
-
-	template<class T, class Needle>
-	static inline
-	std::vector<T> Prepend(Needle&& needle, std::vector<T>&& haystack)
-	{
-		haystack.emplace(haystack.begin(), std::forward<Needle>(needle));
-		return std::move(haystack);
-	}
 
 	static std::vector<Type::Ptr> GetTypes();
 

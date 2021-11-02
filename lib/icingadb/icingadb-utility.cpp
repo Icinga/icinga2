@@ -60,19 +60,9 @@ String IcingaDB::FormatCommandLine(const Value& commandLine)
 	return result;
 }
 
-ArrayData IcingaDB::GetObjectIdentifiersWithoutEnv(const ConfigObject::Ptr& object)
-{
-	Type::Ptr type = object->GetReflectionType();
-
-	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance)
-		return {type->GetName(), object->GetName()};
-	else
-		return {object->GetName()};
-}
-
 String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
 {
-	return HashValue(new Array(Prepend(m_EnvironmentId, GetObjectIdentifiersWithoutEnv(object))));
+	return HashValue(new Array({m_EnvironmentId, object->GetName()}));
 }
 
 /**
@@ -82,7 +72,7 @@ String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
  */
 String IcingaDB::CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime, NotificationType nt)
 {
-	Array::Ptr rawId = new Array(GetObjectIdentifiersWithoutEnv(object));
+	Array::Ptr rawId = new Array({object->GetName()});
 	rawId->Insert(0, m_EnvironmentId);
 	rawId->Insert(1, eventType);
 
