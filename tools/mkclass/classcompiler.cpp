@@ -522,9 +522,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 				m_Impl << "!" << valName << ".IsString())" << std::endl
 					<< "\t\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \""
-					<< field.Name << R"(" }, "Object '" + )" << valName << R"( + "' of type ')"
-				    << field.Type.TypeName
-				    << "' has an invalid name.\"));" << std::endl;
+					<< field.Name << R"(" }, "It is not allowed to specify '" + )" << valName << R"( + "' of type '" + )"
+					<< valName << ".GetTypeName()" << R"( + "' as ')" << field.Type.TypeName
+				    << "' name. Expected type of '" << field.Type.TypeName << "' name 'String'.\"));" << std::endl;
 			}
 
 			m_Impl << "\t\t\t" << "if (";
