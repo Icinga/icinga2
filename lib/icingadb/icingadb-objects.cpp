@@ -127,7 +127,7 @@ void IcingaDB::ConfigStaticInitialize()
 void IcingaDB::UpdateAllConfigObjects()
 {
 	m_Rcon->Sync();
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "3"}, Prio::Heartbeat);
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "4"}, Prio::Heartbeat);
 
 	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
 	double startTime = Utility::GetTime();
@@ -597,14 +597,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate)
 {
 	String objectKey = GetObjectIdentifier(object);
-	String objectKeyName;
+	String objectKeyName = typeName + "_id";
 
 	Type::Ptr type = object->GetReflectionType();
-	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
-		objectKeyName = "command_id";
-	} else {
-		objectKeyName = typeName + "_id";
-	}
 
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
 
@@ -970,7 +965,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					}
 				}
 
-				values->Set("command_id", objectKey);
+				values->Set(objectKeyName, objectKey);
 				values->Set("argument_key", kv.first);
 				values->Set("environment_id", m_EnvironmentId);
 
@@ -1019,7 +1014,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					}
 				}
 
-				values->Set("command_id", objectKey);
+				values->Set(objectKeyName, objectKey);
 				values->Set("envvar_key", kv.first);
 				values->Set("environment_id", m_EnvironmentId);
 
@@ -1271,7 +1266,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 
 		tie(host, service) = GetHostService(notification->GetCheckable());
 
-		attributes->Set("command_id", GetObjectIdentifier(notification->GetCommand()));
+		attributes->Set("notificationcommand_id", GetObjectIdentifier(notification->GetCommand()));
 
 		attributes->Set("host_id", GetObjectIdentifier(host));
 		if (service)
