@@ -132,7 +132,7 @@ void IcingaDB::ConfigStaticInitialize()
 void IcingaDB::UpdateAllConfigObjects()
 {
 	m_Rcon->Sync();
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "2"}, Prio::Heartbeat);
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "3"}, Prio::Heartbeat);
 
 	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
 	double startTime = Utility::GetTime();
