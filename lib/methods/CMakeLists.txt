@@ -9,6 +9,7 @@ set(methods_SOURCES
   dummychecktask.cpp dummychecktask.hpp
   exceptionchecktask.cpp exceptionchecktask.hpp
   icingachecktask.cpp icingachecktask.hpp
+  icinga4winapichecktask.cpp icinga4winapichecktask.hpp
   nullchecktask.cpp nullchecktask.hpp
   nulleventtask.cpp nulleventtask.hpp
   pluginchecktask.cpp pluginchecktask.hpp
