@@ -61,6 +61,7 @@ String PBKDF2_SHA256(const String& password, const String& salt, int iterations)
 String SHA1(const String& s, bool binary = false);
 String SHA256(const String& s);
 String RandomString(int length);
+String BinaryToHex(const unsigned char* data, size_t length);
 
 bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate, const String& crlFile);
 bool IsCa(const std::shared_ptr<X509>& cacert);

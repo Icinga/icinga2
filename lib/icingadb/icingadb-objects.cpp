@@ -127,7 +127,7 @@ void IcingaDB::ConfigStaticInitialize()
 void IcingaDB::UpdateAllConfigObjects()
 {
 	m_Rcon->Sync();
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "2"}, Prio::Heartbeat);
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "3"}, Prio::Heartbeat);
 
 	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
 	double startTime = Utility::GetTime();
@@ -607,7 +607,6 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 	}
 
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
-	auto env (GetEnvironment());
 
 	if (customVarObject) {
 		auto vars(SerializeVars(customVarObject));
@@ -630,7 +629,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					}
 				}
 
-				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
+				String id = HashValue(new Array(Prepend(m_EnvironmentId, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 				typeCvs.emplace_back(id);
 
 				Dictionary::Ptr	data = new Dictionary({{objectKeyName, objectKey}, {"environment_id", m_EnvironmentId}, {"customvar_id", kv.first}});
@@ -652,7 +651,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		if (!actionUrl.IsEmpty()) {
 			auto& actionUrls (hMSets[m_PrefixConfigObject + "action:url"]);
 
-			auto id (HashValue(new Array({env, actionUrl})));
+			auto id (HashValue(new Array({m_EnvironmentId, actionUrl})));
 
 			if (runtimeUpdate || m_DumpedGlobals.ActionUrl.IsNew(id)) {
 				actionUrls.emplace_back(std::move(id));
@@ -667,7 +666,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		if (!notesUrl.IsEmpty()) {
 			auto& notesUrls (hMSets[m_PrefixConfigObject + "notes:url"]);
 
-			auto id (HashValue(new Array({env, notesUrl})));
+			auto id (HashValue(new Array({m_EnvironmentId, notesUrl})));
 
 			if (runtimeUpdate || m_DumpedGlobals.NotesUrl.IsNew(id)) {
 				notesUrls.emplace_back(std::move(id));
@@ -682,7 +681,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		if (!iconImage.IsEmpty()) {
 			auto& iconImages (hMSets[m_PrefixConfigObject + "icon:image"]);
 
-			auto id (HashValue(new Array({env, iconImage})));
+			auto id (HashValue(new Array({m_EnvironmentId, iconImage})));
 
 			if (runtimeUpdate || m_DumpedGlobals.IconImage.IsNew(id)) {
 				iconImages.emplace_back(std::move(id));
@@ -720,7 +719,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			for (auto& group : groups) {
 				auto groupObj ((*getGroup)(group));
 				String groupId = GetObjectIdentifier(groupObj);
-				String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
+				String id = HashValue(new Array(Prepend(m_EnvironmentId, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
 				members.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{objectKeyName, objectKey}, {"environment_id", m_EnvironmentId}, {typeName + "group_id", groupId}});
 				members.emplace_back(JsonEncode(data));
@@ -748,10 +747,10 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			rangeIds->Reserve(ranges->GetLength());
 
 			for (auto& kv : ranges) {
-				String rangeId = HashValue(new Array({env, kv.first, kv.second}));
+				String rangeId = HashValue(new Array({m_EnvironmentId, kv.first, kv.second}));
 				rangeIds->Add(rangeId);
 
-				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, Prepend(kv.second, GetObjectIdentifiersWithoutEnv(object))))));
+				String id = HashValue(new Array(Prepend(m_EnvironmentId, Prepend(kv.first, Prepend(kv.second, GetObjectIdentifiersWithoutEnv(object))))));
 				typeRanges.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"range_key", kv.first}, {"range_value", kv.second}});
 				typeRanges.emplace_back(JsonEncode(data));
@@ -781,7 +780,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			String includeId = GetObjectIdentifier(includeTp);
 			includeChecksums->Add(includeId);
 
-			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(includeTp), GetObjectIdentifiersWithoutEnv(object)))));
+			String id = HashValue(new Array(Prepend(m_EnvironmentId, Prepend(GetObjectIdentifiersWithoutEnv(includeTp), GetObjectIdentifiersWithoutEnv(object)))));
 			includs.emplace_back(id);
 			Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"include_id", includeId}});
 			includs.emplace_back(JsonEncode(data));
@@ -811,7 +810,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			String excludeId = GetObjectIdentifier(excludeTp);
 			excludeChecksums->Add(excludeId);
 
-			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(excludeTp), GetObjectIdentifiersWithoutEnv(object)))));
+			String id = HashValue(new Array(Prepend(m_EnvironmentId, Prepend(GetObjectIdentifiersWithoutEnv(excludeTp), GetObjectIdentifiersWithoutEnv(object)))));
 			excluds.emplace_back(id);
 			Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"timeperiod_id", objectKey}, {"exclude_id", excludeId}});
 			excluds.emplace_back(JsonEncode(data));
@@ -844,7 +843,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			for (auto& group : groups) {
 				auto groupObj ((*getGroup)(group));
 				String groupId = GetObjectIdentifier(groupObj);
-				String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
+				String id = HashValue(new Array(Prepend(m_EnvironmentId, Prepend(GetObjectIdentifiersWithoutEnv(groupObj), GetObjectIdentifiersWithoutEnv(object)))));
 				members.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{"user_id", objectKey}, {"environment_id", m_EnvironmentId}, {"usergroup_id", groupId}});
 				members.emplace_back(JsonEncode(data));
@@ -879,7 +878,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 		for (auto& user : users) {
 			String userId = GetObjectIdentifier(user);
-			String id = HashValue(new Array(Prepend(env, Prepend(GetObjectIdentifiersWithoutEnv(user), GetObjectIdentifiersWithoutEnv(object)))));
+			String id = HashValue(new Array(Prepend(m_EnvironmentId, Prepend(GetObjectIdentifiersWithoutEnv(user), GetObjectIdentifiersWithoutEnv(object)))));
 			usrs.emplace_back(id);
 			Dictionary::Ptr data = new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"user_id", userId}});
 			usrs.emplace_back(JsonEncode(data));
@@ -902,7 +901,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto groupMembers = usergroup->GetMembers();
 			std::copy(groupMembers.begin(), groupMembers.end(), std::inserter(allUsers, allUsers.begin()));
 
-			String id = HashValue(new Array(Prepend(env, Prepend("usergroup", Prepend(GetObjectIdentifiersWithoutEnv(usergroup), GetObjectIdentifiersWithoutEnv(object))))));
+			String id = HashValue(new Array(Prepend(m_EnvironmentId, Prepend("usergroup", Prepend(GetObjectIdentifiersWithoutEnv(usergroup), GetObjectIdentifiersWithoutEnv(object))))));
 			groups.emplace_back(id);
 			Dictionary::Ptr groupData = new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"usergroup_id", usergroupId}});
 			groups.emplace_back(JsonEncode(groupData));
@@ -921,7 +920,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 		for (auto& user : allUsers) {
 			String userId = GetObjectIdentifier(user);
-			String id = HashValue(new Array(Prepend(env, Prepend("user", Prepend(GetObjectIdentifiersWithoutEnv(user), GetObjectIdentifiersWithoutEnv(object))))));
+			String id = HashValue(new Array(Prepend(m_EnvironmentId, Prepend("user", Prepend(GetObjectIdentifiersWithoutEnv(user), GetObjectIdentifiersWithoutEnv(object))))));
 			notificationRecipients.emplace_back(id);
 			Dictionary::Ptr data = new Dictionary({{"notification_id", objectKey}, {"environment_id", m_EnvironmentId}, {"user_id", userId}});
 			notificationRecipients.emplace_back(JsonEncode(data));
@@ -975,7 +974,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				values->Set("argument_key", kv.first);
 				values->Set("environment_id", m_EnvironmentId);
 
-				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
+				String id = HashValue(new Array(Prepend(m_EnvironmentId, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 
 				typeArgs.emplace_back(id);
 				typeArgs.emplace_back(JsonEncode(values));
@@ -1024,7 +1023,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				values->Set("envvar_key", kv.first);
 				values->Set("environment_id", m_EnvironmentId);
 
-				String id = HashValue(new Array(Prepend(env, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
+				String id = HashValue(new Array(Prepend(m_EnvironmentId, Prepend(kv.first, GetObjectIdentifiersWithoutEnv(object)))));
 
 				typeVars.emplace_back(id);
 				typeVars.emplace_back(JsonEncode(values));
@@ -1214,11 +1213,11 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		String notesUrl = checkable->GetNotesUrl();
 		String iconImage = checkable->GetIconImage();
 		if (!actionUrl.IsEmpty())
-			attributes->Set("action_url_id", HashValue(new Array({GetEnvironment(), actionUrl})));
+			attributes->Set("action_url_id", HashValue(new Array({m_EnvironmentId, actionUrl})));
 		if (!notesUrl.IsEmpty())
-			attributes->Set("notes_url_id", HashValue(new Array({GetEnvironment(), notesUrl})));
+			attributes->Set("notes_url_id", HashValue(new Array({m_EnvironmentId, notesUrl})));
 		if (!iconImage.IsEmpty())
-			attributes->Set("icon_image_id", HashValue(new Array({GetEnvironment(), iconImage})));
+			attributes->Set("icon_image_id", HashValue(new Array({m_EnvironmentId, iconImage})));
 
 
 		Host::Ptr host;
@@ -1544,7 +1543,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 	auto eventTime (cr->GetExecutionEnd());
 	auto eventTs (TimestampToMilliseconds(eventTime));
 
-	Array::Ptr rawId = new Array(Prepend(GetEnvironment(), GetObjectIdentifiersWithoutEnv(object)));
+	Array::Ptr rawId = new Array(Prepend(m_EnvironmentId, GetObjectIdentifiersWithoutEnv(object)));
 	rawId->Add(eventTs);
 
 	std::vector<String> xAdd ({
@@ -1624,7 +1623,7 @@ void IcingaDB::SendSentNotification(
 	auto usersAmount (users.size());
 	auto sendTs (TimestampToMilliseconds(sendTime));
 
-	Array::Ptr rawId = new Array(Prepend(GetEnvironment(), GetObjectIdentifiersWithoutEnv(notification)));
+	Array::Ptr rawId = new Array(Prepend(m_EnvironmentId, GetObjectIdentifiersWithoutEnv(notification)));
 	rawId->Add(GetNotificationTypeByEnum(type));
 	rawId->Add(sendTs);
 
@@ -2031,7 +2030,7 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 	xAdd.emplace_back("event_id");
 	xAdd.emplace_back(CalcEventID(checkable->IsFlapping() ? "flapping_start" : "flapping_end", checkable, startTime));
 	xAdd.emplace_back("id");
-	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetName(), startTime})));
+	xAdd.emplace_back(HashValue(new Array({m_EnvironmentId, checkable->GetName(), startTime})));
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
@@ -2112,7 +2111,7 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 	xAdd.emplace_back("event_id");
 	xAdd.emplace_back(CalcEventID("ack_set", checkable, setTime));
 	xAdd.emplace_back("id");
-	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetName(), setTime})));
+	xAdd.emplace_back(HashValue(new Array({m_EnvironmentId, checkable->GetName(), setTime})));
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 }
@@ -2158,7 +2157,7 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 	xAdd.emplace_back("event_id");
 	xAdd.emplace_back(CalcEventID("ack_clear", checkable, setTime));
 	xAdd.emplace_back("id");
-	xAdd.emplace_back(HashValue(new Array({GetEnvironment(), checkable->GetName(), setTime})));
+	xAdd.emplace_back(HashValue(new Array({m_EnvironmentId, checkable->GetName(), setTime})));
 
 	if (!removedBy.IsEmpty()) {
 		xAdd.emplace_back("cleared_by");
