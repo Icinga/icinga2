@@ -1331,6 +1331,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("entry_time", TimestampToMilliseconds(downtime->GetEntryTime()));
 		attributes->Set("scheduled_start_time", TimestampToMilliseconds(downtime->GetStartTime()));
 		attributes->Set("scheduled_end_time", TimestampToMilliseconds(downtime->GetEndTime()));
+		attributes->Set("scheduled_duration", TimestampToMilliseconds(downtime->GetEndTime() - downtime->GetStartTime()));
 		attributes->Set("flexible_duration", TimestampToMilliseconds(downtime->GetDuration()));
 		attributes->Set("is_flexible", !downtime->GetFixed());
 		attributes->Set("is_in_effect", downtime->IsInEffect());
@@ -1338,6 +1339,12 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 			attributes->Set("start_time", TimestampToMilliseconds(downtime->GetTriggerTime()));
 			attributes->Set("end_time", TimestampToMilliseconds(downtime->GetFixed() ? downtime->GetEndTime() : (downtime->GetTriggerTime() + downtime->GetDuration())));
 		}
+
+		auto duration = downtime->GetDuration();
+		if (downtime->GetFixed()) {
+			duration = downtime->GetEndTime() - downtime->GetStartTime();
+		}
+		attributes->Set("duration", TimestampToMilliseconds(duration));
 
 		Host::Ptr host;
 		Service::Ptr service;
@@ -1698,7 +1705,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
 		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
-		"flexible_duration", Convert::ToString(downtime->GetDuration()),
+		"flexible_duration", Convert::ToString(TimestampToMilliseconds(downtime->GetDuration())),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"has_been_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
@@ -1784,7 +1791,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"cancelled_by", Utility::ValidateUTF8(downtime->GetRemovedBy()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
 		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
-		"flexible_duration", Convert::ToString(downtime->GetDuration()),
+		"flexible_duration", Convert::ToString(TimestampToMilliseconds(downtime->GetDuration())),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"has_been_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
