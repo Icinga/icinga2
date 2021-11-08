@@ -1160,7 +1160,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 
 		Zone::Ptr parent = zone->GetParent();
 		if (parent) {
-			attributes->Set("parent_id", GetObjectIdentifier(zone));
+			attributes->Set("parent_id", GetObjectIdentifier(parent));
 		}
 
 		auto parentsRaw (zone->GetAllParentsRaw());
