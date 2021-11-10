@@ -1644,6 +1644,15 @@ void IcingaDB::SendSentNotification(
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
+	if (!users.empty()) {
+		Array::Ptr users_notified = new Array();
+		for (const User::Ptr& user : users) {
+			users_notified->Add(GetObjectIdentifier(user));
+		}
+		xAdd.emplace_back("users_notified_ids");
+		xAdd.emplace_back(JsonEncode(users_notified));
+	}
+
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
 
 	for (const User::Ptr& user : users) {
