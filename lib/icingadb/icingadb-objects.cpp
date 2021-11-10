@@ -1656,19 +1656,6 @@ void IcingaDB::SendSentNotification(
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
-
-	for (const User::Ptr& user : users) {
-		auto userId = GetObjectIdentifier(user);
-		std::vector<String> xAddUser ({
-			"XADD", "icinga:history:stream:usernotification", "*",
-			"id", Utility::NewUniqueID(),
-			"environment_id", m_EnvironmentId,
-			"notification_history_id", notificationHistoryId,
-			"user_id", GetObjectIdentifier(user),
-		});
-
-		m_Rcon->FireAndForgetQuery(std::move(xAddUser), Prio::History);
-	}
 }
 
 void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
