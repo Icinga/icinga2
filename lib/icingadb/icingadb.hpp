@@ -81,7 +81,7 @@ private:
 
 	void SendSentNotification(
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
-		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
+		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text, double sendTime
 	);
 
 	void SendStartedDowntime(const Downtime::Ptr& downtime);
@@ -107,8 +107,10 @@ private:
 
 	static ArrayData GetObjectIdentifiersWithoutEnv(const ConfigObject::Ptr& object);
 	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
+	static String CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime = 0, NotificationType nt = NotificationType(0));
 	static String GetEnvironment();
 	static Dictionary::Ptr SerializeVars(const CustomVarObject::Ptr& object);
+	static const char* GetNotificationTypeByEnum(NotificationType type);
 
 	static String HashValue(const Value& value);
 	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
