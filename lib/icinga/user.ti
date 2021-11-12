@@ -19,7 +19,7 @@ class User : CustomVarObject
 				return m_DisplayName.m_Value;
 		}}}
 	};
-	[config, no_user_modify, required] array(name(UserGroup)) groups {
+	[config, no_user_modify, required, signal_with_old_value] array(name(UserGroup)) groups {
 		default {{{ return new Array(); }}}
 	};
 	[config, navigation] name(TimePeriod) period (PeriodRaw) {
