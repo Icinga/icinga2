@@ -3,6 +3,8 @@
 #include "base/dictionary.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include "base/string.hpp"
+#include "base/utility.hpp"
 #include <BoostTestTargetConfig.h>
 
 using namespace icinga;
@@ -181,6 +183,18 @@ BOOST_AUTO_TEST_CASE(json)
 	BOOST_CHECK(deserialized->GetLength() == 2);
 	BOOST_CHECK(deserialized->Get("test1") == 7);
 	BOOST_CHECK(deserialized->Get("test2") == "hello world");
+}
+
+BOOST_AUTO_TEST_CASE(keys_ordered)
+{
+	Dictionary::Ptr dictionary = new Dictionary();
+
+	for (int i = 0; i < 100; i++) {
+		dictionary->Set(std::to_string(Utility::Random()), Utility::Random());
+	}
+
+	std::vector<String> keys = dictionary->GetKeys();
+	BOOST_CHECK(std::is_sorted(keys.begin(), keys.end()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

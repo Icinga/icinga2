@@ -60,7 +60,8 @@ enum FieldAttribute
 	FADeprecated = 4096,
 	FAGetVirtual = 8192,
 	FASetVirtual = 16384,
-	FAActivationPriority = 32768
+	FAActivationPriority = 32768,
+	FASignalWithOldValue = 65536,
 };
 
 struct FieldType

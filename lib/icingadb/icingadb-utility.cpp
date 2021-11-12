@@ -90,7 +90,7 @@ String IcingaDB::CalcEventID(const char* eventType, const ConfigObject::Ptr& obj
 static const std::set<String> metadataWhitelist ({"package", "source_location", "templates"});
 
 /**
- * Prepare object's custom vars for being written to Redis
+ * Prepare custom vars for being written to Redis
  *
  * object.vars = {
  *   "disks": {
@@ -124,14 +124,12 @@ static const std::set<String> metadataWhitelist ({"package", "source_location", 
  *   }
  * }
  *
- * @param	object	Config object with custom vars
+ * @param	Dictionary	Config object with custom vars
  *
- * @return 			JSON-like data structure for Redis
+ * @return 				JSON-like data structure for Redis
  */
-Dictionary::Ptr IcingaDB::SerializeVars(const CustomVarObject::Ptr& object)
+Dictionary::Ptr IcingaDB::SerializeVars(const Dictionary::Ptr& vars)
 {
-	Dictionary::Ptr vars = object->GetVars();
-
 	if (!vars)
 		return nullptr;
 
@@ -257,4 +255,50 @@ String IcingaDB::IcingaToStreamValue(const Value& value)
 		default:
 			return JsonEncode(value);
 	}
+}
+
+// Returns the items that exist in "arrayOld" but not in "arrayNew"
+std::vector<Value> IcingaDB::GetArrayDeletedValues(const Array::Ptr& arrayOld, const Array::Ptr& arrayNew) {
+	std::vector<Value> deletedValues;
+
+	if (!arrayOld) {
+		return deletedValues;
+	}
+
+	if (!arrayNew) {
+		return std::vector<Value>(arrayOld->Begin(), arrayOld->End());
+	}
+
+	std::vector<Value> vectorOld(arrayOld->Begin(), arrayOld->End());
+	std::sort(vectorOld.begin(), vectorOld.end());
+	vectorOld.erase(std::unique(vectorOld.begin(), vectorOld.end()), vectorOld.end());
+
+	std::vector<Value> vectorNew(arrayNew->Begin(), arrayNew->End());
+	std::sort(vectorNew.begin(), vectorNew.end());
+	vectorNew.erase(std::unique(vectorNew.begin(), vectorNew.end()), vectorNew.end());
+
+	std::set_difference(vectorOld.begin(), vectorOld.end(), vectorNew.begin(), vectorNew.end(), std::back_inserter(deletedValues));
+
+	return deletedValues;
+}
+
+// Returns the keys that exist in "dictOld" but not in "dictNew"
+std::vector<String> IcingaDB::GetDictionaryDeletedKeys(const Dictionary::Ptr& dictOld, const Dictionary::Ptr& dictNew) {
+	std::vector<String> deletedKeys;
+
+	if (!dictOld) {
+		return deletedKeys;
+	}
+
+	std::vector<String> oldKeys = dictOld->GetKeys();
+
+	if (!dictNew) {
+		return oldKeys;
+	}
+
+	std::vector<String> newKeys = dictNew->GetKeys();
+
+	std::set_difference(oldKeys.begin(), oldKeys.end(), newKeys.begin(), newKeys.end(), std::back_inserter(deletedKeys));
+
+	return deletedKeys;
 }

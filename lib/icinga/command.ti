@@ -11,11 +11,11 @@ namespace icinga
 abstract class Command : CustomVarObject
 {
 	[config] Value command (CommandLine);
-	[config] Value arguments;
+	[config, signal_with_old_value] Value arguments;
 	[config] int timeout {
 		default {{{ return 60; }}}
 	};
-	[config] Dictionary::Ptr env;
+	[config, signal_with_old_value] Dictionary::Ptr env;
 	[config, required] Function::Ptr execute;
 };
 
