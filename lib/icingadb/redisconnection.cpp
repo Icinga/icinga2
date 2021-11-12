@@ -116,7 +116,7 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority)
 {
 	{
-		Log msg (LogNotice, "IcingaDB", "Firing and forgetting query:");
+		Log msg (LogDebug, "IcingaDB", "Firing and forgetting query:");
 		LogQuery(query, msg);
 	}
 
@@ -138,7 +138,7 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConn
 void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority)
 {
 	for (auto& query : queries) {
-		Log msg (LogNotice, "IcingaDB", "Firing and forgetting query:");
+		Log msg (LogDebug, "IcingaDB", "Firing and forgetting query:");
 		LogQuery(query, msg);
 	}
 
@@ -162,7 +162,7 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Red
 RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority)
 {
 	{
-		Log msg (LogNotice, "IcingaDB", "Executing query:");
+		Log msg (LogDebug, "IcingaDB", "Executing query:");
 		LogQuery(query, msg);
 	}
 
@@ -192,7 +192,7 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority)
 {
 	for (auto& query : queries) {
-		Log msg (LogNotice, "IcingaDB", "Executing query:");
+		Log msg (LogDebug, "IcingaDB", "Executing query:");
 		LogQuery(query, msg);
 	}
 
