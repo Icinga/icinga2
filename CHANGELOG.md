@@ -7,6 +7,32 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.2 (2021-11-12)
+
+This version only includes changes needed for the release of Icinga DB 1.0.0 RC2 and doesn't include any other bugfixes or features.
+
+### Icinga DB
+
+* Prefix command_id with command type #9085
+* Decouple environment from Icinga 2 Environment constant #9082
+* Make icinga:history:stream:*#event_id deterministic #9076
+* Add downtime.duration & service_state.host_id to Redis #9084
+* Sync checkables along with their states first #9081
+* Flush both buffered states and state checksums on initial dump #9079
+* Introduce icinga:history:stream:downtime#scheduled_by #9080
+* Actually write parent to parent_id of zones #9078
+* Set value in milliseconds for program_start in stats/heartbeat #9077
+* Clean up vanished objects from icinga:checksum:*:state #9074
+* Remove usernotification history stream #9073
+* Write IDs of notified users into notification history stream #9071
+* Make CheckResult#scheduling_source available to Icinga DB #9072
+* Stream runtime state updates only to icinga:runtime:state #9068
+* Publish Redis schema version via XADD icinga:schema #9069
+* Don't include checkable types in history IDs #9070
+* Remove unused Redis key 'icinga:zone:parent' #9075
+* Make sure object relationships are handled correctly during runtime updates #9089
+* Only log queries at debug level #9088
+
 ## 2.13.1 (2021-08-19)
 
 The main focus of this version is a security vulnerability in the TLS certificate verification of our metrics writers ElasticsearchWriter, GelfWriter, InfluxdbWriter and Influxdb2Writer.
