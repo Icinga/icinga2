@@ -44,6 +44,10 @@ class IcingaDB : ConfigObject
 	[config] double connect_timeout {
 		default {{{ return DEFAULT_CONNECT_TIMEOUT; }}}
 	};
+
+	[no_storage] String environment_id {
+			get;
+	};
 };
 
 }
