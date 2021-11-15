@@ -484,7 +484,9 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (send_notification && !is_flapping) {
 		if (!IsPaused()) {
 			if (suppress_notification) {
-				suppressed_types |= (recovery ? NotificationRecovery : NotificationProblem);
+				if (!(hardChange && old_stateType == StateTypeHard && !IsStateOK(old_state) && !IsStateOK(new_state))) {
+					suppressed_types |= (recovery ? NotificationRecovery : NotificationProblem);
+				}
 			} else {
 				OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", nullptr);
 			}
