@@ -20,6 +20,8 @@ jobs:
           - name: centos
             release: 7
           - name: fedora
+            release: 35
+          - name: fedora
             release: 34
           - name: sles
             release: '15.2'
