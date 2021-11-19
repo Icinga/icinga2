@@ -1395,6 +1395,9 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-downtime`.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host`, `Service` and `Downtime`.
 
+When removing a host downtime, service downtimes on this host are automatically deleted if they were created using
+the `all_services` option. Other downtimes created using the `child_options` option are not affected.
+
 Example for a simple filter using the `downtime` URL parameter:
 
 ```
