@@ -2,6 +2,7 @@
 
 #include "icinga/usergroup.hpp"
 #include "icinga/usergroup-ti.cpp"
+#include "icinga/notification.hpp"
 #include "config/objectrule.hpp"
 #include "config/configitem.hpp"
 #include "base/configtype.hpp"
