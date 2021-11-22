@@ -66,7 +66,8 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 			}
 			logmsg << " signed by our CA.";
 		} catch (const std::exception &ex) {
-			logmsg << " not signed by our CA";
+			logmsg << " which couldn't be verified";
+
 			if (const unsigned long *openssl_code = boost::get_error_info<errinfo_openssl_error>(ex)) {
 				logmsg << ": " << X509_verify_cert_error_string(long(*openssl_code)) << " (code " << *openssl_code << ")";
 			} else {
