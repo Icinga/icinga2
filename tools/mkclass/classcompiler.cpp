@@ -517,7 +517,17 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		}
 
 		if (field.Type.IsName) {
-			m_Impl << "\t" << "if (";
+			if (field.Type.ArrayRank > 0) {
+				m_Impl << "\t\t\t" << "if (!" << valName << ".IsEmpty() && ";
+
+				m_Impl << "!" << valName << ".IsString())" << std::endl
+					<< "\t\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \""
+					<< field.Name << R"(" }, "It is not allowed to specify '" + )" << valName << R"( + "' of type '" + )"
+					<< valName << ".GetTypeName()" << R"( + "' as ')" << field.Type.TypeName
+				    << "' name. Expected type of '" << field.Type.TypeName << "' name: 'String'.\"));" << std::endl;
+			}
+
+			m_Impl << "\t\t\t" << "if (";
 
 			if (field.Type.ArrayRank > 0)
 				m_Impl << valName << ".IsEmpty() || ";
@@ -525,7 +535,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				m_Impl << "!" << valName << ".IsEmpty() && ";
 
 			m_Impl << "!utils.ValidateName(\"" << field.Type.TypeName << "\", " << valName << "))" << std::endl
-				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(" }, "Object '" + )" << valName << R"( + "' of type ')" << field.Type.TypeName
+				<< "\t\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(" }, "Object '" + )" << valName << R"( + "' of type ')" << field.Type.TypeName
 				<< "' does not exist.\"));" << std::endl;
 		} else if (field.Type.ArrayRank > 0 && (ftype == "Number" || ftype == "Boolean")) {
 			m_Impl << "\t" << "try {" << std::endl
