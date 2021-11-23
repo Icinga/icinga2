@@ -6,6 +6,7 @@ on:
     branches:
       - master
       - 'support/*'
+      - bugfix/docker-git-version
   release:
     types:
       - published
@@ -23,7 +24,7 @@ jobs:
           access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker image
-        uses: Icinga/docker-icinga2@master
+        uses: Icinga/docker-icinga2@bugfix/git-version-debug
         env:
           INPUT_TOKEN: '${{ github.token }}'
           DOCKER_HUB_PASSWORD: '${{ secrets.DOCKER_HUB_PERSONAL_TOKEN }}'
