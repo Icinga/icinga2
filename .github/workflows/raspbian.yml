@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - 'support/*'
+      - feature/gh-actions-rasbian-bullseye
   pull_request: {}
 
 jobs:
@@ -16,6 +17,7 @@ jobs:
       matrix:
         codename:
           - buster
+          - bullseye
 
     runs-on: ubuntu-latest
 
@@ -31,10 +33,7 @@ jobs:
         uses: actions/checkout@v1
 
       - name: qemu-user-static
-        run: |
-          set -exo pipefail
-          sudo apt-get update
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y qemu-user-static
+        run: docker run --rm --privileged multiarch/qemu-user-static --credential yes --persistent yes
 
       - name: raspbian-icinga2
         run: |
