@@ -482,13 +482,7 @@ void Downtime::DowntimesStartTimerHandler()
 
 void Downtime::DowntimesExpireTimerHandler()
 {
-	std::vector<Downtime::Ptr> downtimes;
-
 	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
-		downtimes.push_back(downtime);
-	}
-
-	for (const Downtime::Ptr& downtime : downtimes) {
 		/* Only remove downtimes which are activated after daemon start. */
 		if (downtime->IsActive() && (downtime->IsExpired() || !downtime->HasValidConfigOwner()))
 			RemoveDowntime(downtime->GetName(), false, false, true);
