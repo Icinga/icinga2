@@ -25,6 +25,9 @@ jobs:
             codename: stretch
             has32bit: true
           - name: ubuntu
+            codename: impish
+            has32bit: false
+          - name: ubuntu
             codename: hirsute
             has32bit: false
           - name: ubuntu
