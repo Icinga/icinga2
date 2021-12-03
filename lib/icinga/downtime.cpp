@@ -9,6 +9,7 @@
 #include "base/utility.hpp"
 #include "base/timer.hpp"
 #include <boost/thread/once.hpp>
+#include <cmath>
 
 using namespace icinga;
 
@@ -422,7 +423,7 @@ bool Downtime::CanBeTriggered()
 	return true;
 }
 
-void Downtime::TriggerDowntime()
+void Downtime::TriggerDowntime(double triggerTime)
 {
 	if (!CanBeTriggered())
 		return;
@@ -433,7 +434,11 @@ void Downtime::TriggerDowntime()
 		<< "Triggering downtime '" << GetName() << "' for checkable '" << checkable->GetName() << "'.";
 
 	if (GetTriggerTime() == 0)
-		SetTriggerTime(Utility::GetTime());
+		SetTriggerTime(triggerTime ? triggerTime : (
+			GetFixed() || !checkable->GetLastCheckResult()
+				? std::fmax(GetEntryTime(), GetStartTime())
+				: checkable->GetLastCheckResult()->GetExecutionEnd()
+		));
 
 	Array::Ptr triggers = GetTriggers();
 
@@ -445,7 +450,7 @@ void Downtime::TriggerDowntime()
 			if (!downtime)
 				continue;
 
-			downtime->TriggerDowntime();
+			downtime->TriggerDowntime(GetTriggerTime());
 		}
 	}
 
