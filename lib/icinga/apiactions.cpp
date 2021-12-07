@@ -434,7 +434,21 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 
 		ArrayData childDowntimes;
 
-		for (const Checkable::Ptr& child : checkable->GetAllChildren()) {
+		std::set<Checkable::Ptr> allChildren = checkable->GetAllChildren();
+		for (const Checkable::Ptr& child : allChildren) {
+			Host::Ptr childHost;
+			Service::Ptr childService;
+			tie(childHost, childService) = GetHostService(child);
+
+			if (allServices && childService &&
+					allChildren.find(static_pointer_cast<Checkable>(childHost)) != allChildren.end()) {
+				/* When scheduling downtimes for all service and all children, the current child is a service, and its
+				 * host is also a child, skip it here. The downtime for this service will be scheduled below together
+				 * with the downtimes of all services for that host. Scheduling it below ensures that the relation
+				 * from the child service downtime to the child host downtime is set properly. */
+				continue;
+			}
+
 			Log(LogNotice, "ApiActions")
 				<< "Scheduling downtime for child object " << child->GetName();
 
@@ -451,19 +465,15 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 			});
 
 			/* For a host, also schedule all service downtimes if requested. */
-			Host::Ptr childHost;
-			Service::Ptr childService;
-			tie(childHost, childService) = GetHostService(child);
-
 			if (allServices && !childService) {
 				ArrayData childServiceDowntimes;
 
-				for (const Service::Ptr& hostService : host->GetServices()) {
+				for (const Service::Ptr& childService : childHost->GetServices()) {
 					Log(LogNotice, "ApiActions")
-						<< "Creating downtime for service " << hostService->GetName() << " on child host " << host->GetName();
+						<< "Creating downtime for service " << childService->GetName() << " on child host " << childHost->GetName();
 
-					Downtime::Ptr serviceDowntime = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
-						fixed, triggerName, duration);
+					Downtime::Ptr serviceDowntime = Downtime::AddDowntime(childService, author, comment, startTime, endTime,
+						fixed, triggerName, duration, String(), String(), childDowntimeName);
 					String serviceDowntimeName = serviceDowntime->GetName();
 
 					childServiceDowntimes.push_back(new Dictionary({
