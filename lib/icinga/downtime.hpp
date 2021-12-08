@@ -57,7 +57,7 @@ public:
 	void UnregisterChild(const Downtime::Ptr& downtime);
 	std::set<Downtime::Ptr> GetChildren() const;
 
-	void TriggerDowntime();
+	void TriggerDowntime(double triggerTime);
 
 	static String GetDowntimeIDFromLegacyID(int id);
 
