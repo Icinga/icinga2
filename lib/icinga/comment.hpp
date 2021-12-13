@@ -24,10 +24,13 @@ public:
 
 	static boost::signals2::signal<void (const Comment::Ptr&)> OnCommentAdded;
 	static boost::signals2::signal<void (const Comment::Ptr&)> OnCommentRemoved;
+	static boost::signals2::signal<void (const Comment::Ptr&, const String&, double, const MessageOrigin::Ptr&)> OnRemovalInfoChanged;
 
 	intrusive_ptr<Checkable> GetCheckable() const;
 
 	bool IsExpired() const;
+
+	void SetRemovalInfo(const String& removedBy, double removeTime, const MessageOrigin::Ptr& origin = nullptr);
 
 	static int GetNextCommentID();
 
@@ -35,7 +38,8 @@ public:
 		const String& author, const String& text, bool persistent, double expireTime,
 		const String& id = String(), const MessageOrigin::Ptr& origin = nullptr);
 
-	static void RemoveComment(const String& id, const MessageOrigin::Ptr& origin = nullptr);
+	static void RemoveComment(const String& id, bool removedManually = false, const String& removedBy = "",
+		const MessageOrigin::Ptr& origin = nullptr);
 
 	static String GetCommentIDFromLegacyID(int id);
 

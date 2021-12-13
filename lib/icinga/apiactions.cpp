@@ -311,12 +311,7 @@ Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
 		std::set<Comment::Ptr> comments = checkable->GetComments();
 
 		for (const Comment::Ptr& comment : comments) {
-			{
-				ObjectLock oLock (comment);
-				comment->SetRemovedBy(author);
-			}
-
-			Comment::RemoveComment(comment->GetName());
+			Comment::RemoveComment(comment->GetName(), true, author);
 		}
 
 		return ApiActions::CreateResult(200, "Successfully removed all comments for object '" + checkable->GetName() + "'.");
@@ -327,14 +322,9 @@ Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
 	if (!comment)
 		return ApiActions::CreateResult(404, "Cannot remove non-existent comment object.");
 
-	{
-		ObjectLock oLock (comment);
-		comment->SetRemovedBy(author);
-	}
-
 	String commentName = comment->GetName();
 
-	Comment::RemoveComment(commentName);
+	Comment::RemoveComment(commentName, true, author);
 
 	return ApiActions::CreateResult(200, "Successfully removed comment '" + commentName + "'.");
 }
@@ -507,15 +497,10 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 		std::set<Downtime::Ptr> downtimes = checkable->GetDowntimes();
 
 		for (const Downtime::Ptr& downtime : downtimes) {
-			{
-				ObjectLock oLock (downtime);
-				downtime->SetRemovedBy(author);
-			}
-
 			childCount += downtime->GetChildren().size();
 
 			try {
-				Downtime::RemoveDowntime(downtime->GetName(), true, true);
+				Downtime::RemoveDowntime(downtime->GetName(), true, true, false, author);
 			} catch (const invalid_downtime_removal_error& error) {
 				Log(LogWarning, "ApiActions") << error.what();
 
@@ -532,16 +517,11 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 	if (!downtime)
 		return ApiActions::CreateResult(404, "Cannot remove non-existent downtime object.");
 
-	{
-		ObjectLock oLock (downtime);
-		downtime->SetRemovedBy(author);
-	}
-
 	childCount += downtime->GetChildren().size();
 
 	try {
 		String downtimeName = downtime->GetName();
-		Downtime::RemoveDowntime(downtimeName, true, true);
+		Downtime::RemoveDowntime(downtimeName, true, true, false, author);
 
 		return ApiActions::CreateResult(200, "Successfully removed downtime '" + downtimeName +
 			"' and " + std::to_string(childCount) + " child downtimes.");
