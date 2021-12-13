@@ -68,7 +68,10 @@ class Downtime : ConfigObject < DowntimeNameComposer
 		default {{{ return new Array(); }}}
 	};
 	[state] int legacy_id;
-	[state] bool was_cancelled;
+	[state] Timestamp remove_time;
+	[no_storage] bool was_cancelled {
+		get {{{ return GetRemoveTime() > 0; }}}
+	};
 	[config] String config_owner;
 	[config] String config_owner_hash;
 	[config] String authoritative_zone;

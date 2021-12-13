@@ -33,6 +33,7 @@ public:
 	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeRemoved;
 	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeStarted;
 	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeTriggered;
+	static boost::signals2::signal<void (const Downtime::Ptr&, const String&, double, const MessageOrigin::Ptr&)> OnRemovalInfoChanged;
 
 	intrusive_ptr<Checkable> GetCheckable() const;
 
@@ -51,13 +52,15 @@ public:
 		const String& scheduledBy = String(), const String& parent = String(), const String& id = String(),
 		const MessageOrigin::Ptr& origin = nullptr);
 
-	static void RemoveDowntime(const String& id, bool includeChildren, bool cancelled, bool expired = false, const MessageOrigin::Ptr& origin = nullptr);
+	static void RemoveDowntime(const String& id, bool includeChildren, bool cancelled, bool expired = false,
+		const String& removedBy = "", const MessageOrigin::Ptr& origin = nullptr);
 
 	void RegisterChild(const Downtime::Ptr& downtime);
 	void UnregisterChild(const Downtime::Ptr& downtime);
 	std::set<Downtime::Ptr> GetChildren() const;
 
 	void TriggerDowntime(double triggerTime);
+	void SetRemovalInfo(const String& removedBy, double removeTime, const MessageOrigin::Ptr& origin = nullptr);
 
 	static String GetDowntimeIDFromLegacyID(int id);
 

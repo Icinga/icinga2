@@ -69,6 +69,9 @@ public:
 	static Value ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	static Value UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
+	static void SetRemovalInfoHandler(const ConfigObject::Ptr& obj, const String& removedBy, double removeTime, const MessageOrigin::Ptr& origin);
+	static Value SetRemovalInfoAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+
 	static int GetCheckRequestQueueSize();
 	static void LogRemoteCheckQueueInformation();
 
