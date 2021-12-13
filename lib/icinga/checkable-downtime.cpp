@@ -16,10 +16,10 @@ void Checkable::RemoveAllDowntimes()
 	}
 }
 
-void Checkable::TriggerDowntimes()
+void Checkable::TriggerDowntimes(double triggerTime)
 {
 	for (const Downtime::Ptr& downtime : GetDowntimes()) {
-		downtime->TriggerDowntime();
+		downtime->TriggerDowntime(triggerTime);
 	}
 }
 
