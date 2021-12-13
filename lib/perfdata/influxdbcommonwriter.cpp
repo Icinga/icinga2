@@ -500,24 +500,10 @@ void InfluxdbCommonWriter::Flush()
 		if (contentType != "application/json") {
 			Log(LogWarning, GetReflectionType()->GetName())
 				<< "Unexpected Content-Type: " << contentType;
-			return;
 		}
-
-		Dictionary::Ptr jsonResponse;
-		auto& body (response.body());
-
-		try {
-			jsonResponse = JsonDecode(body);
-		} catch (...) {
-			Log(LogWarning, GetReflectionType()->GetName())
-				<< "Unable to parse JSON response:\n" << body;
-			return;
-		}
-
-		String error = jsonResponse->Get("error");
 
 		Log(LogCritical, GetReflectionType()->GetName())
-			<< "InfluxDB error message:\n" << error;
+			<< "InfluxDB error message:\n" << response.body();
 	}
 }
 
