@@ -74,7 +74,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 							<< "Notification '" << notification->GetName() << "': there are some stashed notifications. Stashing notification to preserve order.";
 
 						stashedNotifications->Add(new Dictionary({
-							{"type", type},
+							{"notification_type", type},
 							{"cr", cr},
 							{"force", force},
 							{"reminder", false},
@@ -99,7 +99,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 				<< "Notification '" << notification->GetName() << "': object authority hasn't been updated, yet. Stashing notification.";
 
 			notification->GetStashedNotifications()->Add(new Dictionary({
-				{"type", type},
+				{"notification_type", type},
 				{"cr", cr},
 				{"force", force},
 				{"reminder", false},

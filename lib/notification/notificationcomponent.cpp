@@ -186,7 +186,7 @@ void NotificationComponent::NotificationTimerHandler()
 							<< "Attempting to send stashed notification '" << notificationName << "'.";
 
 						notification->BeginExecuteNotification(
-							(NotificationType)(int)unstashedNotification->Get("type"),
+							(NotificationType)(int)unstashedNotification->Get("notification_type"),
 							(CheckResult::Ptr)unstashedNotification->Get("cr"),
 							(bool)unstashedNotification->Get("force"),
 							(bool)unstashedNotification->Get("reminder"),
