@@ -336,6 +336,7 @@ disk\_wfree      	| **Optional.** The free space warning threshold. Defaults to 
 disk\_cfree      	| **Optional.** The free space critical threshold. Defaults to "10%". If the percent sign is omitted, units from `disk_units` are used.
 disk\_inode\_wfree 	| **Optional.** The free inode warning threshold.
 disk\_inode\_cfree 	| **Optional.** The free inode critical threshold.
+disk\_inode\_perfdata      | **Optional.** Display inode usage in perfdata. (Requires: monitoring-plugins >= 2.3)
 disk\_partition		| **Optional.** The partition. **Deprecated in 2.3.**
 disk\_partition\_excluded  | **Optional.** The excluded partition. **Deprecated in 2.3.**
 disk\_partitions 	| **Optional.** The partition(s). Multiple partitions must be defined as array.
