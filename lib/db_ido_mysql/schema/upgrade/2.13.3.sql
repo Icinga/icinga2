@@ -1,5 +1,5 @@
 -- -----------------------------------------
--- upgrade path for Icinga 2.13.1
+-- upgrade path for Icinga 2.13.3
 --
 -- -----------------------------------------
 -- Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+
