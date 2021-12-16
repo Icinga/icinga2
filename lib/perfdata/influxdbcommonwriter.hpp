@@ -36,9 +36,6 @@ public:
 	void ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 protected:
-	WorkQueue m_WorkQueue{10000000, 1};
-	std::vector<String> m_DataBuffer;
-
 	void OnConfigLoaded() override;
 	void Resume() override;
 	void Pause() override;
@@ -50,6 +47,8 @@ protected:
 
 private:
 	Timer::Ptr m_FlushTimer;
+	WorkQueue m_WorkQueue{10000000, 1};
+	std::vector<String> m_DataBuffer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void CheckResultHandlerWQ(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
@@ -57,7 +56,7 @@ private:
 		const String& label, const Dictionary::Ptr& fields, double ts);
 	void FlushTimeout();
 	void FlushTimeoutWQ();
-	void Flush();
+	void FlushWQ();
 
 	static String EscapeKeyOrTagValue(const String& str);
 	static String EscapeValue(const Value& value);
