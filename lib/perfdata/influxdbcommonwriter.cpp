@@ -402,6 +402,7 @@ void InfluxdbCommonWriter::SendMetric(const Checkable::Ptr& checkable, const Dic
 
 	// Buffer the data point
 	m_DataBuffer.emplace_back(msgbuf.str());
+	m_DataBufferSize = m_DataBuffer.size();
 
 	// Flush if we've buffered too much to prevent excessive memory use
 	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
@@ -447,6 +448,7 @@ void InfluxdbCommonWriter::FlushWQ()
 
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
+	m_DataBufferSize = 0;
 
 	OptionalTlsStream stream;
 
