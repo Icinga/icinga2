@@ -131,21 +131,12 @@ void InfluxdbWriter::Pause()
 {
 	/* Force a flush. */
 	Log(LogDebug, "InfluxdbWriter")
-		<< "Flushing pending data buffers.";
+		<< "Processing pending tasks and flushing data buffers.";
 
-	Flush();
+	m_WorkQueue.Enqueue([this]() { FlushWQ(); }, PriorityLow);
 
-	/* Work on the missing tasks. TODO: Find a way to cache them on disk. */
-	Log(LogDebug, "InfluxdbWriter")
-		<< "Joining existing WQ tasks.";
-
+	/* Wait for the flush to complete, implicitly waits for all WQ tasks enqueued prior to pausing. */
 	m_WorkQueue.Join();
-
-	/* Flush again after the WQ tasks have filled the data buffer. */
-	Log(LogDebug, "InfluxdbWriter")
-		<< "Flushing data buffers from WQ tasks.";
-
-	Flush();
 
 	Log(LogInformation, "InfluxdbWriter")
 		<< "'" << GetName() << "' paused.";
@@ -442,7 +433,7 @@ void InfluxdbWriter::SendMetric(const Checkable::Ptr& checkable, const Dictionar
 			<< "Data buffer overflow writing " << m_DataBuffer.size() << " data points";
 
 		try {
-			Flush();
+			FlushWQ();
 		} catch (...) {
 			/* Do nothing. */
 		}
@@ -461,11 +452,13 @@ void InfluxdbWriter::FlushTimeoutWQ()
 	Log(LogDebug, "InfluxdbWriter")
 		<< "Timer expired writing " << m_DataBuffer.size() << " data points";
 
-	Flush();
+	FlushWQ();
 }
 
-void InfluxdbWriter::Flush()
+void InfluxdbWriter::FlushWQ()
 {
+	AssertOnWorkQueue();
+
 	namespace beast = boost::beast;
 	namespace http = beast::http;
 
