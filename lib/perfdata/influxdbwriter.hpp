@@ -10,6 +10,7 @@
 #include "base/timer.hpp"
 #include "base/tlsstream.hpp"
 #include "base/workqueue.hpp"
+#include <atomic>
 #include <fstream>
 
 namespace icinga
@@ -40,6 +41,7 @@ private:
 	Timer::Ptr m_FlushTimer;
 	WorkQueue m_WorkQueue{10000000, 1};
 	std::vector<String> m_DataBuffer;
+	std::atomic_size_t m_DataBufferSize{0};
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void CheckResultHandlerWQ(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);

@@ -89,7 +89,7 @@ void InfluxdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& 
 	for (const InfluxdbWriter::Ptr& influxdbwriter : ConfigType::GetObjectsByType<InfluxdbWriter>()) {
 		size_t workQueueItems = influxdbwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = influxdbwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
-		size_t dataBufferItems = influxdbwriter->m_DataBuffer.size();
+		size_t dataBufferItems = influxdbwriter->m_DataBufferSize;
 
 		nodes.emplace_back(influxdbwriter->GetName(), new Dictionary({
 			{ "work_queue_items", workQueueItems },
@@ -426,6 +426,7 @@ void InfluxdbWriter::SendMetric(const Checkable::Ptr& checkable, const Dictionar
 
 	// Buffer the data point
 	m_DataBuffer.emplace_back(msgbuf.str());
+	m_DataBufferSize = m_DataBuffer.size();
 
 	// Flush if we've buffered too much to prevent excessive memory use
 	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
@@ -471,6 +472,7 @@ void InfluxdbWriter::FlushWQ()
 
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
+	m_DataBufferSize = 0;
 
 	OptionalTlsStream stream;
 
