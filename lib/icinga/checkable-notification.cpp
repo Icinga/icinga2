@@ -229,7 +229,7 @@ bool Checkable::NotificationReasonApplies(NotificationType type)
 		case NotificationRecovery:
 			{
 				auto cr (GetLastCheckResult());
-				return cr && IsStateOK(cr->GetState());
+				return cr && (IsStateOK(cr->GetState()) || GetStateType() == StateTypeSoft);
 			}
 		case NotificationFlappingStart:
 			return IsFlapping();
