@@ -1009,6 +1009,15 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					}
 				}
 
+				{
+					Value order;
+
+					// Intify if set.
+					if (values->Get("order", &order)) {
+						values->Set("order", (int)order);
+					}
+				}
+
 				values->Set(objectKeyName, objectKey);
 				values->Set("argument_key", kv.first);
 				values->Set("environment_id", m_EnvironmentId);
