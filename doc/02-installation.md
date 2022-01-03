@@ -351,6 +351,11 @@ Please make sure to enable this repository beforehand.
 ```bash
 zypper install monitoring-plugins
 ```
+If you want to get more plugins, try to install the `monitoring-plugins-all` package instead. This package recommends all official plugins and additional packages that are available in the [server:monitoring repository](https://build.opensuse.org/project/repositories/server:monitoring):
+```bash
+zypper install monitoring-plugins-all
+```
+
 
 ### FreeBSD <a id="setting-up-check-plugins-freebsd"></a>
 
