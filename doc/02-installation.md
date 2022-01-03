@@ -624,15 +624,18 @@ Set up a MySQL database for Icinga 2:
 # mysql -u root -p
 
 CREATE DATABASE icinga;
-GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
+GRANT ALTER, CREATE, SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
 quit
 ```
 
+Please note that the example above uses the very simple password 'icinga' (in `IDENTIFIED BY 'icinga'`). 
+Please choose a better password for your installation.
+
 After creating the database you can import the Icinga 2 IDO schema using the
-following command. Enter the root password into the prompt when asked.
+following command. Enter the icinga password into the prompt when asked.
 
 ```bash
-mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/mysql.sql
+mysql -u icinga -p icinga < /usr/share/icinga2-ido-mysql/schema/mysql.sql
 ```
 
 #### Enable the IDO MySQL feature <a id="enable-ido-mysql"></a>
