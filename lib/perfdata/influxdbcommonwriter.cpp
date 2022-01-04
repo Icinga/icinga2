@@ -107,21 +107,12 @@ void InfluxdbCommonWriter::Pause()
 {
 	/* Force a flush. */
 	Log(LogDebug, GetReflectionType()->GetName())
-		<< "Flushing pending data buffers.";
+		<< "Processing pending tasks and flushing data buffers.";
 
-	Flush();
+	m_WorkQueue.Enqueue([this]() { FlushWQ(); }, PriorityLow);
 
-	/* Work on the missing tasks. TODO: Find a way to cache them on disk. */
-	Log(LogDebug, GetReflectionType()->GetName())
-		<< "Joining existing WQ tasks.";
-
+	/* Wait for the flush to complete, implicitly waits for all WQ tasks enqueued prior to pausing. */
 	m_WorkQueue.Join();
-
-	/* Flush again after the WQ tasks have filled the data buffer. */
-	Log(LogDebug, GetReflectionType()->GetName())
-		<< "Flushing data buffers from WQ tasks.";
-
-	Flush();
 
 	Log(LogInformation, GetReflectionType()->GetName())
 		<< "'" << GetName() << "' paused.";
@@ -411,6 +402,7 @@ void InfluxdbCommonWriter::SendMetric(const Checkable::Ptr& checkable, const Dic
 
 	// Buffer the data point
 	m_DataBuffer.emplace_back(msgbuf.str());
+	m_DataBufferSize = m_DataBuffer.size();
 
 	// Flush if we've buffered too much to prevent excessive memory use
 	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
@@ -418,7 +410,7 @@ void InfluxdbCommonWriter::SendMetric(const Checkable::Ptr& checkable, const Dic
 			<< "Data buffer overflow writing " << m_DataBuffer.size() << " data points";
 
 		try {
-			Flush();
+			FlushWQ();
 		} catch (...) {
 			/* Do nothing. */
 		}
@@ -437,11 +429,13 @@ void InfluxdbCommonWriter::FlushTimeoutWQ()
 	Log(LogDebug, GetReflectionType()->GetName())
 		<< "Timer expired writing " << m_DataBuffer.size() << " data points";
 
-	Flush();
+	FlushWQ();
 }
 
-void InfluxdbCommonWriter::Flush()
+void InfluxdbCommonWriter::FlushWQ()
 {
+	AssertOnWorkQueue();
+
 	namespace beast = boost::beast;
 	namespace http = beast::http;
 
@@ -454,6 +448,7 @@ void InfluxdbCommonWriter::Flush()
 
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
+	m_DataBufferSize = 0;
 
 	OptionalTlsStream stream;
 
