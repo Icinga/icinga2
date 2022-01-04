@@ -161,7 +161,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 
 	if (groups) {
 		ObjectLock olock(groups);
-		for (const String& groupName : groups) {
+		for (const auto& groupName : groups) {
 			HostGroup::Ptr group = HostGroup::GetByName(groupName);
 
 			DbQuery query2;
@@ -196,7 +196,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 	queries.emplace_back(std::move(query2));
 
 	/* parents */
-	for (const Checkable::Ptr& checkable : host->GetParents()) {
+	for (const auto& checkable : host->GetParents()) {
 		Host::Ptr parent = dynamic_pointer_cast<Host>(checkable);
 
 		if (!parent)
@@ -235,7 +235,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 	});
 	queries.emplace_back(std::move(query3));
 
-	for (const Dependency::Ptr& dep : host->GetDependencies()) {
+	for (const auto& dep : host->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent) {
@@ -281,7 +281,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 	});
 	queries.emplace_back(std::move(query4));
 
-	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(host)) {
+	for (const auto& user : CompatUtility::GetCheckableNotificationUsers(host)) {
 		Log(LogDebug, "HostDbObject")
 			<< "host contacts: " << user->GetName();
 
@@ -313,7 +313,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 	});
 	queries.emplace_back(std::move(query5));
 
-	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
+	for (const auto& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
 		Log(LogDebug, "HostDbObject")
 			<< "host contactgroups: " << usergroup->GetName();
 
@@ -366,7 +366,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 	ArrayData parents;
 
 	/* parents */
-	for (const Checkable::Ptr& checkable : host->GetParents()) {
+	for (const auto& checkable : host->GetParents()) {
 		Host::Ptr parent = dynamic_pointer_cast<Host>(checkable);
 
 		if (!parent)
@@ -382,7 +382,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 	ArrayData dependencies;
 
 	/* dependencies */
-	for (const Dependency::Ptr& dep : host->GetDependencies()) {
+	for (const auto& dep : host->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent)
@@ -401,7 +401,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 
 	ArrayData users;
 
-	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(host)) {
+	for (const auto& user : CompatUtility::GetCheckableNotificationUsers(host)) {
 		users.push_back(user->GetName());
 	}
 
@@ -411,7 +411,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 
 	ArrayData userGroups;
 
-	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
+	for (const auto& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
 		userGroups.push_back(usergroup->GetName());
 	}
 

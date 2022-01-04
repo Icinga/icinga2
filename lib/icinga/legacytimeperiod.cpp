@@ -461,7 +461,7 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, const tm *ref
 {
 	std::vector<String> ranges = timeranges.Split(",");
 
-	for (const String& range : ranges) {
+	for (const auto& range : ranges) {
 		Dictionary::Ptr segment = ProcessTimeRange(range, reference);
 
 		if (segment->Get("begin") >= segment->Get("end"))
@@ -494,7 +494,7 @@ Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const
 			double bestEnd = 0.0;
 
 			ObjectLock olock(segments);
-			for (const Dictionary::Ptr& segment : segments) {
+			for (const auto& segment : segments) {
 				double begin = segment->Get("begin");
 				double end = segment->Get("end");
 
@@ -552,7 +552,7 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 				double bestBegin;
 
 				ObjectLock olock(segments);
-				for (const Dictionary::Ptr& segment : segments) {
+				for (const auto& segment : segments) {
 					double begin = segment->Get("begin");
 
 					if (begin < tsref)
@@ -618,7 +618,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 #endif /* I2_DEBUG */
 
 			ObjectLock olock(ranges);
-			for (const Dictionary::Pair& kv : ranges) {
+			for (const auto& kv : ranges) {
 				if (!IsInDayDefinition(kv.first, &reference)) {
 #ifdef I2_DEBUG
 					Log(LogDebug, "LegacyTimePeriod")

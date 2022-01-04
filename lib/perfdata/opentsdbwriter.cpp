@@ -54,7 +54,7 @@ void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	DictionaryData nodes;
 
-	for (const OpenTsdbWriter::Ptr& opentsdbwriter : ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
+	for (const auto& opentsdbwriter : ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
 		nodes.emplace_back(opentsdbwriter->GetName(), new Dictionary({
 			{ "connected", opentsdbwriter->GetConnected() }
 		}));
@@ -200,7 +200,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		if (config_tmpl_tags) {
 			ObjectLock olock(config_tmpl_tags);
 			
-			for (const Dictionary::Pair& pair : config_tmpl_tags) {
+			for (const auto& pair : config_tmpl_tags) {
 				
 				String missing_macro;
 				Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
@@ -309,7 +309,7 @@ void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
 	ObjectLock olock(perfdata);
-	for (const Value& val : perfdata) {
+	for (const auto& val : perfdata) {
 		PerfdataValue::Ptr pdv;
 
 		if (val.IsObjectType<PerfdataValue>())
@@ -368,7 +368,7 @@ void OpenTsdbWriter::SendMetric(const Checkable::Ptr& checkable, const String& m
 {
 	String tags_string = "";
 
-	for (const Dictionary::Pair& tag : tags) {
+	for (const auto& tag : tags) {
 		tags_string += " " + tag.first + "=" + Convert::ToString(tag.second);
 	}
 
@@ -492,7 +492,7 @@ void OpenTsdbWriter::ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lvalue, c
 	Dictionary::Ptr tags = lvalue()->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
-		for (const Dictionary::Pair& pair : tags) {
+		for (const auto& pair : tags) {
 			if (!MacroProcessor::ValidateMacroString(pair.second))
 				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
 		}
@@ -517,7 +517,7 @@ void OpenTsdbWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue
 	Dictionary::Ptr tags = lvalue()->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
-		for (const Dictionary::Pair& pair : tags) {
+		for (const auto& pair : tags) {
 			if (!MacroProcessor::ValidateMacroString(pair.second))
 				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
 		}

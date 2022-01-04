@@ -475,7 +475,7 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 			if (!GlobHelper(part1, GlobDirectory, files2, dirs2))
 				return false;
 
-			for (const String& dir : dirs2) {
+			for (const auto& dir : dirs2) {
 				if (!Utility::Glob(dir + "/" + part2, callback, type))
 					return false;
 			}
@@ -527,12 +527,12 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 #endif /* _WIN32 */
 
 	std::sort(files.begin(), files.end());
-	for (const String& cpath : files) {
+	for (const auto& cpath : files) {
 		callback(cpath);
 	}
 
 	std::sort(dirs.begin(), dirs.end());
-	for (const String& cpath : dirs) {
+	for (const auto& cpath : dirs) {
 		callback(cpath);
 	}
 
@@ -653,17 +653,17 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 #endif /* _WIN32 */
 
 	std::sort(files.begin(), files.end());
-	for (const String& cpath : files) {
+	for (const auto& cpath : files) {
 		callback(cpath);
 	}
 
 	std::sort(dirs.begin(), dirs.end());
-	for (const String& cpath : dirs) {
+	for (const auto& cpath : dirs) {
 		callback(cpath);
 	}
 
 	std::sort(alldirs.begin(), alldirs.end());
-	for (const String& cpath : alldirs) {
+	for (const auto& cpath : alldirs) {
 		GlobRecursive(cpath, pattern, callback, type);
 	}
 
@@ -983,7 +983,7 @@ String Utility::Join(const Array::Ptr& tokens, char separator, bool escapeSepara
 	bool first = true;
 
 	ObjectLock olock(tokens);
-	for (const Value& vtoken : tokens) {
+	for (const auto& vtoken : tokens) {
 		String token = Convert::ToString(vtoken);
 
 		if (escapeSeparator) {

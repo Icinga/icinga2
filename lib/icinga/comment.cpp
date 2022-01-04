@@ -167,7 +167,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 
 	if (!ConfigObjectUtility::CreateObject(Comment::TypeInstance, fullName, config, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (const auto& error : errors) {
 			Log(LogCritical, "Comment", error);
 		}
 
@@ -199,7 +199,7 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 
 	if (!ConfigObjectUtility::DeleteObject(comment, false, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (const auto& error : errors) {
 			Log(LogCritical, "Comment", error);
 		}
 
@@ -223,11 +223,11 @@ void Comment::CommentsExpireTimerHandler()
 {
 	std::vector<Comment::Ptr> comments;
 
-	for (const Comment::Ptr& comment : ConfigType::GetObjectsByType<Comment>()) {
+	for (const auto& comment : ConfigType::GetObjectsByType<Comment>()) {
 		comments.push_back(comment);
 	}
 
-	for (const Comment::Ptr& comment : comments) {
+	for (const auto& comment : comments) {
 		/* Only remove comments which are activated after daemon start. */
 		if (comment->IsActive() && comment->IsExpired()) {
 			/* Do not remove persistent comments from an acknowledgement */

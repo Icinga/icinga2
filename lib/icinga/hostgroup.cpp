@@ -47,7 +47,7 @@ void HostGroup::EvaluateObjectRules(const Host::Ptr& host)
 {
 	CONTEXT("Evaluating group memberships for host '" + host->GetName() + "'");
 
-	for (const ConfigItem::Ptr& group : ConfigItem::GetItems(HostGroup::TypeInstance))
+	for (const auto& group : ConfigItem::GetItems(HostGroup::TypeInstance))
 	{
 		if (!group->GetFilter())
 			continue;
@@ -91,7 +91,7 @@ bool HostGroup::ResolveGroupMembership(const Host::Ptr& host, bool add, int rsta
 	if (groups && groups->GetLength() > 0) {
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (const auto& name : groups) {
 			HostGroup::Ptr group = HostGroup::GetByName(name);
 
 			if (group && !group->ResolveGroupMembership(host, add, rstack + 1))

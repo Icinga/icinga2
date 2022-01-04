@@ -103,7 +103,7 @@ bool ApplyRule::IsValidTargetType(const String& sourceType, const String& target
 	if (it->second.size() == 1 && targetType == "")
 		return true;
 
-	for (const String& type : it->second) {
+	for (const auto& type : it->second) {
 		if (type == targetType)
 			return true;
 	}
@@ -143,8 +143,8 @@ std::vector<ApplyRule>& ApplyRule::GetRules(const String& type)
 
 void ApplyRule::CheckMatches(bool silent)
 {
-	for (const RuleMap::value_type& kv : m_Rules) {
-		for (const ApplyRule& rule : kv.second) {
+	for (const auto& kv : m_Rules) {
+		for (const auto& rule : kv.second) {
 			if (!rule.HasMatches() && !silent)
 				Log(LogWarning, "ApplyRule")
 					<< "Apply rule '" << rule.GetName() << "' (" << rule.GetDebugInfo() << ") for type '" << kv.first << "' does not match anywhere!";

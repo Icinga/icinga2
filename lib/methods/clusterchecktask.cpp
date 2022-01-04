@@ -103,7 +103,7 @@ String ClusterCheckTask::FormatArray(const Array::Ptr& arr)
 
 	if (arr) {
 		ObjectLock olock(arr);
-		for (const Value& value : arr) {
+		for (const auto& value : arr) {
 			if (first)
 				first = false;
 			else

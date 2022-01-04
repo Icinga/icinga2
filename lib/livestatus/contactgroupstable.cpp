@@ -31,7 +31,7 @@ String ContactGroupsTable::GetPrefix() const
 
 void ContactGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	for (const UserGroup::Ptr& ug : ConfigType::GetObjectsByType<UserGroup>()) {
+	for (const auto& ug : ConfigType::GetObjectsByType<UserGroup>()) {
 		if (!addRowFn(ug, LivestatusGroupByNone, Empty))
 			return;
 	}
@@ -66,7 +66,7 @@ Value ContactGroupsTable::MembersAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const User::Ptr& user : user_group->GetMembers()) {
+	for (const auto& user : user_group->GetMembers()) {
 		result.push_back(user->GetName());
 	}
 

@@ -33,12 +33,12 @@ static void ScriptFrameCleanupHandler()
 
 	typedef std::pair<String, ApiScriptFrame> KVPair;
 
-	for (const KVPair& kv : l_ApiScriptFrames) {
+	for (const auto& kv : l_ApiScriptFrames) {
 		if (kv.second.Seen < Utility::GetTime() - 1800)
 			cleanup_keys.push_back(kv.first);
 	}
 
-	for (const String& key : cleanup_keys)
+	for (const auto& key : cleanup_keys)
 		l_ApiScriptFrames.erase(key);
 }
 
@@ -230,7 +230,7 @@ static void AddSuggestions(std::vector<String>& matches, const String& word, con
 		Dictionary::Ptr dict = value;
 
 		ObjectLock olock(dict);
-		for (const Dictionary::Pair& kv : dict) {
+		for (const auto& kv : dict) {
 			AddSuggestion(matches, word, prefix + kv.first);
 		}
 	}
@@ -239,7 +239,7 @@ static void AddSuggestions(std::vector<String>& matches, const String& word, con
 		Namespace::Ptr ns = value;
 
 		ObjectLock olock(ns);
-		for (const Namespace::Pair& kv : ns) {
+		for (const auto& kv : ns) {
 			AddSuggestion(matches, word, prefix + kv.first);
 		}
 	}
@@ -259,7 +259,7 @@ static void AddSuggestions(std::vector<String>& matches, const String& word, con
 
 			if (dict) {
 				ObjectLock olock(dict);
-				for (const Dictionary::Pair& kv : dict) {
+				for (const auto& kv : dict) {
 					AddSuggestion(matches, word, prefix + kv.first);
 				}
 			}
@@ -273,20 +273,20 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 {
 	std::vector<String> matches;
 
-	for (const String& keyword : ConfigWriter::GetKeywords()) {
+	for (const auto& keyword : ConfigWriter::GetKeywords()) {
 		AddSuggestion(matches, word, keyword);
 	}
 
 	{
 		ObjectLock olock(frame.Locals);
-		for (const Dictionary::Pair& kv : frame.Locals) {
+		for (const auto& kv : frame.Locals) {
 			AddSuggestion(matches, word, kv.first);
 		}
 	}
 
 	{
 		ObjectLock olock(ScriptGlobal::GetGlobals());
-		for (const Namespace::Pair& kv : ScriptGlobal::GetGlobals()) {
+		for (const auto& kv : ScriptGlobal::GetGlobals()) {
 			AddSuggestion(matches, word, kv.first);
 		}
 	}

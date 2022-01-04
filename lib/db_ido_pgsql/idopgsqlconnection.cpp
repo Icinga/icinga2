@@ -57,7 +57,7 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 {
 	DictionaryData nodes;
 
-	for (const IdoPgsqlConnection::Ptr& idopgsqlconnection : ConfigType::GetObjectsByType<IdoPgsqlConnection>()) {
+	for (const auto& idopgsqlconnection : ConfigType::GetObjectsByType<IdoPgsqlConnection>()) {
 		size_t queryQueueItems = idopgsqlconnection->m_QueryQueue.GetLength();
 		double queryQueueItemRate = idopgsqlconnection->m_QueryQueue.GetTaskCount(60) / 60.0;
 
@@ -419,7 +419,7 @@ void IdoPgsqlConnection::Reconnect()
 
 	EnableActiveChangedHandler();
 
-	for (const DbObject::Ptr& dbobj : activeDbObjs) {
+	for (const auto& dbobj : activeDbObjs) {
 		if (dbobj->GetObject())
 			continue;
 
@@ -757,7 +757,7 @@ bool IdoPgsqlConnection::CanExecuteQuery(const DbQuery& query)
 		ObjectLock olock(query.WhereCriteria);
 		Value value;
 
-		for (const Dictionary::Pair& kv : query.WhereCriteria) {
+		for (const auto& kv : query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value))
 				return false;
 		}
@@ -766,7 +766,7 @@ bool IdoPgsqlConnection::CanExecuteQuery(const DbQuery& query)
 	if (query.Fields) {
 		ObjectLock olock(query.Fields);
 
-		for (const Dictionary::Pair& kv : query.Fields) {
+		for (const auto& kv : query.Fields) {
 			Value value;
 
 			if (!FieldToEscapedString(kv.first, kv.second, &value))
@@ -791,7 +791,7 @@ void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 		return;
 	}
 
-	for (const DbQuery& query : queries) {
+	for (const auto& query : queries) {
 		ASSERT(query.Type == DbQueryNewTransaction || query.Category != DbCatInvalid);
 
 		if (!CanExecuteQuery(query)) {
@@ -800,7 +800,7 @@ void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 		}
 	}
 
-	for (const DbQuery& query : queries) {
+	for (const auto& query : queries) {
 		InternalExecuteQuery(query);
 	}
 }
@@ -852,7 +852,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 		Value value;
 		bool first = true;
 
-		for (const Dictionary::Pair& kv : query.WhereCriteria) {
+		for (const auto& kv : query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
 				m_QueryQueue.Enqueue([this, query]() { InternalExecuteQuery(query, -1); }, query.Priority);
 				return;
@@ -921,7 +921,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 		Value value;
 		bool first = true;
-		for (const Dictionary::Pair& kv : query.Fields) {
+		for (const auto& kv : query.Fields) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
 				m_QueryQueue.Enqueue([this, query]() { InternalExecuteQuery(query, -1); }, query.Priority);
 				return;

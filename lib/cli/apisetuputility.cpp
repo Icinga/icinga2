@@ -124,7 +124,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	Utility::CopyFile(ca, target_ca);
 
 	/* fix permissions: root -> icinga daemon user */
-	for (const String& file : { ca_path, ca, ca_key, target_ca, key, csr, cert }) {
+	for (const auto& file : { ca_path, ca, ca_key, target_ca, key, csr, cert }) {
 		if (!Utility::SetFileOwnership(file, user, group)) {
 			Log(LogWarning, "cli")
 				<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'.";

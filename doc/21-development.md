@@ -1088,7 +1088,7 @@ Object locks and guards must be limited to the scope where they are needed. Othe
 ```cpp
 	{
 		ObjectLock olock(frame.Locals);
-		for (const Dictionary::Pair& kv : frame.Locals) {
+		for (const auto& kv : frame.Locals) {
 			AddSuggestion(matches, word, kv.first);
 		}
 	}

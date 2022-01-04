@@ -196,12 +196,12 @@ public:
 
 			{
 				ObjectLock olock(dict);
-				for (const Dictionary::Pair& kv : dict) {
+				for (const auto& kv : dict) {
 					keys.push_back(kv.first);
 				}
 			}
 
-			for (const String& key : keys) {
+			for (const auto& key : keys) {
 				frame.Locals->Set(fkvar, key);
 				frame.Locals->Set(fvvar, dict->Get(key));
 				ExpressionResult res = expression->Evaluate(frame);
@@ -216,12 +216,12 @@ public:
 
 			{
 				ObjectLock olock(ns);
-				for (const Namespace::Pair& kv : ns) {
+				for (const auto& kv : ns) {
 					keys.push_back(kv.first);
 				}
 			}
 
-			for (const String& key : keys) {
+			for (const auto& key : keys) {
 				frame.Locals->Set(fkvar, key);
 				frame.Locals->Set(fvvar, ns->Get(key));
 				ExpressionResult res = expression->Evaluate(frame);

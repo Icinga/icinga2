@@ -55,7 +55,7 @@ String HostGroupsTable::GetPrefix() const
 
 void HostGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	for (const HostGroup::Ptr& hg : ConfigType::GetObjectsByType<HostGroup>()) {
+	for (const auto& hg : ConfigType::GetObjectsByType<HostGroup>()) {
 		if (!addRowFn(hg, LivestatusGroupByNone, Empty))
 			return;
 	}
@@ -120,7 +120,7 @@ Value HostGroupsTable::MembersAccessor(const Value& row)
 
 	ArrayData members;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
+	for (const auto& host : hg->GetMembers()) {
 		members.push_back(host->GetName());
 	}
 
@@ -136,7 +136,7 @@ Value HostGroupsTable::MembersWithStateAccessor(const Value& row)
 
 	ArrayData members;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
+	for (const auto& host : hg->GetMembers()) {
 		members.push_back(new Array({
 			host->GetName(),
 			host->GetState()
@@ -155,7 +155,7 @@ Value HostGroupsTable::WorstHostStateAccessor(const Value& row)
 
 	int worst_host = HostUp;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
+	for (const auto& host : hg->GetMembers()) {
 		if (host->GetState() > worst_host)
 			worst_host = host->GetState();
 	}
@@ -182,7 +182,7 @@ Value HostGroupsTable::NumHostsPendingAccessor(const Value& row)
 
 	int num_hosts = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
+	for (const auto& host : hg->GetMembers()) {
 		/* no checkresult */
 		if (!host->GetLastCheckResult())
 			num_hosts++;
@@ -200,7 +200,7 @@ Value HostGroupsTable::NumHostsUpAccessor(const Value& row)
 
 	int num_hosts = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
+	for (const auto& host : hg->GetMembers()) {
 		if (host->GetState() == HostUp)
 			num_hosts++;
 	}
@@ -217,7 +217,7 @@ Value HostGroupsTable::NumHostsDownAccessor(const Value& row)
 
 	int num_hosts = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
+	for (const auto& host : hg->GetMembers()) {
 		if (host->GetState() == HostDown)
 			num_hosts++;
 	}
@@ -234,7 +234,7 @@ Value HostGroupsTable::NumHostsUnreachAccessor(const Value& row)
 
 	int num_hosts = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
+	for (const auto& host : hg->GetMembers()) {
 		if (!host->IsReachable())
 			num_hosts++;
 	}
@@ -254,7 +254,7 @@ Value HostGroupsTable::NumServicesAccessor(const Value& row)
 	if (hg->GetMembers().size() == 0)
 		return 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
+	for (const auto& host : hg->GetMembers()) {
 		num_services += host->GetServices().size();
 	}
 
@@ -270,8 +270,8 @@ Value HostGroupsTable::WorstServiceStateAccessor(const Value& row)
 
 	Value worst_service = ServiceOK;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
-		for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& host : hg->GetMembers()) {
+		for (const auto& service : host->GetServices()) {
 			if (service->GetState() > worst_service)
 				worst_service = service->GetState();
 		}
@@ -289,8 +289,8 @@ Value HostGroupsTable::NumServicesPendingAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
-		for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& host : hg->GetMembers()) {
+		for (const auto& service : host->GetServices()) {
 			if (!service->GetLastCheckResult())
 				num_services++;
 		}
@@ -308,8 +308,8 @@ Value HostGroupsTable::NumServicesOkAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
-		for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& host : hg->GetMembers()) {
+		for (const auto& service : host->GetServices()) {
 			if (service->GetState() == ServiceOK)
 				num_services++;
 		}
@@ -327,8 +327,8 @@ Value HostGroupsTable::NumServicesWarnAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
-		for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& host : hg->GetMembers()) {
+		for (const auto& service : host->GetServices()) {
 			if (service->GetState() == ServiceWarning)
 				num_services++;
 		}
@@ -346,8 +346,8 @@ Value HostGroupsTable::NumServicesCritAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
-		for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& host : hg->GetMembers()) {
+		for (const auto& service : host->GetServices()) {
 			if (service->GetState() == ServiceCritical)
 				num_services++;
 		}
@@ -365,8 +365,8 @@ Value HostGroupsTable::NumServicesUnknownAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
-		for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& host : hg->GetMembers()) {
+		for (const auto& service : host->GetServices()) {
 			if (service->GetState() == ServiceUnknown)
 				num_services++;
 		}
@@ -384,8 +384,8 @@ Value HostGroupsTable::WorstServiceHardStateAccessor(const Value& row)
 
 	Value worst_service = ServiceOK;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
-		for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& host : hg->GetMembers()) {
+		for (const auto& service : host->GetServices()) {
 			if (service->GetStateType() == StateTypeHard) {
 				if (service->GetState() > worst_service)
 					worst_service = service->GetState();
@@ -405,8 +405,8 @@ Value HostGroupsTable::NumServicesHardOkAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
-		for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& host : hg->GetMembers()) {
+		for (const auto& service : host->GetServices()) {
 			if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceOK)
 				num_services++;
 		}
@@ -424,8 +424,8 @@ Value HostGroupsTable::NumServicesHardWarnAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
-		for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& host : hg->GetMembers()) {
+		for (const auto& service : host->GetServices()) {
 			if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceWarning)
 				num_services++;
 		}
@@ -443,8 +443,8 @@ Value HostGroupsTable::NumServicesHardCritAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
-		for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& host : hg->GetMembers()) {
+		for (const auto& service : host->GetServices()) {
 			if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceCritical)
 				num_services++;
 		}
@@ -462,8 +462,8 @@ Value HostGroupsTable::NumServicesHardUnknownAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Host::Ptr& host : hg->GetMembers()) {
-		for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& host : hg->GetMembers()) {
+		for (const auto& service : host->GetServices()) {
 			if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceUnknown)
 				num_services++;
 		}

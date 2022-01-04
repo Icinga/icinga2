@@ -19,7 +19,7 @@ void JournaldLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	DictionaryData nodes;
 
-	for (const JournaldLogger::Ptr& journaldlogger : ConfigType::GetObjectsByType<JournaldLogger>()) {
+	for (const auto& journaldlogger : ConfigType::GetObjectsByType<JournaldLogger>()) {
 		nodes.emplace_back(journaldlogger->GetName(), 1); //add more stats
 	}
 
@@ -70,11 +70,11 @@ void JournaldLogger::SystemdJournalSend(const std::vector<String>& varJournalFie
 	struct iovec iovec[m_ConfiguredJournalFields.size() + varJournalFields.size()];
 	int iovecCount = 0;
 
-	for (const String& journalField: m_ConfiguredJournalFields) {
+	for (const auto& journalField: m_ConfiguredJournalFields) {
 		iovec[iovecCount] = IovecFromString(journalField);
 		iovecCount++;
 	}
-	for (const String& journalField: varJournalFields) {
+	for (const auto& journalField: varJournalFields) {
 		iovec[iovecCount] = IovecFromString(journalField);
 		iovecCount++;
 	}

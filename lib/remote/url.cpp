@@ -197,7 +197,7 @@ String Url::Format(bool onlyPathAndQuery, bool printCredentials) const
 	if (m_Path.empty())
 		url += "/";
 	else {
-		for (const String& segment : m_Path) {
+		for (const auto& segment : m_Path) {
 			url += "/";
 			url += Utility::EscapeString(segment, ACPATHSEGMENT_ENCODE, false);
 		}
@@ -290,7 +290,7 @@ bool Url::ParsePath(const String& path)
 	boost::char_separator<char> sep("/");
 	boost::tokenizer<boost::char_separator<char> > tokens(pathStr, sep);
 
-	for (const String& token : tokens) {
+	for (const auto& token : tokens) {
 		if (token.IsEmpty())
 			continue;
 
@@ -310,7 +310,7 @@ bool Url::ParseQuery(const String& query)
 	boost::char_separator<char> sep("&");
 	boost::tokenizer<boost::char_separator<char> > tokens(queryStr, sep);
 
-	for (const String& token : tokens) {
+	for (const auto& token : tokens) {
 		size_t pHelper = token.Find("=");
 
 		if (pHelper == 0)

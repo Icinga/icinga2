@@ -28,7 +28,7 @@ std::mutex ApiListener::m_ConfigSyncStageLock;
  */
 void ApiListener::SyncLocalZoneDirs() const
 {
-	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
+	for (const auto& zone : ConfigType::GetObjectsByType<Zone>()) {
 		try {
 			SyncLocalZoneDir(zone);
 		} catch (const std::exception&) {
@@ -61,13 +61,13 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 	String zoneName = zone->GetName();
 
 	// Load registered zone paths, e.g. '_etc', '_api' and user packages.
-	for (const ZoneFragment& zf : ConfigCompiler::GetZoneDirs(zoneName)) {
+	for (const auto& zf : ConfigCompiler::GetZoneDirs(zoneName)) {
 		ConfigDirInformation newConfigPart = LoadConfigDir(zf.Path);
 
 		// Config files '*.conf'.
 		{
 			ObjectLock olock(newConfigPart.UpdateV1);
-			for (const Dictionary::Pair& kv : newConfigPart.UpdateV1) {
+			for (const auto& kv : newConfigPart.UpdateV1) {
 				String path = "/" + zf.Tag + kv.first;
 
 				newConfigInfo.UpdateV1->Set(path, kv.second);
@@ -78,7 +78,7 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 		// Meta files.
 		{
 			ObjectLock olock(newConfigPart.UpdateV2);
-			for (const Dictionary::Pair& kv : newConfigPart.UpdateV2) {
+			for (const auto& kv : newConfigPart.UpdateV2) {
 				String path = "/" + zf.Tag + kv.first;
 
 				newConfigInfo.UpdateV2->Set(path, kv.second);
@@ -117,7 +117,7 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 	{
 		ObjectLock olock(newConfig);
 
-		for (const Dictionary::Pair& kv : newConfig) {
+		for (const auto& kv : newConfig) {
 			String dst = productionZonesDir + "/" + kv.first;
 
 			Utility::MkDirP(Utility::DirName(dst), 0755);
@@ -195,7 +195,7 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 
 	String zonesDir = GetApiZonesDir();
 
-	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
+	for (const auto& zone : ConfigType::GetObjectsByType<Zone>()) {
 		String zoneName = zone->GetName();
 		String zoneDir = zonesDir + zoneName;
 
@@ -372,7 +372,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 
 	ObjectLock olock(updateV1);
 
-	for (const Dictionary::Pair& kv : updateV1) {
+	for (const auto& kv : updateV1) {
 
 		// Check for the configured zones.
 		String zoneName = kv.first;
@@ -460,7 +460,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 			{
 				ObjectLock olock(newConfig);
 
-				for (const Dictionary::Pair &kv : newConfig) {
+				for (const auto&kv : newConfig) {
 
 					// This is super expensive with a string content comparison.
 					if (productionConfig->Get(kv.first) != kv.second) {
@@ -477,7 +477,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 		{
 			ObjectLock olock(newConfig);
 
-			for (const Dictionary::Pair& kv : newConfig) {
+			for (const auto& kv : newConfig) {
 
 				/* Store the relative config file path for later validation and activation.
 				 * IMPORTANT: Store this prior to any filters.
@@ -518,7 +518,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 			// If the update removes a path, delete it on disk and signal a config change.
 			ObjectLock xlock(productionConfig);
 
-			for (const Dictionary::Pair& kv : productionConfig) {
+			for (const auto& kv : productionConfig) {
 				if (!newConfig->Contains(kv.first)) {
 					configChange = true;
 
@@ -617,7 +617,7 @@ void ApiListener::TryActivateZonesStage(const std::vector<String>& relativePaths
 		Utility::MkDirP(apiZonesDir, 0700);
 
 		// Copy all synced configuration files from stage to production.
-		for (const String& path : relativePaths) {
+		for (const auto& path : relativePaths) {
 			if (!Utility::PathExists(apiZonesStageDir + path))
 				continue;
 
@@ -708,7 +708,7 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 	 */
 	{
 		ObjectLock olock(oldChecksums);
-		for (const Dictionary::Pair& kv : oldChecksums) {
+		for (const auto& kv : oldChecksums) {
 			String path = kv.first;
 			String oldChecksum = kv.second;
 
@@ -749,7 +749,7 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 
 	{
 		ObjectLock olock(newChecksums);
-		for (const Dictionary::Pair& kv : newChecksums) {
+		for (const auto& kv : newChecksums) {
 			String path = kv.first;
 			String newChecksum = kv.second;
 

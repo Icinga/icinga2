@@ -51,7 +51,7 @@ void TimePeriodDbObject::OnConfigUpdateHeavy()
 
 	time_t refts = Utility::GetTime();
 	ObjectLock olock(ranges);
-	for (const Dictionary::Pair& kv : ranges) {
+	for (const auto& kv : ranges) {
 		int wday = LegacyTimePeriod::WeekdayFromString(kv.first);
 
 		if (wday == -1)
@@ -63,7 +63,7 @@ void TimePeriodDbObject::OnConfigUpdateHeavy()
 		LegacyTimePeriod::ProcessTimeRanges(kv.second, &reference, segments);
 
 		ObjectLock olock(segments);
-		for (const Value& vsegment : segments) {
+		for (const auto& vsegment : segments) {
 			Dictionary::Ptr segment = vsegment;
 			int begin = segment->Get("begin");
 			int end = segment->Get("end");

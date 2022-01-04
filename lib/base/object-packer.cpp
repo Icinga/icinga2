@@ -144,7 +144,7 @@ static inline void PackArray(const Array::Ptr& arr, std::string& builder)
 	builder += '\5';
 	PackUInt64BE(arr->GetLength(), builder);
 
-	for (const Value& value : arr) {
+	for (const auto& value : arr) {
 		PackAny(value, builder);
 	}
 }
@@ -159,7 +159,7 @@ static inline void PackDictionary(const Dictionary::Ptr& dict, std::string& buil
 	builder += '\6';
 	PackUInt64BE(dict->GetLength(), builder);
 
-	for (const Dictionary::Pair& kv : dict) {
+	for (const auto& kv : dict) {
 		PackString(kv.first, builder);
 		PackAny(kv.second, builder);
 	}

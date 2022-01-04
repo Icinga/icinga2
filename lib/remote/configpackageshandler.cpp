@@ -65,7 +65,7 @@ void ConfigPackagesHandler::HandleGet(
 	{
 		std::unique_lock<std::mutex> lock(ConfigPackageUtility::GetStaticPackageMutex());
 
-		for (const String& package : packages) {
+		for (const auto& package : packages) {
 			String activeStage;
 
 			try {

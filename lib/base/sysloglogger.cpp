@@ -104,7 +104,7 @@ void SyslogLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	DictionaryData nodes;
 
-	for (const SyslogLogger::Ptr& sysloglogger : ConfigType::GetObjectsByType<SyslogLogger>()) {
+	for (const auto& sysloglogger : ConfigType::GetObjectsByType<SyslogLogger>()) {
 		nodes.emplace_back(sysloglogger->GetName(), 1); //add more stats
 	}
 

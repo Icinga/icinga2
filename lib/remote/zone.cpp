@@ -27,7 +27,7 @@ void Zone::OnAllConfigLoaded()
 
 	if (endpoints) {
 		ObjectLock olock(endpoints);
-		for (const String& endpoint : endpoints) {
+		for (const auto& endpoint : endpoints) {
 			Endpoint::Ptr ep = Endpoint::GetByName(endpoint);
 
 			if (ep)
@@ -60,7 +60,7 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints() const
 	if (endpoints) {
 		ObjectLock olock(endpoints);
 
-		for (const String& name : endpoints) {
+		for (const auto& name : endpoints) {
 			Endpoint::Ptr endpoint = Endpoint::GetByName(name);
 
 			if (!endpoint)

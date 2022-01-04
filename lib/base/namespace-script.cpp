@@ -48,7 +48,7 @@ static Array::Ptr NamespaceKeys()
 
 	ArrayData keys;
 	ObjectLock olock(self);
-	for (const Namespace::Pair& kv : self) {
+	for (const auto& kv : self) {
 		keys.push_back(kv.first);
 	}
 	return new Array(std::move(keys));
@@ -62,7 +62,7 @@ static Array::Ptr NamespaceValues()
 
 	ArrayData values;
 	ObjectLock olock(self);
-	for (const Namespace::Pair& kv : self) {
+	for (const auto& kv : self) {
 		values.push_back(kv.second->Get());
 	}
 	return new Array(std::move(values));

@@ -93,7 +93,7 @@ void EncodeNamespace(JsonEncoder<prettyPrint>& stateMachine, const Namespace::Pt
 	stateMachine.StartObject();
 
 	ObjectLock olock(ns);
-	for (const Namespace::Pair& kv : ns) {
+	for (const auto& kv : ns) {
 		stateMachine.Key(Utility::ValidateUTF8(kv.first));
 		Encode(stateMachine, kv.second->Get());
 	}
@@ -108,7 +108,7 @@ void EncodeDictionary(JsonEncoder<prettyPrint>& stateMachine, const Dictionary::
 	stateMachine.StartObject();
 
 	ObjectLock olock(dict);
-	for (const Dictionary::Pair& kv : dict) {
+	for (const auto& kv : dict) {
 		stateMachine.Key(Utility::ValidateUTF8(kv.first));
 		Encode(stateMachine, kv.second);
 	}
@@ -123,7 +123,7 @@ void EncodeArray(JsonEncoder<prettyPrint>& stateMachine, const Array::Ptr& arr)
 	stateMachine.StartArray();
 
 	ObjectLock olock(arr);
-	for (const Value& value : arr) {
+	for (const auto& value : arr) {
 		Encode(stateMachine, value);
 	}
 

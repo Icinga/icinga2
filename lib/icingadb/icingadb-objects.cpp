@@ -281,7 +281,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			bool dumpState = (lcType == "host" || lcType == "service");
 
 			size_t bulkCounter = 0;
-			for (const ConfigObject::Ptr& object : chunk) {
+			for (const auto& object : chunk) {
 				if (lcType != GetLowerCaseTypeNameDB(object))
 					continue;
 
@@ -954,7 +954,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":recipient", groupData);
 			}
 
-			for (const User::Ptr& user : usergroup->GetMembers()) {
+			for (const auto& user : usergroup->GetMembers()) {
 				String userId = GetObjectIdentifier(user);
 				String recipientId = HashValue(new Array({m_EnvironmentId, "usergroupuser", user->GetName(), usergroup->GetName(), notification->GetName()}));
 				notificationRecipients.emplace_back(recipientId);
@@ -1136,7 +1136,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 		std::vector<String> xAdd({"XADD", "icinga:runtime", "MAXLEN", "~", "1000000", "*"});
 		ObjectLock olock(objectAttributes);
 
-		for (const Dictionary::Pair& kv : objectAttributes) {
+		for (const auto& kv : objectAttributes) {
 			String value = IcingaToStreamValue(kv.second);
 			if (!value.IsEmpty()) {
 				xAdd.emplace_back(kv.first);
@@ -1601,7 +1601,7 @@ void IcingaDB::SendStatusUpdate(const Checkable::Ptr& checkable)
 	objectAttrs->Set("redis_key", service ? "icinga:service:state" : "icinga:host:state");
 	objectAttrs->Set("runtime_type", "upsert");
 
-	for (const Dictionary::Pair& kv : objectAttrs) {
+	for (const auto& kv : objectAttrs) {
 		streamadd.emplace_back(kv.first);
 		streamadd.emplace_back(IcingaToStreamValue(kv.second));
 	}
@@ -1760,7 +1760,7 @@ void IcingaDB::SendSentNotification(
 
 	if (!users.empty()) {
 		Array::Ptr users_notified = new Array();
-		for (const User::Ptr& user : users) {
+		for (const auto& user : users) {
 			users_notified->Add(GetObjectIdentifier(user));
 		}
 		xAdd.emplace_back("users_notified_ids");
@@ -2289,7 +2289,7 @@ void IcingaDB::SendNotificationUserGroupsChanged(const Notification::Ptr& notifi
 		DeleteRelationship(id, "notification:usergroup");
 		DeleteRelationship(id, "notification:recipient");
 
-		for (const User::Ptr& user : userGroup->GetMembers()) {
+		for (const auto& user : userGroup->GetMembers()) {
 			String userId = HashValue(new Array({m_EnvironmentId, "usergroupuser", user->GetName(), userGroupName, notification->GetName()}));
 			DeleteRelationship(userId, "notification:recipient");
 		}
@@ -2491,7 +2491,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	if (checkable->IsAcknowledged()) {
 		Timestamp entry = 0;
 		Comment::Ptr AckComment;
-		for (const Comment::Ptr& c : checkable->GetComments()) {
+		for (const auto& c : checkable->GetComments()) {
 			if (c->GetEntryType() == CommentAcknowledgement) {
 				if (c->GetEntryTime() > entry) {
 					entry = c->GetEntryTime();
@@ -2584,7 +2584,7 @@ void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object)
 
 void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendStateChange(object, cr, type);
 	}
 }
@@ -2595,14 +2595,14 @@ void IcingaDB::VersionChangedHandler(const ConfigObject::Ptr& object)
 
 	if (object->IsActive()) {
 		// Create or update the object config
-		for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 			if (rw)
 				rw->SendConfigUpdate(object, true);
 		}
 	} else if (!object->IsActive() &&
 			   object->GetExtension("ConfigObjectDeleted")) { // same as in apilistener-configsync.cpp
 		// Delete object config
-		for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 			if (rw)
 				rw->SendConfigDelete(object);
 		}
@@ -2707,67 +2707,67 @@ void IcingaDB::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, co
 }
 
 void IcingaDB::NotificationUsersChangedHandler(const Notification::Ptr& notification, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendNotificationUsersChanged(notification, oldValues, newValues);
 	}
 }
 
 void IcingaDB::NotificationUserGroupsChangedHandler(const Notification::Ptr& notification, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendNotificationUserGroupsChanged(notification, oldValues, newValues);
 	}
 }
 
 void IcingaDB::TimePeriodRangesChangedHandler(const TimePeriod::Ptr& timeperiod, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendTimePeriodRangesChanged(timeperiod, oldValues, newValues);
 	}
 }
 
 void IcingaDB::TimePeriodIncludesChangedHandler(const TimePeriod::Ptr& timeperiod, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendTimePeriodIncludesChanged(timeperiod, oldValues, newValues);
 	}
 }
 
 void IcingaDB::TimePeriodExcludesChangedHandler(const TimePeriod::Ptr& timeperiod, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendTimePeriodExcludesChanged(timeperiod, oldValues, newValues);
 	}
 }
 
 void IcingaDB::UserGroupsChangedHandler(const User::Ptr& user, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendGroupsChanged<UserGroup>(user, oldValues, newValues);
 	}
 }
 
 void IcingaDB::HostGroupsChangedHandler(const Host::Ptr& host, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendGroupsChanged<HostGroup>(host, oldValues, newValues);
 	}
 }
 
 void IcingaDB::ServiceGroupsChangedHandler(const Service::Ptr& service, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendGroupsChanged<ServiceGroup>(service, oldValues, newValues);
 	}
 }
 
 void IcingaDB::CommandEnvChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendCommandEnvChanged(command, oldValues, newValues);
 	}
 }
 
 void IcingaDB::CommandArgumentsChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendCommandArgumentsChanged(command, oldValues, newValues);
 	}
 }
 
 void IcingaDB::CustomVarsChangedHandler(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
-	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendCustomVarsChanged(object, oldValues, newValues);
 	}
 }

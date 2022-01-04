@@ -79,7 +79,7 @@ void UserDbObject::OnConfigUpdateHeavy()
 
 	if (groups) {
 		ObjectLock olock(groups);
-		for (const String& groupName : groups) {
+		for (const auto& groupName : groups) {
 			UserGroup::Ptr group = UserGroup::GetByName(groupName);
 
 			DbQuery query2;

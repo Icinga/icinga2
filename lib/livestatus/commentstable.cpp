@@ -50,7 +50,7 @@ String CommentsTable::GetPrefix() const
 
 void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	for (const Comment::Ptr& comment : ConfigType::GetObjectsByType<Comment>()) {
+	for (const auto& comment : ConfigType::GetObjectsByType<Comment>()) {
 		if (!addRowFn(comment, LivestatusGroupByNone, Empty))
 			return;
 	}

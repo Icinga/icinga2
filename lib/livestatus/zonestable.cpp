@@ -32,7 +32,7 @@ String ZonesTable::GetPrefix() const
 
 void ZonesTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
+	for (const auto& zone : ConfigType::GetObjectsByType<Zone>()) {
 		if (!addRowFn(zone, LivestatusGroupByNone, Empty))
 			return;
 	}
@@ -74,7 +74,7 @@ Value ZonesTable::EndpointsAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Endpoint::Ptr& endpoint : endpoints) {
+	for (const auto& endpoint : endpoints) {
 		result.push_back(endpoint->GetName());
 	}
 

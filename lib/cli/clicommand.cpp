@@ -163,7 +163,7 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 	int arg_end = 0;
 	bool tried_command = false;
 
-	for (const CLIKeyValue& kv : GetRegistry()) {
+	for (const auto& kv : GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
 
 		std::vector<String>::size_type i;
@@ -232,7 +232,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 	int arg_begin = 0;
 	CLICommand::Ptr command;
 
-	for (const CLIKeyValue& kv : GetRegistry()) {
+	for (const auto& kv : GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
 
 		arg_begin = 0;
@@ -274,7 +274,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 	} else
 		std::cout << "Supported commands: " << std::endl;
 
-	for (const CLIKeyValue& kv : GetRegistry()) {
+	for (const auto& kv : GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
 
 		if (vname.size() < best_match.size() || kv.second->IsHidden())
@@ -346,25 +346,25 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 		if (odesc->semantic()->min_tokens() == 0)
 			goto complete_option;
 
-		for (const String& suggestion : globalArgCompletionCallback(odesc->long_name(), pword)) {
+		for (const auto& suggestion : globalArgCompletionCallback(odesc->long_name(), pword)) {
 			std::cout << prefix << suggestion << "\n";
 		}
 
-		for (const String& suggestion : command->GetArgumentSuggestions(odesc->long_name(), pword)) {
+		for (const auto& suggestion : command->GetArgumentSuggestions(odesc->long_name(), pword)) {
 			std::cout << prefix << suggestion << "\n";
 		}
 
 		return;
 
 complete_option:
-		for (const boost::shared_ptr<po::option_description>& odesc : visibleDesc->options()) {
+		for (const auto& odesc : visibleDesc->options()) {
 			String cname = "--" + odesc->long_name();
 
 			if (cname.Find(aword) == 0)
 				std::cout << cname << "\n";
 		}
 
-		for (const String& suggestion : command->GetPositionalSuggestions(aword)) {
+		for (const auto& suggestion : command->GetPositionalSuggestions(aword)) {
 			std::cout << suggestion << "\n";
 		}
 	}

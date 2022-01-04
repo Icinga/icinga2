@@ -273,10 +273,10 @@ Value icinga::operator-(const Value& lhs, const Value& rhs)
 		Array::Ptr right = rhs;
 
 		ObjectLock olock(left);
-		for (const Value& lv : left) {
+		for (const auto& lv : left) {
 			bool found = false;
 			ObjectLock xlock(right);
-			for (const Value& rv : right) {
+			for (const auto& rv : right) {
 				if (lv == rv) {
 					found = true;
 					break;

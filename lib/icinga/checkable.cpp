@@ -299,7 +299,7 @@ void Checkable::CleanDeadlinedExecutions(const Timer * const&)
 	for (auto& host : ConfigType::GetObjectsByType<Host>()) {
 		executions = host->GetExecutions();
 		if (executions) {
-			for (const String& key : executions->GetKeys()) {
+			for (const auto& key : executions->GetKeys()) {
 				execution = executions->Get(key);
 				if (execution->Contains("deadline") && now > execution->Get("deadline")) {
 					executions->Remove(key);
@@ -311,7 +311,7 @@ void Checkable::CleanDeadlinedExecutions(const Timer * const&)
 	for (auto& service : ConfigType::GetObjectsByType<Service>()) {
 		executions = service->GetExecutions();
 		if (executions) {
-			for (const String& key : executions->GetKeys()) {
+			for (const auto& key : executions->GetKeys()) {
 				execution = executions->Get(key);
 				if (execution->Contains("deadline") && now > execution->Get("deadline")) {
 					executions->Remove(key);

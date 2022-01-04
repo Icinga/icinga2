@@ -66,7 +66,7 @@ CheckableCheckStatistics CIB::CalculateHostCheckStats()
 	int count_execution_time = 0;
 	bool checkresult = false;
 
-	for (const Host::Ptr& host : ConfigType::GetObjectsByType<Host>()) {
+	for (const auto& host : ConfigType::GetObjectsByType<Host>()) {
 		ObjectLock olock(host);
 
 		CheckResult::Ptr cr = host->GetLastCheckResult();
@@ -127,7 +127,7 @@ CheckableCheckStatistics CIB::CalculateServiceCheckStats()
 	int count_execution_time = 0;
 	bool checkresult = false;
 
-	for (const Service::Ptr& service : ConfigType::GetObjectsByType<Service>()) {
+	for (const auto& service : ConfigType::GetObjectsByType<Service>()) {
 		ObjectLock olock(service);
 
 		CheckResult::Ptr cr = service->GetLastCheckResult();
@@ -184,7 +184,7 @@ ServiceStatistics CIB::CalculateServiceStats()
 {
 	ServiceStatistics ss = {};
 
-	for (const Service::Ptr& service : ConfigType::GetObjectsByType<Service>()) {
+	for (const auto& service : ConfigType::GetObjectsByType<Service>()) {
 		ObjectLock olock(service);
 
 		if (service->GetState() == ServiceOK)
@@ -224,7 +224,7 @@ HostStatistics CIB::CalculateHostStats()
 {
 	HostStatistics hs = {};
 
-	for (const Host::Ptr& host : ConfigType::GetObjectsByType<Host>()) {
+	for (const auto& host : ConfigType::GetObjectsByType<Host>()) {
 		ObjectLock olock(host);
 
 		if (host->IsReachable()) {
@@ -268,7 +268,7 @@ std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats()
 	if (statsFunctions) {
 		ObjectLock olock(statsFunctions);
 
-		for (const Namespace::Pair& kv : statsFunctions)
+		for (const auto& kv : statsFunctions)
 			static_cast<Function::Ptr>(kv.second->Get())->Invoke({ status, perfdata });
 	}
 

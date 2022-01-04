@@ -50,7 +50,7 @@ void ServiceGroup::EvaluateObjectRules(const Service::Ptr& service)
 {
 	CONTEXT("Evaluating group membership for service '" + service->GetName() + "'");
 
-	for (const ConfigItem::Ptr& group : ConfigItem::GetItems(ServiceGroup::TypeInstance))
+	for (const auto& group : ConfigItem::GetItems(ServiceGroup::TypeInstance))
 	{
 		if (!group->GetFilter())
 			continue;
@@ -94,7 +94,7 @@ bool ServiceGroup::ResolveGroupMembership(const Service::Ptr& service, bool add,
 	if (groups && groups->GetLength() > 0) {
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (const auto& name : groups) {
 			ServiceGroup::Ptr group = ServiceGroup::GetByName(name);
 
 			if (group && !group->ResolveGroupMembership(service, add, rstack + 1))

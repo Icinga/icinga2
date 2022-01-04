@@ -9,7 +9,7 @@ bool OrFilter::Apply(const Table::Ptr& table, const Value& row)
 	if (m_Filters.empty())
 		return true;
 
-	for (const Filter::Ptr& filter : m_Filters) {
+	for (const auto& filter : m_Filters) {
 		if (filter->Apply(table, row))
 			return true;
 	}

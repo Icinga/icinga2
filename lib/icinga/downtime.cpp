@@ -301,7 +301,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 
 	if (!ConfigObjectUtility::CreateObject(Downtime::TypeInstance, fullName, config, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (const auto& error : errors) {
 			Log(LogCritical, "Downtime", error);
 		}
 
@@ -346,7 +346,7 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cance
 	}
 
 	if (includeChildren) {
-		for (const Downtime::Ptr& child : downtime->GetChildren()) {
+		for (const auto& child : downtime->GetChildren()) {
 			Downtime::RemoveDowntime(child->GetName(), true, true);
 		}
 	}
@@ -357,7 +357,7 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cance
 
 	if (!ConfigObjectUtility::DeleteObject(downtime, false, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (const auto& error : errors) {
 			Log(LogCritical, "Downtime", error);
 		}
 
@@ -441,7 +441,7 @@ void Downtime::TriggerDowntime(double triggerTime)
 
 	{
 		ObjectLock olock(triggers);
-		for (const String& triggerName : triggers) {
+		for (const auto& triggerName : triggers) {
 			Downtime::Ptr downtime = Downtime::GetByName(triggerName);
 
 			if (!downtime)
@@ -469,7 +469,7 @@ String Downtime::GetDowntimeIDFromLegacyID(int id)
 void Downtime::DowntimesStartTimerHandler()
 {
 	/* Start fixed downtimes. Flexible downtimes will be triggered on-demand. */
-	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
+	for (const auto& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		if (downtime->IsActive() &&
 			downtime->CanBeTriggered() &&
 			downtime->GetFixed()) {
@@ -484,7 +484,7 @@ void Downtime::DowntimesStartTimerHandler()
 
 void Downtime::DowntimesExpireTimerHandler()
 {
-	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
+	for (const auto& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		/* Only remove downtimes which are activated after daemon start. */
 		if (downtime->IsActive() && (downtime->IsExpired() || !downtime->HasValidConfigOwner()))
 			RemoveDowntime(downtime->GetName(), false, false, true);

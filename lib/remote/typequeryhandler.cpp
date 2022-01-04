@@ -20,7 +20,7 @@ public:
 	void FindTargets(const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
-		for (const Type::Ptr& target : Type::GetAllTypes()) {
+		for (const auto& target : Type::GetAllTypes()) {
 			addTarget(target);
 		}
 	}
@@ -91,7 +91,7 @@ bool TypeQueryHandler::HandleRequest(
 
 	ArrayData results;
 
-	for (const Type::Ptr& obj : objs) {
+	for (const auto& obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 		results.push_back(result1);
 
@@ -109,7 +109,7 @@ bool TypeQueryHandler::HandleRequest(
 
 		if (prototype) {
 			ObjectLock olock(prototype);
-			for (const Dictionary::Pair& kv : prototype) {
+			for (const auto& kv : prototype) {
 				prototypeKeys->Add(kv.first);
 			}
 		}

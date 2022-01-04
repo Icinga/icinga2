@@ -22,7 +22,7 @@ void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array
 {
 	DictionaryData nodes;
 
-	for (const NotificationComponent::Ptr& notification_component : ConfigType::GetObjectsByType<NotificationComponent>()) {
+	for (const auto& notification_component : ConfigType::GetObjectsByType<NotificationComponent>()) {
 		nodes.emplace_back(notification_component->GetName(), 1); //add more stats
 	}
 
@@ -133,7 +133,7 @@ void NotificationComponent::NotificationTimerHandler()
 	/* Function already checks whether 'api' feature is enabled. */
 	Endpoint::Ptr myEndpoint = Endpoint::GetLocalEndpoint();
 
-	for (const Notification::Ptr& notification : ConfigType::GetObjectsByType<Notification>()) {
+	for (const auto& notification : ConfigType::GetObjectsByType<Notification>()) {
 		if (!notification->IsActive())
 			continue;
 

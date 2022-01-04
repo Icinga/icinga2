@@ -39,7 +39,7 @@ void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	DictionaryData nodes;
 
-	for (const PerfdataWriter::Ptr& perfdatawriter : ConfigType::GetObjectsByType<PerfdataWriter>()) {
+	for (const auto& perfdatawriter : ConfigType::GetObjectsByType<PerfdataWriter>()) {
 		nodes.emplace_back(perfdatawriter->GetName(), 1); //add more stats
 	}
 

@@ -96,7 +96,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile()
 	if (!m_Abstract) {
 		bool foundDefaultImport = false;
 
-		for (const std::unique_ptr<Expression>& expr : m_Expressions) {
+		for (const auto& expr : m_Expressions) {
 			if (dynamic_cast<ImportDefaultTemplatesExpression *>(expr.get())) {
 				foundDefaultImport = true;
 				break;

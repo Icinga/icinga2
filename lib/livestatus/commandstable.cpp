@@ -42,17 +42,17 @@ String CommandsTable::GetPrefix() const
 
 void CommandsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	for (const ConfigObject::Ptr& object : ConfigType::GetObjectsByType<CheckCommand>()) {
+	for (const auto& object : ConfigType::GetObjectsByType<CheckCommand>()) {
 		if (!addRowFn(object, LivestatusGroupByNone, Empty))
 			return;
 	}
 
-	for (const ConfigObject::Ptr& object : ConfigType::GetObjectsByType<EventCommand>()) {
+	for (const auto& object : ConfigType::GetObjectsByType<EventCommand>()) {
 		if (!addRowFn(object, LivestatusGroupByNone, Empty))
 			return;
 	}
 
-	for (const ConfigObject::Ptr& object : ConfigType::GetObjectsByType<NotificationCommand>()) {
+	for (const auto& object : ConfigType::GetObjectsByType<NotificationCommand>()) {
 		if (!addRowFn(object, LivestatusGroupByNone, Empty))
 			return;
 	}

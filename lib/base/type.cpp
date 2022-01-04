@@ -53,7 +53,7 @@ std::vector<Type::Ptr> Type::GetAllTypes()
 	if (typesNS) {
 		ObjectLock olock(typesNS);
 
-		for (const Namespace::Pair& kv : typesNS) {
+		for (const auto& kv : typesNS) {
 			Value value = kv.second->Get();
 
 			if (value.IsObjectType<Type>())

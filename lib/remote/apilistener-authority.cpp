@@ -31,7 +31,7 @@ void ApiListener::UpdateObjectAuthority()
 
 		int num_total = 0;
 
-		for (const Endpoint::Ptr& endpoint : my_zone->GetEndpoints()) {
+		for (const auto& endpoint : my_zone->GetEndpoints()) {
 			num_total++;
 
 			if (endpoint != my_endpoint && !endpoint->GetConnected())
@@ -53,13 +53,13 @@ void ApiListener::UpdateObjectAuthority()
 		);
 	}
 
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	for (const auto& type : Type::GetAllTypes()) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		for (const auto& object : dtype->GetObjects()) {
 			if (!object->IsActive() || object->GetHAMode() != HARunOnce)
 				continue;
 

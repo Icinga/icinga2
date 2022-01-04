@@ -48,7 +48,7 @@ void UserGroup::EvaluateObjectRules(const User::Ptr& user)
 {
 	CONTEXT("Evaluating group membership for user '" + user->GetName() + "'");
 
-	for (const ConfigItem::Ptr& group : ConfigItem::GetItems(UserGroup::TypeInstance))
+	for (const auto& group : ConfigItem::GetItems(UserGroup::TypeInstance))
 	{
 		if (!group->GetFilter())
 			continue;
@@ -110,7 +110,7 @@ bool UserGroup::ResolveGroupMembership(const User::Ptr& user, bool add, int rsta
 	if (groups && groups->GetLength() > 0) {
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (const auto& name : groups) {
 			UserGroup::Ptr group = UserGroup::GetByName(name);
 
 			if (group && !group->ResolveGroupMembership(user, add, rstack + 1))

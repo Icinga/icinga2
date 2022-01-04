@@ -43,7 +43,7 @@ bool InfoHandler::HandleRequest(
 
 	if (permissions) {
 		ObjectLock olock(permissions);
-		for (const Value& permission : permissions) {
+		for (const auto& permission : permissions) {
 			String name;
 			bool hasFilter = false;
 			if (permission.IsObjectType<Dictionary>()) {
@@ -82,7 +82,7 @@ bool InfoHandler::HandleRequest(
 		if (!permInfo.empty()) {
 			body += "Your user has the following permissions:</p> <ul>";
 
-			for (const String& perm : permInfo) {
+			for (const auto& perm : permInfo) {
 				body += "<li>" + perm + "</li>";
 			}
 

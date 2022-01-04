@@ -75,7 +75,7 @@ void InfluxdbCommonWriter::StatsFunc(const Dictionary::Ptr& status, const Array:
 	DictionaryData nodes;
 	auto typeName (InfluxWriter::TypeInstance->GetName().ToLower());
 
-	for (const typename InfluxWriter::Ptr& influxwriter : ConfigType::GetObjectsByType<InfluxWriter>()) {
+	for (const auto& influxwriter : ConfigType::GetObjectsByType<InfluxWriter>()) {
 		size_t workQueueItems = influxwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = influxwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
 		size_t dataBufferItems = influxwriter->m_DataBuffer.size();

@@ -183,13 +183,13 @@ void ApiListener::UpdateSSLContext()
 {
 	m_SSLContext = SetupSslContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath(), GetCrlPath(), GetCipherList(), GetTlsProtocolmin(), GetDebugInfo());
 
-	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
-		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
+	for (const auto& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+		for (const auto& client : endpoint->GetClients()) {
 			client->Disconnect();
 		}
 	}
 
-	for (const JsonRpcConnection::Ptr& client : m_AnonymousClients) {
+	for (const auto& client : m_AnonymousClients) {
 		client->Disconnect();
 	}
 }
@@ -291,7 +291,7 @@ Endpoint::Ptr ApiListener::GetMaster() const
 
 	std::vector<String> names;
 
-	for (const Endpoint::Ptr& endpoint : zone->GetEndpoints())
+	for (const auto& endpoint : zone->GetEndpoints())
 		if (endpoint->GetConnected() || endpoint->GetName() == GetIdentity())
 			names.push_back(endpoint->GetName());
 
@@ -849,7 +849,7 @@ void ApiListener::ApiTimerHandler()
 		bool need = false;
 		auto localZone (GetLocalEndpoint()->GetZone());
 
-		for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+		for (const auto& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
 			if (endpoint == GetLocalEndpoint())
 				continue;
 
@@ -877,7 +877,7 @@ void ApiListener::ApiTimerHandler()
 		}
 	}
 
-	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+	for (const auto& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
 		if (!endpoint->GetConnected())
 			continue;
 
@@ -896,12 +896,12 @@ void ApiListener::ApiTimerHandler()
 
 		double maxTs = 0;
 
-		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
+		for (const auto& client : endpoint->GetClients()) {
 			if (client->GetTimestamp() > maxTs)
 				maxTs = client->GetTimestamp();
 		}
 
-		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
+		for (const auto& client : endpoint->GetClients()) {
 			if (client->GetTimestamp() == maxTs) {
 				client->SendMessage(lmessage);
 			} else {
@@ -919,7 +919,7 @@ void ApiListener::ApiReconnectTimerHandler()
 {
 	Zone::Ptr my_zone = Zone::GetLocalZone();
 
-	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
+	for (const auto& zone : ConfigType::GetObjectsByType<Zone>()) {
 		/* don't connect to global zones */
 		if (zone->GetGlobal())
 			continue;
@@ -932,7 +932,7 @@ void ApiListener::ApiReconnectTimerHandler()
 			continue;
 		}
 
-		for (const Endpoint::Ptr& endpoint : zone->GetEndpoints()) {
+		for (const auto& endpoint : zone->GetEndpoints()) {
 			/* don't connect to ourselves */
 			if (endpoint == GetLocalEndpoint()) {
 				Log(LogDebug, "ApiListener")
@@ -978,7 +978,7 @@ void ApiListener::ApiReconnectTimerHandler()
 			<< "Current zone master: " << master->GetName();
 
 	std::vector<String> names;
-	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>())
+	for (const auto& endpoint : ConfigType::GetObjectsByType<Endpoint>())
 		if (endpoint->GetConnected())
 			names.emplace_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
 
@@ -1066,12 +1066,12 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 
 		double maxTs = 0;
 
-		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
+		for (const auto& client : endpoint->GetClients()) {
 			if (client->GetTimestamp() > maxTs)
 				maxTs = client->GetTimestamp();
 		}
 
-		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
+		for (const auto& client : endpoint->GetClients()) {
 			if (client->GetTimestamp() != maxTs)
 				continue;
 
@@ -1113,7 +1113,7 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 	if (targetZone->GetGlobal()) {
 		/* if the zone is global, the message has to be relayed to our local zone and direct children */
 		allTargetZones.insert(localZone);
-		for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
+		for (const auto& zone : ConfigType::GetObjectsByType<Zone>()) {
 			if (zone->GetParent() == localZone) {
 				allTargetZones.insert(zone);
 			}
@@ -1125,10 +1125,10 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 
 	bool needsReplay = false;
 
-	for (const Zone::Ptr& currentTargetZone : allTargetZones) {
+	for (const auto& currentTargetZone : allTargetZones) {
 		bool relayed = false, log_needed = false, log_done = false;
 
-		for (const Endpoint::Ptr& targetEndpoint : currentTargetZone->GetEndpoints()) {
+		for (const auto& targetEndpoint : currentTargetZone->GetEndpoints()) {
 			/* Don't relay messages to ourselves. */
 			if (targetEndpoint == localEndpoint)
 				continue;
@@ -1196,7 +1196,7 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 	if (!skippedEndpoints.empty()) {
 		double ts = message->Get("ts");
 
-		for (const Endpoint::Ptr& skippedEndpoint : skippedEndpoints)
+		for (const auto& skippedEndpoint : skippedEndpoints)
 			skippedEndpoint->SetLocalLogPosition(ts);
 	}
 
@@ -1231,7 +1231,7 @@ void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
 
 	bool need_log = !RelayMessageOne(target_zone, origin, message, master);
 
-	for (const Zone::Ptr& zone : target_zone->GetAllParentsRaw()) {
+	for (const auto& zone : target_zone->GetAllParentsRaw()) {
 		if (!RelayMessageOne(zone, origin, message, master))
 			need_log = true;
 	}
@@ -1480,7 +1480,7 @@ void ApiListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& per
 	stats = listener->GetStatus();
 
 	ObjectLock olock(stats.second);
-	for (const Dictionary::Pair& kv : stats.second)
+	for (const auto& kv : stats.second)
 		perfdata->Add(new PerfdataValue("api_" + kv.first, kv.second));
 
 	status->Set("api", stats.first);
@@ -1500,7 +1500,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 
 	Dictionary::Ptr connectedZones = new Dictionary();
 
-	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
+	for (const auto& zone : ConfigType::GetObjectsByType<Zone>()) {
 		/* only check endpoints in a) the same zone b) our parent zone c) immediate child zones */
 		if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent()) {
 			Log(LogDebug, "ApiListener")
@@ -1514,7 +1514,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 
 		ArrayData zoneEndpoints;
 
-		for (const Endpoint::Ptr& endpoint : zone->GetEndpoints()) {
+		for (const auto& endpoint : zone->GetEndpoints()) {
 			zoneEndpoints.emplace_back(endpoint->GetName());
 
 			if (endpoint->GetName() == GetIdentity())

@@ -70,7 +70,7 @@ void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 {
 	DictionaryData nodes;
 
-	for (const IcingaApplication::Ptr& icingaapplication : ConfigType::GetObjectsByType<IcingaApplication>()) {
+	for (const auto& icingaapplication : ConfigType::GetObjectsByType<IcingaApplication>()) {
 		nodes.emplace_back(icingaapplication->GetName(), new Dictionary({
 			{ "node_name", icingaapplication->GetNodeName() },
 			{ "enable_notifications", icingaapplication->GetEnableNotifications() },

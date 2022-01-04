@@ -102,7 +102,7 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 		Array::Ptr arr = vinstances;
 
 		ObjectLock olock(arr);
-		for (const Value& instance : arr) {
+		for (const auto& instance : arr) {
 			String name = rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {
@@ -119,7 +119,7 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 
 		Dictionary::Ptr dict = vinstances;
 
-		for (const String& key : dict->GetKeys()) {
+		for (const auto& key : dict->GetKeys()) {
 			frame.Locals->Set(rule.GetFKVar(), key);
 			frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
 

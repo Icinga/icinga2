@@ -107,7 +107,7 @@ void Application::Exit(int rc)
 	std::cout.flush();
 	std::cerr.flush();
 
-	for (const Logger::Ptr& logger : Logger::GetLoggers()) {
+	for (const auto& logger : Logger::GetLoggers()) {
 		logger->Flush();
 	}
 
@@ -509,7 +509,7 @@ String Application::GetExePath(const String& argv0)
 			std::vector<String> paths = String(pathEnv).Split(":");
 
 			bool foundPath = false;
-			for (const String& path : paths) {
+			for (const auto& path : paths) {
 				String pathTest = path + "/" + argv0;
 
 				if (access(pathTest.CStr(), X_OK) == 0) {

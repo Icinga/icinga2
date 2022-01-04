@@ -34,7 +34,7 @@ public:
 		{
 			Namespace::Ptr globals = ScriptGlobal::GetGlobals();
 			ObjectLock olock(globals);
-			for (const Namespace::Pair& kv : globals) {
+			for (const auto& kv : globals) {
 				addTarget(GetTargetForVar(kv.first, kv.second->Get()));
 			}
 		}
@@ -98,7 +98,7 @@ bool VariableQueryHandler::HandleRequest(
 
 	ArrayData results;
 
-	for (const Dictionary::Ptr& var : objs) {
+	for (const auto& var : objs) {
 		results.emplace_back(new Dictionary({
 			{ "name", var->Get("name") },
 			{ "type", var->Get("type") },

@@ -44,7 +44,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	}
 
 	String msg;
-	for (const String& line : lines) {
+	for (const auto& line : lines) {
 		msg += line + "\n";
 	}
 	Log(LogDebug, "LivestatusQuery", msg);
@@ -250,7 +250,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	/* Combine all top-level filters into a single filter. */
 	AndFilter::Ptr top_filter = new AndFilter();
 
-	for (const Filter::Ptr& filter : filters) {
+	for (const auto& filter : filters) {
 		top_filter->AddSubFilter(filter);
 	}
 
@@ -358,7 +358,7 @@ void LivestatusQuery::AppendResultRow(std::ostream& fp, const Array::Ptr& row, b
 		bool first = true;
 
 		ObjectLock rlock(row);
-		for (const Value& value : row) {
+		for (const auto& value : row) {
 			if (first)
 				first = false;
 			else
@@ -391,7 +391,7 @@ void LivestatusQuery::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, i
 	bool first = true;
 
 	ObjectLock olock(array);
-	for (const Value& value : array) {
+	for (const auto& value : array) {
 		if (first)
 			first = false;
 		else
@@ -412,7 +412,7 @@ void LivestatusQuery::PrintPythonArray(std::ostream& fp, const Array::Ptr& rs) c
 
 	bool first = true;
 
-	for (const Value& value : rs) {
+	for (const auto& value : rs) {
 		if (first)
 			first = false;
 		else
@@ -466,17 +466,17 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		std::vector<ColumnPair> column_objs;
 		column_objs.reserve(columns.size());
 
-		for (const String& columnName : columns)
+		for (const auto& columnName : columns)
 			column_objs.emplace_back(columnName, table->GetColumn(columnName));
 
 		ArrayData header;
 
-		for (const LivestatusRowValue& object : objects) {
+		for (const auto& object : objects) {
 			ArrayData row;
 
 			row.reserve(column_objs.size());
 
-			for (const ColumnPair& cv : column_objs) {
+			for (const auto& cv : column_objs) {
 				if (m_ColumnHeaders)
 					header.push_back(cv.first);
 
@@ -494,10 +494,10 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		std::map<std::vector<Value>, std::vector<AggregatorState *> > allStats;
 
 		/* add aggregated stats */
-		for (const LivestatusRowValue& object : objects) {
+		for (const auto& object : objects) {
 			std::vector<Value> statsKey;
 
-			for (const String& columnName : m_Columns) {
+			for (const auto& columnName : m_Columns) {
 				Column column = table->GetColumn(columnName);
 				statsKey.emplace_back(column.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
 			}
@@ -513,7 +513,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 			int index = 0;
 
-			for (const Aggregator::Ptr& aggregator : m_Aggregators) {
+			for (const auto& aggregator : m_Aggregators) {
 				aggregator->Apply(table, object.Row, &stats[index]);
 				index++;
 			}
@@ -523,7 +523,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		if (m_ColumnHeaders) {
 			ArrayData header;
 
-			for (const String& columnName : m_Columns) {
+			for (const auto& columnName : m_Columns) {
 				header.push_back(columnName);
 			}
 
@@ -539,7 +539,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 			row.reserve(m_Columns.size() + m_Aggregators.size());
 
-			for (const Value& keyPart : kv.first) {
+			for (const auto& keyPart : kv.first) {
 				row.push_back(keyPart);
 			}
 

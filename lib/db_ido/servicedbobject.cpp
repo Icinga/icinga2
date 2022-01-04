@@ -159,7 +159,7 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 
 	if (groups) {
 		ObjectLock olock(groups);
-		for (const String& groupName : groups) {
+		for (const auto& groupName : groups) {
 			ServiceGroup::Ptr group = ServiceGroup::GetByName(groupName);
 
 			DbQuery query2;
@@ -194,7 +194,7 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	});
 	queries.emplace_back(std::move(query2));
 
-	for (const Dependency::Ptr& dep : service->GetDependencies()) {
+	for (const auto& dep : service->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent) {
@@ -241,7 +241,7 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	});
 	queries.emplace_back(std::move(query3));
 
-	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
+	for (const auto& user : CompatUtility::GetCheckableNotificationUsers(service)) {
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contacts";
 		query_contact.Type = DbQueryInsert;
@@ -268,7 +268,7 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	});
 	queries.emplace_back(std::move(query4));
 
-	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
+	for (const auto& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contactgroups";
 		query_contact.Type = DbQueryInsert;
@@ -318,7 +318,7 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 	ArrayData dependencies;
 
 	/* dependencies */
-	for (const Dependency::Ptr& dep : service->GetDependencies()) {
+	for (const auto& dep : service->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent)
@@ -337,7 +337,7 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 
 	ArrayData users;
 
-	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
+	for (const auto& user : CompatUtility::GetCheckableNotificationUsers(service)) {
 		users.push_back(user->GetName());
 	}
 
@@ -347,7 +347,7 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 
 	ArrayData userGroups;
 
-	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
+	for (const auto& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		userGroups.push_back(usergroup->GetName());
 	}
 

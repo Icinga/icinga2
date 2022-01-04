@@ -50,7 +50,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 	if (env) {
 		ObjectLock olock(env);
-		for (const Dictionary::Pair& kv : env) {
+		for (const auto& kv : env) {
 			String name = kv.second;
 
 			String missingMacro;
@@ -103,7 +103,7 @@ std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 
 	std::vector<String> lines = output.Split("\r\n");
 
-	for (const String& line : lines) {
+	for (const auto& line : lines) {
 		size_t delim = line.FindFirstOf("|");
 
 		if (!text.IsEmpty())
@@ -186,7 +186,7 @@ String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata, bool normalize)
 	ObjectLock olock(perfdata);
 
 	bool first = true;
-	for (const Value& pdv : perfdata) {
+	for (const auto& pdv : perfdata) {
 		if (!first)
 			result << " ";
 		else

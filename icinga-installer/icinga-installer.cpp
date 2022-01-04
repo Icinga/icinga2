@@ -257,7 +257,7 @@ static int InstallIcinga(void)
 
 		// Install the new windowseventlog feature. As features-available/windowseventlog.conf is used as a marker file,
 		// copy it as the last step, so that this is run again should the upgrade be interrupted.
-		for (const std::string& d : {"features-enabled", "features-available"}) {
+		for (const auto& d : {"features-enabled", "features-available"}) {
 			std::string sourceFile = skelDir + "/etc/icinga2/" + d + "/windowseventlog.conf";
 			std::string destinationFile = dataDir + "/etc/icinga2/" + d + "/windowseventlog.conf";
 

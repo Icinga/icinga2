@@ -124,7 +124,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	if (extraEnvironment) {
 		ObjectLock olock(extraEnvironment);
 
-		for (const Dictionary::Pair& kv : extraEnvironment) {
+		for (const auto& kv : extraEnvironment) {
 			String skv = kv.first + "=" + Convert::ToString(kv.second);
 			envp[j] = strdup(skv.CStr());
 			j++;
@@ -554,7 +554,7 @@ Process::Arguments Process::PrepareCommand(const Value& command)
 		Array::Ptr arguments = command;
 
 		ObjectLock olock(arguments);
-		for (const Value& argument : arguments) {
+		for (const auto& argument : arguments) {
 #ifdef _WIN32
 			if (args != "")
 				args += " ";
@@ -633,7 +633,7 @@ void Process::IOThreadProc(int tid)
 
 			int i = 1;
 			typedef std::pair<ProcessHandle, Process::Ptr> kv_pair;
-			for (const kv_pair& kv : l_Processes[tid]) {
+			for (const auto& kv : l_Processes[tid]) {
 				const Process::Ptr& process = kv.second;
 #ifdef _WIN32
 				handles[i] = kv.first;
@@ -888,7 +888,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	if (m_ExtraEnvironment) {
 		ObjectLock olock(m_ExtraEnvironment);
 
-		for (const Dictionary::Pair& kv : m_ExtraEnvironment) {
+		for (const auto& kv : m_ExtraEnvironment) {
 			String skv = kv.first + "=" + Convert::ToString(kv.second);
 
 			envp = static_cast<char *>(realloc(envp, offset + skv.GetLength() + 1));

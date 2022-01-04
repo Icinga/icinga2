@@ -203,7 +203,7 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, boo
 		Array::Ptr messages;
 
 		if (currentHint) {
-			for (const String& attr : vex->GetAttributePath()) {
+			for (const auto& attr : vex->GetAttributePath()) {
 				Dictionary::Ptr props = currentHint->Get("properties");
 
 				if (!props)
@@ -369,7 +369,7 @@ ValidationError::ValidationError(const ConfigObject::Ptr& object, const std::vec
 {
 	String path;
 
-	for (const String& attribute : attributePath) {
+	for (const auto& attribute : attributePath) {
 		if (!path.IsEmpty())
 			path += " -> ";
 

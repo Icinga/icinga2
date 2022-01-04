@@ -41,7 +41,7 @@ String EndpointsTable::GetPrefix() const
 
 void EndpointsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+	for (const auto& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
 		if (!addRowFn(endpoint, LivestatusGroupByNone, Empty))
 			return;
 	}

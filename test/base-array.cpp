@@ -117,7 +117,7 @@ BOOST_AUTO_TEST_CASE(foreach)
 
 	int n = 0;
 
-	for (const Value& item : array) {
+	for (const auto& item : array) {
 		BOOST_CHECK(n != 0 || item == 7);
 		BOOST_CHECK(n != 1 || item == 2);
 		BOOST_CHECK(n != 2 || item == 5);

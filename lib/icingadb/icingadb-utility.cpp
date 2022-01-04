@@ -41,7 +41,7 @@ String IcingaDB::FormatCommandLine(const Value& commandLine)
 		bool first = true;
 
 		ObjectLock olock(args);
-		for (const Value& arg : args) {
+		for (const auto& arg : args) {
 			String token = "'" + Convert::ToString(arg) + "'";
 
 			if (first)

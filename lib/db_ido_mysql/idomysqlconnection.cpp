@@ -50,7 +50,7 @@ void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 {
 	DictionaryData nodes;
 
-	for (const IdoMysqlConnection::Ptr& idomysqlconnection : ConfigType::GetObjectsByType<IdoMysqlConnection>()) {
+	for (const auto& idomysqlconnection : ConfigType::GetObjectsByType<IdoMysqlConnection>()) {
 		size_t queryQueueItems = idomysqlconnection->m_QueryQueue.GetLength();
 		double queryQueueItemRate = idomysqlconnection->m_QueryQueue.GetTaskCount(60) / 60.0;
 
@@ -450,7 +450,7 @@ void IdoMysqlConnection::Reconnect()
 
 	EnableActiveChangedHandler();
 
-	for (const DbObject::Ptr& dbobj : activeDbObjs) {
+	for (const auto& dbobj : activeDbObjs) {
 		if (dbobj->GetObject())
 			continue;
 
@@ -953,7 +953,7 @@ bool IdoMysqlConnection::CanExecuteQuery(const DbQuery& query)
 		ObjectLock olock(query.WhereCriteria);
 		Value value;
 
-		for (const Dictionary::Pair& kv : query.WhereCriteria) {
+		for (const auto& kv : query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value))
 				return false;
 		}
@@ -962,7 +962,7 @@ bool IdoMysqlConnection::CanExecuteQuery(const DbQuery& query)
 	if (query.Fields) {
 		ObjectLock olock(query.Fields);
 
-		for (const Dictionary::Pair& kv : query.Fields) {
+		for (const auto& kv : query.Fields) {
 			Value value;
 
 			if (!FieldToEscapedString(kv.first, kv.second, &value))
@@ -988,7 +988,7 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 	}
 
 
-	for (const DbQuery& query : queries) {
+	for (const auto& query : queries) {
 		ASSERT(query.Type == DbQueryNewTransaction || query.Category != DbCatInvalid);
 
 		if (!CanExecuteQuery(query)) {
@@ -1004,7 +1004,7 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 		}
 	}
 
-	for (const DbQuery& query : queries) {
+	for (const auto& query : queries) {
 		InternalExecuteQuery(query);
 	}
 }
@@ -1063,7 +1063,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 		Value value;
 		bool first = true;
 
-		for (const Dictionary::Pair& kv : query.WhereCriteria) {
+		for (const auto& kv : query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
 
 #ifdef I2_DEBUG /* I2_DEBUG */
@@ -1138,7 +1138,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 		ObjectLock olock(query.Fields);
 
 		bool first = true;
-		for (const Dictionary::Pair& kv : query.Fields) {
+		for (const auto& kv : query.Fields) {
 			Value value;
 
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {

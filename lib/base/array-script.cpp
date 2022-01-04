@@ -130,7 +130,7 @@ static Array::Ptr ArrayMap(const Function::Ptr& function)
 	ArrayData result;
 
 	ObjectLock olock(self);
-	for (const Value& item : self) {
+	for (const auto& item : self) {
 		result.push_back(function->Invoke({ item }));
 	}
 
@@ -173,7 +173,7 @@ static Array::Ptr ArrayFilter(const Function::Ptr& function)
 	ArrayData result;
 
 	ObjectLock olock(self);
-	for (const Value& item : self) {
+	for (const auto& item : self) {
 		if (function->Invoke({ item }))
 			result.push_back(item);
 	}
@@ -192,7 +192,7 @@ static bool ArrayAny(const Function::Ptr& function)
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
 
 	ObjectLock olock(self);
-	for (const Value& item : self) {
+	for (const auto& item : self) {
 		if (function->Invoke({ item }))
 			return true;
 	}
@@ -211,7 +211,7 @@ static bool ArrayAll(const Function::Ptr& function)
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
 
 	ObjectLock olock(self);
-	for (const Value& item : self) {
+	for (const auto& item : self) {
 		if (!function->Invoke({ item }))
 			return false;
 	}

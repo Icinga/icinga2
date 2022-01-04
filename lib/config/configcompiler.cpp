@@ -125,7 +125,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relative
 	String includePath = upath;
 
 	if (search) {
-		for (const String& dir : m_IncludeSearchDirs) {
+		for (const auto& dir : m_IncludeSearchDirs) {
 			String spath = dir + "/" + path;
 
 			if (Utility::PathExists(spath)) {
@@ -332,7 +332,7 @@ bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
 		std::vector<String> paths;
 		paths.reserve(zoneDirs.size());
 
-		for (const ZoneFragment& zf : zoneDirs) {
+		for (const auto& zf : zoneDirs) {
 			paths.push_back(zf.Path);
 		}
 

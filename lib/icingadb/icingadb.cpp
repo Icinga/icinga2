@@ -103,7 +103,7 @@ void IcingaDB::Start(bool runtimeCreated)
 		GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
 		GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo());
 
-	for (const Type::Ptr& type : GetTypes()) {
+	for (const auto& type : GetTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));
 		if (!ctype)
 			continue;

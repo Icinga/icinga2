@@ -187,7 +187,7 @@ Dictionary::Ptr ApiActions::DelayNotification(const ConfigObject::Ptr& object,
 	if (!params->Contains("timestamp"))
 		return ApiActions::CreateResult(400, "A timestamp is required to delay notifications");
 
-	for (const Notification::Ptr& notification : checkable->GetNotifications()) {
+	for (const auto& notification : checkable->GetNotifications()) {
 		notification->SetNextNotification(HttpUtility::GetLastParameter(params, "timestamp"));
 	}
 
@@ -310,7 +310,7 @@ Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
 	if (checkable) {
 		std::set<Comment::Ptr> comments = checkable->GetComments();
 
-		for (const Comment::Ptr& comment : comments) {
+		for (const auto& comment : comments) {
 			{
 				ObjectLock oLock (comment);
 				comment->SetRemovedBy(author);
@@ -404,7 +404,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	if (allServices && !service) {
 		ArrayData serviceDowntimes;
 
-		for (const Service::Ptr& hostService : host->GetServices()) {
+		for (const auto& hostService : host->GetServices()) {
 			Log(LogNotice, "ApiActions")
 				<< "Creating downtime for service " << hostService->GetName() << " on host " << host->GetName();
 
@@ -435,7 +435,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		ArrayData childDowntimes;
 
 		std::set<Checkable::Ptr> allChildren = checkable->GetAllChildren();
-		for (const Checkable::Ptr& child : allChildren) {
+		for (const auto& child : allChildren) {
 			Host::Ptr childHost;
 			Service::Ptr childService;
 			tie(childHost, childService) = GetHostService(child);
@@ -468,7 +468,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 			if (allServices && !childService) {
 				ArrayData childServiceDowntimes;
 
-				for (const Service::Ptr& childService : childHost->GetServices()) {
+				for (const auto& childService : childHost->GetServices()) {
 					Log(LogNotice, "ApiActions")
 						<< "Creating downtime for service " << childService->GetName() << " on child host " << childHost->GetName();
 
@@ -506,7 +506,7 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 	if (checkable) {
 		std::set<Downtime::Ptr> downtimes = checkable->GetDowntimes();
 
-		for (const Downtime::Ptr& downtime : downtimes) {
+		for (const auto& downtime : downtimes) {
 			{
 				ObjectLock oLock (downtime);
 				downtime->SetRemovedBy(author);
@@ -877,12 +877,12 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 	} else {
 		/* Check if the child endpoints have Icinga version >= 2.13 */
 		Zone::Ptr localZone = Zone::GetLocalZone();
-		for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
+		for (const auto& zone : ConfigType::GetObjectsByType<Zone>()) {
 			/* Fetch immediate child zone members */
 			if (zone->GetParent() == localZone && zone->CanAccessObject(endpointPtr->GetZone())) {
 				std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
 
-				for (const Endpoint::Ptr& childEndpoint : endpoints) {
+				for (const auto& childEndpoint : endpoints) {
 					if (!(childEndpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand)) {
 						/* Update execution */
 						double now = Utility::GetTime();

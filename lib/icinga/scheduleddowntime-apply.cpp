@@ -101,7 +101,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 		Array::Ptr arr = vinstances;
 
 		ObjectLock olock(arr);
-		for (const Value& instance : arr) {
+		for (const auto& instance : arr) {
 			String name = rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {
@@ -118,7 +118,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 
 		Dictionary::Ptr dict = vinstances;
 
-		for (const String& key : dict->GetKeys()) {
+		for (const auto& key : dict->GetKeys()) {
 			frame.Locals->Set(rule.GetFKVar(), key);
 			frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
 

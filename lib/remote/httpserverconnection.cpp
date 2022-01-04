@@ -367,7 +367,7 @@ bool EnsureValidBody(
 
 			ObjectLock olock(permissions);
 
-			for (const Value& permissionInfo : permissions) {
+			for (const auto& permissionInfo : permissions) {
 				String permission;
 
 				if (permissionInfo.IsObjectType<Dictionary>()) {

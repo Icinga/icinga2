@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(foreach)
 
 	bool seen_test1 = false, seen_test2 = false;
 
-	for (const Dictionary::Pair& kv : dictionary) {
+	for (const auto& kv : dictionary) {
 		BOOST_CHECK(kv.first == "test1" || kv.first == "test2");
 
 		if (kv.first == "test1") {

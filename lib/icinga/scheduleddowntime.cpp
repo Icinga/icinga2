@@ -90,7 +90,7 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 
 void ScheduledDowntime::TimerProc()
 {
-	for (const ScheduledDowntime::Ptr& sd : ConfigType::GetObjectsByType<ScheduledDowntime>()) {
+	for (const auto& sd : ConfigType::GetObjectsByType<ScheduledDowntime>()) {
 		if (sd->IsActive() && !sd->IsPaused()) {
 			try {
 				sd->CreateNextDowntime();
@@ -145,7 +145,7 @@ std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 	ObjectLock olock(ranges);
 
 	/* Find the longest lasting (and longer than minEnd, if given) segment that's already running */  
-	for (const Dictionary::Pair& kv : ranges) {
+	for (const auto& kv : ranges) {
 		Log(LogDebug, "ScheduledDowntime")
 		    << "Evaluating (running?) segment: " << kv.first << ": " << kv.second;
 
@@ -205,7 +205,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment()
 	ObjectLock olock(ranges);
 
 	/* Find the segment starting earliest */
-	for (const Dictionary::Pair& kv : ranges) {
+	for (const auto& kv : ranges) {
 		Log(LogDebug, "ScheduledDowntime")
 			<< "Evaluating segment: " << kv.first << ": " << kv.second;
 
@@ -251,7 +251,7 @@ void ScheduledDowntime::CreateNextDowntime()
 	double minEnd = 0;
 	auto downtimeOptionsHash (HashDowntimeOptions());
 
-	for (const Downtime::Ptr& downtime : GetCheckable()->GetDowntimes()) {
+	for (const auto& downtime : GetCheckable()->GetDowntimes()) {
 		if (downtime->GetScheduledBy() != GetName())
 			continue;
 
@@ -297,7 +297,7 @@ void ScheduledDowntime::CreateNextDowntime()
 		Log(LogNotice, "ScheduledDowntime")
 				<< "Processing child options " << childOptions << " for downtime " << downtimeName;
 
-		for (const Checkable::Ptr& child : GetCheckable()->GetAllChildren()) {
+		for (const auto& child : GetCheckable()->GetAllChildren()) {
 			Log(LogNotice, "ScheduledDowntime")
 				<< "Scheduling downtime for child object " << child->GetName();
 
@@ -318,7 +318,7 @@ void ScheduledDowntime::RemoveObsoleteDowntimes()
 	// Just to be sure start and removal don't happen at the same time
 	auto threshold (Utility::GetTime() + 5 * 60);
 
-	for (const Downtime::Ptr& downtime : GetCheckable()->GetDowntimes()) {
+	for (const auto& downtime : GetCheckable()->GetDowntimes()) {
 		if (downtime->GetScheduledBy() == name && downtime->GetStartTime() > threshold) {
 			auto configOwnerHash (downtime->GetConfigOwnerHash());
 
@@ -341,7 +341,7 @@ void ScheduledDowntime::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, cons
 	Array::Ptr segments = new Array();
 
 	ObjectLock olock(lvalue());
-	for (const Dictionary::Pair& kv : lvalue()) {
+	for (const auto& kv : lvalue()) {
 		try {
 			tm begin_tm, end_tm;
 			int stride;

@@ -29,7 +29,7 @@ void CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	DictionaryData nodes;
 
-	for (const CompatLogger::Ptr& compat_logger : ConfigType::GetObjectsByType<CompatLogger>()) {
+	for (const auto& compat_logger : ConfigType::GetObjectsByType<CompatLogger>()) {
 		nodes.emplace_back(compat_logger->GetName(), 1); // add more stats
 	}
 
@@ -492,7 +492,7 @@ void CompatLogger::ReopenFile(bool rotate)
 	WriteLine("LOG ROTATION: " + GetRotationMethod());
 	WriteLine("LOG VERSION: 2.0");
 
-	for (const Host::Ptr& host : ConfigType::GetObjectsByType<Host>()) {
+	for (const auto& host : ConfigType::GetObjectsByType<Host>()) {
 		String output;
 		CheckResult::Ptr cr = host->GetLastCheckResult();
 
@@ -510,7 +510,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		WriteLine(msgbuf.str());
 	}
 
-	for (const Service::Ptr& service : ConfigType::GetObjectsByType<Service>()) {
+	for (const auto& service : ConfigType::GetObjectsByType<Service>()) {
 		Host::Ptr host = service->GetHost();
 
 		String output;

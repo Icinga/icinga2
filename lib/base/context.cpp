@@ -38,7 +38,7 @@ void ContextTrace::Print(std::ostream& fp) const
 	fp << "\n";
 
 	int i = 0;
-	for (const String& frame : m_Frames) {
+	for (const auto& frame : m_Frames) {
 		fp << "\t(" << i << ") " << frame << "\n";
 		i++;
 	}

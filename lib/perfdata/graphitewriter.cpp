@@ -57,7 +57,7 @@ void GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& 
 {
 	DictionaryData nodes;
 
-	for (const GraphiteWriter::Ptr& graphitewriter : ConfigType::GetObjectsByType<GraphiteWriter>()) {
+	for (const auto& graphitewriter : ConfigType::GetObjectsByType<GraphiteWriter>()) {
 		size_t workQueueItems = graphitewriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = graphitewriter->m_WorkQueue.GetTaskCount(60) / 60.0;
 
@@ -348,7 +348,7 @@ void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
 	ObjectLock olock(perfdata);
-	for (const Value& val : perfdata) {
+	for (const auto& val : perfdata) {
 		PerfdataValue::Ptr pdv;
 
 		if (val.IsObjectType<PerfdataValue>())
@@ -475,7 +475,7 @@ Value GraphiteWriter::EscapeMacroMetric(const Value& value)
 		ArrayData result;
 
 		ObjectLock olock(arr);
-		for (const Value& arg : arr) {
+		for (const auto& arg : arr) {
 			result.push_back(EscapeMetric(arg));
 		}
 

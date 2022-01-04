@@ -46,7 +46,7 @@ String ServiceGroupsTable::GetPrefix() const
 
 void ServiceGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	for (const ServiceGroup::Ptr& sg : ConfigType::GetObjectsByType<ServiceGroup>()) {
+	for (const auto& sg : ConfigType::GetObjectsByType<ServiceGroup>()) {
 		if (!addRowFn(sg, LivestatusGroupByNone, Empty))
 			return;
 	}
@@ -111,7 +111,7 @@ Value ServiceGroupsTable::MembersAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		result.push_back(new Array({
 			service->GetHost()->GetName(),
 			service->GetShortName()
@@ -130,7 +130,7 @@ Value ServiceGroupsTable::MembersWithStateAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		result.push_back(new Array({
 			service->GetHost()->GetName(),
 			service->GetShortName(),
@@ -151,7 +151,7 @@ Value ServiceGroupsTable::WorstServiceStateAccessor(const Value& row)
 
 	Value worst_service = ServiceOK;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		if (service->GetState() > worst_service)
 			worst_service = service->GetState();
 	}
@@ -178,7 +178,7 @@ Value ServiceGroupsTable::NumServicesOkAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		if (service->GetState() == ServiceOK)
 			num_services++;
 	}
@@ -195,7 +195,7 @@ Value ServiceGroupsTable::NumServicesWarnAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		if (service->GetState() == ServiceWarning)
 			num_services++;
 	}
@@ -212,7 +212,7 @@ Value ServiceGroupsTable::NumServicesCritAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		if (service->GetState() == ServiceCritical)
 			num_services++;
 	}
@@ -229,7 +229,7 @@ Value ServiceGroupsTable::NumServicesUnknownAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		if (service->GetState() == ServiceUnknown)
 			num_services++;
 	}
@@ -246,7 +246,7 @@ Value ServiceGroupsTable::NumServicesPendingAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		if (!service->GetLastCheckResult())
 			num_services++;
 	}
@@ -263,7 +263,7 @@ Value ServiceGroupsTable::NumServicesHardOkAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceOK)
 			num_services++;
 	}
@@ -280,7 +280,7 @@ Value ServiceGroupsTable::NumServicesHardWarnAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceWarning)
 			num_services++;
 	}
@@ -297,7 +297,7 @@ Value ServiceGroupsTable::NumServicesHardCritAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceCritical)
 			num_services++;
 	}
@@ -314,7 +314,7 @@ Value ServiceGroupsTable::NumServicesHardUnknownAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : sg->GetMembers()) {
+	for (const auto& service : sg->GetMembers()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceUnknown)
 			num_services++;
 	}

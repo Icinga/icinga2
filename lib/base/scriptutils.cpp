@@ -124,7 +124,7 @@ bool ScriptUtils::Regex(const std::vector<Value>& args)
 		if (texts->GetLength() == 0)
 			return false;
 
-		for (const String& text : texts) {
+		for (const auto& text : texts) {
 			bool res = false;
 			try {
 				boost::smatch what;
@@ -177,7 +177,7 @@ bool ScriptUtils::Match(const std::vector<Value>& args)
 		if (texts->GetLength() == 0)
 			return false;
 
-		for (const String& text : texts) {
+		for (const auto& text : texts) {
 			bool res = Utility::Match(pattern, text);
 
 			if (mode == MatchAny && res)
@@ -223,7 +223,7 @@ bool ScriptUtils::CidrMatch(const std::vector<Value>& args)
 		if (ips->GetLength() == 0)
 			return false;
 
-		for (const String& ip : ips) {
+		for (const auto& ip : ips) {
 			bool res = Utility::CidrMatch(pattern, ip);
 
 			if (mode == MatchAny && res)
@@ -259,12 +259,12 @@ Array::Ptr ScriptUtils::Union(const std::vector<Value>& arguments)
 {
 	std::set<Value> values;
 
-	for (const Value& varr : arguments) {
+	for (const auto& varr : arguments) {
 		Array::Ptr arr = varr;
 
 		if (arr) {
 			ObjectLock olock(arr);
-			for (const Value& value : arr) {
+			for (const auto& value : arr) {
 				values.insert(value);
 			}
 		}
@@ -393,7 +393,7 @@ Array::Ptr ScriptUtils::Keys(const Object::Ptr& obj)
 
 	if (dict) {
 		ObjectLock olock(dict);
-		for (const Dictionary::Pair& kv : dict) {
+		for (const auto& kv : dict) {
 			result.push_back(kv.first);
 		}
 	}
@@ -402,7 +402,7 @@ Array::Ptr ScriptUtils::Keys(const Object::Ptr& obj)
 
 	if (ns) {
 		ObjectLock olock(ns);
-		for (const Namespace::Pair& kv : ns) {
+		for (const auto& kv : ns) {
 			result.push_back(kv.first);
 		}
 	}
@@ -453,7 +453,7 @@ Array::Ptr ScriptUtils::GetTemplates(const Type::Ptr& type)
 
 	ArrayData result;
 
-	for (const ConfigItem::Ptr& item : ConfigItem::GetItems(type)) {
+	for (const auto& item : ConfigItem::GetItems(type)) {
 		if (item->IsAbstract())
 			result.push_back(GetTargetForTemplate(item));
 	}
@@ -490,7 +490,7 @@ Array::Ptr ScriptUtils::GetObjects(const Type::Ptr& type)
 
 	ArrayData result;
 
-	for (const ConfigObject::Ptr& object : ctype->GetObjects())
+	for (const auto& object : ctype->GetObjects())
 		result.push_back(object);
 
 	return new Array(std::move(result));

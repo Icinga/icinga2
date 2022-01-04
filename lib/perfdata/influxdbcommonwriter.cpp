@@ -246,7 +246,7 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 
 		{
 			ObjectLock olock(tagsClean);
-			for (const Dictionary::Pair& pair : tagsClean) {
+			for (const auto& pair : tagsClean) {
 				String missing_macro;
 				Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
 
@@ -265,7 +265,7 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 
 	if (perfdata) {
 		ObjectLock olock(perfdata);
-		for (const Value& val : perfdata) {
+		for (const auto& val : perfdata) {
 			PerfdataValue::Ptr pdv;
 
 			if (val.IsObjectType<PerfdataValue>())
@@ -376,7 +376,7 @@ void InfluxdbCommonWriter::SendMetric(const Checkable::Ptr& checkable, const Dic
 	Dictionary::Ptr tags = tmpl->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
-		for (const Dictionary::Pair& pair : tags) {
+		for (const auto& pair : tags) {
 			// Empty macro expansion, no tag
 			if (!pair.second.IsEmpty()) {
 				msgbuf << "," << EscapeKeyOrTagValue(pair.first) << "=" << EscapeKeyOrTagValue(pair.second);
@@ -394,7 +394,7 @@ void InfluxdbCommonWriter::SendMetric(const Checkable::Ptr& checkable, const Dic
 		bool first = true;
 
 		ObjectLock fieldLock(fields);
-		for (const Dictionary::Pair& pair : fields) {
+		for (const auto& pair : fields) {
 			if (first)
 				first = false;
 			else
@@ -571,7 +571,7 @@ void InfluxdbCommonWriter::ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lva
 	Dictionary::Ptr tags = lvalue()->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
-		for (const Dictionary::Pair& pair : tags) {
+		for (const auto& pair : tags) {
 			if (!MacroProcessor::ValidateMacroString(pair.second))
 				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
 		}
@@ -589,7 +589,7 @@ void InfluxdbCommonWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& 
 	Dictionary::Ptr tags = lvalue()->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
-		for (const Dictionary::Pair& pair : tags) {
+		for (const auto& pair : tags) {
 			if (!MacroProcessor::ValidateMacroString(pair.second))
 				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
 		}

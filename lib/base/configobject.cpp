@@ -299,7 +299,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 			}
 		}
 
-		for (const String& attr : restoredAttrs)
+		for (const auto& attr : restoredAttrs)
 			original_attributes->Remove(attr);
 
 
@@ -483,13 +483,13 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	for (const auto& type : Type::GetAllTypes()) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		for (const auto& object : dtype->GetObjects()) {
 			Dictionary::Ptr update = Serialize(object, attributeTypes);
 
 			if (!update)
@@ -575,13 +575,13 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	unsigned long no_state = 0;
 
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	for (const auto& type : Type::GetAllTypes()) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		for (const auto& object : dtype->GetObjects()) {
 			if (!object->GetStateLoaded()) {
 				object->OnStateLoaded();
 				object->SetStateLoaded(true);
@@ -605,13 +605,13 @@ void ConfigObject::StopObjects()
 		return false;
 	});
 
-	for (const Type::Ptr& type : types) {
+	for (const auto& type : types) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		for (const auto& object : dtype->GetObjects()) {
 #ifdef I2_DEBUG
 			Log(LogDebug, "ConfigObject")
 				<< "Deactivate() called for config object '" << object->GetName() << "' with type '" << type->GetName() << "'.";
@@ -623,20 +623,20 @@ void ConfigObject::StopObjects()
 
 void ConfigObject::DumpModifiedAttributes(const std::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback)
 {
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	for (const auto& type : Type::GetAllTypes()) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		for (const auto& object : dtype->GetObjects()) {
 			Dictionary::Ptr originalAttributes = object->GetOriginalAttributes();
 
 			if (!originalAttributes)
 				continue;
 
 			ObjectLock olock(originalAttributes);
-			for (const Dictionary::Pair& kv : originalAttributes) {
+			for (const auto& kv : originalAttributes) {
 				String key = kv.first;
 
 				Type::Ptr type = object->GetReflectionType();

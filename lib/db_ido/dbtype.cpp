@@ -60,7 +60,7 @@ DbType::Ptr DbType::GetByID(long tid)
 {
 	std::unique_lock<std::mutex> lock(GetStaticMutex());
 
-	for (const TypeMap::value_type& kv : GetTypes()) {
+	for (const auto& kv : GetTypes()) {
 		if (kv.second->GetTypeID() == tid)
 			return kv.second;
 	}

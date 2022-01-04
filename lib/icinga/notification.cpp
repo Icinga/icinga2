@@ -133,7 +133,7 @@ void Notification::Start(bool runtimeCreated)
 	if (ApiListener::IsHACluster() && GetNextNotification() < Utility::GetTime() + 60)
 		SetNextNotification(Utility::GetTime() + 60, true);
 
-	for (const UserGroup::Ptr& group : GetUserGroups())
+	for (const auto& group : GetUserGroups())
 		group->AddNotification(this);
 
 	ObjectImpl<Notification>::Start(runtimeCreated);
@@ -148,7 +148,7 @@ void Notification::Stop(bool runtimeRemoved)
 	if (obj)
 		obj->UnregisterNotification(this);
 
-	for (const UserGroup::Ptr& group : GetUserGroups())
+	for (const auto& group : GetUserGroups())
 		group->RemoveNotification(this);
 }
 
@@ -171,7 +171,7 @@ std::set<User::Ptr> Notification::GetUsers() const
 	if (users) {
 		ObjectLock olock(users);
 
-		for (const String& name : users) {
+		for (const auto& name : users) {
 			User::Ptr user = User::GetByName(name);
 
 			if (!user)
@@ -193,7 +193,7 @@ std::set<UserGroup::Ptr> Notification::GetUserGroups() const
 	if (groups) {
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (const auto& name : groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (!ug)
@@ -395,7 +395,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	std::set<User::Ptr> users = GetUsers();
 	std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
 
-	for (const UserGroup::Ptr& ug : GetUserGroups()) {
+	for (const auto& ug : GetUserGroups()) {
 		std::set<User::Ptr> members = ug->GetMembers();
 		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
 	}
@@ -403,7 +403,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	std::set<User::Ptr> allNotifiedUsers;
 	Array::Ptr notifiedProblemUsers = GetNotifiedProblemUsers();
 
-	for (const User::Ptr& user : allUsers) {
+	for (const auto& user : allUsers) {
 		String userName = user->GetName();
 
 		if (!user->GetEnableNotifications()) {
@@ -609,7 +609,7 @@ String Notification::NotificationFilterToString(int filter, const std::map<Strin
 	std::vector<String> sFilters;
 
 	typedef std::pair<String, int> kv_pair;
-	for (const kv_pair& kv : filterMap) {
+	for (const auto& kv : filterMap) {
 		if (filter & kv.second)
 			sFilters.push_back(kv.first);
 	}

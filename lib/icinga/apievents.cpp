@@ -61,7 +61,7 @@ void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckR
 	result->Set("downtime_depth", checkable->GetDowntimeDepth());
 	result->Set("acknowledgement", checkable->IsAcknowledged());
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -97,7 +97,7 @@ void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckR
 	result->Set("downtime_depth", checkable->GetDowntimeDepth());
 	result->Set("acknowledgement", checkable->IsAcknowledged());
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -135,7 +135,7 @@ void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notif
 
 	ArrayData userNames;
 
-	for (const User::Ptr& user : users) {
+	for (const auto& user : users) {
 		userNames.push_back(user->GetName());
 	}
 
@@ -145,7 +145,7 @@ void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notif
 	result->Set("text", text);
 	result->Set("check_result", Serialize(cr));
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -181,7 +181,7 @@ void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const Me
 	result->Set("threshold_low", checkable->GetFlappingThresholdLow());
 	result->Set("threshold_high", checkable->GetFlappingThresholdHigh());
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -222,7 +222,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	result->Set("persistent", persistent);
 	result->Set("expiry", expiry);
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -255,7 +255,7 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, c
 	result->Set("state_type", checkable->GetStateType());
 	result->Set("acknowledgement_type", AcknowledgementNone);
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -278,7 +278,7 @@ void ApiEvents::CommentAddedHandler(const Comment::Ptr& comment)
 		{ "comment", Serialize(comment, FAConfig | FAState) }
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -301,7 +301,7 @@ void ApiEvents::CommentRemovedHandler(const Comment::Ptr& comment)
 		{ "comment", Serialize(comment, FAConfig | FAState) }
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -324,7 +324,7 @@ void ApiEvents::DowntimeAddedHandler(const Downtime::Ptr& downtime)
 		{ "downtime", Serialize(downtime, FAConfig | FAState) }
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -347,7 +347,7 @@ void ApiEvents::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 		{ "downtime", Serialize(downtime, FAConfig | FAState) }
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -370,7 +370,7 @@ void ApiEvents::DowntimeStartedHandler(const Downtime::Ptr& downtime)
 		{ "downtime", Serialize(downtime, FAConfig | FAState) }
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -393,7 +393,7 @@ void ApiEvents::DowntimeTriggeredHandler(const Downtime::Ptr& downtime)
 		{ "downtime", Serialize(downtime, FAConfig | FAState) }
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -430,7 +430,7 @@ void ApiEvents::SendObjectChangeEvent(const ConfigObject::Ptr& object, const Eve
 		{"object_name", object->GetName()},
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
+	for (const auto& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 

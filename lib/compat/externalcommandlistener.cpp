@@ -19,7 +19,7 @@ void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Arr
 {
 	DictionaryData nodes;
 
-	for (const ExternalCommandListener::Ptr& externalcommandlistener : ConfigType::GetObjectsByType<ExternalCommandListener>()) {
+	for (const auto& externalcommandlistener : ConfigType::GetObjectsByType<ExternalCommandListener>()) {
 		nodes.emplace_back(externalcommandlistener->GetName(), 1); //add more stats
 	}
 

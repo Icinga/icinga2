@@ -899,7 +899,7 @@ ExpressionResult ImportDefaultTemplatesExpression::DoEvaluate(ScriptFrame& frame
 	String type = VMOps::GetField(frame.Self, "type", frame.Sandboxed, m_DebugInfo);
 	Type::Ptr ptype = Type::GetByName(type);
 
-	for (const ConfigItem::Ptr& item : ConfigItem::GetDefaultTemplates(ptype)) {
+	for (const auto& item : ConfigItem::GetDefaultTemplates(ptype)) {
 		Dictionary::Ptr scope = item->GetScope();
 
 		if (scope)

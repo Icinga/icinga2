@@ -6,7 +6,7 @@ using namespace icinga;
 
 bool AndFilter::Apply(const Table::Ptr& table, const Value& row)
 {
-	for (const Filter::Ptr& filter : m_Filters) {
+	for (const auto& filter : m_Filters) {
 		if (!filter->Apply(table, row))
 			return false;
 	}

@@ -412,7 +412,7 @@ static int Main()
 #endif /* _WIN32 */
 
 	if (vm.count("define")) {
-		for (const String& define : vm["define"].as<std::vector<std::string> >()) {
+		for (const auto& define : vm["define"].as<std::vector<std::string> >()) {
 			String key, value;
 			size_t pos = define.FindFirstOf('=');
 			if (pos != String::NPos) {
@@ -460,7 +460,7 @@ static int Main()
 	ConfigCompiler::AddIncludeSearchDir(Configuration::IncludeConfDir);
 
 	if (!autocomplete && vm.count("include")) {
-		for (const String& includePath : vm["include"].as<std::vector<std::string> >()) {
+		for (const auto& includePath : vm["include"].as<std::vector<std::string> >()) {
 			ConfigCompiler::AddIncludeSearchDir(includePath);
 		}
 	}

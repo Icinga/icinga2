@@ -66,7 +66,7 @@ static Value MathMax(const std::vector<Value>& args)
 	bool first = true;
 	Value result = -INFINITY;
 
-	for (const Value& arg : args) {
+	for (const auto& arg : args) {
 		if (first || arg > result) {
 			first = false;
 			result = arg;
@@ -81,7 +81,7 @@ static Value MathMin(const std::vector<Value>& args)
 	bool first = true;
 	Value result = INFINITY;
 
-	for (const Value& arg : args) {
+	for (const auto& arg : args) {
 		if (first || arg < result) {
 			first = false;
 			result = arg;

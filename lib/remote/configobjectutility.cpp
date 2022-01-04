@@ -140,7 +140,7 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 		attrs->CopyTo(allAttrs);
 
 		ObjectLock olock(attrs);
-		for (const Dictionary::Pair& kv : attrs) {
+		for (const auto& kv : attrs) {
 			int fid = type->GetFieldId(kv.first.SubStr(0, kv.first.FindFirstOf(".")));
 
 			if (fid < 0)
@@ -222,7 +222,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 
 				Utility::Remove(path);
 
-				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
+				for (const auto& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex, false));
 
 					if (diagnosticInformation)
@@ -245,7 +245,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 
 				Utility::Remove(path);
 
-				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
+				for (const auto& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex, false));
 
 					if (diagnosticInformation)
@@ -309,7 +309,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		return false;
 	}
 
-	for (const Object::Ptr& pobj : parents) {
+	for (const auto& pobj : parents) {
 		ConfigObject::Ptr parentObj = dynamic_pointer_cast<ConfigObject>(pobj);
 
 		if (!parentObj)

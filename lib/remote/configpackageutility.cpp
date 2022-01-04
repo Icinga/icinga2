@@ -89,7 +89,7 @@ String ConfigPackageUtility::CreateStage(const String& packageName, const Dictio
 
 	if (files) {
 		ObjectLock olock(files);
-		for (const Dictionary::Pair& kv : files) {
+		for (const auto& kv : files) {
 			if (ContainsDotDot(kv.first)) {
 				foundDotDot = true;
 				break;
@@ -360,7 +360,7 @@ bool ConfigPackageUtility::ContainsDotDot(const String& path)
 {
 	std::vector<String> tokens = path.Split("/\\");
 
-	for (const String& part : tokens) {
+	for (const auto& part : tokens) {
 		if (part == "..")
 			return true;
 	}

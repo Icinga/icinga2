@@ -261,7 +261,7 @@ Object::Ptr Array::Clone() const
 	ArrayData arr;
 
 	ObjectLock olock(this);
-	for (const Value& val : m_Data) {
+	for (const auto& val : m_Data) {
 		arr.push_back(val.Clone());
 	}
 
@@ -304,7 +304,7 @@ Value Array::Join(const Value& separator) const
 
 	ObjectLock olock(this);
 
-	for (const Value& item : m_Data) {
+	for (const auto& item : m_Data) {
 		if (first) {
 			first = false;
 		} else {
@@ -323,7 +323,7 @@ Array::Ptr Array::Unique() const
 
 	ObjectLock olock(this);
 
-	for (const Value& item : m_Data) {
+	for (const auto& item : m_Data) {
 		result.insert(item);
 	}
 

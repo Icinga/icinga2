@@ -27,7 +27,7 @@ void WindowsEventLogLogger::StatsFunc(const Dictionary::Ptr& status, const Array
 {
 	DictionaryData nodes;
 
-	for (const WindowsEventLogLogger::Ptr& logger : ConfigType::GetObjectsByType<WindowsEventLogLogger>()) {
+	for (const auto& logger : ConfigType::GetObjectsByType<WindowsEventLogLogger>()) {
 		nodes.emplace_back(logger->GetName(), 1);
 	}
 

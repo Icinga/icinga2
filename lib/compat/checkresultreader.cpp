@@ -27,7 +27,7 @@ void CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 {
 	DictionaryData nodes;
 
-	for (const CheckResultReader::Ptr& checkresultreader : ConfigType::GetObjectsByType<CheckResultReader>()) {
+	for (const auto& checkresultreader : ConfigType::GetObjectsByType<CheckResultReader>()) {
 		nodes.emplace_back(checkresultreader->GetName(), 1); //add more stats
 	}
 

@@ -24,7 +24,7 @@ public:
 		if (statsFunctions) {
 			ObjectLock olock(statsFunctions);
 
-			for (const Namespace::Pair& kv : statsFunctions)
+			for (const auto& kv : statsFunctions)
 				addTarget(GetTargetByName("Status", kv.first));
 		}
 	}

@@ -72,7 +72,7 @@ static Array::Ptr DictionaryKeys()
 
 	ArrayData keys;
 	ObjectLock olock(self);
-	for (const Dictionary::Pair& kv : self) {
+	for (const auto& kv : self) {
 		keys.push_back(kv.first);
 	}
 	return new Array(std::move(keys));
@@ -86,7 +86,7 @@ static Array::Ptr DictionaryValues()
 
 	ArrayData values;
 	ObjectLock olock(self);
-	for (const Dictionary::Pair& kv : self) {
+	for (const auto& kv : self) {
 		values.push_back(kv.second);
 	}
 	return new Array(std::move(values));

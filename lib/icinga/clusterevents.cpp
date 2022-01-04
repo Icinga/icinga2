@@ -129,7 +129,7 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 
 	if (vperf) {
 		ObjectLock olock(vperf);
-		for (const Value& vp : vperf) {
+		for (const auto& vp : vperf) {
 			Value p;
 
 			if (vp.IsObjectType<Dictionary>()) {
@@ -773,12 +773,12 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 			}
 
 			/* Check if the child endpoints have Icinga version >= 2.13 */
-			for (const Zone::Ptr &zone : ConfigType::GetObjectsByType<Zone>()) {
+			for (const auto&zone : ConfigType::GetObjectsByType<Zone>()) {
 				/* Fetch immediate child zone members */
 				if (zone->GetParent() == localZone && zone->CanAccessObject(endpointZone)) {
 					std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
 
-					for (const Endpoint::Ptr &childEndpoint : endpoints) {
+					for (const auto&childEndpoint : endpoints) {
 						if (!(childEndpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand)) {
 							double now = Utility::GetTime();
 							Dictionary::Ptr executedParams = new Dictionary();
@@ -1020,7 +1020,7 @@ void ClusterEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& n
 	params->Set("notification", notification->GetName());
 
 	ArrayData ausers;
-	for (const User::Ptr& user : users) {
+	for (const auto& user : users) {
 		ausers.push_back(user->GetName());
 	}
 	params->Set("users", new Array(std::move(ausers)));
@@ -1111,7 +1111,7 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 
 	{
 		ObjectLock olock(ausers);
-		for (const String& auser : ausers) {
+		for (const auto& auser : ausers) {
 			User::Ptr user = User::GetByName(auser);
 
 			if (!user)
@@ -1128,7 +1128,7 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 	notification->SetNoMoreNotifications(params->Get("no_more_notifications"));
 
 	ArrayData notifiedProblemUsers;
-	for (const User::Ptr& user : users) {
+	for (const auto& user : users) {
 		notifiedProblemUsers.push_back(user->GetName());
 	}
 

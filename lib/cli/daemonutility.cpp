@@ -115,7 +115,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 		ConfigCompilerContext::GetInstance()->OpenObjectsFile(objectsFile);
 
 	if (!configs.empty()) {
-		for (const String& configPath : configs) {
+		for (const auto& configPath : configs) {
 			try {
 				std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(configPath, String(), "_etc");
 				success = ExecuteExpression(&*expression);

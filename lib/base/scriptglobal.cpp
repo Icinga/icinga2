@@ -92,7 +92,7 @@ void ScriptGlobal::WriteToFile(const String& filename)
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
 	ObjectLock olock(m_Globals);
-	for (const Namespace::Pair& kv : m_Globals) {
+	for (const auto& kv : m_Globals) {
 		Value value = kv.second->Get();
 
 		if (value.IsObject())

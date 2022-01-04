@@ -125,7 +125,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 				<< "Could not create object '" << objName << "':";
 
 			ObjectLock olock(errors);
-			for (const String& error : errors) {
+			for (const auto& error : errors) {
 				Log(LogCritical, "ApiListener", error);
 			}
 
@@ -167,7 +167,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (modified_attributes) {
 		ObjectLock olock(modified_attributes);
-		for (const Dictionary::Pair& kv : modified_attributes) {
+		for (const auto& kv : modified_attributes) {
 			/* update all modified attributes
 			 * but do not update the object version yet.
 			 * This triggers cluster events otherwise.
@@ -185,14 +185,14 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 		{
 			ObjectLock xlock(objOriginalAttributes);
-			for (const Dictionary::Pair& kv : objOriginalAttributes) {
+			for (const auto& kv : objOriginalAttributes) {
 				/* original attribute was removed, restore it */
 				if (!newOriginalAttributes->Contains(kv.first))
 					restoreAttrs.push_back(kv.first);
 			}
 		}
 
-		for (const String& key : restoreAttrs) {
+		for (const auto& key : restoreAttrs) {
 			/* do not update the object version yet. */
 			object->RestoreAttribute(key, false);
 		}
@@ -287,7 +287,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 		Log(LogCritical, "ApiListener", "Could not delete object:");
 
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (const auto& error : errors) {
 			Log(LogCritical, "ApiListener", error);
 		}
 	}
@@ -356,11 +356,11 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 	if (original_attributes) {
 		ObjectLock olock(original_attributes);
-		for (const Dictionary::Pair& kv : original_attributes) {
+		for (const auto& kv : original_attributes) {
 			std::vector<String> tokens = kv.first.Split(".");
 
 			Value value = object;
-			for (const String& token : tokens) {
+			for (const auto& token : tokens) {
 				value = VMOps::GetField(value, token);
 			}
 
@@ -453,13 +453,13 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Log(LogInformation, "ApiListener")
 		<< "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	for (const auto& type : Type::GetAllTypes()) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		for (const auto& object : dtype->GetObjects()) {
 			/* don't sync objects for non-matching parent-child zones */
 			if (!azone->CanAccessObject(object))
 				continue;

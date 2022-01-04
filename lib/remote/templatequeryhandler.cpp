@@ -41,7 +41,7 @@ public:
 	{
 		Type::Ptr ptype = Type::GetByName(type);
 
-		for (const ConfigItem::Ptr& item : ConfigItem::GetItems(ptype)) {
+		for (const auto& item : ConfigItem::GetItems(ptype)) {
 			if (item->IsAbstract())
 				addTarget(GetTargetForTemplate(item));
 		}

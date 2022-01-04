@@ -13,7 +13,7 @@ REGISTER_TYPE(ApiUser);
 
 ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
 {
-	for (const ApiUser::Ptr& user : ConfigType::GetObjectsByType<ApiUser>()) {
+	for (const auto& user : ConfigType::GetObjectsByType<ApiUser>()) {
 		if (user->GetClientCN() == cn)
 			return user;
 	}

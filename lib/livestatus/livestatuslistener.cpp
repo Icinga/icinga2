@@ -30,7 +30,7 @@ void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::P
 {
 	DictionaryData nodes;
 
-	for (const LivestatusListener::Ptr& livestatuslistener : ConfigType::GetObjectsByType<LivestatusListener>()) {
+	for (const auto& livestatuslistener : ConfigType::GetObjectsByType<LivestatusListener>()) {
 		nodes.emplace_back(livestatuslistener->GetName(), new Dictionary({
 			{ "connections", l_Connections }
 		}));

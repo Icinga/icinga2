@@ -391,8 +391,8 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	{
 		std::unique_lock<std::mutex> lock(m_Mutex);
 
-		for (const TypeMap::value_type& kv : m_Items) {
-			for (const ItemMap::value_type& kv2 : kv.second) {
+		for (const auto& kv : m_Items) {
+			for (const auto& kv2 : kv.second) {
 				if (kv2.second->m_Abstract || kv2.second->m_Object)
 					continue;
 
@@ -405,7 +405,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 		ItemList newUnnamedItems;
 
-		for (const ConfigItem::Ptr& item : m_UnnamedItems) {
+		for (const auto& item : m_UnnamedItems) {
 			if (item->m_ActivationContext != context) {
 				newUnnamedItems.push_back(item);
 				continue;
@@ -438,20 +438,20 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	std::set<Type::Ptr> types;
 	std::set<Type::Ptr> completed_types;
 
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	for (const auto& type : Type::GetAllTypes()) {
 		if (ConfigObject::TypeInstance->IsAssignableFrom(type))
 			types.insert(type);
 	}
 
 	while (types.size() != completed_types.size()) {
-		for (const Type::Ptr& type : types) {
+		for (const auto& type : types) {
 			if (completed_types.find(type) != completed_types.end())
 				continue;
 
 			bool unresolved_dep = false;
 
 			/* skip this type (for now) if there are unresolved load dependencies */
-			for (const String& loadDep : type->GetLoadDependencies()) {
+			for (const auto& loadDep : type->GetLoadDependencies()) {
 				Type::Ptr pLoadDep = Type::GetByName(loadDep);
 				if (types.find(pLoadDep) != types.end() && completed_types.find(pLoadDep) == completed_types.end()) {
 					unresolved_dep = true;
@@ -496,14 +496,14 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	completed_types.clear();
 
 	while (types.size() != completed_types.size()) {
-		for (const Type::Ptr& type : types) {
+		for (const auto& type : types) {
 			if (completed_types.find(type) != completed_types.end())
 				continue;
 
 			bool unresolved_dep = false;
 
 			/* skip this type (for now) if there are unresolved load dependencies */
-			for (const String& loadDep : type->GetLoadDependencies()) {
+			for (const auto& loadDep : type->GetLoadDependencies()) {
 				Type::Ptr pLoadDep = Type::GetByName(loadDep);
 				if (types.find(pLoadDep) != types.end() && completed_types.find(pLoadDep) == completed_types.end()) {
 					unresolved_dep = true;
@@ -554,7 +554,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				return false;
 
 			notified_items = 0;
-			for (const String& loadDep : type->GetLoadDependencies()) {
+			for (const auto& loadDep : type->GetLoadDependencies()) {
 				upq.ParallelFor(items, [loadDep, &type, &notified_items](const ItemPair& ip) {
 					const ConfigItem::Ptr& item = ip.first;
 
@@ -595,7 +595,7 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	if (!CommitNewItems(context, upq, newItems)) {
 		upq.ReportExceptions("config");
 
-		for (const ConfigItem::Ptr& item : newItems) {
+		for (const auto& item : newItems) {
 			item->Unregister();
 		}
 
@@ -608,14 +608,14 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 		/* log stats for external parsers */
 		typedef std::map<Type::Ptr, int> ItemCountMap;
 		ItemCountMap itemCounts;
-		for (const ConfigItem::Ptr& item : newItems) {
+		for (const auto& item : newItems) {
 			if (!item->m_Object)
 				continue;
 
 			itemCounts[item->m_Object->GetReflectionType()]++;
 		}
 
-		for (const ItemCountMap::value_type& kv : itemCounts) {
+		for (const auto& kv : itemCounts) {
 			Log(LogInformation, "ConfigItem")
 				<< "Instantiated " << kv.second << " " << (kv.second != 1 ? kv.first->GetPluralName() : kv.first->GetName()) << ".";
 		}
@@ -656,7 +656,7 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 		}
 	}
 
-	for (const ConfigItem::Ptr& item : newItems) {
+	for (const auto& item : newItems) {
 		if (!item->m_Object)
 			continue;
 
@@ -687,14 +687,14 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 
 	/* Find the last logger type to be activated. */
 	Type::Ptr lastLoggerType = nullptr;
-	for (const Type::Ptr& type : types) {
+	for (const auto& type : types) {
 		if (Logger::TypeInstance->IsAssignableFrom(type)) {
 			lastLoggerType = type;
 		}
 	}
 
-	for (const Type::Ptr& type : types) {
-		for (const ConfigItem::Ptr& item : newItems) {
+	for (const auto& type : types) {
+		for (const auto& item : newItems) {
 			if (!item->m_Object)
 				continue;
 
@@ -762,7 +762,7 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const Type::Ptr& type)
 
 	items.reserve(it->second.size());
 
-	for (const ItemMap::value_type& kv : it->second) {
+	for (const auto& kv : it->second) {
 		items.push_back(kv.second);
 	}
 
@@ -782,7 +782,7 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetDefaultTemplates(const Type::Ptr& ty
 
 	items.reserve(it->second.size());
 
-	for (const ItemMap::value_type& kv : it->second) {
+	for (const auto& kv : it->second) {
 		items.push_back(kv.second);
 	}
 
@@ -793,7 +793,7 @@ void ConfigItem::RemoveIgnoredItems(const String& allowedConfigPath)
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
 
-	for (const String& path : m_IgnoredItems) {
+	for (const auto& path : m_IgnoredItems) {
 		if (path.Find(allowedConfigPath) == String::NPos)
 			continue;
 

@@ -156,19 +156,19 @@ String ServicesTable::GetPrefix() const
 void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	if (GetGroupByType() == LivestatusGroupByServiceGroup) {
-		for (const ServiceGroup::Ptr& sg : ConfigType::GetObjectsByType<ServiceGroup>()) {
-			for (const Service::Ptr& service : sg->GetMembers()) {
+		for (const auto& sg : ConfigType::GetObjectsByType<ServiceGroup>()) {
+			for (const auto& service : sg->GetMembers()) {
 				/* the caller must know which groupby type and value are set for this row */
 				if (!addRowFn(service, LivestatusGroupByServiceGroup, sg))
 					return;
 			}
 		}
 	} else if (GetGroupByType() == LivestatusGroupByHostGroup) {
-		for (const HostGroup::Ptr& hg : ConfigType::GetObjectsByType<HostGroup>()) {
+		for (const auto& hg : ConfigType::GetObjectsByType<HostGroup>()) {
 			ObjectLock ylock(hg);
-			for (const Host::Ptr& host : hg->GetMembers()) {
+			for (const auto& host : hg->GetMembers()) {
 				ObjectLock ylock(host);
-				for (const Service::Ptr& service : host->GetServices()) {
+				for (const auto& service : host->GetServices()) {
 					/* the caller must know which groupby type and value are set for this row */
 					if (!addRowFn(service, LivestatusGroupByHostGroup, hg))
 						return;
@@ -176,7 +176,7 @@ void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 			}
 		}
 	} else {
-		for (const Service::Ptr& service : ConfigType::GetObjectsByType<Service>()) {
+		for (const auto& service : ConfigType::GetObjectsByType<Service>()) {
 			if (!addRowFn(service, LivestatusGroupByNone, Empty))
 				return;
 		}
@@ -904,7 +904,7 @@ Value ServicesTable::InNotificationPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	for (const Notification::Ptr& notification : service->GetNotifications()) {
+	for (const auto& notification : service->GetNotifications()) {
 		TimePeriod::Ptr timeperiod = notification->GetPeriod();
 
 		if (!timeperiod || timeperiod->IsInside(Utility::GetTime()))
@@ -923,7 +923,7 @@ Value ServicesTable::ContactsAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
+	for (const auto& user : CompatUtility::GetCheckableNotificationUsers(service)) {
 		result.push_back(user->GetName());
 	}
 
@@ -939,7 +939,7 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Downtime::Ptr& downtime : service->GetDowntimes()) {
+	for (const auto& downtime : service->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
@@ -958,7 +958,7 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Downtime::Ptr& downtime : service->GetDowntimes()) {
+	for (const auto& downtime : service->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
@@ -981,7 +981,7 @@ Value ServicesTable::CommentsAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Comment::Ptr& comment : service->GetComments()) {
+	for (const auto& comment : service->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -1000,7 +1000,7 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Comment::Ptr& comment : service->GetComments()) {
+	for (const auto& comment : service->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -1023,7 +1023,7 @@ Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Comment::Ptr& comment : service->GetComments()) {
+	for (const auto& comment : service->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -1052,7 +1052,7 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 
 	if (vars) {
 		ObjectLock olock(vars);
-		for (const Dictionary::Pair& kv : vars) {
+		for (const auto& kv : vars) {
 			result.push_back(kv.first);
 		}
 	}
@@ -1073,7 +1073,7 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 
 	if (vars) {
 		ObjectLock olock(vars);
-		for (const Dictionary::Pair& kv : vars) {
+		for (const auto& kv : vars) {
 			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
 				result.push_back(JsonEncode(kv.second));
 			else
@@ -1097,7 +1097,7 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 
 	if (vars) {
 		ObjectLock olock(vars);
-		for (const Dictionary::Pair& kv : vars) {
+		for (const auto& kv : vars) {
 			Value val;
 
 			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
@@ -1130,7 +1130,7 @@ Value ServicesTable::CVIsJsonAccessor(const Value& row)
 	bool cv_is_json = false;
 
 	ObjectLock olock(vars);
-	for (const Dictionary::Pair& kv : vars) {
+	for (const auto& kv : vars) {
 		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
 			cv_is_json = true;
 	}
@@ -1162,7 +1162,7 @@ Value ServicesTable::ContactGroupsAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
+	for (const auto& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		result.push_back(usergroup->GetName());
 	}
 

@@ -19,7 +19,7 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 
 	Dictionary::Ptr node = m_UrlTree;
 
-	for (const String& elem : url->GetPath()) {
+	for (const auto& elem : url->GetPath()) {
 		Dictionary::Ptr children = node->Get("children");
 
 		if (!children) {
@@ -66,7 +66,7 @@ void HttpHandler::ProcessRequest(
 
 		if (current_handlers) {
 			ObjectLock olock(current_handlers);
-			for (const HttpHandler::Ptr& current_handler : current_handlers) {
+			for (const auto& current_handler : current_handlers) {
 				handlers.push_back(current_handler);
 			}
 		}
@@ -107,7 +107,7 @@ void HttpHandler::ProcessRequest(
 	 * do exist.
 	 */
 	try {
-		for (const HttpHandler::Ptr& handler : handlers) {
+		for (const auto& handler : handlers) {
 			if (handler->HandleRequest(stream, user, request, url, response, params, yc, server)) {
 				processed = true;
 				break;

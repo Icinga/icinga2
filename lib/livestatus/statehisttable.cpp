@@ -106,7 +106,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 		/* determine service notifications notification_period and compare against current timestamp */
 		bool in_notification_period = true;
 		String notification_period_name;
-		for (const Notification::Ptr& notification : checkable->GetNotifications()) {
+		for (const auto& notification : checkable->GetNotifications()) {
 			TimePeriod::Ptr notification_period = notification->GetPeriod();
 
 			if (notification_period) {
@@ -252,7 +252,7 @@ void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 	Checkable::Ptr checkable;
 
 	for (const auto& kv : m_CheckablesCache) {
-		for (const Dictionary::Ptr& state_hist_bag : kv.second) {
+		for (const auto& state_hist_bag : kv.second) {
 			/* pass a dictionary from state history array */
 			if (!addRowFn(state_hist_bag, LivestatusGroupByNone, Empty))
 				return;

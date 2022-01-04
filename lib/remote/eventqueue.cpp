@@ -117,7 +117,7 @@ std::vector<EventQueue::Ptr> EventQueue::GetQueuesForType(const String& type)
 	std::vector<EventQueue::Ptr> availQueues;
 
 	typedef std::pair<String, EventQueue::Ptr> kv_pair;
-	for (const kv_pair& kv : queues) {
+	for (const auto& kv : queues) {
 		if (kv.second->CanProcessEvent(type))
 			availQueues.push_back(kv.second);
 	}

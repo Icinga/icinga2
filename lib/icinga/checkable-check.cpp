@@ -290,7 +290,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		}
 
 		/* reschedule direct parents */
-		for (const Checkable::Ptr& parent : GetParents()) {
+		for (const auto& parent : GetParents()) {
 			if (parent.get() == this)
 				continue;
 

@@ -60,7 +60,7 @@ void ElasticsearchWriter::StatsFunc(const Dictionary::Ptr& status, const Array::
 {
 	DictionaryData nodes;
 
-	for (const ElasticsearchWriter::Ptr& elasticsearchwriter : ConfigType::GetObjectsByType<ElasticsearchWriter>()) {
+	for (const auto& elasticsearchwriter : ConfigType::GetObjectsByType<ElasticsearchWriter>()) {
 		size_t workQueueItems = elasticsearchwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = elasticsearchwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
 
@@ -152,7 +152,7 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 
 	if (perfdata) {
 		ObjectLock olock(perfdata);
-		for (const Value& val : perfdata) {
+		for (const auto& val : perfdata) {
 			PerfdataValue::Ptr pdv;
 
 			if (val.IsObjectType<PerfdataValue>())
@@ -347,7 +347,7 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 
 	ArrayData userNames;
 
-	for (const User::Ptr& user : users) {
+	for (const auto& user : users) {
 		userNames.push_back(user->GetName());
 	}
 

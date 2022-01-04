@@ -24,7 +24,7 @@ boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, c
 
 void Checkable::ResetNotificationNumbers()
 {
-	for (const Notification::Ptr& notification : GetNotifications()) {
+	for (const auto& notification : GetNotifications()) {
 		ObjectLock olock(notification);
 		notification->ResetNotificationNumber();
 	}
@@ -63,7 +63,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 		<< "Checkable '" << checkableName << "' has " << notifications.size()
 		<< " notification(s). Checking filters for type '" << notificationTypeName << "', sends will be logged.";
 
-	for (const Notification::Ptr& notification : notifications) {
+	for (const auto& notification : notifications) {
 		// Re-send stashed notifications from cold startup.
 		if (ApiListener::UpdatedObjectAuthority()) {
 			try {

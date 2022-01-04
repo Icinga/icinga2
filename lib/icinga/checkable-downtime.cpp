@@ -11,21 +11,21 @@ using namespace icinga;
 
 void Checkable::RemoveAllDowntimes()
 {
-	for (const Downtime::Ptr& downtime : GetDowntimes()) {
+	for (const auto& downtime : GetDowntimes()) {
 		Downtime::RemoveDowntime(downtime->GetName(), true, true, true);
 	}
 }
 
 void Checkable::TriggerDowntimes(double triggerTime)
 {
-	for (const Downtime::Ptr& downtime : GetDowntimes()) {
+	for (const auto& downtime : GetDowntimes()) {
 		downtime->TriggerDowntime(triggerTime);
 	}
 }
 
 bool Checkable::IsInDowntime() const
 {
-	for (const Downtime::Ptr& downtime : GetDowntimes()) {
+	for (const auto& downtime : GetDowntimes()) {
 		if (downtime->IsInEffect())
 			return true;
 	}
@@ -37,7 +37,7 @@ int Checkable::GetDowntimeDepth() const
 {
 	int downtime_depth = 0;
 
-	for (const Downtime::Ptr& downtime : GetDowntimes()) {
+	for (const auto& downtime : GetDowntimes()) {
 		if (downtime->IsInEffect())
 			downtime_depth++;
 	}

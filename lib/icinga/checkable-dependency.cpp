@@ -54,7 +54,7 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 		return false;
 	}
 
-	for (const Checkable::Ptr& checkable : GetParents()) {
+	for (const auto& checkable : GetParents()) {
 		if (!checkable->IsReachable(dt, failedDependency, rstack + 1))
 			return false;
 	}
@@ -77,7 +77,7 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 	int countDeps = deps.size();
 	int countFailed = 0;
 
-	for (const Dependency::Ptr& dep : deps) {
+	for (const auto& dep : deps) {
 		if (!dep->IsAvailable(dt)) {
 			countFailed++;
 
@@ -103,7 +103,7 @@ std::set<Checkable::Ptr> Checkable::GetParents() const
 {
 	std::set<Checkable::Ptr> parents;
 
-	for (const Dependency::Ptr& dep : GetDependencies()) {
+	for (const auto& dep : GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (parent && parent.get() != this)
@@ -117,7 +117,7 @@ std::set<Checkable::Ptr> Checkable::GetChildren() const
 {
 	std::set<Checkable::Ptr> parents;
 
-	for (const Dependency::Ptr& dep : GetReverseDependencies()) {
+	for (const auto& dep : GetReverseDependencies()) {
 		Checkable::Ptr service = dep->GetChild();
 
 		if (service && service.get() != this)
@@ -143,7 +143,7 @@ void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int l
 
 	std::set<Checkable::Ptr> localChildren;
 
-	for (const Checkable::Ptr& checkable : children) {
+	for (const auto& checkable : children) {
 		std::set<Checkable::Ptr> cChildren = checkable->GetChildren();
 
 		if (!cChildren.empty()) {

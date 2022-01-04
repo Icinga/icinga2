@@ -76,7 +76,7 @@ static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes, Se
 
 	int index = 0;
 
-	for (const Value& value : input) {
+	for (const auto& value : input) {
 		stack.Push(Convert::ToString(index), value);
 		result.emplace_back(SerializeInternal(value, attributeTypes, stack));
 		stack.Pop();
@@ -94,7 +94,7 @@ static Dictionary::Ptr SerializeDictionary(const Dictionary::Ptr& input, int att
 
 	ObjectLock olock(input);
 
-	for (const Dictionary::Pair& kv : input) {
+	for (const auto& kv : input) {
 		stack.Push(kv.first, kv.second);
 		result.emplace_back(kv.first, SerializeInternal(kv.second, attributeTypes, stack));
 		stack.Pop();
@@ -109,7 +109,7 @@ static Dictionary::Ptr SerializeNamespace(const Namespace::Ptr& input, int attri
 
 	ObjectLock olock(input);
 
-	for (const Namespace::Pair& kv : input) {
+	for (const auto& kv : input) {
 		Value val = kv.second->Get();
 		stack.Push(kv.first, val);
 		result.emplace_back(kv.first, Serialize(val, attributeTypes));
@@ -159,7 +159,7 @@ static Array::Ptr DeserializeArray(const Array::Ptr& input, bool safe_mode, int 
 
 	ObjectLock olock(input);
 
-	for (const Value& value : input) {
+	for (const auto& value : input) {
 		result.emplace_back(Deserialize(value, safe_mode, attributeTypes));
 	}
 
@@ -174,7 +174,7 @@ static Dictionary::Ptr DeserializeDictionary(const Dictionary::Ptr& input, bool 
 
 	ObjectLock olock(input);
 
-	for (const Dictionary::Pair& kv : input) {
+	for (const auto& kv : input) {
 		result.emplace_back(kv.first, Deserialize(kv.second, safe_mode, attributeTypes));
 	}
 
@@ -204,7 +204,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 		instance = type->Instantiate(std::vector<Value>());
 
 	ObjectLock olock(input);
-	for (const Dictionary::Pair& kv : input) {
+	for (const auto& kv : input) {
 		if (kv.first.IsEmpty())
 			continue;
 

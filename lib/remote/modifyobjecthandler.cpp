@@ -79,7 +79,7 @@ bool ModifyObjectHandler::HandleRequest(
 
 	ArrayData results;
 
-	for (const ConfigObject::Ptr& obj : objs) {
+	for (const auto& obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 
 		result1->Set("type", type->GetName());
@@ -90,7 +90,7 @@ bool ModifyObjectHandler::HandleRequest(
 		try {
 			if (attrs) {
 				ObjectLock olock(attrs);
-				for (const Dictionary::Pair& kv : attrs) {
+				for (const auto& kv : attrs) {
 					key = kv.first;
 					obj->ModifyAttribute(kv.first, kv.second);
 				}

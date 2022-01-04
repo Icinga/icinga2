@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(base64)
 
 	// 1024 chars
 
-	for (const String& str : clearText) {
+	for (const auto& str : clearText) {
 		String enc = Base64::Encode(str);
 		String dec = Base64::Decode(enc);
 		BOOST_CHECK(str == dec);

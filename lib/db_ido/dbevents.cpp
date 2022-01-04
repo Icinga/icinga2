@@ -226,7 +226,7 @@ void DbEvents::ReachabilityChangedHandler(const Checkable::Ptr& checkable, const
 	if (cr->GetState() == ServiceOK)
 		is_reachable = 1;
 
-	for (const Checkable::Ptr& child : children) {
+	for (const auto& child : children) {
 		Host::Ptr host;
 		Service::Ptr service;
 		tie(host, service) = GetHostService(child);
@@ -322,7 +322,7 @@ void DbEvents::AddComments(const Checkable::Ptr& checkable)
 
 	std::vector<DbQuery> queries;
 
-	for (const Comment::Ptr& comment : comments) {
+	for (const auto& comment : comments) {
 		AddCommentInternal(queries, comment, false);
 	}
 
@@ -461,7 +461,7 @@ void DbEvents::AddDowntimes(const Checkable::Ptr& checkable)
 
 	std::vector<DbQuery> queries;
 
-	for (const Downtime::Ptr& downtime : downtimes) {
+	for (const auto& downtime : downtimes) {
 		AddDowntimeInternal(queries, downtime, false);
 	}
 
@@ -883,7 +883,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 
 	std::vector<DbQuery> queries;
 
-	for (const User::Ptr& user : users) {
+	for (const auto& user : users) {
 		DbQuery query2;
 		query2.Table = "contactnotifications";
 		query2.Type = DbQueryInsert;

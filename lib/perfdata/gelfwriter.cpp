@@ -54,7 +54,7 @@ void GelfWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perf
 {
 	DictionaryData nodes;
 
-	for (const GelfWriter::Ptr& gelfwriter : ConfigType::GetObjectsByType<GelfWriter>()) {
+	for (const auto& gelfwriter : ConfigType::GetObjectsByType<GelfWriter>()) {
 		size_t workQueueItems = gelfwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = gelfwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
 
@@ -322,7 +322,7 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 
 		if (perfdata) {
 			ObjectLock olock(perfdata);
-			for (const Value& val : perfdata) {
+			for (const auto& val : perfdata) {
 				PerfdataValue::Ptr pdv;
 
 				if (val.IsObjectType<PerfdataValue>())

@@ -232,7 +232,7 @@ Log::~Log()
 		}
 	}
 
-	for (const Logger::Ptr& logger : Logger::GetLoggers()) {
+	for (const auto& logger : Logger::GetLoggers()) {
 		ObjectLock llock(logger);
 
 		if (!logger->IsActive())

@@ -41,7 +41,7 @@ std::vector<Object::Ptr> DependencyGraph::GetParents(const Object::Ptr& child)
 
 	if (it != m_Dependencies.end()) {
 		typedef std::pair<Object *, int> kv_pair;
-		for (const kv_pair& kv : it->second) {
+		for (const auto& kv : it->second) {
 			objects.emplace_back(kv.first);
 		}
 	}

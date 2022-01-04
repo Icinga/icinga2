@@ -26,7 +26,7 @@ void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 {
 	DictionaryData nodes;
 
-	for (const CheckerComponent::Ptr& checker : ConfigType::GetObjectsByType<CheckerComponent>()) {
+	for (const auto& checker : ConfigType::GetObjectsByType<CheckerComponent>()) {
 		unsigned long idle = checker->GetIdleCheckables();
 		unsigned long pending = checker->GetPendingCheckables();
 

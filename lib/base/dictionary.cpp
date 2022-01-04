@@ -194,7 +194,7 @@ void Dictionary::CopyTo(const Dictionary::Ptr& dest) const
 {
 	ObjectLock olock(this);
 
-	for (const Dictionary::Pair& kv : m_Data) {
+	for (const auto& kv : m_Data) {
 		dest->Set(kv.first, kv.second);
 	}
 }
@@ -226,7 +226,7 @@ Object::Ptr Dictionary::Clone() const
 
 		dict.reserve(GetLength());
 
-		for (const Dictionary::Pair& kv : m_Data) {
+		for (const auto& kv : m_Data) {
 			dict.emplace_back(kv.first, kv.second.Clone());
 		}
 	}
@@ -246,7 +246,7 @@ std::vector<String> Dictionary::GetKeys() const
 
 	std::vector<String> keys;
 
-	for (const Dictionary::Pair& kv : m_Data) {
+	for (const auto& kv : m_Data) {
 		keys.push_back(kv.first);
 	}
 

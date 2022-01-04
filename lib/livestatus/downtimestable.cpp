@@ -50,7 +50,7 @@ String DowntimesTable::GetPrefix() const
 
 void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
+	for (const auto& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		if (!addRowFn(downtime, LivestatusGroupByNone, Empty))
 			return;
 	}

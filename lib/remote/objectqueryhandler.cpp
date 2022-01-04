@@ -22,7 +22,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 
 	if (isJoin && attrs) {
 		ObjectLock olock(attrs);
-		for (const String& attr : attrs) {
+		for (const auto& attr : attrs) {
 			if (attr == attrPrefix) {
 				allAttrs = true;
 				break;
@@ -39,7 +39,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 		}
 	} else if (attrs) {
 		ObjectLock olock(attrs);
-		for (const String& attr : attrs) {
+		for (const auto& attr : attrs) {
 			String userAttr;
 
 			if (isJoin) {
@@ -172,7 +172,7 @@ bool ObjectQueryHandler::HandleRequest(
 
 	if (ujoins) {
 		ObjectLock olock(ujoins);
-		for (const String& ujoin : ujoins) {
+		for (const auto& ujoin : ujoins) {
 			userJoinAttrs.insert(ujoin.SubStr(0, ujoin.FindFirstOf(".")));
 		}
 	}
@@ -189,7 +189,7 @@ bool ObjectQueryHandler::HandleRequest(
 		joinAttrs.insert(field.Name);
 	}
 
-	for (const ConfigObject::Ptr& obj : objs) {
+	for (const auto& obj : objs) {
 		DictionaryData result1{
 			{ "name", obj->GetName() },
 			{ "type", obj->GetReflectionType()->GetName() }
@@ -199,12 +199,12 @@ bool ObjectQueryHandler::HandleRequest(
 
 		if (umetas) {
 			ObjectLock olock(umetas);
-			for (const String& meta : umetas) {
+			for (const auto& meta : umetas) {
 				if (meta == "used_by") {
 					Array::Ptr used_by = new Array();
 					metaAttrs.emplace_back("used_by", used_by);
 
-					for (const Object::Ptr& pobj : DependencyGraph::GetParents((obj)))
+					for (const auto& pobj : DependencyGraph::GetParents((obj)))
 					{
 						ConfigObject::Ptr configObj = dynamic_pointer_cast<ConfigObject>(pobj);
 
@@ -236,7 +236,7 @@ bool ObjectQueryHandler::HandleRequest(
 
 		DictionaryData joins;
 
-		for (const String& joinAttr : joinAttrs) {
+		for (const auto& joinAttr : joinAttrs) {
 			Object::Ptr joinedObj;
 			int fid = type->GetFieldId(joinAttr);
 

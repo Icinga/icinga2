@@ -111,7 +111,7 @@ void ObjectListCommand::PrintTypeCounts(std::ostream& fp, const std::map<String,
 {
 	typedef std::map<String, int>::value_type TypeCount;
 
-	for (const TypeCount& kv : type_count) {
+	for (const auto& kv : type_count) {
 		fp << "Found " << kv.second << " " << kv.first << " object";
 
 		if (kv.second != 1)

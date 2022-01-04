@@ -489,13 +489,13 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 
 void DbConnection::UpdateAllObjects()
 {
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	for (const auto& type : Type::GetAllTypes()) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		for (const auto& object : dtype->GetObjects()) {
 			m_QueryQueue.Enqueue([this, object](){ UpdateObject(object); }, PriorityHigh);
 		}
 	}
@@ -503,7 +503,7 @@ void DbConnection::UpdateAllObjects()
 
 void DbConnection::PrepareDatabase()
 {
-	for (const DbType::Ptr& type : DbType::GetAllTypes()) {
+	for (const auto& type : DbType::GetAllTypes()) {
 		FillIDCache(type);
 	}
 }

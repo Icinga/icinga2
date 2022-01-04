@@ -51,7 +51,7 @@ String ContactsTable::GetPrefix() const
 
 void ContactsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	for (const User::Ptr& user : ConfigType::GetObjectsByType<User>()) {
+	for (const auto& user : ConfigType::GetObjectsByType<User>()) {
 		if (!addRowFn(user, LivestatusGroupByNone, Empty))
 			return;
 	}
@@ -191,7 +191,7 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 
 	if (vars) {
 		ObjectLock olock(vars);
-		for (const Dictionary::Pair& kv : vars) {
+		for (const auto& kv : vars) {
 			result.push_back(kv.first);
 		}
 	}
@@ -212,7 +212,7 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 
 	if (vars) {
 		ObjectLock olock(vars);
-		for (const Dictionary::Pair& kv : vars) {
+		for (const auto& kv : vars) {
 			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
 				result.push_back(JsonEncode(kv.second));
 			else
@@ -236,7 +236,7 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 
 	if (vars) {
 		ObjectLock olock(vars);
-		for (const Dictionary::Pair& kv : vars) {
+		for (const auto& kv : vars) {
 			Value val;
 
 			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
@@ -269,7 +269,7 @@ Value ContactsTable::CVIsJsonAccessor(const Value& row)
 	bool cv_is_json = false;
 
 	ObjectLock olock(vars);
-	for (const Dictionary::Pair& kv : vars) {
+	for (const auto& kv : vars) {
 		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
 			cv_is_json = true;
 	}

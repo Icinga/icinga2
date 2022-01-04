@@ -172,15 +172,15 @@ String HostsTable::GetPrefix() const
 void HostsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	if (GetGroupByType() == LivestatusGroupByHostGroup) {
-		for (const HostGroup::Ptr& hg : ConfigType::GetObjectsByType<HostGroup>()) {
-			for (const Host::Ptr& host : hg->GetMembers()) {
+		for (const auto& hg : ConfigType::GetObjectsByType<HostGroup>()) {
+			for (const auto& host : hg->GetMembers()) {
 				/* the caller must know which groupby type and value are set for this row */
 				if (!addRowFn(host, LivestatusGroupByHostGroup, hg))
 					return;
 			}
 		}
 	} else {
-		for (const Host::Ptr& host : ConfigType::GetObjectsByType<Host>()) {
+		for (const auto& host : ConfigType::GetObjectsByType<Host>()) {
 			if (!addRowFn(host, LivestatusGroupByNone, Empty))
 				return;
 		}
@@ -863,7 +863,7 @@ Value HostsTable::InNotificationPeriodAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	for (const Notification::Ptr& notification : host->GetNotifications()) {
+	for (const auto& notification : host->GetNotifications()) {
 		TimePeriod::Ptr timeperiod = notification->GetPeriod();
 
 		if (!timeperiod || timeperiod->IsInside(Utility::GetTime()))
@@ -898,7 +898,7 @@ Value HostsTable::ContactsAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(host)) {
+	for (const auto& user : CompatUtility::GetCheckableNotificationUsers(host)) {
 		result.push_back(user->GetName());
 	}
 
@@ -914,7 +914,7 @@ Value HostsTable::DowntimesAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Downtime::Ptr& downtime : host->GetDowntimes()) {
+	for (const auto& downtime : host->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
@@ -933,7 +933,7 @@ Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Downtime::Ptr& downtime : host->GetDowntimes()) {
+	for (const auto& downtime : host->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
@@ -956,7 +956,7 @@ Value HostsTable::CommentsAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Comment::Ptr& comment : host->GetComments()) {
+	for (const auto& comment : host->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -975,7 +975,7 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Comment::Ptr& comment : host->GetComments()) {
+	for (const auto& comment : host->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -998,7 +998,7 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Comment::Ptr& comment : host->GetComments()) {
+	for (const auto& comment : host->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -1027,7 +1027,7 @@ Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 
 	if (vars) {
 		ObjectLock olock(vars);
-		for (const Dictionary::Pair& kv : vars) {
+		for (const auto& kv : vars) {
 			result.push_back(kv.first);
 		}
 	}
@@ -1048,7 +1048,7 @@ Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 
 	if (vars) {
 		ObjectLock olock(vars);
-		for (const Dictionary::Pair& kv : vars) {
+		for (const auto& kv : vars) {
 			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
 				result.push_back(JsonEncode(kv.second));
 			else
@@ -1072,7 +1072,7 @@ Value HostsTable::CustomVariablesAccessor(const Value& row)
 
 	if (vars) {
 		ObjectLock olock(vars);
-		for (const Dictionary::Pair& kv : vars) {
+		for (const auto& kv : vars) {
 			Value val;
 
 			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
@@ -1105,7 +1105,7 @@ Value HostsTable::CVIsJsonAccessor(const Value& row)
 	bool cv_is_json = false;
 
 	ObjectLock olock(vars);
-	for (const Dictionary::Pair& kv : vars) {
+	for (const auto& kv : vars) {
 		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
 			cv_is_json = true;
 	}
@@ -1122,7 +1122,7 @@ Value HostsTable::ParentsAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Checkable::Ptr& parent : host->GetParents()) {
+	for (const auto& parent : host->GetParents()) {
 		Host::Ptr parent_host = dynamic_pointer_cast<Host>(parent);
 
 		if (!parent_host)
@@ -1143,7 +1143,7 @@ Value HostsTable::ChildsAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const Checkable::Ptr& child : host->GetChildren()) {
+	for (const auto& child : host->GetChildren()) {
 		Host::Ptr child_host = dynamic_pointer_cast<Host>(child);
 
 		if (!child_host)
@@ -1175,7 +1175,7 @@ Value HostsTable::WorstServiceStateAccessor(const Value& row)
 
 	Value worst_service = ServiceOK;
 
-	for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& service : host->GetServices()) {
 		if (service->GetState() > worst_service)
 			worst_service = service->GetState();
 	}
@@ -1192,7 +1192,7 @@ Value HostsTable::NumServicesOkAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& service : host->GetServices()) {
 		if (service->GetState() == ServiceOK)
 			num_services++;
 	}
@@ -1209,7 +1209,7 @@ Value HostsTable::NumServicesWarnAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& service : host->GetServices()) {
 		if (service->GetState() == ServiceWarning)
 			num_services++;
 	}
@@ -1226,7 +1226,7 @@ Value HostsTable::NumServicesCritAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& service : host->GetServices()) {
 		if (service->GetState() == ServiceCritical)
 			num_services++;
 	}
@@ -1243,7 +1243,7 @@ Value HostsTable::NumServicesUnknownAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& service : host->GetServices()) {
 		if (service->GetState() == ServiceUnknown)
 			num_services++;
 	}
@@ -1260,7 +1260,7 @@ Value HostsTable::NumServicesPendingAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& service : host->GetServices()) {
 		if (!service->GetLastCheckResult())
 			num_services++;
 	}
@@ -1277,7 +1277,7 @@ Value HostsTable::WorstServiceHardStateAccessor(const Value& row)
 
 	Value worst_service = ServiceOK;
 
-	for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& service : host->GetServices()) {
 		if (service->GetStateType() == StateTypeHard) {
 			if (service->GetState() > worst_service)
 				worst_service = service->GetState();
@@ -1296,7 +1296,7 @@ Value HostsTable::NumServicesHardOkAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& service : host->GetServices()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceOK)
 			num_services++;
 	}
@@ -1313,7 +1313,7 @@ Value HostsTable::NumServicesHardWarnAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& service : host->GetServices()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceWarning)
 			num_services++;
 	}
@@ -1330,7 +1330,7 @@ Value HostsTable::NumServicesHardCritAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& service : host->GetServices()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceCritical)
 			num_services++;
 	}
@@ -1347,7 +1347,7 @@ Value HostsTable::NumServicesHardUnknownAccessor(const Value& row)
 
 	int num_services = 0;
 
-	for (const Service::Ptr& service : host->GetServices()) {
+	for (const auto& service : host->GetServices()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceUnknown)
 			num_services++;
 	}
@@ -1407,7 +1407,7 @@ Value HostsTable::ContactGroupsAccessor(const Value& row)
 
 	ArrayData result;
 
-	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
+	for (const auto& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
 		result.push_back(usergroup->GetName());
 	}
 
@@ -1426,7 +1426,7 @@ Value HostsTable::ServicesAccessor(const Value& row)
 	ArrayData result;
 	result.reserve(rservices.size());
 
-	for (const Service::Ptr& service : rservices) {
+	for (const auto& service : rservices) {
 		result.push_back(service->GetShortName());
 	}
 
@@ -1445,7 +1445,7 @@ Value HostsTable::ServicesWithStateAccessor(const Value& row)
 	ArrayData result;
 	result.reserve(rservices.size());
 
-	for (const Service::Ptr& service : rservices) {
+	for (const auto& service : rservices) {
 		result.push_back(new Array({
 			service->GetShortName(),
 			service->GetState(),
@@ -1468,7 +1468,7 @@ Value HostsTable::ServicesWithInfoAccessor(const Value& row)
 	ArrayData result;
 	result.reserve(rservices.size());
 
-	for (const Service::Ptr& service : rservices) {
+	for (const auto& service : rservices) {
 		String output;
 		CheckResult::Ptr cr = service->GetLastCheckResult();
 

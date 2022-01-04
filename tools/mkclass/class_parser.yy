@@ -233,7 +233,7 @@ class: class_attribute_list T_CLASS T_IDENTIFIER inherits_specifier type_base_sp
 
 		$$->Attributes = $1;
 
-		for (const Field& field : *$7) {
+		for (const auto& field : *$7) {
 			if (field.Attributes & FALoadDependency) {
 				$$->LoadDependencies.push_back(field.Name);
 			} else if (field.Attributes & FAActivationPriority) {

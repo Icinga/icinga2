@@ -14,14 +14,14 @@ using namespace icinga;
 
 void Checkable::RemoveAllComments()
 {
-	for (const Comment::Ptr& comment : GetComments()) {
+	for (const auto& comment : GetComments()) {
 		Comment::RemoveComment(comment->GetName());
 	}
 }
 
 void Checkable::RemoveCommentsByType(int type, const String& removedBy)
 {
-	for (const Comment::Ptr& comment : GetComments()) {
+	for (const auto& comment : GetComments()) {
 		/* Do not remove persistent comments from an acknowledgement */
 		if (comment->GetEntryType() == CommentAcknowledgement && comment->GetPersistent())
 			continue;

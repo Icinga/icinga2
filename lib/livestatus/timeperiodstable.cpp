@@ -36,7 +36,7 @@ String TimePeriodsTable::GetPrefix() const
 
 void TimePeriodsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	for (const TimePeriod::Ptr& tp : ConfigType::GetObjectsByType<TimePeriod>()) {
+	for (const auto& tp : ConfigType::GetObjectsByType<TimePeriod>()) {
 		if (!addRowFn(tp, LivestatusGroupByNone, Empty))
 			return;
 	}

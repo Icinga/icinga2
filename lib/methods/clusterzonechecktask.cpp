@@ -139,7 +139,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	double bytesSentPerSecond = 0;
 	double bytesReceivedPerSecond = 0;
 
-	for (const Endpoint::Ptr& endpoint : zone->GetEndpoints()) {
+	for (const auto& endpoint : zone->GetEndpoints()) {
 		if (endpoint->GetConnected())
 			connected = true;
 

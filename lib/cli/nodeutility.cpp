@@ -46,7 +46,7 @@ int NodeUtility::GenerateNodeIcingaConfig(const String& endpointName, const Stri
 
 	Array::Ptr myParentZoneMembers = new Array();
 
-	for (const String& endpoint : endpoints) {
+	for (const auto& endpoint : endpoints) {
 		/* extract all --endpoint arguments and store host,port info */
 		std::vector<String> tokens = endpoint.Split(",");
 
@@ -96,7 +96,7 @@ int NodeUtility::GenerateNodeIcingaConfig(const String& endpointName, const Stri
 		{ "endpoints", new Array({ endpointName }) }
 	}));
 
-	for (const String& globalzone : globalZones) {
+	for (const auto& globalzone : globalZones) {
 		config->Add(new Dictionary({
 			{ "__name", globalzone },
 			{ "__type", "Zone" },
@@ -127,7 +127,7 @@ int NodeUtility::GenerateNodeMasterIcingaConfig(const String& endpointName, cons
 		{ "endpoints", new Array({ endpointName }) }
 	}));
 
-	for (const String& globalzone : globalZones) {
+	for (const auto& globalzone : globalZones) {
 		config->Add(new Dictionary({
 			{ "__name", globalzone },
 			{ "__type", "Zone" },
@@ -174,7 +174,7 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 	fp << " */\n\n";
 
 	ObjectLock olock(objects);
-	for (const Dictionary::Ptr& object : objects) {
+	for (const auto& object : objects) {
 		SerializeObject(fp, object);
 	}
 
@@ -225,7 +225,7 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
 	fp << " {\n";
 
 	ObjectLock olock(object);
-	for (const Dictionary::Pair& kv : object) {
+	for (const auto& kv : object) {
 		if (kv.first == "__type" || kv.first == "__name")
 			continue;
 
