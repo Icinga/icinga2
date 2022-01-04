@@ -1839,7 +1839,7 @@ The returned messages are synced directly to the sender's endpoint, no cluster b
 
 > **Note**: EventCommand errors are just logged on the remote endpoint.
 
-### event::UpdateExecutions <a id="technical-concepts-json-rpc-messages-event-updateexecutions"></a>
+#### event::UpdateExecutions <a id="technical-concepts-json-rpc-messages-event-updateexecutions"></a>
 
 > Location: `clusterevents.cpp`
 
@@ -1873,7 +1873,7 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
-### event::ExecutedCommand <a id="technical-concepts-json-rpc-messages-event-executedcommand"></a>
+#### event::ExecutedCommand <a id="technical-concepts-json-rpc-messages-event-executedcommand"></a>
 
 > Location: `clusterevents.cpp`
 
