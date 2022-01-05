@@ -144,6 +144,7 @@ static void FireSuppressedNotifications(Checkable* checkable)
 	if (!suppressed_types)
 		return;
 
+	auto stateType (checkable->GetStateType());
 	int subtract = 0;
 
 	{
@@ -173,6 +174,13 @@ static void FireSuppressedNotifications(Checkable* checkable)
 				bool still_applies = checkable->NotificationReasonApplies(type);
 
 				if (still_applies) {
+					switch (type) {
+						case NotificationProblem:
+						case NotificationRecovery:
+							if (stateType == StateTypeSoft)
+								continue;
+					}
+
 					if (!checkable->NotificationReasonSuppressed(type) && !checkable->IsLikelyToBeCheckedSoon() && !wasLastParentRecoveryRecent.Get()) {
 						Checkable::OnNotificationsRequested(checkable, type, checkable->GetLastCheckResult(), "", "", nullptr);
 
