@@ -84,6 +84,10 @@ void IcingaDB::ConfigStaticInitialize()
 		AcknowledgementClearedHandler(checkable, removedBy, changeTime);
 	});
 
+	Checkable::OnReachabilityChanged.connect([](const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr> children, const MessageOrigin::Ptr&) {
+		IcingaDB::ReachabilityChangeHandler(children);
+	});
+
 	/* triggered on create, update and delete objects */
 	ConfigObject::OnActiveChanged.connect([](const ConfigObject::Ptr& object, const Value&) {
 		IcingaDB::VersionChangedHandler(object);
@@ -2595,6 +2599,15 @@ void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckRe
 {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendStateChange(object, cr, type);
+	}
+}
+
+void IcingaDB::ReachabilityChangeHandler(const std::set<Checkable::Ptr>& children)
+{
+	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		for (auto& checkable : children) {
+			rw->UpdateState(checkable, StateUpdate::Full);
+		}
 	}
 }
 

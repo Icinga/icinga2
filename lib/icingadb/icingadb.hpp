@@ -136,6 +136,7 @@ private:
 	static String GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj);
 	static bool PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checkSums);
 
+	static void ReachabilityChangeHandler(const std::set<Checkable::Ptr>& children);
 	static void StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 	static void DowntimeStartedHandler(const Downtime::Ptr& downtime);
