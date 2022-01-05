@@ -16,6 +16,7 @@ jobs:
       matrix:
         codename:
           - buster
+          - bullseye
 
     runs-on: ubuntu-latest
 
@@ -33,6 +34,10 @@ jobs:
       - name: qemu-user-static
         run: |
           set -exo pipefail
+          . /etc/os-release
+          if [ "$VERSION_ID" = 20.04 ]; then
+            sudo perl -pi -e s/focal/impish/g /etc/apt/sources.list
+          fi
           sudo apt-get update
           DEBIAN_FRONTEND=noninteractive sudo apt-get install -y qemu-user-static
 

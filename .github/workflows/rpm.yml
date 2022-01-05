@@ -20,15 +20,15 @@ jobs:
           - name: centos
             release: 7
           - name: fedora
-            release: 34
+            release: 35
           - name: fedora
-            release: 33
+            release: 34
           - name: sles
-            release: '15.2'
+            release: '15.3'
           - name: sles
             release: '12.5'
           - name: opensuse
-            release: '15.2'
+            release: '15.3'
 
     runs-on: ubuntu-latest
 
