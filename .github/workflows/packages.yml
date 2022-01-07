@@ -25,6 +25,9 @@ jobs:
             codename: hirsute
             has32bit: false
           - name: ubuntu
+            codename: groovy
+            has32bit: false
+          - name: ubuntu
             codename: focal
             has32bit: false
           - name: ubuntu
