@@ -1938,6 +1938,39 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
+#### event::SetRemovalInfo <a id="technical-concepts-json-rpc-messages-event-setremovalinfo"></a>
+
+> Location: `clusterevents.cpp`
+
+##### Message Body
+
+Key       | Value
+----------|---------
+jsonrpc   | 2.0
+method    | event::SetRemovalInfo
+params    | Dictionary
+
+##### Params
+
+Key            | Type        | Description
+---------------|-------------|---------------------------------
+object\_type   | String      | Object type (`"Comment"` or `"Downtime"`)
+object\_name   | String      | Object name
+removed\_by    | String      | Name of the removal requestor
+remove\_time   | Timestamp   | Time of the remove operation
+
+##### Functions
+
+**Event Sender**: `Comment::OnRemovalInfoChanged` and `Downtime::OnRemovalInfoChanged`
+**Event Receiver**: `SetRemovalInfoAPIHandler`
+
+This message is used to synchronize information about manual comment and downtime removals before deleting the
+corresponding object.
+
+##### Permissions
+
+This message is only accepted from the local zone and from parent zones.
+
 #### config::Update <a id="technical-concepts-json-rpc-messages-config-update"></a>
 
 > Location: `apilistener-filesync.cpp`

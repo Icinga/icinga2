@@ -1893,7 +1893,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"has_been_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
 		"trigger_time", Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())),
-		"cancel_time", Convert::ToString(TimestampToMilliseconds(Utility::GetTime())),
+		"cancel_time", Convert::ToString(TimestampToMilliseconds(downtime->GetRemoveTime())),
 		"event_id", CalcEventID("downtime_end", downtime),
 		"event_type", "downtime_end"
 	});
@@ -2049,9 +2049,10 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
-	if (comment->GetExpireTime() < Utility::GetTime()) {
+	double removeTime = comment->GetRemoveTime();
+	if (removeTime > 0) {
 		xAdd.emplace_back("remove_time");
-		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(Utility::GetTime())));
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(removeTime)));
 		xAdd.emplace_back("has_been_removed");
 		xAdd.emplace_back("1");
 		xAdd.emplace_back("removed_by");

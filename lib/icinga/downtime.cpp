@@ -23,6 +23,7 @@ boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeAdded;
 boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeRemoved;
 boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeStarted;
 boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeTriggered;
+boost::signals2::signal<void (const Downtime::Ptr&, const String&, double, const MessageOrigin::Ptr&)> Downtime::OnRemovalInfoChanged;
 
 REGISTER_TYPE(Downtime);
 
@@ -331,7 +332,8 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 	return downtime;
 }
 
-void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cancelled, bool expired, const MessageOrigin::Ptr& origin)
+void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cancelled, bool expired,
+	const String& removedBy, const MessageOrigin::Ptr& origin)
 {
 	Downtime::Ptr downtime = Downtime::GetByName(id);
 
@@ -351,7 +353,9 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cance
 		}
 	}
 
-	downtime->SetWasCancelled(cancelled);
+	if (cancelled) {
+		downtime->SetRemovalInfo(removedBy, Utility::GetTime());
+	}
 
 	Array::Ptr errors = new Array();
 
@@ -452,6 +456,17 @@ void Downtime::TriggerDowntime(double triggerTime)
 	}
 
 	OnDowntimeTriggered(this);
+}
+
+void Downtime::SetRemovalInfo(const String& removedBy, double removeTime, const MessageOrigin::Ptr& origin) {
+	{
+		ObjectLock olock(this);
+
+		SetRemovedBy(removedBy, false, origin);
+		SetRemoveTime(removeTime, false, origin);
+	}
+
+	OnRemovalInfoChanged(this, removedBy, removeTime, origin);
 }
 
 String Downtime::GetDowntimeIDFromLegacyID(int id)

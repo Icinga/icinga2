@@ -38,6 +38,7 @@ REGISTER_APIFUNCTION(NotificationSentUser, event, &ClusterEvents::NotificationSe
 REGISTER_APIFUNCTION(NotificationSentToAllUsers, event, &ClusterEvents::NotificationSentToAllUsersAPIHandler);
 REGISTER_APIFUNCTION(ExecutedCommand, event, &ClusterEvents::ExecutedCommandAPIHandler);
 REGISTER_APIFUNCTION(UpdateExecutions, event, &ClusterEvents::UpdateExecutionsAPIHandler);
+REGISTER_APIFUNCTION(SetRemovalInfo, event, &ClusterEvents::SetRemovalInfoAPIHandler);
 
 void ClusterEvents::StaticInitialize()
 {
@@ -55,6 +56,9 @@ void ClusterEvents::StaticInitialize()
 
 	Checkable::OnAcknowledgementSet.connect(&ClusterEvents::AcknowledgementSetHandler);
 	Checkable::OnAcknowledgementCleared.connect(&ClusterEvents::AcknowledgementClearedHandler);
+
+	Comment::OnRemovalInfoChanged.connect(&ClusterEvents::SetRemovalInfoHandler);
+	Downtime::OnRemovalInfoChanged.connect(&ClusterEvents::SetRemovalInfoHandler);
 }
 
 Dictionary::Ptr ClusterEvents::MakeCheckResultMessage(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -1304,6 +1308,65 @@ Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin
 	updateMessage->Set("params", params);
 
 	listener->RelayMessage(origin, Zone::GetLocalZone(), updateMessage, true);
+
+	return Empty;
+}
+
+void ClusterEvents::SetRemovalInfoHandler(const ConfigObject::Ptr& obj, const String& removedBy, double removeTime,
+	const MessageOrigin::Ptr& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Dictionary::Ptr params = new Dictionary();
+	params->Set("object_type", obj->GetReflectionType()->GetName());
+	params->Set("object_name", obj->GetName());
+	params->Set("removed_by", removedBy);
+	params->Set("remove_time", removeTime);
+
+	Dictionary::Ptr message = new Dictionary();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetRemovalInfo");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, obj, message, true);
+}
+
+Value ClusterEvents::SetRemovalInfoAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+	if (!endpoint || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone))) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'set removal info' message from '" << origin->FromClient->GetIdentity()
+			<< "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	String objectType = params->Get("object_type");
+	String objectName = params->Get("object_name");
+	String removedBy = params->Get("removed_by");
+	double removeTime = params->Get("remove_time");
+
+	if (objectType == Comment::GetTypeName()) {
+		Comment::Ptr comment = Comment::GetByName(objectName);
+
+		if (comment) {
+			comment->SetRemovalInfo(removedBy, removeTime, origin);
+		}
+	} else if (objectType == Downtime::GetTypeName()) {
+		Downtime::Ptr downtime = Downtime::GetByName(objectName);
+
+		if (downtime) {
+			downtime->SetRemovalInfo(removedBy, removeTime, origin);
+		}
+	} else {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'set removal info' message from '" << origin->FromClient->GetIdentity()
+			<< "': Unknown object type.";
+	}
 
 	return Empty;
 }
