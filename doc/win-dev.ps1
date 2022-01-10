@@ -51,6 +51,8 @@ function Install-Exe {
 	}
 
 	Start-Process -Wait -FilePath $ExeFile -ArgumentList @('/VERYSILENT', '/INSTALL', '/PASSIVE', '/NORESTART', "/DIR=${Dir}")
+	ThrowOnNativeFailure
+
 	Remove-Item -Recurse -Path $TempDir
 }
 
@@ -59,6 +61,7 @@ try {
 	Get-Command choco
 } catch {
 	Invoke-Expression (New-Object Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')
+	ThrowOnNativeFailure
 
 	$RegEnv = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
 	$ChocoPath = ";$(Join-Path $Env:AllUsersProfile chocolatey\bin)"
@@ -69,19 +72,41 @@ try {
 
 
 choco install -y "visualstudio${VsVersion}community"
+ThrowOnNativeFailure
+
 choco install -y "visualstudio${VsVersion}-workload-netcoretools"
+ThrowOnNativeFailure
+
 choco install -y "visualstudio${VsVersion}-workload-vctools"
+ThrowOnNativeFailure
+
 choco install -y "visualstudio${VsVersion}-workload-manageddesktop"
+ThrowOnNativeFailure
+
 choco install -y "visualstudio${VsVersion}-workload-nativedesktop"
+ThrowOnNativeFailure
+
 choco install -y "visualstudio${VsVersion}-workload-universal"
+ThrowOnNativeFailure
+
 choco install -y "visualstudio${VsVersion}buildtools"
+ThrowOnNativeFailure
 
 
 choco install -y git
+ThrowOnNativeFailure
+
 choco install -y cmake
+ThrowOnNativeFailure
+
 choco install -y winflexbison3
+ThrowOnNativeFailure
+
 choco install -y windows-sdk-8.1
+ThrowOnNativeFailure
+
 choco install -y wixtoolset
+ThrowOnNativeFailure
 
 
 Install-Exe -Url "https://packages.icinga.com/windows/dependencies/boost_$($BoostVersion -join '_')-msvc-${MsvcVersion}-${Env:BITS}.exe" -Dir "C:\local\boost_$($BoostVersion -join '_')-Win${Env:BITS}"
