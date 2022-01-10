@@ -29,8 +29,9 @@ if (Test-Path env:BITS) {
 
 # Execute vcvars in cmd and store env
 $vcvars_locations = @(
-  "${VSBASE}\BuildTools\VC\Auxiliary\Build\vcvars${bits}.bat",
+  "${VSBASE}\BuildTools\VC\Auxiliary\Build\vcvars${bits}.bat"
   "${VSBASE}\Community\VC\Auxiliary\Build\vcvars${bits}.bat"
+  "${VSBASE}\Enterprise\VC\Auxiliary\Build\vcvars${bits}.bat"
 )
 
 $vcvars = $null
