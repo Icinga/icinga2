@@ -326,6 +326,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		SetLastSoftStatesRaw(GetLastSoftStatesRaw() / 100u + new_state * 100u);
 	}
 
+	cr->SetPreviousHardState(ServiceState(GetLastHardStatesRaw() % 100u));
+
 	if (!IsStateOK(new_state))
 		TriggerDowntimes(cr->GetExecutionEnd());
 
