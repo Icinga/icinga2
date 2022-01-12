@@ -1161,16 +1161,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 	CreateConfigUpdate(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (checkable) {
-		String objectKey = GetObjectIdentifier(object);
-		Dictionary::Ptr state = SerializeState(checkable);
-		String checksum = HashValue(state);
-
-		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigObject + typeName + ":state", objectKey, JsonEncode(state)}, Prio::RuntimeStateSync);
-		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigCheckSum + typeName + ":state", objectKey, JsonEncode(new Dictionary({{"checksum", checksum}}))}, Prio::RuntimeStateSync);
-
-		if (runtimeUpdate) {
-			UpdateState(checkable, StateUpdate::RuntimeOnly);
-		}
+		UpdateState(checkable, runtimeUpdate ? StateUpdate::Full : StateUpdate::Volatile);
 	}
 
 	std::vector<std::vector<String> > transaction = {{"MULTI"}};
