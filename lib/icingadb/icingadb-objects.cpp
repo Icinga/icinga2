@@ -84,14 +84,6 @@ void IcingaDB::ConfigStaticInitialize()
 		AcknowledgementClearedHandler(checkable, removedBy, changeTime);
 	});
 
-	Checkable::OnAcknowledgementSet.connect([](const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool, bool persistent, double changeTime, double expiry, const MessageOrigin::Ptr&) {
-		IcingaDB::StateChangeHandler(checkable);
-	});
-	/* triggered when acknowledged host/service goes back to ok and when the acknowledgement gets deleted */
-	Checkable::OnAcknowledgementCleared.connect([](const Checkable::Ptr& checkable, const String&, double, const MessageOrigin::Ptr&) {
-		IcingaDB::StateChangeHandler(checkable);
-	});
-
 	/* triggered on create, update and delete objects */
 	ConfigObject::OnActiveChanged.connect([](const ConfigObject::Ptr& object, const Value&) {
 		IcingaDB::VersionChangedHandler(object);
@@ -2186,6 +2178,9 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
+	/* Update checkable state as is_acknowledged may have changed. */
+	UpdateState(checkable, StateUpdate::Full);
+
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
 		"environment_id", m_EnvironmentId,
@@ -2239,6 +2234,9 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
+
+	/* Update checkable state as is_acknowledged may have changed. */
+	UpdateState(checkable, StateUpdate::Full);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
