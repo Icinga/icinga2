@@ -119,7 +119,7 @@ void IcingaDB::ConfigStaticInitialize()
 	});
 
 	Service::OnHostProblemChanged.connect([](const Service::Ptr& service, const CheckResult::Ptr&, const MessageOrigin::Ptr&) {
-		IcingaDB::StateChangeHandler(service);
+		IcingaDB::HostProblemChangedHandler(service);
 	});
 
 	Notification::OnUsersRawChangedWithOldValue.connect([](const Notification::Ptr& notification, const Value& oldValues, const Value& newValues) {
@@ -2692,6 +2692,13 @@ void IcingaDB::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->UpdateState(checkable, StateUpdate::Volatile);
 		rw->SendNextUpdate(checkable);
+	}
+}
+
+void IcingaDB::HostProblemChangedHandler(const Service::Ptr& service) {
+	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		/* Host state changes affect is_handled and severity of services. */
+		rw->UpdateState(service, StateUpdate::Full);
 	}
 }
 
