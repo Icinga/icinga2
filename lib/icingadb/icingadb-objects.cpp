@@ -2592,15 +2592,6 @@ IcingaDB::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
 	//m_Rcon->FireAndForgetQuery({"HSET", keyPrefix + typeName, GetObjectIdentifier(object), JsonEncode(attrs)});
 }
 
-void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object)
-{
-	auto checkable (dynamic_pointer_cast<Checkable>(object));
-
-	if (checkable) {
-		IcingaDB::StateChangeHandler(object, checkable->GetLastCheckResult(), checkable->GetStateType());
-	}
-}
-
 void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
