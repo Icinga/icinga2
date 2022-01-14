@@ -82,9 +82,15 @@ void FireSuppressedNotifications(const Notification::Ptr& notification)
 	auto checkable (notification->GetCheckable());
 
 	for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
-		if ((suppressedTypes & type) && !checkable->NotificationReasonApplies(type)) {
-			subtract |= type;
-			suppressedTypes &= ~type;
+		if (suppressedTypes & type) {
+			switch (checkable->NotificationReasonApplies(type)) {
+				case NotifyReasonApplies::Yes:
+					break;
+				case NotifyReasonApplies::No:
+					subtract |= type;
+				default:
+					suppressedTypes &= ~type;
+			}
 		}
 	}
 

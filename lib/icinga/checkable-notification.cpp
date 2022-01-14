@@ -144,6 +144,7 @@ static void FireSuppressedNotifications(Checkable* checkable)
 	if (!suppressed_types)
 		return;
 
+	auto stateType (checkable->GetStateType());
 	int subtract = 0;
 
 	{
@@ -170,16 +171,16 @@ static void FireSuppressedNotifications(Checkable* checkable)
 
 		for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
 			if (suppressed_types & type) {
-				bool still_applies = checkable->NotificationReasonApplies(type);
-
-				if (still_applies) {
-					if (!checkable->NotificationReasonSuppressed(type) && !checkable->IsLikelyToBeCheckedSoon() && !wasLastParentRecoveryRecent.Get()) {
-						Checkable::OnNotificationsRequested(checkable, type, checkable->GetLastCheckResult(), "", "", nullptr);
-
+				switch (checkable->NotificationReasonApplies(type)) {
+					case NotifyReasonApplies::No:
 						subtract |= type;
-					}
-				} else {
-					subtract |= type;
+						break;
+					case NotifyReasonApplies::Yes:
+						if (!checkable->NotificationReasonSuppressed(type) && !checkable->IsLikelyToBeCheckedSoon()
+							&& !wasLastParentRecoveryRecent.Get()) {
+							Checkable::OnNotificationsRequested(checkable, type, checkable->GetLastCheckResult(), "", "", nullptr);
+							subtract |= type;
+						}
 				}
 			}
 		}
@@ -218,26 +219,35 @@ void Checkable::FireSuppressedNotifications(const Timer * const&)
  *
  * @return Whether to send the notification.
  */
-bool Checkable::NotificationReasonApplies(NotificationType type)
+NotifyReasonApplies Checkable::NotificationReasonApplies(NotificationType type)
 {
 	switch (type) {
 		case NotificationProblem:
 			{
 				auto cr (GetLastCheckResult());
-				return cr && !IsStateOK(cr->GetState()) && GetStateType() == StateTypeHard;
+				return NotifyReasonApplies(cr && !IsStateOK(cr->GetState()) && GetStateType() == StateTypeHard);
 			}
 		case NotificationRecovery:
 			{
 				auto cr (GetLastCheckResult());
-				return cr && (IsStateOK(cr->GetState()) || GetStateType() == StateTypeSoft);
+
+				if (!cr) {
+					return NotifyReasonApplies::No;
+				}
+
+				if (IsStateOK(cr->GetState())) {
+					return NotifyReasonApplies::Yes;
+				}
+
+				return GetStateType() == StateTypeSoft ? NotifyReasonApplies::NotSure : NotifyReasonApplies::No;
 			}
 		case NotificationFlappingStart:
-			return IsFlapping();
+			return (NotifyReasonApplies)IsFlapping();
 		case NotificationFlappingEnd:
-			return !IsFlapping();
+			return (NotifyReasonApplies)!IsFlapping();
 		default:
 			VERIFY(!"Checkable#NotificationReasonStillApplies(): given type not implemented");
-			return false;
+			return NotifyReasonApplies::NotSure;
 	}
 }
 

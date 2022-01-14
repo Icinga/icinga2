@@ -53,6 +53,16 @@ enum FlappingStateFilter
 	FlappingStateFilterUnknown = 8,
 };
 
+/**
+ * @ingroup icinga
+ */
+enum class NotifyReasonApplies : uint_fast8_t
+{
+	No,
+	Yes,
+	NotSure
+};
+
 class CheckCommand;
 class EventCommand;
 class Dependency;
@@ -187,7 +197,7 @@ public:
 	void ValidateRetryInterval(const Lazy<double>& lvalue, const ValidationUtils& value) final;
 	void ValidateMaxCheckAttempts(const Lazy<int>& lvalue, const ValidationUtils& value) final;
 
-	bool NotificationReasonApplies(NotificationType type);
+	NotifyReasonApplies NotificationReasonApplies(NotificationType type);
 	bool NotificationReasonSuppressed(NotificationType type);
 	bool IsLikelyToBeCheckedSoon();
 
