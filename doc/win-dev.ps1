@@ -70,43 +70,26 @@ try {
 	$Env:Path += $ChocoPath
 }
 
-
-choco install -y "visualstudio${VsVersion}community"
-ThrowOnNativeFailure
-
-choco install -y "visualstudio${VsVersion}-workload-netcoretools"
-ThrowOnNativeFailure
-
-choco install -y "visualstudio${VsVersion}-workload-vctools"
-ThrowOnNativeFailure
-
-choco install -y "visualstudio${VsVersion}-workload-manageddesktop"
-ThrowOnNativeFailure
-
-choco install -y "visualstudio${VsVersion}-workload-nativedesktop"
-ThrowOnNativeFailure
-
-choco install -y "visualstudio${VsVersion}-workload-universal"
-ThrowOnNativeFailure
-
-choco install -y "visualstudio${VsVersion}buildtools"
-ThrowOnNativeFailure
-
-
-choco install -y git
-ThrowOnNativeFailure
-
-choco install -y cmake
-ThrowOnNativeFailure
-
-choco install -y winflexbison3
-ThrowOnNativeFailure
-
-choco install -y windows-sdk-8.1
-ThrowOnNativeFailure
-
-choco install -y wixtoolset
-ThrowOnNativeFailure
+# GitHub Actions uses an image that comes with most dependencies preinstalled. Don't install them twice.
+if (-not $Env:GITHUB_ACTIONS) {
+    choco install -y `
+        "visualstudio${VsVersion}community" `
+        "visualstudio${VsVersion}-workload-netcoretools" `
+        "visualstudio${VsVersion}-workload-vctools" `
+        "visualstudio${VsVersion}-workload-manageddesktop" `
+        "visualstudio${VsVersion}-workload-nativedesktop" `
+        "visualstudio${VsVersion}-workload-universal" `
+        "visualstudio${VsVersion}buildtools" `
+        git `
+        cmake `
+        winflexbison3 `
+        windows-sdk-8.1 `
+        wixtoolset
+    ThrowOnNativeFailure
+} else {
+    choco install -y winflexbison3
+    ThrowOnNativeFailure
+}
 
 
 Install-Exe -Url "https://packages.icinga.com/windows/dependencies/boost_$($BoostVersion -join '_')-msvc-${MsvcVersion}-${Env:BITS}.exe" -Dir "C:\local\boost_$($BoostVersion -join '_')-Win${Env:BITS}"
