@@ -57,6 +57,13 @@ private:
 		std::mutex m_Mutex;
 	};
 
+	enum StateUpdate
+	{
+		Volatile    = 1ull << 0,
+		RuntimeOnly = 1ull << 1,
+		Full        = Volatile | RuntimeOnly,
+	};
+
 	void OnConnectedHandler();
 
 	void PublishStatsTimerHandler();
@@ -70,12 +77,11 @@ private:
 	std::vector<String> GetTypeDumpSignalKeys(const Type::Ptr& type);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
-	void UpdateState(const Checkable::Ptr& checkable);
+	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
-	void SendStatusUpdate(const Checkable::Ptr& checkable);
 	void SendStateChange(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates, const String& objectKey,
 			const String& redisKey, const Dictionary::Ptr& data);
@@ -130,7 +136,6 @@ private:
 	static String GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj);
 	static bool PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checkSums);
 
-	static void StateChangeHandler(const ConfigObject::Ptr& object);
 	static void StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 	static void DowntimeStartedHandler(const Downtime::Ptr& downtime);
@@ -146,6 +151,7 @@ private:
 	static void FlappingChangeHandler(const Checkable::Ptr& checkable, double changeTime);
 	static void NewCheckResultHandler(const Checkable::Ptr& checkable);
 	static void NextCheckChangedHandler(const Checkable::Ptr& checkable);
+	static void HostProblemChangedHandler(const Service::Ptr& service);
 	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry);
 	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, double changeTime);
 	static void NotificationUsersChangedHandler(const Notification::Ptr& notification, const Array::Ptr& oldValues, const Array::Ptr& newValues);

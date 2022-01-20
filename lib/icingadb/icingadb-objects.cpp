@@ -84,14 +84,6 @@ void IcingaDB::ConfigStaticInitialize()
 		AcknowledgementClearedHandler(checkable, removedBy, changeTime);
 	});
 
-	Checkable::OnAcknowledgementSet.connect([](const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool, bool persistent, double changeTime, double expiry, const MessageOrigin::Ptr&) {
-		IcingaDB::StateChangeHandler(checkable);
-	});
-	/* triggered when acknowledged host/service goes back to ok and when the acknowledgement gets deleted */
-	Checkable::OnAcknowledgementCleared.connect([](const Checkable::Ptr& checkable, const String&, double, const MessageOrigin::Ptr&) {
-		IcingaDB::StateChangeHandler(checkable);
-	});
-
 	/* triggered on create, update and delete objects */
 	ConfigObject::OnActiveChanged.connect([](const ConfigObject::Ptr& object, const Value&) {
 		IcingaDB::VersionChangedHandler(object);
@@ -127,7 +119,7 @@ void IcingaDB::ConfigStaticInitialize()
 	});
 
 	Service::OnHostProblemChanged.connect([](const Service::Ptr& service, const CheckResult::Ptr&, const MessageOrigin::Ptr&) {
-		IcingaDB::StateChangeHandler(service);
+		IcingaDB::HostProblemChangedHandler(service);
 	});
 
 	Notification::OnUsersRawChangedWithOldValue.connect([](const Notification::Ptr& notification, const Value& oldValues, const Value& newValues) {
@@ -1091,7 +1083,23 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 	}
 }
 
-void IcingaDB::UpdateState(const Checkable::Ptr& checkable)
+/**
+ * Update the state information of a checkable in Redis.
+ *
+ * What is updated exactly depends on the mode parameter:
+ *  - Volatile: Update the volatile state information stored in icinga:host:state or icinga:service:state as well as
+ *    the corresponding checksum stored in icinga:checksum:host:state or icinga:checksum:service:state.
+ *  - RuntimeOnly: Write a runtime update to the icinga:runtime:state stream. It is up to the caller to ensure that
+ *    identical volatile state information was already written before to avoid inconsistencies. This mode is only
+ *    useful to upgrade a previous Volatile to a Full operation, otherwise Full should be used.
+ *  - Full: Perform an update of all state information in Redis, that is updating the volatile information and sending
+ *    a corresponding runtime update so that this state update gets written through to the persistent database by a
+ *    running icingadb process.
+ *
+ * @param checkable State of this checkable is updated in Redis
+ * @param mode Mode of operation (StateUpdate::Volatile, StateUpdate::RuntimeOnly, or StateUpdate::Full)
+ */
+void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1101,9 +1109,34 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable)
 
 	Dictionary::Ptr stateAttrs = SerializeState(checkable);
 
-	m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigObject + objectType + ":state", objectKey, JsonEncode(stateAttrs)}, Prio::RuntimeStateSync);
-	m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigCheckSum + objectType + ":state", objectKey, JsonEncode(new Dictionary({{"checksum", HashValue(stateAttrs)}}))}, Prio::RuntimeStateSync);
+	String redisStateKey = m_PrefixConfigObject + objectType + ":state";
+	String redisChecksumKey = m_PrefixConfigCheckSum + objectType + ":state";
+	String checksum = HashValue(stateAttrs);
 
+	if (mode & StateUpdate::Volatile) {
+		m_Rcon->FireAndForgetQueries({
+			{"HSET", redisStateKey, objectKey, JsonEncode(stateAttrs)},
+			{"HSET", redisChecksumKey, objectKey, JsonEncode(new Dictionary({{"checksum", checksum}}))},
+		}, Prio::RuntimeStateSync);
+	}
+
+	if (mode & StateUpdate::RuntimeOnly) {
+		ObjectLock olock(stateAttrs);
+
+		std::vector<String> streamadd({
+			"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*",
+			"runtime_type", "upsert",
+			"redis_key", redisStateKey,
+			"checksum", checksum,
+		});
+
+		for (const Dictionary::Pair& kv : stateAttrs) {
+			streamadd.emplace_back(kv.first);
+			streamadd.emplace_back(IcingaToStreamValue(kv.second));
+		}
+
+		m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream);
+	}
 }
 
 // Used to update a single object, used for runtime updates
@@ -1120,16 +1153,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 	CreateConfigUpdate(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (checkable) {
-		String objectKey = GetObjectIdentifier(object);
-		Dictionary::Ptr state = SerializeState(checkable);
-		String checksum = HashValue(state);
-
-		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigObject + typeName + ":state", objectKey, JsonEncode(state)}, Prio::RuntimeStateSync);
-		m_Rcon->FireAndForgetQuery({"HSET", m_PrefixConfigCheckSum + typeName + ":state", objectKey, JsonEncode(new Dictionary({{"checksum", checksum}}))}, Prio::RuntimeStateSync);
-
-		if (runtimeUpdate) {
-			SendStatusUpdate(checkable);
-		}
+		UpdateState(checkable, runtimeUpdate ? StateUpdate::Full : StateUpdate::Volatile);
 	}
 
 	std::vector<std::vector<String> > transaction = {{"MULTI"}};
@@ -1593,31 +1617,6 @@ unsigned short GetPreviousState(const Checkable::Ptr& checkable, const Service::
 	}
 }
 
-void IcingaDB::SendStatusUpdate(const Checkable::Ptr& checkable)
-{
-	if (!m_Rcon || !m_Rcon->IsConnected())
-		return;
-
-	Host::Ptr host;
-	Service::Ptr service;
-	Dictionary::Ptr objectAttrs = SerializeState(checkable);
-	std::vector<String> streamadd({"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*"});
-	ObjectLock olock(objectAttrs);
-
-	tie(host, service) = GetHostService(checkable);
-
-	objectAttrs->Set("checksum", HashValue(objectAttrs));
-	objectAttrs->Set("redis_key", service ? "icinga:service:state" : "icinga:host:state");
-	objectAttrs->Set("runtime_type", "upsert");
-
-	for (const Dictionary::Pair& kv : objectAttrs) {
-		streamadd.emplace_back(kv.first);
-		streamadd.emplace_back(IcingaToStreamValue(kv.second));
-	}
-
-	m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream);
-}
-
 void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
@@ -1635,7 +1634,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 
 	tie(host, service) = GetHostService(checkable);
 
-	SendStatusUpdate(checkable);
+	UpdateState(checkable, StateUpdate::RuntimeOnly);
 
 	int hard_state;
 	if (!cr) {
@@ -1793,6 +1792,9 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
+	/* Update checkable state as in_downtime may have changed. */
+	UpdateState(checkable, StateUpdate::Full);
+
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
 		"downtime_id", GetObjectIdentifier(downtime),
@@ -1877,6 +1879,9 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 	// Downtime never got triggered (didn't send "downtime_start") so we don't want to send "downtime_end"
 	if (downtime->GetTriggerTime() == 0)
 		return;
+
+	/* Update checkable state as in_downtime may have changed. */
+	UpdateState(checkable, StateUpdate::Full);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
@@ -2002,8 +2007,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
-	UpdateState(checkable);
-	SendStatusUpdate(checkable);
+	UpdateState(checkable, StateUpdate::Full);
 }
 
 void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
@@ -2072,8 +2076,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 	}
 
 	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
-	UpdateState(checkable);
-	SendStatusUpdate(checkable);
+	UpdateState(checkable, StateUpdate::Full);
 }
 
 void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double changeTime, double flappingLastChange)
@@ -2176,6 +2179,9 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
+	/* Update checkable state as is_acknowledged may have changed. */
+	UpdateState(checkable, StateUpdate::Full);
+
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
 		"environment_id", m_EnvironmentId,
@@ -2229,6 +2235,9 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
+
+	/* Update checkable state as is_acknowledged may have changed. */
+	UpdateState(checkable, StateUpdate::Full);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
@@ -2583,15 +2592,6 @@ IcingaDB::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
 	//m_Rcon->FireAndForgetQuery({"HSET", keyPrefix + typeName, GetObjectIdentifier(object), JsonEncode(attrs)});
 }
 
-void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object)
-{
-	auto checkable (dynamic_pointer_cast<Checkable>(object));
-
-	if (checkable) {
-		IcingaDB::StateChangeHandler(object, checkable->GetLastCheckResult(), checkable->GetStateType());
-	}
-}
-
 void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
@@ -2621,8 +2621,6 @@ void IcingaDB::VersionChangedHandler(const ConfigObject::Ptr& object)
 
 void IcingaDB::DowntimeStartedHandler(const Downtime::Ptr& downtime)
 {
-	StateChangeHandler(downtime->GetCheckable());
-
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendStartedDowntime(downtime);
 	}
@@ -2630,8 +2628,6 @@ void IcingaDB::DowntimeStartedHandler(const Downtime::Ptr& downtime)
 
 void IcingaDB::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 {
-	StateChangeHandler(downtime->GetCheckable());
-
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->SendRemovedDowntime(downtime);
 	}
@@ -2678,7 +2674,7 @@ void IcingaDB::FlappingChangeHandler(const Checkable::Ptr& checkable, double cha
 void IcingaDB::NewCheckResultHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->UpdateState(checkable);
+		rw->UpdateState(checkable, StateUpdate::Volatile);
 		rw->SendNextUpdate(checkable);
 	}
 }
@@ -2686,8 +2682,15 @@ void IcingaDB::NewCheckResultHandler(const Checkable::Ptr& checkable)
 void IcingaDB::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->UpdateState(checkable);
+		rw->UpdateState(checkable, StateUpdate::Volatile);
 		rw->SendNextUpdate(checkable);
+	}
+}
+
+void IcingaDB::HostProblemChangedHandler(const Service::Ptr& service) {
+	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		/* Host state changes affect is_handled and severity of services. */
+		rw->UpdateState(service, StateUpdate::Full);
 	}
 }
 
