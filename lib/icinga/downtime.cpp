@@ -9,6 +9,7 @@
 #include "base/utility.hpp"
 #include "base/timer.hpp"
 #include <boost/thread/once.hpp>
+#include <cmath>
 
 using namespace icinga;
 
@@ -130,7 +131,7 @@ void Downtime::Start(bool runtimeCreated)
 		Log(LogNotice, "Downtime")
 			<< "Checkable '" << checkable->GetName() << "' already in a NOT-OK state."
 			<< " Triggering downtime now.";
-		TriggerDowntime();
+		TriggerDowntime(checkable->GetLastStateChange());
 	}
 
 	if (GetFixed() && CanBeTriggered()) {
@@ -138,7 +139,7 @@ void Downtime::Start(bool runtimeCreated)
 		OnDowntimeStarted(this);
 
 		/* Trigger fixed downtime immediately. */
-		TriggerDowntime();
+		TriggerDowntime(std::fmax(GetStartTime(), GetEntryTime()));
 	}
 }
 
@@ -422,7 +423,7 @@ bool Downtime::CanBeTriggered()
 	return true;
 }
 
-void Downtime::TriggerDowntime()
+void Downtime::TriggerDowntime(double triggerTime)
 {
 	if (!CanBeTriggered())
 		return;
@@ -432,8 +433,9 @@ void Downtime::TriggerDowntime()
 	Log(LogInformation, "Downtime")
 		<< "Triggering downtime '" << GetName() << "' for checkable '" << checkable->GetName() << "'.";
 
-	if (GetTriggerTime() == 0)
-		SetTriggerTime(Utility::GetTime());
+	if (GetTriggerTime() == 0) {
+		SetTriggerTime(triggerTime);
+	}
 
 	Array::Ptr triggers = GetTriggers();
 
@@ -445,7 +447,7 @@ void Downtime::TriggerDowntime()
 			if (!downtime)
 				continue;
 
-			downtime->TriggerDowntime();
+			downtime->TriggerDowntime(triggerTime);
 		}
 	}
 
@@ -475,7 +477,7 @@ void Downtime::DowntimesStartTimerHandler()
 			OnDowntimeStarted(downtime);
 
 			/* Trigger fixed downtime immediately. */
-			downtime->TriggerDowntime();
+			downtime->TriggerDowntime(std::fmax(downtime->GetStartTime(), downtime->GetEntryTime()));
 		}
 	}
 }
