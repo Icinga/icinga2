@@ -121,7 +121,7 @@ void Downtime::Start(bool runtimeCreated)
 	 * this downtime now *after* it has been added (important
 	 * for DB IDO, etc.)
 	 */
-	if (!checkable->IsStateOK(checkable->GetStateRaw())) {
+	if (!GetFixed() && !checkable->IsStateOK(checkable->GetStateRaw())) {
 		Log(LogNotice, "Downtime")
 			<< "Checkable '" << checkable->GetName() << "' already in a NOT-OK state."
 			<< " Triggering downtime now.";
