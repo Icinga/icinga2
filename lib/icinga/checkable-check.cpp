@@ -215,10 +215,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 		ResetNotificationNumbers();
 		SaveLastState(ServiceOK, cr->GetExecutionEnd());
-
-		/* update reachability for child objects in OK state */
-		if (!children.empty())
-			OnReachabilityChanged(this, cr, children, origin);
 	} else {
 		/* OK -> NOT-OK change, first SOFT state. Reset attempt counter. */
 		if (IsStateOK(old_state)) {
@@ -241,10 +237,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		if (!IsStateOK(cr->GetState())) {
 			SaveLastState(cr->GetState(), cr->GetExecutionEnd());
 		}
-
-		/* update reachability for child objects in NOT-OK state */
-		if (!children.empty())
-			OnReachabilityChanged(this, cr, children, origin);
 	}
 
 	if (recovery) {
@@ -514,6 +506,10 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			SetSuppressedNotifications(suppressed_types_after);
 		}
 	}
+
+	/* update reachability for child objects */
+	if (!children.empty())
+		OnReachabilityChanged(this, cr, children, origin);
 }
 
 void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
