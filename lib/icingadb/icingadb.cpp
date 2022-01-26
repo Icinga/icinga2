@@ -7,6 +7,8 @@
 #include "remote/eventqueue.hpp"
 #include "base/configuration.hpp"
 #include "base/json.hpp"
+#include "base/perfdatavalue.hpp"
+#include "base/statsfunction.hpp"
 #include "base/tlsutility.hpp"
 #include "base/utility.hpp"
 #include "icinga/checkable.hpp"
@@ -27,6 +29,8 @@ std::once_flag IcingaDB::m_EnvironmentIdOnce;
 
 REGISTER_TYPE(IcingaDB);
 
+REGISTER_STATSFUNCTION(IcingaDB, &IcingaDB::StatsFunc);
+
 IcingaDB::IcingaDB()
 	: m_Rcon(nullptr)
 {
@@ -36,6 +40,28 @@ IcingaDB::IcingaDB()
 
 	m_PrefixConfigObject = "icinga:";
 	m_PrefixConfigCheckSum = "icinga:checksum:";
+}
+
+/**
+ * Feature stats interface
+ *
+ * @param status Key value pairs for feature stats
+ */
+void IcingaDB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
+{
+	DictionaryData nodes;
+
+	for (auto& icingadb : ConfigType::GetObjectsByType<IcingaDB>()) {
+		auto historyBufferItems (icingadb->m_HistoryBulker.Size());
+
+		nodes.emplace_back(icingadb->GetName(), new Dictionary({
+			{ "history_buffer_items", historyBufferItems }
+		}));
+
+		perfdata->Add(new PerfdataValue("icingadb_" + icingadb->GetName() + "_history_buffer_items", historyBufferItems));
+	}
+
+	status->Set("icingadb", new Dictionary(std::move(nodes)));
 }
 
 void IcingaDB::Validate(int types, const ValidationUtils& utils)
