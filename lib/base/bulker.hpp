@@ -38,6 +38,11 @@ public:
 	Container ConsumeMany();
 	SizeType Size();
 
+	inline SizeType GetBulkSize() const noexcept
+	{
+		return m_BulkSize;
+	}
+
 private:
 	typedef std::chrono::time_point<Clock> TimePoint;
 
