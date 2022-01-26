@@ -30,6 +30,7 @@
 #include "icinga/timeperiod.hpp"
 #include "icinga/pluginutility.hpp"
 #include "remote/zone.hpp"
+#include <chrono>
 #include <cstdint>
 #include <iterator>
 #include <map>
@@ -2259,7 +2260,25 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 
 void IcingaDB::ForwardHistoryEntries()
 {
+	using clock = std::chrono::steady_clock;
+
+	const std::chrono::seconds logInterval (10);
+	auto nextLog (clock::now() + logInterval);
+
+	auto logPeriodically ([this, logInterval, &nextLog]() {
+		if (clock::now() > nextLog) {
+			nextLog += logInterval;
+
+			auto size (m_HistoryBulker.Size());
+
+			Log(size > m_HistoryBulker.GetBulkSize() ? LogInformation : LogNotice, "IcingaDB")
+				<< "Pending history queries: " << size;
+		}
+	});
+
 	for (;;) {
+		logPeriodically();
+
 		auto haystack (m_HistoryBulker.ConsumeMany());
 
 		if (haystack.empty()) {
@@ -2283,6 +2302,8 @@ void IcingaDB::ForwardHistoryEntries()
 		});
 
 		for (;;) {
+			logPeriodically();
+
 			if (m_Rcon && m_Rcon->IsConnected()) {
 				try {
 					m_Rcon->GetResultsOfQueries(haystack, Prio::History);
