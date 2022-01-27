@@ -1,5 +1,6 @@
-# Installation <a id="installation"></a>
+# Installation
 
+<!-- {% if index %} -->
 This tutorial is a step-by-step introduction to installing [Icinga 2](02-installation.md#setting-up-icinga2)
 and [Icinga Web 2](02-installation.md#setting-up-icingaweb2).
 It assumes that you are familiar with the operating system you're using to install Icinga 2.
@@ -41,15 +42,18 @@ available. Please contact your distribution packagers.
 >
 > Windows is only supported for agent installations. Please refer
 > to the [distributed monitoring chapter](06-distributed-monitoring.md#distributed-monitoring-setup-client-windows).
+<!-- {% else %} -->
 
-### Package Repositories <a id="package-repositories"></a>
+### Package Repository
 
 You need to add the Icinga repository to your package management configuration.
 The following commands must be executed with `root` permissions unless noted otherwise.
 
-#### Debian/Ubuntu/Raspbian Repositories <a id="package-repositories-debian-ubuntu-raspbian"></a>
-
-Debian:
+<!-- {% if not icingaDocs %} -->
+#### Debian/Ubuntu/Raspbian Repositories
+<!-- {% endif %} -->
+<!-- {% if debian %} -->
+**Debian 10+**
 
 ```bash
 apt-get update
@@ -66,7 +70,22 @@ DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
 apt-get update
 ```
 
-Ubuntu:
+**Debian 9/Stretch**
+
+> **Note**:
+>
+> This repository is required for Debian Stretch since v2.11.
+
+```bash
+DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
+ echo "deb https://deb.debian.org/debian ${DIST}-backports main" > \
+ /etc/apt/sources.list.d/${DIST}-backports.list
+
+apt-get update
+```
+
+<!-- {% elif ubuntu %} -->
+**Ubuntu**
 
 ```bash
 apt-get update
@@ -83,7 +102,8 @@ wget -O - https://packages.icinga.com/icinga.key | apt-key add -
 apt-get update
 ```
 
-Raspbian Buster:
+<!-- {% elif raspbian %} -->
+**Raspbian Buster**
 
 ```bash
 apt-get update
@@ -99,55 +119,58 @@ DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
 
 apt-get update
 ```
+<!-- {% endif %} -->
 
-##### Debian Backports Repository <a id="package-repositories-debian-backports"></a>
-
-> **Note**:
->
-> This repository is required for Debian Stretch since v2.11.
-
-Debian Stretch:
-
-```bash
-DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb https://deb.debian.org/debian ${DIST}-backports main" > \
- /etc/apt/sources.list.d/${DIST}-backports.list
-
-apt-get update
-```
-
-#### RHEL/CentOS/Fedora Repositories <a id="package-repositories-rhel-centos-fedora"></a>
-
-RHEL/CentOS 8:
+<!-- {% if not icingaDocs %} -->
+#### RHEL/CentOS Repositories
+<!-- {% endif %} -->
+<!-- {% if centos %} -->
+**CentOS 8**
 
 ```bash
 dnf install https://packages.icinga.com/epel/icinga-rpm-release-8-latest.noarch.rpm
 ```
 
-RHEL/CentOS 7:
+**CentOS 7**
 
 ```bash
 yum install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
 ```
 
-RHEL/CentOS 6 x64:
+**CentOS 6 x64**
 
 ```bash
 yum install https://packages.icinga.com/epel/icinga-rpm-release-6-latest.noarch.rpm
 ```
-
-Fedora 31:
+<!-- {% elif rhel %} -->
+**RHEL 8**
 
 ```bash
-dnf install https://packages.icinga.com/fedora/icinga-rpm-release-31-latest.noarch.rpm
+dnf install https://packages.icinga.com/epel/icinga-rpm-release-8-latest.noarch.rpm
 ```
 
-##### RHEL/CentOS EPEL Repository <a id="package-repositories-rhel-epel"></a>
+**RHEL 7**
+
+```bash
+yum install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
+```
+
+**RHEL 6 x64**
+
+```bash
+yum install https://packages.icinga.com/epel/icinga-rpm-release-6-latest.noarch.rpm
+```
+<!-- {% endif %} -->
+
+<!-- {% if centos or rhel %} -->
+##### EPEL Repository
 
 The packages for RHEL/CentOS depend on other packages which are distributed
 as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
+<!-- {% endif %} -->
 
-CentOS 8 additionally needs the PowerTools repository for EPEL:
+<!-- {% if centos %} -->
+**CentOS 8**
 
 ```bash
 dnf install 'dnf-command(config-manager)'
@@ -156,16 +179,17 @@ dnf config-manager --set-enabled powertools
 dnf install epel-release
 ```
 
-CentOS 7/6:
+**CentOS 7/6**
 
 ```bash
 yum install epel-release
 ```
 
-If you are using RHEL you need to additionally enable the `optional` and `codeready-builder`
-repository before installing the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
+<!-- {% elif rhel %} -->
+You need to additionally enable the `optional` and `codeready-builder` repository before installing
+the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
 
-RHEL 8:
+**RHEL 8**
 
 ```bash
 ARCH=$( /bin/arch )
@@ -175,26 +199,41 @@ subscription-manager repos --enable "codeready-builder-for-rhel-8-${ARCH}-rpms"
 dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 ```
 
-RHEL 7:
+**RHEL 7**
 
 ```bash
 subscription-manager repos --enable rhel-7-server-optional-rpms
 yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 ```
 
-RHEL 6:
+**RHEL 6**
 
 ```bash
 subscription-manager repos --enable rhel-6-server-optional-rpms
 yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
 ```
+<!-- {% endif %} -->
 
-#### SLES/OpenSUSE Repositories <a id="package-repositories-sles-opensuse"></a>
+<!-- {% if not icingaDocs %} -->
+#### Fedora Repositories
+<!-- {% endif %} -->
+<!-- {% if fedora %} -->
+**Fedora 31**
+
+```bash
+dnf install https://packages.icinga.com/fedora/icinga-rpm-release-31-latest.noarch.rpm
+```
+<!-- {% endif %} -->
+
+<!-- {% if not icingaDocs %} -->
+#### SLES/OpenSUSE Repositories
+<!-- {% endif %} -->
+<!-- {% if sles %} -->
 
 The release repository also provides the required Boost 1.66+ packages
 since v2.11.
 
-SLES 15/12:
+**SLES 15/12**
 
 ```bash
 rpm --import https://packages.icinga.com/icinga.key
@@ -203,7 +242,8 @@ zypper ar https://packages.icinga.com/SUSE/ICINGA-release.repo
 zypper ref
 ```
 
-openSUSE:
+<!-- {% elif opensuse %} -->
+**openSUSE**
 
 ```bash
 rpm --import https://packages.icinga.com/icinga.key
@@ -211,19 +251,7 @@ rpm --import https://packages.icinga.com/icinga.key
 zypper ar https://packages.icinga.com/openSUSE/ICINGA-release.repo
 zypper ref
 ```
-
-#### Alpine Linux Repositories <a id="package-repositories-alpine"></a>
-
-```bash
-echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
-echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
-apk update
-```
-
-The example provided assumes that you are running Alpine edge, which is the -dev branch and is a rolling release.
-If you are using a stable version please "pin" the edge repository on the latest Icinga 2 package version.
-In order to correctly manage your repository, please follow
-[these instructions](https://wiki.alpinelinux.org/wiki/Alpine_Linux_package_management)
+<!-- {% endif %} -->
 
 ### Installing Icinga 2 <a id="installing-icinga2"></a>
 
@@ -1182,3 +1210,4 @@ rc-service icinga2 restart
 ```
 
 Continue with the [webserver setup](02-installation.md#icinga2-user-interface-webserver).
+<!-- {% endif %} --><!-- {# end index else #} -->
