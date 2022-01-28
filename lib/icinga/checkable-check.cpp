@@ -483,7 +483,12 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	if (send_notification && !is_flapping) {
 		if (!IsPaused()) {
-			if (suppress_notification) {
+			/* If there are still some pending suppressed state notification, keep the suppression until these are
+			 * handled by Checkable::FireSuppressedNotifications().
+			 */
+			bool pending = GetSuppressedNotifications() & (NotificationRecovery|NotificationProblem);
+
+			if (suppress_notification || pending) {
 				suppressed_types |= (recovery ? NotificationRecovery : NotificationProblem);
 			} else {
 				OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", nullptr);
@@ -500,12 +505,21 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		int suppressed_types_before (GetSuppressedNotifications());
 		int suppressed_types_after (suppressed_types_before | suppressed_types);
 
-		for (int conflict : {NotificationProblem | NotificationRecovery, NotificationFlappingStart | NotificationFlappingEnd}) {
-			/* E.g. problem and recovery notifications neutralize each other. */
+		const int conflict = NotificationFlappingStart | NotificationFlappingEnd;
+		if ((suppressed_types_after & conflict) == conflict) {
+			/* Flapping start and end cancel out each other. */
+			suppressed_types_after &= ~conflict;
+		}
 
-			if ((suppressed_types_after & conflict) == conflict) {
-				suppressed_types_after &= ~conflict;
-			}
+		const int stateNotifications = NotificationRecovery | NotificationProblem;
+		if (!(suppressed_types_before & stateNotifications) && (suppressed_types & stateNotifications)) {
+			/* A state-related notification is suppressed for the first time, store the previous state. When
+			 * notifications are no longer suppressed, this can be compared with the current state to determine
+			 * if a notification must be sent. This is done differently compared to flapping notifications just above
+			 * as for state notifications, problem and recovery don't always cancel each other. For example,
+			 * WARNING -> OK -> CRITICAL generates both types once, but there should still be a notification.
+			 */
+			SetStateBeforeSuppression(old_stateType == StateTypeHard ? old_state : ServiceOK);
 		}
 
 		if (suppressed_types_after != suppressed_types_before) {
