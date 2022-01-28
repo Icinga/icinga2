@@ -1,8 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "icinga/downtime.hpp"
 #include "icinga/host.hpp"
+#include "icinga/service.hpp"
 #include <BoostTestTargetConfig.h>
 #include <iostream>
+#include <sstream>
+#include <utility>
+#include <vector>
 
 using namespace icinga;
 
@@ -809,4 +814,219 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_over_bad_into_ok)
 
 #endif /* I2_DEBUG */
 }
+
+BOOST_AUTO_TEST_CASE(suppressed_notification)
+{
+	/* Tests that suppressed notifications on a Checkable are sent after the suppression ends if and only if the first
+	 * hard state after the suppression is different from the last hard state before the suppression. The test works
+	 * by bringing a service in a defined hard state, creating a downtime, performing some state changes, removing the
+	 * downtime, bringing the service into another defined hard state (if not already) and checking the requested
+	 * notifications.
+	 */
+
+	struct NotificationLog {
+		std::vector<std::pair<NotificationType, ServiceState>> GetAndClear() {
+			std::lock_guard<std::mutex> lock (mutex);
+
+			std::vector<std::pair<NotificationType, ServiceState>> ret;
+			std::swap(ret, log);
+			return ret;
+		}
+
+		void Add(std::pair<NotificationType, ServiceState> notification) {
+			std::lock_guard<std::mutex> lock (mutex);
+
+			log.emplace_back(notification);
+		}
+
+	private:
+		std::mutex mutex;
+		std::vector<std::pair<NotificationType, ServiceState>> log;
+	};
+
+	const std::vector<ServiceState> states {ServiceOK, ServiceWarning, ServiceCritical, ServiceUnknown};
+
+	for (bool isVolatile : {false, true}) {
+		for (int checkAttempts : {1, 2}) {
+			for (ServiceState initialState : states) {
+				for (ServiceState s1 : states)
+				for (ServiceState s2 : states)
+				for (ServiceState s3 : states) {
+					const std::vector<ServiceState> sequence {s1, s2, s3};
+
+					std::string testcase;
+
+					{
+						std::ostringstream buf;
+						buf << "volatile=" << isVolatile
+							<< " checkAttempts=" << checkAttempts
+							<< " sequence={" << Service::StateToString(initialState);
+
+						for (ServiceState s : sequence) {
+							buf << " " << Service::StateToString(s);
+						}
+
+						buf << "}";
+						testcase = buf.str();
+					}
+
+					std::cout << "Test case: " << testcase << std::endl;
+
+					// Create host and service for the test.
+					Host::Ptr host = new Host();
+					host->SetName("suppressed_notifications");
+					host->Register();
+
+					Service::Ptr service = new Service();
+					service->SetHostName(host->GetName());
+					service->SetName("service");
+					service->SetActive(true);
+					service->SetVolatile(isVolatile);
+					service->SetMaxCheckAttempts(checkAttempts);
+					service->Activate();
+					service->SetAuthority(true);
+					service->Register();
+
+					host->OnAllConfigLoaded();
+					service->OnAllConfigLoaded();
+
+					// Bring service into the initial hard state.
+					for (int i = 0; i < checkAttempts; i++) {
+						std::cout << "  ProcessCheckResult("
+							<< Service::StateToString(initialState) << ")" << std::endl;
+						service->ProcessCheckResult(MakeCheckResult(initialState));
+					}
+
+					BOOST_CHECK(service->GetState() == initialState);
+					BOOST_CHECK(service->GetStateType() == StateTypeHard);
+
+					/* Keep track of all notifications requested from now on.
+					 *
+					 * Boost.Signal2 handler may still be executing from another thread after they were disconnected.
+					 * Make the structures accessed by the handlers shared pointers so that they remain valid as long
+					 * as they may be accessed from one of these handlers.
+					 */
+					auto notificationLog = std::make_shared<NotificationLog>();
+
+					boost::signals2::scoped_connection c (Checkable::OnNotificationsRequested.connect(
+						[notificationLog,service](
+							const Checkable::Ptr& checkable, NotificationType type,	const CheckResult::Ptr& cr,
+							const String&, const String&, const MessageOrigin::Ptr&
+						) {
+							BOOST_CHECK_EQUAL(checkable, service);
+							std::cout << "  -> OnNotificationsRequested(" << Notification::NotificationTypeToString(type)
+								<< ", " << Service::StateToString(cr->GetState()) << ")" << std::endl;
+
+							notificationLog->Add({type, cr->GetState()});
+						}
+					));
+
+					// Helper to assert which notifications were requested. Implicitly clears the stored notifications.
+					auto assertNotifications = [notificationLog](
+						const std::vector<std::pair<NotificationType, ServiceState>>& expected,
+						const std::string& extraMessage
+					) {
+						// Pretty-printer for the vectors of requested and expected notifications.
+						auto pretty = [](const std::vector<std::pair<NotificationType, ServiceState>>& vec) {
+							std::ostringstream s;
+
+							s << "{";
+							bool first = true;
+							for (const auto &v : vec) {
+								if (first) {
+									first = false;
+								} else {
+									s << ", ";
+								}
+								s << Notification::NotificationTypeToString(v.first)
+								  << "/" << Service::StateToString(v.second);
+							}
+							s << "}";
+
+							return s.str();
+						};
+
+						auto got (notificationLog->GetAndClear());
+
+						BOOST_CHECK_MESSAGE(got == expected, "expected=" << pretty(expected)
+							<< " got=" << pretty(got)
+							<< (extraMessage.empty() ? "" : " ") << extraMessage);
+					};
+
+					// Start a downtime for the service.
+					std::cout << "  Downtime Start" << std::endl;
+					Downtime::Ptr downtime = new Downtime();
+					downtime->SetHostName(host->GetName());
+					downtime->SetServiceName(service->GetName());
+					downtime->SetName("downtime");
+					downtime->SetFixed(true);
+					downtime->SetStartTime(Utility::GetTime() - 3600);
+					downtime->SetEndTime(Utility::GetTime() + 3600);
+					service->RegisterDowntime(downtime);
+					downtime->Register();
+					downtime->OnAllConfigLoaded();
+					downtime->TriggerDowntime(Utility::GetTime());
+
+					BOOST_CHECK(service->IsInDowntime());
+
+					// Process check results for the state sequence.
+					for (ServiceState s : sequence) {
+						std::cout << "  ProcessCheckResult(" << Service::StateToString(s) << ")" << std::endl;
+						service->ProcessCheckResult(MakeCheckResult(s));
+						BOOST_CHECK(service->GetState() == s);
+						if (checkAttempts == 1) {
+							BOOST_CHECK(service->GetStateType() == StateTypeHard);
+						}
+					}
+
+					assertNotifications({}, "(no notifications in downtime)");
+
+					if (service->GetSuppressedNotifications()) {
+						BOOST_CHECK_EQUAL(service->GetStateBeforeSuppression(), initialState);
+					}
+
+					// Remove the downtime.
+					std::cout << "  Downtime End" << std::endl;
+					service->UnregisterDowntime(downtime);
+					downtime->Unregister();
+					BOOST_CHECK(!service->IsInDowntime());
+
+					if (service->GetStateType() == icinga::StateTypeSoft) {
+						// When the current state is a soft state, no notification should be sent just yet.
+						std::cout << "  FireSuppressedNotifications()" << std::endl;
+						service->FireSuppressedNotifications();
+
+						assertNotifications({}, testcase + " (should not fire in soft state)");
+
+						// Repeat the last check result until reaching a hard state.
+						for (int i = 0; i < checkAttempts && service->GetStateType() == StateTypeSoft; i++) {
+							std::cout << "  ProcessCheckResult(" << Service::StateToString(sequence.back()) << ")"
+									  << std::endl;
+							service->ProcessCheckResult(MakeCheckResult(sequence.back()));
+							BOOST_CHECK(service->GetState() == sequence.back());
+						}
+					}
+
+					// The service should be in a hard state now and notifications should now be sent if applicable.
+					BOOST_CHECK(service->GetStateType() == StateTypeHard);
+
+					std::cout << "  FireSuppressedNotifications()" << std::endl;
+					service->FireSuppressedNotifications();
+
+					if (initialState != sequence.back()) {
+						NotificationType t = sequence.back() == ServiceOK ? NotificationRecovery : NotificationProblem;
+						assertNotifications({{t, sequence.back()}}, testcase);
+					} else {
+						assertNotifications({}, testcase);
+					}
+
+					// Remove host and service.
+					service->Unregister();
+					host->Unregister();
+				}
+			}
+		}
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()
