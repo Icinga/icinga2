@@ -59,12 +59,13 @@ public:
 
 	void TriggerDowntime();
 
+	void OnAllConfigLoaded() override;
+
 	static String GetDowntimeIDFromLegacyID(int id);
 
 	static DowntimeChildOptions ChildOptionsFromValue(const Value& options);
 
 protected:
-	void OnAllConfigLoaded() override;
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
 

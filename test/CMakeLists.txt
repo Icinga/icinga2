@@ -133,6 +133,7 @@ add_boost_test(base
     icinga_checkresult/service_3attempts
     icinga_checkresult/host_flapping_notification
     icinga_checkresult/service_flapping_notification
+    icinga_checkresult/suppressed_notification
     icinga_dependencies/multi_parent
     icinga_notification/strings
     icinga_notification/state_filter

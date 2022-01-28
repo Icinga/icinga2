@@ -191,6 +191,8 @@ public:
 	bool NotificationReasonSuppressed(NotificationType type);
 	bool IsLikelyToBeCheckedSoon();
 
+	void FireSuppressedNotifications();
+
 	static void IncreasePendingChecks();
 	static void DecreasePendingChecks();
 	static int GetPendingChecks();
@@ -222,7 +224,7 @@ private:
 
 	static void NotifyDowntimeEnd(const Downtime::Ptr& downtime);
 
-	static void FireSuppressedNotifications(const Timer * const&);
+	static void FireSuppressedNotificationsTimer(const Timer * const&);
 	static void CleanDeadlinedExecutions(const Timer * const&);
 
 	/* Comments */

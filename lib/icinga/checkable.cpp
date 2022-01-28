@@ -103,7 +103,7 @@ void Checkable::Start(bool runtimeCreated)
 	boost::call_once(once, []() {
 		l_CheckablesFireSuppressedNotifications = new Timer();
 		l_CheckablesFireSuppressedNotifications->SetInterval(5);
-		l_CheckablesFireSuppressedNotifications->OnTimerExpired.connect(&Checkable::FireSuppressedNotifications);
+		l_CheckablesFireSuppressedNotifications->OnTimerExpired.connect(&Checkable::FireSuppressedNotificationsTimer);
 		l_CheckablesFireSuppressedNotifications->Start();
 
 		l_CleanDeadlinedExecutions = new Timer();
