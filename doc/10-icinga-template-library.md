@@ -796,6 +796,7 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 
 Name			| Description
 ------------------------|---------------------------------------------------------------
+mysql_extra_opts	| **Optional.** Read options from an ini file.
 mysql_hostname		| **Optional.** Host name, IP Address, or unix socket (must be an absolute path).
 mysql_port		| **Optional.** Port number (default: 3306).
 mysql_socket		| **Optional.** Use the specified socket (has no effect if `mysql_hostname` is used).
@@ -971,6 +972,7 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 
 Name			| Description
 ------------------------|---------------------------------------------------------------
+pgsql_extra_opts	| **Optional.** Read options from an ini file.
 pgsql_hostname		| **Optional.** Host name, IP Address, or unix socket (must be an absolute path).
 pgsql_port		| **Optional.** Port number (default: 5432).
 pgsql_database		| **Optional.** Database to check (default: template1).
