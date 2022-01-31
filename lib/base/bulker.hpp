@@ -36,6 +36,7 @@ public:
 
 	void ProduceOne(T needle);
 	Container ConsumeMany();
+	SizeType Size();
 
 private:
 	typedef std::chrono::time_point<Clock> TimePoint;
@@ -98,6 +99,14 @@ typename Bulker<T>::Container Bulker<T>::ConsumeMany()
 
 	m_Bulks.pop();
 	return haystack;
+}
+
+template<class T>
+typename Bulker<T>::SizeType Bulker<T>::Size()
+{
+	std::unique_lock<std::mutex> lock (m_Mutex);
+
+	return m_Bulks.empty() ? 0 : (m_Bulks.size() - 1u) * m_BulkSize + m_Bulks.back().size();
 }
 
 }

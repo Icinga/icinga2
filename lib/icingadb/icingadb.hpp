@@ -5,6 +5,7 @@
 
 #include "icingadb/icingadb-ti.hpp"
 #include "icingadb/redisconnection.hpp"
+#include "base/bulker.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "icinga/customvarobject.hpp"
@@ -13,9 +14,11 @@
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
 #include <atomic>
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <set>
+#include <thread>
 #include <unordered_map>
 #include <utility>
 
@@ -111,6 +114,8 @@ private:
 	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 
+	void ForwardHistoryEntries();
+
 	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
 	Dictionary::Ptr SerializeState(const Checkable::Ptr& checkable);
 
@@ -174,6 +179,9 @@ private:
 
 	Timer::Ptr m_StatsTimer;
 	WorkQueue m_WorkQueue{0, 1, LogNotice};
+
+	std::thread m_HistoryThread;
+	Bulker<RedisConnection::Query> m_HistoryBulker {4096, std::chrono::milliseconds(250)};
 
 	String m_PrefixConfigObject;
 	String m_PrefixConfigCheckSum;
