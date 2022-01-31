@@ -451,71 +451,7 @@ The severity value is pre-calculated for visualization interfaces
 such as Icinga Web which sorts the problem dashboard by severity by default.
 
 The higher the severity number is, the more important the problem is.
-
-Flags:
-
-```
-/**
- * Severity Flags
- *
- * @ingroup icinga
- */
-enum SeverityFlag
-{
-	SeverityFlagDowntime = 1,
-	SeverityFlagAcknowledgement = 2,
-	SeverityFlagHostDown = 4,
-	SeverityFlagUnhandled = 8,
-	SeverityFlagPending = 16,
-	SeverityFlagWarning = 32,
-	SeverityFlagUnknown = 64,
-	SeverityFlagCritical = 128,
-};
-```
-
-
-Host:
-
-```
-	/* OK/Warning = Up, Critical/Unknown = Down */
-	if (!HasBeenChecked())
-		severity |= SeverityFlagPending;
-	else if (state == ServiceUnknown)
-		severity |= SeverityFlagCritical;
-	else if (state == ServiceCritical)
-		severity |= SeverityFlagCritical;
-
-	if (IsInDowntime())
-		severity |= SeverityFlagDowntime;
-	else if (IsAcknowledged())
-		severity |= SeverityFlagAcknowledgement;
-	else
-		severity |= SeverityFlagUnhandled;
-```
-
-
-Service:
-
-```
-	if (!HasBeenChecked())
-		severity |= SeverityFlagPending;
-	else if (state == ServiceWarning)
-		severity |= SeverityFlagWarning;
-	else if (state == ServiceUnknown)
-		severity |= SeverityFlagUnknown;
-	else if (state == ServiceCritical)
-		severity |= SeverityFlagCritical;
-
-	if (IsInDowntime())
-		severity |= SeverityFlagDowntime;
-	else if (IsAcknowledged())
-		severity |= SeverityFlagAcknowledgement;
-	else if (m_Host->GetProblem())
-		severity |= SeverityFlagHostDown;
-	else
-		severity |= SeverityFlagUnhandled;
-```
-
+However, the formula can change across Icinga 2 releases.
 
 
 ## Cluster <a id="technical-concepts-cluster"></a>
