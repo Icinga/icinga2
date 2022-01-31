@@ -145,6 +145,8 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_Rcon->SuppressQueryKind(Prio::CheckResult);
 	m_Rcon->SuppressQueryKind(Prio::RuntimeStateSync);
+
+	m_HistoryThread = std::thread([this]() { ForwardHistoryEntries(); });
 }
 
 void IcingaDB::ExceptionHandler(boost::exception_ptr exp)
@@ -203,6 +205,11 @@ void IcingaDB::PublishStats()
 
 void IcingaDB::Stop(bool runtimeRemoved)
 {
+	Log(LogInformation, "IcingaDB")
+		<< "Flushing history data buffer to Redis.";
+
+	m_HistoryThread.join();
+
 	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' stopped.";
 
