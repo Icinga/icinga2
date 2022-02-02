@@ -85,6 +85,7 @@ public:
 	void Set(const String& field, const Value& value, bool overrideFrozen = false);
 	bool Contains(const String& field) const;
 	void Remove(const String& field, bool overrideFrozen = false);
+	Ptr ShallowClone() const;
 
 	NamespaceValue::Ptr GetAttribute(const String& field) const;
 	void SetAttribute(const String& field, const NamespaceValue::Ptr& nsVal);

@@ -62,6 +62,21 @@ void Namespace::Remove(const String& field, bool overrideFrozen)
 	m_Behavior->Remove(this, field, overrideFrozen);
 }
 
+Namespace::Ptr Namespace::ShallowClone() const
+{
+	Ptr copy (new Namespace());
+	ObjectLock lock (this);
+
+	copy->m_Data = m_Data;
+	copy->m_Behavior = m_Behavior->Clone();
+
+	for (auto& kv : copy->m_Data) {
+		kv.second = kv.second->ShallowClone();
+	}
+
+	return copy;
+}
+
 void Namespace::RemoveAttribute(const String& field)
 {
 	ObjectLock olock(this);
