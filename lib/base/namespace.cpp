@@ -152,12 +152,22 @@ void EmbeddedNamespaceValue::Set(const Value& value, bool, const DebugInfo&)
 	m_Value = value;
 }
 
+NamespaceValue::Ptr EmbeddedNamespaceValue::ShallowClone() const
+{
+	return new EmbeddedNamespaceValue(*this);
+}
+
 void ConstEmbeddedNamespaceValue::Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
 {
 	if (!overrideFrozen)
 		BOOST_THROW_EXCEPTION(ScriptError("Constant must not be modified.", debugInfo));
 
 	EmbeddedNamespaceValue::Set(value, overrideFrozen, debugInfo);
+}
+
+NamespaceValue::Ptr ConstEmbeddedNamespaceValue::ShallowClone() const
+{
+	return new ConstEmbeddedNamespaceValue(*this);
 }
 
 void NamespaceBehavior::Register(const Namespace::Ptr& ns, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) const

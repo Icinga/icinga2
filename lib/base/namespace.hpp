@@ -21,6 +21,7 @@ struct NamespaceValue : public SharedObject
 
 	virtual Value Get(const DebugInfo& debugInfo = DebugInfo()) const = 0;
 	virtual void Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo = DebugInfo()) = 0;
+	virtual Ptr ShallowClone() const = 0;
 };
 
 struct EmbeddedNamespaceValue : public NamespaceValue
@@ -29,6 +30,7 @@ struct EmbeddedNamespaceValue : public NamespaceValue
 
 	Value Get(const DebugInfo& debugInfo) const override;
 	void Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
+	NamespaceValue::Ptr ShallowClone() const override;
 
 private:
 	Value m_Value;
@@ -39,6 +41,7 @@ struct ConstEmbeddedNamespaceValue : public EmbeddedNamespaceValue
 	using EmbeddedNamespaceValue::EmbeddedNamespaceValue;
 
 	void Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
+	NamespaceValue::Ptr ShallowClone() const override;
 };
 
 class Namespace;
