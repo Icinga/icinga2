@@ -16,8 +16,6 @@ jobs:
       matrix:
         distro:
           - name: centos
-            release: 8
-          - name: centos
             release: 7
           - name: fedora
             release: 35
