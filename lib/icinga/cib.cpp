@@ -266,6 +266,7 @@ std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats()
 	Namespace::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
 
 	if (statsFunctions) {
+		statsFunctions = statsFunctions->ShallowClone();
 		ObjectLock olock(statsFunctions);
 
 		for (const Namespace::Pair& kv : statsFunctions)
