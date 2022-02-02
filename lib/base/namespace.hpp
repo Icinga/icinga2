@@ -47,12 +47,14 @@ struct NamespaceBehavior
 {
 	virtual void Register(const boost::intrusive_ptr<Namespace>& ns, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) const;
 	virtual void Remove(const boost::intrusive_ptr<Namespace>& ns, const String& field, bool overrideFrozen);
+	virtual std::unique_ptr<NamespaceBehavior> Clone() const;
 };
 
 struct ConstNamespaceBehavior : public NamespaceBehavior
 {
 	void Register(const boost::intrusive_ptr<Namespace>& ns, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) const override;
 	void Remove(const boost::intrusive_ptr<Namespace>& ns, const String& field, bool overrideFrozen) override;
+	std::unique_ptr<NamespaceBehavior> Clone() const override;
 	void Freeze();
 
 private:

@@ -177,6 +177,11 @@ void NamespaceBehavior::Remove(const Namespace::Ptr& ns, const String& field, bo
 	ns->RemoveAttribute(field);
 }
 
+std::unique_ptr<NamespaceBehavior> NamespaceBehavior::Clone() const
+{
+	return std::unique_ptr<NamespaceBehavior>(new NamespaceBehavior(*this));
+}
+
 void ConstNamespaceBehavior::Register(const Namespace::Ptr& ns, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) const
 {
 	if (m_Frozen && !overrideFrozen)
@@ -191,6 +196,11 @@ void ConstNamespaceBehavior::Remove(const Namespace::Ptr& ns, const String& fiel
 		BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified."));
 
 	NamespaceBehavior::Remove(ns, field, overrideFrozen);
+}
+
+std::unique_ptr<NamespaceBehavior> ConstNamespaceBehavior::Clone() const
+{
+	return std::unique_ptr<NamespaceBehavior>(new ConstNamespaceBehavior(*this));
 }
 
 void ConstNamespaceBehavior::Freeze()
