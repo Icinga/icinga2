@@ -119,6 +119,12 @@ public:
 		);
 	}
 
+	static inline
+	void YieldCurrentCoroutine(boost::asio::yield_context yc)
+	{
+		Get().m_AlreadyExpiredTimer.async_wait(yc);
+	}
+
 private:
 	IoEngine();
 
