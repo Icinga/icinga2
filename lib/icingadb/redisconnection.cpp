@@ -413,12 +413,16 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 								throw;
 							} catch (...) {
 								promise.set_exception(std::current_exception());
-
-								continue;
+								break;
 							}
 						}
 
-						promise.set_value(std::move(replies));
+						try {
+							promise.set_value(std::move(replies));
+						} catch (const std::future_error&) {
+							// Complaint about the above op is not allowed
+							// due to promise.set_exception() was already called
+						}
 					}
 			}
 		}
