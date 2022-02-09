@@ -22,6 +22,7 @@ struct IdoAsyncQuery
 {
 	String Query;
 	IdoAsyncCallback Callback;
+	bool RunAlone = false;
 };
 
 /**
@@ -79,7 +80,7 @@ private:
 	Dictionary::Ptr FetchRow(const IdoMysqlResult& result);
 	void DiscardRows(const IdoMysqlResult& result);
 
-	void AsyncQuery(const String& query, const IdoAsyncCallback& callback = IdoAsyncCallback());
+	void AsyncQuery(const String& query, const IdoAsyncCallback& callback = IdoAsyncCallback(), bool runAlone = false);
 	void FinishAsyncQueries();
 
 	bool FieldToEscapedString(const String& key, const Value& value, Value *result);

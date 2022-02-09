@@ -879,9 +879,11 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 		fields1->Set("endpoint_object_id", endpoint);
 
 	query1.Fields = fields1;
-	DbObject::OnQuery(query1);
+	query1.RunAlone = true;
 
+	auto notificationId (query1.NotificationInsertID);
 	std::vector<DbQuery> queries;
+	queries.emplace_back(std::move(query1));
 
 	for (const User::Ptr& user : users) {
 		DbQuery query2;
@@ -895,7 +897,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 			{ "start_time_usec", timeBag.second },
 			{ "end_time", DbValue::FromTimestamp(timeBag.first) },
 			{ "end_time_usec", timeBag.second },
-			{ "notification_id", query1.NotificationInsertID },
+			{ "notification_id", notificationId },
 			{ "instance_id", 0 } /* DbConnection class fills in real ID */
 		});
 

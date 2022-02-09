@@ -503,7 +503,7 @@ void IdoMysqlConnection::ClearTableBySession(const String& table)
 		Convert::ToString(GetSessionToken()));
 }
 
-void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<void (const IdoMysqlResult&)>& callback)
+void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<void (const IdoMysqlResult&)>& callback, bool runAlone)
 {
 	AssertOnWorkQueue();
 
@@ -513,6 +513,7 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<voi
 	 * See https://github.com/Icinga/icinga2/issues/4603 for details.
 	 */
 	aq.Callback = callback;
+	aq.RunAlone = runAlone;
 	m_AsyncQueries.emplace_back(std::move(aq));
 }
 
@@ -552,7 +553,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 			size_t size_query = aq.Query.GetLength() + 1;
 
 			if (count > 0) {
-				if (num_bytes + size_query > m_MaxPacketSize - 512)
+				if (aq.RunAlone || num_bytes + size_query > m_MaxPacketSize - 512)
 					break;
 
 				querybuf << ";";
@@ -566,6 +567,9 @@ void IdoMysqlConnection::FinishAsyncQueries()
 
 			querybuf << aq.Query;
 			num_bytes += size_query;
+
+			if (aq.RunAlone)
+				break;
 		}
 
 		String query = querybuf.str();
@@ -892,8 +896,10 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 	} else if (DbValue::IsObjectInsertID(value)) {
 		auto id = static_cast<long>(rawvalue);
 
-		if (id <= 0)
-			return false;
+		if (id <= 0) {
+			*result = "NULL";
+			return true;
+		}
 
 		*result = id;
 		return true;
@@ -1179,7 +1185,11 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 	if (type != DbQueryInsert)
 		qbuf << where.str();
 
-	AsyncQuery(qbuf.str(), [this, query, type, upsert](const IdoMysqlResult&) { FinishExecuteQuery(query, type, upsert); });
+	AsyncQuery(qbuf.str(), [this, query, type, upsert](const IdoMysqlResult&) { FinishExecuteQuery(query, type, upsert); }, query.RunAlone);
+
+	if (query.RunAlone) {
+		FinishAsyncQueries();
+	}
 }
 
 void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool upsert)

@@ -55,6 +55,7 @@ struct DbQuery
 	DbValue::Ptr NotificationInsertID;
 	bool ConfigUpdate{false};
 	bool StatusUpdate{false};
+	bool RunAlone{false};
 	WorkQueuePriority Priority{PriorityNormal};
 
 	static void StaticInitialize();
