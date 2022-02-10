@@ -45,8 +45,19 @@ void DbConnection::Start(bool runtimeCreated)
 	Log(LogInformation, "DbConnection")
 		<< "'" << GetName() << "' started.";
 
-	DbObject::OnQuery.connect(std::bind(&DbConnection::ExecuteQuery, this, _1));
-	DbObject::OnMultipleQueries.connect(std::bind(&DbConnection::ExecuteMultipleQueries, this, _1));
+	auto onQuery = [this](const DbQuery& query) { ExecuteQuery(query); };
+	DbObject::OnQuery.connect(onQuery);
+
+	auto onMultipleQueries = [this](const std::vector<DbQuery>& multiQueries) { ExecuteMultipleQueries(multiQueries); };
+	DbObject::OnMultipleQueries.connect(onMultipleQueries);
+
+	DbObject::QueryCallbacks queryCallbacks;
+	queryCallbacks.Query = onQuery;
+	queryCallbacks.MultipleQueries = onMultipleQueries;
+
+	DbObject::OnMakeQueries.connect([queryCallbacks](const std::function<void (const DbObject::QueryCallbacks&)>& queryFunc) {
+		queryFunc(queryCallbacks);
+	});
 }
 
 void DbConnection::Stop(bool runtimeRemoved)

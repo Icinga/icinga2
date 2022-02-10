@@ -791,72 +791,79 @@ void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, Ackno
 void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
 	const CheckResult::Ptr& cr, const String& author, const String& text)
 {
-	/* start and end happen at the same time */
-	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
+	/* NotificationInsertID has to be tracked per IDO instance, therefore the OnQuery and OnMultipleQueries signals
+	 * cannot be called directly as all IDO instances would insert rows with the same ID which is (most likely) only
+	 * correct in one database. Instead, pass a lambda which generates the queries with new DbValue for
+	 * NotificationInsertID each IDO instance.
+	 */
+	DbObject::OnMakeQueries([&checkable, &users, &type, &cr](const DbObject::QueryCallbacks& callbacks) {
+		/* start and end happen at the same time */
+		std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
-	DbQuery query1;
-	query1.Table = "notifications";
-	query1.Type = DbQueryInsert;
-	query1.Category = DbCatNotification;
-	query1.NotificationInsertID = new DbValue(DbValueObjectInsertID, -1);
+		DbQuery query1;
+		query1.Table = "notifications";
+		query1.Type = DbQueryInsert;
+		query1.Category = DbCatNotification;
+		query1.NotificationInsertID = new DbValue(DbValueObjectInsertID, -1);
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("notification_type", 1); /* service */
-	fields1->Set("notification_reason", MapNotificationReasonType(type));
-	fields1->Set("object_id", checkable);
-	fields1->Set("start_time", DbValue::FromTimestamp(timeBag.first));
-	fields1->Set("start_time_usec", timeBag.second);
-	fields1->Set("end_time", DbValue::FromTimestamp(timeBag.first));
-	fields1->Set("end_time_usec", timeBag.second);
+		Dictionary::Ptr fields1 = new Dictionary();
+		fields1->Set("notification_type", 1); /* service */
+		fields1->Set("notification_reason", MapNotificationReasonType(type));
+		fields1->Set("object_id", checkable);
+		fields1->Set("start_time", DbValue::FromTimestamp(timeBag.first));
+		fields1->Set("start_time_usec", timeBag.second);
+		fields1->Set("end_time", DbValue::FromTimestamp(timeBag.first));
+		fields1->Set("end_time_usec", timeBag.second);
 
-	if (service)
-		fields1->Set("state", service->GetState());
-	else
-		fields1->Set("state", GetHostState(host));
+		if (service)
+			fields1->Set("state", service->GetState());
+		else
+			fields1->Set("state", GetHostState(host));
 
-	if (cr) {
-		fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
-		fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
-	}
+		if (cr) {
+			fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
+			fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
+		}
 
-	fields1->Set("escalated", 0);
-	fields1->Set("contacts_notified", static_cast<long>(users.size()));
-	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+		fields1->Set("escalated", 0);
+		fields1->Set("contacts_notified", static_cast<long>(users.size()));
+		fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
+		Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	if (endpoint)
-		fields1->Set("endpoint_object_id", endpoint);
+		if (endpoint)
+			fields1->Set("endpoint_object_id", endpoint);
 
-	query1.Fields = fields1;
-	DbObject::OnQuery(query1);
+		query1.Fields = fields1;
+		callbacks.Query(query1);
 
-	std::vector<DbQuery> queries;
+		std::vector<DbQuery> queries;
 
-	for (const User::Ptr& user : users) {
-		DbQuery query2;
-		query2.Table = "contactnotifications";
-		query2.Type = DbQueryInsert;
-		query2.Category = DbCatNotification;
+		for (const User::Ptr& user : users) {
+			DbQuery query2;
+			query2.Table = "contactnotifications";
+			query2.Type = DbQueryInsert;
+			query2.Category = DbCatNotification;
 
-		query2.Fields = new Dictionary({
-			{ "contact_object_id", user },
-			{ "start_time", DbValue::FromTimestamp(timeBag.first) },
-			{ "start_time_usec", timeBag.second },
-			{ "end_time", DbValue::FromTimestamp(timeBag.first) },
-			{ "end_time_usec", timeBag.second },
-			{ "notification_id", query1.NotificationInsertID },
-			{ "instance_id", 0 } /* DbConnection class fills in real ID */
-		});
+			query2.Fields = new Dictionary({
+				{ "contact_object_id", user },
+				{ "start_time", DbValue::FromTimestamp(timeBag.first) },
+				{ "start_time_usec", timeBag.second },
+				{ "end_time", DbValue::FromTimestamp(timeBag.first) },
+				{ "end_time_usec", timeBag.second },
+				{ "notification_id", query1.NotificationInsertID },
+				{ "instance_id", 0 } /* DbConnection class fills in real ID */
+			});
 
-		queries.emplace_back(std::move(query2));
-	}
+			queries.emplace_back(std::move(query2));
+		}
 
-	DbObject::OnMultipleQueries(queries);
+		callbacks.MultipleQueries(queries);
+	});
 }
 
 /* statehistory */
