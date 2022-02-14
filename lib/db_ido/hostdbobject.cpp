@@ -47,6 +47,7 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 		{ "check_timeperiod_object_id", host->GetCheckPeriod() },
 		{ "check_interval", host->GetCheckInterval() / 60.0 },
 		{ "retry_interval", host->GetRetryInterval() / 60.0 },
+		{ "passive_interval", host->GetPassiveInterval() / 60.0 },
 		{ "max_check_attempts", host->GetMaxCheckAttempts() },
 		{ "flap_detection_enabled", host->GetEnableFlapping() },
 		{ "low_flap_threshold", host->GetFlappingThresholdLow() },
@@ -121,6 +122,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	fields->Set("process_performance_data", host->GetEnablePerfdata());
 	fields->Set("normal_check_interval", host->GetCheckInterval() / 60.0);
 	fields->Set("retry_check_interval", host->GetRetryInterval() / 60.0);
+	fields->Set("passive_check_interval", host->GetPassiveInterval() / 60.0);
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
 	fields->Set("is_reachable", host->GetLastReachable());
 	fields->Set("original_attributes", JsonEncode(host->GetOriginalAttributes()));

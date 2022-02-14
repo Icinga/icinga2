@@ -275,18 +275,12 @@ bool Checkable::NotificationReasonSuppressed(NotificationType type)
  */
 bool Checkable::IsLikelyToBeCheckedSoon()
 {
-	if (!GetEnableActiveChecks()) {
+	double passive_interval = GetPassiveInterval();
+	if (GetEnablePassiveChecks() && passive_interval > 0) {
+		return passive_interval <= 60;
+	} else if (GetEnableActiveChecks()) {
+		return GetNextCheck() <= Utility::GetTime() + 60;
+	} else {
 		return false;
 	}
-
-	// One minute unless the check interval is too short so the next check will always run during the next minute.
-	auto threshold (GetCheckInterval() - 10);
-
-	if (threshold > 60) {
-		threshold = 60;
-	} else if (threshold < 0) {
-		threshold = 0;
-	}
-
-	return GetNextCheck() <= Utility::GetTime() + threshold;
 }

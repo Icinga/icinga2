@@ -1254,6 +1254,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("check_timeout", checkable->GetCheckTimeout());
 		attributes->Set("check_interval", checkable->GetCheckInterval());
 		attributes->Set("check_retry_interval", checkable->GetRetryInterval());
+		attributes->Set("check_passive_interval", checkable->GetPassiveInterval());
 		attributes->Set("active_checks_enabled", checkable->GetEnableActiveChecks());
 		attributes->Set("passive_checks_enabled", checkable->GetEnablePassiveChecks());
 		attributes->Set("event_handler_enabled", checkable->GetEnableEventHandler());
