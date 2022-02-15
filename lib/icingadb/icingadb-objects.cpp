@@ -1621,6 +1621,10 @@ unsigned short GetPreviousState(const Checkable::Ptr& checkable, const Service::
 
 void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
+	if (!GetActive()) {
+		return;
+	}
+
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (!checkable)
 		return;
@@ -1710,6 +1714,10 @@ void IcingaDB::SendSentNotification(
 	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text, double sendTime
 )
 {
+	if (!GetActive()) {
+		return;
+	}
+
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
@@ -1776,6 +1784,10 @@ void IcingaDB::SendSentNotification(
 
 void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 {
+	if (!GetActive()) {
+		return;
+	}
+
 	SendConfigUpdate(downtime, true);
 
 	auto checkable (downtime->GetCheckable());
@@ -1859,6 +1871,10 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 
 void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 {
+	if (!GetActive()) {
+		return;
+	}
+
 	auto checkable (downtime->GetCheckable());
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
 
@@ -1946,7 +1962,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 
 void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 {
-	if (comment->GetEntryType() != CommentUser)
+	if (comment->GetEntryType() != CommentUser || !GetActive())
 		return;
 
 	auto checkable (comment->GetCheckable());
@@ -2002,6 +2018,10 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 
 void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 {
+	if (!GetActive()) {
+		return;
+	}
+
 	auto checkable (comment->GetCheckable());
 
 	Host::Ptr host;
@@ -2067,6 +2087,10 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 
 void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double changeTime, double flappingLastChange)
 {
+	if (!GetActive()) {
+		return;
+	}
+
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
@@ -2155,6 +2179,10 @@ void IcingaDB::SendNextUpdate(const Checkable::Ptr& checkable)
 
 void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry)
 {
+	if (!GetActive()) {
+		return;
+	}
+
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
@@ -2209,6 +2237,10 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 
 void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const String& removedBy, double changeTime, double ackLastChange)
 {
+	if (!GetActive()) {
+		return;
+	}
+
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
