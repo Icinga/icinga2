@@ -433,7 +433,7 @@ the threshold is based on the last time a check result was received:
 > The [process-check-result](12-icinga2-api.md#icinga2-api-actions-process-check-result) REST API
 > action allows to overrule the pre-defined check interval with a specified TTL in Icinga 2 v2.9+.
 
-If the freshness checks fail, Icinga 2 will execute the defined check command unless active checks are disabled.
+If the freshness checks fail and active checks are enabled, Icinga 2 will execute the defined check command.
 
 Best practice is to define a [dummy](10-icinga-template-library.md#itl-dummy) `check_command` which gets
 executed when freshness checks fail.
