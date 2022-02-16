@@ -120,11 +120,12 @@ details, please continue reading in [this issue](https://github.com/Icinga/icing
 
 Distribution         | Repository providing Boost Dependencies
 ---------------------|-------------------------------------
-RHEL/CentOS 7        | [EPEL repository](02-installation.md#package-repositories-rhel-epel)
+CentOS 7             | [EPEL repository](02-installation.md#centos-repository)
+RHEL 7               | [EPEL repository](02-installation.md#rhel-repository)
 RHEL/CentOS 6 x64    | [packages.icinga.com](https://packages.icinga.com)
 Fedora               | Fedora Upstream
 Debian 10 Buster     | Debian Upstream
-Debian 9 Stretch     | [Backports repository](02-installation.md#package-repositories-debian-backports) **New since 2.11**
+Debian 9 Stretch     | [Backports repository](02-installation.md#debian-backports-repository) **New since 2.11**
 Debian 8 Jessie      | [packages.icinga.com](https://packages.icinga.com)
 Ubuntu 18 Bionic     | [packages.icinga.com](https://packages.icinga.com)
 Ubuntu 16 Xenial     | [packages.icinga.com](https://packages.icinga.com)

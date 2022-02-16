@@ -44,8 +44,8 @@ simple examples.
 In case you are planning a huge cluster setup with multiple levels and
 lots of satellites and agents, read on -- we'll deal with these cases later on.
 
-The installation on each system is the same: You need to install the
-[Icinga 2 package](02-installation.md#setting-up-icinga2) and the required [plugins](02-installation.md#setting-up-check-plugins).
+The installation on each system is the same: Follow the [installation instructions](02-installation.md)
+for the Icinga 2 package and the required check plugins.
 
 The required configuration steps are mostly happening
 on the command line. You can also [automate the setup](06-distributed-monitoring.md#distributed-monitoring-automation).
@@ -238,9 +238,8 @@ This section explains how to install a central single master node using
 the `node wizard` command. If you prefer to do an automated installation, please
 refer to the [automated setup](06-distributed-monitoring.md#distributed-monitoring-automation) section.
 
-Install the [Icinga 2 package](02-installation.md#setting-up-icinga2) and setup
-the required [plugins](02-installation.md#setting-up-check-plugins) if you haven't done
-so already.
+Follow the [installation instructions](02-installation.md) for the Icinga 2 package and the required
+check plugins if you haven't done so already.
 
 **Note**: Windows is not supported for a master node setup.
 
@@ -304,7 +303,7 @@ Now restart your Icinga 2 daemon to finish the installation!
 ```
 
 You can verify that the CA public and private keys are stored in the `/var/lib/icinga2/ca` directory.
-Keep this path secure and include it in your [backups](02-installation.md#install-backup).
+Keep this path secure and include it in your backups.
 
 In case you lose the CA private key you have to generate a new CA for signing new agent/satellite
 certificate requests. You then have to also re-create new signed certificates for all
@@ -512,9 +511,8 @@ Icinga 2 on the master node must be running and accepting connections on port `5
 
 Please ensure that you've run all the steps mentioned in the [agent/satellite section](06-distributed-monitoring.md#distributed-monitoring-setup-agent-satellite).
 
-Install the [Icinga 2 package](02-installation.md#setting-up-icinga2) and setup
-the required [plugins](02-installation.md#setting-up-check-plugins) if you haven't done
-so already.
+Follow the [installation instructions](02-installation.md) for the Icinga 2 package and the required
+check plugins if you haven't done so already.
 
 The next step is to run the `node wizard` CLI command.
 
@@ -3187,7 +3185,7 @@ to pick the authoritative running one and copy the following content:
 
 If you need already deployed config packages from the Director, or synced cluster zones,
 you can also sync the entire `/var/lib/icinga2/api/packages` directory. This directory should also be
-included in your [backup strategy](02-installation.md#install-backup).
+included in your backup strategy.
 
 Do **not** sync `/var/lib/icinga2/api/zones*` manually - this is an internal directory
 and handled by the Icinga cluster config sync itself.
