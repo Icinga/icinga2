@@ -62,7 +62,7 @@ Requirements:
 * IcingaDB service requires Redis and MySQL/MariaDB server
 * Icinga Web module
 
-Consult the [Icinga DB section](02-installation.md#configuring-icinga-db) in the installation chapter for setup instructions.
+Consult the [Icinga DB installation documentation](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/) for setup instructions.
 
 We will deprecate the IDO and shift towards the Icinga DB as main backend,
 but we will not drop the IDO for now.
@@ -76,8 +76,8 @@ The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
 configuration and status information into a database. The IDO database is used
 by Icinga Web 2 as data backend.
 
-Details on the installation can be found in the [Configuring DB IDO](02-installation.md#configuring-db-ido-mysql)
-chapter. Details on the configuration can be found in the
+Details on the installation can be found in the "Prepare for Icinga Web 2" chapter
+of the [Installation docs](02-installation.md). Details on the configuration can be found in the
 [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection) and
 [IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection)
 object configuration documentation.
@@ -704,7 +704,7 @@ Functionality exists to modify the built in OpenTSDB metric names that the plugi
 writes to. By default this is `icinga.host` and `icinga.service.<servicename>`.
 
 These prefixes can be modified as necessary to any arbitary string. The prefix
-configuration also supports Icinga macros, so if you rather use `<checkcommand>` 
+configuration also supports Icinga macros, so if you rather use `<checkcommand>`
 or any other variable instead of `<servicename>` you may do so.
 
 To configure OpenTSDB metric name prefixes, create or modify the `host_template` and/or
@@ -846,16 +846,16 @@ what attributes are available with links to each object type.
 > Ensure you do not name your custom attributes with a dot in the name.
 > Dots located inside a macro tell the interpreter to expand a
 > dictionary.
-> 
+>
 > Do not do this in your object configuration:
-> 
+>
 > `vars["my.attribute"]`
-> 
+>
 > as you will be unable to reference `my.attribute` because it is not a
 > dictionary.
-> 
+>
 > Instead, use underscores or another character:
-> 
+>
 > `vars.my_attribute` or `vars["my_attribute"]`
 
 
@@ -1068,7 +1068,7 @@ Livestatus.
 >
 > Only install the Livestatus feature if your web interface or addon requires
 > you to do so.
-> [Icinga Web 2](02-installation.md#setting-up-icingaweb2) does not need
+> [Icinga Web 2](https://icinga.com/docs/icinga-web-2/latest/doc/02-Installation/) does not need
 > Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found
