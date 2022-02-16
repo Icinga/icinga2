@@ -539,7 +539,7 @@ on GitHub and mention that you're testing the snapshot packages.
 
 #### RHEL/CentOS <a id="development-tests-snapshot-packages-rhel"></a>
 
-2.11+ requires the [EPEL repository](02-installation.md#package-repositories-rhel-epel) for Boost 1.66+.
+2.11+ requires the EPEL repository for Boost 1.66+.
 
 In addition to that, the `icinga-rpm-release` package already provides the `icinga-snapshot-builds`
 repository but it is disabled by default.
@@ -1436,7 +1436,7 @@ vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
 Debian Buster doesn't need updated Boost packages from packages.icinga.com,
 the distribution already provides 1.66+. For older versions such as Stretch,
-include the release repository for packages.icinga.com as shown in the [setup instructions](02-installation.md#package-repositories-debian-ubuntu-raspbian).
+include the release repository for packages.icinga.com as shown in the [setup instructions](02-installation.md).
 
 ```bash
 docker run -ti debian:buster bash
@@ -2696,4 +2696,3 @@ the duplicate import in your `~/.gdbinit` file.
 ```
 RuntimeError: pretty-printer already registered: libstdc++-v6
 ```
-

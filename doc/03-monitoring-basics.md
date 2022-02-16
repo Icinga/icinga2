@@ -1938,7 +1938,7 @@ The check command parameters for ITL provided plugin check command definitions a
 
 In order to practice passing command parameters you should [integrate your own plugin](03-monitoring-basics.md#command-plugin-integration).
 
-The following example will use `check_mysql` provided by the [Monitoring Plugins installation](02-installation.md#setting-up-check-plugins).
+The following example will use `check_mysql` provided by the [Monitoring Plugins](https://www.monitoring-plugins.org/).
 
 Define the default check command custom variables, for example `mysql_user` and `mysql_password`
 (freely definable naming schema) and optional their default threshold values. You can
