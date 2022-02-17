@@ -420,7 +420,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			<< "State Change: Checkable '" << GetName() << "' soft state change from " << old_state_str << " to " << new_state_str << " detected.";
 	}
 
-	if (GetStateType() == StateTypeSoft || hardChange || recovery ||
+	if (stateChange || hardChange ||
 		(is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state))))
 		ExecuteEventHandler();
 
