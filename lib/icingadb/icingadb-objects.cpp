@@ -2467,6 +2467,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 		attrs->Set("severity", host->GetSeverity());
 	}
 
+	attrs->Set("previous_soft_state", GetPreviousState(checkable, service, StateTypeSoft));
 	attrs->Set("previous_hard_state", GetPreviousState(checkable, service, StateTypeHard));
 	attrs->Set("check_attempt", checkable->GetCheckAttempt());
 
