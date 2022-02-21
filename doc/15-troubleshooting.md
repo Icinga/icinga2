@@ -856,7 +856,7 @@ $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:
 "icinga2-agent1.localdomain"
 ```
 
-Whenever a notification command failed to execute, you can fetch the output as well. 
+Whenever a notification command failed to execute, you can fetch the output as well.
 
 
 ## Feature Troubleshooting <a id="troubleshooting-features"></a>
@@ -1745,7 +1745,7 @@ object Endpoint "icinga-satellite2.localdomain" {
 // That's no different to what is explained in the docs as basic zone trust hierarchy, and is intentionally managed outside in zones.conf there.
 
 object Zone "master" {
-  endpoints = [ "icinga-master1.localdomain", "icinga-master2.localdomain" ] 
+  endpoints = [ "icinga-master1.localdomain", "icinga-master2.localdomain" ]
 }
 
 object Zone "satellite" {
@@ -1754,21 +1754,21 @@ object Zone "satellite" {
 }
 ```
 
-Prepare the above configuration on all affected nodes, satellites are likely uptodate already. 
+Prepare the above configuration on all affected nodes, satellites are likely uptodate already.
 Then continue with the steps below.
 
 > * backup your database, just to be on the safe side
 > * create all non-external Zone/Endpoint-Objects on all related Icinga Master/Satellite-Nodes (manually in your local zones.conf)
 > * while doing so please do NOT restart Icinga, no deployments
 > * change the type in the Director DB:
-> 
+>
 > ```sql
 > UPDATE icinga_zone SET object_type = 'external_object' WHERE object_type = 'object';
 > UPDATE icinga_endpoint SET object_type = 'external_object' WHERE object_type = 'object';
 > ```
-> 
+>
 > * render and deploy a new configuration in the Director. It will state that there are no changes. Ignore it, deploy anyways
-> 
+>
 > That's it. All nodes should automatically restart, triggered by the deployed configuration via cluster protocol.
 
 
@@ -1788,7 +1788,7 @@ certificate's CN, the master will deny all events.
 
 > **Tip**
 >
-> [Icinga Web 2](02-installation.md#setting-up-icingaweb2) provides a dashboard view
+> [Icinga Web 2](https://icinga.com/docs/icinga-web-2/latest/doc/01-About/) provides a dashboard view
 > for overdue check results.
 
 Enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) on the master

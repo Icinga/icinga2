@@ -196,7 +196,7 @@ The `constants.conf` configuration file can be used to define global constants.
 
 By default, you need to make sure to set these constants:
 
-* The `PluginDir` constant must be set to the path where the [Monitoring Project plugins](02-installation.md#setting-up-check-plugins) are installed.
+* The `PluginDir` constant must be set to the path where the [Monitoring Project](https://www.monitoring-plugins.org/) plugins are installed.
 This constant is used by a number of
 [built-in check command definitions](10-icinga-template-library.md#icinga-template-library).
 * The `NodeName` constant defines your local node name. Should be set to FQDN which is the default
@@ -304,7 +304,7 @@ service apply rule defined in [services.conf](04-configuration.md#services-conf)
 * define notification types (`mail`) and set the groups attribute. This
 will be used by notification apply rules in [notifications.conf](04-configuration.md#notifications-conf).
 
-If you've installed [Icinga Web 2](02-installation.md#setting-up-icingaweb2), you can
+If you've installed [Icinga Web 2](https://icinga.com/docs/icinga-web-2/latest/doc/02-Installation/), you can
 uncomment the http vhost attributes and reload Icinga 2. The apply
 rules in [services.conf](04-configuration.md#services-conf) will automatically
 generate a new service checking the `/icingaweb2` URI using the `http`
@@ -515,8 +515,7 @@ Look into [notifications.conf](04-configuration.md#notifications-conf) how this 
 for applying notifications to hosts and services using their type and user
 attributes.
 
-Don't forget to install the [check plugins](02-installation.md#setting-up-check-plugins) required by
-the hosts and services and their check commands.
+Don't forget to install the check plugins required by the hosts and services and their check commands.
 
 Further details on the monitoring configuration can be found in the
 [monitoring basics](03-monitoring-basics.md#monitoring-basics) chapter.

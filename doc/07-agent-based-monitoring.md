@@ -64,7 +64,7 @@ an arbitrary plugin command line. The output and exit code is
 returned and used by the core.
 
 The `check_by_ssh` plugin takes care of this. It is available in the
-[Monitoring Plugins package](02-installation.md#setting-up-check-plugins).
+[Monitoring Plugins](https://www.monitoring-plugins.org/) package.
 For your convenience, the Icinga template library provides the [by_ssh](10-icinga-template-library.md#plugin-check-command-by-ssh)
 CheckCommand already.
 
@@ -171,7 +171,7 @@ A more advanced example with better arguments is shown in [this blogpost](https:
 ## SNMP <a id="agent-based-checks-snmp"></a>
 
 The SNMP daemon runs on the remote system and answers SNMP queries by plugin scripts.
-The [Monitoring Plugins package](02-installation.md#setting-up-check-plugins) provides
+The [Monitoring Plugins](https://www.monitoring-plugins.org/) package provides
 the `check_snmp` plugin binary, but there are plenty of [existing plugins](05-service-monitoring.md#service-monitoring-plugins)
 for specific use cases already around, for example monitoring Cisco routers.
 
@@ -483,5 +483,3 @@ Community examples:
 
 * [Icinga 2 check_wmi_plus example by 18pct](https://18pct.com/icinga2-check_wmi_plus-example/)
 * [Agent-less monitoring with WMI](https://www.devlink.de/linux/icinga2-nagios-agentless-monitoring-von-windows/)
-
-
