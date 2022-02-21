@@ -1,11 +1,24 @@
 # Service Monitoring <a id="service-monitoring"></a>
 
-The power of Icinga 2 lies in its modularity. There are thousands of
-community plugins available next to the standard plugins provided by
-the [Monitoring Plugins project](https://www.monitoring-plugins.org).
+Icinga runs check plugins to determine the current status of hosts and services on your network. Typically, each plugin is a standalone command line tool that provides a specific type of check. A collection of plugins enables monitoring of a large number of common types of hosts and services. 
 
-Start your research on [Icinga Exchange](https://exchange.icinga.com)
-and look which services are already [covered](05-service-monitoring.md#service-monitoring-overview).
+There are thousands of community-contributed plugins out there. A good starting point are the following pages:
+
+* [Monitoring Plugins project](https://www.monitoring-plugins.org): A bundle of more than fifty standard plugins for Icinga, Naemon, Nagios, Shinken, Sensu, and other monitoring applications. The classic among check plugins, written in C, Bash and Perl.
+* [Linuxfabrik Monitoring Plugins Collection](https://git.linuxfabrik.ch/linuxfabrik/monitoring-plugins): A collection of more than hundred Enterprise Class Check Plugins, written in Python.
+* [Advanced Nagios Plugins Collection](https://github.com/harisekhon/nagios-plugins): 450+ specialised plugins for AWS, Hadoop, Big Data & NoSQL technologies.
+* [Icinga Exchange](https://exchange.icinga.com): Central place where you'll find plugins, addons, documentation, extensions, and more.
+* [Nagios Exchange](https://exchange.nagios.com)
+
+> **Tip**
+>
+> You don't have to commit to one source for plugins. Regardless of whether you have self-written plugins
+> or extensive plugin collections from various manufacturers, all of them can be used side by side
+> on one system without any problems. If the plugins are not compiled, you only have to provide the
+> required runtime environment and its libraries (e.g. Perl, Python, Ruby etc.).
+>
+> Start your research on one of the websites mentioned above
+> and see which services are already [covered](05-service-monitoring.md#service-monitoring-overview).
 
 The [requirements chapter](05-service-monitoring.md#service-monitoring-requirements) guides you
 through the plugin setup, tests and their integration with an [existing](05-service-monitoring.md#service-monitoring-plugin-checkcommand)
@@ -19,13 +32,11 @@ which is enriched with examples and also code examples to get you started with
 [your own plugin](05-service-monitoring.md#service-monitoring-plugin-new).
 
 
-
 ## Requirements <a id="service-monitoring-requirements"></a>
 
 ### Plugins <a id="service-monitoring-plugins"></a>
 
-All existing Icinga or Nagios plugins work with Icinga 2. Community
-plugins can be found for example on [Icinga Exchange](https://exchange.icinga.com).
+All existing Icinga or Nagios plugins work with Icinga 2.
 
 The recommended way of setting up these plugins is to copy them
 into the `PluginDir` directory.
