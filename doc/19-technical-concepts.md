@@ -1370,6 +1370,43 @@ Message updates will be dropped when:
 * Checkable does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
+#### event::SetStateBeforeSuppression <a id="technical-concepts-json-rpc-messages-event-setstatebeforesuppression"></a>
+
+> Location: `clusterevents.cpp`
+
+##### Message Body
+
+Key       | Value
+----------|---------------------------------
+jsonrpc   | 2.0
+method    | event::SetStateBeforeSuppression
+params    | Dictionary
+
+##### Params
+
+Key                        | Type   | Description
+---------------------------|--------|-----------------------------------------------
+host                       | String | Host name
+service                    | String | Service name
+state\_before\_suppression | Number | Checkable state before the current suppression
+
+##### Functions
+
+Event Sender: `Checkable::OnStateBeforeSuppressionChanged`
+Event Receiver: `StateBeforeSuppressionChangedAPIHandler`
+
+Used to sync the checkable state from before a notification suppression (for example
+because the checkable is in a downtime) started within the same HA zone.
+
+##### Permissions
+
+The receiver will not process messages from not configured endpoints.
+
+Message updates will be dropped when:
+
+* Checkable does not exist.
+* Origin endpoint is not within the local zone.
+
 #### event::SetSuppressedNotifications <a id="technical-concepts-json-rpc-messages-event-setsupressednotifications"></a>
 
 > Location: `clusterevents.cpp`
