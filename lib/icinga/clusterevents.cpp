@@ -25,6 +25,7 @@ INITIALIZE_ONCE(&ClusterEvents::StaticInitialize);
 REGISTER_APIFUNCTION(CheckResult, event, &ClusterEvents::CheckResultAPIHandler);
 REGISTER_APIFUNCTION(SetNextCheck, event, &ClusterEvents::NextCheckChangedAPIHandler);
 REGISTER_APIFUNCTION(SetLastCheckStarted, event, &ClusterEvents::LastCheckStartedChangedAPIHandler);
+REGISTER_APIFUNCTION(SetStateBeforeSuppression, event, &ClusterEvents::StateBeforeSuppressionChangedAPIHandler);
 REGISTER_APIFUNCTION(SetSuppressedNotifications, event, &ClusterEvents::SuppressedNotificationsChangedAPIHandler);
 REGISTER_APIFUNCTION(SetSuppressedNotificationTypes, event, &ClusterEvents::SuppressedNotificationTypesChangedAPIHandler);
 REGISTER_APIFUNCTION(SetNextNotification, event, &ClusterEvents::NextNotificationChangedAPIHandler);
@@ -44,6 +45,7 @@ void ClusterEvents::StaticInitialize()
 	Checkable::OnNewCheckResult.connect(&ClusterEvents::CheckResultHandler);
 	Checkable::OnNextCheckChanged.connect(&ClusterEvents::NextCheckChangedHandler);
 	Checkable::OnLastCheckStartedChanged.connect(&ClusterEvents::LastCheckStartedChangedHandler);
+	Checkable::OnStateBeforeSuppressionChanged.connect(&ClusterEvents::StateBeforeSuppressionChangedHandler);
 	Checkable::OnSuppressedNotificationsChanged.connect(&ClusterEvents::SuppressedNotificationsChangedHandler);
 	Notification::OnSuppressedNotificationsChanged.connect(&ClusterEvents::SuppressedNotificationTypesChangedHandler);
 	Notification::OnNextNotificationChanged.connect(&ClusterEvents::NextNotificationChangedHandler);
@@ -298,6 +300,68 @@ Value ClusterEvents::LastCheckStartedChangedAPIHandler(const MessageOrigin::Ptr&
 	}
 
 	checkable->SetLastCheckStarted(params->Get("last_check_started"), false, origin);
+
+	return Empty;
+}
+
+void ClusterEvents::StateBeforeSuppressionChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = new Dictionary();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("state_before_suppression", checkable->GetStateBeforeSuppression());
+
+	Dictionary::Ptr message = new Dictionary();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetStateBeforeSuppression");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, nullptr, message, true);
+}
+
+Value ClusterEvents::StateBeforeSuppressionChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'state before suppression changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	Host::Ptr host = Host::GetByName(params->Get("host"));
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'state before suppression changed' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		return Empty;
+	}
+
+	checkable->SetStateBeforeSuppression(ServiceState(int(params->Get("state_before_suppression"))), false, origin);
 
 	return Empty;
 }
