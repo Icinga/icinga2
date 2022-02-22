@@ -194,7 +194,7 @@ String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing ,)"));
 	}
 
-	return std::move(payload);
+	return payload;
 }
 
 /**
@@ -273,7 +273,7 @@ String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing ,)"));
 	}
 
-	return std::move(payload);
+	return payload;
 }
 
 /**

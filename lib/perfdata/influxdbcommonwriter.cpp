@@ -192,7 +192,7 @@ OptionalTlsStream InfluxdbCommonWriter::Connect()
 		}
 	}
 
-	return std::move(stream);
+	return stream;
 }
 
 void InfluxdbCommonWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -540,7 +540,7 @@ boost::beast::http::request<boost::beast::http::string_body> InfluxdbCommonWrite
 	request.body() = std::move(body);
 	request.content_length(request.body().size());
 
-	return std::move(request);
+	return request;
 }
 
 Url::Ptr InfluxdbCommonWriter::AssembleBaseUrl()
@@ -552,7 +552,7 @@ Url::Ptr InfluxdbCommonWriter::AssembleBaseUrl()
 	url->SetPort(GetPort());
 	url->AddQueryElement("precision", "s");
 
-	return std::move(url);
+	return url;
 }
 
 void InfluxdbCommonWriter::ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)

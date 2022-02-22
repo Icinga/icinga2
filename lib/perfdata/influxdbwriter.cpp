@@ -34,7 +34,7 @@ boost::beast::http::request<boost::beast::http::string_body> InfluxdbWriter::Ass
 		);
 	}
 
-	return std::move(request);
+	return request;
 }
 
 Url::Ptr InfluxdbWriter::AssembleUrl()
@@ -52,5 +52,5 @@ Url::Ptr InfluxdbWriter::AssembleUrl()
 	if (!GetPassword().IsEmpty())
 		url->AddQueryElement("p", GetPassword());
 
-	return std::move(url);
+	return url;
 }

@@ -646,7 +646,7 @@ OptionalTlsStream ElasticsearchWriter::Connect()
 		}
 	}
 
-	return std::move(stream);
+	return stream;
 }
 
 void ElasticsearchWriter::AssertOnWorkQueue()

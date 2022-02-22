@@ -206,7 +206,7 @@ static Shared<AsioTlsStream>::Ptr Connect(const String& host, const String& port
 		throw;
 	}
 
-	return std::move(stream);
+	return stream;
 }
 
 static const char l_ReasonToInject[2] = {' ', 'X'};
@@ -223,7 +223,7 @@ boost::asio::mutable_buffer GetFirstNonZeroBuffer(const MutableBufferSequence& m
 		asio::mutable_buffer buf (*current);
 
 		if (buf.size() > 0u) {
-			return std::move(buf);
+			return buf;
 		}
 	}
 

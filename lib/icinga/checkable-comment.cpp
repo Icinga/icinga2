@@ -54,7 +54,7 @@ Comment::Ptr Checkable::GetLastComment() const
 		}
 	}
 
-	return std::move(lastComment);
+	return lastComment;
 }
 
 void Checkable::RegisterComment(const Comment::Ptr& comment)

@@ -154,7 +154,7 @@ static const UoMs l_CsUoMs (([]() -> UoMs {
 		}
 	}
 
-	return std::move(uniqUoms);
+	return uniqUoms;
 })());
 
 static const UoMs l_CiUoMs (([]() -> UoMs {
@@ -208,7 +208,7 @@ static const UoMs l_CiUoMs (([]() -> UoMs {
 		}
 	}
 
-	return std::move(uniqUoms);
+	return uniqUoms;
 })());
 
 PerfdataValue::PerfdataValue(const String& label, double value, bool counter,

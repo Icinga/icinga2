@@ -298,7 +298,7 @@ Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String k
 		}
 	}
 
-	return std::move(context);
+	return context;
 }
 
 /**

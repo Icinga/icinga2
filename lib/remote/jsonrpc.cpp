@@ -113,7 +113,7 @@ String JsonRpc::ReadMessage(const Shared<AsioTlsStream>::Ptr& stream, ssize_t ma
 		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << "<< " << jsonString << ConsoleColorTag(Console_Normal) << "\n";
 #endif /* I2_DEBUG */
 
-	return std::move(jsonString);
+	return jsonString;
 }
 
 /**
@@ -134,7 +134,7 @@ String JsonRpc::ReadMessage(const Shared<AsioTlsStream>::Ptr& stream, boost::asi
 		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << "<< " << jsonString << ConsoleColorTag(Console_Normal) << "\n";
 #endif /* I2_DEBUG */
 
-	return std::move(jsonString);
+	return jsonString;
 }
 
 /**
