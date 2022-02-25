@@ -21,6 +21,7 @@
 #include "base/function.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string/join.hpp>
+#include <atomic>
 #include <sstream>
 #include <fstream>
 #include <algorithm>
@@ -462,7 +463,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (unresolved_dep)
 				continue;
 
-			int committed_items = 0;
+			std::atomic<int> committed_items(0);
 			upq.ParallelFor(items, [&type, &committed_items](const ItemPair& ip) {
 				const ConfigItem::Ptr& item = ip.first;
 
@@ -514,7 +515,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (unresolved_dep)
 				continue;
 
-			int notified_items = 0;
+			std::atomic<int> notified_items(0);
 			upq.ParallelFor(items, [&type, &notified_items](const ItemPair& ip) {
 				const ConfigItem::Ptr& item = ip.first;
 
