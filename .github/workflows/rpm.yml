@@ -24,6 +24,9 @@ jobs:
           - name: centos
             release: 7
             subscription: false
+          - name: amazon-linux
+            release: al2:x86_64
+            subscription: true
           - name: fedora
             release: 35
             subscription: false
