@@ -74,10 +74,23 @@ jobs:
           docker login registry.icinga.com -u github-actions --password-stdin <<<"$GITLAB_RO_TOKEN"
 
       - name: rpm-icinga2
-        if: "steps.vars.outputs.CAN_BUILD == 'true'"
+        if: "steps.vars.outputs.CAN_BUILD == 'true' && !matrix.distro.subscription"
         run: |
           set -exo pipefail
           git clone https://git.icinga.com/packaging/rpm-icinga2.git
+          chmod o+w rpm-icinga2
+
+      - name: subscription-rpm-icinga2
+        if: "steps.vars.outputs.CAN_BUILD == 'true' && matrix.distro.subscription"
+        env:
+          GITLAB_RO_TOKEN: '${{ secrets.GITLAB_RO_TOKEN }}'
+        run: |
+          set -exo pipefail
+          git config --global credential.helper store
+          cat <<EOF >~/.git-credentials
+          https://github-actions:${GITLAB_RO_TOKEN}@git.icinga.com
+          EOF
+          git clone https://git.icinga.com/packaging/subscription-rpm-icinga2.git rpm-icinga2
           chmod o+w rpm-icinga2
 
       - name: Restore/backup ccache
