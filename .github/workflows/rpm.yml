@@ -47,10 +47,10 @@ jobs:
       - name: Vars
         id: vars
         env:
-          GITLAB_REGISTRY_RO_TOKEN: '${{ secrets.GITLAB_REGISTRY_RO_TOKEN }}'
+          GITLAB_RO_TOKEN: '${{ secrets.GITLAB_RO_TOKEN }}'
         run: |
           if [ ${{ matrix.distro.subscription }} = true ]; then
-            if [ "$(tr -d '\n' <<<"$GITLAB_REGISTRY_RO_TOKEN" |wc -c)" -eq 0 ]; then
+            if [ "$(tr -d '\n' <<<"$GITLAB_RO_TOKEN" |wc -c)" -eq 0 ]; then
               echo '::set-output name=CAN_BUILD::false'
               echo '::set-output name=NEED_LOGIN::false'
             else
@@ -69,9 +69,9 @@ jobs:
       - name: Login
         if: "steps.vars.outputs.NEED_LOGIN == 'true'"
         env:
-          GITLAB_REGISTRY_RO_TOKEN: '${{ secrets.GITLAB_REGISTRY_RO_TOKEN }}'
+          GITLAB_RO_TOKEN: '${{ secrets.GITLAB_RO_TOKEN }}'
         run: |
-          docker login registry.icinga.com -u build-docker/sles --password-stdin <<<"$GITLAB_REGISTRY_RO_TOKEN"
+          docker login registry.icinga.com -u github-actions --password-stdin <<<"$GITLAB_RO_TOKEN"
 
       - name: rpm-icinga2
         if: "steps.vars.outputs.CAN_BUILD == 'true'"
