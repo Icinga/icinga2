@@ -413,13 +413,7 @@ void ConfigObject::OnConfigLoaded()
 
 void ConfigObject::OnAllConfigLoaded()
 {
-	static ConfigType *ctype;
-
-	if (!ctype) {
-		Type::Ptr type = Type::GetByName("Zone");
-		ctype = dynamic_cast<ConfigType *>(type.get());
-	}
-
+	static ConfigType *ctype = dynamic_cast<ConfigType *>(Type::GetByName("Zone").get());
 	String zoneName = GetZoneName();
 
 	if (!zoneName.IsEmpty())
