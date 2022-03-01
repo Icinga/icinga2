@@ -9,7 +9,7 @@ on:
 
 jobs:
   rpm:
-    name: .rpm
+    name: .rpm (${{ matrix.distro.name }}, ${{ matrix.distro.release }})
 
     strategy:
       fail-fast: false
