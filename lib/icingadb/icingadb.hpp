@@ -15,10 +15,10 @@
 #include "remote/messageorigin.hpp"
 #include <atomic>
 #include <chrono>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <set>
-#include <thread>
 #include <unordered_map>
 #include <utility>
 
@@ -181,7 +181,7 @@ private:
 	Timer::Ptr m_StatsTimer;
 	WorkQueue m_WorkQueue{0, 1, LogNotice};
 
-	std::thread m_HistoryThread;
+	std::future<void> m_HistoryThread;
 	Bulker<RedisConnection::Query> m_HistoryBulker {4096, std::chrono::milliseconds(250)};
 
 	String m_PrefixConfigObject;
