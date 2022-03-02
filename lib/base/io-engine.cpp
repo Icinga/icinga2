@@ -79,6 +79,11 @@ IoEngine& IoEngine::Get()
 	return *m_Instance.Get();
 }
 
+void IoEngine::Yield(boost::asio::yield_context yc)
+{
+	Get().m_AlreadyExpiredTimer.async_wait(yc);
+}
+
 boost::asio::io_context& IoEngine::GetIoContext()
 {
 	return m_IoContext;

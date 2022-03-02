@@ -81,6 +81,8 @@ public:
 
 	static IoEngine& Get();
 
+	static void Yield(boost::asio::yield_context yc);
+
 	boost::asio::io_context& GetIoContext();
 
 	static inline size_t GetCoroutineStackSize() {
@@ -117,12 +119,6 @@ public:
 			},
 			boost::coroutines::attributes(GetCoroutineStackSize()) // Set a pre-defined stack size.
 		);
-	}
-
-	static inline
-	void Yield(boost::asio::yield_context yc)
-	{
-		Get().m_AlreadyExpiredTimer.async_wait(yc);
 	}
 
 private:
