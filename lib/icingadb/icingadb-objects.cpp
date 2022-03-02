@@ -30,6 +30,8 @@
 #include "icinga/timeperiod.hpp"
 #include "icinga/pluginutility.hpp"
 #include "remote/zone.hpp"
+#include <chrono>
+#include <cstdint>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -1623,8 +1625,9 @@ unsigned short GetPreviousState(const Checkable::Ptr& checkable, const Service::
 
 void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!GetActive()) {
 		return;
+	}
 
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (!checkable)
@@ -1707,7 +1710,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	m_HistoryBulker.ProduceOne(std::move(xAdd));
 }
 
 void IcingaDB::SendSentNotification(
@@ -1715,8 +1718,9 @@ void IcingaDB::SendSentNotification(
 	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text, double sendTime
 )
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!GetActive()) {
 		return;
+	}
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -1779,13 +1783,14 @@ void IcingaDB::SendSentNotification(
 		xAdd.emplace_back(JsonEncode(users_notified));
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	m_HistoryBulker.ProduceOne(std::move(xAdd));
 }
 
 void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!GetActive()) {
 		return;
+	}
 
 	SendConfigUpdate(downtime, true);
 
@@ -1865,13 +1870,14 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 		xAdd.emplace_back(scheduledBy);
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	m_HistoryBulker.ProduceOne(std::move(xAdd));
 }
 
 void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!GetActive()) {
 		return;
+	}
 
 	auto checkable (downtime->GetCheckable());
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
@@ -1955,12 +1961,12 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		xAdd.emplace_back(scheduledBy);
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	m_HistoryBulker.ProduceOne(std::move(xAdd));
 }
 
 void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected() || comment->GetEntryType() != CommentUser)
+	if (comment->GetEntryType() != CommentUser || !GetActive())
 		return;
 
 	auto checkable (comment->GetCheckable());
@@ -2010,14 +2016,15 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 		}
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	m_HistoryBulker.ProduceOne(std::move(xAdd));
 	UpdateState(checkable, StateUpdate::Full);
 }
 
 void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!GetActive()) {
 		return;
+	}
 
 	auto checkable (comment->GetCheckable());
 
@@ -2079,14 +2086,15 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		}
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	m_HistoryBulker.ProduceOne(std::move(xAdd));
 	UpdateState(checkable, StateUpdate::Full);
 }
 
 void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double changeTime, double flappingLastChange)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!GetActive()) {
 		return;
+	}
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -2144,7 +2152,7 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 	xAdd.emplace_back("id");
 	xAdd.emplace_back(HashValue(new Array({m_EnvironmentId, checkable->GetName(), startTime})));
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	m_HistoryBulker.ProduceOne(std::move(xAdd));
 }
 
 void IcingaDB::SendNextUpdate(const Checkable::Ptr& checkable)
@@ -2176,8 +2184,9 @@ void IcingaDB::SendNextUpdate(const Checkable::Ptr& checkable)
 
 void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!GetActive()) {
 		return;
+	}
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -2228,13 +2237,14 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 	xAdd.emplace_back("id");
 	xAdd.emplace_back(HashValue(new Array({m_EnvironmentId, checkable->GetName(), setTime})));
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	m_HistoryBulker.ProduceOne(std::move(xAdd));
 }
 
 void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const String& removedBy, double changeTime, double ackLastChange)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!GetActive()) {
 		return;
+	}
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -2282,7 +2292,79 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 		xAdd.emplace_back(removedBy);
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(xAdd), Prio::History);
+	m_HistoryBulker.ProduceOne(std::move(xAdd));
+}
+
+void IcingaDB::ForwardHistoryEntries()
+{
+	using clock = std::chrono::steady_clock;
+
+	const std::chrono::seconds logInterval (10);
+	auto nextLog (clock::now() + logInterval);
+
+	auto logPeriodically ([this, logInterval, &nextLog]() {
+		if (clock::now() > nextLog) {
+			nextLog += logInterval;
+
+			auto size (m_HistoryBulker.Size());
+
+			Log(size > m_HistoryBulker.GetBulkSize() ? LogInformation : LogNotice, "IcingaDB")
+				<< "Pending history queries: " << size;
+		}
+	});
+
+	for (;;) {
+		logPeriodically();
+
+		auto haystack (m_HistoryBulker.ConsumeMany());
+
+		if (haystack.empty()) {
+			if (!GetActive()) {
+				break;
+			}
+
+			continue;
+		}
+
+		uintmax_t attempts = 0;
+
+		auto logFailure ([&haystack, &attempts](const char* err = nullptr) {
+			Log msg (LogNotice, "IcingaDB");
+
+			msg << "history: " << haystack.size() << " queries failed temporarily (attempt #" << ++attempts << ")";
+
+			if (err) {
+				msg << ": " << err;
+			}
+		});
+
+		for (;;) {
+			logPeriodically();
+
+			if (m_Rcon && m_Rcon->IsConnected()) {
+				try {
+					m_Rcon->GetResultsOfQueries(haystack, Prio::History);
+					break;
+				} catch (const std::exception& ex) {
+					logFailure(ex.what());
+				} catch (...) {
+					logFailure();
+				}
+			} else {
+				logFailure("not connected to Redis");
+			}
+
+			if (!GetActive()) {
+				Log(LogCritical, "IcingaDB") << "history: " << haystack.size() << " queries failed (attempt #" << attempts
+					<< ") while we're about to shut down. Giving up and discarding additional "
+					<< m_HistoryBulker.Size() << " queued history queries.";
+
+				return;
+			}
+
+			Utility::Sleep(2);
+		}
+	}
 }
 
 void IcingaDB::SendNotificationUsersChanged(const Notification::Ptr& notification, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
