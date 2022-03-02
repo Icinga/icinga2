@@ -1772,7 +1772,7 @@ cd .\build\
 ```
 
 Building icinga2.sln via Visual Studio itself seems to require a reboot
-after installing the build tools and building once via command line.
+after installing the build tools.
 
 #### Chocolatey
 
