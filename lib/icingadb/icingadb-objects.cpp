@@ -2181,6 +2181,15 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 	/* Update checkable state as is_acknowledged may have changed. */
 	UpdateState(checkable, StateUpdate::Full);
 
+	if (type == AcknowledgementSticky) {
+		for (auto& comment : checkable->GetComments()) {
+			if (comment->GetEntryType() == CommentAcknowledgement) {
+				// Correct is_sticky to true
+				SendConfigUpdate(comment, true);
+			}
+		}
+	}
+
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
 		"environment_id", m_EnvironmentId,
