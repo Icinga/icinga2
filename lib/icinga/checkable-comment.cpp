@@ -27,12 +27,7 @@ void Checkable::RemoveCommentsByType(int type, const String& removedBy)
 			continue;
 
 		if (comment->GetEntryType() == type) {
-			{
-				ObjectLock oLock (comment);
-				comment->SetRemovedBy(removedBy);
-			}
-
-			Comment::RemoveComment(comment->GetName());
+			Comment::RemoveComment(comment->GetName(), true, removedBy);
 		}
 	}
 }
