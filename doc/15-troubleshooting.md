@@ -1005,7 +1005,7 @@ systemctl restart icinga2
 > **Note**
 >
 > The internal `_api` config package structure may change in the future. Do not modify
-> things in there manually or with scripts unless guided here or asked by a developer.
+> things in there manually or with scripts unless guided here (or asked by a developer).
 
 
 ## Certificate Troubleshooting <a id="troubleshooting-certificate"></a>
