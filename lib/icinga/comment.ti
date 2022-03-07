@@ -73,6 +73,7 @@ class Comment : ConfigObject < CommentNameComposer
 	[state] int legacy_id;
 
 	[no_user_view, no_user_modify] String removed_by;
+	[no_user_view, no_user_modify] Timestamp remove_time;
 };
 
 }
