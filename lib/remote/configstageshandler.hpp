@@ -4,6 +4,7 @@
 #define CONFIGSTAGESHANDLER_H
 
 #include "remote/httphandler.hpp"
+#include <atomic>
 
 namespace icinga
 {
@@ -47,6 +48,7 @@ private:
 		const Dictionary::Ptr& params
 	);
 
+	static std::atomic<bool> m_RunningPackageUpdates;
 };
 
 }
