@@ -167,7 +167,8 @@ void ConfigPackageUtility::ActivateStage(const String& packageName, const String
 	WritePackageConfig(packageName);
 }
 
-void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName, bool activate, bool reload)
+void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName,
+	bool activate, bool reload, const Shared<Defer>::Ptr& resetPackageUpdates)
 {
 	String logFile = GetPackageDir() + "/" + packageName + "/" + stageName + "/startup.log";
 	std::ofstream fpLog(logFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
@@ -188,8 +189,17 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 				ActivateStage(packageName, stageName);
 			}
 
-			if (reload)
+			if (reload) {
+				/*
+				 * Cancel the deferred callback before going out of scope so that the config stages handler
+				 * flag isn't resetting earlier and allowing other clients to submit further requests while
+				 * Icinga2 is reloading. Otherwise, the ongoing request will be cancelled halfway before the
+				 * operation is completed once the new worker becomes ready.
+				 */
+				resetPackageUpdates->Cancel();
+
 				Application::RequestRestart();
+			}
 		}
 	} else {
 		Log(LogCritical, "ConfigPackageUtility")
@@ -198,7 +208,8 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 	}
 }
 
-void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, const String& stageName, bool activate, bool reload)
+void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, const String& stageName, bool activate, bool reload,
+	const Shared<Defer>::Ptr& resetPackageUpdates)
 {
 	VERIFY(Application::GetArgC() >= 1);
 
@@ -224,7 +235,9 @@ void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, cons
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(Application::GetReloadTimeout());
-	process->Run([packageName, stageName, activate, reload](const ProcessResult& pr) { TryActivateStageCallback(pr, packageName, stageName, activate, reload); });
+	process->Run([packageName, stageName, activate, reload, resetPackageUpdates](const ProcessResult& pr) {
+		TryActivateStageCallback(pr, packageName, stageName, activate, reload, resetPackageUpdates);
+	});
 }
 
 void ConfigPackageUtility::DeleteStage(const String& packageName, const String& stageName)
