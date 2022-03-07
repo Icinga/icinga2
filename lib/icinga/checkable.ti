@@ -175,6 +175,9 @@ abstract class Checkable : CustomVarObject
 	[state, no_user_view, no_user_modify] int suppressed_notifications {
 		default {{{ return 0; }}}
 	};
+	[state, enum, no_user_view, no_user_modify] ServiceState state_before_suppression {
+		default {{{ return ServiceOK; }}}
+	};
 
 	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
 		navigate {{{

@@ -50,10 +50,11 @@ public:
 
 	bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
+	void OnAllConfigLoaded() override;
+
 protected:
 	void Stop(bool runtimeRemoved) override;
 
-	void OnAllConfigLoaded() override;
 	void CreateChildObjects(const Type::Ptr& childType) override;
 
 private:
