@@ -239,20 +239,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		}
 	}
 
-	if (recovery) {
-		for (auto& child : children) {
-			if (child->GetProblem() && child->GetEnableActiveChecks()) {
-				auto nextCheck (now + Utility::Random() % 60);
-
-				ObjectLock oLock (child);
-
-				if (nextCheck < child->GetNextCheck()) {
-					child->SetNextCheck(nextCheck);
-				}
-			}
-		}
-	}
-
 	if (!reachable)
 		SetLastStateUnreachable(cr->GetExecutionEnd());
 
@@ -279,20 +265,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		if (GetAcknowledgement() == AcknowledgementNormal ||
 			(GetAcknowledgement() == AcknowledgementSticky && IsStateOK(new_state))) {
 			ClearAcknowledgement("");
-		}
-
-		/* reschedule direct parents */
-		for (const Checkable::Ptr& parent : GetParents()) {
-			if (parent.get() == this)
-				continue;
-
-			if (!parent->GetEnableActiveChecks())
-				continue;
-
-			if (parent->GetNextCheck() >= now + parent->GetRetryInterval()) {
-				ObjectLock olock(parent);
-				parent->SetNextCheck(now);
-			}
 		}
 	}
 
@@ -414,6 +386,36 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		<< " threshold high: " << GetFlappingThresholdHigh()
 		<< "% current: " << GetFlappingCurrent() << "%.";
 #endif /* I2_DEBUG */
+
+	if (recovery) {
+		for (auto& child : children) {
+			if (child->GetProblem() && child->GetEnableActiveChecks()) {
+				auto nextCheck (now + Utility::Random() % 60);
+
+				ObjectLock oLock (child);
+
+				if (nextCheck < child->GetNextCheck()) {
+					child->SetNextCheck(nextCheck);
+				}
+			}
+		}
+	}
+
+	if (stateChange) {
+		/* reschedule direct parents */
+		for (const Checkable::Ptr& parent : GetParents()) {
+			if (parent.get() == this)
+				continue;
+
+			if (!parent->GetEnableActiveChecks())
+				continue;
+
+			if (parent->GetNextCheck() >= now + parent->GetRetryInterval()) {
+				ObjectLock olock(parent);
+				parent->SetNextCheck(now);
+			}
+		}
+	}
 
 	OnNewCheckResult(this, cr, origin);
 
