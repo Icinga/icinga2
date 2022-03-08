@@ -30,11 +30,19 @@ public:
 	inline
 	~Defer()
 	{
-		try {
-			m_Func();
-		} catch (...) {
-			// https://stackoverflow.com/questions/130117/throwing-exceptions-out-of-a-destructor
+		if (m_Func) {
+			try {
+				m_Func();
+			} catch (...) {
+				// https://stackoverflow.com/questions/130117/throwing-exceptions-out-of-a-destructor
+			}
 		}
+	}
+
+	inline
+	void Cancel()
+	{
+		m_Func = nullptr;
 	}
 
 private:
