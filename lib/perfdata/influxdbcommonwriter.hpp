@@ -14,6 +14,7 @@
 #include "remote/url.hpp"
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
+#include <atomic>
 #include <fstream>
 
 namespace icinga
@@ -36,9 +37,6 @@ public:
 	void ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 protected:
-	WorkQueue m_WorkQueue{10000000, 1};
-	std::vector<String> m_DataBuffer;
-
 	void OnConfigLoaded() override;
 	void Resume() override;
 	void Pause() override;
@@ -50,6 +48,9 @@ protected:
 
 private:
 	Timer::Ptr m_FlushTimer;
+	WorkQueue m_WorkQueue{10000000, 1};
+	std::vector<String> m_DataBuffer;
+	std::atomic_size_t m_DataBufferSize{0};
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void CheckResultHandlerWQ(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
@@ -57,7 +58,7 @@ private:
 		const String& label, const Dictionary::Ptr& fields, double ts);
 	void FlushTimeout();
 	void FlushTimeoutWQ();
-	void Flush();
+	void FlushWQ();
 
 	static String EscapeKeyOrTagValue(const String& str);
 	static String EscapeValue(const Value& value);
@@ -78,7 +79,7 @@ void InfluxdbCommonWriter::StatsFunc(const Dictionary::Ptr& status, const Array:
 	for (const typename InfluxWriter::Ptr& influxwriter : ConfigType::GetObjectsByType<InfluxWriter>()) {
 		size_t workQueueItems = influxwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = influxwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
-		size_t dataBufferItems = influxwriter->m_DataBuffer.size();
+		size_t dataBufferItems = influxwriter->m_DataBufferSize;
 
 		nodes.emplace_back(influxwriter->GetName(), new Dictionary({
 			{ "work_queue_items", workQueueItems },
