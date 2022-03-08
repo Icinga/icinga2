@@ -49,6 +49,18 @@ struct GlobalTimezoneFixture
 
 BOOST_GLOBAL_FIXTURE(GlobalTimezoneFixture);
 
+// DST changes in America/Los_Angeles:
+// 2021-03-14: 01:59:59 PST (UTC-8) -> 03:00:00 PDT (UTC-7)
+// 2021-11-07: 01:59:59 PDT (UTC-7) -> 01:00:00 PST (UTC-8)
+#ifndef _WIN32
+static const char *dst_test_timezone = "America/Los_Angeles";
+#else /* _WIN32 */
+// Tests are using pacific time because Windows only really supports timezones following US DST rules with the TZ
+// environment variable. Format is "[Standard TZ][negative UTC offset][DST TZ]".
+// https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/tzset?view=msvc-160#remarks
+static const char *dst_test_timezone = "PST8PDT";
+#endif /* _WIN32 */
+
 BOOST_AUTO_TEST_CASE(simple)
 {
 	tm tm_beg, tm_end, tm_ref;
@@ -356,17 +368,7 @@ std::ostream& operator<<(std::ostream& o, const boost::optional<Segment>& s)
 
 BOOST_AUTO_TEST_CASE(dst)
 {
-	// DST changes in America/Los_Angeles:
-	// 2021-03-14: 01:59:59 PST (UTC-8) -> 03:00:00 PDT (UTC-7)
-	// 2021-11-07: 01:59:59 PDT (UTC-7) -> 01:00:00 PST (UTC-8)
-#ifndef _WIN32
-	GlobalTimezoneFixture tz("America/Los_Angeles");
-#else /* _WIN32 */
-	// Tests are using pacific time because Windows only really supports timezones following US DST rules with the TZ
-	// environment variable. Format is "[Standard TZ][negative UTC offset][DST TZ]".
-	// https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/tzset?view=msvc-160#remarks
-	GlobalTimezoneFixture tz("PST8PDT");
-#endif /* _WIN32 */
+	GlobalTimezoneFixture tz(dst_test_timezone);
 
 	// Self-tests for helper functions
 	BOOST_CHECK_EQUAL(make_tm("2021-11-07 02:30:00").tm_isdst, -1);
@@ -638,6 +640,53 @@ BOOST_AUTO_TEST_CASE(dst)
 			auto nextSeg = seg(LegacyTimePeriod::FindNextSegment(t.day, t.ranges, &mutRef));
 			BOOST_CHECK_MESSAGE(nextSeg == t.expected, "FindNextSegment(day='" << t.day << "' ranges='" << t.ranges
 				<< "' ref='" << pretty_time(ref) << "'): got=" << nextSeg << " expected=" << t.expected);
+		}
+	}
+}
+
+// This tests checks that TimePeriod::IsInside() always returns true for a 24x7 period, even around DST changes.
+BOOST_AUTO_TEST_CASE(dst_isinside)
+{
+	GlobalTimezoneFixture tz(dst_test_timezone);
+
+	Function::Ptr update = new Function("LegacyTimePeriod", LegacyTimePeriod::ScriptFunc, {"tp", "begin", "end"});
+	Dictionary::Ptr ranges = new Dictionary({
+		{"monday",    "00:00-24:00"},
+		{"tuesday",   "00:00-24:00"},
+		{"wednesday", "00:00-24:00"},
+		{"thursday",  "00:00-24:00"},
+		{"friday",    "00:00-24:00"},
+		{"saturday",  "00:00-24:00"},
+		{"sunday",    "00:00-24:00"},
+	});
+
+	// Vary begin from Sat 06 Nov 2021 00:00:00 PDT to Mon 08 Nov 2021 00:00:00 PST in 30 minute intervals.
+	for (time_t t_begin = 1636182000; t_begin <= 1636358400; t_begin += 30*60) {
+		// Test varying interval lengths: 60 minutes, 24 hours, 48 hours.
+		for (time_t len : {60*60, 24*60*60, 48*60*60}) {
+			time_t t_end = t_begin + len;
+
+			TimePeriod::Ptr p = new TimePeriod();
+			p->SetUpdate(update, true);
+			p->SetRanges(ranges, true);
+
+			p->UpdateRegion(double(t_begin), double(t_end), true);
+
+			{
+				// Print resulting segments for easier debugging.
+				Array::Ptr segments = p->GetSegments();
+				ObjectLock lock(segments);
+				for (Dictionary::Ptr segment: segments) {
+					BOOST_TEST_MESSAGE("t_begin=" << t_begin << " t_end=" << t_end
+						<< " segment.begin=" << segment->Get("begin") << " segment.end=" << segment->Get("end"));
+				}
+			}
+
+			time_t step = 10*60;
+			for (time_t t = t_begin+step; t < t_end; t += step) {
+				BOOST_CHECK_MESSAGE(p->IsInside(double(t)),
+					t << " should be inside for t_begin=" << t_begin << " t_end=" << t_end);
+			}
 		}
 	}
 }
