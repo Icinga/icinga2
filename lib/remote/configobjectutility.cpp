@@ -53,7 +53,7 @@ String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const Str
 	 * creation early so that configuration inconsistencies throughout the cluster are avoided.
 	 */
 	if ((type->GetName() != "Comment" && type->GetName() != "Downtime") || Utility::PathExists(longPath)) {
-		return std::move(longPath);
+		return longPath;
 	}
 
 	/* Maximum length 80 bytes object name + 3 bytes "..." + 40 bytes SHA1 (hex-encoded) */

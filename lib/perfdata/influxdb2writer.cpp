@@ -27,7 +27,7 @@ boost::beast::http::request<boost::beast::http::string_body> Influxdb2Writer::As
 
 	request.set(boost::beast::http::field::authorization, "Token " + GetAuthToken());
 
-	return std::move(request);
+	return request;
 }
 
 Url::Ptr Influxdb2Writer::AssembleUrl()
@@ -40,5 +40,5 @@ Url::Ptr Influxdb2Writer::AssembleUrl()
 	url->AddQueryElement("org", GetOrganization());
 	url->AddQueryElement("bucket", GetBucket());
 
-	return std::move(url);
+	return url;
 }

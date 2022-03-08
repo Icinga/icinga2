@@ -557,7 +557,7 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 		throw;
 	}
 
-	return std::move(stream);
+	return stream;
 }
 
 /**

@@ -598,7 +598,7 @@ std::vector<char> RedisConnection::ReadLine(AsyncReadStream& stream, boost::asio
 
 		if (next == '\r') {
 			asio::async_read(stream, buf, yc);
-			return std::move(line);
+			return line;
 		}
 
 		line.emplace_back(next);

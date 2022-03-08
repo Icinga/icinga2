@@ -231,7 +231,7 @@ Dictionary::Ptr EventsInbox::Shift(boost::asio::yield_context yc, double timeout
 
 	auto event (std::move(m_Queue.front()));
 	m_Queue.pop();
-	return std::move(event);
+	return event;
 }
 
 EventsSubscriber::EventsSubscriber(std::set<EventType> types, String filter, const String& filterSource)

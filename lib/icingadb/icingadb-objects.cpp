@@ -556,7 +556,7 @@ std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std
 		chunks.emplace_back(offset, end);
 	}
 
-	return std::move(chunks);
+	return chunks;
 }
 
 void IcingaDB::DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys, RedisConnection::QueryPriority priority) {
@@ -593,7 +593,7 @@ std::vector<String> IcingaDB::GetTypeOverwriteKeys(const String& type)
 		keys.emplace_back(m_PrefixConfigCheckSum + type + ":argument");
 	}
 
-	return std::move(keys);
+	return keys;
 }
 
 std::vector<String> IcingaDB::GetTypeDumpSignalKeys(const Type::Ptr& type)
@@ -623,7 +623,7 @@ std::vector<String> IcingaDB::GetTypeDumpSignalKeys(const Type::Ptr& type)
 		keys.emplace_back(m_PrefixConfigObject + lcType + ":argument");
 	}
 
-	return std::move(keys);
+	return keys;
 }
 
 template<typename ConfigType>
