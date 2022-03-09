@@ -266,14 +266,23 @@ std::vector<Value> IcingaDB::GetArrayDeletedValues(const Array::Ptr& arrayOld, c
 	}
 
 	if (!arrayNew) {
+		ObjectLock olock (arrayOld);
 		return std::vector<Value>(arrayOld->Begin(), arrayOld->End());
 	}
 
-	std::vector<Value> vectorOld(arrayOld->Begin(), arrayOld->End());
+	std::vector<Value> vectorOld;
+	{
+		ObjectLock olock (arrayOld);
+		vectorOld.assign(arrayOld->Begin(), arrayOld->End());
+	}
 	std::sort(vectorOld.begin(), vectorOld.end());
 	vectorOld.erase(std::unique(vectorOld.begin(), vectorOld.end()), vectorOld.end());
 
-	std::vector<Value> vectorNew(arrayNew->Begin(), arrayNew->End());
+	std::vector<Value> vectorNew;
+	{
+		ObjectLock olock (arrayNew);
+		vectorNew.assign(arrayNew->Begin(), arrayNew->End());
+	}
 	std::sort(vectorNew.begin(), vectorNew.end());
 	vectorNew.erase(std::unique(vectorNew.begin(), vectorNew.end()), vectorNew.end());
 
