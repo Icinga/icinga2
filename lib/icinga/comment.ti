@@ -66,6 +66,7 @@ class Comment : ConfigObject < CommentNameComposer
 	[config, enum] CommentType entry_type {
 		default {{{ return CommentUser; }}}
 	};
+	[config, no_user_view, no_user_modify] bool sticky;
 	[config, required] String author;
 	[config, required] String text;
 	[config] bool persistent;
