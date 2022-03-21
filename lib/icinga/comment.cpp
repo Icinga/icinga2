@@ -131,7 +131,7 @@ int Comment::GetNextCommentID()
 }
 
 String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryType, const String& author,
-	const String& text, bool persistent, double expireTime, const String& id, const MessageOrigin::Ptr& origin)
+	const String& text, bool persistent, double expireTime, bool sticky, const String& id, const MessageOrigin::Ptr& origin)
 {
 	String fullName;
 
@@ -147,6 +147,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 	attrs->Set("persistent", persistent);
 	attrs->Set("expire_time", expireTime);
 	attrs->Set("entry_type", entryType);
+	attrs->Set("sticky", sticky);
 	attrs->Set("entry_time", Utility::GetTime());
 
 	Host::Ptr host;
