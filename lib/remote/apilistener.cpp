@@ -756,8 +756,9 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		}
 
 		Zone::Ptr myZone = Zone::GetLocalZone();
+		auto parent (myZone->GetParent());
 
-		if (myZone->GetParent() == eZone) {
+		if (parent == eZone || !parent && eZone == myZone) {
 			Log(LogInformation, "ApiListener")
 				<< "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
 
