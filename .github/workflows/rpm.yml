@@ -9,24 +9,39 @@ on:
 
 jobs:
   rpm:
-    name: .rpm
+    name: .rpm (${{ matrix.distro.name }}, ${{ matrix.distro.release }})
 
     strategy:
       fail-fast: false
       matrix:
         distro:
+          - name: rhel
+            release: 8
+            subscription: true
+          - name: rhel
+            release: 7
+            subscription: true
           - name: centos
             release: 7
+            subscription: false
+          - name: amazon-linux
+            release: al2:x86_64
+            subscription: true
           - name: fedora
             release: 35
+            subscription: false
           - name: fedora
             release: 34
+            subscription: false
           - name: sles
             release: '15.3'
+            subscription: true
           - name: sles
             release: '12.5'
+            subscription: true
           - name: opensuse
             release: '15.3'
+            subscription: false
 
     runs-on: ubuntu-latest
 
@@ -41,10 +56,10 @@ jobs:
       - name: Vars
         id: vars
         env:
-          GITLAB_REGISTRY_RO_TOKEN: '${{ secrets.GITLAB_REGISTRY_RO_TOKEN }}'
+          GITLAB_RO_TOKEN: '${{ secrets.GITLAB_RO_TOKEN }}'
         run: |
-          if [ '${{ matrix.distro.name }}' = sles ]; then
-            if [ "$(tr -d '\n' <<<"$GITLAB_REGISTRY_RO_TOKEN" |wc -c)" -eq 0 ]; then
+          if [ ${{ matrix.distro.subscription }} = true ]; then
+            if [ "$(tr -d '\n' <<<"$GITLAB_RO_TOKEN" |wc -c)" -eq 0 ]; then
               echo '::set-output name=CAN_BUILD::false'
               echo '::set-output name=NEED_LOGIN::false'
             else
@@ -63,15 +78,28 @@ jobs:
       - name: Login
         if: "steps.vars.outputs.NEED_LOGIN == 'true'"
         env:
-          GITLAB_REGISTRY_RO_TOKEN: '${{ secrets.GITLAB_REGISTRY_RO_TOKEN }}'
+          GITLAB_RO_TOKEN: '${{ secrets.GITLAB_RO_TOKEN }}'
         run: |
-          docker login registry.icinga.com -u build-docker/sles --password-stdin <<<"$GITLAB_REGISTRY_RO_TOKEN"
+          docker login registry.icinga.com -u github-actions --password-stdin <<<"$GITLAB_RO_TOKEN"
 
       - name: rpm-icinga2
-        if: "steps.vars.outputs.CAN_BUILD == 'true'"
+        if: "steps.vars.outputs.CAN_BUILD == 'true' && !matrix.distro.subscription"
         run: |
           set -exo pipefail
           git clone https://git.icinga.com/packaging/rpm-icinga2.git
+          chmod o+w rpm-icinga2
+
+      - name: subscription-rpm-icinga2
+        if: "steps.vars.outputs.CAN_BUILD == 'true' && matrix.distro.subscription"
+        env:
+          GITLAB_RO_TOKEN: '${{ secrets.GITLAB_RO_TOKEN }}'
+        run: |
+          set -exo pipefail
+          git config --global credential.helper store
+          cat <<EOF >~/.git-credentials
+          https://github-actions:${GITLAB_RO_TOKEN}@git.icinga.com
+          EOF
+          git clone https://git.icinga.com/packaging/subscription-rpm-icinga2.git rpm-icinga2
           chmod o+w rpm-icinga2
 
       - name: Restore/backup ccache
