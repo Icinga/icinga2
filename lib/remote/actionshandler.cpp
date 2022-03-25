@@ -56,9 +56,14 @@ bool ActionsHandler::HandleRequest(
 
 		try {
 			objs = FilterUtility::GetFilterTargets(qd, params, user);
-		} catch (const std::exception& ex) {
-			HttpUtility::SendJsonError(response, params, 404,
-				"No objects found.",
+		} catch (const std::invalid_argument& ex) {
+			HttpUtility::SendJsonError(response, params, 400,
+				"Invalid filter.",
+				DiagnosticInformation(ex));
+			return true;
+		} catch (const ScriptError& ex) {
+			HttpUtility::SendJsonError(response, params, 401,
+				"Access denied for filter.",
 				DiagnosticInformation(ex));
 			return true;
 		}
