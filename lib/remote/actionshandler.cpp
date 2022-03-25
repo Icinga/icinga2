@@ -123,7 +123,7 @@ bool ActionsHandler::HandleRequest(
 		statusCode = *okStatusCodes.begin();
 	} else if (nonOkSize == 1u) {
 		statusCode = *nonOkStatusCodes.begin();
-	} else if (okSize >= 2u && nonOkSize == 0u) {
+	} else if ((okSize == 0u || okSize >= 2u) && nonOkSize == 0u) {
 		statusCode = 200;
 	}
 
