@@ -152,6 +152,7 @@ void IdoMysqlConnection::Disconnect()
 
 void IdoMysqlConnection::TxTimerHandler()
 {
+	Log(LogDebug, "IdoMysqlConnectionDebug") << "TxTimerHandler!";
 	NewTransaction();
 }
 
