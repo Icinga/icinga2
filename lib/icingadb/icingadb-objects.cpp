@@ -2026,6 +2026,21 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		return;
 	}
 
+	double removeTime = comment->GetRemoveTime();
+	bool wasRemoved = removeTime > 0;
+
+	double expireTime = comment->GetExpireTime();
+	bool hasExpireTime = expireTime > 0;
+	bool isExpired = hasExpireTime && expireTime <= Utility::GetTime();
+
+	if (!wasRemoved && !isExpired) {
+		/* The comment object disappeared for no apparent reason, most likely because it simply was deleted instead
+		 * of using the proper remove-comment API action. In this case, information that should normally be set is
+		 * missing and a proper history event cannot be generated.
+		 */
+		return;
+	}
+
 	auto checkable (comment->GetCheckable());
 
 	Host::Ptr host;
@@ -2064,8 +2079,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
-	double removeTime = comment->GetRemoveTime();
-	if (removeTime > 0) {
+	if (wasRemoved) {
 		xAdd.emplace_back("remove_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(removeTime)));
 		xAdd.emplace_back("has_been_removed");
@@ -2077,13 +2091,9 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		xAdd.emplace_back("0");
 	}
 
-	{
-		auto expireTime (comment->GetExpireTime());
-
-		if (expireTime > 0) {
-			xAdd.emplace_back("expire_time");
-			xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(expireTime)));
-		}
+	if (hasExpireTime) {
+		xAdd.emplace_back("expire_time");
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(expireTime)));
 	}
 
 	m_HistoryBulker.ProduceOne(std::move(xAdd));
