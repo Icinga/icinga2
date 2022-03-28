@@ -570,6 +570,11 @@ void IdoMysqlConnection::FinishAsyncQueries()
 
 		String query = querybuf.str();
 
+		Log(LogDebug, "IdoMysqlConnectionDebug")
+			<< "Actually firing " << count << " async queries";
+
+		auto started (Utility::GetTime());
+
 		if (m_Mysql->query(&m_Connection, query.CStr()) != 0) {
 			std::ostringstream msgbuf;
 			String message = m_Mysql->error(&m_Connection);
@@ -624,6 +629,9 @@ void IdoMysqlConnection::FinishAsyncQueries()
 				);
 			}
 		}
+
+		Log(LogDebug, "IdoMysqlConnectionDebug")
+			<< "Took " << (Utility::GetTime() - started) << " seconds";
 	}
 
 	if (m_UncommittedAsyncQueries > 25000) {
@@ -649,6 +657,11 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 
 	IncreaseQueryCount();
 
+	Log(LogDebug, "IdoMysqlConnectionDebug")
+		<< "Actually firing 1 sync queries";
+
+	auto started (Utility::GetTime());
+
 	if (m_Mysql->query(&m_Connection, query.CStr()) != 0) {
 		std::ostringstream msgbuf;
 		String message = m_Mysql->error(&m_Connection);
@@ -665,6 +678,9 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 	MYSQL_RES *result = m_Mysql->store_result(&m_Connection);
 
 	m_AffectedRows = m_Mysql->affected_rows(&m_Connection);
+
+	Log(LogDebug, "IdoMysqlConnectionDebug")
+		<< "Took " << (Utility::GetTime() - started) << " seconds";
 
 	if (!result) {
 		if (m_Mysql->field_count(&m_Connection) > 0) {
