@@ -488,6 +488,8 @@ void IdoMysqlConnection::FinishConnect(double startTime)
 
 	Query("COMMIT");
 	Query("BEGIN");
+
+	m_Reconnected = true;
 }
 
 void IdoMysqlConnection::ClearTablesBySession()
@@ -1016,12 +1018,10 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 		ASSERT(query.Type == DbQueryNewTransaction || query.Category != DbCatInvalid);
 
 		if (!CanExecuteQuery(query)) {
-
-#ifdef I2_DEBUG /* I2_DEBUG */
-			Log(LogDebug, "IdoMysqlConnection")
+			if (m_Reconnected && query.Table != "contactnotifications")
+			Log(LogDebug, "IdoMysqlConnectionDebug")
 				<< "Scheduling multiple execute query task again: Cannot execute query now. Type '"
 				<< query.Type << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
-#endif /* I2_DEBUG */
 
 			m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteMultipleQueries, this, queries), query.Priority);
 			return;
@@ -1066,12 +1066,10 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 	/* check if there are missing object/insert ids and re-enqueue the query */
 	if (!CanExecuteQuery(query)) {
-
-#ifdef I2_DEBUG /* I2_DEBUG */
-		Log(LogDebug, "IdoMysqlConnection")
+		if (m_Reconnected && query.Table != "contactnotifications")
+		Log(LogDebug, "IdoMysqlConnectionDebug")
 			<< "Scheduling execute query task again: Cannot execute query now. Type '"
 			<< typeOverride << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
-#endif /* I2_DEBUG */
 
 		m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, typeOverride), query.Priority);
 		return;
@@ -1089,12 +1087,10 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 		for (const Dictionary::Pair& kv : query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
-
-#ifdef I2_DEBUG /* I2_DEBUG */
-				Log(LogDebug, "IdoMysqlConnection")
+				if (m_Reconnected && query.Table != "contactnotifications")
+				Log(LogDebug, "IdoMysqlConnectionDebug")
 					<< "Scheduling execute query task again: Cannot execute query now. Type '"
 					<< typeOverride << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
-#endif /* I2_DEBUG */
 
 				m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
 				return;
@@ -1169,12 +1165,10 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 				continue;
 
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
-
-#ifdef I2_DEBUG /* I2_DEBUG */
-				Log(LogDebug, "IdoMysqlConnection")
+				if (m_Reconnected && query.Table != "contactnotifications")
+				Log(LogDebug, "IdoMysqlConnectionDebug")
 					<< "Scheduling execute query task again: Cannot extract required INSERT/UPDATE fields, key '"
 					<< kv.first << "', val '" << kv.second << "', type " << typeOverride << ", table '" << query.Table << "'.";
-#endif /* I2_DEBUG */
 
 				m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
 				return;

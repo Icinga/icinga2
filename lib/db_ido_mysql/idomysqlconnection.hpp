@@ -64,6 +64,7 @@ private:
 
 	std::vector<IdoAsyncQuery> m_AsyncQueries;
 	uint_fast32_t m_UncommittedAsyncQueries = 0;
+	bool m_Reconnected = false;
 
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_TxTimer;
