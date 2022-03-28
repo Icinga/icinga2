@@ -562,7 +562,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 			count++;
 
 			Log(LogDebug, "IdoMysqlConnection")
-				<< "Query: " << aq.Query;
+				<< "Query (async): " << aq.Query;
 
 			querybuf << aq.Query;
 			num_bytes += size_query;
@@ -653,7 +653,7 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 	FinishAsyncQueries();
 
 	Log(LogDebug, "IdoMysqlConnection")
-		<< "Query: " << query;
+		<< "Query (sync): " << query;
 
 	IncreaseQueryCount();
 
