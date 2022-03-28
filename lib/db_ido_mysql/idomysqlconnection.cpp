@@ -85,6 +85,14 @@ void IdoMysqlConnection::Resume()
 	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&IdoMysqlConnection::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
 
+	m_RescheduledQueriesLogTimer = new Timer();
+	m_RescheduledQueriesLogTimer->SetInterval(10);
+	m_RescheduledQueriesLogTimer->OnTimerExpired.connect([this](const Timer * const&) {
+		Log(LogDebug, "IdoMysqlConnectionDebug")
+			<< "Re-scheduled " << m_RescheduledQueries.exchange(0) << " in the last 10s";
+	});
+	m_RescheduledQueriesLogTimer->Start();
+
 	/* Start with queries after connect. */
 	DbConnection::Resume();
 
@@ -1008,6 +1016,7 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 		ASSERT(query.Type == DbQueryNewTransaction || query.Category != DbCatInvalid);
 
 		if (!CanExecuteQuery(query)) {
+			m_RescheduledQueries.fetch_add(1);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 			Log(LogDebug, "IdoMysqlConnection")
@@ -1058,6 +1067,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 	/* check if there are missing object/insert ids and re-enqueue the query */
 	if (!CanExecuteQuery(query)) {
+		m_RescheduledQueries.fetch_add(1);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 		Log(LogDebug, "IdoMysqlConnection")
@@ -1081,6 +1091,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 		for (const Dictionary::Pair& kv : query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
+				m_RescheduledQueries.fetch_add(1);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 				Log(LogDebug, "IdoMysqlConnection")
@@ -1161,6 +1172,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 				continue;
 
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
+				m_RescheduledQueries.fetch_add(1);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 				Log(LogDebug, "IdoMysqlConnection")
