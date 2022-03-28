@@ -530,6 +530,11 @@ void IdoMysqlConnection::FinishAsyncQueries()
 	std::vector<IdoAsyncQuery> queries;
 	m_AsyncQueries.swap(queries);
 
+	Log(LogDebug, "IdoMysqlConnectionDebug")
+		<< "About to fire " << queries.size() << " async queries";
+
+	auto started (Utility::GetTime());
+
 	std::vector<IdoAsyncQuery>::size_type offset = 0;
 
 	// This will be executed if there is a problem with executing the queries,
@@ -649,6 +654,9 @@ void IdoMysqlConnection::FinishAsyncQueries()
 		Query("COMMIT");
 		Query("BEGIN");
 	}
+
+	Log(LogDebug, "IdoMysqlConnectionDebug")
+		<< "FinishAsyncQueries took " << (Utility::GetTime() - started) << " seconds";
 }
 
 IdoMysqlResult IdoMysqlConnection::Query(const String& query)
