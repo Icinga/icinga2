@@ -616,7 +616,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<S
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Setting acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
-	Comment::AddComment(service, CommentAcknowledgement, arguments[5], arguments[6], persistent, 0);
+	Comment::AddComment(service, CommentAcknowledgement, arguments[5], arguments[6], persistent, 0, sticky);
 	service->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent);
 }
 
@@ -646,7 +646,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Setting timed acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
-	Comment::AddComment(service, CommentAcknowledgement, arguments[6], arguments[7], persistent, timestamp);
+	Comment::AddComment(service, CommentAcknowledgement, arguments[6], arguments[7], persistent, timestamp, sticky);
 	service->AcknowledgeProblem(arguments[6], arguments[7], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent, timestamp);
 }
 
@@ -690,7 +690,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[1] + "' is already acknowledged."));
 	}
 
-	Comment::AddComment(host, CommentAcknowledgement, arguments[4], arguments[5], persistent, 0);
+	Comment::AddComment(host, CommentAcknowledgement, arguments[4], arguments[5], persistent, 0, sticky);
 	host->AcknowledgeProblem(arguments[4], arguments[5], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent);
 }
 
@@ -720,7 +720,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[1] + "' is already acknowledged."));
 	}
 
-	Comment::AddComment(host, CommentAcknowledgement, arguments[5], arguments[6], persistent, timestamp);
+	Comment::AddComment(host, CommentAcknowledgement, arguments[5], arguments[6], persistent, timestamp, sticky);
 	host->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent, timestamp);
 }
 

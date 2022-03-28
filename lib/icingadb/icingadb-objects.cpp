@@ -1380,7 +1380,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("entry_type", comment->GetEntryType());
 		attributes->Set("entry_time", TimestampToMilliseconds(comment->GetEntryTime()));
 		attributes->Set("is_persistent", comment->GetPersistent());
-		attributes->Set("is_sticky", comment->GetEntryType() == CommentAcknowledgement && comment->GetCheckable()->GetAcknowledgement() == AcknowledgementSticky);
+		attributes->Set("is_sticky", comment->GetSticky());
 
 		Host::Ptr host;
 		Service::Ptr service;
@@ -1985,7 +1985,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 		"comment", Utility::ValidateUTF8(comment->GetText()),
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
-		"is_sticky", Convert::ToString((unsigned short)(comment->GetEntryType() == CommentAcknowledgement && comment->GetCheckable()->GetAcknowledgement() == AcknowledgementSticky)),
+		"is_sticky", Convert::ToString((unsigned short)comment->GetSticky()),
 		"event_id", CalcEventID("comment_add", comment),
 		"event_type", "comment_add"
 	});
@@ -2042,7 +2042,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		"comment", Utility::ValidateUTF8(comment->GetText()),
 		"entry_type", Convert::ToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
-		"is_sticky", Convert::ToString((unsigned short)(comment->GetEntryType() == CommentAcknowledgement && comment->GetCheckable()->GetAcknowledgement() == AcknowledgementSticky)),
+		"is_sticky", Convert::ToString((unsigned short)comment->GetSticky()),
 		"event_id", CalcEventID("comment_remove", comment),
 		"event_type", "comment_remove"
 	});

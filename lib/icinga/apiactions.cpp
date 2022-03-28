@@ -243,7 +243,7 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 	}
 
 	Comment::AddComment(checkable, CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"),
-		HttpUtility::GetLastParameter(params, "comment"), persistent, timestamp);
+		HttpUtility::GetLastParameter(params, "comment"), persistent, timestamp, sticky == AcknowledgementSticky);
 	checkable->AcknowledgeProblem(HttpUtility::GetLastParameter(params, "author"),
 		HttpUtility::GetLastParameter(params, "comment"), sticky, notify, persistent, Utility::GetTime(), timestamp);
 
