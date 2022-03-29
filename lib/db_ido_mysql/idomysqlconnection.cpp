@@ -581,6 +581,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 		Log(LogDebug, "IdoMysqlConnectionDebug")
 			<< "Actually firing " << count << " async queries";
 
+		{
 		auto started (Utility::GetTime());
 
 		if (m_Mysql->query(&m_Connection, query.CStr()) != 0) {
@@ -595,6 +596,15 @@ void IdoMysqlConnection::FinishAsyncQueries()
 				<< errinfo_database_query(query)
 			);
 		}
+
+		Log(LogDebug, "IdoMysqlConnectionDebug")
+			<< "Took " << (Utility::GetTime() - started) << " seconds";
+		}
+
+		Log(LogDebug, "IdoMysqlConnectionDebug")
+			<< "Reading results of " << count << " async queries";
+
+		auto started (Utility::GetTime());
 
 		for (std::vector<IdoAsyncQuery>::size_type i = offset; i < offset + count; i++) {
 			const IdoAsyncQuery& aq = queries[i];
