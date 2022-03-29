@@ -76,16 +76,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	}
 
 	if (signedByCA) {
-		time_t now;
-		time(&now);
-
-		/* auto-renew all certificates which were created before 2017 to force an update of the CA,
-		 * because Icinga versions older than 2.4 sometimes create certificates with an invalid
-		 * serial number. */
-		time_t forceRenewalEnd = 1483228800; /* January 1st, 2017 */
-		time_t renewalStart = now + 30 * 24 * 60 * 60;
-
-		if (X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1) {
+		if (IsCertUptodate(cert)) {
 
 			Log(LogInformation, "JsonRpcConnection")
 				<< "The certificate for CN '" << cn << "' is valid and uptodate. Skipping automated renewal.";
