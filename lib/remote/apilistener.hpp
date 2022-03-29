@@ -192,6 +192,7 @@ private:
 
 	void SyncLocalZoneDirs() const;
 	void SyncLocalZoneDir(const Zone::Ptr& zone) const;
+	void RenewOwnCert();
 
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
 

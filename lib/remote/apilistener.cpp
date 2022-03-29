@@ -270,6 +270,7 @@ void ApiListener::Start(bool runtimeCreated)
 		<< "'" << GetName() << "' started.";
 
 	SyncLocalZoneDirs();
+	RenewOwnCert();
 
 	ObjectImpl<ApiListener>::Start(runtimeCreated);
 
@@ -318,6 +319,39 @@ void ApiListener::Start(bool runtimeCreated)
 	m_ApiPackageIntegrityTimer->Start();
 
 	OnMasterChanged(true);
+}
+
+void ApiListener::RenewOwnCert()
+{
+	if (!Utility::PathExists(GetIcingaCADir() + "/ca.key")) {
+		return;
+	}
+
+	auto certPath (GetDefaultCertPath());
+	auto cert (GetX509Certificate(certPath));
+
+	if (IsCertUptodate(cert)) {
+		return;
+	}
+
+	Log(LogInformation, "ApiListener")
+		<< "Our certificate will expire soon, but we own the CA. Renewing.";
+
+	cert = RenewCert(cert);
+
+	if (!cert) {
+		return;
+	}
+
+	std::fstream certfp;
+	auto tempCertPath (Utility::CreateTempFile(certPath + ".XXXXXX", 0644, certfp));
+
+	certfp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+	certfp << CertificateToString(cert);
+	certfp.close();
+
+	Utility::RenameFile(tempCertPath, certPath);
+	UpdateSSLContext();
 }
 
 void ApiListener::Stop(bool runtimeDeleted)
