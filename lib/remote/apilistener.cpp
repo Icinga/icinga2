@@ -179,6 +179,30 @@ void ApiListener::OnConfigLoaded()
 	UpdateSSLContext();
 }
 
+std::shared_ptr<X509> ApiListener::RenewCert(const std::shared_ptr<X509>& cert)
+{
+	std::shared_ptr<EVP_PKEY> pubkey (X509_get_pubkey(cert.get()), EVP_PKEY_free);
+	auto subject (X509_get_subject_name(cert.get()));
+	auto cacert (GetX509Certificate(GetDefaultCaPath()));
+	auto newcert (CreateCertIcingaCA(pubkey.get(), subject));
+
+	/* verify that the new cert matches the CA we're using for the ApiListener;
+	 * this ensures that the CA we have in /var/lib/icinga2/ca matches the one
+	 * we're using for cluster connections (there's no point in sending a client
+	 * a certificate it wouldn't be able to use to connect to us anyway) */
+	try {
+		if (!VerifyCertificate(cacert, newcert, GetCrlPath())) {
+			Log(LogWarning, "ApiListener")
+				<< "The CA in '" << GetDefaultCaPath() << "' does not match the CA which Icinga uses "
+				<< "for its own cluster connections. This is most likely a configuration problem.";
+
+			return nullptr;
+		}
+	} catch (const std::exception&) { } /* Swallow the exception on purpose, cacert will never be a non-CA certificate. */
+
+	return newcert;
+}
+
 void ApiListener::UpdateSSLContext()
 {
 	m_SSLContext = SetupSslContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath(), GetCrlPath(), GetCipherList(), GetTlsProtocolmin(), GetDebugInfo());
