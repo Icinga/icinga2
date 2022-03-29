@@ -2022,7 +2022,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 
 void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 {
-	if (!GetActive()) {
+	if (comment->GetEntryType() != CommentUser || !GetActive()) {
 		return;
 	}
 
