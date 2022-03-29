@@ -18,6 +18,7 @@ set(base_SOURCES
   atomic.hpp
   base64.cpp base64.hpp
   boolean.cpp boolean.hpp boolean-script.cpp
+  bulker.hpp
   configobject.cpp configobject.hpp configobject-ti.hpp configobject-script.cpp
   configtype.cpp configtype.hpp
   configuration.cpp configuration.hpp configuration-ti.hpp
