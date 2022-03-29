@@ -59,6 +59,7 @@ public:
 	static String GetCaDir();
 	static String GetCertificateRequestsDir();
 
+	std::shared_ptr<X509> RenewCert(const std::shared_ptr<X509>& cert);
 	void UpdateSSLContext();
 
 	static ApiListener::Ptr GetInstance();
