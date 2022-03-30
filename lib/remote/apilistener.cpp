@@ -235,7 +235,20 @@ void ApiListener::Start(bool runtimeCreated)
 		<< "'" << GetName() << "' started.";
 
 	SyncLocalZoneDirs();
-	RenewOwnCert();
+
+	m_RenewOwnCertTimer = new Timer();
+
+	if (Utility::PathExists(GetIcingaCADir() + "/ca.key")) {
+		RenewOwnCert();
+		m_RenewOwnCertTimer->OnTimerExpired.connect([this](const Timer * const&) { RenewOwnCert(); });
+	} else {
+		m_RenewOwnCertTimer->OnTimerExpired.connect([this](const Timer * const&) {
+			JsonRpcConnection::SendCertificateRequest(nullptr, nullptr, String());
+		});
+	}
+
+	m_RenewOwnCertTimer->SetInterval(RENEW_INTERVAL);
+	m_RenewOwnCertTimer->Start();
 
 	ObjectImpl<ApiListener>::Start(runtimeCreated);
 
@@ -288,10 +301,6 @@ void ApiListener::Start(bool runtimeCreated)
 
 void ApiListener::RenewOwnCert()
 {
-	if (!Utility::PathExists(GetIcingaCADir() + "/ca.key")) {
-		return;
-	}
-
 	auto certPath (GetDefaultCertPath());
 	auto cert (GetX509Certificate(certPath));
 
@@ -832,9 +841,6 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		auto parent (myZone->GetParent());
 
 		if (parent == eZone || !parent && eZone == myZone) {
-			Log(LogInformation, "ApiListener")
-				<< "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
-
 			JsonRpcConnection::SendCertificateRequest(aclient, nullptr, String());
 
 			if (Utility::PathExists(ApiListener::GetCertificateRequestsDir())) {

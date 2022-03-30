@@ -171,6 +171,7 @@ private:
 	Timer::Ptr m_AuthorityTimer;
 	Timer::Ptr m_CleanupCertificateRequestsTimer;
 	Timer::Ptr m_ApiPackageIntegrityTimer;
+	Timer::Ptr m_RenewOwnCertTimer;
 
 	Endpoint::Ptr m_LocalEndpoint;
 
