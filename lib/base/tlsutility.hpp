@@ -24,6 +24,11 @@
 namespace icinga
 {
 
+const auto ROOT_VALID_FOR  = 60 * 60 * 24 * 365 * 15;
+const auto LEAF_VALID_FOR  = 60 * 60 * 24 * 397;
+const auto RENEW_THRESHOLD = 60 * 60 * 24 * 30;
+const auto RENEW_INTERVAL  = 60 * 60 * 24;
+
 void InitializeOpenSSL();
 
 String GetOpenSSLVersion();

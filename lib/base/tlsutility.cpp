@@ -541,7 +541,7 @@ std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME
 	X509 *cert = X509_new();
 	X509_set_version(cert, 2);
 	X509_gmtime_adj(X509_get_notBefore(cert), 0);
-	X509_gmtime_adj(X509_get_notAfter(cert), (ca ? 15 * 365 : 397) * 24 * 60 * 60);
+	X509_gmtime_adj(X509_get_notAfter(cert), ca ? ROOT_VALID_FOR : LEAF_VALID_FOR);
 	X509_set_pubkey(cert, pubkey);
 
 	X509_set_subject_name(cert, subject);
@@ -679,7 +679,7 @@ bool IsCertUptodate(const std::shared_ptr<X509>& cert)
 	 * because Icinga versions older than 2.4 sometimes create certificates with an invalid
 	 * serial number. */
 	time_t forceRenewalEnd = 1483228800; /* January 1st, 2017 */
-	time_t renewalStart = now + 30 * 24 * 60 * 60;
+	time_t renewalStart = now + RENEW_THRESHOLD;
 
 	return X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1;
 }
