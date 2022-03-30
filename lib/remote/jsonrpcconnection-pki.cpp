@@ -265,6 +265,17 @@ void JsonRpcConnection::SendCertificateRequest(const JsonRpcConnection::Ptr& acl
 
 	/* Path is empty if this is our own request. */
 	if (path.IsEmpty()) {
+		{
+			Log msg (LogInformation, "JsonRpcConnection");
+			msg << "Requesting new certificate for this Icinga instance";
+
+			if (aclient) {
+				msg << " from endpoint '" << aclient->GetIdentity() << "'";
+			}
+
+			msg << ".";
+		}
+
 		String ticketPath = ApiListener::GetCertsDir() + "/ticket";
 
 		std::ifstream fp(ticketPath.CStr());
