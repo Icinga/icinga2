@@ -882,7 +882,7 @@ nrpe_arguments	| **Optional.** Arguments that should be passed to the command. M
 nrpe_ipv4       | **Optional.** Use IPv4 connection. Defaults to false.
 nrpe_ipv6       | **Optional.** Use IPv6 connection. Defaults to false.
 nrpe_version_2	| **Optional.** Use this if you want to connect using NRPE v2 protocol (needed for NSClient++). Defaults to false.
-nrpe_version_3	| **Optional.** Use this if you want to connect using NRPE v3 packets (supports larger payload). Defaults to false.
+nrpe_version_3	| **Optional.** Use this if you want to connect using NRPE v3 protocol/packets. Defaults to false.
 nrpe_payload_size	| **Optional.** Specify non-default payload size for NSClient++. Default is 1024.
 nrpe_ca		| **Optional.** The CA file to use for PKI. Defaults to none.
 nrpe_cert	| **Optional.** The client cert file to use for PKI. Defaults to none.
