@@ -197,7 +197,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 			<< "Certificate request for CN '" << cn << "': Comparing received ticket '"
 			<< ticket << "' with calculated ticket '" << realTicket << "'.";
 
-		if (ticket != realTicket) {
+		if (!Utility::ComparePasswords(ticket, realTicket)) {
 			Log(LogWarning, "JsonRpcConnection")
 				<< "Ticket '" << ticket << "' for CN '" << cn << "' is invalid.";
 
