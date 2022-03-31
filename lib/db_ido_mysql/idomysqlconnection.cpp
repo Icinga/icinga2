@@ -266,6 +266,8 @@ void IdoMysqlConnection::Reconnect()
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 	}
 
+	m_Mysql->options(&m_Connection, MYSQL_SET_CHARSET_NAME, "latin1");
+
 	if (enableSsl)
 		m_Mysql->ssl_set(&m_Connection, sslKey, sslCert, sslCa, sslCaPath, sslCipher);
 
