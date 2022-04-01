@@ -7,7 +7,76 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
-# 2.12.6 (2021-08-19)
+## 2.12.7 (2022-04-14)
+
+This version includes bugfixes for many features of Icinga 2, including fixes for multiple crashes.
+
+### API
+
+* The /v1/config/stages endpoint now immediately rejects parallel config updates
+  instead of accepting and then later failing to verify and activate them. #9326
+
+### Certificates
+
+* The lifetime of newly issued node certificates is reduced from 15 years to 397 days. #9338
+* Compare cluster certificate tickets in constant time. #9334
+
+### Notifications
+
+* Fix a crash that could happen while sending notifications shortly after Icinga 2 started. #9125
+
+### Checks and Commands
+
+* Fix a deadlock when processing check results for checkables with dependencies. #9229
+* Fix a message routing loop that can happen for event commands that are executed within a zone
+  using `command_endpoint` that resulted in excessive execution of the command. #9261
+
+### Downtimes
+
+* Fix scheduling of downtimes for all services on child hosts. #9184
+* Creating fixed downtimes starting immediately now send a corresponding notification. #9185
+* Fix some issues involving daylight saving time changes that could result in an hour missing
+  from scheduled downtimes. This fix applies to time periods as well. #9246
+* Fix a bug where downtimes on the day after a daylight saving time change could be off by an hour. #9253
+
+### Configuration
+
+* Fix the evaluation order of default templates when used in combination with apply rules.
+  Now default templates are imported first as stated in the documentation and
+  as it already happens for objects defined without using apply. #9294
+
+### IDO
+
+* Fix an issue where contacts were not written correctly to the notification history
+  if multiple IDO instances are active on the same node. #9243
+* Explicitly set the encoding for MySQL connections as a workaround for changed defaults
+  in Debian bullseye. #9313
+* Ship a MySQL schema upgrade that fixes inconsistent version information in the
+  full schema file and upgrade files which could have resulted in inaccurate reports
+  of an outdated schema version. #9140
+
+### Performance Data Writers
+
+* Fix a race condition in the InfluxDB Writers that could result in a crash. #9247
+* All writers no longer send metrics multiple times after HA failovers. #9329
+
+### Build
+
+* Fix the order of linker flags to fix builds on some ARM platforms. #9167
+* Fix an issue when building within an unrelated Git repository,
+  version information from that repository could incorrectly be used for Icinga 2. #9156
+* Windows: Update bundled Boost version to 1.78.0 and OpenSSL to 1.1.1n #9320 #9327
+
+### Internals
+
+* Fix some race conditions due to missing synchronization.
+  These race conditions should not have caused any practical problems
+  besides incorrect numbers in debug log message. #9305
+* Move the startup.log and status files created when validating incoming cluster config updates
+  to /var/lib/icinga2/api and always keep the last failed startup.log to ease debugging. #9336
+* Remove outdated and incorrect of the severity attributes #9244
+
+## 2.12.6 (2021-08-19)
 
 The main focus of these versions is a security vulnerability in the TLS certificate verification of our metrics writers ElasticsearchWriter, GelfWriter and InfluxdbWriter.
 
