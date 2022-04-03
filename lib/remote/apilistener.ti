@@ -55,6 +55,7 @@ class ApiListener : ConfigObject
 	[config, deprecated] String access_control_allow_headers;
 	[config, deprecated] String access_control_allow_methods;
 
+	[config] bool external_ca;
 
 	[state, no_user_modify] Timestamp log_message_timestamp;
 

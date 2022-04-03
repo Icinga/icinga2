@@ -25,11 +25,18 @@ REGISTER_APIFUNCTION(UpdateCertificate, pki, &UpdateCertificateHandler);
 
 Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	Dictionary::Ptr result = new Dictionary();
+
+	// When external_ca is configured, ignore any request via RPC.
+	if (listener->GetExternalCa()) {
+		return Empty;
+	}
+
 	String certText = params->Get("cert_request");
 
 	std::shared_ptr<X509> cert;
-
-	Dictionary::Ptr result = new Dictionary();
 
 	/* Use the presented client certificate if not provided. */
 	if (certText.IsEmpty()) {
@@ -48,7 +55,6 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		return result;
 	}
 
-	ApiListener::Ptr listener = ApiListener::GetInstance();
 	std::shared_ptr<X509> cacert = GetX509Certificate(listener->GetDefaultCaPath());
 
 	String cn = GetCertificateCN(cert);
@@ -329,7 +335,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener || listener->GetExternalCa())
 		return Empty;
 
 	std::shared_ptr<X509> oldCert = GetX509Certificate(listener->GetDefaultCertPath());

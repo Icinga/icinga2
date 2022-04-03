@@ -770,9 +770,8 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			endpoint->SetSyncing(true);
 		}
 
-		Zone::Ptr myZone = Zone::GetLocalZone();
-
-		if (myZone->GetParent() == eZone) {
+		// When external_ca is not configured and client is from parent zone, evaluate certificate renewal.
+		if (!GetExternalCa() && Zone::GetLocalZone()->GetParent() == eZone) {
 			Log(LogInformation, "ApiListener")
 				<< "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
 

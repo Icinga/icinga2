@@ -1109,6 +1109,7 @@ Configuration Attributes:
   access\_control\_allow\_headers       | String                | **Deprecated.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
   access\_control\_allow\_methods       | String                | **Deprecated.** Used in response to a preflight request to indicate which HTTP methods can be used when making the actual request. Defaults to `GET, POST, PUT, DELETE`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods)
   environment                           | String                | **Optional.** Used as suffix in TLS SNI extension name; default from constant `ApiEnvironment`, which is empty.
+  external_ca                           | String                | **Optional.** Certificates used are not managed by Icinga, disables certificate renewal logic inside Icinga's RPC API. Especially useful for external roots with intermediate chain certificates.
 
 The attributes `access_control_allow_credentials`, `access_control_allow_headers` and `access_control_allow_methods`
 are controlled by Icinga 2 and are not changeable by config any more.
@@ -1127,6 +1128,9 @@ copies those files to the new location in `DataDir + "/certs"` unless the
 file(s) there are newer.
 
 Please check the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths) for more details.
+
+When certificates from Puppet or any corporate root CA is used, you should enable `external_ca` to disable some
+certificate handling logic within the API connection routines of Icinga 2.
 
 While Icinga 2 and the underlying OpenSSL library use sane and secure defaults, the attributes
 `cipher_list` and `tls_protocolmin` can be used to increase communication security. A good source
