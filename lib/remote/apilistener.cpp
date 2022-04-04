@@ -30,6 +30,7 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/thread/locks.hpp>
 #include <climits>
 #include <cstdint>
 #include <fstream>
@@ -240,7 +241,11 @@ void ApiListener::UpdateSSLContext()
 		}
 	}
 
-	m_SSLContext = context;
+	{
+		boost::unique_lock<decltype(m_SSLContextMutex)> lock (m_SSLContextMutex);
+
+		m_SSLContext = context;
+	}
 
 	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
@@ -484,14 +489,14 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	Log(LogInformation, "ApiListener")
 		<< "Started new listener on '[" << localEndpoint.address() << "]:" << localEndpoint.port() << "'";
 
-	IoEngine::SpawnCoroutine(io, [this, acceptor](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor, m_SSLContext); });
+	IoEngine::SpawnCoroutine(io, [this, acceptor](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor); });
 
 	UpdateStatusFile(localEndpoint);
 
 	return true;
 }
 
-void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server, const Shared<boost::asio::ssl::context>::Ptr& sslContext)
+void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server)
 {
 	namespace asio = boost::asio;
 
@@ -499,8 +504,10 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 
 	for (;;) {
 		try {
-			auto sslConn (Shared<AsioTlsStream>::Make(io, *sslContext));
+			boost::shared_lock<decltype(m_SSLContextMutex)> lock (m_SSLContextMutex);
+			auto sslConn (Shared<AsioTlsStream>::Make(io, *m_SSLContext));
 
+			lock.unlock();
 			server->async_accept(sslConn->lowest_layer(), yc);
 
 			auto strand (Shared<asio::io_context::strand>::Make(io));
@@ -553,7 +560,10 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 			<< "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 
 		try {
+			boost::shared_lock<decltype(m_SSLContextMutex)> lock (m_SSLContextMutex);
 			auto sslConn (Shared<AsioTlsStream>::Make(io, *m_SSLContext, endpoint->GetName()));
+
+			lock.unlock();
 
 			Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
 				[sslConn, endpoint, host, port](asio::yield_context yc) {
