@@ -266,6 +266,9 @@ void IdoMysqlConnection::Reconnect()
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 	}
 
+	/* Read "latin1" (here, in the schema and in Icinga Web) as "bytes".
+	   Icinga 2 and Icinga Web use byte-strings everywhere and every byte-string is a valid latin1 string.
+	   This way the (actually mostly UTF-8) bytes are transferred end-to-end as-is. */
 	m_Mysql->options(&m_Connection, MYSQL_SET_CHARSET_NAME, "latin1");
 
 	if (enableSsl)
