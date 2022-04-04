@@ -2842,6 +2842,11 @@ icingacli_businessprocess_process         | **Required.** Business process to mo
 icingacli_businessprocess_config          | **Optional.** Configuration file containing your business process without file extension.
 icingacli_businessprocess_details         | **Optional.** Get details for root cause analysis. Defaults to false.
 icingacli_businessprocess_statetype       | **Optional.** Define which state type to look at, `soft` or `hard`. Overrides the default value inside the businessprocess module, if configured.
+icingacli_businessprocess_ackisok         | **Optional.** Treat acknowledged hosts/services always as UP/OK.
+icingacli_businessprocess_blame           | **Optional.** Show problem details as a tree reduced to the nodes which have the same state as the business process.
+icingacli_businessprocess_colors          | **Optional.** Show colored output.
+icingacli_businessprocess_downtimeisok    | **Optional.** Treat hosts/services in downtime always as UP/OK.
+icingacli_businessprocess_rootcause       | **Optional.** Used in combination with *icingacli_businessprocess_blame*. Only shows the paths of the nodes which are responsible for the state of the business process.
 
 #### Director <a id="plugin-contrib-icingacli-director"></a>
 
