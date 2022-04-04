@@ -21,6 +21,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <boost/thread/shared_mutex.hpp>
 #include <cstdint>
 #include <mutex>
 #include <set>
@@ -160,6 +161,7 @@ protected:
 
 private:
 	Shared<boost::asio::ssl::context>::Ptr m_SSLContext;
+	boost::shared_mutex m_SSLContextMutex;
 
 	mutable std::mutex m_AnonymousClientsLock;
 	mutable std::mutex m_HttpClientsLock;
@@ -194,7 +196,7 @@ private:
 		boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
 		const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 	);
-	void ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server, const Shared<boost::asio::ssl::context>::Ptr& sslContext);
+	void ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server);
 
 	WorkQueue m_RelayQueue;
 	WorkQueue m_SyncQueue{0, 4};
