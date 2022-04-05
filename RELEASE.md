@@ -63,13 +63,13 @@ Add the latest Boost and OpenSSL versions to
 https://packages.icinga.com/windows/dependencies/ like this:
 
 ```
-localhost:~$ ssh icinga-aptly.icinga.netways.de
-icinga-aptly:~$ sudo -i
-icinga-aptly:~# cd /var/www/html/aptly/public/windows/dependencies
-icinga-aptly:dependencies# wget https://master.dl.sourceforge.net/project/boost/boost-binaries/1.76.0/boost_1_76_0-msvc-14.2-64.exe
-icinga-aptly:dependencies# wget https://master.dl.sourceforge.net/project/boost/boost-binaries/1.76.0/boost_1_76_0-msvc-14.2-32.exe
-icinga-aptly:dependencies# wget https://slproweb.com/download/Win64OpenSSL-1_1_1k.exe
-icinga-aptly:dependencies# wget https://slproweb.com/download/Win32OpenSSL-1_1_1k.exe
+localhost:~$ ssh aptly.vm.icinga.com
+aptly:~$ sudo -i
+aptly:~# cd /var/www/html/aptly/public/windows/dependencies
+aptly:dependencies# wget https://master.dl.sourceforge.net/project/boost/boost-binaries/1.76.0/boost_1_76_0-msvc-14.2-64.exe
+aptly:dependencies# wget https://master.dl.sourceforge.net/project/boost/boost-binaries/1.76.0/boost_1_76_0-msvc-14.2-32.exe
+aptly:dependencies# wget https://slproweb.com/download/Win64OpenSSL-1_1_1k.exe
+aptly:dependencies# wget https://slproweb.com/download/Win32OpenSSL-1_1_1k.exe
 ```
 
 #### Ensure Compatibility
