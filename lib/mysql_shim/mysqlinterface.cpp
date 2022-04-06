@@ -92,6 +92,11 @@ struct MysqlInterfaceImpl final : public MysqlInterface
 		return mysql_real_escape_string(mysql, to, from, length);
 	}
 
+	int options(MYSQL *mysql, mysql_option option, const void *arg) const override
+	{
+		return mysql_options(mysql, option, arg);
+	}
+
 	bool ssl_set(MYSQL *mysql, const char *key, const char *cert, const char *ca, const char *capath, const char *cipher) const override
 	{
 		return mysql_ssl_set(mysql, key, cert, ca, capath, cipher);
