@@ -41,6 +41,7 @@ private:
 	boost::mutex m_StreamMutex;
 	WorkQueue m_WorkQueue{10000000, 1};
 
+	boost::signals2::connection m_HandleCheckResults;
 	Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);

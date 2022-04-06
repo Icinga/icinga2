@@ -95,7 +95,7 @@ void GraphiteWriter::Resume()
 	m_ReconnectTimer->Reschedule(0);
 
 	/* Register event handlers. */
-	Checkable::OnNewCheckResult.connect(std::bind(&GraphiteWriter::CheckResultHandler, this, _1, _2));
+	m_HandleCheckResults = Checkable::OnNewCheckResult.connect(std::bind(&GraphiteWriter::CheckResultHandler, this, _1, _2));
 }
 
 /**
@@ -103,6 +103,7 @@ void GraphiteWriter::Resume()
  */
 void GraphiteWriter::Pause()
 {
+	m_HandleCheckResults.disconnect();
 	m_ReconnectTimer.reset();
 
 	try {

@@ -90,14 +90,18 @@ void GelfWriter::Resume()
 	m_ReconnectTimer->Reschedule(0);
 
 	/* Register event handlers. */
-	Checkable::OnNewCheckResult.connect(std::bind(&GelfWriter::CheckResultHandler, this, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(std::bind(&GelfWriter::NotificationToUserHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
-	Checkable::OnStateChange.connect(std::bind(&GelfWriter::StateChangeHandler, this, _1, _2, _3));
+	m_HandleCheckResults = Checkable::OnNewCheckResult.connect(std::bind(&GelfWriter::CheckResultHandler, this, _1, _2));
+	m_HandleNotifications = Checkable::OnNotificationSentToUser.connect(std::bind(&GelfWriter::NotificationToUserHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
+	m_HandleStateChanges = Checkable::OnStateChange.connect(std::bind(&GelfWriter::StateChangeHandler, this, _1, _2, _3));
 }
 
 /* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void GelfWriter::Pause()
 {
+	m_HandleCheckResults.disconnect();
+	m_HandleNotifications.disconnect();
+	m_HandleStateChanges.disconnect();
+
 	m_ReconnectTimer.reset();
 
 	try {
