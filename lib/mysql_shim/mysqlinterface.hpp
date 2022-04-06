@@ -35,6 +35,7 @@ struct MysqlInterface
 	virtual MYSQL *real_connect(MYSQL *mysql, const char *host, const char *user, const char *passwd,
 		const char *db, unsigned int port, const char *unix_socket, unsigned long clientflag) const = 0;
 	virtual unsigned long real_escape_string(MYSQL *mysql, char *to, const char *from, unsigned long length) const = 0;
+	virtual int options(MYSQL *mysql, mysql_option option, const void *arg) const = 0;
 	virtual bool ssl_set(MYSQL *mysql, const char *key, const char *cert, const char *ca, const char *capath, const char *cipher) const = 0;
 	virtual MYSQL_RES *store_result(MYSQL *mysql) const = 0;
 	virtual unsigned int thread_safe() const = 0;
