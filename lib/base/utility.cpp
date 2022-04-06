@@ -11,6 +11,7 @@
 #include "base/objectlock.hpp"
 #include <cstdint>
 #include <mmatch.h>
+#include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/lexical_cast.hpp>
