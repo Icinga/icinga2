@@ -49,6 +49,7 @@ protected:
 	virtual Url::Ptr AssembleUrl() = 0;
 
 private:
+	boost::signals2::connection m_HandleCheckResults;
 	Timer::Ptr m_FlushTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);

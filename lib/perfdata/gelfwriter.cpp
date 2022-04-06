@@ -90,16 +90,17 @@ void GelfWriter::Resume()
 	m_ReconnectTimer->Reschedule(0);
 
 	/* Register event handlers. */
-	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
+		const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
 	});
-	Checkable::OnNotificationSentToUser.connect([this](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-		const User::Ptr& user, const NotificationType& type, const CheckResult::Ptr& cr, const String& author,
-		const String& commentText, const String& commandName, const MessageOrigin::Ptr&) {
+	m_HandleNotifications = Checkable::OnNotificationSentToUser.connect([this](const Notification::Ptr& notification,
+		const Checkable::Ptr& checkable, const User::Ptr& user, const NotificationType& type, const CheckResult::Ptr& cr,
+		const String& author, const String& commentText, const String& commandName, const MessageOrigin::Ptr&) {
 		NotificationToUserHandler(notification, checkable, user, type, cr, author, commentText, commandName);
 	});
-	Checkable::OnStateChange.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type,
-		const MessageOrigin::Ptr&) {
+	m_HandleStateChanges = Checkable::OnStateChange.connect([this](const Checkable::Ptr& checkable,
+		const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
 		StateChangeHandler(checkable, cr, type);
 	});
 }
@@ -107,6 +108,10 @@ void GelfWriter::Resume()
 /* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void GelfWriter::Pause()
 {
+	m_HandleCheckResults.disconnect();
+	m_HandleNotifications.disconnect();
+	m_HandleStateChanges.disconnect();
+
 	m_ReconnectTimer.reset();
 
 	try {

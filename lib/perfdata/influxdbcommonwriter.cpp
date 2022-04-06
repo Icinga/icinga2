@@ -97,7 +97,8 @@ void InfluxdbCommonWriter::Resume()
 	m_FlushTimer->Reschedule(0);
 
 	/* Register for new metrics. */
-	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
+		const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
 	});
 }
@@ -105,6 +106,8 @@ void InfluxdbCommonWriter::Resume()
 /* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void InfluxdbCommonWriter::Pause()
 {
+	m_HandleCheckResults.disconnect();
+
 	/* Force a flush. */
 	Log(LogDebug, GetReflectionType()->GetName())
 		<< "Flushing pending data buffers.";
