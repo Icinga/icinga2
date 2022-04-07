@@ -645,10 +645,15 @@ void ApiListener::TryActivateZonesStage(const std::vector<String>& relativePaths
 		return;
 	}
 
+	String failedLogFile = apiDir + "/zones-stage-startup-last-failed.log";
+	std::ofstream fpFailedLog(failedLogFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
+	fpFailedLog << pr.Output;
+	fpFailedLog.close();
+
 	// Error case.
 	Log(LogCritical, "ApiListener")
 		<< "Config validation failed for staged cluster config sync in '" << apiZonesStageDir
-		<< "'. Aborting. Logs: '" << logFile << "'";
+		<< "'. Aborting. Logs: '" << failedLogFile << "'";
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
