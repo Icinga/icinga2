@@ -592,15 +592,16 @@ void ApiListener::TryActivateZonesStage(const std::vector<String>& relativePaths
 	process->Run();
 	const ProcessResult& pr = process->WaitForResult();
 
+	String apiDir = GetApiDir();
 	String apiZonesDir = GetApiZonesDir();
 	String apiZonesStageDir = GetApiZonesStageDir();
 
-	String logFile = apiZonesStageDir + "/startup.log";
+	String logFile = apiDir + "/zones-stage-startup.log";
 	std::ofstream fpLog(logFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fpLog << pr.Output;
 	fpLog.close();
 
-	String statusFile = apiZonesStageDir + "/status";
+	String statusFile = apiDir + "/zones-stage-status";
 	std::ofstream fpStatus(statusFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fpStatus << pr.ExitStatus;
 	fpStatus.close();
