@@ -81,7 +81,7 @@ void OpenTsdbWriter::Resume()
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
-	Service::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+	m_HandleCheckResults = Service::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
 	});
 }
@@ -91,6 +91,7 @@ void OpenTsdbWriter::Resume()
  */
 void OpenTsdbWriter::Pause()
 {
+	m_HandleCheckResults.disconnect();
 	m_ReconnectTimer.reset();
 
 	Log(LogInformation, "OpentsdbWriter")

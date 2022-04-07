@@ -47,6 +47,7 @@ protected:
 	virtual Url::Ptr AssembleUrl() = 0;
 
 private:
+	boost::signals2::connection m_HandleCheckResults;
 	Timer::Ptr m_FlushTimer;
 	WorkQueue m_WorkQueue{10000000, 1};
 	std::vector<String> m_DataBuffer;

@@ -34,6 +34,7 @@ protected:
 	void Pause() override;
 
 private:
+	boost::signals2::connection m_HandleCheckResults;
 	Timer::Ptr m_RotationTimer;
 	std::ofstream m_ServiceOutputFile;
 	std::ofstream m_HostOutputFile;

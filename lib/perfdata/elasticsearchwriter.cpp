@@ -95,16 +95,17 @@ void ElasticsearchWriter::Resume()
 	m_FlushTimer->Reschedule(0);
 
 	/* Register for new metrics. */
-	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
+		const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
 	});
-	Checkable::OnStateChange.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type,
-		const MessageOrigin::Ptr&) {
+	m_HandleStateChanges = Checkable::OnStateChange.connect([this](const Checkable::Ptr& checkable,
+		const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
 		StateChangeHandler(checkable, cr, type);
 	});
-	Checkable::OnNotificationSentToAllUsers.connect([this](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-		const std::set<User::Ptr>& users, const NotificationType& type, const CheckResult::Ptr& cr, const String& author,
-		const String& text, const MessageOrigin::Ptr&) {
+	m_HandleNotifications = Checkable::OnNotificationSentToAllUsers.connect([this](const Notification::Ptr& notification,
+		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, const NotificationType& type,
+		const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr&) {
 		NotificationSentToAllUsersHandler(notification, checkable, users, type, cr, author, text);
 	});
 }
@@ -112,6 +113,10 @@ void ElasticsearchWriter::Resume()
 /* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void ElasticsearchWriter::Pause()
 {
+	m_HandleCheckResults.disconnect();
+	m_HandleStateChanges.disconnect();
+	m_HandleNotifications.disconnect();
+
 	Flush();
 	m_WorkQueue.Join();
 	Flush();
