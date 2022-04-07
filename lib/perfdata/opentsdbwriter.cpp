@@ -81,7 +81,7 @@ void OpenTsdbWriter::Resume()
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
-	Service::OnNewCheckResult.connect(std::bind(&OpenTsdbWriter::CheckResultHandler, this, _1, _2));
+	m_HandleCheckResults = Service::OnNewCheckResult.connect(std::bind(&OpenTsdbWriter::CheckResultHandler, this, _1, _2));
 }
 
 /**
@@ -89,6 +89,7 @@ void OpenTsdbWriter::Resume()
  */
 void OpenTsdbWriter::Pause()
 {
+	m_HandleCheckResults.disconnect();
 	m_ReconnectTimer.reset();
 
 	Log(LogInformation, "OpentsdbWriter")

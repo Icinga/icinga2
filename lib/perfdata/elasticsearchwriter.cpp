@@ -95,14 +95,18 @@ void ElasticsearchWriter::Resume()
 	m_FlushTimer->Reschedule(0);
 
 	/* Register for new metrics. */
-	Checkable::OnNewCheckResult.connect(std::bind(&ElasticsearchWriter::CheckResultHandler, this, _1, _2));
-	Checkable::OnStateChange.connect(std::bind(&ElasticsearchWriter::StateChangeHandler, this, _1, _2, _3));
-	Checkable::OnNotificationSentToAllUsers.connect(std::bind(&ElasticsearchWriter::NotificationSentToAllUsersHandler, this, _1, _2, _3, _4, _5, _6, _7));
+	m_HandleCheckResults = Checkable::OnNewCheckResult.connect(std::bind(&ElasticsearchWriter::CheckResultHandler, this, _1, _2));
+	m_HandleStateChanges = Checkable::OnStateChange.connect(std::bind(&ElasticsearchWriter::StateChangeHandler, this, _1, _2, _3));
+	m_HandleNotifications = Checkable::OnNotificationSentToAllUsers.connect(std::bind(&ElasticsearchWriter::NotificationSentToAllUsersHandler, this, _1, _2, _3, _4, _5, _6, _7));
 }
 
 /* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void ElasticsearchWriter::Pause()
 {
+	m_HandleCheckResults.disconnect();
+	m_HandleStateChanges.disconnect();
+	m_HandleNotifications.disconnect();
+
 	Flush();
 	m_WorkQueue.Join();
 	Flush();

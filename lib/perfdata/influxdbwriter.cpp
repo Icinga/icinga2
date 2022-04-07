@@ -123,12 +123,14 @@ void InfluxdbWriter::Resume()
 	m_FlushTimer->Reschedule(0);
 
 	/* Register for new metrics. */
-	Checkable::OnNewCheckResult.connect(std::bind(&InfluxdbWriter::CheckResultHandler, this, _1, _2));
+	m_HandleCheckResults = Checkable::OnNewCheckResult.connect(std::bind(&InfluxdbWriter::CheckResultHandler, this, _1, _2));
 }
 
 /* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void InfluxdbWriter::Pause()
 {
+	m_HandleCheckResults.disconnect();
+
 	/* Force a flush. */
 	Log(LogDebug, "InfluxdbWriter")
 		<< "Processing pending tasks and flushing data buffers.";
