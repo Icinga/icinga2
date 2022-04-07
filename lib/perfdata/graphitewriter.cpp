@@ -95,7 +95,8 @@ void GraphiteWriter::Resume()
 	m_ReconnectTimer->Reschedule(0);
 
 	/* Register event handlers. */
-	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
+		const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
 	});
 }
@@ -105,6 +106,7 @@ void GraphiteWriter::Resume()
  */
 void GraphiteWriter::Pause()
 {
+	m_HandleCheckResults.disconnect();
 	m_ReconnectTimer.reset();
 
 	try {

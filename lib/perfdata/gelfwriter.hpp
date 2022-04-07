@@ -36,6 +36,7 @@ private:
 	OptionalTlsStream m_Stream;
 	WorkQueue m_WorkQueue{10000000, 1};
 
+	boost::signals2::connection m_HandleCheckResults, m_HandleNotifications, m_HandleStateChanges;
 	Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);

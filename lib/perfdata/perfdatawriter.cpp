@@ -53,7 +53,8 @@ void PerfdataWriter::Resume()
 	Log(LogInformation, "PerfdataWriter")
 		<< "'" << GetName() << "' resumed.";
 
-	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
+		const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
 	});
 
@@ -68,6 +69,7 @@ void PerfdataWriter::Resume()
 
 void PerfdataWriter::Pause()
 {
+	m_HandleCheckResults.disconnect();
 	m_RotationTimer.reset();
 
 #ifdef I2_DEBUG

@@ -37,6 +37,7 @@ protected:
 private:
 	Shared<AsioTcpStream>::Ptr m_Stream;
 
+	boost::signals2::connection m_HandleCheckResults;
 	Timer::Ptr m_ReconnectTimer;
 
 	Dictionary::Ptr m_ServiceConfigTemplate;
