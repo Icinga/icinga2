@@ -94,7 +94,6 @@ Fix incompatibilities if any.
 
 * https://git.icinga.com/infra/ansible-windows-build
   (don't forget to provision!)
-* https://git.icinga.com/packaging/windows-icinga2
 * [doc/21-development.md](doc/21-development.md)
 * [doc/win-dev.ps1](doc/win-dev.ps1)
   (also affects CI/CD)
