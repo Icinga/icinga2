@@ -5,11 +5,14 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/application.hpp"
+#include "base/defer.hpp"
 #include "base/exception.hpp"
 
 using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/stages", ConfigStagesHandler);
+
+std::atomic<bool> ConfigStagesHandler::m_RunningPackageUpdates (false);
 
 bool ConfigStagesHandler::HandleRequest(
 	AsioTlsStream& stream,
@@ -128,12 +131,19 @@ void ConfigStagesHandler::HandlePost(
 		if (reload && !activate)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'reload' must be false when 'activate' is false."));
 
+		if (m_RunningPackageUpdates.exchange(true)) {
+			return HttpUtility::SendJsonError(response, params, 423,
+				"Conflicting request, there is already an ongoing package update in progress. Please try it again later.");
+		}
+
+		auto resetPackageUpdates (Shared<Defer>::Make([]() { ConfigStagesHandler::m_RunningPackageUpdates.store(false); }));
+
 		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticPackageMutex());
 
 		stageName = ConfigPackageUtility::CreateStage(packageName, files);
 
 		/* validate the config. on success, activate stage and reload */
-		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, activate, reload);
+		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, activate, reload, resetPackageUpdates);
 	} catch (const std::exception& ex) {
 		return HttpUtility::SendJsonError(response, params, 500,
 			"Stage creation failed.",
