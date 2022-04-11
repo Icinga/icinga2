@@ -32,6 +32,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/thread/locks.hpp>
 #include <climits>
 #include <cstdint>
 #include <fstream>
@@ -179,9 +180,39 @@ void ApiListener::OnConfigLoaded()
 	UpdateSSLContext();
 }
 
+std::shared_ptr<X509> ApiListener::RenewCert(const std::shared_ptr<X509>& cert)
+{
+	std::shared_ptr<EVP_PKEY> pubkey (X509_get_pubkey(cert.get()), EVP_PKEY_free);
+	auto subject (X509_get_subject_name(cert.get()));
+	auto cacert (GetX509Certificate(GetDefaultCaPath()));
+	auto newcert (CreateCertIcingaCA(pubkey.get(), subject));
+
+	/* verify that the new cert matches the CA we're using for the ApiListener;
+	 * this ensures that the CA we have in /var/lib/icinga2/ca matches the one
+	 * we're using for cluster connections (there's no point in sending a client
+	 * a certificate it wouldn't be able to use to connect to us anyway) */
+	try {
+		if (!VerifyCertificate(cacert, newcert, GetCrlPath())) {
+			Log(LogWarning, "ApiListener")
+				<< "The CA in '" << GetDefaultCaPath() << "' does not match the CA which Icinga uses "
+				<< "for its own cluster connections. This is most likely a configuration problem.";
+
+			return nullptr;
+		}
+	} catch (const std::exception&) { } /* Swallow the exception on purpose, cacert will never be a non-CA certificate. */
+
+	return newcert;
+}
+
 void ApiListener::UpdateSSLContext()
 {
-	m_SSLContext = SetupSslContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath(), GetCrlPath(), GetCipherList(), GetTlsProtocolmin(), GetDebugInfo());
+	auto ctx (SetupSslContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath(), GetCrlPath(), GetCipherList(), GetTlsProtocolmin(), GetDebugInfo()));
+
+	{
+		boost::unique_lock<decltype(m_SSLContextMutex)> lock (m_SSLContextMutex);
+
+		m_SSLContext = std::move(ctx);
+	}
 
 	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
@@ -211,6 +242,20 @@ void ApiListener::Start(bool runtimeCreated)
 		<< "'" << GetName() << "' started.";
 
 	SyncLocalZoneDirs();
+
+	m_RenewOwnCertTimer = new Timer();
+
+	if (Utility::PathExists(GetIcingaCADir() + "/ca.key")) {
+		RenewOwnCert();
+		m_RenewOwnCertTimer->OnTimerExpired.connect([this](const Timer * const&) { RenewOwnCert(); });
+	} else {
+		m_RenewOwnCertTimer->OnTimerExpired.connect([this](const Timer * const&) {
+			JsonRpcConnection::SendCertificateRequest(nullptr, nullptr, String());
+		});
+	}
+
+	m_RenewOwnCertTimer->SetInterval(RENEW_INTERVAL);
+	m_RenewOwnCertTimer->Start();
 
 	ObjectImpl<ApiListener>::Start(runtimeCreated);
 
@@ -259,6 +304,35 @@ void ApiListener::Start(bool runtimeCreated)
 	m_ApiPackageIntegrityTimer->Start();
 
 	OnMasterChanged(true);
+}
+
+void ApiListener::RenewOwnCert()
+{
+	auto certPath (GetDefaultCertPath());
+	auto cert (GetX509Certificate(certPath));
+
+	if (IsCertUptodate(cert)) {
+		return;
+	}
+
+	Log(LogInformation, "ApiListener")
+		<< "Our certificate will expire soon, but we own the CA. Renewing.";
+
+	cert = RenewCert(cert);
+
+	if (!cert) {
+		return;
+	}
+
+	std::fstream certfp;
+	auto tempCertPath (Utility::CreateTempFile(certPath + ".XXXXXX", 0644, certfp));
+
+	certfp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+	certfp << CertificateToString(cert);
+	certfp.close();
+
+	Utility::RenameFile(tempCertPath, certPath);
+	UpdateSSLContext();
 }
 
 void ApiListener::Stop(bool runtimeDeleted)
@@ -382,14 +456,14 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	Log(LogInformation, "ApiListener")
 		<< "Started new listener on '[" << localEndpoint.address() << "]:" << localEndpoint.port() << "'";
 
-	IoEngine::SpawnCoroutine(io, [this, acceptor](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor, m_SSLContext); });
+	IoEngine::SpawnCoroutine(io, [this, acceptor](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor); });
 
 	UpdateStatusFile(localEndpoint);
 
 	return true;
 }
 
-void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server, const Shared<boost::asio::ssl::context>::Ptr& sslContext)
+void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server)
 {
 	namespace asio = boost::asio;
 
@@ -418,7 +492,10 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 				}
 			}
 
-			auto sslConn (Shared<AsioTlsStream>::Make(io, *sslContext));
+			boost::shared_lock<decltype(m_SSLContextMutex)> lock (m_SSLContextMutex);
+			auto sslConn (Shared<AsioTlsStream>::Make(io, *m_SSLContext));
+
+			lock.unlock();
 			sslConn->lowest_layer() = std::move(socket);
 
 			auto strand (Shared<asio::io_context::strand>::Make(io));
@@ -471,7 +548,10 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 			<< "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 
 		try {
+			boost::shared_lock<decltype(m_SSLContextMutex)> lock (m_SSLContextMutex);
 			auto sslConn (Shared<AsioTlsStream>::Make(io, *m_SSLContext, endpoint->GetName()));
+
+			lock.unlock();
 
 			Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
 				[sslConn, endpoint, host, port](asio::yield_context yc) {
@@ -771,11 +851,9 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		}
 
 		Zone::Ptr myZone = Zone::GetLocalZone();
+		auto parent (myZone->GetParent());
 
-		if (myZone->GetParent() == eZone) {
-			Log(LogInformation, "ApiListener")
-				<< "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
-
+		if (parent == eZone || !parent && eZone == myZone) {
 			JsonRpcConnection::SendCertificateRequest(aclient, nullptr, String());
 
 			if (Utility::PathExists(ApiListener::GetCertificateRequestsDir())) {
