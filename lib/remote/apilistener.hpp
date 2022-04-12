@@ -21,6 +21,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <boost/thread/shared_mutex.hpp>
 #include <mutex>
 #include <set>
 
@@ -59,6 +60,7 @@ public:
 	static String GetCaDir();
 	static String GetCertificateRequestsDir();
 
+	std::shared_ptr<X509> RenewCert(const std::shared_ptr<X509>& cert);
 	void UpdateSSLContext();
 
 	static ApiListener::Ptr GetInstance();
@@ -129,6 +131,7 @@ protected:
 
 private:
 	Shared<boost::asio::ssl::context>::Ptr m_SSLContext;
+	boost::shared_mutex m_SSLContextMutex;
 
 	mutable boost::mutex m_AnonymousClientsLock;
 	mutable boost::mutex m_HttpClientsLock;
@@ -140,6 +143,7 @@ private:
 	Timer::Ptr m_AuthorityTimer;
 	Timer::Ptr m_CleanupCertificateRequestsTimer;
 	Timer::Ptr m_ApiPackageIntegrityTimer;
+	Timer::Ptr m_RenewOwnCertTimer;
 
 	Endpoint::Ptr m_LocalEndpoint;
 
@@ -162,7 +166,7 @@ private:
 		boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
 		const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 	);
-	void ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server, const Shared<boost::asio::ssl::context>::Ptr& sslContext);
+	void ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server);
 
 	WorkQueue m_RelayQueue;
 	WorkQueue m_SyncQueue{0, 4};
@@ -191,6 +195,7 @@ private:
 
 	void SyncLocalZoneDirs() const;
 	void SyncLocalZoneDir(const Zone::Ptr& zone) const;
+	void RenewOwnCert();
 
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
 

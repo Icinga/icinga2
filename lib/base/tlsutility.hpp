@@ -24,6 +24,11 @@
 namespace icinga
 {
 
+const auto ROOT_VALID_FOR  = 60 * 60 * 24 * 365 * 15;
+const auto LEAF_VALID_FOR  = 60 * 60 * 24 * 397;
+const auto RENEW_THRESHOLD = 60 * 60 * 24 * 30;
+const auto RENEW_INTERVAL  = 60 * 60 * 24;
+
 void InitializeOpenSSL();
 
 String GetOpenSSLVersion();
@@ -45,6 +50,7 @@ String CertificateToString(const std::shared_ptr<X509>& cert);
 std::shared_ptr<X509> StringToCertificate(const String& cert);
 std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject);
 std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert);
+bool IsCertUptodate(const std::shared_ptr<X509>& cert);
 
 String PBKDF2_SHA1(const String& password, const String& salt, int iterations);
 String PBKDF2_SHA256(const String& password, const String& salt, int iterations);

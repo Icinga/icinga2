@@ -76,16 +76,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	}
 
 	if (signedByCA) {
-		time_t now;
-		time(&now);
-
-		/* auto-renew all certificates which were created before 2017 to force an update of the CA,
-		 * because Icinga versions older than 2.4 sometimes create certificates with an invalid
-		 * serial number. */
-		time_t forceRenewalEnd = 1483228800; /* January 1st, 2017 */
-		time_t renewalStart = now + 30 * 24 * 60 * 60;
-
-		if (X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1) {
+		if (IsCertUptodate(cert)) {
 
 			Log(LogInformation, "JsonRpcConnection")
 				<< "The certificate for CN '" << cn << "' is valid and uptodate. Skipping automated renewal.";
@@ -154,8 +145,6 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	}
 
 	std::shared_ptr<X509> newcert;
-	std::shared_ptr<EVP_PKEY> pubkey;
-	X509_NAME *subject;
 	Dictionary::Ptr message;
 	String ticket;
 
@@ -206,23 +195,11 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		}
 	}
 
-	pubkey = std::shared_ptr<EVP_PKEY>(X509_get_pubkey(cert.get()), EVP_PKEY_free);
-	subject = X509_get_subject_name(cert.get());
+	newcert = listener->RenewCert(cert);
 
-	newcert = CreateCertIcingaCA(pubkey.get(), subject);
-
-	/* verify that the new cert matches the CA we're using for the ApiListener;
-	 * this ensures that the CA we have in /var/lib/icinga2/ca matches the one
-	 * we're using for cluster connections (there's no point in sending a client
-	 * a certificate it wouldn't be able to use to connect to us anyway) */
-	try {
-		if (!VerifyCertificate(cacert, newcert, listener->GetCrlPath())) {
-			Log(LogWarning, "JsonRpcConnection")
-				<< "The CA in '" << listener->GetDefaultCaPath() << "' does not match the CA which Icinga uses "
-				<< "for its own cluster connections. This is most likely a configuration problem.";
-			goto delayed_request;
-		}
-	} catch (const std::exception&) { } /* Swallow the exception on purpose, cacert will never be a non-CA certificate. */
+	if (!newcert) {
+		goto delayed_request;
+	}
 
 	/* Send the signed certificate update. */
 	Log(LogInformation, "JsonRpcConnection")
@@ -288,6 +265,17 @@ void JsonRpcConnection::SendCertificateRequest(const JsonRpcConnection::Ptr& acl
 
 	/* Path is empty if this is our own request. */
 	if (path.IsEmpty()) {
+		{
+			Log msg (LogInformation, "JsonRpcConnection");
+			msg << "Requesting new certificate for this Icinga instance";
+
+			if (aclient) {
+				msg << " from endpoint '" << aclient->GetIdentity() << "'";
+			}
+
+			msg << ".";
+		}
+
 		String ticketPath = ApiListener::GetCertsDir() + "/ticket";
 
 		std::ifstream fp(ticketPath.CStr());
