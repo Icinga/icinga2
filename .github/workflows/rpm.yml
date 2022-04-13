@@ -28,6 +28,9 @@ jobs:
             release: al2:x86_64
             subscription: true
           - name: fedora
+            release: 36
+            subscription: false
+          - name: fedora
             release: 35
             subscription: false
           - name: fedora
