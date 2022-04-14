@@ -555,11 +555,11 @@ Value RedisConnection::ReadRESP(AsyncReadStream& stream, boost::asio::yield_cont
 					throw BadRedisInt(std::move(buf));
 				}
 
-				Array::Ptr arr = new Array();
-
 				if (i < 0) {
-					i = 0;
+					return Empty;
 				}
+
+				Array::Ptr arr = new Array();
 
 				arr->Reserve(i);
 
