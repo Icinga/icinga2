@@ -230,18 +230,7 @@ void IcingaDB::UpdateAllConfigObjects()
 					"HSCAN", configCheckSum, cursor, "COUNT", "1000"
 				}, Prio::Config);
 
-				Array::Ptr kvs = res->Get(1);
-				Value* key = nullptr;
-				ObjectLock oLock (kvs);
-
-				for (auto& kv : kvs) {
-					if (key) {
-						redisCheckSums.emplace(std::move(*key), std::move(kv));
-						key = nullptr;
-					} else {
-						key = &kv;
-					}
-				}
+				AddKvsToMap(res->Get(1), redisCheckSums);
 
 				cursor = res->Get(0);
 			} while (cursor != "0");
