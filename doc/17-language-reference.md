@@ -925,7 +925,7 @@ You can also use this example vice versa and extract host object matching a spec
 host group name.
 
 ```
-var hg_filter_name = "linux-servers"
+var hg_search_name = "linux-servers"
 
 get_objects(Host).filter((h) use (hg_search_name) => hg_search_name in h.groups).map(h => h.name)
 ```
