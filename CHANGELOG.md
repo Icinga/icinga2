@@ -7,6 +7,100 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.3 (2022-04-14)
+
+This version includes bugfixes for many features of Icinga 2, including fixes for multiple crashes.
+It also includes a number of fixes and improvements for Icinga DB.
+
+### API
+
+* The /v1/config/stages endpoint now immediately rejects parallel config updates
+  instead of accepting and then later failing to verify and activate them. #9328
+
+### Certificates
+
+* The lifetime of newly issued node certificates is reduced from 15 years to 397 days. #9337
+* Compare cluster certificate tickets in constant time. #9333
+
+### Notifications
+
+* Fix a crash that could happen while sending notifications shortly after Icinga 2 started. #9124
+* Fix missing or redundant notifications after certain combinations of state changes happened
+  while notifications were suppressed, for example during a downtime. #9285
+
+### Checks and Commands
+
+* Fix a deadlock when processing check results for checkables with dependencies. #9228
+* Fix a message routing loop that can happen for event commands that are executed within a zone
+  using `command_endpoint` that resulted in excessive execution of the command. #9260
+
+### Downtimes
+
+* Fix scheduling of downtimes for all services on child hosts. #9159
+* Creating fixed downtimes starting immediately now send a corresponding notification. #9158
+* Fix some issues involving daylight saving time changes that could result in an hour missing
+  from scheduled downtimes. This fix applies to time periods as well. #9238
+
+### Configuration
+
+* Fix the evaluation order of default templates when used in combination with apply rules.
+  Now default templates are imported first as stated in the documentation and
+  as it already happens for objects defined without using apply. #9290
+
+### IDO
+
+* Fix an issue where contacts were not written correctly to the notification history
+  if multiple IDO instances are active on the same node. #9242
+* Explicitly set the encoding for MySQL connections as a workaround for changed defaults
+  in Debian bullseye. #9312
+* Ship a MySQL schema upgrade that fixes inconsistent version information in the
+  full schema file and upgrade files which could have resulted in inaccurate reports
+  of an outdated schema version. #9139
+
+### Performance Data Writers
+
+* Fix a race condition in the InfluxDB Writers that could result in a crash. #9237
+* Fix a log message where Influxdb2Writer logged as InfluxdbWriter. #9315
+* All writers no longer send metrics multiple times after HA failovers. #9322
+
+### Build
+
+* Fix the order of linker flags to fix builds on some ARM platforms. #9164
+* Fix a regression introduced in 2.13.2 preventing non-unity builds. #9094
+* Fix an issue when building within an unrelated Git repository,
+  version information from that repository could incorrectly be used for Icinga 2. #9155
+* Windows: Update bundled Boost version to 1.78.0 and OpenSSL to 1.1.1n #9325
+
+### Internals
+
+* Fix some race conditions due to missing synchronization.
+  These race conditions should not have caused any practical problems
+  besides incorrect numbers in debug log message. #9306
+* Move the startup.log and status files created when validating incoming cluster config updates
+  to /var/lib/icinga2/api and always keep the last failed startup.log to ease debugging. #9335
+
+### Icinga DB
+
+* The `severity` attribute was updated to match the sort order Icinga Web 2 uses for the IDO.
+  The documentation for this attribute was already incorrect before and was updated
+  to reflect the current functionality. #9239 #9240
+* Fix the `is_sticky` attribute for comments. #9303
+* Fix missing updates of `is_reachable` and `severity` in the state tables. #9241
+* Removing an acknowledgement no longer incorrectly writes comment history. #9302
+* Fix multiple issues so that in an HA zone, both nodes now write consistent history. #9157 #9182 #9190
+* Fix that history events are no longer written when state information should be updated. #9252
+* Fix an issue where incomplete comment history events were generated. #9301
+  **Note:** when removing comments using the API, the dedicated remove-comment action
+  should be used instead of the objects API, otherwise no history event will be generated.
+* Fix handling of non-integer values for the order attribute of command arguments. #9181
+  **Note:** You should only specify integer values for order, other values are converted to integer
+  before use so using fractional numbers there has no effect.
+* Add a dependency on icingadb-redis.service to the systemd service file
+  so that Redis is stopped after Icinga 2. #9304
+* Buffer history events in memory when the Redis connection is lost. #9271
+* Add the previous soft state to the state tables. #9214
+* Add missing locking on object runtime updates. #9300
+
 ## 2.13.2 (2021-11-12)
 
 This version only includes changes needed for the release of Icinga DB 1.0.0 RC2 and doesn't include any other bugfixes or features.
