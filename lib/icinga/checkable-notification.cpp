@@ -155,6 +155,17 @@ void Checkable::FireSuppressedNotifications()
 			}
 
 			auto threshold (cr->GetExecutionStart());
+			Host::Ptr host;
+			Service::Ptr service;
+			tie(host, service) = GetHostService(this);
+
+			if (service) {
+				ObjectLock oLock (host);
+
+				if (!host->GetProblem() && host->GetLastStateChange() >= threshold) {
+					return true;
+				}
+			}
 
 			for (auto& dep : GetDependencies()) {
 				auto parent (dep->GetParent());
