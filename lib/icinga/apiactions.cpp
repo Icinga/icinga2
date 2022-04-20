@@ -457,7 +457,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 						<< "Creating downtime for service " << childService->GetName() << " on child host " << childHost->GetName();
 
 					Downtime::Ptr serviceDowntime = Downtime::AddDowntime(childService, author, comment, startTime, endTime,
-						fixed, triggerName, duration, String(), String(), childDowntimeName);
+						fixed, triggerName, duration);
 					String serviceDowntimeName = serviceDowntime->GetName();
 
 					childServiceDowntimes.push_back(new Dictionary({
