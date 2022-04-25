@@ -1052,6 +1052,19 @@ Thanks to all contributors:
 * Metrics
   * OpenTSDB-Writer: Remove incorrect space causing missing tag error #8245
 
+## 2.12.8 (2022-04-28)
+
+In the previous version 2.12.7, one bugfix was applied incorrectly. This is fixed by this release.
+
+### Downtimes
+
+* Scheduling downtimes for all children and all services no longer fails due to an object name conflict.
+  Only version 2.11.7 was affected by this issue. #9349
+
+### Windows
+
+* Update the bundled version of Boost to 1.79.0. #9359
+
 ## 2.12.7 (2022-04-14)
 
 This version includes bugfixes for many features of Icinga 2, including fixes for multiple crashes.
