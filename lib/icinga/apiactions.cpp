@@ -55,6 +55,8 @@ Dictionary::Ptr ApiActions::CreateResult(int code, const String& status,
 Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
+	using Result = Checkable::ProcessingResult;
+
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
 	if (!checkable)
@@ -123,9 +125,19 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	if (params->Contains("ttl"))
 		cr->SetTtl(HttpUtility::GetLastParameter(params, "ttl"));
 
-	checkable->ProcessCheckResult(cr);
+	Result result = checkable->ProcessCheckResult(cr);
+	switch (result) {
+		case Result::Ok:
+			return ApiActions::CreateResult(200, "Successfully processed check result for object '" + checkable->GetName() + "'.");
+		case Result::NoCheckResult:
+			return ApiActions::CreateResult(400, "Could not process check result for object '" + checkable->GetName() + "' because no check result was passed.");
+		case Result::CheckableInactive:
+			return ApiActions::CreateResult(503, "Could not process check result for object '" + checkable->GetName() + "' because the object is inactive.");
+		case Result::NewerCheckResultPresent:
+			return ApiActions::CreateResult(409, "Newer check result already present. Check result for '" + checkable->GetName() + "' was discarded.");
+	}
 
-	return ApiActions::CreateResult(200, "Successfully processed check result for object '" + checkable->GetName() + "'.");
+	return ApiActions::CreateResult(500, "Unexpected result (" + std::to_string(static_cast<int>(result)) + ") for object '" + checkable->GetName() + "'. Please submit a bug report at https://github.com/Icinga/icinga2");
 }
 
 Dictionary::Ptr ApiActions::RescheduleCheck(const ConfigObject::Ptr& object,

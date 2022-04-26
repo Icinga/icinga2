@@ -111,7 +111,14 @@ public:
 
 	void ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros = nullptr);
 	void ExecuteCheck();
-	void ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin = nullptr);
+	enum class ProcessingResult
+	{
+		Ok,
+		NoCheckResult,
+		CheckableInactive,
+		NewerCheckResultPresent,
+	};
+	ProcessingResult ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin = nullptr);
 
 	Endpoint::Ptr GetCommandEndpoint() const;
 
