@@ -94,15 +94,17 @@ double Checkable::GetLastCheck() const
 	return schedule_end;
 }
 
-void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin)
+Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin)
 {
+	using Result = Checkable::ProcessingResult;
+
 	{
 		ObjectLock olock(this);
 		m_CheckRunning = false;
 	}
 
 	if (!cr)
-		return;
+		return Result::NoCheckResult;
 
 	double now = Utility::GetTime();
 
@@ -142,12 +144,12 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			listener->SyncSendMessage(command_endpoint, message);
 		}
 
-		return;
+		return Result::Ok;
 
 	}
 
 	if (!IsActive())
-		return;
+		return Result::CheckableInactive;
 
 	bool reachable = IsReachable();
 	bool notification_reachable = IsReachable(DependencyNotification);
@@ -184,7 +186,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newCRTimestamp) << " (" << newCRTimestamp
 					<< "). It is in the past compared to ours at "
 					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", currentCRTimestamp) << " (" << currentCRTimestamp << ").";
-				return;
+				return Result::NewerCheckResultPresent;
 			}
 		}
 	}
@@ -526,6 +528,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	/* update reachability for child objects */
 	if ((stateChange || hardChange) && !children.empty())
 		OnReachabilityChanged(this, cr, children, origin);
+
+	return Result::Ok;
 }
 
 void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
