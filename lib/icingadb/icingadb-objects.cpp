@@ -990,7 +990,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					values = new Dictionary({{"value", kv.second}});
 				}
 
-				for (const char *attr : {"value", "set_if"}) {
+				for (const char *attr : {"value", "set_if", "separator"}) {
 					Value value;
 
 					// Stringify if set.

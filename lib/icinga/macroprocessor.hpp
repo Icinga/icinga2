@@ -51,7 +51,7 @@ private:
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel);
 
 	static void AddArgumentHelper(const Array::Ptr& args, const String& key, const String& value,
-		bool add_key, bool add_value);
+		bool add_key, bool add_value, const Value& separator);
 	static Value EscapeMacroShellArg(const Value& value);
 
 };
