@@ -41,6 +41,7 @@ validator Command {
 			String set_if;
 			Function set_if;
 			Number order;
+			String separator;
 		};
 	};
 
