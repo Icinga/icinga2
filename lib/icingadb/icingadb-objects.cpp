@@ -996,6 +996,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					// Stringify if set.
 					if (values->Get(attr, &value)) {
 						switch (value.GetType()) {
+							case ValueEmpty:
+								values->Remove(attr);
+								break;
 							case ValueString:
 								break;
 							case ValueObject:
