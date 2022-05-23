@@ -140,6 +140,7 @@ All available argument value entries are shown below:
   order                     | Number                | Set if multiple arguments require a defined argument order. The syntax is `..., -3, -2, -1, <un-ordered keys>, 1, 2, 3, ...`. [More details](03-monitoring-basics.md#command-arguments-order).
   repeat\_key               | Boolean               | If the argument value is an array, repeat the argument key, or not. Defaults to true (repeat). [More details](03-monitoring-basics.md#command-arguments-repeat-key).
   key 	                    | String                | Optional argument key overriding the key identifier. [More details](03-monitoring-basics.md#command-arguments-key).
+  separator                 | String                | Key-value separator. If given, e.g. `=`, appears between key and value like `--key=value` instead of the regular `--key` `value`.
 
 `value` and `description` are commonly used, the other entries allow
 to build more advanced CheckCommand objects and arguments.
