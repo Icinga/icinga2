@@ -524,8 +524,14 @@ void IcingaDB::UpdateAllConfigObjects()
 	m_Rcon->EnqueueCallback([&p](boost::asio::yield_context& yc) { p.set_value(); }, Prio::Config);
 	p.get_future().wait();
 
+	auto endTime (Utility::GetTime());
+	auto took (endTime - startTime);
+
+	SetLastdumpTook(took);
+	SetLastdumpEnd(endTime);
+
 	Log(LogInformation, "IcingaDB")
-			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
+		<< "Initial config/status dump finished in " << took << " seconds.";
 }
 
 std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize) {

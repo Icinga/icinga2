@@ -45,6 +45,11 @@ public:
 
 	String GetEnvironmentId() const override;
 
+	inline RedisConnection::Ptr GetConnection()
+	{
+		return m_Rcon;
+	}
+
 	template<class T>
 	static void AddKvsToMap(const Array::Ptr& kvs, T& map)
 	{

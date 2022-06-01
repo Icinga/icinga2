@@ -674,6 +674,11 @@ void RedisConnection::SetConnectedCallback(std::function<void(asio::yield_contex
 	m_ConnectedCallback = std::move(callback);
 }
 
+int RedisConnection::GetQueryCount(RingBuffer::SizeType span)
+{
+	return m_OutputQueries.UpdateAndGetValues(Utility::GetTime(), span);
+}
+
 void RedisConnection::IncreasePendingQueries(int count)
 {
 	if (m_Parent) {

@@ -98,6 +98,18 @@ namespace icinga
 
 		void SetConnectedCallback(std::function<void(boost::asio::yield_context& yc)> callback);
 
+		inline bool GetConnected()
+		{
+			return m_Connected.load();
+		}
+
+		int GetQueryCount(RingBuffer::SizeType span);
+
+		inline int GetPendingQueryCount()
+		{
+			return m_PendingQueries;
+		}
+
 	private:
 		/**
 		 * What to do with the responses to Redis queries.
@@ -225,7 +237,7 @@ namespace icinga
 
 		// Stats
 		RingBuffer m_InputQueries{10};
-		RingBuffer m_OutputQueries{10};
+		RingBuffer m_OutputQueries{15 * 60};
 		int m_PendingQueries{0};
 		boost::asio::deadline_timer m_LogStatsTimer;
 		Ptr m_Parent;
