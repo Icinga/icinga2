@@ -450,31 +450,32 @@ yum install nagios-plugins-all
 ```
 <!-- {% endif %} -->
 
-## Set up Icinga 2 REST API <a id="setting-up-rest-api"></a>
+## Set up Icinga 2 API <a id="setting-up-api"></a>
 
-Icinga Web 2 requires the [REST API](12-icinga2-api.md#icinga2-api-setup) to send actions
-(reschedule check, etc.) and query object details.
+Almost every Icinga 2 setup requires the Icinga 2 API as Icinga Web connects to it, Icinga DB requires it,
+and it enables cluster communication functionality for highly available and distributed setups.
 
-You can run the CLI command `icinga2 api setup` to enable the
-`api` [feature](11-cli-commands.md#enable-features) and set up
-certificates as well as a new API user `root` with an auto-generated password in the
-`/etc/icinga2/conf.d/api-users.conf` configuration file:
+!!! info
+
+    If you set up a highly available and/or distributed Icinga monitoring environment, please read the
+    [Distributed Monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter as
+    the commands to set up the API are different from setting up a single node setup.
+
+See the [API](12-icinga2-api.md#icinga2-api-setup) chapter for details,
+or follow the steps below to set up the API quickly:
+
+Run the following command to:
+
+* enable the `api` feature,
+* set up certificates, and
+* add the API user `root` with an auto-generated password in the configuration file
+  `/etc/icinga2/conf.d/api-users.conf`.
 
 ```bash
 icinga2 api setup
 ```
 
-Edit the `api-users.conf` file and add a new ApiUser object. Specify the [permissions](12-icinga2-api.md#icinga2-api-permissions)
-attribute with minimal permissions required by Icinga Web 2.
-
-```
-object ApiUser "icingaweb2" {
-  password = "Wijsn8Z9eRs5E25d"
-  permissions = [ "status/query", "actions/*", "objects/modify/*", "objects/query/*" ]
-}
-```
-
-Restart Icinga 2 to activate the configuration.
+Restart Icinga 2 for these changes to take effect.
 
 ```bash
 systemctl restart icinga2
