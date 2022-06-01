@@ -1425,6 +1425,11 @@ Configuration Attributes:
 
 ### IdoMySqlConnection <a id="objecttype-idomysqlconnection"></a>
 
+> **Note**
+>
+> This feature is DEPRECATED and may be removed in future releases.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+
 IDO database adapter for MySQL.
 This configuration object is available as [ido-mysql feature](14-features.md#db-ido).
 
@@ -1521,6 +1526,11 @@ Runtime Attributes:
   last\_failover              | Timestamp             | When the last failover happened for this connection (only available with `enable_ha = true`.
 
 ### IdoPgsqlConnection <a id="objecttype-idopgsqlconnection"></a>
+
+> **Note**
+>
+> This feature is DEPRECATED and may be removed in future releases.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 IDO database adapter for PostgreSQL.
 This configuration object is available as [ido-pgsql feature](14-features.md#db-ido).
