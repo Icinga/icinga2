@@ -450,6 +450,36 @@ yum install nagios-plugins-all
 ```
 <!-- {% endif %} -->
 
+## Set up Icinga 2 REST API <a id="setting-up-rest-api"></a>
+
+Icinga Web 2 requires the [REST API](12-icinga2-api.md#icinga2-api-setup) to send actions
+(reschedule check, etc.) and query object details.
+
+You can run the CLI command `icinga2 api setup` to enable the
+`api` [feature](11-cli-commands.md#enable-features) and set up
+certificates as well as a new API user `root` with an auto-generated password in the
+`/etc/icinga2/conf.d/api-users.conf` configuration file:
+
+```bash
+icinga2 api setup
+```
+
+Edit the `api-users.conf` file and add a new ApiUser object. Specify the [permissions](12-icinga2-api.md#icinga2-api-permissions)
+attribute with minimal permissions required by Icinga Web 2.
+
+```
+object ApiUser "icingaweb2" {
+  password = "Wijsn8Z9eRs5E25d"
+  permissions = [ "status/query", "actions/*", "objects/modify/*", "objects/query/*" ]
+}
+```
+
+Restart Icinga 2 to activate the configuration.
+
+```bash
+systemctl restart icinga2
+```
+
 ## Set up Database <a id="set-up-database"></a>
 
 The IDO (Icinga Data Output) feature for Icinga 2 stores all configuration and status information into a database.
@@ -915,36 +945,6 @@ Make sure to restart Icinga 2 for these changes to take effect.
 ```
 
 Restart Icinga 2.
-
-```bash
-systemctl restart icinga2
-```
-
-## Set up Icinga 2 REST API <a id="setting-up-rest-api"></a>
-
-Icinga Web 2 requires the [REST API](12-icinga2-api.md#icinga2-api-setup) to send actions
-(reschedule check, etc.) and query object details.
-
-You can run the CLI command `icinga2 api setup` to enable the
-`api` [feature](11-cli-commands.md#enable-features) and set up
-certificates as well as a new API user `root` with an auto-generated password in the
-`/etc/icinga2/conf.d/api-users.conf` configuration file:
-
-```bash
-icinga2 api setup
-```
-
-Edit the `api-users.conf` file and add a new ApiUser object. Specify the [permissions](12-icinga2-api.md#icinga2-api-permissions)
-attribute with minimal permissions required by Icinga Web 2.
-
-```
-object ApiUser "icingaweb2" {
-  password = "Wijsn8Z9eRs5E25d"
-  permissions = [ "status/query", "actions/*", "objects/modify/*", "objects/query/*" ]
-}
-```
-
-Restart Icinga 2 to activate the configuration.
 
 ```bash
 systemctl restart icinga2
