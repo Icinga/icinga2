@@ -496,7 +496,7 @@ visualizing monitoring data in the Icinga ecosystem, consisting of:
   [Icinga DB Web](https://icinga.com/docs/icinga-db-web) module enabled,
   which connects to both Redis and the database to display and work with the most up-to-date data
 
-![Icinga DB Architecture](images/installation/icingadb-architecture.png)
+![Icinga DB Architecture](images/icingadb/icingadb-architecture.png)
 
 !!! info
 
@@ -512,7 +512,7 @@ A Redis server from version 6.2 is required.
     which ships a current Redis Server version and is preconfigured for the Icinga DB components.
     Using own Redis server setups is supported as long as the version requirements are met.
 
-![Icinga DB Redis](images/installation/icingadb-redis.png)
+![Icinga DB Redis](images/icingadb/icingadb-redis.png)
 
 !!! tip
 
@@ -617,7 +617,7 @@ Icinga 2 publishes all of its monitoring data to the Redis server. This includes
 its runtime updates via the Icinga 2 API, check results, state changes, downtimes, acknowledgments, notifications and
 other events such as flapping.
 
-![Icinga DB Icinga 2](images/installation/icingadb-icinga2.png)
+![Icinga DB Icinga 2](images/icingadb/icingadb-icinga2.png)
 
 Icinga 2 installs the feature configuration file to `/etc/icinga2/features-available/icingadb.conf`,
 pre-configured for a local setup.

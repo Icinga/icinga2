@@ -47,28 +47,23 @@ The REST API is documented [here](12-icinga2-api.md#icinga2-api) as a core featu
 
 ### Icinga DB <a id="core-backends-icingadb"></a>
 
-Icinga DB provides a new core backend and aims to replace the IDO backend
-output. It consists of different components:
+Icinga DB is a set of components for publishing, synchronizing and
+visualizing monitoring data in the Icinga ecosystem, consisting of:
 
-* Icinga 2 provides the `icingadb` feature which stores monitoring data in a memory database
-* The [IcingaDB service](https://github.com/icinga/icingadb) collects and synchronizes monitoring data into its backend
-* Icinga Web reads monitoring data from the new IcingaDB backend
+* Icinga 2 with its `icingadb` feature enabled,
+  responsible for publishing monitoring data to a Redis server, i.e. configuration and its runtime updates,  
+  check results, state changes, downtimes, acknowledgements, notifications, and other events such as flapping
+* The [Icinga DB daemon](https://icinga.com/docs/icinga-db),
+  which synchronizes the data between the Redis server and a database
+* And Icinga Web with the
+  [Icinga DB Web](https://icinga.com/docs/icinga-db-web) module enabled,
+  which connects to both Redis and the database to display and work with the most up-to-date data
 
-Requirements:
+![Icinga DB Architecture](images/icingadb/icingadb-architecture.png)
 
-* Local Redis instance
-* MySQL/MariaDB server with `icingadb` database, user and schema imports
-* Icinga 2's `icingadb` feature enabled
-* IcingaDB service requires Redis and MySQL/MariaDB server
-* Icinga Web module
-
-Consult the [Icinga DB installation documentation](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/) for setup instructions.
-
-We will deprecate the IDO and shift towards the Icinga DB as main backend,
-but we will not drop the IDO for now.
-We know that it takes time until the Icinga DB is adopted
-(maybe even up to one to two years)
-and we won’t drop the IDO until it is comfortable to do so.
+To set up a Redis server and the Icinga DB feature, please follow the steps from the
+Icinga 2 [Installation](02-installation.md) guide. For the feature configuration options,
+see its [Icinga DB object type](09-object-types.md#icingadb) documentation.
 
 ## Metrics <a id="metrics"></a>
 
