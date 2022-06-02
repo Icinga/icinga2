@@ -839,12 +839,6 @@ nano /etc/icinga2/conf.d/templates.conf
 
 ![Nano with syntax highlighting](images/installation/nano-syntax.png "Nano with Icinga 2 syntax highlighting")
 
-## Addons <a id="install-addons"></a>
-
-A number of additional features are available in the form of addons. A list of
-popular addons is available in the
-[Addons and Plugins](13-addons.md#addons) chapter.
-
 ## Backup <a id="install-backup"></a>
 
 Ensure to include the following in your backups:
