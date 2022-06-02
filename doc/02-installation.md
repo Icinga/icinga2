@@ -839,48 +839,6 @@ nano /etc/icinga2/conf.d/templates.conf
 
 ![Nano with syntax highlighting](images/installation/nano-syntax.png "Nano with Icinga 2 syntax highlighting")
 
-## Installation Overview <a id="installation-overview"></a>
-
-### Enabled Features during Installation <a id="installation-overview-enabled-features"></a>
-
-The default installation will enable three features required for a basic
-Icinga 2 installation:
-
-* `checker` for executing checks
-* `notification` for sending notifications
-* `mainlog` for writing the `icinga2.log` file
-
-You can verify that by calling `icinga2 feature list`
-[CLI command](11-cli-commands.md#cli-command-feature) to see which features are
-enabled and disabled.
-
-```
-# icinga2 feature list
-Disabled features: api command compatlog debuglog gelf graphite icingastatus ido-mysql ido-pgsql influxdb livestatus opentsdb perfdata statusdata syslog
-Enabled features: checker mainlog notification
-```
-
-### Installation Paths <a id="installation-overview-paths"></a>
-
-By default Icinga 2 uses the following files and directories:
-
-  Path                                		| Description
-  ----------------------------------------------|------------------------------------
-  /etc/icinga2                        		| Contains Icinga 2 configuration files.
-  /usr/lib/systemd/system/icinga2.service 	| The Icinga 2 systemd service file on systems using systemd.
-  /etc/systemd/system/icinga2.service.d/limits.conf | On distributions with systemd >227, additional service limits are required.
-  /etc/init.d/icinga2                 		| The Icinga 2 init script on systems using SysVinit or OpenRC.
-  /usr/sbin/icinga2                   		| Shell wrapper for the Icinga 2 binary.
-  /usr/lib\*/icinga2				| Libraries and the Icinga 2 binary (use `find /usr -type f -name icinga2` to locate the binary path).
-  /usr/share/doc/icinga2              		| Documentation files that come with Icinga 2.
-  /usr/share/icinga2/include          		| The Icinga Template Library and plugin command configuration.
-  /var/lib/icinga2                    		| Icinga 2 state file, cluster log, master CA, node certificates and configuration files (cluster, api).
-  /var/run/icinga2                    		| PID file.
-  /var/run/icinga2/cmd                		| Command pipe and Livestatus socket.
-  /var/cache/icinga2                  		| status.dat/objects.cache, icinga2.debug files.
-  /var/spool/icinga2                  		| Used for performance data spool files.
-  /var/log/icinga2                    		| Log file location and compat/ directory for the CompatLogger feature.
-
 ## Addons <a id="install-addons"></a>
 
 A number of additional features are available in the form of addons. A list of
