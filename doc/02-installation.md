@@ -641,6 +641,41 @@ Restart Icinga 2 for these changes to take effect:
 ```bash
 systemctl restart icinga2
 ```
+
+### Install Icinga DB Daemon <a id="install-icinga-db-daemon"></a>
+
+After installing Icinga 2, setting up a Redis server and enabling the `icingadb` feature,
+the Icinga DB daemon that synchronizes monitoring data between the Redis server and a database is now set up.
+
+![Icinga DB Daemon](images/icingadb/icingadb-daemon.png)
+
+!!! tip
+
+    Although the Icinga DB daemon can run anywhere in an Icinga environment,
+    we recommend to install it where the corresponding Icinga 2 node and Redis server is running to
+    keep latency between the components low.
+
+The Icinga DB daemon package is also included in the Icinga repository, and since it is already set up,
+you have completed the instructions here and can proceed to
+<!-- {% if amazon_linux %} -->
+[install the Icinga DB daemon on Amazon Linux](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/01-Amazon-Linux/#installing-icinga-db-package),
+<!-- {% endif %} -->
+<!-- {% if centos %} -->
+[install the Icinga DB daemon on CentOS](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/02-CentOS/#installing-icinga-db-package),
+<!-- {% endif %} -->
+<!-- {% if debian %} -->
+[install the Icinga DB daemon on Debian](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/03-Debian/#installing-icinga-db-package),
+<!-- {% endif %} -->
+<!-- {% if rhel %} -->
+[install the Icinga DB daemon on RHEL](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/04-RHEL/#installing-icinga-db-package),
+<!-- {% endif %} -->
+<!-- {% if sles %} -->
+[install the Icinga DB daemon on SLES](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/05-SLES/#installing-icinga-db-package),
+<!-- {% endif %} -->
+<!-- {% if ubuntu %} -->
+[install the Icinga DB daemon on Ubuntu](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/06-Ubuntu/#installing-icinga-db-package),
+<!-- {% endif %} -->
+which will also guide you through the setup of the database and Icinga DB Web.
 <!-- {% endif %} -->
 
 ## Install Icinga Web 2
