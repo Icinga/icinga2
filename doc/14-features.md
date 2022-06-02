@@ -798,10 +798,234 @@ is running on.
 
 The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
 configuration and status information into a database. The IDO database is used
-by Icinga Web 2 as data backend.
+by Icinga Web 2 as data backend. You can either use a
+[MySQL](#ido-with-mysql) or [PostgreSQL](#ido-with-postgresql) database.
 
-Details on the installation can be found in the "Prepare for Icinga Web 2" chapter
-of the [Installation docs](02-installation.md). Details on the configuration can be found in the
+#### IDO with MySQL <a id="ido-with-mysql"></a>
+
+##### Install IDO Feature <a id="installing-database-mysql-modules"></a>
+
+The next step is to install the `icinga2-ido-mysql` package using your
+distribution's package manager.
+
+###### Debian / Ubuntu
+
+```bash
+apt-get install icinga2-ido-mysql
+```
+
+!!! note
+
+    The packages provide a database configuration wizard by
+    default. You can skip the automated setup and install/upgrade the
+    database manually if you prefer.
+
+###### CentOS 7
+
+!!! info
+
+    Note that installing `icinga2-ido-mysql` is only supported on CentOS 7 as CentOS 8 is EOL.
+
+```bash
+yum install icinga2-ido-mysql
+```
+
+###### RHEL 8
+
+```bash
+dnf install icinga2-ido-mysql
+```
+
+###### RHEL 7
+
+```bash
+yum install icinga2-ido-mysql
+```
+
+###### SLES
+
+```bash
+zypper install icinga2-ido-mysql
+```
+
+###### Amazon Linux 2
+
+```bash
+yum install icinga2-ido-mysql
+```
+
+##### Set up MySQL database <a id="setting-up-mysql-db"></a>
+
+Set up a MySQL database for Icinga 2:
+
+```bash
+# mysql -u root -p
+
+CREATE DATABASE icinga;
+GRANT ALTER, CREATE, SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
+quit
+```
+
+Please note that the example above uses the very simple password 'icinga' (in `IDENTIFIED BY 'icinga'`).
+Please choose a better password for your installation.
+
+After creating the database you can import the Icinga 2 IDO schema using the
+following command. Enter the icinga password into the prompt when asked.
+
+```bash
+mysql -u icinga -p icinga < /usr/share/icinga2-ido-mysql/schema/mysql.sql
+```
+
+##### Enable the IDO MySQL feature <a id="enable-ido-mysql"></a>
+
+The package provides a new configuration file that is installed in
+`/etc/icinga2/features-available/ido-mysql.conf`. You can update
+the database credentials in this file.
+
+All available attributes are explained in the
+[IdoMysqlConnection object](09-object-types.md#objecttype-idomysqlconnection)
+chapter.
+
+Enable the `ido-mysql` feature configuration file using the `icinga2` command:
+
+```bash
+# icinga2 feature enable ido-mysql
+Module 'ido-mysql' was enabled.
+Make sure to restart Icinga 2 for these changes to take effect.
+```
+
+Restart Icinga 2.
+
+```bash
+systemctl restart icinga2
+```
+
+#### IDO with PostgreSQL <a id="ido-with-postgresql"></a>
+
+##### Install IDO Feature <a id="installing-database-postgresql-modules"></a>
+
+The next step is to install the `icinga2-ido-pgsql` package using your
+distribution's package manager.
+
+###### Debian / Ubuntu
+
+```bash
+apt-get install icinga2-ido-pgsql
+```
+
+!!! note
+
+    Upstream Debian packages provide a database configuration wizard by default.
+    You can skip the automated setup and install/upgrade the database manually
+    if you prefer that.
+
+###### CentOS 7
+
+!!! info
+
+    Note that installing `icinga2-ido-pgsql` is only supported on CentOS 7 as CentOS 8 is EOL.
+
+```bash
+yum install icinga2-ido-pgsql
+```
+
+###### RHEL 8
+
+```bash
+dnf install icinga2-ido-pgsql
+```
+
+###### RHEL 7
+
+```bash
+yum install icinga2-ido-pgsql
+```
+
+###### SLES
+
+```bash
+zypper install icinga2-ido-pgsql
+```
+
+###### Amazon Linux 2
+
+```bash
+yum install icinga2-ido-pgsql
+```
+
+##### Set up PostgreSQL database
+
+Set up a PostgreSQL database for Icinga 2:
+
+```bash
+cd /tmp
+sudo -u postgres psql -c "CREATE ROLE icinga WITH LOGIN PASSWORD 'icinga'"
+sudo -u postgres createdb -O icinga -E UTF8 icinga
+```
+
+!!! note
+
+    It is assumed here that your locale is set to utf-8, you may run into problems otherwise.
+
+Locate your `pg_hba.conf` configuration file and add the icinga user with `md5` as authentication method
+and restart the postgresql server. Common locations for `pg_hba.conf` are either
+`/etc/postgresql/*/main/pg_hba.conf` or `/var/lib/pgsql/data/pg_hba.conf`.
+
+```
+# icinga
+local   icinga      icinga                            md5
+host    icinga      icinga      127.0.0.1/32          md5
+host    icinga      icinga      ::1/128               md5
+
+# "local" is for Unix domain socket connections only
+local   all         all                               ident
+# IPv4 local connections:
+host    all         all         127.0.0.1/32          ident
+# IPv6 local connections:
+host    all         all         ::1/128               ident
+```
+
+Restart PostgreSQL:
+
+```bash
+systemctl restart postgresql
+```
+
+After creating the database and permissions you need to import the IDO database
+schema using the following command:
+
+```bash
+export PGPASSWORD=icinga
+psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/pgsql.sql
+```
+
+##### Enable the IDO PostgreSQL feature <a id="enable-ido-postgresql"></a>
+
+The package provides a new configuration file that is installed in
+`/etc/icinga2/features-available/ido-pgsql.conf`. You can update
+the database credentials in this file.
+
+All available attributes are explained in the
+[IdoPgsqlConnection object](09-object-types.md#objecttype-idopgsqlconnection)
+chapter.
+
+Enable the `ido-pgsql` feature configuration file using the `icinga2` command:
+
+```
+# icinga2 feature enable ido-pgsql
+Module 'ido-pgsql' was enabled.
+Make sure to restart Icinga 2 for these changes to take effect.
+```
+
+Restart Icinga 2.
+
+```bash
+systemctl restart icinga2
+```
+
+#### Configuration
+
+Details on the configuration can be found in the
 [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection) and
 [IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection)
 object configuration documentation.
