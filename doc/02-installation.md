@@ -678,16 +678,6 @@ you have completed the instructions here and can proceed to
 which will also guide you through the setup of the database and Icinga DB Web.
 <!-- {% endif %} -->
 
-## Install Icinga Web 2
-
-You are now ready to start the installation of Icinga Web 2. Please follow the
-[Icinga Web 2 installation instructions](https://icinga.com/docs/icinga-web-2/latest/doc/02-Installation/).
-
-!!! note
-
-    If you're using Icinga DB, follow the [installation instructions](https://icinga.com/docs/icinga-db/latest/icinga-db-web/doc/02-Installation/)
-    to install and enable the Icinga DB Web module.
-
 ## Backup <a id="install-backup"></a>
 
 Ensure to include the following in your backups:
