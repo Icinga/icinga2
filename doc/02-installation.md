@@ -100,18 +100,7 @@ wget https://packages.icinga.com/centos/ICINGA-release.repo -O /etc/yum.repos.d/
 ```
 
 The packages for CentOS depend on other packages which are distributed
-as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
-
-CentOS 8 additionally needs the PowerTools repository for EPEL:
-
-```bash
-dnf install 'dnf-command(config-manager)'
-dnf config-manager --set-enabled powertools
-
-dnf install epel-release
-```
-
-For CentOS 7 run:
+as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL):
 
 ```bash
 yum install epel-release
@@ -263,15 +252,12 @@ apt-get install icinga2
 <!-- {% endif %} -->
 
 <!-- {% if centos %} -->
-#### CentOS 8
+<!-- {% if not icingaDocs %} -->
+#### CentOS
+<!-- {% endif %} -->
+!!! info
 
-```bash
-dnf install icinga2
-systemctl enable icinga2
-systemctl start icinga2
-```
-
-#### CentOS 7
+    Note that installing Icinga 2 is only supported on CentOS 7 as CentOS 8 is EOL.
 
 ```bash
 yum install icinga2
@@ -382,14 +368,6 @@ apt-get install monitoring-plugins
 #### CentOS
 <!-- {% endif %} -->
 The packages for CentOS depend on other packages which are distributed as part of the EPEL repository.
-
-#### CentOS 8
-
-```bash
-dnf install nagios-plugins-all
-```
-
-#### CentOS 7
 
 ```bash
 yum install nagios-plugins-all
