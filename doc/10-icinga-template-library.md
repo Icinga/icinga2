@@ -3492,13 +3492,14 @@ compared to thresholds. More details can be found on [this blog entry](http://sy
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name         | Description
--------------|-----------------------------------------------------------------------------------------------------------------------
-mem_used     | **Optional.** Tell the plugin to check for used memory in opposite of **mem_free**. Must specify one of these as true.
-mem_free     | **Optional.** Tell the plugin to check for free memory in opposite of **mem_used**. Must specify one of these as true.
-mem_cache    | **Optional.** If set to true, plugin will count cache as free memory. Defaults to false.
-mem_warning  | **Required.** Specify the warning threshold as number interpreted as percent.
-mem_critical | **Required.** Specify the critical threshold as number interpreted as percent.
+Name          | Description
+--------------|-----------------------------------------------------------------------------------------------------------------------
+mem_used      | **Optional.** Tell the plugin to check for used memory to the exclusion of **mem_free** and **mem_available**. Must specify one of these as true.
+mem_free      | **Optional.** Tell the plugin to check for free memory to the exclusion of **mem_used** and **mem_available**. Must specify one of these as true.
+mem_available | **Optional.** Tell the plugin to check available memory to the exclusion of **mem_free** and **mem_used**. Must specify one of these as true.
+mem_cache     | **Optional.** If set to true, plugin will count cache as free memory. Defaults to false.
+mem_warning   | **Required.** Specify the warning threshold as number interpreted as percent.
+mem_critical  | **Required.** Specify the critical threshold as number interpreted as percent.
 
 #### sar-perf <a id="plugin-contrib-command-sar-perf"></a>
 
