@@ -179,6 +179,9 @@ private:
 
 	static std::vector<Type::Ptr> GetTypes();
 
+	static void InitEnvironmentId();
+	static void PersistEnvironmentId();
+
 	Timer::Ptr m_StatsTimer;
 	WorkQueue m_WorkQueue{0, 1, LogNotice};
 
@@ -199,8 +202,11 @@ private:
 		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage;
 	} m_DumpedGlobals;
 
+	// m_EnvironmentId is shared across all IcingaDB objects (typically there is at most one, but it is perfectly fine
+	// to have multiple ones). It is initialized once (synchronized using m_EnvironmentIdInitMutex). After successful
+	// initialization, the value is read-only and can be accessed without further synchronization.
 	static String m_EnvironmentId;
-	static std::once_flag m_EnvironmentIdOnce;
+	static std::mutex m_EnvironmentIdInitMutex;
 };
 }
 
