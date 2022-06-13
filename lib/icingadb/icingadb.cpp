@@ -25,7 +25,7 @@ using namespace icinga;
 using Prio = RedisConnection::QueryPriority;
 
 String IcingaDB::m_EnvironmentId;
-std::once_flag IcingaDB::m_EnvironmentIdOnce;
+std::mutex IcingaDB::m_EnvironmentIdInitMutex;
 
 REGISTER_TYPE(IcingaDB);
 
@@ -74,6 +74,13 @@ void IcingaDB::Validate(int types, const ValidationUtils& utils)
 	if (GetEnableTls() && GetCertPath().IsEmpty() != GetKeyPath().IsEmpty()) {
 		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(), "Validation failed: Either both a client certificate (cert_path) and its private key (key_path) or none of them must be given."));
 	}
+
+	try {
+		InitEnvironmentId();
+	} catch (const std::exception& e) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(),
+			String("Validation failed: ") + e.what()));
+	}
 }
 
 /**
@@ -83,39 +90,8 @@ void IcingaDB::Start(bool runtimeCreated)
 {
 	ObjectImpl<IcingaDB>::Start(runtimeCreated);
 
-	std::call_once(m_EnvironmentIdOnce, []() {
-		String path = Configuration::DataDir + "/icingadb.env";
-
-		if (Utility::PathExists(path)) {
-			m_EnvironmentId = Utility::LoadJsonFile(path);
-
-			if (m_EnvironmentId.GetLength() != 2*SHA_DIGEST_LENGTH) {
-				throw std::runtime_error("Wrong length of stored Icinga DB environment");
-			}
-
-			for (unsigned char c : m_EnvironmentId) {
-				if (!std::isxdigit(c)) {
-					throw std::runtime_error("Stored Icinga DB environment is not a hex string");
-				}
-			}
-		} else {
-			std::shared_ptr<X509> cert = GetX509Certificate(ApiListener::GetDefaultCaPath());
-
-			unsigned int n;
-			unsigned char digest[EVP_MAX_MD_SIZE];
-			if (X509_pubkey_digest(cert.get(), EVP_sha1(), digest, &n) != 1) {
-				BOOST_THROW_EXCEPTION(openssl_error()
-					<< boost::errinfo_api_function("X509_pubkey_digest")
-					<< errinfo_openssl_error(ERR_peek_error()));
-			}
-
-			m_EnvironmentId = BinaryToHex(digest, n);
-
-			Utility::SaveJsonFile(path, 0600, m_EnvironmentId);
-		}
-
-		m_EnvironmentId = m_EnvironmentId.ToLower();
-	});
+	VERIFY(!m_EnvironmentId.IsEmpty());
+	PersistEnvironmentId();
 
 	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' started.";
@@ -287,4 +263,63 @@ bool IcingaDB::DumpedGlobals::IsNew(const String& id)
 {
 	std::lock_guard<std::mutex> l (m_Mutex);
 	return m_Ids.emplace(id).second;
+}
+
+/**
+ * Initializes the m_EnvironmentId attribute or throws an exception on failure to do so. Can be called concurrently.
+ */
+void IcingaDB::InitEnvironmentId()
+{
+	// Initialize m_EnvironmentId once across all IcingaDB objects. In theory, this could be done using
+	// std::call_once, however, due to a bug in libstdc++ (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66146),
+	// this can result in a deadlock when an exception is thrown (which is explicitly allowed by the standard).
+	std::unique_lock<std::mutex> lock (m_EnvironmentIdInitMutex);
+
+	if (m_EnvironmentId.IsEmpty()) {
+		String path = Configuration::DataDir + "/icingadb.env";
+		String envId;
+
+		if (Utility::PathExists(path)) {
+			envId = Utility::LoadJsonFile(path);
+
+			if (envId.GetLength() != 2*SHA_DIGEST_LENGTH) {
+				throw std::runtime_error("environment ID stored at " + path + " is corrupt: wrong length.");
+			}
+
+			for (unsigned char c : envId) {
+				if (!std::isxdigit(c)) {
+					throw std::runtime_error("environment ID stored at " + path + " is corrupt: invalid hex string.");
+				}
+			}
+		} else {
+			std::shared_ptr<X509> cert = GetX509Certificate(ApiListener::GetDefaultCaPath());
+
+			unsigned int n;
+			unsigned char digest[EVP_MAX_MD_SIZE];
+			if (X509_pubkey_digest(cert.get(), EVP_sha1(), digest, &n) != 1) {
+				BOOST_THROW_EXCEPTION(openssl_error()
+											  << boost::errinfo_api_function("X509_pubkey_digest")
+											  << errinfo_openssl_error(ERR_peek_error()));
+			}
+
+			envId = BinaryToHex(digest, n);
+		}
+
+		m_EnvironmentId = envId.ToLower();
+	}
+}
+
+/**
+ * Ensures that the environment ID is persisted on disk or throws an exception on failure to do so.
+ * Can be called concurrently.
+ */
+void IcingaDB::PersistEnvironmentId()
+{
+	String path = Configuration::DataDir + "/icingadb.env";
+
+	std::unique_lock<std::mutex> lock (m_EnvironmentIdInitMutex);
+
+	if (!Utility::PathExists(path)) {
+		Utility::SaveJsonFile(path, 0600, m_EnvironmentId);
+	}
 }
