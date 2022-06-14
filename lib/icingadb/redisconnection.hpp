@@ -74,6 +74,13 @@ namespace icinga
 			SyncConnection = 255
 		};
 
+		struct QueryAffects
+		{
+			size_t Config = 0;
+			size_t State = 0;
+			size_t History = 0;
+		};
+
 		RedisConnection(const String& host, int port, const String& path, const String& password, int db,
 			bool useTls, bool insecure, const String& certPath, const String& keyPath, const String& caPath, const String& crlPath,
 			const String& tlsProtocolmin, const String& cipherList, double connectTimeout, DebugInfo di, const Ptr& parent = nullptr);
@@ -84,11 +91,11 @@ namespace icinga
 
 		bool IsConnected();
 
-		void FireAndForgetQuery(Query query, QueryPriority priority);
-		void FireAndForgetQueries(Queries queries, QueryPriority priority);
+		void FireAndForgetQuery(Query query, QueryPriority priority, QueryAffects affects = {});
+		void FireAndForgetQueries(Queries queries, QueryPriority priority, QueryAffects affects = {});
 
-		Reply GetResultOfQuery(Query query, QueryPriority priority);
-		Replies GetResultsOfQueries(Queries queries, QueryPriority priority);
+		Reply GetResultOfQuery(Query query, QueryPriority priority, QueryAffects affects = {});
+		Replies GetResultsOfQueries(Queries queries, QueryPriority priority, QueryAffects affects = {});
 
 		void EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback, QueryPriority priority);
 		void Sync();
@@ -108,6 +115,21 @@ namespace icinga
 		inline int GetPendingQueryCount()
 		{
 			return m_PendingQueries;
+		}
+
+		inline int GetWrittenConfigFor(RingBuffer::SizeType span, RingBuffer::SizeType tv = Utility::GetTime())
+		{
+			return m_WrittenConfig.UpdateAndGetValues(tv, span);
+		}
+
+		inline int GetWrittenStateFor(RingBuffer::SizeType span, RingBuffer::SizeType tv = Utility::GetTime())
+		{
+			return m_WrittenState.UpdateAndGetValues(tv, span);
+		}
+
+		inline int GetWrittenHistoryFor(RingBuffer::SizeType span, RingBuffer::SizeType tv = Utility::GetTime())
+		{
+			return m_WrittenHistory.UpdateAndGetValues(tv, span);
 		}
 
 	private:
@@ -146,6 +168,8 @@ namespace icinga
 			Shared<std::pair<Query, std::promise<Reply>>>::Ptr GetResultOfQuery;
 			Shared<std::pair<Queries, std::promise<Replies>>>::Ptr GetResultsOfQueries;
 			std::function<void(boost::asio::yield_context&)> Callback;
+
+			QueryAffects Affects;
 		};
 
 		typedef boost::asio::ip::tcp Tcp;
@@ -187,6 +211,7 @@ namespace icinga
 
 		void IncreasePendingQueries(int count);
 		void DecreasePendingQueries(int count);
+		void RecordAffected(QueryAffects affected, double when);
 
 		template<class StreamPtr>
 		void Handshake(StreamPtr& stream, boost::asio::yield_context& yc);
@@ -238,6 +263,9 @@ namespace icinga
 		// Stats
 		RingBuffer m_InputQueries{10};
 		RingBuffer m_OutputQueries{15 * 60};
+		RingBuffer m_WrittenConfig{15 * 60};
+		RingBuffer m_WrittenState{15 * 60};
+		RingBuffer m_WrittenHistory{15 * 60};
 		int m_PendingQueries{0};
 		boost::asio::deadline_timer m_LogStatsTimer;
 		Ptr m_Parent;

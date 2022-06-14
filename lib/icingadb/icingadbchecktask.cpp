@@ -299,6 +299,24 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		perfdata->Add(new PerfdataValue("dump_took", dumpTook, false, "seconds", dumpTookThresholds.Warning, dumpTookThresholds.Critical, 0));
 	}
 
+	struct {
+		const char * Name;
+		int (RedisConnection::* Getter)(RingBuffer::SizeType span, RingBuffer::SizeType tv);
+	} const icingaWriteSubjects[] = {
+		{"dump_config", &RedisConnection::GetWrittenConfigFor},
+		{"dump_state", &RedisConnection::GetWrittenStateFor},
+		{"dump_history", &RedisConnection::GetWrittenHistoryFor}
+	};
+
+	for (auto subject : icingaWriteSubjects) {
+		auto perMin ((redis->*subject.Getter)(60));
+
+		perfdata->Add(new PerfdataValue(subject.Name, perMin / 60.0, false, "", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue(String(subject.Name) + "_1min", perMin, false, "", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue(String(subject.Name) + "_5mins", (redis->*subject.Getter)(5 * 60), false, "", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue(String(subject.Name) + "_15mins", (redis->*subject.Getter)(15 * 60), false, "", Empty, Empty, 0));
+	}
+
 	msgbuf << "\n\nIcinga DB daemon\n----------------\n"
 		<< "\n* Version: " << version;
 
@@ -342,9 +360,9 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	}
 
 	perfdata->Add(new PerfdataValue("queries", qps, false, "", Empty, Empty, 0));
-	perfdata->Add(new PerfdataValue("queries_1min", redis->GetQueryCount(60), Empty, Empty, 0));
-	perfdata->Add(new PerfdataValue("queries_5mins", redis->GetQueryCount(5 * 60), Empty, Empty, 0));
-	perfdata->Add(new PerfdataValue("queries_15mins", redis->GetQueryCount(15 * 60), Empty, Empty, 0));
+	perfdata->Add(new PerfdataValue("queries_1min", redis->GetQueryCount(60), false, "", Empty, Empty, 0));
+	perfdata->Add(new PerfdataValue("queries_5mins", redis->GetQueryCount(5 * 60), false, "", Empty, Empty, 0));
+	perfdata->Add(new PerfdataValue("queries_15mins", redis->GetQueryCount(15 * 60), false, "", Empty, Empty, 0));
 	perfdata->Add(new PerfdataValue("pending_queries", pendingQueries, false, "", pendingQueriesThresholds.Warning, pendingQueriesThresholds.Critical, 0));
 	perfdata->Add(new PerfdataValue("down_for", downFor, false, "seconds", downForThresholds.Warning, downForThresholds.Critical, 0));
 	perfdata->Add(new PerfdataValue("heartbeat_lag", heartbeatLag, false, "seconds", heartbeatThresholds.Warning, heartbeatThresholds.Critical));
