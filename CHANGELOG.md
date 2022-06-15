@@ -1052,6 +1052,17 @@ Thanks to all contributors:
 * Metrics
   * OpenTSDB-Writer: Remove incorrect space causing missing tag error #8245
 
+## 2.12.9 (2022-06-30)
+
+This release includes some fixes and a performance improvement
+resulting in faster config validation and reload times.
+
+### Bugfixes
+
+* Fix a race-condition involving object attribute updates that could result in a crash. #9394
+* Speed up config validation by avoiding redundant serialization of objects. #9401
+* Windows: Update bundled version OpenSSL. #9414
+
 ## 2.12.8 (2022-04-28)
 
 In the previous version 2.12.7, one bugfix was applied incorrectly. This is fixed by this release.
