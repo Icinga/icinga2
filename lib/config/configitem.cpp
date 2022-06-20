@@ -470,7 +470,14 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				if (item->m_Type != type)
 					return;
 
-				ip.first->Commit(ip.second);
+				if (!item->Commit(ip.second)) {
+					if (item->IsIgnoreOnError()) {
+						item->Unregister();
+					}
+
+					return;
+				}
+
 				committed_items++;
 			});
 
