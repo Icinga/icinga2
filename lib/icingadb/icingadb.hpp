@@ -37,7 +37,6 @@ public:
 	IcingaDB();
 
 	static void ConfigStaticInitialize();
-	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	void Validate(int types, const ValidationUtils& utils) override;
 	virtual void Start(bool runtimeCreated) override;
