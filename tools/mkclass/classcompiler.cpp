@@ -797,7 +797,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 					<< "{" << std::endl;
 
 				if (field.GetAccessor.empty() && !(field.Attributes & FANoStorage))
-					m_Impl << "\t" << "return m_" << field.GetFriendlyName() << ";" << std::endl;
+					m_Impl << "\t" << "return m_" << field.GetFriendlyName() << ".load();" << std::endl;
 				else
 					m_Impl << field.GetAccessor << std::endl;
 
@@ -835,7 +835,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 					
 				if (field.SetAccessor.empty() && !(field.Attributes & FANoStorage))
-					m_Impl << "\t" << "m_" << field.GetFriendlyName() << " = value;" << std::endl;
+					m_Impl << "\t" << "m_" << field.GetFriendlyName() << ".store(value);" << std::endl;
 				else
 					m_Impl << field.SetAccessor << std::endl << std::endl;
 
@@ -1044,7 +1044,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			if (field.Attributes & FANoStorage)
 				continue;
 
-			m_Header << "\t" << field.Type.GetRealType() << " m_" << field.GetFriendlyName() << ";" << std::endl;
+			m_Header << "\tAtomicOrLocked<" << field.Type.GetRealType() << "> m_" << field.GetFriendlyName() << ";" << std::endl;
 		}
 		
 		/* signal */
@@ -1431,6 +1431,7 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 		<< "#include \"base/type.hpp\"" << std::endl
 		<< "#include \"base/value.hpp\"" << std::endl
 		<< "#include \"base/array.hpp\"" << std::endl
+		<< "#include \"base/atomic.hpp\"" << std::endl
 		<< "#include \"base/dictionary.hpp\"" << std::endl
 		<< "#include <boost/signals2.hpp>" << std::endl << std::endl;
 

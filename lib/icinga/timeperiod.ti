@@ -12,10 +12,11 @@ class TimePeriod : CustomVarObject
 {
 	[config] String display_name {
 		get {{{
-			if (m_DisplayName.IsEmpty())
+			String displayName = m_DisplayName.load();
+			if (displayName.IsEmpty())
 				return GetName();
 			else
-				return m_DisplayName;
+				return displayName;
 		}}}
 	};
 	[config] Dictionary::Ptr ranges;
