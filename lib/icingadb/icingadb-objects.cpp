@@ -166,7 +166,7 @@ void IcingaDB::ConfigStaticInitialize()
 void IcingaDB::UpdateAllConfigObjects()
 {
 	m_Rcon->Sync();
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "4"}, Prio::Heartbeat);
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "5"}, Prio::Heartbeat);
 
 	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
 	double startTime = Utility::GetTime();
@@ -1225,7 +1225,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 
 	if (ObjectsZone) {
 		attributes->Set("zone_id", GetObjectIdentifier(ObjectsZone));
-		attributes->Set("zone", ObjectsZone->GetName());
+		attributes->Set("zone_name", ObjectsZone->GetName());
 	}
 
 	if (type == Endpoint::TypeInstance) {
@@ -1251,7 +1251,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 	if (type == Host::TypeInstance || type == Service::TypeInstance) {
 		Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
-		attributes->Set("checkcommand", checkable->GetCheckCommand()->GetName());
+		attributes->Set("checkcommand_name", checkable->GetCheckCommand()->GetName());
 		attributes->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
 		attributes->Set("check_timeout", checkable->GetCheckTimeout());
 		attributes->Set("check_interval", checkable->GetCheckInterval());
@@ -1273,19 +1273,19 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		Endpoint::Ptr commandEndpoint = checkable->GetCommandEndpoint();
 		if (commandEndpoint) {
 			attributes->Set("command_endpoint_id", GetObjectIdentifier(commandEndpoint));
-			attributes->Set("command_endpoint", commandEndpoint->GetName());
+			attributes->Set("command_endpoint_name", commandEndpoint->GetName());
 		}
 
 		TimePeriod::Ptr timePeriod = checkable->GetCheckPeriod();
 		if (timePeriod) {
 			attributes->Set("check_timeperiod_id", GetObjectIdentifier(timePeriod));
-			attributes->Set("check_timeperiod", timePeriod->GetName());
+			attributes->Set("check_timeperiod_name", timePeriod->GetName());
 		}
 
 		EventCommand::Ptr eventCommand = checkable->GetEventCommand();
 		if (eventCommand) {
 			attributes->Set("eventcommand_id", GetObjectIdentifier(eventCommand));
-			attributes->Set("eventcommand", eventCommand->GetName());
+			attributes->Set("eventcommand_name", eventCommand->GetName());
 		}
 
 		String actionUrl = checkable->GetActionUrl();
