@@ -376,13 +376,17 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 }
 
 void MacroProcessor::AddArgumentHelper(const Array::Ptr& args, const String& key, const String& value,
-	bool add_key, bool add_value)
+	bool add_key, bool add_value, const Value& separator)
 {
-	if (add_key)
-		args->Add(key);
+	if (add_key && separator.GetType() != ValueEmpty && add_value) {
+		args->Add(key + separator + value);
+	} else {
+		if (add_key)
+			args->Add(key);
 
-	if (add_value)
-		args->Add(value);
+		if (add_value)
+			args->Add(value);
+	}
 }
 
 Value MacroProcessor::EscapeMacroShellArg(const Value& value)
@@ -412,6 +416,7 @@ struct CommandArgument
 	bool RepeatKey{true};
 	bool SkipValue{false};
 	String Key;
+	Value Separator;
 	Value AValue;
 
 	bool operator<(const CommandArgument& rhs) const
@@ -459,6 +464,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 				if (argdict->Contains("repeat_key"))
 					arg.RepeatKey = argdict->Get("repeat_key");
 				arg.Order = argdict->Get("order");
+				arg.Separator = argdict->Get("separator");
 
 				Value set_if = argdict->Get("set_if");
 
@@ -539,10 +545,10 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 					} else
 						add_key = !arg.SkipKey && arg.RepeatKey;
 
-					AddArgumentHelper(command_arr, arg.Key, value, add_key, !arg.SkipValue);
+					AddArgumentHelper(command_arr, arg.Key, value, add_key, !arg.SkipValue, arg.Separator);
 				}
 			} else
-				AddArgumentHelper(command_arr, arg.Key, arg.AValue, !arg.SkipKey, !arg.SkipValue);
+				AddArgumentHelper(command_arr, arg.Key, arg.AValue, !arg.SkipKey, !arg.SkipValue, arg.Separator);
 		}
 	}
 
