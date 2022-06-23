@@ -1050,7 +1050,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			if (field.Attributes & FANoStorage)
 				continue;
 
-			m_Header << "\tEventuallyAtomic<" << field.Type.GetRealType() << ">::type m_" << field.GetFriendlyName() << ";" << std::endl;
+			m_Header << "\tAtomicOrLocked<" << field.Type.GetRealType() << "> m_" << field.GetFriendlyName() << ";" << std::endl;
 		}
 		
 		/* signal */
