@@ -288,7 +288,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	Dictionary::Ptr persistentItem = new Dictionary({
 		{ "type", type->GetName() },
 		{ "name", GetName() },
-		{ "properties", Serialize(dobj, FAConfig) },
+		{ "properties", serializedObject },
 		{ "debug_hints", dhint },
 		{ "debug_info", new Array({
 			m_DebugInfo.Path,
