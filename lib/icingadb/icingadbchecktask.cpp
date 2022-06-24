@@ -107,7 +107,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	}
 
 	auto now (Utility::GetTime());
-	Array::Ptr redisTime, xReadHeartbeat, xReadStats, xReadRtuHistory;
+	Array::Ptr redisTime, xReadHeartbeat, xReadStats, xReadRuntimeBacklog, xReadHistoryBacklog;
 
 	try {
 		auto replies (redis->GetResultsOfQueries(
@@ -115,13 +115,16 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 				{"TIME"},
 				{"XREAD", "STREAMS", "icingadb:telemetry:heartbeat", "0-0"},
 				{"XREAD", "STREAMS", "icingadb:telemetry:stats", "0-0"},
+				{"XREAD", "COUNT", "1", "STREAMS", "icinga:runtime", "icinga:runtime:state", "0-0", "0-0"},
 				{
 					"XREAD", "COUNT", "1", "STREAMS",
-					"icinga:runtime", "icinga:runtime:state",
-					"icinga:history:stream:acknowledgement", "icinga:history:stream:comment",
-					"icinga:history:stream:downtime", "icinga:history:stream:flapping",
-					"icinga:history:stream:notification", "icinga:history:stream:state",
-					"0-0", "0-0", "0-0", "0-0", "0-0", "0-0", "0-0", "0-0"
+					"icinga:history:stream:acknowledgement",
+					"icinga:history:stream:comment",
+					"icinga:history:stream:downtime",
+					"icinga:history:stream:flapping",
+					"icinga:history:stream:notification",
+					"icinga:history:stream:state",
+					"0-0", "0-0", "0-0", "0-0", "0-0", "0-0",
 				}
 			},
 			RedisConnection::QueryPriority::Heartbeat
@@ -130,7 +133,8 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		redisTime = std::move(replies.at(0));
 		xReadHeartbeat = std::move(replies.at(1));
 		xReadStats = std::move(replies.at(2));
-		xReadRtuHistory = std::move(replies.at(3));
+		xReadRuntimeBacklog = std::move(replies.at(3));
+		xReadHistoryBacklog = std::move(replies.at(4));
 	} catch (const std::exception& ex) {
 		ReportIcingadbCheck(
 			checkable, commandObj, cr,
@@ -300,21 +304,15 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		icingaBacklogThresholds.Warning, icingaBacklogThresholds.Critical, 0));
 
 	if (!down) {
-		double icingadbBacklog = 0;
+		auto getBacklog = [redisNow](const Array::Ptr& streams) -> double {
+			if (!streams) {
+				return 0;
+			}
 
-		if (xReadRtuHistory) {
 			double minTs = 0;
-			ObjectLock lock (xReadRtuHistory);
+			ObjectLock lock (streams);
 
-			for (Array::Ptr stream : xReadRtuHistory) {
-				if (!weResponsible) {
-					String name = stream->Get(0);
-
-					if (name == "icinga:runtime" || name == "icinga:runtime:state") {
-						continue;
-					}
-				}
-
+			for (Array::Ptr stream : streams) {
 				auto ts (GetXMessageTs(Array::Ptr(stream->Get(1))->Get(0)));
 
 				if (minTs == 0 || ts < minTs) {
@@ -323,19 +321,42 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 			}
 
 			if (minTs > 0) {
-				icingadbBacklog = redisNow - minTs;
+				return redisNow - minTs;
+			} else {
+				return 0;
 			}
-		}
+		};
 
-		if (!icingadbBacklogThresholds.Critical.IsEmpty() && icingadbBacklog > icingadbBacklogThresholds.Critical) {
-			critmsgs << " Query backlog: " << Utility::FormatDuration(icingadbBacklog)
+		double historyBacklog = getBacklog(xReadHistoryBacklog);
+
+		if (!icingadbBacklogThresholds.Critical.IsEmpty() && historyBacklog > icingadbBacklogThresholds.Critical) {
+			critmsgs << " History backlog: " << Utility::FormatDuration(historyBacklog)
 				<< ", greater than CRITICAL threshold (" << Utility::FormatDuration(icingadbBacklogThresholds.Critical) << ")!";
-		} else if (!icingadbBacklogThresholds.Warning.IsEmpty() && icingadbBacklog > icingadbBacklogThresholds.Warning) {
-			warnmsgs << " Query backlog: " << Utility::FormatDuration(icingadbBacklog)
+		} else if (!icingadbBacklogThresholds.Warning.IsEmpty() && historyBacklog > icingadbBacklogThresholds.Warning) {
+			warnmsgs << " History backlog: " << Utility::FormatDuration(historyBacklog)
 				<< ", greater than WARNING threshold (" << Utility::FormatDuration(icingadbBacklogThresholds.Warning) << ").";
 		}
 
-		perfdata->Add(new PerfdataValue("database_backlog", icingadbBacklog, false, "seconds",
+		perfdata->Add(new PerfdataValue("history_backlog", historyBacklog, false, "seconds",
+			icingadbBacklogThresholds.Warning, icingadbBacklogThresholds.Critical, 0));
+
+		double runtimeBacklog = 0;
+
+		if (weResponsible) {
+			// These streams are only processed by one instance, it's fine for the other instance to have some backlog.
+			runtimeBacklog = getBacklog(xReadRuntimeBacklog);
+
+			if (!icingadbBacklogThresholds.Critical.IsEmpty() && runtimeBacklog > icingadbBacklogThresholds.Critical) {
+				critmsgs << " Runtime update backlog: " << Utility::FormatDuration(runtimeBacklog)
+					<< ", greater than CRITICAL threshold (" << Utility::FormatDuration(icingadbBacklogThresholds.Critical) << ")!";
+			} else if (!icingadbBacklogThresholds.Warning.IsEmpty() && runtimeBacklog > icingadbBacklogThresholds.Warning) {
+				warnmsgs << " Runtime update backlog: " << Utility::FormatDuration(runtimeBacklog)
+					<< ", greater than WARNING threshold (" << Utility::FormatDuration(icingadbBacklogThresholds.Warning) << ").";
+			}
+		}
+
+		// Also report the perfdata value on the other instance (as 0 in this case).
+		perfdata->Add(new PerfdataValue("runtime_backlog", runtimeBacklog, false, "seconds",
 			icingadbBacklogThresholds.Warning, icingadbBacklogThresholds.Critical, 0));
 	}
 
