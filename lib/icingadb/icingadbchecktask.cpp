@@ -207,7 +207,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 			critmsgs << " ERROR: " << errMsg << "!";
 		}
 
-		perfdata->Add(new PerfdataValue("err_for", errFor * (err ? 1 : -1), false, "seconds", Empty, errForCritical, 0));
+		perfdata->Add(new PerfdataValue("error_for", errFor * (err ? 1 : -1), false, "seconds", Empty, errForCritical, 0));
 	}
 
 	if (!down) {
