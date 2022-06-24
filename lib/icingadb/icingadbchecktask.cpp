@@ -165,19 +165,19 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 
 	IcingaDB::AddKvsToMap(heartbeatMessage->Get(1), heartbeatData);
 
-	String version = heartbeatData.at("general:version");
-	auto icingadbNow (Convert::ToLong(heartbeatData.at("general:time")) / 1000.0 + (redisNow - heartbeatTime));
-	auto icingadbStartTime (Convert::ToLong(heartbeatData.at("general:start-time")) / 1000.0);
-	String errMsg (heartbeatData.at("general:err"));
-	auto errSince (Convert::ToLong(heartbeatData.at("general:err-since")) / 1000.0);
-	String perfdataFromRedis = heartbeatData.at("general:performance-data");
-	auto heartbeatLastReceived (Convert::ToLong(heartbeatData.at("heartbeat:last-received")) / 1000.0);
-	bool weResponsible = Convert::ToLong(heartbeatData.at("ha:responsible"));
-	auto weResponsibleTs (Convert::ToLong(heartbeatData.at("ha:responsible-ts")) / 1000.0);
-	bool otherResponsible = Convert::ToLong(heartbeatData.at("ha:other-responsible"));
-	auto syncOngoingSince (Convert::ToLong(heartbeatData.at("sync:ongoing-since")) / 1000.0);
-	auto syncSuccessWhen (Convert::ToLong(heartbeatData.at("sync:success-finish")) / 1000.0);
-	auto syncSuccessTook (Convert::ToLong(heartbeatData.at("sync:success-duration")) / 1000.0);
+	String version = heartbeatData.at("version");
+	auto icingadbNow (Convert::ToLong(heartbeatData.at("time")) / 1000.0 + (redisNow - heartbeatTime));
+	auto icingadbStartTime (Convert::ToLong(heartbeatData.at("start-time")) / 1000.0);
+	String errMsg (heartbeatData.at("error"));
+	auto errSince (Convert::ToLong(heartbeatData.at("error-since")) / 1000.0);
+	String perfdataFromRedis = heartbeatData.at("performance-data");
+	auto heartbeatLastReceived (Convert::ToLong(heartbeatData.at("last-heartbeat-received")) / 1000.0);
+	bool weResponsible = Convert::ToLong(heartbeatData.at("ha-responsible"));
+	auto weResponsibleTs (Convert::ToLong(heartbeatData.at("ha-responsible-ts")) / 1000.0);
+	bool otherResponsible = Convert::ToLong(heartbeatData.at("ha-other-responsible"));
+	auto syncOngoingSince (Convert::ToLong(heartbeatData.at("sync-ongoing-since")) / 1000.0);
+	auto syncSuccessWhen (Convert::ToLong(heartbeatData.at("sync-success-finish")) / 1000.0);
+	auto syncSuccessTook (Convert::ToLong(heartbeatData.at("sync-success-duration")) / 1000.0);
 
 	std::ostringstream i2okmsgs, idbokmsgs, warnmsgs, critmsgs;
 	Array::Ptr perfdata = new Array();
