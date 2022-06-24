@@ -4,11 +4,11 @@
 #include "icinga/host.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
+#include "icinga/pluginutility.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/zone.hpp"
 #include "base/function.hpp"
-#include "base/json.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/configtype.hpp"
@@ -170,7 +170,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	auto icingadbStartTime (Convert::ToLong(heartbeatData.at("general:start-time")) / 1000.0);
 	String errMsg (heartbeatData.at("general:err"));
 	auto errSince (Convert::ToLong(heartbeatData.at("general:err-since")) / 1000.0);
-	Dictionary::Ptr goMetricsByCumulativity (JsonDecode(heartbeatData.at("go:metrics")));
+	String perfdataFromRedis = heartbeatData.at("general:performance-data");
 	auto heartbeatLastReceived (Convert::ToLong(heartbeatData.at("heartbeat:last-received")) / 1000.0);
 	bool weResponsible = Convert::ToLong(heartbeatData.at("ha:responsible"));
 	auto weResponsibleTs (Convert::ToLong(heartbeatData.at("ha:responsible-ts")) / 1000.0);
@@ -361,33 +361,11 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	}
 
 	{
-		static boost::regex wellNamedUnits (":(bytes|seconds)$");
-		ObjectLock lock (goMetricsByCumulativity);
+		Array::Ptr values = PluginUtility::SplitPerfdata(perfdataFromRedis);
+		ObjectLock lock (values);
 
-		for (auto& kv : goMetricsByCumulativity) {
-			bool cumulative = kv.first == "cumulative";
-			Dictionary::Ptr goMetricsPerCumulativity = kv.second;
-			ObjectLock lock (goMetricsPerCumulativity);
-
-			for (auto& kv : goMetricsPerCumulativity) {
-				std::string unit;
-				boost::smatch what;
-
-				if (boost::regex_search(kv.first.GetData(), what, wellNamedUnits)) {
-					unit = what[1];
-				}
-
-				bool counter = cumulative && unit.empty();
-				auto label ("go" + kv.first);
-
-				for (auto& c : label) {
-					if (!('a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9')) {
-						c = '_';
-					}
-				}
-
-				perfdata->Add(new PerfdataValue(std::move(label), kv.second, counter, std::move(unit)));
-			}
+		for (auto& v : values) {
+			perfdata->Add(PerfdataValue::Parse(v));
 		}
 	}
 
