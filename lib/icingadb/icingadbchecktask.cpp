@@ -425,18 +425,12 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	}
 
 	for (auto& kv : statsPerOp) {
-		auto perMin (kv.second.UpdateAndGetValues(now, 60));
-
-		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_1sec", perMin / 60.0, false, "", Empty, Empty, 0));
-		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_1min", perMin, false, "", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_1min", kv.second.UpdateAndGetValues(now, 60), false, "", Empty, Empty, 0));
 		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_5mins", kv.second.UpdateAndGetValues(now, 5 * 60), false, "", Empty, Empty, 0));
 		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_15mins", kv.second.UpdateAndGetValues(now, 15 * 60), false, "", Empty, Empty, 0));
 	}
 
-	auto queriesPerMin (redis->GetQueryCount(60));
-
-	perfdata->Add(new PerfdataValue("redis_queries_1sec", queriesPerMin / 60.0, false, "", Empty, Empty, 0));
-	perfdata->Add(new PerfdataValue("redis_queries_1min", queriesPerMin, false, "", Empty, Empty, 0));
+	perfdata->Add(new PerfdataValue("redis_queries_1min", redis->GetQueryCount(60), false, "", Empty, Empty, 0));
 	perfdata->Add(new PerfdataValue("redis_queries_5mins", redis->GetQueryCount(5 * 60), false, "", Empty, Empty, 0));
 	perfdata->Add(new PerfdataValue("redis_queries_15mins", redis->GetQueryCount(15 * 60), false, "", Empty, Empty, 0));
 
@@ -452,10 +446,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	};
 
 	for (auto subject : icingaWriteSubjects) {
-		auto perMin ((redis.get()->*subject.Getter)(60, now));
-
-		perfdata->Add(new PerfdataValue(String(subject.Name) + "_1sec", perMin / 60.0, false, "", Empty, Empty, 0));
-		perfdata->Add(new PerfdataValue(String(subject.Name) + "_1min", perMin, false, "", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue(String(subject.Name) + "_1min", (redis.get()->*subject.Getter)(60, now), false, "", Empty, Empty, 0));
 		perfdata->Add(new PerfdataValue(String(subject.Name) + "_5mins", (redis.get()->*subject.Getter)(5 * 60, now), false, "", Empty, Empty, 0));
 		perfdata->Add(new PerfdataValue(String(subject.Name) + "_15mins", (redis.get()->*subject.Getter)(15 * 60, now), false, "", Empty, Empty, 0));
 	}
