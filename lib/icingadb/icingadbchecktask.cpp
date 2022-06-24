@@ -134,7 +134,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	} catch (const std::exception& ex) {
 		ReportIcingadbCheck(
 			checkable, commandObj, cr,
-			String("Icinga DB CRITICAL: Could not read XREAD responses from Redis: ") + ex.what(), ServiceCritical
+			String("Icinga DB CRITICAL: Could not query Redis: ") + ex.what(), ServiceCritical
 		);
 		return;
 	}
