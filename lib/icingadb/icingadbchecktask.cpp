@@ -413,7 +413,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	std::map<String, RingBuffer> statsPerOp;
 
 	const char * const icingadbKnownStats[] = {
-		"sync_config", "sync_state", "sync_history", "sync_overdue", "cleanup_history"
+		"config_sync", "state_sync", "history_sync", "overdue_sync", "history_cleanup"
 	};
 
 	for (auto metric : icingadbKnownStats) {
