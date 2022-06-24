@@ -289,14 +289,14 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	}
 
 	if (!icingaBacklogThresholds.Critical.IsEmpty() && redisBacklog > icingaBacklogThresholds.Critical) {
-		critmsgs << " Icinga 2 query backlog: " << Utility::FormatDuration(redisBacklog)
+		critmsgs << " Icinga 2 Redis backlog: " << Utility::FormatDuration(redisBacklog)
 			<< ", greater than CRITICAL threshold (" << Utility::FormatDuration(icingaBacklogThresholds.Critical) << ")!";
 	} else if (!icingaBacklogThresholds.Warning.IsEmpty() && redisBacklog > icingaBacklogThresholds.Warning) {
-		warnmsgs << " Icinga 2 query backlog: " << Utility::FormatDuration(redisBacklog)
+		warnmsgs << " Icinga 2 Redis backlog: " << Utility::FormatDuration(redisBacklog)
 			<< ", greater than WARNING threshold (" << Utility::FormatDuration(icingaBacklogThresholds.Warning) << ").";
 	}
 
-	perfdata->Add(new PerfdataValue("redis_backlog", redisBacklog, false, "seconds",
+	perfdata->Add(new PerfdataValue("icinga2_redis_backlog", redisBacklog, false, "seconds",
 		icingaBacklogThresholds.Warning, icingaBacklogThresholds.Critical, 0));
 
 	if (!down) {
