@@ -236,7 +236,11 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 
 	const auto clockDriftWarning (5);
 	const auto clockDriftCritical (30);
-	auto clockDrift (fmax(fabs(now - redisNow), fmax(fabs(redisNow - icingadbNow), fabs(icingadbNow - now))));
+	auto clockDrift (std::max({
+		fabs(now - redisNow),
+		fabs(redisNow - icingadbNow),
+		fabs(icingadbNow - now),
+	}));
 
 	if (clockDrift > clockDriftCritical) {
 		critmsgs << " Icinga 2/Redis/Icinga DB clock drift: " << Utility::FormatDuration(clockDrift)
