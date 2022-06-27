@@ -497,11 +497,11 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	}
 
 	if (!i2okmsg.empty()) {
-		msgbuf << "\n\nIcinga 2\n--------\n" << i2okmsg;
+		msgbuf << "\n\nIcinga 2:\n" << i2okmsg;
 	}
 
 	if (!idbokmsg.empty()) {
-		msgbuf << "\n\nIcinga DB\n---------\n" << idbokmsg;
+		msgbuf << "\n\nIcinga DB:\n" << idbokmsg;
 	}
 
 	cr->SetPerformanceData(perfdata);
