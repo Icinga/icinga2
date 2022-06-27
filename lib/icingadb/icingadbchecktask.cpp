@@ -225,7 +225,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 				<< ", greater than WARNING threshold (" << Utility::FormatDuration(heartbeatLagWarning) << ").";
 		}
 
-		perfdata->Add(new PerfdataValue("icinga_heartbeat_lag", heartbeatLag, false, "seconds", heartbeatLagWarning, Empty, 0));
+		perfdata->Add(new PerfdataValue("icinga2_heartbeat_age", heartbeatLag, false, "seconds", heartbeatLagWarning, Empty, 0));
 	}
 
 	if (weResponsible) {
@@ -267,7 +267,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 				<< ", greater than WARNING threshold (" << Utility::FormatDuration(dumpTakesThresholds.Warning) << ").";
 		}
 
-		perfdata->Add(new PerfdataValue("redis_dump_takes", ongoingDumpTakes, false, "seconds",
+		perfdata->Add(new PerfdataValue("icinga2_full_dump_takes", ongoingDumpTakes, false, "seconds",
 			dumpTakesThresholds.Warning, dumpTakesThresholds.Critical, 0));
 	}
 
@@ -282,7 +282,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 				<< ", greater than WARNING threshold (" << Utility::FormatDuration(syncTakesThresholds.Warning) << ").";
 		}
 
-		perfdata->Add(new PerfdataValue("database_sync_takes", ongoingSyncTakes, false, "seconds",
+		perfdata->Add(new PerfdataValue("icingadb_full_sync_takes", ongoingSyncTakes, false, "seconds",
 			syncTakesThresholds.Warning, syncTakesThresholds.Critical, 0));
 	}
 
@@ -293,14 +293,14 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	}
 
 	if (!icingaBacklogThresholds.Critical.IsEmpty() && redisBacklog > icingaBacklogThresholds.Critical) {
-		critmsgs << " Icinga 2 Redis backlog: " << Utility::FormatDuration(redisBacklog)
+		critmsgs << " Icinga 2 Redis query backlog: " << Utility::FormatDuration(redisBacklog)
 			<< ", greater than CRITICAL threshold (" << Utility::FormatDuration(icingaBacklogThresholds.Critical) << ")!";
 	} else if (!icingaBacklogThresholds.Warning.IsEmpty() && redisBacklog > icingaBacklogThresholds.Warning) {
-		warnmsgs << " Icinga 2 Redis backlog: " << Utility::FormatDuration(redisBacklog)
+		warnmsgs << " Icinga 2 Redis query backlog: " << Utility::FormatDuration(redisBacklog)
 			<< ", greater than WARNING threshold (" << Utility::FormatDuration(icingaBacklogThresholds.Warning) << ").";
 	}
 
-	perfdata->Add(new PerfdataValue("icinga2_redis_backlog", redisBacklog, false, "seconds",
+	perfdata->Add(new PerfdataValue("icinga2_redis_query_backlog", redisBacklog, false, "seconds",
 		icingaBacklogThresholds.Warning, icingaBacklogThresholds.Critical, 0));
 
 	if (!down) {
@@ -337,7 +337,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 				<< ", greater than WARNING threshold (" << Utility::FormatDuration(icingadbBacklogThresholds.Warning) << ").";
 		}
 
-		perfdata->Add(new PerfdataValue("history_backlog", historyBacklog, false, "seconds",
+		perfdata->Add(new PerfdataValue("icingadb_history_backlog", historyBacklog, false, "seconds",
 			icingadbBacklogThresholds.Warning, icingadbBacklogThresholds.Critical, 0));
 
 		double runtimeBacklog = 0;
@@ -356,18 +356,18 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		}
 
 		// Also report the perfdata value on the other instance (as 0 in this case).
-		perfdata->Add(new PerfdataValue("runtime_backlog", runtimeBacklog, false, "seconds",
+		perfdata->Add(new PerfdataValue("icingadb_runtime_update_backlog", runtimeBacklog, false, "seconds",
 			icingadbBacklogThresholds.Warning, icingadbBacklogThresholds.Critical, 0));
 	}
 
 	auto dumpAgo (now - dumpWhen);
 
 	if (dumpWhen) {
-		perfdata->Add(new PerfdataValue("redis_dump_ago", dumpAgo, false, "seconds", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icinga2_full_dump_ago", dumpAgo, false, "seconds", Empty, Empty, 0));
 	}
 
 	if (dumpTook) {
-		perfdata->Add(new PerfdataValue("redis_dump_took", dumpTook, false, "seconds", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icinga2_full_dump_took", dumpTook, false, "seconds", Empty, Empty, 0));
 	}
 
 	if (dumpWhen && dumpTook) {
@@ -398,11 +398,11 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	auto syncAgo (icingadbNow - syncSuccessWhen);
 
 	if (syncSuccessWhen) {
-		perfdata->Add(new PerfdataValue("database_sync_ago", syncAgo, false, "seconds", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icingadb_full_sync_ago", syncAgo, false, "seconds", Empty, Empty, 0));
 	}
 
 	if (syncSuccessTook) {
-		perfdata->Add(new PerfdataValue("database_sync_took", syncSuccessTook, false, "seconds", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icingadb_full_sync_took", syncSuccessTook, false, "seconds", Empty, Empty, 0));
 	}
 
 	if (syncSuccessWhen && syncSuccessTook) {
@@ -451,19 +451,19 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_15mins", kv.second.UpdateAndGetValues(now, 15 * 60), false, "", Empty, Empty, 0));
 	}
 
-	perfdata->Add(new PerfdataValue("redis_queries_1min", redis->GetQueryCount(60), false, "", Empty, Empty, 0));
-	perfdata->Add(new PerfdataValue("redis_queries_5mins", redis->GetQueryCount(5 * 60), false, "", Empty, Empty, 0));
-	perfdata->Add(new PerfdataValue("redis_queries_15mins", redis->GetQueryCount(15 * 60), false, "", Empty, Empty, 0));
+	perfdata->Add(new PerfdataValue("icinga2_redis_queries_1min", redis->GetQueryCount(60), false, "", Empty, Empty, 0));
+	perfdata->Add(new PerfdataValue("icinga2_redis_queries_5mins", redis->GetQueryCount(5 * 60), false, "", Empty, Empty, 0));
+	perfdata->Add(new PerfdataValue("icinga2_redis_queries_15mins", redis->GetQueryCount(15 * 60), false, "", Empty, Empty, 0));
 
-	perfdata->Add(new PerfdataValue("redis_pending_queries", redis->GetPendingQueryCount(), false, "", Empty, Empty, 0));
+	perfdata->Add(new PerfdataValue("icinga2_redis_pending_queries", redis->GetPendingQueryCount(), false, "", Empty, Empty, 0));
 
 	struct {
 		const char * Name;
 		int (RedisConnection::* Getter)(RingBuffer::SizeType span, RingBuffer::SizeType tv);
 	} const icingaWriteSubjects[] = {
-		{"icinga_dump_config", &RedisConnection::GetWrittenConfigFor},
-		{"icinga_dump_state", &RedisConnection::GetWrittenStateFor},
-		{"icinga_dump_history", &RedisConnection::GetWrittenHistoryFor}
+		{"icinga2_config_dump", &RedisConnection::GetWrittenConfigFor},
+		{"icinga2_state_dump", &RedisConnection::GetWrittenStateFor},
+		{"icinga2_history_dump", &RedisConnection::GetWrittenHistoryFor}
 	};
 
 	for (auto subject : icingaWriteSubjects) {
