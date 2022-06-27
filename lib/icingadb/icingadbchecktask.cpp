@@ -79,8 +79,8 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 
 	String icingadbName = resolve("$icingadb_name$");
 
-	auto dumpTakesThresholds (resolveThresholds("$icingadb_redis_dump_takes_warning$", "$icingadb_redis_dump_takes_critical$"));
-	auto syncTakesThresholds (resolveThresholds("$icingadb_database_sync_takes_warning$", "$icingadb_database_sync_takes_critical$"));
+	auto dumpTakesThresholds (resolveThresholds("$icingadb_full_dump_duration_warning$", "$icingadb_full_dump_duration_critical$"));
+	auto syncTakesThresholds (resolveThresholds("$icingadb_full_sync_duration_warning$", "$icingadb_full_sync_duration_critical$"));
 	auto icingaBacklogThresholds (resolveThresholds("$icingadb_redis_backlog_warning$", "$icingadb_redis_backlog_critical$"));
 	auto icingadbBacklogThresholds (resolveThresholds("$icingadb_database_backlog_warning$", "$icingadb_database_backlog_critical$"));
 
