@@ -102,7 +102,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	auto redis (conn->GetConnection());
 
 	if (!redis || !redis->GetConnected()) {
-		ReportIcingadbCheck(checkable, commandObj, cr, "Icinga DB CRITICAL: Could not connect to Redis.", ServiceCritical);
+		ReportIcingadbCheck(checkable, commandObj, cr, "Icinga DB CRITICAL: Not connected to Redis.", ServiceCritical);
 		return;
 	}
 
