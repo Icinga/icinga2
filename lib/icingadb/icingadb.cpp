@@ -32,7 +32,7 @@ REGISTER_TYPE(IcingaDB);
 IcingaDB::IcingaDB()
 	: m_Rcon(nullptr)
 {
-	m_Rcon = nullptr;
+	m_RconLocked.store(nullptr);
 
 	m_WorkQueue.SetName("IcingaDB");
 
@@ -80,6 +80,7 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
 		GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
 		GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo());
+	m_RconLocked.store(m_Rcon);
 
 	for (const Type::Ptr& type : GetTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));
