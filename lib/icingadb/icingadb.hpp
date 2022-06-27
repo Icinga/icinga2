@@ -5,6 +5,7 @@
 
 #include "icingadb/icingadb-ti.hpp"
 #include "icingadb/redisconnection.hpp"
+#include "base/atomic.hpp"
 #include "base/bulker.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
@@ -46,7 +47,7 @@ public:
 
 	inline RedisConnection::Ptr GetConnection()
 	{
-		return m_Rcon;
+		return m_RconLocked.load();
 	}
 
 	template<class T>
@@ -215,6 +216,10 @@ private:
 	bool m_ConfigDumpDone;
 
 	RedisConnection::Ptr m_Rcon;
+	// m_RconLocked containes a copy of the value in m_Rcon where all accesses are guarded by a mutex to allow safe
+	// concurrent access like from the icingadb check command. It's a copy to still allow fast access without additional
+	// syncronization to m_Rcon within the IcingaDB feature itself.
+	Locked<RedisConnection::Ptr> m_RconLocked;
 	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
 	std::atomic_size_t m_PendingRcons;
 
