@@ -269,7 +269,14 @@ void IcingaDB::InitEnvironmentId()
 				}
 			}
 		} else {
-			std::shared_ptr<X509> cert = GetX509Certificate(ApiListener::GetDefaultCaPath());
+			String caPath = ApiListener::GetDefaultCaPath();
+
+			if (!Utility::PathExists(caPath)) {
+				throw std::runtime_error("Cannot find the CA certificate at '" + caPath + "'. "
+					"Please ensure the ApiListener is enabled first using 'icinga2 api setup'.");
+			}
+
+			std::shared_ptr<X509> cert = GetX509Certificate(caPath);
 
 			unsigned int n;
 			unsigned char digest[EVP_MAX_MD_SIZE];
