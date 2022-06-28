@@ -346,8 +346,9 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 
 		double runtimeBacklog = 0;
 
-		if (weResponsible) {
-			// These streams are only processed by one instance, it's fine for the other instance to have some backlog.
+		if (weResponsible && !syncOngoingSince) {
+			// These streams are only processed by the responsible instance after the full sync finished,
+			// it's fine for some backlog to exist otherwise.
 			runtimeBacklog = getBacklog(xReadRuntimeBacklog);
 
 			if (!icingadbBacklogThresholds.Critical.IsEmpty() && runtimeBacklog > icingadbBacklogThresholds.Critical) {
@@ -359,7 +360,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 			}
 		}
 
-		// Also report the perfdata value on the other instance (as 0 in this case).
+		// Also report the perfdata value on the standby instance or during a full sync (as 0 in this case).
 		perfdata->Add(new PerfdataValue("icingadb_runtime_update_backlog", runtimeBacklog, false, "seconds",
 			icingadbBacklogThresholds.Warning, icingadbBacklogThresholds.Critical, 0));
 	}
