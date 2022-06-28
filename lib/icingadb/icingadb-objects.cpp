@@ -171,6 +171,12 @@ void IcingaDB::UpdateAllConfigObjects()
 	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
 	double startTime = Utility::GetTime();
 
+	SetOngoingDumpStart(startTime);
+
+	Defer resetOngoingDumpStart ([this]() {
+		SetOngoingDumpStart(0);
+	});
+
 	// Use a Workqueue to pack objects in parallel
 	WorkQueue upq(25000, Configuration::Concurrency, LogNotice);
 	upq.SetName("IcingaDB:ConfigDump");
@@ -230,18 +236,7 @@ void IcingaDB::UpdateAllConfigObjects()
 					"HSCAN", configCheckSum, cursor, "COUNT", "1000"
 				}, Prio::Config);
 
-				Array::Ptr kvs = res->Get(1);
-				Value* key = nullptr;
-				ObjectLock oLock (kvs);
-
-				for (auto& kv : kvs) {
-					if (key) {
-						redisCheckSums.emplace(std::move(*key), std::move(kv));
-						key = nullptr;
-					} else {
-						key = &kv;
-					}
-				}
+				AddKvsToMap(res->Get(1), redisCheckSums);
 
 				cursor = res->Get(0);
 			} while (cursor != "0");
@@ -413,6 +408,8 @@ void IcingaDB::UpdateAllConfigObjects()
 		auto ourEnd (ourCheckSums.end());
 
 		auto flushSets ([&]() {
+			auto affectedConfig (setObject.size() / 2u);
+
 			setChecksum.insert(setChecksum.begin(), {"HMSET", configCheckSum});
 			setObject.insert(setObject.begin(), {"HMSET", configObject});
 
@@ -426,10 +423,12 @@ void IcingaDB::UpdateAllConfigObjects()
 			setChecksum.clear();
 			setObject.clear();
 
-			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {affectedConfig});
 		});
 
 		auto flushDels ([&]() {
+			auto affectedConfig (delObject.size());
+
 			delChecksum.insert(delChecksum.begin(), {"HDEL", configCheckSum});
 			delObject.insert(delObject.begin(), {"HDEL", configObject});
 
@@ -443,7 +442,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			delChecksum.clear();
 			delObject.clear();
 
-			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {affectedConfig});
 		});
 
 		auto setOne ([&]() {
@@ -535,8 +534,14 @@ void IcingaDB::UpdateAllConfigObjects()
 	m_Rcon->EnqueueCallback([&p](boost::asio::yield_context& yc) { p.set_value(); }, Prio::Config);
 	p.get_future().wait();
 
+	auto endTime (Utility::GetTime());
+	auto took (endTime - startTime);
+
+	SetLastdumpTook(took);
+	SetLastdumpEnd(endTime);
+
 	Log(LogInformation, "IcingaDB")
-			<< "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
+		<< "Initial config/status dump finished in " << took << " seconds.";
 }
 
 std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize) {
@@ -1142,7 +1147,7 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 			streamadd.emplace_back(IcingaToStreamValue(kv.second));
 		}
 
-		m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream);
+		m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream, {0, 1});
 	}
 }
 
@@ -1189,7 +1194,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 
 	if (transaction.size() > 1) {
 		transaction.push_back({"EXEC"});
-		m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+		m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {1});
 	}
 
 	if (checkable) {
@@ -2354,7 +2359,7 @@ void IcingaDB::ForwardHistoryEntries()
 
 			if (m_Rcon && m_Rcon->IsConnected()) {
 				try {
-					m_Rcon->GetResultsOfQueries(haystack, Prio::History);
+					m_Rcon->GetResultsOfQueries(haystack, Prio::History, {0, 0, haystack.size()});
 					break;
 				} catch (const std::exception& ex) {
 					logFailure(ex.what());

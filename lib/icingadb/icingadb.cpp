@@ -29,39 +29,15 @@ std::mutex IcingaDB::m_EnvironmentIdInitMutex;
 
 REGISTER_TYPE(IcingaDB);
 
-REGISTER_STATSFUNCTION(IcingaDB, &IcingaDB::StatsFunc);
-
 IcingaDB::IcingaDB()
 	: m_Rcon(nullptr)
 {
-	m_Rcon = nullptr;
+	m_RconLocked.store(nullptr);
 
 	m_WorkQueue.SetName("IcingaDB");
 
 	m_PrefixConfigObject = "icinga:";
 	m_PrefixConfigCheckSum = "icinga:checksum:";
-}
-
-/**
- * Feature stats interface
- *
- * @param status Key value pairs for feature stats
- */
-void IcingaDB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
-{
-	DictionaryData nodes;
-
-	for (auto& icingadb : ConfigType::GetObjectsByType<IcingaDB>()) {
-		auto historyBufferItems (icingadb->m_HistoryBulker.Size());
-
-		nodes.emplace_back(icingadb->GetName(), new Dictionary({
-			{ "history_buffer_items", historyBufferItems }
-		}));
-
-		perfdata->Add(new PerfdataValue("icingadb_" + icingadb->GetName() + "_history_buffer_items", historyBufferItems));
-	}
-
-	status->Set("icingadb", new Dictionary(std::move(nodes)));
 }
 
 void IcingaDB::Validate(int types, const ValidationUtils& utils)
@@ -104,6 +80,7 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
 		GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
 		GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo());
+	m_RconLocked.store(m_Rcon);
 
 	for (const Type::Ptr& type : GetTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));

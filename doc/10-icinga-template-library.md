@@ -103,6 +103,24 @@ cluster\_zone          | **Required.** The zone name. Defaults to `$host.name$`.
 cluster\_lag\_warning  | **Optional.** Warning threshold for log lag in seconds. Applies if the log lag is greater than the threshold.
 cluster\_lag\_critical | **Optional.** Critical threshold for log lag in seconds. Applies if the log lag is greater than the threshold.
 
+### icingadb <a id="itl-icinga-icingadb"></a>
+
+Check command for the built-in `icingadb` check.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                                     | Description
+-----------------------------------------|-----------------------------
+icingadb\_name                           | **Required.** The name of the Icinga DB connection object. Defaults to `icingadb`.
+icingadb\_full\_dump\_duration\_warning  | **Optional.** Warning threshold for ongoing Redis dump duration. Applies if the value is higher than the threshold. Defaults to 5 minutes.
+icingadb\_full\_dump\_duration\_critical | **Optional.** Critical threshold for ongoing Redis dump duration. Applies if the value is higher than the threshold. Defaults to 10 minutes.
+icingadb\_full\_sync\_duration\_warning  | **Optional.** Warning threshold for ongoing database sync duration. Applies if the value is higher than the threshold. Defaults to 5 minutes.
+icingadb\_full\_sync\_duration\_critical | **Optional.** Critical threshold for ongoing database sync duration. Applies if the value is higher than the threshold. Defaults to 10 minutes.
+icingadb\_redis\_backlog\_warning        | **Optional.** Warning threshold for Redis write backlog. Applies if the value is higher than the threshold. Defaults to 5 minutes.
+icingadb\_redis\_backlog\_critical       | **Optional.** Critical threshold for Redis write backlog. Applies if the value is higher than the threshold. Defaults to 15 minutes.
+icingadb\_database\_backlog\_warning     | **Optional.** Warning threshold for database sync backlog. Applies if the value is higher than the threshold. Defaults to 5 minutes.
+icingadb\_database\_backlog\_critical    | **Optional.** Critical threshold for database sync backlog. Applies if the value is higher than the threshold. Defaults to 15 minutes.
+
 ### ido <a id="itl-icinga-ido"></a>
 
 Check command for the built-in `ido` check.
