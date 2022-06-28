@@ -48,6 +48,16 @@ class IcingaDB : ConfigObject
 	[no_storage] String environment_id {
 			get;
 	};
+
+	[set_protected] double ongoing_dump_start {
+		default {{{ return 0; }}}
+	};
+	[state, set_protected] double lastdump_end {
+		default {{{ return 0; }}}
+	};
+	[state, set_protected] double lastdump_took {
+		default {{{ return 0; }}}
+	};
 };
 
 }

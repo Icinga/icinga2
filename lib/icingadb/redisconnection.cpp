@@ -113,7 +113,7 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
  * @param query Redis query
  * @param priority The query's priority
  */
-void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority)
+void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
 	{
 		Log msg (LogDebug, "IcingaDB", "Firing and forgetting query:");
@@ -121,9 +121,10 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConn
 	}
 
 	auto item (Shared<Query>::Make(std::move(query)));
+	auto ctime (Utility::GetTime());
 
-	asio::post(m_Strand, [this, item, priority]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{item, nullptr, nullptr, nullptr});
+	asio::post(m_Strand, [this, item, priority, ctime, affects]() {
+		m_Queues.Writes[priority].emplace(WriteQueueItem{item, nullptr, nullptr, nullptr, nullptr, ctime, affects});
 		m_QueuedWrites.Set();
 		IncreasePendingQueries(1);
 	});
@@ -135,7 +136,7 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConn
  * @param queries Redis queries
  * @param priority The queries' priority
  */
-void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority)
+void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
 	for (auto& query : queries) {
 		Log msg (LogDebug, "IcingaDB", "Firing and forgetting query:");
@@ -143,9 +144,10 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Red
 	}
 
 	auto item (Shared<Queries>::Make(std::move(queries)));
+	auto ctime (Utility::GetTime());
 
-	asio::post(m_Strand, [this, item, priority]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, item, nullptr, nullptr});
+	asio::post(m_Strand, [this, item, priority, ctime, affects]() {
+		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, item, nullptr, nullptr, nullptr, ctime, affects});
 		m_QueuedWrites.Set();
 		IncreasePendingQueries(item->size());
 	});
@@ -159,7 +161,7 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Red
  *
  * @return The response
  */
-RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority)
+RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
 	{
 		Log msg (LogDebug, "IcingaDB", "Executing query:");
@@ -169,9 +171,10 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 	std::promise<Reply> promise;
 	auto future (promise.get_future());
 	auto item (Shared<std::pair<Query, std::promise<Reply>>>::Make(std::move(query), std::move(promise)));
+	auto ctime (Utility::GetTime());
 
-	asio::post(m_Strand, [this, item, priority]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, item, nullptr});
+	asio::post(m_Strand, [this, item, priority, ctime, affects]() {
+		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, item, nullptr, nullptr, ctime, affects});
 		m_QueuedWrites.Set();
 		IncreasePendingQueries(1);
 	});
@@ -189,7 +192,7 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
  *
  * @return The responses
  */
-RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority)
+RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
 	for (auto& query : queries) {
 		Log msg (LogDebug, "IcingaDB", "Executing query:");
@@ -199,9 +202,10 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 	std::promise<Replies> promise;
 	auto future (promise.get_future());
 	auto item (Shared<std::pair<Queries, std::promise<Replies>>>::Make(std::move(queries), std::move(promise)));
+	auto ctime (Utility::GetTime());
 
-	asio::post(m_Strand, [this, item, priority]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, item});
+	asio::post(m_Strand, [this, item, priority, ctime, affects]() {
+		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, item, nullptr, ctime, affects});
 		m_QueuedWrites.Set();
 		IncreasePendingQueries(item->first.size());
 	});
@@ -213,8 +217,10 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 
 void RedisConnection::EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback, RedisConnection::QueryPriority priority)
 {
-	asio::post(m_Strand, [this, callback, priority]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, nullptr, callback});
+	auto ctime (Utility::GetTime());
+
+	asio::post(m_Strand, [this, callback, priority, ctime]() {
+		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, nullptr, callback, ctime});
 		m_QueuedWrites.Set();
 	});
 }
@@ -228,6 +234,36 @@ void RedisConnection::EnqueueCallback(const std::function<void(boost::asio::yiel
 void RedisConnection::Sync()
 {
 	GetResultOfQuery({"PING"}, RedisConnection::QueryPriority::SyncConnection);
+}
+
+/**
+ * Get the enqueue time of the oldest still queued Redis query
+ *
+ * @return *nix timestamp or 0
+ */
+double RedisConnection::GetOldestPendingQueryTs()
+{
+	auto promise (Shared<std::promise<double>>::Make());
+	auto future (promise->get_future());
+
+	asio::post(m_Strand, [this, promise]() {
+		double oldest = 0;
+
+		for (auto& queue : m_Queues.Writes) {
+			if (m_SuppressedQueryKinds.find(queue.first) == m_SuppressedQueryKinds.end() && !queue.second.empty()) {
+				auto ctime (queue.second.front().CTime);
+
+				if (ctime < oldest || oldest == 0) {
+					oldest = ctime;
+				}
+			}
+		}
+
+		promise->set_value(oldest);
+	});
+
+	future.wait();
+	return future.get();
 }
 
 /**
@@ -625,6 +661,8 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 	if (next.Callback) {
 		next.Callback(yc);
 	}
+
+	RecordAffected(next.Affects, Utility::GetTime());
 }
 
 /**
@@ -674,6 +712,11 @@ void RedisConnection::SetConnectedCallback(std::function<void(asio::yield_contex
 	m_ConnectedCallback = std::move(callback);
 }
 
+int RedisConnection::GetQueryCount(RingBuffer::SizeType span)
+{
+	return m_OutputQueries.UpdateAndGetValues(Utility::GetTime(), span);
+}
+
 void RedisConnection::IncreasePendingQueries(int count)
 {
 	if (m_Parent) {
@@ -699,5 +742,28 @@ void RedisConnection::DecreasePendingQueries(int count)
 	} else {
 		m_PendingQueries -= count;
 		m_OutputQueries.InsertValue(Utility::GetTime(), count);
+	}
+}
+
+void RedisConnection::RecordAffected(RedisConnection::QueryAffects affected, double when)
+{
+	if (m_Parent) {
+		auto parent (m_Parent);
+
+		asio::post(parent->m_Strand, [parent, affected, when]() {
+			parent->RecordAffected(affected, when);
+		});
+	} else {
+		if (affected.Config) {
+			m_WrittenConfig.InsertValue(when, affected.Config);
+		}
+
+		if (affected.State) {
+			m_WrittenState.InsertValue(when, affected.State);
+		}
+
+		if (affected.History) {
+			m_WrittenHistory.InsertValue(when, affected.History);
+		}
 	}
 }
