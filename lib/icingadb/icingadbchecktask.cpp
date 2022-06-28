@@ -267,7 +267,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 				<< ", greater than WARNING threshold (" << Utility::FormatDuration(dumpTakesThresholds.Warning) << ").";
 		}
 
-		perfdata->Add(new PerfdataValue("icinga2_full_dump_takes", ongoingDumpTakes, false, "seconds",
+		perfdata->Add(new PerfdataValue("icinga2_current_full_dump_duration", ongoingDumpTakes, false, "seconds",
 			dumpTakesThresholds.Warning, dumpTakesThresholds.Critical, 0));
 	}
 
@@ -282,7 +282,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 				<< ", greater than WARNING threshold (" << Utility::FormatDuration(syncTakesThresholds.Warning) << ").";
 		}
 
-		perfdata->Add(new PerfdataValue("icingadb_full_sync_takes", ongoingSyncTakes, false, "seconds",
+		perfdata->Add(new PerfdataValue("icingadb_current_full_sync_duration", ongoingSyncTakes, false, "seconds",
 			syncTakesThresholds.Warning, syncTakesThresholds.Critical, 0));
 	}
 
@@ -363,11 +363,11 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	auto dumpAgo (now - dumpWhen);
 
 	if (dumpWhen) {
-		perfdata->Add(new PerfdataValue("icinga2_full_dump_ago", dumpAgo, false, "seconds", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icinga2_last_full_dump_ago", dumpAgo, false, "seconds", Empty, Empty, 0));
 	}
 
 	if (dumpTook) {
-		perfdata->Add(new PerfdataValue("icinga2_full_dump_took", dumpTook, false, "seconds", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icinga2_last_full_dump_duration", dumpTook, false, "seconds", Empty, Empty, 0));
 	}
 
 	if (dumpWhen && dumpTook) {
@@ -398,11 +398,11 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	auto syncAgo (icingadbNow - syncSuccessWhen);
 
 	if (syncSuccessWhen) {
-		perfdata->Add(new PerfdataValue("icingadb_full_sync_ago", syncAgo, false, "seconds", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icingadb_last_full_sync_ago", syncAgo, false, "seconds", Empty, Empty, 0));
 	}
 
 	if (syncSuccessTook) {
-		perfdata->Add(new PerfdataValue("icingadb_full_sync_took", syncSuccessTook, false, "seconds", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icingadb_last_full_sync_duration", syncSuccessTook, false, "seconds", Empty, Empty, 0));
 	}
 
 	if (syncSuccessWhen && syncSuccessTook) {
