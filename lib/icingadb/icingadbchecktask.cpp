@@ -260,11 +260,13 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		auto ongoingDumpTakes (now - ongoingDumpStart);
 
 		if (!dumpTakesThresholds.Critical.IsEmpty() && ongoingDumpTakes > dumpTakesThresholds.Critical) {
-			critmsgs << " Ongoing Icinga 2 dump already takes " << Utility::FormatDuration(ongoingDumpTakes)
+			critmsgs << " Current Icinga 2 full dump already takes " << Utility::FormatDuration(ongoingDumpTakes)
 				<< ", greater than CRITICAL threshold (" << Utility::FormatDuration(dumpTakesThresholds.Critical) << ")!";
 		} else if (!dumpTakesThresholds.Warning.IsEmpty() && ongoingDumpTakes > dumpTakesThresholds.Warning) {
-			warnmsgs << " Ongoing Icinga 2 dump already takes " << Utility::FormatDuration(ongoingDumpTakes)
+			warnmsgs << " Current Icinga 2 full dump already takes " << Utility::FormatDuration(ongoingDumpTakes)
 				<< ", greater than WARNING threshold (" << Utility::FormatDuration(dumpTakesThresholds.Warning) << ").";
+		} else {
+			i2okmsgs << "\n* Current full dump running for " << Utility::FormatDuration(ongoingDumpTakes);
 		}
 
 		perfdata->Add(new PerfdataValue("icinga2_current_full_dump_duration", ongoingDumpTakes, false, "seconds",
@@ -275,11 +277,13 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		auto ongoingSyncTakes (icingadbNow - syncOngoingSince);
 
 		if (!syncTakesThresholds.Critical.IsEmpty() && ongoingSyncTakes > syncTakesThresholds.Critical) {
-			critmsgs << " Ongoing sync already takes " << Utility::FormatDuration(ongoingSyncTakes)
+			critmsgs << " Current full sync already takes " << Utility::FormatDuration(ongoingSyncTakes)
 				<< ", greater than CRITICAL threshold (" << Utility::FormatDuration(syncTakesThresholds.Critical) << ")!";
 		} else if (!syncTakesThresholds.Warning.IsEmpty() && ongoingSyncTakes > syncTakesThresholds.Warning) {
-			warnmsgs << " Ongoing sync already takes " << Utility::FormatDuration(ongoingSyncTakes)
+			warnmsgs << " Current full sync already takes " << Utility::FormatDuration(ongoingSyncTakes)
 				<< ", greater than WARNING threshold (" << Utility::FormatDuration(syncTakesThresholds.Warning) << ").";
+		} else {
+			idbokmsgs << "\n* Current full sync running for " << Utility::FormatDuration(ongoingSyncTakes);
 		}
 
 		perfdata->Add(new PerfdataValue("icingadb_current_full_sync_duration", ongoingSyncTakes, false, "seconds",
@@ -371,7 +375,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	}
 
 	if (dumpWhen && dumpTook) {
-		i2okmsgs << "\n* Last dump: " << Utility::FormatDuration(dumpAgo)
+		i2okmsgs << "\n* Last full dump: " << Utility::FormatDuration(dumpAgo)
 			<< " ago, took " << Utility::FormatDuration(dumpTook);
 	}
 
@@ -406,7 +410,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	}
 
 	if (syncSuccessWhen && syncSuccessTook) {
-		idbokmsgs << "\n* Last sync: " << Utility::FormatDuration(syncAgo)
+		idbokmsgs << "\n* Last full sync: " << Utility::FormatDuration(syncAgo)
 			<< " ago, took " << Utility::FormatDuration(syncSuccessTook);
 	}
 
