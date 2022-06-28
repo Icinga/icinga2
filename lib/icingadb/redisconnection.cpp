@@ -250,7 +250,7 @@ double RedisConnection::GetOldestPendingQueryTs()
 		double oldest = 0;
 
 		for (auto& queue : m_Queues.Writes) {
-			if (!queue.second.empty()) {
+			if (m_SuppressedQueryKinds.find(queue.first) == m_SuppressedQueryKinds.end() && !queue.second.empty()) {
 				auto ctime (queue.second.front().CTime);
 
 				if (ctime < oldest || oldest == 0) {
