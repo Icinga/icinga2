@@ -446,9 +446,9 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	}
 
 	for (auto& kv : statsPerOp) {
-		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_1min", kv.second.UpdateAndGetValues(now, 60), false, "", Empty, Empty, 0));
-		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_5mins", kv.second.UpdateAndGetValues(now, 5 * 60), false, "", Empty, Empty, 0));
-		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_15mins", kv.second.UpdateAndGetValues(now, 15 * 60), false, "", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_items_1min", kv.second.UpdateAndGetValues(now, 60), false, "", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_items_5mins", kv.second.UpdateAndGetValues(now, 5 * 60), false, "", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue("icingadb_" + kv.first + "_items_15mins", kv.second.UpdateAndGetValues(now, 15 * 60), false, "", Empty, Empty, 0));
 	}
 
 	perfdata->Add(new PerfdataValue("icinga2_redis_queries_1min", redis->GetQueryCount(60), false, "", Empty, Empty, 0));
@@ -461,15 +461,15 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		const char * Name;
 		int (RedisConnection::* Getter)(RingBuffer::SizeType span, RingBuffer::SizeType tv);
 	} const icingaWriteSubjects[] = {
-		{"icinga2_config_dump", &RedisConnection::GetWrittenConfigFor},
-		{"icinga2_state_dump", &RedisConnection::GetWrittenStateFor},
-		{"icinga2_history_dump", &RedisConnection::GetWrittenHistoryFor}
+		{"config_dump", &RedisConnection::GetWrittenConfigFor},
+		{"state_dump", &RedisConnection::GetWrittenStateFor},
+		{"history_dump", &RedisConnection::GetWrittenHistoryFor}
 	};
 
 	for (auto subject : icingaWriteSubjects) {
-		perfdata->Add(new PerfdataValue(String(subject.Name) + "_1min", (redis.get()->*subject.Getter)(60, now), false, "", Empty, Empty, 0));
-		perfdata->Add(new PerfdataValue(String(subject.Name) + "_5mins", (redis.get()->*subject.Getter)(5 * 60, now), false, "", Empty, Empty, 0));
-		perfdata->Add(new PerfdataValue(String(subject.Name) + "_15mins", (redis.get()->*subject.Getter)(15 * 60, now), false, "", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue(String("icinga2_") + subject.Name + "_items_1min", (redis.get()->*subject.Getter)(60, now), false, "", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue(String("icinga2_") + subject.Name + "_items_5mins", (redis.get()->*subject.Getter)(5 * 60, now), false, "", Empty, Empty, 0));
+		perfdata->Add(new PerfdataValue(String("icinga2_") + subject.Name + "_items_15mins", (redis.get()->*subject.Getter)(15 * 60, now), false, "", Empty, Empty, 0));
 	}
 
 	ServiceState state;
