@@ -1665,7 +1665,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 		"state_type", Convert::ToString(type),
 		"soft_state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : 99),
 		"hard_state", Convert::ToString(hard_state),
-		"attempt", Convert::ToString(checkable->GetCheckAttempt()),
+		"check_attempt", Convert::ToString(checkable->GetCheckAttempt()),
 		"previous_soft_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeSoft)),
 		"previous_hard_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeHard)),
 		"max_check_attempts", Convert::ToString(checkable->GetMaxCheckAttempts()),
@@ -2592,7 +2592,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 			attrs->Set("normalized_performance_data", normedPerfData);
 
 		if (!cr->GetCommand().IsEmpty())
-			attrs->Set("commandline", FormatCommandLine(cr->GetCommand()));
+			attrs->Set("check_commandline", FormatCommandLine(cr->GetCommand()));
 		attrs->Set("execution_time", TimestampToMilliseconds(fmax(0.0, cr->CalculateExecutionTime())));
 		attrs->Set("latency", TimestampToMilliseconds(cr->CalculateLatency()));
 		attrs->Set("check_source", cr->GetCheckSource());
@@ -2604,7 +2604,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	attrs->Set("is_reachable", checkable->IsReachable());
 	attrs->Set("is_flapping", checkable->IsFlapping());
 
-	attrs->Set("acknowledgement", checkable->GetAcknowledgement());
+	attrs->Set("is_acknowledged", checkable->GetAcknowledgement());
 	if (checkable->IsAcknowledged()) {
 		Timestamp entry = 0;
 		Comment::Ptr AckComment;
