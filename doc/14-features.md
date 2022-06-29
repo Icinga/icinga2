@@ -48,173 +48,23 @@ The REST API is documented [here](12-icinga2-api.md#icinga2-api) as a core featu
 
 ### Icinga DB <a id="core-backends-icingadb"></a>
 
-Icinga DB provides a new core backend and aims to replace the IDO backend
-output. It consists of different components:
+Icinga DB is a set of components for publishing, synchronizing and
+visualizing monitoring data in the Icinga ecosystem, consisting of:
 
-* Icinga 2 provides the `icingadb` feature which stores monitoring data in a memory database
-* The [IcingaDB service](https://github.com/icinga/icingadb) collects and synchronizes monitoring data into its backend
-* Icinga Web reads monitoring data from the new IcingaDB backend
+* Icinga 2 with its `icingadb` feature enabled,
+  responsible for publishing monitoring data to a Redis server, i.e. configuration and its runtime updates,  
+  check results, state changes, downtimes, acknowledgements, notifications, and other events such as flapping
+* The [Icinga DB daemon](https://icinga.com/docs/icinga-db),
+  which synchronizes the data between the Redis server and a database
+* And Icinga Web with the
+  [Icinga DB Web](https://icinga.com/docs/icinga-db-web) module enabled,
+  which connects to both Redis and the database to display and work with the most up-to-date data
 
-Requirements:
+![Icinga DB Architecture](images/icingadb/icingadb-architecture.png)
 
-* Local Redis instance
-* MySQL/MariaDB server with `icingadb` database, user and schema imports
-* Icinga 2's `icingadb` feature enabled
-* IcingaDB service requires Redis and MySQL/MariaDB server
-* Icinga Web module
-
-Consult the [Icinga DB installation documentation](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/) for setup instructions.
-
-We will deprecate the IDO and shift towards the Icinga DB as main backend,
-but we will not drop the IDO for now.
-We know that it takes time until the Icinga DB is adopted
-(maybe even up to one to two years)
-and we won’t drop the IDO until it is comfortable to do so.
-
-### IDO Database (DB IDO) <a id="db-ido"></a>
-
-The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
-configuration and status information into a database. The IDO database is used
-by Icinga Web 2 as data backend.
-
-Details on the installation can be found in the "Prepare for Icinga Web 2" chapter
-of the [Installation docs](02-installation.md). Details on the configuration can be found in the
-[IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection) and
-[IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection)
-object configuration documentation.
-
-#### DB IDO Health <a id="db-ido-health"></a>
-
-If the monitoring health indicator is critical in Icinga Web 2,
-you can use the following queries to manually check whether Icinga 2
-is actually updating the IDO database.
-
-Icinga 2 writes its current status to the `icinga_programstatus` table
-every 10 seconds. The query below checks 60 seconds into the past which is a reasonable
-amount of time -- adjust it for your requirements. If the condition is not met,
-the query returns an empty result.
-
-> **Tip**
->
-> Use [check plugins](05-service-monitoring.md#service-monitoring-plugins) to monitor the backend.
-
-Replace the `default` string with your instance name if different.
-
-Example for MySQL:
-
-```
-# mysql -u root -p icinga -e "SELECT status_update_time FROM icinga_programstatus ps
-  JOIN icinga_instances i ON ps.instance_id=i.instance_id
-  WHERE (UNIX_TIMESTAMP(ps.status_update_time) > UNIX_TIMESTAMP(NOW())-60)
-  AND i.instance_name='default';"
-
-+---------------------+
-| status_update_time  |
-+---------------------+
-| 2014-05-29 14:29:56 |
-+---------------------+
-```
-
-Example for PostgreSQL:
-
-```
-# export PGPASSWORD=icinga; psql -U icinga -d icinga -c "SELECT ps.status_update_time FROM icinga_programstatus AS ps
-  JOIN icinga_instances AS i ON ps.instance_id=i.instance_id
-  WHERE ((SELECT extract(epoch from status_update_time) FROM icinga_programstatus) > (SELECT extract(epoch from now())-60))
-  AND i.instance_name='default'";
-
-status_update_time
-------------------------
- 2014-05-29 15:11:38+02
-(1 Zeile)
-```
-
-A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](24-appendix.md#schema-db-ido).
-
-#### DB IDO in Cluster HA Zones <a id="db-ido-cluster-ha"></a>
-
-The DB IDO feature supports [High Availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido) in
-the Icinga 2 cluster.
-
-By default, both endpoints in a zone calculate the
-endpoint which activates the feature, the other endpoint
-automatically pauses it. If the cluster connection
-breaks at some point, the paused IDO feature automatically
-does a failover.
-
-You can disable this behaviour by setting `enable_ha = false`
-in both feature configuration files.
-
-#### DB IDO Cleanup <a id="db-ido-cleanup"></a>
-
-Objects get deactivated when they are deleted from the configuration.
-This is visible with the `is_active` column in the `icinga_objects` table.
-Therefore all queries need to join this table and add `WHERE is_active=1` as
-condition. Deleted objects preserve their history table entries for later SLA
-reporting.
-
-Historical data isn't purged by default. You can enable the least
-kept data age inside the `cleanup` configuration attribute for the
-IDO features [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection)
-and [IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection).
-
-Example if you prefer to keep notification history for 30 days:
-
-```
-  cleanup = {
-     notifications_age = 30d
-     contactnotifications_age = 30d
-  }
-```
-
-The historical tables are populated depending on the data `categories` specified.
-Some tables are empty by default.
-
-#### DB IDO Tuning <a id="db-ido-tuning"></a>
-
-As with any application database, there are ways to optimize and tune the database performance.
-
-General tips for performance tuning:
-
-* [MariaDB KB](https://mariadb.com/kb/en/library/optimization-and-tuning/)
-* [PostgreSQL Wiki](https://wiki.postgresql.org/wiki/Performance_Optimization)
-
-Re-creation of indexes, changed column values, etc. will increase the database size. Ensure to
-add health checks for this, and monitor the trend in your Grafana dashboards.
-
-In order to optimize the tables, there are different approaches. Always keep in mind to have a
-current backup and schedule maintenance downtime for these kind of tasks!
-
-MySQL:
-
-```
-mariadb> OPTIMIZE TABLE icinga_statehistory;
-```
-
-> **Important**
->
-> Tables might not support optimization at runtime. This can take a **long** time.
->
-> `Table does not support optimize, doing recreate + analyze instead`.
-
-If you want to optimize all tables in a specified database, there is a script called `mysqlcheck`.
-This also allows to repair broken tables in the case of emergency.
-
-```bash
-mysqlcheck --optimize icinga
-```
-
-PostgreSQL:
-
-```
-icinga=# vacuum;
-VACUUM
-```
-
-> **Note**
->
-> Don't use `VACUUM FULL` as this has a severe impact on performance.
-
+To set up a Redis server and the Icinga DB feature, please follow the steps from the
+Icinga 2 [Installation](02-installation.md) guide. For the feature configuration options,
+see its [Icinga DB object type](09-object-types.md#icingadb) documentation.
 
 ## Metrics <a id="metrics"></a>
 
@@ -933,6 +783,379 @@ is running on.
 
 
 ## Deprecated Features <a id="deprecated-features"></a>
+
+### IDO Database (DB IDO) <a id="db-ido"></a>
+
+> **Note**
+>
+> This feature is DEPRECATED and may be removed in future releases.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+
+The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
+configuration and status information into a database. The IDO database is used
+by Icinga Web 2 as data backend. You can either use a
+[MySQL](#ido-with-mysql) or [PostgreSQL](#ido-with-postgresql) database.
+
+#### IDO with MySQL <a id="ido-with-mysql"></a>
+
+##### Install IDO Feature <a id="installing-database-mysql-modules"></a>
+
+The next step is to install the `icinga2-ido-mysql` package using your
+distribution's package manager.
+
+###### Debian / Ubuntu
+
+```bash
+apt-get install icinga2-ido-mysql
+```
+
+!!! note
+
+    The packages provide a database configuration wizard by
+    default. You can skip the automated setup and install/upgrade the
+    database manually if you prefer.
+
+###### CentOS 7
+
+!!! info
+
+    Note that installing `icinga2-ido-mysql` is only supported on CentOS 7 as CentOS 8 is EOL.
+
+```bash
+yum install icinga2-ido-mysql
+```
+
+###### RHEL 8
+
+```bash
+dnf install icinga2-ido-mysql
+```
+
+###### RHEL 7
+
+```bash
+yum install icinga2-ido-mysql
+```
+
+###### SLES
+
+```bash
+zypper install icinga2-ido-mysql
+```
+
+###### Amazon Linux 2
+
+```bash
+yum install icinga2-ido-mysql
+```
+
+##### Set up MySQL database <a id="setting-up-mysql-db"></a>
+
+Set up a MySQL database for Icinga 2:
+
+```bash
+# mysql -u root -p
+
+CREATE DATABASE icinga;
+GRANT ALTER, CREATE, SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
+quit
+```
+
+Please note that the example above uses the very simple password 'icinga' (in `IDENTIFIED BY 'icinga'`).
+Please choose a better password for your installation.
+
+After creating the database you can import the Icinga 2 IDO schema using the
+following command. Enter the icinga password into the prompt when asked.
+
+```bash
+mysql -u icinga -p icinga < /usr/share/icinga2-ido-mysql/schema/mysql.sql
+```
+
+##### Enable the IDO MySQL feature <a id="enable-ido-mysql"></a>
+
+The package provides a new configuration file that is installed in
+`/etc/icinga2/features-available/ido-mysql.conf`. You can update
+the database credentials in this file.
+
+All available attributes are explained in the
+[IdoMysqlConnection object](09-object-types.md#objecttype-idomysqlconnection)
+chapter.
+
+Enable the `ido-mysql` feature configuration file using the `icinga2` command:
+
+```bash
+# icinga2 feature enable ido-mysql
+Module 'ido-mysql' was enabled.
+Make sure to restart Icinga 2 for these changes to take effect.
+```
+
+Restart Icinga 2.
+
+```bash
+systemctl restart icinga2
+```
+
+#### IDO with PostgreSQL <a id="ido-with-postgresql"></a>
+
+##### Install IDO Feature <a id="installing-database-postgresql-modules"></a>
+
+The next step is to install the `icinga2-ido-pgsql` package using your
+distribution's package manager.
+
+###### Debian / Ubuntu
+
+```bash
+apt-get install icinga2-ido-pgsql
+```
+
+!!! note
+
+    Upstream Debian packages provide a database configuration wizard by default.
+    You can skip the automated setup and install/upgrade the database manually
+    if you prefer that.
+
+###### CentOS 7
+
+!!! info
+
+    Note that installing `icinga2-ido-pgsql` is only supported on CentOS 7 as CentOS 8 is EOL.
+
+```bash
+yum install icinga2-ido-pgsql
+```
+
+###### RHEL 8
+
+```bash
+dnf install icinga2-ido-pgsql
+```
+
+###### RHEL 7
+
+```bash
+yum install icinga2-ido-pgsql
+```
+
+###### SLES
+
+```bash
+zypper install icinga2-ido-pgsql
+```
+
+###### Amazon Linux 2
+
+```bash
+yum install icinga2-ido-pgsql
+```
+
+##### Set up PostgreSQL database
+
+Set up a PostgreSQL database for Icinga 2:
+
+```bash
+cd /tmp
+sudo -u postgres psql -c "CREATE ROLE icinga WITH LOGIN PASSWORD 'icinga'"
+sudo -u postgres createdb -O icinga -E UTF8 icinga
+```
+
+!!! note
+
+    It is assumed here that your locale is set to utf-8, you may run into problems otherwise.
+
+Locate your `pg_hba.conf` configuration file and add the icinga user with `md5` as authentication method
+and restart the postgresql server. Common locations for `pg_hba.conf` are either
+`/etc/postgresql/*/main/pg_hba.conf` or `/var/lib/pgsql/data/pg_hba.conf`.
+
+```
+# icinga
+local   icinga      icinga                            md5
+host    icinga      icinga      127.0.0.1/32          md5
+host    icinga      icinga      ::1/128               md5
+
+# "local" is for Unix domain socket connections only
+local   all         all                               ident
+# IPv4 local connections:
+host    all         all         127.0.0.1/32          ident
+# IPv6 local connections:
+host    all         all         ::1/128               ident
+```
+
+Restart PostgreSQL:
+
+```bash
+systemctl restart postgresql
+```
+
+After creating the database and permissions you need to import the IDO database
+schema using the following command:
+
+```bash
+export PGPASSWORD=icinga
+psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/pgsql.sql
+```
+
+##### Enable the IDO PostgreSQL feature <a id="enable-ido-postgresql"></a>
+
+The package provides a new configuration file that is installed in
+`/etc/icinga2/features-available/ido-pgsql.conf`. You can update
+the database credentials in this file.
+
+All available attributes are explained in the
+[IdoPgsqlConnection object](09-object-types.md#objecttype-idopgsqlconnection)
+chapter.
+
+Enable the `ido-pgsql` feature configuration file using the `icinga2` command:
+
+```
+# icinga2 feature enable ido-pgsql
+Module 'ido-pgsql' was enabled.
+Make sure to restart Icinga 2 for these changes to take effect.
+```
+
+Restart Icinga 2.
+
+```bash
+systemctl restart icinga2
+```
+
+#### Configuration
+
+Details on the configuration can be found in the
+[IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection) and
+[IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection)
+object configuration documentation.
+
+#### DB IDO Health <a id="db-ido-health"></a>
+
+If the monitoring health indicator is critical in Icinga Web 2,
+you can use the following queries to manually check whether Icinga 2
+is actually updating the IDO database.
+
+Icinga 2 writes its current status to the `icinga_programstatus` table
+every 10 seconds. The query below checks 60 seconds into the past which is a reasonable
+amount of time -- adjust it for your requirements. If the condition is not met,
+the query returns an empty result.
+
+> **Tip**
+>
+> Use [check plugins](05-service-monitoring.md#service-monitoring-plugins) to monitor the backend.
+
+Replace the `default` string with your instance name if different.
+
+Example for MySQL:
+
+```
+# mysql -u root -p icinga -e "SELECT status_update_time FROM icinga_programstatus ps
+  JOIN icinga_instances i ON ps.instance_id=i.instance_id
+  WHERE (UNIX_TIMESTAMP(ps.status_update_time) > UNIX_TIMESTAMP(NOW())-60)
+  AND i.instance_name='default';"
+
++---------------------+
+| status_update_time  |
++---------------------+
+| 2014-05-29 14:29:56 |
++---------------------+
+```
+
+Example for PostgreSQL:
+
+```
+# export PGPASSWORD=icinga; psql -U icinga -d icinga -c "SELECT ps.status_update_time FROM icinga_programstatus AS ps
+  JOIN icinga_instances AS i ON ps.instance_id=i.instance_id
+  WHERE ((SELECT extract(epoch from status_update_time) FROM icinga_programstatus) > (SELECT extract(epoch from now())-60))
+  AND i.instance_name='default'";
+
+status_update_time
+------------------------
+ 2014-05-29 15:11:38+02
+(1 Zeile)
+```
+
+A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](24-appendix.md#schema-db-ido).
+
+#### DB IDO in Cluster HA Zones <a id="db-ido-cluster-ha"></a>
+
+The DB IDO feature supports [High Availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido) in
+the Icinga 2 cluster.
+
+By default, both endpoints in a zone calculate the
+endpoint which activates the feature, the other endpoint
+automatically pauses it. If the cluster connection
+breaks at some point, the paused IDO feature automatically
+does a failover.
+
+You can disable this behaviour by setting `enable_ha = false`
+in both feature configuration files.
+
+#### DB IDO Cleanup <a id="db-ido-cleanup"></a>
+
+Objects get deactivated when they are deleted from the configuration.
+This is visible with the `is_active` column in the `icinga_objects` table.
+Therefore all queries need to join this table and add `WHERE is_active=1` as
+condition. Deleted objects preserve their history table entries for later SLA
+reporting.
+
+Historical data isn't purged by default. You can enable the least
+kept data age inside the `cleanup` configuration attribute for the
+IDO features [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection)
+and [IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection).
+
+Example if you prefer to keep notification history for 30 days:
+
+```
+  cleanup = {
+     notifications_age = 30d
+     contactnotifications_age = 30d
+  }
+```
+
+The historical tables are populated depending on the data `categories` specified.
+Some tables are empty by default.
+
+#### DB IDO Tuning <a id="db-ido-tuning"></a>
+
+As with any application database, there are ways to optimize and tune the database performance.
+
+General tips for performance tuning:
+
+* [MariaDB KB](https://mariadb.com/kb/en/library/optimization-and-tuning/)
+* [PostgreSQL Wiki](https://wiki.postgresql.org/wiki/Performance_Optimization)
+
+Re-creation of indexes, changed column values, etc. will increase the database size. Ensure to
+add health checks for this, and monitor the trend in your Grafana dashboards.
+
+In order to optimize the tables, there are different approaches. Always keep in mind to have a
+current backup and schedule maintenance downtime for these kind of tasks!
+
+MySQL:
+
+```
+mariadb> OPTIMIZE TABLE icinga_statehistory;
+```
+
+> **Important**
+>
+> Tables might not support optimization at runtime. This can take a **long** time.
+>
+> `Table does not support optimize, doing recreate + analyze instead`.
+
+If you want to optimize all tables in a specified database, there is a script called `mysqlcheck`.
+This also allows to repair broken tables in the case of emergency.
+
+```bash
+mysqlcheck --optimize icinga
+```
+
+PostgreSQL:
+
+```
+icinga=# vacuum;
+VACUUM
+```
+
+> **Note**
+>
+> Don't use `VACUUM FULL` as this has a severe impact on performance.
 
 ### Status Data Files <a id="status-data"></a>
 

@@ -1393,7 +1393,7 @@ Configuration Attributes:
 
 ### IcingaDB <a id="objecttype-icingadb"></a>
 
-The IcingaDB object implements the [icingadb feauture](14-features.md#core-backends-icingadb).
+The `IcingaDB` object implements the [Icinga DB feature](14-features.md#icinga-db).
 
 Example:
 
@@ -1409,10 +1409,10 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  host                      | String                | **Optional.** Redis host for IcingaDB. Defaults to `127.0.0.1`.
-  port                      | Number                | **Optional.** Redis port for IcingaDB. Defaults to `6380`.
-  path                      | String                | **Optional.** Redix unix socket path. Can be used instead of `host` and `port` attributes.
-  password                  | String                | **Optional.** Redis auth password for IcingaDB.
+  host                      | String                | **Optional.** Redis host. Defaults to `127.0.0.1`.
+  port                      | Number                | **Optional.** Redis port. Defaults to `6380` since the Redis server provided by the `icingadb-redis` package listens on that port.
+  path                      | String                | **Optional.** Redis unix socket path. Can be used instead of `host` and `port` attributes.
+  password                  | String                | **Optional.** Redis auth password.
   enable\_tls               | Boolean               | **Optional.** Whether to use TLS.
   cert\_path                | String                | **Optional.** Path to the certificate.
   key\_path                 | String                | **Optional.** Path to the private key.
@@ -1424,6 +1424,11 @@ Configuration Attributes:
   connect\_timeout          | Number                | **Optional.** Timeout for establishing new connections. Within this time, the TCP, TLS (if enabled) and Redis handshakes must complete. Defaults to `15s`.
 
 ### IdoMySqlConnection <a id="objecttype-idomysqlconnection"></a>
+
+> **Note**
+>
+> This feature is DEPRECATED and may be removed in future releases.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 IDO database adapter for MySQL.
 This configuration object is available as [ido-mysql feature](14-features.md#db-ido).
@@ -1526,6 +1531,11 @@ Runtime Attributes:
   last\_failover              | Timestamp             | When the last failover happened for this connection (only available with `enable_ha = true`.
 
 ### IdoPgsqlConnection <a id="objecttype-idopgsqlconnection"></a>
+
+> **Note**
+>
+> This feature is DEPRECATED and may be removed in future releases.
+> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
 IDO database adapter for PostgreSQL.
 This configuration object is available as [ido-pgsql feature](14-features.md#db-ido).
