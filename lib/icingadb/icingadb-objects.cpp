@@ -2548,14 +2548,14 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	if (service) {
 		attrs->Set("service_id", id);
 		auto state = service->HasBeenChecked() ? service->GetState() : 99;
-		attrs->Set("state", state);
+		attrs->Set("soft_state", state);
 		attrs->Set("hard_state", service->HasBeenChecked() ? service->GetLastHardState() : 99);
 		attrs->Set("severity", service->GetSeverity());
 		attrs->Set("host_id", GetObjectIdentifier(host));
 	} else {
 		attrs->Set("host_id", id);
 		auto state = host->HasBeenChecked() ? host->GetState() : 99;
-		attrs->Set("state", state);
+		attrs->Set("soft_state", state);
 		attrs->Set("hard_state", host->HasBeenChecked() ? host->GetLastHardState() : 99);
 		attrs->Set("severity", host->GetSeverity());
 	}
