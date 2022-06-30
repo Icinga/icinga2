@@ -1376,6 +1376,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
 
   Parameter     | Type      | Description
   --------------|-----------|--------------
+  type          | String    | **Required.** Downtime type. Either `Host`, or `Service`.
   author        | String    | **Required.** Name of the author.
   comment       | String    | **Required.** Comment text.
   start\_time   | Timestamp | **Required.** Timestamp marking the beginning of the downtime.
@@ -1386,7 +1387,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
   trigger\_name | String    | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](08-advanced-topics.md#downtimes) for more information on triggered downtimes.
   child\_options| String    | **Optional.** Schedule child downtimes. `DowntimeNoChildren` does not do anything, `DowntimeTriggeredChildren` schedules child downtimes triggered by this downtime, `DowntimeNonTriggeredChildren` schedules non-triggered downtimes. Defaults to `DowntimeNoChildren`.
 
-In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
+In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided.
 
 Example for scheduling a downtime for all `ping4` services:
 
