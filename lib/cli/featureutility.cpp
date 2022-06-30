@@ -58,7 +58,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 
 	std::vector<std::string> errors;
 
-	for (const String& feature : features) {
+	for (auto& feature : features) {
 		String source = features_available_dir + "/" + feature + ".conf";
 
 		if (!Utility::PathExists(source) ) {
@@ -126,7 +126,7 @@ int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
 
 	std::vector<std::string> errors;
 
-	for (const String& feature : features) {
+	for (auto& feature : features) {
 		String target = features_enabled_dir + "/" + feature + ".conf";
 
 		if (!Utility::PathExists(target) ) {
