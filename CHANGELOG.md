@@ -7,6 +7,31 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.4 (2022-06-30)
+
+This release brings the final changes needed for the Icinga DB 1.0 release.
+Addtionally, it includes some fixes and a performance improvement resulting
+in faster config validation and reload times.
+
+### Bugfixes
+
+* Fix a race-condition involving object attribute updates that could result in a crash. #9395
+* After a host recovered, only send problem notifications for services after
+  they have been rechecked afterwards to avoid false notifications. #9348
+* Speed up config validation by avoiding redundant serialization of objects. #9400
+* Add a `separator` attribute to allow using arguments like `--key=value` as required by some
+  check plugins. This fixes the `--upgrade` and `--dist-upgrade` arguments of `check_apt`. #9397
+* Windows: Update bundled versions of Boost and OpenSSL. #9360 #9415
+
+### Icinga DB
+
+* Add an `icingadb` CheckCommand to allow checking if Icinga DB is healthy. #9417
+* Update documentation related to Icinga DB. #9423
+* Fix a bug where history events could miss the environment ID. #9396
+* Properly serialize attributes of command arguments when explicitly set to `null`. #9398
+* Rename some attributes to make the database schema more consistent. #9399 #9419 #9421
+* Make the error message more helpful if the API isn't set up #9418
+
 ## 2.13.3 (2022-04-14)
 
 This version includes bugfixes for many features of Icinga 2, including fixes for multiple crashes.
