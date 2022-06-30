@@ -565,7 +565,7 @@ created by the API.
 ### Querying Objects <a id="icinga2-api-config-objects-query"></a>
 
 You can request information about configuration objects by sending
-a `GET` query to the `/v1/objects/<type>` URL endpoint. `<type` has
+a `GET` query to the `/v1/objects/<type>` URL endpoint. `<type>` has
 to be replaced with the plural name of the object type you are interested
 in:
 
