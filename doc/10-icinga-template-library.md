@@ -219,8 +219,10 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 Name                    | Description
 ------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 apt_extra_opts          | **Optional.** Read options from an ini file.
-apt_upgrade             | **Optional.** [Default] Perform an upgrade. If an optional OPTS argument is provided, apt-get will be run with these command line options instead of the default.
-apt_dist_upgrade        | **Optional.** Perform a dist-upgrade instead of normal upgrade. Like with -U OPTS can be provided to override the default options.
+apt_upgrade             | **Optional.** [Default] Perform an upgrade. apt-get will be run with the default command line options.
+apt_upgrade_opts        | **Optional.** Perform an upgrade. apt-get will be run with the provided command line options instead of the default.
+apt_dist_upgrade        | **Optional.** Perform a dist-upgrade instead of normal upgrade. apt-get will be run with the default command line options.
+apt_dist_upgrade_opts   | **Optional.** Perform a dist-upgrade instead of normal upgrade. apt-get will be run with the provided command line options instead of the default.
 apt_include             | **Optional.** Include only packages matching REGEXP. Can be specified multiple times the values will be combined together.
 apt_exclude             | **Optional.** Exclude packages matching REGEXP from the list of packages that would otherwise be included. Can be specified multiple times.
 apt_critical            | **Optional.** If the full package information of any of the upgradable packages match this REGEXP, the plugin will return CRITICAL status. Can be specified multiple times.
