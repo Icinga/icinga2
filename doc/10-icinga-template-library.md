@@ -3698,7 +3698,7 @@ This category includes all plugins for various virtualization technologies.
 
 The [check_esxi_hardware.py](https://www.claudiokuenzler.com/monitoring-plugins/check_esxi_hardware.php) plugin
 uses the [pywbem](https://pywbem.github.io/pywbem/) Python library to monitor the hardware of ESXi servers
-through the [VMWare API](https://www.vmware.com/support/pubs/sdk_pubs.html) and CIM service.
+through the [VMWare CIM API](https://developer.vmware.com/apis/207/cim).
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
@@ -3714,6 +3714,8 @@ esxi_hardware_html      | **Optional.** Add web-links to hardware manuals for De
 esxi_hardware_ignore    | **Optional.** Comma separated list of CIM elements to ignore.
 esxi_hardware_regex     | **Optional.** Allow regular expression lookups of elements in ignore list. Defaults to false.
 esxi_hardware_perfdata  | **Optional.** Add performcedata for graphers like PNP4Nagios to the output. Defaults to false.
+esxi_hardware_format    | **Optional.** Set output format to string or json. Defaults to string.
+esxi_hardware_pretty    | **Optional.** Show plugin output in a human readable format. Only useful with **esxi_hardware_format** = json.
 esxi_hardware_nopower   | **Optional.** Do not collect power performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
 esxi_hardware_novolts   | **Optional.** Do not collect voltage performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
 esxi_hardware_nocurrent | **Optional.** Do not collect current performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
