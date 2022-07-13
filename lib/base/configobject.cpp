@@ -16,6 +16,7 @@
 #include "base/workqueue.hpp"
 #include "base/context.hpp"
 #include "base/application.hpp"
+#include "base/defer.hpp"
 #include <fstream>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
@@ -504,6 +505,27 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 	sfp->Close();
 
 	fp.close();
+
+#ifdef _WIN32
+	HANDLE h = CreateFileA(tempFilename.CStr(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	if (h == INVALID_HANDLE_VALUE) {
+		DWORD errorCode = GetLastError();
+		BOOST_THROW_EXCEPTION(win32_error()
+			<< boost::errinfo_api_function("CreateFileA")
+			<< errinfo_win32_error(errorCode)
+			<< boost::errinfo_file_name(tempFilename));
+	} else {
+		Defer close([&h]() { CloseHandle(h); });
+
+		if (!FlushFileBuffers(h)) {
+			DWORD errorCode = GetLastError();
+			BOOST_THROW_EXCEPTION(win32_error()
+				<< boost::errinfo_api_function("FlushFileBuffers")
+				<< errinfo_win32_error(errorCode)
+				<< boost::errinfo_file_name(tempFilename));
+		}
+	}
+#endif /* _WIN32 */
 
 	Utility::RenameFile(tempFilename, filename);
 }
