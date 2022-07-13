@@ -20,7 +20,7 @@ static HANDLE l_EventLog = nullptr;
 
 void WindowsEventLogLogger::StaticInitialize()
 {
-	l_EventLog = RegisterEventSourceA(nullptr, "Icinga 2");
+	l_EventLog = RegisterEventSourceA(nullptr, "Icinga 2 General");
 }
 
 void WindowsEventLogLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
