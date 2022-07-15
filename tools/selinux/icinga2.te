@@ -43,6 +43,7 @@ require {
 	type nagios_eventhandler_plugin_t; type nagios_eventhandler_plugin_exec_t;
 	type nagios_openshift_plugin_t; type nagios_openshift_plugin_exec_t;
 	type httpd_t; type system_mail_t;
+	type redis_t; type redis_var_run_t; type redis_port_t;
 	type devlog_t;
 	role staff_r;
 	attribute unreserved_port_type;
@@ -199,6 +200,14 @@ postgresql_tcp_connect(icinga2_t)
 
 # graphite is using port 2003 which is lmtp_port_t
 corenet_tcp_connect_lmtp_port(icinga2_t)
+
+# Allow icinga2 to connect to redis using unix domain sockets
+stream_connect_pattern(icinga2_t, redis_var_run_t, redis_var_run_t, redis_t)
+
+# Just like `redis_tcp_connect(icinga2_t)`, though this interface does not exist on centos7
+corenet_tcp_recvfrom_labeled(icinga2_t, redis_t)
+corenet_tcp_sendrecv_redis_port(icinga2_t)
+corenet_tcp_connect_redis_port(icinga2_t)
 
 # This is for other feature that do not use a confined port
 # or if you run one one with a non standard port.
