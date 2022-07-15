@@ -67,6 +67,7 @@ sepolicy manpage -p . -d icinga2_t
 
 # Label the port 5665
 /sbin/semanage port -a -t icinga2_port_t -p tcp 5665
+/sbin/semanage port -a -t redis_port_t -p tcp 6380
 
 # Generate a rpm package for the newly generated policy
 pwd=$(pwd)
