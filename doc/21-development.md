@@ -2173,7 +2173,7 @@ Icinga application using a dist tarball (including notes for distributions):
 * cmake >= 2.6
 * GNU make (make) or ninja-build
 * C++ compiler which supports C++14
-    * RHEL/Fedora/SUSE: gcc-c++ >= 6.3 (extra Developer Tools on RHEL7 see below)
+    * RHEL/Fedora/SUSE: gcc-c++ >= 7 (extra Developer Tools on RHEL7 see below)
     * Debian/Ubuntu: build-essential
     * Alpine: build-base
     * you can also use clang++
