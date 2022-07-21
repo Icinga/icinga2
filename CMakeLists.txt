@@ -163,7 +163,7 @@ else()
   set(LOGROTATE_CREATE "\n\tcreate 644 ${ICINGA2_USER} ${ICINGA2_GROUP}")
 endif()
 
-find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS coroutine context date_time filesystem thread system program_options regex REQUIRED)
+find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS coroutine context date_time filesystem iostreams thread system program_options regex REQUIRED)
 
 # Boost.Coroutine2 (the successor of Boost.Coroutine)
 # (1) doesn't even exist in old Boost versions and
