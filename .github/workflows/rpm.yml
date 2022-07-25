@@ -33,15 +33,18 @@ jobs:
           - name: fedora
             release: 35
             subscription: false
-          - name: fedora
-            release: 34
-            subscription: false
+          - name: sles
+            release: '15.4'
+            subscription: true
           - name: sles
             release: '15.3'
             subscription: true
           - name: sles
             release: '12.5'
             subscription: true
+          - name: opensuse
+            release: '15.4'
+            subscription: false
           - name: opensuse
             release: '15.3'
             subscription: false
