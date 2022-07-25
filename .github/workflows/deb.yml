@@ -21,21 +21,12 @@ jobs:
           - name: debian
             codename: buster
             has32bit: true
-          - name: debian
-            codename: stretch
-            has32bit: true
           - name: ubuntu
             codename: jammy
             has32bit: false
           - name: ubuntu
-            codename: impish
-            has32bit: false
-          - name: ubuntu
             codename: focal
             has32bit: false
-          - name: ubuntu
-            codename: bionic
-            has32bit: true
 
     runs-on: ubuntu-latest
 
