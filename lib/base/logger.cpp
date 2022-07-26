@@ -256,7 +256,7 @@ Log::~Log()
 	}
 
 #ifdef _WIN32
-	if (Logger::IsEarlyLoggingEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity()) {
+	if (Logger::IsEarlyLoggingEnabled() && entry.Severity >= LogCritical) {
 		WindowsEventLogLogger::WriteToWindowsEventLog(entry);
 	}
 #endif /* _WIN32 */
