@@ -135,6 +135,10 @@ public:
 	static String CreateTempFile(const String& path, int mode, std::fstream& fp);
 
 #ifdef _WIN32
+	static int MksTemp(char *tmpl);
+#endif /* _WIN32 */
+
+#ifdef _WIN32
 	static String GetIcingaInstallPath();
 	static String GetIcingaDataPath();
 #endif /* _WIN32 */
@@ -184,10 +188,6 @@ public:
 
 private:
 	Utility();
-
-#ifdef _WIN32
-	static int MksTemp (char *tmpl);
-#endif /* _WIN32 */
 
 #ifdef I2_DEBUG
 	static double m_DebugTime;

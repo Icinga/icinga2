@@ -17,6 +17,7 @@ set(base_SOURCES
   application.cpp application.hpp application-ti.hpp application-version.cpp application-environment.cpp
   array.cpp array.hpp array-script.cpp
   atomic.hpp
+  atomic-file.cpp atomic-file.hpp
   base64.cpp base64.hpp
   boolean.cpp boolean.hpp boolean-script.cpp
   bulker.hpp
