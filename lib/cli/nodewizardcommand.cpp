@@ -6,6 +6,7 @@
 #include "cli/apisetuputility.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/pkiutility.hpp"
+#include "base/atomic-file.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -451,8 +452,7 @@ wizard_ticket:
 	String apiConfPath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apiConfPath);
 
-	std::fstream fp;
-	String tempApiConfPath = Utility::CreateTempFile(apiConfPath + ".XXXXXX", 0644, fp);
+	AtomicFile fp (apiConfPath, 0644);
 
 	fp << "/**\n"
 		<< " * The API listener is used for distributed monitoring setups.\n"
@@ -468,9 +468,7 @@ wizard_ticket:
 
 	fp << "}\n";
 
-	fp.close();
-
-	Utility::RenameFile(tempApiConfPath, apiConfPath);
+	fp.Commit();
 
 	/* Zones configuration. */
 	Log(LogInformation, "cli", "Generating local zones.conf.");
@@ -556,20 +554,14 @@ wizard_global_zone_loop_start:
 	if (!ticket.IsEmpty()) {
 		String ticketPath = ApiListener::GetCertsDir() + "/ticket";
 
-		String tempTicketPath = Utility::CreateTempFile(ticketPath + ".XXXXXX", 0600, fp);
+		AtomicFile::Write(ticketPath, 0600, ticket);
 
-		if (!Utility::SetFileOwnership(tempTicketPath, user, group)) {
+		if (!Utility::SetFileOwnership(ticketPath, user, group)) {
 			Log(LogWarning, "cli")
 				<< "Cannot set ownership for user '" << user
 				<< "' group '" << group
-				<< "' on file '" << tempTicketPath << "'. Verify it yourself!";
+				<< "' on file '" << ticketPath << "'. Verify it yourself!";
 		}
-
-		fp << ticket;
-
-		fp.close();
-
-		Utility::RenameFile(tempTicketPath, ticketPath);
 	}
 
 	/* If no parent connection was made, the user must supply the ca.crt before restarting Icinga 2.*/
@@ -745,8 +737,7 @@ wizard_global_zone_loop_start:
 	String apiConfPath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apiConfPath);
 
-	std::fstream fp;
-	String tempApiConfPath = Utility::CreateTempFile(apiConfPath + ".XXXXXX", 0644, fp);
+	AtomicFile fp (apiConfPath, 0644);
 
 	fp << "/**\n"
 		<< " * The API listener is used for distributed monitoring setups.\n"
@@ -762,9 +753,7 @@ wizard_global_zone_loop_start:
 		<< "  ticket_salt = TicketSalt\n"
 		<< "}\n";
 
-	fp.close();
-
-	Utility::RenameFile(tempApiConfPath, apiConfPath);
+	fp.Commit();
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
 	if (cn != Utility::GetFQDN()) {

@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/atomic-file.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/application.hpp"
@@ -1443,16 +1444,7 @@ Value Utility::LoadJsonFile(const String& path)
 
 void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 {
-	namespace fs = boost::filesystem;
-
-	std::fstream fp;
-	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", mode, fp);
-
-	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-	fp << JsonEncode(value);
-	fp.close();
-
-	RenameFile(tempFilename, path);
+	AtomicFile::Write(path, mode, JsonEncode(value));
 }
 
 static void HexEncode(char ch, std::ostream& os)

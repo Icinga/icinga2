@@ -5,6 +5,7 @@
 #include "cli/featureutility.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/pkiutility.hpp"
+#include "base/atomic-file.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -160,8 +161,7 @@ bool ApiSetupUtility::SetupMasterApiUser()
 
 	NodeUtility::CreateBackupFile(apiUsersPath);
 
-	std::fstream fp;
-	String tempFilename = Utility::CreateTempFile(apiUsersPath + ".XXXXXX", 0644, fp);
+	AtomicFile fp (apiUsersPath, 0644);
 
 	fp << "/**\n"
 		<< " * The ApiUser objects are used for authentication against the API.\n"
@@ -173,9 +173,7 @@ bool ApiSetupUtility::SetupMasterApiUser()
 		<< "  permissions = [ \"*\" ]\n"
 		<< "}\n";
 
-	fp.close();
-
-	Utility::RenameFile(tempFilename, apiUsersPath);
+	fp.Commit();
 
 	return true;
 }

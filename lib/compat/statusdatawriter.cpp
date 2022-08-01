@@ -13,6 +13,7 @@
 #include "icinga/compatutility.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/dependency.hpp"
+#include "base/atomic-file.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
@@ -544,8 +545,7 @@ void StatusDataWriter::UpdateObjectsCache()
 	/* Use the compat path here from the .ti generated class. */
 	String objectsPath = GetObjectsPath();
 
-	std::fstream objectfp;
-	String tempObjectsPath = Utility::CreateTempFile(objectsPath + ".XXXXXX", 0644, objectfp);
+	AtomicFile objectfp (objectsPath, 0644);
 
 	objectfp << std::fixed;
 
@@ -760,9 +760,7 @@ void StatusDataWriter::UpdateObjectsCache()
 		}
 	}
 
-	objectfp.close();
-
-	Utility::RenameFile(tempObjectsPath, objectsPath);
+	objectfp.Commit();
 }
 
 /**
@@ -779,8 +777,7 @@ void StatusDataWriter::StatusTimerHandler()
 
 	String statusPath = GetStatusPath();
 
-	std::fstream statusfp;
-	String tempStatusPath = Utility::CreateTempFile(statusPath + ".XXXXXX", 0644, statusfp);
+	AtomicFile statusfp (statusPath, 0644);
 
 	statusfp << std::fixed;
 
@@ -833,9 +830,7 @@ void StatusDataWriter::StatusTimerHandler()
 		}
 	}
 
-	statusfp.close();
-
-	Utility::RenameFile(tempStatusPath, statusPath);
+	statusfp.Commit();
 
 	Log(LogNotice, "StatusDataWriter")
 		<< "Writing status.dat file took " << Utility::FormatDuration(Utility::GetTime() - start);
