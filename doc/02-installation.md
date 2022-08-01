@@ -67,7 +67,7 @@ wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/k
  /etc/apt/sources.list.d/${DIST}-icinga.list
  echo "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/ubuntu icinga-${DIST} main" >> \
  /etc/apt/sources.list.d/${DIST}-icinga.list
- 
+
 apt-get update
 ```
 <!-- {% endif %} -->
