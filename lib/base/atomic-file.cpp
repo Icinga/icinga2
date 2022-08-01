@@ -15,6 +15,13 @@
 
 using namespace icinga;
 
+void AtomicFile::Write(String path, int mode, const String& content)
+{
+	AtomicFile af (path, mode);
+	af << content;
+	af.Commit();
+}
+
 AtomicFile::AtomicFile(String path, int mode) : m_Path(std::move(path))
 {
 	m_TempFilename = m_Path + ".tmp.XXXXXX";
