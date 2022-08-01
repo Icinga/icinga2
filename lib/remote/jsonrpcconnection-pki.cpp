@@ -4,6 +4,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "remote/jsonrpc.hpp"
+#include "base/atomic-file.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -368,12 +369,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	Log(LogInformation, "JsonRpcConnection")
 		<< "Updating CA certificate in '" << caPath << "'.";
 
-	std::fstream cafp;
-	String tempCaPath = Utility::CreateTempFile(caPath + ".XXXXXX", 0644, cafp);
-	cafp << ca;
-	cafp.close();
-
-	Utility::RenameFile(tempCaPath, caPath);
+	AtomicFile::Write(caPath, 0644, ca);
 
 	/* Update signed certificate. */
 	String certPath = listener->GetDefaultCertPath();
@@ -381,12 +377,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	Log(LogInformation, "JsonRpcConnection")
 		<< "Updating client certificate for CN '" << cn << "' in '" << certPath << "'.";
 
-	std::fstream certfp;
-	String tempCertPath = Utility::CreateTempFile(certPath + ".XXXXXX", 0644, certfp);
-	certfp << cert;
-	certfp.close();
-
-	Utility::RenameFile(tempCertPath, certPath);
+	AtomicFile::Write(certPath, 0644, cert);
 
 	/* Remove ticket for successful signing request. */
 	String ticketPath = ApiListener::GetCertsDir() + "/ticket";

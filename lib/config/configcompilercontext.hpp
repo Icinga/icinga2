@@ -4,8 +4,10 @@
 #define CONFIGCOMPILERCONTEXT_H
 
 #include "config/i2-config.hpp"
+#include "base/atomic-file.hpp"
 #include "base/dictionary.hpp"
 #include <fstream>
+#include <memory>
 #include <mutex>
 
 namespace icinga
@@ -24,15 +26,13 @@ public:
 
 	inline bool IsOpen() const noexcept
 	{
-		return m_ObjectsFP;
+		return (bool)m_ObjectsFP;
 	}
 
 	static ConfigCompilerContext *GetInstance();
 
 private:
-	String m_ObjectsPath;
-	String m_ObjectsTempFile;
-	std::fstream *m_ObjectsFP{nullptr};
+	std::unique_ptr<AtomicFile> m_ObjectsFP;
 
 	mutable std::mutex m_Mutex;
 };
