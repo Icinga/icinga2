@@ -26,12 +26,12 @@ We recommend using our official repositories. Here's how to add it to your syste
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
 
-wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg
 
 DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb https://packages.icinga.com/debian icinga-${DIST} main" > \
+ echo "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/debian icinga-${DIST} main" > \
  /etc/apt/sources.list.d/${DIST}-icinga.list
- echo "deb-src https://packages.icinga.com/debian icinga-${DIST} main" >> \
+ echo "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/debian icinga-${DIST} main" >> \
  /etc/apt/sources.list.d/${DIST}-icinga.list
 
 apt-get update
@@ -60,12 +60,12 @@ apt-get update
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
 
-wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg
 
 . /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
- echo "deb https://packages.icinga.com/ubuntu icinga-${DIST} main" > \
+ echo "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/ubuntu icinga-${DIST} main" > \
  /etc/apt/sources.list.d/${DIST}-icinga.list
- echo "deb-src https://packages.icinga.com/ubuntu icinga-${DIST} main" >> \
+ echo "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/ubuntu icinga-${DIST} main" >> \
  /etc/apt/sources.list.d/${DIST}-icinga.list
 
 apt-get update
@@ -79,12 +79,12 @@ apt-get update
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
 
-wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg
 
 DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb https://packages.icinga.com/raspbian icinga-${DIST} main" > \
+ echo "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/raspbian icinga-${DIST} main" > \
  /etc/apt/sources.list.d/icinga.list
- echo "deb-src https://packages.icinga.com/raspbian icinga-${DIST} main" >> \
+ echo "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/raspbian icinga-${DIST} main" >> \
  /etc/apt/sources.list.d/icinga.list
 
 apt-get update
