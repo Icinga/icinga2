@@ -1783,46 +1783,6 @@ String Utility::ValidateUTF8(const String& input)
 	return String(std::move(output));
 }
 
-String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
-{
-	std::vector<char> targetPath(path.Begin(), path.End());
-	targetPath.push_back('\0');
-
-	int fd;
-#ifndef _WIN32
-	fd = mkstemp(&targetPath[0]);
-#else /* _WIN32 */
-	fd = MksTemp(&targetPath[0]);
-#endif /*_WIN32*/
-
-	if (fd < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("mkstemp")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
-	}
-
-	try {
-		fp.open(&targetPath[0], std::ios_base::trunc | std::ios_base::out);
-	} catch (const std::fstream::failure&) {
-		close(fd);
-		throw;
-	}
-
-	close(fd);
-
-	String resultPath = String(targetPath.begin(), targetPath.end() - 1);
-
-	if (chmod(resultPath.CStr(), mode) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("chmod")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(resultPath));
-	}
-
-	return resultPath;
-}
-
 #ifdef _WIN32
 /* mkstemp extracted from libc/sysdeps/posix/tempname.c.  Copyright
  * (C) 1991-1999, 2000, 2001, 2006 Free Software Foundation, Inc.
