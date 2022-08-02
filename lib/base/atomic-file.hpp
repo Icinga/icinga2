@@ -23,6 +23,11 @@ public:
 	AtomicFile(String path, int mode);
 	~AtomicFile();
 
+	inline const String& GetTempFilename() const noexcept
+	{
+		return m_TempFilename;
+	}
+
 	void Commit();
 
 private:
