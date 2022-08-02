@@ -180,6 +180,13 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, boo
 
 	String message = ex.what();
 
+#ifdef _WIN32
+	const auto *win32_err = dynamic_cast<const win32_error *>(&ex);
+	if (win32_err) {
+		message = to_string(*win32_err);
+	}
+#endif /* _WIN32 */
+
 	const auto *vex = dynamic_cast<const ValidationError *>(&ex);
 
 	if (message.IsEmpty())
@@ -424,6 +431,39 @@ std::string icinga::to_string(const StackTraceErrorInfo&)
 }
 
 #ifdef _WIN32
+const char *win32_error::what() const noexcept
+{
+	return "win32_error";
+}
+
+std::string icinga::to_string(const win32_error &e) {
+	std::ostringstream msgbuf;
+
+	const char * const *func = boost::get_error_info<boost::errinfo_api_function>(e);
+
+	if (func) {
+		msgbuf << "Function call '" << *func << "'";
+	} else {
+		msgbuf << "Function call";
+	}
+
+	const std::string *fname = boost::get_error_info<boost::errinfo_file_name>(e);
+
+	if (fname) {
+		msgbuf << " for file '" << *fname << "'";
+	}
+
+	msgbuf << " failed";
+
+	const int *errnum = boost::get_error_info<errinfo_win32_error>(e);
+
+	if (errnum) {
+		msgbuf << " with error code " << Utility::FormatErrorNumber(*errnum);
+	}
+
+	return msgbuf.str();
+}
+
 std::string icinga::to_string(const errinfo_win32_error& e)
 {
 	return "[errinfo_win32_error] = " + Utility::FormatErrorNumber(e.value()) + "\n";

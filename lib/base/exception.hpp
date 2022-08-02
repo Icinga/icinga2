@@ -127,7 +127,12 @@ private:
 };
 
 #ifdef _WIN32
-class win32_error : virtual public std::exception, virtual public boost::exception { };
+class win32_error : virtual public std::exception, virtual public boost::exception {
+public:
+	const char *what() const noexcept override;
+};
+
+std::string to_string(const win32_error& e);
 
 struct errinfo_win32_error_;
 typedef boost::error_info<struct errinfo_win32_error_, int> errinfo_win32_error;

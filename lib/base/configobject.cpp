@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/atomic-file.hpp"
 #include "base/configobject.hpp"
 #include "base/configobject-ti.cpp"
 #include "base/configtype.hpp"
@@ -468,13 +469,7 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 		Log(LogWarning, "ConfigObject") << DiagnosticInformation(ex);
 	}
 
-	std::fstream fp;
-	String tempFilename = Utility::CreateTempFile(filename + ".tmp.XXXXXX", 0600, fp);
-	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-
-	if (!fp)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + tempFilename + "' file"));
-
+	AtomicFile fp (filename, 0600);
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
@@ -502,10 +497,7 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 	}
 
 	sfp->Close();
-
-	fp.close();
-
-	Utility::RenameFile(tempFilename, filename);
+	fp.Commit();
 }
 
 void ConfigObject::RestoreObject(const String& message, int attributeTypes)
