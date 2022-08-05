@@ -122,7 +122,7 @@ rpm --import https://packages.icinga.com/icinga.key
 wget https://packages.icinga.com/subscription/rhel/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
 ```
 
-If you are using RHEL you need to additionally enable the `optional` and `codeready-builder`
+If you are using RHEL you need to additionally enable the `codeready-builder`
 repository before installing the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
 
 #### RHEL 8
@@ -130,7 +130,6 @@ repository before installing the [EPEL rpm package](https://fedoraproject.org/wi
 ```bash
 ARCH=$( /bin/arch )
 
-subscription-manager repos --enable rhel-8-server-optional-rpms
 subscription-manager repos --enable "codeready-builder-for-rhel-8-${ARCH}-rpms"
 
 dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
