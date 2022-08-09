@@ -125,14 +125,15 @@ wget https://packages.icinga.com/subscription/rhel/ICINGA-release.repo -O /etc/y
 If you are using RHEL you need to additionally enable the `codeready-builder`
 repository before installing the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
 
-#### RHEL 8
+#### RHEL 8 or Later
 
 ```bash
-ARCH=$( /bin/arch )
+ARCH=$(/bin/arch)
+OSVER=$(. /etc/os-release; echo "${VERSION_ID%%.*}")
 
-subscription-manager repos --enable "codeready-builder-for-rhel-8-${ARCH}-rpms"
+subscription-manager repos --enable "codeready-builder-for-rhel-${OSVER}-${ARCH}-rpms"
 
-dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${OSVER}.noarch.rpm
 ```
 
 #### RHEL 7
@@ -266,7 +267,7 @@ systemctl start icinga2
 <!-- {% endif %} -->
 
 <!-- {% if rhel %} -->
-#### RHEL 8
+#### RHEL 8 or Later
 
 ```bash
 dnf install icinga2
@@ -379,7 +380,7 @@ yum install nagios-plugins-all
 <!-- {% endif %} -->
 The packages for RHEL depend on other packages which are distributed as part of the EPEL repository.
 
-#### RHEL 8
+#### RHEL 8 or Later
 
 ```bash
 dnf install nagios-plugins-all
