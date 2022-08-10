@@ -2725,6 +2725,10 @@ void IcingaDB::VersionChangedHandler(const ConfigObject::Ptr& object)
 {
 	Type::Ptr type = object->GetReflectionType();
 
+	if (m_IndexedTypes.find(type.get()) == m_IndexedTypes.end()) {
+		return;
+	}
+
 	if (object->IsActive()) {
 		// Create or update the object config
 		for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
