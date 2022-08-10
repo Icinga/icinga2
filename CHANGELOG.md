@@ -16,6 +16,7 @@ improves logging and updates a bundled library.
 
 * Ensure not to write an incomplete (i.e. corrupt) state file. #9467
 * ITL: Render vars.apt\_upgrade=true as --upgrade, not --upgrade=true. #9458
+* Icinga DB: Don't surprise (and crash) the Go daemon with config types it doesn't know. #9480
 * Icinga DB: Add missing Redis SELinux policy. #9473
 * Windows: Don't spam the event log with non-error startup messages. #9457
 * Windows: Update bundled version of OpenSSL. #9460
