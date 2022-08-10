@@ -44,6 +44,8 @@ using namespace icinga;
 
 using Prio = RedisConnection::QueryPriority;
 
+std::unordered_set<Type*> IcingaDB::m_IndexedTypes;
+
 INITIALIZE_ONCE(&IcingaDB::ConfigStaticInitialize);
 
 std::vector<Type::Ptr> IcingaDB::GetTypes()
@@ -74,6 +76,10 @@ std::vector<Type::Ptr> IcingaDB::GetTypes()
 
 void IcingaDB::ConfigStaticInitialize()
 {
+	for (auto& type : GetTypes()) {
+		m_IndexedTypes.emplace(type.get());
+	}
+
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
 	Checkable::OnStateChange.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
 		IcingaDB::StateChangeHandler(checkable, cr, type);
@@ -2511,6 +2517,10 @@ void IcingaDB::SendCommandArgumentsChanged(const ConfigObject::Ptr& command, con
 }
 
 void IcingaDB::SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
+	if (m_IndexedTypes.find(object->GetReflectionType().get()) == m_IndexedTypes.end()) {
+		return;
+	}
+
 	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
 		return;
 	}
