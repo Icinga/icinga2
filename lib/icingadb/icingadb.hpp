@@ -21,6 +21,7 @@
 #include <mutex>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 namespace icinga
@@ -232,6 +233,8 @@ private:
 	// initialization, the value is read-only and can be accessed without further synchronization.
 	static String m_EnvironmentId;
 	static std::mutex m_EnvironmentIdInitMutex;
+
+	static std::unordered_set<Type*> m_IndexedTypes;
 };
 }
 
