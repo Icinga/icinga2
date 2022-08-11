@@ -10,7 +10,7 @@ Released closed milestones can be found on [GitHub](https://github.com/Icinga/ic
 ## 2.13.5 (2022-08-11)
 
 Version 2.13.5 is a maintenance release that fixes some bugs,
-improves logging and updates a bundled library.
+improves logging and updates the documentation as well as a bundled library.
 
 ### Bugfixes
 
@@ -20,6 +20,8 @@ improves logging and updates a bundled library.
 * Icinga DB: Add missing Redis SELinux policy. #9473
 * Windows: Don't spam the event log with non-error startup messages. #9457
 * Windows: Update bundled version of OpenSSL. #9460
+* Docs: Update RHEL 8 installation instructions. #9482
+* Docs: Add RHEL 9 installation instructions. #9482
 
 ## 2.13.4 (2022-06-30)
 
