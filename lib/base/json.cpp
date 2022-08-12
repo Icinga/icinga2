@@ -27,6 +27,7 @@ public:
 	bool number_unsigned(number_unsigned_t val) override;
 	bool number_float(number_float_t val, const string_t& s) override;
 	bool string(string_t& val) override;
+	bool binary(binary_t& val) override;
 	bool start_object(std::size_t elements) override;
 	bool key(string_t& val) override;
 	bool end_object() override;
@@ -260,6 +261,14 @@ inline
 bool JsonSax::string(JsonSax::string_t& val)
 {
 	FillCurrentTarget(String(std::move(val)));
+
+	return true;
+}
+
+inline
+bool JsonSax::binary(JsonSax::binary_t& val)
+{
+	FillCurrentTarget(String(val.begin(), val.end()));
 
 	return true;
 }
