@@ -697,7 +697,7 @@ Read more about it in the [Technical Concepts](19-technical-concepts.md#technica
 
 #### Get to know the code <a id="development-develop-get-to-know-the-code"></a>
 
-First off, you really need to know C++ and portions of C++11 and the boost libraries.
+First off, you really need to know C++ and portions of C++14 and the boost libraries.
 Best is to start with a book or online tutorial to get into the basics.
 Icinga developers gained their knowledge through studies, training and self-teaching
 code by trying it out and asking senior developers for guidance.
@@ -1138,7 +1138,7 @@ for formatting, splitting strings, joining arrays into strings, etc.
 Use the existing libraries and header-only includes
 for this specific version.
 
-Note: Prefer C++11 features where possible, e.g. std::atomic and lambda functions.
+Note: Prefer C++14 features where possible, e.g. std::atomic and lambda functions.
 
 General:
 
@@ -1185,7 +1185,7 @@ If you consider an external library or code to be included with Icinga, the foll
 requirements must be fulfilled:
 
 - License is compatible with GPLv2+. Boost license, MIT works, Apache is not.
-- C++11 is supported, C++14 or later doesn't work
+- C++14 is supported
 - Header only implementations are preferred, external libraries require packages on every distribution.
 - No additional frameworks, Boost is the only allowed.
 - The code is proven to be robust and the GitHub repository is alive, or has 1k+ stars. Good libraries also provide a user list, if e.g. Ceph is using it, this is a good candidate.
@@ -1365,13 +1365,13 @@ are best effort and sometimes out-of-date. Git Master may contain updates.
 #### CentOS 7 <a id="development-linux-dev-env-centos"></a>
 
 ```bash
-yum -y install gdb vim git bash-completion htop
+yum -y install gdb vim git bash-completion htop centos-release-scl
 
 yum -y install rpmdevtools ccache \
- cmake make gcc-c++ flex bison \
+ cmake make devtoolset-11-gcc-c++ flex bison \
  openssl-devel boost169-devel systemd-devel \
  mysql-devel postgresql-devel libedit-devel \
- libstdc++-devel
+ devtoolset-11-libstdc++-devel
 
 groupadd icinga
 groupadd icingacmd
@@ -1412,8 +1412,8 @@ Fourth, depending on your likings, you may add a bash alias for building,
 or invoke the commands inside:
 
 ```bash
-alias i2_debug="cd /root/icinga2; mkdir -p debug; cd debug; cmake $I2_DEBUG ..; make -j2; sudo make -j2 install; cd .."
-alias i2_release="cd /root/icinga2; mkdir -p release; cd release; cmake $I2_RELEASE ..; make -j2; sudo make -j2 install; cd .."
+alias i2_debug="cd /root/icinga2; mkdir -p debug; cd debug; scl enable devtoolset-11 -- cmake $I2_DEBUG ..; make -j2; sudo make -j2 install; cd .."
+alias i2_release="cd /root/icinga2; mkdir -p release; cd release; scl enable devtoolset-11 -- cmake $I2_RELEASE ..; make -j2; sudo make -j2 install; cd .."
 ```
 
 This is taken from the [centos7-dev](https://github.com/Icinga/icinga-vagrant/tree/master/centos7-dev) Vagrant box.
@@ -2172,8 +2172,8 @@ Icinga application using a dist tarball (including notes for distributions):
 
 * cmake >= 2.6
 * GNU make (make) or ninja-build
-* C++ compiler which supports C++11
-    * RHEL/Fedora/SUSE: gcc-c++ >= 4.7 (extra Developer Tools on RHEL5/6 see below)
+* C++ compiler which supports C++14
+    * RHEL/Fedora/SUSE: gcc-c++ >= 6.3 (extra Developer Tools on RHEL7 see below)
     * Debian/Ubuntu: build-essential
     * Alpine: build-base
     * you can also use clang++
@@ -2442,32 +2442,17 @@ The following packages are required to build the SELinux policy module:
 * selinux-policy (selinux-policy on CentOS 6, selinux-policy-devel on CentOS 7)
 * selinux-policy-doc
 
-##### RHEL/CentOS 6
+##### RHEL/CentOS 7
 
 The RedHat Developer Toolset is required for building Icinga 2 beforehand.
-This contains a modern version of flex and a C++ compiler which supports
-C++11 features.
+This contains a C++ compiler which supports C++14 features.
 
 ```bash
-cat >/etc/yum.repos.d/devtools-2.repo <<REPO
-[testing-devtools-2-centos-\$releasever]
-name=testing 2 devtools for CentOS $releasever
-baseurl=https://people.centos.org/tru/devtools-2/\$releasever/\$basearch/RPMS
-gpgcheck=0
-REPO
+yum install centos-release-scl
 ```
 
-Dependencies to devtools-2 are used in the RPM SPEC, so the correct tools
+Dependencies to devtools-11 are used in the RPM SPEC, so the correct tools
 should be used for building.
-
-As an alternative, you can use newer Boost packages provided on
-[packages.icinga.com](https://packages.icinga.com/epel).
-
-```bash
-cat >$HOME/.rpmmacros <<MACROS
-%build_icinga_org 1
-MACROS
-```
 
 ##### Amazon Linux
 
