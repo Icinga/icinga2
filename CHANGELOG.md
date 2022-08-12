@@ -7,6 +7,22 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.5 (2022-08-11)
+
+Version 2.13.5 is a maintenance release that fixes some bugs,
+improves logging and updates the documentation as well as a bundled library.
+
+### Bugfixes
+
+* Ensure not to write an incomplete (i.e. corrupt) state file. #9467
+* ITL: Render vars.apt\_upgrade=true as --upgrade, not --upgrade=true. #9458
+* Icinga DB: Don't surprise (and crash) the Go daemon with config types it doesn't know. #9480
+* Icinga DB: Add missing Redis SELinux policy. #9473
+* Windows: Don't spam the event log with non-error startup messages. #9457
+* Windows: Update bundled version of OpenSSL. #9460
+* Docs: Update RHEL 8 installation instructions. #9482
+* Docs: Add RHEL 9 installation instructions. #9482
+
 ## 2.13.4 (2022-06-30)
 
 This release brings the final changes needed for the Icinga DB 1.0 release.
