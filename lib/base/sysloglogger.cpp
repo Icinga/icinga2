@@ -43,7 +43,9 @@ void SyslogLogger::StaticInitialize()
 	m_FacilityMap["LOG_AUTHPRIV"] = LOG_AUTHPRIV;
 	m_FacilityMap["LOG_CRON"] = LOG_CRON;
 	m_FacilityMap["LOG_DAEMON"] = LOG_DAEMON;
+#ifdef LOG_FTP
 	m_FacilityMap["LOG_FTP"] = LOG_FTP;
+#endif /* LOG_FTP */
 	m_FacilityMap["LOG_KERN"] = LOG_KERN;
 	m_FacilityMap["LOG_LOCAL0"] = LOG_LOCAL0;
 	m_FacilityMap["LOG_LOCAL1"] = LOG_LOCAL1;
