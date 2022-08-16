@@ -1393,7 +1393,7 @@ Example for scheduling a downtime for all `ping4` services:
 ```bash
 curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/actions/schedule-downtime' \
- -d '{ "type": "Service", "filter": "service.name==\"ping4\"", "start_time": 1446388806, "end_time": 1446389806, "duration": 1000, "author": "icingaadmin", "comment": "IPv4 network maintenance", "pretty": true }'
+ -d '{ "type": "Service", "filter": "service.name==\"ping4\"", "start_time": 1446388806, "end_time": 1446389806, "author": "icingaadmin", "comment": "IPv4 network maintenance", "pretty": true }'
 ```
 
 ```json
