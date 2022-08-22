@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/logger.hpp"
+#include "base/consolelogger.hpp"
 #include "base/logger-ti.cpp"
 #include "base/application.hpp"
 #include "base/streamlogger.hpp"
@@ -31,10 +32,8 @@ REGISTER_TYPE(Logger);
 
 std::set<Logger::Ptr> Logger::m_Loggers;
 std::mutex Logger::m_Mutex;
-bool Logger::m_ConsoleLogEnabled = true;
 std::atomic<bool> Logger::m_EarlyLoggingEnabled (true);
 bool Logger::m_TimestampEnabled = true;
-LogSeverity Logger::m_ConsoleLogSeverity = LogInformation;
 
 INITIALIZE_ONCE([]() {
 	ScriptGlobal::Set("System.LogDebug", LogDebug, true);
@@ -136,31 +135,6 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid severity: " + severity));
 }
 
-void Logger::DisableConsoleLog()
-{
-	m_ConsoleLogEnabled = false;
-}
-
-void Logger::EnableConsoleLog()
-{
-	m_ConsoleLogEnabled = true;
-}
-
-bool Logger::IsConsoleLogEnabled()
-{
-	return m_ConsoleLogEnabled;
-}
-
-void Logger::SetConsoleLogSeverity(LogSeverity logSeverity)
-{
-	m_ConsoleLogSeverity = logSeverity;
-}
-
-LogSeverity Logger::GetConsoleLogSeverity()
-{
-	return m_ConsoleLogSeverity;
-}
-
 void Logger::DisableEarlyLogging() {
 	m_EarlyLoggingEnabled = false;
 }
@@ -217,7 +191,7 @@ Log::~Log()
 
 	{
 		auto msg (m_Buffer.str());
-		msg.erase(msg.find_last_not_of("\n") + 1u);
+		msg.erase(msg.find_last_not_of('\n') + 1u);
 
 		entry.Message = std::move(msg);
 	}
@@ -247,8 +221,10 @@ Log::~Log()
 #endif /* I2_DEBUG */
 	}
 
-	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity()) {
-		StreamLogger::ProcessLogEntry(std::cout, entry);
+	auto console = ConsoleLogger::GetInstance();
+
+	if (console->IsEnabled() && entry.Severity >= console->GetLogSeverity()) {
+		console->ProcessLogEntry(std::cout, entry);
 
 		/* "Console" might be a pipe/socket (systemd, daemontools, docker, ...),
 		 * then cout will not flush lines automatically. */
