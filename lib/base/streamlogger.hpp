@@ -26,15 +26,14 @@ public:
 
 	void BindStream(std::ostream *stream, bool ownsStream);
 
-	static void ProcessLogEntry(std::ostream& stream, const LogEntry& entry);
-
 protected:
 	void ProcessLogEntry(const LogEntry& entry) final;
 	void Flush() final;
 
-private:
-	static std::mutex m_Mutex;
+protected:
 	std::ostream *m_Stream{nullptr};
+
+private:
 	bool m_OwnsStream{false};
 
 	Timer::Ptr m_FlushLogTimer;

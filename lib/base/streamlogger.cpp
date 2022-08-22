@@ -11,8 +11,6 @@ using namespace icinga;
 
 REGISTER_TYPE(StreamLogger);
 
-std::mutex StreamLogger::m_Mutex;
-
 void StreamLogger::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<StreamLogger>::Stop(runtimeRemoved);
@@ -68,17 +66,17 @@ void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)
 /**
  * Processes a log entry and outputs it to a stream.
  *
- * @param stream The output stream.
  * @param entry The log entry.
  */
-void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
+void StreamLogger::ProcessLogEntry(const LogEntry& entry)
 {
 	String timestamp = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", entry.Timestamp);
 
-	std::unique_lock<std::mutex> lock(m_Mutex);
+	ObjectLock lock(this);
 
-	if (Logger::IsTimestampEnabled())
-		stream << "[" << timestamp << "] ";
+	if (Logger::IsTimestampEnabled()) {
+		*m_Stream << "[" << timestamp << "] ";
+	}
 
 	int color;
 
@@ -102,18 +100,8 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
 			return;
 	}
 
-	stream << ConsoleColorTag(color);
-	stream << Logger::SeverityToString(entry.Severity);
-	stream << ConsoleColorTag(Console_Normal);
-	stream << "/" << entry.Facility << ": " << entry.Message << "\n";
-}
-
-/**
- * Processes a log entry and outputs it to a stream.
- *
- * @param entry The log entry.
- */
-void StreamLogger::ProcessLogEntry(const LogEntry& entry)
-{
-	ProcessLogEntry(*m_Stream, entry);
+	*m_Stream << ConsoleColorTag(color)
+		<< Logger::SeverityToString(entry.Severity)
+		<< ConsoleColorTag(Console_Normal)
+		<< "/" << entry.Facility << ": " << entry.Message << "\n";
 }
