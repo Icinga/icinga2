@@ -5,6 +5,7 @@
 // ensure to include base first
 #include "base/i2-base.hpp"
 #include "base/application.hpp"
+#include "base/consolelogger.hpp"
 #include "base/json.hpp"
 #include "base/string.hpp"
 #include "base/logger.hpp"
@@ -471,11 +472,13 @@ int main(int argc, char **argv)
 
 	l_Debug = vm.count("debug") > 0;
 
+	auto console = ConsoleLogger::GetInstance();
+
 	// Initialize logger
 	if (l_Debug)
-		Logger::SetConsoleLogSeverity(LogDebug);
+		console->SetLogSeverity(LogDebug);
 	else
-		Logger::SetConsoleLogSeverity(LogWarning);
+		console->SetLogSeverity(LogWarning);
 
 	// Create the URL string and escape certain characters since Url() follows RFC 3986
 	String endpoint = "/query/" + vm["query"].as<std::string>();

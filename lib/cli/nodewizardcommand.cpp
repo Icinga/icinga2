@@ -8,6 +8,7 @@
 #include "remote/pkiutility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
+#include "base/consolelogger.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
 #include "base/scriptglobal.hpp"
@@ -61,7 +62,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	const std::vector<std::string>& ap) const
 {
 	if (!vm.count("verbose"))
-		Logger::SetConsoleLogSeverity(LogCritical);
+		ConsoleLogger::GetInstance()->SetLogSeverity(LogCritical);
 
 	/*
 	 * The wizard will get all information from the user,

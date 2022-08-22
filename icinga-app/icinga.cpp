@@ -16,6 +16,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/context.hpp"
 #include "base/console.hpp"
+#include "base/consolelogger.hpp"
 #include "base/process.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>
@@ -294,8 +295,10 @@ static int Main()
 	if (!autocomplete)
 		Application::SetResourceLimits();
 
-	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
-	Logger::SetConsoleLogSeverity(LogWarning);
+	auto console = ConsoleLogger::GetInstance();
+
+	LogSeverity logLevel = console->GetLogSeverity();
+	console->SetLogSeverity(LogWarning);
 
 	po::options_description visibleDesc("Global options");
 
@@ -466,12 +469,12 @@ static int Main()
 	}
 
 	if (!autocomplete) {
-		Logger::SetConsoleLogSeverity(logLevel);
+		console->SetLogSeverity(logLevel);
 
 		if (vm.count("log-level")) {
 			String severity = vm["log-level"].as<std::string>();
 
-			LogSeverity logLevel = LogInformation;
+			logLevel = LogInformation;
 			try {
 				logLevel = Logger::StringToSeverity(severity);
 			} catch (std::exception&) {
@@ -480,7 +483,7 @@ static int Main()
 				return EXIT_FAILURE;
 			}
 
-			Logger::SetConsoleLogSeverity(logLevel);
+			console->SetLogSeverity(logLevel);
 		}
 
 		if (!command || vm.count("help") || vm.count("version")) {

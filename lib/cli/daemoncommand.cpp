@@ -19,6 +19,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/context.hpp"
 #include "config.h"
+#include "base/consolelogger.hpp"
 #include <cstdint>
 #include <cstring>
 #include <boost/program_options.hpp>
@@ -267,7 +268,7 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 
 		if (closeConsoleLog) {
 			CloseStdIO(stderrFile);
-			Logger::DisableConsoleLog();
+			ConsoleLogger::GetInstance()->Disable();
 		}
 
 		while (!l_AllowedToWork.load()) {
@@ -711,7 +712,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 			errorLog = vm["errorlog"].as<std::string>();
 
 		CloseStdIO(errorLog);
-		Logger::DisableConsoleLog();
+		ConsoleLogger::GetInstance()->Disable();
 	}
 
 #ifdef _WIN32
@@ -761,7 +762,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		Log(LogInformation, "cli", "Closing console log.");
 
 		CloseStdIO(errorLog);
-		Logger::DisableConsoleLog();
+		ConsoleLogger::GetInstance()->Disable();
 	}
 
 	// Immediately allow the first (non-reload) worker to continue working beyond config validation
