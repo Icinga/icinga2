@@ -26,6 +26,7 @@ set(base_SOURCES
   configuration.cpp configuration.hpp configuration-ti.hpp
   configwriter.cpp configwriter.hpp
   console.cpp console.hpp
+  consolelogger.cpp consolelogger.hpp
   context.cpp context.hpp
   convert.cpp convert.hpp
   datetime.cpp datetime.hpp datetime-ti.hpp datetime-script.cpp
