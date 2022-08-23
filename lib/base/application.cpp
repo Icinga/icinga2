@@ -112,11 +112,7 @@ void Application::Exit(int rc)
 	}
 
 	UninitializeBase();
-#ifdef I2_DEBUG
-	exit(rc);
-#else /* I2_DEBUG */
 	_exit(rc); // Yay, our static destructors are pretty much beyond repair at this point.
-#endif /* I2_DEBUG */
 }
 
 void Application::InitializeBase()
