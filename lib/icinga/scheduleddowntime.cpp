@@ -171,7 +171,7 @@ std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 
 		if (!bestSegment || end > bestEnd) {
 			Log(LogDebug, "ScheduledDowntime") << "(best match yet)";
-			bestSegment = segment;
+			bestSegment = std::move(segment);
 			bestBegin = begin;
 			bestEnd = end;
 		}
@@ -227,7 +227,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment()
 
 		if (!bestSegment || begin < bestBegin) {
 			Log(LogDebug, "ScheduledDowntime") << "(best match yet)";
-			bestSegment = segment;
+			bestSegment = std::move(segment);
 			bestBegin = begin;
 			bestEnd = end;
 		}
