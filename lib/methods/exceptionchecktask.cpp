@@ -36,6 +36,6 @@ void ExceptionCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Check
 
 		Checkable::ExecuteCommandProcessFinishedHandler("", pr);
 	} else {
-		BOOST_THROW_EXCEPTION(ScriptError("Test") << boost::errinfo_api_function("Test"));
+		BOOST_THROW_EXCEPTION(scriptError);
 	}
 }

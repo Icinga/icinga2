@@ -113,6 +113,8 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		host = static_pointer_cast<Host>(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+	resolvers.reserve(3);
+
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
