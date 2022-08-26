@@ -853,7 +853,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		Zone::Ptr myZone = Zone::GetLocalZone();
 		auto parent (myZone->GetParent());
 
-		if (parent == eZone || !parent && eZone == myZone) {
+		if (parent == eZone || (!parent && eZone == myZone)) {
 			JsonRpcConnection::SendCertificateRequest(aclient, nullptr, String());
 
 			if (Utility::PathExists(ApiListener::GetCertificateRequestsDir())) {
@@ -1325,7 +1325,7 @@ void ApiListener::OpenLogFile()
 
 	Utility::MkDirP(Utility::DirName(path), 0750);
 
-	auto *fp = new std::fstream(path.CStr(), std::fstream::out | std::ofstream::app);
+	std::unique_ptr<std::fstream> fp = std::make_unique<std::fstream>(path.CStr(), std::fstream::out | std::ofstream::app);
 
 	if (!fp->good()) {
 		Log(LogWarning, "ApiListener")
@@ -1333,7 +1333,7 @@ void ApiListener::OpenLogFile()
 		return;
 	}
 
-	m_LogFile = new StdioStream(fp, true);
+	m_LogFile = new StdioStream(fp.release(), true);
 	m_LogMessageCount = 0;
 	SetLogMessageTimestamp(Utility::GetTime());
 }
