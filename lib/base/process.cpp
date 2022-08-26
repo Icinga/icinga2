@@ -109,11 +109,11 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	int j = 0;
 
 	for (int i = 0; i < envc; i++) {
-		if (strncmp(environ[i], lcnumeric, strlen(lcnumeric)) == 0) {
+		if (strcmp(environ[i], lcnumeric) == 0) {
 			continue;
 		}
 
-		if (strncmp(environ[i], notifySocket, strlen(notifySocket)) == 0) {
+		if (strcmp(environ[i], notifySocket) == 0) {
 			continue;
 		}
 
@@ -292,9 +292,6 @@ static void ProcessHandler()
 			}
 
 			count += rc;
-
-			if (rc == 0)
-				break;
 		}
 
 		String jrequest = String(mbuf, mbuf + count);
