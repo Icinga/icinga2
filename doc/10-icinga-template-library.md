@@ -5789,8 +5789,11 @@ ssl_cert_disable_ssl_versions | **Optional.** Disable specific SSL versions out 
 ssl_cert_cipher               | **Optional.** Cipher selection: force {ecdsa,rsa} authentication.
 ssl_cert_ignore_expiration    | **Optional.** Ignore expiration date.
 ssl_cert_ignore_ocsp          | **Optional.** Do not check revocation with OCSP.
+ssl_cert_ignore_ocsp_errors   | **Optional.** Continue if the OCSP status cannot be checked
+ssl_cert_ignore_ocsp_timeout  | **Optional.** Ignore OCSP result when timeout occurs while checking
 ssl_cert_ignore_sct           | **Optional.** Do not check for signed certificate timestamps.
 ssl_cert_ignore_tls_renegotiation  | **Optional.** Do not check for renegotiation.
+ssl_cert_ignore_host_cn       | **Optional.** Do not complain if the CN does not match
 
 
 #### jmx4perl <a id="plugin-contrib-command-jmx4perl"></a>
