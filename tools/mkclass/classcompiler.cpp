@@ -151,9 +151,6 @@ static std::string FieldTypeToIcingaName(const Field& field, bool inner)
 	if (field.Attributes & FAEnum)
 		return "Number";
 
-	if (ftype == "bool" || ftype == "int" || ftype == "double")
-		return "Number";
-
 	if (ftype == "int" || ftype == "double")
 		return "Number";
 	else if (ftype == "bool")
