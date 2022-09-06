@@ -11,6 +11,7 @@
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/date_time/special_defs.hpp>
 #include <boost/system/error_code.hpp>
 
 using namespace icinga;
@@ -126,7 +127,7 @@ void IoEngine::RunEventLoop()
 AsioConditionVariable::AsioConditionVariable(boost::asio::io_context& io, bool init)
 	: m_Timer(io)
 {
-	m_Timer.expires_at(init ? boost::posix_time::neg_infin : boost::posix_time::pos_infin);
+	m_Timer.expires_at(init ? boost::posix_time::neg_infin : boost::posix_time::ptime(boost::date_time::max_date_time));
 }
 
 void AsioConditionVariable::Set()
@@ -136,7 +137,7 @@ void AsioConditionVariable::Set()
 
 void AsioConditionVariable::Clear()
 {
-	m_Timer.expires_at(boost::posix_time::pos_infin);
+	m_Timer.expires_at(boost::posix_time::ptime(boost::date_time::max_date_time));
 }
 
 void AsioConditionVariable::Wait(boost::asio::yield_context yc)
