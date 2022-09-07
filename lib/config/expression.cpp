@@ -13,6 +13,7 @@
 #include "base/loader.hpp"
 #include "base/reference.hpp"
 #include "base/namespace.hpp"
+#include "base/defer.hpp"
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
 
@@ -46,22 +47,20 @@ ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) cons
 #endif /* I2_DEBUG */
 
 		frame.IncreaseStackDepth();
+
+		Defer decreaseStackDepth([&frame]{
+			frame.DecreaseStackDepth();
+		});
+
 		ExpressionResult result = DoEvaluate(frame, dhint);
-		frame.DecreaseStackDepth();
 		return result;
 	} catch (ScriptError& ex) {
-		frame.DecreaseStackDepth();
-
 		ScriptBreakpoint(frame, &ex, GetDebugInfo());
 		throw;
 	} catch (const std::exception& ex) {
-		frame.DecreaseStackDepth();
-
 		BOOST_THROW_EXCEPTION(ScriptError("Error while evaluating expression: " + String(ex.what()), GetDebugInfo())
 			<< boost::errinfo_nested_exception(boost::current_exception()));
 	}
-
-	frame.DecreaseStackDepth();
 }
 
 bool Expression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
