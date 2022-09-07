@@ -330,8 +330,7 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 enum class UnixWorkerState : uint_fast8_t
 {
 	Pending,
-	LoadedConfig,
-	Failed
+	LoadedConfig
 };
 
 // The signals to block temporarily in StartUnixWorker().
