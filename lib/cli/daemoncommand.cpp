@@ -381,13 +381,6 @@ static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::LoadedConfig);
 			}
 			break;
-		case SIGCHLD:
-			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
-				&& (info->si_pid == 0 || info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) ) {
-				// The seamless worker currently being started by StartUnixWorker() failed
-				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Failed);
-			}
-			break;
 		case SIGINT:
 		case SIGTERM:
 			// Someone requested our termination
@@ -570,28 +563,21 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 				NotifyWatchdog();
 #endif /* HAVE_SYSTEMD */
 
-				switch (l_CurrentlyStartingUnixWorkerState.load()) {
-					case UnixWorkerState::LoadedConfig:
-						Log(LogNotice, "cli")
-							<< "Worker process successfully loaded its config";
-						break;
-					case UnixWorkerState::Failed:
-						Log(LogNotice, "cli")
-							<< "Worker process couldn't load its config";
+				if (waitpid(pid, nullptr, WNOHANG) > 0) {
+					Log(LogNotice, "cli")
+						<< "Worker process couldn't load its config";
 
-						while (waitpid(pid, nullptr, 0) == -1 && errno == EINTR) {
-#ifdef HAVE_SYSTEMD
-							NotifyWatchdog();
-#endif /* HAVE_SYSTEMD */
-						}
-						pid = -2;
-						break;
-					default:
-						Utility::Sleep(0.2);
-						continue;
+					pid = -2;
+					break;
 				}
 
-				break;
+				if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::LoadedConfig) {
+					Log(LogNotice, "cli")
+						<< "Worker process successfully loaded its config";
+					break;
+				}
+
+				Utility::Sleep(0.2);
 			}
 
 			// Reset flags for the next time
