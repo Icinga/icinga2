@@ -9,6 +9,7 @@
 #include "base/shared-object.hpp"
 #include "base/type.hpp"
 #include <unordered_map>
+#include <atomic>
 
 namespace icinga
 {
@@ -101,7 +102,7 @@ private:
 	bool m_IgnoreOnError;
 	DebugInfo m_DebugInfo;
 	Dictionary::Ptr m_Scope;
-	bool m_HasMatches;
+	std::atomic<bool> m_HasMatches;
 
 	static TypeMap m_Types;
 	static RuleMap m_Rules;

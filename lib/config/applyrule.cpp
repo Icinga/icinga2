@@ -126,12 +126,12 @@ const std::vector<String>& ApplyRule::GetTargetTypes(const String& sourceType)
 
 void ApplyRule::AddMatch()
 {
-	m_HasMatches = true;
+	m_HasMatches.store(true, std::memory_order_relaxed);
 }
 
 bool ApplyRule::HasMatches() const
 {
-	return m_HasMatches;
+	return m_HasMatches.load(std::memory_order_relaxed);
 }
 
 const std::vector<ApplyRule::Ptr>& ApplyRule::GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType)
