@@ -338,7 +338,6 @@ static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 	sigset_t s;
 
 	(void)sigemptyset(&s);
-	(void)sigaddset(&s, SIGCHLD);
 	(void)sigaddset(&s, SIGUSR1);
 	(void)sigaddset(&s, SIGUSR2);
 	(void)sigaddset(&s, SIGINT);
@@ -475,7 +474,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 	}
 
 	/* Block the signal handlers we'd like to change in the child process until we changed them.
-	 * Block SIGUSR2 and SIGCHLD handlers until we've set l_CurrentlyStartingUnixWorkerPid.
+	 * Block SIGUSR2 handler until we've set l_CurrentlyStartingUnixWorkerPid.
 	 */
 	(void)sigprocmask(SIG_BLOCK, &l_UnixWorkerSignals, nullptr);
 
@@ -505,7 +504,6 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 
 					sa.sa_handler = SIG_DFL;
 
-					(void)sigaction(SIGCHLD, &sa, nullptr);
 					(void)sigaction(SIGUSR1, &sa, nullptr);
 					(void)sigaction(SIGHUP, &sa, nullptr);
 				}
@@ -719,7 +717,6 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		sa.sa_sigaction = &UmbrellaSignalHandler;
 		sa.sa_flags = SA_NOCLDSTOP | SA_RESTART | SA_SIGINFO;
 
-		(void)sigaction(SIGCHLD, &sa, nullptr);
 		(void)sigaction(SIGUSR1, &sa, nullptr);
 		(void)sigaction(SIGUSR2, &sa, nullptr);
 		(void)sigaction(SIGINT, &sa, nullptr);
