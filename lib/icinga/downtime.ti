@@ -54,8 +54,18 @@ class Downtime : ConfigObject < DowntimeNameComposer
 	[config] Timestamp entry_time {
 		default {{{ return Utility::GetTime(); }}}
 	};
-	[config, required] String author;
-	[config, required] String comment;
+	[config, required] String author {
+	    set {{{
+            Utility::ValidateUTF8(const_cast<String&>(value));
+            m_Author.store(value);
+	    }}}
+	};
+	[config, required] String comment {
+	    set {{{
+            Utility::ValidateUTF8(const_cast<String&>(value));
+            m_Comment.store(value);
+        }}}
+	};
 	[config] Timestamp start_time;
 	[config] Timestamp end_time;
 	[state] Timestamp trigger_time;
@@ -76,7 +86,12 @@ class Downtime : ConfigObject < DowntimeNameComposer
 	[config] String config_owner_hash;
 	[config] String authoritative_zone;
 
-	[no_user_view, no_user_modify] String removed_by;
+	[no_user_view, no_user_modify] String removed_by {
+	    set {{{
+            Utility::ValidateUTF8(const_cast<String&>(value));
+            m_RemovedBy.store(value);
+        }}}
+	};
 };
 
 }

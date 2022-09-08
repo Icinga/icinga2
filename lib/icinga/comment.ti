@@ -67,13 +67,28 @@ class Comment : ConfigObject < CommentNameComposer
 		default {{{ return CommentUser; }}}
 	};
 	[config, no_user_view, no_user_modify] bool sticky;
-	[config, required] String author;
-	[config, required] String text;
+	[config, required] String author {
+        set {{{
+             Utility::ValidateUTF8(const_cast<String&>(value));
+             m_Author.store(value);
+        }}}
+    };
+	[config, required] String text {
+        set {{{
+               Utility::ValidateUTF8(const_cast<String&>(value));
+               m_Text.store(value);
+        }}}
+    };
 	[config] bool persistent;
 	[config] Timestamp expire_time;
 	[state] int legacy_id;
 
-	[no_user_view, no_user_modify] String removed_by;
+	[no_user_view, no_user_modify] String removed_by {
+        set {{{
+             Utility::ValidateUTF8(const_cast<String&>(value));
+             m_RemovedBy.store(value);
+         }}}
+    };
 	[no_user_view, no_user_modify] Timestamp remove_time;
 };
 
