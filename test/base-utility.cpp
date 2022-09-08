@@ -74,10 +74,21 @@ BOOST_AUTO_TEST_CASE(comparepasswords_issafe)
 
 BOOST_AUTO_TEST_CASE(validateutf8)
 {
-	BOOST_CHECK(Utility::ValidateUTF8("") == "");
-	BOOST_CHECK(Utility::ValidateUTF8("a") == "a");
-	BOOST_CHECK(Utility::ValidateUTF8("\xC3") == "\xEF\xBF\xBD");
-	BOOST_CHECK(Utility::ValidateUTF8("\xC3\xA4") == "\xC3\xA4");
+	String str("");
+	Utility::ValidateUTF8(str);
+	BOOST_CHECK(str == "");
+
+	str = "a";
+	Utility::ValidateUTF8(str);
+	BOOST_CHECK(str == "a");
+
+	str = "\xC3";
+	Utility::ValidateUTF8(str);
+	BOOST_CHECK(str == "\xEF\xBF\xBD");
+
+	str = "\xC3\xA4";
+	Utility::ValidateUTF8(str);
+	BOOST_CHECK(str == "\xC3\xA4");
 }
 
 BOOST_AUTO_TEST_CASE(EscapeCreateProcessArg)
