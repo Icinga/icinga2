@@ -1812,10 +1812,9 @@ void Utility::ValidateUTF8(String& input)
 				*start = l_Utf8Replacement[0];
 				input.insert(++start, (const char*)l_Utf8Replacement + 1, (const char*)l_Utf8Replacement + 3);
 				break;
-			case utf8::internal::INVALID_LEAD: {
+			case utf8::internal::INVALID_LEAD:
 				ReplaceInvalidChar(input, start);
 				break;
-			}
 			case utf8::internal::INCOMPLETE_SEQUENCE:
 			case utf8::internal::OVERLONG_SEQUENCE:
 			case utf8::internal::INVALID_CODE_POINT:
