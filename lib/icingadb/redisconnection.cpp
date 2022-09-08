@@ -115,7 +115,7 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
  */
 void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
-	{
+	if (LogDebug >= Logger::GetMinLogSeverity()) {
 		Log msg (LogDebug, "IcingaDB", "Firing and forgetting query:");
 		LogQuery(query, msg);
 	}
@@ -138,9 +138,11 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConn
  */
 void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
-	for (auto& query : queries) {
-		Log msg (LogDebug, "IcingaDB", "Firing and forgetting query:");
-		LogQuery(query, msg);
+	if (LogDebug >= Logger::GetMinLogSeverity()) {
+		for (auto& query : queries) {
+			Log msg(LogDebug, "IcingaDB", "Firing and forgetting query:");
+			LogQuery(query, msg);
+		}
 	}
 
 	auto item (Shared<Queries>::Make(std::move(queries)));
@@ -163,7 +165,7 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Red
  */
 RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
-	{
+	if (LogDebug >= Logger::GetMinLogSeverity()) {
 		Log msg (LogDebug, "IcingaDB", "Executing query:");
 		LogQuery(query, msg);
 	}
@@ -194,9 +196,11 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
  */
 RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
-	for (auto& query : queries) {
-		Log msg (LogDebug, "IcingaDB", "Executing query:");
-		LogQuery(query, msg);
+	if (LogDebug >= Logger::GetMinLogSeverity()) {
+		for (auto& query : queries) {
+			Log msg(LogDebug, "IcingaDB", "Executing query:");
+			LogQuery(query, msg);
+		}
 	}
 
 	std::promise<Replies> promise;
