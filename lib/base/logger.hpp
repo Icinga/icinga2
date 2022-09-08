@@ -3,6 +3,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include "base/atomic.hpp"
 #include "base/i2-base.hpp"
 #include "base/logger-ti.hpp"
 #include <set>
@@ -22,7 +23,10 @@ enum LogSeverity
 	LogNotice,
 	LogInformation,
 	LogWarning,
-	LogCritical
+	LogCritical,
+
+	// Just for internal comparision
+	LogNothing,
 };
 
 /**
@@ -76,6 +80,13 @@ public:
 	static void SetConsoleLogSeverity(LogSeverity logSeverity);
 	static LogSeverity GetConsoleLogSeverity();
 
+	static inline
+	LogSeverity GetMinLogSeverity()
+	{
+		return m_MinLogSeverity.load();
+	}
+
+	void SetSeverity(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
 	void ValidateSeverity(const Lazy<String>& lvalue, const ValidationUtils& utils) final;
 
 protected:
@@ -83,12 +94,16 @@ protected:
 	void Stop(bool runtimeRemoved) override;
 
 private:
+	static void UpdateMinLogSeverity();
+
 	static std::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
 	static bool m_ConsoleLogEnabled;
 	static std::atomic<bool> m_EarlyLoggingEnabled;
 	static bool m_TimestampEnabled;
 	static LogSeverity m_ConsoleLogSeverity;
+	static std::mutex m_UpdateMinLogSeverityMutex;
+	static Atomic<LogSeverity> m_MinLogSeverity;
 };
 
 class Log
@@ -116,6 +131,7 @@ private:
 	LogSeverity m_Severity;
 	String m_Facility;
 	std::ostringstream m_Buffer;
+	bool m_IsNoOp;
 };
 
 extern template Log& Log::operator<<(const Value&);
