@@ -130,7 +130,7 @@ public:
 	static String GetPlatformVersion();
 	static String GetPlatformArchitecture();
 
-	static String ValidateUTF8(const String& input);
+	static void ValidateUTF8(String& input);
 
 	static String CreateTempFile(const String& path, int mode, std::fstream& fp);
 

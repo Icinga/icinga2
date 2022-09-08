@@ -1777,18 +1777,57 @@ String Utility::GetPlatformArchitecture()
 
 const char l_Utf8Replacement[] = "\xEF\xBF\xBD";
 
-String Utility::ValidateUTF8(const String& input)
+static void ReplaceInvalidChar(String& input, String::Iterator& it)
 {
-	std::vector<char> output;
-	output.reserve(input.GetLength() * 3u);
+	// Same replacement as in the original code
+	static const uint32_t replacement = utf8::internal::mask16(0xfffd);
 
-	try {
-		utf8::replace_invalid(input.Begin(), input.End(), std::back_inserter(output));
-	} catch (const utf8::not_enough_room&) {
-		output.insert(output.end(), (const char*)l_Utf8Replacement, (const char*)l_Utf8Replacement + 3);
+	char buffer[5] = {0}; // A char can have a max of up to 4 utf8 code points + \0
+	utf8::append(replacement, buffer);
+
+	*it = buffer[0]; // Replace the current char
+	size_t size = strlen(buffer);
+
+	if (size > 1) {
+		input.insert(++it, (const char*)buffer + 1, (const char*)buffer + size);
 	}
 
-	return String(output.begin(), output.end());
+	it += size + 1;
+}
+
+void Utility::ValidateUTF8(String& input)
+{
+	// Some chars can have up to 4 utf8 code points, so we need to instruct the container
+	// to adjust its size when needed
+	input.GetData().reserve(input.GetLength() * 3);
+
+	auto start = input.Begin();
+	auto end = input.End();
+
+	while (start != end) {
+		switch (utf8::internal::validate_next(start, end)) {
+			case utf8::internal::UTF8_OK:
+				break; // Nothing to replace
+			case utf8::internal::NOT_ENOUGH_ROOM:
+				*start = l_Utf8Replacement[0];
+				input.insert(++start, (const char*)l_Utf8Replacement + 1, (const char*)l_Utf8Replacement + 3);
+				break;
+			case utf8::internal::INVALID_LEAD: {
+				ReplaceInvalidChar(input, start);
+				break;
+			}
+			case utf8::internal::INCOMPLETE_SEQUENCE:
+			case utf8::internal::OVERLONG_SEQUENCE:
+			case utf8::internal::INVALID_CODE_POINT:
+				ReplaceInvalidChar(input, start);
+
+				while (start != end && utf8::internal::is_trail(*start)) {
+					++start;
+				}
+
+				break;
+		}
+	}
 }
 
 String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
