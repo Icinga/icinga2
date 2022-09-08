@@ -208,7 +208,7 @@ private:
 	WorkQueue m_WorkQueue{0, 1, LogNotice};
 
 	std::future<void> m_HistoryThread;
-	Bulker<RedisConnection::Query> m_HistoryBulker {4096, std::chrono::milliseconds(250)};
+	Bulker<RedisConnection::Query> m_HistoryBulker {4096, std::chrono::seconds(1)};
 
 	String m_PrefixConfigObject;
 	String m_PrefixConfigCheckSum;
