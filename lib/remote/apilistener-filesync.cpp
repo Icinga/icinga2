@@ -836,7 +836,8 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 	 *
 	 * **Keep this intact to stay compatible with older clients.**
 	 */
-	String sanitizedContent = Utility::ValidateUTF8(content);
+	String sanitizedContent = content;
+	Utility::ValidateUTF8(sanitizedContent);
 
 	if (Utility::Match("*.conf", file)) {
 		update = config.UpdateV1;

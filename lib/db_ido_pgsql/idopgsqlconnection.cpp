@@ -545,12 +545,12 @@ String IdoPgsqlConnection::Escape(const String& s)
 {
 	AssertOnWorkQueue();
 
-	String utf8s = Utility::ValidateUTF8(s);
+	Utility::ValidateUTF8(const_cast<String&>(s));
 
-	size_t length = utf8s.GetLength();
-	auto *to = new char[utf8s.GetLength() * 2 + 1];
+	size_t length = s.GetLength();
+	auto *to = new char[s.GetLength() * 2 + 1];
 
-	m_Pgsql->escapeStringConn(m_Connection, to, utf8s.CStr(), length, nullptr);
+	m_Pgsql->escapeStringConn(m_Connection, to, s.CStr(), length, nullptr);
 
 	String result = String(to);
 

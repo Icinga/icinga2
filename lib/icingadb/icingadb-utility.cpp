@@ -248,7 +248,8 @@ String IcingaDB::IcingaToStreamValue(const Value& value)
 		case ValueBoolean:
 			return Convert::ToString(int(value));
 		case ValueString:
-			return Utility::ValidateUTF8(value);
+			Utility::ValidateUTF8(const_cast<String&>(value.Get<String>()));
+			return value;
 		case ValueNumber:
 		case ValueEmpty:
 			return Convert::ToString(value);

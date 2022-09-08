@@ -94,7 +94,7 @@ void EncodeNamespace(JsonEncoder<prettyPrint>& stateMachine, const Namespace::Pt
 
 	ObjectLock olock(ns);
 	for (const Namespace::Pair& kv : ns) {
-		stateMachine.Key(Utility::ValidateUTF8(kv.first));
+		stateMachine.Key(kv.first);
 		Encode(stateMachine, kv.second->Get());
 	}
 
@@ -109,7 +109,7 @@ void EncodeDictionary(JsonEncoder<prettyPrint>& stateMachine, const Dictionary::
 
 	ObjectLock olock(dict);
 	for (const Dictionary::Pair& kv : dict) {
-		stateMachine.Key(Utility::ValidateUTF8(kv.first));
+		stateMachine.Key(kv.first);
 		Encode(stateMachine, kv.second);
 	}
 
@@ -143,7 +143,7 @@ void Encode(JsonEncoder<prettyPrint>& stateMachine, const Value& value)
 			break;
 
 		case ValueString:
-			stateMachine.Strng(Utility::ValidateUTF8(value.Get<String>()));
+			stateMachine.Strng(value.Get<String>());
 			break;
 
 		case ValueObject:
@@ -207,11 +207,11 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 
 Value icinga::JsonDecode(const String& data)
 {
-	String sanitized (Utility::ValidateUTF8(data));
+	Utility::ValidateUTF8(const_cast<String&>(data));
 
 	JsonSax stateMachine;
 
-	nlohmann::json::sax_parse(sanitized.Begin(), sanitized.End(), &stateMachine);
+	nlohmann::json::sax_parse(data.Begin(), data.End(), &stateMachine);
 
 	return stateMachine.GetResult();
 }
@@ -392,6 +392,8 @@ template<bool prettyPrint>
 inline
 void JsonEncoder<prettyPrint>::Strng(String value)
 {
+	Utility::ValidateUTF8(value);
+
 	BeforeItem();
 	AppendJson(std::move(value));
 }
@@ -410,6 +412,8 @@ template<bool prettyPrint>
 inline
 void JsonEncoder<prettyPrint>::Key(String value)
 {
+	Utility::ValidateUTF8(value);
+
 	m_CurrentKey = std::move(value);
 }
 
