@@ -12,6 +12,7 @@
 #ifdef _WIN32
 #include "base/windowseventloglogger.hpp"
 #endif /* _WIN32 */
+#include <algorithm>
 #include <iostream>
 #include <utility>
 
@@ -35,6 +36,7 @@ bool Logger::m_ConsoleLogEnabled = true;
 std::atomic<bool> Logger::m_EarlyLoggingEnabled (true);
 bool Logger::m_TimestampEnabled = true;
 LogSeverity Logger::m_ConsoleLogSeverity = LogInformation;
+Atomic<LogSeverity> Logger::m_MinLogSeverity (LogDebug);
 
 INITIALIZE_ONCE([]() {
 	ScriptGlobal::Set("System.LogDebug", LogDebug, true);
@@ -51,8 +53,12 @@ void Logger::Start(bool runtimeCreated)
 {
 	ObjectImpl<Logger>::Start(runtimeCreated);
 
-	std::unique_lock<std::mutex> lock(m_Mutex);
-	m_Loggers.insert(this);
+	{
+		std::unique_lock<std::mutex> lock(m_Mutex);
+		m_Loggers.insert(this);
+	}
+
+	UpdateMinLogSeverity();
 }
 
 void Logger::Stop(bool runtimeRemoved)
@@ -61,6 +67,8 @@ void Logger::Stop(bool runtimeRemoved)
 		std::unique_lock<std::mutex> lock(m_Mutex);
 		m_Loggers.erase(this);
 	}
+
+	UpdateMinLogSeverity();
 
 	ObjectImpl<Logger>::Stop(runtimeRemoved);
 }
@@ -139,11 +147,15 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 void Logger::DisableConsoleLog()
 {
 	m_ConsoleLogEnabled = false;
+
+	UpdateMinLogSeverity();
 }
 
 void Logger::EnableConsoleLog()
 {
 	m_ConsoleLogEnabled = true;
+
+	UpdateMinLogSeverity();
 }
 
 bool Logger::IsConsoleLogEnabled()
@@ -163,6 +175,8 @@ LogSeverity Logger::GetConsoleLogSeverity()
 
 void Logger::DisableEarlyLogging() {
 	m_EarlyLoggingEnabled = false;
+
+	UpdateMinLogSeverity();
 }
 
 bool Logger::IsEarlyLoggingEnabled() {
@@ -195,14 +209,41 @@ void Logger::ValidateSeverity(const Lazy<String>& lvalue, const ValidationUtils&
 	}
 }
 
-Log::Log(LogSeverity severity, String facility, const String& message)
-	: m_Severity(severity), m_Facility(std::move(facility))
+void Logger::UpdateMinLogSeverity()
 {
-	m_Buffer << message;
+	auto result (LogNothing);
+
+	for (auto& logger : Logger::GetLoggers()) {
+		ObjectLock llock (logger);
+
+		if (logger->IsActive()) {
+			result = std::min(result, logger->GetMinSeverity());
+		}
+	}
+
+	if (Logger::IsConsoleLogEnabled()) {
+		result = std::min(result, Logger::GetConsoleLogSeverity());
+	}
+
+#ifdef _WIN32
+	if (Logger::IsEarlyLoggingEnabled()) {
+		result = std::min(result, LogCritical);
+	}
+#endif /* _WIN32 */
+
+	m_MinLogSeverity.store(result);
+}
+
+Log::Log(LogSeverity severity, String facility, const String& message)
+	: Log(severity, std::move(facility))
+{
+	if (!m_IsNoOp) {
+		m_Buffer << message;
+	}
 }
 
 Log::Log(LogSeverity severity, String facility)
-	: m_Severity(severity), m_Facility(std::move(facility))
+	: m_Severity(severity), m_Facility(std::move(facility)), m_IsNoOp(severity < Logger::GetMinLogSeverity())
 { }
 
 /**
@@ -210,6 +251,10 @@ Log::Log(LogSeverity severity, String facility)
  */
 Log::~Log()
 {
+	if (m_IsNoOp) {
+		return;
+	}
+
 	LogEntry entry;
 	entry.Timestamp = Utility::GetTime();
 	entry.Severity = m_Severity;
@@ -264,6 +309,9 @@ Log::~Log()
 
 Log& Log::operator<<(const char *val)
 {
-	m_Buffer << val;
+	if (!m_IsNoOp) {
+		m_Buffer << val;
+	}
+
 	return *this;
 }
