@@ -62,7 +62,13 @@ String IcingaDB::FormatCommandLine(const Value& commandLine)
 
 String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
 {
-	return HashValue(new Array({m_EnvironmentId, object->GetName()}));
+	String identifier = object->GetIcingadbIdentifier();
+	if (identifier.IsEmpty()) {
+		identifier = HashValue(new Array({m_EnvironmentId, object->GetName()}));
+		object->SetIcingadbIdentifier(identifier);
+	}
+
+	return identifier;
 }
 
 /**
