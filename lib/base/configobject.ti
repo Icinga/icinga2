@@ -88,6 +88,7 @@ abstract class ConfigObject : ConfigObjectBase < ConfigType
 	[state, no_user_modify] double version {
 		default {{{ return 0; }}}
 	};
+	[no_user_view, no_user_modify] String icingadb_identifier;
 };
 
 }
