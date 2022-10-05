@@ -191,6 +191,7 @@ bool ObjectQueryHandler::HandleRequest(
 	}
 
 	std::unordered_map<Type*, std::pair<bool, Expression::Ptr>> typePermissions;
+	std::unordered_map<Object*, bool> objectAccessAllowed;
 
 	for (const ConfigObject::Ptr& obj : objs) {
 		DictionaryData result1{
@@ -280,6 +281,28 @@ bool ObjectQueryHandler::HandleRequest(
 
 			if (!granted) {
 				// Not authorized
+				continue;
+			}
+
+			auto relation = objectAccessAllowed.find(joinedObj.get());
+			bool accessAllowed;
+
+			if (relation == objectAccessAllowed.end()) {
+				ScriptFrame permissionFrame(false, new Namespace());
+
+				try {
+					accessAllowed = FilterUtility::EvaluateFilter(permissionFrame, permissionFilter.get(), joinedObj);
+				} catch (const ScriptError& err) {
+					accessAllowed = false;
+				}
+
+				objectAccessAllowed.insert({joinedObj.get(), accessAllowed});
+			} else {
+				accessAllowed = relation->second;
+			}
+
+			if (!accessAllowed) {
+				// Access denied
 				continue;
 			}
 
