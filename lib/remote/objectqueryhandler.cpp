@@ -8,6 +8,7 @@
 #include "base/configtype.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <set>
+#include <unordered_map>
 
 using namespace icinga;
 
@@ -189,6 +190,8 @@ bool ObjectQueryHandler::HandleRequest(
 		joinAttrs.insert(field.Name);
 	}
 
+	std::unordered_map<Type*, std::pair<bool, Expression::Ptr>> typePermissions;
+
 	for (const ConfigObject::Ptr& obj : objs) {
 		DictionaryData result1{
 			{ "name", obj->GetName() },
@@ -256,6 +259,29 @@ bool ObjectQueryHandler::HandleRequest(
 
 			if (!joinedObj)
 				continue;
+
+			Type::Ptr reflectionType = joinedObj->GetReflectionType();
+			Expression::Ptr permissionFilter;
+
+			auto it = typePermissions.find(reflectionType.get());
+			bool granted;
+
+			if (it == typePermissions.end()) {
+				String permission = "objects/query/" + reflectionType->GetName();
+
+				Expression *filter = nullptr;
+				granted = FilterUtility::HasPermission(user, permission, &filter);
+				permissionFilter = filter;
+
+				typePermissions.insert({reflectionType.get(), std::make_pair(granted, permissionFilter)});
+			} else {
+				std::tie(granted, permissionFilter) = it->second;
+			}
+
+			if (!granted) {
+				// Not authorized
+				continue;
+			}
 
 			String prefix = field.NavigationName;
 
