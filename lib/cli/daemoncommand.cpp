@@ -324,15 +324,6 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 }
 
 #ifndef _WIN32
-/**
- * The possible states of a seamless worker being started by StartUnixWorker().
- */
-enum class UnixWorkerState : uint_fast8_t
-{
-	Pending,
-	LoadedConfig
-};
-
 // The signals to block temporarily in StartUnixWorker().
 static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 	sigset_t s;
@@ -351,7 +342,7 @@ static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 static Atomic<pid_t> l_CurrentlyStartingUnixWorkerPid (-1);
 
 // The state of the seamless worker currently being started by StartUnixWorker()
-static Atomic<UnixWorkerState> l_CurrentlyStartingUnixWorkerState (UnixWorkerState::Pending);
+static Atomic<bool> l_CurrentlyStartingUnixWorkerReady (false);
 
 // The last temination signal we received
 static Atomic<int> l_TermSignal (-1);
@@ -373,10 +364,10 @@ static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 			l_RequestedReopenLogs.store(true);
 			break;
 		case SIGUSR2:
-			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
+			if (!l_CurrentlyStartingUnixWorkerReady.load()
 				&& (info->si_pid == 0 || info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) ) {
 				// The seamless worker currently being started by StartUnixWorker() successfully loaded its config
-				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::LoadedConfig);
+				l_CurrentlyStartingUnixWorkerReady.store(true);
 			}
 			break;
 		case SIGINT:
@@ -568,7 +559,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 					break;
 				}
 
-				if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::LoadedConfig) {
+				if (l_CurrentlyStartingUnixWorkerReady.load()) {
 					Log(LogNotice, "cli")
 						<< "Worker process successfully loaded its config";
 					break;
@@ -579,7 +570,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 
 			// Reset flags for the next time
 			l_CurrentlyStartingUnixWorkerPid.store(-1);
-			l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Pending);
+			l_CurrentlyStartingUnixWorkerReady.store(false);
 
 			try {
 				Application::InitializeBase();
