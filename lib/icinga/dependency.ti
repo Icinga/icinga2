@@ -23,13 +23,13 @@ class Dependency : CustomVarObject < DependencyNameComposer
 	load_after Host;
 	load_after Service;
 
-	[config, required, navigation(child_host)] name(Host) child_host_name {
+	[config, no_user_modify, required, navigation(child_host)] name(Host) child_host_name {
 		navigate {{{
 			return Host::GetByName(GetChildHostName());
 		}}}
 	};
 
-	[config, navigation(child_service)] String child_service_name {
+	[config, no_user_modify, navigation(child_service)] String child_service_name {
 		track {{{
 			if (!oldValue.IsEmpty()) {
 				Service::Ptr service = Service::GetByNamePair(GetChildHostName(), oldValue);
@@ -50,13 +50,13 @@ class Dependency : CustomVarObject < DependencyNameComposer
 		}}}
 	};
 
-	[config, required, navigation(parent_host)] name(Host) parent_host_name {
+	[config, no_user_modify, required, navigation(parent_host)] name(Host) parent_host_name {
 		navigate {{{
 			return Host::GetByName(GetParentHostName());
 		}}}
 	};
 
-	[config, navigation(parent_service)] String parent_service_name {
+	[config, no_user_modify, navigation(parent_service)] String parent_service_name {
 		track {{{
 			if (!oldValue.IsEmpty()) {
 				Service::Ptr service = Service::GetByNamePair(GetParentHostName(), oldValue);

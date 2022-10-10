@@ -40,7 +40,7 @@ class Service : Checkable < ServiceNameComposer
 				return displayName;
 		}}}
 	};
-	[config, required] name(Host) host_name;
+	[config, no_user_modify, required] name(Host) host_name;
 	[no_storage, navigation] Host::Ptr host {
 		get;
 		navigate {{{

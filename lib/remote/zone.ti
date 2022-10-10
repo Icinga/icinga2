@@ -9,7 +9,7 @@ namespace icinga
 
 class Zone : ConfigObject
 {
-	[config, navigation] name(Zone) parent (ParentRaw) {
+	[config, no_user_modify, navigation] name(Zone) parent (ParentRaw) {
 		navigate {{{
 			return Zone::GetByName(GetParentRaw());
 		}}}
