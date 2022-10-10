@@ -324,22 +324,11 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 }
 
 #ifndef _WIN32
-/**
- * The possible states of a seamless worker being started by StartUnixWorker().
- */
-enum class UnixWorkerState : uint_fast8_t
-{
-	Pending,
-	LoadedConfig,
-	Failed
-};
-
 // The signals to block temporarily in StartUnixWorker().
 static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 	sigset_t s;
 
 	(void)sigemptyset(&s);
-	(void)sigaddset(&s, SIGCHLD);
 	(void)sigaddset(&s, SIGUSR1);
 	(void)sigaddset(&s, SIGUSR2);
 	(void)sigaddset(&s, SIGINT);
@@ -353,7 +342,7 @@ static const sigset_t l_UnixWorkerSignals = ([]() -> sigset_t {
 static Atomic<pid_t> l_CurrentlyStartingUnixWorkerPid (-1);
 
 // The state of the seamless worker currently being started by StartUnixWorker()
-static Atomic<UnixWorkerState> l_CurrentlyStartingUnixWorkerState (UnixWorkerState::Pending);
+static Atomic<bool> l_CurrentlyStartingUnixWorkerReady (false);
 
 // The last temination signal we received
 static Atomic<int> l_TermSignal (-1);
@@ -375,17 +364,10 @@ static void UmbrellaSignalHandler(int num, siginfo_t *info, void*)
 			l_RequestedReopenLogs.store(true);
 			break;
 		case SIGUSR2:
-			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
+			if (!l_CurrentlyStartingUnixWorkerReady.load()
 				&& (info->si_pid == 0 || info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) ) {
 				// The seamless worker currently being started by StartUnixWorker() successfully loaded its config
-				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::LoadedConfig);
-			}
-			break;
-		case SIGCHLD:
-			if (l_CurrentlyStartingUnixWorkerState.load() == UnixWorkerState::Pending
-				&& (info->si_pid == 0 || info->si_pid == l_CurrentlyStartingUnixWorkerPid.load()) ) {
-				// The seamless worker currently being started by StartUnixWorker() failed
-				l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Failed);
+				l_CurrentlyStartingUnixWorkerReady.store(true);
 			}
 			break;
 		case SIGINT:
@@ -483,7 +465,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 	}
 
 	/* Block the signal handlers we'd like to change in the child process until we changed them.
-	 * Block SIGUSR2 and SIGCHLD handlers until we've set l_CurrentlyStartingUnixWorkerPid.
+	 * Block SIGUSR2 handler until we've set l_CurrentlyStartingUnixWorkerPid.
 	 */
 	(void)sigprocmask(SIG_BLOCK, &l_UnixWorkerSignals, nullptr);
 
@@ -513,7 +495,6 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 
 					sa.sa_handler = SIG_DFL;
 
-					(void)sigaction(SIGCHLD, &sa, nullptr);
 					(void)sigaction(SIGUSR1, &sa, nullptr);
 					(void)sigaction(SIGHUP, &sa, nullptr);
 				}
@@ -570,33 +551,26 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 				NotifyWatchdog();
 #endif /* HAVE_SYSTEMD */
 
-				switch (l_CurrentlyStartingUnixWorkerState.load()) {
-					case UnixWorkerState::LoadedConfig:
-						Log(LogNotice, "cli")
-							<< "Worker process successfully loaded its config";
-						break;
-					case UnixWorkerState::Failed:
-						Log(LogNotice, "cli")
-							<< "Worker process couldn't load its config";
+				if (waitpid(pid, nullptr, WNOHANG) > 0) {
+					Log(LogNotice, "cli")
+						<< "Worker process couldn't load its config";
 
-						while (waitpid(pid, nullptr, 0) == -1 && errno == EINTR) {
-#ifdef HAVE_SYSTEMD
-							NotifyWatchdog();
-#endif /* HAVE_SYSTEMD */
-						}
-						pid = -2;
-						break;
-					default:
-						Utility::Sleep(0.2);
-						continue;
+					pid = -2;
+					break;
 				}
 
-				break;
+				if (l_CurrentlyStartingUnixWorkerReady.load()) {
+					Log(LogNotice, "cli")
+						<< "Worker process successfully loaded its config";
+					break;
+				}
+
+				Utility::Sleep(0.2);
 			}
 
 			// Reset flags for the next time
 			l_CurrentlyStartingUnixWorkerPid.store(-1);
-			l_CurrentlyStartingUnixWorkerState.store(UnixWorkerState::Pending);
+			l_CurrentlyStartingUnixWorkerReady.store(false);
 
 			try {
 				Application::InitializeBase();
@@ -734,7 +708,6 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		sa.sa_sigaction = &UmbrellaSignalHandler;
 		sa.sa_flags = SA_NOCLDSTOP | SA_RESTART | SA_SIGINFO;
 
-		(void)sigaction(SIGCHLD, &sa, nullptr);
 		(void)sigaction(SIGUSR1, &sa, nullptr);
 		(void)sigaction(SIGUSR2, &sa, nullptr);
 		(void)sigaction(SIGINT, &sa, nullptr);
