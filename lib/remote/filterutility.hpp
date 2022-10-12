@@ -51,8 +51,8 @@ class FilterUtility
 {
 public:
 	static Type::Ptr TypeFromPluralName(const String& pluralName);
-	static void CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **filter = nullptr);
-	static bool HasPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter = nullptr);
+	static void CheckPermission(const ApiUser::Ptr& user, const String& permission, std::unique_ptr<Expression>* filter = nullptr);
+	static bool HasPermission(const ApiUser::Ptr& user, const String& permission, std::unique_ptr<Expression>* permissionFilter = nullptr);
 	static std::vector<Value> GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query,
 		const ApiUser::Ptr& user, const String& variableName = String());
 	static bool EvaluateFilter(ScriptFrame& frame, Expression *filter,
