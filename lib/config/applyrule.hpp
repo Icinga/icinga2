@@ -6,6 +6,7 @@
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
 #include "base/debuginfo.hpp"
+#include "base/shared-object.hpp"
 #include "base/type.hpp"
 #include <unordered_map>
 
@@ -15,9 +16,11 @@ namespace icinga
 /**
  * @ingroup config
  */
-class ApplyRule
+class ApplyRule : public SharedObject
 {
 public:
+	DECLARE_PTR_TYPEDEFS(ApplyRule);
+
 	typedef std::map<String, std::vector<String> > TypeMap;
 	typedef std::unordered_map<Type*, std::unordered_map<Type*, std::vector<ApplyRule>>> RuleMap;
 
