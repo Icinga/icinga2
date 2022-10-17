@@ -75,7 +75,19 @@ void ApplyRule::AddRule(const String& sourceType, const String& targetType, cons
 	const Expression::Ptr& expression, const Expression::Ptr& filter, const String& package, const String& fkvar,
 	const String& fvvar, const Expression::Ptr& fterm, bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope)
 {
-	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope));
+	auto actualTargetType (&targetType);
+
+	if (*actualTargetType == "") {
+		auto& targetTypes (GetTargetTypes(sourceType));
+
+		if (targetTypes.size() == 1u) {
+			actualTargetType = &targetTypes[0];
+		}
+	}
+
+	m_Rules[Type::GetByName(sourceType).get()][Type::GetByName(*actualTargetType).get()].emplace_back(ApplyRule(
+		targetType, name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope
+	));
 }
 
 bool ApplyRule::EvaluateFilter(ScriptFrame& frame) const
@@ -133,23 +145,33 @@ bool ApplyRule::HasMatches() const
 	return m_HasMatches;
 }
 
-std::vector<ApplyRule>& ApplyRule::GetRules(const String& type)
+std::vector<ApplyRule>& ApplyRule::GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType)
 {
-	auto it = m_Rules.find(type);
-	if (it == m_Rules.end()) {
-		static std::vector<ApplyRule> emptyList;
-		return emptyList;
+	auto perSourceType (m_Rules.find(sourceType.get()));
+
+	if (perSourceType != m_Rules.end()) {
+		auto perTargetType (perSourceType->second.find(targetType.get()));
+
+		if (perTargetType != perSourceType->second.end()) {
+			return perTargetType->second;
+		}
 	}
-	return it->second;
+
+	static std::vector<ApplyRule> noRules;
+	return noRules;
 }
 
 void ApplyRule::CheckMatches(bool silent)
 {
-	for (const RuleMap::value_type& kv : m_Rules) {
-		for (const ApplyRule& rule : kv.second) {
-			if (!rule.HasMatches() && !silent)
-				Log(LogWarning, "ApplyRule")
-					<< "Apply rule '" << rule.GetName() << "' (" << rule.GetDebugInfo() << ") for type '" << kv.first << "' does not match anywhere!";
+	for (auto& perSourceType : m_Rules) {
+		for (auto& perTargetType : perSourceType.second) {
+			for (auto& rule : perTargetType.second) {
+				if (!rule.HasMatches() && !silent) {
+					Log(LogWarning, "ApplyRule")
+						<< "Apply rule '" << rule.GetName() << "' (" << rule.GetDebugInfo() << ") for type '"
+						<< perSourceType.first->GetName() << "' does not match anywhere!";
+				}
+			}
 		}
 	}
 }
