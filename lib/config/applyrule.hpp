@@ -19,7 +19,11 @@ public:
 	typedef std::map<String, std::vector<String> > TypeMap;
 	typedef std::map<String, std::vector<ApplyRule> > RuleMap;
 
-	String GetTargetType() const;
+	const String& GetTargetType() const
+	{
+		return m_TargetType;
+	}
+
 	String GetName() const;
 	Expression::Ptr GetExpression() const;
 	Expression::Ptr GetFilter() const;

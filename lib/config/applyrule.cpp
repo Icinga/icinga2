@@ -16,11 +16,6 @@ ApplyRule::ApplyRule(String targetType, String name, Expression::Ptr expression,
 	m_FVVar(std::move(fvvar)), m_FTerm(std::move(fterm)), m_IgnoreOnError(ignoreOnError), m_DebugInfo(std::move(di)), m_Scope(std::move(scope)), m_HasMatches(false)
 { }
 
-String ApplyRule::GetTargetType() const
-{
-	return m_TargetType;
-}
-
 String ApplyRule::GetName() const
 {
 	return m_Name;
