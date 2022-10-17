@@ -134,10 +134,7 @@ void ScheduledDowntime::EvaluateApplyRules(const Host::Ptr& host)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-	for (ApplyRule& rule : ApplyRule::GetRules("ScheduledDowntime")) {
-		if (rule.GetTargetType() != "Host")
-			continue;
-
+	for (auto& rule : ApplyRule::GetRules(ScheduledDowntime::TypeInstance, Host::TypeInstance)) {
 		if (EvaluateApplyRule(host, rule))
 			rule.AddMatch();
 	}
@@ -147,10 +144,7 @@ void ScheduledDowntime::EvaluateApplyRules(const Service::Ptr& service)
 {
 	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
-	for (ApplyRule& rule : ApplyRule::GetRules("ScheduledDowntime")) {
-		if (rule.GetTargetType() != "Service")
-			continue;
-
+	for (auto& rule : ApplyRule::GetRules(ScheduledDowntime::TypeInstance, Service::TypeInstance)) {
 		if (EvaluateApplyRule(service, rule))
 			rule.AddMatch();
 	}
