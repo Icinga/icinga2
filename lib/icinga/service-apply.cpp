@@ -121,9 +121,9 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 
 void Service::EvaluateApplyRules(const Host::Ptr& host)
 {
-	for (ApplyRule& rule : ApplyRule::GetRules("Service")) {
-		CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
+	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
+	for (ApplyRule& rule : ApplyRule::GetRules("Service")) {
 		if (EvaluateApplyRule(host, rule))
 			rule.AddMatch();
 	}
