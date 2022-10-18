@@ -127,4 +127,9 @@ void Service::EvaluateApplyRules(const Host::Ptr& host)
 		if (EvaluateApplyRule(host, rule))
 			rule.AddMatch();
 	}
+
+	for (auto& rule : ApplyRule::GetTargetedHostRules(Service::TypeInstance, Host::TypeInstance, host->GetName())) {
+		if (EvaluateApplyRule(host, *rule))
+			rule->AddMatch();
+	}
 }

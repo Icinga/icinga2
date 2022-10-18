@@ -140,6 +140,11 @@ void Dependency::EvaluateApplyRules(const Host::Ptr& host)
 		if (EvaluateApplyRule(host, rule))
 			rule.AddMatch();
 	}
+
+	for (auto& rule : ApplyRule::GetTargetedHostRules(Dependency::TypeInstance, Host::TypeInstance, host->GetName())) {
+		if (EvaluateApplyRule(host, *rule))
+			rule->AddMatch();
+	}
 }
 
 void Dependency::EvaluateApplyRules(const Service::Ptr& service)
@@ -149,5 +154,10 @@ void Dependency::EvaluateApplyRules(const Service::Ptr& service)
 	for (auto& rule : ApplyRule::GetRules(Dependency::TypeInstance, Service::TypeInstance)) {
 		if (EvaluateApplyRule(service, rule))
 			rule.AddMatch();
+	}
+
+	for (auto& rule : ApplyRule::GetTargetedServiceRules(Dependency::TypeInstance, Service::TypeInstance, service->GetHost()->GetName(), service->GetName())) {
+		if (EvaluateApplyRule(service, *rule))
+			rule->AddMatch();
 	}
 }

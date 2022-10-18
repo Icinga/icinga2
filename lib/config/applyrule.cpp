@@ -3,6 +3,7 @@
 #include "config/applyrule.hpp"
 #include "base/logger.hpp"
 #include <set>
+#include <unordered_set>
 
 using namespace icinga;
 
@@ -80,9 +81,12 @@ void ApplyRule::AddRule(const String& sourceType, const String& targetType, cons
 		}
 	}
 
-	m_Rules[Type::GetByName(sourceType).get()][Type::GetByName(*actualTargetType).get()].emplace_back(ApplyRule(
-		name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope
-	));
+	ApplyRule rule (name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope);
+	auto& rules (m_Rules[Type::GetByName(sourceType).get()][Type::GetByName(*actualTargetType).get()]);
+
+	if (!AddTargetedRule(rule, sourceType, *actualTargetType, rules)) {
+		rules.Regular.emplace_back(std::move(rule));
+	}
 }
 
 bool ApplyRule::EvaluateFilter(ScriptFrame& frame) const
@@ -148,7 +152,7 @@ std::vector<ApplyRule>& ApplyRule::GetRules(const Type::Ptr& sourceType, const T
 		auto perTargetType (perSourceType->second.find(targetType.get()));
 
 		if (perTargetType != perSourceType->second.end()) {
-			return perTargetType->second;
+			return perTargetType->second.Regular;
 		}
 	}
 
@@ -160,13 +164,36 @@ void ApplyRule::CheckMatches(bool silent)
 {
 	for (auto& perSourceType : m_Rules) {
 		for (auto& perTargetType : perSourceType.second) {
-			for (auto& rule : perTargetType.second) {
-				if (!rule.HasMatches() && !silent) {
-					Log(LogWarning, "ApplyRule")
-						<< "Apply rule '" << rule.GetName() << "' (" << rule.GetDebugInfo() << ") for type '"
-						<< perSourceType.first->GetName() << "' does not match anywhere!";
+			for (auto& rule : perTargetType.second.Regular) {
+				CheckMatches(rule, perSourceType.first, silent);
+			}
+
+			std::unordered_set<ApplyRule*> targeted;
+
+			for (auto& perHost : perTargetType.second.Targeted) {
+				for (auto& rule : perHost.second.ForHost) {
+					targeted.emplace(rule.get());
+				}
+
+				for (auto& perService : perHost.second.ForServices) {
+					for (auto& rule : perService.second) {
+						targeted.emplace(rule.get());
+					}
 				}
 			}
+
+			for (auto rule : targeted) {
+				CheckMatches(*rule, perSourceType.first, silent);
+			}
 		}
+	}
+}
+
+void ApplyRule::CheckMatches(const ApplyRule& rule, Type* sourceType, bool silent)
+{
+	if (!rule.HasMatches() && !silent) {
+		Log(LogWarning, "ApplyRule")
+			<< "Apply rule '" << rule.GetName() << "' (" << rule.GetDebugInfo() << ") for type '"
+			<< sourceType->GetName() << "' does not match anywhere!";
 	}
 }
