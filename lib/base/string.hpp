@@ -7,6 +7,7 @@
 #include "base/object.hpp"
 #include <boost/range/iterator.hpp>
 #include <boost/utility/string_view.hpp>
+#include <functional>
 #include <string>
 #include <iosfwd>
 
@@ -177,6 +178,12 @@ String::Iterator range_end(String& x);
 String::ConstIterator range_end(const String& x);
 
 }
+
+template<>
+struct std::hash<icinga::String>
+{
+	std::size_t operator()(const icinga::String& s) const noexcept;
+};
 
 extern template class std::vector<icinga::String>;
 
