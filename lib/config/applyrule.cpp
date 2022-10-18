@@ -9,17 +9,12 @@ using namespace icinga;
 ApplyRule::RuleMap ApplyRule::m_Rules;
 ApplyRule::TypeMap ApplyRule::m_Types;
 
-ApplyRule::ApplyRule(String targetType, String name, Expression::Ptr expression,
+ApplyRule::ApplyRule(String name, Expression::Ptr expression,
 	Expression::Ptr filter, String package, String fkvar, String fvvar, Expression::Ptr fterm,
 	bool ignoreOnError, DebugInfo di, Dictionary::Ptr scope)
-	: m_TargetType(std::move(targetType)), m_Name(std::move(name)), m_Expression(std::move(expression)), m_Filter(std::move(filter)), m_Package(std::move(package)), m_FKVar(std::move(fkvar)),
+	: m_Name(std::move(name)), m_Expression(std::move(expression)), m_Filter(std::move(filter)), m_Package(std::move(package)), m_FKVar(std::move(fkvar)),
 	m_FVVar(std::move(fvvar)), m_FTerm(std::move(fterm)), m_IgnoreOnError(ignoreOnError), m_DebugInfo(std::move(di)), m_Scope(std::move(scope)), m_HasMatches(false)
 { }
-
-String ApplyRule::GetTargetType() const
-{
-	return m_TargetType;
-}
 
 String ApplyRule::GetName() const
 {
@@ -86,7 +81,7 @@ void ApplyRule::AddRule(const String& sourceType, const String& targetType, cons
 	}
 
 	m_Rules[Type::GetByName(sourceType).get()][Type::GetByName(*actualTargetType).get()].emplace_back(ApplyRule(
-		targetType, name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope
+		name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope
 	));
 }
 

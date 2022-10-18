@@ -21,7 +21,6 @@ public:
 	typedef std::map<String, std::vector<String> > TypeMap;
 	typedef std::unordered_map<Type*, std::unordered_map<Type*, std::vector<ApplyRule>>> RuleMap;
 
-	String GetTargetType() const;
 	String GetName() const;
 	Expression::Ptr GetExpression() const;
 	Expression::Ptr GetFilter() const;
@@ -50,7 +49,6 @@ public:
 	static void CheckMatches(bool silent);
 
 private:
-	String m_TargetType;
 	String m_Name;
 	Expression::Ptr m_Expression;
 	Expression::Ptr m_Filter;
@@ -66,7 +64,7 @@ private:
 	static TypeMap m_Types;
 	static RuleMap m_Rules;
 
-	ApplyRule(String targetType, String name, Expression::Ptr expression,
+	ApplyRule(String name, Expression::Ptr expression,
 		Expression::Ptr filter, String package, String fkvar, String fvvar, Expression::Ptr fterm,
 		bool ignoreOnError, DebugInfo di, Dictionary::Ptr scope);
 };
