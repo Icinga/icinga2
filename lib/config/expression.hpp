@@ -303,7 +303,7 @@ class VariableExpression final : public DebuggableExpression
 public:
 	VariableExpression(String variable, std::vector<Expression::Ptr> imports, const DebugInfo& debugInfo = DebugInfo());
 
-	String GetVariable() const
+	inline const String& GetVariable() const
 	{
 		return m_Variable;
 	}
