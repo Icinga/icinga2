@@ -21,8 +21,35 @@ class ApplyRule : public SharedObject
 public:
 	DECLARE_PTR_TYPEDEFS(ApplyRule);
 
+	struct PerHost
+	{
+		std::vector<ApplyRule::Ptr> ForHost;
+		std::unordered_map<String /* service */, std::vector<ApplyRule::Ptr>> ForServices;
+	};
+
+	struct PerTypes
+	{
+		std::vector<ApplyRule> Regular;
+		std::unordered_map<String /* host */, PerHost> Targeted;
+	};
+
+	/*
+	 * m_Rules[T::TypeInstance.get()][Host::TypeInstance.get()].Targeted["H"].ForHost
+	 * contains all apply rules like apply T "x" to Host { ... }
+	 * which target only specific hosts incl. "H", e. g. via
+	 * assign where host.name == "H" || host.name == "h".
+	 *
+	 * m_Rules[T::TypeInstance.get()][Service::TypeInstance.get()].Targeted["H"].ForServices["S"]
+	 * contains all apply rules like apply T "x" to Service { ... }
+	 * which target only specific services on specific hosts incl. "H!S",
+	 * e. g. via assign where host.name == "H" && service.name == "S".
+	 *
+	 * m_Rules[T::TypeInstance.get()][C::TypeInstance.get()].Regular
+	 * contains all other apply rules like apply T "x" to C { ... }.
+	 */
+	typedef std::unordered_map<Type* /* source type */, std::unordered_map<Type* /* target type */, PerTypes>> RuleMap;
+
 	typedef std::map<String, std::vector<String> > TypeMap;
-	typedef std::unordered_map<Type*, std::unordered_map<Type*, std::vector<ApplyRule>>> RuleMap;
 
 	String GetName() const;
 	Expression::Ptr GetExpression() const;
@@ -43,6 +70,8 @@ public:
 		const Expression::Ptr& filter, const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
 		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static std::vector<ApplyRule>& GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType);
+	static const std::vector<ApplyRule::Ptr>& GetTargetedHostRules(const Type::Ptr& sourceType, const Type::Ptr& targetType, const String& host);
+	static const std::vector<ApplyRule::Ptr>& GetTargetedServiceRules(const Type::Ptr& sourceType, const Type::Ptr& targetType, const String& host, const String& service);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes);
 	static bool IsValidSourceType(const String& sourceType);
@@ -50,6 +79,7 @@ public:
 	static const std::vector<String>& GetTargetTypes(const String& sourceType);
 
 	static void CheckMatches(bool silent);
+	static void CheckMatches(const ApplyRule& rule, Type* sourceType, bool silent);
 
 private:
 	String m_Name;
@@ -66,6 +96,14 @@ private:
 
 	static TypeMap m_Types;
 	static RuleMap m_Rules;
+
+	static bool AddTargetedRule(ApplyRule& rule, const String& sourceType, const String& targetType, ApplyRule::PerTypes& rules);
+	static bool GetTargetHosts(Expression* assignFilter, std::vector<const String *>& hosts);
+	static bool GetTargetServices(Expression* assignFilter, std::vector<std::pair<const String *, const String *>>& services);
+	static std::pair<const String *, const String *> GetTargetService(Expression* assignFilter);
+	static const String * GetComparedName(Expression* assignFilter, const char * lcType);
+	static bool IsNameIndexer(Expression* exp, const char * lcType);
+	static const String * GetLiteralStringValue(Expression* exp);
 
 	ApplyRule(String name, Expression::Ptr expression,
 		Expression::Ptr filter, String package, String fkvar, String fvvar, Expression::Ptr fterm,

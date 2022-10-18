@@ -283,6 +283,16 @@ public:
 		: DebuggableExpression(debugInfo), m_Operand1(std::move(operand1)), m_Operand2(std::move(operand2))
 	{ }
 
+	inline const std::unique_ptr<Expression>& GetOperand1() const noexcept
+	{
+		return m_Operand1;
+	}
+
+	inline const std::unique_ptr<Expression>& GetOperand2() const noexcept
+	{
+		return m_Operand2;
+	}
+
 protected:
 	std::unique_ptr<Expression> m_Operand1;
 	std::unique_ptr<Expression> m_Operand2;

@@ -21,7 +21,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 set(config_SOURCES
   i2-config.hpp
   activationcontext.cpp activationcontext.hpp
-  applyrule.cpp applyrule.hpp
+  applyrule.cpp applyrule-targeted.cpp applyrule.hpp
   configcompiler.cpp configcompiler.hpp
   configcompilercontext.cpp configcompilercontext.hpp
   configfragment.hpp
