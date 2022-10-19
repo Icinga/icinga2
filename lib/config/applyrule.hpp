@@ -43,7 +43,7 @@ public:
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes);
 	static bool IsValidSourceType(const String& sourceType);
 	static bool IsValidTargetType(const String& sourceType, const String& targetType);
-	static std::vector<String> GetTargetTypes(const String& sourceType);
+	static const std::vector<String>& GetTargetTypes(const String& sourceType);
 
 	static void CheckMatches(bool silent);
 

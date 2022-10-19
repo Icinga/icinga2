@@ -111,12 +111,14 @@ bool ApplyRule::IsValidTargetType(const String& sourceType, const String& target
 	return false;
 }
 
-std::vector<String> ApplyRule::GetTargetTypes(const String& sourceType)
+const std::vector<String>& ApplyRule::GetTargetTypes(const String& sourceType)
 {
 	auto it = m_Types.find(sourceType);
 
-	if (it == m_Types.end())
-		return std::vector<String>();
+	if (it == m_Types.end()) {
+		static const std::vector<String> noTypes;
+		return noTypes;
+	}
 
 	return it->second;
 }
