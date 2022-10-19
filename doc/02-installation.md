@@ -563,7 +563,7 @@ The `icingadb-redis` package automatically installs the necessary systemd unit f
 Please run the following command to enable and start its service:
 
 ```bash
-systemctl enable --now icingadb-redis
+systemctl enable --now icingadb-redis-server
 ```
 
 #### Enable Remote Redis Connections <a id="enable-remote-redis-connections"></a>
@@ -585,7 +585,7 @@ the `/etc/icingadb-redis/icingadb-redis.conf` configuration file:
 Restart Icinga DB Redis for these changes to take effect:
 
 ```bash
-systemctl restart icingadb-redis
+systemctl restart icingadb-redis-server
 ```
 
 ### Enable Icinga DB Feature <a id="enable-icinga-db-feature"></a>
