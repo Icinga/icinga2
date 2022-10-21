@@ -136,10 +136,7 @@ void Dependency::EvaluateApplyRules(const Host::Ptr& host)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-	for (ApplyRule& rule : ApplyRule::GetRules("Dependency")) {
-		if (rule.GetTargetType() != "Host")
-			continue;
-
+	for (auto& rule : ApplyRule::GetRules(Dependency::TypeInstance, Host::TypeInstance)) {
 		if (EvaluateApplyRule(host, rule))
 			rule.AddMatch();
 	}
@@ -149,10 +146,7 @@ void Dependency::EvaluateApplyRules(const Service::Ptr& service)
 {
 	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
-	for (ApplyRule& rule : ApplyRule::GetRules("Dependency")) {
-		if (rule.GetTargetType() != "Service")
-			continue;
-
+	for (auto& rule : ApplyRule::GetRules(Dependency::TypeInstance, Service::TypeInstance)) {
 		if (EvaluateApplyRule(service, rule))
 			rule.AddMatch();
 	}

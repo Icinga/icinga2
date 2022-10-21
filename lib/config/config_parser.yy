@@ -1165,7 +1165,7 @@ apply:
 
 		if (!ApplyRule::IsValidTargetType(type, target)) {
 			if (target == "") {
-				std::vector<String> types = ApplyRule::GetTargetTypes(type);
+				auto& types (ApplyRule::GetTargetTypes(type));
 				String typeNames;
 
 				for (std::vector<String>::size_type i = 0; i < types.size(); i++) {
