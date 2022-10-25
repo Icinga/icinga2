@@ -204,8 +204,8 @@ Operator | Precedence | Examples (Result)                             | Descript
 `&`        | 9          | 7 & 3 (3)                                     | Binary AND
 `^`        | 10          | 17 ^ 12 (29)                                  | Bitwise XOR
 <code>&#124;</code>    | 11          | 2 &#124; 3 (3)                                | Binary OR
-<code>&#124;&#124;</code>  | 12     | true &#124;&#124; false (true), 0 &#124;&#124; 7 (7)| Logical OR
-`&&`       | 13         | true && false (false), 3 && 7 (7), 0 && 7 (0) | Logical AND
+`&&`       | 12         | true && false (false), 3 && 7 (7), 0 && 7 (0) | Logical AND
+<code>&#124;&#124;</code>  | 13     | true &#124;&#124; false (true), 0 &#124;&#124; 7 (7)| Logical OR
 `=`        | 14         | a = 3                                         | Assignment
 `=>`       | 15         | x => x * x (function with arg x)              | Lambda, for loop
 `?`        | 16         | (2 * 3 > 5) ? 1 : 0 (1)                       | [Ternary operator](17-language-reference.md#conditional-statements-ternary)
