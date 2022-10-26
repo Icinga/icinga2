@@ -33,10 +33,10 @@ if (-not (Test-Path env:OPENSSL_ROOT_DIR)) {
   $env:OPENSSL_ROOT_DIR = "c:\local\OpenSSL_1_1_1q-Win${env:BITS}"
 }
 if (-not (Test-Path env:BOOST_ROOT)) {
-  $env:BOOST_ROOT = "c:\local\boost_1_79_0-Win${env:BITS}"
+  $env:BOOST_ROOT = "c:\local\boost_1_80_0-Win${env:BITS}"
 }
 if (-not (Test-Path env:BOOST_LIBRARYDIR)) {
-  $env:BOOST_LIBRARYDIR = "c:\local\boost_1_79_0-Win${env:BITS}\lib${env:BITS}-msvc-14.2"
+  $env:BOOST_LIBRARYDIR = "c:\local\boost_1_80_0-Win${env:BITS}\lib${env:BITS}-msvc-14.2"
 }
 if (-not (Test-Path env:FLEX_BINARY)) {
   $env:FLEX_BINARY = 'C:\ProgramData\chocolatey\bin\win_flex.exe'
