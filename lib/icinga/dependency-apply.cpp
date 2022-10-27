@@ -17,9 +17,9 @@ INITIALIZE_ONCE([]() {
 	ApplyRule::RegisterType("Dependency", { "Host", "Service" });
 });
 
-bool Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule)
+bool Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter)
 {
-	if (!rule.EvaluateFilter(frame))
+	if (!skipFilter && !rule.EvaluateFilter(frame))
 		return false;
 
 	DebugInfo di = rule.GetDebugInfo();
@@ -62,7 +62,7 @@ bool Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, cons
 	return true;
 }
 
-bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
+bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -111,7 +111,7 @@ bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 				name += instance;
 			}
 
-			if (EvaluateApplyRuleInstance(checkable, name, frame, rule))
+			if (EvaluateApplyRuleInstance(checkable, name, frame, rule, skipFilter))
 				match = true;
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {
@@ -124,7 +124,7 @@ bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 			frame.Locals->Set(rule.GetFKVar(), key);
 			frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
 
-			if (EvaluateApplyRuleInstance(checkable, rule.GetName() + key, frame, rule))
+			if (EvaluateApplyRuleInstance(checkable, rule.GetName() + key, frame, rule, skipFilter))
 				match = true;
 		}
 	}
@@ -142,7 +142,7 @@ void Dependency::EvaluateApplyRules(const Host::Ptr& host)
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedHostRules(Dependency::TypeInstance, Host::TypeInstance, host->GetName())) {
-		if (EvaluateApplyRule(host, *rule))
+		if (EvaluateApplyRule(host, *rule, true))
 			rule->AddMatch();
 	}
 }
@@ -157,7 +157,7 @@ void Dependency::EvaluateApplyRules(const Service::Ptr& service)
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedServiceRules(Dependency::TypeInstance, Service::TypeInstance, service->GetHost()->GetName(), service->GetName())) {
-		if (EvaluateApplyRule(service, *rule))
+		if (EvaluateApplyRule(service, *rule, true))
 			rule->AddMatch();
 	}
 }
