@@ -16,9 +16,9 @@ INITIALIZE_ONCE([]() {
 	ApplyRule::RegisterType("ScheduledDowntime", { "Host", "Service" });
 });
 
-bool ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule)
+bool ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter)
 {
-	if (!rule.EvaluateFilter(frame))
+	if (!skipFilter && !rule.EvaluateFilter(frame))
 		return false;
 
 	DebugInfo di = rule.GetDebugInfo();
@@ -60,7 +60,7 @@ bool ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkabl
 	return true;
 }
 
-bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
+bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -109,7 +109,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 				name += instance;
 			}
 
-			if (EvaluateApplyRuleInstance(checkable, name, frame, rule))
+			if (EvaluateApplyRuleInstance(checkable, name, frame, rule, skipFilter))
 				match = true;
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {
@@ -122,7 +122,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 			frame.Locals->Set(rule.GetFKVar(), key);
 			frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
 
-			if (EvaluateApplyRuleInstance(checkable, rule.GetName() + key, frame, rule))
+			if (EvaluateApplyRuleInstance(checkable, rule.GetName() + key, frame, rule, skipFilter))
 				match = true;
 		}
 	}
@@ -140,7 +140,7 @@ void ScheduledDowntime::EvaluateApplyRules(const Host::Ptr& host)
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedHostRules(ScheduledDowntime::TypeInstance, Host::TypeInstance, host->GetName())) {
-		if (EvaluateApplyRule(host, *rule))
+		if (EvaluateApplyRule(host, *rule, true))
 			rule->AddMatch();
 	}
 }
@@ -155,7 +155,7 @@ void ScheduledDowntime::EvaluateApplyRules(const Service::Ptr& service)
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedServiceRules(ScheduledDowntime::TypeInstance, Service::TypeInstance, service->GetHost()->GetName(), service->GetName())) {
-		if (EvaluateApplyRule(service, *rule))
+		if (EvaluateApplyRule(service, *rule, true))
 			rule->AddMatch();
 	}
 }
