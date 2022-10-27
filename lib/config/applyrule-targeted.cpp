@@ -68,16 +68,14 @@ const std::vector<ApplyRule::Ptr>& ApplyRule::GetTargetedServiceRules(const Type
  *
  * @returns Whether the rule has been added to the "index".
  */
-bool ApplyRule::AddTargetedRule(ApplyRule& rule, const String& sourceType, const String& targetType, ApplyRule::PerTypes& rules)
+bool ApplyRule::AddTargetedRule(const ApplyRule::Ptr& rule, const String& sourceType, const String& targetType, ApplyRule::PerTypes& rules)
 {
 	if (targetType == "Host") {
 		std::vector<const String *> hosts;
 
-		if (GetTargetHosts(rule.m_Filter.get(), hosts)) {
-			ApplyRule::Ptr sharedRule = new ApplyRule(std::move(rule));
-
+		if (GetTargetHosts(rule->m_Filter.get(), hosts)) {
 			for (auto host : hosts) {
-				rules.Targeted[*host].ForHost.emplace_back(sharedRule);
+				rules.Targeted[*host].ForHost.emplace_back(rule);
 			}
 
 			return true;
@@ -85,11 +83,9 @@ bool ApplyRule::AddTargetedRule(ApplyRule& rule, const String& sourceType, const
 	} else if (targetType == "Service") {
 		std::vector<std::pair<const String *, const String *>> services;
 
-		if (GetTargetServices(rule.m_Filter.get(), services)) {
-			ApplyRule::Ptr sharedRule = new ApplyRule(std::move(rule));
-
+		if (GetTargetServices(rule->m_Filter.get(), services)) {
 			for (auto service : services) {
-				rules.Targeted[*service.first].ForServices[*service.second].emplace_back(sharedRule);
+				rules.Targeted[*service.first].ForServices[*service.second].emplace_back(rule);
 			}
 
 			return true;
