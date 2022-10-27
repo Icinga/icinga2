@@ -81,7 +81,7 @@ void ApplyRule::AddRule(const String& sourceType, const String& targetType, cons
 		}
 	}
 
-	ApplyRule rule (name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope);
+	ApplyRule::Ptr rule = new ApplyRule(name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope);
 	auto& rules (m_Rules[Type::GetByName(sourceType).get()][Type::GetByName(*actualTargetType).get()]);
 
 	if (!AddTargetedRule(rule, sourceType, *actualTargetType, rules)) {
@@ -144,7 +144,7 @@ bool ApplyRule::HasMatches() const
 	return m_HasMatches;
 }
 
-std::vector<ApplyRule>& ApplyRule::GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType)
+const std::vector<ApplyRule::Ptr>& ApplyRule::GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType)
 {
 	auto perSourceType (m_Rules.find(sourceType.get()));
 
@@ -156,7 +156,7 @@ std::vector<ApplyRule>& ApplyRule::GetRules(const Type::Ptr& sourceType, const T
 		}
 	}
 
-	static std::vector<ApplyRule> noRules;
+	static const std::vector<ApplyRule::Ptr> noRules;
 	return noRules;
 }
 
@@ -183,17 +183,17 @@ void ApplyRule::CheckMatches(bool silent)
 			}
 
 			for (auto rule : targeted) {
-				CheckMatches(*rule, perSourceType.first, silent);
+				CheckMatches(rule, perSourceType.first, silent);
 			}
 		}
 	}
 }
 
-void ApplyRule::CheckMatches(const ApplyRule& rule, Type* sourceType, bool silent)
+void ApplyRule::CheckMatches(const ApplyRule::Ptr& rule, Type* sourceType, bool silent)
 {
-	if (!rule.HasMatches() && !silent) {
+	if (!rule->HasMatches() && !silent) {
 		Log(LogWarning, "ApplyRule")
-			<< "Apply rule '" << rule.GetName() << "' (" << rule.GetDebugInfo() << ") for type '"
+			<< "Apply rule '" << rule->GetName() << "' (" << rule->GetDebugInfo() << ") for type '"
 			<< sourceType->GetName() << "' does not match anywhere!";
 	}
 }

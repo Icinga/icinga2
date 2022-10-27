@@ -29,7 +29,7 @@ public:
 
 	struct PerTypes
 	{
-		std::vector<ApplyRule> Regular;
+		std::vector<ApplyRule::Ptr> Regular;
 		std::unordered_map<String /* host */, PerHost> Targeted;
 	};
 
@@ -69,7 +69,7 @@ public:
 	static void AddRule(const String& sourceType, const String& targetType, const String& name, const Expression::Ptr& expression,
 		const Expression::Ptr& filter, const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
 		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
-	static std::vector<ApplyRule>& GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType);
+	static const std::vector<ApplyRule::Ptr>& GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType);
 	static const std::vector<ApplyRule::Ptr>& GetTargetedHostRules(const Type::Ptr& sourceType, const Type::Ptr& targetType, const String& host);
 	static const std::vector<ApplyRule::Ptr>& GetTargetedServiceRules(const Type::Ptr& sourceType, const Type::Ptr& targetType, const String& host, const String& service);
 
@@ -79,7 +79,7 @@ public:
 	static const std::vector<String>& GetTargetTypes(const String& sourceType);
 
 	static void CheckMatches(bool silent);
-	static void CheckMatches(const ApplyRule& rule, Type* sourceType, bool silent);
+	static void CheckMatches(const ApplyRule::Ptr& rule, Type* sourceType, bool silent);
 
 private:
 	String m_Name;
@@ -97,7 +97,7 @@ private:
 	static TypeMap m_Types;
 	static RuleMap m_Rules;
 
-	static bool AddTargetedRule(ApplyRule& rule, const String& sourceType, const String& targetType, ApplyRule::PerTypes& rules);
+	static bool AddTargetedRule(const ApplyRule::Ptr& rule, const String& sourceType, const String& targetType, ApplyRule::PerTypes& rules);
 	static bool GetTargetHosts(Expression* assignFilter, std::vector<const String *>& hosts);
 	static bool GetTargetServices(Expression* assignFilter, std::vector<std::pair<const String *, const String *>>& services);
 	static std::pair<const String *, const String *> GetTargetService(Expression* assignFilter);
