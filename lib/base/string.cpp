@@ -8,6 +8,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <ostream>
+#include <utility>
 
 using namespace icinga;
 
@@ -323,19 +324,22 @@ std::istream& icinga::operator>>(std::istream& stream, String& str)
 	return stream;
 }
 
-String icinga::operator+(const String& lhs, const String& rhs)
+String icinga::operator+(String lhs, const String& rhs)
 {
-	return lhs.GetData() + rhs.GetData();
+	lhs.GetData() += rhs.GetData();
+	return std::move(lhs);
 }
 
-String icinga::operator+(const String& lhs, const char *rhs)
+String icinga::operator+(String lhs, const char *rhs)
 {
-	return lhs.GetData() + rhs;
+	lhs.GetData() += rhs;
+	return std::move(lhs);
 }
 
-String icinga::operator+(const char *lhs, const String& rhs)
+String icinga::operator+(const char *lhs, String rhs)
 {
-	return lhs + rhs.GetData();
+	rhs.GetData().insert(rhs.GetData().begin(), lhs, lhs + strlen(lhs));
+	return std::move(rhs);
 }
 
 bool icinga::operator==(const String& lhs, const String& rhs)
