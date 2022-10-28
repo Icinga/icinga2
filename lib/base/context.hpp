@@ -33,7 +33,7 @@ std::ostream& operator<<(std::ostream& stream, const ContextTrace& trace);
 class ContextFrame
 {
 public:
-	ContextFrame(const String& message);
+	ContextFrame(String message);
 	~ContextFrame();
 
 private:

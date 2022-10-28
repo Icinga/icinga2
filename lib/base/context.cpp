@@ -3,14 +3,15 @@
 #include "base/context.hpp"
 #include <boost/thread/tss.hpp>
 #include <iostream>
+#include <utility>
 
 using namespace icinga;
 
 static boost::thread_specific_ptr<std::list<String> > l_Frames;
 
-ContextFrame::ContextFrame(const String& message)
+ContextFrame::ContextFrame(String message)
 {
-	GetFrames().push_front(message);
+	GetFrames().emplace_front(std::move(message));
 }
 
 ContextFrame::~ContextFrame()
