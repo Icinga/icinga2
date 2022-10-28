@@ -57,7 +57,7 @@ bool ApplyRule::GetIgnoreOnError() const
 	return m_IgnoreOnError;
 }
 
-DebugInfo ApplyRule::GetDebugInfo() const
+const DebugInfo& ApplyRule::GetDebugInfo() const
 {
 	return m_DebugInfo;
 }
