@@ -4,6 +4,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/namespace.hpp"
 #include "base/objectlock.hpp"
+#include <unordered_map>
 
 using namespace icinga;
 
@@ -29,19 +30,31 @@ void Type::Register(const Type::Ptr& type)
 
 Type::Ptr Type::GetByName(const String& name)
 {
-	Namespace::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
+	typedef std::unordered_map<String, Type::Ptr> TypesByName;
 
-	if (!typesNS)
-		return nullptr;
+	static const TypesByName typesByName ([]() -> TypesByName {
+		TypesByName typesByName;
+		Namespace::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
+		ObjectLock oLock (typesNS);
 
-	Value ptype;
-	if (!typesNS->Get(name, &ptype))
-		return nullptr;
+		for (auto& kv : typesNS) {
+			auto v (kv.second->Get());
 
-	if (!ptype.IsObjectType<Type>())
-		return nullptr;
+			if (v.IsObjectType<Type>()) {
+				typesByName.emplace(kv.first, Type::Ptr(std::move(v)));
+			}
+		}
 
-	return ptype;
+		return typesByName;
+	}());
+
+	auto type (typesByName.find(name));
+
+	if (type != typesByName.end()) {
+		return type->second;
+	}
+
+	return nullptr;
 }
 
 std::vector<Type::Ptr> Type::GetAllTypes()
