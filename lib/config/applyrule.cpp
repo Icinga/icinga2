@@ -82,10 +82,10 @@ void ApplyRule::AddRule(const String& sourceType, const String& targetType, cons
 	}
 
 	ApplyRule::Ptr rule = new ApplyRule(name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope);
-	auto& rules (m_Rules[Type::GetByName(sourceType).get()][Type::GetByName(*actualTargetType).get()]);
+	auto& rules (m_Rules[Type::GetByName(sourceType).get()]);
 
-	if (!AddTargetedRule(rule, sourceType, *actualTargetType, rules)) {
-		rules.Regular.emplace_back(std::move(rule));
+	if (!AddTargetedRule(rule, *actualTargetType, rules)) {
+		rules.Regular[Type::GetByName(*actualTargetType).get()].emplace_back(std::move(rule));
 	}
 }
 
@@ -149,10 +149,10 @@ const std::vector<ApplyRule::Ptr>& ApplyRule::GetRules(const Type::Ptr& sourceTy
 	auto perSourceType (m_Rules.find(sourceType.get()));
 
 	if (perSourceType != m_Rules.end()) {
-		auto perTargetType (perSourceType->second.find(targetType.get()));
+		auto perTargetType (perSourceType->second.Regular.find(targetType.get()));
 
-		if (perTargetType != perSourceType->second.end()) {
-			return perTargetType->second.Regular;
+		if (perTargetType != perSourceType->second.Regular.end()) {
+			return perTargetType->second;
 		}
 	}
 
@@ -163,28 +163,28 @@ const std::vector<ApplyRule::Ptr>& ApplyRule::GetRules(const Type::Ptr& sourceTy
 void ApplyRule::CheckMatches(bool silent)
 {
 	for (auto& perSourceType : m_Rules) {
-		for (auto& perTargetType : perSourceType.second) {
-			for (auto& rule : perTargetType.second.Regular) {
+		for (auto& perTargetType : perSourceType.second.Regular) {
+			for (auto& rule : perTargetType.second) {
 				CheckMatches(rule, perSourceType.first, silent);
 			}
+		}
 
-			std::unordered_set<ApplyRule*> targeted;
+		std::unordered_set<ApplyRule*> targeted;
 
-			for (auto& perHost : perTargetType.second.Targeted) {
-				for (auto& rule : perHost.second.ForHost) {
+		for (auto& perHost : perSourceType.second.Targeted) {
+			for (auto& rule : perHost.second.ForHost) {
+				targeted.emplace(rule.get());
+			}
+
+			for (auto& perService : perHost.second.ForServices) {
+				for (auto& rule : perService.second) {
 					targeted.emplace(rule.get());
 				}
-
-				for (auto& perService : perHost.second.ForServices) {
-					for (auto& rule : perService.second) {
-						targeted.emplace(rule.get());
-					}
-				}
 			}
+		}
 
-			for (auto rule : targeted) {
-				CheckMatches(rule, perSourceType.first, silent);
-			}
+		for (auto rule : targeted) {
+			CheckMatches(rule, perSourceType.first, silent);
 		}
 	}
 }
