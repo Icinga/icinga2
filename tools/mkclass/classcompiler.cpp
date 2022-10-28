@@ -376,14 +376,16 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetLoadDependencies */
-	m_Header << "\t" << "std::vector<String> GetLoadDependencies() const override;" << std::endl;
+	m_Header << "\t" << "const std::unordered_set<Type*>& GetLoadDependencies() const override;" << std::endl;
 
-	m_Impl << "std::vector<String> TypeImpl<" << klass.Name << ">::GetLoadDependencies() const" << std::endl
+	m_Impl << "const std::unordered_set<Type*>& TypeImpl<" << klass.Name << ">::GetLoadDependencies() const" << std::endl
 		<< "{" << std::endl
-		<< "\t" << "std::vector<String> deps;" << std::endl;
+		<< "\t" << "static const std::unordered_set<Type*> deps ({" << std::endl;
 
 	for (const std::string& dep : klass.LoadDependencies)
-		m_Impl << "\t" << "deps.emplace_back(\"" << dep << "\");" << std::endl;
+		m_Impl << "\t\t" << "GetByName(\"" << dep << "\").get()," << std::endl;
+
+	m_Impl << "\t" << "});" << std::endl;
 
 	m_Impl << "\t" << "return deps;" << std::endl
 		<< "}" << std::endl << std::endl;
