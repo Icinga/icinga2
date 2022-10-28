@@ -564,19 +564,19 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (upq.HasExceptions())
 				return false;
 
+			auto& loadDeps (type->GetLoadDependencies());
 			notified_items = 0;
-			for (auto loadDep : type->GetLoadDependencies()) {
-				upq.ParallelFor(items, [loadDep, &type, &notified_items](const ItemPair& ip) {
-					const ConfigItem::Ptr& item = ip.first;
 
-					if (!item->m_Object || item->m_Type.get() != loadDep)
-						return;
+			upq.ParallelFor(items, [&loadDeps, &type, &notified_items](const ItemPair& ip) {
+				const ConfigItem::Ptr& item = ip.first;
 
-					ActivationScope ascope(item->m_ActivationContext);
-					item->m_Object->CreateChildObjects(type);
-					notified_items++;
-				});
-			}
+				if (!item->m_Object || loadDeps.find(item->m_Type.get()) == loadDeps.end())
+					return;
+
+				ActivationScope ascope(item->m_ActivationContext);
+				item->m_Object->CreateChildObjects(type);
+				notified_items++;
+			});
 
 			upq.Join();
 
