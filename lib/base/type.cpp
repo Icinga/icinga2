@@ -136,9 +136,10 @@ Value Type::GetField(int id) const
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
-std::vector<String> Type::GetLoadDependencies() const
+const std::unordered_set<Type*>& Type::GetLoadDependencies() const
 {
-	return std::vector<String>();
+	static const std::unordered_set<Type*> noDeps;
+	return noDeps;
 }
 
 int Type::GetActivationPriority() const

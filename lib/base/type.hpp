@@ -7,6 +7,7 @@
 #include "base/string.hpp"
 #include "base/object.hpp"
 #include "base/initialize.hpp"
+#include <unordered_set>
 #include <vector>
 
 namespace icinga
@@ -85,7 +86,7 @@ public:
 	void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
 	Value GetField(int id) const override;
 
-	virtual std::vector<String> GetLoadDependencies() const;
+	virtual const std::unordered_set<Type*>& GetLoadDependencies() const;
 	virtual int GetActivationPriority() const;
 
 	typedef std::function<void (const Object::Ptr&, const Value&)> AttributeHandler;
