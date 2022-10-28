@@ -5,7 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include <list>
+#include <vector>
 
 namespace icinga
 {
@@ -20,7 +20,7 @@ public:
 	size_t GetLength() const;
 
 private:
-	std::list<String> m_Frames;
+	std::vector<String> m_Frames;
 };
 
 std::ostream& operator<<(std::ostream& stream, const ContextTrace& trace);
@@ -37,7 +37,7 @@ public:
 	~ContextFrame();
 
 private:
-	static std::list<String>& GetFrames();
+	static std::vector<String>& GetFrames();
 
 	friend class ContextTrace;
 };

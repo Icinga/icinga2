@@ -6,22 +6,22 @@
 
 using namespace icinga;
 
-static boost::thread_specific_ptr<std::list<String> > l_Frames;
+static boost::thread_specific_ptr<std::vector<String>> l_Frames;
 
 ContextFrame::ContextFrame(const String& message)
 {
-	GetFrames().push_front(message);
+	GetFrames().insert(GetFrames().begin(), message);
 }
 
 ContextFrame::~ContextFrame()
 {
-	GetFrames().pop_front();
+	GetFrames().erase(GetFrames().begin());
 }
 
-std::list<String>& ContextFrame::GetFrames()
+std::vector<String>& ContextFrame::GetFrames()
 {
 	if (!l_Frames.get())
-		l_Frames.reset(new std::list<String>());
+		l_Frames.reset(new std::vector<String>());
 
 	return *l_Frames;
 }
