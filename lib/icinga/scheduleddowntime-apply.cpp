@@ -64,9 +64,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 {
 	auto& di (rule.GetDebugInfo());
 
-	std::ostringstream msgbuf;
-	msgbuf << "Evaluating 'apply' rule (" << di << ")";
-	CONTEXT(msgbuf.str());
+	CONTEXT("Evaluating 'apply' rule (" << di << ")");
 
 	Host::Ptr host;
 	Service::Ptr service;

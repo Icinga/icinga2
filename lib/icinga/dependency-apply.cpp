@@ -66,9 +66,7 @@ bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 {
 	auto& di (rule.GetDebugInfo());
 
-	std::ostringstream msgbuf;
-	msgbuf << "Evaluating 'apply' rule (" << di << ")";
-	CONTEXT(msgbuf.str());
+	CONTEXT("Evaluating 'apply' rule (" << di << ")");
 
 	Host::Ptr host;
 	Service::Ptr service;
