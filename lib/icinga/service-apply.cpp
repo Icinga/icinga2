@@ -21,7 +21,7 @@ bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 	if (!rule.EvaluateFilter(frame))
 		return false;
 
-	DebugInfo di = rule.GetDebugInfo();
+	auto& di (rule.GetDebugInfo());
 
 #ifdef _DEBUG
 	Log(LogDebug, "Service")
@@ -57,7 +57,7 @@ bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 
 bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 {
-	DebugInfo di = rule.GetDebugInfo();
+	auto& di (rule.GetDebugInfo());
 
 	std::ostringstream msgbuf;
 	msgbuf << "Evaluating 'apply' rule (" << di << ")";
