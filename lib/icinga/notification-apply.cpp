@@ -141,7 +141,7 @@ void Notification::EvaluateApplyRules(const Host::Ptr& host)
 			rule->AddMatch();
 	}
 
-	for (auto& rule : ApplyRule::GetTargetedHostRules(Notification::TypeInstance, Host::TypeInstance, host->GetName())) {
+	for (auto& rule : ApplyRule::GetTargetedHostRules(Notification::TypeInstance, host->GetName())) {
 		if (EvaluateApplyRule(host, *rule, true))
 			rule->AddMatch();
 	}
@@ -156,7 +156,7 @@ void Notification::EvaluateApplyRules(const Service::Ptr& service)
 			rule->AddMatch();
 	}
 
-	for (auto& rule : ApplyRule::GetTargetedServiceRules(Notification::TypeInstance, Service::TypeInstance, service->GetHost()->GetName(), service->GetName())) {
+	for (auto& rule : ApplyRule::GetTargetedServiceRules(Notification::TypeInstance, service->GetHost()->GetName(), service->GetName())) {
 		if (EvaluateApplyRule(service, *rule, true))
 			rule->AddMatch();
 	}

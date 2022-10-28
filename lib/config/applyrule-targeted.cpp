@@ -11,19 +11,15 @@ using namespace icinga;
 /**
  * @returns All ApplyRules targeting only specific parent objects including the given host. (See AddTargetedRule().)
  */
-const std::vector<ApplyRule::Ptr>& ApplyRule::GetTargetedHostRules(const Type::Ptr& sourceType, const Type::Ptr& targetType, const String& host)
+const std::vector<ApplyRule::Ptr>& ApplyRule::GetTargetedHostRules(const Type::Ptr& sourceType, const String& host)
 {
 	auto perSourceType (m_Rules.find(sourceType.get()));
 
 	if (perSourceType != m_Rules.end()) {
-		auto perTargetType (perSourceType->second.find(targetType.get()));
+		auto perHost (perSourceType->second.Targeted.find(host));
 
-		if (perTargetType != perSourceType->second.end()) {
-			auto perHost (perTargetType->second.Targeted.find(host));
-
-			if (perHost != perTargetType->second.Targeted.end()) {
-				return perHost->second.ForHost;
-			}
+		if (perHost != perSourceType->second.Targeted.end()) {
+			return perHost->second.ForHost;
 		}
 	}
 
@@ -34,22 +30,18 @@ const std::vector<ApplyRule::Ptr>& ApplyRule::GetTargetedHostRules(const Type::P
 /**
  * @returns All ApplyRules targeting only specific parent objects including the given service. (See AddTargetedRule().)
  */
-const std::vector<ApplyRule::Ptr>& ApplyRule::GetTargetedServiceRules(const Type::Ptr& sourceType, const Type::Ptr& targetType, const String& host, const String& service)
+const std::vector<ApplyRule::Ptr>& ApplyRule::GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service)
 {
 	auto perSourceType (m_Rules.find(sourceType.get()));
 
 	if (perSourceType != m_Rules.end()) {
-		auto perTargetType (perSourceType->second.find(targetType.get()));
+		auto perHost (perSourceType->second.Targeted.find(host));
 
-		if (perTargetType != perSourceType->second.end()) {
-			auto perHost (perTargetType->second.Targeted.find(host));
+		if (perHost != perSourceType->second.Targeted.end()) {
+			auto perService (perHost->second.ForServices.find(service));
 
-			if (perHost != perTargetType->second.Targeted.end()) {
-				auto perService (perHost->second.ForServices.find(service));
-
-				if (perService != perHost->second.ForServices.end()) {
-					return perService->second;
-				}
+			if (perService != perHost->second.ForServices.end()) {
+				return perService->second;
 			}
 		}
 	}
@@ -68,7 +60,7 @@ const std::vector<ApplyRule::Ptr>& ApplyRule::GetTargetedServiceRules(const Type
  *
  * @returns Whether the rule has been added to the "index".
  */
-bool ApplyRule::AddTargetedRule(const ApplyRule::Ptr& rule, const String& sourceType, const String& targetType, ApplyRule::PerTypes& rules)
+bool ApplyRule::AddTargetedRule(const ApplyRule::Ptr& rule, const String& targetType, ApplyRule::PerSourceType& rules)
 {
 	if (targetType == "Host") {
 		std::vector<const String *> hosts;
