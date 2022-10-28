@@ -10,12 +10,12 @@ static boost::thread_specific_ptr<std::vector<String>> l_Frames;
 
 ContextFrame::ContextFrame(const String& message)
 {
-	GetFrames().insert(GetFrames().begin(), message);
+	GetFrames().emplace_back(message);
 }
 
 ContextFrame::~ContextFrame()
 {
-	GetFrames().erase(GetFrames().begin());
+	GetFrames().pop_back();
 }
 
 std::vector<String>& ContextFrame::GetFrames()
@@ -27,7 +27,7 @@ std::vector<String>& ContextFrame::GetFrames()
 }
 
 ContextTrace::ContextTrace()
-	: m_Frames(ContextFrame::GetFrames())
+	: m_Frames(ContextFrame::GetFrames().rbegin(), ContextFrame::GetFrames().rend())
 { }
 
 void ContextTrace::Print(std::ostream& fp) const
