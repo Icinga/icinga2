@@ -450,8 +450,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			bool unresolved_dep = false;
 
 			/* skip this type (for now) if there are unresolved load dependencies */
-			for (const String& loadDep : type->GetLoadDependencies()) {
-				Type::Ptr pLoadDep = Type::GetByName(loadDep);
+			for (auto pLoadDep : type->GetLoadDependencies()) {
 				if (types.find(pLoadDep) != types.end() && completed_types.find(pLoadDep) == completed_types.end()) {
 					unresolved_dep = true;
 					break;
@@ -516,8 +515,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			bool unresolved_dep = false;
 
 			/* skip this type (for now) if there are unresolved load dependencies */
-			for (const String& loadDep : type->GetLoadDependencies()) {
-				Type::Ptr pLoadDep = Type::GetByName(loadDep);
+			for (auto pLoadDep : type->GetLoadDependencies()) {
 				if (types.find(pLoadDep) != types.end() && completed_types.find(pLoadDep) == completed_types.end()) {
 					unresolved_dep = true;
 					break;
@@ -567,11 +565,11 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				return false;
 
 			notified_items = 0;
-			for (const String& loadDep : type->GetLoadDependencies()) {
+			for (auto loadDep : type->GetLoadDependencies()) {
 				upq.ParallelFor(items, [loadDep, &type, &notified_items](const ItemPair& ip) {
 					const ConfigItem::Ptr& item = ip.first;
 
-					if (!item->m_Object || item->m_Type->GetName() != loadDep)
+					if (!item->m_Object || item->m_Type.get() != loadDep)
 						return;
 
 					ActivationScope ascope(item->m_ActivationContext);
