@@ -179,7 +179,7 @@ private:
 	static void CommentRemovedHandler(const Comment::Ptr& comment);
 	static void FlappingChangeHandler(const Checkable::Ptr& checkable, double changeTime);
 	static void NewCheckResultHandler(const Checkable::Ptr& checkable);
-	static void NextCheckChangedHandler(const Checkable::Ptr& checkable);
+	static void NextCheckUpdatedHandler(const Checkable::Ptr& checkable);
 	static void HostProblemChangedHandler(const Service::Ptr& service);
 	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry);
 	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, double changeTime);

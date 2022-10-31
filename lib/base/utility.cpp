@@ -1779,8 +1779,8 @@ const char l_Utf8Replacement[] = "\xEF\xBF\xBD";
 
 String Utility::ValidateUTF8(const String& input)
 {
-	std::vector<char> output;
-	output.reserve(input.GetLength() * 3u);
+	std::string output;
+	output.reserve(input.GetLength());
 
 	try {
 		utf8::replace_invalid(input.Begin(), input.End(), std::back_inserter(output));
@@ -1788,7 +1788,7 @@ String Utility::ValidateUTF8(const String& input)
 		output.insert(output.end(), (const char*)l_Utf8Replacement, (const char*)l_Utf8Replacement + 3);
 	}
 
-	return String(output.begin(), output.end());
+	return String(std::move(output));
 }
 
 String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
