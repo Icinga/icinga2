@@ -246,7 +246,11 @@ bool HandleAccessControl(
 			if (!allowedOrigins.empty()) {
 				auto& origin (request[http::field::origin]);
 
-				if (allowedOrigins.find(origin.to_string()) != allowedOrigins.end()) {
+				if (allowedOrigins.find(origin.to_string()) == allowedOrigins.end()) {
+					if (headerAllowOrigin->GetLength()) {
+						response.set(http::field::access_control_allow_origin, String(headerAllowOrigin->Get(0)));
+					}
+				} else {
 					response.set(http::field::access_control_allow_origin, origin);
 				}
 
