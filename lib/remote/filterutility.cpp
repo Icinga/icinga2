@@ -124,13 +124,27 @@ static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissi
 	}
 }
 
-void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter)
+/**
+ * Checks whether the given API user is granted the given permission
+ *
+ * When you desire an exception to be raised when the given user doesn't have the given permission,
+ * you need to use FilterUtility::CheckPermission().
+ *
+ * @param user ApiUser pointer to the user object you want to check the permission of
+ * @param permission The actual permission you want to check the user permission against
+ * @param permissionFilter Expression pointer that is used as an output buffer for all the filter expressions of the
+ *                         individual permissions of the given user to be evaluated. It's up to the caller to delete
+ *                         this pointer when it's not needed any more.
+ *
+ * @return bool
+ */
+bool FilterUtility::HasPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter)
 {
 	if (permissionFilter)
 		*permissionFilter = nullptr;
 
 	if (permission.IsEmpty())
-		return;
+		return true;
 
 	bool foundPermission = false;
 	String requiredPermission = permission.ToLower();
@@ -172,8 +186,15 @@ void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& perm
 	if (!foundPermission) {
 		Log(LogWarning, "FilterUtility")
 			<< "Missing permission: " << requiredPermission;
+	}
 
-		BOOST_THROW_EXCEPTION(ScriptError("Missing permission: " + requiredPermission));
+	return foundPermission;
+}
+
+void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter)
+{
+	if (!HasPermission(user, permission, permissionFilter)) {
+		BOOST_THROW_EXCEPTION(ScriptError("Missing permission: " + permission.ToLower()));
 	}
 }
 
