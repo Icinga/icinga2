@@ -6,6 +6,8 @@
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
 #include "base/debuginfo.hpp"
+#include "base/type.hpp"
+#include <unordered_map>
 
 namespace icinga
 {
@@ -17,9 +19,8 @@ class ApplyRule
 {
 public:
 	typedef std::map<String, std::vector<String> > TypeMap;
-	typedef std::map<String, std::vector<ApplyRule> > RuleMap;
+	typedef std::unordered_map<Type*, std::unordered_map<Type*, std::vector<ApplyRule>>> RuleMap;
 
-	String GetTargetType() const;
 	String GetName() const;
 	Expression::Ptr GetExpression() const;
 	Expression::Ptr GetFilter() const;
@@ -38,17 +39,16 @@ public:
 	static void AddRule(const String& sourceType, const String& targetType, const String& name, const Expression::Ptr& expression,
 		const Expression::Ptr& filter, const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
 		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
-	static std::vector<ApplyRule>& GetRules(const String& type);
+	static std::vector<ApplyRule>& GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes);
 	static bool IsValidSourceType(const String& sourceType);
 	static bool IsValidTargetType(const String& sourceType, const String& targetType);
-	static std::vector<String> GetTargetTypes(const String& sourceType);
+	static const std::vector<String>& GetTargetTypes(const String& sourceType);
 
 	static void CheckMatches(bool silent);
 
 private:
-	String m_TargetType;
 	String m_Name;
 	Expression::Ptr m_Expression;
 	Expression::Ptr m_Filter;
@@ -64,7 +64,7 @@ private:
 	static TypeMap m_Types;
 	static RuleMap m_Rules;
 
-	ApplyRule(String targetType, String name, Expression::Ptr expression,
+	ApplyRule(String name, Expression::Ptr expression,
 		Expression::Ptr filter, String package, String fkvar, String fvvar, Expression::Ptr fterm,
 		bool ignoreOnError, DebugInfo di, Dictionary::Ptr scope);
 };

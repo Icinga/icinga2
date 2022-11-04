@@ -135,11 +135,8 @@ void Notification::EvaluateApplyRules(const Host::Ptr& host)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-	for (ApplyRule& rule : ApplyRule::GetRules("Notification"))
+	for (auto& rule : ApplyRule::GetRules(Notification::TypeInstance, Host::TypeInstance))
 	{
-		if (rule.GetTargetType() != "Host")
-			continue;
-
 		if (EvaluateApplyRule(host, rule))
 			rule.AddMatch();
 	}
@@ -149,10 +146,7 @@ void Notification::EvaluateApplyRules(const Service::Ptr& service)
 {
 	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
-	for (ApplyRule& rule : ApplyRule::GetRules("Notification")) {
-		if (rule.GetTargetType() != "Service")
-			continue;
-
+	for (auto& rule : ApplyRule::GetRules(Notification::TypeInstance, Service::TypeInstance)) {
 		if (EvaluateApplyRule(service, rule))
 			rule.AddMatch();
 	}
