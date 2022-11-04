@@ -7,6 +7,19 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.6 (2022-11-08)
+
+The main focus of version 2.13.6 is improved performance of Icinga DB and apply rules.
+Additionally, it includes bug fixes related to config loading and API permissions.
+
+### Bugfixes
+
+* Improve the throughput of the Icinga DB feature. #9550
+* Multiple changes to speed up evaluation of apply rules. #9559 #9565 #9558
+* Fix a possible crash on config loading related to `ignore_on_error`. #9560
+* Check API user permission on objects returned by joins. #9561
+* Windows: update bundled Boost and OpenSSL versions. #9562 #9567
+
 ## 2.13.5 (2022-08-11)
 
 Version 2.13.5 is a maintenance release that fixes some bugs,
