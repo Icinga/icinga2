@@ -156,7 +156,7 @@ void Dependency::EvaluateApplyRules(const Service::Ptr& service)
 			rule->AddMatch();
 	}
 
-	for (auto& rule : ApplyRule::GetTargetedServiceRules(Dependency::TypeInstance, service->GetHost()->GetName(), service->GetName())) {
+	for (auto& rule : ApplyRule::GetTargetedServiceRules(Dependency::TypeInstance, service->GetHost()->GetName(), service->GetShortName())) {
 		if (EvaluateApplyRule(service, *rule, true))
 			rule->AddMatch();
 	}
