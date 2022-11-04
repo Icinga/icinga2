@@ -461,3 +461,8 @@ String::ConstIterator icinga::range_end(const String& x)
 {
 	return x.End();
 }
+
+std::size_t std::hash<String>::operator()(const String& s) const noexcept
+{
+	return std::hash<std::string>{}(s.GetData());
+}
