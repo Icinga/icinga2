@@ -11,7 +11,7 @@ using namespace icinga;
 /**
  * @returns All ApplyRules targeting only specific parent objects including the given host. (See AddTargetedRule().)
  */
-const std::vector<ApplyRule::Ptr>& ApplyRule::GetTargetedHostRules(const Type::Ptr& sourceType, const String& host)
+const std::set<ApplyRule::Ptr>& ApplyRule::GetTargetedHostRules(const Type::Ptr& sourceType, const String& host)
 {
 	auto perSourceType (m_Rules.find(sourceType.get()));
 
@@ -23,14 +23,14 @@ const std::vector<ApplyRule::Ptr>& ApplyRule::GetTargetedHostRules(const Type::P
 		}
 	}
 
-	static const std::vector<ApplyRule::Ptr> noRules;
+	static const std::set<ApplyRule::Ptr> noRules;
 	return noRules;
 }
 
 /**
  * @returns All ApplyRules targeting only specific parent objects including the given service. (See AddTargetedRule().)
  */
-const std::vector<ApplyRule::Ptr>& ApplyRule::GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service)
+const std::set<ApplyRule::Ptr>& ApplyRule::GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service)
 {
 	auto perSourceType (m_Rules.find(sourceType.get()));
 
@@ -46,7 +46,7 @@ const std::vector<ApplyRule::Ptr>& ApplyRule::GetTargetedServiceRules(const Type
 		}
 	}
 
-	static const std::vector<ApplyRule::Ptr> noRules;
+	static const std::set<ApplyRule::Ptr> noRules;
 	return noRules;
 }
 
@@ -67,7 +67,7 @@ bool ApplyRule::AddTargetedRule(const ApplyRule::Ptr& rule, const String& target
 
 		if (GetTargetHosts(rule->m_Filter.get(), hosts)) {
 			for (auto host : hosts) {
-				rules.Targeted[*host].ForHost.emplace_back(rule);
+				rules.Targeted[*host].ForHost.emplace(rule);
 			}
 
 			return true;
@@ -77,7 +77,7 @@ bool ApplyRule::AddTargetedRule(const ApplyRule::Ptr& rule, const String& target
 
 		if (GetTargetServices(rule->m_Filter.get(), services)) {
 			for (auto service : services) {
-				rules.Targeted[*service.first].ForServices[*service.second].emplace_back(rule);
+				rules.Targeted[*service.first].ForServices[*service.second].emplace(rule);
 			}
 
 			return true;

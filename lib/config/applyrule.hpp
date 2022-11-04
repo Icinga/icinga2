@@ -23,8 +23,8 @@ public:
 
 	struct PerHost
 	{
-		std::vector<ApplyRule::Ptr> ForHost;
-		std::unordered_map<String /* service */, std::vector<ApplyRule::Ptr>> ForServices;
+		std::set<ApplyRule::Ptr> ForHost;
+		std::unordered_map<String /* service */, std::set<ApplyRule::Ptr>> ForServices;
 	};
 
 	struct PerSourceType
@@ -36,13 +36,13 @@ public:
 	/*
 	 * m_Rules[T::TypeInstance.get()].Targeted["H"].ForHost
 	 * contains all apply rules like apply T "x" to Host { ... }
-	 * which target only specific hosts incl. "H", e. g. via
+	 * which target only specific hosts incl. "H", e.g. via
 	 * assign where host.name == "H" || host.name == "h".
 	 *
 	 * m_Rules[T::TypeInstance.get()].Targeted["H"].ForServices["S"]
 	 * contains all apply rules like apply T "x" to Service { ... }
-	 * which target only specific services on specific hosts incl. "H!S",
-	 * e. g. via assign where host.name == "H" && service.name == "S".
+	 * which target only specific services on specific hosts,
+	 * e.g. via assign where host.name == "H" && service.name == "S".
 	 *
 	 * m_Rules[T::TypeInstance.get()].Regular[C::TypeInstance.get()]
 	 * contains all other apply rules like apply T "x" to C { ... }.
@@ -70,8 +70,8 @@ public:
 		const Expression::Ptr& filter, const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
 		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static const std::vector<ApplyRule::Ptr>& GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType);
-	static const std::vector<ApplyRule::Ptr>& GetTargetedHostRules(const Type::Ptr& sourceType, const String& host);
-	static const std::vector<ApplyRule::Ptr>& GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service);
+	static const std::set<ApplyRule::Ptr>& GetTargetedHostRules(const Type::Ptr& sourceType, const String& host);
+	static const std::set<ApplyRule::Ptr>& GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes);
 	static bool IsValidSourceType(const String& sourceType);
