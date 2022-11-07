@@ -176,6 +176,60 @@ C:\> cd C:\ProgramData\icinga2\var\log\icinga2
 C:\ProgramData\icinga2\var\log\icinga2> Get-Content .\debug.log -tail 10 -wait
 ```
 
+## Icinga starts/restarts/reloads very slowly
+
+Icinga performs a lot of memory allocations, especially during startup.
+Swapping out the allocator may increase the startup performance.
+The following instructions assume you run Linux and systemd.
+
+On RHEL or derivates add the EPEL repository first (if not already done).
+Let your package manager search for package names containing "jemalloc".
+Pick preferably one named "libjemalloc" followed by a number,
+just "jemalloc" otherwise, and install it.
+
+Run `ldconfig -p |grep libjemalloc`. It should print something similar to:
+
+```
+	libjemalloc.so.2 (libc6,x86-64) => /lib/x86_64-linux-gnu/libjemalloc.so.2
+```
+
+I.e. a relative file name followed by an absolute one. Remember the latter.
+
+Measure how long Icinga needs to load its config without and with libjemalloc:
+
+```bash
+time icinga2 daemon -C
+
+time env LD_PRELOAD=/lib/x86_64-linux-gnu/libjemalloc.so.2 icinga2 daemon -C
+```
+
+Replace `/lib/x86_64-linux-gnu/libjemalloc.so.2` with the absolute path
+you actually got from `ldconfig -p`!
+
+Please do us a favor and share your results
+[with us](https://community.icinga.com/t/icinga-reloads-config-slowly-try-jemalloc/11032).
+
+If it's faster with libjemalloc, do the following to persist the change.
+
+Run `systemctl edit icinga2.service`. This will open an editor.
+Add the following, save the file and close the editor.
+
+```
+[Service]
+Environment=LD_PRELOAD=/lib/x86_64-linux-gnu/libjemalloc.so.2
+```
+
+Replace `/lib/x86_64-linux-gnu/libjemalloc.so.2` with the absolute path
+you actually got from `ldconfig -p`!
+
+Restart Icinga. Verify whether your changes took effect and enjoy the speed:
+
+```
+# lsof -p `cat /var/run/icinga2/icinga2.pid` |grep libjemalloc
+icinga2 7764 nagios  mem    REG                8,5   744776 2631636 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+#
+```
+
 ## Configuration Troubleshooting <a id="troubleshooting-configuration"></a>
 
 ### List Configuration Objects <a id="troubleshooting-list-configuration-objects"></a>
