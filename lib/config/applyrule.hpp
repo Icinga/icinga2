@@ -61,7 +61,11 @@ public:
 		return m_FKVar;
 	}
 
-	String GetFVVar() const;
+	inline const String& GetFVVar() const noexcept
+	{
+		return m_FVVar;
+	}
+
 	Expression::Ptr GetFTerm() const;
 	bool GetIgnoreOnError() const;
 	DebugInfo GetDebugInfo() const;
