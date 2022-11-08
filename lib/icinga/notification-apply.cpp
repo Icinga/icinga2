@@ -113,12 +113,13 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 				BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
 
 			Dictionary::Ptr dict = vinstances;
+			ObjectLock olock (dict);
 
-			for (const String& key : dict->GetKeys()) {
-				frame.Locals->Set(rule.GetFKVar(), key);
-				frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
+			for (auto& kv : dict) {
+				frame.Locals->Set(rule.GetFKVar(), kv.first);
+				frame.Locals->Set(rule.GetFVVar(), kv.second);
 
-				if (EvaluateApplyRuleInstance(checkable, rule.GetName() + key, frame, rule, skipFilter))
+				if (EvaluateApplyRuleInstance(checkable, rule.GetName() + kv.first, frame, rule, skipFilter))
 					match = true;
 			}
 		}
