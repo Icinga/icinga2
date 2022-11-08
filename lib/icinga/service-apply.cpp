@@ -61,10 +61,20 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule, bo
 
 	CONTEXT("Evaluating 'apply' rule (" << di << ")");
 
-	ScriptFrame frame(true);
-	if (rule.GetScope())
-		rule.GetScope()->CopyTo(frame.Locals);
-	frame.Locals->Set("host", host);
+	ScriptFrame frame (false);
+
+	if (rule.GetScope() || rule.GetFTerm()) {
+		frame.Locals = new Dictionary();
+
+		if (rule.GetScope()) {
+			rule.GetScope()->CopyTo(frame.Locals);
+		}
+
+		host->GetFrozenLocalsForApply()->CopyTo(frame.Locals);
+		frame.Locals->Freeze();
+	} else {
+		frame.Locals = host->GetFrozenLocalsForApply();
+	}
 
 	bool match = false;
 
@@ -89,7 +99,7 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule, bo
 				String name = rule.GetName();
 
 				if (!rule.GetFKVar().IsEmpty()) {
-					frame.Locals->Set(rule.GetFKVar(), instance);
+					frame.Locals->Set(rule.GetFKVar(), instance, true);
 					name += instance;
 				}
 
@@ -104,8 +114,8 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule, bo
 			ObjectLock olock (dict);
 
 			for (auto& kv : dict) {
-				frame.Locals->Set(rule.GetFKVar(), kv.first);
-				frame.Locals->Set(rule.GetFVVar(), kv.second);
+				frame.Locals->Set(rule.GetFKVar(), kv.first, true);
+				frame.Locals->Set(rule.GetFVVar(), kv.second, true);
 
 				if (EvaluateApplyRuleInstance(host, rule.GetName() + kv.first, frame, rule, skipFilter))
 					match = true;
