@@ -320,3 +320,13 @@ void Checkable::CleanDeadlinedExecutions(const Timer * const&)
 		}
 	}
 }
+
+Dictionary::Ptr Checkable::GetFrozenLocalsForApply()
+{
+	if (!m_FrozenLocalsForApply) {
+		m_FrozenLocalsForApply = MakeLocalsForApply();
+		m_FrozenLocalsForApply->Freeze();
+	}
+
+	return m_FrozenLocalsForApply;
+}
