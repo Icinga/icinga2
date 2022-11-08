@@ -308,3 +308,8 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *res
 
 	return false;
 }
+
+Dictionary::Ptr Host::MakeLocalsForApply()
+{
+	return new Dictionary({{ "host", this }});
+}
