@@ -67,16 +67,20 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 
 	CONTEXT("Evaluating 'apply' rule (" << di << ")");
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
+	ScriptFrame frame (false);
 
-	ScriptFrame frame(true);
-	if (rule.GetScope())
-		rule.GetScope()->CopyTo(frame.Locals);
-	frame.Locals->Set("host", host);
-	if (service)
-		frame.Locals->Set("service", service);
+	if (rule.GetScope() || rule.GetFTerm()) {
+		frame.Locals = new Dictionary();
+
+		if (rule.GetScope()) {
+			rule.GetScope()->CopyTo(frame.Locals);
+		}
+
+		checkable->GetFrozenLocalsForApply()->CopyTo(frame.Locals);
+		frame.Locals->Freeze();
+	} else {
+		frame.Locals = checkable->GetFrozenLocalsForApply();
+	}
 
 	bool match = false;
 
@@ -100,7 +104,7 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 			for (const Value& instance : arr) {
 				String name = rule.GetName();
 
-				frame.Locals->Set(rule.GetFKVar(), instance);
+				frame.Locals->Set(rule.GetFKVar(), instance, true);
 				name += instance;
 
 				if (EvaluateApplyRuleInstance(checkable, name, frame, rule, skipFilter))
@@ -114,8 +118,8 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 			ObjectLock olock (dict);
 
 			for (auto& kv : dict) {
-				frame.Locals->Set(rule.GetFKVar(), kv.first);
-				frame.Locals->Set(rule.GetFVVar(), kv.second);
+				frame.Locals->Set(rule.GetFKVar(), kv.first, true);
+				frame.Locals->Set(rule.GetFVVar(), kv.second, true);
 
 				if (EvaluateApplyRuleInstance(checkable, rule.GetName() + kv.first, frame, rule, skipFilter))
 					match = true;

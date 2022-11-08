@@ -328,3 +328,12 @@ String Checkable::StateTypeToString(StateType type)
 	return type == StateTypeSoft ? "SOFT" : "HARD";
 }
 
+Dictionary::Ptr Checkable::GetFrozenLocalsForApply()
+{
+	if (!m_FrozenLocalsForApply) {
+		m_FrozenLocalsForApply = MakeLocalsForApply();
+		m_FrozenLocalsForApply->Freeze();
+	}
+
+	return m_FrozenLocalsForApply;
+}
