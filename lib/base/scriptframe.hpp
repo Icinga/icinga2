@@ -7,7 +7,7 @@
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
 #include <boost/thread/tss.hpp>
-#include <stack>
+#include <vector>
 
 namespace icinga
 {
@@ -29,7 +29,7 @@ struct ScriptFrame
 	static ScriptFrame *GetCurrentFrame();
 
 private:
-	static boost::thread_specific_ptr<std::stack<ScriptFrame *> > m_ScriptFrames;
+	static boost::thread_specific_ptr<std::vector<ScriptFrame*>> m_ScriptFrames;
 
 	static void PushFrame(ScriptFrame *frame);
 	static ScriptFrame *PopFrame();
