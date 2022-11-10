@@ -22,6 +22,15 @@ using namespace icinga;
 boost::signals2::signal<void (ScriptFrame&, ScriptError *ex, const DebugInfo&)> Expression::OnBreakpoint;
 boost::thread_specific_ptr<bool> l_InBreakpointHandler;
 
+RefIndex::RefIndex() : m_Foreign(&m_Own)
+{ }
+
+void RefIndex::Set(String own)
+{
+	m_Own = std::move(own);
+	m_Foreign = &m_Own;
+}
+
 Expression::~Expression()
 { }
 
@@ -63,7 +72,7 @@ ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) cons
 	}
 }
 
-bool Expression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
+bool Expression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, RefIndex *index, DebugHint **dhint) const
 {
 	return false;
 }
@@ -122,9 +131,9 @@ ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 		return ScriptGlobal::Get(m_Variable);
 }
 
-bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
+bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, RefIndex *index, DebugHint **dhint) const
 {
-	*index = m_Variable;
+	index->Set(&m_Variable);
 
 	if (frame.Locals && frame.Locals->Contains(m_Variable)) {
 		*parent = frame.Locals;
@@ -152,7 +161,7 @@ bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value 
 ExpressionResult RefExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	Value parent;
-	String index;
+	RefIndex index;
 
 	if (!m_Operand->GetReference(frame, false, &parent, &index, &dhint))
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot obtain reference for expression.", m_DebugInfo));
@@ -160,7 +169,7 @@ ExpressionResult RefExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 	if (!parent.IsObject())
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot obtain reference for expression because parent is not an object.", m_DebugInfo));
 
-	return new Reference(parent, index);
+	return new Reference(parent, index.Get());
 }
 
 ExpressionResult DerefExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -177,7 +186,7 @@ ExpressionResult DerefExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	return ref->Get();
 }
 
-bool DerefExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
+bool DerefExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, RefIndex *index, DebugHint **dhint) const
 {
 	ExpressionResult operand = m_Operand->Evaluate(frame);
 	if (operand.GetCode() != ResultOK)
@@ -186,7 +195,7 @@ bool DerefExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *pa
 	Reference::Ptr ref = operand.GetValue();
 
 	*parent = ref->GetParent();
-	*index = ref->GetIndex();
+	index->Set(ref->GetIndex());
 	return true;
 }
 
@@ -449,10 +458,10 @@ ExpressionResult LogicalOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint *
 ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	Value self, vfunc;
-	String index;
+	RefIndex index;
 
 	if (m_FName->GetReference(frame, false, &self, &index))
-		vfunc = VMOps::GetField(self, index, frame.Sandboxed, m_DebugInfo);
+		vfunc = VMOps::GetField(self, index.Get(), frame.Sandboxed, m_DebugInfo);
 	else {
 		ExpressionResult vfuncres = m_FName->Evaluate(frame);
 		CHECK_RESULT(vfuncres);
@@ -611,7 +620,7 @@ ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 	DebugHint *psdhint = dhint;
 
 	Value parent;
-	String index;
+	RefIndex index;
 
 	if (!m_Operand1->GetReference(frame, true, &parent, &index, &psdhint))
 		BOOST_THROW_EXCEPTION(ScriptError("Expression cannot be assigned to.", m_DebugInfo));
@@ -620,7 +629,7 @@ ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 	CHECK_RESULT(operand2);
 
 	if (m_Op != OpSetLiteral) {
-		Value object = VMOps::GetField(parent, index, frame.Sandboxed, m_DebugInfo);
+		Value object = VMOps::GetField(parent, index.Get(), frame.Sandboxed, m_DebugInfo);
 
 		switch (m_Op) {
 			case OpSetAdd:
@@ -652,7 +661,7 @@ ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 		}
 	}
 
-	VMOps::SetField(parent, index, operand2.GetValue(), m_OverrideFrozen, m_DebugInfo);
+	VMOps::SetField(parent, index.Get(), operand2.GetValue(), m_OverrideFrozen, m_DebugInfo);
 
 	if (psdhint) {
 		psdhint->AddMessage("=", m_DebugInfo);
@@ -745,10 +754,10 @@ ExpressionResult IndexerExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 	return VMOps::GetField(operand1.GetValue(), operand2.GetValue(), frame.Sandboxed, m_DebugInfo);
 }
 
-bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
+bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, RefIndex *index, DebugHint **dhint) const
 {
 	Value vparent;
-	String vindex;
+	RefIndex vindex;
 	DebugHint *psdhint = nullptr;
 	bool free_psd = false;
 
@@ -765,17 +774,17 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 
 			if (vparent.IsObject()) {
 				Object::Ptr oparent = vparent;
-				has_field = oparent->HasOwnField(vindex);
+				has_field = oparent->HasOwnField(vindex.Get());
 			}
 
 			if (has_field)
-				old_value = VMOps::GetField(vparent, vindex, frame.Sandboxed, m_Operand1->GetDebugInfo());
+				old_value = VMOps::GetField(vparent, vindex.Get(), frame.Sandboxed, m_Operand1->GetDebugInfo());
 
 			if (old_value.IsEmpty() && !old_value.IsString())
-				VMOps::SetField(vparent, vindex, new Dictionary(), m_OverrideFrozen, m_Operand1->GetDebugInfo());
+				VMOps::SetField(vparent, vindex.Get(), new Dictionary(), m_OverrideFrozen, m_Operand1->GetDebugInfo());
 		}
 
-		*parent = VMOps::GetField(vparent, vindex, frame.Sandboxed, m_DebugInfo);
+		*parent = VMOps::GetField(vparent, vindex.Get(), frame.Sandboxed, m_DebugInfo);
 		free_psd = true;
 	} else {
 		ExpressionResult operand1 = m_Operand1->Evaluate(frame);
@@ -783,11 +792,11 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 	}
 
 	ExpressionResult operand2 = m_Operand2->Evaluate(frame);
-	*index = operand2.GetValue();
+	index->Set(operand2.GetValue());
 
 	if (dhint) {
 		if (psdhint)
-			*dhint = new DebugHint(psdhint->GetChild(*index));
+			*dhint = new DebugHint(psdhint->GetChild(index->Get()));
 		else
 			*dhint = nullptr;
 	}
