@@ -792,8 +792,14 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 		*parent = operand1.GetValue();
 	}
 
-	ExpressionResult operand2 = m_Operand2->Evaluate(frame);
-	index->Set(operand2.GetValue());
+	auto lit (dynamic_cast<LiteralExpression*>(m_Operand2.get()));
+
+	if (lit && lit->GetValue().IsString()) {
+		index->Set(&lit->GetValue().Get<String>());
+	} else {
+		ExpressionResult operand2 = m_Operand2->Evaluate(frame);
+		index->Set(operand2.GetValue());
+	}
 
 	if (dhint) {
 		if (psdhint)
