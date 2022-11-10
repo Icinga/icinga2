@@ -177,6 +177,37 @@ private:
 		break;				\
 
 /**
+ * Abstracts a maybe owned String
+ *
+ * @ingroup config
+ */
+class RefIndex
+{
+public:
+	RefIndex();
+	RefIndex(const RefIndex&) = delete;
+	RefIndex(RefIndex&&) = delete;
+	RefIndex& operator=(const RefIndex&) = delete;
+	RefIndex& operator=(RefIndex&&) = delete;
+
+	inline const String& Get() const noexcept
+	{
+		return *m_Foreign;
+	}
+
+	inline void Set(const String* foreign) noexcept
+	{
+		m_Foreign = foreign;
+	}
+
+	void Set(String own);
+
+private:
+	const String* m_Foreign;
+	String m_Own;
+};
+
+/**
  * @ingroup config
  */
 class Expression : public SharedObject
@@ -191,7 +222,13 @@ public:
 	Expression& operator=(const Expression&) = delete;
 
 	ExpressionResult Evaluate(ScriptFrame& frame, DebugHint *dhint = nullptr) const;
-	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint = nullptr) const;
+
+	/**
+	 * Caution! On return `*index` may point to a String somewhere in `this` (or subAST).
+	 * Keep `this` alive while using `*index`!
+	 */
+	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, RefIndex *index, DebugHint **dhint = nullptr) const;
+
 	virtual const DebugInfo& GetDebugInfo() const;
 
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const = 0;
@@ -310,7 +347,7 @@ public:
 
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
-	bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const override;
+	bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, RefIndex *index, DebugHint **dhint) const override;
 
 private:
 	String m_Variable;
@@ -328,7 +365,7 @@ public:
 
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
-	bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const override;
+	bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, RefIndex *index, DebugHint **dhint) const override;
 };
 
 class RefExpression final : public UnaryExpression
@@ -754,7 +791,7 @@ public:
 
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
-	bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const override;
+	bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, RefIndex *index, DebugHint **dhint) const override;
 
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
