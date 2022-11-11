@@ -99,8 +99,8 @@ public:
 	void ValidateTypes(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
 	void ValidateTimes(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
-	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
-	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
+	static void EvaluateApplyRules(const intrusive_ptr<Host>& host, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches);
+	static void EvaluateApplyRules(const intrusive_ptr<Service>& service, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches);
 
 	static const std::map<String, int>& GetStateFilterMap();
 	static const std::map<String, int>& GetTypeFilterMap();
@@ -119,7 +119,11 @@ private:
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
 	static bool EvaluateApplyRuleInstance(const intrusive_ptr<Checkable>& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter);
-	static bool EvaluateApplyRule(const intrusive_ptr<Checkable>& checkable, const ApplyRule& rule, bool skipFilter = false);
+
+	static bool EvaluateApplyRule(
+		const intrusive_ptr<Checkable>& checkable, const ApplyRule& rule,
+		TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches, bool skipFilter = false
+	);
 
 	static std::map<String, int> m_StateFilterMap;
 	static std::map<String, int> m_TypeFilterMap;

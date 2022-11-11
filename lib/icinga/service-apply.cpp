@@ -55,8 +55,14 @@ bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 	return true;
 }
 
-bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule, bool skipFilter)
+bool Service::EvaluateApplyRule(
+	const Host::Ptr& host, const ApplyRule& rule,
+	TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches, bool skipFilter
+)
 {
+	bool match = false;
+	BenchmarkApplyRuleEvaluation bare (totalTimeSpentOnApplyMismatches, match);
+
 	auto& di (rule.GetDebugInfo());
 
 	std::ostringstream msgbuf;
@@ -77,8 +83,6 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule, bo
 	} else {
 		frame.Locals = host->GetFrozenLocalsForApply();
 	}
-
-	bool match = false;
 
 	if (rule.GetFTerm()) {
 		Value vinstances;
@@ -130,17 +134,17 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule, bo
 	return match;
 }
 
-void Service::EvaluateApplyRules(const Host::Ptr& host)
+void Service::EvaluateApplyRules(const Host::Ptr& host, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
 	for (auto& rule : ApplyRule::GetRules(Service::TypeInstance, Host::TypeInstance)) {
-		if (EvaluateApplyRule(host, *rule))
+		if (EvaluateApplyRule(host, *rule, totalTimeSpentOnApplyMismatches))
 			rule->AddMatch();
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedHostRules(Service::TypeInstance, host->GetName())) {
-		if (EvaluateApplyRule(host, *rule, true))
+		if (EvaluateApplyRule(host, *rule, totalTimeSpentOnApplyMismatches, true))
 			rule->AddMatch();
 	}
 }

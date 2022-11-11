@@ -6,6 +6,7 @@
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
 #include "config/activationcontext.hpp"
+#include "config/applyrule.hpp"
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
 
@@ -98,7 +99,10 @@ private:
 
 	ConfigObject::Ptr Commit(bool discard = true);
 
-	static bool CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
+	static bool CommitNewItems(
+		const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems,
+		TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches
+	);
 };
 
 }

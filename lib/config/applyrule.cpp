@@ -197,3 +197,10 @@ void ApplyRule::CheckMatches(const ApplyRule::Ptr& rule, Type* sourceType, bool 
 			<< sourceType->GetName() << "' does not match anywhere!";
 	}
 }
+
+double TotalTimeSpentOnApplyMismatches::AsSeconds() const
+{
+	using namespace std::chrono;
+
+	return duration<double, seconds::period>(steady_clock::duration(m_MonotonicTicks.load())).count();
+}

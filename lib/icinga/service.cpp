@@ -74,16 +74,16 @@ void Service::OnAllConfigLoaded()
 	}
 }
 
-void Service::CreateChildObjects(const Type::Ptr& childType)
+void Service::CreateChildObjects(const Type::Ptr& childType, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches)
 {
 	if (childType == ScheduledDowntime::TypeInstance)
-		ScheduledDowntime::EvaluateApplyRules(this);
+		ScheduledDowntime::EvaluateApplyRules(this, totalTimeSpentOnApplyMismatches);
 
 	if (childType == Notification::TypeInstance)
-		Notification::EvaluateApplyRules(this);
+		Notification::EvaluateApplyRules(this, totalTimeSpentOnApplyMismatches);
 
 	if (childType == Dependency::TypeInstance)
-		Dependency::EvaluateApplyRules(this);
+		Dependency::EvaluateApplyRules(this, totalTimeSpentOnApplyMismatches);
 }
 
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)

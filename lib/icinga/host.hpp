@@ -55,7 +55,7 @@ public:
 protected:
 	void Stop(bool runtimeRemoved) override;
 
-	void CreateChildObjects(const Type::Ptr& childType) override;
+	void CreateChildObjects(const Type::Ptr& childType, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches) override;
 
 	Dictionary::Ptr MakeLocalsForApply() override;
 

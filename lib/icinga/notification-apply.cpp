@@ -61,8 +61,14 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 	return true;
 }
 
-bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter)
+bool Notification::EvaluateApplyRule(
+	const Checkable::Ptr& checkable, const ApplyRule& rule,
+	TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches, bool skipFilter
+)
 {
+	bool match = false;
+	BenchmarkApplyRuleEvaluation bare (totalTimeSpentOnApplyMismatches, match);
+
 	auto& di (rule.GetDebugInfo());
 
 	std::ostringstream msgbuf;
@@ -83,8 +89,6 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 	} else {
 		frame.Locals = checkable->GetFrozenLocalsForApply();
 	}
-
-	bool match = false;
 
 	if (rule.GetFTerm()) {
 		Value vinstances;
@@ -134,33 +138,33 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 	return match;
 }
 
-void Notification::EvaluateApplyRules(const Host::Ptr& host)
+void Notification::EvaluateApplyRules(const Host::Ptr& host, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
 	for (auto& rule : ApplyRule::GetRules(Notification::TypeInstance, Host::TypeInstance))
 	{
-		if (EvaluateApplyRule(host, *rule))
+		if (EvaluateApplyRule(host, *rule, totalTimeSpentOnApplyMismatches))
 			rule->AddMatch();
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedHostRules(Notification::TypeInstance, host->GetName())) {
-		if (EvaluateApplyRule(host, *rule, true))
+		if (EvaluateApplyRule(host, *rule, totalTimeSpentOnApplyMismatches, true))
 			rule->AddMatch();
 	}
 }
 
-void Notification::EvaluateApplyRules(const Service::Ptr& service)
+void Notification::EvaluateApplyRules(const Service::Ptr& service, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches)
 {
 	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
 	for (auto& rule : ApplyRule::GetRules(Notification::TypeInstance, Service::TypeInstance)) {
-		if (EvaluateApplyRule(service, *rule))
+		if (EvaluateApplyRule(service, *rule, totalTimeSpentOnApplyMismatches))
 			rule->AddMatch();
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedServiceRules(Notification::TypeInstance, service->GetHost()->GetName(), service->GetShortName())) {
-		if (EvaluateApplyRule(service, *rule, true))
+		if (EvaluateApplyRule(service, *rule, totalTimeSpentOnApplyMismatches, true))
 			rule->AddMatch();
 	}
 }

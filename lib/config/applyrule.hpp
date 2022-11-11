@@ -5,9 +5,11 @@
 
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
+#include "base/atomic.hpp"
 #include "base/debuginfo.hpp"
 #include "base/shared-object.hpp"
 #include "base/type.hpp"
+#include <chrono>
 #include <unordered_map>
 
 namespace icinga
@@ -108,6 +110,53 @@ private:
 	ApplyRule(String name, Expression::Ptr expression,
 		Expression::Ptr filter, String package, String fkvar, String fvvar, Expression::Ptr fterm,
 		bool ignoreOnError, DebugInfo di, Dictionary::Ptr scope);
+};
+
+class BenchmarkApplyRuleEvaluation;
+
+class TotalTimeSpentOnApplyMismatches
+{
+	friend BenchmarkApplyRuleEvaluation;
+
+public:
+	TotalTimeSpentOnApplyMismatches() = default;
+	TotalTimeSpentOnApplyMismatches(const TotalTimeSpentOnApplyMismatches&) = delete;
+	TotalTimeSpentOnApplyMismatches(TotalTimeSpentOnApplyMismatches&&) = delete;
+	TotalTimeSpentOnApplyMismatches& operator=(const TotalTimeSpentOnApplyMismatches&) = delete;
+	TotalTimeSpentOnApplyMismatches& operator=(TotalTimeSpentOnApplyMismatches&&) = delete;
+
+	double AsSeconds() const;
+
+private:
+	Atomic<std::chrono::steady_clock::rep> m_MonotonicTicks {0};
+};
+
+class BenchmarkApplyRuleEvaluation
+{
+public:
+	inline BenchmarkApplyRuleEvaluation(TotalTimeSpentOnApplyMismatches& totalTimeSpentOnMismatches, const bool& ruleMatched)
+		: m_TotalTimeSpentOnMismatches(totalTimeSpentOnMismatches),
+		m_RuleMatched(ruleMatched), m_Start(std::chrono::steady_clock::now())
+	{ }
+
+	BenchmarkApplyRuleEvaluation(const BenchmarkApplyRuleEvaluation&) = delete;
+	BenchmarkApplyRuleEvaluation(BenchmarkApplyRuleEvaluation&&) = delete;
+	BenchmarkApplyRuleEvaluation& operator=(const BenchmarkApplyRuleEvaluation&) = delete;
+	BenchmarkApplyRuleEvaluation& operator=(BenchmarkApplyRuleEvaluation&&) = delete;
+
+	inline ~BenchmarkApplyRuleEvaluation()
+	{
+		if (!m_RuleMatched) {
+			m_TotalTimeSpentOnMismatches.m_MonotonicTicks.fetch_add(
+				(std::chrono::steady_clock::now() - m_Start).count()
+			);
+		}
+	}
+
+private:
+	TotalTimeSpentOnApplyMismatches& m_TotalTimeSpentOnMismatches;
+	const bool& m_RuleMatched;
+	std::chrono::steady_clock::time_point m_Start;
 };
 
 }

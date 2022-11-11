@@ -385,7 +385,10 @@ ConfigItem::Ptr ConfigItem::GetByTypeAndName(const Type::Ptr& type, const String
 	return it2->second;
 }
 
-bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems)
+bool ConfigItem::CommitNewItems(
+	const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems,
+	TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches
+)
 {
 	typedef std::pair<ConfigItem::Ptr, bool> ItemPair;
 	std::unordered_map<Type*, std::vector<ItemPair>> itemsByType;
@@ -595,14 +598,14 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				auto items (itemsByType.find(loadDep));
 
 				if (items != itemsByType.end()) {
-					upq.ParallelFor(items->second, [&type, &notified_items](const ItemPair& ip) {
+					upq.ParallelFor(items->second, [&type, &notified_items, &totalTimeSpentOnApplyMismatches](const ItemPair& ip) {
 						const ConfigItem::Ptr& item = ip.first;
 
 						if (!item->m_Object)
 							return;
 
 						ActivationScope ascope(item->m_ActivationContext);
-						item->m_Object->CreateChildObjects(type);
+						item->m_Object->CreateChildObjects(type, totalTimeSpentOnApplyMismatches);
 						notified_items++;
 					});
 				}
@@ -620,7 +623,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				return false;
 
 			// Make sure to activate any additionally generated items
-			if (!CommitNewItems(context, upq, newItems))
+			if (!CommitNewItems(context, upq, newItems, totalTimeSpentOnApplyMismatches))
 				return false;
 		}
 	}
@@ -633,7 +636,9 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	if (!silent)
 		Log(LogInformation, "ConfigItem", "Committing config item(s).");
 
-	if (!CommitNewItems(context, upq, newItems)) {
+	TotalTimeSpentOnApplyMismatches totalTimeSpentOnApplyMismatches;
+
+	if (!CommitNewItems(context, upq, newItems, totalTimeSpentOnApplyMismatches)) {
 		upq.ReportExceptions("config");
 
 		for (const ConfigItem::Ptr& item : newItems) {
@@ -646,6 +651,10 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	ApplyRule::CheckMatches(silent);
 
 	if (!silent) {
+		Log(LogNotice, "ConfigItem")
+			<< "Spent " << totalTimeSpentOnApplyMismatches.AsSeconds()
+			<< " seconds on evaluating mismatching apply rules and parent objects.";
+
 		/* log stats for external parsers */
 		typedef std::map<Type::Ptr, int> ItemCountMap;
 		ItemCountMap itemCounts;

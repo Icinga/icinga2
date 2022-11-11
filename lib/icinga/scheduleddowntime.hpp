@@ -29,8 +29,8 @@ public:
 
 	Checkable::Ptr GetCheckable() const;
 
-	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
-	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
+	static void EvaluateApplyRules(const intrusive_ptr<Host>& host, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches);
+	static void EvaluateApplyRules(const intrusive_ptr<Service>& service, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches);
 	static bool AllConfigIsLoaded();
 
 	void ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
@@ -52,7 +52,11 @@ private:
 	static std::atomic<bool> m_AllConfigLoaded;
 
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter);
-	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter = false);
+
+	static bool EvaluateApplyRule(
+		const Checkable::Ptr& checkable, const ApplyRule& rule,
+		TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches, bool skipFilter = false
+	);
 };
 
 }

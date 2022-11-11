@@ -34,8 +34,8 @@ public:
 
 	void ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
 
-	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
-	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
+	static void EvaluateApplyRules(const intrusive_ptr<Host>& host, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches);
+	static void EvaluateApplyRules(const intrusive_ptr<Service>& service, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches);
 
 	/* Note: Only use them for unit test mocks. Prefer OnConfigLoaded(). */
 	void SetParent(intrusive_ptr<Checkable> parent);
@@ -51,7 +51,11 @@ private:
 	Checkable::Ptr m_Child;
 
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter);
-	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter = false);
+
+	static bool EvaluateApplyRule(
+		const Checkable::Ptr& checkable, const ApplyRule& rule,
+		TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches, bool skipFilter = false
+	);
 };
 
 }
