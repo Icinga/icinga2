@@ -101,7 +101,7 @@ private:
 
 	static bool CommitNewItems(
 		const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems,
-		TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches
+		TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches
 	);
 };
 

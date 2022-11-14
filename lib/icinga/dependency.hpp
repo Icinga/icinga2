@@ -3,6 +3,7 @@
 #ifndef DEPENDENCY_H
 #define DEPENDENCY_H
 
+#include "config/applyrule.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/dependency-ti.hpp"
 
@@ -34,8 +35,8 @@ public:
 
 	void ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
 
-	static void EvaluateApplyRules(const intrusive_ptr<Host>& host, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches);
-	static void EvaluateApplyRules(const intrusive_ptr<Service>& service, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches);
+	static void EvaluateApplyRules(const intrusive_ptr<Host>& host, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches);
+	static void EvaluateApplyRules(const intrusive_ptr<Service>& service, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches);
 
 	/* Note: Only use them for unit test mocks. Prefer OnConfigLoaded(). */
 	void SetParent(intrusive_ptr<Checkable> parent);
@@ -53,8 +54,8 @@ private:
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter);
 
 	static bool EvaluateApplyRule(
-		const Checkable::Ptr& checkable, const ApplyRule& rule,
-		TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches, bool skipFilter = false
+		const Checkable::Ptr& checkable, const ApplyRule::Ptr& rule,
+		TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches, bool skipFilter = false
 	);
 };
 

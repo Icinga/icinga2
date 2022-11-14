@@ -62,14 +62,14 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 }
 
 bool Notification::EvaluateApplyRule(
-	const Checkable::Ptr& checkable, const ApplyRule& rule,
-	TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches, bool skipFilter
+	const Checkable::Ptr& checkable, const ApplyRule::Ptr& rule,
+	TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches, bool skipFilter
 )
 {
 	bool match = false;
-	BenchmarkApplyRuleEvaluation bare (totalTimeSpentOnApplyMismatches, match);
+	BenchmarkApplyRuleEvaluation bare (timeSpentOnApplyMismatches, rule, match);
 
-	auto& di (rule.GetDebugInfo());
+	auto& di (rule->GetDebugInfo());
 
 	std::ostringstream msgbuf;
 	msgbuf << "Evaluating 'apply' rule (" << di << ")";
@@ -77,11 +77,11 @@ bool Notification::EvaluateApplyRule(
 
 	ScriptFrame frame (false);
 
-	if (rule.GetScope() || rule.GetFTerm()) {
+	if (rule->GetScope() || rule->GetFTerm()) {
 		frame.Locals = new Dictionary();
 
-		if (rule.GetScope()) {
-			rule.GetScope()->CopyTo(frame.Locals);
+		if (rule->GetScope()) {
+			rule->GetScope()->CopyTo(frame.Locals);
 		}
 
 		checkable->GetFrozenLocalsForApply()->CopyTo(frame.Locals);
@@ -90,81 +90,81 @@ bool Notification::EvaluateApplyRule(
 		frame.Locals = checkable->GetFrozenLocalsForApply();
 	}
 
-	if (rule.GetFTerm()) {
+	if (rule->GetFTerm()) {
 		Value vinstances;
 
 		try {
-			vinstances = rule.GetFTerm()->Evaluate(frame);
+			vinstances = rule->GetFTerm()->Evaluate(frame);
 		} catch (const std::exception&) {
 			/* Silently ignore errors here and assume there are no instances. */
 			return false;
 		}
 
 		if (vinstances.IsObjectType<Array>()) {
-			if (!rule.GetFVVar().IsEmpty())
+			if (!rule->GetFVVar().IsEmpty())
 				BOOST_THROW_EXCEPTION(ScriptError("Dictionary iterator requires value to be a dictionary.", di));
 
 			Array::Ptr arr = vinstances;
 
 			ObjectLock olock(arr);
 			for (const Value& instance : arr) {
-				String name = rule.GetName();
+				String name = rule->GetName();
 
-				frame.Locals->Set(rule.GetFKVar(), instance, true);
+				frame.Locals->Set(rule->GetFKVar(), instance, true);
 				name += instance;
 
-				if (EvaluateApplyRuleInstance(checkable, name, frame, rule, skipFilter))
+				if (EvaluateApplyRuleInstance(checkable, name, frame, *rule, skipFilter))
 					match = true;
 			}
 		} else if (vinstances.IsObjectType<Dictionary>()) {
-			if (rule.GetFVVar().IsEmpty())
+			if (rule->GetFVVar().IsEmpty())
 				BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
 
 			Dictionary::Ptr dict = vinstances;
 			ObjectLock olock (dict);
 
 			for (auto& kv : dict) {
-				frame.Locals->Set(rule.GetFKVar(), kv.first, true);
-				frame.Locals->Set(rule.GetFVVar(), kv.second, true);
+				frame.Locals->Set(rule->GetFKVar(), kv.first, true);
+				frame.Locals->Set(rule->GetFVVar(), kv.second, true);
 
-				if (EvaluateApplyRuleInstance(checkable, rule.GetName() + kv.first, frame, rule, skipFilter))
+				if (EvaluateApplyRuleInstance(checkable, rule->GetName() + kv.first, frame, *rule, skipFilter))
 					match = true;
 			}
 		}
-	} else if (EvaluateApplyRuleInstance(checkable, rule.GetName(), frame, rule, skipFilter)) {
+	} else if (EvaluateApplyRuleInstance(checkable, rule->GetName(), frame, *rule, skipFilter)) {
 		match = true;
 	}
 
 	return match;
 }
 
-void Notification::EvaluateApplyRules(const Host::Ptr& host, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches)
+void Notification::EvaluateApplyRules(const Host::Ptr& host, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
 	for (auto& rule : ApplyRule::GetRules(Notification::TypeInstance, Host::TypeInstance))
 	{
-		if (EvaluateApplyRule(host, *rule, totalTimeSpentOnApplyMismatches))
+		if (EvaluateApplyRule(host, rule, timeSpentOnApplyMismatches))
 			rule->AddMatch();
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedHostRules(Notification::TypeInstance, host->GetName())) {
-		if (EvaluateApplyRule(host, *rule, totalTimeSpentOnApplyMismatches, true))
+		if (EvaluateApplyRule(host, rule, timeSpentOnApplyMismatches, true))
 			rule->AddMatch();
 	}
 }
 
-void Notification::EvaluateApplyRules(const Service::Ptr& service, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches)
+void Notification::EvaluateApplyRules(const Service::Ptr& service, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches)
 {
 	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
 	for (auto& rule : ApplyRule::GetRules(Notification::TypeInstance, Service::TypeInstance)) {
-		if (EvaluateApplyRule(service, *rule, totalTimeSpentOnApplyMismatches))
+		if (EvaluateApplyRule(service, rule, timeSpentOnApplyMismatches))
 			rule->AddMatch();
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedServiceRules(Notification::TypeInstance, service->GetHost()->GetName(), service->GetShortName())) {
-		if (EvaluateApplyRule(service, *rule, totalTimeSpentOnApplyMismatches, true))
+		if (EvaluateApplyRule(service, rule, timeSpentOnApplyMismatches, true))
 			rule->AddMatch();
 	}
 }

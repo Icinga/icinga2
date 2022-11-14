@@ -56,14 +56,14 @@ bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 }
 
 bool Service::EvaluateApplyRule(
-	const Host::Ptr& host, const ApplyRule& rule,
-	TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches, bool skipFilter
+	const Host::Ptr& host, const ApplyRule::Ptr& rule,
+	TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches, bool skipFilter
 )
 {
 	bool match = false;
-	BenchmarkApplyRuleEvaluation bare (totalTimeSpentOnApplyMismatches, match);
+	BenchmarkApplyRuleEvaluation bare (timeSpentOnApplyMismatches, rule, match);
 
-	auto& di (rule.GetDebugInfo());
+	auto& di (rule->GetDebugInfo());
 
 	std::ostringstream msgbuf;
 	msgbuf << "Evaluating 'apply' rule (" << di << ")";
@@ -71,11 +71,11 @@ bool Service::EvaluateApplyRule(
 
 	ScriptFrame frame (false);
 
-	if (rule.GetScope() || rule.GetFTerm()) {
+	if (rule->GetScope() || rule->GetFTerm()) {
 		frame.Locals = new Dictionary();
 
-		if (rule.GetScope()) {
-			rule.GetScope()->CopyTo(frame.Locals);
+		if (rule->GetScope()) {
+			rule->GetScope()->CopyTo(frame.Locals);
 		}
 
 		host->GetFrozenLocalsForApply()->CopyTo(frame.Locals);
@@ -84,67 +84,67 @@ bool Service::EvaluateApplyRule(
 		frame.Locals = host->GetFrozenLocalsForApply();
 	}
 
-	if (rule.GetFTerm()) {
+	if (rule->GetFTerm()) {
 		Value vinstances;
 
 		try {
-			vinstances = rule.GetFTerm()->Evaluate(frame);
+			vinstances = rule->GetFTerm()->Evaluate(frame);
 		} catch (const std::exception&) {
 			/* Silently ignore errors here and assume there are no instances. */
 			return false;
 		}
 
 		if (vinstances.IsObjectType<Array>()) {
-			if (!rule.GetFVVar().IsEmpty())
+			if (!rule->GetFVVar().IsEmpty())
 				BOOST_THROW_EXCEPTION(ScriptError("Dictionary iterator requires value to be a dictionary.", di));
 
 			Array::Ptr arr = vinstances;
 
 			ObjectLock olock(arr);
 			for (const Value& instance : arr) {
-				String name = rule.GetName();
+				String name = rule->GetName();
 
-				if (!rule.GetFKVar().IsEmpty()) {
-					frame.Locals->Set(rule.GetFKVar(), instance, true);
+				if (!rule->GetFKVar().IsEmpty()) {
+					frame.Locals->Set(rule->GetFKVar(), instance, true);
 					name += instance;
 				}
 
-				if (EvaluateApplyRuleInstance(host, name, frame, rule, skipFilter))
+				if (EvaluateApplyRuleInstance(host, name, frame, *rule, skipFilter))
 					match = true;
 			}
 		} else if (vinstances.IsObjectType<Dictionary>()) {
-			if (rule.GetFVVar().IsEmpty())
+			if (rule->GetFVVar().IsEmpty())
 				BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
 
 			Dictionary::Ptr dict = vinstances;
 			ObjectLock olock (dict);
 
 			for (auto& kv : dict) {
-				frame.Locals->Set(rule.GetFKVar(), kv.first, true);
-				frame.Locals->Set(rule.GetFVVar(), kv.second, true);
+				frame.Locals->Set(rule->GetFKVar(), kv.first, true);
+				frame.Locals->Set(rule->GetFVVar(), kv.second, true);
 
-				if (EvaluateApplyRuleInstance(host, rule.GetName() + kv.first, frame, rule, skipFilter))
+				if (EvaluateApplyRuleInstance(host, rule->GetName() + kv.first, frame, *rule, skipFilter))
 					match = true;
 			}
 		}
-	} else if (EvaluateApplyRuleInstance(host, rule.GetName(), frame, rule, skipFilter)) {
+	} else if (EvaluateApplyRuleInstance(host, rule->GetName(), frame, *rule, skipFilter)) {
 		match = true;
 	}
 
 	return match;
 }
 
-void Service::EvaluateApplyRules(const Host::Ptr& host, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches)
+void Service::EvaluateApplyRules(const Host::Ptr& host, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
 	for (auto& rule : ApplyRule::GetRules(Service::TypeInstance, Host::TypeInstance)) {
-		if (EvaluateApplyRule(host, *rule, totalTimeSpentOnApplyMismatches))
+		if (EvaluateApplyRule(host, rule, timeSpentOnApplyMismatches))
 			rule->AddMatch();
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedHostRules(Service::TypeInstance, host->GetName())) {
-		if (EvaluateApplyRule(host, *rule, totalTimeSpentOnApplyMismatches, true))
+		if (EvaluateApplyRule(host, rule, timeSpentOnApplyMismatches, true))
 			rule->AddMatch();
 	}
 }

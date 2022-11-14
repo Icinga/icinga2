@@ -387,7 +387,7 @@ ConfigItem::Ptr ConfigItem::GetByTypeAndName(const Type::Ptr& type, const String
 
 bool ConfigItem::CommitNewItems(
 	const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems,
-	TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches
+	TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches
 )
 {
 	typedef std::pair<ConfigItem::Ptr, bool> ItemPair;
@@ -598,14 +598,14 @@ bool ConfigItem::CommitNewItems(
 				auto items (itemsByType.find(loadDep));
 
 				if (items != itemsByType.end()) {
-					upq.ParallelFor(items->second, [&type, &notified_items, &totalTimeSpentOnApplyMismatches](const ItemPair& ip) {
+					upq.ParallelFor(items->second, [&type, &notified_items, &timeSpentOnApplyMismatches](const ItemPair& ip) {
 						const ConfigItem::Ptr& item = ip.first;
 
 						if (!item->m_Object)
 							return;
 
 						ActivationScope ascope(item->m_ActivationContext);
-						item->m_Object->CreateChildObjects(type, totalTimeSpentOnApplyMismatches);
+						item->m_Object->CreateChildObjects(type, timeSpentOnApplyMismatches);
 						notified_items++;
 					});
 				}
@@ -623,7 +623,7 @@ bool ConfigItem::CommitNewItems(
 				return false;
 
 			// Make sure to activate any additionally generated items
-			if (!CommitNewItems(context, upq, newItems, totalTimeSpentOnApplyMismatches))
+			if (!CommitNewItems(context, upq, newItems, timeSpentOnApplyMismatches))
 				return false;
 		}
 	}
@@ -636,9 +636,9 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	if (!silent)
 		Log(LogInformation, "ConfigItem", "Committing config item(s).");
 
-	TotalTimeSpentOnApplyMismatches totalTimeSpentOnApplyMismatches;
+	TimeSpentOnApplyMismatches timeSpentOnApplyMismatches;
 
-	if (!CommitNewItems(context, upq, newItems, totalTimeSpentOnApplyMismatches)) {
+	if (!CommitNewItems(context, upq, newItems, timeSpentOnApplyMismatches)) {
 		upq.ReportExceptions("config");
 
 		for (const ConfigItem::Ptr& item : newItems) {
@@ -652,10 +652,22 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 
 	if (!silent) {
 		Log(LogNotice, "ConfigItem")
-			<< "Spent " << totalTimeSpentOnApplyMismatches.AsSeconds()
+			<< "Spent " << timeSpentOnApplyMismatches.GetTotal()
 			<< " seconds on evaluating mismatching apply rules and parent objects."
 			<< " (This summary isn't aware of apply rules being evaluated in parallel."
 			<< " Therefore consider dividing the number by amount of CPU cores according to htop.)";
+
+		if (LogDebug >= Logger::GetMinLogSeverity()) {
+			for (auto& perRule: timeSpentOnApplyMismatches.GetWorstRules()) {
+				std::ostringstream oss;
+				ShowCodeLocation(oss, perRule.Rule->GetDebugInfo());
+
+				Log(LogDebug, "ConfigItem")
+					<< "Spent " << (perRule.SpentTime * 1000 / perRule.ParentObjects)
+					<< "ms on evaluating apply rule per mismatching parent object (total: "
+					<< (perRule.SpentTime * 1000) << "ms): " << oss.str();
+			}
+		}
 
 		/* log stats for external parsers */
 		typedef std::map<Type::Ptr, int> ItemCountMap;

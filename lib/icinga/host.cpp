@@ -47,19 +47,19 @@ void Host::OnAllConfigLoaded()
 	}
 }
 
-void Host::CreateChildObjects(const Type::Ptr& childType, TotalTimeSpentOnApplyMismatches& totalTimeSpentOnApplyMismatches)
+void Host::CreateChildObjects(const Type::Ptr& childType, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches)
 {
 	if (childType == ScheduledDowntime::TypeInstance)
-		ScheduledDowntime::EvaluateApplyRules(this, totalTimeSpentOnApplyMismatches);
+		ScheduledDowntime::EvaluateApplyRules(this, timeSpentOnApplyMismatches);
 
 	if (childType == Notification::TypeInstance)
-		Notification::EvaluateApplyRules(this, totalTimeSpentOnApplyMismatches);
+		Notification::EvaluateApplyRules(this, timeSpentOnApplyMismatches);
 
 	if (childType == Dependency::TypeInstance)
-		Dependency::EvaluateApplyRules(this, totalTimeSpentOnApplyMismatches);
+		Dependency::EvaluateApplyRules(this, timeSpentOnApplyMismatches);
 
 	if (childType == Service::TypeInstance)
-		Service::EvaluateApplyRules(this, totalTimeSpentOnApplyMismatches);
+		Service::EvaluateApplyRules(this, timeSpentOnApplyMismatches);
 }
 
 void Host::Stop(bool runtimeRemoved)
