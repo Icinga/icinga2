@@ -288,8 +288,10 @@ std::pair<Host::Ptr, Service::Ptr> icinga::GetHostService(const Checkable::Ptr& 
 
 Dictionary::Ptr Service::MakeLocalsForApply()
 {
-	return new Dictionary({
-		{ "host", m_Host },
-		{ "service", this }
-	});
+	auto locals (Checkable::MakeLocalsForApply());
+
+	locals->Set("host", m_Host);
+	locals->Set("service", this);
+
+	return locals;
 }

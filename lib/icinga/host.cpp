@@ -331,5 +331,9 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *res
 
 Dictionary::Ptr Host::MakeLocalsForApply()
 {
-	return new Dictionary({{ "host", this }});
+	auto locals (Checkable::MakeLocalsForApply());
+
+	locals->Set("host", this);
+
+	return locals;
 }
