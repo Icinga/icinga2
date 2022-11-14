@@ -653,7 +653,9 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	if (!silent) {
 		Log(LogNotice, "ConfigItem")
 			<< "Spent " << totalTimeSpentOnApplyMismatches.AsSeconds()
-			<< " seconds on evaluating mismatching apply rules and parent objects.";
+			<< " seconds on evaluating mismatching apply rules and parent objects."
+			<< " (This summary isn't aware of apply rules being evaluated in parallel."
+			<< " Therefore consider dividing the number by amount of CPU cores according to htop.)";
 
 		/* log stats for external parsers */
 		typedef std::map<Type::Ptr, int> ItemCountMap;
