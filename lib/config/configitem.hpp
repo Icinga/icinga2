@@ -8,6 +8,7 @@
 #include "config/activationcontext.hpp"
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
+#include <memory>
 
 namespace icinga
 {
@@ -58,7 +59,7 @@ public:
 
 	static bool RunWithActivationContext(const Function::Ptr& function);
 
-	static std::vector<ConfigItem::Ptr> GetItems(const Type::Ptr& type);
+	static std::shared_ptr<const std::vector<ConfigItem::Ptr>> GetItems(const Type::Ptr& type);
 	static std::vector<ConfigItem::Ptr> GetDefaultTemplates(const Type::Ptr& type);
 
 	static void RemoveIgnoredItems(const String& allowedConfigPath);
@@ -85,6 +86,7 @@ private:
 	typedef std::map<String, ConfigItem::Ptr> ItemMap;
 	typedef std::map<Type::Ptr, ItemMap> TypeMap;
 	static TypeMap m_Items; /**< All registered configuration items. */
+	static std::map<Type::Ptr, std::shared_ptr<std::vector<ConfigItem::Ptr>>> m_CachedAllItemsByType;
 	static TypeMap m_DefaultTemplates;
 
 	typedef std::vector<ConfigItem::Ptr> ItemList;

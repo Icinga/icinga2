@@ -32,6 +32,7 @@ using namespace icinga;
 
 std::mutex ConfigItem::m_Mutex;
 ConfigItem::TypeMap ConfigItem::m_Items;
+std::map<Type::Ptr, std::shared_ptr<std::vector<ConfigItem::Ptr>>> ConfigItem::m_CachedAllItemsByType;
 ConfigItem::TypeMap ConfigItem::m_DefaultTemplates;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 ConfigItem::IgnoredItemList ConfigItem::m_IgnoredItems;
@@ -344,6 +345,7 @@ void ConfigItem::Register()
 		}
 
 		m_Items[m_Type][m_Name] = this;
+		m_CachedAllItemsByType.erase(m_Type);
 
 		if (m_DefaultTmpl)
 			m_DefaultTemplates[m_Type][m_Name] = this;
@@ -363,6 +365,7 @@ void ConfigItem::Unregister()
 	std::unique_lock<std::mutex> lock(m_Mutex);
 	m_UnnamedItems.erase(std::remove(m_UnnamedItems.begin(), m_UnnamedItems.end(), this), m_UnnamedItems.end());
 	m_Items[m_Type].erase(m_Name);
+	m_CachedAllItemsByType.erase(m_Type);
 	m_DefaultTemplates[m_Type].erase(m_Name);
 }
 
@@ -754,21 +757,28 @@ bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 	return true;
 }
 
-std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const Type::Ptr& type)
+std::shared_ptr<const std::vector<ConfigItem::Ptr>> ConfigItem::GetItems(const Type::Ptr& type)
 {
-	std::vector<ConfigItem::Ptr> items;
-
 	std::unique_lock<std::mutex> lock(m_Mutex);
+	auto cached (m_CachedAllItemsByType.find(type));
+
+	if (cached != m_CachedAllItemsByType.end()) {
+		return cached->second;
+	}
+
+	auto items (std::make_shared<std::vector<ConfigItem::Ptr>>());
+
+	m_CachedAllItemsByType.emplace(type, items);
 
 	auto it = m_Items.find(type);
 
 	if (it == m_Items.end())
 		return items;
 
-	items.reserve(it->second.size());
+	items->reserve(it->second.size());
 
 	for (const ItemMap::value_type& kv : it->second) {
-		items.push_back(kv.second);
+		items->push_back(kv.second);
 	}
 
 	return items;

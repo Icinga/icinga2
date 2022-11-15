@@ -224,7 +224,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 
 	Type::Ptr appType = Type::GetByName(vAppType);
 
-	if (ConfigItem::GetItems(appType).empty()) {
+	if (ConfigItem::GetItems(appType)->empty()) {
 		ConfigItemBuilder builder;
 		builder.SetType(appType);
 		builder.SetName("app");
