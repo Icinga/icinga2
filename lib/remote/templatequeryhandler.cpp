@@ -41,8 +41,9 @@ public:
 		const std::function<void (const Value&)>& addTarget) const override
 	{
 		Type::Ptr ptype = Type::GetByName(type);
+		auto items (ConfigItem::GetItems(ptype));
 
-		for (const ConfigItem::Ptr& item : ConfigItem::GetItems(ptype)) {
+		for (auto& item : *items) {
 			if (item->IsAbstract())
 				addTarget(GetTargetForTemplate(item));
 		}
