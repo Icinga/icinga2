@@ -37,16 +37,6 @@ String ApplyRule::GetPackage() const
 	return m_Package;
 }
 
-String ApplyRule::GetFKVar() const
-{
-	return m_FKVar;
-}
-
-String ApplyRule::GetFVVar() const
-{
-	return m_FVVar;
-}
-
 Expression::Ptr ApplyRule::GetFTerm() const
 {
 	return m_FTerm;

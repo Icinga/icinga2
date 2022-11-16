@@ -55,8 +55,17 @@ public:
 	Expression::Ptr GetExpression() const;
 	Expression::Ptr GetFilter() const;
 	String GetPackage() const;
-	String GetFKVar() const;
-	String GetFVVar() const;
+
+	inline const String& GetFKVar() const noexcept
+	{
+		return m_FKVar;
+	}
+
+	inline const String& GetFVVar() const noexcept
+	{
+		return m_FVVar;
+	}
+
 	Expression::Ptr GetFTerm() const;
 	bool GetIgnoreOnError() const;
 	DebugInfo GetDebugInfo() const;
