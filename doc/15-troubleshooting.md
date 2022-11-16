@@ -178,6 +178,8 @@ C:\ProgramData\icinga2\var\log\icinga2> Get-Content .\debug.log -tail 10 -wait
 
 ## Icinga starts/restarts/reloads very slowly
 
+### Try swapping out the allocator
+
 Icinga performs a lot of memory allocations, especially during startup.
 Swapping out the allocator may increase the startup performance.
 The following instructions assume you run Linux and systemd.
@@ -229,6 +231,91 @@ Restart Icinga. Verify whether your changes took effect and enjoy the speed:
 icinga2 7764 nagios  mem    REG                8,5   744776 2631636 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 #
 ```
+
+### Optimise apply rules and group assign conditions
+
+#### Remove actually unused apply rules
+
+If `icinga2 daemon -C` warns you like shown below and the respective apply rule
+should indeed create no objects, consider removing it. At least comment it out.
+
+```
+[...] warning/ApplyRule: Apply rule '...' (...) for type '...' does not match anywhere!
+```
+
+In Director you can't comment out anything as in Icinga DSL,
+but you can disable apply rules (temporarily or permanently).
+
+Same for `assign where` conditions in groups. In this case removing just
+the `assign where` line(s) is enough if you'd like to keep the group itself.
+
+#### Avoid creating single objects via apply rules
+
+If possible, replace constructs like the immediately following with the below one.
+
+```
+apply Service "syspatch" {
+	// ...
+	assign where host.name == "firewall"
+}
+```
+
+```
+object Service "syspatch" {
+	// ...
+	host_name = "firewall"
+}
+```
+
+This way Icinga won't have to evaluate
+`host.name == "firewall"` for all of your hosts.
+At least upgrade to Icinga v2.13.6+ which optimizes apply rules as shown above.
+
+Group membership assign conditions aren't optimized by v2.13.6.
+But they can just be replaced with constructs like this one:
+
+```
+object Host "firewall" {
+	// ...
+	groups = [ "OpenBSD hosts" ]
+}
+```
+
+#### Reduce `assign where` filter complexity
+
+If neither removals, nor flat objects, nor Icinga v2.13.6+
+are an option, at least keep the filter as simple as possible.
+
+The less complex an `assign where` filter is,
+the more time Icinga saves while loading its config.
+**I.e. the following is a bad example.**
+
+```
+assign where ( match("MySQL*", host.name) || match("Maria*", host.name)
+	|| match("Postgre*", host.name) || match("Redis*", host.name) || match("Elastic*", host.name) )
+```
+
+Preferably only a single custom var is checked. Ideally just whether it's set.
+(`assign where host.vars.db` or "is true (or set)" operator in Director.)
+Otherwise, prefer `==` over `match()`. (In Director avoid `*` wildcards.)
+
+If you're using the Director, you can create such a custom var automatically and
+pattern-based via a _Sync rule_. Navigate to its _Properties_ and add a new property:
+
+* Destination Field: Custom variable (vars.)
+* Custom variable: e.g. `db`
+* Source Column: Custom expression
+* Source Expression: e.g. `true`
+* Set based on filter: Yes
+* Filter Expression: e.g. `host=MySQL*|host=Maria*|host=Postgre*|host=Redis*|host=Elastic*`
+* Merge Policy: replace
+
+At least reorder operands of an `&&` chain so that a mismatch
+terminates the whole chain as soon as possible. E.g. prefer
+`assign where host.vars.production && match("MySQL*", host.name)`,
+not `assign where match("MySQL*", host.name) && host.vars.production`.
+For all test hosts `host.vars.production` will be false and terminate
+the `&&` rather than also evaluating `match("MySQL*", host.name)`.
 
 ## Configuration Troubleshooting <a id="troubleshooting-configuration"></a>
 
