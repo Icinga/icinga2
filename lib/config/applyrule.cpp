@@ -2,6 +2,7 @@
 
 #include "config/applyrule.hpp"
 #include "base/logger.hpp"
+#include <algorithm>
 #include <set>
 #include <unordered_set>
 
@@ -47,7 +48,7 @@ bool ApplyRule::GetIgnoreOnError() const
 	return m_IgnoreOnError;
 }
 
-DebugInfo ApplyRule::GetDebugInfo() const
+const DebugInfo& ApplyRule::GetDebugInfo() const
 {
 	return m_DebugInfo;
 }
@@ -186,4 +187,47 @@ void ApplyRule::CheckMatches(const ApplyRule::Ptr& rule, Type* sourceType, bool 
 			<< "Apply rule '" << rule->GetName() << "' (" << rule->GetDebugInfo() << ") for type '"
 			<< sourceType->GetName() << "' does not match anywhere!";
 	}
+}
+
+static double MonotonicTicksToSeconds(std::chrono::steady_clock::rep ticks)
+{
+	using namespace std::chrono;
+
+	return duration<double, seconds::period>(steady_clock::duration(ticks)).count();
+}
+
+double TimeSpentOnApplyMismatches::GetTotal()
+{
+	std::chrono::steady_clock::rep total = 0;
+
+	{
+		boost::shared_lock<boost::shared_mutex> lock (m_Mutex);
+
+		for (auto& kv : m_ByRule) {
+			total += kv.second.MonotonicTicks.load();
+		}
+	}
+
+	return MonotonicTicksToSeconds(total);
+}
+
+std::vector<TimeSpentOnApplyMismatches::BadRule> TimeSpentOnApplyMismatches::GetWorstRules()
+{
+	std::vector<BadRule> worstRules;
+
+	{
+		boost::shared_lock<boost::shared_mutex> lock (m_Mutex);
+
+		for (auto& kv : m_ByRule) {
+			worstRules.push_back({
+				kv.first, kv.second.ParentObjects.load(),MonotonicTicksToSeconds(kv.second.MonotonicTicks.load())
+			});
+		}
+	}
+
+	std::sort(worstRules.begin(), worstRules.end(), [](const BadRule& lhs, const BadRule& rhs) {
+		return lhs.SpentTime / lhs.ParentObjects > rhs.SpentTime / rhs.ParentObjects;
+	});
+
+	return worstRules;
 }

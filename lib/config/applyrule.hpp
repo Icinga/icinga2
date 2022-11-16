@@ -8,7 +8,15 @@
 #include "base/debuginfo.hpp"
 #include "base/shared-object.hpp"
 #include "base/type.hpp"
+#include <atomic>
+#include <boost/thread/lock_types.hpp>
+#include <boost/thread/shared_mutex.hpp>
+#include <chrono>
+#include <cstdint>
+#include <map>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace icinga
 {
@@ -68,7 +76,7 @@ public:
 
 	Expression::Ptr GetFTerm() const;
 	bool GetIgnoreOnError() const;
-	DebugInfo GetDebugInfo() const;
+	const DebugInfo& GetDebugInfo() const;
 	Dictionary::Ptr GetScope() const;
 	void AddMatch();
 	bool HasMatches() const;
@@ -117,6 +125,87 @@ private:
 	ApplyRule(String name, Expression::Ptr expression,
 		Expression::Ptr filter, String package, String fkvar, String fvvar, Expression::Ptr fterm,
 		bool ignoreOnError, DebugInfo di, Dictionary::Ptr scope);
+};
+
+class BenchmarkApplyRuleEvaluation;
+
+class TimeSpentOnApplyMismatches
+{
+	friend BenchmarkApplyRuleEvaluation;
+
+public:
+	struct BadRule
+	{
+		ApplyRule::Ptr Rule;
+		uint_fast32_t ParentObjects;
+		double SpentTime;
+	};
+
+	TimeSpentOnApplyMismatches() = default;
+	TimeSpentOnApplyMismatches(const TimeSpentOnApplyMismatches&) = delete;
+	TimeSpentOnApplyMismatches(TimeSpentOnApplyMismatches&&) = delete;
+	TimeSpentOnApplyMismatches& operator=(const TimeSpentOnApplyMismatches&) = delete;
+	TimeSpentOnApplyMismatches& operator=(TimeSpentOnApplyMismatches&&) = delete;
+
+	double GetTotal();
+	std::vector<BadRule> GetWorstRules();
+
+private:
+	struct PerRule
+	{
+		std::atomic<uint_fast32_t> ParentObjects;
+		std::atomic<std::chrono::steady_clock::rep> MonotonicTicks;
+	};
+
+	boost::shared_mutex m_Mutex;
+	std::map<ApplyRule::Ptr, PerRule> m_ByRule;
+};
+
+class BenchmarkApplyRuleEvaluation
+{
+public:
+	inline BenchmarkApplyRuleEvaluation(TimeSpentOnApplyMismatches& timeSpentOnMismatches,
+										const ApplyRule::Ptr& rule, const bool& ruleMatched)
+		: m_TimeSpentOnMismatches(timeSpentOnMismatches), m_Rule(rule),
+		  m_RuleMatched(ruleMatched), m_Start(std::chrono::steady_clock::now())
+	{ }
+
+	BenchmarkApplyRuleEvaluation(const BenchmarkApplyRuleEvaluation&) = delete;
+	BenchmarkApplyRuleEvaluation(BenchmarkApplyRuleEvaluation&&) = delete;
+	BenchmarkApplyRuleEvaluation& operator=(const BenchmarkApplyRuleEvaluation&) = delete;
+	BenchmarkApplyRuleEvaluation& operator=(BenchmarkApplyRuleEvaluation&&) = delete;
+
+	inline ~BenchmarkApplyRuleEvaluation()
+	{
+		if (!m_RuleMatched) {
+			auto diff (std::chrono::steady_clock::now() - m_Start);
+			TimeSpentOnApplyMismatches::PerRule* total = nullptr;
+			auto& mtbr (m_TimeSpentOnMismatches.m_ByRule);
+
+			{
+				boost::shared_lock<boost::shared_mutex> lock (m_TimeSpentOnMismatches.m_Mutex);
+				auto perRule (mtbr.find(m_Rule));
+
+				if (perRule != mtbr.end()) {
+					total = &perRule->second;
+				}
+			}
+
+			if (!total) {
+				boost::unique_lock<boost::shared_mutex> lock (m_TimeSpentOnMismatches.m_Mutex);
+				total = &mtbr[m_Rule];
+			}
+
+			total->ParentObjects.fetch_add(1);
+			total->MonotonicTicks.fetch_add(diff.count());
+		}
+	}
+
+private:
+	TimeSpentOnApplyMismatches& m_TimeSpentOnMismatches;
+	const ApplyRule::Ptr& m_Rule;
+	const bool& m_RuleMatched;
+	std::chrono::steady_clock::time_point m_Start;
 };
 
 }

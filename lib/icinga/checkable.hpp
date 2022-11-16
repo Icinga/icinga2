@@ -207,12 +207,18 @@ public:
 
 	static Object::Ptr GetPrototype();
 
+	Dictionary::Ptr GetFrozenLocalsForApply();
+
 protected:
 	void Start(bool runtimeCreated) override;
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
 
+	virtual Dictionary::Ptr MakeLocalsForApply();
+
 private:
+	Dictionary::Ptr m_FrozenLocalsForApply;
+
 	mutable std::mutex m_CheckableMutex;
 	bool m_CheckRunning{false};
 	long m_SchedulingOffset;

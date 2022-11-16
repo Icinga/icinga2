@@ -55,7 +55,9 @@ public:
 protected:
 	void Stop(bool runtimeRemoved) override;
 
-	void CreateChildObjects(const Type::Ptr& childType) override;
+	void CreateChildObjects(const Type::Ptr& childType, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches) override;
+
+	Dictionary::Ptr MakeLocalsForApply() override;
 
 private:
 	mutable std::mutex m_ServicesMutex;

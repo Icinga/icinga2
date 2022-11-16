@@ -3,6 +3,7 @@
 #ifndef SERVICE_H
 #define SERVICE_H
 
+#include "config/applyrule.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/service-ti.hpp"
 #include "icinga/macroresolver.hpp"
@@ -42,20 +43,26 @@ public:
 	static StateType StateTypeFromString(const String& state);
 	static String StateTypeToString(StateType state);
 
-	static void EvaluateApplyRules(const Host::Ptr& host);
+	static void EvaluateApplyRules(const Host::Ptr& host, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches);
 
 	void OnAllConfigLoaded() override;
 
 	static boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, const MessageOrigin::Ptr&)> OnHostProblemChanged;
 
 protected:
-	void CreateChildObjects(const Type::Ptr& childType) override;
+	void CreateChildObjects(const Type::Ptr& childType, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches) override;
+
+	Dictionary::Ptr MakeLocalsForApply() override;
 
 private:
 	Host::Ptr m_Host;
 
 	static bool EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter);
-	static bool EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule, bool skipFilter = false);
+
+	static bool EvaluateApplyRule(
+		const Host::Ptr& host, const ApplyRule::Ptr& rule,
+		TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches, bool skipFilter = false
+	);
 };
 
 std::pair<Host::Ptr, Service::Ptr> GetHostService(const Checkable::Ptr& checkable);

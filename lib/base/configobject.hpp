@@ -14,6 +14,7 @@ namespace icinga
 {
 
 class ConfigType;
+class TimeSpentOnApplyMismatches;
 
 /**
  * A dynamic object that can be instantiated from the configuration file.
@@ -55,7 +56,7 @@ public:
 	virtual void Resume();
 
 	virtual void OnConfigLoaded();
-	virtual void CreateChildObjects(const Type::Ptr& childType);
+	virtual void CreateChildObjects(const Type::Ptr& childType, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches);
 	virtual void OnAllConfigLoaded();
 	virtual void OnStateLoaded();
 

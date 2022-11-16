@@ -74,16 +74,16 @@ void Service::OnAllConfigLoaded()
 	}
 }
 
-void Service::CreateChildObjects(const Type::Ptr& childType)
+void Service::CreateChildObjects(const Type::Ptr& childType, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches)
 {
 	if (childType == ScheduledDowntime::TypeInstance)
-		ScheduledDowntime::EvaluateApplyRules(this);
+		ScheduledDowntime::EvaluateApplyRules(this, timeSpentOnApplyMismatches);
 
 	if (childType == Notification::TypeInstance)
-		Notification::EvaluateApplyRules(this);
+		Notification::EvaluateApplyRules(this, timeSpentOnApplyMismatches);
 
 	if (childType == Dependency::TypeInstance)
-		Dependency::EvaluateApplyRules(this);
+		Dependency::EvaluateApplyRules(this, timeSpentOnApplyMismatches);
 }
 
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)
@@ -284,4 +284,14 @@ std::pair<Host::Ptr, Service::Ptr> icinga::GetHostService(const Checkable::Ptr& 
 		return std::make_pair(service->GetHost(), service);
 	else
 		return std::make_pair(static_pointer_cast<Host>(checkable), nullptr);
+}
+
+Dictionary::Ptr Service::MakeLocalsForApply()
+{
+	auto locals (Checkable::MakeLocalsForApply());
+
+	locals->Set("host", m_Host);
+	locals->Set("service", this);
+
+	return locals;
 }

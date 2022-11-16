@@ -3,6 +3,7 @@
 #ifndef NOTIFICATION_H
 #define NOTIFICATION_H
 
+#include "config/applyrule.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/notification-ti.hpp"
 #include "icinga/checkable-ti.hpp"
@@ -99,8 +100,8 @@ public:
 	void ValidateTypes(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
 	void ValidateTimes(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
-	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
-	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
+	static void EvaluateApplyRules(const intrusive_ptr<Host>& host, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches);
+	static void EvaluateApplyRules(const intrusive_ptr<Service>& service, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches);
 
 	static const std::map<String, int>& GetStateFilterMap();
 	static const std::map<String, int>& GetTypeFilterMap();
@@ -119,7 +120,11 @@ private:
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
 	static bool EvaluateApplyRuleInstance(const intrusive_ptr<Checkable>& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter);
-	static bool EvaluateApplyRule(const intrusive_ptr<Checkable>& checkable, const ApplyRule& rule, bool skipFilter = false);
+
+	static bool EvaluateApplyRule(
+		const intrusive_ptr<Checkable>& checkable, const ApplyRule::Ptr& rule,
+		TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches, bool skipFilter = false
+	);
 
 	static std::map<String, int> m_StateFilterMap;
 	static std::map<String, int> m_TypeFilterMap;

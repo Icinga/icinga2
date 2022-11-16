@@ -3,6 +3,7 @@
 #ifndef SCHEDULEDDOWNTIME_H
 #define SCHEDULEDDOWNTIME_H
 
+#include "config/applyrule.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/scheduleddowntime-ti.hpp"
 #include "icinga/checkable.hpp"
@@ -29,8 +30,8 @@ public:
 
 	Checkable::Ptr GetCheckable() const;
 
-	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
-	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
+	static void EvaluateApplyRules(const intrusive_ptr<Host>& host, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches);
+	static void EvaluateApplyRules(const intrusive_ptr<Service>& service, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches);
 	static bool AllConfigIsLoaded();
 
 	void ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
@@ -52,7 +53,11 @@ private:
 	static std::atomic<bool> m_AllConfigLoaded;
 
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter);
-	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter = false);
+
+	static bool EvaluateApplyRule(
+		const Checkable::Ptr& checkable, const ApplyRule::Ptr& rule,
+		TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches, bool skipFilter = false
+	);
 };
 
 }

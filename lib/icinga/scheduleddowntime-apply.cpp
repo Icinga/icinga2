@@ -21,7 +21,7 @@ bool ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkabl
 	if (!skipFilter && !rule.EvaluateFilter(frame))
 		return false;
 
-	DebugInfo di = rule.GetDebugInfo();
+	auto& di (rule.GetDebugInfo());
 
 #ifdef _DEBUG
 	Log(LogDebug, "ScheduledDowntime")
@@ -60,102 +60,109 @@ bool ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkabl
 	return true;
 }
 
-bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter)
+bool ScheduledDowntime::EvaluateApplyRule(
+	const Checkable::Ptr& checkable, const ApplyRule::Ptr& rule,
+	TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches, bool skipFilter
+)
 {
-	DebugInfo di = rule.GetDebugInfo();
+	bool match = false;
+	BenchmarkApplyRuleEvaluation bare (timeSpentOnApplyMismatches, rule, match);
+
+	auto& di (rule->GetDebugInfo());
 
 	std::ostringstream msgbuf;
 	msgbuf << "Evaluating 'apply' rule (" << di << ")";
 	CONTEXT(msgbuf.str());
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
+	ScriptFrame frame (false);
 
-	ScriptFrame frame(true);
-	if (rule.GetScope())
-		rule.GetScope()->CopyTo(frame.Locals);
-	frame.Locals->Set("host", host);
-	if (service)
-		frame.Locals->Set("service", service);
+	if (rule->GetScope() || rule->GetFTerm()) {
+		frame.Locals = new Dictionary();
 
-	Value vinstances;
+		if (rule->GetScope()) {
+			rule->GetScope()->CopyTo(frame.Locals);
+		}
 
-	if (rule.GetFTerm()) {
+		checkable->GetFrozenLocalsForApply()->CopyTo(frame.Locals);
+		frame.Locals->Freeze();
+	} else {
+		frame.Locals = checkable->GetFrozenLocalsForApply();
+	}
+
+	if (rule->GetFTerm()) {
+		Value vinstances;
+
 		try {
-			vinstances = rule.GetFTerm()->Evaluate(frame);
+			vinstances = rule->GetFTerm()->Evaluate(frame);
 		} catch (const std::exception&) {
 			/* Silently ignore errors here and assume there are no instances. */
 			return false;
 		}
-	} else {
-		vinstances = new Array({ "" });
-	}
 
-	bool match = false;
+		if (vinstances.IsObjectType<Array>()) {
+			if (!rule->GetFVVar().IsEmpty())
+				BOOST_THROW_EXCEPTION(ScriptError("Dictionary iterator requires value to be a dictionary.", di));
 
-	if (vinstances.IsObjectType<Array>()) {
-		if (!rule.GetFVVar().IsEmpty())
-			BOOST_THROW_EXCEPTION(ScriptError("Dictionary iterator requires value to be a dictionary.", di));
+			Array::Ptr arr = vinstances;
 
-		Array::Ptr arr = vinstances;
+			ObjectLock olock(arr);
+			for (const Value& instance : arr) {
+				String name = rule->GetName();
 
-		ObjectLock olock(arr);
-		for (const Value& instance : arr) {
-			String name = rule.GetName();
-
-			if (!rule.GetFKVar().IsEmpty()) {
-				frame.Locals->Set(rule.GetFKVar(), instance);
+				frame.Locals->Set(rule->GetFKVar(), instance, true);
 				name += instance;
+
+				if (EvaluateApplyRuleInstance(checkable, name, frame, *rule, skipFilter))
+					match = true;
 			}
+		} else if (vinstances.IsObjectType<Dictionary>()) {
+			if (rule->GetFVVar().IsEmpty())
+				BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
 
-			if (EvaluateApplyRuleInstance(checkable, name, frame, rule, skipFilter))
-				match = true;
+			Dictionary::Ptr dict = vinstances;
+			ObjectLock olock (dict);
+
+			for (auto& kv : dict) {
+				frame.Locals->Set(rule->GetFKVar(), kv.first, true);
+				frame.Locals->Set(rule->GetFVVar(), kv.second, true);
+
+				if (EvaluateApplyRuleInstance(checkable, rule->GetName() + kv.first, frame, *rule, skipFilter))
+					match = true;
+			}
 		}
-	} else if (vinstances.IsObjectType<Dictionary>()) {
-		if (rule.GetFVVar().IsEmpty())
-			BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
-
-		Dictionary::Ptr dict = vinstances;
-
-		for (const String& key : dict->GetKeys()) {
-			frame.Locals->Set(rule.GetFKVar(), key);
-			frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
-
-			if (EvaluateApplyRuleInstance(checkable, rule.GetName() + key, frame, rule, skipFilter))
-				match = true;
-		}
+	} else if (EvaluateApplyRuleInstance(checkable, rule->GetName(), frame, *rule, skipFilter)) {
+		match = true;
 	}
 
 	return match;
 }
 
-void ScheduledDowntime::EvaluateApplyRules(const Host::Ptr& host)
+void ScheduledDowntime::EvaluateApplyRules(const Host::Ptr& host, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
 	for (auto& rule : ApplyRule::GetRules(ScheduledDowntime::TypeInstance, Host::TypeInstance)) {
-		if (EvaluateApplyRule(host, *rule))
+		if (EvaluateApplyRule(host, rule, timeSpentOnApplyMismatches))
 			rule->AddMatch();
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedHostRules(ScheduledDowntime::TypeInstance, host->GetName())) {
-		if (EvaluateApplyRule(host, *rule, true))
+		if (EvaluateApplyRule(host, rule, timeSpentOnApplyMismatches, true))
 			rule->AddMatch();
 	}
 }
 
-void ScheduledDowntime::EvaluateApplyRules(const Service::Ptr& service)
+void ScheduledDowntime::EvaluateApplyRules(const Service::Ptr& service, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches)
 {
 	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
 	for (auto& rule : ApplyRule::GetRules(ScheduledDowntime::TypeInstance, Service::TypeInstance)) {
-		if (EvaluateApplyRule(service, *rule))
+		if (EvaluateApplyRule(service, rule, timeSpentOnApplyMismatches))
 			rule->AddMatch();
 	}
 
 	for (auto& rule : ApplyRule::GetTargetedServiceRules(ScheduledDowntime::TypeInstance, service->GetHost()->GetName(), service->GetShortName())) {
-		if (EvaluateApplyRule(service, *rule, true))
+		if (EvaluateApplyRule(service, rule, timeSpentOnApplyMismatches, true))
 			rule->AddMatch();
 	}
 }

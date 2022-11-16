@@ -47,19 +47,19 @@ void Host::OnAllConfigLoaded()
 	}
 }
 
-void Host::CreateChildObjects(const Type::Ptr& childType)
+void Host::CreateChildObjects(const Type::Ptr& childType, TimeSpentOnApplyMismatches& timeSpentOnApplyMismatches)
 {
 	if (childType == ScheduledDowntime::TypeInstance)
-		ScheduledDowntime::EvaluateApplyRules(this);
+		ScheduledDowntime::EvaluateApplyRules(this, timeSpentOnApplyMismatches);
 
 	if (childType == Notification::TypeInstance)
-		Notification::EvaluateApplyRules(this);
+		Notification::EvaluateApplyRules(this, timeSpentOnApplyMismatches);
 
 	if (childType == Dependency::TypeInstance)
-		Dependency::EvaluateApplyRules(this);
+		Dependency::EvaluateApplyRules(this, timeSpentOnApplyMismatches);
 
 	if (childType == Service::TypeInstance)
-		Service::EvaluateApplyRules(this);
+		Service::EvaluateApplyRules(this, timeSpentOnApplyMismatches);
 }
 
 void Host::Stop(bool runtimeRemoved)
@@ -327,4 +327,13 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *res
 	}
 
 	return false;
+}
+
+Dictionary::Ptr Host::MakeLocalsForApply()
+{
+	auto locals (Checkable::MakeLocalsForApply());
+
+	locals->Set("host", this);
+
+	return locals;
 }
