@@ -22,7 +22,7 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 	if (!skipFilter && !rule.EvaluateFilter(frame))
 		return false;
 
-	DebugInfo di = rule.GetDebugInfo();
+	auto& di (rule.GetDebugInfo());
 
 #ifdef _DEBUG
 	Log(LogDebug, "Notification")
@@ -63,7 +63,7 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 
 bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter)
 {
-	DebugInfo di = rule.GetDebugInfo();
+	auto& di (rule.GetDebugInfo());
 
 	std::ostringstream msgbuf;
 	msgbuf << "Evaluating 'apply' rule (" << di << ")";

@@ -68,7 +68,7 @@ public:
 
 	Expression::Ptr GetFTerm() const;
 	bool GetIgnoreOnError() const;
-	DebugInfo GetDebugInfo() const;
+	const DebugInfo& GetDebugInfo() const;
 	Dictionary::Ptr GetScope() const;
 	void AddMatch();
 	bool HasMatches() const;
