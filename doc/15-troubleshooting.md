@@ -256,10 +256,9 @@ Found 1 Service objects.
 [2014-10-15 14:27:19 +0200] information/cli: Parsed 175 objects.
 ```
 
-Runtime modifications via the [REST API](12-icinga2-api.md#icinga2-api-config-objects)
-are not immediately updated. Furthermore there is a known issue with
+Configuration modifications are not immediately updated. Furthermore there is a known issue with
 [group assign expressions](17-language-reference.md#group-assign) which are not reflected in the host object output.
-You need to restart Icinga 2 in order to update the `icinga2.debug` cache file.
+You need to `icinga2 daemon -C --dump-objects` in order to update the `icinga2.debug` cache file.
 
 ### Apply rules do not match <a id="apply-rules-do-not-match"></a>
 

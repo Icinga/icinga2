@@ -176,6 +176,7 @@ void DaemonCommand::InitParameters(boost::program_options::options_description& 
 		("config,c", po::value<std::vector<std::string> >(), "parse a configuration file")
 		("no-config,z", "start without a configuration file")
 		("validate,C", "exit after validating the configuration")
+		("dump-objects", "write icinga2.debug cache file for icinga2 object list")
 		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize or --close-stdio)")
 #ifndef _WIN32
 		("daemonize,d", "detach from the controlling terminal")
@@ -218,6 +219,8 @@ static double GetDebugWorkerDelay()
 }
 #endif /* I2_DEBUG */
 
+static String l_ObjectsPath;
+
 /**
  * Do the actual work (config loading, ...)
  *
@@ -248,7 +251,7 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 	{
 		std::vector<ConfigItem::Ptr> newItems;
 
-		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath)) {
+		if (!DaemonUtility::LoadConfigFiles(configs, newItems, l_ObjectsPath, Configuration::VarsPath)) {
 			Log(LogCritical, "cli", "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
 			NotifyStatus("Config validation failed.");
 			return EXIT_FAILURE;
@@ -626,12 +629,21 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		configs.push_back(configDir + "/icinga2.conf");
 	}
 
+	if (vm.count("dump-objects")) {
+		if (!vm.count("validate")) {
+			Log(LogCritical, "cli", "--dump-objects is not allowed without -C");
+			return EXIT_FAILURE;
+		}
+
+		l_ObjectsPath = Configuration::ObjectsPath;
+	}
+
 	if (vm.count("validate")) {
 		Log(LogInformation, "cli", "Loading configuration file(s).");
 
 		std::vector<ConfigItem::Ptr> newItems;
 
-		if (!DaemonUtility::LoadConfigFiles(configs, newItems, Configuration::ObjectsPath, Configuration::VarsPath)) {
+		if (!DaemonUtility::LoadConfigFiles(configs, newItems, l_ObjectsPath, Configuration::VarsPath)) {
 			Log(LogCritical, "cli", "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
 			return EXIT_FAILURE;
 		}

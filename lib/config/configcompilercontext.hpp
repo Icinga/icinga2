@@ -22,6 +22,11 @@ public:
 	void CancelObjectsFile();
 	void FinishObjectsFile();
 
+	inline bool IsOpen() const noexcept
+	{
+		return m_ObjectsFP;
+	}
+
 	static ConfigCompilerContext *GetInstance();
 
 private:

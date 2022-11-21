@@ -55,7 +55,7 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	if (!Utility::PathExists(objectfile)) {
 		Log(LogCritical, "cli")
 			<< "Cannot open objects file '" << Configuration::ObjectsPath << "'.";
-		Log(LogCritical, "cli", "Run 'icinga2 daemon -C' to validate config and generate the cache file.");
+		Log(LogCritical, "cli", "Run 'icinga2 daemon -C --dump-objects' to validate config and generate the cache file.");
 		return 1;
 	}
 
