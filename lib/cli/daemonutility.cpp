@@ -250,14 +250,14 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 		return false;
 	}
 
-	ConfigCompilerContext::GetInstance()->FinishObjectsFile();
-
 	try {
 		ScriptGlobal::WriteToFile(varsfile);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli", "Could not write vars file: " + DiagnosticInformation(ex, false));
 		Application::Exit(1);
 	}
+
+	ConfigCompilerContext::GetInstance()->FinishObjectsFile();
 
 	return true;
 }
