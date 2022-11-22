@@ -9,6 +9,7 @@
 #include "base/namespace.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <deque>
+#include <utility>
 
 using namespace icinga;
 
@@ -64,13 +65,15 @@ struct SerializeStack
 	}
 };
 
-static Value SerializeInternal(const Value& value, int attributeTypes, SerializeStack& stack);
+static Value SerializeInternal(const Value& value, int attributeTypes, SerializeStack& stack, bool dryRun);
 
-static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes, SerializeStack& stack)
+static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes, SerializeStack& stack, bool dryRun)
 {
 	ArrayData result;
 
-	result.reserve(input->GetLength());
+	if (!dryRun) {
+		result.reserve(input->GetLength());
+	}
 
 	ObjectLock olock(input);
 
@@ -78,48 +81,72 @@ static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes, Se
 
 	for (const Value& value : input) {
 		stack.Push(Convert::ToString(index), value);
-		result.emplace_back(SerializeInternal(value, attributeTypes, stack));
+
+		auto serialized (SerializeInternal(value, attributeTypes, stack, dryRun));
+
+		if (!dryRun) {
+			result.emplace_back(std::move(serialized));
+		}
+
 		stack.Pop();
 		index++;
 	}
 
-	return new Array(std::move(result));
+	return dryRun ? nullptr : new Array(std::move(result));
 }
 
-static Dictionary::Ptr SerializeDictionary(const Dictionary::Ptr& input, int attributeTypes, SerializeStack& stack)
+static Dictionary::Ptr SerializeDictionary(const Dictionary::Ptr& input, int attributeTypes, SerializeStack& stack, bool dryRun)
 {
 	DictionaryData result;
 
-	result.reserve(input->GetLength());
+	if (!dryRun) {
+		result.reserve(input->GetLength());
+	}
 
 	ObjectLock olock(input);
 
 	for (const Dictionary::Pair& kv : input) {
 		stack.Push(kv.first, kv.second);
-		result.emplace_back(kv.first, SerializeInternal(kv.second, attributeTypes, stack));
+
+		auto serialized (SerializeInternal(kv.second, attributeTypes, stack, dryRun));
+
+		if (!dryRun) {
+			result.emplace_back(kv.first, std::move(serialized));
+		}
+
 		stack.Pop();
 	}
 
-	return new Dictionary(std::move(result));
+	return dryRun ? nullptr : new Dictionary(std::move(result));
 }
 
-static Dictionary::Ptr SerializeNamespace(const Namespace::Ptr& input, int attributeTypes, SerializeStack& stack)
+static Dictionary::Ptr SerializeNamespace(const Namespace::Ptr& input, int attributeTypes, SerializeStack& stack, bool dryRun)
 {
 	DictionaryData result;
+
+	if (!dryRun) {
+		result.reserve(input->GetLength());
+	}
 
 	ObjectLock olock(input);
 
 	for (const Namespace::Pair& kv : input) {
 		Value val = kv.second->Get();
 		stack.Push(kv.first, val);
-		result.emplace_back(kv.first, Serialize(val, attributeTypes));
+
+		auto serialized (SerializeInternal(val, attributeTypes, stack, dryRun));
+
+		if (!dryRun) {
+			result.emplace_back(kv.first, std::move(serialized));
+		}
+
 		stack.Pop();
 	}
 
-	return new Dictionary(std::move(result));
+	return dryRun ? nullptr : new Dictionary(std::move(result));
 }
 
-static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes, SerializeStack& stack)
+static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes, SerializeStack& stack, bool dryRun)
 {
 	Type::Ptr type = input->GetReflectionType();
 
@@ -127,7 +154,10 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes,
 		return nullptr;
 
 	DictionaryData fields;
-	fields.reserve(type->GetFieldCount() + 1);
+
+	if (!dryRun) {
+		fields.reserve(type->GetFieldCount() + 1);
+	}
 
 	ObjectLock olock(input);
 
@@ -142,13 +172,21 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes,
 
 		Value value = input->GetField(i);
 		stack.Push(field.Name, value);
-		fields.emplace_back(field.Name, SerializeInternal(value, attributeTypes, stack));
+
+		auto serialized (SerializeInternal(value, attributeTypes, stack, dryRun));
+
+		if (!dryRun) {
+			fields.emplace_back(field.Name, std::move(serialized));
+		}
+
 		stack.Pop();
 	}
 
-	fields.emplace_back("type", type->GetName());
+	if (!dryRun) {
+		fields.emplace_back("type", type->GetName());
+	}
 
-	return new Dictionary(std::move(fields));
+	return dryRun ? nullptr : new Dictionary(std::move(fields));
 }
 
 static Array::Ptr DeserializeArray(const Array::Ptr& input, bool safe_mode, int attributeTypes)
@@ -228,35 +266,35 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 	return instance;
 }
 
-static Value SerializeInternal(const Value& value, int attributeTypes, SerializeStack& stack)
+static Value SerializeInternal(const Value& value, int attributeTypes, SerializeStack& stack, bool dryRun)
 {
 	if (!value.IsObject())
-		return value;
+		return dryRun ? Empty : value;
 
 	Object::Ptr input = value;
 
 	Array::Ptr array = dynamic_pointer_cast<Array>(input);
 
 	if (array)
-		return SerializeArray(array, attributeTypes, stack);
+		return SerializeArray(array, attributeTypes, stack, dryRun);
 
 	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(input);
 
 	if (dict)
-		return SerializeDictionary(dict, attributeTypes, stack);
+		return SerializeDictionary(dict, attributeTypes, stack, dryRun);
 
 	Namespace::Ptr ns = dynamic_pointer_cast<Namespace>(input);
 
 	if (ns)
-		return SerializeNamespace(ns, attributeTypes, stack);
+		return SerializeNamespace(ns, attributeTypes, stack, dryRun);
 
-	return SerializeObject(input, attributeTypes, stack);
+	return SerializeObject(input, attributeTypes, stack, dryRun);
 }
 
 Value icinga::Serialize(const Value& value, int attributeTypes)
 {
 	SerializeStack stack;
-	return SerializeInternal(value, attributeTypes, stack);
+	return SerializeInternal(value, attributeTypes, stack, false);
 }
 
 Value icinga::Deserialize(const Value& value, bool safe_mode, int attributeTypes)
