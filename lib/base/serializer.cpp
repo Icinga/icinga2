@@ -291,6 +291,12 @@ static Value SerializeInternal(const Value& value, int attributeTypes, Serialize
 	return SerializeObject(input, attributeTypes, stack, dryRun);
 }
 
+void icinga::AssertNoCircularReferences(const Value& value)
+{
+	SerializeStack stack;
+	SerializeInternal(value, FAConfig, stack, true);
+}
+
 Value icinga::Serialize(const Value& value, int attributeTypes)
 {
 	SerializeStack stack;

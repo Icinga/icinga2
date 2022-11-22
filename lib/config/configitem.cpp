@@ -281,7 +281,11 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	Value serializedObject;
 
 	try {
-		serializedObject = Serialize(dobj, FAConfig);
+		if (ConfigCompilerContext::GetInstance()->IsOpen()) {
+			serializedObject = Serialize(dobj, FAConfig);
+		} else {
+			AssertNoCircularReferences(dobj);
+		}
 	} catch (const CircularReferenceError& ex) {
 		BOOST_THROW_EXCEPTION(ValidationError(dobj, ex.GetPath(), "Circular references are not allowed"));
 	}
