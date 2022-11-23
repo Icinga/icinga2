@@ -332,17 +332,7 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 		params->Set("zone", zoneName);
 
 	if (object->GetPackage() == "_api") {
-		String file;
-
-		try {
-			file = ConfigObjectUtility::GetObjectConfigPath(object->GetReflectionType(), object->GetName());
-		} catch (const std::exception& ex) {
-			Log(LogNotice, "ApiListener")
-				<< "Cannot sync object '" << object->GetName() << "': " << ex.what();
-			return;
-		}
-
-		std::ifstream fp(file.CStr(), std::ifstream::binary);
+		std::ifstream fp(ConfigObjectUtility::GetExistingObjectConfigPath(object).CStr(), std::ifstream::binary);
 		if (!fp)
 			return;
 

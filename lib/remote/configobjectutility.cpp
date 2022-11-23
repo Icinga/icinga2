@@ -29,7 +29,7 @@ String ConfigObjectUtility::GetConfigDir()
 	return prefix + activeStage;
 }
 
-String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const String& fullName)
+String ConfigObjectUtility::ComputeNewObjectConfigPath(const Type::Ptr& type, const String& fullName)
 {
 	String typeDir = type->GetPluralName();
 	boost::algorithm::to_lower(typeDir);
@@ -51,13 +51,20 @@ String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const Str
 	 * be able to schedule a downtime or add an acknowledgement, which is not feasible) and the impact of not syncing
 	 * these objects through the whole cluster is limited. For other object types, we currently prefer to fail the
 	 * creation early so that configuration inconsistencies throughout the cluster are avoided.
+	 *
+	 * TODO: Remove this in v2.16 and truncate all.
 	 */
-	if ((type->GetName() != "Comment" && type->GetName() != "Downtime") || Utility::PathExists(longPath)) {
+	if (type->GetName() != "Comment" && type->GetName() != "Downtime") {
 		return longPath;
 	}
 
 	/* Maximum length 80 bytes object name + 3 bytes "..." + 40 bytes SHA1 (hex-encoded) */
 	return prefix + Utility::TruncateUsingHash<80+3+40>(escapedName) + ".conf";
+}
+
+String ConfigObjectUtility::GetExistingObjectConfigPath(const ConfigObject::Ptr& object)
+{
+	return object->GetDebugInfo().Path;
 }
 
 void ConfigObjectUtility::RepairPackage(const String& package)
@@ -185,7 +192,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	String path;
 
 	try {
-		path = GetObjectConfigPath(type, fullName);
+		path = ComputeNewObjectConfigPath(type, fullName);
 	} catch (const std::exception& ex) {
 		errors->Add("Config package broken: " + DiagnosticInformation(ex, false));
 		return false;
@@ -346,16 +353,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		return false;
 	}
 
-	String path;
-
-	try {
-		path = GetObjectConfigPath(object->GetReflectionType(), name);
-	} catch (const std::exception& ex) {
-		errors->Add("Config package broken: " + DiagnosticInformation(ex, false));
-		return false;
-	}
-
-	Utility::Remove(path);
+	Utility::Remove(GetExistingObjectConfigPath(object));
 
 	Log(LogInformation, "ConfigObjectUtility")
 		<< "Deleted object '" << name << "' of type '" << type->GetName() << "'.";
