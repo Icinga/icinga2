@@ -205,7 +205,7 @@ private:
 	static void PersistEnvironmentId();
 
 	Timer::Ptr m_StatsTimer;
-	WorkQueue m_WorkQueue{0, 1, LogNotice};
+	WorkQueue m_WorkQueue;
 
 	std::future<void> m_HistoryThread;
 	Bulker<RedisConnection::Query> m_HistoryBulker {4096, std::chrono::milliseconds(250)};

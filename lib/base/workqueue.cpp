@@ -216,7 +216,7 @@ void WorkQueue::StatusTimerHandler()
 
 	/* Log if there are pending items, or 5 minute timeout is reached. */
 	if (pending > 0 || m_StatusTimerTimeout < now) {
-		Log(LogInformation, "WorkQueue")
+		Log(LogNotice, "WorkQueue")
 			<< "#" << m_ID << " (" << m_Name << ") "
 			<< "items: " << pending << ", "
 			<< "rate: " << std::setw(2) << GetTaskCount(60) / 60.0 << "/s "
