@@ -258,7 +258,9 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 	Array::Ptr perfdata = cr->GetPerformanceData();
 
 	if (perfdata) {
+		bool hasInvalidPerfdata = false;
 		ObjectLock olock(perfdata);
+
 		for (const Value& val : perfdata) {
 			PerfdataValue::Ptr pdv;
 
@@ -268,10 +270,13 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 				try {
 					pdv = PerfdataValue::Parse(val);
 				} catch (const std::exception&) {
-					Log(LogWarning, GetReflectionType()->GetName())
+					Log(checkable->GetLoggedInvalidPerfdata() ? LogNotice : LogWarning, GetReflectionType()->GetName())
 						<< "Ignoring invalid perfdata for checkable '"
 						<< checkable->GetName() << "' and command '"
 						<< checkCommand->GetName() << "' with value: " << val;
+
+					checkable->SetLoggedInvalidPerfdata(true);
+					hasInvalidPerfdata = true;
 					continue;
 				}
 			}
@@ -294,6 +299,10 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 			}
 
 			SendMetric(checkable, tmpl, pdv->GetLabel(), fields, ts);
+		}
+
+		if (!hasInvalidPerfdata && perfdata->GetLength()) {
+			checkable->SetLoggedInvalidPerfdata(false);
 		}
 	}
 

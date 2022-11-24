@@ -309,6 +309,7 @@ void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
+	bool hasInvalidPerfdata = false;
 	ObjectLock olock(perfdata);
 	for (const Value& val : perfdata) {
 		PerfdataValue::Ptr pdv;
@@ -319,10 +320,13 @@ void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 			try {
 				pdv = PerfdataValue::Parse(val);
 			} catch (const std::exception&) {
-				Log(LogWarning, "OpenTsdbWriter")
+				Log(checkable->GetLoggedInvalidPerfdata() ? LogNotice : LogWarning, "OpenTsdbWriter")
 					<< "Ignoring invalid perfdata for checkable '"
 					<< checkable->GetName() << "' and command '"
 					<< checkCommand->GetName() << "' with value: " << val;
+
+				checkable->SetLoggedInvalidPerfdata(true);
+				hasInvalidPerfdata = true;
 				continue;
 			}
 		}
@@ -352,6 +356,10 @@ void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 			SendMetric(checkable, metric_name + "_min", tags_new, pdv->GetMin(), ts);
 		if (!pdv->GetMax().IsEmpty())
 			SendMetric(checkable, metric_name + "_max", tags_new, pdv->GetMax(), ts);
+	}
+
+	if (!hasInvalidPerfdata && perfdata->GetLength()) {
+		checkable->SetLoggedInvalidPerfdata(false);
 	}
 }
 
