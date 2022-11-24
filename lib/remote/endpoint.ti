@@ -37,6 +37,7 @@ class Endpoint : ConfigObject
 	};
 
 	[no_user_view, no_user_modify] bool logged_connection_attempt;
+	[no_user_view, no_user_modify] String last_logged_connection_failure;
 
 	Timestamp last_message_sent;
 	Timestamp last_message_received;

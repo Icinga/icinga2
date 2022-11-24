@@ -577,8 +577,13 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		} catch (const std::exception& ex) {
 			endpoint->SetConnecting(false);
 
-			Log(LogCritical, "ApiListener")
-				<< "Cannot connect to host '" << host << "' on port '" << port << "': " << ex.what();
+			auto reason (ex.what());
+			auto lastReason (endpoint->GetLastLoggedConnectionFailure());
+
+			Log(lastReason != "" && reason == lastReason ? LogNotice : LogCritical, "ApiListener")
+				<< "Cannot connect to host '" << host << "' on port '" << port << "': " << reason;
+
+			endpoint->SetLastLoggedConnectionFailure(reason);
 		}
 	});
 }
@@ -734,6 +739,7 @@ void ApiListener::NewClientHandlerInternal(
 			log << " (certificate validation failed: " << verifyError << ")";
 		} else if (endpoint) {
 			endpoint->SetLoggedConnectionAttempt(false);
+			endpoint->SetLastLoggedConnectionFailure("");
 		} else {
 			log << " (no Endpoint object found for identity)";
 		}
