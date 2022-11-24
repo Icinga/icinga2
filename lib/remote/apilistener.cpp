@@ -544,8 +544,10 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		String host = endpoint->GetHost();
 		String port = endpoint->GetPort();
 
-		Log(LogInformation, "ApiListener")
+		Log(endpoint->GetLoggedConnectionAttempt() ? LogNotice : LogInformation, "ApiListener")
 			<< "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
+
+		endpoint->SetLoggedConnectionAttempt(true);
 
 		try {
 			boost::shared_lock<decltype(m_SSLContextMutex)> lock (m_SSLContextMutex);
@@ -730,7 +732,9 @@ void ApiListener::NewClientHandlerInternal(
 
 		if (!verify_ok) {
 			log << " (certificate validation failed: " << verifyError << ")";
-		} else if (!endpoint) {
+		} else if (endpoint) {
+			endpoint->SetLoggedConnectionAttempt(false);
+		} else {
 			log << " (no Endpoint object found for identity)";
 		}
 	} else {
