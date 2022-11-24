@@ -56,7 +56,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	bool signedByCA = false;
 
 	{
-		Log logmsg(LogInformation, "JsonRpcConnection");
+		Log logmsg(LogNotice, "JsonRpcConnection");
 		logmsg << "Received certificate request for CN '" << cn << "'";
 
 		try {
@@ -79,7 +79,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	if (signedByCA) {
 		if (IsCertUptodate(cert)) {
 
-			Log(LogInformation, "JsonRpcConnection")
+			Log(LogNotice, "JsonRpcConnection")
 				<< "The certificate for CN '" << cn << "' is valid and uptodate. Skipping automated renewal.";
 			result->Set("status_code", 1);
 			result->Set("error", "The certificate for CN '" + cn + "' is valid and uptodate. Skipping automated renewal.");

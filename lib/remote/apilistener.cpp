@@ -557,7 +557,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
 				[sslConn, endpoint, host, port](asio::yield_context yc) {
-					Log(LogCritical, "ApiListener")
+					Log(LogNotice, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
 						<< "' and port '" << port << "', cancelling attempt";
 
@@ -877,19 +877,19 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		 * before the logs are replayed.
 		 */
 
-		Log(LogInformation, "ApiListener")
+		Log(LogNotice, "ApiListener")
 			<< "Sending config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		/* sync zone file config */
 		SendConfigUpdate(aclient);
 
-		Log(LogInformation, "ApiListener")
+		Log(LogNotice, "ApiListener")
 			<< "Finished sending config file updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		/* sync runtime config */
 		SendRuntimeConfigObjects(aclient);
 
-		Log(LogInformation, "ApiListener")
+		Log(LogNotice, "ApiListener")
 			<< "Finished sending runtime config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		if (!needSync) {
@@ -898,7 +898,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			return;
 		}
 
-		Log(LogInformation, "ApiListener")
+		Log(LogNotice, "ApiListener")
 			<< "Sending replay log for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		ReplayLog(aclient);
@@ -906,7 +906,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		if (eZone == Zone::GetLocalZone())
 			UpdateObjectAuthority();
 
-		Log(LogInformation, "ApiListener")
+		Log(LogNotice, "ApiListener")
 			<< "Finished sending replay log for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 	} catch (const std::exception& ex) {
 		{
@@ -921,7 +921,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			<< "Error while syncing endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
 	}
 
-	Log(LogInformation, "ApiListener")
+	Log(LogNotice, "ApiListener")
 		<< "Finished syncing endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 }
 

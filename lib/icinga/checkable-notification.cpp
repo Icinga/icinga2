@@ -59,7 +59,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 		return;
 	}
 
-	Log(LogInformation, "Checkable")
+	Log(LogNotice, "Checkable")
 		<< "Checkable '" << checkableName << "' has " << notifications.size()
 		<< " notification(s). Checking filters for type '" << notificationTypeName << "', sends will be logged.";
 
