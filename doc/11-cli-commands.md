@@ -430,6 +430,7 @@ Command options:
   -c [ --config ] arg       parse a configuration file
   -z [ --no-config ]        start without a configuration file
   -C [ --validate ]         exit after validating the configuration
+  --dump-objects            write icinga2.debug cache file for icinga2 object list
   -e [ --errorlog ] arg     log fatal errors to the specified log file (only
                             works in combination with --daemonize or
                             --close-stdio)
@@ -520,10 +521,9 @@ attributes. The command also shows where each of the attributes was modified and
 provides debug information for further configuration problem analysis.
 That way you can also identify which objects have been created from your [apply rules](17-language-reference.md#apply).
 
-Runtime modifications via the [REST API](12-icinga2-api.md#icinga2-api-config-objects)
-are not immediately updated. Furthermore there is a known issue with
+Configuration modifications are not immediately updated. Furthermore there is a known issue with
 [group assign expressions](17-language-reference.md#group-assign) which are not reflected in the host object output.
-You need to restart Icinga 2 in order to update the `icinga2.debug` cache file.
+You need to run `icinga2 daemon -C --dump-objects` in order to update the `icinga2.debug` cache file.
 
 More information can be found in the [troubleshooting](15-troubleshooting.md#troubleshooting-list-configuration-objects) section.
 

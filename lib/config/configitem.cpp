@@ -286,24 +286,25 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		BOOST_THROW_EXCEPTION(ValidationError(dobj, ex.GetPath(), "Circular references are not allowed"));
 	}
 
-	Dictionary::Ptr persistentItem = new Dictionary({
-		{ "type", type->GetName() },
-		{ "name", GetName() },
-		{ "properties", serializedObject },
-		{ "debug_hints", dhint },
-		{ "debug_info", new Array({
-			m_DebugInfo.Path,
-			m_DebugInfo.FirstLine,
-			m_DebugInfo.FirstColumn,
-			m_DebugInfo.LastLine,
-			m_DebugInfo.LastColumn,
-		}) }
-	});
+	if (ConfigCompilerContext::GetInstance()->IsOpen()) {
+		Dictionary::Ptr persistentItem = new Dictionary({
+			{ "type", type->GetName() },
+			{ "name", GetName() },
+			{ "properties", serializedObject },
+			{ "debug_hints", dhint },
+			{ "debug_info", new Array({
+				m_DebugInfo.Path,
+				m_DebugInfo.FirstLine,
+				m_DebugInfo.FirstColumn,
+				m_DebugInfo.LastLine,
+				m_DebugInfo.LastColumn,
+			}) }
+		});
+
+		ConfigCompilerContext::GetInstance()->WriteObject(persistentItem);
+	}
 
 	dhint.reset();
-
-	ConfigCompilerContext::GetInstance()->WriteObject(persistentItem);
-	persistentItem.reset();
 
 	dobj->Register();
 

@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <sys/stat.h>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -43,6 +44,19 @@ void ObjectListCommand::InitParameters(boost::program_options::options_descripti
 		("type,t", po::value<std::string>(), "filter by type matches");
 }
 
+static time_t GetCtime(const String& path)
+{
+#ifdef _WIN32
+	struct _stat statbuf;
+	int rc = _stat(path.CStr(), &statbuf);
+#else /* _WIN32 */
+	struct stat statbuf;
+	int rc = stat(path.CStr(), &statbuf);
+#endif /* _WIN32 */
+
+	return rc ? 0 : statbuf.st_ctime;
+}
+
 /**
  * The entry point for the "object list" CLI command.
  *
@@ -55,7 +69,7 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	if (!Utility::PathExists(objectfile)) {
 		Log(LogCritical, "cli")
 			<< "Cannot open objects file '" << Configuration::ObjectsPath << "'.";
-		Log(LogCritical, "cli", "Run 'icinga2 daemon -C' to validate config and generate the cache file.");
+		Log(LogCritical, "cli", "Run 'icinga2 daemon -C --dump-objects' to validate config and generate the cache file.");
 		return 1;
 	}
 
@@ -103,6 +117,15 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 
 	Log(LogNotice, "cli")
 		<< "Parsed " << objects_count << " objects.";
+
+	auto objectsPathCtime (GetCtime(Configuration::ObjectsPath));
+	auto varsPathCtime (GetCtime(Configuration::VarsPath));
+
+	if (objectsPathCtime < varsPathCtime) {
+		Log(LogWarning, "cli")
+			<< "This data is " << Utility::FormatDuration(varsPathCtime - objectsPathCtime)
+			<< " older than the last Icinga config (re)load. It may be outdated. Consider running 'icinga2 daemon -C --dump-objects' first.";
+	}
 
 	return 0;
 }

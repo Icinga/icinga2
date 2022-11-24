@@ -48,6 +48,9 @@ void ConfigCompilerContext::WriteObject(const Dictionary::Ptr& object)
 
 void ConfigCompilerContext::CancelObjectsFile()
 {
+	if (!m_ObjectsFP)
+		return;
+
 	delete m_ObjectsFP;
 	m_ObjectsFP = nullptr;
 
@@ -60,6 +63,9 @@ void ConfigCompilerContext::CancelObjectsFile()
 
 void ConfigCompilerContext::FinishObjectsFile()
 {
+	if (!m_ObjectsFP)
+		return;
+
 	delete m_ObjectsFP;
 	m_ObjectsFP = nullptr;
 
