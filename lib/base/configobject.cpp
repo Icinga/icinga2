@@ -352,7 +352,7 @@ void ConfigObject::Start(bool runtimeCreated)
 
 void ConfigObject::PreActivate()
 {
-	CONTEXT("Setting 'active' to true for object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
+	CONTEXT("Setting 'active' to true for object '" << GetName() << "' of type '" << GetReflectionType()->GetName() << "'");
 
 	ASSERT(!IsActive());
 	SetActive(true, true);
@@ -360,7 +360,7 @@ void ConfigObject::PreActivate()
 
 void ConfigObject::Activate(bool runtimeCreated, const Value& cookie)
 {
-	CONTEXT("Activating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
+	CONTEXT("Activating object '" << GetName() << "' of type '" << GetReflectionType()->GetName() << "'");
 
 	{
 		ObjectLock olock(this);
@@ -387,7 +387,7 @@ void ConfigObject::Stop(bool runtimeRemoved)
 
 void ConfigObject::Deactivate(bool runtimeRemoved, const Value& cookie)
 {
-	CONTEXT("Deactivating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
+	CONTEXT("Deactivating object '" << GetName() << "' of type '" << GetReflectionType()->GetName() << "'");
 
 	{
 		ObjectLock olock(this);

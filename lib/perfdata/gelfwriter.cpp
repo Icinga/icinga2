@@ -162,7 +162,7 @@ void GelfWriter::ReconnectInternal()
 {
 	double startTime = Utility::GetTime();
 
-	CONTEXT("Reconnecting to Graylog Gelf '" + GetName() + "'");
+	CONTEXT("Reconnecting to Graylog Gelf '" << GetName() << "'");
 
 	SetShouldConnect(true);
 
@@ -276,7 +276,7 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 {
 	AssertOnWorkQueue();
 
-	CONTEXT("GELF Processing check result for '" + checkable->GetName() + "'");
+	CONTEXT("GELF Processing check result for '" << checkable->GetName() << "'");
 
 	Log(LogDebug, "GelfWriter")
 		<< "Processing check result for '" << checkable->GetName() << "'";
@@ -388,7 +388,7 @@ void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& noti
 {
 	AssertOnWorkQueue();
 
-	CONTEXT("GELF Processing notification to all users '" + checkable->GetName() + "'");
+	CONTEXT("GELF Processing notification to all users '" << checkable->GetName() << "'");
 
 	Log(LogDebug, "GelfWriter")
 		<< "Processing notification for '" << checkable->GetName() << "'";
@@ -452,7 +452,7 @@ void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, con
 {
 	AssertOnWorkQueue();
 
-	CONTEXT("GELF Processing state change '" + checkable->GetName() + "'");
+	CONTEXT("GELF Processing state change '" << checkable->GetName() << "'");
 
 	Log(LogDebug, "GelfWriter")
 		<< "Processing state change for '" << checkable->GetName() << "'";

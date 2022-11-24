@@ -201,7 +201,7 @@ void IdoMysqlConnection::Reconnect()
 	if (!IsActive())
 		return;
 
-	CONTEXT("Reconnecting to MySQL IDO database '" + GetName() + "'");
+	CONTEXT("Reconnecting to MySQL IDO database '" << GetName() << "'");
 
 	double startTime = Utility::GetTime();
 

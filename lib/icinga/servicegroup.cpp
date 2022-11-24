@@ -22,7 +22,7 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigI
 {
 	String groupName = group->GetName();
 
-	CONTEXT("Evaluating rule for group '" + groupName + "'");
+	CONTEXT("Evaluating rule for group '" << groupName << "'");
 
 	Host::Ptr host = service->GetHost();
 
@@ -48,7 +48,7 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigI
 
 void ServiceGroup::EvaluateObjectRules(const Service::Ptr& service)
 {
-	CONTEXT("Evaluating group membership for service '" + service->GetName() + "'");
+	CONTEXT("Evaluating group membership for service '" << service->GetName() << "'");
 
 	for (const ConfigItem::Ptr& group : ConfigItem::GetItems(ServiceGroup::TypeInstance))
 	{

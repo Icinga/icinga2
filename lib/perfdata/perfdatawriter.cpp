@@ -99,7 +99,7 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	if (IsPaused())
 		return;
 
-	CONTEXT("Writing performance data for object '" + checkable->GetName() + "'");
+	CONTEXT("Writing performance data for object '" << checkable->GetName() << "'");
 
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;

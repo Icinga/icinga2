@@ -183,7 +183,7 @@ void IdoPgsqlConnection::Reconnect()
 {
 	AssertOnWorkQueue();
 
-	CONTEXT("Reconnecting to PostgreSQL IDO database '" + GetName() + "'");
+	CONTEXT("Reconnecting to PostgreSQL IDO database '" << GetName() << "'");
 
 	double startTime = Utility::GetTime();
 

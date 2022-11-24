@@ -22,7 +22,7 @@ bool HostGroup::EvaluateObjectRule(const Host::Ptr& host, const ConfigItem::Ptr&
 {
 	String groupName = group->GetName();
 
-	CONTEXT("Evaluating rule for group '" + groupName + "'");
+	CONTEXT("Evaluating rule for group '" << groupName << "'");
 
 	ScriptFrame frame(true);
 	if (group->GetScope())
@@ -45,7 +45,7 @@ bool HostGroup::EvaluateObjectRule(const Host::Ptr& host, const ConfigItem::Ptr&
 
 void HostGroup::EvaluateObjectRules(const Host::Ptr& host)
 {
-	CONTEXT("Evaluating group memberships for host '" + host->GetName() + "'");
+	CONTEXT("Evaluating group memberships for host '" << host->GetName() << "'");
 
 	for (const ConfigItem::Ptr& group : ConfigItem::GetItems(HostGroup::TypeInstance))
 	{

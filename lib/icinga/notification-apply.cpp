@@ -131,7 +131,7 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 
 void Notification::EvaluateApplyRules(const Host::Ptr& host)
 {
-	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
+	CONTEXT("Evaluating 'apply' rules for host '" << host->GetName() << "'");
 
 	for (auto& rule : ApplyRule::GetRules(Notification::TypeInstance, Host::TypeInstance))
 	{
@@ -147,7 +147,7 @@ void Notification::EvaluateApplyRules(const Host::Ptr& host)
 
 void Notification::EvaluateApplyRules(const Service::Ptr& service)
 {
-	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
+	CONTEXT("Evaluating 'apply' rules for service '" << service->GetName() << "'");
 
 	for (auto& rule : ApplyRule::GetRules(Notification::TypeInstance, Service::TypeInstance)) {
 		if (EvaluateApplyRule(service, *rule))

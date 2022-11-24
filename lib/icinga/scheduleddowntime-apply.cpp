@@ -130,7 +130,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 
 void ScheduledDowntime::EvaluateApplyRules(const Host::Ptr& host)
 {
-	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
+	CONTEXT("Evaluating 'apply' rules for host '" << host->GetName() << "'");
 
 	for (auto& rule : ApplyRule::GetRules(ScheduledDowntime::TypeInstance, Host::TypeInstance)) {
 		if (EvaluateApplyRule(host, *rule))
@@ -145,7 +145,7 @@ void ScheduledDowntime::EvaluateApplyRules(const Host::Ptr& host)
 
 void ScheduledDowntime::EvaluateApplyRules(const Service::Ptr& service)
 {
-	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
+	CONTEXT("Evaluating 'apply' rules for service '" << service->GetName() << "'");
 
 	for (auto& rule : ApplyRule::GetRules(ScheduledDowntime::TypeInstance, Service::TypeInstance)) {
 		if (EvaluateApplyRule(service, *rule))

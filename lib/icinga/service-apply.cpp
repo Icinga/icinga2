@@ -119,7 +119,7 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule, bo
 
 void Service::EvaluateApplyRules(const Host::Ptr& host)
 {
-	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
+	CONTEXT("Evaluating 'apply' rules for host '" << host->GetName() << "'");
 
 	for (auto& rule : ApplyRule::GetRules(Service::TypeInstance, Host::TypeInstance)) {
 		if (EvaluateApplyRule(host, *rule))

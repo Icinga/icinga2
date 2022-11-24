@@ -71,14 +71,14 @@ void CheckResultReader::Stop(bool runtimeRemoved)
  */
 void CheckResultReader::ReadTimerHandler() const
 {
-	CONTEXT("Processing check result files in '" + GetSpoolDir() + "'");
+	CONTEXT("Processing check result files in '" << GetSpoolDir() << "'");
 
 	Utility::Glob(GetSpoolDir() + "/c??????.ok", [this](const String& path) { ProcessCheckResultFile(path); }, GlobFile);
 }
 
 void CheckResultReader::ProcessCheckResultFile(const String& path) const
 {
-	CONTEXT("Processing check result file '" + path + "'");
+	CONTEXT("Processing check result file '" << path << "'");
 
 	String crfile = String(path.Begin(), path.End() - 3); /* Remove the ".ok" extension. */
 

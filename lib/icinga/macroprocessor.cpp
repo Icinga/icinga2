@@ -76,7 +76,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resolvers,
 	const CheckResult::Ptr& cr, Value *result, bool *recursive_macro)
 {
-	CONTEXT("Resolving macro '" + macro + "'");
+	CONTEXT("Resolving macro '" << macro << "'");
 
 	*recursive_macro = false;
 
@@ -205,7 +205,7 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 	const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
 	bool useResolvedMacros, int recursionLevel)
 {
-	CONTEXT("Resolving macros for string '" + str + "'");
+	CONTEXT("Resolving macros for string '" << str << "'");
 
 	if (recursionLevel > 15)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Infinite recursion detected while resolving macros"));

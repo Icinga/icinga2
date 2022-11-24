@@ -158,7 +158,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	if (IsPaused())
 		return;
 
-	CONTEXT("Processing check result for '" + checkable->GetName() + "'");
+	CONTEXT("Processing check result for '" << checkable->GetName() << "'");
 
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;

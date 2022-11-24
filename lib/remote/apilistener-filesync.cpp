@@ -817,7 +817,7 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 	if (Utility::BaseName(file) == ".authoritative")
 		return;
 
-	CONTEXT("Creating config update for file '" + file + "'");
+	CONTEXT("Creating config update for file '" << file << "'");
 
 	Log(LogNotice, "ApiListener")
 		<< "Creating config update for file '" << file << "'.";
