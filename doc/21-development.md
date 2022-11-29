@@ -1748,7 +1748,7 @@ and don't care for the details,
   1. `Enable-WindowsOptionalFeature -FeatureName "NetFx3" -Online`
      (reboot when asked!)
   2. `powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-Expression (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/Icinga/icinga2/master/doc/win-dev.ps1')"`
-    (will take some time)
+    (will take some time, re-run in case of a "Native failure" error)
 
 This installs everything needed for cloning and building Icinga 2
 on the command line (Powershell) as follows:
