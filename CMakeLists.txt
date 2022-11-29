@@ -225,7 +225,7 @@ if(TERMCAP_FOUND)
 endif()
 
 if(WIN32)
-  list(APPEND base_DEPS ws2_32 dbghelp shlwapi msi)
+  list(APPEND base_DEPS ws2_32 dbghelp ktmw32 shlwapi msi)
 endif()
 
 set(CMAKE_MACOSX_RPATH 1)

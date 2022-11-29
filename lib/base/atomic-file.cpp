@@ -1,12 +1,20 @@
 /* Icinga 2 | (c) 2022 Icinga GmbH | GPLv2+ */
 
 #include "base/atomic-file.hpp"
+#include "base/defer.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
+#include <boost/filesystem.hpp>
 #include <utility>
 
 #ifdef _WIN32
+#	include <fileapi.h>
+#	include <handleapi.h>
 #	include <io.h>
+#	include <ioapiset.h>
+#	include <ktmw32.h>
+#	include <winbase.h>
+#	include <winioctl.h>
 #	include <windows.h>
 #else /* _WIN32 */
 #	include <errno.h>
@@ -83,6 +91,8 @@ AtomicFile::~AtomicFile()
 
 void AtomicFile::Commit()
 {
+	namespace fs = boost::filesystem;
+
 	flush();
 
 	auto h ((*this)->handle());
@@ -111,6 +121,75 @@ void AtomicFile::Commit()
 	(void)::close(m_Fd);
 	m_Fd = -1;
 
+#ifdef _WIN32
+	auto tx (CreateTransaction(nullptr, 0, TRANSACTION_DO_NOT_PROMOTE, 0, 0, 0, L"Icinga 2 AtomicFile#Commit()"));
+
+	if (tx == INVALID_HANDLE_VALUE) {
+		auto err (GetLastError());
+
+		BOOST_THROW_EXCEPTION(win32_error()
+			<< boost::errinfo_api_function("CreateTransaction")
+			<< errinfo_win32_error(err));
+	}
+
+	Defer closeHandle ([tx]() { (void)CloseHandle(tx); });
+
+	if (!DeleteFileTransactedA(m_Path.CStr(), tx)) {
+		auto err (GetLastError());
+
+		if (err != ERROR_FILE_NOT_FOUND) {
+			BOOST_THROW_EXCEPTION(win32_error()
+				<< boost::errinfo_api_function("DeleteFileTransactedA")
+				<< errinfo_win32_error(err)
+				<< boost::errinfo_file_name(m_Path));
+		}
+	}
+
+	if (!CreateSymbolicLinkTransactedA(m_Path.CStr(), m_TempFilename.CStr(), 0, tx)) {
+		auto err (GetLastError());
+
+		BOOST_THROW_EXCEPTION(win32_error()
+			<< boost::errinfo_api_function("CreateSymbolicLinkTransactedA")
+			<< errinfo_win32_error(err)
+			<< boost::errinfo_file_name(m_Path));
+	}
+
+	if (!CommitTransaction(tx)) {
+		auto err (GetLastError());
+
+		BOOST_THROW_EXCEPTION(win32_error()
+			<< boost::errinfo_api_function("CommitTransaction")
+			<< errinfo_win32_error(err)
+			<< boost::errinfo_file_name(m_Path));
+	}
+#else /* _WIN32 */
 	Utility::RenameFile(m_TempFilename, m_Path);
+#endif /* _WIN32 */
+
+	auto tempFilename (std::move(m_TempFilename));
 	m_TempFilename = "";
+
+	auto threshold (Utility::GetTime() - 10 * 60);
+
+	Utility::Glob(m_Path + ".tmp.*", [&tempFilename, threshold](const String& path) {
+		if (path == tempFilename) {
+			return;
+		}
+
+		fs::path fsPath (path.GetData());
+
+		try {
+			if (fs::last_write_time(fsPath) > threshold) {
+				return;
+			}
+		} catch (const boost::filesystem::filesystem_error&) {
+			return;
+		}
+
+		try {
+			(void)fs::remove(fsPath);
+		} catch (const boost::filesystem::filesystem_error& ex) {
+			Log(LogWarning, "AtomicFile") << "Can't delete '" << path << "': " << ex.what();
+		}
+	});
 }
