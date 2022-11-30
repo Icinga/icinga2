@@ -211,7 +211,7 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 {
 	AssertOnWorkQueue();
 
-	CONTEXT("Elasticwriter processing check result for '" + checkable->GetName() + "'");
+	CONTEXT("Elasticwriter processing check result for '" << checkable->GetName() << "'");
 
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;
@@ -268,7 +268,7 @@ void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& check
 {
 	AssertOnWorkQueue();
 
-	CONTEXT("Elasticwriter processing state change '" + checkable->GetName() + "'");
+	CONTEXT("Elasticwriter processing state change '" << checkable->GetName() << "'");
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -324,7 +324,7 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 {
 	AssertOnWorkQueue();
 
-	CONTEXT("Elasticwriter processing notification to all users '" + checkable->GetName() + "'");
+	CONTEXT("Elasticwriter processing notification to all users '" << checkable->GetName() << "'");
 
 	Log(LogDebug, "ElasticsearchWriter")
 		<< "Processing notification for '" << checkable->GetName() << "'";

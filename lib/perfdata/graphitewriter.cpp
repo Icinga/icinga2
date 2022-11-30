@@ -181,7 +181,7 @@ void GraphiteWriter::ReconnectInternal()
 {
 	double startTime = Utility::GetTime();
 
-	CONTEXT("Reconnecting to Graphite '" + GetName() + "'");
+	CONTEXT("Reconnecting to Graphite '" << GetName() << "'");
 
 	SetShouldConnect(true);
 
@@ -276,7 +276,7 @@ void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable,
 {
 	AssertOnWorkQueue();
 
-	CONTEXT("Processing check result for '" + checkable->GetName() + "'");
+	CONTEXT("Processing check result for '" << checkable->GetName() << "'");
 
 	/* TODO: Deal with missing connection here. Needs refactoring
 	 * into parsing the actual performance data and then putting it

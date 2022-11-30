@@ -1400,7 +1400,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		return;
 	}
 
-	CONTEXT("Replaying log for Endpoint '" + endpoint->GetName() + "'");
+	CONTEXT("Replaying log for Endpoint '" << endpoint->GetName() << "'");
 
 	int count = -1;
 	double peer_ts = endpoint->GetLocalLogPosition();

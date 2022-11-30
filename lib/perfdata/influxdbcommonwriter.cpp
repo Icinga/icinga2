@@ -210,7 +210,7 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 {
 	AssertOnWorkQueue();
 
-	CONTEXT("Processing check result for '" + checkable->GetName() + "'");
+	CONTEXT("Processing check result for '" << checkable->GetName() << "'");
 
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;

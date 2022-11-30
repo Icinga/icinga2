@@ -34,7 +34,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 {
 	String checkableName = GetName();
 
-	CONTEXT("Sending notifications for object '" + checkableName + "'");
+	CONTEXT("Sending notifications for object '" << checkableName << "'");
 
 	bool force = GetForceNextNotification();
 

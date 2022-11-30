@@ -235,7 +235,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleIncludeZones(const String& rel
 std::unique_ptr<Expression> ConfigCompiler::CompileStream(const String& path,
 	std::istream *stream, const String& zone, const String& package)
 {
-	CONTEXT("Compiling configuration stream with name '" + path + "'");
+	CONTEXT("Compiling configuration stream with name '" << path << "'");
 
 	stream->exceptions(std::istream::badbit);
 
@@ -259,7 +259,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileStream(const String& path,
 std::unique_ptr<Expression> ConfigCompiler::CompileFile(const String& path, const String& zone,
 	const String& package)
 {
-	CONTEXT("Compiling configuration file '" + path + "'");
+	CONTEXT("Compiling configuration file '" << path << "'");
 
 	std::ifstream stream(path.CStr(), std::ifstream::in);
 

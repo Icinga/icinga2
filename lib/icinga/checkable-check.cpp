@@ -534,7 +534,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 
 void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
 {
-	CONTEXT("Executing remote check for object '" + GetName() + "'");
+	CONTEXT("Executing remote check for object '" << GetName() << "'");
 
 	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
@@ -548,7 +548,7 @@ void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
 
 void Checkable::ExecuteCheck()
 {
-	CONTEXT("Executing check for object '" + GetName() + "'");
+	CONTEXT("Executing check for object '" << GetName() << "'");
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	double scheduled_start = GetNextCheck();

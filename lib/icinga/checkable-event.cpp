@@ -19,7 +19,7 @@ EventCommand::Ptr Checkable::GetEventCommand() const
 
 void Checkable::ExecuteEventHandler(const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
-	CONTEXT("Executing event handler for object '" + GetName() + "'");
+	CONTEXT("Executing event handler for object '" << GetName() << "'");
 
 	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers() || !GetEnableEventHandler())
 		return;

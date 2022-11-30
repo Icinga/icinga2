@@ -66,9 +66,7 @@ bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 {
 	auto& di (rule.GetDebugInfo());
 
-	std::ostringstream msgbuf;
-	msgbuf << "Evaluating 'apply' rule (" << di << ")";
-	CONTEXT(msgbuf.str());
+	CONTEXT("Evaluating 'apply' rule (" << di << ")");
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -134,7 +132,7 @@ bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 
 void Dependency::EvaluateApplyRules(const Host::Ptr& host)
 {
-	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
+	CONTEXT("Evaluating 'apply' rules for host '" << host->GetName() << "'");
 
 	for (auto& rule : ApplyRule::GetRules(Dependency::TypeInstance, Host::TypeInstance)) {
 		if (EvaluateApplyRule(host, *rule))
@@ -149,7 +147,7 @@ void Dependency::EvaluateApplyRules(const Host::Ptr& host)
 
 void Dependency::EvaluateApplyRules(const Service::Ptr& service)
 {
-	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
+	CONTEXT("Evaluating 'apply' rules for service '" << service->GetName() << "'");
 
 	for (auto& rule : ApplyRule::GetRules(Dependency::TypeInstance, Service::TypeInstance)) {
 		if (EvaluateApplyRule(service, *rule))

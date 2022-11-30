@@ -5,7 +5,8 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include <list>
+#include <functional>
+#include <vector>
 
 namespace icinga
 {
@@ -20,7 +21,7 @@ public:
 	size_t GetLength() const;
 
 private:
-	std::list<String> m_Frames;
+	std::vector<String> m_Frames;
 };
 
 std::ostream& operator<<(std::ostream& stream, const ContextTrace& trace);
@@ -33,18 +34,21 @@ std::ostream& operator<<(std::ostream& stream, const ContextTrace& trace);
 class ContextFrame
 {
 public:
-	ContextFrame(const String& message);
+	ContextFrame(std::function<void(std::ostream&)> message);
 	~ContextFrame();
 
 private:
-	static std::list<String>& GetFrames();
+	static std::vector<std::function<void(std::ostream&)>>& GetFrames();
 
 	friend class ContextTrace;
 };
 
 /* The currentContextFrame variable has to be volatile in order to prevent
  * the compiler from optimizing it away. */
-#define CONTEXT(message) volatile icinga::ContextFrame currentContextFrame(message)
+#define CONTEXT(message) volatile icinga::ContextFrame currentContextFrame ([&](std::ostream& _CONTEXT_stream) { \
+_CONTEXT_stream << message; \
+})
+
 }
 
 #endif /* CONTEXT_H */

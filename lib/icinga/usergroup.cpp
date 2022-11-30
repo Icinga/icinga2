@@ -23,7 +23,7 @@ bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr&
 {
 	String groupName = group->GetName();
 
-	CONTEXT("Evaluating rule for group '" + groupName + "'");
+	CONTEXT("Evaluating rule for group '" << groupName << "'");
 
 	ScriptFrame frame(true);
 	if (group->GetScope())
@@ -46,7 +46,7 @@ bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr&
 
 void UserGroup::EvaluateObjectRules(const User::Ptr& user)
 {
-	CONTEXT("Evaluating group membership for user '" + user->GetName() + "'");
+	CONTEXT("Evaluating group membership for user '" << user->GetName() << "'");
 
 	for (const ConfigItem::Ptr& group : ConfigItem::GetItems(UserGroup::TypeInstance))
 	{

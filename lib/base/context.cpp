@@ -3,32 +3,40 @@
 #include "base/context.hpp"
 #include <boost/thread/tss.hpp>
 #include <iostream>
+#include <sstream>
+#include <utility>
 
 using namespace icinga;
 
-static boost::thread_specific_ptr<std::list<String> > l_Frames;
+static boost::thread_specific_ptr<std::vector<std::function<void(std::ostream&)>>> l_Frames;
 
-ContextFrame::ContextFrame(const String& message)
+ContextFrame::ContextFrame(std::function<void(std::ostream&)> message)
 {
-	GetFrames().push_front(message);
+	GetFrames().emplace_back(std::move(message));
 }
 
 ContextFrame::~ContextFrame()
 {
-	GetFrames().pop_front();
+	GetFrames().pop_back();
 }
 
-std::list<String>& ContextFrame::GetFrames()
+std::vector<std::function<void(std::ostream&)>>& ContextFrame::GetFrames()
 {
 	if (!l_Frames.get())
-		l_Frames.reset(new std::list<String>());
+		l_Frames.reset(new std::vector<std::function<void(std::ostream&)>>());
 
 	return *l_Frames;
 }
 
 ContextTrace::ContextTrace()
-	: m_Frames(ContextFrame::GetFrames())
-{ }
+{
+	for (auto frame (ContextFrame::GetFrames().rbegin()); frame != ContextFrame::GetFrames().rend(); ++frame) {
+		std::ostringstream oss;
+
+		(*frame)(oss);
+		m_Frames.emplace_back(oss.str());
+	}
+}
 
 void ContextTrace::Print(std::ostream& fp) const
 {
