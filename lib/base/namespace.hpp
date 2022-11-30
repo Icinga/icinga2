@@ -88,6 +88,8 @@ public:
 	Iterator Begin();
 	Iterator End();
 
+	size_t GetLength() const;
+
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
 	void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
 	bool HasOwnField(const String& field) const override;

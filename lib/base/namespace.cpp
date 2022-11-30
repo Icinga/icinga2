@@ -48,6 +48,18 @@ void Namespace::Set(const String& field, const Value& value, bool overrideFrozen
 	return SetFieldByName(field, value, overrideFrozen, DebugInfo());
 }
 
+/**
+ * Returns the number of elements in the namespace.
+ *
+ * @returns Number of elements.
+ */
+size_t Namespace::GetLength() const
+{
+	ObjectLock olock(this);
+
+	return m_Data.size();
+}
+
 bool Namespace::Contains(const String& field) const
 {
 	ObjectLock olock(this);
