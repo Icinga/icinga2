@@ -5,9 +5,11 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
+#include "base/objectlock.hpp"
 #include "base/shared-object.hpp"
 #include "base/value.hpp"
 #include "base/debuginfo.hpp"
+#include <atomic>
 #include <map>
 #include <vector>
 #include <memory>
@@ -20,7 +22,7 @@ struct NamespaceValue : public SharedObject
 	DECLARE_PTR_TYPEDEFS(NamespaceValue);
 
 	virtual Value Get(const DebugInfo& debugInfo = DebugInfo()) const = 0;
-	virtual void Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo = DebugInfo()) = 0;
+	virtual void Set(const Value& value, const DebugInfo& debugInfo = DebugInfo()) = 0;
 };
 
 struct EmbeddedNamespaceValue : public NamespaceValue
@@ -28,7 +30,7 @@ struct EmbeddedNamespaceValue : public NamespaceValue
 	EmbeddedNamespaceValue(const Value& value);
 
 	Value Get(const DebugInfo& debugInfo) const override;
-	void Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
+	void Set(const Value& value, const DebugInfo& debugInfo) override;
 
 private:
 	Value m_Value;
@@ -38,7 +40,7 @@ struct ConstEmbeddedNamespaceValue : public EmbeddedNamespaceValue
 {
 	using EmbeddedNamespaceValue::EmbeddedNamespaceValue;
 
-	void Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
+	void Set(const Value& value, const DebugInfo& debugInfo) override;
 };
 
 /**
@@ -59,9 +61,9 @@ public:
 
 	Value Get(const String& field) const;
 	bool Get(const String& field, Value *value) const;
-	void Set(const String& field, const Value& value, bool overrideFrozen = false);
+	void Set(const String& field, const Value& value);
 	bool Contains(const String& field) const;
-	void Remove(const String& field, bool overrideFrozen = false);
+	void Remove(const String& field);
 	void Freeze();
 
 	NamespaceValue::Ptr GetAttribute(const String& field) const;
@@ -81,9 +83,11 @@ public:
 	static Object::Ptr GetPrototype();
 
 private:
+	ObjectLock LockUnlessFrozen() const;
+
 	std::map<String, NamespaceValue::Ptr> m_Data;
 	bool m_ConstValues;
-	bool m_Frozen;
+	std::atomic<bool> m_Frozen;
 };
 
 Namespace::Iterator begin(const Namespace::Ptr& x);
