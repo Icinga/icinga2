@@ -25,8 +25,6 @@ Namespace::Namespace(bool constValues)
 
 Value Namespace::Get(const String& field) const
 {
-	ObjectLock olock(this);
-
 	Value value;
 	if (!Get(field, &value))
 		BOOST_THROW_EXCEPTION(ScriptError("Namespace does not contain field '" + field + "'"));
@@ -35,7 +33,7 @@ Value Namespace::Get(const String& field) const
 
 bool Namespace::Get(const String& field, Value *value) const
 {
-	ObjectLock olock(this);
+	std::shared_lock<decltype(m_DataMutex)> lock(m_DataMutex);
 
 	auto nsVal = m_Data.find(field);
 
@@ -50,6 +48,7 @@ bool Namespace::Get(const String& field, Value *value) const
 void Namespace::Set(const String& field, const Value& value, bool isConst, bool overrideFrozen, const DebugInfo& debugInfo)
 {
 	ObjectLock olock(this);
+	std::unique_lock<decltype(m_DataMutex)> dlock (m_DataMutex);
 
 	auto nsVal = m_Data.find(field);
 
@@ -75,14 +74,14 @@ void Namespace::Set(const String& field, const Value& value, bool isConst, bool 
  */
 size_t Namespace::GetLength() const
 {
-	ObjectLock olock(this);
+	std::shared_lock<decltype(m_DataMutex)> lock(m_DataMutex);
 
 	return m_Data.size();
 }
 
 bool Namespace::Contains(const String& field) const
 {
-	ObjectLock olock(this);
+	std::shared_lock<decltype(m_DataMutex)> lock(m_DataMutex);
 
 	return m_Data.find(field) != m_Data.end();
 }
@@ -94,6 +93,8 @@ void Namespace::Remove(const String& field, bool overrideFrozen)
 	if (m_Frozen && !overrideFrozen) {
 		BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified."));
 	}
+
+	std::unique_lock<decltype(m_DataMutex)> dlock (m_DataMutex);
 
 	if (!overrideFrozen) {
 		auto attr = m_Data.find(field);
@@ -125,7 +126,7 @@ void Namespace::Freeze() {
 
 Value Namespace::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const
 {
-	ObjectLock olock(this);
+	std::shared_lock<decltype(m_DataMutex)> lock(m_DataMutex);
 
 	auto nsVal = m_Data.find(field);
 

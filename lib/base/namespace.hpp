@@ -11,6 +11,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <shared_mutex>
 
 namespace icinga
 {
@@ -24,6 +25,33 @@ struct NamespaceValue
 
 /**
  * A namespace.
+ *
+ * ## External Locking
+ *
+ * Synchronization is handled internally, so almost all functions are safe for concurrent use without external locking.
+ * The only exception to this are functions returning an iterator. To use these, the caller has to acquire an ObjectLock
+ * on the namespace. The iterators only remain valid for as long as that ObjectLock is held. Note that this also
+ * includes range-based for loops.
+ *
+ * If consistency across multiple operations is required, an ObjectLock must also be acquired to prevent concurrent
+ * modifications.
+ *
+ * ## Internal Locking
+ *
+ * Two mutex objects are involved in locking a namespace: the recursive mutex inherited from the Object class that is
+ * acquired and released using the ObjectLock class and the m_DataMutex shared mutex contained directly in the
+ * Namespace class. The ObjectLock is used to synchronize multiple write operations against each other. The shared mutex
+ * is only used to ensure the consistency of the m_Data data structure.
+ *
+ * Read operations must acquire a shared lock on m_DataMutex. This prevents concurrent writes to that data structure
+ * but still allows concurrent reads.
+ *
+ * Write operations must first obtain an ObjectLock and then a shared lock on m_DataMutex. This order is important for
+ * preventing deadlocks. The ObjectLock prevents concurrent write operations while the shared lock prevents concurrent
+ * read operations.
+ *
+ * External read access to iterators is synchronized by the caller holding an ObjectLock. This ensures no concurrent
+ * write operations as these require the ObjectLock but still allows concurrent reads as m_DataMutex is not locked.
  *
  * @ingroup base
  */
@@ -59,6 +87,7 @@ public:
 
 private:
 	std::map<String, NamespaceValue> m_Data;
+	mutable std::shared_timed_mutex m_DataMutex;
 	bool m_ConstValues;
 	bool m_Frozen;
 };
