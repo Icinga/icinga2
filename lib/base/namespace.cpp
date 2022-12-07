@@ -14,8 +14,13 @@ template class std::map<icinga::String, std::shared_ptr<icinga::NamespaceValue> 
 
 REGISTER_PRIMITIVE_TYPE(Namespace, Object, Namespace::GetPrototype());
 
-Namespace::Namespace(NamespaceBehavior *behavior)
-	: m_Behavior(std::unique_ptr<NamespaceBehavior>(behavior))
+/**
+ * Creates a new namespace.
+ *
+ * @param constValues If true, all values inserted into the namespace are treated as constants and can't be updated.
+ */
+Namespace::Namespace(bool constValues)
+	: m_ConstValues(constValues), m_Frozen(false)
 { }
 
 Value Namespace::Get(const String& field) const
@@ -71,7 +76,31 @@ void Namespace::Remove(const String& field, bool overrideFrozen)
 {
 	ObjectLock olock(this);
 
-	m_Behavior->Remove(this, field, overrideFrozen);
+	if (m_Frozen && !overrideFrozen) {
+		BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified."));
+	}
+
+	if (!overrideFrozen) {
+		auto attr = GetAttribute(field);
+
+		if (dynamic_pointer_cast<ConstEmbeddedNamespaceValue>(attr)) {
+			BOOST_THROW_EXCEPTION(ScriptError("Constants must not be removed."));
+		}
+	}
+
+	RemoveAttribute(field);
+}
+
+/**
+ * Freeze the namespace, preventing further updates unless overrideFrozen is set.
+ *
+ * This only prevents inserting, replacing or deleting values from the namespace. This operation has no effect on
+ * objects referenced by the values, these remain mutable if they were before.
+ */
+void Namespace::Freeze() {
+	ObjectLock olock(this);
+
+	m_Frozen = true;
 }
 
 void Namespace::RemoveAttribute(const String& field)
@@ -124,10 +153,19 @@ void Namespace::SetFieldByName(const String& field, const Value& value, bool ove
 
 	auto nsVal = GetAttribute(field);
 
-	if (!nsVal)
-		m_Behavior->Register(this, field, value, overrideFrozen, debugInfo);
-	else
+	if (!nsVal) {
+		if (m_Frozen && !overrideFrozen) {
+			BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified.", debugInfo));
+		}
+
+		if (m_ConstValues) {
+			SetAttribute(field, new ConstEmbeddedNamespaceValue(value));
+		} else {
+			SetAttribute(field, new EmbeddedNamespaceValue(value));
+		}
+	} else {
 		nsVal->Set(value, overrideFrozen, debugInfo);
+	}
 }
 
 bool Namespace::HasOwnField(const String& field) const
@@ -170,44 +208,6 @@ void ConstEmbeddedNamespaceValue::Set(const Value& value, bool overrideFrozen, c
 		BOOST_THROW_EXCEPTION(ScriptError("Constant must not be modified.", debugInfo));
 
 	EmbeddedNamespaceValue::Set(value, overrideFrozen, debugInfo);
-}
-
-void NamespaceBehavior::Register(const Namespace::Ptr& ns, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) const
-{
-	ns->SetAttribute(field, new EmbeddedNamespaceValue(value));
-}
-
-void NamespaceBehavior::Remove(const Namespace::Ptr& ns, const String& field, bool overrideFrozen)
-{
-	if (!overrideFrozen) {
-		auto attr = ns->GetAttribute(field);
-
-		if (dynamic_pointer_cast<ConstEmbeddedNamespaceValue>(attr))
-			BOOST_THROW_EXCEPTION(ScriptError("Constants must not be removed."));
-	}
-
-	ns->RemoveAttribute(field);
-}
-
-void ConstNamespaceBehavior::Register(const Namespace::Ptr& ns, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) const
-{
-	if (m_Frozen && !overrideFrozen)
-		BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified.", debugInfo));
-
-	ns->SetAttribute(field, new ConstEmbeddedNamespaceValue(value));
-}
-
-void ConstNamespaceBehavior::Remove(const Namespace::Ptr& ns, const String& field, bool overrideFrozen)
-{
-	if (m_Frozen && !overrideFrozen)
-		BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified."));
-
-	NamespaceBehavior::Remove(ns, field, overrideFrozen);
-}
-
-void ConstNamespaceBehavior::Freeze()
-{
-	m_Frozen = true;
 }
 
 Namespace::Iterator Namespace::Begin()

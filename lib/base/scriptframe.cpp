@@ -10,7 +10,7 @@ using namespace icinga;
 
 boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
 
-static auto l_InternalNSBehavior = new ConstNamespaceBehavior();
+static Namespace::Ptr l_InternalNS;
 
 /* Ensure that this gets called with highest priority
  * and wins against other static initializers in lib/icinga, etc.
@@ -19,29 +19,26 @@ static auto l_InternalNSBehavior = new ConstNamespaceBehavior();
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 
-	auto systemNSBehavior = new ConstNamespaceBehavior();
-	systemNSBehavior->Freeze();
-	Namespace::Ptr systemNS = new Namespace(systemNSBehavior);
+	Namespace::Ptr systemNS = new Namespace(true);
+	systemNS->Freeze();
 	globalNS->SetAttribute("System", new ConstEmbeddedNamespaceValue(systemNS));
 
 	systemNS->SetAttribute("Configuration", new EmbeddedNamespaceValue(new Configuration()));
 
-	auto typesNSBehavior = new ConstNamespaceBehavior();
-	typesNSBehavior->Freeze();
-	Namespace::Ptr typesNS = new Namespace(typesNSBehavior);
+	Namespace::Ptr typesNS = new Namespace(true);
+	typesNS->Freeze();
 	globalNS->SetAttribute("Types", new ConstEmbeddedNamespaceValue(typesNS));
 
-	auto statsNSBehavior = new ConstNamespaceBehavior();
-	statsNSBehavior->Freeze();
-	Namespace::Ptr statsNS = new Namespace(statsNSBehavior);
+	Namespace::Ptr statsNS = new Namespace(true);
+	statsNS->Freeze();
 	globalNS->SetAttribute("StatsFunctions", new ConstEmbeddedNamespaceValue(statsNS));
 
-	Namespace::Ptr internalNS = new Namespace(l_InternalNSBehavior);
-	globalNS->SetAttribute("Internal", new ConstEmbeddedNamespaceValue(internalNS));
+	l_InternalNS = new Namespace(true);
+	globalNS->SetAttribute("Internal", new ConstEmbeddedNamespaceValue(l_InternalNS));
 }, 1000);
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
-	l_InternalNSBehavior->Freeze();
+	l_InternalNS->Freeze();
 }, 0);
 
 ScriptFrame::ScriptFrame(bool allocLocals)

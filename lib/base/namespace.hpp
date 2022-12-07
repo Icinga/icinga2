@@ -41,24 +41,6 @@ struct ConstEmbeddedNamespaceValue : public EmbeddedNamespaceValue
 	void Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
 };
 
-class Namespace;
-
-struct NamespaceBehavior
-{
-	virtual void Register(const boost::intrusive_ptr<Namespace>& ns, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) const;
-	virtual void Remove(const boost::intrusive_ptr<Namespace>& ns, const String& field, bool overrideFrozen);
-};
-
-struct ConstNamespaceBehavior : public NamespaceBehavior
-{
-	void Register(const boost::intrusive_ptr<Namespace>& ns, const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) const override;
-	void Remove(const boost::intrusive_ptr<Namespace>& ns, const String& field, bool overrideFrozen) override;
-	void Freeze();
-
-private:
-	bool m_Frozen;
-};
-
 /**
  * A namespace.
  *
@@ -73,13 +55,14 @@ public:
 
 	typedef std::map<String, NamespaceValue::Ptr>::value_type Pair;
 
-	Namespace(NamespaceBehavior *behavior = new NamespaceBehavior);
+	explicit Namespace(bool constValues = false);
 
 	Value Get(const String& field) const;
 	bool Get(const String& field, Value *value) const;
 	void Set(const String& field, const Value& value, bool overrideFrozen = false);
 	bool Contains(const String& field) const;
 	void Remove(const String& field, bool overrideFrozen = false);
+	void Freeze();
 
 	NamespaceValue::Ptr GetAttribute(const String& field) const;
 	void SetAttribute(const String& field, const NamespaceValue::Ptr& nsVal);
@@ -99,7 +82,8 @@ public:
 
 private:
 	std::map<String, NamespaceValue::Ptr> m_Data;
-	std::unique_ptr<NamespaceBehavior> m_Behavior;
+	bool m_ConstValues;
+	bool m_Frozen;
 };
 
 Namespace::Iterator begin(const Namespace::Ptr& x);
