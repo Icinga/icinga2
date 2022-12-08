@@ -25,6 +25,25 @@ ObjectLock::ObjectLock(const Object *object)
 		Lock();
 }
 
+ObjectLock::ObjectLock(ObjectLock&& other) noexcept
+{
+	std::swap(m_Object, other.m_Object);
+	std::swap(m_Locked, other.m_Locked);
+}
+
+ObjectLock& ObjectLock::operator=(ObjectLock&& other) noexcept
+{
+	if (m_Locked) {
+		Unlock();
+	}
+	m_Object = nullptr;
+
+	std::swap(m_Object, other.m_Object);
+	std::swap(m_Locked, other.m_Locked);
+
+	return *this;
+}
+
 void ObjectLock::Lock()
 {
 	ASSERT(!m_Locked && m_Object);

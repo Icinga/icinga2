@@ -20,6 +20,9 @@ public:
 	ObjectLock(const ObjectLock&) = delete;
 	ObjectLock& operator=(const ObjectLock&) = delete;
 
+	ObjectLock(ObjectLock&&) noexcept;
+	ObjectLock& operator=(ObjectLock&&) noexcept;
+
 	~ObjectLock();
 
 	void Lock();
