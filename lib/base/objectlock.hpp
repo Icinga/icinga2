@@ -17,6 +17,9 @@ public:
 	ObjectLock(const Object::Ptr& object);
 	ObjectLock(const Object *object);
 
+	ObjectLock(const ObjectLock&) = delete;
+	ObjectLock& operator=(const ObjectLock&) = delete;
+
 	~ObjectLock();
 
 	void Lock();
