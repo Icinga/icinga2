@@ -4,6 +4,7 @@
 #define LOADER_H
 
 #include "base/i2-base.hpp"
+#include "base/initialize.hpp"
 #include "base/string.hpp"
 #include <boost/thread/tss.hpp>
 #include <queue>
@@ -14,7 +15,7 @@ namespace icinga
 struct DeferredInitializer
 {
 public:
-	DeferredInitializer(std::function<void ()> callback, int priority)
+	DeferredInitializer(std::function<void ()> callback, InitializePriority priority)
 		: m_Callback(std::move(callback)), m_Priority(priority)
 	{ }
 
@@ -30,7 +31,7 @@ public:
 
 private:
 	std::function<void ()> m_Callback;
-	int m_Priority;
+	InitializePriority m_Priority;
 };
 
 /**
@@ -41,7 +42,7 @@ private:
 class Loader
 {
 public:
-	static void AddDeferredInitializer(const std::function<void ()>& callback, int priority = 0);
+	static void AddDeferredInitializer(const std::function<void ()>& callback, InitializePriority priority = InitializePriority::Default);
 	static void ExecuteDeferredInitializers();
 
 private:
