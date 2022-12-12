@@ -35,11 +35,11 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 
 	l_InternalNS = new Namespace(true);
 	globalNS->SetAttribute("Internal", new ConstEmbeddedNamespaceValue(l_InternalNS));
-}, 1000);
+}, InitializePriority::CreateNamespaces);
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	l_InternalNS->Freeze();
-}, 0);
+}, InitializePriority::Default);
 
 ScriptFrame::ScriptFrame(bool allocLocals)
 	: Locals(allocLocals ? new Dictionary() : nullptr), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)

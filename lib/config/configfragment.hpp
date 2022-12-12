@@ -21,6 +21,6 @@
 			std::cerr << icinga::DiagnosticInformation(ex) << std::endl; \
 			icinga::Application::Exit(1); \
 		} \
-	}, 5)
+	}, icinga::InitializePriority::EvaluateConfigFragments)
 
 #endif /* CONFIGFRAGMENT_H */

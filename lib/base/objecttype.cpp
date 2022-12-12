@@ -12,7 +12,7 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	type->SetPrototype(Object::GetPrototype());
 	Type::Register(type);
 	Object::TypeInstance = type;
-}, 20);
+}, InitializePriority::RegisterObjectType);
 
 String ObjectType::GetName() const
 {
