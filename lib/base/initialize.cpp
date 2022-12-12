@@ -5,7 +5,7 @@
 
 using namespace icinga;
 
-bool icinga::InitializeOnceHelper(void (*func)(), int priority)
+bool icinga::InitializeOnceHelper(const std::function<void()>& func, int priority)
 {
 	Loader::AddDeferredInitializer(func, priority);
 	return true;
