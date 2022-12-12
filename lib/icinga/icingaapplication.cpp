@@ -26,7 +26,7 @@ static Timer::Ptr l_RetentionTimer;
 
 REGISTER_TYPE(IcingaApplication);
 /* Ensure that the priority is lower than the basic System namespace initialization in scriptframe.cpp. */
-INITIALIZE_ONCE_WITH_PRIORITY(&IcingaApplication::StaticInitialize, 50);
+INITIALIZE_ONCE_WITH_PRIORITY(&IcingaApplication::StaticInitialize, InitializePriority::InitIcingaApplication);
 
 void IcingaApplication::StaticInitialize()
 {
