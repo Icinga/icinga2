@@ -9,17 +9,22 @@
 namespace icinga
 {
 
+/**
+ * Priority values for use with the INITIALIZE_ONCE_WITH_PRIORITY macro.
+ *
+ * The values are given in the order of initialization.
+ */
 enum class InitializePriority {
-	CreateNamespaces = 1000,
-	InitIcingaApplication = 50,
-	RegisterTypeType = 20,
-	RegisterObjectType = 20,
-	RegisterPrimitiveTypes = 15,
-	RegisterBuiltinTypes = 15,
-	RegisterFunctions = 10,
-	RegisterTypes = 10,
-	EvaluateConfigFragments = 5,
-	Default = 0,
+	CreateNamespaces,
+	InitIcingaApplication,
+	RegisterTypeType,
+	RegisterObjectType,
+	RegisterPrimitiveTypes,
+	RegisterBuiltinTypes,
+	RegisterFunctions,
+	RegisterTypes,
+	EvaluateConfigFragments,
+	Default,
 };
 
 #define I2_TOKENPASTE(x, y) x ## y

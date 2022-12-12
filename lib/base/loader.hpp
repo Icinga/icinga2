@@ -19,9 +19,9 @@ public:
 		: m_Callback(std::move(callback)), m_Priority(priority)
 	{ }
 
-	bool operator<(const DeferredInitializer& other) const
+	bool operator>(const DeferredInitializer& other) const
 	{
-		return m_Priority < other.m_Priority;
+		return m_Priority > other.m_Priority;
 	}
 
 	void operator()()
@@ -48,7 +48,12 @@ public:
 private:
 	Loader();
 
-	static boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& GetDeferredInitializers();
+	// Deferred initializers are run in the order of the definition of their enum values.
+	// Therefore, initializers that should be run first have lower enum values and
+	// the order of the std::priority_queue has to be reversed using std::greater.
+	using DeferredInitializerPriorityQueue = std::priority_queue<DeferredInitializer, std::vector<DeferredInitializer>, std::greater<>>;
+
+	static boost::thread_specific_ptr<DeferredInitializerPriorityQueue>& GetDeferredInitializers();
 };
 
 }
