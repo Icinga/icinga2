@@ -9,6 +9,21 @@ using namespace icinga;
 
 Type::Ptr Type::TypeInstance;
 
+static Namespace::Ptr l_TypesNS = new Namespace(true);
+
+INITIALIZE_ONCE_WITH_PRIORITY([]() {
+	ScriptGlobal::GetGlobals()->Set("Types", l_TypesNS, true);
+}, InitializePriority::CreateNamespaces);
+
+INITIALIZE_ONCE_WITH_PRIORITY([]() {
+	l_TypesNS->Freeze();
+
+	ObjectLock olock (l_TypesNS);
+	for (const auto& t : l_TypesNS) {
+		VERIFY(t.second.Val.IsObjectType<Type>());
+	}
+}, InitializePriority::FreezeNamespaces);
+
 /* Ensure that the priority is lower than the basic namespace initialization in scriptframe.cpp. */
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Type::Ptr type = new TypeType();
@@ -29,16 +44,9 @@ void Type::Register(const Type::Ptr& type)
 
 Type::Ptr Type::GetByName(const String& name)
 {
-	Namespace::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
-
-	if (!typesNS)
-		return nullptr;
-
 	Value ptype;
-	if (!typesNS->Get(name, &ptype))
-		return nullptr;
 
-	if (!ptype.IsObjectType<Type>())
+	if (!l_TypesNS->Get(name, &ptype))
 		return nullptr;
 
 	return ptype;
