@@ -26,7 +26,7 @@ void Checkable::TriggerDowntimes(double triggerTime)
 bool Checkable::IsInDowntime() const
 {
 	for (const Downtime::Ptr& downtime : GetDowntimes()) {
-		if (downtime->IsInEffect())
+		if (downtime->IsInEffect() || downtime->IsExpired())
 			return true;
 	}
 
