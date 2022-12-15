@@ -159,6 +159,21 @@ void Downtime::Stop(bool runtimeRemoved)
 	ObjectImpl<Downtime>::Stop(runtimeRemoved);
 }
 
+void Downtime::Pause()
+{
+	if (m_CleanupTimer) {
+		m_CleanupTimer->Stop();
+	}
+
+	ObjectImpl<Downtime>::Pause();
+}
+
+void Downtime::Resume()
+{
+	SetupCleanupTimer();
+	ObjectImpl<Downtime>::Resume();
+}
+
 Checkable::Ptr Downtime::GetCheckable() const
 {
 	return static_pointer_cast<Checkable>(m_Checkable);
@@ -427,6 +442,26 @@ bool Downtime::CanBeTriggered()
 	return true;
 }
 
+void Downtime::SetupCleanupTimer()
+{
+	if (!m_CleanupTimer) {
+		m_CleanupTimer = new Timer();
+
+		auto name (GetName());
+
+		m_CleanupTimer->OnTimerExpiredDetached->connect([name]() {
+			auto downtime (Downtime::GetByName(name));
+
+			if (downtime && downtime->IsExpired()) {
+				RemoveDowntime(name, false, false, true);
+			}
+		});
+	}
+
+	m_CleanupTimer->Reschedule((GetFixed() || !IsTriggered() ? GetEndTime() : GetTriggerTime() + GetDuration()) + 0.1);
+	m_CleanupTimer->Start();
+}
+
 void Downtime::TriggerDowntime(double triggerTime)
 {
 	if (!CanBeTriggered())
@@ -439,6 +474,11 @@ void Downtime::TriggerDowntime(double triggerTime)
 
 	if (GetTriggerTime() == 0) {
 		SetTriggerTime(triggerTime);
+	}
+
+	{
+		ObjectLock olock (this);
+		SetupCleanupTimer();
 	}
 
 	Array::Ptr triggers = GetTriggers();
@@ -501,7 +541,7 @@ void Downtime::DowntimesExpireTimerHandler()
 {
 	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		/* Only remove downtimes which are activated after daemon start. */
-		if (downtime->IsActive() && (downtime->IsExpired() || !downtime->HasValidConfigOwner()))
+		if (downtime->IsActive() && !downtime->HasValidConfigOwner())
 			RemoveDowntime(downtime->GetName(), false, false, true);
 	}
 }
