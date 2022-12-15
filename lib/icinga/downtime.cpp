@@ -16,7 +16,7 @@ using namespace icinga;
 static int l_NextDowntimeID = 1;
 static std::mutex l_DowntimeMutex;
 static std::map<int, String> l_LegacyDowntimesCache;
-static Timer::Ptr l_DowntimesExpireTimer;
+static Timer::Ptr l_DowntimesOrphanedTimer;
 static Timer::Ptr l_DowntimesStartTimer;
 
 boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeAdded;
@@ -98,10 +98,10 @@ void Downtime::Start(bool runtimeCreated)
 		l_DowntimesStartTimer->OnTimerExpired.connect([](const Timer * const&){ DowntimesStartTimerHandler(); });
 		l_DowntimesStartTimer->Start();
 
-		l_DowntimesExpireTimer = new Timer();
-		l_DowntimesExpireTimer->SetInterval(60);
-		l_DowntimesExpireTimer->OnTimerExpired.connect([](const Timer * const&) { DowntimesExpireTimerHandler(); });
-		l_DowntimesExpireTimer->Start();
+		l_DowntimesOrphanedTimer = new Timer();
+		l_DowntimesOrphanedTimer->SetInterval(60);
+		l_DowntimesOrphanedTimer->OnTimerExpired.connect([](const Timer * const&) { DowntimesOrphanedTimerHandler(); });
+		l_DowntimesOrphanedTimer->Start();
 	});
 
 	{
@@ -537,7 +537,7 @@ void Downtime::DowntimesStartTimerHandler()
 	}
 }
 
-void Downtime::DowntimesExpireTimerHandler()
+void Downtime::DowntimesOrphanedTimerHandler()
 {
 	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		/* Only remove downtimes which are activated after daemon start. */
