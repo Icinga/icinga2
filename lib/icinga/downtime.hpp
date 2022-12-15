@@ -91,7 +91,7 @@ private:
 	void SetupCleanupTimer();
 
 	static void DowntimesStartTimerHandler();
-	static void DowntimesExpireTimerHandler();
+	static void DowntimesOrphanedTimerHandler();
 };
 
 }
