@@ -29,18 +29,18 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	l_SystemNS->Set("BuildHostName", ICINGA_BUILD_HOST_NAME);
 	l_SystemNS->Set("BuildCompilerName", ICINGA_BUILD_COMPILER_NAME);
 	l_SystemNS->Set("BuildCompilerVersion", ICINGA_BUILD_COMPILER_VERSION);
-	globalNS->SetAttribute("System", new ConstEmbeddedNamespaceValue(l_SystemNS));
+	globalNS->Set("System", l_SystemNS, false, true);
 
-	l_SystemNS->SetAttribute("Configuration", new EmbeddedNamespaceValue(new Configuration()));
+	l_SystemNS->Set("Configuration", new Configuration(), false, true);
 
 	l_TypesNS = new Namespace(true);
-	globalNS->SetAttribute("Types", new ConstEmbeddedNamespaceValue(l_TypesNS));
+	globalNS->Set("Types", l_TypesNS, false, true);
 
 	l_StatsNS = new Namespace(true);
-	globalNS->SetAttribute("StatsFunctions", new ConstEmbeddedNamespaceValue(l_StatsNS));
+	globalNS->Set("StatsFunctions", l_StatsNS, false, true);
 
 	l_InternalNS = new Namespace(true);
-	globalNS->SetAttribute("Internal", new ConstEmbeddedNamespaceValue(l_InternalNS));
+	globalNS->Set("Internal", l_InternalNS, false, true);
 }, InitializePriority::CreateNamespaces);
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {

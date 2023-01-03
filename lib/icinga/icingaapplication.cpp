@@ -54,14 +54,14 @@ void IcingaApplication::StaticInitialize()
 	/* Ensure that the System namespace is already initialized. Otherwise this is a programming error. */
 	VERIFY(systemNS);
 
-	systemNS->Set("ApplicationType", "IcingaApplication");
-	systemNS->Set("ApplicationVersion", Application::GetAppVersion());
+	systemNS->Set("ApplicationType", "IcingaApplication", false, true);
+	systemNS->Set("ApplicationVersion", Application::GetAppVersion(), false, true);
 
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 	VERIFY(globalNS);
 
 	l_IcingaNS = new Namespace(true);
-	globalNS->SetAttribute("Icinga", new ConstEmbeddedNamespaceValue(l_IcingaNS));
+	globalNS->Set("Icinga", l_IcingaNS, true);
 }
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {

@@ -35,7 +35,7 @@ public:
 			Namespace::Ptr globals = ScriptGlobal::GetGlobals();
 			ObjectLock olock(globals);
 			for (const Namespace::Pair& kv : globals) {
-				addTarget(GetTargetForVar(kv.first, kv.second->Get()));
+				addTarget(GetTargetForVar(kv.first, kv.second.Val));
 			}
 		}
 	}

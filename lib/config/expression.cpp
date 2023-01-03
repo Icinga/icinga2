@@ -675,20 +675,11 @@ ExpressionResult SetConstExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 {
 	auto globals = ScriptGlobal::GetGlobals();
 
-	auto attr = globals->GetAttribute(m_Name);
-
-	if (dynamic_pointer_cast<ConstEmbeddedNamespaceValue>(attr)) {
-		std::ostringstream msgbuf;
-		msgbuf << "Value for constant '" << m_Name << "' was modified. This behaviour is deprecated.\n";
-		ShowCodeLocation(msgbuf, GetDebugInfo(), false);
-		Log(LogWarning, msgbuf.str());
-	}
-
 	ExpressionResult operandres = m_Operand->Evaluate(frame);
 	CHECK_RESULT(operandres);
 	Value operand = operandres.GetValue();
 
-	globals->SetAttribute(m_Name, new ConstEmbeddedNamespaceValue(operand));
+	globals->Set(m_Name, operand, true);
 
 	return Empty;
 }

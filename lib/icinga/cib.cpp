@@ -269,7 +269,7 @@ std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats()
 		ObjectLock olock(statsFunctions);
 
 		for (const Namespace::Pair& kv : statsFunctions)
-			static_cast<Function::Ptr>(kv.second->Get())->Invoke({ status, perfdata });
+			static_cast<Function::Ptr>(kv.second.Val)->Invoke({ status, perfdata });
 	}
 
 	return std::make_pair(status, perfdata);

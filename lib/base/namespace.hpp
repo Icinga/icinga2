@@ -15,31 +15,12 @@
 namespace icinga
 {
 
-struct NamespaceValue : public SharedObject
+struct NamespaceValue
 {
-	DECLARE_PTR_TYPEDEFS(NamespaceValue);
-
-	virtual Value Get(const DebugInfo& debugInfo = DebugInfo()) const = 0;
-	virtual void Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo = DebugInfo()) = 0;
+	Value Val;
+	bool Const;
 };
 
-struct EmbeddedNamespaceValue : public NamespaceValue
-{
-	EmbeddedNamespaceValue(const Value& value);
-
-	Value Get(const DebugInfo& debugInfo) const override;
-	void Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
-
-private:
-	Value m_Value;
-};
-
-struct ConstEmbeddedNamespaceValue : public EmbeddedNamespaceValue
-{
-	using EmbeddedNamespaceValue::EmbeddedNamespaceValue;
-
-	void Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
-};
 
 /**
  * A namespace.
@@ -51,22 +32,18 @@ class Namespace final : public Object
 public:
 	DECLARE_OBJECT(Namespace);
 
-	typedef std::map<String, NamespaceValue::Ptr>::iterator Iterator;
+	typedef std::map<String, NamespaceValue>::iterator Iterator;
 
-	typedef std::map<String, NamespaceValue::Ptr>::value_type Pair;
+	typedef std::map<String, NamespaceValue>::value_type Pair;
 
 	explicit Namespace(bool constValues = false);
 
 	Value Get(const String& field) const;
 	bool Get(const String& field, Value *value) const;
-	void Set(const String& field, const Value& value, bool overrideFrozen = false);
+	void Set(const String& field, const Value& value, bool isConst = false, bool overrideFrozen = false, const DebugInfo& debugInfo = DebugInfo());
 	bool Contains(const String& field) const;
 	void Remove(const String& field, bool overrideFrozen = false);
 	void Freeze();
-
-	NamespaceValue::Ptr GetAttribute(const String& field) const;
-	void SetAttribute(const String& field, const NamespaceValue::Ptr& nsVal);
-	void RemoveAttribute(const String& field);
 
 	Iterator Begin();
 	Iterator End();
@@ -81,7 +58,7 @@ public:
 	static Object::Ptr GetPrototype();
 
 private:
-	std::map<String, NamespaceValue::Ptr> m_Data;
+	std::map<String, NamespaceValue> m_Data;
 	bool m_ConstValues;
 	bool m_Frozen;
 };

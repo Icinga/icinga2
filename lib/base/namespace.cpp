@@ -28,7 +28,7 @@ Value Namespace::Get(const String& field) const
 	ObjectLock olock(this);
 
 	Value value;
-	if (!GetOwnField(field, &value))
+	if (!Get(field, &value))
 		BOOST_THROW_EXCEPTION(ScriptError("Namespace does not contain field '" + field + "'"));
 	return value;
 }
@@ -37,20 +37,35 @@ bool Namespace::Get(const String& field, Value *value) const
 {
 	ObjectLock olock(this);
 
-	auto nsVal = GetAttribute(field);
+	auto nsVal = m_Data.find(field);
 
-	if (!nsVal)
+	if (nsVal == m_Data.end()) {
 		return false;
+	}
 
-	*value =  nsVal->Get(DebugInfo());
+	*value = nsVal->second.Val;
 	return true;
 }
 
-void Namespace::Set(const String& field, const Value& value, bool overrideFrozen)
+void Namespace::Set(const String& field, const Value& value, bool isConst, bool overrideFrozen, const DebugInfo& debugInfo)
 {
 	ObjectLock olock(this);
 
-	return SetFieldByName(field, value, overrideFrozen, DebugInfo());
+	auto nsVal = m_Data.find(field);
+
+	if (nsVal == m_Data.end()) {
+		if (m_Frozen && !overrideFrozen) {
+			BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified.", debugInfo));
+		}
+
+		m_Data[field] = NamespaceValue{value, isConst};
+	} else {
+		if (nsVal->second.Const && !overrideFrozen) {
+			BOOST_THROW_EXCEPTION(ScriptError("Constant must not be modified.", debugInfo));
+		}
+
+		nsVal->second.Val = value;
+	}
 }
 
 /**
@@ -69,7 +84,7 @@ bool Namespace::Contains(const String& field) const
 {
 	ObjectLock olock(this);
 
-	return HasOwnField(field);
+	return m_Data.find(field) != m_Data.end();
 }
 
 void Namespace::Remove(const String& field, bool overrideFrozen)
@@ -81,14 +96,19 @@ void Namespace::Remove(const String& field, bool overrideFrozen)
 	}
 
 	if (!overrideFrozen) {
-		auto attr = GetAttribute(field);
+		auto attr = m_Data.find(field);
 
-		if (dynamic_pointer_cast<ConstEmbeddedNamespaceValue>(attr)) {
+		if (attr != m_Data.end() && attr->second.Const) {
 			BOOST_THROW_EXCEPTION(ScriptError("Constants must not be removed."));
 		}
 	}
 
-	RemoveAttribute(field);
+	auto it = m_Data.find(field);
+
+	if (it == m_Data.end())
+		return;
+
+	m_Data.erase(it);
 }
 
 /**
@@ -103,111 +123,31 @@ void Namespace::Freeze() {
 	m_Frozen = true;
 }
 
-void Namespace::RemoveAttribute(const String& field)
-{
-	ObjectLock olock(this);
-
-	Namespace::Iterator it;
-	it = m_Data.find(field);
-
-	if (it == m_Data.end())
-		return;
-
-	m_Data.erase(it);
-}
-
-NamespaceValue::Ptr Namespace::GetAttribute(const String& key) const
-{
-	ObjectLock olock(this);
-
-	auto it = m_Data.find(key);
-
-	if (it == m_Data.end())
-		return nullptr;
-
-	return it->second;
-}
-
-void Namespace::SetAttribute(const String& key, const NamespaceValue::Ptr& nsVal)
-{
-	ObjectLock olock(this);
-
-	m_Data[key] = nsVal;
-}
-
 Value Namespace::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const
 {
 	ObjectLock olock(this);
 
-	auto nsVal = GetAttribute(field);
+	auto nsVal = m_Data.find(field);
 
-	if (nsVal)
-		return nsVal->Get(debugInfo);
+	if (nsVal != m_Data.end())
+		return nsVal->second.Val;
 	else
 		return GetPrototypeField(const_cast<Namespace *>(this), field, false, debugInfo); /* Ignore indexer not found errors similar to the Dictionary class. */
 }
 
 void Namespace::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
 {
-	ObjectLock olock(this);
-
-	auto nsVal = GetAttribute(field);
-
-	if (!nsVal) {
-		if (m_Frozen && !overrideFrozen) {
-			BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified.", debugInfo));
-		}
-
-		if (m_ConstValues) {
-			SetAttribute(field, new ConstEmbeddedNamespaceValue(value));
-		} else {
-			SetAttribute(field, new EmbeddedNamespaceValue(value));
-		}
-	} else {
-		nsVal->Set(value, overrideFrozen, debugInfo);
-	}
+	Set(field, value, false, overrideFrozen, debugInfo);
 }
 
 bool Namespace::HasOwnField(const String& field) const
 {
-	ObjectLock olock(this);
-
-	return GetAttribute(field) != nullptr;
+	return Contains(field);
 }
 
 bool Namespace::GetOwnField(const String& field, Value *result) const
 {
-	ObjectLock olock(this);
-
-	auto nsVal = GetAttribute(field);
-
-	if (!nsVal)
-		return false;
-
-	*result = nsVal->Get(DebugInfo());
-	return true;
-}
-
-EmbeddedNamespaceValue::EmbeddedNamespaceValue(const Value& value)
-	: m_Value(value)
-{ }
-
-Value EmbeddedNamespaceValue::Get(const DebugInfo& debugInfo) const
-{
-	return m_Value;
-}
-
-void EmbeddedNamespaceValue::Set(const Value& value, bool, const DebugInfo&)
-{
-	m_Value = value;
-}
-
-void ConstEmbeddedNamespaceValue::Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
-{
-	if (!overrideFrozen)
-		BOOST_THROW_EXCEPTION(ScriptError("Constant must not be modified.", debugInfo));
-
-	EmbeddedNamespaceValue::Set(value, overrideFrozen, debugInfo);
+	return Get(field, result);
 }
 
 Namespace::Iterator Namespace::Begin()
