@@ -499,6 +499,14 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 					sa.sa_handler = SIG_DFL;
 
 					(void)sigaction(SIGUSR1, &sa, nullptr);
+				}
+
+				{
+					struct sigaction sa;
+					memset(&sa, 0, sizeof(sa));
+
+					sa.sa_handler = SIG_IGN;
+
 					(void)sigaction(SIGHUP, &sa, nullptr);
 				}
 
