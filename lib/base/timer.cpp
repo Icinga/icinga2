@@ -246,7 +246,7 @@ double Timer::GetNext() const
 }
 
 /**
- * Adjusts all timers by adding the specified amount of time to their
+ * Adjusts all periodic timers by adding the specified amount of time to their
  * next scheduled timestamp.
  *
  * @param adjustment The adjustment.
@@ -263,6 +263,11 @@ void Timer::AdjustTimers(double adjustment)
 	std::vector<Timer *> timers;
 
 	for (Timer *timer : idx) {
+		/* Don't schedule the next call if this is not a periodic timer. */
+		if (timer->m_Interval <= 0) {
+			continue;
+		}
+
 		if (std::fabs(now - (timer->m_Next + adjustment)) <
 			std::fabs(now - timer->m_Next)) {
 			timer->m_Next += adjustment;
