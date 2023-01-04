@@ -246,7 +246,7 @@ bool HandleAccessControl(
 			if (!allowedOrigins.empty()) {
 				auto& origin (request[http::field::origin]);
 
-				if (allowedOrigins.find(origin.to_string()) != allowedOrigins.end()) {
+				if (allowedOrigins.find(std::string(origin)) != allowedOrigins.end()) {
 					response.set(http::field::access_control_allow_origin, origin);
 				}
 
@@ -536,7 +536,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			if (!authenticatedUser) {
 				CpuBoundWork fetchingAuthenticatedUser (yc);
 
-				authenticatedUser = ApiUser::GetByAuthHeader(request[http::field::authorization].to_string());
+				authenticatedUser = ApiUser::GetByAuthHeader(std::string(request[http::field::authorization]));
 			}
 
 			Log logMsg (LogInformation, "HttpServerConnection");
