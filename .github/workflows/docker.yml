@@ -11,7 +11,19 @@ on:
       - published
 
 jobs:
+  docker-release:
+    if: github.event_name == 'release'
+    concurrency: docker-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Docker image
+        uses: Icinga/docker-icinga2@master
+        with:
+          dockerhub-token: '${{ secrets.DOCKER_HUB_PERSONAL_TOKEN }}'
+
   docker:
+    if: github.event_name != 'release'
     runs-on: ubuntu-latest
 
     steps:
@@ -24,6 +36,5 @@ jobs:
 
       - name: Docker image
         uses: Icinga/docker-icinga2@master
-        env:
-          INPUT_TOKEN: '${{ github.token }}'
-          DOCKER_HUB_PASSWORD: '${{ secrets.DOCKER_HUB_PERSONAL_TOKEN }}'
+        with:
+          dockerhub-token: '${{ secrets.DOCKER_HUB_PERSONAL_TOKEN }}'

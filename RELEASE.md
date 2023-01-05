@@ -300,31 +300,6 @@ The release body should contain a short changelog, with links
 into the roadmap, changelog and blogpost.
 
 
-## Docker  <a id="docker"></a>
-
-> Only for final versions (not for RCs).
-
-Once the release has been published on GitHub, wait for its
-[GitHub actions](https://github.com/Icinga/icinga2/actions) to complete.
-
-```bash
-VERSION=2.12.1
-
-TAGS=(2.12)
-#TAGS=(2.12 2 latest)
-
-docker pull icinga/icinga2:$VERSION
-
-for t in "${TAGS[@]}"; do
-  docker tag icinga/icinga2:$VERSION icinga/icinga2:$t
-done
-
-for t in "${TAGS[@]}"; do
-  docker push icinga/icinga2:$t
-done
-```
-
-
 ## Post Release  <a id="post-release"></a>
 
 ### Online Documentation  <a id="online-documentation"></a>
