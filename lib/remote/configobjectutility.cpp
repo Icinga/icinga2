@@ -353,7 +353,9 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		return false;
 	}
 
-	Utility::Remove(GetExistingObjectConfigPath(object));
+	if (object->GetPackage() == "_api") {
+		Utility::Remove(GetExistingObjectConfigPath(object));
+	}
 
 	Log(LogInformation, "ConfigObjectUtility")
 		<< "Deleted object '" << name << "' of type '" << type->GetName() << "'.";
