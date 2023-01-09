@@ -22,7 +22,8 @@ class ConfigObjectUtility
 
 public:
 	static String GetConfigDir();
-	static String GetObjectConfigPath(const Type::Ptr& type, const String& fullName);
+	static String ComputeNewObjectConfigPath(const Type::Ptr& type, const String& fullName);
+	static String GetExistingObjectConfigPath(const ConfigObject::Ptr& object);
 	static void RepairPackage(const String& package);
 	static void CreateStorage();
 
