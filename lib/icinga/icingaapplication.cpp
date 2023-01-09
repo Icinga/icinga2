@@ -54,8 +54,8 @@ void IcingaApplication::StaticInitialize()
 	/* Ensure that the System namespace is already initialized. Otherwise this is a programming error. */
 	VERIFY(systemNS);
 
-	systemNS->Set("ApplicationType", "IcingaApplication", false, true);
-	systemNS->Set("ApplicationVersion", Application::GetAppVersion(), false, true);
+	systemNS->Set("ApplicationType", "IcingaApplication", true);
+	systemNS->Set("ApplicationVersion", Application::GetAppVersion(), true);
 
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 	VERIFY(globalNS);

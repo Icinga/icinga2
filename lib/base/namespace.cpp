@@ -33,7 +33,7 @@ Value Namespace::Get(const String& field) const
 
 bool Namespace::Get(const String& field, Value *value) const
 {
-	std::shared_lock<decltype(m_DataMutex)> lock(m_DataMutex);
+	auto lock(ReadLockUnlessFrozen());
 
 	auto nsVal = m_Data.find(field);
 
@@ -45,21 +45,22 @@ bool Namespace::Get(const String& field, Value *value) const
 	return true;
 }
 
-void Namespace::Set(const String& field, const Value& value, bool isConst, bool overrideFrozen, const DebugInfo& debugInfo)
+void Namespace::Set(const String& field, const Value& value, bool isConst, const DebugInfo& debugInfo)
 {
 	ObjectLock olock(this);
+
+	if (m_Frozen) {
+		BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified.", debugInfo));
+	}
+
 	std::unique_lock<decltype(m_DataMutex)> dlock (m_DataMutex);
 
 	auto nsVal = m_Data.find(field);
 
 	if (nsVal == m_Data.end()) {
-		if (m_Frozen && !overrideFrozen) {
-			BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified.", debugInfo));
-		}
-
 		m_Data[field] = NamespaceValue{value, isConst};
 	} else {
-		if (nsVal->second.Const && !overrideFrozen) {
+		if (nsVal->second.Const) {
 			BOOST_THROW_EXCEPTION(ScriptError("Constant must not be modified.", debugInfo));
 		}
 
@@ -74,46 +75,43 @@ void Namespace::Set(const String& field, const Value& value, bool isConst, bool 
  */
 size_t Namespace::GetLength() const
 {
-	std::shared_lock<decltype(m_DataMutex)> lock(m_DataMutex);
+	auto lock(ReadLockUnlessFrozen());
 
 	return m_Data.size();
 }
 
 bool Namespace::Contains(const String& field) const
 {
-	std::shared_lock<decltype(m_DataMutex)> lock(m_DataMutex);
+	auto lock (ReadLockUnlessFrozen());
 
 	return m_Data.find(field) != m_Data.end();
 }
 
-void Namespace::Remove(const String& field, bool overrideFrozen)
+void Namespace::Remove(const String& field)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen && !overrideFrozen) {
+	if (m_Frozen) {
 		BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified."));
 	}
 
 	std::unique_lock<decltype(m_DataMutex)> dlock (m_DataMutex);
 
-	if (!overrideFrozen) {
-		auto attr = m_Data.find(field);
-
-		if (attr != m_Data.end() && attr->second.Const) {
-			BOOST_THROW_EXCEPTION(ScriptError("Constants must not be removed."));
-		}
-	}
-
 	auto it = m_Data.find(field);
 
-	if (it == m_Data.end())
+	if (it == m_Data.end()) {
 		return;
+	}
+
+	if (it->second.Const) {
+		BOOST_THROW_EXCEPTION(ScriptError("Constants must not be removed."));
+	}
 
 	m_Data.erase(it);
 }
 
 /**
- * Freeze the namespace, preventing further updates unless overrideFrozen is set.
+ * Freeze the namespace, preventing further updates.
  *
  * This only prevents inserting, replacing or deleting values from the namespace. This operation has no effect on
  * objects referenced by the values, these remain mutable if they were before.
@@ -124,9 +122,18 @@ void Namespace::Freeze() {
 	m_Frozen = true;
 }
 
+std::shared_lock<std::shared_timed_mutex> Namespace::ReadLockUnlessFrozen() const
+{
+	if (m_Frozen.load(std::memory_order_relaxed)) {
+		return std::shared_lock<std::shared_timed_mutex>();
+	} else {
+		return std::shared_lock<std::shared_timed_mutex>(m_DataMutex);
+	}
+}
+
 Value Namespace::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const
 {
-	std::shared_lock<decltype(m_DataMutex)> lock(m_DataMutex);
+	auto lock (ReadLockUnlessFrozen());
 
 	auto nsVal = m_Data.find(field);
 
@@ -138,7 +145,12 @@ Value Namespace::GetFieldByName(const String& field, bool, const DebugInfo& debu
 
 void Namespace::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
 {
-	Set(field, value, false, overrideFrozen, debugInfo);
+	// The override frozen parameter is mandated by the interface but ignored here. If the namespace is frozen, this
+	// disables locking for read operations, so it must not be modified again to ensure the consistency of the internal
+	// data structures.
+	(void) overrideFrozen;
+
+	Set(field, value, false, debugInfo);
 }
 
 bool Namespace::HasOwnField(const String& field) const

@@ -8,6 +8,7 @@
 #include "base/shared-object.hpp"
 #include "base/value.hpp"
 #include "base/debuginfo.hpp"
+#include <atomic>
 #include <map>
 #include <vector>
 #include <memory>
@@ -68,9 +69,9 @@ public:
 
 	Value Get(const String& field) const;
 	bool Get(const String& field, Value *value) const;
-	void Set(const String& field, const Value& value, bool isConst = false, bool overrideFrozen = false, const DebugInfo& debugInfo = DebugInfo());
+	void Set(const String& field, const Value& value, bool isConst = false, const DebugInfo& debugInfo = DebugInfo());
 	bool Contains(const String& field) const;
-	void Remove(const String& field, bool overrideFrozen = false);
+	void Remove(const String& field);
 	void Freeze();
 
 	Iterator Begin();
@@ -86,10 +87,12 @@ public:
 	static Object::Ptr GetPrototype();
 
 private:
+	std::shared_lock<std::shared_timed_mutex> ReadLockUnlessFrozen() const;
+
 	std::map<String, NamespaceValue> m_Data;
 	mutable std::shared_timed_mutex m_DataMutex;
 	bool m_ConstValues;
-	bool m_Frozen;
+	std::atomic<bool> m_Frozen;
 };
 
 Namespace::Iterator begin(const Namespace::Ptr& x);
