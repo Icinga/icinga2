@@ -280,17 +280,6 @@ static int Main()
 #endif /* RLIMIT_STACK */
 	}
 
-	/* Calculate additional global constants. */
-	ScriptGlobal::Set("System.PlatformKernel", Utility::GetPlatformKernel(), true);
-	ScriptGlobal::Set("System.PlatformKernelVersion", Utility::GetPlatformKernelVersion(), true);
-	ScriptGlobal::Set("System.PlatformName", Utility::GetPlatformName(), true);
-	ScriptGlobal::Set("System.PlatformVersion", Utility::GetPlatformVersion(), true);
-	ScriptGlobal::Set("System.PlatformArchitecture", Utility::GetPlatformArchitecture(), true);
-
-	ScriptGlobal::Set("System.BuildHostName", ICINGA_BUILD_HOST_NAME, true);
-	ScriptGlobal::Set("System.BuildCompilerName", ICINGA_BUILD_COMPILER_NAME, true);
-	ScriptGlobal::Set("System.BuildCompilerVersion", ICINGA_BUILD_COMPILER_VERSION, true);
-
 	if (!autocomplete)
 		Application::SetResourceLimits();
 

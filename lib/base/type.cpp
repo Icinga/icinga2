@@ -24,7 +24,7 @@ String Type::ToString() const
 
 void Type::Register(const Type::Ptr& type)
 {
-	ScriptGlobal::Set("Types." + type->GetName(), type, true);
+	ScriptGlobal::Set("Types." + type->GetName(), type);
 }
 
 Type::Ptr Type::GetByName(const String& name)
