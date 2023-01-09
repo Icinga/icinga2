@@ -168,16 +168,18 @@ dnf install https://packages.icinga.com/fedora/icinga-rpm-release-$(. /etc/os-re
 ```bash
 rpm --import https://packages.icinga.com/icinga.key
 
-zypper ar https://packages.icinga.com/subscription/sles/ICINGA-release.repo
-zypper ref
+wget https://packages.icinga.com/subscription/sles/ICINGA-release.repo -O /etc/zypp/repos.d/ICINGA-release.repo
 ```
 
+Now edit your `/etc/zypp/repos.d/ICINGA-release.repo` file with your credentials.
 You need to additionally add the `PackageHub` repository to fulfill dependencies:
 
 ```bash
 source /etc/os-release
 
 SUSEConnect -p PackageHub/$VERSION_ID/x86_64
+
+zypper ref
 ```
 <!-- {% endif %} -->
 
