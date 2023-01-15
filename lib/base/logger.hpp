@@ -8,6 +8,7 @@
 #include "base/logger-ti.hpp"
 #include <set>
 #include <sstream>
+#include <boost/optional.hpp>
 
 namespace icinga
 {
@@ -54,7 +55,7 @@ public:
 	static String SeverityToString(LogSeverity severity);
 	static LogSeverity StringToSeverity(const String& severity);
 
-	LogSeverity GetMinSeverity() const;
+	LogSeverity GetMinSeverity();
 
 	/**
 	 * Processes the log entry and writes it to the log that is
@@ -104,6 +105,10 @@ private:
 	static LogSeverity m_ConsoleLogSeverity;
 	static std::mutex m_UpdateMinLogSeverityMutex;
 	static Atomic<LogSeverity> m_MinLogSeverity;
+
+	void CacheMinSeverity();
+
+	boost::optional<LogSeverity> min_severity;
 };
 
 class Log

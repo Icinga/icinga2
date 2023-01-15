@@ -85,19 +85,28 @@ std::set<Logger::Ptr> Logger::GetLoggers()
  *
  * @returns The minimum severity.
  */
-LogSeverity Logger::GetMinSeverity() const
+LogSeverity Logger::GetMinSeverity()
+{
+	if (min_severity == boost::none) {
+		CacheMinSeverity();
+	}
+	return *min_severity;
+}
+
+/**
+ * Retrieves and caches the minimum severity for this logger.
+ */
+void Logger::CacheMinSeverity()
 {
 	String severity = GetSeverity();
 	if (severity.IsEmpty())
-		return LogInformation;
+		min_severity.emplace(LogInformation);
 	else {
 		LogSeverity ls = LogInformation;
-
 		try {
 			ls = Logger::StringToSeverity(severity);
-		} catch (const std::exception&) { /* use the default level */ }
-
-		return ls;
+		} catch (const std::exception &) { /* use the default level */ }
+		min_severity.emplace(ls);
 	}
 }
 
@@ -202,7 +211,7 @@ bool Logger::IsTimestampEnabled()
 void Logger::SetSeverity(const String& value, bool suppress_events, const Value& cookie)
 {
 	ObjectImpl<Logger>::SetSeverity(value, suppress_events, cookie);
-
+	min_severity.emplace(StringToSeverity(value));
 	UpdateMinLogSeverity();
 }
 
