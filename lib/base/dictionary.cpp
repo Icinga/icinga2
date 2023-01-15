@@ -6,6 +6,7 @@
 #include "base/primitivetype.hpp"
 #include "base/configwriter.hpp"
 #include <sstream>
+#include <algorithm>
 
 using namespace icinga;
 
@@ -21,8 +22,8 @@ Dictionary::Dictionary(const DictionaryData& other)
 
 Dictionary::Dictionary(DictionaryData&& other)
 {
-	for (auto& kv : other)
-		m_Data.insert(std::move(kv));
+    std::for_each(std::make_move_iterator(other.begin()), std::make_move_iterator(other.end()),
+                  [&](std::pair<String, Value>&& pair) { m_Data.insert(std::move(pair)); });
 }
 
 Dictionary::Dictionary(std::initializer_list<Dictionary::Pair> init)
