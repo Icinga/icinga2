@@ -3948,6 +3948,7 @@ vmware_include          | **Optional.** Whitelist VMs. No value defined as defau
 vmware_isregexp         | **Optional.** Treat blacklist and whitelist expressions as regexp.
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 vmware_openvmtools	| **Optional** Prevent CRITICAL state for installed and running Open VM Tools.
+vmware_novmtools	| **Optional** Prevent CRITICAL state for missing VMware tools.
 
 
 **vmware-esx-soap-host-check**
@@ -5698,6 +5699,7 @@ vmware_username         | **Optional.** The username to connect to Host or vCent
 vmware_password         | **Optional.** The username's password. No value defined as default.
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Authentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 vmware_openvmtools	| **Optional** Prevent CRITICAL state for installed and running Open VM Tools.
+vmware_novmtools	| **Optional** Prevent CRITICAL state for missing VMware tools.
 
 
 **vmware-esx-soap-vm-runtime-issues**
