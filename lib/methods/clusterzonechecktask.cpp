@@ -139,25 +139,33 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	double bytesSentPerSecond = 0;
 	double bytesReceivedPerSecond = 0;
 
-	for (const Endpoint::Ptr& endpoint : zone->GetEndpoints()) {
-		if (endpoint->GetConnected())
+	{
+		auto endpoints (zone->GetEndpoints());
+
+		for (const Endpoint::Ptr& endpoint : endpoints) {
+			if (endpoint->GetConnected())
+				connected = true;
+
+			double eplag = ApiListener::CalculateZoneLag(endpoint);
+
+			if (eplag > 0 && eplag > zoneLag)
+				zoneLag = eplag;
+
+			if (endpoint->GetLastMessageSent() > lastMessageSent)
+				lastMessageSent = endpoint->GetLastMessageSent();
+
+			if (endpoint->GetLastMessageReceived() > lastMessageReceived)
+				lastMessageReceived = endpoint->GetLastMessageReceived();
+
+			messagesSentPerSecond += endpoint->GetMessagesSentPerSecond();
+			messagesReceivedPerSecond += endpoint->GetMessagesReceivedPerSecond();
+			bytesSentPerSecond += endpoint->GetBytesSentPerSecond();
+			bytesReceivedPerSecond += endpoint->GetBytesReceivedPerSecond();
+		}
+
+		if (!connected && endpoints.size() == 1u && *endpoints.begin() == Endpoint::GetLocalEndpoint()) {
 			connected = true;
-
-		double eplag = ApiListener::CalculateZoneLag(endpoint);
-
-		if (eplag > 0 && eplag > zoneLag)
-			zoneLag = eplag;
-
-		if (endpoint->GetLastMessageSent() > lastMessageSent)
-			lastMessageSent = endpoint->GetLastMessageSent();
-
-		if (endpoint->GetLastMessageReceived() > lastMessageReceived)
-			lastMessageReceived = endpoint->GetLastMessageReceived();
-
-		messagesSentPerSecond += endpoint->GetMessagesSentPerSecond();
-		messagesReceivedPerSecond += endpoint->GetMessagesReceivedPerSecond();
-		bytesSentPerSecond += endpoint->GetBytesSentPerSecond();
-		bytesReceivedPerSecond += endpoint->GetBytesReceivedPerSecond();
+		}
 	}
 
 	ServiceState state;
