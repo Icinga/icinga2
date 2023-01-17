@@ -30,9 +30,6 @@ jobs:
           - name: fedora
             release: 36
             subscription: false
-          - name: fedora
-            release: 35
-            subscription: false
           - name: sles
             release: '15.4'
             subscription: true
