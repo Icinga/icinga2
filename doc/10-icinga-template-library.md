@@ -3199,6 +3199,19 @@ interfaces_timeout        | **Optional.** Sets the SNMP timeout (in ms).
 interfaces_sleep          | **Optional.** Sleep between every SNMP query (in ms).
 interfaces_names          | **Optional.** If set to true, use ifName instead of ifDescr.
 
+#### linux\_netdev <a id="plugin-contrib-command-linux_netdev"></a>
+
+The [check\_linux\_netdev](https://github.com/Al2Klimov/check_linux_netdev)
+plugin monitors a Linux system's network device statistics via `/proc/net/dev`.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                      | Description
+--------------------------|---------------------------------------------------------
+linux\_netdev\_duration   | **Optional.** For how long to run. E.g. "10s" or "2m". Default: "1m"
+linux\_netdev\_exclude    | **Optional.** Which NICs to exclude. E.g. `eth0` or `eth?*`, may be an array. Default: none
+linux\_netdev\_thresholds | **Optional.** Warning and critical thresholds. E.g. `eth?*:tx:bytes:persec:w=1000000000` (see [plugin documentation](https://github.com/Al2Klimov/check_linux_netdev#usage)), may be an array. Default: none
+
 #### nwc_health <a id="plugin-contrib-command-nwc_health"></a>
 
 The [check_nwc_health](https://labs.consol.de/de/nagios/check_nwc_health/index.html) plugin
