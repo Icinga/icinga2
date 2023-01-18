@@ -37,7 +37,7 @@ private:
 		icinga::Type::Ptr t = new PrimitiveType(#type, "None"); 	\
 		t->SetPrototype(prototype);					\
 		icinga::Type::Register(t);					\
-	}, 15)
+	}, InitializePriority::RegisterBuiltinTypes)
 
 #define REGISTER_PRIMITIVE_TYPE_FACTORY(type, base, prototype, factory)		\
 	INITIALIZE_ONCE_WITH_PRIORITY([]() {					\
@@ -45,7 +45,7 @@ private:
 		t->SetPrototype(prototype);					\
 		icinga::Type::Register(t);					\
 		type::TypeInstance = t;						\
-	}, 15);									\
+	}, InitializePriority::RegisterPrimitiveTypes);	\
 	DEFINE_TYPE_INSTANCE(type)
 
 #define REGISTER_PRIMITIVE_TYPE(type, base, prototype)				\

@@ -15,7 +15,7 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	type->SetPrototype(TypeType::GetPrototype());
 	Type::TypeInstance = type;
 	Type::Register(type);
-}, 20);
+}, InitializePriority::RegisterTypeType);
 
 String Type::ToString() const
 {
