@@ -142,8 +142,7 @@ static double MathSign(double x)
 }
 
 INITIALIZE_ONCE([]() {
-	auto mathNSBehavior = new ConstNamespaceBehavior();
-	Namespace::Ptr mathNS = new Namespace(mathNSBehavior);
+	Namespace::Ptr mathNS = new Namespace(true);
 
 	/* Constants */
 	mathNS->Set("E", 2.71828182845904523536);
@@ -178,7 +177,7 @@ INITIALIZE_ONCE([]() {
 	mathNS->Set("isinf", new Function("Math#isinf", MathIsinf, { "x" }, true));
 	mathNS->Set("sign", new Function("Math#sign", MathSign, { "x" }, true));
 
-	mathNSBehavior->Freeze();
+	mathNS->Freeze();
 
 	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
 	systemNS->SetAttribute("Math", new ConstEmbeddedNamespaceValue(mathNS));

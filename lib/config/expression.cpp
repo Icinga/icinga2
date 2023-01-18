@@ -930,7 +930,7 @@ ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 
 ExpressionResult NamespaceExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	Namespace::Ptr ns = new Namespace(new ConstNamespaceBehavior());
+	Namespace::Ptr ns = new Namespace(true);
 
 	ScriptFrame innerFrame(true, ns);
 	ExpressionResult result = m_Expression->Evaluate(innerFrame);

@@ -15,14 +15,13 @@ static String JsonEncodeShim(const Value& value)
 }
 
 INITIALIZE_ONCE([]() {
-	auto jsonNSBehavior = new ConstNamespaceBehavior();
-	Namespace::Ptr jsonNS = new Namespace(jsonNSBehavior);
+	Namespace::Ptr jsonNS = new Namespace(true);
 
 	/* Methods */
 	jsonNS->Set("encode", new Function("Json#encode", JsonEncodeShim, { "value" }, true));
 	jsonNS->Set("decode", new Function("Json#decode", JsonDecode, { "value" }, true));
 
-	jsonNSBehavior->Freeze();
+	jsonNS->Freeze();
 
 	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
 	systemNS->SetAttribute("Json", new ConstEmbeddedNamespaceValue(jsonNS));

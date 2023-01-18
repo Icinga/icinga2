@@ -58,9 +58,8 @@ void IcingaApplication::StaticInitialize()
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 	VERIFY(globalNS);
 
-	auto icingaNSBehavior = new ConstNamespaceBehavior();
-	icingaNSBehavior->Freeze();
-	Namespace::Ptr icingaNS = new Namespace(icingaNSBehavior);
+	Namespace::Ptr icingaNS = new Namespace(true);
+	icingaNS->Freeze();
 	globalNS->SetAttribute("Icinga", new ConstEmbeddedNamespaceValue(icingaNS));
 }
 
