@@ -18,7 +18,7 @@ jobs:
           - buster
           - bullseye
 
-    runs-on: ubuntu-22.04 # revert back to ubuntu-latest once that is 22.04 or later
+    runs-on: ubuntu-latest
 
     steps:
       - name: Cancel previous jobs for the same PR
