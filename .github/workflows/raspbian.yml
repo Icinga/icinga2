@@ -15,7 +15,6 @@ jobs:
       fail-fast: false
       matrix:
         codename:
-          - buster
           - bullseye
 
     runs-on: ubuntu-22.04 # revert back to ubuntu-latest once that is 22.04 or later
