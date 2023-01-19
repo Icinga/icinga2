@@ -21,7 +21,7 @@ jobs:
         codename:
           - bullseye
 
-    runs-on: ubuntu-22.04 # revert back to ubuntu-latest once that is 22.04 or later
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout HEAD
