@@ -25,6 +25,7 @@ enum class InitializePriority {
 	RegisterTypes,
 	EvaluateConfigFragments,
 	Default,
+	FreezeNamespaces,
 };
 
 #define I2_TOKENPASTE(x, y) x ## y

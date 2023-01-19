@@ -24,7 +24,7 @@ Dictionary::Ptr IcingaDB::GetStats()
 
 	for (auto& kv : statsFunctions)
 	{
-		Function::Ptr func = kv.second->Get();
+		Function::Ptr func = kv.second.Val;
 
 		if (!func)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status function name."));

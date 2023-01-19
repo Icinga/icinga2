@@ -5,12 +5,13 @@
 #include "base/namespace.hpp"
 #include "base/exception.hpp"
 #include "base/configuration.hpp"
+#include "base/utility.hpp"
 
 using namespace icinga;
 
 boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
 
-static Namespace::Ptr l_InternalNS;
+static Namespace::Ptr l_SystemNS, l_TypesNS, l_StatsNS, l_InternalNS;
 
 /* Ensure that this gets called with highest priority
  * and wins against other static initializers in lib/icinga, etc.
@@ -19,27 +20,35 @@ static Namespace::Ptr l_InternalNS;
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 
-	Namespace::Ptr systemNS = new Namespace(true);
-	systemNS->Freeze();
-	globalNS->SetAttribute("System", new ConstEmbeddedNamespaceValue(systemNS));
+	l_SystemNS = new Namespace(true);
+	l_SystemNS->Set("PlatformKernel", Utility::GetPlatformKernel());
+	l_SystemNS->Set("PlatformKernelVersion", Utility::GetPlatformKernelVersion());
+	l_SystemNS->Set("PlatformName", Utility::GetPlatformName());
+	l_SystemNS->Set("PlatformVersion", Utility::GetPlatformVersion());
+	l_SystemNS->Set("PlatformArchitecture", Utility::GetPlatformArchitecture());
+	l_SystemNS->Set("BuildHostName", ICINGA_BUILD_HOST_NAME);
+	l_SystemNS->Set("BuildCompilerName", ICINGA_BUILD_COMPILER_NAME);
+	l_SystemNS->Set("BuildCompilerVersion", ICINGA_BUILD_COMPILER_VERSION);
+	globalNS->Set("System", l_SystemNS, true);
 
-	systemNS->SetAttribute("Configuration", new EmbeddedNamespaceValue(new Configuration()));
+	l_SystemNS->Set("Configuration", new Configuration());
 
-	Namespace::Ptr typesNS = new Namespace(true);
-	typesNS->Freeze();
-	globalNS->SetAttribute("Types", new ConstEmbeddedNamespaceValue(typesNS));
+	l_TypesNS = new Namespace(true);
+	globalNS->Set("Types", l_TypesNS, true);
 
-	Namespace::Ptr statsNS = new Namespace(true);
-	statsNS->Freeze();
-	globalNS->SetAttribute("StatsFunctions", new ConstEmbeddedNamespaceValue(statsNS));
+	l_StatsNS = new Namespace(true);
+	globalNS->Set("StatsFunctions", l_StatsNS, true);
 
 	l_InternalNS = new Namespace(true);
-	globalNS->SetAttribute("Internal", new ConstEmbeddedNamespaceValue(l_InternalNS));
+	globalNS->Set("Internal", l_InternalNS, true);
 }, InitializePriority::CreateNamespaces);
 
-INITIALIZE_ONCE([]() {
+INITIALIZE_ONCE_WITH_PRIORITY([]() {
+	l_SystemNS->Freeze();
+	l_TypesNS->Freeze();
+	l_StatsNS->Freeze();
 	l_InternalNS->Freeze();
-});
+}, InitializePriority::FreezeNamespaces);
 
 ScriptFrame::ScriptFrame(bool allocLocals)
 	: Locals(allocLocals ? new Dictionary() : nullptr), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)

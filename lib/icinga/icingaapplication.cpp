@@ -28,6 +28,8 @@ REGISTER_TYPE(IcingaApplication);
 /* Ensure that the priority is lower than the basic System namespace initialization in scriptframe.cpp. */
 INITIALIZE_ONCE_WITH_PRIORITY(&IcingaApplication::StaticInitialize, InitializePriority::InitIcingaApplication);
 
+static Namespace::Ptr l_IcingaNS;
+
 void IcingaApplication::StaticInitialize()
 {
 	/* Pre-fill global constants, can be overridden with user input later in icinga-app/icinga.cpp. */
@@ -58,10 +60,13 @@ void IcingaApplication::StaticInitialize()
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 	VERIFY(globalNS);
 
-	Namespace::Ptr icingaNS = new Namespace(true);
-	icingaNS->Freeze();
-	globalNS->SetAttribute("Icinga", new ConstEmbeddedNamespaceValue(icingaNS));
+	l_IcingaNS = new Namespace(true);
+	globalNS->Set("Icinga", l_IcingaNS, true);
 }
+
+INITIALIZE_ONCE_WITH_PRIORITY([]() {
+	l_IcingaNS->Freeze();
+}, InitializePriority::FreezeNamespaces);
 
 REGISTER_STATSFUNCTION(IcingaApplication, &IcingaApplication::StatsFunc);
 

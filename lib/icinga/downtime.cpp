@@ -31,9 +31,9 @@ INITIALIZE_ONCE(&Downtime::StaticInitialize);
 
 void Downtime::StaticInitialize()
 {
-	ScriptGlobal::Set("Icinga.DowntimeNoChildren", "DowntimeNoChildren", true);
-	ScriptGlobal::Set("Icinga.DowntimeTriggeredChildren", "DowntimeTriggeredChildren", true);
-	ScriptGlobal::Set("Icinga.DowntimeNonTriggeredChildren", "DowntimeNonTriggeredChildren", true);
+	ScriptGlobal::Set("Icinga.DowntimeNoChildren", "DowntimeNoChildren");
+	ScriptGlobal::Set("Icinga.DowntimeTriggeredChildren", "DowntimeTriggeredChildren");
+	ScriptGlobal::Set("Icinga.DowntimeNonTriggeredChildren", "DowntimeNonTriggeredChildren");
 }
 
 String DowntimeNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const

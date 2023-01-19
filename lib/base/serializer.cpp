@@ -131,7 +131,7 @@ static Dictionary::Ptr SerializeNamespace(const Namespace::Ptr& input, int attri
 	ObjectLock olock(input);
 
 	for (const Namespace::Pair& kv : input) {
-		Value val = kv.second->Get();
+		Value val = kv.second.Val;
 		stack.Push(kv.first, val);
 
 		auto serialized (SerializeInternal(val, attributeTypes, stack, dryRun));

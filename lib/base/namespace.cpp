@@ -25,32 +25,47 @@ Namespace::Namespace(bool constValues)
 
 Value Namespace::Get(const String& field) const
 {
-	ObjectLock olock(this);
-
 	Value value;
-	if (!GetOwnField(field, &value))
+	if (!Get(field, &value))
 		BOOST_THROW_EXCEPTION(ScriptError("Namespace does not contain field '" + field + "'"));
 	return value;
 }
 
 bool Namespace::Get(const String& field, Value *value) const
 {
-	ObjectLock olock(this);
+	auto lock(ReadLockUnlessFrozen());
 
-	auto nsVal = GetAttribute(field);
+	auto nsVal = m_Data.find(field);
 
-	if (!nsVal)
+	if (nsVal == m_Data.end()) {
 		return false;
+	}
 
-	*value =  nsVal->Get(DebugInfo());
+	*value = nsVal->second.Val;
 	return true;
 }
 
-void Namespace::Set(const String& field, const Value& value, bool overrideFrozen)
+void Namespace::Set(const String& field, const Value& value, bool isConst, const DebugInfo& debugInfo)
 {
 	ObjectLock olock(this);
 
-	return SetFieldByName(field, value, overrideFrozen, DebugInfo());
+	if (m_Frozen) {
+		BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified.", debugInfo));
+	}
+
+	std::unique_lock<decltype(m_DataMutex)> dlock (m_DataMutex);
+
+	auto nsVal = m_Data.find(field);
+
+	if (nsVal == m_Data.end()) {
+		m_Data[field] = NamespaceValue{value, isConst};
+	} else {
+		if (nsVal->second.Const) {
+			BOOST_THROW_EXCEPTION(ScriptError("Constant must not be modified.", debugInfo));
+		}
+
+		nsVal->second.Val = value;
+	}
 }
 
 /**
@@ -60,39 +75,43 @@ void Namespace::Set(const String& field, const Value& value, bool overrideFrozen
  */
 size_t Namespace::GetLength() const
 {
-	ObjectLock olock(this);
+	auto lock(ReadLockUnlessFrozen());
 
 	return m_Data.size();
 }
 
 bool Namespace::Contains(const String& field) const
 {
-	ObjectLock olock(this);
+	auto lock (ReadLockUnlessFrozen());
 
-	return HasOwnField(field);
+	return m_Data.find(field) != m_Data.end();
 }
 
-void Namespace::Remove(const String& field, bool overrideFrozen)
+void Namespace::Remove(const String& field)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen && !overrideFrozen) {
+	if (m_Frozen) {
 		BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified."));
 	}
 
-	if (!overrideFrozen) {
-		auto attr = GetAttribute(field);
+	std::unique_lock<decltype(m_DataMutex)> dlock (m_DataMutex);
 
-		if (dynamic_pointer_cast<ConstEmbeddedNamespaceValue>(attr)) {
-			BOOST_THROW_EXCEPTION(ScriptError("Constants must not be removed."));
-		}
+	auto it = m_Data.find(field);
+
+	if (it == m_Data.end()) {
+		return;
 	}
 
-	RemoveAttribute(field);
+	if (it->second.Const) {
+		BOOST_THROW_EXCEPTION(ScriptError("Constants must not be removed."));
+	}
+
+	m_Data.erase(it);
 }
 
 /**
- * Freeze the namespace, preventing further updates unless overrideFrozen is set.
+ * Freeze the namespace, preventing further updates.
  *
  * This only prevents inserting, replacing or deleting values from the namespace. This operation has no effect on
  * objects referenced by the values, these remain mutable if they were before.
@@ -103,111 +122,45 @@ void Namespace::Freeze() {
 	m_Frozen = true;
 }
 
-void Namespace::RemoveAttribute(const String& field)
+std::shared_lock<std::shared_timed_mutex> Namespace::ReadLockUnlessFrozen() const
 {
-	ObjectLock olock(this);
-
-	Namespace::Iterator it;
-	it = m_Data.find(field);
-
-	if (it == m_Data.end())
-		return;
-
-	m_Data.erase(it);
-}
-
-NamespaceValue::Ptr Namespace::GetAttribute(const String& key) const
-{
-	ObjectLock olock(this);
-
-	auto it = m_Data.find(key);
-
-	if (it == m_Data.end())
-		return nullptr;
-
-	return it->second;
-}
-
-void Namespace::SetAttribute(const String& key, const NamespaceValue::Ptr& nsVal)
-{
-	ObjectLock olock(this);
-
-	m_Data[key] = nsVal;
+	if (m_Frozen.load(std::memory_order_relaxed)) {
+		return std::shared_lock<std::shared_timed_mutex>();
+	} else {
+		return std::shared_lock<std::shared_timed_mutex>(m_DataMutex);
+	}
 }
 
 Value Namespace::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const
 {
-	ObjectLock olock(this);
+	auto lock (ReadLockUnlessFrozen());
 
-	auto nsVal = GetAttribute(field);
+	auto nsVal = m_Data.find(field);
 
-	if (nsVal)
-		return nsVal->Get(debugInfo);
+	if (nsVal != m_Data.end())
+		return nsVal->second.Val;
 	else
 		return GetPrototypeField(const_cast<Namespace *>(this), field, false, debugInfo); /* Ignore indexer not found errors similar to the Dictionary class. */
 }
 
 void Namespace::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
 {
-	ObjectLock olock(this);
+	// The override frozen parameter is mandated by the interface but ignored here. If the namespace is frozen, this
+	// disables locking for read operations, so it must not be modified again to ensure the consistency of the internal
+	// data structures.
+	(void) overrideFrozen;
 
-	auto nsVal = GetAttribute(field);
-
-	if (!nsVal) {
-		if (m_Frozen && !overrideFrozen) {
-			BOOST_THROW_EXCEPTION(ScriptError("Namespace is read-only and must not be modified.", debugInfo));
-		}
-
-		if (m_ConstValues) {
-			SetAttribute(field, new ConstEmbeddedNamespaceValue(value));
-		} else {
-			SetAttribute(field, new EmbeddedNamespaceValue(value));
-		}
-	} else {
-		nsVal->Set(value, overrideFrozen, debugInfo);
-	}
+	Set(field, value, false, debugInfo);
 }
 
 bool Namespace::HasOwnField(const String& field) const
 {
-	ObjectLock olock(this);
-
-	return GetAttribute(field) != nullptr;
+	return Contains(field);
 }
 
 bool Namespace::GetOwnField(const String& field, Value *result) const
 {
-	ObjectLock olock(this);
-
-	auto nsVal = GetAttribute(field);
-
-	if (!nsVal)
-		return false;
-
-	*result = nsVal->Get(DebugInfo());
-	return true;
-}
-
-EmbeddedNamespaceValue::EmbeddedNamespaceValue(const Value& value)
-	: m_Value(value)
-{ }
-
-Value EmbeddedNamespaceValue::Get(const DebugInfo& debugInfo) const
-{
-	return m_Value;
-}
-
-void EmbeddedNamespaceValue::Set(const Value& value, bool, const DebugInfo&)
-{
-	m_Value = value;
-}
-
-void ConstEmbeddedNamespaceValue::Set(const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
-{
-	if (!overrideFrozen)
-		BOOST_THROW_EXCEPTION(ScriptError("Constant must not be modified.", debugInfo));
-
-	EmbeddedNamespaceValue::Set(value, overrideFrozen, debugInfo);
+	return Get(field, result);
 }
 
 Namespace::Iterator Namespace::Begin()

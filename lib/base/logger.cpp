@@ -40,11 +40,11 @@ std::mutex Logger::m_UpdateMinLogSeverityMutex;
 Atomic<LogSeverity> Logger::m_MinLogSeverity (LogDebug);
 
 INITIALIZE_ONCE([]() {
-	ScriptGlobal::Set("System.LogDebug", LogDebug, true);
-	ScriptGlobal::Set("System.LogNotice", LogNotice, true);
-	ScriptGlobal::Set("System.LogInformation", LogInformation, true);
-	ScriptGlobal::Set("System.LogWarning", LogWarning, true);
-	ScriptGlobal::Set("System.LogCritical", LogCritical, true);
+	ScriptGlobal::Set("System.LogDebug", LogDebug);
+	ScriptGlobal::Set("System.LogNotice", LogNotice);
+	ScriptGlobal::Set("System.LogInformation", LogInformation);
+	ScriptGlobal::Set("System.LogWarning", LogWarning);
+	ScriptGlobal::Set("System.LogCritical", LogCritical);
 });
 
 /**

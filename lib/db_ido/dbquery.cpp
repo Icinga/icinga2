@@ -12,22 +12,22 @@ std::map<String, int> DbQuery::m_CategoryFilterMap;
 
 void DbQuery::StaticInitialize()
 {
-	ScriptGlobal::Set("Icinga.DbCatConfig", DbCatConfig, true);
-	ScriptGlobal::Set("Icinga.DbCatState", DbCatState, true);
-	ScriptGlobal::Set("Icinga.DbCatAcknowledgement", DbCatAcknowledgement, true);
-	ScriptGlobal::Set("Icinga.DbCatComment", DbCatComment, true);
-	ScriptGlobal::Set("Icinga.DbCatDowntime", DbCatDowntime, true);
-	ScriptGlobal::Set("Icinga.DbCatEventHandler", DbCatEventHandler, true);
-	ScriptGlobal::Set("Icinga.DbCatExternalCommand", DbCatExternalCommand, true);
-	ScriptGlobal::Set("Icinga.DbCatFlapping", DbCatFlapping, true);
-	ScriptGlobal::Set("Icinga.DbCatCheck", DbCatCheck, true);
-	ScriptGlobal::Set("Icinga.DbCatLog", DbCatLog, true);
-	ScriptGlobal::Set("Icinga.DbCatNotification", DbCatNotification, true);
-	ScriptGlobal::Set("Icinga.DbCatProgramStatus", DbCatProgramStatus, true);
-	ScriptGlobal::Set("Icinga.DbCatRetention", DbCatRetention, true);
-	ScriptGlobal::Set("Icinga.DbCatStateHistory", DbCatStateHistory, true);
+	ScriptGlobal::Set("Icinga.DbCatConfig", DbCatConfig);
+	ScriptGlobal::Set("Icinga.DbCatState", DbCatState);
+	ScriptGlobal::Set("Icinga.DbCatAcknowledgement", DbCatAcknowledgement);
+	ScriptGlobal::Set("Icinga.DbCatComment", DbCatComment);
+	ScriptGlobal::Set("Icinga.DbCatDowntime", DbCatDowntime);
+	ScriptGlobal::Set("Icinga.DbCatEventHandler", DbCatEventHandler);
+	ScriptGlobal::Set("Icinga.DbCatExternalCommand", DbCatExternalCommand);
+	ScriptGlobal::Set("Icinga.DbCatFlapping", DbCatFlapping);
+	ScriptGlobal::Set("Icinga.DbCatCheck", DbCatCheck);
+	ScriptGlobal::Set("Icinga.DbCatLog", DbCatLog);
+	ScriptGlobal::Set("Icinga.DbCatNotification", DbCatNotification);
+	ScriptGlobal::Set("Icinga.DbCatProgramStatus", DbCatProgramStatus);
+	ScriptGlobal::Set("Icinga.DbCatRetention", DbCatRetention);
+	ScriptGlobal::Set("Icinga.DbCatStateHistory", DbCatStateHistory);
 
-	ScriptGlobal::Set("Icinga.DbCatEverything", DbCatEverything, true);
+	ScriptGlobal::Set("Icinga.DbCatEverything", DbCatEverything);
 
 	m_CategoryFilterMap["DbCatConfig"] = DbCatConfig;
 	m_CategoryFilterMap["DbCatState"] = DbCatState;

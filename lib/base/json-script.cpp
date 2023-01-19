@@ -24,5 +24,5 @@ INITIALIZE_ONCE([]() {
 	jsonNS->Freeze();
 
 	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
-	systemNS->SetAttribute("Json", new ConstEmbeddedNamespaceValue(jsonNS));
+	systemNS->Set("Json", jsonNS, true);
 });

@@ -65,7 +65,7 @@ void ScriptGlobal::Set(const String& name, const Value& value, bool overrideFroz
 
 void ScriptGlobal::SetConst(const String& name, const Value& value)
 {
-	GetGlobals()->SetAttribute(name, new ConstEmbeddedNamespaceValue(value));
+	GetGlobals()->Set(name, value, true);
 }
 
 bool ScriptGlobal::Exists(const String& name)
@@ -93,7 +93,7 @@ void ScriptGlobal::WriteToFile(const String& filename)
 
 	ObjectLock olock(m_Globals);
 	for (const Namespace::Pair& kv : m_Globals) {
-		Value value = kv.second->Get();
+		Value value = kv.second.Val;
 
 		if (value.IsObject())
 			value = Convert::ToString(value);

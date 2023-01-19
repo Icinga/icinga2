@@ -9,13 +9,13 @@ using namespace icinga;
 REGISTER_TYPE(CheckResult);
 
 INITIALIZE_ONCE([]() {
-	ScriptGlobal::Set("Icinga.ServiceOK", ServiceOK, true);
-	ScriptGlobal::Set("Icinga.ServiceWarning", ServiceWarning, true);
-	ScriptGlobal::Set("Icinga.ServiceCritical", ServiceCritical, true);
-	ScriptGlobal::Set("Icinga.ServiceUnknown", ServiceUnknown, true);
+	ScriptGlobal::Set("Icinga.ServiceOK", ServiceOK);
+	ScriptGlobal::Set("Icinga.ServiceWarning", ServiceWarning);
+	ScriptGlobal::Set("Icinga.ServiceCritical", ServiceCritical);
+	ScriptGlobal::Set("Icinga.ServiceUnknown", ServiceUnknown);
 
-	ScriptGlobal::Set("Icinga.HostUp", HostUp, true);
-	ScriptGlobal::Set("Icinga.HostDown", HostDown, true);
+	ScriptGlobal::Set("Icinga.HostUp", HostUp);
+	ScriptGlobal::Set("Icinga.HostDown", HostDown);
 })
 
 double CheckResult::CalculateExecutionTime() const
