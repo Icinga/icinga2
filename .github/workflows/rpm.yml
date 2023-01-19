@@ -7,6 +7,10 @@ on:
       - 'support/*'
   pull_request: {}
 
+concurrency:
+  group: rpm-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   rpm:
     name: .rpm (${{ matrix.distro.name }}, ${{ matrix.distro.release }})
@@ -52,13 +56,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cancel previous jobs for the same PR
-        if: "github.event_name == 'pull_request'"
-        uses: styfle/cancel-workflow-action@89f242ee29e10c53a841bfe71cc0ce7b2f065abc
-        with:
-          workflow_id: deb.yml,docker.yml,raspbian.yml,rpm.yml,windows.yml
-          access_token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Vars
         id: vars
         env:
