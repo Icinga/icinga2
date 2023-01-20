@@ -7,6 +7,10 @@ on:
       - 'support/*'
   pull_request: {}
 
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   windows:
     name: Windows
