@@ -15,7 +15,6 @@ jobs:
       fail-fast: false
       matrix:
         codename:
-          - buster
           - bullseye
 
     runs-on: ubuntu-latest
