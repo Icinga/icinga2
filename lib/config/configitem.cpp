@@ -148,7 +148,7 @@ public:
 	{
 		ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(Type::GetByName(type), name);
 
-		if (!item || (item && item->IsAbstract()))
+		if (!item || item->IsAbstract())
 			return false;
 
 		return true;

@@ -22,7 +22,7 @@ public:
 
 	static thread_local CheckCommand::Ptr ExecuteOverride;
 
-	virtual void Execute(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
+	void Execute(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 		const Dictionary::Ptr& resolvedMacros = nullptr,
 		bool useResolvedMacros = false);
 };
