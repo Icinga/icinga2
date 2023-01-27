@@ -1475,7 +1475,7 @@ Example for removing all host downtimes using a host name filter for `icinga2-sa
 ```bash
 curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/actions/remove-downtime' \
- -d '{ "type": "Host", "filter": "host.name==\"icinga2-satellite2.localdomain\"", "pretty": true }'
+ -d '{ "type": "Downtime", "filter": "host.name==\"icinga2-satellite2.localdomain\"", "pretty": true }'
 ```
 
 ```json
