@@ -553,15 +553,17 @@ wizard_global_zone_loop_start:
 
 	if (!ticket.IsEmpty()) {
 		String ticketPath = ApiListener::GetCertsDir() + "/ticket";
+		AtomicFile af (ticketPath, 0600);
 
-		AtomicFile::Write(ticketPath, 0600, ticket);
-
-		if (!Utility::SetFileOwnership(ticketPath, user, group)) {
+		if (!Utility::SetFileOwnership(af.GetTempFilename(), user, group)) {
 			Log(LogWarning, "cli")
 				<< "Cannot set ownership for user '" << user
 				<< "' group '" << group
 				<< "' on file '" << ticketPath << "'. Verify it yourself!";
 		}
+
+		af << ticket;
+		af.Commit();
 	}
 
 	/* If no parent connection was made, the user must supply the ca.crt before restarting Icinga 2.*/
