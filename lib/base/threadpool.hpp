@@ -90,7 +90,6 @@ public:
 private:
 	boost::shared_mutex m_Mutex;
 	std::unique_ptr<boost::asio::thread_pool> m_Pool;
-	size_t m_Threads;
 	Atomic<uint_fast64_t> m_Pending;
 };
 
