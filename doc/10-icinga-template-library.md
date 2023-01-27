@@ -2566,6 +2566,7 @@ mongodb_replcheck                | **Optional.** If set to true, will enable the
 mongodb_querytype                | **Optional.** The query type to check [query\|insert\|update\|delete\|getmore\|command] from queries_per_second.
 mongodb_collection               | **Optional.** Specify the collection to check.
 mongodb_sampletime               | **Optional.** Time used to sample number of pages faults.
+mongodb_disableretrywrites       | **Optional.** If set to true, will disable Retry Writes, to allow counting the QPS.
 
 #### elasticsearch <a id="plugin-contrib-command-elasticsearch"></a>
 
