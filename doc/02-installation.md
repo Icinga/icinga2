@@ -433,7 +433,7 @@ as part of the [server:monitoring repository](https://build.opensuse.org/project
 Please make sure to enable this repository beforehand.
 
 ```bash
-zypper install monitoring-plugins-all
+zypper install --recommends monitoring-plugins-all
 ```
 <!-- {% endif %} -->
 
