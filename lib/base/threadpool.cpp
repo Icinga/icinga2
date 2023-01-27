@@ -5,8 +5,8 @@
 
 using namespace icinga;
 
-ThreadPool::ThreadPool(size_t threads)
-	: m_Threads(threads), m_Pending(0)
+ThreadPool::ThreadPool()
+	: m_Threads(Configuration::Concurrency * 2u), m_Pending(0)
 {
 	Start();
 }
