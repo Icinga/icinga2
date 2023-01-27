@@ -81,30 +81,33 @@ int Configuration::GetDefaultConcurrency()
 
 #ifdef __linux__
 	{
-		auto rawCpus (ReadSysLine("/sys/fs/cgroup/cpuset/cpuset.cpus"));
+		for (auto* cpuset : {"/sys/fs/cgroup/cpuset.cpus.effective", "/sys/fs/cgroup/cpuset/cpuset.cpus"}) {
+			auto rawCpus (ReadSysLine(cpuset));
 
-		if (rawCpus.length()) {
-			std::vector<std::string> ranges;
-			boost::split(ranges, rawCpus, is_any_of(","));
+			if (rawCpus.length()) {
+				std::vector<std::string> ranges;
+				boost::split(ranges, rawCpus, is_any_of(","));
 
-			std::set<uintmax_t> cpus;
+				std::set<uintmax_t> cpus;
 
-			for (auto& range : ranges) {
-				std::vector<std::string> rangeEnds;
-				boost::split(rangeEnds, range, is_any_of("-"));
+				for (auto& range : ranges) {
+					std::vector<std::string> rangeEnds;
+					boost::split(rangeEnds, range, is_any_of("-"));
 
-				if (rangeEnds.size() > 1u) {
-					auto to (boost::lexical_cast<uintmax_t>(rangeEnds.at(1)));
+					if (rangeEnds.size() > 1u) {
+						auto to (boost::lexical_cast<uintmax_t>(rangeEnds.at(1)));
 
-					for (auto i (boost::lexical_cast<uintmax_t>(rangeEnds.at(0))); i <= to; ++i) {
-						cpus.emplace(i);
+						for (auto i (boost::lexical_cast<uintmax_t>(rangeEnds.at(0))); i <= to; ++i) {
+							cpus.emplace(i);
+						}
+					} else {
+						cpus.emplace(boost::lexical_cast<uintmax_t>(rangeEnds.at(0)));
 					}
-				} else {
-					cpus.emplace(boost::lexical_cast<uintmax_t>(rangeEnds.at(0)));
 				}
-			}
 
-			concurrency = cpus.size();
+				concurrency = cpus.size();
+				break;
+			}
 		}
 	}
 
