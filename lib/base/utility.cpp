@@ -1749,7 +1749,7 @@ String Utility::GetPlatformKernelVersion()
 	GetVersionEx(&info);
 
 	std::ostringstream msgbuf;
-	msgbuf << info.dwMajorVersion << "." << info.dwMinorVersion;
+	msgbuf << info.dwMajorVersion << "." << info.dwMinorVersion << "." << info.dwBuildNumber;
 
 	return msgbuf.str();
 #else /* _WIN32 */
