@@ -1,0 +1,51 @@
+name: Linux
+
+on:
+  push:
+    branches:
+      - master
+      - 'support/*'
+  pull_request: {}
+
+concurrency:
+  group: linux-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: ${{ matrix.distro }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        distro:
+          - amazonlinux:2
+          - centos:7 # and RHEL 7
+          - debian:10
+          - debian:11 # and Raspbian 11
+          - fedora:36
+          - fedora:37
+          - opensuse/leap:15.3 # and SLES 15.3
+          - opensuse/leap:15.4 # and SLES 15.4
+          - rockylinux:8 # RHEL 8
+          - rockylinux:9 # RHEL 9
+          - ubuntu:20.04
+          - ubuntu:22.04
+          - ubuntu:22.10
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v3
+
+      - name: Restore/backup ccache
+        uses: actions/cache@v3
+        with:
+          path: ccache
+          key: ccache/${{ matrix.distro }}
+
+      - name: Build
+        run: >-
+          docker run --rm -v "$(pwd):/icinga2" -e DISTRO=${{ matrix.distro }}
+          ${{ matrix.distro }} /icinga2/.github/workflows/linux.bash

@@ -20,30 +20,9 @@ jobs:
       max-parallel: 1
       matrix:
         distro:
-          - name: rhel
-            release: 8
-            subscription: true
-          - name: rhel
-            release: 7
-            subscription: true
-          - name: centos
-            release: 7
-            subscription: false
-          - name: amazon-linux
-            release: al2:x86_64
-            subscription: true
-          - name: fedora
-            release: 36
-            subscription: false
-          - name: sles
-            release: '15.4'
-            subscription: true
           - name: sles
             release: '12.5'
             subscription: true
-          - name: opensuse
-            release: '15.4'
-            subscription: false
 
     runs-on: ubuntu-latest
 
