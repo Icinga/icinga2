@@ -312,6 +312,7 @@ int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& con
 {
 	std::map<String, String> lines;
 	int next_line = 1;
+	bool benchmarkingEnabled = false;
 
 #ifdef HAVE_EDITLINE
 	String homeEnv = Utility::GetFromEnvironment("HOME");
@@ -397,11 +398,14 @@ incomplete:
 		if (!line.empty() && line[0] == '$') {
 			if (line == "$continue" || line == "$quit" || line == "$exit")
 				break;
+			else if (line == "$time")
+				benchmarkingEnabled = !benchmarkingEnabled;
 			else if (line == "$help")
 				std::cout << "Welcome to the Icinga 2 debug console.\n"
 					"Usable commands:\n"
 					"  $continue      Continue running Icinga 2 (script debugger).\n"
 					"  $quit, $exit   Stop debugging and quit the console.\n"
+					"  $time          Toggle benchmarking.\n"
 					"  $help          Print this help.\n\n"
 					"For more information on how to use this console, please consult the documentation at https://icinga.com/docs\n";
 			else
@@ -467,7 +471,10 @@ incomplete:
 				std::cout << ConsoleColorTag(Console_ForegroundCyan);
 				ConfigWriter::EmitValue(std::cout, 1, result);
 				std::cout << ConsoleColorTag(Console_Normal) << "\n";
-				std::cout << duration << "s\n";
+
+				if (benchmarkingEnabled) {
+					std::cout << duration << "s\n";
+				}
 			} else {
 				std::cout << JsonEncode(result) << "\n";
 				break;
