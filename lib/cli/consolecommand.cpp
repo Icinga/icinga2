@@ -473,7 +473,7 @@ incomplete:
 				std::cout << ConsoleColorTag(Console_Normal) << "\n";
 
 				if (benchmarkingEnabled) {
-					std::cout << duration << "s\n";
+					std::cout << "Execution time: " << duration << "s\n";
 				}
 			} else {
 				std::cout << JsonEncode(result) << "\n";
