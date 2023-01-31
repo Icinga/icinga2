@@ -41,7 +41,14 @@ public:
 	void Reschedule(double next = -1);
 	double GetNext() const;
 
+	// Runs whenever the timer is due.
+	// Blocks Stop(true) calls including the one in ~Timer(). I.e. attempts to synchronously call these will deadlock.
+	// Re-schedules a periodic timer after completion. I.e. delays its interval by own execution duration.
 	boost::signals2::signal<void(const Timer * const&)> OnTimerExpired;
+
+	// Runs whenever the timer is due. Doesn't block Stop(true) calls or ~Timer().
+	// I.e. these are safe to call. Re-schedules a periodic timer immediately.
+	// I.e. may get called multiple times in parallel depending on own execution duration and interval.
 	LazyPtr<Shared<boost::signals2::signal<void()>>> OnTimerExpiredDetached;
 
 private:

@@ -63,6 +63,8 @@ static Defer l_ShutdownTimersCleanlyOnExit (&Timer::Uninitialize);
 
 /**
  * Destructor for the Timer class.
+ *
+ * Unregisters the timer, stops processing events for it and waits for running OnTimerExpired.
  */
 Timer::~Timer()
 {
@@ -170,7 +172,7 @@ void Timer::Start()
 }
 
 /**
- * Unregisters the timer and stops processing events for it.
+ * Unregisters the timer, stops processing events for it and optionally waits for running OnTimerExpired.
  */
 void Timer::Stop(bool wait)
 {
