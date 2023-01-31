@@ -4,6 +4,7 @@
 #define LAZY_INIT
 
 #include <atomic>
+#include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <functional>
 #include <mutex>
 #include <utility>
@@ -65,6 +66,43 @@ private:
 	std::function<T()> m_Initializer;
 	std::mutex m_Mutex;
 	std::atomic<T*> m_Underlying;
+};
+
+/**
+ * Seamless wrapper for boost::intrusive_ptr<T> which auto-creates the referenced object.
+ *
+ * @ingroup base
+ */
+template<class T>
+class LazyPtr : public boost::intrusive_ptr<T>
+{
+public:
+	using boost::intrusive_ptr<T>::intrusive_ptr;
+
+	// Prevent *(*(decltype(*this)const*)this) and (*(decltype(*this)const*)this)->
+	// to call parent methods which don't auto-create the referenced object
+	T& operator*() const BOOST_SP_NOEXCEPT_WITH_ASSERT = delete;
+	T* operator->() const BOOST_SP_NOEXCEPT_WITH_ASSERT = delete;
+
+	inline T& operator*()
+	{
+		return *GetOrCreateObject();
+	}
+
+	inline T* operator->()
+	{
+		return GetOrCreateObject();
+	}
+
+private:
+	auto GetOrCreateObject()
+	{
+		if (!this->get()) {
+			this->reset(new T());
+		}
+
+		return this->get();
+	}
 };
 
 }
