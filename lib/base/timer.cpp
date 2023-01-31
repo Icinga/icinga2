@@ -121,7 +121,13 @@ void Timer::Call()
 		throw;
 	}
 
+	auto detached (OnTimerExpiredDetached);
+
 	InternalReschedule(true);
+
+	if (detached) {
+		(*detached)();
+	}
 }
 
 /**
