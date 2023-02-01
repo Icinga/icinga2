@@ -111,6 +111,9 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
 	VERIFY(systemNS);
 
+	Namespace::Ptr internalNS = ScriptGlobal::Get("Internal");
+	VERIFY(internalNS);
+
 	if (!objectsFile.IsEmpty())
 		ConfigCompilerContext::GetInstance()->OpenObjectsFile(objectsFile);
 
@@ -134,7 +137,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	success = true;
 
 	/* Only load zone directory if we're not in staging validation. */
-	if (!systemNS->Contains("ZonesStageVarDir")) {
+	if (!internalNS->Contains("ZonesStageVarDir")) {
 		String zonesEtcDir = Configuration::ZonesDir;
 		if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir)) {
 			std::set<String> zoneEtcDirs;
@@ -177,8 +180,8 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	String zonesVarDir = Configuration::DataDir + "/api/zones";
 
 	/* Cluster config sync stage validation needs this. */
-	if (systemNS->Contains("ZonesStageVarDir")) {
-		zonesVarDir = systemNS->Get("ZonesStageVarDir");
+	if (internalNS->Contains("ZonesStageVarDir")) {
+		zonesVarDir = internalNS->Get("ZonesStageVarDir");
 
 		Log(LogNotice, "DaemonUtility")
 			<< "Overriding zones var directory with '" << zonesVarDir << "' for cluster config sync staging.";

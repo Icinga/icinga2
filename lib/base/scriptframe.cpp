@@ -11,7 +11,7 @@ using namespace icinga;
 
 boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
 
-static Namespace::Ptr l_SystemNS, l_StatsNS, l_InternalNS;
+static Namespace::Ptr l_SystemNS, l_StatsNS;
 
 /* Ensure that this gets called with highest priority
  * and wins against other static initializers in lib/icinga, etc.
@@ -36,14 +36,12 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	l_StatsNS = new Namespace(true);
 	globalNS->Set("StatsFunctions", l_StatsNS, true);
 
-	l_InternalNS = new Namespace(true);
-	globalNS->Set("Internal", l_InternalNS, true);
+	globalNS->Set("Internal", new Namespace(true), true);
 }, InitializePriority::CreateNamespaces);
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	l_SystemNS->Freeze();
 	l_StatsNS->Freeze();
-	l_InternalNS->Freeze();
 }, InitializePriority::FreezeNamespaces);
 
 ScriptFrame::ScriptFrame(bool allocLocals)
