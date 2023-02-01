@@ -2,6 +2,7 @@
 
 if(MSVC)
   set(WindowsSources icinga.rc)
+  list(APPEND icinga_app_SOURCES app.manifest)
 else()
   set(WindowsSources "")
 endif()
@@ -75,20 +76,6 @@ set_target_properties (
   FOLDER Bin
   OUTPUT_NAME icinga2
 )
-
-# Amend manifest to tell Windows that the application is DPI aware (needed for Windows 8.1 and up)
-if(MSVC)
-  if(CMAKE_MAJOR_VERSION LESS 3)
-    MESSAGE(WARNING "CMake version 3.0 or newer is required use build variable TARGET_FILE")
-  else()
-    ADD_CUSTOM_COMMAND(
-      TARGET icinga-app
-      POST_BUILD
-      COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\app.manifest\" -outputresource:\"icinga2\"\;\#1
-      COMMENT "Adding OS version detection manifest..."
-    )
-  endif()
-endif(MSVC)
 
 if(WIN32)
   set(InstallPath "${CMAKE_INSTALL_SBINDIR}")
