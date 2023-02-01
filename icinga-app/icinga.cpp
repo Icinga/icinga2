@@ -427,8 +427,13 @@ static int Main()
 			std::unique_ptr<SetExpression> setExpr{new SetExpression(std::move(expr), OpSetLiteral, MakeLiteral(value))};
 			setExpr->SetOverrideFrozen();
 
-			ScriptFrame frame(true);
-			setExpr->Evaluate(frame);
+			try {
+				ScriptFrame frame(true);
+				setExpr->Evaluate(frame);
+			} catch (const ScriptError& e) {
+				Log(LogCritical, "icinga-app") << "cannot set '" << key << "': " << e.what();
+				return EXIT_FAILURE;
+			}
 		}
 	}
 
