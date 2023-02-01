@@ -37,6 +37,7 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	globalNS->Set("StatsFunctions", l_StatsNS, true);
 
 	l_InternalNS = new Namespace(true);
+	l_InternalNS->Set("modified_attributes", new Dictionary(), true);
 	globalNS->Set("Internal", l_InternalNS, true);
 }, InitializePriority::CreateNamespaces);
 
