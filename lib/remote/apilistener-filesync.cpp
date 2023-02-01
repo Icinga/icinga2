@@ -554,7 +554,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 }
 
 /**
- * Spawns a new validation process with 'System.ZonesStageVarDir' set to override the config validation zone dirs with
+ * Spawns a new validation process with 'Internal.ZonesStageVarDir' set to override the config validation zone dirs with
  * our current stage. Then waits for the validation result and if it was successful, the configuration is copied from
  * stage to production and a restart is triggered. On validation failure, there is no restart and this is logged.
  *
@@ -584,7 +584,7 @@ void ApiListener::TryActivateZonesStage(const std::vector<String>& relativePaths
 
 	// Set the ZonesStageDir. This creates our own local chroot without any additional automated zone includes.
 	args->Add("--define");
-	args->Add("System.ZonesStageVarDir=" + GetApiZonesStageDir());
+	args->Add("Internal.ZonesStageVarDir=" + GetApiZonesStageDir());
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(Application::GetReloadTimeout());
