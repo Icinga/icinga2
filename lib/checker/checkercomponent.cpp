@@ -134,12 +134,15 @@ void CheckerComponent::CheckThreadProc()
 
 		bool forced = checkable->GetForceNextCheck();
 		bool check = true;
+		bool notifyNextCheck = false;
 
 		if (!forced) {
 			if (!checkable->IsReachable(DependencyCheckExecution)) {
 				Log(LogNotice, "CheckerComponent")
 					<< "Skipping check for object '" << checkable->GetName() << "': Dependency failed.";
+
 				check = false;
+				notifyNextCheck = true;
 			}
 
 			Host::Ptr host;
@@ -163,7 +166,9 @@ void CheckerComponent::CheckThreadProc()
 				Log(LogNotice, "CheckerComponent")
 					<< "Skipping check for object '" << checkable->GetName()
 					<< "': not in check period '" << tp->GetName() << "'";
+
 				check = false;
+				notifyNextCheck = true;
 			}
 		}
 
@@ -176,6 +181,11 @@ void CheckerComponent::CheckThreadProc()
 				<< "Checks for checkable '" << checkable->GetName() << "' are disabled. Rescheduling check.";
 
 			checkable->UpdateNextCheck();
+
+			if (notifyNextCheck) {
+				// Trigger update event for Icinga DB
+				Checkable::OnNextCheckUpdated(checkable);
+			}
 
 			lock.lock();
 
