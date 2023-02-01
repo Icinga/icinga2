@@ -1847,6 +1847,10 @@ apply Notification "mail" to Service {
 }
 ```
 
+Also note that this mechanism doesn't take downtimes etc. into account, only
+the `HARD` state change time matters. E.g. for a problem which occurred in the
+middle of a downtime from 2 PM to 4 PM `times.begin = 2h` means 5 PM, not 6 PM.
+
 ### Disable Re-notifications <a id="disable-renotification"></a>
 
 If you prefer to be notified only once, you can disable re-notifications by setting the
