@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/atomic-file.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/application.hpp"
@@ -1443,16 +1444,7 @@ Value Utility::LoadJsonFile(const String& path)
 
 void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 {
-	namespace fs = boost::filesystem;
-
-	std::fstream fp;
-	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", mode, fp);
-
-	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-	fp << JsonEncode(value);
-	fp.close();
-
-	RenameFile(tempFilename, path);
+	AtomicFile::Write(path, mode, JsonEncode(value));
 }
 
 static void HexEncode(char ch, std::ostream& os)
@@ -1789,46 +1781,6 @@ String Utility::ValidateUTF8(const String& input)
 	}
 
 	return String(std::move(output));
-}
-
-String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
-{
-	std::vector<char> targetPath(path.Begin(), path.End());
-	targetPath.push_back('\0');
-
-	int fd;
-#ifndef _WIN32
-	fd = mkstemp(&targetPath[0]);
-#else /* _WIN32 */
-	fd = MksTemp(&targetPath[0]);
-#endif /*_WIN32*/
-
-	if (fd < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("mkstemp")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
-	}
-
-	try {
-		fp.open(&targetPath[0], std::ios_base::trunc | std::ios_base::out);
-	} catch (const std::fstream::failure&) {
-		close(fd);
-		throw;
-	}
-
-	close(fd);
-
-	String resultPath = String(targetPath.begin(), targetPath.end() - 1);
-
-	if (chmod(resultPath.CStr(), mode) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("chmod")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(resultPath));
-	}
-
-	return resultPath;
 }
 
 #ifdef _WIN32

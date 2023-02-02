@@ -17,20 +17,12 @@ ConfigCompilerContext *ConfigCompilerContext::GetInstance()
 
 void ConfigCompilerContext::OpenObjectsFile(const String& filename)
 {
-	m_ObjectsPath = filename;
-
-	auto *fp = new std::fstream();
 	try {
-		m_ObjectsTempFile = Utility::CreateTempFile(filename + ".XXXXXX", 0600, *fp);
+		m_ObjectsFP = std::make_unique<AtomicFile>(filename, 0600);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli", "Could not create temporary objects file: " + DiagnosticInformation(ex, false));
 		Application::Exit(1);
 	}
-
-	if (!*fp)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + m_ObjectsTempFile + "' file"));
-
-	m_ObjectsFP = fp;
 }
 
 void ConfigCompilerContext::WriteObject(const Dictionary::Ptr& object)
@@ -51,14 +43,7 @@ void ConfigCompilerContext::CancelObjectsFile()
 	if (!m_ObjectsFP)
 		return;
 
-	delete m_ObjectsFP;
-	m_ObjectsFP = nullptr;
-
-#ifdef _WIN32
-	_unlink(m_ObjectsTempFile.CStr());
-#else /* _WIN32 */
-	unlink(m_ObjectsTempFile.CStr());
-#endif /* _WIN32 */
+	m_ObjectsFP.reset(nullptr);
 }
 
 void ConfigCompilerContext::FinishObjectsFile()
@@ -66,9 +51,7 @@ void ConfigCompilerContext::FinishObjectsFile()
 	if (!m_ObjectsFP)
 		return;
 
-	delete m_ObjectsFP;
-	m_ObjectsFP = nullptr;
-
-	Utility::RenameFile(m_ObjectsTempFile, m_ObjectsPath);
+	m_ObjectsFP->Commit();
+	m_ObjectsFP.reset(nullptr);
 }
 

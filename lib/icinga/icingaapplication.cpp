@@ -5,6 +5,7 @@
 #include "icinga/cib.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "config/configcompiler.hpp"
+#include "base/atomic-file.hpp"
 #include "base/configwriter.hpp"
 #include "base/configtype.hpp"
 #include "base/exception.hpp"
@@ -125,7 +126,7 @@ void IcingaApplication::OnShutdown()
 	DumpProgramState();
 }
 
-static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousObject, const ConfigObject::Ptr& object, const String& attr, const Value& value)
+static void PersistModAttrHelper(AtomicFile& fp, ConfigObject::Ptr& previousObject, const ConfigObject::Ptr& object, const String& attr, const Value& value)
 {
 	if (object != previousObject) {
 		if (previousObject) {
@@ -174,9 +175,7 @@ void IcingaApplication::DumpModifiedAttributes()
 		Log(LogWarning, "IcingaApplication") << DiagnosticInformation(ex);
 	}
 
-	std::fstream fp;
-	String tempFilename = Utility::CreateTempFile(path + ".tmp.XXXXXX", 0644, fp);
-	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+	AtomicFile fp (path, 0644);
 
 	ConfigObject::Ptr previousObject;
 	ConfigObject::DumpModifiedAttributes([&fp, &previousObject](const ConfigObject::Ptr& object, const String& attr, const Value& value) {
@@ -189,9 +188,7 @@ void IcingaApplication::DumpModifiedAttributes()
 		ConfigWriter::EmitRaw(fp, "\n}\n");
 	}
 
-	fp.close();
-
-	Utility::RenameFile(tempFilename, path);
+	fp.Commit();
 }
 
 IcingaApplication::Ptr IcingaApplication::GetInstance()
