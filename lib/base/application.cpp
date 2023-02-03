@@ -974,6 +974,7 @@ void Application::InstallExceptionHandlers()
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = &Application::SigAbrtHandler;
+	sa.sa_flags = SA_RESTART;
 	sigaction(SIGABRT, &sa, nullptr);
 #else /* _WIN32 */
 	l_DefaultUnhandledExceptionFilter = SetUnhandledExceptionFilter(&Application::SEHUnhandledExceptionFilter);
@@ -991,6 +992,7 @@ int Application::Run()
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = &Application::SigUsr1Handler;
+	sa.sa_flags = SA_RESTART;
 	sigaction(SIGUSR1, &sa, nullptr);
 #else /* _WIN32 */
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
