@@ -2,6 +2,7 @@
 
 #include "perfdata/perfdatawriter.hpp"
 #include "perfdata/perfdatawriter-ti.cpp"
+#include "icinga/envresolver.hpp"
 #include "icinga/service.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
@@ -117,6 +118,7 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+	resolvers.emplace_back("env", new EnvResolver(), false);
 
 	if (service) {
 		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);

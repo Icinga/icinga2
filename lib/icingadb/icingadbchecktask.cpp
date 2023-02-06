@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2022 Icinga GmbH | GPLv2+ */
 
 #include "icingadb/icingadbchecktask.hpp"
+#include "icinga/envresolver.hpp"
 #include "icinga/host.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
@@ -62,6 +63,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", commandObj);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+	resolvers.emplace_back("env", new EnvResolver(), false);
 
 	auto resolve ([&](const String& macro) {
 		return MacroProcessor::ResolveMacros(macro, resolvers, checkable->GetLastCheckResult(),

@@ -2,6 +2,7 @@
 
 #include "perfdata/opentsdbwriter.hpp"
 #include "perfdata/opentsdbwriter-ti.cpp"
+#include "icinga/envresolver.hpp"
 #include "icinga/service.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
@@ -196,6 +197,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			resolvers.emplace_back("service", service);
 		resolvers.emplace_back("host", host);
 		resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+		resolvers.emplace_back("env", new EnvResolver(), false);
 		
 		// Resolve macros for the service and host template config line
 		if (config_tmpl_tags) {

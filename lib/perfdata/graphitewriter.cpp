@@ -2,6 +2,7 @@
 
 #include "perfdata/graphitewriter.hpp"
 #include "perfdata/graphitewriter-ti.cpp"
+#include "icinga/envresolver.hpp"
 #include "icinga/service.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
@@ -294,6 +295,7 @@ void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable,
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+	resolvers.emplace_back("env", new EnvResolver(), false);
 
 	String prefix;
 

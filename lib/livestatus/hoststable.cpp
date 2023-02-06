@@ -3,6 +3,7 @@
 #include "livestatus/hoststable.hpp"
 #include "livestatus/hostgroupstable.hpp"
 #include "livestatus/endpointstable.hpp"
+#include "icinga/envresolver.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
 #include "icinga/hostgroup.hpp"
@@ -315,7 +316,8 @@ Value HostsTable::NotesExpandedAccessor(const Value& row)
 
 	MacroProcessor::ResolverList resolvers {
 		{ "host", host },
-		{ "icinga", IcingaApplication::GetInstance() }
+		{ "icinga", IcingaApplication::GetInstance() },
+		{ "env", new EnvResolver(), false }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetNotes(), resolvers);
@@ -340,7 +342,8 @@ Value HostsTable::NotesUrlExpandedAccessor(const Value& row)
 
 	MacroProcessor::ResolverList resolvers {
 		{ "host", host },
-		{ "icinga", IcingaApplication::GetInstance() }
+		{ "icinga", IcingaApplication::GetInstance() },
+		{ "env", new EnvResolver(), false }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetNotesUrl(), resolvers);
@@ -365,7 +368,8 @@ Value HostsTable::ActionUrlExpandedAccessor(const Value& row)
 
 	MacroProcessor::ResolverList resolvers {
 		{ "host", host },
-		{ "icinga", IcingaApplication::GetInstance() }
+		{ "icinga", IcingaApplication::GetInstance() },
+		{ "env", new EnvResolver(), false }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetActionUrl(), resolvers);
@@ -422,7 +426,8 @@ Value HostsTable::IconImageExpandedAccessor(const Value& row)
 
 	MacroProcessor::ResolverList resolvers {
 		{ "host", host },
-		{ "icinga", IcingaApplication::GetInstance() }
+		{ "icinga", IcingaApplication::GetInstance() },
+		{ "env", new EnvResolver(), false }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetIconImage(), resolvers);

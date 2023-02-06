@@ -3,6 +3,7 @@
 #include "perfdata/influxdbcommonwriter.hpp"
 #include "perfdata/influxdbcommonwriter-ti.cpp"
 #include "remote/url.hpp"
+#include "icinga/envresolver.hpp"
 #include "icinga/service.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
@@ -225,6 +226,7 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+	resolvers.emplace_back("env", new EnvResolver(), false);
 
 	String prefix;
 
