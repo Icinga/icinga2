@@ -3,12 +3,113 @@
 #include "icinga/dependency.hpp"
 #include "icinga/dependency-ti.cpp"
 #include "icinga/service.hpp"
+#include "base/configobject.hpp"
+#include "base/initialize.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
+#include <map>
+#include <sstream>
+#include <utility>
 
 using namespace icinga;
 
 REGISTER_TYPE(Dependency);
+
+bool Dependency::m_AssertNoCyclesForIndividualDeps = false;
+
+struct DependencyCycleNode
+{
+	bool Visited = false;
+	bool OnStack = false;
+};
+
+struct DependencyStackFrame
+{
+	ConfigObject::Ptr Node;
+	bool Implicit;
+
+	inline DependencyStackFrame(ConfigObject::Ptr node, bool implicit = false) : Node(std::move(node)), Implicit(implicit)
+	{ }
+};
+
+struct DependencyCycleGraph
+{
+	std::map<Checkable::Ptr, DependencyCycleNode> Nodes;
+	std::vector<DependencyStackFrame> Stack;
+};
+
+static void AssertNoDependencyCycle(const Checkable::Ptr& checkable, DependencyCycleGraph& graph, bool implicit = false);
+
+static void AssertNoParentDependencyCycle(const Checkable::Ptr& parent, DependencyCycleGraph& graph, bool implicit)
+{
+	if (graph.Nodes[parent].OnStack) {
+		std::ostringstream oss;
+		oss << "Dependency cycle:\n";
+
+		for (auto& frame : graph.Stack) {
+			oss << frame.Node->GetReflectionType()->GetName() << " '" << frame.Node->GetName() << "'";
+
+			if (frame.Implicit) {
+				oss << " (implicit)";
+			}
+
+			oss << "\n-> ";
+		}
+
+		oss << parent->GetReflectionType()->GetName() << " '" << parent->GetName() << "'";
+
+		if (implicit) {
+			oss << " (implicit)";
+		}
+
+		BOOST_THROW_EXCEPTION(ScriptError(oss.str()));
+	}
+
+	AssertNoDependencyCycle(parent, graph, implicit);
+}
+
+static void AssertNoDependencyCycle(const Checkable::Ptr& checkable, DependencyCycleGraph& graph, bool implicit)
+{
+	auto& node (graph.Nodes[checkable]);
+
+	if (!node.Visited) {
+		node.Visited = true;
+		node.OnStack = true;
+		graph.Stack.emplace_back(checkable, implicit);
+
+		for (auto& dep : checkable->GetDependencies()) {
+			graph.Stack.emplace_back(dep);
+			AssertNoParentDependencyCycle(dep->GetParent(), graph, false);
+			graph.Stack.pop_back();
+		}
+
+		{
+			auto service (dynamic_pointer_cast<Service>(checkable));
+
+			if (service) {
+				AssertNoParentDependencyCycle(service->GetHost(), graph, true);
+			}
+		}
+
+		graph.Stack.pop_back();
+		node.OnStack = false;
+	}
+}
+
+void Dependency::AssertNoCycles()
+{
+	DependencyCycleGraph graph;
+
+	for (auto& host : ConfigType::GetObjectsByType<Host>()) {
+		AssertNoDependencyCycle(host, graph);
+	}
+
+	for (auto& service : ConfigType::GetObjectsByType<Service>()) {
+		AssertNoDependencyCycle(service, graph);
+	}
+
+	m_AssertNoCyclesForIndividualDeps = true;
+}
 
 String DependencyNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -89,6 +190,18 @@ void Dependency::OnAllConfigLoaded()
 
 	m_Child->AddDependency(this);
 	m_Parent->AddReverseDependency(this);
+
+	if (m_AssertNoCyclesForIndividualDeps) {
+		DependencyCycleGraph graph;
+
+		try {
+			AssertNoDependencyCycle(m_Parent, graph);
+		} catch (...) {
+			m_Child->RemoveDependency(this);
+			m_Parent->RemoveReverseDependency(this);
+			throw;
+		}
+	}
 }
 
 void Dependency::Stop(bool runtimeRemoved)
@@ -210,4 +323,3 @@ void Dependency::SetChild(intrusive_ptr<Checkable> child)
 {
 	m_Child = child;
 }
-

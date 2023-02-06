@@ -1,6 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "cli/daemonutility.hpp"
+#include "base/configobject.hpp"
+#include "base/exception.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
@@ -8,6 +10,7 @@
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
+#include "icinga/dependency.hpp"
 #include <set>
 
 using namespace icinga;
@@ -247,6 +250,17 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("DaemonUtility::LoadConfigFiles");
 	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
+
+	if (result) {
+		try {
+			Dependency::AssertNoCycles();
+		} catch (...) {
+			Log(LogCritical, "config")
+				<< DiagnosticInformation(boost::current_exception(), false);
+
+			result = false;
+		}
+	}
 
 	if (!result) {
 		ConfigCompilerContext::GetInstance()->CancelObjectsFile();
