@@ -16,18 +16,20 @@ REGISTER_PRIMITIVE_TYPE(Dictionary, Object, Dictionary::GetPrototype());
 Dictionary::Dictionary(const DictionaryData& other)
 {
 	for (const auto& kv : other)
-		m_Data.insert(kv);
+		m_Data.Set(kv.first, kv.second);
 }
 
 Dictionary::Dictionary(DictionaryData&& other)
 {
 	for (auto& kv : other)
-		m_Data.insert(std::move(kv));
+		m_Data.Set(std::move(kv.first), std::move(kv.second));
 }
 
 Dictionary::Dictionary(std::initializer_list<Dictionary::Pair> init)
-	: m_Data(init)
-{ }
+{
+	for (auto& kv : init)
+		m_Data.Set(kv.first, kv.second);
+}
 
 /**
  * Retrieves a value from a dictionary.
@@ -37,14 +39,11 @@ Dictionary::Dictionary(std::initializer_list<Dictionary::Pair> init)
  */
 Value Dictionary::Get(const String& key) const
 {
+	Value result;
 	ObjectLock olock(this);
 
-	auto it = m_Data.find(key);
-
-	if (it == m_Data.end())
-		return Empty;
-
-	return it->second;
+	m_Data.Get(key, result);
+	return result;
 }
 
 /**
@@ -58,13 +57,7 @@ bool Dictionary::Get(const String& key, Value *result) const
 {
 	ObjectLock olock(this);
 
-	auto it = m_Data.find(key);
-
-	if (it == m_Data.end())
-		return false;
-
-	*result = it->second;
-	return true;
+	return m_Data.Get(key, *result);
 }
 
 /**
@@ -81,7 +74,7 @@ void Dictionary::Set(const String& key, Value value, bool overrideFrozen)
 	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Value in dictionary must not be modified."));
 
-	m_Data[key] = std::move(value);
+	m_Data.Set(key, std::move(value));
 }
 
 /**
@@ -93,7 +86,7 @@ size_t Dictionary::GetLength() const
 {
 	ObjectLock olock(this);
 
-	return m_Data.size();
+	return m_Data.GetLength();
 }
 
 /**
@@ -106,7 +99,7 @@ bool Dictionary::Contains(const String& key) const
 {
 	ObjectLock olock(this);
 
-	return (m_Data.find(key) != m_Data.end());
+	return m_Data.Contains(key);
 }
 
 /**
@@ -150,7 +143,7 @@ void Dictionary::Remove(Dictionary::Iterator it, bool overrideFrozen)
 	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
-	m_Data.erase(it);
+	m_Data.Remove(it);
 }
 
 /**
@@ -166,13 +159,7 @@ void Dictionary::Remove(const String& key, bool overrideFrozen)
 	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
-	Dictionary::Iterator it;
-	it = m_Data.find(key);
-
-	if (it == m_Data.end())
-		return;
-
-	m_Data.erase(it);
+	m_Data.Remove(key);
 }
 
 /**
@@ -187,14 +174,14 @@ void Dictionary::Clear(bool overrideFrozen)
 	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
-	m_Data.clear();
+	m_Data.Clear();
 }
 
 void Dictionary::CopyTo(const Dictionary::Ptr& dest) const
 {
 	ObjectLock olock(this);
 
-	for (const Dictionary::Pair& kv : m_Data) {
+	for (auto& kv : m_Data) {
 		dest->Set(kv.first, kv.second);
 	}
 }
@@ -226,7 +213,7 @@ Object::Ptr Dictionary::Clone() const
 
 		dict.reserve(GetLength());
 
-		for (const Dictionary::Pair& kv : m_Data) {
+		for (auto& kv : m_Data) {
 			dict.emplace_back(kv.first, kv.second.Clone());
 		}
 	}
@@ -246,7 +233,7 @@ std::vector<String> Dictionary::GetKeys() const
 
 	std::vector<String> keys;
 
-	for (const Dictionary::Pair& kv : m_Data) {
+	for (auto& kv : m_Data) {
 		keys.push_back(kv.first);
 	}
 
