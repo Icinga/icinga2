@@ -37,7 +37,7 @@ Dictionary::Dictionary(std::initializer_list<Dictionary::Pair> init)
  */
 Value Dictionary::Get(const String& key) const
 {
-	ObjectLock olock(this);
+	std::shared_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
 	auto it = m_Data.find(key);
 
@@ -56,7 +56,7 @@ Value Dictionary::Get(const String& key) const
  */
 bool Dictionary::Get(const String& key, Value *result) const
 {
-	ObjectLock olock(this);
+	std::shared_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
 	auto it = m_Data.find(key);
 
@@ -77,6 +77,7 @@ bool Dictionary::Get(const String& key, Value *result) const
 void Dictionary::Set(const String& key, Value value, bool overrideFrozen)
 {
 	ObjectLock olock(this);
+	std::unique_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
 	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Value in dictionary must not be modified."));
@@ -91,7 +92,7 @@ void Dictionary::Set(const String& key, Value value, bool overrideFrozen)
  */
 size_t Dictionary::GetLength() const
 {
-	ObjectLock olock(this);
+	std::shared_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
 	return m_Data.size();
 }
@@ -104,7 +105,7 @@ size_t Dictionary::GetLength() const
  */
 bool Dictionary::Contains(const String& key) const
 {
-	ObjectLock olock(this);
+	std::shared_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
 	return (m_Data.find(key) != m_Data.end());
 }
@@ -146,6 +147,7 @@ Dictionary::Iterator Dictionary::End()
 void Dictionary::Remove(Dictionary::Iterator it, bool overrideFrozen)
 {
 	ASSERT(OwnsLock());
+	std::unique_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
 	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
@@ -162,6 +164,7 @@ void Dictionary::Remove(Dictionary::Iterator it, bool overrideFrozen)
 void Dictionary::Remove(const String& key, bool overrideFrozen)
 {
 	ObjectLock olock(this);
+	std::unique_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
 	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
@@ -183,6 +186,7 @@ void Dictionary::Remove(const String& key, bool overrideFrozen)
 void Dictionary::Clear(bool overrideFrozen)
 {
 	ObjectLock olock(this);
+	std::unique_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
 	if (m_Frozen && !overrideFrozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
@@ -192,7 +196,7 @@ void Dictionary::Clear(bool overrideFrozen)
 
 void Dictionary::CopyTo(const Dictionary::Ptr& dest) const
 {
-	ObjectLock olock(this);
+	std::shared_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
 	for (const Dictionary::Pair& kv : m_Data) {
 		dest->Set(kv.first, kv.second);
@@ -222,7 +226,7 @@ Object::Ptr Dictionary::Clone() const
 	DictionaryData dict;
 
 	{
-		ObjectLock olock(this);
+		std::shared_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
 		dict.reserve(GetLength());
 
@@ -242,7 +246,7 @@ Object::Ptr Dictionary::Clone() const
  */
 std::vector<String> Dictionary::GetKeys() const
 {
-	ObjectLock olock(this);
+	std::shared_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
 	std::vector<String> keys;
 
@@ -263,6 +267,7 @@ String Dictionary::ToString() const
 void Dictionary::Freeze()
 {
 	ObjectLock olock(this);
+	std::unique_lock<std::shared_timed_mutex> lock (m_DataMutex);
 	m_Frozen = true;
 }
 
