@@ -20,7 +20,7 @@ REGISTER_PRIMITIVE_TYPE(Namespace, Object, Namespace::GetPrototype());
  * @param constValues If true, all values inserted into the namespace are treated as constants and can't be updated.
  */
 Namespace::Namespace(bool constValues)
-	: m_ConstValues(constValues), m_Frozen(false)
+	: m_Frozen(false)
 { }
 
 Value Namespace::Get(const String& field) const

@@ -91,7 +91,6 @@ private:
 
 	std::map<String, NamespaceValue> m_Data;
 	mutable std::shared_timed_mutex m_DataMutex;
-	bool m_ConstValues;
 	std::atomic<bool> m_Frozen;
 };
 
