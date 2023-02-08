@@ -175,14 +175,12 @@ void Dictionary::Remove(const String& key)
 
 /**
  * Removes all dictionary items.
- *
- * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Clear(bool overrideFrozen)
+void Dictionary::Clear()
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen && !overrideFrozen)
+	if (m_Frozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
 	m_Data.clear();

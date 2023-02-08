@@ -53,7 +53,7 @@ public:
 
 	void Remove(Iterator it);
 
-	void Clear(bool overrideFrozen = false);
+	void Clear();
 
 	void CopyTo(const Dictionary::Ptr& dest) const;
 	Dictionary::Ptr ShallowClone() const;
