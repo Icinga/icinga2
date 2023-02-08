@@ -31,7 +31,7 @@ Value ScriptGlobal::Get(const String& name, const Value *defaultValue)
 	return result;
 }
 
-void ScriptGlobal::Set(const String& name, const Value& value, bool overrideFrozen)
+void ScriptGlobal::Set(const String& name, const Value& value)
 {
 	std::vector<String> tokens = name.Split(".");
 
@@ -59,7 +59,7 @@ void ScriptGlobal::Set(const String& name, const Value& value, bool overrideFroz
 			}
 		}
 
-		parent->SetFieldByName(tokens[tokens.size() - 1], value, overrideFrozen, DebugInfo());
+		parent->SetFieldByName(tokens[tokens.size() - 1], value, false, DebugInfo());
 	}
 }
 
