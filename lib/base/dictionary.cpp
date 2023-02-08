@@ -141,13 +141,12 @@ Dictionary::Iterator Dictionary::End()
  * Removes the item specified by the iterator from the dictionary.
  *
  * @param it The iterator.
- * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Remove(Dictionary::Iterator it, bool overrideFrozen)
+void Dictionary::Remove(Dictionary::Iterator it)
 {
 	ASSERT(OwnsLock());
 
-	if (m_Frozen && !overrideFrozen)
+	if (m_Frozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
 	m_Data.erase(it);
@@ -157,13 +156,12 @@ void Dictionary::Remove(Dictionary::Iterator it, bool overrideFrozen)
  * Removes the specified key from the dictionary.
  *
  * @param key The key.
- * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Remove(const String& key, bool overrideFrozen)
+void Dictionary::Remove(const String& key)
 {
 	ObjectLock olock(this);
 
-	if (m_Frozen && !overrideFrozen)
+	if (m_Frozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
 	Dictionary::Iterator it;

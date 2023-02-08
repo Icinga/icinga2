@@ -49,9 +49,9 @@ public:
 
 	size_t GetLength() const;
 
-	void Remove(const String& key, bool overrideFrozen = false);
+	void Remove(const String& key);
 
-	void Remove(Iterator it, bool overrideFrozen = false);
+	void Remove(Iterator it);
 
 	void Clear(bool overrideFrozen = false);
 
