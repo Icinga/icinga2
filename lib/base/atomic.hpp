@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <shared_mutex>
 #include <type_traits>
 #include <utility>
 
@@ -55,20 +56,20 @@ class Locked
 public:
 	inline T load() const
 	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
+		std::shared_lock<std::shared_timed_mutex> lock(m_Mutex);
 
 		return m_Value;
 	}
 
 	inline void store(T desired)
 	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
+		std::unique_lock<std::shared_timed_mutex> lock(m_Mutex);
 
 		m_Value = std::move(desired);
 	}
 
 private:
-	mutable std::mutex m_Mutex;
+	mutable std::shared_timed_mutex m_Mutex;
 	T m_Value;
 };
 
