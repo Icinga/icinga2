@@ -2259,14 +2259,14 @@ snmp_service_count         | **Optional.** Compare matching services with a spec
 snmp_service_showall       | **Optional.** Show all services in the output, instead of only the non-active ones. Defaults to false.
 snmp_service_noregexp      | **Optional.** Do not use regexp to match NAME in service description. Defaults to false.
 
-### Elasticsearch Netways <a id="plugin-check-command-elasticsearch-netways"></a>
+### Elasticsearch (NETWAYS) <a id="plugin-check-command-elasticsearch"></a>
 
-This category includes all subcommands using the elasticsearch-netways plugin.
+This category includes all subcommands using the [check_elasticsearch](https://github.com/NETWAYS/check_elasticsearch) plugin.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                    	          | Description
-------------------------------------------|-----------------------------------------------------------------------------------------
+Name                       | Description
+---------------------------|-----------------------------------------------------------------------------------------
 elasticsearch_hostname     | **Optional.** Hostname of the Elasticsearch instance (default 'localhost').
 elasticsearch_port         | **Optional.** Port of the Elasticsearch instance (default 9200).
 elasticsearch_username     | **Optional.** Username if authentication is required. No value defined as default.
@@ -2275,15 +2275,15 @@ elasticsearch_tls          | **Optional.** Use a HTTPS connection (default false
 elasticsearch_insecure     | **Optional.** Skip the verification of the server's TLS certificate (default false).
 elasticsearch_timeout      | **Optional.** Timeout in seconds for the CheckPlugin (default 30).
 
-#### Elasticsearch Query <a id="plugin-check-command-elasticsearch-netways-query"></a>
+#### Elasticsearch Query <a id="plugin-check-command-elasticsearch-query"></a>
 
-This subcommand is provided by [elasticsearch netways](https://github.com/NETWAYS/check_elasticsearch#query)
-and executed as `elasticsearch query`. Checks the total hits/results of an Elasticsearch query.
+This subcommand is provided by check_elasticsearch executed as `elasticsearch query`.
+Checks the total hits/results of an Elasticsearch query.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                    	          | Description
-------------------------------------------|-----------------------------------------------------------------------------------------
+Name                    	 | Description
+-----------------------------|-----------------------------------------------------------------------------------------
 elasticsearch_query          | **Required.** The Elasticsearch query.
 elasticsearch_query_index    | **Optional.** Name of the Index which will be used (default '_all').
 elasticsearch_query_msgkey   | **Optional.** Message of messagekey to display.
@@ -2291,10 +2291,10 @@ elasticsearch_query_msglen   | **Optional.** Number of characters to display in 
 elasticsearch_query_warning  | **Optional.** Warning threshold for total hits (default '20').
 elasticsearch_query_critical | **Optional.** Critical threshold for total hits (default '50').
 
-#### Elasticsearch Health <a id="plugin-check-command-elasticsearch-netways-health"></a>
+#### Elasticsearch Health <a id="plugin-check-command-elasticsearch-health"></a>
 
-This subcommand is provided by [elasticsearch netways](https://github.com/NETWAYS/check_elasticsearch#health)
-and executed as `elasticsearch health`. Checks the health status of an Elasticsearch cluster.
+This subcommand is provided by check_elasticsearch executed as `elasticsearch health`.
+Checks the health status of an Elasticsearch cluster.
 
 ## Contributed Plugin Check Commands <a id="plugin-contrib"></a>
 
