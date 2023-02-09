@@ -1119,6 +1119,7 @@ General:
 - [function_types](https://www.boost.org/doc/libs/1_66_0/libs/function_types/doc/html/index.html) (header only)
 - [circular_buffer](https://www.boost.org/doc/libs/1_66_0/doc/html/circular_buffer.html) (header only)
 - [math](https://www.boost.org/doc/libs/1_66_0/libs/math/doc/html/index.html) (header only)
+- [stacktrace](https://www.boost.org/doc/libs/1_66_0/doc/html/stacktrace.html) (header only)
 
 Events and Runtime:
 
@@ -1699,6 +1700,42 @@ The required steps are described in [this script](https://github.com/dnsmichi/do
 
 The following sections explain how to setup the required build tools
 and how to run and debug the code.
+
+#### TL;DR
+
+If you're going to setup a dev environment on a fresh Windows machine
+and don't care for the details,
+
+1. ensure there are 35 GB free space on C:
+2. run the following in an administrative Powershell:
+  1. `Enable-WindowsOptionalFeature -FeatureName "NetFx3" -Online`
+     (reboot when asked!)
+  2. `powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-Expression (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/Icinga/icinga2/master/doc/win-dev.ps1')"`
+    (will take some time)
+
+This installs everything needed for cloning and building Icinga 2
+on the command line (Powershell) as follows:
+
+(Don't forget to open a new Powershell window
+to be able to use the newly installed Git.)
+
+```
+git clone https://github.com/Icinga/icinga2.git
+cd .\icinga2\
+mkdir build
+cd .\build\
+
+& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" `
+  -DBoost_INCLUDE_DIR=C:\local\boost_1_71_0-Win64 `
+  -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe `
+  -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe `
+  -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF ..
+
+& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" .\icinga2.sln
+```
+
+Building icinga2.sln via Visual Studio itself seems to require a reboot
+after installing the build tools and building once via command line.
 
 #### Chocolatey
 

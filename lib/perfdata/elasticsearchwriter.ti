@@ -24,9 +24,12 @@ class ElasticsearchWriter : ConfigObject
 		default {{{ return false; }}}
 	};
 	[config] String username;
-	[config] String password;
+	[config, no_user_view, no_user_modify] String password;
 
 	[config] bool enable_tls {
+		default {{{ return false; }}}
+	};
+	[config] bool insecure_noverify {
 		default {{{ return false; }}}
 	};
 	[config] String ca_path;

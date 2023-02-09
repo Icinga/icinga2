@@ -37,6 +37,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Cancel previous jobs for the same PR
+        if: "github.event_name == 'pull_request'"
+        uses: styfle/cancel-workflow-action@89f242ee29e10c53a841bfe71cc0ce7b2f065abc
+        with:
+          workflow_id: packages.yml
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout HEAD
         uses: actions/checkout@v1
 
@@ -141,6 +148,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Cancel previous jobs for the same PR
+        if: "github.event_name == 'pull_request'"
+        uses: styfle/cancel-workflow-action@89f242ee29e10c53a841bfe71cc0ce7b2f065abc
+        with:
+          workflow_id: packages.yml
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Vars
         id: vars
         env:
@@ -227,6 +241,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Cancel previous jobs for the same PR
+        if: "github.event_name == 'pull_request'"
+        uses: styfle/cancel-workflow-action@89f242ee29e10c53a841bfe71cc0ce7b2f065abc
+        with:
+          workflow_id: packages.yml
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout HEAD
         uses: actions/checkout@v1
 
@@ -287,3 +308,41 @@ jobs:
 #            -e ICINGA_BUILD_DEB_DEFAULT_ARCH=armhf \
 #            registry.icinga.com/build-docker/raspbian/${{ matrix.codename }} \
 #            icinga-build-test
+  windows:
+    name: Windows
+
+    strategy:
+      fail-fast: false
+      matrix:
+        bits: [32, 64]
+
+    runs-on: windows-latest
+
+    env:
+      BITS: '${{ matrix.bits }}'
+      ICINGA_BUILD_TYPE: snapshot
+      UPSTREAM_GIT_URL: file://D:/a/icinga2/icinga2/.git
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v1
+
+      - name: windows-icinga2
+        run: |
+          git clone https://git.icinga.com/packaging/windows-icinga2.git
+
+      - name: Build tools
+        run: |
+          & .\doc\win-dev.ps1
+
+      - name: Source
+        run: |
+          git checkout -B master
+          cd windows-icinga2
+          & .\source.ps1
+
+      - name: Binary
+        working-directory: windows-icinga2
+        run: |
+          New-Item -ItemType Directory -Path 'C:\Program Files\Icinga2\WillBeRemoved' -ErrorAction SilentlyContinue
+          & .\build.ps1

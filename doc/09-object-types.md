@@ -1094,6 +1094,7 @@ Configuration Attributes:
   cipher\_list                          | String                | **Optional.** Cipher list that is allowed. For a list of available ciphers run `openssl ciphers`. Defaults to `ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:AES256-GCM-SHA384:AES128-GCM-SHA256`.
   tls\_protocolmin                      | String                | **Optional.** Minimum TLS protocol version. Since v2.11, only `TLSv1.2` is supported. Defaults to `TLSv1.2`.
   tls\_handshake\_timeout               | Number                | **Optional.** TLS Handshake timeout. Defaults to `10s`.
+  connect\_timeout                      | Number                | **Optional.** Timeout for establishing new connections. Affects both incoming and outgoing connections. Within this time, the TCP and TLS handshakes must complete and either a HTTP request or an Icinga cluster connection must be initiated. Defaults to `15s`.
   access\_control\_allow\_origin        | Array                 | **Optional.** Specifies an array of origin URLs that may access the API. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Origin)
   access\_control\_allow\_credentials   | Boolean               | **Deprecated.** Indicates whether or not the actual request can be made using credentials. Defaults to `true`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Credentials)
   access\_control\_allow\_headers       | String                | **Deprecated.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
@@ -1228,6 +1229,7 @@ Configuration Attributes:
   username                  | String                | **Optional.** Basic auth username if Elasticsearch is hidden behind an HTTP proxy.
   password                  | String                | **Optional.** Basic auth password if Elasticsearch is hidden behind an HTTP proxy.
   enable\_tls               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`. Requires an HTTP proxy.
+  insecure\_noverify        | Boolean               | **Optional.** Disable TLS peer verification.
   ca\_path                  | String                | **Optional.** Path to CA certificate to validate the remote host. Requires `enable_tls` set to `true`.
   cert\_path                | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification. Requires `enable_tls` set to `true`.
   key\_path                 | String                | **Optional.** Path to host key to accompany the cert\_path. Requires `enable_tls` set to `true`.
@@ -1315,6 +1317,7 @@ Configuration Attributes:
   enable\_send\_perfdata    | Boolean               | **Optional.** Enable performance data for 'CHECK RESULT' events.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
   enable\_tls               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
+  insecure\_noverify        | Boolean               | **Optional.** Disable TLS peer verification.
   ca\_path                  | String                | **Optional.** Path to CA certificate to validate the remote host. Requires `enable_tls` set to `true`.
   cert\_path                | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification. Requires `enable_tls` set to `true`.
   key\_path                 | String                | **Optional.** Path to host key to accompany the cert\_path. Requires `enable_tls` set to `true`.
@@ -1610,6 +1613,7 @@ Configuration Attributes:
   username                  | String                | **Optional.** InfluxDB user name. Defaults to `none`.
   password                  | String                | **Optional.** InfluxDB user password.  Defaults to `none`.
   ssl\_enable               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
+  ssl\_insecure\_noverify   | Boolean               | **Optional.** Disable TLS peer verification.
   ssl\_ca\_cert             | String                | **Optional.** Path to CA certificate to validate the remote host.
   ssl\_cert                 | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification.
   ssl\_key                  | String                | **Optional.** Path to host key to accompany the ssl\_cert.

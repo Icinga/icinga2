@@ -7,6 +7,54 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.11.11 (2021-08-19)
+
+The main focus of these versions is a security vulnerability in the TLS certificate verification of our metrics writers ElasticsearchWriter, GelfWriter and InfluxdbWriter.
+
+### Security
+
+* Add TLS server certificate validation to ElasticsearchWriter, GelfWriter and InfluxdbWriter
+
+Depending on your setup, manual intervention beyond installing the new versions
+may be required, so please read the more detailed information in the
+[release blog post](https://icinga.com/blog/2021/08/19/icinga-2-13-1-security-release//)
+carefully
+
+## 2.11.10 (2021-07-15)
+
+Version 2.11.10 fixes two security vulnerabilities that may lead to privilege
+escalation for authenticated API users. Other improvements include several
+bugfixes related to downtimes, downtime notifications, and more reliable
+connection handling.
+
+### Security
+
+* Don't expose the PKI ticket salt via the API. This may lead to privilege
+  escalation for authenticated API users by them being able to request
+  certificates for other identities (CVE-2021-32739)
+* Don't expose IdoMysqlConnection, IdoPgsqlConnection, and ElasticsearchWriter
+  passwords via the API (CVE-2021-32743)
+* Windows: Update bundled OpenSSL to version 1.1.1k #8888
+
+Depending on your setup, manual intervention beyond installing the new versions
+may be required, so please read the more detailed information in the
+[release blog post](https://icinga.com/blog/2021/07/15/releasing-icinga-2-12-5-and-2-11-10/)
+carefully.
+
+### Bugfixes
+
+* Don't send downtime end notification if downtime hasn't started #8878
+* Don't let a failed downtime creation block the others #8871
+* Support downtimes and comments for checkables with long names #8870
+* Trigger fixed downtimes immediately if the current time matches
+  (instead of waiting for the timer) #8891
+* Add configurable timeout for full connection handshake #8872
+
+### Enhancements
+
+* Replace existing downtimes on ScheduledDowntime change #8880
+* Improve crashlog #8869
+
 ## 2.11.9 (2021-05-27)
 
 Version 2.11.9 is a maintenance release that fixes some crashes, improves error handling

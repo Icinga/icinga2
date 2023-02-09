@@ -196,10 +196,6 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
 )
 
-if(HAVE_LIBEXECINFO)
-  list(APPEND base_DEPS execinfo)
-endif()
-
 if(UNIX OR CYGWIN)
   list(APPEND base_OBJS $<TARGET_OBJECTS:execvpe>)
 endif()
@@ -359,6 +355,20 @@ check_include_file_cxx(cxxabi.h HAVE_CXXABI_H)
 
 if(HAVE_LIBEXECINFO)
   set(HAVE_BACKTRACE_SYMBOLS TRUE)
+  list(APPEND base_DEPS execinfo)
+endif()
+
+if(NOT WIN32)
+  # boost::stacktrace uses _Unwind_Backtrace which is only exposed if _GNU_SOURCE is defined on most systems
+  add_definitions(-D_GNU_SOURCE)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+  set(ICINGA2_STACKTRACE_USE_BACKTRACE_SYMBOLS TRUE)
+endif()
+
+if(ICINGA2_STACKTRACE_USE_BACKTRACE_SYMBOLS AND NOT HAVE_BACKTRACE_SYMBOLS)
+  message(FATAL_ERROR "ICINGA2_STACKTRACE_USE_BACKTRACE_SYMBOLS is set but backtrace_symbols() was not found")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -369,6 +379,12 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
   if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "4.7.0")
     message(FATAL_ERROR "Your version of GCC (${CMAKE_CXX_COMPILER_VERSION}) is too old for building Icinga 2 (GCC >= 4.7.0 is required).")
+  endif()
+endif()
+
+if(MSVC)
+  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "19.20")
+    message(FATAL_ERROR "Your version of MSVC (${CMAKE_CXX_COMPILER_VERSION}) is too old for building Icinga 2 (MSVC >= 19.20 from Visual Studio 2019 is required).")
   endif()
 endif()
 
