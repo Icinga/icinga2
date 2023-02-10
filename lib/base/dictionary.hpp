@@ -8,6 +8,7 @@
 #include "base/value.hpp"
 #include <boost/range/iterator.hpp>
 #include <map>
+#include <shared_mutex>
 #include <vector>
 
 namespace icinga
@@ -75,6 +76,7 @@ public:
 
 private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */
+	mutable std::shared_timed_mutex m_DataMutex;
 	bool m_Frozen{false};
 };
 
