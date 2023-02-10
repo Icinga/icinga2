@@ -59,7 +59,7 @@ void ScriptGlobal::Set(const String& name, const Value& value)
 			}
 		}
 
-		parent->SetFieldByName(tokens[tokens.size() - 1], value, false, DebugInfo());
+		parent->Set(tokens[tokens.size() - 1], value, false, DebugInfo());
 	}
 }
 
