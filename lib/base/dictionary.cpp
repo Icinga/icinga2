@@ -142,14 +142,13 @@ Dictionary::Iterator Dictionary::End()
  * Removes the item specified by the iterator from the dictionary.
  *
  * @param it The iterator.
- * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Remove(Dictionary::Iterator it, bool overrideFrozen)
+void Dictionary::Remove(Dictionary::Iterator it)
 {
 	ASSERT(OwnsLock());
 	std::unique_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
-	if (m_Frozen && !overrideFrozen)
+	if (m_Frozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
 	m_Data.erase(it);
@@ -159,14 +158,13 @@ void Dictionary::Remove(Dictionary::Iterator it, bool overrideFrozen)
  * Removes the specified key from the dictionary.
  *
  * @param key The key.
- * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Remove(const String& key, bool overrideFrozen)
+void Dictionary::Remove(const String& key)
 {
 	ObjectLock olock(this);
 	std::unique_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
-	if (m_Frozen && !overrideFrozen)
+	if (m_Frozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
 	Dictionary::Iterator it;
@@ -180,15 +178,13 @@ void Dictionary::Remove(const String& key, bool overrideFrozen)
 
 /**
  * Removes all dictionary items.
- *
- * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Clear(bool overrideFrozen)
+void Dictionary::Clear()
 {
 	ObjectLock olock(this);
 	std::unique_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
-	if (m_Frozen && !overrideFrozen)
+	if (m_Frozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
 	m_Data.clear();

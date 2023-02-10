@@ -18,7 +18,7 @@ class ScriptGlobal
 {
 public:
 	static Value Get(const String& name, const Value *defaultValue = nullptr);
-	static void Set(const String& name, const Value& value, bool overrideFrozen = false);
+	static void Set(const String& name, const Value& value);
 	static void SetConst(const String& name, const Value& value);
 	static bool Exists(const String& name);
 
