@@ -187,3 +187,4 @@ Namespace::Iterator icinga::end(const Namespace::Ptr& x)
 	return x->End();
 }
 
+Namespace::Ptr l_IcingaNS = new Namespace(true); // 100% botched, just to work around some linker mess now

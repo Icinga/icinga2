@@ -29,7 +29,7 @@ REGISTER_TYPE(IcingaApplication);
 /* Ensure that the priority is lower than the basic System namespace initialization in scriptframe.cpp. */
 INITIALIZE_ONCE_WITH_PRIORITY(&IcingaApplication::StaticInitialize, InitializePriority::InitIcingaApplication);
 
-static Namespace::Ptr l_IcingaNS;
+extern Namespace::Ptr l_IcingaNS;
 
 void IcingaApplication::StaticInitialize()
 {
@@ -61,7 +61,6 @@ void IcingaApplication::StaticInitialize()
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 	VERIFY(globalNS);
 
-	l_IcingaNS = new Namespace(true);
 	globalNS->Set("Icinga", l_IcingaNS, true);
 }
 

@@ -11,7 +11,10 @@ using namespace icinga;
 
 boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
 
-static Namespace::Ptr l_SystemNS, l_StatsNS;
+Namespace::Ptr l_SystemNS = new Namespace(true);
+Configuration::Ptr g_SystemConfig = new Configuration();
+
+static Namespace::Ptr l_StatsNS;
 
 /* Ensure that this gets called with highest priority
  * and wins against other static initializers in lib/icinga, etc.
@@ -20,7 +23,6 @@ static Namespace::Ptr l_SystemNS, l_StatsNS;
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 
-	l_SystemNS = new Namespace(true);
 	l_SystemNS->Set("PlatformKernel", Utility::GetPlatformKernel());
 	l_SystemNS->Set("PlatformKernelVersion", Utility::GetPlatformKernelVersion());
 	l_SystemNS->Set("PlatformName", Utility::GetPlatformName());
@@ -31,7 +33,7 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	l_SystemNS->Set("BuildCompilerVersion", ICINGA_BUILD_COMPILER_VERSION);
 	globalNS->Set("System", l_SystemNS, true);
 
-	l_SystemNS->Set("Configuration", new Configuration());
+	l_SystemNS->Set("Configuration", g_SystemConfig);
 
 	l_StatsNS = new Namespace(true);
 	globalNS->Set("StatsFunctions", l_StatsNS, true);

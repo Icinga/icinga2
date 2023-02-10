@@ -14,6 +14,7 @@
 #include "base/reference.hpp"
 #include "base/namespace.hpp"
 #include "base/defer.hpp"
+#include "base/configuration.hpp"
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
 
@@ -102,11 +103,14 @@ const DebugInfo& DebuggableExpression::GetDebugInfo() const
 VariableExpression::VariableExpression(String variable, std::vector<Expression::Ptr> imports, const DebugInfo& debugInfo)
 	: DebuggableExpression(debugInfo), m_Variable(std::move(variable)), m_Imports(std::move(imports))
 {
-	m_Imports.push_back(MakeIndexer(ScopeGlobal, "System").release());
-	m_Imports.push_back(new IndexerExpression(MakeIndexer(ScopeGlobal, "System"), MakeLiteral("Configuration")));
-	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Types").release());
-	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Icinga").release());
+//	m_Imports.push_back(MakeIndexer(ScopeGlobal, "System").release());
+//	m_Imports.push_back(new IndexerExpression(MakeIndexer(ScopeGlobal, "System"), MakeLiteral("Configuration")));
+//	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Types").release());
+//	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Icinga").release());
 }
+
+extern Namespace::Ptr l_SystemNS, l_TypesNS, l_IcingaNS;
+extern Configuration::Ptr g_SystemConfig;
 
 ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
@@ -116,14 +120,21 @@ ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 		return value;
 	else if (frame.Self.IsObject() && frame.Locals != frame.Self.Get<Object::Ptr>() && frame.Self.Get<Object::Ptr>()->GetOwnField(m_Variable, &value))
 		return value;
-	else if (VMOps::FindVarImport(frame, m_Imports, m_Variable, &value, m_DebugInfo))
+	else if (!m_Imports.empty() && VMOps::FindVarImport(frame, m_Imports, m_Variable, &value, m_DebugInfo))
+		return value;
+	else if (l_SystemNS->Get(m_Variable, &value))
+		return value;
+	else if (g_SystemConfig->GetOwnField(m_Variable, &value))
+		return value;
+	else if (l_TypesNS->Get(m_Variable, &value))
+		return value;
+	else if (l_IcingaNS->Get(m_Variable, &value))
 		return value;
 	else
 		return ScriptGlobal::Get(m_Variable);
 }
 
-bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
-{
+bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const {
 	*index = m_Variable;
 
 	if (frame.Locals && frame.Locals->Contains(m_Variable)) {
@@ -131,12 +142,25 @@ bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value 
 
 		if (dhint)
 			*dhint = nullptr;
-	} else if (frame.Self.IsObject() && frame.Locals != frame.Self.Get<Object::Ptr>() && frame.Self.Get<Object::Ptr>()->HasOwnField(m_Variable)) {
+	} else if (frame.Self.IsObject() && frame.Locals != frame.Self.Get<Object::Ptr>() &&
+			   frame.Self.Get<Object::Ptr>()->HasOwnField(m_Variable)) {
 		*parent = frame.Self;
 
 		if (dhint && *dhint)
 			*dhint = new DebugHint((*dhint)->GetChild(m_Variable));
-	} else if (VMOps::FindVarImportRef(frame, m_Imports, m_Variable, parent, m_DebugInfo)) {
+	} else if (!m_Imports.empty() && VMOps::FindVarImportRef(frame, m_Imports, m_Variable, parent, m_DebugInfo)) {
+		return true;
+	} else if (l_SystemNS->Contains(m_Variable)) {
+		*parent = l_SystemNS;
+		return true;
+	} else if (g_SystemConfig->HasOwnField(m_Variable)) {
+		*parent = g_SystemConfig;
+		return true;
+	} else if (l_TypesNS->Contains(m_Variable)) {
+		*parent = l_TypesNS;
+		return true;
+	} else if (l_IcingaNS->Contains(m_Variable)) {
+		*parent = l_IcingaNS;
 		return true;
 	} else if (ScriptGlobal::Exists(m_Variable)) {
 		*parent = ScriptGlobal::GetGlobals();
