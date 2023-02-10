@@ -20,7 +20,7 @@ static Namespace::Ptr l_SystemNS, l_StatsNS;
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 
-	l_SystemNS = new Namespace(true);
+	l_SystemNS = new Namespace();
 	l_SystemNS->Set("PlatformKernel", Utility::GetPlatformKernel());
 	l_SystemNS->Set("PlatformKernelVersion", Utility::GetPlatformKernelVersion());
 	l_SystemNS->Set("PlatformName", Utility::GetPlatformName());
@@ -33,10 +33,10 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 
 	l_SystemNS->Set("Configuration", new Configuration());
 
-	l_StatsNS = new Namespace(true);
+	l_StatsNS = new Namespace();
 	globalNS->Set("StatsFunctions", l_StatsNS, true);
 
-	globalNS->Set("Internal", new Namespace(true), true);
+	globalNS->Set("Internal", new Namespace(), true);
 }, InitializePriority::CreateNamespaces);
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {

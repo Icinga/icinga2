@@ -921,7 +921,7 @@ ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 
 ExpressionResult NamespaceExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	Namespace::Ptr ns = new Namespace(true);
+	Namespace::Ptr ns = new Namespace();
 
 	ScriptFrame innerFrame(true, ns);
 	ExpressionResult result = m_Expression->Evaluate(innerFrame);

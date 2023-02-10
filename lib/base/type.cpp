@@ -9,7 +9,7 @@ using namespace icinga;
 
 Type::Ptr Type::TypeInstance;
 
-static Namespace::Ptr l_TypesNS = new Namespace(true);
+static Namespace::Ptr l_TypesNS = new Namespace();
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	ScriptGlobal::GetGlobals()->Set("Types", l_TypesNS, true);

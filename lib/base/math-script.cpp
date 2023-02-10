@@ -142,7 +142,7 @@ static double MathSign(double x)
 }
 
 INITIALIZE_ONCE([]() {
-	Namespace::Ptr mathNS = new Namespace(true);
+	Namespace::Ptr mathNS = new Namespace();
 
 	/* Constants */
 	mathNS->Set("E", 2.71828182845904523536);

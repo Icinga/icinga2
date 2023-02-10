@@ -61,7 +61,7 @@ void IcingaApplication::StaticInitialize()
 	Namespace::Ptr globalNS = ScriptGlobal::GetGlobals();
 	VERIFY(globalNS);
 
-	l_IcingaNS = new Namespace(true);
+	l_IcingaNS = new Namespace();
 	globalNS->Set("Icinga", l_IcingaNS, true);
 }
 

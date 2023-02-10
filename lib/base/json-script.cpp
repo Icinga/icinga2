@@ -15,7 +15,7 @@ static String JsonEncodeShim(const Value& value)
 }
 
 INITIALIZE_ONCE([]() {
-	Namespace::Ptr jsonNS = new Namespace(true);
+	Namespace::Ptr jsonNS = new Namespace();
 
 	/* Methods */
 	jsonNS->Set("encode", new Function("Json#encode", JsonEncodeShim, { "value" }, true));

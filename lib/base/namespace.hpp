@@ -65,7 +65,7 @@ public:
 
 	typedef std::map<String, NamespaceValue>::value_type Pair;
 
-	explicit Namespace(bool constValues = false);
+	Namespace();
 
 	Value Get(const String& field) const;
 	bool Get(const String& field, Value *value) const;
