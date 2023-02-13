@@ -239,8 +239,8 @@ static void AddSuggestions(std::vector<String>& matches, const String& word, con
 		Namespace::Ptr ns = value;
 
 		ObjectLock olock(ns);
-		for (const Namespace::Pair& kv : ns) {
-			AddSuggestion(matches, word, prefix + kv.first);
+		for (auto kv : ns->IterSortedByField()) {
+			AddSuggestion(matches, word, prefix + kv->first);
 		}
 	}
 
@@ -286,8 +286,8 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 
 	{
 		ObjectLock olock(ScriptGlobal::GetGlobals());
-		for (const Namespace::Pair& kv : ScriptGlobal::GetGlobals()) {
-			AddSuggestion(matches, word, kv.first);
+		for (auto kv : ScriptGlobal::GetGlobals()->IterSortedByField()) {
+			AddSuggestion(matches, word, kv->first);
 		}
 	}
 

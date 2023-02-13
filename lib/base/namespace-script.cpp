@@ -48,8 +48,8 @@ static Array::Ptr NamespaceKeys()
 
 	ArrayData keys;
 	ObjectLock olock(self);
-	for (const Namespace::Pair& kv : self) {
-		keys.push_back(kv.first);
+	for (auto kv : self->IterSortedByField()) {
+		keys.push_back(kv->first);
 	}
 	return new Array(std::move(keys));
 }
@@ -62,8 +62,8 @@ static Array::Ptr NamespaceValues()
 
 	ArrayData values;
 	ObjectLock olock(self);
-	for (const Namespace::Pair& kv : self) {
-		values.push_back(kv.second.Val);
+	for (auto kv : self->IterSortedByField()) {
+		values.push_back(kv->second.Val);
 	}
 	return new Array(std::move(values));
 }

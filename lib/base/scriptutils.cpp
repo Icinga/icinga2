@@ -402,8 +402,8 @@ Array::Ptr ScriptUtils::Keys(const Object::Ptr& obj)
 
 	if (ns) {
 		ObjectLock olock(ns);
-		for (const Namespace::Pair& kv : ns) {
-			result.push_back(kv.first);
+		for (auto kv : ns->IterSortedByField()) {
+			result.push_back(kv->first);
 		}
 	}
 

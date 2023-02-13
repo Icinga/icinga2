@@ -93,9 +93,10 @@ void EncodeNamespace(JsonEncoder<prettyPrint>& stateMachine, const Namespace::Pt
 	stateMachine.StartObject();
 
 	ObjectLock olock(ns);
-	for (const Namespace::Pair& kv : ns) {
-		stateMachine.Key(Utility::ValidateUTF8(kv.first));
-		Encode(stateMachine, kv.second.Val);
+
+	for (auto kv : ns->IterSortedByField()) {
+		stateMachine.Key(Utility::ValidateUTF8(kv->first));
+		Encode(stateMachine, kv->second.Val);
 	}
 
 	stateMachine.EndObject();

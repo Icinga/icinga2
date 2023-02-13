@@ -17,6 +17,7 @@
 #include "base/exception.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
+#include <algorithm>
 #include <map>
 #include <vector>
 
@@ -220,6 +221,8 @@ public:
 					keys.push_back(kv.first);
 				}
 			}
+
+			std::sort(keys.begin(), keys.end());
 
 			for (const String& key : keys) {
 				frame.Locals->Set(fkvar, key);
