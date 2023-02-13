@@ -18,10 +18,38 @@
 #include <boost/asio.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <exception>
 
 using namespace icinga;
 
 REGISTER_FUNCTION_NONCONST(Internal, IfwApiCheck, &IfwApiCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+
+static void ReportIfwCheckResult(
+	const Checkable::Ptr& checkable, const CheckCommand::Ptr& command, const CheckResult::Ptr& cr,
+	const String& output, int exitcode = 3, const Array::Ptr& perfdata = nullptr
+)
+{
+	if (Checkable::ExecuteCommandProcessFinishedHandler) {
+		ProcessResult pr;
+		pr.PID = -1;
+		pr.Output = perfdata ? output + " |" + perfdata->Join("") : output;
+		pr.ExecutionStart = start;
+		pr.ExecutionEnd = end;
+		pr.ExitStatus = exitcode;
+
+		Checkable::ExecuteCommandProcessFinishedHandler(command->GetName(), pr);
+	} else {
+		cr->SetOutput(output);
+		cr->SetPerformanceData(perfdata);
+		cr->SetState((ServiceState)exitcode);
+		cr->SetExitStatus(exitcode);
+		cr->SetExecutionStart(start);
+		cr->SetExecutionEnd(end);
+		cr->SetCommand(command->GetName());
+
+		checkable->ProcessCheckResult(cr);
+	}
+}
 
 void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
@@ -59,7 +87,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	String psHost = MacroProcessor::ResolveMacros("$ifw_api_host$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
-	double psPort = MacroProcessor::ResolveMacros("$ifw_api_port$", resolvers, checkable->GetLastCheckResult(),
+	String psPort = MacroProcessor::ResolveMacros("$ifw_api_port$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	Dictionary::Ptr params = new Dictionary();
@@ -122,37 +150,61 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	req.set(field::content_type, "application/json");
 	req.body() = JsonEncode(params);
 
-	Connect(conn.lowest_layer(), psHost, psPort);
-	conn.next_layer().handshake(conn.next_layer().client);
+	try {
+		Connect(conn.lowest_layer(), psHost, psPort);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+		);
+		return;
+	}
+
+	try {
+		conn.next_layer().handshake(conn.next_layer().client);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"TLS handshake with IfW API on host '" + psHost + "' port '" + psPort + "' failed: " + ex.what()
+		);
+		return;
+	}
 
 	double start = Utility::GetTime();
 
-	write(conn, req);
-	conn.flush();
-	read(conn, buf, resp);
+	try {
+		write(conn, req);
+		conn.flush();
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+		);
+		return;
+	}
+
+	try {
+		read(conn, buf, resp);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+		);
+		return;
+	}
 
 	double end = Utility::GetTime();
+	Dictionary::Ptr r;
 
-	Dictionary::Ptr result = Dictionary::Ptr(JsonDecode(resp.body()))->Get(psCommand);
-
-	if (Checkable::ExecuteCommandProcessFinishedHandler) {
-		ProcessResult pr;
-		pr.PID = -1;
-		pr.Output = result->Get("checkresult") + " |" + Array::Ptr(result->Get("perfdata"))->Join("");
-		pr.ExecutionStart = start;
-		pr.ExecutionEnd = end;
-		pr.ExitStatus = result->Get("exitcode");
-
-		Checkable::ExecuteCommandProcessFinishedHandler(command->GetName(), pr);
-	} else {
-		cr->SetOutput(result->Get("checkresult"));
-		cr->SetPerformanceData(result->Get("perfdata"));
-		cr->SetState((ServiceState)(int)result->Get("exitcode"));
-		cr->SetExitStatus(result->Get("exitcode"));
-		cr->SetExecutionStart(start);
-		cr->SetExecutionEnd(end);
-		cr->SetCommand(command->GetName());
-
-		checkable->ProcessCheckResult(cr);
+	try {
+		r = Dictionary::Ptr(JsonDecode(resp.body()))->Get(psCommand);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"Got bad JSON from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+		);
+		return;
 	}
+
+	ReportIfwCheckResult(checkable, command, cr, r->Get("checkresult"), r->Get("exitcode"), r->Get("perfdata"));
 }
