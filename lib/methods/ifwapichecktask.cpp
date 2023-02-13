@@ -1,4 +1,4 @@
-/* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
+/* Icinga 2 | (c) 2023 Icinga GmbH | GPLv2+ */
 
 #ifndef _WIN32
 #	include <stdlib.h>
