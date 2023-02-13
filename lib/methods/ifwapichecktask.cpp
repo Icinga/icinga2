@@ -50,10 +50,10 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	resolvers.emplace_back("command", command);
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
-	String psCommand = MacroProcessor::ResolveMacros("$icinga4win_api_command_name$", resolvers, checkable->GetLastCheckResult(),
+	String psCommand = MacroProcessor::ResolveMacros("$ifw_api_command$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
-	Dictionary::Ptr arguments = MacroProcessor::ResolveMacros("$icinga4win_api_arguments$", resolvers, checkable->GetLastCheckResult(),
+	Dictionary::Ptr arguments = MacroProcessor::ResolveMacros("$ifw_api_arguments$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	Dictionary::Ptr params = new Dictionary();
