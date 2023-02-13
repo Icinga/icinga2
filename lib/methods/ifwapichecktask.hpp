@@ -1,7 +1,6 @@
-/* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
+/* Icinga 2 | (c) 2023 Icinga GmbH | GPLv2+ */
 
-#ifndef ICINGA4WINAPICHECKTASK_H
-#define ICINGA4WINAPICHECKTASK_H
+#pragma once
 
 #include "methods/i2-methods.hpp"
 #include "icinga/service.hpp"
@@ -26,5 +25,3 @@ private:
 };
 
 }
-
-#endif /* ICINGA4WINAPICHECKTASK_H */
