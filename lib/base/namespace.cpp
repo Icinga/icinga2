@@ -6,6 +6,7 @@
 #include "base/primitivetype.hpp"
 #include "base/debuginfo.hpp"
 #include "base/exception.hpp"
+#include <algorithm>
 #include <sstream>
 
 using namespace icinga;
@@ -120,6 +121,24 @@ void Namespace::Freeze() {
 	ObjectLock olock(this);
 
 	m_Frozen = true;
+}
+
+std::vector<Namespace::Iterator> Namespace::IterSortedByField()
+{
+	ASSERT(OwnsLock());
+
+	std::vector<Iterator> ret;
+	ret.reserve(m_Data.size());
+
+	for (auto pos (m_Data.begin()), stop (m_Data.end()); pos != stop; ++pos) {
+		ret.emplace_back(pos);
+	}
+
+	std::sort(ret.begin(), ret.end(), [](auto& lhs, auto& rhs) {
+		return lhs->first < rhs->first;
+	});
+
+	return ret;
 }
 
 std::shared_lock<std::shared_timed_mutex> Namespace::ReadLockUnlessFrozen() const

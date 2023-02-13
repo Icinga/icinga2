@@ -78,6 +78,7 @@ public:
 	Iterator End();
 
 	size_t GetLength() const;
+	std::vector<Iterator> IterSortedByField();
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
 	void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
