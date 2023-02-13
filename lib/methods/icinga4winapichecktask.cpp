@@ -21,9 +21,9 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION_NONCONST(Internal, Icinga4WinApiCheck, &Icinga4WinApiCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, IfwApiCheck, &IfwApiCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
-void Icinga4WinApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
+void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	using namespace boost::asio;

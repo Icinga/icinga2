@@ -15,14 +15,14 @@ namespace icinga
  *
  * @ingroup methods
  */
-class Icinga4WinApiCheckTask
+class IfwApiCheckTask
 {
 public:
 	static void ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
-	Icinga4WinApiCheckTask();
+	IfwApiCheckTask();
 };
 
 }
