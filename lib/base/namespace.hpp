@@ -13,6 +13,7 @@
 #include <vector>
 #include <memory>
 #include <shared_mutex>
+#include <unordered_map>
 
 namespace icinga
 {
@@ -61,9 +62,8 @@ class Namespace final : public Object
 public:
 	DECLARE_OBJECT(Namespace);
 
-	typedef std::map<String, NamespaceValue>::iterator Iterator;
-
-	typedef std::map<String, NamespaceValue>::value_type Pair;
+	typedef std::unordered_map<String, NamespaceValue>::iterator Iterator;
+	typedef std::unordered_map<String, NamespaceValue>::value_type Pair;
 
 	explicit Namespace(bool constValues = false);
 
@@ -90,7 +90,7 @@ public:
 private:
 	std::shared_lock<std::shared_timed_mutex> ReadLockUnlessFrozen() const;
 
-	std::map<String, NamespaceValue> m_Data;
+	std::unordered_map<String, NamespaceValue> m_Data;
 	mutable std::shared_timed_mutex m_DataMutex;
 	bool m_ConstValues;
 	std::atomic<bool> m_Frozen;
