@@ -2267,13 +2267,13 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 
 Name                       | Description
 ---------------------------|-----------------------------------------------------------------------------------------
-elasticsearch_hostname     | **Optional.** Hostname of the Elasticsearch instance (default 'localhost').
-elasticsearch_port         | **Optional.** Port of the Elasticsearch instance (default 9200).
+elasticsearch_hostname     | **Optional.** Hostname of the Elasticsearch instance. Defaults to "localhost".
+elasticsearch_port         | **Optional.** Port of the Elasticsearch instance. Defaults to 9200.
 elasticsearch_username     | **Optional.** Username if authentication is required. No value defined as default.
 elasticsearch_password     | **Optional.** Password if authentication is required. No value defined as default.
-elasticsearch_tls          | **Optional.** Use a HTTPS connection (default false).
-elasticsearch_insecure     | **Optional.** Skip the verification of the server's TLS certificate (default false).
-elasticsearch_timeout      | **Optional.** Timeout in seconds for the CheckPlugin (default 30).
+elasticsearch_tls          | **Optional.** Use a HTTPS connection. Defaults to false.
+elasticsearch_insecure     | **Optional.** Skip the verification of the server's TLS certificate. Defaults to false.
+elasticsearch_timeout      | **Optional.** Timeout in seconds for the CheckPlugin. Defaults to 30 seconds.
 
 #### Elasticsearch Query <a id="plugin-check-command-elasticsearch-query"></a>
 
@@ -2285,11 +2285,11 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 Name                    	 | Description
 -----------------------------|-----------------------------------------------------------------------------------------
 elasticsearch_query          | **Required.** The Elasticsearch query.
-elasticsearch_query_index    | **Optional.** Name of the Index which will be used (default '_all').
-elasticsearch_query_msgkey   | **Optional.** Message of messagekey to display.
-elasticsearch_query_msglen   | **Optional.** Number of characters to display in the latest message (default 80).
-elasticsearch_query_warning  | **Optional.** Warning threshold for total hits (default '20').
-elasticsearch_query_critical | **Optional.** Critical threshold for total hits (default '50').
+elasticsearch_query_index    | **Optional.** Name of the Index which will be used. Defaults to "_all".
+elasticsearch_query_msgkey   | **Optional.** Message of messagekey to display. No value defined as default.
+elasticsearch_query_msglen   | **Optional.** Number of characters to display in the latest message. Defaults to 80.
+elasticsearch_query_warning  | **Optional.** Warning threshold for total hits. Defaults to "20".
+elasticsearch_query_critical | **Optional.** Critical threshold for total hits. Defaults to "50".
 
 #### Elasticsearch Health <a id="plugin-check-command-elasticsearch-health"></a>
 
