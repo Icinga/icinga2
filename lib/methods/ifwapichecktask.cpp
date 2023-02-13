@@ -56,6 +56,12 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	Dictionary::Ptr arguments = MacroProcessor::ResolveMacros("$ifw_api_arguments$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
+	String psHost = MacroProcessor::ResolveMacros("$ifw_api_host$", resolvers, checkable->GetLastCheckResult(),
+		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+
+	double psPort = MacroProcessor::ResolveMacros("$ifw_api_port$", resolvers, checkable->GetLastCheckResult(),
+		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+
 	Dictionary::Ptr params = new Dictionary();
 
 	if (arguments) {
@@ -116,7 +122,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	req.set(field::content_type, "application/json");
 	req.body() = JsonEncode(params);
 
-	Connect(conn.lowest_layer(), "127.0.0.1", "5668");
+	Connect(conn.lowest_layer(), psHost, psPort);
 	conn.next_layer().handshake(conn.next_layer().client);
 
 	double start = Utility::GetTime();
