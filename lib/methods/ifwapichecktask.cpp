@@ -60,17 +60,32 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	if (arguments) {
 		ObjectLock oLock (arguments);
-		Array::Ptr dummy = new Array();
+		Array::Ptr emptyCmd = new Array();
 
 		for (auto& kv : arguments) {
+			/* MacroProcessor::ResolveArguments() converts
+			 *
+			 * [ "check_example" ]
+			 * and
+			 * {
+			 * 	 "-f" = { set_if = "$example_flag$" }
+			 * 	 "-a" = "$example_arg$"
+			 * }
+			 *
+			 * to
+			 *
+			 * [ "check_example", "-f", "-a", "X" ]
+			 *
+			 * but we need the args one-by-one like [ "-f" ] or [ "-a", "X" ].
+			 */
 			Array::Ptr arg = MacroProcessor::ResolveArguments(
-				dummy, new Dictionary({{kv.first, kv.second}}), resolvers,
+				emptyCmd, new Dictionary({{kv.first, kv.second}}), resolvers,
 				checkable->GetLastCheckResult(), resolvedMacros, useResolvedMacros
 			);
 
 			switch (arg ? arg->GetLength() : 0) {
 				case 0:
-					continue;
+					break;
 				case 1:
 					params->Set(arg->Get(0), true);
 					break;
