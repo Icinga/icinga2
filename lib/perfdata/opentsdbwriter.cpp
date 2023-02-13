@@ -133,7 +133,7 @@ void OpenTsdbWriter::ReconnectTimerHandler()
 		icinga::Connect(m_Stream->lowest_layer(), GetHost(), GetPort());
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "OpenTsdbWriter")
-			<< "Can't connect to OpenTSDB on host '" << GetHost() << "' port '" << GetPort() << ".'";
+			<< "Can't connect to OpenTSDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
 		SetConnected(false);
 
