@@ -218,5 +218,17 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		return;
 	}
 
-	ReportIfwCheckResult(checkable, command, cr, result->Get("checkresult"), exitcode, result->Get("perfdata"));
+	Array::Ptr perfdata;
+
+	try {
+		perfdata = result->Get("perfdata");
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"Got bad perfdata from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+		);
+		return;
+	}
+
+	ReportIfwCheckResult(checkable, command, cr, result->Get("checkresult"), exitcode, perfdata);
 }
