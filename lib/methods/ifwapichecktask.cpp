@@ -3,7 +3,7 @@
 #ifndef _WIN32
 #	include <stdlib.h>
 #endif /* _WIN32 */
-#include "methods/icinga4winapichecktask.hpp"
+#include "methods/ifwapichecktask.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/pluginutility.hpp"
 #include "base/utility.hpp"
