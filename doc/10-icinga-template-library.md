@@ -2259,7 +2259,7 @@ snmp_service_count         | **Optional.** Compare matching services with a spec
 snmp_service_showall       | **Optional.** Show all services in the output, instead of only the non-active ones. Defaults to false.
 snmp_service_noregexp      | **Optional.** Do not use regexp to match NAME in service description. Defaults to false.
 
-### Elasticsearch (NETWAYS) <a id="plugin-check-command-elasticsearch"></a>
+### elasticsearch (NETWAYS) <a id="plugin-check-command-elasticsearch"></a>
 
 This category includes all subcommands using the [check_elasticsearch](https://github.com/NETWAYS/check_elasticsearch) plugin.
 
@@ -2275,7 +2275,7 @@ elasticsearch_tls          | **Optional.** Use a HTTPS connection. Defaults to f
 elasticsearch_insecure     | **Optional.** Skip the verification of the server's TLS certificate. Defaults to false.
 elasticsearch_timeout      | **Optional.** Timeout in seconds for the CheckPlugin. Defaults to 30 seconds.
 
-#### Elasticsearch Query <a id="plugin-check-command-elasticsearch-query"></a>
+#### elasticsearch-query <a id="plugin-check-command-elasticsearch-query"></a>
 
 This subcommand is provided by check_elasticsearch executed as `elasticsearch query`.
 Checks the total hits/results of an Elasticsearch query.
@@ -2291,7 +2291,7 @@ elasticsearch_query_msglen   | **Optional.** Number of characters to display in 
 elasticsearch_query_warning  | **Optional.** Warning threshold for total hits. Defaults to "20".
 elasticsearch_query_critical | **Optional.** Critical threshold for total hits. Defaults to "50".
 
-#### Elasticsearch Health <a id="plugin-check-command-elasticsearch-health"></a>
+#### elasticsearch-health <a id="plugin-check-command-elasticsearch-health"></a>
 
 This subcommand is provided by check_elasticsearch executed as `elasticsearch health`.
 Checks the health status of an Elasticsearch cluster.
