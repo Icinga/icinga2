@@ -1444,7 +1444,7 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 			} else if (IsWindowsVersionOrGreater(6, 2, 0)) {
 				*platformVersion = "Server 2012";
 			} else {
-				*platformVersion = "Server 2008 (EOL)";
+				*platformVersion = "Server 2008";
 			}
 
 		} else {
@@ -1455,11 +1455,11 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 			else if (IsWindows8OrGreater())
 				*platformVersion = "8";
 			else if (IsWindows7SP1OrGreater())
-				*platformVersion = "7 SP1 (EOL)";
+				*platformVersion = "7 SP1";
 			else if (IsWindows7OrGreater())
-				*platformVersion = "7 (EOL)";
+				*platformVersion = "7";
 			else
-				*platformVersion = "Vista (EOL)";
+				*platformVersion = "Vista";
 		}
 	}
 
