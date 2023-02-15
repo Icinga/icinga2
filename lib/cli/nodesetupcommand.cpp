@@ -6,6 +6,7 @@
 #include "cli/apisetuputility.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/pkiutility.hpp"
+#include "base/atomic-file.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -172,8 +173,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apipath);
 
-	std::fstream fp;
-	String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0644, fp);
+	AtomicFile fp (apipath, 0644);
 
 	fp << "/**\n"
 		<< " * The API listener is used for distributed monitoring setups.\n"
@@ -205,9 +205,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 		<< "  ticket_salt = TicketSalt\n"
 		<< "}\n";
 
-	fp.close();
-
-	Utility::RenameFile(tempApiPath, apipath);
+	fp.Commit();
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
 	if (endpointName != Utility::GetFQDN()) {
@@ -447,8 +445,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apipath);
 
-	std::fstream fp;
-	String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0644, fp);
+	AtomicFile fp (apipath, 0644);
 
 	fp << "/**\n"
 		<< " * The API listener is used for distributed monitoring setups.\n"
@@ -479,9 +476,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	fp << "\n"
 		<< "}\n";
 
-	fp.close();
-
-	Utility::RenameFile(tempApiPath, apipath);
+	fp.Commit();
 
 	/* Generate zones configuration. */
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
@@ -529,21 +524,17 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	if (!ticket.IsEmpty()) {
 		String ticketPath = ApiListener::GetCertsDir() + "/ticket";
+		AtomicFile af (ticketPath, 0600);
 
-		String tempTicketPath = Utility::CreateTempFile(ticketPath + ".XXXXXX", 0600, fp);
-
-		if (!Utility::SetFileOwnership(tempTicketPath, user, group)) {
+		if (!Utility::SetFileOwnership(af.GetTempFilename(), user, group)) {
 			Log(LogWarning, "cli")
 				<< "Cannot set ownership for user '" << user
 				<< "' group '" << group
-				<< "' on file '" << tempTicketPath << "'. Verify it yourself!";
+				<< "' on file '" << ticketPath << "'. Verify it yourself!";
 		}
 
-		fp << ticket;
-
-		fp.close();
-
-		Utility::RenameFile(tempTicketPath, ticketPath);
+		af << ticket;
+		af.Commit();
 	}
 
 	/* If no parent connection was made, the user must supply the ca.crt before restarting Icinga 2.*/

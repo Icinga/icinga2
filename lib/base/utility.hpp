@@ -132,8 +132,6 @@ public:
 
 	static String ValidateUTF8(const String& input);
 
-	static String CreateTempFile(const String& path, int mode, std::fstream& fp);
-
 #ifdef _WIN32
 	static int MksTemp(char *tmpl);
 #endif /* _WIN32 */

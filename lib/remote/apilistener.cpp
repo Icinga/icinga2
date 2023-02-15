@@ -8,6 +8,7 @@
 #include "remote/apifunction.hpp"
 #include "remote/configpackageutility.hpp"
 #include "remote/configobjectutility.hpp"
+#include "base/atomic-file.hpp"
 #include "base/convert.hpp"
 #include "base/defer.hpp"
 #include "base/io-engine.hpp"
@@ -324,14 +325,7 @@ void ApiListener::RenewOwnCert()
 		return;
 	}
 
-	std::fstream certfp;
-	auto tempCertPath (Utility::CreateTempFile(certPath + ".XXXXXX", 0644, certfp));
-
-	certfp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-	certfp << CertificateToString(cert);
-	certfp.close();
-
-	Utility::RenameFile(tempCertPath, certPath);
+	AtomicFile::Write(certPath, 0644, CertificateToString(cert));
 	UpdateSSLContext();
 }
 

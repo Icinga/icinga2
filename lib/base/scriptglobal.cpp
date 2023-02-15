@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/atomic-file.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/singleton.hpp"
 #include "base/logger.hpp"
@@ -83,12 +84,7 @@ void ScriptGlobal::WriteToFile(const String& filename)
 	Log(LogInformation, "ScriptGlobal")
 		<< "Dumping variables to file '" << filename << "'";
 
-	std::fstream fp;
-	String tempFilename = Utility::CreateTempFile(filename + ".XXXXXX", 0600, fp);
-
-	if (!fp)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + tempFilename + "' file"));
-
+	AtomicFile fp (filename, 0600);
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
 	ObjectLock olock(m_Globals);
@@ -109,9 +105,6 @@ void ScriptGlobal::WriteToFile(const String& filename)
 	}
 
 	sfp->Close();
-
-	fp.close();
-
-	Utility::RenameFile(tempFilename, filename);
+	fp.Commit();
 }
 

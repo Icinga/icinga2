@@ -18,8 +18,15 @@ namespace icinga
 class AtomicFile : public boost::iostreams::stream<boost::iostreams::file_descriptor>
 {
 public:
+	static void Write(String path, int mode, const String& content);
+
 	AtomicFile(String path, int mode);
 	~AtomicFile();
+
+	inline const String& GetTempFilename() const noexcept
+	{
+		return m_TempFilename;
+	}
 
 	void Commit();
 
