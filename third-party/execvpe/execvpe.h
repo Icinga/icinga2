@@ -3,16 +3,31 @@
 #ifndef EXECVPE_H
 #define EXECVPE_H
 
+#ifndef _MSC_VER
+
+#ifdef HAVE_EXECVPE
+
+#include <unistd.h>
+
+inline int icinga2_execvpe(const char *file, char *const argv[], char *const envp[])
+{
+	return execvpe(file, argv, envp);
+}
+
+#else /* HAVE_EXECVPE */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#ifndef _MSC_VER
 int icinga2_execvpe(const char *file, char *const argv[], char *const envp[]);
-#endif /* _MSC_VER */
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#endif /* HAVE_EXECVPE */
+
+#endif /* _MSC_VER */
 
 #endif /* EXECVPE_H */
