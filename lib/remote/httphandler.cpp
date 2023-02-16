@@ -57,7 +57,7 @@ void HttpHandler::ProcessRequest(
 	Dictionary::Ptr node = m_UrlTree;
 	std::vector<HttpHandler::Ptr> handlers;
 
-	Url::Ptr url = new Url(request.target().to_string());
+	Url::Ptr url = new Url(std::string(request.target()));
 	auto& path (url->GetPath());
 
 	for (std::vector<String>::size_type i = 0; i <= path.size(); i++) {
