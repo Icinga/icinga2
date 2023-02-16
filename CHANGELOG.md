@@ -7,6 +7,23 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.12.10 (2023-02-16)
+
+This security release updates Boost and OpenSSL libraries bundled on Windows
+and repairs broken SELinux policies.
+
+### Security
+
+* Windows: update bundled OpenSSL to v1.1.1t. #9686
+
+### Bugfixes
+
+* SELinux: fix user and domain creation by explicitly setting the role. #9689
+
+### Enhancements
+
+* Windows: update bundled Boost to v1.81. #9686
+
 ## 2.12.9 (2022-06-30)
 
 This release includes some fixes and a performance improvement
