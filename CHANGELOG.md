@@ -1099,7 +1099,7 @@ and repairs broken SELinux policies.
 
 ### Bugfixes
 
-* SELinux: repair broken policies. #9689
+* SELinux: fix user and domain creation by explicitly setting the role. #9689
 
 ### Enhancements
 
