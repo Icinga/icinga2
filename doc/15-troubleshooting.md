@@ -176,6 +176,60 @@ C:\> cd C:\ProgramData\icinga2\var\log\icinga2
 C:\ProgramData\icinga2\var\log\icinga2> Get-Content .\debug.log -tail 10 -wait
 ```
 
+## Icinga starts/restarts/reloads very slowly
+
+Icinga performs a lot of memory allocations, especially during startup.
+Swapping out the allocator may increase the startup performance.
+The following instructions assume you run Linux and systemd.
+
+On RHEL or derivates add the EPEL repository first (if not already done).
+Let your package manager search for package names containing "jemalloc".
+Pick preferably one named "libjemalloc" followed by a number,
+just "jemalloc" otherwise, and install it.
+
+Run `ldconfig -p |grep libjemalloc`. It should print something similar to:
+
+```
+	libjemalloc.so.2 (libc6,x86-64) => /lib/x86_64-linux-gnu/libjemalloc.so.2
+```
+
+I.e. a relative file name followed by an absolute one. Remember the latter.
+
+Measure how long Icinga needs to load its config without and with libjemalloc:
+
+```bash
+time icinga2 daemon -C
+
+time env LD_PRELOAD=/lib/x86_64-linux-gnu/libjemalloc.so.2 icinga2 daemon -C
+```
+
+Replace `/lib/x86_64-linux-gnu/libjemalloc.so.2` with the absolute path
+you actually got from `ldconfig -p`!
+
+Please do us a favor and share your results
+[with us](https://community.icinga.com/t/icinga-reloads-config-slowly-try-jemalloc/11032).
+
+If it's faster with libjemalloc, do the following to persist the change.
+
+Run `systemctl edit icinga2.service`. This will open an editor.
+Add the following, save the file and close the editor.
+
+```
+[Service]
+Environment=LD_PRELOAD=/lib/x86_64-linux-gnu/libjemalloc.so.2
+```
+
+Replace `/lib/x86_64-linux-gnu/libjemalloc.so.2` with the absolute path
+you actually got from `ldconfig -p`!
+
+Restart Icinga. Verify whether your changes took effect and enjoy the speed:
+
+```
+# lsof -p `cat /var/run/icinga2/icinga2.pid` |grep libjemalloc
+icinga2 7764 nagios  mem    REG                8,5   744776 2631636 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+#
+```
+
 ## Configuration Troubleshooting <a id="troubleshooting-configuration"></a>
 
 ### List Configuration Objects <a id="troubleshooting-list-configuration-objects"></a>
@@ -1628,53 +1682,26 @@ In order to solve this problem, remove the mentioned files from `zones.d` and us
 of syncing plugin binaries to your satellites and agents.
 
 
-#### Zones in Zones doesn't work <a id="troubleshooting-cluster-config-zones-in-zones"></a>
+#### Zones in Zones <a id="troubleshooting-cluster-config-zones-in-zones"></a>
 
-The cluster config sync works in the way that configuration
-put into `/etc/icinga2/zones.d` only is included when configured
-outside in `/etc/icinga2/zones.conf`.
+The cluster config sync works in a such manner that any `/etc/icinga2/zones.d/` subdirectory is included only when it is
+named after a known zone by the local `Endpoint`.
 
-If you for example create a "Zone Inception" with defining the
-`satellite` zone in `zones.d/master`, the config compiler does not
-re-run and include this zone config recursively from `zones.d/satellite`.
+If you for example add some configs in to `zones.d/satellite` and forgot to define the `satellite` zone
+in `zones.d/master` or outside in `/etc/icinga2/zones.conf`, the config compiler will not include
+this config from the `zones.d/satellite` zone directory.
 
 Since v2.11, the config compiler is only including directories where a
-zone has been configured. Otherwise it would include renamed old zones,
+zone has been configured. Otherwise, it would include renamed old zones,
 broken zones, etc. and those long-lasting bugs have been now fixed.
 
-A more concrete example: Masters and Satellites still need to know the Zone hierarchy outside of `zones.d` synced configuration.
+Here are some working examples:
 
-**Doesn't work**
+**Example: Everything in `zones.conf`**
 
-```
-vim /etc/icinga2/zones.conf
-
-object Zone "master" {
-  endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
-}
-```
-
-```
-vim /etc/icinga2/zones.d/master/satellite-zones.conf
-
-object Zone "satellite" {
-  endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite1.localdomain" ]
-}
-```
-
-```
-vim /etc/icinga2/zones.d/satellite/satellite-hosts.conf
-
-object Host "agent" { ... }
-```
-
-The `agent` host object will never reach the satellite, since the master does not have
-the `satellite` zone configured outside of zones.d.
-
-
-**Works**
-
-Each instance needs to know this, and know about the endpoints first:
+Each instance needs to know the `Zone` and `Endpoint` definitions for itself and all directly connected instances in order
+to successfully establish a connection with each other. This can be achieved by placing all `Endpoint` and `Zone` definitions
+of all Icinga 2 instances known by the local endpoint in this single file.
 
 ```
 vim /etc/icinga2/zones.conf
@@ -1682,22 +1709,39 @@ vim /etc/icinga2/zones.conf
 object Endpoint "icinga2-master1.localdomain" { ... }
 object Endpoint "icinga2-master2.localdomain" { ... }
 
-object Endpoint "icinga2-satellite1.localdomain" { ... }
-object Endpoint "icinga2-satellite2.localdomain" { ... }
-```
-
-Then the zone hierarchy as trust and also config sync inclusion is required.
-
-```
-vim /etc/icinga2/zones.conf
-
 object Zone "master" {
   endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
 }
 
+object Endpoint "icinga2-satellite1.localdomain" { ... }
+object Endpoint "icinga2-satellite2.localdomain" { ... }
+
 object Zone "satellite" {
   endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite1.localdomain" ]
+  parent = "master"
 }
+```
+
+**Example: Child zones in `zones.d/`**
+
+An additional option that Icinga 2 offers is the possibility to outsource all *child* `Endpoint` definitions of the
+local Icinga 2 instance to the `zones.d/` directory. As an example, we can place the satellite `Zone` and `Endpoint` definition
+from the above example into `zones.d/` underneath a directory named exactly like the local endpoint `Zone` name, which
+in our case is `master`.
+
+```
+mkdir /etc/icinga2/zones.d/master
+vim /etc/icinga2/zones.d/master/satellite.conf
+
+object Endpoint "icinga2-satellite1.localdomain" { ... }
+object Endpoint "icinga2-satellite2.localdomain" { ... }
+
+object Zone "satellite" {
+  endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite1.localdomain" ]
+  parent = "master"
+}
+
+...
 ```
 
 Once done, you can start deploying actual monitoring objects into the satellite zone.
@@ -1708,10 +1752,12 @@ vim /etc/icinga2/zones.d/satellite/satellite-hosts.conf
 object Host "agent" { ... }
 ```
 
-That's also explained and described in the [documentation](06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-agents).
+Keep in mind that the `agent` host object will never reach the satellite, when the master does not have the
+`satellite` zone configured either in `zones.d/master` nor outside the `zones.d` directory. That's also explained and
+described in the [documentation](06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-agents).
 
 The thing you can do: For `command_endpoint` agents like inside the Director:
-Host -> Agent -> yes, there is no config sync for this zone in place. Therefore
+Host -> Agent -> yes, there is no config sync for this zone in place. Therefore,
 it is valid to just sync their zones via the config sync.
 
 #### Director Changes

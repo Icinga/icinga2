@@ -477,7 +477,7 @@ Configuration Attributes:
   vars                      | Dictionary            | **Optional.** A dictionary containing custom variables that are specific to this notification object.
   users                     | Array of object names | **Required.** A list of user names who should be notified. **Optional.** if the `user_groups` attribute is set.
   user\_groups              | Array of object names | **Required.** A list of user group names who should be notified. **Optional.** if the `users` attribute is set.
-  times                     | Dictionary            | **Optional.** A dictionary containing `begin` and `end` attributes for the notification.
+  times                     | Dictionary            | **Optional.** A dictionary containing `begin` and `end` attributes for the notification. If `end` is set to 0, `Notifications` are disabled permanently. Please read the [notification delay](03-monitoring-basics.md#notification-delay) chapter for details.
   command                   | Object name           | **Required.** The name of the notification command which should be executed when the notification is triggered.
   interval                  | Duration              | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes. If set to 0, [re-notifications](03-monitoring-basics.md#disable-renotification) are disabled.
   period                    | Object name           | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default (effectively 24x7).
@@ -1494,6 +1494,11 @@ Cleanup Items:
   servicechecks\_age              | Duration              | **Optional.** Max age for servicechecks table rows (start\_time). Defaults to 0 (never).
   systemcommands\_age             | Duration              | **Optional.** Max age for systemcommands table rows (start\_time). Defaults to 0 (never).
 
+> **Supported units**
+>
+> Supported suffixes include ms (milliseconds), s (seconds), m (minutes), h (hours) and d (days).
+> Check the [language reference](17-language-reference.md#duration-literals).
+
 Data Categories:
 
   Name                 | Description            | Required by
@@ -1592,6 +1597,11 @@ Cleanup Items:
   statehistory\_age               | Duration              | **Optional.** Max age for statehistory table rows (state\_time). Defaults to 0 (never).
   servicechecks\_age              | Duration              | **Optional.** Max age for servicechecks table rows (start\_time). Defaults to 0 (never).
   systemcommands\_age             | Duration              | **Optional.** Max age for systemcommands table rows (start\_time). Defaults to 0 (never).
+
+> **Supported units**
+>
+> Supported suffixes include ms (milliseconds), s (seconds), m (minutes), h (hours) and d (days).
+> Check the [language reference](17-language-reference.md#duration-literals).
 
 Data Categories:
 

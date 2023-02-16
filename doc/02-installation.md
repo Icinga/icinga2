@@ -23,18 +23,18 @@ We recommend using our official repositories. Here's how to add it to your syste
 ### Debian Repository <a id="debian-repository"></a>
 
 ```bash
-apt-get update
-apt-get -y install apt-transport-https wget gnupg
+apt update
+apt -y install apt-transport-https wget gnupg
 
-wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg
 
 DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb https://packages.icinga.com/debian icinga-${DIST} main" > \
+ echo "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/debian icinga-${DIST} main" > \
  /etc/apt/sources.list.d/${DIST}-icinga.list
- echo "deb-src https://packages.icinga.com/debian icinga-${DIST} main" >> \
+ echo "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/debian icinga-${DIST} main" >> \
  /etc/apt/sources.list.d/${DIST}-icinga.list
 
-apt-get update
+apt update
 ```
 
 #### Debian Backports Repository <a id="debian-backports-repository"></a>
@@ -48,7 +48,7 @@ DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
  echo "deb https://deb.debian.org/debian ${DIST}-backports main" > \
  /etc/apt/sources.list.d/${DIST}-backports.list
 
-apt-get update
+apt update
 ```
 
 <!-- {% endif %} -->
@@ -57,18 +57,18 @@ apt-get update
 ### Ubuntu Repository <a id="ubuntu-repository"></a>
 
 ```bash
-apt-get update
-apt-get -y install apt-transport-https wget gnupg
+apt update
+apt -y install apt-transport-https wget gnupg
 
-wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg
 
 . /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
- echo "deb https://packages.icinga.com/ubuntu icinga-${DIST} main" > \
+ echo "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/ubuntu icinga-${DIST} main" > \
  /etc/apt/sources.list.d/${DIST}-icinga.list
- echo "deb-src https://packages.icinga.com/ubuntu icinga-${DIST} main" >> \
+ echo "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/ubuntu icinga-${DIST} main" >> \
  /etc/apt/sources.list.d/${DIST}-icinga.list
 
-apt-get update
+apt update
 ```
 <!-- {% endif %} -->
 
@@ -76,18 +76,18 @@ apt-get update
 ### Raspbian Repository <a id="raspbian-repository"></a>
 
 ```bash
-apt-get update
-apt-get -y install apt-transport-https wget gnupg
+apt update
+apt -y install apt-transport-https wget gnupg
 
-wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg
 
 DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb https://packages.icinga.com/raspbian icinga-${DIST} main" > \
+ echo "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/raspbian icinga-${DIST} main" > \
  /etc/apt/sources.list.d/icinga.list
- echo "deb-src https://packages.icinga.com/raspbian icinga-${DIST} main" >> \
+ echo "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/raspbian icinga-${DIST} main" >> \
  /etc/apt/sources.list.d/icinga.list
 
-apt-get update
+apt update
 ```
 <!-- {% endif %} -->
 
@@ -151,7 +151,8 @@ yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.r
 
 ```bash
 rpm --import https://packages.icinga.com/icinga.key
-dnf install https://packages.icinga.com/fedora/icinga-rpm-release-$(. /etc/os-release; echo "$VERSION_ID")-latest.noarch.rpm
+dnf install -y 'dnf-command(config-manager)'
+dnf config-manager --add-repo https://packages.icinga.com/fedora/$(. /etc/os-release; echo "$VERSION_ID")/release
 ```
 <!-- {% endif %} -->
 
@@ -247,7 +248,7 @@ with `root` permissions unless noted otherwise.
 #### Debian / Ubuntu / Raspbian
 <!-- {% endif %} -->
 ```bash
-apt-get install icinga2
+apt install icinga2
 ```
 <!-- {% endif %} -->
 
@@ -359,7 +360,7 @@ to determine where to find the plugin binaries.
 #### Debian / Ubuntu / Raspbian
 <!-- {% endif %} -->
 ```bash
-apt-get install monitoring-plugins
+apt install monitoring-plugins
 ```
 <!-- {% endif %} -->
 
@@ -411,7 +412,7 @@ as part of the [server:monitoring repository](https://build.opensuse.org/project
 Please make sure to enable this repository beforehand.
 
 ```bash
-zypper install monitoring-plugins
+zypper install --recommends monitoring-plugins-all
 ```
 <!-- {% endif %} -->
 
@@ -530,7 +531,7 @@ yum install icingadb-redis
 ##### Debian / Ubuntu
 <!-- {% endif %} -->
 ```bash
-apt-get install icingadb-redis
+apt install icingadb-redis
 ```
 <!-- {% endif %} -->
 

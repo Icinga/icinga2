@@ -1766,13 +1766,13 @@ cd .\build\
   -DBoost_INCLUDE_DIR=C:\local\boost_1_80_0-Win64 `
   -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe `
   -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe `
-  -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF ..
+  -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=OFF ..
 
 & "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" .\icinga2.sln
 ```
 
 Building icinga2.sln via Visual Studio itself seems to require a reboot
-after installing the build tools and building once via command line.
+after installing the build tools.
 
 #### Chocolatey
 

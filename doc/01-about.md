@@ -7,7 +7,7 @@ the availability of your network resources, notifies users of outages, and gener
 performance data for reporting.
 
 Scalable and extensible, Icinga can monitor large, complex environments across
-multiple locations.
+multiple locations. This includes your data center as well as your private, public, or hybrid clouds.
 
 Icinga 2 is the monitoring server and requires [Icinga Web 2](https://icinga.com/products/)
 on top in your Icinga Stack. The [configuration](https://icinga.com/products/configuration/)

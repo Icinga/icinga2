@@ -1572,12 +1572,18 @@ send notifications to all group members.
 > Only users who have been notified of a problem before  (`Warning`, `Critical`, `Unknown`
 states for services, `Down` for hosts) will receive `Recovery` notifications.
 
-Icinga 2 v2.10 allows you to configure `Acknowledgement` and/or `Recovery`
+Icinga 2 v2.10 allows you to configure a `User` object with `Acknowledgement` and/or `Recovery`
 without a `Problem` notification. These notifications will be sent without
 any problem notifications beforehand, and can be used for e.g. ticket systems.
 
 ```
+object User "ticketadmin" {
+  display_name = "Ticket Admin"
+  enable_notifications = true
+  states = [ OK, Warning, Critical ]
   types = [ Acknowledgement, Recovery ]
+  email = "ticket@localhost"
+}
 ```
 
 ### Notifications: Users from Host/Service <a id="alert-notifications-users-host-service"></a>
@@ -1817,8 +1823,14 @@ Sometimes the problem in question should not be announced when the notification 
 (the object reaching the `HARD` state), but after a certain period. In Icinga 2
 you can use the `times` dictionary and set `begin = 15m` as key and value if you want to
 postpone the notification window for 15 minutes. Leave out the `end` key -- if not set,
-Icinga 2 will not check against any end time for this notification. Make sure to
-specify a relatively low notification `interval` to get notified soon enough again.
+Icinga 2 will not check against any end time for this notification.
+
+> **Note**
+>
+> Setting the `end` key to `0` will stop sending notifications immediately
+> when a problem occurs, effectively disabling the notification.
+
+Make sure to specify a relatively low notification `interval` to get notified soon enough again.
 
 ```
 apply Notification "mail" to Service {
@@ -1834,6 +1846,10 @@ apply Notification "mail" to Service {
   assign where service.name == "ping4"
 }
 ```
+
+Also note that this mechanism doesn't take downtimes etc. into account, only
+the `HARD` state change time matters. E.g. for a problem which occurred in the
+middle of a downtime from 2 PM to 4 PM `times.begin = 2h` means 5 PM, not 6 PM.
 
 ### Disable Re-notifications <a id="disable-renotification"></a>
 
