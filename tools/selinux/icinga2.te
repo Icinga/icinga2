@@ -258,6 +258,7 @@ optional_policy(`
 # Icinga2 Admin Role
 #
 
+role icinga2adm_r;
 userdom_unpriv_user_template(icinga2adm)
 
 icinga2_admin(icinga2adm_t, icinga2adm_r)
