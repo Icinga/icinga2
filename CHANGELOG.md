@@ -18,7 +18,7 @@ and repairs broken SELinux policies. By the way it fixes several other bugs.
 
 ### Bugfixes
 
-* SELinux: repair broken policies. #9690
+* SELinux: fix user and domain creation by explicitly setting the role. #9690
 * Signal handlers: don't interrupt and break plugins spawning. #9682
 * Icinga DB: take check\_period into account during overdue calculation. #9679
 * Avoid corrupted files: use fsync(2)/FlushFileBuffers() everywhere. #9681
