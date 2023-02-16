@@ -7,6 +7,28 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.7 (2023-02-16)
+
+This security release updates Boost and OpenSSL libraries bundled on Windows
+and repairs broken SELinux policies. By the way it fixes several other bugs.
+
+### Security
+
+* Windows: update bundled OpenSSL to v1.1.1t. #9672
+
+### Bugfixes
+
+* SELinux: repair broken policies. #9690
+* Signal handlers: don't interrupt and break plugins spawning. #9682
+* Icinga DB: take check\_period into account during overdue calculation. #9679
+* Avoid corrupted files: use fsync(2)/FlushFileBuffers() everywhere. #9681
+* Solaris: fix compile error. #9680
+
+### Enhancements
+
+* Windows: update bundled Boost to v1.81. #9678
+* Documentation: several fixes and improvements. #9671
+
 ## 2.13.6 (2022-11-08)
 
 The main focus of version 2.13.6 is improved performance of Icinga DB and apply rules.
