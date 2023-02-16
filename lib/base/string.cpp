@@ -128,15 +128,15 @@ String::operator const std::string&() const
 }
 
 /**
- * Conversion function to boost::string_view.
+ * Conversion function to boost::beast::string_view.
  *
  * This allows using String as the value for HTTP headers in boost::beast::http::basic_fields::set.
  *
- * @return A boost::string_view representing this string.
+ * @return A boost::beast::string_view representing this string.
  */
-String::operator boost::string_view() const
+String::operator boost::beast::string_view() const
 {
-	return boost::string_view(m_Data);
+	return boost::beast::string_view(m_Data);
 }
 
 const char *String::CStr() const
