@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/atomic-file.hpp"
+#include "base/defer.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/application.hpp"
@@ -54,6 +55,7 @@
 #ifdef _WIN32
 #	include <VersionHelpers.h>
 #	include <windows.h>
+#	include <winreg.h>
 #	include <io.h>
 #	include <msi.h>
 #	include <shlobj.h>
@@ -1584,6 +1586,21 @@ static String UnameHelper(char type)
 	}
 }
 #endif /* _WIN32 */
+
+#ifdef _WIN32
+struct RegistryString
+{
+	union {
+		BYTE AsBytes[512];
+		char AsChars[1] = {0};
+	} Data;
+
+	DWORD Size = sizeof(Data);
+};
+
+static const char * const l_RegCurrentVersion = R"EOF(SOFTWARE\Microsoft\Windows NT\CurrentVersion)EOF";
+#endif /* _WIN32 */
+
 static bool ReleaseHelper(String *platformName, String *platformVersion)
 {
 #ifdef _WIN32
@@ -1591,21 +1608,36 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 		*platformName = "Windows";
 
 	if (platformVersion) {
-		*platformVersion = "Vista";
-		if (IsWindowsVistaSP1OrGreater())
-			*platformVersion = "Vista SP1";
-		if (IsWindowsVistaSP2OrGreater())
-			*platformVersion = "Vista SP2";
-		if (IsWindows7OrGreater())
-			*platformVersion = "7";
-		if (IsWindows7SP1OrGreater())
-			*platformVersion = "7 SP1";
-		if (IsWindows8OrGreater())
-			*platformVersion = "8";
-		if (IsWindows8Point1OrGreater())
-			*platformVersion = "8.1 or greater";
-		if (IsWindowsServer())
-			*platformVersion += " (Server)";
+		HKEY hKey;
+		auto err (RegOpenKeyExA(HKEY_LOCAL_MACHINE, l_RegCurrentVersion, 0, KEY_READ, &hKey));
+
+		if (err == ERROR_SUCCESS) {
+			Defer regCloseKey ([hKey]() { (void)RegCloseKey(hKey); });
+			RegistryString productName;
+			auto err (RegQueryValueExA(hKey, "ProductName", nullptr, nullptr, productName.Data.AsBytes, &productName.Size));
+
+			if (err == ERROR_SUCCESS) {
+				*platformVersion = productName.Data.AsChars;
+
+				RegistryString displayVersion;
+
+				if (RegQueryValueExA(hKey, "DisplayVersion", nullptr, nullptr, displayVersion.Data.AsBytes, &displayVersion.Size) == ERROR_SUCCESS) {
+					*platformVersion += " ";
+					*platformVersion += displayVersion.Data.AsChars;
+				} else {
+					RegistryString releaseId;
+
+					if (RegQueryValueExA(hKey, "ReleaseId", nullptr, nullptr, releaseId.Data.AsBytes, &releaseId.Size) == ERROR_SUCCESS) {
+						*platformVersion += " ";
+						*platformVersion += releaseId.Data.AsChars;
+					}
+				}
+			} else {
+				*platformVersion = "Unknown (Can't query HKEY_LOCAL_MACHINE\\" + (l_RegCurrentVersion + ("\\ProductName: " + Utility::FormatErrorNumber(err))) + ")";
+			}
+		} else {
+			*platformVersion = "Unknown (Can't open HKEY_LOCAL_MACHINE\\" + (l_RegCurrentVersion + (": " + Utility::FormatErrorNumber(err))) + ")";
+		}
 	}
 
 	return true;
@@ -1703,14 +1735,28 @@ String Utility::GetPlatformKernel()
 String Utility::GetPlatformKernelVersion()
 {
 #ifdef _WIN32
-	OSVERSIONINFO info;
-	info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	GetVersionEx(&info);
+	HKEY hKey;
+	auto err (RegOpenKeyExA(HKEY_LOCAL_MACHINE, l_RegCurrentVersion, 0, KEY_READ, &hKey));
 
-	std::ostringstream msgbuf;
-	msgbuf << info.dwMajorVersion << "." << info.dwMinorVersion;
+	if (err == ERROR_SUCCESS) {
+		Defer regCloseKey ([hKey]() { (void)RegCloseKey(hKey); });
+		RegistryString currentVersion;
+		auto err (RegQueryValueExA(hKey, "CurrentVersion", nullptr, nullptr, currentVersion.Data.AsBytes, &currentVersion.Size));
 
-	return msgbuf.str();
+		if (err == ERROR_SUCCESS) {
+			RegistryString currentBuildNumber;
+
+			if (RegQueryValueExA(hKey, "CurrentBuildNumber", nullptr, nullptr, currentBuildNumber.Data.AsBytes, &currentBuildNumber.Size) == ERROR_SUCCESS) {
+				return String(currentVersion.Data.AsChars) + "." + currentBuildNumber.Data.AsChars;
+			} else {
+				return currentVersion.Data.AsChars;
+			}
+		} else {
+			return "Unknown (Can't query HKEY_LOCAL_MACHINE\\" + (l_RegCurrentVersion + ("\\CurrentVersion: " + Utility::FormatErrorNumber(err))) + ")";
+		}
+	} else {
+		return "Unknown (Can't open HKEY_LOCAL_MACHINE\\" + (l_RegCurrentVersion + (": " + Utility::FormatErrorNumber(err))) + ")";
+	}
 #else /* _WIN32 */
 	return UnameHelper('r');
 #endif /* _WIN32 */
