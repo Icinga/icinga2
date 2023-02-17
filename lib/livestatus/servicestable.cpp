@@ -9,11 +9,9 @@
 #include "icinga/servicegroup.hpp"
 #include "icinga/hostgroup.hpp"
 #include "icinga/checkcommand.hpp"
-#include "icinga/envresolver.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/timeperiod.hpp"
 #include "icinga/macroprocessor.hpp"
-#include "icinga/icingaapplication.hpp"
 #include "icinga/compatutility.hpp"
 #include "icinga/pluginutility.hpp"
 #include "base/configtype.hpp"
@@ -373,8 +371,6 @@ Value ServicesTable::NotesExpandedAccessor(const Value& row)
 	MacroProcessor::ResolverList resolvers {
 		{ "service", service },
 		{ "host", service->GetHost() },
-		{ "icinga", IcingaApplication::GetInstance() },
-		{ "env", new EnvResolver(), false }
 	};
 
 	return MacroProcessor::ResolveMacros(service->GetNotes(), resolvers);
@@ -400,8 +396,6 @@ Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 	MacroProcessor::ResolverList resolvers {
 		{ "service", service },
 		{ "host", service->GetHost() },
-		{ "icinga", IcingaApplication::GetInstance() },
-		{ "env", new EnvResolver(), false }
 	};
 
 	return MacroProcessor::ResolveMacros(service->GetNotesUrl(), resolvers);
@@ -427,8 +421,6 @@ Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 	MacroProcessor::ResolverList resolvers {
 		{ "service", service },
 		{ "host", service->GetHost() },
-		{ "icinga", IcingaApplication::GetInstance() },
-		{ "env", new EnvResolver(), false }
 	};
 
 	return MacroProcessor::ResolveMacros(service->GetActionUrl(), resolvers);
@@ -454,8 +446,6 @@ Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 	MacroProcessor::ResolverList resolvers {
 		{ "service", service },
 		{ "host", service->GetHost() },
-		{ "icinga", IcingaApplication::GetInstance() },
-		{ "env", new EnvResolver(), false }
 	};
 
 	return MacroProcessor::ResolveMacros(service->GetIconImage(), resolvers);

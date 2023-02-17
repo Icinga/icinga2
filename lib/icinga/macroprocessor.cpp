@@ -3,6 +3,8 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/macroresolver.hpp"
 #include "icinga/customvarobject.hpp"
+#include "icinga/envresolver.hpp"
+#include "icinga/icingaapplication.hpp"
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
@@ -73,6 +75,16 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 	return result;
 }
 
+static const EnvResolver::Ptr l_EnvResolver = new EnvResolver();
+
+static MacroProcessor::ResolverList GetDefaultResolvers()
+{
+	return {
+		{ "icinga", IcingaApplication::GetInstance() },
+		{ "env", l_EnvResolver, false }
+	};
+}
+
 bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resolvers,
 	const CheckResult::Ptr& cr, Value *result, bool *recursive_macro)
 {
@@ -88,80 +100,84 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 		tokens.erase(tokens.begin());
 	}
 
-	for (const ResolverSpec& resolver : resolvers) {
-		if (!objName.IsEmpty() && objName != resolver.Name)
-			continue;
+	const auto defaultResolvers (GetDefaultResolvers());
 
-		if (objName.IsEmpty()) {
-			if (!resolver.ResolveShortMacros)
+	for (auto resolverList : {&resolvers, &defaultResolvers}) {
+		for (auto& resolver : *resolverList) {
+			if (!objName.IsEmpty() && objName != resolver.Name)
 				continue;
 
-			CustomVarObject::Ptr dobj = dynamic_pointer_cast<CustomVarObject>(resolver.Obj);
-
-			if (dobj) {
-				Dictionary::Ptr vars = dobj->GetVars();
-
-				if (vars && vars->Contains(macro)) {
-					*result = vars->Get(macro);
-					*recursive_macro = true;
-					return true;
-				}
-			}
-		}
-
-		auto *mresolver = dynamic_cast<MacroResolver *>(resolver.Obj.get());
-
-		if (mresolver && mresolver->ResolveMacro(boost::algorithm::join(tokens, "."), cr, result))
-			return true;
-
-		Value ref = resolver.Obj;
-		bool valid = true;
-
-		for (const String& token : tokens) {
-			if (ref.IsObjectType<Dictionary>()) {
-				Dictionary::Ptr dict = ref;
-				if (dict->Contains(token)) {
-					ref = dict->Get(token);
+			if (objName.IsEmpty()) {
+				if (!resolver.ResolveShortMacros)
 					continue;
-				} else {
-					valid = false;
-					break;
+
+				CustomVarObject::Ptr dobj = dynamic_pointer_cast<CustomVarObject>(resolver.Obj);
+
+				if (dobj) {
+					Dictionary::Ptr vars = dobj->GetVars();
+
+					if (vars && vars->Contains(macro)) {
+						*result = vars->Get(macro);
+						*recursive_macro = true;
+						return true;
+					}
 				}
-			} else if (ref.IsObject()) {
-				Object::Ptr object = ref;
-
-				Type::Ptr type = object->GetReflectionType();
-
-				if (!type) {
-					valid = false;
-					break;
-				}
-
-				int field = type->GetFieldId(token);
-
-				if (field == -1) {
-					valid = false;
-					break;
-				}
-
-				ref = object->GetField(field);
-
-				Field fieldInfo = type->GetFieldInfo(field);
-
-				if (strcmp(fieldInfo.TypeName, "Timestamp") == 0)
-					ref = static_cast<long>(ref);
 			}
-		}
 
-		if (valid) {
-			if (tokens[0] == "vars" ||
-				tokens[0] == "action_url" ||
-				tokens[0] == "notes_url" ||
-				tokens[0] == "notes")
-				*recursive_macro = true;
+			auto *mresolver = dynamic_cast<MacroResolver *>(resolver.Obj.get());
 
-			*result = ref;
-			return true;
+			if (mresolver && mresolver->ResolveMacro(boost::algorithm::join(tokens, "."), cr, result))
+				return true;
+
+			Value ref = resolver.Obj;
+			bool valid = true;
+
+			for (const String& token : tokens) {
+				if (ref.IsObjectType<Dictionary>()) {
+					Dictionary::Ptr dict = ref;
+					if (dict->Contains(token)) {
+						ref = dict->Get(token);
+						continue;
+					} else {
+						valid = false;
+						break;
+					}
+				} else if (ref.IsObject()) {
+					Object::Ptr object = ref;
+
+					Type::Ptr type = object->GetReflectionType();
+
+					if (!type) {
+						valid = false;
+						break;
+					}
+
+					int field = type->GetFieldId(token);
+
+					if (field == -1) {
+						valid = false;
+						break;
+					}
+
+					ref = object->GetField(field);
+
+					Field fieldInfo = type->GetFieldInfo(field);
+
+					if (strcmp(fieldInfo.TypeName, "Timestamp") == 0)
+						ref = static_cast<long>(ref);
+				}
+			}
+
+			if (valid) {
+				if (tokens[0] == "vars" ||
+					tokens[0] == "action_url" ||
+					tokens[0] == "notes_url" ||
+					tokens[0] == "notes")
+					*recursive_macro = true;
+
+				*result = ref;
+				return true;
+			}
 		}
 	}
 
@@ -173,9 +189,12 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel)
 {
 	Dictionary::Ptr resolvers_this = new Dictionary();
+	const auto defaultResolvers (GetDefaultResolvers());
 
-	for (const ResolverSpec& resolver : resolvers) {
-		resolvers_this->Set(resolver.Name, resolver.Obj);
+	for (auto resolverList : {&resolvers, &defaultResolvers}) {
+		for (auto& resolver: *resolverList) {
+			resolvers_this->Set(resolver.Name, resolver.Obj);
+		}
 	}
 
 	auto internalResolveMacrosShim = [resolvers, cr, resolvedMacros, useResolvedMacros, recursionLevel](const std::vector<Value>& args) {

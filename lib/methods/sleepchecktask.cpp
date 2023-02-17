@@ -1,8 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "methods/sleepchecktask.hpp"
-#include "icinga/envresolver.hpp"
-#include "icinga/icingaapplication.hpp"
 #include "icinga/pluginutility.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
@@ -34,8 +32,6 @@ void SleepCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
         resolvers.emplace_back("service", service);
     resolvers.emplace_back("host", host);
     resolvers.emplace_back("command", commandObj);
-    resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
-    resolvers.emplace_back("env", new EnvResolver(), false);
 
     double sleepTime = MacroProcessor::ResolveMacros("$sleep_time$", resolvers, checkable->GetLastCheckResult(),
             nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);

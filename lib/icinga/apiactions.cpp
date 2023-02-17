@@ -2,7 +2,6 @@
 
 #include "icinga/apiactions.hpp"
 #include "icinga/checkable.hpp"
-#include "icinga/envresolver.hpp"
 #include "icinga/service.hpp"
 #include "icinga/servicegroup.hpp"
 #include "icinga/hostgroup.hpp"
@@ -668,8 +667,6 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 		resolvers.emplace_back("service", service);
 
 	resolvers.emplace_back("host", host);
-	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
-	resolvers.emplace_back("env", new EnvResolver(), false);
 
 	String resolved_endpoint = MacroProcessor::ResolveMacros(
 		endpoint, resolvers, checkable->GetLastCheckResult(),
