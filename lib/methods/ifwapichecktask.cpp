@@ -32,7 +32,7 @@ static void ReportIfwCheckResult(
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
 		ProcessResult pr;
 		pr.PID = -1;
-		pr.Output = perfdata ? output + " |" + perfdata->Join("") : output;
+		pr.Output = perfdata ? output + " |" + perfdata->Join(" ") : output;
 		pr.ExecutionStart = start;
 		pr.ExecutionEnd = end;
 		pr.ExitStatus = exitcode;
