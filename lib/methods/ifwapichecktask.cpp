@@ -150,7 +150,7 @@ static void DoIfwNetIo(
 	ssl::context ctx (ssl::context::tls);
 	AsioTlsStream conn (IoEngine::Get().GetIoContext(), ctx);
 	flat_buffer buf;
-	auto resp (Shared<response<string_body>>::Make())
+	auto resp (Shared<response<string_body>>::Make());
 	double start = Utility::GetTime();
 
 	try {
