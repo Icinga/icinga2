@@ -13,6 +13,7 @@
 #include "base/io-engine.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
+#include "base/shared.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include <boost/asio.hpp>
@@ -49,6 +50,155 @@ static void ReportIfwCheckResult(
 
 		checkable->ProcessCheckResult(cr);
 	}
+}
+
+static void ReportIfwCheckResult(
+	boost::asio::yield_context yc, const Checkable::Ptr& checkable,
+	const CheckCommand::Ptr& command, const CheckResult::Ptr& cr, const String& output
+)
+{
+	CpuBoundWork cbw (yc);
+
+	Utility::QueueAsyncCallback([checkable, command, cr, output]() {
+		ReportIfwCheckResult(checkable, command, cr, output);
+	});
+}
+
+static void ProcessIfwResponse(
+	const Checkable::Ptr& checkable, const CheckCommand::Ptr& command, const CheckResult::Ptr& cr, const String& psCommand,
+	const String& psHost, const String& psPort, const boost::beast::http::response<boost::beast::http::string_body>& resp
+)
+{
+	Value jsonRoot;
+
+	try {
+		jsonRoot = JsonDecode(resp.body());
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"Got bad JSON from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+		);
+		return;
+	}
+
+	if (!jsonRoot.IsObjectType<Dictionary>()) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"Got JSON, but not an object, from IfW API on host '" + psHost + "' port '" + psPort + "'"
+		);
+		return;
+	}
+
+	Value jsonBranch;
+
+	if (!Dictionary::Ptr(jsonRoot)->Get(psCommand, &jsonBranch)) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"Missing ." + psCommand + " in JSON object from IfW API on host '" + psHost + "' port '" + psPort + "'"
+		);
+		return;
+	}
+
+	if (!jsonBranch.IsObjectType<Dictionary>()) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"." + psCommand + " is not an object in JSON from IfW API on host '" + psHost + "' port '" + psPort + "'"
+		);
+		return;
+	}
+
+	Dictionary::Ptr result = jsonBranch;
+	double exitcode;
+
+	try {
+		exitcode = result->Get("exitcode");
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"Got bad exitcode from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+		);
+		return;
+	}
+
+	Array::Ptr perfdata;
+
+	try {
+		perfdata = result->Get("perfdata");
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			checkable, command, cr,
+			"Got bad perfdata from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+		);
+		return;
+	}
+
+	ReportIfwCheckResult(checkable, command, cr, result->Get("checkresult"), exitcode, perfdata);
+}
+
+static void DoIfwNetIo(
+	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const CheckCommand::Ptr& command,
+	const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& psPort,
+	const boost::beast::http::request<boost::beast::http::string_body>& req
+)
+{
+	using namespace boost::asio;
+	using namespace boost::beast;
+	using namespace boost::beast::http;
+
+	ssl::context ctx (ssl::context::tls);
+	AsioTlsStream conn (IoEngine::Get().GetIoContext(), ctx);
+	flat_buffer buf;
+	auto resp (Shared<response<string_body>>::Make())
+
+	try {
+		Connect(conn.lowest_layer(), psHost, psPort, yc);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			yc, checkable, command, cr,
+			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+		);
+		return;
+	}
+
+	try {
+		conn.next_layer().async_handshake(conn.next_layer().client, yc);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			yc, checkable, command, cr,
+			"TLS handshake with IfW API on host '" + psHost + "' port '" + psPort + "' failed: " + ex.what()
+		);
+		return;
+	}
+
+	double start = Utility::GetTime();
+
+	try {
+		async_write(conn, req, yc);
+		conn.async_flush(yc);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			yc, checkable, command, cr,
+			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+		);
+		return;
+	}
+
+	try {
+		async_read(conn, buf, *resp, yc);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			yc, checkable, command, cr,
+			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+		);
+		return;
+	}
+
+	double end = Utility::GetTime();
+	CpuBoundWork cbw (yc);
+
+	Utility::QueueAsyncCallback([checkable, command, cr, psCommand, psHost, psPort, resp]() {
+		ProcessIfwResponse(checkable, command, cr, psCommand, psHost, psPort, *resp);
+	});
 }
 
 void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
@@ -139,96 +289,17 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
-	ssl::context ctx (ssl::context::tls);
-	AsioTlsStream conn (IoEngine::Get().GetIoContext(), ctx);
-	request<string_body> req;
-	flat_buffer buf;
-	response<string_body> resp;
+	auto req (Shared<request<string_body>>::Make());
 
-	req.method(verb::post);
-	req.target("/v1/checker?command=" + psCommand);
-	req.set(field::content_type, "application/json");
-	req.body() = JsonEncode(params);
+	req->method(verb::post);
+	req->target("/v1/checker?command=" + psCommand);
+	req->set(field::content_type, "application/json");
+	req->body() = JsonEncode(params);
 
-	try {
-		Connect(conn.lowest_layer(), psHost, psPort);
-	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			checkable, command, cr,
-			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
-		);
-		return;
-	}
-
-	try {
-		conn.next_layer().handshake(conn.next_layer().client);
-	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			checkable, command, cr,
-			"TLS handshake with IfW API on host '" + psHost + "' port '" + psPort + "' failed: " + ex.what()
-		);
-		return;
-	}
-
-	double start = Utility::GetTime();
-
-	try {
-		write(conn, req);
-		conn.flush();
-	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			checkable, command, cr,
-			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
-		);
-		return;
-	}
-
-	try {
-		read(conn, buf, resp);
-	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			checkable, command, cr,
-			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
-		);
-		return;
-	}
-
-	double end = Utility::GetTime();
-	Dictionary::Ptr result;
-
-	try {
-		result = Dictionary::Ptr(JsonDecode(resp.body()))->Get(psCommand);
-	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			checkable, command, cr,
-			"Got bad JSON from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
-		);
-		return;
-	}
-
-	double exitcode;
-
-	try {
-		exitcode = result->Get("exitcode");
-	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			checkable, command, cr,
-			"Got bad exitcode from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
-		);
-		return;
-	}
-
-	Array::Ptr perfdata;
-
-	try {
-		perfdata = result->Get("perfdata");
-	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			checkable, command, cr,
-			"Got bad perfdata from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
-		);
-		return;
-	}
-
-	ReportIfwCheckResult(checkable, command, cr, result->Get("checkresult"), exitcode, perfdata);
+	IoEngine::SpawnCoroutine(
+		IoEngine::Get().GetIoContext(),
+		[checkable, command, cr, psCommand, psHost, psPort, req](asio::yield_context yc) {
+			DoIfwNetIo(yc, checkable, command, cr, psCommand, psHost, psPort, *req);
+		}
+	);
 }
