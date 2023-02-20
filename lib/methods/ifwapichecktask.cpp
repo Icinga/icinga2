@@ -185,7 +185,7 @@ static void DoIfwNetIo(
 	}
 
 	try {
-		async_read(conn, buf, *resp, yc);
+		async_read(conn, buf, *(response<string_body>*)resp.get(), yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, command, cr,
