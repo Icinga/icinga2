@@ -299,7 +299,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	IoEngine::SpawnCoroutine(
 		IoEngine::Get().GetIoContext(),
-		[checkable, command, cr, psCommand, psHost, psPort, req](asio::yield_context yc) {
+		[checkable, command, cr, psCommand, psHost, psPort, req](boost::asio::yield_context yc) {
 			DoIfwNetIo(yc, checkable, command, cr, psCommand, psHost, psPort, *req);
 		}
 	);
