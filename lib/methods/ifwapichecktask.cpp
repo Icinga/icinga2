@@ -26,8 +26,8 @@ using namespace icinga;
 REGISTER_FUNCTION_NONCONST(Internal, IfwApiCheck, &IfwApiCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 static void ReportIfwCheckResult(
-	const Checkable::Ptr& checkable, const CheckCommand::Ptr& command, const CheckResult::Ptr& cr,
-	const String& output, int exitcode = 3, const Array::Ptr& perfdata = nullptr
+	const Checkable::Ptr& checkable, const CheckCommand::Ptr& command, const CheckResult::Ptr& cr, const String& output,
+	double start, double end, int exitcode = 3, const Array::Ptr& perfdata = nullptr
 )
 {
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
@@ -53,20 +53,22 @@ static void ReportIfwCheckResult(
 }
 
 static void ReportIfwCheckResult(
-	boost::asio::yield_context yc, const Checkable::Ptr& checkable,
-	const CheckCommand::Ptr& command, const CheckResult::Ptr& cr, const String& output
+	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const CheckCommand::Ptr& command,
+	const CheckResult::Ptr& cr, const String& output, double start
 )
 {
+	double end = Utility::GetTime();
 	CpuBoundWork cbw (yc);
 
-	Utility::QueueAsyncCallback([checkable, command, cr, output]() {
-		ReportIfwCheckResult(checkable, command, cr, output);
+	Utility::QueueAsyncCallback([checkable, command, cr, output, start, end]() {
+		ReportIfwCheckResult(checkable, command, cr, output, start, end);
 	});
 }
 
 static void ProcessIfwResponse(
-	const Checkable::Ptr& checkable, const CheckCommand::Ptr& command, const CheckResult::Ptr& cr, const String& psCommand,
-	const String& psHost, const String& psPort, const boost::beast::http::response<boost::beast::http::string_body>& resp
+	const Checkable::Ptr& checkable, const CheckCommand::Ptr& command, const CheckResult::Ptr& cr,
+	const String& psCommand, const String& psHost, const String& psPort, double start, double end,
+	const boost::beast::http::response<boost::beast::http::string_body>& resp
 )
 {
 	Value jsonRoot;
@@ -76,7 +78,7 @@ static void ProcessIfwResponse(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			checkable, command, cr,
-			"Got bad JSON from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+			"Got bad JSON from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start, end
 		);
 		return;
 	}
@@ -84,7 +86,7 @@ static void ProcessIfwResponse(
 	if (!jsonRoot.IsObjectType<Dictionary>()) {
 		ReportIfwCheckResult(
 			checkable, command, cr,
-			"Got JSON, but not an object, from IfW API on host '" + psHost + "' port '" + psPort + "'"
+			"Got JSON, but not an object, from IfW API on host '" + psHost + "' port '" + psPort + "'", start, end
 		);
 		return;
 	}
@@ -94,7 +96,7 @@ static void ProcessIfwResponse(
 	if (!Dictionary::Ptr(jsonRoot)->Get(psCommand, &jsonBranch)) {
 		ReportIfwCheckResult(
 			checkable, command, cr,
-			"Missing ." + psCommand + " in JSON object from IfW API on host '" + psHost + "' port '" + psPort + "'"
+			"Missing ." + psCommand + " in JSON object from IfW API on host '" + psHost + "' port '" + psPort + "'", start, end
 		);
 		return;
 	}
@@ -102,7 +104,7 @@ static void ProcessIfwResponse(
 	if (!jsonBranch.IsObjectType<Dictionary>()) {
 		ReportIfwCheckResult(
 			checkable, command, cr,
-			"." + psCommand + " is not an object in JSON from IfW API on host '" + psHost + "' port '" + psPort + "'"
+			"." + psCommand + " is not an object in JSON from IfW API on host '" + psHost + "' port '" + psPort + "'", start, end
 		);
 		return;
 	}
@@ -115,7 +117,7 @@ static void ProcessIfwResponse(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			checkable, command, cr,
-			"Got bad exitcode from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+			"Got bad exitcode from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start, end
 		);
 		return;
 	}
@@ -127,12 +129,12 @@ static void ProcessIfwResponse(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			checkable, command, cr,
-			"Got bad perfdata from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+			"Got bad perfdata from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start, end
 		);
 		return;
 	}
 
-	ReportIfwCheckResult(checkable, command, cr, result->Get("checkresult"), exitcode, perfdata);
+	ReportIfwCheckResult(checkable, command, cr, result->Get("checkresult"), start, end, exitcode, perfdata);
 }
 
 static void DoIfwNetIo(
@@ -149,13 +151,14 @@ static void DoIfwNetIo(
 	AsioTlsStream conn (IoEngine::Get().GetIoContext(), ctx);
 	flat_buffer buf;
 	auto resp (Shared<response<string_body>>::Make())
+	double start = Utility::GetTime();
 
 	try {
 		Connect(conn.lowest_layer(), psHost, psPort, yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, command, cr,
-			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
 		);
 		return;
 	}
@@ -165,12 +168,10 @@ static void DoIfwNetIo(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, command, cr,
-			"TLS handshake with IfW API on host '" + psHost + "' port '" + psPort + "' failed: " + ex.what()
+			"TLS handshake with IfW API on host '" + psHost + "' port '" + psPort + "' failed: " + ex.what(), start
 		);
 		return;
 	}
-
-	double start = Utility::GetTime();
 
 	try {
 		async_write(conn, req, yc);
@@ -178,7 +179,7 @@ static void DoIfwNetIo(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, command, cr,
-			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
 		);
 		return;
 	}
@@ -188,7 +189,7 @@ static void DoIfwNetIo(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, command, cr,
-			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what()
+			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
 		);
 		return;
 	}
@@ -196,8 +197,8 @@ static void DoIfwNetIo(
 	double end = Utility::GetTime();
 	CpuBoundWork cbw (yc);
 
-	Utility::QueueAsyncCallback([checkable, command, cr, psCommand, psHost, psPort, resp]() {
-		ProcessIfwResponse(checkable, command, cr, psCommand, psHost, psPort, *resp);
+	Utility::QueueAsyncCallback([checkable, command, cr, psCommand, psHost, psPort, start, end, resp]() {
+		ProcessIfwResponse(checkable, command, cr, psCommand, psHost, psPort, start, end, *resp);
 	});
 }
 
