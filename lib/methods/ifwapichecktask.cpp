@@ -68,7 +68,7 @@ static void ReportIfwCheckResult(
 static void ProcessIfwResponse(
 	const Checkable::Ptr& checkable, const CheckCommand::Ptr& command, const CheckResult::Ptr& cr,
 	const String& psCommand, const String& psHost, const String& psPort, double start, double end,
-	boost::beast::http::response<boost::beast::http::string_body>& resp
+	const boost::beast::http::response<boost::beast::http::string_body>& resp
 )
 {
 	Value jsonRoot;
