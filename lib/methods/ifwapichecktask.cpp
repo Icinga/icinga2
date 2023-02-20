@@ -140,7 +140,7 @@ static void ProcessIfwResponse(
 static void DoIfwNetIo(
 	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const CheckCommand::Ptr& command,
 	const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& psPort,
-	const boost::beast::http::request<boost::beast::http::string_body>& req
+	boost::beast::http::request<boost::beast::http::string_body>& req
 )
 {
 	using namespace boost::asio;
