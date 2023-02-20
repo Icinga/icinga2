@@ -195,8 +195,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		if (service)
 			resolvers.emplace_back("service", service);
 		resolvers.emplace_back("host", host);
-		resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
-		
+
 		// Resolve macros for the service and host template config line
 		if (config_tmpl_tags) {
 			ObjectLock olock(config_tmpl_tags);

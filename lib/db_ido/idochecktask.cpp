@@ -60,7 +60,6 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", commandObj);
-	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String idoType = MacroProcessor::ResolveMacros("$ido_type$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);

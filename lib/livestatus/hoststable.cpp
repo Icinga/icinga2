@@ -10,7 +10,6 @@
 #include "icinga/eventcommand.hpp"
 #include "icinga/timeperiod.hpp"
 #include "icinga/macroprocessor.hpp"
-#include "icinga/icingaapplication.hpp"
 #include "icinga/compatutility.hpp"
 #include "icinga/pluginutility.hpp"
 #include "base/configtype.hpp"
@@ -315,7 +314,6 @@ Value HostsTable::NotesExpandedAccessor(const Value& row)
 
 	MacroProcessor::ResolverList resolvers {
 		{ "host", host },
-		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetNotes(), resolvers);
@@ -340,7 +338,6 @@ Value HostsTable::NotesUrlExpandedAccessor(const Value& row)
 
 	MacroProcessor::ResolverList resolvers {
 		{ "host", host },
-		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetNotesUrl(), resolvers);
@@ -365,7 +362,6 @@ Value HostsTable::ActionUrlExpandedAccessor(const Value& row)
 
 	MacroProcessor::ResolverList resolvers {
 		{ "host", host },
-		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetActionUrl(), resolvers);
@@ -422,7 +418,6 @@ Value HostsTable::IconImageExpandedAccessor(const Value& row)
 
 	MacroProcessor::ResolverList resolvers {
 		{ "host", host },
-		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetIconImage(), resolvers);

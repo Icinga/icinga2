@@ -664,6 +664,13 @@ The following macros provide global statistics:
   icinga.num\_hosts\_in\_downtime     | Current number of hosts in downtime.
   icinga.num\_hosts\_acknowledged     | Current number of acknowledged host problems.
 
+### Environment Variable Runtime Macros <a id="env-runtime-macros"></a>
+
+All environment variables of the Icinga process are available as runtime macros
+named `env.<env var name>`. E.g. `$env.ProgramFiles$` for ProgramFiles which is
+especially useful on Windows. In contrast to the other runtime macros env vars
+require the `env.` prefix.
+
 
 ## Apply Rules <a id="using-apply"></a>
 

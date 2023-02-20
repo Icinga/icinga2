@@ -667,7 +667,6 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 		resolvers.emplace_back("service", service);
 
 	resolvers.emplace_back("host", host);
-	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String resolved_endpoint = MacroProcessor::ResolveMacros(
 		endpoint, resolvers, checkable->GetLastCheckResult(),

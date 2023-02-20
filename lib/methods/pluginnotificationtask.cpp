@@ -6,7 +6,6 @@
 #include "icinga/pluginutility.hpp"
 #include "icinga/service.hpp"
 #include "icinga/macroprocessor.hpp"
-#include "icinga/icingaapplication.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
@@ -53,7 +52,6 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", commandObj);
-	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	int timeout = commandObj->GetTimeout();
 	std::function<void(const Value& commandLine, const ProcessResult&)> callback;

@@ -224,7 +224,6 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 	if (service)
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
-	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String prefix;
 

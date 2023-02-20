@@ -61,7 +61,6 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", commandObj);
-	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	auto resolve ([&](const String& macro) {
 		return MacroProcessor::ResolveMacros(macro, resolvers, checkable->GetLastCheckResult(),

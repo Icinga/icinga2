@@ -4,7 +4,6 @@
 #include "icinga/pluginutility.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
-#include "icinga/icingaapplication.hpp"
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/function.hpp"
@@ -37,7 +36,6 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", commandObj);
-	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	int timeout = commandObj->GetTimeout();
 
