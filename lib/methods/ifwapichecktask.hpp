@@ -10,7 +10,7 @@ namespace icinga
 {
 
 /**
- * Executes checks via local Icinga for Windows API.
+ * Executes checks via Icinga for Windows API.
  *
  * @ingroup methods
  */
