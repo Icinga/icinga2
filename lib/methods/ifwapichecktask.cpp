@@ -20,6 +20,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <exception>
+#include <utility>
 
 using namespace icinga;
 
@@ -297,17 +298,17 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
-	auto req (Shared<request<string_body>>::Make());
+	request<string_body> req;
 
-	req->method(verb::post);
-	req->target("/v1/checker?command=" + psCommand);
-	req->set(field::content_type, "application/json");
-	req->body() = JsonEncode(params);
+	req.method(verb::post);
+	req.target("/v1/checker?command=" + psCommand);
+	req.set(field::content_type, "application/json");
+	req.body() = JsonEncode(params);
 
 	IoEngine::SpawnCoroutine(
 		IoEngine::Get().GetIoContext(),
-		[checkable, command, cr, psCommand, psHost, psPort, req](boost::asio::yield_context yc) {
-			DoIfwNetIo(yc, checkable, command, cr, psCommand, psHost, psPort, *req);
+		[checkable, command, cr, psCommand, psHost, psPort, req=std::move(req)](boost::asio::yield_context yc) {
+			DoIfwNetIo(yc, checkable, command, cr, psCommand, psHost, psPort, req);
 		}
 	);
 }
