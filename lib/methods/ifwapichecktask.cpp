@@ -65,12 +65,65 @@ static void ReportIfwCheckResult(
 	});
 }
 
-static void ProcessIfwResponse(
-	const Checkable::Ptr& checkable, const CheckCommand::Ptr& command, const CheckResult::Ptr& cr,
-	const String& psCommand, const String& psHost, const String& psPort, double start, double end,
-	const boost::beast::http::response<boost::beast::http::string_body>& resp
+static void DoIfwNetIo(
+	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const CheckCommand::Ptr& command,
+	const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& psPort,
+	boost::beast::http::request<boost::beast::http::string_body>& req
 )
 {
+	using namespace boost::asio;
+	using namespace boost::beast;
+	using namespace boost::beast::http;
+
+	ssl::context ctx (ssl::context::tls);
+	AsioTlsStream conn (IoEngine::Get().GetIoContext(), ctx);
+	flat_buffer buf;
+	auto resp (Shared<response<string_body>>::Make());
+	double start = Utility::GetTime();
+
+	try {
+		Connect(conn.lowest_layer(), psHost, psPort, yc);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			yc, checkable, command, cr,
+			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
+		);
+		return;
+	}
+
+	try {
+		conn.next_layer().async_handshake(conn.next_layer().client, yc);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			yc, checkable, command, cr,
+			"TLS handshake with IfW API on host '" + psHost + "' port '" + psPort + "' failed: " + ex.what(), start
+		);
+		return;
+	}
+
+	try {
+		async_write(conn, req, yc);
+		conn.async_flush(yc);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			yc, checkable, command, cr,
+			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
+		);
+		return;
+	}
+
+	try {
+		async_read(conn, buf, *(response<string_body>*)resp.get(), yc);
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(
+			yc, checkable, command, cr,
+			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
+		);
+		return;
+	}
+
+	double end = Utility::GetTime();
+	CpuBoundWork cbw (yc);
 	Value jsonRoot;
 
 	try {
@@ -135,71 +188,6 @@ static void ProcessIfwResponse(
 	}
 
 	ReportIfwCheckResult(checkable, command, cr, result->Get("checkresult"), start, end, exitcode, perfdata);
-}
-
-static void DoIfwNetIo(
-	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const CheckCommand::Ptr& command,
-	const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& psPort,
-	boost::beast::http::request<boost::beast::http::string_body>& req
-)
-{
-	using namespace boost::asio;
-	using namespace boost::beast;
-	using namespace boost::beast::http;
-
-	ssl::context ctx (ssl::context::tls);
-	AsioTlsStream conn (IoEngine::Get().GetIoContext(), ctx);
-	flat_buffer buf;
-	auto resp (Shared<response<string_body>>::Make());
-	double start = Utility::GetTime();
-
-	try {
-		Connect(conn.lowest_layer(), psHost, psPort, yc);
-	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			yc, checkable, command, cr,
-			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
-		);
-		return;
-	}
-
-	try {
-		conn.next_layer().async_handshake(conn.next_layer().client, yc);
-	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			yc, checkable, command, cr,
-			"TLS handshake with IfW API on host '" + psHost + "' port '" + psPort + "' failed: " + ex.what(), start
-		);
-		return;
-	}
-
-	try {
-		async_write(conn, req, yc);
-		conn.async_flush(yc);
-	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			yc, checkable, command, cr,
-			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
-		);
-		return;
-	}
-
-	try {
-		async_read(conn, buf, *(response<string_body>*)resp.get(), yc);
-	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			yc, checkable, command, cr,
-			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
-		);
-		return;
-	}
-
-	double end = Utility::GetTime();
-	CpuBoundWork cbw (yc);
-
-	Utility::QueueAsyncCallback([checkable, command, cr, psCommand, psHost, psPort, start, end, resp]() {
-		ProcessIfwResponse(checkable, command, cr, psCommand, psHost, psPort, start, end, *resp);
-	});
 }
 
 void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
