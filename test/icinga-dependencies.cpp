@@ -70,14 +70,26 @@ BOOST_AUTO_TEST_CASE(multi_parent)
 
 	/* Test the reachability from this point.
 	 * parentHost1 is DOWN, parentHost2 is UP.
-	 * Expected result: childHost is reachable.
+	 * Expected result: childHost is unreachable.
 	 */
 	parentHost1->SetStateRaw(ServiceCritical); // parent Host 1 DOWN
 	parentHost2->SetStateRaw(ServiceOK);       // parent Host 2 UP
 
+	BOOST_CHECK(childHost->IsReachable() == false);
+
+	/* The only DNS server is DOWN.
+	 * Expected result: childHost is unreachable.
+	 */
+	dep1->SetRedundancyGroup("DNS");
+	BOOST_CHECK(childHost->IsReachable() == false);
+
+	/* 1/2 DNS servers is DOWN.
+	 * Expected result: childHost is reachable.
+	 */
+	dep2->SetRedundancyGroup("DNS");
 	BOOST_CHECK(childHost->IsReachable() == true);
 
-	/* parentHost1 is DOWN, parentHost2 is DOWN.
+	/* Both DNS servers are DOWN.
 	 * Expected result: childHost is unreachable.
 	 */
 	parentHost1->SetStateRaw(ServiceCritical); // parent Host 1 DOWN
