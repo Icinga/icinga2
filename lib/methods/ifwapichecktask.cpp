@@ -235,6 +235,9 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	Dictionary::Ptr arguments = MacroProcessor::ResolveMacros("$ifw_api_arguments$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
+	Array::Ptr ignoreArguments = MacroProcessor::ResolveMacros("$ifw_api_ignore_arguments$", resolvers, checkable->GetLastCheckResult(),
+		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+
 	String psHost = MacroProcessor::ResolveMacros("$ifw_api_host$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
@@ -244,10 +247,15 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	Dictionary::Ptr params = new Dictionary();
 
 	if (arguments) {
+		auto ignore (ignoreArguments->ToSet<String>());
 		ObjectLock oLock (arguments);
 		Array::Ptr emptyCmd = new Array();
 
 		for (auto& kv : arguments) {
+			if (ignore.find(kv.first) != ignore.end()) {
+				continue;
+			}
+
 			/* MacroProcessor::ResolveArguments() converts
 			 *
 			 * [ "check_example" ]
