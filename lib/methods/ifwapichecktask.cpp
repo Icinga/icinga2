@@ -267,13 +267,13 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 			switch (arg ? arg->GetLength() : 0) {
 				case 0:
 					break;
-				case 1:
+				case 1: // [ "-f" ]
 					params->Set(arg->Get(0), true);
 					break;
-				case 2:
+				case 2: // [ "-a", "X" ]
 					params->Set(arg->Get(0), arg->Get(1));
 					break;
-				default: {
+				default: { // [ "-a", "X", "Y" ]
 					auto k (arg->Get(0));
 
 					arg->Remove(0);
