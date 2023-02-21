@@ -244,6 +244,17 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 				continue;
 			}
 
+			Dictionary::Ptr argSpec;
+
+			if (kv.second.IsObjectType<Dictionary>()) {
+				argSpec = Dictionary::Ptr(kv.second)->ShallowClone();
+			} else {
+				argSpec = new Dictionary({{ "value", kv.second }});
+			}
+
+			// See default branch of below switch
+			argSpec->Set("repeat_key", false);
+
 			/* MacroProcessor::ResolveArguments() converts
 			 *
 			 * [ "check_example" ]
@@ -260,7 +271,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 			 * but we need the args one-by-one like [ "-f" ] or [ "-a", "X" ].
 			 */
 			Array::Ptr arg = MacroProcessor::ResolveArguments(
-				emptyCmd, new Dictionary({{kv.first, kv.second}}), resolvers,
+				emptyCmd, new Dictionary({{kv.first, argSpec}}), resolvers,
 				checkable->GetLastCheckResult(), resolvedMacros, useResolvedMacros
 			);
 
