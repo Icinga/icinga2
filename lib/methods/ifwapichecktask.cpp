@@ -78,7 +78,7 @@ static void DoIfwNetIo(
 	ssl::context ctx (ssl::context::tls);
 	AsioTlsStream conn (IoEngine::Get().GetIoContext(), ctx);
 	flat_buffer buf;
-	auto resp (Shared<response<string_body>>::Make());
+	response<string_body> resp;
 	double start = Utility::GetTime();
 
 	try {
@@ -113,7 +113,7 @@ static void DoIfwNetIo(
 	}
 
 	try {
-		async_read(conn, buf, *(response<string_body>*)resp.get(), yc);
+		async_read(conn, buf, resp, yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, command, cr,
