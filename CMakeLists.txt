@@ -92,10 +92,8 @@ file(READ "${CMAKE_CURRENT_SOURCE_DIR}/COPYING" ICINGA2_LICENSE_GPL)
 set(ICINGA2_LICENSE "${ICINGA2_LICENSE_GPL}\n\n---\n\n${ICINGA2_LICENSE_ADDITIONS}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt" ${ICINGA2_LICENSE})
 
-file(STRINGS ICINGA2_VERSION SPEC_VERSION REGEX "^Version:")
-string(LENGTH "${SPEC_VERSION}" SPEC_VERSION_LENGTH)
-math(EXPR SPEC_VERSION_LENGTH "${SPEC_VERSION_LENGTH} - 9")
-string(SUBSTRING ${SPEC_VERSION} 9 ${SPEC_VERSION_LENGTH} SPEC_VERSION)
+include(ICINGA2_VERSION.cmake)
+set(SPEC_VERSION "${ICINGA2_VERSION}")
 
 configure_file(icinga-spec-version.h.cmake icinga-spec-version.h)
 
@@ -112,10 +110,9 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/icinga-version.h.force)
 else()
   if(NOT ICINGA2_GIT_VERSION_INFO OR GIT_VERSION MATCHES "-NOTFOUND$")
     set(GIT_VERSION "v${SPEC_VERSION}")
-    set(ICINGA2_VERSION "${SPEC_VERSION}")
   else()
     if(GIT_VERSION MATCHES "-g")
-      # Override v2.13.0-555-g11e37a0bd from git describe with 2.13.7 from ./ICINGA2_VERSION -> v2.13.7-555-g11e37a0bd
+      # Override v2.13.0-555-g11e37a0bd from git describe with 2.13.7 from ./ICINGA2_VERSION.cmake -> v2.13.7-555-g11e37a0bd
       string(REGEX REPLACE ^[v0-9.]+ "v${SPEC_VERSION}" GIT_VERSION "${GIT_VERSION}")
     endif()
     # use GIT version as ICINGA2_VERSION
