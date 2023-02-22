@@ -509,25 +509,6 @@ set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
 include(InstallRequiredSystemLibraries)
 
 if(WIN32)
-  if(CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
-    set(NSCP_URL "https://github.com/mickem/nscp/releases/download/0.5.2.39/NSCP-0.5.2.39-x64.msi")
-    set(NSCP_SHA256 "dfe93c293f30586b02510d8b7884e4e177b93a5fead8b5dc6de8103532e6e159")
-  else()
-    set(NSCP_URL "https://github.com/mickem/nscp/releases/download/0.5.2.39/NSCP-0.5.2.39-Win32.msi")
-    set(NSCP_SHA256 "ca6a67fb01c1468f2b510fd2f9eb0750887db3fb49a0302732c1421c85c6627c")
-  endif()
-
-  set(NSCP_SHA256SUM "")
-  if (EXISTS ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi)
-    file(SHA256 ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi NSCP_SHA256SUM)
-  endif()
-
-  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi OR NOT ${NSCP_SHA256SUM} STREQUAL ${NSCP_SHA256})
-    file(DOWNLOAD ${NSCP_URL} ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi SHOW_PROGRESS)
-  endif()
-
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi DESTINATION ${CMAKE_INSTALL_SBINDIR})
-
   if (OPENSSL_VERSION_MINOR GREATER_EQUAL 1)
     if (CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
       list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1-x64.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1-x64.dll)
