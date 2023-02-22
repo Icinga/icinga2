@@ -6,6 +6,7 @@
 #include "methods/ifwapichecktask.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/pluginutility.hpp"
+#include "base/base64.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/convert.hpp"
@@ -232,6 +233,14 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	String psPort = MacroProcessor::ResolveMacros("$ifw_api_port$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
+	String missingUsername, missingPassword;
+
+	String username = MacroProcessor::ResolveMacros("$ifw_api_username$", resolvers, checkable->GetLastCheckResult(),
+		&missingUsername, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+
+	String password = MacroProcessor::ResolveMacros("$ifw_api_password$", resolvers, checkable->GetLastCheckResult(),
+		&missingPassword, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+
 	Dictionary::Ptr params = new Dictionary();
 
 	if (arguments) {
@@ -303,6 +312,10 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	req->target("/v1/checker?command=" + psCommand);
 	req->set(field::content_type, "application/json");
 	req->body() = JsonEncode(params);
+
+	if (missingUsername.IsEmpty() && missingPassword.IsEmpty()) {
+		req->set(field::authorization, "Basic " + Base64::Encode(username + ":" + password));
+	}
 
 	IoEngine::SpawnCoroutine(
 		IoEngine::Get().GetIoContext(),
