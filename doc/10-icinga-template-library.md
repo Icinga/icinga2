@@ -2288,8 +2288,8 @@ elasticsearch_query          | **Required.** The Elasticsearch query.
 elasticsearch_query_index    | **Optional.** Name of the Index which will be used. Defaults to "_all".
 elasticsearch_query_msgkey   | **Optional.** Message of messagekey to display. No value defined as default.
 elasticsearch_query_msglen   | **Optional.** Number of characters to display in the latest message. Defaults to 80.
-elasticsearch_query_warning  | **Optional.** Warning threshold for total hits. Defaults to "20".
-elasticsearch_query_critical | **Optional.** Critical threshold for total hits. Defaults to "50".
+elasticsearch_query_warning  | **Optional.** Warning threshold for total hits. Defaults to 20 hits.
+elasticsearch_query_critical | **Optional.** Critical threshold for total hits. Defaults to 50 hits.
 
 #### elasticsearch-health <a id="plugin-check-command-elasticsearch-health"></a>
 
