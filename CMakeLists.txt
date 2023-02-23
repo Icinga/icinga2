@@ -1,6 +1,6 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 2.8.12)
 set(BOOST_MIN_VERSION "1.66.0")
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
