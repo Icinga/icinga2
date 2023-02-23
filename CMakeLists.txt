@@ -105,8 +105,14 @@ string(SUBSTRING ${SPEC_VERSION} 9 ${SPEC_VERSION_LENGTH} SPEC_VERSION)
 
 configure_file(icinga-spec-version.h.cmake icinga-spec-version.h)
 
-include(GetGitRevisionDescription)
-git_describe(GIT_VERSION --tags)
+file(STRINGS .git-archive-version GIT_ARCHIVE_VERSION REGEX "^[^#]")
+if(GIT_ARCHIVE_VERSION MATCHES "Format")
+  include(GetGitRevisionDescription)
+  git_describe(GIT_VERSION --tags)
+else()
+  set(GIT_VERSION "${GIT_ARCHIVE_VERSION}")
+endif()
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/icinga-version.h.force)
   configure_file(icinga-version.h.force ${CMAKE_CURRENT_BINARY_DIR}/icinga-version.h COPYONLY)
 else()
