@@ -1763,10 +1763,9 @@ mkdir build
 cd .\build\
 
 & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" `
-  -DBoost_INCLUDE_DIR=C:\local\boost_1_81_0-Win64 `
+  -DICINGA2_UNITY_BUILD=OFF -DBoost_INCLUDE_DIR=C:\local\boost_1_81_0-Win64 `
   -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe `
-  -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe `
-  -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=OFF ..
+  -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe ..
 
 & "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" .\icinga2.sln
 ```
@@ -2045,8 +2044,6 @@ Variable              | Value                                                   
 `BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_81_0\lib64-msvc-14.2`, Source: `C:\local\boost_1_81_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
 `BISON_EXECUTABLE`    | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
 `FLEX_EXECUTABLE`     | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
-`ICINGA2_WITH_MYSQL`  | OFF                                                                  | Requires extra setup for MySQL if set to `ON`. Not supported for client setups.
-`ICINGA2_WITH_PGSQL`  | OFF                                                                  | Requires extra setup for PgSQL if set to `ON`. Not supported for client setups.
 `ICINGA2_UNITY_BUILD` | OFF                                                                  | Disable unity builds for development environments.
 
 Tip: If you have previously opened a terminal, run `refreshenv` to re-read updated PATH variables.

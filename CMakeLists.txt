@@ -16,21 +16,21 @@ if(NOT CMAKE_BUILD_TYPE)
     FORCE)
 endif()
 
-option(ICINGA2_WITH_MYSQL "Build the MySQL IDO module" ON)
-option(ICINGA2_WITH_PGSQL "Build the PostgreSQL IDO module" ON)
+if(WIN32)
+  set(ICINGA2_MASTER OFF)
+else()
+  set(ICINGA2_MASTER ON)
+endif()
+
+option(ICINGA2_WITH_MYSQL "Build the MySQL IDO module" ${ICINGA2_MASTER})
+option(ICINGA2_WITH_PGSQL "Build the PostgreSQL IDO module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_CHECKER "Build the checker module" ON)
-option(ICINGA2_WITH_COMPAT "Build the compat module" ON)
-option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ON)
+option(ICINGA2_WITH_COMPAT "Build the compat module" ${ICINGA2_MASTER})
+option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
 option(ICINGA2_WITH_TESTS "Run unit tests" ON)
-
-# IcingaDB only is supported on modern Linux/Unix master systems
-if(NOT WIN32)
-  option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ON)
-else()
-  option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" OFF)
-endif()
+option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ${ICINGA2_MASTER})
 
 option (USE_SYSTEMD
  "Configure icinga as native systemd service instead of a SysV initscript" OFF)
