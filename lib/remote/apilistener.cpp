@@ -553,6 +553,8 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
 						<< "' and port '" << port << "', cancelling attempt";
 
+					endpoint->SetConnecting(false);
+
 					boost::system::error_code ec;
 					sslConn->lowest_layer().cancel(ec);
 				}
