@@ -260,6 +260,8 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	/* Store the current last state change for the next iteration. */
 	SetPreviousStateChange(GetLastStateChange());
 
+	bool remove_acknowledgement_comments = false;
+
 	if (stateChange) {
 		SetLastStateChange(cr->GetExecutionEnd());
 
@@ -267,13 +269,9 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 		if (GetAcknowledgement() == AcknowledgementNormal ||
 			(GetAcknowledgement() == AcknowledgementSticky && IsStateOK(new_state))) {
 			ClearAcknowledgement("");
+			remove_acknowledgement_comments = true;
 		}
 	}
-
-	bool remove_acknowledgement_comments = false;
-
-	if (GetAcknowledgement() == AcknowledgementNone)
-		remove_acknowledgement_comments = true;
 
 	bool hardChange = (GetStateType() == StateTypeHard && old_stateType == StateTypeSoft);
 
