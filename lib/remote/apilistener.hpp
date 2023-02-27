@@ -23,6 +23,7 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <cstdint>
+#include <memory>
 #include <mutex>
 #include <set>
 
@@ -189,11 +190,11 @@ private:
 	void AddConnection(const Endpoint::Ptr& endpoint);
 
 	void NewClientHandler(
-		boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
+		boost::asio::yield_context yc, const std::shared_ptr<boost::asio::io_context::strand>& strand,
 		const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 	);
 	void NewClientHandlerInternal(
-		boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
+		boost::asio::yield_context yc, const std::shared_ptr<boost::asio::io_context::strand>& strand,
 		const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 	);
 	void ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server);

@@ -492,7 +492,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 			lock.unlock();
 			sslConn->lowest_layer() = std::move(socket);
 
-			auto strand (Shared<asio::io_context::strand>::Make(io));
+			auto strand (std::make_shared<asio::io_context::strand>(io));
 
 			IoEngine::SpawnCoroutine(*strand, [this, strand, sslConn](asio::yield_context yc) {
 				Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
@@ -532,7 +532,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	}
 
 	auto& io (IoEngine::Get().GetIoContext());
-	auto strand (Shared<asio::io_context::strand>::Make(io));
+	auto strand (std::make_shared<asio::io_context::strand>(io));
 
 	IoEngine::SpawnCoroutine(*strand, [this, strand, endpoint, &io](asio::yield_context yc) {
 		String host = endpoint->GetHost();
@@ -576,7 +576,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 }
 
 void ApiListener::NewClientHandler(
-	boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
+	boost::asio::yield_context yc, const std::shared_ptr<boost::asio::io_context::strand>& strand,
 	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 )
 {
@@ -613,7 +613,7 @@ static const auto l_MyCapabilities (ApiCapabilities::ExecuteArbitraryCommand);
  * @param client The new client.
  */
 void ApiListener::NewClientHandlerInternal(
-	boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
+	boost::asio::yield_context yc, const std::shared_ptr<boost::asio::io_context::strand>& strand,
 	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 )
 {
