@@ -532,9 +532,9 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	}
 
 	auto& io (IoEngine::Get().GetIoContext());
-	auto strand (std::make_shared<asio::io_context::strand>(io));
+	auto strandPtrPtr (Shared<std::shared_ptr<asio::io_context::strand>>::Make(std::make_shared<asio::io_context::strand>(io)));
 
-	IoEngine::SpawnCoroutine(*strand, [this, strand, endpoint, &io](asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(**strandPtrPtr, [this, strandPtrPtr, endpoint, &io](asio::yield_context yc) {
 		String host = endpoint->GetHost();
 		String port = endpoint->GetPort();
 
@@ -547,21 +547,23 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			lock.unlock();
 
-			Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
-				[sslConn, endpoint, host, port](asio::yield_context yc) {
+			Timeout::Ptr timeout(new Timeout((*strandPtrPtr)->context(), **strandPtrPtr, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
+				[sslConn, endpoint, host, port, &io, strandPtrPtr](asio::yield_context yc) {
 					Log(LogCritical, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
 						<< "' and port '" << port << "', cancelling attempt";
 
 					boost::system::error_code ec;
 					sslConn->lowest_layer().cancel(ec);
+
+					asio::post(io, [strandPtrPtr]() { strandPtrPtr->reset(); });
 				}
 			));
 			Defer cancelTimeout([&timeout]() { timeout->Cancel(); });
 
 			Connect(sslConn->lowest_layer(), host, port, yc);
 
-			NewClientHandler(yc, strand, sslConn, endpoint->GetName(), RoleClient);
+			NewClientHandler(yc, *strandPtrPtr, sslConn, endpoint->GetName(), RoleClient);
 
 			endpoint->SetConnecting(false);
 			Log(LogInformation, "ApiListener")
@@ -571,17 +573,20 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			Log(LogCritical, "ApiListener")
 				<< "Cannot connect to host '" << host << "' on port '" << port << "': " << ex.what();
+		} catch (...) {
+			endpoint->SetConnecting(false);
+			throw;
 		}
 	});
 }
 
 void ApiListener::NewClientHandler(
-	boost::asio::yield_context yc, std::shared_ptr<boost::asio::io_context::strand> strand,
+	boost::asio::yield_context yc, const std::weak_ptr<boost::asio::io_context::strand>& strand,
 	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 )
 {
 	try {
-		NewClientHandlerInternal(yc, std::move(strand), client, hostname, role);
+		NewClientHandlerInternal(yc, strand, client, hostname, role);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
 			<< "Exception while handling new API client connection: " << DiagnosticInformation(ex, false);
@@ -613,7 +618,7 @@ static const auto l_MyCapabilities (ApiCapabilities::ExecuteArbitraryCommand);
  * @param client The new client.
  */
 void ApiListener::NewClientHandlerInternal(
-	boost::asio::yield_context yc, std::shared_ptr<boost::asio::io_context::strand> strand,
+	boost::asio::yield_context yc, const std::weak_ptr<boost::asio::io_context::strand>& strand,
 	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 )
 {
@@ -643,9 +648,15 @@ void ApiListener::NewClientHandlerInternal(
 	boost::system::error_code ec;
 
 	{
+		auto currentCoroutineStrand (strand.lock());
+
+		if (!currentCoroutineStrand) {
+			IoEngine::AwaitCurrentCoroutineUnwinding(yc);
+		}
+
 		Timeout::Ptr handshakeTimeout (new Timeout(
-			strand->context(),
-			*strand,
+			currentCoroutineStrand->context(),
+			*currentCoroutineStrand,
 			boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)),
 			[client](asio::yield_context yc) {
 				boost::system::error_code ec;
@@ -653,7 +664,7 @@ void ApiListener::NewClientHandlerInternal(
 			}
 		));
 
-		strand.reset();
+		currentCoroutineStrand.reset();
 
 		sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc[ec]);
 
