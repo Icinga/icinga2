@@ -581,7 +581,7 @@ void ApiListener::NewClientHandler(
 )
 {
 	try {
-		NewClientHandlerInternal(yc, strand, client, hostname, role);
+		NewClientHandlerInternal(yc, std::move(strand), client, hostname, role);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
 			<< "Exception while handling new API client connection: " << DiagnosticInformation(ex, false);
@@ -647,11 +647,13 @@ void ApiListener::NewClientHandlerInternal(
 			strand->context(),
 			*strand,
 			boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)),
-			[strand, client](asio::yield_context yc) {
+			[client](asio::yield_context yc) {
 				boost::system::error_code ec;
 				client->lowest_layer().cancel(ec);
 			}
 		));
+
+		strand.reset();
 
 		sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc[ec]);
 
