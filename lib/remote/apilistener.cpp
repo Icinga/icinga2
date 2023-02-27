@@ -576,7 +576,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 }
 
 void ApiListener::NewClientHandler(
-	boost::asio::yield_context yc, const std::shared_ptr<boost::asio::io_context::strand>& strand,
+	boost::asio::yield_context yc, std::shared_ptr<boost::asio::io_context::strand> strand,
 	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 )
 {
@@ -613,7 +613,7 @@ static const auto l_MyCapabilities (ApiCapabilities::ExecuteArbitraryCommand);
  * @param client The new client.
  */
 void ApiListener::NewClientHandlerInternal(
-	boost::asio::yield_context yc, const std::shared_ptr<boost::asio::io_context::strand>& strand,
+	boost::asio::yield_context yc, std::shared_ptr<boost::asio::io_context::strand> strand,
 	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 )
 {

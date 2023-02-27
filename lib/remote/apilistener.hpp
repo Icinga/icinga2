@@ -190,11 +190,11 @@ private:
 	void AddConnection(const Endpoint::Ptr& endpoint);
 
 	void NewClientHandler(
-		boost::asio::yield_context yc, const std::shared_ptr<boost::asio::io_context::strand>& strand,
+		boost::asio::yield_context yc, std::shared_ptr<boost::asio::io_context::strand> strand,
 		const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 	);
 	void NewClientHandlerInternal(
-		boost::asio::yield_context yc, const std::shared_ptr<boost::asio::io_context::strand>& strand,
+		boost::asio::yield_context yc, std::shared_ptr<boost::asio::io_context::strand> strand,
 		const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 	);
 	void ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server);
