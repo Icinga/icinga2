@@ -125,6 +125,12 @@ public:
 		Get().m_AlreadyExpiredTimer.async_wait(yc);
 	}
 
+	static inline
+	void AwaitCurrentCoroutineUnwinding(boost::asio::yield_context yc)
+	{
+		Get().m_NeverExpiringTimer.async_wait(yc);
+	}
+
 private:
 	IoEngine();
 
@@ -136,6 +142,7 @@ private:
 	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
+	boost::asio::deadline_timer m_NeverExpiringTimer;
 	std::atomic_int_fast32_t m_CpuBoundSemaphore;
 };
 
