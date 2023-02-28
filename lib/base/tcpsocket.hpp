@@ -6,8 +6,10 @@
 #include "base/i2-base.hpp"
 #include "base/io-engine.hpp"
 #include "base/socket.hpp"
+#include <boost/asio/error.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/system/system_error.hpp>
 
 namespace icinga
 {
@@ -50,8 +52,10 @@ void Connect(Socket& socket, const String& node, const String& service)
 			socket.connect(current->endpoint());
 
 			break;
-		} catch (const std::exception&) {
-			if (++current == result.end()) {
+		} catch (const std::exception& ex) {
+			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
+
+			if (se && se->code() == boost::asio::error::operation_aborted || ++current == result.end()) {
 				throw;
 			}
 
@@ -79,8 +83,10 @@ void Connect(Socket& socket, const String& node, const String& service, boost::a
 			socket.async_connect(current->endpoint(), yc);
 
 			break;
-		} catch (const std::exception&) {
-			if (++current == result.end()) {
+		} catch (const std::exception& ex) {
+			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
+
+			if (se && se->code() == boost::asio::error::operation_aborted || ++current == result.end()) {
 				throw;
 			}
 
