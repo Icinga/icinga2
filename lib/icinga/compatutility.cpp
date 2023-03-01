@@ -15,7 +15,7 @@
 
 using namespace icinga;
 
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
+/* Used in DB IDO and Livestatus. */
 String CompatUtility::GetCommandLine(const Command::Ptr& command)
 {
 	Value commandLine = command->GetCommandLine();
@@ -56,7 +56,7 @@ String CompatUtility::GetCommandNamePrefix(const Command::Ptr& command)
 }
 
 String CompatUtility::GetCommandName(const Command::Ptr& command)
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
+/* Used in DB IDO and Livestatus. */
 {
 	if (!command)
 		return Empty;
@@ -64,7 +64,7 @@ String CompatUtility::GetCommandName(const Command::Ptr& command)
 	return GetCommandNamePrefix(command) + command->GetName();
 }
 
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
+/* Used in DB IDO and Livestatus. */
 String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 {
 	CheckCommand::Ptr command = checkable->GetCheckCommand();
@@ -130,7 +130,7 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 	return Empty;
 }
 
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
+/* Used in DB IDO and Livestatus. */
 int CompatUtility::GetCheckableNotificationLastNotification(const Checkable::Ptr& checkable)
 {
 	double last_notification = 0.0;
@@ -142,7 +142,7 @@ int CompatUtility::GetCheckableNotificationLastNotification(const Checkable::Ptr
 	return static_cast<int>(last_notification);
 }
 
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
+/* Used in DB IDO and Livestatus. */
 int CompatUtility::GetCheckableNotificationNextNotification(const Checkable::Ptr& checkable)
 {
 	double next_notification = 0.0;
@@ -154,7 +154,7 @@ int CompatUtility::GetCheckableNotificationNextNotification(const Checkable::Ptr
 	return static_cast<int>(next_notification);
 }
 
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
+/* Used in DB IDO and Livestatus. */
 int CompatUtility::GetCheckableNotificationNotificationNumber(const Checkable::Ptr& checkable)
 {
 	int notification_number = 0;
@@ -166,7 +166,7 @@ int CompatUtility::GetCheckableNotificationNotificationNumber(const Checkable::P
 	return notification_number;
 }
 
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
+/* Used in DB IDO and Livestatus. */
 double CompatUtility::GetCheckableNotificationNotificationInterval(const Checkable::Ptr& checkable)
 {
 	double notification_interval = -1;
@@ -210,7 +210,7 @@ int CompatUtility::GetCheckableNotificationStateFilter(const Checkable::Ptr& che
 	return notification_state_filter;
 }
 
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
+/* Used in DB IDO and Livestatus. */
 std::set<User::Ptr> CompatUtility::GetCheckableNotificationUsers(const Checkable::Ptr& checkable)
 {
 	/* Service -> Notifications -> (Users + UserGroups -> Users) */
@@ -233,7 +233,7 @@ std::set<User::Ptr> CompatUtility::GetCheckableNotificationUsers(const Checkable
 	return allUsers;
 }
 
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
+/* Used in DB IDO and Livestatus. */
 std::set<UserGroup::Ptr> CompatUtility::GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable)
 {
 	std::set<UserGroup::Ptr> usergroups;
@@ -249,7 +249,7 @@ std::set<UserGroup::Ptr> CompatUtility::GetCheckableNotificationUserGroups(const
 	return usergroups;
 }
 
-/* Used in DB IDO, StatusDataWriter, Livestatus, CompatLogger, GelfWriter, IcingaDB. */
+/* Used in DB IDO, Livestatus, CompatLogger, GelfWriter, IcingaDB. */
 String CompatUtility::GetCheckResultOutput(const CheckResult::Ptr& cr)
 {
 	if (!cr)
@@ -264,7 +264,7 @@ String CompatUtility::GetCheckResultOutput(const CheckResult::Ptr& cr)
 	return raw_output.SubStr(0, line_end);
 }
 
-/* Used in DB IDO, StatusDataWriter and Livestatus, IcingaDB. */
+/* Used in DB IDO, Livestatus and IcingaDB. */
 String CompatUtility::GetCheckResultLongOutput(const CheckResult::Ptr& cr)
 {
 	if (!cr)
@@ -285,7 +285,7 @@ String CompatUtility::GetCheckResultLongOutput(const CheckResult::Ptr& cr)
 	return Empty;
 }
 
-/* Helper for DB IDO, StatusDataWriter and Livestatus. Used in StatusDataWriter. */
+/* Helper for DB IDO and Livestatus. */
 String CompatUtility::EscapeString(const String& str)
 {
 	String result = str;

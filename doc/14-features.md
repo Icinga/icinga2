@@ -1157,25 +1157,6 @@ VACUUM
 >
 > Don't use `VACUUM FULL` as this has a severe impact on performance.
 
-### Status Data Files <a id="status-data"></a>
-
-> **Note**
->
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Icinga 1.x writes object configuration data and status data in a cyclic
-interval to its `objects.cache` and `status.dat` files. Icinga 2 provides
-the `StatusDataWriter` object which dumps all configuration objects and
-status updates in a regular interval.
-
-```bash
-icinga2 feature enable statusdata
-```
-
-If you are not using any web interface or addon which uses these files,
-you can safely disable this feature.
-
 ### Compat Log Files <a id="compat-logging"></a>
 
 > **Note**
