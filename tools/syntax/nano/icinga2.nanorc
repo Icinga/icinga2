@@ -9,7 +9,7 @@ icolor brightgreen 		"object[ \t]+(checkcommand|notificationcommand|eventcommand
 icolor brightgreen 		"object[ \t]+(timeperiod|scheduleddowntime|dependency|perfdatawriter)"
 icolor brightgreen 		"object[ \t]+(graphitewriter|idomysqlconnection|idomysqlconnection)"
 icolor brightgreen 		"object[ \t]+(livestatuslistener|externalcommandlistener)"
-icolor brightgreen 		"object[ \t]+(compatlogger|checkresultreader|checkcomponent|notificationcomponent)"
+icolor brightgreen 		"object[ \t]+(compatlogger|checkcomponent|notificationcomponent)"
 icolor brightgreen 		"object[ \t]+(filelogger|sysloglogger|journaldlogger|apilistener|endpoint|zone)"
 
 ## apply def

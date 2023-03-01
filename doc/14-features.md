@@ -1228,32 +1228,6 @@ Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2.html).
 
 
-### Check Result Files <a id="check-result-files"></a>
-
-> **Note**
->
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Icinga 1.x writes its check result files to a temporary spool directory
-where they are processed in a regular interval.
-While this is extremely inefficient in performance regards it has been
-rendered useful for passing passive check results directly into Icinga 1.x
-skipping the external command pipe.
-
-Several clustered/distributed environments and check-aggregation addons
-use that method. In order to support step-by-step migration of these
-environments, Icinga 2 supports the `CheckResultReader` object.
-
-There is no feature configuration available, but it must be defined
-on-demand in your Icinga 2 objects configuration.
-
-```
-object CheckResultReader "reader" {
-  spool_dir = "/data/check-results"
-}
-```
-
 ### Livestatus <a id="setting-up-livestatus"></a>
 
 > **Note**
