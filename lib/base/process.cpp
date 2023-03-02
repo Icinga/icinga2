@@ -181,7 +181,6 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 			strncat(errmsg, ") failed", sizeof(errmsg) - strlen(errmsg) - 1);
 			errmsg[sizeof(errmsg) - 1] = '\0';
 			perror(errmsg);
-			_exit(128);
 		}
 
 		_exit(128);
