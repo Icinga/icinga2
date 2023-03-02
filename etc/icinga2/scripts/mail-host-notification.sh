@@ -78,7 +78,7 @@ do
     l) HOSTNAME=$OPTARG ;; # required
     n) HOSTDISPLAYNAME=$OPTARG ;; # required
     o) HOSTOUTPUT=$OPTARG ;; # required
-    X) HOSTNOTES="${OPTARG}" ;;
+    X) HOSTNOTES=$OPTARG ;;
     r) USEREMAIL=$OPTARG ;; # required
     s) HOSTSTATE=$OPTARG ;; # required
     t) NOTIFICATIONTYPE=$OPTARG ;; # required
@@ -134,7 +134,7 @@ fi
 ## Check whether host notes was specified.
 if [ -n "$HOSTNOTES" ] ; then
         NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
-Host-Notes:    $HOSTNOTES"
+Host notes: $HOSTNOTES"
 fi
 
 ## Check whether author and comment was specified.

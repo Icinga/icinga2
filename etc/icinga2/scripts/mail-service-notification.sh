@@ -139,15 +139,15 @@ IPv6:    $HOSTADDRESS6"
 fi
 
 ## Check whether host notes was specified.
-if [ -n "${HOSTNOTES}" ] ; then
+if [ -n "$HOSTNOTES" ] ; then
   NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
-Host-Notes:    $HOSTNOTES"
+Host notes: $HOSTNOTES"
 fi
 
 ## Check whether service notes was specified.
-if [ -n "${SERVICENOTES}" ] ; then
+if [ -n "$SERVICENOTES" ] ; then
   NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
-Service-Notes:   $SERVICENOTES"
+Service notes: $SERVICENOTES"
 fi
 
 ## Check whether author and comment was specified.
