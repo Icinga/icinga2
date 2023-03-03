@@ -19,12 +19,16 @@ void Checkable::RemoveAllComments()
 	}
 }
 
-void Checkable::RemoveAckComments(const String& removedBy)
+void Checkable::RemoveAckComments(const String& removedBy, double createdBefore)
 {
 	for (const Comment::Ptr& comment : GetComments()) {
 		if (comment->GetEntryType() == CommentAcknowledgement) {
 			/* Do not remove persistent comments from an acknowledgement */
 			if (comment->GetPersistent()) {
+				continue;
+			}
+
+			if (comment->GetEntryTime() > createdBefore) {
 				continue;
 			}
 
