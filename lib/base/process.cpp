@@ -16,19 +16,14 @@
 #include <boost/thread/once.hpp>
 #include <thread>
 #include <iostream>
+#include <utility>
+#include <vector>
 
 #ifndef _WIN32
-#	include <execvpe.h>
 #	include <poll.h>
 #	include <signal.h>
 #	include <string.h>
-
-#	ifndef __APPLE__
-extern char **environ;
-#	else /* __APPLE__ */
-#		include <crt_externs.h>
-#		define environ (*_NSGetEnviron())
-#	endif /* __APPLE__ */
+#	include <unistd.h>
 #endif /* _WIN32 */
 
 using namespace icinga;
@@ -98,43 +93,17 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 
 	argv[arguments->GetLength()] = nullptr;
 
-	// build envp
-	int envc = 0;
-
-	/* count existing environment variables */
-	while (environ[envc])
-		envc++;
-
-	auto **envp = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 2];
-	const char* lcnumeric = "LC_NUMERIC=";
-	const char* notifySocket = "NOTIFY_SOCKET=";
-	int j = 0;
-
-	for (int i = 0; i < envc; i++) {
-		if (strncmp(environ[i], lcnumeric, strlen(lcnumeric)) == 0) {
-			continue;
-		}
-
-		if (strncmp(environ[i], notifySocket, strlen(notifySocket)) == 0) {
-			continue;
-		}
-
-		envp[j] = strdup(environ[i]);
-		++j;
-	}
+	std::vector<std::pair<String, String>> extraEnv;
 
 	if (extraEnvironment) {
 		ObjectLock olock(extraEnvironment);
 
+		extraEnv.reserve(extraEnvironment->GetLength());
+
 		for (const Dictionary::Pair& kv : extraEnvironment) {
-			String skv = kv.first + "=" + Convert::ToString(kv.second);
-			envp[j] = strdup(skv.CStr());
-			j++;
+			extraEnv.emplace_back(kv.first, Convert::ToString(kv.second));
 		}
 	}
-
-	envp[j] = strdup("LC_NUMERIC=C");
-	envp[j + 1] = nullptr;
 
 	extraEnvironment.reset();
 
@@ -164,6 +133,23 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		(void)close(fds[1]);
 		(void)close(fds[2]);
 
+		if (unsetenv("NOTIFY_SOCKET")) {
+			perror("unsetenv() failed");
+			_exit(128);
+		}
+
+		if (setenv("LC_NUMERIC", "C", 1)) {
+			perror("setenv() failed");
+			_exit(128);
+		}
+
+		for (auto& kv : extraEnv) {
+			if (setenv(kv.first.CStr(), kv.second.CStr(), 1)) {
+				perror("setenv() failed");
+				_exit(128);
+			}
+		}
+
 #ifdef HAVE_NICE
 		if (adjustPriority) {
 			// Cheating the compiler on "warning: ignoring return value of 'int nice(int)', declared with attribute warn_unused_result [-Wunused-result]".
@@ -187,9 +173,9 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		sigemptyset(&mask);
 		sigprocmask(SIG_SETMASK, &mask, nullptr);
 
-		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
+		if (execvp(argv[0], argv) < 0) {
 			char errmsg[512];
-			strcpy(errmsg, "execvpe(");
+			strcpy(errmsg, "execvp(");
 			strncat(errmsg, argv[0], sizeof(errmsg) - strlen(errmsg) - 1);
 			strncat(errmsg, ") failed", sizeof(errmsg) - strlen(errmsg) - 1);
 			errmsg[sizeof(errmsg) - 1] = '\0';
@@ -208,12 +194,6 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		free(argv[i]);
 
 	delete[] argv;
-
-	// free environment
-	for (int i = 0; envp[i]; i++)
-		free(envp[i]);
-
-	delete[] envp;
 
 	Dictionary::Ptr response = new Dictionary({
 		{ "rc", pid },
