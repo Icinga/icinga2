@@ -132,16 +132,6 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		(void)close(fds[1]);
 		(void)close(fds[2]);
 
-		if (unsetenv("NOTIFY_SOCKET")) {
-			perror("unsetenv() failed");
-			_exit(128);
-		}
-
-		if (setenv("LC_NUMERIC", "C", 1)) {
-			perror("setenv() failed");
-			_exit(128);
-		}
-
 		for (auto& kv : extraEnv) {
 			if (setenv(kv.first.CStr(), kv.second.CStr(), 1) && errno != EINVAL) {
 				perror("setenv() failed");
@@ -240,6 +230,16 @@ static void ProcessHandler()
 	sigprocmask(SIG_SETMASK, &mask, nullptr);
 
 	Utility::CloseAllFDs({0, 1, 2, l_ProcessControlFD});
+
+	if (unsetenv("NOTIFY_SOCKET")) {
+		perror("unsetenv() failed");
+		_exit(1);
+	}
+
+	if (setenv("LC_NUMERIC", "C", 1)) {
+		perror("setenv() failed");
+		_exit(1);
+	}
 
 	for (;;) {
 		size_t length;
