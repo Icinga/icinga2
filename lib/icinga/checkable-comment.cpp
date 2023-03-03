@@ -19,14 +19,15 @@ void Checkable::RemoveAllComments()
 	}
 }
 
-void Checkable::RemoveCommentsByType(int type, const String& removedBy)
+void Checkable::RemoveAckComments(const String& removedBy)
 {
 	for (const Comment::Ptr& comment : GetComments()) {
-		/* Do not remove persistent comments from an acknowledgement */
-		if (comment->GetEntryType() == CommentAcknowledgement && comment->GetPersistent())
-			continue;
+		if (comment->GetEntryType() == CommentAcknowledgement) {
+			/* Do not remove persistent comments from an acknowledgement */
+			if (comment->GetPersistent()) {
+				continue;
+			}
 
-		if (comment->GetEntryType() == type) {
 			{
 				ObjectLock oLock (comment);
 				comment->SetRemovedBy(removedBy);

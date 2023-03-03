@@ -149,7 +149,7 @@ public:
 
 	/* Comments */
 	void RemoveAllComments();
-	void RemoveCommentsByType(int type, const String& removedBy = String());
+	void RemoveAckComments(const String& removedBy = String());
 
 	std::set<Comment::Ptr> GetComments() const;
 	Comment::Ptr GetLastComment() const;
