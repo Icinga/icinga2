@@ -93,6 +93,15 @@ private:
 	void CertificateRequestResponseHandler(const Dictionary::Ptr& message);
 
 	void SendMessageInternal(const Dictionary::Ptr& request);
+
+public:
+	std::string GetConnectionEndpoints() {
+		std::ostringstream s;
+		auto remote = m_Stream->lowest_layer().remote_endpoint();
+		auto local = m_Stream->lowest_layer().local_endpoint();
+		s << "[" << remote.address() << "]:" << remote.port() << "<->[" << local.address() << "]:" << local.port();
+		return s.str();
+	}
 };
 
 }

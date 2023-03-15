@@ -555,9 +555,10 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
 				[sslConn, endpoint, host, port](asio::yield_context yc) {
+					auto local = sslConn->lowest_layer().local_endpoint();
 					Log(LogCritical, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
-						<< "' and port '" << port << "', cancelling attempt";
+						<< "' and port '" << port << "', cancelling attempt from [" << local.address() << "]:" << local.port();
 
 					boost::system::error_code ec;
 					sslConn->lowest_layer().cancel(ec);
@@ -637,12 +638,19 @@ void ApiListener::NewClientHandlerInternal(
 			conninfo_ << "from";
 		}
 
-		auto endpoint (client->lowest_layer().remote_endpoint());
+		auto remote = client->lowest_layer().remote_endpoint();
+		auto local = client->lowest_layer().local_endpoint();
 
-		conninfo_ << " [" << endpoint.address() << "]:" << endpoint.port();
+		conninfo_ << " [" << remote.address() << "]:" << remote.port();
+
+		if (role == RoleClient) {
+			conninfo_ << " (local: [" << local.address() << "]:" << local.port() << ")";
+		}
 
 		conninfo = conninfo_.str();
 	}
+
+	Log(LogDebug, "ApiListener") << conninfo << ": Starting TLS handshake";
 
 	auto& sslConn (client->next_layer());
 
@@ -653,7 +661,8 @@ void ApiListener::NewClientHandlerInternal(
 			strand->context(),
 			*strand,
 			boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)),
-			[strand, client](asio::yield_context yc) {
+			[strand, client, conninfo](asio::yield_context yc) {
+				Log(LogDebug, "ApiListener") << conninfo << ": TLS handshake timeout";
 				boost::system::error_code ec;
 				client->lowest_layer().cancel(ec);
 			}
@@ -680,8 +689,9 @@ void ApiListener::NewClientHandlerInternal(
 
 	bool willBeShutDown = false;
 
-	Defer shutDownIfNeeded ([&sslConn, &willBeShutDown, &yc]() {
+	Defer shutDownIfNeeded ([&sslConn, &willBeShutDown, &conninfo, &yc]() {
 		if (!willBeShutDown) {
+			Log(LogDebug, "ApiListener") << conninfo << ": Shutting down connection";
 			// Ignore the error, but do not throw an exception being swallowed at all cost.
 			// https://github.com/Icinga/icinga2/issues/7351
 			boost::system::error_code ec;
@@ -710,12 +720,12 @@ void ApiListener::NewClientHandlerInternal(
 		if (!hostname.IsEmpty()) {
 			if (identity != hostname) {
 				Log(LogWarning, "ApiListener")
-					<< "Unexpected certificate common name while connecting to endpoint '"
+					<< conninfo << ": Unexpected certificate common name while connecting to endpoint '"
 					<< hostname << "': got '" << identity << "'";
 				return;
 			} else if (!verify_ok) {
 				Log(LogWarning, "ApiListener")
-					<< "Certificate validation failed for endpoint '" << hostname
+					<< conninfo << ": Certificate validation failed for endpoint '" << hostname
 					<< "': " << verifyError;
 			}
 		}
@@ -751,6 +761,7 @@ void ApiListener::NewClientHandlerInternal(
 		}), yc);
 
 		client->async_flush(yc);
+		Log(LogDebug, "ApiListener") << conninfo << ": Sent icinga::Hello";
 
 		ctype = ClientJsonRpc;
 	} else {
@@ -798,7 +809,7 @@ void ApiListener::NewClientHandlerInternal(
 	}
 
 	if (ctype == ClientJsonRpc) {
-		Log(LogNotice, "ApiListener", "New JSON-RPC client");
+		Log(LogNotice, "ApiListener") << "New JSON-RPC client " << conninfo;
 
 		if (endpoint && endpoint->GetConnected()) {
 			Log(LogNotice, "ApiListener")
@@ -812,8 +823,10 @@ void ApiListener::NewClientHandlerInternal(
 		if (endpoint) {
 			endpoint->AddClient(aclient);
 
-			Utility::QueueAsyncCallback([this, aclient, endpoint]() {
+			Utility::QueueAsyncCallback([this, aclient, endpoint, conninfo]() {
+				Log(LogDebug, "ApiListener") << conninfo << ": Start syncing client";
 				SyncClient(aclient, endpoint, true);
+				Log(LogDebug, "ApiListener") << conninfo << ": Finished syncing client";
 			});
 		} else if (!AddAnonymousClient(aclient)) {
 			Log(LogNotice, "ApiListener")
@@ -824,6 +837,7 @@ void ApiListener::NewClientHandlerInternal(
 		}
 
 		if (aclient) {
+			Log(LogDebug, "ApiListener") << conninfo << ": Starting JSON-RPC processing";
 			aclient->Start();
 
 			willBeShutDown = true;
@@ -1041,6 +1055,8 @@ void ApiListener::ApiReconnectTimerHandler()
 					<< "' because we're already connected to it.";
 				continue;
 			}
+
+			Log(LogDebug, "ApiListener") << "Initiating connection to Endpoint '" << endpoint->GetName() << "'";
 
 			/* Set connecting state to prevent duplicated queue inserts later. */
 			endpoint->SetConnecting(true);

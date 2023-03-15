@@ -6,6 +6,7 @@
 #include "base/i2-base.hpp"
 #include "base/io-engine.hpp"
 #include "base/socket.hpp"
+#include "base/logger.hpp"
 #include <boost/asio/error.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
@@ -78,12 +79,21 @@ void Connect(Socket& socket, const String& node, const String& service, boost::a
 
 	for (;;) {
 		try {
+			Log(LogDebug, "Socket") << "Connecting to " << node << ":" << service << ": trying "
+				<< current->endpoint().address().to_string() << ":" << current->endpoint().port();
+
 			socket.open(current->endpoint().protocol());
 			socket.set_option(tcp::socket::keep_alive(true));
 			socket.async_connect(current->endpoint(), yc);
 
+			Log(LogDebug, "Socket") << "Connecting to " << node << ":" << service << ": "
+				<< current->endpoint().address().to_string() << ":" << current->endpoint().port() << " succeeded";
+
 			break;
 		} catch (const std::exception& ex) {
+			Log(LogDebug, "Socket") << "Connecting to " << node << ":" << service << ": "
+				<< current->endpoint().address().to_string() << ":" << current->endpoint().port() << " failed: " << ex.what();
+
 			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
 
 			if (se && se->code() == boost::asio::error::operation_aborted || ++current == result.end()) {

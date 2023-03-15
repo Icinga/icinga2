@@ -42,6 +42,8 @@ void Endpoint::AddClient(const JsonRpcConnection::Ptr& client)
 	{
 		std::unique_lock<std::mutex> lock(m_ClientsLock);
 		m_Clients.insert(client);
+
+		Log (LogInformation, "Endpoint") << "Added client " << client->GetConnectionEndpoints() << ", " << m_Clients.size() << " total API clients.";
 	}
 
 	bool is_master = ApiListener::GetInstance()->IsMaster();
@@ -61,7 +63,7 @@ void Endpoint::RemoveClient(const JsonRpcConnection::Ptr& client)
 		m_Clients.erase(client);
 
 		Log(LogWarning, "ApiListener")
-			<< "Removing API client for endpoint '" << GetName() << "'. " << m_Clients.size() << " API clients left.";
+			<< "Removing API client " << client->GetConnectionEndpoints() << " for endpoint '" << GetName() << "'. " << m_Clients.size() << " API clients left.";
 
 		SetConnecting(false);
 	}

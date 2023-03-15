@@ -46,16 +46,51 @@ JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 		m_Endpoint = Endpoint::GetByName(identity);
 }
 
+template <typename F>
+struct WrapLoggingImpl {
+	WrapLoggingImpl(const char *name, JsonRpcConnection::Ptr conn, F func) : m_Name(name), m_Conn(std::move(conn)), m_Func(std::move(func)) {}
+
+	void operator()(boost::asio::yield_context yc) const {
+		auto conninfo = m_Conn->GetConnectionEndpoints();
+		Log(LogDebug, "JsonRpcConnection") << conninfo << ": start " << m_Name;
+		Defer logReturn ([&](){
+			Log(LogDebug, "JsonRpcConnection") << conninfo << ": stop " << m_Name;
+		});
+
+		try {
+			m_Func(yc);
+		} catch (const std::exception &ex) {
+			Log(LogDebug, "JsonRpcConnection") << conninfo << ": exception " << m_Name << ": " << ex.what();
+			throw;
+		} catch (const boost::coroutines::detail::forced_unwind&) {
+			Log(LogDebug, "JsonRpcConnection") << conninfo << ": exception " << m_Name << ": forced_unwind";
+			throw;
+		} catch (...) {
+			Log(LogDebug, "JsonRpcConnection") << conninfo << ": exception " << m_Name << ": (other)";
+			throw;
+		}
+	}
+
+	const char *m_Name;
+	JsonRpcConnection::Ptr m_Conn;
+	F m_Func;
+};
+
+template <typename F>
+WrapLoggingImpl<F> WrapLogging(const char *name, JsonRpcConnection::Ptr conn, F func) {
+	return {name, std::move(conn), std::move(func)};
+}
+
 void JsonRpcConnection::Start()
 {
 	namespace asio = boost::asio;
 
 	JsonRpcConnection::Ptr keepAlive (this);
 
-	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { HandleIncomingMessages(yc); });
-	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { WriteOutgoingMessages(yc); });
-	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { HandleAndWriteHeartbeats(yc); });
-	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, WrapLogging("incoming", keepAlive, [this, keepAlive](asio::yield_context yc) { HandleIncomingMessages(yc); }));
+	IoEngine::SpawnCoroutine(m_IoStrand, WrapLogging("outgoing", keepAlive, [this, keepAlive](asio::yield_context yc) { WriteOutgoingMessages(yc); }));
+	IoEngine::SpawnCoroutine(m_IoStrand, WrapLogging("heartbeat", keepAlive, [this, keepAlive](asio::yield_context yc) { HandleAndWriteHeartbeats(yc); }));
+	IoEngine::SpawnCoroutine(m_IoStrand, WrapLogging("liveness", keepAlive, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); }));
 }
 
 void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
