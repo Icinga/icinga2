@@ -6,6 +6,7 @@
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
 #include <boost/signals2.hpp>
+#include <memory>
 
 namespace icinga {
 
@@ -19,12 +20,12 @@ class TimerHolder;
 class Timer final : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Timer);
+	typedef std::shared_ptr<Timer> Ptr;
 
 	static inline
 	Ptr Create()
 	{
-		return new Timer();
+		return Ptr(new Timer());
 	}
 
 	~Timer() override;
