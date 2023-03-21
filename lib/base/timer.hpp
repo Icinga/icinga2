@@ -21,11 +21,7 @@ class Timer final
 public:
 	typedef std::shared_ptr<Timer> Ptr;
 
-	static inline
-	Ptr Create()
-	{
-		return Ptr(new Timer());
-	}
+	static Ptr Create();
 
 	~Timer();
 
@@ -52,6 +48,7 @@ private:
 	double m_Next{0}; /**< When the next event should happen. */
 	bool m_Started{false}; /**< Whether the timer is enabled. */
 	bool m_Running{false}; /**< Whether the timer proc is currently running. */
+	std::weak_ptr<Timer> m_Self;
 
 	Timer() = default;
 	void Call();

@@ -12,6 +12,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <utility>
 
 using namespace icinga;
 
@@ -60,6 +61,15 @@ static TimerSet l_Timers;
 static int l_AliveTimers = 0;
 
 static Defer l_ShutdownTimersCleanlyOnExit (&Timer::Uninitialize);
+
+Timer::Ptr Timer::Create()
+{
+	Ptr t (new Timer());
+
+	t->m_Self = t;
+
+	return t;
+}
 
 /**
  * Destructor for the Timer class.
@@ -316,11 +326,18 @@ void Timer::TimerThreadProc()
 		 * until the current call is completed. */
 		l_Timers.erase(timer);
 
+		auto keepAlive (timer->m_Self.lock());
+
+		if (!keepAlive) {
+			// The last std::shared_ptr is gone, let ~Timer() proceed
+			continue;
+		}
+
 		timer->m_Running = true;
 
 		lock.unlock();
 
 		/* Asynchronously call the timer. */
-		Utility::QueueAsyncCallback([timer]() { timer->Call(); });
+		Utility::QueueAsyncCallback([timer=std::move(keepAlive)]() { timer->Call(); });
 	}
 }
