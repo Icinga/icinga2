@@ -58,7 +58,7 @@ void PerfdataWriter::Resume()
 		CheckResultHandler(checkable, cr);
 	});
 
-	m_RotationTimer = new Timer();
+	m_RotationTimer = Timer::Create();
 	m_RotationTimer->OnTimerExpired.connect([this](const Timer * const&) { RotationTimerHandler(); });
 	m_RotationTimer->SetInterval(GetRotationInterval());
 	m_RotationTimer->Start();

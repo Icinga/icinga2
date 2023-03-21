@@ -21,7 +21,7 @@ WorkQueue::WorkQueue(size_t maxItems, int threadCount, LogSeverity statsLogLevel
 	/* Initialize logger. */
 	m_StatusTimerTimeout = Utility::GetTime();
 
-	m_StatusTimer = new Timer();
+	m_StatusTimer = Timer::Create();
 	m_StatusTimer->SetInterval(10);
 	m_StatusTimer->OnTimerExpired.connect([this](const Timer * const&) { StatusTimerHandler(); });
 	m_StatusTimer->Start();

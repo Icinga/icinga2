@@ -75,7 +75,7 @@ void OpenTsdbWriter::Resume()
 
 	ReadConfigTemplate(m_ServiceConfigTemplate, m_HostConfigTemplate);
 
-	m_ReconnectTimer = new Timer();
+	m_ReconnectTimer = Timer::Create();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ReconnectTimerHandler(); });
 	m_ReconnectTimer->Start();

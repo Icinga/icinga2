@@ -83,14 +83,14 @@ void DbConnection::Resume()
 	Log(LogInformation, "DbConnection")
 		<< "Resuming IDO connection: " << GetName();
 
-	m_CleanUpTimer = new Timer();
+	m_CleanUpTimer = Timer::Create();
 	m_CleanUpTimer->SetInterval(60);
 	m_CleanUpTimer->OnTimerExpired.connect([this](const Timer * const&) { CleanUpHandler(); });
 	m_CleanUpTimer->Start();
 
 	m_LogStatsTimeout = 0;
 
-	m_LogStatsTimer = new Timer();
+	m_LogStatsTimer = Timer::Create();
 	m_LogStatsTimer->SetInterval(10);
 	m_LogStatsTimer->OnTimerExpired.connect([this](const Timer * const&) { LogStatsHandler(); });
 	m_LogStatsTimer->Start();
@@ -135,7 +135,7 @@ void DbConnection::Pause()
 
 void DbConnection::InitializeDbTimer()
 {
-	m_ProgramStatusTimer = new Timer();
+	m_ProgramStatusTimer = Timer::Create();
 	m_ProgramStatusTimer->SetInterval(10);
 	m_ProgramStatusTimer->OnTimerExpired.connect([](const Timer * const&) { UpdateProgramStatus(); });
 	m_ProgramStatusTimer->Start();

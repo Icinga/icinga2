@@ -104,7 +104,7 @@ int IcingaApplication::Main()
 	Log(LogDebug, "IcingaApplication", "In IcingaApplication::Main()");
 
 	/* periodically dump the program state */
-	l_RetentionTimer = new Timer();
+	l_RetentionTimer = Timer::Create();
 	l_RetentionTimer->SetInterval(300);
 	l_RetentionTimer->OnTimerExpired.connect([this](const Timer * const&) { DumpProgramState(); });
 	l_RetentionTimer->Start();

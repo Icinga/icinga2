@@ -88,7 +88,7 @@ void GraphiteWriter::Resume()
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Timer for reconnecting */
-	m_ReconnectTimer = new Timer();
+	m_ReconnectTimer = Timer::Create();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ReconnectTimerHandler(); });
 	m_ReconnectTimer->Start();

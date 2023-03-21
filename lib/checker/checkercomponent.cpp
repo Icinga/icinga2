@@ -67,7 +67,7 @@ void CheckerComponent::Start(bool runtimeCreated)
 
 	m_Thread = std::thread([this]() { CheckThreadProc(); });
 
-	m_ResultTimer = new Timer();
+	m_ResultTimer = Timer::Create();
 	m_ResultTimer->SetInterval(5);
 	m_ResultTimer->OnTimerExpired.connect([this](const Timer * const&) { ResultTimerHandler(); });
 	m_ResultTimer->Start();

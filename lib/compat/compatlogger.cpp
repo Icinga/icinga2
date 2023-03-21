@@ -69,7 +69,7 @@ void CompatLogger::Start(bool runtimeCreated)
 		ExternalCommandHandler(command, arguments);
 	});
 
-	m_RotationTimer = new Timer();
+	m_RotationTimer = Timer::Create();
 	m_RotationTimer->OnTimerExpired.connect([this](const Timer * const&) { RotationTimerHandler(); });
 	m_RotationTimer->Start();
 

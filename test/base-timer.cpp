@@ -11,13 +11,13 @@ BOOST_AUTO_TEST_SUITE(base_timer)
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	Timer::Ptr timer = new Timer();
+	Timer::Ptr timer = Timer::Create();
 	BOOST_CHECK(timer);
 }
 
 BOOST_AUTO_TEST_CASE(interval)
 {
-	Timer::Ptr timer = new Timer();
+	Timer::Ptr timer = Timer::Create();
 	timer->SetInterval(1.5);
 	BOOST_CHECK(timer->GetInterval() == 1.5);
 }
@@ -31,7 +31,7 @@ static void Callback(const Timer * const&)
 
 BOOST_AUTO_TEST_CASE(invoke)
 {
-	Timer::Ptr timer = new Timer();
+	Timer::Ptr timer = Timer::Create();
 	timer->OnTimerExpired.connect(&Callback);
 	timer->SetInterval(1);
 
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(invoke)
 
 BOOST_AUTO_TEST_CASE(scope)
 {
-	Timer::Ptr timer = new Timer();
+	Timer::Ptr timer = Timer::Create();
 	timer->OnTimerExpired.connect(&Callback);
 	timer->SetInterval(1);
 

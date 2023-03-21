@@ -244,7 +244,7 @@ void ApiListener::Start(bool runtimeCreated)
 
 	SyncLocalZoneDirs();
 
-	m_RenewOwnCertTimer = new Timer();
+	m_RenewOwnCertTimer = Timer::Create();
 
 	if (Utility::PathExists(GetIcingaCADir() + "/ca.key")) {
 		RenewOwnCert();
@@ -272,13 +272,13 @@ void ApiListener::Start(bool runtimeCreated)
 		Application::Exit(EXIT_FAILURE);
 	}
 
-	m_Timer = new Timer();
+	m_Timer = Timer::Create();
 	m_Timer->OnTimerExpired.connect([this](const Timer * const&) { ApiTimerHandler(); });
 	m_Timer->SetInterval(5);
 	m_Timer->Start();
 	m_Timer->Reschedule(0);
 
-	m_ReconnectTimer = new Timer();
+	m_ReconnectTimer = Timer::Create();
 	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ApiReconnectTimerHandler(); });
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->Start();
@@ -288,18 +288,18 @@ void ApiListener::Start(bool runtimeCreated)
 	 * Previous: 60s reconnect, 30s OA, 60s cold startup.
 	 * Now: 10s reconnect, 10s OA, 30s cold startup.
 	 */
-	m_AuthorityTimer = new Timer();
+	m_AuthorityTimer = Timer::Create();
 	m_AuthorityTimer->OnTimerExpired.connect([](const Timer * const&) { UpdateObjectAuthority(); });
 	m_AuthorityTimer->SetInterval(10);
 	m_AuthorityTimer->Start();
 
-	m_CleanupCertificateRequestsTimer = new Timer();
+	m_CleanupCertificateRequestsTimer = Timer::Create();
 	m_CleanupCertificateRequestsTimer->OnTimerExpired.connect([this](const Timer * const&) { CleanupCertificateRequestsTimerHandler(); });
 	m_CleanupCertificateRequestsTimer->SetInterval(3600);
 	m_CleanupCertificateRequestsTimer->Start();
 	m_CleanupCertificateRequestsTimer->Reschedule(0);
 
-	m_ApiPackageIntegrityTimer = new Timer();
+	m_ApiPackageIntegrityTimer = Timer::Create();
 	m_ApiPackageIntegrityTimer->OnTimerExpired.connect([this](const Timer * const&) { CheckApiPackageIntegrity(); });
 	m_ApiPackageIntegrityTimer->SetInterval(300);
 	m_ApiPackageIntegrityTimer->Start();

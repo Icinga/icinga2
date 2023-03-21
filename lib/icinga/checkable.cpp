@@ -101,12 +101,12 @@ void Checkable::Start(bool runtimeCreated)
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
 	boost::call_once(once, []() {
-		l_CheckablesFireSuppressedNotifications = new Timer();
+		l_CheckablesFireSuppressedNotifications = Timer::Create();
 		l_CheckablesFireSuppressedNotifications->SetInterval(5);
 		l_CheckablesFireSuppressedNotifications->OnTimerExpired.connect(&Checkable::FireSuppressedNotificationsTimer);
 		l_CheckablesFireSuppressedNotifications->Start();
 
-		l_CleanDeadlinedExecutions = new Timer();
+		l_CleanDeadlinedExecutions = Timer::Create();
 		l_CleanDeadlinedExecutions->SetInterval(300);
 		l_CleanDeadlinedExecutions->OnTimerExpired.connect(&Checkable::CleanDeadlinedExecutions);
 		l_CleanDeadlinedExecutions->Start();
