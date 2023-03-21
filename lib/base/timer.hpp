@@ -21,6 +21,12 @@ class Timer final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Timer);
 
+	static inline
+	Ptr Create()
+	{
+		return new Timer();
+	}
+
 	~Timer() override;
 
 	static void Initialize();
