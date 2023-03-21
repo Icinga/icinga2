@@ -740,46 +740,8 @@ void ApiListener::NewClientHandlerInternal(
 
 	ClientType ctype;
 
-	if (role == RoleClient) {
-		JsonRpc::SendMessage(client, new Dictionary({
-			{ "jsonrpc", "2.0" },
-			{ "method", "icinga::Hello" },
-			{ "params", new Dictionary({
-				{ "version", (double)l_AppVersionInt },
-				{ "capabilities", (double)l_MyCapabilities }
-			}) }
-		}), yc);
-
-		client->async_flush(yc);
-
-		ctype = ClientJsonRpc;
-	} else {
-		{
-			boost::system::error_code ec;
-
-			if (client->async_fill(yc[ec]) == 0u) {
-				if (identity.IsEmpty()) {
-					Log(LogInformation, "ApiListener")
-						<< "No data received on new API connection " << conninfo << ". "
-						<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
-				} else {
-					Log(LogWarning, "ApiListener")
-						<< "No data received on new API connection " << conninfo << " for identity '" << identity << "'. "
-						<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
-				}
-
-				return;
-			}
-		}
-
-		char firstByte = 0;
-
-		{
-			asio::mutable_buffer firstByteBuf (&firstByte, 1);
-			client->peek(firstByteBuf);
-		}
-
-		if (firstByte >= '0' && firstByte <= '9') {
+	try {
+		if (role == RoleClient) {
 			JsonRpc::SendMessage(client, new Dictionary({
 				{ "jsonrpc", "2.0" },
 				{ "method", "icinga::Hello" },
@@ -793,8 +755,54 @@ void ApiListener::NewClientHandlerInternal(
 
 			ctype = ClientJsonRpc;
 		} else {
-			ctype = ClientHttp;
+			{
+				boost::system::error_code ec;
+
+				if (client->async_fill(yc[ec]) == 0u) {
+					if (identity.IsEmpty()) {
+						Log(LogInformation, "ApiListener")
+							<< "No data received on new API connection " << conninfo << ". "
+							<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+					} else {
+						Log(LogWarning, "ApiListener")
+							<< "No data received on new API connection " << conninfo << " for identity '" << identity << "'. "
+							<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+					}
+
+					return;
+				}
+			}
+
+			char firstByte = 0;
+
+			{
+				asio::mutable_buffer firstByteBuf (&firstByte, 1);
+				client->peek(firstByteBuf);
+			}
+
+			if (firstByte >= '0' && firstByte <= '9') {
+				JsonRpc::SendMessage(client, new Dictionary({
+					{ "jsonrpc", "2.0" },
+					{ "method", "icinga::Hello" },
+					{ "params", new Dictionary({
+						{ "version", (double)l_AppVersionInt },
+						{ "capabilities", (double)l_MyCapabilities }
+					}) }
+				}), yc);
+
+				client->async_flush(yc);
+
+				ctype = ClientJsonRpc;
+			} else {
+				ctype = ClientHttp;
+			}
 		}
+	} catch (const boost::system::system_error& systemError) {
+		if (systemError.code() == boost::asio::error::operation_aborted) {
+			shutDownIfNeeded.Cancel();
+		}
+
+		throw;
 	}
 
 	if (ctype == ClientJsonRpc) {
