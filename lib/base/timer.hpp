@@ -53,6 +53,7 @@ private:
 	bool m_Started{false}; /**< Whether the timer is enabled. */
 	bool m_Running{false}; /**< Whether the timer proc is currently running. */
 
+	Timer() = default;
 	void Call();
 	void InternalReschedule(bool completed, double next = -1);
 
