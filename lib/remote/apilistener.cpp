@@ -750,6 +750,7 @@ void ApiListener::NewClientHandlerInternal(
 
 	ClientType ctype;
 
+	try {
 	if (role == RoleClient) {
 		JsonRpc::SendMessage(client, new Dictionary({
 			{ "jsonrpc", "2.0" },
@@ -806,6 +807,13 @@ void ApiListener::NewClientHandlerInternal(
 		} else {
 			ctype = ClientHttp;
 		}
+	}
+	} catch (const boost::system::system_error& systemError) {
+		if (systemError.code() == boost::asio::error::operation_aborted) {
+			shutDownIfNeeded.Cancel();
+		}
+
+		throw;
 	}
 
 	if (ctype == ClientJsonRpc) {
