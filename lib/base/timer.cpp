@@ -292,9 +292,9 @@ void Timer::TimerThreadProc()
 
 	Utility::SetThreadName("Timer Thread");
 
-	for (;;) {
-		std::unique_lock<std::mutex> lock(l_TimerMutex);
+	std::unique_lock<std::mutex> lock (l_TimerMutex);
 
+	for (;;) {
 		typedef boost::multi_index::nth_index<TimerSet, 1>::type NextTimerView;
 		NextTimerView& idx = boost::get<1>(l_Timers);
 
@@ -339,5 +339,7 @@ void Timer::TimerThreadProc()
 
 		/* Asynchronously call the timer. */
 		Utility::QueueAsyncCallback([timer=std::move(keepAlive)]() { timer->Call(); });
+
+		lock.lock();
 	}
 }
