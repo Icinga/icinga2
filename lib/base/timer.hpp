@@ -4,7 +4,6 @@
 #define TIMER_H
 
 #include "base/i2-base.hpp"
-#include "base/object.hpp"
 #include <boost/signals2.hpp>
 #include <memory>
 
@@ -17,7 +16,7 @@ class TimerHolder;
  *
  * @ingroup base
  */
-class Timer final : public Object
+class Timer final
 {
 public:
 	typedef std::shared_ptr<Timer> Ptr;
@@ -28,7 +27,7 @@ public:
 		return Ptr(new Timer());
 	}
 
-	~Timer() override;
+	~Timer();
 
 	static void Initialize();
 	static void Uninitialize();
