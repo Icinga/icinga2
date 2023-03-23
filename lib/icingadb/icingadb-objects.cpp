@@ -542,7 +542,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		<< "Initial config/status dump finished in " << took << " seconds.";
 }
 
-std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize) {
+std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, int chunkSize) {
 	std::vector<std::vector<intrusive_ptr<ConfigObject>>> chunks;
 	auto offset (objects.begin());
 	auto end (objects.end());
