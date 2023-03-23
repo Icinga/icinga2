@@ -181,6 +181,8 @@ add_definitions(-DBOOST_COROUTINES_NO_DEPRECATION_WARNING)
 
 add_definitions(-DBOOST_FILESYSTEM_NO_DEPRECATED)
 
+add_definitions(-DBOOST_ALLOW_DEPRECATED_HEADERS)
+
 # Required for Boost v1.74+
 add_definitions(-DBOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
 
