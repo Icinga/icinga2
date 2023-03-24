@@ -224,7 +224,7 @@ void RedisConnection::EnqueueCallback(const std::function<void(boost::asio::yiel
 	auto ctime (Utility::GetTime());
 
 	asio::post(m_Strand, [this, callback, priority, ctime]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, nullptr, callback, ctime});
+		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, nullptr, callback, ctime, QueryAffects{}});
 		m_QueuedWrites.Set();
 	});
 }
