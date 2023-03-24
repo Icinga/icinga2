@@ -541,7 +541,7 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 				ProcessTimeRanges(timeranges, &iter, segments);
 
 				Dictionary::Ptr bestSegment;
-				double bestBegin;
+				double bestBegin = 0;
 
 				ObjectLock olock(segments);
 				for (Dictionary::Ptr segment : segments) {
