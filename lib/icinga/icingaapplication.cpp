@@ -71,7 +71,7 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 
 REGISTER_STATSFUNCTION(IcingaApplication, &IcingaApplication::StatsFunc);
 
-void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
+void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, [[maybe_unused]] const Array::Ptr& perfdata)
 {
 	DictionaryData nodes;
 
@@ -310,12 +310,12 @@ String IcingaApplication::GetEnvironment() const
 	return Application::GetAppEnvironment();
 }
 
-void IcingaApplication::SetEnvironment(const String& value, bool suppress_events, const Value& cookie)
+void IcingaApplication::SetEnvironment(const String& value, [[maybe_unused]] bool suppress_event, [[maybe_unused]] const Value& cookie)
 {
 	Application::SetAppEnvironment(value);
 }
 
-void IcingaApplication::ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+void IcingaApplication::ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils&)
 {
 	MacroProcessor::ValidateCustomVars(this, lvalue());
 }

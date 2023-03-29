@@ -502,9 +502,9 @@ void ScriptUtils::Assert(const Value& arg)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Assertion failed"));
 }
 
+#ifdef _WIN32
 String ScriptUtils::MsiGetComponentPathShim(const String& component)
 {
-#ifdef _WIN32
 	TCHAR productCode[39];
 	if (MsiGetProductCode(component.CStr(), productCode) != ERROR_SUCCESS)
 		return "";
@@ -513,10 +513,13 @@ String ScriptUtils::MsiGetComponentPathShim(const String& component)
 	path[0] = '\0';
 	MsiGetComponentPath(productCode, component.CStr(), path, &szPath);
 	return path;
-#else /* _WIN32 */
-	return String();
-#endif /* _WIN32 */
 }
+#else /* _WIN32 */
+String ScriptUtils::MsiGetComponentPathShim([[maybe_unused]] const String& component)
+{
+	return String();
+}
+#endif /* _WIN32 */
 
 Array::Ptr ScriptUtils::TrackParents(const Object::Ptr& child)
 {
