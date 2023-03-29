@@ -23,11 +23,9 @@ void NetworkStream::Close()
  * @param count The number of bytes to read from the queue.
  * @returns The number of bytes actually read.
  */
-size_t NetworkStream::Read(void *buffer, size_t count, bool allow_partial)
+size_t NetworkStream::Read(void *buffer, size_t count)
 {
 	size_t rc;
-
-	ASSERT(allow_partial);
 
 	if (m_Eof)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Tried to read from closed socket."));
