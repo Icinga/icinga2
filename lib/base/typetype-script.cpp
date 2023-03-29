@@ -15,7 +15,7 @@ static void TypeRegisterAttributeHandler(const String& fieldName, const Function
 	REQUIRE_NOT_NULL(self);
 
 	int fid = self->GetFieldId(fieldName);
-	self->RegisterAttributeHandler(fid, [callback](const Object::Ptr& object, const Value& cookie) {
+	self->RegisterAttributeHandler(fid, [callback](const Object::Ptr& object, [[maybe_unused]] const Value& cookie) {
 		callback->Invoke({ object });
 	});
 }
