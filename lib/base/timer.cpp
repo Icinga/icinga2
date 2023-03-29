@@ -296,6 +296,11 @@ void Timer::TimerThreadProc()
 			break;
 
 		auto it = idx.begin();
+
+		// timer->~Timer() may be called at any moment (if the last
+		// smart pointer gets destroyed) or even already waiting for
+		// l_TimerMutex (before doing anything else) which we have
+		// locked at the moment. Until our unlock using *timer is safe.
 		Timer *timer = *it;
 
 		ch::time_point<ch::system_clock, ch::duration<double>> next (ch::duration<double>(timer->m_Next));
