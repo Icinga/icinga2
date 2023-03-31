@@ -92,7 +92,7 @@ void LogTable::FetchRows(const AddRowFunction& addRowFn)
 }
 
 /* gets called in LivestatusLogUtility::CreateLogCache */
-void LogTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn)
+void LogTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int lineno, const AddRowFunction& addRowFn)
 {
 	/* additional attributes only for log table */
 	log_entry_attrs->Set("lineno", lineno);

@@ -768,8 +768,10 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	// Whether we already forwarded a termination signal to the seamless worker
 	bool requestedTermination = false;
 
+#ifdef HAVE_SYSTEMD
 	// Whether we already notified systemd about our termination
 	bool notifiedTermination = false;
+#endif /* HAVE_SYSTEMD */
 
 	for (;;) {
 #ifdef HAVE_SYSTEMD

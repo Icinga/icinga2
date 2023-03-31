@@ -29,7 +29,7 @@ public:
 protected:
 	void FetchRows(const AddRowFunction& addRowFn) override;
 
-	static Object::Ptr HostGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
+	static Object::Ptr HostGroupAccessor(LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
 
 	static Value NameAccessor(const Value& row);
 	static Value DisplayNameAccessor(const Value& row);

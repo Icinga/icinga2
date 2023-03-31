@@ -53,7 +53,7 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		};
 	}
 
-	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
+	PluginUtility::ExecuteCommand(commandObj, checkable->GetLastCheckResult(),
 		resolvers, resolvedMacros, useResolvedMacros, timeout, callback);
 
 	if (!resolvedMacros || useResolvedMacros) {

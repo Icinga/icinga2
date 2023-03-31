@@ -23,7 +23,7 @@ void TimePeriod::Start(bool runtimeCreated)
 
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
-	boost::call_once(once, [this]() {
+	boost::call_once(once, [] {
 		l_UpdateTimer = Timer::Create();
 		l_UpdateTimer->SetInterval(300);
 		l_UpdateTimer->OnTimerExpired.connect([](const Timer * const&) { UpdateTimerHandler(); });

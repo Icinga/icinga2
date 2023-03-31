@@ -45,7 +45,7 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
 		callback = [checkable](const Value& commandLine, const ProcessResult& pr) { ProcessFinishedHandler(checkable, commandLine, pr); };
 	}
 
-	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
+	PluginUtility::ExecuteCommand(commandObj, checkable->GetLastCheckResult(),
 		resolvers, resolvedMacros, useResolvedMacros, timeout, callback);
 }
 
