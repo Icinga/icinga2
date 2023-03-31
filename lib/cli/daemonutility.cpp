@@ -247,6 +247,11 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 		return false;
 	}
 
+	// After evaluating the top-level statements of the config files (happening in ValidateConfigFiles() above),
+	// prevent further modification of the global scope. This allows for a faster execution of the following steps
+	// as Freeze() disables locking as it's not necessary on a read-only data structure anymore.
+	ScriptGlobal::GetGlobals()->Freeze();
+
 	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("DaemonUtility::LoadConfigFiles");
 	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
