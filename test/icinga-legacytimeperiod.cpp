@@ -574,7 +574,7 @@ BOOST_AUTO_TEST_CASE(dst)
 	std::vector<TestData> tests;
 
 	// 2021-03-14: 01:59:59 PST (UTC-8) -> 03:00:00 PDT (UTC-7)
-	for (const std::string& day : {"2021-03-14", "sunday", "sunday 2", "sunday -3"}) {
+	for (std::string day : {"2021-03-14", "sunday", "sunday 2", "sunday -3"}) {
 		// range before DST change
 		tests.push_back(TestData{
 			day, "00:30-01:30",
@@ -648,7 +648,7 @@ BOOST_AUTO_TEST_CASE(dst)
 	}
 
 	// 2021-11-07: 01:59:59 PDT (UTC-7) -> 01:00:00 PST (UTC-8)
-	for (const std::string& day : {"2021-11-07", "sunday", "sunday 1", "sunday -4"}) {
+	for (std::string day : {"2021-11-07", "sunday", "sunday 1", "sunday -4"}) {
 		// range before DST change
 		tests.push_back(TestData{
 			day, "00:15-00:45",

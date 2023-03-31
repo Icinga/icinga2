@@ -173,7 +173,7 @@ std::set<User::Ptr> Notification::GetUsers() const
 	if (users) {
 		ObjectLock olock(users);
 
-		for (const String& name : users) {
+		for (String name : users) {
 			User::Ptr user = User::GetByName(name);
 
 			if (!user)
@@ -195,7 +195,7 @@ std::set<UserGroup::Ptr> Notification::GetUserGroups() const
 	if (groups) {
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (String name : groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (!ug)

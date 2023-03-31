@@ -119,7 +119,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
 
 		ObjectLock olock(perfs);
 
-		for (const Dictionary::Ptr& perf : perfs) {
+		for (Dictionary::Ptr perf : perfs) {
 			ssout << "'" << perf->Get("alias") << "'=";
 
 			Dictionary::Ptr values = perf->Get("float_value");
@@ -483,7 +483,7 @@ int main(int argc, char **argv)
 		endpoint += '/';
 	else {
 		endpoint += '?';
-		for (const String& argument : vm["arguments"].as<std::vector<std::string>>()) {
+		for (String argument : vm["arguments"].as<std::vector<std::string>>()) {
 			String::SizeType pos = argument.FindFirstOf("=");
 			if (pos == String::NPos)
 				endpoint += Utility::EscapeString(argument, ACQUERY_ENCODE, false);

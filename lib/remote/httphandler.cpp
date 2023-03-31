@@ -66,7 +66,7 @@ void HttpHandler::ProcessRequest(
 
 		if (current_handlers) {
 			ObjectLock olock(current_handlers);
-			for (const HttpHandler::Ptr& current_handler : current_handlers) {
+			for (HttpHandler::Ptr current_handler : current_handlers) {
 				handlers.push_back(current_handler);
 			}
 		}
