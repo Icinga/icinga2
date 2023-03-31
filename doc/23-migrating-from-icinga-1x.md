@@ -1043,7 +1043,7 @@ In Icinga 2 notification commands are not directly associated with users.
 Instead the notification command is specified inside `Notification` objects next to
 user and user group relations.
 
-The `StatusDataWriter`, `IdoMySqlConnection` and `LivestatusListener` types will
+The `IdoMySqlConnection` and `LivestatusListener` types will
 provide the contact and contactgroups attributes for services for compatibility
 reasons. These values are calculated from all services, their notifications,
 and their users.
@@ -1281,7 +1281,7 @@ provided separately.
 There is no output length restriction as known from Icinga 1.x using an
 [8KB static buffer](https://docs.icinga.com/latest/en/pluginapi.html#outputlengthrestrictions).
 
-The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
+The `IdoMysqlConnection` and `LivestatusListener` types
 split the raw output into `output` (first line) and `long_output` (remaining
 lines) for compatibility reasons.
 
@@ -1471,7 +1471,7 @@ chapter.
 
 Dependencies can be applied to hosts or services using the [apply rules](17-language-reference.md#apply).
 
-The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
+The `IdoMysqlConnection` and `LivestatusListener` types
 support the Icinga 1.x schema with dependencies and parent attributes for
 compatibility reasons.
 

@@ -8,7 +8,7 @@ icolor brightgreen 		"object[ \t]+(host|hostgroup|service|servicegroup|user|user
 icolor brightgreen 		"object[ \t]+(checkcommand|notificationcommand|eventcommand|notification)"
 icolor brightgreen 		"object[ \t]+(timeperiod|scheduleddowntime|dependency|perfdatawriter)"
 icolor brightgreen 		"object[ \t]+(graphitewriter|idomysqlconnection|idomysqlconnection)"
-icolor brightgreen 		"object[ \t]+(livestatuslistener|statusdatawriter|externalcommandlistener)"
+icolor brightgreen 		"object[ \t]+(livestatuslistener|externalcommandlistener)"
 icolor brightgreen 		"object[ \t]+(compatlogger|checkresultreader|checkcomponent|notificationcomponent)"
 icolor brightgreen 		"object[ \t]+(filelogger|sysloglogger|journaldlogger|apilistener|endpoint|zone)"
 

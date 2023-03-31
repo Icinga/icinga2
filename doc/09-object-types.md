@@ -1915,34 +1915,6 @@ When rotating the performance data file the current UNIX timestamp is appended t
 in `host_perfdata_path` and `service_perfdata_path` to generate a unique filename.
 
 
-### StatusDataWriter <a id="objecttype-statusdatawriter"></a>
-
-Periodically writes status and configuration data files which are used by third-party tools.
-This configuration object is available as [statusdata feature](14-features.md#status-data).
-
-> **Note**
->
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Example:
-
-```
-object StatusDataWriter "status" {
-    status_path = "/var/cache/icinga2/status.dat"
-    objects_path = "/var/cache/icinga2/objects.cache"
-    update_interval = 30s
-}
-```
-
-Configuration Attributes:
-
-  Name                      | Type                  | Description
-  --------------------------|-----------------------|----------------------------------
-  status\_path              | String                | **Optional.** Path to the `status.dat` file. Defaults to CacheDir + "/status.dat".
-  objects\_path             | String                | **Optional.** Path to the `objects.cache` file. Defaults to CacheDir + "/objects.cache".
-  update\_interval          | Duration              | **Optional.** The interval in which the status files are updated. Defaults to `15s`.
-
 ### SyslogLogger <a id="objecttype-sysloglogger"></a>
 
 Specifies Icinga 2 logging to syslog.
