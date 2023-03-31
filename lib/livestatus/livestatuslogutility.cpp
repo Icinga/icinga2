@@ -59,7 +59,6 @@ void LivestatusLogUtility::CreateLogCache(std::map<time_t, String> index, Histor
 	ASSERT(table);
 
 	/* m_LogFileIndex map tells which log files are involved ordered by their start timestamp */
-	unsigned long line_count = 0;
 	for (const auto& kv : index) {
 		unsigned int ts = kv.first;
 
@@ -90,9 +89,8 @@ void LivestatusLogUtility::CreateLogCache(std::map<time_t, String> index, Histor
 				continue;
 			}
 
-			table->UpdateLogEntries(log_entry_attrs, line_count, lineno, addRowFn);
+			table->UpdateLogEntries(log_entry_attrs, lineno, addRowFn);
 
-			line_count++;
 			lineno++;
 		}
 

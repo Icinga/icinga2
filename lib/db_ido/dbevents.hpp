@@ -73,7 +73,7 @@ public:
 	static void RemoveAcknowledgement(const Checkable::Ptr& checkable);
 	static void AddAcknowledgementInternal(const Checkable::Ptr& checkable, AcknowledgementType type, bool add);
 
-	static void ReachabilityChangedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, std::set<Checkable::Ptr> children);
+	static void ReachabilityChangedHandler(const CheckResult::Ptr& cr, std::set<Checkable::Ptr> children);
 
 	/* comment, downtime, acknowledgement history */
 	static void AddCommentHistory(const Comment::Ptr& comment);
@@ -82,18 +82,17 @@ public:
 		AcknowledgementType type, bool notify, double expiry);
 
 	/* notification & contactnotification history */
-	static void AddNotificationHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-		const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
-		const String& text);
+	static void AddNotificationHistory(const Checkable::Ptr& checkable,
+		const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr);
 
 	/* statehistory */
-	static void AddStateChangeHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
+	static void AddStateChangeHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 	/* logentries */
 	static void AddCheckResultLogHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr);
 	static void AddTriggerDowntimeLogHistory(const Downtime::Ptr& downtime);
 	static void AddRemoveDowntimeLogHistory(const Downtime::Ptr& downtime);
-	static void AddNotificationSentLogHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+	static void AddNotificationSentLogHistory(const Checkable::Ptr& checkable,
 		const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author,
 		const String& comment_text);
 
