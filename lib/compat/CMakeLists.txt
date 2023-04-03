@@ -1,11 +1,9 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
-mkclass_target(checkresultreader.ti checkresultreader-ti.cpp checkresultreader-ti.hpp)
 mkclass_target(compatlogger.ti compatlogger-ti.cpp compatlogger-ti.hpp)
 mkclass_target(externalcommandlistener.ti externalcommandlistener-ti.cpp externalcommandlistener-ti.hpp)
 
 set(compat_SOURCES
-  checkresultreader.cpp checkresultreader.hpp checkresultreader-ti.hpp
   compatlogger.cpp compatlogger.hpp compatlogger-ti.hpp
   externalcommandlistener.cpp externalcommandlistener.hpp externalcommandlistener-ti.hpp
 )

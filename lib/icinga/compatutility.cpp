@@ -293,7 +293,7 @@ String CompatUtility::EscapeString(const String& str)
 	return result;
 }
 
-/* Used in ExternalCommandListener and CheckResultReader. */
+/* Used in ExternalCommandListener. */
 String CompatUtility::UnEscapeString(const String& str)
 {
 	String result = str;

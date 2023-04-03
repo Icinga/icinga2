@@ -1153,30 +1153,6 @@ use [MaxConcurrentChecks](17-language-reference.md#icinga-constants-global-confi
 This also applies to an agent as command endpoint where the checker
 feature is disabled.
 
-### CheckResultReader <a id="objecttype-checkresultreader"></a>
-
-Reads Icinga 1.x check result files from a directory. This functionality is provided
-to help existing Icinga 1.x users and might be useful for migration scenarios.
-
-> **Note**
->
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Example:
-
-```
-object CheckResultReader "reader" {
-  spool_dir = "/data/check-results"
-}
-```
-
-Configuration Attributes:
-
-  Name                      | Type                  | Description
-  --------------------------|-----------------------|----------------------------------
-  spool\_dir                | String                | **Optional.** The directory which contains the check result files. Defaults to DataDir + "/spool/checkresults/".
-
 ### CompatLogger <a id="objecttype-compatlogger"></a>
 
 Writes log files in a format that's compatible with Icinga 1.x.
