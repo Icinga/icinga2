@@ -96,15 +96,11 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 			// note that std::unordered_map::insert() will not overwrite an existing entry
 			violated.insert(std::make_pair(redundancy_group, dep));
 		} else if (!redundancy_group.empty()) {
-			// definitely mark this dependency group as passed
-			// as std::unordered_map::insert() will not overwrite an existing entry, erase it first
-			// in C++17, one could use std::unorderer_map::insert_or_assign() instead
-			violated.erase(redundancy_group);
-			violated.insert(std::make_pair(redundancy_group, nullptr));
+			violated[redundancy_group] = nullptr;
 		}
 	}
 
-	auto violator = std::find_if(violated.begin(), violated.end(), [](const std::pair<std::string, Dependency::Ptr>&v) { return v.second != nullptr; });
+	auto violator = std::find_if(violated.begin(), violated.end(), [](auto& v) { return v.second != nullptr; });
 	if (violator != violated.end()) {
 		Log(LogDebug, "Checkable")
 			<< "All dependencies in redundancy group '" << violator->first << "' have failed for checkable '" << GetName() << "': Marking as unreachable.";
