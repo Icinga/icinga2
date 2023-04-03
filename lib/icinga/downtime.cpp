@@ -10,6 +10,7 @@
 #include "base/timer.hpp"
 #include <boost/thread/once.hpp>
 #include <cmath>
+#include <utility>
 
 using namespace icinga;
 
@@ -157,6 +158,21 @@ void Downtime::Stop(bool runtimeRemoved)
 		OnDowntimeRemoved(this);
 
 	ObjectImpl<Downtime>::Stop(runtimeRemoved);
+}
+
+void Downtime::Pause()
+{
+	if (m_CleanupTimer) {
+		m_CleanupTimer->Stop();
+	}
+
+	ObjectImpl<Downtime>::Pause();
+}
+
+void Downtime::Resume()
+{
+	ObjectImpl<Downtime>::Resume();
+	SetupCleanupTimer();
 }
 
 Checkable::Ptr Downtime::GetCheckable() const
@@ -427,6 +443,28 @@ bool Downtime::CanBeTriggered()
 	return true;
 }
 
+void Downtime::SetupCleanupTimer()
+{
+	if (!m_CleanupTimer) {
+		m_CleanupTimer = Timer::Create();
+
+		auto name (GetName());
+
+		m_CleanupTimer->OnTimerExpired.connect([name=std::move(name)](const Timer * const&) {
+			auto downtime (Downtime::GetByName(name));
+
+			if (downtime && downtime->IsExpired()) {
+				RemoveDowntime(name, false, false, true);
+			}
+		});
+	}
+
+	auto triggerTime (GetTriggerTime());
+
+	m_CleanupTimer->Reschedule((GetFixed() || triggerTime <= 0 ? GetEndTime() : triggerTime + GetDuration()) + 0.1);
+	m_CleanupTimer->Start();
+}
+
 void Downtime::TriggerDowntime(double triggerTime)
 {
 	if (!CanBeTriggered())
@@ -439,6 +477,11 @@ void Downtime::TriggerDowntime(double triggerTime)
 
 	if (GetTriggerTime() == 0) {
 		SetTriggerTime(triggerTime);
+	}
+
+	{
+		ObjectLock olock (this);
+		SetupCleanupTimer();
 	}
 
 	Array::Ptr triggers = GetTriggers();
@@ -501,7 +544,7 @@ void Downtime::DowntimesExpireTimerHandler()
 {
 	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		/* Only remove downtimes which are activated after daemon start. */
-		if (downtime->IsActive() && (downtime->IsExpired() || !downtime->HasValidConfigOwner()))
+		if (downtime->IsActive() && !downtime->HasValidConfigOwner())
 			RemoveDowntime(downtime->GetName(), false, false, true);
 	}
 }
