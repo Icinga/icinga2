@@ -161,16 +161,14 @@ double Timer::GetInterval() const
  */
 void Timer::Start()
 {
-	{
-		std::unique_lock<std::mutex> lock(l_TimerMutex);
-		m_Started = true;
+	std::unique_lock<std::mutex> lock(l_TimerMutex);
+	m_Started = true;
 
-		if (++l_AliveTimers == 1) {
-			InitializeThread();
-		}
+	if (++l_AliveTimers == 1) {
+		InitializeThread();
 	}
 
-	InternalReschedule(false);
+	InternalRescheduleUnlocked(false);
 }
 
 /**
@@ -202,6 +200,13 @@ void Timer::Reschedule(double next)
 	InternalReschedule(false, next);
 }
 
+void Timer::InternalReschedule(bool completed, double next)
+{
+	std::unique_lock<std::mutex> lock (l_TimerMutex);
+
+	InternalRescheduleUnlocked(completed, next);
+}
+
 /**
  * Reschedules this timer.
  *
@@ -209,10 +214,8 @@ void Timer::Reschedule(double next)
  * @param next The time when this timer should be called again. Use -1 to let
  *        the timer figure out a suitable time based on the interval.
  */
-void Timer::InternalReschedule(bool completed, double next)
+void Timer::InternalRescheduleUnlocked(bool completed, double next)
 {
-	std::unique_lock<std::mutex> lock(l_TimerMutex);
-
 	if (completed)
 		m_Running = false;
 

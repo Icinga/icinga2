@@ -53,6 +53,7 @@ private:
 	Timer() = default;
 	void Call();
 	void InternalReschedule(bool completed, double next = -1);
+	void InternalRescheduleUnlocked(bool completed, double next = -1);
 
 	static void TimerThreadProc();
 
