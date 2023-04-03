@@ -162,11 +162,12 @@ double Timer::GetInterval() const
 void Timer::Start()
 {
 	std::unique_lock<std::mutex> lock(l_TimerMutex);
-	m_Started = true;
 
-	if (++l_AliveTimers == 1) {
+	if (!m_Started && ++l_AliveTimers == 1) {
 		InitializeThread();
 	}
+
+	m_Started = true;
 
 	InternalRescheduleUnlocked(false, m_Interval > 0 ? -1 : m_Next);
 }
