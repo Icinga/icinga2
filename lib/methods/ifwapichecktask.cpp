@@ -128,7 +128,7 @@ static void DoIfwNetIo(
 
 	{
 		boost::system::error_code ec;
-		conn.next_layer().async_shutdown(ec);
+		conn.next_layer().async_shutdown(yc[ec]);
 	}
 
 	CpuBoundWork cbw (yc);
