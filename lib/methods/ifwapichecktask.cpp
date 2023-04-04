@@ -202,7 +202,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	REQUIRE_NOT_NULL(cr);
 
 	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
-	auto cr (checkable->GetLastCheckResult());
+	auto lcr (checkable->GetLastCheckResult());
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -218,9 +218,9 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", command);
 
-	auto resolveMacros ([&resolvers, &cr, &resolvedMacros, useResolvedMacros](const char* macros, String* missingMacro = nullptr) -> Value {
+	auto resolveMacros ([&resolvers, &lcr, &resolvedMacros, useResolvedMacros](const char* macros, String* missingMacro = nullptr) -> Value {
 		return MacroProcessor::ResolveMacros(
-			macros, resolvers, cr, missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros
+			macros, resolvers, lcr, missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros
 		);
 	});
 
@@ -273,7 +273,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 			 * but we need the args one-by-one like [ "-f" ] or [ "-a", "X" ].
 			 */
 			Array::Ptr arg = MacroProcessor::ResolveArguments(
-				emptyCmd, new Dictionary({{kv.first, argSpec}}), resolvers, cr, resolvedMacros, useResolvedMacros
+				emptyCmd, new Dictionary({{kv.first, argSpec}}), resolvers, lcr, resolvedMacros, useResolvedMacros
 			);
 
 			switch (arg ? arg->GetLength() : 0) {
