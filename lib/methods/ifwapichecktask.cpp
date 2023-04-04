@@ -231,9 +231,9 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	Array::Ptr ignoreArguments = resolveMacros("$ifw_api_ignore_arguments$");
 	String psHost = resolveMacros("$ifw_api_host$");
 	String psPort = resolveMacros("$ifw_api_port$");
-	String cert = resolveMacros("$ifw_api_cert$", missingCert);
-	String key = resolveMacros("$ifw_api_key$", missingKey);
-	String ca = resolveMacros("$ifw_api_ca$", missingCa);
+	String cert = resolveMacros("$ifw_api_cert$", &missingCert);
+	String key = resolveMacros("$ifw_api_key$", &missingKey);
+	String ca = resolveMacros("$ifw_api_ca$", &missingCa);
 	String crl = resolveMacros("$ifw_api_crl$", &missingCrl);
 	String username = resolveMacros("$ifw_api_username$", &missingUsername);
 	String password = resolveMacros("$ifw_api_password$", &missingPassword);
