@@ -216,7 +216,6 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", command);
-	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String psCommand = MacroProcessor::ResolveMacros("$ifw_api_command$", resolvers, checkable->GetLastCheckResult(),
 		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
