@@ -69,14 +69,13 @@ static void ReportIfwCheckResult(
 static void DoIfwNetIo(
 	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const CheckCommand::Ptr& command,
 	const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& psPort,
-	boost::beast::http::request<boost::beast::http::string_body>& req
+	boost::asio::ssl::context& ctx, boost::beast::http::request<boost::beast::http::string_body>& req
 )
 {
 	using namespace boost::asio;
 	using namespace boost::beast;
 	using namespace boost::beast::http;
 
-	ssl::context ctx (ssl::context::tls);
 	AsioTlsStream conn (IoEngine::Get().GetIoContext(), ctx);
 	flat_buffer buf;
 	response<string_body> resp;
@@ -224,13 +223,17 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		);
 	});
 
-	String missingUsername, missingPassword;
+	String missingCrl, missingUsername, missingPassword;
 
 	String psCommand = resolveMacros("$ifw_api_command$");
 	Dictionary::Ptr arguments = resolveMacros("$ifw_api_arguments$");
 	Array::Ptr ignoreArguments = resolveMacros("$ifw_api_ignore_arguments$");
 	String psHost = resolveMacros("$ifw_api_host$");
 	String psPort = resolveMacros("$ifw_api_port$");
+	String cert = resolveMacros("$ifw_api_cert$");
+	String key = resolveMacros("$ifw_api_key$");
+	String ca = resolveMacros("$ifw_api_ca$");
+	String crl = resolveMacros("$ifw_api_crl$", &missingCrl);
 	String username = resolveMacros("$ifw_api_username$", &missingUsername);
 	String password = resolveMacros("$ifw_api_password$", &missingPassword);
 
@@ -298,6 +301,16 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
+	Shared<boost::asio::ssl::context>::Ptr ctx;
+
+	try {
+		ctx = SetupSslContext(cert, key, ca, crl, DEFAULT_TLS_CIPHERS, DEFAULT_TLS_PROTOCOLMIN, DebugInfo());
+	} catch (const std::exception& ex) {
+		double now = Utility::GetTime();
+		ReportIfwCheckResult(checkable, command, cr, ex.what(), now, now);
+		return;
+	}
+
 	auto req (Shared<request<string_body>>::Make());
 
 	req->method(verb::post);
@@ -311,8 +324,8 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	IoEngine::SpawnCoroutine(
 		IoEngine::Get().GetIoContext(),
-		[checkable, command, cr, psCommand, psHost, psPort, req](boost::asio::yield_context yc) {
-			DoIfwNetIo(yc, checkable, command, cr, psCommand, psHost, psPort, *req);
+		[checkable, command, cr, psCommand, psHost, psPort, ctx, req](boost::asio::yield_context yc) {
+			DoIfwNetIo(yc, checkable, command, cr, psCommand, psHost, psPort, *ctx, *req);
 		}
 	);
 }
