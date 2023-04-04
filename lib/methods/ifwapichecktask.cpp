@@ -71,17 +71,15 @@ static void ReportIfwCheckResult(
 static void DoIfwNetIo(
 	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const CheckCommand::Ptr& command,
 	const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& psPort,
-	boost::asio::ssl::context& ctx, boost::beast::http::request<boost::beast::http::string_body>& req
+	AsioTlsStream& conn, boost::beast::http::request<boost::beast::http::string_body>& req, double start
 )
 {
 	using namespace boost::asio;
 	using namespace boost::beast;
 	using namespace boost::beast::http;
 
-	AsioTlsStream conn (IoEngine::Get().GetIoContext(), ctx);
 	flat_buffer buf;
 	response<string_body> resp;
-	double start = Utility::GetTime();
 
 	try {
 		Connect(conn.lowest_layer(), psHost, psPort, yc);
@@ -306,6 +304,12 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		}
 	}
 
+	auto timeout (command->GetTimeout());
+	auto checkTimeout (checkable->GetCheckTimeout());
+
+	if (!checkTimeout.IsEmpty())
+		timeout = checkTimeout;
+
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
@@ -319,16 +323,6 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	if (!missingCa.IsEmpty()) {
 		ca = ApiListener::GetDefaultCaPath();
-	}
-
-	Shared<boost::asio::ssl::context>::Ptr ctx;
-
-	try {
-		ctx = SetupSslContext(cert, key, ca, crl, DEFAULT_TLS_CIPHERS, DEFAULT_TLS_PROTOCOLMIN, DebugInfo());
-	} catch (const std::exception& ex) {
-		double now = Utility::GetTime();
-		ReportIfwCheckResult(checkable, command, cr, ex.what(), now, now);
-		return;
 	}
 
 	Url::Ptr uri = new Url();
@@ -347,10 +341,37 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		req->set(field::authorization, "Basic " + Base64::Encode(username + ":" + password));
 	}
 
+	auto& io (IoEngine::Get().GetIoContext());
+	auto strand (Shared<asio::io_context::strand>::Make(io));
+	Shared<boost::asio::ssl::context>::Ptr ctx;
+	double start = Utility::GetTime();
+
+	try {
+		ctx = SetupSslContext(cert, key, ca, crl, DEFAULT_TLS_CIPHERS, DEFAULT_TLS_PROTOCOLMIN, DebugInfo());
+	} catch (const std::exception& ex) {
+		ReportIfwCheckResult(checkable, command, cr, ex.what(), start, Utility::GetTime());
+		return;
+	}
+
+	auto conn (Shared<AsioTlsStream>::Make(io, *ctx));
+
 	IoEngine::SpawnCoroutine(
-		IoEngine::Get().GetIoContext(),
-		[checkable, command, cr, psCommand, psHost, psPort, ctx, req](boost::asio::yield_context yc) {
-			DoIfwNetIo(yc, checkable, command, cr, psCommand, psHost, psPort, *ctx, *req);
+		*strand,
+		[strand, checkable, command, cr, psCommand, psHost, psPort, conn, req, start, timeout](boost::asio::yield_context yc) {
+			Timeout::Ptr timeout = new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(timeout * 1e6)),
+				[&conn, &checkable](boost::asio::yield_context yc) {
+					Log(LogNotice, "IfwApiCheckTask")
+						<< "Timeout while checking " << checkable->GetReflectionType()->GetName()
+						<< " '" << checkable->GetName() << "', cancelling attempt";
+
+					boost::system::error_code ec;
+					conn->lowest_layer().cancel(ec);
+				}
+			);
+
+			Defer cancelTimeout ([&timeout]() { timeout->Cancel(); });
+
+			DoIfwNetIo(yc, checkable, command, cr, psCommand, psHost, psPort, *conn, *req, start);
 		}
 	);
 }
