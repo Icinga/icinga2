@@ -18,6 +18,7 @@
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include "remote/apilistener.hpp"
+#include "remote/url.hpp"
 #include <boost/asio.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -324,10 +325,15 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		return;
 	}
 
+	Url::Ptr uri = new Url();
+
+	uri->SetPath({ "v1", "checker" });
+	uri->SetQuery({{ "command", psCommand }});
+
 	auto req (Shared<request<string_body>>::Make());
 
 	req->method(verb::post);
-	req->target("/v1/checker?command=" + psCommand);
+	req->target(uri->Format());
 	req->set(field::content_type, "application/json");
 	req->body() = JsonEncode(params);
 
