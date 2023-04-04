@@ -125,6 +125,12 @@ static void DoIfwNetIo(
 	}
 
 	double end = Utility::GetTime();
+
+	{
+		boost::system::error_code ec;
+		conn.next_layer().async_shutdown(ec);
+	}
+
 	CpuBoundWork cbw (yc);
 	Value jsonRoot;
 
