@@ -202,6 +202,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	REQUIRE_NOT_NULL(cr);
 
 	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
+	auto cr (checkable->GetLastCheckResult());
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -217,28 +218,21 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", command);
 
-	String psCommand = MacroProcessor::ResolveMacros("$ifw_api_command$", resolvers, checkable->GetLastCheckResult(),
-		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
-
-	Dictionary::Ptr arguments = MacroProcessor::ResolveMacros("$ifw_api_arguments$", resolvers, checkable->GetLastCheckResult(),
-		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
-
-	Array::Ptr ignoreArguments = MacroProcessor::ResolveMacros("$ifw_api_ignore_arguments$", resolvers, checkable->GetLastCheckResult(),
-		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
-
-	String psHost = MacroProcessor::ResolveMacros("$ifw_api_host$", resolvers, checkable->GetLastCheckResult(),
-		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
-
-	String psPort = MacroProcessor::ResolveMacros("$ifw_api_port$", resolvers, checkable->GetLastCheckResult(),
-		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+	auto resolveMacros ([&resolvers, &cr, &resolvedMacros, useResolvedMacros](const char* macros, String* missingMacro = nullptr) -> Value {
+		return MacroProcessor::ResolveMacros(
+			macros, resolvers, cr, missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros
+		);
+	});
 
 	String missingUsername, missingPassword;
 
-	String username = MacroProcessor::ResolveMacros("$ifw_api_username$", resolvers, checkable->GetLastCheckResult(),
-		&missingUsername, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
-
-	String password = MacroProcessor::ResolveMacros("$ifw_api_password$", resolvers, checkable->GetLastCheckResult(),
-		&missingPassword, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+	String psCommand = resolveMacros("$ifw_api_command$");
+	Dictionary::Ptr arguments = resolveMacros("$ifw_api_arguments$");
+	Array::Ptr ignoreArguments = resolveMacros("$ifw_api_ignore_arguments$");
+	String psHost = resolveMacros("$ifw_api_host$");
+	String psPort = resolveMacros("$ifw_api_port$");
+	String username = resolveMacros("$ifw_api_username$", &missingUsername);
+	String password = resolveMacros("$ifw_api_password$", &missingPassword);
 
 	Dictionary::Ptr params = new Dictionary();
 
@@ -279,8 +273,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 			 * but we need the args one-by-one like [ "-f" ] or [ "-a", "X" ].
 			 */
 			Array::Ptr arg = MacroProcessor::ResolveArguments(
-				emptyCmd, new Dictionary({{kv.first, argSpec}}), resolvers,
-				checkable->GetLastCheckResult(), resolvedMacros, useResolvedMacros
+				emptyCmd, new Dictionary({{kv.first, argSpec}}), resolvers, cr, resolvedMacros, useResolvedMacros
 			);
 
 			switch (arg ? arg->GetLength() : 0) {
