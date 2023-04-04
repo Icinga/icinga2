@@ -7,6 +7,7 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/pluginutility.hpp"
 #include "base/base64.hpp"
+#include "base/defer.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/convert.hpp"
@@ -304,11 +305,11 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		}
 	}
 
-	auto timeout (command->GetTimeout());
-	auto checkTimeout (checkable->GetCheckTimeout());
+	auto checkTimeout (command->GetTimeout());
+	auto checkableTimeout (checkable->GetCheckTimeout());
 
-	if (!checkTimeout.IsEmpty())
-		timeout = checkTimeout;
+	if (!checkableTimeout.IsEmpty())
+		checkTimeout = checkableTimeout;
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;
@@ -342,7 +343,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	}
 
 	auto& io (IoEngine::Get().GetIoContext());
-	auto strand (Shared<asio::io_context::strand>::Make(io));
+	auto strand (Shared<boost::asio::io_context::strand>::Make(io));
 	Shared<boost::asio::ssl::context>::Ptr ctx;
 	double start = Utility::GetTime();
 
@@ -357,8 +358,8 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	IoEngine::SpawnCoroutine(
 		*strand,
-		[strand, checkable, command, cr, psCommand, psHost, psPort, conn, req, start, timeout](boost::asio::yield_context yc) {
-			Timeout::Ptr timeout = new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(timeout * 1e6)),
+		[strand, checkable, command, cr, psCommand, psHost, psPort, conn, req, start, checkTimeout](boost::asio::yield_context yc) {
+			Timeout::Ptr timeout = new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(checkTimeout * 1e6)),
 				[&conn, &checkable](boost::asio::yield_context yc) {
 					Log(LogNotice, "IfwApiCheckTask")
 						<< "Timeout while checking " << checkable->GetReflectionType()->GetName()
