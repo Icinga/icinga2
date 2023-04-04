@@ -17,6 +17,7 @@
 #include "base/shared.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
+#include "remote/apilistener.hpp"
 #include <boost/asio.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -223,16 +224,16 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		);
 	});
 
-	String missingCrl, missingUsername, missingPassword;
+	String missingCert, missingKey, missingCa, missingCrl, missingUsername, missingPassword;
 
 	String psCommand = resolveMacros("$ifw_api_command$");
 	Dictionary::Ptr arguments = resolveMacros("$ifw_api_arguments$");
 	Array::Ptr ignoreArguments = resolveMacros("$ifw_api_ignore_arguments$");
 	String psHost = resolveMacros("$ifw_api_host$");
 	String psPort = resolveMacros("$ifw_api_port$");
-	String cert = resolveMacros("$ifw_api_cert$");
-	String key = resolveMacros("$ifw_api_key$");
-	String ca = resolveMacros("$ifw_api_ca$");
+	String cert = resolveMacros("$ifw_api_cert$", missingCert);
+	String key = resolveMacros("$ifw_api_key$", missingKey);
+	String ca = resolveMacros("$ifw_api_ca$", missingCa);
 	String crl = resolveMacros("$ifw_api_crl$", &missingCrl);
 	String username = resolveMacros("$ifw_api_username$", &missingUsername);
 	String password = resolveMacros("$ifw_api_password$", &missingPassword);
@@ -300,6 +301,18 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;
+
+	if (!missingCert.IsEmpty()) {
+		cert = ApiListener::GetDefaultCertPath();
+	}
+
+	if (!missingKey.IsEmpty()) {
+		key = ApiListener::GetDefaultKeyPath();
+	}
+
+	if (!missingCa.IsEmpty()) {
+		ca = ApiListener::GetDefaultCaPath();
+	}
 
 	Shared<boost::asio::ssl::context>::Ptr ctx;
 
