@@ -104,6 +104,16 @@ static void DoIfwNetIo(
 		return;
 	}
 
+	if (!sslConn.IsVerifyOK()) {
+		ReportIfwCheckResult(
+			yc, checkable, command, cr,
+			"Certificate validation failed for IfW API on host '" + psHost
+				+ "' port '" + psPort + "': " + sslConn.GetVerifyError(),
+			start
+		);
+		return;
+	}
+
 	try {
 		async_write(conn, req, yc);
 		conn.async_flush(yc);
