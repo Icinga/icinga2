@@ -237,6 +237,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	Array::Ptr ignoreArguments = resolveMacros("$ifw_api_ignore_arguments$");
 	String psHost = resolveMacros("$ifw_api_host$");
 	String psPort = resolveMacros("$ifw_api_port$");
+	String sni = resolveMacros("$ifw_api_sni$");
 	String cert = resolveMacros("$ifw_api_cert$", &missingCert);
 	String key = resolveMacros("$ifw_api_key$", &missingKey);
 	String ca = resolveMacros("$ifw_api_ca$", &missingCa);
@@ -354,7 +355,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		return;
 	}
 
-	auto conn (Shared<AsioTlsStream>::Make(io, *ctx));
+	auto conn (Shared<AsioTlsStream>::Make(io, *ctx, sni));
 
 	IoEngine::SpawnCoroutine(
 		*strand,
