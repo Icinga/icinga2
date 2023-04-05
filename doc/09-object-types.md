@@ -201,6 +201,7 @@ Configuration Attributes:
   parent\_service\_name     | Object name           | **Optional.** The parent service. If omitted, this dependency object is treated as host dependency.
   child\_host\_name         | Object name           | **Required.** The child host.
   child\_service\_name      | Object name           | **Optional.** The child service. If omitted, this dependency object is treated as host dependency.
+  redundancy\_group         | String                | **Optional.** Puts the dependency into a group of [mutually redundant ones](03-monitoring-basics.md#dependencies-redundancy-groups).
   disable\_checks           | Boolean               | **Optional.** Whether to disable checks (i.e., don't schedule active checks and drop passive results) when this dependency fails. Defaults to false.
   disable\_notifications    | Boolean               | **Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
   ignore\_soft\_states      | Boolean               | **Optional.** Whether to ignore soft states for the reachability calculation. Defaults to true.
