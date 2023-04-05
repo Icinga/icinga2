@@ -92,8 +92,10 @@ static void DoIfwNetIo(
 		return;
 	}
 
+	auto& sslConn (conn.next_layer());
+
 	try {
-		conn.next_layer().async_handshake(conn.next_layer().client, yc);
+		sslConn.async_handshake(conn.next_layer().client, yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, command, cr,
@@ -127,7 +129,7 @@ static void DoIfwNetIo(
 
 	{
 		boost::system::error_code ec;
-		conn.next_layer().async_shutdown(yc[ec]);
+		sslConn.async_shutdown(yc[ec]);
 	}
 
 	CpuBoundWork cbw (yc);
