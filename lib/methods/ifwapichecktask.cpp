@@ -99,17 +99,25 @@ static void DoIfwNetIo(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, command, cr,
-			"TLS handshake with IfW API on host '" + psHost + "' (SNI '" + sni
+			"TLS handshake with IfW API on host '" + psHost + "' (SNI: '" + sni
 				+ "') port '" + psPort + "' failed: " + ex.what(), start
 		);
 		return;
 	}
 
 	if (!sslConn.IsVerifyOK()) {
+		auto cert (sslConn.GetPeerCertificate());
+		Value cn;
+
+		try {
+			cn = GetCertificateCN(cert);
+		} catch (const std::exception&) {
+		}
+
 		ReportIfwCheckResult(
 			yc, checkable, command, cr,
-			"Certificate validation failed for IfW API on host '" + psHost + "' (SNI '"
-				+ sni + "') port '" + psPort + "': " + sslConn.GetVerifyError(),
+			"Certificate validation failed for IfW API on host '" + psHost + "' (SNI: '" + sni + "'; CN: "
+				+ (cn.IsString() ? "'" + cn + "'" : "N/A") + ") port '" + psPort + "': " + sslConn.GetVerifyError(),
 			start
 		);
 		return;
