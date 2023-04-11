@@ -71,7 +71,7 @@ static void ReportIfwCheckResult(
 
 static void DoIfwNetIo(
 	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const CheckCommand::Ptr& command,
-	const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& psPort,
+	const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& sni, const String& psPort,
 	AsioTlsStream& conn, boost::beast::http::request<boost::beast::http::string_body>& req, double start
 )
 {
@@ -99,7 +99,8 @@ static void DoIfwNetIo(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, command, cr,
-			"TLS handshake with IfW API on host '" + psHost + "' port '" + psPort + "' failed: " + ex.what(), start
+			"TLS handshake with IfW API on host '" + psHost + "' (SNI '" + sni
+				+ "') port '" + psPort + "' failed: " + ex.what(), start
 		);
 		return;
 	}
@@ -107,8 +108,8 @@ static void DoIfwNetIo(
 	if (!sslConn.IsVerifyOK()) {
 		ReportIfwCheckResult(
 			yc, checkable, command, cr,
-			"Certificate validation failed for IfW API on host '" + psHost
-				+ "' port '" + psPort + "': " + sslConn.GetVerifyError(),
+			"Certificate validation failed for IfW API on host '" + psHost + "' (SNI '"
+				+ sni + "') port '" + psPort + "': " + sslConn.GetVerifyError(),
 			start
 		);
 		return;
@@ -371,7 +372,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	IoEngine::SpawnCoroutine(
 		*strand,
-		[strand, checkable, command, cr, psCommand, psHost, psPort, conn, req, start, checkTimeout](boost::asio::yield_context yc) {
+		[strand, checkable, command, cr, psCommand, psHost, sni, psPort, conn, req, start, checkTimeout](boost::asio::yield_context yc) {
 			Timeout::Ptr timeout = new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(checkTimeout * 1e6)),
 				[&conn, &checkable](boost::asio::yield_context yc) {
 					Log(LogNotice, "IfwApiCheckTask")
@@ -385,7 +386,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 			Defer cancelTimeout ([&timeout]() { timeout->Cancel(); });
 
-			DoIfwNetIo(yc, checkable, command, cr, psCommand, psHost, psPort, *conn, *req, start);
+			DoIfwNetIo(yc, checkable, command, cr, psCommand, psHost, sni, psPort, *conn, *req, start);
 		}
 	);
 }
