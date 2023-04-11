@@ -259,6 +259,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	String psHost = resolveMacros("$ifw_api_host$");
 	String psPort = resolveMacros("$ifw_api_port$");
 	String sni = resolveMacros("$ifw_api_sni$");
+	Array::Ptr sniDenylist = resolveMacros("$ifw_api_sni_denylist$");
 	String cert = resolveMacros("$ifw_api_cert$", &missingCert);
 	String key = resolveMacros("$ifw_api_key$", &missingKey);
 	String ca = resolveMacros("$ifw_api_ca$", &missingCa);
@@ -332,6 +333,10 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	if (!checkableTimeout.IsEmpty())
 		checkTimeout = checkableTimeout;
+
+	if (sniDenylist->Contains(sni)) {
+		sni = IcingaApplication::GetInstance()->GetNodeName();
+	}
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;
