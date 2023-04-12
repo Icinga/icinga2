@@ -817,7 +817,7 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 					Host::Ptr host = Host::GetByName(params->Get("host"));
 					if (!host) {
 						Log(LogWarning, "ClusterEvents")
-                            << "Discarding 'execute command' message " << executionUuid
+							<< "Discarding 'execute command' message " << executionUuid
 							<< ": host " << params->Get("host") << " does not exist";
 						return Empty;
 					}
@@ -833,12 +833,16 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 							checkableName += "!" + params->Get("service");
 
 						Log(LogWarning, "ClusterEvents")
-                            << "Discarding 'execute command' message " << executionUuid
+							<< "Discarding 'execute command' message " << executionUuid
 							<< ": " << checkableName << " does not exist";
 						return Empty;
 					}
 
-					/* Check if the child zone can access the checkable, and if it's the same endpoint zone  */
+					/* Return an error when the endpointZone is different than the child zone and
+					 * the child zone can't access the checkable.
+					 * The zones are checked to allow for the case where command_endpoint is specified in the checkable
+					 * but checkable is not actually present in the agent.
+					 */
 					if (!zone->CanAccessObject(checkable) && zone != endpointZone) {
 						double now = Utility::GetTime();
 						Dictionary::Ptr executedParams = new Dictionary();
@@ -1276,7 +1280,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 		return Empty;
 	}
 
-	if (origin->FromZone && !origin->FromZone->CanAccessObject(command_endpoint->GetZone())) {
+	if (origin->FromZone && !command_endpoint->GetZone()->IsChildOf(origin->FromZone)) {
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";

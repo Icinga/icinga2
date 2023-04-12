@@ -681,9 +681,15 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 	if (!endpointPtr)
 		return ApiActions::CreateResult(404, "Can't find a valid endpoint for '" + resolved_endpoint + "'.");
 
-    /* Check if the endpoint zone can access the checkable */
+	/* Return an error when
+	 * the endpoint is different from the command endpoint of the checkable
+	 * and the endpoint zone can't access the checkable.
+	 * The endpoints are checked to allow for the case where command_endpoint is specified in the checkable
+	 * but checkable is not actually present in the agent.
+	 */
     Zone::Ptr endpointZone = endpointPtr->GetZone();
-    if (!endpointZone->CanAccessObject(checkable)) {
+    Endpoint::Ptr commandEndpoint = checkable->GetCommandEndpoint();
+    if (endpointPtr != commandEndpoint && !endpointZone->CanAccessObject(checkable)) {
         return ApiActions::CreateResult(
             409,
             "Zone '" + endpointZone->GetName() + "' cannot access checkable '" + checkable->GetName() + "'."
