@@ -12,6 +12,7 @@
 #include "icinga/clusterevents.hpp"
 #include "remote/apiaction.hpp"
 #include "remote/apilistener.hpp"
+#include "remote/configobjectslock.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/pkiutility.hpp"
 #include "remote/httputility.hpp"
@@ -254,6 +255,12 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(409, (service ? "Service " : "Host ") + checkable->GetName() + " is already acknowledged.");
 	}
 
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
+	}
+
 	Comment::AddComment(checkable, CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"),
 		HttpUtility::GetLastParameter(params, "comment"), persistent, timestamp, sticky == AcknowledgementSticky);
 	checkable->AcknowledgeProblem(HttpUtility::GetLastParameter(params, "author"),
@@ -271,6 +278,12 @@ Dictionary::Ptr ApiActions::RemoveAcknowledgement(const ConfigObject::Ptr& objec
 		return ApiActions::CreateResult(404,
 			"Cannot remove acknowledgement for non-existent checkable object "
 			+ object->GetName() + ".");
+
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
+	}
 
 	String removedBy (HttpUtility::GetLastParameter(params, "author"));
 
@@ -297,6 +310,12 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 		timestamp = HttpUtility::GetLastParameter(params, "expiry");
 	}
 
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
+	}
+
 	String commentName = Comment::AddComment(checkable, CommentUser,
 		HttpUtility::GetLastParameter(params, "author"),
 		HttpUtility::GetLastParameter(params, "comment"), false, timestamp);
@@ -316,6 +335,12 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
+	}
+
 	auto author (HttpUtility::GetLastParameter(params, "author"));
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
@@ -386,6 +411,12 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		} catch (const std::exception&) {
 			return ApiActions::CreateResult(400, "Option 'child_options' provided an invalid value.");
 		}
+	}
+
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
 	}
 
 	Downtime::Ptr downtime = Downtime::AddDowntime(checkable, author, comment, startTime, endTime,
@@ -500,6 +531,12 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
+	}
+
 	auto author (HttpUtility::GetLastParameter(params, "author"));
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 

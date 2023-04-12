@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/createobjecthandler.hpp"
+#include "remote/configobjectslock.hpp"
 #include "remote/configobjectutility.hpp"
 #include "remote/httputility.hpp"
 #include "remote/jsonrpcconnection.hpp"
@@ -93,6 +94,13 @@ bool CreateObjectHandler::HandleRequest(
 
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
+
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		return true;
+	}
 
 	/* Object creation can cause multiple errors and optionally diagnostic information.
 	 * We can't use SendJsonError() here.
