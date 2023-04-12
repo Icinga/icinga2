@@ -27,6 +27,7 @@ jobs:
           - debian:11 # and Raspbian 11
           - fedora:36
           - fedora:37
+          - fedora:38
           - opensuse/leap:15.3 # SLES 15.3
           - opensuse/leap:15.4 # and SLES 15.4
           - rockylinux:8 # RHEL 8
@@ -34,6 +35,7 @@ jobs:
           - ubuntu:20.04
           - ubuntu:22.04
           - ubuntu:22.10
+          - ubuntu:23.04
 
     steps:
       - name: Checkout HEAD
