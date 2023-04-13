@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/modifyobjecthandler.hpp"
+#include "remote/configobjectslock.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
@@ -76,6 +77,13 @@ bool ModifyObjectHandler::HandleRequest(
 
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
+
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		return true;
+	}
 
 	ArrayData results;
 
