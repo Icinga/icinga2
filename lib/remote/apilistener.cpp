@@ -331,6 +331,13 @@ void ApiListener::RenewOwnCert()
 
 void ApiListener::Stop(bool runtimeDeleted)
 {
+	m_ApiPackageIntegrityTimer->Stop(true);
+	m_CleanupCertificateRequestsTimer->Stop(true);
+	m_AuthorityTimer->Stop(true);
+	m_ReconnectTimer->Stop(true);
+	m_Timer->Stop(true);
+	m_RenewOwnCertTimer->Stop(true);
+
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
 	Log(LogInformation, "ApiListener")

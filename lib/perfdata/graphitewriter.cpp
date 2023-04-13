@@ -107,7 +107,7 @@ void GraphiteWriter::Resume()
 void GraphiteWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
-	m_ReconnectTimer.reset();
+	m_ReconnectTimer->Stop(true);
 
 	try {
 		ReconnectInternal();

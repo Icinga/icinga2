@@ -70,7 +70,7 @@ void PerfdataWriter::Resume()
 void PerfdataWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
-	m_RotationTimer.reset();
+	m_RotationTimer->Stop(true);
 
 #ifdef I2_DEBUG
 	//m_HostOutputFile << "\n# Pause the feature" << "\n\n";

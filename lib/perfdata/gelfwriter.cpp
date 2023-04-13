@@ -112,7 +112,7 @@ void GelfWriter::Pause()
 	m_HandleNotifications.disconnect();
 	m_HandleStateChanges.disconnect();
 
-	m_ReconnectTimer.reset();
+	m_ReconnectTimer->Stop(true);
 
 	try {
 		ReconnectInternal();

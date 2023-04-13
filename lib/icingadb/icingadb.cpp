@@ -195,6 +195,8 @@ void IcingaDB::Stop(bool runtimeRemoved)
 			<< m_HistoryBulker.Size() << " queued history queries.";
 	}
 
+	m_StatsTimer->Stop(true);
+
 	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' stopped.";
 

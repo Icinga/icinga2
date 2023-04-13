@@ -101,7 +101,8 @@ void DbConnection::Pause()
 	Log(LogInformation, "DbConnection")
 		<< "Pausing IDO connection: " << GetName();
 
-	m_CleanUpTimer.reset();
+	m_LogStatsTimer->Stop(true);
+	m_CleanUpTimer->Stop(true);
 
 	DbQuery query1;
 	query1.Table = "programstatus";

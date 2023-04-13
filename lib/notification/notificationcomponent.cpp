@@ -52,6 +52,8 @@ void NotificationComponent::Start(bool runtimeCreated)
 
 void NotificationComponent::Stop(bool runtimeRemoved)
 {
+	m_NotificationTimer->Stop(true);
+
 	Log(LogInformation, "NotificationComponent")
 		<< "'" << GetName() << "' stopped.";
 

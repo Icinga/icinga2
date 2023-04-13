@@ -28,7 +28,7 @@ void StreamLogger::Stop(bool runtimeRemoved)
 StreamLogger::~StreamLogger()
 {
 	if (m_FlushLogTimer)
-		m_FlushLogTimer->Stop();
+		m_FlushLogTimer->Stop(true);
 
 	if (m_Stream && m_OwnsStream)
 		delete m_Stream;

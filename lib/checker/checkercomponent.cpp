@@ -81,7 +81,7 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 		m_CV.notify_all();
 	}
 
-	m_ResultTimer->Stop();
+	m_ResultTimer->Stop(true);
 	m_Thread.join();
 
 	Log(LogInformation, "CheckerComponent")

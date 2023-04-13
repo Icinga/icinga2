@@ -108,7 +108,8 @@ void IdoMysqlConnection::Pause()
 
 	DbConnection::Pause();
 
-	m_ReconnectTimer.reset();
+	m_ReconnectTimer->Stop(true);
+	m_TxTimer->Stop(true);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")

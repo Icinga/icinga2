@@ -113,6 +113,7 @@ void InfluxdbCommonWriter::Pause()
 	Log(LogDebug, GetReflectionType()->GetName())
 		<< "Processing pending tasks and flushing data buffers.";
 
+	m_FlushTimer->Stop(true);
 	m_WorkQueue.Enqueue([this]() { FlushWQ(); }, PriorityLow);
 
 	/* Wait for the flush to complete, implicitly waits for all WQ tasks enqueued prior to pausing. */

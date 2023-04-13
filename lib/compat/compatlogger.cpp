@@ -82,6 +82,8 @@ void CompatLogger::Start(bool runtimeCreated)
  */
 void CompatLogger::Stop(bool runtimeRemoved)
 {
+	m_RotationTimer->Stop(true);
+
 	Log(LogInformation, "CompatLogger")
 		<< "'" << GetName() << "' stopped.";
 

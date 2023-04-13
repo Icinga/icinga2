@@ -92,7 +92,7 @@ void OpenTsdbWriter::Resume()
 void OpenTsdbWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
-	m_ReconnectTimer.reset();
+	m_ReconnectTimer->Stop(true);
 
 	Log(LogInformation, "OpentsdbWriter")
 		<< "'" << GetName() << "' paused.";

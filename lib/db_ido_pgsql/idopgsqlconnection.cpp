@@ -112,7 +112,8 @@ void IdoPgsqlConnection::Pause()
 {
 	DbConnection::Pause();
 
-	m_ReconnectTimer.reset();
+	m_ReconnectTimer->Stop(true);
+	m_TxTimer->Stop(true);
 
 	Log(LogInformation, "IdoPgsqlConnection")
 		<< "'" << GetName() << "' paused.";
