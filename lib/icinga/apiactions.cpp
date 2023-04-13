@@ -719,6 +719,21 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 	if (!endpointPtr)
 		return ApiActions::CreateResult(404, "Can't find a valid endpoint for '" + resolved_endpoint + "'.");
 
+	/* Return an error when
+	 * the endpoint is different from the command endpoint of the checkable
+	 * and the endpoint zone can't access the checkable.
+	 * The endpoints are checked to allow for the case where command_endpoint is specified in the checkable
+	 * but checkable is not actually present in the agent.
+	 */
+    Zone::Ptr endpointZone = endpointPtr->GetZone();
+    Endpoint::Ptr commandEndpoint = checkable->GetCommandEndpoint();
+    if (endpointPtr != commandEndpoint && !endpointZone->CanAccessObject(checkable)) {
+        return ApiActions::CreateResult(
+            409,
+            "Zone '" + endpointZone->GetName() + "' cannot access checkable '" + checkable->GetName() + "'."
+        );
+    }
+
 	/* Get command */
 	String command;
 
@@ -844,6 +859,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 	Dictionary::Ptr pending_execution = new Dictionary();
 	pending_execution->Set("pending", true);
 	pending_execution->Set("deadline", deadline);
+	pending_execution->Set("endpoint", resolved_endpoint);
 	Dictionary::Ptr executions = checkable->GetExecutions();
 
 	if (!executions)

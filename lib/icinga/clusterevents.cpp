@@ -829,8 +829,17 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 		}
 	}
 
+	String executionUuid = params->Get("source");
+
 	if (params->Contains("endpoint")) {
 		Endpoint::Ptr execEndpoint = Endpoint::GetByName(params->Get("endpoint"));
+
+		if (!execEndpoint) {
+			Log(LogWarning, "ClusterEvents")
+				<< "Discarding 'execute command' message " << executionUuid
+				<< ": Endpoint " << params->Get("endpoint") << " does not exist";
+			return Empty;
+		}
 
 		if (execEndpoint != Endpoint::GetLocalEndpoint()) {
 			Zone::Ptr endpointZone = execEndpoint->GetZone();
@@ -850,7 +859,7 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 						if (!(childEndpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand)) {
 							double now = Utility::GetTime();
 							Dictionary::Ptr executedParams = new Dictionary();
-							executedParams->Set("execution", params->Get("source"));
+							executedParams->Set("execution", executionUuid);
 							executedParams->Set("host", params->Get("host"));
 
 							if (params->Contains("service"))
@@ -870,6 +879,62 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 							listener->RelayMessage(nullptr, nullptr, executedMessage, true);
 							return Empty;
 						}
+					}
+
+					Checkable::Ptr checkable;
+					Host::Ptr host = Host::GetByName(params->Get("host"));
+					if (!host) {
+						Log(LogWarning, "ClusterEvents")
+							<< "Discarding 'execute command' message " << executionUuid
+							<< ": host " << params->Get("host") << " does not exist";
+						return Empty;
+					}
+
+					if (params->Contains("service"))
+						checkable = host->GetServiceByShortName(params->Get("service"));
+					else
+						checkable = host;
+
+					if (!checkable) {
+						String checkableName = host->GetName();
+						if (params->Contains("service"))
+							checkableName += "!" + params->Get("service");
+
+						Log(LogWarning, "ClusterEvents")
+							<< "Discarding 'execute command' message " << executionUuid
+							<< ": " << checkableName << " does not exist";
+						return Empty;
+					}
+
+					/* Return an error when the endpointZone is different than the child zone and
+					 * the child zone can't access the checkable.
+					 * The zones are checked to allow for the case where command_endpoint is specified in the checkable
+					 * but checkable is not actually present in the agent.
+					 */
+					if (!zone->CanAccessObject(checkable) && zone != endpointZone) {
+						double now = Utility::GetTime();
+						Dictionary::Ptr executedParams = new Dictionary();
+						executedParams->Set("execution", executionUuid);
+						executedParams->Set("host", params->Get("host"));
+
+						if (params->Contains("service"))
+							executedParams->Set("service", params->Get("service"));
+
+						executedParams->Set("exit", 126);
+						executedParams->Set(
+							"output",
+							"Zone '" + zone->GetName() + "' cannot access to checkable '" + checkable->GetName() + "'."
+						);
+						executedParams->Set("start", now);
+						executedParams->Set("end", now);
+
+						Dictionary::Ptr executedMessage = new Dictionary();
+						executedMessage->Set("jsonrpc", "2.0");
+						executedMessage->Set("method", "event::ExecutedCommand");
+						executedMessage->Set("params", executedParams);
+
+						listener->RelayMessage(nullptr, nullptr, executedMessage, true);
+						return Empty;
 					}
 				}
 			}
@@ -1247,13 +1312,6 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 
 	ObjectLock oLock (checkable);
 
-	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
-		Log(LogNotice, "ClusterEvents")
-			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
-			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
-		return Empty;
-	}
-
 	if (!params->Contains("execution")) {
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
@@ -1278,6 +1336,22 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 		Log(LogNotice, "ClusterEvents")
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' missing.";
+		return Empty;
+	}
+
+	Endpoint::Ptr command_endpoint = Endpoint::GetByName(execution->Get("endpoint"));
+	if (!command_endpoint) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'update executions API handler' message from '" << origin->FromClient->GetIdentity()
+			<< "': Command endpoint does not exists.";
+
+		return Empty;
+	}
+
+	if (origin->FromZone && !command_endpoint->GetZone()->IsChildOf(origin->FromZone)) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
+			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
@@ -1371,7 +1445,7 @@ Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin
 	updateMessage->Set("method", "event::UpdateExecutions");
 	updateMessage->Set("params", params);
 
-	listener->RelayMessage(origin, Zone::GetLocalZone(), updateMessage, true);
+	listener->RelayMessage(origin, checkable, updateMessage, true);
 
 	return Empty;
 }
