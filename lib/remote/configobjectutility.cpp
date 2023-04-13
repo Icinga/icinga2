@@ -8,6 +8,9 @@
 #include "base/configwriter.hpp"
 #include "base/exception.hpp"
 #include "base/dependencygraph.hpp"
+#include "base/json.hpp"
+#include "base/serializer.hpp"
+#include "base/stacktrace.hpp"
 #include "base/tlsutility.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
@@ -293,6 +296,11 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bool cascade,
 	const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie)
 {
+	if (object->GetReflectionType()->GetName() == "Comment")
+		Log(LogWarning, "CustomerSpecific")
+			<< "ConfigObjectUtility::DeleteObjectHelper() called for Comment '" << object->GetName() << "' ("
+			<< JsonEncode(Serialize(object, FAConfig)) << "): " << StackTraceFormatter(boost::stacktrace::stacktrace());
+
 	std::vector<Object::Ptr> parents = DependencyGraph::GetParents(object);
 
 	Type::Ptr type = object->GetReflectionType();

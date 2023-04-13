@@ -8,6 +8,7 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/timer.hpp"
+#include "base/stacktrace.hpp"
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -157,6 +158,26 @@ bool Checkable::IsAcknowledged() const
 
 void Checkable::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify, bool persistent, double changeTime, double expiry, const MessageOrigin::Ptr& origin)
 {
+	String originName;
+
+	if (origin) {
+		auto oc (origin->FromClient);
+
+		if (oc) {
+			auto oce (oc->GetEndpoint());
+
+			if (oce) {
+				originName = oce->GetName();
+			}
+		}
+	}
+
+	Log(LogWarning, "CustomerSpecific")
+		<< "Checkable#AcknowledgeProblem('" << author << "', '" << comment << "', " << (int)type << ", " << (int)notify
+		<< ", " << (int)persistent << ", " << changeTime << ", " << expiry << ", '" << originName
+		<< "') called for " << GetReflectionType()->GetName() << " '" << GetName() << "': "
+		<< StackTraceFormatter(boost::stacktrace::stacktrace());
+
 	SetAcknowledgementRaw(type);
 	SetAcknowledgementExpiry(expiry);
 
@@ -174,6 +195,25 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 void Checkable::ClearAcknowledgement(const String& removedBy, double changeTime, const MessageOrigin::Ptr& origin)
 {
 	ObjectLock oLock (this);
+
+	String originName;
+
+	if (origin) {
+		auto oc (origin->FromClient);
+
+		if (oc) {
+			auto oce (oc->GetEndpoint());
+
+			if (oce) {
+				originName = oce->GetName();
+			}
+		}
+	}
+
+	Log(LogWarning, "CustomerSpecific")
+		<< "Checkable#ClearAcknowledgement('" << removedBy << "', " << changeTime << ", '" << originName
+		<< "') called for " << GetReflectionType()->GetName() << " '" << GetName() << "': "
+		<< StackTraceFormatter(boost::stacktrace::stacktrace());
 
 	bool wasAcked = GetAcknowledgementRaw() != AcknowledgementNone;
 
