@@ -9,7 +9,7 @@ CMAKE_OPTS=''
 case "$DISTRO" in
   amazonlinux:*)
     amazon-linux-extras install -y epel
-    yum install -y bison ccache cmake gcc-c++ flex ninja-build \
+    yum install -y bison ccache cmake gcc-c++ flex ninja-build optipng \
       {libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
 
     yum install -y bzip2 tar wget
@@ -29,7 +29,7 @@ case "$DISTRO" in
 
   centos:*)
     yum install -y centos-release-scl epel-release
-    yum install -y bison ccache cmake devtoolset-11-gcc-c++ flex ninja-build \
+    yum install -y bison ccache cmake devtoolset-11-gcc-c++ flex ninja-build optipng \
       {boost169,libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
 
     ln -vs /usr/bin/ccache /usr/lib64/ccache/g++
@@ -39,16 +39,16 @@ case "$DISTRO" in
   debian:*|ubuntu:*)
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-{recommends,suggests} -y bison \
-      ccache cmake flex g++ lib{boost-all,edit,mariadb,ncurses,pq,ssl,systemd}-dev ninja-build tzdata
+      ccache cmake flex g++ lib{boost-all,edit,mariadb,ncurses,pq,ssl,systemd}-dev ninja-build optipng tzdata
     ;;
 
   fedora:*)
-    dnf install -y bison ccache cmake flex gcc-c++ ninja-build \
+    dnf install -y bison ccache cmake flex gcc-c++ ninja-build optipng \
       {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
     ;;
 
   opensuse/*)
-    zypper in -y bison ccache cmake flex gcc-c++ ninja {lib{edit,mariadb,openssl},ncurses,postgresql,systemd}-devel \
+    zypper in -y bison ccache cmake flex gcc-c++ ninja optipng {lib{edit,mariadb,openssl},ncurses,postgresql,systemd}-devel \
       libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
     ;;
 
@@ -64,7 +64,7 @@ case "$DISTRO" in
         ;;
     esac
 
-    dnf install -y bison ccache cmake gcc-c++ flex ninja-build \
+    dnf install -y bison ccache cmake gcc-c++ flex ninja-build optipng \
       {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
     ;;
 esac
