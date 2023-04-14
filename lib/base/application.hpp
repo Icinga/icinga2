@@ -4,9 +4,11 @@
 #define APPLICATION_H
 
 #include "base/i2-base.hpp"
+#include "base/atomic.hpp"
 #include "base/application-ti.hpp"
 #include "base/logger.hpp"
 #include "base/configuration.hpp"
+#include "base/shared-memory.hpp"
 #include <iosfwd>
 
 namespace icinga
@@ -137,7 +139,16 @@ private:
 	static double m_StartTime;
 	static double m_MainTime;
 	static bool m_ScriptDebuggerEnabled;
+#ifdef _WIN32
 	static double m_LastReloadFailed;
+#else /* _WIN32 */
+#	ifdef __cpp_lib_atomic_is_always_lock_free
+#		if __cplusplus >= __cpp_lib_atomic_is_always_lock_free
+	static_assert(Atomic<double>::is_always_lock_free);
+#		endif /* __cplusplus >= __cpp_lib_atomic_is_always_lock_free */
+#	endif /* __cpp_lib_atomic_is_always_lock_free */
+	static SharedMemory<Atomic<double>> m_LastReloadFailed;
+#endif /* _WIN32 */
 
 #ifdef _WIN32
 	static BOOL WINAPI CtrlHandler(DWORD type);
