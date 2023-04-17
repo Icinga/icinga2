@@ -91,6 +91,8 @@ if (-not $Env:GITHUB_ACTIONS) {
     ThrowOnNativeFailure
 }
 
+# Disable the progress bar for downloads from the Web, which will speed up the entire download process
+$Global:ProgressPreference = 'SilentlyContinue';
 
 Install-Exe -Url "https://packages.icinga.com/windows/dependencies/boost_$($BoostVersion -join '_')-msvc-${MsvcVersion}-${Env:BITS}.exe" -Dir "C:\local\boost_$($BoostVersion -join '_')-Win${Env:BITS}"
 
