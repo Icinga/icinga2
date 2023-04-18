@@ -132,7 +132,8 @@ void Downtime::Start(bool runtimeCreated)
 		Log(LogNotice, "Downtime")
 			<< "Checkable '" << checkable->GetName() << "' already in a NOT-OK state."
 			<< " Triggering downtime now.";
-		TriggerDowntime(checkable->GetLastStateChange());
+
+		TriggerDowntime(std::fmax(std::fmax(GetStartTime(), GetEntryTime()), checkable->GetLastStateChange()));
 	}
 
 	if (GetFixed() && CanBeTriggered()) {
