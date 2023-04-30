@@ -205,8 +205,6 @@ String Url::Format(bool onlyPathAndQuery, bool printCredentials) const
 
 	String param;
 	if (!m_Query.empty()) {
-		typedef std::pair<String, std::vector<String> > kv_pair;
-
 		for (const auto& kv : m_Query) {
 			String key = Utility::EscapeString(kv.first, ACQUERY_ENCODE, false);
 			if (param.IsEmpty())

@@ -220,7 +220,6 @@ found_command:
 }
 
 void CLICommand::ShowCommands(int argc, char **argv, po::options_description *visibleDesc,
-	po::options_description *hiddenDesc,
 	ArgumentCompletionCallback globalArgCompletionCallback,
 	bool autocomplete, int autoindex)
 {

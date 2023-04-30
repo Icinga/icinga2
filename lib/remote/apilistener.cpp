@@ -250,7 +250,7 @@ void ApiListener::Start(bool runtimeCreated)
 		RenewOwnCert();
 		m_RenewOwnCertTimer->OnTimerExpired.connect([this](const Timer * const&) { RenewOwnCert(); });
 	} else {
-		m_RenewOwnCertTimer->OnTimerExpired.connect([this](const Timer * const&) {
+		m_RenewOwnCertTimer->OnTimerExpired.connect([](const Timer * const&) {
 			JsonRpcConnection::SendCertificateRequest(nullptr, nullptr, String());
 		});
 	}

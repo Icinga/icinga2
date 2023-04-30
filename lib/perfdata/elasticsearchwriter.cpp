@@ -100,13 +100,13 @@ void ElasticsearchWriter::Resume()
 		CheckResultHandler(checkable, cr);
 	});
 	m_HandleStateChanges = Checkable::OnStateChange.connect([this](const Checkable::Ptr& checkable,
-		const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
-		StateChangeHandler(checkable, cr, type);
+		const CheckResult::Ptr& cr, StateType, const MessageOrigin::Ptr&) {
+		StateChangeHandler(checkable, cr);
 	});
-	m_HandleNotifications = Checkable::OnNotificationSentToAllUsers.connect([this](const Notification::Ptr& notification,
+	m_HandleNotifications = Checkable::OnNotificationSentToAllUsers.connect([this](const Notification::Ptr&,
 		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, const NotificationType& type,
 		const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr&) {
-		NotificationSentToAllUsersHandler(notification, checkable, users, type, cr, author, text);
+		NotificationSentToAllUsersHandler(checkable, users, type, cr, author, text);
 	});
 }
 
@@ -256,15 +256,15 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 	Enqueue(checkable, "checkresult", fields, ts);
 }
 
-void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
+void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue([this, checkable, cr, type]() { StateChangeHandlerInternal(checkable, cr, type); });
+	m_WorkQueue.Enqueue([this, checkable, cr]() { StateChangeHandlerInternal(checkable, cr); });
 }
 
-void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
+void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	AssertOnWorkQueue();
 
@@ -306,19 +306,19 @@ void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& check
 	Enqueue(checkable, "statechange", fields, ts);
 }
 
-void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
+void ElasticsearchWriter::NotificationSentToAllUsersHandler(
 	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
 	const CheckResult::Ptr& cr, const String& author, const String& text)
 {
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue([this, notification, checkable, users, type, cr, author, text]() {
-		NotificationSentToAllUsersHandlerInternal(notification, checkable, users, type, cr, author, text);
+	m_WorkQueue.Enqueue([this, checkable, users, type, cr, author, text]() {
+		NotificationSentToAllUsersHandlerInternal(checkable, users, type, cr, author, text);
 	});
 }
 
-void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notification::Ptr& notification,
+void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(
 	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
 	const CheckResult::Ptr& cr, const String& author, const String& text)
 {

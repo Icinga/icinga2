@@ -49,11 +49,10 @@ public:
 	static Ptr AddDowntime(const intrusive_ptr<Checkable>& checkable, const String& author,
 		const String& comment, double startTime, double endTime, bool fixed,
 		const String& triggeredBy, double duration, const String& scheduledDowntime = String(),
-		const String& scheduledBy = String(), const String& parent = String(), const String& id = String(),
-		const MessageOrigin::Ptr& origin = nullptr);
+		const String& scheduledBy = String(), const String& parent = String(), const String& id = String());
 
 	static void RemoveDowntime(const String& id, bool includeChildren, bool cancelled, bool expired = false,
-		const String& removedBy = "", const MessageOrigin::Ptr& origin = nullptr);
+		const String& removedBy = "");
 
 	void RegisterChild(const Downtime::Ptr& downtime);
 	void UnregisterChild(const Downtime::Ptr& downtime);

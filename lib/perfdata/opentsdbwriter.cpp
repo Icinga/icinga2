@@ -73,7 +73,7 @@ void OpenTsdbWriter::Resume()
 	Log(LogInformation, "OpentsdbWriter")
 		<< "'" << GetName() << "' resumed.";
 
-	ReadConfigTemplate(m_ServiceConfigTemplate, m_HostConfigTemplate);
+	ReadConfigTemplate();
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
@@ -447,8 +447,7 @@ String OpenTsdbWriter::EscapeMetric(const String& str)
 * @param stemplate The dictionary to save the service configuration to
 * @param htemplate The dictionary to save the host configuration to
 */
-void OpenTsdbWriter::ReadConfigTemplate(const Dictionary::Ptr& stemplate, 
-	const Dictionary::Ptr& htemplate)
+void OpenTsdbWriter::ReadConfigTemplate()
 {
 
 	m_ServiceConfigTemplate = GetServiceTemplate();

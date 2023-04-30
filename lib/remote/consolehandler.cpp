@@ -89,16 +89,15 @@ bool ConsoleHandler::HandleRequest(
 	bool sandboxed = HttpUtility::GetLastParameter(params, "sandboxed");
 
 	if (methodName == "execute-script")
-		return ExecuteScriptHelper(request, response, params, command, session, sandboxed);
+		return ExecuteScriptHelper(response, params, command, session, sandboxed);
 	else if (methodName == "auto-complete-script")
-		return AutocompleteScriptHelper(request, response, params, command, session, sandboxed);
+		return AutocompleteScriptHelper(response, params, command, session, sandboxed);
 
 	HttpUtility::SendJsonError(response, params, 400, "Invalid method specified: " + methodName);
 	return true;
 }
 
-bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
+bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
 {
 	namespace http = boost::beast::http;
@@ -172,8 +171,7 @@ bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::request<boost::beas
 	return true;
 }
 
-bool ConsoleHandler::AutocompleteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
+bool ConsoleHandler::AutocompleteScriptHelper(boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
 {
 	namespace http = boost::beast::http;

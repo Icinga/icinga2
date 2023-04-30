@@ -129,15 +129,15 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 		/* _1 = row, _2 = groupByType, _3 = groupByObject */
 		Log(LogDebug, "Livestatus")
 			<< "Processing services group by servicegroup table.";
-		ServiceGroupsTable::AddColumns(table, "servicegroup_", [](const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject) -> Value {
-			return ServiceGroupAccessor(row, groupByType, groupByObject);
+		ServiceGroupsTable::AddColumns(table, "servicegroup_", [](const Value&, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject) -> Value {
+			return ServiceGroupAccessor(groupByType, groupByObject);
 		});
 	} else if (table->GetGroupByType() == LivestatusGroupByHostGroup) {
 		/* _1 = row, _2 = groupByType, _3 = groupByObject */
 		Log(LogDebug, "Livestatus")
 			<< "Processing services group by hostgroup table.";
-		HostGroupsTable::AddColumns(table, "hostgroup_", [](const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject) -> Value {
-			return HostGroupAccessor(row, groupByType, groupByObject);
+		HostGroupsTable::AddColumns(table, "hostgroup_", [](const Value&, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject) -> Value {
+			return HostGroupAccessor(groupByType, groupByObject);
 		});
 	}
 }
@@ -199,7 +199,7 @@ Object::Ptr ServicesTable::HostAccessor(const Value& row, const Column::ObjectAc
 	return svc->GetHost();
 }
 
-Object::Ptr ServicesTable::ServiceGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
+Object::Ptr ServicesTable::ServiceGroupAccessor(LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
 {
 	/* return the current group by value set from within FetchRows()
 	 * this is the servicegroup object used for the table join inside
@@ -211,7 +211,7 @@ Object::Ptr ServicesTable::ServiceGroupAccessor(const Value& row, LivestatusGrou
 	return nullptr;
 }
 
-Object::Ptr ServicesTable::HostGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
+Object::Ptr ServicesTable::HostGroupAccessor(LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
 {
 	/* return the current group by value set from within FetchRows()
 	 * this is the servicegroup object used for the table join inside
