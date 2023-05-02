@@ -142,11 +142,7 @@ private:
 #ifdef _WIN32
 	static double m_LastReloadFailed;
 #else /* _WIN32 */
-#	ifdef __cpp_lib_atomic_is_always_lock_free
-#		if __cplusplus >= __cpp_lib_atomic_is_always_lock_free
 	static_assert(Atomic<double>::is_always_lock_free);
-#		endif /* __cplusplus >= __cpp_lib_atomic_is_always_lock_free */
-#	endif /* __cpp_lib_atomic_is_always_lock_free */
 	static SharedMemory<Atomic<double>> m_LastReloadFailed;
 #endif /* _WIN32 */
 
