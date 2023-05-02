@@ -259,7 +259,6 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	String psHost = resolveMacros("$ifw_api_host$");
 	String psPort = resolveMacros("$ifw_api_port$");
 	String expectedSan = resolveMacros("$ifw_api_expected_san$");
-	Array::Ptr localhostAddresses = resolveMacros("$ifw_api_localhost_addresses$");
 	String cert = resolveMacros("$ifw_api_cert$", &missingCert);
 	String key = resolveMacros("$ifw_api_key$", &missingKey);
 	String ca = resolveMacros("$ifw_api_ca$", &missingCa);
@@ -334,12 +333,16 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (!checkableTimeout.IsEmpty())
 		checkTimeout = checkableTimeout;
 
-	if (localhostAddresses->Contains(expectedSan)) {
-		expectedSan = IcingaApplication::GetInstance()->GetNodeName();
-	}
-
 	if (resolvedMacros && !useResolvedMacros)
 		return;
+
+	if (psHost.IsEmpty()) {
+		psHost = "localhost";
+	}
+
+	if (expectedSan.IsEmpty()) {
+		expectedSan = IcingaApplication::GetInstance()->GetNodeName();
+	}
 
 	if (!missingCert.IsEmpty()) {
 		cert = ApiListener::GetDefaultCertPath();
