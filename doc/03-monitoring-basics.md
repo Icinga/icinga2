@@ -2738,6 +2738,27 @@ apply Dependency "internet" to Service {
 }
 ```
 
+### Redundancy Groups <a id="dependencies-redundancy-groups"></a>
+
+Sometimes you want dependencies to accumulate,
+i.e. to consider the parent reachable only if no dependency is violated.
+Sometimes you want them to be regarded as redundant,
+i.e. to consider the parent unreachable only if no dependency is fulfilled.
+Think of a host connected to both a network and a storage switch vs. a host connected to redundant routers.
+
+Sometimes you even want a mixture of both.
+Think of a service like SSH depeding on both LDAP and DNS to function,
+while operating redundant LDAP servers as well as redundant DNS resolvers.
+
+Before v2.12, Icinga regarded all dependecies as cumulative.
+In v2.12 and v2.13, Icinga regarded all dependencies redundant.
+The latter led to unrelated services being inadvertantly regarded to be redundant to each other.
+
+v2.14 restored the former behavior and allowed to override it.
+I.e. all dependecies are regarded as essential for the parent by default.
+Specifying the `redundancy_group` attribute for two dependecies of a child object with the equal value
+causes them to be regarded as redundant (only inside that redundancy group).
+
 <!-- Keep this for compatibility -->
 <a id="dependencies-apply-custom-attríbutes"></a>
 

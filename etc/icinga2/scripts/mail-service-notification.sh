@@ -146,7 +146,7 @@ fi
 if [ -n "$ICINGAWEB2URL" ] ; then
   NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
 
-$ICINGAWEB2URL/monitoring/service/show?host=$(urlencode "$HOSTNAME")&service=$(urlencode "$SERVICENAME")"
+$ICINGAWEB2URL/icingadb/service?name=$(urlencode "$SERVICENAME")&host.name=$(urlencode "$HOSTNAME")
 fi
 
 ## Check whether verbose mode was enabled and log to syslog.
