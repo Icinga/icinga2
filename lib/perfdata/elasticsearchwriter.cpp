@@ -88,7 +88,7 @@ void ElasticsearchWriter::Resume()
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Setup timer for periodically flushing m_DataBuffer */
-	m_FlushTimer = new Timer();
+	m_FlushTimer = Timer::Create();
 	m_FlushTimer->SetInterval(GetFlushInterval());
 	m_FlushTimer->OnTimerExpired.connect([this](const Timer * const&) { FlushTimeout(); });
 	m_FlushTimer->Start();
@@ -116,6 +116,8 @@ void ElasticsearchWriter::Pause()
 	m_HandleCheckResults.disconnect();
 	m_HandleStateChanges.disconnect();
 	m_HandleNotifications.disconnect();
+
+	m_FlushTimer->Stop(true);
 
 	Flush();
 	m_WorkQueue.Join();

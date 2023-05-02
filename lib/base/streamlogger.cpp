@@ -28,7 +28,7 @@ void StreamLogger::Stop(bool runtimeRemoved)
 StreamLogger::~StreamLogger()
 {
 	if (m_FlushLogTimer)
-		m_FlushLogTimer->Stop();
+		m_FlushLogTimer->Stop(true);
 
 	if (m_Stream && m_OwnsStream)
 		delete m_Stream;
@@ -58,7 +58,7 @@ void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)
 	m_OwnsStream = ownsStream;
 
 	if (!m_FlushLogTimer) {
-		m_FlushLogTimer = new Timer();
+		m_FlushLogTimer = Timer::Create();
 		m_FlushLogTimer->SetInterval(1);
 		m_FlushLogTimer->OnTimerExpired.connect([this](const Timer * const&) { FlushLogTimerHandler(); });
 		m_FlushLogTimer->Start();

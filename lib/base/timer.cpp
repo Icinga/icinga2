@@ -12,6 +12,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <utility>
 
 using namespace icinga;
 
@@ -60,6 +61,15 @@ static TimerSet l_Timers;
 static int l_AliveTimers = 0;
 
 static Defer l_ShutdownTimersCleanlyOnExit (&Timer::Uninitialize);
+
+Timer::Ptr Timer::Create()
+{
+	Ptr t (new Timer());
+
+	t->m_Self = t;
+
+	return t;
+}
 
 /**
  * Destructor for the Timer class.
@@ -151,16 +161,15 @@ double Timer::GetInterval() const
  */
 void Timer::Start()
 {
-	{
-		std::unique_lock<std::mutex> lock(l_TimerMutex);
-		m_Started = true;
+	std::unique_lock<std::mutex> lock(l_TimerMutex);
 
-		if (++l_AliveTimers == 1) {
-			InitializeThread();
-		}
+	if (!m_Started && ++l_AliveTimers == 1) {
+		InitializeThread();
 	}
 
-	InternalReschedule(false);
+	m_Started = true;
+
+	InternalRescheduleUnlocked(false, m_Interval > 0 ? -1 : m_Next);
 }
 
 /**
@@ -192,6 +201,13 @@ void Timer::Reschedule(double next)
 	InternalReschedule(false, next);
 }
 
+void Timer::InternalReschedule(bool completed, double next)
+{
+	std::unique_lock<std::mutex> lock (l_TimerMutex);
+
+	InternalRescheduleUnlocked(completed, next);
+}
+
 /**
  * Reschedules this timer.
  *
@@ -199,10 +215,8 @@ void Timer::Reschedule(double next)
  * @param next The time when this timer should be called again. Use -1 to let
  *        the timer figure out a suitable time based on the interval.
  */
-void Timer::InternalReschedule(bool completed, double next)
+void Timer::InternalRescheduleUnlocked(bool completed, double next)
 {
-	std::unique_lock<std::mutex> lock(l_TimerMutex);
-
 	if (completed)
 		m_Running = false;
 
@@ -238,7 +252,7 @@ double Timer::GetNext() const
 }
 
 /**
- * Adjusts all timers by adding the specified amount of time to their
+ * Adjusts all periodic timers by adding the specified amount of time to their
  * next scheduled timestamp.
  *
  * @param adjustment The adjustment.
@@ -255,6 +269,11 @@ void Timer::AdjustTimers(double adjustment)
 	std::vector<Timer *> timers;
 
 	for (Timer *timer : idx) {
+		/* Don't schedule the next call if this is not a periodic timer. */
+		if (timer->m_Interval <= 0) {
+			continue;
+		}
+
 		if (std::fabs(now - (timer->m_Next + adjustment)) <
 			std::fabs(now - timer->m_Next)) {
 			timer->m_Next += adjustment;
@@ -282,9 +301,9 @@ void Timer::TimerThreadProc()
 
 	Utility::SetThreadName("Timer Thread");
 
-	for (;;) {
-		std::unique_lock<std::mutex> lock(l_TimerMutex);
+	std::unique_lock<std::mutex> lock (l_TimerMutex);
 
+	for (;;) {
 		typedef boost::multi_index::nth_index<TimerSet, 1>::type NextTimerView;
 		NextTimerView& idx = boost::get<1>(l_Timers);
 
@@ -316,11 +335,20 @@ void Timer::TimerThreadProc()
 		 * until the current call is completed. */
 		l_Timers.erase(timer);
 
+		auto keepAlive (timer->m_Self.lock());
+
+		if (!keepAlive) {
+			// The last std::shared_ptr is gone, let ~Timer() proceed
+			continue;
+		}
+
 		timer->m_Running = true;
 
 		lock.unlock();
 
 		/* Asynchronously call the timer. */
-		Utility::QueueAsyncCallback([timer]() { timer->Call(); });
+		Utility::QueueAsyncCallback([timer=std::move(keepAlive)]() { timer->Call(); });
+
+		lock.lock();
 	}
 }

@@ -44,7 +44,7 @@ void NotificationComponent::Start(bool runtimeCreated)
 		SendNotificationsHandler(checkable, type, cr, author, text);
 	});
 
-	m_NotificationTimer = new Timer();
+	m_NotificationTimer = Timer::Create();
 	m_NotificationTimer->SetInterval(5);
 	m_NotificationTimer->OnTimerExpired.connect([this](const Timer * const&) { NotificationTimerHandler(); });
 	m_NotificationTimer->Start();
@@ -52,6 +52,8 @@ void NotificationComponent::Start(bool runtimeCreated)
 
 void NotificationComponent::Stop(bool runtimeRemoved)
 {
+	m_NotificationTimer->Stop(true);
+
 	Log(LogInformation, "NotificationComponent")
 		<< "'" << GetName() << "' stopped.";
 
