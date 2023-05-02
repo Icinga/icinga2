@@ -6,6 +6,7 @@ set(BOOST_MIN_VERSION "1.66.0")
 if("${CMAKE_VERSION}" VERSION_LESS "3.8") # SLES 12.5
   if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    message(FATAL_ERROR "${CMAKE_CXX_FLAGS}")
   endif()
 else()
   set(CMAKE_CXX_STANDARD 17)
