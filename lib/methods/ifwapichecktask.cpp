@@ -245,13 +245,11 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", command);
 
-	auto resolveMacros ([&resolvers, &lcr, &resolvedMacros, useResolvedMacros](const char* macros, String* missingMacro = nullptr) -> Value {
+	auto resolveMacros ([&resolvers, &lcr, &resolvedMacros, useResolvedMacros](const char* macros) -> Value {
 		return MacroProcessor::ResolveMacros(
-			macros, resolvers, lcr, missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros
+			macros, resolvers, lcr, nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros
 		);
 	});
-
-	String missingCert, missingKey, missingCa, missingCrl, missingUsername, missingPassword;
 
 	String psCommand = resolveMacros("$ifw_api_command$");
 	Dictionary::Ptr arguments = resolveMacros("$ifw_api_arguments$");
@@ -259,12 +257,12 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	String psHost = resolveMacros("$ifw_api_host$");
 	String psPort = resolveMacros("$ifw_api_port$");
 	String expectedSan = resolveMacros("$ifw_api_expected_san$");
-	String cert = resolveMacros("$ifw_api_cert$", &missingCert);
-	String key = resolveMacros("$ifw_api_key$", &missingKey);
-	String ca = resolveMacros("$ifw_api_ca$", &missingCa);
-	String crl = resolveMacros("$ifw_api_crl$", &missingCrl);
-	String username = resolveMacros("$ifw_api_username$", &missingUsername);
-	String password = resolveMacros("$ifw_api_password$", &missingPassword);
+	String cert = resolveMacros("$ifw_api_cert$");
+	String key = resolveMacros("$ifw_api_key$");
+	String ca = resolveMacros("$ifw_api_ca$");
+	String crl = resolveMacros("$ifw_api_crl$");
+	String username = resolveMacros("$ifw_api_username$");
+	String password = resolveMacros("$ifw_api_password$");
 
 	Dictionary::Ptr params = new Dictionary();
 
@@ -344,15 +342,15 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		expectedSan = IcingaApplication::GetInstance()->GetNodeName();
 	}
 
-	if (!missingCert.IsEmpty()) {
+	if (cert.IsEmpty()) {
 		cert = ApiListener::GetDefaultCertPath();
 	}
 
-	if (!missingKey.IsEmpty()) {
+	if (key.IsEmpty()) {
 		key = ApiListener::GetDefaultKeyPath();
 	}
 
-	if (!missingCa.IsEmpty()) {
+	if (ca.IsEmpty()) {
 		ca = ApiListener::GetDefaultCaPath();
 	}
 
@@ -368,7 +366,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	req->set(field::content_type, "application/json");
 	req->body() = JsonEncode(params);
 
-	if (missingUsername.IsEmpty() && missingPassword.IsEmpty()) {
+	if (!username.IsEmpty() && !password.IsEmpty()) {
 		req->set(field::authorization, "Basic " + Base64::Encode(username + ":" + password));
 	}
 
