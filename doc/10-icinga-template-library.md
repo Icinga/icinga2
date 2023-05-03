@@ -190,6 +190,56 @@ sleep\_time     | **Optional.** The duration of the sleep in seconds. Defaults t
 <!-- keep this anchor for URL link history only -->
 <a id="plugin-check-commands"></a>
 
+### ifw-api <a id="itl-ifw-api"></a>
+
+Built-in check command for executing arbitrary PowerShell check commands via the
+[Icinga for Windows REST API](https://icinga.com/docs/icinga-for-windows/latest/doc/110-Installation/30-API-Check-Forwarder/).
+
+That feature lets the PowerShell processes spawned by Icinga just talk
+to the pre-loaded IfW API instead of loading all PowerShell check commands
+by itself on every check. In contrast the `ifw-api` command doesn't even spawn
+any process, but communicates directly with the IfW API.
+
+Ideally you run the Icinga Director and have imported our PowerShell check commands from
+[their basket](https://icinga.com/docs/icinga-for-windows/latest/doc/200-Icinga-Integration/01-Director-Baskets/).
+In this case adding `ifw-api` to the imports
+of the _PowerShell Base_ check command is enough to enable `ifw-api` globally.
+
+But the `ifw-api` command may be also used like e.g. [check_by_ssh](#plugin-check-command-by-ssh).
+Its custom variables provide high flexibility.
+From using a custom CA to controlling the IfW API directly from a Linux satellite.
+
+Optional custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                       | Default               | Description
+---------------------------|-----------------------|-----------------
+ifw\_api\_command          | `$command.name$`      | Command to run.
+ifw\_api\_arguments        | `$command.arguments$` | Arguments for the command as in check\_by\_ssh.
+ifw\_api\_ignore_arguments | IfW-specific array    | Arguments from ifw\_api\_arguments not to pass.
+ifw\_api\_host             | null (localhost)      | IfW API host.
+ifw\_api\_port             | 5668                  | IfW API port.
+ifw\_api\_expected_san     | `$ifw_api_host$`      | Peer TLS certificate SAN (and SNI). null means agent NodeName.
+ifw\_api\_cert             | null (Icinga PKI)     | TLS client certificate path.
+ifw\_api\_key              | null (Icinga PKI)     | TLS client private key path.
+ifw\_api\_ca               | null (Icinga PKI)     | Peer TLS CA certificate path.
+ifw\_api\_crl              | null (Icinga PKI)     | Path to TLS CRL to check peer against.
+ifw\_api\_username         | null (none)           | Basic auth username.
+ifw\_api\_password         | null (none)           | Basic auth password.
+
+Just importing `ifw-api` into _PowerShell Base_ works because:
+
+* `$command.name$` is resolved at runtime to the name of the specific
+  check command being run and not any of the templates it imports, i.e. it
+  becomes e.g. "Invoke-IcingaCheckCPU", not "PowerShell Base" or even "ifw-api"
+* `$command.arguments$` is resolved at runtime just like `$command.name$`
+* `$command.arguments$` includes arguments needed by the vanilla
+  PowerShell Base, but unsuitable for the IfW API, so
+  ifw\_api\_ignore_arguments lists them not to pass them
+* By default `ifw-api` connects to localhost, but expects the peer to identify
+  itself via TLS with the NodeName of the endpoint actually running the command
+* ifw\_api\_cert, ifw\_api\_key, ifw\_api\_ca and ifw\_api\_crl
+  are also resolved on the command endpoint
+
 ## Plugin Check Commands for Monitoring Plugins <a id="plugin-check-commands-monitoring-plugins"></a>
 
 The Plugin Check Commands provides example configuration for plugin check commands
