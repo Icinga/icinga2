@@ -237,8 +237,8 @@ Just importing `ifw-api` into _PowerShell Base_ works because:
   ifw\_api\_ignore_arguments lists them not to pass them
 * By default `ifw-api` connects to localhost, but expects the peer to identify
   itself via TLS with the NodeName of the endpoint actually running the command
-* ifw\_api\_cert, ifw\_api\_key, ifw\_api\_ca and ifw\_api\_crl
-  are also resolved on the command endpoint
+* The actual values of ifw\_api\_cert, ifw\_api\_key, ifw\_api\_ca and ifw\_api\_crl
+  are also resolved on the command endpoint if null (default)
 
 ## Plugin Check Commands for Monitoring Plugins <a id="plugin-check-commands-monitoring-plugins"></a>
 
