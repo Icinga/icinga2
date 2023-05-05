@@ -17,6 +17,7 @@
 #include <condition_variable>
 #include <cstdint>
 #include <functional>
+#include <limits>
 
 namespace icinga
 {
@@ -156,7 +157,7 @@ public:
 
 	/* Comments */
 	void RemoveAllComments();
-	void RemoveCommentsByType(int type, const String& removedBy = String());
+	void RemoveAckComments(const String& removedBy = String(), double createdBefore = std::numeric_limits<double>::max());
 
 	std::set<Comment::Ptr> GetComments() const;
 	Comment::Ptr GetLastComment() const;

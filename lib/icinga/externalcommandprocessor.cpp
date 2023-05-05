@@ -665,7 +665,7 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vecto
 		service->ClearAcknowledgement("");
 	}
 
-	service->RemoveCommentsByType(CommentAcknowledgement);
+	service->RemoveAckComments();
 }
 
 void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<String>& arguments)
@@ -738,7 +738,7 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const std::vect
 		ObjectLock olock(host);
 		host->ClearAcknowledgement("");
 	}
-	host->RemoveCommentsByType(CommentAcknowledgement);
+	host->RemoveAckComments();
 }
 
 void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const std::vector<String>& arguments)
