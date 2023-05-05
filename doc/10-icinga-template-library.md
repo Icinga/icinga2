@@ -214,7 +214,7 @@ Optional custom variables passed as [command parameters](03-monitoring-basics.md
 Name                       | Default               | Description
 ---------------------------|-----------------------|-----------------
 ifw\_api\_command          | `$command.name$`      | Command to run.
-ifw\_api\_arguments        | `$command.arguments$` | Arguments for the command as in check\_by\_ssh.
+ifw\_api\_arguments        | `$command.arguments$` | Arguments for the command as in [CheckCommand](09-object-types.md#objecttype-checkcommand)#arguments.
 ifw\_api\_ignore_arguments | IfW-specific array    | Arguments from ifw\_api\_arguments not to pass.
 ifw\_api\_host             | null (localhost)      | IfW API host.
 ifw\_api\_port             | 5668                  | IfW API port.
