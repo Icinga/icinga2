@@ -5796,6 +5796,7 @@ ssl_cert_selfsigned           | **Optional.** Allow self-signed certificate.
 ssl_cert_sni                  | **Optional.** Sets the TLS SNI (Server Name Indication) extension.
 ssl_cert_timeout              | **Optional.** Seconds before connection times out (default: 15)
 ssl_cert_protocol             | **Optional.** Use the specific protocol {http,smtp,pop3,imap,ftp,xmpp,irc,ldap} (default: http).
+ssl_cert_http_url             | **Optional.** HTTP Request URL (default: /)
 ssl_cert_clientcert           | **Optional.** Use client certificate to authenticate.
 ssl_cert_clientpass           | **Optional.** Set passphrase for client certificate.
 ssl_cert_ssllabs              | **Optional.** SSL Labs assessment
