@@ -5785,7 +5785,6 @@ ssl_cert_file                 | **Optional.** Local file path. Works only if `ss
 ssl_cert_warn                 | **Optional.** Minimum number of days a certificate has to be valid.
 ssl_cert_critical             | **Optional.** Minimum number of days a certificate has to be valid to issue a critical status.
 ssl_cert_cn                   | **Optional.** Pattern to match the CN or AltName of the certificate.
-ssl_cert_altnames             | **Optional.** Matches the pattern specified in -n with alternate
 ssl_cert_issuer               | **Optional.** Pattern to match the issuer of the certificate.
 ssl_cert_org                  | **Optional.** Pattern to match the organization of the certificate.
 ssl_cert_email                | **Optional.** Pattern to match the email address contained in the certificate.
