@@ -7,6 +7,43 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.14.0 (TODO)
+
+[Issues and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=is%3Aclosed+milestone%3A2.14.0)
+
+### Notes
+
+Upgrading docs: https://icinga.com/TODO
+
+Thanks to all contributors:
+[atj](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aatj),
+[atwebm](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aatwebm),
+[cspeterson](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Acspeterson),
+[cycloon](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Acycloon),
+[DamianoChini](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3ADamianoChini),
+[efuss](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aefuss),
+[fabieins](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Afabieins),
+[haxtibal](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Ahaxtibal),
+[jaapmarcus](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Ajaapmarcus),
+[log1-c](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Alog1-c),
+[lrupp](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Alrupp),
+[maggu](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Amaggu),
+[mcodato](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Amcodato),
+[Napsty](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3ANapsty),
+[orbison](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aorbison),
+[peteeckel](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Apeteeckel),
+[slalomsk8er](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aslalomsk8er),
+[stevie-sy](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Astevie-sy),
+[Tqnsls](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3ATqnsls)
+
+### Enhancements
+
+TODO
+
+### Bugfixes
+
+TODO
+
 ## 2.13.7 (2023-02-16)
 
 This security release updates Boost and OpenSSL libraries bundled on Windows
