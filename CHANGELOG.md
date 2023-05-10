@@ -42,7 +42,8 @@ TODO
 
 ### Bugfixes
 
-TODO
+* Documentation: several fixes and improvements. #8954 #9737 #9741
+* TODO
 
 ## 2.13.7 (2023-02-16)
 
