@@ -53,6 +53,17 @@ TODO
   other local zone members if there aren't any. #8595
 * Add linux\_netdev check command. #9045
 
+#### Command Argument Changes
+
+* disk: don't pass -m (disk\_megabytes) by default. #9642
+* disk: pass -X fuse.portal (disk\_exclude\_type) by default. #9459
+* http: support multiple -k (http\_header) as array. #8574
+* icmp: double defaults for -w (icmp\_wpl) and -c (icmp\_cpl). #9041
+* logfiles: pass --winwarncrit (logfiles\_winwarncrit) without argument. #9056
+* nwc\_health: pass SNMPv3-only args only when using SNMPv3. #9095
+* vmware-esx-dc-runtime-tools and vmware-esx-soap-vm-runtime-tools:
+  rename --open-vm-tools to --open\_vm\_tools\_ok (vmware\_openvmtools). #9611
+
 #### New Command Arguments
 
 | Command                          | Argument                   | Custom Variable                          | PR    |
@@ -86,17 +97,6 @@ TODO
 | tcp                              | --sni                      | tcp\_sni                                 | #9347 |
 | vmware-esx-dc-runtime-tools      | --no\_vm\_tools\_ok        | vmware\_novmtools                        | #9611 |
 | vmware-esx-soap-vm-runtime-tools | --no\_vm\_tools\_ok        | vmware\_novmtools                        | #9611 |
-
-#### Command Argument Changes
-
-* disk: don't pass -m (disk\_megabytes) by default. #9642
-* disk: pass -X fuse.portal (disk\_exclude\_type) by default. #9459
-* http: support multiple -k (http\_header) as array. #8574
-* icmp: double defaults for -w (icmp\_wpl) and -c (icmp\_cpl). #9041
-* logfiles: pass --winwarncrit (logfiles\_winwarncrit) without argument. #9056
-* nwc\_health: pass SNMPv3-only args only when using SNMPv3. #9095
-* vmware-esx-dc-runtime-tools and vmware-esx-soap-vm-runtime-tools:
-  rename --open-vm-tools to --open\_vm\_tools\_ok (vmware\_openvmtools). #9611
 
 ## 2.13.7 (2023-02-16)
 
